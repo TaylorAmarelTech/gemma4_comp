@@ -113,5 +113,14 @@ def test_a00_reports_dimension_level_evidence():
         "dimension_summary",
         "mean_score_0_10",
         "Mean dynamic weight",
+        "Prompt, Output, And Judgment Appendix",
+        "Static Report Charts",
+        "prompt_response_csv",
+        "score_chart_svg",
+        "latency_chart_svg",
+        "evidence_manifest",
+        "evidence_zip",
+        "writeup_ready_outputs",
+        "WeasyPrint unavailable; wrote fallback PDF summary",
     ]:
         assert marker in text

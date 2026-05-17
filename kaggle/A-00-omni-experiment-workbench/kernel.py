@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import html
 import importlib.util
 import io
 import json
@@ -2293,15 +2294,233 @@ def _compare_runs(run_ids: list[str]) -> dict[str, Any]:
     return {"runs": rows, "baseline_run_id": baseline["run_id"]}
 
 
+def _html_escape(value: Any) -> str:
+    return html.escape(str(value if value is not None else ""), quote=True)
+
+
+def _compact_json(data: Any) -> str:
+    return json.dumps(data, ensure_ascii=False, sort_keys=True, default=str)
+
+
+def _write_csv_artifact(path: Path, rows: list[dict[str, Any]], fieldnames: list[str]) -> None:
+    with path.open("w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in rows:
+            writer.writerow({k: row.get(k, "") for k in fieldnames})
+
+
+def _report_prompt_response_rows(selected_bundles: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for bundle in selected_bundles:
+        run_label = bundle.get("harness", {}).get("label", bundle.get("harness_profile"))
+        for idx, result in enumerate(bundle.get("results", []) or [], start=1):
+            grade = result.get("grade") or {}
+            rows.append({
+                "run_id": bundle.get("run_id"),
+                "run_label": run_label,
+                "harness_profile": bundle.get("harness_profile"),
+                "prompt_index": idx,
+                "prompt_id": result.get("prompt_id"),
+                "lane": result.get("lane"),
+                "raw_prompt": result.get("prompt", ""),
+                "model_prompt_sent_to_gemma": result.get("model_prompt", ""),
+                "response": result.get("response", ""),
+                "score_0_10": grade.get("score_0_10"),
+                "score_pct": grade.get("score_pct"),
+                "grader": grade.get("grader"),
+                "judge_model_json": _compact_json(grade.get("judge_model", {})),
+                "grade_json": _compact_json(grade),
+                "generation_json": _compact_json(result.get("generation", {})),
+                "harness_trace_json": _compact_json(result.get("harness_trace", {})),
+            })
+    return rows
+
+
+def _write_report_svg_bar_chart(
+    path: Path,
+    *,
+    title: str,
+    rows: list[dict[str, Any]],
+    value_key: str,
+    suffix: str = "",
+) -> str:
+    width, height = 980, 360
+    left, right, top, bottom = 76, 34, 50, 72
+    plot_w = width - left - right
+    plot_h = height - top - bottom
+    values = [float(r.get(value_key) or 0) for r in rows]
+    max_value = max(values + [1.0])
+    colors = ["#355C7D", "#6C8E5E", "#C27C2C", "#8A5A74", "#5B6F9B", "#9A6B43"]
+    n = max(1, len(rows))
+    slot = plot_w / n
+    bar_w = min(96, slot * 0.62)
+    parts = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-label="{_html_escape(title)}">',
+        "<style>text{font-family:Arial,sans-serif;fill:#15171d}.axis{stroke:#9aa3af;stroke-width:1}.grid{stroke:#e6e9ee;stroke-width:1}.bar-label{font-size:12px}.title{font-size:20px;font-weight:700}.tick{font-size:11px;fill:#4b5563}</style>",
+        f'<rect width="{width}" height="{height}" fill="#ffffff"/>',
+        f'<text class="title" x="{left}" y="28">{_html_escape(title)}</text>',
+    ]
+    for i in range(5):
+        y = top + plot_h - (plot_h * i / 4)
+        tick_value = max_value * i / 4
+        parts.append(f'<line class="grid" x1="{left}" y1="{y:.1f}" x2="{width-right}" y2="{y:.1f}"/>')
+        parts.append(f'<text class="tick" x="12" y="{y + 4:.1f}">{tick_value:.1f}{_html_escape(suffix)}</text>')
+    parts.append(f'<line class="axis" x1="{left}" y1="{top}" x2="{left}" y2="{top + plot_h}"/>')
+    parts.append(f'<line class="axis" x1="{left}" y1="{top + plot_h}" x2="{width-right}" y2="{top + plot_h}"/>')
+    for idx, row in enumerate(rows):
+        value = float(row.get(value_key) or 0)
+        bar_h = 0 if max_value <= 0 else (value / max_value) * plot_h
+        x = left + idx * slot + (slot - bar_w) / 2
+        y = top + plot_h - bar_h
+        label = str(row.get("label") or row.get("harness_profile") or f"run {idx + 1}")
+        if len(label) > 26:
+            label = label[:23] + "..."
+        parts.extend([
+            f'<rect x="{x:.1f}" y="{y:.1f}" width="{bar_w:.1f}" height="{bar_h:.1f}" rx="4" fill="{colors[idx % len(colors)]}"/>',
+            f'<text class="bar-label" text-anchor="middle" x="{x + bar_w / 2:.1f}" y="{max(top + 14, y - 8):.1f}">{value:.1f}{_html_escape(suffix)}</text>',
+            f'<text class="tick" text-anchor="middle" x="{x + bar_w / 2:.1f}" y="{height - 35}" transform="rotate(-18 {x + bar_w / 2:.1f} {height - 35})">{_html_escape(label)}</text>',
+        ])
+    parts.append("</svg>")
+    svg = "\n".join(parts)
+    path.write_text(svg, encoding="utf-8")
+    return svg
+
+
+def _report_prompt_response_html(prompt_rows: list[dict[str, Any]]) -> str:
+    if not prompt_rows:
+        return ""
+    cards = []
+    for row in prompt_rows:
+        summary = (
+            f"{row.get('run_label')} | {row.get('prompt_id')} | "
+            f"score {row.get('score_0_10', '')}/10"
+        )
+        cards.append(
+            "<details class=\"prompt-card\">"
+            f"<summary>{_html_escape(summary)}</summary>"
+            "<h3>Input Prompt</h3>"
+            f"<pre>{_html_escape(row.get('raw_prompt'))}</pre>"
+            "<h3>Model Prompt Sent To Gemma</h3>"
+            f"<pre>{_html_escape(row.get('model_prompt_sent_to_gemma'))}</pre>"
+            "<h3>Model Response</h3>"
+            f"<pre>{_html_escape(row.get('response'))}</pre>"
+            "<h3>Grade And Trace</h3>"
+            f"<pre>{_html_escape(row.get('grade_json'))}</pre>"
+            "</details>"
+        )
+    return "<h2>Prompt, Output, And Judgment Appendix</h2><p>Each entry includes the raw input, exact prompt sent to Gemma, model output, and grading payload.</p>" + "\n".join(cards)
+
+
+def _write_report_evidence_bundle(
+    *,
+    zip_path: Path,
+    artifacts: dict[str, str],
+    selected_bundles: list[dict[str, Any]],
+) -> None:
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
+        for key, path_value in artifacts.items():
+            path = Path(path_value)
+            if key == "evidence_zip" or not path.exists():
+                continue
+            z.write(path, arcname=f"report/{path.name}")
+        for bundle in selected_bundles:
+            run_id = _safe_slug(str(bundle.get("run_id") or "run"))
+            for key, path_value in (bundle.get("artifacts") or {}).items():
+                path = Path(path_value)
+                if path.exists():
+                    z.write(path, arcname=f"runs/{run_id}/{path.name}")
+        z.writestr(
+            "README.txt",
+            "DueCare A-00 evidence bundle. Contains the HTML/PDF/Markdown/JSON report, "
+            "static SVG chart assets, CSV tables, and per-run JSON/CSV/ZIP exports.\n",
+        )
+
+
+def _pdf_escape(value: str) -> str:
+    return value.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+
+
+def _wrap_text(value: str, width: int = 96) -> list[str]:
+    words = str(value or "").replace("\r", " ").split()
+    lines: list[str] = []
+    current: list[str] = []
+    current_len = 0
+    for word in words:
+        extra = 1 if current else 0
+        if current and current_len + extra + len(word) > width:
+            lines.append(" ".join(current))
+            current = [word]
+            current_len = len(word)
+        else:
+            current.append(word)
+            current_len += extra + len(word)
+    if current:
+        lines.append(" ".join(current))
+    return lines or [""]
+
+
+def _write_simple_pdf(path: Path, title: str, lines: list[str]) -> None:
+    """Dependency-free fallback PDF for Kaggle environments without WeasyPrint."""
+    page_lines: list[str] = []
+    for line in [title, "", *lines]:
+        page_lines.extend(_wrap_text(line))
+    pages = [page_lines[i:i + 42] for i in range(0, len(page_lines), 42)] or [[title]]
+    objects: list[str] = []
+    objects.append("<< /Type /Catalog /Pages 2 0 R >>")
+    objects.append("")  # pages object filled after page ids are known
+    objects.append("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>")
+    page_ids: list[int] = []
+    for page in pages:
+        page_id = len(objects) + 1
+        content_id = len(objects) + 2
+        page_ids.append(page_id)
+        content_lines = ["BT", "/F1 10 Tf", "54 760 Td", "14 TL"]
+        for idx, line in enumerate(page):
+            safe = line.encode("latin-1", errors="replace").decode("latin-1")
+            if idx == 0:
+                content_lines.append(f"({_pdf_escape(safe)}) Tj")
+            else:
+                content_lines.append(f"T* ({_pdf_escape(safe)}) Tj")
+        content_lines.append("ET")
+        content = "\n".join(content_lines)
+        objects.append(f"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents {content_id} 0 R >>")
+        objects.append(f"<< /Length {len(content.encode('latin-1', errors='replace'))} >>\nstream\n{content}\nendstream")
+    kids = " ".join(f"{pid} 0 R" for pid in page_ids)
+    objects[1] = f"<< /Type /Pages /Kids [{kids}] /Count {len(page_ids)} >>"
+    pdf_parts = ["%PDF-1.4\n"]
+    offsets: list[int] = []
+    offset = len(pdf_parts[0].encode("latin-1"))
+    for idx, obj in enumerate(objects, start=1):
+        offsets.append(offset)
+        chunk = f"{idx} 0 obj\n{obj}\nendobj\n"
+        pdf_parts.append(chunk)
+        offset += len(chunk.encode("latin-1", errors="replace"))
+    xref_offset = offset
+    xref = ["xref", f"0 {len(objects) + 1}", "0000000000 65535 f "]
+    xref.extend(f"{item:010d} 00000 n " for item in offsets)
+    trailer = f"trailer\n<< /Size {len(objects) + 1} /Root 1 0 R >>\nstartxref\n{xref_offset}\n%%EOF\n"
+    pdf_parts.append("\n".join(xref) + "\n" + trailer)
+    path.write_bytes("".join(pdf_parts).encode("latin-1", errors="replace"))
+
+
 def _build_report(req: ReportRequest) -> dict[str, Any]:
     comparison = _compare_runs(req.run_ids)
     report_id = "a00_report_" + datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     html_path = RUN_DIR / f"{report_id}.html"
     md_path = RUN_DIR / f"{report_id}.md"
     json_path = RUN_DIR / f"{report_id}.json"
+    comparison_csv_path = RUN_DIR / f"{report_id}_comparison.csv"
+    dimension_csv_path = RUN_DIR / f"{report_id}_dimension_summary.csv"
+    prompt_csv_path = RUN_DIR / f"{report_id}_prompt_responses.csv"
+    score_svg_path = RUN_DIR / f"{report_id}_score_chart.svg"
+    latency_svg_path = RUN_DIR / f"{report_id}_latency_chart.svg"
+    manifest_path = RUN_DIR / f"{report_id}_evidence_manifest.json"
+    evidence_zip_path = RUN_DIR / f"{report_id}_evidence_bundle.zip"
 
     rows = comparison["runs"]
     selected_bundles = [STATE["exports"][r["run_id"]] for r in rows if r["run_id"] in STATE["exports"]]
+    prompt_rows = _report_prompt_response_rows(selected_bundles)
     dim_rows: list[dict[str, Any]] = []
     for bundle in selected_bundles:
         accum: dict[str, dict[str, Any]] = {}
@@ -2329,6 +2548,39 @@ def _build_report(req: ReportRequest) -> dict[str, Any]:
             item["mean_weight"] = round(item["weight_sum"] / item["n"], 3) if item["n"] else 0
             dim_rows.append(item)
     dim_rows.sort(key=lambda x: (x.get("id", ""), x.get("run_id", "")))
+    _write_csv_artifact(
+        comparison_csv_path,
+        rows,
+        ["run_id", "label", "harness_profile", "model_ref", "score_pct", "score_0_10", "score_delta_pp_vs_first", "mean_seconds", "latency_delta_s_vs_first", "tokens_per_second_est", "n"],
+    )
+    _write_csv_artifact(
+        dimension_csv_path,
+        dim_rows,
+        ["run_id", "label", "id", "label_dim", "n", "mean_score_0_10", "mean_weight"],
+    )
+    _write_csv_artifact(
+        prompt_csv_path,
+        prompt_rows,
+        [
+            "run_id", "run_label", "harness_profile", "prompt_index", "prompt_id", "lane",
+            "raw_prompt", "model_prompt_sent_to_gemma", "response", "score_0_10", "score_pct",
+            "grader", "judge_model_json", "grade_json", "generation_json", "harness_trace_json",
+        ],
+    )
+    score_svg = _write_report_svg_bar_chart(
+        score_svg_path,
+        title="Mean Evaluation Score",
+        rows=rows,
+        value_key="score_pct",
+        suffix="%",
+    )
+    latency_svg = _write_report_svg_bar_chart(
+        latency_svg_path,
+        title="Mean Inference Latency",
+        rows=rows,
+        value_key="mean_seconds",
+        suffix="s",
+    )
     chart_html = ""
     if go is not None and pio is not None:
         score_fig = go.Figure(data=[
@@ -2374,6 +2626,17 @@ def _build_report(req: ReportRequest) -> dict[str, Any]:
         f"<tbody>{dim_table_rows}</tbody></table>"
         if dim_table_rows else ""
     )
+    prompt_appendix_html = _report_prompt_response_html(prompt_rows)
+    static_chart_html = (
+        "<h2>Static Report Charts</h2>"
+        "<p>These SVG charts are saved as standalone image artifacts and are embedded here so PDF export remains readable even without browser JavaScript.</p>"
+        f"<div class=\"chart-block\">{score_svg}</div>"
+        f"<div class=\"chart-block\">{latency_svg}</div>"
+    )
+    artifact_note = (
+        "<h2>Evidence Artifacts</h2>"
+        "<p>The evidence ZIP contains this HTML report, Markdown, JSON, CSV tables, static SVG charts, the PDF when available, and the selected run JSON/CSV/ZIP exports.</p>"
+    )
     html_doc = f"""<!doctype html>
 <html><head><meta charset="utf-8"><title>{req.title}</title>
 <style>
@@ -2382,12 +2645,19 @@ table {{ border-collapse: collapse; width: 100%; margin: 18px 0; }}
 th,td {{ border: 1px solid #d9dde3; padding: 8px 10px; text-align: left; }}
 th {{ background: #f4f6f8; }}
 .note {{ background: #f8f4ec; border-left: 4px solid #b7791f; padding: 12px 14px; }}
+pre {{ white-space: pre-wrap; overflow-wrap: anywhere; background: #f7f8fa; border: 1px solid #e2e6ed; padding: 12px; }}
+details.prompt-card {{ border: 1px solid #d9dde3; border-radius: 8px; padding: 10px 14px; margin: 12px 0; }}
+details.prompt-card summary {{ cursor: pointer; font-weight: 700; }}
+.chart-block {{ margin: 18px 0; overflow-x: auto; }}
 </style></head><body>
 <h1>{req.title}</h1>
 <p>Generated { _utc() }. This report compares one or more exports from the same prompt library. It separates quality, grounding, latency, and local inference economics.</p>
 <div class="note">Cost note: local Gemma 4 inference has no per-token API fee. Compare cost using GPU minutes, hosting cost, and tokens per second. Harness layers may increase prompt tokens but can reduce review labor by improving grounding and reducing unsafe responses.</div>
 <table><thead><tr><th>Run</th><th>Model</th><th>Score %</th><th>Lift vs first</th><th>Mean seconds</th><th>Tokens/sec est.</th></tr></thead><tbody>{table_rows}</tbody></table>
+{static_chart_html}
 {dim_table}
+{prompt_appendix_html}
+{artifact_note}
 {chart_html}
 </body></html>"""
     html_path.write_text(html_doc, encoding="utf-8")
@@ -2423,14 +2693,18 @@ th {{ background: #f4f6f8; }}
         "## Inference Cost and Speed",
         "",
         "Local Gemma 4 runs have no per-token API charge. The practical cost is GPU minutes, memory footprint, and reviewer time. A harness can add prompt tokens and a small amount of preprocessing time, but the report should be read against quality lift, citation grounding, and reduced unsafe or unusable outputs.",
+        "",
+        "## Evidence Artifacts",
+        "",
+        f"- Comparison CSV: `{comparison_csv_path.name}`",
+        f"- Dimension CSV: `{dimension_csv_path.name}`",
+        f"- Prompt/response CSV: `{prompt_csv_path.name}`",
+        f"- Static score chart: `{score_svg_path.name}`",
+        f"- Static latency chart: `{latency_svg_path.name}`",
+        f"- Evidence manifest: `{manifest_path.name}`",
+        f"- Evidence bundle: `{evidence_zip_path.name}`",
     ])
     md_path.write_text("\n".join(md_lines), encoding="utf-8")
-    _write_json(json_path, {
-        "comparison": comparison,
-        "dimension_summary": dim_rows,
-        "html": str(html_path),
-        "markdown": str(md_path),
-    })
 
     pdf_path = None
     if req.include_pdf:
@@ -2439,11 +2713,80 @@ th {{ background: #f4f6f8; }}
             pdf_path = RUN_DIR / f"{report_id}.pdf"
             HTML(filename=str(html_path)).write_pdf(str(pdf_path))
         except Exception as exc:  # noqa: BLE001
-            dc_log("a00.report.pdf", f"PDF export skipped: {exc}", level="warn")
+            pdf_path = RUN_DIR / f"{report_id}.pdf"
+            fallback_lines = [
+                f"Generated: {_utc()}",
+                "WeasyPrint PDF rendering was unavailable, so A-00 wrote this dependency-free PDF summary.",
+                f"WeasyPrint error: {type(exc).__name__}: {exc}",
+                "Open the HTML report for full tables, prompt/response appendix, and static SVG charts.",
+                "",
+                "Run summary:",
+            ]
+            for row in rows:
+                fallback_lines.append(
+                    f"{row.get('label')}: score={row.get('score_pct')}%, "
+                    f"lift={row.get('score_delta_pp_vs_first'):+.1f} pp, "
+                    f"mean_seconds={row.get('mean_seconds')}, run_id={row.get('run_id')}"
+                )
+            fallback_lines.extend([
+                "",
+                "Evidence files:",
+                f"HTML: {html_path.name}",
+                f"Markdown: {md_path.name}",
+                f"JSON: {json_path.name}",
+                f"Prompt/response CSV: {prompt_csv_path.name}",
+                f"Evidence ZIP: {evidence_zip_path.name}",
+            ])
+            _write_simple_pdf(pdf_path, req.title, fallback_lines)
+            dc_log("a00.report.pdf", f"WeasyPrint unavailable; wrote fallback PDF summary: {exc}", level="warn")
 
-    artifacts = {"html": str(html_path), "markdown": str(md_path), "json": str(json_path)}
+    artifacts = {
+        "html": str(html_path),
+        "markdown": str(md_path),
+        "json": str(json_path),
+        "comparison_csv": str(comparison_csv_path),
+        "dimension_csv": str(dimension_csv_path),
+        "prompt_response_csv": str(prompt_csv_path),
+        "score_chart_svg": str(score_svg_path),
+        "latency_chart_svg": str(latency_svg_path),
+        "evidence_manifest": str(manifest_path),
+        "evidence_zip": str(evidence_zip_path),
+    }
     if pdf_path:
         artifacts["pdf"] = str(pdf_path)
+    report_payload = {
+        "report_id": report_id,
+        "title": req.title,
+        "created_at": _utc(),
+        "comparison": comparison,
+        "dimension_summary": dim_rows,
+        "prompt_response_rows": prompt_rows,
+        "run_ids": [b.get("run_id") for b in selected_bundles],
+        "artifacts": artifacts,
+    }
+    _write_json(json_path, report_payload)
+    _write_json(manifest_path, {
+        "schema_version": "duecare.a00.report_evidence.v1",
+        "report_id": report_id,
+        "created_at": report_payload["created_at"],
+        "title": req.title,
+        "included_run_ids": report_payload["run_ids"],
+        "artifacts": artifacts,
+        "included_run_artifacts": {
+            b.get("run_id"): b.get("artifacts", {})
+            for b in selected_bundles
+        },
+        "notes": [
+            "Prompt/response CSV contains raw prompts, model prompts, responses, grade JSON, generation metadata, and harness trace JSON.",
+            "Static SVG charts are included for clean HTML/PDF rendering and write-up screenshots.",
+            "The evidence ZIP contains the report artifacts plus selected run JSON/CSV/ZIP exports.",
+        ],
+    })
+    _write_report_evidence_bundle(
+        zip_path=evidence_zip_path,
+        artifacts=artifacts,
+        selected_bundles=selected_bundles,
+    )
     STATE["last_report"] = {"report_id": report_id, "comparison": comparison, "artifacts": artifacts}
     return STATE["last_report"]
 
@@ -4063,6 +4406,29 @@ def _evaluate_run_for_pipeline(
     }
 
 
+def _report_activity_detail(report: dict[str, Any], run_ids: list[str]) -> dict[str, Any]:
+    if not report:
+        return {"run_ids": run_ids, "report": "not requested"}
+    artifacts = report.get("artifacts") or {}
+    return {
+        "report_id": report.get("report_id"),
+        "run_ids": run_ids,
+        "comparison": report.get("comparison", {}),
+        "artifact_links": _artifact_links(artifacts),
+        "writeup_ready_outputs": [
+            "HTML report with static SVG charts",
+            "PDF report when WeasyPrint is available",
+            "Markdown report",
+            "JSON report payload",
+            "CSV comparison table",
+            "CSV dimension summary",
+            "CSV prompt/response/grade appendix",
+            "Evidence manifest",
+            "Single evidence ZIP with report and run exports",
+        ],
+    }
+
+
 def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
     with PIPELINE_JOB_LOCK:
         with JOB_STATE_LOCK:
@@ -4283,7 +4649,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                         job["judge_model"] = STATE.get("model_info")
                     if report:
                         job["report"] = report
-                _append_job_step(job_id, "21. Saving report", "running", report or {"run_ids": run_ids, "report": "not requested"})
+                _append_job_step(job_id, "21. Saving report and write-up evidence bundle", "running", _report_activity_detail(report, run_ids))
             else:
                 raise HTTPException(404, f"unknown pipeline preset {req.preset_id}")
 
@@ -5198,8 +5564,10 @@ function updatePreconfiguredFromJob(job) {
   if (labels.some(x => x.includes("15. completed"))) pct = 86;
   if (labels.some(x => x.includes("16. completed"))) pct = 90;
   if (labels.some(x => x.includes("17. unloading"))) pct = 92;
-  if (labels.some(x => x.includes("18. gemma evaluator loaded"))) pct = 94;
-  if (labels.some(x => x.includes("19. combined"))) pct = 96;
+  if (labels.some(x => x.includes("18. judge gemma evaluator loaded") || x.includes("18. gemma evaluator loaded"))) pct = 94;
+  if (labels.some(x => x.includes("19. evaluating responses"))) pct = 95;
+  if (labels.some(x => x.includes("19. judging response"))) pct = 96;
+  if (labels.some(x => x.includes("19. combined"))) pct = 97;
   if (labels.some(x => x.includes("20. generating"))) pct = 98;
   if (labels.some(x => x.includes("21. saving"))) pct = 99;
   if (job.status === "completed") pct = 100;

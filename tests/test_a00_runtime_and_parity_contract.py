@@ -254,3 +254,21 @@ def test_a00_judging_phase_emits_per_response_progress() -> None:
     assert '"model_prompt_sent_to_gemma": row.get("model_prompt", "")' in text
     assert '"response": row.get("response", "")' in text
     assert 'grade["judge_model"] = {' in text
+
+
+def test_a00_report_writes_complete_writeup_evidence_bundle() -> None:
+    text = _a00_text()
+    assert "def _report_prompt_response_rows(selected_bundles: list[dict[str, Any]]) -> list[dict[str, Any]]:" in text
+    assert "def _write_report_svg_bar_chart(" in text
+    assert "def _write_report_evidence_bundle(" in text
+    assert "def _write_simple_pdf(path: Path, title: str, lines: list[str]) -> None:" in text
+    assert "def _report_activity_detail(report: dict[str, Any], run_ids: list[str]) -> dict[str, Any]:" in text
+    assert 'prompt_csv_path = RUN_DIR / f"{report_id}_prompt_responses.csv"' in text
+    assert 'score_svg_path = RUN_DIR / f"{report_id}_score_chart.svg"' in text
+    assert 'latency_svg_path = RUN_DIR / f"{report_id}_latency_chart.svg"' in text
+    assert 'evidence_zip_path = RUN_DIR / f"{report_id}_evidence_bundle.zip"' in text
+    assert '"prompt_response_rows": prompt_rows' in text
+    assert '"writeup_ready_outputs": [' in text
+    assert '"Single evidence ZIP with report and run exports"' in text
+    assert '"21. Saving report and write-up evidence bundle"' in text
+    assert "WeasyPrint unavailable; wrote fallback PDF summary" in text
