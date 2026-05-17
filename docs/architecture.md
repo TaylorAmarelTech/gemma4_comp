@@ -20,7 +20,7 @@
 > | 2 | **Duecare Harness** — what this submission ships | Live |
 > | 3 | **Duecare Exchange** — privacy-preserving knowledge sharing | Roadmap |
 > | 4 | **Duecare Eval** — rubrics + benchmarks + regression gate | Partial |
-> | 5 | **Duecare Trainer** — model adaptation pipeline | Prototype (`A-07-bench-and-tune`) |
+> | 5 | **Duecare Trainer** — model adaptation pipeline | Prototype (`A-00-omni-experiment-workbench`) |
 > | 6 | **Public Information Research Monitor** — continuous-update agent + server | Roadmap |
 > | 7 | **Duecare Channels** — NGO / gov chatbot integrations | Roadmap |
 > | 8 | **Duecare Mobile** — worker-facing Android app | Live (sibling repo) |

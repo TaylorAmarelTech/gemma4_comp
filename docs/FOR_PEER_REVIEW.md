@@ -98,8 +98,7 @@ python -m pytest `
 
 ## What This Submission Does Not Claim
 
-- It does not require archived A-01 through A-24 notebooks for the current
-  judge path.
+- It does not require archived appendix notebooks for the current judge path.
 - It does not require paid external judge APIs; Anthropic and Ollama judge
   routes are optional.
 - It does not send raw private case material to a public search engine in the

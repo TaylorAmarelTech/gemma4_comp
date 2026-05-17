@@ -119,10 +119,10 @@ Each row schema:
 }
 ```
 
-PII anonymized by default before the row is written. The bench-and-tune
-kernel (`kaggle/A-07-bench-and-tune`) can pick any of these JSONL streams
-and run per-task Unsloth LoRA fine-tuning without extra plumbing -- the
-harness boundary already labeled the task.
+PII anonymized by default before the row is written. The A-00 preconfigured
+pipeline can pick any of these JSONL streams and run per-task Unsloth LoRA
+fine-tuning without extra plumbing -- the harness boundary already labeled the
+task.
 
 ## Adding a new harness (10-step recipe)
 

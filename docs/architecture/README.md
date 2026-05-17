@@ -6,7 +6,7 @@
 | 2 | [`duecare_harness.md`](duecare_harness.md) | **Live (the Kaggle submission)** | Safety + grounding + audit trace — GREP, RAG, tools, contacts, response policy |
 | 3 | [`duecare_exchange.md`](duecare_exchange.md) | **Hub scaffolded** | Privacy-preserving vetted-pack distribution between partners — public hub at [duecare-ai.com](https://duecare-ai.com) (`apps/duecare-ai.com/`) scaffolds signal intake + knowledge-pack metadata; vetted-pack format is roadmap |
 | 4 | [`duecare_eval.md`](duecare_eval.md) | **Partial** | Rubrics + benchmarks + regression gate (46-dim v3.10 + 65-test adversarial built; CI gate post-hackathon) |
-| 5 | [`duecare_trainer.md`](duecare_trainer.md) | **Prototype (appendix)** | Model adaptation / retraining — Unsloth LoRA → GGUF / LiteRT pipeline anchored in `kaggle/A-07-bench-and-tune/` |
+| 5 | [`duecare_trainer.md`](duecare_trainer.md) | **Prototype (A-00)** | Model adaptation / retraining via A-00 synthetic rows, Unsloth LoRA smoke training, checkpoint/resume, adapter save/load, and report exports |
 | 6 | [`duecare_sentinel.md`](duecare_sentinel.md) | **Hub scaffolded** | Continuous-update agent + server with mandatory human-in-the-loop — proposal-intake endpoint live at `duecare-ai.com/api/hub/opencrawl/updates`; autonomous crawler is roadmap |
 | 7 | [`duecare_channels.md`](duecare_channels.md) | Roadmap | NGO / government chatbot integrations — Messenger / WhatsApp / SMS / web / embassy portal |
 | 8 | [`duecare_mobile.md`](duecare_mobile.md) | **Live (sibling repo)** | Worker-facing private checker — Duecare Journey v0.9.0 Android app |
@@ -22,7 +22,7 @@ Canonical product definition: [`../product_definition.md`](../product_definition
 - **Runtime** (component #1, **Live**) — 9-variant Gemma 4 model selector (E2B / E4B / 26B-A4B / 31B + 2 jailbroken proofs + 3 cloud BYOK), output sanitizer with 15-case regression suite (`packages/duecare-llm-chat/src/duecare/chat/_model_output.py`).
 - **Harness** (component #2, **Live**) — 161 GREP rules, 46-doc RAG, 5 tools, 26-entry contacts, audit trace via `▸ View pipeline` modal, 11 dedicated viewer pages.
 - **Eval** (component #4, **Partial**) — 46-dim universal rubric v3.10 + 65-test adversarial suite + LLM-judge mode + Combined mode; CI regression gate is post-hackathon.
-- **Trainer** (component #5, **Prototype / appendix**) — Unsloth SFT + DPO + GGUF + HF Hub push pipeline at `kaggle/A-07-bench-and-tune/` runs end-to-end; full multi-tenant Trainer service is post-hackathon.
+- **Trainer** (component #5, **Prototype / A-00**) — Unsloth SFT smoke training, checkpoint/resume, adapter save/load, and final comparison reports live in `kaggle/A-00-omni-experiment-workbench/`; full multi-tenant Trainer service is post-hackathon.
 - **Mobile** (component #8, **Live**, sibling repo) — Duecare Journey v0.9.0 with MediaPipe LiteRT on-device Gemma 4 E2B, 11 ILO indicators, 20 corridors. APK at [`duecare-journey-android`](https://github.com/TaylorAmarelTech/duecare-journey-android/releases).
 
 ## What's hub-scaffolded (live but not full Exchange / Sentinel yet)

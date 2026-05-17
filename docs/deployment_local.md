@@ -99,13 +99,14 @@ Open `http://localhost:8080` in your browser. You get the same UI
 judges see on Kaggle: 6 toggle tiles, Examples modal with 587 prompts,
 View pipeline modal, Persona library, custom rule additions.
 
-### To run the **classifier** instead
+### To run the **experiment pipeline** instead
 
 ```bash
-python kaggle/A-05-gemma-content-classification-evaluation/kernel.py
+python kaggle/A-00-omni-experiment-workbench/kernel.py
 ```
 
-Same setup; serves the form-based classifier UI on port 8080.
+Same setup; serves the A-00 quantitative workbench for baseline, harnessed,
+synthetic-data, training, judging, and report-export runs.
 
 ### Choose a smaller model
 
