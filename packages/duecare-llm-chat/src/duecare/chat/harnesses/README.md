@@ -5,6 +5,12 @@ the migrant-worker recruitment / trafficking domain. Five are primary
 safety surfaces. Two are secondary utilities that support the Gemma-backed
 flows but are not themselves Gemma response harnesses.
 
+This is the registered FastAPI harness package. The broader DueCare harness
+ecosystem also includes A-00 experiment, synthetic-data, training,
+evaluation, report, online-grounding, and research-graph harnesses. Keep the
+distinction explicit: this package is the route-level harness registry; the
+full inventory lives in `docs/harness_ecosystem.md`.
+
 ## The seven harness surfaces
 
 | Surface | Tier | Endpoint(s) | Gemma 4 role | Safety layers applied |

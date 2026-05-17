@@ -1,17 +1,17 @@
-# The Duecare ecosystem — one harness, four user layers
+# The Duecare ecosystem - harness ecosystem, four user layers
 
-> **The 30-second pitch.** A single content-safety harness, layered
-> around Google Gemma 4, deployable from a worker's phone to a
-> Big Tech enterprise. The same code spots a recruitment fraud the
-> day a worker pays the fee, drafts the refund-claim packet a
-> lawyer files three months later, surfaces the pattern a regulator
-> investigates a year later, and feeds the regional report an ILO
-> office publishes the year after that.
+> **The 30-second pitch.** A harness ecosystem layered around Google
+> Gemma 4, deployable from a worker's phone to a Big Tech enterprise.
+> The same shared primitives spot a recruitment fraud the day a worker
+> pays the fee, draft the refund-claim packet a lawyer files three
+> months later, surface the pattern a regulator investigates a year
+> later, and feed the regional report an ILO office publishes the year
+> after that.
 
-> **Post-Phase 15 update:** The canonical architecture doc is now
-> [`docs/harness_pattern.md`](harness_pattern.md). This document
-> remains as historical context; for the current harness contract
-> + per-task training-data flow + e2e flywheel, start there.
+> **Post-Phase 15 update:** The registered harness contract is in
+> [`docs/harness_pattern.md`](harness_pattern.md). The broader inventory
+> is now [`docs/harness_ecosystem.md`](harness_ecosystem.md). This
+> document remains as deployment context.
 
 ## The 4-layer ecosystem
 
@@ -62,18 +62,18 @@ graph TB
     style L4 fill:#e8f5e9,stroke:#43a047
 ```
 
-The same harness logic runs at every layer. What changes is the
+The same harness ecosystem runs at every layer. What changes is the
 **deployment shape** (Topology A, B, C, D, or E from
 [deployment_topologies.md](deployment_topologies.md)) and the
 **workflow** (per-persona walkthrough in
 [scenarios/](scenarios/README.md)).
 
-## The same harness, served differently
+## The same harness ecosystem, served differently
 
 ```mermaid
 graph LR
     GEMMA["Gemma 4<br/>(E2B / E4B / 31B)"]
-    HARNESS["Duecare harness<br/>GREP + RAG + Tools + Persona"]
+    HARNESS["Duecare harness ecosystem<br/>GREP + RAG + Tools + Persona<br/>Privacy + Search + Evaluation + Training"]
     GEMMA --> HARNESS
 
     HARNESS --> A["Topology A<br/>Single-component local<br/>(developers, researchers)"]
@@ -180,10 +180,10 @@ graph TB
 ```
 
 A migrant worker uses zero PyPI packages directly (the Android
-app bundles its own Kotlin port of the harness). A researcher
+app bundles its own Kotlin port of the core runtime harness). A researcher
 uses 4-5 (`core` + `chat` + `tasks` + `domains` + sometimes
 `benchmark`). An enterprise uses 12+ for a full deployment.
-Everyone gets the same harness logic — just different surface
+Everyone gets the same harness primitives -- just different surface
 areas.
 
 ## Why this composition works
@@ -256,9 +256,9 @@ If everything works as designed:
 - An ILO regional office documents the closure in its annual
   report. Other corridors learn from the pattern.
 
-That's the loop. Every step uses the same harness, the same
-domain pack, the same audit-log schema, the same observability
-stack. Different topology, different persona, same code.
+That's the loop. Every step uses the same harness ecosystem, the same
+domain pack format, the same audit-log schema, and the same observability
+stack. Different topology, different persona, same shared primitives.
 
 ## Adoption mechanics — what advances each layer
 

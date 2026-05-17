@@ -178,17 +178,20 @@
   <div class="wrap">
     <div class="grid">
       <div>
-        <span class="kicker">Runtime safety layer</span>
-        <h1>The harness is what makes the model <span class="accent">trustworthy enough to use.</span></h1>
-        <p class="lede">Around the base model we wrap three layers: safety rules
-          that gate inputs and outputs, tools the model can call against verified
-          sources, and context packs that ground every answer in a specific
-          jurisdiction at a specific version. Together they form the harness.</p>
+        <span class="kicker">Harness ecosystem</span>
+        <h1>The harnesses are what make the model <span class="accent">trustworthy enough to use.</span></h1>
+        <p class="lede">Around the base model we wrap repeatable harnesses for
+          prompt safety, privacy, search, document processing, knowledge
+          extraction, research graphs, synthetic data, fine-tuning, judging, and
+          report export. The core content harness is the visible chat path:
+          safety rules, tools, and context packs grounded to a jurisdiction and
+          version.</p>
       </div>
 
       <nav class="toc hero-toc" aria-label="Harness pieces on this page">
         <h3>On this page</h3>
         <ol>
+          <li><a href="#h-ecosystem"><span>Harness families</span><span class="arrow">&rarr;</span></a></li>
           <li><a href="#h-grep"><span>GREP rules</span><span class="arrow">→</span></a></li>
           <li><a href="#h-tools"><span>Tool registry</span><span class="arrow">→</span></a></li>
           <li><a href="#h-packs"><span>Context packs</span><span class="arrow">→</span></a></li>
@@ -198,20 +201,89 @@
     </div>
 
     <dl class="h-defn">
-      <dt>Why a harness</dt>
-      <dd>A frontier model alone is not appropriate for legally-adjacent work. The harness narrows what the model can say, what it can reach for, and what it has to cite.</dd>
+      <dt>Why harnesses</dt>
+      <dd>A frontier model alone is not appropriate for legally-adjacent work. DueCare uses purpose-built harnesses to narrow what the model can say, what it can reach for, what leaves the device, what becomes training data, and what the final report can cite.</dd>
       <dt>What it isn't</dt>
-      <dd>Not a guardrail product, not a content filter. The harness is the program; the model is one component inside it.</dd>
+      <dd>Not a single guardrail product, not a content filter. The harness ecosystem is the program; the model is one component inside it.</dd>
       <dt>How it composes</dt>
-      <dd>Safety rules run first as hard limits. Tools mediate any reach beyond the prompt. Context packs supply the source material the answer is grounded in.</dd>
+      <dd>Safety rules, privacy gates, retrieval, tools, graph extraction, training-data polishing, and judges each own a separate job. The UI exposes them as a coherent workflow.</dd>
     </dl>
+  </div>
+</section>
+
+<section class="h-pieces" id="h-ecosystem">
+  <div class="wrap">
+    <h2>Harness families</h2>
+    <p class="lede">The chat harness is only one part of DueCare. The same codebase also has harnesses for private search, knowledge intake, graphing, training, evaluation, and evidence export.</p>
+
+    <div class="h-grid">
+      <article class="h-card">
+        <div class="card-head">
+          <span class="role">Runtime</span>
+          <h3>Content prompt harness</h3>
+        </div>
+        <div class="card-body">
+          <p>Persona, GREP, RAG/context, deterministic tools, optional online search, imports, response traces, and grading hooks around each Gemma 4 response.</p>
+        </div>
+      </article>
+
+      <article class="h-card">
+        <div class="card-head">
+          <span class="role">Privacy</span>
+          <h3>Anonymization and search safety</h3>
+        </div>
+        <div class="card-body">
+          <p>Redacts private facts, generalizes outbound queries, and blocks external search when a safe query cannot be produced.</p>
+        </div>
+      </article>
+
+      <article class="h-card">
+        <div class="card-head">
+          <span class="role">Knowledge</span>
+          <h3>Extraction and corpus intake</h3>
+        </div>
+        <div class="card-body">
+          <p>Turns source bundles, civil-society updates, and local evidence into reviewable knowledge objects before they feed RAG or reports.</p>
+        </div>
+      </article>
+
+      <article class="h-card">
+        <div class="card-head">
+          <span class="role">Research</span>
+          <h3>Graph and entity harness</h3>
+        </div>
+        <div class="card-body">
+          <p>Extracts documents, entities, edges, timeline events, risk signals, locations, and amounts from local research bundles.</p>
+        </div>
+      </article>
+
+      <article class="h-card">
+        <div class="card-head">
+          <span class="role">Training</span>
+          <h3>Synthetic data and fine-tuning</h3>
+        </div>
+        <div class="card-body">
+          <p>Generates and polishes SFT/DPO rows, filters unsafe or uncited content, creates LoRA jobs, saves checkpoints, and reloads adapters.</p>
+        </div>
+      </article>
+
+      <article class="h-card">
+        <div class="card-head">
+          <span class="role">Evaluation</span>
+          <h3>Judge and report harness</h3>
+        </div>
+        <div class="card-body">
+          <p>Combines deterministic rules with a local or external LLM judge, then exports JSON, Markdown, HTML, traces, scores, and activity logs.</p>
+        </div>
+      </article>
+    </div>
   </div>
 </section>
 
 <section class="h-pieces">
   <div class="wrap">
-    <h2>Three pieces of the harness</h2>
-    <p class="lede">Each piece has its own page with the rule set, the tool registry, or the pack catalog. Start here for orientation.</p>
+    <h2>Three pieces of the core content harness</h2>
+    <p class="lede">The prompt-response harness uses these pieces whenever DueCare answers a chat, comparison, or benchmark prompt.</p>
 
     <div class="h-grid">
       <article class="h-card" id="h-grep">
@@ -273,7 +345,7 @@
     </div>
 
     <div class="h-flow" id="h-flow">
-      <h3>How a request flows through the harness</h3>
+      <h3>How a request flows through the core content harness</h3>
       <div class="row">
         <div class="step">
           <span class="lbl">Step 1</span>
