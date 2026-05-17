@@ -973,6 +973,7 @@ class BatchRunRequest(BaseModel):
     llm_judge: bool = A00_BULK_COMPARE_DEFAULT["generation"]["llm_judge"]
     imported_run_id: str = ""
     run_label: str = ""
+    checkpoint_every: int = 1
 
 
 class EvaluateRequest(BaseModel):
@@ -2193,6 +2194,23 @@ def _load_export_from_bytes(filename: str, data: bytes) -> dict[str, Any]:
     return json.loads(data.decode("utf-8"))
 
 
+def _load_latest_incomplete_run_checkpoint(run_slug: str, prompt_set: str, harness_profile: str) -> tuple[dict[str, Any] | None, Path | None]:
+    candidates = sorted(RUN_DIR.glob(f"a00_{run_slug}_*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
+    for path in candidates:
+        try:
+            bundle = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        if bundle.get("schema_version") != "duecare.a00.run.v1":
+            continue
+        if bundle.get("status") == "completed":
+            continue
+        if bundle.get("prompt_set") != prompt_set or bundle.get("harness_profile") != harness_profile:
+            continue
+        return bundle, path
+    return None, None
+
+
 def _run_batch(req: BatchRunRequest) -> dict[str, Any]:
     if req.auto_load_model:
         _ensure_model_loaded_for_run(
@@ -2224,11 +2242,72 @@ def _run_batch(req: BatchRunRequest) -> dict[str, Any]:
         raise HTTPException(400, "no prompts found")
 
     prompts = prompts[: max(1, min(int(req.limit or 25), 500))]
-    run_id = "a00_" + _safe_slug(req.run_label or req.harness_profile) + "_" + datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    results: list[dict[str, Any]] = []
-    dc_log("a00.batch.start", f"run_id={run_id}", prompt_set=prompt_set, harness=req.harness_profile, n=len(prompts))
+    run_slug = _safe_slug(req.run_label or req.harness_profile)
+    resume_bundle, resume_path = _load_latest_incomplete_run_checkpoint(run_slug, prompt_set, req.harness_profile)
+    if resume_bundle:
+        run_id = str(resume_bundle.get("run_id") or ("a00_" + run_slug))
+        results: list[dict[str, Any]] = list(resume_bundle.get("results", []) or [])
+        created_at = str(resume_bundle.get("created_at") or _utc())
+        resume_source = str(resume_path) if resume_path else ""
+    else:
+        run_id = "a00_" + run_slug + "_" + datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        results = []
+        created_at = _utc()
+        resume_source = ""
+    completed_indices = {int(r.get("prompt_index") or 0) for r in results if int(r.get("prompt_index") or 0) > 0}
+    checkpoint_every = max(1, int(req.checkpoint_every or 1))
 
-    for row in prompts:
+    def checkpoint_bundle(status: str, next_index: int) -> dict[str, Any]:
+        ordered_results = sorted(results, key=lambda r: int(r.get("prompt_index") or 0))
+        bundle = {
+            "schema_version": "duecare.a00.run.v1",
+            "run_id": run_id,
+            "run_label": req.run_label,
+            "status": status,
+            "created_at": created_at,
+            "updated_at": _utc(),
+            "prompt_set": prompt_set,
+            "harness_profile": req.harness_profile,
+            "harness": HARNESS_PROFILES.get(req.harness_profile, {}),
+            "model": STATE["model_info"],
+            "knowledge_packs": [
+                {"slug": p.get("slug"), "version": p.get("version"), "trust": p.get("trust"), "sha256": p.get("sha256")}
+                for p in STATE["packs"].values()
+            ],
+            "checkpoint": {
+                "checkpoint_every": checkpoint_every,
+                "completed_prompts": len(ordered_results),
+                "total_prompts": len(prompts),
+                "next_prompt_index": next_index,
+                "resume_source": resume_source,
+                "resume_note": "Rerun the same run label, prompt set, and harness profile to continue an unfinished prompt batch.",
+            },
+            "portability_contract": {
+                "schema_version": WORKBENCH_PORTABILITY_CONTRACT.get("schema_version"),
+                "required_chat_version": WORKBENCH_PORTABILITY_CONTRACT.get("required_chat_version"),
+                "sha256": _sha256_text(_json_dumps(WORKBENCH_PORTABILITY_CONTRACT)),
+                "workbench_defaults": WORKBENCH_PORTABILITY_CONTRACT.get("workbench_defaults", {}),
+            },
+            "summary": _summarize_results(ordered_results),
+            "results": ordered_results,
+        }
+        bundle["artifacts"] = _write_run_artifacts(bundle)
+        STATE["exports"][run_id] = bundle
+        return bundle
+
+    dc_log(
+        "a00.batch.start",
+        f"run_id={run_id}",
+        prompt_set=prompt_set,
+        harness=req.harness_profile,
+        n=len(prompts),
+        resume_source=resume_source,
+        completed=len(results),
+    )
+
+    for prompt_index, row in enumerate(prompts, start=1):
+        if prompt_index in completed_indices:
+            continue
         model_prompt, trace = _build_harness_prompt(row, req.harness_profile)
         response, gen_meta = _generate(
             model_prompt,
@@ -2239,6 +2318,7 @@ def _run_batch(req: BatchRunRequest) -> dict[str, Any]:
         )
         grade = _combined_grade(row, response, req.harness_profile, trace, req.llm_judge) if req.evaluate else None
         results.append({
+            "prompt_index": prompt_index,
             "prompt_id": row.get("prompt_id") or _sha256_text(row.get("prompt", ""))[:12],
             "lane": row.get("lane", "researcher"),
             "prompt": row.get("prompt", ""),
@@ -2250,28 +2330,11 @@ def _run_batch(req: BatchRunRequest) -> dict[str, Any]:
             "generation": gen_meta,
             "grade": grade,
         })
+        if len(results) % checkpoint_every == 0 or len(results) == len(prompts):
+            bundle = checkpoint_bundle("running", prompt_index + 1)
+            dc_log("a00.batch.checkpoint", f"run_id={run_id}", completed=len(results), total=len(prompts), artifacts=bundle.get("artifacts", {}))
 
-    bundle = {
-        "schema_version": "duecare.a00.run.v1",
-        "run_id": run_id,
-        "created_at": _utc(),
-        "prompt_set": prompt_set,
-        "harness_profile": req.harness_profile,
-        "harness": HARNESS_PROFILES.get(req.harness_profile, {}),
-        "model": STATE["model_info"],
-        "knowledge_packs": [
-            {"slug": p.get("slug"), "version": p.get("version"), "trust": p.get("trust"), "sha256": p.get("sha256")}
-            for p in STATE["packs"].values()
-        ],
-        "portability_contract": {
-            "schema_version": WORKBENCH_PORTABILITY_CONTRACT.get("schema_version"),
-            "required_chat_version": WORKBENCH_PORTABILITY_CONTRACT.get("required_chat_version"),
-            "sha256": _sha256_text(_json_dumps(WORKBENCH_PORTABILITY_CONTRACT)),
-            "workbench_defaults": WORKBENCH_PORTABILITY_CONTRACT.get("workbench_defaults", {}),
-        },
-        "summary": _summarize_results(results),
-        "results": results,
-    }
+    bundle = checkpoint_bundle("completed", len(prompts) + 1)
     bundle["artifacts"] = _write_run_artifacts(bundle)
     STATE["exports"][run_id] = bundle
     dc_log("a00.batch.done", f"run_id={run_id}", summary=bundle["summary"])
