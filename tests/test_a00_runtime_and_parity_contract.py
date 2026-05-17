@@ -288,12 +288,38 @@ def test_a00_pipeline_supports_ollama_external_judge() -> None:
     assert 'STATE["judge_model_call"] = _ollama_model_call_factory(' in text
     assert "external = STATE.get(\"judge_model_call\")" in text
     assert "if callable(external):" in text
-    assert "if _is_ollama_judge_source(req.judge_model_source):" in text
+    assert "if _is_external_judge_source(req.judge_model_source):" in text
     assert '"18. Configuring Ollama judge for final evaluation"' in text
     assert "External Ollama judge used only for final combined grading" in text
     assert '"ollama_cloud_ready": bool(ollama_key)' in text
     assert "const judgeOptions = (modelPresets.judge_presets || modelPresets.presets || [])" in text
     assert '<option value="ollama_cloud">ollama_cloud</option>' in text
+
+
+def test_a00_pipeline_supports_anthropic_external_judge() -> None:
+    """Claude/Anthropic is an optional final judge provider. It should
+    plug into the same judge_model_call hook and must not affect local
+    Gemma generation, harnessing, or training."""
+    text = _a00_text()
+    assert 'A00_ANTHROPIC_JUDGE_MODEL_REF = os.environ.get("DUECARE_A00_ANTHROPIC_JUDGE_MODEL_REF", "claude-opus-4-7")' in text
+    assert 'A00_ANTHROPIC_API_URL = os.environ.get("DUECARE_A00_ANTHROPIC_API_URL", "https://api.anthropic.com/v1/messages")' in text
+    assert "Claude Opus 4.7 judge" in text
+    assert "Claude Opus 4.6 judge" in text
+    assert '"source": "anthropic"' in text
+    assert "ANTHROPIC_API_KEY" in text
+    assert "def _is_anthropic_judge_source(source: str) -> bool:" in text
+    assert "def _is_external_judge_source(source: str) -> bool:" in text
+    assert "def _anthropic_model_call_factory(" in text
+    assert '"x-api-key": api_key' in text
+    assert '"anthropic-version": version' in text
+    assert "def _configure_anthropic_judge_for_pipeline(job_id: str, req: PipelineRequest) -> dict[str, Any]:" in text
+    assert "def _configure_external_judge_for_pipeline(job_id: str, req: PipelineRequest) -> dict[str, Any]:" in text
+    assert "if _is_anthropic_judge_source(req.judge_model_source):" in text
+    assert "STATE[\"judge_model_call\"] = _anthropic_model_call_factory(" in text
+    assert '"18. Configuring Anthropic Claude judge for final evaluation"' in text
+    assert "External Anthropic Claude judge used only for final combined grading" in text
+    assert '"anthropic_ready": bool(anthropic_key)' in text
+    assert '<option value="anthropic">anthropic</option>' in text
 
 
 def test_a00_judging_phase_emits_per_response_progress() -> None:
