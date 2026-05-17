@@ -50,6 +50,16 @@ PIPELINE_JOB_LOCK = threading.Lock()
 JOB_STATE_LOCK = threading.RLock()
 A00_TRAINING_TIMEOUT_SEC = int(os.environ.get("A00_TRAINING_TIMEOUT_SEC", str(60 * 60 * 8)))
 A00_ALLOW_DRY_RUN = os.environ.get("DUECARE_A00_ALLOW_DRY_RUN", "").strip() == "1"
+# Inference context window for the shared Gemma 4 runtime. The rubric +
+# response + harness trace passed to the combined rule + LLM judge can
+# easily exceed 4096 tokens (full prompt + full response + 17-dimension
+# rubric + harness trace + JSON output instructions). Default to 16384
+# so grading and full-harness benchmark prompts are not silently
+# truncated; override via DUECARE_A00_INFERENCE_MAX_SEQ_LENGTH for
+# larger contexts or to fit a smaller VRAM budget. Training keeps its
+# own max_seq_length on the training profile because the smoke LoRA
+# run intentionally uses a tighter window.
+A00_INFERENCE_MAX_SEQ_LENGTH = int(os.environ.get("DUECARE_A00_INFERENCE_MAX_SEQ_LENGTH", "16384"))
 
 DUECARE_VERSION = os.environ.get("DUECARE_VERSION", "0.17.0")
 DUECARE_REPO = os.environ.get("DUECARE_REPO", "TaylorAmarelTech/gemma4_comp")
@@ -1858,13 +1868,19 @@ def _load_model_runtime(req: ModelLoadRequest) -> dict[str, Any]:
             raise HTTPException(400, "model_ref is required")
 
         try:
+            # Inference loads at A00_INFERENCE_MAX_SEQ_LENGTH (default
+            # 16384) so the combined rule + LLM judge has enough context
+            # for the full rubric, the prompt, the response, and the
+            # harness trace without silent truncation. The training
+            # profile's max_seq_length is a separate, intentionally
+            # tighter, smoke-run budget.
             loaded = A00_MODEL_RUNTIME.load(Gemma4LoadSpec(
                 source=req.source,
                 model_ref=model_ref,
                 adapter_ref=req.adapter_ref,
                 quantization=req.quantization,
                 trust_remote_code=req.trust_remote_code,
-                max_seq_length=int(A00_TRAINING_DEFAULT.get("max_seq_length", 4096)),
+                max_seq_length=A00_INFERENCE_MAX_SEQ_LENGTH,
             ))
         except Exception as exc:  # noqa: BLE001
             raise HTTPException(500, f"Gemma 4 shared runtime load failed: {exc}")
