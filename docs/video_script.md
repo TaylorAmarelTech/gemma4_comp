@@ -11,7 +11,7 @@ Android APK.
 **DueCare: A Gemma 4 Safety Ecosystem for Migrant-Worker
 Protection**
 
-**Subtitle:** A self-hostable multi-module harness for content
+**Subtitle:** A self-hostable multi-faceted Gemma 4 implementation for content
 moderation, case analysis, worker support, research, and anonymized
 knowledge sharing.
 

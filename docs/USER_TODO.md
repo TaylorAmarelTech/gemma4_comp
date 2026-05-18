@@ -8,7 +8,7 @@ cannot be completed by local code edits alone.
 - Use this Kaggle writeup title:
   **DueCare: A Gemma 4 Safety Ecosystem for Migrant-Worker Protection**
 - Use this subtitle:
-  **A self-hostable multi-module harness for content moderation, case analysis,
+  **A self-hostable multi-faceted Gemma 4 implementation for content moderation, case analysis,
   worker support, research, and anonymized knowledge sharing.**
 - Public Gemma 4 Good overview alignment was reviewed on 2026-05-18:
   Safety & Trust is the primary fit, with Unsloth and LiteRT evidence.
