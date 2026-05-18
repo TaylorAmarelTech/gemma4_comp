@@ -45,7 +45,7 @@ DueCare wraps Gemma 4 in a local, inspectable safety substrate:
 
 Gemma 4 is the engine under those lanes, not a separate product lane. The
 system uses deterministic GREP rules, RAG packs, tool calls, graph extraction,
-privacy gates, and combined rule + LLM grading around the model.
+sensitive-data handling, and combined rule + LLM grading around the model.
 
 ## Why Gemma 4
 

@@ -64,7 +64,7 @@ All pushed to `origin/master`.
 ```
 1.  The problem at a scale generic AI is not closing
 2.  Why "DueCare" — Cal. Civ. Code §1714(a) duty-of-care
-3.  Solution: five lanes, one local substrate (5-lane table)
+3.  Solution: six lanes, one local substrate (6-lane table)
 4.  How Gemma 4's unique features are load-bearing
     - native function calling (tool dispatch)
     - multimodal understanding (Bulk File Review vision queue)
@@ -72,7 +72,7 @@ All pushed to `origin/master`.
     - fine-tunable (Unsloth)
 5.  The substrate — components in detail
     (165+ GREP rules, 55+ knowledge packs, persona,
-     graph extraction, privacy gates, refusal head, grading)
+     graph extraction, sensitive-data handling, refusal head, grading)
 6.  Main server architecture (FastAPI + harness contract)
 7.  Evidence and observations (measured A-00 smoke matrix)
 8.  Design decisions and challenges overcome

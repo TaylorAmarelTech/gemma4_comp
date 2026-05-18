@@ -1,6 +1,6 @@
 # Launch packaging options beyond Docker
 
-DueCare already has validated local CLI and container paths. The next launch improvements should reduce setup friction while keeping privacy claims honest and aligned with the website's five-lane story.
+DueCare already has validated local CLI and container paths. The next launch improvements should reduce setup friction while keeping privacy claims honest and aligned with the website's six-lane story.
 
 ## Current validated baseline
 

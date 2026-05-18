@@ -5,6 +5,9 @@
 > generating synthetic data, training adapters, processing local research
 > bundles, and launching every appendix workflow.
 
+<!-- duecare:lane-label -->
+> **Serves lanes:** Researcher; Developer / integration partner; Platform safety; NGO & regulator.
+
 ## Judge Quick Path
 
 | Section | This notebook |

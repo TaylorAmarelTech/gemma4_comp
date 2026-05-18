@@ -101,6 +101,7 @@
           <li><a href="#roles" data-track="worker"><span>Individual worker / mobile</span><span class="arrow">→</span></a></li>
           <li><a href="#roles" data-track="research"><span>Researcher</span><span class="arrow">→</span></a></li>
           <li><a href="#roles" data-track="dev"><span>Developer / integration partner</span><span class="arrow">→</span></a></li>
+          <li><a href="#roles" data-track="sharing"><span>Anonymized knowledge sharing</span><span class="arrow">→</span></a></li>
         </ol>
       </nav>
     </div>
@@ -135,6 +136,11 @@
         <span class="glyph">05</span>
         <span class="role-title">Developer / integration partner</span>
         <span class="role-desc">API endpoints, pack registry, client snippets, version pinning, and integration-partner workflows.</span>
+      </button>
+      <button class="role-card" type="button" role="tab" aria-selected="false" aria-controls="track-details" data-role="sharing">
+        <span class="glyph">06</span>
+        <span class="role-title">Anonymized knowledge sharing</span>
+        <span class="role-desc">Sanitized knowledge-object exchange from reviewed evidence, without raw case files leaving local deployments.</span>
       </button>
     </div>
   </div>
@@ -275,6 +281,28 @@ duecare-journey-v0.9.0-twenty-corridors-new-rules.apk</pre>
           <a class="badge" href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/examples/deployment/README.md">Deployment examples</a>
         </div>
       </div>
+
+      <div class="track-panel" data-panel="sharing" hidden>
+        <div class="outcome">Outcome · improve shared knowledge without raw cases</div>
+        <h3>Anonymized knowledge sharing setup</h3>
+        <p class="muted" style="margin-top:8px;">Export only reviewed, sanitized knowledge objects from local evidence graphs. The public hub stores consent-aware facts, hash receipts, and pack metadata, not raw narratives or private documents.</p>
+        <div class="stepper" style="--steps:3;margin-top:20px;">
+          <div class="step"><span class="num">Review locally</span><h4>Select candidate facts</h4><p>Start from confirmed evidence rows inside the caseworker or partner deployment.</p></div>
+          <div class="step"><span class="num">Sanitize</span><h4>Run local anonymization</h4><p>Remove PII, check re-identification risk, and keep consent metadata explicit.</p></div>
+          <div class="step"><span class="num">Submit</span><h4>Send a knowledge object</h4><p>The hub runs a second PII scan before storage and curator review.</p></div>
+        </div>
+        <div class="code-block" style="margin-top:20px;">
+          <div class="code-bar"><span>shell · anonymized signal API</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
+<pre><span class="tok-fn">curl</span> -fsSL <span class="tok-s">"https://duecare-ai.com/api/hub/signals"</span> \
+  -H <span class="tok-s">"content-type: application/json"</span> \
+  -d <span class="tok-s">'{"source":"partner_review","corridor":"PH-HK domestic work","risk_tags":["fee_request"],"summary":"Sanitized aggregate pattern only.","consent_basis":"authorized_sanitized_submission"}'</span></pre>
+        </div>
+        <div class="lane-links">
+          <a class="badge" href="/use-cases#uc-sharing">Sharing flow</a>
+          <a class="badge" href="/submit-information">Submit information</a>
+          <a class="badge" href="/submissions">Review submissions</a>
+        </div>
+      </div>
     </div>
 
     <aside style="display:flex;flex-direction:column;gap:16px;">
@@ -335,7 +363,8 @@ const tracks = {
   ngo:      { title: "02 · NGO & regulator", lede: "Assistance lane: run case analysis, triage, document preparation, referrals, and regulator pattern review on infrastructure your team controls." },
   worker:   { title: "03 · Individual worker / mobile", lede: "Assistance lane: install the Android app for worker-controlled guidance, journaling, evidence organization, and safety planning." },
   research: { title: "04 · Researcher", lede: "Understanding lane: use notebooks, packs, trend signals, and provenance records to explain what is happening and why." },
-  dev:      { title: "05 · Developer / integration partner", lede: "Cross-cutting lane: embed DueCare into your own prevention, assistance, or research workflow through APIs, packs, Docker, and examples." }
+  dev:      { title: "05 · Developer / integration partner", lede: "Cross-cutting lane: embed DueCare into your own prevention, assistance, or research workflow through APIs, packs, Docker, and examples." },
+  sharing:  { title: "06 · Anonymized knowledge sharing", lede: "Cross-cutting lane: convert reviewed, redacted facts into reusable knowledge objects without moving raw worker case data into the public hub." }
 };
 function selectTrack(role) {
   document.querySelectorAll('.role-card').forEach(x => {

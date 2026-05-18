@@ -305,7 +305,7 @@ earlier user directives. Do not touch them without an explicit ask:
 * All folders under `kaggle/kernels/`.
 * The skunkworks notebooks under
   `_archive/legacy-research-2026-05-09/skunkworks/`.
-* The original 77-notebook research pipeline under
+* The original legacy research pipeline under
   `_archive/legacy-research-2026-05-09/legacy_notebooks/`.
 
 ## 9. Recording-blocking punch list

@@ -9,7 +9,7 @@ below.
 
 DueCare is a Gemma 4 harness ecosystem for migrant-worker exploitation risk.
 It wraps Gemma 4 with reusable safety layers, knowledge packs, deterministic
-tools, privacy gates, evaluation, and report generation. The current proof
+tools, sensitive-data handling, evaluation, and report generation. The current proof
 focuses on three surfaces:
 
 | Surface | Purpose |

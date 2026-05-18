@@ -1062,7 +1062,7 @@
 
         <a class="gh-link" href="https://www.kaggle.com/competitions/openai-gpt-oss-20b-red-teaming/writeups/llm-complicity-in-modern-slavery-from-native-blind" target="_blank" rel="noopener">
           <span class="gh-glyph"></span>
-          <span>Prior work &middot; LLM complicity in modern slavery (Kaggle 2024 red-team write-up)</span>
+          <span>Prior work &middot; LLM complicity in modern slavery (Taylor Amarel, Kaggle 2025 red-teaming)</span>
         </a>
       </section>
 
@@ -1102,7 +1102,7 @@
           </div>
           <div class="module-row">
             <b>Anonymized knowledge sharing</b>
-            <span>Promote reviewed, redacted facts after a privacy gate.</span>
+            <span>Promote reviewed, redacted facts after local sanitization.</span>
             <span>Knowledge objects that improve packs without uploading raw case files.</span>
           </div>
         </div>
@@ -1595,7 +1595,7 @@ DM @sunburstrecruit for slots. Approval in 7 days.</div>
       </section>
 
       <!-- =======================================================
-           13. SHARING DEMO &mdash; dropzone + privacy gate + KO candidates
+           13. SHARING DEMO &mdash; dropzone + sanitization + KO candidates
            ======================================================= -->
       <section class="slide" data-slide-id="knowledge-sharing-demo" data-slide>
         <span class="eyebrow">Anonymized knowledge sharing &middot; Demo</span>
@@ -1617,7 +1617,7 @@ DM @sunburstrecruit for slots. Approval in 7 days.</div>
 
               <div data-reveal="loaded" style="display:none;">
                 <div class="run-bar">
-                  <span class="meta">source: <b>processed bundle</b> &middot; 3 candidate facts &middot; privacy gate enabled &middot; <span style="color: var(--teal);">cached &middot; replays in ~2s</span></span>
+                  <span class="meta">source: <b>processed bundle</b> &middot; 3 candidate facts &middot; sanitization check enabled &middot; <span style="color: var(--teal);">cached &middot; replays in ~2s</span></span>
                   <button type="button" class="btn" data-demo-run="sharing">Review and share</button>
                 </div>
 
@@ -2071,7 +2071,7 @@ DM @sunburstrecruit for slots. Approval in 7 days.</div>
           </div>
           <div class="card">
             <h3 style="font-size: 20px;">Why not just prompt Gemma?</h3>
-            <p style="font-size: 15px;">The harness adds rules, citations, tools, privacy gates, and grading. That is what makes Gemma 4 behavior inspectable and safe to put in front of a worker or regulator.</p>
+            <p style="font-size: 15px;">The harness adds rules, citations, tools, sensitive-data handling, and grading. That is what makes Gemma 4 behavior inspectable and safe to put in front of a worker or regulator.</p>
           </div>
           <div class="card">
             <h3 style="font-size: 20px;">What happens to uploaded files?</h3>
