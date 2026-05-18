@@ -39,6 +39,7 @@ the prompts above point at. Read them when you need ground truth.
 
 | Doc | What it covers |
 |---|---|
+| [`docs/submission_readiness_audit.md`](submission_readiness_audit.md) | Submission-readiness audit: built+verified, built+needs-verification, and remaining items across every active surface. Recording-blocking punch list. |
 | [`docs/system_components_and_critical_paths.md`](system_components_and_critical_paths.md) | Stable map of the active submission: three kernels, main components, critical paths, drift rules. |
 | [`docs/harness_ecosystem.md`](harness_ecosystem.md) | **Authoritative** registered harness inventory + broader harness families. |
 | [`docs/harness_pattern.md`](harness_pattern.md) | Required module contract + 10-step recipe for adding a new registered harness. |
