@@ -225,14 +225,17 @@
         Use <b>Draft this result</b> on a specific source, or draft from all
         visible results. Drafts are reviewable before anything is saved.
       </p>
-      <div class="search-empty" style="margin-bottom:10px;">
-        <b>Result-to-knowledge path:</b> source card -&gt; deterministic
-        envelope draft -&gt; reviewer inspection -&gt; save to local knowledge
-        store -&gt; optional export or anonymized sharing. The page intentionally
-        drafts with <code>use_gemma=false</code> by default to avoid tunnel
-        timeouts; use Knowledge Extraction when you want slower Gemma
-        refinement.
-      </div>
+      <details style="margin-bottom:10px;">
+        <summary style="cursor:pointer; font-size:12px; font-weight:600; color: var(--ink-2);">How result-to-knowledge drafting works (click to expand)</summary>
+        <div class="search-empty" style="margin-top:8px;">
+          <b>Result-to-knowledge path:</b> source card -&gt; deterministic
+          envelope draft -&gt; reviewer inspection -&gt; save to local knowledge
+          store -&gt; optional export or anonymized sharing. The page
+          intentionally drafts with <code>use_gemma=false</code> by default to
+          avoid tunnel timeouts; use Knowledge Extraction when you want slower
+          Gemma refinement.
+        </div>
+      </details>
       <div id="results" class="search-empty">Run a search to populate public-source result cards.</div>
       <div class="search-action-grid">
         <div class="search-action-card">
@@ -265,23 +268,26 @@
         <span class="search-step-state" id="drafts-card-state">Waiting</span>
       </summary>
       <div class="search-step-body">
-      <p class="wb-muted" style="margin: 0 0 8px;">
-        Each search result was passed to <code>/api/knowledge/draft-envelope</code>
-        with <code>target_leaf=auto</code>, <code>use_gemma=false</code>,
-        and the kernel's Anonymizer applied first. This keeps public-source
-        intake fast and avoids long tunnel waits. Open Knowledge Extraction
-        for deeper Gemma refinement of any saved source. Review each draft, then click
-        <b>Save all to local knowledge store</b> to persist them via
-        <code>/api/knowledge/promote</code>, or download as a single
-        JSON for offline review.
-      </p>
-      <p class="wb-muted" style="margin: 0 0 8px;">
-        Model fit: small Gemma models are useful for later rephrasing or
-        compact refinement, but search-result snippets should still be checked
-        against the opened source before promotion. Current phone numbers,
-        statutes, and enforcement facts should remain reviewable knowledge, not
-        hardcoded text.
-      </p>
+      <details style="margin: 0 0 8px;">
+        <summary style="cursor:pointer; font-size:12px; font-weight:600; color: var(--ink-2);">How saving works and model-fit guidance (click to expand)</summary>
+        <p class="wb-muted" style="margin: 8px 0;">
+          Each search result was passed to <code>/api/knowledge/draft-envelope</code>
+          with <code>target_leaf=auto</code>, <code>use_gemma=false</code>,
+          and the kernel's Anonymizer applied first. This keeps public-source
+          intake fast and avoids long tunnel waits. Open Knowledge Extraction
+          for deeper Gemma refinement of any saved source. Review each draft,
+          then click <b>Save all to local knowledge store</b> to persist them
+          via <code>/api/knowledge/promote</code>, or download as a single
+          JSON for offline review.
+        </p>
+        <p class="wb-muted" style="margin: 0 0 8px;">
+          Model fit: small Gemma models are useful for later rephrasing or
+          compact refinement, but search-result snippets should still be
+          checked against the opened source before promotion.
+          Current phone numbers, statutes, and enforcement facts should
+          remain reviewable knowledge, not hardcoded text.
+        </p>
+      </details>
       <div class="search-progress" id="search-draft-progress" aria-live="polite">
         <div class="search-progress-head">
           <span class="search-progress-title" id="search-draft-progress-title">Preparing draft run</span>
