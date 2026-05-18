@@ -115,6 +115,46 @@ def test_case_files_media_rich_sample_has_messy_intake_depth():
             assert "do not embed the document" in handle.read().decode("utf-8")
 
 
+def test_process_batch_returns_intelligence_for_streamlined_demo():
+    from duecare.chat.app import create_app
+
+    client = TestClient(create_app())
+    sample = (
+        Path(__file__).parents[1]
+        / "src"
+        / "duecare"
+        / "chat"
+        / "static"
+        / "samples"
+        / "case_files_streamlined_demo.zip"
+    )
+    data = sample.read_bytes()
+    resp = client.post(
+        "/api/process/batch",
+        files={"file": ("case_files_streamlined_demo.zip", io.BytesIO(data), "application/zip")},
+        data={"review_mode": "quick_triage", "max_gemma_calls": "8"},
+    )
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    summary = body["summary"]
+    intel = body["intelligence"]
+    assert summary["n_rows_processed"] >= 7
+    assert summary["n_rows_processed"] <= 12
+    assert intel["n_people"] >= 1
+    assert intel["n_evidence_edges"] >= 8
+    assert intel["n_typed_edges"] >= intel["n_evidence_edges"]
+    assert intel["rag_candidates"]
+    assert intel["processing_plan"]["review_mode"]["id"] == "quick_triage"
+    assert intel["processing_plan"]["gemma_budget"]["max_gemma_calls"] == 8
+    joined = "\n".join(
+        (edge.get("label") or "") + " " + ((edge.get("evidence") or {}).get("quote") or "")
+        for edge in intel["typed_edges"]
+    ).lower()
+    assert "php 45,500" in joined or "45500" in joined
+    assert "salary" in joined or "deduct" in joined
+    assert any(p["stage"] == "payment_and_debt" for p in intel["journey_points"])
+
+
 def test_process_batch_returns_intelligence_for_sample():
     from duecare.chat.app import create_app
 
@@ -253,6 +293,26 @@ def test_process_batch_returns_intelligence_for_sample():
     assert edge_body["model_capability_notes"]
     assert edge_body["knowledge_context"]["local_only"] is True
     assert any(t["id"] == "case_graph_edges" for t in edge_body["prompt_templates"])
+
+    start = client.post(
+        "/api/process/graph-extract/start",
+        json={"prompt_id": "case_graph_edges", "limit": 12},
+    )
+    assert start.status_code == 200, start.text
+    job_id = start.json()["job_id"]
+    for _ in range(20):
+        poll = client.get(f"/api/process/graph-extract/status/{job_id}")
+        assert poll.status_code == 200, poll.text
+        job = poll.json()
+        if job["status"] == "complete":
+            break
+        time.sleep(0.05)
+    else:
+        raise AssertionError("graph-extract job did not complete")
+    assert job["result"]["status"] == "deterministic_no_model"
+    assert job["result"]["typed_edges"]
+    assert len(job["events"]) >= 3
+    assert any(evt["phase"] == "seed_edges" for evt in job["events"])
 
 
 def test_process_batch_accepts_review_mode_settings():

@@ -27,6 +27,7 @@ def _zip_names(name: str) -> list[str]:
 def test_static_sample_catalog_contains_rich_downloadables():
     expected = {
         "case_files_sample.zip",
+        "case_files_streamlined_demo.zip",
         "case_files_media_rich_sample.zip",
         "knowledge_bundle_sample.zip",
         "knowledge_files_sample.zip",
@@ -38,6 +39,37 @@ def test_static_sample_catalog_contains_rich_downloadables():
     missing = [name for name in expected if not (SAMPLES / name).exists()]
     assert not missing
     assert all((SAMPLES / name).stat().st_size > 1000 for name in expected)
+
+
+def test_streamlined_process_demo_is_small_and_explains_expected_path():
+    names = _zip_names("case_files_streamlined_demo.zip")
+    assert len(names) == 8
+    required = {
+        "README.md",
+        "manifest.json",
+        "expected_outputs/streamlined_demo_expected.json",
+    }
+    assert required.issubset(set(names))
+    assert any(n.endswith("/01_chat/recruiter_chat.txt") for n in names)
+    assert any(n.endswith("/02_contract/deployment_side_letter.txt") for n in names)
+    assert any(n.endswith("/03_receipts/payment_receipt.txt") for n in names)
+    assert any(n.endswith("/04_timeline/deployment_timeline.csv") for n in names)
+    assert any(n.endswith("/05_caseworker/caseworker_note.txt") for n in names)
+    with zipfile.ZipFile(SAMPLES / "case_files_streamlined_demo.zip") as zf:
+        manifest = json.loads(zf.read("manifest.json"))
+        expected = json.loads(zf.read("expected_outputs/streamlined_demo_expected.json"))
+        readme = zf.read("README.md").decode("utf-8")
+    assert manifest["recommended_settings"]["review_mode"] == "quick_triage"
+    assert manifest["recommended_settings"]["max_gemma_calls"] == 8
+    assert expected["expected_patterns"] == [
+        "fee_camouflage",
+        "fee_rerouting",
+        "restricted_provider_choice",
+        "salary_deduction",
+        "retaliation_risk",
+    ]
+    assert "Upload ZIP" in readme
+    assert "Ask conversational questions" in readme
 
 
 def test_media_rich_sample_has_expected_outputs_and_public_record_policy():

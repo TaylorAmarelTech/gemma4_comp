@@ -520,9 +520,14 @@ def test_process_page_has_graph_visualization_and_graph_chat_logging(client):
     assert "Still working locally" in text
     assert "function wbStartProcessProgressLoop" in text
     assert "function wbStopProcessProgressLoop" in text
+    assert "Guided demo path" in text
+    assert "case_files_streamlined_demo.zip" in text
+    assert "Use streamlined demo" in text
     assert 'id="wb-confirm-intel-btn"' in text
     assert "function wbConfirmIntelligence" in text
     assert "Reviewer verification checklist" in text
+    assert "it does not run Gemma or reprocess the bundle" in text
+    assert "Mark review complete" in text
     assert "Confirm extracted intelligence before downloading" in text
     assert "function wbRequireConfirmedNavigation" in text
     assert "Deterministic fallback" in text
@@ -532,6 +537,11 @@ def test_process_page_has_graph_visualization_and_graph_chat_logging(client):
     assert "graph-edge generation" in text
     assert "/api/process/batch/start" in text
     assert "/api/process/batch/status/" in text
+    assert "/api/process/graph-extract/start" in text
+    assert "/api/process/graph-extract/status/" in text
+    assert "function wbPollGemmaEdgeJob" in text
+    assert 'id="wb-edge-progress-box"' in text
+    assert 'id="pg-progress-box"' in text
     assert "Use primary sample" in text
     assert 'id="wb-activity-card"' in text
     assert '/static/_workflow.js' in text
