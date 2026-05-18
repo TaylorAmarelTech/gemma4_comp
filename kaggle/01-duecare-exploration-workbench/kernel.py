@@ -1172,6 +1172,7 @@ class LoadedModel:
 _MODEL_LOAD_LOG_LOCK = threading.Lock()
 _MODEL_LOAD_EVENTS: list[dict[str, Any]] = []
 _MODEL_LOAD_MAX_EVENTS = 500
+_MODEL_LOAD_STATUS_HEARTBEAT_SECONDS = 10.0
 
 
 def _reset_load_events() -> None:
@@ -1216,6 +1217,50 @@ def _log_load(message: str, *, phase: Optional[str] = None,
     if phase:
         prefix += f"[{phase}]"
     print(f"{prefix} {message}")
+
+
+def _maybe_log_load_status_heartbeat() -> None:
+    """Emit a status-poll heartbeat while a model is inside a long load.
+
+    FastModel.from_pretrained can spend minutes inside download, shard-map,
+    quantization, or CUDA placement. The shared runtime has its own heartbeat,
+    but some Unsloth/HF phases can delay that thread. This fallback is driven
+    by /api/load-model/status polling so the browser lightbox keeps showing
+    fresh activity instead of appearing frozen.
+    """
+    state = globals().get("_MODEL_LOAD_STATE")
+    if not isinstance(state, dict):
+        return
+    if state.get("status") != "loading" or not state.get("started_at"):
+        return
+    now = time.time()
+    last_times = [
+        float(v) for v in (
+            state.get("updated_at"),
+            state.get("last_status_heartbeat_at"),
+            state.get("started_at"),
+        )
+        if isinstance(v, (int, float)) and v > 0
+    ]
+    last = max(last_times) if last_times else 0.0
+    if now - last < _MODEL_LOAD_STATUS_HEARTBEAT_SECONDS:
+        return
+    elapsed = round(now - float(state["started_at"]))
+    variant = str(state.get("variant") or "model")
+    phase = str(state.get("phase") or "loading")
+    eta = ""
+    try:
+        eta = str(_VARIANT_INFO.get(variant, {}).get("load_eta") or "")
+    except Exception:
+        eta = ""
+    last_log = str(state.get("last_log") or "")
+    message = f"still loading {variant}; phase={phase}; {elapsed}s elapsed"
+    if eta:
+        message += f"; expected {eta}"
+    if last_log and last_log not in message:
+        message += f"; last event: {last_log[:140]}"
+    state["last_status_heartbeat_at"] = now
+    _log_load(message, phase=phase)
 
 
 def _model_size_b(variant: str) -> float:
@@ -1548,6 +1593,7 @@ _MODEL_LOAD_STATE = {
     "error":      None,
     "last_log":   None,
     "log_seq":    0,
+    "last_status_heartbeat_at": None,
 }
 
 _VARIANT_INFO = {
@@ -1573,6 +1619,7 @@ def api_load_model_status():
   elapsed = None
   if _MODEL_LOAD_STATE.get("started_at"):
     elapsed = round(time.time() - _MODEL_LOAD_STATE["started_at"], 1)
+  _maybe_log_load_status_heartbeat()
   variant = _MODEL_LOAD_STATE.get("variant")
   return {
     **_MODEL_LOAD_STATE,
@@ -1626,6 +1673,7 @@ def api_load_model(body: dict = Body(...)):
           "phase": "queued",
           "started_at": time.time(), "updated_at": time.time(),
           "completed_at": None, "error": None, "last_log": None,
+          "last_status_heartbeat_at": None,
     })
     _log_load(f"queued {_VARIANT_INFO[variant]['display']} ({variant})",
           phase="queued")

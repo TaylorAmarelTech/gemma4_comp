@@ -289,6 +289,17 @@ def test_kernel01_delegates_local_model_loading_to_shared_fastmodel_runtime():
     assert "FastModel.from_pretrained(" not in text.split("def load_gemma() -> Optional[LoadedModel]:", 1)[1].split("# ===========================================================================\n# 3.", 1)[0]
 
 
+def test_kernel01_model_status_endpoint_keeps_lightbox_alive_during_load():
+    text = _text(KERNEL)
+    assert "_MODEL_LOAD_STATUS_HEARTBEAT_SECONDS" in text
+    assert "def _maybe_log_load_status_heartbeat()" in text
+    assert "FastModel.from_pretrained can spend minutes" in text
+    status_block = text.split("@app.get(\"/api/load-model/status\")", 1)[1].split("@app.get(\"/api/load-model/logs\")", 1)[0]
+    assert "_maybe_log_load_status_heartbeat()" in status_block
+    assert "\"last_status_heartbeat_at\": None" in text
+    assert "still loading {variant}; phase={phase}; {elapsed}s elapsed" in text
+
+
 def test_model_loading_trace_documents_the_shared_fastmodel_path():
     doc = _text(MODEL_LOADING_TRACE)
     for token in [
