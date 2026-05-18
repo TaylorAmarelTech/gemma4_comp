@@ -120,7 +120,7 @@
           <span class="settings-step-num">1</span>
           <span>
             <span class="settings-step-title">Tune retrieval first</span>
-            <span class="settings-step-hint">Hybrid RAG should be the default path, with BM25 fallback visible when embeddings are unavailable.</span>
+            <span class="settings-step-hint">BM25 is the responsive default path; hybrid RAG is available for deeper review when latency allows.</span>
           </span>
         </summary>
         <div class="settings-step-body">RAG settings affect every page that asks Gemma to ground an answer in legal or factual evidence.</div>
@@ -150,12 +150,11 @@
 
   <section class="panel">
     <h2>Retrieval (RAG)</h2>
-    <p>Default profile is hybrid preferred: BM25 candidate recall,
-       optional dense embeddings, reciprocal-rank fusion, cross-encoder
-       rerank, parent expansion, and citation graph expansion. If the
-       embedder is unavailable, the system keeps BM25 plus rerank and
-       graph expansion rather than failing. RAG retrieves evidence;
-       GREP fires deterministic risk rules.</p>
+    <p>Default profile is demo-safe BM25: lexical candidate recall,
+       parent expansion, and citation graph expansion. Hybrid dense/RRF
+       and CPU rerank remain available for deeper review, but they can add
+       substantial latency on tunnelled or CPU-bound sessions. RAG retrieves
+       evidence; GREP fires deterministic risk rules.</p>
     <div id="ret-status" style="margin-bottom: 14px;"></div>
     <div class="grid">
       <div>
@@ -346,10 +345,10 @@
     try {
       const r = await fetch("/api/retrieval/config", {cache: "no-store"});
       const d = await r.json();
-      document.getElementById("ret-mode").value = d.retrieval_mode || "hybrid_rrf";
-      document.getElementById("ret-keep").value = d.rerank_keep || 8;
-      document.getElementById("ret-candidates").value = d.rerank_top_k || 50;
-      document.getElementById("ret-dense").value = d.dense_top_k || 32;
+      document.getElementById("ret-mode").value = d.retrieval_mode || "bm25";
+      document.getElementById("ret-keep").value = d.rerank_keep || 6;
+      document.getElementById("ret-candidates").value = d.rerank_top_k || 24;
+      document.getElementById("ret-dense").value = d.dense_top_k || 16;
       document.getElementById("ret-parent").value = d.parent_expand || "section";
       document.getElementById("ret-parent-max").value = d.parent_expand_max_chars || 2400;
       document.getElementById("ret-graph-depth").value = d.graph_expand_depth == null ? 1 : d.graph_expand_depth;
