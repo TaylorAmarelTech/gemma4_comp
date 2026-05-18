@@ -85,6 +85,20 @@ or emit. Common families:
 | Extracted evidence | Facts, entities, edges, timelines, risks | Process, extraction, report export |
 | Training knowledge | Synthetic SFT rows, polished examples, rejected rows | A-00 training and checkpoint flow |
 
+The envelope is intentionally broad enough for full-document and
+long-document use cases. A publication, case, statute, Palermo Protocol
+text, IOM/UN report, or multi-page PDF should enter as a source
+document object with provenance, hashes, page/chunk metadata, extracted
+text, and derived citations/facts. Harnesses should consume the vetted
+chunks and derived facts, not assume that a default synthetic run has
+parsed every raw publication.
+
+In the current A-00 guided proof path, synthetic training rows use
+prompt seeds, shared GREP/RAG/tools, and loaded knowledge packs. Raw
+IOM, UN, court, jurisdictional, or PDF corpora affect those rows only
+after they have been imported, chunked, synced, or otherwise promoted
+into vetted knowledge packs/source-document objects.
+
 The north-star direction is to keep moving logic out of hardcoded
 duplicates and into versioned packs, `HarnessSpec`, and reusable
 knowledge-object contracts.
@@ -126,6 +140,10 @@ knowledge-object contracts.
 
 Key A-00 runtime knobs:
 
+- `DUECARE_A00_BENCHMARK_MAX_NEW_TOKENS` controls the response
+  budget for benchmark arms. It defaults to `900`, which gives
+  presentation-quality answers more room than the old short smoke
+  budget while staying well below the full context window.
 - `DUECARE_A00_INFERENCE_MAX_SEQ_LENGTH` controls the shared Gemma
   inference context window used by benchmark generation and final
   grading. It defaults to a long-context setting so full prompts,

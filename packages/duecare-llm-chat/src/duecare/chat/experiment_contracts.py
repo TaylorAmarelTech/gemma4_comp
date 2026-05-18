@@ -11,11 +11,13 @@ from __future__ import annotations
 from typing import Any
 
 
+BENCHMARK_RESPONSE_MAX_NEW_TOKENS = 900
+
 GENERATION_DEFAULTS: dict[str, Any] = {
     "temperature": 0.2,
     "top_p": 0.95,
     "top_k": 64,
-    "max_new_tokens": 420,
+    "max_new_tokens": BENCHMARK_RESPONSE_MAX_NEW_TOKENS,
     "evaluate": True,
     "llm_judge": False,
 }

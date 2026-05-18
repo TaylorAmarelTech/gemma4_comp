@@ -30,6 +30,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 A00 = ROOT / "kaggle" / "A-00-omni-experiment-workbench" / "kernel.py"
 GEMMA4_RUNTIME = ROOT / "packages" / "duecare-llm-chat" / "src" / "duecare" / "chat" / "gemma4_runtime.py"
+EXPERIMENT_CONTRACTS = ROOT / "packages" / "duecare-llm-chat" / "src" / "duecare" / "chat" / "experiment_contracts.py"
 
 
 def _a00_text() -> str:
@@ -84,6 +85,7 @@ def test_a00_pipeline_request_defaults_match_proof_contract() -> None:
         'baseline_harness_profile: str = A00_BULK_COMPARE_DEFAULT["baseline_harness"]',
         'limit: int = 4',
         'synthetic_count: int = 4',
+        'benchmark_max_new_tokens: int = A00_BENCHMARK_MAX_NEW_TOKENS',
         'evaluate_outputs: bool = True',
         'include_report: bool = True',
         'execute_training: bool = False',
@@ -94,6 +96,28 @@ def test_a00_pipeline_request_defaults_match_proof_contract() -> None:
     assert not missing, f"PipelineRequest defaults drifted: missing {missing}"
     # The small-model default ref must resolve to the proof-path Gemma.
     assert 'A00_SMALL_MODEL_REF = os.environ.get("DUECARE_A00_SMALL_MODEL_REF", "google/gemma-4-2b-it")' in text
+
+
+def test_a00_benchmark_response_budget_has_headroom() -> None:
+    """Benchmark answer generation needs more room than the old smoke
+    budget. This is separate from the 16K input context and the 2048
+    structured judge output budget."""
+    text = _a00_text()
+    contracts = EXPERIMENT_CONTRACTS.read_text(encoding="utf-8")
+    assert "BENCHMARK_RESPONSE_MAX_NEW_TOKENS = 900" in contracts
+    assert '"max_new_tokens": BENCHMARK_RESPONSE_MAX_NEW_TOKENS' in contracts
+    assert (
+        'A00_BENCHMARK_MAX_NEW_TOKENS = int(os.environ.get('
+        in text
+    )
+    assert '"DUECARE_A00_BENCHMARK_MAX_NEW_TOKENS"' in text
+    assert "benchmark_max_new_tokens: int = A00_BENCHMARK_MAX_NEW_TOKENS" in text
+    assert "max_new_tokens=req.benchmark_max_new_tokens" in text
+    assert "benchmark_generation_settings" in text
+    assert '"benchmark_max_new_tokens": req.benchmark_max_new_tokens' in text
+    assert 'benchmark_max_new_tokens: Number("__A00_BENCHMARK_MAX_NEW_TOKENS__")' in text
+    assert '.replace("__A00_BENCHMARK_MAX_NEW_TOKENS__", str(A00_BENCHMARK_MAX_NEW_TOKENS))' in text
+    assert 'generation.get("max_new_tokens", 420)' not in text
 
 
 def test_a00_generation_fallback_uses_gemma4_recipe_defaults() -> None:
@@ -232,6 +256,30 @@ def test_a00_activity_logs_full_prompts_responses_and_untruncated_buffer() -> No
     assert 'el.textContent = `[${stamp}] ${summary}${detail}\\n\\n` + (el.textContent || "");' in text
     assert "slice(0, 18000)" not in text
     assert ".slice(-8).map" not in text
+
+
+def test_a00_synthetic_generation_exposes_source_scope_and_audit() -> None:
+    """Synthetic training rows must clearly say what knowledge sources
+    were used. A-00 should not imply that raw IOM/UN/court/PDF corpora
+    were freshly digested unless they were imported as packs/documents."""
+    text = _a00_text()
+    assert "GREP_RULES as _shared_grep_rules" in text
+    assert "RAG_CORPUS as _shared_rag_corpus" in text
+    assert "_TOOL_DISPATCH as _shared_tool_dispatch" in text
+    assert "def _synthetic_source_scope() -> dict[str, Any]:" in text
+    assert '"raw_publication_ingestion_by_default": False' in text
+    assert "Raw IOM, UN, international human-rights, court, or jurisdictional publications are not digested" in text
+    assert "def _trace_source_grounding(prompt_id: str, trace: dict[str, Any]) -> dict[str, Any]:" in text
+    assert '"source_grounding": grounding' in text
+    assert 'source_audit_path = TRAIN_DIR / f"{base_id}_source_audit.json"' in text
+    assert '"schema_version": "duecare.a00.synthetic.source_audit.v1"' in text
+    assert '"source_scope": source_scope' in text
+    assert '"source_audit_summary": source_audit_summary' in text
+    assert '"source_scope": _synthetic_source_scope()' in text
+    assert '"source_audit": str(source_audit_path)' in text
+    assert "source_audit_path, manifest_path" in text
+    assert "Raw IOM, UN, court, statute, or PDF corpora influence training only after they are imported" in text
+    assert "The schema is flexible enough for full documents, PDF-derived page chunks" in text
 
 
 def test_a00_training_activity_exposes_larger_log_excerpt_and_full_log_link() -> None:
