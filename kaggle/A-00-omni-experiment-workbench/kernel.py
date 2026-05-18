@@ -349,12 +349,18 @@ except Exception as exc:  # noqa: BLE001
 # in _build_harness_prompt.
 try:
     from duecare.chat.harness import (
+        GREP_RULES as _shared_grep_rules,
+        RAG_CORPUS as _shared_rag_corpus,
+        _TOOL_DISPATCH as _shared_tool_dispatch,
         _grep_call as _shared_grep_call,
         _rag_call as _shared_rag_call,
         _tools_call as _shared_tools_call,
     )
     _SHARED_HARNESS_AVAILABLE = True
 except Exception:  # noqa: BLE001
+    _shared_grep_rules = []  # type: ignore[assignment]
+    _shared_rag_corpus = []  # type: ignore[assignment]
+    _shared_tool_dispatch = {}  # type: ignore[assignment]
     _shared_grep_call = None  # type: ignore[assignment]
     _shared_rag_call = None  # type: ignore[assignment]
     _shared_tools_call = None  # type: ignore[assignment]
@@ -368,6 +374,17 @@ A00_RUN_PROFILES = quantitative_run_profile_map()
 A00_SYNTHETIC_PROFILES = synthetic_generation_profile_map()
 A00_TRAINING_PROFILES = training_profile_map()
 A00_BULK_COMPARE_DEFAULT = A00_RUN_PROFILES["bulk_text_25"]
+A00_BENCHMARK_MAX_NEW_TOKENS = int(os.environ.get(
+    "DUECARE_A00_BENCHMARK_MAX_NEW_TOKENS",
+    str(A00_BULK_COMPARE_DEFAULT["generation"]["max_new_tokens"]),
+))
+for _profile in A00_RUN_PROFILES.values():
+    if isinstance(_profile.get("generation"), dict):
+        _profile["generation"]["max_new_tokens"] = A00_BENCHMARK_MAX_NEW_TOKENS
+WORKBENCH_EXPERIMENT_CONTRACT["generation_defaults"]["max_new_tokens"] = A00_BENCHMARK_MAX_NEW_TOKENS
+for _profile in WORKBENCH_EXPERIMENT_CONTRACT["quantitative_run_profiles"].values():
+    if isinstance(_profile.get("generation"), dict):
+        _profile["generation"]["max_new_tokens"] = A00_BENCHMARK_MAX_NEW_TOKENS
 A00_SYNTHETIC_DEFAULT = A00_SYNTHETIC_PROFILES["rubric_polisher_24"]
 A00_TRAINING_DEFAULT = A00_TRAINING_PROFILES["tiny_lora_smoke"]
 
@@ -1125,6 +1142,7 @@ class PipelineRequest(BaseModel):
     # preconfigured page (the UI computes synth = limit; direct API users
     # who override limit upward should also override synthetic_count).
     synthetic_count: int = 4
+    benchmark_max_new_tokens: int = A00_BENCHMARK_MAX_NEW_TOKENS
     generator_mode: str = A00_SYNTHETIC_DEFAULT["generator_mode"]
     evaluate_outputs: bool = True
     include_report: bool = True
@@ -1334,6 +1352,100 @@ def _pack_facts_as_rag_extras() -> list[dict[str, Any]]:
                 "snippet": text,
             })
     return extras
+
+
+def _knowledge_pack_manifest() -> list[dict[str, Any]]:
+    packs: list[dict[str, Any]] = []
+    for pack in STATE["packs"].values():
+        facts = list(pack.get("facts", []) or [])
+        rules = list(pack.get("rules", []) or [])
+        packs.append({
+            "slug": pack.get("slug", ""),
+            "version": pack.get("version", ""),
+            "trust": pack.get("trust", ""),
+            "source_url": pack.get("source_url", ""),
+            "sha256": pack.get("sha256", ""),
+            "facts_count": len(facts),
+            "rules_count": len(rules),
+            "fact_ids": [str(f.get("id", "")) for f in facts[:20]],
+            "rule_ids": [str(r.get("id", "")) for r in rules[:20]],
+        })
+    return packs
+
+
+def _shared_harness_corpus_manifest() -> dict[str, Any]:
+    rag_samples: list[dict[str, str]] = []
+    for doc in list(_shared_rag_corpus or [])[:12]:
+        if isinstance(doc, (list, tuple)) and len(doc) >= 3:
+            rag_samples.append({
+                "id": str(doc[0]),
+                "title": str(doc[1]),
+                "source": str(doc[2]),
+            })
+        elif isinstance(doc, dict):
+            rag_samples.append({
+                "id": str(doc.get("id", "")),
+                "title": str(doc.get("title", "")),
+                "source": str(doc.get("source", "")),
+            })
+    return {
+        "shared_harness_available": _SHARED_HARNESS_AVAILABLE,
+        "grep_rule_count": len(_shared_grep_rules or []),
+        "rag_doc_count": len(_shared_rag_corpus or []),
+        "tool_names": sorted(str(name) for name in (_shared_tool_dispatch or {}).keys()),
+        "rag_sample": rag_samples,
+        "scope_note": (
+            "Shared GREP/RAG/tools contain curated DueCare references and paraphrased legal/human-rights "
+            "grounding used by Kernel 01 and A-00. This is not a fresh raw-publication ingestion pass."
+        ),
+    }
+
+
+def _synthetic_source_scope() -> dict[str, Any]:
+    return {
+        "uses_by_default": [
+            "A-00 prompt seeds from the selected source_prompt_set",
+            "shared DueCare GREP rules through duecare.chat.harness._grep_call",
+            "shared DueCare RAG corpus through duecare.chat.harness._rag_call",
+            "shared deterministic DueCare tools through duecare.chat.harness._tools_call",
+            "loaded A-00 knowledge packs folded in as extra GREP/RAG material",
+        ],
+        "raw_publication_ingestion_by_default": False,
+        "raw_publication_note": (
+            "Raw IOM, UN, international human-rights, court, or jurisdictional publications are not digested "
+            "during the default synthetic step unless they have first been imported as knowledge packs or source "
+            "documents. The default path uses curated shared harness material plus currently loaded packs."
+        ),
+        "how_to_include_more_sources": (
+            "Import or sync vetted knowledge packs, upload source bundles through the import/research surfaces, "
+            "then rerun synthetic generation so the new pack facts/rules appear in this source audit."
+        ),
+        "shared_harness": _shared_harness_corpus_manifest(),
+        "loaded_knowledge_packs": _knowledge_pack_manifest(),
+    }
+
+
+def _trace_source_grounding(prompt_id: str, trace: dict[str, Any]) -> dict[str, Any]:
+    hits = list((trace.get("grep") or {}).get("hits") or [])
+    facts = list((trace.get("rag") or {}).get("facts") or [])
+    tools = trace.get("tools") or {}
+    citations = sorted({
+        str(item.get("citation") or item.get("source") or item.get("title") or "")
+        for item in facts + hits
+        if str(item.get("citation") or item.get("source") or item.get("title") or "").strip()
+    })
+    return {
+        "prompt_id": prompt_id,
+        "profile": trace.get("profile"),
+        "grep_source": (trace.get("grep") or {}).get("source", ""),
+        "grep_hits": len(hits),
+        "rag_source": (trace.get("rag") or {}).get("source", ""),
+        "rag_facts": len(facts),
+        "tool_source": tools.get("source", ""),
+        "tool_calls": list(tools.get("called") or []),
+        "citations": citations[:20],
+        "step_statuses": trace.get("steps", []),
+    }
 
 
 def _format_shared_tool_call(call: dict[str, Any]) -> str:
@@ -2795,6 +2907,8 @@ def _synthetic_activity_detail(manifest: dict[str, Any]) -> dict[str, Any]:
         "generator_mode": manifest.get("generator_mode"),
         "harness_profile": manifest.get("harness_profile"),
         "counts": manifest.get("counts", {}),
+        "source_scope": manifest.get("source_scope", {}),
+        "source_audit_summary": manifest.get("source_audit_summary", {}),
         "artifacts": _artifact_links(manifest.get("artifacts", {})),
         "sample_sft_rows": manifest.get("sample_sft_rows", []),
         "sample_prompt_tests": manifest.get("sample_prompt_tests", []),
@@ -3608,11 +3722,14 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
     dpo_rows: list[dict[str, Any]] = []
     prompt_tests: list[dict[str, Any]] = []
     facts: list[dict[str, Any]] = []
+    source_scope = _synthetic_source_scope()
+    source_audit_rows: list[dict[str, Any]] = []
     run_stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     base_id = f"a00_synth_{_safe_slug(req.generator_mode)}_{run_stamp}"
 
     for i in range(count):
         seed = seeds[i % len(seeds)]
+        prompt_id = f"{base_id}_{i + 1:04d}"
         scenario_prompt = (
             seed["prompt"]
             + f"\n\nVariation {i + 1}: make the scenario realistic, compact, and suitable for evaluating the {req.harness_profile} profile."
@@ -3620,6 +3737,8 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
         model_prompt, trace = _build_harness_prompt({**seed, "prompt": scenario_prompt}, req.harness_profile)
         draft, meta = _generate(model_prompt, max_new_tokens=520, temperature=req.temperature, trace=trace, row=seed)
         chosen, polish_meta = _polish_training_response(scenario_prompt, draft, trace, seed, req)
+        grounding = _trace_source_grounding(prompt_id, trace)
+        source_audit_rows.append(grounding)
         rejected_meta: dict[str, Any] = {}
         if req.generator_mode == "rubric_polisher":
             rejected = draft
@@ -3634,7 +3753,6 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
                 row=seed,
             )
             rejected_kind = "model_without_harness"
-        prompt_id = f"{base_id}_{i + 1:04d}"
         sft_rows.append({
             "id": prompt_id,
             "messages": [
@@ -3651,6 +3769,7 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
                 "polish": polish_meta,
                 "response_blueprint": RESPONSE_BLUEPRINT["version"] if polish_meta.get("polished") else "",
                 "memory_tool_policy": MEMORY_TOOL_POLICY["version"] if polish_meta.get("polished") else "",
+                "source_grounding": grounding,
             },
         })
         prompt_tests.append({
@@ -3692,12 +3811,41 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
     dpo_path = TRAIN_DIR / f"{base_id}_dpo.jsonl"
     tests_path = TRAIN_DIR / f"{base_id}_prompt_tests.jsonl"
     facts_path = TRAIN_DIR / f"{base_id}_knowledge_facts.jsonl"
+    source_audit_path = TRAIN_DIR / f"{base_id}_source_audit.json"
     manifest_path = TRAIN_DIR / f"{base_id}_manifest.json"
     bundle_path = TRAIN_DIR / f"{base_id}_bundle.zip"
     _write_jsonl(sft_path, sft_rows)
     _write_jsonl(dpo_path, dpo_rows)
     _write_jsonl(tests_path, prompt_tests)
     _write_jsonl(facts_path, facts)
+    source_audit = {
+        "schema_version": "duecare.a00.synthetic.source_audit.v1",
+        "id": base_id,
+        "created_at": _utc(),
+        "source_prompt_set": req.source_prompt_set,
+        "requested_count": req.count,
+        "generated_count": len(sft_rows),
+        "source_scope": source_scope,
+        "row_grounding": source_audit_rows,
+    }
+    _write_json(source_audit_path, source_audit)
+    source_audit_summary = {
+        "raw_publication_ingestion_by_default": source_scope["raw_publication_ingestion_by_default"],
+        "shared_harness_available": source_scope["shared_harness"]["shared_harness_available"],
+        "grep_rule_count": source_scope["shared_harness"]["grep_rule_count"],
+        "rag_doc_count": source_scope["shared_harness"]["rag_doc_count"],
+        "loaded_knowledge_packs": [
+            {
+                "slug": pack.get("slug"),
+                "version": pack.get("version"),
+                "facts_count": pack.get("facts_count"),
+                "rules_count": pack.get("rules_count"),
+            }
+            for pack in source_scope["loaded_knowledge_packs"]
+        ],
+        "row_grounding_sample": source_audit_rows[: min(10, len(source_audit_rows))],
+        "source_audit_path": str(source_audit_path),
+    }
     manifest = {
         "schema_version": "duecare.a00.synthetic.v1",
         "id": base_id,
@@ -3707,6 +3855,8 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
         "model": STATE["model_info"],
         "response_blueprint": RESPONSE_BLUEPRINT if req.generator_mode == "rubric_polisher" else None,
         "memory_tool_policy": MEMORY_TOOL_POLICY if req.generator_mode == "rubric_polisher" else None,
+        "source_scope": source_scope,
+        "source_audit_summary": source_audit_summary,
         "counts": {
             "sft": len(sft_rows),
             "dpo": len(dpo_rows),
@@ -3720,11 +3870,12 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
             "dpo": str(dpo_path),
             "prompt_tests": str(tests_path),
             "knowledge_facts": str(facts_path),
+            "source_audit": str(source_audit_path),
         },
     }
     _write_json(manifest_path, manifest)
     with zipfile.ZipFile(bundle_path, "w", zipfile.ZIP_DEFLATED) as z:
-        for path in [sft_path, dpo_path, tests_path, facts_path, manifest_path]:
+        for path in [sft_path, dpo_path, tests_path, facts_path, source_audit_path, manifest_path]:
             z.write(path, arcname=path.name)
     manifest["artifacts"]["manifest"] = str(manifest_path)
     manifest["artifacts"]["bundle"] = str(bundle_path)
@@ -5124,7 +5275,7 @@ def _run_quantitative_profile(req: QuantitativeProfileRequest) -> dict[str, Any]
             harness_profile=profile["baseline_harness"],
             limit=int(profile["limit"]),
             temperature=float(generation.get("temperature", 0.2)),
-            max_new_tokens=int(generation.get("max_new_tokens", 420)),
+            max_new_tokens=int(generation.get("max_new_tokens", A00_BENCHMARK_MAX_NEW_TOKENS)),
             evaluate=bool(generation.get("evaluate", True)),
             llm_judge=bool(generation.get("llm_judge", False)),
             run_label=f"{label}-baseline",
@@ -5138,7 +5289,7 @@ def _run_quantitative_profile(req: QuantitativeProfileRequest) -> dict[str, Any]
             harness_profile=profile["treatment_harness"],
             limit=int(profile["limit"]),
             temperature=float(generation.get("temperature", 0.2)),
-            max_new_tokens=int(generation.get("max_new_tokens", 420)),
+            max_new_tokens=int(generation.get("max_new_tokens", A00_BENCHMARK_MAX_NEW_TOKENS)),
             evaluate=bool(generation.get("evaluate", True)),
             llm_judge=bool(generation.get("llm_judge", False)),
             run_label=f"{label}-harness",
@@ -5570,6 +5721,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                         prompt_set=req.prompt_set,
                         harness_profile=req.harness_profile,
                         limit=req.limit,
+                        max_new_tokens=req.benchmark_max_new_tokens,
                         run_label=f"{req.run_label or job_id}-{label}",
                         evaluate=req.evaluate_outputs,
                         llm_judge=req.llm_judge,
@@ -5606,6 +5758,14 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                             "Use 2 prompts for a short smoke run; use Custom settings or a faster workstation "
                             "for larger training/evaluation runs beyond Kaggle's runtime budget."
                         ),
+                        "benchmark_generation_settings": {
+                            "max_new_tokens": req.benchmark_max_new_tokens,
+                            "temperature": A00_BULK_COMPARE_DEFAULT["generation"]["temperature"],
+                            "note": (
+                                f"Benchmark answer output budget is separate from the {A00_INFERENCE_MAX_SEQ_LENGTH}-token input context and "
+                                f"the {A00_COMBINED_JUDGE_MAX_NEW_TOKENS}-token combined judge output budget."
+                            ),
+                        },
                     },
                 )
                 _prepare_base_model_for_pipeline(job_id, req)
@@ -5613,6 +5773,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     "prompt_set": req.prompt_set,
                     "limit": req.limit,
                     "harness_profile": req.baseline_harness_profile,
+                    "benchmark_max_new_tokens": req.benchmark_max_new_tokens,
                     "prompts": _prompt_manifest_for_activity(req.prompt_set, req.limit),
                 })
                 base_no_harness = _run_batch(BatchRunRequest(
@@ -5620,6 +5781,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     prompt_set=req.prompt_set,
                     harness_profile=req.baseline_harness_profile,
                     limit=req.limit,
+                    max_new_tokens=req.benchmark_max_new_tokens,
                     run_label=f"{req.run_label or job_id}-stock",
                     evaluate=req.evaluate_outputs,
                     llm_judge=False,
@@ -5635,6 +5797,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                         "prompt_set": req.prompt_set,
                         "limit": req.limit,
                         "harness_profile": req.harness_profile,
+                        "benchmark_max_new_tokens": req.benchmark_max_new_tokens,
                         "layers": "Persona + GREP + RAG/context + tools; no internet/import for the default proof path.",
                         "prompts": _prompt_manifest_for_activity(req.prompt_set, req.limit),
                     },
@@ -5644,6 +5807,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     prompt_set=req.prompt_set,
                     harness_profile=req.harness_profile,
                     limit=req.limit,
+                    max_new_tokens=req.benchmark_max_new_tokens,
                     run_label=f"{req.run_label or job_id}-stock-harness",
                     evaluate=req.evaluate_outputs,
                     llm_judge=False,
@@ -5652,7 +5816,17 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                 ))
                 _append_job_step(job_id, "10. Completed Gemma harnessed responses", "running", _run_activity_detail(base_harness))
                 run_ids.extend([base_no_harness["run_id"], base_harness["run_id"]])
-                _append_job_step(job_id, "11. Generating synthetic training data with harnessed Gemma", "running", {"count": req.synthetic_count, "generator_mode": req.generator_mode, "harness_profile": req.harness_profile})
+                _append_job_step(
+                    job_id,
+                    "11. Generating synthetic training data with harnessed Gemma",
+                    "running",
+                    {
+                        "count": req.synthetic_count,
+                        "generator_mode": req.generator_mode,
+                        "harness_profile": req.harness_profile,
+                        "source_scope": _synthetic_source_scope(),
+                    },
+                )
                 synth = _generate_synthetic(SyntheticRequest(
                     auto_load_model=False,
                     source_prompt_set="synthetic_seed",
@@ -5730,6 +5904,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                         "prompt_set": req.prompt_set,
                         "limit": req.limit,
                         "harness_profile": req.baseline_harness_profile,
+                        "benchmark_max_new_tokens": req.benchmark_max_new_tokens,
                         "prompts": _prompt_manifest_for_activity(req.prompt_set, req.limit),
                     })
                     ft_no_harness = _run_batch(BatchRunRequest(
@@ -5737,6 +5912,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                         prompt_set=req.prompt_set,
                         harness_profile=req.baseline_harness_profile,
                         limit=req.limit,
+                        max_new_tokens=req.benchmark_max_new_tokens,
                         run_label=f"{req.run_label or job_id}-finetuned",
                         evaluate=req.evaluate_outputs,
                         llm_judge=False,
@@ -5748,6 +5924,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                         "prompt_set": req.prompt_set,
                         "limit": req.limit,
                         "harness_profile": req.harness_profile,
+                        "benchmark_max_new_tokens": req.benchmark_max_new_tokens,
                         "prompts": _prompt_manifest_for_activity(req.prompt_set, req.limit),
                     })
                     ft_harness = _run_batch(BatchRunRequest(
@@ -5755,6 +5932,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                         prompt_set=req.prompt_set,
                         harness_profile=req.harness_profile,
                         limit=req.limit,
+                        max_new_tokens=req.benchmark_max_new_tokens,
                         run_label=f"{req.run_label or job_id}-finetuned-harness",
                         evaluate=req.evaluate_outputs,
                         llm_judge=False,
@@ -6453,7 +6631,9 @@ __A00_SHUTDOWN_CONTROL__
           <dt>Online grounding</dt>
           <dd>Disabled in this proof path. The intended online harness is Prompt -> Gemma-anonymized query -> search -> page markdown -> Gemma verification -> knowledge objects, so false or private search results are not injected directly.</dd>
           <dt>Synthetic data</dt>
-          <dd>Harnessed Gemma generates rubric-polished SFT rows; rows are filtered before fine-tuning.</dd>
+          <dd>Harnessed Gemma generates rubric-polished SFT rows from prompt seeds, shared GREP/RAG/tools, and loaded knowledge packs. Raw IOM, UN, court, statute, or PDF corpora influence training only after they are imported or synced as vetted knowledge packs/source documents.</dd>
+          <dt>Knowledge objects</dt>
+          <dd>The schema is flexible enough for full documents, PDF-derived page chunks, statutes, cases, Palermo Protocol text, and extracted facts, but this default proof path trains from curated harness context rather than live raw-document ingestion.</dd>
           <dt>Training data quality</dt>
           <dd>Using Gemma 31B or a frontier model to draft and polish synthetic training rows may produce stronger training data than the small smoke-test model.</dd>
           <dt>Fine-tune path</dt>
@@ -7259,6 +7439,7 @@ async function runPreconfiguredPipeline() {
     baseline_harness_profile: "none",
     limit,
     synthetic_count: synth,
+    benchmark_max_new_tokens: Number("__A00_BENCHMARK_MAX_NEW_TOKENS__"),
     generator_mode: "rubric_polisher",
     evaluate_outputs: true,
     include_report: true,
@@ -7527,6 +7708,7 @@ _A00_SHUTDOWN_CONTROL_HTML = (
 _A00_BASE_HTML = (
     HOMEPAGE_HTML
     .replace("__A00_SMALL_MODEL_REF__", A00_SMALL_MODEL_REF)
+    .replace("__A00_BENCHMARK_MAX_NEW_TOKENS__", str(A00_BENCHMARK_MAX_NEW_TOKENS))
     .replace("__A00_SHUTDOWN_CONTROL__", _A00_SHUTDOWN_CONTROL_HTML)
 )
 HOMEPAGE_HTML = _A00_BASE_HTML.replace("__A00_BODY_CLASS__", "a00-landing")
