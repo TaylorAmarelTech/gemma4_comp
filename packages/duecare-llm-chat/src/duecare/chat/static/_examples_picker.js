@@ -19,7 +19,7 @@
   const _bucketLabels = {
     model_capability:      'Model capability / stress-test',
     enterprise_moderation: 'Platform safety content review',
-    ngo_intake:            'NGO & regulator case intake',
+    ngo_intake:            'NGO & regulator case analysis',
     individual_query:      'Query from individual',
     research:              'Research / journalism',
     image_prompts:         'Image prompts (multimodal)',
@@ -30,7 +30,7 @@
   const _bucketDescriptions = {
     model_capability:      'Adversarial prompts that stress-test specific model capabilities: jailbreak resistance, jurisdictional reasoning, fee-camouflage detection, and multi-lingual coverage. These are failure-mode probes, not normal user prompts.',
     enterprise_moderation: 'Realistic platform-safety tasks: classify a recruitment ad, triage a user complaint, decide on a marketplace listing, or walk a moderator through a policy edge case.',
-    ngo_intake:            'Caseworker, advocate, shelter, or regulator intake tasks: triage, refund claims, evidence preservation, and brief drafting.',
+    ngo_intake:            'Caseworker, advocate, shelter, or regulator analysis tasks: triage, refund claims, evidence preservation, and brief drafting.',
     individual_query:      'A worker, family member, or prospective migrant talking directly to the model in their own voice.',
     research:              'Academic, journalistic, legal, and policy queries that synthesize across statutes and jurisdictions.',
     image_prompts:         'Multimodal prompts. Pair the text prompt with an attached image such as a receipt, contract page, social-media screenshot, passport photo, wallet UI, or marketplace listing.',
