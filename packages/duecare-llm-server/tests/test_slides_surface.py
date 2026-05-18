@@ -161,7 +161,10 @@ def test_cached_io_returns_default_prompt_for_known_pair() -> None:
     assert data["use_case"] == "ph_hk_placement_fee"
     assert "PHP 50,000" in data["prompt"]
     assert "Hong Kong" in data["prompt"]
-    assert "RA 11227" in data["response"]
+    assert "RA 8042" in data["response"], (
+        "PH placement-fee statute is RA 8042 (Migrant Workers Act), as "
+        "amended by RA 10022 - not RA 11227 (officer training law). The "
+        "cached PH-HK response must cite the correct migrant-workers act.")
     assert ("ILO C029" in data["response"]
             or "Convention 29" in data["response"])
 

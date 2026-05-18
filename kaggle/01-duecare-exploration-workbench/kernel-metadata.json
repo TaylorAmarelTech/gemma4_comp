@@ -1,6 +1,6 @@
 {
-  "id": "taylorsamarel/duecare-exploration-workbench",
-  "title": "DueCare Exploration Workbench",
+  "id": "taylorsamarel/duecare-app",
+  "title": "DueCare App",
   "code_file": "kernel.py",
   "language": "python",
   "kernel_type": "script",

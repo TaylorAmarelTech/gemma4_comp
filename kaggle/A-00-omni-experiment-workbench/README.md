@@ -1,4 +1,4 @@
-# DueCare A-00 Omni Experiment Workbench
+# DueCare Fine-tuning and Evaluation
 
 > Control-plane appendix for the Gemma 4 Good submission. This notebook is the
 > single UI for running batches, rerunning exports, comparing harnesses,
@@ -212,6 +212,29 @@ than maintaining a parallel contract:
   benchmark and fine-tune results can be traced back to the exact workbench
   contract.
 
+## Run It On Kaggle (5 clicks)
+
+Copy-paste reproduction path so a judge can run the full benchmark
+without leaving Kaggle.
+
+1. **New Notebook** on Kaggle (`https://www.kaggle.com/code`). Choose **+ New Notebook**.
+2. **Set the accelerator**: **Accelerator: GPU T4 x2**, **Internet: On**.
+3. **Add the model**: **+ Add Input → Models → `google/gemma-4`**.
+   E2B / E4B both work; larger variants improve grading quality.
+4. **Paste `kernel.py`** from this folder into the notebook. The wheels
+   and bootstrap install run inside `kernel.py`; no separate dataset
+   attachment is required for the current rolling-source path.
+5. **Run All.** The control plane comes up at the printed
+   `https://*.trycloudflare.com` URL. Use **Preconfigured Harness,
+   Training, and Evaluation** for the fast guided path (defaults: small
+   Gemma + 2 prompts on `chat_safety_core`, baseline + harnessed +
+   fine-tuned + fine-tuned + harness arms, combined rule + LLM judging).
+   **Custom** exposes every knob.
+
+Heuristic-only mode (no model) is supported: the dry-run generator
+still produces the UI flow, artifact contracts, and report skeleton so
+judges can verify shape without waiting on weights.
+
 ## Notes
 
 - This is a script kernel. `kernel.py` is the source of truth.
@@ -219,13 +242,8 @@ than maintaining a parallel contract:
   generate reports from previous exports.
 - Internet is required for GitHub package install, Hugging Face model downloads,
   and optional knowledge-pack sync.
-- The notebook defaults to a dry-run generator if no model is loaded, so judges
-  can inspect the UI and artifact contracts without waiting for weights.
 
 ## Related Notebooks
 
-- `../01-duecare-exploration-workbench/`: the polished product UI.
-- `../02-live-demo/`: the public live-demo story.
-- `../A-06-prompt-generation/`: narrow synthetic-data generator.
-- `../A-07-bench-and-tune/`: narrow trainer and benchmark runner.
-- `../A-11-grading-evaluation/`: narrow harness-lift regenerator.
+- `../01-duecare-exploration-workbench/`: the broad reviewer workbench.
+- `../02-live-demo/`: the focused live demo + recording-grade pitch deck.

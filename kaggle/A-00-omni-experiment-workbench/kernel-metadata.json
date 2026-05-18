@@ -1,6 +1,6 @@
 {
-  "id": "taylorsamarel/duecare-a-00-omni-experiment-workbench",
-  "title": "DueCare A-00 Omni Experiment Workbench",
+  "id": "taylorsamarel/duecare-fine-tuning-and-evaluation",
+  "title": "DueCare Fine-tuning and Evaluation",
   "code_file": "kernel.py",
   "language": "python",
   "kernel_type": "script",

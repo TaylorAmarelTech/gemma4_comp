@@ -1,6 +1,7 @@
 # <!-- duecare:kernel-intro -->
-# DueCare Exploration Workbench
+# DueCare App (formerly DueCare Exploration Workbench)
 # Active notebook #01 in the DueCare Kaggle submission path.
+# Kaggle slug: taylorsamarel/duecare-app
 #
 # Unified workbench surface for every audience and every harness capability:
 #   - 5 audience showcase pages (Platform safety / NGO & regulator / Worker /

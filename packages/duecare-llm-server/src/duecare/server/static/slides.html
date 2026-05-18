@@ -1177,7 +1177,7 @@
                     <div class="fb-brand"><span class="fb-logo"></span><span>Social platform</span></div>
                     <div class="fb-meta">
                       <div class="avatar"></div>
-                      <div class="name"><b>HK Domestic Jobs</b><span>Public page</span></div>
+                      <div class="name"><b>HK Domestic Jobs <span style="font-weight: 500; color: var(--ink-3); font-size: 12px;">(composite)</span></b><span>Public page</span></div>
                       <span class="more">&middot;&middot;&middot;</span>
                     </div>
                     <div class="fb-body"><span class="tag">Sponsored &middot; 2h</span><br><br>PH &rarr; HK domestic helper FAST-TRACK visa.
@@ -1451,7 +1451,7 @@ DM @sunburstrecruit for slots. Approval in 7 days.</div>
               </g>
 
               <g class="node hot" transform="translate(300,160)"><circle r="26"/></g>
-              <text class="node-label" x="300" y="208">Sunburst</text>
+              <text class="node-label" x="300" y="208">Sunburst (composite)</text>
               <text class="node-meta"  x="300" y="226">agency &middot; 7 cases</text>
 
               <g class="node hot" transform="translate(470,60)"><circle r="22"/></g>
@@ -1537,7 +1537,7 @@ DM @sunburstrecruit for slots. Approval in 7 days.</div>
                   <div class="label-mono">Top 3 clusters of 11</div>
                   <div class="stack-tight" data-demo-output="research">
                     <div class="edge" data-group-row>
-                      <div class="head">agency: Sunburst Manpower Services <span class="arrow">&times;</span> 7 cases</div>
+                      <div class="head">agency: Sunburst Manpower Services (composite) <span class="arrow">&times;</span> 7 cases</div>
                       <div class="meta"><b>routes:</b> PH&rarr;HK, PH&rarr;SG &nbsp; <b>fee total:</b> PHP 312,000 &nbsp; <b>evidence rows:</b> r_003, r_014, r_028, r_039, r_055 &hellip;</div>
                     </div>
                     <div class="edge" data-group-row>
@@ -1688,8 +1688,8 @@ DM @sunburstrecruit for slots. Approval in 7 days.</div>
             </div>
             <div class="lane">
               <span class="lane-num">Component 04</span>
-              <h3>Online tools</h3>
-              <p>Optional official-source lookups. Explicit, specialized, off by default.</p>
+              <h3>Online &amp; official-source layer</h3>
+              <p>Optional internet lookups against allowlisted official sources (DMW, ILO, IOM, HK Labour). Explicit, specialized, off by default.</p>
             </div>
             <div class="lane">
               <span class="lane-num">Component 05</span>
@@ -1790,7 +1790,7 @@ DM @sunburstrecruit for slots. Approval in 7 days.</div>
           </div>
 
           <div>
-            <div class="label-mono">Four-arm benchmark &middot; PH&ndash;HK prompt set &middot; combined LLM + rule grading</div>
+            <div class="label-mono">Four-arm benchmark &middot; PH&ndash;HK prompt set &middot; combined LLM + rule grading &middot; <span style="color: var(--ember);">illustrative pending final A-00 run</span></div>
             <div class="score-stack">
               <div class="score">
                 <span class="name">Base Gemma 4</span>
@@ -1911,9 +1911,9 @@ DM @sunburstrecruit for slots. Approval in 7 days.</div>
         <div class="row cols-3 content-block">
           <div class="resource"><b>Live site</b><span>https://gemma4-comp.onrender.com/</span></div>
           <div class="resource"><b>GitHub</b><span>github.com/TaylorAmarelTech/gemma4_comp</span></div>
-          <div class="resource"><b>Kaggle workbench</b><span>01-duecare-exploration-workbench</span></div>
-          <div class="resource"><b>Demo kernel</b><span>02-live-demo</span></div>
-          <div class="resource"><b>Experiment kernel</b><span>A-00-omni-experiment-workbench</span></div>
+          <div class="resource"><b>DueCare App</b><span>kaggle.com/code/taylorsamarel/duecare-app</span></div>
+          <div class="resource"><b>DueCare Live Demo</b><span>kaggle.com/code/taylorsamarel/duecare-live-demo</span></div>
+          <div class="resource"><b>DueCare Fine-tuning &amp; Evaluation</b><span>kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation</span></div>
           <div class="resource"><b>License</b><span>MIT licensed project materials</span></div>
         </div>
       </section>
@@ -1947,8 +1947,8 @@ DM @sunburstrecruit for slots. Approval in 7 days.</div>
             <p style="font-size: 15px;">Gemma 4 E2B for fast demos. E4B and E9B for higher-quality runs. Quantized 4-bit by default to fit Kaggle T4.</p>
           </div>
           <div class="card">
-            <h3 style="font-size: 20px;">How do harness updates ship?</h3>
-            <p style="font-size: 15px;">GREP rules and Knowledge packs are versioned JSON bundles. Synced from the hub or imported manually. Always reviewed before live deployment.</p>
+            <h3 style="font-size: 20px;">How do harness updates reach the workbench?</h3>
+            <p style="font-size: 15px;">GREP rules and knowledge packs are versioned JSON bundles. Synced from the hub or imported manually. Always reviewed before live deployment.</p>
           </div>
         </div>
       </section>
@@ -1981,11 +1981,11 @@ DM @sunburstrecruit for slots. Approval in 7 days.</div>
           </div>
           <div class="card">
             <h3>Benchmarks</h3>
-            <p>Four-arm runs: base, harnessed, fine-tuned, fine-tuned + harness. PH-HK prompt set with combined LLM and rule grading.</p>
+            <p>Four-arm runs: base, harnessed, fine-tuned, fine-tuned + harness. PH-HK prompt set with combined LLM and rule grading. Numbers below are illustrative until the final A-00 run lands.</p>
             <ul>
-              <li>Base Gemma 4: 62.0%</li>
-              <li>+ harness: 81.5%</li>
-              <li>Fine-tuned + harness: 88.2%</li>
+              <li>Base Gemma 4: 62.0% (illustrative)</li>
+              <li>+ harness: 81.5% (illustrative)</li>
+              <li>Fine-tuned + harness: 88.2% (illustrative)</li>
             </ul>
           </div>
         </div>

@@ -1,4 +1,4 @@
-# DueCare: Migrant-worker safety playground (#01 core)
+# DueCare App (#01 core — migrant-worker safety playground)
 
 > AI infrastructure to combat migrant-worker exploitation. This core kernel: every safety layer, every Gemma 4 variant, every grading mode in one workbench.
 
@@ -140,7 +140,7 @@ the kernel.py doesn't need to change.
 ## Portability contract for the next notebooks
 
 Kernel 01 is now the reference runtime contract for the focused live
-demo, video-pitch notebook, A-00 omni workbench, and appendix notebooks.
+demo (02) and the A-00 omni experiment workbench.
 After `create_app(...)`, `kernel.py` verifies the reusable API surface,
 knowledge taxonomy, type catalog, and bundled sample assets are present.
 If a stale wheel is served, the kernel fails early instead of opening a
@@ -231,20 +231,17 @@ and consolidation notes, see [PAGE_AUDIT.md](PAGE_AUDIT.md).
 
 This is **core notebook #1** of 3:
 
-- **#1** `duecare-exploration-workbench` (this notebook): flip every toggle,
-  switch every model
-- **#2** `duecare-live-demo`: focused, scripted demonstration of the
-  +56.5pp lift thesis
-- **#3** `duecare-video-pitch`: in-app slides + presenter remote + setup
-  modes for the video walkthrough
+- **#1** `duecare-exploration-workbench` (this notebook): flip every
+  toggle, switch every model, exercise every harness layer.
+- **#2** `duecare-live-demo`: focused interactive demo kernel that also
+  hosts the recording-grade pitch deck at `/start` and `/slides`.
+- **#3** `A-00-omni-experiment-workbench`: quantitative control plane —
+  base vs harnessed vs LoRA-tuned vs fine-tuned + harness arms,
+  combined rule + LLM grading, exportable artifact bundle.
 
-The other 25 notebooks are appendix (A-00..A-24): A-00 is the omni
-experiment workbench, followed by specialised playgrounds,
-the SafetyJudge / PrivacyRedactor training pipeline, research graphs,
-agentic web research, jailbroken-models proof, lift regenerator, and the
-zero-inference Gemma 4 feature showcases (long-context, streaming,
-function-calling Coordinator). See `docs/FOR_PEER_REVIEW.md` for the full
-submission roster.
+The former 25-notebook appendix lineup is archived; the active
+submission is this three-kernel set. See `kaggle/_INDEX.md` for the
+current index.
 
 ## Troubleshooting
 
@@ -275,8 +272,8 @@ submission roster.
 ### Quick cross-links
 
 - **Core workbench:** this notebook.
-- **Focused live demo:** [#02 core: Live demo](../02-live-demo/README.md).
-- **Natural next appendix:** [#A02 appendix: 4-toggle harness playground](../A-02-chat-playground-with-grep-rag-tools/README.md).
+- **Focused live demo + pitch deck:** [#02 core: Live demo](../02-live-demo/README.md).
+- **Quantitative proof + benchmark + fine-tune:** [A-00 omni experiment workbench](../A-00-omni-experiment-workbench/README.md).
 - **Public website:** [duecare-ai.com](https://duecare-ai.com).
 
 ---
@@ -299,7 +296,7 @@ Index page: [`kaggle/_INDEX.md`](../_INDEX.md).
 
 ## Cross-links
 
-- **[DueCare Exploration Workbench (#01)](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench)**: the full chat playground with five safety layers, local imports/evidence, 9-variant model picker, 4 grading modes, A/B compare, and every visualization in one place.
-- **[Live demo (#02)](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo)**: focused public-hub walkthrough demonstrating the +56.5pp lift on a curated set of compound-indicator prompts.
-- **[Next step: A-00 omni experiment workbench](../A-00-omni-experiment-workbench/README.md)**: run the preconfigured benchmark, synthetic SFT, LoRA, four-arm evaluation, and final report path.
+- **[DueCare App (#01)](https://www.kaggle.com/code/taylorsamarel/duecare-app)**: the full chat playground with five safety layers, local imports/evidence, 9-variant model picker, 4 grading modes, A/B compare, and every visualization in one place.
+- **[DueCare Live Demo (#02)](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo)**: focused public-hub walkthrough plus the recording-grade pitch deck at `/start` and `/slides`.
+- **[DueCare Fine-tuning and Evaluation](../A-00-omni-experiment-workbench/README.md)**: run the preconfigured benchmark, synthetic SFT, LoRA, four-arm evaluation, and final report path.
 - **[Public hub: duecare-ai.com](https://duecare-ai.com)**: knowledge-pack registry, anonymized signal intake, public-source proposal intake, and the 5-lane audience showcase.
