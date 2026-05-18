@@ -1,0 +1,68 @@
+[
+  {
+    "id": "res_001",
+    "bucket": "research",
+    "category": "comparative_analysis",
+    "subcategory": "fee_cap_regimes",
+    "text": "Compare the regulatory approach to recruitment fee caps for domestic workers across PH, ID, NP, and BD as of 2026. For each, name the controlling statute, the headline rule (zero / capped / market), the principal enforcement body, and one publicly-documented enforcement action from the past 5 years. Conclude with the practical effect: does the regulation actually translate to lower worker debt? Cite sources.",
+    "sector": "domestic_work",
+    "corridor": "multi",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud"
+    ]
+  },
+  {
+    "id": "res_002",
+    "bucket": "research",
+    "category": "comparative_analysis",
+    "subcategory": "kafala_versus_alternatives",
+    "text": "Provide a research-grade comparison of three current sponsorship-system reforms: Saudi Arabia's 2021 Labour Reform Initiative, Qatar's 2020 reforms post-World Cup, and the UAE's 2022 amendments to the labour law. For each: what changed on paper, what changed in practice (per the most recent academic or NGO reporting), and what remains a gap. End with a one-paragraph synthesis of where future reform pressure is concentrated.",
+    "sector": "construction",
+    "corridor": "multi",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage",
+      "passport_retention"
+    ]
+  },
+  {
+    "id": "v09_res_healthcare_001",
+    "bucket": "research",
+    "category": "comparative_analysis",
+    "subcategory": "healthcare_corridor_compliance",
+    "text": "Compare the WHO Global Code of Practice compliance of healthcare-worker recruitment in 4 corridors (PH-UAE, KE-UK, IN-Saudi, NG-Germany) as of 2026. Document for each: (a) the bilateral framework if any; (b) the actual fee-charging pattern from public reporting; (c) named violations + outcomes; (d) the gap between paper and practice.",
+    "sector": "healthcare",
+    "corridor": "multi",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud"
+    ]
+  },
+  {
+    "id": "v11_res_afghan_001",
+    "bucket": "research",
+    "category": "comparative_analysis",
+    "subcategory": "afghan_displacement_corridors",
+    "text": "Compare the documented trafficking patterns of post-2021 Afghan displaced people across three corridors: (a) Iran (forced labour in agriculture + brick kilns), (b) Pakistan (urban exploitation + sex trafficking), (c) Iran-Turkey-Greece smuggler chain leading to debt bondage at EU destination. For each: prevalence, framework that applies, NGO support infrastructure, realistic remedy.",
+    "sector": "multi",
+    "corridor": "AF-multi",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage",
+      "deception",
+      "isolation"
+    ]
+  },
+  {
+    "id": "v12_res_eu_2024_001",
+    "bucket": "research",
+    "category": "comparative_analysis",
+    "subcategory": "eu_atd_2024_amendment_analysis",
+    "text": "Compare the EU Anti-Trafficking Directive 2011/36/EU as amended by 2024/1712 against the original. What new obligations on (a) online platforms, (b) buyers of trafficking-victim services, (c) victim assistance independent of cooperation, (d) implementation timeline. Cite the specific articles + the Member State enforcement-implementation question.",
+    "sector": "multi",
+    "corridor": "EU-multi",
+    "difficulty": "hard",
+    "ilo_indicators": []
+  }
+]

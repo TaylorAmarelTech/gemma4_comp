@@ -1,0 +1,30 @@
+[
+  {
+    "id": "compare_complex_multi_jurisdiction",
+    "text": "Compare the legal protections available to a Filipina domestic worker in (a) Hong Kong, (b) Singapore, and (c) Saudi Arabia. Cite specific statutes for each jurisdiction including ILO conventions, national labour codes, and POEA-side requirements. Then identify which jurisdiction offers the strongest practical remedy if her passport is withheld.",
+    "category": "model_comparison_demo",
+    "subcategory": "multi_jurisdiction_comparison",
+    "sector": "domestic_work",
+    "corridor": "PH-multi",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "passport_retention"
+    ],
+    "bucket": "model_capability"
+  },
+  {
+    "id": "compare_compound_reasoning",
+    "text": "An Indonesian domestic worker in Hong Kong took a 90% APR loan from a HK lender to pay her recruitment fee. After 6 months her employer reduces her salary citing broken vase damages and now the lender threatens to report her to her PH agency for absconding. Walk through every ILO indicator that applies here, every statute violated in (i) PH, (ii) HK, (iii) ID, and the specific concrete actions she can take in each jurisdiction.",
+    "category": "model_comparison_demo",
+    "subcategory": "compound_chain_reasoning",
+    "sector": "domestic_work",
+    "corridor": "ID-HK",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage",
+      "withholding_wages",
+      "intimidation"
+    ],
+    "bucket": "model_capability"
+  }
+]

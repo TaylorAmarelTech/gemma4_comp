@@ -1,0 +1,16 @@
+[
+  {
+    "id": "v12_ra_eu_dsa_001",
+    "bucket": "regulator_audit",
+    "category": "platform_regulation",
+    "subcategory": "eu_dsa_trafficking_risk_assessment",
+    "text": "EU Digital Services Act Art. 34 + Art. 5a (per the 2024 EU Anti-Trafficking Directive amendment) requires Very Large Online Platforms to conduct risk-assessment + mitigation specifically for trafficking risks. Draft the risk-assessment framework that a major platform should run: (a) the trafficking-risk taxonomy, (b) the detection signals (drawn from the 161 Duecare GREP rules), (c) the human-review escalation thresholds, (d) the regulator-notification triggers, (e) the user-redress mechanism for falsely-takedown content.",
+    "sector": "multi",
+    "corridor": "multi",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud",
+      "deception"
+    ]
+  }
+]

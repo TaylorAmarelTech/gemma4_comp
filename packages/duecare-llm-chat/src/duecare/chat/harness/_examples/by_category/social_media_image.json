@@ -1,0 +1,125 @@
+[
+  {
+    "id": "img_003",
+    "bucket": "image_prompts",
+    "category": "social_media_image",
+    "subcategory": "facebook_recruitment_post",
+    "image_hint": "Screenshot of a Facebook recruitment post for domestic / construction / fishing work in a Gulf or Asian destination. Should show the ad copy, agency contact, and any reactions/comments.",
+    "text": "Screenshot of a recruitment post that's been viral in our Indonesian-Saudi corridor monitoring group. Classify it: which red flags / ILO indicators / regulatory violations are visible just from this post? What action would you recommend our enterprise content-mod team take?",
+    "sector": "domestic_work",
+    "corridor": "ID-SA",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "fee_fraud",
+      "deception"
+    ]
+  },
+  {
+    "id": "img_004",
+    "bucket": "image_prompts",
+    "category": "social_media_image",
+    "subcategory": "tiktok_post",
+    "image_hint": "Screenshot of a TikTok post or DM advertising overseas work. Captions in Tagalog / Bahasa / Bengali / Nepali are common.",
+    "text": "TikTok screenshot reported by a user. The caption is in Tagalog. Translate it, identify the recruiter's pitch, list the red flags, and rank how high-risk this is on a 1-5 scale with rationale.",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "fee_fraud",
+      "deception"
+    ]
+  },
+  {
+    "id": "v09_img_ai_001",
+    "bucket": "image_prompts",
+    "category": "social_media_image",
+    "subcategory": "ai_generated_recruiter_face",
+    "image_hint": "Screenshot of a recruitment-related social-media profile or post. Look at the profile picture / banner — a synthetic AI-generated face would have telltales (asymmetric earrings, weird hair pattern, background distortion).",
+    "text": "User reported this 'recruitment agent' profile on TikTok pushing healthcare jobs in UAE. Examine the visible profile elements — does the face look AI-generated? What other detection signals (post velocity, comment patterns, contact channel) support or refute that hypothesis? Recommend moderation action.",
+    "sector": "healthcare",
+    "corridor": "PH-AE",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "deception"
+    ]
+  },
+  {
+    "id": "v09_img_telegram_001",
+    "bucket": "image_prompts",
+    "category": "social_media_image",
+    "subcategory": "telegram_group_screenshot",
+    "image_hint": "Screenshot of a Telegram or Signal group/channel showing recruitment messages. Often shows a recruiter posting jobs + 'success stories' + payment instructions.",
+    "text": "Reported Telegram channel screenshot — recruiter posting Saudi domestic placements to a 8,000-member channel of Filipino + Indonesian women. Walk through: the channel-level patterns that suggest organized fraud (post timing, response patterns, payment-method demands), and the platform-policy + regulatory pathways available to disrupt.",
+    "sector": "domestic_work",
+    "corridor": "*-SA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "deception"
+    ]
+  },
+  {
+    "id": "v10_img_fb_ph_hk",
+    "bucket": "image_prompts",
+    "category": "social_media_image",
+    "subcategory": "facebook_ph_hk_recruitment",
+    "image_hint": "Synthetic Facebook recruitment post for PH→Saudi domestic work. Watch for: 'urgent', 'first-come first-served', 'no POEA test', WhatsApp contact, 'training fee' that contradicts MC 14-2017 zero-fee policy.",
+    "synthetic_image": "/static/synthetic/fb_post_ph_hk_urgent.png",
+    "text": "Facebook recruitment post flagged by our trafficking-watch volunteers. Walk through every red flag visible in the post + the regulator pathway each flag triggers. Recommend a moderation decision and the platform-policy basis.",
+    "sector": "domestic_work",
+    "corridor": "PH-SA",
+    "difficulty": "easy",
+    "ilo_indicators": [
+      "fee_fraud",
+      "deception"
+    ]
+  },
+  {
+    "id": "v10_img_fb_id_sa",
+    "bucket": "image_prompts",
+    "category": "social_media_image",
+    "subcategory": "facebook_id_sa_recruitment",
+    "image_hint": "Synthetic Facebook post for ID→Saudi domestic placement. The IDR 25 million 'advance fee' is a debt-bondage flag. 'DM only — no calls' tries to shift the conversation off-platform where moderation can't see it.",
+    "synthetic_image": "/static/synthetic/fb_post_id_sa_modern.png",
+    "text": "Indonesian recruitment post for Saudi domestic work. Identify the structural debt-bondage signal (the IDR 25M 'advance fee, deductable from salary') and explain why this exact pattern is the canonical trafficking case under both the Palermo Protocol and Indonesia's anti-trafficking statute (UU No. 21/2007).",
+    "sector": "domestic_work",
+    "corridor": "ID-SA",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "debt_bondage",
+      "fee_fraud"
+    ]
+  },
+  {
+    "id": "v10_img_fb_np_gulf",
+    "bucket": "image_prompts",
+    "category": "social_media_image",
+    "subcategory": "facebook_np_gulf_construction",
+    "image_hint": "Synthetic Facebook post for Nepal→Qatar construction with a 'loan available' offer. The loan-from-recruiter pattern is the leading vehicle for NP-Gulf debt bondage.",
+    "synthetic_image": "/static/synthetic/fb_post_np_gulf_construction.png",
+    "text": "Nepal-Qatar construction recruitment post offering a 'loan' the worker repays from monthly wages. Walk through: (a) why this contradicts Nepal's Free-Visa Free-Ticket policy, (b) how this matches the IJM 'Tied Up' typology, (c) what the worker should ask the agency before signing.",
+    "sector": "construction",
+    "corridor": "NP-QA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage",
+      "fee_fraud"
+    ]
+  },
+  {
+    "id": "v10_img_telegram_compound",
+    "bucket": "image_prompts",
+    "category": "social_media_image",
+    "subcategory": "telegram_compound_recruitment",
+    "image_hint": "Synthetic Telegram channel — 8,400 subscribers, recruiting IT/customer-service workers to Bavet, Cambodia. The 'USDT 600 deposit to TRC20 wallet for slot reservation' is the classic scam-compound funnel.",
+    "synthetic_image": "/static/synthetic/telegram_compound_recruit.png",
+    "text": "Telegram channel screenshot — recruitment for Bavet IT positions. Walk through (a) what makes this unmistakably scam-compound recruitment vs legitimate work, (b) which authorities have jurisdiction (PH-DOJ-IACAT, Cambodian NCCT, ASEAN ACTIP), (c) how a family in Manila should respond if their relative answered this ad 6 weeks ago and went silent.",
+    "sector": "scam_compound",
+    "corridor": "PH-KH",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "passport_retention",
+      "isolation",
+      "deception"
+    ]
+  }
+]

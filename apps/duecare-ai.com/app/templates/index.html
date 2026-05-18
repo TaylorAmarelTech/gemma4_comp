@@ -431,8 +431,8 @@
           <span>NGOs &amp; regulators</span><span class="sep">/</span>
           <span>Individual worker / mobile</span><span class="sep">/</span>
           <span>Researchers</span><span class="sep">/</span>
-          <span>Developers</span><span class="sep">/</span>
-          <span>Knowledge sharing</span>
+          <span>Knowledge sharing</span><span class="sep">/</span>
+          <span>Developers</span>
         </div>
         <div class="ctas">
           <a class="btn" href="/demo">▸ Watch the demo <span class="arrow">→</span></a>
@@ -495,23 +495,6 @@
     <a class="uc uc-wide" href="#u5">
       <div class="uc-head">
         <span class="num">05</span>
-        <span>Developer / integration partner</span>
-      </div>
-      <div class="uc-wide-body">
-        <h3>Drop the runtime into your own product or channel.</h3>
-        <p class="uc-body">A containerized runtime with a small, well-defined API. Wire it into a Messenger or WhatsApp bot, a moderator console, an internal case-management system, or a sibling app. You own the channel; we provide the harness ecosystem, the rule packs, and the model layer.</p>
-      </div>
-      <ul class="uc-wide-list">
-        <li>FB Messenger / WhatsApp adapter</li>
-        <li>Custom moderator dashboards</li>
-        <li>Case-management plug-ins</li>
-        <li>On-prem deployments</li>
-      </ul>
-      <span class="uc-link">→ integration paths</span>
-    </a>
-    <a class="uc uc-wide" href="#u6">
-      <div class="uc-head">
-        <span class="num">06</span>
         <span>Anonymized knowledge sharing</span>
       </div>
       <div class="uc-wide-body">
@@ -525,6 +508,23 @@
         <li>Vetted knowledge objects</li>
       </ul>
       <span class="uc-link">→ sharing flow</span>
+    </a>
+    <a class="uc uc-wide" href="#u6">
+      <div class="uc-head">
+        <span class="num">06</span>
+        <span>Developer / integration partner</span>
+      </div>
+      <div class="uc-wide-body">
+        <h3>Drop the runtime into your own product or channel.</h3>
+        <p class="uc-body">A containerized runtime with a small, well-defined API. Wire it into a Messenger or WhatsApp bot, a moderator console, an internal case-management system, or a sibling app. You own the channel; we provide the harness ecosystem, the rule packs, and the model layer.</p>
+      </div>
+      <ul class="uc-wide-list">
+        <li>FB Messenger / WhatsApp adapter</li>
+        <li>Custom moderator dashboards</li>
+        <li>Case-management plug-ins</li>
+        <li>On-prem deployments</li>
+      </ul>
+      <span class="uc-link">→ integration paths</span>
     </a>
   </div>
 </section>
@@ -568,7 +568,7 @@
       <div>
         <span class="lbl">/ use cases</span>
         <h3>See the full set of use cases &amp; deployments.</h3>
-        <p>Reference scenarios for Platform safety, NGO &amp; regulator, Individual worker, Researcher, Developer / integration partner, and Anonymized knowledge sharing lanes, with the deployment architecture for each one in a single place.</p>
+        <p>Reference scenarios for Platform safety, NGO &amp; regulator, Individual worker, Researcher, Anonymized knowledge sharing, and Developer / integration partner lanes, with the deployment architecture for each one in a single place.</p>
       </div>
       <a class="btn" href="/use-cases">View use cases <span class="arrow">→</span></a>
     </div>
@@ -649,22 +649,7 @@
 </section>
 <section id="u5" class="uc-detail">
   <div class="wrap">
-    <span class="ix">05 · Developer / integration partner</span>
-    <h2>Drop the runtime into your own product or channel.</h2>
-    <p class="lede">The runtime is a containerized service with a small, well-defined API. Wire it into a Messenger or WhatsApp bot, a moderator console, an internal case-management system, or a sibling app. You own the channel; we provide the harness ecosystem, the rule packs, and the model layer.</p>
-    <div class="grid">
-      <div class="pt"><h4>Channel adapters</h4><p>FB Messenger, WhatsApp Business, Telegram, custom web chat, voice IVR. Adapter handles channel-specific transport; the runtime stays the same.</p></div>
-      <div class="pt"><h4>Console integrations</h4><p>Custom moderator dashboards, in-house case-management plug-ins, audit log exporters.</p></div>
-      <div class="pt"><h4>Deployment shape</h4><p>On-prem, in your VPC, or partner-hosted. Containerized; runs on standard GPU hardware.</p></div>
-      <div class="pt"><h4>What we provide</h4><p>The runtime image, the harness configuration, the rule pack catalog, and an API client. You provide the channel.</p></div>
-    </div>
-    <a class="more" href="/use-cases">→ See all deployment paths</a>
-  </div>
-</section>
-
-<section id="u6" class="uc-detail">
-  <div class="wrap">
-    <span class="ix">06 · Anonymized knowledge sharing</span>
+    <span class="ix">05 · Anonymized knowledge sharing</span>
     <h2>Share verified facts, not files.</h2>
     <p class="lede">The sharing lane turns reviewed, redacted evidence into reusable knowledge objects. Case files stay inside the local workbench; only sanitized, consent-aware facts with provenance and reviewer approval can reach the public hub.</p>
     <div class="grid">
@@ -674,6 +659,21 @@
       <div class="pt"><h4>What improves</h4><p>Future packs, GREP rules, worker guidance, platform moderation, and research queries improve from verified patterns without centralizing raw cases.</p></div>
     </div>
     <a class="more" href="/use-cases#uc-sharing">→ See the anonymized sharing flow</a>
+  </div>
+</section>
+
+<section id="u6" class="uc-detail">
+  <div class="wrap">
+    <span class="ix">06 · Developer / integration partner</span>
+    <h2>Drop the runtime into your own product or channel.</h2>
+    <p class="lede">The runtime is a containerized service with a small, well-defined API. Wire it into a Messenger or WhatsApp bot, a moderator console, an internal case-management system, or a sibling app. You own the channel; we provide the harness ecosystem, the rule packs, and the model layer.</p>
+    <div class="grid">
+      <div class="pt"><h4>Channel adapters</h4><p>FB Messenger, WhatsApp Business, Telegram, custom web chat, voice IVR. Adapter handles channel-specific transport; the runtime stays the same.</p></div>
+      <div class="pt"><h4>Console integrations</h4><p>Custom moderator dashboards, in-house case-management plug-ins, audit log exporters.</p></div>
+      <div class="pt"><h4>Deployment shape</h4><p>On-prem, in your VPC, or partner-hosted. Containerized; runs on standard GPU hardware.</p></div>
+      <div class="pt"><h4>What we provide</h4><p>The runtime image, the harness configuration, the rule pack catalog, and an API client. You provide the channel.</p></div>
+    </div>
+    <a class="more" href="/use-cases#uc-custom">→ See all deployment paths</a>
   </div>
 </section>
 

@@ -1,0 +1,16 @@
+[
+  {
+    "id": "v12_di_payment_001",
+    "bucket": "data_intelligence",
+    "category": "payment_infrastructure_analysis",
+    "subcategory": "crypto_signal_clustering",
+    "synthetic_post": "/static/synthetic/posts/telegram_telegram_001.json",
+    "text": "telegram_001 includes a TRC20 wallet address (0xSYN5550000FAKE — synthetic placeholder). What on-chain analytics would you run? What FATF Travel-Rule analysis? Which other synthetic posts in the dataset reference crypto, and do they share an address pattern? Output as a JSON analysis with `wallet_attribution_steps`, `cross_post_correlation`, `regulator_referral`, `data_limitations`.",
+    "sector": "scam_compound",
+    "corridor": "*-KH",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud"
+    ]
+  }
+]

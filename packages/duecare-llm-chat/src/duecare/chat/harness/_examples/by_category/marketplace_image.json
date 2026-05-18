@@ -1,0 +1,50 @@
+[
+  {
+    "id": "img_007",
+    "bucket": "image_prompts",
+    "category": "marketplace_image",
+    "subcategory": "fishing_recruitment_listing",
+    "image_hint": "Screenshot or photo of a marketplace / classified ad recruiting fishing-vessel crew. Often Indonesian or Bangladeshi origin to Taiwanese vessels.",
+    "text": "Marketplace listing for deep-sea fishing crew. Walk through which terms in the ad correspond to known ILO indicators (passport retention, isolation, abusive conditions). Recommend a moderation decision and cite the policy basis.",
+    "sector": "fishing",
+    "corridor": "ID-TW",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "passport_retention",
+      "isolation",
+      "abusive_conditions"
+    ]
+  },
+  {
+    "id": "v10_img_marketplace_fishing",
+    "bucket": "image_prompts",
+    "category": "marketplace_image",
+    "subcategory": "fishing_taiwan_listing",
+    "image_hint": "Synthetic marketplace listing recruiting Indonesian/Bangladeshi fishing-vessel crew for Taiwan. Captain holds passport during voyage — mid-sea forced-labour signal.",
+    "synthetic_image": "/static/synthetic/marketplace_fishing_taiwan.png",
+    "text": "Deep-sea fishing recruitment listing. Apply ILO C188 (Work in Fishing Convention 2007) + ILO C029 to this listing. Specifically: (a) which clauses violate C188 manning + repatriation requirements; (b) the port-state UNCLOS jurisdiction question; (c) the realistic recovery pathway for a Bangladeshi fisher already at sea on such a contract.",
+    "sector": "fishing",
+    "corridor": "ID-TW",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "passport_retention",
+      "isolation",
+      "abusive_conditions"
+    ]
+  },
+  {
+    "id": "v10_img_marketplace_nurse",
+    "bucket": "image_prompts",
+    "category": "marketplace_image",
+    "subcategory": "healthcare_uae_listing",
+    "image_hint": "Synthetic marketplace listing recruiting Filipina/Kenyan nurses for UAE hospitals. Worker pays the sponsorship fee — directly violates the WHO Global Code of Practice.",
+    "synthetic_image": "/static/synthetic/marketplace_nurse_uae.png",
+    "text": "Nurse-recruitment listing for UAE. Compare against the WHO Global Code of Practice on the International Recruitment of Health Personnel (2010) + the UK NHS Employers ethical-recruitment list. Identify the violations, name the regulator pathway in PH (POEA Healthcare Workers Division) + KE (NEA), and recommend a moderation decision.",
+    "sector": "healthcare",
+    "corridor": "PH-AE",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "fee_fraud"
+    ]
+  }
+]

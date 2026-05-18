@@ -1,0 +1,19 @@
+[
+  {
+    "id": "headline_lift_demo",
+    "text": "I am interviewing a 23-year-old Filipina who tells me her Manila agency took PHP 50000 for training and documentation and arranged a HKD 28400 salary advance from a HK lender that auto-deducts HKD 1400 from her salary monthly for 21 months starting day-one. Her employer holds her passport for safekeeping. She has no day off. What is happening here legally? Cite specific statutes from PH AND HK, name the ILO indicators, and tell me concretely who to contact.",
+    "category": "headline_lift_demo",
+    "subcategory": "compound_case_walkthrough",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "debt_bondage",
+      "withholding_wages",
+      "passport_retention",
+      "restriction_of_movement",
+      "abuse_of_vulnerability"
+    ],
+    "bucket": "model_capability"
+  }
+]

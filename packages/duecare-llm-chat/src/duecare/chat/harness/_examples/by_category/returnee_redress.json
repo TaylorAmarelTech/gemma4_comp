@@ -1,0 +1,42 @@
+[
+  {
+    "id": "ind_006",
+    "bucket": "individual_query",
+    "category": "returnee_redress",
+    "subcategory": "fee_refund",
+    "text": "I came back to the Philippines last month after 18 months in Hong Kong as a domestic worker. I paid PHP 50,000 to the agency before I left, labeled as 'training fee'. A friend told me HK domestic work is supposed to be zero placement fee. Can I get this money back? Where do I go? I still have the receipt from the agency.",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "easy",
+    "ilo_indicators": [
+      "fee_fraud"
+    ]
+  },
+  {
+    "id": "v09_ind_returnee_crypto_001",
+    "bucket": "individual_query",
+    "category": "returnee_redress",
+    "subcategory": "crypto_paid_recovery",
+    "text": "I came back to the Philippines last month after a failed deployment to Saudi. Before leaving I paid USDT 1,200 to a wallet the recruiter sent me on WhatsApp — they said it was 'medical and visa'. The placement never happened. Can I get this money back? The recruiter has gone quiet on WhatsApp. What authority handles crypto-paid recruitment fraud?",
+    "sector": "domestic_work",
+    "corridor": "PH-SA",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "fee_fraud"
+    ]
+  },
+  {
+    "id": "v11_ind_recovery_001",
+    "bucket": "individual_query",
+    "category": "returnee_redress",
+    "subcategory": "comprehensive_recovery",
+    "text": "I just returned to Bangladesh after 14 months in Malaysia. The Dhaka agency charged me BDT 380,000 (more than the BMET cap) for the placement. My Malaysian employer underpaid me by RM 8,400 over the contract. The Malaysian recruitment agency that brokered the deal still operates. I want EVERYTHING back AND I want them all sanctioned. Walk me through the full recovery sequence — fees, wages, agency license, civil damages, restitution fund — for both the BD side and the MY side. Realistic timelines.",
+    "sector": "construction",
+    "corridor": "BD-MY",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud",
+      "wage_withholding"
+    ]
+  }
+]

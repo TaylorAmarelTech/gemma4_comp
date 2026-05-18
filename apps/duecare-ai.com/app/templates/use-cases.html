@@ -310,8 +310,8 @@
           <li><a href="#uc-ngo"><span>NGO &amp; regulator copilot</span><span class="arrow">→</span></a></li>
           <li><a href="#uc-worker"><span>Individual worker / mobile</span><span class="arrow">→</span></a></li>
           <li><a href="#uc-research"><span>Researcher</span><span class="arrow">→</span></a></li>
-          <li><a href="#uc-custom"><span>Developer / integration partner</span><span class="arrow">→</span></a></li>
           <li><a href="#uc-sharing"><span>Anonymized knowledge sharing</span><span class="arrow">→</span></a></li>
+          <li><a href="#uc-custom"><span>Developer / integration partner</span><span class="arrow">→</span></a></li>
         </ol>
       </nav>
     </div>
@@ -757,122 +757,12 @@
 </section>
 
 
-<!-- ============== 05 DEVELOPER / INTEGRATION PARTNER ============== -->
-<section id="uc-custom" class="uc-section custom" data-screen-label="UC · Developer">
-  <div class="wrap">
-    <div class="head">
-      <div>
-        <span class="ix">05 · Developer / integration partner</span>
-        <h2>Drop the runtime into your own product or channel.</h2>
-      </div>
-      <p class="summary">DueCare ships as a containerized runtime with a small,
-        well-defined API. Wire it into a Messenger or WhatsApp adapter, a
-        moderator console, an internal case-management system, or a sibling
-        app. you own the channel, we provide the harness ecosystem, packs, and model
-        layer.</p>
-    </div>
-
-    <div class="uc-body">
-      <div class="what-card">
-        <span class="label">What it does</span>
-        <div class="what-grid">
-          <div class="what-col">
-            <h4>Capabilities</h4>
-            <ul>
-              <li>Containerized runtime image with the full DueCare harness ecosystem</li>
-              <li>Stable HTTP API for screen / explain / draft / cite endpoints</li>
-              <li>Pack catalog you pin per environment</li>
-              <li>Streaming responses + per-turn telemetry hooks</li>
-              <li>Optional bring-your-own model layer (vetted open-weights)</li>
-            </ul>
-          </div>
-          <div class="what-col">
-            <h4>Why it helps</h4>
-            <ul>
-              <li>Use DueCare inside the channel your audience already uses</li>
-              <li>Keep your existing data model and access controls</li>
-              <li>On-prem or private-cloud; no traffic to a vendor SaaS</li>
-              <li>Same vetted packs as every other deployment</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <aside class="audience">
-        <span class="label">Who it's for</span>
-        <div class="who">
-          <h4>Primary users</h4>
-          <p>Engineering teams at platforms, NGOs, ministries, and partner orgs building bespoke worker-facing or operator tools.</p>
-        </div>
-        <div class="who">
-          <h4>Beneficiaries</h4>
-          <p>End users of those products. workers using familiar messaging apps, moderators inside their existing console, caseworkers in their case-management system.</p>
-        </div>
-</aside>
-    </div>
-
-    <details class="arch-acc">
-      <summary><span>▸ Deployment architecture</span><span class="caret">›</span></summary>
-      <div class="arch-content">
-        <div class="arch-flow">
-          <div class="arch-node local">
-            <div class="node-head">
-              <span class="step">Your environment</span>
-              <h5>Partner infrastructure</h5>
-            </div>
-            <div class="node-body">
-              <ul>
-              <li>User identity &amp; channel state</li>
-              <li>Product database &amp; access controls</li>
-              <li>Compliance / audit logs</li>
-            </ul>
-            </div>
-          </div>
-          <div class="arch-conn"><div class="rail"></div><span class="label">HTTP API</span></div>
-          <div class="arch-node boundary">
-            <div class="node-head">
-              <span class="step">DueCare runtime container</span>
-              <h5>Self-contained</h5>
-            </div>
-            <div class="node-body">
-              <ul>
-              <li>Local model + harness ecosystem</li>
-              <li>Pinned pack catalog</li>
-              <li>Outbound anonymizer at egress</li>
-            </ul>
-            </div>
-          </div>
-          <div class="arch-conn"><div class="rail"></div><span class="label">vetted packs</span></div>
-          <div class="arch-node hub">
-            <div class="node-head">
-              <span class="step">Public hub</span>
-              <h5>Pack distribution</h5>
-            </div>
-            <div class="node-body">
-              <ul>
-              <li>Pinned pack downloads</li>
-              <li>Pack-diff notifications on update</li>
-              <li>Optional aggregate telemetry</li>
-            </ul>
-            </div>
-          </div>
-        </div>
-        <div class="arch-foot">
-          <span>Container image · HTTP API · channel adapters · pinned packs</span>
-          <span class="ok">You own the channel. we provide the harness ecosystem</span>
-        </div>
-      </div>
-    </details>
-  </div>
-</section>
-
-
-<!-- ============== 06 ANONYMIZED SHARING ============== -->
+<!-- ============== 05 ANONYMIZED SHARING ============== -->
 <section id="uc-sharing" class="uc-section sharing" data-screen-label="UC · Anonymized knowledge sharing">
   <div class="wrap">
     <div class="head">
       <div>
-        <span class="ix">06 · Anonymized knowledge sharing</span>
+        <span class="ix">05 · Anonymized knowledge sharing</span>
         <h2>Share verified facts, not files.</h2>
       </div>
       <p class="summary">Reviewed cases stay inside the local workbench. Reviewers
@@ -918,7 +808,7 @@
           <h4>Beneficiaries</h4>
           <p>Every other DueCare client. a confirmed fee-rerouting pattern caught in one workbench becomes a sharper GREP rule, RAG entry, and worker answer everywhere else.</p>
         </div>
-      </aside>
+</aside>
     </div>
 
     <details class="arch-acc">
@@ -932,9 +822,9 @@
             </div>
             <div class="node-body">
               <ul>
-                <li>Confirmed evidence graph stays inside the local workbench</li>
-                <li>Raw files never proposed for sharing</li>
-              </ul>
+              <li>Confirmed evidence graph stays inside the local workbench</li>
+              <li>Raw files never proposed for sharing</li>
+            </ul>
             </div>
           </div>
           <div class="arch-conn"><div class="rail"></div><span class="label">reviewer selects</span></div>
@@ -945,10 +835,10 @@
             </div>
             <div class="node-body">
               <ul>
-                <li>PII removed from candidate facts</li>
-                <li>k-anonymity verified, re-identification risk scored</li>
-                <li>Gate must pass before egress</li>
-              </ul>
+              <li>PII removed from candidate facts</li>
+              <li>k-anonymity verified, re-identification risk scored</li>
+              <li>Gate must pass before egress</li>
+            </ul>
             </div>
           </div>
           <div class="arch-conn"><div class="rail"></div><span class="label">approved facts</span></div>
@@ -959,16 +849,126 @@
             </div>
             <div class="node-body">
               <ul>
-                <li>Published as versioned knowledge objects</li>
-                <li>Strengthens packs and rules for every client</li>
-                <li>Diff-notifications when packs update</li>
-              </ul>
+              <li>Published as versioned knowledge objects</li>
+              <li>Strengthens packs and rules for every client</li>
+              <li>Diff-notifications when packs update</li>
+            </ul>
             </div>
           </div>
         </div>
         <div class="arch-foot">
           <span>Local reviewed graph &middot; sanitization check &middot; public hub</span>
           <span class="ok">Worker never exposed. Hub gets stronger anyway.</span>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+
+<!-- ============== 06 DEVELOPER / INTEGRATION PARTNER ============== -->
+<section id="uc-custom" class="uc-section custom" data-screen-label="UC · Developer">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">06 · Developer / integration partner</span>
+        <h2>Drop the runtime into your own product or channel.</h2>
+      </div>
+      <p class="summary">DueCare ships as a containerized runtime with a small,
+        well-defined API. Wire it into a Messenger or WhatsApp adapter, a
+        moderator console, an internal case-management system, or a sibling
+        app. you own the channel, we provide the harness ecosystem, packs, and model
+        layer.</p>
+    </div>
+
+    <div class="uc-body">
+      <div class="what-card">
+        <span class="label">What it does</span>
+        <div class="what-grid">
+          <div class="what-col">
+            <h4>Capabilities</h4>
+            <ul>
+              <li>Containerized runtime image with the full DueCare harness ecosystem</li>
+              <li>Stable HTTP API for screen / explain / draft / cite endpoints</li>
+              <li>Pack catalog you pin per environment</li>
+              <li>Streaming responses + per-turn telemetry hooks</li>
+              <li>Optional bring-your-own model layer (vetted open-weights)</li>
+            </ul>
+          </div>
+          <div class="what-col">
+            <h4>Why it helps</h4>
+            <ul>
+              <li>Use DueCare inside the channel your audience already uses</li>
+              <li>Keep your existing data model and access controls</li>
+              <li>On-prem or private-cloud; no traffic to a vendor SaaS</li>
+              <li>Same vetted packs as every other deployment</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <aside class="audience">
+        <span class="label">Who it's for</span>
+        <div class="who">
+          <h4>Primary users</h4>
+          <p>Engineering teams at platforms, NGOs, ministries, and partner orgs building bespoke worker-facing or operator tools.</p>
+        </div>
+        <div class="who">
+          <h4>Beneficiaries</h4>
+          <p>End users of those products. workers using familiar messaging apps, moderators inside their existing console, caseworkers in their case-management system.</p>
+        </div>
+      </aside>
+    </div>
+
+    <details class="arch-acc">
+      <summary><span>▸ Deployment architecture</span><span class="caret">›</span></summary>
+      <div class="arch-content">
+        <div class="arch-flow">
+          <div class="arch-node local">
+            <div class="node-head">
+              <span class="step">Your environment</span>
+              <h5>Partner infrastructure</h5>
+            </div>
+            <div class="node-body">
+              <ul>
+                <li>User identity &amp; channel state</li>
+                <li>Product database &amp; access controls</li>
+                <li>Compliance / audit logs</li>
+              </ul>
+            </div>
+          </div>
+          <div class="arch-conn"><div class="rail"></div><span class="label">HTTP API</span></div>
+          <div class="arch-node boundary">
+            <div class="node-head">
+              <span class="step">DueCare runtime container</span>
+              <h5>Self-contained</h5>
+            </div>
+            <div class="node-body">
+              <ul>
+                <li>Local model + harness ecosystem</li>
+                <li>Pinned pack catalog</li>
+                <li>Outbound anonymizer at egress</li>
+              </ul>
+            </div>
+          </div>
+          <div class="arch-conn"><div class="rail"></div><span class="label">vetted packs</span></div>
+          <div class="arch-node hub">
+            <div class="node-head">
+              <span class="step">Public hub</span>
+              <h5>Pack distribution</h5>
+            </div>
+            <div class="node-body">
+              <ul>
+                <li>Pinned pack downloads</li>
+                <li>Pack-diff notifications on update</li>
+                <li>Optional aggregate telemetry</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="arch-foot">
+          <span>Container image &middot; HTTP API &middot; channel adapters &middot; pinned packs</span>
+          <span class="ok">You own the channel. we provide the harness ecosystem</span>
         </div>
       </div>
     </details>

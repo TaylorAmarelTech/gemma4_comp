@@ -1,0 +1,31 @@
+[
+  {
+    "id": "ent_mod_003",
+    "bucket": "enterprise_moderation",
+    "category": "marketplace_listing_review",
+    "subcategory": "fishing_crew",
+    "text": "Marketplace listing flagged by user reports: 'Need 6 strong men for Taiwan deep-sea fishing. Indonesian or Bangladeshi preferred. 18-month contract. Wages USD 350/month. NO English required. NO previous experience required. Passport will be held by captain for safekeeping during voyage.' Classify this — what is happening, what specific ILO indicators apply, what should our moderation team do?",
+    "sector": "fishing",
+    "corridor": "ID-TW",
+    "difficulty": "easy",
+    "ilo_indicators": [
+      "passport_retention",
+      "abusive_conditions",
+      "isolation"
+    ]
+  },
+  {
+    "id": "v09_em_compound_001",
+    "bucket": "enterprise_moderation",
+    "category": "marketplace_listing_review",
+    "subcategory": "scam_compound_listing",
+    "text": "Marketplace listing flagged: 'Hiring 50 IT workers and customer service reps for Bavet, Cambodia. USD 1,500/month + bonuses. Free flight, free housing, employer holds passport for 'visa processing'. Mandarin or English, 18-35.' Classify, cite controlling international + Cambodian framework, recommend moderation action.",
+    "sector": "scam_compound",
+    "corridor": "*-KH",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "passport_retention",
+      "isolation"
+    ]
+  }
+]

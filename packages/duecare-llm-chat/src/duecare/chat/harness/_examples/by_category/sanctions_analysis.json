@@ -1,0 +1,15 @@
+[
+  {
+    "id": "v12_ra_sanctions_001",
+    "bucket": "regulator_audit",
+    "category": "sanctions_analysis",
+    "subcategory": "agency_chain_sanctions",
+    "text": "Multi-tier broker-chain case: a Tier-1 supplier in PH delegates to Tier-2 in Manila, who delegates to Tier-3 sub-broker in a barangay. Workers transact only with Tier-3. Walk through the sanctions strategy: (a) which tier carries primary liability under RA 8042 §6 + POEA Implementing Rules; (b) the joint-and-several-liability analysis under RA 10022 §15; (c) how to escalate to the destination-employer in HK if it's the same chain; (d) the FATF beneficial-ownership analysis if the chain hides behind shell-companies.",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud"
+    ]
+  }
+]

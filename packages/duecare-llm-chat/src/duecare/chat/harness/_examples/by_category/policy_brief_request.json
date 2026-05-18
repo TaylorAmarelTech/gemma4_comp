@@ -1,0 +1,16 @@
+[
+  {
+    "id": "ngo_005",
+    "bucket": "ngo_intake",
+    "category": "policy_brief_request",
+    "subcategory": "regulator_letter",
+    "text": "Help me draft a 1-page letter from our NGO to BP2MI requesting investigation of an Indonesian agency that has 12 known cases of debt-bondage placements in Saudi domestic work over the past 18 months. The letter should cite specific BP2MI regulation provisions the agency violated, name the ILO indicators present in the cases, and request specific actions (license review, refund order, victim-restitution fund access). Tone: firm but professional.",
+    "sector": "domestic_work",
+    "corridor": "ID-SA",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "debt_bondage",
+      "fee_fraud"
+    ]
+  }
+]

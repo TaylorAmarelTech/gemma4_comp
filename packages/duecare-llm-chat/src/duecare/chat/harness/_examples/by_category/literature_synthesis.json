@@ -1,0 +1,16 @@
+[
+  {
+    "id": "res_006",
+    "bucket": "research",
+    "category": "literature_synthesis",
+    "subcategory": "evidence_review",
+    "text": "Synthesize the past 10 years of academic literature on recruitment-fee-driven debt bondage in the Asian outbound corridors (PH, ID, NP, BD origin; HK, Taiwan, Gulf destinations). What's the consensus? What's contested? Which authors are central? Which corridor is best documented and which is least?",
+    "sector": "multi",
+    "corridor": "multi",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage",
+      "fee_fraud"
+    ]
+  }
+]

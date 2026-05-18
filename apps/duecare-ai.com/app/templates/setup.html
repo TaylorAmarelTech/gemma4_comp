@@ -100,8 +100,8 @@
           <li><a href="#roles" data-track="ngo"><span>NGO &amp; regulator</span><span class="arrow">→</span></a></li>
           <li><a href="#roles" data-track="worker"><span>Individual worker / mobile</span><span class="arrow">→</span></a></li>
           <li><a href="#roles" data-track="research"><span>Researcher</span><span class="arrow">→</span></a></li>
-          <li><a href="#roles" data-track="dev"><span>Developer / integration partner</span><span class="arrow">→</span></a></li>
           <li><a href="#roles" data-track="sharing"><span>Anonymized knowledge sharing</span><span class="arrow">→</span></a></li>
+          <li><a href="#roles" data-track="dev"><span>Developer / integration partner</span><span class="arrow">→</span></a></li>
         </ol>
       </nav>
     </div>
@@ -132,15 +132,15 @@
         <span class="role-title">Researcher</span>
         <span class="role-desc">Cite-able pack hashes, evaluation packs, benchmark notebooks, trend signals, and rubric proposals.</span>
       </button>
-      <button class="role-card" type="button" role="tab" aria-selected="false" aria-controls="track-details" data-role="dev">
-        <span class="glyph">05</span>
-        <span class="role-title">Developer / integration partner</span>
-        <span class="role-desc">API endpoints, pack registry, client snippets, version pinning, and integration-partner workflows.</span>
-      </button>
       <button class="role-card" type="button" role="tab" aria-selected="false" aria-controls="track-details" data-role="sharing">
-        <span class="glyph">06</span>
+        <span class="glyph">05</span>
         <span class="role-title">Anonymized knowledge sharing</span>
         <span class="role-desc">Sanitized knowledge-object exchange from reviewed evidence, without raw case files leaving local deployments.</span>
+      </button>
+      <button class="role-card" type="button" role="tab" aria-selected="false" aria-controls="track-details" data-role="dev">
+        <span class="glyph">06</span>
+        <span class="role-title">Developer / integration partner</span>
+        <span class="role-desc">API endpoints, pack registry, client snippets, version pinning, and integration-partner workflows.</span>
       </button>
     </div>
   </div>
@@ -363,8 +363,8 @@ const tracks = {
   ngo:      { title: "02 · NGO & regulator", lede: "Assistance lane: run case analysis, triage, document preparation, referrals, and regulator pattern review on infrastructure your team controls." },
   worker:   { title: "03 · Individual worker / mobile", lede: "Assistance lane: install the Android app for worker-controlled guidance, journaling, evidence organization, and safety planning." },
   research: { title: "04 · Researcher", lede: "Understanding lane: use notebooks, packs, trend signals, and provenance records to explain what is happening and why." },
-  dev:      { title: "05 · Developer / integration partner", lede: "Cross-cutting lane: embed DueCare into your own prevention, assistance, or research workflow through APIs, packs, Docker, and examples." },
-  sharing:  { title: "06 · Anonymized knowledge sharing", lede: "Cross-cutting lane: convert reviewed, redacted facts into reusable knowledge objects without moving raw worker case data into the public hub." }
+  sharing:  { title: "05 · Anonymized knowledge sharing", lede: "Cross-cutting lane: convert reviewed, redacted facts into reusable knowledge objects without moving raw worker case data into the public hub." },
+  dev:      { title: "06 · Developer / integration partner", lede: "Cross-cutting lane: embed DueCare into your own prevention, assistance, or research workflow through APIs, packs, Docker, and examples." }
 };
 function selectTrack(role) {
   document.querySelectorAll('.role-card').forEach(x => {

@@ -6,12 +6,13 @@
     "subcategory": "compound",
     "sector": "fishing_maritime",
     "corridor": "MM-TH",
-    "difficulty": "expert",
+    "difficulty": "hard",
     "ilo_indicators": [
       "deception",
       "debt_bondage",
-      "restriction_of_movement",
-      "abusive_working_conditions"
-    ]
+      "freedom_of_movement",
+      "abusive_working_living_conditions"
+    ],
+    "bucket": "model_capability"
   }
 ]

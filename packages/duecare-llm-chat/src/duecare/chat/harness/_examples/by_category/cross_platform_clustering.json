@@ -1,0 +1,17 @@
+[
+  {
+    "id": "v12_di_cluster_001",
+    "bucket": "data_intelligence",
+    "category": "cross_platform_clustering",
+    "subcategory": "phone_number_recurrence",
+    "synthetic_post": "/static/synthetic/posts/sms_sms_001.json",
+    "text": "I have these structured post records: sms_001, fb_003, telegram_003 (all in /static/synthetic/posts/). Each contains a `phone_number` field or matching contact. Do these records correlate? Walk through: (1) the cross-platform signal analysis, (2) what additional fields you'd want to confirm same-operator hypothesis, (3) the FATF + Meta Trust & Safety + Telegram T&S coordination escalation, (4) the regulator who has jurisdiction (Nepal Foreign Employment Promotion Board for the corridor).",
+    "sector": "construction",
+    "corridor": "NP-QA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud",
+      "deception"
+    ]
+  }
+]

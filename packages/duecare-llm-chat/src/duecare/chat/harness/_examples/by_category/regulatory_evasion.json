@@ -10,7 +10,8 @@
     "ilo_indicators": [
       "deception",
       "debt_bondage"
-    ]
+    ],
+    "bucket": "model_capability"
   },
   {
     "id": "traf_003",
@@ -22,8 +23,9 @@
     "difficulty": "medium",
     "ilo_indicators": [
       "excessive_overtime",
-      "withholding_of_wages"
-    ]
+      "wage_withholding"
+    ],
+    "bucket": "model_capability"
   },
   {
     "id": "multiparty_003",
@@ -36,6 +38,7 @@
     "ilo_indicators": [
       "debt_bondage",
       "deception"
-    ]
+    ],
+    "bucket": "model_capability"
   }
 ]

@@ -53,16 +53,16 @@ Canonical product definition: [`../product_definition.md`](../product_definition
 
 ## How the six canonical lanes map to the components
 
-| Component | Platform safety | NGO & regulator | Individual worker / mobile | Researcher | Developer / integration partner | Anonymized knowledge sharing |
+| Component | Platform safety | NGO & regulator | Individual worker / mobile | Researcher | Anonymized knowledge sharing | Developer / integration partner |
 |---|---|---|---|---|---|---|
-| Runtime | classify / explain posts | summarize cases | private explanations | compare models | embed model service | sanitize candidate facts |
-| Harness | moderation risk trace | intake triage | warning signs | inspectable pipeline | reusable API layer | knowledge-object review flow |
-| Exchange | share anonymized abuse patterns | submit field signals | receive updated packs | publish domain packs | integrate safe submissions | primary lane |
-| Eval | policy QA / model QA | quality control | hidden safety guard | primary tool | regression gate | PII and provenance gate |
-| Trainer | moderation adapter | agency-specific adapter | smaller local model | tuned model studies | BYO adapter path | approved sanitized examples only |
-| Research monitor | track new scam patterns | update laws / contacts | keeps app current | benchmark updates | public-source proposal API | candidate source context |
-| Channels | platform notices | primary deployment | Messenger / WhatsApp help | study artifact | integration target | reviewer submission surface |
-| Mobile | not primary | referral companion | primary worker-owned app | deployment study | app integration pattern | opt-in aggregate signals |
+| Runtime | classify / explain posts | summarize cases | private explanations | compare models | sanitize candidate facts | embed model service |
+| Harness | moderation risk trace | intake triage | warning signs | inspectable pipeline | knowledge-object review flow | reusable API layer |
+| Exchange | share anonymized abuse patterns | submit field signals | receive updated packs | publish domain packs | primary lane | integrate safe submissions |
+| Eval | policy QA / model QA | quality control | hidden safety guard | primary tool | PII and provenance gate | regression gate |
+| Trainer | moderation adapter | agency-specific adapter | smaller local model | tuned model studies | approved sanitized examples only | BYO adapter path |
+| Research monitor | track new scam patterns | update laws / contacts | keeps app current | benchmark updates | candidate source context | public-source proposal API |
+| Channels | platform notices | primary deployment | Messenger / WhatsApp help | study artifact | reviewer submission surface | integration target |
+| Mobile | not primary | referral companion | primary worker-owned app | deployment study | opt-in aggregate signals | app integration pattern |
 
 ## Critical separation-of-concerns rules
 

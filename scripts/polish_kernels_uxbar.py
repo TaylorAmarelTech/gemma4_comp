@@ -35,7 +35,7 @@ KERNELS: list[dict[str, object]] = [
         "kind": "core",
         "n": 1,
         "title": "Migrant-worker safety playground",
-        "lanes": ["02 NGO & regulator", "04 Researcher", "05 Developer / integration partner"],
+        "lanes": ["02 NGO & regulator", "04 Researcher", "06 Developer / integration partner"],
         "lede": "All 6 safety layers, all 4 grading modes, all 9 Gemma 4 variants. One configurable URL.",
         "look_for": [
             "Pick a Gemma 4 variant in the picker overlay (start with E2B for speed).",
@@ -54,7 +54,7 @@ KERNELS: list[dict[str, object]] = [
             "02 NGO & regulator",
             "03 Individual worker / mobile",
             "04 Researcher",
-            "05 Developer / integration partner",
+            "06 Developer / integration partner",
         ],
         "lede": "The polished demo URL judges land on. Same harness, scripted demo path, +56pp lift baked in.",
         "look_for": [
@@ -111,7 +111,7 @@ KERNELS: list[dict[str, object]] = [
         "kind": "appendix",
         "n": 4,
         "title": "Knowledge-builder sandbox + JSON export",
-        "lanes": ["02 NGO & regulator", "05 Developer / integration partner"],
+        "lanes": ["02 NGO & regulator", "06 Developer / integration partner"],
         "lede": "Build a structured knowledge object from free-text input. Exports JSON ready for the hub's pack format.",
         "look_for": [
             "The form mirrors the schema.org-style pack envelope.",
@@ -153,7 +153,7 @@ KERNELS: list[dict[str, object]] = [
         "kind": "appendix",
         "n": 7,
         "title": "Adapter training + new-model benchmark",
-        "lanes": ["04 Researcher", "05 Developer / integration partner"],
+        "lanes": ["04 Researcher", "06 Developer / integration partner"],
         "lede": "SafetyJudge adapter pipeline: load A-06 bundles, benchmark stock Gemma 4, train SFT/DPO adapters, re-benchmark, and export GGUF/HF Hub artifacts.",
         "look_for": [
             "A-06 handoff bundles are loaded from attached Kaggle datasets, not live notebook links.",
@@ -181,7 +181,7 @@ KERNELS: list[dict[str, object]] = [
         "kind": "appendix",
         "n": 9,
         "title": "Agentic-research chat (BYOK + Playwright)",
-        "lanes": ["04 Researcher", "05 Developer / integration partner"],
+        "lanes": ["04 Researcher", "06 Developer / integration partner"],
         "lede": "The deeper Online layer. Real-browser agentic search via Playwright + BYO API key for live web grounding.",
         "look_for": [
             "Watch the agent open multiple pages in headless Playwright.",

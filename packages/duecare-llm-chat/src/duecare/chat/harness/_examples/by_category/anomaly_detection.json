@@ -1,0 +1,16 @@
+[
+  {
+    "id": "v12_di_anomaly_001",
+    "bucket": "data_intelligence",
+    "category": "anomaly_detection",
+    "subcategory": "engagement_anomaly",
+    "synthetic_post": "/static/synthetic/posts/tiktok_tiktok_001.json",
+    "text": "TikTok post tiktok_001 has 1.245M views, 47K likes, 312 comments — but the account is 28 days old with 14K followers. Compute the engagement-to-follower ratio + the views-to-account-age ratio. What does the comments-disabled flag add? Output structured JSON with `signal_score` (0-100), `likely_explanation` (organic_reach | bot_amplification | paid_promotion | hijacked_account), and `recommended_action` (allow | flag_for_review | takedown | regulator_notify).",
+    "sector": "construction",
+    "corridor": "PH-AE",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "deception"
+    ]
+  }
+]

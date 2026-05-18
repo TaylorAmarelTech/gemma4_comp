@@ -106,8 +106,8 @@ LANE_ALIASES_ORDERED: tuple[tuple[str, ...], ...] = (
     ("NGO &amp; regulator", "NGO & regulator"),
     ("Individual worker / mobile", "Migrant worker chat", "Migrant worker / mobile"),
     ("Researcher", "Academic research"),
-    ("Developer / integration partner", "Developer", "Custom integration"),
     ("Anonymized knowledge sharing", "Knowledge sharing", "Anonymized sharing"),
+    ("Developer / integration partner", "Developer", "Custom integration"),
 )
 
 LANE_ANCHOR_FILES: tuple[Path, ...] = (

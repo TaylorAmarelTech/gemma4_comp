@@ -1,0 +1,115 @@
+[
+  {
+    "id": "ngo_003",
+    "bucket": "ngo_intake",
+    "category": "case_pathway",
+    "subcategory": "claim_drafting",
+    "text": "Help me draft a refund-of-illegal-fees claim for an OFW who was charged PHP 80,000 by a PH agency for deployment to Hong Kong as a domestic worker. The agency receipt labels the charges as 'medical exam' (PHP 15,000), 'training fee' (PHP 35,000), 'documentation fee' (PHP 20,000), and 'pre-departure orientation' (PHP 10,000). The worker has the receipts. Walk me through the legal theory, the specific MC/statute citations, the procedural pathway, and the realistic recovery.",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "fee_fraud"
+    ]
+  },
+  {
+    "id": "ngo_004",
+    "bucket": "ngo_intake",
+    "category": "case_pathway",
+    "subcategory": "wage_recovery_pathway",
+    "text": "Worker has 9 months of unpaid wages from a Saudi household. She's now back in Indonesia. The employer in Saudi disconnected from any communication. She has WhatsApp screenshots showing the employer acknowledging the debt and a copy of the contract. What recovery pathways exist (Saudi labour court, BP2MI, ILO complaint, escrow bond if any)? Which has the best chance of actually returning money to her?",
+    "sector": "domestic_work",
+    "corridor": "ID-SA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "wage_withholding",
+      "isolation"
+    ]
+  },
+  {
+    "id": "v09_ngo_et_lb_001",
+    "bucket": "ngo_intake",
+    "category": "case_pathway",
+    "subcategory": "et_lb_recovery",
+    "text": "Ethiopian domestic worker, 22, escaped employer in Beirut after 18 months of unpaid wages. Has photos of her contract + 47 WhatsApp screenshots showing employer acknowledging unpaid wages + threatening her. She wants to recover wages AND see the employer prosecuted. What pathways exist given Lebanon's kafala framework, and what's realistic outcome?",
+    "sector": "domestic_work",
+    "corridor": "ET-LB",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "wage_withholding",
+      "isolation"
+    ]
+  },
+  {
+    "id": "v09_ngo_healthcare_001",
+    "bucket": "ngo_intake",
+    "category": "case_pathway",
+    "subcategory": "healthcare_fee_refund",
+    "text": "Filipina nurse paid PHP 280,000 to a 'sponsorship facilitator' for a UK NHS Trust placement. The 'Trust' turned out to be a private staffing agency, not on the NHS Employers ethical-recruitment list. She's back in PH after 6 weeks. Help me draft the refund-claim pathway invoking BOTH RA 8042 + the WHO Global Code complaint mechanism.",
+    "sector": "healthcare",
+    "corridor": "PH-UK",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud",
+      "deception"
+    ]
+  },
+  {
+    "id": "v11_ngo_garment_001",
+    "bucket": "ngo_intake",
+    "category": "case_pathway",
+    "subcategory": "garment_factory_pattern",
+    "text": "Caseworker at Worker Rights Consortium. We have evidence from a Bangladeshi garment factory supplying a major US retailer: 14-hour shifts, supervisors hold worker IDs, dormitory locked at 8pm, deductions for 'training' on every paycheck. Help me build the escalation: (1) ILO Better Work + ACCORD signatories analysis, (2) the retailer's own due-diligence audit framework, (3) Bangladeshi Labour Court complaint, (4) the journalist + investor-disclosure pathway. Sequence them.",
+    "sector": "garment",
+    "corridor": "BD-domestic",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "passport_retention",
+      "wage_withholding",
+      "excessive_overtime"
+    ]
+  },
+  {
+    "id": "v11_ngo_marriage_001",
+    "bucket": "ngo_intake",
+    "category": "case_pathway",
+    "subcategory": "sham_marriage_extraction",
+    "text": "Vietnamese woman, 24, brought to UK on a marriage visa to a UK national 18 months ago. The 'husband' was paid by an organised group; she lives in a locked basement and is forced to provide labour to multiple households. She just escaped to a London hospital. We're at Modern Slavery Helpline. Walk through: (1) UK Modern Slavery Act §1 vs §2 charge analysis; (2) the visa-status protections she has via the National Referral Mechanism (NRM); (3) the National Crime Agency Modern Slavery Threat Group escalation; (4) Vietnam embassy + repatriation considerations.",
+    "sector": "domestic_work",
+    "corridor": "VN-UK",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "isolation",
+      "physical_violence",
+      "deception"
+    ]
+  },
+  {
+    "id": "v11_ngo_hostile_001",
+    "bucket": "ngo_intake",
+    "category": "case_pathway",
+    "subcategory": "police_corrupted",
+    "text": "Saudi domestic worker case. Worker reported abuse to Riyadh police. Police called the employer. Employer threatened her with deportation + filed a counter-complaint of 'theft'. Now she's in a deportation centre awaiting flight back to Indonesia and her wages are unpaid. The local police are not the path forward. What's our move? Walk through: ILO Special Procedures (SR on contemporary slavery), UN Voluntary Trust Fund for Victims of Trafficking, IOM emergency repatriation, plus the BP2MI cross-border claim that survives her deportation.",
+    "sector": "domestic_work",
+    "corridor": "ID-SA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "wage_withholding",
+      "deception"
+    ]
+  },
+  {
+    "id": "v12_ngo_interim_001",
+    "bucket": "ngo_intake",
+    "category": "case_pathway",
+    "subcategory": "in_situation_evidence_preservation",
+    "text": "Filipina FDH in Hong Kong, employer holds passport, suspects wage withholding. She's NOT escaped — she lives in the employer's home. We're at Mission for Migrant Workers HK and she's coming for advice on her Sunday off. Walk through interim-stage evidence-preservation steps that DON'T escalate her risk: (a) what to copy + where to store, (b) when to confront vs not, (c) the embassy walk-in scheduling, (d) the operational-security guidance for her communications.",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "passport_retention",
+      "wage_withholding"
+    ]
+  }
+]

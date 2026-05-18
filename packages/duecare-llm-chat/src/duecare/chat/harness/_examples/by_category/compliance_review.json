@@ -1,0 +1,16 @@
+[
+  {
+    "id": "v12_ra_compliance_001",
+    "bucket": "regulator_audit",
+    "category": "compliance_review",
+    "subcategory": "bp2mi_agency_audit",
+    "text": "BP2MI compliance audit. Agency PT Alpha Bravo (composite) has been placing Indonesian workers to Saudi domestic via 'BNPL training fee' arrangement (worker pays IDR 25 juta via Akulaku, deducted from salary). Walk through: (a) which BP2MI Reg. 9/2020 provisions are violated, (b) the OJK financial-services regulator coordination (because BNPL crosses into fintech jurisdiction), (c) the sanctions ladder (warning → license suspension → revocation → criminal referral), (d) the worker-restitution mechanism the agency must fund.",
+    "sector": "domestic_work",
+    "corridor": "ID-SA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage",
+      "fee_fraud"
+    ]
+  }
+]

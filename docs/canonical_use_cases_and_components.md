@@ -54,17 +54,7 @@
 
 **Public-facing wording:** "Researchers use Duecare to reproduce model behavior, compare safety interventions, and audit every claim from source artifacts."
 
-### 5. Developer / integration partner
-
-**Who:** Developers, technical partners, IT teams, and integration owners embedding Duecare into moderation tools, NGO systems, mobile clients, dashboards, or custom workflows.
-
-**What they need:** APIs, Docker/runtime paths, pack schemas, client snippets, version pinning, integration examples, and local validation commands.
-
-**What Duecare does for them:** Provides the runtime, APIs, knowledge-pack registry, submission endpoints, setup guides, and reusable components needed to embed Duecare inside their own channels.
-
-**Public-facing wording:** "Developer / integration partners use Duecare to embed the harness, packs, APIs, and examples into their own prevention, assistance, or research workflows."
-
-### 6. Anonymized knowledge sharing
+### 5. Anonymized knowledge sharing
 
 **Who:** NGO reviewers, regulator inspectors, platform safety analysts, and partner case teams that want verified local evidence to improve shared packs without exposing workers.
 
@@ -74,6 +64,16 @@
 
 **Public-facing wording:** "Anonymized knowledge sharing users use Duecare to share reviewed, sanitized facts that improve future packs without centralizing raw worker case data."
 
+### 6. Developer / integration partner
+
+**Who:** Developers, technical partners, IT teams, and integration owners embedding Duecare into moderation tools, NGO systems, mobile clients, dashboards, or custom workflows.
+
+**What they need:** APIs, Docker/runtime paths, pack schemas, client snippets, version pinning, integration examples, and local validation commands.
+
+**What Duecare does for them:** Provides the runtime, APIs, knowledge-pack registry, submission endpoints, setup guides, and reusable components needed to embed Duecare inside their own channels.
+
+**Public-facing wording:** "Developer / integration partners use Duecare to embed the harness, packs, APIs, and examples into their own prevention, assistance, or research workflows."
+
 ## 3. Language rules
 
 Use these names exactly:
@@ -82,8 +82,8 @@ Use these names exactly:
 2. NGO & regulator
 3. Individual worker / mobile
 4. Researcher
-5. Developer / integration partner
-6. Anonymized knowledge sharing
+5. Anonymized knowledge sharing
+6. Developer / integration partner
 
 Avoid using these as top-level user labels:
 
@@ -274,8 +274,8 @@ Demos are proof surfaces. They combine components for a judge, partner, or stake
 | NGO & regulator demo | A caseworker or regulator can turn messages/documents into grounded, reviewable drafts. | Channel and Deployment Package; Safety Guidance Layer; Contacts; Knowledge Packs. |
 | Individual worker / mobile demo | A worker can privately check a message or document and see trusted next steps. | Gemma 4 Model Layer; Safety Guidance Layer; Local Anonymization Module; mobile/local package. |
 | Researcher demo | A researcher can rerun prompts, compare outputs, and verify claims. | Quality Testing Framework; Knowledge Packs; Gemma 4 Model Layer; Fine-Tuning Module. |
-| Developer / integration partner demo | A technical team can embed Duecare into its own product or workflow. | Channel and Deployment Package; APIs; Knowledge Packs; Central Knowledge Server. |
 | Anonymized knowledge sharing demo | A reviewer can turn sanitized, consent-aware facts into reusable knowledge objects without uploading raw case files. | Local Anonymization Module; Information Submission Module; Central Knowledge Server; Knowledge Packs. |
+| Developer / integration partner demo | A technical team can embed Duecare into its own product or workflow. | Channel and Deployment Package; APIs; Knowledge Packs; Central Knowledge Server. |
 
 ## 7. Suggested website page names
 
@@ -291,4 +291,4 @@ Demos are proof surfaces. They combine components for a judge, partner, or stake
 
 ## 8. One-sentence architecture summary
 
-Duecare combines Gemma 4, a safety guidance layer, versioned knowledge packs, privacy-preserving submissions, public-source research, stakeholder feedback, testing, and fine-tuning so Platform safety, NGO & regulator, Individual worker / mobile, Researcher, Developer / integration partner, and Anonymized knowledge sharing lanes can use the same trusted core without centralizing raw worker data.
+Duecare combines Gemma 4, a safety guidance layer, versioned knowledge packs, privacy-preserving submissions, public-source research, stakeholder feedback, testing, and fine-tuning so Platform safety, NGO & regulator, Individual worker / mobile, Researcher, Anonymized knowledge sharing, and Developer / integration partner lanes can use the same trusted core without centralizing raw worker data.

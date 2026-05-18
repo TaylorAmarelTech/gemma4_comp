@@ -1,0 +1,29 @@
+[
+  {
+    "id": "v12_ra_who_code_001",
+    "bucket": "regulator_audit",
+    "category": "sectoral_compliance",
+    "subcategory": "who_code_implementation",
+    "text": "I'm at the UK Department of Health auditing NHS Trust ethical-recruitment compliance. A specific Trust has been recruiting from a WHO-listed source country (Kenya) with sponsorship-fee-paid-by-worker arrangement. Walk through: (a) the WHO Global Code of Practice provisions violated, (b) the UK Code of Practice 2021 enforcement mechanism, (c) the NHS Employers ethical-recruitment list status implications, (d) the ILO C181 Art. 7 + Art. 12 cross-cutting analysis, (e) the realistic enforcement outcome.",
+    "sector": "healthcare",
+    "corridor": "KE-UK",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud"
+    ]
+  },
+  {
+    "id": "v12_ra_pacific_001",
+    "bucket": "regulator_audit",
+    "category": "sectoral_compliance",
+    "subcategory": "pacific_palm_audit",
+    "text": "Australia Fair Work Ombudsman PALM-scheme audit. A specific employer charged Vanuatu-origin workers a NZD 165/wk housing deduction that exceeds the scheme cap, plus controlled return-flight bookings. Walk through the enforcement: (a) PALM Operational Guidelines + Fair Work Act provisions violated, (b) the Vanuatu government bilateral notification under the Pacific Labour Mobility framework, (c) the Pacific Climate Mobility Framework if any of the workers are climate-displaced, (d) the realistic compliance + restitution outcome.",
+    "sector": "agriculture",
+    "corridor": "VU-AU",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "wage_withholding",
+      "restriction_of_movement"
+    ]
+  }
+]

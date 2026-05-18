@@ -1,0 +1,13 @@
+[
+  {
+    "id": "v12_di_schema_001",
+    "bucket": "data_intelligence",
+    "category": "schema_analysis",
+    "subcategory": "field_completeness_audit",
+    "text": "Walk through the schema of the post-records dataset (see /static/synthetic/posts/README.md for spec). For each field, report (a) which records have it populated, (b) which lack it, (c) field-level inconsistencies, (d) what additional fields would strengthen cross-platform analysis. Output as a markdown table.",
+    "sector": "multi",
+    "corridor": "multi",
+    "difficulty": "medium",
+    "ilo_indicators": []
+  }
+]

@@ -18,8 +18,8 @@ Those outcomes route through six canonical lanes, always in this order:
 2. **NGO & regulator** — NGOs, governments, consulates, and regulators triaging complaints, advising workers, and routing cases.
 3. **Individual worker / mobile** — migrant workers getting private, localized, grounded guidance.
 4. **Researcher** — researchers, evaluators, journalists, and judges benchmarking models, policies, and intervention quality.
-5. **Developer / integration partner** — teams embedding Duecare into WhatsApp, Messenger, dashboards, internal tools, or custom deployments.
-6. **Anonymized knowledge sharing** — partners turning reviewed, sanitized facts into reusable knowledge objects without exposing raw case files.
+5. **Anonymized knowledge sharing** — partners turning reviewed, sanitized facts into reusable knowledge objects without exposing raw case files.
+6. **Developer / integration partner** — teams embedding Duecare into WhatsApp, Messenger, dashboards, internal tools, or custom deployments.
 
 The system must preserve three invariants:
 
@@ -50,7 +50,7 @@ Sources and partner updates
   → human/curator review
   → vetted knowledge packs
   → Runtime + Harness + Eval consume packs
-  → Platform safety, NGO & regulator, Individual worker / mobile, Researcher, Developer / integration partner, and Anonymized knowledge sharing use the same core
+  → Platform safety, NGO & regulator, Individual worker / mobile, Researcher, Anonymized knowledge sharing, and Developer / integration partner use the same core
   → Trainer learns from approved anonymized failures and releases adapters
 ```
 

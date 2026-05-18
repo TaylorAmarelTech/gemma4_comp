@@ -1,0 +1,27 @@
+[
+  {
+    "id": "v12_ra_intl_001",
+    "bucket": "regulator_audit",
+    "category": "international_coordination",
+    "subcategory": "ilo_complaint_procedure",
+    "text": "Walk me through the ILO Article 24 + Article 26 complaint procedures available to a workers' organization alleging non-compliance with C189 by a state party. (a) Who has standing; (b) the Committee of Experts on the Application of Conventions and Recommendations (CEACR) review path; (c) the Conference Committee on the Application of Standards (CAS) escalation; (d) the realistic outcome — what's the strongest enforcement mechanism the ILO has.",
+    "sector": "domestic_work",
+    "corridor": "multi",
+    "difficulty": "hard",
+    "ilo_indicators": []
+  },
+  {
+    "id": "v12_ra_cross_border_001",
+    "bucket": "regulator_audit",
+    "category": "international_coordination",
+    "subcategory": "asean_actip_invocation",
+    "text": "ASEAN ACTIP Art. 23-25 invocation: a Cambodian compound trafficked Filipino workers; the operators are Chinese nationals with Cambodian residency. Walk through: (a) the Mutual Legal Assistance procedure under ACTIP, (b) the parallel UNODC Bali Process channel, (c) which ASEAN Member State has primary investigatory jurisdiction, (d) the extradition obstacles + workarounds (the China non-extradition issue), (e) the operational coordination (PH PAOCC + Cambodian NCCT + Chinese MPS).",
+    "sector": "scam_compound",
+    "corridor": "PH-KH",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "passport_retention",
+      "isolation"
+    ]
+  }
+]

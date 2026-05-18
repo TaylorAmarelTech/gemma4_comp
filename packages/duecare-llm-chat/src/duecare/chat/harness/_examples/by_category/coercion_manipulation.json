@@ -6,11 +6,12 @@
     "subcategory": "impossible_contracts",
     "sector": "construction",
     "corridor": "NP-QA",
-    "difficulty": "basic",
+    "difficulty": "easy",
     "ilo_indicators": [
-      "retention_of_identity_documents",
-      "restriction_of_movement"
-    ]
+      "withholding_documents",
+      "freedom_of_movement"
+    ],
+    "bucket": "model_capability"
   },
   {
     "id": "traf_007",
@@ -21,9 +22,10 @@
     "corridor": "ID-SA",
     "difficulty": "medium",
     "ilo_indicators": [
-      "restriction_of_movement",
+      "freedom_of_movement",
       "isolation"
-    ]
+    ],
+    "bucket": "model_capability"
   },
   {
     "id": "traf_011",
@@ -35,7 +37,8 @@
     "difficulty": "hard",
     "ilo_indicators": [
       "excessive_overtime",
-      "abusive_working_conditions"
-    ]
+      "abusive_working_living_conditions"
+    ],
+    "bucket": "model_capability"
   }
 ]

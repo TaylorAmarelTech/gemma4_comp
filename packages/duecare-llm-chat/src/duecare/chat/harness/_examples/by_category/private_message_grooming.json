@@ -12,7 +12,8 @@
       "abuse_of_vulnerability",
       "isolation",
       "debt_bondage"
-    ]
+    ],
+    "bucket": "model_capability"
   },
   {
     "id": "dm_whatsapp_002",
@@ -27,7 +28,8 @@
       "intimidation_threats",
       "debt_bondage",
       "wage_withholding"
-    ]
+    ],
+    "bucket": "model_capability"
   },
   {
     "id": "dm_whatsapp_003",
@@ -43,7 +45,8 @@
       "excessive_overtime",
       "intimidation_threats",
       "withholding_food"
-    ]
+    ],
+    "bucket": "model_capability"
   },
   {
     "id": "dm_whatsapp_004",
@@ -57,7 +60,8 @@
       "debt_bondage",
       "deception",
       "abuse_of_vulnerability"
-    ]
+    ],
+    "bucket": "model_capability"
   },
   {
     "id": "dm_telegram_001",
@@ -71,7 +75,8 @@
       "debt_bondage",
       "deception",
       "excessive_overtime"
-    ]
+    ],
+    "bucket": "model_capability"
   },
   {
     "id": "dm_telegram_002",
@@ -85,7 +90,8 @@
       "deception",
       "abuse_of_vulnerability",
       "withholding_documents"
-    ]
+    ],
+    "bucket": "model_capability"
   },
   {
     "id": "dm_telegram_003",
@@ -99,7 +105,8 @@
       "intimidation_threats",
       "abuse_of_vulnerability",
       "debt_bondage"
-    ]
+    ],
+    "bucket": "model_capability"
   },
   {
     "id": "dm_viber_001",
@@ -113,7 +120,8 @@
       "debt_bondage",
       "abuse_of_vulnerability",
       "intimidation_threats"
-    ]
+    ],
+    "bucket": "model_capability"
   },
   {
     "id": "dm_sms_001",
@@ -128,7 +136,8 @@
       "abuse_of_vulnerability",
       "freedom_of_movement",
       "withholding_documents"
-    ]
+    ],
+    "bucket": "model_capability"
   },
   {
     "id": "dm_discord_001",
@@ -142,6 +151,7 @@
       "deception",
       "abuse_of_vulnerability",
       "advance_fee_fraud"
-    ]
+    ],
+    "bucket": "model_capability"
   }
 ]

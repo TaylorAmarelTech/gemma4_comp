@@ -1,0 +1,17 @@
+[
+  {
+    "id": "ent_mod_004",
+    "bucket": "enterprise_moderation",
+    "category": "group_chat_signal",
+    "subcategory": "whatsapp_recruiter_chain",
+    "text": "User-reported WhatsApp group with 200+ members, mostly Bengali: 'Brothers, my company can place 50 in Qatar construction. Salary QAR 1,000/month. Recruitment fee BDT 350,000 — pay in 4 instalments to broker before flight. Welcome the new ones! @Aktar bhai, give them the details.' Walk through what this signals + which authority should be notified.",
+    "sector": "construction",
+    "corridor": "BD-QA",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "debt_bondage",
+      "fee_fraud",
+      "deception"
+    ]
+  }
+]
