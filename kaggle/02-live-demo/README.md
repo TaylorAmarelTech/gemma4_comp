@@ -39,11 +39,27 @@ working runtime surfaces.
 
 ## What to Show
 
-1. Open the Cloudflare URL.
-2. Confirm the model status is visible.
-3. Send a compound PH-HK worker-safety prompt.
-4. Open the trace and show persona, GREP, RAG, tools, and audit events.
-5. Use A-00 for the quantitative report that backs the video claim.
+For a screen-recording walkthrough:
+
+1. Open the printed `/start` URL. The two-tile landing appears
+   (Project slides + Project slide setup).
+2. Click **Project slide setup**. Pick an audience + use case,
+   click Generate, then Save for slides. (Repeat once per slide
+   you want a custom cached row for.)
+3. Click **Project slides**. The full-screen 10-slide deck loads.
+   Press arrow keys / space to advance.
+4. On the demo-chat slide (slide 5), the cached prompt + response
+   from step 2 appears immediately -- no inference wait.
+5. On the demo-bulk slide (slide 6), narrate over the typed-edge
+   panel; if you want the live Bulk File Review surface, open
+   `/wb-static/process.html` in a separate tab.
+6. Use A-00 (`kaggle/A-00-omni-experiment-workbench`) for the
+   quantitative report that backs the harness-lift claim on
+   slide 8.
+
+Workbench surfaces (`/`, `/enterprise`, `/individual`, `/knowledge`,
+`/settings`) remain available for deeper exploration but are not the
+primary recording path.
 
 ## Reuse From Kernel 01
 
