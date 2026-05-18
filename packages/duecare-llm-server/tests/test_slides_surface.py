@@ -380,13 +380,14 @@ def test_recording_pack_preloads_selected_examples_and_images() -> None:
     assert data["storage_keys"]["pack"] == "duecare.slides.demo.pack"
     assert data["storage_keys"]["chat"] == "duecare.slides.demo.chat"
     examples = data["examples"]
-    assert len(examples) >= 6
+    assert len(examples) >= 8
     assert {e["lane"] for e in examples} >= {
         "Content moderation",
         "Case analysis",
         "Worker support",
         "Research",
         "Anonymized knowledge sharing",
+        "Custom API implementations",
     }
     assert any(
         e.get("image") and e["image"]["src"].startswith("/static/evidence/")
@@ -402,6 +403,7 @@ def test_recording_pack_preloads_selected_examples_and_images() -> None:
     assert trace_example["trace"]["model"] == "gemma-4-e4b-it"
     assert trace_example["trace"]["model_latency_ms"] == 287515
     assert data["moderation_trace"]["grade"]["score"] == "6.96/10"
+    assert any(e["id"] == "custom_api_moderation_endpoint" for e in examples)
     assert data["slides_chat"]["prompt"]
     assert data["slides_chat"]["response"]
     assert "PHP 50,000" in data["slides_chat"]["prompt"]

@@ -1149,3 +1149,230 @@ main > .dc-wb-auto-log-card {
 .dc-progress-dot.is-done { background: oklch(0.55 0.10 155); }
 .dc-progress-dot.is-err  { background: oklch(0.55 0.18 25); }
 @keyframes dc-progress-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+/* =============================================================
+   Workbench step / status / Gemma marker primitives
+   (added 2026-05-18 from workbench redesign spec)
+
+   These are additive — they coexist with the older .wb-workflow-step
+   layout. Pages can opt in incrementally by adding the dc-* classes
+   to their step containers and headers.
+   ============================================================= */
+
+/* Compact trust pill row (replaces paragraph-style trust boundaries). */
+.dc-trust-row {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  padding: 10px 14px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  align-items: center;
+}
+.dc-trust-row.is-audit {
+  background: oklch(0.95 0.05 80);
+  border-color: var(--warn);
+}
+.dc-trust-row.is-private {
+  background: var(--ember-soft);
+  border-color: var(--ember);
+}
+.dc-trust-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--accent-ink);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.dc-trust-row.is-audit .dc-trust-pill { color: oklch(0.35 0.10 80); }
+.dc-trust-row.is-private .dc-trust-pill { color: oklch(0.32 0.12 45); }
+.dc-trust-pill .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent-ink);
+}
+.dc-trust-row.is-audit .dc-trust-pill .dot { background: oklch(0.40 0.12 80); }
+.dc-trust-row.is-private .dc-trust-pill .dot { background: var(--ember); }
+.dc-trust-text {
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--ink-2);
+  font-weight: 400;
+  margin-left: auto;
+  letter-spacing: 0;
+  line-height: 1.45;
+}
+.dc-trust-text code {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  background: rgba(14,17,22,0.05);
+  padding: 1px 5px; border-radius: 3px;
+}
+
+/* Status pill — the canonical pill used inside .dc-step headers
+   and anywhere a step's lifecycle state should be visible. */
+.dc-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  font-weight: 600;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+.dc-pill .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--ink-4);
+}
+.dc-pill.is-ready    { background: var(--paper); color: var(--ink-2); border-color: var(--line); }
+.dc-pill.is-ready .dot { background: var(--ink-3); }
+.dc-pill.is-waiting  { background: var(--paper-2); color: var(--ink-4); }
+.dc-pill.is-waiting .dot { background: var(--ink-4); }
+.dc-pill.is-running  { background: oklch(0.95 0.05 80); color: oklch(0.34 0.12 80); border-color: var(--warn); }
+.dc-pill.is-running .dot { background: var(--warn); animation: dc-pillpulse 1.1s ease-in-out infinite; }
+.dc-pill.is-done     { background: var(--accent-soft); color: var(--accent-ink); border-color: var(--accent); }
+.dc-pill.is-done .dot { background: var(--accent-ink); }
+.dc-pill.is-warn     { background: oklch(0.95 0.05 80); color: oklch(0.34 0.12 80); border-color: var(--warn); }
+.dc-pill.is-warn .dot { background: var(--warn); }
+.dc-pill.is-failed   { background: oklch(0.55 0.18 25); color: var(--paper); border-color: oklch(0.55 0.18 25); }
+.dc-pill.is-failed .dot { background: var(--paper); }
+.dc-pill.is-deferred {
+  background: transparent; color: var(--ink-3);
+  border-style: dashed; border-color: var(--line-soft);
+}
+.dc-pill.is-deferred .dot { background: var(--ink-4); }
+@keyframes dc-pillpulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.55; transform: scale(1.25); }
+}
+
+/* Gemma marker — small inline pill that appears only at the action
+   site, never on the step header itself. Use this so the reviewer
+   never confuses "Gemma is loaded" with "Gemma inference ran". */
+.dc-gemma-mark {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 999px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.dc-gemma-mark.is-optional {
+  background: var(--paper); color: var(--accent-ink); border-color: var(--accent);
+}
+.dc-gemma-mark.is-active {
+  background: oklch(0.95 0.05 80); color: oklch(0.34 0.12 80); border-color: var(--warn);
+}
+.dc-gemma-mark.is-active::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--warn); animation: dc-pillpulse 1.1s ease-in-out infinite;
+}
+.dc-gemma-mark.is-done {
+  background: var(--accent-soft); color: var(--accent-ink); border-color: var(--accent);
+}
+.dc-gemma-mark.is-unavailable { background: var(--paper-2); color: var(--ink-3); border-style: dashed; }
+.dc-gemma-mark.is-skipped     { background: var(--paper-2); color: var(--ink-3); }
+
+/* Numbered step block — the chassis every workbench page shares.
+   Header layout: 32px number circle + title/subtitle + status pill. */
+.dc-step {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.dc-step + .dc-step { margin-top: 14px; }
+.dc-step-head {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 14px;
+  padding: 16px 18px 14px;
+}
+.dc-step-num {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--accent); color: var(--paper);
+  display: grid; place-items: center;
+  font-family: var(--mono);
+  font-size: 12px; font-weight: 700;
+  margin-top: 1px;
+  letter-spacing: 0;
+}
+.dc-step[data-state="waiting"] .dc-step-num {
+  background: var(--paper-2); color: var(--ink-3);
+  border: 1px solid var(--line);
+}
+.dc-step[data-state="failed"] .dc-step-num {
+  background: oklch(0.55 0.18 25); color: var(--paper);
+}
+.dc-step-title {
+  display: grid; gap: 4px; min-width: 0;
+}
+.dc-step-title h2 {
+  font-size: 16px; font-weight: 600; letter-spacing: -0.005em;
+  margin: 0; line-height: 1.3;
+}
+.dc-step-title p {
+  font-size: 13px; color: var(--ink-3); line-height: 1.45; margin: 0;
+}
+.dc-step-body {
+  padding: 0 18px 18px;
+  display: grid; gap: 14px;
+}
+
+/* Sub-card inside a step body. Used for splitting "Deterministic
+   processing" from "Optional Gemma case-brief", OCR deferred queues,
+   review gates, etc. */
+.dc-substep {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+.dc-substep.is-dashed { border-style: dashed; background: transparent; }
+.dc-substep.is-warn   { background: oklch(0.96 0.04 80); border-color: var(--warn); }
+.dc-substep.is-error  { background: oklch(0.96 0.04 25); border-color: oklch(0.55 0.18 25); }
+.dc-substep-head {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.dc-substep-head h3 {
+  font-size: 13px; font-weight: 600; margin: 0;
+}
+.dc-substep-head .spacer { flex: 1; }
+.dc-substep-body { font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+.dc-substep-note {
+  font-size: 12px; color: var(--ink-3); line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+/* Deferred placeholder — for OCR / multimodal queues that exist as
+   a contract surface even when nothing is queued. Always visible
+   so reviewers can never confuse "queued" with "done". */
+.dc-deferred-tile {
+  background: transparent;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 12.5px;
+  color: var(--ink-3);
+  line-height: 1.5;
+  display: grid; gap: 6px;
+}
+.dc-deferred-tile .dc-deferred-head {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--ink-2); font-weight: 600;
+}

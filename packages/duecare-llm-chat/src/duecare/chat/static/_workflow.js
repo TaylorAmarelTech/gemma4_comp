@@ -44,6 +44,30 @@
       return el && el.id ? _el(el.id + '-state') : null;
     }
 
+    function _stateKey(complete, open) {
+      if (complete) return 'done';
+      if (open) return 'active';
+      return 'waiting';
+    }
+
+    function _writeStatePill(state, key, label) {
+      // Backward-compatible writer: if the state element is a .dc-pill with
+      // a .dc-pill-label child, preserve the dot + structure and only swap
+      // the label text and the is-* modifier class. Otherwise fall back to
+      // plain textContent.
+      const labelChild = state.querySelector
+        ? state.querySelector('.dc-pill-label')
+        : null;
+      if (labelChild) {
+        labelChild.textContent = label;
+        state.classList.remove('is-waiting', 'is-active', 'is-running', 'is-done', 'is-ready');
+        // Design vocabulary: Active step uses the is-running pill style.
+        state.classList.add(key === 'active' ? 'is-running' : ('is-' + key));
+      } else {
+        state.textContent = label;
+      }
+    }
+
     function set(active) {
       const activeIdx = _activeIndex(active);
       elements.forEach((el, idx) => {
@@ -58,11 +82,14 @@
           el.classList.remove(opts.removeCompleteClass);
         }
         if ('open' in el) el.open = open;
+        // Mirror lifecycle to a data-state attribute so CSS selectors like
+        // .dc-step[data-state="done"] can react without extra wiring.
+        const key = _stateKey(complete, open);
+        if (el.dataset) el.dataset.state = key;
         const state = _stateEl(el, idx);
         if (state) {
-          state.textContent = complete
-            ? labels.done
-            : (open ? labels.active : labels.waiting);
+          const label = complete ? labels.done : (open ? labels.active : labels.waiting);
+          _writeStatePill(state, key, label);
         }
       });
       return activeIdx;
