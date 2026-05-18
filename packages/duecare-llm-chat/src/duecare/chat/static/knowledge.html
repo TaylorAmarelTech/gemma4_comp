@@ -108,11 +108,11 @@
 <body data-nav="knowledge">
   <main class="wb-page">
     <h1 class="wb-h1">Knowledge Extraction</h1>
-    <div class="wb-trust">
-      <b>Trust boundary:</b> Source processing, deterministic drafting, and
-      optional Gemma 4 refinement run locally in this kernel. Drafted envelopes stay in
-      <code>/kaggle/working/knowledge/</code>; nothing leaves the kernel
-      unless you anonymize and submit on Anonymization &amp; Sharing.
+    <div class="dc-trust-row" role="note" aria-label="Trust boundary" style="margin-bottom:14px;">
+      <span class="dc-trust-pill"><span class="dot"></span>LOCAL</span>
+      <span class="dc-trust-pill"><span class="dot"></span>NO REMOTE CALLS</span>
+      <span class="dc-trust-pill"><span class="dot"></span>REVIEWER GATED</span>
+      <span class="dc-trust-text">Drafted envelopes stay in <code>/kaggle/working/knowledge/</code> until you anonymize and submit on Anonymization &amp; Sharing.</span>
     </div>
     <p class="wb-lede">
       Upload source bundles or evidence files containing recruiter messages, case notes, statutes,
@@ -150,7 +150,7 @@
             <span class="kx-step-title">Upload a source bundle or add source text</span>
             <span class="kx-step-summary">Upload a ZIP or file bundle first. It runs through the same local process harness as Bulk File Review before drafting.</span>
           </span>
-          <span class="kx-step-state" id="kx-step-source-state">Ready</span>
+          <span class="kx-step-state dc-pill is-ready" id="kx-step-source-state"><span class="dot"></span><span class="dc-pill-label">Ready</span></span>
         </summary>
         <div class="kx-step-body">
           <div class="kx-action-note" style="margin-bottom:10px;">
@@ -195,6 +195,7 @@
                    title="Fast deterministic drafts are the default. Enable this when you want the loaded local Gemma model to refine the envelope JSON; larger models are more reliable.">
               <input type="checkbox" id="kx-use-gemma"> Use Gemma refinement
             </label>
+            <span class="dc-gemma-mark is-optional" id="kx-gemma-mark" title="Reflects whether Gemma actually ran. Stays Optional unless a real token stream completes.">Optional · Gemma</span>
           </div>
           <div class="kx-step-actions">
             <button class="wb-btn-primary" type="button" onclick="kxContinueToDraft()">Continue to draft</button>
@@ -227,7 +228,7 @@
             <span class="kx-step-title">Draft and review suggested knowledge objects</span>
             <span class="kx-step-summary">Deterministic hints draft fast envelopes; optional Gemma 4 refinement improves wording and schema fit when loaded.</span>
           </span>
-          <span class="kx-step-state" id="kx-step-draft-state">Waiting</span>
+          <span class="kx-step-state dc-pill is-waiting" id="kx-step-draft-state"><span class="dot"></span><span class="dc-pill-label">Waiting</span></span>
         </summary>
         <div class="kx-step-body">
           <div class="kx-action-note" style="margin-top:10px;">
@@ -283,7 +284,7 @@
             <span class="kx-step-title">Import or export knowledge files</span>
             <span class="kx-step-summary">Bring in a vetted knowledge-object ZIP or export the local knowledge store as knowledge files.</span>
           </span>
-          <span class="kx-step-state" id="kx-step-pack-state">Waiting</span>
+          <span class="kx-step-state dc-pill is-waiting" id="kx-step-pack-state"><span class="dot"></span><span class="dc-pill-label">Waiting</span></span>
         </summary>
         <div class="kx-step-body">
           <div class="kx-action-grid">
@@ -720,6 +721,16 @@
         const detBtn=document.getElementById("kx-deterministic-draft-btn");
         btn.disabled=true; const origTxt=btn.textContent; btn.textContent="Extracting...";
         if (detBtn) detBtn.disabled = true;
+        const kxGemmaMark = document.getElementById('kx-gemma-mark');
+        if (kxGemmaMark) {
+          if (useGemma) {
+            kxGemmaMark.className = 'dc-gemma-mark is-active';
+            kxGemmaMark.textContent = 'Gemma active';
+          } else {
+            kxGemmaMark.className = 'dc-gemma-mark is-optional';
+            kxGemmaMark.textContent = 'Optional · Gemma';
+          }
+        }
         kxSetWorkflow(1);
         const draftEvents = document.getElementById('kx-draft-progress-events');
         if (draftEvents) draftEvents.innerHTML = '';
@@ -754,6 +765,15 @@
           kxPromotedDrafts = 0;
           document.getElementById('kx-finish-review-btn').disabled = false;
           wbLog('ok', 'Draft suggestions ready (' + dt + 'ms)', 'suggestions=' + kxDrafts.length);
+          if (kxGemmaMark) {
+            if (useGemma) {
+              kxGemmaMark.className = 'dc-gemma-mark is-done';
+              kxGemmaMark.textContent = 'Gemma done';
+            } else {
+              kxGemmaMark.className = 'dc-gemma-mark is-optional';
+              kxGemmaMark.textContent = 'Optional · Gemma';
+            }
+          }
           resultEl.innerHTML = kxDrafts.map((env, idx) =>
             '<section class="wb-card" style="background:#FAF9F4; margin:8px 0; padding:12px;">' +
             '<div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap;">' +
@@ -770,6 +790,10 @@
         }catch(e){
           statusEl.textContent="Extract failed: "+String(e).slice(0,200);
           wbLog('err', 'Draft suggestions failed', String(e).slice(0,200));
+          if (kxGemmaMark) {
+            kxGemmaMark.className = 'dc-gemma-mark is-unavailable';
+            kxGemmaMark.textContent = useGemma ? 'Gemma failed' : 'Draft failed';
+          }
         }finally{
           kxSetDraftJob('');
           btn.disabled=false; btn.textContent=origTxt;
