@@ -1,6 +1,6 @@
 # DueCare: A Gemma 4 Safety Ecosystem for Migrant-Worker Protection
 
-**Subtitle:** A self-hostable multi-module harness for safer moderation, case analysis, worker access, research, and anonymized sharing.
+**Subtitle:** A self-hostable multi-module harness for safer moderation, case analysis, worker support, research, and anonymized sharing.
 
 **Tracks:** Impact — **Safety & Trust** (primary) · Special Technology — **Unsloth** (LoRA fine-tune of Gemma 4) and **LiteRT** (on-device Gemma 4 E2B in the sibling Android app).
 
