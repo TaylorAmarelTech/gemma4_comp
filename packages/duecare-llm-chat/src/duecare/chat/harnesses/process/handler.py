@@ -2387,8 +2387,20 @@ def _normalize_model_edge(edge: Any, *, fallback_case_id: str = "UNKNOWN") -> di
     return normalized
 
 
-def _gemma_edge_pass(app: Any, bundle: dict, *, prompt_id: str, limit: int) -> dict:
+def _gemma_edge_pass(
+    app: Any,
+    bundle: dict,
+    *,
+    prompt_id: str,
+    limit: int,
+    progress: Any | None = None,
+) -> dict:
+    def mark(phase: str, pct: int, detail: str) -> None:
+        if progress:
+            progress(phase=phase, pct=pct, detail=detail)
+
     intelligence = bundle.get("intelligence") or {}
+    mark("seed_edges", 20, "Collecting deterministic typed edges, RAG candidates, and review settings.")
     deterministic_edges = (intelligence.get("typed_edges") or [])[:limit]
     deterministic_candidates = intelligence.get("rag_candidates") or []
     gc = getattr(app.state, "gemma_call", None)
@@ -2408,6 +2420,7 @@ def _gemma_edge_pass(app: Any, bundle: dict, *, prompt_id: str, limit: int) -> d
         "rag_candidates": deterministic_candidates,
     }
     if gc is None:
+        mark("deterministic_fallback", 100, "No local Gemma 4 model is loaded; returning deterministic edge contract.")
         return {
             **base,
             "status": "deterministic_no_model",
@@ -2417,22 +2430,26 @@ def _gemma_edge_pass(app: Any, bundle: dict, *, prompt_id: str, limit: int) -> d
             ],
         }
 
+    mark("prompt_build", 34, "Building bounded Gemma 4 edge-extraction prompt from graph, rows, media queue, and knowledge context.")
     prompt = build_graph_edge_extraction_prompt(bundle, prompt_id=prompt_id, limit=limit)
     messages = [
         {"role": "system", "content": [{"type": "text", "text": GRAPH_EDGE_EXTRACTION_SYSTEM_PROMPT}]},
         {"role": "user", "content": [{"type": "text", "text": prompt}]},
     ]
     try:
+        mark("model_call", 58, "Calling local Gemma 4 for typed edge and RAG-candidate synthesis.")
         try:
             model_out = gc(messages, max_new_tokens=1200, temperature=0.15)
         except TypeError:
             model_out = gc(messages)
+        mark("parse_model_output", 76, "Gemma returned; sanitizing and parsing JSON edge contract.")
         text = model_out if isinstance(model_out, str) else (
             (model_out or {}).get("text") or (model_out or {}).get("response") or ""
         )
         text = sanitize_model_output(text)
         parsed = _extract_json_object(text)
         if not parsed:
+            mark("parse_model_output", 100, "Gemma output was not valid JSON; keeping deterministic fallback edges visible.")
             return {
                 **base,
                 "status": "model_unparsed_deterministic_fallback",
@@ -2454,6 +2471,7 @@ def _gemma_edge_pass(app: Any, bundle: dict, *, prompt_id: str, limit: int) -> d
         uncertainties = parsed.get("uncertainties")
         if not isinstance(uncertainties, list):
             uncertainties = []
+        mark("merge_results", 92, "Merging model-proposed edges with deterministic review context.")
         return {
             **base,
             "status": "ok",
@@ -2463,6 +2481,7 @@ def _gemma_edge_pass(app: Any, bundle: dict, *, prompt_id: str, limit: int) -> d
             "prompt_chars": len(prompt),
         }
     except Exception as exc:
+        mark("model_error", 100, "Gemma edge pass failed; returning deterministic fallback edges.")
         return {
             **base,
             "status": "model_error_deterministic_fallback",
@@ -2793,30 +2812,36 @@ def register_routes(app: Any) -> None:
             raise HTTPException(404, f"unknown process job: {job_id}")
         return JSONResponse(job)
 
-    @app.post("/api/process/graph-extract")
-    async def api_process_graph_extract(request: Request) -> Any:
-        """Ask local Gemma 4 to propose typed graph edges and RAG candidates."""
-        try:
-            body = await request.json()
-        except Exception:
-            body = {}
-        prompt_id = str(body.get("prompt_id") or "case_graph_edges")
-        try:
-            limit = int(body.get("limit") or 24)
-        except Exception:
-            limit = 24
-        limit = max(4, min(limit, 80))
+    def _run_graph_extract_job(
+        *,
+        prompt_id: str,
+        limit: int,
+        progress: Any | None = None,
+    ) -> dict[str, Any]:
+        """Run the local graph-edge extraction pass and update bundle state."""
         bundle = getattr(app.state, "last_process_bundle", None)
         if bundle is None:
-            return JSONResponse({
+            if progress:
+                progress(
+                    phase="no_bundle",
+                    pct=100,
+                    detail="No processed bundle is cached on this kernel.",
+                )
+            return {
                 "status": "no_bundle",
                 "bundle_present": False,
                 "message": "Upload and process a bundle before running the Gemma edge pass.",
-            })
+            }
         settings = (
             (bundle.get("config") or {}).get("process_settings")
             or _process_settings_from_mapping({})
         )
+        if progress:
+            progress(
+                phase="knowledge_context",
+                pct=12,
+                detail="Loading local KnowledgeObject context for the bounded edge prompt.",
+            )
         if settings.get("include_imported_knowledge", True):
             knowledge_context = _load_local_knowledge_context(limit=24)
         else:
@@ -2827,6 +2852,15 @@ def register_routes(app: Any) -> None:
                 "objects": [],
                 "disabled_by_settings": True,
             }
+        if progress:
+            progress(
+                phase="context_ready",
+                pct=18,
+                detail=(
+                    f"{knowledge_context.get('n_objects', 0)} local KnowledgeObject(s) "
+                    "available for graph-edge prompting."
+                ),
+            )
         bundle.setdefault("config", {})["process_settings"] = settings
         bundle["config"]["local_knowledge_context"] = {
             "local_only": True,
@@ -2840,7 +2874,13 @@ def register_routes(app: Any) -> None:
             if settings.get("include_imported_knowledge", True)
             else []
         )
-        out = _gemma_edge_pass(app, bundle, prompt_id=prompt_id, limit=limit)
+        out = _gemma_edge_pass(
+            app,
+            bundle,
+            prompt_id=prompt_id,
+            limit=limit,
+            progress=progress,
+        )
         intelligence = bundle.setdefault("intelligence", {})
         intelligence["gemma_edge_pass"] = out
         bundle.setdefault("summary", {})["gemma_edge_pass_status"] = out.get("status")
@@ -2867,7 +2907,7 @@ def register_routes(app: Any) -> None:
             )
         except Exception:
             pass
-        return JSONResponse({
+        return {
             **out,
             "bundle_present": True,
             "evidence_edges": (bundle.get("summary") or {}).get("n_evidence_edges", 0),
@@ -2875,7 +2915,114 @@ def register_routes(app: Any) -> None:
             "knowledge_context": bundle["config"].get("local_knowledge_context"),
             "page_item_prompt_tree": PAGE_ITEM_PROMPT_TREE,
             "model_capability_notes": _MODEL_CAPABILITY_NOTES,
+        }
+
+    @app.post("/api/process/graph-extract")
+    async def api_process_graph_extract(request: Request) -> Any:
+        """Ask local Gemma 4 to propose typed graph edges and RAG candidates."""
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        prompt_id = str(body.get("prompt_id") or "case_graph_edges")
+        try:
+            limit = int(body.get("limit") or 24)
+        except Exception:
+            limit = 24
+        limit = max(4, min(limit, 80))
+        return JSONResponse(_run_graph_extract_job(prompt_id=prompt_id, limit=limit))
+
+    @app.post("/api/process/graph-extract/start")
+    async def api_process_graph_extract_start(request: Request) -> Any:
+        """Start a background local Gemma edge pass and return a poll URL."""
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        prompt_id = str(body.get("prompt_id") or "case_graph_edges")
+        try:
+            limit = int(body.get("limit") or 24)
+        except Exception:
+            limit = 24
+        limit = max(4, min(limit, 80))
+        job_id = f"edge_{_uuid4().hex[:12]}"
+        now = _dt.now(_UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+        jobs, lock = _process_jobs()
+        with lock:
+            jobs[job_id] = {
+                "job_id": job_id,
+                "status": "queued",
+                "phase": "queued",
+                "pct": 4,
+                "prompt_id": prompt_id,
+                "limit": limit,
+                "created_at": now,
+                "updated_at": now,
+                "events": [{
+                    "ts": now,
+                    "status": "queued",
+                    "phase": "queued",
+                    "pct": 4,
+                    "detail": "Local Gemma edge pass queued; deterministic fallback remains available.",
+                }],
+            }
+
+        def worker() -> None:
+            try:
+                _process_job_update(
+                    job_id,
+                    status="running",
+                    phase="starting",
+                    pct=8,
+                    detail="Background edge worker started inside the Kaggle kernel.",
+                )
+                result = _run_graph_extract_job(
+                    prompt_id=prompt_id,
+                    limit=limit,
+                    progress=lambda **kw: _process_job_update(job_id, status="running", **kw),
+                )
+                _process_job_update(
+                    job_id,
+                    status="complete",
+                    phase="complete",
+                    pct=100,
+                    detail=(
+                        f"Gemma edge pass finished with status={result.get('status')}; "
+                        f"model_edges={len(result.get('model_edges') or [])}."
+                    ),
+                    result=result,
+                )
+            except Exception as e:
+                _process_job_update(
+                    job_id,
+                    status="error",
+                    phase="failed",
+                    pct=100,
+                    detail=str(e),
+                    error=str(e),
+                )
+
+        thread = _threading.Thread(target=worker, name=f"duecare-{job_id}", daemon=True)
+        thread.start()
+        return JSONResponse({
+            "job_id": job_id,
+            "status": "queued",
+            "phase": "queued",
+            "pct": 4,
+            "prompt_id": prompt_id,
+            "limit": limit,
+            "poll_url": f"/api/process/graph-extract/status/{job_id}",
         })
+
+    @app.get("/api/process/graph-extract/status/{job_id}")
+    def api_process_graph_extract_status(job_id: str) -> Any:
+        """Return current local Gemma edge-pass progress and result."""
+        jobs, lock = _process_jobs()
+        with lock:
+            job = dict(jobs.get(job_id) or {})
+        if not job:
+            raise HTTPException(404, f"unknown graph-extract job: {job_id}")
+        return JSONResponse(job)
 
     @app.post("/api/process/graph-chat")
     async def api_process_graph_chat(request: Request) -> Any:

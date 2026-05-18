@@ -51,6 +51,8 @@ def test_kernel01_declares_reusable_runtime_contract():
         "/api/knowledge/export",
         "/api/process/batch/start",
         "/api/process/batch/status/{job_id}",
+        "/api/process/graph-extract/start",
+        "/api/process/graph-extract/status/{job_id}",
         "/api/search/sanitize",
         "/api/anonymize",
     ]:
@@ -59,6 +61,7 @@ def test_kernel01_declares_reusable_runtime_contract():
 
     for sample in [
         "sample_manifest.json",
+        "case_files_streamlined_demo.zip",
         "case_files_media_rich_sample.zip",
         "knowledge_files_sample.zip",
         "knowledge_source_examples_sample.zip",

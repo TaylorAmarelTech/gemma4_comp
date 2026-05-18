@@ -66,6 +66,8 @@ EXPECTED_ROUTES: set[tuple[str, str]] = {
     ("/api/process/batch/start", "POST"),
     ("/api/process/batch/status/{job_id}", "GET"),
     ("/api/process/graph-extract", "POST"),
+    ("/api/process/graph-extract/start", "POST"),
+    ("/api/process/graph-extract/status/{job_id}", "GET"),
     ("/api/process/graph-chat", "POST"),
     ("/api/anonymize", "POST"),
     ("/api/submit/knowledge", "POST"),

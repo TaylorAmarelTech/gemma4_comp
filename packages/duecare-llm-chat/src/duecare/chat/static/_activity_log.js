@@ -53,7 +53,7 @@
     let activeChannel = null;
 
     function _clearIdle() {
-      const first = host.firstChild;
+      const first = host.firstElementChild;
       if (
         first &&
         first.classList &&

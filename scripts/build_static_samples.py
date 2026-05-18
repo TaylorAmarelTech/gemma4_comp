@@ -4,6 +4,7 @@ These are public, judge-safe, fully synthetic examples that let a
 reviewer round-trip the upload/import flow on the workbench pages:
 
   case_files_sample.zip          -> broad graph-scale bulk-review sample
+  case_files_streamlined_demo.zip -> five-document guided Process demo
   case_files_media_rich_sample.zip -> primary Process/Knowledge demo sample
   knowledge_object_sample.json   -> used on /static/knowledge.html
   knowledge_bundle_sample.zip    -> used on /static/knowledge.html
@@ -710,6 +711,146 @@ All cases and entities are synthetic.
         "expected_outputs/salary_deduction_evidence_expected.json",
         json.dumps(salary, indent=2, sort_keys=True).encode("utf-8"),
     )
+
+
+def build_streamlined_case_files_zip() -> None:
+    """Build a small five-document bundle for live Bulk File Review demos."""
+    case_id = "DC-DEMO-PH-HK-501"
+    root = f"streamlined_demo/{case_id}_Lina_Santos"
+    readme = """\
+# DueCare streamlined Bulk File Review demo
+
+This is a five-document, fully synthetic PH-HK domestic-worker case
+designed for a short live demo. It is intentionally small so reviewers can
+see the full path clearly:
+
+1. Upload ZIP
+2. Watch local processing progress
+3. Inspect people, payments, journey stages, and graph edges
+4. Optionally run the local Gemma 4 edge pass
+5. Ask conversational questions against the confirmed graph
+
+No real worker information appears in this archive.
+"""
+    chat = """\
+[2026-03-01 09:12] Recruiter Mina: Lina, the Hong Kong domestic helper slot is confirmed.
+[2026-03-01 09:13] Recruiter Mina: The training center invoice is PHP 28,000 and the medical/documentation package is PHP 17,500.
+[2026-03-01 09:15] Lina: Can I choose another clinic or training center?
+[2026-03-01 09:16] Recruiter Mina: No. Use BrightPath Training and Northbay Clinic only. The owner coordinates all deployment steps.
+[2026-03-01 09:20] Recruiter Mina: If you cannot pay now, sign the salary deduction authority for HKD 1,200 per month until the balance is cleared.
+[2026-03-01 09:22] Lina: I read that Hong Kong domestic workers from the Philippines should pay zero placement fee.
+[2026-03-01 09:24] Recruiter Mina: Do not mention placement fee. Say voluntary reimbursement of training and medical expenses.
+"""
+    contract = """\
+STANDARD DEPLOYMENT SIDE LETTER - SYNTHETIC
+
+Worker: Lina Santos
+Agency: Pearl Bridge Manpower
+Training provider: BrightPath Training Center
+Clinic: Northbay Medical Screening
+Destination: Hong Kong
+Sector: domestic work
+
+Clause 2. Worker authorizes employer/payroll helper to deduct HKD 1,200
+monthly for training, medical, documentation, and deployment services.
+
+Clause 3. Worker agrees to remain with the first employer for 24 months.
+If worker leaves early, agency may report non-cooperation and recover the
+remaining balance.
+
+Reviewer note: this document is synthetic and intentionally includes fee
+camouflage, salary deduction, restricted provider choice, and retaliation
+risk signals for the Bulk File Review demo.
+"""
+    receipt = """\
+PAYMENT RECEIPT - SYNTHETIC
+
+Receipt ID: PBM-501-2026-03-02
+Case ID: DC-DEMO-PH-HK-501
+Worker: Lina Santos
+Paid to: BrightPath Training Center
+Collected by: Pearl Bridge Manpower desk
+Amount: PHP 45,500
+Description: training certification, medical exam, visa documentation
+Payment method: cash
+Note: worker says payment was required before deployment to Hong Kong.
+"""
+    timeline = """date,case_id,event,location,amount_php,entity
+2026-03-01,DC-DEMO-PH-HK-501,Recruiter quoted mandatory training and medical package,Manila,45500,Pearl Bridge Manpower
+2026-03-02,DC-DEMO-PH-HK-501,Receipt issued by affiliated training center,Manila,45500,BrightPath Training Center
+2026-03-03,DC-DEMO-PH-HK-501,Salary deduction side letter signed,Manila,,Pearl Bridge Manpower
+2026-03-08,DC-DEMO-PH-HK-501,Worker scheduled for Hong Kong deployment,Hong Kong,,Employer Wong household
+"""
+    note = """\
+CASEWORKER NOTE - SYNTHETIC
+
+Lina Santos reports she was not allowed to select an independent training
+center or medical clinic. Pearl Bridge Manpower directed her to BrightPath
+Training Center and Northbay Medical Screening, then described the PHP
+45,500 charge as a voluntary reimbursement rather than a placement fee.
+
+Potential patterns for review:
+- fee camouflage
+- fee rerouting through affiliated providers
+- common control across agency, training, and clinic choices
+- restricted worker choice of provider
+- salary deduction / wage assignment
+- retaliation risk if worker leaves early
+
+Suggested graph questions:
+1. Which rows support the fee-camouflage finding?
+2. Which documents show restricted provider choice?
+3. What missing evidence should be collected before escalation?
+"""
+    expected = {
+        "schema_version": "duecare.expected_output.v1",
+        "demo_bundle": "case_files_streamlined_demo.zip",
+        "expected_case_id": case_id,
+        "expected_documents": 5,
+        "expected_patterns": [
+            "fee_camouflage",
+            "fee_rerouting",
+            "restricted_provider_choice",
+            "salary_deduction",
+            "retaliation_risk",
+        ],
+        "recommended_demo_question": "Which rows support fee camouflage and restricted provider choice?",
+    }
+    manifest = {
+        "schema_version": "duecare.streamlined_demo_manifest.v1",
+        "case_id": case_id,
+        "files": [
+            "01_chat/recruiter_chat.txt",
+            "02_contract/deployment_side_letter.txt",
+            "03_receipts/payment_receipt.txt",
+            "04_timeline/deployment_timeline.csv",
+            "05_caseworker/caseworker_note.txt",
+        ],
+        "recommended_settings": {
+            "review_mode": "quick_triage",
+            "max_gemma_calls": 8,
+            "gemma_calls_per_item": 1,
+            "edge_strictness": "balanced",
+        },
+        "local_only": True,
+    }
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        _zip_write_deterministic(zf, "README.md", readme.encode("utf-8"))
+        _zip_write_deterministic(zf, "manifest.json", json.dumps(manifest, indent=2, sort_keys=True).encode("utf-8"))
+        _zip_write_deterministic(zf, f"{root}/01_chat/recruiter_chat.txt", chat.encode("utf-8"))
+        _zip_write_deterministic(zf, f"{root}/02_contract/deployment_side_letter.txt", contract.encode("utf-8"))
+        _zip_write_deterministic(zf, f"{root}/03_receipts/payment_receipt.txt", receipt.encode("utf-8"))
+        _zip_write_deterministic(zf, f"{root}/04_timeline/deployment_timeline.csv", timeline.encode("utf-8"))
+        _zip_write_deterministic(zf, f"{root}/05_caseworker/caseworker_note.txt", note.encode("utf-8"))
+        _zip_write_deterministic(
+            zf,
+            "expected_outputs/streamlined_demo_expected.json",
+            json.dumps(expected, indent=2, sort_keys=True).encode("utf-8"),
+        )
+    out = OUT / "case_files_streamlined_demo.zip"
+    out.write_bytes(buf.getvalue())
+    print(f"wrote {out}  ({out.stat().st_size:,} bytes)")
 
 
 def _write_synthetic_public_records(zf: zipfile.ZipFile) -> None:
@@ -1473,6 +1614,13 @@ KNOWLEDGE_OBJECT_SAMPLE = {
     "schema_version": "1.0",
     "knowledge_object_type": "grep_rule",
     "id": "sample-passport-retention-v1",
+    "version": "v1",
+    "provenance": {
+        "created_at": "2026-05-12T00-00-00Z",
+        "created_by": "duecare-workbench-sample",
+        "source_kind": "composite",
+        "source_note": "duecare workbench sample bundle (judge-safe synthetic)",
+    },
     "source": {
         "kind": "composite",
         "provenance": "duecare workbench sample bundle (judge-safe synthetic)",
@@ -1513,6 +1661,19 @@ KNOWLEDGE_OBJECT_SAMPLE = {
         "drafted_by": "duecare workbench sample",
         "date": "2026-05-12",
         "checks_passed": ["pii_clean", "regex_compiles", "test_cases_pass"],
+    },
+    "tags": [
+        "branch:matching_knowledge",
+        "indicator:passport_retention",
+        "sample:true",
+    ],
+    "extensions": {
+        "sample": True,
+        "audit": {
+            "drafted_by": "duecare workbench sample",
+            "date": "2026-05-12",
+            "checks_passed": ["pii_clean", "regex_compiles", "test_cases_pass"],
+        },
     },
 }
 
@@ -2103,6 +2264,7 @@ def build_prompt_eval_training_seed_zip() -> None:
 
 def main() -> None:
     build_case_files_zip()
+    build_streamlined_case_files_zip()
     build_media_rich_case_files_zip()
     build_knowledge_object_sample()
     build_knowledge_bundle_zip()

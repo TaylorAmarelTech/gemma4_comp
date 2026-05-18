@@ -9,6 +9,10 @@
     "source_kind": "composite",
     "source_note": "duecare workbench sample bundle (judge-safe synthetic)"
   },
+  "source": {
+    "kind": "composite",
+    "provenance": "duecare workbench sample bundle (judge-safe synthetic)"
+  },
   "content": {
     "category": "document_retention",
     "severity": "high",
@@ -27,6 +31,15 @@
         "text": "Please bring a photocopy of your passport for the visa.",
         "expected": false
       }
+    ]
+  },
+  "audit": {
+    "drafted_by": "duecare workbench sample",
+    "date": "2026-05-12",
+    "checks_passed": [
+      "pii_clean",
+      "regex_compiles",
+      "test_cases_pass"
     ]
   },
   "tags": [

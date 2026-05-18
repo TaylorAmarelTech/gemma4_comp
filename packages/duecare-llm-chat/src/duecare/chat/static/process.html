@@ -29,8 +29,8 @@
     .wb-muted { color: #5B5F68; font-size: 11.5px; }
     .wb-status-pill { background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155);
                        padding: 6px 12px; border-radius: 999px; font-size: 11px; }
-    .wb-pipeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 8px; }
-    .wb-step { border: 1px solid #DDD8C9; border-radius: 8px; padding: 10px 11px; background: #FAF9F4; min-height: 76px; }
+    .wb-pipeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
+    .wb-step { border: 1px solid #DDD8C9; border-radius: 8px; padding: 10px 11px; background: #FAF9F4; min-height: 76px; min-width: 0; }
     .wb-guide { grid-template-columns: 1fr; }
     .wb-guide .wb-step { padding: 0 11px; min-height: 0; }
     .wb-guide .wb-step summary { cursor: pointer; list-style: none; padding: 10px 0; }
@@ -38,9 +38,9 @@
     .wb-guide .wb-step summary::before { content: "+ "; color: oklch(0.32 0.07 195); }
     .wb-guide .wb-step[open] summary::before { content: "- "; }
     .wb-guide .wb-step .detail { padding: 0 0 10px 18px; }
-    .wb-step .num { font-family: var(--mono); font-size: 10px; color: #5B5F68; text-transform: uppercase; letter-spacing: 0.07em; }
-    .wb-step .name { font-size: 12.5px; font-weight: 700; margin: 5px 0 3px; }
-    .wb-step .detail { font-size: 11px; color: #5B5F68; line-height: 1.4; }
+    .wb-step .num { font-family: var(--mono); font-size: 10px; color: #5B5F68; text-transform: uppercase; letter-spacing: 0.07em; overflow-wrap: anywhere; }
+    .wb-step .name { font-size: 12.5px; font-weight: 700; margin: 5px 0 3px; overflow-wrap: anywhere; }
+    .wb-step .detail { font-size: 11px; color: #5B5F68; line-height: 1.4; overflow-wrap: anywhere; word-break: break-word; }
     .wb-step.complete { border-color: oklch(0.72 0.08 155); background: oklch(0.97 0.02 155); }
     .wb-step.skipped { opacity: 0.72; }
     .wb-workflow { display: grid; gap: 16px; margin: 18px 0 0; }
@@ -68,7 +68,8 @@
     .wb-progress-note { color: #5B5F68; font-size: 11.5px; line-height: 1.45; margin-top: 9px; }
     .wb-progress-substeps { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 6px; margin-top: 10px; }
     .wb-progress-substep { border: 1px solid #EFEDE4; border-radius: 7px; background: #FFF; color: #5B5F68;
-                           padding: 7px 8px; font-size: 11px; line-height: 1.3; }
+                           padding: 7px 8px; font-size: 11px; line-height: 1.3; min-width: 0;
+                           overflow-wrap: anywhere; word-break: break-word; }
     .wb-progress-substep.done { border-color: oklch(0.76 0.08 155); color: oklch(0.32 0.08 155); }
     .wb-progress-substep.active { border-color: oklch(0.52 0.08 195); color: #0E1116; background: oklch(0.97 0.02 195); }
     .wb-action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
@@ -96,6 +97,7 @@
     .wb-workflow-step > summary { cursor: pointer; list-style: none; display: grid;
                                   grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px;
                                   align-items: center; padding: 15px 18px; }
+    .wb-workflow-step > summary > span { min-width: 0; }
     .wb-workflow-step > summary::-webkit-details-marker { display: none; }
     .wb-workflow-step:not([open]) > summary { border-bottom: 0; }
     .wb-workflow-step[open] > summary { border-bottom: 1px solid #EFEDE4; }
@@ -105,9 +107,10 @@
     .wb-workflow-step[open] .wb-step-index { background: oklch(0.52 0.08 195); color: #F7F6F1; }
     .wb-workflow-step.complete .wb-step-index { background: oklch(0.62 0.10 155); color: #F7F6F1; }
     .wb-step-title { display: block; font-size: 15.5px; font-weight: 700; color: #0E1116; }
-    .wb-step-summary { display: block; color: #5B5F68; font-size: 11.5px; line-height: 1.4; margin-top: 2px; }
+    .wb-step-summary { display: block; color: #5B5F68; font-size: 11.5px; line-height: 1.4; margin-top: 2px; overflow-wrap: anywhere; }
     .wb-step-state { color: #5B5F68; font-size: 10.5px; font-family: var(--mono);
-                     text-transform: uppercase; letter-spacing: 0.06em; }
+                     text-transform: uppercase; letter-spacing: 0.06em; justify-self: end;
+                     max-width: 150px; text-align: right; overflow-wrap: anywhere; }
     .wb-step-body { padding: 16px 18px 18px; }
     .wb-dropzone { border: 2px dashed #DDD8C9; border-radius: 10px; padding: 36px 18px;
                    text-align: center; background: #FFF; color: #5B5F68; font-size: 13px; cursor: pointer; }
@@ -134,16 +137,27 @@
     pre { overflow-wrap: anywhere; white-space: pre-wrap; }
     .wb-error { background: oklch(0.94 0.04 25); color: oklch(0.32 0.10 25); padding: 10px 12px; border-radius: 6px; font-size: 12.5px; }
     .wb-log { background: #0E1116; color: #E4E1D7; font-family: 'JetBrains Mono', monospace; font-size: 11px;
-               border-radius: 8px; padding: 10px 12px; max-height: 200px; overflow-y: auto; }
+               border-radius: 8px; padding: 10px 12px; max-height: 200px; overflow-y: auto;
+               overflow-x: hidden; overflow-wrap: anywhere; word-break: break-word; }
     .wb-log .ts { color: #8A8E97; }
     .wb-log .ok { color: oklch(0.78 0.14 155); }
     .wb-log .err { color: oklch(0.72 0.16 25); }
+    #wb-log.dc-activity-log { overflow-x: hidden; overflow-wrap: anywhere; word-break: break-word; }
+    #wb-log.dc-activity-log .dc-log-event,
+    #wb-log.dc-activity-log .dc-log-detail {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      white-space: normal;
+    }
     a { color: oklch(0.32 0.07 195); }
   
     @media (max-width: 620px) {
       .wb-page { padding: 0 12px !important; }
       .wb-h1 { font-size: 22px !important; }
       .wb-graph-shell { grid-template-columns: 1fr; }
+      .wb-workflow-step > summary { grid-template-columns: auto minmax(0, 1fr); }
+      .wb-step-state { grid-column: 2; justify-self: start; text-align: left; max-width: 100%; }
     }
 </style>
 </head>
@@ -188,6 +202,24 @@
       </div>
     </section>
 
+    <section class="wb-card" aria-label="Guided demo path">
+      <h2>Guided demo path</h2>
+      <p class="wb-muted" style="font-size:12.5px; line-height:1.55; margin:0 0 10px;">
+        Use the streamlined five-document bundle for a short live demo:
+        upload documents, watch processing, inspect the entity graph, run the
+        optional Gemma 4 edge pass, then ask conversational questions against
+        the confirmed graph. Deterministic graph chat remains available even if
+        no Gemma model is loaded.
+      </p>
+      <div class="wb-progress-substeps" aria-label="Demo sequence">
+        <div class="wb-progress-substep"><b>1. Load demo ZIP</b><div class="wb-muted">Five synthetic PH-HK documents.</div></div>
+        <div class="wb-progress-substep"><b>2. Process bundle</b><div class="wb-muted">Server-side progress and activity events.</div></div>
+        <div class="wb-progress-substep"><b>3. Inspect graph</b><div class="wb-muted">People, payments, documents, and edges.</div></div>
+        <div class="wb-progress-substep"><b>4. Gemma edge pass</b><div class="wb-muted">Optional local model job with its own timeline.</div></div>
+        <div class="wb-progress-substep"><b>5. Ask graph</b><div class="wb-muted">Deterministic first, Gemma only when needed.</div></div>
+      </div>
+    </section>
+
     <div class="wb-workflow" aria-label="Bulk file review workflow">
       <details class="wb-workflow-step" id="wb-step-upload" open>
         <summary>
@@ -203,13 +235,25 @@
             <div>
               <h2>Sample case bundles</h2>
               <p class="wb-muted" style="font-size:12px; margin:4px 0 10px;">
-                Use the media-rich bundle as the primary judge demo: it shows
+                Use the streamlined demo for a short, reliable presentation.
+                Use the media-rich bundle as the full judge demo: it shows
                 Messenger and WhatsApp screenshots, receipt photos, passport
                 photos, DOCX, PDF, XLSX, email, and queued Office artifacts.
                 The broad bundle is available when you want graph scale across
                 30 synthetic people.
               </p>
               <div class="wb-row" style="gap:8px;">
+                <a class="wb-btn-primary" href="/static/samples/case_files_streamlined_demo.zip"
+                   download="case_files_streamlined_demo.zip"
+                   title="Download the streamlined five-document demo bundle ZIP">
+                  Download streamlined demo
+                </a>
+                <button class="wb-btn-secondary" type="button" onclick="wbUseSample('streamlined')"
+                   title="Fetch the streamlined sample ZIP into the file picker so you can press Start processing">
+                  Use streamlined demo
+                </button>
+              </div>
+              <div class="wb-row" style="gap:8px; margin-top:8px;">
                 <a class="wb-btn-primary" href="/static/samples/case_files_media_rich_sample.zip"
                    download="case_files_media_rich_sample.zip"
                    title="Download the primary media-rich synthetic case bundle ZIP">
@@ -399,11 +443,11 @@
           </summary>
           <div class="wb-step-body">
       <div class="wb-card">
-        <h2>Review and confirm extracted intelligence</h2>
+        <h2>Review gate</h2>
         <p class="wb-muted" style="margin-top:0;">
           Inspect the metrics, graph, people, timeline, journey points, and row table below.
-          Use the checklist and notes to record any corrections before graph chat
-          or export actions.
+          This step only records your review decision and unlocks graph chat/export;
+          it does not run Gemma or reprocess the bundle.
         </p>
         <div class="wb-review-checks" aria-label="Reviewer verification checklist">
           <label><input type="checkbox" class="wb-review-check" onchange="wbUpdateReviewReady()"> People, case IDs, and folder-derived links look reasonable.</label>
@@ -415,7 +459,7 @@
           placeholder="Optional reviewer notes, corrections, or data-quality concerns. These notes are included in the downloaded JSON export."></textarea>
         <div class="wb-row">
           <button class="wb-btn-primary" id="wb-confirm-intel-btn" type="button" onclick="wbConfirmIntelligence()" disabled>
-            Confirm extracted intelligence
+            Mark review complete
           </button>
           <span class="wb-muted" id="wb-review-status">Process a bundle first.</span>
         </div>
@@ -539,6 +583,22 @@
         <button id="pg-ask-btn" class="wb-btn-primary" onclick="pgAsk()" style="align-self: stretch; padding: 0 18px;" disabled>Ask graph</button>
       </div>
       <div id="pg-status" class="wb-muted" style="font-size:11.5px; margin-top:8px;">Confirm Step 3 before asking graph questions.</div>
+      <div class="wb-progress-box" id="pg-progress-box" style="display:none; margin-top:10px;">
+        <div class="wb-progress-head">
+          <div>
+            <b id="pg-progress-stage">Graph analyst idle</b>
+            <div class="wb-muted" id="pg-progress-detail">No graph question is running.</div>
+          </div>
+          <span class="wb-pill" id="pg-progress-label">0%</span>
+        </div>
+        <div class="wb-progress-track" aria-hidden="true">
+          <span class="wb-progress-fill" id="pg-progress-fill"></span>
+        </div>
+        <div class="wb-progress-note" id="pg-progress-note">
+          Common questions are answered by the deterministic graph analyst. Other
+          questions use local Gemma 4 only if a model is already loaded.
+        </div>
+      </div>
       <div id="pg-answer" style="margin-top:10px; font-family:var(--mono); font-size:12px; white-space:pre-wrap; padding:0;"></div>
       <p class="wb-muted" style="font-size:11px; margin-top:14px; padding-top:10px; border-top:1px solid #EFEDE4;">
         Trust boundary: the graph stays in <code>/kaggle/working/process-staging/</code>.
@@ -559,6 +619,23 @@
         const state = document.getElementById('wb-step-chat-state');
         if (state) state.textContent = active >= 3 ? 'Answered' : 'Active';
       }
+      function pgSetProgress(pct, stage, detail, note) {
+        const box = document.getElementById('pg-progress-box');
+        const fill = document.getElementById('pg-progress-fill');
+        const label = document.getElementById('pg-progress-label');
+        const stageEl = document.getElementById('pg-progress-stage');
+        const detailEl = document.getElementById('pg-progress-detail');
+        const noteEl = document.getElementById('pg-progress-note');
+        if (box) {
+          box.style.display = '';
+          box.classList.toggle('active', pct > 0 && pct < 100);
+        }
+        if (fill) fill.style.width = Math.max(0, Math.min(100, pct || 0)) + '%';
+        if (label) label.textContent = Math.max(0, Math.min(100, pct || 0)) + '%';
+        if (stageEl) stageEl.textContent = stage || 'Graph analyst';
+        if (detailEl) detailEl.textContent = detail || '';
+        if (noteEl) noteEl.textContent = note || 'The server may answer deterministically without a model, or call local Gemma 4 when needed and available.';
+      }
       async function pgAsk(){
         const q=(document.getElementById("pg-question").value||"").trim();
         const statusEl=document.getElementById("pg-status");
@@ -569,30 +646,34 @@
           statusEl.textContent="Confirm Step 3 before asking graph questions.";
           return;
         }
-        if (window.dcWbEnsureModelReady && !(await window.dcWbEnsureModelReady())) {
-          statusEl.textContent="Load a model before graph chat.";
-          return;
-        }
         const btn=document.getElementById("pg-ask-btn");
         btn.disabled=true; const origTxt=btn.textContent; btn.textContent="Asking...";
         pgSetPipeline(1);
-        statusEl.textContent="POST /api/process/graph-chat ...";
+        statusEl.textContent="Graph analyst running...";
+        pgSetProgress(18, 'Preparing graph question', 'Sending question and cached local graph to the process harness.');
         ansEl.textContent="";
         if (typeof wbLog === 'function') {
           wbLog('net', 'POST /api/process/graph-chat', q.slice(0, 180));
         }
         const t0 = performance.now();
+        let pgTimer = setInterval(() => {
+          const elapsed = Math.round((performance.now() - t0) / 1000);
+          const pct = Math.min(88, 18 + elapsed * 6);
+          pgSetProgress(pct, 'Graph analyst running', 'Waiting for deterministic answer or local Gemma 4 response. Elapsed ' + elapsed + 's.');
+        }, 1000);
         try{
           const r=await fetch("/api/process/graph-chat",{
             method:"POST",headers:{"Content-Type":"application/json"},
             body:JSON.stringify({question:q})
           });
+          clearInterval(pgTimer);
           const dt = Math.round(performance.now() - t0);
           const out=await r.json();
           pgSetPipeline(3);
           if(!r.ok){
             statusEl.textContent="Graph-chat failed: HTTP "+r.status;
             ansEl.textContent=JSON.stringify(out,null,2);
+            pgSetProgress(100, 'Graph chat failed', 'HTTP ' + r.status);
             if (typeof wbLog === 'function') {
               wbLog('err', 'HTTP ' + r.status + ' (' + dt + 'ms)', JSON.stringify(out).slice(0, 240));
             }
@@ -605,12 +686,16 @@
           if(out.evidence_edges!=null) extra+=" | evidence edges: "+out.evidence_edges;
           else if(out.grep_hits!=null) extra+=" | GREP rules: "+out.grep_hits;
           statusEl.textContent="Answered."+extra;
+          pgSetProgress(100, 'Graph answer ready', 'Answered in ' + dt + 'ms.' + extra,
+            out.fallback ? 'Fallback: ' + out.fallback : 'Answer returned from the local graph analyst path.');
           if (typeof wbLog === 'function') {
             wbLog('ok', 'Graph-chat answered (' + dt + 'ms)',
-              'chars=' + text.length + extra);
+              'chars=' + text.length + extra + (out.fallback ? ' | fallback=' + out.fallback : ''));
           }
         }catch(e){
+          clearInterval(pgTimer);
           statusEl.textContent="Graph-chat failed: "+String(e).slice(0,200);
+          pgSetProgress(100, 'Graph chat failed', String(e).slice(0, 200));
           if (typeof wbLog === 'function') {
             wbLog('err', 'Graph-chat failed', String(e).slice(0, 240));
           }
@@ -790,13 +875,19 @@
     // it into wbHandle as if the user had dropped it. The sample is
     // shipped under /static/samples/ (built by scripts/build_static_samples.py).
     async function wbUseSample(kind) {
-      const sample = kind === 'media'
+      const sample = kind === 'streamlined'
         ? {
+            path: '/static/samples/case_files_streamlined_demo.zip',
+            name: 'case_files_streamlined_demo.zip',
+            label: 'Streamlined five-document demo bundle'
+          }
+        : kind === 'media'
+          ? {
             path: '/static/samples/case_files_media_rich_sample.zip',
             name: 'case_files_media_rich_sample.zip',
             label: 'Media-rich sample bundle'
           }
-        : {
+          : {
             path: '/static/samples/case_files_sample.zip',
             name: 'case_files_sample.zip',
             label: 'Broad sample bundle'
@@ -857,6 +948,21 @@
         deterministic_deferred_model: 'Deterministic brief; Gemma/media deferred',
         model_error_deterministic_fallback: 'Deterministic fallback',
       })[status] || (status || 'not run');
+    }
+    function wbStatusLabel(status) {
+      return ({
+        implemented: 'implemented',
+        implemented_basic: 'implemented',
+        implemented_for_text_and_extractable_pdfs: 'text/PDF implemented',
+        implemented_post_process: 'post-review',
+        queued_contract: 'queued',
+        deterministic_no_model: 'deterministic',
+        deterministic_deferred_model: 'deferred',
+        model_unparsed_deterministic_fallback: 'fallback',
+        model_error_deterministic_fallback: 'fallback',
+        not_run: 'not run',
+        ok: 'complete',
+      })[status] || String(status || 'pending').replace(/_/g, ' ');
     }
     const WB_REVIEW_MODES = {
       quick_triage: {
@@ -974,6 +1080,8 @@
       };
     }
     let _wbLastProcessPollPhase = '';
+    let _wbSeenProcessEventKeys = new Set();
+    let _wbSeenEdgeEventKeys = new Set();
     async function wbSleep(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
     }
@@ -996,7 +1104,15 @@
           'Server-side job ' + jobId + ' | ' + (job.status || 'running') + ' | elapsed ' + Math.round(dt / 1000) + 's');
         const stageIndex = Math.max(0, Math.min(WB_PROCESS_STAGES.length - 1, Math.floor((pct / 100) * (WB_PROCESS_STAGES.length - 1))));
         wbRenderProcessSubsteps(stageIndex, job.status === 'complete');
-        if (phase !== _wbLastProcessPollPhase) {
+        (job.events || []).forEach((evt, idx) => {
+          const key = [evt.ts, evt.phase, evt.pct, idx].join('|');
+          if (_wbSeenProcessEventKeys.has(key)) return;
+          _wbSeenProcessEventKeys.add(key);
+          wbLog(evt.status === 'error' ? 'err' : 'step',
+            'Process job ' + jobId + ': ' + (evt.phase || evt.status || 'event'),
+            (evt.pct != null ? evt.pct + '% | ' : '') + (evt.detail || ''));
+        });
+        if (phase !== _wbLastProcessPollPhase && !(job.events || []).length) {
           _wbLastProcessPollPhase = phase;
           wbLog(job.status === 'error' ? 'err' : 'step',
             'Process job ' + jobId + ': ' + phase,
@@ -1036,10 +1152,6 @@
     }
     async function wbProcess() {
       if (!wbFile) return;
-      if (window.dcWbEnsureModelReady && !(await window.dcWbEnsureModelReady())) {
-        wbLog('warn', 'Model required before bulk processing', 'Load a Gemma 4 model from the selector.');
-        return;
-      }
       const btn = document.getElementById('wb-process-btn');
       btn.disabled = true; btn.textContent = 'Processing...';
       document.getElementById('wb-error').style.display = 'none';
@@ -1047,6 +1159,7 @@
       wbResetReview();
       document.getElementById('pg-ask-btn').disabled = true;
       _wbLastProcessPollPhase = '';
+      _wbSeenProcessEventKeys = new Set();
       const settings = wbProcessSettings();
       wbLog('info', 'POST /api/process/batch/start',
         'multipart upload, file=' + wbFile.name + ' | mode=' + settings.review_mode +
@@ -1089,7 +1202,12 @@
               ' | entities=' + wbBundle.summary.n_entities_extracted);
         wbRender(wbBundle);
         wbUpdateReviewReady();
-        wbSetProcessProgress(100, 'Processing complete', 'Review the extracted intelligence and confirm Step 3 before graph chat or export.');
+        wbSetProcessProgress(
+          100,
+          'Processing complete',
+          'Local deterministic extraction, graph linking, and queued-media accounting are complete.',
+          'Next: review Step 3. OCR/media and optional local Gemma edge generation are explicit follow-up actions, not hidden background work.'
+        );
         wbRenderProcessSubsteps(WB_PROCESS_STAGES.length - 1, true);
         wbSetWorkflow(2);
       } catch (e) {
@@ -1111,7 +1229,7 @@
         notes ? 'Confirmed with reviewer notes.' : 'Confirmed. Graph chat and export actions are ready.';
       document.getElementById('pg-ask-btn').disabled = false;
       document.getElementById('pg-status').textContent = 'Ready. Choose an example question or write your own.';
-      wbLog('ok', 'Reviewer confirmed extracted intelligence', notes ? notes.slice(0, 180) : 'no notes');
+      wbLog('ok', 'Review gate marked complete', notes ? notes.slice(0, 180) : 'no notes; no processing or model call was started');
       wbSetWorkflow(3);
     }
     function wbRender(b) {
@@ -1162,9 +1280,7 @@
       ];
       host.innerHTML = rows.map((step, idx) =>
         {
-          const detail = (step.id === 'gemma' || /gemma/i.test(step.label || ''))
-            ? wbBriefStatusLabel(step.detail || step.status || '')
-            : (step.detail || step.status || '');
+          const detail = step.detail || wbStatusLabel(step.status || '');
           return (
         '<div class="wb-step ' + wbEsc(step.status || '') + '">' +
         '<div class="num">Step ' + (idx + 1) + '</div>' +
@@ -1189,7 +1305,7 @@
       const modelNotes = plan.model_capability_notes || [];
       const passHtml = passes.length ? passes.map(p =>
         '<div class="wb-step ' + (String(p.status || '').includes('implemented') ? 'complete' : '') + '">' +
-        '<div class="num">' + wbEsc(p.status || 'planned') + '</div>' +
+        '<div class="num">' + wbEsc(wbStatusLabel(p.status || 'planned')) + '</div>' +
         '<div class="name">' + wbEsc(p.label || p.id) + '</div>' +
         '<div class="detail">' + wbEsc(p.detail || '') + '</div>' +
         '</div>'
@@ -1524,10 +1640,84 @@
       ).join('');
       passHost.innerHTML =
         '<h3 style="font-size:13px; margin:0 0 6px;">Gemma 4 local edge pass</h3>' +
+        '<div class="wb-progress-box" id="wb-edge-progress-box" style="margin:0 0 10px;">' +
+        '<div class="wb-progress-head"><div><b id="wb-edge-progress-stage">' + wbEsc(pass.status ? 'Edge pass complete' : 'Edge pass idle') + '</b>' +
+        '<div class="wb-muted" id="wb-edge-progress-detail">' + wbEsc(pass.status ? wbStatusLabel(pass.status) : 'No local Gemma edge pass has run yet.') + '</div></div>' +
+        '<span class="wb-pill" id="wb-edge-progress-label">' + wbEsc(pass.status ? '100%' : '0%') + '</span></div>' +
+        '<div class="wb-progress-track" aria-hidden="true"><span class="wb-progress-fill" id="wb-edge-progress-fill" style="width:' + wbEsc(pass.status ? '100' : '0') + '%"></span></div>' +
+        '<div class="wb-progress-note" id="wb-edge-progress-note">This pass is optional. It uses deterministic seed edges first, then calls local Gemma 4 only if a model is already loaded.</div>' +
+        '<div class="wb-progress-substeps" id="wb-edge-events" aria-label="Gemma edge pass timeline"></div>' +
+        '</div>' +
         '<div class="wb-muted">Status: ' + wbEsc(pass.status || 'not_run') +
         ' | model proposed edges: ' + wbEsc((pass.model_edges || []).length || 0) +
         ' | local_only: ' + wbEsc(pass.local_only === false ? 'false' : 'true') + '</div>' +
         (modelRows ? '<div style="max-height:220px; overflow:auto; margin-top:8px;"><table class="wb-small-table"><thead><tr><th>edge</th><th>source</th><th>target</th><th>quote</th></tr></thead><tbody>' + modelRows + '</tbody></table></div>' : '');
+    }
+    function wbSetEdgeProgress(pct, stage, detail, note) {
+      const box = document.getElementById('wb-edge-progress-box');
+      const fill = document.getElementById('wb-edge-progress-fill');
+      const label = document.getElementById('wb-edge-progress-label');
+      const stageEl = document.getElementById('wb-edge-progress-stage');
+      const detailEl = document.getElementById('wb-edge-progress-detail');
+      const noteEl = document.getElementById('wb-edge-progress-note');
+      const safePct = Math.max(0, Math.min(100, Number(pct) || 0));
+      if (box) box.classList.toggle('active', safePct > 0 && safePct < 100);
+      if (fill) fill.style.width = safePct + '%';
+      if (label) label.textContent = safePct + '%';
+      if (stageEl) stageEl.textContent = stage || 'Gemma edge pass';
+      if (detailEl) detailEl.textContent = detail || '';
+      if (noteEl) noteEl.textContent = note || 'The edge-pass job runs inside the Kaggle kernel and reports each stage.';
+    }
+    function wbRenderEdgeEvents(events) {
+      const host = document.getElementById('wb-edge-events');
+      if (!host) return;
+      host.innerHTML = (events || []).slice(-8).map(evt =>
+        '<div class="wb-progress-substep ' + (evt.status === 'error' ? '' : 'done') + '">' +
+        '<b>' + wbEsc(wbStatusLabel(evt.phase || evt.status || 'event')) + '</b>' +
+        '<div class="wb-muted">' + wbEsc((evt.pct != null ? evt.pct + '% | ' : '') + (evt.detail || '')) + '</div>' +
+        '</div>'
+      ).join('');
+    }
+    function wbLogEdgeJobEvents(jobId, events) {
+      (events || []).forEach((evt, idx) => {
+        const key = [jobId, evt.ts, evt.phase, evt.pct, idx].join('|');
+        if (_wbSeenEdgeEventKeys.has(key)) return;
+        _wbSeenEdgeEventKeys.add(key);
+        wbLog(evt.status === 'error' ? 'err' : 'step',
+          'Gemma edge job ' + jobId + ': ' + (evt.phase || evt.status || 'event'),
+          (evt.pct != null ? evt.pct + '% | ' : '') + (evt.detail || ''));
+      });
+    }
+    async function wbPollGemmaEdgeJob(jobId, t0) {
+      const pollUrl = '/api/process/graph-extract/status/' + encodeURIComponent(jobId);
+      for (let attempt = 0; attempt < 600; attempt += 1) {
+        const r = await fetch(pollUrl, {cache: 'no-store'});
+        const text = await r.text();
+        let job = null;
+        try { job = JSON.parse(text); } catch (_) {}
+        const dt = Math.round(performance.now() - t0);
+        if (!r.ok || !job) {
+          wbLog('err', 'Gemma edge job poll failed HTTP ' + r.status + ' (' + dt + 'ms)', text.slice(0, 220));
+          throw new Error('Gemma edge job polling failed: HTTP ' + r.status);
+        }
+        wbSetEdgeProgress(
+          job.pct || 0,
+          'Gemma edge pass: ' + wbStatusLabel(job.phase || job.status || 'running'),
+          job.detail || ('status=' + (job.status || 'running')),
+          'job_id=' + jobId + ' | elapsed ' + Math.round(dt / 1000) + 's'
+        );
+        wbRenderEdgeEvents(job.events || []);
+        wbLogEdgeJobEvents(jobId, job.events || []);
+        if (job.status === 'complete') {
+          if (!job.result) throw new Error('Gemma edge job completed without a result payload.');
+          return job.result;
+        }
+        if (job.status === 'error') {
+          throw new Error(job.error || job.detail || 'Gemma edge job failed.');
+        }
+        await wbSleep(1200);
+      }
+      throw new Error('Gemma edge job polling timed out locally.');
     }
     async function wbRunGemmaEdgePass() {
       if (!wbBundle) {
@@ -1539,38 +1729,42 @@
         wbLog('warn', 'Gemma edge pass blocked', 'Confirm extracted intelligence before running model edge synthesis.');
         return;
       }
-      if (window.dcWbEnsureModelReady && !(await window.dcWbEnsureModelReady())) {
-        wbLog('warn', 'Model required before Gemma edge pass', 'Load a local Gemma 4 model from the selector.');
-        return;
-      }
       const btn = document.getElementById('wb-gemma-edge-btn');
       if (btn) { btn.disabled = true; btn.textContent = 'Running local Gemma...'; }
       const settings = (wbBundle.config && wbBundle.config.process_settings) || wbProcessSettings();
       const rawLimit = settings.max_gemma_calls || 32;
       const limit = Math.max(4, Math.min(80, parseInt(rawLimit, 10) || 32));
       const modeLabel = (settings.review_mode && settings.review_mode.id) || settings.review_mode || 'standard_review';
-      wbLog('net', 'POST /api/process/graph-extract',
+      _wbSeenEdgeEventKeys = new Set();
+      wbSetEdgeProgress(5, 'Starting Gemma edge pass', 'Submitting a background edge-extraction job.');
+      wbRenderEdgeEvents([]);
+      wbLog('net', 'POST /api/process/graph-extract/start',
         'prompt_id=case_graph_edges | mode=' + modeLabel + ' | returned edge limit=' + limit);
       const t0 = performance.now();
       try {
-        const r = await fetch('/api/process/graph-extract', {
+        const r = await fetch('/api/process/graph-extract/start', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({prompt_id: 'case_graph_edges', limit: limit})
         });
-        const out = await r.json();
+        const start = await r.json();
         const dt = Math.round(performance.now() - t0);
-        if (!r.ok) {
-          wbLog('err', 'Gemma edge pass failed HTTP ' + r.status + ' (' + dt + 'ms)', JSON.stringify(out).slice(0, 240));
+        if (!r.ok || !start.job_id) {
+          wbLog('err', 'Gemma edge pass failed HTTP ' + r.status + ' (' + dt + 'ms)', JSON.stringify(start).slice(0, 240));
           return;
         }
+        wbLog('ok', 'Gemma edge job accepted (' + dt + 'ms)', 'job_id=' + start.job_id + ' | limit=' + limit);
+        const out = await wbPollGemmaEdgeJob(start.job_id, t0);
         wbBundle.intelligence = wbBundle.intelligence || {};
         wbBundle.intelligence.gemma_edge_pass = out;
         wbRenderTypedEdges(wbBundle.intelligence);
-        wbLog('ok', 'Gemma edge pass complete (' + dt + 'ms)',
+        const totalDt = Math.round(performance.now() - t0);
+        wbSetEdgeProgress(100, 'Gemma edge pass complete', 'status=' + (out.status || 'unknown') + ' | model_edges=' + ((out.model_edges || []).length || 0));
+        wbLog('ok', 'Gemma edge pass complete (' + totalDt + 'ms)',
           'status=' + (out.status || 'unknown') + ' | model_edges=' + ((out.model_edges || []).length || 0) +
           ' | rag_candidates=' + ((out.rag_candidates || []).length || 0));
       } catch (e) {
+        wbSetEdgeProgress(100, 'Gemma edge pass failed', String(e).slice(0, 200));
         wbLog('err', 'Gemma edge pass failed', String(e).slice(0, 240));
       } finally {
         if (btn) { btn.disabled = false; btn.textContent = 'Run local Gemma edge pass'; }

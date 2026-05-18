@@ -35,12 +35,15 @@ REQUIRED_APP_ENDPOINTS: tuple[str, ...] = (
     "/api/knowledge/export",
     "/api/process/batch/start",
     "/api/process/batch/status/{job_id}",
+    "/api/process/graph-extract/start",
+    "/api/process/graph-extract/status/{job_id}",
     "/api/search/sanitize",
     "/api/anonymize",
 )
 
 REQUIRED_SAMPLE_FILES: tuple[str, ...] = (
     "sample_manifest.json",
+    "case_files_streamlined_demo.zip",
     "case_files_media_rich_sample.zip",
     "knowledge_files_sample.zip",
     "knowledge_source_examples_sample.zip",
@@ -51,6 +54,7 @@ REQUIRED_SAMPLE_FILES: tuple[str, ...] = (
 WORKBENCH_DEFAULTS: dict[str, Any] = {
     "default_gemma_variant": "e4b-it",
     "gemma_max_seq_len": 32768,
+    "streamlined_process_demo_bundle": "case_files_streamlined_demo.zip",
     "primary_source_bundle": "case_files_media_rich_sample.zip",
     "primary_knowledge_files": "knowledge_files_sample.zip",
     "primary_training_seed": "prompt_eval_training_seed_sample.zip",

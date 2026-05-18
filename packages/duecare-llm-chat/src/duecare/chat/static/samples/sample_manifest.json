@@ -4,6 +4,19 @@
   "purpose": "Catalog of bundled demo artifacts used by the DueCare workbench. Source case bundles are uploaded for processing/extraction; knowledge files are pre-existing KnowledgeObject envelopes for import/export/share flows.",
   "entries": [
     {
+      "name": "case_files_streamlined_demo.zip",
+      "artifact_kind": "source_case_bundle",
+      "label": "Streamlined five-document Bulk File Review demo",
+      "primary_for": ["process_live_demo"],
+      "also_used_by": ["tests", "video_demo"],
+      "expected_inputs": ["zip", "txt", "csv"],
+      "expected_outputs": ["document_inventory", "entity_graph", "journey_points", "typed_edges", "rag_candidates", "graph_chat"],
+      "demo_story": "Small synthetic PH-HK fee-camouflage, provider-choice, salary-deduction, and retaliation-risk case for showing the end-to-end Bulk File Review path.",
+      "privacy_note": "Synthetic demo material. No real worker case files.",
+      "expects_readme": true,
+      "expects_manifest_or_metadata": true
+    },
+    {
       "name": "case_files_media_rich_sample.zip",
       "artifact_kind": "source_case_bundle",
       "label": "Primary media-rich PH-HK case bundle",
