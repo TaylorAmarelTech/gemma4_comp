@@ -215,21 +215,24 @@
             Draft creates suggestions only. Promote the useful ones into local knowledge,
             then click Finish review to move to import, export, or sharing.
           </div>
-          <div class="kx-action-note" style="margin-top:10px;">
-            <b>Draft prompt path:</b> source bundle or text -&gt; local Process summary
-            and deterministic hints -&gt; auto leaf suggestion -&gt; fast envelope draft
-            by default -&gt; optional Gemma JSON refinement when enabled -&gt;
-            reviewer promotion -&gt; reusable knowledge files. Imported/promoted
-            knowledge files can later guide the Process graph/RAG prompt tree,
-            but they are never treated as automatic truth.
-          </div>
-          <div class="kx-action-note" style="margin-top:10px;">
-            <b>Model fit:</b> if only a small text Gemma model is loaded, keep
-            drafts compact and expect more reviewer validation. Contact details,
-            current legal facts, and media-derived claims should stay
-            <code>needs_review</code> until verified through source documents or
-            a stronger local preprocessing/model path.
-          </div>
+          <details style="margin-top:10px;">
+            <summary style="cursor:pointer; font-size:12px; font-weight:600; color: var(--ink-2);">How drafting works (click to expand)</summary>
+            <div class="kx-action-note" style="margin-top:8px;">
+              <b>Draft prompt path:</b> source bundle or text -&gt; local Process summary
+              and deterministic hints -&gt; auto leaf suggestion -&gt; fast envelope draft
+              by default -&gt; optional Gemma JSON refinement when enabled -&gt;
+              reviewer promotion -&gt; reusable knowledge files. Imported/promoted
+              knowledge files can later guide the Process graph/RAG prompt tree,
+              but they are never treated as automatic truth.
+            </div>
+            <div class="kx-action-note" style="margin-top:10px;">
+              <b>Model fit:</b> if only a small text Gemma model is loaded, keep
+              drafts compact and expect more reviewer validation. Contact details,
+              current legal facts, and media-derived claims should stay
+              <code>needs_review</code> until verified through source documents or
+              a stronger local preprocessing/model path.
+            </div>
+          </details>
           <div id="kx-extract-result" class="kx-empty" style="margin-top:10px;">
             Drafted envelopes will appear here with promote buttons after Step 1 has source text.
           </div>
