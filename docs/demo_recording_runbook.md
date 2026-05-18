@@ -18,7 +18,7 @@ This is not fake: the cached snippets must be generated from the real runtime or
 |---:|---|---|---|
 | 0:00-0:25 | Human story | Composite worker scenario plus privacy boundary | Impact and vision |
 | 0:25-0:55 | Private checker | GREP + RAG + tool-grounded safe answer | Gemma-powered local assistance without exporting case text |
-| 0:55-1:25 | Document/case intake | Extracted facts, timeline, complaint/interrogatory prep | Multimodal/document-understanding story |
+| 0:55-1:25 | Document/case analysis | Extracted facts, timeline, complaint/interrogatory prep | Multimodal/document-understanding story |
 | 1:25-2:05 | Public hub | Knowledge-pack registry, submissions, admin logs | NGO-to-NGO and NGO-to-regulator knowledge sharing |
 | 2:05-2:55 | Training loop | Harness traces become SFT + DPO pairs, then release gate | Technical depth and model-improvement story |
 
@@ -48,7 +48,7 @@ The canonical synthetic example set now lives at `/api/demo/priority-examples` a
 
 1. platform moderation, text-only social post JSON,
 2. platform moderation with a synthetic image description,
-3. NGO case intake and legal-packet drafting,
+3. NGO case analysis and legal-packet drafting,
 4. worker mobile chat with opt-in anonymized sharing,
 5. research ZIP/folder graph extraction and factoid candidates,
 6. full-circle stakeholder email vetting to vetted pack release.

@@ -1,4 +1,4 @@
-# DueCare: Gemma 4 safety infrastructure for migrant-worker protection
+# DueCare: Local Gemma 4 safety infrastructure for migrant-worker protection
 
 > **Public hub:** [duecare-ai.com](https://duecare-ai.com) |
 > **DueCare App on Kaggle:** [kaggle.com/code/taylorsamarel/duecare-app](https://www.kaggle.com/code/taylorsamarel/duecare-app) |
@@ -58,7 +58,7 @@ Three Kaggle script kernels. Each one is a single `kernel.py` file: copy it into
 | | Kernel | What you see when it starts |
 |---|---|---|
 | 🟢 | **DueCare App** &nbsp;·&nbsp; [Kaggle](https://www.kaggle.com/code/taylorsamarel/duecare-app) &nbsp;·&nbsp; [`kaggle/01-duecare-exploration-workbench/kernel.py`](./kaggle/01-duecare-exploration-workbench/kernel.py) | The broad reviewer workbench. Open `/` for the audience showcase, then click into chat / Bulk File Review / harness comparison / grading. |
-| 🎬 | **DueCare Live Demo** &nbsp;·&nbsp; [Kaggle](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) &nbsp;·&nbsp; [`kaggle/02-live-demo/kernel.py`](./kaggle/02-live-demo/kernel.py) | Focused demo + the recording-grade pitch deck. Open `/start` → click **Project slides** → 21-slide deck loads (works without a model). |
+| 🎬 | **DueCare Live Demo** &nbsp;·&nbsp; [Kaggle](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) &nbsp;·&nbsp; [`kaggle/02-live-demo/kernel.py`](./kaggle/02-live-demo/kernel.py) | Focused demo + the recording-grade pitch deck. Open `/start` → click **Project slides** → 23-slide deck loads (works without a model). |
 | 📊 | **DueCare Fine-tuning and Evaluation** &nbsp;·&nbsp; [Kaggle](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation) &nbsp;·&nbsp; [`kaggle/A-00-omni-experiment-workbench/kernel.py`](./kaggle/A-00-omni-experiment-workbench/kernel.py) | The quantitative control plane. Pick **Preconfigured Harness, Training, and Evaluation** for the fast guided path (base + harnessed + fine-tuned + fine-tuned-plus-harness arms, combined rule + LLM grading, exported artifact bundle). |
 
 Heuristic-only mode (no model attached) still serves `/start`, `/slides`, deterministic GREP / RAG / tools, and the cached worker-question slot — the model only matters for the live `/chat` endpoint and the optional Gemma edge pass on Bulk File Review.
@@ -71,7 +71,7 @@ cd gemma4_comp
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e packages/duecare-llm-server
 python -c "from duecare.server import create_app; from duecare.server.state import ServerState; import tempfile, pathlib, uvicorn; tmp=tempfile.mkdtemp(); pathlib.Path(tmp,'out').mkdir(parents=True,exist_ok=True); s=ServerState(db_path=str(pathlib.Path(tmp)/'t.duckdb'),pipeline_output_dir=str(pathlib.Path(tmp)/'out')); uvicorn.run(create_app(s), host='127.0.0.1', port=8771)"
-# Open http://127.0.0.1:8771/start in a browser → click Project slides → 21-slide deck.
+# Open http://127.0.0.1:8771/start in a browser → click Project slides → 23-slide deck.
 # Open http://127.0.0.1:8771/slides/setup → Generate → Save for slides → the worker-question slide is now cached.
 ```
 
@@ -161,7 +161,7 @@ scenarios — documented in the author's prior
 [OpenAI gpt-oss-20b Red-Teaming Challenge writeup](https://www.kaggle.com/competitions/openai-gpt-oss-20b-red-teaming/writeups/llm-complicity-in-modern-slavery-from-native-blind).
 The people and institutions closest to the harm need practical tools:
 platforms need earlier moderation signals, frontline NGOs and regulators
-need faster case intake and evidence organization, workers need guidance
+need faster case analysis and evidence organization, workers need guidance
 they control, and researchers need reproducible ways to explain patterns.
 
 Duecare is that shared harness. Because it is built as a **universal**
@@ -728,7 +728,7 @@ For complete licensing information, see [`THIRD_PARTY_LICENSES.md`](./THIRD_PART
 
 ```bibtex
 @misc{amarel2026forge,
-  title={{Duecare: An Agentic Safety Harness for LLMs}},
+  title={{DueCare: Local Gemma 4 Safety Infrastructure for Migrant-Worker Protection}},
   author={Amarel, Taylor},
   year={2026},
   howpublished={Kaggle Gemma 4 Good Hackathon},

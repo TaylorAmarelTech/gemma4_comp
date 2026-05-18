@@ -1,6 +1,6 @@
-# DueCare AI — AI infrastructure to combat migrant-worker exploitation
+# DueCare: Local Gemma 4 Safety Infrastructure for Migrant-Worker Protection
 
-**Subtitle:** Open-source Gemma 4 safety harness ecosystem for platforms, NGOs, regulators, workers, and researchers. Runs locally. Cites public laws.
+**Subtitle:** A self-hostable Gemma 4 harness for safer moderation, case analysis, worker access, research, and anonymized sharing.
 
 **Tracks:** Impact — **Safety & Trust** (primary) · Special Technology — **Unsloth** (LoRA fine-tune of Gemma 4) and **LiteRT** (on-device Gemma 4 E2B in the sibling Android app).
 
@@ -22,7 +22,7 @@ Twenty-eight million people are in forced labor today; forced labor generates $2
 
 > capability spike ≈ verifiability × training attention × data coverage × economic value
 
-All four factors are weak here. A 2024 Kaggle red-team study confirmed that frontier LLMs consistently produce plausible-but-wrong answers on migrant-worker prompts: hallucinated statute sections, wrong corridor fees, vague "consult a lawyer" advice, privacy oversharing, and operational uplift when asked to "structure" a fee.
+All four factors are weak. A 2024 Kaggle red-team study found frontier LLMs producing plausible-but-wrong answers on migrant-worker prompts: hallucinated statute sections, wrong corridor fees, vague "consult a lawyer" advice, privacy oversharing, and operational uplift when asked to "structure" a fee.
 
 ## 2. Why "DueCare": the legal standard we apply to LLMs
 
@@ -46,7 +46,7 @@ Named for **California Civil Code §1714(a)**, the general duty-of-care standard
 
 **Multimodal understanding.** Bulk File Review accepts ZIP / PDF / CSV / Office / image bundles. Scanned receipts, ID photos, and handwritten complaint notes enter the local Gemma vision queue and emit typed edges with row citations. The sibling Android app's roadmap puts the same vision path on the phone once MediaPipe LiteRT exposes the kernels.
 
-**Local frontier intelligence.** Gemma 4 E2B fits in a Kaggle T4 at 4-bit quantization (< 3 GB). Raw case files never leave the workbench. No per-token spend. Self-hostable on regulator hardware or NGO laptops.
+**Local frontier intelligence.** Gemma 4 E2B fits in a Kaggle T4 at 4-bit quantization (< 3 GB). Raw case files never leave. No per-token spend. Self-hostable on regulator hardware or NGO laptops.
 
 **Fine-tunable.** **Unsloth** LoRA adapters on rubric-polished synthetic data. 60-step smoke runs on Kaggle T4; full runs scale linearly. Checkpoint + resume.
 
@@ -74,7 +74,7 @@ Named for **California Civil Code §1714(a)**, the general duty-of-care standard
 
 `DueCare Fine-tuning and Evaluation` (A-00) facilitates side-by-side benchmarking (base / +harness / fine-tuned / fine-tuned + harness on identical prompts), synthetic SFT generation filtered by the same harness, **Unsloth** LoRA fine-tune with checkpoint and resume, and per-run report export. Any judge can re-run the same four arms.
 
-**Observations across iterative runs** (specific lift numbers from the final A-00 run will publish alongside the submission):
+**A-00 smoke matrix** (2026-05-18T08:51:37Z, `e2b-full-train-eval`, combined rule + LLM judge): stock Gemma 4 2B **29.5%**; stock + chat-offline harness **35.6%** (**+6.1 pp**); fine-tuned **26.4%**; fine-tuned + harness **41.2%** (**+14.8 pp** over fine-tuned; **+11.7 pp** over stock).
 
 - The substrate carries most of the lift over base Gemma 4 — gain is from *grounding*, not raw capability. Frontier models without grounding still cite wrong statutes.
 - Fine-tuning alone shifts response *shape* (refusal calibration, contact-language style) but does not import the corridor rule the worker needs.
@@ -92,7 +92,7 @@ Named for **California Civil Code §1714(a)**, the general duty-of-care standard
 
 ## 9. Future work
 
-Federated knowledge-object exchange with cryptographic provenance. On-device multimodal in the Android app once LiteRT exposes Gemma 4 multimodal kernels. More corridor packs (BD, LK, LB, KW, SA, MX→US H-2A/H-2B). Scoring-gated CI on new GREP rules and LoRA adapters. Reviewer-feedback loop training GREP variants from misfire signals.
+Federated knowledge-object exchange with cryptographic provenance. On-device multimodal once LiteRT exposes Gemma 4 multimodal kernels. More corridor packs (BD, LK, LB, KW, SA, MX→US H-2A/H-2B). Scoring-gated CI for GREP rules and LoRA adapters. Reviewer-feedback loops for misfire-driven rule updates.
 
 ## 10. Prior art and attribution
 

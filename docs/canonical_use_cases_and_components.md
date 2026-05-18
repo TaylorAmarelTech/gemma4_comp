@@ -9,7 +9,7 @@
 ## 1. Three outcomes
 
 1. **Prevent exploitation before it spreads** — help organizations and platforms stop illicit recruitment activity through screening and review support.
-2. **Assist victims and at-risk workers** — support NGO, government, and worker-controlled workflows with grounded intake, routing, and mobile guidance.
+2. **Assist victims and at-risk workers** — support NGO, government, and worker-controlled workflows with grounded case analysis, routing, and mobile guidance.
 3. **Understand what is happening and why** — help researchers and stakeholders map the who, what, where, when, and why through reproducible evidence.
 
 ## 2. Exact users / lanes

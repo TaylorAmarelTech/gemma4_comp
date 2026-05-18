@@ -1,4 +1,4 @@
-# Caseworker workflow — case intake to NGO referral, end to end
+# Caseworker workflow — case analysis to NGO referral, end to end
 
 > **Audience.** A caseworker at an NGO that has deployed Duecare per
 > [`docs/scenarios/ngo-office-deployment.md`](./ngo-office-deployment.md).

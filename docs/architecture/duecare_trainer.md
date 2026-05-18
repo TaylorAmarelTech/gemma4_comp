@@ -9,7 +9,7 @@ post-hackathon.
 
 > A privacy-preserving model-adaptation pipeline that converts
 > validated, anonymized case knowledge into task-specific Gemma 4
-> adapters for moderation, case intake, research evaluation, and
+> adapters for moderation, case analysis, research evaluation, and
 > worker assistance.
 
 ## Why this is its own component

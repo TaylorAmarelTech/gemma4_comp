@@ -83,7 +83,7 @@ North-star checks:
    - Trace A-00 preconfigured path: /preconfigured -> JS run function -> /api/a00/pipeline/run -> PipelineRequest -> _run_pipeline_job().
    - Confirm A-00 chat_no_online uses the same Persona + GREP + RAG/context + deterministic tool primitives as Kernel 01, with internet/import off.
    - Remove or adapt duplicated local fallbacks only if they risk divergence. Keep defensive fallbacks when they protect Kaggle runs, but label them as fallbacks in traces.
-   - Confirm final A-00 grading uses the same combined rule + LLM grading primitives as Kernel 01.
+   - Confirm A-00 grading uses the same combined rule + LLM grading primitives as Kernel 01.
 
 4. A-00 UX and evidence artifacts
    - Home page must remain two navigation cards only.

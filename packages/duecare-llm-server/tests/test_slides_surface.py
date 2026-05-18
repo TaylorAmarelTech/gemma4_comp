@@ -159,10 +159,8 @@ def test_slides_deck_exposes_new_unique_and_knowledge_pack_slides() -> None:
 
 
 def test_slides_deck_drops_placeholder_benchmark_numbers() -> None:
-    """The deck-handoff placeholder percentages (62.0 / 81.5 / 74.8 /
-    88.2) were softened to qualitative capability framing on
-    2026-05-18. Any of them reappearing means a regression to the
-    unverified-claim state."""
+    """The deck should show the measured A-00 smoke matrix and should
+    not regress to old placeholders or future-tense benchmark claims."""
     c = _client()
     r = c.get("/slides")
     assert r.status_code == 200
@@ -171,6 +169,14 @@ def test_slides_deck_drops_placeholder_benchmark_numbers() -> None:
         assert percentage not in html, (
             f"placeholder benchmark percentage {percentage!r} reappeared "
             "in the deck; soften to qualitative capability framing.")
+    for forbidden in [
+        "We'll publish specific lift numbers",
+        "will publish specific lift numbers",
+        "Lift numbers published with the final A-00 run",
+    ]:
+        assert forbidden not in html
+    for measured in ["29.5%", "35.6%", "41.2%", "2026-05-18"]:
+        assert measured in html
 
 
 def test_slides_deck_keeps_cached_replay_labels() -> None:
