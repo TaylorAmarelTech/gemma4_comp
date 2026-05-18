@@ -18,7 +18,7 @@
 
 ## What it is, in one paragraph
 
-**DueCare is local Gemma 4 safety infrastructure for migrant-worker
+**DueCare is a Gemma 4 safety ecosystem for migrant-worker
 protection.** This submission has three active Kaggle kernels: the
 DueCare App workbench, the DueCare Live Demo, and DueCare Fine-tuning
 and Evaluation. Together they prove the same end-to-end substrate:

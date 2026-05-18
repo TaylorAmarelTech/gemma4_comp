@@ -13,10 +13,10 @@
 
 ## Submission Title
 
-**DueCare: Local Gemma 4 Safety Infrastructure for Migrant-Worker Protection**
+**DueCare: A Gemma 4 Safety Ecosystem for Migrant-Worker Protection**
 
-**Subtitle:** A self-hostable Gemma 4 harness for safer moderation, case
-analysis, worker access, research, and anonymized sharing.
+**Subtitle:** A self-hostable multi-module harness for safer moderation,
+case analysis, worker access, research, and anonymized sharing.
 
 ## Problem
 
