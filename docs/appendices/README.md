@@ -84,7 +84,7 @@ submission.
 | F2 | [ADR-001 Multi-package PyPI split](../adr/001-multi-package-pypi-split.md) | Why 17 packages instead of 1 monolith |
 | F3 | [ADR-002 Folder-per-module](../adr/002-folder-per-module-pattern.md) | Self-describing module convention |
 | F4 | [ADR-003 On-device default](../adr/003-on-device-default-cloud-opt-in.md) | Privacy-first defaults |
-| F5 | [ADR-004 6+5 notebook shape](../adr/004-six-plus-five-notebook-shape.md) | Submission surface design |
+| F5 | [ADR-004 6+5 notebook shape](../_archive/2026-05-16-legacy-notebook-era/004-six-plus-five-notebook-shape.md) (archived; superseded by the three-kernel scope) | Historical submission-surface design |
 | F6 | [ADR-005 Tenant from edge proxy](../adr/005-tenant-id-from-edge-proxy.md) | Multi-tenant header strategy |
 
 ## G. Outreach + adoption

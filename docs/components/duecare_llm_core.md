@@ -379,19 +379,28 @@ cd packages/duecare-llm-core && python -m build
 
 ---
 
-## Demo notebook
+## Demo kernel
 
-The package-surface demo is now maintained in the active Kaggle kernel tree at
-[`kaggle/kernels/duecare_010_quickstart/010_quickstart.ipynb`](../../kaggle/kernels/duecare_010_quickstart/010_quickstart.ipynb).
-Use that notebook when you want to exercise the published DueCare package
-surface from a clean install while keeping root-level legacy notebook mirrors
-out of the active submission workspace.
+The package-surface demo is now the active three-kernel submission tree.
+The clearest end-to-end exercise of the published DueCare package surface
+from a clean install lives in
+[`kaggle/01-duecare-exploration-workbench/`](../../kaggle/01-duecare-exploration-workbench/),
+which boots the chat harness via `duecare.chat.create_app(**default_harness())`
+and exercises the full reusable contract: model loading via `Gemma4Runtime`,
+GREP/RAG/tools/persona/online layers, combined rule + LLM grading, and
+import/export routes.
 
-Open it in Jupyter, JupyterLab, Colab, Kaggle Notebooks, or VS Code:
+Run it from a Kaggle session by copy/pasting the kernel into a Kaggle notebook
+(scripts are not directly executable on Kaggle the way `.ipynb` files are):
 
 ```bash
-jupyter notebook kaggle/kernels/duecare_010_quickstart/010_quickstart.ipynb
+# Local check that the kernel script compiles and imports cleanly:
+python -m py_compile kaggle/01-duecare-exploration-workbench/kernel.py
 ```
+
+The legacy `duecare_010_quickstart` notebook was archived under
+[`kaggle/_archive/notebooks/`](../../kaggle/_archive/notebooks/) and is no
+longer the canonical package-surface demo.
 
 ---
 
