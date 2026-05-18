@@ -2442,11 +2442,16 @@ def _graph_chat_deterministic_answer(bundle: dict, question: str) -> dict | None
         }
 
     if wants_fee or wants_strongest:
+        rankable_people = [
+            p for p in people
+            if str(p.get("case_id") or "UNKNOWN").upper() != "UNKNOWN"
+        ] or people
         ranked_people = sorted(
-            people,
+            rankable_people,
             key=lambda p: (
-                -float(p.get("total_payment_value") or 0),
                 -int(p.get("risk_score") or 0),
+                -float(p.get("total_payment_value") or 0),
+                -int(p.get("n_documents") or 0),
                 str(p.get("case_id") or ""),
             ),
         )[:10]
@@ -2463,7 +2468,7 @@ def _graph_chat_deterministic_answer(bundle: dict, question: str) -> dict | None
             rows = _person_support_rows(person)
             add_rows(rows)
             signals = ", ".join((person.get("risk_signals") or [])[:5])
-            label = person.get("name") or person.get("case_id")
+            label = person.get("name") or person.get("case_id") or "Unassigned evidence"
             lines.append(
                 f"{idx}. {label} (`{person.get('case_id')}`) | "
                 f"payments found: {_format_money(float(person.get('total_payment_value') or 0))} | "
@@ -2685,6 +2690,36 @@ def register_routes(app: Any) -> None:
         jobs, lock = _process_jobs()
         with lock:
             job = jobs.setdefault(job_id, {"job_id": job_id, "events": []})
+            if job.get("status") in {"abandoned", "cancelled"} and fields.get("status") not in {"abandoned", "cancelled"}:
+                now = _dt.now(_UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+                incoming_status = str(fields.get("status") or "running")
+                if incoming_status == "complete":
+                    job["late_status"] = "complete"
+                    job["late_completed_at"] = now
+                    if fields.get("result") is not None:
+                        job["late_result"] = fields.get("result")
+                    job.setdefault("events", []).append({
+                        "ts": now,
+                        "status": "abandoned",
+                        "phase": "late_complete",
+                        "pct": job.get("pct", 0),
+                        "detail": (
+                            "Background worker completed after the browser "
+                            "abandoned local polling; result is retained as late_result."
+                        ),
+                    })
+                elif incoming_status == "error":
+                    job["late_status"] = "error"
+                    job["late_error"] = fields.get("error") or fields.get("detail") or "worker failed"
+                    job.setdefault("events", []).append({
+                        "ts": now,
+                        "status": "abandoned",
+                        "phase": "late_error",
+                        "pct": job.get("pct", 0),
+                        "detail": str(job["late_error"])[:300],
+                    })
+                job["updated_at"] = now
+                return
             event = {
                 "ts": _dt.now(_UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
                 "status": fields.get("status", job.get("status", "running")),
@@ -3120,6 +3155,7 @@ def register_routes(app: Any) -> None:
             "bytes": len(contents),
             "process_settings": process_settings,
             "poll_url": f"/api/process/batch/status/{job_id}",
+            "cancel_url": f"/api/process/batch/cancel/{job_id}",
             "demo_replay": demo_replay(
                 lane="bulk_file_review",
                 endpoint="/api/process/batch/start",
@@ -3132,6 +3168,7 @@ def register_routes(app: Any) -> None:
                 response_summary={
                     "job_id": job_id,
                     "poll_url": f"/api/process/batch/status/{job_id}",
+                    "cancel_url": f"/api/process/batch/cancel/{job_id}",
                 },
                 artifacts=[{
                     "name": "process_job_status",
@@ -3140,6 +3177,45 @@ def register_routes(app: Any) -> None:
                 }],
             ),
         })
+
+    @app.post("/api/process/batch/cancel/{job_id}")
+    def api_process_batch_cancel(job_id: str) -> Any:
+        """Abandon browser-side polling for a long process job.
+
+        Kaggle/FastAPI cannot safely interrupt a Python worker thread that is
+        inside a model call. This endpoint gives the UI an honest recovery path:
+        mark the visible job abandoned, keep deterministic retry controls
+        available, and retain a late result if the background thread eventually
+        completes.
+        """
+        jobs, lock = _process_jobs()
+        with lock:
+            job = jobs.get(job_id)
+            if not job:
+                raise HTTPException(404, f"unknown process job: {job_id}")
+            if job.get("status") in {"complete", "error"}:
+                job["cancelled"] = False
+                job["cancel_detail"] = "Job already reached a terminal state before cancel."
+                return JSONResponse(dict(job))
+            now = _dt.now(_UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+            job["status"] = "abandoned"
+            job["phase"] = "abandoned"
+            job["detail"] = (
+                "Browser-side polling was abandoned. The background worker may "
+                "still finish inside the Kaggle kernel; rerun deterministic mode "
+                "or check this status endpoint for late_result."
+            )
+            job["cancelled"] = True
+            job["abandoned_at"] = now
+            job["updated_at"] = now
+            job.setdefault("events", []).append({
+                "ts": now,
+                "status": "abandoned",
+                "phase": "abandoned",
+                "pct": job.get("pct", 0),
+                "detail": job["detail"],
+            })
+            return JSONResponse(dict(job))
 
     @app.get("/api/process/batch/status/{job_id}")
     def api_process_batch_status(job_id: str) -> Any:

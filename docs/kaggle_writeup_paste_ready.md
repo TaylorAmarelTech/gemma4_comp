@@ -16,6 +16,8 @@ Launch the demo interfaces by forking the notebooks below into your Kaggle accou
 
 Inside the main workbench, `/static/demo-recording.html` provides the recording checklist, lane order, bundled sample artifacts, and cached replay trace for the platform-moderation example.
 
+Kernel split for recording: `duecare-app` is the operational workbench (`/static/chat.html`, `/static/process.html`, `/static/knowledge.html`, `/static/search.html`, `/static/share.html`, and `/static/demo-recording.html`); `duecare-live-demo` is the focused walkthrough and slide deck (`/start`, `/slides`, `/slides/setup`, and `/api/slides/recording-pack`); `duecare-fine-tuning-and-evaluation` is the benchmark/evaluation notebook.
+
 ## 1. The problem: migrant-worker exploitation
 
 Migrant-worker exploitation is large, profitable, and often hidden behind paperwork. The ILO estimates 28 million people are in forced labor, forced labor generates $236 billion in illicit profit each year, and 169 million people work outside their country of birth. Migrant workers face roughly three times the forced-labor risk (ILO 2022, 2024).

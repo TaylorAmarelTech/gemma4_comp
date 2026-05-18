@@ -6,9 +6,9 @@ The current submission path uses three script kernels:
 
 | Folder | Role |
 |---|---|
-| `01-duecare-exploration-workbench` | Full product workbench and source of truth for shared primitives, harnesses, model picker, bulk processing, knowledge extraction, search, sharing, tracing, and activity logs. |
-| `02-live-demo` | Focused live demo surface for judges and screen recording. |
-| `A-00-omni-experiment-workbench` | Quantitative experiment console for benchmarking, synthetic data generation, LoRA fine-tuning, four-arm evaluation, and reports. |
+| `01-duecare-exploration-workbench` / `taylorsamarel/duecare-app` | Full product workbench and source of truth for shared primitives, harnesses, model picker, bulk processing, knowledge extraction, search, sharing, tracing, activity logs, and `/static/demo-recording.html`. |
+| `02-live-demo` / `taylorsamarel/duecare-live-demo` | Focused live demo surface for judges, including `/start`, `/slides`, `/slides/setup`, and `/api/slides/recording-pack`. |
+| `A-00-omni-experiment-workbench` / `taylorsamarel/duecare-fine-tuning-and-evaluation` | Quantitative experiment console for benchmarking, synthetic data generation, LoRA fine-tuning, four-arm evaluation, and reports. |
 
 Run each by copying its `kernel.py` into a Kaggle code cell, enabling Internet and T4 x2 GPU, and running the cell. The kernel installs the DueCare packages from GitHub, stages outputs under `/kaggle/working`, launches the server, and prints a `https://*.trycloudflare.com` URL.
 

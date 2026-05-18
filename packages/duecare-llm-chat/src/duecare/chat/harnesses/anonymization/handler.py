@@ -9,9 +9,11 @@ from __future__ import annotations
 
 import hashlib
 import json as _json
+import threading as _threading
 from datetime import UTC as _UTC, datetime as _dt
 from pathlib import Path as _Path
 from typing import Any
+from uuid import uuid4 as _uuid4
 
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -167,7 +169,151 @@ def _gemma_anonymization_review(app: Any, redacted_texts: list[str]) -> dict:
         }
 
 
+def _build_anonymize_response(app: Any, body: dict[str, Any], *, replay_endpoint: str = "/api/anonymize") -> dict[str, Any]:
+    texts = body.get("texts") or []
+    if not isinstance(texts, list):
+        raise HTTPException(400, "`texts` must be a list of strings")
+    salt = body.get("salt") or DEFAULT_SALT
+    gemma_review_requested = bool(body.get("gemma_review"))
+
+    out_texts: list[str] = []
+    out_diffs: list[dict] = []
+    for t in texts:
+        t = str(t)
+        redactions: list[dict] = []
+        redacted = t
+        for label, pat in PII_PATTERNS:
+            for m in pat.finditer(t):
+                raw = m.group(0)
+                ph = placeholder(label, raw, salt=salt)
+                redactions.append({
+                    "label": label,
+                    "raw_sha256": raw_sha256(raw),
+                    "placeholder": ph,
+                    "start": m.start(),
+                    "end": m.end(),
+                })
+                redacted = redacted.replace(raw, ph)
+        out_texts.append(redacted)
+        out_diffs.append({"n_redactions": len(redactions), "redactions": redactions})
+    gemma_review = (
+        _gemma_anonymization_review(app, out_texts)
+        if gemma_review_requested
+        else {
+            "available": bool(getattr(app.state, "gemma_call", None)),
+            "status": "not_requested",
+            "findings": [],
+        }
+    )
+    try:
+        from .._training_log import log_interaction as _log
+        _log(
+            "anonymization",
+            input_payload={"n_texts": len(texts)},
+            output_payload={
+                "n_redacted_texts": len(out_texts),
+                "total_redactions": sum(d["n_redactions"] for d in out_diffs),
+                "labels_seen": sorted({r["label"]
+                                      for d in out_diffs
+                                      for r in d["redactions"]}),
+                "gemma_review_status": gemma_review.get("status"),
+                "gemma_review_overall": gemma_review.get("overall_status"),
+            },
+            applied_layers={},
+            trace={},
+            anonymize=False,
+        )
+    except Exception:
+        pass
+    return {
+        "redacted": out_texts,
+        "diffs": out_diffs,
+        "gemma_review": gemma_review,
+        "demo_replay": demo_replay(
+            lane="anonymization_sharing",
+            endpoint=replay_endpoint,
+            request={
+                "n_texts": len(texts),
+                "text_sha256": [
+                    hashlib.sha256(str(t).encode("utf-8", errors="replace")).hexdigest()
+                    for t in texts
+                ],
+                "gemma_review": gemma_review_requested,
+                "salt_scope": "caller supplied" if body.get("salt") else "default demo salt",
+            },
+            response_summary={
+                "n_redacted_texts": len(out_texts),
+                "total_redactions": sum(d["n_redactions"] for d in out_diffs),
+                "gemma_review_status": gemma_review.get("status"),
+                "gemma_review_overall": gemma_review.get("overall_status"),
+            },
+            artifacts=[{
+                "name": "redacted_texts",
+                "kind": "inline_response_json",
+                "count": len(out_texts),
+            }],
+            note=(
+                "Raw texts are represented by sha256 here. Use the "
+                "browser replay download only for synthetic demo material "
+                "if you need exact local request bodies."
+            ),
+        ),
+    }
+
+
 def register_routes(app: Any) -> None:
+
+    def _anon_jobs() -> tuple[dict[str, dict[str, Any]], _threading.Lock]:
+        if not hasattr(app.state, "anonymization_jobs"):
+            app.state.anonymization_jobs = {}
+        if not hasattr(app.state, "anonymization_jobs_lock"):
+            app.state.anonymization_jobs_lock = _threading.Lock()
+        return app.state.anonymization_jobs, app.state.anonymization_jobs_lock
+
+    def _anon_job_update(job_id: str, **fields: Any) -> None:
+        jobs, lock = _anon_jobs()
+        with lock:
+            job = jobs.setdefault(job_id, {"job_id": job_id, "events": []})
+            now = _dt.now(_UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+            if job.get("status") in {"abandoned", "cancelled"} and fields.get("status") not in {"abandoned", "cancelled"}:
+                incoming_status = str(fields.get("status") or "running")
+                if incoming_status == "complete":
+                    job["late_status"] = "complete"
+                    job["late_completed_at"] = now
+                    if fields.get("result") is not None:
+                        job["late_result"] = fields.get("result")
+                    job.setdefault("events", []).append({
+                        "ts": now,
+                        "status": "abandoned",
+                        "phase": "late_complete",
+                        "pct": job.get("pct", 0),
+                        "detail": "Gemma privacy review completed after browser polling was abandoned; result is retained as late_result.",
+                    })
+                elif incoming_status == "error":
+                    job["late_status"] = "error"
+                    job["late_error"] = fields.get("error") or fields.get("detail") or "worker failed"
+                    job.setdefault("events", []).append({
+                        "ts": now,
+                        "status": "abandoned",
+                        "phase": "late_error",
+                        "pct": job.get("pct", 0),
+                        "detail": str(job["late_error"])[:300],
+                    })
+                job["updated_at"] = now
+                return
+            event = {
+                "ts": now,
+                "status": fields.get("status", job.get("status", "running")),
+                "phase": fields.get("phase", job.get("phase", "running")),
+                "pct": fields.get("pct", job.get("pct", 0)),
+                "detail": fields.get("detail", ""),
+            }
+            for key in ("error",):
+                if key in fields and fields[key] is not None:
+                    event[key] = fields[key]
+            job.update(fields)
+            job.setdefault("events", []).append(event)
+            job["updated_at"] = now
 
     @app.post("/api/anonymize")
     async def api_anonymize(request: Request) -> Any:
@@ -176,95 +322,151 @@ def register_routes(app: Any) -> None:
             body = await request.json()
         except Exception:
             raise HTTPException(400, "invalid JSON body")
+        return JSONResponse(_build_anonymize_response(app, body))
+
+    @app.post("/api/anonymize/start")
+    async def api_anonymize_start(request: Request) -> Any:
+        """Start deterministic redaction plus optional Gemma privacy review."""
+        try:
+            body = await request.json()
+        except Exception:
+            raise HTTPException(400, "invalid JSON body")
         texts = body.get("texts") or []
         if not isinstance(texts, list):
             raise HTTPException(400, "`texts` must be a list of strings")
-        salt = body.get("salt") or DEFAULT_SALT
-        gemma_review_requested = bool(body.get("gemma_review"))
-
-        out_texts: list[str] = []
-        out_diffs: list[dict] = []
-        for t in texts:
-            t = str(t)
-            redactions: list[dict] = []
-            redacted = t
-            for label, pat in PII_PATTERNS:
-                for m in pat.finditer(t):
-                    raw = m.group(0)
-                    ph = placeholder(label, raw, salt=salt)
-                    redactions.append({
-                        "label": label,
-                        "raw_sha256": raw_sha256(raw),
-                        "placeholder": ph,
-                        "start": m.start(),
-                        "end": m.end(),
-                    })
-                    redacted = redacted.replace(raw, ph)
-            out_texts.append(redacted)
-            out_diffs.append({"n_redactions": len(redactions), "redactions": redactions})
-        gemma_review = (
-            _gemma_anonymization_review(app, out_texts)
-            if gemma_review_requested
-            else {
-                "available": bool(getattr(app.state, "gemma_call", None)),
-                "status": "not_requested",
-                "findings": [],
+        job_id = f"anonymize_{_uuid4().hex[:12]}"
+        now = _dt.now(_UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+        jobs, lock = _anon_jobs()
+        with lock:
+            jobs[job_id] = {
+                "job_id": job_id,
+                "status": "queued",
+                "phase": "queued",
+                "pct": 4,
+                "created_at": now,
+                "updated_at": now,
+                "events": [{
+                    "ts": now,
+                    "status": "queued",
+                    "phase": "queued",
+                    "pct": 4,
+                    "detail": "Anonymization queued. Regex redaction runs first; Gemma residual-PII review is optional.",
+                }],
             }
-        )
-        try:
-            from .._training_log import log_interaction as _log
-            _log(
-                "anonymization",
-                input_payload={"n_texts": len(texts)},
-                output_payload={
-                    "n_redacted_texts": len(out_texts),
-                    "total_redactions": sum(d["n_redactions"] for d in out_diffs),
-                    "labels_seen": sorted({r["label"]
-                                          for d in out_diffs
-                                          for r in d["redactions"]}),
-                    "gemma_review_status": gemma_review.get("status"),
-                    "gemma_review_overall": gemma_review.get("overall_status"),
-                },
-                applied_layers={},
-                trace={},
-                anonymize=False,
-            )
-        except Exception:
-            pass
+
+        def worker() -> None:
+            try:
+                _anon_job_update(
+                    job_id,
+                    status="running",
+                    phase="regex_redaction",
+                    pct=28,
+                    detail="Running deterministic regex redaction and salted placeholders.",
+                )
+                if body.get("gemma_review"):
+                    _anon_job_update(
+                        job_id,
+                        status="running",
+                        phase="gemma_privacy_review",
+                        pct=58,
+                        detail="Calling local Gemma 4 to review already-redacted text for residual PII.",
+                    )
+                result = _build_anonymize_response(
+                    app,
+                    body,
+                    replay_endpoint="/api/anonymize/start",
+                )
+                _anon_job_update(
+                    job_id,
+                    status="complete",
+                    phase="complete",
+                    pct=100,
+                    detail="Anonymization complete. Review redacted output before submit.",
+                    result=result,
+                )
+            except Exception as e:
+                _anon_job_update(
+                    job_id,
+                    status="error",
+                    phase="failed",
+                    pct=100,
+                    detail=str(e),
+                    error=f"{type(e).__name__}: {e}"[:300],
+                )
+
+        thread = _threading.Thread(target=worker, name=f"duecare-{job_id}", daemon=True)
+        thread.start()
         return JSONResponse({
-            "redacted": out_texts,
-            "diffs": out_diffs,
-            "gemma_review": gemma_review,
+            "job_id": job_id,
+            "status": "queued",
+            "phase": "queued",
+            "pct": 4,
+            "poll_url": f"/api/anonymize/status/{job_id}",
+            "cancel_url": f"/api/anonymize/cancel/{job_id}",
             "demo_replay": demo_replay(
                 lane="anonymization_sharing",
-                endpoint="/api/anonymize",
+                endpoint="/api/anonymize/start",
                 request={
                     "n_texts": len(texts),
                     "text_sha256": [
                         hashlib.sha256(str(t).encode("utf-8", errors="replace")).hexdigest()
                         for t in texts
                     ],
-                    "gemma_review": gemma_review_requested,
+                    "gemma_review": bool(body.get("gemma_review")),
                     "salt_scope": "caller supplied" if body.get("salt") else "default demo salt",
                 },
                 response_summary={
-                    "n_redacted_texts": len(out_texts),
-                    "total_redactions": sum(d["n_redactions"] for d in out_diffs),
-                    "gemma_review_status": gemma_review.get("status"),
-                    "gemma_review_overall": gemma_review.get("overall_status"),
+                    "job_id": job_id,
+                    "poll_url": f"/api/anonymize/status/{job_id}",
+                    "cancel_url": f"/api/anonymize/cancel/{job_id}",
                 },
                 artifacts=[{
-                    "name": "redacted_texts",
-                    "kind": "inline_response_json",
-                    "count": len(out_texts),
+                    "name": "anonymization_job_status",
+                    "kind": "poll_endpoint",
+                    "path": f"/api/anonymize/status/{job_id}",
                 }],
-                note=(
-                    "Raw texts are represented by sha256 here. Use the "
-                    "browser replay download only for synthetic demo material "
-                    "if you need exact local request bodies."
-                ),
             ),
         })
+
+    @app.post("/api/anonymize/cancel/{job_id}")
+    def api_anonymize_cancel(job_id: str) -> Any:
+        jobs, lock = _anon_jobs()
+        with lock:
+            job = jobs.get(job_id)
+            if not job:
+                raise HTTPException(404, f"unknown anonymization job: {job_id}")
+            if job.get("status") in {"complete", "error"}:
+                job["cancelled"] = False
+                job["cancel_detail"] = "Job already reached a terminal state before cancel."
+                return JSONResponse(dict(job))
+            now = _dt.now(_UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+            job["status"] = "abandoned"
+            job["phase"] = "abandoned"
+            job["detail"] = (
+                "Browser-side polling was abandoned. Rerun with Gemma privacy "
+                "review off for deterministic redaction, or check this status "
+                "endpoint later for late_result."
+            )
+            job["cancelled"] = True
+            job["abandoned_at"] = now
+            job["updated_at"] = now
+            job.setdefault("events", []).append({
+                "ts": now,
+                "status": "abandoned",
+                "phase": "abandoned",
+                "pct": job.get("pct", 0),
+                "detail": job["detail"],
+            })
+            return JSONResponse(dict(job))
+
+    @app.get("/api/anonymize/status/{job_id}")
+    def api_anonymize_status(job_id: str) -> Any:
+        jobs, lock = _anon_jobs()
+        with lock:
+            job = dict(jobs.get(job_id) or {})
+        if not job:
+            raise HTTPException(404, f"unknown anonymization job: {job_id}")
+        return JSONResponse(job)
 
     @app.post("/api/submit/knowledge")
     async def api_submit_knowledge(request: Request) -> Any:

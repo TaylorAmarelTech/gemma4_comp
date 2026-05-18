@@ -461,6 +461,35 @@ def register_routes(app: Any) -> None:
         with lock:
             job = jobs.setdefault(job_id, {"job_id": job_id, "events": []})
             now = _dt.now(_UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+            if job.get("status") in {"abandoned", "cancelled"} and fields.get("status") not in {"abandoned", "cancelled"}:
+                incoming_status = str(fields.get("status") or "running")
+                if incoming_status == "complete":
+                    job["late_status"] = "complete"
+                    job["late_completed_at"] = now
+                    if fields.get("result") is not None:
+                        job["late_result"] = fields.get("result")
+                    job.setdefault("events", []).append({
+                        "ts": now,
+                        "status": "abandoned",
+                        "phase": "late_complete",
+                        "pct": job.get("pct", 0),
+                        "detail": (
+                            "Knowledge draft completed after browser polling "
+                            "was abandoned; result is retained as late_result."
+                        ),
+                    })
+                elif incoming_status == "error":
+                    job["late_status"] = "error"
+                    job["late_error"] = fields.get("error") or fields.get("detail") or "worker failed"
+                    job.setdefault("events", []).append({
+                        "ts": now,
+                        "status": "abandoned",
+                        "phase": "late_error",
+                        "pct": job.get("pct", 0),
+                        "detail": str(job["late_error"])[:300],
+                    })
+                job["updated_at"] = now
+                return
             event = {
                 "ts": now,
                 "status": fields.get("status", job.get("status", "running")),
@@ -557,6 +586,7 @@ def register_routes(app: Any) -> None:
             "phase": "queued",
             "pct": 4,
             "poll_url": f"/api/knowledge/draft-envelope/status/{job_id}",
+            "cancel_url": f"/api/knowledge/draft-envelope/cancel/{job_id}",
             "demo_replay": demo_replay(
                 lane="knowledge_extraction",
                 endpoint="/api/knowledge/draft-envelope/start",
@@ -570,6 +600,7 @@ def register_routes(app: Any) -> None:
                 response_summary={
                     "job_id": job_id,
                     "poll_url": f"/api/knowledge/draft-envelope/status/{job_id}",
+                    "cancel_url": f"/api/knowledge/draft-envelope/cancel/{job_id}",
                 },
                 artifacts=[{
                     "name": "knowledge_draft_job_status",
@@ -578,6 +609,38 @@ def register_routes(app: Any) -> None:
                 }],
             ),
         })
+
+    @app.post("/api/knowledge/draft-envelope/cancel/{job_id}")
+    def api_knowledge_draft_envelope_cancel(job_id: str) -> Any:
+        """Abandon browser-side polling for a long Gemma draft job."""
+        jobs, lock = _draft_jobs()
+        with lock:
+            job = jobs.get(job_id)
+            if not job:
+                raise HTTPException(404, f"unknown knowledge draft job: {job_id}")
+            if job.get("status") in {"complete", "error"}:
+                job["cancelled"] = False
+                job["cancel_detail"] = "Job already reached a terminal state before cancel."
+                return JSONResponse(dict(job))
+            now = _dt.now(_UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+            job["status"] = "abandoned"
+            job["phase"] = "abandoned"
+            job["detail"] = (
+                "Browser-side polling was abandoned. Rerun with Gemma refinement "
+                "off for a deterministic draft, or check this status endpoint "
+                "later for late_result."
+            )
+            job["cancelled"] = True
+            job["abandoned_at"] = now
+            job["updated_at"] = now
+            job.setdefault("events", []).append({
+                "ts": now,
+                "status": "abandoned",
+                "phase": "abandoned",
+                "pct": job.get("pct", 0),
+                "detail": job["detail"],
+            })
+            return JSONResponse(dict(job))
 
     @app.get("/api/knowledge/draft-envelope/status/{job_id}")
     def api_knowledge_draft_envelope_status(job_id: str) -> Any:
