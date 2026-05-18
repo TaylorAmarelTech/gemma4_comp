@@ -20,7 +20,10 @@
   .slide.paper { background: var(--paper); color: var(--ink); }
   .slide.dark { background: var(--ink); color: var(--paper); }
   .slide.accent { background: linear-gradient(135deg, var(--accent) 0%, #0E1116 70%); color: var(--paper); }
-  .slide .kicker { font-family: var(--mono); font-size: clamp(11px, 1.2vw, 14px); text-transform: uppercase; letter-spacing: 0.12em; color: currentColor; opacity: 0.65; margin-bottom: 2vh; }
+  /* Per-slide kicker banners removed for clean fullscreen recording.
+     Markup retained for semantic continuity; section labels live in the
+     slide URL hash (data-slide-id) and the chrome counter instead. */
+  .slide .kicker { display: none; }
   .slide h1 { font-size: clamp(40px, 6.5vw, 96px); line-height: 1.02; letter-spacing: -0.035em; margin: 0 0 3vh; max-width: 22ch; font-weight: 700; }
   .slide h2 { font-size: clamp(28px, 3.8vw, 56px); line-height: 1.08; letter-spacing: -0.025em; margin: 0 0 3vh; max-width: 24ch; font-weight: 700; }
   .slide p.lede { font-size: clamp(18px, 2.2vw, 28px); line-height: 1.5; max-width: 38ch; margin: 0 0 3vh; opacity: 0.9; }
