@@ -1,6 +1,6 @@
 # DueCare: A Gemma 4 Safety Ecosystem for Migrant-Worker Protection
 
-**Subtitle:** A self-hostable multi-module harness for safer moderation, case analysis, worker support, research, and anonymized sharing.
+**Subtitle:** A self-hostable multi-module harness for content moderation, case analysis, worker support, research, and anonymized knowledge sharing.
 
 **Tracks:** Impact — **Safety & Trust** (primary) · Special Technology — **Unsloth** (LoRA fine-tune of Gemma 4) and **LiteRT** (on-device Gemma 4 E2B in the sibling Android app).
 
@@ -36,7 +36,7 @@ Named for **California Civil Code §1714(a)**, the general duty-of-care standard
 | Case analysis | Upload a bounded case bundle | People, payments, dates, typed edges, graph chat |
 | Worker information access | Ask a short question (phone) | Plain-language rights, safe next steps, contacts |
 | Research and enforcement | Cross-case questions | Clusters, evidence rows, verification checklists |
-| Anonymized sharing | Promote reviewed, redacted facts | Knowledge objects that improve packs everywhere |
+| Anonymized knowledge sharing | Promote reviewed, redacted facts | Knowledge objects that improve packs everywhere |
 
 **Gemma 4 is the local model runtime underneath every lane — not another lane.** A sibling **Android app** (DueCare Journey v0.9.0) runs Gemma 4 E2B fully on-device via **MediaPipe LiteRT**, with bundled corridor packs and zero cloud calls.
 

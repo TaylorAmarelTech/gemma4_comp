@@ -36,7 +36,7 @@ d3115b4    Add 'Download the knowledge packs' slide (take-it-home)
 f108644    Add 'What makes this unique' 3-tile slide before conclusion
 a0aa4f9    Add 'cached, replays in ~3s' subtext to each deck demo runner
 d1b3e83    Writeup -> technical/HOW orientation; slides -> benefits framing
-fffd3b7    Soften A-00 claims + add 6th use-case (Anonymized sharing) to website
+fffd3b7    Soften A-00 claims + add 6th use-case (Anonymized knowledge sharing) to website
 b2d8815    Rename kernels + rewrite writeup + fix statutes + add 30s onboarding
 36073ef    Port slide deck design from duecare-ai handoff
 ```

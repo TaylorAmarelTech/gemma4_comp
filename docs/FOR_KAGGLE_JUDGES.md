@@ -23,7 +23,7 @@ protection.** This submission has three active Kaggle kernels: the
 DueCare App workbench, the DueCare Live Demo, and DueCare Fine-tuning
 and Evaluation. Together they prove the same end-to-end substrate:
 Gemma 4 runtime, safety harness, Bulk File Review case analysis,
-graph extraction, anonymized sharing, contact routing, and the A-00
+graph extraction, anonymized knowledge sharing, contact routing, and the A-00
 stock/fine-tuned/harness evaluation matrix. The public hub at
 [duecare-ai.com](https://duecare-ai.com) is the companion website for
 the judges-facing story, kernel links, knowledge-pack registry, and

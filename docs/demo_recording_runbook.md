@@ -49,7 +49,7 @@ The canonical synthetic example set now lives at `/api/demo/priority-examples` a
 1. platform moderation, text-only social post JSON,
 2. platform moderation with a synthetic image description,
 3. NGO case analysis and legal-packet drafting,
-4. worker mobile chat with opt-in anonymized sharing,
+4. worker mobile chat with opt-in anonymized knowledge sharing,
 5. research ZIP/folder graph extraction and factoid candidates,
 6. full-circle stakeholder email vetting to vetted pack release.
 
