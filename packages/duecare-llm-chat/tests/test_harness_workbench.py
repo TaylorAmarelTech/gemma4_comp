@@ -37,7 +37,9 @@ def test_harness_contract_nomenclature_is_explicit(client):
     data = client.get("/api/harnesses").json()
     by_name = {h["name"]: h for h in data["harnesses"]}
     assert by_name["chat"]["kind"] == "gemma_harness"
-    assert by_name["chat"]["applied_layers"] == ["persona", "grep", "rag", "tools", "online"]
+    assert by_name["chat"]["applied_layers"] == [
+        "persona", "grep", "rag", "tools", "official_sources", "online",
+    ]
     assert by_name["search_safety"]["kind"] == "safety_gate"
     assert by_name["search_safety"]["gemma_mode"] == "optional"
     assert by_name["search"]["kind"] == "utility_surface"
@@ -585,6 +587,82 @@ def test_chat_page_uses_shared_model_selector(client):
     assert "align-items: center; justify-content: center;" in text
     assert "max-height: min(820px, calc(100dvh - 32px));" in text
     assert "if (!cachedLoaded)" not in text
+
+
+def test_chat_page_exposes_official_source_layer(client):
+    r = client.get("/static/chat.html")
+    assert r.status_code == 200
+    text = r.text
+    for marker in [
+        'id="tile-official_sources"',
+        "Official Sources",
+        "Checking official sources",
+        "official_sources: document.getElementById('tile-official_sources')",
+        "OFFICIAL",
+        "official-source internet checks",
+        'id="tile-official_sources" data-wired="probing" data-enabled="false"',
+        'id="tile-online" data-wired="probing" data-enabled="false"',
+        "Enable local",
+        "Official Sources and Online stay explicit opt-ins",
+        "Full local harness",
+        "all:     {persona: true,  grep: true,  rag: true,  tools: true,  official_sources: false, online: false",
+    ]:
+        assert marker in text
+    assert "const layers = enable ? localLayers : allLayers;" in text
+
+
+def test_official_source_helpers_filter_allowlisted_domains():
+    from duecare.chat.app import (
+        _official_source_plan,
+        _run_official_source_tools,
+        _url_matches_official_domains,
+    )
+
+    assert _url_matches_official_domains(
+        "https://sub.dmw.gov.ph/file-a-complaint", ["dmw.gov.ph"])
+    assert not _url_matches_official_domains(
+        "https://example.com/file-a-complaint", ["dmw.gov.ph"])
+    plan = _official_source_plan(
+        "Filipino domestic worker Hong Kong placement fee")
+    assert any(item["id"] == "ph_dmw_poea_policy" for item in plan)
+
+    def fake_official(item, user_text="", top_n=3):
+        return {
+            "source": "test",
+            "results": [
+                {
+                    "title": "DMW complaint page",
+                    "url": "https://dmw.gov.ph/file-a-complaint",
+                    "snippet": "Official DMW complaint path.",
+                },
+                {
+                    "title": "Aggregator",
+                    "url": "https://example.com/dmw-copy",
+                    "snippet": "Not official.",
+                },
+            ],
+        }
+
+    out = _run_official_source_tools(
+        "Filipino domestic worker Hong Kong placement fee",
+        official_source_call=fake_official,
+    )
+    assert out["n_checks"] >= 1
+    first = out["checks"][0]
+    assert first["accepted_results"]
+    assert all("example.com" not in r["url"] for r in first["accepted_results"])
+
+
+def test_harness_info_reports_official_source_wiring():
+    from duecare.chat.app import create_app
+
+    app = create_app(official_source_call=lambda *a, **k: {"results": []})
+    local_client = TestClient(app)
+    data = local_client.get("/api/harness-info").json()
+    assert data["official_sources"] is True
+    assert data["official_source_kernel"] is True
+    assert any(c["id"] == "ph_dmw_poea_policy"
+               for c in data["official_source_checks"])
 
 
 def test_use_cases_page_serves_five_audience_lanes(client):

@@ -7,7 +7,9 @@ from .knowledge import CONSUMES as consumes, EMITS as emits
 from ..base import HarnessLogicPath, HarnessModelTarget, HarnessPackContract, HarnessSpec
 
 name = "chat"
-applied_layers: tuple[str, ...] = ("persona", "grep", "rag", "tools", "online")
+applied_layers: tuple[str, ...] = (
+    "persona", "grep", "rag", "tools", "official_sources", "online",
+)
 capabilities: tuple[str, ...] = ()  # multi_turn scaffolded but disabled
 
 spec = HarnessSpec(
@@ -37,13 +39,13 @@ spec = HarnessSpec(
     comparison="Compare layer combinations side-by-side on /static/compare.html.",
     workflow=(
         "Resolve messages and optional uploaded image.",
-        "Compose enabled layers: persona, GREP, RAG, tools, online, and imports.",
+        "Compose enabled layers: persona, GREP, RAG, tools, official-source checks, online, and imports.",
         "Build the final prompt and call the loaded Gemma model.",
         "Stream response, trace, timing, and grading hooks back to the page.",
     ),
     prompt_sets=(
         "persona_default or request persona override",
-        "layer-composed GREP/RAG/tool grounding",
+        "layer-composed GREP/RAG/tool/official-source grounding",
         "final merged chat prompt",
         "optional LLM grading prompts after response",
     ),
@@ -64,7 +66,7 @@ spec = HarnessSpec(
             entrypoints=("/api/chat/send", "/static/chat.html", "/static/compare.html"),
             steps=(
                 "normalize messages and selected layers",
-                "apply persona and safety layer composition",
+                "apply persona, local safety, tool, and optional official-source composition",
                 "call Gemma 4 through the shared runtime hook",
                 "stream response with trace and optional grading hooks",
             ),
@@ -82,6 +84,7 @@ spec = HarnessSpec(
     logic_packs=(
         HarnessPackContract("persona_defaults", "Persona prompt blocks", "logic_pack", ("persona_block",), True, "local"),
         HarnessPackContract("tool_registry", "Deterministic tool registry", "logic_pack", ("tool_definition", "tool_example"), True, "local"),
+        HarnessPackContract("official_source_tools", "Official-source allowlist checks", "logic_pack", ("tool_definition", "context_snippet"), False, "external"),
         HarnessPackContract("grading_rubrics", "Rule and LLM grading rubrics", "logic_pack", ("rubric_dimension",), False, "local"),
     ),
     model_io={
@@ -121,9 +124,9 @@ spec = HarnessSpec(
             notes="Only redacted or policy-approved content should cross this boundary.",
         ),
     ),
-    input_verification=("PII and unsafe-pattern checks through selected layers", "tool and online calls stay allow-listed"),
+    input_verification=("PII and unsafe-pattern checks through selected layers", "tool, official-source, and online calls stay allow-listed"),
     output_verification=("trace emitted for every active layer", "optional rule-based, LLM-based, or combined grading"),
-    privacy_boundaries=("raw prompts stay local to the runtime", "online layer must be explicitly enabled and should be paired with search_safety"),
+    privacy_boundaries=("raw prompts stay local to the runtime", "official-source and online layers must be explicitly enabled and should be paired with search_safety"),
 )
 
 __all__ = ["name", "applied_layers", "capabilities", "consumes", "emits",

@@ -40,6 +40,8 @@ def test_required_markup_present(client):
         'id="cmp-temperature"',
         'id="cmp-show-truncation"',
         'id="grade-mode"',
+        'id="A-official_sources"',
+        'id="B-official_sources"',
         'id="A-import_corpus"',
         'id="B-import_corpus"',
         # variant cards
@@ -118,7 +120,8 @@ def test_pipeline_step_labels_match_chat(client):
     for label in [
         "Preparing message", "Applied persona", "Running GREP regex rules",
         "Retrieving from RAG corpus", "Loading imported documents",
-        "Calling lookup tools", "Searching the web", "Generating response",
+        "Calling lookup tools", "Checking official sources",
+        "Searching the web", "Generating response",
     ]:
         assert label in text, f"pipeline step label missing: {label!r}"
 
@@ -128,10 +131,14 @@ def test_import_layer_visible_in_variant_controls(client):
     r = client.get("/static/compare.html")
     text = r.text
     assert "import_corpus" in text
+    assert "official_sources" in text
     assert "Loading imported documents" in text
+    assert "Checking official sources" in text
+    assert "Official Sources, Online" in text
+    assert "both are unchecked by default" in text
     assert "Import" in text
     assert 'id="B-import_corpus" checked' not in text
-    assert "B: {persona: true,  grep: true,  rag: true,  tools: true,  online: false, import_corpus: false}" in text
+    assert "B: {persona: true,  grep: true,  rag: true,  tools: true,  official_sources: false, online: false, import_corpus: false}" in text
 
 
 def test_helper_functions_defined(client):

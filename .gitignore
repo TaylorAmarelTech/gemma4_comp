@@ -138,6 +138,7 @@ apps/duecare-ai.com/.duecare/
 .duecare-process-staging/
 .duecare-test/
 .build/
+.tmp/
 _local_tmp/
 .pytest-basetemp*/
 .pytest-tmp-local/

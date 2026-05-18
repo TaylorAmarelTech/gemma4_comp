@@ -316,6 +316,7 @@ header.bar .badge.loaded .dot {
 .harness-tile.grep { --layer-accent: var(--accent-grep); }
 .harness-tile.rag  { --layer-accent: var(--accent-rag); }
 .harness-tile.tools { --layer-accent: var(--accent-tools); }
+.harness-tile.official { --layer-accent: #2563eb; }
 .harness-tile.online { --layer-accent: var(--accent-online); }
 .harness-tile.import { --layer-accent: var(--accent-imports); }
 .harness-tile .harness-tile-name { color: var(--layer-accent, var(--accent)); }
@@ -535,6 +536,7 @@ header.bar .badge.loaded .dot {
 .modal[data-layer="grep"]    { --modal-layer-accent: var(--accent-grep);    border-top: 4px solid var(--modal-layer-accent); }
 .modal[data-layer="rag"]     { --modal-layer-accent: var(--accent-rag);     border-top: 4px solid var(--modal-layer-accent); }
 .modal[data-layer="tools"]   { --modal-layer-accent: var(--accent-tools);   border-top: 4px solid var(--modal-layer-accent); }
+.modal[data-layer="official_sources"] { --modal-layer-accent: #2563eb; border-top: 4px solid var(--modal-layer-accent); }
 .modal-header {
   display: flex; justify-content: space-between; align-items: center;
   padding: 16px 22px; border-bottom: 1px solid var(--border);
@@ -799,7 +801,7 @@ header.bar .badge.loaded .dot {
         New here? Visit <a href="/static/getting-started.html" style="color:var(--accent); font-size:12px; text-decoration:underline;">Getting Started</a> in the top bar
         for what each layer does and how to read a grade.
       </p>
-      <div class="wb-trust" style="background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin: 0 0 14px;"><b>Trust boundary:</b> Your prompts go to the Gemma 4 loaded in this kernel. Safety layers (GREP / RAG / tools / online) run locally; the Online layer is opt-in per-message and the only one that touches a network. Anonymization can be toggled in the composer for sensitive snippets.</div>
+      <div class="wb-trust" style="background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin: 0 0 14px;"><b>Trust boundary:</b> Your prompts go to the Gemma 4 loaded in this kernel. Local safety layers (GREP / RAG / tools / imports) run inside the kernel. Official Sources and Online are explicit opt-in network layers and stay off by default. Anonymization can be toggled in the composer for sensitive snippets.</div>
       <div id="kx-state-row"
            style="font-size:11.5px; color:var(--muted); margin-top:8px;
                   padding:10px 14px; background:rgba(76,122,138,0.06);
@@ -943,7 +945,7 @@ header.bar .badge.loaded .dot {
                   style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:3px 10px; border-radius:5px; font-size:10.5px; cursor:pointer; font-weight:500;"
                   onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--accent)'"
                   onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--muted)'"
-                  title="Enable all wired harness layers (full-stack demo)">Enable all</button>
+                  title="Enable local non-network harness layers">Enable local</button>
           <button onclick="toggleAllHarness(false)"
                   style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:3px 10px; border-radius:5px; font-size:10.5px; cursor:pointer; font-weight:500;"
                   onmouseover="this.style.borderColor='#5B5F68'; this.style.color='#5B5F68'"
@@ -982,6 +984,14 @@ header.bar .badge.loaded .dot {
         </div>
         <div class="harness-tile-desc" onclick="toggleTile('tools')">Heuristic lookup tools — corridor fee caps, fee camouflage decoder, ILO indicator matcher, NGO intake hotlines. Results injected as Gemma context.</div>
         <a href="#" class="harness-catalog-link" onclick="openLayerModal('tools'); return false;">▸ View &amp; Configure</a>
+      </div>
+      <div class="harness-tile official" id="tile-official_sources" data-wired="probing" data-enabled="false">
+        <div class="harness-tile-row" onclick="toggleTile('official_sources')">
+          <span class="harness-tile-name">Official Sources</span>
+          <span class="harness-tile-state" id="state-official_sources">...</span>
+        </div>
+        <div class="harness-tile-desc" onclick="toggleTile('official_sources')">Allowlisted internet tools for official DMW/POEA, HK Labour/e-Legislation, ILO, IOM, and UNODC checks. Non-official results are discarded.</div>
+        <a href="#" class="harness-catalog-link" onclick="openLayerModal('official_sources'); return false;">View &amp; Configure</a>
       </div>
       <div class="harness-tile online" id="tile-online" data-wired="probing" data-enabled="false">
         <div class="harness-tile-row" onclick="toggleTile('online')">
@@ -1814,7 +1824,7 @@ async function probeHarness() {
     const r = await fetch('/api/harness-info', {cache:'no-store'});
     if (!r.ok) return;
     const info = await r.json();
-    const anyWired = info.persona || info.grep || info.rag || info.tools || info.online;
+    const anyWired = info.persona || info.grep || info.rag || info.tools || info.official_sources || info.online;
     if (!anyWired) return;  // raw chat -- keep tile row hidden
     document.getElementById('harness-tiles').style.display = 'grid';
     // When a tile is not enabled here, give the user a tooltip explaining
@@ -1824,9 +1834,10 @@ async function probeHarness() {
       grep:    'Kernel did not pass a grep_call into create_app(). The 01-duecare-exploration-workbench kernel wires this by default; older kernels may not.',
       rag:     'Kernel did not pass a rag_call into create_app(). RAG retrieval over the bundled corpus needs the kernel to wire it.',
       tools:   'Kernel did not pass a tools_call into create_app(). Lookup tools (corridor caps, fee labels, NGO hotlines) need the kernel to wire them.',
+      official_sources: 'Official Sources needs an official_source_call, an online_search_call, or a configured Tavily/Brave key so it can check official sites.',
       online:  'Neither the kernel\'s online_search_call nor a Brave Search API key is configured. Click ▸ View on this tile to paste a free Brave key.',
     };
-    for (const layer of ['persona', 'grep', 'rag', 'import', 'tools', 'online']) {
+    for (const layer of ['persona', 'grep', 'rag', 'import', 'tools', 'official_sources', 'online']) {
       const tile = document.getElementById(`tile-${layer}`);
       // The Import layer is purely client-side — its corpus comes from
       // the server-side _IMPORT_STORE populated via /api/import/*.
@@ -1925,11 +1936,12 @@ function toggleTile(layer) {
 }
 
 function toggleAllHarness(enable) {
-  // Bulk-flip every WIRED tile. Skips tiles that aren't wired in
-  // this kernel so the user doesn't get confused by un-toggleable
-  // greyed-out cards. Used by the "Enable all" / "Disable all"
-  // buttons in the harness-tiles header — speeds up demo flow.
-  const layers = ['persona', 'grep', 'rag', 'import', 'tools', 'online'];
+  // Bulk-flip wired tiles. "Enable local" skips network-boundary
+  // layers; Official Sources and Online stay explicit opt-ins.
+  // "Disable all" still turns everything off.
+  const localLayers = ['persona', 'grep', 'rag', 'import', 'tools'];
+  const allLayers = [...localLayers, 'official_sources', 'online'];
+  const layers = enable ? localLayers : allLayers;
   for (const layer of layers) {
     const tile = document.getElementById(`tile-${layer}`);
     if (!tile || tile.dataset.wired !== 'true') continue;
@@ -1947,6 +1959,7 @@ const LAYER_TITLES = {
   grep:     'GREP rule catalog',
   rag:      'RAG corpus',
   tools:    'Tools registry',
+  official_sources: 'Official source tools',
   online:   'Online search',
   import:   'Imported evidence',
   audit:    'Safety harness pipeline',
@@ -2808,6 +2821,42 @@ async function openLayerModal(layer) {
     `);
     return;
   }
+  if (layer === 'official_sources') {
+    _setModalChrome(layer, LAYER_TITLES.official_sources, '');
+    body.innerHTML = `
+      <div style="color:var(--ink); font-size:13px; line-height:1.55;">
+        <p><strong style="color:#2563eb;">Official Sources</strong>
+        runs targeted current-source checks against allowlisted public
+        authority domains before Gemma answers. It is separate from
+        generic Online search: DMW/POEA, HK Labour/e-Legislation,
+        ILO, IOM, and UNODC results are accepted; unrelated web
+        results are discarded.</p>
+
+        <div style="margin-top:12px; padding:10px 12px; background:var(--bg); border:1px solid var(--border); border-radius:6px;">
+          <div style="font-weight:700; color:#2563eb; margin-bottom:6px;">Built-in official-source checks</div>
+          <ul style="margin:0 0 0 18px; padding:0; font-size:12px;">
+            <li>Philippines DMW/POEA policy updates for PH-HK domestic-work fees</li>
+            <li>Hong Kong Labour Department and e-Legislation employment-agency rules</li>
+            <li>HK Employment Ordinance wage-deduction statute checks</li>
+            <li>ILO recruitment-fee standards and fair-recruitment guidance</li>
+            <li>IOM/UNODC trafficking-screening and Palermo-aligned updates</li>
+          </ul>
+        </div>
+
+        <p style="margin-top:12px; color:var(--muted);">
+          For live runs, the pipeline trace shows every official query,
+          allowed domains, accepted official URLs, and any check that
+          returned no allowlisted result.
+        </p>
+      </div>
+      <div id="modal-docs"></div>
+    `;
+    docsPromise.then(md => {
+      const docsEl = document.getElementById('modal-docs');
+      if (docsEl) docsEl.innerHTML = _renderDocsSection(md);
+    });
+    return;
+  }
   // Online-search layer: backend selector (Brave BYOK + DDG fallback)
   // plus a live test affordance.
   if (layer === 'online') {
@@ -3530,22 +3579,24 @@ async function importDocsFromFiles(fileList) {
 // so the reader sees the complete pipeline shape regardless of which toggles fired.
 // This IS the "what does the harness DO" demo.
 // ---------------------------------------------------------------------------
-const PIPELINE_LAYER_ORDER = ['persona', 'grep', 'rag', 'import', 'tools', 'online'];
+const PIPELINE_LAYER_ORDER = ['persona', 'grep', 'rag', 'import', 'tools', 'official_sources', 'online'];
 const PIPELINE_LAYER_COLOR = {
   persona: 'var(--accent-persona)',
   grep: 'var(--accent-grep)',
   rag: 'var(--accent-rag)',
   import: 'var(--accent-imports)',
   tools: 'var(--accent-tools)',
+  official_sources: '#2563eb',
   online: 'var(--accent-online)',
 };
-const PIPELINE_LAYER_LABEL = {persona:'PERSONA', grep:'GREP', rag:'RAG', import:'IMPORT', tools:'TOOLS', online:'ONLINE'};
+const PIPELINE_LAYER_LABEL = {persona:'PERSONA', grep:'GREP', rag:'RAG', import:'IMPORT', tools:'TOOLS', official_sources:'OFFICIAL', online:'ONLINE'};
 const PIPELINE_LAYER_ROLE = {
   persona: 'prepends an expert role / framework knowledge / response policy',
   grep:    'matches regex KB rules — flags trafficking patterns + cites statutes',
   rag:     'retrieves top-K docs from the evidence corpus + injects as context',
   import:  'includes user-supplied internal documents (paste / upload) as authoritative context',
   tools:   'pre-calls heuristic lookups — corridor caps, fee labels, NGO hotlines',
+  official_sources: 'targeted official-source internet checks with domain allowlists',
   online:  'live web search — fresh-context citations the model is told to cross-check',
 };
 
@@ -3643,6 +3694,24 @@ function _renderLayerBody(layer, t) {
         <div style="font-family:var(--mono); font-size:12px; font-weight:600; color:#10b981;">${escapeHtml(c.name)}(${escapeHtml(JSON.stringify(c.args))})</div>
         <pre style="color:var(--ink-2); font-size:11px; margin:5px 0 0 0; white-space:pre-wrap; word-wrap:break-word; font-family:var(--mono); max-height:160px; overflow-y:auto;">${escapeHtml(JSON.stringify(c.result, null, 2))}</pre>
       </div>`).join('');
+  }
+  if (layer === 'official_sources' && t.checks && t.checks.length) {
+    return t.checks.map(c => {
+      const accepted = c.accepted_results || [];
+      const resultsHtml = accepted.length ? accepted.map((r, i) => `
+        <div style="margin-top:6px; padding:6px 8px; background:var(--bg); border-radius:4px;">
+          <div style="font-weight:600; font-size:11.5px; color:#2563eb;">[${i + 1}] ${escapeHtml(r.title || '(untitled)')}</div>
+          ${r.url ? `<a href="${escapeHtml(r.url)}" target="_blank" rel="noopener" style="color:#1d4ed8; font-size:10.5px; word-break:break-all;">${escapeHtml(r.url)}</a>` : ''}
+          ${(r.content || r.snippet) ? `<div style="color:var(--ink-2); font-size:11px; margin-top:3px;">${escapeHtml(r.content || r.snippet)}</div>` : ''}
+        </div>`).join('') : `<div style="margin-top:6px; color:var(--muted); font-size:11px; font-style:italic;">No allowlisted result accepted${c.error ? ': ' + escapeHtml(c.error) : ''}</div>`;
+      return `
+        <div style="margin-bottom:10px; padding:8px 10px; background:rgba(37,99,235,0.06); border-left:3px solid #2563eb; border-radius:6px;">
+          <div style="font-weight:700; color:#2563eb; font-size:12px;">${escapeHtml(c.label || c.id || 'official check')}</div>
+          <div style="color:var(--muted); font-size:10.5px; margin-top:2px;">allowed: ${escapeHtml((c.domains || []).join(', '))}</div>
+          <div style="font-family:var(--mono); color:var(--muted); font-size:10.5px; margin-top:2px;">${escapeHtml(c.query || '')}</div>
+          ${resultsHtml}
+        </div>`;
+    }).join('');
   }
   if (layer === 'online' && t.results && t.results.length) {
     // Diagnostic header surfaces fallback errors so the user can see
@@ -3858,6 +3927,7 @@ function openPipelineModal(messageIdx) {
     'GREP findings prepended',
     'RAG context injected',
     'tool results injected',
+    'official-source checks injected',
     'sent to Gemma',
   ];
   // Timing breakdown header: show ms per layer + Gemma + total in
@@ -3988,6 +4058,25 @@ function _serializePipelineMarkdown(messageIdx) {
           md += '  ```\n';
         }
         md += '\n';
+      } else if (layer === 'official_sources' && lt.checks && lt.checks.length) {
+        md += `_Official-source checks: ${lt.n_checks || lt.checks.length}; accepted official results: ${lt.n_accepted || 0}_\n\n`;
+        for (const c of lt.checks) {
+          md += `### ${c.label || c.id || 'official check'}\n`;
+          if (c.domains) md += `Allowed domains: ${c.domains.join(', ')}\n`;
+          if (c.query) md += `Query: ${c.query}\n`;
+          const accepted = c.accepted_results || [];
+          if (!accepted.length) {
+            md += `_No allowlisted result accepted${c.error ? ': ' + c.error : ''}._\n\n`;
+          } else {
+            for (const r of accepted) {
+              md += `- ${r.title || '(untitled)'}\n`;
+              if (r.url) md += `  ${r.url}\n`;
+              const blurb = r.content || r.snippet || '';
+              if (blurb) md += `  ${blurb}\n`;
+            }
+            md += '\n';
+          }
+        }
       } else if (layer === 'online' && lt.results && lt.results.length) {
         md += `_Source: ${lt.source || 'unknown'}` +
               (lt.backend && lt.backend !== lt.source ? ` (backend: ${lt.backend})` : '') + '_\n\n';
@@ -5602,6 +5691,7 @@ async function sendMessage() {
     grep:         document.getElementById('tile-grep')?.dataset.enabled  === 'true' || false,
     rag:          document.getElementById('tile-rag')?.dataset.enabled   === 'true' || false,
     tools:        document.getElementById('tile-tools')?.dataset.enabled === 'true' || false,
+    official_sources: document.getElementById('tile-official_sources')?.dataset.enabled === 'true' || false,
     online:       document.getElementById('tile-online')?.dataset.enabled === 'true' || false,
     import_corpus: document.getElementById('tile-import')?.dataset.enabled === 'true' || false,
     // User-added content from localStorage. The server merges these
@@ -5634,10 +5724,11 @@ async function sendMessage() {
     rag:     'Retrieving from RAG corpus',
     import:  'Loading imported documents',
     tools:   'Calling lookup tools',
+    official_sources: 'Checking official sources',
     online:  'Searching the web',
     model:   'Generating response',
   };
-  const STEP_ORDER = ['resolve','persona','grep','rag','import','tools','online','model'];
+  const STEP_ORDER = ['resolve','persona','grep','rag','import','tools','official_sources','online','model'];
   messages[thinkingIdx]._steps = STEP_ORDER.map(id => ({id, label: STEP_LABELS[id], status: 'pending', summary: '', elapsed_ms: 0}));
   messages[thinkingIdx]._stepStart = Date.now();
   messages[thinkingIdx]._currentStep = null;
@@ -5874,16 +5965,17 @@ function renderGradeChips(chips, idx) {
 
 function renderHarnessTrace(trace) {
   if (!trace) return '';
-  const layers = ['persona', 'grep', 'rag', 'import', 'tools', 'online'];
+  const layers = ['persona', 'grep', 'rag', 'import', 'tools', 'official_sources', 'online'];
   const colors = {
     persona: 'var(--accent-persona)',
     grep: 'var(--accent-grep)',
     rag: 'var(--accent-rag)',
     import: 'var(--accent-imports)',
     tools: 'var(--accent-tools)',
+    official_sources: '#2563eb',
     online: 'var(--accent-online)',
   };
-  const labels = {persona:'Persona', grep:'GREP', rag:'RAG', import:'Import', tools:'Tools', online:'Online'};
+  const labels = {persona:'Persona', grep:'GREP', rag:'RAG', import:'Import', tools:'Tools', official_sources:'Official', online:'Online'};
   const blocks = [];
   for (const k of layers) {
     const t = trace[k];
@@ -5904,6 +5996,13 @@ function renderHarnessTrace(trace) {
     } else if (k === 'tools' && t.tool_calls && t.tool_calls.length) {
       detail = '<ul style="margin:6px 0 0 18px; padding:0;">' +
         t.tool_calls.map(c => `<li><code style="color:#10b981;">${escapeHtml(c.name||'?')}(${escapeHtml(JSON.stringify(c.args||{}))})</code> → <span style="color:var(--ink-2);">${escapeHtml(JSON.stringify(c.result).slice(0,180))}</span></li>`).join('') +
+        '</ul>';
+    } else if (k === 'official_sources' && t.checks && t.checks.length) {
+      detail = '<ul style="margin:6px 0 0 18px; padding:0;">' +
+        t.checks.map(c => {
+          const accepted = c.accepted_results || [];
+          return `<li><b>${escapeHtml(c.label || c.id || '?')}</b> <span style="color:var(--muted);">accepted ${accepted.length}</span><br><code style="color:#2563eb; font-size:11px;">${escapeHtml((c.domains || []).join(', '))}</code></li>`;
+        }).join('') +
         '</ul>';
     } else if (k === 'online' && t.results && t.results.length) {
       detail = '<ul style="margin:6px 0 0 18px; padding:0;">' +
@@ -6046,6 +6145,7 @@ const STEP_COLOR = {
   rag:     'var(--accent-rag)',
   import:  'var(--accent-imports)',
   tools:   'var(--accent-tools)',
+  official_sources: '#2563eb',
   online:  'var(--accent-online)',
   model:   '#fbbf24',
 };
@@ -6643,17 +6743,19 @@ async function _retrievalConfigSet(key, value) {
 // now you can A/B YOUR OWN prompts live and see whether the harness moves
 // the needle on this specific question.
 // ===========================================================================
-const COMPARE_TOGGLES = ['persona', 'grep', 'rag', 'tools', 'online', 'import_corpus'];
+const COMPARE_TOGGLES = ['persona', 'grep', 'rag', 'tools', 'official_sources', 'online', 'import_corpus'];
 const COMPARE_TOGGLE_LABELS = {
   persona: 'Persona', grep: 'GREP', rag: 'RAG',
-  tools: 'Tools', online: 'Online', import_corpus: 'Import',
+  tools: 'Tools', official_sources: 'Official Sources',
+  online: 'Online', import_corpus: 'Import',
 };
 const COMPARE_PRESETS = {
-  stock:   {persona: false, grep: false, rag: false, tools: false, online: false, import_corpus: false},
-  all:     {persona: true,  grep: true,  rag: true,  tools: true,  online: true,  import_corpus: false},
-  greprag: {persona: false, grep: true,  rag: true,  tools: false, online: false, import_corpus: false},
-  search:  {persona: false, grep: false, rag: false, tools: false, online: true,  import_corpus: false},
-  persona: {persona: true,  grep: false, rag: false, tools: false, online: false, import_corpus: false},
+  stock:   {persona: false, grep: false, rag: false, tools: false, official_sources: false, online: false, import_corpus: false},
+  all:     {persona: true,  grep: true,  rag: true,  tools: true,  official_sources: false, online: false, import_corpus: false},
+  greprag: {persona: false, grep: true,  rag: true,  tools: false, official_sources: false, online: false, import_corpus: false},
+  search:  {persona: false, grep: false, rag: false, tools: false, official_sources: false, online: true,  import_corpus: false},
+  official:{persona: true,  grep: true,  rag: true,  tools: true,  official_sources: true,  online: false, import_corpus: false},
+  persona: {persona: true,  grep: false, rag: false, tools: false, official_sources: false, online: false, import_corpus: false},
 };
 
 let _compareState = {
@@ -6871,8 +6973,9 @@ function _renderCompareVariantConfig(side, toggles) {
             style="margin-bottom:8px; padding:6px 8px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:4px; font-size:11.5px; width:100%;">
       <option value="">— Apply a preset —</option>
       <option value="stock">Stock (no harness)</option>
-      <option value="all">All layers on</option>
+      <option value="all">Full local harness</option>
       <option value="greprag">GREP + RAG only</option>
+      <option value="official">Full harness + official sources</option>
       <option value="search">Online search only</option>
       <option value="persona">Persona only</option>
       <option value="current">Current chat-tab toggles</option>
@@ -6912,6 +7015,7 @@ function _compareApplyPreset(side, presetId) {
       grep:          'tile-grep',
       rag:           'tile-rag',
       tools:         'tile-tools',
+      official_sources: 'tile-official_sources',
       online:        'tile-online',
       import_corpus: 'tile-import',
     };
@@ -7036,6 +7140,7 @@ async function _compareRunChatOnce(prompt, toggles, signal) {
       grep:           !!toggles.grep,
       rag:            !!toggles.rag,
       tools:          !!toggles.tools,
+      official_sources: !!toggles.official_sources,
       online:         !!toggles.online,
       import_corpus:  !!toggles.import_corpus,
       // Defaults matching the regular chat-send shape so the server's
