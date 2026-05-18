@@ -11,7 +11,7 @@ from __future__ import annotations
 from typing import Any
 
 
-BENCHMARK_RESPONSE_MAX_NEW_TOKENS = 900
+BENCHMARK_RESPONSE_MAX_NEW_TOKENS = 1200
 
 GENERATION_DEFAULTS: dict[str, Any] = {
     "temperature": 0.2,

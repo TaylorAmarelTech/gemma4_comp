@@ -176,7 +176,20 @@ def test_process_batch_returns_intelligence_for_sample():
         "text_edge_pass",
         "multimodal_page_review",
         "exhaustive_review",
+        "finetuned_document_classifier",
     }.issubset({n["capability"] for n in intel["processing_plan"]["model_capability_notes"]})
+    assert intel["processing_plan"]["edge_quality_dimensions"]
+    assert intel["processing_plan"]["pointed_edge_questions"]
+    edge_quality_ids = {d["id"] for d in intel["processing_plan"]["edge_quality_dimensions"]}
+    assert {
+        "source_grounding_per_edge",
+        "typed_relation_specificity",
+        "payment_fee_completeness",
+        "document_and_movement_control",
+        "coercion_threat_retaliation",
+        "cross_document_alias_linking",
+        "pii_minimization_for_candidates",
+    }.issubset(edge_quality_ids)
     assert intel["processing_plan"]["page_item_prompt_tree"]
     assert {
         "classify",
@@ -234,6 +247,9 @@ def test_process_batch_returns_intelligence_for_sample():
     assert edge_body["typed_edges"]
     assert edge_body["rag_candidates"]
     assert edge_body["page_item_prompt_tree"]
+    assert edge_body["edge_quality_dimensions"]
+    assert edge_body["pointed_edge_questions"]
+    assert any(d["id"] == "uncertainty_review_status" for d in edge_body["edge_quality_dimensions"])
     assert edge_body["model_capability_notes"]
     assert edge_body["knowledge_context"]["local_only"] is True
     assert any(t["id"] == "case_graph_edges" for t in edge_body["prompt_templates"])

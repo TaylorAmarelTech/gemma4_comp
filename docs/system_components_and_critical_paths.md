@@ -83,6 +83,7 @@ or emit. Common families:
 | Tool knowledge | Tool schemas, examples, lookup tables | Chat tools, A-00 harnessed runs |
 | Evaluation knowledge | Rubrics, judge questions, grade weights | Grade endpoints, A-00 final judging |
 | Extracted evidence | Facts, entities, edges, timelines, risks | Process, extraction, report export |
+| Graph-extraction logic | Edge quality dimensions, pointed edge questions, typed edge schemas | Process, graph-chat, knowledge promotion |
 | Training knowledge | Synthetic SFT rows, polished examples, rejected rows | A-00 training and checkpoint flow |
 
 The envelope is intentionally broad enough for full-document and
@@ -102,6 +103,17 @@ into vetted knowledge packs/source-document objects.
 The north-star direction is to keep moving logic out of hardcoded
 duplicates and into versioned packs, `HarnessSpec`, and reusable
 knowledge-object contracts.
+
+For bulk document review, the process harness now treats edge
+generation as its own evaluation surface. It uses pointed graph
+questions and edge-quality dimensions for source grounding, typed
+relations, entity roles, payments, document control, coercion,
+journey-stage sequencing, cross-document links, contradictions,
+uncertainty, and PII-minimized knowledge candidates. A fine-tuned
+Gemma 4 adapter trained on reviewed document-classification and
+graph-edge examples can be loaded for better page routing, edge typing,
+and bulk file edge generation while preserving the same local-only
+review gate.
 
 ## Critical Paths
 
@@ -141,7 +153,7 @@ knowledge-object contracts.
 Key A-00 runtime knobs:
 
 - `DUECARE_A00_BENCHMARK_MAX_NEW_TOKENS` controls the response
-  budget for benchmark arms. It defaults to `900`, which gives
+  budget for benchmark arms. It defaults to `1200`, which gives
   presentation-quality answers more room than the old short smoke
   budget while staying well below the full context window.
 - `DUECARE_A00_INFERENCE_MAX_SEQ_LENGTH` controls the shared Gemma
@@ -155,6 +167,10 @@ Key A-00 runtime knobs:
 - `A00_TRAINING_TIMEOUT_SEC`, `training_save_steps`, and
   `training_resume_from_checkpoint` control long LoRA training runs,
   checkpoint cadence, and resume behavior.
+- A-00 run summaries and CSV exports include `response_hygiene`
+  diagnostics for visible reasoning scaffolds, near-budget answers,
+  and likely truncation. These flags are audit metadata only; the
+  measured response text is preserved unchanged.
 
 ### Online Search Safety
 

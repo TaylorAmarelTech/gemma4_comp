@@ -27,7 +27,7 @@ import zipfile
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 
 PORT = int(os.environ.get("PORT", "8080"))
@@ -53,7 +53,7 @@ A00_TRAINING_TIMEOUT_SEC = int(os.environ.get("A00_TRAINING_TIMEOUT_SEC", str(60
 A00_ALLOW_DRY_RUN = os.environ.get("DUECARE_A00_ALLOW_DRY_RUN", "").strip() == "1"
 # Inference context window for the shared Gemma 4 runtime. The rubric +
 # response + harness trace passed to the combined rule + LLM judge can
-# easily exceed 4096 tokens (full prompt + full response + 17-dimension
+# easily exceed 4096 tokens (full prompt + full response + broad
 # rubric + harness trace + JSON output instructions). Default to 16384
 # so grading and full-harness benchmark prompts are not silently
 # truncated; override via DUECARE_A00_INFERENCE_MAX_SEQ_LENGTH for
@@ -1882,6 +1882,7 @@ def _polish_training_response(
         "You are the DueCare rubric-polish harness for training-data creation.\n"
         "Rewrite the draft assistant answer into an ideal SFT target that would score highly on the rubric.\n"
         "Use only facts from the prompt, the harness trace, and the draft. Do not invent phone numbers, statute sections, or current advisories.\n"
+        "Answer directly. Do not include hidden reasoning, chain-of-thought, a thinking-process preamble, or notes about constructing the answer.\n"
         "Use this response blueprint:\n"
         + _json_dumps(RESPONSE_BLUEPRINT)
         + "\n\nUse this memorization policy:\n"
@@ -1892,7 +1893,7 @@ def _polish_training_response(
         + scenario_prompt
         + "\n\nDraft response:\n"
         + draft_response
-        + "\n\nReturn only the polished assistant response."
+        + "\n\nReturn only the polished assistant response, starting with the user-facing answer."
     )
     polish_trace = {
         "profile": "response_polish",
@@ -2012,6 +2013,87 @@ def _load_model_runtime(req: ModelLoadRequest) -> dict[str, Any]:
         return STATE["model_info"]
 
 
+_RESPONSE_HYGIENE_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
+    (
+        "visible_thinking_process",
+        re.compile(r"^\s*here(?:'s| is)\s+(?:a\s+)?thinking process\b", re.I),
+    ),
+    (
+        "visible_analysis_preamble",
+        re.compile(r"^\s*(?:analysis|reasoning|thought process|chain[- ]of[- ]thought)\s*[:\-]", re.I),
+    ),
+    (
+        "meta_answer_construction",
+        re.compile(r"\b(?:construct|draft|build)\s+(?:the|an)\s+(?:answer|response|advice)\b", re.I),
+    ),
+)
+
+
+def _response_hygiene_flags(
+    response: str,
+    *,
+    requested_max_new_tokens: int,
+    output_tokens_est: int,
+) -> dict[str, Any]:
+    """Audit answer shape without rewriting measured model output."""
+    text = response or ""
+    stripped = text.rstrip()
+    matched = [name for name, pattern in _RESPONSE_HYGIENE_PATTERNS if pattern.search(text)]
+    near_budget = (
+        requested_max_new_tokens > 0
+        and output_tokens_est >= max(1, int(requested_max_new_tokens * 0.9))
+    )
+    terminal = not stripped or stripped.endswith((".", "!", "?", ")", "]", '"', "'"))
+    return {
+        "visible_reasoning_scaffold": bool(matched),
+        "matched_patterns": matched,
+        "near_output_budget": bool(near_budget),
+        "likely_truncated": bool(near_budget and not terminal),
+        "audit_note": (
+            "Measured output is preserved unchanged. These flags only help "
+            "reviewers spot visible reasoning scaffolds or responses that may "
+            "have run into the output budget."
+        ),
+    }
+
+
+def _generation_meta(
+    *,
+    mode: str,
+    response: str,
+    elapsed: float,
+    input_tokens_est: int,
+    requested_max_new_tokens: int,
+    temperature: float,
+    prompt: str,
+    prompt_sha: str,
+    model_info: dict[str, Any],
+    extra: Optional[dict[str, Any]] = None,
+) -> dict[str, Any]:
+    output_tokens_est = _estimate_tokens(response)
+    meta = {
+        "mode": mode,
+        "seconds": round(elapsed, 4),
+        "input_tokens_est": input_tokens_est,
+        "output_tokens_est": output_tokens_est,
+        "requested_max_new_tokens": int(requested_max_new_tokens),
+        "temperature": float(temperature),
+        "prompt_chars": len(prompt),
+        "response_chars": len(response),
+        "prompt_sha256": prompt_sha,
+        "response_sha256": _sha256_text(response),
+        "response_hygiene": _response_hygiene_flags(
+            response,
+            requested_max_new_tokens=int(requested_max_new_tokens),
+            output_tokens_est=output_tokens_est,
+        ),
+        "model_info": model_info,
+    }
+    if extra:
+        meta.update(extra)
+    return meta
+
+
 def _generate(prompt: str, *, max_new_tokens: int, temperature: float, trace: dict[str, Any], row: dict[str, Any]) -> tuple[str, dict[str, Any]]:
     t0 = time.perf_counter()
     prompt_tokens_est = _estimate_tokens(prompt)
@@ -2028,37 +2110,33 @@ def _generate(prompt: str, *, max_new_tokens: int, temperature: float, trace: di
                 )
             response = _dry_run_response(prompt, trace, row)
             elapsed = time.perf_counter() - t0
-            return response, {
-                "mode": "dry_run",
-                "seconds": round(elapsed, 4),
-                "input_tokens_est": prompt_tokens_est,
-                "output_tokens_est": _estimate_tokens(response),
-                "requested_max_new_tokens": int(max_new_tokens),
-                "temperature": float(temperature),
-                "prompt_chars": len(prompt),
-                "response_chars": len(response),
-                "prompt_sha256": prompt_sha,
-                "response_sha256": _sha256_text(response),
-                "model_info": model_info,
-            }
+            return response, _generation_meta(
+                mode="dry_run",
+                response=response,
+                elapsed=elapsed,
+                input_tokens_est=prompt_tokens_est,
+                requested_max_new_tokens=max_new_tokens,
+                temperature=temperature,
+                prompt=prompt,
+                prompt_sha=prompt_sha,
+                model_info=model_info,
+            )
 
         try:
             if backend is not None:
                 text = backend(prompt, max_new_tokens=max_new_tokens, temperature=temperature)
                 elapsed = time.perf_counter() - t0
-                return text, {
-                    "mode": "model",
-                    "seconds": round(elapsed, 4),
-                    "input_tokens_est": prompt_tokens_est,
-                    "output_tokens_est": _estimate_tokens(text),
-                    "requested_max_new_tokens": int(max_new_tokens),
-                    "temperature": float(temperature),
-                    "prompt_chars": len(prompt),
-                    "response_chars": len(text),
-                    "prompt_sha256": prompt_sha,
-                    "response_sha256": _sha256_text(text),
-                    "model_info": model_info,
-                }
+                return text, _generation_meta(
+                    mode="model",
+                    response=text,
+                    elapsed=elapsed,
+                    input_tokens_est=prompt_tokens_est,
+                    requested_max_new_tokens=max_new_tokens,
+                    temperature=temperature,
+                    prompt=prompt,
+                    prompt_sha=prompt_sha,
+                    model_info=model_info,
+                )
             # Defensive raw-generate fallback used only when no backend
             # callable is attached. Aligned with the Gemma 4 recipe
             # contract (temperature=1.0, top_p=0.95, top_k=64) so a
@@ -2079,38 +2157,34 @@ def _generate(prompt: str, *, max_new_tokens: int, temperature: float, trace: di
                 out = model.generate(**inputs, **gen_kwargs)
             text = tokenizer.decode(out[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True).strip()
             elapsed = time.perf_counter() - t0
-            return text, {
-                "mode": "model_fallback_no_backend",
-                "seconds": round(elapsed, 4),
-                "input_tokens_est": int(inputs["input_ids"].shape[-1]),
-                "output_tokens_est": _estimate_tokens(text),
-                "requested_max_new_tokens": int(max_new_tokens),
-                "temperature": float(temperature),
-                "prompt_chars": len(prompt),
-                "response_chars": len(text),
-                "prompt_sha256": prompt_sha,
-                "response_sha256": _sha256_text(text),
-                "model_info": model_info,
-            }
+            return text, _generation_meta(
+                mode="model_fallback_no_backend",
+                response=text,
+                elapsed=elapsed,
+                input_tokens_est=int(inputs["input_ids"].shape[-1]),
+                requested_max_new_tokens=max_new_tokens,
+                temperature=temperature,
+                prompt=prompt,
+                prompt_sha=prompt_sha,
+                model_info=model_info,
+            )
         except Exception as exc:  # noqa: BLE001
             if not A00_ALLOW_DRY_RUN:
                 raise RuntimeError(f"Gemma 4 generation failed: {type(exc).__name__}: {str(exc)[:240]}") from exc
             response = _dry_run_response(prompt, trace, row)
             elapsed = time.perf_counter() - t0
-            return response, {
-                "mode": "fallback_after_error",
-                "error": f"{type(exc).__name__}: {str(exc)[:240]}",
-                "seconds": round(elapsed, 4),
-                "input_tokens_est": prompt_tokens_est,
-                "output_tokens_est": _estimate_tokens(response),
-                "requested_max_new_tokens": int(max_new_tokens),
-                "temperature": float(temperature),
-                "prompt_chars": len(prompt),
-                "response_chars": len(response),
-                "prompt_sha256": prompt_sha,
-                "response_sha256": _sha256_text(response),
-                "model_info": model_info,
-            }
+            return response, _generation_meta(
+                mode="fallback_after_error",
+                response=response,
+                elapsed=elapsed,
+                input_tokens_est=prompt_tokens_est,
+                requested_max_new_tokens=max_new_tokens,
+                temperature=temperature,
+                prompt=prompt,
+                prompt_sha=prompt_sha,
+                model_info=model_info,
+                extra={"error": f"{type(exc).__name__}: {str(exc)[:240]}"},
+            )
 
 
 def _dimension_plan(row: dict[str, Any], harness_profile: str, trace: dict[str, Any]) -> list[dict[str, Any]]:
@@ -2668,7 +2742,14 @@ def _configure_external_judge_for_pipeline(job_id: str, req: PipelineRequest) ->
     return _configure_ollama_judge_for_pipeline(job_id, req)
 
 
-def _combined_grade(row: dict[str, Any], response: str, harness_profile: str, trace: dict[str, Any], use_llm: bool) -> dict[str, Any]:
+def _combined_grade(
+    row: dict[str, Any],
+    response: str,
+    harness_profile: str,
+    trace: dict[str, Any],
+    use_llm: bool,
+    progress_callback: Optional[Callable[[dict[str, Any]], None]] = None,
+) -> dict[str, Any]:
     model_call = _grading_model_call(row) if use_llm else None
     judge_call_trace: dict[str, Any] = {}
     traced_model_call = None
@@ -2697,6 +2778,7 @@ def _combined_grade(row: dict[str, Any], response: str, harness_profile: str, tr
             prompt_text=row.get("prompt", ""),
             harness_trace=trace,
             evaluator_weight=0.5 if traced_model_call else 0.0,
+            progress_callback=progress_callback,
         )
         mode = "combined" if traced_model_call else "rule"
         normalised = _normalise_shared_grade(shared, mode=mode)
@@ -2804,6 +2886,14 @@ def _summarize_results(results: list[dict[str, Any]]) -> dict[str, Any]:
     output_tokens = sum(r.get("generation", {}).get("output_tokens_est", 0) for r in results)
     total_seconds = sum(seconds)
     tokens_total = input_tokens + output_tokens
+    hygiene_rows = [
+        r.get("generation", {}).get("response_hygiene", {})
+        for r in results
+        if isinstance(r.get("generation", {}).get("response_hygiene", {}), dict)
+    ]
+    visible_scaffold_count = sum(1 for h in hygiene_rows if h.get("visible_reasoning_scaffold"))
+    near_budget_count = sum(1 for h in hygiene_rows if h.get("near_output_budget"))
+    likely_truncated_count = sum(1 for h in hygiene_rows if h.get("likely_truncated"))
     return {
         "n": n,
         "mean_score_0_10": round(sum(scores) / n, 2),
@@ -2815,6 +2905,12 @@ def _summarize_results(results: list[dict[str, Any]]) -> dict[str, Any]:
         "tokens_per_second_est": round(tokens_total / total_seconds, 2) if total_seconds else None,
         "local_cost_usd": 0.0,
         "cost_note": "Local Gemma 4 inference has no per-token API charge. Report cost as GPU time, energy, or hosting cost.",
+        "response_hygiene": {
+            "responses_with_visible_reasoning_scaffold": visible_scaffold_count,
+            "responses_near_output_budget": near_budget_count,
+            "responses_likely_truncated": likely_truncated_count,
+            "audit_note": "Counts are diagnostic only; measured responses are preserved unchanged.",
+        },
     }
 
 
@@ -2828,10 +2924,13 @@ def _write_run_artifacts(bundle: dict[str, Any]) -> dict[str, str]:
     with csv_path.open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=[
             "run_id", "prompt_id", "lane", "harness_profile", "score_0_10",
-            "seconds", "input_tokens_est", "output_tokens_est", "prompt", "model_prompt", "response",
+            "seconds", "input_tokens_est", "output_tokens_est", "visible_reasoning_scaffold",
+            "near_output_budget", "likely_truncated", "response_hygiene_flags",
+            "prompt", "model_prompt", "response",
         ])
         writer.writeheader()
         for row in rows:
+            hygiene = row.get("generation", {}).get("response_hygiene", {}) or {}
             writer.writerow({
                 "run_id": run_id,
                 "prompt_id": row.get("prompt_id"),
@@ -2841,6 +2940,10 @@ def _write_run_artifacts(bundle: dict[str, Any]) -> dict[str, str]:
                 "seconds": row.get("generation", {}).get("seconds"),
                 "input_tokens_est": row.get("generation", {}).get("input_tokens_est"),
                 "output_tokens_est": row.get("generation", {}).get("output_tokens_est"),
+                "visible_reasoning_scaffold": hygiene.get("visible_reasoning_scaffold"),
+                "near_output_budget": hygiene.get("near_output_budget"),
+                "likely_truncated": hygiene.get("likely_truncated"),
+                "response_hygiene_flags": ",".join(hygiene.get("matched_patterns", []) or []),
                 "prompt": row.get("prompt"),
                 "model_prompt": row.get("model_prompt"),
                 "response": row.get("response"),
@@ -3153,6 +3256,7 @@ def _run_batch(req: BatchRunRequest) -> dict[str, Any]:
                 "response": response,
                 "harness_trace": trace,
                 "generation": gen_meta,
+                "response_hygiene": gen_meta.get("response_hygiene", {}),
                 "grade": grade,
             },
         )
@@ -3756,7 +3860,14 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
         sft_rows.append({
             "id": prompt_id,
             "messages": [
-                {"role": "system", "content": "You are DueCare, a bounded migrant-worker safety assistant."},
+                {
+                    "role": "system",
+                    "content": (
+                        "You are DueCare, a bounded migrant-worker safety assistant. "
+                        "Answer directly for the user. Do not reveal hidden reasoning, "
+                        "chain-of-thought, or a thinking-process preamble."
+                    ),
+                },
                 {"role": "user", "content": scenario_prompt},
                 {"role": "assistant", "content": chosen},
             ],
@@ -5623,6 +5734,83 @@ def _evaluate_run_for_pipeline(
                 "llm_judge": True,
             },
         )
+
+        _append_job_step(
+            pipeline_job_id,
+            f"19. Preparing stateless judge context for response {row_index} of {len(rows)}",
+            "running",
+            {
+                "run_id": run_id,
+                "prompt_id": row.get("prompt_id"),
+                "response_index": row_index,
+                "total_responses": len(rows),
+                "context_policy": (
+                    "Combined grading uses one stateless evaluator prompt per dimension. "
+                    "No chat history is reused between dimensions; each evaluator prompt "
+                    "contains only the rubric dimension, original prompt, model response, "
+                    "and scoring schema."
+                ),
+                "judge_model": judge_info,
+            },
+        )
+
+        def dimension_progress(event: dict[str, Any]) -> None:
+            event_type = str(event.get("type") or "dim_done")
+            dim_row = event.get("row") if isinstance(event.get("row"), dict) else {}
+            dim_id = str(dim_row.get("id") or "dimension")
+            dim_name = str(dim_row.get("name") or dim_id)
+            n_done = int(event.get("n_done") or 0)
+            n_total = int(event.get("n_total") or 0)
+            dim_index = n_done
+            if event_type in {"dim_start", "dim_call_start"}:
+                dim_index = min(n_total, n_done + 1) if n_total else n_done + 1
+            label_verb = {
+                "dim_start": "Starting",
+                "dim_call_start": "Calling judge for",
+                "dim_done": "Finished",
+            }.get(event_type, "Updated")
+            _append_job_step(
+                pipeline_job_id,
+                (
+                    f"19. {label_verb} judge dimension {dim_index} of {n_total} "
+                    f"for response {row_index} of {len(rows)}: {dim_id}"
+                ),
+                "running",
+                {
+                    "run_id": run_id,
+                    "prompt_id": row.get("prompt_id"),
+                    "response_index": row_index,
+                    "total_responses": len(rows),
+                    "dimension_index": dim_index,
+                    "total_dimensions": n_total,
+                    "event_type": event_type,
+                    "dimension_id": dim_id,
+                    "dimension_name": dim_name,
+                    "status": dim_row.get("status"),
+                    "verdict": dim_row.get("verdict"),
+                    "score_0_10": dim_row.get("score_0_10"),
+                    "effective_weight": dim_row.get("effective_weight"),
+                    "applicability": dim_row.get("applicability"),
+                    "applicability_score": dim_row.get("applicability_score"),
+                    "applicability_confidence": dim_row.get("applicability_confidence"),
+                    "evaluator_latency_ms": dim_row.get("evaluator_latency_ms"),
+                    "evaluator_question": dim_row.get("evaluator_question", ""),
+                    "evaluator_hint": dim_row.get("evaluator_hint", ""),
+                    "evaluator_prompt": dim_row.get("evaluator_prompt", ""),
+                    "evaluator_response": dim_row.get("evaluator_response", ""),
+                    "context_policy": (
+                        "Stateless one-dimension evaluator call; no conversation "
+                        "history is carried between dimensions."
+                    ),
+                    "judge_model": {
+                        "source": judge_info.get("source"),
+                        "model_ref": judge_info.get("model_ref"),
+                        "resolved_model_ref": judge_info.get("resolved_model_ref"),
+                        "variant": judge_info.get("variant"),
+                    },
+                },
+            )
+
         try:
             grade = _combined_grade(
                 row,
@@ -5630,6 +5818,7 @@ def _evaluate_run_for_pipeline(
                 bundle.get("harness_profile", "none"),
                 row.get("harness_trace", {}),
                 True,
+                progress_callback=dimension_progress,
             )
             grade["judge_model"] = {
                 "source": judge_info.get("source"),

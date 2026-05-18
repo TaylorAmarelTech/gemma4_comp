@@ -65,7 +65,7 @@ template: `gemma-4-thinking`. The **only** acceptable direct
 A-00 inference is now loaded at **16384** max_seq_length via
 `A00_INFERENCE_MAX_SEQ_LENGTH = int(os.environ.get(
 "DUECARE_A00_INFERENCE_MAX_SEQ_LENGTH", "16384"))` so the combined
-rule + LLM judge has enough context for the 17-dimension rubric, full
+rule + LLM judge has enough context for the broad rubric, full
 prompt, full response, and harness trace without silent truncation.
 
 ## Universal harness contract
@@ -232,17 +232,18 @@ Pick any of these. Each is small enough to commit independently.
    inventory.
 
 2. **`harness.html` external-trust-boundary visual cue** — verify the
-   recent pill/color treatment renders clearly across all 8 harnesses
+   recent pill/color treatment renders clearly across the registered harnesses
    on the page, especially for `chat`'s `frontier_chat_or_judge`
    target and `post_search_verification`'s `external_result_reviewer`.
 
-3. **Add a grading-budget sanity test.** With the new 16K context,
-   verify the LLM judge in `_combined_grade` still has enough
-   `max_new_tokens` (currently `900` at kernel.py around line 2534)
-   to emit per-dimension scores + rationales for all 17 rubric
-   dimensions. If the JSON output ever truncates, scores drop. A
-   contract test that bounds `max_new_tokens >= 1500` (or measures
-   the worst-case output length) would prevent silent regression.
+3. **Review response-budget telemetry after the next A-00 run.** The
+   benchmark-answer budget is now controlled by
+   `DUECARE_A00_BENCHMARK_MAX_NEW_TOKENS` and defaults above the old
+   smoke budget, while the combined judge output budget remains
+   separately controlled by `DUECARE_A00_COMBINED_JUDGE_MAX_NEW_TOKENS`.
+   Check the exported `response_hygiene` counts for visible reasoning
+   scaffolds, near-budget answers, and likely truncation before the
+   final presentation run.
 
 4. **`tests/unit/*` collection errors.** Investigate whether the
    missing `duecare.tasks` module is intentional or should be added /

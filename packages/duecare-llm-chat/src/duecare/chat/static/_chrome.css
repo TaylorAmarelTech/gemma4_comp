@@ -504,11 +504,16 @@ code, .mono {
   50%      { opacity: 0.45; }
 }
 .dc-wb-model-popover {
-  position: absolute;
-  top: 34px;
+  position: fixed;
+  top: 52px;
   left: 24px;
-  width: min(520px, calc(100vw - 24px));
-  z-index: 80;
+  width: min(520px, calc(100vw - 48px));
+  max-height: calc(100vh - 72px);
+  max-height: calc(100dvh - 72px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  z-index: 190;
   background: var(--paper);
   color: var(--ink);
   border: 1px solid var(--line);
@@ -530,16 +535,17 @@ code, .mono {
 .dc-wb-model-required { overflow: hidden; }
 .dc-wb-model-required .dc-wb-model-popover {
   position: fixed;
-  top: 50%;
+  top: max(16px, env(safe-area-inset-top));
   left: 50%;
+  bottom: max(16px, env(safe-area-inset-bottom));
   right: auto;
-  bottom: auto;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   z-index: 190;
   width: min(760px, calc(100vw - 32px));
-  max-height: min(760px, calc(100vh - 48px));
+  max-height: none;
   overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior: contain;
   padding: 24px;
   border-radius: 14px;
   box-shadow: 0 34px 90px rgba(14, 17, 22, 0.42);
@@ -867,15 +873,18 @@ code, .mono {
   .dc-wb-status-inner { padding: 5px 16px; font-size: 11px; gap: 6px; }
   .dc-wb-model-popover {
     left: 12px;
-    top: 40px;
+    top: 52px;
     width: calc(100vw - 24px);
+    max-height: calc(100vh - 68px);
+    max-height: calc(100dvh - 68px);
   }
   .dc-wb-model-required .dc-wb-model-popover {
-    top: 50%;
+    top: max(12px, env(safe-area-inset-top));
     left: 50%;
+    bottom: max(12px, env(safe-area-inset-bottom));
     width: calc(100vw - 24px);
-    max-height: calc(100vh - 28px);
-    transform: translate(-50%, -50%);
+    max-height: none;
+    transform: translateX(-50%);
     padding: 18px;
     gap: 14px;
   }

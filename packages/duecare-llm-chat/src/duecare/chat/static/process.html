@@ -165,7 +165,10 @@
       document typing, person linking, hierarchy construction, and a compact
       Gemma 4 case-brief pass when a model is loaded. The page renders the
       extracted intelligence so you can inspect the graph before asking
-      Gemma 4 questions about it.
+      Gemma 4 questions about it. When available, a fine-tuned Gemma 4
+      adapter trained on reviewed document-classification and graph-edge
+      examples can improve page-item routing, edge typing, and bulk
+      file edge generation quality.
     </p>
 
     <section class="wb-hero" aria-label="Bulk file review overview">
@@ -179,6 +182,7 @@
       <div class="wb-hero-grid">
         <div class="wb-hero-item"><b>Local only by default</b><span>No cloud API calls are required. Rows, media queue, graph edges, and notes stay in the Kaggle kernel until you explicitly export or share.</span></div>
         <div class="wb-hero-item"><b>Deterministic plus Gemma</b><span>Parsing, GREP, entity extraction, folder edges, and journey mapping run deterministically. Local Gemma 4 can add typed edge and RAG candidates when loaded.</span></div>
+        <div class="wb-hero-item"><b>Fine-tuned model ready</b><span>A fine-tuned Gemma 4 adapter can be used for document classification, page-item routing, and graph-edge generation while preserving the local review gate.</span></div>
         <div class="wb-hero-item"><b>Reviewer controlled</b><span>Step 3 is a review gate. Confirm extracted intelligence before graph questions or downstream export.</span></div>
         <div class="wb-hero-item"><b>Evidence oriented</b><span>Every answer should point back to row IDs, folders, files, people, payments, dates, or queued media work.</span></div>
       </div>

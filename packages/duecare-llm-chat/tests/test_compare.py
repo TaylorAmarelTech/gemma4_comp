@@ -160,10 +160,13 @@ def test_model_selector_lives_in_shared_nav(client):
     assert "data-required" in nav_js
     chrome = client.get("/static/_chrome.css").text
     assert "dc-wb-model-required" in chrome
-    assert "top: 50%" in chrome
-    assert "transform: translate(-50%, -50%)" in chrome
+    assert "position: fixed" in chrome
+    assert "top: max(16px, env(safe-area-inset-top))" in chrome
+    assert "bottom: max(16px, env(safe-area-inset-bottom))" in chrome
+    assert "transform: translateX(-50%)" in chrome
     assert "width: min(760px, calc(100vw - 32px))" in chrome
-    assert "max-height: min(760px, calc(100vh - 48px))" in chrome
+    assert "max-height: calc(100dvh - 72px)" in chrome
+    assert "overscroll-behavior: contain" in chrome
     assert "overflow-y: auto" in chrome
     assert "wireNavToggle" in nav_js
 

@@ -510,6 +510,9 @@ def test_process_page_has_graph_visualization_and_graph_chat_logging(client):
     assert "function wbRequireConfirmedNavigation" in text
     assert "Deterministic fallback" in text
     assert "Deterministic brief; Gemma/media deferred" in text
+    assert "fine-tuned Gemma 4" in text
+    assert "document classification" in text
+    assert "graph-edge generation" in text
     assert "/api/process/batch/start" in text
     assert "/api/process/batch/status/" in text
     assert "Use primary sample" in text
