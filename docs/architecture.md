@@ -51,7 +51,7 @@
 > evaluator paths.
 >
 > **Three-kernel submission**: reviewers land on
-> `duecare-exploration-workbench` (broad workbench), `duecare-live-demo`
+> `duecare-app` (broad workbench), `duecare-live-demo`
 > (focused thesis demo), and `A-00-omni-experiment-workbench`
 > (quantitative proof path).
 >
@@ -387,7 +387,7 @@ for any one chat response, and `▸ Grade response` renders [i] as a
 PASS/PARTIAL/FAIL table per criterion. The harness lift report at
 [`docs/harness_lift_report.md`](./harness_lift_report.md) quantifies
 the [i]-step delta between toggles-OFF and toggles-ON across 207 prompts
-(mean **+56.5 pp** on the cross-cutting `legal_citation_quality`
+(measurable mean lift, specific numbers pending final A-00 run, on the cross-cutting `legal_citation_quality`
 rubric, 207/207 prompts helped).
 
 ### 1.2 Responsibility boundaries in one sentence

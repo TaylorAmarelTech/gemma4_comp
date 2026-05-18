@@ -487,7 +487,7 @@ Every component serves multiple audiences.
 The Kaggle submission is **the first working implementation of the
 Safety Guidance Layer**, running on the **Gemma 4 Model Layer**, with
 a partial **Quality Testing Framework** baked in and a **Fine-Tuning
-Module** prototype shipped through the A-00 omni experiment workbench.
+Module** prototype shipped through the DueCare Fine-tuning and Evaluation.
 
 ### Real now
 
@@ -497,7 +497,7 @@ Module** prototype shipped through the A-00 omni experiment workbench.
 - **Contacts directory** — curated entries for regulators, NGOs, embassies, and hotlines.
 - **Synthetic multimodal evidence** — bundled CC0 images + structured-post JSONs.
 - **Kaggle live proof path** — three active kernels: exploration workbench,
-  live demo, and A-00 omni experiment workbench.
+  live demo, and DueCare Fine-tuning and Evaluation.
 
 ### Prototype / appendix / near-term
 

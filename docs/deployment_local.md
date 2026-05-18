@@ -82,8 +82,8 @@ uv pip install --system \
 export HF_TOKEN=hf_yourtokenhere
 
 # 6. Run the layered chat harness playground locally (the same script
-#    kernel used by the duecare-exploration-workbench Kaggle notebook)
-python kaggle/01-duecare-exploration-workbench/kernel.py
+#    kernel used by the duecare-app Kaggle notebook)
+python kaggle/01-duecare-app/kernel.py
 ```
 
 The kernel will:

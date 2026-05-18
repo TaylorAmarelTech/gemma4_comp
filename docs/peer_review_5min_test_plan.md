@@ -13,7 +13,7 @@ Three claims:
 1. **Stock Gemma 4 fails predictably** on migrant-worker
    trafficking prompts (no ILO citations, gives traffickers advice).
 2. **A layered chat harness with local-first privacy boundaries fixes
-   it** with a +56.5pp lift on a 12-criterion legal-citation rubric.
+   it** with a measurable lift on a 12-criterion legal-citation rubric. (Specific lift numbers will be re-published from the final A-00 run alongside the submission.)
 3. **The grader is itself adversarially defended** with a 4-mode
    stack (deterministic + LLM-as-judge + combined).
 
@@ -24,7 +24,7 @@ Three claims:
 Open two browser tabs:
 
 **Tab A — the omni playground (where you'll spend most of the time):**
-> https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench
+> https://www.kaggle.com/code/taylorsamarel/duecare-app
 
 **Tab B — the focused live demo (the headline number):**
 > https://www.kaggle.com/code/taylorsamarel/duecare-live-demo
@@ -143,7 +143,7 @@ jailbroken-models` (loads `dealignai/Gemma-4-31B-JANG_4M-CRACK`).
 
 ## Test 6 — The reproducibility claim (optional, 5 min)
 
-Open the active A-00 omni experiment workbench. It runs the current
+Open the active DueCare Fine-tuning and Evaluation. It runs the current
 benchmark/fine-tune/judge/report path and emits JSON, CSV, Markdown,
 HTML, PDF where available, and Activity ZIP artifacts with provenance
 metadata. Re-run any subset to verify.

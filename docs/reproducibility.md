@@ -12,7 +12,7 @@
 > They have **not** been re-measured against the larger rule set
 > at the time of submission. We expect the lift to remain at-or-
 > above the cited values (more rules = more catches), but the
-> exact pp deltas may have shifted. The current A-00 omni workbench is
+> exact pp deltas may have shifted. The current DueCare Fine-tuning and Evaluation is
 > the preferred regenerator for new presentation-quality evidence
 > bundles; running it against the current `git HEAD` produces fresh JSON,
 > CSV, Markdown, HTML, PDF where available, and Activity ZIP artifacts.
@@ -166,7 +166,7 @@ snapshot.
 |---|---|
 | "no PII in the repo" | git history clean post `c07019c` purge; pre-commit hook + `.claude/rules/10_safety_gate.md` |
 | "MIT license" | `LICENSE` file |
-| "uses Gemma 4 (E2B / E4B / 26B-A4B / 31B)" | `kaggle/01-duecare-exploration-workbench/kernel.py:_VARIANT_HF_ID` |
+| "uses Gemma 4 (E2B / E4B / 26B-A4B / 31B)" | `kaggle/01-duecare-app/kernel.py:_VARIANT_HF_ID` |
 | "9-variant model selector" | `kernel.py` line 102-109 (6 on-device + 3 cloud BYOK) |
 | "5 harness toggles" | `harness/__init__.py:default_harness()` returns persona/grep/rag/tools/online |
 | "4 grade modes" | `app.py` endpoints `/api/grade-universal`, `/api/grade-expert`, `/api/grade-deep`, `/api/grade-combined` |

@@ -72,7 +72,7 @@ python scripts/run_local_gemma.py --graded-only --output reproduce.jsonl
 ```
 
 Compare your output to [`docs/harness_lift_report.md`](./harness_lift_report.md).
-You should see roughly the same +56.5 pp mean lift across 207
+You should see a comparable mean lift across 207
 prompts.
 
 Or, if you don't want to install anything: read the report
