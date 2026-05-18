@@ -68,12 +68,11 @@
 <body data-nav="share">
   <main class="wb-page">
     <h1 class="wb-h1">Anonymization &amp; Sharing</h1>
-    <div class="wb-trust" style="background: oklch(0.94 0.04 45); color: oklch(0.32 0.07 45); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin-bottom: 14px;">
-      <b>Trust boundary:</b> Steps 1-3 happen entirely inside the kernel.
-      Step 4 (Submit) performs a real HTTPS POST
-      to the configured DueCare hub with a 10s timeout; the local audit captures the remote status and any failure reason. The
-      audit log at <code>/kaggle/working/audit/submit_log.jsonl</code> records
-      every Step 4 click and sha256.
+    <div class="dc-trust-row is-private" role="note" aria-label="Trust boundary" style="margin-bottom:14px;">
+      <span class="dc-trust-pill"><span class="dot"></span>LOCAL UNTIL STEP 4</span>
+      <span class="dc-trust-pill"><span class="dot"></span>REGEX FIRST</span>
+      <span class="dc-trust-pill"><span class="dot"></span>HUB SUBMIT IS REMOTE</span>
+      <span class="dc-trust-text">Steps 1–3 stay in the kernel. Step 4 performs a real HTTPS POST; audit log at <code>/kaggle/working/audit/submit_log.jsonl</code> records every click and sha256.</span>
     </div>
 
     <p class="wb-lede">
@@ -95,6 +94,7 @@
         <h3>Upload source bundle or knowledge files</h3>
         <p>Accepted: <span class="wb-pill">.zip</span> <span class="wb-pill">.jsonl</span> <span class="wb-pill">.csv</span>. Use <b>knowledge files</b> for existing knowledge-object envelopes; use <b>source bundle</b> for case/evidence material.</p>
       </div>
+      <span class="dc-pill is-ready" id="wb-step-1-state" style="margin-left:auto; align-self:center;"><span class="dot"></span><span class="dc-pill-label">Ready</span></span>
       </summary>
       <div class="wb-step-body">
         <div id="wb-dropzone" onclick="document.getElementById('wb-file-input').click()"
@@ -133,6 +133,7 @@
         <h3>Review the extracted knowledge items and patterns</h3>
         <p>Tick each item you want to submit. Default: nothing checked.</p>
       </div>
+      <span class="dc-pill is-waiting" id="wb-step-2-state" style="margin-left:auto; align-self:center;"><span class="dot"></span><span class="dc-pill-label">Waiting</span></span>
       </summary>
       <div class="wb-step-body">
         <div style="max-height: 240px; overflow-y: auto;">
@@ -166,15 +167,17 @@
         models may miss residual PII, so human review remains required before
         submission.</p>
       </div>
+      <span class="dc-pill is-waiting" id="wb-step-3-state" style="margin-left:auto; align-self:center;"><span class="dot"></span><span class="dc-pill-label">Waiting</span></span>
       </summary>
       <div class="wb-step-body">
         <div id="wb-diff-host" style="background: #FFF; border: 1px solid #EFEDE4; border-radius: 8px;
              padding: 8px; max-height: 240px; overflow-y: auto;">
           <div class="wb-muted" style="padding: 12px; text-align: center;">(complete Step 2 first)</div>
         </div>
-        <div class="wb-row">
+        <div class="wb-row" style="align-items:center; gap:10px; flex-wrap:wrap;">
           <button class="wb-btn-primary" id="wb-step3-btn" disabled onclick="wbStep3()" title="Deterministic regex redaction always runs. Gemma residual-PII review only runs when a Gemma 4 model is loaded; otherwise it is skipped without blocking submission.">Step 3: Run anonymization (Gemma review if loaded)</button>
           <button class="wb-btn-secondary" id="wb-step3-fast-btn" disabled onclick="wbStep3(false)" title="Fast recording fallback: deterministic salted-hash redaction only.">Run deterministic only</button>
+          <span class="dc-gemma-mark is-optional" id="wb-step3-gemma-mark" title="Reflects whether Gemma actually reviewed the redacted text. Stays Optional unless a real model call completes.">Optional · Gemma</span>
         </div>
         <div class="wb-progress-box" id="wb-anon-progress-box" hidden>
           <div class="wb-progress-head">
@@ -197,6 +200,7 @@
         <h3>Submit anonymized knowledge to the hub</h3>
         <p>Target: <code>POST</code> to the hub URL below. Audit log: <code>/kaggle/working/audit/submit_log.jsonl</code>.</p>
       </div>
+      <span class="dc-pill is-waiting" id="wb-step-4-state" style="margin-left:auto; align-self:center;"><span class="dot"></span><span class="dc-pill-label">Waiting</span></span>
       </summary>
       <div class="wb-step-body">
         <label style="display:block; font-size:11px; color:#5B5F68; text-transform:uppercase; letter-spacing:.04em; margin-bottom:5px;">Hub submit URL</label>
@@ -228,6 +232,8 @@
       if (!wbShareStepper && window.dcWorkflow) {
         wbShareStepper = window.dcWorkflow.createStepper({
           ids: ['wb-step-1', 'wb-step-2', 'wb-step-3', 'wb-step-4'],
+          stateIds: ['wb-step-1-state', 'wb-step-2-state',
+                     'wb-step-3-state', 'wb-step-4-state'],
           completeClass: 'done',
         });
       }
@@ -472,6 +478,16 @@
     async function wbStep3(gemmaReview = true) {
       const btn = document.getElementById('wb-step3-btn'); btn.disabled = true; btn.textContent = 'Anonymizing...';
       const fastBtn = document.getElementById('wb-step3-fast-btn'); if (fastBtn) fastBtn.disabled = true;
+      const gMark = document.getElementById('wb-step3-gemma-mark');
+      if (gMark) {
+        if (gemmaReview) {
+          gMark.className = 'dc-gemma-mark is-active';
+          gMark.textContent = 'Gemma active';
+        } else {
+          gMark.className = 'dc-gemma-mark is-skipped';
+          gMark.textContent = 'Gemma skipped';
+        }
+      }
       document.getElementById('wb-step3-error').style.display = 'none';
       const rows = (wbBundle && wbBundle.results) || [];
       const selected = Array.from(wbChecked).map(i => rows[i]).filter(Boolean);
@@ -509,9 +525,28 @@
         wbRenderDiffs(); document.getElementById('wb-step-3').classList.add('done');
         document.getElementById('wb-step4-btn').disabled = false;
         wbSetStep(4);
+        if (gMark) {
+          const reviewStatus = String(review.overall_status || review.status || '').toLowerCase();
+          const gemmaActuallyRan = gemmaReview && reviewStatus && reviewStatus !== 'skipped' &&
+                                   reviewStatus !== 'model_unavailable' && reviewStatus !== 'no_model';
+          if (gemmaActuallyRan) {
+            gMark.className = 'dc-gemma-mark is-done';
+            gMark.textContent = 'Gemma done';
+          } else if (gemmaReview) {
+            gMark.className = 'dc-gemma-mark is-unavailable';
+            gMark.textContent = 'Gemma unavailable';
+          } else {
+            gMark.className = 'dc-gemma-mark is-skipped';
+            gMark.textContent = 'Gemma skipped';
+          }
+        }
       } catch (e) {
         const err = document.getElementById('wb-step3-error');
         err.textContent = 'Step 3 failed: ' + (e && e.message || e); err.style.display = '';
+        if (gMark) {
+          gMark.className = 'dc-gemma-mark is-unavailable';
+          gMark.textContent = 'Gemma failed';
+        }
       } finally {
         btn.disabled = false; btn.textContent = 'Step 3: Run anonymization (Gemma review if loaded)';
         if (fastBtn) fastBtn.disabled = selected.length === 0;

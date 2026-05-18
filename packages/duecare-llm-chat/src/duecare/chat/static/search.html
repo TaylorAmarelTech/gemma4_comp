@@ -99,6 +99,12 @@
 <body data-nav="search">
   <main class="wb-page">
     <h1 class="wb-h1">Search and Source Intake</h1>
+    <div class="dc-trust-row is-audit" role="note" aria-label="Trust boundary" style="margin-bottom:14px;">
+      <span class="dc-trust-pill"><span class="dot"></span>SANITIZE FIRST</span>
+      <span class="dc-trust-pill"><span class="dot"></span>NETWORK SEARCH GATED</span>
+      <span class="dc-trust-pill"><span class="dot"></span>RESULTS REVIEWED</span>
+      <span class="dc-trust-text">Sanitization strips PII before any backend sees the query. Result cards are reviewable before they become knowledge.</span>
+    </div>
     <p class="wb-lede">
       Calls <code>POST /api/search/client</code>. This is a secondary
       utility surface, not a Gemma response harness by itself. Uses SearXNG when
@@ -150,7 +156,7 @@
             <span class="search-step-title">Search public sources</span>
             <span class="search-step-summary">Sanitize first, choose the backend if needed, then search. Examples stay in the same working panel.</span>
           </span>
-          <span class="search-step-state" id="search-step-query-state">Ready</span>
+          <span class="search-step-state dc-pill is-ready" id="search-step-query-state"><span class="dot"></span><span class="dc-pill-label">Ready</span></span>
         </summary>
         <div class="search-step-body">
           <div class="wb-row" style="gap:8px; margin-bottom:10px;">
@@ -218,7 +224,7 @@
           <span class="search-step-title">Review source cards</span>
           <span class="search-step-summary">Inspect each source card, download the result set, or draft knowledge from useful results without leaving this page.</span>
         </span>
-        <span class="search-step-state" id="results-card-state">Waiting</span>
+        <span class="search-step-state dc-pill is-waiting" id="results-card-state"><span class="dot"></span><span class="dc-pill-label">Waiting</span></span>
       </summary>
       <div class="search-step-body">
       <p class="wb-muted" style="margin:0 0 10px;">
@@ -265,7 +271,7 @@
           <span class="search-step-title">Review and save knowledge objects</span>
           <span class="search-step-summary">The extraction harness suggests knowledge object types. Review each draft, then save locally or download JSON.</span>
         </span>
-        <span class="search-step-state" id="drafts-card-state">Waiting</span>
+        <span class="search-step-state dc-pill is-waiting" id="drafts-card-state"><span class="dot"></span><span class="dc-pill-label">Waiting</span></span>
       </summary>
       <div class="search-step-body">
       <details style="margin: 0 0 8px;">
