@@ -937,6 +937,23 @@ def build_recording_pack() -> dict[str, Any]:
                 "output: reusable knowledge object",
             ],
         ),
+        _recording_example(
+            example_id="custom_api_moderation_endpoint",
+            lane="Custom API implementations",
+            audience="developer",
+            use_case="ph_sa_platform_moderation",
+            prompt=(
+                "Show the JSON-shaped audit response a partner moderation "
+                "endpoint should record when the PH-Saudi Facebook job post "
+                "triggers fee-camouflage and false-urgency rules."
+            ),
+            artifacts=[
+                "endpoint: POST /api/chat/send or partner moderation adapter",
+                "layers: persona, GREP, RAG, tools, grade",
+                "audit: prompt hash, fired rules, citations, model id",
+                "decision: remove or hold for high-priority human review",
+            ],
+        ),
     ]
 
     chat = next(
@@ -955,10 +972,11 @@ def build_recording_pack() -> dict[str, Any]:
         "schema_version": "duecare.slides.recording_pack.v1",
         "generated_at": "2026-05-18T00:00:00Z",
         "summary": (
-            "Seven selected no-model examples for recording: three platform "
+            "Eight selected no-model examples for recording: three platform "
             "moderation examples with evidence images and one captured "
             "Gemma trace, one case-analysis bundle, one worker chat, one "
-            "research cluster, and one anonymized knowledge-sharing object."
+            "research cluster, one anonymized knowledge-sharing object, and "
+            "one custom API integration artifact."
         ),
         "storage_keys": {
             "pack": "duecare.slides.demo.pack",

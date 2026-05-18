@@ -168,11 +168,11 @@
 <body data-nav="process">
   <main class="wb-page">
     <h1 class="wb-h1">Bulk File Review</h1>
-    <div class="wb-trust" style="background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin-bottom: 14px;">
-      <b>Trust boundary:</b> Uploaded rows are processed locally in the kernel
-      (<code>/kaggle/working/process-staging/</code>). The harness runs in-process;
-      no row is sent to any remote service. Outputs stay in the kernel until you
-      explicitly Anonymize + Submit.
+    <div class="dc-trust-row" role="note" aria-label="Trust boundary" style="margin-bottom: 14px;">
+      <span class="dc-trust-pill"><span class="dot"></span>LOCAL</span>
+      <span class="dc-trust-pill"><span class="dot"></span>NO REMOTE CALLS</span>
+      <span class="dc-trust-pill"><span class="dot"></span>REVIEWER GATED</span>
+      <span class="dc-trust-text">Rows stay in <code>/kaggle/working/process-staging/</code> until you explicitly export or share.</span>
     </div>
 
     <p class="wb-lede">
@@ -232,7 +232,7 @@
             <span class="wb-step-title">Drop a bundle or use the sample</span>
             <span class="wb-step-summary">Upload ZIP, CSV, JSONL, Office, PDF, image, email, or text evidence. Folder names are preserved as graph edges.</span>
           </span>
-          <span class="wb-step-state" id="wb-step-upload-state">Ready</span>
+          <span class="wb-step-state dc-pill is-ready" id="wb-step-upload-state"><span class="dot"></span><span class="dc-pill-label">Ready</span></span>
         </summary>
         <div class="wb-step-body">
           <div class="wb-grid-2">
@@ -403,7 +403,7 @@
               <span class="wb-step-title">Process bundle and review trace</span>
               <span class="wb-step-summary">See parser counts, GREP hits, OCR queue status, Gemma 4 case-brief status, and any errors.</span>
             </span>
-            <span class="wb-step-state" id="wb-step-process-state">Waiting</span>
+            <span class="wb-step-state dc-pill is-waiting" id="wb-step-process-state"><span class="dot"></span><span class="dc-pill-label">Waiting</span></span>
           </summary>
           <div class="wb-step-body">
             <div class="wb-progress-box" id="wb-process-progress-box">
@@ -432,6 +432,21 @@
               <h2>Harness trace</h2>
               <div class="wb-pipeline" id="wb-trace"></div>
             </div>
+            <div class="dc-deferred-tile" id="wb-media-deferred-tile" aria-label="OCR and multimodal queue status">
+              <div class="dc-deferred-head">
+                <span class="dc-pill is-deferred"><span class="dot"></span><span class="dc-pill-label">Deferred</span></span>
+                <span>OCR / multimodal queue</span>
+              </div>
+              <div>
+                Images, scans, and PDFs become explicit media work items.
+                When local OCR or Gemma 4 vision is not wired in this kernel,
+                the queue stays here labeled <b>rule-based fallback (no Gemma)</b>.
+                Nothing here is implied to have run.
+              </div>
+              <div style="font-family: var(--mono); font-size: 11.5px; color: var(--ink-2);">
+                items queued: <span id="wb-media-deferred-count">0</span>
+              </div>
+            </div>
             <div class="wb-card">
               <h2>Advanced processing plan</h2>
               <p class="wb-muted" style="margin-top:0;">
@@ -452,7 +467,7 @@
               <span class="wb-step-title">Inspect extracted intelligence</span>
               <span class="wb-step-summary">Review people, folders, documents, journey stages, payments, locations, graph edges, and row-level evidence.</span>
             </span>
-            <span class="wb-step-state" id="wb-step-intelligence-state">Waiting</span>
+            <span class="wb-step-state dc-pill is-waiting" id="wb-step-intelligence-state"><span class="dot"></span><span class="dc-pill-label">Waiting</span></span>
           </summary>
           <div class="wb-step-body">
       <div class="wb-card">
@@ -511,9 +526,12 @@
               additional edges and candidate knowledge objects.
             </div>
           </div>
-          <button class="wb-btn-secondary" id="wb-gemma-edge-btn" type="button" onclick="wbRunGemmaEdgePass()">
-            Run local Gemma edge pass
-          </button>
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <button class="wb-btn-secondary" id="wb-gemma-edge-btn" type="button" onclick="wbRunGemmaEdgePass()">
+              Run local Gemma edge pass
+            </button>
+            <span class="dc-gemma-mark is-optional" id="wb-gemma-edge-mark">Optional · Gemma</span>
+          </div>
         </div>
         <div id="wb-typed-edges" style="margin-top:10px;"></div>
         <div id="wb-rag-candidates" style="margin-top:10px;"></div>
@@ -541,7 +559,13 @@
         <div id="wb-journey"></div>
       </div>
       <div class="wb-card">
-        <h2>Gemma 4 case brief</h2>
+        <h2>Gemma 4 case brief <span class="dc-gemma-mark is-optional" id="wb-gemma-brief-mark">Optional · Gemma</span></h2>
+        <p class="wb-muted" style="font-size:12px; margin:4px 0 8px;">
+          Not started automatically. The rule-based graph above is already usable.
+          The brief flips to <code>Gemma active</code> when the model is loaded
+          and inference begins, and to <code>Gemma done</code> only after a real
+          token stream completes.
+        </p>
         <div id="wb-gemma-brief"></div>
       </div>
       <div class="wb-grid-2">
@@ -569,7 +593,7 @@
             <span class="wb-step-title">Interrogate the confirmed case graph</span>
             <span class="wb-step-summary">Ask focused review questions after Step 3 is confirmed. Answers should cite row IDs and evidence edges.</span>
           </span>
-          <span class="wb-step-state" id="wb-step-chat-state">Waiting</span>
+          <span class="wb-step-state dc-pill is-waiting" id="wb-step-chat-state"><span class="dot"></span><span class="dc-pill-label">Waiting</span></span>
         </summary>
         <div class="wb-step-body">
       <p class="wb-muted" style="font-size:12px; margin-top:0;">
@@ -722,7 +746,7 @@
             <span class="wb-step-title">Export, promote, or share</span>
             <span class="wb-step-summary">Choose the right downstream path after the graph has been reviewed and confirmed.</span>
           </span>
-          <span class="wb-step-state" id="wb-step-export-state">Waiting</span>
+          <span class="wb-step-state dc-pill is-waiting" id="wb-step-export-state"><span class="dot"></span><span class="dc-pill-label">Waiting</span></span>
         </summary>
         <div class="wb-step-body">
           <div class="wb-action-grid">
@@ -1489,6 +1513,10 @@
       const host = document.getElementById('wb-processing-plan');
       const passes = plan.passes || [];
       const media = plan.media_assets || [];
+      // Mirror the deferred-queue count into the persistent OCR/multimodal tile
+      // so reviewers can never mistake "queued" for "done".
+      const deferredCountEl = document.getElementById('wb-media-deferred-count');
+      if (deferredCountEl) deferredCountEl.textContent = String(media.length || 0);
       const parentDocs = plan.parent_documents || [];
       const methods = plan.analysis_methods || [];
       const local = plan.local_processing_contract || {};
@@ -1635,6 +1663,21 @@
       const brief = intel.gemma_case_brief || {};
       const briefJson = brief.json || null;
       const briefStatus = brief.status || 'not run';
+      // Mirror brief lifecycle onto the in-header Gemma marker so reviewers
+      // can read "did the model actually run?" from the heading alone.
+      const briefMark = document.getElementById('wb-gemma-brief-mark');
+      if (briefMark) {
+        if (briefStatus === 'model_error_deterministic_fallback') {
+          briefMark.className = 'dc-gemma-mark is-unavailable';
+          briefMark.textContent = 'Gemma unavailable';
+        } else if (briefJson || brief.text) {
+          briefMark.className = 'dc-gemma-mark is-done';
+          briefMark.textContent = 'Gemma done';
+        } else {
+          briefMark.className = 'dc-gemma-mark is-optional';
+          briefMark.textContent = 'Optional · Gemma';
+        }
+      }
       const briefHead = briefStatus === 'model_error_deterministic_fallback'
         ? '<div style="margin-bottom:8px; background:#FAF9F4; border:1px solid #DDD8C9; border-left:3px solid oklch(0.52 0.08 195); border-radius:8px; padding:10px 12px; color:#2A2D34; font-size:12px; line-height:1.45;">Gemma 4 was unavailable for this brief, so the page is showing the deterministic case brief. Loader detail: ' + wbEsc(brief.error || 'model call unavailable') + '</div>'
         : '<div class="wb-status-pill" style="display:inline-block; margin-bottom:8px;">' + wbEsc(wbBriefStatusLabel(briefStatus)) + '</div>';
@@ -1937,6 +1980,11 @@
       }
       const btn = document.getElementById('wb-gemma-edge-btn');
       if (btn) { btn.disabled = true; btn.textContent = 'Running local Gemma...'; }
+      const edgeMark = document.getElementById('wb-gemma-edge-mark');
+      if (edgeMark) {
+        edgeMark.className = 'dc-gemma-mark is-active';
+        edgeMark.textContent = 'Gemma active';
+      }
       const settings = (wbBundle.config && wbBundle.config.process_settings) || wbProcessSettings();
       const rawLimit = settings.max_gemma_calls || 32;
       const limit = Math.max(4, Math.min(80, parseInt(rawLimit, 10) || 32));
@@ -1976,9 +2024,22 @@
         wbLog(noModel ? 'warn' : 'ok', (noModel ? 'Gemma edge pass skipped model call' : 'Gemma edge pass complete') + ' (' + totalDt + 'ms)',
           'status=' + (out.status || 'unknown') + ' | model_edges=' + ((out.model_edges || []).length || 0) +
           ' | rag_candidates=' + ((out.rag_candidates || []).length || 0));
+        if (edgeMark) {
+          if (noModel) {
+            edgeMark.className = 'dc-gemma-mark is-unavailable';
+            edgeMark.textContent = 'Gemma unavailable';
+          } else {
+            edgeMark.className = 'dc-gemma-mark is-done';
+            edgeMark.textContent = 'Gemma done';
+          }
+        }
       } catch (e) {
         wbSetEdgeProgress(100, 'Gemma edge pass failed', String(e).slice(0, 200));
         wbLog('err', 'Gemma edge pass failed', String(e).slice(0, 240));
+        if (edgeMark) {
+          edgeMark.className = 'dc-gemma-mark is-unavailable';
+          edgeMark.textContent = 'Gemma failed';
+        }
       } finally {
         if (btn) { btn.disabled = false; btn.textContent = 'Run local Gemma edge pass'; }
       }
