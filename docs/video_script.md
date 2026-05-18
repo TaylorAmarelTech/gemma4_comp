@@ -25,7 +25,7 @@ case analysis, worker access, research, and anonymized sharing.
   short loading state, trace/result reveal, and cited output.
 - Use personal examples only inside use-case demos, and label composite
   names as composite.
-- Use "case analysis", not "case intake", for the product lane.
+- Use "case analysis" as the product-lane label.
 - Do not promise a live GPU result if the slide is using cached output.
   Say "cached replay" or show the real activity log.
 

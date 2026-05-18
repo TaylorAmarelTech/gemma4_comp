@@ -1,9 +1,9 @@
-﻿# NGO office deployment — case intake, document analysis, research
+﻿# NGO office deployment — case analysis, document review, research
 
 > **Persona.** You direct an NGO with 1-20 caseworkers helping
 > migrant workers, trafficking survivors, or asylum seekers. You
 > need a private, on-premises tool that helps caseworkers do case
-> intake, analyse contract photos / receipts / IDs, look up
+> analysis, analyse contract photos / receipts / IDs, look up
 > jurisdiction-specific law, and produce a referral packet — without
 > sending any worker data to a cloud service you don't control.
 >

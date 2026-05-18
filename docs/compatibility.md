@@ -42,8 +42,8 @@ that supports the chat-template format. Recommended:
 | `gemma2:2b` | 1.5 GB | 4 GB+ | ~3 sec/token | ~30 tok/sec | Default; works on most laptops |
 | `gemma2:9b` | 5.4 GB | 8 GB+ | ~10 sec/token | ~50 tok/sec | Better quality; needs 8GB+ RAM |
 | `gemma2:27b` | 16 GB | 32 GB+ | impractical | ~80 tok/sec | Production server with GPU |
-| `gemma4:e2b` | ~1.5 GB | 4 GB+ | TBD | TBD | When Ollama lands Gemma 4 stable |
-| `gemma4:e4b` | ~4 GB | 8 GB+ | TBD | TBD | Recommended Gemma 4 variant for desktop |
+| `gemma4:e2b` | ~1.5 GB | 4 GB+ | Not benchmarked here | Not benchmarked here | When Ollama lands Gemma 4 stable |
+| `gemma4:e4b` | ~4 GB | 8 GB+ | Not benchmarked here | Not benchmarked here | Recommended Gemma 4 variant for desktop |
 | `gemma4:31b` | ~16 GB | 32 GB+ | impractical | ~70 tok/sec | Production-quality Gemma 4 |
 
 For the Kaggle notebooks, the model is loaded directly via the
