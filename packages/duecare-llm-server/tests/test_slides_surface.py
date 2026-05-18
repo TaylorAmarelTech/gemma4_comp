@@ -99,12 +99,30 @@ def test_slides_deck_uses_recording_safe_ecosystem_story() -> None:
         "data-slide-id=\"knowledge-sharing-demo\"",
         "data-slide-id=\"module-ecosystem\"",
         "Exploitation continues because the protective workflow is fragmented",
-        "A connected ecosystem, not a single chatbot",
+        "Five comparable workflows, one shared local substrate",
     ]:
         assert marker in html
     assert "Full screen" not in html
     assert "arrows / space" not in html
     assert "Filipina" not in html
+    assert "Local Gemma 4</span>" not in html
+    assert "Evidence harness</span>" not in html
+    assert 'class="slide dark"' not in html
+    assert 'class="slide accent"' not in html
+    assert "--camera-safe-right" not in html
+    assert "what not to optimize" not in html
+    assert "not to optimize" not in html
+    for marker in [
+        'data-demo-run="moderation"',
+        'data-demo-run="case"',
+        'data-demo-run="phone"',
+        'data-demo-run="chat"',
+        'data-demo-run="research"',
+        'data-demo-run="sharing"',
+        "Five comparable workflows, one shared local substrate",
+        "Gemma 4 is not another lane",
+    ]:
+        assert marker in html
 
 
 def test_slides_setup_serves_audience_and_use_case_selectors() -> None:

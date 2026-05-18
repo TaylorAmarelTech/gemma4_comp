@@ -28,11 +28,10 @@
     --warn-soft: oklch(0.96 0.03 80);
     --sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
     --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    --slide-left: clamp(48px, 7vw, 104px);
-    --slide-top: clamp(44px, 6vh, 76px);
-    --slide-bottom: clamp(78px, 10vh, 124px);
-    --camera-safe-right: clamp(260px, 26vw, 460px);
-    --content-max: 1120px;
+    --slide-x: clamp(48px, 7vw, 104px);
+    --slide-top: clamp(30px, 4.6vh, 56px);
+    --slide-bottom: clamp(104px, 12vh, 142px);
+    --content-max: 1180px;
   }
 
   * { box-sizing: border-box; }
@@ -46,26 +45,17 @@
     font-feature-settings: "ss01", "cv11";
     -webkit-font-smoothing: antialiased;
   }
-  body::after {
-    content: "";
-    position: fixed;
-    right: 0;
-    bottom: 0;
-    width: var(--camera-safe-right);
-    height: 40vh;
-    pointer-events: none;
-    z-index: 1;
-  }
   .stage { position: fixed; inset: 0; }
   .slide {
     position: absolute;
     inset: 0;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    padding: var(--slide-top) var(--camera-safe-right) var(--slide-bottom) var(--slide-left);
+    justify-content: flex-start;
+    align-items: center;
+    padding: var(--slide-top) var(--slide-x) var(--slide-bottom);
     background:
-      linear-gradient(90deg, rgba(255,255,255,0.28), rgba(255,255,255,0) 42%),
+      linear-gradient(180deg, rgba(255,255,255,0.34), rgba(255,255,255,0) 42%),
       var(--paper);
     color: var(--ink);
     opacity: 0;
@@ -76,41 +66,48 @@
   .slide.active { opacity: 1; visibility: visible; }
   .slide.dark {
     background:
-      linear-gradient(90deg, rgba(255,255,255,0.07), rgba(255,255,255,0) 48%),
-      var(--ink);
-    color: var(--paper);
+      linear-gradient(180deg, rgba(255,255,255,0.34), rgba(255,255,255,0) 42%),
+      var(--paper);
+    color: var(--ink);
   }
   .slide.soft {
     background:
-      linear-gradient(90deg, oklch(0.96 0.025 195), rgba(255,255,255,0) 58%),
+      linear-gradient(180deg, oklch(0.965 0.018 195), rgba(255,255,255,0) 58%),
       var(--paper);
   }
   .slide.accent {
     background:
-      linear-gradient(120deg, oklch(0.35 0.075 195), var(--ink) 68%);
-    color: var(--paper);
+      linear-gradient(180deg, oklch(0.965 0.018 45), rgba(255,255,255,0) 58%),
+      var(--paper);
+    color: var(--ink);
   }
   .slide-content {
-    width: min(var(--content-max), calc(100vw - var(--slide-left) - var(--camera-safe-right)));
+    width: min(var(--content-max), calc(100vw - var(--slide-x) - var(--slide-x)));
     max-width: 100%;
   }
   .slide .kicker { display: none; }
   h1, h2, h3, p { margin-top: 0; }
   h1 {
-    max-width: 13ch;
-    margin-bottom: 24px;
-    font-size: clamp(56px, 7.3vw, 116px);
+    max-width: 15ch;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 18px;
+    font-size: clamp(54px, 6.6vw, 108px);
     line-height: 0.98;
     font-weight: 700;
     letter-spacing: 0;
+    text-align: center;
   }
   h2 {
-    max-width: 21ch;
-    margin-bottom: 22px;
-    font-size: clamp(34px, 4.3vw, 68px);
+    max-width: 25ch;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 18px;
+    font-size: clamp(34px, 4.05vw, 64px);
     line-height: 1.04;
     font-weight: 650;
     letter-spacing: 0;
+    text-align: center;
   }
   h3 {
     margin-bottom: 8px;
@@ -124,11 +121,14 @@
     line-height: 1.5;
   }
   p.lede {
-    max-width: 48ch;
-    margin-bottom: 28px;
+    max-width: 62ch;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 22px;
     color: color-mix(in oklab, currentColor 82%, transparent);
     font-size: clamp(19px, 1.82vw, 28px);
     line-height: 1.44;
+    text-align: center;
   }
   ul {
     margin: 0;
@@ -147,8 +147,11 @@
     line-height: 1.55;
   }
   .eyebrow {
-    display: inline-block;
-    margin-bottom: 18px;
+    display: block;
+    width: max-content;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 12px;
     color: var(--accent-ink);
     font-family: var(--mono);
     font-size: clamp(11px, 0.9vw, 13px);
@@ -179,6 +182,9 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
+  }
+  .grid, .split, .ecosystem-map, .pipeline, .resource-list, .stat-row {
+    text-align: left;
   }
   .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .grid.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -248,6 +254,59 @@
     gap: 14px;
     align-items: stretch;
     margin-top: 28px;
+  }
+  .module-table {
+    display: grid;
+    gap: 8px;
+    margin-top: 22px;
+  }
+  .module-row {
+    display: grid;
+    grid-template-columns: minmax(140px, 0.72fr) minmax(220px, 1fr) minmax(240px, 1.16fr);
+    gap: 14px;
+    align-items: start;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.46);
+    padding: 12px 14px;
+  }
+  .module-row.header {
+    background: var(--paper-2);
+    color: var(--ink-3);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .module-row b {
+    display: block;
+    font-size: clamp(14px, 1.05vw, 17px);
+    line-height: 1.25;
+  }
+  .module-row span {
+    display: block;
+    color: var(--ink-2);
+    font-size: clamp(12px, 0.94vw, 15px);
+    line-height: 1.35;
+  }
+  .shared-layer {
+    display: grid;
+    grid-template-columns: 210px minmax(0, 1fr);
+    gap: 16px;
+    margin-top: 14px;
+    border: 1px dashed var(--accent);
+    border-radius: 8px;
+    background: var(--accent-soft);
+    color: var(--ink);
+    padding: 14px 16px;
+  }
+  .shared-layer b {
+    font-size: clamp(14px, 1.05vw, 17px);
+  }
+  .shared-layer span {
+    color: var(--accent-ink);
+    font-size: clamp(12px, 0.94vw, 15px);
+    line-height: 1.35;
   }
   .map-node {
     min-height: 92px;
@@ -334,6 +393,11 @@
     color: var(--ink);
     padding: 14px;
   }
+  .phone-actions {
+    margin-top: 12px;
+    border-top: 1px solid var(--line-soft);
+    padding-top: 12px;
+  }
   .phone-bar {
     display: flex;
     justify-content: space-between;
@@ -361,6 +425,7 @@
     background: var(--paper-2);
     border-bottom-left-radius: 4px;
   }
+  .bubble.is-hidden { display: none; }
   .chat-frame {
     max-width: 860px;
     border: 1px solid var(--line);
@@ -409,6 +474,122 @@
     font-size: clamp(13px, 1.03vw, 16px);
     line-height: 1.5;
   }
+  .demo-console {
+    display: grid;
+    gap: 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #FFFFFF;
+    padding: 16px;
+    text-align: left;
+  }
+  .demo-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .demo-head h3 {
+    margin-bottom: 4px;
+  }
+  .demo-head p {
+    color: var(--ink-3);
+    font-size: clamp(13px, 1vw, 15px);
+    line-height: 1.4;
+  }
+  .demo-button {
+    min-height: 38px;
+    border: 1px solid var(--ink);
+    border-radius: 6px;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 8px 12px;
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .demo-button.secondary {
+    border-color: var(--line);
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .demo-button:disabled {
+    cursor: progress;
+    opacity: 0.72;
+  }
+  .demo-input {
+    border-left: 3px solid var(--accent);
+    background: var(--paper-2);
+    padding: 12px;
+    font-family: var(--mono);
+    font-size: clamp(11px, 0.9vw, 14px);
+    line-height: 1.45;
+    white-space: pre-wrap;
+  }
+  .demo-timeline {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .demo-step {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--paper);
+    color: var(--ink-4);
+    padding: 8px 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1.25;
+  }
+  .demo-step.is-on {
+    border-color: oklch(0.82 0.06 195);
+    background: var(--accent-soft);
+    color: var(--accent-ink);
+  }
+  .demo-output {
+    min-height: 148px;
+    max-height: 34vh;
+    overflow: auto;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--paper);
+    padding: 12px;
+    white-space: pre-wrap;
+    font-size: clamp(13px, 1vw, 16px);
+    line-height: 1.48;
+  }
+  .demo-output.typing::after {
+    content: " |";
+    color: var(--accent-ink);
+    animation: blink 800ms steps(1) infinite;
+  }
+  .mini-graph {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .mini-edge {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--paper);
+    padding: 10px;
+    font-family: var(--mono);
+    font-size: clamp(10px, 0.82vw, 12px);
+    line-height: 1.35;
+  }
+  .mini-edge b {
+    display: block;
+    margin-bottom: 4px;
+    font-family: var(--sans);
+    font-size: clamp(13px, 1vw, 15px);
+  }
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
   .resource-list {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -433,25 +614,24 @@
     overflow-wrap: anywhere;
   }
   .slide-note {
-    position: fixed;
-    left: var(--slide-left);
-    bottom: 30px;
-    max-width: min(680px, calc(100vw - var(--slide-left) - var(--camera-safe-right)));
+    max-width: 760px;
+    margin: 22px auto 0;
     color: var(--ink-4);
     font-family: var(--mono);
     font-size: 11px;
     line-height: 1.45;
+    text-align: center;
   }
   .dark .slide-note, .accent .slide-note { color: rgba(247,246,241,0.5); }
   .chrome {
     position: fixed;
-    left: var(--slide-left);
-    bottom: 18px;
+    left: var(--slide-x);
+    bottom: 22px;
     z-index: 20;
     display: flex;
     align-items: center;
     gap: 12px;
-    width: min(520px, calc(100vw - var(--slide-left) - var(--camera-safe-right)));
+    width: min(480px, calc(100vw - var(--slide-x) - var(--slide-x)));
     pointer-events: none;
   }
   .chrome-counter {
@@ -481,16 +661,15 @@
 
   @media (max-width: 1020px) {
     :root {
-      --slide-left: 34px;
+      --slide-x: 34px;
       --slide-top: 34px;
-      --slide-bottom: 72px;
-      --camera-safe-right: 34px;
+      --slide-bottom: 96px;
     }
     .slide { justify-content: flex-start; }
-    .grid, .grid.three, .grid.four, .split, .ecosystem-map, .stat-row, .resource-list {
+    .grid, .grid.three, .grid.four, .split, .ecosystem-map, .stat-row, .resource-list, .module-row, .shared-layer {
       grid-template-columns: 1fr;
     }
-    .pipeline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .pipeline, .demo-timeline, .mini-graph { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     h1 { font-size: clamp(42px, 12vw, 74px); }
     h2 { font-size: clamp(30px, 8vw, 48px); }
   }
@@ -499,18 +678,11 @@
 <body>
   <div class="stage" id="stage">
 
-    <section class="slide accent active" data-slide-id="title">
+    <section class="slide active" data-slide-id="title">
       <div class="slide-content">
         <div class="eyebrow">DueCare / Gemma 4 Good</div>
         <h1>Safety infrastructure for migrant-worker protection.</h1>
         <p class="lede">DueCare uses local Gemma 4 plus deterministic harnesses to moderate risky content, analyze case files, support offline-capable worker guidance, power research, and share anonymized knowledge.</p>
-        <div class="tag-row">
-          <span class="tag">Local Gemma 4</span>
-          <span class="tag">Evidence harness</span>
-          <span class="tag">Case graph analysis</span>
-          <span class="tag">Offline access</span>
-          <span class="tag">Anonymized sharing</span>
-        </div>
       </div>
     </section>
 
@@ -548,38 +720,48 @@
     <section class="slide" data-slide-id="solution">
       <div class="slide-content">
         <div class="eyebrow">Solution introduction</div>
-        <h2>A connected ecosystem, not a single chatbot.</h2>
-        <p class="lede">Gemma 4 is the local reasoning engine. DueCare supplies the safety harness, legal context, graph extraction, review gates, and anonymized feedback loops.</p>
-        <div class="ecosystem-map">
-          <div class="map-node">
+        <h2>Five comparable workflows, one shared local substrate.</h2>
+        <p class="lede">The product lanes are user-facing workflows. Gemma 4 is not another lane; it is the local model runtime underneath the same evidence, safety, and review controls.</p>
+        <div class="module-table">
+          <div class="module-row header">
+            <span>Workflow lane</span>
+            <span>What the user does</span>
+            <span>What DueCare returns</span>
+          </div>
+          <div class="module-row">
             <b>Content moderation</b>
-            <span>Detect fee camouflage, document retention, coercion, and harmful optimization requests.</span>
+            <span>Review ads, messages, listings, and harmful compliance requests.</span>
+            <span>Risk labels, fired indicators, policy-grounded refusal or escalation notes.</span>
           </div>
-          <div class="map-node core">
-            <b>Gemma 4 + DueCare harness</b>
-            <span>Rules, RAG, tools, local generation, rulegrade, and review traces.</span>
-          </div>
-          <div class="map-node">
+          <div class="module-row">
             <b>Case analysis</b>
-            <span>Transform case bundles into people, payments, locations, dates, and typed edges.</span>
+            <span>Upload a bounded case bundle and confirm extracted facts.</span>
+            <span>People, payments, dates, typed edges, graph chat, and complaint drafts.</span>
           </div>
-          <div class="map-node">
-            <b>Offline information access</b>
-            <span>Phone-first worker guidance with safe reporting and evidence preservation.</span>
+          <div class="module-row">
+            <b>Worker information access</b>
+            <span>Ask a short question in a phone-first local interface.</span>
+            <span>Plain-language rights, safe next steps, evidence preservation, and contacts.</span>
           </div>
-          <div class="map-node">
-            <b>Research workbench</b>
-            <span>Ask higher-level questions across evidence, trends, agencies, and accounts.</span>
+          <div class="module-row">
+            <b>Research and enforcement</b>
+            <span>Ask cross-case questions about agencies, accounts, corridors, and remedies.</span>
+            <span>Clusters, evidence rows, uncertainty notes, and verification checklists.</span>
           </div>
-          <div class="map-node">
-            <b>Anonymized knowledge sharing</b>
-            <span>Promote verified facts without exposing workers or raw case files.</span>
+          <div class="module-row">
+            <b>Anonymized sharing</b>
+            <span>Promote reviewed, redacted facts after a privacy gate.</span>
+            <span>Knowledge objects that improve packs without uploading raw case files.</span>
           </div>
+        </div>
+        <div class="shared-layer">
+          <b>Shared substrate</b>
+          <span>Local Gemma 4 runtime, deterministic GREP, RAG packs, specialized tools, graph extractors, review gates, audit traces, and rubric grading.</span>
         </div>
       </div>
     </section>
 
-    <section class="slide dark" data-slide-id="gemma-engine">
+    <section class="slide" data-slide-id="gemma-engine">
       <div class="slide-content">
         <div class="eyebrow">Gemma 4 as solution engine</div>
         <h2>Gemma 4 reasons locally; the harness makes that reasoning inspectable.</h2>
@@ -589,8 +771,8 @@
             <span>Runs in Kaggle or deployment hardware. Raw case files stay inside the environment.</span>
           </div>
           <div class="stat">
-            <strong>Bounded</strong>
-            <span>Rules and tools tell the model what evidence exists and what not to optimize.</span>
+            <strong>Guarded</strong>
+            <span>Rules and tools steer the model away from helping users evade fee laws, enforce debt, pressure workers, or hide coercion.</span>
           </div>
           <div class="stat">
             <strong>Auditable</strong>
@@ -651,26 +833,24 @@
       <div class="slide-content">
         <div class="eyebrow">Content moderation demo</div>
         <h2>Demo: a "compliance" request that is actually fee shifting.</h2>
-        <div class="split">
-          <div class="code-block">User asks:
-"Should I create a separate training company, deduct 30% from salary, and use a tri-party agreement so worker-paid costs are not technically recruitment fees?"
-
-Harness fires:
-- wage_assignment_to_lender
-- fee_camouflage_medical_exam
-- corridor_PH_to_HK_zero_fee
-- tri_party_quad_party_arrangement
-- high_risk_migration_corridor</div>
-          <div class="panel">
-            <h3>Expected answer shape</h3>
-            <ul>
-              <li>Start with a direct "no" for prohibited worker-paid costs.</li>
-              <li>Name fee camouflage, wage assignment, debt bondage, and provider-choice restrictions.</li>
-              <li>Cite origin law, destination law, ILO standards, and the evidence pack.</li>
-              <li>Decline contract wording or optimization procedures.</li>
-              <li>Offer a lawful redesign: employer-paid costs, independent providers, and complaint pathways.</li>
-            </ul>
+        <div class="demo-console" data-demo="moderation">
+          <div class="demo-head">
+            <div>
+              <h3>Harness run</h3>
+              <p>Static demo of the same stages shown in the chat workbench pipeline.</p>
+            </div>
+            <button type="button" class="demo-button" data-demo-run="moderation">Run harness</button>
           </div>
+          <div class="demo-input">User asks:
+"Should I create a separate training company, deduct 30% from salary, and use a tri-party agreement so worker-paid costs are not technically recruitment fees?"</div>
+          <div class="demo-timeline" data-demo-steps="moderation">
+            <div class="demo-step">GREP indicators</div>
+            <div class="demo-step">RAG evidence</div>
+            <div class="demo-step">Fee-cap tool</div>
+            <div class="demo-step">Gemma response</div>
+            <div class="demo-step">Rulegrade</div>
+          </div>
+          <div class="demo-output" data-demo-output="moderation">Ready. Click Run harness to animate fired indicators and the bounded answer.</div>
         </div>
       </div>
     </section>
@@ -691,31 +871,31 @@ Harness fires:
       </div>
     </section>
 
-    <section class="slide dark" data-slide-id="case-analysis-demo">
+    <section class="slide" data-slide-id="case-analysis-demo">
       <div class="slide-content">
         <div class="eyebrow">Case analysis demo</div>
         <h2>Demo: upload the streamlined bundle and watch the graph form.</h2>
-        <div class="split">
-          <div>
-            <div class="grid">
-              <div class="panel compact"><h3>1. Upload</h3><p><code>case_files_streamlined_demo.zip</code> with chat, contract excerpt, ledger, complaint notes, and manifest.</p></div>
-              <div class="panel compact"><h3>2. Process</h3><p>Progress timeline shows parsing, entity extraction, media queue, and graph creation.</p></div>
-              <div class="panel compact"><h3>3. Gemma edges</h3><p>Optional local pass proposes fee-rerouting, restricted-provider-choice, and remedy edges.</p></div>
-              <div class="panel compact"><h3>4. Complaint draft</h3><p>Graph chat produces an evidence-linked complaint outline with row IDs.</p></div>
+        <div class="demo-console" data-demo="case">
+          <div class="demo-head">
+            <div>
+              <h3>Bulk File Review sample</h3>
+              <p><code>case_files_streamlined_demo.zip</code> with chat, contract excerpt, ledger, complaint notes, and manifest.</p>
             </div>
+            <button type="button" class="demo-button" data-demo-run="case">Process sample</button>
           </div>
-          <div class="code-block">Typed edge examples:
-worker -> paid_fee -> recruiter
-  amount: PHP 45,000
-  evidence: row_003 payment_ledger.csv
-
-agency -> restricts_choice -> clinic
-  pattern: no independent provider choice
-  evidence: row_002 recruiter_chat.txt
-
-worker -> seeks_remedy -> labour_regulator
-  remedy: refund and non-retaliation
-  evidence: row_005 complaint_notes.md</div>
+          <div class="demo-timeline" data-demo-steps="case">
+            <div class="demo-step">Upload accepted</div>
+            <div class="demo-step">Parse documents</div>
+            <div class="demo-step">Extract entities</div>
+            <div class="demo-step">Gemma edge pass</div>
+            <div class="demo-step">Graph ready</div>
+          </div>
+          <div class="mini-graph" aria-label="Example typed edges">
+            <div class="mini-edge"><b>paid_fee</b>worker -&gt; recruiter<br>PHP 45,000<br>row_003</div>
+            <div class="mini-edge"><b>restricts_choice</b>agency -&gt; clinic<br>mandatory clinic<br>row_002</div>
+            <div class="mini-edge"><b>seeks_remedy</b>worker -&gt; regulator<br>refund + non-retaliation<br>row_005</div>
+          </div>
+          <div class="demo-output" data-demo-output="case">Ready. Click Process sample to animate parsing, edge creation, and graph-chat readiness.</div>
         </div>
       </div>
     </section>
@@ -737,9 +917,12 @@ worker -> seeks_remedy -> labour_regulator
           <div class="phone-demo" aria-label="Mobile conversation illustration">
             <div class="phone-bar"><span>DueCare</span><span>offline</span></div>
             <div class="bubble user">My employer says they need to keep my passport. I am afraid to complain.</div>
-            <div class="bubble ai">You should be able to keep your passport. If asking directly feels unsafe, save messages, contact a trusted NGO or consulate, and avoid warning the employer before you have support.</div>
-            <div class="bubble user">Can I report without losing my job?</div>
-            <div class="bubble ai">Retaliation may be prohibited, but pressure can still happen. Use a safe reporting channel and keep copies of contracts, receipts, and messages.</div>
+            <div class="bubble ai is-hidden" data-phone-bubble> You should be able to keep your passport. If asking directly feels unsafe, save messages, contact a trusted NGO or consulate, and avoid warning the employer before you have support.</div>
+            <div class="bubble user is-hidden" data-phone-bubble>Can I report without losing my job?</div>
+            <div class="bubble ai is-hidden" data-phone-bubble>Retaliation may be prohibited, but pressure can still happen. Use a safe reporting channel and keep copies of contracts, receipts, and messages.</div>
+            <div class="phone-actions">
+              <button type="button" class="demo-button secondary" data-demo-run="phone">Ask phone assistant</button>
+            </div>
           </div>
         </div>
       </div>
@@ -752,8 +935,11 @@ worker -> seeks_remedy -> labour_regulator
         <div class="chat-frame">
           <div class="chat-prompt-label">Audience: <b id="demo-audience-label">worker</b> / Use case: <b id="demo-usecase-label">PH-HK placement fee</b><span class="chat-cached" id="demo-cached-pill">cached</span></div>
           <div class="chat-prompt" id="demo-prompt">A recruiter says I have to pay PHP 50,000 in training fees before my Hong Kong visa will be released. Is this legal?</div>
-          <div class="chat-response-label">Gemma 4 + DueCare harness</div>
-          <div class="chat-response" id="demo-response">No. For Filipino domestic workers bound for Hong Kong, the worker-paid placement fee should be zero PHP under the corridor rule. Training, processing, medical, documentation, or transport charges can still be prohibited if they function as recruitment costs.
+          <div class="demo-head" style="margin: 4px 0 10px;">
+            <div class="chat-response-label" style="margin: 0;">Local response</div>
+            <button type="button" class="demo-button" data-demo-run="chat">Ask Gemma 4</button>
+          </div>
+          <div class="chat-response" id="demo-response" data-demo-output="chat">No. For Filipino domestic workers bound for Hong Kong, the worker-paid placement fee should be zero PHP under the corridor rule. Training, processing, medical, documentation, or transport charges can still be prohibited if they function as recruitment costs.
 
 Safer next steps:
 - Do not pay until you have checked the agency and fee rule.
@@ -766,7 +952,7 @@ This demo answer is loaded from localStorage['duecare.slides.demo.chat'] when Pr
       </div>
     </section>
 
-    <section class="slide dark" data-slide-id="research-overview">
+    <section class="slide" data-slide-id="research-overview">
       <div class="slide-content">
         <div class="eyebrow">Research overview</div>
         <h2>Research questions become graph questions, not spreadsheet archaeology.</h2>
@@ -783,21 +969,25 @@ This demo answer is loaded from localStorage['duecare.slides.demo.chat'] when Pr
       <div class="slide-content">
         <div class="eyebrow">Research demo</div>
         <h2>Demo: find the agencies and accounts receiving illicit fees.</h2>
-        <div class="split">
-          <div class="code-block">Research prompt:
-"Across confirmed cases, group recruitment-fee payments by agency, bank account, and corridor. Flag accounts that appear in more than one case and show the strongest evidence rows."
-
-Answer shape:
-1. Clustered entities
-2. Payment totals and currencies
-3. Repeated account numbers
-4. Supporting row IDs
-5. Missing evidence checklist
-6. Suggested next verification steps</div>
-          <div class="panel">
-            <h3>Why Gemma 4 helps</h3>
-            <p>Deterministic extraction finds rows and entities. Gemma 4 can synthesize the investigative question, explain uncertainty, propose alternate entity matches, and convert the result into regulator-ready language.</p>
+        <div class="demo-console" data-demo="research">
+          <div class="demo-head">
+            <div>
+              <h3>Graph query</h3>
+              <p>Runs against confirmed case graph rows, not unsourced spreadsheet guesses.</p>
+            </div>
+            <button type="button" class="demo-button" data-demo-run="research">Ask graph</button>
           </div>
+          <div class="demo-input">Research prompt:
+"Across confirmed cases, group recruitment-fee payments by agency, bank account, and corridor. Flag accounts that appear in more than one case and show the strongest evidence rows."
+          </div>
+          <div class="demo-timeline" data-demo-steps="research">
+            <div class="demo-step">Load graph</div>
+            <div class="demo-step">Group entities</div>
+            <div class="demo-step">Rank evidence</div>
+            <div class="demo-step">Gemma synthesis</div>
+            <div class="demo-step">Verification list</div>
+          </div>
+          <div class="demo-output" data-demo-output="research">Ready. Click Ask graph to animate the graph query and synthesis.</div>
         </div>
       </div>
     </section>
@@ -815,38 +1005,26 @@ Answer shape:
       </div>
     </section>
 
-    <section class="slide dark" data-slide-id="knowledge-sharing-demo">
+    <section class="slide" data-slide-id="knowledge-sharing-demo">
       <div class="slide-content">
         <div class="eyebrow">Anonymized knowledge sharing demo</div>
         <h2>Demo: extract shareable facts from a confirmed case graph.</h2>
-        <div class="split">
-          <div class="code-block">KnowledgeObject candidates:
-- fact_type: worker_paid_recruitment_fee
-  value: PHP 45,000
-  corridor: Philippines -> Hong Kong
-  evidence: row_003
-  pii_status: redacted
-
-- fact_type: refund_obtained
-  value: PHP 20,000
-  remedy_path: regulator complaint
-  evidence: row_014
-  pii_status: redacted
-
-- fact_type: small_claim_filed
-  forum: labour tribunal
-  outcome: pending
-  evidence: row_019
-  pii_status: redacted</div>
-          <div class="panel">
-            <h3>Reviewer control</h3>
-            <ul>
-              <li>Nothing leaves the local workbench by default.</li>
-              <li>The reviewer sees every proposed fact before export.</li>
-              <li>The anonymization gate must pass before sharing.</li>
-              <li>Shared facts become retrieval and research material, not raw testimony dumps.</li>
-            </ul>
+        <div class="demo-console" data-demo="sharing">
+          <div class="demo-head">
+            <div>
+              <h3>Privacy-gated promotion</h3>
+              <p>Nothing leaves local staging until reviewed facts pass redaction and consent checks.</p>
+            </div>
+            <button type="button" class="demo-button" data-demo-run="sharing">Review facts</button>
           </div>
+          <div class="demo-timeline" data-demo-steps="sharing">
+            <div class="demo-step">Select facts</div>
+            <div class="demo-step">Remove PII</div>
+            <div class="demo-step">Check k-anon</div>
+            <div class="demo-step">Reviewer confirm</div>
+            <div class="demo-step">Export package</div>
+          </div>
+          <div class="demo-output" data-demo-output="sharing">Ready. Click Review facts to animate anonymized knowledge-object creation.</div>
         </div>
       </div>
     </section>
@@ -866,7 +1044,7 @@ Answer shape:
       </div>
     </section>
 
-    <section class="slide accent" data-slide-id="conclusion">
+    <section class="slide" data-slide-id="conclusion">
       <div class="slide-content">
         <div class="eyebrow">Conclusion</div>
         <h2>DueCare turns Gemma 4 into a local protection workflow.</h2>
@@ -913,7 +1091,7 @@ Answer shape:
       </div>
     </section>
 
-    <section class="slide dark" data-slide-id="appendix">
+    <section class="slide" data-slide-id="appendix">
       <div class="slide-content">
         <div class="eyebrow">Appendix</div>
         <h2>Recording sequence and implementation notes.</h2>
@@ -1027,7 +1205,10 @@ Answer shape:
       const useCase = document.getElementById('demo-usecase-label');
       const cached = document.getElementById('demo-cached-pill');
       if (prompt) prompt.textContent = item.prompt;
-      if (response) response.textContent = item.response;
+      if (response) {
+        response.textContent = item.response;
+        response.dataset.fullText = item.response;
+      }
       if (audience && item.audience) audience.textContent = item.audience;
       if (useCase && item.use_case) useCase.textContent = item.use_case;
       if (cached) cached.textContent = 'cached';
@@ -1035,6 +1216,112 @@ Answer shape:
       // Keep the default demo text when storage is unavailable or invalid.
     }
   }
+
+  const slideDemoOutputs = {
+    moderation:
+`GREP fired:
+- wage_assignment_to_lender
+- fee_camouflage_medical_exam
+- corridor_PH_to_HK_zero_fee
+- tri_party_quad_party_arrangement
+
+Bounded answer:
+No. The structure still charges the worker to obtain employment. The safe response refuses contract wording or evasion steps, names fee camouflage and debt bondage risk, cites the corridor cap, and redirects to employer-paid costs plus trusted reporting paths.`,
+    case:
+`Processing complete.
+
+Rows: 5 documents
+Entities: worker, recruiter, clinic, employer, regulator
+Payments: PHP 45,000 recruitment-fee ledger entry
+Gemma edge proposals: 3
+
+Graph chat is now ready:
+"Draft a complaint outline and cite the strongest evidence rows."`,
+    research:
+`Grouped finding:
+1. Agency cluster A appears in 3 fee records.
+2. Account ending 8842 appears in 2 case folders.
+3. Clinic restriction appears beside training-fee language in both folders.
+
+Strongest evidence:
+- row_003 payment_ledger.csv
+- row_007 recruiter_chat.txt
+- row_011 contract_excerpt.pdf
+
+Missing evidence:
+- bank receipt image quality
+- regulator complaint filing date`,
+    sharing:
+`KnowledgeObject candidates:
+- worker_paid_recruitment_fee | PHP 45,000 | PH -> HK | evidence row_003 | PII redacted
+- restricted_provider_choice | mandatory clinic | evidence row_007 | PII redacted
+- refund_request_filed | regulator complaint draft | evidence row_014 | PII redacted
+
+Status: ready for reviewer confirmation. Raw chats, names, phones, addresses, and documents remain local.`,
+  };
+
+  function markDemoStep(name, index) {
+    const holder = document.querySelector('[data-demo-steps="' + name + '"]');
+    if (!holder) return;
+    Array.from(holder.querySelectorAll('.demo-step')).forEach((step, i) => {
+      step.classList.toggle('is-on', i <= index);
+    });
+  }
+
+  function typeText(el, text, onDone) {
+    if (!el) return;
+    el.classList.add('typing');
+    el.textContent = '';
+    let i = 0;
+    const stride = Math.max(2, Math.ceil(text.length / 180));
+    const timer = window.setInterval(() => {
+      i += stride;
+      el.textContent = text.slice(0, i);
+      if (i >= text.length) {
+        window.clearInterval(timer);
+        el.classList.remove('typing');
+        if (onDone) onDone();
+      }
+    }, 12);
+  }
+
+  function runPhoneDemo(button) {
+    const bubbles = Array.from(document.querySelectorAll('[data-phone-bubble]'));
+    bubbles.forEach((bubble) => bubble.classList.add('is-hidden'));
+    if (button) button.disabled = true;
+    bubbles.forEach((bubble, i) => {
+      window.setTimeout(() => {
+        bubble.classList.remove('is-hidden');
+        if (i === bubbles.length - 1 && button) button.disabled = false;
+      }, 260 * (i + 1));
+    });
+  }
+
+  function runSlideDemo(name, button) {
+    if (name === 'phone') {
+      runPhoneDemo(button);
+      return;
+    }
+    const output = document.querySelector('[data-demo-output="' + name + '"]');
+    if (!output) return;
+    const text = name === 'chat'
+      ? (output.dataset.fullText || output.textContent)
+      : slideDemoOutputs[name];
+    if (!text) return;
+    if (button) button.disabled = true;
+    const steps = document.querySelectorAll('[data-demo-steps="' + name + '"] .demo-step').length;
+    for (let i = 0; i < steps; i += 1) {
+      window.setTimeout(() => markDemoStep(name, i), 160 * (i + 1));
+    }
+    window.setTimeout(() => typeText(output, text, () => {
+      output.dataset.fullText = text;
+      if (button) button.disabled = false;
+    }), steps ? 160 * (steps + 1) : 120);
+  }
+
+  document.querySelectorAll('[data-demo-run]').forEach((button) => {
+    button.addEventListener('click', () => runSlideDemo(button.dataset.demoRun, button));
+  });
 
   if (window.location.hash) {
     const id = window.location.hash.slice(1);
