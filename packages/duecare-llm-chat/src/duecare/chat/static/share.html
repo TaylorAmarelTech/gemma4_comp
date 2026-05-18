@@ -52,6 +52,16 @@
     .wb-diff-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
                      padding: 8px; border-bottom: 1px solid #EFEDE4; font-size: 12px; }
     .wb-diff-row .raw { color: #92400e; } .wb-diff-row .redacted { color: oklch(0.32 0.07 155); }
+    .wb-progress-box { background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:12px; margin:10px 0; }
+    .wb-progress-head { display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:8px; }
+    .wb-progress-track { height:8px; background:#EFEDE4; border-radius:999px; overflow:hidden; }
+    .wb-progress-fill { display:block; height:100%; width:0%; background:oklch(0.52 0.08 195); transition:width 220ms ease; }
+    .wb-progress-box.active .wb-progress-fill { background:linear-gradient(90deg, oklch(0.45 0.08 195), oklch(0.70 0.11 155), oklch(0.45 0.08 195)); background-size:220% 100%; animation:wb-progress-sheen 1.2s linear infinite; }
+    @keyframes wb-progress-sheen { 0% { background-position:0% 50%; } 100% { background-position:220% 50%; } }
+    .wb-progress-note { color:#5B5F68; font-size:11.5px; line-height:1.45; margin-top:9px; }
+    .wb-progress-events { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:6px; margin-top:10px; }
+    .wb-progress-event { border:1px solid #EFEDE4; border-radius:7px; background:#FFF; color:#5B5F68; padding:7px 8px; font-size:11px; line-height:1.3; overflow-wrap:anywhere; }
+    .wb-progress-event.done { border-color:oklch(0.76 0.08 155); color:oklch(0.32 0.08 155); }
     a { color: oklch(0.32 0.07 195); }
   </style>
 </head>
@@ -101,6 +111,15 @@
         </div>
         <div class="wb-row">
           <button class="wb-btn-primary" id="wb-step1-btn" disabled onclick="wbStep1()">Step 1: Process uploaded file</button>
+        </div>
+        <div class="wb-progress-box" id="wb-share-process-progress-box" hidden>
+          <div class="wb-progress-head">
+            <div><b id="wb-share-process-stage">Process idle</b><div class="wb-muted" id="wb-share-process-detail">No source bundle is processing.</div></div>
+            <span class="wb-pill" id="wb-share-process-label">0%</span>
+          </div>
+          <div class="wb-progress-track" aria-hidden="true"><span class="wb-progress-fill" id="wb-share-process-fill"></span></div>
+          <div class="wb-progress-note" id="wb-share-process-note">Local Bulk File Review progress appears here.</div>
+          <div class="wb-progress-events" id="wb-share-process-events"></div>
         </div>
         <div id="wb-step1-error" class="wb-error" style="display: none; margin-top: 8px;"></div>
       </div>
@@ -155,6 +174,16 @@
         </div>
         <div class="wb-row">
           <button class="wb-btn-primary" id="wb-step3-btn" disabled onclick="wbStep3()" title="Deterministic regex redaction always runs. Gemma residual-PII review only runs when a Gemma 4 model is loaded; otherwise it is skipped without blocking submission.">Step 3: Run anonymization (Gemma review if loaded)</button>
+          <button class="wb-btn-secondary" id="wb-step3-fast-btn" disabled onclick="wbStep3(false)" title="Fast recording fallback: deterministic salted-hash redaction only.">Run deterministic only</button>
+        </div>
+        <div class="wb-progress-box" id="wb-anon-progress-box" hidden>
+          <div class="wb-progress-head">
+            <div><b id="wb-anon-stage">Anonymization idle</b><div class="wb-muted" id="wb-anon-detail">No anonymization job is running.</div></div>
+            <span class="wb-pill" id="wb-anon-label">0%</span>
+          </div>
+          <div class="wb-progress-track" aria-hidden="true"><span class="wb-progress-fill" id="wb-anon-fill"></span></div>
+          <div class="wb-progress-note" id="wb-anon-note">Regex redaction runs first; Gemma privacy review is optional.</div>
+          <div class="wb-progress-events" id="wb-anon-events"></div>
         </div>
         <div id="wb-step3-error" class="wb-error" style="display: none; margin-top: 8px;"></div>
       </div>
@@ -193,6 +222,7 @@
   <script>
     let wbFile = null, wbBundle = null, wbChecked = new Set(), wbAnonymized = null;
     let wbShareProcessSeenEvents = new Set();
+    let wbAnonSeenEvents = new Set();
     let wbShareStepper = null;
     function wbGetShareStepper() {
       if (!wbShareStepper && window.dcWorkflow) {
@@ -228,6 +258,33 @@
       fn(msg, detail);
     };
     window.addEventListener('DOMContentLoaded', wbGetLog);
+    function wbSetProgress(prefix, pct, stage, detail, note, active) {
+      const box = document.getElementById(prefix + '-progress-box');
+      const fill = document.getElementById(prefix + '-fill');
+      const label = document.getElementById(prefix + '-label');
+      const stageEl = document.getElementById(prefix + '-stage');
+      const detailEl = document.getElementById(prefix + '-detail');
+      const noteEl = document.getElementById(prefix + '-note');
+      const safePct = Math.max(0, Math.min(100, Number(pct) || 0));
+      if (box) {
+        box.hidden = false;
+        box.classList.toggle('active', !!active);
+      }
+      if (fill) fill.style.width = safePct + '%';
+      if (label) label.textContent = safePct + '%';
+      if (stageEl) stageEl.textContent = stage || 'Working';
+      if (detailEl) detailEl.textContent = detail || '';
+      if (noteEl) noteEl.textContent = note || 'Running locally in the Kaggle kernel.';
+    }
+    function wbAddProgressEvent(prefix, evt) {
+      const host = document.getElementById(prefix + '-events');
+      if (!host) return;
+      const item = document.createElement('div');
+      item.className = 'wb-progress-event' + (evt.status === 'error' ? '' : ' done');
+      item.innerHTML = '<b>' + escapeHtml(evt.phase || evt.status || 'event') + '</b>' +
+        '<div class="wb-muted">' + escapeHtml((evt.pct != null ? evt.pct + '% | ' : '') + (evt.detail || '')) + '</div>';
+      host.appendChild(item);
+    }
     function escapeHtml(value) {
       return String(value == null ? '' : value).replace(/[&<>"']/g, ch => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
@@ -238,6 +295,7 @@
         const key = [evt.ts, evt.phase, evt.pct, evt.detail].join('|');
         if (wbShareProcessSeenEvents.has(key)) return;
         wbShareProcessSeenEvents.add(key);
+        wbAddProgressEvent('wb-share-process', evt);
         wbLog(evt.status === 'error' ? 'err' : 'step',
           'Process job: ' + (evt.phase || evt.status || 'event'),
           (evt.detail || '') + (evt.pct != null ? ' | ' + evt.pct + '%' : ''));
@@ -257,8 +315,13 @@
           throw new Error('process job poll failed: HTTP ' + r.status);
         }
         wbShareJobEvents(job);
+        wbSetProgress('wb-share-process', job.pct || 0, job.phase || job.status || 'running',
+          job.detail || 'running',
+          'Process job ' + jobId + ' | elapsed ' + Math.round(dt / 1000) + 's',
+          job.status !== 'complete');
         if (job.status === 'complete') {
           if (!job.result) throw new Error('process job completed without result payload');
+          wbSetProgress('wb-share-process', 100, 'Source bundle processed', job.detail || 'Complete.', 'Review extracted facts in Step 2.', false);
           return job.result;
         }
         if (job.status === 'error') {
@@ -280,6 +343,9 @@
       const btn = document.getElementById('wb-step1-btn'); btn.disabled = true; btn.textContent = 'Processing...';
       document.getElementById('wb-step1-error').style.display = 'none';
       wbShareProcessSeenEvents = new Set();
+      const processEvents = document.getElementById('wb-share-process-events');
+      if (processEvents) processEvents.innerHTML = '';
+      wbSetProgress('wb-share-process', 5, 'Uploading source bundle', 'Sending the source bundle to the local Process harness.', 'No remote call is made in Step 1.', true);
       wbLog('info', 'POST /api/process/batch/start',
         'file=' + wbFile.name + ' | inline_gemma_text=false | max_gemma_calls=0');
       const t0 = performance.now();
@@ -354,11 +420,58 @@
       document.getElementById('wb-diff-host').innerHTML =
         '<div class="wb-muted" style="padding:12px;">' + escapeHtml(selected.length) + ' fact(s) staged. Click Step 3 to redact PII.</div>';
       document.getElementById('wb-step3-btn').disabled = selected.length === 0;
+      document.getElementById('wb-step3-fast-btn').disabled = selected.length === 0;
       wbSetStep(3);
       wbLog('info', 'Step 2 confirmed', selected.length + ' facts staged for anonymization');
     }
-    async function wbStep3() {
+    function wbAnonJobEvents(job) {
+      (job.events || []).forEach(evt => {
+        const key = [evt.ts, evt.phase, evt.pct, evt.detail].join('|');
+        if (wbAnonSeenEvents.has(key)) return;
+        wbAnonSeenEvents.add(key);
+        wbAddProgressEvent('wb-anon', evt);
+        wbLog(evt.status === 'error' ? 'err' : 'step',
+          'Anonymization job: ' + (evt.phase || evt.status || 'event'),
+          (evt.detail || '') + (evt.pct != null ? ' | ' + evt.pct + '%' : ''));
+      });
+    }
+    async function wbPollAnonymizeJob(jobId, t0, gemmaReview) {
+      const pollUrl = '/api/anonymize/status/' + encodeURIComponent(jobId);
+      const maxPolls = gemmaReview ? 180 : 40;
+      for (let i = 0; i < maxPolls; i++) {
+        await new Promise(resolve => setTimeout(resolve, i === 0 ? 250 : 1000));
+        const r = await fetch(pollUrl, {cache: 'no-store'});
+        const text = await r.text();
+        let job = null;
+        try { job = JSON.parse(text); } catch (_) {}
+        const dt = Math.round(performance.now() - t0);
+        if (!r.ok || !job) {
+          wbLog('err', 'Anonymization poll failed HTTP ' + r.status + ' (' + dt + 'ms)', text.slice(0, 220));
+          throw new Error('anonymization poll failed: HTTP ' + r.status);
+        }
+        wbAnonJobEvents(job);
+        wbSetProgress('wb-anon', job.pct || 0, job.phase || job.status || 'running',
+          job.detail || 'running',
+          'Anonymization job ' + jobId + ' | elapsed ' + Math.round(dt / 1000) + 's',
+          job.status !== 'complete');
+        if (job.status === 'complete') {
+          if (!job.result) throw new Error('anonymization job completed without result payload');
+          wbSetProgress('wb-anon', 100, 'Anonymization complete', job.detail || 'Complete.', 'Review redactions before submitting.', false);
+          return job.result;
+        }
+        if (job.status === 'abandoned' || job.status === 'cancelled') {
+          throw new Error(job.detail || 'anonymization job abandoned');
+        }
+        if (job.status === 'error') {
+          throw new Error(job.error || job.detail || 'anonymization job failed');
+        }
+      }
+      await fetch('/api/anonymize/cancel/' + encodeURIComponent(jobId), {method:'POST'}).catch(() => {});
+      throw new Error('Gemma privacy review polling timed out. Use Run deterministic only for the recording path.');
+    }
+    async function wbStep3(gemmaReview = true) {
       const btn = document.getElementById('wb-step3-btn'); btn.disabled = true; btn.textContent = 'Anonymizing...';
+      const fastBtn = document.getElementById('wb-step3-fast-btn'); if (fastBtn) fastBtn.disabled = true;
       document.getElementById('wb-step3-error').style.display = 'none';
       const rows = (wbBundle && wbBundle.results) || [];
       const selected = Array.from(wbChecked).map(i => rows[i]).filter(Boolean);
@@ -366,22 +479,30 @@
         const ents = Object.entries(r.entities || {}).map(([k, v]) => k + ': ' + (v || []).join(', ')).join(' | ');
         return 'row_id=' + r.row_id + ' source=' + (r.source || '') + ' entities=' + ents;
       });
-      wbLog('info', 'POST /api/anonymize', 'n_texts=' + texts.length + ' | gemma_review=true');
+      wbAnonSeenEvents = new Set();
+      const anonEvents = document.getElementById('wb-anon-events');
+      if (anonEvents) anonEvents.innerHTML = '';
+      wbSetProgress('wb-anon', 5, 'Starting anonymization', 'Submitting selected rows to local redaction job.',
+        gemmaReview ? 'Gemma privacy review requested after regex redaction.' : 'Deterministic redaction only.', true);
+      wbLog('info', 'POST /api/anonymize/start', 'n_texts=' + texts.length + ' | gemma_review=' + gemmaReview);
       const t0 = performance.now();
       try {
-        const r = await fetch('/api/anonymize', {
+        const r = await fetch('/api/anonymize/start', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ texts: texts, gemma_review: true })
+          body: JSON.stringify({ texts: texts, gemma_review: gemmaReview })
         });
         const dt = Math.round(performance.now() - t0);
-        if (!r.ok) {
-          const tt = await r.text(); wbLog('err', 'HTTP ' + r.status + ' (' + dt + 'ms)', tt.slice(0, 200));
+        const start = await r.json().catch(() => ({}));
+        if (!r.ok || !start.job_id) {
+          wbLog('err', 'HTTP ' + r.status + ' (' + dt + 'ms)', JSON.stringify(start).slice(0, 200));
           throw new Error('HTTP ' + r.status);
         }
-        const out = await r.json();
+        wbLog('ok', 'Anonymization job accepted (' + dt + 'ms)', 'job_id=' + start.job_id);
+        const out = await wbPollAnonymizeJob(start.job_id, t0, gemmaReview);
+        const finalDt = Math.round(performance.now() - t0);
         const totalRed = (out.diffs || []).reduce((a, d) => a + (d.n_redactions || 0), 0);
         const review = out.gemma_review || {};
-        wbLog('ok', 'HTTP ' + r.status + ' (' + dt + 'ms)',
+        wbLog('ok', 'Anonymization complete (' + finalDt + 'ms)',
               'n_redactions_total=' + totalRed + ' | per-text=' + (out.diffs || []).map(d => d.n_redactions).join(',') +
               ' | gemma_review=' + (review.overall_status || review.status || 'unknown'));
         wbAnonymized = { selected: selected, redacted: out.redacted || [], diffs: out.diffs || [], gemma_review: review };
@@ -391,7 +512,10 @@
       } catch (e) {
         const err = document.getElementById('wb-step3-error');
         err.textContent = 'Step 3 failed: ' + (e && e.message || e); err.style.display = '';
-      } finally { btn.disabled = false; btn.textContent = 'Step 3: Run anonymization + Gemma review'; }
+      } finally {
+        btn.disabled = false; btn.textContent = 'Step 3: Run anonymization (Gemma review if loaded)';
+        if (fastBtn) fastBtn.disabled = selected.length === 0;
+      }
     }
     function wbRenderDiffs() {
       const host = document.getElementById('wb-diff-host');

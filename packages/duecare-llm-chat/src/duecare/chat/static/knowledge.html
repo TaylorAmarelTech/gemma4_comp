@@ -88,6 +88,16 @@
     .kx-example { text-align:left; background:#FAF9F4; border:1px solid #DDD8C9; border-radius:8px; padding:9px 10px; cursor:pointer; font-size:12px; color:#2A2D34; line-height:1.45; }
     .kx-example:hover { border-color: oklch(0.52 0.08 195); color:#0E1116; }
     .kx-action-note { background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:10px 12px; color:#5B5F68; font-size:12px; line-height:1.45; }
+    .kx-progress-box { background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:12px; margin:10px 0; }
+    .kx-progress-head { display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:8px; }
+    .kx-progress-track { height:8px; background:#EFEDE4; border-radius:999px; overflow:hidden; }
+    .kx-progress-fill { display:block; height:100%; width:0%; background:oklch(0.52 0.08 195); transition:width 220ms ease; }
+    .kx-progress-box.active .kx-progress-fill { background:linear-gradient(90deg, oklch(0.45 0.08 195), oklch(0.70 0.11 155), oklch(0.45 0.08 195)); background-size:220% 100%; animation:kx-progress-sheen 1.2s linear infinite; }
+    @keyframes kx-progress-sheen { 0% { background-position:0% 50%; } 100% { background-position:220% 50%; } }
+    .kx-progress-note { color:#5B5F68; font-size:11.5px; line-height:1.45; margin-top:9px; }
+    .kx-progress-events { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:6px; margin-top:10px; }
+    .kx-progress-event { border:1px solid #EFEDE4; border-radius:7px; background:#FFF; color:#5B5F68; padding:7px 8px; font-size:11px; line-height:1.3; overflow-wrap:anywhere; }
+    .kx-progress-event.done { border-color:oklch(0.76 0.08 155); color:oklch(0.32 0.08 155); }
   
     @media (max-width: 620px) {
       .wb-page { padding: 0 12px !important; }
@@ -99,8 +109,8 @@
   <main class="wb-page">
     <h1 class="wb-h1">Knowledge Extraction</h1>
     <div class="wb-trust">
-      <b>Trust boundary:</b> Extraction runs locally against the loaded
-      Gemma 4 model. Drafted envelopes stay in
+      <b>Trust boundary:</b> Source processing, deterministic drafting, and
+      optional Gemma 4 refinement run locally in this kernel. Drafted envelopes stay in
       <code>/kaggle/working/knowledge/</code>; nothing leaves the kernel
       unless you anonymize and submit on Anonymization &amp; Sharing.
     </div>
@@ -167,6 +177,15 @@
           </div>
           <input type="file" id="kx-source-file-input" style="display:none;" accept=".zip,.csv,.jsonl,.txt,.md,.log,.json,.doc,.docx,.xls,.xlsx,.eml,.html,.htm,.rtf,.pdf,.png,.jpg,.jpeg,.webp,.tif,.tiff,.bmp" onchange="kxHandleSourceFile(event)">
           <div id="kx-source-file-status" class="wb-muted" style="margin:-2px 0 8px;"></div>
+          <div class="kx-progress-box" id="kx-source-progress-box" hidden>
+            <div class="kx-progress-head">
+              <div><b id="kx-source-progress-stage">Source idle</b><div class="wb-muted" id="kx-source-progress-detail">No source bundle is processing.</div></div>
+              <span class="wb-pill" id="kx-source-progress-label">0%</span>
+            </div>
+            <div class="kx-progress-track" aria-hidden="true"><span class="kx-progress-fill" id="kx-source-progress-fill"></span></div>
+            <div class="kx-progress-note" id="kx-source-progress-note">Local Process harness progress appears here.</div>
+            <div class="kx-progress-events" id="kx-source-progress-events"></div>
+          </div>
           <textarea id="kx-raw" rows="6" placeholder="Optional: paste a short recruiter message, contract clause, court filing excerpt, or NGO report fragment if you do not have a source bundle to upload..." style="width:100%; box-sizing:border-box; font-family:var(--mono); font-size:12.5px; padding:10px; border:1px solid #DDD8C9; border-radius:8px; background:#FFF;"></textarea>
           <div class="wb-row" style="margin-top:10px; gap:10px; align-items:center; flex-wrap:wrap;">
             <label style="font-size:12px; margin-left:8px;">
@@ -206,7 +225,7 @@
           <span class="kx-step-index">2</span>
           <span>
             <span class="kx-step-title">Draft and review suggested knowledge objects</span>
-            <span class="kx-step-summary">Gemma 4 suggests reviewable envelopes such as GREP rules, RAG docs, context snippets, contacts, or rubric dimensions.</span>
+            <span class="kx-step-summary">Deterministic hints draft fast envelopes; optional Gemma 4 refinement improves wording and schema fit when loaded.</span>
           </span>
           <span class="kx-step-state" id="kx-step-draft-state">Waiting</span>
         </summary>
@@ -236,10 +255,21 @@
           <div id="kx-extract-result" class="kx-empty" style="margin-top:10px;">
             Drafted envelopes will appear here with promote buttons after Step 1 has source text.
           </div>
+          <div class="kx-progress-box" id="kx-draft-progress-box" hidden>
+            <div class="kx-progress-head">
+              <div><b id="kx-draft-progress-stage">Draft idle</b><div class="wb-muted" id="kx-draft-progress-detail">No draft job is running.</div></div>
+              <span class="wb-pill" id="kx-draft-progress-label">0%</span>
+            </div>
+            <div class="kx-progress-track" aria-hidden="true"><span class="kx-progress-fill" id="kx-draft-progress-fill"></span></div>
+            <div class="kx-progress-note" id="kx-draft-progress-note">Deterministic drafting is fast; Gemma refinement can take longer on large source summaries.</div>
+            <div class="kx-progress-events" id="kx-draft-progress-events"></div>
+          </div>
           <div class="kx-step-actions">
             <span id="kx-extract-status" class="wb-muted" style="font-size:11.5px;"></span>
             <a class="wb-btn-secondary" href="/api/knowledge/taxonomy" target="_blank">Runtime taxonomy JSON</a>
             <a class="wb-btn-secondary" href="/api/knowledge/type-catalog" target="_blank">Type catalog JSON</a>
+            <button class="wb-btn-secondary" id="kx-cancel-draft-btn" type="button" onclick="kxCancelDraftJob()" disabled>Abandon draft polling</button>
+            <button class="wb-btn-secondary" id="kx-deterministic-draft-btn" type="button" onclick="kxExtract(false)" disabled>Draft deterministic only</button>
             <button class="wb-btn-secondary" id="kx-finish-review-btn" type="button" onclick="kxFinishDraftReview()" disabled>Finish review</button>
             <button class="wb-btn-primary" id="kx-extract-btn" onclick="kxExtract()">Draft knowledge objects</button>
           </div>
@@ -311,10 +341,37 @@
         const stepper = kxGetWorkflowStepper();
         if (stepper) stepper.set(active);
       }
-      function kxSetPipeline(active){
+    function kxSetPipeline(active){
         const mapped = active >= 4 ? 2 : (active >= 1 ? 1 : 0);
         kxSetWorkflow(mapped);
       }
+    function kxSetProgress(prefix, pct, stage, detail, note, active) {
+      const box = document.getElementById(prefix + '-progress-box');
+      const fill = document.getElementById(prefix + '-progress-fill');
+      const label = document.getElementById(prefix + '-progress-label');
+      const stageEl = document.getElementById(prefix + '-progress-stage');
+      const detailEl = document.getElementById(prefix + '-progress-detail');
+      const noteEl = document.getElementById(prefix + '-progress-note');
+      const safePct = Math.max(0, Math.min(100, Number(pct) || 0));
+      if (box) {
+        box.hidden = false;
+        box.classList.toggle('active', !!active);
+      }
+      if (fill) fill.style.width = safePct + '%';
+      if (label) label.textContent = safePct + '%';
+      if (stageEl) stageEl.textContent = stage || 'Working';
+      if (detailEl) detailEl.textContent = detail || '';
+      if (noteEl) noteEl.textContent = note || 'Running locally in the Kaggle kernel.';
+    }
+    function kxAddProgressEvent(prefix, evt) {
+      const host = document.getElementById(prefix + '-progress-events');
+      if (!host) return;
+      const item = document.createElement('div');
+      item.className = 'kx-progress-event' + (evt.status === 'error' ? '' : ' done');
+      item.innerHTML = '<b>' + escapeHtml(evt.phase || evt.status || 'event') + '</b>' +
+        '<div class="wb-muted">' + escapeHtml((evt.pct != null ? evt.pct + '% | ' : '') + (evt.detail || '')) + '</div>';
+      host.appendChild(item);
+    }
     function kxOpenSourceUpload(){
       const input = document.getElementById('kx-source-file-input');
       if (input) input.click();
@@ -373,13 +430,19 @@
         const phase = job.phase || job.status || 'running';
         if (phase !== lastPhase) {
           lastPhase = phase;
+          kxSetProgress('kx-source', job.pct || 0, phase, job.detail || 'running',
+            'Source-bundle process job ' + jobId + ' | elapsed ' + Math.round(dt / 1000) + 's', job.status !== 'complete');
           wbLog(job.status === 'error' ? 'err' : 'step',
             'Source-bundle job ' + jobId + ': ' + phase,
             (job.detail || '') + ' | elapsed=' + Math.round(dt / 1000) + 's');
         }
+        (job.events || []).forEach(evt => kxAddProgressEvent('kx-source', evt));
         const status = document.getElementById('kx-source-file-status');
         if (status) status.textContent = 'Processing source bundle: ' + phase + ' (' + (job.pct || 0) + '%).';
-        if (job.status === 'complete') return job.result;
+        if (job.status === 'complete') {
+          kxSetProgress('kx-source', 100, 'Source bundle processed', job.detail || 'Complete.', 'Source text is ready for drafting.', false);
+          return job.result;
+        }
         if (job.status === 'error') throw new Error(job.error || job.detail || 'source bundle job failed');
         await kxSleep(1200);
       }
@@ -476,6 +539,9 @@
       const status = document.getElementById('kx-source-file-status');
       const rawEl = document.getElementById('kx-raw');
       if (status) status.textContent = 'Processing source bundle through the fast deterministic Bulk File Review path...';
+      const sourceEvents = document.getElementById('kx-source-progress-events');
+      if (sourceEvents) sourceEvents.innerHTML = '';
+      kxSetProgress('kx-source', 5, 'Uploading source bundle', 'Sending bundle to the local Process harness.', 'Upload and parse happen inside the Kaggle kernel.', true);
       wbLog('net', 'POST /api/process/batch/start',
         'source bundle=' + file.name + ' bytes=' + file.size +
         ' | inline_gemma_text=false | max_gemma_calls=0');
@@ -520,6 +586,7 @@
     function kxUseExample(text){
       document.getElementById("kx-raw").value = text;
       kxSetWorkflow(0);
+      kxSetDraftJob('');
       wbLog('info', 'Example source loaded', text.slice(0, 120));
     }
     function kxContinueToDraft(){
@@ -532,6 +599,7 @@
         return;
       }
       kxSetWorkflow(1);
+      kxSetDraftJob('');
       wbLog('step', 'Source text ready for drafting', raw.length + ' chars');
     }
     function kxToggleTaxonomy(){
@@ -540,6 +608,8 @@
     let kxDrafts = [];
     let kxPromotedDrafts = 0;
     let _kxSeenDraftEventKeys = new Set();
+    let kxActiveDraftJobId = '';
+    let kxDraftAbort = false;
     function kxSleep(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
     }
@@ -553,9 +623,35 @@
           (evt.pct != null ? evt.pct + '% | ' : '') + (evt.detail || ''));
       });
     }
-    async function kxPollDraftJob(jobId, t0, statusEl) {
+    async function kxCancelDraftJob(silent) {
+      if (!kxActiveDraftJobId) return null;
+      kxDraftAbort = true;
+      try {
+        const r = await fetch('/api/knowledge/draft-envelope/cancel/' + encodeURIComponent(kxActiveDraftJobId), {method:'POST'});
+        const job = await r.json().catch(() => ({}));
+        if (!silent) wbLog('warn', 'Knowledge draft polling abandoned', 'job_id=' + kxActiveDraftJobId + ' | status=' + (job.status || 'unknown'));
+        return job;
+      } catch (e) {
+        if (!silent) wbLog('err', 'Knowledge draft cancel failed', String(e).slice(0, 200));
+        return null;
+      }
+    }
+    function kxSetDraftJob(jobId) {
+      kxActiveDraftJobId = jobId || '';
+      const cancelBtn = document.getElementById('kx-cancel-draft-btn');
+      if (cancelBtn) cancelBtn.disabled = !kxActiveDraftJobId;
+      const detBtn = document.getElementById('kx-deterministic-draft-btn');
+      if (detBtn) detBtn.disabled = !!kxActiveDraftJobId || !(document.getElementById("kx-raw").value || "").trim();
+    }
+    async function kxPollDraftJob(jobId, t0, statusEl, useGemma) {
       const pollUrl = '/api/knowledge/draft-envelope/status/' + encodeURIComponent(jobId);
-      for (let attempt = 0; attempt < 900; attempt += 1) {
+      const maxAttempts = useGemma ? 180 : 40;
+      kxSetDraftJob(jobId);
+      kxDraftAbort = false;
+      for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+        if (kxDraftAbort) {
+          throw new Error('Knowledge draft polling abandoned. Run deterministic only for the recording path.');
+        }
         const r = await fetch(pollUrl, {cache: 'no-store'});
         const text = await r.text();
         let job = null;
@@ -566,6 +662,11 @@
           throw new Error('Knowledge draft polling failed: HTTP ' + r.status);
         }
         kxLogDraftEvents(jobId, job.events || []);
+        kxSetProgress('kx-draft', job.pct || 0, job.phase || job.status || 'running',
+          job.detail || 'running',
+          'Knowledge draft job ' + jobId + ' | elapsed ' + Math.round(dt / 1000) + 's',
+          job.status !== 'complete');
+        (job.events || []).forEach(evt => kxAddProgressEvent('kx-draft', evt));
         if (statusEl) {
           statusEl.textContent = 'Draft job ' + jobId + ': ' +
             (job.phase || job.status || 'running') + ' - ' +
@@ -573,14 +674,23 @@
         }
         if (job.status === 'complete') {
           if (!job.result) throw new Error('Knowledge draft job completed without result payload.');
+          kxSetProgress('kx-draft', 100, 'Draft suggestions ready', job.detail || 'Complete.', 'Review and promote useful envelopes.', false);
           return job.result;
+        }
+        if (job.status === 'abandoned' || job.status === 'cancelled') {
+          throw new Error(job.detail || 'Knowledge draft polling abandoned. Run deterministic only for the recording path.');
         }
         if (job.status === 'error') {
           throw new Error(job.error || job.detail || 'Knowledge draft job failed.');
         }
         await kxSleep(1500);
       }
-      throw new Error('Knowledge draft job polling timed out locally.');
+      await kxCancelDraftJob(true);
+      throw new Error(
+        useGemma
+          ? 'Gemma knowledge draft polling timed out. Click Draft deterministic only for the recording path.'
+          : 'Deterministic knowledge draft polling timed out locally.'
+      );
     }
     function kxFinishDraftReview(){
       if (!kxDrafts.length) {
@@ -593,11 +703,11 @@
       wbLog('ok', 'Knowledge draft review finished', kxDrafts.length + ' suggestion(s) reviewed.');
       kxSetWorkflow(2);
     }
-    async function kxExtract(){
+    async function kxExtract(forceGemma){
         const raw=(document.getElementById("kx-raw").value||"").trim();
         const leaf=document.getElementById("kx-leaf").value;
         const anonymize=document.getElementById("kx-anonymize").checked;
-        const useGemma=!!(document.getElementById("kx-use-gemma") && document.getElementById("kx-use-gemma").checked);
+        const useGemma=(forceGemma === false) ? false : !!(document.getElementById("kx-use-gemma") && document.getElementById("kx-use-gemma").checked);
         const statusEl=document.getElementById("kx-extract-status");
         const resultEl=document.getElementById("kx-extract-result");
         if(!raw){ statusEl.textContent="Paste some text first."; kxSetWorkflow(0); return; }
@@ -607,8 +717,14 @@
           return;
         }
         const btn=document.getElementById("kx-extract-btn");
+        const detBtn=document.getElementById("kx-deterministic-draft-btn");
         btn.disabled=true; const origTxt=btn.textContent; btn.textContent="Extracting...";
+        if (detBtn) detBtn.disabled = true;
         kxSetWorkflow(1);
+        const draftEvents = document.getElementById('kx-draft-progress-events');
+        if (draftEvents) draftEvents.innerHTML = '';
+        kxSetProgress('kx-draft', 5, 'Starting knowledge draft', 'Submitting source summary to the local extraction harness.',
+          useGemma ? 'Gemma refinement requested; deterministic fallback remains available.' : 'Deterministic draft path selected.', true);
         statusEl.textContent="POST /api/knowledge/draft-envelope/start (" + (useGemma ? "Gemma refinement" : "deterministic draft") + ") ...";
         wbLog('net', 'POST /api/knowledge/draft-envelope/start', 'target_leaf=' + leaf + ' | anonymize=' + anonymize + ' | use_gemma=' + useGemma + ' | chars=' + raw.length);
         const t0 = performance.now();
@@ -628,7 +744,8 @@
           }
           wbLog('ok', 'Knowledge draft job accepted (' + startDt + 'ms)', 'job_id=' + start.job_id);
           statusEl.textContent = 'Draft job accepted: ' + start.job_id + '. Polling progress...';
-          const out = await kxPollDraftJob(start.job_id, t0, statusEl);
+          const out = await kxPollDraftJob(start.job_id, t0, statusEl, useGemma);
+          kxSetDraftJob('');
           const dt = Math.round(performance.now() - t0);
           kxSetWorkflow(1);
           statusEl.textContent="Draft suggestions ready. Review, promote useful ones, then anonymize and share if appropriate.";
@@ -654,7 +771,9 @@
           statusEl.textContent="Extract failed: "+String(e).slice(0,200);
           wbLog('err', 'Draft suggestions failed', String(e).slice(0,200));
         }finally{
+          kxSetDraftJob('');
           btn.disabled=false; btn.textContent=origTxt;
+          if (detBtn) detBtn.disabled = !(document.getElementById("kx-raw").value || "").trim();
         }
       }
       async function kxPromoteDraft(idx){

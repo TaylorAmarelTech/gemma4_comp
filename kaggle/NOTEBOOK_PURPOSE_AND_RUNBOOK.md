@@ -4,9 +4,9 @@
 
 | Notebook | Purpose | Run Target |
 |---|---|---|
-| `01-duecare-exploration-workbench` | Full workbench and shared primitive source of truth. | Run in Kaggle with Internet and T4 x2. Open the printed Cloudflare URL. |
-| `02-live-demo` | Focused judge-facing live demo. | Run after 01 is stable. Open the printed Cloudflare URL and walk the five DueCare use-case lanes. |
-| `A-00-omni-experiment-workbench` | Quantitative control plane for benchmark, synthetic data, fine-tuning, grading, and reports. | Run the preconfigured pipeline first; use Custom only for partial reruns or uploads. |
+| `01-duecare-exploration-workbench` / `duecare-app` | Full workbench and shared primitive source of truth. | Run in Kaggle with Internet and T4 x2. Open the printed Cloudflare URL for `/static/demo-recording.html`, chat, bulk review, knowledge, search, and sharing. |
+| `02-live-demo` / `duecare-live-demo` | Focused judge-facing live demo and slides. | Run after 01 is stable. Open the printed Cloudflare URL for `/start`, `/slides`, `/slides/setup`, and `/api/slides/recording-pack`. |
+| `A-00-omni-experiment-workbench` / `duecare-fine-tuning-and-evaluation` | Quantitative control plane for benchmark, synthetic data, fine-tuning, grading, and reports. | Run the preconfigured pipeline first; use Custom only for partial reruns or uploads. |
 
 ## A-00 Happy Path
 

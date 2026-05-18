@@ -67,6 +67,7 @@
       100% { background-position: 220% 50%; }
     }
     .wb-progress-note { color: #5B5F68; font-size: 11.5px; line-height: 1.45; margin-top: 9px; }
+    .wb-progress-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
     .wb-progress-substeps { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 6px; margin-top: 10px; }
     .wb-progress-substep { border: 1px solid #EFEDE4; border-radius: 7px; background: #FFF; color: #5B5F68;
                            padding: 7px 8px; font-size: 11px; line-height: 1.3; min-width: 0;
@@ -74,6 +75,7 @@
     .wb-progress-substep.done { border-color: oklch(0.76 0.08 155); color: oklch(0.32 0.08 155); }
     .wb-progress-substep.active { border-color: oklch(0.52 0.08 195); color: #0E1116; background: oklch(0.97 0.02 195); }
     .wb-progress-substep.deferred { border-color: oklch(0.78 0.06 80); color: oklch(0.36 0.06 80); background: oklch(0.98 0.02 80); }
+    .wb-inline-guard { margin-top: 10px; border: 1px solid oklch(0.78 0.06 80); background: oklch(0.98 0.02 80); color: oklch(0.34 0.07 80); border-radius: 8px; padding: 9px 10px; font-size: 12px; line-height: 1.45; }
     .wb-action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
     .wb-action-card { border: 1px solid #EFEDE4; border-radius: 8px; padding: 12px; background: #FAF9F4; }
     .wb-action-card h3 { font-size: 13px; margin: 0 0 5px; }
@@ -178,10 +180,10 @@
       chat exports, scans, recruitment ads, court excerpts, recorded testimony
       transcripts, and document photos.
       Each row goes through the process harness: GREP, entity extraction,
-      document typing, person linking, hierarchy construction, and a compact
-      Gemma 4 case-brief pass when a model is loaded. The page renders the
-      extracted intelligence so you can inspect the graph before asking
-      Gemma 4 questions about it. When available, a fine-tuned Gemma 4
+      document typing, person linking, hierarchy construction, and a local
+      deterministic case brief. Optional Gemma 4 passes are explicit follow-up
+      jobs for typed-edge proposals, graph synthesis, and privacy-safe review,
+      so the upload path stays fast for recording. When available, a fine-tuned Gemma 4
       adapter trained on reviewed document-classification and graph-edge
       examples can improve page-item routing, edge typing, and bulk
       file edge generation quality.
@@ -382,6 +384,10 @@
                 <label><input type="checkbox" id="wb-generate-knowledge" checked onchange="wbUpdateSettingsSummary()"> Generate reviewable knowledge-object candidates from repeated patterns.</label>
                 <label><input type="checkbox" id="wb-include-knowledge" checked onchange="wbUpdateSettingsSummary()"> Use imported local knowledge files as context for Gemma edge/RAG prompts.</label>
               </div>
+              <div class="wb-inline-guard" id="wb-inline-gemma-guard" hidden>
+                Inline Gemma upload calls are locked off for this browser after a stalled model phase.
+                <button class="wb-btn-secondary" type="button" onclick="wbClearInlineGemmaBreaker()">Clear lock</button>
+              </div>
             </details>
           </div>
         </div>
@@ -415,6 +421,10 @@
                 Progress is estimated while the in-kernel request is running. The
                 actual parser counts and graph metrics appear as soon as the local
                 harness returns.
+              </div>
+              <div class="wb-progress-actions">
+                <button class="wb-btn-secondary" id="wb-process-cancel-btn" type="button" onclick="wbCancelProcessJob()" disabled>Abandon polling</button>
+                <button class="wb-btn-secondary" id="wb-process-deterministic-retry-btn" type="button" onclick="wbRetryDeterministicProcess()" disabled>Retry deterministic</button>
               </div>
               <div class="wb-progress-substeps" id="wb-process-substeps" aria-label="Processing stages"></div>
             </div>
@@ -605,7 +615,7 @@
       <div id="pg-answer" style="margin-top:10px; font-family:var(--mono); font-size:12px; white-space:pre-wrap; padding:0;"></div>
       <p class="wb-muted" style="font-size:11px; margin-top:14px; padding-top:10px; border-top:1px solid #EFEDE4;">
         Trust boundary: the graph stays in <code>/kaggle/working/process-staging/</code>.
-        Gemma reads it locally; no remote call. Anonymize and submit via
+        Deterministic answers and any Gemma 4 graph calls stay local; no remote call. Anonymize and submit via
         <a href="/static/share.html">Anonymization &amp; Sharing</a>.
       </p>
         </div>
@@ -748,8 +758,14 @@
   </main>
 
   <script>
+    const WB_INLINE_GEMMA_BREAKER_KEY = 'duecare.process.inline_gemma_disabled';
     let wbFile = null, wbBundle = null, wbIntelligenceConfirmed = false;
     let wbProcessProgressTimer = null;
+    let wbActiveProcessJobId = '';
+    let wbActiveProcessAbort = false;
+    let _wbProcessWatchPhase = '';
+    let _wbProcessPhaseStartedAt = 0;
+    let _wbGemmaWatchdogWarned = false;
     const WB_PROCESS_STAGES = [
       {
         pct: 6,
@@ -846,6 +862,14 @@
     function wbSetProcessActive(active) {
       const box = document.getElementById('wb-process-progress-box');
       if (box) box.classList.toggle('active', !!active);
+      const cancel = document.getElementById('wb-process-cancel-btn');
+      if (cancel) cancel.disabled = !(active && wbActiveProcessJobId);
+      const retry = document.getElementById('wb-process-deterministic-retry-btn');
+      if (retry) retry.disabled = !!active || !wbFile;
+    }
+    function wbSetProcessJob(jobId) {
+      wbActiveProcessJobId = jobId || '';
+      wbSetProcessActive(!!wbActiveProcessJobId);
     }
     function wbStopProcessProgressLoop() {
       if (wbProcessProgressTimer) {
@@ -952,9 +976,40 @@
       const cleanDetail = detail == null ? detail : String(detail).replace(/\u00c2\u00b7/g, ' | ');
       fn(msg, cleanDetail);
     };
+    function wbInlineGemmaBreakerReason() {
+      try { return window.localStorage.getItem(WB_INLINE_GEMMA_BREAKER_KEY) || ''; }
+      catch (_) { return ''; }
+    }
+    function wbInlineGemmaDisabled() {
+      return !!wbInlineGemmaBreakerReason();
+    }
+    function wbSetInlineGemmaBreaker(reason) {
+      const msg = reason || 'A previous inline Gemma upload phase exceeded the recording watchdog.';
+      try { window.localStorage.setItem(WB_INLINE_GEMMA_BREAKER_KEY, msg); } catch (_) {}
+      const inline = document.getElementById('wb-run-inline-gemma');
+      if (inline) inline.checked = false;
+      wbRefreshInlineGemmaGuard();
+      wbUpdateSettingsSummary();
+    }
+    function wbClearInlineGemmaBreaker() {
+      try { window.localStorage.removeItem(WB_INLINE_GEMMA_BREAKER_KEY); } catch (_) {}
+      wbRefreshInlineGemmaGuard();
+      wbUpdateSettingsSummary();
+      wbLog('ok', 'Inline Gemma upload lock cleared', 'Inline upload calls remain opt-in from advanced settings.');
+    }
+    function wbRefreshInlineGemmaGuard() {
+      const guard = document.getElementById('wb-inline-gemma-guard');
+      if (!guard) return;
+      const reason = wbInlineGemmaBreakerReason();
+      guard.hidden = !reason;
+      if (reason) {
+        guard.firstChild.textContent = 'Inline Gemma upload calls are locked off for this browser: ' + reason + ' ';
+      }
+    }
     window.addEventListener('DOMContentLoaded', () => {
       wbGetLog();
       wbSetReviewMode('standard_review');
+      wbRefreshInlineGemmaGuard();
     });
     function wbEsc(s) {
       return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
@@ -1040,7 +1095,12 @@
       wbUpdateSettingsSummary();
     }
     function wbProcessSettings() {
-      const inlineGemma = !!document.getElementById('wb-run-inline-gemma')?.checked;
+      const inlineEl = document.getElementById('wb-run-inline-gemma');
+      if (inlineEl && inlineEl.checked && wbInlineGemmaDisabled()) {
+        inlineEl.checked = false;
+        wbLog('warn', 'Inline Gemma upload stayed off', wbInlineGemmaBreakerReason());
+      }
+      const inlineGemma = !!inlineEl?.checked && !wbInlineGemmaDisabled();
       const rawPerItem = parseInt(document.getElementById('wb-calls-per-item')?.value || '0', 10);
       return {
         review_mode: wbReviewMode,
@@ -1114,6 +1174,53 @@
     async function wbSleep(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
     }
+    function wbIsModelPhase(phase) {
+      return /\bgemma\b|gemma_|model_pass/i.test(String(phase || ''));
+    }
+    async function wbAbandonProcessJob(jobId, silent) {
+      if (!jobId) return null;
+      wbActiveProcessAbort = true;
+      const url = '/api/process/batch/cancel/' + encodeURIComponent(jobId);
+      try {
+        const r = await fetch(url, {method: 'POST'});
+        const text = await r.text();
+        let job = null;
+        try { job = JSON.parse(text); } catch (_) {}
+        if (!r.ok || !job) throw new Error('HTTP ' + r.status);
+        if (!silent) {
+          wbLog('warn', 'Process job polling abandoned', 'job_id=' + jobId + ' | status=' + (job.status || 'unknown'));
+        }
+        return job;
+      } catch (e) {
+        if (!silent) wbLog('err', 'Process job cancel failed', String(e));
+        return null;
+      }
+    }
+    async function wbCancelProcessJob() {
+      const jobId = wbActiveProcessJobId;
+      if (!jobId) return;
+      await wbAbandonProcessJob(jobId, false);
+      wbStopProcessProgressLoop();
+      wbSetProcessProgress(
+        0,
+        'Polling abandoned',
+        'Browser-side polling stopped. The Kaggle worker may still finish in the background.',
+        'Retry deterministic mode for a fast recording path, or refresh this page after the kernel settles.'
+      );
+    }
+    async function wbRetryDeterministicProcess() {
+      if (!wbFile || wbActiveProcessJobId) return;
+      const inline = document.getElementById('wb-run-inline-gemma');
+      const perItem = document.getElementById('wb-calls-per-item');
+      const maxCalls = document.getElementById('wb-max-gemma-calls');
+      wbSetReviewMode('quick_triage');
+      if (inline) inline.checked = false;
+      if (perItem) perItem.value = '0';
+      if (maxCalls) maxCalls.value = '0';
+      wbUpdateSettingsSummary();
+      wbLog('info', 'Retrying deterministic process path', 'inline_gemma_text=false | max_gemma_calls=0 | calls_per_item=0');
+      await wbProcess();
+    }
     async function wbPollProcessJob(jobId, t0, settings) {
       const pollUrl = '/api/process/batch/status/' + encodeURIComponent(jobId);
       const runtimeBudgetMs = Math.max(
@@ -1121,7 +1228,15 @@
         (Number(settings?.runtime_budget_minutes || 15) * 60 * 1000) + (2 * 60 * 1000)
       );
       const maxAttempts = Math.ceil(runtimeBudgetMs / 1200);
+      wbSetProcessJob(jobId);
+      wbActiveProcessAbort = false;
+      _wbProcessWatchPhase = '';
+      _wbProcessPhaseStartedAt = Date.now();
+      _wbGemmaWatchdogWarned = false;
       for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+        if (wbActiveProcessAbort) {
+          throw new Error('Process job polling abandoned by operator. Retry deterministic mode for the recording path.');
+        }
         const r = await fetch(pollUrl, {cache: 'no-store'});
         const text = await r.text();
         let job = null;
@@ -1132,6 +1247,26 @@
           throw new Error('Process job polling failed: HTTP ' + r.status);
         }
         const phase = job.phase || job.status || 'running';
+        if (phase !== _wbProcessWatchPhase) {
+          _wbProcessWatchPhase = phase;
+          _wbProcessPhaseStartedAt = Date.now();
+          _wbGemmaWatchdogWarned = false;
+        }
+        const phaseAgeMs = Date.now() - _wbProcessPhaseStartedAt;
+        if (
+          settings?.run_inline_gemma_text &&
+          wbIsModelPhase(phase) &&
+          phaseAgeMs > 90 * 1000 &&
+          !_wbGemmaWatchdogWarned
+        ) {
+          _wbGemmaWatchdogWarned = true;
+          wbSetInlineGemmaBreaker('Inline Gemma upload phase "' + phase + '" exceeded 90 seconds.');
+          wbLog(
+            'warn',
+            'Inline Gemma watchdog tripped',
+            'Future upload jobs will default back to deterministic mode. Use the explicit Gemma edge pass after graph review.'
+          );
+        }
         const pct = Math.max(0, Math.min(100, Number(job.pct || 0)));
         const detail = job.detail || ('status=' + (job.status || 'unknown'));
         wbSetProcessProgress(pct, phase, detail,
@@ -1156,11 +1291,18 @@
           if (!job.result) throw new Error('Process job completed without a result payload.');
           return job.result;
         }
+        if (job.status === 'abandoned' || job.status === 'cancelled') {
+          throw new Error(job.detail || 'Process job polling abandoned. Retry deterministic mode for the recording path.');
+        }
         if (job.status === 'error') {
           throw new Error(job.error || job.detail || 'Process job failed.');
         }
         await wbSleep(1200);
       }
+      if (settings?.run_inline_gemma_text) {
+        wbSetInlineGemmaBreaker('Inline Gemma upload polling timed out after ' + Math.round(runtimeBudgetMs / 1000) + ' seconds.');
+      }
+      await wbAbandonProcessJob(jobId, true);
       throw new Error(
         'Process job polling timed out locally after ' + maxAttempts +
         ' attempts (' + Math.round(runtimeBudgetMs / 1000) + 's budget).'
@@ -1170,6 +1312,7 @@
       const f = (ev.target.files || [])[0];
       if (!f) return;
       wbStopProcessProgressLoop();
+      wbSetProcessJob('');
       wbFile = f;
       wbBundle = null;
       wbIntelligenceConfirmed = false;
@@ -1197,6 +1340,8 @@
       document.getElementById('pg-ask-btn').disabled = true;
       _wbLastProcessPollPhase = '';
       _wbSeenProcessEventKeys = new Set();
+      wbActiveProcessAbort = false;
+      wbSetProcessJob('');
       const settings = wbProcessSettings();
       wbLog('info', 'POST /api/process/batch/start',
         'multipart upload, file=' + wbFile.name + ' | mode=' + settings.review_mode +
@@ -1233,6 +1378,7 @@
         wbLog('ok', 'Process job accepted (' + dt + 'ms)',
               'job_id=' + startJob.job_id + ' | bytes=' + (startJob.bytes || wbFile.size));
         wbBundle = await wbPollProcessJob(startJob.job_id, t0, settings);
+        wbSetProcessJob('');
         wbStopProcessProgressLoop();
         wbSetProcessProgress(96, 'Response received', 'Parsing the returned JSON and rendering the intelligence graph.');
         wbLog('ok', 'Process job complete',
@@ -1259,10 +1405,13 @@
       } catch (e) {
         wbStopProcessProgressLoop();
         const err = document.getElementById('wb-error');
-        err.textContent = 'Process failed: ' + (e && e.message || e); err.style.display = '';
-        wbSetProcessProgress(0, 'Processing failed', (e && e.message) || String(e));
+        const msg = (e && e.message) || String(e);
+        err.textContent = 'Process failed: ' + msg + ' Use Retry deterministic to bypass inline model work.';
+        err.style.display = '';
+        wbSetProcessProgress(0, 'Processing failed', msg, 'Use Retry deterministic to rerun without inline Gemma calls.');
       } finally {
         wbStopProcessProgressLoop();
+        wbSetProcessJob('');
         btn.disabled = false; btn.textContent = 'Start processing';
       }
     }

@@ -269,6 +269,10 @@ def test_knowledge_page_uses_guided_auto_suggestion_flow(client):
     assert "fd.append('max_gemma_calls', '0')" in text
     assert "fd.append('run_inline_gemma_text', 'false')" in text
     assert "kxBuildTextFromProcessBundle" in text
+    assert 'id="kx-source-progress-box"' in text
+    assert 'id="kx-draft-progress-box"' in text
+    assert "function kxSetProgress" in text
+    assert "function kxAddProgressEvent" in text
     assert "knowledge files" in text
     assert "Next: draft suggestions" not in text
     assert "Draft knowledge objects" in text
@@ -281,6 +285,10 @@ def test_knowledge_page_uses_guided_auto_suggestion_flow(client):
     assert "/api/knowledge/draft-envelope/status/" in text
     assert "function kxPollDraftJob" in text
     assert "Knowledge draft job accepted" in text
+    assert "/api/knowledge/draft-envelope/cancel/" in text
+    assert "Abandon draft polling" in text
+    assert "Draft deterministic only" in text
+    assert "Deterministic hints draft fast envelopes" in text
     assert "function kxOpenPackImport" in text
     assert "function kxSetWorkflow" in text
     assert '/static/_workflow.js' in text
@@ -361,6 +369,32 @@ def test_knowledge_draft_background_job_reports_progress(client):
     assert any(evt["phase"] == "model_or_fallback" for evt in final["events"])
 
 
+def test_knowledge_draft_job_can_be_abandoned():
+    import threading
+
+    from duecare.chat.app import create_app
+
+    app = create_app()
+    app.state.knowledge_draft_jobs = {
+        "knowledge_draft_manual": {
+            "job_id": "knowledge_draft_manual",
+            "status": "running",
+            "phase": "model_or_fallback",
+            "pct": 42,
+            "detail": "Drafting KnowledgeObject envelopes.",
+            "events": [],
+        }
+    }
+    app.state.knowledge_draft_jobs_lock = threading.Lock()
+    local = TestClient(app)
+    cancel = local.post("/api/knowledge/draft-envelope/cancel/knowledge_draft_manual")
+    assert cancel.status_code == 200, cancel.text
+    body = cancel.json()
+    assert body["status"] == "abandoned"
+    assert body["cancelled"] is True
+    assert "late_result" in body["detail"]
+
+
 def test_search_backends_contract_has_human_labels(client):
     r = client.get("/api/search/backends")
     assert r.status_code == 200
@@ -390,7 +424,7 @@ def test_share_page_has_bulk_review_selection_controls(client):
     assert "function wbSetStep" in text
     assert "wbSetStep(2)" in text
     assert "Upload source bundle or knowledge files" in text
-    assert "gemma_review: true" in text
+    assert "gemma_review=' + gemmaReview" in text
     assert "Gemma privacy review" in text
     assert "optionally Gemma-review selected items" in text
     assert "Gemma privacy review is a second local check" in text
@@ -404,6 +438,14 @@ def test_share_page_has_bulk_review_selection_controls(client):
     assert "/api/process/batch/start" in text
     assert "/api/process/batch/status/" in text
     assert "function wbPollShareProcessJob" in text
+    assert 'id="wb-share-process-progress-box"' in text
+    assert 'id="wb-anon-progress-box"' in text
+    assert "function wbSetProgress" in text
+    assert "function wbAddProgressEvent" in text
+    assert "/api/anonymize/start" in text
+    assert "/api/anonymize/status/" in text
+    assert "/api/anonymize/cancel/" in text
+    assert "Run deterministic only" in text
     assert "inline_gemma_text=false | max_gemma_calls=0" in text
     assert "fd.append('max_gemma_calls', '0')" in text
     assert "fd.append('run_inline_gemma_text', 'false')" in text
@@ -440,6 +482,38 @@ def test_anonymization_endpoint_can_run_gemma_privacy_review():
     assert data["gemma_review"]["status"] == "ok"
     assert data["gemma_review"]["overall_status"] == "pass"
     assert "<PHONE_" in data["redacted"][0]
+
+
+def test_anonymization_background_job_runs_gemma_review():
+    from duecare.chat.app import create_app
+
+    calls = []
+
+    def gemma_call(messages, **kwargs):
+        calls.append((messages, kwargs))
+        return '{"overall_status":"pass","findings":[],"recommended_action":"submit"}'
+
+    local = TestClient(create_app(gemma_call=gemma_call))
+    start = local.post("/api/anonymize/start", json={
+        "texts": ["Worker Maria called +852 1234 5678 about PHP 45000."],
+        "gemma_review": True,
+    })
+    assert start.status_code == 200, start.text
+    job_id = start.json()["job_id"]
+    final = None
+    for _ in range(40):
+        poll = local.get(f"/api/anonymize/status/{job_id}")
+        assert poll.status_code == 200, poll.text
+        body = poll.json()
+        if body.get("status") in {"complete", "error"}:
+            final = body
+            break
+        time.sleep(0.05)
+    assert final is not None
+    assert final["status"] == "complete"
+    assert calls
+    assert final["result"]["gemma_review"]["status"] == "ok"
+    assert final["result"]["demo_replay"]["endpoint"] == "/api/anonymize/start"
 
 
 def test_recording_critical_endpoints_emit_demo_replay(client):
@@ -647,6 +721,15 @@ def test_process_page_has_graph_visualization_and_graph_chat_logging(client):
     assert "#wb-results { display: grid; gap: 16px; }" in text
     assert 'id="wb-process-progress-fill"' in text
     assert 'id="wb-process-progress-note"' in text
+    assert 'id="wb-process-cancel-btn"' in text
+    assert 'id="wb-process-deterministic-retry-btn"' in text
+    assert 'id="wb-inline-gemma-guard"' in text
+    assert "WB_INLINE_GEMMA_BREAKER_KEY" in text
+    assert "function wbCancelProcessJob" in text
+    assert "function wbRetryDeterministicProcess" in text
+    assert "/api/process/batch/cancel/" in text
+    assert "Inline Gemma watchdog tripped" in text
+    assert "Use Retry deterministic to bypass inline model work" in text
     assert 'id="wb-process-substeps"' in text
     assert "const WB_PROCESS_STAGES" in text
     assert "Uploading bundle to Kaggle kernel" in text
@@ -772,6 +855,16 @@ def test_recording_page_exposes_preset_and_cached_trace(client):
         "/static/chat.html?example=ent_mod_001&amp;audience=platform",
         "recording_platform_moderation_trace.json",
         "Replay JSON",
+        "Kernel Ownership",
+        "01-duecare-exploration-workbench",
+        "02-live-demo",
+        "A-00-omni-experiment-workbench",
+        "duecare-app",
+        "duecare-live-demo",
+        "/slides/setup",
+        "Live Kernel Health",
+        "dcRunRecordingHealthChecks",
+        "/api/audit/workbench-inventory",
         "OCR/media and optional Gemma edge generation are explicit follow-up actions",
         "case_files_streamlined_demo.zip",
         "knowledge_source_examples_sample.zip",

@@ -30,6 +30,12 @@
     th, td { border-bottom: 1px solid var(--line-soft); padding: 8px; text-align: left; vertical-align: top; }
     th { font-family: var(--mono); color: var(--ink-3); font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; }
     .note { border-left: 3px solid var(--accent); padding: 8px 10px; background: color-mix(in srgb, var(--accent) 7%, transparent); color: var(--ink-2); font-size: 12.5px; border-radius: 6px; }
+    .health-grid { display: grid; gap: 8px; margin-top: 10px; }
+    .health-row { display: grid; grid-template-columns: 150px minmax(0, 1fr) 74px; gap: 8px; align-items: center; border: 1px solid var(--line-soft); border-radius: 8px; padding: 8px 10px; background: #fff; font-size: 12px; }
+    .health-row code { overflow-wrap: anywhere; }
+    .health-status { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; color: var(--ink-3); text-align: right; }
+    .health-row.ok .health-status { color: oklch(0.42 0.09 155); }
+    .health-row.err .health-status { color: var(--ember); }
   </style>
 </head>
 <body data-nav="recording">
@@ -51,6 +57,41 @@
         <li><span class="box"></span><span>For Bulk File Review, say that OCR/media and optional Gemma edge generation are explicit follow-up actions. The deterministic graph path is the fast recording path.</span></li>
         <li><span class="box"></span><span>After each lane, click <b>Replay JSON</b> in the top bar so the demo has a reconstructable browser-side API trace.</span></li>
       </ul>
+    </section>
+
+    <section class="panel">
+      <h2>Kernel Ownership</h2>
+      <table>
+        <thead><tr><th>Notebook</th><th>Use it for</th><th>Recording routes</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>01-duecare-exploration-workbench</code><br><small>Kaggle: <code>duecare-app</code></small></td>
+            <td>Main product workbench, model picker, chat moderation, bulk file review, knowledge extraction, search, anonymization and sharing, replay JSON, and this checklist.</td>
+            <td><code>/static/demo-recording.html</code>, <code>/static/chat.html</code>, <code>/static/process.html</code>, <code>/static/knowledge.html</code>, <code>/static/search.html</code>, <code>/static/share.html</code></td>
+          </tr>
+          <tr>
+            <td><code>02-live-demo</code><br><small>Kaggle: <code>duecare-live-demo</code></small></td>
+            <td>Focused judge-facing walkthrough and slide deck. Use it after the workbench URL is stable.</td>
+            <td><code>/start</code>, <code>/slides</code>, <code>/slides/setup</code>, <code>/api/slides/recording-pack</code></td>
+          </tr>
+          <tr>
+            <td><code>A-00-omni-experiment-workbench</code><br><small>Kaggle: <code>duecare-fine-tuning-and-evaluation</code></small></td>
+            <td>Benchmark matrix, synthetic rows, LoRA fine-tuning, four-arm evaluation, and exported reports.</td>
+            <td>Generated report files under <code>/kaggle/working/a00_runs</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h2>Live Kernel Health</h2>
+      <p class="lede" style="margin-bottom:10px;">
+        Run this before recording. All checks are local to the current Cloudflare/Kaggle URL and should finish quickly.
+      </p>
+      <button class="btn primary" type="button" onclick="dcRunRecordingHealthChecks()">Run health checks</button>
+      <div class="health-grid" id="recording-health">
+        <div class="health-row"><b>Waiting</b><code>Click Run health checks.</code><span class="health-status">idle</span></div>
+      </div>
     </section>
 
     <section class="panel">
@@ -132,5 +173,50 @@
       </p>
     </section>
   </main>
+  <script>
+    const DC_RECORDING_HEALTH_CHECKS = [
+      ['version', '/api/version'],
+      ['model state', '/api/model-info'],
+      ['workbench inventory', '/api/audit/workbench-inventory'],
+      ['knowledge catalog', '/api/knowledge/type-catalog'],
+      ['examples', '/api/examples'],
+      ['cached moderation trace', '/static/samples/recording_platform_moderation_trace.json']
+    ];
+    function dcRecordingHealthRow(label, path, status, detail) {
+      const row = document.createElement('div');
+      row.className = 'health-row ' + (status === 'ok' ? 'ok' : status === 'fail' ? 'err' : '');
+      const name = document.createElement('b');
+      name.textContent = label;
+      const body = document.createElement('code');
+      body.textContent = detail || path;
+      const pill = document.createElement('span');
+      pill.className = 'health-status';
+      pill.textContent = status;
+      row.append(name, body, pill);
+      return row;
+    }
+    async function dcRunRecordingHealthChecks() {
+      const host = document.getElementById('recording-health');
+      if (!host) return;
+      host.innerHTML = '';
+      for (const [label, path] of DC_RECORDING_HEALTH_CHECKS) {
+        const pending = dcRecordingHealthRow(label, path, 'checking', path);
+        host.appendChild(pending);
+        const started = performance.now();
+        try {
+          const r = await fetch(path, {cache: 'no-store'});
+          const elapsed = Math.round(performance.now() - started);
+          pending.replaceWith(dcRecordingHealthRow(
+            label,
+            path,
+            r.ok ? 'ok' : 'fail',
+            path + ' | HTTP ' + r.status + ' | ' + elapsed + 'ms'
+          ));
+        } catch (e) {
+          pending.replaceWith(dcRecordingHealthRow(label, path, 'fail', path + ' | ' + e));
+        }
+      }
+    }
+  </script>
 </body>
 </html>

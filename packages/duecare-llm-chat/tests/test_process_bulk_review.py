@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import threading
 import time
 import zipfile
 from pathlib import Path
@@ -154,6 +155,21 @@ def test_process_batch_returns_intelligence_for_streamlined_demo():
     assert "salary" in joined or "deduct" in joined
     assert any(p["stage"] == "payment_and_debt" for p in intel["journey_points"])
 
+    chat = client.post(
+        "/api/process/graph-chat",
+        json={
+            "question": (
+                "Which individuals have the strongest cases to move forward "
+                "first, and what row IDs support that ranking?"
+            )
+        },
+    )
+    assert chat.status_code == 200, chat.text
+    chat_body = chat.json()
+    assert chat_body["analysis_kind"] == "fee_or_priority_ranking"
+    assert "UNKNOWN (`UNKNOWN`)" not in chat_body["answer"]
+    assert "DC-PH-HK-501" in chat_body["answer"]
+
 
 def test_process_batch_returns_intelligence_for_sample():
     from duecare.chat.app import create_app
@@ -273,6 +289,7 @@ def test_process_batch_returns_intelligence_for_sample():
     chat_body = chat.json()
     assert chat_body["analysis_kind"] == "fee_or_priority_ranking"
     assert chat_body["cited_rows"]
+    assert "UNKNOWN (`UNKNOWN`)" not in chat_body["answer"]
     assert "The user is asking" not in chat_body["answer"]
     assert "|---" not in chat_body["answer"]
 
@@ -559,6 +576,36 @@ def test_process_batch_async_job_returns_media_rich_result():
     assert body["config"]["processing_mode"] == "async_job"
     assert body["summary"]["n_people_detected"] >= 6
     assert body["intelligence"]["processing_plan"]["n_media_assets"] >= 50
+
+
+def test_process_batch_async_job_can_be_abandoned():
+    from duecare.chat.app import create_app
+
+    app = create_app()
+    app.state.process_jobs = {
+        "process_manual": {
+            "job_id": "process_manual",
+            "status": "running",
+            "phase": "gemma_case_brief",
+            "pct": 82,
+            "detail": "Calling local Gemma 4 for the text case brief.",
+            "events": [],
+        }
+    }
+    app.state.process_jobs_lock = threading.Lock()
+    client = TestClient(app)
+
+    cancel = client.post("/api/process/batch/cancel/process_manual")
+    assert cancel.status_code == 200, cancel.text
+    body = cancel.json()
+    assert body["status"] == "abandoned"
+    assert body["phase"] == "abandoned"
+    assert body["cancelled"] is True
+    assert "late_result" in body["detail"]
+
+    poll = client.get("/api/process/batch/status/process_manual")
+    assert poll.status_code == 200, poll.text
+    assert poll.json()["status"] == "abandoned"
 
 
 def test_process_batch_surfaces_media_and_ocr_work_queue():
