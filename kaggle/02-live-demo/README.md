@@ -52,7 +52,7 @@ Copy-paste reproduction path so a judge can run this kernel without leaving Kagg
    attach a separate `wheels/` dataset for the current rolling-source path.
 5. **Run All.** Within roughly thirty seconds the kernel prints a public
    `https://*.trycloudflare.com` URL. Click `/start` for the two-tile landing,
-   `/slides` for the recording-grade 21-slide pitch deck, or `/slides/setup`
+   `/slides` for the recording-grade 23-slide pitch deck, or `/slides/setup`
    to pre-bake a cached worker question for the `/slides#demo-chat` slide.
 
 If you only have a single-T4 free tier, the kernel still works for the

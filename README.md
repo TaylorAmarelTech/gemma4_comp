@@ -4,10 +4,10 @@
 > **DueCare App on Kaggle:** [kaggle.com/code/taylorsamarel/duecare-app](https://www.kaggle.com/code/taylorsamarel/duecare-app) |
 > **Source:** this repo (MIT)
 >
-> **Duecare is Gemma 4-powered safety infrastructure for migrant-worker
+> **DueCare is Gemma 4-powered safety infrastructure for migrant-worker
 > protection.** It does three things: **prevents exploitation before it
 > spreads** through platform and organization moderation; **assists victims
-> and at-risk workers** through NGO/government intake and the worker mobile
+> and at-risk workers** through NGO/government case analysis and the worker mobile
 > app; and **helps stakeholders understand what is happening and why**
 > through research notebooks, knowledge packs, trend signals, and shared
 > analysis. The public product is organized into five setup lanes:
@@ -18,10 +18,11 @@
 > Local Anonymization, Information Submission, Public Information Research,
 > Stakeholder Engagement, Newsletter and Alerts, Fine-Tuning, Channel and
 > Deployment Package. **Live core** for the Kaggle submission is Gemma 4 +
-> Safety Guidance + Knowledge Packs + Quality Testing. **Prototype:**
-> Fine-Tuning and benchmarking (`kaggle/A-00-omni-experiment-workbench/`). **Roadmap:** Central server
+> Safety Guidance + Knowledge Packs + Bulk File Review + Quality Testing.
+> **Prototype:**
+> Fine-tuning and benchmarking (`kaggle/A-00-omni-experiment-workbench/`). **Roadmap:** Central server
 > modules, research monitor, stakeholder engagement, newsletter, and channel
-> deployment. **Sibling repo (live):** Mobile (Duecare Journey
+> deployment. **Sibling repo (live):** Mobile (DueCare Journey
 > v0.9.0). Full canonical definition:
 > [`docs/product_definition.md`](docs/product_definition.md). Plain-language
 > use-case and component wording:
@@ -29,7 +30,7 @@
 >
 > Named for Cal. Civ. Code section 1714(a), the duty of care standard that
 > a California jury applied to find Meta and Google negligent for
-> defective platform design in March 2026. Duecare applies the same
+> defective platform design in March 2026. DueCare applies the same
 > standard to LLM safety: does the model exercise *due care* when
 > responding to prompts about trafficking, exploitation, and financial crime?
 >
@@ -93,20 +94,20 @@ python -c "from duecare.server import create_app; from duecare.server.state impo
 > - **DueCare Fine-tuning and Evaluation** — [`duecare-fine-tuning-and-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation) ([source](./kaggle/A-00-omni-experiment-workbench/)) is the technical proof surface: baseline vs harness vs fine-tuned vs fine-tuned-plus-harness exports, rule and LLM grading, synthetic SFT/DPO generation, tiny LoRA smoke bundles, local research graphs, and HTML/PDF reports.
 > - Archived A-01 through A-24 plus the former video-pitch kernel remain available as reference material, but they are not part of the active validation or recording path.
 >
-> **Judges start here:** [`docs/peer_review_5min_test_plan.md`](./docs/peer_review_5min_test_plan.md) (one-page click-by-click guide).
+> **Judges start here:** [`docs/FOR_KAGGLE_JUDGES.md`](./docs/FOR_KAGGLE_JUDGES.md) (hackathon-specific quick path).
 > Or: [`docs/FOR_PEER_REVIEW.md`](./docs/FOR_PEER_REVIEW.md) (full verification roster).
 > **Writeup (1500 words max):** [`docs/writeup_draft.md`](./docs/writeup_draft.md).
 > **Video script (~2:50):** [`docs/video_script.md`](./docs/video_script.md).
 > **Audit / report card:** [`docs/REPORT_CARD.md`](./docs/REPORT_CARD.md).
 > **Harness lift report:** [`docs/harness_lift_report.md`](./docs/harness_lift_report.md) - quantifies how the safety layers change rubric scores.
 > **Corpus coverage:** [`docs/corpus_coverage.md`](./docs/corpus_coverage.md) - coverage matrices across category, sector, corridor, and ILO indicator.
-> **Stretch Android path:** [`docs/android_app_architecture.md`](./docs/android_app_architecture.md) - Duecare Journey, the on-device companion.
+> **Stretch Android path:** [`docs/android_app_architecture.md`](./docs/android_app_architecture.md) - DueCare Journey, the on-device companion.
 > **Provenance:** [`RESULTS.md`](./RESULTS.md) - every metric pinned to `(git_sha, dataset_version, model_revision)`.
 >
 > **Three headline benefits shown in the demo:**
 >
 > - **Prevent exploitation before it spreads** - platform and marketplace moderation with explained risk envelopes. Setup: [`docs/deployment_enterprise.md`](./docs/deployment_enterprise.md).
-> - **Assist victims and at-risk workers** - NGO/regulator intake plus worker-facing mobile workflows. Setup: [`docs/scenarios/ngo-office-deployment.md`](./docs/scenarios/ngo-office-deployment.md) and [`docs/scenarios/worker-self-help.md`](./docs/scenarios/worker-self-help.md).
+> - **Assist victims and at-risk workers** - NGO/regulator case analysis plus worker-facing mobile workflows. Setup: [`docs/scenarios/ngo-office-deployment.md`](./docs/scenarios/ngo-office-deployment.md) and [`docs/scenarios/worker-self-help.md`](./docs/scenarios/worker-self-help.md).
 > - **Understand what is happening and why** - reproducible Kaggle notebooks, knowledge packs, trend signals, and provenance. Start with [`docs/FOR_PEER_REVIEW.md`](./docs/FOR_PEER_REVIEW.md) (canonical reviewer entry) or [`docs/FOR_KAGGLE_JUDGES.md`](./docs/FOR_KAGGLE_JUDGES.md) for the hackathon-specific quick path.
 
 ---
@@ -114,7 +115,7 @@ python -c "from duecare.server import create_app; from duecare.server.state impo
 
 ## Architecture: multi-harness pattern
 
-Duecare is built around **six self-describing harness modules** on the kernel
+DueCare is built around **six self-describing harness modules** on the kernel
 side and **five** on the hub side. Each owns one safety task:
 
 | Side | Harness | Responsibility |
@@ -164,7 +165,7 @@ platforms need earlier moderation signals, frontline NGOs and regulators
 need faster case analysis and evidence organization, workers need guidance
 they control, and researchers need reproducible ways to explain patterns.
 
-Duecare is that shared harness. Because it is built as a **universal**
+DueCare is that shared harness. Because it is built as a **universal**
 safety and evidence framework, the same architecture can also evaluate
 tax evasion, money laundering, medical misinformation, and any other
 safety domain that can describe itself with a taxonomy, evidence base,
@@ -243,7 +244,7 @@ After deploy: `make doctor` for a one-screen health report,
 | You are... | Read |
 |---|---|
 | **Individual worker** wanting it on your phone | [`docs/scenarios/worker-self-help.md`](./docs/scenarios/worker-self-help.md) |
-| **Caseworker** at an NGO using Duecare | [`docs/scenarios/caseworker_workflow.md`](./docs/scenarios/caseworker_workflow.md) |
+| **Caseworker** at an NGO using DueCare | [`docs/scenarios/caseworker_workflow.md`](./docs/scenarios/caseworker_workflow.md) |
 | **NGO director** running it at the office | [`docs/scenarios/ngo-office-deployment.md`](./docs/scenarios/ngo-office-deployment.md) |
 | **Legal aid lawyer** preparing a case | [`docs/scenarios/lawyer-evidence-prep.md`](./docs/scenarios/lawyer-evidence-prep.md) |
 | **Government regulator** doing pattern analysis | [`docs/scenarios/regulator-pattern-analysis.md`](./docs/scenarios/regulator-pattern-analysis.md) |
@@ -283,7 +284,7 @@ compliance crosswalk, threat model, vendor questionnaire) at
   — privacy-preserving aggregation protocol for sharing patterns
   across NGOs without sharing PII
 - [**Comparison vs alternatives**](./docs/comparison_to_alternatives.md)
-  — when Duecare fits vs when Hive / Sift / Azure / OpenAI / Llama
+  — when DueCare fits vs when Hive / Sift / Azure / OpenAI / Llama
   Guard fit better
 - [**Press kit**](./docs/press_kit.md) — one-pager + facts + quotes
   for journalists, NGO comms, academics
@@ -548,7 +549,7 @@ When Gemma 5 ships, that's the entire integration cost: one YAML row.
 
 ## Domain packs (cross-domain proof)
 
-Duecare ships three domain packs out of the box, demonstrating that the
+DueCare ships three domain packs out of the box, demonstrating that the
 architecture is **genuinely domain-agnostic**:
 
 | Pack | Seed prompts in repo config | Evidence items | Categories | Taxonomy dimensions |

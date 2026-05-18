@@ -241,7 +241,7 @@ ls -lt /Volumes/Backup/duecare-*.tgz | head -1
 
 ### Weekly (15 min)
 
-- Pull Duecare updates: `git pull && make demo` (rebuilds from
+- Pull DueCare updates: `git pull && make demo` (rebuilds from
   source; no data loss)
 - Skim `docker compose logs --tail=200` for errors
 - Verify the USB backup drive isn't full
