@@ -474,3 +474,140 @@ def test_process_graph_chat_suppresses_plain_language_reasoning_leak():
     assert not _looks_like_reasoning_leak(
         "People with strongest overcharging evidence:\n\n1. DC-PH-HK-001"
     )
+
+
+def test_process_graph_chat_answers_fee_camouflage_and_provider_choice():
+    """The demo's flagship question must trip a dedicated deterministic
+    branch that names both signal families, surfaces the available
+    proxy edges from the bundle, and points the reviewer at the
+    optional Gemma edge pass for explicit upgrade."""
+    from duecare.chat.app import create_app
+
+    samples = Path(__file__).resolve().parents[1] / "src" / "duecare" / "chat" / "static" / "samples"
+    bundle_path = samples / "case_files_streamlined_demo.zip"
+    data = bundle_path.read_bytes()
+
+    client = TestClient(create_app())
+    upload = client.post(
+        "/api/process/batch",
+        files={"file": ("case_files_streamlined_demo.zip", io.BytesIO(data), "application/zip")},
+    )
+    assert upload.status_code == 200, upload.text
+
+    question = "Which rows support fee camouflage and restricted provider choice?"
+    reply = client.post("/api/process/graph-chat", json={"question": question})
+    assert reply.status_code == 200, reply.text
+    body = reply.json()
+    assert body["analysis_kind"] == "fee_camouflage_and_provider_choice"
+    answer = body["answer"]
+    assert "Fee camouflage candidates" in answer
+    assert "Restricted provider choice candidates" in answer
+    assert "Gemma edge pass" in answer
+    assert "fee_camouflage_evidence" in answer
+    assert "provider_choice_restriction" in answer
+
+
+def test_process_batch_completion_detail_honestly_reports_queued_media():
+    """When the batch worker completes at pct=100 the detail must
+    honestly reflect queued OCR/Gemma vision items rather than imply
+    the multimodal work is finished."""
+    from duecare.chat.app import create_app
+
+    samples = Path(__file__).resolve().parents[1] / "src" / "duecare" / "chat" / "static" / "samples"
+    media_rich = samples / "case_files_media_rich_sample.zip"
+    data = media_rich.read_bytes()
+
+    client = TestClient(create_app())
+    start = client.post(
+        "/api/process/batch/start",
+        files={"file": ("case_files_media_rich_sample.zip", io.BytesIO(data), "application/zip")},
+    )
+    assert start.status_code == 200, start.text
+    job_id = start.json()["job_id"]
+
+    final = None
+    for _ in range(120):
+        poll = client.get(f"/api/process/batch/status/{job_id}")
+        body = poll.json()
+        if body.get("status") in {"complete", "error"}:
+            final = body
+            break
+        time.sleep(0.1)
+    assert final is not None
+    assert final["status"] == "complete"
+    assert final["pct"] == 100
+
+    events = final.get("events") or []
+    # The worker emits a final completion event with status="complete"
+    # AFTER the inner deterministic-parse marker. Walk the events in
+    # reverse so the final completion (with the truthful media-queued
+    # detail) is selected.
+    complete_event = next(
+        (
+            e for e in reversed(events)
+            if e.get("status") == "complete" and e.get("pct") == 100
+        ),
+        None,
+    )
+    assert complete_event is not None, "final completion event missing"
+    detail = str(complete_event.get("detail") or "")
+    media_queued = int(complete_event.get("media_assets_queued") or 0)
+    assert "Deterministic parsing complete" in detail
+    if media_queued:
+        assert "media asset" in detail
+        assert "OCR or Gemma 4 vision review" in detail
+    else:
+        assert "no media items queued" in detail
+
+
+def test_graph_chat_deterministic_branch_uses_typed_edges_only():
+    """The fee_camouflage / provider_choice branch must not invent
+    edges. The answer must cite only rows that come from typed_edges
+    or people.risk_signals on the bundle."""
+    from duecare.chat.harnesses.process.handler import _graph_chat_deterministic_answer
+
+    bundle = {
+        "intelligence": {
+            "typed_edges": [
+                {
+                    "edge_type": "fee_amount_observed",
+                    "row_id": "row-A",
+                    "label": "$3,000 placement fee",
+                    "evidence": {"quote": "Recruiter says training fee $3,000."},
+                },
+                {
+                    "edge_type": "salary_deduction_signal",
+                    "row_id": "row-B",
+                    "label": "wage deduction",
+                    "evidence": {"quote": "$50/month deduction for transport."},
+                },
+                {
+                    "edge_type": "journey_stage_observation",
+                    "row_id": "row-C",
+                    "label": "recruitment",
+                    "evidence": {"quote": "Agency arranged everything."},
+                },
+            ],
+            "people": [
+                {
+                    "case_id": "CASE-1",
+                    "name": "Composite Worker",
+                    "risk_signals": ["single_provider_agency_control"],
+                    "row_ids": ["row-D", "row-payment-001"],
+                },
+            ],
+        },
+        "summary": {},
+    }
+
+    result = _graph_chat_deterministic_answer(
+        bundle,
+        "Which rows support fee camouflage and restricted provider choice?",
+    )
+    assert result is not None
+    assert result["analysis_kind"] == "fee_camouflage_and_provider_choice"
+    cited = result["cited_rows"]
+    allowed = {"row-A", "row-B", "row-C", "row-D", "row-payment-001"}
+    assert all(r in allowed for r in cited), cited
+    assert "row-A" in cited or "row-B" in cited
+    assert any(r in cited for r in ("row-C", "row-D", "row-payment-001"))

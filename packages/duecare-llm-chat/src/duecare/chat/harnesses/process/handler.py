@@ -2125,6 +2125,7 @@ def _graph_chat_deterministic_answer(bundle: dict, question: str) -> dict | None
     intelligence = bundle.get("intelligence") or {}
     people = intelligence.get("people") or []
     summary = bundle.get("summary") or {}
+    typed_edges = intelligence.get("typed_edges") or []
     cited_rows: list[str] = []
 
     def add_rows(rows: list[str]) -> None:
@@ -2132,6 +2133,15 @@ def _graph_chat_deterministic_answer(bundle: dict, question: str) -> dict | None
             if row and row not in cited_rows:
                 cited_rows.append(row)
 
+    wants_camouflage = any(k in q for k in (
+        "fee camouflage", "fee_camouflage", "camouflage",
+        "disguised fee", "hidden fee", "relabeled fee",
+    ))
+    wants_provider_choice = any(k in q for k in (
+        "provider choice", "provider_choice", "restricted provider",
+        "provider restriction", "choice restriction",
+        "limited provider", "must use this", "must use the",
+    ))
     wants_fee = any(k in q for k in (
         "fee", "overcharg", "payment", "salary deduction", "legal cap",
         "placement", "charged", "debt",
@@ -2153,6 +2163,160 @@ def _graph_chat_deterministic_answer(bundle: dict, question: str) -> dict | None
     wants_missing = any(k in q for k in (
         "missing evidence", "missing", "strengthen", "next evidence",
     ))
+
+    if wants_camouflage or wants_provider_choice:
+        # The demo's flagship question pairs two distinct TIP indicators:
+        # fee camouflage (recruitment cost re-labeled as training,
+        # medical, repayment, or salary deduction) and restricted
+        # provider choice (worker is forced to use a single agency,
+        # housing, medical centre, or remittance provider).
+        #
+        # Deterministic processing emits proxies for these without a
+        # model: fee_amount_observed, salary_deduction_signal, and
+        # rule_hit edges fire on the camouflage side; located_at,
+        # filed_under, and journey_stage_observation edges plus
+        # provider/agency risk signals cover the provider side.
+        # Explicit fee_camouflage_evidence and
+        # provider_choice_restriction edges come from the optional
+        # local Gemma edge pass; this branch points the reviewer at
+        # both surfaces and at the upgrade path.
+        camouflage_proxy_types = {
+            "fee_camouflage_evidence",
+            "fee_amount_observed",
+            "salary_deduction_signal",
+        }
+        provider_proxy_types = {
+            "provider_choice_restriction",
+            "affiliate_or_common_control_signal",
+            "located_at",
+            "filed_under",
+            "journey_stage_observation",
+        }
+        camouflage_edges: list[dict] = []
+        provider_edges: list[dict] = []
+        for edge in typed_edges:
+            etype = str(edge.get("edge_type") or "")
+            label_low = str(edge.get("label") or "").lower()
+            if wants_camouflage and etype in camouflage_proxy_types:
+                camouflage_edges.append(edge)
+            if wants_provider_choice and (
+                etype in provider_proxy_types
+                or "provider" in label_low
+                or "agency" in label_low
+            ):
+                provider_edges.append(edge)
+
+        provider_signal_people: list[dict] = []
+        if wants_provider_choice:
+            for person in people:
+                signals = [str(s).lower() for s in (person.get("risk_signals") or [])]
+                matched = False
+                for signal in signals:
+                    for marker in (
+                        "provider", "agency_control", "limited_choice",
+                        "single_provider", "affiliate",
+                    ):
+                        if marker in signal:
+                            matched = True
+                            break
+                    if matched:
+                        break
+                if matched:
+                    provider_signal_people.append(person)
+
+        lines: list[str] = []
+        if wants_camouflage:
+            lines.append("Fee camouflage candidates")
+            lines.append("")
+            lines.append(
+                "Deterministic proxies for fee camouflage are "
+                "fee_amount_observed, salary_deduction_signal, and rule_hit "
+                "edges with placement/training/medical/repayment language. "
+                "Explicit fee_camouflage_evidence edges come from the "
+                "optional local Gemma edge pass."
+            )
+            if not camouflage_edges:
+                lines.append("")
+                lines.append(
+                    "No fee-camouflage proxy edges fired in this bundle. Run "
+                    "the local Gemma edge pass on a richer source bundle to "
+                    "surface explicit fee_camouflage_evidence edges, or "
+                    "upload rows that name placement, training, medical, "
+                    "transport, deposit, or wage-deduction fees."
+                )
+            else:
+                lines.append("")
+                for edge in camouflage_edges[:10]:
+                    row = str(edge.get("row_id") or "")
+                    add_rows([row])
+                    label = str(edge.get("label") or edge.get("edge_type") or "")
+                    quote = str(((edge.get("evidence") or {}).get("quote") or "")).strip().replace("\n", " ")
+                    quote_clip = (quote[:140] + "...") if len(quote) > 140 else quote
+                    lines.append(
+                        f"- `{row}` | edge: {edge.get('edge_type')} | label: {label}"
+                        + (f" | quote: {quote_clip}" if quote_clip else "")
+                    )
+
+        if wants_provider_choice:
+            if lines:
+                lines.append("")
+            lines.append("Restricted provider choice candidates")
+            lines.append("")
+            lines.append(
+                "Deterministic proxies for restricted provider choice are "
+                "located_at, filed_under, and journey_stage_observation edges, "
+                "plus risk signals naming a single provider, agency control, "
+                "or limited choice. Explicit provider_choice_restriction "
+                "edges come from the optional local Gemma edge pass."
+            )
+            if not provider_edges and not provider_signal_people:
+                lines.append("")
+                lines.append(
+                    "No deterministic provider-choice proxies fired. Run the "
+                    "local Gemma edge pass to surface "
+                    "provider_choice_restriction edges, or upload rows that "
+                    "name a single broker, medical centre, housing provider, "
+                    "or remittance channel."
+                )
+            if provider_edges:
+                lines.append("")
+                for edge in provider_edges[:8]:
+                    row = str(edge.get("row_id") or "")
+                    add_rows([row])
+                    lines.append(
+                        f"- `{row}` | edge: {edge.get('edge_type')} | label: "
+                        f"{edge.get('label') or edge.get('edge_type')}"
+                    )
+            if provider_signal_people:
+                lines.append("")
+                lines.append("People with provider-related risk signals:")
+                for person in provider_signal_people[:6]:
+                    rows = _person_support_rows(person)
+                    add_rows(rows)
+                    lines.append(
+                        f"- {person.get('name') or person.get('case_id')} "
+                        f"(`{person.get('case_id')}`) | support rows: "
+                        + ", ".join(f"`{r}`" for r in rows)
+                    )
+
+        if not lines:
+            return None
+
+        lines.append("")
+        lines.append(
+            "Both fee camouflage and restricted provider choice are TIP "
+            "indicators. The combination strongly suggests recruitment-fee "
+            "concealment that the worker cannot avoid. Run the local Gemma "
+            "edge pass to upgrade these proxies into explicit "
+            "fee_camouflage_evidence and provider_choice_restriction edges, "
+            "and confirm with original receipts, contract clauses, and "
+            "broker/recipient identifiers before any escalation."
+        )
+        return {
+            "answer": "\n".join(lines),
+            "cited_rows": cited_rows,
+            "analysis_kind": "fee_camouflage_and_provider_choice",
+        }
 
     if wants_media:
         media = ((intelligence.get("processing_plan") or {}).get("media_assets") or [])
@@ -2512,6 +2676,14 @@ def register_routes(app: Any) -> None:
                 "pct": fields.get("pct", job.get("pct", 0)),
                 "detail": fields.get("detail", ""),
             }
+            # Forward small, non-payload telemetry fields onto the
+            # individual event record so reviewers and contract tests
+            # can read them directly from the events stream without
+            # diffing the job-level dict. `result` is intentionally
+            # excluded because it can be the full processed bundle.
+            for key in ("media_assets_queued", "error", "fallback"):
+                if key in fields and fields[key] is not None:
+                    event[key] = fields[key]
             job.update(fields)
             job.setdefault("events", []).append(event)
             job["updated_at"] = event["ts"]
@@ -2771,12 +2943,32 @@ def register_routes(app: Any) -> None:
                     process_settings=process_settings,
                     progress=lambda **kw: _process_job_update(job_id, status="running", **kw),
                 )
+                # Honest completion: even at pct=100 the deterministic
+                # pass is what finished. Media assets in the queue still
+                # need OCR or Gemma 4 vision review; surface that so the
+                # UI does not imply OCR/Gemma vision completed.
+                intel = (bundle.get("intelligence") or {})
+                media_queued = int(
+                    ((intel.get("processing_plan") or {}).get("n_media_assets") or 0)
+                )
+                if media_queued:
+                    completion_detail = (
+                        f"Deterministic parsing complete; {media_queued} media asset(s) "
+                        "remain queued for OCR or Gemma 4 vision review. Bundle cached "
+                        "for graph chat."
+                    )
+                else:
+                    completion_detail = (
+                        "Deterministic parsing complete; no media items queued. "
+                        "Bundle cached for graph chat."
+                    )
                 _process_job_update(
                     job_id,
                     status="complete",
                     phase="complete",
                     pct=100,
-                    detail="Bundle processed and cached for graph chat.",
+                    detail=completion_detail,
+                    media_assets_queued=media_queued,
                     result=bundle,
                 )
             except Exception as e:
