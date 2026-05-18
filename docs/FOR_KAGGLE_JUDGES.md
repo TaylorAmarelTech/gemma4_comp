@@ -100,9 +100,10 @@ maps each requirement to a concrete surface below.
 | **Special Tech → LiteRT** | The sibling Android app bundles harness metadata and uses the LiteRT path for the worker-facing offline surface. | `C:/Users/amare/OneDrive/Documents/duecare-journey-android` + GitHub Actions APK artifact |
 | **Main Track** | Pursued in parallel; depends on overall execution + video. | All of the above bundled. |
 
-## Five-minute walkthrough (post-deploy)
+## Five-minute walkthrough
 
-Once the live URL is known (post `USER_TODO.md` step 1):
+Run `kaggle/02-live-demo/kernel.py` or open the current Cloudflare URL
+printed by that kernel. The route sequence below is stable:
 
 1. **Click into the live URL.** Pick the `gemma-4-e2b-it` variant (fastest load).
 2. **Click "About"** in the top bar — see the 30-second pitch + the
