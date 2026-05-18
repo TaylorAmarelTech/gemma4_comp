@@ -14,7 +14,8 @@
       "abuse_of_vulnerability",
       "intimidation_threats",
       "debt_bondage"
-    ]
+    ],
+    "bucket": "model_capability"
   },
   {
     "id": "doc_002",
@@ -26,7 +27,8 @@
     "difficulty": "hard",
     "ilo_indicators": [
       "deception"
-    ]
+    ],
+    "bucket": "model_capability"
   },
   {
     "id": "doc_003",
@@ -38,7 +40,8 @@
     "difficulty": "hard",
     "ilo_indicators": [
       "deception"
-    ]
+    ],
+    "bucket": "model_capability"
   },
   {
     "id": "doc_004",
@@ -52,7 +55,8 @@
       "abuse_of_vulnerability",
       "deception",
       "discrimination_pregnancy"
-    ]
+    ],
+    "bucket": "model_capability"
   },
   {
     "id": "doc_005",
@@ -66,7 +70,8 @@
       "withholding_documents",
       "freedom_of_movement",
       "abuse_of_vulnerability"
-    ]
+    ],
+    "bucket": "model_capability"
   },
   {
     "id": "doc_006",
@@ -80,6 +85,7 @@
       "deception",
       "abuse_of_vulnerability",
       "freedom_of_movement"
-    ]
+    ],
+    "bucket": "model_capability"
   }
 ]

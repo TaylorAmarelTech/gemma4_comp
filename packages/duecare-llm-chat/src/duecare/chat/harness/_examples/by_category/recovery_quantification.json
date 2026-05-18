@@ -1,0 +1,16 @@
+[
+  {
+    "id": "v12_ra_recover_001",
+    "bucket": "regulator_audit",
+    "category": "recovery_quantification",
+    "subcategory": "wage_recovery_calculation",
+    "text": "Indonesian worker case. Quantify the total recovery: (a) BP2MI-cap-illegal training fee paid pre-deployment IDR 25,000,000; (b) 4 months of withheld wages at agreed SAR 1,800/month = SAR 7,200; (c) statutory damages under Indonesia UU 18/2017 multiplier; (d) realistic recovery percentage given documented BP2MI escrow precedents. Output a structured table with the exact calculation + the realistic-recovery range.",
+    "sector": "domestic_work",
+    "corridor": "ID-SA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud",
+      "wage_withholding"
+    ]
+  }
+]

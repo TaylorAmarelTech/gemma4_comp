@@ -1,0 +1,16 @@
+[
+  {
+    "id": "v12_di_aggregate_001",
+    "bucket": "data_intelligence",
+    "category": "cross_corridor_aggregation",
+    "subcategory": "operator_chain_inference",
+    "text": "Given the JSON post records in /static/synthetic/posts/ — fb_001, fb_002, fb_003, tiktok_001, telegram_001, telegram_002, telegram_003, instagram_001, instagram_002, discord_001, x_001, whatsapp_001, sms_001 — generate: (1) operator-chain inferences (which records likely share an operator? evidence?); (2) corridor heatmap (which corridors are over-represented in the dataset?); (3) the 3 highest-priority records for regulator notification + why; (4) data-quality caveats.",
+    "sector": "multi",
+    "corridor": "multi",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud",
+      "deception"
+    ]
+  }
+]

@@ -1,0 +1,56 @@
+[
+  {
+    "id": "ind_003",
+    "bucket": "individual_query",
+    "category": "family_inquiry",
+    "subcategory": "communication_loss",
+    "text": "I haven't heard from my sister for 3 weeks. She went to Saudi Arabia for domestic work last month. The agency in Manila says they 'can't reach the employer' and it's not unusual. My sister is 22 and never lived abroad before. We're in Bohol. What can I do from here, in the next 48 hours?",
+    "sector": "domestic_work",
+    "corridor": "PH-SA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "isolation"
+    ]
+  },
+  {
+    "id": "ind_008",
+    "bucket": "individual_query",
+    "category": "family_inquiry",
+    "subcategory": "remittance_loss",
+    "text": "My wife sends money home every month from Lebanon (she works as a maid in a household). For 4 months no money has come. She says her employer has been 'borrowing' from her wages and will pay it all back at the end of the contract. I am worried this is not normal. What does this mean and what should we do? We have one child and I do not work much.",
+    "sector": "domestic_work",
+    "corridor": "ET-LB",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "wage_withholding",
+      "debt_bondage"
+    ]
+  },
+  {
+    "id": "v09_ind_compound_001",
+    "bucket": "individual_query",
+    "category": "family_inquiry",
+    "subcategory": "scam_compound_family",
+    "text": "My brother went to work as IT support in Cambodia 4 months ago. The pay was good — USD 1,800 a month. The first 2 months he sent money home regularly. Now I haven't heard from him in 3 weeks. His last text said 'don't worry I'm fine' but he didn't sound right. We're in Manila. What do I do?",
+    "sector": "scam_compound",
+    "corridor": "PH-KH",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "isolation"
+    ]
+  },
+  {
+    "id": "v12_ind_family_recruiter_001",
+    "bucket": "individual_query",
+    "category": "family_inquiry",
+    "subcategory": "relative_recruiter",
+    "text": "My cousin works at a 'recruitment office' in Manila. She offered to place me as a domestic worker in Saudi for a 'small training fee, family discount'. She showed me the receipts and they look real. My mother says we should trust family. But the fee is PHP 35,000 and I read online HK and Saudi PH placement should be free. Should I go through her or somewhere else? She'll be hurt if I don't.",
+    "sector": "domestic_work",
+    "corridor": "PH-SA",
+    "difficulty": "easy",
+    "ilo_indicators": [
+      "fee_fraud",
+      "deception"
+    ]
+  }
+]

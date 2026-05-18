@@ -1,0 +1,29 @@
+[
+  {
+    "id": "res_003",
+    "bucket": "research",
+    "category": "statute_interpretation",
+    "subcategory": "ilo_indicator_application",
+    "text": "Walk through how the 11 ILO Forced Labour Indicators apply to a hypothetical case where a worker (a) consented to a recruitment fee, (b) signed a contract knowing the deduction schedule, (c) is paid in full but cannot leave the job until the loan is repaid (3 years), (d) has free movement in their off hours, and (e) has retained their own passport. Which indicators are present, which are absent, what does that mean for the case's classification, and which framework is the better fit (forced labour vs trafficking vs neither)?",
+    "sector": "construction",
+    "corridor": "BD-MY",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage"
+    ]
+  },
+  {
+    "id": "res_004",
+    "bucket": "research",
+    "category": "statute_interpretation",
+    "subcategory": "convention_interplay",
+    "text": "Explain the interplay between ILO Convention 181 (Private Employment Agencies, 1997), the 2014 Forced Labour Protocol P029, and the Palermo Trafficking Protocol (2000) in the context of recruitment-fee debt bondage. Where do they reinforce each other, where do they leave gaps, and what would a state need to do to give a worker a complete domestic-law remedy?",
+    "sector": "multi",
+    "corridor": "multi",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage",
+      "fee_fraud"
+    ]
+  }
+]

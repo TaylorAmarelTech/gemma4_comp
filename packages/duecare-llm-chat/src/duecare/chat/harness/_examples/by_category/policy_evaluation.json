@@ -1,0 +1,43 @@
+[
+  {
+    "id": "res_008",
+    "bucket": "research",
+    "category": "policy_evaluation",
+    "subcategory": "intervention_efficacy",
+    "text": "Evaluate the policy efficacy of the Philippines' POEA Memorandum Circular 14-2017 (PH-HK domestic-worker zero placement fee). Specifically: what's the documented compliance rate among licensed agencies; what's the documented behaviour change in employer-paid vs worker-paid fee splits; what gap remains between the rule and the lived experience of returning workers; and what alternative policy designs (graduated-fee, employer-pays-with-rebate, escrow-bond-only) have been proposed and why?",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud"
+    ]
+  },
+  {
+    "id": "v09_res_post_reform_001",
+    "bucket": "research",
+    "category": "policy_evaluation",
+    "subcategory": "post_2024_gulf_reforms",
+    "text": "Evaluate the documented compliance with the Saudi 2021 Labour Reform Initiative + Qatar 2020 reforms + UAE 2022 amendments specifically for migrant domestic workers (the workers excluded from most kafala-dismantling reforms). What changed on paper, what changed in practice, and what does the data show 5 years post-reform?",
+    "sector": "domestic_work",
+    "corridor": "multi",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "passport_retention",
+      "wage_withholding"
+    ]
+  },
+  {
+    "id": "v12_res_quantify_001",
+    "bucket": "research",
+    "category": "policy_evaluation",
+    "subcategory": "quantified_recovery_outcomes",
+    "text": "For OFW recovery cases that go through POEA Anti-Illegal Recruitment Branch + the joint-and-several-liability mechanism under RA 10022 §15, what's the documented recovery-percentage range based on POEA escrow data 2018-2024? Cite primary sources, named cases where possible. End with the methodological caveat about case-selection bias.",
+    "sector": "domestic_work",
+    "corridor": "PH-multi",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud",
+      "wage_withholding"
+    ]
+  }
+]

@@ -1,0 +1,15 @@
+[
+  {
+    "id": "v12_di_velocity_001",
+    "bucket": "data_intelligence",
+    "category": "velocity_clustering",
+    "subcategory": "post_frequency_anomaly",
+    "text": "Across the synthetic posts dataset, identify: (1) accounts posting at suspicious velocity (post_creation_velocity_24h > 10), (2) accounts older than 90 days vs less than 30 days, (3) the engagement profile difference between the two cohorts, (4) what this signals for moderation prioritization. Output structured.",
+    "sector": "multi",
+    "corridor": "multi",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "deception"
+    ]
+  }
+]

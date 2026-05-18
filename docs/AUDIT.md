@@ -19,7 +19,7 @@ the public surface against drift we've seen real cases of:
   `_nav.html` and `_footer.html` returns 200 via FastAPI TestClient
 - **six_lane_order** — the canonical lane order
   (Platform safety → NGO & regulator → Individual worker / mobile →
-  Researcher → Developer / integration partner → Anonymized knowledge sharing) appears on
+  Researcher → Anonymized knowledge sharing → Developer / integration partner) appears on
   `setup.html` and `use-cases.html`
 - **kaggle_lane_labels** — every `kaggle/{01,02,03,A-*}/README.md`
   carries a `<!-- duecare:lane-label -->` block or `Serves lanes:` line

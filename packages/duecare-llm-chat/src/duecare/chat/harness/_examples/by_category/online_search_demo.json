@@ -1,0 +1,43 @@
+[
+  {
+    "id": "online_recent_enforcement",
+    "text": "What was the most recent POEA enforcement action against a recruitment agency for kafala-related violations in Saudi Arabia? Cite the specific case if possible.",
+    "category": "online_search_demo",
+    "subcategory": "recent_enforcement_query",
+    "sector": "domestic_work",
+    "corridor": "PH-Saudi",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "debt_bondage"
+    ],
+    "bucket": "model_capability"
+  },
+  {
+    "id": "online_lebanon_2024",
+    "text": "Has the Lebanese Cabinet Decree 13166/2021 (kafala reform) been substantively enforced as of 2024? What are NGO reports saying about implementation gaps for Filipina, Sri Lankan, and Ethiopian domestic workers in Beirut?",
+    "category": "online_search_demo",
+    "subcategory": "policy_implementation_query",
+    "sector": "domestic_work",
+    "corridor": "LK-Lebanon",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "abuse_of_vulnerability",
+      "passport_retention"
+    ],
+    "bucket": "model_capability"
+  },
+  {
+    "id": "online_current_ngo",
+    "text": "Which NGOs are currently active in Bangkok handling cases for Cambodian and Burmese workers trafficked into Thai fishing fleets? Provide current contact information and intake procedures.",
+    "category": "online_search_demo",
+    "subcategory": "active_ngo_query",
+    "sector": "fishing",
+    "corridor": "KH-TH",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "restriction_of_movement",
+      "deception"
+    ],
+    "bucket": "model_capability"
+  }
+]

@@ -1,0 +1,57 @@
+[
+  {
+    "id": "res_007",
+    "bucket": "research",
+    "category": "investigative_reporting",
+    "subcategory": "story_planning",
+    "text": "I'm a journalist starting a 6-month investigation into systematic recruitment fraud in the NP-Gulf corridor. Help me plan: (1) which 5 specific facts I need to nail down before publication; (2) which document categories I should request via FOI in Nepal and via paywalled court records in the destination state; (3) which 3 expert sources (named individuals or institutions) I should approach; (4) the legal exposure I need a media lawyer to clear before naming an agency. Be concrete — names, doc types, statute IDs, not generic advice.",
+    "sector": "construction",
+    "corridor": "NP-SA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud",
+      "debt_bondage"
+    ]
+  },
+  {
+    "id": "v09_res_compound_001",
+    "bucket": "research",
+    "category": "investigative_reporting",
+    "subcategory": "scam_compound_chain",
+    "text": "I'm a journalist with 6 months and a $40K travel budget. I want to map the full chain from a Manila recruitment ad to the Sihanoukville compound — the Filipino agent, the Chinese-Cambodian operator, the corrupted-official handlers, the bank/crypto rails. Walk me through: (1) which 5 facts to nail; (2) which open-source data sources actually have signal; (3) which 3 sources to approach in person; (4) the legal exposure for naming the Manila agency.",
+    "sector": "scam_compound",
+    "corridor": "PH-KH",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "passport_retention",
+      "deception"
+    ]
+  },
+  {
+    "id": "v09_res_crypto_001",
+    "bucket": "research",
+    "category": "investigative_reporting",
+    "subcategory": "crypto_recruitment_flows",
+    "text": "Draft a methodology for mapping recruitment-fee crypto flows across the PH/ID/NP outbound corridors. (1) Which on-chain analytics tools (Chainalysis, Elliptic) have visibility? (2) What's the signal-to-noise ratio of Travel-Rule-threshold structuring? (3) Which destination-side wallets cluster with known scam-compound operators? (4) What's the partnership story with FATF / FIUs?",
+    "sector": "multi",
+    "corridor": "multi",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud"
+    ]
+  },
+  {
+    "id": "v11_res_dubai_shell_001",
+    "bucket": "research",
+    "category": "investigative_reporting",
+    "subcategory": "dubai_freezone_shell_chain",
+    "text": "I'm a journalist with 3 months budget. I want to map the Dubai Free Zone shell-company chain that recruits workers via fake 'employer' registrations, then redirects them to actual scam compounds in the region. (1) Which open-source data sources show beneficial-ownership signal? (2) Which 4 specific facts I need to nail before publication? (3) Which UAE authorities have jurisdiction (MoHRE vs Dubai Police vs UAE Anti-Trafficking Committee)? (4) The legal exposure for me as a foreign journalist publishing on Dubai Free Zone entities.",
+    "sector": "scam_compound",
+    "corridor": "*-AE",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "deception",
+      "fee_fraud"
+    ]
+  }
+]

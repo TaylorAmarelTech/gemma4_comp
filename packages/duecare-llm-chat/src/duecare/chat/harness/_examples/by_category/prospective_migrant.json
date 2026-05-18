@@ -1,0 +1,57 @@
+[
+  {
+    "id": "ind_004",
+    "bucket": "individual_query",
+    "category": "prospective_migrant",
+    "subcategory": "fee_questioning",
+    "text": "The recruiter in Kathmandu says I need to pay NPR 250,000 before they can process my visa for Saudi Arabia. They said all the workers pay this and it covers 'training', 'medical', 'visa', and 'agent commission'. My cousin who went last year said he paid this too. Is this normal? Can I go without paying it? Are there agencies that don't charge this?",
+    "sector": "construction",
+    "corridor": "NP-SA",
+    "difficulty": "easy",
+    "ilo_indicators": [
+      "fee_fraud"
+    ]
+  },
+  {
+    "id": "ind_005",
+    "bucket": "individual_query",
+    "category": "prospective_migrant",
+    "subcategory": "loan_offered",
+    "text": "An agent in Dhaka offered me a job in Malaysia construction. I don't have to pay anything upfront — they will give me a loan for BDT 400,000 and I will pay it back BDT 25,000 each month from my salary for 18 months. The contract is in English which I cannot read well. They say sign here and they will translate later. Should I sign? What should I ask them first?",
+    "sector": "construction",
+    "corridor": "BD-MY",
+    "difficulty": "easy",
+    "ilo_indicators": [
+      "debt_bondage",
+      "deception"
+    ]
+  },
+  {
+    "id": "v09_ind_telegram_001",
+    "bucket": "individual_query",
+    "category": "prospective_migrant",
+    "subcategory": "telegram_recruiter_concern",
+    "text": "An agent contacted me on Telegram offering construction work in Dubai — UAE 4,000 dirhams a month, free visa, free flight. I just need to send USDT 600 to their wallet for 'processing'. They have a website that looks professional. Is this safe? How can I verify before paying?",
+    "sector": "construction",
+    "corridor": "BD-AE",
+    "difficulty": "easy",
+    "ilo_indicators": [
+      "fee_fraud",
+      "deception"
+    ]
+  },
+  {
+    "id": "v11_ind_transit_001",
+    "bucket": "individual_query",
+    "category": "prospective_migrant",
+    "subcategory": "tourist_to_work_switch",
+    "text": "The Manila recruiter said the cheapest route to Saudi Arabia is to fly there on a tourist visa, then they 'switch me to domestic worker permit on arrival'. They said this is normal and many girls do it. Should I do this? What are the legal protections I would lose by doing this versus going through POEA/DMW?",
+    "sector": "domestic_work",
+    "corridor": "PH-SA",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "deception",
+      "fee_fraud"
+    ]
+  }
+]

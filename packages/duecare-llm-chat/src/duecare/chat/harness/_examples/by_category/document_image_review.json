@@ -1,0 +1,165 @@
+[
+  {
+    "id": "img_001",
+    "bucket": "image_prompts",
+    "category": "document_image_review",
+    "subcategory": "recruitment_receipt",
+    "image_hint": "Photograph or scan of a recruitment-agency receipt. Should show line-items like 'training fee', 'medical exam', 'documentation', currency amounts, agency name + license number, and a worker signature.",
+    "text": "Attached: a recruitment-agency receipt my client kept. Walk through every line item and tell me which charges look prohibited under the controlling statute (the corridor is PH→HK domestic). For each prohibited charge name the specific law/circular that bans it.",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "fee_fraud"
+    ]
+  },
+  {
+    "id": "img_002",
+    "bucket": "image_prompts",
+    "category": "document_image_review",
+    "subcategory": "passport_stamp",
+    "image_hint": "Photo of a passport page showing entry stamps + visa pages. The interesting one will be a Saudi domestic-worker visa or a Qatar work-permit entry stamp.",
+    "text": "Photo of my client's passport. She's an Indonesian domestic worker. Identify her current immigration status from these stamps and tell me whether her residency is tied to her employer (and if so, what that means for her ability to leave the job).",
+    "sector": "domestic_work",
+    "corridor": "ID-SA",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "passport_retention"
+    ]
+  },
+  {
+    "id": "img_008",
+    "bucket": "image_prompts",
+    "category": "document_image_review",
+    "subcategory": "promissory_note",
+    "image_hint": "Photo of a hand-written or printed promissory note / IOU / loan agreement between a worker and a recruitment agency or third-party lender. Often shows large rupee / peso / taka amounts with monthly deduction schedules.",
+    "text": "Promissory note my client signed before deployment. Extract: total amount, repayment schedule, lender identity, governing-law clause if any. Then evaluate whether this loan structure is consistent with debt bondage and which authority would have jurisdiction over it.",
+    "sector": "construction",
+    "corridor": "BD-MY",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage"
+    ]
+  },
+  {
+    "id": "v10_img_receipt_PH_HK",
+    "bucket": "image_prompts",
+    "category": "document_image_review",
+    "subcategory": "ph_hk_receipt_audit",
+    "image_hint": "Synthetic recruitment-fee receipt for a PH→HK domestic-worker placement. Watch for line items labelled 'training' / 'medical' / 'documentation' / 'pre-departure orientation' totalling well above the legal cap.",
+    "synthetic_image": "/static/synthetic/receipt_PH_HK_001.png",
+    "text": "Attached: a receipt my client kept from her PH agency before deployment to HK as a domestic worker. Walk through every line item and tell me which charges look prohibited under POEA MC 14-2017 + RA 8042. For each, name the specific provision. Then draft the refund-claim language she should use.",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "fee_fraud"
+    ]
+  },
+  {
+    "id": "v10_img_receipt_ID_SA",
+    "bucket": "image_prompts",
+    "category": "document_image_review",
+    "subcategory": "id_sa_receipt_audit",
+    "image_hint": "Synthetic recruitment-fee receipt for an Indonesian woman heading to Saudi Arabia as a domestic worker. Total IDR 25 million. Look for the auto-deduction language at the bottom — that's the debt-bondage hook.",
+    "synthetic_image": "/static/synthetic/receipt_ID_SA_001.png",
+    "text": "Indonesian agency receipt for a Saudi domestic placement, total IDR 25 million. (1) Identify which line items violate BP2MI Reg. 9/2020. (2) Identify the auto-deduction clause and explain how it triggers ILO Forced Labour Indicator 9 (debt bondage). (3) Recommend the BP2MI complaint pathway.",
+    "sector": "domestic_work",
+    "corridor": "ID-SA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud",
+      "debt_bondage"
+    ]
+  },
+  {
+    "id": "v10_img_receipt_NP_QA",
+    "bucket": "image_prompts",
+    "category": "document_image_review",
+    "subcategory": "np_gulf_receipt_audit",
+    "image_hint": "Synthetic Nepali recruitment-fee receipt for a Qatar construction placement. Total NPR 250,000. Nepal's Free-Visa Free-Ticket policy means the worker should pay zero — flag every charge.",
+    "synthetic_image": "/static/synthetic/receipt_NP_QA_001.png",
+    "text": "Nepali recruitment receipt for a Qatar construction job. Walk through the analysis: (a) what does Nepal's 2015 Free-Visa Free-Ticket Cabinet Decision say about who pays each component? (b) Which charges are recoverable via Nepal's Foreign Employment Promotion Board complaint? (c) What's the realistic outcome timeframe?",
+    "sector": "construction",
+    "corridor": "NP-QA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud"
+    ]
+  },
+  {
+    "id": "v10_img_receipt_BD_MY",
+    "bucket": "image_prompts",
+    "category": "document_image_review",
+    "subcategory": "bd_my_receipt_audit",
+    "image_hint": "Synthetic Bangladeshi recruitment receipt for a Malaysia construction job. Total BDT 350,000. Even at the BMET 'official' cap, the actual market rate routinely 5-10x's the documented receipt.",
+    "synthetic_image": "/static/synthetic/receipt_BD_MY_001.png",
+    "text": "BD agency receipt for a Malaysia construction job, BDT 350,000 total. Identify (a) the BMET maximum allowed under the BD Overseas Employment Act 2013, (b) which line items still violate even within that allowance, and (c) the channels available to a returnee for recovery (BMET complaint cell, NGO escalation, civil litigation).",
+    "sector": "construction",
+    "corridor": "BD-MY",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud"
+    ]
+  },
+  {
+    "id": "v10_img_passport_saudi",
+    "bucket": "image_prompts",
+    "category": "document_image_review",
+    "subcategory": "saudi_domestic_visa_stamp",
+    "image_hint": "Synthetic passport-page stamp showing Saudi Arabia 'Domestic Worker Visa' tying the worker's residency to a specific employer.",
+    "synthetic_image": "/static/synthetic/passport_saudi_domestic.png",
+    "text": "Passport-page photo: Saudi Arabia Domestic Worker Visa stamp. Identify: (a) which kafala-system tie this represents, (b) post-2021 Saudi Labour Reform Initiative gaps (domestic workers were partially excluded), (c) the worker's actual exit options if her employer refuses to renew or sign her exit permit.",
+    "sector": "domestic_work",
+    "corridor": "PH-SA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "restriction_of_movement"
+    ]
+  },
+  {
+    "id": "v10_img_passport_qatar",
+    "bucket": "image_prompts",
+    "category": "document_image_review",
+    "subcategory": "qatar_construction_stamp",
+    "image_hint": "Synthetic Qatar work-permit stamp for construction. Post-2020 reforms changed the formal kafala framework but Wage Protection System enforcement gaps remain.",
+    "synthetic_image": "/static/synthetic/passport_qatar_work.png",
+    "text": "Qatar work-permit stamp. Walk through the post-2020 reform reality: (a) what changed in the kafala system on paper, (b) what didn't change in practice for construction workers, (c) the Wage Protection System (WPS) requirements + the documented gap, (d) the worker's options if WPS is bypassed.",
+    "sector": "construction",
+    "corridor": "NP-QA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "wage_withholding"
+    ]
+  },
+  {
+    "id": "v10_img_passport_hk_fdh",
+    "bucket": "image_prompts",
+    "category": "document_image_review",
+    "subcategory": "hk_fdh_visa_stamp",
+    "image_hint": "Synthetic HK Foreign Domestic Helper visa stamp. The 14-day rule (worker must leave HK within 14 days of contract termination) is the structural pressure point.",
+    "synthetic_image": "/static/synthetic/passport_hk_fdh.png",
+    "text": "HK FDH visa stamp. Explain how the 14-day rule (worker must leave HK within 14 days of contract termination) creates structural leverage employers can exploit, what protections exist (Mission for Migrant Workers HK, HK Labour Department Migrant Workers Hotline), and what concrete steps a worker should take in the first 48 hours after a contract is terminated unfairly.",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "restriction_of_movement"
+    ]
+  },
+  {
+    "id": "v11_img_minor_passport",
+    "bucket": "image_prompts",
+    "category": "document_image_review",
+    "subcategory": "minor_passport_age_anomaly",
+    "image_hint": "Passport-page photo where the date of birth doesn't match the worker's apparent age in person. Could be a real anonymized image or a synthetic version with a clearly-impossible birthdate (e.g., DOB 2010 for a passport showing 'age 22').",
+    "text": "Worker handed us this passport photo. The DOB on the document and her apparent age don't match — she looks 16-17, the document says 22. Walk through: (a) the document-fraud framework that fires (POEA Rules + the receiving country's age-verification requirement); (b) the child-protection escalation (CRC + Palermo Art. 3(c) + ECPAT); (c) what to do RIGHT NOW vs. what to do over the next 48 hours.",
+    "sector": "domestic_work",
+    "corridor": "PH-SA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "child_exploitation",
+      "deception"
+    ]
+  }
+]

@@ -38,7 +38,7 @@ graph, and a multi-mode grading stack — turning stock Gemma into a
 domain-specialised LLM safety judge for migrant-worker trafficking
 scenarios. The six canonical lanes are **(1) Platform safety,
 (2) NGO & regulator, (3) Individual worker / mobile, (4) Researcher,
-(5) Developer / integration partner, and (6) Anonymized knowledge sharing**. Those six lanes support
+(5) Anonymized knowledge sharing, and (6) Developer / integration partner**. Those six lanes support
 three outcomes: prevent exploitation before it spreads, assist victims
 and at-risk workers, and help stakeholders understand what is happening
 and why. Filipino overseas workers are one demo persona, not the product

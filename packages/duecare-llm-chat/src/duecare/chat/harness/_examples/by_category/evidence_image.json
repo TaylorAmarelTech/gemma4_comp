@@ -1,0 +1,186 @@
+[
+  {
+    "id": "img_005",
+    "bucket": "image_prompts",
+    "category": "evidence_image",
+    "subcategory": "contract_clause",
+    "image_hint": "Photo of a printed employment contract page showing fee / wage / termination clauses. Best if low-resolution / phone photo (typical of how a worker would document their contract).",
+    "text": "Worker took this phone photo of her contract before signing. Read the visible clauses and flag any that violate the relevant origin or destination labour law. Be specific about the clause text and the violation.",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "fee_fraud",
+      "wage_withholding"
+    ]
+  },
+  {
+    "id": "img_006",
+    "bucket": "image_prompts",
+    "category": "evidence_image",
+    "subcategory": "whatsapp_screenshot",
+    "image_hint": "Screenshot of a WhatsApp / Messenger / Telegram conversation between worker and recruiter or worker and employer. Often shows wage threats, fee demands, or document-retention statements.",
+    "text": "WhatsApp screenshot from my client's phone — she's an Ethiopian worker in Lebanon, this is from her employer. Read the conversation and identify whether any of the messages constitute evidence of an ILO Forced Labour indicator. Summarize each in plain language for inclusion in a case file.",
+    "sector": "domestic_work",
+    "corridor": "ET-LB",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "wage_withholding",
+      "physical_violence",
+      "passport_retention"
+    ]
+  },
+  {
+    "id": "v09_img_crypto_001",
+    "bucket": "image_prompts",
+    "category": "evidence_image",
+    "subcategory": "crypto_wallet_screenshot",
+    "image_hint": "Screenshot of a crypto wallet (Trust Wallet, MetaMask, Binance) showing USDT/USDC transfers to a recruitment agency or 'sponsor'. Include transaction amounts + timestamps.",
+    "text": "Worker shared this wallet screenshot — series of USDT transfers to an address her recruiter gave her over WhatsApp. Walk through: the FATF Travel Rule analysis (were the transfers structured to stay under threshold?), what wallet-attribution work an investigator could do, and whether AMLC / Bappebti has jurisdiction to act on this.",
+    "sector": "domestic_work",
+    "corridor": "PH-SA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud"
+    ]
+  },
+  {
+    "id": "v09_img_compound_001",
+    "bucket": "image_prompts",
+    "category": "evidence_image",
+    "subcategory": "compound_photo",
+    "image_hint": "Photograph of a building or compound, ideally showing fences, guards, or other access-control features. Could be a worker's clandestine photo from inside.",
+    "text": "Worker smuggled this photo out of a compound in Bavet, Cambodia. What forced-labor / trafficking signals are visible? What's the right escalation path — Cambodian NCCT, ASEAN ACTIP, the worker's origin embassy? What should the worker's family in Manila NOT do that could endanger extraction?",
+    "sector": "scam_compound",
+    "corridor": "*-KH",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "passport_retention",
+      "isolation"
+    ]
+  },
+  {
+    "id": "v10_img_contract_passport",
+    "bucket": "image_prompts",
+    "category": "evidence_image",
+    "subcategory": "passport_retention_clause",
+    "image_hint": "Synthetic employment-contract page with a 'document custody' clause requiring the employer to hold the worker's passport during the contract term.",
+    "synthetic_image": "/static/synthetic/contract_passport_001.png",
+    "text": "Worker's contract page. The 'Article 7 — Document Custody' clause requires the employer to hold her passport. Even with worker consent in writing, identify why this is unlawful under (a) ILO C189 Article 9, (b) HK Employment Ord. Cap. 57, and (c) the Palermo Trafficking Protocol's coercion analysis. What should the worker do BEFORE signing?",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "passport_retention"
+    ]
+  },
+  {
+    "id": "v10_img_contract_wage_deduction",
+    "bucket": "image_prompts",
+    "category": "evidence_image",
+    "subcategory": "wage_deduction_loan_clause",
+    "image_hint": "Synthetic contract showing 1/3-of-salary auto-deduction routed to a third-party 'lender' for placement-fee repayment over 18 months.",
+    "synthetic_image": "/static/synthetic/contract_wage_001.png",
+    "text": "This contract clause auto-deducts 1/3 of monthly wages for 18 months to repay a 'lender' introduced by the recruiting agency. Even though signed, this is debt bondage. Apply: ILO C095 Art. 9, ILO C181 Art. 7, ILO Forced Labour Indicator 4 (debt bondage). What's the worker's actual exposure if she walks away from this contract — practically, not theoretically?",
+    "sector": "construction",
+    "corridor": "BD-MY",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage",
+      "wage_withholding"
+    ]
+  },
+  {
+    "id": "v10_img_contract_exit_restriction",
+    "bucket": "image_prompts",
+    "category": "evidence_image",
+    "subcategory": "exit_restriction_clause",
+    "image_hint": "Synthetic contract with a 12-month-no-exit clause carrying liquidated-damages forfeiture for early departure.",
+    "synthetic_image": "/static/synthetic/contract_exit_001.png",
+    "text": "Walk through the legal analysis: a contract clause forbidding worker-initiated termination for 12 months with liquidated damages of 3 months' salary + 'reporting to immigration authorities'. Why is this exit-restriction unenforceable under ILO C029 + the destination state's labour law? Walk a worker through her actual options.",
+    "sector": "construction",
+    "corridor": "NP-QA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "restriction_of_movement",
+      "debt_bondage"
+    ]
+  },
+  {
+    "id": "v10_img_contract_no_rest_day",
+    "bucket": "image_prompts",
+    "category": "evidence_image",
+    "subcategory": "no_rest_day_clause",
+    "image_hint": "Synthetic contract clause where the weekly rest day is 'cumulative' and may be 'compensated in monetary form' at the employer's election — i.e., never actually given.",
+    "synthetic_image": "/static/synthetic/contract_rest_001.png",
+    "text": "Article 15 says the rest day is 'cumulative and at the Employer's convenience'. Identify (a) which UAE / HK / Saudi statute makes this clause void, (b) ILO Forced Labour Indicator that fires (excessive overtime), (c) how the worker can escalate while still employed without immediate retaliation.",
+    "sector": "domestic_work",
+    "corridor": "ID-AE",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "excessive_overtime"
+    ]
+  },
+  {
+    "id": "v10_img_whatsapp_recruiter_fee",
+    "bucket": "image_prompts",
+    "category": "evidence_image",
+    "subcategory": "whatsapp_recruiter_pressure",
+    "image_hint": "Synthetic WhatsApp chat between a worker and a recruiter pressuring her to pay PHP 50,000 by Friday or 'lose the slot'. Recruiter refuses to send the contract before payment. GCash to a personal number — agency-laundering signal.",
+    "synthetic_image": "/static/synthetic/whatsapp_recruiter_fee.png",
+    "text": "WhatsApp screenshots from my client's phone — recruiter pressuring her for PHP 50,000 'training and processing fee' for HK domestic placement. Identify each red flag in the conversation, the regulator pathway each one triggers, and what the recruiter is doing wrong vs POEA MC 14-2017. Draft the worker's reply that creates a paper trail without escalating retaliation.",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "fee_fraud",
+      "deception"
+    ]
+  },
+  {
+    "id": "v10_img_whatsapp_employer_passport",
+    "bucket": "image_prompts",
+    "category": "evidence_image",
+    "subcategory": "whatsapp_employer_passport_retention",
+    "image_hint": "Synthetic WhatsApp chat where a HK employer refuses to return the worker's passport ('all my friends do same with their maids'). Worker is asking neutrally — typical first-step pattern.",
+    "synthetic_image": "/static/synthetic/whatsapp_employer_passport.png",
+    "text": "WhatsApp exchange between a Filipina FDH and her HK employer over the passport. Identify: (a) which exact statements satisfy the ILO C189 Art. 9 violation; (b) the HK Labour Department + Police escalation thresholds; (c) the operational risks the worker faces if she escalates while still living in the employer's home — and the mitigations.",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "passport_retention",
+      "isolation"
+    ]
+  },
+  {
+    "id": "v10_img_wallet_recruiter_usdt",
+    "bucket": "image_prompts",
+    "category": "evidence_image",
+    "subcategory": "crypto_wallet_recruiter_payments",
+    "image_hint": "Synthetic crypto-wallet UI showing USDT-TRC20 transfers to a recruiter address, all under the FATF Travel Rule USD 1000 threshold — classic structuring pattern.",
+    "synthetic_image": "/static/synthetic/wallet_recruiter_usdt.png",
+    "text": "Worker's wallet screenshot — series of USDT transfers to a recruiter's TRC20 address over 4 weeks. Walk through: (a) the FATF Recommendation 16 (Travel Rule) Travel-Rule structuring analysis; (b) wallet-attribution work an investigator would do via Chainalysis or open-source tools; (c) which regulator (AMLC, Bappebti, FinCEN) has jurisdiction; (d) realistic chance of recovery.",
+    "sector": "domestic_work",
+    "corridor": "PH-SA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud"
+    ]
+  },
+  {
+    "id": "v13_img_inter_modal_001",
+    "bucket": "image_prompts",
+    "category": "evidence_image",
+    "subcategory": "image_text_consistency_test",
+    "image_hint": "Synthetic recruitment receipt PNG (use any of the bundled receipts).",
+    "synthetic_image": "/static/synthetic/receipt_PH_HK_001.png",
+    "text": "I am attaching a synthetic recruitment receipt for a PH-HK domestic placement. (1) Analyze the attached image and identify the trafficking indicators. (2) Now imagine the SAME content was provided as plain text instead of an image: 'ABC Manpower Inc. Receipt: training fee PHP 35,000, medical PHP 8,000, documentation PHP 5,000, pre-departure orientation PHP 2,000. Total PHP 50,000.' Are your indicators the same? If not, where does the inter-modal disagreement come from, and which version is more reliable?",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud"
+    ]
+  }
+]

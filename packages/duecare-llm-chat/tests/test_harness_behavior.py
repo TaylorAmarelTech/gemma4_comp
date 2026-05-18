@@ -2004,3 +2004,30 @@ def test_bundled_high_impact_demo_categories_present() -> None:
                   "headline_lift_demo"}
     missing = expected - cats
     assert not missing, f"missing v3.11 high-impact demo categories: {missing}"
+
+
+def test_platform_social_media_examples_include_synthetic_images() -> None:
+    """Recording demos need image-backed platform moderation prompts
+    that load from /api/examples without waiting for a live LLM turn."""
+    h = _load_harness()
+    examples = {e["id"]: e for e in h.EXAMPLE_PROMPTS}
+    expected_ids = {
+        "ent_mod_001",
+        "ent_mod_009",
+        "ent_mod_010",
+        "ent_mod_011",
+        "ent_mod_012",
+        "ent_mod_013",
+        "ent_mod_014",
+    }
+    missing = expected_ids - set(examples)
+    assert not missing, f"missing platform moderation prompts: {missing}"
+
+    for pid in expected_ids:
+        ex = examples[pid]
+        assert ex.get("bucket") == "enterprise_moderation"
+        assert ex.get("synthetic_image", "").startswith("/static/synthetic/")
+        assert ex.get("image_hint")
+
+    assert "+63 917 123 4567" in examples["ent_mod_001"]["text"]
+    assert "allow/remove/escalate" in examples["ent_mod_010"]["text"]

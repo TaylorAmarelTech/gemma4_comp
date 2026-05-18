@@ -12,8 +12,8 @@
 > through research notebooks, knowledge packs, trend signals, and shared
 > analysis. The public product is organized into six setup lanes:
 > **Platform safety**, **NGO & regulator**, **Individual worker / mobile**,
-> **Researcher**, **Developer / integration partner**, and
-> **Anonymized knowledge sharing**.
+> **Researcher**, **Anonymized knowledge sharing**, and
+> **Developer / integration partner**.
 > **Core platform pieces:** Gemma 4 Model Layer, Safety Guidance Layer,
 > Knowledge Packs, Quality Testing Framework, Central Knowledge Server,
 > Local Anonymization, Information Submission, Public Information Research,
@@ -154,8 +154,8 @@ every Gemma-bearing handler emits one JSONL row per call to
 | 02 NGO & regulator | An NGO caseworker, legal aid organization, regulator, or embassy desk | [`docs/scenarios/ngo-office-deployment.md`](./docs/scenarios/ngo-office-deployment.md) · [`examples/deployment/ngo-office-edge/README.md`](./examples/deployment/ngo-office-edge/README.md) |
 | 03 Individual worker / mobile | A migrant worker, peer supporter, or community helper using the Android app | [`docs/scenarios/worker-self-help.md`](./docs/scenarios/worker-self-help.md) · [`docs/architecture/duecare_mobile.md`](./docs/architecture/duecare_mobile.md) · [`docs/android_app_architecture.md`](./docs/android_app_architecture.md) |
 | 04 Researcher | An academic, journalist, policy analyst, or peer reviewer | [`docs/FOR_PEER_REVIEW.md`](./docs/FOR_PEER_REVIEW.md) · [`docs/FOR_KAGGLE_JUDGES.md`](./docs/FOR_KAGGLE_JUDGES.md) · [`docs/scenarios/researcher-analysis.md`](./docs/scenarios/researcher-analysis.md) · [`kaggle/01-duecare-exploration-workbench/README.md`](./kaggle/01-duecare-exploration-workbench/README.md) |
-| 05 Developer / integration partner | A team embedding DueCare into your own product, bot, dashboard, or internal workflow | [`docs/install.md`](./docs/install.md) · [`docs/embedding_guide.md`](./docs/embedding_guide.md) · [`packages/duecare-llm/README.md`](./packages/duecare-llm/README.md) · [`apps/duecare-ai.com/app/templates/client-connect.html`](./apps/duecare-ai.com/app/templates/client-connect.html) |
-| 06 Anonymized knowledge sharing | A partner sharing reviewed, sanitized facts without exposing workers or raw case files | [`apps/duecare-ai.com/app/templates/use-cases.html`](./apps/duecare-ai.com/app/templates/use-cases.html) · [`apps/duecare-ai.com/app/templates/submit-information.html`](./apps/duecare-ai.com/app/templates/submit-information.html) · [`apps/duecare-ai.com/app/templates/submissions.html`](./apps/duecare-ai.com/app/templates/submissions.html) |
+| 05 Anonymized knowledge sharing | A partner sharing reviewed, sanitized facts without exposing workers or raw case files | [`apps/duecare-ai.com/app/templates/use-cases.html`](./apps/duecare-ai.com/app/templates/use-cases.html) · [`apps/duecare-ai.com/app/templates/submit-information.html`](./apps/duecare-ai.com/app/templates/submit-information.html) · [`apps/duecare-ai.com/app/templates/submissions.html`](./apps/duecare-ai.com/app/templates/submissions.html) |
+| 06 Developer / integration partner | A team embedding DueCare into your own product, bot, dashboard, or internal workflow | [`docs/install.md`](./docs/install.md) · [`docs/embedding_guide.md`](./docs/embedding_guide.md) · [`packages/duecare-llm/README.md`](./packages/duecare-llm/README.md) · [`apps/duecare-ai.com/app/templates/client-connect.html`](./apps/duecare-ai.com/app/templates/client-connect.html) |
 
 ## Why this exists
 

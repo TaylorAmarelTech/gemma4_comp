@@ -1,0 +1,16 @@
+[
+  {
+    "id": "v12_ra_inter_agency_001",
+    "bucket": "regulator_audit",
+    "category": "inter_agency_coordination",
+    "subcategory": "tri_country_coordination",
+    "text": "Tri-country case: Filipina deployed to UAE, debt-bonded to a HK third-party lender. PH POEA + UAE MoHRE + HK Labour Department all have jurisdiction. Walk through the coordination: (1) which regulator opens the lead docket, (2) the mutual-legal-assistance frameworks (Bali Process, ASEAN ACTIP, bilateral PH-HK agreements), (3) what evidence each shares with whom under what framework, (4) the realistic outcome timeline + recovery probability.",
+    "sector": "domestic_work",
+    "corridor": "PH-AE-HK",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage",
+      "fee_fraud"
+    ]
+  }
+]

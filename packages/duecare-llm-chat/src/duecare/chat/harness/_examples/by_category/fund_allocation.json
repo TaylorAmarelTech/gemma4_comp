@@ -1,0 +1,16 @@
+[
+  {
+    "id": "v12_ra_grant_001",
+    "bucket": "regulator_audit",
+    "category": "fund_allocation",
+    "subcategory": "victim_restitution_fund",
+    "text": "Government has appropriated PHP 50M for an OFW victim-restitution fund (FY2026). Draft the disbursement-criteria framework: (1) eligibility under RA 8042 + RA 11862 amendments, (2) priority tiers (acute / chronic / historical), (3) the OFW Welfare Administration intake procedure, (4) recovery-from-agency parallel-track to avoid double-pay, (5) the audit + reporting framework. Output as a structured policy-brief.",
+    "sector": "multi",
+    "corridor": "PH-multi",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud",
+      "wage_withholding"
+    ]
+  }
+]

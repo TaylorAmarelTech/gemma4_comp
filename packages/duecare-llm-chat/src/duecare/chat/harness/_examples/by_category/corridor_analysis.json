@@ -1,0 +1,16 @@
+[
+  {
+    "id": "v12_di_corridor_001",
+    "bucket": "data_intelligence",
+    "category": "corridor_analysis",
+    "subcategory": "ph_to_gulf_pattern_analysis",
+    "text": "Filter the synthetic posts dataset to PH outbound corridors. For each post, extract: corridor (PH-X), fee structure (label + amount), pricing-platform (cash | GCash | crypto | BNPL), engagement metrics, age of account, trafficking_indicators_present. Output a table + identify the 2-3 most concerning patterns + the regulator with jurisdiction.",
+    "sector": "domestic_work",
+    "corridor": "PH-multi",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud",
+      "debt_bondage"
+    ]
+  }
+]

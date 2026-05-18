@@ -1,0 +1,150 @@
+[
+  {
+    "id": "ngo_001",
+    "bucket": "ngo_intake",
+    "category": "caseworker_triage",
+    "subcategory": "first_intake_interview",
+    "text": "I'm an NGO intake worker at Mission for Migrant Workers HK. A 28-year-old Filipina just walked in. Her contract was for housekeeping with a family of 4; she's been doing housekeeping for THREE families in the same building (employer's mother + sister live separately). She works 6am to 11pm, no rest day. Employer holds her passport. She's owed 4 months of pay. Help me structure the next 30 minutes of the intake — what facts to capture in what order, what immediate-safety questions to ask, and which statute citations I should have ready when I make the call to Labour Department.",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "passport_retention",
+      "wage_withholding",
+      "excessive_overtime"
+    ]
+  },
+  {
+    "id": "ngo_002",
+    "bucket": "ngo_intake",
+    "category": "caseworker_triage",
+    "subcategory": "shelter_intake",
+    "text": "A worker just arrived at our shelter. She doesn't speak English well; she's Indonesian, working in Lebanon, escaped 3 days ago. Her employer has her passport. She has bruises on her arms. She has the employer's WhatsApp number on a piece of paper, nothing else. What is the FIRST priority — medical, immigration status, or filing? What do I tell the embassy hotline when I call, in what order?",
+    "sector": "domestic_work",
+    "corridor": "ID-LB",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "passport_retention",
+      "physical_violence",
+      "isolation"
+    ]
+  },
+  {
+    "id": "ngo_006",
+    "bucket": "ngo_intake",
+    "category": "caseworker_triage",
+    "subcategory": "pre_deployment_concerns",
+    "text": "A Nepali worker came in BEFORE leaving for the Gulf. The agency has handed him a contract showing salary of QAR 1,200/month for construction in Qatar, with deductions of QAR 400/month for 18 months for 'visa loan' from a Nepali lender introduced by the agency. He paid NPR 80,000 upfront for processing. He's signed nothing yet. Walk me through what to tell him about (a) what's already illegal, (b) what to ask the agency in writing before signing, (c) which authority to escalate to if the agency refuses, and (d) what records to keep against the day he might need them.",
+    "sector": "construction",
+    "corridor": "NP-QA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage",
+      "fee_fraud",
+      "deception"
+    ]
+  },
+  {
+    "id": "v09_ngo_compound_001",
+    "bucket": "ngo_intake",
+    "category": "caseworker_triage",
+    "subcategory": "scam_compound_extraction",
+    "text": "I work at GAATW Manila. A family contacted us — their 24-year-old son went to Sihanoukville for an 'IT job' 3 months ago, hasn't called in 6 weeks, his last message said 'I cannot leave, they took my passport.' Walk me through the next 24 hours: which authorities (PH side + KH side) to contact, what evidence to gather from the family, what NOT to do that could make extraction more dangerous.",
+    "sector": "scam_compound",
+    "corridor": "PH-KH",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "passport_retention",
+      "isolation"
+    ]
+  },
+  {
+    "id": "v09_ngo_lk_lb_001",
+    "bucket": "ngo_intake",
+    "category": "caseworker_triage",
+    "subcategory": "lk_lb_corridor_intake",
+    "text": "A Sri Lankan woman just walked into our shelter in Beirut. She was placed by an SLBFE-licensed agency 11 months ago as a domestic worker. Employer holds passport. Wages 4 months in arrears. She's been beaten twice. Walk me through the kafala-aware intake — what's different about this corridor vs PH-HK, and what statutes / authorities matter.",
+    "sector": "domestic_work",
+    "corridor": "LK-LB",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "passport_retention",
+      "wage_withholding",
+      "physical_violence"
+    ]
+  },
+  {
+    "id": "v11_ngo_child_001",
+    "bucket": "ngo_intake",
+    "category": "caseworker_triage",
+    "subcategory": "minor_intake",
+    "text": "I work at ECPAT Manila. A 17-year-old came in this morning — her age was listed as 22 on her POEA papers. She just returned from a 4-month deployment to a Saudi household where she was the live-in nanny + housekeeper for 8 children. Walk me through: (1) what changes when the worker is actually a minor; (2) which CRC + Palermo Art. 3(c) provisions trigger; (3) how the document-fraud at the POEA layer separately gets reported.",
+    "sector": "domestic_work",
+    "corridor": "PH-SA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "child_exploitation",
+      "deception",
+      "fee_fraud"
+    ]
+  },
+  {
+    "id": "v11_ngo_coord_001",
+    "bucket": "ngo_intake",
+    "category": "caseworker_triage",
+    "subcategory": "post_extraction_48h",
+    "text": "Filipina domestic worker just escaped her employer in Lebanon at 3am. She's at a Lebanese police station now — but she's terrified the police will deport her. She doesn't have her passport. We're at Mission for Migrant Workers Beirut, just got the call. Sequence the next 48 hours by hour: PH embassy, ARM, Caritas, KAFA, medical, our shelter, the labour-court complaint. Who calls whom in what order. Be concrete.",
+    "sector": "domestic_work",
+    "corridor": "PH-LB",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "passport_retention",
+      "physical_violence",
+      "isolation"
+    ]
+  },
+  {
+    "id": "v11_ngo_ukraine_001",
+    "bucket": "ngo_intake",
+    "category": "caseworker_triage",
+    "subcategory": "ukrainian_refugee_intake",
+    "text": "I work at La Strada-Czech Republic. A 26-year-old Ukrainian woman came in — she fled Mariupol in 2024, was placed by a 'volunteer organization' in a Czech household as a 'live-in helper for accommodation'. She's been there 8 months, no wages paid, host family controls her temporary protection paperwork. Walk me through: (1) the EU Temporary Protection Directive analysis; (2) GRETA reporting pathway; (3) what's different about Ukrainian-refugee-trafficking vs traditional labour-migration cases; (4) immediate next steps for HER.",
+    "sector": "domestic_work",
+    "corridor": "UA-CZ",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "wage_withholding",
+      "isolation",
+      "deception"
+    ]
+  },
+  {
+    "id": "v11_ngo_laos_001",
+    "bucket": "ngo_intake",
+    "category": "caseworker_triage",
+    "subcategory": "laos_golden_triangle_extraction",
+    "text": "We're at the Indian Embassy in Vientiane. A 29-year-old IT engineer from Hyderabad was recruited via Telegram for a 'crypto trading' job in 'Laos SEZ'. He's been at Kings Romans Casino compound in Bokeo Province for 4 months, can't leave, escaped briefly today and made it to a Lao police station. Lao police are 'investigating' but his Telegram contact is still active. Walk through the extraction logistics: India MEA + Chinese Ministry of Public Security + UNODC Laos office + the Lao NCCT counterpart. Who calls whom?",
+    "sector": "scam_compound",
+    "corridor": "IN-LA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "passport_retention",
+      "isolation",
+      "deception"
+    ]
+  },
+  {
+    "id": "v12_ngo_pacific_001",
+    "bucket": "ngo_intake",
+    "category": "caseworker_triage",
+    "subcategory": "pacific_climate_mobility",
+    "text": "I work at the Pacific Climate Action Network. A Tuvaluan worker placed under Australia's PALM scheme reports housing deductions exceeding the cap + controlled return-flight bookings. He's also climate-displaced (his island is uninhabitable). Walk through: (a) the standard PALM-violation enforcement, (b) the additional Pacific Climate Mobility Framework protections, (c) the bilateral coordination with the Tuvalu government, (d) the safe-return-guarantee analysis.",
+    "sector": "agriculture",
+    "corridor": "TV-AU",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "wage_withholding",
+      "restriction_of_movement"
+    ]
+  }
+]

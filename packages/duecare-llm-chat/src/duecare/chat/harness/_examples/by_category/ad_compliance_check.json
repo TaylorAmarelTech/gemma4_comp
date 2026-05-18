@@ -1,0 +1,70 @@
+[
+  {
+    "id": "ent_mod_011",
+    "bucket": "enterprise_moderation",
+    "category": "ad_compliance_check",
+    "subcategory": "safe_rewrite_recruitment_ad",
+    "text": "A recruiter asks us to rewrite a rejected Facebook ad so it can run on the platform. Original: 'URGENT Saudi maids, PHP 50,000 training fee, WhatsApp +63 917 555 0103, first-come first-served.' Produce a compliant replacement ad ONLY if it removes prohibited worker-paid fees, removes off-platform payment/contact pressure, includes licensed-agency/job-order verification fields, states that the employer bears recruitment/visa/flight costs, says passports stay with workers, and routes applicants through the platform's verified application flow. Also list the exact phrases from the original that must not be preserved.",
+    "image_hint": "Synthetic Facebook recruitment post to pair with a safe-redraft task. The goal is not to generate evasion variants; it is to transform a rejected post into a worker-protective compliant notice.",
+    "synthetic_image": "/static/synthetic/fb_post_ph_hk_urgent.png",
+    "image_id": "fb_post_safe_rewrite",
+    "sector": "domestic_work",
+    "corridor": "PH-SA",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "advance_fee_fraud",
+      "deception"
+    ]
+  },
+  {
+    "id": "ent_mod_008",
+    "bucket": "enterprise_moderation",
+    "category": "ad_compliance_check",
+    "subcategory": "regulated_industry",
+    "text": "Check this paid recruitment ad for compliance before we run it: 'Hiring nurses for UAE hospitals. Two-year contract. Employer pays processing. Salary AED 8,000 + housing + flight. Speakers of English, Arabic, or Tagalog welcome. Apply via licensed agency POEA license LB-12345.' List anything missing for it to be defensible if a worker later complains, plus any required disclosures by PH or UAE law.",
+    "sector": "healthcare",
+    "corridor": "PH-UAE",
+    "difficulty": "medium",
+    "ilo_indicators": []
+  },
+  {
+    "id": "v09_em_ai_001",
+    "bucket": "enterprise_moderation",
+    "category": "ad_compliance_check",
+    "subcategory": "ai_generated_ad_detection",
+    "text": "Our content team flagged 200 recruitment posts on TikTok this week, all from accounts created in the past 30 days, all showing the same female 'recruiter' face but with subtle rendering differences across videos. Ads target Indonesian women for Saudi domestic work. Walk me through the detection signals, the policy basis for takedown, and the regulatory notifications we owe (PH POEA / ID BP2MI / TikTok Trust & Safety).",
+    "sector": "domestic_work",
+    "corridor": "ID-SA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "deception"
+    ]
+  },
+  {
+    "id": "v09_em_healthcare_001",
+    "bucket": "enterprise_moderation",
+    "category": "ad_compliance_check",
+    "subcategory": "healthcare_recruitment_review",
+    "text": "Recruitment ad for Filipina nurses heading to UAE hospitals: 'Sponsorship fee AED 3,000, processing fee PHP 25,000, employer pays salary AED 6,000/month + housing + flight.' Is this WHO Global Code of Practice compliant? UK NHS Code? UAE MoHAP? Walk through the rule + what to require before approving.",
+    "sector": "healthcare",
+    "corridor": "PH-AE",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud"
+    ]
+  },
+  {
+    "id": "v12_em_climate_001",
+    "bucket": "enterprise_moderation",
+    "category": "ad_compliance_check",
+    "subcategory": "climate_displaced_recruitment_review",
+    "text": "Recruitment ad targeting Pakistani Sindh-flood survivors for Saudi construction. Walk through: (a) is targeting climate-displaced populations a per-se violation or just heightened scrutiny? (b) the Cancun Adaptation Framework + 2024 Pacific Climate Mobility Framework analysis (transferable principles), (c) the heightened-vulnerability protections under ILO C97 + C143, (d) the moderation decision + regulator notification.",
+    "sector": "construction",
+    "corridor": "PK-SA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage",
+      "deception"
+    ]
+  }
+]

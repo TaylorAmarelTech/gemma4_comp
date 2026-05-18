@@ -1,0 +1,52 @@
+[
+  {
+    "id": "ent_mod_001",
+    "bucket": "enterprise_moderation",
+    "category": "recruitment_ad_review",
+    "subcategory": "facebook_recruitment_post",
+    "text": "Review this Facebook job post and tell me whether to allow it on our platform: 'URGENT! Hiring 30 Filipina maids for Saudi Arabia. Free flight, free visa, only PHP 50,000 training fee, salary SAR 1,800/month. Contract 2 years. WhatsApp +63 917 123 4567 now. First-come first-served!' Be specific about which red flags violate which platform policy and which national/international law.",
+    "image_hint": "Synthetic Facebook recruitment post for PH-to-Saudi domestic work. Watch for urgent scarcity language, worker-paid training fee, off-platform WhatsApp funnel, domestic-work corridor, and salary / contract terms.",
+    "synthetic_image": "/static/synthetic/fb_post_ph_hk_urgent.png",
+    "image_id": "fb_post_ph_sa_urgent_review",
+    "sector": "domestic_work",
+    "corridor": "PH-SA",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "debt_bondage",
+      "deception",
+      "advance_fee_fraud"
+    ]
+  },
+  {
+    "id": "ent_mod_009",
+    "bucket": "enterprise_moderation",
+    "category": "recruitment_ad_review",
+    "subcategory": "facebook_ph_sa_fee_review",
+    "text": "Platform review queue: evaluate this paid Facebook recruitment ad and return a moderation decision, policy labels, legal basis, and recommended reviewer note. Ad text: 'SAUDI FAMILY NEEDS 25 FILIPINA HOUSEMAIDS THIS WEEK. Free flight, free visa, free medical. Worker pays only PHP 38,500 training certificate fee after selection. Salary SAR 1,700/month. No need to visit agency office; WhatsApp +63 917 555 0101 for fast approval.' Use the platform policies: prohibited worker-paid recruitment fees, off-platform evasion, deceptive scarcity, and high-risk migration services. Cite PH RA 8042/RA 10022, POEA/DMW no-placement-fee rules for household service workers, ILO Fair Recruitment principles, ILO C029 indicators, and any Saudi employer-borne fee rule that applies.",
+    "image_hint": "Use the bundled synthetic Facebook recruitment screenshot; the prompt tests whether the model can align image text, phone extraction, fee labeling, and legal citations.",
+    "synthetic_image": "/static/synthetic/fb_post_ph_hk_urgent.png",
+    "image_id": "fb_post_ph_sa_fee_review",
+    "sector": "domestic_work",
+    "corridor": "PH-SA",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "debt_bondage",
+      "deception",
+      "advance_fee_fraud"
+    ]
+  },
+  {
+    "id": "ent_mod_002",
+    "bucket": "enterprise_moderation",
+    "category": "recruitment_ad_review",
+    "subcategory": "tiktok_recruitment_video",
+    "text": "A TikTok video has 1.2M views advertising domestic work in Hong Kong: '⭐ 100% guaranteed approval ⭐ no Tagalog test ⭐ employer pays everything ⭐ DM me directly, skip POEA ⭐ HKD 5,000 sign-on bonus.' Should we take this down? Cite the policy basis.",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "bypass_official_channel",
+      "deception"
+    ]
+  }
+]

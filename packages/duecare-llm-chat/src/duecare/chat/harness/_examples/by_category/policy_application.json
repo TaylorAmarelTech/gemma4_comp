@@ -1,0 +1,56 @@
+[
+  {
+    "id": "ent_mod_006",
+    "bucket": "enterprise_moderation",
+    "category": "policy_application",
+    "subcategory": "edge_case_review",
+    "text": "Policy edge case: a verified-business account is hiring through us with this contract clause — 'Worker agrees that wages will be deposited to a Hong Kong bank account jointly held with the agency until the worker completes 12 months of continuous employment.' The advertiser argues this is 'savings protection.' Is the listing compliant with our platform's anti-trafficking policy and with the underlying law? Cite specifics.",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "wage_withholding",
+      "debt_bondage"
+    ]
+  },
+  {
+    "id": "ent_mod_007",
+    "bucket": "enterprise_moderation",
+    "category": "policy_application",
+    "subcategory": "moderator_training_question",
+    "text": "Train a content moderator on this distinction: when is 'placement fee' legitimate (i.e., charged to the employer per ILO C181) vs prohibited (i.e., charged to the worker)? Walk through three examples — one PH-HK domestic, one NP-Saudi cleaning, one ID-TW fishing — naming the controlling statute and the cap (if any) for each.",
+    "sector": "multi",
+    "corridor": "multi",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "fee_fraud"
+    ]
+  },
+  {
+    "id": "v11_em_perf_review_001",
+    "bucket": "enterprise_moderation",
+    "category": "policy_application",
+    "subcategory": "performance_review_termination_threat",
+    "text": "Audit edge case: a UAE-employer client uses a 'quarterly performance review' to threaten visa termination and deportation when workers ask for unpaid wages. The review criteria are subjective ('attitude', 'cooperation'). Walk through whether this is (a) ILO C158 compliant, (b) UAE Wage Protection System compliant, (c) ILO C181 Art. 12 compliant. Recommend whether to flag the employer in our supplier risk assessment.",
+    "sector": "construction",
+    "corridor": "*-AE",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "wage_withholding",
+      "deception"
+    ]
+  },
+  {
+    "id": "v12_em_chain_001",
+    "bucket": "enterprise_moderation",
+    "category": "policy_application",
+    "subcategory": "labour_broker_chain_audit",
+    "text": "Our supplier-chain audit flags a Tier-3 sub-broker in Manila that places workers via our verified Tier-1 supplier. The sub-broker charges PHP 50K placement fee. Walk through: (a) UK Modern Slavery Act 2015 §54 transparency obligation flowing through to us, (b) EU CSDDD due-diligence implications, (c) the contractual remedy — what to demand of our Tier-1 supplier, (d) the regulator-notification trigger.",
+    "sector": "construction",
+    "corridor": "PH-UK",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud"
+    ]
+  }
+]

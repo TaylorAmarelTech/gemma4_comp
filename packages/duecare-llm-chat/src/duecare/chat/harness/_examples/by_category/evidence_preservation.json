@@ -1,0 +1,17 @@
+[
+  {
+    "id": "v12_ra_evidence_001",
+    "bucket": "regulator_audit",
+    "category": "evidence_preservation",
+    "subcategory": "telegram_channel_preservation",
+    "synthetic_post": "/static/synthetic/posts/telegram_telegram_002.json",
+    "text": "I'm a regulator. I need to preserve evidence from telegram_002 (auto-delete enabled, 3600-second window). What's the preservation procedure? (1) the EU DSA Art. 16 + UK Online Safety Act 2023 preserve-in-place authority, (2) the Telegram T&S submission, (3) the screenshot-with-timestamp evidentiary requirements, (4) the chain-of-custody documentation. Sequence the next 60 minutes by minute.",
+    "sector": "domestic_work",
+    "corridor": "PH-KW",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud",
+      "deception"
+    ]
+  }
+]

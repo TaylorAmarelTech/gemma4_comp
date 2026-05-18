@@ -1,0 +1,16 @@
+[
+  {
+    "id": "v12_ra_license_001",
+    "bucket": "regulator_audit",
+    "category": "license_audit_packet",
+    "subcategory": "poea_agency_review",
+    "text": "I'm an inspector at POEA Anti-Illegal Recruitment Branch. I've received 12 worker complaints in the past 90 days against agency 'ABC Manpower Inc.' — fee-camouflage + passport-retention pattern, all PH-HK domestic placements. Draft the license-revocation packet: (1) the legal basis (RA 8042 §6 + POEA Implementing Rules Part VII); (2) the procedural sequence (AIRB docket open + summary hearing + DMW Secretary appeal path); (3) the realistic 90-day timeline; (4) the parallel criminal referral to NBI under RA 9208.",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "fee_fraud",
+      "passport_retention"
+    ]
+  }
+]
