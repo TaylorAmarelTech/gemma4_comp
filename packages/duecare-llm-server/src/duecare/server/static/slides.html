@@ -380,6 +380,19 @@
     font-family: var(--mono);
     font-size: 12px; color: var(--ink-3);
   }
+  .fb-image.evidence {
+    height: 128px;
+    overflow: hidden;
+    padding: 0;
+    background: var(--paper-2);
+  }
+  .fb-image.evidence.tall { height: 178px; }
+  .fb-image.evidence img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+  }
   .fb-stats {
     display: flex; justify-content: space-between;
     padding: 10px 14px 0;
@@ -1067,12 +1080,12 @@
       </section>
 
       <!-- =======================================================
-           3. SOLUTION &mdash; five lanes, one substrate
+           3. SOLUTION &mdash; six lanes, one substrate
            ======================================================= -->
       <section class="slide tint" data-slide-id="solution" data-slide>
         <span class="eyebrow">Solution introduction</span>
-        <h1 class="display smaller">Five comparable workflows, one shared local substrate.</h1>
-        <p class="lede">Exploitation continues because the protective workflow is fragmented. Five user-facing lanes sit on top of the same evidence, safety, and review controls. Gemma 4 is not another lane &mdash; it is the local model runtime underneath.</p>
+        <h1 class="display smaller">Six comparable workflows, one shared local substrate.</h1>
+        <p class="lede">Exploitation continues because the protective workflow is fragmented. Six user-facing lanes sit on top of the same evidence, safety, and review controls. Gemma 4 is not another lane &mdash; it is the local model runtime underneath.</p>
 
         <div class="module-table">
           <div class="module-row header">
@@ -1126,7 +1139,7 @@
             <div class="fb-post" style="margin-bottom: 12px;">
               <div class="fb-brand"><span class="fb-logo"></span><span>Social platform</span></div>
               <div class="fb-body"><span class="tag">Sponsored &middot; 2h</span><br><br>Dubai domestic helper jobs! All processing fees handled by us, just pay the placement deposit. Refunded after your first month. DM @gulfjobs_official</div>
-              <div class="fb-image">[ recruitment poster ]</div>
+              <div class="fb-image evidence"><img src="/static/evidence/drive_fb_123_finance_post.jpg" alt="Redacted social evidence thumbnail for fee-camouflage moderation"></div>
             </div>
             <div class="label-mono" style="color: var(--ember); font-weight: 700;">What DueCare catches</div>
             <p style="font-size: 14px; color: var(--ink-2);">"Refundable deposit" is an unrecoverable worker-paid fee. Refund rarely materializes.</p>
@@ -1137,7 +1150,7 @@
             <div class="fb-post" style="margin-bottom: 12px;">
               <div class="fb-brand"><span class="fb-logo"></span><span>Social platform</span></div>
               <div class="fb-body"><span class="tag">Sponsored &middot; 5h</span><br><br>Mandatory 2-week pre-departure training for Hong Kong placements. Course fee PHP 35,000. Direct salary deduction after deployment, no upfront.</div>
-              <div class="fb-image">[ training flyer ]</div>
+              <div class="fb-image evidence"><img src="/static/evidence/drive_fb_good_hope_lending_post.jpg" alt="Redacted social evidence thumbnail for salary-deduction moderation"></div>
             </div>
             <div class="label-mono" style="color: var(--ember); font-weight: 700;">What DueCare catches</div>
             <p style="font-size: 14px; color: var(--ink-2);">Placement fee relabelled as training, paid via salary assignment. Worker takes on debt before departure.</p>
@@ -1148,7 +1161,7 @@
             <div class="fb-post" style="margin-bottom: 12px;">
               <div class="fb-brand"><span class="fb-logo"></span><span>Social platform</span></div>
               <div class="fb-body"><span class="tag">Sponsored &middot; 8h</span><br><br>Streamlined placement: our agency, partner clinic, and lender work together. Single point of contact, single payment plan. No paperwork stress.</div>
-              <div class="fb-image">[ partner promo ]</div>
+              <div class="fb-image evidence"><img src="/static/evidence/drive_fb_more_reasons_to_avoid.jpg" alt="Redacted social evidence thumbnail for provider-chain moderation"></div>
             </div>
             <div class="label-mono" style="color: var(--ember); font-weight: 700;">What DueCare catches</div>
             <p style="font-size: 14px; color: var(--ink-2);">Tri-party structure obscures who collects the fee. Bypasses corridor zero-fee rules.</p>
@@ -1187,7 +1200,7 @@
 &check; Trusted recruiter network. No need to shop around.
 
 DM @sunburstrecruit for slots. Approval in 7 days.</div>
-                    <div class="fb-image">[ recruitment poster ]</div>
+                    <div class="fb-image evidence tall"><img src="/static/evidence/imgur_01_bank_hongkong_wanted.jpg" alt="Redacted evidence image for platform-safety demo"></div>
                     <div class="fb-stats"><span>147 reactions</span><span>12 comments &middot; 4 shares</span></div>
                     <div class="fb-actions"><span>Like</span><span>Comment</span><span>Share</span></div>
                   </div>
@@ -1401,7 +1414,7 @@ DM @sunburstrecruit for slots. Approval in 7 days.</div>
             </div>
             <div class="card">
               <h3 style="font-size: 22px;">Same harness as the workbench</h3>
-              <p style="font-size: 16px;">GREP rules, corridor pack, fee-cap tool, Gemma 4 local generation, rulegrade. The cached row loads instantly from <code style="font-family: var(--mono); font-size: 13px;">localStorage['duecare.slides.demo.chat']</code> so the recording never waits on GPU latency.</p>
+              <p style="font-size: 16px;">GREP rules, corridor pack, fee-cap tool, Gemma 4 local generation, rulegrade. The cached row loads instantly from <code style="font-family: var(--mono); font-size: 13px;">localStorage['duecare.slides.demo.chat']</code>; selected examples can be preloaded from <code style="font-family: var(--mono); font-size: 13px;">localStorage['duecare.slides.demo.pack']</code> so the recording never waits on GPU latency.</p>
               <div class="answer-box" id="demo-response" data-demo-output="chat" style="margin-top: 12px; max-height: 220px; overflow: auto; font-size: 14px;">Safer next steps:
 - Do not pay until you have checked the agency and fee rule.
 - Keep screenshots, receipts, messages, and account numbers.
@@ -2214,6 +2227,11 @@ DM @sunburstrecruit for slots. Approval in 7 days.</div>
   function loadCachedDemo() {
     try {
       var raw = localStorage.getItem('duecare.slides.demo.chat');
+      var packRaw = localStorage.getItem('duecare.slides.demo.pack');
+      if (!raw && packRaw) {
+        var pack = JSON.parse(packRaw);
+        if (pack && pack.slides_chat) raw = JSON.stringify(pack.slides_chat);
+      }
       if (!raw) return;
       var item = JSON.parse(raw);
       if (!item || !item.prompt || !item.response) return;
@@ -2230,7 +2248,7 @@ DM @sunburstrecruit for slots. Approval in 7 days.</div>
       if (response) { response.textContent = item.response; response.dataset.fullText = item.response; }
       if (audience && item.audience) audience.textContent = item.audience;
       if (useCase && item.use_case) useCase.textContent = item.use_case;
-      if (cached) cached.textContent = 'cached';
+      if (cached) cached.textContent = packRaw ? 'recording pack' : 'cached';
     } catch (err) {
       /* ignore — default text remains */
     }

@@ -20,7 +20,7 @@ Design notes:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Optional
 
 
 AUDIENCE_KEYS = (
@@ -648,3 +648,212 @@ def build_cached_io(
         )
 
     return CachedIO(prompt=prompt, response=body)
+
+
+def _static_evidence_image(
+    filename: str,
+    title: str,
+    caption: str,
+    alt: str,
+) -> dict[str, str]:
+    return {
+        "src": f"/static/evidence/{filename}",
+        "title": title,
+        "caption": caption,
+        "alt": alt,
+    }
+
+
+def _recording_example(
+    *,
+    example_id: str,
+    lane: str,
+    audience: str,
+    use_case: str,
+    prompt: Optional[str] = None,
+    image: Optional[dict[str, str]] = None,
+    artifacts: Optional[list[str]] = None,
+) -> dict[str, Any]:
+    cached = build_cached_io(
+        audience=audience,
+        use_case=use_case,
+        prompt_override=prompt,
+    )
+    uc = _USE_CASES[use_case]
+    return {
+        "id": example_id,
+        "lane": lane,
+        "title": uc.title,
+        "audience": _audience_label(audience),
+        "audience_key": audience,
+        "use_case": uc.title,
+        "use_case_key": use_case,
+        "prompt": cached.prompt,
+        "response": cached.response,
+        "image": image,
+        "artifacts": artifacts or [],
+    }
+
+
+def build_recording_pack() -> dict[str, Any]:
+    """Return a deterministic, no-model pack for recording the slide demo.
+
+    The pack lets /slides/setup preload several selected examples and a
+    default worker-chat row into browser localStorage. All image paths point to
+    redacted static evidence files already bundled with the live demo package.
+    """
+    examples = [
+        _recording_example(
+            example_id="platform_lender_shaming_image",
+            lane="Content moderation",
+            audience="platform",
+            use_case="retaliation_risk",
+            prompt=(
+                "Review this redacted WANTED-style lender post. It names a "
+                "migrant worker, uses passport-photo collateral, and demands "
+                "public pressure for repayment. What should platform safety "
+                "do with it?"
+            ),
+            image=_static_evidence_image(
+                "imgur_01_bank_hongkong_wanted.jpg",
+                "Redacted lender-shaming post",
+                "Public shaming + identity-document collateral pattern.",
+                "Redacted social post used as evidence for lender-shaming risk",
+            ),
+            artifacts=[
+                "GREP: public_shaming_debt_collection",
+                "GREP: identity_document_collateral",
+                "route: high-priority human moderation",
+            ],
+        ),
+        _recording_example(
+            example_id="platform_fee_camouflage_post",
+            lane="Content moderation",
+            audience="platform",
+            use_case="fee_camouflage",
+            prompt=(
+                "A recruitment page advertises a no-upfront placement path, "
+                "but the worker must accept training, medical, and transport "
+                "deductions through a partner lender after arrival. Review for "
+                "fee camouflage."
+            ),
+            image=_static_evidence_image(
+                "drive_fb_123_finance_post.jpg",
+                "Redacted finance-post thumbnail",
+                "Sample social evidence used to demonstrate fee/debt screening.",
+                "Redacted finance post thumbnail for moderation demo",
+            ),
+            artifacts=[
+                "GREP: fee_camouflage_training",
+                "GREP: salary_assignment",
+                "tool: corridor fee-cap lookup",
+            ],
+        ),
+        _recording_example(
+            example_id="case_bundle_graph",
+            lane="Case analysis",
+            audience="ngo",
+            use_case="debt_bondage",
+            prompt=(
+                "Summarize this intake bundle: receipts show a PHP 70,000 "
+                "agency-arranged loan for medical, training, and transport; "
+                "messages say the balance will be deducted monthly from a Hong "
+                "Kong domestic-helper salary."
+            ),
+            image=_static_evidence_image(
+                "imgur_04_yoursun_caretaker_wanted.jpg",
+                "Redacted connected evidence image",
+                "Representative redacted image for case-bundle review.",
+                "Redacted evidence image for case analysis demo",
+            ),
+            artifacts=[
+                "entities: worker, agency, lender, clinic",
+                "edges: pays_to, deducts_from_salary, restricts_choice",
+                "timeline: recruitment to destination deductions",
+            ],
+        ),
+        _recording_example(
+            example_id="worker_cached_chat",
+            lane="Worker support",
+            audience="worker",
+            use_case="ph_hk_placement_fee",
+            artifacts=[
+                "offline corridor pack: PH-HK domestic work",
+                "tools: fee-cap lookup, trusted-contact lookup",
+                "privacy: local chat row only",
+            ],
+        ),
+        _recording_example(
+            example_id="research_cluster",
+            lane="Research",
+            audience="researcher",
+            use_case="provider_choice",
+            prompt=(
+                "Across the anonymized signal stream, identify repeated "
+                "agency, clinic, lender, and route patterns where workers are "
+                "steered to a single provider chain."
+            ),
+            image=_static_evidence_image(
+                "drive_fb_jan_2020_worst_agency_list.jpg",
+                "Redacted multi-case social evidence",
+                "Thumbnail used for reproducible cluster-analysis examples.",
+                "Redacted multi-case social evidence image",
+            ),
+            artifacts=[
+                "cluster: agency-clinic-lender chain",
+                "evidence rows: version-pinned",
+                "output: citation-ready pattern summary",
+            ],
+        ),
+        _recording_example(
+            example_id="sharing_knowledge_object",
+            lane="Anonymized knowledge sharing",
+            audience="developer",
+            use_case="contract_substitution",
+            prompt=(
+                "Convert reviewed, redacted facts from a contract-substitution "
+                "case into a knowledge object that can update future corridor "
+                "packs without exposing the worker."
+            ),
+            image=_static_evidence_image(
+                "imgur_03_facebook_wanted_thumbnail.jpg",
+                "Redacted source thumbnail",
+                "Small redacted source thumbnail for knowledge-object review.",
+                "Redacted thumbnail for anonymized knowledge sharing demo",
+            ),
+            artifacts=[
+                "PII gate: local first pass + server second pass",
+                "consent: anonymous / region-tagged",
+                "output: reusable knowledge object",
+            ],
+        ),
+    ]
+
+    chat = next(
+        item for item in examples if item["id"] == "worker_cached_chat"
+    )
+    slides_chat = {
+        "audience": chat["audience"],
+        "use_case": chat["use_case"],
+        "audience_key": chat["audience_key"],
+        "use_case_key": chat["use_case_key"],
+        "prompt": chat["prompt"],
+        "response": chat["response"],
+        "generated_at": "2026-05-18T00:00:00Z",
+    }
+    return {
+        "schema_version": "duecare.slides.recording_pack.v1",
+        "generated_at": "2026-05-18T00:00:00Z",
+        "summary": (
+            "Six selected no-model examples for recording: two platform "
+            "moderation examples with evidence images, one case-analysis "
+            "bundle, one worker chat, one research cluster, and one "
+            "anonymized knowledge-sharing object."
+        ),
+        "storage_keys": {
+            "pack": "duecare.slides.demo.pack",
+            "chat": "duecare.slides.demo.chat",
+        },
+        "examples": examples,
+        "slides_chat": slides_chat,
+    }

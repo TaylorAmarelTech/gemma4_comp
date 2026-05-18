@@ -10,6 +10,8 @@ Pins:
   use_case selectors that match the documented keys.
 - POST /api/slides/cached-io returns a deterministic prompt + response
   per (audience, use_case), validates inputs, respects prompt override.
+- GET /api/slides/recording-pack returns selected examples, cached
+  responses, and redacted evidence image paths for no-wait recording.
 """
 from __future__ import annotations
 
@@ -76,6 +78,8 @@ def test_slides_deck_serves_full_screen_pitch() -> None:
         "ArrowRight",   # keyboard nav: next slide
         "ArrowLeft",    # keyboard nav: prev slide
         "duecare.slides.demo.chat",  # localStorage key for cached row
+        "duecare.slides.demo.pack",  # localStorage key for selected examples
+        "/static/evidence/",         # image-backed recording examples
     ]:
         assert marker in html, f"slides.html missing marker: {marker!r}"
 
@@ -99,7 +103,7 @@ def test_slides_deck_uses_recording_safe_ecosystem_story() -> None:
         "data-slide-id=\"knowledge-sharing-demo\"",
         "data-slide-id=\"module-ecosystem\"",
         "Exploitation continues because the protective workflow is fragmented",
-        "Five comparable workflows, one shared local substrate",
+        "Six comparable workflows, one shared local substrate",
     ]:
         assert marker in html
     assert "Full screen" not in html
@@ -119,7 +123,7 @@ def test_slides_deck_uses_recording_safe_ecosystem_story() -> None:
         'data-demo-run="chat"',
         'data-demo-run="research"',
         'data-demo-run="sharing"',
-        "Five comparable workflows, one shared local substrate",
+        "Six comparable workflows, one shared local substrate",
         "Gemma 4 is not another lane",
     ]:
         assert marker in html
@@ -243,7 +247,10 @@ def test_slides_setup_serves_audience_and_use_case_selectors() -> None:
         assert f'value="{key}"' in html, \
             f"slides-setup.html missing use_case option: {key}"
     assert "/api/slides/cached-io" in html
+    assert "/api/slides/recording-pack" in html
     assert "duecare.slides.demo.chat" in html
+    assert "duecare.slides.demo.pack" in html
+    assert "Preload recording pack" in html
 
 
 # --------------------------------------------------------------------------
@@ -354,3 +361,29 @@ def test_cached_io_exposes_audience_and_use_case_keys() -> None:
     assert isinstance(data.get("use_case_keys"), list)
     assert "worker" in data["audience_keys"]
     assert "ph_hk_placement_fee" in data["use_case_keys"]
+
+
+def test_recording_pack_preloads_selected_examples_and_images() -> None:
+    c = _client()
+    r = c.get("/api/slides/recording-pack")
+    assert r.status_code == 200, r.text
+    data = r.json()
+    assert data["schema_version"] == "duecare.slides.recording_pack.v1"
+    assert data["storage_keys"]["pack"] == "duecare.slides.demo.pack"
+    assert data["storage_keys"]["chat"] == "duecare.slides.demo.chat"
+    examples = data["examples"]
+    assert len(examples) >= 6
+    assert {e["lane"] for e in examples} >= {
+        "Content moderation",
+        "Case analysis",
+        "Worker support",
+        "Research",
+        "Anonymized knowledge sharing",
+    }
+    assert any(
+        e.get("image") and e["image"]["src"].startswith("/static/evidence/")
+        for e in examples
+    )
+    assert data["slides_chat"]["prompt"]
+    assert data["slides_chat"]["response"]
+    assert "PHP 50,000" in data["slides_chat"]["prompt"]
