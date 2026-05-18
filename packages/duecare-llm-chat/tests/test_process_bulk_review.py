@@ -187,7 +187,7 @@ def test_process_batch_returns_intelligence_for_sample():
     assert intel["document_type_counts"]["scanned_pdf"] >= 10
     assert body["staging"]["bytes"] == len(data)
     assert body["staging"]["sha256"]
-    assert body["config"]["gemma_case_brief"] == "deferred"
+    assert body["config"]["gemma_case_brief"] == "deterministic_deferred_model"
     assert intel["gemma_case_brief"]["status"] == "deterministic_deferred_model"
     assert intel["gemma_case_brief"]["deferred"] is True
     assert len(intel["harness_trace"]) >= 5
@@ -313,6 +313,77 @@ def test_process_batch_returns_intelligence_for_sample():
     assert job["result"]["typed_edges"]
     assert len(job["events"]) >= 3
     assert any(evt["phase"] == "seed_edges" for evt in job["events"])
+
+
+def test_process_background_job_calls_loaded_gemma_for_brief_and_edges():
+    from duecare.chat.app import create_app
+
+    calls = []
+
+    def gemma_call(messages, **kwargs):
+        text = "\n".join(
+            part.get("text", "")
+            for msg in messages
+            for part in (msg.get("content") or [])
+            if isinstance(part, dict)
+        )
+        calls.append({"text": text, "kwargs": kwargs})
+        if "case_theory" in text and "priority_people" in text:
+            return (
+                '{"case_theory":"Model-authored case brief",'
+                '"priority_people":[],"risk_clusters":["fee camouflage"],'
+                '"missing_evidence":[],"recommended_questions":["Which rows support fees?"]}'
+            )
+        return (
+            '{"edges":[{"edge_type":"fee_camouflage_evidence",'
+            '"source_node":"person:worker","target_node":"fee:training",'
+            '"row_id":"row-1","label":"training fee",'
+            '"evidence":{"quote":"training fee PHP 45000"},'
+            '"confidence":0.82}],"rag_candidates":[],"uncertainties":[]}'
+        )
+
+    sample = (
+        Path(__file__).parents[1]
+        / "src"
+        / "duecare"
+        / "chat"
+        / "static"
+        / "samples"
+        / "case_files_streamlined_demo.zip"
+    )
+    client = TestClient(create_app(gemma_call=gemma_call))
+    start = client.post(
+        "/api/process/batch/start",
+        data={"review_mode": "quick_triage", "max_gemma_calls": "3", "gemma_calls_per_item": "1"},
+        files={"file": (sample.name, io.BytesIO(sample.read_bytes()), "application/zip")},
+    )
+    assert start.status_code == 200, start.text
+    job_id = start.json()["job_id"]
+    final = None
+    for _ in range(80):
+        poll = client.get(f"/api/process/batch/status/{job_id}")
+        assert poll.status_code == 200, poll.text
+        body = poll.json()
+        if body.get("status") in {"complete", "error"}:
+            final = body
+            break
+        time.sleep(0.05)
+    assert final is not None
+    assert final["status"] == "complete", final
+    bundle = final["result"]
+    summary = bundle["summary"]
+    intel = bundle["intelligence"]
+    assert len(calls) >= 2
+    assert summary["gemma_model_loaded"] is True
+    assert summary["n_gemma_calls_attempted"] >= 2
+    assert summary["gemma_case_brief_status"] == "ok"
+    assert summary["gemma_edge_pass_status"] == "ok"
+    assert summary["n_model_proposed_edges"] == 1
+    assert intel["gemma_case_brief"]["deferred"] is False
+    assert intel["gemma_edge_pass"]["model_edges"][0]["edge_type"] == "fee_camouflage_evidence"
+    trace = {step["id"]: step for step in intel["harness_trace"]}
+    assert trace["gemma_text"]["status"] == "complete"
+    assert "model_calls_attempted" in trace["gemma_text"]["detail"]
 
 
 def test_process_batch_accepts_review_mode_settings():

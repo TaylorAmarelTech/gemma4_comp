@@ -42,6 +42,7 @@
     .wb-step .name { font-size: 12.5px; font-weight: 700; margin: 5px 0 3px; overflow-wrap: anywhere; }
     .wb-step .detail { font-size: 11px; color: #5B5F68; line-height: 1.4; overflow-wrap: anywhere; word-break: break-word; }
     .wb-step.complete { border-color: oklch(0.72 0.08 155); background: oklch(0.97 0.02 155); }
+    .wb-step.deferred { border-color: oklch(0.78 0.06 80); background: oklch(0.98 0.02 80); opacity: 1; }
     .wb-step.skipped { opacity: 0.72; }
     .wb-workflow { display: grid; gap: 16px; margin: 18px 0 0; }
     #wb-results { display: grid; gap: 16px; }
@@ -72,6 +73,7 @@
                            overflow-wrap: anywhere; word-break: break-word; }
     .wb-progress-substep.done { border-color: oklch(0.76 0.08 155); color: oklch(0.32 0.08 155); }
     .wb-progress-substep.active { border-color: oklch(0.52 0.08 195); color: #0E1116; background: oklch(0.97 0.02 195); }
+    .wb-progress-substep.deferred { border-color: oklch(0.78 0.06 80); color: oklch(0.36 0.06 80); background: oklch(0.98 0.02 80); }
     .wb-action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
     .wb-action-card { border: 1px solid #EFEDE4; border-radius: 8px; padding: 12px; background: #FAF9F4; }
     .wb-action-card h3 { font-size: 13px; margin: 0 0 5px; }
@@ -770,8 +772,8 @@
       },
       {
         pct: 54,
-        stage: 'Queueing OCR and media work',
-        detail: 'Images, screenshots, scans, binary Office files, and scanned PDFs are queued for OCR and Gemma 4 vision review.'
+        stage: 'Detecting media and queued work',
+        detail: 'Images, screenshots, scans, binary Office files, and scanned PDFs are counted and queued; OCR and Gemma 4 vision do not run in the upload request.'
       },
       {
         pct: 66,
@@ -785,13 +787,23 @@
       },
       {
         pct: 88,
-        stage: 'Building deterministic case brief',
-        detail: 'Upload processing uses a deterministic brief by default; Gemma 4 analysis runs after the graph renders to avoid tunnel timeouts.'
+        stage: 'Building case brief and text model passes',
+        detail: 'The background job calls local Gemma 4 for text brief/edge synthesis when a model is loaded and the Gemma budget is above zero.'
       },
       {
         pct: 94,
         stage: 'Finalizing response payload',
         detail: 'The local bundle, trace, graph metrics, media queue, and row-level evidence are being serialized for this page.'
+      }
+    ];
+    const WB_PROCESS_FOLLOWUP_STAGES = [
+      {
+        stage: 'OCR/layout extraction deferred',
+        detail: 'Media assets are queued for a separate OCR/page-review worker; the ZIP upload does not run OCR.'
+      },
+      {
+        stage: 'Gemma 4 media vision deferred',
+        detail: 'Image/page vision remains queued contract work on this page; text brief and edge synthesis run only when a model is loaded.'
       }
     ];
     function wbSetProcessProgress(percent, stage, detail, note) {
@@ -816,9 +828,19 @@
         el.className = 'wb-progress-substep' + (
           complete || idx < activeIndex ? ' done' : (idx === activeIndex ? ' active' : '')
         );
-        el.textContent = item.stage;
+        el.innerHTML = '<b>' + wbEsc(item.stage) + '</b>' +
+          (complete && item.detail ? '<div class="wb-muted">' + wbEsc(item.detail) + '</div>' : '');
         host.appendChild(el);
       });
+      if (complete) {
+        WB_PROCESS_FOLLOWUP_STAGES.forEach((item) => {
+          const el = document.createElement('div');
+          el.className = 'wb-progress-substep deferred';
+          el.innerHTML = '<b>' + wbEsc(item.stage) + '</b>' +
+            '<div class="wb-muted">' + wbEsc(item.detail) + '</div>';
+          host.appendChild(el);
+        });
+      }
     }
     function wbSetProcessActive(active) {
       const box = document.getElementById('wb-process-progress-box');
@@ -1202,11 +1224,18 @@
               ' | entities=' + wbBundle.summary.n_entities_extracted);
         wbRender(wbBundle);
         wbUpdateReviewReady();
+        const procSummary = wbBundle.summary || {};
+        const gemmaCalls = Number(procSummary.n_gemma_calls_attempted || 0);
+        const edgeStatus = procSummary.gemma_edge_pass_status || 'not_run';
+        const finalNote = gemmaCalls > 0
+          ? ('Gemma text passes ran during processing: calls=' + gemmaCalls +
+             ', edge_pass=' + edgeStatus + '. OCR/media vision remains explicit queued work.')
+          : 'No Gemma model call ran during processing. Load a model and keep max Gemma calls above zero, then run the explicit edge pass after review.';
         wbSetProcessProgress(
           100,
           'Processing complete',
           'Local deterministic extraction, graph linking, and queued-media accounting are complete.',
-          'Next: review Step 3. OCR/media and optional local Gemma edge generation are explicit follow-up actions, not hidden background work.'
+          finalNote
         );
         wbRenderProcessSubsteps(WB_PROCESS_STAGES.length - 1, true);
         wbSetWorkflow(2);
@@ -1634,6 +1663,17 @@
           ).join('')
         : '<div class="wb-muted">No RAG candidates returned.</div>';
       const pass = intel.gemma_edge_pass || {};
+      const passStatus = String(pass.status || 'not_run');
+      const passAttempted = passStatus !== 'not_run';
+      const passTitle = passStatus === 'ok'
+        ? 'Gemma edge pass complete'
+        : (passStatus === 'deterministic_no_model'
+          ? 'Gemma edge pass not run: no model loaded'
+          : (passAttempted ? 'Gemma edge pass returned fallback' : 'Gemma edge pass idle'));
+      const passPct = passAttempted ? '100' : '0';
+      const passDetail = passStatus === 'deterministic_no_model'
+        ? 'No local Gemma 4 model was loaded, so the page returned deterministic seed edges only.'
+        : (passAttempted ? wbStatusLabel(passStatus) : 'No local Gemma edge pass has run yet.');
       const modelRows = (pass.model_edges || []).slice(0, 12).map(e =>
         '<tr><td>' + wbEsc(e.edge_type || 'edge') + '</td><td><code>' + wbEsc(e.source_node || '') + '</code></td>' +
         '<td><code>' + wbEsc(e.target_node || '') + '</code></td><td>' + wbEsc(((e.evidence || {}).quote || '').slice(0, 180)) + '</td></tr>'
@@ -1641,14 +1681,14 @@
       passHost.innerHTML =
         '<h3 style="font-size:13px; margin:0 0 6px;">Gemma 4 local edge pass</h3>' +
         '<div class="wb-progress-box" id="wb-edge-progress-box" style="margin:0 0 10px;">' +
-        '<div class="wb-progress-head"><div><b id="wb-edge-progress-stage">' + wbEsc(pass.status ? 'Edge pass complete' : 'Edge pass idle') + '</b>' +
-        '<div class="wb-muted" id="wb-edge-progress-detail">' + wbEsc(pass.status ? wbStatusLabel(pass.status) : 'No local Gemma edge pass has run yet.') + '</div></div>' +
-        '<span class="wb-pill" id="wb-edge-progress-label">' + wbEsc(pass.status ? '100%' : '0%') + '</span></div>' +
-        '<div class="wb-progress-track" aria-hidden="true"><span class="wb-progress-fill" id="wb-edge-progress-fill" style="width:' + wbEsc(pass.status ? '100' : '0') + '%"></span></div>' +
+        '<div class="wb-progress-head"><div><b id="wb-edge-progress-stage">' + wbEsc(passTitle) + '</b>' +
+        '<div class="wb-muted" id="wb-edge-progress-detail">' + wbEsc(passDetail) + '</div></div>' +
+        '<span class="wb-pill" id="wb-edge-progress-label">' + wbEsc(passPct + '%') + '</span></div>' +
+        '<div class="wb-progress-track" aria-hidden="true"><span class="wb-progress-fill" id="wb-edge-progress-fill" style="width:' + wbEsc(passPct) + '%"></span></div>' +
         '<div class="wb-progress-note" id="wb-edge-progress-note">This pass is optional. It uses deterministic seed edges first, then calls local Gemma 4 only if a model is already loaded.</div>' +
         '<div class="wb-progress-substeps" id="wb-edge-events" aria-label="Gemma edge pass timeline"></div>' +
         '</div>' +
-        '<div class="wb-muted">Status: ' + wbEsc(pass.status || 'not_run') +
+        '<div class="wb-muted">Status: ' + wbEsc(passStatus) +
         ' | model proposed edges: ' + wbEsc((pass.model_edges || []).length || 0) +
         ' | local_only: ' + wbEsc(pass.local_only === false ? 'false' : 'true') + '</div>' +
         (modelRows ? '<div style="max-height:220px; overflow:auto; margin-top:8px;"><table class="wb-small-table"><thead><tr><th>edge</th><th>source</th><th>target</th><th>quote</th></tr></thead><tbody>' + modelRows + '</tbody></table></div>' : '');
@@ -1759,8 +1799,15 @@
         wbBundle.intelligence.gemma_edge_pass = out;
         wbRenderTypedEdges(wbBundle.intelligence);
         const totalDt = Math.round(performance.now() - t0);
-        wbSetEdgeProgress(100, 'Gemma edge pass complete', 'status=' + (out.status || 'unknown') + ' | model_edges=' + ((out.model_edges || []).length || 0));
-        wbLog('ok', 'Gemma edge pass complete (' + totalDt + 'ms)',
+        const outStatus = String(out.status || 'unknown');
+        const noModel = outStatus === 'deterministic_no_model';
+        wbSetEdgeProgress(
+          100,
+          noModel ? 'Gemma edge pass not run: no model loaded' : 'Gemma edge pass complete',
+          'status=' + outStatus + ' | model_edges=' + ((out.model_edges || []).length || 0),
+          noModel ? 'Load a Gemma 4 text model before running this pass if you want model-proposed graph edges.' : undefined
+        );
+        wbLog(noModel ? 'warn' : 'ok', (noModel ? 'Gemma edge pass skipped model call' : 'Gemma edge pass complete') + ' (' + totalDt + 'ms)',
           'status=' + (out.status || 'unknown') + ' | model_edges=' + ((out.model_edges || []).length || 0) +
           ' | rag_candidates=' + ((out.rag_candidates || []).length || 0));
       } catch (e) {

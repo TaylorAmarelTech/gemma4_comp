@@ -62,7 +62,7 @@ def _env_int(name: str, default: int, *, min_value: int, max_value: int) -> int:
 
 
 INTERACTIVE_CHAT_MAX_NEW_TOKENS = _env_int(
-    "DUECARE_CHAT_MAX_NEW_TOKENS", 1200, min_value=16, max_value=32768
+    "DUECARE_CHAT_MAX_NEW_TOKENS", 4096, min_value=16, max_value=32768
 )
 
 

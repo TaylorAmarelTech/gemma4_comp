@@ -1838,7 +1838,13 @@ def _deterministic_case_brief(bundle: dict, intelligence: dict) -> dict:
     }
 
 
-def _gemma_case_brief(app: Any, bundle: dict, intelligence: dict) -> dict:
+def _gemma_case_brief(
+    app: Any,
+    bundle: dict,
+    intelligence: dict,
+    *,
+    max_new_tokens: int = 900,
+) -> dict:
     gc = getattr(app.state, "gemma_call", None)
     deterministic = _deterministic_case_brief(bundle, intelligence)
     if gc is None:
@@ -1857,7 +1863,8 @@ def _gemma_case_brief(app: Any, bundle: dict, intelligence: dict) -> dict:
     }
     prompt = (
         "You are DueCare's Gemma 4 process harness analyst. "
-        "Given a locally extracted PH to HK case-bundle intelligence object, "
+        "Given a locally extracted migrant-worker exploitation case-bundle "
+        "intelligence object, "
         "produce compact JSON with keys: case_theory, priority_people, "
         "risk_clusters, missing_evidence, recommended_questions. "
         "Use only the supplied facts and row_ids. Do not invent facts.\n\n"
@@ -1866,7 +1873,7 @@ def _gemma_case_brief(app: Any, bundle: dict, intelligence: dict) -> dict:
     try:
         messages = [{"role": "user", "content": [{"type": "text", "text": prompt}]}]
         try:
-            model_out = gc(messages, max_new_tokens=700, temperature=0.2)
+            model_out = gc(messages, max_new_tokens=max_new_tokens, temperature=0.2)
         except TypeError:
             model_out = gc(messages)
         text = model_out if isinstance(model_out, str) else (
@@ -2771,22 +2778,69 @@ def register_routes(app: Any) -> None:
             process_settings=process_settings,
             knowledge_context=knowledge_context,
         )
-        mark("brief", 80, "Creating deterministic case brief; Gemma 4 vision/OCR remains explicit when not wired.")
+        mark("brief", 80, "Creating case brief and deciding whether local Gemma text passes can run.")
         deterministic_brief = _deterministic_case_brief(bundle, intelligence)
-        gemma_brief = {
-            "available": bool(getattr(app.state, "gemma_call", None)),
-            "status": "deterministic_deferred_model",
-            "json": deterministic_brief,
-            "text": _json.dumps(deterministic_brief, indent=2),
-            "deferred": True,
-            "detail": (
-                "The upload endpoint returns a deterministic case brief so Cloudflare "
-                "does not time out while Gemma 4 is generating. Use graph chat after "
-                "review to ask model-backed questions over the local graph."
-            ),
-        }
+        gemma_available = bool(getattr(app.state, "gemma_call", None))
+        gemma_budget = int(process_settings.get("max_gemma_calls") or 0)
+        gemma_per_item = int(process_settings.get("gemma_calls_per_item") or 0)
+        run_gemma_text = bool(gemma_available and gemma_budget > 0 and gemma_per_item > 0)
+        n_gemma_calls_attempted = 0
+        if run_gemma_text:
+            mark("gemma_case_brief", 82, "Calling local Gemma 4 for the text case brief.")
+            n_gemma_calls_attempted += 1
+            gemma_brief = _gemma_case_brief(app, bundle, intelligence)
+            gemma_brief["deferred"] = False
+            gemma_brief["detail"] = (
+                "Local Gemma 4 was loaded, so the background process job "
+                "called it for a bounded text case brief. OCR/media vision "
+                "remains a separate queued capability."
+            )
+        else:
+            reason = (
+                "model not loaded"
+                if not gemma_available else
+                "Gemma budget disabled by processing settings"
+            )
+            gemma_brief = {
+                "available": gemma_available,
+                "status": "deterministic_deferred_model",
+                "json": deterministic_brief,
+                "text": _json.dumps(deterministic_brief, indent=2),
+                "deferred": True,
+                "detail": (
+                    "The upload endpoint returned a deterministic case brief "
+                    f"because {reason}. Load a model and keep max Gemma calls "
+                    "above zero to run model-backed text analysis during the "
+                    "background process job."
+                ),
+            }
         intelligence["gemma_case_brief"] = gemma_brief
+        gemma_edge_out = intelligence.get("gemma_edge_pass") or {}
+        if run_gemma_text and gemma_budget > 1:
+            edge_limit = max(4, min(32, gemma_budget - 1))
+            def _edge_progress(*, phase: str, pct: int, detail: str, **_: Any) -> None:
+                mapped_pct = 84 + round(max(0, min(100, int(pct))) * 0.10)
+                mark(f"gemma_edge_{phase}", mapped_pct, detail)
+
+            n_gemma_calls_attempted += 1
+            gemma_edge_out = _gemma_edge_pass(
+                app,
+                bundle,
+                prompt_id="case_graph_edges",
+                limit=edge_limit,
+                progress=_edge_progress,
+            )
+            intelligence["gemma_edge_pass"] = gemma_edge_out
         media_count = ((intelligence.get("processing_plan") or {}).get("n_media_assets", 0))
+        if run_gemma_text:
+            mark("model_passes_done", 94, "Local Gemma 4 text passes finished; finalizing bundle.")
+        edge_status = str(gemma_edge_out.get("status") or "not_run")
+        text_status = "complete" if run_gemma_text else "deferred"
+        if run_gemma_text and (
+            gemma_brief.get("status") in {"model_error_deterministic_fallback"}
+            and edge_status in {"model_error_deterministic_fallback"}
+        ):
+            text_status = "deferred"
         intelligence["harness_trace"] = [
             {
                 "id": "upload",
@@ -2819,12 +2873,22 @@ def register_routes(app: Any) -> None:
                 "detail": f"{intelligence.get('n_people', 0)} people, {len(intelligence.get('document_type_counts') or {})} document types",
             },
             {
-                "id": "gemma",
-                "label": "Gemma 4 case brief / media vision",
-                "status": "deferred",
+                "id": "gemma_text",
+                "label": "Gemma 4 text brief / edge pass",
+                "status": text_status,
                 "detail": (
-                    f"{gemma_brief.get('status', 'not_run')}; "
-                    f"{media_count} media item(s) queued for OCR/Gemma 4 page review"
+                    f"case_brief={gemma_brief.get('status', 'not_run')}; "
+                    f"edge_pass={edge_status}; "
+                    f"model_calls_attempted={n_gemma_calls_attempted}"
+                ),
+            },
+            {
+                "id": "media_queue",
+                "label": "OCR and Gemma 4 media vision queue",
+                "status": "deferred" if media_count else "skipped",
+                "detail": (
+                    f"{media_count} media item(s) queued for OCR/Gemma 4 page review. "
+                    "The current upload pass does not run image/page vision."
                 ),
             },
             {
@@ -2843,6 +2907,11 @@ def register_routes(app: Any) -> None:
         bundle["summary"]["n_evidence_edges"] = intelligence.get("n_evidence_edges", 0)
         bundle["summary"]["n_typed_edges"] = intelligence.get("n_typed_edges", 0)
         bundle["summary"]["gemma_case_brief_status"] = gemma_brief.get("status")
+        bundle["summary"]["gemma_edge_pass_status"] = edge_status
+        bundle["summary"]["n_model_proposed_edges"] = len(gemma_edge_out.get("model_edges") or [])
+        bundle["summary"]["n_gemma_calls_attempted"] = n_gemma_calls_attempted
+        bundle["summary"]["gemma_model_loaded"] = gemma_available
+        bundle["config"]["gemma_case_brief"] = gemma_brief.get("status") or "deferred"
         app.state.last_process_bundle = bundle
         mark("caching", 92, "Caching local graph for graph chat and export.")
         try:
@@ -2951,16 +3020,21 @@ def register_routes(app: Any) -> None:
                 media_queued = int(
                     ((intel.get("processing_plan") or {}).get("n_media_assets") or 0)
                 )
+                gemma_calls = int((bundle.get("summary") or {}).get("n_gemma_calls_attempted") or 0)
+                done_prefix = (
+                    f"Deterministic parsing and {gemma_calls} Gemma text call(s) complete"
+                    if gemma_calls else
+                    "Deterministic parsing complete"
+                )
                 if media_queued:
                     completion_detail = (
-                        f"Deterministic parsing complete; {media_queued} media asset(s) "
+                        f"{done_prefix}; {media_queued} media asset(s) "
                         "remain queued for OCR or Gemma 4 vision review. Bundle cached "
                         "for graph chat."
                     )
                 else:
                     completion_detail = (
-                        "Deterministic parsing complete; no media items queued. "
-                        "Bundle cached for graph chat."
+                        f"{done_prefix}; no media items queued. Bundle cached for graph chat."
                     )
                 _process_job_update(
                     job_id,

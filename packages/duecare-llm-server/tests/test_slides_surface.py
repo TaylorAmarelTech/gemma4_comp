@@ -108,7 +108,11 @@ def test_slides_deck_uses_recording_safe_ecosystem_story() -> None:
         assert marker in html
     assert "Full screen" not in html
     assert "arrows / space" not in html
-    assert "Filipina" not in html
+    assert "Hiring 30 Filipina maids for Saudi Arabia" in html
+    assert "+63 917 123 4567" in html
+    assert "false_urgency_only_n_spots" in html
+    assert "gemma-4-e4b-it" in html
+    assert "287515 ms" in html
     assert "Local Gemma 4</span>" not in html
     assert "Evidence harness</span>" not in html
     assert 'class="slide dark"' not in html
@@ -361,6 +365,7 @@ def test_cached_io_exposes_audience_and_use_case_keys() -> None:
     assert isinstance(data.get("use_case_keys"), list)
     assert "worker" in data["audience_keys"]
     assert "ph_hk_placement_fee" in data["use_case_keys"]
+    assert "ph_sa_platform_moderation" in data["use_case_keys"]
 
 
 def test_recording_pack_preloads_selected_examples_and_images() -> None:
@@ -384,6 +389,16 @@ def test_recording_pack_preloads_selected_examples_and_images() -> None:
         e.get("image") and e["image"]["src"].startswith("/static/evidence/")
         for e in examples
     )
+    trace_examples = [
+        e for e in examples if e["id"] == "platform_ph_sa_job_post_trace"
+    ]
+    assert trace_examples, "captured PH-Saudi moderation trace missing"
+    trace_example = trace_examples[0]
+    assert "+63 917 123 4567" in trace_example["prompt"]
+    assert "false_urgency_only_n_spots" in " ".join(trace_example["artifacts"])
+    assert trace_example["trace"]["model"] == "gemma-4-e4b-it"
+    assert trace_example["trace"]["model_latency_ms"] == 287515
+    assert data["moderation_trace"]["grade"]["score"] == "6.96/10"
     assert data["slides_chat"]["prompt"]
     assert data["slides_chat"]["response"]
     assert "PHP 50,000" in data["slides_chat"]["prompt"]

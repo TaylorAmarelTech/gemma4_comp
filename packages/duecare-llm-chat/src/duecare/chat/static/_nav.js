@@ -75,6 +75,7 @@
     let modelSelectorRequired = false;
     let modelVariantMap = MODEL_FALLBACK_VARIANTS;
     let modelActiveVariant = '';
+    let modelUserSelectedVariant = '';
     const modelRequiredNavKeys = new Set([
         'chat',
         'compare',
@@ -136,7 +137,8 @@
             sel.appendChild(opt);
         });
         const keys = Object.keys(map);
-        if (activeVariant && keys.indexOf(activeVariant) >= 0) sel.value = activeVariant;
+        if (modelUserSelectedVariant && keys.indexOf(modelUserSelectedVariant) >= 0) sel.value = modelUserSelectedVariant;
+        else if (activeVariant && keys.indexOf(activeVariant) >= 0) sel.value = activeVariant;
         else if (prior && keys.indexOf(prior) >= 0) sel.value = prior;
         else if (keys.indexOf('e4b-it') >= 0) sel.value = 'e4b-it';
         renderSelectedModelDetail();
@@ -176,9 +178,12 @@
             if (r.ok) load = await r.json();
         } catch (_) { /* kernels without the loader endpoint still use model-info */ }
 
-        const loaded = !!info.loaded;
+        if (!info.loaded && load.ready && load.active_model) {
+            info = {...load.active_model, loaded: true};
+        }
+        const loaded = !!(info.loaded || load.ready || load.status === 'ready');
         const loading = load.status === 'loading';
-        modelLastStatus = {...info, loaded};
+        modelLastStatus = {...info, loaded, variant: info.variant || load.variant || info.name};
         renderModelOptions(load.variants, load.variant || info.variant || info.name);
         renderModelLogs(load.logs || []);
 
@@ -190,8 +195,16 @@
 
         const loadBtn = document.getElementById('dc-wb-model-load');
         if (loadBtn) {
+            const sel = modelSelectEl();
+            const selected = sel && sel.value;
+            const selectedActive = loaded && selected
+                && (selected === modelActiveVariant
+                    || selected === modelLastStatus.variant
+                    || selected === modelLastStatus.name);
             loadBtn.disabled = loading;
-            loadBtn.textContent = loading ? 'Loading...' : (loaded ? 'Switch/load selected' : 'Load selected');
+            loadBtn.textContent = loading
+                ? 'Loading...'
+                : (selectedActive ? 'Loaded' : (loaded ? 'Load selected' : 'Load selected'));
         }
 
         const parts = [];
@@ -206,6 +219,7 @@
         setModelPopoverStatus(parts.join(' | ') || 'Select a model, then load it for all pages.');
 
         if (loaded && modelSelectorRequired) {
+            modelUserSelectedVariant = '';
             closeModelPopover(true);
         }
 
@@ -220,7 +234,9 @@
         const sel = modelSelectEl();
         const variant = sel && sel.value;
         if (!variant) return;
+        modelUserSelectedVariant = variant;
         setModelPopoverStatus('Starting model load: ' + variant);
+        renderModelLogs([{ts: new Date().toLocaleTimeString(), phase: 'request', message: 'POST /api/load-model variant=' + variant}]);
         try {
             const r = await fetch('/api/load-model', {
                 method: 'POST',
@@ -228,6 +244,21 @@
                 body: JSON.stringify({variant: variant})
             });
             const payload = await r.json().catch(function () { return {}; });
+            if (payload.status === 'already_loaded') {
+                setDot('loaded');
+                setModelPopoverStatus(
+                    (payload.message || 'A model is already loaded.')
+                    + ' Selected: ' + variant + '. Active: ' + (payload.variant || modelActiveVariant || 'current model') + '.'
+                );
+                await refreshModelLoaderStatus();
+                return;
+            }
+            if (payload.status === 'busy') {
+                setDot('loading');
+                setModelPopoverStatus(payload.message || 'A model is already loading; wait for completion before selecting another variant.');
+                await refreshModelLoaderStatus();
+                return;
+            }
             if (!r.ok || payload.status === 'error') {
                 setDot('error');
                 setModelPopoverStatus('Model load failed: '
@@ -474,7 +505,10 @@
         if (loadBtn) loadBtn.addEventListener('click', loadSelectedModel);
         if (refreshBtn) refreshBtn.addEventListener('click', refreshModelLoaderStatus);
         const sel = modelSelectEl();
-        if (sel) sel.addEventListener('change', renderSelectedModelDetail);
+        if (sel) sel.addEventListener('change', function () {
+            modelUserSelectedVariant = sel.value || '';
+            renderSelectedModelDetail();
+        });
         document.addEventListener('click', function (event) {
             const pop = document.getElementById('dc-wb-model-popover');
             const btn = document.getElementById('dc-wb-model-open');

@@ -533,6 +533,49 @@
     }
     let kxDrafts = [];
     let kxPromotedDrafts = 0;
+    let _kxSeenDraftEventKeys = new Set();
+    function kxSleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    function kxLogDraftEvents(jobId, events) {
+      (events || []).forEach((evt, idx) => {
+        const key = [jobId, evt.ts, evt.phase, evt.pct, idx].join('|');
+        if (_kxSeenDraftEventKeys.has(key)) return;
+        _kxSeenDraftEventKeys.add(key);
+        wbLog(evt.status === 'error' ? 'err' : 'step',
+          'Knowledge draft job ' + jobId + ': ' + (evt.phase || evt.status || 'event'),
+          (evt.pct != null ? evt.pct + '% | ' : '') + (evt.detail || ''));
+      });
+    }
+    async function kxPollDraftJob(jobId, t0, statusEl) {
+      const pollUrl = '/api/knowledge/draft-envelope/status/' + encodeURIComponent(jobId);
+      for (let attempt = 0; attempt < 900; attempt += 1) {
+        const r = await fetch(pollUrl, {cache: 'no-store'});
+        const text = await r.text();
+        let job = null;
+        try { job = JSON.parse(text); } catch (_) {}
+        const dt = Math.round(performance.now() - t0);
+        if (!r.ok || !job) {
+          wbLog('err', 'Knowledge draft poll failed HTTP ' + r.status + ' (' + dt + 'ms)', text.slice(0, 220));
+          throw new Error('Knowledge draft polling failed: HTTP ' + r.status);
+        }
+        kxLogDraftEvents(jobId, job.events || []);
+        if (statusEl) {
+          statusEl.textContent = 'Draft job ' + jobId + ': ' +
+            (job.phase || job.status || 'running') + ' - ' +
+            (job.detail || 'running') + ' (' + Math.round(dt / 1000) + 's)';
+        }
+        if (job.status === 'complete') {
+          if (!job.result) throw new Error('Knowledge draft job completed without result payload.');
+          return job.result;
+        }
+        if (job.status === 'error') {
+          throw new Error(job.error || job.detail || 'Knowledge draft job failed.');
+        }
+        await kxSleep(1500);
+      }
+      throw new Error('Knowledge draft job polling timed out locally.');
+    }
     function kxFinishDraftReview(){
       if (!kxDrafts.length) {
         document.getElementById("kx-extract-status").textContent="Draft suggestions before finishing review.";
@@ -560,29 +603,28 @@
         const btn=document.getElementById("kx-extract-btn");
         btn.disabled=true; const origTxt=btn.textContent; btn.textContent="Extracting...";
         kxSetWorkflow(1);
-        statusEl.textContent="POST /api/knowledge/draft-envelope (" + (useGemma ? "Gemma refinement" : "deterministic draft") + ") ...";
-        wbLog('net', 'POST /api/knowledge/draft-envelope', 'target_leaf=' + leaf + ' | anonymize=' + anonymize + ' | use_gemma=' + useGemma + ' | chars=' + raw.length);
+        statusEl.textContent="POST /api/knowledge/draft-envelope/start (" + (useGemma ? "Gemma refinement" : "deterministic draft") + ") ...";
+        wbLog('net', 'POST /api/knowledge/draft-envelope/start', 'target_leaf=' + leaf + ' | anonymize=' + anonymize + ' | use_gemma=' + useGemma + ' | chars=' + raw.length);
         const t0 = performance.now();
-        let timeout = null;
+        _kxSeenDraftEventKeys = new Set();
         try{
-          const controller = new AbortController();
-          const timeoutMs = useGemma ? 90000 : 15000;
-          timeout = setTimeout(() => controller.abort(), timeoutMs);
-          const r=await fetch("/api/knowledge/draft-envelope",{
+          const r=await fetch("/api/knowledge/draft-envelope/start",{
             method:"POST",headers:{"Content-Type":"application/json"},
-            signal: controller.signal,
             body:JSON.stringify({raw_text:raw, target_leaf:leaf, anonymize:anonymize, use_gemma:useGemma})
           });
-          clearTimeout(timeout);
-          const out=await r.json();
-          const dt = Math.round(performance.now() - t0);
-          kxSetWorkflow(1);
+          const start=await r.json().catch(() => ({}));
+          const startDt = Math.round(performance.now() - t0);
           if(!r.ok){
             statusEl.textContent="Extract failed: HTTP "+r.status;
-            resultEl.innerHTML="<pre style=\"background:#FFF1F1; border:1px solid #FCC; padding:10px; border-radius:6px; font-size:11.5px; overflow:auto;\">"+escapeHtml(JSON.stringify(out,null,2))+"</pre>";
-            wbLog('err', 'HTTP ' + r.status + ' (' + dt + 'ms)', JSON.stringify(out).slice(0, 200));
+            resultEl.innerHTML="<pre style=\"background:#FFF1F1; border:1px solid #FCC; padding:10px; border-radius:6px; font-size:11.5px; overflow:auto;\">"+escapeHtml(JSON.stringify(start,null,2))+"</pre>";
+            wbLog('err', 'HTTP ' + r.status + ' (' + startDt + 'ms)', JSON.stringify(start).slice(0, 200));
             return;
           }
+          wbLog('ok', 'Knowledge draft job accepted (' + startDt + 'ms)', 'job_id=' + start.job_id);
+          statusEl.textContent = 'Draft job accepted: ' + start.job_id + '. Polling progress...';
+          const out = await kxPollDraftJob(start.job_id, t0, statusEl);
+          const dt = Math.round(performance.now() - t0);
+          kxSetWorkflow(1);
           statusEl.textContent="Draft suggestions ready. Review, promote useful ones, then anonymize and share if appropriate.";
           kxSetWorkflow(1);
           kxDrafts = out.suggestions || (out.envelope ? [out.envelope] : [out]);
@@ -603,12 +645,9 @@
             escapeHtml(JSON.stringify(env, null, 2)) + '</pre></section>'
           ).join('');
         }catch(e){
-          statusEl.textContent=(String(e && e.name || '') === 'AbortError'
-            ? "Extract timed out. Try deterministic mode, reduce source text, or use a smaller bundle."
-            : "Extract failed: "+String(e).slice(0,200));
+          statusEl.textContent="Extract failed: "+String(e).slice(0,200);
           wbLog('err', 'Draft suggestions failed', String(e).slice(0,200));
         }finally{
-          if (timeout) clearTimeout(timeout);
           btn.disabled=false; btn.textContent=origTxt;
         }
       }
