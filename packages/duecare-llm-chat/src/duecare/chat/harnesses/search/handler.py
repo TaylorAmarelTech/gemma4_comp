@@ -13,6 +13,7 @@ from typing import Any
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 
+from .._replay import demo_replay
 from .backends import build_registry, pick_backend
 
 
@@ -42,28 +43,55 @@ def _do_search(app: Any, body: dict, kind: str) -> dict:
     top_n = max(1, min(top_n, _MAX_TOP_N))
     preferred = body.get("backend") or None
 
+    def _with_replay(out: dict) -> dict:
+        out["demo_replay"] = demo_replay(
+            lane="search",
+            endpoint=f"/api/search/{kind}",
+            request={
+                "query": query,
+                "top_n": top_n,
+                "backend": preferred,
+                "kind": kind,
+                "anonymize_query": bool(body.get("anonymize_query", False)),
+            },
+            response_summary={
+                "backend": out.get("backend"),
+                "n_results": len(out.get("results") or []),
+                "verification_status": out.get("verification_status"),
+                "elapsed_ms": out.get("elapsed_ms"),
+                "error": out.get("error"),
+                "note": out.get("note"),
+            },
+            artifacts=[{
+                "name": "search_results",
+                "kind": "inline_response_json",
+                "count": len(out.get("results") or []),
+            }],
+        )
+        return out
+
     backend = pick_backend(app, preferred=preferred)
     if backend is None:
-        return {
+        return _with_replay({
             "query": query,
             "kind": kind,
             "backend": None,
             "results": [],
             "verification_status": "not_applicable",
             "note": "No backend available. Set DUECARE_SEARXNG_URL or wire online_search_call.",
-        }
+        })
 
     try:
         out = backend.search(query, top_n=top_n)
     except Exception as exc:  # noqa: BLE001
-        return {
+        return _with_replay({
             "query": query,
             "kind": kind,
             "backend": backend.name,
             "results": [],
             "verification_status": "not_applicable",
             "error": f"{type(exc).__name__}: {exc}",
-        }
+        })
 
     out["query"] = query
     out["kind"] = kind
@@ -89,7 +117,7 @@ def _do_search(app: Any, body: dict, kind: str) -> dict:
         )
     except Exception:
         pass
-    return out
+    return _with_replay(out)
 
 
 def register_routes(app: Any) -> None:
