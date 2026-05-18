@@ -91,10 +91,23 @@ def test_aria_attributes_present(client):
     assert not missing, f"ARIA attributes missing: {missing}"
 
 
-def test_max_tokens_default_is_16384(client):
+def test_max_tokens_default_is_demo_safe(client):
     r = client.get("/static/compare.html")
-    assert 'value="16384"' in r.text
+    assert "Default is <b>1200 tokens</b> for responsive local demos" in r.text
+    assert 'value="1200"' in r.text
     assert 'min="128" max="32768"' in r.text
+
+
+def test_chat_generation_default_is_demo_safe(client):
+    from duecare.chat.app import GenerationParams, INTERACTIVE_CHAT_MAX_NEW_TOKENS
+
+    r = client.get("/static/chat.html")
+    assert r.status_code == 200
+    assert 'id="maxtok" value="1200"' in r.text
+    assert "max_new_tokens: parseInt(document.getElementById('maxtok').value) || 1200" in r.text
+    assert "let maxNewTokens = 1200" in r.text
+    assert INTERACTIVE_CHAT_MAX_NEW_TOKENS == 1200
+    assert GenerationParams().max_new_tokens == 1200
 
 
 def test_pipeline_step_labels_match_chat(client):

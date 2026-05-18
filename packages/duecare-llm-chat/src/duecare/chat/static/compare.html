@@ -217,15 +217,15 @@
     <div class="wb-card">
       <h2>3. Generation settings (avoid response cutoffs)</h2>
       <p class="wb-muted" style="margin: 0 0 10px;">
-        Default is <b>16384 tokens</b>, enough for the longest multi-paragraph
-        responses. If you see a response truncated mid-sentence, raise
+        Default is <b>1200 tokens</b> for responsive local demos.
+        If you see a response truncated mid-sentence, raise
         <code>max_new_tokens</code>. The same value is sent for both
         variants so the comparison is apples-to-apples.
       </p>
       <div class="wb-row" style="gap: 16px; align-items: center;">
         <label style="font-size: 12.5px;">
           <span style="margin-right: 6px;">max_new_tokens:</span>
-          <input type="number" id="cmp-max-tokens" min="128" max="32768" step="128" value="16384"
+          <input type="number" id="cmp-max-tokens" min="128" max="32768" step="128" value="1200"
             style="width: 90px; padding: 5px 8px; border: 1px solid #DDD8C9; border-radius: 6px; font-size: 12.5px;">
         </label>
         <label style="font-size: 12.5px;">
@@ -1504,7 +1504,7 @@
           params.set(v + '_' + layer, toggles[layer] ? '1' : '0');
         });
       }
-      params.set('max_new_tokens', document.getElementById('cmp-max-tokens').value || '16384');
+      params.set('max_new_tokens', document.getElementById('cmp-max-tokens').value || '1200');
       params.set('temperature', document.getElementById('cmp-temperature').value || '1.0');
       const url = location.origin + '/static/compare.html?' + params.toString();
       const status = document.getElementById('postrun-status');
@@ -1638,7 +1638,7 @@
         return;
       }
       const maxTokens = Math.max(128, Math.min(32768,
-        parseInt(document.getElementById('cmp-max-tokens').value, 10) || 16384));
+        parseInt(document.getElementById('cmp-max-tokens').value, 10) || 1200));
       const temperature = Math.max(0, Math.min(2,
         parseFloat(document.getElementById('cmp-temperature').value) || 1.0));
       try { localStorage.setItem('duecare:last-chat-prompt', prompt); } catch (e) {}

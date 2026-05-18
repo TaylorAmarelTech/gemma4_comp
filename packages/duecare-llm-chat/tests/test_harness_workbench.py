@@ -448,10 +448,25 @@ def test_settings_page_uses_guided_configuration_flow(client):
     text = r.text
     assert 'id="settings-guide"' in text
     assert '<details class="settings-step" id="settings-step-1" open>' in text
-    assert "Hybrid RAG should be the default path" in text
+    assert "BM25 is the responsive default path" in text
+    assert "Hybrid dense/RRF" in text
+    assert "CPU rerank remain available" in text
     assert "Search is optional and must remain downstream of search safety sanitization" in text
     assert "one-model Kaggle session constraint" in text
     assert "function settingsSetStep" in text
+
+
+def test_retrieval_defaults_are_demo_safe(client):
+    r = client.get("/api/retrieval/config")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["profile"] == "demo-safe bm25 default"
+    assert data["retrieval_mode"] == "bm25"
+    assert data["effective_mode"] == "bm25"
+    assert data["rerank_enabled"] is False
+    assert data["rerank_top_k"] == 24
+    assert data["rerank_keep"] == 6
+    assert data["dense_top_k"] == 16
 
 
 def test_anonymization_preview_uses_guided_boundary_flow(client):

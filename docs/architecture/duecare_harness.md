@@ -36,7 +36,7 @@ from a chatbot into an **auditable decision-support system**.
 |---|---|---|
 | Persona | purple | 40-year anti-trafficking expert system prompt; user-extendable |
 | GREP | red | 100+ regex rules across active categories |
-| RAG | blue | 50+ document corpus + citation graph (hybrid preferred: BM25 + optional dense + RRF) |
+| RAG | blue | Broad document corpus + citation graph (BM25 default; optional dense/RRF for deeper review) |
 | Imports | teal | User-attached evidence (images / docs / posts) |
 | Tools | green | Function-calling lookups |
 | Online | amber | Live web search (Brave / DDG fallback / Playwright) with cross-check warning |

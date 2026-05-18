@@ -53,6 +53,19 @@ _IMAGE_STORE_LOCK = threading.Lock()
 _GEMMA_LOCK = threading.Lock()
 
 
+def _env_int(name: str, default: int, *, min_value: int, max_value: int) -> int:
+    try:
+        value = int(os.environ.get(name, str(default)))
+    except (TypeError, ValueError):
+        value = default
+    return max(min_value, min(max_value, value))
+
+
+INTERACTIVE_CHAT_MAX_NEW_TOKENS = _env_int(
+    "DUECARE_CHAT_MAX_NEW_TOKENS", 1200, min_value=16, max_value=32768
+)
+
+
 _HARNESS_SURFACE_CONTRACTS: tuple[dict[str, Any], ...] = (
     {
         "name": "chat",
@@ -315,15 +328,15 @@ _RETRIEVAL_CONFIG: dict = {
     # ── Hybrid retrieval (BM25 + optional dense) ────────────────────
     # mode = "bm25"      → lexical only; deterministic fallback
     #        "dense"     → embedding-only (requires embed_call wired)
-    #        "hybrid_rrf"→ preferred default: BM25 + dense, fused via RRF
-    "retrieval_mode":           "hybrid_rrf",
-    "dense_top_k":              32,
+    #        "hybrid_rrf"→ deeper opt-in: BM25 + dense, fused via RRF
+    "retrieval_mode":           "bm25",
+    "dense_top_k":              16,
     "rrf_k":                    60,     # standard RRF constant
 
     # ── Reranker (v0.6.0 hook, made first-class here) ───────────────
-    "rerank_top_k":             50,     # candidates fed to rerank_call
-    "rerank_keep":              8,      # final keep after rerank
-    "rerank_enabled":           True,   # turn off to bypass rerank_call
+    "rerank_top_k":             24,     # candidates fed to rerank_call
+    "rerank_keep":              6,      # final keep after rerank
+    "rerank_enabled":           False,  # opt in for deeper, slower review
 
     # ── Path tracing ───────────────────────────────────────────────
     # When True, every retrieval call records a structured per-stage
@@ -1879,7 +1892,7 @@ KO_TYPE_CATALOG: dict[str, dict[str, Any]] = {
 
 
 class GenerationParams(BaseModel):
-    max_new_tokens: int = 16384
+    max_new_tokens: int = Field(default=INTERACTIVE_CHAT_MAX_NEW_TOKENS, ge=16, le=32768)
     temperature: float = 1.0
     top_p: float = 0.95
     top_k: int = 64
@@ -4072,7 +4085,7 @@ def create_app(
                 cache_stats = embed_call.cache.stats()
             except Exception:  # noqa: BLE001
                 cache_stats = None
-        requested_mode = cfg.get("retrieval_mode", "hybrid_rrf")
+        requested_mode = cfg.get("retrieval_mode", "bm25")
         embed_wired = embed_call is not None
         rerank_wired = app.state.rerank_call is not None
         if requested_mode in ("dense", "hybrid_rrf") and not embed_wired:
@@ -4083,7 +4096,7 @@ def create_app(
             fallback_reason = ""
         return {
             **cfg,
-            "profile":       "hybrid preferred",
+            "profile":       "demo-safe bm25 default",
             "effective_mode": effective_mode,
             "fallback_reason": fallback_reason,
             "rag_vs_grep": (
@@ -4760,11 +4773,11 @@ def create_app(
         if toggles.rag and app.state.rag_call is not None:
             try:
                 _ret_cfg = _retrieval_cfg_snapshot()
-                _retrieval_mode = _ret_cfg.get("retrieval_mode", "hybrid_rrf")
+                _retrieval_mode = _ret_cfg.get("retrieval_mode", "bm25")
                 candidate_k = max(
-                    int(_ret_cfg.get("rerank_top_k", 50)),
-                    int(_ret_cfg.get("dense_top_k", 32)),
-                    int(_ret_cfg.get("rerank_keep", 8)),
+                    int(_ret_cfg.get("rerank_top_k", 24)),
+                    int(_ret_cfg.get("dense_top_k", 16)),
+                    int(_ret_cfg.get("rerank_keep", 6)),
                 )
                 candidate_k = max(5, min(200, candidate_k))
                 try:
