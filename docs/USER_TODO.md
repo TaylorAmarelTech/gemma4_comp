@@ -5,6 +5,11 @@ cannot be completed by local code edits alone.
 
 ## 1. Final Official Competition Check
 
+- Use this Kaggle writeup title:
+  **DueCare: Local Gemma 4 Safety Infrastructure for Migrant-Worker Protection**
+- Use this subtitle:
+  **A self-hostable Gemma 4 harness for safer moderation, case analysis,
+  worker access, research, and anonymized sharing.**
 - Public Gemma 4 Good overview alignment was reviewed on 2026-05-18:
   Safety & Trust is the primary fit, with Unsloth and LiteRT evidence.
 - Before clicking submit, confirm the Kaggle form still shows the same

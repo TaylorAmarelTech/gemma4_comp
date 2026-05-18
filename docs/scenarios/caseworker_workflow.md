@@ -1,6 +1,6 @@
 # Caseworker workflow — case analysis to NGO referral, end to end
 
-> **Audience.** A caseworker at an NGO that has deployed Duecare per
+> **Audience.** A caseworker at an NGO that has deployed DueCare per
 > [`docs/scenarios/ngo-office-deployment.md`](./ngo-office-deployment.md).
 > This doc walks through one complete case from first contact to
 > handoff — the day-to-day rhythm of using the system.
@@ -19,7 +19,7 @@ You have ~45 minutes for this intake.
 ## Step 1 — Greet + create a case (3 min)
 
 In the office, you're sitting at the front-desk Mac mini that runs
-Duecare. Open `http://duecare.local` in the browser.
+DueCare. Open `http://duecare.local` in the browser.
 
 1. **Journal tab** → **Add entry** (the + button).
 2. Set kind to NOTE; title: "Initial intake — Worker A — 2026-05-02";
@@ -221,7 +221,7 @@ Backups run automatically overnight per the cron job from
 | 8. Close the loop | 5 min |
 | **Total** | **36 min** |
 
-vs the same intake without Duecare:
+vs the same intake without DueCare:
 - Looking up POEA MC 14-2017 manually + cross-referencing ILO
   conventions — 30 min
 - Drafting a referral packet from scratch in Word — 60 min

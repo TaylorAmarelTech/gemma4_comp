@@ -1,4 +1,4 @@
-﻿# For Hackathon Judges — Verify Duecare in 5 minutes
+# For Hackathon Judges - Verify DueCare in 5 minutes
 
 > **Canonical reviewer entry doc:** [`FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md).
 > This page is the hackathon-specific quick path. The peer-review doc is
@@ -7,37 +7,29 @@
 > Both link to the same kernels, packs, and live surfaces; this doc
 > focuses on the 5-minute hackathon-rubric verification flow.
 
-> The Duecare submission for the Gemma 4 Good Hackathon
+> The DueCare submission for the Gemma 4 Good Hackathon
 > (2026-04-02 → 2026-05-18). This doc exists so you don't have to
 > spelunk the repo to verify any claim — every claim below points to
 > a specific file, kernel, or live URL.
 
-> **In a hurry?** See [`docs/user_walkthrough.md`](user_walkthrough.md)
-> for the 3-minute zero-inference path (4 kernels, no GPU, no waiting
-> on token generation) plus the 15-minute and 60-minute deeper-dive
-> paths. Same path the submission video was recorded against.
+> **In a hurry?** Run `kaggle/02-live-demo/kernel.py`, open `/start`,
+> and click **Project slides**. The deck works without a model; live
+> Gemma 4 is used for chat and optional Bulk File Review edge creation.
 
 ## What it is, in one paragraph
 
-**Duecare is a Gemma 4-powered safety infrastructure platform for
-migrant-worker protection.** This submission has **two surfaces**:
-the **Kaggle exploration workbench** ([kaggle.com/code/taylorsamarel/duecare-app](https://www.kaggle.com/code/taylorsamarel/duecare-app))
-proves technical depth — Gemma 4 + the 6-toggle harness running
-end-to-end — and the **public hub** at
-[duecare-ai.com](https://duecare-ai.com) proves platform
-infrastructure: knowledge-pack registry, anonymized signal intake,
-public-source continuous-update proposals. Code for the hub is in
-this repo at [`apps/duecare-ai.com/`](../apps/duecare-ai.com/) and
-deploys to Render via the repo-root `render.yaml`. The Kaggle
-submission ships the **live core** — Runtime + Harness + Eval
-(partial) + Contacts — plus a **prototype Trainer** path in A-00.
-The full platform is described by the public
-component map (see [`docs/product_definition.md`](product_definition.md)):
-Exchange and the Public Information Research Monitor are
-**hub-scaffolded**. Their proposal-intake and signal-intake endpoints
-exist on the live hub; the autonomous crawler and vetted-pack format
-behind them are post-hackathon.
-Channels is documented but post-hackathon.
+**DueCare is local Gemma 4 safety infrastructure for migrant-worker
+protection.** This submission has three active Kaggle kernels: the
+DueCare App workbench, the DueCare Live Demo, and DueCare Fine-tuning
+and Evaluation. Together they prove the same end-to-end substrate:
+Gemma 4 runtime, safety harness, Bulk File Review case analysis,
+graph extraction, anonymized sharing, contact routing, and the A-00
+stock/fine-tuned/harness evaluation matrix. The public hub at
+[duecare-ai.com](https://duecare-ai.com) is the companion website for
+the judges-facing story, kernel links, knowledge-pack registry, and
+anonymized signal intake. Code for the hub is in
+[`apps/duecare-ai.com/`](../apps/duecare-ai.com/) and deploys to Render
+via the repo-root `render.yaml`.
 
 The harness wraps Gemma 4 with retrieval (BM25 + optional hybrid
 dense-retrieval), structural document chunking, 165+ hand-curated
@@ -50,11 +42,10 @@ and (5) Developer / integration partner**. Those five lanes support
 three outcomes: prevent exploitation before it spreads, assist victims
 and at-risk workers, and help stakeholders understand what is happening
 and why. Filipino overseas workers are one demo persona, not the product
-category. Built
-specifically for partners who cannot send sensitive case data to
-frontier APIs, with validated local/demo surfaces now and on-device
-GGUF (llama.cpp) plus LiteRT deployment paths tracked for the edge
-story.
+category. Built specifically for partners who cannot send sensitive
+case data to frontier APIs, with validated local/demo surfaces now
+and a sibling DueCare Journey Android APK proving the LiteRT/offline
+edge path.
 
 **Notebook status note:** the current judge-facing Kaggle path is the
 three-kernel set in `kaggle/_INDEX.md`: exploration workbench, live demo, and
@@ -74,14 +65,14 @@ DueCare Fine-tuning and Evaluation. Retired notebook-era surfaces are historical
 | **`evaluator_call` hook for separating LLM-judge model from chat model** (v0.13.0; abliterated / frontier / larger-Gemma patterns supported, Kaggle-default in-process self-grade due to VRAM) | `packages/duecare-llm-chat/src/duecare/chat/app.py:_evaluator_model_call` |
 | **Hybrid retrieval** — BM25 + optional dense + RRF fusion, with reranker hook | `app.py:_hybrid_fuse_with_dense` + `kernel_helpers/embedding.py` |
 | **Path tracing** — every retrieval-pipeline stage logged | `app.py:_path_trace_record` + chat UI's "RETRIEVAL PATH TRACE" card |
-| **A/B Compare tab** — same prompt, two harness configurations, side-by-side grades | `kaggle/01-duecare-app/kernel.py` live; UI button next to "About" |
+| **A/B Compare tab** — same prompt, two harness configurations, side-by-side grades | `kaggle/01-duecare-exploration-workbench/kernel.py` live; UI button next to "About" |
 | **License + attribution** — every bundled asset, every model, every third-party reference | `LICENSES.md` |
 | **Public hub** — knowledge-pack registry + anonymized signal intake + public-source proposal intake | [duecare-ai.com](https://duecare-ai.com) (code at [`apps/duecare-ai.com/`](../apps/duecare-ai.com/), deployed via repo-root `render.yaml`) |
 | **Hub API surface** — `GET /api/hub/knowledge-packs`, `POST /api/hub/signals`, `POST /api/hub/opencrawl/updates`, `GET /api/hub/trends`, `GET /api/hub/status`, `GET /api/health` | [duecare-ai.com/docs](https://duecare-ai.com/docs) (FastAPI auto-generated OpenAPI) |
 | **Recording-grade deck and demo routes** | `kaggle/02-live-demo/kernel.py` prints a `*.trycloudflare.com` tunnel; open `/start`, `/slides`, and `/wb-static/process.html` |
 | **Video script and recording path** | `docs/video_script.md` plus `/slides/setup` or `scripts/prebake_slide_cached_io.py` for the cached worker-question row |
 | **Fine-tuned adapter evidence** | exported by the A-00 pipeline when training is enabled; see `/kaggle/working` report and manifest |
-| **GGUF for llama.cpp** | post-A-00 export path; not required for the default three-kernel proof run |
+| **LiteRT / on-device path** | sibling DueCare Journey Android APK and bundled harness manifest |
 
 ## Hackathon track qualification
 
@@ -105,27 +96,25 @@ maps each requirement to a concrete surface below.
 Run `kaggle/02-live-demo/kernel.py` or open the current Cloudflare URL
 printed by that kernel. The route sequence below is stable:
 
-1. **Click into the live URL.** Pick the `gemma-4-e2b-it` variant (fastest load).
-2. **Click "About"** in the top bar — see the 30-second pitch + the
-   architecture overview.
-3. **Click an example prompt** in the `image_prompts` audience bucket —
-   one of the `v10_img_receipt_PH_HK` or `v10_img_contract_passport`
-   entries. The bundled synthetic image auto-attaches.
-4. **Send the prompt.** Wait for Gemma to respond.
-5. **Click the "▸ View pipeline"** link below the response. Expand the
-   "RETRIEVAL PATH TRACE" card — see the actual retrieval-stage chain
-   (BM25 → optional rerank → graph expansion → parent expansion).
-6. **Click "Compare"** in the top bar. Load the same prompt. Set
-   variant A to "Stock (no harness)" and variant B to "Full local
-   harness". Official Sources and Online stay off unless explicitly
-   selected. Click Run. Wait. The side-by-side delta shows the harness
-   lift live.
-7. **Try an adversarial prompt** — load `jb_001` from
-   `model_capability` bucket. Send. Verify the harness catches the
-   jailbreak.
+1. **Open `/start`.** Confirm the two-tile landing: Project slides and
+   Workbench.
+2. **Open `/slides`.** Walk the 23-slide deck. The demo slides use
+   cached replay controls, so a recording does not wait on GPU output.
+3. **Open `/slides/setup`** if you want to refresh the cached worker
+   chat row, or use `scripts/prebake_slide_cached_io.py` to preload it.
+4. **Open `/wb-static/process.html`.** Drop
+   `case_files_streamlined_demo.zip`, then watch upload, processing,
+   review, graph creation, and optional local Gemma 4 edge generation.
+5. **Ask a graph question** after confirming extracted intelligence.
+   The answer should cite row IDs, evidence edges, and extracted
+   entities from the local staging directory.
+6. **Open the DueCare App kernel** for the full chat harness and A/B
+   comparison surfaces.
+7. **Open the A-00 kernel report** to verify the stock, harness,
+   fine-tuned, and fine-tuned-plus-harness evaluation matrix.
 
-If you can do all 7 steps, you have empirical verification of every
-"real, not faked for demo" claim in the writeup.
+If you can do all 7 steps, you have empirical verification of the
+writeup's live-demo, local-processing, and evaluation claims.
 
 ## Design note: which model grades the LLM-based scoring?
 
@@ -205,7 +194,7 @@ app = create_app(
 2. `LICENSES.md` — full attribution + license declarations
 3. `docs/USER_TODO.md` — author's submission-day checklist
 4. `reports/adversarial_<latest>.md` — the empirical evidence
-5. The live demo URL (post-deploy)
+5. The current Cloudflare URL printed by `kaggle/02-live-demo/kernel.py`
 
 ## Reading order if you have 5 minutes
 
