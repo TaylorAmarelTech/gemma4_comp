@@ -125,6 +125,102 @@ def test_slides_deck_uses_recording_safe_ecosystem_story() -> None:
         assert marker in html
 
 
+def test_slides_deck_exposes_new_unique_and_knowledge_pack_slides() -> None:
+    """The 2026-05-18 deck adds two new slides: a 4-tile 'what makes
+    this unique' emphasis slide and a 'download the knowledge packs'
+    take-it-home slide. Pin their anchors + the substrate counts that
+    appear on the unique tile."""
+    c = _client()
+    r = c.get("/slides")
+    assert r.status_code == 200
+    html = r.text
+    # Anchors
+    assert "data-slide-id=\"unique\"" in html, (
+        "deck must expose /slides#unique anchor for the 4-tile uniqueness slide")
+    assert "data-slide-id=\"knowledge-packs\"" in html, (
+        "deck must expose /slides#knowledge-packs anchor for the download slide")
+    # Substrate counts on the unique slide
+    assert "165" in html and "55" in html, (
+        "unique slide must display the live GREP/RAG counts (165+ rules, "
+        "55+ RAG entries)")
+    # On-device APK tile
+    assert "On-device APK" in html or "on-device APK" in html, (
+        "unique slide must include the on-device APK tile")
+    # Knowledge-pack download links resolve to /wb-static/samples/
+    for sample in [
+        "/wb-static/samples/knowledge_pack_rich_sample.zip",
+        "/wb-static/samples/knowledge_files_sample.zip",
+        "/wb-static/samples/knowledge_bundle_sample.zip",
+        "/wb-static/samples/prompt_eval_training_seed_sample.zip",
+        "/wb-static/samples/case_files_streamlined_demo.zip",
+    ]:
+        assert sample in html, (
+            f"knowledge-packs slide must link {sample}")
+
+
+def test_slides_deck_drops_placeholder_benchmark_numbers() -> None:
+    """The deck-handoff placeholder percentages (62.0 / 81.5 / 74.8 /
+    88.2) were softened to qualitative capability framing on
+    2026-05-18. Any of them reappearing means a regression to the
+    unverified-claim state."""
+    c = _client()
+    r = c.get("/slides")
+    assert r.status_code == 200
+    html = r.text
+    for percentage in ["62.0%", "81.5%", "74.8%", "88.2%"]:
+        assert percentage not in html, (
+            f"placeholder benchmark percentage {percentage!r} reappeared "
+            "in the deck; soften to qualitative capability framing.")
+
+
+def test_slides_deck_keeps_cached_replay_labels() -> None:
+    """Every client-side demo runner should carry a 'cached, replays
+    in ~Ns' label so reviewers see we are honest about pre-baking."""
+    c = _client()
+    r = c.get("/slides")
+    assert r.status_code == 200
+    html = r.text
+    assert "cached &middot; replays in" in html, (
+        "deck must show the 'cached - replays in ~Ns' subtext on demo "
+        "runners")
+
+
+def test_slides_deck_uses_canonical_kernel_slugs() -> None:
+    """After the 2026-05-18 rename, every Kaggle URL on the deck
+    should use the new slugs (duecare-app / duecare-live-demo /
+    duecare-fine-tuning-and-evaluation), not the old ones."""
+    c = _client()
+    r = c.get("/slides")
+    assert r.status_code == 200
+    html = r.text
+    assert "duecare-app" in html
+    assert "duecare-fine-tuning-and-evaluation" in html
+    # Old slugs must NOT appear
+    assert "duecare-exploration-workbench" not in html, (
+        "old kernel slug should be gone from the live deck")
+    assert "duecare-a-00-omni-experiment-workbench" not in html, (
+        "old A-00 slug should be gone from the live deck")
+
+
+def test_slides_cached_io_returns_correct_statute() -> None:
+    """The 2026-05-18 statute fix replaced RA 11227 (officer-training
+    law) with RA 8042 (Migrant Workers Act) for the PH placement-fee
+    response. Pin the correction across every (audience, use_case)
+    pair that touches PH placement law."""
+    c = _client()
+    for use_case in ("ph_hk_placement_fee", "debt_bondage", "fee_camouflage"):
+        for audience in ("worker", "ngo", "regulator"):
+            r = c.post("/api/slides/cached-io", json={
+                "audience": audience,
+                "use_case": use_case,
+            })
+            assert r.status_code == 200, r.text
+            body = r.json()["response"]
+            assert "RA 11227" not in body, (
+                f"({audience}, {use_case}) response still cites RA 11227 "
+                "(officer-training law). Migrant-workers statute is RA 8042.")
+
+
 def test_slides_setup_serves_audience_and_use_case_selectors() -> None:
     c = _client()
     r = c.get("/slides/setup")
