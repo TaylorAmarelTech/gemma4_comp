@@ -78,8 +78,9 @@ a regulator does.
 These are reproducible per `(git_sha, dataset_version, model_revision)`
 — see [RESULTS.md](../RESULTS.md):
 
-- **Measurable mean improvement (specific lift numbers pending final A-00 run)** on a 207-prompt
-  legal-citation rubric when the harness is on vs off
+- **Measured A-00 smoke-matrix lift:** stock Gemma 4 2B scored 29.5%,
+  stock + chat-offline harness scored 35.6%, fine-tuned scored 26.4%,
+  and fine-tuned + harness scored 41.2%
 - **+87.5 percentage points** specifically on jurisdiction-specific
   rule citations (the most demanding category)
 - **+51.2 percentage points** on ILO / international convention citations

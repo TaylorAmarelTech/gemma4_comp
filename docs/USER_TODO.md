@@ -1,15 +1,17 @@
 # Manual TODO Checklist
 
-Current as of 2026-05-17. This list is intentionally limited to actions that
+Current as of 2026-05-18. This list is intentionally limited to actions that
 cannot be completed by local code edits alone.
 
-## 1. Verify Official Competition Facts
+## 1. Final Official Competition Check
 
-- Confirm the final Kaggle judging rubric, track names, video duration cap,
-  writeup word cap, public repo/demo requirements, and multi-track prize rules.
-- If any official competition wording differs from our assumptions, update
-  `docs/writeup_draft.md`, `docs/video_script.md`, and any public-facing claims
-  before final submission.
+- Public Gemma 4 Good overview alignment was reviewed on 2026-05-18:
+  Safety & Trust is the primary fit, with Unsloth and LiteRT evidence.
+- Before clicking submit, confirm the Kaggle form still shows the same
+  track names, 3-minute video requirement, writeup word cap, and public
+  repo/demo fields.
+- If the live form wording differs, update `docs/writeup_draft.md`,
+  `docs/video_script.md`, and the submission text before final submission.
 
 ## 2. Run The Three Active Kaggle Kernels
 
@@ -26,20 +28,18 @@ For each kernel:
 - Confirm the page loads and Activity logs populate.
 - Save the final `/kaggle/working` artifacts before shutting down.
 
-## 3. Produce The A-00 Evidence Run
+## 3. Preserve The A-00 Evidence Run
 
-For the writeup-quality run:
+The 2026-05-18 smoke matrix has already been back-filled into the writeup
+and deck: 29.5% stock, 35.6% stock + chat-offline harness, 26.4%
+fine-tuned, 41.2% fine-tuned + harness. For archival quality:
 
-- Use the preconfigured A-00 pipeline.
-- Select the smaller Gemma 4 model for generation/fine-tuning.
-- Use a larger Gemma or optional external frontier/Ollama judge only for final
-  judging if credentials and time allow.
-- Keep checkpoint/resume enabled.
 - Download the evidence ZIP, activity bundle, report HTML/MD/JSON, CSV rows,
   charts, and output manifest from `/kaggle/working`.
-
-If Kaggle runtime is close to the time limit, stop after a checkpointed phase
-and resume from the saved checkpoint in the next session.
+- Keep the generated static report screenshot available for the video or
+  writeup evidence appendix.
+- Optional only: rerun the preconfigured A-00 pipeline on a larger prompt set
+  if there is enough time and GPU budget.
 
 ## 4. Capture Final Demo Assets
 

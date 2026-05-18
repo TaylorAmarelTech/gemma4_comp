@@ -11,23 +11,25 @@
 
 ## TL;DR
 
-Eleven commits live on `origin/master` over today's session. The
-submission is in a **judge-ready** state pending five manual actions
-Taylor owns (publish renamed Kaggle slugs, run A-00 end-to-end for
-real lift numbers, redeploy duecare-ai.com, record the video, file
-the Kaggle writeup). Every code surface is aligned with the new
-kernel names. Every benchmark claim is qualitative with a caveat
-pointing at the final A-00 run. Statutory mis-citation fixed
+Eleven commits live on `origin/master` over today's session, plus the
+final review pass in this working tree. The submission is in a
+**judge-ready** state pending four manual actions Taylor owns
+(publish renamed Kaggle slugs, redeploy duecare-ai.com, record the
+video, file the Kaggle writeup). Every code surface is aligned with
+the new kernel names. The writeup and deck now include the measured
+2026-05-18 A-00 smoke matrix instead of future benchmark caveats.
+Statutory mis-citation fixed
 project-wide and pinned by a contract test. Attribution doc
 (`docs/CREDITS.md`) added. Writeup (`docs/writeup_draft.md`,
-1486 / 1500 words) positions DueCare for the **Impact Track →
+1494 / 1500 words) positions DueCare for the **Impact Track →
 Safety & Trust ($10K)** plus **Special Technology → Unsloth ($10K)**
 and **LiteRT ($10K)** prizes.
 
 ## Commit log (this session, newest first)
 
 ```
-[pending]  Final writeup v4 + CREDITS + handoff refresh
+[local]    Final review pass: title/subtitle + measured A-00 smoke matrix
+6142a55    Writeup v4 (Gemma 4 features + tracks + challenges) + CREDITS + prebake CLI + 5 new tests
 0b6fea2    Sweep judge-facing docs for kernel rename + benchmark caveats; add Codex handoff
 d3115b4    Add 'Download the knowledge packs' slide (take-it-home)
 391ec01    Expand 'What makes this unique' to 4 tiles (add on-device APK)
@@ -57,7 +59,7 @@ All pushed to `origin/master`.
 
 ## What's in the writeup (v4)
 
-`docs/writeup_draft.md`, 1486 / 1500 words. Structure:
+`docs/writeup_draft.md`, 1494 / 1500 words. Structure:
 
 ```
 1.  The problem at a scale generic AI is not closing
@@ -72,7 +74,7 @@ All pushed to `origin/master`.
     (165+ GREP rules, 55+ knowledge packs, persona,
      graph extraction, privacy gates, refusal head, grading)
 6.  Main server architecture (FastAPI + harness contract)
-7.  Evidence and observations (A-00 capability + qualitative lift)
+7.  Evidence and observations (measured A-00 smoke matrix)
 8.  Design decisions and challenges overcome
     (statute error caught + pinned, Kaggle T4 memory budget,
      recording-safe deck)
@@ -87,7 +89,7 @@ Track positioning declared up top: **Safety & Trust** (Impact),
 ## What's in the deck (23 slides)
 
 ```
-01. Title — "AI infrastructure to combat migrant-worker exploitation"
+01. Title — "Local Gemma 4 safety infrastructure for migrant-worker protection"
 02. Stakes — scale + capability gap (28M / $236B / 169M / 3x)
 03. Solution — 5 lanes + shared substrate
 04. Moderation overview (3 FB cards)
@@ -103,7 +105,7 @@ Track positioning declared up top: **Safety & Trust** (Impact),
 14. Components (6 substrate lanes)
 15. Download knowledge packs (6 download cards) ← NEW
 16. Module ecosystem (reinforcement loop)
-17. Benchmarks (A-00 capability framing, no hard percentages)
+17. Benchmarks (measured A-00 smoke matrix)
 18. Why Gemma 4 (6 lanes)
 19. What makes this unique (4 tiles: substrate counts /
     on-device APK / sharing reinforcement / evolving eval)
@@ -117,7 +119,7 @@ Track positioning declared up top: **Safety & Trust** (Impact),
 
 | File | What it is |
 |---|---|
-| `docs/writeup_draft.md` | 1486-word writeup (cap 1500). Track-positioned, prior art attributed. |
+| `docs/writeup_draft.md` | 1494-word writeup (cap 1500). Track-positioned, prior art attributed. |
 | `docs/CREDITS.md` | Full library + statute + influence attribution. NEW. |
 | `docs/codex_handoff_2026_05_18.md` | THIS FILE. |
 | `packages/duecare-llm-server/src/duecare/server/static/slides.html` | 23-slide pitch deck. |
@@ -189,24 +191,17 @@ don't exist on Kaggle yet. Before submission:
   back at it instead;
 - if publishing new, the old URLs will 404 or become orphans.
   Recommendation: publish new, leave old as redirect-style
-  placeholders.
+  archive-note pages.
 
 Per CLAUDE.md rule 50, Kaggle pushes are **manual** — Codex must not
 run `kaggle kernels push` without Taylor's explicit OK.
 
-### 2. Final A-00 run for real benchmark numbers
+### 2. A-00 smoke matrix now reflected
 
-The deck and writeup say "specific lift numbers will be published
-from the final A-00 run." Codex / Taylor:
-
-- run A-00 end-to-end on the canonical PH-HK prompt set with the
-  shared Gemma 4 model and `chat_no_online` harness profile;
-- record the four arm scores;
-- back-fill those numbers into:
-  - the deck `What A-00 produces` slide (currently 4 capability
-    cards; can add a small score sub-panel)
-  - the writeup section 7
-- keep qualitative framing as the lead.
+The deck and writeup include the 2026-05-18 `e2b-full-train-eval`
+smoke matrix: 29.5% stock, 35.6% stock + chat-offline harness,
+26.4% fine-tuned, and 41.2% fine-tuned + harness. A larger final
+run is optional, not required to remove a placeholder.
 
 ### 3. Redeploy duecare-ai.com
 
@@ -216,8 +211,8 @@ the new templates and redeploy if drift exists.
 
 ### 4. Record the video
 
-`docs/video_script.md` was patched today (3 screen-direction labels
-+ removed hardcoded `+56pp` ablation banner + end-card URL). Re-read
+`docs/video_script.md` was rewritten today around the current
+23-slide deck, measured A-00 matrix, and Bulk File Review demo. Re-read
 before recording to confirm timings and beats. Submission needs:
 
 - 3-minute YouTube video, publicly viewable, no login
@@ -225,7 +220,7 @@ before recording to confirm timings and beats. Submission needs:
 
 ### 5. File the Kaggle writeup
 
-Once 1-4 are done:
+Once the Kaggle pages, website deploy, and video are ready:
 
 - new Kaggle writeup with Title / Subtitle / Track from
   `docs/writeup_draft.md`
@@ -287,11 +282,10 @@ slide — or use the new `scripts/prebake_slide_cached_io.py` CLI.
 ## Recommended next-session priorities (in order)
 
 1. Re-read `docs/video_script.md` and confirm it's recording-ready.
-2. Run A-00 end-to-end and back-fill lift numbers.
-3. Decide Kaggle publishing strategy and execute the manual push.
-4. Redeploy duecare-ai.com with the new templates.
-5. Record the video.
-6. File the Kaggle writeup with the cover image.
+2. Decide Kaggle publishing strategy and execute the manual push.
+3. Redeploy duecare-ai.com with the new templates.
+4. Record the video.
+5. File the Kaggle writeup with the cover image.
 
 Submission deadline: **2026-05-18 23:59 UTC**.
 

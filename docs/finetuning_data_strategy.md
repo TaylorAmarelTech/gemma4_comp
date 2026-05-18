@@ -79,7 +79,7 @@ Do not train on:
 
 ## Best-practice pipeline
 
-1. Select high-priority prompts across the video surfaces: platform moderation, NGO case intake, worker mobile chat, research graph extraction, and hub vetting loop.
+1. Select high-priority prompts across the video surfaces: platform moderation, NGO case analysis, worker mobile chat, research graph extraction, and hub vetting loop.
 2. Run each prompt through raw Gemma 4 and through DueCare harness-on mode.
 3. Store the full prompt, raw answer, harness answer, GREP hits, RAG citations, tool calls, score, grade, latency, and pack versions.
 4. Redact and scan every row. Abort on detector-class PII.

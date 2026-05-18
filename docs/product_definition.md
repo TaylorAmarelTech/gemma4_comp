@@ -44,8 +44,8 @@ in [`canonical_use_cases_and_components.md`](canonical_use_cases_and_components.
         content. Surface: moderation API, risk scoring, reviewer dashboard,
         policy audit trace, anonymized pattern signals.
 2. **NGO & regulator** — NGOs, government bodies, consulates, and
-        labor regulators need case intake, triage, referral, and grounded
-        summaries. Surface: case-intake console, contact routing, report
+        labor regulators need case analysis, triage, referral, and grounded
+        summaries. Surface: case-analysis console, contact routing, report
         drafts, audit/export, vetted knowledge-pack updates.
 3. **Individual worker / mobile** — migrant workers need private help
         understanding suspicious offers, messages, documents, and recruiter
@@ -242,7 +242,7 @@ post-hackathon.
 
 > A privacy-preserving model-adaptation pipeline that converts
 > validated, anonymized case knowledge into task-specific Gemma 4
-> adapters for moderation, case intake, research evaluation, and
+> adapters for moderation, case analysis, research evaluation, and
 > worker assistance.
 
 **Adapter targets:** `duecare-gemma-evaluator` (LLM-judge,
