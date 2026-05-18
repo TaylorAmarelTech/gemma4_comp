@@ -11,8 +11,10 @@ from __future__ import annotations
 import hashlib
 import json as _json
 import re as _re
+import threading as _threading
 from datetime import UTC as _UTC, datetime as _dt
 from typing import Any
+from uuid import uuid4 as _uuid4
 
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -293,8 +295,248 @@ def _normalize_content(
     return merged
 
 
+def _build_draft_response(app: Any, body: dict[str, Any]) -> dict[str, Any]:
+    raw_text = (body.get("raw_text") or "").strip()
+    requested_type = body.get("target_type") or body.get("target_leaf") or "auto"
+    anonymize = bool(body.get("anonymize", False))
+    use_gemma = bool(body.get("use_gemma", True))
+
+    from ...app import KO_TYPES, KO_BRANCHES
+
+    if not raw_text:
+        raise HTTPException(400, "raw_text is required")
+    target_types = (
+        _infer_target_types(raw_text)
+        if requested_type in {"auto", "suggest", "infer", ""}
+        else [requested_type]
+    )
+    unknown = [t for t in target_types if t not in KO_TYPES]
+    if unknown:
+        raise HTTPException(400, f"unknown target_type: {unknown[0]}")
+
+    text_to_send = raw_text
+    placeholders_used: list[str] = []
+    if anonymize:
+        text_to_send, placeholders_used = _light_anonymize(raw_text)
+
+    from .._layers import compose_layers
+    layer_out = compose_layers(app, raw_text, layers=("grep", "rag"))
+    gc = getattr(app.state, "gemma_call", None) if use_gemma else None
+
+    ts = _dt.now(_UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
+    slug_base = _slug(raw_text)
+    envelopes: list[dict[str, Any]] = []
+    for target_type in target_types:
+        deterministic_content = _deterministic_content(target_type, text_to_send)
+        envelope: dict[str, Any] = {
+            "schema_version": "1.0",
+            "knowledge_object_type": target_type,
+            "id": f"{slug_base}-{target_type}-draft",
+            "version": "v1-draft",
+            "provenance": {
+                "created_at": ts,
+                "created_by": "kernel-01:draft-envelope",
+                "source_sha256": hashlib.sha256(raw_text.encode("utf-8")).hexdigest()[:16],
+            },
+            "content": deterministic_content,
+            "tags": [f"branch:{KO_BRANCHES.get(target_type, 'unknown')}"],
+            "extensions": {
+                "draft": True,
+                "needs_review": True,
+                "auto_suggested": requested_type in {"auto", "suggest", "infer", ""},
+                "anonymized_before_gemma": anonymize,
+                "placeholders_used": placeholders_used,
+                "applied_layers": layer_out["trace"],
+                "model_call_requested": use_gemma,
+                "model_call_available": gc is not None,
+            },
+        }
+        if gc is None:
+            envelope["extensions"]["fallback"] = (
+                "gemma disabled by caller; deterministic draft"
+                if not use_gemma else
+                "no model loaded; deterministic draft"
+            )
+            envelopes.append(envelope)
+            continue
+        try:
+            sys_prompt = build_system_prompt(target_type)
+            msgs = [
+                {"role": "system", "content": [{"type": "text", "text": sys_prompt}]},
+                {"role": "user", "content": [{"type": "text", "text":
+                    "Raw fact:\n" + text_to_send
+                    + ("\n\nGrounding from existing knowledge:\n" + layer_out["grounding"]
+                       if layer_out["grounding"] else "")
+                }]},
+            ]
+            model_out = gc(msgs, max_new_tokens=512, temperature=0.2)
+            response_text = model_out if isinstance(model_out, str) else (
+                (model_out or {}).get("text") or (model_out or {}).get("response") or ""
+            )
+            response_text = sanitize_model_output(response_text)
+            match = _re.search(r"\{[\s\S]*\}", response_text or "")
+            if match:
+                try:
+                    content = _json.loads(match.group(0))
+                    if isinstance(content, dict):
+                        envelope["content"] = _normalize_content(
+                            target_type,
+                            content,
+                            deterministic_content,
+                        )
+                        envelope["extensions"]["gemma_drafted"] = True
+                except Exception:
+                    envelope["extensions"]["gemma_parse_failed"] = True
+            else:
+                envelope["extensions"]["gemma_parse_failed"] = True
+                envelope["extensions"]["gemma_text_preview"] = response_text[:500]
+        except Exception as e:
+            envelope["extensions"]["gemma_error"] = str(e)[:200]
+        envelopes.append(envelope)
+    try:
+        from .._training_log import log_interaction as _log
+        _log(
+            "extraction",
+            input_payload={"raw_text": raw_text, "target_type": requested_type, "use_gemma": use_gemma},
+            output_payload={"suggestions": envelopes},
+            applied_layers=layer_out["trace"],
+            trace={
+                "n_suggestions": len(envelopes),
+                "suggested_types": [e.get("knowledge_object_type") for e in envelopes],
+            },
+            anonymize=not anonymize,
+        )
+    except Exception:
+        pass
+    return {
+        "envelope": envelopes[0],
+        "suggestions": envelopes,
+        "auto_suggested": requested_type in {"auto", "suggest", "infer", ""},
+        "suggested_types": [e.get("knowledge_object_type") for e in envelopes],
+        "model_call_requested": use_gemma,
+        "model_call_available": gc is not None,
+    }
+
+
 def register_routes(app: Any) -> None:
     """Attach the extraction routes to a FastAPI app."""
+
+    def _draft_jobs() -> tuple[dict[str, dict[str, Any]], _threading.Lock]:
+        if not hasattr(app.state, "knowledge_draft_jobs"):
+            app.state.knowledge_draft_jobs = {}
+        if not hasattr(app.state, "knowledge_draft_jobs_lock"):
+            app.state.knowledge_draft_jobs_lock = _threading.Lock()
+        return app.state.knowledge_draft_jobs, app.state.knowledge_draft_jobs_lock
+
+    def _draft_job_update(job_id: str, **fields: Any) -> None:
+        jobs, lock = _draft_jobs()
+        with lock:
+            job = jobs.setdefault(job_id, {"job_id": job_id, "events": []})
+            now = _dt.now(_UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+            event = {
+                "ts": now,
+                "status": fields.get("status", job.get("status", "running")),
+                "phase": fields.get("phase", job.get("phase", "running")),
+                "pct": fields.get("pct", job.get("pct", 0)),
+                "detail": fields.get("detail", ""),
+            }
+            for key in ("error",):
+                if key in fields and fields[key] is not None:
+                    event[key] = fields[key]
+            job.update(fields)
+            job.setdefault("events", []).append(event)
+            job["updated_at"] = now
+
+    @app.post("/api/knowledge/draft-envelope/start")
+    async def api_knowledge_draft_envelope_start(request: Request) -> Any:
+        """Start a background KnowledgeObject draft job and return a poll URL."""
+        try:
+            body = await request.json()
+        except Exception:
+            raise HTTPException(400, "invalid JSON body")
+        raw_text = (body.get("raw_text") or "").strip()
+        if not raw_text:
+            raise HTTPException(400, "raw_text is required")
+        job_id = f"knowledge_draft_{_uuid4().hex[:12]}"
+        now = _dt.now(_UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+        jobs, lock = _draft_jobs()
+        with lock:
+            jobs[job_id] = {
+                "job_id": job_id,
+                "status": "queued",
+                "phase": "queued",
+                "pct": 4,
+                "created_at": now,
+                "updated_at": now,
+                "events": [{
+                    "ts": now,
+                    "status": "queued",
+                    "phase": "queued",
+                    "pct": 4,
+                    "detail": (
+                        "Knowledge drafting queued. Gemma refinement may take "
+                        "several minutes for long source text."
+                    ),
+                }],
+            }
+
+        def worker() -> None:
+            try:
+                _draft_job_update(
+                    job_id,
+                    status="running",
+                    phase="layers",
+                    pct=18,
+                    detail="Running deterministic GREP/RAG grounding for draft context.",
+                )
+                _draft_job_update(
+                    job_id,
+                    status="running",
+                    phase="model_or_fallback",
+                    pct=42,
+                    detail=(
+                        "Drafting KnowledgeObject envelopes. If Gemma is enabled "
+                        "and loaded, this is the model-call phase."
+                    ),
+                )
+                result = _build_draft_response(app, body)
+                n = len(result.get("suggestions") or [])
+                _draft_job_update(
+                    job_id,
+                    status="complete",
+                    phase="complete",
+                    pct=100,
+                    detail=f"Draft suggestions ready: {n}.",
+                    result=result,
+                )
+            except Exception as e:
+                _draft_job_update(
+                    job_id,
+                    status="error",
+                    phase="failed",
+                    pct=100,
+                    detail=str(e),
+                    error=f"{type(e).__name__}: {e}"[:300],
+                )
+
+        thread = _threading.Thread(target=worker, name=f"duecare-{job_id}", daemon=True)
+        thread.start()
+        return JSONResponse({
+            "job_id": job_id,
+            "status": "queued",
+            "phase": "queued",
+            "pct": 4,
+            "poll_url": f"/api/knowledge/draft-envelope/status/{job_id}",
+        })
+
+    @app.get("/api/knowledge/draft-envelope/status/{job_id}")
+    def api_knowledge_draft_envelope_status(job_id: str) -> Any:
+        jobs, lock = _draft_jobs()
+        with lock:
+            job = dict(jobs.get(job_id) or {})
+        if not job:
+            raise HTTPException(404, f"unknown knowledge draft job: {job_id}")
+        return JSONResponse(job)
 
     @app.post("/api/knowledge/source-file")
     async def api_knowledge_source_file(request: Request) -> Any:
@@ -417,124 +659,4 @@ def register_routes(app: Any) -> None:
             body = await request.json()
         except Exception:
             raise HTTPException(400, "invalid JSON body")
-        raw_text = (body.get("raw_text") or "").strip()
-        requested_type = body.get("target_type") or body.get("target_leaf") or "auto"
-        anonymize = bool(body.get("anonymize", False))
-        use_gemma = bool(body.get("use_gemma", True))
-
-        from ...app import KO_TYPES, KO_BRANCHES
-
-        if not raw_text:
-            raise HTTPException(400, "raw_text is required")
-        target_types = (
-            _infer_target_types(raw_text)
-            if requested_type in {"auto", "suggest", "infer", ""}
-            else [requested_type]
-        )
-        unknown = [t for t in target_types if t not in KO_TYPES]
-        if unknown:
-            raise HTTPException(400, f"unknown target_type: {unknown[0]}")
-
-        text_to_send = raw_text
-        placeholders_used: list[str] = []
-        if anonymize:
-            text_to_send, placeholders_used = _light_anonymize(raw_text)
-
-        # Layer composition: GREP + RAG scan of the raw text so Gemma
-        # gets enriched context. Wired layers run; missing ones are
-        # skipped silently per the compose_layers contract.
-        from .._layers import compose_layers
-        layer_out = compose_layers(
-            app, raw_text, layers=("grep", "rag"),
-        )
-        gc = getattr(app.state, "gemma_call", None) if use_gemma else None
-
-        ts = _dt.now(_UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
-        slug_base = _slug(raw_text)
-        envelopes: list[dict[str, Any]] = []
-        for target_type in target_types:
-            deterministic_content = _deterministic_content(target_type, text_to_send)
-            envelope: dict[str, Any] = {
-                "schema_version": "1.0",
-                "knowledge_object_type": target_type,
-                "id": f"{slug_base}-{target_type}-draft",
-                "version": "v1-draft",
-                "provenance": {
-                    "created_at": ts,
-                    "created_by": "kernel-01:draft-envelope",
-                    "source_sha256": hashlib.sha256(raw_text.encode("utf-8")).hexdigest()[:16],
-                },
-                "content": deterministic_content,
-                "tags": [f"branch:{KO_BRANCHES.get(target_type, 'unknown')}"],
-                "extensions": {
-                    "draft": True,
-                    "needs_review": True,
-                    "auto_suggested": requested_type in {"auto", "suggest", "infer", ""},
-                    "anonymized_before_gemma": anonymize,
-                    "placeholders_used": placeholders_used,
-                    "applied_layers": layer_out["trace"],
-                },
-            }
-            if gc is None:
-                envelope["extensions"]["fallback"] = (
-                    "gemma disabled by caller; deterministic draft"
-                    if not use_gemma else
-                    "no model loaded; deterministic draft"
-                )
-                envelopes.append(envelope)
-                continue
-            try:
-                sys_prompt = build_system_prompt(target_type)
-                msgs = [
-                    {"role": "system", "content": [{"type": "text", "text": sys_prompt}]},
-                    {"role": "user", "content": [{"type": "text", "text":
-                        "Raw fact:\n" + text_to_send
-                        + ("\n\nGrounding from existing knowledge:\n" + layer_out["grounding"]
-                           if layer_out["grounding"] else "")
-                    }]},
-                ]
-                model_out = gc(msgs, max_new_tokens=512, temperature=0.2)
-                response_text = model_out if isinstance(model_out, str) else (
-                    (model_out or {}).get("text") or (model_out or {}).get("response") or ""
-                )
-                response_text = sanitize_model_output(response_text)
-                match = _re.search(r"\{[\s\S]*\}", response_text or "")
-                if match:
-                    try:
-                        content = _json.loads(match.group(0))
-                        if isinstance(content, dict):
-                            envelope["content"] = _normalize_content(
-                                target_type,
-                                content,
-                                deterministic_content,
-                            )
-                            envelope["extensions"]["gemma_drafted"] = True
-                    except Exception:
-                        envelope["extensions"]["gemma_parse_failed"] = True
-                else:
-                    envelope["extensions"]["gemma_parse_failed"] = True
-                    envelope["extensions"]["gemma_text_preview"] = response_text[:500]
-            except Exception as e:
-                envelope["extensions"]["gemma_error"] = str(e)[:200]
-            envelopes.append(envelope)
-        try:
-            from .._training_log import log_interaction as _log
-            _log(
-                "extraction",
-                input_payload={"raw_text": raw_text, "target_type": requested_type, "use_gemma": use_gemma},
-                output_payload={"suggestions": envelopes},
-                applied_layers=layer_out["trace"],
-                trace={
-                    "n_suggestions": len(envelopes),
-                    "suggested_types": [e.get("knowledge_object_type") for e in envelopes],
-                },
-                anonymize=not anonymize,
-            )
-        except Exception:
-            pass
-        return JSONResponse({
-            "envelope": envelopes[0],
-            "suggestions": envelopes,
-            "auto_suggested": requested_type in {"auto", "suggest", "infer", ""},
-            "suggested_types": [e.get("knowledge_object_type") for e in envelopes],
-        })
+        return JSONResponse(_build_draft_response(app, body))

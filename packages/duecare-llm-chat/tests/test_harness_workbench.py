@@ -271,6 +271,10 @@ def test_knowledge_page_uses_guided_auto_suggestion_flow(client):
     assert "kxPromotedDrafts" in text
     assert "function kxContinueToDraft" in text
     assert "function kxFinishDraftReview" in text
+    assert "/api/knowledge/draft-envelope/start" in text
+    assert "/api/knowledge/draft-envelope/status/" in text
+    assert "function kxPollDraftJob" in text
+    assert "Knowledge draft job accepted" in text
     assert "function kxOpenPackImport" in text
     assert "function kxSetWorkflow" in text
     assert '/static/_workflow.js' in text
@@ -322,6 +326,33 @@ def test_knowledge_draft_endpoint_auto_suggests_multiple_leaf_types(client):
     by_type = {e["knowledge_object_type"]: e for e in data["suggestions"]}
     assert "aggregation_keys" in by_type["extracted_fact"]["content"]
     assert "fields" in by_type["fact_template"]["content"]
+
+
+def test_knowledge_draft_background_job_reports_progress(client):
+    r = client.post("/api/knowledge/draft-envelope/start", json={
+        "raw_text": (
+            "ILO C181 Article 7 prohibits recruitment fees. Worker paid "
+            "PHP 45000 for training and medical fees in the PH-HK corridor."
+        ),
+        "target_leaf": "auto",
+        "anonymize": True,
+        "use_gemma": False,
+    })
+    assert r.status_code == 200, r.text
+    job_id = r.json()["job_id"]
+    final = None
+    for _ in range(40):
+        poll = client.get(f"/api/knowledge/draft-envelope/status/{job_id}")
+        assert poll.status_code == 200, poll.text
+        body = poll.json()
+        if body.get("status") in {"complete", "error"}:
+            final = body
+            break
+    assert final is not None
+    assert final["status"] == "complete"
+    assert final["result"]["suggestions"]
+    assert final["result"]["model_call_requested"] is False
+    assert any(evt["phase"] == "model_or_fallback" for evt in final["events"])
 
 
 def test_search_backends_contract_has_human_labels(client):
@@ -516,7 +547,9 @@ def test_process_page_has_graph_visualization_and_graph_chat_logging(client):
     assert 'id="wb-process-substeps"' in text
     assert "const WB_PROCESS_STAGES" in text
     assert "Uploading bundle to Kaggle kernel" in text
-    assert "Queueing OCR and media work" in text
+    assert "Detecting media and queued work" in text
+    assert "OCR/layout extraction deferred" in text
+    assert "Gemma 4 media vision deferred" in text
     assert "Still working locally" in text
     assert "function wbStartProcessProgressLoop" in text
     assert "function wbStopProcessProgressLoop" in text
@@ -540,6 +573,8 @@ def test_process_page_has_graph_visualization_and_graph_chat_logging(client):
     assert "/api/process/graph-extract/start" in text
     assert "/api/process/graph-extract/status/" in text
     assert "function wbPollGemmaEdgeJob" in text
+    assert "Gemma edge pass not run: no model loaded" in text
+    assert "Gemma edge pass skipped model call" in text
     assert 'id="wb-edge-progress-box"' in text
     assert 'id="pg-progress-box"' in text
     assert "Use primary sample" in text

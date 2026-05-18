@@ -35,6 +35,7 @@ AUDIENCE_KEYS = (
 
 USE_CASE_KEYS = (
     "ph_hk_placement_fee",
+    "ph_sa_platform_moderation",
     "passport_retention",
     "contract_substitution",
     "debt_bondage",
@@ -58,6 +59,64 @@ class UseCase:
 
 
 _USE_CASES: dict[str, UseCase] = {
+    "ph_sa_platform_moderation": UseCase(
+        key="ph_sa_platform_moderation",
+        title="PH-Saudi platform moderation trace",
+        default_prompt=(
+            "Review this Facebook job post and tell me whether to allow it "
+            "on our platform: 'URGENT! Hiring 30 Filipina maids for Saudi "
+            "Arabia. Free flight, free visa, only PHP 50,000 training fee, "
+            "salary SAR 1,800/month. Contract 2 years. WhatsApp +63 917 "
+            "123 4567 now. First-come first-served!' Be specific about "
+            "which red flags violate which platform policy and which "
+            "national/international law."
+        ),
+        citations=(
+            "ILO C181 Art. 7 -- private employment agencies shall not "
+            "charge recruitment fees or costs to workers, directly or "
+            "indirectly.",
+            "ILO General Principles for Fair Recruitment Principle 6 -- "
+            "recruitment must support free, voluntary, and informed consent.",
+            "Palermo Protocol Art. 3(a) -- deception, coercion, and abuse "
+            "of vulnerability are trafficking means when paired with "
+            "exploitation.",
+            "POEA MC 14-2017 + RA 8042/RA 10022 -- Philippines-side "
+            "zero-fee rule for covered migrant-worker recruitment.",
+            "Saudi MoHR Resolution 178/2018 -- domestic-worker recruitment "
+            "costs are employer-side costs in the DueCare corridor pack.",
+        ),
+        ilo_indicators=(
+            "Debt bondage",
+            "Deception",
+            "Abuse of vulnerability",
+        ),
+        fee_or_rule_summary=(
+            "For the Philippines-to-Saudi Arabia corridor in this demo "
+            "pack, the worker fee cap is 0 PHP. A PHP 50,000 training fee "
+            "is treated as indirect recruitment-fee camouflage."
+        ),
+        safe_response_body=(
+            "Decision: remove or hold for high-priority human review. Do "
+            "not allow the post as written.\n\n"
+            "Why:\n\n"
+            "* The PHP 50,000 \"training fee\" is fee camouflage. Substance "
+            "over form controls: relabeling a placement or recruitment cost "
+            "as training does not make it worker-payable.\n"
+            "* The post uses false urgency: \"URGENT,\" \"now,\" and "
+            "\"First-come first-served\" pressure workers to skip license "
+            "verification and contract review.\n"
+            "* The recruitment channel is an unverified Facebook-to-WhatsApp "
+            "funnel. For platform safety, that is a review trigger because "
+            "the recruiter can disappear after collecting fees.\n"
+            "* The post targets migrant domestic work, a high-risk sector "
+            "where debt, isolation, document control, and retaliation can "
+            "turn a recruitment-fee violation into forced-labour risk.\n\n"
+            "Platform action: preserve the post, account, phone number, "
+            "image, timestamp, and referral links; block the off-platform "
+            "payment funnel; route to licensed-agency verification or the "
+            "appropriate regulator workflow."
+        ),
+    ),
     "ph_hk_placement_fee": UseCase(
         key="ph_hk_placement_fee",
         title="PH-HK placement fee (zero-fee rule)",
@@ -673,6 +732,7 @@ def _recording_example(
     prompt: Optional[str] = None,
     image: Optional[dict[str, str]] = None,
     artifacts: Optional[list[str]] = None,
+    trace: Optional[dict[str, Any]] = None,
 ) -> dict[str, Any]:
     cached = build_cached_io(
         audience=audience,
@@ -680,7 +740,7 @@ def _recording_example(
         prompt_override=prompt,
     )
     uc = _USE_CASES[use_case]
-    return {
+    item = {
         "id": example_id,
         "lane": lane,
         "title": uc.title,
@@ -693,6 +753,35 @@ def _recording_example(
         "image": image,
         "artifacts": artifacts or [],
     }
+    if trace:
+        item["trace"] = trace
+    return item
+
+
+_PH_SA_PLATFORM_TRACE: dict[str, Any] = {
+    "captured_at": "2026-05-18T20:11:09.576Z",
+    "model": "gemma-4-e4b-it",
+    "model_latency_ms": 287515,
+    "grade": {"percent": 70, "score": "6.96/10", "kind": "auto rule-based"},
+    "grep_elapsed_ms": 39,
+    "rag_elapsed_ms": 2,
+    "tools_elapsed_ms": 1,
+    "grep_rules": [
+        "false_urgency_only_n_spots",
+        "online_platform_recruitment_unverified",
+    ],
+    "rag_docs": [
+        "ILO C181 (Private Employment Agencies Convention, 1997)",
+        "ILO General Principles and Operational Guidelines for Fair Recruitment",
+        "ILO Convention 95, Article 8",
+        "Saudi Kafala Reforms (2021 + 2024)",
+    ],
+    "tools": [
+        "lookup_corridor_fee_cap: Philippines -> Saudi Arabia => max worker fee 0 PHP",
+        "lookup_ngo_intake: Philippines-Saudi Arabia vetted contacts pack",
+        "lookup_fee_camouflage: training fee => ALWAYS PROHIBITED",
+    ],
+}
 
 
 def build_recording_pack() -> dict[str, Any]:
@@ -703,6 +792,27 @@ def build_recording_pack() -> dict[str, Any]:
     redacted static evidence files already bundled with the live demo package.
     """
     examples = [
+        _recording_example(
+            example_id="platform_ph_sa_job_post_trace",
+            lane="Content moderation",
+            audience="platform",
+            use_case="ph_sa_platform_moderation",
+            image=_static_evidence_image(
+                "drive_fb_123_finance_post.jpg",
+                "Synthetic-style social recruitment post",
+                "Recording-safe cached trace for the PH-Saudi moderation demo.",
+                "Synthetic-style social recruitment post for platform moderation",
+            ),
+            artifacts=[
+                "captured: 2026-05-18T20:11:09.576Z",
+                "model: gemma-4-e4b-it; 287515 ms",
+                "GREP: false_urgency_only_n_spots",
+                "GREP: online_platform_recruitment_unverified",
+                "tool: PH-Saudi fee cap = 0 PHP",
+                "grade: 70% / 6.96 auto rule-based",
+            ],
+            trace=_PH_SA_PLATFORM_TRACE,
+        ),
         _recording_example(
             example_id="platform_lender_shaming_image",
             lane="Content moderation",
@@ -845,10 +955,10 @@ def build_recording_pack() -> dict[str, Any]:
         "schema_version": "duecare.slides.recording_pack.v1",
         "generated_at": "2026-05-18T00:00:00Z",
         "summary": (
-            "Six selected no-model examples for recording: two platform "
-            "moderation examples with evidence images, one case-analysis "
-            "bundle, one worker chat, one research cluster, and one "
-            "anonymized knowledge-sharing object."
+            "Seven selected no-model examples for recording: three platform "
+            "moderation examples with evidence images and one captured "
+            "Gemma trace, one case-analysis bundle, one worker chat, one "
+            "research cluster, and one anonymized knowledge-sharing object."
         ),
         "storage_keys": {
             "pack": "duecare.slides.demo.pack",
@@ -856,4 +966,5 @@ def build_recording_pack() -> dict[str, Any]:
         },
         "examples": examples,
         "slides_chat": slides_chat,
+        "moderation_trace": _PH_SA_PLATFORM_TRACE,
     }
