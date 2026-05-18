@@ -69,7 +69,7 @@ These are the modules exposed through `duecare.chat.harnesses`.
 | Harness | Purpose | Gemma 4 role | Status |
 |---|---|---|---|
 | `chat` | Free-form content prompt processing with persona, GREP, RAG, tools, optional online, imports, traces, and grading hooks. | Required for real answers. | Implemented. |
-| `process` | Bulk file review, case-bundle parsing, graph extraction, and graph-chat over local evidence. | Hybrid: deterministic parsing first, Gemma for graph-chat and deeper extraction. | Implemented. |
+| `process` | Bulk file review, case-bundle parsing, graph extraction, and graph-chat over local evidence. | Hybrid: deterministic parsing first, Gemma for graph-chat and deeper extraction. A fine-tuned Gemma 4 adapter can improve document classification and bulk edge generation. | Implemented. |
 | `extraction` | Draft typed KnowledgeObject envelopes from source text, documents, or process outputs. | Optional drafter; deterministic hints remain available without a model. | Implemented. |
 | `anonymization` | PII and confidential-data gate before sharing or submission. | Optional second review over already-redacted text. | Implemented. |
 | `search_safety` | Convert raw search intent into redacted or generalized search phrases before third-party search. | Optional rephrase over already-redacted query. | Implemented as a gate. |
@@ -94,7 +94,7 @@ auditable proof artifact.
 | Anonymization/deanonymization review harness | `harnesses/anonymization`, A-00 `_redact` | Redacts PII, records hashes, and can run local residual-PII review before hub submission or external calls. | Implemented; external-boundary policy should stay strict. |
 | Knowledge ingestion harness | `harnesses/import_corpus`, `harnesses/extraction`, `harness/_governance.py` | Turns local files, snippets, or source bundles into reviewable, versioned knowledge objects. | Implemented. |
 | Civil-society fact intake harness | Contribute flow plus import/extraction/anonymization modules | Should process NGO/civil-society emails or submissions into sanitized fact proposals and knowledge objects. | Partially implemented through generic import/extraction; dedicated email intake remains a specialization to build. |
-| Research graph harness | `harnesses/process`, A-00 `_extract_research_graph` | Extracts entities, edges, timeline signals, amounts, risks, and graph artifacts from local bundles. | Implemented. |
+| Research graph harness | `harnesses/process`, A-00 `_extract_research_graph` | Extracts entities, edges, timeline signals, amounts, risks, and graph artifacts from local bundles. Uses typed edge schemas, pointed edge questions, and edge-quality dimensions; fine-tuned Gemma 4 can improve classification and edge proposals when available. | Implemented. |
 | Synthetic data generator harness | A-00 `_generate_synthetic`, `SYNTHETIC_GENERATION_PROFILES` | Generates SFT rows, DPO pairs, test prompts, and candidate knowledge facts from harnessed/adversarial prompts. | Implemented. |
 | Rubric-polish harness | A-00 `_polish_training_response` | Rewrites training rows toward the DueCare response contract: cited, bounded, privacy-safe, and structured. | Implemented. |
 | Fine-tuning harness | A-00 `_training_script`, `TrainRequest`, `TRAINING_PROFILES`, `duecare-llm-training` | Builds LoRA training jobs, checkpoint/resume paths, adapter outputs, and training logs. | Implemented. |

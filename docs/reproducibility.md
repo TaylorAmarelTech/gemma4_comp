@@ -7,15 +7,15 @@
 > `(git_sha, dataset_version, eval_set, grader_version, n)` and a
 > one-command path to re-measure.
 >
-> **Most important caveat:** the headline lift numbers were last
-> measured BEFORE the GREP rule expansion (49 → current 100+ rules).
+> **Most important caveat:** the historical headline lift numbers were
+> measured before the later GREP rule expansion.
 > They have **not** been re-measured against the larger rule set
 > at the time of submission. We expect the lift to remain at-or-
 > above the cited values (more rules = more catches), but the
-> exact pp deltas may have shifted. The A6 notebook
-> `duecare-grading-evaluation` is the regenerator; running it
-> against the current `git HEAD` produces a fresh
-> `duecare_lift_eval.json` + `.md`.
+> exact pp deltas may have shifted. The current A-00 omni workbench is
+> the preferred regenerator for new presentation-quality evidence
+> bundles; running it against the current `git HEAD` produces fresh JSON,
+> CSV, Markdown, HTML, PDF where available, and Activity ZIP artifacts.
 
 ## Headline numeric claims and their provenance
 
@@ -27,22 +27,22 @@
 | **+56.5 pp** combined GREP+RAG (the headline) | writeup §2 + §3 (live-demo card) + §6 + video closer | 2026-05-03 (pre v3.16) | layer ablation: `legal_citation_quality` weighted average over 207 prompts |
 | **+35 pp** GREP only | writeup §2 (layer ablation) | 2026-05-03 (pre v3.16) | same |
 | **+47 pp** RAG only | writeup §2 (layer ablation) | 2026-05-03 (pre v3.16) | same |
-| **99.3 %** of citations trace to corpus | writeup §2 | 2026-05-03 (pre v3.16) | citation cross-reference vs 106-source corpus (per-citation `grounded_via` field) |
+| **99.3 %** of citations trace to corpus | writeup §2 | 2026-05-03 (pre v3.16) | historical citation cross-reference snapshot (per-citation `grounded_via` field) |
 | **100+ GREP rules** (current) | writeup §2 + §3 + UI tile + Pipeline modal | current run | runtime `len(GREP_RULES)` |
 | **50+ RAG documents** | writeup §3 + UI + Pipeline | current run | runtime `len(RAG_CORPUS)` |
-| **5 lookup tools** | writeup §3 + UI + Pipeline | 2026-05-04 (v3.16) | `python scripts/verify.py` |
-| **587 example prompts** | writeup §3 + Examples modal | 2026-05-04 (v3.16) | `python scripts/verify.py` |
-| **46-dim universal rubric** | writeup §3 + grade footer + Pipeline | 2026-05-04 (v3.16) | `python scripts/verify.py` |
-| **17 LLM-judge yes/no questions** | writeup §3 + grade footer | 2026-05-04 (v3.16) | `python scripts/verify.py` |
-| **51 classifier examples** (16 originals + 30 persona × corridor + 5 multimodal SVG) | corpus_stats.md, FOR_PEER_REVIEW.md | 2026-05-04 (v3.16) | `python scripts/verify.py` |
-| **207 5-tier rubrics** (per-prompt graded examples) | writeup §2 + harness_lift_report.md | unchanged since 2026-05-02 | `python scripts/verify.py` |
-| **6 required-element rubrics** | writeup §3 + harness_lift_report.md | unchanged since 2026-05-02 | `python scripts/verify.py` |
-| **106-source citation corpus** | writeup §2 + harness_lift_report.md | 2026-05-03 | `EXPANDED_CITATION_CORPUS["n_total"]` in `harness/__init__.py` |
+| **Lookup tools** | writeup §3 + UI + Pipeline | current run | runtime tool registry / A-00 export |
+| **Hundreds of example prompts** | writeup §3 + Examples modal | current run | A-00 export / prompt-set manifest |
+| **Extensible universal rubric** | writeup §3 + grade footer + Pipeline | current run | runtime rubric JSON + A-00 grade export |
+| **Per-dimension LLM-judge questions** | writeup §3 + grade footer | current run | runtime evaluation-question JSON |
+| **Classifier example corpus** | corpus_stats.md, FOR_PEER_REVIEW.md | current run | classifier manifest / A-00 evidence bundle |
+| **Large 5-tier rubric set** (per-prompt graded examples) | writeup §2 + harness_lift_report.md | historical snapshot | historical eval bundle |
+| **Required-element rubrics** | writeup §3 + harness_lift_report.md | historical snapshot | historical eval bundle |
+| **Citation corpus** | writeup §2 + harness_lift_report.md | current run | corpus manifest / A-00 evidence bundle |
 
 ## What changed in v3.16 that may shift the lift numbers
 
-The +56.5 pp headline was measured with the **49-rule** GREP layer
-on 2026-05-03. The expansion to **100+ rules** added broader
+The +56.5 pp headline was measured with an earlier GREP layer on
+2026-05-03. The later expansion added broader
 categories the eval set did not previously stress:
 
 - Sector-specific labour abuse (10 rules) — construction wage holding,
@@ -67,8 +67,8 @@ categories the eval set did not previously stress:
   orthogonal: they extend coverage to scenarios the eval set doesn't
   yet stress.
 - The new rules don't replace any old rules; they're additive. So a
-  prompt that previously matched 3 rules under harness-ON still
-  matches at least those 3 rules.
+  prompt that previously matched several rules under harness-ON still
+  matches at least those same rules.
 - A fresh measurement may show **slight upward drift** if any new
   rules happen to fire on prompts already in the eval set
   (e.g., a domestic-worker prompt may now also fire `no_day_off_chronic`
@@ -78,18 +78,14 @@ categories the eval set did not previously stress:
 The honest path forward is to re-measure, not to update the writeup
 with extrapolated numbers.
 
-## How to re-measure (one command, ~10 min on a Kaggle T4)
+## How to re-measure
 
-```python
-# In the duecare-grading-evaluation Kaggle notebook
-# (slug: taylorsamarel/duecare-grading-evaluation):
-import os
-os.environ["DUECARE_EVAL_SET"] = "headline"   # 207 prompts × OFF/ON
-os.environ["DUECARE_GRADER"] = "deterministic_v3.1"
-os.environ["DUECARE_GIT_SHA"] = "<paste current git rev-parse HEAD>"
-%run kernel.py
-# Outputs to /kaggle/working/duecare_lift_eval.json + .md
-```
+Use `kaggle/A-00-omni-experiment-workbench/kernel.py` and export the
+resulting evidence bundle from `/kaggle/working/a00_outputs`. For a
+fast smoke run, keep prompt and synthetic-row counts small. For
+presentation-quality claims, use the largest prompt count that fits the
+available runtime and GPU budget, then cite the exported report bundle
+and Activity ZIP.
 
 The output `.md` file contains the regenerated table with the same
 column shape as `harness_lift_report.md`, plus a provenance tuple
@@ -102,21 +98,20 @@ delta to `harness_lift_report.md` with a dated entry.
 python scripts/verify.py
 ```
 
-Confirms all 9 capability counts are at-or-above their published
-floors (current GREP / RAG / tools / prompts / 5-tier
-rubrics / 6 required rubrics / 51 classifier examples / 17 universal
-dims / 46 LLM-judge questions). Exits non-zero if any count
-regresses, so this gate catches accidental rule deletions.
+Confirms the capability inventories are at-or-above their published
+floors. Exits non-zero if a floor regresses, so this gate catches
+accidental rule, pack, or rubric deletions without depending on exact
+counts in prose.
 
 ## What you can verify on Kaggle in <5 minutes
 
 The 5-step judge test plan at [`docs/peer_review_5min_test_plan.md`](peer_review_5min_test_plan.md)
 walks through:
 
-1. `/api/health-check` returns `ok=true, ready=true` with all 5
-   layers wired and all 4 grade modes available
-2. Pipeline modal renders 7 cards (USER → PERSONA → GREP → RAG →
-   TOOLS → ONLINE → MERGED PROMPT → GEMMA RESPONSE)
+1. `/api/health-check` returns `ok=true, ready=true` with the configured
+   layers and grade modes available
+2. Pipeline modal renders the layer cards from user prompt through the
+   merged prompt and Gemma response
 3. Toggle ablation: send the same prompt with all toggles OFF then
    all ON, observe the response transform live
 4. Jailbreak resistance: send a "DAN persona" prompt, observe
@@ -127,9 +122,9 @@ walks through:
 
 ## What we explicitly do NOT claim
 
-- **We do not claim the +56.5 pp number was measured against the
-  v3.16 108-rule set.** It was measured against the 49-rule v3.15
-  set. The number is a floor pending re-measurement.
+- **We do not claim the +56.5 pp number was measured against the current
+  expanded rule set.** It was measured against an earlier rule set. The
+  number is a floor pending re-measurement.
 - **We do not claim the universal rubric grader matches human
   graders perfectly.** It catches the failure modes the rubric was
   designed for; semantic equivalents the lexicon doesn't know
@@ -138,8 +133,8 @@ walks through:
   the same Gemma 4 model the response came from (self-consistency
   check, not external auditor). For external audit, swap in any
   cloud BYOK route via the model selector.
-- **We do not claim 100% citation traceability.** 99.3% of emitted
-  citations trace to the 106-source corpus; the remaining 0.7%
+- **We do not claim 100% citation traceability.** In the historical
+  snapshot, 99.3% of emitted citations traced to the citation corpus; the remaining 0.7%
   are model-generated paraphrases or compound citations that the
   cross-reference flags as "grounded via inference, not direct
   match" — surfaced in the grade output's `grounded_via` field.
@@ -147,23 +142,23 @@ walks through:
 ## Citation-by-citation traceability
 
 Every emitted citation in a Gemma response is checked against the
-106-source corpus:
+current citation corpus:
 
 | Source class | Count | Examples |
 |---|---:|---|
 | ILO Conventions | 8 | C029, C095, C181, C189, C188, C190, C097, C143 |
 | Forced Labour Protocol | 1 | P029 (2014) |
-| GREP rule citations | 49 → 108 | every rule's `citation` field |
+| GREP rule citations | current runtime inventory | every rule's `citation` field |
 | Corridor fee caps | 7 | PH-HK, PH-SG, ID-HK, NP-Gulf, BD-Gulf, etc. |
 | ILO indicators | 11 | the canonical 11 forced-labour indicators |
 | NGO names | 4 | Polaris, IJM, MfMW HK, ARM Beirut |
-| Fee camouflage labels | 16 → 25 | training, medical, processing, deposit, etc. |
+| Fee camouflage labels | current runtime inventory | training, medical, processing, deposit, etc. |
 | National statutes | varies | POEA RA 8042/10022/MC 14-2017, BP2MI Reg 9/2020, Nepal FEA, BD OEA, Saudi MoHR Resolutions, UAE Federal Decrees, HK Cap. 57/57A/163, SG EFMA 91A, etc. |
 | International protocols | 3 | Palermo, ICRMW, Vienna Consular Convention |
 
-Total citation-corpus size: **106 sources** (last counted 2026-05-03;
-will grow to ~150 once the 59 new GREP rule citations are folded in
-during the next re-measurement run).
+Total citation-corpus size should be read from the current corpus
+manifest or A-00 evidence bundle rather than copied from this historical
+snapshot.
 
 ## Provenance for non-numeric claims
 

@@ -177,9 +177,9 @@ for the `(git_sha, dataset_version, model_revision)` tuples.
 
 **Caveat:** the +56.5pp / +87.5pp / +51.2pp / +34.1pp numbers were
 last measured 2026-05-03 against an earlier GREP revision; the
-current expansion to 100+ rules is additive but should be re-measured
+current expansion to the larger rule set is additive but should be re-measured
 so the lift is expected to remain at-or-above these floors. Re-run
-the A6 `duecare-grading-evaluation` notebook to refresh.
+the active A-00 omni experiment workbench to refresh.
 
 ## Sensitive data stays local
 

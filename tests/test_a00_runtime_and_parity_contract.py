@@ -104,7 +104,7 @@ def test_a00_benchmark_response_budget_has_headroom() -> None:
     structured judge output budget."""
     text = _a00_text()
     contracts = EXPERIMENT_CONTRACTS.read_text(encoding="utf-8")
-    assert "BENCHMARK_RESPONSE_MAX_NEW_TOKENS = 900" in contracts
+    assert "BENCHMARK_RESPONSE_MAX_NEW_TOKENS = 1200" in contracts
     assert '"max_new_tokens": BENCHMARK_RESPONSE_MAX_NEW_TOKENS' in contracts
     assert (
         'A00_BENCHMARK_MAX_NEW_TOKENS = int(os.environ.get('
@@ -120,6 +120,22 @@ def test_a00_benchmark_response_budget_has_headroom() -> None:
     assert 'generation.get("max_new_tokens", 420)' not in text
 
 
+def test_a00_generation_records_response_hygiene_without_rewriting_outputs() -> None:
+    """Verbose A-00 artifacts should surface likely output issues while
+    preserving the measured model response for honest comparison."""
+    text = _a00_text()
+    assert "def _response_hygiene_flags(" in text
+    assert "visible_reasoning_scaffold" in text
+    assert "near_output_budget" in text
+    assert "likely_truncated" in text
+    assert "Measured output is preserved unchanged" in text
+    assert '"response_hygiene": _response_hygiene_flags(' in text
+    assert "responses_with_visible_reasoning_scaffold" in text
+    assert "response_hygiene_flags" in text
+    assert "Do not include hidden reasoning, chain-of-thought" in text
+    assert "thinking-process preamble" in text
+
+
 def test_a00_generation_fallback_uses_gemma4_recipe_defaults() -> None:
     """When no backend is attached, the defensive raw-generate fallback
     must use Gemma 4 recipe defaults (top_p=0.95, top_k=64). The
@@ -132,7 +148,7 @@ def test_a00_generation_fallback_uses_gemma4_recipe_defaults() -> None:
     assert '"top_p": 0.95' in body, "fallback must use top_p=0.95 (Gemma 4 default)"
     assert '"top_k": 64' in body, "fallback must use top_k=64 (Gemma 4 default)"
     assert '"top_p": 0.9,' not in body, "fallback must not use the stale top_p=0.9"
-    assert '"mode": "model_fallback_no_backend"' in body, (
+    assert 'mode="model_fallback_no_backend"' in body, (
         "fallback path must be labelled as the no-backend fallback so a "
         "stuck pipeline can be distinguished from the primary backend path."
     )
@@ -170,13 +186,15 @@ def test_a00_combined_grading_uses_shared_grade_response_combined() -> None:
     text = _a00_text()
     assert "from duecare.chat.harness import grade_response_combined, grade_response_universal" in text
     assert "grade_response_combined(" in text
-    assert "def _combined_grade(row: dict[str, Any], response: str, harness_profile: str, trace: dict[str, Any], use_llm: bool) -> dict[str, Any]:" in text
+    assert "def _combined_grade(" in text
+    assert "progress_callback: Optional[Callable[[dict[str, Any]], None]] = None" in text
     assert "_evaluate_run_for_pipeline(" in text
     assert "duecare.chat.harness.grade_response_combined" in text
     assert "duecare.chat.harness.grade_response_universal" in text
     assert "def traced_model_call(prompt: str) -> str:" in text
     assert '"judge_prompt": prompt' in text
     assert '"judge_response": judge_response' in text
+    assert "progress_callback=progress_callback" in text
     assert 'normalised["judge_call"] = judge_call_trace' in text
 
 
@@ -249,7 +267,8 @@ def test_a00_activity_logs_full_prompts_responses_and_untruncated_buffer() -> No
     assert '"response": row.get("response", "")' in text
     assert '"prompt_sha256": prompt_sha' in text
     assert '"response_sha256": _sha256_text(response)' in text
-    assert '"requested_max_new_tokens": int(max_new_tokens)' in text
+    assert "requested_max_new_tokens=max_new_tokens" in text
+    assert '"requested_max_new_tokens": int(requested_max_new_tokens)' in text
     assert '"prompt_response_pairs": pairs' in text
     assert '"model_prompt": model_prompt' in text
     assert '"sample_sft_rows": sft_rows[: min(10, len(sft_rows))]' in text
@@ -494,7 +513,7 @@ def test_a00_tools_layer_always_emits_trace_for_consistency() -> None:
 
 def test_a00_inference_uses_at_least_16k_context_window() -> None:
     """The combined rule + LLM judge runs over (prompt + response +
-    17-dimension rubric + harness trace + JSON instructions), which can
+    broad rubric + harness trace + JSON instructions), which can
     easily exceed 4096 tokens for a real benchmark row. A-00 must load
     the shared Gemma 4 runtime with at least a 16K context so grading
     and full-harness benchmark prompts are not silently truncated.
@@ -639,11 +658,20 @@ def test_a00_judging_phase_emits_per_response_progress() -> None:
     assert "def _evaluate_run_for_pipeline(" in text
     assert "19. Evaluating responses using combined rule + LLM judge for run {run_index} of {total_runs}" in text
     assert "19. Judging response {row_index} of {len(rows)}" in text
+    assert "19. Preparing stateless judge context for response {row_index} of {len(rows)}" in text
+    assert "def dimension_progress(event: dict[str, Any]) -> None:" in text
+    assert '"dim_call_start": "Calling judge for"' in text
+    assert "judge dimension {dim_index} of {n_total}" in text
     assert "19. Completed judgment {row_index} of {len(rows)}" in text
     assert '"n_responses": len(rows)' in text
     assert '"prompt_id": row.get("prompt_id")' in text
     assert '"model_prompt_sent_to_gemma": row.get("model_prompt", "")' in text
     assert '"response": row.get("response", "")' in text
+    assert '"evaluator_question": dim_row.get("evaluator_question", "")' in text
+    assert '"evaluator_prompt": dim_row.get("evaluator_prompt", "")' in text
+    assert '"evaluator_response": dim_row.get("evaluator_response", "")' in text
+    assert "progress_callback=dimension_progress" in text
+    assert "Stateless one-dimension evaluator call" in text
     assert 'grade["judge_model"] = {' in text
     assert '"grade": row.get("grade", {})' in text
 

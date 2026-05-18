@@ -54,7 +54,10 @@ spec = HarnessSpec(
         "Deterministic parsing works without a model. Text-only edge extraction "
         "works with smaller Gemma models over compact context. Multimodal page "
         "review, OCR+image reasoning, and exhaustive cross-document linking need "
-        "a stronger multimodal-capable local runtime."
+        "a stronger multimodal-capable local runtime. A fine-tuned Gemma 4 "
+        "adapter trained on reviewed document-classification and graph-edge "
+        "examples can improve page routing, edge typing, and cross-document "
+        "linking quality."
     ),
     logic_paths=(
         HarnessLogicPath(
@@ -116,7 +119,7 @@ spec = HarnessSpec(
             "local_gemma4_runtime",
             "Local Gemma 4 graph analyst",
             "gemma4_runtime",
-            "Optional local model for graph chat, edge refinement, and media-aware review.",
+            "Optional local model for graph chat, edge refinement, and media-aware review. Can be loaded with a fine-tuned adapter for better document classification and bulk graph-edge generation.",
             ("text_generation", "chat_messages", "vision", "structured_json", "long_context"),
             trust_boundary="local",
         ),

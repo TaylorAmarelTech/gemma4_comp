@@ -211,7 +211,7 @@ Evaluate model outputs, harnessed responses, chatbot behavior, fine-tuned adapte
 
 ### MVP deliverables
 
-- Lock a 46-dimension rubric manifest.
+- Lock the rubric manifest.
 - Add version/count self-audit before publishing.
 - Add a one-command smoke suite for app endpoints and rubric counts.
 - Add a small adversarial replay panel or CLI report.

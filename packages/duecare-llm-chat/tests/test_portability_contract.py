@@ -192,7 +192,7 @@ def test_experiment_contract_helpers_are_canonical():
     ]
 
     payload = experiment_contract_payload()
-    assert payload["generation_defaults"]["max_new_tokens"] == 420
+    assert payload["generation_defaults"]["max_new_tokens"] == 1200
     assert "sft_jsonl" in payload["training_data_schemas"]
     assert "preference_jsonl" in payload["training_data_schemas"]
     assert {gate["id"] for gate in payload["training_quality_gates"]}.issuperset(

@@ -92,6 +92,96 @@ GRAPH_EDGE_PROMPT_TEMPLATES: list[dict] = [
     },
 ]
 
+EDGE_QUALITY_DIMENSIONS: list[dict] = [
+    {
+        "id": "source_grounding_per_edge",
+        "label": "Source grounding per edge",
+        "question": "Does every proposed edge cite a row, file/page/chunk, and short evidence quote from the uploaded bundle?",
+        "pass_criteria": "Each edge has evidence.file or row_id plus a quote or page/chunk pointer; unsupported edges stay out or are marked uncertain.",
+    },
+    {
+        "id": "typed_relation_specificity",
+        "label": "Typed relation specificity",
+        "question": "Is the edge_type specific enough to be useful for review rather than a generic 'related_to' link?",
+        "pass_criteria": "Use allowed edge types such as charged_or_collected_fee, document_control_signal, threat_or_retaliation_signal, dated_evidence, or same_actor_or_phrase.",
+    },
+    {
+        "id": "entity_role_resolution",
+        "label": "Entity and role resolution",
+        "question": "Does the extraction distinguish worker, recruiter, employer, agency, lender, payee, payer, document holder, and regulator roles where evidence supports them?",
+        "pass_criteria": "Roles are explicit and tied to evidence; ambiguous actors remain marked as uncertain rather than merged.",
+    },
+    {
+        "id": "payment_fee_completeness",
+        "label": "Payment and fee completeness",
+        "question": "For payment evidence, does the edge capture amount, currency, payer, payee, date, channel, fee label, and whether it appears tied to recruitment or salary deduction?",
+        "pass_criteria": "Money edges preserve numeric amounts and labels without inventing missing fields.",
+    },
+    {
+        "id": "document_and_movement_control",
+        "label": "Document and movement control",
+        "question": "Does the graph detect passport/identity-document retention, movement restriction, safekeeping claims, travel control, or document-return obligations?",
+        "pass_criteria": "Document-control edges are separated from generic notes and include the exact supporting row/page evidence.",
+    },
+    {
+        "id": "coercion_threat_retaliation",
+        "label": "Coercion, threat, and retaliation",
+        "question": "Does the graph detect threats, intimidation, retaliation risk, blacklisting, termination threats, debt pressure, or sponsor/employer leverage?",
+        "pass_criteria": "Coercion edges name the mechanism and avoid labeling fear as proof without supporting text.",
+    },
+    {
+        "id": "temporal_journey_sequence",
+        "label": "Temporal and journey sequence",
+        "question": "Does the extraction place evidence into recruitment, payment/debt, contracting, documents, travel, employment control, and complaint/escalation stages?",
+        "pass_criteria": "Dates and journey stages are explicit when available; missing chronology remains uncertain.",
+    },
+    {
+        "id": "cross_document_alias_linking",
+        "label": "Cross-document alias linking",
+        "question": "Does the pass link repeated agencies, employers, phone numbers, wallet identifiers, phrases, amounts, or folders across documents without over-merging people?",
+        "pass_criteria": "Direct links are distinguished from hypotheses and each cross-document link cites at least two sources.",
+    },
+    {
+        "id": "contradiction_conflict_detection",
+        "label": "Contradiction and conflict detection",
+        "question": "Does the pass flag conflicts such as first contract vs second contract, receipt amount vs complaint amount, or employer story vs worker statement?",
+        "pass_criteria": "Conflicts are represented as review-needed observations, not resolved by invention.",
+    },
+    {
+        "id": "uncertainty_review_status",
+        "label": "Uncertainty and review status",
+        "question": "Are low-confidence or model-proposed edges marked needs_review with uncertainty notes instead of promoted as facts?",
+        "pass_criteria": "Every model edge has local_only=true, confidence, review_status='needs_review', and uncertainties where evidence is incomplete.",
+    },
+    {
+        "id": "pii_minimization_for_candidates",
+        "label": "PII minimization for candidates",
+        "question": "Do RAG or knowledge candidates generalize patterns without carrying names, phone numbers, passport numbers, addresses, or raw survivor text?",
+        "pass_criteria": "Knowledge candidates preserve provenance and pattern meaning while excluding unnecessary PII.",
+    },
+    {
+        "id": "no_invention_or_external_facts",
+        "label": "No invention or external facts",
+        "question": "Does the extraction avoid inventing names, amounts, statutes, contacts, locations, or external facts not present in the bundle or local knowledge context?",
+        "pass_criteria": "Unknowns stay blank or uncertain; external search is not used in this local graph pass.",
+    },
+]
+
+EDGE_EXTRACTION_POINTED_QUESTIONS: list[str] = [
+    "Which exact row, page, chunk, or file grounds this edge?",
+    "What is the minimum useful typed relation for this evidence?",
+    "Who is the worker, recruiter, employer, agency, lender, payer, payee, or document holder?",
+    "What amount, currency, fee label, date, channel, and deduction language are visible?",
+    "Is there passport, identity-document, travel, or movement-control evidence?",
+    "Is there threat, retaliation, intimidation, blacklisting, or coercive debt pressure?",
+    "Where does this evidence sit in the migration journey or complaint timeline?",
+    "Does the same actor, phrase, amount, wallet, phone, or agency repeat across documents?",
+    "Does this document contradict another contract, receipt, message, or complaint?",
+    "Should the output be a typed edge, a RAG candidate, a knowledge-object hint, or an uncertainty?",
+    "Can the candidate be generalized without exposing PII?",
+    "What should remain needs_review because the evidence is incomplete?",
+]
+
 PAGE_ITEM_PROMPT_TREE: list[dict] = [
     {
         "phase": "classify",
@@ -170,8 +260,12 @@ GRAPH_EDGE_EXTRACTION_SYSTEM_PROMPT = (
     "Return JSON only with keys: edges, rag_candidates, uncertainties. "
     "Each edge must include edge_type, source_node, target_node, confidence, "
     "evidence {file, page, chunk_id, quote}, extractors, local_only=true, "
-    "and review_status='needs_review'. Prefer conservative edges with direct "
-    "row evidence over speculative links."
+    "and review_status='needs_review'. Use the supplied edge quality "
+    "dimensions and pointed questions as the checklist. Prefer conservative "
+    "edges with direct row evidence over speculative links. A fine-tuned "
+    "Gemma 4 adapter trained on reviewed graph-extraction examples can be "
+    "used for this pass when available, but the same local-only evidence and "
+    "review-status contract still applies."
 )
 
 
@@ -195,6 +289,8 @@ def build_graph_edge_extraction_prompt(
         "local_only": True,
         "remote_api_calls": False,
         "prompt_template": template,
+        "edge_quality_dimensions": EDGE_QUALITY_DIMENSIONS,
+        "pointed_edge_questions": EDGE_EXTRACTION_POINTED_QUESTIONS,
         "page_item_prompt_tree": PAGE_ITEM_PROMPT_TREE,
         "processing_settings": (
             (bundle.get("config") or {}).get("process_settings")

@@ -15,11 +15,11 @@ the `duecare-llm-chat` wheel:
 
 ```
 packages/duecare-llm-chat/src/duecare/chat/harness/
-├── _examples.json              -- 394 chat prompts (this doc)
-├── _classifier_examples.json   -- 51 classifier exampless (with optional images)
-├── _rubrics_5tier.json         -- 207 per-prompt graded examples
-├── _rubrics_required.json      -- 5 per-category required-element rubrics
-└── _examples/by_category/      -- per-category JSON splits (NEW; auto-generated)
+├── _examples.json              -- chat prompts
+├── _classifier_examples.json   -- classifier examples, with optional images
+├── _rubrics_5tier.json         -- per-prompt graded examples
+├── _rubrics_required.json      -- per-category required-element rubrics
+└── _examples/by_category/      -- per-category JSON splits, auto-generated
     ├── jurisdictional_hierarchy.json
     ├── amplification_known_attacks.json
     ├── ...

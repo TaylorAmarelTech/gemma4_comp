@@ -41,7 +41,7 @@ Kaggle-attached models are preferred when `/kaggle/input/models/google/gemma-4/t
   `/api/a00/pipeline/run` -> `_create_pipeline_job()` -> `_run_pipeline_job()` -> `_prepare_base_model_for_pipeline()` / `_load_model_runtime()` -> `A00_MODEL_RUNTIME.load()` -> `FastModel.from_pretrained(...)`.
 - Kernel A-00 final LLM grading:
   the same `A00_MODEL_RUNTIME` is reloaded with the selected Gemma 4 model before combined rule + LLM grading.
-  A-00 benchmark answers use `DUECARE_A00_BENCHMARK_MAX_NEW_TOKENS` (default `900`) so proof-run responses have
+  A-00 benchmark answers use `DUECARE_A00_BENCHMARK_MAX_NEW_TOKENS` (default `1200`) so proof-run responses have
   enough room for grounded summaries without using a full context-window-sized output budget. A-00 loads inference
   at `DUECARE_A00_INFERENCE_MAX_SEQ_LENGTH` (default `16384`) so grading prompts can carry
   the prompt, response, harness trace, rubric, and JSON instructions without falling back to the shorter training

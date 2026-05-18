@@ -26,6 +26,8 @@ from fastapi.responses import JSONResponse
 from ..._model_output import sanitize_model_output
 from .extractor import ENTITY_PATTERNS
 from .prompts import (
+    EDGE_EXTRACTION_POINTED_QUESTIONS,
+    EDGE_QUALITY_DIMENSIONS,
     GRAPH_CHAT_SYSTEM_PROMPT,
     GRAPH_EDGE_EXTRACTION_SYSTEM_PROMPT,
     GRAPH_EDGE_PROMPT_TEMPLATES,
@@ -104,6 +106,11 @@ _MODEL_CAPABILITY_NOTES: list[dict[str, Any]] = [
         "capability": "exhaustive_review",
         "status": "larger_or_more_capable_models_recommended",
         "detail": "Exhaustive multi-prompt review over many page items can be slow or low-quality on smaller models; use Quick or Standard mode when runtime or memory is constrained.",
+    },
+    {
+        "capability": "finetuned_document_classifier",
+        "status": "recommended_for_quality_when_available",
+        "detail": "A fine-tuned Gemma 4 adapter trained on reviewed document classification and graph-edge examples can improve page-item routing, edge typing, and cross-document linking while keeping the same local-only review contract.",
     },
 ]
 _DATE_RE = _re.compile(r"\b(?:20\d{2}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+20\d{2})\b", _re.IGNORECASE)
@@ -1572,6 +1579,8 @@ def _build_intelligence(
             "include_imported_knowledge": bool(process_settings.get("include_imported_knowledge", True)),
         },
         "model_capability_notes": _MODEL_CAPABILITY_NOTES,
+        "edge_quality_dimensions": EDGE_QUALITY_DIMENSIONS,
+        "pointed_edge_questions": EDGE_EXTRACTION_POINTED_QUESTIONS,
         "page_item_prompt_tree": PAGE_ITEM_PROMPT_TREE,
         "knowledge_context": knowledge_context if process_settings.get("include_imported_knowledge", True) else {
             "schema_version": "duecare.process.knowledge_context.v1",
@@ -2389,6 +2398,8 @@ def _gemma_edge_pass(app: Any, bundle: dict, *, prompt_id: str, limit: int) -> d
         "local_only": True,
         "remote_api_calls": False,
         "prompt_templates": GRAPH_EDGE_PROMPT_TEMPLATES,
+        "edge_quality_dimensions": EDGE_QUALITY_DIMENSIONS,
+        "pointed_edge_questions": EDGE_EXTRACTION_POINTED_QUESTIONS,
         "page_item_prompt_tree": PAGE_ITEM_PROMPT_TREE,
         "model_capability_notes": _MODEL_CAPABILITY_NOTES,
         "process_settings": (bundle.get("config") or {}).get("process_settings") or {},
