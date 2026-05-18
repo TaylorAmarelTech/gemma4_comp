@@ -15,8 +15,8 @@
 
 **DueCare: A Gemma 4 Safety Ecosystem for Migrant-Worker Protection**
 
-**Subtitle:** A self-hostable multi-module harness for safer moderation,
-case analysis, worker support, research, and anonymized sharing.
+**Subtitle:** A self-hostable multi-module harness for content moderation,
+case analysis, worker support, research, and anonymized knowledge sharing.
 
 ## Problem
 
@@ -40,7 +40,7 @@ DueCare wraps Gemma 4 in a local, inspectable safety substrate:
    steps.
 4. **Research and enforcement** - repeated patterns can be queried across
    reviewed graphs and exported reports.
-5. **Anonymized sharing** - reviewed facts can become redacted knowledge
+5. **Anonymized knowledge sharing** - reviewed facts can become redacted knowledge
    objects that improve local packs without centralizing raw case data.
 
 Gemma 4 is the engine under those lanes, not a separate product lane. The
