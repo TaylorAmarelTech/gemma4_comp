@@ -59,12 +59,13 @@ action buttons** in the empty state.
 
 1. Click 🟢 **"Headline lift: 5-indicator compound case"** — this
    fills the input with the canonical PHP+HKD compound case.
-2. Click **"Enable all"** above the harness toggles. All 5 tiles
-   light up (Persona / GREP / RAG / Tools / Online).
+2. Click **"Enable local"** above the harness toggles. The local
+   non-network tiles light up (Persona / GREP / RAG / Import / Tools).
+   Official Sources and Online stay off unless explicitly selected.
 3. Click **Send ↑**.
 
 Watch the response stream in. Expected substantive content (with
-all chat layers ON):
+the local chat layers ON):
 - ILO C029 §1 + ILO Indicator 9 (debt bondage) explicitly named
 - POEA MC 14-2017 cited (PH-HK zero placement fee)
 - HK Cap. 57 §32 cited (employment ordinance)

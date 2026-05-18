@@ -32,7 +32,7 @@ harness module exports three required names from its `__init__.py`:
 | Name | Type | Purpose |
 |---|---|---|
 | `name` | `str` | canonical short name (chat / process / extraction / ...) |
-| `applied_layers` | `tuple[str, ...]` | which safety layers fire via `_layers.compose_layers` (allowed: persona, grep, rag, tools, online) |
+| `applied_layers` | `tuple[str, ...]` | which safety layers fire via `_layers.compose_layers` (allowed: persona, grep, rag, tools, official_sources, online) |
 | `register_routes(app)` | callable | attaches FastAPI routes (no-op for notebook kernels) |
 
 Optional per-harness extensions:
@@ -71,7 +71,7 @@ OpenAI-compatible endpoints, Anthropic, Gemini, HF endpoints, and test doubles.
 
 | Harness | Endpoints | Gemma 4 role | Applied layers |
 |---|---|---|---|
-| `chat/` | `/api/chat/{send,upload-image,image/{sid}}` | full multimodal orchestrator | persona/grep/rag/tools/online |
+| `chat/` | `/api/chat/{send,upload-image,image/{sid}}` | full multimodal orchestrator | persona/grep/rag/tools/official_sources/online |
 | `process/` | `/api/process/{batch,graph-chat}` | bundle analyst | grep/rag/tools |
 | `extraction/` | `/api/knowledge/draft-envelope` | KnowledgeObject drafter | grep/rag |
 | `anonymization/` | `/api/{anonymize,submit/knowledge,submit/local}` | PII gate (regex-only, NO Gemma) | () |

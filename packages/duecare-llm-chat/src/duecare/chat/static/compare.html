@@ -114,10 +114,10 @@
     <p class="wb-lede">
       Same prompt, two harness configurations. Send one prompt through both and see what
       each safety layer changes. Variant A is typically stock Gemma 4
-      (no layers); Variant B is the full DueCare harness.
+      (no layers); Variant B is the full local DueCare harness by default.
       <b>Run order:</b> both variants share the single loaded Gemma 4,
       so they execute <i>sequentially</i> (A first, then B). The safety
-      layers (Persona, GREP, RAG, Tools, Online) fire <i>per variant</i>
+      layers (Persona, GREP, RAG, Tools, Official Sources, Online) fire <i>per variant</i>
       before each model call. Every step streams into the activity log
       at the bottom of the page in real time. Use the top <b>Model</b>
       control to load or switch the active model for all workbench pages.
@@ -193,6 +193,7 @@
           <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="A-grep"> GREP</label>
           <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="A-rag"> RAG</label>
           <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="A-tools"> Tools</label>
+          <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="A-official_sources"> Official Sources</label>
           <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="A-online"> Online</label>
           <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="A-import_corpus"> Import</label>
         </div>
@@ -202,6 +203,7 @@
           <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="B-grep" checked> GREP</label>
           <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="B-rag" checked> RAG</label>
           <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="B-tools" checked> Tools</label>
+          <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="B-official_sources"> Official Sources <span class="wb-muted">(official sites only)</span></label>
           <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="B-online"> Online <span class="wb-muted">(only fires if provider is wired)</span></label>
           <label style="font-size: 12.5px; margin-left: 10px;"><input type="checkbox" id="B-import_corpus"> Import</label>
         </div>
@@ -377,18 +379,19 @@
 
     <p class="wb-muted" style="margin-top: 14px;">
       Trust boundary: both runs hit the same loaded Gemma 4 in this
-      kernel. Nothing leaves the kernel (except the Online layer, if
-      enabled and wired to an internet search provider).
+      kernel. Nothing leaves the kernel except Official Sources or Online,
+      and both are unchecked by default.
     </p>
   </main>
 
   <script>
-    const LAYERS = ['persona', 'grep', 'rag', 'tools', 'online', 'import_corpus'];
+    const LAYERS = ['persona', 'grep', 'rag', 'tools', 'official_sources', 'online', 'import_corpus'];
     const LAYER_LABELS = {
       persona: 'Persona',
       grep: 'GREP',
       rag: 'RAG',
       tools: 'Tools',
+      official_sources: 'Official Sources',
       online: 'Online',
       import_corpus: 'Import',
     };
@@ -397,6 +400,7 @@
       grep: 'grep',
       rag: 'rag',
       tools: 'tools',
+      official_sources: 'official_sources',
       online: 'online',
       import_corpus: 'import',
     };
@@ -405,6 +409,7 @@
       grep: 'grep',
       rag: 'rag',
       tools: 'tools',
+      official_sources: 'official_sources',
       online: 'online',
       import: 'import_corpus',
       import_corpus: 'import_corpus',
@@ -743,18 +748,18 @@
     function cmpPreset(name) {
       const presets = {
         stock_vs_full: {
-          A: {persona: false, grep: false, rag: false, tools: false, online: false, import_corpus: false},
-          B: {persona: true,  grep: true,  rag: true,  tools: true,  online: false, import_corpus: false},
+          A: {persona: false, grep: false, rag: false, tools: false, official_sources: false, online: false, import_corpus: false},
+          B: {persona: true,  grep: true,  rag: true,  tools: true,  official_sources: false, online: false, import_corpus: false},
           A_label: 'stock', B_label: 'harness on',
         },
         grep_only_vs_full: {
-          A: {persona: false, grep: true,  rag: false, tools: false, online: false, import_corpus: false},
-          B: {persona: true,  grep: true,  rag: true,  tools: true,  online: false, import_corpus: false},
+          A: {persona: false, grep: true,  rag: false, tools: false, official_sources: false, online: false, import_corpus: false},
+          B: {persona: true,  grep: true,  rag: true,  tools: true,  official_sources: false, online: false, import_corpus: false},
           A_label: 'grep only', B_label: 'harness on',
         },
         with_online_vs_without: {
-          A: {persona: true,  grep: true,  rag: true,  tools: true,  online: false, import_corpus: false},
-          B: {persona: true,  grep: true,  rag: true,  tools: true,  online: true,  import_corpus: false},
+          A: {persona: true,  grep: true,  rag: true,  tools: true,  official_sources: false, online: false, import_corpus: false},
+          B: {persona: true,  grep: true,  rag: true,  tools: true,  official_sources: false, online: true,  import_corpus: false},
           A_label: 'no online', B_label: 'with online',
         },
       };
@@ -836,6 +841,7 @@
       {id: 'rag',     label: 'Retrieving from RAG corpus'},
       {id: 'import',  label: 'Loading imported documents'},
       {id: 'tools',   label: 'Calling lookup tools'},
+      {id: 'official_sources', label: 'Checking official sources'},
       {id: 'online',  label: 'Searching the web'},
       {id: 'model',   label: 'Generating response'},
     ];
@@ -1229,9 +1235,10 @@
       const on = LAYERS.filter(L => t[L]);
       if (on.length === 0) return 'stock';
       if (on.length === LAYERS.length) return 'all on';
-      // "harness on" = persona+grep+rag+tools+imports, online off
-      if (t.persona && t.grep && t.rag && t.tools && t.import_corpus && !t.online) return 'harness on';
-      if (t.grep && !t.persona && !t.rag && !t.tools && !t.online && !t.import_corpus) return 'grep only';
+      // "harness on" = persona+grep+rag+tools+imports, internet layers off
+      if (t.persona && t.grep && t.rag && t.tools && t.import_corpus && !t.official_sources && !t.online) return 'harness on';
+      if (t.persona && t.grep && t.rag && t.tools && t.official_sources && !t.online) return 'official-source harness';
+      if (t.grep && !t.persona && !t.rag && !t.tools && !t.official_sources && !t.online && !t.import_corpus) return 'grep only';
       return 'custom (' + on.length + '/' + LAYERS.length + ')';
     }
     function refreshVariantLabels() {

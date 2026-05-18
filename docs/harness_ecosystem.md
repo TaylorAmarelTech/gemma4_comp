@@ -68,7 +68,7 @@ These are the modules exposed through `duecare.chat.harnesses`.
 
 | Harness | Purpose | Gemma 4 role | Status |
 |---|---|---|---|
-| `chat` | Free-form content prompt processing with persona, GREP, RAG, tools, optional online, imports, traces, and grading hooks. | Required for real answers. | Implemented. |
+| `chat` | Free-form content prompt processing with persona, GREP, RAG, tools, optional official-source checks, optional online, imports, traces, and grading hooks. | Required for real answers. | Implemented. |
 | `process` | Bulk file review, case-bundle parsing, graph extraction, and graph-chat over local evidence. | Hybrid: deterministic parsing first, Gemma for graph-chat and deeper extraction. A fine-tuned Gemma 4 adapter can improve document classification and bulk edge generation. | Implemented. |
 | `extraction` | Draft typed KnowledgeObject envelopes from source text, documents, or process outputs. | Optional drafter; deterministic hints remain available without a model. | Implemented. |
 | `anonymization` | PII and confidential-data gate before sharing or submission. | Optional second review over already-redacted text. | Implemented. |
@@ -85,10 +85,11 @@ auditable proof artifact.
 
 | Harness family | Current code path | What it does | Status |
 |---|---|---|---|
-| Core layer composer | `harness/__init__.py`, `harnesses/_layers.py` | Composes persona, GREP, RAG, tools, online, and imports into the grounding Gemma receives. | Implemented. |
+| Core layer composer | `harness/__init__.py`, `harnesses/_layers.py` | Composes persona, GREP, RAG, tools, official-source checks, online, and imports into the grounding Gemma receives. | Implemented. |
 | Content safety response harness | `harnesses/chat`, Kernel 01 compare, A-00 `chat_no_online` | Runs prompts with and without the safety stack, captures traces, and produces comparable outputs. | Implemented. |
 | Offline default proof harness | A-00 preconfigured pipeline | Uses `chat_no_online`: persona + GREP + RAG/context + deterministic tools, with internet/import disabled for the default reproducible run. | Implemented. |
 | Search anonymization harness | `harnesses/search_safety` | Redacts private facts and can ask Gemma to generalize the query before it reaches a search provider. | Implemented. |
+| Official-source checking harness | chat `official_sources` layer, `harnesses/search_safety`, `harnesses/post_search_verification` | Runs targeted internet checks against allowlisted official domains such as DMW/POEA, Hong Kong Labour/e-Legislation, ILO, IOM, and UNODC. Non-official results are discarded before prompt injection. | Implemented; off by default. |
 | Online grounding harness | `harnesses/search`, `harnesses/search_safety`, `harnesses/post_search_verification`, chat online layer, A-00 documented path | Intended path: prompt -> Gemma-anonymized query -> search -> page markdown/snippets -> verification -> KnowledgeObjects -> prompt injection. | Partially implemented; default A-00 run keeps it off. |
 | Post-search verification harness | `harnesses/post_search_verification` | Reviews downloaded/search-result candidates for relevance, source quality, contradictions, and deanonymization risk before any result is injected. | Implemented first deterministic gate; deeper page-markdown review can be added. |
 | Anonymization/deanonymization review harness | `harnesses/anonymization`, A-00 `_redact` | Redacts PII, records hashes, and can run local residual-PII review before hub submission or external calls. | Implemented; external-boundary policy should stay strict. |
@@ -120,14 +121,20 @@ The safe target flow is:
 8. Inject only accepted knowledge objects or cited snippets into the final
    prompt.
 
-For the A-00 preconfigured proof run, online grounding remains off by default
-because the demo needs reproducibility and a clean privacy boundary.
+The chat workbench also has a narrower official-source layer for targeted
+checks against allowlisted public authority sites. It is separate from generic
+online search: it keeps a per-check plan, records accepted official results,
+and discards non-official domains before the model sees them.
+
+For the A-00 preconfigured proof run, online and official-source grounding
+remain off by default because the demo needs reproducibility and a clean
+privacy boundary.
 
 ## Naming guidance
 
 Use "harness ecosystem" for the full DueCare system. Use "core content-safety
 harness" or "chat harness" when referring specifically to persona + GREP + RAG
-+ tools + optional online around a prompt.
++ tools + optional official-source/online grounding around a prompt.
 
 Avoid saying DueCare is "one harness" unless the sentence is explicitly about
 one runtime surface. Better wording:

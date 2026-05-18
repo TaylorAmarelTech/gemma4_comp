@@ -33,7 +33,7 @@ The registered harnesses expose these fields through `HarnessSpec` and
 | `name` | Stable machine name such as `chat`, `process`, or `search_safety`. |
 | `tier` | `primary` for reviewer-facing safety surfaces, `secondary` for utilities. |
 | `kind` | `gemma_harness`, `safety_gate`, or `utility_surface`. |
-| `applied_layers` | Layer composer names: `persona`, `grep`, `rag`, `tools`, `online`. |
+| `applied_layers` | Layer composer names: `persona`, `grep`, `rag`, `tools`, `official_sources`, `online`. |
 | `consumes` | KnowledgeObject leaf types the harness can read. |
 | `emits` | KnowledgeObject leaf types the harness can write or propose. |
 | `logic_paths` | Named execution paths inside the harness, with steps, entrypoints, model-call role, consumed objects, emitted objects, and verification checks. |
@@ -60,7 +60,7 @@ HarnessLogicPath(
     entrypoints=("/api/chat/send", "/static/chat.html"),
     steps=(
         "normalize messages",
-        "compose persona/GREP/RAG/tools",
+        "compose persona/GREP/RAG/tools/official-source checks",
         "call Gemma 4",
         "stream response and trace",
     ),

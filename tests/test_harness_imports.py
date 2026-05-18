@@ -7,7 +7,9 @@ from duecare.chat.app import KO_BRANCHES
 from duecare.chat.harnesses import PRIMARY_HARNESSES, all_harnesses
 
 
-REQUIRED_LAYER_NAMES = {"persona", "grep", "rag", "tools", "online"}
+REQUIRED_LAYER_NAMES = {
+    "persona", "grep", "rag", "tools", "official_sources", "online",
+}
 VALID_KO_TYPES = set(KO_BRANCHES.keys())
 
 

@@ -1029,6 +1029,177 @@ def _online_search_with_fallback(query: str,
     ddg.update(fallback_errors)
     return ddg
 
+
+_OFFICIAL_SOURCE_TOOLS: tuple[dict[str, Any], ...] = (
+    {
+        "id": "ph_dmw_poea_policy",
+        "label": "Philippines DMW/POEA policy check",
+        "domains": ("dmw.gov.ph", "poea.gov.ph"),
+        "query": (
+            'site:dmw.gov.ph OR site:poea.gov.ph '
+            '"Hong Kong" "domestic worker" "zero placement fee"'
+        ),
+        "triggers": ("philipp", "filipino", "manila", "poea", "dmw", "hong kong", "placement fee"),
+    },
+    {
+        "id": "hk_labour_employment_agency",
+        "label": "Hong Kong Labour Department / EA rules",
+        "domains": ("labour.gov.hk", "elegislation.gov.hk"),
+        "query": (
+            'site:labour.gov.hk OR site:elegislation.gov.hk '
+            '"employment agency" "domestic helper" commission deduction'
+        ),
+        "triggers": ("hong kong", "hk", "employment agency", "deduction", "salary", "domestic helper"),
+    },
+    {
+        "id": "hk_employment_ordinance_deductions",
+        "label": "Hong Kong wage-deduction statute check",
+        "domains": ("elegislation.gov.hk",),
+        "query": (
+            'site:elegislation.gov.hk "Cap. 57" "section 32" '
+            '"deductions from wages"'
+        ),
+        "triggers": ("deduct", "deduction", "wage", "salary", "payroll", "assignment"),
+    },
+    {
+        "id": "ilo_recruitment_fees",
+        "label": "ILO recruitment-fee standard check",
+        "domains": ("ilo.org",),
+        "query": (
+            'site:ilo.org "C181" "Article 7" '
+            '"fees or costs" "workers"'
+        ),
+        "triggers": ("ilo", "recruit", "fee", "training", "medical", "worker"),
+    },
+    {
+        "id": "iom_unodc_trafficking_screening",
+        "label": "IOM/UNODC trafficking-screening update check",
+        "domains": ("iom.int", "unodc.org"),
+        "query": (
+            'site:iom.int OR site:unodc.org "trafficking in persons" '
+            '"debt bondage" "recruitment fees"'
+        ),
+        "triggers": ("trafficking", "debt bondage", "coercion", "palermo", "exploit"),
+    },
+)
+
+
+def _official_source_plan(user_text: str, *, limit: int = 4) -> list[dict[str, Any]]:
+    text = (user_text or "").lower()
+    selected: list[dict[str, Any]] = []
+    for tool in _OFFICIAL_SOURCE_TOOLS:
+        triggers = tool.get("triggers") or ()
+        if any(t in text for t in triggers):
+            selected.append({
+                "id": tool["id"],
+                "label": tool["label"],
+                "domains": list(tool["domains"]),
+                "query": tool["query"],
+            })
+    if not selected:
+        for tool in _OFFICIAL_SOURCE_TOOLS[:2]:
+            selected.append({
+                "id": tool["id"],
+                "label": tool["label"],
+                "domains": list(tool["domains"]),
+                "query": tool["query"],
+            })
+    seen: set[str] = set()
+    deduped: list[dict[str, Any]] = []
+    for item in selected:
+        if item["id"] in seen:
+            continue
+        seen.add(item["id"])
+        deduped.append(item)
+    return deduped[:limit]
+
+
+def _url_matches_official_domains(url: str, domains: list[str]) -> bool:
+    if not url:
+        return False
+    try:
+        import urllib.parse
+        host = (urllib.parse.urlparse(url).hostname or "").lower()
+    except Exception:
+        return False
+    for domain in domains:
+        d = (domain or "").lower().lstrip(".")
+        if host == d or host.endswith("." + d):
+            return True
+    return False
+
+
+def _run_official_source_tools(
+    user_text: str,
+    *,
+    kernel_call: Optional[Callable] = None,
+    official_source_call: Optional[Callable] = None,
+    top_n: int = 3,
+) -> dict:
+    """Run allowlisted official-source checks.
+
+    This layer is intentionally narrower than generic Online search:
+    each check is attached to an official domain allowlist and the
+    trace records both raw result counts and accepted official results.
+    A kernel may provide `official_source_call` for browser/page-fetch
+    tooling; otherwise the layer reuses the configured online backend
+    with site-scoped queries.
+    """
+    t0 = time.time()
+    checks: list[dict[str, Any]] = []
+    plan = _official_source_plan(user_text)
+    for item in plan:
+        query = item["query"]
+        domains = list(item["domains"])
+        try:
+            if official_source_call is not None:
+                try:
+                    search = official_source_call(item, user_text=user_text, top_n=top_n) or {}
+                except TypeError:
+                    search = official_source_call(query, top_n=top_n) or {}
+            else:
+                search = _online_search_with_fallback(
+                    query, kernel_call=kernel_call, top_n=top_n,
+                ) or {}
+        except Exception as exc:  # noqa: BLE001
+            checks.append({
+                **item,
+                "results": [],
+                "accepted_results": [],
+                "source": "error",
+                "error": f"{type(exc).__name__}: {exc}",
+            })
+            continue
+        raw_results = search.get("results") or []
+        accepted = [
+            r for r in raw_results
+            if _url_matches_official_domains(r.get("url", ""), domains)
+        ]
+        checks.append({
+            **item,
+            "source": search.get("source") or search.get("backend") or "official_source",
+            "backend": search.get("backend", ""),
+            "elapsed_ms": int(search.get("elapsed_ms", 0)),
+            "error": search.get("error", ""),
+            "results": raw_results[:top_n],
+            "accepted_results": accepted[:top_n],
+            "n_results": len(raw_results),
+            "n_accepted": len(accepted),
+        })
+    n_accepted = sum(c.get("n_accepted", 0) for c in checks)
+    return {
+        "plan": plan,
+        "checks": checks,
+        "n_checks": len(checks),
+        "n_accepted": n_accepted,
+        "elapsed_ms": int((time.time() - t0) * 1000),
+        "source": "official_source_tools",
+        "summary": (
+            f"{len(checks)} official-source check(s), "
+            f"{n_accepted} allowlisted result(s)"
+        ),
+    }
+
 # ---------------------------------------------------------------------------
 # Import / internal-intelligence corpus.
 # ---------------------------------------------------------------------------
@@ -1919,6 +2090,10 @@ class HarnessToggles(BaseModel):
     grep: bool = False
     rag: bool = False
     tools: bool = False
+    # Official-source tools are narrower than generic Online search:
+    # source-specific checks against allowlisted public authority
+    # domains, with non-official results discarded before injection.
+    official_sources: bool = False
     # 5th layer (added 2026-05-04 for the unified harness-chat
     # notebook): online web search via the kernel-provided
     # online_search_call. When True, the chat endpoint runs the
@@ -2027,6 +2202,7 @@ def create_app(
     tools_call: Optional[Callable] = None,
     grade_call: Optional[Callable] = None,
     online_search_call: Optional[Callable] = None,
+    official_source_call: Optional[Callable] = None,
     rerank_call: Optional[Callable] = None,
     embed_call:  Optional[Callable] = None,
     evaluator_call: Optional[Callable] = None,
@@ -2041,8 +2217,9 @@ def create_app(
     """Build the FastAPI app.
 
     `gemma_call` is the Gemma 4 entry point (always required for
-    chat). `grep_call`, `rag_call`, `tools_call`, `online_search_call`
-    are optional safety/context layers — when wired AND enabled
+    chat). `grep_call`, `rag_call`, `tools_call`, `online_search_call`,
+    and `official_source_call` are optional safety/context layers —
+    when wired AND enabled
     per-message via HarnessToggles, the chat endpoint runs them in
     sequence and folds their output into Gemma's prompt + the
     response payload. The chat UI surfaces the toggle checkboxes only
@@ -2066,6 +2243,12 @@ def create_app(
             {"results": [{"rank": int, "title": str, "url": str,
                            "snippet": str}], "source": str,
              "elapsed_ms": int}
+
+        official_source_call(plan_item: dict, user_text: str, top_n: int = 3) -> dict
+            Optional specialized current-source verifier for official
+            government / ILO / IOM / UNODC sites. Returned results are
+            still filtered by the plan item's allowed domains before
+            prompt injection.
 
         rerank_call(query: str, candidates: list[dict]) -> list[dict]
             Reorder a first-stage retrieval result by relevance to the
@@ -2113,6 +2296,7 @@ def create_app(
     app.state.tools_call = tools_call
     app.state.grade_call = grade_call
     app.state.online_search_call = online_search_call
+    app.state.official_source_call = official_source_call
     app.state.rerank_call = rerank_call
     app.state.embed_call  = embed_call
     app.state.evaluator_call = evaluator_call
@@ -2329,6 +2513,12 @@ def create_app(
             }
         except Exception as e:  # noqa: BLE001
             harness_counts = {"error": f"{type(e).__name__}: {e}"}
+        with _ONLINE_CONFIG_LOCK:
+            online_keyed = bool(
+                _ONLINE_CONFIG.get("brave_api_key")
+                or _ONLINE_CONFIG.get("tavily_api_key")
+            )
+        online_wired = app.state.online_search_call is not None or online_keyed
         return {
             "ok":             True,
             "ready":          app.state.gemma_call is not None,
@@ -2343,7 +2533,9 @@ def create_app(
                 "grep":    app.state.grep_call is not None,
                 "rag":     app.state.rag_call is not None,
                 "tools":   app.state.tools_call is not None,
-                "online":  app.state.online_search_call is not None,
+                "official_sources": app.state.official_source_call is not None
+                                    or online_wired,
+                "online":  online_wired,
             },
             "grade_modes": {
                 "universal":  True,
@@ -2413,17 +2605,33 @@ def create_app(
         questions."""
         with _ONLINE_CONFIG_LOCK:
             online_brave_key = bool(_ONLINE_CONFIG.get("brave_api_key"))
+            online_tavily_key = bool(_ONLINE_CONFIG.get("tavily_api_key"))
         online_wired = (app.state.online_search_call is not None
-                         or online_brave_key)
+                         or online_brave_key or online_tavily_key)
+        official_sources_wired = (
+            app.state.official_source_call is not None or online_wired
+        )
         return {
             "persona":          bool(app.state.persona_default),
             "persona_default":  app.state.persona_default or "",
             "grep":             app.state.grep_call is not None,
             "rag":              app.state.rag_call is not None,
             "tools":            app.state.tools_call is not None,
+            "official_sources":  official_sources_wired,
+            "official_source_tools": official_sources_wired,
+            "official_source_kernel": app.state.official_source_call is not None,
+            "official_source_checks": [
+                {
+                    "id": item["id"],
+                    "label": item["label"],
+                    "domains": list(item["domains"]),
+                }
+                for item in _OFFICIAL_SOURCE_TOOLS
+            ],
             "online":           online_wired,
             "online_kernel_ddg": app.state.online_search_call is not None,
             "online_brave":      online_brave_key,
+            "online_tavily":     online_tavily_key,
             # Import is owned by the chat package; the server-side
             # _IMPORT_STORE is always reachable.
             "import":           True,
@@ -4553,6 +4761,59 @@ def create_app(
             lines.append(f"- `{name}({args})` → {result}")
         return "\n".join(lines) + "\n"
 
+    def _format_official_sources_context(official_result: dict) -> str:
+        """Render allowlisted current-source checks."""
+        checks = official_result.get("checks") or []
+        if not checks:
+            return ""
+        lines = [
+            "## SAFETY HARNESS - Official source tools layer",
+            "",
+            "_Targeted internet checks against allowlisted official "
+            "government / ILO / IOM / UNODC domains. Non-official "
+            "results are discarded before injection. Treat these as "
+            "current-source leads and cite URLs only after checking "
+            "them against bundled RAG/tools evidence._",
+            "",
+        ]
+        for check in checks[:6]:
+            label = check.get("label") or check.get("id") or "official check"
+            query = check.get("query", "")
+            domains = ", ".join(check.get("domains") or [])
+            source = check.get("source") or check.get("backend") or "official_source"
+            lines.append(f"### {label}")
+            if domains:
+                lines.append(f"Allowed domains: {domains}")
+            if query:
+                lines.append(f"Query: {query}")
+            lines.append(f"Backend: {source}")
+            accepted = check.get("accepted_results") or []
+            if accepted:
+                lines.append("Accepted official results:")
+                for i, result in enumerate(accepted[:3], 1):
+                    title = result.get("title") or "(untitled)"
+                    url = result.get("url") or ""
+                    snippet = (
+                        result.get("content")
+                        or result.get("snippet")
+                        or result.get("description")
+                        or ""
+                    )
+                    lines.append(f"- [{i}] {title}")
+                    if url:
+                        lines.append(f"  {url}")
+                    if snippet:
+                        lines.append(f"  {snippet[:500]}")
+            else:
+                err = check.get("error") or "no allowlisted result returned"
+                lines.append(
+                    f"No accepted official result for this check ({err}). "
+                    "Use bundled RAG/tool citations and note that current "
+                    "official-source verification is still needed."
+                )
+            lines.append("")
+        return "\n".join(lines) + "\n"
+
     def _format_online_context(online_result: dict) -> str:
         """Render online-search results as a context block. Mirrors
         the RAG layer pattern; each result becomes a numbered
@@ -4666,7 +4927,7 @@ def create_app(
         the role definition before the safety findings.
 
         progress_callback: optional. Called with
-            {"type": "step_start", "step": <persona|grep|rag|import|tools|online>}
+            {"type": "step_start", "step": <persona|grep|rag|import|tools|official_sources|online>}
         before each layer fires, and
             {"type": "step_done", "step": ..., "elapsed_ms": ...,
              "summary": ..., "n_items": ...}
@@ -4681,6 +4942,15 @@ def create_app(
                 progress_callback(evt)
             except Exception:  # noqa: BLE001
                 pass  # never let a UI bug crash the harness
+        with _ONLINE_CONFIG_LOCK:
+            online_keyed = bool(
+                _ONLINE_CONFIG.get("brave_api_key")
+                or _ONLINE_CONFIG.get("tavily_api_key")
+            )
+        online_wired = app.state.online_search_call is not None or online_keyed
+        official_sources_wired = (
+            app.state.official_source_call is not None or online_wired
+        )
         trace = {
             "persona": {"enabled": toggles.persona,
                          "wired": bool(app.state.persona_default),
@@ -4695,7 +4965,11 @@ def create_app(
                         "fired": False, "elapsed_ms": 0, "docs": [], "summary": ""},
             "tools": {"enabled": toggles.tools, "wired": app.state.tools_call is not None,
                        "fired": False, "elapsed_ms": 0, "tool_calls": [], "summary": ""},
-            "online": {"enabled": toggles.online, "wired": app.state.online_search_call is not None,
+            "official_sources": {"enabled": getattr(toggles, "official_sources", False),
+                         "wired": official_sources_wired,
+                         "fired": False, "elapsed_ms": 0, "checks": [],
+                         "plan": [], "summary": ""},
+            "online": {"enabled": toggles.online, "wired": online_wired,
                          "fired": False, "elapsed_ms": 0, "results": [], "summary": ""},
         }
         prepend_snippets: list[str] = []
@@ -5057,16 +5331,55 @@ def create_app(
                           ("not toggled" if not toggles.tools else
                            "not wired" if app.state.tools_call is None else "no tools")})
 
+        # -- official_sources (allowlisted current-source tools) --
+        # Separate from generic Online search. This layer runs targeted
+        # checks against official sites and filters non-official results
+        # before the model sees them.
+        _emit({"type": "step_start", "step": "official_sources"})
+        _t0 = time.time()
+        if getattr(toggles, "official_sources", False) and official_sources_wired:
+            try:
+                osr = _run_official_source_tools(
+                    user_text,
+                    kernel_call=app.state.online_search_call,
+                    official_source_call=app.state.official_source_call,
+                ) or {}
+                trace["official_sources"].update({
+                    "fired": True,
+                    "elapsed_ms": max(int(osr.get("elapsed_ms", 0)),
+                                       int((time.time() - _t0) * 1000)),
+                    "plan": osr.get("plan") or [],
+                    "checks": osr.get("checks") or [],
+                    "n_checks": int(osr.get("n_checks") or 0),
+                    "n_accepted": int(osr.get("n_accepted") or 0),
+                    "source": osr.get("source", "official_source_tools"),
+                    "summary": osr.get("summary", ""),
+                })
+                snippet = _format_official_sources_context(osr)
+                if snippet:
+                    prepend_snippets.append(snippet)
+            except Exception as exc:  # noqa: BLE001
+                trace["official_sources"]["summary"] = (
+                    f"error: {type(exc).__name__}: {exc}")
+        _emit({"type": "step_done", "step": "official_sources",
+               "fired": trace["official_sources"]["fired"],
+               "wired": trace["official_sources"]["wired"],
+               "enabled": trace["official_sources"]["enabled"],
+               "elapsed_ms": int((time.time() - _t0) * 1000),
+               "summary": trace["official_sources"]["summary"] or
+                          ("not toggled" if not getattr(toggles, "official_sources", False)
+                           else "not wired" if not official_sources_wired
+                           else "no official results")})
+
         # ── online (web search) ───────────────────────────────────
         # Routes through _online_search_with_fallback which honors the
-        # /api/online/config backend choice (auto / brave / ddg). With
-        # a Brave key configured, the chat package calls Brave's JSON
-        # API directly; otherwise (or on Brave error in auto mode) it
-        # delegates to the kernel-supplied online_search_call.
+        # /api/online/config backend choice (auto / tavily / brave / ddg).
+        # With a keyed backend configured, the chat package calls it
+        # directly; otherwise it delegates to the kernel-supplied
+        # online_search_call.
         _emit({"type": "step_start", "step": "online"})
         _t0 = time.time()
-        if toggles.online and (app.state.online_search_call is not None
-                                  or _ONLINE_CONFIG.get("brave_api_key")):
+        if toggles.online and online_wired:
             try:
                 osr = _online_search_with_fallback(
                     user_text, kernel_call=app.state.online_search_call,
@@ -5167,7 +5480,7 @@ def create_app(
                "elapsed_ms": int((time.time() - _t0) * 1000),
                "summary": trace["online"]["summary"] or
                           ("not toggled" if not toggles.online else
-                           "not wired" if app.state.online_search_call is None else "no results")})
+                           "not wired" if not online_wired else "no results")})
 
         # v0.14.0: cap total prepended-harness text. With Online +
         # deep-fetch + RAG + Imports all firing, the pre-prompt block

@@ -114,9 +114,10 @@ Once the live URL is known (post `USER_TODO.md` step 1):
    "RETRIEVAL PATH TRACE" card — see the actual retrieval-stage chain
    (BM25 → optional rerank → graph expansion → parent expansion).
 6. **Click "Compare"** in the top bar. Load the same prompt. Set
-   variant A to "Stock (no harness)" and variant B to "All layers on".
-   Click Run. Wait. The side-by-side delta shows the harness lift
-   live.
+   variant A to "Stock (no harness)" and variant B to "Full local
+   harness". Official Sources and Online stay off unless explicitly
+   selected. Click Run. Wait. The side-by-side delta shows the harness
+   lift live.
 7. **Try an adversarial prompt** — load `jb_001` from
    `model_capability` bucket. Send. Verify the harness catches the
    jailbreak.
