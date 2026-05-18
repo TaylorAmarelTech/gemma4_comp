@@ -6810,8 +6810,8 @@ __A00_SHUTDOWN_CONTROL__
         <li>Run the fine-tuned model with the harness.</li>
         <li>Grade all outputs with the selected normal Gemma plus rules combined mode and build the final report.</li>
       </ol>
-      <div class="a00-static-settings" aria-label="Static preconfigured settings">
-        <h3>Static settings used for this run</h3>
+      <details class="a00-static-settings" aria-label="Static preconfigured settings">
+        <summary><h3 style="display:inline; font-size:14px; margin:0;">Static settings used for this run</h3> <span class="wb-muted" style="font-weight: normal; font-size: 12px;">click to expand the rationale</span></summary>
         <dl>
           <dt>Baseline arm</dt>
           <dd>No DueCare harness. Same prompts, same selected Gemma model.</dd>
@@ -6836,7 +6836,7 @@ __A00_SHUTDOWN_CONTROL__
           <dt>Runtime budget</dt>
           <dd>Default is 4 prompts for a competition proof run. Use 2 prompts for a short smoke test; larger runs should use Custom or a faster workstation.</dd>
         </dl>
-      </div>
+      </details>
       <div class="a00-choice-controls">
         <div class="row compact-row">
           <label>Run/train Gemma model <select id="preconfig-model"></select></label>
