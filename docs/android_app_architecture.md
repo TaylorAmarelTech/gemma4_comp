@@ -23,8 +23,8 @@
 > remain authored here in Python and codegen-mirrored to Kotlin).
 >
 > Sibling repo also contains a GitHub Actions workflow that builds
-> a debug APK on every push, so reviewers / contributors can produce
-> a sideloadable APK without installing Android Studio locally.
+> a debug APK on every push, runs Android unit tests, and verifies the
+> bundled harness manifest inside the APK before uploading the artifact.
 >
 > **Special Technology Track eligibility:** LiteRT.
 
@@ -83,8 +83,8 @@ HK, IJM, or their embassy attaché.
 │                              ▲                                   │
 │  ┌────────────────────────────────────────────────────────────┐ │
 │  │  [1] INFERENCE LAYER                                       │ │
-│  │      LiteRT Gemma 4 E2B (INT8) + bundled harness:          │ │
-│  │      100+ GREP rules, 50+ RAG docs, 5 tools                   │ │
+│  │      LiteRT Gemma 4 E2B (INT8) + verified v0.9 harness:    │ │
+│  │      4 prompt rules/docs, 2 tools, 20 corridor profiles    │ │
 │  └────────────────────────────────────────────────────────────┘ │
 └──────────────────────────────────────────────────────────────────┘
 
@@ -104,7 +104,7 @@ HK, IJM, or their embassy attaché.
 | Throughput target (mid-range, Snapdragon 7-class) | 4-8 tokens/sec |
 | Conversion path | PyTorch → AI Edge Torch → `.task` LiteRT bundle |
 | Hardware acceleration | NNAPI on Android 13+; Vulkan compute fallback; CPU INT8 floor |
-| Bundled with | the same 100+ GREP rules + 50+ RAG docs + 5 tools that the Kaggle notebooks ship with — packed into the APK assets |
+| Bundled with | APK asset `duecare_harness_manifest.json`; active advice prompt harness (4 GREP rules, 4 RAG docs, 2 lookup functions); deterministic domain intelligence (16 report risk rules, 11 ILO indicators, 20 corridor profiles). The full desktop/web harness remains in this parent repo and is the source of truth for future Android codegen sync. |
 
 **Why E2B not E4B:** E2B fits comfortably on every device with 4GB+
 RAM. E4B requires 6GB+ and excludes a meaningful fraction of the
