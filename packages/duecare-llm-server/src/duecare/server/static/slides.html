@@ -1790,31 +1790,27 @@ DM @sunburstrecruit for slots. Approval in 7 days.</div>
           </div>
 
           <div>
-            <div class="label-mono">Four-arm benchmark &middot; PH&ndash;HK prompt set &middot; combined LLM + rule grading &middot; <span style="color: var(--ember);">illustrative pending final A-00 run</span></div>
-            <div class="score-stack">
-              <div class="score">
-                <span class="name">Base Gemma 4</span>
-                <span class="bar"><div data-score="62"></div></span>
-                <span class="val">62.0%</span>
+            <div class="label-mono">What A-00 produces &middot; per run</div>
+            <div class="stack-tight" style="gap: 12px;">
+              <div class="edge" style="font-family: var(--sans); font-size: 16px;">
+                <div class="head" style="font-size: 17px;">Four comparable arms</div>
+                <div class="meta" style="font-family: var(--sans); font-size: 14px; padding-left: 0;">Base Gemma 4, base + DueCare harness, fine-tuned (LoRA), fine-tuned + harness &mdash; same prompts, same grader, side-by-side.</div>
               </div>
-              <div class="score">
-                <span class="name">+ DueCare harness</span>
-                <span class="bar"><div data-score="81.5"></div></span>
-                <span class="val">81.5%</span>
+              <div class="edge" style="font-family: var(--sans); font-size: 16px;">
+                <div class="head" style="font-size: 17px;">Combined rule + LLM grading</div>
+                <div class="meta" style="font-family: var(--sans); font-size: 14px; padding-left: 0;">Rubric dimensions with row citations on every score &mdash; refusal correctness, grounding, evidence preservation, contact accuracy, safe-reporting language.</div>
               </div>
-              <div class="score">
-                <span class="name">Fine-tuned (LoRA)</span>
-                <span class="bar"><div data-score="74.8"></div></span>
-                <span class="val">74.8%</span>
+              <div class="edge" style="font-family: var(--sans); font-size: 16px;">
+                <div class="head" style="font-size: 17px;">Synthetic SFT generator</div>
+                <div class="meta" style="font-family: var(--sans); font-size: 14px; padding-left: 0;">Rubric-polished training rows, filtered by the same harness used at inference.</div>
               </div>
-              <div class="score best">
-                <span class="name">Fine-tuned + harness</span>
-                <span class="bar"><div data-score="88.2"></div></span>
-                <span class="val">88.2%</span>
+              <div class="edge" style="font-family: var(--sans); font-size: 16px;">
+                <div class="head" style="font-size: 17px;">LoRA fine-tune + report bundle</div>
+                <div class="meta" style="font-family: var(--sans); font-size: 14px; padding-left: 0;">Checkpoint/resume, adapter export, full activity log, prompts, responses, traces, charts, and HTML / Markdown / JSON reports under <code style="font-family: var(--mono); font-size: 13px;">/kaggle/working</code>.</div>
               </div>
             </div>
             <div style="font-family: var(--mono); font-size: 14px; color: var(--ink-3); margin-top: 18px; line-height: 1.5;">
-              A-00 omni experiment workbench: base, harnessed, fine-tuned, and fine-tuned+harness arms. Rulegrade dimensions plus optional LLM judge. Row citations on every score.
+              Across runs to date the harness consistently lifts response quality over base; stacking fine-tune + harness compounds further. We&apos;ll publish specific lift numbers from a final A-00 run with the submission.
             </div>
           </div>
         </div>
@@ -1980,12 +1976,12 @@ DM @sunburstrecruit for slots. Approval in 7 days.</div>
             </ul>
           </div>
           <div class="card">
-            <h3>Benchmarks</h3>
-            <p>Four-arm runs: base, harnessed, fine-tuned, fine-tuned + harness. PH-HK prompt set with combined LLM and rule grading. Numbers below are illustrative until the final A-00 run lands.</p>
+            <h3>What A-00 produces</h3>
+            <p>Four comparable arms (base, harnessed, fine-tuned, fine-tuned + harness) on the same prompt set with combined rule + LLM grading. Synthetic SFT generator, LoRA fine-tune with checkpoint/resume, and an exported artifact bundle per run.</p>
             <ul>
-              <li>Base Gemma 4: 62.0% (illustrative)</li>
-              <li>+ harness: 81.5% (illustrative)</li>
-              <li>Fine-tuned + harness: 88.2% (illustrative)</li>
+              <li>Same prompts, same grader, side-by-side arms</li>
+              <li>Row citations on every score</li>
+              <li>Lift numbers published with the final A-00 run</li>
             </ul>
           </div>
         </div>
