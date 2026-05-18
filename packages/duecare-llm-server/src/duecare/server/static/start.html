@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DueCare live demo — Start</title>
+<link rel="stylesheet" href="/static/styles.css">
+<style>
+  :root { color-scheme: light; }
+  body { background: var(--paper, #F7F6F1); color: var(--ink, #0E1116); margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+  .start-shell { max-width: 1100px; margin: 0 auto; padding: 48px 28px 64px; }
+  .start-header { margin-bottom: 36px; }
+  .start-kicker { font-family: var(--mono, "JetBrains Mono", monospace); font-size: 11px; color: var(--ink-3, #5B5F68); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+  .start-header h1 { font-size: clamp(34px, 4.4vw, 56px); letter-spacing: -0.03em; line-height: 1.04; margin: 0 0 14px; max-width: 22ch; }
+  .start-header p.lede { font-size: 17px; line-height: 1.55; color: var(--ink-2, #2A2D34); margin: 0; max-width: 64ch; }
+  .start-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; margin-top: 28px; }
+  @media (max-width: 860px) { .start-grid { grid-template-columns: 1fr; } }
+  .start-tile { background: #FFF; border: 1px solid var(--line, #DDD8C9); border-radius: 16px; padding: 28px 26px 24px; display: flex; flex-direction: column; gap: 14px; min-height: 360px; cursor: pointer; transition: border-color 140ms ease, transform 140ms ease, box-shadow 140ms ease; text-decoration: none; color: inherit; }
+  .start-tile:hover, .start-tile:focus { border-color: var(--ink, #0E1116); transform: translateY(-2px); box-shadow: 0 12px 32px rgba(14,17,22,0.08); outline: none; }
+  .start-tile .start-tile-num { font-family: var(--mono, monospace); font-size: 11px; color: var(--ink-3, #5B5F68); text-transform: uppercase; letter-spacing: 0.1em; }
+  .start-tile h2 { font-size: 22px; letter-spacing: -0.01em; margin: 6px 0 6px; }
+  .start-tile p.summary { font-size: 14.5px; line-height: 1.55; color: var(--ink-2, #2A2D34); margin: 0; }
+  .start-tile ul { padding-left: 18px; margin: 6px 0 0; color: var(--ink-2, #2A2D34); font-size: 13.5px; line-height: 1.55; }
+  .start-tile ul li { margin-bottom: 5px; }
+  .start-tile .start-tile-cta { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line-soft, #E8E4D7); display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--accent-ink, #1B4E66); font-weight: 600; }
+  .start-tile .start-tile-cta .start-arrow { font-family: var(--mono, monospace); font-size: 18px; transition: transform 120ms ease; }
+  .start-tile:hover .start-tile-cta .start-arrow { transform: translateX(4px); }
+  .start-pill { display: inline-block; padding: 4px 10px; border-radius: 999px; background: var(--paper-2, #EFEDE4); border: 1px solid var(--line, #DDD8C9); font-family: var(--mono, monospace); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3, #5B5F68); }
+  .start-recommend { background: var(--ink, #0E1116); color: var(--paper, #F7F6F1); border-color: var(--ink, #0E1116); }
+  .start-footer { margin-top: 28px; display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--ink-3, #5B5F68); }
+  .start-footer a { color: var(--accent-ink, #1B4E66); text-decoration: none; }
+  .start-footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<main class="start-shell">
+  <header class="start-header">
+    <div class="start-kicker">DueCare · Gemma 4 Good Hackathon · Live demo</div>
+    <h1>Pick how you want to drive the demo.</h1>
+    <p class="lede">
+      Two paths. Use the slide deck to walk a reviewer through the
+      pitch (title, problem, solution, live demo segments, results) in a
+      single screen recording. Use the slide setup to prepare cached
+      input/output examples per audience so the deck never waits on
+      live inference during a take.
+    </p>
+  </header>
+
+  <section class="start-grid" aria-label="Demo entry points">
+
+    <a class="start-tile" id="tile-slides" href="/slides" tabindex="0">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+        <span class="start-tile-num">Option 1</span>
+        <span class="start-pill start-recommend">recommended for recording</span>
+      </div>
+      <h2>Project slides</h2>
+      <p class="summary">
+        Full-screen pitch deck. Title, problem, stakes, solution, live
+        demo segments with embedded chat / video, architecture, results,
+        closing. Arrow keys advance.
+      </p>
+      <ul>
+        <li>Title slide and project framing</li>
+        <li>Composite worker problem statement</li>
+        <li>Solution: Gemma 4 harness ecosystem</li>
+        <li>Live demo slides with embedded chat and screen recording</li>
+        <li>Architecture, results, closing call-to-action</li>
+      </ul>
+      <div class="start-tile-cta">
+        <span>Open the deck</span>
+        <span class="start-arrow">&rarr;</span>
+      </div>
+    </a>
+
+    <a class="start-tile" id="tile-setup" href="/slides/setup" tabindex="0">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+        <span class="start-tile-num">Option 2</span>
+        <span class="start-pill">prep before recording</span>
+      </div>
+      <h2>Project slide setup</h2>
+      <p class="summary">
+        Generate and cache demo input/output examples per audience and
+        use case. Slides display the cached responses immediately so the
+        recording never waits for live inference.
+      </p>
+      <ul>
+        <li>Pick audience: worker, NGO, regulator, researcher, developer</li>
+        <li>Pick use case: PH-HK placement fee, passport retention,
+            contract substitution, debt bondage, retaliation risk</li>
+        <li>Generate prompt + cached response</li>
+        <li>Save to slide content for the deck to render directly</li>
+        <li>Re-generate when source rules or evidence packs change</li>
+      </ul>
+      <div class="start-tile-cta">
+        <span>Prepare cached I/O</span>
+        <span class="start-arrow">&rarr;</span>
+      </div>
+    </a>
+
+  </section>
+
+  <div class="start-footer">
+    <span>Need the workbench instead?</span>
+    <a href="/">Hub homepage</a>
+    <a href="/demo">Public demo page</a>
+    <a href="/wb-static/process.html">Bulk File Review</a>
+    <a href="/wb-static/harness.html">Harness Workbench</a>
+  </div>
+</main>
+</body>
+</html>
