@@ -12,7 +12,7 @@ Android APK.
 Protection**
 
 **Subtitle:** A self-hostable multi-module harness for safer
-moderation, case analysis, worker access, research, and anonymized
+moderation, case analysis, worker support, research, and anonymized
 sharing.
 
 ## Recording Principles

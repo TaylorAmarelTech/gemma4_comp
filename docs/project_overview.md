@@ -16,7 +16,7 @@
 **DueCare: A Gemma 4 Safety Ecosystem for Migrant-Worker Protection**
 
 **Subtitle:** A self-hostable multi-module harness for safer moderation,
-case analysis, worker access, research, and anonymized sharing.
+case analysis, worker support, research, and anonymized sharing.
 
 ## Problem
 
