@@ -4,7 +4,7 @@ This project should treat fine-tuning as a controlled model-improvement loop, no
 
 ## Short answer
 
-Yes, we need sample data for the demo and real training data for A07. The harness can generate much of that data, but harness-generated rows are **silver data** until they pass validation, deduplication, and privacy gates.
+Yes, we need sample data for the demo and real training data for A07. The harness can generate much of that data, but harness-generated rows are **silver data** until they pass validation, deduplication, and sensitive-data handling checks.
 
 Use the harness to produce:
 

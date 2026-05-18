@@ -1,8 +1,10 @@
 """Word count for docs/writeup_draft.md body.
 
-Excludes the front-matter blockquote header and the closing
-'Going deeper' nav block, since those don't count toward the 1,500
-word submission cap.
+The Kaggle form stores title and subtitle in separate fields, so this
+counter excludes the local title/subtitle preface and counts the body
+that should be pasted into the write-up text box. Older drafts used a
+standalone ``---`` delimiter; current drafts start the body at the first
+``##`` section heading.
 """
 
 from __future__ import annotations
@@ -13,10 +15,18 @@ from pathlib import Path
 
 def count_body_words(path: Path) -> tuple[int, int, str]:
     src = path.read_text(encoding="utf-8")
-    # Header is everything before the first standalone '---'.
     parts = src.split("\n---\n", 1)
-    header = parts[0]
-    body = parts[1] if len(parts) > 1 else ""
+    if len(parts) > 1:
+        header = parts[0]
+        body = parts[1]
+    else:
+        match = re.search(r"(?m)^##\s+", src)
+        if match:
+            header = src[: match.start()]
+            body = src[match.start() :]
+        else:
+            header = ""
+            body = src
     # Strip closing nav.
     body = body.split("## 8. Going deeper", 1)[0]
 

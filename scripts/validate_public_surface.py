@@ -7,7 +7,7 @@ Bundles the audits that have caught real defects this hackathon:
    CHECKPOINT_, GPT55_*, REPO_LAYOUT, _reference)
 2. **Route 200 sweep** — every PAGE_ROUTES entry + every link in
    _nav.html / _footer.html must return 200 via TestClient
-3. **Five-lane consistency** — confirms the canonical lane order
+3. **Six-lane consistency** — confirms the canonical lane order
    appears intact on the homepage / setup / use-cases / README
 4. **Lane labels on Kaggle READMEs** — every kaggle/{01,02,A-*}/
    README.md should carry the "Serves lanes:" line so judges
@@ -95,7 +95,7 @@ DRIFT_TERMS: tuple[tuple[str, str, str], ...] = (
     (r"<h[1-3][^>]*>\s*Privacy is non-negotiable", "privacy slogan as h1-h3 headline", "concrete data-rule sentence"),
 )
 
-# --- Five-lane canonical order ------------------------------------------------
+# --- Six-lane canonical order -------------------------------------------------
 
 # Each lane is a tuple of accepted tokens (any one matches). The lane
 # order itself is what we enforce; within a lane, any of the listed
@@ -107,6 +107,7 @@ LANE_ALIASES_ORDERED: tuple[tuple[str, ...], ...] = (
     ("Individual worker / mobile", "Migrant worker chat", "Migrant worker / mobile"),
     ("Researcher", "Academic research"),
     ("Developer / integration partner", "Developer", "Custom integration"),
+    ("Anonymized knowledge sharing", "Knowledge sharing", "Anonymized sharing"),
 )
 
 LANE_ANCHOR_FILES: tuple[Path, ...] = (
@@ -267,10 +268,10 @@ def check_routes_200() -> CheckResult:
     return result
 
 
-# --- Check 3: five-lane order on anchor templates ----------------------------
+# --- Check 3: six-lane order on anchor templates -----------------------------
 
 def check_lane_order() -> CheckResult:
-    result = CheckResult(name="five_lane_order")
+    result = CheckResult(name="six_lane_order")
     for path in LANE_ANCHOR_FILES:
         if not path.is_file():
             result.findings.append(
@@ -622,7 +623,7 @@ def main() -> int:
         choices=[
             "drift_terms",
             "hub_routes_200",
-            "five_lane_order",
+            "six_lane_order",
             "kaggle_lane_labels",
             "bundle_envelope_v1",
             "bundle_envelope_manifest_checksums",
@@ -634,7 +635,7 @@ def main() -> int:
     runners = [
         ("drift_terms", check_drift_terms),
         ("hub_routes_200", check_routes_200),
-        ("five_lane_order", check_lane_order),
+        ("six_lane_order", check_lane_order),
         ("kaggle_lane_labels", check_kaggle_lane_labels),
         ("bundle_envelope_v1", check_bundle_envelope_v1),
         ("bundle_envelope_manifest_checksums",

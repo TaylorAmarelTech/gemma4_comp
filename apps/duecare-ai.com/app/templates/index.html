@@ -116,7 +116,7 @@
     display: flex; gap: 12px; flex-wrap: wrap; margin-top: 32px;
   }
 
-  /* 2x2 use-case grid above the fold */
+  /* Use-case grid above the fold */
   .hero-uses {
     display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
   }
@@ -431,7 +431,8 @@
           <span>NGOs &amp; regulators</span><span class="sep">/</span>
           <span>Individual worker / mobile</span><span class="sep">/</span>
           <span>Researchers</span><span class="sep">/</span>
-          <span>Developers</span>
+          <span>Developers</span><span class="sep">/</span>
+          <span>Knowledge sharing</span>
         </div>
         <div class="ctas">
           <a class="btn" href="/demo">▸ Watch the demo <span class="arrow">→</span></a>
@@ -508,6 +509,23 @@
       </ul>
       <span class="uc-link">→ integration paths</span>
     </a>
+    <a class="uc uc-wide" href="#u6">
+      <div class="uc-head">
+        <span class="num">06</span>
+        <span>Anonymized knowledge sharing</span>
+      </div>
+      <div class="uc-wide-body">
+        <h3>Share verified facts, not raw case files.</h3>
+        <p class="uc-body">Reviewed, redacted facts become reusable knowledge objects after local sanitization and human approval. Partners can improve corridor packs without exposing workers, private documents, names, contact details, or case narratives.</p>
+      </div>
+      <ul class="uc-wide-list">
+        <li>Reviewed evidence graphs</li>
+        <li>Local PII anonymization</li>
+        <li>Consent-aware metadata</li>
+        <li>Vetted knowledge objects</li>
+      </ul>
+      <span class="uc-link">→ sharing flow</span>
+    </a>
   </div>
 </section>
 
@@ -550,7 +568,7 @@
       <div>
         <span class="lbl">/ use cases</span>
         <h3>See the full set of use cases &amp; deployments.</h3>
-        <p>Reference scenarios for Platform safety, NGO &amp; regulator, Individual worker, Researcher, and Developer / integration partner lanes, with the deployment architecture for each one in a single place.</p>
+        <p>Reference scenarios for Platform safety, NGO &amp; regulator, Individual worker, Researcher, Developer / integration partner, and Anonymized knowledge sharing lanes, with the deployment architecture for each one in a single place.</p>
       </div>
       <a class="btn" href="/use-cases">View use cases <span class="arrow">→</span></a>
     </div>
@@ -641,6 +659,21 @@
       <div class="pt"><h4>What we provide</h4><p>The runtime image, the harness configuration, the rule pack catalog, and an API client. You provide the channel.</p></div>
     </div>
     <a class="more" href="/use-cases">→ See all deployment paths</a>
+  </div>
+</section>
+
+<section id="u6" class="uc-detail">
+  <div class="wrap">
+    <span class="ix">06 · Anonymized knowledge sharing</span>
+    <h2>Share verified facts, not files.</h2>
+    <p class="lede">The sharing lane turns reviewed, redacted evidence into reusable knowledge objects. Case files stay inside the local workbench; only sanitized, consent-aware facts with provenance and reviewer approval can reach the public hub.</p>
+    <div class="grid">
+      <div class="pt"><h4>What gets selected</h4><p>Confirmed facts from reviewed evidence graphs: corridor, indicator, rule, source row, outcome, and pack version.</p></div>
+      <div class="pt"><h4>What gets removed</h4><p>Names, phone numbers, IDs, document images, private narratives, employer-identifying details, and other sensitive PII.</p></div>
+      <div class="pt"><h4>Where it runs</h4><p>Sanitization runs in the local or trusted deployment before any submission. The hub runs a second defensive PII scan before storage.</p></div>
+      <div class="pt"><h4>What improves</h4><p>Future packs, GREP rules, worker guidance, platform moderation, and research queries improve from verified patterns without centralizing raw cases.</p></div>
+    </div>
+    <a class="more" href="/use-cases#uc-sharing">→ See the anonymized sharing flow</a>
   </div>
 </section>
 

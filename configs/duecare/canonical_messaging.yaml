@@ -1,7 +1,7 @@
 schema_version: 1
 status: "canonical source for public messaging, lane names, component labels, and concrete data-handling copy"
 change_rule: >-
-  If a change alters the three outcomes, five lanes, public component names,
+  If a change alters the three outcomes, six lanes, public component names,
   stale-count expectations, or sensitive-data wording, update this file first,
   then update the affected rendered surfaces and run scripts/validate_public_messaging.py.
 
@@ -39,6 +39,11 @@ lanes:
     label: "Developer / integration partner"
     outcome: "Cross-cutting"
     summary: "Build custom deployments for prevention, assistance, or research."
+  - id: "06"
+    slug: "sharing"
+    label: "Anonymized knowledge sharing"
+    outcome: "Cross-cutting"
+    summary: "Convert reviewed, sanitized facts into reusable knowledge objects without centralizing raw case data."
 
 public_component_names:
   public_source_crawler: "Public Information Research Monitor"
@@ -96,7 +101,7 @@ validation:
     - "apps/duecare-ai.com/README.md"
     - "apps/duecare-ai.com/app/main.py"
     - "apps/duecare-ai.com/app/templates/*.html"
-    - "kaggle/kernels/**/*.ipynb"
+    - "kaggle/*/*.py"
     - "deployment/telegram_bot/*.py"
     - "deployment/discord_bot/*.py"
   lane_order_files:

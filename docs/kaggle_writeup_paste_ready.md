@@ -2,32 +2,35 @@
 
 **Subtitle:** A self-hostable multi-faceted Gemma 4 implementation for content moderation, case analysis, worker support, research, and anonymized knowledge sharing.
 
-## 0. TLDR
+**Tracks:** Impact - **Safety & Trust** (primary); Special Technology - **Unsloth** for Gemma 4 LoRA fine-tuning and **LiteRT** through the DueCare Journey Android app.
 
-Launch the Kaggle interface by running the **DueCare Live Demo** kernel, opening the printed `https://*.trycloudflare.com` URL, and starting at `/start` for the slide demo or `/wb-static/process.html` for Bulk File Review. For the broader workbench, run **DueCare App**. For the evaluation matrix, run **DueCare Fine-tuning and Evaluation**. The companion phone experience can be tested by installing the DueCare Journey APK.
+## 0. Quick Start
 
-- **DueCare App:** [`kaggle.com/code/taylorsamarel/duecare-app`](https://www.kaggle.com/code/taylorsamarel/duecare-app)
-- **DueCare Live Demo:** [`kaggle.com/code/taylorsamarel/duecare-live-demo`](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo)
-- **DueCare Fine-tuning and Evaluation:** [`kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation)
+Launch the demo interfaces by forking the notebooks below into your Kaggle account. Click **Save and Run**, watch the logs until a `https://*.trycloudflare.com` URL appears, then open that URL in your browser.
+
+- **Main workbench:** [`kaggle.com/code/taylorsamarel/duecare-app`](https://www.kaggle.com/code/taylorsamarel/duecare-app)
+- **Focused live demo / slides:** [`kaggle.com/code/taylorsamarel/duecare-live-demo`](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo)
+- **Evaluation and benchmark:** [`kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation)
+- **Android APK:** [`github.com/TaylorAmarelTech/duecare-journey-android/releases`](https://github.com/TaylorAmarelTech/duecare-journey-android/releases)
 - **Source:** [github.com/TaylorAmarelTech/gemma4_comp](https://github.com/TaylorAmarelTech/gemma4_comp)
 
 ## 1. The problem: migrant-worker exploitation
 
 Migrant-worker exploitation is large, profitable, and often hidden behind paperwork. The ILO estimates 28 million people are in forced labor, forced labor generates $236 billion in illicit profit each year, and 169 million people work outside their country of birth. Migrant workers face roughly three times the forced-labor risk (ILO 2022, 2024).
 
-The patterns are not limited to obvious abuse. They include recruitment-fee camouflage, worker-paid training and medical costs, wage deductions, passport retention, contract substitution, retaliation threats, debt bondage, jurisdiction confusion, and pressure to use a recruiter-controlled training center, clinic, lender, or travel provider.
+The patterns are not limited to obvious abuse. They include recruitment-fee camouflage, worker-paid training and medical costs, wage deductions, passport retention, contract substitution, retaliation threats, debt bondage, jurisdiction confusion, pressure to use a recruiter-controlled training center, clinic, lender, or travel provider, and other evolving modus operandi.
 
 ## 2. Why AI has not helped enough
 
-AI is bringing enormous progress to many industries, but it has not yet meaningfully protected migrant workers. The reason is not simply model size. This domain has weak training coverage, volatile legal facts, fragmented evidence, cross-border rules, and high consequences when advice is wrong.
+AI is bringing enormous progress to many industries, but it has not yet meaningfully protected migrant workers. The reason is not simply model size. This domain has weak training coverage, volatile legal facts, fragmented evidence, complex cross-jurisdiction rules, and high consequences when advice is wrong.
 
-In early testing, frontier and open models often responded poorly to migrant-worker exploitation prompts. Common failures included poor recall of international standards, wrong corridor-fee rules, confusion about which origin and destination laws apply, vague "consult a lawyer" advice, privacy oversharing, and responses that failed to identify key indicators of human exploitation. When prompted as a business operator, models sometimes provided operational uplift for structuring prohibited fees or salary deductions.
+In early testing, frontier and open models often responded poorly to migrant-worker exploitation prompts. Common failures included poor recall of international standards, wrong corridor-fee rules, confusion about which international standards and which origin- or destination-country laws apply, vague "consult a lawyer" advice, privacy oversharing, and responses that failed to identify key indicators of human exploitation. When prompted as a business operator, models sometimes provided operational uplift for structuring prohibited fees or salary deductions.
 
 ## 3. DueCare overview
 
-DueCare is named for **California Civil Code section 1714(a)**, the duty-of-care standard a California jury applied in March 2026 to find Meta and Google negligent for defective platform design. DueCare applies similar standards of care to language models: does the model exercise due care when responding to prompts about trafficking, recruitment fraud, debt bondage, and financial coercion?
+DueCare is named for **California Civil Code section 1714(a)**, the same duty-of-care standard a California jury applied in March 2026 to find Meta and Google negligent for defective platform design. The goal of DueCare is to create an effective ecosystem of tools that enterprises, civil-society organizations, regulators, and migrant workers themselves can deploy to combat migrant-worker exploitation.
 
-DueCare is an ecosystem of Gemma 4-powered modules across six lanes:
+The DueCare ecosystem consists of the following Gemma 4-powered modules:
 
 | Lane | What it facilitates |
 |---|---|
@@ -42,13 +45,13 @@ DueCare is an ecosystem of Gemma 4-powered modules across six lanes:
 
 Gemma 4 is one of the newest and most capable open-weight model families, but early testing showed that plain Gemma 4 still suffered from the same domain failures as prior models: weak recall of international standards, weak detection of illicit fee camouflage, confusion over cross-border jurisdiction, and incomplete recognition of human-exploitation indicators.
 
-To address this, DueCare harnesses Gemma 4 with multiple logic pipelines:
+To address this, DueCare wraps Gemma 4 in model harnesses and logic pipelines:
 
 - **GREP:** 165+ deterministic rules for fee camouflage, wage assignment, debt novation, restricted provider choice, document retention, retaliation, contract substitution, and corridor-cap violations.
 - **Context:** audience-aware framing for workers, caseworkers, regulators, researchers, platform moderators, and developers.
 - **Knowledge packs:** 55+ curated documents covering ILO C029 / C181 / C189, Palermo Protocol, POEA MC 14-2017, BP2MI Reg 9/2020, Nepal FEA 2007 section 11(2), HK Cap. 57 / 163 / 57A, SG EFMA Cap. 91A section 22A, UAE MoHRE Decree 765/2015, and RA 8042 / RA 10022.
 - **Tools:** corridor fee-cap lookup, trusted-contact lookup, statute validation, agency/license checks, source verification, and case-graph queries.
-- **Privacy gates:** PII detection, redaction, search-safety, consent boundaries, and k-anonymity checks for shared knowledge.
+- **Sensitive-data handling:** raw worker chats, case files, IDs, contact details, and private documents stay on the worker device or trusted NGO hardware unless an authorized user creates a sanitized submission. Local Gemma 4 and deterministic detectors anonymize sensitive PII before anything reaches the hub; the server runs a second PII detector before storage.
 - **Rubric grading:** refusal correctness, legal grounding, evidence preservation, contact quality, retaliation-risk handling, privacy minimization, and statute-section validity.
 
 These techniques significantly improved Gemma 4 outputs across the tested Gemma 4 variants. The improvement was most visible in cases where the model needed to detect substance-over-form exploitation: a "training reimbursement," "voluntary salary assignment," or "third-party service charge" that functionally shifted recruitment costs onto the worker.
@@ -73,7 +76,7 @@ The live demo follows the same six-lane story as the website and slides.
 
 Anecdotally, the harness made Gemma 4 responses much closer to international anti-exploitation standards. To quantify that change, I built the **DueCare Fine-tuning and Evaluation** notebook. It compares four arms on the same prompt set: stock Gemma 4, stock + harness, fine-tuned Gemma 4, and fine-tuned + harness.
 
-The 2026-05-18 smoke matrix (`e2b-full-train-eval`, combined rule + LLM judge) produced:
+The 2026-05-18 smoke matrix (`e2b-full-train-eval`, combined rule + LLM judge) produced the following scores. This is a smoke run, not a final benchmark; the reproducibility artifacts are the A-00 report, CSV, JSON, and manifest bundle exported under `/kaggle/working`.
 
 | Arm | Score |
 |---|---:|
@@ -82,12 +85,18 @@ The 2026-05-18 smoke matrix (`e2b-full-train-eval`, combined rule + LLM judge) p
 | Fine-tuned | 26.4% |
 | Fine-tuned + harness | 41.2% |
 
-The harness added +6.1 points over stock Gemma 4. The fine-tuned + harness arm added +14.8 points over fine-tuning alone and +11.7 points over stock. The pattern was clear: fine-tuning helped response shape and refusal style, but the harness supplied the facts, citations, tools, privacy boundaries, and forced-labor indicators.
+The harness added +6.1 points over stock Gemma 4. The fine-tuned + harness arm added +14.8 points over fine-tuning alone and +11.7 points over stock. The pattern was clear: fine-tuning helped response shape and refusal style, but the harness supplied the facts, citations, tools, data-minimization checks, and forced-labor indicators.
 
 ## 7. duecare-ai.com
 
-`duecare-ai.com` is the public hub for the ecosystem. It explains the six lanes, links the Kaggle kernels, hosts the knowledge-pack and use-case story, and provides the broader product surface for information exchange. The long-term role of the hub is to help partners share reviewed, anonymized knowledge objects, propose updates to corridor packs, and keep public-facing guidance synchronized without exposing private case files.
+`duecare-ai.com` is the public hub for the ecosystem. It explains the six lanes, links the Kaggle kernels, hosts the knowledge-pack and use-case story, and provides the broader product surface for information exchange. The long-term role of the hub is to help partners share reviewed, anonymized knowledge objects, propose updates to corridor packs, and keep public-facing guidance synchronized without exposing private case files. Submissions can be anonymous, pseudonymous, organization-tagged, verified-organization-tagged, region-tagged, corridor-tagged, or aggregate-only depending on consent; automatic labels can suggest metadata, but cannot silently upgrade an anonymous submission into an attributed one.
 
-## 8. Future work
+## 8. Attribution and scope
+
+Models and frameworks include Gemma 4, Unsloth, MediaPipe LiteRT, FastAPI, Pydantic, Uvicorn, DuckDB, and Cloudflare quick tunnels. Legal and policy sources include ILO conventions and forced-labour indicators, Palermo Protocol, POEA/DMW, BP2MI, Nepal DoFE, Hong Kong Labour Department, Singapore EFMA, UAE MoHRE, and RA 8042 / RA 10022. Prior art includes my 2025 Kaggle red-teaming research on LLM complicity in modern slavery. Full per-file attribution is in `docs/CREDITS.md`.
+
+DueCare drafts; the user or trusted caseworker decides. The system does not replace human caseworkers, does not auto-report, and does not bundle real worker case data.
+
+## 9. Future work
 
 Next steps are deeper federated knowledge-object exchange, on-device multimodal when LiteRT exposes the needed Gemma 4 kernels, more corridor packs, scoring-gated CI for GREP rules and LoRA adapters, and reviewer-feedback loops for misfire-driven updates.

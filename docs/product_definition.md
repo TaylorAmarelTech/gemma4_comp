@@ -25,7 +25,7 @@ globally**.
 
 ---
 
-## Canonical three outcomes and five lanes
+## Canonical three outcomes and six lanes
 
 Lead mission/demo/intro copy with the three outcomes:
 
@@ -59,6 +59,11 @@ in [`canonical_use_cases_and_components.md`](canonical_use_cases_and_components.
         and IT teams need APIs, Docker, pack schemas, examples, and client
         snippets. Surface: setup guides, endpoints, package installs,
         integration templates, and validation commands.
+6. **Anonymized knowledge sharing** — reviewers and partners need to
+        convert sanitized, consent-aware facts into reusable knowledge
+        objects without moving raw case files into the public hub.
+        Surface: local anonymization, submission receipts, curator review,
+        and vetted pack updates.
 
 Older phrases map to the canonical names as follows:
 
@@ -69,6 +74,7 @@ Older phrases map to the canonical names as follows:
 | Mobile/private checker, worker-facing app | **Individual worker / mobile** |
 | Researchers, evaluators, Kaggle judges, reproducibility | **Researcher** |
 | Developers, IT teams, custom integrations | **Developer / integration partner** |
+| Knowledge exchange, anonymized sharing, signal exchange | **Anonymized knowledge sharing** |
 
 OFWs are a demo persona. Migrant workers globally is the category.
 
@@ -413,18 +419,18 @@ The mobile app's framing line:
 
 ---
 
-## How the five canonical lanes map to the eight components
+## How the six canonical lanes map to the eight components
 
-| Component | Platform safety | NGO & regulator | Individual worker / mobile | Researcher | Developer / integration partner |
-|---|---|---|---|---|---|
-| Runtime | classify / explain posts | summarize cases | private explanations | compare models | embed model service |
-| Harness | moderation risk trace | intake triage | warning signs | inspectable pipeline | reusable API layer |
-| Exchange | share anonymized abuse patterns | submit field signals | receive updated packs | publish domain packs | integrate safe submissions |
-| Eval | policy QA / model QA | quality control | hidden safety guard | primary tool | regression gate |
-| Trainer | moderation adapter | agency-specific adapter | smaller local model | tuned model studies | BYO adapter path |
-| Research monitor | track new scam patterns | update laws / contacts | keeps app current | benchmark updates | public-source proposal API |
-| Channels | platform notices | primary deployment | Messenger / WhatsApp help | study artifact | integration target |
-| Mobile | not primary | referral companion | primary worker-owned app | deployment study | app integration pattern |
+| Component | Platform safety | NGO & regulator | Individual worker / mobile | Researcher | Developer / integration partner | Anonymized knowledge sharing |
+|---|---|---|---|---|---|---|
+| Runtime | classify / explain posts | summarize cases | private explanations | compare models | embed model service | sanitize candidate facts |
+| Harness | moderation risk trace | intake triage | warning signs | inspectable pipeline | reusable API layer | reviewable knowledge-object flow |
+| Exchange | share anonymized abuse patterns | submit field signals | receive updated packs | publish domain packs | integrate safe submissions | primary lane |
+| Eval | policy QA / model QA | quality control | hidden safety guard | primary tool | regression gate | PII and provenance gate |
+| Trainer | moderation adapter | agency-specific adapter | smaller local model | tuned model studies | BYO adapter path | approved sanitized examples only |
+| Research monitor | track new scam patterns | update laws / contacts | keeps app current | benchmark updates | public-source proposal API | candidate source context |
+| Channels | platform notices | primary deployment | Messenger / WhatsApp help | study artifact | integration target | reviewer submission surface |
+| Mobile | not primary | referral companion | primary worker-owned app | deployment study | app integration pattern | opt-in aggregate signals |
 
 Every component serves multiple audiences.
 

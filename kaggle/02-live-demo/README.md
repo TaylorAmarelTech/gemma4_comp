@@ -3,6 +3,9 @@
 > Focused product demo with real Gemma 4 inference. Use this notebook when
 > judges want to click a running product surface.
 
+<!-- duecare:lane-label -->
+> **Serves lanes:** Platform safety; NGO & regulator; Individual worker / mobile; Researcher; Developer / integration partner.
+
 ## Role in the Submission
 
 - **DueCare App (#01):** full UI/UX and every harness surface.

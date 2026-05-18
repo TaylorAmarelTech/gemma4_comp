@@ -87,13 +87,14 @@ Release (HF Hub model card + GGUF / LiteRT artifacts)
 audit log stores `sha256(original)` plus the redaction action — never
 the plaintext.
 
-## Why this matters across the five canonical lanes
+## Why this matters across the six canonical lanes
 
 - **Platform safety** can adapt models to moderation policy (severity thresholds, escalation patterns).
 - **NGO & regulator** can adapt models to intake workflows and local regulations (jurisdiction-specific tone, complaint-form vocabulary, corridor-specific statute citations).
 - **Individual worker / mobile** can use smaller tuned models offline (E2B + LiteRT path).
 - **Researcher** can reproduce stock-vs-harnessed-vs-tuned behavior with provenance.
 - **Developer / integration partner** can package tuned adapters behind stable APIs and deployment templates.
+- **Anonymized knowledge sharing** can admit only approved, sanitized examples into training and pack-improvement queues.
 
 ## Today's bridge (what's actually built)
 

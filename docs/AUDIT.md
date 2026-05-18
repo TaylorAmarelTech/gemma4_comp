@@ -17,9 +17,9 @@ the public surface against drift we've seen real cases of:
   `Privacy is non-negotiable.` as an h1–h3 headline)
 - **hub_routes_200** — every `PAGE_ROUTES` entry plus every link in
   `_nav.html` and `_footer.html` returns 200 via FastAPI TestClient
-- **five_lane_order** — the canonical lane order
+- **six_lane_order** — the canonical lane order
   (Platform safety → NGO & regulator → Individual worker / mobile →
-  Researcher → Developer / integration partner) appears on
+  Researcher → Developer / integration partner → Anonymized knowledge sharing) appears on
   `setup.html` and `use-cases.html`
 - **kaggle_lane_labels** — every `kaggle/{01,02,03,A-*}/README.md`
   carries a `<!-- duecare:lane-label -->` block or `Serves lanes:` line
@@ -85,7 +85,7 @@ code; class rename is queued separately.
 ```
 
 The check that is suppressed is **only `drift_terms`**. Route /
-five-lane / kaggle-lane checks have no allowlist — they should always
+six-lane / kaggle-lane checks have no allowlist — they should always
 run.
 
 ## Wire-up

@@ -78,7 +78,7 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
         title="Duecare",
         version="0.1.0",
         description="Multimodal trafficking-safety harness ecosystem with "
-                    "evidence database, NL query, privacy gates, and pluggable tools.",
+                    "evidence database, NL query, sensitive-data handling, and pluggable tools.",
     )
     app.state.duecare = state
     # In-memory job registry for /api/process background tasks. Persists

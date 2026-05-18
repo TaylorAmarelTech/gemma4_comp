@@ -50,7 +50,7 @@ def test_public_website_pages_render_design_templates(tmp_path) -> None:
         "/grep-rules": "Rules fire <em>before</em> the model speaks.",
         "/tools": "Six tools. All local. All draft-only.",
         "/context": "Knowledge moves. Cases don't.",
-        "/use-cases": "Five ways teams put DueCare to work.",
+        "/use-cases": "Six ways teams put DueCare to work.",
         "/dashboard": "The live hub. Not the model chat UI.",
     }
 
@@ -279,6 +279,7 @@ def test_use_cases_audiences_appear_in_design_order(tmp_path) -> None:
         "Individual worker / mobile",
         "Researcher",
         "Developer / integration partner",
+        "Anonymized knowledge sharing",
     ]
     positions = [response.text.index(name) for name in ordered]
     assert positions == sorted(positions)

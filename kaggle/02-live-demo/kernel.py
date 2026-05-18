@@ -1744,7 +1744,8 @@ try:
     state.portability_contract = PORTABILITY_CONTRACT
 except Exception as _portability_exc:  # noqa: BLE001
     PORTABILITY_CONTRACT = {
-        "schema_version": "duecare.portability_contract.unavailable",
+        "schema_version": "1.0",
+        "handoff_kind": "duecare.portability_contract.unavailable",
         "error": f"{type(_portability_exc).__name__}: {_portability_exc}",
     }
 if gemma_call is not None:

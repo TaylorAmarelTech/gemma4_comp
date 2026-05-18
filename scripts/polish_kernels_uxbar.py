@@ -7,7 +7,7 @@ For each kernel:
    for, demo path" before the first code line.
 2. Standardise the README h1 to ``DueCare - <title> (#01 core | #A1 appendix)``.
 3. Insert a visible "Serves lanes" line under the h1 using the public
-    website's five-lane taxonomy.
+    website's six-lane taxonomy.
 4. Append a shared cross-kernel nav footer to every README so the 13
    feel like a series, with prev / next / index links.
 

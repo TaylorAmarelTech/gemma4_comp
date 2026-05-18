@@ -69,7 +69,7 @@ not exhaustive — the full inventory lives in
 
 ## Influences and prior art
 
-- **2024 Kaggle red-team study** — *LLM complicity in modern slavery:
+- **Taylor Amarel's 2025 Kaggle red-teaming research** — *LLM complicity in modern slavery:
   from native-blind...*
   ([Kaggle write-up](https://www.kaggle.com/competitions/openai-gpt-oss-20b-red-teaming/writeups/llm-complicity-in-modern-slavery-from-native-blind)).
   The empirical evidence that frontier LLMs consistently fail on

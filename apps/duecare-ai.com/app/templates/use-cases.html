@@ -296,7 +296,7 @@
     <div class="grid">
       <div>
         <span class="kicker">What DueCare does, for whom</span>
-        <h1>Five ways teams put DueCare to work.</h1>
+        <h1>Six ways teams put DueCare to work.</h1>
         <p class="lede">DueCare runs the same safety-harness pattern for every
           audience. What changes is the channel, the questions, and what the system hands back.
           Each section below covers what it does, who benefits, and includes
@@ -311,6 +311,7 @@
           <li><a href="#uc-worker"><span>Individual worker / mobile</span><span class="arrow">→</span></a></li>
           <li><a href="#uc-research"><span>Researcher</span><span class="arrow">→</span></a></li>
           <li><a href="#uc-custom"><span>Developer / integration partner</span><span class="arrow">→</span></a></li>
+          <li><a href="#uc-sharing"><span>Anonymized knowledge sharing</span><span class="arrow">→</span></a></li>
         </ol>
       </nav>
     </div>
@@ -875,9 +876,10 @@
         <h2>Share verified facts, not files.</h2>
       </div>
       <p class="summary">Reviewed cases stay inside the local workbench. Reviewers
-        choose candidate facts, a privacy gate strips PII and verifies k-anonymity
-        and re-identification risk, and only sanitized knowledge objects reach the
-        public hub. The worker is never exposed; the hub gets stronger anyway.</p>
+        choose candidate facts, local sanitization removes PII and verifies
+        k-anonymity and re-identification risk, and only sanitized knowledge
+        objects reach the public hub. The worker is never exposed; the hub gets
+        stronger anyway.</p>
     </div>
 
     <div class="uc-body">
@@ -938,7 +940,7 @@
           <div class="arch-conn"><div class="rail"></div><span class="label">reviewer selects</span></div>
           <div class="arch-node boundary">
             <div class="node-head">
-              <span class="step">02 · Privacy gate</span>
+              <span class="step">02 · Sanitization check</span>
               <h5>Sanitization</h5>
             </div>
             <div class="node-body">
@@ -965,7 +967,7 @@
           </div>
         </div>
         <div class="arch-foot">
-          <span>Local reviewed graph &middot; privacy gate &middot; public hub</span>
+          <span>Local reviewed graph &middot; sanitization check &middot; public hub</span>
           <span class="ok">Worker never exposed. Hub gets stronger anyway.</span>
         </div>
       </div>
