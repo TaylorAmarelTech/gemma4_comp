@@ -89,6 +89,24 @@ def test_slides_deck_has_demo_chat_slide_anchor() -> None:
         "Slides deck must expose a demo-chat anchor for /slides#demo-chat")
 
 
+def test_slides_deck_uses_recording_safe_ecosystem_story() -> None:
+    c = _client()
+    r = c.get("/slides")
+    assert r.status_code == 200
+    html = r.text
+    for marker in [
+        "data-slide-id=\"case-analysis-overview\"",
+        "data-slide-id=\"knowledge-sharing-demo\"",
+        "data-slide-id=\"module-ecosystem\"",
+        "Exploitation continues because the protective workflow is fragmented",
+        "A connected ecosystem, not a single chatbot",
+    ]:
+        assert marker in html
+    assert "Full screen" not in html
+    assert "arrows / space" not in html
+    assert "Filipina" not in html
+
+
 def test_slides_setup_serves_audience_and_use_case_selectors() -> None:
     c = _client()
     r = c.get("/slides/setup")

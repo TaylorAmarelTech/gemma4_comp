@@ -2023,7 +2023,7 @@ const CATEGORY_LABELS = {
   policy_application:           'Policy edge cases',
   ad_compliance_check:          'Ad compliance pre-check',
   // ----- ngo_intake bucket
-  caseworker_triage:            'Caseworker first-intake triage',
+  caseworker_triage:            'Caseworker first-pass case triage',
   case_pathway:                 'Case pathway / next-legal-step',
   policy_brief_request:         'Letter / brief drafting',
   intake_documentation:         'Intake documentation / evidence',
@@ -2096,7 +2096,7 @@ const CATEGORY_COLORS = {
 const BUCKET_LABELS = {
   model_capability:      'Model capability / stress-test',
   enterprise_moderation: 'Platform safety content review',
-  ngo_intake:            'NGO & regulator case intake',
+  ngo_intake:            'NGO & regulator case analysis',
   individual_query:      'Query from individual',
   research:              'Research / journalism',
   image_prompts:         'Image prompts (multimodal)',
@@ -2106,7 +2106,7 @@ const BUCKET_LABELS = {
 const BUCKET_DESCRIPTIONS = {
   model_capability:      'Adversarial prompts that stress-test specific model capabilities — jailbreak resistance, jurisdictional reasoning, fee-camouflage detection, multi-lingual coverage. NOT meant as "good user" prompts; they probe failure modes.',
   enterprise_moderation: 'Realistic platform-safety tasks: classify a recruitment ad, triage a user-complaint ticket, decide on a marketplace listing, walk a moderator through a policy edge case.',
-  ngo_intake:            'A caseworker / advocate / shelter intake worker triaging a real case, drafting a refund claim, planning evidence preservation, or briefing a regulator.',
+  ngo_intake:            'A caseworker / advocate / shelter worker analyzing a real case, drafting a refund claim, planning evidence preservation, or briefing a regulator.',
   individual_query:      'A worker, family member, or prospective migrant talking directly to the model in their own voice — no legal framing, the model has to infer the legal posture.',
   research:              'Academic, journalistic, or policy queries that synthesize across statutes, compare regimes, evaluate methodology, or plan investigative reporting.',
   image_prompts:         'Multimodal prompts — pair the text prompt with an attached image (receipt, contract page, social-media screenshot, passport photo). Each entry has an `image_hint` describing what kind of image to attach via the chat upload affordance. Requires a vision-capable Gemma variant (E4B / 31B-it).',
@@ -2391,7 +2391,7 @@ const CATEGORY_TO_USECASES = {
 
 const USE_CASE_LABELS = {
   worker_asking:        '👷 Worker asking for help',
-  ngo_intake:           '🤝 NGO intake / case worker',
+  ngo_intake:           '🤝 NGO case analysis / caseworker',
   lawyer_research:      '⚖️ Lawyer research',
   regulator_audit:      '🏛️ Regulator audit',
   journalist_fact_check:'📰 Journalist fact-check',

@@ -42,20 +42,23 @@ working runtime surfaces.
 For a screen-recording walkthrough:
 
 1. Open the printed `/start` URL. The two-tile landing appears
-   (Project slides + Project slide setup).
+   (Project slides + Project slide setup), with workbench links below.
 2. Click **Project slide setup**. Pick an audience + use case,
-   click Generate, then Save for slides. (Repeat once per slide
-   you want a custom cached row for.)
-3. Click **Project slides**. The full-screen 10-slide deck loads.
-   Press arrow keys / space to advance.
-4. On the demo-chat slide (slide 5), the cached prompt + response
-   from step 2 appears immediately -- no inference wait.
-5. On the demo-bulk slide (slide 6), narrate over the typed-edge
-   panel; if you want the live Bulk File Review surface, open
-   `/wb-static/process.html` in a separate tab.
-6. Use A-00 (`kaggle/A-00-omni-experiment-workbench`) for the
-   quantitative report that backs the harness-lift claim on
-   slide 8.
+   click Generate, then Save for slides. This caches one live-looking
+   worker or operator exchange for `/slides#demo-chat`.
+3. Click **Project slides**. The recording-safe ecosystem deck loads:
+   problem scale, solution diagram, Gemma 4 engine, content moderation,
+   case analysis, worker information access, research, anonymized
+   knowledge sharing, resources, FAQ, and appendix.
+4. On `/slides#demo-chat`, the cached prompt + response from step 2
+   appears immediately -- no inference wait during the recording.
+5. For the live Bulk File Review surface, open `/wb-static/process.html`
+   from the Start page. Use the streamlined sample bundle to show
+   upload, processing progress, optional local Gemma 4 edge creation,
+   graph inspection, and graph chat.
+6. Use A-00 (`kaggle/A-00-omni-experiment-workbench`) for quantitative
+   proof: baseline vs harnessed responses, rule/LLM judging, grading
+   dimensions, and reproducible reports.
 
 Workbench surfaces (`/`, `/enterprise`, `/individual`, `/knowledge`,
 `/settings`) remain available for deeper exploration but are not the
@@ -78,7 +81,11 @@ same package primitives:
   for the unified PH-HK demo story and comparison/evaluation seed.
 
 Before recording, the live demo should either pass the same portability
-contract or clearly state that it is a focused subset of Kernel 01.
+contract or clearly state that it is a focused subset of Kernel 01. The
+slides should use the same audience names and privacy boundary language
+as `apps/duecare-ai.com`: platform safety screening, NGO/regulator
+copilot, individual worker/mobile, researcher, developer/integration
+partner, local raw-case processing, and anonymized hub sharing only.
 
 ## Review Checklist
 
