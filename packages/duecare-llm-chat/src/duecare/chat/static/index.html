@@ -899,6 +899,22 @@ header.bar .badge.loaded .dot {
           <div style="font-size:11.5px; color:var(--muted); margin-top:4px; line-height:1.4;">Same prompt, harness on vs off, side by side.</div>
         </div>
       </div>
+      <div class="recording-preset-card" style="margin:12px auto 10px; max-width:760px; border:1px solid var(--accent); border-radius:8px; background:rgba(47,85,99,0.06); padding:12px 14px; text-align:left;">
+        <div style="display:flex; gap:12px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;">
+          <div style="min-width:220px; flex:1;">
+            <div style="font-family:var(--mono); font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Recording preset</div>
+            <div style="font-size:13px; font-weight:700; margin-top:4px;">Platform moderation: PH-Saudi Facebook post</div>
+            <div style="font-size:11.5px; color:var(--muted); margin-top:4px; line-height:1.45;">
+              Loads the exact social-media moderation prompt and bundled synthetic post image. Use the cached trace if the live Gemma response is too slow on camera.
+            </div>
+          </div>
+          <div style="display:flex; gap:7px; flex-wrap:wrap;">
+            <button class="btn secondary" onclick="useExample('ent_mod_001'); enableLocalHarnessWhenReady();" title="Load the PH-Saudi platform moderation prompt and synthetic image">Load preset</button>
+            <a class="btn secondary" href="/static/samples/recording_platform_moderation_trace.json" download style="text-decoration:none;">Trace JSON</a>
+            <a class="btn secondary" href="/static/demo-recording.html" style="text-decoration:none;">Checklist</a>
+          </div>
+        </div>
+      </div>
       <div class="hints" id="empty-hints">
         <!-- populated by populateEmptyHints() from /api/examples -->
       </div>
@@ -1892,6 +1908,22 @@ async function probeHarness() {
 }
 probeHarness();
 
+function enableLocalHarnessWhenReady(attempt) {
+  const tries = attempt || 0;
+  const localLayers = ['persona', 'grep', 'rag', 'import', 'tools'];
+  const anyReady = localLayers.some(function (layer) {
+    const tile = document.getElementById('tile-' + layer);
+    return tile && tile.dataset.wired === 'true';
+  });
+  if (anyReady || tries >= 12) {
+    toggleAllHarness(true);
+    return;
+  }
+  window.setTimeout(function () {
+    enableLocalHarnessWhenReady(tries + 1);
+  }, 250);
+}
+
 // ----- URL-param consumer (workbench audience-showcase entry points) -----
 // Audience showcase pages link here with `?prompt=<text>&audience=<lane>`.
 // Pre-fill the chat input so the user lands on a ready-to-send prompt.
@@ -1902,6 +1934,7 @@ probeHarness();
     const params = new URLSearchParams(window.location.search);
     const prompt = params.get('prompt');
     const audience = params.get('audience');
+    const example = params.get('example');
     if (prompt) {
       const input = document.getElementById('input');
       if (input) {
@@ -1918,9 +1951,17 @@ probeHarness();
     if (audience && window.localStorage) {
       try { window.localStorage.setItem('dc_audience_hint', audience); } catch (_) {}
     }
+    if (example) {
+      window.setTimeout(function () {
+        try {
+          useExample(example);
+          enableLocalHarnessWhenReady();
+        } catch (_) { /* quiet */ }
+      }, 0);
+    }
     // Strip the params from the address bar so a later refresh doesn't
     // re-pre-fill an already-sent prompt.
-    if ((prompt || audience) && window.history && history.replaceState) {
+    if ((prompt || audience || example) && window.history && history.replaceState) {
       history.replaceState({}, '', window.location.pathname);
     }
   } catch (_) { /* quiet */ }

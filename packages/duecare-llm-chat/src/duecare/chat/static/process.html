@@ -315,15 +315,15 @@
             <div class="wb-mode-row" role="radiogroup" aria-label="Review depth">
               <button class="wb-mode-card" type="button" data-mode="quick_triage" onclick="wbSetReviewMode('quick_triage')" role="radio" aria-checked="false">
                 <b>Quick triage</b>
-                <span>Fast pass for very large archives. Gemma only reviews top-risk items.</span>
+                <span>Fast pass for demos and very large archives. Gemma work is a follow-up action.</span>
               </button>
               <button class="wb-mode-card active" type="button" data-mode="standard_review" onclick="wbSetReviewMode('standard_review')" role="radio" aria-checked="true">
                 <b>Standard review</b>
-                <span>Recommended. Classify all items, then run targeted Gemma prompts on high-signal evidence.</span>
+                <span>Recommended. Classify and link all items deterministically before optional Gemma passes.</span>
               </button>
               <button class="wb-mode-card" type="button" data-mode="exhaustive_review" onclick="wbSetReviewMode('exhaustive_review')" role="radio" aria-checked="false">
                 <b>Exhaustive review</b>
-                <span>Deep local pass for smaller bundles or final case preparation.</span>
+                <span>Deep deterministic pass for final prep; enable inline Gemma only if you can wait.</span>
               </button>
             </div>
             <div class="wb-muted" style="margin-top:10px; line-height:1.5;">
@@ -352,8 +352,8 @@
                 <div class="wb-setting">
                   <label for="wb-calls-per-item">Gemma calls per page item</label>
                   <select id="wb-calls-per-item" onchange="wbUpdateSettingsSummary()">
-                    <option value="0">0 - deterministic only</option>
-                    <option value="1" selected>1 - targeted default</option>
+                    <option value="0" selected>0 - deterministic upload</option>
+                    <option value="1">1 - targeted inline pass</option>
                     <option value="2">2 - classification + target</option>
                     <option value="3">3 - deeper branch review</option>
                   </select>
@@ -378,6 +378,7 @@
                 <label><input type="checkbox" class="wb-page-item-type" value="video_frame_or_scene" checked onchange="wbUpdateSettingsSummary()"> Video frames/scenes</label>
               </div>
               <div class="wb-review-checks">
+                <label><input type="checkbox" id="wb-run-inline-gemma" onchange="wbUpdateSettingsSummary()"> Run Gemma text brief/edge synthesis inside the upload job. Leave off for recording; use the explicit edge pass after review.</label>
                 <label><input type="checkbox" id="wb-generate-knowledge" checked onchange="wbUpdateSettingsSummary()"> Generate reviewable knowledge-object candidates from repeated patterns.</label>
                 <label><input type="checkbox" id="wb-include-knowledge" checked onchange="wbUpdateSettingsSummary()"> Use imported local knowledge files as context for Gemma edge/RAG prompts.</label>
               </div>
@@ -787,8 +788,8 @@
       },
       {
         pct: 88,
-        stage: 'Building case brief and text model passes',
-        detail: 'The background job calls local Gemma 4 for text brief/edge synthesis when a model is loaded and the Gemma budget is above zero.'
+        stage: 'Building deterministic case brief',
+        detail: 'The upload job returns a deterministic brief by default. Inline Gemma text passes run only when explicitly enabled in advanced settings.'
       },
       {
         pct: 94,
@@ -862,7 +863,7 @@
         const activeIndex = Math.min(WB_PROCESS_STAGES.length - 1, Math.floor(elapsed / 5));
         const item = WB_PROCESS_STAGES[activeIndex];
         const waitHint = elapsed >= 35
-          ? ' Still working locally after ' + elapsed + 's. If this reaches about 120s behind Cloudflare, the tunnel can time out; the current endpoint keeps Gemma generation out of the upload request.'
+          ? ' Still working locally after ' + elapsed + 's. The async endpoint keeps the browser connected through polling while the in-kernel job finishes.'
           : ' Elapsed: ' + elapsed + 's.';
         wbSetProcessProgress(
           item.pct,
@@ -991,25 +992,25 @@
         label: 'Quick triage',
         runtime: 5,
         calls: 20,
-        perItem: 1,
+        perItem: 0,
         strictness: 'conservative',
-        detail: 'Fast pass for very large archives. Deterministic extraction runs everywhere; Gemma reviews top-risk items.'
+        detail: 'Fast pass for demos and very large archives. Deterministic extraction runs everywhere; Gemma text passes are explicit follow-up work.'
       },
       standard_review: {
         label: 'Standard review',
         runtime: 15,
         calls: 75,
-        perItem: 1,
+        perItem: 0,
         strictness: 'balanced',
-        detail: 'Recommended default. Classify all items, then run targeted Gemma prompts on high-signal evidence.'
+        detail: 'Recommended default. Classify and link all items deterministically, then run optional Gemma prompts after the graph review gate.'
       },
       exhaustive_review: {
         label: 'Exhaustive review',
         runtime: 60,
         calls: 240,
-        perItem: 2,
+        perItem: 0,
         strictness: 'exploratory',
-        detail: 'Deep local pass for smaller bundles or final case prep. Gemma can run multiple targeted prompts per item.'
+        detail: 'Deep local pass for final case prep. Enable inline Gemma only when you can wait for long model calls.'
       }
     };
     let wbReviewMode = 'standard_review';
@@ -1029,19 +1030,24 @@
       const runtime = document.getElementById('wb-runtime-budget');
       const calls = document.getElementById('wb-max-gemma-calls');
       const perItem = document.getElementById('wb-calls-per-item');
+      const inline = document.getElementById('wb-run-inline-gemma');
       const strict = document.getElementById('wb-edge-strictness');
       if (runtime) runtime.value = String(cfg.runtime);
       if (calls) calls.value = String(cfg.calls);
       if (perItem) perItem.value = String(cfg.perItem);
+      if (inline) inline.checked = false;
       if (strict) strict.value = cfg.strictness;
       wbUpdateSettingsSummary();
     }
     function wbProcessSettings() {
+      const inlineGemma = !!document.getElementById('wb-run-inline-gemma')?.checked;
+      const rawPerItem = parseInt(document.getElementById('wb-calls-per-item')?.value || '0', 10);
       return {
         review_mode: wbReviewMode,
         runtime_budget_minutes: parseInt(document.getElementById('wb-runtime-budget')?.value || '15', 10),
         max_gemma_calls: parseInt(document.getElementById('wb-max-gemma-calls')?.value || '75', 10),
-        gemma_calls_per_item: parseInt(document.getElementById('wb-calls-per-item')?.value || '1', 10),
+        gemma_calls_per_item: inlineGemma && rawPerItem === 0 ? 1 : rawPerItem,
+        run_inline_gemma_text: inlineGemma,
         edge_strictness: document.getElementById('wb-edge-strictness')?.value || 'balanced',
         generate_knowledge_candidates: !!document.getElementById('wb-generate-knowledge')?.checked,
         include_imported_knowledge: !!document.getElementById('wb-include-knowledge')?.checked,
@@ -1056,6 +1062,7 @@
       host.textContent = cfg.label + ': ' + cfg.detail + ' Budget: ' +
         settings.runtime_budget_minutes + ' min, max ' + settings.max_gemma_calls +
         ' Gemma call(s), ' + settings.gemma_calls_per_item + ' call(s) per page item, ' +
+        (settings.run_inline_gemma_text ? 'inline Gemma upload ON, ' : 'inline Gemma upload OFF, ') +
         settings.edge_strictness + ' edges. Page-item types: ' +
         (settings.page_item_types.length ? settings.page_item_types.join(', ') : 'none') + '.';
     }
@@ -1107,9 +1114,14 @@
     async function wbSleep(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
     }
-    async function wbPollProcessJob(jobId, t0) {
+    async function wbPollProcessJob(jobId, t0, settings) {
       const pollUrl = '/api/process/batch/status/' + encodeURIComponent(jobId);
-      for (let attempt = 0; attempt < 240; attempt += 1) {
+      const runtimeBudgetMs = Math.max(
+        5 * 60 * 1000,
+        (Number(settings?.runtime_budget_minutes || 15) * 60 * 1000) + (2 * 60 * 1000)
+      );
+      const maxAttempts = Math.ceil(runtimeBudgetMs / 1200);
+      for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
         const r = await fetch(pollUrl, {cache: 'no-store'});
         const text = await r.text();
         let job = null;
@@ -1149,7 +1161,10 @@
         }
         await wbSleep(1200);
       }
-      throw new Error('Process job polling timed out locally after 240 attempts.');
+      throw new Error(
+        'Process job polling timed out locally after ' + maxAttempts +
+        ' attempts (' + Math.round(runtimeBudgetMs / 1000) + 's budget).'
+      );
     }
     function wbHandle(ev) {
       const f = (ev.target.files || [])[0];
@@ -1185,7 +1200,8 @@
       const settings = wbProcessSettings();
       wbLog('info', 'POST /api/process/batch/start',
         'multipart upload, file=' + wbFile.name + ' | mode=' + settings.review_mode +
-        ' | max_gemma_calls=' + settings.max_gemma_calls);
+        ' | max_gemma_calls=' + settings.max_gemma_calls +
+        ' | inline_gemma_text=' + settings.run_inline_gemma_text);
       wbSetProcessActive(true);
       wbSetProcessProgress(5, 'Uploading bundle to Kaggle kernel', 'Sending the source bundle to the local workbench server.');
       wbSetWorkflow(1);
@@ -1195,6 +1211,7 @@
       fd.append('runtime_budget_minutes', String(settings.runtime_budget_minutes));
       fd.append('max_gemma_calls', String(settings.max_gemma_calls));
       fd.append('gemma_calls_per_item', String(settings.gemma_calls_per_item));
+      fd.append('run_inline_gemma_text', settings.run_inline_gemma_text ? 'true' : 'false');
       fd.append('edge_strictness', settings.edge_strictness);
       fd.append('generate_knowledge_candidates', settings.generate_knowledge_candidates ? 'true' : 'false');
       fd.append('include_imported_knowledge', settings.include_imported_knowledge ? 'true' : 'false');
@@ -1215,7 +1232,7 @@
         }
         wbLog('ok', 'Process job accepted (' + dt + 'ms)',
               'job_id=' + startJob.job_id + ' | bytes=' + (startJob.bytes || wbFile.size));
-        wbBundle = await wbPollProcessJob(startJob.job_id, t0);
+        wbBundle = await wbPollProcessJob(startJob.job_id, t0, settings);
         wbStopProcessProgressLoop();
         wbSetProcessProgress(96, 'Response received', 'Parsing the returned JSON and rendering the intelligence graph.');
         wbLog('ok', 'Process job complete',

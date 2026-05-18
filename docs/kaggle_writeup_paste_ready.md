@@ -14,6 +14,8 @@ Launch the demo interfaces by forking the notebooks below into your Kaggle accou
 - **Android APK:** [`github.com/TaylorAmarelTech/duecare-journey-android/releases`](https://github.com/TaylorAmarelTech/duecare-journey-android/releases)
 - **Source:** [github.com/TaylorAmarelTech/gemma4_comp](https://github.com/TaylorAmarelTech/gemma4_comp)
 
+Inside the main workbench, `/static/demo-recording.html` provides the recording checklist, lane order, bundled sample artifacts, and cached replay trace for the platform-moderation example.
+
 ## 1. The problem: migrant-worker exploitation
 
 Migrant-worker exploitation is large, profitable, and often hidden behind paperwork. The ILO estimates 28 million people are in forced labor, forced labor generates $236 billion in illicit profit each year, and 169 million people work outside their country of birth. Migrant workers face roughly three times the forced-labor risk (ILO 2022, 2024).
@@ -62,7 +64,7 @@ The live demo follows the same six-lane story as the website and slides.
 
 **Content moderation:** a risky recruitment post moves through GREP, RAG, tools, Gemma 4 generation, and audit grading.
 
-**Case analysis:** Bulk File Review accepts ZIP, PDF, CSV, Office, image, email, and text bundles; extracts people, agencies, employers, payments, dates, locations, document types, journey stages, and typed graph edges; then lets the reviewer ask graph questions.
+**Case analysis:** Bulk File Review accepts ZIP, PDF, CSV, Office, image, email, and text bundles; deterministically extracts people, agencies, employers, payments, dates, locations, document types, journey stages, and typed graph edges from parsable text and metadata; queues OCR/media review explicitly; and can run optional Gemma case-brief and edge-generation passes when a compatible model is loaded.
 
 **Worker support:** the mobile app shows chat-style guidance, offline knowledge pages, evidence journaling, safety planning, multilingual support, local privacy, and case handoff.
 

@@ -132,6 +132,19 @@
       "privacy_note": "Contains synthetic/vetted knowledge only.",
       "expects_readme": false,
       "expects_manifest_or_metadata": false
+    },
+    {
+      "name": "recording_platform_moderation_trace.json",
+      "artifact_kind": "recording_trace_json",
+      "label": "Platform moderation recording trace",
+      "primary_for": ["chat", "video_demo"],
+      "also_used_by": ["recording_checklist", "tests"],
+      "expected_inputs": ["json"],
+      "expected_outputs": ["pipeline_trace", "grep_rules", "rag_documents", "tool_calls", "response_preview"],
+      "demo_story": "Cached PH-Saudi Facebook recruitment moderation trace used when the live model response is too slow for the recording window.",
+      "privacy_note": "Synthetic prompt and synthetic social post image only. No real worker case files.",
+      "expects_readme": false,
+      "expects_manifest_or_metadata": false
     }
   ]
 }

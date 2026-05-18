@@ -475,10 +475,16 @@
     async function kxLoadSourceFile(file){
       const status = document.getElementById('kx-source-file-status');
       const rawEl = document.getElementById('kx-raw');
-      if (status) status.textContent = 'Processing source bundle through the Bulk File Review harness...';
-      wbLog('net', 'POST /api/process/batch/start', 'source bundle=' + file.name + ' bytes=' + file.size);
+      if (status) status.textContent = 'Processing source bundle through the fast deterministic Bulk File Review path...';
+      wbLog('net', 'POST /api/process/batch/start',
+        'source bundle=' + file.name + ' bytes=' + file.size +
+        ' | inline_gemma_text=false | max_gemma_calls=0');
       const fd = new FormData();
       fd.append('file', file);
+      fd.append('review_mode', 'quick_triage');
+      fd.append('max_gemma_calls', '0');
+      fd.append('gemma_calls_per_item', '0');
+      fd.append('run_inline_gemma_text', 'false');
       const t0 = performance.now();
       try {
         const r = await fetch('/api/process/batch/start', {method:'POST', body:fd});

@@ -48,7 +48,7 @@
     <div>
       <div class="setup-kicker">DueCare &middot; Slide setup</div>
       <h1>Generate cached input/output examples per audience.</h1>
-      <p>Slides display the cached response immediately so the recording never waits for live inference. Re-generate any time the source rules change.</p>
+      <p>Slides display cached responses immediately, while labels show the original model latency or realistic replay timing. Re-generate any time the source rules change.</p>
     </div>
     <a class="setup-back" href="/start">&larr; Back to Start</a>
   </header>
@@ -65,7 +65,7 @@
         <option value="regulator">Regulator &mdash; corridor pattern + enforcement</option>
         <option value="researcher">Researcher &mdash; reproducible benchmark</option>
         <option value="developer">Developer &mdash; API + harness integration</option>
-        <option value="platform">Platform safety team &mdash; moderation</option>
+        <option value="platform" selected>Platform safety team &mdash; moderation</option>
       </select>
 
       <label for="use-case">Use case</label>
@@ -89,20 +89,29 @@
         <button type="button" class="secondary" id="save-btn" disabled>Save for slides</button>
         <button type="button" class="secondary" id="clear-btn">Clear stored</button>
       </div>
-      <div class="setup-status" id="setup-status">Click Preload recording pack to store all selected examples, or generate one row manually. Everything is stored locally in your browser for the slide deck.</div>
+      <div class="setup-status" id="setup-status">Click Preload recording pack to store all selected examples, or generate one row manually. Everything is stored locally in your browser for the slide deck and replays without GPU latency.</div>
     </aside>
 
     <article class="setup-card" aria-label="Preview">
       <h2>Preview <span class="stored-pill empty" id="stored-pill">no cached row yet</span></h2>
       <div class="preview-meta">Prompt</div>
-      <div class="preview-prompt" id="preview-prompt">A recruiter says I have to pay PHP 50,000 in training fees before my Hong Kong visa will be released. Is this legal?</div>
+      <div class="preview-prompt" id="preview-prompt">Review this Facebook job post and tell me whether to allow it on our platform: 'URGENT! Hiring 30 Filipina maids for Saudi Arabia. Free flight, free visa, only PHP 50,000 training fee, salary SAR 1,800/month. Contract 2 years. WhatsApp +63 917 123 4567 now. First-come first-served!' Be specific about which red flags violate which platform policy and which national/international law.</div>
       <div class="preview-meta">Cached response</div>
-      <div class="preview-response" id="preview-response">Click Generate on the left to populate this preview. The response is composed from the same deterministic GREP / RAG / tools knowledge the live chat harness uses, so a viewer cannot tell a cached row from a fresh inference at recording time.</div>
+      <div class="preview-response" id="preview-response">Decision: remove or hold for high-priority human review. Do not allow the post as written.
+
+Why:
+
+* The PHP 50,000 "training fee" is fee camouflage. Substance over form controls: relabeling a placement or recruitment cost as training does not make it worker-payable.
+* The post uses false urgency: "URGENT," "now," and "First-come first-served" pressure workers to skip license verification and contract review.
+* The recruitment channel is an unverified Facebook-to-WhatsApp funnel.
+* The worker-fee cap for this PH-Saudi demo corridor is 0 PHP.
+
+Replay note: the captured Gemma E4B call took 287.5s. The slide replay shows the same answer shape in about 3s so the recording does not wait on GPU latency.</div>
       <div class="pack-list" id="pack-list" aria-live="polite"></div>
 
       <h2 style="margin-top: 24px;">How to use this</h2>
       <ol class="help-list">
-        <li>Fast path: click <b>Preload recording pack</b>. This stores selected examples in <code>localStorage['duecare.slides.demo.pack']</code> and the worker-chat row in <code>localStorage['duecare.slides.demo.chat']</code>.</li>
+        <li>Fast path: click <b>Preload recording pack</b>. This stores selected examples in <code>localStorage['duecare.slides.demo.pack']</code> and the chat-slide row in <code>localStorage['duecare.slides.demo.chat']</code>.</li>
         <li>Manual path: pick the audience and use case for one slide, then click <b>Generate</b>.</li>
         <li>Review the prompt and response. Re-generate if you want a different framing.</li>
         <li>Click <b>Save for slides</b> if you generated one manual row.</li>

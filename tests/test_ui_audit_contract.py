@@ -69,6 +69,8 @@ def test_shared_nav_links_ui_audit_and_has_no_mojibake():
     assert "/static/ui-audit.html" in nav
     assert 'data-nav-key="ecosystem"' in nav
     assert "/static/ecosystem.html" in nav
+    assert 'data-nav-key="recording"' in nav
+    assert "/static/demo-recording.html" in nav
     for marker in ("\u00e2", "\u00c2", "\u00c3"):
         assert marker not in nav
 

@@ -244,7 +244,7 @@ def test_slides_setup_serves_audience_and_use_case_selectors() -> None:
                 "researcher", "developer", "platform"]:
         assert f'value="{key}"' in html, \
             f"slides-setup.html missing audience option: {key}"
-    for key in ["ph_hk_placement_fee", "passport_retention",
+    for key in ["ph_sa_platform_moderation", "ph_hk_placement_fee", "passport_retention",
                 "contract_substitution", "debt_bondage",
                 "retaliation_risk", "fee_camouflage",
                 "provider_choice"]:
@@ -255,6 +255,9 @@ def test_slides_setup_serves_audience_and_use_case_selectors() -> None:
     assert "duecare.slides.demo.chat" in html
     assert "duecare.slides.demo.pack" in html
     assert "Preload recording pack" in html
+    assert 'option value="platform" selected' in html
+    assert "captured Gemma E4B call took 287.5s" in html
+    assert "replays without GPU latency" in html
 
 
 # --------------------------------------------------------------------------
