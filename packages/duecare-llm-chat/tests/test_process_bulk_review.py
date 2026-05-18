@@ -354,7 +354,12 @@ def test_process_background_job_calls_loaded_gemma_for_brief_and_edges():
     client = TestClient(create_app(gemma_call=gemma_call))
     start = client.post(
         "/api/process/batch/start",
-        data={"review_mode": "quick_triage", "max_gemma_calls": "3", "gemma_calls_per_item": "1"},
+        data={
+            "review_mode": "quick_triage",
+            "max_gemma_calls": "3",
+            "gemma_calls_per_item": "1",
+            "run_inline_gemma_text": "true",
+        },
         files={"file": (sample.name, io.BytesIO(sample.read_bytes()), "application/zip")},
     )
     assert start.status_code == 200, start.text
@@ -384,6 +389,58 @@ def test_process_background_job_calls_loaded_gemma_for_brief_and_edges():
     trace = {step["id"]: step for step in intel["harness_trace"]}
     assert trace["gemma_text"]["status"] == "complete"
     assert "model_calls_attempted" in trace["gemma_text"]["detail"]
+
+
+def test_process_batch_start_defers_gemma_by_default_even_when_model_loaded():
+    """The async upload endpoint powers the recording UI. It must not
+    block at the Gemma case-brief phase merely because a model is loaded;
+    model-backed passes are explicit follow-up work unless the request
+    opts into inline Gemma text processing.
+    """
+    from duecare.chat.app import create_app
+
+    calls = []
+
+    def gemma_call(messages, **kwargs):
+        calls.append((messages, kwargs))
+        return '{"case_theory":"should not be called"}'
+
+    sample = (
+        Path(__file__).parents[1]
+        / "src"
+        / "duecare"
+        / "chat"
+        / "static"
+        / "samples"
+        / "case_files_streamlined_demo.zip"
+    )
+    client = TestClient(create_app(gemma_call=gemma_call))
+    start = client.post(
+        "/api/process/batch/start",
+        data={"review_mode": "quick_triage", "max_gemma_calls": "12", "gemma_calls_per_item": "1"},
+        files={"file": (sample.name, io.BytesIO(sample.read_bytes()), "application/zip")},
+    )
+    assert start.status_code == 200, start.text
+    job_id = start.json()["job_id"]
+    final = None
+    for _ in range(80):
+        poll = client.get(f"/api/process/batch/status/{job_id}")
+        assert poll.status_code == 200, poll.text
+        body = poll.json()
+        if body.get("status") in {"complete", "error"}:
+            final = body
+            break
+        time.sleep(0.05)
+    assert final is not None
+    assert final["status"] == "complete", final
+    assert calls == []
+    bundle = final["result"]
+    assert bundle["summary"]["gemma_model_loaded"] is True
+    assert bundle["summary"]["n_gemma_calls_attempted"] == 0
+    assert bundle["summary"]["gemma_case_brief_status"] == "deterministic_deferred_model"
+    detail = bundle["intelligence"]["gemma_case_brief"]["detail"]
+    assert "inline Gemma text passes disabled" in detail
+    assert bundle["config"]["process_settings"]["run_inline_gemma_text"] is False
 
 
 def test_process_batch_accepts_review_mode_settings():

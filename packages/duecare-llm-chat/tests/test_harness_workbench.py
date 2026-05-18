@@ -265,6 +265,9 @@ def test_knowledge_page_uses_guided_auto_suggestion_flow(client):
     assert "kxUseSourceSample" in text
     assert "kxPollProcessJob" in text
     assert "kxLoadSourceFile" in text
+    assert "fast deterministic Bulk File Review path" in text
+    assert "fd.append('max_gemma_calls', '0')" in text
+    assert "fd.append('run_inline_gemma_text', 'false')" in text
     assert "kxBuildTextFromProcessBundle" in text
     assert "knowledge files" in text
     assert "Next: draft suggestions" not in text
@@ -401,6 +404,9 @@ def test_share_page_has_bulk_review_selection_controls(client):
     assert "/api/process/batch/start" in text
     assert "/api/process/batch/status/" in text
     assert "function wbPollShareProcessJob" in text
+    assert "inline_gemma_text=false | max_gemma_calls=0" in text
+    assert "fd.append('max_gemma_calls', '0')" in text
+    assert "fd.append('run_inline_gemma_text', 'false')" in text
 
 
 def test_contacts_api_exposes_versioned_last_verified_dates(client):
@@ -645,6 +651,7 @@ def test_process_page_has_graph_visualization_and_graph_chat_logging(client):
     assert "const WB_PROCESS_STAGES" in text
     assert "Uploading bundle to Kaggle kernel" in text
     assert "Detecting media and queued work" in text
+    assert "Building deterministic case brief" in text
     assert "OCR/layout extraction deferred" in text
     assert "Gemma 4 media vision deferred" in text
     assert "Still working locally" in text
@@ -665,6 +672,9 @@ def test_process_page_has_graph_visualization_and_graph_chat_logging(client):
     assert "fine-tuned Gemma 4" in text
     assert "document classification" in text
     assert "graph-edge generation" in text
+    assert 'id="wb-run-inline-gemma"' in text
+    assert "inline Gemma upload OFF" in text
+    assert "fd.append('run_inline_gemma_text', settings.run_inline_gemma_text ? 'true' : 'false')" in text
     assert "/api/process/batch/start" in text
     assert "/api/process/batch/status/" in text
     assert "/api/process/graph-extract/start" in text
@@ -751,6 +761,46 @@ def test_chat_page_exposes_official_source_layer(client):
     ]:
         assert marker in text
     assert "const layers = enable ? localLayers : allLayers;" in text
+
+
+def test_recording_page_exposes_preset_and_cached_trace(client):
+    r = client.get("/static/demo-recording.html")
+    assert r.status_code == 200
+    text = r.text
+    for marker in [
+        'data-nav="recording"',
+        "/static/chat.html?example=ent_mod_001&amp;audience=platform",
+        "recording_platform_moderation_trace.json",
+        "Replay JSON",
+        "OCR/media and optional Gemma edge generation are explicit follow-up actions",
+        "case_files_streamlined_demo.zip",
+        "knowledge_source_examples_sample.zip",
+        "search_intake_examples_sample.zip",
+    ]:
+        assert marker in text
+
+    trace = client.get("/static/samples/recording_platform_moderation_trace.json")
+    assert trace.status_code == 200
+    data = trace.json()
+    assert data["schema_version"] == "duecare.recording_trace.v1"
+    assert data["recording_summary"]["decision"] == "Reject / do not allow"
+    assert data["user_input"].startswith("Review this Facebook job post")
+    assert data["tool_calls"][0]["name"] == "lookup_corridor_fee_cap"
+
+
+def test_chat_page_exposes_recording_platform_preset(client):
+    r = client.get("/static/chat.html")
+    assert r.status_code == 200
+    text = r.text
+    for marker in [
+        "Recording preset",
+        "useExample('ent_mod_001'); enableLocalHarnessWhenReady();",
+        "recording_platform_moderation_trace.json",
+        "const example = params.get('example');",
+        "function enableLocalHarnessWhenReady(attempt)",
+        "useExample(example);",
+    ]:
+        assert marker in text
 
 
 def test_official_source_helpers_filter_allowlisted_domains():

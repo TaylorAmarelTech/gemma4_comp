@@ -1,0 +1,121 @@
+{
+  "schema_version": "duecare.recording_trace.v1",
+  "trace_id": "platform-ph-saudi-facebook-2026-05-18T20-11-09Z",
+  "captured_at": "2026-05-18T20:11:09.576Z",
+  "purpose": "Recording-safe cached trace for the platform moderation lane.",
+  "model": {
+    "name": "gemma-4-e4b-it",
+    "latency_ms": 287515,
+    "max_tokens_observed": 1200,
+    "response_status": "captured_truncated"
+  },
+  "user_input": "Review this Facebook job post and tell me whether to allow it on our platform: 'URGENT! Hiring 30 Filipina maids for Saudi Arabia. Free flight, free visa, only PHP 50,000 training fee, salary SAR 1,800/month. Contract 2 years. WhatsApp +63 917 123 4567 now. First-come first-served!' Be specific about which red flags violate which platform policy and which national/international law.",
+  "synthetic_media": [
+    {
+      "kind": "image",
+      "path": "/static/synthetic/fb_post_ph_hk_urgent.png",
+      "image_id": "fb_post_ph_sa_urgent_review",
+      "note": "Synthetic social-media recruitment image attached through the normal image-upload pipeline."
+    }
+  ],
+  "pipeline": {
+    "persona_chars": 4307,
+    "grep_ms": 39,
+    "rag_ms": 2,
+    "tools_ms": 1,
+    "merged_prompt_chars": 17148,
+    "harness_chars_added": 16763,
+    "import_layer": "skipped",
+    "official_sources": "skipped",
+    "online": "skipped"
+  },
+  "grep_rules": [
+    {
+      "id": "false_urgency_only_n_spots",
+      "severity": "medium",
+      "citation": "ILO General Principles for Fair Recruitment Principle 6; Palermo Protocol Art. 3(a); FTC Act Section 5; EU Directive 2005/29/EC",
+      "indicator": "False-urgency tactics reduce due diligence and informed consent in recruitment."
+    },
+    {
+      "id": "online_platform_recruitment_unverified",
+      "severity": "medium",
+      "citation": "ILO General Principles for Fair Recruitment Principle 6; Polaris Project online recruitment risk guidance; Tech Coalition anti-trafficking guidance; platform labour-trafficking standards",
+      "indicator": "Unverified social-media recruitment using direct messenger/WhatsApp contact increases fraud and trafficking risk."
+    }
+  ],
+  "rag_documents": [
+    {
+      "title": "ILO C181 (Private Employment Agencies Convention, 1997)",
+      "score": 29.345,
+      "source": "ILO Convention 181",
+      "use": "International no-fees-from-workers rule."
+    },
+    {
+      "title": "Saudi Kafala Reforms (2021 + 2024)",
+      "score": 21.659,
+      "source": "Saudi Labor Reform Initiative and Musaned context",
+      "use": "Destination-side protections and limitations for domestic-worker context."
+    },
+    {
+      "title": "ILO Convention 95, Article 8",
+      "score": 19.95,
+      "source": "ILO C095",
+      "use": "Wage-deduction guardrail."
+    },
+    {
+      "title": "ILO General Principles and Operational Guidelines for Fair Recruitment",
+      "score": 19.879,
+      "source": "ILO Fair Recruitment Principles 2016",
+      "use": "Transparent, deception-free, no-fee recruitment."
+    }
+  ],
+  "tool_calls": [
+    {
+      "name": "lookup_corridor_fee_cap",
+      "args": {"origin": "Philippines", "destination": "Saudi Arabia", "sector": "any"},
+      "result": {
+        "statute": "POEA MC 14-2017 + RA 8042/RA 10022; Saudi MoHR Resolution 178/2018",
+        "max_fee_worker": "0",
+        "currency": "PHP",
+        "note": "Zero placement fee from the Philippine side; Saudi side employer-pay rule for domestic-worker recruitment costs."
+      }
+    },
+    {
+      "name": "lookup_ngo_intake",
+      "args": {"corridor": "Philippines-Saudi Arabia"},
+      "result": {
+        "corridor": "ph-saudi",
+        "source": "vetted_contacts_pack",
+        "pack_version": "1.0.0",
+        "last_updated": "2026-05-08",
+        "hotline_ids": [
+          "poea_dmw_anti_illegal_recruitment",
+          "owwa_24_7_hotline",
+          "saudi_mlsd_musaned",
+          "ph_consulate_riyadh"
+        ]
+      }
+    },
+    {
+      "name": "lookup_fee_camouflage",
+      "args": {"label": "training fee"},
+      "result": {
+        "status": "ALWAYS PROHIBITED",
+        "commonly_disguises": "indirect placement fee",
+        "citation": "ILO C181 Art. 7; POEA MC 14-2007; BP2MI Reg 9/2020 Art. 36"
+      }
+    }
+  ],
+  "gemma_response_preview": "No, you must not allow this job post on your platform. The advertisement contains multiple severe indicators of labor exploitation and recruitment fraud that violate international conventions and national statutes. The primary canonical pattern is fee camouflage, specifically disguising a recruitment or placement fee as a training fee. The DueCare safety harness detected false urgency and unverified online-platform recruitment. The PHP 50,000 training fee violates ILO C181 Art. 7 and the Philippines-Saudi Arabia zero-fee corridor rule under POEA MC 14-2017 plus RA 8042/RA 10022.",
+  "recording_summary": {
+    "decision": "Reject / do not allow",
+    "canonical_pattern": "fee_camouflage",
+    "key_red_flags": [
+      "PHP 50,000 training fee charged to worker",
+      "urgent first-come-first-served pressure",
+      "unverified Facebook/WhatsApp recruitment path",
+      "domestic-work corridor with high recruitment-fee risk"
+    ],
+    "talk_track": "Show how the platform lane combines deterministic rule hits, RAG citations, corridor fee-cap tools, vetted contacts, and a model answer with an auditable trace."
+  }
+}

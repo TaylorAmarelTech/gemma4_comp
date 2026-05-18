@@ -218,6 +218,18 @@ def _process_settings_from_mapping(data: Any | None = None) -> dict[str, Any]:
     runtime_default = int(mode.get("runtime_budget_minutes") or 15)
     calls_default = int(mode.get("max_gemma_calls") or 75)
     per_item_default = int(mode.get("gemma_calls_per_item") or 1)
+    max_gemma_calls = _int_setting(
+        data.get("max_gemma_calls"),
+        calls_default,
+        minimum=0,
+        maximum=1000,
+    )
+    gemma_calls_per_item = _int_setting(
+        data.get("gemma_calls_per_item"),
+        per_item_default,
+        minimum=0,
+        maximum=5,
+    )
     strictness = str(data.get("edge_strictness") or mode.get("edge_strictness") or "balanced")
     if strictness not in {"conservative", "balanced", "exploratory"}:
         strictness = str(mode.get("edge_strictness") or "balanced")
@@ -230,17 +242,11 @@ def _process_settings_from_mapping(data: Any | None = None) -> dict[str, Any]:
             minimum=1,
             maximum=240,
         ),
-        "max_gemma_calls": _int_setting(
-            data.get("max_gemma_calls"),
-            calls_default,
-            minimum=0,
-            maximum=1000,
-        ),
-        "gemma_calls_per_item": _int_setting(
-            data.get("gemma_calls_per_item"),
-            per_item_default,
-            minimum=0,
-            maximum=5,
+        "max_gemma_calls": max_gemma_calls,
+        "gemma_calls_per_item": gemma_calls_per_item,
+        "run_inline_gemma_text": _bool_setting(
+            data.get("run_inline_gemma_text"),
+            bool(max_gemma_calls > 0 and gemma_calls_per_item > 0),
         ),
         "edge_strictness": strictness,
         "generate_knowledge_candidates": _bool_setting(
@@ -262,6 +268,7 @@ def _process_settings_from_form(form: Any) -> dict[str, Any]:
         "runtime_budget_minutes": form.get("runtime_budget_minutes"),
         "max_gemma_calls": form.get("max_gemma_calls"),
         "gemma_calls_per_item": form.get("gemma_calls_per_item"),
+        "run_inline_gemma_text": form.get("run_inline_gemma_text"),
         "edge_strictness": form.get("edge_strictness"),
         "generate_knowledge_candidates": form.get("generate_knowledge_candidates"),
         "include_imported_knowledge": form.get("include_imported_knowledge"),
@@ -1575,6 +1582,7 @@ def _build_intelligence(
             "runtime_budget_minutes": process_settings.get("runtime_budget_minutes", 15),
             "max_gemma_calls": process_settings.get("max_gemma_calls", 75),
             "gemma_calls_per_item": process_settings.get("gemma_calls_per_item", 1),
+            "run_inline_gemma_text": bool(process_settings.get("run_inline_gemma_text", False)),
             "edge_strictness": process_settings.get("edge_strictness", "balanced"),
             "knowledge_candidates_enabled": bool(process_settings.get("generate_knowledge_candidates", True)),
             "include_imported_knowledge": bool(process_settings.get("include_imported_knowledge", True)),
@@ -2784,7 +2792,13 @@ def register_routes(app: Any) -> None:
         gemma_available = bool(getattr(app.state, "gemma_call", None))
         gemma_budget = int(process_settings.get("max_gemma_calls") or 0)
         gemma_per_item = int(process_settings.get("gemma_calls_per_item") or 0)
-        run_gemma_text = bool(gemma_available and gemma_budget > 0 and gemma_per_item > 0)
+        inline_gemma_enabled = bool(process_settings.get("run_inline_gemma_text"))
+        run_gemma_text = bool(
+            gemma_available
+            and inline_gemma_enabled
+            and gemma_budget > 0
+            and gemma_per_item > 0
+        )
         n_gemma_calls_attempted = 0
         if run_gemma_text:
             mark("gemma_case_brief", 82, "Calling local Gemma 4 for the text case brief.")
@@ -2800,7 +2814,11 @@ def register_routes(app: Any) -> None:
             reason = (
                 "model not loaded"
                 if not gemma_available else
-                "Gemma budget disabled by processing settings"
+                (
+                    "inline Gemma text passes disabled for this upload"
+                    if not inline_gemma_enabled else
+                    "Gemma budget disabled by processing settings"
+                )
             )
             gemma_brief = {
                 "available": gemma_available,
@@ -2810,9 +2828,8 @@ def register_routes(app: Any) -> None:
                 "deferred": True,
                 "detail": (
                     "The upload endpoint returned a deterministic case brief "
-                    f"because {reason}. Load a model and keep max Gemma calls "
-                    "above zero to run model-backed text analysis during the "
-                    "background process job."
+                    f"because {reason}. After confirming the graph, use the "
+                    "explicit Gemma edge pass for model-backed text analysis."
                 ),
             }
         intelligence["gemma_case_brief"] = gemma_brief
@@ -3005,6 +3022,11 @@ def register_routes(app: Any) -> None:
         contents = await upload.read()
         filename = getattr(upload, "filename", "uploaded") or "uploaded"
         process_settings = _process_settings_from_form(form)
+        if form.get("run_inline_gemma_text") is None:
+            # Async upload is the public-demo path. Keep it deterministic
+            # unless the user explicitly opts into inline model calls; a
+            # slow 31B call should not block the upload result and graph.
+            process_settings["run_inline_gemma_text"] = False
         job_id = f"process_{_uuid4().hex[:12]}"
         now = _dt.now(_UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
         jobs, lock = _process_jobs()

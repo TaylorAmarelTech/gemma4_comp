@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Recording Checklist | DueCare Workbench</title>
+  <link rel="stylesheet" href="/static/_chrome.css">
+  <script src="/static/_nav.js" defer></script>
+  <style>
+    .page { max-width: 1120px; margin: 24px auto 64px; padding: 0 18px; color: var(--ink); font-family: Inter, system-ui, sans-serif; line-height: 1.55; }
+    h1 { font-size: 26px; margin: 0 0 6px; letter-spacing: 0; }
+    h2 { font-size: 15px; margin: 0 0 10px; }
+    h3 { font-size: 13px; margin: 0 0 6px; }
+    .lede { color: var(--ink-2); font-size: 13.5px; margin: 0 0 16px; max-width: 900px; }
+    .panel { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px; margin-bottom: 14px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(245px, 1fr)); gap: 10px; }
+    .card { border: 1px solid var(--line-soft); border-radius: 8px; padding: 12px; background: #fff; min-height: 126px; }
+    .card b { display: block; font-size: 12.5px; margin-bottom: 4px; }
+    .card small { color: var(--ink-3); font-size: 11.5px; display: block; }
+    .stepno { font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .btn { border: 1px solid var(--line); border-radius: 7px; padding: 8px 12px; background: var(--paper); color: var(--ink); text-decoration: none; font-size: 12.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+    .btn.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .btn.warn { border-color: var(--ember); color: var(--ember); }
+    .checklist { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    .checklist li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; align-items: start; color: var(--ink-2); font-size: 12.5px; }
+    .box { width: 14px; height: 14px; border: 1px solid var(--line); border-radius: 3px; margin-top: 2px; background: #fff; }
+    code { font-family: var(--mono); font-size: 11.5px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { border-bottom: 1px solid var(--line-soft); padding: 8px; text-align: left; vertical-align: top; }
+    th { font-family: var(--mono); color: var(--ink-3); font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; }
+    .note { border-left: 3px solid var(--accent); padding: 8px 10px; background: color-mix(in srgb, var(--accent) 7%, transparent); color: var(--ink-2); font-size: 12.5px; border-radius: 6px; }
+  </style>
+</head>
+<body data-nav="recording">
+  <main class="page">
+    <h1>Recording Checklist</h1>
+    <p class="lede">
+      A short operator page for the final Kaggle video. Use this to open
+      each lane in a stable order, preload the platform moderation prompt
+      with its synthetic image, and download JSON replay artifacts after
+      each run.
+    </p>
+
+    <section class="panel">
+      <h2>Before Recording</h2>
+      <ul class="checklist">
+        <li><span class="box"></span><span>Restart the Kaggle kernel after pulling the latest wheel/data version. Confirm the top strip shows the expected DueCare version.</span></li>
+        <li><span class="box"></span><span>Open the model selector and load <b>Gemma 4 E4B-it</b> for speed, or <b>Gemma 4 31B-it</b> only if there is time for slower first responses.</span></li>
+        <li><span class="box"></span><span>Use <b>Enable local</b> on Chat for Persona, GREP, RAG, Import, and Tools. Leave Official Sources and Online off unless you want live network behavior on camera.</span></li>
+        <li><span class="box"></span><span>For Bulk File Review, say that OCR/media and optional Gemma edge generation are explicit follow-up actions. The deterministic graph path is the fast recording path.</span></li>
+        <li><span class="box"></span><span>After each lane, click <b>Replay JSON</b> in the top bar so the demo has a reconstructable browser-side API trace.</span></li>
+      </ul>
+    </section>
+
+    <section class="panel">
+      <h2>Three-Minute Path</h2>
+      <div class="grid">
+        <div class="card">
+          <div class="stepno">01 platform</div>
+          <b>Moderate a Facebook recruitment post</b>
+          <small>Loads the PH-Saudi prompt and bundled synthetic post image. Show GREP/RAG/tools and the pipeline trace.</small>
+          <div class="actions">
+            <a class="btn primary" href="/static/chat.html?example=ent_mod_001&amp;audience=platform">Open preset</a>
+            <a class="btn" href="/static/samples/recording_platform_moderation_trace.json" download>Trace JSON</a>
+          </div>
+        </div>
+        <div class="card">
+          <div class="stepno">02 case analysis</div>
+          <b>Process a case bundle</b>
+          <small>Use the streamlined ZIP for speed, then mention the media-rich bundle and queued OCR/media accounting.</small>
+          <div class="actions">
+            <a class="btn primary" href="/static/process.html">Open Bulk Review</a>
+            <a class="btn" href="/static/samples/case_files_streamlined_demo.zip" download>Streamlined ZIP</a>
+          </div>
+        </div>
+        <div class="card">
+          <div class="stepno">03 knowledge</div>
+          <b>Draft reviewable knowledge objects</b>
+          <small>Upload the source examples bundle. Drafting now uses start/poll calls so long Gemma refinement stays visible.</small>
+          <div class="actions">
+            <a class="btn primary" href="/static/knowledge.html">Open Knowledge</a>
+            <a class="btn" href="/static/samples/knowledge_source_examples_sample.zip" download>Source ZIP</a>
+          </div>
+        </div>
+        <div class="card">
+          <div class="stepno">04 search</div>
+          <b>Show safe public-source intake</b>
+          <small>Use search examples, show sanitized query logging, then draft source cards into knowledge candidates.</small>
+          <div class="actions">
+            <a class="btn primary" href="/static/search.html">Open Search</a>
+            <a class="btn" href="/static/samples/search_intake_examples_sample.zip" download>Search ZIP</a>
+          </div>
+        </div>
+        <div class="card">
+          <div class="stepno">05 sharing</div>
+          <b>Anonymize before hub sharing</b>
+          <small>Show that source bundles are processed locally, redactions are reviewable, and hub submissions are sanitized proposals.</small>
+          <div class="actions">
+            <a class="btn primary" href="/static/share.html">Open Sharing</a>
+            <a class="btn" href="/static/samples/knowledge_files_sample.zip" download>Knowledge ZIP</a>
+          </div>
+        </div>
+        <div class="card">
+          <div class="stepno">06 proof</div>
+          <b>Evaluation and slides</b>
+          <small>Use the live-demo notebook for <code>/start</code> and <code>/slides</code>. Use A-00 for scores and exported reports.</small>
+          <div class="actions">
+            <a class="btn" href="https://www.kaggle.com/code/taylorsamarel/duecare-live-demo" target="_blank" rel="noopener">Live Demo</a>
+            <a class="btn" href="https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation" target="_blank" rel="noopener">Evaluation</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>What To Say Clearly</h2>
+      <table>
+        <thead><tr><th>Surface</th><th>Recording-safe framing</th></tr></thead>
+        <tbody>
+          <tr><td>Chat moderation</td><td>Gemma 4 is grounded by deterministic indicators, retrieved legal sources, corridor tools, and an auditable trace. The synthetic image is bundled only to demonstrate multimodal evidence attachment.</td></tr>
+          <tr><td>Bulk File Review</td><td>Fast path is deterministic extraction, entity linking, typed graph edges, and optional Gemma case brief. OCR/media vision is shown as a queue/follow-up unless a compatible OCR or multimodal model is wired in the live run.</td></tr>
+          <tr><td>Knowledge Extraction</td><td>Drafting produces reviewable envelopes. Promotion is human-approved; importing changes local harness behavior without exposing raw source text.</td></tr>
+          <tr><td>Search</td><td>Search is secondary and gated by query sanitization. Public-source results can become draft knowledge only after review.</td></tr>
+          <tr><td>Anonymization & Sharing</td><td>The hub receives sanitized proposals and signals, not raw worker case files. Automatic labels cannot silently upgrade anonymous content into attributed content.</td></tr>
+        </tbody>
+      </table>
+      <p class="note">
+        The cached platform trace is a recording aid, not a replacement for
+        the live run. If the model is slow, show the bundled trace JSON and
+        the browser Replay JSON so the call can be recreated after the video.
+      </p>
+    </section>
+  </main>
+</body>
+</html>
