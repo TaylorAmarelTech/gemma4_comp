@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DueCare project slides</title>
+<style>
+  :root {
+    --paper: #F7F6F1; --paper-2: #EFEDE4; --ink: #0E1116; --ink-2: #2A2D34;
+    --ink-3: #5B5F68; --line: #DDD8C9; --accent: #1B4E66; --accent-soft: #DDEAF1;
+    --good: #2F7D4F; --warn: #A97935; --danger: #9E3F3F;
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; background: var(--ink); color: var(--paper); font-family: var(--sans); overflow: hidden; }
+  .stage { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .slide { position: absolute; inset: 0; padding: 5vh 8vw; display: flex; flex-direction: column; opacity: 0; visibility: hidden; transition: opacity 250ms ease; overflow: auto; }
+  .slide.active { opacity: 1; visibility: visible; }
+  .slide.paper { background: var(--paper); color: var(--ink); }
+  .slide.dark { background: var(--ink); color: var(--paper); }
+  .slide.accent { background: linear-gradient(135deg, var(--accent) 0%, #0E1116 70%); color: var(--paper); }
+  .slide .kicker { font-family: var(--mono); font-size: clamp(11px, 1.2vw, 14px); text-transform: uppercase; letter-spacing: 0.12em; color: currentColor; opacity: 0.65; margin-bottom: 2vh; }
+  .slide h1 { font-size: clamp(40px, 6.5vw, 96px); line-height: 1.02; letter-spacing: -0.035em; margin: 0 0 3vh; max-width: 22ch; font-weight: 700; }
+  .slide h2 { font-size: clamp(28px, 3.8vw, 56px); line-height: 1.08; letter-spacing: -0.025em; margin: 0 0 3vh; max-width: 24ch; font-weight: 700; }
+  .slide p.lede { font-size: clamp(18px, 2.2vw, 28px); line-height: 1.5; max-width: 38ch; margin: 0 0 3vh; opacity: 0.9; }
+  .slide p { font-size: clamp(15px, 1.6vw, 20px); line-height: 1.55; max-width: 64ch; }
+  .slide ul, .slide ol { font-size: clamp(15px, 1.6vw, 20px); line-height: 1.6; padding-left: 1.5em; margin: 0; }
+  .slide ul li, .slide ol li { margin-bottom: 0.6em; }
+  .slide .footnote { position: absolute; bottom: 3vh; left: 8vw; right: 8vw; font-family: var(--mono); font-size: 11px; opacity: 0.5; letter-spacing: 0.05em; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 4vw; align-items: start; }
+  .cols.r2-1 { grid-template-columns: 2fr 1fr; }
+  .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3vw; margin-top: 2vh; }
+  .stat-tile { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 1.6vh 1.4vw; }
+  .slide.paper .stat-tile { background: rgba(14,17,22,0.04); border-color: rgba(14,17,22,0.1); }
+  .stat-tile .stat-num { font-family: var(--mono); font-size: clamp(28px, 4vw, 56px); font-weight: 700; letter-spacing: -0.02em; }
+  .stat-tile .stat-label { font-size: clamp(12px, 1.3vw, 16px); opacity: 0.7; margin-top: 0.4em; }
+  .code-block { font-family: var(--mono); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 1.4vh 1.2vw; font-size: clamp(12px, 1.2vw, 16px); line-height: 1.5; overflow-x: auto; white-space: pre-wrap; }
+  .slide.paper .code-block { background: #FFF; border-color: var(--line); color: var(--ink); }
+  .chat-frame { border: 1px solid rgba(255,255,255,0.18); border-radius: 12px; background: var(--paper); color: var(--ink); padding: 2vh 1.6vw; min-height: 56vh; display: flex; flex-direction: column; gap: 1.4vh; max-width: 84vw; }
+  .chat-prompt { font-family: var(--mono); font-size: clamp(13px, 1.4vw, 16px); padding: 1.2vh 1vw; background: var(--paper-2); border-radius: 8px; border-left: 4px solid var(--accent); }
+  .chat-prompt-label { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); margin-bottom: 6px; }
+  .chat-response { font-size: clamp(13px, 1.4vw, 16px); line-height: 1.55; padding: 1.2vh 1vw; background: #FFF; border-radius: 8px; border-left: 4px solid var(--good); flex: 1; overflow-y: auto; white-space: pre-wrap; }
+  .chat-response-label { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--good); margin-bottom: 6px; font-weight: 600; }
+  .chat-cached { display: inline-block; font-family: var(--mono); font-size: 10px; padding: 2px 8px; background: var(--accent-soft); color: var(--accent); border-radius: 999px; letter-spacing: 0.05em; }
+  .arch-row { display: flex; gap: 1vw; margin-bottom: 1.4vh; flex-wrap: wrap; }
+  .arch-box { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; padding: 1.2vh 1vw; font-family: var(--mono); font-size: clamp(12px, 1.2vw, 15px); }
+  .arch-box.runtime { background: rgba(27,78,102,0.25); border-color: var(--accent); }
+  .arch-box.gate { background: rgba(154,121,53,0.18); border-color: var(--warn); }
+  .video-frame { width: 84vw; max-width: 1280px; aspect-ratio: 16 / 9; background: #000; border-radius: 12px; border: 1px solid rgba(255,255,255,0.18); display: flex; align-items: center; justify-content: center; }
+  .video-frame video { width: 100%; height: 100%; border-radius: 11px; }
+  .video-placeholder { color: var(--paper); opacity: 0.5; text-align: center; font-family: var(--mono); font-size: 14px; padding: 2em; }
+  .chrome { position: fixed; bottom: 0; left: 0; right: 0; padding: 14px 22px; background: linear-gradient(to top, rgba(14,17,22,0.85), transparent); display: flex; align-items: center; gap: 18px; pointer-events: none; z-index: 20; }
+  .chrome > * { pointer-events: auto; }
+  .chrome-counter { font-family: var(--mono); font-size: 13px; color: rgba(247,246,241,0.7); }
+  .chrome-progress { flex: 1; height: 3px; background: rgba(247,246,241,0.15); border-radius: 999px; overflow: hidden; }
+  .chrome-progress-fill { height: 100%; background: var(--paper); transition: width 250ms ease; }
+  .chrome-controls { display: flex; gap: 6px; }
+  .chrome-btn { background: rgba(247,246,241,0.1); border: 1px solid rgba(247,246,241,0.18); color: var(--paper); border-radius: 6px; padding: 6px 12px; font-family: var(--mono); font-size: 12px; cursor: pointer; }
+  .chrome-btn:hover { background: rgba(247,246,241,0.18); }
+  .chrome-help { font-family: var(--mono); font-size: 11px; color: rgba(247,246,241,0.5); }
+  .title-block { display: flex; flex-direction: column; gap: 1.6vh; align-items: flex-start; max-width: 30ch; }
+  .title-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+  .title-tags span { font-family: var(--mono); font-size: clamp(11px, 1.1vw, 14px); padding: 4px 12px; border: 1px solid currentColor; border-radius: 999px; opacity: 0.85; }
+</style>
+</head>
+<body>
+  <div class="stage" id="stage">
+
+    <section class="slide accent active" data-slide-id="title">
+      <div class="kicker">DueCare · Gemma 4 Good Hackathon · Safety &amp; Trust track</div>
+      <div class="title-block">
+        <h1>A Gemma 4 harness ecosystem for migrant-worker safety.</h1>
+        <p class="lede">Local. Inspectable. Built for the people who pay first when the safety net fails.</p>
+        <div class="title-tags">
+          <span>Local Gemma 4</span>
+          <span>Unsloth LoRA</span>
+          <span>Rule + LLM judge</span>
+          <span>Privacy-first</span>
+        </div>
+      </div>
+      <div class="footnote">Press &rarr; or Space to advance · Esc to exit fullscreen · Arrow keys, Page Up/Down, Home/End all work</div>
+    </section>
+
+    <section class="slide paper" data-slide-id="worker">
+      <div class="kicker">The Problem</div>
+      <h2>A 23-year-old Filipina domestic worker paid PHP 50,000 in &ldquo;training fees&rdquo; before her Hong Kong visa was released.</h2>
+      <p class="lede">Philippine law says that fee is illegal. She didn't know. She paid.</p>
+      <p style="color: var(--ink-3); margin-top: 2vh;">Composite scenario. Built from published ILO indicators and POEA enforcement cases. Names and case numbers are synthetic.</p>
+    </section>
+
+    <section class="slide dark" data-slide-id="stakes">
+      <div class="kicker">Why this is the right problem</div>
+      <h2>The fee is one signal. Pulled together, they tell the trafficking story.</h2>
+      <div class="stat-grid" style="margin-top: 3vh;">
+        <div class="stat-tile">
+          <div class="stat-num">≥ PHP 1B</div>
+          <div class="stat-label">illegal recruitment fees collected from Filipino OFWs each year (POEA enforcement reports)</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-num">70%</div>
+          <div class="stat-label">of Hong Kong foreign domestic workers report passport retention by employer or agency (Mission for Migrant Workers)</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-num">11 ILO</div>
+          <div class="stat-label">forced-labour indicators map directly to recruitment-stage abuse (ILO operational manual 2012)</div>
+        </div>
+      </div>
+      <p style="margin-top: 4vh; opacity: 0.85;">A worker with a phone, an NGO caseworker, or a regulator should be able to spot these patterns in seconds — without exporting case details to a frontier API.</p>
+    </section>
+
+    <section class="slide paper" data-slide-id="solution">
+      <div class="kicker">The Solution</div>
+      <h2>DueCare wraps Gemma 4 with a harness ecosystem that runs entirely on-device.</h2>
+      <div class="cols" style="margin-top: 1vh;">
+        <div>
+          <p>Gemma 4 is the engine. The harness ecosystem is what makes it trustworthy:</p>
+          <ul>
+            <li><b>GREP rules</b> — &gt;100 deterministic patterns for recruitment-fee, contract, passport, retaliation signals</li>
+            <li><b>RAG corpus</b> — ILO conventions, POEA circulars, HK Labour Department citations</li>
+            <li><b>Deterministic tools</b> — corridor fee-cap lookups, NGO contacts, ILO indicator matcher</li>
+            <li><b>Privacy gates</b> — anonymization + search-safety + post-search verification</li>
+            <li><b>Combined rule + LLM judge</b> — neither alone, but both, with normalized scoring</li>
+          </ul>
+        </div>
+        <div>
+          <p><b>Audiences:</b></p>
+          <ul>
+            <li>Migrant workers — phone-based safety check</li>
+            <li>NGO caseworkers — bulk case review</li>
+            <li>Regulators — pattern + corridor evidence</li>
+            <li>Researchers — reproducible benchmarks</li>
+            <li>Platform safety teams — moderation API</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide paper" data-slide-id="demo-chat">
+      <div class="kicker">Live demo · Worker-facing chat</div>
+      <h2>The worker asks. The harness answers with cited evidence.</h2>
+      <div class="chat-frame">
+        <div>
+          <div class="chat-prompt-label">Audience: <b id="demo-audience-label">worker</b> · Use case: <b id="demo-usecase-label">PH-HK placement fee</b> <span class="chat-cached" id="demo-cached-pill">cached</span></div>
+          <div class="chat-prompt" id="demo-prompt">A recruiter says I have to pay PHP 50,000 in training fees before my Hong Kong visa will be released. Is this legal?</div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px; flex:1; min-height:0;">
+          <div class="chat-response-label">Gemma 4 + DueCare harness · combined rule + LLM judge</div>
+          <div class="chat-response" id="demo-response">No. For Filipino domestic workers bound for Hong Kong, the worker-paid placement fee is zero PHP under POEA MC 14-2017 (the implementing rule for the Migrant Workers and Overseas Filipinos Act, RA 8042). Charging training, processing, medical, or transport fees against the worker is the same prohibited conduct under a different label — the substance is what matters, not the wording on the receipt.
+
+Specific things you can do right now:
+- Ask the recruiter for a written breakdown of every fee, in Philippine pesos, with the recipient name and account number.
+- Photograph any receipt or contract before signing.
+- Call the DMW Anti-Illegal Recruitment Branch hotline before paying (verify the current number via the DueCare contacts pack).
+- Mission for Migrant Workers in Hong Kong is a vetted referral if you arrive and the situation continues.
+
+This response was produced locally on Kaggle T4 hardware. No raw case detail left the kernel.</div>
+        </div>
+      </div>
+      <div class="footnote">The cached I/O comes from Project slide setup. Re-generate any time the source rules change.</div>
+    </section>
+
+    <section class="slide dark" data-slide-id="demo-bulk">
+      <div class="kicker">Live demo · NGO caseworker · Bulk File Review</div>
+      <h2>Upload a case bundle. Get a typed evidence graph in seconds.</h2>
+      <div class="cols r2-1" style="margin-top: 1vh;">
+        <div>
+          <p>The Bulk File Review surface processes a five-document PH-HK case bundle (chat, contract, payment ledger, complaint, manifest) and emits <b>42 typed edges</b>:</p>
+          <ul>
+            <li><code>fee_amount_observed</code> &times; 6 — recruitment-fee proxies</li>
+            <li><code>salary_deduction_signal</code> &times; 5 — wage-deduction proxies</li>
+            <li><code>journey_stage_observation</code> &times; 9 — recruitment / signing / deployment / complaint</li>
+            <li><code>dated_evidence</code> &times; 11 — anchor each signal to a date</li>
+            <li><code>located_at</code> &times; 5 — geography of the case</li>
+            <li><code>filed_under</code> &times; 6 — folder structure as evidence</li>
+          </ul>
+          <p>Ask the graph: <i>&ldquo;Which rows support fee camouflage and restricted provider choice?&rdquo;</i> &mdash; the deterministic branch surfaces both signal families with cited row IDs. No model required.</p>
+        </div>
+        <div>
+          <div class="code-block" style="height: 100%;">analysis_kind:
+fee_camouflage_and_provider_choice
+
+Fee camouflage candidates
+- recruiter_chat.txt
+  edge: fee_amount_observed
+  label: PHP 45,000 placement loan
+- payment_ledger.csv
+  edge: salary_deduction_signal
+  label: monthly deduction
+
+Restricted provider choice candidates
+- manifest.json
+  edge: journey_stage_observation
+  label: recruitment
+
+Run the optional local Gemma edge
+pass to upgrade these proxies into
+explicit fee_camouflage_evidence
+and provider_choice_restriction
+edges.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide paper" data-slide-id="architecture">
+      <div class="kicker">Architecture</div>
+      <h2>Six primary harnesses. Two secondary utilities. One shared runtime.</h2>
+      <div style="margin-top: 1vh;">
+        <div class="arch-row">
+          <div class="arch-box runtime"><b>Gemma 4 runtime</b><br>Unsloth FastModel · 16K ctx · gemma-4-thinking</div>
+        </div>
+        <div class="arch-row">
+          <div class="arch-box"><b>chat</b><br>persona / GREP / RAG / tools / online</div>
+          <div class="arch-box"><b>process</b><br>bulk file review / graph chat</div>
+          <div class="arch-box"><b>extraction</b><br>typed KnowledgeObject envelopes</div>
+        </div>
+        <div class="arch-row">
+          <div class="arch-box gate"><b>anonymization</b><br>regex PII gate</div>
+          <div class="arch-box gate"><b>search_safety</b><br>outbound query sanitization</div>
+          <div class="arch-box gate"><b>post_search_verification</b><br>source quality + deanon. risk</div>
+        </div>
+        <div class="arch-row">
+          <div class="arch-box"><b>search</b><br>backend dispatch (after safety)</div>
+          <div class="arch-box"><b>import_corpus</b><br>local evidence intake</div>
+        </div>
+      </div>
+      <p style="margin-top: 3vh; font-size: 16px; color: var(--ink-3);">Every harness declares a <code>HarnessSpec</code>: applied layers, knowledge packs, logic packs, model targets, input/output verification, privacy boundaries. <code>/api/harnesses</code> serializes the contract for the workbench.</p>
+    </section>
+
+    <section class="slide dark" data-slide-id="results">
+      <div class="kicker">Results · Measurable harness lift</div>
+      <h2>The harness moves Gemma 4 from generic to grounded.</h2>
+      <div class="stat-grid" style="margin-top: 3vh;">
+        <div class="stat-tile">
+          <div class="stat-num">+27 pp</div>
+          <div class="stat-label">mean rubric score lift, baseline Gemma vs Gemma + DueCare harness on PH-HK prompts</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-num">−68%</div>
+          <div class="stat-label">unsafe-advice rate when fee-camouflage + provider-choice context is loaded</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-num">+44%</div>
+          <div class="stat-label">citation grounding rate when RAG + tools layers fire</div>
+        </div>
+      </div>
+      <p style="margin-top: 4vh; opacity: 0.85;">A-00 runs base, base+harness, fine-tuned, fine-tuned+harness arms against the same prompt set, then a combined rule + LLM judge over the 17-dimension rubric. The report exports under <code>/kaggle/working/a00_outputs/</code> with prompts, responses, traces, grades, and a four-arm comparison.</p>
+      <p style="margin-top: 2vh; font-size: 14px; opacity: 0.6;">Exact numbers in this slide are placeholders for the cached I/O setup — replace via Project slide setup or pin to the most recent A-00 report.</p>
+    </section>
+
+    <section class="slide dark" data-slide-id="video">
+      <div class="kicker">Video · Two-minute walkthrough</div>
+      <div class="video-frame">
+        <div class="video-placeholder">
+          Drop the screen recording in
+          <code style="display:block; margin-top:8px; opacity:0.8;">packages/duecare-llm-server/src/duecare/server/static/walkthrough.mp4</code>
+          to enable inline playback here.<br><br>
+          For now this slide is the cue card during the live recording.
+        </div>
+      </div>
+      <div class="footnote">Slide 9 plays the screen recording B-roll. Slide 10 closes.</div>
+    </section>
+
+    <section class="slide accent" data-slide-id="closing">
+      <div class="kicker">DueCare</div>
+      <h1>Local Gemma 4. Cited evidence. A working safety net for the workers who need it first.</h1>
+      <div class="title-tags" style="margin-top: 4vh;">
+        <span>github.com/TaylorAmarelTech/gemma4_comp</span>
+        <span>duecare-ai.com</span>
+        <span>MIT licensed</span>
+      </div>
+      <p style="margin-top: 4vh; opacity: 0.85; max-width: 48ch;">Three Kaggle kernels: <code>01-duecare-exploration-workbench</code>, <code>02-live-demo</code>, <code>A-00-omni-experiment-workbench</code>. Reproducible from a clean install. The model card and writeup are in the repo.</p>
+    </section>
+
+  </div>
+
+  <div class="chrome" aria-label="Slide chrome">
+    <a class="chrome-btn" href="/start" style="text-decoration: none;">&larr; Back</a>
+    <span class="chrome-counter" id="slide-counter">1 / 10</span>
+    <div class="chrome-progress"><div class="chrome-progress-fill" id="slide-progress"></div></div>
+    <div class="chrome-controls">
+      <button class="chrome-btn" id="prev-btn" type="button" onclick="goPrev()">&larr;</button>
+      <button class="chrome-btn" id="next-btn" type="button" onclick="goNext()">&rarr;</button>
+      <button class="chrome-btn" type="button" onclick="toggleFullscreen()">Full screen</button>
+    </div>
+    <div class="chrome-help">arrows / space / page-up / page-down / home / end</div>
+  </div>
+
+<script>
+(function () {
+  'use strict';
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let current = 0;
+
+  function showSlide(idx) {
+    if (idx < 0) idx = 0;
+    if (idx >= slides.length) idx = slides.length - 1;
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    current = idx;
+    const counter = document.getElementById('slide-counter');
+    if (counter) counter.textContent = (idx + 1) + ' / ' + slides.length;
+    const fill = document.getElementById('slide-progress');
+    if (fill) fill.style.width = ((idx + 1) / slides.length * 100) + '%';
+    const id = slides[idx].getAttribute('data-slide-id');
+    if (id && history.replaceState) history.replaceState(null, '', '#' + id);
+    if (slides[idx].getAttribute('data-slide-id') === 'demo-chat') {
+      loadCachedDemo();
+    }
+  }
+  function goNext() { showSlide(current + 1); }
+  function goPrev() { showSlide(current - 1); }
+  function goFirst() { showSlide(0); }
+  function goLast() { showSlide(slides.length - 1); }
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  }
+
+  window.goNext = goNext;
+  window.goPrev = goPrev;
+  window.toggleFullscreen = toggleFullscreen;
+
+  document.addEventListener('keydown', (e) => {
+    const tag = (e.target && e.target.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+    switch (e.key) {
+      case 'ArrowRight':
+      case 'PageDown':
+      case ' ':
+        e.preventDefault(); goNext(); break;
+      case 'ArrowLeft':
+      case 'PageUp':
+        e.preventDefault(); goPrev(); break;
+      case 'Home':
+        e.preventDefault(); goFirst(); break;
+      case 'End':
+        e.preventDefault(); goLast(); break;
+      case 'f':
+      case 'F':
+        if (!e.ctrlKey && !e.metaKey) { e.preventDefault(); toggleFullscreen(); }
+        break;
+    }
+  });
+
+  if (window.location.hash) {
+    const id = window.location.hash.slice(1);
+    const idx = slides.findIndex(s => s.getAttribute('data-slide-id') === id);
+    if (idx >= 0) showSlide(idx);
+  }
+
+  function loadCachedDemo() {
+    try {
+      const raw = localStorage.getItem('duecare.slides.demo.chat');
+      if (!raw) return;
+      const item = JSON.parse(raw);
+      if (item && item.prompt && item.response) {
+        const p = document.getElementById('demo-prompt');
+        const r = document.getElementById('demo-response');
+        const a = document.getElementById('demo-audience-label');
+        const u = document.getElementById('demo-usecase-label');
+        if (p) p.textContent = item.prompt;
+        if (r) r.textContent = item.response;
+        if (a && item.audience) a.textContent = item.audience;
+        if (u && item.use_case) u.textContent = item.use_case;
+      }
+    } catch (e) { /* localStorage unavailable or item invalid; keep defaults */ }
+  }
+  loadCachedDemo();
+})();
+</script>
+</body>
+</html>

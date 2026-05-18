@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DueCare slide setup — cached I/O</title>
+<link rel="stylesheet" href="/static/styles.css">
+<style>
+  :root { color-scheme: light; }
+  body { background: var(--paper, #F7F6F1); color: var(--ink, #0E1116); margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+  .setup-shell { max-width: 1180px; margin: 0 auto; padding: 40px 28px 64px; }
+  .setup-header { margin-bottom: 28px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  .setup-kicker { font-family: var(--mono, "JetBrains Mono", monospace); font-size: 11px; color: var(--ink-3, #5B5F68); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+  .setup-header h1 { font-size: clamp(28px, 3.6vw, 44px); letter-spacing: -0.025em; line-height: 1.05; margin: 0 0 8px; }
+  .setup-header p { font-size: 15px; line-height: 1.55; color: var(--ink-2, #2A2D34); margin: 0; max-width: 64ch; }
+  .setup-back { font-family: var(--mono, monospace); font-size: 12px; color: var(--accent-ink, #1B4E66); text-decoration: none; padding: 8px 14px; border: 1px solid var(--line, #DDD8C9); border-radius: 999px; background: #FFF; }
+  .setup-back:hover { border-color: var(--ink, #0E1116); }
+  .setup-grid { display: grid; grid-template-columns: minmax(260px, 380px) minmax(0, 1fr); gap: 22px; }
+  @media (max-width: 900px) { .setup-grid { grid-template-columns: 1fr; } }
+  .setup-card { background: #FFF; border: 1px solid var(--line, #DDD8C9); border-radius: 14px; padding: 22px 22px 20px; }
+  .setup-card h2 { font-size: 17px; margin: 0 0 14px; letter-spacing: -0.01em; }
+  .setup-card label { display: block; font-family: var(--mono, monospace); font-size: 11px; color: var(--ink-3, #5B5F68); text-transform: uppercase; letter-spacing: 0.08em; margin: 14px 0 6px; }
+  .setup-card select, .setup-card input[type="text"] { width: 100%; padding: 10px 12px; border: 1px solid var(--line, #DDD8C9); border-radius: 8px; font: inherit; font-size: 14px; background: #FFF; color: var(--ink, #0E1116); }
+  .setup-card select:focus, .setup-card input:focus { outline: none; border-color: var(--accent-ink, #1B4E66); }
+  .setup-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+  .setup-actions button { padding: 10px 16px; border: 1px solid var(--ink, #0E1116); border-radius: 8px; background: var(--ink, #0E1116); color: var(--paper, #F7F6F1); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .setup-actions button.secondary { background: #FFF; color: var(--ink, #0E1116); border-color: var(--line, #DDD8C9); }
+  .setup-actions button:hover { transform: translateY(-1px); }
+  .setup-actions button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+  .setup-status { margin-top: 14px; font-size: 12.5px; color: var(--ink-3, #5B5F68); min-height: 18px; }
+  .preview-prompt { font-family: var(--mono, monospace); font-size: 13.5px; padding: 14px 16px; background: var(--paper-2, #EFEDE4); border-radius: 8px; border-left: 4px solid var(--accent, #1B4E66); margin-bottom: 14px; min-height: 64px; white-space: pre-wrap; line-height: 1.5; }
+  .preview-response { font-size: 14px; padding: 16px 18px; background: #FFF; border: 1px solid var(--line, #DDD8C9); border-radius: 8px; border-left: 4px solid var(--good, #2F7D4F); line-height: 1.6; min-height: 200px; white-space: pre-wrap; }
+  .preview-meta { font-family: var(--mono, monospace); font-size: 11px; color: var(--ink-3, #5B5F68); margin-bottom: 8px; letter-spacing: 0.04em; }
+  .stored-pill { display: inline-block; padding: 3px 10px; border-radius: 999px; background: var(--accent-soft, #DDEAF1); color: var(--accent-ink, #1B4E66); font-family: var(--mono, monospace); font-size: 11px; letter-spacing: 0.04em; margin-left: 6px; }
+  .stored-pill.empty { background: var(--paper-2, #EFEDE4); color: var(--ink-3, #5B5F68); }
+  .help-list { margin: 0; padding-left: 18px; font-size: 13px; color: var(--ink-2, #2A2D34); line-height: 1.55; }
+  .help-list li { margin-bottom: 6px; }
+  .help-list code { font-family: var(--mono, monospace); font-size: 12px; background: var(--paper-2, #EFEDE4); padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<main class="setup-shell">
+  <header class="setup-header">
+    <div>
+      <div class="setup-kicker">DueCare &middot; Slide setup</div>
+      <h1>Generate cached input/output examples per audience.</h1>
+      <p>Slides display the cached response immediately so the recording never waits for live inference. Re-generate any time the source rules change.</p>
+    </div>
+    <a class="setup-back" href="/start">&larr; Back to Start</a>
+  </header>
+
+  <section class="setup-grid">
+
+    <aside class="setup-card" aria-label="Setup controls">
+      <h2>Choose</h2>
+
+      <label for="audience">Audience</label>
+      <select id="audience">
+        <option value="worker">Migrant worker &mdash; phone-based safety check</option>
+        <option value="ngo">NGO caseworker &mdash; bulk case review</option>
+        <option value="regulator">Regulator &mdash; corridor pattern + enforcement</option>
+        <option value="researcher">Researcher &mdash; reproducible benchmark</option>
+        <option value="developer">Developer &mdash; API + harness integration</option>
+        <option value="platform">Platform safety team &mdash; moderation</option>
+      </select>
+
+      <label for="use-case">Use case</label>
+      <select id="use-case">
+        <option value="ph_hk_placement_fee">PH-HK placement fee (zero-fee rule)</option>
+        <option value="passport_retention">Passport retention by employer or agency</option>
+        <option value="contract_substitution">Contract substitution at deployment</option>
+        <option value="debt_bondage">Debt-bondage via repayment-loan framing</option>
+        <option value="retaliation_risk">Retaliation risk after complaint</option>
+        <option value="fee_camouflage">Fee camouflage (training/medical/transport relabeling)</option>
+        <option value="provider_choice">Restricted provider choice</option>
+      </select>
+
+      <label for="prompt-extra">Optional prompt seed (overrides default)</label>
+      <input type="text" id="prompt-extra" placeholder="Leave empty for the default prompt">
+
+      <div class="setup-actions">
+        <button type="button" id="generate-btn">Generate</button>
+        <button type="button" class="secondary" id="save-btn" disabled>Save for slides</button>
+        <button type="button" class="secondary" id="clear-btn">Clear stored</button>
+      </div>
+      <div class="setup-status" id="setup-status">Pick audience + use case, then Generate. The cached row is stored locally in your browser for the slide deck.</div>
+    </aside>
+
+    <article class="setup-card" aria-label="Preview">
+      <h2>Preview <span class="stored-pill empty" id="stored-pill">no cached row yet</span></h2>
+      <div class="preview-meta">Prompt</div>
+      <div class="preview-prompt" id="preview-prompt">A recruiter says I have to pay PHP 50,000 in training fees before my Hong Kong visa will be released. Is this legal?</div>
+      <div class="preview-meta">Cached response</div>
+      <div class="preview-response" id="preview-response">Click Generate on the left to populate this preview. The response is composed from the same deterministic GREP / RAG / tools knowledge the live chat harness uses, so a viewer cannot tell a cached row from a fresh inference at recording time.</div>
+
+      <h2 style="margin-top: 24px;">How to use this</h2>
+      <ol class="help-list">
+        <li>Pick the audience and use case for one slide. Click <b>Generate</b>.</li>
+        <li>Review the prompt and response. Re-generate if you want a different framing.</li>
+        <li>Click <b>Save for slides</b>. The row is stored in <code>localStorage['duecare.slides.demo.chat']</code>.</li>
+        <li>Open <a href="/slides#demo-chat">Project slides &mdash; demo chat slide</a>. The cached row appears automatically.</li>
+        <li>Record. The slide deck never blocks on live inference.</li>
+      </ol>
+    </article>
+
+  </section>
+</main>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var generated = null;
+  var audienceLabels = {
+    worker: 'Migrant worker',
+    ngo: 'NGO caseworker',
+    regulator: 'Regulator',
+    researcher: 'Researcher',
+    developer: 'Developer',
+    platform: 'Platform safety team'
+  };
+  var useCaseLabels = {
+    ph_hk_placement_fee: 'PH-HK placement fee',
+    passport_retention: 'Passport retention',
+    contract_substitution: 'Contract substitution',
+    debt_bondage: 'Debt-bondage framing',
+    retaliation_risk: 'Retaliation risk',
+    fee_camouflage: 'Fee camouflage',
+    provider_choice: 'Restricted provider choice'
+  };
+
+  function setStatus(msg) {
+    var el = $('setup-status');
+    if (el) el.textContent = msg;
+  }
+
+  function refreshStoredPill() {
+    var pill = $('stored-pill');
+    if (!pill) return;
+    try {
+      var raw = localStorage.getItem('duecare.slides.demo.chat');
+      if (!raw) { pill.textContent = 'no cached row yet'; pill.classList.add('empty'); return; }
+      var item = JSON.parse(raw);
+      var aLabel = audienceLabels[item.audience_key] || item.audience || '';
+      var uLabel = useCaseLabels[item.use_case_key] || item.use_case || '';
+      pill.textContent = 'stored: ' + aLabel + ' · ' + uLabel;
+      pill.classList.remove('empty');
+    } catch (e) {
+      pill.textContent = 'localStorage unavailable';
+      pill.classList.add('empty');
+    }
+  }
+
+  function generateCachedIO() {
+    var audience = $('audience').value;
+    var useCase = $('use-case').value;
+    var promptOverride = ($('prompt-extra').value || '').trim();
+    var btn = $('generate-btn');
+    var saveBtn = $('save-btn');
+    btn.disabled = true;
+    btn.textContent = 'Generating...';
+    setStatus('Calling /api/slides/cached-io ...');
+    var body = { audience: audience, use_case: useCase };
+    if (promptOverride) body.prompt = promptOverride;
+    fetch('/api/slides/cached-io', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body)
+    }).then(function (r) {
+      if (!r.ok) {
+        return r.text().then(function (t) { throw new Error('HTTP ' + r.status + ': ' + t.slice(0, 200)); });
+      }
+      return r.json();
+    }).then(function (out) {
+      generated = {
+        audience: audienceLabels[audience] || audience,
+        use_case: useCaseLabels[useCase] || useCase,
+        audience_key: audience,
+        use_case_key: useCase,
+        prompt: out.prompt || '',
+        response: out.response || '',
+        generated_at: new Date().toISOString()
+      };
+      $('preview-prompt').textContent = generated.prompt;
+      $('preview-response').textContent = generated.response;
+      saveBtn.disabled = false;
+      setStatus('Generated. Click "Save for slides" to store this row.');
+    }).catch(function (e) {
+      setStatus('Generate failed: ' + (e && e.message || e));
+      saveBtn.disabled = true;
+    }).then(function () {
+      btn.disabled = false;
+      btn.textContent = 'Generate';
+    });
+  }
+
+  function saveToSlides() {
+    if (!generated) {
+      setStatus('Nothing to save. Click Generate first.');
+      return;
+    }
+    try {
+      localStorage.setItem('duecare.slides.demo.chat', JSON.stringify({
+        audience: generated.audience,
+        use_case: generated.use_case,
+        audience_key: generated.audience_key,
+        use_case_key: generated.use_case_key,
+        prompt: generated.prompt,
+        response: generated.response,
+        generated_at: generated.generated_at
+      }));
+      refreshStoredPill();
+      setStatus('Stored. Open the demo chat slide; the row appears automatically.');
+    } catch (e) {
+      setStatus('Save failed: ' + (e && e.message || e));
+    }
+  }
+
+  function clearStored() {
+    try {
+      localStorage.removeItem('duecare.slides.demo.chat');
+      refreshStoredPill();
+      setStatus('Cleared. The slide deck will show the built-in default.');
+    } catch (e) {
+      setStatus('Clear failed: ' + (e && e.message || e));
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var gen = $('generate-btn');
+    var sav = $('save-btn');
+    var clr = $('clear-btn');
+    if (gen) gen.addEventListener('click', generateCachedIO);
+    if (sav) sav.addEventListener('click', saveToSlides);
+    if (clr) clr.addEventListener('click', clearStored);
+    refreshStoredPill();
+  });
+})();
+</script>
+</body>
+</html>

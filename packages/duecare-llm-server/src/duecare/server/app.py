@@ -24,10 +24,13 @@ from duecare.server.ratelimit import RateLimitMiddleware
 from duecare.server.request_metrics_mw import RequestMetricsMiddleware
 
 
-# Endpoints that DO NOT require auth (homepage + healthz + status).
+# Endpoints that DO NOT require auth (homepage + healthz + status +
+# demo landing + slide deck).
 _PUBLIC_ENDPOINTS = {"/", "/healthz", "/api/status",
                       "/static", "/enterprise", "/individual",
-                      "/knowledge", "/settings"}
+                      "/knowledge", "/settings",
+                      "/start", "/slides", "/slides/setup",
+                      "/api/slides/cached-io"}
 
 
 # ---------------------------------------------------------------------------
@@ -282,6 +285,22 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
     @app.get("/settings", response_class=HTMLResponse)
     def settings_page() -> Any:
         return _serve_html(static_dir / "settings.html")
+
+    # ------ Slide-deck demo surface ---------------------------------------
+    # Two-tile landing: Project slides (full-screen pitch deck) +
+    # Project slide setup (cached I/O generator). Recording the demo
+    # video runs through these pages, not through the workbench.
+    @app.get("/start", response_class=HTMLResponse)
+    def start_page() -> Any:
+        return _serve_html(static_dir / "start.html")
+
+    @app.get("/slides", response_class=HTMLResponse)
+    def slides_page() -> Any:
+        return _serve_html(static_dir / "slides.html")
+
+    @app.get("/slides/setup", response_class=HTMLResponse)
+    def slides_setup_page() -> Any:
+        return _serve_html(static_dir / "slides-setup.html")
 
     # ------ API: model-info -----------------------------------------------
     @app.get("/api/model-info")
@@ -1177,6 +1196,47 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
     @app.get("/api/activity")
     def api_activity(limit: int = 20) -> Any:
         return [t.as_dict() for t in tq.list(limit=limit)]
+
+    # ------ API: slide-deck cached I/O ------------------------------------
+    # POST /api/slides/cached-io {audience, use_case, prompt?}
+    # -> {prompt, response, audience, use_case}
+    # Pure deterministic; no model is called. Powers /slides/setup so the
+    # demo slide can show a complete response instantly during a recording.
+    @app.post("/api/slides/cached-io")
+    def api_slides_cached_io(req: dict) -> Any:
+        from duecare.server.slides_cache import (
+            AUDIENCE_KEYS, USE_CASE_KEYS, build_cached_io)
+        audience = (req or {}).get("audience") or ""
+        use_case = (req or {}).get("use_case") or ""
+        prompt_override = (req or {}).get("prompt")
+        if not isinstance(audience, str) or not audience.strip():
+            raise HTTPException(400, "audience is required")
+        if not isinstance(use_case, str) or not use_case.strip():
+            raise HTTPException(400, "use_case is required")
+        if use_case not in USE_CASE_KEYS:
+            raise HTTPException(
+                400,
+                f"use_case must be one of {sorted(USE_CASE_KEYS)}; "
+                f"got {use_case!r}",
+            )
+        try:
+            cached = build_cached_io(
+                audience=audience,
+                use_case=use_case,
+                prompt_override=(prompt_override
+                                  if isinstance(prompt_override, str)
+                                  else None),
+            )
+        except ValueError as e:
+            raise HTTPException(400, str(e))
+        return {
+            "prompt": cached.prompt,
+            "response": cached.response,
+            "audience": audience,
+            "use_case": use_case,
+            "audience_keys": list(AUDIENCE_KEYS),
+            "use_case_keys": list(USE_CASE_KEYS),
+        }
 
     # ------ API: settings --------------------------------------------------
     @app.get("/api/settings")

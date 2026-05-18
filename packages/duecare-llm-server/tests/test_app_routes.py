@@ -58,7 +58,7 @@ def test_homepage_uses_five_lane_live_demo_console() -> None:
         assert r.status_code == 200
         html = r.text
         for marker in [
-            "Run the Gemma 4 safety harness.",
+            "Run the Gemma 4 harness ecosystem.",
             "Platform safety",
             "NGO &amp; regulator",
             "Individual worker / mobile",
