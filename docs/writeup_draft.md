@@ -2,7 +2,7 @@
 
 **Track:** Safety & Trust (primary). Special Technology eligibility: Unsloth (LoRA fine-tuning) and llama.cpp / LiteRT (local Gemma 4 deployment).
 
-**Live deck:** the recording-grade pitch lives at `/start` and `/slides` inside the live-demo kernel (see *How to run on Kaggle* below). The slides also work offline.
+**Live deck:** the recording-grade pitch lives at `/start` and `/slides` inside the live-demo kernel (see *Run on Kaggle* below).
 
 ## Try it in 30 seconds
 
@@ -10,78 +10,69 @@ Three Kaggle script kernels. Each is a single `kernel.py`: copy into a fresh Kag
 
 - 🟢 **DueCare App** — [`kaggle.com/code/taylorsamarel/duecare-app`](https://www.kaggle.com/code/taylorsamarel/duecare-app) — broad reviewer workbench.
 - 🎬 **DueCare Live Demo** — [`kaggle.com/code/taylorsamarel/duecare-live-demo`](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) — focused demo + 21-slide pitch deck at `/start` and `/slides`.
-- 📊 **DueCare Fine-tuning and Evaluation** — [`kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation) — four-arm benchmark + LoRA fine-tune + combined judging + exported report bundle.
+- 📊 **DueCare Fine-tuning and Evaluation** — [`kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation) — A-00 control plane: four-arm runs, LoRA fine-tune, combined judging, exported report bundle.
 
-Source: [github.com/TaylorAmarelTech/gemma4_comp](https://github.com/TaylorAmarelTech/gemma4_comp) (MIT). Heuristic-only mode (no model) still serves `/start`, `/slides`, the deterministic GREP / RAG / tools paths, and the cached worker-question slot.
+Source: [github.com/TaylorAmarelTech/gemma4_comp](https://github.com/TaylorAmarelTech/gemma4_comp) (MIT). Heuristic-only mode (no model) still serves `/start`, `/slides`, deterministic GREP / RAG / tools, and the cached worker-question slot.
 
-## 1. The problem at a scale generic AI is not closing
+## 1. The capability gap, named
 
-Twenty-eight million people are in forced labor today. Forced labor generates $236 billion in illicit profit a year. One hundred and sixty-nine million people work outside their country of birth, and migrant workers face roughly three times the forced-labor risk of non-migrants (ILO Global Estimates 2022; Profits and Poverty 2024; Migration Statistics 2024).
+Twenty-eight million people are in forced labor today; forced labor generates $236 billion in illicit profit a year; 169 million people work outside their country of birth and migrant workers face roughly three times the forced-labor risk (ILO, 2022 and 2024).
 
-Despite frontier-model progress, this domain has not benefited. Migrant-worker safety sits at the intersection of fragmented labour law, corridor-specific recruitment patterns, scarce public training data, and low commercial pressure on model providers. A useful rule of thumb is
+Despite frontier-model progress, this domain has not benefited. A useful rule of thumb is
 
 > capability spike ≈ verifiability × training attention × data coverage × economic value
 
-All four factors are weak here, and the result shows up in evaluations: a 2024 Kaggle red-team write-up across leading open and closed models found that generic LLMs routinely give plausible-sounding answers that are wrong in load-bearing ways for migrant workers — wrong fees, wrong corridor rules, wrong remedies, missing privacy guidance. ([prior work, Kaggle 2024](https://www.kaggle.com/competitions/openai-gpt-oss-20b-red-teaming/writeups/llm-complicity-in-modern-slavery-from-native-blind))
+All four factors are weak for migrant-worker safety. **Verifiability** is hard because the right answer is the corridor rule, not a generic refusal. **Training attention** is small because there is no large public alignment corpus. **Data coverage** is thin because the source statutes, circulars, and corridor caps are fragmented across DMW, BP2MI, Nepal DoFE, HK Labour, SG MOM, UAE MoHRE, plus ILO conventions. **Economic value** is low for commercial providers, so this slice of the safety surface does not receive product investment.
 
-The people most exposed get the least help, and the harm compounds: an overcharged worker takes on debt, a retained passport blocks departure, a retaliation threat silences a complaint.
+The result is documented. A 2024 Kaggle red-team write-up evaluated leading open and closed models on migrant-worker prompts and found that frontier LLMs *consistently* produce plausible-sounding answers that are wrong in load-bearing ways. ([prior work, Kaggle 2024](https://www.kaggle.com/competitions/openai-gpt-oss-20b-red-teaming/writeups/llm-complicity-in-modern-slavery-from-native-blind))
 
-## 2. DueCare in one sentence
+## 2. What goes wrong concretely
 
-DueCare is a Gemma 4 harness ecosystem: five user-facing workflow lanes on top of one shared local substrate, designed so platforms, NGOs, regulators, individual workers, and researchers can all benefit from the same inspectable safety primitives. **Gemma 4 is not another lane — it is the local model runtime underneath every lane.**
+Across iterative test runs against base Gemma 4, GPT-OSS, Qwen, Llama, Mistral, and DeepSeek for this domain, the recurring failure modes are:
 
-## 3. The five lanes
+- **Hallucinated statute sections.** Generic models will cite `RA 8042 §99` when the act only has 42 sections, or invent corridor caps that do not exist.
+- **Wrong corridor fees.** A PH-HK domestic worker placement fee is zero PHP under POEA MC 14-2017 + DMW policy. Generic models routinely propose a "normal" fee.
+- **Privacy oversharing.** Asked an operational question, generic models often request the worker's name, employer, account number, and contract details before answering.
+- **Vague safe-language.** Asked what to do, generic models give "consult a lawyer" rather than naming the actual labour office, complaint pathway, or refund mechanism.
+- **Operational uplift.** Asked how to "structure" a fee, a generic model with no refusal head will draft the tri-party arrangement and salary-deduction language verbatim.
 
-| Lane | What the user does | What DueCare returns |
-|---|---|---|
-| Content moderation | Review ads, messages, listings, harmful compliance requests. | Risk labels, fired indicators, policy-grounded refusal or escalation notes. |
-| Case analysis | Upload a bounded case bundle and confirm extracted facts. | People, payments, dates, typed edges, graph chat, complaint drafts. |
-| Worker information access | Ask a short question in a phone-first local interface. | Plain-language rights, safe next steps, evidence preservation, contacts. |
-| Research and enforcement | Ask cross-case questions across reviewed evidence. | Clusters, evidence rows, uncertainty notes, verification checklists. |
-| Anonymized sharing | Promote reviewed, redacted facts after a privacy gate. | Knowledge objects that improve packs without uploading raw files. |
+Each failure is correctable in isolation, but the corrections do not generalize across corridors, statutes, or recruiter tactics. A new corridor needs a new RAG pack; a new statutory amendment needs a citation update; a new fee-camouflage pattern needs a new indicator.
 
-The five lanes share one substrate: local Gemma 4 runtime, deterministic GREP, RAG packs, specialized tools (fee-cap lookup, agency registry, refund pathway), graph extractors, review gates, audit traces, and combined rule + LLM rubric grading. A confirmed fact in one lane becomes a sharper signal in every other lane — a new fee-rerouting pattern caught in moderation is confirmed in case analysis, published as an anonymized indicator, and immediately makes the mobile worker answer clearer.
+## 3. Why training and evaluation regimes alone don't fix this
 
-## 4. Why Gemma 4 specifically
+Three reasons.
 
-- **Runs locally and cheaply.** Gemma 4 E2B fits in a Kaggle T4. 4-bit quantization stays in single-digit GBs. No GPU rental, no outbound API spend, no third-party data exposure.
-- **Open weights.** Self-host on regulator hardware, NGO laptops, or a Kaggle notebook. No vendor lock-in.
-- **Tool calling.** Structured function calls let the harness route GREP, knowledge packs, fee-cap lookups, and graph queries natively.
-- **Fine-tunable.** LoRA adapters on filtered synthetic data; 60-step smoke runs on Kaggle T4; full runs scale linearly.
-- **Worker languages.** Multilingual coverage spans the corridors that matter: Tagalog, Bahasa, Cantonese, Arabic, Hindi.
-- **Aligned baseline.** Refusal behavior is trained in. The harness adds inspectable indicators, citations, and grading on top.
+**Data scarcity at training time.** The public corpus of corridor-specific safety guidance is small. A LoRA fine-tune on 2,000 rubric-polished rows lifts behavior, but the underlying knowledge base is still thin compared to the world of corridors and statutes the model sees at deployment. Fine-tuning shifts response shape; it does not import the DMW Memorandum the worker actually needs.
 
-The combination — open weights, local inference, tool calling, fine-tunable, multilingual, aligned — is what makes the rest of the harness possible. A closed frontier API would lose the privacy boundary; a smaller open model would lose tool calling; a non-fine-tunable model would lose the corridor adaptation.
+**Evaluation that catches the right errors is hard.** Generic safety benchmarks (TruthfulQA, BBH, HellaSwag) test general capability, not domain correctness. A model can pass them and still get the PH-HK corridor rule wrong. Without domain-specific rubric dimensions (refusal correctness, corridor-rule grounding, contact accuracy, evidence-preservation language, no operational uplift), graders register false signal.
 
-## 5. Evidence: the A-00 control plane
+**Verifiability is a substrate property, not a model property.** A reviewer needs to see *which rule fired*, *which row from which file backed the claim*, and *which corridor pack the answer came from*. No model — base or fine-tuned — can produce that audit trail by itself.
 
-`DueCare Fine-tuning and Evaluation` (the A-00 control plane) is what makes claims about the harness checkable rather than asserted. It facilitates four things, all in one kernel:
+## 4. How DueCare actually works — the substrate
 
-- **Side-by-side benchmarking.** The same prompt set runs through four comparable arms — base Gemma 4, base + DueCare harness, fine-tuned Gemma 4 (LoRA adapter), and fine-tuned + harness — under the same combined rule + LLM grader. Every score carries a row citation back to the prompt, the response, and the dimension that fired.
-- **Synthetic SFT generation.** Training rows are rubric-polished and filtered by the same harness used at inference, so the fine-tune is consistent with the runtime contract.
-- **LoRA fine-tuning with checkpoint and resume.** A 60-step smoke run fits on a Kaggle T4; full runs scale linearly. Adapters export cleanly.
-- **Report export.** A full activity log, prompts, responses, traces, charts, and HTML / Markdown / JSON reports land under `/kaggle/working` per run.
+DueCare wraps Gemma 4 with a set of inspectable, deterministic components. Each one solves a slice of the problem fine-tuning cannot. The substrate is the same across all five user-facing lanes (platform moderation, NGO casework, mobile worker guidance, research, anonymized sharing).
 
-Across the iterative runs to date, the harness consistently lifts response quality over base Gemma 4 — on grounded answers, refusal correctness, evidence preservation, and contact accuracy — and stacking fine-tune + harness compounds further. We will publish the specific lift numbers from a final end-to-end A-00 run alongside the submission rather than asserting them in advance; the point of A-00 is that any judge can re-run the same four arms and reproduce the comparison.
+- **GREP rules.** ~100 deterministic patterns covering fee camouflage (training / medical / processing / orientation / insurance / deposit), wage assignment, debt novation, restricted provider choice, passport retention, document retention, contract substitution, retaliation language, corridor-cap violations. Each rule has an id, a regex, a severity, a corridor scope, and a unit test. A rule fires *before* the model generates and is part of the prompt context the model sees.
+- **Knowledge packs.** Versioned RAG corpus of ILO conventions (C029, C181, C189, Forced Labour Indicators), Palermo Protocol means/acts/purpose, POEA / DMW Memorandum Circulars (esp. MC 14-2017 zero-fee for PH-HK), BP2MI Reg 9/2020, Nepal FEA 2007 §11(2), HK Cap 57 §32, HK Cap 163, SG EFMA Cap 91A §22A, UAE MoHRE Decree 765/2015, plus vetted contact pathways. Retrieved per-prompt, hashed, and cited verbatim in the response.
+- **Tools.** Structured function calls Gemma 4 invokes natively: corridor fee-cap lookup, agency registry, refund pathway, contact resolver, graph query, statute-section range validator. Each tool returns typed data the model can quote.
+- **Persona + context layer.** Audience-aware prompt scaffold (worker / caseworker / regulator / researcher / platform) plus official-source layer for allowlisted public-authority lookups (DMW, ILO, HK Labour).
+- **Graph extraction.** Bulk File Review parses ZIP / PDF / CSV / images, extracts typed edges (`worker → paid_fee → recruiter`, `agency → restricts_choice → clinic`, `worker → seeks_remedy → regulator`), and renders an evidence graph with row citations. Optional local Gemma edge pass adds typed edges from natural-language evidence.
+- **Privacy gates.** Anonymizer (PII regex + NER + audit log of `sha256(original)`), search-safety gate (generalizes outbound queries before any third-party search), post-search verification (validates result quality before injection), k-anonymity check on shared knowledge objects.
+- **Combined grading.** Rubric (refusal correctness, grounding, evidence preservation, contact accuracy, safe-reporting language, statute-section validity) + optional LLM judge over the same dimensions. Row citations on every dimension.
+- **Refusal head and substance-over-form.** When indicators compound (worker-paid fee + restricted choice + salary deduction), the model refuses operational help and surfaces the refund / complaint pathway instead.
 
-## 6. Reusable safety infrastructure, not one chatbot
+## 5. How the harness composes
 
-Three commitments make the system reusable beyond this submission.
+A request flows: prompt → persona context → GREP scan (deterministic indicators fired) → RAG retrieval (corridor rule, ILO indicator) → tools (fee-cap, registry) → Gemma 4 generation (bounded by indicators + retrieved context + refusal head) → combined grader → cited response. Every stage is logged, timed, and traceable per request. A reviewer can grep the trace to confirm exactly which rule, which pack, and which tool produced the answer.
 
-- **Local and open.** Gemma 4 with open weights, runnable on Kaggle T4 or partner hardware. No vendor lock-in, no outbound API.
-- **Inspectable by design.** GREP rules, knowledge packs, tools, graph extraction, and rubric grading make every answer auditable. A regulator can trace any verdict back to the exact rule version that fired.
-- **Reinforcing across lanes.** Platform moderation, NGO casework, mobile worker guidance, research, and anonymized sharing all sharpen each other; the substrate is the same.
+## 6. Evidence: the A-00 control plane
 
-## 7. How to run on Kaggle
+`DueCare Fine-tuning and Evaluation` (the A-00 control plane) facilitates the work that makes the substrate measurable: four comparable arms (base, base+harness, fine-tuned, fine-tuned+harness) on the same prompt set under combined rule + LLM grading; rubric-polished synthetic SFT generation filtered by the same harness used at inference; LoRA fine-tune with checkpoint and resume; exported report bundle per run. Across runs, the harness consistently lifts response quality over base, and stacking fine-tune + harness compounds further. Specific lift numbers will be published with the final A-00 run alongside the submission. The point of A-00 is that any judge can re-run the same arms and reproduce the comparison.
 
-Three notebooks compose the submission. All three are **script kernels** — copy `kernel.py` into a fresh Kaggle Notebook, set **Accelerator: GPU T4 x2** and **Internet: On**, **Add Model → `google/gemma-4`** (E4B is the default; E2B fits the same path with less RAM), then **Run All**. Each kernel prints a public `https://*.trycloudflare.com` URL within roughly thirty seconds; the slide-deck and chat surfaces live under that URL.
+## 7. Prior art and influences
 
-- **DueCare App — [`taylorsamarel/duecare-app`](https://www.kaggle.com/code/taylorsamarel/duecare-app)** — the broad reviewer surface. Every harness layer (persona, GREP, RAG, tools, official-source layer, online), model picker, A/B compare, grading modes, Bulk File Review. Use this if you want to interact with the system.
-- **DueCare Live Demo — [`taylorsamarel/duecare-live-demo`](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo)** — focused interactive demo kernel and the pitch deck used in the video. Open `/start`, optionally pre-bake a cached row in `/slides/setup`, then open `/slides` for the recording-safe 21-slide deck.
-- **DueCare Fine-tuning and Evaluation — [`taylorsamarel/duecare-fine-tuning-and-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation)** — quantitative control plane. Base vs harnessed vs LoRA-tuned vs fine-tuned + harness arms, combined rule + LLM grading, exportable artifact bundle (`/kaggle/working`).
-
-All three kernels work in heuristic-only mode if the Gemma model attachment is missing — the deterministic GREP, knowledge packs, tools, and graph extractors still run. The 21-slide deck is fully recording-safe: only the cached worker-question slide reads from `localStorage`; the other five demo slots are pure client-side animation. Source for every kernel and the slide deck lives at [github.com/TaylorAmarelTech/gemma4_comp](https://github.com/TaylorAmarelTech/gemma4_comp); license is MIT.
+The substrate is informed by the 2024 Kaggle red-team study, ILO's Forced Labour Indicators and conventions, the Palermo Protocol means/acts/purpose framework, POEA / DMW circulars, and the work of partner NGOs (Polaris, IJM, ECPAT, POEA, BP2MI, HRD Nepal). It also draws on a sister synthetic-evidence harness that generates fully fabricated recruitment ads, case bundles, and worker threads with closed-set indicator vocabulary and reproducible release artifacts — used for benchmarking and reviewer self-testing without exposing real case data.
 
 ## 8. Close
 
-DueCare drafts; the user or trusted caseworker decides. The architecture, substrate, benchmark harness, and deck are designed to be forked and reused — by NGOs that need a local copilot, by regulators that need traceable evidence, by researchers that need a reproducible safety benchmark on open weights, and by platform teams that need to catch the recruitment-ad patterns that slip through generic moderation today.
+DueCare drafts; the user or trusted caseworker decides. The substrate is designed to be forked and reused — by NGOs that need a local copilot, regulators that need traceable evidence, researchers that need a reproducible safety benchmark on open weights, and platform teams that need to catch the recruitment-ad patterns that slip through generic moderation today.
