@@ -1,4 +1,4 @@
-# DueCare: Local Gemma 4 safety infrastructure for migrant-worker protection
+# DueCare: A Gemma 4 Safety Ecosystem for Migrant-Worker Protection
 
 > **Public hub:** [duecare-ai.com](https://duecare-ai.com) |
 > **DueCare App on Kaggle:** [kaggle.com/code/taylorsamarel/duecare-app](https://www.kaggle.com/code/taylorsamarel/duecare-app) |
@@ -729,7 +729,7 @@ For complete licensing information, see [`THIRD_PARTY_LICENSES.md`](./THIRD_PART
 
 ```bibtex
 @misc{amarel2026forge,
-  title={{DueCare: Local Gemma 4 Safety Infrastructure for Migrant-Worker Protection}},
+  title={{DueCare: A Gemma 4 Safety Ecosystem for Migrant-Worker Protection}},
   author={Amarel, Taylor},
   year={2026},
   howpublished={Kaggle Gemma 4 Good Hackathon},
