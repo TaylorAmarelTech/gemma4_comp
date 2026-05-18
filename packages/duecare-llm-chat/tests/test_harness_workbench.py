@@ -711,3 +711,58 @@ def test_showcase_pages_use_consistent_chat_alias(client):
         assert "/static/chat.html?audience=" in text
         assert 'href="/?audience=' not in text
         assert "window.location.href='/?prompt=" not in text
+
+
+def test_workbench_pages_keep_happy_path_step_open_and_collapse_advanced(client):
+    """Every reviewer-facing workflow page should follow the
+    happy-path-dominant pattern: the first step is `<details ... open>`
+    so the user lands on the action they need, and subsequent steps are
+    collapsed until earlier steps complete. This matches the A-00
+    preconfigured-pipeline UX pattern and keeps advanced controls out
+    of the way until the reviewer asks for them.
+
+    Pages audited:
+      - process.html        (Bulk File Review)
+      - knowledge.html      (Knowledge Extraction)
+      - share.html          (Anonymization & Sharing)
+      - search.html         (Search)
+    """
+    pages = [
+        "/static/process.html",
+        "/static/knowledge.html",
+        "/static/share.html",
+        "/static/search.html",
+    ]
+    for path in pages:
+        r = client.get(path)
+        assert r.status_code == 200, path
+        text = r.text
+        assert "<details" in text, f"{path} has no <details> step block"
+        cursor = text.find("<details")
+        found_open = False
+        while cursor != -1:
+            close_idx = text.find(">", cursor)
+            tag_text = text[cursor:close_idx + 1]
+            if " open" in tag_text or tag_text.endswith("open>"):
+                found_open = True
+                break
+            cursor = text.find("<details", close_idx)
+        assert found_open, (
+            f"{path} must have at least one <details ... open> step "
+            "so the happy-path landing surface is visible without "
+            "the user expanding anything."
+        )
+
+
+def test_share_step3_button_label_does_not_falsely_promise_gemma_review(client):
+    """When no Gemma 4 model is loaded, the Anonymization & Sharing
+    Step 3 button still works (deterministic redaction always runs)
+    but the Gemma residual-PII review is skipped. The button label
+    must not claim Gemma review unconditionally, since that misleads
+    a reviewer running the demo without a model loaded."""
+    r = client.get("/static/share.html")
+    assert r.status_code == 200
+    text = r.text
+    assert ">Step 3: Run anonymization (Gemma review if loaded)<" in text
+    assert ">Step 3: Run anonymization + Gemma review<" not in text
+    assert "Gemma residual-PII review only runs when a Gemma 4 model is loaded" in text

@@ -154,7 +154,7 @@
           <div class="wb-muted" style="padding: 12px; text-align: center;">(complete Step 2 first)</div>
         </div>
         <div class="wb-row">
-          <button class="wb-btn-primary" id="wb-step3-btn" disabled onclick="wbStep3()">Step 3: Run anonymization + Gemma review</button>
+          <button class="wb-btn-primary" id="wb-step3-btn" disabled onclick="wbStep3()" title="Deterministic regex redaction always runs. Gemma residual-PII review only runs when a Gemma 4 model is loaded; otherwise it is skipped without blocking submission.">Step 3: Run anonymization (Gemma review if loaded)</button>
         </div>
         <div id="wb-step3-error" class="wb-error" style="display: none; margin-top: 8px;"></div>
       </div>
