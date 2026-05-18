@@ -66,12 +66,15 @@ _USE_CASES: dict[str, UseCase] = {
             "before my Hong Kong visa will be released. Is this legal?"
         ),
         citations=(
-            "RA 11227 (Republic Act, Philippines) -- domestic helper "
-            "placement and training fees borne by the foreign employer.",
+            "RA 8042 (Migrant Workers and Overseas Filipinos Act, as "
+            "amended by RA 10022) -- prohibits collecting recruitment "
+            "fees in excess of the Secretary's prescribed schedule, and "
+            "imposes joint and several liability on the foreign principal "
+            "and the local agency.",
             "RA 10361 (Batas Kasambahay) -- domestic worker rights.",
-            "DMW Memorandum (formerly POEA Governing Board Resolution) "
-            "-- zero placement fee for Filipino household workers bound "
-            "for Hong Kong, Singapore, and similar destinations.",
+            "POEA Memorandum Circular 14-2017 (now DMW policy) -- zero "
+            "placement fee for Filipino household workers bound for Hong "
+            "Kong, Singapore, and similar destinations.",
             "Hong Kong Employment Agency Regulations (EAA) -- maximum "
             "agency commission set at 10% of the first-month wage.",
         ),
@@ -259,7 +262,8 @@ _USE_CASES: dict[str, UseCase] = {
         citations=(
             "ILO Convention 29 -- debt bondage is a primary "
             "forced-labour indicator.",
-            "Philippines RA 11227 and DMW policy -- employers (not "
+            "Philippines RA 8042 / RA 10022 and POEA Memorandum "
+            "Circular 14-2017 (now DMW policy) -- employers (not "
             "workers) pay placement, medical, training, and flight "
             "for HK and SG domestic deployment.",
             "Hong Kong Employment Ordinance Cap. 57 -- agency or "
@@ -383,7 +387,8 @@ _USE_CASES: dict[str, UseCase] = {
             "Is that lawful?"
         ),
         citations=(
-            "Philippines RA 11227 and DMW policy -- for HK and SG "
+            "Philippines RA 8042 / RA 10022 and POEA Memorandum "
+            "Circular 14-2017 (now DMW policy) -- for HK and SG "
             "deployment, the worker pays zero placement fee. Medical, "
             "training, and transport are employer obligations.",
             "DMW model contract -- fee-disaggregation cannot be used to "
@@ -542,7 +547,8 @@ _AUDIENCE_TAIL: dict[str, str] = {
     ),
     "regulator": (
         "\nFor enforcement: the indicators above map to recoverable "
-        "violations under PH RA 11227 / DMW policy and HK Cap. 57. "
+        "violations under PH RA 8042 / RA 10022, POEA MC 14-2017, "
+        "and HK Cap. 57. "
         "The DueCare harness can return the matched rule IDs and the "
         "underlying GREP hits per row on request, so an inspector can "
         "trace the verdict back to the rule version that fired."

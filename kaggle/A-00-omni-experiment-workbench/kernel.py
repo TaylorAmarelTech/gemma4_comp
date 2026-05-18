@@ -1,4 +1,5 @@
-# DueCare A-00 Omni Experiment Workbench
+# DueCare Fine-tuning and Evaluation (formerly DueCare A-00 Omni Experiment Workbench)
+# Kaggle slug: taylorsamarel/duecare-fine-tuning-and-evaluation
 #
 # Single Kaggle script kernel for model loading, batch evaluation,
 # harness comparison, synthetic-data generation, local research graphing,
@@ -6637,7 +6638,7 @@ HOMEPAGE_HTML = r"""<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DueCare A-00 Omni Experiment Workbench</title>
+  <title>DueCare Fine-tuning and Evaluation</title>
   <link rel="stylesheet" href="/static/_chrome.css">
   <link rel="stylesheet" href="/static/showcase.css">
   <style>
@@ -7906,7 +7907,7 @@ A00_CUSTOM_HTML = _A00_BASE_HTML.replace("__A00_BODY_CLASS__", "a00-custom")
 
 
 summary_payload = {
-    "title": "A-00 Omni Experiment Workbench",
+    "title": "DueCare Fine-tuning and Evaluation",
     "audience": "researcher",
     "lede": "Control-plane notebook for bulk evaluation, harness comparison, synthetic data, local research graphs, and adapter training.",
     "results": [

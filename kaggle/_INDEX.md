@@ -4,11 +4,11 @@
 
 Only three Kaggle script kernels are active for the current submission and recording path:
 
-| Order | Folder | Purpose |
-|---|---|---|
-| 01 | `01-duecare-exploration-workbench` | Full DueCare workbench: chat, harness comparison, bulk file review, knowledge extraction, search, sharing, traces, and activity logs. |
-| 02 | `02-live-demo` | Focused live demo for judges and video capture. |
-| A-00 | `A-00-omni-experiment-workbench` | Experiment console for benchmarking, synthetic data, fine-tuning, grading, and reports. |
+| Order | Folder | Kaggle slug | Title | Purpose |
+|---|---|---|---|---|
+| 01 | `01-duecare-exploration-workbench` | `taylorsamarel/duecare-app` | **DueCare App** | Full reviewer workbench: chat, harness comparison, bulk file review, knowledge extraction, search, sharing, traces, and activity logs. |
+| 02 | `02-live-demo` | `taylorsamarel/duecare-live-demo` | **DueCare Live Demo** | Focused live demo for judges and video capture. Hosts the recording-grade pitch deck at `/start` and `/slides`. |
+| 03 | `A-00-omni-experiment-workbench` | `taylorsamarel/duecare-fine-tuning-and-evaluation` | **DueCare Fine-tuning and Evaluation** | Experiment control plane for benchmarking, synthetic data, fine-tuning, grading, and reports. |
 
 Each active kernel is intended to be copied into Kaggle, run on T4 x2 with Internet enabled, install DueCare from GitHub, write outputs under `/kaggle/working`, launch the local server, and print a public `https://*.trycloudflare.com` URL.
 

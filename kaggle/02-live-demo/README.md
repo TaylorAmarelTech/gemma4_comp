@@ -5,11 +5,11 @@
 
 ## Role in the Submission
 
-- **01 Exploration Workbench:** full UI/UX and every harness surface.
-- **02 Live Demo:** focused live website that loads Gemma 4 and demonstrates
-  the safety harness on a curated scenario.
-- **A-00 Omni Workbench:** quantitative proof, bulk prompt runs, reruns,
-  scoring, reports, synthetic data, and fine-tuning jobs.
+- **DueCare App (#01):** full UI/UX and every harness surface.
+- **DueCare Live Demo (#02, this kernel):** focused live website + recording-grade
+  pitch deck. Loads Gemma 4 and demonstrates the safety harness on a curated scenario.
+- **DueCare Fine-tuning and Evaluation:** quantitative proof, bulk prompt
+  runs, reruns, scoring, reports, synthetic data, and fine-tuning jobs.
 
 The former video-pitch and appendix kernels are archived under
 `../_archive/notebooks/` so the active Kaggle path stays focused on the
@@ -36,6 +36,30 @@ working runtime surfaces.
 | Secrets | `HF_TOKEN` when downloading gated weights |
 | Models | Gemma 4 E2B, E4B, 26B-A4B, or 31B IT variants |
 | Expected runtime | About 30 seconds for E4B after install, longer for larger variants |
+
+## Run It On Kaggle (5 clicks)
+
+Copy-paste reproduction path so a judge can run this kernel without leaving Kaggle.
+
+1. **New Notebook** on Kaggle (`https://www.kaggle.com/code`). Choose **+ New Notebook**.
+2. **Set the accelerator** in the right-hand panel: **Accelerator: GPU T4 x2**, **Internet: On**.
+3. **Add the model** in the right-hand panel: **+ Add Input → Models → `google/gemma-4`**.
+   The default kernel resolves to **`gemma-4-2b-it`** (E2B). If you have the
+   `gemma-4-4b-it` (E4B) or larger variants attached, the kernel picks them up
+   automatically.
+4. **Paste `kernel.py`** from this folder into the notebook (overwrite the default cell).
+   The wheels and bootstrap install run inside `kernel.py`; you do **not** need to
+   attach a separate `wheels/` dataset for the current rolling-source path.
+5. **Run All.** Within roughly thirty seconds the kernel prints a public
+   `https://*.trycloudflare.com` URL. Click `/start` for the two-tile landing,
+   `/slides` for the recording-grade 21-slide pitch deck, or `/slides/setup`
+   to pre-bake a cached worker question for the `/slides#demo-chat` slide.
+
+If you only have a single-T4 free tier, the kernel still works for the
+small-Gemma path; expect slower load. Heuristic-only mode (no model attached)
+still serves `/start`, `/slides`, the deterministic GREP / RAG / tools paths,
+and the cached-chat slot — the model only matters for the live `/chat`
+endpoint and the optional Gemma edge pass on Bulk File Review.
 
 ## What to Show
 

@@ -1,7 +1,7 @@
 # DueCare: Gemma 4 safety infrastructure for migrant-worker protection
 
 > **Public hub:** [duecare-ai.com](https://duecare-ai.com) |
-> **Kaggle submission:** [kaggle.com/code/taylorsamarel/duecare-exploration-workbench](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench) |
+> **DueCare App on Kaggle:** [kaggle.com/code/taylorsamarel/duecare-app](https://www.kaggle.com/code/taylorsamarel/duecare-app) |
 > **Source:** this repo (MIT)
 >
 > **Duecare is Gemma 4-powered safety infrastructure for migrant-worker
@@ -51,6 +51,30 @@
 [![Tests](https://img.shields.io/badge/chat%20tests-281%20passing-brightgreen.svg)](#tests)
 [![Packages](https://img.shields.io/badge/packages-17-blue.svg)](#packages)
 
+## Try DueCare in 30 seconds
+
+Three Kaggle script kernels. Each one is a single `kernel.py` file: copy it into a fresh Kaggle Notebook, set **Accelerator: GPU T4 x2** + **Internet: On**, click **+ Add Input → Models → `google/gemma-4`**, then **Run All**. ~30 seconds later the kernel prints a public `https://*.trycloudflare.com` URL.
+
+| | Kernel | What you see when it starts |
+|---|---|---|
+| 🟢 | **DueCare App** &nbsp;·&nbsp; [Kaggle](https://www.kaggle.com/code/taylorsamarel/duecare-app) &nbsp;·&nbsp; [`kaggle/01-duecare-exploration-workbench/kernel.py`](./kaggle/01-duecare-exploration-workbench/kernel.py) | The broad reviewer workbench. Open `/` for the audience showcase, then click into chat / Bulk File Review / harness comparison / grading. |
+| 🎬 | **DueCare Live Demo** &nbsp;·&nbsp; [Kaggle](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) &nbsp;·&nbsp; [`kaggle/02-live-demo/kernel.py`](./kaggle/02-live-demo/kernel.py) | Focused demo + the recording-grade pitch deck. Open `/start` → click **Project slides** → 21-slide deck loads (works without a model). |
+| 📊 | **DueCare Fine-tuning and Evaluation** &nbsp;·&nbsp; [Kaggle](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation) &nbsp;·&nbsp; [`kaggle/A-00-omni-experiment-workbench/kernel.py`](./kaggle/A-00-omni-experiment-workbench/kernel.py) | The quantitative control plane. Pick **Preconfigured Harness, Training, and Evaluation** for the fast guided path (base + harnessed + fine-tuned + fine-tuned-plus-harness arms, combined rule + LLM grading, exported artifact bundle). |
+
+Heuristic-only mode (no model attached) still serves `/start`, `/slides`, deterministic GREP / RAG / tools, and the cached worker-question slot — the model only matters for the live `/chat` endpoint and the optional Gemma edge pass on Bulk File Review.
+
+**Verify locally (60 seconds):**
+
+```bash
+git clone https://github.com/TaylorAmarelTech/gemma4_comp.git
+cd gemma4_comp
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -e packages/duecare-llm-server
+python -c "from duecare.server import create_app; from duecare.server.state import ServerState; import tempfile, pathlib, uvicorn; tmp=tempfile.mkdtemp(); pathlib.Path(tmp,'out').mkdir(parents=True,exist_ok=True); s=ServerState(db_path=str(pathlib.Path(tmp)/'t.duckdb'),pipeline_output_dir=str(pathlib.Path(tmp)/'out')); uvicorn.run(create_app(s), host='127.0.0.1', port=8771)"
+# Open http://127.0.0.1:8771/start in a browser → click Project slides → 21-slide deck.
+# Open http://127.0.0.1:8771/slides/setup → Generate → Save for slides → the worker-question slide is now cached.
+```
+
 > ### Submission state (Gemma 4 Good Hackathon, due 2026-05-18)
 >
 > **Active Kaggle path: 01 + 02 + A-00.** Judges land on
@@ -61,11 +85,12 @@
 >
 > **Core (judges evaluate first, in this order):**
 >
-> 1. [`duecare-exploration-workbench`](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench) - the broad workbench. Chat, Harness Comparison, Bulk File Review, Knowledge Extraction, Search, Anonymization and Sharing, Sync, Status, UI Audit, live layer catalogs, global model selector, A/B comparison, retrieval trace, grading, local imports, and RAG graph views.
-> 2. [`duecare-live-demo`](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) - focused live product demo with real Gemma 4 inference and a curated safety-harness scenario.
+> 1. **DueCare App** — [`duecare-app`](https://www.kaggle.com/code/taylorsamarel/duecare-app) — the broad workbench. Chat, Harness Comparison, Bulk File Review, Knowledge Extraction, Search, Anonymization and Sharing, Sync, Status, UI Audit, live layer catalogs, global model selector, A/B comparison, retrieval trace, grading, local imports, and RAG graph views.
+> 2. **DueCare Live Demo** — [`duecare-live-demo`](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) — focused live product demo with real Gemma 4 inference, the recording-grade pitch deck at `/start` and `/slides`, and a curated safety-harness scenario.
+>
 > **Experiment command center:**
 >
-> - A-00 [`duecare-a-00-omni-experiment-workbench`](./kaggle/A-00-omni-experiment-workbench/) is the technical proof surface: baseline vs harness vs fine-tuned vs fine-tuned-plus-harness exports, rule and LLM grading, synthetic SFT/DPO generation, tiny LoRA smoke bundles, local research graphs, and HTML/PDF reports.
+> - **DueCare Fine-tuning and Evaluation** — [`duecare-fine-tuning-and-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation) ([source](./kaggle/A-00-omni-experiment-workbench/)) is the technical proof surface: baseline vs harness vs fine-tuned vs fine-tuned-plus-harness exports, rule and LLM grading, synthetic SFT/DPO generation, tiny LoRA smoke bundles, local research graphs, and HTML/PDF reports.
 > - Archived A-01 through A-24 plus the former video-pitch kernel remain available as reference material, but they are not part of the active validation or recording path.
 >
 > **Judges start here:** [`docs/peer_review_5min_test_plan.md`](./docs/peer_review_5min_test_plan.md) (one-page click-by-click guide).
