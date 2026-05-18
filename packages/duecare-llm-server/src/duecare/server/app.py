@@ -30,7 +30,8 @@ _PUBLIC_ENDPOINTS = {"/", "/healthz", "/api/status",
                       "/static", "/enterprise", "/individual",
                       "/knowledge", "/settings",
                       "/start", "/slides", "/slides/setup",
-                      "/api/slides/cached-io"}
+                      "/api/slides/cached-io",
+                      "/api/slides/recording-pack"}
 
 
 # ---------------------------------------------------------------------------
@@ -1237,6 +1238,16 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
             "audience_keys": list(AUDIENCE_KEYS),
             "use_case_keys": list(USE_CASE_KEYS),
         }
+
+    # ------ API: slide-deck recording pack --------------------------------
+    # GET /api/slides/recording-pack
+    # -> deterministic selected examples + redacted evidence image paths.
+    # Pure deterministic; no model is called. Powers one-click setup for
+    # recordings where every selected example must be ready before capture.
+    @app.get("/api/slides/recording-pack")
+    def api_slides_recording_pack() -> Any:
+        from duecare.server.slides_cache import build_recording_pack
+        return build_recording_pack()
 
     # ------ API: settings --------------------------------------------------
     @app.get("/api/settings")

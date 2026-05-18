@@ -36,6 +36,10 @@
   .help-list { margin: 0; padding-left: 18px; font-size: 13px; color: var(--ink-2, #2A2D34); line-height: 1.55; }
   .help-list li { margin-bottom: 6px; }
   .help-list code { font-family: var(--mono, monospace); font-size: 12px; background: var(--paper-2, #EFEDE4); padding: 1px 5px; border-radius: 4px; }
+  .pack-list { margin-top: 16px; display: grid; gap: 8px; }
+  .pack-row { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 10px; padding: 9px 10px; background: var(--paper-2, #EFEDE4); border: 1px solid var(--line, #DDD8C9); border-radius: 8px; font-size: 12px; line-height: 1.35; }
+  .pack-row b { font-family: var(--mono, monospace); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent-ink, #1B4E66); }
+  .pack-row span { color: var(--ink-2, #2A2D34); }
 </style>
 </head>
 <body>
@@ -79,11 +83,12 @@
       <input type="text" id="prompt-extra" placeholder="Leave empty for the default prompt">
 
       <div class="setup-actions">
+        <button type="button" id="pack-btn">Preload recording pack</button>
         <button type="button" id="generate-btn">Generate</button>
         <button type="button" class="secondary" id="save-btn" disabled>Save for slides</button>
         <button type="button" class="secondary" id="clear-btn">Clear stored</button>
       </div>
-      <div class="setup-status" id="setup-status">Pick audience + use case, then Generate. The cached row is stored locally in your browser for the slide deck.</div>
+      <div class="setup-status" id="setup-status">Click Preload recording pack to store all selected examples, or generate one row manually. Everything is stored locally in your browser for the slide deck.</div>
     </aside>
 
     <article class="setup-card" aria-label="Preview">
@@ -92,12 +97,14 @@
       <div class="preview-prompt" id="preview-prompt">A recruiter says I have to pay PHP 50,000 in training fees before my Hong Kong visa will be released. Is this legal?</div>
       <div class="preview-meta">Cached response</div>
       <div class="preview-response" id="preview-response">Click Generate on the left to populate this preview. The response is composed from the same deterministic GREP / RAG / tools knowledge the live chat harness uses, so a viewer cannot tell a cached row from a fresh inference at recording time.</div>
+      <div class="pack-list" id="pack-list" aria-live="polite"></div>
 
       <h2 style="margin-top: 24px;">How to use this</h2>
       <ol class="help-list">
-        <li>Pick the audience and use case for one slide. Click <b>Generate</b>.</li>
+        <li>Fast path: click <b>Preload recording pack</b>. This stores selected examples in <code>localStorage['duecare.slides.demo.pack']</code> and the worker-chat row in <code>localStorage['duecare.slides.demo.chat']</code>.</li>
+        <li>Manual path: pick the audience and use case for one slide, then click <b>Generate</b>.</li>
         <li>Review the prompt and response. Re-generate if you want a different framing.</li>
-        <li>Click <b>Save for slides</b>. The row is stored in <code>localStorage['duecare.slides.demo.chat']</code>.</li>
+        <li>Click <b>Save for slides</b> if you generated one manual row.</li>
         <li>Open <a href="/slides#demo-chat">Project slides &mdash; demo chat slide</a>. The cached row appears automatically.</li>
         <li>Record. The slide deck never blocks on live inference.</li>
       </ol>
@@ -134,12 +141,41 @@
     if (el) el.textContent = msg;
   }
 
+  function renderPackList(pack) {
+    var el = $('pack-list');
+    if (!el) return;
+    el.innerHTML = '';
+    var examples = pack && pack.examples || [];
+    if (!examples.length) return;
+    examples.forEach(function (item) {
+      var row = document.createElement('div');
+      var lane = document.createElement('b');
+      var title = document.createElement('span');
+      row.className = 'pack-row';
+      lane.textContent = item.lane || 'example';
+      title.textContent = (item.title || item.use_case || item.id || 'cached example') +
+        (item.image && item.image.src ? ' + image' : '');
+      row.appendChild(lane);
+      row.appendChild(title);
+      el.appendChild(row);
+    });
+  }
+
   function refreshStoredPill() {
     var pill = $('stored-pill');
     if (!pill) return;
     try {
       var raw = localStorage.getItem('duecare.slides.demo.chat');
-      if (!raw) { pill.textContent = 'no cached row yet'; pill.classList.add('empty'); return; }
+      var packRaw = localStorage.getItem('duecare.slides.demo.pack');
+      if (packRaw) {
+        var pack = JSON.parse(packRaw);
+        var count = pack && pack.examples ? pack.examples.length : 0;
+        pill.textContent = 'stored: recording pack (' + count + ' examples)';
+        pill.classList.remove('empty');
+        renderPackList(pack);
+        return;
+      }
+      if (!raw) { renderPackList(null); pill.textContent = 'no cached row yet'; pill.classList.add('empty'); return; }
       var item = JSON.parse(raw);
       var aLabel = audienceLabels[item.audience_key] || item.audience || '';
       var uLabel = useCaseLabels[item.use_case_key] || item.use_case || '';
@@ -194,6 +230,44 @@
     });
   }
 
+  function preloadRecordingPack() {
+    var btn = $('pack-btn');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Preloading...';
+    }
+    setStatus('Calling /api/slides/recording-pack ...');
+    fetch('/api/slides/recording-pack')
+      .then(function (r) {
+        if (!r.ok) {
+          return r.text().then(function (t) { throw new Error('HTTP ' + r.status + ': ' + t.slice(0, 200)); });
+        }
+        return r.json();
+      })
+      .then(function (pack) {
+        var chat = pack && pack.slides_chat;
+        localStorage.setItem('duecare.slides.demo.pack', JSON.stringify(pack));
+        if (chat && chat.prompt && chat.response) {
+          localStorage.setItem('duecare.slides.demo.chat', JSON.stringify(chat));
+          $('preview-prompt').textContent = chat.prompt;
+          $('preview-response').textContent = chat.response;
+        }
+        renderPackList(pack);
+        refreshStoredPill();
+        var count = pack && pack.examples ? pack.examples.length : 0;
+        setStatus('Preloaded ' + count + ' selected examples, including image-backed moderation examples. Open /slides when ready to record.');
+      })
+      .catch(function (e) {
+        setStatus('Recording pack preload failed: ' + (e && e.message || e));
+      })
+      .then(function () {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Preload recording pack';
+        }
+      });
+  }
+
   function saveToSlides() {
     if (!generated) {
       setStatus('Nothing to save. Click Generate first.');
@@ -218,7 +292,9 @@
 
   function clearStored() {
     try {
+      localStorage.removeItem('duecare.slides.demo.pack');
       localStorage.removeItem('duecare.slides.demo.chat');
+      renderPackList(null);
       refreshStoredPill();
       setStatus('Cleared. The slide deck will show the built-in default.');
     } catch (e) {
@@ -227,9 +303,11 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
+    var pack = $('pack-btn');
     var gen = $('generate-btn');
     var sav = $('save-btn');
     var clr = $('clear-btn');
+    if (pack) pack.addEventListener('click', preloadRecordingPack);
     if (gen) gen.addEventListener('click', generateCachedIO);
     if (sav) sav.addEventListener('click', saveToSlides);
     if (clr) clr.addEventListener('click', clearStored);
