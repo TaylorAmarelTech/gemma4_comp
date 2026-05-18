@@ -31,6 +31,8 @@ from typing import Any
 from fastapi import HTTPException
 from pydantic import BaseModel, Field
 
+from .._replay import demo_replay
+
 
 # Regex catalog: ordered most-specific to least-specific so longer
 # patterns match before single-token shrapnel.
@@ -157,4 +159,29 @@ def register_routes(app) -> None:
             "mode": req.mode,
             "rephrase_fired": rephrase_trace.get("fired", False),
             "rephrase_wired": rephrase_trace.get("wired", False),
+            "demo_replay": demo_replay(
+                lane="search",
+                endpoint="/api/search/sanitize",
+                request={
+                    "query_sha256": _sha16(raw),
+                    "query_chars": len(raw),
+                    "mode": req.mode,
+                },
+                response_summary={
+                    "sanitized": sanitized,
+                    "redactions_count": len(redactions),
+                    "blocked": blocked,
+                    "rephrase_fired": rephrase_trace.get("fired", False),
+                    "rephrase_wired": rephrase_trace.get("wired", False),
+                },
+                artifacts=[{
+                    "name": "sanitized_query",
+                    "kind": "inline_response_json",
+                }],
+                note=(
+                    "The audit-safe replay omits the raw query and keeps only "
+                    "a sha256 fingerprint. Browser replay downloads are local "
+                    "and should only be shared for synthetic demo queries."
+                ),
+            ),
         }

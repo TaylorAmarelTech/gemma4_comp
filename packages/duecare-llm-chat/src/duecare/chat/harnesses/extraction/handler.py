@@ -20,6 +20,7 @@ from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from ..._model_output import sanitize_model_output
+from .._replay import demo_replay
 from .prompts import build_system_prompt
 
 
@@ -408,6 +409,7 @@ def _build_draft_response(app: Any, body: dict[str, Any]) -> dict[str, Any]:
         )
     except Exception:
         pass
+    replay_endpoint = body.get("_replay_endpoint") or "/api/knowledge/draft-envelope"
     return {
         "envelope": envelopes[0],
         "suggestions": envelopes,
@@ -415,6 +417,32 @@ def _build_draft_response(app: Any, body: dict[str, Any]) -> dict[str, Any]:
         "suggested_types": [e.get("knowledge_object_type") for e in envelopes],
         "model_call_requested": use_gemma,
         "model_call_available": gc is not None,
+        "demo_replay": demo_replay(
+            lane="knowledge_extraction",
+            endpoint=replay_endpoint,
+            request={
+                "target_leaf": requested_type,
+                "anonymize": anonymize,
+                "use_gemma": use_gemma,
+                "raw_text_chars": len(raw_text),
+                "raw_text_sha256": hashlib.sha256(raw_text.encode("utf-8")).hexdigest(),
+            },
+            response_summary={
+                "n_suggestions": len(envelopes),
+                "suggested_types": [e.get("knowledge_object_type") for e in envelopes],
+                "model_call_available": gc is not None,
+            },
+            artifacts=[{
+                "name": "suggestions",
+                "kind": "inline_response_json",
+                "count": len(envelopes),
+            }],
+            note=(
+                "The raw source text is represented by sha256/length here. "
+                "Use the browser replay download during a synthetic demo if "
+                "you need the exact local request body."
+            ),
+        ),
     }
 
 
@@ -499,7 +527,9 @@ def register_routes(app: Any) -> None:
                         "and loaded, this is the model-call phase."
                     ),
                 )
-                result = _build_draft_response(app, body)
+                worker_body = dict(body)
+                worker_body["_replay_endpoint"] = "/api/knowledge/draft-envelope/start"
+                result = _build_draft_response(app, worker_body)
                 n = len(result.get("suggestions") or [])
                 _draft_job_update(
                     job_id,
@@ -527,6 +557,26 @@ def register_routes(app: Any) -> None:
             "phase": "queued",
             "pct": 4,
             "poll_url": f"/api/knowledge/draft-envelope/status/{job_id}",
+            "demo_replay": demo_replay(
+                lane="knowledge_extraction",
+                endpoint="/api/knowledge/draft-envelope/start",
+                request={
+                    "target_leaf": body.get("target_type") or body.get("target_leaf") or "auto",
+                    "anonymize": bool(body.get("anonymize", False)),
+                    "use_gemma": bool(body.get("use_gemma", True)),
+                    "raw_text_chars": len(raw_text),
+                    "raw_text_sha256": hashlib.sha256(raw_text.encode("utf-8")).hexdigest(),
+                },
+                response_summary={
+                    "job_id": job_id,
+                    "poll_url": f"/api/knowledge/draft-envelope/status/{job_id}",
+                },
+                artifacts=[{
+                    "name": "knowledge_draft_job_status",
+                    "kind": "poll_endpoint",
+                    "path": f"/api/knowledge/draft-envelope/status/{job_id}",
+                }],
+            ),
         })
 
     @app.get("/api/knowledge/draft-envelope/status/{job_id}")
@@ -650,6 +700,33 @@ def register_routes(app: Any) -> None:
             "truncated": len(rows) > len(row_summaries),
             "raw_text": "\n".join(lines).strip(),
             "row_summaries": row_summaries,
+            "demo_replay": demo_replay(
+                lane="knowledge_extraction",
+                endpoint="/api/knowledge/source-file",
+                request={
+                    "filename": filename,
+                    "file_bytes": len(contents),
+                    "file_sha256": hashlib.sha256(contents).hexdigest(),
+                    "max_rows": max_rows,
+                    "max_chars": max_chars,
+                },
+                response_summary={
+                    "n_rows_total": len(rows),
+                    "n_rows_included": len(row_summaries),
+                    "n_media_assets": len(media_rows),
+                    "truncated": len(rows) > len(row_summaries),
+                },
+                artifacts=[{
+                    "name": "raw_text",
+                    "kind": "inline_response_json",
+                    "chars": len("\n".join(lines).strip()),
+                }],
+                note=(
+                    "Reattach the same local file or use the browser replay "
+                    "download from a synthetic demo to reconstruct the exact "
+                    "multipart request."
+                ),
+            ),
         })
 
     @app.post("/api/knowledge/draft-envelope")

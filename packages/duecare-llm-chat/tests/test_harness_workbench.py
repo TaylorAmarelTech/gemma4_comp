@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import io
+import time
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -395,6 +398,9 @@ def test_share_page_has_bulk_review_selection_controls(client):
     assert '/static/_workflow.js' in text
     assert "window.dcWorkflow.createStepper" in text
     assert "function wbGetLog" in text
+    assert "/api/process/batch/start" in text
+    assert "/api/process/batch/status/" in text
+    assert "function wbPollShareProcessJob" in text
 
 
 def test_contacts_api_exposes_versioned_last_verified_dates(client):
@@ -428,6 +434,97 @@ def test_anonymization_endpoint_can_run_gemma_privacy_review():
     assert data["gemma_review"]["status"] == "ok"
     assert data["gemma_review"]["overall_status"] == "pass"
     assert "<PHONE_" in data["redacted"][0]
+
+
+def test_recording_critical_endpoints_emit_demo_replay(client):
+    def assert_replay(payload, lane, endpoint=None):
+        replay = payload["demo_replay"]
+        assert replay["schema_version"] == "duecare.demo_replay.v1"
+        assert replay["lane"] == lane
+        assert replay["request_sha256"]
+        assert replay["replay_steps"]
+        if endpoint:
+            assert replay["endpoint"] == endpoint
+        return replay
+
+    anon = client.post("/api/anonymize", json={
+        "texts": ["Worker Maria called +852 1234 5678 about PHP 45000."],
+        "gemma_review": False,
+    })
+    assert anon.status_code == 200, anon.text
+    assert_replay(anon.json(), "anonymization_sharing", "/api/anonymize")
+
+    search_safety = client.post("/api/search/sanitize", json={
+        "query": "ILO C181 fee rules for worker +63 917 123 4567",
+        "mode": "strict",
+    })
+    assert search_safety.status_code == 200, search_safety.text
+    replay = assert_replay(search_safety.json(), "search", "/api/search/sanitize")
+    assert "query_sha256" in replay["request"]
+    assert "+63 917" not in replay["request"].get("query_sha256", "")
+
+    search = client.post("/api/search/client", json={
+        "query": "ILO Convention 181 recruitment fees",
+        "top_n": 3,
+    })
+    assert search.status_code == 200, search.text
+    assert_replay(search.json(), "search", "/api/search/client")
+
+    draft = client.post("/api/knowledge/draft-envelope", json={
+        "raw_text": "Recruiter charged PHP 50000 training fee before deployment.",
+        "target_leaf": "auto",
+        "anonymize": True,
+        "use_gemma": False,
+    })
+    assert draft.status_code == 200, draft.text
+    replay = assert_replay(draft.json(), "knowledge_extraction", "/api/knowledge/draft-envelope")
+    assert replay["request"]["raw_text_chars"] > 0
+    assert "raw_text_sha256" in replay["request"]
+
+    start = client.post("/api/knowledge/draft-envelope/start", json={
+        "raw_text": "Passport safekeeping and salary deduction signals in an intake note.",
+        "target_leaf": "auto",
+        "anonymize": True,
+        "use_gemma": False,
+    })
+    assert start.status_code == 200, start.text
+    assert_replay(start.json(), "knowledge_extraction", "/api/knowledge/draft-envelope/start")
+    job_id = start.json()["job_id"]
+    status = None
+    for _ in range(20):
+        status = client.get(f"/api/knowledge/draft-envelope/status/{job_id}").json()
+        if status["status"] == "complete":
+            break
+        time.sleep(0.05)
+    assert status and status["status"] == "complete"
+    assert_replay(status["result"], "knowledge_extraction", "/api/knowledge/draft-envelope/start")
+
+    process = client.post(
+        "/api/process/batch",
+        files={"file": (
+            "demo.csv",
+            io.BytesIO(b"text\nWorker paid PHP 50000 training fee to recruiter.\n"),
+            "text/csv",
+        )},
+    )
+    assert process.status_code == 200, process.text
+    replay = assert_replay(process.json(), "bulk_file_review", "/api/process/batch")
+    assert replay["request"]["filename"] == "demo.csv"
+    assert replay["response_summary"]["n_rows_processed"] >= 1
+
+
+def test_workbench_chrome_exposes_browser_replay_download(client):
+    nav = client.get("/static/_nav.html")
+    assert nav.status_code == 200
+    assert "Replay JSON" in nav.text
+    assert 'id="dc-wb-replay-btn"' in nav.text
+
+    nav_js = client.get("/static/_nav.js")
+    assert nav_js.status_code == 200
+    text = nav_js.text
+    assert "duecare.browser_replay_log.v1" in text
+    assert "installReplayRecorder" in text
+    assert "window.dcWbDownloadReplayJson" in text
 
 
 def test_sync_page_uses_guided_pack_flow(client):

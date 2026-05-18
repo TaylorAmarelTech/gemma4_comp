@@ -192,6 +192,7 @@
 
   <script>
     let wbFile = null, wbBundle = null, wbChecked = new Set(), wbAnonymized = null;
+    let wbShareProcessSeenEvents = new Set();
     let wbShareStepper = null;
     function wbGetShareStepper() {
       if (!wbShareStepper && window.dcWorkflow) {
@@ -232,6 +233,40 @@
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
       })[ch]);
     }
+    function wbShareJobEvents(job) {
+      (job.events || []).forEach(evt => {
+        const key = [evt.ts, evt.phase, evt.pct, evt.detail].join('|');
+        if (wbShareProcessSeenEvents.has(key)) return;
+        wbShareProcessSeenEvents.add(key);
+        wbLog(evt.status === 'error' ? 'err' : 'step',
+          'Process job: ' + (evt.phase || evt.status || 'event'),
+          (evt.detail || '') + (evt.pct != null ? ' | ' + evt.pct + '%' : ''));
+      });
+    }
+    async function wbPollShareProcessJob(jobId, t0) {
+      const pollUrl = '/api/process/batch/status/' + encodeURIComponent(jobId);
+      for (let i = 0; i < 900; i++) {
+        await new Promise(resolve => setTimeout(resolve, i === 0 ? 250 : 1000));
+        const r = await fetch(pollUrl, {cache: 'no-store'});
+        const text = await r.text();
+        let job = null;
+        try { job = JSON.parse(text); } catch (_) {}
+        const dt = Math.round(performance.now() - t0);
+        if (!r.ok || !job) {
+          wbLog('err', 'Process job poll failed HTTP ' + r.status + ' (' + dt + 'ms)', text.slice(0, 220));
+          throw new Error('process job poll failed: HTTP ' + r.status);
+        }
+        wbShareJobEvents(job);
+        if (job.status === 'complete') {
+          if (!job.result) throw new Error('process job completed without result payload');
+          return job.result;
+        }
+        if (job.status === 'error') {
+          throw new Error(job.error || job.detail || 'process job failed');
+        }
+      }
+      throw new Error('process job polling timed out locally');
+    }
     function wbHandle(ev) {
       const f = (ev.target.files || [])[0];
       if (!f) return; wbFile = f;
@@ -244,18 +279,22 @@
     async function wbStep1() {
       const btn = document.getElementById('wb-step1-btn'); btn.disabled = true; btn.textContent = 'Processing...';
       document.getElementById('wb-step1-error').style.display = 'none';
-      wbLog('info', 'POST /api/process/batch', 'file=' + wbFile.name);
+      wbShareProcessSeenEvents = new Set();
+      wbLog('info', 'POST /api/process/batch/start', 'file=' + wbFile.name);
       const t0 = performance.now();
       try {
         const fd = new FormData(); fd.append('file', wbFile);
-        const r = await fetch('/api/process/batch', { method: 'POST', body: fd });
+        const r = await fetch('/api/process/batch/start', { method: 'POST', body: fd });
         const dt = Math.round(performance.now() - t0);
+        const start = await r.json().catch(() => ({}));
         if (!r.ok) {
-          const t = await r.text(); wbLog('err', 'HTTP ' + r.status + ' (' + dt + 'ms)', t.slice(0, 200));
+          wbLog('err', 'HTTP ' + r.status + ' (' + dt + 'ms)', JSON.stringify(start).slice(0, 200));
           throw new Error('HTTP ' + r.status);
         }
-        wbBundle = await r.json();
-        wbLog('ok', 'HTTP ' + r.status + ' (' + dt + 'ms)',
+        wbLog('ok', 'Process job accepted (' + dt + 'ms)', 'job_id=' + start.job_id);
+        wbBundle = await wbPollShareProcessJob(start.job_id, t0);
+        const totalDt = Math.round(performance.now() - t0);
+        wbLog('ok', 'HTTP 200 (' + totalDt + 'ms)',
               'run_id=' + wbBundle.run_id + ' | rows=' + wbBundle.summary.n_rows_processed);
         wbRenderFacts(); document.getElementById('wb-step-1').classList.add('done');
         wbSetStep(2);

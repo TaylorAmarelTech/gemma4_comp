@@ -24,6 +24,7 @@ from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from ..._model_output import sanitize_model_output
+from .._replay import demo_replay
 from .extractor import ENTITY_PATTERNS
 from .prompts import (
     EDGE_EXTRACTION_POINTED_QUESTIONS,
@@ -2912,6 +2913,37 @@ def register_routes(app: Any) -> None:
         bundle["summary"]["n_gemma_calls_attempted"] = n_gemma_calls_attempted
         bundle["summary"]["gemma_model_loaded"] = gemma_available
         bundle["config"]["gemma_case_brief"] = gemma_brief.get("status") or "deferred"
+        bundle["demo_replay"] = demo_replay(
+            lane="bulk_file_review",
+            endpoint="/api/process/batch/start" if job_id else "/api/process/batch",
+            request={
+                "filename": filename,
+                "file_bytes": len(contents),
+                "file_sha256": _hashlib.sha256(contents).hexdigest(),
+                "process_settings": process_settings,
+                "job_id": job_id,
+            },
+            response_summary={
+                "run_id": run_id,
+                "n_rows_total": len(rows),
+                "n_rows_processed": len(capped),
+                "n_people_detected": bundle["summary"].get("n_people_detected"),
+                "n_typed_edges": bundle["summary"].get("n_typed_edges"),
+                "gemma_case_brief_status": bundle["summary"].get("gemma_case_brief_status"),
+                "gemma_edge_pass_status": bundle["summary"].get("gemma_edge_pass_status"),
+                "n_gemma_calls_attempted": bundle["summary"].get("n_gemma_calls_attempted"),
+            },
+            artifacts=[{
+                "name": "processed_bundle",
+                "kind": "inline_response_json",
+                "run_id": run_id,
+            }],
+            note=(
+                "Reattach the same local file to replay the multipart upload. "
+                "The full processed bundle is this response JSON and can be "
+                "downloaded from Step 5."
+            ),
+        )
         app.state.last_process_bundle = bundle
         mark("caching", 92, "Caching local graph for graph chat and export.")
         try:
@@ -3066,6 +3098,25 @@ def register_routes(app: Any) -> None:
             "bytes": len(contents),
             "process_settings": process_settings,
             "poll_url": f"/api/process/batch/status/{job_id}",
+            "demo_replay": demo_replay(
+                lane="bulk_file_review",
+                endpoint="/api/process/batch/start",
+                request={
+                    "filename": filename,
+                    "file_bytes": len(contents),
+                    "file_sha256": _hashlib.sha256(contents).hexdigest(),
+                    "process_settings": process_settings,
+                },
+                response_summary={
+                    "job_id": job_id,
+                    "poll_url": f"/api/process/batch/status/{job_id}",
+                },
+                artifacts=[{
+                    "name": "process_job_status",
+                    "kind": "poll_endpoint",
+                    "path": f"/api/process/batch/status/{job_id}",
+                }],
+            ),
         })
 
     @app.get("/api/process/batch/status/{job_id}")

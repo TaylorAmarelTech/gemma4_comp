@@ -376,6 +376,182 @@
         });
     }
 
+    const DC_REPLAY_BODY_LIMIT = 800000;
+    const DC_REPLAY_TEXT_LIMIT = 2500000;
+
+    function replayEntries() {
+        if (!window.__dcWbReplayEntries) window.__dcWbReplayEntries = [];
+        return window.__dcWbReplayEntries;
+    }
+
+    function replayUrlParts(input) {
+        try {
+            const rawUrl = typeof input === 'string'
+                ? input
+                : (input && input.url) || '';
+            const url = new URL(rawUrl, window.location.origin);
+            return {url: url.href, path: url.pathname, query: url.search || ''};
+        } catch (_) {
+            return {url: '', path: '', query: ''};
+        }
+    }
+
+    function serializeReplayBody(body) {
+        if (body == null) return null;
+        if (typeof FormData !== 'undefined' && body instanceof FormData) {
+            const fields = [];
+            body.forEach(function (value, key) {
+                if (value && typeof value === 'object'
+                    && typeof value.name === 'string'
+                    && typeof value.size === 'number') {
+                    fields.push({
+                        key: key,
+                        kind: 'file',
+                        name: value.name,
+                        size: value.size,
+                        type: value.type || '',
+                        last_modified: value.lastModified || null,
+                    });
+                } else {
+                    fields.push({key: key, kind: 'field', value: String(value)});
+                }
+            });
+            return {kind: 'form_data', fields: fields};
+        }
+        if (typeof URLSearchParams !== 'undefined' && body instanceof URLSearchParams) {
+            return {kind: 'url_search_params', value: String(body)};
+        }
+        if (typeof body === 'string') {
+            const truncated = body.length > DC_REPLAY_BODY_LIMIT;
+            const text = truncated ? body.slice(0, DC_REPLAY_BODY_LIMIT) : body;
+            let parsed = null;
+            try { parsed = JSON.parse(text); } catch (_) {}
+            return {
+                kind: parsed ? 'json' : 'text',
+                value: parsed || text,
+                chars: body.length,
+                truncated: truncated,
+            };
+        }
+        if (body && typeof body === 'object'
+            && typeof body.size === 'number'
+            && typeof body.type === 'string') {
+            return {kind: 'blob', size: body.size, type: body.type};
+        }
+        return {kind: 'unknown', detail: Object.prototype.toString.call(body)};
+    }
+
+    function shouldRecordReplay(path) {
+        if (!path || path.indexOf('/api/') !== 0) return false;
+        const quiet = new Set([
+            '/api/version',
+            '/api/model-info',
+            '/api/load-model/status',
+            '/api/brand',
+        ]);
+        return !quiet.has(path);
+    }
+
+    function installReplayRecorder() {
+        if (!window.fetch || window.__dcWbReplayFetchWrapped) return;
+        const nativeFetch = window.fetch.bind(window);
+        window.__dcWbReplayFetchWrapped = true;
+        window.fetch = function (input, init) {
+            let method = (init && init.method) || 'GET';
+            if ((!init || !init.method) && input && input.method) method = input.method;
+            method = String(method || 'GET').toUpperCase();
+            const parts = replayUrlParts(input);
+            const record = shouldRecordReplay(parts.path);
+            const t0 = performance.now();
+            let entry = null;
+            if (record) {
+                entry = {
+                    ts: new Date().toISOString(),
+                    page: window.location.pathname,
+                    nav_key: document.body.getAttribute('data-nav') || '',
+                    method: method,
+                    path: parts.path,
+                    query: parts.query,
+                    url: parts.url,
+                    request: serializeReplayBody(init && init.body),
+                    status: 'pending',
+                };
+                replayEntries().push(entry);
+            }
+            return nativeFetch(input, init).then(function (resp) {
+                if (entry) {
+                    const dt = Math.round(performance.now() - t0);
+                    entry.status = resp.status;
+                    entry.ok = resp.ok;
+                    entry.elapsed_ms = dt;
+                    entry.response_content_type = resp.headers.get('content-type') || '';
+                    try {
+                        resp.clone().text().then(function (text) {
+                            const truncated = text.length > DC_REPLAY_TEXT_LIMIT;
+                            const kept = truncated ? text.slice(0, DC_REPLAY_TEXT_LIMIT) : text;
+                            entry.response_chars = text.length;
+                            entry.response_truncated = truncated;
+                            entry.response_text = kept;
+                            if (!truncated && /json/i.test(entry.response_content_type || '')) {
+                                try { entry.response_json = JSON.parse(kept); } catch (_) {}
+                            }
+                        }).catch(function (err) {
+                            entry.response_read_error = String((err && err.message) || err);
+                        });
+                    } catch (err) {
+                        entry.response_read_error = String((err && err.message) || err);
+                    }
+                }
+                return resp;
+            }).catch(function (err) {
+                if (entry) {
+                    entry.status = 'fetch_error';
+                    entry.ok = false;
+                    entry.elapsed_ms = Math.round(performance.now() - t0);
+                    entry.error = String((err && err.message) || err);
+                }
+                throw err;
+            });
+        };
+    }
+
+    function downloadReplayJson() {
+        const navKey = document.body.getAttribute('data-nav') || 'page';
+        const payload = {
+            schema_version: 'duecare.browser_replay_log.v1',
+            captured_at: new Date().toISOString(),
+            origin: window.location.origin,
+            page: window.location.pathname,
+            nav_key: navKey,
+            entry_count: replayEntries().length,
+            entries: replayEntries(),
+            note: (
+                'This local browser replay log is intended for synthetic demo '
+                + 'recording and debugging. Review before sharing if real case '
+                + 'material was used.'
+            ),
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'duecare-' + navKey + '-replay-' + stamp + '.json';
+        a.click();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+        if (window.dcWbPageLog && window.dcWbPageLog.ok) {
+            window.dcWbPageLog.ok('Downloaded replay JSON', payload.entry_count + ' API event(s)');
+        }
+    }
+
+    function wireReplayDownload() {
+        const btn = document.getElementById('dc-wb-replay-btn');
+        if (!btn) return;
+        btn.addEventListener('click', downloadReplayJson);
+        window.dcWbReplayEntries = replayEntries;
+        window.dcWbDownloadReplayJson = downloadReplayJson;
+    }
+
     function ensureActivityLogScript(cb) {
         if (window.dcActivityLog) {
             cb();
@@ -614,10 +790,12 @@
         }
         const key = document.body.getAttribute('data-nav') || '';
         activate(nav, key);
+        installReplayRecorder();
         wireNavToggle();
         wireModelPopover();
         wireShutdown();
         wireClearChat();
+        wireReplayDownload();
         ensureDefaultActivityLog();
         refreshStatus();
         refreshModelLoaderStatus().then(function (state) {

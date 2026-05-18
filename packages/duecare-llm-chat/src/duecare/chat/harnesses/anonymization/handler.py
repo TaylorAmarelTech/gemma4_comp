@@ -17,6 +17,7 @@ from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from ..._model_output import sanitize_model_output
+from .._replay import demo_replay, sha256_json
 from .detector import PII_PATTERNS
 from .redactor import DEFAULT_SALT, placeholder, raw_sha256
 
@@ -234,6 +235,35 @@ def register_routes(app: Any) -> None:
             "redacted": out_texts,
             "diffs": out_diffs,
             "gemma_review": gemma_review,
+            "demo_replay": demo_replay(
+                lane="anonymization_sharing",
+                endpoint="/api/anonymize",
+                request={
+                    "n_texts": len(texts),
+                    "text_sha256": [
+                        hashlib.sha256(str(t).encode("utf-8", errors="replace")).hexdigest()
+                        for t in texts
+                    ],
+                    "gemma_review": gemma_review_requested,
+                    "salt_scope": "caller supplied" if body.get("salt") else "default demo salt",
+                },
+                response_summary={
+                    "n_redacted_texts": len(out_texts),
+                    "total_redactions": sum(d["n_redactions"] for d in out_diffs),
+                    "gemma_review_status": gemma_review.get("status"),
+                    "gemma_review_overall": gemma_review.get("overall_status"),
+                },
+                artifacts=[{
+                    "name": "redacted_texts",
+                    "kind": "inline_response_json",
+                    "count": len(out_texts),
+                }],
+                note=(
+                    "Raw texts are represented by sha256 here. Use the "
+                    "browser replay download only for synthetic demo material "
+                    "if you need exact local request bodies."
+                ),
+            ),
         })
 
     @app.post("/api/submit/knowledge")
@@ -299,6 +329,28 @@ def register_routes(app: Any) -> None:
             "remote_status": remote_status,
             "remote_response": remote_response,
             "remote_error": remote_error,
+            "demo_replay": demo_replay(
+                lane="anonymization_sharing",
+                endpoint="/api/submit/knowledge",
+                request={
+                    "target_url": target_url,
+                    "n_items": len(items),
+                    "knowledge_sha256": sha256_json(items),
+                },
+                response_summary={
+                    "run_id": run_id,
+                    "audit_path": str(audit_path),
+                    "sha256_blob": sha,
+                    "transmitted": transmitted,
+                    "remote_status": remote_status,
+                    "remote_error": remote_error,
+                },
+                artifacts=[{
+                    "name": "submit_audit_log",
+                    "kind": "jsonl",
+                    "path": str(audit_path),
+                }],
+            ),
             "note": (
                 "Knowledge transmitted." if transmitted else
                 ("Local audit written. Remote returned "
