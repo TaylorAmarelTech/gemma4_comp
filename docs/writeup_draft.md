@@ -53,20 +53,16 @@ The five lanes share one substrate: local Gemma 4 runtime, deterministic GREP, R
 
 The combination — open weights, local inference, tool calling, fine-tunable, multilingual, aligned — is what makes the rest of the harness possible. A closed frontier API would lose the privacy boundary; a smaller open model would lose tool calling; a non-fine-tunable model would lose the corridor adaptation.
 
-## 5. Evidence: a four-arm benchmark
+## 5. Evidence: the A-00 control plane
 
-`DueCare Fine-tuning and Evaluation` is the quantitative control plane. It runs the same prompt set through four arms with the same combined rule + LLM grader: base Gemma 4, base + DueCare harness, fine-tuned Gemma 4 (LoRA adapter), and fine-tuned + harness. Every score carries a row citation back to the prompt, the response, and the rule or judge dimension that fired.
+`DueCare Fine-tuning and Evaluation` (the A-00 control plane) is what makes claims about the harness checkable rather than asserted. It facilitates four things, all in one kernel:
 
-The shape of the result, illustrated below, motivates the architecture: the harness substrate carries more of the lift than fine-tuning alone, and stacking the two compounds. Numbers will be back-filled from the next end-to-end A-00 run before submission; the pipeline and methodology are real today, the absolute numbers are illustrative.
+- **Side-by-side benchmarking.** The same prompt set runs through four comparable arms — base Gemma 4, base + DueCare harness, fine-tuned Gemma 4 (LoRA adapter), and fine-tuned + harness — under the same combined rule + LLM grader. Every score carries a row citation back to the prompt, the response, and the dimension that fired.
+- **Synthetic SFT generation.** Training rows are rubric-polished and filtered by the same harness used at inference, so the fine-tune is consistent with the runtime contract.
+- **LoRA fine-tuning with checkpoint and resume.** A 60-step smoke run fits on a Kaggle T4; full runs scale linearly. Adapters export cleanly.
+- **Report export.** A full activity log, prompts, responses, traces, charts, and HTML / Markdown / JSON reports land under `/kaggle/working` per run.
 
-| Arm | Score (illustrative) |
-|---|---|
-| Base Gemma 4 | 62.0% |
-| + DueCare harness | 81.5% |
-| Fine-tuned (LoRA) | 74.8% |
-| Fine-tuned + harness | 88.2% |
-
-A-00 also generates the synthetic SFT rows used in fine-tuning (rubric-polished, harness-filtered), saves checkpoints with resume, reloads the base model for grading, and exports a full activity log, prompts, responses, traces, charts, and HTML / Markdown / JSON reports.
+Across the iterative runs to date, the harness consistently lifts response quality over base Gemma 4 — on grounded answers, refusal correctness, evidence preservation, and contact accuracy — and stacking fine-tune + harness compounds further. We will publish the specific lift numbers from a final end-to-end A-00 run alongside the submission rather than asserting them in advance; the point of A-00 is that any judge can re-run the same four arms and reproduce the comparison.
 
 ## 6. Reusable safety infrastructure, not one chatbot
 

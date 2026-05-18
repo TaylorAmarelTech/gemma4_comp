@@ -866,6 +866,114 @@
 </section>
 
 
+<!-- ============== 06 ANONYMIZED SHARING ============== -->
+<section id="uc-sharing" class="uc-section sharing" data-screen-label="UC · Anonymized sharing">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="ix">06 · Anonymized sharing</span>
+        <h2>Share verified facts, not files.</h2>
+      </div>
+      <p class="summary">Reviewed cases stay inside the local workbench. Reviewers
+        choose candidate facts, a privacy gate strips PII and verifies k-anonymity
+        and re-identification risk, and only sanitized knowledge objects reach the
+        public hub. The worker is never exposed; the hub gets stronger anyway.</p>
+    </div>
+
+    <div class="uc-body">
+      <div class="what-card">
+        <span class="label">What it does</span>
+        <div class="what-grid">
+          <div class="what-col">
+            <h4>Capabilities</h4>
+            <ul>
+              <li>Fact selection from confirmed evidence graphs</li>
+              <li>PII redaction + k-anonymity check + re-identification risk score</li>
+              <li>Knowledge-object schema with corridor, indicator, evidence row, pii_status</li>
+              <li>Reviewer approval gate before any export leaves the workbench</li>
+              <li>Versioned knowledge packs distributed back to every other client</li>
+            </ul>
+          </div>
+          <div class="what-col">
+            <h4>Why it helps</h4>
+            <ul>
+              <li>NGOs and regulators contribute without exposing raw case files</li>
+              <li>Moderation, mobile guidance, and research all sharpen as facts accumulate</li>
+              <li>Privacy-by-default. nothing leaves local by accident</li>
+              <li>Every shared fact is auditable back to its evidence row</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <aside class="audience">
+        <span class="label">Who it's for</span>
+        <div class="who">
+          <h4>Primary users</h4>
+          <p>NGO reviewers, regulator inspectors, and partner caseworkers who want their reviewed evidence to strengthen the broader system without uploading raw files.</p>
+        </div>
+        <div class="who">
+          <h4>Beneficiaries</h4>
+          <p>Every other DueCare client. a confirmed fee-rerouting pattern caught in one workbench becomes a sharper GREP rule, RAG entry, and worker answer everywhere else.</p>
+        </div>
+      </aside>
+    </div>
+
+    <details class="arch-acc">
+      <summary><span>▸ Sharing flow</span><span class="caret">›</span></summary>
+      <div class="arch-content">
+        <div class="arch-flow">
+          <div class="arch-node local">
+            <div class="node-head">
+              <span class="step">01 · Local</span>
+              <h5>Reviewed case</h5>
+            </div>
+            <div class="node-body">
+              <ul>
+                <li>Confirmed evidence graph stays inside the local workbench</li>
+                <li>Raw files never proposed for sharing</li>
+              </ul>
+            </div>
+          </div>
+          <div class="arch-conn"><div class="rail"></div><span class="label">reviewer selects</span></div>
+          <div class="arch-node boundary">
+            <div class="node-head">
+              <span class="step">02 · Privacy gate</span>
+              <h5>Sanitization</h5>
+            </div>
+            <div class="node-body">
+              <ul>
+                <li>PII removed from candidate facts</li>
+                <li>k-anonymity verified, re-identification risk scored</li>
+                <li>Gate must pass before egress</li>
+              </ul>
+            </div>
+          </div>
+          <div class="arch-conn"><div class="rail"></div><span class="label">approved facts</span></div>
+          <div class="arch-node hub">
+            <div class="node-head">
+              <span class="step">03 · Hub</span>
+              <h5>Knowledge objects</h5>
+            </div>
+            <div class="node-body">
+              <ul>
+                <li>Published as versioned knowledge objects</li>
+                <li>Strengthens packs and rules for every client</li>
+                <li>Diff-notifications when packs update</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="arch-foot">
+          <span>Local reviewed graph &middot; privacy gate &middot; public hub</span>
+          <span class="ok">Worker never exposed. Hub gets stronger anyway.</span>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+
 <!-- ============== CLOSING ============== -->
 <section class="closing-strip" data-screen-label="UC · Closing">
   <div class="wrap">
