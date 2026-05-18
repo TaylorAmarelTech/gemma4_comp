@@ -21,7 +21,7 @@
 
 **Duecare is a Gemma 4-powered safety infrastructure platform for
 migrant-worker protection.** This submission has **two surfaces**:
-the **Kaggle exploration workbench** ([kaggle.com/code/taylorsamarel/duecare-exploration-workbench](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench))
+the **Kaggle exploration workbench** ([kaggle.com/code/taylorsamarel/duecare-app](https://www.kaggle.com/code/taylorsamarel/duecare-app))
 proves technical depth — Gemma 4 + the 6-toggle harness running
 end-to-end — and the **public hub** at
 [duecare-ai.com](https://duecare-ai.com) proves platform
@@ -58,7 +58,7 @@ story.
 
 **Notebook status note:** the current judge-facing Kaggle path is the
 three-kernel set in `kaggle/_INDEX.md`: exploration workbench, live demo, and
-A-00 omni experiment workbench. Retired notebook-era surfaces are historical.
+DueCare Fine-tuning and Evaluation. Retired notebook-era surfaces are historical.
 
 ## Where to verify each claim
 
@@ -74,7 +74,7 @@ A-00 omni experiment workbench. Retired notebook-era surfaces are historical.
 | **`evaluator_call` hook for separating LLM-judge model from chat model** (v0.13.0; abliterated / frontier / larger-Gemma patterns supported, Kaggle-default in-process self-grade due to VRAM) | `packages/duecare-llm-chat/src/duecare/chat/app.py:_evaluator_model_call` |
 | **Hybrid retrieval** — BM25 + optional dense + RRF fusion, with reranker hook | `app.py:_hybrid_fuse_with_dense` + `kernel_helpers/embedding.py` |
 | **Path tracing** — every retrieval-pipeline stage logged | `app.py:_path_trace_record` + chat UI's "RETRIEVAL PATH TRACE" card |
-| **A/B Compare tab** — same prompt, two harness configurations, side-by-side grades | `kaggle/01-duecare-exploration-workbench/kernel.py` live; UI button next to "About" |
+| **A/B Compare tab** — same prompt, two harness configurations, side-by-side grades | `kaggle/01-duecare-app/kernel.py` live; UI button next to "About" |
 | **License + attribution** — every bundled asset, every model, every third-party reference | `LICENSES.md` |
 | **Public hub** — knowledge-pack registry + anonymized signal intake + public-source proposal intake | [duecare-ai.com](https://duecare-ai.com) (code at [`apps/duecare-ai.com/`](../apps/duecare-ai.com/), deployed via repo-root `render.yaml`) |
 | **Hub API surface** — `GET /api/hub/knowledge-packs`, `POST /api/hub/signals`, `POST /api/hub/opencrawl/updates`, `GET /api/hub/trends`, `GET /api/hub/status`, `GET /api/health` | [duecare-ai.com/docs](https://duecare-ai.com/docs) (FastAPI auto-generated OpenAPI) |

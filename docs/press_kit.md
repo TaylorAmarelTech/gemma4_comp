@@ -78,7 +78,7 @@ a regulator does.
 These are reproducible per `(git_sha, dataset_version, model_revision)`
 — see [RESULTS.md](../RESULTS.md):
 
-- **+56.5 percentage points** mean improvement on a 207-prompt
+- **Measurable mean improvement (specific lift numbers pending final A-00 run)** on a 207-prompt
   legal-citation rubric when the harness is on vs off
 - **+87.5 percentage points** specifically on jurisdiction-specific
   rule citations (the most demanding category)

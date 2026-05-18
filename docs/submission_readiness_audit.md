@@ -90,7 +90,7 @@ Kaggle or in a browser has not happened yet.
   Kaggle notebook and confirm the banner reads `/start` first. A stale
   paste is why the slides surface looked missing in the last run.
 
-## 2. Exploration workbench (`kaggle/01-duecare-exploration-workbench/`)
+## 2. DueCare App (`kaggle/01-duecare-app/`)
 
 ### 2.1 Bulk File Review
 
@@ -135,7 +135,7 @@ Kaggle or in a browser has not happened yet.
   * Each page's "Use sample" button round-trips the sample artifact
     under `/static/samples/`.
 
-## 3. A-00 omni experiment workbench (`kaggle/A-00-omni-experiment-workbench/`)
+## 3. DueCare Fine-tuning and Evaluation (`kaggle/A-00-omni-experiment-workbench/`)
 
 ### 3.1 Preconfigured pipeline
 
@@ -282,7 +282,7 @@ Kaggle or in a browser has not happened yet.
 * **State:** Manual copy-paste workflow (CLAUDE.md rule). Claude Code
   does not push kernels.
 * **Built:** `kaggle/02-live-demo/kernel.py`,
-  `kaggle/01-duecare-exploration-workbench/kernel.py`,
+  `kaggle/01-duecare-app/kernel.py`,
   `kaggle/A-00-omni-experiment-workbench/kernel.py`; each folder has a
   `README.md` and a kernel-metadata file.
 * **Needs human action before recording:**

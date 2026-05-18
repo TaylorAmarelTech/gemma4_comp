@@ -141,7 +141,7 @@ Annotations pop up:
 
 ### 0:35–1:42 — The demo (67 seconds)
 
-**Visual:** Cut to the **duecare-exploration-workbench notebook** — the unified
+**Visual:** Cut to the **duecare-app notebook** — the unified
 omni playground. Same 68%-loan prompt is pasted. **The harness toggle
 tiles** are visible at the bottom: Persona (purple), GREP (red),
 RAG (blue), Imports (teal), Tools (green), Online (amber). Cursor
@@ -223,7 +223,7 @@ each generation completes (loading shimmer → number resolves):
 |---|---|---|---|
 | 31% | 66% | 78% | 87% |
 
-Above the cards a banner reads: **harness lift: +56pp**.
+Above the cards a banner reads: **harness lift: [live]** (filled with the A-00 run value at recording time).
 
 **Voiceover:**
 
@@ -308,7 +308,7 @@ lines of serif:
 > **Duecare**
 > *Gemma 4-powered safety infrastructure for migrant-worker protection.*
 >
-> Live demo: kaggle.com/code/taylorsamarel/duecare-exploration-workbench
+> Live demo: kaggle.com/code/taylorsamarel/duecare-app
 > Platform hub: **duecare-ai.com**
 > Code: github.com/TaylorAmarelTech/gemma4_comp · MIT
 > APK: github.com/TaylorAmarelTech/duecare-journey-android
@@ -351,7 +351,7 @@ Fade to black. Music fades.
       (no personal data)
 - [ ] Screen recording: stock Gemma response to the selected baseline prompt
       from Kernel 01 or the A-00 no-harness arm
-- [ ] Screen recording: `duecare-exploration-workbench`, cursor clicking each
+- [ ] Screen recording: `duecare-app`, cursor clicking each
       of the toggles (Persona / GREP / RAG / Imports / Tools /
       Online) ON in sequence, then sending the 68%-loan prompt
 - [ ] Screen recording: `▸ View pipeline` modal — header reads

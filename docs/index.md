@@ -40,7 +40,7 @@ happens. Or after, to recover the money.
 
     Open the live chat playground on Kaggle:
 
-    [duecare-exploration-workbench :octicons-arrow-right-24:](https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench){ .md-button .md-button--primary }
+    [duecare-app :octicons-arrow-right-24:](https://www.kaggle.com/code/taylorsamarel/duecare-app){ .md-button .md-button--primary }
 
     Click "Run All". Type:
 
@@ -165,7 +165,7 @@ Sorted by who you are:
 
 The measured harness-lift report shows:
 
-- **+56.5 pp** mean lift across the published hand-graded prompt set
+- **+56.5 pp** mean lift across the published hand-graded prompt set *(historical measurement; see caveat below)*
 - **+87.5 pp** on jurisdiction-specific rule citations
 - **+51.2 pp** on ILO / international convention citations
 - **100%** of prompts saw the harness help; 0 saw it hurt
@@ -179,7 +179,7 @@ for the `(git_sha, dataset_version, model_revision)` tuples.
 last measured 2026-05-03 against an earlier GREP revision; the
 current expansion to the larger rule set is additive but should be re-measured
 so the lift is expected to remain at-or-above these floors. Re-run
-the active A-00 omni experiment workbench to refresh.
+the active DueCare Fine-tuning and Evaluation to refresh.
 
 ## Sensitive data stays local
 
