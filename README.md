@@ -685,7 +685,8 @@ Secrets (API keys) come from environment variables only — see
 > map of every top-level directory — including supporting
 > infrastructure (`infra/`, `deployment/`, `configs/`), data folders,
 > archived snapshots, and hidden dev-only paths. The sketch below
-> highlights the most important entries.
+> highlights the most important entries. See [`ROOT_FILES.md`](./ROOT_FILES.md)
+> for why each root-level file remains in the GitHub landing directory.
 
 ```
 gemma4_comp/
@@ -728,6 +729,7 @@ gemma4_comp/
 ├── .claude/
 │   ├── rules/                    # auto-loaded Claude Code rules
 │   └── commands/                 # project slash commands
+├── ROOT_FILES.md                 # root-file manifest and cleanup policy
 └── CLAUDE.md                     # AI-assistant context
 ```
 

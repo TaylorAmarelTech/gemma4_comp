@@ -495,11 +495,10 @@ gemma4_comp/
 │   └── video_script.md       <- 3-minute narration draft
 ├── src/demo/                 <- FastAPI dashboard + demo app (live)
 ├── README.md                 <- public-facing project overview for judges
+├── ROOT_FILES.md             <- manifest for root-level files that intentionally remain
 ├── LICENSE                   <- MIT (required by the hackathon rules)
 ├── CLAUDE.md                 <- THIS file
-├── requirements.txt
-├── copy_reference.py         <- populates _reference/ from the source folder
-└── copy_framework.py         <- populates _reference/framework/ from framework source
+└── requirements.txt
 ```
 
 ## Archive and context hygiene

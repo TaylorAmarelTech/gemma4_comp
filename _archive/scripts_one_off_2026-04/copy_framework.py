@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-copy_framework.py - Selectively copy llm-safety-framework-public into _reference/framework/.
+Archived one-off helper: selectively copy llm-safety-framework-public into _reference/framework/.
 
 Selective over the full 5.1 GB source: only copies source code, tests, scripts,
 docs, and configs. Skips generated data, checkpoints, exports, reports,

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-copy_reference.py - Copy reference material for the Gemma 4 hackathon project.
+Archived one-off helper: copy reference material for the Gemma 4 hackathon project.
 
 Copies selected items from the trafficking benchmark source folder into a
 _reference folder inside the gemma4_comp project, then writes REFERENCE_INDEX.md
