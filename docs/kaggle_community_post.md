@@ -105,42 +105,106 @@ community can extend, audit, and challenge.
 
 ## Try it
 
-All four are public and reproducible:
+Everything is public and reproducible:
 
-- **DueCare App** kernel (chat, bulk file review, knowledge,
-  search, share, harness comparison): <https://www.kaggle.com/code/taylorsamarel/duecare-app>
-- **Fine-tuning & Evaluation** kernel (the 4-arm smoke matrix above):
-  <https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation>
-- **Android APK** (DueCare Journey, worker/mobile companion, sideload
-  only): <https://github.com/TaylorAmarelTech/duecare-journey-android/releases/latest>
+- **DueCare App** kernel (chat, Bulk File Review, Knowledge Extraction, Search, Anonymization & Sharing, Harness Comparison): <https://www.kaggle.com/code/taylorsamarel/duecare-app>
+- **Fine-tuning & Evaluation** kernel (the 4-arm smoke matrix above): <https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation>
+- **Android APK** — DueCare Journey, worker/mobile companion, sideload only: <https://github.com/TaylorAmarelTech/duecare-journey-android/releases/latest>
 - **Public hub**: <https://duecare-ai.com>
 - **Source**: <https://github.com/TaylorAmarelTech/gemma4_comp>
 
 ## What I'd most value feedback on
 
-If you have a few minutes, the three things I'd most value reactions
-on:
+Other industries where this ecosystem — or a unique module from it —
+could be applied? Especially industries where sharing Gemma 4
+anonymized knowledge packs could be helpful. Refugee status
+determination? Healthcare-fraud detection? Tenant-screening
+oversight? Sanctions evasion? Construction-safety reporting? I'd love
+to hear where the same "deterministic harness on top of a local LLM"
+pattern could move the needle.
 
-1. **The harness vs fine-tune split.** Does the 4-arm matrix match
-   what you've seen in your own domains? Cases where fine-tuning
-   alone *did* beat a harness-augmented baseline are especially
-   interesting — what made the difference?
-2. **The on-device / privacy boundary.** The worker-side Android app
-   keeps raw chats, IDs, and documents on the device by default.
-   Reviewers from privacy or HCI backgrounds: what's missing from
-   this boundary that would block adoption in your context?
-3. **Avenues to move this forward.** I'd love to hear from anyone
-   working on NGO tech, trust & safety pipelines, recruitment
-   marketplace moderation, labor regulator desks, or
-   on-device/edge AI deployment — what's the highest-leverage place
-   to extend this next?
+I'd also love to hear from anyone working on NGO tech, trust & safety
+pipelines, recruitment marketplace moderation, labor regulator desks,
+or on-device / edge AI deployment — what's the highest-leverage place
+to extend this next?
 
-Standing by in the comments. If you want to compare harness
-designs, swap notes on corridor packs, propose a corridor that
-isn't covered yet, or ask why a specific rule fires the way it
-does, I'm interested.
+Standing by in the comments. If you want to compare harness designs,
+swap notes on corridor packs, propose a corridor that isn't covered
+yet, or ask why a specific rule fires the way it does, I'm
+interested.
 
 — Taylor
+
+---
+
+## Images to attach to the post
+
+A curated set of five repo-resident images to upload via Kaggle's
+**Insert image** button at the points marked below. All five are
+already in the repo and safe for public posting (the synthetic
+evidence images carry a red SYNTHETIC banner and "(composite)" name
+markers; no real PII).
+
+### Top of post (hero)
+
+1. **`packages/duecare-llm-chat/src/duecare/chat/static/synthetic/fb_post_ph_hk_urgent.png`**
+   *Caption:* An exploitative recruitment ad DueCare's GREP rules
+   catch — PHP 50,000 "training fee" for PH→HK domestic work
+   (violates POEA's zero-fee rule), bypass language ("No POEA test
+   required"), personal WhatsApp contact. Synthetic; not real
+   evidence.
+
+### Under point 1 ("LLMs don't materially help")
+
+2. **`packages/duecare-llm-chat/src/duecare/chat/static/synthetic/whatsapp_recruiter_fee.png`**
+   *Caption:* The pressure tactic in chat: "Need to send PHP 50,000
+   by Friday or we lose the slot." DueCare reads this as
+   `fee_camouflage` + urgency-pressure + zero-fee-rule violation.
+   Synthetic.
+
+### Under point 2 ("Modular ecosystem")
+
+3. **`kaggle/01-duecare-exploration-workbench/tests/test-results/screenshots/desktop-chromium-model-picker.png`**
+   *Caption:* The DueCare App workbench on Kaggle — model picker
+   open, lanes in the nav (Chat / Knowledge Extraction / Search /
+   Anonymization & Sharing / System), and the six toggleable safety
+   layers below the composer.
+
+4. **`kaggle/01-duecare-exploration-workbench/tests/test-results/screenshots/desktop-chromium-harness-tiles.png`**
+   *Caption:* The toggleable safety harness: Persona, GREP, RAG,
+   Tools, Online, Import. Each one is a separately auditable
+   contract — you can run the same prompt with the layers on, off,
+   or in any combination.
+
+### Under point 3 ("Harness is the lift") — optional
+
+5. **`packages/duecare-llm-chat/src/duecare/chat/static/synthetic/receipt_PH_HK_001.png`**
+   *Caption:* How fees get camouflaged in practice: split across
+   "training," "medical examination," "documentation," and
+   "pre-departure orientation" — total PHP 50,000 — with a
+   salary-auto-deduct recovery clause. The kind of substance-over-
+   form pattern stock LLMs miss. Synthetic.
+
+### Quick reference — local paths
+
+```text
+packages/duecare-llm-chat/src/duecare/chat/static/synthetic/fb_post_ph_hk_urgent.png
+packages/duecare-llm-chat/src/duecare/chat/static/synthetic/whatsapp_recruiter_fee.png
+packages/duecare-llm-chat/src/duecare/chat/static/synthetic/receipt_PH_HK_001.png
+kaggle/01-duecare-exploration-workbench/tests/test-results/screenshots/desktop-chromium-model-picker.png
+kaggle/01-duecare-exploration-workbench/tests/test-results/screenshots/desktop-chromium-harness-tiles.png
+```
+
+### What NOT to attach
+
+- `docs/media/cover_1200x675.png` — out of date (cites 74,567
+  prompts, 12 agents, 8 packages — counts have changed) and uses a
+  tagline ("Privacy is non-negotiable") we moved away from.
+- `packages/duecare-llm-server/src/duecare/server/static/evidence/*.jpg` — these are
+  real-world Facebook posts harvested for the research corpus. They
+  belong inside the kernel (where the evidence is anonymized
+  on-device before any signal leaves) but should not be re-posted on
+  a public discussion thread.
 
 ---
 
