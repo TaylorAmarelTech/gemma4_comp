@@ -192,10 +192,11 @@
               <input type="checkbox" id="kx-anonymize" checked> Anonymize raw text first
             </label>
             <label style="font-size:12px; margin-left:8px;"
-                   title="Fast deterministic drafts are the default. Enable this when you want the loaded local Gemma model to refine the envelope JSON; larger models are more reliable.">
+                   data-tip="Fast deterministic drafts are the default. Enable this when you want the loaded local Gemma model to refine the envelope JSON; larger models are more reliable."
+                   data-tip-pos="below">
               <input type="checkbox" id="kx-use-gemma"> Use Gemma refinement
             </label>
-            <span class="dc-gemma-mark is-optional" id="kx-gemma-mark" title="Reflects whether Gemma actually ran. Stays Optional unless a real token stream completes.">Optional · Gemma</span>
+            <span class="dc-gemma-mark is-optional" id="kx-gemma-mark" data-tip="Reflects whether Gemma actually ran. Stays Optional unless a real token stream completes." data-tip-pos="below">Optional · Gemma</span>
           </div>
           <div class="kx-step-actions">
             <button class="wb-btn-primary" type="button" onclick="kxContinueToDraft()">Continue to draft</button>
