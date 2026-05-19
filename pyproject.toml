@@ -85,7 +85,27 @@ explicit_package_bases = true
 
 [tool.pytest.ini_options]
 testpaths = ["packages/*/tests", "packages/*/src/forge/*/tests", "tests"]
+addopts = ["--import-mode=importlib"]
 asyncio_mode = "auto"
+pythonpath = [
+    "packages/duecare-llm/src",
+    "packages/duecare-llm-agents/src",
+    "packages/duecare-llm-benchmark/src",
+    "packages/duecare-llm-chat/src",
+    "packages/duecare-llm-cli/src",
+    "packages/duecare-llm-core/src",
+    "packages/duecare-llm-domains/src",
+    "packages/duecare-llm-engine/src",
+    "packages/duecare-llm-evidence-db/src",
+    "packages/duecare-llm-models/src",
+    "packages/duecare-llm-nl2sql/src",
+    "packages/duecare-llm-publishing/src",
+    "packages/duecare-llm-research-tools/src",
+    "packages/duecare-llm-server/src",
+    "packages/duecare-llm-tasks/src",
+    "packages/duecare-llm-training/src",
+    "packages/duecare-llm-workflows/src",
+]
 markers = [
     "slow: marks tests as slow",
     "integration: marks tests as integration tests",

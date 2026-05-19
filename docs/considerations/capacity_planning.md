@@ -127,7 +127,7 @@ Reference unit prices (mid-2026 rough mid-rates):
 | Local Ollama (any Gemma) | $0 / token (operator hardware) |
 
 The full lookup table is in
-[`packages/duecare-llm-server/src/duecare/server/metering.py`](../packages/duecare-llm-server/src/duecare/server/metering.py)
+[`packages/duecare-llm-server/src/duecare/server/metering.py`](../../packages/duecare-llm-server/src/duecare/server/metering.py)
 and is queryable via PromQL on the `duecare_model_tokens_*_total`
 counters when the observability stack is up.
 

@@ -13,6 +13,9 @@
 (function () {
     'use strict';
 
+    if (window.__dcWbNavBooting) return;
+    window.__dcWbNavBooting = true;
+
     function activate(root, key) {
         if (!key || !root) return;
         const navAliases = {
@@ -88,6 +91,45 @@
         return document.getElementById('dc-wb-model-select');
     }
 
+    function normalizeVariantMap(variants) {
+        if (!variants) return MODEL_FALLBACK_VARIANTS;
+        if (Array.isArray(variants)) {
+            const out = {};
+            variants.forEach(function (item) {
+                if (!item) return;
+                const key = item.key || item.variant || item.id || item.name;
+                if (!key) return;
+                out[key] = {
+                    display: item.display || item.label || item.name || key,
+                    size_gb: item.size_gb,
+                    fits: item.fits,
+                    category: item.category || item.runtime_class,
+                    load_eta: item.load_eta || item.eta,
+                };
+            });
+            return Object.keys(out).length ? out : MODEL_FALLBACK_VARIANTS;
+        }
+        if (typeof variants === 'object' && Object.keys(variants).length) {
+            return variants;
+        }
+        return MODEL_FALLBACK_VARIANTS;
+    }
+
+    function normalizeActiveModel(active, load) {
+        if (active && typeof active === 'object' && !Array.isArray(active)) {
+            return active;
+        }
+        if (typeof active === 'string' && active) {
+            return {
+                loaded: true,
+                name: active,
+                display: active,
+                variant: load && load.variant,
+            };
+        }
+        return {};
+    }
+
     function escText(s) {
         return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
             return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c];
@@ -123,8 +165,7 @@
         const sel = modelSelectEl();
         if (!sel) return;
         const prior = sel.value;
-        const map = (variants && Object.keys(variants).length)
-            ? variants : MODEL_FALLBACK_VARIANTS;
+        const map = normalizeVariantMap(variants);
         modelVariantMap = map;
         modelActiveVariant = activeVariant || '';
         sel.innerHTML = '';
@@ -155,7 +196,8 @@
         el.textContent = logs.slice(-80).map(function (e) {
             const elapsed = e.elapsed_s == null ? '' : '+' + Number(e.elapsed_s).toFixed(0) + 's ';
             const phase = e.phase ? '[' + e.phase + '] ' : '';
-            const level = e.level && e.level !== 'info' ? e.level.toUpperCase() + ' ' : '';
+            const rawLevel = e.level || e.severity || '';
+            const level = rawLevel && rawLevel !== 'info' ? rawLevel.toUpperCase() + ' ' : '';
             return (e.ts || '') + ' ' + elapsed + level + phase + (e.message || '');
         }).join('\n');
         el.scrollTop = el.scrollHeight;
@@ -164,6 +206,53 @@
     function setModelPopoverStatus(text) {
         const el = document.getElementById('dc-wb-model-popover-status');
         if (el) el.textContent = text || '';
+    }
+
+    function modelPhaseProgress(load, loaded, loading) {
+        if (loaded) return 100;
+        if (!load || load.status === 'idle' || !loading) return 0;
+        if (load.status === 'error') return 100;
+        const phase = String(load.phase || load.status || '').toLowerCase();
+        const phaseMap = {
+            queued: 6,
+            starting: 12,
+            importing: 22,
+            imported: 30,
+            unload: 36,
+            'gpu-check': 42,
+            'resolve-repo': 48,
+            from_pretrained: 64,
+            tokenizer: 72,
+            warmup: 84,
+            ready: 100,
+        };
+        if (phaseMap[phase] != null) return phaseMap[phase];
+        if (phase.indexOf('pretrained') >= 0 || phase.indexOf('download') >= 0) return 64;
+        if (phase.indexOf('import') >= 0) return 24;
+        if (phase.indexOf('gpu') >= 0) return 42;
+        return 35;
+    }
+
+    function updateModelProgress(load, loaded, loading) {
+        const bar = document.getElementById('dc-wb-model-progress');
+        const fill = document.getElementById('dc-wb-model-progress-fill');
+        const meta = document.getElementById('dc-wb-model-progress-meta');
+        if (!bar || !fill || !meta) return;
+        const pct = Math.max(0, Math.min(100, modelPhaseProgress(load, loaded, loading)));
+        const state = loaded ? 'loaded' : (load && load.status === 'error' ? 'error' : (loading ? 'loading' : 'idle'));
+        bar.setAttribute('data-state', state);
+        bar.setAttribute('aria-valuenow', String(Math.round(pct)));
+        fill.style.width = pct + '%';
+        const bits = [];
+        if (loaded) bits.push('Ready for all workbench pages.');
+        else if (load && load.status === 'error') bits.push('Load failed.');
+        else if (loading) bits.push('Loading: ' + (load.phase || 'starting'));
+        else bits.push('Idle.');
+        if (load && load.variant) bits.push('variant=' + load.variant);
+        if (load && load.elapsed_s != null) bits.push(Math.round(load.elapsed_s) + 's elapsed');
+        if (load && load.eta) bits.push('ETA ' + load.eta);
+        if (load && load.error) bits.push('error=' + load.error);
+        meta.textContent = bits.join(' | ');
     }
 
     async function refreshModelLoaderStatus() {
@@ -179,19 +268,29 @@
         } catch (_) { /* kernels without the loader endpoint still use model-info */ }
 
         if (!info.loaded && load.ready && load.active_model) {
-            info = {...load.active_model, loaded: true};
+            info = {...normalizeActiveModel(load.active_model, load), loaded: true};
         }
         const loaded = !!(info.loaded || load.ready || load.status === 'ready');
-        const loading = load.status === 'loading';
+        const loading = load.status === 'loading' || load.status === 'queued';
         modelLastStatus = {...info, loaded, variant: info.variant || load.variant || info.name};
         renderModelOptions(load.variants, load.variant || info.variant || info.name);
         renderModelLogs(load.logs || []);
+        updateModelProgress(load, loaded, loading);
 
         const name = loaded
             ? (info.display || info.name || load.variant || 'model loaded')
             : (loading ? 'Loading ' + (load.variant || 'model') : 'no model loaded');
         setText('dc-wb-status-model', name);
         setDot(loading ? 'loading' : (loaded ? 'loaded' : (load.status === 'error' ? 'error' : 'idle')));
+        const openBtn = document.getElementById('dc-wb-model-open');
+        if (openBtn) {
+            openBtn.title = [
+                'Universal model service',
+                loaded ? 'ready' : (loading ? 'loading' : (load.status || 'idle')),
+                load.phase ? 'phase: ' + load.phase : '',
+                load.error ? 'error: ' + load.error : '',
+            ].filter(Boolean).join(' | ');
+        }
 
         const loadBtn = document.getElementById('dc-wb-model-load');
         if (loadBtn) {
@@ -263,26 +362,43 @@
                 setDot('error');
                 setModelPopoverStatus('Model load failed: '
                     + (payload.error || payload.message || ('HTTP ' + r.status)));
+                updateModelProgress({status: 'error', variant: variant, error: payload.error || payload.message || ('HTTP ' + r.status)}, false, false);
+                await refreshModelLoaderStatus();
                 return;
             }
             await refreshModelLoaderStatus();
         } catch (e) {
             setDot('error');
             setModelPopoverStatus('Model load request failed: ' + ((e && e.message) || e));
+            updateModelProgress({status: 'error', variant: variant, error: ((e && e.message) || e)}, false, false);
         }
+    }
+
+    async function loadModelVariant(variant, options) {
+        const opts = options || {};
+        const sel = modelSelectEl();
+        if (sel && variant) {
+            sel.value = variant;
+            modelUserSelectedVariant = variant;
+            renderSelectedModelDetail();
+        }
+        if (opts.open !== false) {
+            openModelPopover({required: !!opts.required});
+        }
+        return loadSelectedModel();
     }
 
     function openModelPopover(options) {
         const opts = options || {};
+        const layer = document.getElementById('dc-wb-model-layer');
         const pop = document.getElementById('dc-wb-model-popover');
         const btn = document.getElementById('dc-wb-model-open');
-        const overlay = document.getElementById('dc-wb-model-overlay');
         if (!pop) return;
         modelSelectorRequired = !!opts.required;
+        if (layer) layer.hidden = false;
         pop.hidden = false;
         pop.setAttribute('aria-modal', modelSelectorRequired ? 'true' : 'false');
         pop.setAttribute('data-required', modelSelectorRequired ? 'true' : 'false');
-        if (overlay) overlay.hidden = !modelSelectorRequired;
         document.body.classList.toggle('dc-wb-model-required', modelSelectorRequired);
         if (btn) btn.setAttribute('aria-expanded', 'true');
         if (modelSelectorRequired) {
@@ -298,17 +414,17 @@
     }
 
     function closeModelPopover(force) {
+        const layer = document.getElementById('dc-wb-model-layer');
         const pop = document.getElementById('dc-wb-model-popover');
         const btn = document.getElementById('dc-wb-model-open');
-        const overlay = document.getElementById('dc-wb-model-overlay');
         if (modelSelectorRequired && !force && !modelLastStatus.loaded) return;
         modelSelectorRequired = false;
+        if (layer) layer.hidden = true;
         if (pop) pop.hidden = true;
         if (pop) {
             pop.setAttribute('aria-modal', 'false');
             pop.removeAttribute('data-required');
         }
-        if (overlay) overlay.hidden = true;
         document.body.classList.remove('dc-wb-model-required');
         if (btn) btn.setAttribute('aria-expanded', 'false');
     }
@@ -698,8 +814,19 @@
         window.dcWbOpenModelSelector = openModelPopover;
         window.dcWbRefreshModelStatus = refreshModelLoaderStatus;
         window.dcWbLoadSelectedModel = loadSelectedModel;
+        window.dcWbLoadModelVariant = loadModelVariant;
         window.dcWbEnsureModelReady = isModelReadyForPage;
         window.dcWbModelStatus = function () { return modelLastStatus; };
+        window.dcWbModelService = {
+            open: openModelPopover,
+            close: closeModelPopover,
+            refresh: refreshModelLoaderStatus,
+            loadSelected: loadSelectedModel,
+            loadVariant: loadModelVariant,
+            ensureReady: isModelReadyForPage,
+            status: function () { return modelLastStatus; },
+            variants: function () { return modelVariantMap; },
+        };
         renderModelOptions(null, null);
     }
 
@@ -765,21 +892,26 @@
         });
     }
 
-    function inject(html) {
-        // Idempotency guard: if a chrome partial is already mounted
-        // (because this script ran once, OR the page re-fetched the
-        // partial after a DOM swap, OR the script tag is included
-        // twice), don't duplicate it. That produced the "two nav
-        // bars + duplicate Shutdown buttons" bug reported 2026-05-12.
-        if (document.querySelector('.dc-wb-shell')
-            || document.body.classList.contains('dc-wb-has-nav')) {
-            return;
+    function dedupeWorkbenchChrome() {
+        const shells = Array.from(document.querySelectorAll('.dc-wb-shell'));
+        shells.slice(1).forEach(function (node) { node.remove(); });
+        const shell = document.querySelector('.dc-wb-shell');
+        if (shell) {
+            shell.querySelectorAll('.dc-wb-model-overlay, .dc-wb-model-popover').forEach(function (node) {
+                node.remove();
+            });
         }
-        const tpl = document.createElement('div');
-        tpl.innerHTML = html.trim();
-        const nav = tpl.firstElementChild;
-        if (!nav) return;
-        document.body.insertBefore(nav, document.body.firstChild);
+        const layers = Array.from(document.querySelectorAll('#dc-wb-model-layer, .dc-wb-model-layer'));
+        layers.slice(1).forEach(function (node) { node.remove(); });
+        return {
+            shell: shell,
+            layer: document.getElementById('dc-wb-model-layer'),
+        };
+    }
+
+    function setupChrome(nav) {
+        if (!nav || nav.getAttribute('data-dc-wb-wired') === 'true') return;
+        nav.setAttribute('data-dc-wb-wired', 'true');
         document.body.classList.add('dc-wb-has-nav');
         if (!document.getElementById('dc-components-js')) {
             var s = document.createElement('script');
@@ -810,6 +942,31 @@
             refreshStatus();
             refreshModelLoaderStatus();
         }, 8000);
+    }
+
+    function inject(html) {
+        const tpl = document.createElement('div');
+        tpl.innerHTML = html.trim();
+        const templateShell = Array.from(tpl.children).find(function (node) {
+            return node.classList && node.classList.contains('dc-wb-shell');
+        });
+        const templateLayer = Array.from(tpl.children).find(function (node) {
+            return node.classList && node.classList.contains('dc-wb-model-layer');
+        });
+
+        let mounted = dedupeWorkbenchChrome();
+        let nav = mounted.shell;
+        if (!nav && templateShell) {
+            nav = templateShell;
+            document.body.insertBefore(nav, document.body.firstChild);
+        }
+        if (!document.getElementById('dc-wb-model-layer') && templateLayer) {
+            if (nav && nav.nextSibling) document.body.insertBefore(templateLayer, nav.nextSibling);
+            else if (nav) document.body.appendChild(templateLayer);
+            else document.body.insertBefore(templateLayer, document.body.firstChild);
+        }
+        mounted = dedupeWorkbenchChrome();
+        setupChrome(mounted.shell);
     }
 
     function load() {

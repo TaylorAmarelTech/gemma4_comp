@@ -28,6 +28,8 @@ class Registry(Generic[T]):
         """Decorator to register a plugin under `id`."""
         def decorator(cls_or_instance: T) -> T:
             if id in self._by_id:
+                if self._same_registration(self._by_id[id], cls_or_instance):
+                    return cls_or_instance
                 raise ValueError(
                     f"{self.kind} id {id!r} is already registered"
                 )
@@ -39,9 +41,38 @@ class Registry(Generic[T]):
     def add(self, id: str, entry: T, **metadata) -> None:
         """Imperative registration (outside of class-decoration flow)."""
         if id in self._by_id:
+            if self._same_registration(self._by_id[id], entry):
+                return
             raise ValueError(f"{self.kind} id {id!r} is already registered")
         self._by_id[id] = entry
         self._metadata[id] = metadata
+
+    @staticmethod
+    def _same_registration(existing: T, candidate: T) -> bool:
+        """Treat repeated imports of the same plugin as idempotent.
+
+        Pytest importlib mode and editable namespace-package installs can
+        execute a plugin module more than once during collection. That should
+        not make package import fail. A genuinely different plugin trying to
+        claim the same id still raises.
+        """
+        if existing is candidate:
+            return True
+
+        existing_obj = existing if isinstance(existing, type) else type(existing)
+        candidate_obj = candidate if isinstance(candidate, type) else type(candidate)
+        if (
+            getattr(existing_obj, "__module__", None),
+            getattr(existing_obj, "__qualname__", None),
+        ) == (
+            getattr(candidate_obj, "__module__", None),
+            getattr(candidate_obj, "__qualname__", None),
+        ):
+            return True
+
+        return getattr(existing_obj, "__qualname__", None) == getattr(
+            candidate_obj, "__qualname__", None
+        )
 
     def get(self, id: str) -> T:
         if id not in self._by_id:

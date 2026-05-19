@@ -14,7 +14,7 @@
 > post-hackathon). This doc is the design judges can verify.
 >
 > **The buildable APK skeleton lives in a sibling repo** at
-> [`../duecare-journey-android/`](../../duecare-journey-android/) —
+> [`github.com/TaylorAmarelTech/duecare-journey-android`](https://github.com/TaylorAmarelTech/duecare-journey-android) —
 > separated from this Python research repo because Android build
 > tooling (Gradle, Kotlin, Android SDK) and the Python / FastAPI /
 > Kaggle workflow have nothing in common, and forcing them into one
@@ -375,7 +375,7 @@ The Android app is not built by hackathon submission day, but the
 following are ALREADY publishable:
 
 1. This document.
-2. The APK skeleton at [`duecare-journey-android/`](../../duecare-journey-android/)
+2. The APK skeleton at [`github.com/TaylorAmarelTech/duecare-journey-android`](https://github.com/TaylorAmarelTech/duecare-journey-android)
    — separate repo, buildable Gradle project with stub modules for
    inference / journal / advice / export.
 3. The included GitHub Actions workflow at

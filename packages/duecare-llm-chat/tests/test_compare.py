@@ -165,11 +165,18 @@ def test_model_selector_lives_in_shared_nav(client):
     assert 'id="dc-wb-model-open"' in nav
     assert 'id="dc-wb-model-select"' in nav
     assert 'id="dc-wb-model-detail"' in nav
+    assert 'id="dc-wb-model-layer"' in nav
+    assert 'id="dc-wb-model-progress"' in nav
+    assert nav.index('id="dc-wb-model-open"') < nav.index('id="dc-wb-model-layer"')
     assert 'id="dc-wb-model-overlay"' in nav
     assert 'data-nav-group="overview"' in nav
     assert 'data-nav-group="system"' in nav
     assert 'id="dc-wb-nav-toggle"' in nav
     assert "dcWbEnsureModelReady" in nav_js
+    assert "dcWbModelService" in nav_js
+    assert "dedupeWorkbenchChrome" in nav_js
+    assert "normalizeActiveModel" in nav_js
+    assert "updateModelProgress" in nav_js
     assert "openModelPopover({required: true})" in nav_js
     assert "modelRequiredNavKeys" in nav_js
     assert "'compare'" in nav_js
@@ -183,6 +190,8 @@ def test_model_selector_lives_in_shared_nav(client):
     assert "data-required" in nav_js
     chrome = client.get("/static/_chrome.css").text
     assert "dc-wb-model-required" in chrome
+    assert ".dc-wb-model-layer[hidden]" in chrome
+    assert ".dc-wb-model-progress" in chrome
     assert "position: fixed" in chrome
     assert "top: max(16px, env(safe-area-inset-top))" in chrome
     assert "bottom: max(16px, env(safe-area-inset-bottom))" in chrome
@@ -207,6 +216,15 @@ def test_shared_nav_injects_fallback_activity_log(client):
     assert "shouldAutoLogFetch" in nav_js
     assert "document.querySelector('.dc-activity-log')" in nav_js
     assert ".dc-wb-auto-log-card" in chrome
+
+
+def test_models_page_delegates_to_universal_model_service(client):
+    r = client.get("/static/models.html")
+    assert r.status_code == 200
+    text = r.text
+    assert "universal top-bar model service" in text
+    assert "window.dcWbModelService.loadVariant" in text
+    assert 'fetch("/api/load-model"' not in text
 
 
 def test_chat_import_layer_catalog_serves_local_evidence(client):

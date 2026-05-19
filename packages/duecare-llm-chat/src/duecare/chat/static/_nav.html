@@ -32,31 +32,6 @@
         <span class="dc-wb-status-label">Model</span>
         <span class="dc-wb-status-value" id="dc-wb-status-model">checking...</span>
       </button>
-      <div class="dc-wb-model-overlay" id="dc-wb-model-overlay" hidden></div>
-      <div class="dc-wb-model-popover" id="dc-wb-model-popover" role="dialog" aria-label="Model selector" hidden>
-        <div class="dc-wb-model-popover-head">
-          <div>
-            <div class="dc-wb-model-popover-title">Active model</div>
-            <div class="dc-wb-model-popover-sub" id="dc-wb-model-popover-status">Checking loader state...</div>
-          </div>
-          <button type="button" class="dc-wb-model-popover-close" id="dc-wb-model-close" aria-label="Close model selector">Close</button>
-        </div>
-        <div class="dc-wb-model-popover-controls">
-          <select id="dc-wb-model-select" aria-label="Gemma 4 model variant"></select>
-          <button type="button" id="dc-wb-model-load">Load selected</button>
-          <button type="button" id="dc-wb-model-refresh">Refresh</button>
-        </div>
-        <div class="dc-wb-model-detail" id="dc-wb-model-detail">
-          Select a model to see size, runtime class, and estimated load time.
-        </div>
-        <div class="dc-wb-model-popover-note">
-          This panel closes automatically when the selected model reports loaded.
-          If a model is already loaded, pages do not open this panel automatically.
-          Kaggle can usually keep one large model resident. Switching may require
-          waiting for unload/load or restarting the notebook if CUDA memory is fragmented.
-        </div>
-        <pre class="dc-wb-model-log" id="dc-wb-model-log">No loader events yet.</pre>
-      </div>
       <span class="dc-wb-status-sep" aria-hidden="true">|</span>
       <span class="dc-wb-status-item">
         <span class="dc-wb-status-label">Version</span>
@@ -165,5 +140,38 @@
     </div>
   </nav>
 
+</div>
+
+<div class="dc-wb-model-layer" id="dc-wb-model-layer" hidden>
+  <div class="dc-wb-model-overlay" id="dc-wb-model-overlay"></div>
+  <div class="dc-wb-model-popover" id="dc-wb-model-popover" role="dialog" aria-label="Model selector" aria-modal="false" hidden>
+    <div class="dc-wb-model-popover-head">
+      <div>
+        <div class="dc-wb-model-popover-title">Active model</div>
+        <div class="dc-wb-model-popover-sub" id="dc-wb-model-popover-status">Checking loader state...</div>
+      </div>
+      <button type="button" class="dc-wb-model-popover-close" id="dc-wb-model-close" aria-label="Close model selector">Close</button>
+    </div>
+    <div class="dc-wb-model-popover-controls">
+      <select id="dc-wb-model-select" aria-label="Gemma 4 model variant"></select>
+      <button type="button" id="dc-wb-model-load">Load selected</button>
+      <button type="button" id="dc-wb-model-refresh">Refresh</button>
+    </div>
+    <div class="dc-wb-model-detail" id="dc-wb-model-detail">
+      Select a model to see size, runtime class, and estimated load time.
+    </div>
+    <div class="dc-wb-model-progress" id="dc-wb-model-progress" role="progressbar" aria-label="Model loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <span id="dc-wb-model-progress-fill"></span>
+    </div>
+    <div class="dc-wb-model-progress-meta" id="dc-wb-model-progress-meta">Idle.</div>
+    <div class="dc-wb-model-popover-note">
+      This one model service is shared across all workbench pages. The banner
+      shows only the active state; this panel owns selection, loading progress,
+      errors, and logs. This panel closes automatically when the selected model
+      reports loaded. Kaggle can usually keep one large model resident. Switching
+      may require restarting the notebook if CUDA memory is fragmented.
+    </div>
+    <pre class="dc-wb-model-log" id="dc-wb-model-log">No loader events yet.</pre>
+  </div>
 </div>
 
