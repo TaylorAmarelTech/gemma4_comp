@@ -613,7 +613,7 @@ nav.hero-toc.toc ol li a:hover .arrow { color: var(--accent-ink); }
 .rail ul { margin: 8px 0 0; padding-left: 16px; font-size: 13px; color: oklch(0.32 0.10 45); }
 
 /* ---------- Role chooser cards ---------- */
-.role-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.role-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 @media (max-width: 1000px) { .role-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 540px) { .role-grid { grid-template-columns: 1fr; } }
 .role-card {
