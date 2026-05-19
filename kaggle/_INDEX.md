@@ -14,13 +14,14 @@ Each active kernel is intended to be copied into Kaggle, run on T4 x2 with Inter
 
 ## Optional Evaluation Surface
 
-This repository also includes one optional benchmark kernel that is useful for
-post-submission comparison work but is not required for the primary recording
+This repository also includes optional benchmark kernels that are useful for
+post-submission comparison work but are not required for the primary recording
 path:
 
 | Folder | Kaggle slug | Title | Purpose |
 |---|---|---|---|
 | `03-universal-llm-benchmark` | `taylorsamarel/duecare-universal-llm-benchmark` | **DueCare Universal LLM Benchmark** | Benchmarks arbitrary OpenAI-compatible, Anthropic Messages, or raw JSON endpoints against DueCare prompt/rubric/evidence cues, with Claude Opus judging when an Anthropic key is configured. |
+| `04-kaggle-community-benchmark` | `taylorsamarel/duecare-kaggle-community-benchmark` | **DueCare Kaggle Community Benchmark** | Publishes DueCare safety rows as `kaggle_benchmarks` tasks so model calls can use Kaggle's model proxy and benchmark leaderboard flow. |
 
 ## Archived Notebooks
 

@@ -9,9 +9,11 @@ constraints; closest file wins.
 - Active branch: `master`.
 - Active Kaggle submission surfaces: `kaggle/01-duecare-exploration-workbench`,
   `kaggle/02-live-demo`, and `kaggle/A-00-omni-experiment-workbench`.
-- Optional endpoint-comparison surface: `kaggle/03-universal-llm-benchmark`.
-  It is for external API benchmarking with DueCare prompts and Claude Opus
-  judging; it is not part of the primary recording path unless Taylor says so.
+- Optional benchmark surfaces: `kaggle/03-universal-llm-benchmark` for external
+  API benchmarking with DueCare prompts and Claude Opus judging, and
+  `kaggle/04-kaggle-community-benchmark` for Kaggle Community Benchmark tasks
+  that can use Kaggle's model proxy quota. They are not part of the primary
+  recording path unless Taylor says so.
 - Archived notebook-era surfaces under `kaggle/_archive/` are provenance, not
   blockers, unless Taylor explicitly asks to restore or migrate them.
 - The public setup lanes are exactly six, in this order: Platform safety,

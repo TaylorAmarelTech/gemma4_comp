@@ -19,13 +19,18 @@ Each active folder uses `kernel.py` as source of truth. Do not recreate or
 publish historical `.ipynb` wrappers for these active folders unless Taylor
 explicitly asks.
 
-## Optional Evaluation Kernel
+## Optional Evaluation Kernels
 
 `kaggle/03-universal-llm-benchmark/` is a separate endpoint-comparison kernel.
 It can test OpenAI-compatible, Anthropic Messages, or raw JSON APIs against
 DueCare prompts and rubric cues, with Claude Opus judging when configured. It
 is useful for model comparison work, but it is not part of the three-kernel
 recording path above.
+
+`kaggle/04-kaggle-community-benchmark/` is a separate Kaggle-native benchmark
+kernel. It defines DueCare rows as `kaggle_benchmarks` tasks so model calls can
+use Kaggle's model proxy/quota and publish Community Benchmark task/run
+artifacts. It is also optional and not part of the three-kernel recording path.
 
 ## Archived Or Reference-Only Material
 

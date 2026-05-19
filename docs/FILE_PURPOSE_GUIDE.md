@@ -55,6 +55,7 @@ Primary recording path:
 Optional evaluation surface:
 
 - `kaggle/03-universal-llm-benchmark`
+- `kaggle/04-kaggle-community-benchmark`
 
 Archived reference material:
 

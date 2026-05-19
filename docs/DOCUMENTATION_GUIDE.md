@@ -12,7 +12,7 @@ Keep these facts consistent across public-facing docs:
 | Project | DueCare: a Gemma 4 safety ecosystem for migrant-worker protection |
 | Public hub | `https://duecare-ai.com` |
 | Active Kaggle path | `01-duecare-exploration-workbench`, `02-live-demo`, `A-00-omni-experiment-workbench` |
-| Optional benchmark kernel | `03-universal-llm-benchmark` for arbitrary endpoint comparisons and Claude Opus judging |
+| Optional benchmark kernels | `03-universal-llm-benchmark` for arbitrary endpoint comparisons; `04-kaggle-community-benchmark` for Kaggle Community Benchmark tasks and model-proxy quota |
 | Six lanes | Platform safety; NGO & regulator; Individual worker / mobile; Researcher; Anonymized knowledge sharing; Developer / integration partner |
 | Package shape | 17 `duecare-llm*` package directories in the workspace |
 | Current local collection | 675 package tests collected on 2026-05-19 |

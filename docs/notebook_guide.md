@@ -20,6 +20,7 @@ Every judge-facing Kaggle bundle must make its own bootstrap path explicit: prin
 | P0 | 02-live-demo | Focused live demo and video path for the current judging story. |
 | P1 | A-00-omni-experiment-workbench | Quantitative proof path: baseline, harnessed, synthetic-data, fine-tuning, judging, and report artifacts. |
 | P1 | 03-universal-llm-benchmark | Optional endpoint-comparison kernel for testing arbitrary APIs with DueCare prompts and Claude Opus judging. Not required for the recording path. |
+| P1 | 04-kaggle-community-benchmark | Optional Kaggle-native Community Benchmark for running DueCare rows through `kaggle_benchmarks` and Kaggle model proxy quota. Not required for the recording path. |
 | P2 | kaggle/kernels/* generated mirrors | Reference-only generated mirror material. Do not treat it as the active submission path. |
 
 ## Active kernel purpose map
@@ -30,6 +31,7 @@ Every judge-facing Kaggle bundle must make its own bootstrap path explicit: prin
 | `02-live-demo` | DueCare Live Demo | Tracked draft | Pending publication | Focused live demo path for judges and video capture, using the shared Gemma 4 runtime and live-demo surface. |
 | `A-00-omni-experiment-workbench` | DueCare Fine-tuning and Evaluation | Tracked draft | Pending publication | Quantitative control plane for baseline, harnessed, synthetic-data, fine-tuning, judging, checkpointing, and report evidence bundles. |
 | `03-universal-llm-benchmark` | DueCare Universal LLM Benchmark | Optional | Pending publication | Endpoint-comparison workbench for OpenAI-compatible, Anthropic Messages, and raw JSON APIs, with Claude Opus judging when configured. |
+| `04-kaggle-community-benchmark` | DueCare Kaggle Community Benchmark | Optional | Pending publication | Kaggle-native `kaggle_benchmarks` task surface for model-proxy benchmark runs and leaderboard publishing. |
 
 ## Active module deep-review queue
 
