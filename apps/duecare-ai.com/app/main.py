@@ -22,6 +22,7 @@ from typing import Optional, Any, Literal
 
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -1085,12 +1086,43 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         docs_url="/api-docs",
         redoc_url="/redoc",
     )
+    # CORS allowlist. Explicitly includes the existing Render hostname
+    # (https://gemma4-comp.onrender.com) so all current callers — including
+    # Kaggle-kernel browsers that POST to /api/submit/knowledge from
+    # *.trycloudflare.com — keep working unchanged. The new apex/www
+    # duecare-ai.com origins are additively allowed. allow_origin_regex
+    # matches ephemeral Cloudflare tunnel and Render preview hostnames.
     application.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=[
+            "https://duecare-ai.com",
+            "https://www.duecare-ai.com",
+            "https://gemma4-comp.onrender.com",
+            "http://localhost:8000",
+            "http://127.0.0.1:8000",
+        ],
+        allow_origin_regex=r"^https://([a-z0-9-]+\.)*(trycloudflare\.com|onrender\.com)$",
         allow_credentials=False,
-        allow_methods=["GET", "POST"],
+        allow_methods=["GET", "POST", "OPTIONS"],
         allow_headers=["*"],
+        expose_headers=["X-Request-ID"],
+    )
+    # TrustedHostMiddleware: reject requests with a Host header that
+    # doesn't match an expected hostname. Includes the Render fallback,
+    # the new duecare-ai.com domain, *.onrender.com previews, local dev,
+    # and 'testserver' (the default Host header used by FastAPI's
+    # TestClient — must be present or pytest fails).
+    application.add_middleware(
+        TrustedHostMiddleware,
+        allowed_hosts=[
+            "duecare-ai.com",
+            "www.duecare-ai.com",
+            "gemma4-comp.onrender.com",
+            "*.onrender.com",
+            "localhost",
+            "127.0.0.1",
+            "testserver",
+        ],
     )
     application.state.duecare = AppState(started_at=datetime.now(UTC), store=store)
 
