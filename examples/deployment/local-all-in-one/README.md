@@ -99,8 +99,8 @@ one of:
 
 | Provider | Free tier | Where to sign up |
 |---|---|---|
-| **Tavily** (recommended) | 1,000 queries/mo | https://app.tavily.com/sign-in |
-| **Brave Search** | 2,000 queries/mo | https://api.search.brave.com/app/keys |
+| **Tavily** (recommended) | 1,000 queries/mo | https://www.tavily.com/ |
+| **Brave Search** | 2,000 queries/mo | https://brave.com/search/api/ |
 | **Serper** | 2,500 free trial then $5/mo | https://serper.dev |
 
 Drop the key into `.env` and restart. The duecare container picks it

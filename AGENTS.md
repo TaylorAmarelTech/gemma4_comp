@@ -26,6 +26,10 @@ constraints; closest file wins.
   top-level directory, Kaggle kernel, package surface, or long-lived document,
   update the relevant purpose map (`README.md`, `kaggle/_INDEX.md`,
   `docs/REPO_LAYOUT.md`, or `docs/FILE_PURPOSE_GUIDE.md`).
+- Generated per-module metadata files (`PURPOSE.md`, `STATUS.md`,
+  `INPUTS_OUTPUTS.md`, `HIERARCHY.md`, `DIAGRAM.md`, `TESTS.md`, local
+  `AGENTS.md`) are intentional. Do not delete them just because they contain a
+  TODO section; update the generator/source descriptor if the content is wrong.
 
 ## Safety And Claims
 

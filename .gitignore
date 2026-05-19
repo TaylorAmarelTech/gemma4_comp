@@ -89,6 +89,7 @@ logs/
 outputs/
 reports/*.html
 reports/*.pdf
+reports/test-run-*.md
 mlruns/
 wandb/
 

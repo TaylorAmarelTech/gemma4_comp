@@ -162,11 +162,11 @@
       <div><span class="ix">04 &middot; Pull a pack</span><h2>Two calls. One verification step.</h2></div>
       <p class="summary">Resolve manifest, download body, verify signature against the curator public key. Mirror locally and pin in your runtime config.</p>
     </div>
-    <pre class="hp-code"><span class="c"># 1. resolve latest manifest for a corridor</span>
-curl https://api.duecare-ai.com/packs/qa-np/latest
+    <pre class="hp-code"><span class="c"># 1. resolve the pack manifest</span>
+curl https://duecare-ai.com/api/hub/packs/phl-kwt-domestic/versions
 
-<span class="c"># 2. pull the pack body by content hash</span>
-curl -O https://cdn.duecare-ai.com/packs/sha256:9ab3&hellip;
+<span class="c"># 2. pull the pinned pack body</span>
+curl https://duecare-ai.com/api/hub/packs/phl-kwt-domestic/1.7.2 -o pack.json
 
 <span class="c"># 3. verify the curator signature</span>
 duecare verify pack.json --key curator-1.pub</pre>

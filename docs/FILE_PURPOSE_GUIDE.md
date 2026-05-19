@@ -29,6 +29,18 @@ published evidence.
 | Agent handoff | `AGENTS.md`, `CLAUDE.md`, `.claude/rules/` |
 | Competition docs | `docs/FOR_KAGGLE_JUDGES.md`, `docs/kaggle_writeup_paste_ready.md`, `docs/video_script.md` |
 
+## Generated Module Metadata
+
+Many package submodules contain generated `PURPOSE.md`, `AGENTS.md`,
+`INPUTS_OUTPUTS.md`, `HIERARCHY.md`, `DIAGRAM.md`, `TESTS.md`, and
+`STATUS.md` files. These are deliberate folder-per-module metadata files. A
+`STATUS.md` file may include a `TODO` section even when the module has shipped;
+that section tracks follow-up completion criteria, not a public placeholder.
+
+Do not delete these files for cosmetic cleanup. If a generated metadata file is
+wrong, update the source descriptor or the generator so the next refresh keeps
+the correction.
+
 ## Canonical Lane Language
 
 Use "six lanes" for the public story, in this exact order:
