@@ -195,4 +195,4 @@ detailed STRIDE breakdown across 4 trust boundaries.
 ---
 
 *Built for the [Google Gemma 4 Good Hackathon](https://www.kaggle.com/competitions/gemma-4-good-hackathon)
-(Safety & Trust track), submission due 2026-05-18.*
+(Safety & Trust track), submitted 2026-05-18.*

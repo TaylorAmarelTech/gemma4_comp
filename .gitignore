@@ -142,6 +142,7 @@ apps/duecare-ai.com/.duecare/
 _local_tmp/
 .pytest-basetemp*/
 .pytest-tmp-local/
+.pytest-*-tmp/
 *.duckdb
 *.duckdb.wal
 
