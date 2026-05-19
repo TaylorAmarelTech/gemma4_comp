@@ -267,19 +267,18 @@
     </div>
 
     <div class="video-frame">
-      <!-- When the recording is published, replace the placeholder div with:
-           <iframe src="https://www.youtube.com/embed/VIDEO_ID" allowfullscreen></iframe>
-           or <video src="assets/walkthrough.mp4" controls poster="..."></video>
-      -->
-      <div class="video-placeholder">
-        <div class="play-ring">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-        </div>
-        <div class="lbl">Recorded walkthrough</div>
-        <div class="ttl">DueCare end-to-end in ~3 minutes.</div>
-        <div class="note">Embed link added when the recording is published</div>
-      </div>
+      <iframe
+        src="https://www.youtube-nocookie.com/embed/VUmZnM16UVk?rel=0"
+        title="DueCare full walkthrough"
+        loading="lazy"
+        referrerpolicy="strict-origin-when-cross-origin"
+        allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen></iframe>
     </div>
+
+    <p class="video-fallback" style="font-family: var(--mono); font-size: 11px; color: rgba(247,246,241,0.55); text-align: center; margin-top: 10px;">
+      Trouble loading the embed? <a href="https://www.youtube.com/watch?v=VUmZnM16UVk" rel="noopener" style="color: inherit; text-decoration: underline;">Watch on YouTube</a>.
+    </p>
 
     <div class="chapters-strip">
       <div class="ch-head">
