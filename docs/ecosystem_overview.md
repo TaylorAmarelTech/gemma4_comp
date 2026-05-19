@@ -131,7 +131,7 @@ The privacy boundary holds at every step (worker's PII never
 leaves her phone unless she shares the intake doc; NGO's
 contributions to ILO are noised aggregate counts only).
 
-## The 17 PyPI packages — what each layer needs
+## The 17 package surfaces — what each layer needs
 
 ```mermaid
 graph TB
@@ -179,7 +179,7 @@ graph TB
     style META fill:#c8e6c9,stroke:#388e3c
 ```
 
-A migrant worker uses zero PyPI packages directly (the Android
+A migrant worker uses zero Python packages directly (the Android
 app bundles its own Kotlin port of the core runtime harness). A researcher
 uses 4-5 (`core` + `chat` + `tasks` + `domains` + sometimes
 `benchmark`). An enterprise uses 12+ for a full deployment.

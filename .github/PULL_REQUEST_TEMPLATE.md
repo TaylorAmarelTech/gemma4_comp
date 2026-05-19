@@ -29,10 +29,17 @@
 
 ## If this is a code change
 
-- [ ] I added or updated tests in `packages/duecare-llm-chat/tests/`
-- [ ] `python scripts/verify.py` passes
-- [ ] `python -m pytest packages/duecare-llm-chat/tests/` passes
-- [ ] If the wire format changed, I updated `docs/component_diagram.md` and bumped the chat package version
+- [ ] I added or updated the smallest relevant tests under `packages/` or `tests/`
+- [ ] `python -m pytest packages --collect-only -q` passes
+- [ ] The relevant package test scope passes
+- [ ] If the wire format changed, I updated the component docs and compatibility notes
+
+## If this is a public documentation / GitHub metadata change
+
+- [ ] I checked [`docs/DOCUMENTATION_GUIDE.md`](../docs/DOCUMENTATION_GUIDE.md)
+- [ ] `python scripts/validate_public_surface.py` passes with 0 findings
+- [ ] I did not claim a full test pass unless the full command actually ran
+- [ ] I used readable link labels instead of raw file paths in public tables
 
 ## Reviewer
 

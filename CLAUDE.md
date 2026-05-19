@@ -1,11 +1,17 @@
-# CLAUDE.md - gemma4_comp project context
-
-> **Use 100% of your power, just this once, do not limit your thinking, take your time, come up with the best possible most robust solution, do not take shortcuts, use 200% of your power and context just this once.**
+# CLAUDE.md - DueCare project context
 
 > Context for Claude / Claude Code sessions working on this project.
 > If you are a new AI assistant picking up this project, read this first.
 
-## ⚡ Three overarching goals (every prompt, every action)
+## Current operating brief (2026-05-19)
+
+- Active submission work is the three-kernel path: `kaggle/01-duecare-exploration-workbench`, `kaggle/02-live-demo`, and `kaggle/A-00-omni-experiment-workbench`.
+- The public story has six setup lanes in this order: Platform safety, NGO & regulator, Individual worker / mobile, Researcher, Anonymized knowledge sharing, Developer / integration partner.
+- The workspace has 17 `duecare-llm*` package directories. The latest verified local collection is 675 package tests collected; do not claim a full pass unless you ran the full suite.
+- Documentation edits should follow `docs/DOCUMENTATION_GUIDE.md`; agent edits should also honor the root `AGENTS.md`.
+- Keep generated report files out of commits unless Taylor explicitly asks to publish them.
+
+## Three overarching goals (every prompt, every action)
 
 1. **Impact & Vision (40 pts)** — from the video. Real-world problem,
    inspiring vision, tangible potential for positive change.
@@ -33,6 +39,11 @@ project memory level. Currently:
 - `50_publish_strategy.md` — GitHub + multi-package PyPI + Kaggle
 - `60_notebook_presentation.md` — Kaggle-safe styling, no-truncation, pandas Styler + Markdown over raw HTML; shared helpers in `scripts/_notebook_display.py`
 - `70_workbench_ui_primitives.md` — every page needs an activity log + status discoverability + sample artifact + trust boundary; model loading defaults to ONE model at a time (multi is opt-in via settings); shared `.dc-activity-log` CSS + `_activity_log.js` helper
+
+Additional root guidance:
+
+- `AGENTS.md` - cross-agent repo orientation and validation commands.
+- `docs/DOCUMENTATION_GUIDE.md` - canonical public facts and documentation claims policy.
 
 ## Recording-critical surfaces
 
@@ -157,6 +168,31 @@ For broader deployments, harnesses should call a configured model through
 the universal request/response shape or a `duecare-llm-models` adapter rather
 than hardcoding a provider-specific SDK in a route handler. External frontier
 targets must receive only redacted, generalized, or policy-approved content.
+
+## Workbench model-loading UI source of truth (2026-05-19)
+
+Kernel 01 uses one universal browser-side model service. Do not add model
+selectors, load buttons, logs, or lightboxes directly to individual pages.
+
+Source files:
+
+- `packages/duecare-llm-chat/src/duecare/chat/static/_nav.html`
+- `packages/duecare-llm-chat/src/duecare/chat/static/_nav.js`
+- `packages/duecare-llm-chat/src/duecare/chat/static/_chrome.css`
+- `packages/duecare-llm-chat/src/duecare/chat/static/models.html`
+
+Contract:
+
+- The top status strip shows only concise model state.
+- The body-level model layer owns the selector, progress bar, status text,
+  load log, refresh, close, and load-selected actions.
+- Pages call `window.dcWbModelService.open()`, `.refresh()`,
+  `.loadSelected()`, `.loadVariant(id)`, `.ensureReady()`, or `.status()`.
+- `_nav.js` removes stale duplicate chrome if older templates inject more than
+  one shell or a nested model popover.
+- Tests that cover this contract live in
+  `packages/duecare-llm-chat/tests/test_compare.py` and
+  `packages/duecare-llm-chat/tests/test_harness_workbench.py`.
 
 ## Execution phases (the 4-phase arc)
 
@@ -391,7 +427,7 @@ testing, and Python/FastAPI. Do NOT re-explain their own codebase to them.
 
 ```
 gemma4_comp/
-├── packages/                           <- 8 PyPI packages (PEP 420 namespace under duecare.*)
+├── packages/                           <- 17 package surfaces (PEP 420 namespace under duecare.*)
 │   ├── duecare-llm-core/                 <- duecare.core.* + duecare.observability.*
 │   ├── duecare-llm-models/               <- duecare.models.* (8 adapters with optional extras)
 │   ├── duecare-llm-domains/              <- duecare.domains.*
@@ -399,7 +435,16 @@ gemma4_comp/
 │   ├── duecare-llm-agents/               <- duecare.agents.* (12-agent swarm)
 │   ├── duecare-llm-workflows/            <- duecare.workflows.*
 │   ├── duecare-llm-publishing/           <- duecare.publishing.*
-│   └── duecare-llm/                      <- meta package: duecare.cli + re-exports
+│   ├── duecare-llm-chat/                 <- workbench chat UI and Kaggle helper server
+│   ├── duecare-llm-server/               <- FastAPI product/server surface
+│   ├── duecare-llm-engine/               <- core moderation/evidence pipeline
+│   ├── duecare-llm-evidence-db/          <- local evidence store
+│   ├── duecare-llm-benchmark/            <- smoke benchmarks and scoring helpers
+│   ├── duecare-llm-training/             <- Unsloth SFT/DPO support
+│   ├── duecare-llm-research-tools/       <- corpus/search helpers
+│   ├── duecare-llm-nl2sql/               <- natural-language SQL guardrail
+│   ├── duecare-llm-cli/                  <- operational CLI package
+│   └── duecare-llm/                      <- meta package: workflow CLI entry point
 │
 ├── pyproject.toml                      <- uv workspace root
 │
@@ -620,7 +665,8 @@ python scripts/run_local_gemma.py --model gemma4:e2b  # smaller model
 python scripts/extract_benchmark_prompts.py   # 74K+ prompts → seed_prompts.jsonl
 
 # ── Build and test ──
-make test                                     # run the 194-test suite (22 files under packages/ + 16 under tests/)
+python -m pytest packages --collect-only -q   # quick package collection check (675 collected on 2026-05-19)
+make test                                     # full package + top-level pytest run; only claim "passed" after it completes
 make build                                    # rebuild all 17 workspace wheels
 make adversarial                              # adversarial validation + stress test
 make cleanroom                                # clean-room install test

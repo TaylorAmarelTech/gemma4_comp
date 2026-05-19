@@ -97,7 +97,8 @@ make help            # see all targets
 Run the test suite + lint:
 
 ```bash
-make test            # 194 tests
+python -m pytest packages --collect-only -q  # fast package collection check
+make test            # full package + top-level pytest run
 make lint            # ruff + mypy
 make adversarial     # adversarial validation + stress test
 ```

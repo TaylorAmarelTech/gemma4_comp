@@ -1,13 +1,14 @@
 # Component — `duecare-llm` (meta)
 
-> **Status: shipped.** The `duecare` CLI + meta-package that pulls in
-> all 7 siblings. 6 tests passing, wheel built.
+> **Status: shipped.** The `duecare` CLI + meta-package for the
+> workflow-oriented stack. The workspace now contains 17 package surfaces.
 
 ## What it is
 
-The **meta-package** that bundles all 7 DueCare library packages and
-provides the `duecare` CLI entry point. This is what judges and users
-install when they want "the whole thing."
+The **meta-package** that provides the workflow CLI entry point and pulls in
+the core library stack used by the workflow runner. For source checkouts, use
+`uv sync --all-packages` from the repo root to install all 17 workspace
+packages together.
 
 ## Install
 
@@ -102,9 +103,9 @@ Three reasons:
    duecare-llm-publishing` every time.
 2. **Single entry-point registration** — the `duecare` script is
    declared in exactly one `pyproject.toml`.
-3. **Single version pin** — the meta package constrains every sibling
-   to `>=0.1.0,<0.2.0`, so `pip install duecare-llm==0.1.0` gets you a
-   fully compatible set of 8 packages without mix-and-match risk.
+3. **Single version pin** — the meta package constrains its workflow
+   dependencies to `>=0.1.0,<0.2.0`, so `pip install duecare-llm==0.1.0`
+   gets a compatible workflow stack without mix-and-match risk.
 
 ## Design decisions
 
@@ -142,7 +143,7 @@ work too.
 
 ## Status
 
-- [x] Meta package depends on all 7 siblings
+- [x] Meta package depends on the workflow-oriented sibling stack
 - [x] `duecare` CLI entry point via `[project.scripts]`
 - [x] 10 CLI commands implemented
 - [x] 6 tests passing

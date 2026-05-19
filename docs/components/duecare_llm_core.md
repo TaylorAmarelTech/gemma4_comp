@@ -435,15 +435,15 @@ namespace. One fewer package to publish, no loss in modularity.
 `duecare` is a PEP 420 implicit namespace package. The `forge/` directory
 inside each package's `src/` has NO `__init__.py` on purpose — otherwise
 `duecare` becomes a regular package and only the first match wins. With
-no `__init__.py`, Python merges every `forge/` directory on `sys.path`
-into a single namespace, so all 8 packages contribute to `forge.*`
+no `__init__.py`, Python merges every `duecare/` directory on `sys.path`
+into a single namespace, so all workspace packages contribute to `duecare.*`
 transparently.
 
 This is verified by the smoke test:
 
 ```python
 import duecare
-print(forge.__path__)  # 8 portions, one per package
+print(duecare.__path__)  # one portion per installed namespace package
 ```
 
 ### Auto-generated meta files

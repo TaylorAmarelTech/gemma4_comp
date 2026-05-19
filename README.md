@@ -58,7 +58,7 @@
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
-[![Tests](https://img.shields.io/badge/chat%20tests-281%20passing-brightgreen.svg)](#tests)
+[![Pytest collection](https://img.shields.io/badge/pytest%20collection-675%20collected-blue.svg)](#tests)
 [![Packages](https://img.shields.io/badge/packages-17-blue.svg)](#packages)
 
 ## Try DueCare in 30 seconds
@@ -183,8 +183,9 @@ and rubric.
 
 ## What ships
 
-**17 PyPI packages** sharing the `duecare` Python namespace (PEP 420), all
-installable from a single `pip install duecare-llm`:
+**17 package surfaces** share the `duecare` Python namespace (PEP 420). The
+source workspace installs them together; the `duecare-llm` meta package is the
+public pip entry point for the workflow-oriented stack.
 
 | Package | Role | Test surface |
 |---|---|---|
@@ -204,7 +205,7 @@ installable from a single `pip install duecare-llm`:
 | `duecare-llm-nl2sql` | NL → SQL translator for evidence DB queries | — |
 | `duecare-llm-chat` | Minimal Gemma 4 chat playground (UI + FastAPI shell, no harness) | — |
 | `duecare-llm-cli` | The `duecare` command-line tool (tree, test, review, status, deps) | — |
-| [`duecare-llm`](./docs/components/duecare_llm_meta.md) (meta) | Pulls in all 16 siblings + the CLI | — |
+| [`duecare-llm`](./docs/components/duecare_llm_meta.md) (meta) | Public pip entry point for the workflow stack and `duecare` CLI | — |
 | **Current local pytest collection** | | **675 package tests collected on 2026-05-19** |
 
 ## Quick start
@@ -212,11 +213,14 @@ installable from a single `pip install duecare-llm`:
 ### Install
 
 ```bash
-# Everything (meta package pulls in all 16 siblings)
+# Public meta-package for the workflow-oriented stack
 pip install duecare-llm
 
 # Or, granular: install only what a Kaggle notebook needs
 pip install duecare-llm-core duecare-llm-domains duecare-llm-tasks duecare-llm-agents
+
+# Source checkout: install all 17 workspace packages together
+uv sync --all-packages
 ```
 
 ### Run locally with Ollama (recommended for development)
@@ -676,7 +680,7 @@ Secrets (API keys) come from environment variables only — see
 
 ```
 gemma4_comp/
-├── packages/                     # 17 PyPI packages (workspace members)
+├── packages/                     # 17 package surfaces (workspace members)
 │   ├── duecare-llm-core/         # contracts, schemas, observability
 │   ├── duecare-llm-models/       # 8 model adapters
 │   ├── duecare-llm-domains/      # pluggable domain packs
@@ -693,7 +697,7 @@ gemma4_comp/
 │   ├── duecare-llm-nl2sql/       # NL → SQL for evidence DB
 │   ├── duecare-llm-chat/         # minimal Gemma 4 chat playground
 │   ├── duecare-llm-cli/          # the `duecare` CLI
-│   └── duecare-llm/              # meta package (pulls in all 16 above)
+│   └── duecare-llm/              # meta package and workflow CLI entry point
 ├── kaggle/                       # Kaggle deliverables (per-notebook bundles)
 │   ├── 01-duecare-exploration-workbench/  # CORE #01: omni playground (script kernel)
 │   ├── 02-live-demo/             # CORE #02: focused live URL

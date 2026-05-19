@@ -24,8 +24,8 @@ body:
       label: Scope
       options:
         - "New rubric dimension (touches _rubric_universal.json)"
-        - "New harness layer (5-layer → 6-layer)"
-        - "New grade mode (5th mode beyond Universal/Expert/Evaluator/Combined)"
+        - "New harness layer"
+        - "New grade mode"
         - "New deployment topology"
         - "New tool function"
         - "New corridor / NGO / statute coverage"
