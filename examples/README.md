@@ -18,4 +18,4 @@ This folder contains runnable examples for people integrating or deploying DueCa
 - [Deployment topologies](../docs/deployment_topologies.md)
 - [Embedding guide](../docs/embedding_guide.md)
 - [Launch packaging options](../docs/launch_packaging_options.md)
-- [Repository cleanup review](../docs/repo_cleanup_review_2026-05-10.md)
+- [Repository layout](../docs/REPO_LAYOUT.md)

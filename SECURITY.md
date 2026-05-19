@@ -19,7 +19,7 @@ ordinary bugs:
 
 | Class | Examples |
 |---|---|
-| **PII leakage** | A code path that sends raw victim names, passport numbers, phone numbers, financial accounts, or content tagged as "personal" to an external service (HF Hub, Tavily, Brave, Serper, OpenClaw, browser tools, telemetry) |
+| **PII leakage** | A code path that sends raw victim names, passport numbers, phone numbers, financial accounts, or content tagged as "personal" to an external service (HF Hub, Tavily, Brave, Serper, browser tools, telemetry, or server automation) |
 | **Bypass of the safety harness** | A prompt or input pattern that causes the harness to silently drop GREP / RAG / Tools / Persona output before Gemma sees it |
 | **Audit log gaps** | An outbound network call that bypasses `_audit()` in `fast_search.py`, allowing an outbound query to leave no trace |
 | **Credential exposure** | Any code path where `HF_TOKEN`, BYOK keys (Tavily/Brave/Serper), or Kaggle credentials end up in logs / git / wheel artifacts / served HTTP responses |

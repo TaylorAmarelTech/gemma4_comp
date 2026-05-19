@@ -42,6 +42,7 @@ import json
 import os
 import re
 import sys
+import urllib.parse
 from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -56,7 +57,11 @@ KAGGLE = ROOT / "kaggle"
 
 ACTIVE_GLOBS: tuple[str, ...] = (
     "README.md",
+    "CONTRIBUTING.md",
+    "CODE_OF_CONDUCT.md",
+    "SECURITY.md",
     "docs/**/*.md",
+    "examples/**/*.md",
     "kaggle/**/README.md",
     "kaggle/_INDEX.md",
     "apps/duecare-ai.com/app/templates/*.html",
@@ -73,6 +78,7 @@ EXCLUDE_PATTERNS: tuple[str, ...] = (
     "docs/REPO_LAYOUT.md",                # documents the rename
     "docs/notes/",
     ".venv/",
+    "node_modules/",
     "site-packages/",
 )
 
@@ -555,6 +561,115 @@ def check_bundle_envelope_v1() -> CheckResult:
     return result
 
 
+# --- Check 7: local documentation links --------------------------------------
+
+_LOCAL_LINK_RE = re.compile(
+    r"(?<!!)\[[^\]]+\]\(([^)]+)\)|(?:href|src)=[\"']([^\"']+)[\"']",
+    re.IGNORECASE,
+)
+_SCHEME_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*:")
+
+
+def _normalise_local_link(raw: str) -> str | None:
+    """Return a repo-local link target, or None for ignored links."""
+
+    value = raw.strip()
+    if not value or value.startswith("#"):
+        return None
+    if value.startswith(("/", "{", "$", "`")):
+        return None
+    if "${" in value or "{{" in value or "}}" in value:
+        return None
+    if _SCHEME_RE.match(value):
+        return None
+
+    if value.startswith("<") and value.endswith(">"):
+        value = value[1:-1].strip()
+    elif " " in value:
+        # Markdown allows optional titles after whitespace:
+        # [text](path.md "title"). Keep the target only.
+        value = value.split()[0]
+
+    value = value.split("#", 1)[0].split("?", 1)[0].strip()
+    if not value:
+        return None
+    value = urllib.parse.unquote(value)
+    if value.startswith(("/", "{", "$")) or "${" in value:
+        return None
+    return value
+
+
+def _fenced_code_ranges(text: str) -> list[tuple[int, int]]:
+    ranges: list[tuple[int, int]] = []
+    in_fence = False
+    start = 0
+    offset = 0
+    for line in text.splitlines(keepends=True):
+        stripped = line.lstrip()
+        if stripped.startswith(("```", "~~~")):
+            if in_fence:
+                ranges.append((start, offset + len(line)))
+                in_fence = False
+            else:
+                start = offset
+                in_fence = True
+        offset += len(line)
+    if in_fence:
+        ranges.append((start, len(text)))
+    return ranges
+
+
+def _inside_ranges(index: int, ranges: list[tuple[int, int]]) -> bool:
+    return any(start <= index < end for start, end in ranges)
+
+
+def check_local_doc_links() -> CheckResult:
+    result = CheckResult(name="local_doc_links")
+    files_scanned = 0
+    links_checked = 0
+    for path in _walk_active():
+        if path.suffix.lower() not in {".md", ".html"}:
+            continue
+        rel = str(path.relative_to(ROOT)).replace("\\", "/")
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError):
+            continue
+        files_scanned += 1
+        code_ranges = _fenced_code_ranges(text)
+        for match in _LOCAL_LINK_RE.finditer(text):
+            if _inside_ranges(match.start(), code_ranges):
+                continue
+            raw = (match.group(1) or match.group(2) or "").strip()
+            target_rel = _normalise_local_link(raw)
+            if target_rel is None:
+                continue
+            links_checked += 1
+            target = (path.parent / target_rel).resolve()
+            try:
+                inside_repo = target == ROOT or ROOT in target.parents
+            except RuntimeError:
+                inside_repo = False
+            if not inside_repo or not target.exists():
+                line = text[: match.start()].count("\n") + 1
+                result.findings.append(
+                    Finding(
+                        file=rel,
+                        line=line,
+                        rule="missing_local_link",
+                        snippet=raw[:160],
+                        suggestion=(
+                            "point this link at an existing repo file, "
+                            "or make it an explicit external URL"
+                        ),
+                    )
+                )
+    result.info.append(
+        f"Checked {links_checked} repo-local links across {files_scanned} public files."
+    )
+    return result
+
+
 # --- Reporting ---------------------------------------------------------------
 
 def render_text(checks: list[CheckResult]) -> str:
@@ -627,6 +742,7 @@ def main() -> int:
             "kaggle_lane_labels",
             "bundle_envelope_v1",
             "bundle_envelope_manifest_checksums",
+            "local_doc_links",
         ],
         help="skip a check (repeatable)",
     )
@@ -640,6 +756,7 @@ def main() -> int:
         ("bundle_envelope_v1", check_bundle_envelope_v1),
         ("bundle_envelope_manifest_checksums",
          check_bundle_envelope_manifest_checksums),
+        ("local_doc_links", check_local_doc_links),
     ]
     checks = [run() for name, run in runners if name not in args.skip]
 

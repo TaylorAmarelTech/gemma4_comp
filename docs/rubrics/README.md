@@ -22,8 +22,7 @@ When you promote a rubric to this folder:
 1. Move the section from `docs/quality_rubrics.md` to `docs/rubrics/<rubric_name>.md`.
 2. Replace the original section in `quality_rubrics.md` with a
    one-paragraph summary + a link of the form
-   `[Read the full rubric](rubrics/your-name-here.md)` (placeholder
-   path — replace `your-name-here` with the actual filename).
+   `Read the full rubric: rubrics/<actual-file>.md`.
 3. Update the navigation table at the top of `quality_rubrics.md`.
 4. Update the aggregate scorecard reference if needed.
 

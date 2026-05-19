@@ -16,7 +16,7 @@ Duecare attributes every chat / classify / research request to a
 - (Optional) Route to a per-tenant model variant or domain pack
 
 The middleware that does this lives in
-[`duecare.server.tenancy`](../packages/duecare-llm-server/src/duecare/server/tenancy.py).
+[`duecare.server.tenancy`](../../packages/duecare-llm-server/src/duecare/server/tenancy.py).
 Auth is **always** the upstream proxy's job (see
 [OAuth2 proxy overlay](#oauth2-proxy-overlay)). Tenancy is just
 attribution; auth is enforcement.
@@ -182,7 +182,7 @@ topk(10, sum by (tenant) (increase(duecare_model_tokens_out_total[24h])))
 
 For per-call cost (used by `duecare.server.metering.estimate_cost_usd`),
 the lookup table lives at
-[`packages/duecare-llm-server/src/duecare/server/metering.py`](../packages/duecare-llm-server/src/duecare/server/metering.py)
+[`packages/duecare-llm-server/src/duecare/server/metering.py`](../../packages/duecare-llm-server/src/duecare/server/metering.py)
 and is overridable via `DUECARE_MODEL_COSTS_FILE`.
 
 ## Auditing tenant-isolation correctness

@@ -93,9 +93,9 @@
   <h1>Models</h1>
   <p class="lede">
     The 9 Gemma 4 variants the workbench can load, the currently-resident
-    model, and the live load-phase log stream. Loading a variant from this
-    page calls <code>/api/load-model</code> just like the picker overlay
-    on the chat home page.
+    model, and the live load-phase log stream. This page delegates model
+    selection and loading to the same universal top-bar model service used by
+    Chat, Compare, Bulk Review, Knowledge Extraction, Search, and Sharing.
   </p>
 
   <div class="panel">
@@ -119,7 +119,7 @@
             <span class="model-step-hint">The loader streams progress and exposes errors without leaving the page.</span>
           </span>
         </summary>
-        <div class="model-step-body">The top chrome model selector and compare page use the same loaded model state.</div>
+        <div class="model-step-body">The top chrome model selector is the only load service. This page is a readout plus shortcut buttons into that service.</div>
       </details>
       <details class="model-step" id="model-step-3">
         <summary>
@@ -258,20 +258,14 @@
   }
 
   async function loadModel(variant) {
-    if (!window.confirm(`Load ${variant}? GPU loads are not cancellable; the page will poll for progress.`)) return;
+    if (!window.confirm(`Load ${variant}? GPU loads are not cancellable; the universal model service will show progress.`)) return;
     modelSetStep(1);
-    try {
-      const r = await fetch("/api/load-model", {
-        method: "POST",
-        headers: {"content-type": "application/json"},
-        body: JSON.stringify({variant}),
-      });
-      if (!r.ok) {
-        const t = await r.text();
-        alert(`load failed: HTTP ${r.status}\n${t.slice(0, 300)}`);
-      }
-    } catch (e) {
-      alert("load failed: " + (e && e.message || e));
+    if (window.dcWbModelService && window.dcWbModelService.loadVariant) {
+      await window.dcWbModelService.loadVariant(variant, {open: true});
+    } else if (window.dcWbLoadModelVariant) {
+      await window.dcWbLoadModelVariant(variant, {open: true});
+    } else {
+      alert("Universal model service is still initializing. Click the top Model control and retry.");
     }
     refreshStatus(); refreshLogs();
   }

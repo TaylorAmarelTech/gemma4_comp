@@ -77,7 +77,7 @@
 | F1 | Incident response plan? | Yes — [`docs/considerations/runbook.md`](./runbook.md). Severity-based escalation; PR-driven post-mortems. |
 | F2 | Threat model? | Yes — [`docs/considerations/THREAT_MODEL.md`](./THREAT_MODEL.md). STRIDE across 4 trust boundaries. |
 | F3 | Backup + DR? | Operator responsibility. Backup commands documented in `examples/deployment/ngo-office-edge/README.md`. RTO / RPO operator-defined. |
-| F4 | Logging + monitoring? | Yes — [`infra/observability/`](../infra/observability/) (Prometheus + Grafana + OTel Collector + Loki). SLO-anchored alerts in `prometheus/rules.yml`. |
+| F4 | Logging + monitoring? | Yes — [`infra/observability/`](../../infra/observability/) (Prometheus + Grafana + OTel Collector + Loki). SLO-anchored alerts in `prometheus/rules.yml`. |
 | F5 | Audit log? | Yes. Per-request audit log at INFO via `duecare.observability` JSON-formatted. 90-day default retention. |
 | F6 | Change management? | GitHub PR + required CI passes. Helm rollouts use `RollingUpdate` with `maxUnavailable: 1`. |
 | F7 | Deployment automation? | GitHub Actions + Helm. Argo CD / Flux recommended for the operator. |

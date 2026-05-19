@@ -12,11 +12,11 @@ Full guide: [`docs/embedding_guide.md`](../../docs/embedding_guide.md).
 | [`telegram-bot/`](./telegram-bot/) | Telegram bot wrapping Duecare REST API | ✓ working |
 | [`messenger-bot/`](./messenger-bot/) | Facebook Messenger bot for an NGO Page | ✓ working |
 | [`whatsapp-cloud-api/`](./whatsapp-cloud-api/) | WhatsApp via Meta's official Cloud API (production) | ✓ working |
-| [`whatsapp-twilio/`](./whatsapp-twilio/) | WhatsApp via Twilio Sandbox (5-min prototype) | planned |
-| [`wordpress-plugin/`](./wordpress-plugin/) | WordPress shortcode plugin | planned |
-| [`browser-extension/`](./browser-extension/) | Chrome/Firefox extension flagging trafficking-shaped content | planned |
-| [`android-aar/`](./android-aar/) | Notes on extracting an embeddable Android library from `duecare-journey-android` | planned |
-| [`ios-swift-package/`](./ios-swift-package/) | Notes on KMP-based iOS port | planned |
+| `whatsapp-twilio/` | WhatsApp via Twilio Sandbox (5-min prototype) | planned |
+| `wordpress-plugin/` | WordPress shortcode plugin | planned |
+| `browser-extension/` | Chrome/Firefox extension flagging trafficking-shaped content | planned |
+| `android-aar/` | Notes on extracting an embeddable Android library from `duecare-journey-android` | planned |
+| `ios-swift-package/` | Notes on KMP-based iOS port | planned |
 | [`sample_pack/`](../sample_pack/) | Sample extension pack format demo (separate from embeddings) | ✓ working |
 
 ## Common pattern

@@ -57,6 +57,21 @@ def test_double_register_raises() -> None:
             pass
 
 
+def test_repeated_same_registration_is_idempotent() -> None:
+    r: Registry = Registry(kind="agent")
+
+    class Agent:
+        pass
+
+    first = Agent()
+    second = Agent()
+
+    r.add("scout", first)
+    r.add("scout", second)
+
+    assert r.get("scout") is first
+
+
 def test_unknown_id_raises_keyerror() -> None:
     r: Registry = Registry(kind="t")
     with pytest.raises(KeyError, match="Unknown t id 'missing'"):

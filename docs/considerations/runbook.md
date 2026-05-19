@@ -3,7 +3,7 @@
 > The on-call playbook. Each entry: **symptom**, **first
 > diagnostic**, **mitigation**, **post-incident**.
 > Anchored to the alerts in
-> [`infra/observability/prometheus/rules.yml`](../infra/observability/prometheus/rules.yml).
+> [`infra/observability/prometheus/rules.yml`](../../infra/observability/prometheus/rules.yml).
 
 ## Severity convention
 

@@ -503,6 +503,7 @@ code, .mono {
   0%, 100% { opacity: 1; }
   50%      { opacity: 0.45; }
 }
+.dc-wb-model-layer[hidden] { display: none; }
 .dc-wb-model-popover {
   position: fixed;
   top: 52px;
@@ -634,6 +635,44 @@ code, .mono {
 .dc-wb-model-detail b {
   color: var(--ink);
   font-weight: 700;
+}
+.dc-wb-model-progress {
+  position: relative;
+  height: 10px;
+  margin-top: 9px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--paper-2) 85%, white);
+}
+.dc-wb-model-progress span {
+  display: block;
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--warn) 55%, var(--accent)));
+  transition: width 240ms ease;
+}
+.dc-wb-model-progress[data-state="loading"] span {
+  animation: dc-wb-progress-shimmer 1.4s ease-in-out infinite;
+}
+.dc-wb-model-progress-meta {
+  margin-top: 6px;
+  color: var(--ink-3);
+  font: 11px var(--mono);
+  overflow-wrap: anywhere;
+}
+.dc-wb-model-required .dc-wb-model-progress {
+  height: 12px;
+  margin-top: 0;
+}
+.dc-wb-model-required .dc-wb-model-progress-meta {
+  margin-top: -8px;
+  font-size: 12px;
+}
+@keyframes dc-wb-progress-shimmer {
+  0%, 100% { filter: saturate(1); opacity: 0.88; }
+  50% { filter: saturate(1.35); opacity: 1; }
 }
 .dc-wb-model-popover-controls {
   display: grid;
