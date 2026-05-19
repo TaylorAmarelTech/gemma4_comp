@@ -77,19 +77,31 @@ function-calling, optional online + official-source verification, and
 rubric grading on every response.
 
 **3. The headline result is that the harness is the lift — not the
-weights.** On the 2026-05-18 e2b-full-train-eval smoke matrix
-(combined rule + LLM judge), stock Gemma 4 2B scored 29.5%, stock +
-chat-offline harness 35.6% (+6.1pp), fine-tuned alone 26.4%, and
-fine-tuned + harness 41.2% (+14.8pp over fine-tuning alone, +11.7pp
-over stock). Fine-tuning helped response shape and refusal style,
-but the harness supplied the facts, citations, tools,
-data-minimization checks, and forced-labor indicators that
-fine-tuning alone cannot. A fine-tune without the harness actually
-underperformed stock Gemma 4. The implication: for high-stakes
-domains where ground truth lives in versioned legal texts, an
-open-source duty-of-care harness is a more honest path than
-fine-tuning prestige alone — and it's something the community can
-extend, audit, and challenge.
+weights.** When quantitatively evaluating models (stock and
+fine-tuned) with and without a harness, it was determined that the
+harness provided the majority of the benefits. Furthermore, due to
+the nature of rapidly changing rules, new case precedent, and
+complex situations, it may be difficult to train an LLM to remember
+every single fee rule, every single MO or trafficking indicator. When
+working in a domain where rules and fees can be changed nearly on
+demand — and that change is sometimes announced in a simple social
+media post by a regulator and not published in a formal index — it
+would be very difficult to have an LLM alone be performant without
+Persona, GREP, Context, and Tools that are consistently updated over
+time.
+
+On the 2026-05-18 e2b-full-train-eval smoke matrix (combined rule +
+LLM judge), stock Gemma 4 2B scored 29.5%, stock + chat-offline
+harness 35.6% (+6.1pp), fine-tuned alone 26.4%, and fine-tuned +
+harness 41.2% (+14.8pp over fine-tuning alone, +11.7pp over stock).
+Fine-tuning helped response shape and refusal style, but the harness
+supplied the facts, citations, tools, data-minimization checks, and
+forced-labor indicators that fine-tuning alone cannot. A fine-tune
+without the harness actually underperformed stock Gemma 4. The
+implication: for high-stakes domains where ground truth lives in
+versioned legal texts, an open-source duty-of-care harness is a more
+honest path than fine-tuning prestige alone — and it's something the
+community can extend, audit, and challenge.
 
 ## Try it
 
