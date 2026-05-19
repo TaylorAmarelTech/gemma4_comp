@@ -11,6 +11,7 @@ from typing import Any, Optional
 
 from fastapi import (FastAPI, HTTPException, Request, BackgroundTasks,
                        UploadFile, File, Form)
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -99,6 +100,33 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
     app.add_middleware(RequestMetricsMiddleware)
     app.add_middleware(RateLimitMiddleware)
     app.add_middleware(TenancyMiddleware)
+
+    # CORS: additive only. Same-origin requests from the Kaggle tunnel
+    # browser (which serves both the HTML and the API from the same
+    # *.trycloudflare.com host) are unaffected — the browser doesn't
+    # send an Origin header for same-origin fetches, so CORSMiddleware
+    # passes through without modifying the response. The middleware
+    # only activates when a cross-origin request from one of the hub
+    # origins below arrives (e.g. embedded calls from duecare-ai.com
+    # back into a running kernel during a partner demo).
+    #
+    # NO TrustedHostMiddleware here: Kaggle assigns ephemeral
+    # *.trycloudflare.com hostnames, so locking Host would brick the
+    # three live judge-facing notebooks.
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            "https://duecare-ai.com",
+            "https://www.duecare-ai.com",
+            "https://gemma4-comp.onrender.com",
+            "http://localhost:8000",
+            "http://127.0.0.1:8000",
+        ],
+        allow_origin_regex=r"^https://([a-z0-9-]+\.)*(duecare-ai\.com|onrender\.com)$",
+        allow_credentials=False,
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["*"],
+    )
 
     # ------ Auth middleware (DUECARE_API_TOKEN) ----------------------------
     api_token = os.environ.get("DUECARE_API_TOKEN", "").strip()
