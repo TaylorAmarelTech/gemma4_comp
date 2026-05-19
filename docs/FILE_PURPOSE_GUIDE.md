@@ -22,7 +22,7 @@ published evidence.
 
 | Scope | Purpose map |
 |---|---|
-| Repository top level | `README.md`, `docs/REPO_LAYOUT.md`, this guide |
+| Repository top level | `README.md`, `ROOT_FILES.md`, `docs/REPO_LAYOUT.md`, this guide |
 | Kaggle kernels | `kaggle/_INDEX.md`, `kaggle/README.md`, `kaggle/NOTEBOOK_PURPOSE_AND_RUNBOOK.md` |
 | Public website | `apps/duecare-ai.com/README.md`, page templates, route tests |
 | Python packages | Each package `README.md`, package tests, generated component docs |
@@ -40,6 +40,18 @@ that section tracks follow-up completion criteria, not a public placeholder.
 Do not delete these files for cosmetic cleanup. If a generated metadata file is
 wrong, update the source descriptor or the generator so the next refresh keeps
 the correction.
+
+## Repository Root Policy
+
+Keep the repository root for GitHub-standard files, tool configuration,
+deployment contracts, attribution/provenance files, and the shortest possible
+entry points. `ROOT_FILES.md` is the manifest for the files that intentionally
+remain there.
+
+Do not add one-off scripts to the root. Active helpers belong in `scripts/`;
+historical helpers belong under `_archive/`. Do not add new narrative markdown
+files to the root unless they are a GitHub community-health convention or are
+added to `ROOT_FILES.md` with a durable reason.
 
 ## Canonical Lane Language
 

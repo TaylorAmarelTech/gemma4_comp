@@ -32,7 +32,8 @@ submission path. They are archived reference material.
   the statement.
 - Prefer readable link text over raw file paths in public tables.
 - New durable files need a clear purpose paragraph or an entry in the nearest
-  purpose map. See `docs/FILE_PURPOSE_GUIDE.md`.
+  purpose map. Root-level files also need a reason in `ROOT_FILES.md`; see
+  `docs/FILE_PURPOSE_GUIDE.md`.
 - Generated package metadata files may contain `STATUS.md` TODO sections by
   design. Treat those as module completion notes, not public placeholder copy.
 

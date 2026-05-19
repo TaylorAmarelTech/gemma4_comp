@@ -47,3 +47,9 @@ fresh, current script rather than reviving the archived version.
 | `_inject_bulk.py` (repo root)      | Applied the injection across every direct builder.                                                               | One-time.                                                                                                       |
 | `_kernel_mapping.json` (repo root) | Input JSON for the above scripts.                                                                                | One-time mapping file.                                                                                          |
 
+## Additional root cleanup archive (2026-05-19)
+
+| Script | Purpose | Why archived |
+|---|---|---|
+| `copy_framework.py` | Copied selected files from a local `llm-safety-framework-public` checkout into `_reference/framework/`. | User-specific absolute paths; not part of the active package, Kaggle, or website workflow. |
+| `copy_reference.py` | Copied selected local reference material into `_reference/` and wrote a reference index. | User-specific absolute paths; the active repository does not depend on this root helper. |

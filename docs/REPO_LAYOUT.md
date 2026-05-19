@@ -27,6 +27,7 @@ Current as of 2026-05-19.
 - Active Kaggle inventory: [`docs/current_kaggle_notebook_state.md`](current_kaggle_notebook_state.md)
 - Model loading: [`docs/model_loading_trace.md`](model_loading_trace.md)
 - Harness inventory: [`docs/harness_ecosystem.md`](harness_ecosystem.md)
+- Root file policy: [`ROOT_FILES.md`](../ROOT_FILES.md)
 - File purpose policy: [`docs/FILE_PURPOSE_GUIDE.md`](FILE_PURPOSE_GUIDE.md)
 - Kaggle Community Benchmark notes: [`docs/KAGGLE_COMMUNITY_BENCHMARK.md`](KAGGLE_COMMUNITY_BENCHMARK.md)
 - Screenshot audit checklist: [`docs/SCREENSHOT_AUDIT.md`](SCREENSHOT_AUDIT.md)
