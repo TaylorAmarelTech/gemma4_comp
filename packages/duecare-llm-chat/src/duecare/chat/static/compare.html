@@ -111,6 +111,12 @@
 <body data-nav="compare">
   <main class="wb-page">
     <h1 class="wb-h1">Harness Comparison</h1>
+    <div class="dc-trust-row" role="note" aria-label="Trust boundary" style="margin-bottom:14px;">
+      <span class="dc-trust-pill"><span class="dot"></span>LOCAL</span>
+      <span class="dc-trust-pill"><span class="dot"></span>APPLES-TO-APPLES</span>
+      <span class="dc-trust-pill"><span class="dot"></span>SAME MODEL · SAME PROMPT</span>
+      <span class="dc-trust-text">Use the top <b>Model</b> control to load or switch the active model for both variants.</span>
+    </div>
     <p class="wb-lede">
       Same prompt, two harness configurations. Send one prompt through both and see what
       each safety layer changes. Variant A is typically stock Gemma 4
@@ -240,8 +246,9 @@
           Warn if response hits the token cap
         </label>
       </div>
-      <div class="wb-row" style="margin-top: 12px; align-items: center;">
+      <div class="wb-row" style="margin-top: 12px; align-items: center; gap: 10px; flex-wrap: wrap;">
         <button id="cmp-run" class="wb-btn-primary" onclick="cmpRun()" aria-label="Run comparison">4. Run comparison</button>
+        <span class="dc-gemma-mark is-optional" id="cmp-gemma-mark" title="Reflects whether Gemma actually generated. Flips to Gemma active when a model call begins, Gemma done when both variants complete.">Optional · Gemma</span>
         <button id="cmp-interrupt" class="wb-btn-secondary"
                 onclick="cmpInterrupt()" disabled
                 title="Cancel the in-flight comparison; both variants stop after the current step"
@@ -1631,6 +1638,11 @@
       window._cmpResults = {A: null, B: null, prompt: ''};
       renderTimingSummary();
       cmpResetGradePanel();
+      const cmpGMark = document.getElementById('cmp-gemma-mark');
+      if (cmpGMark) {
+        cmpGMark.className = 'dc-gemma-mark is-optional';
+        cmpGMark.textContent = 'Optional · Gemma';
+      }
     }
     async function cmpRun() {
       const prompt = (document.getElementById('cmp-prompt').value || '').trim();
@@ -1664,9 +1676,14 @@
       }
       const btn = document.getElementById('cmp-run');
       const interruptBtn = document.getElementById('cmp-interrupt');
+      const cmpGMark = document.getElementById('cmp-gemma-mark');
       btn.disabled = true; const origTxt = btn.textContent;
       btn.textContent = 'Running...';
       if (interruptBtn) interruptBtn.disabled = false;
+      if (cmpGMark) {
+        cmpGMark.className = 'dc-gemma-mark is-active';
+        cmpGMark.textContent = 'Gemma active';
+      }
       status.textContent = 'Running Variant A, then Variant B...';
       window._cmpResults = {A: null, B: null, prompt: prompt};
       try {
@@ -1695,10 +1712,30 @@
         err.textContent = 'Comparison failed: ' + String(e).slice(0, 300);
         status.textContent = '';
         logEvent(null, 'err', 'exception: ' + e);
+        if (cmpGMark) {
+          cmpGMark.className = 'dc-gemma-mark is-unavailable';
+          cmpGMark.textContent = 'Gemma failed';
+        }
       } finally {
         btn.disabled = false; btn.textContent = origTxt;
         if (interruptBtn) interruptBtn.disabled = true;
         _abortCtls.A = null; _abortCtls.B = null;
+        if (cmpGMark) {
+          const a = window._cmpResults && window._cmpResults.A;
+          const b = window._cmpResults && window._cmpResults.B;
+          const bothOk = a && a.ok && b && b.ok;
+          const anyAborted = (a && a.aborted) || (b && b.aborted);
+          if (bothOk) {
+            cmpGMark.className = 'dc-gemma-mark is-done';
+            cmpGMark.textContent = 'Gemma done';
+          } else if (anyAborted) {
+            cmpGMark.className = 'dc-gemma-mark is-skipped';
+            cmpGMark.textContent = 'Gemma aborted';
+          } else if (cmpGMark.classList.contains('is-active')) {
+            cmpGMark.className = 'dc-gemma-mark is-unavailable';
+            cmpGMark.textContent = 'Gemma unavailable';
+          }
+        }
       }
     }
 
