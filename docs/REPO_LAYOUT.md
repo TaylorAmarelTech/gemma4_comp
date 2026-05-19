@@ -13,6 +13,7 @@ Current as of 2026-05-19.
 | [`kaggle/02-live-demo/`](../kaggle/02-live-demo/) | Focused demo/video path. | Active |
 | [`kaggle/A-00-omni-experiment-workbench/`](../kaggle/A-00-omni-experiment-workbench/) | Quantitative proof path: baseline, harness, synthetic rows, optional LoRA, judging, and report exports. | Active |
 | [`kaggle/03-universal-llm-benchmark/`](../kaggle/03-universal-llm-benchmark/) | Optional endpoint-comparison kernel for arbitrary API targets, DueCare prompt/rubric cues, and Claude Opus judging. | Optional |
+| [`kaggle/04-kaggle-community-benchmark/`](../kaggle/04-kaggle-community-benchmark/) | Optional Kaggle Community Benchmark surface using `kaggle_benchmarks` and Kaggle model proxy calls. | Optional |
 | [`kaggle/_archive/notebooks/`](../kaggle/_archive/notebooks/) | Retired A-series and video-pitch notebook-era surfaces. | Historical |
 | [`docs/`](../docs/) | Current docs plus archived historical docs. Main reviewer entry: [`FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md). | Live |
 | [`docs/_archive/`](../docs/_archive/) | Historical docs retained for provenance. | Historical |
