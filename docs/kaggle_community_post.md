@@ -35,14 +35,14 @@ With this in mind, I wanted to focus on the following:
 
 **3. The headline result is that the harness is the lift — not the weights.** When quantitatively evaluating models (stock and fine-tuned) with and without a harness, it was determined that the harness provided the majority of the benefits. Furthermore, due to the nature of rapidly changing rules, new case precedent, and complex situations, it may be difficult to train an LLM to remember every single fee rule, every single MO or trafficking indicator. When working in a domain where rules and fees can be changed nearly on demand — and that change is sometimes announced in a simple social media post by a regulator and not published in a formal index — it would be very difficult to have an LLM alone be performant without Persona, GREP, Context, and Tools that are consistently updated over time.
 
-On the 2026-05-18 e2b-full-train-eval smoke matrix (combined rule + LLM judge), stock Gemma 4 2B scored 29.5%, stock + chat-offline harness 35.6% (+6.1pp), fine-tuned alone 26.4%, and fine-tuned + harness 41.2% (+14.8pp over fine-tuning alone, +11.7pp over stock). Fine-tuning helped response shape and refusal style, but the harness supplied the facts, citations, tools, data-minimization checks, and forced-labor indicators that fine-tuning alone cannot. A fine-tune without the harness actually underperformed stock Gemma 4. The implication: for high-stakes domains where ground truth lives in versioned legal texts, an open-source duty-of-care harness is a more honest path than fine-tuning prestige alone — and it's something the community can extend, audit, and challenge.
+On a four-way comparison I ran on May 18 — scoring each response with both a deterministic rubric and a separate LLM judge — stock Gemma 4 2B scored 29.5%, stock + harness 35.6% (+6.1pp), fine-tuned alone 26.4%, and fine-tuned + harness 41.2% (+14.8pp over fine-tuning alone, +11.7pp over stock). Fine-tuning helped response shape and refusal style, but the harness supplied the facts, citations, tools, data-minimization checks, and forced-labor indicators that fine-tuning alone cannot. A fine-tune without the harness actually underperformed stock Gemma 4. The implication: for high-stakes domains where ground truth lives in versioned legal texts, an open-source duty-of-care harness is a more honest path than fine-tuning prestige alone — and it's something the community can extend, audit, and challenge.
 
 ## Try it
 
 Everything is public and reproducible:
 
 - **DueCare App** kernel (chat, Bulk File Review, Knowledge Extraction, Search, Anonymization & Sharing, Harness Comparison): <https://www.kaggle.com/code/taylorsamarel/duecare-app>
-- **Fine-tuning & Evaluation** kernel (the 4-arm smoke matrix above): <https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation>
+- **Fine-tuning & Evaluation** kernel (the four-way comparison above): <https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation>
 - **Android APK** — DueCare Journey, worker/mobile companion, sideload only: <https://github.com/TaylorAmarelTech/duecare-journey-android/releases/latest>
 - **Public hub**: <https://duecare-ai.com>
 - **Source**: <https://github.com/TaylorAmarelTech/gemma4_comp>
@@ -85,7 +85,7 @@ markers; no real PII).
 2. **`packages/duecare-llm-chat/src/duecare/chat/static/synthetic/whatsapp_recruiter_fee.png`**
    *Caption:* The pressure tactic in chat: "Need to send PHP 50,000
    by Friday or we lose the slot." DueCare reads this as
-   `fee_camouflage` + urgency-pressure + zero-fee-rule violation.
+   a disguised fee, urgency pressure, and a zero-fee-rule violation.
    Synthetic.
 
 ### Under point 2 ("Modular ecosystem")
