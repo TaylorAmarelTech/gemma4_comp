@@ -348,10 +348,9 @@ last):
 ~/.claude/CLAUDE.md                    # user-global
 ./CLAUDE.md                            # project root
 ./.claude/rules/*.md                   # auto-loaded rules
-./src/forge/CLAUDE.md                  # DueCare-specific
-./src/forge/AGENTS.md                  # DueCare-root AGENTS.md
-./src/forge/agents/AGENTS.md           # agents-layer AGENTS.md
-./src/forge/agents/judge/AGENTS.md     # judge-module AGENTS.md    <-- wins for edits in this folder
+./AGENTS.md                            # repo-root AGENTS.md
+./packages/.../AGENTS.md               # package/subtree AGENTS.md
+./packages/.../module/AGENTS.md        # closest module AGENTS.md    <-- wins for edits in this folder
 (explicit user instruction in chat)    # always wins over everything
 ```
 
@@ -363,8 +362,8 @@ because we're putting the right files in the right places.
 
 ## 8. What I'm adding now — `.claude/rules/`
 
-Five auto-loaded rule files, short and specific. Each is <50 lines so
-it costs minimal tokens but is always available.
+Eight auto-loaded rule files, short and specific. They keep high-level
+project constraints available without requiring a full repository scan.
 
 See the files written alongside this doc in `.claude/rules/`.
 

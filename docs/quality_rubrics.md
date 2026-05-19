@@ -60,7 +60,8 @@ Throughout the rubrics, capabilities are tagged `[W]`, `[N]`, `[R]`, `[E]`, `[I]
 
 **Duecare current: L3** (target: L4 by hackathon end, L5 post-hackathon).
 
-- 194 unit tests passing (across `packages/` + `tests/`).
+- 675 package tests collected locally on 2026-05-19; full pass claims should
+  cite the exact command and run date.
 - Type hints required (CLAUDE.md `.claude/rules/20_code_style.md`).
 - `ruff check` + `mypy` enforced in `make lint`.
 - **Gap:** no Hypothesis property tests, no mutation coverage measurement.
@@ -79,7 +80,7 @@ Throughout the rubrics, capabilities are tagged `[W]`, `[N]`, `[R]`, `[E]`, `[I]
 **Duecare current: L3** (target: L4).
 
 - README, LICENSE (MIT), SECURITY.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md all present.
-- 17 PyPI packages with consistent structure under `packages/`.
+- 17 package surfaces with consistent structure under `packages/`.
 - `.claude/rules/40_forge_module_contract.md` enforces folder-per-module pattern with auto-generated `PURPOSE.md` / `AGENTS.md` / `INPUTS_OUTPUTS.md` / `HIERARCHY.md` / `DIAGRAM.md` / `TESTS.md` / `STATUS.md` per module.
 - **Gap:** no Dependabot / Renovate config; no SBOM publishing; no signed commits; no release-notes automation.
 - **Next:** add `.github/dependabot.yml`; add SBOM generation step to `pypi-publish.yml`; enable signed commits via `git config commit.gpgsign true` + Sigstore for releases.
@@ -185,7 +186,7 @@ Per audience.
 | **L4** L3 + REST API with OpenAPI + client SDKs | — |
 | **L5** L4 + webhook subscriptions + event bus + plugin architecture | — |
 
-**Duecare current: L3.5** (17 PyPI packages semver-tagged from v0.1.0; FastAPI server with OpenAPI 3 schema published at `docs/openapi.yaml`; thin clients in `examples/embedding/` for React, vanilla JS, Telegram, Messenger, WhatsApp Cloud API; reaching full L4 needs typed-client SDKs in pip + npm). Target: **L4** by hackathon submission (2026-05-18).
+**Duecare current: L3.5** (17 package surfaces semver-tagged from v0.1.0; FastAPI server with OpenAPI 3 schema published at `docs/openapi.yaml`; thin clients in `examples/embedding/` for React, vanilla JS, Telegram, Messenger, WhatsApp Cloud API; reaching full L4 needs typed-client SDKs in pip + npm). Target: **L4** by hackathon submission (2026-05-18).
 
 ## Rubric 7: UI / UX
 

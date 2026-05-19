@@ -10,6 +10,11 @@ kind, see [`docs/EXTENDING.md`](./docs/EXTENDING.md).
 For peer reviewers + hackathon judges verifying the submission, see
 [`docs/FOR_PEER_REVIEW.md`](./docs/FOR_PEER_REVIEW.md).
 
+For documentation and GitHub-metadata edits, use
+[`docs/DOCUMENTATION_GUIDE.md`](./docs/DOCUMENTATION_GUIDE.md). It records the
+canonical six-lane order, active Kaggle surfaces, package count, and test-claim
+policy.
+
 ## Stakeholders — edit a curator JSON without reading Python
 
 The grader's "magic strings" — per-language signal lists, statute
@@ -56,8 +61,11 @@ templates.
 
 ### "I want to add a new Kaggle kernel"
 
-The 27-folder Kaggle roster has hardened conventions across the
-session of 2026-05-12. Follow these to avoid drift:
+The active Kaggle submission path is intentionally narrow:
+`01-duecare-exploration-workbench`, `02-live-demo`, and
+`A-00-omni-experiment-workbench`. New kernels should be added only when they
+serve a clear review or reproducibility need; archived A-01 through A-24
+notebook-era surfaces are reference material, not the current path.
 
 **1. Folder layout.** Place under `kaggle/<slot>-<short-purpose>/`
 with these files:
@@ -110,8 +118,9 @@ The full v1.0 envelope shape is in
   `| **Outputs** | ... |`
   `| **Cross-links** | ... |`
 
-  See any of `kaggle/01-..02/` or `kaggle/A-01..A-11/README.md`
-  for examples.
+  See `kaggle/01-duecare-exploration-workbench/README.md`,
+  `kaggle/02-live-demo/README.md`, or
+  `kaggle/A-00-omni-experiment-workbench/README.md` for active examples.
 
 - `## What it does / ## Pipeline / ## Inputs / ## Outputs /
   ## Where this slot lives` -- canonical Markdown headers for the
@@ -122,7 +131,7 @@ The full v1.0 envelope shape is in
 
 ```bash
 .venv/Scripts/python.exe scripts/validate_public_surface.py
-# Expects 5 checks / 0 findings.
+# Expects the public-surface audit to finish with 0 findings.
 ```
 
 Any new `kernel.py` is automatically swept by the
@@ -137,8 +146,7 @@ one-sentence justification:
 ```
 
 **5. Index registration.** Add a row to
-[`kaggle/_INDEX.md`](kaggle/_INDEX.md) so the 27-folder roster
-stays current.
+[`kaggle/_INDEX.md`](kaggle/_INDEX.md) so the active roster stays current.
 
 **6. Optional: register the kernel in
 [`docs/gemma4_feature_showcase.md`](docs/gemma4_feature_showcase.md)**
@@ -171,13 +179,14 @@ kernel), see
 git clone https://github.com/TaylorAmarelTech/gemma4_comp
 cd gemma4_comp
 
-# Install in editable mode (all 8 packages at once via the meta)
+# Install in editable mode for the workspace packages
 pip install -e packages/duecare-llm
 
 # Optional: heavier extras for actually running models
 pip install -e "packages/duecare-llm-models[transformers,unsloth,llama-cpp]"
 
-# Run the test suite (should see 194 passed)
+# Run the package test suite, or collect first if you only need a fast check
+python -m pytest packages --collect-only -q
 python -m pytest packages -v
 
 # Run the demo
@@ -205,8 +214,11 @@ Every module has a `tests/` folder. Minimum bar: at least one real
 test per module that exercises the public surface.
 
 ```bash
-# Full suite (194 tests across 8 packages)
+# Full package suite
 python -m pytest packages -v
+
+# Fast package collection check
+python -m pytest packages --collect-only -q
 
 # Single package
 python -m pytest packages/duecare-llm-core -v
@@ -217,6 +229,12 @@ python -m pytest packages/duecare-llm-core/src/duecare/core/enums -v
 
 CI runs on every PR via `.github/workflows/`. Python 3.11 and 3.12 are
 both tested.
+
+For public-facing docs, also run:
+
+```bash
+python scripts/validate_public_surface.py
+```
 
 ## The safety gate
 

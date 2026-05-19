@@ -18,7 +18,7 @@ trafficking patterns — running locally with no data sent anywhere.
 Yes. It's all of those, packaged together:
 - A chat playground (Kaggle notebook + a FastAPI server)
 - A worker-facing Android app (Duecare Journey)
-- 17 PyPI packages you can `pip install` independently
+- 17 Python package surfaces in the source workspace
 - A Helm chart + Docker images for deploying at scale
 - A research benchmark (207 hand-graded prompts + a published rubric)
 
@@ -60,8 +60,8 @@ Both are off by default.
 ### Q: What's the license?
 
 MIT for the project. Apache 2.0 for the Gemma 4 model itself
-(via the Google `litert-community` repos). Each of the 17 PyPI
-packages declares MIT in its `pyproject.toml`.
+(via the Google `litert-community` repos). Each Python package surface
+declares MIT in its `pyproject.toml`.
 
 ### Q: Can I use it commercially?
 

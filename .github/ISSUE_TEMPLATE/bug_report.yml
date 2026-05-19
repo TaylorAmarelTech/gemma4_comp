@@ -5,9 +5,9 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for the report. The chat package has a `/api/version` endpoint
-        that returns every version stamp + curator-block hash; please run it
-        and paste the output below so we can pin the failing revision.
+        Thanks for the report. If this happened in a Kaggle workbench, please
+        attach the Replay JSON or paste the activity log as well as `/api/version`
+        output so we can pin the failing revision.
 
   - type: input
     id: where
@@ -72,7 +72,7 @@ body:
     attributes:
       label: Loader logs (if model load failed)
       description: |
-        Run `curl https://<your-url>/api/load-model/logs?limit=200 | jq` and paste the output.
+        Run `curl https://<your-url>/api/load-model/logs?limit=200 | jq` and paste the output, or paste the visible model-service log from the shared selector.
       render: json
 
   - type: dropdown

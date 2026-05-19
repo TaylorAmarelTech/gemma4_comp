@@ -90,9 +90,9 @@ These are reproducible per `(git_sha, dataset_version, model_revision)`
 - **12** migration corridors with statute lookups (PH-HK, ID-HK,
   PH-SA, NP-SA, BD-SA, ID-SG + MX-US, VE-CO, GH-LB, NG-LB,
   SY-DE, UA-PL)
-- **17** PyPI packages, all MIT-licensed
+- **17** package surfaces in the MIT-licensed source workspace
 - **3** active judge-facing Kaggle kernels plus archived notebook-era surfaces retained for provenance
-- **194** unit tests passing across the harness packages
+- **675** package tests collected locally on 2026-05-19
 
 ## Quotes available for use
 

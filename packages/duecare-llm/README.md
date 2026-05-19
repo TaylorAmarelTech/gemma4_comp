@@ -1,6 +1,7 @@
 # duecare-llm
 
-> Duecare - agentic, universal LLM safety harness. Meta-package that pulls in every Duecare component and exposes the `duecare` CLI.
+> Duecare - agentic, universal LLM safety harness. Meta-package for the
+> workflow-oriented stack and `duecare` CLI.
 
 Part of the **Duecare** multi-package distribution. See the
 [main project README](../../README.md) and
@@ -11,6 +12,12 @@ context.
 
 ```bash
 pip install duecare-llm
+```
+
+From a source checkout, install every workspace package together:
+
+```bash
+uv sync --all-packages
 ```
 
 ## Optional extras

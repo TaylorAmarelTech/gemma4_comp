@@ -1,10 +1,10 @@
 name: pypi-publish
 
-# Publishes all 8 worker-side duecare-llm-* packages to PyPI on a
+# Publishes the workspace duecare-llm* packages to PyPI on a
 # `v*` tag push. Uses PyPI's OIDC trusted publishing — no API token
 # stored in GitHub Secrets, the OIDC token is exchanged at publish
 # time. Requires one-time setup at https://pypi.org/manage/account/publishing/
-# (project: each of the 8 packages; trusted-publisher: this repo +
+# (project: each package being published; trusted-publisher: this repo +
 # this workflow + this environment).
 #
 # Manual fire (testing): use the workflow_dispatch trigger from the
@@ -33,7 +33,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build wheels for all 8 packages
+    name: Build wheels for workspace packages
     runs-on: ubuntu-latest
     outputs:
       packages: ${{ steps.list.outputs.packages }}
@@ -59,7 +59,11 @@ jobs:
           mkdir -p dist
           for pkg in duecare-llm-core duecare-llm-models duecare-llm-domains \
                      duecare-llm-tasks duecare-llm-agents duecare-llm-workflows \
-                     duecare-llm-publishing duecare-llm-chat duecare-llm; do
+                     duecare-llm-publishing duecare-llm-benchmark \
+                     duecare-llm-evidence-db duecare-llm-engine \
+                     duecare-llm-nl2sql duecare-llm-research-tools \
+                     duecare-llm-server duecare-llm-chat duecare-llm-training \
+                     duecare-llm-cli duecare-llm; do
               if [[ -d "packages/$pkg" ]]; then
                   echo "==> Building $pkg"
                   python -m build --wheel --sdist --outdir dist packages/$pkg
