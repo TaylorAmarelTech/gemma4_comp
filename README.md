@@ -154,16 +154,16 @@ every Gemma-bearing handler emits one JSONL row per call to
 
 ## Start here by role
 
-📋 **[Setup Requirements](docs/SETUP_REQUIREMENTS.md)** — GPU, environment setup, and dependencies for all platforms
+**[Setup requirements](docs/SETUP_REQUIREMENTS.md)** - GPU, environment setup, and dependencies for all platforms
 
 | Lane | You are | Read first |
 |---|---|---|
-| 01 Platform safety | A trust & safety team or recruitment marketplace integrating moderation | [`docs/scenarios/enterprise_pilot.md`](./docs/scenarios/enterprise_pilot.md) · [`docs/scenarios/recruiter-self-audit.md`](./docs/scenarios/recruiter-self-audit.md) · [`docs/deployment_enterprise.md`](./docs/deployment_enterprise.md) |
-| 02 NGO & regulator | An NGO caseworker, legal aid organization, regulator, or embassy desk | [`docs/scenarios/ngo-office-deployment.md`](./docs/scenarios/ngo-office-deployment.md) · [`examples/deployment/ngo-office-edge/README.md`](./examples/deployment/ngo-office-edge/README.md) |
-| 03 Individual worker / mobile | A migrant worker, peer supporter, or community helper using the Android app | [`docs/scenarios/worker-self-help.md`](./docs/scenarios/worker-self-help.md) · [`docs/architecture/duecare_mobile.md`](./docs/architecture/duecare_mobile.md) · [`docs/android_app_architecture.md`](./docs/android_app_architecture.md) |
-| 04 Researcher | An academic, journalist, policy analyst, or peer reviewer | [`docs/FOR_PEER_REVIEW.md`](./docs/FOR_PEER_REVIEW.md) · [`docs/FOR_KAGGLE_JUDGES.md`](./docs/FOR_KAGGLE_JUDGES.md) · [`docs/scenarios/researcher-analysis.md`](./docs/scenarios/researcher-analysis.md) · [`kaggle/01-duecare-exploration-workbench/README.md`](./kaggle/01-duecare-exploration-workbench/README.md) |
-| 05 Anonymized knowledge sharing | A partner sharing reviewed, sanitized facts without exposing workers or raw case files | [`apps/duecare-ai.com/app/templates/use-cases.html`](./apps/duecare-ai.com/app/templates/use-cases.html) · [`apps/duecare-ai.com/app/templates/submit-information.html`](./apps/duecare-ai.com/app/templates/submit-information.html) · [`apps/duecare-ai.com/app/templates/submissions.html`](./apps/duecare-ai.com/app/templates/submissions.html) |
-| 06 Developer / integration partner | A team embedding DueCare into your own product, bot, dashboard, or internal workflow | [`docs/install.md`](./docs/install.md) · [`docs/embedding_guide.md`](./docs/embedding_guide.md) · [`packages/duecare-llm/README.md`](./packages/duecare-llm/README.md) · [`apps/duecare-ai.com/app/templates/client-connect.html`](./apps/duecare-ai.com/app/templates/client-connect.html) |
+| 01 Platform safety | A trust & safety team or recruitment marketplace integrating moderation | [Enterprise pilot](./docs/scenarios/enterprise_pilot.md) / [Recruiter self-audit](./docs/scenarios/recruiter-self-audit.md) / [Enterprise deployment](./docs/deployment_enterprise.md) |
+| 02 NGO & regulator | An NGO caseworker, legal aid organization, regulator, or embassy desk | [NGO office workflow](./docs/scenarios/ngo-office-deployment.md) / [Edge deployment example](./examples/deployment/ngo-office-edge/README.md) |
+| 03 Individual worker / mobile | A migrant worker, peer supporter, or community helper using the Android app | [Worker self-help](./docs/scenarios/worker-self-help.md) / [Mobile component](./docs/architecture/duecare_mobile.md) / [Android app architecture](./docs/android_app_architecture.md) |
+| 04 Researcher | An academic, journalist, policy analyst, or peer reviewer | [Peer review guide](./docs/FOR_PEER_REVIEW.md) / [Kaggle judge guide](./docs/FOR_KAGGLE_JUDGES.md) / [Researcher scenario](./docs/scenarios/researcher-analysis.md) / [Workbench README](./kaggle/01-duecare-exploration-workbench/README.md) |
+| 05 Anonymized knowledge sharing | A partner sharing reviewed, sanitized facts without exposing workers or raw case files | [Hub use cases](./apps/duecare-ai.com/app/templates/use-cases.html) / [Submit information](./apps/duecare-ai.com/app/templates/submit-information.html) / [Submission queue](./apps/duecare-ai.com/app/templates/submissions.html) |
+| 06 Developer / integration partner | A team embedding DueCare into your own product, bot, dashboard, or internal workflow | [Install guide](./docs/install.md) / [Embedding guide](./docs/embedding_guide.md) / [Meta package](./packages/duecare-llm/README.md) / [Client integration](./apps/duecare-ai.com/app/templates/client-connect.html) |
 
 ## Why this exists
 
@@ -186,15 +186,15 @@ and rubric.
 **17 PyPI packages** sharing the `duecare` Python namespace (PEP 420), all
 installable from a single `pip install duecare-llm`:
 
-| Package | Role | Tests |
+| Package | Role | Test surface |
 |---|---|---|
-| [`duecare-llm-core`](./docs/components/duecare_llm_core.md) | Contracts, schemas, enums, registries, provenance, observability | 77 ✅ |
-| [`duecare-llm-models`](./docs/components/duecare_llm_models.md) | 8 model adapters (Transformers+Gemma 4 function calling, llama.cpp, Unsloth, Ollama, OpenAI-compatible, Anthropic, Gemini, HF Endpoint) | 28 ✅ |
-| [`duecare-llm-domains`](./docs/components/duecare_llm_domains.md) | Pluggable domain packs + 3 shipped (trafficking, tax_evasion, financial_crime) | 23 ✅ |
-| [`duecare-llm-tasks`](./docs/components/duecare_llm_tasks.md) | 9 capability tests (guardrails, anon, classify, extract, grounding, multimodal, multi-turn, tool-use, cross-lingual) | 16 ✅ |
-| [`duecare-llm-agents`](./docs/components/duecare_llm_agents.md) | 12-agent swarm + AgentSupervisor with retry/budget/harm-abort + Gemma 4 function-calling orchestration | 26 ✅ |
-| [`duecare-llm-workflows`](./docs/components/duecare_llm_workflows.md) | YAML DAG loader + topological runner | 9 ✅ |
-| [`duecare-llm-publishing`](./docs/components/duecare_llm_publishing.md) | HF Hub + Kaggle publisher, markdown reports, HF model cards | 9 ✅ |
+| [`duecare-llm-core`](./docs/components/duecare_llm_core.md) | Contracts, schemas, enums, registries, provenance, observability | Unit tests |
+| [`duecare-llm-models`](./docs/components/duecare_llm_models.md) | 8 model adapters (Transformers+Gemma 4 function calling, llama.cpp, Unsloth, Ollama, OpenAI-compatible, Anthropic, Gemini, HF Endpoint) | Adapter tests |
+| [`duecare-llm-domains`](./docs/components/duecare_llm_domains.md) | Pluggable domain packs + 3 shipped (trafficking, tax_evasion, financial_crime) | Domain-pack tests |
+| [`duecare-llm-tasks`](./docs/components/duecare_llm_tasks.md) | 9 capability tests (guardrails, anon, classify, extract, grounding, multimodal, multi-turn, tool-use, cross-lingual) | Capability tests |
+| [`duecare-llm-agents`](./docs/components/duecare_llm_agents.md) | 12-agent swarm + AgentSupervisor with retry/budget/harm-abort + Gemma 4 function-calling orchestration | Agent tests |
+| [`duecare-llm-workflows`](./docs/components/duecare_llm_workflows.md) | YAML DAG loader + topological runner | Workflow tests |
+| [`duecare-llm-publishing`](./docs/components/duecare_llm_publishing.md) | HF Hub + Kaggle publisher, markdown reports, HF model cards | Publishing tests |
 | `duecare-llm-engine` | Heuristic prescan + GREP KB + RAG + tool-call + Gemma verdict pipeline (the core content-safety harness) | — |
 | `duecare-llm-server` | FastAPI app that hosts the pipeline + audit dashboard (the live demo) | — |
 | `duecare-llm-evidence-db` | Redacted-evidence corpus + audit trail SQLite store | — |
@@ -205,7 +205,7 @@ installable from a single `pip install duecare-llm`:
 | `duecare-llm-chat` | Minimal Gemma 4 chat playground (UI + FastAPI shell, no harness) | — |
 | `duecare-llm-cli` | The `duecare` command-line tool (tree, test, review, status, deps) | — |
 | [`duecare-llm`](./docs/components/duecare_llm_meta.md) (meta) | Pulls in all 16 siblings + the CLI | — |
-| **Total** | | **194 ✅** |
+| **Current local pytest collection** | | **675 package tests collected on 2026-05-19** |
 
 ## Quick start
 
@@ -433,7 +433,7 @@ archive note.
 | Trafficking prompt corpus | **74,567** | [110 - Prompt Prioritizer](https://www.kaggle.com/code/taylorsamarel/00a-duecare-prompt-prioritizer-data-pipeline) |
 | Adversarial generators | **15** | [310 - Prompt Factory](https://www.kaggle.com/code/taylorsamarel/duecare-310-prompt-factory) |
 | Evaluation frameworks | **7** | |
-| Tests passing | **194** | Across 17 packages |
+| Pytest collection | **675 tests collected** | Across package test surfaces (2026-05-19 local collection) |
 
 ### Use it as a library
 
@@ -615,8 +615,11 @@ for per-agent documentation.
 ## Tests
 
 ```bash
-# All 194 tests across all 17 packages
+# Run all package tests across the workspace
 python -m pytest packages -v
+
+# Or verify collection quickly
+python -m pytest packages --collect-only -q
 
 # Single package
 python -m pytest packages/duecare-llm-core -v
@@ -625,10 +628,10 @@ python -m pytest packages/duecare-llm-core -v
 python -m pytest packages/duecare-llm-core/src/forge/core/enums -v
 ```
 
-Latest full run:
+Latest local collection:
 
 ```
-========================= 194 passed in 42.3s =========================
+675 tests collected across package test surfaces on 2026-05-19.
 ```
 
 ## Demo notebooks
