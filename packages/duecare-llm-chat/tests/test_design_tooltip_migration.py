@@ -323,3 +323,121 @@ def test_design_contract_pages_opt_into_copy_json(page: str) -> None:
         f"{page} must opt in to the panel-header Copy JSON affordance via "
         'data-toolbar="copy-json" on the activity-log host.'
     )
+
+
+# ---------------------------------------------------------------------------
+# Resilient grade-stream parser (compare.html cmpGradeOne)
+#
+# Real Kaggle bug: 30+ minutes of LLM-judge grading was thrown away when
+# the Cloudflared tunnel dropped mid-stream (TypeError: Error in input
+# stream from reader.read()). The fix preserves every dim_done event
+# the client did receive and surfaces them as a partial result.
+#
+# These tests pin the source-level resilience surface so a future
+# refactor can't accidentally drop the try/catch + partial accumulator.
+# ---------------------------------------------------------------------------
+
+
+def test_compare_grade_parser_catches_reader_read_throw() -> None:
+    """``reader.read()`` must run inside a try/catch so a forcibly
+    closed SSE stream (Cloudflared idle, tunnel reset, server crash)
+    cannot kill the parse mid-grade."""
+    html = _read("compare.html")
+    # The pattern: try { chunk = await reader.read(); } catch (e) { ... }
+    assert "chunk = await reader.read();" in html, (
+        "compare.html cmpGradeOne must call reader.read() in a way that "
+        "can be wrapped in try/catch (assign to a local first)."
+    )
+    # The catch clause must capture the error and break the loop so the
+    # partial-result return path runs.
+    assert "streamError = (e && e.message)" in html, (
+        "compare.html must capture the stream-error message into a "
+        "streamError variable so partial results can be returned."
+    )
+
+
+def test_compare_grade_parser_preserves_partial_dimensions() -> None:
+    """The parser must accumulate every dim_done row that arrives,
+    then surface them via a ``partial`` flag on stream error.
+
+    Without this, a single tunnel hiccup throws away 30+ minutes of
+    LLM-judge work (the real bug we just fixed)."""
+    html = _read("compare.html")
+    assert "const partialDims = [];" in html, (
+        "compare.html must maintain an in-memory partialDims array "
+        "that captures dim_done rows as they arrive."
+    )
+    assert "partialDims.push(evt.row);" in html, (
+        "compare.html must push each dim_done row into partialDims."
+    )
+    assert "function buildPartial(errMsg, code)" in html, (
+        "compare.html must define a buildPartial helper that returns "
+        "the partial result on stream error / early end."
+    )
+    assert "partial: hasAnything," in html
+    assert "partial_dimensions: partialDims.slice()," in html
+    assert "n_done: lastNDone || partialDims.length," in html
+
+
+def test_compare_grade_parser_wraps_handlers_in_try_catch() -> None:
+    """Each event handler runs inside its own try/catch so one weird
+    event (unexpected shape, missing field) does not kill the loop."""
+    html = _read("compare.html")
+    # The decoder.decode call should also be wrapped to handle truncated
+    # multibyte sequences gracefully (drop chunk, keep going).
+    assert "decoded = decoder.decode(value, {stream: true});" in html
+    # JSON.parse already had a try/catch; verify it is still there and
+    # bumps the dropped_frames counter.
+    assert "droppedFrames += 1;" in html, (
+        "compare.html must track dropped frames so the UI can surface "
+        "an honest count of skipped malformed events."
+    )
+
+
+def test_compare_grade_score_label_handles_partial() -> None:
+    """``scoreLabel`` must render a partial result as ``partial N/M``,
+    not as a fake ``err``. Otherwise the reviewer mistakes a 46/74
+    incomplete grade for a total failure."""
+    html = _read("compare.html")
+    # Source-text pattern: the partial branch sits BEFORE the error
+    # branch so partial results never fall through to 'err'.
+    assert "if (g.partial) {" in html
+    assert "return 'partial ' + String(nDone) + '/' + String(nTotal);" in html
+
+
+def test_compare_grade_bars_render_partial_banner() -> None:
+    """``renderGradeBars`` must render an amber partial-grade banner
+    when ``gradeResult.partial`` is true, plus fall through to the
+    normal bars so the user sees the dimensions that did grade."""
+    html = _read("compare.html")
+    assert "if (gradeResult.partial) {" in html
+    assert "Partial grade" in html
+    assert "before the stream closed" in html
+    # The banner is built with safe DOM construction (textContent /
+    # createTextNode), not innerHTML interpolation, so SSE-supplied
+    # values cannot inject markup.
+    banner_section = html[html.index("data-role"):html.index("data-role") + 4000]
+    assert "headStrong.textContent = 'Partial grade';" in banner_section, (
+        "Partial-grade banner must use textContent (no innerHTML with "
+        "interpolated values) to keep SSE-injected strings safe."
+    )
+
+
+def test_app_grade_stream_isolates_per_event_yield_errors() -> None:
+    """The server-side ``_grade_stream_response`` helper wraps each
+    ``json.dumps(evt)`` + ``yield`` in its own try/except. A single
+    non-serializable event (stray non-JSON type leaked into a dim row)
+    must not kill the whole stream mid-grade."""
+    app_py = (
+        Path(__file__).parents[1]
+        / "src" / "duecare" / "chat" / "app.py"
+    ).read_text(encoding="utf-8")
+    # The new structure: per-event try block with a fallback warn frame
+    # that lets the client know an event was skipped and the stream
+    # continues.
+    assert "payload = json.dumps(evt)" in app_py
+    assert "dropped non-serializable event" in app_py
+    # The first_event path is independently guarded so a bad
+    # deterministic_done payload cannot kill the stream before the
+    # judge phase begins.
+    assert "first_event not JSON-serializable" in app_py

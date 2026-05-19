@@ -1299,12 +1299,68 @@
       const host = document.getElementById(variant + '-grade');
       if (!host) return;
       while (host.firstChild) host.removeChild(host.firstChild);
-      if (!gradeResult || gradeResult.error) {
+      if (!gradeResult) {
         const err = document.createElement('div');
         err.className = 'wb-error';
-        err.textContent = gradeResult && gradeResult.error
-          ? gradeResult.error + (gradeResult.body ? ': ' + String(gradeResult.body).slice(0, 500) : '')
-          : 'No grade result returned.';
+        err.textContent = 'No grade result returned.';
+        host.appendChild(err);
+        return;
+      }
+      // Partial-grade banner: stream closed mid-pass but we held onto
+      // the dim_done events that completed before the close. Render the
+      // banner, then fall through to the normal rendering using the
+      // partial dimensions + deterministic result as the data source.
+      if (gradeResult.partial) {
+        const nDone = gradeResult.n_done ||
+          (Array.isArray(gradeResult.partial_dimensions) ? gradeResult.partial_dimensions.length : 0);
+        const nTotal = gradeResult.n_total || '?';
+        const banner = document.createElement('div');
+        banner.setAttribute('data-role', 'partial-grade-banner');
+        banner.style.cssText = 'background: oklch(0.96 0.05 80); ' +
+          'border-left: 3px solid oklch(0.65 0.10 80); padding: 8px 10px; ' +
+          'border-radius: 6px; margin-bottom: 8px; color: oklch(0.32 0.10 80); ' +
+          'font-size: 12px; line-height: 1.5;';
+        const head = document.createElement('div');
+        const headStrong = document.createElement('b');
+        headStrong.textContent = 'Partial grade';
+        head.appendChild(headStrong);
+        const headRest = document.createTextNode(
+          ' · ' + String(nDone) + '/' + String(nTotal) +
+          ' LLM judge dimensions captured before the stream closed' +
+          (gradeResult.deterministic ? ' · deterministic pass complete' : '')
+        );
+        head.appendChild(headRest);
+        banner.appendChild(head);
+        if (gradeResult.error) {
+          const reason = document.createElement('div');
+          reason.style.cssText = 'font-family: JetBrains Mono, monospace; ' +
+            'font-size: 10.5px; margin-top: 3px; color: oklch(0.32 0.10 80);';
+          reason.textContent = 'reason: ' + gradeResult.error;
+          banner.appendChild(reason);
+        }
+        host.appendChild(banner);
+        // Build a synthetic result that the existing renderer can
+        // consume: deterministic fields at the top level, dimensions
+        // = the partial dim_done rows we captured. This gives the
+        // user real evidence (verdicts + rationale + evidence quotes
+        // for everything that DID grade) rather than just an error.
+        const synthetic = {};
+        if (gradeResult.deterministic && typeof gradeResult.deterministic === 'object') {
+          Object.assign(synthetic, gradeResult.deterministic);
+        }
+        if (Array.isArray(gradeResult.partial_dimensions) && gradeResult.partial_dimensions.length) {
+          synthetic.evaluator = synthetic.evaluator || {};
+          synthetic.evaluator.dimensions = gradeResult.partial_dimensions;
+          if (!Array.isArray(synthetic.dimensions) || !synthetic.dimensions.length) {
+            synthetic.dimensions = gradeResult.partial_dimensions;
+          }
+        }
+        gradeResult = synthetic;
+      } else if (gradeResult.error) {
+        const err = document.createElement('div');
+        err.className = 'wb-error';
+        err.textContent = gradeResult.error +
+          (gradeResult.body ? ': ' + String(gradeResult.body).slice(0, 500) : '');
         host.appendChild(err);
         return;
       }
@@ -1668,10 +1724,60 @@
       const decoder = new TextDecoder('utf-8');
       let buffer = '';
       let finalResult = null;
+
+      // Partial-state accumulators. If the SSE stream is forcibly
+      // closed mid-grade (Cloudflared idle timeout, tunnel reset,
+      // server crash), we preserve everything graded so far instead
+      // of losing 30+ minutes of compute. Each is filled as events
+      // arrive and surfaced on the partial-result return path below.
+      let deterministic = null;
+      const partialDims = [];
+      let lastNDone = 0;
+      let lastNTotal = 0;
+      let streamError = null;
+      let droppedFrames = 0;
+
+      function buildPartial(errMsg, code) {
+        const hasAnything = partialDims.length > 0 || deterministic != null;
+        return {
+          error: errMsg,
+          code: code,
+          partial: hasAnything,
+          partial_dimensions: partialDims.slice(),
+          deterministic: deterministic,
+          n_done: lastNDone || partialDims.length,
+          n_total: lastNTotal,
+          dropped_frames: droppedFrames,
+        };
+      }
+
       while (true) {
-        const {done, value} = await reader.read();
+        // reader.read() throws TypeError("Error in input stream") when
+        // the connection is forcibly closed (Cloudflared idle, server
+        // reset). Catch it so the partial state below survives.
+        let chunk;
+        try {
+          chunk = await reader.read();
+        } catch (e) {
+          streamError = (e && e.message) ? e.message : String(e);
+          progress('Variant ' + variant + ': stream closed mid-grade (' +
+            streamError + ') · preserving ' + partialDims.length + ' graded dim(s)');
+          break;
+        }
+        const {done, value} = chunk;
         if (done) break;
-        buffer += decoder.decode(value, {stream: true});
+
+        // TextDecoder can throw on truncated multibyte sequences when
+        // {stream: true} isn't enough. Drop the chunk and continue.
+        let decoded;
+        try {
+          decoded = decoder.decode(value, {stream: true});
+        } catch (e) {
+          droppedFrames += 1;
+          progress('Variant ' + variant + ': dropped malformed byte chunk (' + e + ')');
+          continue;
+        }
+        buffer += decoded;
         let sep;
         while ((sep = buffer.indexOf('\n\n')) !== -1) {
           const frame = buffer.slice(0, sep);
@@ -1680,24 +1786,52 @@
           const line = frame.split('\n').find(l => l.startsWith('data:'));
           if (!line) continue;
           let evt;
-          try { evt = JSON.parse(line.slice(5).trim()); }
-          catch (e) { continue; }
-          if (evt.type === 'deterministic_done') {
-            progress('Variant ' + variant + ': deterministic pass complete; waiting for LLM judge...');
-          } else if (evt.type === 'dim_done') {
-            progress('Variant ' + variant + ': judge dimension ' +
-              (evt.n_done || '?') + '/' + (evt.n_total || '?') +
-              ' - ' + ((evt.row && (evt.row.id || evt.row.name)) || 'dimension'));
-          } else if (evt.type === 'complete') {
-            finalResult = evt.result || evt;
-            break;
-          } else if (evt.type === 'error') {
-            return {error: evt.error || 'stream error', code: evt.code};
+          try {
+            evt = JSON.parse(line.slice(5).trim());
+          } catch (e) {
+            droppedFrames += 1;
+            continue;
+          }
+          // Per-event handler in its own try/catch so one weird event
+          // (unexpected shape, missing field, etc.) doesn't kill the
+          // whole stream parse.
+          try {
+            if (evt.type === 'deterministic_done') {
+              deterministic = (evt.result != null) ? evt.result : null;
+              progress('Variant ' + variant + ': deterministic pass complete; waiting for LLM judge...');
+            } else if (evt.type === 'dim_done') {
+              if (evt.row && typeof evt.row === 'object') {
+                partialDims.push(evt.row);
+              }
+              if (typeof evt.n_done === 'number') lastNDone = evt.n_done;
+              if (typeof evt.n_total === 'number') lastNTotal = evt.n_total;
+              const dimLabel = (evt.row && (evt.row.id || evt.row.name)) || 'dimension';
+              progress('Variant ' + variant + ': judge dimension ' +
+                (lastNDone || '?') + '/' + (lastNTotal || '?') + ' - ' + dimLabel);
+            } else if (evt.type === 'complete') {
+              finalResult = evt.result || evt;
+              break;
+            } else if (evt.type === 'error') {
+              // Server-emitted error (e.g., evaluator-breaker). Treat as
+              // partial: keep the dims that DID complete before the
+              // breaker tripped so the user sees real evidence.
+              return buildPartial(evt.error || 'stream error', evt.code);
+            }
+          } catch (e) {
+            droppedFrames += 1;
+            progress('Variant ' + variant + ': handler error on ' +
+              ((evt && evt.type) || 'unknown') + ' event: ' + e);
           }
         }
         if (finalResult) break;
       }
-      return finalResult || {error: 'stream ended without final result'};
+      if (finalResult) return finalResult;
+      // Either reader.read() threw or the stream ended without a
+      // complete event. Both paths surface the partial result.
+      return buildPartial(
+        streamError || 'stream ended without final result',
+        null
+      );
     }
 
     async function cmpGrade() {
@@ -1763,6 +1897,15 @@
     }
     function scoreLabel(g) {
       if (!g || typeof g !== 'object') return '?';
+      // Partial grade: stream closed mid-run but we held onto dim_done
+      // events. Show "partial 46/74" so the reviewer reads the state
+      // honestly instead of seeing a fake "err".
+      if (g.partial) {
+        const nDone = g.n_done ||
+          (Array.isArray(g.partial_dimensions) ? g.partial_dimensions.length : 0);
+        const nTotal = g.n_total || '?';
+        return 'partial ' + String(nDone) + '/' + String(nTotal);
+      }
       if (g.error) return 'err';
       const pct = cmpScoreNumber(g);
       if (pct != null) return Math.round(pct) + '%';
