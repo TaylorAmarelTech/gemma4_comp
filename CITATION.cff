@@ -1,51 +1,72 @@
 cff-version: 1.2.0
-message: "If you use Duecare in academic work, please cite it as below."
-title: "Duecare: A content-safety harness for Gemma 4 on migrant-worker trafficking risk"
+message: "If you use DueCare in academic work, please cite it as below."
+title: "DueCare: A Gemma 4 safety ecosystem for migrant-worker protection"
 abstract: >-
-  Duecare is an open-source AI safety harness around Google's Gemma 4 model
-  that helps migrant workers, NGOs, regulators, and researchers identify
-  recruitment fraud and trafficking-shaped patterns. The harness composes a
-  GREP-rule pattern detector, a BM25 RAG layer over a 26-doc legal corpus,
-  a corridor-aware tool dispatcher, and a journey-aware persona prompt.
-  Quantified result: +56.5 percentage points mean lift on a 207-prompt
-  hand-graded legal-citation rubric (+87.5 pp on jurisdiction-specific
-  rules, +51.2 pp on ILO/international convention citations) when the
-  harness is on vs off. Bundled coverage: 11 ILO C029 forced-labour
-  indicators, 12 migration corridors, 37 GREP rules, 26 RAG documents.
+  DueCare is a local-first, open-source AI safety ecosystem built on
+  Google's Gemma 4 that helps migrant workers, NGOs, regulators, and
+  researchers identify recruitment fraud, contract substitution,
+  passport retention, debt novation, and other trafficking-shaped
+  patterns. The system serves six audience-facing lanes from one
+  runtime: content moderation, case analysis, worker support,
+  research, anonymized knowledge sharing, and custom API
+  implementations. The harness composes deterministic GREP rules,
+  audience-aware personas, vetted knowledge packs (ILO C029 / C181 /
+  C189, Palermo, POEA, BP2MI, Nepal FEA, HK Cap. 57 / 163, SG EFMA,
+  UAE MoHRE, RA 8042 / RA 10022), a BM25 RAG layer, a corridor-aware
+  tool registry, optional online + official-source verification, and
+  rubric grading on every response. Quantified result on the
+  2026-05-18 e2b-full-train-eval smoke matrix (combined rule + LLM
+  judge): Stock Gemma 4 2B 29.5%, Stock + chat-offline harness 35.6%
+  (+6.1pp), Fine-tuned 26.4%, Fine-tuned + harness 41.2% (+14.8pp
+  over fine-tuning alone, +11.7pp over stock). Bundled coverage:
+  165+ deterministic rules, 55+ curated knowledge documents, 20
+  migration corridors. Sensitive worker data stays on the worker
+  device or trusted NGO hardware; the public hub only receives
+  k-anonymous signals after explicit user action.
 authors:
   - family-names: Amarel
     given-names: Taylor
     email: amarel.taylor.s@gmail.com
     affiliation: Independent
-version: "0.1.0"
-date-released: "2026-05-02"
+version: "0.9.0"
+date-released: "2026-05-18"
 license: MIT
 repository-code: "https://github.com/TaylorAmarelTech/gemma4_comp"
-url: "https://github.com/TaylorAmarelTech/gemma4_comp"
+url: "https://duecare-ai.com"
 keywords:
   - LLM safety
   - Gemma 4
   - trafficking prevention
   - migrant workers
   - ILO forced-labour indicators
+  - duty of care
+  - local-first AI
   - on-device AI
   - privacy by design
+  - retrieval-augmented generation
+  - fine-tuning
 references:
   - type: report
-    title: "ILO Global Estimates of Modern Slavery"
+    title: "ILO Global Estimates of Modern Slavery: Forced Labour and Forced Marriage"
     authors:
       - name: International Labour Organization
     year: 2022
     url: "https://www.ilo.org/global/topics/forced-labour/publications/WCMS_854733/lang--en/index.htm"
+  - type: report
+    title: "Profits and Poverty: The Economics of Forced Labour (2024 update)"
+    authors:
+      - name: International Labour Organization
+    year: 2024
+    url: "https://www.ilo.org/publications/major-publications/profits-and-poverty-economics-forced-labour"
 preferred-citation:
   type: software
-  title: "Duecare: A content-safety harness for Gemma 4 on migrant-worker trafficking risk"
+  title: "DueCare: A Gemma 4 safety ecosystem for migrant-worker protection"
   authors:
     - family-names: Amarel
       given-names: Taylor
   year: 2026
-  version: "0.1.0"
+  version: "0.9.0"
   url: "https://github.com/TaylorAmarelTech/gemma4_comp"
   notes: >-
-    Submission to the Google Gemma 4 Good Hackathon (Safety & Trust track),
+    Submitted to the Google Gemma 4 Good Hackathon (Impact, Special Technology, and Main tracks),
     deadline 2026-05-18.

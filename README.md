@@ -2,7 +2,15 @@
 
 > **Public hub:** [duecare-ai.com](https://duecare-ai.com) |
 > **DueCare App on Kaggle:** [kaggle.com/code/taylorsamarel/duecare-app](https://www.kaggle.com/code/taylorsamarel/duecare-app) |
+> **Fine-tuning &amp; Evaluation:** [kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation) |
+> **Android APK:** [github.com/TaylorAmarelTech/duecare-journey-android/releases](https://github.com/TaylorAmarelTech/duecare-journey-android/releases) |
 > **Source:** this repo (MIT)
+>
+> **Headline result (2026-05-18 smoke matrix):** Stock Gemma 4 2B **29.5%** ·
+> Stock + chat-offline harness **35.6%** (+6.1pp) · Fine-tuned **26.4%** ·
+> Fine-tuned + harness **41.2%** (+14.8pp over fine-tuning alone, +11.7pp over stock).
+> The harness supplies the facts, citations, tools, data-minimization checks,
+> and forced-labor indicators that fine-tuning alone cannot.
 >
 > **DueCare is Gemma 4-powered safety infrastructure for migrant-worker
 > protection.** It does three things: **prevents exploitation before it
@@ -77,7 +85,7 @@ python -c "from duecare.server import create_app; from duecare.server.state impo
 # Open http://127.0.0.1:8771/slides/setup → Generate → Save for slides → the worker-question slide is now cached.
 ```
 
-> ### Submission state (Gemma 4 Good Hackathon, due 2026-05-18)
+> ### Submitted to the Gemma 4 Good Hackathon (2026-05-18)
 >
 > **Active Kaggle path: 01 + 02 + A-00.** Judges land on
 > the exploration workbench, then proceed to the focused live
