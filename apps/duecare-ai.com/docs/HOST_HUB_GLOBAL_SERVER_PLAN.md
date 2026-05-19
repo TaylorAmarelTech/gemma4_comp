@@ -363,7 +363,7 @@ These pages make the Duecare Hub / public coordination server understandable for
 | Route | Page | Purpose | Primary content |
 |---|---|---|---|
 | `/hub` | Duecare Hub overview | Explains the hosted server and why it exists. | Centralized knowledge / decentralized privacy; what the hub does; what it never stores; flow diagram; links to APIs and registries. |
-| `/mission` | Mission statement | Explains the human purpose, three outcomes, five lanes, privacy boundary, and what Duecare does not do. | Mission statement, problem framing, five-lane overview, composite character, privacy boundary, partner ecosystem wording. |
+| `/mission` | Mission statement | Explains the human purpose, three outcomes, six lanes, privacy boundary, and what Duecare does not do. | Mission statement, problem framing, six-lane overview, composite character, privacy boundary, partner ecosystem wording. |
 | `/knowledge-packs` | Knowledge Pack registry | Shows packs as first-class hosted assets. | Pack cards, versions, status, source types, privacy status, pull instructions, changelog links. |
 | `/shared-packs` | User-generated shared packs | Clearly labels community/user-generated packs and shows safety review status before download. | User-generated content labels, LLM evaluation summary, curator status, source/provenance notes, optional public contributor contact metadata. |
 | `/tools-registry` | Tool registry | Shows hosted/importable tools. | Tool cards, input/output schemas, local-vs-hub boundary, safety notes, example payloads. |

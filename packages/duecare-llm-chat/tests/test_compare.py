@@ -158,14 +158,27 @@ def test_helper_functions_defined(client):
 def test_model_selector_lives_in_shared_nav(client):
     """The model picker is shared top chrome, not a Compare-only card."""
     compare = client.get("/static/compare.html").text
+    chat = client.get("/static/index.html").text
     nav = client.get("/static/_nav.html").text
     nav_js = client.get("/static/_nav.js").text
     assert 'id="cmp-model-card"' not in compare
     assert 'id="cmp-model-select"' not in compare
+    assert "CMP_MODEL_FALLBACK_VARIANTS" not in compare
+    assert "fetch('/api/load-model" not in compare
+    assert 'fetch("/api/load-model' not in compare
+    assert 'id="picker-overlay"' not in chat
+    assert "Self-contained model picker" not in chat
+    assert "PICKER_FALLBACK_VARIANTS" not in chat
+    assert "fetch('/api/load-model" not in chat
+    assert 'fetch("/api/load-model' not in chat
+    assert "window.dcWbModelService.open" in chat
+    assert "page-local loader calls" in chat
     assert 'id="dc-wb-model-open"' in nav
     assert 'id="dc-wb-model-select"' in nav
     assert 'id="dc-wb-model-detail"' in nav
     assert 'id="dc-wb-model-layer"' in nav
+    assert nav.count('id="dc-wb-model-popover"') == 1
+    assert nav.count('id="dc-wb-model-layer"') == 1
     assert 'id="dc-wb-model-progress"' in nav
     assert nav.index('id="dc-wb-model-open"') < nav.index('id="dc-wb-model-layer"')
     assert 'id="dc-wb-model-overlay"' in nav

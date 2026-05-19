@@ -1,6 +1,6 @@
 # Repository Layout
 
-Current as of 2026-05-17.
+Current as of 2026-05-19.
 
 | Path | Purpose | Status |
 |---|---|---|
@@ -12,6 +12,7 @@ Current as of 2026-05-17.
 | [`kaggle/01-duecare-exploration-workbench/`](../kaggle/01-duecare-exploration-workbench/) | Broad interactive workbench: chat, harness comparison, search, extraction, traces, and knowledge flows. | Active |
 | [`kaggle/02-live-demo/`](../kaggle/02-live-demo/) | Focused demo/video path. | Active |
 | [`kaggle/A-00-omni-experiment-workbench/`](../kaggle/A-00-omni-experiment-workbench/) | Quantitative proof path: baseline, harness, synthetic rows, optional LoRA, judging, and report exports. | Active |
+| [`kaggle/03-universal-llm-benchmark/`](../kaggle/03-universal-llm-benchmark/) | Optional endpoint-comparison kernel for arbitrary API targets, DueCare prompt/rubric cues, and Claude Opus judging. | Optional |
 | [`kaggle/_archive/notebooks/`](../kaggle/_archive/notebooks/) | Retired A-series and video-pitch notebook-era surfaces. | Historical |
 | [`docs/`](../docs/) | Current docs plus archived historical docs. Main reviewer entry: [`FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md). | Live |
 | [`docs/_archive/`](../docs/_archive/) | Historical docs retained for provenance. | Historical |
@@ -25,6 +26,7 @@ Current as of 2026-05-17.
 - Active Kaggle inventory: [`docs/current_kaggle_notebook_state.md`](current_kaggle_notebook_state.md)
 - Model loading: [`docs/model_loading_trace.md`](model_loading_trace.md)
 - Harness inventory: [`docs/harness_ecosystem.md`](harness_ecosystem.md)
+- File purpose policy: [`docs/FILE_PURPOSE_GUIDE.md`](FILE_PURPOSE_GUIDE.md)
 
 ## Archival Rule
 

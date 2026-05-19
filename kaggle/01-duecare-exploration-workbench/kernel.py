@@ -1419,7 +1419,7 @@ def load_gemma() -> Optional[LoadedModel]:
     from duecare.chat.gemma4_runtime import Gemma4LoadSpec, Gemma4Runtime
 
     def _runtime_log(phase: str, message: str) -> None:
-      level = "warn" if phase in {"preload"} else "error" if phase == "error" else "info"
+      level = "warn" if phase in {"preload"} else "error" if phase in {"error", "gpu-missing"} else "info"
       _log_load(message, phase=phase, level=level)
 
     loaded_shared = Gemma4Runtime(log=_runtime_log).load(Gemma4LoadSpec(

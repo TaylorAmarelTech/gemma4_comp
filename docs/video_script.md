@@ -60,9 +60,9 @@ Visual: slides 3 and 18. Keep Gemma 4 visually under the lanes, not as
 a lane itself.
 
 Voiceover:
-"DueCare is one local substrate across five workflows: moderation,
-case analysis, worker information access, research, and anonymized
-knowledge sharing. Gemma 4 is the engine underneath: tool-capable,
+"DueCare is one local substrate across six lanes: platform moderation,
+NGO and regulator case analysis, worker information access, research,
+anonymized knowledge sharing, and developer integration. Gemma 4 is the engine underneath: tool-capable,
 fine-tunable with Unsloth, multimodal for file review, and small enough
 to run locally."
 

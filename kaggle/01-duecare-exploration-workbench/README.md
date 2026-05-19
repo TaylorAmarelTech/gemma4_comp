@@ -296,7 +296,7 @@ Index page: [`kaggle/_INDEX.md`](../_INDEX.md).
 
 ## Cross-links
 
-- **[DueCare App (#01)](https://www.kaggle.com/code/taylorsamarel/duecare-app)**: the full chat playground with five safety layers, local imports/evidence, 9-variant model picker, 4 grading modes, A/B compare, and every visualization in one place.
+- **[DueCare App (#01)](https://www.kaggle.com/code/taylorsamarel/duecare-app)**: the full chat playground with the safety harness layers, local imports/evidence, 9-variant model picker, 4 grading modes, A/B compare, and every visualization in one place.
 - **[DueCare Live Demo (#02)](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo)**: focused public-hub walkthrough plus the recording-grade pitch deck at `/start` and `/slides`.
 - **[DueCare Fine-tuning and Evaluation](../A-00-omni-experiment-workbench/README.md)**: run the preconfigured benchmark, synthetic SFT, LoRA, four-arm evaluation, and final report path.
-- **[Public hub: duecare-ai.com](https://duecare-ai.com)**: knowledge-pack registry, anonymized signal intake, public-source proposal intake, and the 5-lane audience showcase.
+- **[Public hub: duecare-ai.com](https://duecare-ai.com)**: knowledge-pack registry, anonymized signal intake, public-source proposal intake, and the six-lane audience showcase.

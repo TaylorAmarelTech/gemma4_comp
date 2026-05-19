@@ -78,13 +78,14 @@ Lead introductions, demos, and mission copy with the three outcomes:
 2. **Assist victims and at-risk workers** — support NGO, government, and worker-controlled workflows with grounded intake, routing, and mobile guidance.
 3. **Understand what is happening and why** — help researchers and stakeholders map the who, what, where, when, and why through reproducible evidence.
 
-Use exactly these five lanes, in this exact order, for navigation, setup paths, homepage cards, diagrams, demo chapters, and summaries:
+Use exactly these six lanes, in this exact order, for navigation, setup paths, homepage cards, diagrams, demo chapters, and summaries:
 
 1. **Platform safety**
 2. **NGO & regulator**
 3. **Individual worker / mobile**
 4. **Researcher**
-5. **Developer / integration partner**
+5. **Anonymized knowledge sharing**
+6. **Developer / integration partner**
 
 Do not reorder them. Do not replace them with older labels such as "worker-side", "enterprise", "social platforms", "Migrant Worker Chat", "Academic Research", or "Host / Hub / Global Server" in public lane lists.
 
@@ -103,6 +104,10 @@ Migrant workers and prospective migrant workers using a trusted mobile, chat, we
 ### Researcher
 
 Academic researchers, public-interest researchers, evaluators, auditors, Kaggle judges, model-safety teams, journalists, and policy analysts. They reproduce prompts, evaluate model behavior, compare interventions, and verify claims from source artifacts.
+
+### Anonymized knowledge sharing
+
+Partner organizations, curators, and trusted reviewers who contribute sanitized facts, contact updates, public-source findings, and corridor-pack improvements without exposing raw case files or worker narratives.
 
 ### Developer / integration partner
 
@@ -129,7 +134,7 @@ Use these public component names. Avoid unclear labels like Runtime, Harness, Ev
 
 ## Required safety and data-boundary language
 
-Use these concepts in the hero, data-boundary section, and tools/submission areas. Do not turn privacy into the recurring headline; make the three outcomes and five lanes the main story.
+Use these concepts in the hero, data-boundary section, and tools/submission areas. Do not turn privacy into the recurring headline; make the three outcomes and six lanes the main story.
 
 > Centralized knowledge. Decentralized data boundaries.
 
@@ -233,7 +238,7 @@ Recommended order:
 
 1. **Hero**
    - H1: `Prevent exploitation. Assist workers. Understand the pattern.`
-   - One plain-language sentence: Duecare uses Gemma 4, safety guidance, knowledge packs, and testing to help Platform safety, NGO & regulator, Individual worker / mobile, Researcher, and Developer / integration partner workflows without centralizing raw case data.
+   - One plain-language sentence: Duecare uses Gemma 4, safety guidance, knowledge packs, and testing to help Platform safety, NGO & regulator, Individual worker / mobile, Researcher, Anonymized knowledge sharing, and Developer / integration partner workflows without centralizing raw case data.
    - CTAs: `Watch demo`, `Explore setup`, `View live hub`.
    - Trust line: `No raw case intake · Draft-only handoff · Anonymized/public-source updates only`.
 
@@ -254,6 +259,7 @@ Recommended order:
    - NGO & regulator
    - Individual worker / mobile
    - Researcher
+   - Anonymized knowledge sharing
    - Developer / integration partner
 
 5. **Component overview**
@@ -285,10 +291,11 @@ Required demo chapters:
 3. **NGO & regulator** — show grounded draft guidance, contact routing, and complaint-channel context.
 4. **Individual worker / mobile** — show private local/mobile guidance for a suspicious message or document, with no raw hub submission.
 5. **Researcher** — show reproducible prompts, scoring, model comparison, and provenance.
-6. **Developer / integration partner** — show the setup path, APIs, packs, Docker/runtime shape, and integration hooks.
-7. **Central Knowledge Server** — show anonymized submission, public-source update proposal, pack metadata, and live hub health.
-8. **Data boundary** — show outbound anonymization and inbound anonymization for submissions/scraping.
-9. **Solution close** — one shared core, three outcomes, five lanes, no raw case intake, draft-only handoff.
+6. **Anonymized knowledge sharing** — show sanitized submission, public-source update proposal, pack metadata, and review status.
+7. **Developer / integration partner** — show the setup path, APIs, packs, Docker/runtime shape, and integration hooks.
+8. **Central Knowledge Server** — show hub health, pack distribution, and inbound review queues.
+9. **Data boundary** — show outbound anonymization and inbound anonymization for submissions/scraping.
+10. **Solution close** — one shared core, three outcomes, six lanes, no raw case intake, draft-only handoff.
 
 Demo page layout:
 
@@ -415,7 +422,7 @@ Before claiming completion, run or describe checks for:
 - forms have no-raw-case consent checkboxes;
 - use cases appear in canonical order;
 - required privacy phrases appear;
-- demo page covers all three outcomes, all five lanes, and the central server, not only a worker question.
+- demo page covers all three outcomes, all six lanes, and the central server, not only a worker question.
 
 ## Output requested
 

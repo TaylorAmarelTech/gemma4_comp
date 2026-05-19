@@ -275,6 +275,9 @@ def test_shared_gemma_runtime_uses_gemma4_message_content_blocks():
     assert "FastModel.from_pretrained(" in runtime
     assert "full_finetuning=False" in runtime
     assert "device_map = \"balanced\"" in runtime
+    assert "CUDA accelerator is not visible to PyTorch" in runtime
+    assert "set Accelerator to GPU T4 x2" in runtime
+    assert "importing Unsloth FastModel" in runtime
     assert "heartbeat #" in runtime
     assert "top_p=top_p" in runtime
     assert "top_k=top_k" in runtime
@@ -286,6 +289,7 @@ def test_kernel01_delegates_local_model_loading_to_shared_fastmodel_runtime():
     assert "from duecare.chat.gemma4_runtime import Gemma4LoadSpec, Gemma4Runtime" in text
     assert "Gemma4Runtime(log=_runtime_log).load(Gemma4LoadSpec(" in text
     assert "shared FastModel runtime FAILED" in text
+    assert 'phase in {"error", "gpu-missing"}' in text
     assert "FastModel.from_pretrained(" not in text.split("def load_gemma() -> Optional[LoadedModel]:", 1)[1].split("# ===========================================================================\n# 3.", 1)[0]
 
 

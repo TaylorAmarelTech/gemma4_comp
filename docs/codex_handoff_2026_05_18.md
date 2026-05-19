@@ -91,7 +91,7 @@ Track positioning declared up top: **Safety & Trust** (Impact),
 ```
 01. Title — "Local Gemma 4 safety infrastructure for migrant-worker protection"
 02. Stakes — scale + capability gap (28M / $236B / 169M / 3x)
-03. Solution — 5 lanes + shared substrate
+03. Solution — 6 lanes + shared substrate
 04. Moderation overview (3 FB cards)
 05. Moderation demo (FB post + 5-stage harness)
 06. Case-analysis overview (pipeline + lanes)

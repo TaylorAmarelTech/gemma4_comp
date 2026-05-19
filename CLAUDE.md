@@ -6,9 +6,11 @@
 ## Current operating brief (2026-05-19)
 
 - Active submission work is the three-kernel path: `kaggle/01-duecare-exploration-workbench`, `kaggle/02-live-demo`, and `kaggle/A-00-omni-experiment-workbench`.
+- Optional benchmark work lives in `kaggle/03-universal-llm-benchmark`: use it for arbitrary endpoint comparisons and Claude Opus judging, not as a replacement for the three-kernel recording path.
 - The public story has six setup lanes in this order: Platform safety, NGO & regulator, Individual worker / mobile, Researcher, Anonymized knowledge sharing, Developer / integration partner.
 - The workspace has 17 `duecare-llm*` package directories. The latest verified local collection is 675 package tests collected; do not claim a full pass unless you ran the full suite.
 - Documentation edits should follow `docs/DOCUMENTATION_GUIDE.md`; agent edits should also honor the root `AGENTS.md`.
+- Repo-organization edits should also keep `docs/FILE_PURPOSE_GUIDE.md` and the relevant directory index current.
 - Keep generated report files out of commits unless Taylor explicitly asks to publish them.
 
 ## Three overarching goals (every prompt, every action)
