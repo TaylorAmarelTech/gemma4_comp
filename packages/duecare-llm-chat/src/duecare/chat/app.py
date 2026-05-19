@@ -4084,7 +4084,22 @@ def create_app(
             t_start = time.time()
             last_keepalive = t_start
             if first_event is not None:
-                yield (f"data: {json.dumps(first_event)}\n\n").encode()
+                try:
+                    yield (f"data: {json.dumps(first_event)}\n\n").encode()
+                except (TypeError, ValueError) as e:
+                    # Non-serializable first event -- emit a minimal
+                    # error frame so the client can render a real
+                    # failure state and move on to the next variant.
+                    fallback = {
+                        "type": "error",
+                        "error": (
+                            f"first_event not JSON-serializable: "
+                            f"{type(e).__name__}: {str(e)[:200]}"
+                        ),
+                        "code": 500,
+                    }
+                    yield (f"data: {json.dumps(fallback)}\n\n").encode()
+                    return
             while True:
                 try:
                     evt = progress_q.get_nowait()
@@ -4097,11 +4112,31 @@ def create_app(
                         last_keepalive = now
                     if not worker_thread.is_alive() and progress_q.empty():
                         # Worker exited but never put a complete/error.
-                        # Defensive — shouldn't normally happen.
+                        # Defensive -- shouldn't normally happen.
                         yield (f"data: {json.dumps({'type':'error','error':'worker exited unexpectedly','code':500})}\n\n").encode()
                         return
                     continue
-                yield (f"data: {json.dumps(evt)}\n\n").encode()
+                # Per-event serialize-and-yield in its own try/except so
+                # one un-serializable event (e.g., a stray non-JSON
+                # object leaked into a dim row) does not kill the whole
+                # stream mid-grade. Skip the bad event with a warn frame
+                # and keep going so the rest of the grading survives.
+                try:
+                    payload = json.dumps(evt)
+                except (TypeError, ValueError) as e:
+                    skip_evt = {
+                        "type": "warn",
+                        "error": (
+                            f"dropped non-serializable event: "
+                            f"{type(e).__name__}: {str(e)[:200]}"
+                        ),
+                    }
+                    try:
+                        yield (f"data: {json.dumps(skip_evt)}\n\n").encode()
+                    except Exception:  # noqa: BLE001
+                        pass
+                    continue
+                yield (f"data: {payload}\n\n").encode()
                 if evt.get("type") in ("complete", "error"):
                     return
 
