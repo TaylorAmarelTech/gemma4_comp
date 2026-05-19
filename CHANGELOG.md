@@ -10,12 +10,62 @@ the meta `duecare-llm` package tracking the workspace lockstep.
 
 ## Unreleased
 
-- Pending: bench-and-tune (A2) Kaggle T4×2 fine-tune run + HF Hub
-  push of `Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0`
-- Pending: notebook publish for #3, #4, A1, A3, A4, A5, A6 (built
-  locally; gated by Kaggle daily push rate-limit)
-- Pending: re-measure +56.5pp headline lift against v3.6 rubric (the
-  21-dim + use-case-aware version) and update writeup numbers.
+- Hub URL swap: once `https://duecare-ai.com/api/submit/knowledge`
+  resolves with TLS, swap the default hub URL away from the
+  `gemma4-comp.onrender.com` placeholder in both share templates.
+- CORS / TrustedHostMiddleware: allow `duecare-ai.com` +
+  `www.duecare-ai.com` in `packages/duecare-llm-server` and
+  `apps/duecare-ai.com`.
+
+## v0.9.0 (2026-05-18) — Hackathon submission
+
+Headline: **+11.7pp combined-judge lift** (Stock Gemma 4 2B **29.5%** →
+Fine-tuned + harness **41.2%** on the 2026-05-18 e2b-full-train-eval
+smoke matrix). The harness alone added **+6.1pp** over stock; the
+fine-tune + harness arm added **+14.8pp** over fine-tuning alone. The
+harness supplies the facts, citations, tools, data-minimization checks,
+and forced-labor indicators that fine-tuning alone cannot.
+
+### Shipped — Kaggle submission
+
+- Three judge-facing kernels: [`duecare-app`](https://www.kaggle.com/code/taylorsamarel/duecare-app),
+  [`duecare-live-demo`](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo),
+  [`duecare-fine-tuning-and-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation).
+- Public hub at [duecare-ai.com](https://duecare-ai.com) with /demo
+  walkthrough video, six-lane use-case catalog, harness comparison,
+  knowledge-pack registry, and submission flow.
+- Android sibling release: [DueCare Journey v0.9.0](https://github.com/TaylorAmarelTech/duecare-journey-android/releases/tag/v0.9.0-twenty-corridors-new-rules)
+  (twenty corridors, new rules, structured Add-Fee dialog, RefundClaim
+  auto-draft, image picker).
+- Locked Kaggle writeup with author Taylor S. Amarel; submitted to
+  Impact, Special Technology, and Main tracks.
+
+### Shipped — Harness ecosystem
+
+- 165+ deterministic GREP rules across recruitment, workplace,
+  coercion, anti-jailbreak, and corridor-cap families.
+- 55+ curated knowledge documents covering ILO C029 / C181 / C189,
+  Palermo, POEA, BP2MI, Nepal FEA, HK Cap. 57 / 163 / 57A, SG EFMA
+  Cap. 91A §22A, UAE MoHRE Decree 765/2015, RA 8042 / RA 10022.
+- Six audience-facing lanes from one runtime: content moderation,
+  case analysis, worker support, research, anonymized knowledge
+  sharing, custom API implementations.
+- Unified workbench UI primitives across process / knowledge / search /
+  share / harness pages (trust pill row, status pills, Gemma markers
+  with Optional → Active → Done lifecycle, persistent OCR/multimodal
+  Deferred tile).
+- Per-task fine-tuning JSONL emission boundary at every Gemma-bearing
+  handler (`/kaggle/working/training/<harness>.jsonl`).
+
+### Resolved — previously pending
+
+- ~~bench-and-tune Kaggle T4×2 fine-tune run~~ → ran via
+  `A-00-omni-experiment-workbench`; results in the 41.2% headline above.
+- ~~notebook publish for the appendix kernels~~ → appendix
+  notebooks A-01…A-24 archived to `kaggle/_archive/notebooks/`; active
+  submission is the three-kernel path described above.
+- ~~re-measure +56.5pp headline lift against v3.6 rubric~~ → superseded
+  by the 2026-05-18 4-arm smoke matrix using combined rule + LLM judge.
 
 ## v3.6 (2026-05-06) — Rubric expansion + use-case-aware grading + judge → evaluator rename
 
