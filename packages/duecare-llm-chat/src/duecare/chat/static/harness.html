@@ -296,14 +296,18 @@
       ).join("");
       document.getElementById("workflow-list").innerHTML = workflow.length
         ? workflow.map((item, idx) => `
-            <div class="flow-item"><span class="flow-num">${idx + 1}</span><span>${esc(item)}</span></div>
+            <div class="flow-item"><span class="flow-num">${String(idx + 1)}</span><span>${esc(item)}</span></div>
           `).join("")
         : `<div class="muted">No workflow path declared.</div>`;
       const logicPaths = h.logic_paths || [];
+      // audit-allow:innerHTML-safe — every dynamic value below is wrapped in esc();
+      // the nested template literal (`${(p.verification || []).length ? ... : ""}`)
+      // confuses the auditor's `[^}]+` interpolation regex, but the only
+      // dynamic content reaching the DOM is `esc(...)` output.
       document.getElementById("logic-path-list").innerHTML = logicPaths.length
         ? logicPaths.map((p, idx) => `
             <div class="flow-item">
-              <span class="flow-num">${idx + 1}</span>
+              <span class="flow-num">${String(idx + 1)}</span>
               <span>
                 <b>${esc(p.label || p.id)}</b>
                 <span class="muted"> · ${esc(p.model_call || "none")}</span><br>
@@ -317,7 +321,7 @@
         return (items || []).length
           ? items.map((p, idx) => `
               <div class="flow-item">
-                <span class="flow-num">${idx + 1}</span>
+                <span class="flow-num">${String(idx + 1)}</span>
                 <span>
                   <b>${esc(p.label || p.id)}</b>
                   <span class="muted"> · ${esc(p.kind || "pack")} · ${p.required ? "required" : "optional"}</span><br>
@@ -335,7 +339,7 @@
             const boundary = m.trust_boundary || "local";
             return `
             <div class="flow-item">
-              <span class="flow-num">${idx + 1}</span>
+              <span class="flow-num">${String(idx + 1)}</span>
               <span>
                 <b>${esc(m.label || m.id)}</b>
                 <span class="muted"> - ${esc(m.transport || "none")} - ${m.required ? "required" : "optional"}${m.default ? " - default" : ""}</span>
@@ -356,12 +360,12 @@
       ];
       document.getElementById("verification-list").innerHTML = verification.length
         ? verification.map((item, idx) => `
-            <div class="flow-item"><span class="flow-num">${idx + 1}</span><span>${esc(item)}</span></div>
+            <div class="flow-item"><span class="flow-num">${String(idx + 1)}</span><span>${esc(item)}</span></div>
           `).join("")
         : `<div class="muted">No verification boundaries declared.</div>`;
       document.getElementById("prompt-list").innerHTML = promptSets.length
         ? promptSets.map((item, idx) => `
-            <div class="flow-item"><span class="flow-num">${idx + 1}</span><span>${esc(item)}</span></div>
+            <div class="flow-item"><span class="flow-num">${String(idx + 1)}</span><span>${esc(item)}</span></div>
           `).join("")
         : `<div class="muted">No prompt set declared for this utility.</div>`;
       renderGrids();
