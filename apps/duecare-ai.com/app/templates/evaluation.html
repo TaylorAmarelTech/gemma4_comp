@@ -35,6 +35,17 @@
 <h1>Evaluation, retraining, and the pipeline that decides what ships.</h1>
 <p class="lede">DueCare ships nothing without an evaluation pass. Every pack release runs a regression suite. Every adapter retrain runs a comparison set against the previous adapter. The A07 Kaggle notebook turns Persona + GREP + RAG + Tools traces into SFT data and DPO preference pairs, then re-benchmarks before any model artifact is published.</p></div></section>
 
+<section class="hp-section" data-screen-label="Eval &middot; Harness lift"><div class="wrap">
+<div class="head"><div><span class="ix">00 &middot; Headline number</span><h2>The harness adds the lift. Fine-tuning needs it.</h2></div><p class="summary">Smoke matrix recorded 2026-05-18 on the <code>e2b-full-train-eval</code> Kaggle notebook with combined rule + LLM judge. The harness alone added <b>+6.1pp</b> over stock Gemma 4. Fine-tuned + harness added <b>+14.8pp</b> over fine-tuning alone and <b>+11.7pp</b> over stock.</p></div>
+<div class="ev-metrics" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
+<div class="m"><div class="lbl">Stock Gemma 4 2B</div><div class="val">29.5%</div><div class="sub">baseline</div></div>
+<div class="m"><div class="lbl">Stock + chat-offline harness</div><div class="val">35.6%</div><div class="sub">+6.1pp vs stock</div></div>
+<div class="m"><div class="lbl">Fine-tuned</div><div class="val">26.4%</div><div class="sub">&minus;3.1pp vs stock</div></div>
+<div class="m"><div class="lbl">Fine-tuned + harness</div><div class="val">41.2%</div><div class="sub">+11.7pp vs stock</div></div>
+</div>
+<p class="hp-note">Fine-tuning helped response shape and refusal style; the harness supplied the facts, citations, tools, data-minimization checks, and forced-labor indicators. This is a smoke run, not a final benchmark. Report, CSV, JSON, and manifest bundle exported to <code>/kaggle/working</code> by the <a href="https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation" rel="noopener">A-00 Fine-tuning &amp; Evaluation notebook</a>.</p>
+</div></section>
+
 <section class="hp-section" data-screen-label="Eval &middot; Cycle"><div class="wrap">
 <div class="head"><div><span class="ix">01 &middot; Lifecycle</span><h2>Six stages, one direction.</h2></div><p class="summary">Nothing skips a stage. A failed stage either bounces back to revision or rejects the candidate.</p></div>
 <div class="ev-cycle">
