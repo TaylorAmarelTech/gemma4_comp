@@ -35,19 +35,26 @@ def test_coordinator_default_is_rule_based() -> None:
     assert coord.orchestrator_model is None
 
 
-def test_coordinator_gemma_mode_without_model_falls_back() -> None:
+def test_coordinator_gemma_mode_without_model_falls_back(tmp_path) -> None:
     """Gemma mode without a model supplied falls back to rule-based DAG."""
     from duecare.agents.coordinator.coordinator import CoordinatorAgent
+    from duecare.agents.historian import HistorianAgent
+    from duecare.agents import agent_registry as ar
 
-    coord = CoordinatorAgent(
-        workflow_id="test-fallback",
-        use_gemma_orchestration=True,
-        orchestrator_model=None,  # no model supplied → fallback
-    )
-    ctx = _build_ctx()
-    output = coord.execute(ctx)
-    # Should still complete via rule-based pipeline
-    assert output.status.name in ("COMPLETED", "FAILED")
+    original_historian = ar._by_id["historian"]
+    ar._by_id["historian"] = HistorianAgent(output_dir=tmp_path)
+    try:
+        coord = CoordinatorAgent(
+            workflow_id="test-fallback",
+            use_gemma_orchestration=True,
+            orchestrator_model=None,  # no model supplied → fallback
+        )
+        ctx = _build_ctx()
+        output = coord.execute(ctx)
+        # Should still complete via rule-based pipeline
+        assert output.status.name in ("COMPLETED", "FAILED")
+    finally:
+        ar._by_id["historian"] = original_historian
 
 
 def test_coordinator_dispatches_tool_calls() -> None:

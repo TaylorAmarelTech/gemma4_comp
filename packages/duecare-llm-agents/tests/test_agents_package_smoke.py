@@ -181,15 +181,23 @@ class TestExporterAgent:
 
 
 class TestCoordinatorAgent:
-    def test_walks_pipeline(self, ctx):
+    def test_walks_pipeline(self, ctx, tmp_path):
         if not DOMAINS_ROOT.exists():
             pytest.skip("domains not populated")
-        coord = agent_registry.get("coordinator")
-        out = coord.execute(ctx)
-        assert out.status == TaskStatus.COMPLETED
-        # Scout and Historian should both have run
-        assert "scout" in ctx.outputs_by_agent
-        assert "historian" in ctx.outputs_by_agent
+        from duecare.agents.historian import HistorianAgent
+        from duecare.agents import agent_registry as ar
+
+        original_historian = ar._by_id["historian"]
+        ar._by_id["historian"] = HistorianAgent(output_dir=tmp_path)
+        try:
+            coord = agent_registry.get("coordinator")
+            out = coord.execute(ctx)
+            assert out.status == TaskStatus.COMPLETED
+            # Scout and Historian should both have run
+            assert "scout" in ctx.outputs_by_agent
+            assert "historian" in ctx.outputs_by_agent
+        finally:
+            ar._by_id["historian"] = original_historian
 
     def test_run_workflow_returns_workflowrun(self, ctx, tmp_path):
         from duecare.agents.coordinator import CoordinatorAgent

@@ -58,3 +58,26 @@ Create a Kaggle Benchmark task notebook from
 `kernel.py`, then run. The aggregate task is
 `duecare_migrant_worker_safety_benchmark`; the row-level task is marked
 `store_task=False` so the aggregate task is the publishable benchmark output.
+
+## Publishing Checklist
+
+1. Open Kaggle Community Benchmarks and create a new task notebook.
+2. Paste this `kernel.py` or attach the repo dataset and import the file.
+3. Add the DueCare repo as an input dataset if you want the full prompt corpus;
+   otherwise the built-in fallback rows run.
+4. Set `DUECARE_KBENCH_LIMIT=12` for a first smoke run; raise it only after the
+   benchmark task succeeds.
+5. Leave `DUECARE_KBENCH_MODEL` empty for Kaggle's default model proxy, or set
+   it to the exact Kaggle model name shown in the Benchmark UI.
+6. Keep `DUECARE_KBENCH_USE_JUDGE=0` for the first publishable run. Enable it
+   only after confirming the preferred judge model is available in Kaggle.
+7. Run the task. Confirm the output reports:
+   - `uses_kaggle_benchmarks: true`
+   - rows loaded from the intended domain
+   - no operational-uplift assertion failures hidden by fallback logic
+8. Download `/kaggle/working/duecare-kbench/<run_id>/results.json` and
+   `summary.md` as the first reproducibility artifact.
+9. Use Kaggle's "Evaluate More Models" control to populate the benchmark
+   leaderboard.
+10. Link the public benchmark URL from `README.md` only after the task page is
+    public and at least one run artifact has been reviewed.

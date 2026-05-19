@@ -7,3 +7,6 @@ These reports are useful for provenance and debugging, but they are not the
 authoritative benchmark results for the submission. Final benchmark outputs
 should be regenerated from the current Kaggle notebooks and cited by path,
 commit, and run timestamp.
+
+Disposable local test reports such as `test-run-*.md` are ignored. Tests that
+exercise the Historian should write to a temporary directory, not this folder.

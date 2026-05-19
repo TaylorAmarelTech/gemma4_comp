@@ -33,6 +33,8 @@ submission path. They are archived reference material.
 - Prefer readable link text over raw file paths in public tables.
 - New durable files need a clear purpose paragraph or an entry in the nearest
   purpose map. See `docs/FILE_PURPOSE_GUIDE.md`.
+- Generated package metadata files may contain `STATUS.md` TODO sections by
+  design. Treat those as module completion notes, not public placeholder copy.
 
 ## Link And Surface Hygiene
 
@@ -44,6 +46,16 @@ python scripts/validate_public_surface.py
 
 This checks route drift, six-lane order, Kaggle labels, v1 bundle envelope
 markers, manifest checksums, and repo-local links.
+
+For outbound links, list or probe external URLs with:
+
+```bash
+python scripts/check_external_links.py --list
+python scripts/check_external_links.py --check --timeout 8 --max 100
+```
+
+For recording or UI-polish claims, use `docs/SCREENSHOT_AUDIT.md` to track the
+required desktop, tablet, and mobile screenshots.
 
 For changed package claims, also run:
 
