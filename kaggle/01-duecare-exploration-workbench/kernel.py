@@ -4,8 +4,9 @@
 # Kaggle slug: taylorsamarel/duecare-app
 #
 # Unified workbench surface for every audience and every harness capability:
-#   - 5 audience showcase pages (Platform safety / NGO & regulator / Worker /
-#     Researcher / Developer) with curated sample prompts per lane.
+#   - 6 audience showcase pages (Platform safety / NGO & regulator /
+#     Individual worker & mobile / Researcher / Anonymized knowledge sharing /
+#     Developer & integration partner) with curated sample prompts per lane.
 #   - Free-form chat playground with five safety layers plus local imports,
 #     4 grading modes, and 9 Gemma 4 variants through the shared model picker.
 #   - Layer transparency: live GREP rules / live RAG docs / tools, each
@@ -14,7 +15,7 @@
 #     full Tools index at /static/all-tools.html, all behind one nav bar.
 #
 # Demo path: Run All -> cloudflared URL prints -> pick a model -> click any
-# of the 5 audience tabs in the top nav to land on a curated lane demo, or
+# of the 6 audience tabs in the top nav to land on a curated lane demo, or
 # stay on the home page for free-form chat.
 #
 # Full README + cross-kernel index: see the README in this folder.

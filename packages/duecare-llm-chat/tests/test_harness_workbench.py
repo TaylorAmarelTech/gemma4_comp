@@ -426,7 +426,11 @@ def test_share_page_has_bulk_review_selection_controls(client):
     assert "Upload source bundle or knowledge files" in text
     assert "gemma_review=' + gemmaReview" in text
     assert "Gemma privacy review" in text
-    assert "optionally Gemma-review selected items" in text
+    # The Step 3 h3 collapsed from the verbose "Anonymize and optionally
+    # Gemma-review selected items" to a single word; the optionality is
+    # now carried by the Optional · Gemma marker beside the action button
+    # and by the explanatory body copy below.
+    assert ">Anonymize<" in text
     assert "Gemma privacy review is a second local check" in text
     assert "human review remains required" in text
     assert "knowledge_files_sample.zip" in text
@@ -1042,6 +1046,15 @@ def test_share_step3_button_label_does_not_falsely_promise_gemma_review(client):
     r = client.get("/static/share.html")
     assert r.status_code == 200
     text = r.text
-    assert ">Step 3: Run anonymization (Gemma review if loaded)<" in text
+    # The Step 3 button label must not claim Gemma review unconditionally;
+    # the per-design-contract north-star copy drops the "Step 3:" prefix and
+    # the parenthetical, leaving "Run anonymization" beside the
+    # Optional · Gemma marker that carries the lifecycle truth.
+    assert ">Run anonymization<" in text
+    assert ">Step 3: Run anonymization (Gemma review if loaded)<" not in text
     assert ">Step 3: Run anonymization + Gemma review<" not in text
     assert "Gemma residual-PII review only runs when a Gemma 4 model is loaded" in text
+    # The Optional · Gemma marker beside the button carries the honesty
+    # contract: the label itself is silent about whether Gemma ran.
+    assert 'id="wb-step3-gemma-mark"' in text
+    assert "Optional · Gemma" in text

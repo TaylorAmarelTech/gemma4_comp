@@ -225,3 +225,101 @@ def test_design_contract_pages_use_dc_pill_lifecycle(page: str) -> None:
     assert "dc-pill" in html, (
         f"{page} must use the shared .dc-pill lifecycle pills."
     )
+
+
+# ---------------------------------------------------------------------------
+# Activity log "Copy JSON" contract -- design package §2.3 calls for a
+# panel-header copy affordance on every activity log. The shared helper
+# at /static/_activity_log.js exposes the API, the chrome provides the
+# styles, and each design-contract page opts in by declaring
+# data-toolbar="copy-json" on the activity-log host.
+# ---------------------------------------------------------------------------
+
+
+def test_activity_log_helper_exposes_to_json_and_copy() -> None:
+    """The shared activity-log helper must expose ``toJSON()`` and
+    ``copy()`` on the returned API so any page can render a panel-header
+    Copy JSON link without rolling its own clipboard logic."""
+    js = _read("_activity_log.js")
+    assert "toJSON: function ()" in js, (
+        "_activity_log.js must expose toJSON() on the attach() return."
+    )
+    assert "copy: async function ()" in js, (
+        "_activity_log.js must expose async copy() that writes the "
+        "JSON payload to navigator.clipboard."
+    )
+    # Events should be mirrored in memory so toJSON() has data to copy.
+    assert "const events = [];" in js
+    # The copy() implementation must serialize via JSON.stringify, not
+    # an ad-hoc DOM scrape.
+    assert "JSON.stringify(events, null, 2)" in js
+
+
+def test_activity_log_copy_fails_honestly_when_clipboard_unavailable() -> None:
+    """copy() must return false (not a fake true) when the clipboard
+    API is missing -- e.g., insecure origin, sandboxed iframe, ancient
+    browser. Otherwise the UI shows a "Copied" tick on a no-op."""
+    js = _read("_activity_log.js")
+    # The guard reads the clipboard surface defensively and bails early.
+    assert "typeof navigator === 'undefined'" in js
+    assert "!navigator.clipboard" in js
+    assert "typeof navigator.clipboard.writeText !== 'function'" in js
+    # The early-return must explicitly emit false so the caller can
+    # show a real failure state.
+    assert "navigator.clipboard unavailable" in js
+
+
+def test_activity_log_helper_opt_in_toolbar() -> None:
+    """The toolbar is opt-in via ``opts.toolbar === "copy-json"`` or
+    ``data-toolbar="copy-json"`` on the host. Existing call sites that
+    do not opt in must render identically -- so the helper must check
+    one of those two flags before mounting any toolbar DOM."""
+    js = _read("_activity_log.js")
+    assert "opts.toolbar === 'copy-json'" in js
+    assert "host.dataset.toolbar === 'copy-json'" in js
+    # The toolbar must include a Copy JSON button labelled clearly.
+    assert "'Copy JSON'" in js
+    # The button must carry an aria-label for accessibility.
+    assert "Copy activity log as JSON" in js
+
+
+def test_chrome_styles_activity_log_toolbar() -> None:
+    """``_chrome.css`` must style the toolbar so the Copy JSON button
+    reads on the dark log panel. Scoped under ``.dc-activity-log`` so the
+    styles do not leak to other panels."""
+    css = _read("_chrome.css")
+    assert ".dc-activity-log .dc-activity-log-toolbar {" in css
+    assert ".dc-activity-log .dc-activity-log-copy {" in css
+    # The "Copied" feedback state should be visually distinct.
+    assert ".dc-activity-log .dc-activity-log-copy.is-copied {" in css
+    # Focus-visible coverage so keyboard users see the focus ring.
+    assert (
+        ".dc-activity-log .dc-activity-log-copy:focus-visible {" in css
+    )
+
+
+@pytest.mark.parametrize("page", DESIGN_CONTRACT_PAGES)
+def test_design_contract_pages_opt_into_copy_json(page: str) -> None:
+    """Every design-contract page must opt in to the Copy JSON toolbar so
+    reviewers can capture the activity stream for audit / bug reports.
+
+    The opt-in is a single attribute on the activity-log host:
+    ``data-toolbar="copy-json"``."""
+    html = _read(page)
+    # Locate the activity-log host (id varies across pages).
+    log_line = next(
+        (
+            line
+            for line in html.splitlines()
+            if 'class="dc-activity-log"' in line
+            and ("wb-log" in line or "search-log" in line or "kx-log" in line)
+        ),
+        None,
+    )
+    assert log_line is not None, (
+        f"{page} should declare a dc-activity-log host."
+    )
+    assert 'data-toolbar="copy-json"' in log_line, (
+        f"{page} must opt in to the panel-header Copy JSON affordance via "
+        'data-toolbar="copy-json" on the activity-log host.'
+    )

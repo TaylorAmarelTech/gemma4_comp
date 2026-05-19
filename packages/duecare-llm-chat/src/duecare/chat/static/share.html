@@ -110,7 +110,7 @@
           <a class="wb-btn-secondary" href="/static/samples/case_files_media_rich_sample.zip" download="case_files_media_rich_sample.zip">Download sample source bundle</a>
         </div>
         <div class="wb-row">
-          <button class="wb-btn-primary" id="wb-step1-btn" disabled onclick="wbStep1()">Step 1: Process uploaded file</button>
+          <button class="wb-btn-primary" id="wb-step1-btn" disabled onclick="wbStep1()">Process bundle locally</button>
         </div>
         <div class="wb-progress-box" id="wb-share-process-progress-box" hidden>
           <div class="wb-progress-head">
@@ -158,7 +158,7 @@
       <summary>
       <span class="wb-step-num">3</span>
       <div class="wb-step-summary">
-        <h3>Anonymize and optionally Gemma-review selected items</h3>
+        <h3>Anonymize</h3>
         <p>Regex pass: <span class="wb-pill">PERSON</span> <span class="wb-pill">EMAIL</span>
         <span class="wb-pill">PHONE</span> <span class="wb-pill">AMOUNT</span>
         <span class="wb-pill">ID</span>. Each match becomes a salted-hash placeholder. If a model is loaded, Gemma 4 reviews the already-redacted text for residual PII without quoting suspected values.</p>
@@ -175,7 +175,7 @@
           <div class="wb-muted" style="padding: 12px; text-align: center;">(complete Step 2 first)</div>
         </div>
         <div class="wb-row" style="align-items:center; gap:10px; flex-wrap:wrap;">
-          <button class="wb-btn-primary" id="wb-step3-btn" disabled onclick="wbStep3()" data-tip="Deterministic regex redaction always runs. Gemma residual-PII review only runs when a Gemma 4 model is loaded; otherwise it is skipped without blocking submission." data-tip-pos="below">Step 3: Run anonymization (Gemma review if loaded)</button>
+          <button class="wb-btn-primary" id="wb-step3-btn" disabled onclick="wbStep3()" data-tip="Deterministic regex redaction always runs. Gemma residual-PII review only runs when a Gemma 4 model is loaded; otherwise it is skipped without blocking submission." data-tip-pos="below">Run anonymization</button>
           <button class="wb-btn-secondary" id="wb-step3-fast-btn" disabled onclick="wbStep3(false)" data-tip="Fast recording fallback: deterministic salted-hash redaction only." data-tip-pos="below">Run deterministic only</button>
           <span class="dc-gemma-mark is-optional" id="wb-step3-gemma-mark" data-tip="Reflects whether Gemma actually reviewed the redacted text. Stays Optional unless a real model call completes." data-tip-pos="below">Optional · Gemma</span>
         </div>
@@ -217,7 +217,7 @@
     <!-- Activity log -->
     <div class="wb-card">
       <h2>Activity log <span class="wb-muted" style="font-weight: normal;">every API call, response, sha256, audit-log entry</span></h2>
-      <div id="wb-log" class="dc-activity-log">
+      <div id="wb-log" class="dc-activity-log" role="log" aria-label="Activity log" aria-live="polite" data-toolbar="copy-json">
         <div class="wb-muted">No activity yet. Start with Step 1.</div>
       </div>
     </div>
@@ -378,7 +378,7 @@
       } catch (e) {
         const err = document.getElementById('wb-step1-error');
         err.textContent = 'Step 1 failed: ' + (e && e.message || e); err.style.display = '';
-      } finally { btn.disabled = false; btn.textContent = 'Step 1: Process uploaded file'; }
+      } finally { btn.disabled = false; btn.textContent = 'Process bundle locally'; }
     }
     function wbRenderFacts() {
       wbChecked.clear();
@@ -548,7 +548,7 @@
           gMark.textContent = 'Gemma failed';
         }
       } finally {
-        btn.disabled = false; btn.textContent = 'Step 3: Run anonymization (Gemma review if loaded)';
+        btn.disabled = false; btn.textContent = 'Run anonymization';
         if (fastBtn) fastBtn.disabled = selected.length === 0;
       }
     }

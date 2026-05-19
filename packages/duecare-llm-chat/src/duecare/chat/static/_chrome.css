@@ -1144,6 +1144,55 @@ code, .mono {
   color: #8A8E97; font-style: italic; padding: 4px 0;
 }
 
+/* ===========================================================
+   Activity log toolbar — opt-in via data-toolbar="copy-json".
+   The toolbar sits as the host's first child and provides a
+   single "Copy JSON" affordance plus a quiet label. It is the
+   design contract's §2.3 "Copy JSON link in the panel header".
+   =========================================================== */
+.dc-activity-log .dc-activity-log-toolbar {
+  display: flex; align-items: center; gap: 8px;
+  position: sticky; top: -10px; z-index: 1;
+  margin: -10px -12px 8px;
+  padding: 6px 12px;
+  background: #0E1116;
+  border-bottom: 1px solid #2A2D34;
+}
+.dc-activity-log .dc-activity-log-toolbar-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8A8E97;
+}
+.dc-activity-log .dc-activity-log-toolbar-spacer { flex: 1; }
+.dc-activity-log .dc-activity-log-copy {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: #C7C2B0;
+  background: transparent;
+  border: 1px solid #2A2D34;
+  border-radius: 4px;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: color 120ms ease, border-color 120ms ease,
+              background 120ms ease;
+}
+.dc-activity-log .dc-activity-log-copy:hover {
+  color: #E4E1D7;
+  border-color: #4A4D54;
+  background: #181A20;
+}
+.dc-activity-log .dc-activity-log-copy:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.dc-activity-log .dc-activity-log-copy.is-copied {
+  color: oklch(0.78 0.14 155);
+  border-color: oklch(0.50 0.12 155);
+}
+
 /* Fallback bottom log injected by _nav.js on pages that do not define
    their own activity log. Page-specific logs win; this only covers older
    catalog and utility pages so every workbench surface has the same
