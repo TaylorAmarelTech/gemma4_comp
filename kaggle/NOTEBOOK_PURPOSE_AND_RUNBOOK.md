@@ -33,3 +33,10 @@ The pipeline runs:
 ## Archive
 
 `03-duecare-video-pitch` and `A-01` through `A-24` are archived under `kaggle/_archive/notebooks/`. They are retained as reference material only.
+
+## Optional Benchmark Kernel
+
+`03-universal-llm-benchmark` is available for endpoint comparisons after the
+main recording path is stable. It tests arbitrary model APIs against DueCare
+prompts and rubric dimensions, then writes replayable JSON/JSONL/Markdown
+artifacts under `/kaggle/working/universal-benchmark/`.

@@ -19,6 +19,14 @@ Each active folder uses `kernel.py` as source of truth. Do not recreate or
 publish historical `.ipynb` wrappers for these active folders unless Taylor
 explicitly asks.
 
+## Optional Evaluation Kernel
+
+`kaggle/03-universal-llm-benchmark/` is a separate endpoint-comparison kernel.
+It can test OpenAI-compatible, Anthropic Messages, or raw JSON APIs against
+DueCare prompts and rubric cues, with Claude Opus judging when configured. It
+is useful for model comparison work, but it is not part of the three-kernel
+recording path above.
+
 ## Archived Or Reference-Only Material
 
 - `kaggle/_archive/notebooks/` contains the former `03` and `A-01` through

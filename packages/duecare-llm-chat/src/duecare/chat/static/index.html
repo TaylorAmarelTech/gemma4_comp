@@ -331,153 +331,7 @@ header.bar .badge.loaded .dot {
   border-color: var(--layer-accent, var(--accent));
 }
 
-/* ---- Self-contained model picker (auto-shows on first load when no
-   model is wired). Lives in the chat package, hits the kernel's
-   /api/load-model* endpoints. Higher z-index than the lightbox modal
-   so it stacks on top of everything else. ---- */
-.picker-overlay {
-  position: fixed; inset: 0; z-index: 99998;
-  display: none;
-  align-items: center; justify-content: center;
-  background: rgba(14, 17, 22, 0.40);
-  color: var(--ink);
-  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-  padding: clamp(12px, 3vh, 28px);
-  overflow-y: auto;
-}
-.picker-overlay.show { display: flex; }
-.picker-box {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: clamp(20px, 4vh, 32px) clamp(20px, 4vw, 36px);
-  box-shadow: 0 25px 60px rgba(14, 17, 22, 0.18);
-  width: min(980px, calc(100vw - 32px));
-  max-height: min(820px, calc(100dvh - 32px));
-  overflow: auto;
-  color: var(--ink);
-  margin: auto;
-}
-.picker-title { margin: 0 0 6px; font-size: 22px; font-weight: 600; color: var(--ink); letter-spacing: -0.018em; }
-.picker-sub { margin: 0 0 20px; color: var(--muted); font-size: 14px; }
-.picker-banner {
-  background: var(--panel2);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--accent);
-  border-radius: 8px;
-  padding: 12px 14px;
-  margin: 0 0 18px;
-  color: var(--ink);
-  font-size: 13px;
-  line-height: 1.55;
-}
-.picker-banner b { color: var(--ink); font-weight: 600; }
-.picker-group { margin-top: 18px; }
-.picker-glabel {
-  color: var(--muted); font-size: 11px; font-weight: 500; text-transform: uppercase;
-  letter-spacing: 0.08em; margin: 0 0 10px;
-  font-family: var(--mono);
-}
-.picker-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 10px;
-}
-.picker-vcard {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px 16px;
-  cursor: pointer;
-  transition: border-color 0.12s, background 0.12s;
-  text-align: left;
-  color: inherit;
-  font: inherit;
-  width: 100%;
-}
-.picker-vcard:hover {
-  background: var(--panel2); border-color: var(--ink);
-}
-.picker-vcard.disabled { opacity: 0.45; cursor: not-allowed; }
-.picker-vcard.loading {
-  opacity: 1; border-color: var(--accent);
-  background: oklch(0.92 0.03 195);
-}
-.picker-vcard.loaded {
-  opacity: 1; border-color: var(--good);
-  background: oklch(0.95 0.03 155);
-}
-.picker-vcard .vt { color: var(--ink); font-weight: 600; font-size: 14px; margin-bottom: 4px; }
-.picker-vcard .vsz { color: var(--muted); font-size: 11.5px; font-family: var(--mono); }
-.picker-vcard .vfit { color: oklch(0.32 0.07 195); font-size: 11.5px; margin-top: 4px; font-weight: 500; font-family: var(--mono); }
-.picker-vcard .veta {
-  color: var(--muted); font-size: 11px; margin-top: 4px;
-  padding-top: 4px; border-top: 1px dashed var(--border);
-  font-weight: 400; font-family: var(--mono);
-}
-.picker-vcard.cloud .vfit { color: oklch(0.40 0.10 80); }
-.picker-vcard.cloud .veta { color: oklch(0.40 0.10 80); }
-.picker-vcard.jailbroken { border-color: oklch(0.85 0.06 45); }
-.picker-vcard.jailbroken .vfit { color: oklch(0.40 0.13 45); }
-.picker-vcard.jailbroken .veta { color: oklch(0.40 0.13 45); }
-.picker-vcard[data-recommended="true"] .vt::after {
-  content: "  · best quality";
-  color: oklch(0.40 0.10 80);
-  font-size: 10.5px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  font-family: var(--mono);
-}
-.picker-status {
-  margin-top: 18px; padding: 16px; border-radius: 10px;
-  background: var(--panel2); border: 1px solid var(--border);
-  color: var(--ink); font-size: 13px; line-height: 1.55;
-  display: none;
-}
-.picker-status.show { display: block; }
-.picker-status.error { color: oklch(0.40 0.13 45); border-color: oklch(0.85 0.06 45); background: var(--ember-soft); }
-.picker-status .meta {
-  color: var(--muted); font-size: 11.5px; margin-top: 6px; font-family: var(--mono);
-}
-.picker-actions {
-  display: flex; gap: 8px; align-items: center; margin-top: 10px;
-}
-.picker-actions button {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  color: var(--ink);
-  border-radius: 6px;
-  padding: 7px 12px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  font-family: var(--sans);
-}
-.picker-actions button:hover {
-  border-color: var(--ink); background: var(--panel2);
-}
-.picker-logs {
-  display: none;
-  max-height: 280px;
-  overflow: auto;
-  margin: 10px 0 0;
-  padding: 12px 14px;
-  background: var(--panel2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  color: var(--ink);
-  font: 11.5px/1.5 var(--mono);
-  white-space: pre-wrap;
-}
-.picker-logs.show { display: block; }
-.picker-spinner {
-  display: inline-block; width: 14px; height: 14px;
-  border: 2px solid var(--border);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: pickerspin 0.8s linear infinite;
-  vertical-align: middle; margin-right: 8px;
-}
-@keyframes pickerspin { to { transform: rotate(360deg); } }
+/* Model loading UI is owned by the shared workbench chrome in _nav.html/_nav.js. */
 
 /* ---- Lightbox modal (used by all 4 tile View buttons) ---- */
 .modal-overlay {
@@ -658,18 +512,6 @@ header.bar .badge.loaded .dot {
   }
   header.bar h1 { font-size: 15px; }
   header.bar .badge { font-size: 10px; padding: 4px 8px; }
-  /* Picker overlay shrinks to fit a phone — variant cards single-column,
-     padding tightened, banner text smaller. */
-  .picker-overlay { align-items: stretch; padding: 10px; }
-  .picker-box { width: 100%; max-height: calc(100dvh - 20px); padding: 16px 14px; }
-  .picker-title { font-size: 18px; }
-  .picker-sub { font-size: 12px; }
-  .picker-banner { font-size: 11px; padding: 8px 10px; }
-  .picker-grid { grid-template-columns: 1fr; }
-  .picker-vcard { padding: 10px 12px; }
-  .picker-vcard .vt { font-size: 13px; }
-  .picker-actions { flex-wrap: wrap; }
-  .picker-actions button { min-height: 40px; padding: 8px 12px; }
   .chat {
     padding: 10px;
     padding-bottom: 100px;  /* leave room above the composer */
@@ -1041,32 +883,6 @@ header.bar .badge.loaded .dot {
   </div>
 </div>
 
-<!-- Model picker (self-contained inside the chat package; the kernel
-     just exposes /api/load-model* endpoints and we drive everything
-     from here). Auto-shows on page load when no model is loaded. -->
-<div id="picker-overlay" class="picker-overlay" role="dialog" aria-modal="true">
-  <div class="picker-box">
-    <h2 class="picker-title">Choose a Gemma 4 model</h2>
-    <p class="picker-sub">Each variant loads once for the session. Bigger models = better answers but slower start. The demo selector is local-first and avoids cloud API calls.</p>
-    <div class="picker-banner">
-      <b>⏱ Estimated load time</b> shown on each card. The model
-      downloads from HuggingFace on first run (cached for the
-      session). E2B / E4B start in under a minute; 26B-A4B and 31B
-      take a few minutes. Case-file processing and Gemma edge extraction
-      stay local in the Kaggle kernel. Closing this tab during load is safe — the load
-      continues server-side.
-    </div>
-    <div id="picker-groups"></div>
-    <div id="picker-status" class="picker-status"></div>
-    <div class="picker-actions">
-      <button id="picker-view-logs" type="button">View logs</button>
-      <button id="picker-enter-chat" type="button" style="display:none">Enter chat</button>
-      <button id="picker-close" type="button" style="display:inline-block" title="Close picker">Close</button>
-    </div>
-    <pre id="picker-logs" class="picker-logs">No loader events yet.</pre>
-  </div>
-</div>
-
 <script>
 const messages = [];        // [{role, content: [{type, text|image}]}]
 const pendingImages = [];   // [{id, mime, dataUrl}]
@@ -1265,332 +1081,41 @@ async function refreshBrand() {
 }
 refreshBrand();
 
-// ---------------------------------------------------------------------------
-// Self-contained model picker. The chat package owns the picker overlay
-// and drives the kernel's /api/load-model* endpoints directly. No
-// dependency on kernel-side HTML injection.
-//
-// Variant catalog is hardcoded here as a fallback so cards always render
-// even if the status endpoint returns nothing — but if the status
-// endpoint DOES return a `variants` map, we prefer that (lets a kernel
-// add/remove variants without a UI rebuild).
-// ---------------------------------------------------------------------------
-const PICKER_FALLBACK_VARIANTS = {
-  'e2b-it':         {display: 'Gemma 4 E2B-it',           size_gb: 2.0,  fits: 'single T4',     category: 'on-device', load_eta: '~20–30 sec'},
-  'e4b-it':         {display: 'Gemma 4 E4B-it',           size_gb: 4.0,  fits: 'single T4',     category: 'on-device', load_eta: '~30–60 sec'},
-  '26b-a4b-it':     {display: 'Gemma 4 26B-A4B-it',       size_gb: 14.0, fits: 'T4 ×2 (4-bit)', category: 'on-device', load_eta: '~6–15 min first run · ~3–5 min cached'},
-  '31b-it':         {display: 'Gemma 4 31B-it',           size_gb: 18.0, fits: 'T4 ×2 (4-bit)', category: 'on-device', load_eta: '~15–25 min first run · ~5–8 min cached'},
-  'jailbroken-31b': {display: 'Gemma 4 31B (abliterated)',size_gb: 18.0, fits: 'T4 ×2 (4-bit)', category: 'jailbroken',load_eta: '~15–25 min first run · repo quirks possible'},
-  'jailbroken-e4b': {display: 'Gemma 4 E4B (abliterated)',size_gb: 4.0,  fits: 'single T4',     category: 'jailbroken',load_eta: '~30–60 sec'},
-};
-const PICKER_GROUP_LABELS = {
-  'on-device': 'On-device (Gemma 4 weights, runs in your Kaggle GPU)',
-  'jailbroken': 'Abliterated / jailbroken (proves harness still works on cracked models)',
-};
-let _pickerLoadingVariant = null;
-let _pickerPollTimer = null;
-
-function _pickerEl(id) { return document.getElementById('picker-' + id); }
-
-function _pickerEscapeHtml(s) {
-  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
-    if (c === '&') return '&amp;';
-    if (c === '<') return '&lt;';
-    if (c === '>') return '&gt;';
-    if (c === '"') return '&quot;';
-    return '&#39;';
-  });
-}
-
-function _pickerSetStatus(html, isError) {
-  const status = _pickerEl('status');
-  if (!status) return;
-  status.innerHTML = html;
-  status.className = 'picker-status show' + (isError ? ' error' : '');
-}
-
-function _pickerRenderLogs(events) {
-  const logs = _pickerEl('logs');
-  if (!logs) return;
-  if (!events || !events.length) { logs.textContent = 'No loader events yet.'; return; }
-  logs.textContent = events.map(function(e) {
-    const elapsed = e.elapsed_s == null ? '' : '+' + Number(e.elapsed_s).toFixed(1) + 's ';
-    const level = e.level && e.level !== 'info' ? e.level.toUpperCase() + ' ' : '';
-    const phase = e.phase ? '[' + e.phase + '] ' : '';
-    return (e.ts || '') + ' ' + elapsed + level + phase + (e.message || '');
-  }).join('\n');
-  logs.scrollTop = logs.scrollHeight;
-}
-
-function _pickerSetCardsLoading(variant) {
-  const groups = _pickerEl('groups');
-  if (!groups) return;
-  Array.prototype.forEach.call(groups.querySelectorAll('.picker-vcard'), function(card) {
-    const active = card.dataset.variant === variant;
-    card.disabled = !!variant;
-    card.classList.toggle('disabled', !!variant && !active);
-    card.classList.toggle('loading', active);
-    card.classList.toggle('loaded', false);
-  });
-}
-
-function _pickerSetCardsLoaded(variant) {
-  const groups = _pickerEl('groups');
-  if (!groups) return;
-  Array.prototype.forEach.call(groups.querySelectorAll('.picker-vcard'), function(card) {
-    const active = card.dataset.variant === variant;
-    card.disabled = false;
-    card.classList.toggle('disabled', false);
-    card.classList.toggle('loading', false);
-    card.classList.toggle('loaded', active);
-  });
-}
-
-function _pickerBuildCards(variants) {
-  const groups = _pickerEl('groups');
-  if (!groups) return;
-  const map = (variants && Object.keys(variants).length)
-      ? variants : PICKER_FALLBACK_VARIANTS;
-  groups.innerHTML = '';
-  const byCat = {};
-  for (const k in map) {
-    const v = map[k] || {};
-    const cat = v.category || 'on-device';
-    if (!byCat[cat]) byCat[cat] = [];
-    byCat[cat].push([k, v]);
+// Model loading is owned by the shared workbench chrome in _nav.html/_nav.js.
+// These wrappers keep older chat-page buttons and keyboard shortcuts working
+// without shipping a second model picker or making page-local loader calls.
+function _openSharedModelSelector(opts) {
+  opts = opts || {required: false};
+  if (window.dcWbModelService && typeof window.dcWbModelService.open === 'function') {
+    window.dcWbModelService.open(opts);
+    return true;
   }
-  ['on-device', 'jailbroken'].concat(Object.keys(byCat).filter(function(cat) {
-    return ['on-device', 'jailbroken'].indexOf(cat) < 0;
-  })).forEach(function(cat) {
-    if (!byCat[cat]) return;
-    const div = document.createElement('div');
-    div.className = 'picker-group';
-    const lbl = document.createElement('div');
-    lbl.className = 'picker-glabel';
-    lbl.textContent = PICKER_GROUP_LABELS[cat] || cat;
-    div.appendChild(lbl);
-    const grid = document.createElement('div');
-    grid.className = 'picker-grid';
-    byCat[cat].forEach(function(pair) {
-      const key = pair[0], info = pair[1] || {};
-      const card = document.createElement('button');
-      card.type = 'button';
-      card.className = 'picker-vcard ' + cat;
-      card.dataset.variant = key;
-      // 31B-it gets a subtle inline " · best quality" tag via CSS
-      // (.picker-vcard[data-recommended="true"] .vt::after). Same
-      // border + background as other cards — purely informational,
-      // not a prescriptive RECOMMENDED pill.
-      if (key === '31b-it') card.dataset.recommended = 'true';
-      const sizeLabel = (typeof info.size_gb === 'number' && info.size_gb > 0)
-          ? info.size_gb.toFixed(1) + ' GB' : 'no local download';
-      const eta = info.load_eta || '';
-      card.innerHTML =
-        '<div class="vt">' + _pickerEscapeHtml(info.display || key) + '</div>' +
-        '<div class="vsz">' + _pickerEscapeHtml(sizeLabel) + '</div>' +
-        '<div class="vfit">' + _pickerEscapeHtml(info.fits || '') + '</div>' +
-        (eta ? '<div class="veta">⏱ ' + _pickerEscapeHtml(eta) + '</div>' : '');
-      card.addEventListener('click', function() {
-        if (_pickerLoadingVariant) {
-          _pickerSetStatus('<span class="picker-spinner"></span>Already loading <b>' +
-                           _pickerEscapeHtml(_pickerLoadingVariant) +
-                           '</b>. Switching during a CUDA load is disabled; wait for completion or restart the Kaggle cell.', false);
-          return;
-        }
-        _pickerStart(key, info.display || key);
-      });
-      grid.appendChild(card);
-    });
-    div.appendChild(grid);
-    groups.appendChild(div);
-  });
-}
-
-function _pickerStart(variant, label) {
-  _pickerLoadingVariant = variant;
-  _pickerSetCardsLoading(variant);
-  const enterBtn = _pickerEl('enter-chat');
-  if (enterBtn) enterBtn.style.display = 'none';
-  // Auto-expand the loader log panel the instant the user picks a
-  // variant. The previous behaviour was to keep logs hidden behind a
-  // "View logs" button; that left the user staring at a single
-  // "Loading X — elapsed Ys" line for 30 seconds (E4B) to 25 minutes
-  // (31B cold cache) wondering if anything was happening. Showing
-  // the live log stream surfaces the per-phase progress (download,
-  // unsloth init, GPU transfer, etc.) without an extra click.
-  const logs = _pickerEl('logs');
-  const logsBtn = _pickerEl('view-logs');
-  if (logs && !logs.classList.contains('show')) {
-    logs.classList.add('show');
-    if (logsBtn) logsBtn.textContent = 'Hide logs';
+  if (typeof window.dcWbOpenModelSelector === 'function') {
+    window.dcWbOpenModelSelector(opts);
+    return true;
   }
-  _pickerSetStatus('<span class="picker-spinner"></span>Loading ' + _pickerEscapeHtml(label) +
-                   ' — keep this tab open. Loader output is streaming below.', false);
-  fetch('/api/load-model', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({variant: variant})
-  }).then(function(r) {
-      return r.json().then(function(data) { return {ok: r.ok, data: data}; })
-        .catch(function() { return {ok: r.ok, data: {}}; });
-    })
-    .then(function(res) {
-      const payload = res.data || {};
-      if (payload.status === 'already_loaded') {
-        _pickerSetStatus('<b>Model already loaded.</b><br>' + _pickerEscapeHtml(payload.message || 'Entering chat.'), false);
-        setTimeout(_pickerEnterChat, 350);
-      } else if (payload.status === 'busy') {
-        _pickerLoadingVariant = payload.variant || variant;
-        _pickerSetCardsLoading(_pickerLoadingVariant);
-        _pickerSetStatus('<span class="picker-spinner"></span>' +
-                         _pickerEscapeHtml(payload.message || 'A model is already loading.'), false);
-        _pickerPoll();
-      } else if (!res.ok || payload.status === 'error') {
-        _pickerLoadingVariant = null;
-        _pickerSetCardsLoading(null);
-        _pickerSetStatus('<b>Load failed:</b><br>' +
-                         _pickerEscapeHtml(payload.error || payload.message || ('HTTP ' + (res.ok ? 'OK' : 'error'))) +
-                         '<div class="meta">Open View logs for the exact failing phase.</div>', true);
-      } else {
-        _pickerPoll();
-      }
-    }).catch(function(e) {
-      _pickerLoadingVariant = null;
-      _pickerSetCardsLoading(null);
-      _pickerSetStatus('<b>Request failed:</b> ' + _pickerEscapeHtml(e && e.message || e), true);
-    });
-}
-
-function _pickerPoll() {
-  fetch('/api/load-model/status').then(function(r) {
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    return r.json();
-  }).then(function(s) {
-    _pickerRenderLogs(s.logs || []);
-    if (s.ready) {
-      _pickerLoadingVariant = null;
-      _pickerSetCardsLoaded(s.variant);
-      const model = (s.active_model && (s.active_model.display || s.active_model.name)) ||
-                    s.variant || 'model';
-      _pickerSetStatus('<b>Ready.</b> ' + _pickerEscapeHtml(model) +
-                       '<div class="meta">Entering chat. If the page does not advance, click Enter chat.</div>', false);
-      const enterBtn = _pickerEl('enter-chat');
-      if (enterBtn) enterBtn.style.display = 'inline-block';
-      setTimeout(_pickerEnterChat, 900);
-      return;
-    }
-    if (s.status === 'error') {
-      _pickerLoadingVariant = null;
-      _pickerSetCardsLoading(null);
-      const enterBtn = _pickerEl('enter-chat');
-      if (enterBtn) enterBtn.style.display = 'none';
-      const logs = _pickerEl('logs');
-      if (logs) logs.classList.add('show');
-      const logsBtn = _pickerEl('view-logs');
-      if (logsBtn) logsBtn.textContent = 'Hide logs';
-      _pickerSetStatus('<b>Load failed:</b><br>' + _pickerEscapeHtml(s.error || 'unknown error') +
-                       '<div class="meta">Logs are open below. Pick another variant only after reading the failing phase, or restart the cell.</div>', true);
-      return;
-    }
-    if (s.status === 'loading') {
-      _pickerLoadingVariant = s.variant;
-      _pickerSetCardsLoading(s.variant);
-    }
-    const el = (s.elapsed_s || 0).toFixed(0);
-    const phase = s.phase ? ' · ' + _pickerEscapeHtml(s.phase) : '';
-    const eta = s.eta ? ' · expected ' + _pickerEscapeHtml(s.eta) : '';
-    // Pull the most recent 2 log lines (drop heartbeat noise so the
-    // user sees real phase transitions) and surface them inside the
-    // status pane. The full log panel is already auto-expanded below
-    // for anyone who wants the whole stream.
-    let recentLogsHtml = '';
-    if (Array.isArray(s.logs) && s.logs.length) {
-      const interesting = s.logs.filter(function(e) {
-        const m = (e && e.message || '').toLowerCase();
-        return !m.startsWith('heartbeat #');
-      });
-      const tail = interesting.slice(-2);
-      if (tail.length) {
-        recentLogsHtml = '<div class="meta" style="margin-top:6px; padding-top:6px; border-top:1px dashed rgba(100,116,139,0.4);">'
-          + tail.map(function(e) {
-              const elapsedTag = e.elapsed_s == null
-                ? '' : '+' + Number(e.elapsed_s).toFixed(0) + 's ';
-              return _pickerEscapeHtml(elapsedTag + (e.message || ''));
-            }).join('<br>')
-          + '</div>';
-      }
-    } else if (s.last_log) {
-      recentLogsHtml = '<div class="meta">' + _pickerEscapeHtml(s.last_log) + '</div>';
-    }
-    _pickerSetStatus('<span class="picker-spinner"></span>Loading <b>' +
-                     _pickerEscapeHtml(s.variant || _pickerLoadingVariant || 'model') +
-                     '</b><span class="meta" style="color:var(--ink-2)"> · ' + el +
-                     's elapsed' + phase + eta + '</span>' + recentLogsHtml, false);
-    _pickerPollTimer = setTimeout(_pickerPoll, 1500);
-  }).catch(function() {
-    _pickerPollTimer = setTimeout(_pickerPoll, 3000);
-  });
-}
-
-function _pickerEnterChat() {
-  if (_pickerPollTimer) { clearTimeout(_pickerPollTimer); _pickerPollTimer = null; }
-  const enterBtn = _pickerEl('enter-chat');
-  if (enterBtn) enterBtn.style.display = 'none';
-  closeModelPicker();
-  try { refreshBadge(); } catch (e) {}
-  try { probeHarness(); } catch (e) {}
-  try { document.getElementById('input').focus(); } catch (e) {}
+  return false;
 }
 
 function openModelPicker() {
-  const overlay = document.getElementById('picker-overlay');
-  if (!overlay) return;
-  // Synchronous show + sync card render: no waiting for a network round
-  // trip before the user sees the picker. If /api/load-model/status
-  // later returns a different variants map, _pickerBuildCards just
-  // re-renders in place (idempotent: it clears and rebuilds the
-  // groups container).
-  const groups = _pickerEl('groups');
-  if (groups && !groups.children.length) _pickerBuildCards(null);
-  overlay.classList.add('show');
-  // Background refresh: fetch status, refresh cards if the kernel
-  // returns a richer variants map, render logs, resume polling if
-  // mid-load.
-  fetch('/api/load-model/status').then(function(r) {
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    return r.json();
-  }).then(function(s) {
-    if (s && s.variants && Object.keys(s.variants).length) {
-      _pickerBuildCards(s.variants);
-    }
-    _pickerRenderLogs((s && s.logs) || []);
-    // Always show the close button so the user can dismiss the picker
-    // any time they re-open it, even before a model has loaded.
-    // (Earlier behavior hid Close when `s.ready === false`, which left
-    // re-opens stuck with no escape — reported as a UI bug 2026-05-12.)
-    const closeBtn = _pickerEl('close');
-    if (closeBtn) closeBtn.style.display = 'inline-block';
-    if (s && s.status === 'loading') {
-      _pickerLoadingVariant = s.variant;
-      _pickerSetCardsLoading(s.variant);
-      _pickerPoll();
-    } else if (s && s.ready) {
-      _pickerSetCardsLoaded(s.variant);
-    }
-  }).catch(function() {
-    // /api/load-model/status missing or down: cards are already the
-    // bundled fallback (rendered synchronously above) so the user
-    // still sees something. Surface a status hint.
-    _pickerSetStatus('<b>Could not reach the kernel\'s loader endpoint.</b>' +
-                     '<div class="meta">The chat server is up but /api/load-model/status did not respond. The cards below are the bundled defaults; clicking will retry the load endpoint and surface the underlying error.</div>', true);
-  });
+  if (!_openSharedModelSelector({required: false}) && typeof showInlineNotice === 'function') {
+    showInlineNotice('model-selector-missing', 'Model selector is still loading. Try again in a moment.', {kind: 'info'});
+  }
 }
 
 function closeModelPicker() {
-  const overlay = document.getElementById('picker-overlay');
-  if (overlay) overlay.classList.remove('show');
+  if (window.dcWbModelService && typeof window.dcWbModelService.close === 'function') {
+    window.dcWbModelService.close();
+  }
 }
 
+function onBadgeClick() {
+  openModelPickerFromUI();
+}
+
+function openModelPickerFromUI() {
+  openModelPicker();
+}
 // ---- showInlineNotice -----------------------------------------------------
 // Replacement for browser-native alert() in UI flows. Renders a
 // dismissible toast at the top-right of the viewport. `id` allows
@@ -1643,70 +1168,6 @@ function showInlineNotice(id, msg, opts) {
     setTimeout(function() { if (el.parentNode) el.remove(); }, timeout);
   }
 }
-
-function onBadgeClick() {
-  openModelPickerFromUI();
-}
-
-function openModelPickerFromUI() {
-  if (window.dcWbOpenModelSelector) {
-    window.dcWbOpenModelSelector();
-    return;
-  }
-  openModelPicker();
-}
-
-// Wire the page-local picker as a fallback. The shared top chrome is the
-// primary model selector so every workbench page behaves consistently.
-(function _initPicker() {
-  const logsBtn = _pickerEl('view-logs');
-  const enterBtn = _pickerEl('enter-chat');
-  const closeBtn = _pickerEl('close');
-  const logs = _pickerEl('logs');
-  if (logsBtn && logs) {
-    logsBtn.addEventListener('click', function() {
-      logs.classList.toggle('show');
-      logsBtn.textContent = logs.classList.contains('show') ? 'Hide logs' : 'View logs';
-      if (logs.classList.contains('show')) {
-        fetch('/api/load-model/logs?limit=250', {cache: 'no-store'})
-          .then(function(r) { return r.json(); })
-          .then(function(data) { _pickerRenderLogs(data.logs || []); })
-          .catch(function(e) { logs.textContent = 'Could not fetch logs: ' + (e && e.message || e); });
-      }
-    });
-  }
-  if (enterBtn) enterBtn.addEventListener('click', _pickerEnterChat);
-  if (closeBtn) closeBtn.addEventListener('click', closeModelPicker);
-
-  // Pre-render cards from the bundled fallback catalog so the picker
-  // looks "ready" the instant we toggle .show, even before the
-  // /api/load-model/status round trip completes.
-  _pickerBuildCards(null);
-
-  // Decide whether to show optimistically: if last visit said "loaded",
-  // skip the flash. On any uncertainty (no hint, parse error), default
-  // to showing — better to show twice briefly than to leave a user
-  // staring at an empty page when the model is unloaded.
-  let cachedLoaded = false;
-  try { cachedLoaded = sessionStorage.getItem('duecare.modelLoaded') === '1'; }
-  catch (e) { /* sessionStorage may be disabled (private mode); ignore */ }
-
-  // Verify against the server. Update cache + adjust visibility if
-  // the cached hint was wrong.
-  fetch('/api/model-info', {cache: 'no-store'}).then(function(r) {
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    return r.json();
-  }).then(function(info) {
-    const loaded = !!(info && info.loaded);
-    try { sessionStorage.setItem('duecare.modelLoaded', loaded ? '1' : '0'); }
-    catch (e) {}
-    if (loaded) {
-      closeModelPicker();
-    }
-  }).catch(function() {
-    // The shared top chrome remains the primary model selector.
-  });
-})();
 
 function openAboutModal() {
   // Detailed walkthrough lives in this modal, not in the empty state.
@@ -2752,18 +2213,10 @@ function closeModalIfBackground(event) {
 }
 
 document.addEventListener('keydown', e => {
-  // Esc closes any open modal (existing behaviour). Pressing Esc when
-  // the picker is open ALSO closes it — but only if a model is loaded
-  // (otherwise the user has nothing to chat with).
+  // Esc closes the chat modal. The shared model selector handles its
+  // own Escape behavior in _nav.js.
   if (e.key === 'Escape') {
     closeModal();
-    const picker = document.getElementById('picker-overlay');
-    if (picker && picker.classList.contains('show')) {
-      try {
-        const info = window._modelInfo || {};
-        if (info.loaded) closeModelPicker();
-      } catch (e2) {}
-    }
     return;
   }
   // Cmd/Ctrl + K: open the model picker. Mirrors VS Code / Slack /

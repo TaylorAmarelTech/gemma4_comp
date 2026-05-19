@@ -123,7 +123,7 @@ These pages align the Kaggle workbench with the public project narrative. They a
 
 | Page | Route | Dependency | Purpose | Main Functions | Design Notes |
 |---|---:|---|---|---|---|
-| Use Cases | `/static/use-cases.html` | No model | Hub for five audience lanes. | Links to platform, NGO/regulator, worker, researcher, developer pages. | Should match the public site and guide users into runnable workbench actions. |
+| Use Cases | `/static/use-cases.html` | No model | Hub for six audience lanes. | Links to platform, NGO/regulator, worker, researcher, knowledge-sharing, and developer pages. | Should match the public site and guide users into runnable workbench actions. |
 | Platform Safety | `/static/showcase-platform.html` | Gemma required through linked chat | UGC moderation lane for marketplaces and high-volume queues. | Scenario links into chat and compare. | Emphasizes screening, explanation, and handoff to existing review pipeline. |
 | NGO and Regulator | `/static/showcase-ngo.html` | Optional Gemma through linked pages | Case intake and triage lane. | Links to bulk review, chat, and knowledge extraction. | Should emphasize local device processing and worker privacy. |
 | Individual Worker | `/static/showcase-worker.html` | Gemma required through linked chat | Plain-language rights and referral lane. | Scenario prompts into chat. | Must avoid overclaiming legal advice or encouraging unsafe direct action. |
@@ -393,7 +393,7 @@ Audit notes:
 
 ### Use Cases and Showcase Pages
 
-Purpose: map technical capabilities to the five audience lanes.
+Purpose: map technical capabilities to the six audience lanes.
 
 Functions:
 
@@ -544,7 +544,7 @@ The architecture is coherent for the competition:
 - Bulk File Review proves local research and case-intake utility.
 - Knowledge, Sync, Share, and Import prove the maintainable knowledge-pack loop.
 - Grade and UI Audit prove evaluation discipline.
-- Use-case and Ecosystem pages connect the technical system to the five judge-facing audiences.
+- Use-case and Ecosystem pages connect the technical system to the six judge-facing audiences.
 
 The remaining risk is not architectural. It is polish and proof density:
 

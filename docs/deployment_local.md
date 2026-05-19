@@ -131,7 +131,7 @@ and import the app directly.
 ### Install
 
 ```bash
-pip install duecare-llm  # the meta package pulls all 16 siblings
+pip install duecare-llm  # the meta package pulls the full DueCare package stack
 # OR install only what you need:
 pip install duecare-llm-core duecare-llm-models duecare-llm-chat
 ```

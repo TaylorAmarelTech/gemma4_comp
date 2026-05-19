@@ -71,6 +71,8 @@ Three Kaggle script kernels. Each one is a single `kernel.py` file: copy it into
 | 🎬 | **DueCare Live Demo** &nbsp;·&nbsp; [Kaggle](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) &nbsp;·&nbsp; [`kaggle/02-live-demo/kernel.py`](./kaggle/02-live-demo/kernel.py) | Focused demo + the recording-grade pitch deck. Open `/start` → click **Project slides** → 23-slide deck loads (works without a model). |
 | 📊 | **DueCare Fine-tuning and Evaluation** &nbsp;·&nbsp; [Kaggle](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation) &nbsp;·&nbsp; [`kaggle/A-00-omni-experiment-workbench/kernel.py`](./kaggle/A-00-omni-experiment-workbench/kernel.py) | The quantitative control plane. Pick **Preconfigured Harness, Training, and Evaluation** for the fast guided path (base + harnessed + fine-tuned + fine-tuned-plus-harness arms, combined rule + LLM grading, exported artifact bundle). |
 
+Optional: [`kaggle/03-universal-llm-benchmark`](./kaggle/03-universal-llm-benchmark/) benchmarks arbitrary OpenAI-compatible, Anthropic Messages, or raw JSON endpoints against DueCare prompts and rubric cues, with Claude Opus judging when an Anthropic key is configured. It is not required for the primary recording path.
+
 Heuristic-only mode (no model attached) still serves `/start`, `/slides`, deterministic GREP / RAG / tools, and the cached worker-question slot — the model only matters for the live `/chat` endpoint and the optional Gemma edge pass on Bulk File Review.
 
 **Verify locally (60 seconds):**
@@ -101,6 +103,7 @@ python -c "from duecare.server import create_app; from duecare.server.state impo
 > **Experiment command center:**
 >
 > - **DueCare Fine-tuning and Evaluation** — [`duecare-fine-tuning-and-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation) ([source](./kaggle/A-00-omni-experiment-workbench/)) is the technical proof surface: baseline vs harness vs fine-tuned vs fine-tuned-plus-harness exports, rule and LLM grading, synthetic SFT/DPO generation, tiny LoRA smoke bundles, local research graphs, and HTML/PDF reports.
+> - **DueCare Universal LLM Benchmark** — [`kaggle/03-universal-llm-benchmark`](./kaggle/03-universal-llm-benchmark/) is optional: it tests arbitrary API endpoints against DueCare prompt/rubric/evidence cues and can use Claude Opus as an external judge.
 > - Archived A-01 through A-24 plus the former video-pitch kernel remain available as reference material, but they are not part of the active validation or recording path.
 >
 > **Judges start here:** [`docs/FOR_KAGGLE_JUDGES.md`](./docs/FOR_KAGGLE_JUDGES.md) (hackathon-specific quick path).

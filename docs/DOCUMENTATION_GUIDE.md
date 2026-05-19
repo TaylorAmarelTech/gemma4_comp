@@ -12,6 +12,7 @@ Keep these facts consistent across public-facing docs:
 | Project | DueCare: a Gemma 4 safety ecosystem for migrant-worker protection |
 | Public hub | `https://duecare-ai.com` |
 | Active Kaggle path | `01-duecare-exploration-workbench`, `02-live-demo`, `A-00-omni-experiment-workbench` |
+| Optional benchmark kernel | `03-universal-llm-benchmark` for arbitrary endpoint comparisons and Claude Opus judging |
 | Six lanes | Platform safety; NGO & regulator; Individual worker / mobile; Researcher; Anonymized knowledge sharing; Developer / integration partner |
 | Package shape | 17 `duecare-llm*` package directories in the workspace |
 | Current local collection | 675 package tests collected on 2026-05-19 |
@@ -30,6 +31,8 @@ submission path. They are archived reference material.
 - For legal and policy claims, link to the artifact or source doc that supports
   the statement.
 - Prefer readable link text over raw file paths in public tables.
+- New durable files need a clear purpose paragraph or an entry in the nearest
+  purpose map. See `docs/FILE_PURPOSE_GUIDE.md`.
 
 ## Link And Surface Hygiene
 
@@ -58,4 +61,3 @@ When documenting the Kaggle workbench, keep these boundaries explicit:
   review passes.
 - Knowledge Extraction drafts suggestions only; promotion is reviewer gated.
 - Anonymization & Sharing is the consent and redaction gate before hub upload.
-

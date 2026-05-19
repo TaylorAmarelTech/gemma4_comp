@@ -12,6 +12,16 @@ Only three Kaggle script kernels are active for the current submission and recor
 
 Each active kernel is intended to be copied into Kaggle, run on T4 x2 with Internet enabled, install DueCare from GitHub, write outputs under `/kaggle/working`, launch the local server, and print a public `https://*.trycloudflare.com` URL.
 
+## Optional Evaluation Surface
+
+This repository also includes one optional benchmark kernel that is useful for
+post-submission comparison work but is not required for the primary recording
+path:
+
+| Folder | Kaggle slug | Title | Purpose |
+|---|---|---|---|
+| `03-universal-llm-benchmark` | `taylorsamarel/duecare-universal-llm-benchmark` | **DueCare Universal LLM Benchmark** | Benchmarks arbitrary OpenAI-compatible, Anthropic Messages, or raw JSON endpoints against DueCare prompt/rubric/evidence cues, with Claude Opus judging when an Anthropic key is configured. |
+
 ## Archived Notebooks
 
 The former `03-duecare-video-pitch` notebook and appendix notebooks `A-01` through `A-24` have been moved to `kaggle/_archive/notebooks/`. They remain reference material only; they are not part of active validation, recording, or the required Kaggle run path.

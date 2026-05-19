@@ -115,24 +115,46 @@ class Gemma4Runtime:
 
     def load(self, spec: Gemma4LoadSpec) -> Gemma4LoadedModel:
         try:
-            self.log("importing", "importing torch and Unsloth FastModel")
+            self.log("importing", "importing torch")
             import torch
-            from unsloth import FastModel
         except Exception as exc:  # noqa: BLE001
-            raise RuntimeError(f"Unsloth FastModel stack not available: {exc}") from exc
+            raise RuntimeError(f"PyTorch is not available: {exc}") from exc
 
         cuda_version = getattr(torch.version, "cuda", "unknown")
+        cuda_available = bool(torch.cuda.is_available())
+        device_count = int(torch.cuda.device_count()) if cuda_available else 0
         self.log(
             "imported",
-            f"torch={torch.__version__}; cuda={cuda_version}; cuda_available={torch.cuda.is_available()}",
+            f"torch={torch.__version__}; cuda={cuda_version}; "
+            f"cuda_available={cuda_available}; device_count={device_count}",
         )
-        if not torch.cuda.is_available():
-            raise RuntimeError("CUDA is not available. Gemma 4 local runtime requires Kaggle GPU.")
+        if not cuda_available or device_count < 1:
+            message = (
+                "CUDA accelerator is not visible to PyTorch. Local Gemma 4 loading uses "
+                "Unsloth FastModel and requires a Kaggle GPU runtime. In Kaggle, stop this "
+                "session, set Accelerator to GPU T4 x2, enable Internet, then rerun the "
+                "kernel from the top. If the status strip still shows GPU=none, the notebook "
+                "is running on CPU and FastModel will not load."
+            )
+            self.log("gpu-missing", message)
+            raise RuntimeError(message)
+
+        try:
+            self.log("importing", "importing Unsloth FastModel")
+            from unsloth import FastModel
+        except Exception as exc:  # noqa: BLE001
+            message = (
+                "Unsloth FastModel stack not available after CUDA preflight passed: "
+                f"{exc}. Restart the Kaggle session after package installation; if it "
+                "persists, verify the attached image has torch, transformers, and unsloth "
+                "installed for the active Python environment."
+            )
+            self.log("error", message)
+            raise RuntimeError(message) from exc
 
         self.unload("loading replacement model")
         self.log("gpu-check", self._gpu_inventory(torch))
         resolved_ref, variant, resolved_source = resolve_model_ref(spec.source, spec.model_ref)
-        device_count = max(1, torch.cuda.device_count())
         device_map = "balanced" if variant in {"26b-a4b-it", "31b-it"} and device_count >= 2 else "auto"
 
         self.log("resolve-repo", f"{spec.model_ref} -> {resolved_ref}")

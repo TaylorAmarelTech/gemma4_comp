@@ -16,6 +16,14 @@ Run each by copying its `kernel.py` into a Kaggle code cell, enabling Internet a
 
 The former `03-duecare-video-pitch` notebook and appendix notebooks `A-01` through `A-24` are archived under `kaggle/_archive/notebooks/`. They are not part of the active run path.
 
+## Optional Universal Benchmark
+
+`03-universal-llm-benchmark` is an optional endpoint-comparison kernel. It
+loads DueCare prompt/rubric/evidence cues when available, can call
+OpenAI-compatible, Anthropic Messages, or raw JSON endpoints, and uses Claude
+Opus as judge when an Anthropic key is configured. It is useful for external
+model comparisons, but it does not replace the three-kernel recording path.
+
 ## Recommended Run Order
 
 1. `01-duecare-exploration-workbench`: verify the main harness UI and product surfaces.

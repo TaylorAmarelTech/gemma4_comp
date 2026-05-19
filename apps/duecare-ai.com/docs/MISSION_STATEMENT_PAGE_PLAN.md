@@ -41,15 +41,16 @@ The mission page should lead with the three outcomes:
 2. **Assist victims and at-risk workers** — support NGO, government, and worker-controlled workflows with grounded intake, routing, and mobile guidance.
 3. **Understand what is happening and why** — help researchers and stakeholders map the who, what, where, when, and why through reproducible evidence.
 
-It should also introduce the five website-facing lanes in this order:
+It should also introduce the six website-facing lanes in this order:
 
 1. **Platform safety** — help platforms screen risky recruitment posts, ads, messages, and recruiter patterns before harm spreads.
 2. **NGO & regulator** — help trusted organizations and public agencies triage information, route people to complaint channels, and draft reviewable guidance.
 3. **Individual worker / mobile** — help workers privately understand suspicious offers, contracts, fees, threats, and document-retention risks.
 4. **Researcher** — help researchers and judges reproduce prompts, evaluations, model behavior, and pack provenance.
-5. **Developer / integration partner** — help teams embed Duecare into moderation tools, NGO systems, mobile apps, dashboards, and custom workflows.
+5. **Anonymized knowledge sharing** — help partners share reviewed, sanitized facts and pack updates without exposing raw case files.
+6. **Developer / integration partner** — help teams embed Duecare into moderation tools, NGO systems, mobile apps, dashboards, and custom workflows.
 
-This page can explain that the five lanes are the public navigation model, while the Duecare Hub is the shared coordination layer that helps all of them improve.
+This page can explain that the six lanes are the public navigation model, while the Duecare Hub is the shared coordination layer that helps all of them improve.
 
 ## Required safety and data-boundary language
 
@@ -81,7 +82,7 @@ Lead:
 
 Primary CTAs:
 
-- See the five lanes — `/use-cases`
+- See the six lanes — `/use-cases`
 - Explore the hub — `/hub`
 - Read technical docs — `/technical-docs`
 
@@ -150,6 +151,10 @@ Workers can privately check suspicious offers, fees, contracts, threats, and doc
 
 Researchers and judges can reproduce prompts, compare model behavior, inspect scorecards, and verify claims from source artifacts.
 
+#### Anonymized knowledge sharing
+
+Partners can share reviewed, sanitized facts, contact updates, and corridor-pack improvements without uploading raw case files or private worker narratives.
+
 #### Developer / integration partner
 
 Developers and technical partners can embed Duecare into moderation tools, NGO systems, mobile apps, dashboards, and custom workflows through APIs, Docker, packs, schemas, and examples.
@@ -189,7 +194,7 @@ Inbound: public/source/submission -> privacy check -> structured object -> revie
 
 Recommended copy:
 
-> Duecare's mission is not to make one chatbot. It is to build reusable safety infrastructure: a way for Gemma 4 deployments to stay grounded, private, testable, and continuously improved across Platform safety, NGO & regulator, Individual worker / mobile, Researcher, and Developer / integration partner lanes.
+> Duecare's mission is not to make one chatbot. It is to build reusable safety infrastructure: a way for Gemma 4 deployments to stay grounded, private, testable, and continuously improved across Platform safety, NGO & regulator, Individual worker / mobile, Researcher, Anonymized knowledge sharing, and Developer / integration partner lanes.
 
 ## Navigation placement
 

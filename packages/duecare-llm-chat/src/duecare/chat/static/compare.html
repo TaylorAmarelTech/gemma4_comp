@@ -430,157 +430,50 @@
     // Per-run timing breakdown captured from step_done events.
     const _runTimings = {A: {}, B: {}};
 
-    // ============== Shared model selector (direct Compare entry) ==============
-    const CMP_MODEL_FALLBACK_VARIANTS = {
-      'e2b-it':         {display: 'Gemma 4 E2B-it', size_gb: 2.0, category: 'on-device', load_eta: '~20-30 sec'},
-      'e4b-it':         {display: 'Gemma 4 E4B-it', size_gb: 4.0, category: 'on-device', load_eta: '~30-60 sec'},
-      '26b-a4b-it':     {display: 'Gemma 4 26B-A4B-it', size_gb: 14.0, category: 'on-device', load_eta: '~6-15 min first run'},
-      '31b-it':         {display: 'Gemma 4 31B-it', size_gb: 18.0, category: 'on-device', load_eta: '~15-25 min first run'},
-      'jailbroken-31b': {display: 'Gemma 4 31B abliterated', size_gb: 18.0, category: 'jailbroken', load_eta: '~15-25 min first run'},
-      'jailbroken-e4b': {display: 'Gemma 4 E4B abliterated', size_gb: 4.0, category: 'jailbroken', load_eta: '~30-60 sec'},
-    };
-    let _cmpModelPollTimer = null;
-    let _cmpModelStatus = {loaded: false};
-
-    function cmpModelText(s) {
-      return String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-      })[ch]);
-    }
-    function cmpModelOptionsFromStatus(status) {
-      return (status && status.variants && Object.keys(status.variants).length)
-        ? status.variants : CMP_MODEL_FALLBACK_VARIANTS;
-    }
-    function cmpRenderModelSelect(variants, activeVariant) {
-      const sel = document.getElementById('cmp-model-select');
-      if (!sel) return;
-      const prior = sel.value;
-      const keys = Object.keys(variants || CMP_MODEL_FALLBACK_VARIANTS);
-      sel.innerHTML = keys.map(key => {
-        const v = variants[key] || {};
-        const label = v.display || key;
-        const eta = v.load_eta ? ' - ' + v.load_eta : '';
-        return '<option value="' + cmpModelText(key) + '">' +
-          cmpModelText(label + eta) + '</option>';
-      }).join('');
-      if (activeVariant && keys.includes(activeVariant)) sel.value = activeVariant;
-      else if (prior && keys.includes(prior)) sel.value = prior;
-      else if (keys.includes('31b-it')) sel.value = '31b-it';
-    }
-    function cmpRenderLoaderLogs(logs) {
-      const el = document.getElementById('cmp-model-log');
-      if (!el) return;
-      if (!logs || !logs.length) {
-        el.textContent = 'No loader events yet.';
-        return;
-      }
-      el.textContent = logs.slice(-120).map(e => {
-        const elapsed = e.elapsed_s == null ? '' : '+' + Number(e.elapsed_s).toFixed(0) + 's ';
-        const phase = e.phase ? '[' + e.phase + '] ' : '';
-        const level = e.level && e.level !== 'info' ? e.level.toUpperCase() + ' ' : '';
-        return (e.ts || '') + ' ' + elapsed + level + phase + (e.message || '');
-      }).join('\n');
-      el.scrollTop = el.scrollHeight;
-    }
-    function cmpSetModelUi(info, load) {
-      info = info || {};
-      load = load || {};
-      const dot = document.getElementById('cmp-model-dot');
-      const name = document.getElementById('cmp-model-name');
-      const meta = document.getElementById('cmp-model-meta');
-      const loadMeta = document.getElementById('cmp-model-load-meta');
-      const btn = document.getElementById('cmp-model-load');
-      const loaded = !!info.loaded;
-      const loading = load.status === 'loading';
-      _cmpModelStatus = {...info, loaded};
-      if (dot) {
-        dot.className = 'cmp-model-dot ' + (loading ? 'loading' : (loaded ? 'ready' : (load.status === 'error' ? 'error' : '')));
-      }
-      if (name) name.textContent = loaded
-        ? (info.display || info.name || load.variant || 'model loaded')
-        : (loading ? 'Loading ' + (load.variant || 'model') : 'No model loaded');
-      if (meta) {
-        const device = info.device || info.quantization || '';
-        meta.textContent = loaded
-          ? 'Active for Chat and Compare' + (device ? ' | ' + device : '')
-          : 'Pick a model here before running the comparison.';
-      }
-      if (loadMeta) {
-        const parts = [];
-        if (load.phase) parts.push('phase: ' + load.phase);
-        if (load.elapsed_s != null) parts.push(Math.round(load.elapsed_s) + 's elapsed');
-        if (load.eta) parts.push('ETA ' + load.eta);
-        if (load.error) parts.push('error: ' + load.error);
-        loadMeta.textContent = parts.join(' | ');
-      }
-      if (btn) {
-        btn.disabled = loading;
-        btn.textContent = loading ? 'Loading...' : (loaded ? 'Switch / load selected' : 'Load selected model');
-      }
-    }
+    // ============== Shared model selector ==============
+    // Compare never owns a page-local loader. The universal workbench model
+    // service in _nav.js is the single source of truth for status, logs, and
+    // load requests, so Chat and Compare cannot show two competing selectors.
     async function cmpRefreshModelStatus() {
-      let info = {};
-      let load = {};
-      try {
-        const r = await fetch('/api/model-info', {cache: 'no-store'});
-        if (r.ok) info = await r.json();
-      } catch (e) {}
-      try {
-        const r = await fetch('/api/load-model/status', {cache: 'no-store'});
-        if (r.ok) load = await r.json();
-      } catch (e) {}
-      cmpRenderModelSelect(cmpModelOptionsFromStatus(load), load.variant || info.variant || info.name);
-      cmpSetModelUi(info, load);
-      cmpRenderLoaderLogs(load.logs || []);
-      if (load.status === 'loading') {
-        if (_cmpModelPollTimer) clearTimeout(_cmpModelPollTimer);
-        _cmpModelPollTimer = setTimeout(cmpRefreshModelStatus, 1500);
+      if (window.dcWbModelService && typeof window.dcWbModelService.refresh === 'function') {
+        return window.dcWbModelService.refresh();
       }
-      return {info, load};
+      if (typeof window.dcWbRefreshModelStatus === 'function') {
+        return window.dcWbRefreshModelStatus();
+      }
+      return {info: {loaded: false}, load: {status: 'unavailable'}};
     }
     async function cmpLoadSelectedModel() {
-      const sel = document.getElementById('cmp-model-select');
-      const variant = sel && sel.value;
-      const status = document.getElementById('cmp-status');
-      if (!variant) return;
-      if (status) status.textContent = 'Loading model ' + variant + '...';
-      try {
-        const r = await fetch('/api/load-model', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({variant}),
-        });
-        const payload = await r.json().catch(() => ({}));
-        if (!r.ok || payload.status === 'error') {
-          if (status) status.textContent = 'Model load failed: ' +
-            (payload.error || payload.message || ('HTTP ' + r.status));
-          cmpSetModelUi({}, {status: 'error', error: payload.error || payload.message || ('HTTP ' + r.status)});
-          return;
-        }
-      } catch (e) {
-        if (status) status.textContent = 'Model load request failed: ' + e;
+      if (window.dcWbModelService && typeof window.dcWbModelService.open === 'function') {
+        window.dcWbModelService.open({required: false});
         return;
       }
-      await cmpRefreshModelStatus();
+      if (typeof window.dcWbOpenModelSelector === 'function') {
+        window.dcWbOpenModelSelector({required: false});
+      }
     }
     function cmpToggleModelLogs() {
-      const log = document.getElementById('cmp-model-log');
-      if (log) log.classList.toggle('show');
+      cmpLoadSelectedModel();
       cmpRefreshModelStatus();
     }
     async function cmpEnsureModelReady() {
-      let state = null;
-      if (window.dcWbEnsureModelReady) {
+      if (window.dcWbModelService && typeof window.dcWbModelService.ensureReady === 'function') {
+        const ok = await window.dcWbModelService.ensureReady();
+        if (ok) return true;
+      } else if (typeof window.dcWbEnsureModelReady === 'function') {
         const ok = await window.dcWbEnsureModelReady();
         if (ok) return true;
-        state = {info: {loaded: false}};
       } else {
-        state = await cmpRefreshModelStatus();
-        if (state.info && state.info.loaded) return true;
+        const state = await cmpRefreshModelStatus();
+        if (state && state.info && state.info.loaded) return true;
       }
       const status = document.getElementById('cmp-status');
       if (status) status.textContent = 'Choose and load a model from the top Model control before running Compare.';
-      if (window.dcWbOpenModelSelector) window.dcWbOpenModelSelector();
+      if (window.dcWbModelService && typeof window.dcWbModelService.open === 'function') {
+        window.dcWbModelService.open({required: true});
+      } else if (typeof window.dcWbOpenModelSelector === 'function') {
+        window.dcWbOpenModelSelector({required: true});
+      }
       return false;
     }
 

@@ -9,6 +9,9 @@ constraints; closest file wins.
 - Active branch: `master`.
 - Active Kaggle submission surfaces: `kaggle/01-duecare-exploration-workbench`,
   `kaggle/02-live-demo`, and `kaggle/A-00-omni-experiment-workbench`.
+- Optional endpoint-comparison surface: `kaggle/03-universal-llm-benchmark`.
+  It is for external API benchmarking with DueCare prompts and Claude Opus
+  judging; it is not part of the primary recording path unless Taylor says so.
 - Archived notebook-era surfaces under `kaggle/_archive/` are provenance, not
   blockers, unless Taylor explicitly asks to restore or migrate them.
 - The public setup lanes are exactly six, in this order: Platform safety,
@@ -17,6 +20,10 @@ constraints; closest file wins.
 - The workspace contains 17 `duecare-llm*` package directories. Run pytest
   collection before changing published test claims; do not claim a full test
   pass unless the full suite actually ran.
+- Public files should have an obvious reason to exist. If you add a new
+  top-level directory, Kaggle kernel, package surface, or long-lived document,
+  update the relevant purpose map (`README.md`, `kaggle/_INDEX.md`,
+  `docs/REPO_LAYOUT.md`, or `docs/FILE_PURPOSE_GUIDE.md`).
 
 ## Safety And Claims
 
@@ -57,4 +64,3 @@ example:
 ```bash
 python -m pytest packages/duecare-llm-chat/tests/test_compare.py -q
 ```
-

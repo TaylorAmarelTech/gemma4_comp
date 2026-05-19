@@ -4,11 +4,11 @@
   This partial is intentionally minimal: one horizontal strip at the
   very top with model state, version, GPU info, a Shutdown button,
   and a deep-link out to duecare-ai.com. The kernel also exposes
-  the five audience use-case lanes so reviewers can test the same
+  the six audience use-case lanes so reviewers can test the same
   story shown on the public site.
 
   Earlier versions of this file rendered a second navigation row
-  with 5 audience tabs. The current implementation keeps one
+  with audience tabs. The current implementation keeps one
   row and links to a compact Use Cases hub instead.
 
   How it loads:
@@ -75,14 +75,16 @@
     Layer 2: kernel workflow tabs.
 
     These are NOT the public-website audience pages (those were
-    intentionally removed 2026-05-12). These tabs are the 5 actual
+    intentionally removed 2026-05-12). These tabs are the runnable
     workflows the kernel supports:
 
-      Use Cases  five audience lanes from the public story
+      Use Cases  six audience lanes from the public story
       Chat       free-form chat with any harness toggle combination
       Compare    A/B same prompt, two harness configs, side-by-side
-      Bulk Review drop a ZIP / CSV / case files for processing
-      Submit     anonymize + queue facts for upload to duecare-ai.com
+      Bulk Review  drop a ZIP / CSV / case files for processing
+      Knowledge    draft typed KnowledgeObject envelopes
+      Search       collect and stage external findings safely
+      Sharing      anonymize + queue facts for upload to duecare-ai.com
 
     Each page is self-contained inside the kernel. No content here
     duplicates the public website's marketing pages.
@@ -104,7 +106,7 @@
             <a href="/"                              data-nav-key="getting-started"
                title="What this workbench is, what each layer does, and how to read a grade">Getting Started</a>
             <a href="/static/use-cases.html"         data-nav-key="use-cases"
-               title="Five judge-facing use cases: platform, NGO/regulator, worker, researcher, and developer">Use Cases</a>
+               title="Six judge-facing use cases: platform, NGO/regulator, worker, researcher, knowledge sharing, and developer">Use Cases</a>
             <a href="/static/ecosystem.html"         data-nav-key="ecosystem"
                title="Judge-facing ecosystem diagram for runtime, harnesses, evaluation, synthetic data, training, and deployment">Ecosystem</a>
             <a href="/static/demo-recording.html"    data-nav-key="recording"
