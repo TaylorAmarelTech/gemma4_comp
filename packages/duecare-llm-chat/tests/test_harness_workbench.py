@@ -820,7 +820,11 @@ def test_chat_page_uses_shared_model_selector(client):
     assert "window.dcWbOpenModelSelector" in text
     assert "Open model selector" in text
     assert "align-items: center; justify-content: center;" in text
-    assert "max-height: min(820px, calc(100dvh - 32px));" in text
+    # The modal max-height contract: cap to the viewport on tall screens with
+    # a small gutter on short ones. The viewport-relative value is preferred
+    # over a fixed-pixel cap so the modal scales gracefully on 4K monitors
+    # and short laptop screens.
+    assert "max-height: min(92vh, calc(100dvh - 48px));" in text
     assert "if (!cachedLoaded)" not in text
 
 

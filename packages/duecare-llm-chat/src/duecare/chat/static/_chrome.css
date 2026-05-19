@@ -1415,3 +1415,78 @@ main > .dc-wb-auto-log-card {
   text-transform: uppercase; letter-spacing: 0.06em;
   color: var(--ink-2); font-weight: 600;
 }
+
+/* =============================================================
+   Stratified depth — applies to the canonical step chassis.
+   Subtle resting shadow gives the multi-step page material
+   stratification; on hover the lift is slightly stronger.
+   Uses existing --shadow-1 / --shadow-2 tokens; no new palette.
+   Respects prefers-reduced-motion via the transition timing.
+   ============================================================= */
+.dc-step {
+  box-shadow: var(--shadow-1);
+  transition: box-shadow 160ms ease, border-color 160ms ease;
+}
+.dc-step:hover { box-shadow: var(--shadow-2); }
+.dc-step[data-state="waiting"]:hover { box-shadow: var(--shadow-1); }
+@media (prefers-reduced-motion: reduce) {
+  .dc-step { transition: none; }
+}
+
+/* =============================================================
+   [data-tip] — declarative hover tooltip.
+
+   Lightweight, on-brand alternative to native title="..."
+   attributes. Uses CSS pseudo-elements (no JS), positioned above
+   the host element by default. Two optional positions are
+   available: data-tip-pos="below" and data-tip-pos="right".
+
+   The tip is hidden until the host is hovered or keyboard-focused,
+   so it works for sighted mouse users and keyboard users alike.
+   Touch users do not see the tip — the host's terse label remains
+   the source of truth.
+   ============================================================= */
+[data-tip] { position: relative; }
+[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--paper-3);
+  font-family: var(--sans);
+  font-size: 11.5px;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: 0;
+  text-transform: none;
+  padding: 6px 10px;
+  border-radius: 5px;
+  white-space: normal;
+  width: max-content;
+  max-width: 240px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 120ms ease, transform 120ms ease;
+  box-shadow: var(--shadow-2);
+  z-index: 9800;
+}
+[data-tip]:hover::after,
+[data-tip]:focus-visible::after { opacity: 1; }
+[data-tip][data-tip-pos="below"]::after {
+  bottom: auto; top: calc(100% + 6px);
+}
+[data-tip][data-tip-pos="right"]::after {
+  bottom: auto; top: 50%;
+  left: calc(100% + 8px);
+  transform: translateY(-50%);
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-tip]::after { transition: none; }
+}
+@media (hover: none) {
+  /* Touch devices: skip the hover tooltip so the host's terse
+     label remains uncluttered. The host's own text is sufficient. */
+  [data-tip]::after { display: none; }
+}
