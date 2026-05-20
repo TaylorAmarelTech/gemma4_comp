@@ -1730,6 +1730,421 @@ def api_load_model(body: dict = Body(...)):
     return {"status": "loading", "variant": variant}
 
 
+# ===========================================================================
+# EVALUATOR (JUDGE) MODEL SLOT
+# ---------------------------------------------------------------------------
+# Loads a SEPARATE model into app.state.evaluator_call so grading can use
+# a more capable model (typically Gemma 4 31B-it) while the chat model
+# stays loaded (typically E2B/E4B for fast inference).
+#
+# This is the architecture the chat-package's _evaluator_model_call has
+# always supported: when app.state.evaluator_call is set, the LLM-judge
+# grader prefers it over app.state.gemma_call. The kernel just needs to
+# expose endpoints that LOAD a model into that slot.
+#
+# Both models can stay resident if VRAM allows (T4x2 in 4-bit: chat E4B
+# ~4 GB + judge 31B ~18 GB = 22 GB on 30 GB combined -- tight but OK).
+# If the load fails (OOM), the chat model is unaffected.
+# ===========================================================================
+
+_MODEL_LOAD_LOCK_EVAL  = threading.Lock()
+_MODEL_LOAD_STATE_EVAL = {
+    "status":     "idle",
+    "variant":    None,
+    "selected_display": None,
+    "phase":      "idle",
+    "started_at": None,
+    "updated_at": None,
+    "completed_at": None,
+    "error":      None,
+    "last_log":   None,
+    "log_seq":    0,
+}
+_MODEL_LOAD_EVENTS_EVAL: list[dict[str, Any]] = []
+# Tracks the LoadedModel object for the evaluator so we can drop the
+# torch tensors / tokenizer on unload (otherwise the references stay
+# pinned and VRAM is not released).
+_LOADED_EVAL: Optional["LoadedModel"] = None
+
+
+# ---------------------------------------------------------------------------
+# Preflight helpers for the judge-model load.
+#
+# Loading 31B-it on Kaggle requires real care: ~18 GB on disk for the
+# HF cache download AND ~18 GB of VRAM (split across T4x2 in 4-bit).
+# Without preflight, an OOM mid-load leaves the kernel in a broken
+# state and the user has to restart the Kaggle cell. These helpers
+# surface the gap BEFORE the load starts so the user can free space
+# or pick a smaller variant.
+# ---------------------------------------------------------------------------
+
+# Conservative estimates for both disk-cache footprint (HF safetensors)
+# and live VRAM footprint at 4-bit. Pad by ~15% so we don't pretend an
+# exact fit is safe; CUDA fragmentation eats headroom.
+_VARIANT_FOOTPRINT_GB = {
+    "e2b-it":         {"disk": 4.0,  "gpu": 3.0},
+    "e4b-it":         {"disk": 8.0,  "gpu": 5.0},
+    "26b-a4b-it":     {"disk": 24.0, "gpu": 16.0},
+    "31b-it":         {"disk": 30.0, "gpu": 20.0},
+    "jailbroken-31b": {"disk": 30.0, "gpu": 20.0},
+    "jailbroken-e4b": {"disk": 8.0,  "gpu": 5.0},
+    "cloud-gemini":   {"disk": 0.0,  "gpu": 0.0},
+    "cloud-openai":   {"disk": 0.0,  "gpu": 0.0},
+    "cloud-ollama":   {"disk": 0.0,  "gpu": 0.0},
+}
+
+
+def _estimate_model_size_gb(variant: str) -> dict:
+    """Return (disk_gb, gpu_gb) needed for ``variant``. Falls back to
+    a conservative upper bound for unknown variants."""
+    fp = _VARIANT_FOOTPRINT_GB.get(variant)
+    if fp is None:
+        # Unknown variant: assume worst-case (31B-scale) so the
+        # preflight is loud rather than silently optimistic.
+        return {"disk": 30.0, "gpu": 20.0}
+    return dict(fp)
+
+
+def _disk_free_gb(path: str = "/") -> Optional[float]:
+    """Free disk bytes -> GiB at ``path``. Returns None when the
+    syscall fails (e.g., on a sandboxed environment) so callers can
+    skip the disk gate without crashing."""
+    try:
+        import shutil as _shutil
+        # Prefer Kaggle's persistent working dir if it exists since
+        # that is where HF caches actually land on Kaggle.
+        candidate = "/kaggle/working" if os.path.isdir("/kaggle/working") else path
+        usage = _shutil.disk_usage(candidate)
+        return round(usage.free / (1024.0 ** 3), 2)
+    except Exception:
+        return None
+
+
+def _gpu_free_gb() -> Optional[float]:
+    """Sum free VRAM across all visible CUDA devices, in GiB. Returns
+    None when torch is unavailable or no CUDA device is present."""
+    try:
+        import torch as _torch  # noqa: WPS433 -- optional import is the point
+        if not _torch.cuda.is_available():
+            return 0.0
+        free_total = 0
+        for i in range(_torch.cuda.device_count()):
+            try:
+                free_b, _total_b = _torch.cuda.mem_get_info(i)
+                free_total += int(free_b)
+            except Exception:
+                # cudart not initialized for this device; skip it.
+                continue
+        return round(free_total / (1024.0 ** 3), 2)
+    except Exception:
+        return None
+
+
+def _judge_preflight(variant: str) -> dict:
+    """Pre-flight check before loading ``variant`` into the judge slot.
+
+    Returns a dict with:
+        variant        -- echoed back
+        needs_disk_gb  -- conservative HF-cache footprint estimate
+        needs_gpu_gb   -- conservative 4-bit VRAM footprint estimate
+        disk_free_gb   -- current free space (None if unknown)
+        gpu_free_gb    -- current free VRAM (None if unknown)
+        ok             -- True iff every available gate passes
+        reasons        -- list of human-readable failure messages
+                          (empty when ok=True)
+        notes          -- list of non-blocking observations
+
+    Cloud variants (cloud-gemini/openai/ollama) auto-pass because they
+    don't load weights locally. Unknown variants get the worst-case
+    estimate so the preflight is conservative.
+    """
+    need = _estimate_model_size_gb(variant)
+    free_disk = _disk_free_gb()
+    free_gpu = _gpu_free_gb()
+    reasons: list[str] = []
+    notes: list[str] = []
+    if variant.startswith("cloud-"):
+        notes.append("cloud route: no local disk / VRAM footprint")
+    else:
+        if free_disk is None:
+            notes.append("disk free space unavailable; preflight skipped this gate")
+        elif free_disk < need["disk"]:
+            reasons.append(
+                f"disk: need ~{need['disk']:.1f} GB, have {free_disk:.1f} GB free"
+            )
+        if free_gpu is None:
+            notes.append("GPU memory unavailable; preflight skipped this gate")
+        elif free_gpu < need["gpu"]:
+            reasons.append(
+                f"GPU: need ~{need['gpu']:.1f} GB, have {free_gpu:.1f} GB free"
+            )
+    return {
+        "variant":       variant,
+        "needs_disk_gb": need["disk"],
+        "needs_gpu_gb":  need["gpu"],
+        "disk_free_gb":  free_disk,
+        "gpu_free_gb":   free_gpu,
+        "ok":            len(reasons) == 0,
+        "reasons":       reasons,
+        "notes":         notes,
+    }
+
+
+@app.get("/api/load-evaluator-model/preflight")
+def api_evaluator_preflight(variant: str = "31b-it"):
+    """Disk + GPU preflight for the requested judge model variant.
+
+    UI guidance: call this BEFORE the user clicks Load. When ok=False,
+    surface ``reasons`` to the user and disable the Load button (or
+    offer a 'force' override for advanced users who know better)."""
+    return _judge_preflight(variant)
+
+
+def _log_load_eval(message: str, *, phase: Optional[str] = None,
+                   level: str = "info") -> None:
+    """Mirror of _log_load() but writes to the evaluator state ring.
+    Keeps the chat-model log clean from judge-model events."""
+    state = _MODEL_LOAD_STATE_EVAL
+    elapsed = None
+    if state.get("started_at"):
+        elapsed = round(time.time() - float(state["started_at"]), 1)
+    event = {
+        "ts": time.strftime("%H:%M:%S"),
+        "elapsed_s": elapsed,
+        "phase": phase,
+        "level": level,
+        "message": message,
+    }
+    _MODEL_LOAD_EVENTS_EVAL.append(event)
+    if len(_MODEL_LOAD_EVENTS_EVAL) > 500:
+        del _MODEL_LOAD_EVENTS_EVAL[:-500]
+    state["last_log"] = message
+    state["updated_at"] = time.time()
+    state["log_seq"] = len(_MODEL_LOAD_EVENTS_EVAL)
+    if phase:
+        state["phase"] = phase
+    prefix = f"  [load-evaluator][{level}]"
+    if phase:
+        prefix += f"[{phase}]"
+    print(f"{prefix} {message}")
+
+
+def _eval_info_snapshot() -> dict:
+    """Lightweight summary of the loaded evaluator for the UI."""
+    if _LOADED_EVAL is None:
+        return {
+            "loaded": False,
+            "name": None,
+            "variant": _MODEL_LOAD_STATE_EVAL.get("variant"),
+            "display": (
+                "(no judge model loaded -- grader will use chat model)"
+            ),
+        }
+    return {
+        "loaded": True,
+        "name": _LOADED_EVAL.name,
+        "size_b": _LOADED_EVAL.size_b,
+        "quantization": _LOADED_EVAL.quantization,
+        "device": _LOADED_EVAL.device,
+        "variant": _MODEL_LOAD_STATE_EVAL.get("variant"),
+        "display": (f"{_LOADED_EVAL.name} (judge) · "
+                    f"{_LOADED_EVAL.size_b:.1f}B · "
+                    f"{_LOADED_EVAL.quantization}"),
+    }
+
+
+@app.get("/api/load-evaluator-model/status")
+def api_load_evaluator_status():
+    """Status of the separately-loaded judge model. Parallel shape to
+    /api/load-model/status so the UI can poll the same way."""
+    elapsed = None
+    if _MODEL_LOAD_STATE_EVAL.get("started_at"):
+        elapsed = round(
+            time.time() - _MODEL_LOAD_STATE_EVAL["started_at"], 1,
+        )
+    return {
+        **_MODEL_LOAD_STATE_EVAL,
+        "elapsed_s": elapsed,
+        "ready": getattr(app.state, "evaluator_call", None) is not None,
+        "variants": _VARIANT_INFO,
+        "active_evaluator": _eval_info_snapshot(),
+        "logs": list(_MODEL_LOAD_EVENTS_EVAL[-120:]),
+    }
+
+
+@app.post("/api/load-evaluator-model")
+def api_load_evaluator_model(body: dict = Body(...)):
+    """Load a separate model into the evaluator (judge) slot.
+
+    The grading pipeline (app.state.evaluator_call) is preferred over
+    the chat model (app.state.gemma_call) when both are wired. Default
+    suggestion: ``31b-it`` for highest grading accuracy.
+
+    Long-running -- kicks off a background thread and returns
+    immediately. Poll /api/load-evaluator-model/status until
+    status='ready'. If the load fails (OOM, missing weights), the
+    chat model is unaffected.
+    """
+    variant = (body or {}).get("variant", "").strip() or "31b-it"
+    override = bool((body or {}).get("override", False))
+    if getattr(app.state, "evaluator_call", None) is not None:
+        return {"status": "already_loaded",
+                "variant": _MODEL_LOAD_STATE_EVAL.get("variant"),
+                "message": "A judge model is already loaded. POST to "
+                           "/api/unload-evaluator-model to free it first."}
+    if variant not in _VARIANT_INFO:
+        return JSONResponse(
+            {"status": "error",
+             "error": f"unknown variant: {variant!r}. "
+                       f"Choose one of: {sorted(_VARIANT_INFO.keys())}"},
+            status_code=400)
+    # Preflight: refuse to start the load when we know it won't fit.
+    # The override flag is for advanced users who understand the risk
+    # (e.g., have cleaned the HF cache manually or know the disk
+    # estimate is too conservative for their setup).
+    pre = _judge_preflight(variant)
+    if not pre["ok"] and not override:
+        return JSONResponse(
+            {"status": "preflight_failed",
+             "variant": variant,
+             "preflight": pre,
+             "message": (
+                 "Preflight failed: " + "; ".join(pre["reasons"]) +
+                 ". Free disk / VRAM and retry, or pass {\"override\": true}."
+             )},
+            status_code=503,
+        )
+    if not _MODEL_LOAD_LOCK_EVAL.acquire(blocking=False):
+        return JSONResponse(
+            {"status": "busy",
+             "variant": _MODEL_LOAD_STATE_EVAL.get("variant"),
+             "message": "A judge-model load is already in progress."},
+            status_code=409)
+    _MODEL_LOAD_EVENTS_EVAL.clear()
+    _MODEL_LOAD_STATE_EVAL.update({
+        "status": "loading", "variant": variant,
+        "selected_display": _VARIANT_INFO[variant]["display"],
+        "phase": "queued",
+        "started_at": time.time(), "updated_at": time.time(),
+        "completed_at": None, "error": None, "last_log": None,
+    })
+    _log_load_eval(
+        f"queued judge model {_VARIANT_INFO[variant]['display']} ({variant})",
+        phase="queued",
+    )
+    # Preflight result is informational at this point (we already
+    # gated above unless override was set). Logging it makes the
+    # timeline honest: if a force-load fails later, the log shows
+    # exactly what the preflight warned about.
+    _log_load_eval(
+        (
+            f"preflight: needs ~{pre['needs_disk_gb']:.1f} GB disk, "
+            f"~{pre['needs_gpu_gb']:.1f} GB GPU; have "
+            f"{pre['disk_free_gb']} GB / {pre['gpu_free_gb']} GB"
+            + (" (overridden)" if (not pre['ok'] and override) else "")
+        ),
+        phase="preflight",
+        level=("warn" if (not pre['ok'] and override) else "info"),
+    )
+
+    def _do_load_eval() -> None:
+        global _LOADED_EVAL
+        # Temporarily flip the variant env var so load_gemma() reads
+        # the right HF id, then restore it. This keeps load_gemma()
+        # reusable for both chat and evaluator slots without a refactor.
+        original_env = os.environ.get("GEMMA_MODEL_VARIANT", "")
+        try:
+            os.environ["GEMMA_MODEL_VARIANT"] = variant
+            _log_load_eval(
+                f"evaluator loader thread started for variant={variant}",
+                phase="starting",
+            )
+            loaded_local = load_gemma()
+            if loaded_local is None:
+                _log_load_eval(
+                    "load_gemma() returned None -- inspect chat-load logs",
+                    phase="error", level="error",
+                )
+                _MODEL_LOAD_STATE_EVAL.update({
+                    "status": "error",
+                    "completed_at": time.time(),
+                    "error": "load_gemma() returned None",
+                })
+                return
+            app.state.evaluator_call = loaded_local.backend
+            _LOADED_EVAL = loaded_local
+            _MODEL_LOAD_STATE_EVAL.update({
+                "status": "ready", "phase": "ready",
+                "completed_at": time.time(), "updated_at": time.time(),
+                "error": None,
+            })
+            _log_load_eval(
+                f"judge {variant} ready: {loaded_local.name} -- "
+                f"{loaded_local.device}",
+                phase="ready",
+            )
+        except Exception as e:
+            _MODEL_LOAD_STATE_EVAL.update({
+                "status": "error",
+                "completed_at": time.time(),
+                "error": f"{type(e).__name__}: {str(e)[:300]}",
+            })
+            _log_load_eval(
+                f"FAILED: {type(e).__name__}: {e}",
+                phase="error", level="error",
+            )
+        finally:
+            # Restore env var so a subsequent chat-model load uses the
+            # user's selected chat variant, not the evaluator variant.
+            if original_env:
+                os.environ["GEMMA_MODEL_VARIANT"] = original_env
+            _MODEL_LOAD_LOCK_EVAL.release()
+
+    threading.Thread(target=_do_load_eval, daemon=True,
+                     name="gemma-evaluator-loader").start()
+    return {"status": "loading", "variant": variant}
+
+
+@app.post("/api/unload-evaluator-model")
+def api_unload_evaluator_model():
+    """Free the judge model. After this, grading falls back to the
+    chat model (app.state.gemma_call). Safe to call when no judge
+    model is loaded (no-op)."""
+    global _LOADED_EVAL
+    if getattr(app.state, "evaluator_call", None) is None:
+        return {"status": "idle", "message": "No judge model loaded."}
+    if not _MODEL_LOAD_LOCK_EVAL.acquire(blocking=False):
+        return JSONResponse(
+            {"status": "busy",
+             "message": "A judge-model load is in progress. Wait."},
+            status_code=409)
+    try:
+        _log_load_eval("unloading judge model", phase="unloading")
+        app.state.evaluator_call = None
+        _LOADED_EVAL = None
+        # Best-effort GPU cache flush so the freed weights actually
+        # release their VRAM back to the pool.
+        try:
+            import torch as _torch
+            _torch.cuda.empty_cache()
+            try:
+                _torch.cuda.synchronize()
+            except Exception:
+                pass
+            _log_load_eval("CUDA cache flushed", phase="unloaded")
+        except Exception as e:
+            _log_load_eval(
+                f"CUDA cache flush skipped: {type(e).__name__}",
+                phase="unloaded", level="warn",
+            )
+        _MODEL_LOAD_STATE_EVAL.update({
+            "status": "idle", "variant": None,
+            "selected_display": None, "phase": "idle",
+            "completed_at": time.time(), "error": None,
+        })
+        return {"status": "idle", "message": "Judge model unloaded."}
+    finally:
+        _MODEL_LOAD_LOCK_EVAL.release()
 
 
 # Picker overlay: as of chat-package v0.2.3, the picker is owned by

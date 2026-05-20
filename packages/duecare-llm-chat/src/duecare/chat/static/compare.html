@@ -322,6 +322,134 @@
         <b>deep</b> = Gemma-as-judge (<code>/api/grade-deep</code>, slower);
         <b>combined</b> = weighted blend.
       </p>
+
+      <!--
+        Judge-model section. Lets the reviewer load a SEPARATE, more
+        capable model (typically Gemma 4 31B-it) into the evaluator
+        slot for LLM-based grading. The chat model stays loaded for
+        normal A/B inference; the grader auto-prefers the evaluator
+        when wired (see _evaluator_model_call in app.py). Two models
+        can stay resident if VRAM allows (T4x2 in 4-bit: ~22 GB on
+        30 GB combined). If the load fails (OOM), the chat model is
+        unaffected.
+
+        Section is collapsed by default to keep the page calm. The
+        "Suggested" hint surfaces when the user picks deep/combined
+        grade mode without a judge model loaded.
+      -->
+      <details class="wb-card" id="judge-model-card"
+               style="margin: 0 0 10px; padding: 10px 12px; background:#FAF9F4;">
+        <summary style="cursor:pointer; font-weight:600; font-size:13px; list-style:none;">
+          <span style="font-family:JetBrains Mono,monospace; font-size:10px; color:#5B5F68;
+                       text-transform:uppercase; letter-spacing:0.08em;">Judge model ·</span>
+          <span id="judge-model-summary" style="margin-left:6px; color:#2A2D34;">
+            using chat model (default)
+          </span>
+          <span id="judge-model-suggestion" class="wb-pill"
+                style="margin-left:8px; background:oklch(0.96 0.05 80);
+                       color:oklch(0.32 0.10 80); display:none;">
+            Suggested
+          </span>
+        </summary>
+        <div style="margin-top:10px; font-size:12.5px; line-height:1.55; color:#2A2D34;">
+          <p style="margin:0 0 8px;">
+            By default the chat model also grades. For higher accuracy
+            on the LLM-judge passes (<b>deep</b> and <b>combined</b>
+            modes), load a larger model into the dedicated <i>judge
+            slot</i>. The chat model stays loaded so A/B inference
+            isn't disrupted; both models can stay resident if VRAM
+            allows. Recommended: <b>Gemma 4 31B-it</b>.
+          </p>
+          <label style="display:flex; gap:8px; align-items:flex-start;
+                        margin:8px 0; cursor:pointer;">
+            <input type="checkbox" id="judge-use-separate"
+                   data-tip="Enable to load a separate, more capable model for grading. The chat model is untouched."
+                   data-tip-pos="right">
+            <span>Use a separate model as judge (more accurate)</span>
+          </label>
+          <div id="judge-controls" style="display:none; margin-top:6px;
+                                          padding:8px 10px; background:#FFF;
+                                          border:1px solid #EFEDE4; border-radius:6px;">
+            <div class="wb-row" style="gap:8px; align-items:center; margin:0 0 8px;">
+              <label style="flex:0 0 auto; font-size:12px; color:#5B5F68;">
+                Variant:
+              </label>
+              <select id="judge-variant" style="flex:0 0 auto; padding:5px 8px;
+                                                  font-size:12.5px;">
+                <option value="31b-it" selected>Gemma 4 31B-it · T4x2 (4-bit) · ~15-25 min first run</option>
+                <option value="26b-a4b-it">Gemma 4 26B-A4B-it · T4x2 (4-bit) · ~6-15 min first run</option>
+                <option value="e4b-it">Gemma 4 E4B-it · single T4 · ~30-60 sec</option>
+              </select>
+            </div>
+            <!-- Preflight: surface disk + GPU availability BEFORE
+                 the user clicks Load. Loading 31B on Kaggle needs
+                 ~30 GB disk + ~20 GB GPU; without this gate, an OOM
+                 mid-load leaves the kernel in a broken state. -->
+            <div id="judge-preflight" style="margin: 0 0 10px; padding: 8px 10px;
+                                              background: #FAF9F4; border: 1px solid #EFEDE4;
+                                              border-radius: 6px; font-size: 11.5px;
+                                              line-height: 1.5;">
+              <div style="display:flex; gap:8px; align-items:center; margin-bottom:4px;">
+                <span style="font-family:JetBrains Mono,monospace; font-size:10px;
+                             color:#5B5F68; text-transform:uppercase; letter-spacing:0.08em;">
+                  Preflight ·
+                </span>
+                <span id="judge-preflight-badge" class="wb-pill"
+                      style="background:#EFEDE4; color:#5B5F68;">
+                  checking…
+                </span>
+                <span style="flex:1"></span>
+                <button class="wb-btn-secondary" type="button"
+                        id="judge-preflight-refresh"
+                        onclick="judgeRefreshPreflight()"
+                        style="font-size:11px; padding:3px 8px;">
+                  Re-check
+                </button>
+              </div>
+              <div id="judge-preflight-detail" class="wb-muted"
+                   style="font-family:JetBrains Mono,monospace; font-size:11px;">
+                Querying disk + GPU availability…
+              </div>
+              <div id="judge-preflight-reasons" style="margin-top:4px;
+                                                        font-family:JetBrains Mono,monospace;
+                                                        font-size:11px;
+                                                        color:oklch(0.40 0.16 25);
+                                                        display:none;"></div>
+              <label style="display:none; margin-top:6px; cursor:pointer;
+                            font-size:11.5px; gap:6px; align-items:center;"
+                     id="judge-force-label">
+                <input type="checkbox" id="judge-force"
+                       data-tip="Bypass the preflight gate. Use only if you understand the risk: an OOM mid-load can leave the kernel needing a Kaggle restart."
+                       data-tip-pos="right">
+                <span>Force load (ignore preflight)</span>
+              </label>
+            </div>
+
+            <div class="wb-row" style="gap:8px; align-items:center;">
+              <button class="wb-btn-primary" type="button"
+                      id="judge-load-btn" onclick="judgeLoad()">
+                Load judge model
+              </button>
+              <button class="wb-btn-secondary" type="button"
+                      id="judge-unload-btn" onclick="judgeUnload()"
+                      style="display:none;">
+                Unload judge model
+              </button>
+              <span class="wb-pill" id="judge-status-pill"
+                    style="background:#EFEDE4; color:#5B5F68;">
+                idle
+              </span>
+            </div>
+            <div id="judge-detail" class="wb-muted" style="margin-top:6px;
+                                                            font-size:11.5px;
+                                                            font-family:JetBrains Mono,monospace;
+                                                            min-height:14px;">
+              No judge model loaded · grading will use the chat model
+            </div>
+          </div>
+        </div>
+      </details>
+
       <div class="wb-row" style="gap: 10px; align-items: center;">
         <label>Mode:
           <select id="grade-mode">
@@ -475,6 +603,345 @@
         window.dcWbOpenModelSelector({required: true});
       }
       return false;
+    }
+
+    // ============== Judge (evaluator) model orchestration ==============
+    //
+    // The kernel exposes /api/load-evaluator-model{,/status} and
+    // /api/unload-evaluator-model. When a model is loaded into the
+    // evaluator slot, the chat package's _evaluator_model_call (in
+    // app.py) prefers it over the chat model for LLM-judge grading.
+    // This means: nothing in cmpGrade needs to change -- once a judge
+    // model is loaded, deep/combined grading automatically uses it.
+    //
+    // UX contract:
+    //   * Off by default (chat model is the judge).
+    //   * Checkbox + variant picker live inside <details id="judge-model-card">.
+    //   * Soft "Suggested" pill surfaces when the user picks deep/combined
+    //     grade mode and no judge model is loaded yet -- a gentle nudge,
+    //     not an interruption.
+    //   * Preferences persist in localStorage so re-opens remember the
+    //     user's last choice without re-triggering a load.
+    //   * Load is async; status polls every 3s for the first 10 min,
+    //     5s after that. The activity log mirrors the kernel-side
+    //     judge-load events for transparency.
+    //   * Unload is a single POST that flushes CUDA cache; safe to
+    //     call when nothing is loaded.
+    const _JUDGE_LS_USE = 'duecare:judge-use-separate';
+    const _JUDGE_LS_VARIANT = 'duecare:judge-variant';
+    let _judgePoll = null;
+    let _judgeLastStatus = null;
+
+    function _judgeQs(id) { return document.getElementById(id); }
+
+    function _judgeUpdateSummary(snapshot) {
+      // snapshot is the active_evaluator dict from the status endpoint.
+      const sum = _judgeQs('judge-model-summary');
+      const pill = _judgeQs('judge-status-pill');
+      const detail = _judgeQs('judge-detail');
+      const loadBtn = _judgeQs('judge-load-btn');
+      const unloadBtn = _judgeQs('judge-unload-btn');
+      const variantSel = _judgeQs('judge-variant');
+      const useChk = _judgeQs('judge-use-separate');
+      if (!sum || !pill || !detail) return;
+      const loaded = !!(snapshot && snapshot.active_evaluator
+                         && snapshot.active_evaluator.loaded);
+      const status = (snapshot && snapshot.status) || 'idle';
+      const variant = (snapshot && snapshot.variant) || (variantSel ? variantSel.value : '');
+      if (loaded) {
+        sum.textContent = (snapshot.active_evaluator.display ||
+                            ('using ' + (variant || 'separate judge')));
+        pill.textContent = 'loaded · ' + (variant || 'judge');
+        pill.style.background = 'oklch(0.92 0.06 155)';
+        pill.style.color = 'oklch(0.32 0.07 155)';
+        detail.textContent = 'Grading will use this judge model.';
+        if (loadBtn) loadBtn.style.display = 'none';
+        if (unloadBtn) unloadBtn.style.display = '';
+        if (variantSel) variantSel.disabled = true;
+      } else if (status === 'loading') {
+        sum.textContent = 'loading judge model · ' + (variant || '');
+        pill.textContent = 'loading';
+        pill.style.background = 'oklch(0.96 0.05 80)';
+        pill.style.color = 'oklch(0.32 0.10 80)';
+        const elapsed = (snapshot && snapshot.elapsed_s != null)
+          ? Math.round(snapshot.elapsed_s) + 's'
+          : '';
+        const lastLog = (snapshot && snapshot.last_log) || '';
+        detail.textContent = 'phase=' + ((snapshot && snapshot.phase) || '?') +
+          (elapsed ? ' · ' + elapsed + ' elapsed' : '') +
+          (lastLog ? ' · ' + lastLog.slice(0, 80) : '');
+        if (loadBtn) { loadBtn.disabled = true; loadBtn.style.display = ''; }
+        if (unloadBtn) unloadBtn.style.display = 'none';
+        if (variantSel) variantSel.disabled = true;
+      } else if (status === 'error') {
+        sum.textContent = 'judge load failed · using chat model';
+        pill.textContent = 'error';
+        pill.style.background = 'oklch(0.94 0.04 25)';
+        pill.style.color = 'oklch(0.32 0.10 25)';
+        detail.textContent = (snapshot && snapshot.error) || 'unknown error';
+        if (loadBtn) { loadBtn.disabled = false; loadBtn.style.display = ''; }
+        if (unloadBtn) unloadBtn.style.display = 'none';
+        if (variantSel) variantSel.disabled = false;
+      } else {
+        // idle
+        sum.textContent = 'using chat model (default)';
+        pill.textContent = 'idle';
+        pill.style.background = '#EFEDE4';
+        pill.style.color = '#5B5F68';
+        detail.textContent = 'No judge model loaded · grading will use the chat model';
+        if (loadBtn) { loadBtn.disabled = false; loadBtn.style.display = ''; }
+        if (unloadBtn) unloadBtn.style.display = 'none';
+        if (variantSel) variantSel.disabled = false;
+      }
+      // Suggestion pill: visible when checkbox is OFF and mode is deep/combined
+      const suggestion = _judgeQs('judge-model-suggestion');
+      const modeSel = _judgeQs('grade-mode');
+      if (suggestion) {
+        const useChecked = !!(useChk && useChk.checked);
+        const mode = modeSel ? modeSel.value : 'deterministic';
+        const llmJudgeMode = (mode === 'deep' || mode === 'combined');
+        suggestion.style.display = (llmJudgeMode && !loaded) ? '' : 'none';
+      }
+    }
+
+    async function judgeRefreshStatus() {
+      try {
+        const r = await fetch('/api/load-evaluator-model/status', {cache: 'no-store'});
+        if (!r.ok) return null;
+        const data = await r.json();
+        _judgeLastStatus = data;
+        _judgeUpdateSummary(data);
+        // Mirror new log events into the page activity log so the
+        // reviewer sees one stream, not two.
+        if (Array.isArray(data.logs) && data.logs.length) {
+          const last = data.logs[data.logs.length - 1];
+          if (last && last.message && last.ts !== _judgePoll?._lastTs) {
+            if (_judgePoll) _judgePoll._lastTs = last.ts;
+            try { logEvent(null, last.level === 'error' ? 'err' : 'info',
+              '[judge] ' + last.message); } catch (_) {}
+          }
+        }
+        return data;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function judgeStartPolling() {
+      if (_judgePoll) return;
+      _judgePoll = { _lastTs: null };
+      const tick = async () => {
+        const s = await judgeRefreshStatus();
+        if (!s) {
+          _judgePoll = null;
+          return;
+        }
+        if (s.status === 'loading') {
+          // Faster polling during load.
+          setTimeout(tick, 3000);
+        } else {
+          // Done (ready/idle/error). Stop polling.
+          _judgePoll = null;
+        }
+      };
+      tick();
+    }
+
+    // ---------- Preflight: disk + GPU check before load ----------
+    let _judgeLastPreflight = null;
+
+    async function judgeRefreshPreflight() {
+      const variantSel = _judgeQs('judge-variant');
+      const badge = _judgeQs('judge-preflight-badge');
+      const detail = _judgeQs('judge-preflight-detail');
+      const reasons = _judgeQs('judge-preflight-reasons');
+      const forceLbl = _judgeQs('judge-force-label');
+      const loadBtn = _judgeQs('judge-load-btn');
+      if (!variantSel || !badge || !detail) return null;
+      const variant = variantSel.value || '31b-it';
+      badge.textContent = 'checking…';
+      badge.style.background = '#EFEDE4';
+      badge.style.color = '#5B5F68';
+      try {
+        const r = await fetch(
+          '/api/load-evaluator-model/preflight?variant=' + encodeURIComponent(variant),
+          {cache: 'no-store'},
+        );
+        if (!r.ok) {
+          badge.textContent = 'check failed';
+          badge.style.background = 'oklch(0.94 0.04 25)';
+          badge.style.color = 'oklch(0.32 0.10 25)';
+          detail.textContent = 'HTTP ' + r.status +
+            ' (preflight endpoint unreachable; running an older kernel?)';
+          if (reasons) reasons.style.display = 'none';
+          if (forceLbl) forceLbl.style.display = 'none';
+          return null;
+        }
+        const data = await r.json();
+        _judgeLastPreflight = data;
+        const needD = (data.needs_disk_gb != null) ? data.needs_disk_gb.toFixed(1) : '?';
+        const needG = (data.needs_gpu_gb != null) ? data.needs_gpu_gb.toFixed(1) : '?';
+        const haveD = (data.disk_free_gb != null) ? data.disk_free_gb.toFixed(1) : '?';
+        const haveG = (data.gpu_free_gb != null) ? data.gpu_free_gb.toFixed(1) : '?';
+        detail.textContent =
+          'needs ' + needD + ' GB disk + ' + needG + ' GB GPU · ' +
+          'have ' + haveD + ' GB disk + ' + haveG + ' GB GPU' +
+          (Array.isArray(data.notes) && data.notes.length
+            ? ' · ' + data.notes.join('; ')
+            : '');
+        if (data.ok) {
+          badge.textContent = 'ready';
+          badge.style.background = 'oklch(0.92 0.06 155)';
+          badge.style.color = 'oklch(0.32 0.07 155)';
+          if (reasons) { reasons.style.display = 'none'; reasons.textContent = ''; }
+          if (forceLbl) forceLbl.style.display = 'none';
+          if (loadBtn) loadBtn.disabled = false;
+        } else {
+          badge.textContent = 'blocked';
+          badge.style.background = 'oklch(0.94 0.04 25)';
+          badge.style.color = 'oklch(0.32 0.10 25)';
+          if (reasons) {
+            reasons.style.display = '';
+            reasons.textContent = 'Reasons: ' + (data.reasons || []).join(' · ');
+          }
+          // Surface the force-override toggle so advanced users have
+          // an escape hatch, but disable Load until they tick it.
+          if (forceLbl) forceLbl.style.display = 'inline-flex';
+          const forceChk = _judgeQs('judge-force');
+          if (loadBtn) loadBtn.disabled = !(forceChk && forceChk.checked);
+        }
+        return data;
+      } catch (e) {
+        badge.textContent = 'check failed';
+        badge.style.background = 'oklch(0.94 0.04 25)';
+        badge.style.color = 'oklch(0.32 0.10 25)';
+        detail.textContent = 'preflight error: ' + e;
+        return null;
+      }
+    }
+
+    async function judgeLoad() {
+      const variantSel = _judgeQs('judge-variant');
+      const variant = variantSel ? variantSel.value : '31b-it';
+      const forceChk = _judgeQs('judge-force');
+      const override = !!(forceChk && forceChk.checked);
+      // Re-run preflight at click time so a stale check can't sneak
+      // through (the user may have loaded the chat model after the
+      // last refresh and eaten the headroom).
+      const pre = await judgeRefreshPreflight();
+      if (pre && !pre.ok && !override) {
+        try { logEvent(null, 'warn',
+          '[judge] preflight blocked: ' + (pre.reasons || []).join('; ')); } catch (_) {}
+        return;
+      }
+      try {
+        localStorage.setItem(_JUDGE_LS_VARIANT, variant);
+        localStorage.setItem(_JUDGE_LS_USE, '1');
+      } catch (_) {}
+      try { logEvent(null, 'info', '[judge] requesting load of ' + variant +
+        (override ? ' (force)' : '')); } catch (_) {}
+      try {
+        const r = await fetch('/api/load-evaluator-model', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({variant: variant, override: override}),
+        });
+        if (r.status === 503) {
+          // Preflight-failed envelope. Surface to user.
+          const data = await r.json().catch(() => ({}));
+          try { logEvent(null, 'err',
+            '[judge] preflight blocked server-side: ' + (data.message || '')); } catch (_) {}
+          // Refresh the badge so the UI matches the server verdict.
+          judgeRefreshPreflight();
+          return;
+        }
+        if (!r.ok) {
+          try { logEvent(null, 'err', '[judge] HTTP ' + r.status); } catch (_) {}
+          return;
+        }
+        judgeStartPolling();
+      } catch (e) {
+        try { logEvent(null, 'err', '[judge] load request failed: ' + e); } catch (_) {}
+      }
+    }
+
+    async function judgeUnload() {
+      try { logEvent(null, 'info', '[judge] unloading'); } catch (_) {}
+      try {
+        const r = await fetch('/api/unload-evaluator-model', {method: 'POST'});
+        if (!r.ok) {
+          try { logEvent(null, 'err', '[judge] unload HTTP ' + r.status); } catch (_) {}
+          return;
+        }
+        // Refresh once to flip UI back to idle.
+        judgeRefreshStatus();
+        try {
+          localStorage.setItem(_JUDGE_LS_USE, '0');
+        } catch (_) {}
+      } catch (e) {
+        try { logEvent(null, 'err', '[judge] unload failed: ' + e); } catch (_) {}
+      }
+    }
+
+    function judgeInit() {
+      const useChk = _judgeQs('judge-use-separate');
+      const variantSel = _judgeQs('judge-variant');
+      const controls = _judgeQs('judge-controls');
+      const card = _judgeQs('judge-model-card');
+      const modeSel = _judgeQs('grade-mode');
+      if (!useChk || !variantSel || !controls) return;
+      // Restore preferences.
+      try {
+        const lsUse = localStorage.getItem(_JUDGE_LS_USE);
+        const lsVar = localStorage.getItem(_JUDGE_LS_VARIANT);
+        if (lsVar) variantSel.value = lsVar;
+        if (lsUse === '1') {
+          useChk.checked = true;
+          controls.style.display = '';
+          if (card && !card.open) card.open = true;
+        }
+      } catch (_) {}
+      useChk.addEventListener('change', () => {
+        controls.style.display = useChk.checked ? '' : 'none';
+        try {
+          localStorage.setItem(_JUDGE_LS_USE, useChk.checked ? '1' : '0');
+        } catch (_) {}
+        _judgeUpdateSummary(_judgeLastStatus);
+        // Surface a fresh preflight reading the moment the user opens
+        // the controls, so they see whether 31B will fit before they
+        // even click Load.
+        if (useChk.checked) judgeRefreshPreflight();
+      });
+      variantSel.addEventListener('change', () => {
+        try {
+          localStorage.setItem(_JUDGE_LS_VARIANT, variantSel.value);
+        } catch (_) {}
+        // Re-run preflight because the new variant has a different
+        // disk + GPU footprint.
+        judgeRefreshPreflight();
+      });
+      const forceChk = _judgeQs('judge-force');
+      if (forceChk) {
+        forceChk.addEventListener('change', () => {
+          // The Load button gating depends on this checkbox when the
+          // preflight is failing -- refresh the panel so the button
+          // matches the toggle.
+          if (_judgeLastPreflight && !_judgeLastPreflight.ok) {
+            const loadBtn = _judgeQs('judge-load-btn');
+            if (loadBtn) loadBtn.disabled = !forceChk.checked;
+          }
+        });
+      }
+      if (modeSel) {
+        modeSel.addEventListener('change', () => {
+          _judgeUpdateSummary(_judgeLastStatus);
+        });
+      }
+      // Prime status + preflight on load so the UI reflects any judge
+      // already loaded from a prior session AND shows current
+      // disk/GPU headroom even before the user opens the section.
+      judgeRefreshStatus();
+      if (useChk.checked) judgeRefreshPreflight();
     }
 
     // ============== Image attachment (Tier 4 #17) ==============
@@ -2044,6 +2511,8 @@
       getLog();  // eager-init so idle placeholder is visible right away
       populateExamples();
       cmpRefreshModelStatus();
+      // Restore Judge-model preferences + prime the status pill.
+      try { judgeInit(); } catch (e) { console.warn('judgeInit failed', e); }
 
       // Wire toggle-change listeners so the variant label pill stays
       // in sync with the actual toggle state (no more 'stock' lying

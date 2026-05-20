@@ -716,3 +716,270 @@ def test_evaluator_max_new_tokens_default_raised() -> None:
         "DeepGradeRequest.max_new_tokens default must be at least "
         "640 so the structured envelope finishes before truncation."
     )
+
+
+# ---------------------------------------------------------------------------
+# Judge (evaluator) model slot
+#
+# The kernel exposes a separate evaluator slot so a more capable model
+# (typically Gemma 4 31B-it) can be loaded for LLM-judge grading while
+# the chat model stays loaded for A/B inference. The chat package's
+# _evaluator_model_call already prefers app.state.evaluator_call over
+# app.state.gemma_call -- no grading-side changes needed once a judge
+# is loaded.
+#
+# Tests pin the contract from both sides:
+#   * kernel.py: three new endpoints + state ring + threaded loader
+#   * compare.html: section + checkbox + variant picker + load/unload
+#                   controls + localStorage persistence + status poll
+# ---------------------------------------------------------------------------
+
+
+# Repo-root path to the active Kaggle kernel. parents[3] is the
+# repo root: tests/ -> duecare-llm-chat/ -> packages/ -> repo-root/.
+# Hard-required at import time so a repo reorganization fails loudly
+# here rather than silently skipping the judge-model coverage.
+_KERNEL_PATH = (
+    Path(__file__).parents[3]
+    / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py"
+)
+assert _KERNEL_PATH.exists(), (
+    f"Active Kaggle kernel missing at {_KERNEL_PATH}. The judge-model "
+    f"feature lives in this kernel; if it moved, update _KERNEL_PATH."
+)
+
+
+def test_kernel_exposes_evaluator_load_endpoints() -> None:
+    """kernel.py must expose POST /api/load-evaluator-model,
+    POST /api/unload-evaluator-model, and GET /api/load-evaluator-model/status
+    so the compare UI can load a separate judge model."""
+    src = _KERNEL_PATH.read_text(encoding="utf-8")
+    assert '@app.post("/api/load-evaluator-model")' in src
+    assert '@app.post("/api/unload-evaluator-model")' in src
+    assert '@app.get("/api/load-evaluator-model/status")' in src
+
+
+def test_kernel_evaluator_load_uses_separate_state_ring() -> None:
+    """The judge-model load must NOT mutate the chat-model state ring.
+    Separate _MODEL_LOAD_STATE_EVAL, _MODEL_LOAD_LOCK_EVAL, and
+    _MODEL_LOAD_EVENTS_EVAL keep the two surfaces independent so a
+    judge load doesn't make /api/load-model/status look busy."""
+    src = _KERNEL_PATH.read_text(encoding="utf-8")
+    assert "_MODEL_LOAD_STATE_EVAL" in src
+    assert "_MODEL_LOAD_LOCK_EVAL" in src
+    assert "_MODEL_LOAD_EVENTS_EVAL" in src
+    # The endpoints must write to app.state.evaluator_call (the slot
+    # the chat package already prefers for grading).
+    assert "app.state.evaluator_call = loaded_local.backend" in src
+    assert "app.state.evaluator_call = None" in src
+
+
+def test_kernel_evaluator_unload_flushes_cuda_cache() -> None:
+    """On unload, the kernel must call torch.cuda.empty_cache() (best-
+    effort) so the freed weights actually release VRAM."""
+    src = _KERNEL_PATH.read_text(encoding="utf-8")
+    # Look at the unload handler region specifically.
+    unload_idx = src.find("def api_unload_evaluator_model(")
+    assert unload_idx >= 0, "kernel.py is missing api_unload_evaluator_model"
+    # Examine the next ~3 KB of source for the cache flush.
+    region = src[unload_idx:unload_idx + 3000]
+    assert "torch.cuda.empty_cache" in region or "_torch.cuda.empty_cache" in region
+
+
+def test_compare_judge_section_present() -> None:
+    """compare.html must include the Judge model section with the
+    checkbox, variant picker, load/unload buttons, status pill, and
+    suggestion pill."""
+    html = _read("compare.html")
+    assert 'id="judge-model-card"' in html, (
+        "compare.html must have a <details id=\"judge-model-card\"> "
+        "block for the Judge model UI."
+    )
+    assert 'id="judge-use-separate"' in html, (
+        "Judge model section must include the use-separate checkbox."
+    )
+    assert 'id="judge-variant"' in html, (
+        "Judge model section must include the variant picker."
+    )
+    assert 'id="judge-load-btn"' in html
+    assert 'id="judge-unload-btn"' in html
+    assert 'id="judge-status-pill"' in html
+    assert 'id="judge-model-suggestion"' in html
+
+
+def test_compare_judge_section_offers_31b_first() -> None:
+    """The variant picker default must be Gemma 4 31B-it, since that
+    is the recommended judge model for grading accuracy."""
+    html = _read("compare.html")
+    # Find the variant picker block.
+    idx = html.find('id="judge-variant"')
+    assert idx >= 0
+    block = html[idx:idx + 1200]
+    # The first option must be 31b-it AND it must be selected by default.
+    assert 'value="31b-it" selected' in block, (
+        "Judge variant picker must default to 31b-it (the most "
+        "accurate Gemma 4 variant for LLM-judge grading)."
+    )
+
+
+def test_compare_judge_orchestration_js_wired() -> None:
+    """The page must define judgeLoad / judgeUnload / judgeInit / and
+    call judgeInit on DOMContentLoaded so the UI is alive on page load."""
+    html = _read("compare.html")
+    assert "async function judgeLoad()" in html
+    assert "async function judgeUnload()" in html
+    assert "function judgeInit()" in html
+    # judgeInit must be called on DOMContentLoaded.
+    assert "try { judgeInit();" in html
+
+
+def test_compare_judge_persists_preferences_in_localstorage() -> None:
+    """The user's choice (use judge yes/no + which variant) must
+    survive page reload via localStorage so the reviewer doesn't have
+    to re-set it after every refresh."""
+    html = _read("compare.html")
+    assert "'duecare:judge-use-separate'" in html
+    assert "'duecare:judge-variant'" in html
+    # The init function reads both keys.
+    assert "localStorage.getItem(_JUDGE_LS_USE)" in html
+    assert "localStorage.getItem(_JUDGE_LS_VARIANT)" in html
+
+
+def test_compare_judge_polls_status_endpoint() -> None:
+    """judgeLoad must POST then poll /api/load-evaluator-model/status
+    so the UI updates as the loader thread reports phase changes."""
+    html = _read("compare.html")
+    assert "/api/load-evaluator-model" in html
+    assert "/api/load-evaluator-model/status" in html
+    assert "/api/unload-evaluator-model" in html
+    # Polling helper must exist.
+    assert "function judgeStartPolling()" in html
+
+
+# ---------------------------------------------------------------------------
+# Preflight: disk + GPU multi-step safety
+#
+# Loading 31B on Kaggle needs ~30 GB disk + ~20 GB GPU. Without
+# preflight, an OOM mid-load leaves the kernel needing a restart.
+# These tests pin the kernel-side gate and the UI-side gating + force
+# override.
+# ---------------------------------------------------------------------------
+
+
+def test_kernel_exposes_judge_preflight_endpoint() -> None:
+    """Kernel must expose GET /api/load-evaluator-model/preflight with
+    a ?variant= query so the UI can check fit BEFORE clicking Load."""
+    src = _KERNEL_PATH.read_text(encoding="utf-8")
+    assert '@app.get("/api/load-evaluator-model/preflight")' in src
+    # Helper functions used by the preflight gate.
+    assert "def _judge_preflight(variant: str)" in src
+    assert "def _disk_free_gb(" in src
+    assert "def _gpu_free_gb(" in src
+    assert "def _estimate_model_size_gb(variant: str)" in src
+
+
+def test_kernel_judge_preflight_returns_expected_shape() -> None:
+    """The preflight result must include the 8 fields the UI relies on:
+    variant, needs_disk_gb, needs_gpu_gb, disk_free_gb, gpu_free_gb,
+    ok, reasons, notes."""
+    src = _KERNEL_PATH.read_text(encoding="utf-8")
+    # Look at the preflight helper's return dict literal.
+    idx = src.find("def _judge_preflight(")
+    assert idx >= 0
+    body = src[idx:idx + 4000]
+    for key in ("variant", "needs_disk_gb", "needs_gpu_gb",
+                "disk_free_gb", "gpu_free_gb", "ok", "reasons", "notes"):
+        assert f'"{key}":' in body, (
+            f"_judge_preflight return must include the '{key}' field"
+        )
+
+
+def test_kernel_judge_load_enforces_preflight_with_override() -> None:
+    """The load endpoint must run preflight and refuse with 503 when
+    it fails, unless the caller passes ``override: true``. The error
+    envelope must carry the preflight result so the UI can render
+    the actual reasons."""
+    src = _KERNEL_PATH.read_text(encoding="utf-8")
+    idx = src.find("def api_load_evaluator_model(")
+    assert idx >= 0
+    body = src[idx:idx + 4000]
+    assert "pre = _judge_preflight(variant)" in body
+    assert 'if not pre["ok"] and not override:' in body
+    assert "status_code=503" in body
+    assert '"preflight_failed"' in body
+    # Override flag must be read from the request body.
+    assert 'body or {}).get("override"' in body
+
+
+def test_kernel_judge_variant_footprints_documented() -> None:
+    """The variant -> {disk, gpu} mapping must include the four
+    primary Gemma 4 variants the UI exposes. Unknown variants get a
+    conservative worst-case fallback."""
+    src = _KERNEL_PATH.read_text(encoding="utf-8")
+    assert "_VARIANT_FOOTPRINT_GB" in src
+    assert '"e2b-it"' in src
+    assert '"e4b-it"' in src
+    assert '"26b-a4b-it"' in src
+    assert '"31b-it"' in src
+    # Cloud routes must auto-pass (no local footprint).
+    assert '"cloud-gemini"' in src
+    # The estimator must fall back conservatively when the variant is
+    # not in the table.
+    assert "Unknown variant: assume worst-case" in src
+
+
+def test_compare_judge_renders_preflight_panel() -> None:
+    """The compare page must render a preflight panel above the
+    Load/Unload row with badge + needs/have detail + a Re-check
+    button so the user can refresh after freeing disk."""
+    html = _read("compare.html")
+    assert 'id="judge-preflight"' in html
+    assert 'id="judge-preflight-badge"' in html
+    assert 'id="judge-preflight-detail"' in html
+    assert 'id="judge-preflight-reasons"' in html
+    assert 'id="judge-preflight-refresh"' in html
+
+
+def test_compare_judge_supports_force_override() -> None:
+    """When preflight blocks, the UI must surface a "Force load"
+    toggle that disables the gate. Hidden by default; revealed only
+    after a blocking preflight; the Load button is disabled until
+    the user ticks it."""
+    html = _read("compare.html")
+    assert 'id="judge-force"' in html
+    assert 'id="judge-force-label"' in html
+    # The override flag must travel in the POST body so the server-
+    # side gate can honor it.
+    assert "override: override" in html
+    # The label is hidden by default (display:none); the JS reveals
+    # it only after preflight fails.
+    assert 'id="judge-force-label">' in html
+
+
+def test_compare_judge_refreshes_preflight_on_variant_change() -> None:
+    """Changing the variant in the picker must trigger a fresh
+    preflight (different variants have different footprints)."""
+    html = _read("compare.html")
+    # judgeRefreshPreflight is the helper.
+    assert "async function judgeRefreshPreflight()" in html
+    # variantSel listener must call it.
+    idx = html.find("variantSel.addEventListener('change'")
+    assert idx >= 0
+    block = html[idx:idx + 800]
+    assert "judgeRefreshPreflight()" in block
+
+
+def test_compare_judge_re_runs_preflight_at_click_time() -> None:
+    """judgeLoad must re-check preflight at click time (not just
+    rely on the panel's cached result), because the chat model may
+    have been loaded since the last refresh and eaten the headroom."""
+    html = _read("compare.html")
+    idx = html.find("async function judgeLoad()")
+    assert idx >= 0
+    body = html[idx:idx + 2500]
+    assert "await judgeRefreshPreflight()" in body, (
+        "judgeLoad must re-run preflight at click time, not trust "
+        "the cached badge."
+    )
+    # And must surface a server-side 503 (preflight_failed) cleanly.
+    assert "r.status === 503" in body
