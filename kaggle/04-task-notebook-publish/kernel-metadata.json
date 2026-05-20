@@ -1,0 +1,14 @@
+{
+  "id": "taylorsamarel/new-benchmark-task-443d1",
+  "title": "New Benchmark Task 443d1",
+  "code_file": "task_notebook.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_internet": true,
+  "dataset_sources": [],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "model_sources": []
+}

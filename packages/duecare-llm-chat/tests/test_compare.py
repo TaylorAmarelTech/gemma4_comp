@@ -65,9 +65,27 @@ def test_required_markup_present(client):
         'src="/static/_examples_picker.js"',
         # log
         'id="cmp-log"',
+        # benchmark mirror (calls /api/grade-benchmark after each grade)
+        'id="A-benchmark-score"',
+        'id="B-benchmark-score"',
+        '/api/grade-benchmark',
     ]
     missing = [m for m in must_have if m not in text]
     assert not missing, f"required markup missing: {missing}"
+
+
+def test_benchmark_mirror_jsfns_present(client):
+    """The JS that wires the benchmark-score panel must exist on the
+    page; otherwise the new DOM markers go unwritten and reviewers see
+    a stale 'not scored' line forever."""
+    r = client.get("/static/compare.html")
+    text = r.text
+    for marker in (
+        "function cmpBenchmarkOne",
+        "function renderBenchmarkScore",
+        "/api/grade-benchmark",
+    ):
+        assert marker in text, f"compare.html missing benchmark wiring marker: {marker!r}"
 
 
 def test_aria_attributes_present(client):

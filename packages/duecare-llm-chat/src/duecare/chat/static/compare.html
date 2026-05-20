@@ -499,11 +499,13 @@
         <div class="wb-grade">
           <h3>Variant A grade</h3>
           <div class="score-line" id="A-grade-score">not graded</div>
+          <div class="score-line wb-muted" id="A-benchmark-score" style="font-size: 12px; font-family: var(--mono, monospace);" title="What the published Kaggle Community Benchmark would say about this response (deterministic only; no judge LLM call)">benchmark: not scored</div>
           <pre id="A-grade">(not graded yet)</pre>
         </div>
         <div class="wb-grade">
           <h3>Variant B grade</h3>
           <div class="score-line" id="B-grade-score">not graded</div>
+          <div class="score-line wb-muted" id="B-benchmark-score" style="font-size: 12px; font-family: var(--mono, monospace);" title="What the published Kaggle Community Benchmark would say about this response (deterministic only; no judge LLM call)">benchmark: not scored</div>
           <pre id="B-grade">(not graded yet)</pre>
         </div>
       </div>
@@ -2368,6 +2370,16 @@
       document.getElementById('B-grade-score').textContent = 'not graded';
       document.getElementById('A-grade').textContent = '(not graded yet)';
       document.getElementById('B-grade').textContent = '(not graded yet)';
+      const aBench = document.getElementById('A-benchmark-score');
+      const bBench = document.getElementById('B-benchmark-score');
+      if (aBench) {
+        aBench.textContent = 'benchmark: not scored';
+        aBench.style.color = '';
+      }
+      if (bBench) {
+        bBench.textContent = 'benchmark: not scored';
+        bBench.style.color = '';
+      }
       document.getElementById('postrun-status').textContent = '';
       cmpSetExportState(false, false);
     }
@@ -2487,6 +2499,65 @@
             cmpGMark.textContent = 'Gemma unavailable';
           }
         }
+      }
+    }
+
+    // ============== Benchmark score (mirror of public Kaggle task) ==============
+    // The /api/grade-benchmark endpoint scores a response against the
+    // same criteria + policy used by the published Kaggle Community
+    // Benchmark task (duecare.chat.benchmark). Runs deterministic-only
+    // so it doesn't burn the chat queue. Failure is non-fatal: a
+    // benchmark fetch error never blocks the local grade panel.
+    async function cmpBenchmarkOne(variant, res, prompt) {
+      const responseText = (res && res.final && res.final.response) || '';
+      if (!responseText.trim()) {
+        return {error: 'empty response_text'};
+      }
+      try {
+        const r = await fetch('/api/grade-benchmark', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            response_text: responseText,
+            prompt_text: prompt,
+            harness_trace: (res && res.final && res.final.harness_trace) || null,
+          }),
+        });
+        if (!r.ok) {
+          return {error: 'HTTP ' + r.status, body: await r.text()};
+        }
+        return await r.json();
+      } catch (e) {
+        return {error: String(e)};
+      }
+    }
+
+    function renderBenchmarkScore(variant, result) {
+      const el = document.getElementById(variant + '-benchmark-score');
+      if (!el) return;
+      if (!result || result.error) {
+        const msg = (result && result.error) ? String(result.error) : 'unavailable';
+        el.textContent = 'benchmark: ' + msg;
+        el.style.color = 'var(--ink-3, #5B5F68)';
+        return;
+      }
+      const scoreNum = (typeof result.score === 'number') ? result.score : null;
+      const score = (scoreNum === null) ? 'n/a' : scoreNum.toFixed(2);
+      const verdict = result.passed ? 'PASS' : 'FAIL';
+      const upliftFlag = result.harmful_uplift_flagged ? ' [uplift]' : '';
+      const ver = result.criteria_version || 'unknown';
+      // Compact one-liner. Reviewer can hover the title for context.
+      el.textContent =
+        'benchmark: ' + score + ' / 1.00 — ' + verdict +
+        ' (deterministic, ' + ver + ')' + upliftFlag;
+      // Color cues: ember for harmful-uplift flag, green for pass,
+      // muted for fail-but-clean. Matches the workbench palette.
+      if (result.harmful_uplift_flagged) {
+        el.style.color = 'oklch(0.58 0.14 45)';
+      } else if (result.passed) {
+        el.style.color = 'oklch(0.55 0.10 155)';
+      } else {
+        el.style.color = 'var(--ink-3, #5B5F68)';
       }
     }
 
@@ -2672,6 +2743,9 @@
         const gAMs = Math.round(performance.now() - tA0);
         renderGradeBars('A', gA);
         document.getElementById('A-grade-score').textContent = scoreLabel(gA);
+        // Benchmark mirror runs in parallel; treat result as best-effort.
+        const bA = await cmpBenchmarkOne('A', r.A, r.prompt);
+        renderBenchmarkScore('A', bA);
 
         const tB0 = performance.now();
         const gB = await cmpGradeOne('B', r.B, r.prompt, mode, progress);
@@ -2680,6 +2754,8 @@
         renderGradeBars('B', gB);
         document.getElementById('A-grade-score').textContent = scoreLabel(gA);
         document.getElementById('B-grade-score').textContent = scoreLabel(gB);
+        const bB = await cmpBenchmarkOne('B', r.B, r.prompt);
+        renderBenchmarkScore('B', bB);
         window._cmpGradeResults = {
           ts: new Date().toISOString(),
           mode: mode,
@@ -2689,12 +2765,14 @@
             response: (r.A.final && r.A.final.response) || '',
             trace: (r.A.final && r.A.final.harness_trace) || null,
             toggles: readToggles('A'),
+            benchmark: bA,
           },
           variantB: {
             grade: gB, grade_ms: gBMs,
             response: (r.B.final && r.B.final.response) || '',
             trace: (r.B.final && r.B.final.harness_trace) || null,
             toggles: readToggles('B'),
+            benchmark: bB,
           },
         };
         status.textContent = 'A=' + scoreLabel(gA) + '  |  B=' + scoreLabel(gB);
