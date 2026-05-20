@@ -1924,6 +1924,166 @@ def test_design_contract_pages_use_is_private_trust_row() -> None:
         )
 
 
+def test_anonymization_hub_allowlist_blocks_ssrf() -> None:
+    """_post_payload must refuse any target_url whose host is not on
+    _HUB_ALLOWLIST_HOSTS. The kernel runs unauthenticated on a Kaggle
+    tunnel, so the submit endpoint cannot be allowed to act as a
+    general HTTP proxy / SSRF vector."""
+    repo_root = Path(__file__).parents[1].parent
+    handler_path = (
+        Path(__file__).parents[1] / "src" / "duecare" / "chat"
+        / "harnesses" / "anonymization" / "handler.py"
+    )
+    src = handler_path.read_text(encoding="utf-8")
+    assert "_HUB_ALLOWLIST_HOSTS" in src
+    # Must reject http:// and any other non-https scheme.
+    assert "scheme {parsed.scheme!r} not allowed" in src
+    assert 'parsed.scheme != "https"' in src
+    # Approved hub hosts.
+    assert '"gemma4-comp.onrender.com"' in src
+    assert '"duecare-ai.com"' in src
+    # Userinfo rejected.
+    assert "parsed.username or parsed.password" in src
+    # follow_redirects disabled so an allowed host can't bounce off-list.
+    assert "follow_redirects=False" in src
+
+
+def test_kernel_robust_bool_parser() -> None:
+    """The kernel exposes _parse_bool to avoid bool(\"false\")==True
+    when a request body sends a JSON-stringified boolean. The
+    use-chat-as-judge endpoint routes through this helper."""
+    repo_root = Path(__file__).parents[3]
+    kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
+    assert "def _parse_bool(" in kernel
+    # Truthy + falsy strings handled explicitly.
+    assert "true" in kernel.lower() and "false" in kernel.lower()
+    # Endpoint uses the helper for "enabled".
+    ep_idx = kernel.find("def api_use_chat_as_judge(")
+    ep_end = kernel.find("\n@app.post(", ep_idx + 100)
+    ep_body = kernel[ep_idx:ep_end]
+    assert '_parse_bool(body.get("enabled")' in ep_body
+
+
+def test_compare_warns_when_judge_shares_chat_slot() -> None:
+    """During a grade run, the compare page must log a heads-up when
+    mirroring is active so the operator knows why a long wait may
+    happen if another user is mid-generation."""
+    html = _read("compare.html")
+    grade_idx = html.find("async function cmpGradeOne(")
+    grade_end = grade_idx + 1200
+    grade_body = html[grade_idx:grade_end]
+    assert "_judgeLastStatus.judge_uses_chat" in grade_body
+    assert "mirror ON" in grade_body
+
+
+def test_templates_kernel_has_registry_and_endpoints() -> None:
+    """The kernel registers 4 NGO templates (HK Labour Dept, PH DMW, IOM,
+    NGO intake) and exposes GET /api/templates/list +
+    POST /api/templates/fill. Each template has a body_template,
+    audience, jurisdiction, and ordered fields list."""
+    repo_root = Path(__file__).parents[3]
+    kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
+    assert "_TEMPLATES_REGISTRY" in kernel
+    for tpl_id in ("hk_ld_fdh_complaint", "ph_dmw_complaint",
+                   "iom_referral", "ngo_intake"):
+        assert f'"{tpl_id}"' in kernel
+    assert '@app.get("/api/templates/list")' in kernel
+    assert '@app.post("/api/templates/fill")' in kernel
+    # The fill endpoint must support manual_fields override and
+    # use_gemma=False fallback so the page works without Gemma.
+    fill_idx = kernel.find("def api_templates_fill(")
+    fill_end = kernel.find("\n# Picker overlay:", fill_idx)
+    fill_body = kernel[fill_idx:fill_end]
+    assert "manual_fields" in fill_body
+    assert "use_gemma" in fill_body
+    # Unknown template returns 404 with available list.
+    assert '"unknown_template"' in fill_body
+    assert 'status_code=404' in fill_body
+
+
+def test_templates_kernel_provenance_includes_four_buckets() -> None:
+    """_gemma_fill_template returns provenance with four possible
+    values per field: manual, bundle_hint, gemma, missing. The UI
+    paints each bucket with a different border colour so the user
+    can audit who proposed each value."""
+    repo_root = Path(__file__).parents[3]
+    kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
+    fill_idx = kernel.find("def _gemma_fill_template(")
+    fill_end = kernel.find("\ndef _bundle_excerpt_for_template(", fill_idx)
+    body = kernel[fill_idx:fill_end]
+    assert '"bundle_hint"' in body
+    assert '"manual"' in body
+    assert '"gemma"' in body
+    assert '"missing"' in body
+    # Manual fields take precedence over bundle hints (caseworker
+    # has final authority).
+    assert "manual_fields ALWAYS override" in body or "Pass 2:" in body
+
+
+def test_templates_kernel_respects_use_gemma_false() -> None:
+    """When use_gemma=False, the endpoint must skip the Gemma path
+    entirely and only use deterministic bundle hints + manual fields.
+    Gemma honesty: used_gemma=False in the response."""
+    repo_root = Path(__file__).parents[3]
+    kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
+    fill_idx = kernel.find("def api_templates_fill(")
+    fill_end = kernel.find("\n# Picker overlay:", fill_idx)
+    fill_body = kernel[fill_idx:fill_end]
+    # The skip-Gemma branch lives inside the endpoint.
+    assert "if not use_gemma:" in fill_body
+
+
+def test_templates_page_exists_with_design_contract_chrome() -> None:
+    """The new /static/templates.html follows the same chrome contract
+    as the four other design-contract pages: dc-trust-row.is-private,
+    Gemma honesty marker, data-toolbar=copy-json on the activity log,
+    "Where Gemma 4 runs on this page" hint block."""
+    html = _read("templates.html")
+    assert '<body data-nav="templates">' in html
+    assert 'class="dc-trust-row is-private"' in html
+    assert 'id="tpl-gemma-mark"' in html
+    assert 'class="dc-gemma-mark is-optional"' in html
+    # Activity log opts into the Copy JSON toolbar.
+    assert 'data-toolbar="copy-json"' in html
+    # Where Gemma 4 runs hint block.
+    assert 'id="tpl-gemma-paths-hint"' in html
+    assert "Where Gemma 4 runs on this page" in html
+    # Consumes the shared dcInferenceError helper so 503 queue errors
+    # render uniformly.
+    assert "window.dcInferenceError" in html
+
+
+def test_templates_page_calls_kernel_endpoints() -> None:
+    """The page must call /api/templates/list on load and
+    /api/templates/fill on Generate draft, passing the three documented
+    body params."""
+    html = _read("templates.html")
+    assert "/api/templates/list" in html
+    assert "/api/templates/fill" in html
+    fill_call_idx = html.find("/api/templates/fill")
+    fill_section = html[fill_call_idx:fill_call_idx + 800]
+    assert "template_id" in fill_section
+    assert "bundle" in fill_section
+    assert "manual_fields" in fill_section
+    assert "use_gemma" in fill_section
+
+
+def test_templates_nav_link_present() -> None:
+    """_nav.html exposes Templates between Knowledge Extraction and
+    Search so a caseworker walking the nav left-to-right sees the
+    template flow in the expected sequence."""
+    nav = _read("_nav.html")
+    assert 'data-nav-key="templates"' in nav
+    assert 'href="/static/templates.html"' in nav
+    # Order: knowledge -> templates -> search. Verify the ordering
+    # by string position.
+    k_idx = nav.find('data-nav-key="knowledge"')
+    t_idx = nav.find('data-nav-key="templates"')
+    s_idx = nav.find('data-nav-key="search"')
+    assert k_idx >= 0 and t_idx >= 0 and s_idx >= 0
+    assert k_idx < t_idx < s_idx, "nav order: knowledge -> templates -> search"
+
+
 def test_compare_log_has_copy_json_toolbar() -> None:
     """compare.html generates the richest activity log of any page
     (every per-step grade event, both variants, full SSE traces). It

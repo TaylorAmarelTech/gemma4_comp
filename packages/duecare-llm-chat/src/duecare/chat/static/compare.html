@@ -2439,6 +2439,16 @@
     async function cmpGradeOne(variant, res, prompt, mode, progress) {
       const responseText = (res.final && res.final.response) || '';
       if (!responseText.trim()) return {error: 'empty response_text'};
+      // Heads-up: when "Use chat model as judge" is ON, grading shares
+      // the chat queue. A user mid-chat will block the grade and vice
+      // versa. Log this once per grade so the operator knows why a
+      // 60-120s wait is happening on a busy kernel.
+      if (mode !== 'deterministic' && _judgeLastStatus
+          && _judgeLastStatus.judge_uses_chat) {
+        try { logEvent(variant, 'warn',
+          'judge sharing chat slot (mirror ON) — may wait up to 120s '
+          + 'if another user is mid-generation'); } catch (_) {}
+      }
       if (mode === 'deterministic') {
         progress('Variant ' + variant + ': running deterministic grader...');
         const r = await fetch('/api/grade', {
