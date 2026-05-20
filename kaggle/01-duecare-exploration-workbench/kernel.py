@@ -1648,17 +1648,33 @@ def api_load_model(body: dict = Body(...)):
   ~5-10+ min for 31B first run); kicks off a background thread and returns
     immediately. Poll /api/load-model/status until status='ready'."""
     variant = (body or {}).get("variant", "").strip()
+    override = bool((body or {}).get("override", False))
     if app.state.gemma_call is not None:
         return {"status": "already_loaded",
                 "variant": _MODEL_LOAD_STATE.get("variant"),
                 "message": "A model is already resident in GPU memory. "
-                           "Restart the Kaggle cell to switch variants."}
+                           "POST /api/unload-model first, then retry."}
     if variant not in _VARIANT_INFO:
         return JSONResponse(
             {"status": "error",
              "error": f"unknown variant: {variant!r}. "
                        f"Choose one of: {sorted(_VARIANT_INFO.keys())}"},
             status_code=400)
+    # Preflight: refuse to start the load when we know it won't fit.
+    # Same gate as the judge slot. Override is for advanced users who
+    # understand the risk (e.g., have cleaned the HF cache manually).
+    pre = _model_preflight(variant)
+    if not pre["ok"] and not override:
+        return JSONResponse(
+            {"status": "preflight_failed",
+             "variant": variant,
+             "preflight": pre,
+             "message": (
+                 "Preflight failed: " + "; ".join(pre["reasons"]) +
+                 ". Free disk / VRAM and retry, or pass {\"override\": true}."
+             )},
+            status_code=503,
+        )
     if not _MODEL_LOAD_LOCK.acquire(blocking=False):
          current = _MODEL_LOAD_STATE.get("variant")
          msg = (f"Already loading {current}. Switching mid-load is disabled "
@@ -1678,6 +1694,19 @@ def api_load_model(body: dict = Body(...)):
     })
     _log_load(f"queued {_VARIANT_INFO[variant]['display']} ({variant})",
           phase="queued")
+    # Same preflight log as the judge slot so the timeline is honest
+    # about what the safety gate saw (especially when the user used
+    # override=true to force a load).
+    _log_load(
+        (
+            f"preflight: needs ~{pre['needs_disk_gb']:.1f} GB disk, "
+            f"~{pre['needs_gpu_gb']:.1f} GB GPU; have "
+            f"{pre['disk_free_gb']} GB / {pre['gpu_free_gb']} GB"
+            + (" (overridden)" if (not pre['ok'] and override) else "")
+        ),
+        phase="preflight",
+        level=("warn" if (not pre['ok'] and override) else "info"),
+    )
 
     def _do_load():
         global loaded, GEMMA_MODEL_VARIANT
@@ -1747,6 +1776,167 @@ def api_load_model(body: dict = Body(...)):
 # If the load fails (OOM), the chat model is unaffected.
 # ===========================================================================
 
+class ModelSlot:
+    """Intelligent wrapper for a loadable model slot.
+
+    The kernel exposes two parallel slots that share a lot of logic:
+
+      * CHAT slot   -- writes to ``app.state.gemma_call``. Used by the
+                       chat/A-B endpoints. Backed by the module-level
+                       ``_MODEL_LOAD_STATE`` + ``_MODEL_LOAD_LOCK`` +
+                       ``_MODEL_LOAD_EVENTS`` so the legacy helpers
+                       (``_log_load``, ``_snapshot_load_events``, ...)
+                       keep working unchanged.
+      * JUDGE slot  -- writes to ``app.state.evaluator_call``. Used by
+                       LLM-judge grading. Backed by the ``_EVAL`` -
+                       suffixed module-level dicts.
+
+    Both slots need the same unload + purge logic: drop the callable
+    from ``app.state``, flush CUDA, optionally purge the HF cache for
+    the unloaded variant. This class collapses that duplication into
+    a single ``slot.unload(app, purge_cache=...)`` call so each
+    FastAPI endpoint becomes a 2-line shim.
+
+    The CLASS owns the policy (what to do). The module-level state
+    dicts / locks / event rings are the DATA the class operates on,
+    kept at module level so legacy free functions still work. This
+    is intentionally a thin abstraction: future endpoints (e.g., a
+    third slot for a vision model) get the same behavior by passing
+    in their own state dict / lock / event ring + a tiny ``post_unload``
+    hook for any slot-specific reset (the chat slot also resets
+    ``app.state.model_info`` to a placeholder; the judge slot does
+    not).
+    """
+
+    def __init__(
+        self,
+        name: str,
+        app_state_attr: str,
+        *,
+        state: dict,
+        lock: "threading.Lock",
+        events: list,
+        log_fn,
+        loaded_ref_setter,
+        post_unload_hook=None,
+    ) -> None:
+        self.name = name                          # "chat" / "judge"
+        self.app_state_attr = app_state_attr      # "gemma_call" / "evaluator_call"
+        self.state = state                        # backing dict
+        self.lock = lock                          # backing lock
+        self.events = events                      # backing event ring
+        self.log = log_fn                         # logger fn for THIS slot
+        self.loaded_ref_setter = loaded_ref_setter  # clears the module-level LoadedModel ref
+        self.post_unload_hook = post_unload_hook    # optional slot-specific cleanup
+
+    def is_loaded(self, app) -> bool:
+        return getattr(app.state, self.app_state_attr, None) is not None
+
+    def unload(self, app, *, purge_cache: bool = True) -> Any:
+        """Atomically unload the slot.
+
+        Steps (in order):
+          1. Return idle no-op if nothing is loaded.
+          2. Acquire the slot lock (refuse with 409 if a load is in
+             progress -- swapping mid-load is not safe on Unsloth).
+          3. Drop the callable from ``app.state.<attr>``.
+          4. Clear the loaded LoadedModel reference (so torch tensors
+             release).
+          5. Flush ``torch.cuda.empty_cache()`` (best-effort) so the
+             freed VRAM returns to the pool.
+          6. Reset the slot's state dict to idle.
+          7. Run the optional ``post_unload_hook`` for slot-specific
+             cleanup (e.g., chat slot resets app.state.model_info).
+          8. If ``purge_cache=True``, delete the HF safetensors dir
+             for the unloaded variant via ``_purge_hf_cache_for_variant``.
+          9. Return a structured response dict including the purge
+             result (``{ok, bytes_freed, paths_deleted, ...}``).
+        """
+        if not self.is_loaded(app):
+            return {"status": "idle",
+                    "message": f"No {self.name} model loaded."}
+        if not self.lock.acquire(blocking=False):
+            return JSONResponse(
+                {"status": "busy",
+                 "message": (
+                     f"A {self.name}-model load is in progress. "
+                     "Wait for completion before unloading."
+                 )},
+                status_code=409,
+            )
+        try:
+            current_variant = self.state.get("variant")
+            self.log(f"unloading {self.name} model", phase="unloading")
+            # Step 3: drop the callable.
+            setattr(app.state, self.app_state_attr, None)
+            # Step 4: clear the LoadedModel ref so torch can collect.
+            try:
+                self.loaded_ref_setter(None)
+            except Exception as e:  # noqa: BLE001 -- defensive
+                self.log(
+                    f"loaded-ref setter raised: {type(e).__name__}: {e}",
+                    phase="unloading", level="warn",
+                )
+            # Step 5: CUDA cache flush (best-effort).
+            try:
+                import torch as _torch
+                _torch.cuda.empty_cache()
+                try:
+                    _torch.cuda.synchronize()
+                except Exception:
+                    pass
+                self.log("CUDA cache flushed", phase="unloaded")
+            except Exception as e:
+                self.log(
+                    f"CUDA cache flush skipped: {type(e).__name__}",
+                    phase="unloaded", level="warn",
+                )
+            # Step 6: reset slot state.
+            self.state.update({
+                "status": "idle", "variant": None,
+                "selected_display": None, "phase": "idle",
+                "completed_at": time.time(), "error": None,
+            })
+            # Step 7: slot-specific cleanup (e.g., chat slot resets
+            # app.state.model_info to a placeholder dict).
+            if self.post_unload_hook is not None:
+                try:
+                    self.post_unload_hook(app)
+                except Exception as e:  # noqa: BLE001
+                    self.log(
+                        f"post_unload_hook raised: {type(e).__name__}: {e}",
+                        phase="unloaded", level="warn",
+                    )
+            # Step 8: optional HF disk purge.
+            purged = None
+            if purge_cache and current_variant:
+                purged = _purge_hf_cache_for_variant(current_variant)
+                if purged.get("ok"):
+                    gb = purged.get("gb_freed", 0)
+                    self.log(
+                        (
+                            f"purged HF cache for {current_variant}: "
+                            f"{gb:.2f} GB freed"
+                        ),
+                        phase="purged",
+                    )
+                else:
+                    self.log(
+                        (
+                            f"cache purge for {current_variant} hit an "
+                            f"error: {purged.get('error', 'unknown')}"
+                        ),
+                        phase="purge-error", level="warn",
+                    )
+            return {
+                "status":  "idle",
+                "message": f"{self.name.title()} model unloaded.",
+                "purged":  purged,
+            }
+        finally:
+            self.lock.release()
+
+
 _MODEL_LOAD_LOCK_EVAL  = threading.Lock()
 _MODEL_LOAD_STATE_EVAL = {
     "status":     "idle",
@@ -1765,6 +1955,38 @@ _MODEL_LOAD_EVENTS_EVAL: list[dict[str, Any]] = []
 # torch tensors / tokenizer on unload (otherwise the references stay
 # pinned and VRAM is not released).
 _LOADED_EVAL: Optional["LoadedModel"] = None
+
+
+def _set_judge_loaded(model) -> None:
+    """Setter for the module-level judge LoadedModel ref.
+    Used by ModelSlot.unload() to release tensors after unload."""
+    global _LOADED_EVAL
+    _LOADED_EVAL = model
+
+
+# Two ModelSlot instances -- the only kernel-side surface that new
+# slot-aware code should reach for. Existing module-level helpers
+# (_log_load, _log_load_eval, _snapshot_load_events, ...) still work
+# and back the slots transparently.
+_CHAT_SLOT = ModelSlot(
+    name="chat",
+    app_state_attr="gemma_call",
+    state=_MODEL_LOAD_STATE,
+    lock=_MODEL_LOAD_LOCK,
+    events=_MODEL_LOAD_EVENTS,
+    log_fn=_log_load,
+    loaded_ref_setter=_set_chat_loaded,
+    post_unload_hook=_chat_post_unload,
+)
+_JUDGE_SLOT = ModelSlot(
+    name="judge",
+    app_state_attr="evaluator_call",
+    state=_MODEL_LOAD_STATE_EVAL,
+    lock=_MODEL_LOAD_LOCK_EVAL,
+    events=_MODEL_LOAD_EVENTS_EVAL,
+    log_fn=_log_load_eval,
+    loaded_ref_setter=_set_judge_loaded,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -1840,8 +2062,11 @@ def _gpu_free_gb() -> Optional[float]:
         return None
 
 
-def _judge_preflight(variant: str) -> dict:
-    """Pre-flight check before loading ``variant`` into the judge slot.
+def _model_preflight(variant: str) -> dict:
+    """Slot-agnostic pre-flight check before loading ``variant`` into
+    either the chat slot (app.state.gemma_call) or the judge slot
+    (app.state.evaluator_call). Same disk + GPU math for both --
+    the slot only affects who consumes the loaded model afterward.
 
     Returns a dict with:
         variant        -- echoed back
@@ -1890,6 +2115,126 @@ def _judge_preflight(variant: str) -> dict:
     }
 
 
+# Backwards-compat alias. The original implementation lived only on
+# the judge slot; tests + caller-side code reference _judge_preflight.
+# Keep the name so the rename is non-breaking.
+def _judge_preflight(variant: str) -> dict:
+    return _model_preflight(variant)
+
+
+# ---------------------------------------------------------------------------
+# HF cache purge helper.
+#
+# Kaggle's /kaggle/working has only ~20 GB of persistent disk. After
+# unloading a model, the in-memory weights are freed but the HF
+# safetensors files remain on disk in ~/.cache/huggingface/hub/. Two
+# 31B-class downloads + an E4B will exhaust the disk. To support the
+# "switch judge model" workflow on Kaggle, the unload endpoints
+# default to purging the cache for the unloaded variant.
+# ---------------------------------------------------------------------------
+
+# Pre-quantized Unsloth fallback names the chat package uses when the
+# google/* repo is gated and no Kaggle-attached model exists. Listed
+# here so purge can also clear the Unsloth-shaped cache dir.
+_UNSLOTH_ALIASES = {
+    "e2b-it":     "unsloth/gemma-4-E2B-it",
+    "e4b-it":     "unsloth/gemma-4-E4B-it",
+    "26b-a4b-it": "unsloth/gemma-4-26B-A4B-it",
+    "31b-it":     "unsloth/gemma-4-31B-it",
+}
+
+
+def _hf_cache_dir_candidates_for_variant(variant: str) -> list[str]:
+    """Return the HF cache directory names that COULD hold the cached
+    safetensors for ``variant``. We check both the google/* canonical
+    id and the unsloth/* alias because the chat runtime falls back."""
+    base = os.path.expanduser("~/.cache/huggingface/hub")
+    if not os.path.isdir(base):
+        return []
+    dirs: list[str] = []
+    if variant in _VARIANT_HF_ID:
+        dirs.append(os.path.join(
+            base,
+            "models--" + _VARIANT_HF_ID[variant].replace("/", "--"),
+        ))
+    if variant in _UNSLOTH_ALIASES:
+        dirs.append(os.path.join(
+            base,
+            "models--" + _UNSLOTH_ALIASES[variant].replace("/", "--"),
+        ))
+    return dirs
+
+
+def _purge_hf_cache_for_variant(variant: str) -> dict:
+    """Delete on-disk cache for ``variant``. Best-effort. Returns
+    {ok, bytes_freed, paths_deleted, paths_checked, error?}. Skips
+    nonexistent dirs silently. Errors on rmtree are caught so the
+    caller doesn't lose the load/unload transaction over a stuck
+    file handle."""
+    paths_checked: list[str] = []
+    paths_deleted: list[dict] = []
+    bytes_freed = 0
+    candidates = _hf_cache_dir_candidates_for_variant(variant)
+    if not candidates:
+        return {
+            "ok": True,
+            "bytes_freed": 0,
+            "paths_checked": [],
+            "paths_deleted": [],
+            "note": "no HF cache directory present",
+        }
+    import shutil as _shutil
+    for path in candidates:
+        paths_checked.append(path)
+        if not os.path.isdir(path):
+            continue
+        try:
+            size = 0
+            for root, _dirs, files in os.walk(path):
+                for f in files:
+                    try:
+                        size += os.path.getsize(os.path.join(root, f))
+                    except (OSError, FileNotFoundError):
+                        pass
+            _shutil.rmtree(path, ignore_errors=False)
+            bytes_freed += size
+            paths_deleted.append({
+                "path": path,
+                "bytes_freed": size,
+                "gb_freed": round(size / (1024.0 ** 3), 2),
+            })
+        except Exception as e:
+            return {
+                "ok": False,
+                "bytes_freed": bytes_freed,
+                "paths_checked": paths_checked,
+                "paths_deleted": paths_deleted,
+                "error": f"{type(e).__name__}: {str(e)[:200]}",
+            }
+    return {
+        "ok": True,
+        "bytes_freed": bytes_freed,
+        "gb_freed": round(bytes_freed / (1024.0 ** 3), 2),
+        "paths_checked": paths_checked,
+        "paths_deleted": paths_deleted,
+    }
+
+
+@app.get("/api/load-model/preflight")
+def api_chat_preflight(variant: str = ""):
+    """Disk + GPU preflight for the requested CHAT model variant.
+
+    UI guidance: call this BEFORE the user clicks Load in the chat-
+    model picker. When ok=False, surface ``reasons`` to the user
+    and disable the Load button (or offer a 'force' override).
+
+    Same math as the evaluator preflight, different default. When no
+    variant is passed the helper still returns a sensible 31B-scale
+    worst-case so the response is never empty.
+    """
+    return _model_preflight(variant or "e4b-it")
+
+
 @app.get("/api/load-evaluator-model/preflight")
 def api_evaluator_preflight(variant: str = "31b-it"):
     """Disk + GPU preflight for the requested judge model variant.
@@ -1897,7 +2242,44 @@ def api_evaluator_preflight(variant: str = "31b-it"):
     UI guidance: call this BEFORE the user clicks Load. When ok=False,
     surface ``reasons`` to the user and disable the Load button (or
     offer a 'force' override for advanced users who know better)."""
-    return _judge_preflight(variant)
+    return _model_preflight(variant)
+
+
+@app.post("/api/unload-model")
+def api_unload_chat_model(body: dict = Body(default=None)):
+    """Free the chat model. Required to swap variants on a kernel
+    where /api/load-model otherwise refuses ('already_loaded'). After
+    unload, the chat package can re-call /api/load-model with a new
+    variant.
+
+    Body params (all optional):
+        purge_cache: bool   default True. Delete the HF safetensors
+                            for the unloaded variant from disk so
+                            /kaggle/working frees back to its baseline.
+                            Set False to keep the cache for a quick
+                            re-load (same variant).
+
+    Delegates to ModelSlot.unload() so the chat + judge slots share
+    a single canonical unload implementation.
+    """
+    body = body or {}
+    return _CHAT_SLOT.unload(
+        app, purge_cache=bool(body.get("purge_cache", True)),
+    )
+
+
+def _set_chat_loaded(model) -> None:
+    """Setter for the module-level chat LoadedModel ref.
+    Used by ModelSlot.unload() to release tensors after unload."""
+    global loaded
+    loaded = model
+
+
+def _chat_post_unload(app) -> None:
+    """Chat-slot specific cleanup: reset app.state.model_info to the
+    placeholder dict so the UI shows '(no model loaded)' until a new
+    load completes."""
+    app.state.model_info = _placeholder_model_info
 
 
 def _log_load_eval(message: str, *, phase: Optional[str] = None,
@@ -2106,45 +2488,25 @@ def api_load_evaluator_model(body: dict = Body(...)):
 
 
 @app.post("/api/unload-evaluator-model")
-def api_unload_evaluator_model():
+def api_unload_evaluator_model(body: dict = Body(default=None)):
     """Free the judge model. After this, grading falls back to the
     chat model (app.state.gemma_call). Safe to call when no judge
-    model is loaded (no-op)."""
-    global _LOADED_EVAL
-    if getattr(app.state, "evaluator_call", None) is None:
-        return {"status": "idle", "message": "No judge model loaded."}
-    if not _MODEL_LOAD_LOCK_EVAL.acquire(blocking=False):
-        return JSONResponse(
-            {"status": "busy",
-             "message": "A judge-model load is in progress. Wait."},
-            status_code=409)
-    try:
-        _log_load_eval("unloading judge model", phase="unloading")
-        app.state.evaluator_call = None
-        _LOADED_EVAL = None
-        # Best-effort GPU cache flush so the freed weights actually
-        # release their VRAM back to the pool.
-        try:
-            import torch as _torch
-            _torch.cuda.empty_cache()
-            try:
-                _torch.cuda.synchronize()
-            except Exception:
-                pass
-            _log_load_eval("CUDA cache flushed", phase="unloaded")
-        except Exception as e:
-            _log_load_eval(
-                f"CUDA cache flush skipped: {type(e).__name__}",
-                phase="unloaded", level="warn",
-            )
-        _MODEL_LOAD_STATE_EVAL.update({
-            "status": "idle", "variant": None,
-            "selected_display": None, "phase": "idle",
-            "completed_at": time.time(), "error": None,
-        })
-        return {"status": "idle", "message": "Judge model unloaded."}
-    finally:
-        _MODEL_LOAD_LOCK_EVAL.release()
+    model is loaded (no-op).
+
+    Body params (all optional):
+        purge_cache: bool   default True. Delete the HF safetensors
+                            for the unloaded variant from disk so
+                            /kaggle/working frees back to its baseline.
+                            Set False to keep the cache for a quick
+                            re-load (same variant).
+
+    Delegates to ModelSlot.unload() -- same canonical implementation
+    the chat slot uses, just bound to a different app.state attr.
+    """
+    body = body or {}
+    return _JUDGE_SLOT.unload(
+        app, purge_cache=bool(body.get("purge_cache", True)),
+    )
 
 
 # Picker overlay: as of chat-package v0.2.3, the picker is owned by

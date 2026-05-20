@@ -440,6 +440,21 @@
                 idle
               </span>
             </div>
+            <!--
+              Auto-purge: on unload, also remove the HF cache files
+              for the judge variant from disk. Default ON because
+              Kaggle's /kaggle/working is only ~20 GB; keeping
+              31B-scale safetensors around after unload fills the
+              disk fast. Uncheck to keep the cache for a quick
+              re-load of the same judge model.
+            -->
+            <label style="display:flex; align-items:center; gap:6px;
+                          margin-top:6px; font-size:11.5px; cursor:pointer;">
+              <input type="checkbox" id="judge-purge" checked
+                     data-tip="Delete the judge model's safetensors from /kaggle/working on unload. Recommended on Kaggle where disk is tight; uncheck if you plan to re-load the same judge soon."
+                     data-tip-pos="right">
+              <span>Delete model files from disk on unload</span>
+            </label>
             <div id="judge-detail" class="wb-muted" style="margin-top:6px;
                                                             font-size:11.5px;
                                                             font-family:JetBrains Mono,monospace;
@@ -866,15 +881,31 @@
     }
 
     async function judgeUnload() {
-      try { logEvent(null, 'info', '[judge] unloading'); } catch (_) {}
+      const purgeChk = _judgeQs('judge-purge');
+      const purge = !purgeChk || purgeChk.checked;  // default true
+      try { logEvent(null, 'info',
+        '[judge] unloading' + (purge ? ' (purging disk cache)' : '')); } catch (_) {}
       try {
-        const r = await fetch('/api/unload-evaluator-model', {method: 'POST'});
+        const r = await fetch('/api/unload-evaluator-model', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({purge_cache: purge}),
+        });
         if (!r.ok) {
           try { logEvent(null, 'err', '[judge] unload HTTP ' + r.status); } catch (_) {}
           return;
         }
+        const data = await r.json().catch(() => ({}));
+        if (data.purged && data.purged.ok) {
+          const gb = (data.purged.gb_freed != null)
+            ? data.purged.gb_freed.toFixed(2) : '?';
+          try { logEvent(null, 'ok',
+            '[judge] freed ' + gb + ' GB from disk'); } catch (_) {}
+        }
         // Refresh once to flip UI back to idle.
         judgeRefreshStatus();
+        // And refresh preflight so user sees the new headroom.
+        judgeRefreshPreflight();
         try {
           localStorage.setItem(_JUDGE_LS_USE, '0');
         } catch (_) {}
