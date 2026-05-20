@@ -896,17 +896,44 @@
       }
     }
 
-    async function judgeUnload() {
+    async function judgeUnload(opts) {
+      opts = opts || {};
+      const force = !!opts.force;
       const purgeChk = _judgeQs('judge-purge');
       const purge = !purgeChk || purgeChk.checked;  // default true
       try { logEvent(null, 'info',
-        '[judge] unloading' + (purge ? ' (purging disk cache)' : '')); } catch (_) {}
+        '[judge] unloading' + (purge ? ' (purging disk cache)' : '') +
+        (force ? ' (forced)' : '')); } catch (_) {}
       try {
         const r = await fetch('/api/unload-evaluator-model', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({purge_cache: purge}),
+          body: JSON.stringify({purge_cache: purge, force: force}),
         });
+        // Queue-busy gate: refuse if other graders are running. Offer
+        // a confirm() escape hatch when the operator truly needs to
+        // interrupt.
+        if (r.status === 409) {
+          const data = await r.json().catch(() => ({}));
+          if (data && data.status === 'queue_busy') {
+            const drain = (data.drain || {});
+            const msg =
+              'Cannot unload judge while ' + (drain.active_at_close || 0) +
+              ' grade(s) are running and ' +
+              (drain.waiting_at_close || 0) + ' waiting.';
+            try { logEvent(null, 'warn', '[judge] ' + msg); } catch (_) {}
+            const shouldForce = window.confirm(
+              msg + '\n\nForce-unload now? This will interrupt in-flight grading.'
+            );
+            if (shouldForce) {
+              await judgeUnload({force: true});
+            }
+            return;
+          }
+          try { logEvent(null, 'err',
+            '[judge] unload conflict: ' + ((data && data.message) || 'HTTP 409')); } catch (_) {}
+          return;
+        }
         if (!r.ok) {
           try { logEvent(null, 'err', '[judge] unload HTTP ' + r.status); } catch (_) {}
           return;

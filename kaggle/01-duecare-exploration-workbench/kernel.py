@@ -1578,6 +1578,378 @@ def _verify_portable_app_contract(app) -> None:
 
 _verify_portable_app_contract(app)
 
+
+# ---------------------------------------------------------------------------
+# Inference queue (multi-user safety net)
+# ---------------------------------------------------------------------------
+#
+# The kernel runs a single FastAPI process backed by one GPU. A single
+# Gemma 4 model can only generate one response at a time -- Python's
+# GIL + CUDA's single stream serialise concurrent ``model.generate``
+# calls implicitly, but without an explicit queue:
+#
+#   * Users get no feedback that they are waiting on someone else
+#   * A pathological large prompt can hold the GPU indefinitely
+#   * The kernel cannot reject obviously over-subscribed traffic
+#
+# ``_ModelQueue`` wraps every call to the resident chat backend (and
+# the optional judge backend) with a small ticket system. Each call
+# acquires a per-slot ``threading.Lock``; concurrent callers wait
+# their turn. A background-friendly snapshot is exposed via
+# ``GET /api/queue/status`` so the workbench chrome can render
+# "N waiting on chat" indicators across every page.
+#
+# Design notes:
+#
+#   * Each slot ("chat", "judge") has its own lock so chat and judge
+#     can run in parallel when both models are loaded.
+#   * Threading locks are not strictly FIFO. For small queues (cap 5)
+#     the unfairness is bounded by a single call's duration, which we
+#     accept in exchange for simplicity.
+#   * Backpressure: if more than ``MAX_WAITING`` tickets are already
+#     waiting on a slot, new calls raise ``_QueueFull`` which the
+#     exception handler converts to HTTP 503.
+#   * No async/await: Gemma generation is sync and runs on a thread
+#     pool (FastAPI's def routes) or in explicit background threads
+#     (process / draft / anonymize jobs). ``threading.Lock`` is the
+#     correct primitive everywhere.
+#
+import uuid
+
+
+class _QueueFull(Exception):
+    """Raised when more than _ModelQueue.MAX_WAITING tickets are
+    already queued for the same slot. Surfaced as HTTP 503 so the
+    UI can show "the kernel is busy" instead of timing out."""
+
+
+class _QueueClosed(Exception):
+    """Raised when a request arrives at a slot that is not accepting
+    new tickets. Happens during model unload/load transitions: while
+    Taylor (or another operator) is swapping the resident model,
+    new requests are refused with HTTP 503 to prevent a crash mid-
+    generate when the underlying tensors get freed."""
+
+
+class _ModelQueue:
+    """Thread-safe inference queue manager for the chat + judge slots.
+
+    Per-slot state machine:
+      * ``closed``   -- no model loaded; new tickets are refused.
+      * ``open``     -- accepting tickets normally.
+      * ``draining`` -- ``close_slot`` was called; in-flight tickets
+                        run to completion but new tickets are refused.
+
+    The state transitions are:
+        closed --(open_slot)-->   open
+        open   --(close_slot)-->  draining (then closed when active=0)
+        draining --(open_slot)--> open (if a load races a re-open)
+
+    Load/unload endpoints call ``close_slot`` before freeing tensors
+    and ``open_slot`` after a fresh backend is wired, so concurrent
+    users cannot trigger a use-after-free on the model weights.
+    """
+
+    MAX_WAITING = 5
+    MAX_CALL_SECONDS = 30 * 60  # 30-minute generous cap for the longest 31B prompts
+    DRAIN_POLL_SECONDS = 0.25   # how often close_slot polls the active set
+
+    # Slot states
+    STATE_CLOSED = "closed"
+    STATE_OPEN = "open"
+    STATE_DRAINING = "draining"
+
+    def __init__(self) -> None:
+        # Protects the slots dict + each slot's ticket list. Re-entrant
+        # because snapshot() may be called from within wrap() during
+        # logging in future extensions.
+        self._meta = threading.RLock()
+        self._slots: dict[str, dict[str, Any]] = {}
+
+    def _slot(self, name: str) -> dict[str, Any]:
+        with self._meta:
+            if name not in self._slots:
+                self._slots[name] = {
+                    "call_lock": threading.Lock(),
+                    "tickets": [],
+                    # Total served counter for observability; useful for
+                    # spotting "we served 30 requests this session".
+                    "served_total": 0,
+                    # State machine -- starts closed because no model is
+                    # wired until _queue_wrap is called from the load
+                    # thread. The wrapper transitions it to "open".
+                    "state": self.STATE_CLOSED,
+                }
+            return self._slots[name]
+
+    def open_slot(self, name: str) -> None:
+        """Mark a slot as accepting tickets. Called after a successful
+        load (or after a force-cancelled drain that needs to recover)."""
+        slot = self._slot(name)
+        with self._meta:
+            slot["state"] = self.STATE_OPEN
+
+    def close_slot(
+        self,
+        name: str,
+        *,
+        wait_seconds: float = 0.0,
+        force: bool = False,
+    ) -> dict[str, Any]:
+        """Refuse new tickets and (optionally) wait for in-flight calls
+        to complete.
+
+        Returns a dict describing what happened:
+
+          * ``state``: final slot state ("closed" or "draining")
+          * ``active_at_close``: how many tickets were running when
+            close started
+          * ``waiting_at_close``: how many tickets were waiting when
+            close started
+          * ``drained``: True if the active set was 0 at exit
+          * ``waited_seconds``: how long the drain took
+
+        With ``force=True``, the close happens immediately regardless
+        of in-flight calls. The caller is responsible for the
+        downstream effect (model.generate may raise when tensors are
+        freed out from under it). With ``force=False`` and a non-zero
+        ``wait_seconds``, the call polls until either active == 0 or
+        the timeout elapses.
+        """
+        slot = self._slot(name)
+        with self._meta:
+            tickets = list(slot["tickets"])
+            active_at_close = sum(1 for t in tickets if t["started_at"] is not None)
+            waiting_at_close = sum(1 for t in tickets if t["started_at"] is None)
+            # Mark draining FIRST so no new tickets sneak in past the
+            # snapshot we just took. Existing waiters still hold their
+            # ticket entries and will continue, but they were already
+            # past the state check at enqueue time.
+            slot["state"] = self.STATE_DRAINING
+
+        start = time.time()
+        deadline = start + max(0.0, float(wait_seconds))
+
+        if force:
+            with self._meta:
+                slot["state"] = self.STATE_CLOSED
+            return {
+                "state": self.STATE_CLOSED,
+                "active_at_close": active_at_close,
+                "waiting_at_close": waiting_at_close,
+                "drained": active_at_close == 0,
+                "waited_seconds": 0.0,
+                "forced": True,
+            }
+
+        while time.time() < deadline:
+            with self._meta:
+                active_now = sum(
+                    1 for t in slot["tickets"]
+                    if t["started_at"] is not None
+                )
+            if active_now == 0:
+                with self._meta:
+                    slot["state"] = self.STATE_CLOSED
+                return {
+                    "state": self.STATE_CLOSED,
+                    "active_at_close": active_at_close,
+                    "waiting_at_close": waiting_at_close,
+                    "drained": True,
+                    "waited_seconds": round(time.time() - start, 2),
+                    "forced": False,
+                }
+            time.sleep(self.DRAIN_POLL_SECONDS)
+
+        # Timed out -- slot stays in DRAINING so existing tickets can
+        # still finish but no new tickets enter. The caller decides
+        # whether to escalate to force=True.
+        return {
+            "state": self.STATE_DRAINING,
+            "active_at_close": active_at_close,
+            "waiting_at_close": waiting_at_close,
+            "drained": False,
+            "waited_seconds": round(time.time() - start, 2),
+            "forced": False,
+        }
+
+    def is_busy(self, name: str) -> bool:
+        """Quick check used by load/unload endpoints to refuse a
+        model switch when the slot still has work in flight."""
+        with self._meta:
+            slot = self._slots.get(name)
+            if not slot:
+                return False
+            return any(slot["tickets"])
+
+    def slot_state(self, name: str) -> str:
+        with self._meta:
+            slot = self._slots.get(name)
+            return (slot or {}).get("state", self.STATE_CLOSED)
+
+    def wrap(self, backend_fn, slot_name: str):
+        """Return a queue-aware wrapper around ``backend_fn``.
+
+        The wrapper:
+          1. Enqueues a ticket with id + enqueued-at timestamp.
+          2. Acquires the slot's call_lock, stamping started-at.
+          3. Calls the wrapped backend with the original args.
+          4. Always releases the lock + removes the ticket in finally.
+
+        Raises ``_QueueFull`` if too many tickets are already waiting.
+        Never raises during the actual model call -- exceptions from
+        the wrapped backend propagate cleanly.
+        """
+        slot_name = str(slot_name)
+
+        def queued(*args, **kwargs):
+            slot = self._slot(slot_name)
+            ticket = {
+                "id": uuid.uuid4().hex[:12],
+                "slot": slot_name,
+                "enqueued_at": time.time(),
+                "started_at": None,
+            }
+            with self._meta:
+                # Refuse if the slot is not open. This is the gate that
+                # prevents a use-after-free when one user is unloading
+                # the model while another submits a new request.
+                state = slot.get("state", self.STATE_CLOSED)
+                if state != self.STATE_OPEN:
+                    raise _QueueClosed(
+                        f"The {slot_name} model is not accepting new "
+                        f"requests (state={state}). The operator is "
+                        f"probably swapping models. Please retry in "
+                        f"a few seconds."
+                    )
+                waiting = sum(
+                    1 for t in slot["tickets"] if t["started_at"] is None
+                )
+                if waiting >= self.MAX_WAITING:
+                    raise _QueueFull(
+                        f"Inference queue full: {waiting} requests are "
+                        f"already waiting on the {slot_name} model. "
+                        f"Please retry in a few seconds."
+                    )
+                slot["tickets"].append(ticket)
+            try:
+                slot["call_lock"].acquire()
+                ticket["started_at"] = time.time()
+                try:
+                    return backend_fn(*args, **kwargs)
+                finally:
+                    slot["call_lock"].release()
+                    with self._meta:
+                        slot["served_total"] = (
+                            slot.get("served_total", 0) + 1
+                        )
+            finally:
+                with self._meta:
+                    try:
+                        slot["tickets"].remove(ticket)
+                    except ValueError:
+                        pass
+
+        # Carry over the original __name__ so any reflective code (e.g.,
+        # observability logging) sees a useful identifier rather than
+        # "queued".
+        try:
+            queued.__name__ = f"queued_{slot_name}_call"
+            queued.__wrapped__ = backend_fn
+        except Exception:
+            pass
+        return queued
+
+    def snapshot(self) -> dict[str, Any]:
+        """Return a JSON-friendly snapshot of every slot's queue state."""
+        now = time.time()
+        with self._meta:
+            slots_out: dict[str, Any] = {}
+            for slot_name, slot in self._slots.items():
+                tickets = list(slot["tickets"])
+                active = [t for t in tickets if t["started_at"] is not None]
+                waiting = [t for t in tickets if t["started_at"] is None]
+                # Sort waiting by enqueue time so position index is
+                # stable for the UI.
+                waiting.sort(key=lambda t: t["enqueued_at"])
+                slots_out[slot_name] = {
+                    "state": slot.get("state", self.STATE_CLOSED),
+                    "n_active": len(active),
+                    "n_waiting": len(waiting),
+                    "served_total": int(slot.get("served_total", 0)),
+                    "active": [
+                        {
+                            "ticket_id": t["id"],
+                            "started_at": t["started_at"],
+                            "elapsed_secs": round(
+                                now - (t["started_at"] or now), 2
+                            ),
+                        }
+                        for t in active
+                    ],
+                    "waiting": [
+                        {
+                            "ticket_id": t["id"],
+                            "enqueued_at": t["enqueued_at"],
+                            "wait_secs": round(now - t["enqueued_at"], 2),
+                            "position": idx + 1,
+                        }
+                        for idx, t in enumerate(waiting)
+                    ],
+                }
+            return {
+                "queued_at": now,
+                "max_waiting": self.MAX_WAITING,
+                "slots": slots_out,
+            }
+
+
+_MODEL_QUEUE = _ModelQueue()
+
+
+def _queue_wrap(backend_fn, slot_name: str):
+    """Shorthand used at backend-assignment sites."""
+    return _MODEL_QUEUE.wrap(backend_fn, slot_name)
+
+
+@app.exception_handler(_QueueFull)
+async def _queue_full_handler(request, exc):
+    return JSONResponse(
+        {
+            "status": "queue_full",
+            "message": str(exc),
+            "max_waiting": _ModelQueue.MAX_WAITING,
+            "queue": _MODEL_QUEUE.snapshot(),
+        },
+        status_code=503,
+    )
+
+
+@app.exception_handler(_QueueClosed)
+async def _queue_closed_handler(request, exc):
+    # 503 with retry-friendly status so the UI can poll
+    # /api/queue/status and retry once the slot is back open.
+    return JSONResponse(
+        {
+            "status": "queue_closed",
+            "message": str(exc),
+            "queue": _MODEL_QUEUE.snapshot(),
+        },
+        status_code=503,
+    )
+
+
+@app.get("/api/queue/status")
+def api_queue_status():
+    """Live inference queue snapshot.
+
+    Polled by the workbench chrome every few seconds so any page can
+    show "1 ahead of you" without sprinkling per-page state. Cheap
+    (no model touch); safe to call frequently.
+    """
+    return _MODEL_QUEUE.snapshot()
+
+
 # ---------------------------------------------------------------------------
 # Model picker — POST /api/load-model + GET /api/load-model/status
 # ---------------------------------------------------------------------------
@@ -1724,7 +2096,13 @@ def api_load_model(body: dict = Body(...)):
                      "completed_at": time.time(),
                      "error": "load_gemma() returned None - see load logs"})
                 return
-            app.state.gemma_call = loaded_local.backend
+            # Wrap with the inference queue so concurrent users get
+            # FIFO-ish ordering + position visibility + 503
+            # backpressure instead of silent CUDA serialisation. Open
+            # the slot AFTER the backend is wired so a racing request
+            # cannot enqueue against a half-initialised callable.
+            app.state.gemma_call = _queue_wrap(loaded_local.backend, "chat")
+            _MODEL_QUEUE.open_slot("chat")
             app.state.model_info = {
                 "loaded": True, "name": loaded_local.name,
                 "size_b": loaded_local.size_b,
@@ -2258,11 +2636,52 @@ def api_unload_chat_model(body: dict = Body(default=None)):
                             /kaggle/working frees back to its baseline.
                             Set False to keep the cache for a quick
                             re-load (same variant).
+        force: bool         default False. When False (the safe path)
+                            the call refuses with HTTP 409 if any
+                            tickets are active or waiting on the chat
+                            inference queue. Set True to interrupt
+                            other users mid-generate.
+        drain_seconds: int  default 30. When force is False, how long
+                            to wait for in-flight requests to drain
+                            before giving up with HTTP 409.
 
     Delegates to ModelSlot.unload() so the chat + judge slots share
     a single canonical unload implementation.
     """
     body = body or {}
+    force = bool(body.get("force", False))
+    drain_seconds = float(body.get("drain_seconds", 30))
+    # Refuse a non-force unload while the inference queue still has
+    # tickets. Without this gate, freeing the model tensors while
+    # another user is mid-generate produces a hard crash on the
+    # generate thread.
+    if _MODEL_QUEUE.is_busy("chat") and not force:
+        drain = _MODEL_QUEUE.close_slot(
+            "chat", wait_seconds=drain_seconds, force=False,
+        )
+        if not drain["drained"]:
+            # Reopen so other waiters can still drain naturally.
+            _MODEL_QUEUE.open_slot("chat")
+            return JSONResponse(
+                {
+                    "status": "queue_busy",
+                    "message": (
+                        "Chat inference queue still has "
+                        f"{drain['active_at_close']} active and "
+                        f"{drain['waiting_at_close']} waiting after "
+                        f"{drain['waited_seconds']}s of draining. "
+                        "Retry, wait longer (drain_seconds), or pass "
+                        "{\"force\": true} to interrupt other users."
+                    ),
+                    "drain": drain,
+                    "queue": _MODEL_QUEUE.snapshot(),
+                },
+                status_code=409,
+            )
+    else:
+        # Either queue is empty or force=True. Mark closed up front so
+        # no new tickets can race in while the unload runs.
+        _MODEL_QUEUE.close_slot("chat", wait_seconds=0, force=True)
     return _CHAT_SLOT.unload(
         app, purge_cache=bool(body.get("purge_cache", True)),
     )
@@ -2480,7 +2899,13 @@ def api_load_evaluator_model(body: dict = Body(...)):
                     "error": "load_gemma() returned None",
                 })
                 return
-            app.state.evaluator_call = loaded_local.backend
+            # Wrap with the inference queue. Judge slot has its own
+            # lock so grading can run in parallel with chat when both
+            # models are loaded. Open the slot AFTER the backend is
+            # wired so a racing request cannot enqueue against a
+            # half-initialised callable.
+            app.state.evaluator_call = _queue_wrap(loaded_local.backend, "judge")
+            _MODEL_QUEUE.open_slot("judge")
             _LOADED_EVAL = loaded_local
             _MODEL_LOAD_STATE_EVAL.update({
                 "status": "ready", "phase": "ready",
@@ -2526,11 +2951,42 @@ def api_unload_evaluator_model(body: dict = Body(default=None)):
                             /kaggle/working frees back to its baseline.
                             Set False to keep the cache for a quick
                             re-load (same variant).
+        force: bool         default False. Refuses with HTTP 409 if any
+                            tickets are active or waiting on the judge
+                            queue. True interrupts mid-grade.
+        drain_seconds: int  default 30. How long to wait for in-flight
+                            grading to drain before giving up.
 
     Delegates to ModelSlot.unload() -- same canonical implementation
     the chat slot uses, just bound to a different app.state attr.
     """
     body = body or {}
+    force = bool(body.get("force", False))
+    drain_seconds = float(body.get("drain_seconds", 30))
+    if _MODEL_QUEUE.is_busy("judge") and not force:
+        drain = _MODEL_QUEUE.close_slot(
+            "judge", wait_seconds=drain_seconds, force=False,
+        )
+        if not drain["drained"]:
+            _MODEL_QUEUE.open_slot("judge")
+            return JSONResponse(
+                {
+                    "status": "queue_busy",
+                    "message": (
+                        "Judge inference queue still has "
+                        f"{drain['active_at_close']} active and "
+                        f"{drain['waiting_at_close']} waiting after "
+                        f"{drain['waited_seconds']}s of draining. "
+                        "Retry, wait longer (drain_seconds), or pass "
+                        "{\"force\": true} to interrupt grading."
+                    ),
+                    "drain": drain,
+                    "queue": _MODEL_QUEUE.snapshot(),
+                },
+                status_code=409,
+            )
+    else:
+        _MODEL_QUEUE.close_slot("judge", wait_seconds=0, force=True)
     return _JUDGE_SLOT.unload(
         app, purge_cache=bool(body.get("purge_cache", True)),
     )

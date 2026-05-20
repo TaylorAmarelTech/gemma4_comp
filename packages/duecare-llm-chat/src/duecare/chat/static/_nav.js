@@ -427,21 +427,54 @@
         }
     }
 
-    async function unloadCurrentModel() {
+    async function unloadCurrentModel(opts) {
+        opts = opts || {};
+        const force = !!opts.force;
         const purgeChk = document.getElementById('dc-wb-model-purge');
         const purge = !purgeChk || purgeChk.checked;  // default true
-        setModelPopoverStatus('Unloading current model' + (purge ? ' (purging disk cache)' : '') + '…');
+        setModelPopoverStatus(
+            'Unloading current model' +
+            (purge ? ' (purging disk cache)' : '') +
+            (force ? ' (forced)' : '') +
+            '…'
+        );
         try {
             const r = await fetch('/api/unload-model', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({purge_cache: purge})
+                body: JSON.stringify({purge_cache: purge, force: force})
             });
             if (r.status === 404) {
                 setModelPopoverStatus(
                     'Unload requires kernel v0.18+ (POST /api/unload-model missing). '
                     + 'Restart the Kaggle cell with the latest kernel.py.'
                 );
+                return;
+            }
+            // Queue-busy gate: kernel refuses to free the model while
+            // other users have in-flight requests. Offer a confirm-
+            // dialog escape hatch so an operator can interrupt others
+            // when truly needed (recording session, stuck call, etc.).
+            if (r.status === 409) {
+                const data = await r.json().catch(function () { return {}; });
+                if (data && data.status === 'queue_busy') {
+                    const drain = (data.drain || {});
+                    const msg =
+                        'Cannot unload while ' + (drain.active_at_close || 0) +
+                        ' inference call(s) are running and ' +
+                        (drain.waiting_at_close || 0) + ' waiting on the chat slot.';
+                    setModelPopoverStatus(msg + ' Click again to force-interrupt.');
+                    // Second click within ~10s triggers force unload.
+                    const shouldForce = window.confirm(
+                        msg + '\n\nForce-unload now? This will interrupt anyone ' +
+                        'currently using the model.'
+                    );
+                    if (shouldForce) {
+                        await unloadCurrentModel({force: true});
+                    }
+                    return;
+                }
+                setModelPopoverStatus((data && data.message) || 'Unload conflict (HTTP 409).');
                 return;
             }
             const data = await r.json().catch(function () { return {}; });
@@ -619,6 +652,39 @@
         } catch (_) {
             setDot('error');
         }
+
+        // Inference queue. Polled at the same cadence as model-info
+        // so any page that shares the chrome can see how busy the
+        // kernel is. Older kernels without /api/queue/status return
+        // 404; we fail closed to "idle" and stay quiet so the new UI
+        // does not break the legacy backend.
+        try {
+            const r = await fetch('/api/queue/status', {cache: 'no-store'});
+            if (r.ok) {
+                const q = await r.json();
+                setText('dc-wb-status-queue', _renderQueueStatus(q));
+            }
+        } catch (_) { /* quiet */ }
+    }
+
+    /**
+     * Compose the queue status label from a /api/queue/status snapshot.
+     * Sums chat + judge slots so the strip shows one honest number.
+     * @param {{slots?: Record<string, {n_active?: number, n_waiting?: number}>}} snapshot
+     * @returns {string}
+     */
+    function _renderQueueStatus(snapshot) {
+        const slots = (snapshot && snapshot.slots) || {};
+        let active = 0;
+        let waiting = 0;
+        Object.keys(slots).forEach(name => {
+            const s = slots[name] || {};
+            active += Number(s.n_active || 0);
+            waiting += Number(s.n_waiting || 0);
+        });
+        if (!active && !waiting) return 'idle';
+        if (!waiting) return active === 1 ? '1 running' : active + ' running';
+        return active + ' running, ' + waiting + ' waiting';
     }
 
     function wireClearChat() {

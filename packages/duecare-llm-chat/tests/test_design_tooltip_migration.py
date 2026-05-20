@@ -774,8 +774,11 @@ def test_kernel_evaluator_load_uses_separate_state_ring() -> None:
     assert "_MODEL_LOAD_STATE_EVAL" in src
     assert "_MODEL_LOAD_LOCK_EVAL" in src
     assert "_MODEL_LOAD_EVENTS_EVAL" in src
-    # The load thread writes to the evaluator slot directly.
-    assert "app.state.evaluator_call = loaded_local.backend" in src
+    # The load thread writes to the evaluator slot. The assignment is
+    # routed through _queue_wrap so concurrent users serialise through
+    # the inference queue; both the wrapper call and the original
+    # backend reference appear on the assignment line.
+    assert 'app.state.evaluator_call = _queue_wrap(loaded_local.backend, "judge")' in src
     # The unload clears the slot via the ModelSlot abstraction.
     assert "setattr(app.state, self.app_state_attr, None)" in src
     # And the judge slot is wired with the right attr name.
@@ -864,7 +867,10 @@ def test_compare_judge_orchestration_js_wired() -> None:
     call judgeInit on DOMContentLoaded so the UI is alive on page load."""
     html = _read("compare.html")
     assert "async function judgeLoad()" in html
-    assert "async function judgeUnload()" in html
+    # judgeUnload now accepts an opts arg ({force: bool}) so the queue-busy
+    # gate can recursively call itself with force=true. Either form is
+    # acceptable.
+    assert ("async function judgeUnload(" in html)
     assert "function judgeInit()" in html
     # judgeInit must be called on DOMContentLoaded.
     assert "try { judgeInit();" in html
@@ -1149,7 +1155,9 @@ def test_nav_js_wires_chat_preflight_and_unload() -> None:
         / "src" / "duecare" / "chat" / "static" / "_nav.js"
     ).read_text(encoding="utf-8")
     assert "async function refreshModelPreflight()" in nav_js
-    assert "async function unloadCurrentModel()" in nav_js
+    # unloadCurrentModel now takes an opts arg ({force: bool}) so the
+    # queue-busy gate can recursively call itself with force=true.
+    assert "async function unloadCurrentModel(" in nav_js
     # The load function must re-run preflight at click time.
     load_idx = nav_js.find("async function loadSelectedModel()")
     assert load_idx >= 0
@@ -1157,10 +1165,11 @@ def test_nav_js_wires_chat_preflight_and_unload() -> None:
     assert "await refreshModelPreflight()" in load_body
     # 503 from preflight failure handled cleanly.
     assert "r.status === 503" in load_body
-    # Unload endpoint called with purge_cache body.
-    unload_idx = nav_js.find("async function unloadCurrentModel()")
+    # Unload endpoint called with purge_cache body. Signature now
+    # accepts {force} for the 409 queue-busy recursive call.
+    unload_idx = nav_js.find("async function unloadCurrentModel(")
     assert unload_idx >= 0
-    unload_body = nav_js[unload_idx:unload_idx + 1500]
+    unload_body = nav_js[unload_idx:unload_idx + 2500]
     assert "/api/unload-model" in unload_body
     assert "purge_cache" in unload_body
     # New functions exposed on the shared dcWbModelService for
@@ -1179,10 +1188,12 @@ def test_compare_judge_has_purge_checkbox() -> None:
     purge_idx = html.find('id="judge-purge"')
     purge_block = html[purge_idx:purge_idx + 100]
     assert "checked" in purge_block
-    # judgeUnload reads the checkbox and POSTs with purge_cache.
-    unload_idx = html.find("async function judgeUnload()")
+    # judgeUnload reads the checkbox and POSTs with purge_cache. The
+    # signature now accepts {force} for the queue-busy 409 path; either
+    # form locates the function body.
+    unload_idx = html.find("async function judgeUnload(")
     assert unload_idx >= 0
-    unload_body = html[unload_idx:unload_idx + 2000]
+    unload_body = html[unload_idx:unload_idx + 2500]
     assert "judge-purge" in unload_body
     assert "purge_cache: purge" in unload_body
 
@@ -1607,3 +1618,150 @@ def test_kernel_cross_slot_duplicate_detection() -> None:
     compare = _read("compare.html")
     assert "duplicate_in_chat_slot" in compare
     assert "already loaded in the chat slot" in compare
+
+
+# ---------------------------------------------------------------------------
+# Multi-user inference queue (2026-05-19 pass 4)
+# ---------------------------------------------------------------------------
+
+
+def test_kernel_has_model_queue_with_chat_and_judge_slots() -> None:
+    """The kernel wraps both app.state.gemma_call and
+    app.state.evaluator_call with _ModelQueue.wrap so concurrent
+    users serialise through a FIFO-ish queue with position visibility,
+    backpressure, and per-slot locking."""
+    repo_root = Path(__file__).parents[3]
+    kernel_path = repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py"
+    assert kernel_path.exists(), f"missing: {kernel_path}"
+    kernel = kernel_path.read_text(encoding="utf-8")
+    # Class + global present.
+    assert "class _ModelQueue" in kernel
+    assert "_MODEL_QUEUE = _ModelQueue()" in kernel
+    # Backpressure constant + exception.
+    assert "MAX_WAITING" in kernel
+    assert "class _QueueFull" in kernel
+    # Both backend assignments now route through the wrapper.
+    assert 'app.state.gemma_call = _queue_wrap(loaded_local.backend, "chat")' in kernel
+    assert 'app.state.evaluator_call = _queue_wrap(loaded_local.backend, "judge")' in kernel
+    # 503 handler maps the exception to JSON so each route benefits
+    # automatically (no per-route try/except needed).
+    assert "@app.exception_handler(_QueueFull)" in kernel
+    assert "status_code=503" in kernel
+
+
+def test_kernel_publishes_queue_status_endpoint() -> None:
+    """GET /api/queue/status returns a JSON-friendly snapshot the UI
+    can poll for the per-slot 'N waiting' indicator. Endpoint must
+    not touch the model (no extra inference cost)."""
+    repo_root = Path(__file__).parents[3]
+    kernel_path = repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py"
+    kernel = kernel_path.read_text(encoding="utf-8")
+    assert '@app.get("/api/queue/status")' in kernel
+    assert "def api_queue_status" in kernel
+    # Snapshot must include both slots' active + waiting counts and
+    # a deterministic position field so the UI can render "1 ahead".
+    snap_idx = kernel.find("def snapshot")
+    snap_end = kernel.find("\n_MODEL_QUEUE = ", snap_idx)
+    snap = kernel[snap_idx:snap_end]
+    assert '"n_active"' in snap
+    assert '"n_waiting"' in snap
+    assert '"position"' in snap
+    assert '"elapsed_secs"' in snap
+
+
+def test_nav_chrome_renders_queue_status() -> None:
+    """The shared chrome adds a Queue status pill next to GPU so every
+    workbench page shows live queue state without per-page code.
+    _nav.js polls /api/queue/status inside the existing refreshStatus
+    cadence and tolerates older kernels (404) by staying quiet."""
+    nav_html = _read("_nav.html")
+    assert 'id="dc-wb-status-queue"' in nav_html
+    nav_js = _read("_nav.js")
+    assert "/api/queue/status" in nav_js
+    assert "_renderQueueStatus" in nav_js
+    # Quiet fallback so a missing endpoint cannot break the chrome.
+    assert "catch (_) { /* quiet */ }" in nav_js
+
+
+def test_kernel_queue_has_slot_state_machine() -> None:
+    """_ModelQueue protects against use-after-free during model swaps
+    by gating ticket enqueue on a per-slot state machine. Slots start
+    closed, transition to open after a successful load, and to
+    draining/closed during unload. wrap() refuses with _QueueClosed
+    when the slot is not open."""
+    repo_root = Path(__file__).parents[3]
+    kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
+    # State constants
+    assert 'STATE_CLOSED = "closed"' in kernel
+    assert 'STATE_OPEN = "open"' in kernel
+    assert 'STATE_DRAINING = "draining"' in kernel
+    # State-change methods
+    assert "def open_slot(self, name" in kernel
+    assert "def close_slot(" in kernel
+    assert "def is_busy(self, name" in kernel
+    # New exception type + handler
+    assert "class _QueueClosed" in kernel
+    assert "@app.exception_handler(_QueueClosed)" in kernel
+    # The wrapper enforces the gate before enqueuing.
+    assert 'if state != self.STATE_OPEN:' in kernel
+    # Open is called AFTER backend wiring on both slots.
+    assert '_MODEL_QUEUE.open_slot("chat")' in kernel
+    assert '_MODEL_QUEUE.open_slot("judge")' in kernel
+
+
+def test_kernel_unload_endpoints_gate_on_queue() -> None:
+    """The unload endpoints refuse to free model weights while the
+    inference queue still has work. Returns HTTP 409 with a queue
+    snapshot unless force=true. Both chat + judge endpoints share
+    the same gate pattern."""
+    repo_root = Path(__file__).parents[3]
+    kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
+    # Chat unload gate
+    chat_idx = kernel.find("def api_unload_chat_model(")
+    chat_end = kernel.find("\ndef _set_chat_loaded(", chat_idx)
+    chat_body = kernel[chat_idx:chat_end]
+    assert '_MODEL_QUEUE.is_busy("chat")' in chat_body
+    assert '"queue_busy"' in chat_body
+    assert "force" in chat_body and "drain_seconds" in chat_body
+    assert "status_code=409" in chat_body
+    # Judge unload gate
+    judge_idx = kernel.find("def api_unload_evaluator_model(")
+    # Pick the next top-level marker after the judge unload body.
+    judge_end = kernel.find("\n# Picker overlay:", judge_idx)
+    if judge_end == -1:
+        judge_end = judge_idx + 4000
+    judge_body = kernel[judge_idx:judge_end]
+    assert '_MODEL_QUEUE.is_busy("judge")' in judge_body
+    assert '"queue_busy"' in judge_body
+    assert "force" in judge_body and "drain_seconds" in judge_body
+    assert "status_code=409" in judge_body
+
+
+def test_kernel_queue_snapshot_includes_slot_state() -> None:
+    """The /api/queue/status snapshot must include the per-slot state
+    so the UI can render 'idle' vs 'draining' vs 'running' without
+    inferring from the active/waiting counters."""
+    repo_root = Path(__file__).parents[3]
+    kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
+    snap_idx = kernel.find("def snapshot")
+    snap_end = kernel.find("\n_MODEL_QUEUE = ", snap_idx)
+    snap = kernel[snap_idx:snap_end]
+    assert '"state": slot.get("state", self.STATE_CLOSED)' in snap
+
+
+def test_model_picker_handles_queue_busy_unload() -> None:
+    """When /api/unload-model returns 409 queue_busy, the picker
+    surfaces a confirm dialog so a careful operator does not interrupt
+    other users silently. _nav.js (chat slot) and compare.html (judge
+    slot) both follow the same pattern."""
+    nav_js = _read("_nav.js")
+    assert "r.status === 409" in nav_js
+    assert "queue_busy" in nav_js
+    assert "force: true" in nav_js
+    assert "force-interrupt" in nav_js.lower() or "force-unload" in nav_js.lower()
+    compare = _read("compare.html")
+    # judgeUnload accepts an opts.force argument and recurses on confirm.
+    assert "async function judgeUnload(opts)" in compare
+    assert "force: force" in compare
+    # 409 branch present
+    assert "data.status === 'queue_busy'" in compare
