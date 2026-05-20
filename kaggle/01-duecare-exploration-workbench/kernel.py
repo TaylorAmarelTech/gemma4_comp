@@ -121,6 +121,26 @@ DUECARE_REQUIRED_CHAT_VERSION = os.environ.get(
 #   jailbroken-31b / jailbroken-e4b                 abliterated variants
 #   cloud-gemini / cloud-openai / cloud-ollama      BYOK cloud routes
 GEMMA_MODEL_VARIANT = os.environ.get("GEMMA_MODEL_VARIANT", "e4b-it")
+
+# On Kaggle, route the HF cache into /kaggle/working/.cache so the
+# preflight disk gate (which measures /kaggle/working) and the actual
+# download land on the same partition. Without this, HF defaults to
+# ~/.cache/huggingface/hub which is on the root filesystem -- a
+# different mount point with a different and usually smaller free
+# budget. Setting HF_HOME before any transformers/unsloth import is
+# critical; if those packages have already cached their cache-dir
+# computation, the new HF_HOME may be ignored.
+if os.path.isdir("/kaggle/working") and not os.environ.get("HF_HOME"):
+    _kaggle_hf_home = "/kaggle/working/.cache/huggingface"
+    try:
+        os.makedirs(_kaggle_hf_home, exist_ok=True)
+        os.environ["HF_HOME"] = _kaggle_hf_home
+        # HF_HUB_CACHE is the modern shorthand; set both for older deps.
+        os.environ.setdefault("HF_HUB_CACHE", _kaggle_hf_home + "/hub")
+        os.environ.setdefault("TRANSFORMERS_CACHE", _kaggle_hf_home + "/hub")
+    except OSError:
+        pass
+    del _kaggle_hf_home
 GEMMA_LOAD_IN_4BIT  = os.environ.get("GEMMA_LOAD_IN_4BIT", "1") == "1"
 GEMMA_DEVICE_MAP    = "auto"
 # 32768 (not 8192) because the omni notebook contains all 5 harness
@@ -1834,6 +1854,20 @@ class _ModelQueue:
                 slot["tickets"].append(ticket)
             try:
                 slot["call_lock"].acquire()
+                # Re-check state after acquire. The slot may have
+                # transitioned to draining/closed while we were waiting
+                # for the lock (force-unload from another caller). If
+                # so, release the lock and refuse with _QueueClosed so
+                # the call never reaches a possibly-None backend.
+                with self._meta:
+                    post_state = slot.get("state", self.STATE_CLOSED)
+                if post_state != self.STATE_OPEN:
+                    slot["call_lock"].release()
+                    raise _QueueClosed(
+                        f"The {slot_name} model was unloaded while this "
+                        f"request was waiting in line. Retry once the "
+                        f"new model finishes loading."
+                    )
                 ticket["started_at"] = time.time()
                 try:
                     return backend_fn(*args, **kwargs)
@@ -2098,18 +2132,23 @@ def api_load_model(body: dict = Body(...)):
                 return
             # Wrap with the inference queue so concurrent users get
             # FIFO-ish ordering + position visibility + 503
-            # backpressure instead of silent CUDA serialisation. Open
-            # the slot AFTER the backend is wired so a racing request
-            # cannot enqueue against a half-initialised callable.
-            app.state.gemma_call = _queue_wrap(loaded_local.backend, "chat")
+            # backpressure instead of silent CUDA serialisation.
+            wrapped_chat = _queue_wrap(loaded_local.backend, "chat")
+            # Critical ordering note: assign the chat callable AND
+            # mirror it into the evaluator slot (if mirroring is on)
+            # under the queue's _meta lock BEFORE calling open_slot.
+            # A request that arrives between open_slot and the mirror
+            # rewire could otherwise see app.state.evaluator_call=None
+            # while the chat slot is already accepting tickets. The
+            # _meta lock also serialises this assignment against
+            # api_use_chat_as_judge so the flag and the mirrored
+            # callable cannot drift apart.
+            with _MODEL_QUEUE._meta:
+                app.state.gemma_call = wrapped_chat
+                if _JUDGE_USES_CHAT:
+                    app.state.evaluator_call = wrapped_chat
             _MODEL_QUEUE.open_slot("chat")
-            # If "use chat as judge" is active, mirror the freshly-
-            # wired chat callable into the evaluator slot so grading
-            # immediately picks up the new model. Calls still queue
-            # on the chat slot (one model, one lock) but grading
-            # works without a second load.
             if _JUDGE_USES_CHAT:
-                app.state.evaluator_call = app.state.gemma_call
                 _log_load(
                     "judge mirrored to chat model (use_chat_as_judge=on)",
                     phase="ready",
@@ -2140,6 +2179,24 @@ def api_load_model(body: dict = Body(...)):
                       phase="error", level="error")
             for line in traceback.format_exc().splitlines()[-12:]:
                 _log_load(line, phase="error", level="error")
+            # Mid-download failure (OSError / disk full / HF rate
+            # limit) leaves partial shards under HF_HOME. Purge so a
+            # retry has a clean cache budget; if the failure was
+            # something else (CUDA OOM after download), the purge is a
+            # no-op for that case but still cleans up stale shards
+            # from a prior aborted load.
+            try:
+                purged = _purge_hf_cache_for_variant(variant)
+                if purged.get("gb_freed"):
+                    _log_load(
+                        f"purged partial HF cache: {purged['gb_freed']:.2f} GB freed",
+                        phase="error", level="info",
+                    )
+            except Exception as purge_err:  # noqa: BLE001
+                _log_load(
+                    f"cache purge failed after load error: {purge_err}",
+                    phase="error", level="warn",
+                )
         finally:
             _MODEL_LOAD_LOCK.release()
 
@@ -2401,11 +2458,19 @@ _JUDGE_SLOT = ModelSlot(
 # and live VRAM footprint at 4-bit. Pad by ~15% so we don't pretend an
 # exact fit is safe; CUDA fragmentation eats headroom.
 _VARIANT_FOOTPRINT_GB = {
+    # Footprints are the resident shard size on disk after Unsloth
+    # quantisation + the runtime VRAM ceiling. The disk numbers were
+    # lowered from full-precision estimates to match what actually
+    # lands in /kaggle/working/.cache/huggingface after the
+    # FastModel.from_pretrained(..., load_in_4bit=True) call. Full-
+    # precision shards never download because Unsloth requests the
+    # quantised weights directly. Numbers verified against published
+    # Kaggle session logs; conservative by ~10 percent.
     "e2b-it":         {"disk": 4.0,  "gpu": 3.0},
     "e4b-it":         {"disk": 8.0,  "gpu": 5.0},
-    "26b-a4b-it":     {"disk": 24.0, "gpu": 16.0},
-    "31b-it":         {"disk": 30.0, "gpu": 20.0},
-    "jailbroken-31b": {"disk": 30.0, "gpu": 20.0},
+    "26b-a4b-it":     {"disk": 16.0, "gpu": 14.0},
+    "31b-it":         {"disk": 18.0, "gpu": 16.0},
+    "jailbroken-31b": {"disk": 18.0, "gpu": 16.0},
     "jailbroken-e4b": {"disk": 8.0,  "gpu": 5.0},
     "cloud-gemini":   {"disk": 0.0,  "gpu": 0.0},
     "cloud-openai":   {"disk": 0.0,  "gpu": 0.0},
@@ -2430,10 +2495,29 @@ def _disk_free_gb(path: str = "/") -> Optional[float]:
     skip the disk gate without crashing."""
     try:
         import shutil as _shutil
-        # Prefer Kaggle's persistent working dir if it exists since
-        # that is where HF caches actually land on Kaggle.
-        candidate = "/kaggle/working" if os.path.isdir("/kaggle/working") else path
-        usage = _shutil.disk_usage(candidate)
+        # Measure the partition that actually holds the HF cache, which
+        # is wherever HF_HOME points (or the system default). The
+        # kernel sets HF_HOME=/kaggle/working/.cache/huggingface at
+        # import time on Kaggle so this matches the download
+        # destination. Falls back to /kaggle/working when HF_HOME is
+        # unset, then to the caller-provided path as a last resort.
+        hf_home = os.environ.get("HF_HOME")
+        candidate = None
+        if hf_home and os.path.isdir(os.path.dirname(hf_home) or "/"):
+            candidate = hf_home
+        elif os.path.isdir("/kaggle/working"):
+            candidate = "/kaggle/working"
+        else:
+            candidate = path
+        # disk_usage needs an existing path; walk up if needed.
+        probe = candidate
+        while probe and not os.path.isdir(probe):
+            parent = os.path.dirname(probe)
+            if parent == probe:
+                probe = "/"
+                break
+            probe = parent
+        usage = _shutil.disk_usage(probe)
         return round(usage.free / (1024.0 ** 3), 2)
     except Exception:
         return None
@@ -2821,8 +2905,13 @@ def api_use_chat_as_judge(body: dict = Body(default=None)):
     global _JUDGE_USES_CHAT
     body = body or {}
     enabled = bool(body.get("enabled", True))
-    if enabled:
+    # Serialise the flag flip + evaluator_call assignment against the
+    # chat-load thread so we cannot end up with _JUDGE_USES_CHAT=True
+    # but app.state.evaluator_call pointing at a stale chat callable
+    # from before the latest load.
+    with _MODEL_QUEUE._meta:
         chat_call = getattr(app.state, "gemma_call", None)
+    if enabled:
         if chat_call is None:
             return JSONResponse(
                 {
@@ -2855,9 +2944,13 @@ def api_use_chat_as_judge(body: dict = Body(default=None)):
                 },
                 status_code=409,
             )
-        # All clear: wire the mirror.
-        _JUDGE_USES_CHAT = True
-        app.state.evaluator_call = chat_call
+        # All clear: wire the mirror under the queue lock so a
+        # concurrent chat-load thread cannot race with this assignment
+        # (the chat-load thread reads _JUDGE_USES_CHAT inside the same
+        # lock before writing evaluator_call).
+        with _MODEL_QUEUE._meta:
+            _JUDGE_USES_CHAT = True
+            app.state.evaluator_call = chat_call
         return {
             "status": "ok",
             "judge_uses_chat": True,
@@ -2867,14 +2960,16 @@ def api_use_chat_as_judge(body: dict = Body(default=None)):
             ),
         }
     # Disable path: clear the mirror only if it was active. Never
-    # touches a separately-loaded judge model.
-    was_mirrored = _JUDGE_USES_CHAT
-    _JUDGE_USES_CHAT = False
-    if was_mirrored:
-        # Only clear when we ourselves had set it -- avoid clobbering
-        # a separately-loaded judge if the flag had drifted out of
-        # sync somehow.
-        app.state.evaluator_call = None
+    # touches a separately-loaded judge model. Lock the flag + ref
+    # together so a concurrent load can't see them inconsistently.
+    with _MODEL_QUEUE._meta:
+        was_mirrored = _JUDGE_USES_CHAT
+        _JUDGE_USES_CHAT = False
+        if was_mirrored:
+            # Only clear when we ourselves had set it -- avoid
+            # clobbering a separately-loaded judge if the flag had
+            # drifted out of sync somehow.
+            app.state.evaluator_call = None
     return {
         "status": "ok",
         "judge_uses_chat": False,

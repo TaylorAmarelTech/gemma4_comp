@@ -541,7 +541,7 @@
         is Variant B. Layer-fired chips above each variant card light
         up as their <code>step_done</code> events arrive.
       </p>
-      <div id="cmp-log" class="dc-activity-log" role="log" aria-label="Activity log" aria-live="polite">
+      <div id="cmp-log" class="dc-activity-log" role="log" aria-label="Activity log" aria-live="polite" data-toolbar="copy-json">
         <div class="dc-log-idle">Click <b>Run comparison</b> to start. Per-step events from each safety layer will stream here.</div>
       </div>
     </div>
@@ -1613,6 +1613,22 @@
         return {ok: false, error: String(e)};
       }
       if (!r.ok) {
+        // First check for an inference-queue envelope (503 queue_full
+        // or queue_closed). Surface the structured message + position
+        // info instead of a raw "HTTP 503" so the user sees what's
+        // actually happening on the shared kernel.
+        const queueErr = window.dcInferenceError
+          ? await window.dcInferenceError.parse(r)
+          : null;
+        if (queueErr) {
+          const msg = window.dcInferenceError.format(queueErr);
+          logEvent(variant, 'warn', msg);
+          setVariantProgress(variant, 'err', queueErr.status === 'queue_closed'
+            ? 'model not ready' : 'queue full');
+          appendMessage(variant, 'gemma', '(' + msg + ')',
+                         'request rejected by the inference queue; retry shortly');
+          return {ok: false, status: r.status, queue: queueErr};
+        }
         const body = await r.text();
         logEvent(variant, 'err', 'HTTP ' + r.status, body.slice(0, 300));
         setVariantProgress(variant, 'err', 'HTTP ' + r.status);
