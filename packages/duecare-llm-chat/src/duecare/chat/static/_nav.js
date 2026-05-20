@@ -253,6 +253,12 @@
         if (load && load.eta) bits.push('ETA ' + load.eta);
         if (load && load.error) bits.push('error=' + load.error);
         meta.textContent = bits.join(' | ');
+        // Show the Unload button when a model is currently loaded. The
+        // Load button stays visible (the user might want to swap to a
+        // new variant after unload), but the new Unload action is only
+        // useful when there's something to unload.
+        const unloadBtn = document.getElementById('dc-wb-model-unload');
+        if (unloadBtn) unloadBtn.hidden = !loaded;
     }
 
     async function refreshModelLoaderStatus() {
@@ -329,19 +335,163 @@
         return {info, load};
     }
 
+    // ============== Chat-model preflight (disk + GPU gate) ==============
+    //
+    // Mirror of the judge-model preflight in compare.html. The kernel
+    // exposes /api/load-model/preflight?variant=... so the UI can show
+    // disk + GPU headroom BEFORE the user clicks Load. Older kernels
+    // (without the endpoint) return 404; in that case the picker hides
+    // the panel and operates as it did before -- the load endpoint
+    // itself is the only gate.
+    var modelLastPreflight = null;
+    async function refreshModelPreflight() {
+        const sel = modelSelectEl();
+        const variant = sel && sel.value;
+        const panel = document.getElementById('dc-wb-model-preflight');
+        const badge = document.getElementById('dc-wb-model-preflight-badge');
+        const detail = document.getElementById('dc-wb-model-preflight-detail');
+        const reasons = document.getElementById('dc-wb-model-preflight-reasons');
+        const forceLbl = document.getElementById('dc-wb-model-force-label');
+        const loadBtn = document.getElementById('dc-wb-model-load');
+        if (!panel || !badge || !detail) return null;
+        if (!variant) {
+            panel.hidden = true;
+            return null;
+        }
+        badge.textContent = 'checking…';
+        badge.style.background = '#EFEDE4';
+        badge.style.color = '#5B5F68';
+        try {
+            const r = await fetch(
+                '/api/load-model/preflight?variant=' + encodeURIComponent(variant),
+                {cache: 'no-store'}
+            );
+            if (r.status === 404) {
+                // Older kernel without preflight: hide panel and let
+                // the picker behave exactly as before.
+                panel.hidden = true;
+                modelLastPreflight = null;
+                return null;
+            }
+            if (!r.ok) {
+                panel.hidden = false;
+                badge.textContent = 'check failed';
+                badge.style.background = 'oklch(0.94 0.04 25)';
+                badge.style.color = 'oklch(0.32 0.10 25)';
+                detail.textContent = 'HTTP ' + r.status;
+                if (reasons) reasons.style.display = 'none';
+                if (forceLbl) forceLbl.style.display = 'none';
+                modelLastPreflight = null;
+                return null;
+            }
+            const data = await r.json();
+            modelLastPreflight = data;
+            panel.hidden = false;
+            const needD = (data.needs_disk_gb != null) ? data.needs_disk_gb.toFixed(1) : '?';
+            const needG = (data.needs_gpu_gb != null) ? data.needs_gpu_gb.toFixed(1) : '?';
+            const haveD = (data.disk_free_gb != null) ? data.disk_free_gb.toFixed(1) : '?';
+            const haveG = (data.gpu_free_gb != null) ? data.gpu_free_gb.toFixed(1) : '?';
+            detail.textContent =
+                'needs ' + needD + ' GB disk + ' + needG + ' GB GPU · ' +
+                'have ' + haveD + ' GB disk + ' + haveG + ' GB GPU' +
+                (Array.isArray(data.notes) && data.notes.length
+                    ? ' · ' + data.notes.join('; ')
+                    : '');
+            if (data.ok) {
+                badge.textContent = 'ready';
+                badge.style.background = 'oklch(0.92 0.06 155)';
+                badge.style.color = 'oklch(0.32 0.07 155)';
+                if (reasons) { reasons.style.display = 'none'; reasons.textContent = ''; }
+                if (forceLbl) forceLbl.style.display = 'none';
+                if (loadBtn) loadBtn.disabled = false;
+            } else {
+                badge.textContent = 'blocked';
+                badge.style.background = 'oklch(0.94 0.04 25)';
+                badge.style.color = 'oklch(0.32 0.10 25)';
+                if (reasons) {
+                    reasons.style.display = '';
+                    reasons.textContent = 'Reasons: ' + (data.reasons || []).join(' · ');
+                }
+                if (forceLbl) forceLbl.style.display = 'inline-flex';
+                const forceChk = document.getElementById('dc-wb-model-force');
+                if (loadBtn) loadBtn.disabled = !(forceChk && forceChk.checked);
+            }
+            return data;
+        } catch (e) {
+            panel.hidden = false;
+            badge.textContent = 'check failed';
+            badge.style.background = 'oklch(0.94 0.04 25)';
+            badge.style.color = 'oklch(0.32 0.10 25)';
+            detail.textContent = 'preflight error: ' + e;
+            return null;
+        }
+    }
+
+    async function unloadCurrentModel() {
+        const purgeChk = document.getElementById('dc-wb-model-purge');
+        const purge = !purgeChk || purgeChk.checked;  // default true
+        setModelPopoverStatus('Unloading current model' + (purge ? ' (purging disk cache)' : '') + '…');
+        try {
+            const r = await fetch('/api/unload-model', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({purge_cache: purge})
+            });
+            if (r.status === 404) {
+                setModelPopoverStatus(
+                    'Unload requires kernel v0.18+ (POST /api/unload-model missing). '
+                    + 'Restart the Kaggle cell with the latest kernel.py.'
+                );
+                return;
+            }
+            const data = await r.json().catch(function () { return {}; });
+            if (data.purged && data.purged.ok) {
+                const gb = data.purged.gb_freed != null ? data.purged.gb_freed.toFixed(2) : '?';
+                setModelPopoverStatus('Unloaded · freed ' + gb + ' GB from disk');
+            } else {
+                setModelPopoverStatus(data.message || 'Unloaded.');
+            }
+            // Refresh status so the picker UI matches the freed state.
+            await refreshModelLoaderStatus();
+            await refreshModelPreflight();
+        } catch (e) {
+            setModelPopoverStatus('Unload failed: ' + ((e && e.message) || e));
+        }
+    }
+
     async function loadSelectedModel() {
         const sel = modelSelectEl();
         const variant = sel && sel.value;
         if (!variant) return;
         modelUserSelectedVariant = variant;
+        // Re-run preflight at click time so a stale check can't sneak
+        // through: the user might have downloaded another model since
+        // the last refresh and eaten the headroom.
+        const pre = await refreshModelPreflight();
+        const forceChk = document.getElementById('dc-wb-model-force');
+        const override = !!(forceChk && forceChk.checked);
+        if (pre && !pre.ok && !override) {
+            setModelPopoverStatus(
+                'Preflight blocked: ' + (pre.reasons || []).join('; ') +
+                '. Free disk / GPU or tick "Force load".'
+            );
+            return;
+        }
         setModelPopoverStatus('Starting model load: ' + variant);
-        renderModelLogs([{ts: new Date().toLocaleTimeString(), phase: 'request', message: 'POST /api/load-model variant=' + variant}]);
+        renderModelLogs([{ts: new Date().toLocaleTimeString(), phase: 'request', message: 'POST /api/load-model variant=' + variant + (override ? ' (force)' : '')}]);
         try {
             const r = await fetch('/api/load-model', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({variant: variant})
+                body: JSON.stringify({variant: variant, override: override})
             });
+            if (r.status === 503) {
+                const data = await r.json().catch(function () { return {}; });
+                setDot('error');
+                setModelPopoverStatus('Preflight blocked: ' + (data.message || ''));
+                refreshModelPreflight();
+                return;
+            }
             const payload = await r.json().catch(function () { return {}; });
             if (payload.status === 'already_loaded') {
                 setDot('loaded');
@@ -411,6 +561,10 @@
             if (sel) sel.focus();
         }, 0);
         refreshModelLoaderStatus();
+        // Surface disk + GPU headroom the moment the popover opens.
+        // Hidden gracefully when the kernel doesn't expose the
+        // /api/load-model/preflight endpoint.
+        refreshModelPreflight();
     }
 
     function closeModelPopover(force) {
@@ -796,10 +950,25 @@
         if (closeBtn) closeBtn.addEventListener('click', closeModelPopover);
         if (loadBtn) loadBtn.addEventListener('click', loadSelectedModel);
         if (refreshBtn) refreshBtn.addEventListener('click', refreshModelLoaderStatus);
+        const unloadBtn = document.getElementById('dc-wb-model-unload');
+        if (unloadBtn) unloadBtn.addEventListener('click', unloadCurrentModel);
+        const preflightRefresh = document.getElementById('dc-wb-model-preflight-refresh');
+        if (preflightRefresh) preflightRefresh.addEventListener('click', refreshModelPreflight);
+        const forceChk = document.getElementById('dc-wb-model-force');
+        if (forceChk) forceChk.addEventListener('change', function () {
+            // When preflight is blocking, the Load button is gated to
+            // the Force toggle. Keep it in sync without re-fetching.
+            if (modelLastPreflight && !modelLastPreflight.ok) {
+                const lb = document.getElementById('dc-wb-model-load');
+                if (lb) lb.disabled = !forceChk.checked;
+            }
+        });
         const sel = modelSelectEl();
         if (sel) sel.addEventListener('change', function () {
             modelUserSelectedVariant = sel.value || '';
             renderSelectedModelDetail();
+            // New variant has different disk + GPU footprint -- refresh.
+            refreshModelPreflight();
         });
         document.addEventListener('click', function (event) {
             const pop = document.getElementById('dc-wb-model-popover');
@@ -823,6 +992,9 @@
             refresh: refreshModelLoaderStatus,
             loadSelected: loadSelectedModel,
             loadVariant: loadModelVariant,
+            unload: unloadCurrentModel,
+            preflight: refreshModelPreflight,
+            lastPreflight: function () { return modelLastPreflight; },
             ensureReady: isModelReadyForPage,
             status: function () { return modelLastStatus; },
             variants: function () { return modelVariantMap; },

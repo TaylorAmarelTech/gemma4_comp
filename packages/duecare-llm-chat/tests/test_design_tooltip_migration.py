@@ -763,27 +763,64 @@ def test_kernel_evaluator_load_uses_separate_state_ring() -> None:
     """The judge-model load must NOT mutate the chat-model state ring.
     Separate _MODEL_LOAD_STATE_EVAL, _MODEL_LOAD_LOCK_EVAL, and
     _MODEL_LOAD_EVENTS_EVAL keep the two surfaces independent so a
-    judge load doesn't make /api/load-model/status look busy."""
+    judge load doesn't make /api/load-model/status look busy.
+
+    After the ModelSlot refactor, the evaluator slot still uses its
+    own state dict (passed into ``_JUDGE_SLOT = ModelSlot(...)``); the
+    load thread still writes to ``app.state.evaluator_call``. Unload
+    clears the slot via ``setattr(app.state, self.app_state_attr, None)``
+    where ``app_state_attr="evaluator_call"`` for the judge slot."""
     src = _KERNEL_PATH.read_text(encoding="utf-8")
     assert "_MODEL_LOAD_STATE_EVAL" in src
     assert "_MODEL_LOAD_LOCK_EVAL" in src
     assert "_MODEL_LOAD_EVENTS_EVAL" in src
-    # The endpoints must write to app.state.evaluator_call (the slot
-    # the chat package already prefers for grading).
+    # The load thread writes to the evaluator slot directly.
     assert "app.state.evaluator_call = loaded_local.backend" in src
-    assert "app.state.evaluator_call = None" in src
+    # The unload clears the slot via the ModelSlot abstraction.
+    assert "setattr(app.state, self.app_state_attr, None)" in src
+    # And the judge slot is wired with the right attr name.
+    assert 'app_state_attr="evaluator_call"' in src
 
 
 def test_kernel_evaluator_unload_flushes_cuda_cache() -> None:
     """On unload, the kernel must call torch.cuda.empty_cache() (best-
-    effort) so the freed weights actually release VRAM."""
+    effort) so the freed weights actually release VRAM. After the
+    ModelSlot refactor, the flush lives inside ``ModelSlot.unload``
+    and BOTH slots inherit it -- so we look at the class body, not
+    the endpoint shim."""
     src = _KERNEL_PATH.read_text(encoding="utf-8")
-    # Look at the unload handler region specifically.
-    unload_idx = src.find("def api_unload_evaluator_model(")
-    assert unload_idx >= 0, "kernel.py is missing api_unload_evaluator_model"
-    # Examine the next ~3 KB of source for the cache flush.
-    region = src[unload_idx:unload_idx + 3000]
-    assert "torch.cuda.empty_cache" in region or "_torch.cuda.empty_cache" in region
+    # Look at the ModelSlot class body.
+    cls_idx = src.find("class ModelSlot:")
+    assert cls_idx >= 0, "kernel.py is missing the ModelSlot class"
+    # Find the end of the class by locating the next top-level def or
+    # module-level statement. Take a generous window.
+    region = src[cls_idx:cls_idx + 8000]
+    # CUDA flush is invoked inside the unload procedure.
+    assert "_torch.cuda.empty_cache()" in region, (
+        "ModelSlot.unload must call torch.cuda.empty_cache() so VRAM "
+        "actually returns to the pool after unload."
+    )
+
+
+def test_kernel_judge_preflight_returns_expected_shape() -> None:
+    """The preflight result must include the 8 fields the UI relies on:
+    variant, needs_disk_gb, needs_gpu_gb, disk_free_gb, gpu_free_gb,
+    ok, reasons, notes. After the refactor ``_judge_preflight`` is a
+    thin alias of ``_model_preflight``; the return dict literal lives
+    in the latter."""
+    src = _KERNEL_PATH.read_text(encoding="utf-8")
+    # Look at the slot-agnostic helper that both aliases call.
+    idx = src.find("def _model_preflight(")
+    assert idx >= 0, "_model_preflight helper missing"
+    body = src[idx:idx + 4000]
+    for key in ("variant", "needs_disk_gb", "needs_gpu_gb",
+                "disk_free_gb", "gpu_free_gb", "ok", "reasons", "notes"):
+        assert f'"{key}":' in body, (
+            f"_model_preflight return must include the '{key}' field"
+        )
+    # The alias still exists for any external consumers that pinned
+    # the old name.
+    assert "def _judge_preflight(" in src
 
 
 def test_compare_judge_section_present() -> None:
@@ -878,22 +915,6 @@ def test_kernel_exposes_judge_preflight_endpoint() -> None:
     assert "def _estimate_model_size_gb(variant: str)" in src
 
 
-def test_kernel_judge_preflight_returns_expected_shape() -> None:
-    """The preflight result must include the 8 fields the UI relies on:
-    variant, needs_disk_gb, needs_gpu_gb, disk_free_gb, gpu_free_gb,
-    ok, reasons, notes."""
-    src = _KERNEL_PATH.read_text(encoding="utf-8")
-    # Look at the preflight helper's return dict literal.
-    idx = src.find("def _judge_preflight(")
-    assert idx >= 0
-    body = src[idx:idx + 4000]
-    for key in ("variant", "needs_disk_gb", "needs_gpu_gb",
-                "disk_free_gb", "gpu_free_gb", "ok", "reasons", "notes"):
-        assert f'"{key}":' in body, (
-            f"_judge_preflight return must include the '{key}' field"
-        )
-
-
 def test_kernel_judge_load_enforces_preflight_with_override() -> None:
     """The load endpoint must run preflight and refuse with 503 when
     it fails, unless the caller passes ``override: true``. The error
@@ -983,3 +1004,184 @@ def test_compare_judge_re_runs_preflight_at_click_time() -> None:
     )
     # And must surface a server-side 503 (preflight_failed) cleanly.
     assert "r.status === 503" in body
+
+
+# ---------------------------------------------------------------------------
+# Chat-model preflight + auto-purge + ModelSlot abstraction
+#
+# Mirror of the judge-slot preflight, applied to the chat slot too.
+# Plus the ModelSlot wrapper that consolidates the unload + cache
+# purge logic so both slots use one canonical implementation.
+# ---------------------------------------------------------------------------
+
+
+def test_kernel_exposes_chat_preflight_endpoint() -> None:
+    """Kernel must expose GET /api/load-model/preflight (chat slot)
+    in addition to the existing judge-slot preflight."""
+    src = _KERNEL_PATH.read_text(encoding="utf-8")
+    assert '@app.get("/api/load-model/preflight")' in src
+    assert "def api_chat_preflight(" in src
+
+
+def test_kernel_chat_load_enforces_preflight_with_override() -> None:
+    """POST /api/load-model must refuse with 503 on a blocking
+    preflight, unless body sets override=true. Same gate as the
+    judge slot."""
+    src = _KERNEL_PATH.read_text(encoding="utf-8")
+    idx = src.find("def api_load_model(")
+    assert idx >= 0
+    body = src[idx:idx + 4000]
+    assert "pre = _model_preflight(variant)" in body
+    assert 'if not pre["ok"] and not override:' in body
+    assert "status_code=503" in body
+    assert '"preflight_failed"' in body
+
+
+def test_kernel_exposes_chat_unload_endpoint() -> None:
+    """POST /api/unload-model must exist so the chat picker can free
+    the slot before loading a new variant. Required for model
+    swapping on Kaggle (the load endpoint otherwise refuses with
+    'already_loaded')."""
+    src = _KERNEL_PATH.read_text(encoding="utf-8")
+    assert '@app.post("/api/unload-model")' in src
+    assert "def api_unload_chat_model(" in src
+    # Default behavior: purge HF cache to free the precious
+    # /kaggle/working disk (~20 GB on Kaggle).
+    chat_unload = src[src.find("def api_unload_chat_model("):
+                       src.find("def api_unload_chat_model(") + 1500]
+    assert 'purge_cache' in chat_unload
+    assert 'True' in chat_unload  # default value
+
+
+def test_kernel_purge_helper_handles_both_hf_orgs() -> None:
+    """_purge_hf_cache_for_variant must check BOTH google/* and
+    unsloth/* cache dirs, since the chat runtime falls back to the
+    Unsloth pre-quantized variants when google/* is gated."""
+    src = _KERNEL_PATH.read_text(encoding="utf-8")
+    assert "_UNSLOTH_ALIASES" in src
+    assert "unsloth/gemma-4-E2B-it" in src
+    assert "unsloth/gemma-4-E4B-it" in src
+    assert "unsloth/gemma-4-31B-it" in src
+    assert "def _hf_cache_dir_candidates_for_variant" in src
+    assert "def _purge_hf_cache_for_variant" in src
+
+
+def test_kernel_purge_helper_returns_expected_shape() -> None:
+    """_purge_hf_cache_for_variant returns {ok, bytes_freed,
+    paths_checked, paths_deleted, ...}. The UI relies on the
+    gb_freed field for the 'freed N GB' message."""
+    src = _KERNEL_PATH.read_text(encoding="utf-8")
+    idx = src.find("def _purge_hf_cache_for_variant")
+    assert idx >= 0
+    body = src[idx:idx + 4000]
+    for key in ('"ok":', '"bytes_freed":', '"paths_checked":',
+                '"paths_deleted":'):
+        assert key in body, f"_purge_hf_cache_for_variant must return {key}"
+    # gb_freed is the user-facing convenience field.
+    assert '"gb_freed":' in body
+
+
+def test_kernel_model_slot_abstraction_present() -> None:
+    """The ModelSlot class consolidates the unload + cache-purge
+    logic so chat and judge slots share one canonical
+    implementation. Two instances must exist: _CHAT_SLOT (writes to
+    gemma_call) and _JUDGE_SLOT (writes to evaluator_call)."""
+    src = _KERNEL_PATH.read_text(encoding="utf-8")
+    assert "class ModelSlot:" in src
+    assert "_CHAT_SLOT = ModelSlot(" in src
+    assert "_JUDGE_SLOT = ModelSlot(" in src
+    # The unload endpoints must delegate, not re-implement.
+    assert "_CHAT_SLOT.unload(" in src
+    assert "_JUDGE_SLOT.unload(" in src
+
+
+def test_kernel_model_slot_unload_steps_documented() -> None:
+    """ModelSlot.unload is the canonical 9-step unload procedure.
+    Pin the key steps so a future refactor cannot accidentally
+    drop the CUDA flush, the disk purge, or the lock."""
+    src = _KERNEL_PATH.read_text(encoding="utf-8")
+    idx = src.find("class ModelSlot:")
+    assert idx >= 0
+    body = src[idx:idx + 8000]
+    # Lock acquisition and 409 on busy.
+    assert "self.lock.acquire(blocking=False)" in body
+    assert "status_code=409" in body
+    # app.state.<attr> = None.
+    assert "setattr(app.state, self.app_state_attr, None)" in body
+    # LoadedModel ref cleared.
+    assert "self.loaded_ref_setter(None)" in body
+    # CUDA cache flush.
+    assert "_torch.cuda.empty_cache()" in body
+    # State reset to idle.
+    assert '"status": "idle", "variant": None' in body
+    # HF disk purge gated on purge_cache flag.
+    assert "if purge_cache and current_variant:" in body
+    assert "_purge_hf_cache_for_variant(current_variant)" in body
+
+
+def test_nav_html_has_chat_preflight_panel() -> None:
+    """_nav.html (shared model picker chrome) must include the
+    preflight panel + Unload button + purge checkbox so EVERY page
+    that uses the picker gets the same safety surface."""
+    nav_html = _read("_nav.html")
+    assert 'id="dc-wb-model-preflight"' in nav_html
+    assert 'id="dc-wb-model-preflight-badge"' in nav_html
+    assert 'id="dc-wb-model-preflight-detail"' in nav_html
+    assert 'id="dc-wb-model-preflight-reasons"' in nav_html
+    assert 'id="dc-wb-model-force"' in nav_html
+    assert 'id="dc-wb-model-unload"' in nav_html
+    assert 'id="dc-wb-model-purge"' in nav_html
+    # Purge should default to checked given Kaggle's 20 GB disk.
+    purge_idx = nav_html.find('id="dc-wb-model-purge"')
+    assert purge_idx >= 0
+    purge_block = nav_html[purge_idx:purge_idx + 100]
+    assert "checked" in purge_block, (
+        "Auto-purge checkbox should default ON (Kaggle /kaggle/working "
+        "is only ~20 GB; keeping every download wastes disk)."
+    )
+
+
+def test_nav_js_wires_chat_preflight_and_unload() -> None:
+    """_nav.js must implement refreshModelPreflight + unloadCurrentModel
+    and wire them to the new UI elements."""
+    nav_js = (
+        Path(__file__).parents[1]
+        / "src" / "duecare" / "chat" / "static" / "_nav.js"
+    ).read_text(encoding="utf-8")
+    assert "async function refreshModelPreflight()" in nav_js
+    assert "async function unloadCurrentModel()" in nav_js
+    # The load function must re-run preflight at click time.
+    load_idx = nav_js.find("async function loadSelectedModel()")
+    assert load_idx >= 0
+    load_body = nav_js[load_idx:load_idx + 3500]
+    assert "await refreshModelPreflight()" in load_body
+    # 503 from preflight failure handled cleanly.
+    assert "r.status === 503" in load_body
+    # Unload endpoint called with purge_cache body.
+    unload_idx = nav_js.find("async function unloadCurrentModel()")
+    assert unload_idx >= 0
+    unload_body = nav_js[unload_idx:unload_idx + 1500]
+    assert "/api/unload-model" in unload_body
+    assert "purge_cache" in unload_body
+    # New functions exposed on the shared dcWbModelService for
+    # programmatic callers (e.g., compare.html orchestration).
+    assert "unload: unloadCurrentModel" in nav_js
+    assert "preflight: refreshModelPreflight" in nav_js
+
+
+def test_compare_judge_has_purge_checkbox() -> None:
+    """The judge section must also have an auto-purge checkbox so the
+    Kaggle 20 GB disk constraint applies to the judge slot too. Default
+    checked. judgeUnload passes the flag to /api/unload-evaluator-model."""
+    html = _read("compare.html")
+    assert 'id="judge-purge"' in html
+    # Default ON.
+    purge_idx = html.find('id="judge-purge"')
+    purge_block = html[purge_idx:purge_idx + 100]
+    assert "checked" in purge_block
+    # judgeUnload reads the checkbox and POSTs with purge_cache.
+    unload_idx = html.find("async function judgeUnload()")
+    assert unload_idx >= 0
+    unload_body = html[unload_idx:unload_idx + 2000]
+    assert "judge-purge" in unload_body
+    assert "purge_cache: purge" in unload_body
