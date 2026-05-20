@@ -1976,61 +1976,86 @@ def test_compare_warns_when_judge_shares_chat_slot() -> None:
     assert "mirror ON" in grade_body
 
 
-def test_templates_kernel_has_registry_and_endpoints() -> None:
-    """The kernel registers 4 NGO templates (HK Labour Dept, PH DMW, IOM,
-    NGO intake) and exposes GET /api/templates/list +
-    POST /api/templates/fill. Each template has a body_template,
-    audience, jurisdiction, and ordered fields list."""
-    repo_root = Path(__file__).parents[3]
-    kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
-    assert "_TEMPLATES_REGISTRY" in kernel
+_TEMPLATES_MODULE = (
+    Path(__file__).parents[1]
+    / "src" / "duecare" / "chat" / "templates.py"
+)
+
+
+def test_templates_module_has_registry_and_endpoints() -> None:
+    """The templates module (extracted out of kernel.py on 2026-05-20)
+    registers 4 NGO templates (HK Labour Dept, PH DMW, IOM, NGO intake)
+    and provides register_template_routes(app) which wires
+    GET /api/templates/list + POST /api/templates/fill onto a FastAPI
+    instance. Each TemplateSpec carries a body string, audience,
+    jurisdiction, and ordered fields tuple."""
+    assert _TEMPLATES_MODULE.exists(), f"missing module: {_TEMPLATES_MODULE}"
+    src = _TEMPLATES_MODULE.read_text(encoding="utf-8")
+    assert "TEMPLATES_REGISTRY" in src
     for tpl_id in ("hk_ld_fdh_complaint", "ph_dmw_complaint",
                    "iom_referral", "ngo_intake"):
-        assert f'"{tpl_id}"' in kernel
-    assert '@app.get("/api/templates/list")' in kernel
-    assert '@app.post("/api/templates/fill")' in kernel
-    # The fill endpoint must support manual_fields override and
-    # use_gemma=False fallback so the page works without Gemma.
-    fill_idx = kernel.find("def api_templates_fill(")
-    fill_end = kernel.find("\n# Picker overlay:", fill_idx)
-    fill_body = kernel[fill_idx:fill_end]
-    assert "manual_fields" in fill_body
-    assert "use_gemma" in fill_body
-    # Unknown template returns 404 with available list.
-    assert '"unknown_template"' in fill_body
-    assert 'status_code=404' in fill_body
+        assert f'"{tpl_id}"' in src
+    # Route registration helper exposed as a public function.
+    assert "def register_template_routes(" in src
+    assert '@app.get("/api/templates/list")' in src
+    assert '@app.post("/api/templates/fill")' in src
+    # Unknown template returns 404 with the available list.
+    assert '"unknown_template"' in src
+    assert 'status_code=404' in src
 
 
-def test_templates_kernel_provenance_includes_four_buckets() -> None:
-    """_gemma_fill_template returns provenance with four possible
+def test_templates_module_provenance_includes_four_buckets() -> None:
+    """gemma_fill_template returns provenance with four possible
     values per field: manual, bundle_hint, gemma, missing. The UI
     paints each bucket with a different border colour so the user
     can audit who proposed each value."""
-    repo_root = Path(__file__).parents[3]
-    kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
-    fill_idx = kernel.find("def _gemma_fill_template(")
-    fill_end = kernel.find("\ndef _bundle_excerpt_for_template(", fill_idx)
-    body = kernel[fill_idx:fill_end]
+    src = _TEMPLATES_MODULE.read_text(encoding="utf-8")
+    fill_idx = src.find("def gemma_fill_template(")
+    fill_end = src.find("\ndef parse_bool(", fill_idx)
+    body = src[fill_idx:fill_end]
     assert '"bundle_hint"' in body
     assert '"manual"' in body
     assert '"gemma"' in body
     assert '"missing"' in body
     # Manual fields take precedence over bundle hints (caseworker
     # has final authority).
-    assert "manual_fields ALWAYS override" in body or "Pass 2:" in body
+    assert "Pass 2:" in body or "manual_fields ALWAYS override" in body
+    # Gemma's proposed field_ids are validated against the template's
+    # schema -- the model cannot inject fields that don't exist.
+    assert "valid_ids" in body and "if fid not in valid_ids" in body
 
 
-def test_templates_kernel_respects_use_gemma_false() -> None:
+def test_templates_module_respects_use_gemma_false() -> None:
     """When use_gemma=False, the endpoint must skip the Gemma path
-    entirely and only use deterministic bundle hints + manual fields.
-    Gemma honesty: used_gemma=False in the response."""
+    entirely. The module uses parse_bool to handle JSON-stringified
+    booleans correctly (bool('false') == True is a footgun)."""
+    src = _TEMPLATES_MODULE.read_text(encoding="utf-8")
+    # The module's own parse_bool routes string/int booleans correctly.
+    assert "def parse_bool(" in src
+    # The fill route passes the parsed bool through to gemma_call=None.
+    fill_idx = src.find("def api_templates_fill(")
+    fill_end = src.find("\n__all__ =", fill_idx)
+    if fill_end == -1:
+        fill_end = fill_idx + 3000
+    fill_body = src[fill_idx:fill_end]
+    assert 'parse_bool(body.get("use_gemma")' in fill_body
+    assert "if use_gemma else None" in fill_body
+
+
+def test_kernel_imports_template_module() -> None:
+    """kernel.py no longer carries the inline templates block; it
+    imports register_template_routes from duecare.chat.templates and
+    calls it once after create_app. This keeps kernel.py focused on
+    runtime orchestration and lets the template registry grow in
+    its own file."""
     repo_root = Path(__file__).parents[3]
     kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
-    fill_idx = kernel.find("def api_templates_fill(")
-    fill_end = kernel.find("\n# Picker overlay:", fill_idx)
-    fill_body = kernel[fill_idx:fill_end]
-    # The skip-Gemma branch lives inside the endpoint.
-    assert "if not use_gemma:" in fill_body
+    assert "from duecare.chat.templates import register_template_routes" in kernel
+    assert "_register_template_routes(app)" in kernel
+    # The old inline definitions are gone from the kernel.
+    assert "_TEMPLATE_HK_LD_BODY = " not in kernel
+    assert "def _gemma_fill_template(" not in kernel
+    assert "def api_templates_fill(" not in kernel
 
 
 def test_templates_page_exists_with_design_contract_chrome() -> None:
