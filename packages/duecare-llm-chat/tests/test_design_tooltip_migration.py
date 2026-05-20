@@ -1413,3 +1413,197 @@ def test_share_diff_renders_two_tier_summary() -> None:
     # Honest labels for the not-ran cases.
     assert "no model loaded" in body
     assert "skipped this run" in body
+
+
+# ---------------------------------------------------------------------------
+# Carry-over hardening pass (2026-05-19 pass 3)
+# ---------------------------------------------------------------------------
+
+
+def test_search_safe_href_blocks_javascript_and_data_urls() -> None:
+    """Result-card links must validate their protocol before assigning
+    to a.href. A malicious search backend that returns
+    `url: 'javascript:alert(1)'` must produce href='#' instead of a
+    live XSS surface."""
+    html = _read("search.html")
+    # Helper present.
+    assert "function safeHref(" in html
+    # Helper allows only http/https + plain absolute paths.
+    helper_idx = html.find("function safeHref(")
+    helper_end = html.find("\n    }", helper_idx)
+    helper_body = html[helper_idx:helper_end]
+    assert "'http:'" in helper_body and "'https:'" in helper_body
+    # Both <a href> assignments use the helper now (not the raw
+    # `String(r.url || '#')` pattern).
+    assert "a.href = safeHref(r.url)" in html
+    assert "open.href = safeHref(r.url)" in html
+    # rel hardened to noopener noreferrer to prevent reverse tabnabbing.
+    assert "rel = 'noopener noreferrer'" in html
+
+
+def test_search_run_has_abort_controller() -> None:
+    """A second click on the Search button must abort the in-flight
+    request so a slow first response cannot clobber a fast second
+    response. AbortError is handled gracefully in the catch."""
+    html = _read("search.html")
+    assert "_searchActiveController" in html
+    assert "new AbortController()" in html
+    # An older Search may still be aborted via _searchActiveController.abort();
+    # the literal helper signature is what we pin, not the exact call site.
+    assert "_searchActiveController.abort()" in html
+    assert "AbortError" in html
+    # Both fetches pass the signal.
+    fetch_count = html.count("signal: controller ? controller.signal : undefined")
+    assert fetch_count >= 2, f"expected both sanitize + client fetches to pass signal; found {fetch_count}"
+
+
+def test_knowledge_kxsleep_declared_once() -> None:
+    """The duplicate `function kxSleep(...)` declaration that shadowed
+    the original async version has been removed. Exactly one
+    declaration remains."""
+    html = _read("knowledge.html")
+    # async function kxSleep is the only declaration.
+    assert html.count("function kxSleep(") == 1
+
+
+def test_knowledge_source_poll_has_abort_flag_and_cancel_button() -> None:
+    """kxPollProcessJob now respects kxSourceAbort and surfaces a
+    visible Cancel button next to Step 1's progress block so a stuck
+    source-bundle poll can be released without waiting for the
+    240-attempt budget."""
+    html = _read("knowledge.html")
+    assert "kxSourceAbort" in html
+    assert "function kxCancelSourceJob(" in html
+    assert 'id="kx-source-cancel-btn"' in html
+    # Poll loop checks the flag.
+    poll_idx = html.find("async function kxPollProcessJob(")
+    poll_end = html.find("\n    function kxBuildTextFromProcessBundle(", poll_idx)
+    poll_body = html[poll_idx:poll_end]
+    assert "if (kxSourceAbort)" in poll_body
+    # Finally block resets state + hides the button.
+    assert "} finally {" in poll_body
+    assert "kxActiveSourceJobId = ''" in poll_body
+
+
+def test_share_step4_requires_typed_submit_confirmation() -> None:
+    """Step 4 must require the operator to type SUBMIT before the
+    button enables. A misclick or stale focus must not fire the real
+    outbound POST."""
+    html = _read("share.html")
+    # Confirmation input present.
+    assert 'id="wb-step4-confirm"' in html
+    # Gate helper enforces both step3 completion + SUBMIT match.
+    assert "function wbRefreshSubmitGate(" in html
+    assert "=== 'SUBMIT'" in html
+    # Step 3 success path now flips wbStep3Complete and re-runs the gate.
+    assert "wbStep3Complete = true" in html
+    # wbStep4 re-checks the gate at click time so the console cannot
+    # bypass it.
+    step4_idx = html.find("async function wbStep4(")
+    step4_end = html.find("\n    const dz = document.getElementById('wb-dropzone')", step4_idx)
+    step4_body = html[step4_idx:step4_end]
+    assert "Submit blocked" in step4_body
+    assert "wbSubmittedRunId" in step4_body
+
+
+def test_share_step4_has_abort_controller_and_cancel_button() -> None:
+    """A mid-flight submit must be cancellable so a slow/stuck POST
+    does not hold the operator hostage. AbortError is recognised in
+    the catch so the user sees an honest "cancelled by operator"
+    message, not a generic network failure."""
+    html = _read("share.html")
+    assert "_wbSubmitController" in html
+    assert "function wbCancelSubmit(" in html
+    assert 'id="wb-step4-cancel-btn"' in html
+    assert "new AbortController()" in html
+    # Fetch passes the signal.
+    step4_idx = html.find("async function wbStep4(")
+    step4_end = html.find("\n    const dz = document.getElementById('wb-dropzone')", step4_idx)
+    step4_body = html[step4_idx:step4_end]
+    assert "signal: controller ? controller.signal : undefined" in step4_body
+    assert "e.name === 'AbortError'" in step4_body
+
+
+def test_share_step3_gemma_mark_is_honest_during_polling() -> None:
+    """The Step 3 gemma-mark must NOT flip to 'Gemma active' while the
+    poll is still running (we don't yet know if the model actually
+    ran). It stays Optional with 'Gemma queued' text during polling,
+    then routes to is-done / is-unavailable / is-skipped after the
+    response resolves."""
+    html = _read("share.html")
+    step3_idx = html.find("async function wbStep3(")
+    step3_end = html.find("\n    function wbAppendLabeled(", step3_idx)
+    step3_body = html[step3_idx:step3_end]
+    # The early is-active assignment that flipped before the model
+    # call resolved is gone.
+    assert "gMark.className = 'dc-gemma-mark is-active';" not in step3_body
+    # Replaced with is-optional + "Gemma queued" so the marker is
+    # honest while we wait.
+    assert "'Gemma queued'" in step3_body
+    # Final result-aware flip still routes through is-done /
+    # is-unavailable / is-skipped.
+    assert "'is-done'" in step3_body or "is-done" in step3_body
+    assert "'is-unavailable'" in step3_body or "is-unavailable" in step3_body
+
+
+def test_share_bumps_hub_submits_counter_on_success() -> None:
+    """Per rule 70 §3, a successful hub submit must bump the
+    localStorage counter so /static/status.html reflects activity
+    from this page. Status reads the counter via
+    statusReadLocalCounters()."""
+    html = _read("share.html")
+    assert "'duecare:hub-submits-count'" in html
+    assert "'duecare:hub-submits-last-at'" in html
+    status = _read("status.html")
+    assert "'duecare:hub-submits-count'" in status
+    assert 'id="stat-hub-submits-count"' in status
+    assert 'id="stat-hub-submits-last"' in status
+    assert "hubSubmitsCount" in status
+
+
+def test_knowledge_bumps_imports_counter_on_promote_and_pack_import() -> None:
+    """Promoting a draft or importing a knowledge pack mutates the
+    local knowledge store; both must bump duecare:imports-count so
+    Status reflects activity."""
+    html = _read("knowledge.html")
+    assert "function kxBumpImportsCounter(" in html
+    # kxPromoteDraft calls the bump on success.
+    promote_idx = html.find("async function kxPromoteDraft(")
+    next_fn = html.find("function escapeHtml(", promote_idx)
+    promote_body = html[promote_idx:next_fn]
+    assert "kxBumpImportsCounter(1)" in promote_body
+    # kImport bumps with the server-reported n_imported.
+    import_idx = html.find("async function kImport(ev)")
+    next_imp = html.find("async function kRefresh(", import_idx)
+    import_body = html[import_idx:next_imp]
+    assert "kxBumpImportsCounter(out.n_imported" in import_body
+
+
+def test_search_bumps_imports_counter_when_saving_drafts() -> None:
+    """Saving a search-result envelope to the local knowledge store
+    is an import event; bump duecare:imports-count so Status reflects
+    it."""
+    html = _read("search.html")
+    assert "function searchBumpImportsCounter(" in html
+    save_idx = html.find("async function searchSaveOneDraft(")
+    save_end = html.find("async function searchSaveAllDrafts(", save_idx)
+    save_body = html[save_idx:save_end]
+    assert "searchBumpImportsCounter(1)" in save_body
+
+
+def test_kernel_cross_slot_duplicate_detection() -> None:
+    """/api/load-evaluator-model now detects the case where the
+    requested judge variant is already resident in the chat slot and
+    returns a structured 409 instead of falling through to a
+    preflight_failed disk error. compare.html surfaces the new status
+    as an actionable log message."""
+    repo_root = Path(__file__).parents[3]
+    kernel_path = repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py"
+    assert kernel_path.exists(), f"missing: {kernel_path}"
+    kernel = kernel_path.read_text(encoding="utf-8")
+    assert "duplicate_in_chat_slot" in kernel
+    assert "chat_loaded_variant" in kernel
+    assert "/api/unload-model" in kernel
+    compare = _read("compare.html")
+    assert "duplicate_in_chat_slot" in compare
+    assert "already loaded in the chat slot" in compare

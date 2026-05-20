@@ -870,6 +870,22 @@
           judgeRefreshPreflight();
           return;
         }
+        if (r.status === 409) {
+          // Cross-slot duplicate: same variant is already resident in
+          // the chat slot. Surface an actionable message so the user
+          // does not chase a misleading "preflight failed" disk error.
+          const data = await r.json().catch(() => ({}));
+          if (data.status === 'duplicate_in_chat_slot') {
+            try { logEvent(null, 'warn',
+              '[judge] ' + variant + ' is already loaded in the chat slot. ' +
+              'Unload the chat model first, or pick a different judge variant.'); } catch (_) {}
+            judgeRefreshPreflight();
+            return;
+          }
+          try { logEvent(null, 'err',
+            '[judge] HTTP 409: ' + (data.message || 'conflict')); } catch (_) {}
+          return;
+        }
         if (!r.ok) {
           try { logEvent(null, 'err', '[judge] HTTP ' + r.status); } catch (_) {}
           return;

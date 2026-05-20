@@ -2374,6 +2374,33 @@ def api_load_evaluator_model(body: dict = Body(...)):
                 "variant": _MODEL_LOAD_STATE_EVAL.get("variant"),
                 "message": "A judge model is already loaded. POST to "
                            "/api/unload-evaluator-model to free it first."}
+    # Cross-slot duplicate detection. The chat slot and judge slot are
+    # independent, so without this check a user who already has 31b-it
+    # resident in the chat slot would see "preflight failed: not enough
+    # disk" when they ask for 31b-it as judge. That is misleading --
+    # the model is already on disk, just routed to the wrong slot.
+    # Return a structured status so the UI can offer a one-click
+    # "promote chat model to judge" path instead of pointing at the
+    # disk gauge.
+    chat_loaded_variant = _MODEL_LOAD_STATE.get("variant") if getattr(app.state, "gemma_call", None) is not None else None
+    if chat_loaded_variant and chat_loaded_variant == variant:
+        return JSONResponse(
+            {
+                "status": "duplicate_in_chat_slot",
+                "variant": variant,
+                "chat_variant": chat_loaded_variant,
+                "message": (
+                    f"{variant} is already resident in the chat slot. Loading the "
+                    "same variant a second time would double disk and VRAM use. "
+                    "Unload the chat model first, or pick a different judge variant."
+                ),
+                "suggested_actions": [
+                    {"action": "unload_chat", "endpoint": "/api/unload-model"},
+                    {"action": "use_different_judge_variant", "variants": sorted(_VARIANT_INFO.keys())},
+                ],
+            },
+            status_code=409,
+        )
     if variant not in _VARIANT_INFO:
         return JSONResponse(
             {"status": "error",

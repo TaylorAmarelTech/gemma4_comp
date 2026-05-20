@@ -99,6 +99,11 @@
           <div class="stat-sub" id="stat-imports-last">last import: never</div>
         </div>
         <div class="stat-card">
+          <div class="stat-label">Hub submits (this device)</div>
+          <div class="stat-value" id="stat-hub-submits-count">--</div>
+          <div class="stat-sub" id="stat-hub-submits-last">last submit: never</div>
+        </div>
+        <div class="stat-card">
           <div class="stat-label">Search backends available</div>
           <div class="stat-value" id="stat-backends">--</div>
           <div class="stat-sub" id="stat-backends-sub">--</div>
@@ -216,9 +221,12 @@
         const syncsLastAt = localStorage.getItem('duecare:syncs-last-at') || '';
         const importsCount = parseInt(localStorage.getItem('duecare:imports-count') || '0', 10);
         const importsLastAt = localStorage.getItem('duecare:imports-last-at') || '';
-        return {syncsCount, syncsLastAt, importsCount, importsLastAt};
+        const hubSubmitsCount = parseInt(localStorage.getItem('duecare:hub-submits-count') || '0', 10);
+        const hubSubmitsLastAt = localStorage.getItem('duecare:hub-submits-last-at') || '';
+        return {syncsCount, syncsLastAt, importsCount, importsLastAt, hubSubmitsCount, hubSubmitsLastAt};
       } catch (e) {
-        return {syncsCount: 0, syncsLastAt: '', importsCount: 0, importsLastAt: ''};
+        return {syncsCount: 0, syncsLastAt: '', importsCount: 0, importsLastAt: '',
+                hubSubmitsCount: 0, hubSubmitsLastAt: ''};
       }
     }
 
@@ -344,7 +352,14 @@
       document.getElementById('stat-imports-count').textContent = c.importsCount;
       document.getElementById('stat-imports-last').textContent =
         'last import: ' + (c.importsLastAt || 'never');
-      _statusLog.info('local counters', 'syncs=' + c.syncsCount + ' imports=' + c.importsCount);
+      const hubEl = document.getElementById('stat-hub-submits-count');
+      if (hubEl) hubEl.textContent = c.hubSubmitsCount;
+      const hubLast = document.getElementById('stat-hub-submits-last');
+      if (hubLast) hubLast.textContent =
+        'last submit: ' + (c.hubSubmitsLastAt || 'never');
+      _statusLog.info('local counters',
+        'syncs=' + c.syncsCount + ' imports=' + c.importsCount +
+        ' hub_submits=' + c.hubSubmitsCount);
     }
 
     async function statusRefresh() {

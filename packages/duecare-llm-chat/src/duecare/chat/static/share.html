@@ -217,8 +217,25 @@
         <input id="wb-hub-url" type="text"
                value="https://gemma4-comp.onrender.com/api/submit/knowledge"
                style="width:100%; box-sizing:border-box; padding:8px 10px; border:1px solid #DDD8C9; border-radius:6px; font-size:12px;">
+        <!-- Confirmation gate: Step 4 fires a real outbound POST and
+             writes an audit-log row. A misclick is unrecoverable, so
+             require the operator to type SUBMIT before the button
+             becomes clickable. The marker text below the input
+             explains why. -->
+        <label style="display:block; margin-top:12px; font-size:11px; color:#5B5F68; text-transform:uppercase; letter-spacing:.04em; margin-bottom:5px;">Type <code>SUBMIT</code> to enable</label>
+        <input id="wb-step4-confirm" type="text"
+               placeholder="SUBMIT"
+               autocomplete="off" spellcheck="false"
+               oninput="wbRefreshSubmitGate()"
+               style="width:200px; box-sizing:border-box; padding:7px 10px; border:1px solid #DDD8C9; border-radius:6px; font-size:12px; font-family:'JetBrains Mono', monospace; letter-spacing:0.08em;">
+        <div class="wb-muted" style="margin-top:5px; font-size:11px;">
+          Step 4 performs a real HTTPS POST to the hub URL above and writes a row to
+          <code>/kaggle/working/audit/submit_log.jsonl</code>. The submission is irreversible.
+        </div>
         <div class="wb-row">
-          <button class="wb-btn-primary" id="wb-step4-btn" disabled onclick="wbStep4()">Step 4: Submit to hub</button>
+          <button class="wb-btn-primary" id="wb-step4-btn" disabled onclick="wbStep4()" data-tip="Disabled until Step 3 has completed AND you type SUBMIT in the confirmation field above." data-tip-pos="below">Step 4: Submit to hub</button>
+          <button class="wb-btn-secondary" id="wb-step4-cancel-btn" type="button" hidden onclick="wbCancelSubmit()"
+                  style="background:#FFF7F3; border-color:oklch(0.78 0.10 45); color:oklch(0.40 0.16 25);">Cancel submit</button>
         </div>
         <div id="wb-step4-result" style="margin-top: 12px;"></div>
       </div>
@@ -237,6 +254,33 @@
     let wbFile = null, wbBundle = null, wbChecked = new Set(), wbAnonymized = null;
     let wbShareProcessSeenEvents = new Set();
     let wbAnonSeenEvents = new Set();
+    // Step 4 confirmation + abort plumbing. wbStep3Complete is flipped
+    // true at the end of a successful wbStep3 call; the SUBMIT button
+    // requires both that flag AND the literal SUBMIT confirmation
+    // string typed into wb-step4-confirm. _wbSubmitController is the
+    // AbortController for the in-flight submit so Cancel can stop it.
+    let wbStep3Complete = false;
+    let _wbSubmitController = null;
+    let wbSubmittedRunId = '';
+    function wbRefreshSubmitGate() {
+      const btn = document.getElementById('wb-step4-btn');
+      const confirmEl = document.getElementById('wb-step4-confirm');
+      if (!btn || !confirmEl) return;
+      // Once a successful submit has fired we lock the button to
+      // prevent accidental duplicate POSTs (the kernel-side run_id
+      // would still differ but every click writes a hub call + audit
+      // row, so the safer UX is a single-fire button).
+      if (wbSubmittedRunId) { btn.disabled = true; return; }
+      const confirmed = (confirmEl.value || '').trim() === 'SUBMIT';
+      btn.disabled = !(wbStep3Complete && confirmed);
+    }
+    function wbCancelSubmit() {
+      if (_wbSubmitController) {
+        try { _wbSubmitController.abort(); } catch (_) {}
+        wbLog('warn', 'Submit aborted by operator',
+          'No outbound POST was confirmed by the hub; audit row may still be present.');
+      }
+    }
     let wbShareStepper = null;
     function wbGetShareStepper() {
       if (!wbShareStepper && window.dcWorkflow) {
@@ -490,9 +534,15 @@
       const fastBtn = document.getElementById('wb-step3-fast-btn'); if (fastBtn) fastBtn.disabled = true;
       const gMark = document.getElementById('wb-step3-gemma-mark');
       if (gMark) {
+        // Honest marker contract: stay Optional during polling so the
+        // UI cannot claim "Gemma active" while we have no confirmation
+        // the model has actually run. The progress box below already
+        // signals work-in-flight. Only flip to is-done / is-unavailable
+        // / is-skipped after the poll resolves and we read the real
+        // gemma_review.overall_status from the server.
         if (gemmaReview) {
-          gMark.className = 'dc-gemma-mark is-active';
-          gMark.textContent = 'Gemma active';
+          gMark.className = 'dc-gemma-mark is-optional';
+          gMark.textContent = 'Gemma queued';
         } else {
           gMark.className = 'dc-gemma-mark is-skipped';
           gMark.textContent = 'Gemma skipped';
@@ -533,7 +583,11 @@
               ' | gemma_review=' + (review.overall_status || review.status || 'unknown'));
         wbAnonymized = { selected: selected, redacted: out.redacted || [], diffs: out.diffs || [], gemma_review: review };
         wbRenderDiffs(); document.getElementById('wb-step-3').classList.add('done');
-        document.getElementById('wb-step4-btn').disabled = false;
+        // Step 3 done. Step 4 still needs the SUBMIT confirmation gate
+        // to be satisfied -- route through the helper so the button
+        // only enables when BOTH conditions are met.
+        wbStep3Complete = true;
+        wbRefreshSubmitGate();
         wbSetStep(4);
         if (gMark) {
           const reviewStatus = String(review.overall_status || review.status || '').toLowerCase();
@@ -678,41 +732,107 @@
       host.appendChild(summary);
     }
     async function wbStep4() {
-      const btn = document.getElementById('wb-step4-btn'); btn.disabled = true; btn.textContent = 'Submitting...';
-      const resultHost = document.getElementById('wb-step4-result'); resultHost.innerHTML = '';
+      // Re-check the gate at click time so a programmatic call from
+      // the console / extension cannot skip the SUBMIT confirmation.
+      const confirmEl = document.getElementById('wb-step4-confirm');
+      if ((confirmEl && confirmEl.value || '').trim() !== 'SUBMIT') {
+        wbLog('warn', 'Submit blocked', 'Confirmation field does not match SUBMIT.');
+        return;
+      }
+      if (wbSubmittedRunId) {
+        wbLog('warn', 'Submit blocked', 'This bundle was already submitted as run_id=' + wbSubmittedRunId + '. Reload the page to start a fresh submission.');
+        return;
+      }
+      const btn = document.getElementById('wb-step4-btn');
+      const cancelBtn = document.getElementById('wb-step4-cancel-btn');
+      btn.disabled = true; btn.textContent = 'Submitting...';
+      if (cancelBtn) cancelBtn.hidden = false;
+      const resultHost = document.getElementById('wb-step4-result');
+      while (resultHost.firstChild) resultHost.removeChild(resultHost.firstChild);
       const knowledge = (wbAnonymized && wbAnonymized.redacted || []).map((r, i) => ({
         redacted_text: r,
         n_redactions: (wbAnonymized.diffs[i] || {}).n_redactions || 0,
       }));
       const targetUrl = (document.getElementById('wb-hub-url').value || '').trim();
       wbLog('info', 'POST /api/submit/knowledge', 'n_items=' + knowledge.length + ' | target=' + targetUrl);
+      const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      _wbSubmitController = controller;
       const t0 = performance.now();
       try {
         const r = await fetch('/api/submit/knowledge', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ knowledge: knowledge, target_url: targetUrl })
+          body: JSON.stringify({ knowledge: knowledge, target_url: targetUrl }),
+          signal: controller ? controller.signal : undefined,
         });
         const dt = Math.round(performance.now() - t0);
         if (!r.ok) {
           const tt = await r.text(); wbLog('err', 'HTTP ' + r.status + ' (' + dt + 'ms)', tt.slice(0, 200));
           throw new Error('HTTP ' + r.status);
         }
-        const out = await r.json();
+        const out = await r.json().catch(() => ({}));
+        const safeSha = (out.sha256_blob ? String(out.sha256_blob) : '(missing)');
         wbLog('ok', 'HTTP ' + r.status + ' (' + dt + 'ms)',
-              'run_id=' + out.run_id + ' | audit=' + out.audit_path + ' | sha256=' + out.sha256_blob.slice(0, 16) + '...');
-        resultHost.innerHTML =
-          '<div style="background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 12px; border-radius: 8px;">' +
-          '<b>Submission processed.</b><br>' +
-          '<span style="font-size: 11.5px;">run_id: <code>' + escapeHtml(out.run_id) + '</code></span><br>' +
-          '<span style="font-size: 11.5px;">audit_log: <code>' + escapeHtml(out.audit_path) + '</code></span><br>' +
-          '<span style="font-size: 11.5px;">sha256: <code>' + escapeHtml(out.sha256_blob) + '</code></span><br>' +
-          '<div style="margin-top: 6px; font-size: 11.5px;">' + escapeHtml(out.note || '') + '</div>' +
-          '</div>';
+              'run_id=' + (out.run_id || '(missing)') + ' | audit=' + (out.audit_path || '(missing)') +
+              ' | sha256=' + safeSha.slice(0, 16) + (safeSha.length > 16 ? '...' : ''));
+        // Build the success card with explicit DOM construction so no
+        // user-derived string flows through innerHTML.
+        const card = document.createElement('div');
+        card.style.cssText = 'background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 12px; border-radius: 8px;';
+        const head = document.createElement('b'); head.textContent = 'Submission processed.';
+        card.appendChild(head); card.appendChild(document.createElement('br'));
+        const addLine = (label, value) => {
+          const line = document.createElement('span');
+          line.style.fontSize = '11.5px';
+          const lbl = document.createTextNode(label + ': ');
+          const code = document.createElement('code');
+          code.textContent = String(value || '(missing)');
+          line.appendChild(lbl); line.appendChild(code);
+          card.appendChild(line); card.appendChild(document.createElement('br'));
+        };
+        addLine('run_id', out.run_id);
+        addLine('audit_log', out.audit_path);
+        addLine('sha256', safeSha);
+        if (out.note) {
+          const note = document.createElement('div');
+          note.style.cssText = 'margin-top: 6px; font-size: 11.5px;';
+          note.textContent = String(out.note);
+          card.appendChild(note);
+        }
+        resultHost.appendChild(card);
         document.getElementById('wb-step-4').classList.add('done');
         document.getElementById('wb-step-4').open = true;
+        // Lock the button against duplicate submits + bump Status
+        // counter so the dedicated Status page reflects activity per
+        // rule 70 §3.
+        wbSubmittedRunId = String(out.run_id || 'unknown');
+        try {
+          const prior = parseInt(window.localStorage.getItem('duecare:hub-submits-count') || '0', 10) || 0;
+          window.localStorage.setItem('duecare:hub-submits-count', String(prior + 1));
+          window.localStorage.setItem('duecare:hub-submits-last-at', new Date().toISOString());
+          window.localStorage.setItem('duecare:hub-submits-last-run-id', wbSubmittedRunId);
+        } catch (_) { /* localStorage may be unavailable */ }
       } catch (e) {
-        resultHost.innerHTML = '<div class="wb-error">Step 4 failed: ' + escapeHtml(e && e.message || e) + '</div>';
-      } finally { btn.disabled = false; btn.textContent = 'Step 4: Submit to hub'; }
+        if (e && e.name === 'AbortError') {
+          const note = document.createElement('div');
+          note.className = 'wb-error';
+          note.textContent = 'Submit cancelled by operator before hub confirmation. The audit-log row may already be present (check ' +
+            '/kaggle/working/audit/submit_log.jsonl).';
+          resultHost.appendChild(note);
+        } else {
+          const err = document.createElement('div');
+          err.className = 'wb-error';
+          err.textContent = 'Step 4 failed: ' + (e && e.message || e);
+          resultHost.appendChild(err);
+        }
+      } finally {
+        if (cancelBtn) cancelBtn.hidden = true;
+        if (_wbSubmitController === controller) _wbSubmitController = null;
+        // Refresh the gate -- in success cases the button stays
+        // disabled via wbSubmittedRunId; in error cases the operator
+        // can retype SUBMIT and try again.
+        btn.textContent = 'Step 4: Submit to hub';
+        wbRefreshSubmitGate();
+      }
     }
     const dz = document.getElementById('wb-dropzone');
     if (dz) {
