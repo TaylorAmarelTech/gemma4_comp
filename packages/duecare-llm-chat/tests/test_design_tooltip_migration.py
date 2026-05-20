@@ -2042,6 +2042,98 @@ def test_templates_module_respects_use_gemma_false() -> None:
     assert "if use_gemma else None" in fill_body
 
 
+def test_kernel_queue_uses_event_based_drain() -> None:
+    """_ModelQueue.close_slot must wait on a threading.Event instead of
+    spinning at 250ms intervals. The wrap() finally clears the event
+    when a ticket starts and sets it when the active count drops to 0."""
+    repo_root = Path(__file__).parents[3]
+    kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
+    # Slot init creates the Event in the SET state (slot starts idle).
+    assert "idle_event" in kernel
+    assert "idle.set()" in kernel
+    # close_slot uses Event.wait, not the spin loop.
+    assert "idle_event.wait(timeout=remaining)" in kernel
+    # wrap() clears the event before the model call and sets it in
+    # the finally when no other active ticket remains.
+    assert 'slot["idle_event"].clear()' in kernel
+    assert 'slot["idle_event"].set()' in kernel
+
+
+def test_kernel_queue_status_has_ttl_cache_and_cache_control() -> None:
+    """GET /api/queue/status uses a 1s TTL cache and emits a
+    Cache-Control header so heavy multi-tab polling collapses to ~1
+    real snapshot per second per process."""
+    repo_root = Path(__file__).parents[3]
+    kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
+    assert "_QUEUE_SNAPSHOT_TTL_SECONDS = 1.0" in kernel
+    assert "def _cached_queue_snapshot(" in kernel
+    assert 'Cache-Control": "max-age=1, must-revalidate"' in kernel
+
+
+def test_kernel_has_operator_token_gate() -> None:
+    """The kernel prints an operator token at startup and gates the
+    destructive endpoints (force-unload + use-chat-as-judge) on the
+    X-Operator-Token header or operator_token body field."""
+    repo_root = Path(__file__).parents[3]
+    kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
+    assert "_OPERATOR_TOKEN" in kernel
+    assert "secrets.token_urlsafe(24)" in kernel
+    assert "def _check_operator_token(" in kernel
+    # Constant-time compare prevents timing oracles on token prefix.
+    assert "secrets.compare_digest" in kernel
+    # Body or header sources both supported.
+    assert 'request.headers.get("X-Operator-Token")' in kernel
+    assert 'body.get("operator_token")' in kernel
+    # use-chat-as-judge gated unconditionally; unloads gated only on force.
+    toggle_idx = kernel.find("def api_use_chat_as_judge(")
+    toggle_body = kernel[toggle_idx:toggle_idx + 2000]
+    assert "_check_operator_token(request, body)" in toggle_body
+    unload_idx = kernel.find("def api_unload_chat_model(")
+    unload_body = kernel[unload_idx:unload_idx + 2500]
+    assert "_check_operator_token(request, body)" in unload_body
+
+
+def test_nav_js_has_operator_token_helper() -> None:
+    """_nav.js exposes window.dcOperatorToken so every page can reuse
+    the same prompt+cache flow for the destructive endpoints. The
+    force-unload path uses it."""
+    nav_js = _read("_nav.js")
+    assert "window.dcOperatorToken" in nav_js
+    assert "duecare:operator-token" in nav_js
+    # ensure() prompts when no token is cached.
+    assert "ensure(reason)" in nav_js
+    # unloadCurrentModel force path requires the token + sends header.
+    assert "X-Operator-Token" in nav_js
+    # 401/403 from the gate clears the cached token.
+    assert "window.dcOperatorToken.clear()" in nav_js
+
+
+def test_compare_threads_operator_token_into_judge_toggles() -> None:
+    """compare.html threads window.dcOperatorToken into judgeUnload's
+    force path AND judgeUseChatAsJudge (always required)."""
+    compare = _read("compare.html")
+    assert "window.dcOperatorToken.ensure(" in compare
+    assert "X-Operator-Token" in compare
+    # Two occurrences: one for force-unload, one for the toggle.
+    assert compare.count("window.dcOperatorToken.ensure(") >= 2
+
+
+def test_activity_log_handle_helper() -> None:
+    """The shared _activity_log.js exposes dcInferenceError.handle that
+    pages can call as a one-liner to consume queue 503 responses."""
+    js = _read("_activity_log.js")
+    assert "async handle(response, log)" in js
+
+
+def test_design_pages_consume_queue_handle_helper() -> None:
+    """Every design-contract page that calls an inference endpoint
+    now consumes dcInferenceError.handle so queue 503s render
+    uniformly instead of as raw 'HTTP 503'."""
+    for page in ("share.html", "knowledge.html", "process.html", "compare.html"):
+        html = _read(page)
+        assert "window.dcInferenceError" in html, page + " missing dcInferenceError consumer"
+
+
 def test_kernel_imports_template_module() -> None:
     """kernel.py no longer carries the inline templates block; it
     imports register_template_routes from duecare.chat.templates and

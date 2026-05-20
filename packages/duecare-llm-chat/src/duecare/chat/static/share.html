@@ -568,6 +568,15 @@
           body: JSON.stringify({ texts: texts, gemma_review: gemmaReview })
         });
         const dt = Math.round(performance.now() - t0);
+        // Inference-queue 503: render the snapshot envelope as a
+        // human-readable "queue full — 1 running, 2 waiting" message
+        // instead of leaking a raw HTTP 503 to the activity log.
+        if (window.dcInferenceError) {
+          const handled = await window.dcInferenceError.handle(r, wbGetLog());
+          if (handled) {
+            throw new Error('queue 503');
+          }
+        }
         const start = await r.json().catch(() => ({}));
         if (!r.ok || !start.job_id) {
           wbLog('err', 'HTTP ' + r.status + ' (' + dt + 'ms)', JSON.stringify(start).slice(0, 200));

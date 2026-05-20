@@ -1472,6 +1472,15 @@
       try {
         const start = await fetch('/api/process/batch/start', { method: 'POST', body: fd });
         const dt = Math.round(performance.now() - t0);
+        // Inference-queue 503 envelope handled BEFORE the generic
+        // HTTP-error path so the reviewer sees a structured "queue
+        // full — N running, M waiting" message instead of "HTTP 503".
+        if (window.dcInferenceError) {
+          const handled = await window.dcInferenceError.handle(start, wbGetLog());
+          if (handled) {
+            throw new Error('queue 503');
+          }
+        }
         const startText = await start.text();
         let startJob = null;
         try { startJob = JSON.parse(startText); } catch (_) {}

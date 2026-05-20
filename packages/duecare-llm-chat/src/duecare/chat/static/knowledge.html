@@ -857,6 +857,16 @@
             method:"POST",headers:{"Content-Type":"application/json"},
             body:JSON.stringify({raw_text:raw, target_leaf:leaf, anonymize:anonymize, use_gemma:useGemma})
           });
+          // Inference-queue 503: render the structured queue envelope
+          // before falling through to the generic HTTP error path so
+          // users see "queue full" instead of "HTTP 503".
+          if (window.dcInferenceError) {
+            const handled = await window.dcInferenceError.handle(r, _dcLog);
+            if (handled) {
+              statusEl.textContent = 'Inference queue full — retry shortly.';
+              return;
+            }
+          }
           const start=await r.json().catch(() => ({}));
           const startDt = Math.round(performance.now() - t0);
           if(!r.ok){
