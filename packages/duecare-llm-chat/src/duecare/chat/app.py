@@ -2160,8 +2160,8 @@ class DeepGradeRequest(BaseModel):
     skip_not_applicable: bool = True
     evaluator_weight: float = Field(default=0.5, ge=0.0, le=1.0,
                                        description="0=deterministic only, 1=evaluator only, 0.5=blend. NaN/Inf rejected.")
-    max_new_tokens: int = Field(default=320, ge=16, le=2048,
-                                   description="Per-call token cap. Evaluator envelopes are tiny; 320 is generous.")
+    max_new_tokens: int = Field(default=640, ge=16, le=2048,
+                                   description="Per-call token cap for the LLM evaluator. The structured envelope (verdict + score + applicability + severity + evidence_quote + evidence_quotes + missing_elements + hallucination_flags + rationale) routinely runs 350-500 tokens when missing_elements has multi-phrase entries; 640 gives ~30% headroom. Truncated envelopes that still slip through are recovered by _repair_truncated_json in the parser.")
     # NOTE: floor at 0.01 (not 0.0) because HF transformers
     # model.generate() raises ValueError on temperature=0.0 when
     # do_sample=True. The kernel's gemma_call wrapper passes

@@ -8830,10 +8830,55 @@ def grade_response_universal(
     # this without abandoning the deterministic scoring.
     score_0_10 = round(adjusted_pct / 10.0, 2)
 
+    # ------------------------------------------------------------------
+    # Quality / coverage / overall -- the two-axis breakdown.
+    #
+    # The legacy pct_score is a *weighted average over applicable
+    # dimensions only*. That's "quality of what was engaged with" and
+    # is the right metric when the rubric author chose every dimension
+    # to be equally important. But for our dynamic rubric, a response
+    # that engages with MORE applicable dimensions at PARTIAL quality
+    # can score LOWER than a narrower response at slightly higher
+    # quality -- because adding a PARTIAL (contribution 0.5) to a
+    # denominator skewed toward PASS pulls the weighted average down.
+    #
+    # We add three explicit fields so callers can read both axes:
+    #   * quality_pct  -- alias of pct_score, "how good were the
+    #                     engaged dimensions"
+    #   * coverage_pct -- n_applicable / n_total, "how much of the
+    #                     rubric did the response engage with"
+    #   * overall_pct  -- harmonic mean of quality and coverage,
+    #                     penalizes "narrow but high quality" and
+    #                     "broad but low quality" symmetrically;
+    #                     this is the metric to use for ranking when
+    #                     both depth and breadth matter
+    #
+    # The harmonic mean of fractions q, c in [0, 1] is:
+    #     HM(q, c) = 2 * q * c / (q + c)  when q + c > 0, else 0
+    # Multiplied by 100 to keep the same percentage convention.
+    #
+    # Backward compatibility: pct_score, score_0_10, raw_pct_score,
+    # and the n_* counts are unchanged. Existing consumers that don't
+    # know about quality_pct / coverage_pct / overall_pct simply
+    # ignore the new keys.
+    n_total_dims = len(rubric.get("dimensions", []))
+    quality_pct = round(adjusted_pct, 1)
+    coverage_pct = round(
+        (n_applicable / n_total_dims * 100.0) if n_total_dims > 0 else 0.0,
+        1,
+    )
+    q_frac = quality_pct / 100.0
+    c_frac = coverage_pct / 100.0
+    if (q_frac + c_frac) > 0:
+        overall_pct = round(2.0 * q_frac * c_frac / (q_frac + c_frac) * 100.0, 1)
+    else:
+        overall_pct = 0.0
+    overall_score_0_10 = round(overall_pct / 10.0, 2)
+
     return {
         "mode":               "universal",
         "version":            rubric.get("version", "unknown"),
-        "n_total_dimensions": len(rubric.get("dimensions", [])),
+        "n_total_dimensions": n_total_dims,
         "dimensions":         rows,
         "total_score":        round(score_w, 2),
         "total_weight":       round(total_w, 2),
@@ -8843,6 +8888,11 @@ def grade_response_universal(
         "structure_boost_pp": round(boost_pp, 1),
         "gaming_penalty_pp":  gaming_penalty_pp,
         "gaming_flagged":     gaming_flagged,
+        # Two-axis breakdown (see comment above).
+        "quality_pct":        quality_pct,
+        "coverage_pct":       coverage_pct,
+        "overall_pct":        overall_pct,
+        "overall_score_0_10": overall_score_0_10,
         "n_applicable":       n_applicable,
         "n_not_applicable":   n_na,
         "n_pass":             n_pass,
@@ -9466,17 +9516,83 @@ def _short_string_list(value: Any, *, limit: int = 3,
     return out
 
 
+def _repair_truncated_json(text: str) -> str:
+    """Brace-balance a JSON envelope that was truncated mid-output.
+
+    The LLM evaluator emits a structured JSON envelope; if the model
+    hits max_new_tokens before finishing, the envelope is missing its
+    closing braces / brackets / quotes. The verdict and most numeric
+    fields are usually already on the wire by the time truncation
+    happens, but ``json.loads`` rejects the whole input.
+
+    This helper walks the text once, tracks open strings / arrays /
+    objects, and appends the minimum tail needed to make the result
+    syntactically valid. If the truncation happens mid-string, the
+    open string is closed. If the truncation happens mid-array or
+    mid-object, the open structures are closed. If a trailing comma
+    would invalidate the result, it is stripped before closure.
+
+    Returns the original text untouched when it is already balanced.
+    The repair is purely cosmetic -- the parsed result will reflect
+    only the fields that completed before truncation.
+    """
+    if not text:
+        return text
+    in_string = False
+    escape = False
+    stack: list[str] = []  # '{' or '['
+    for ch in text:
+        if escape:
+            escape = False
+            continue
+        if in_string:
+            if ch == "\\":
+                escape = True
+            elif ch == '"':
+                in_string = False
+            continue
+        if ch == '"':
+            in_string = True
+            continue
+        if ch in "{[":
+            stack.append(ch)
+        elif ch in "}]":
+            if stack:
+                stack.pop()
+    if not in_string and not stack:
+        return text  # Already balanced.
+    repair = text
+    # If we're still inside a string when input ends, close it. Drop
+    # any dangling backslash escape so the closing quote isn't itself
+    # escaped.
+    if in_string:
+        if escape:
+            repair = repair[:-1]
+        repair += '"'
+    # Strip a trailing comma (with optional whitespace) before closing
+    # an open object/array, since "[a,b,]" / "{x:1,}" are invalid JSON.
+    if stack:
+        tail = repair.rstrip()
+        if tail.endswith(","):
+            repair = tail[:-1]
+    while stack:
+        opener = stack.pop()
+        repair += "}" if opener == "{" else "]"
+    return repair
+
+
 def _parse_evaluator_verdict(evaluator_response: str) -> dict:
     """Parse the JSON envelope returned by the LLM evaluator. Best-
-    effort — handles common deviations (markdown fences, trailing
-    prose). Falls back to keyword detection if JSON parse fails
-    entirely.
+    effort -- handles common deviations (markdown fences, trailing
+    prose, mid-output truncation when max_new_tokens caps the
+    generation). Falls back to keyword detection only when JSON repair
+    plus parse both fail.
 
     Hardening: cap input at 64 KB (the envelope is supposed to be
     tiny; longer inputs are wasteful and can mask the real signal).
     """
     raw_full = evaluator_response or ""
-    # Cap input — envelope is supposed to be small. Anything beyond
+    # Cap input -- envelope is supposed to be small. Anything beyond
     # 64 KB is either prompt-injection or runaway hallucination.
     raw = raw_full[:65_536]
     text = raw.strip()
@@ -9488,6 +9604,15 @@ def _parse_evaluator_verdict(evaluator_response: str) -> dict:
     brace = re.search(r"\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}", text, re.DOTALL)
     if brace:
         text = brace.group(0)
+    else:
+        # No balanced { ... } block found -- attempt to repair a
+        # truncated envelope by brace-balancing the input we saw.
+        # This recovers ~all of the verdict/score/applicability
+        # fields when the model ran out of tokens partway through
+        # missing_elements / hallucination_flags / rationale.
+        opener = text.find("{")
+        if opener >= 0:
+            text = _repair_truncated_json(text[opener:])
     try:
         parsed = json.loads(text)
         # M2 fix: if verdict isn't a plain string in the allowed set,
@@ -10160,6 +10285,19 @@ def _combine_dimension_results(
             "evaluator_weight": 0.0,
             "pct_score": deterministic["pct_score"],
             "score_0_10": deterministic.get("score_0_10"),
+            # Forward the two-axis breakdown from the deterministic side
+            # so combined consumers see the same quality / coverage /
+            # overall fields as /api/grade.
+            "quality_pct":        deterministic.get("quality_pct"),
+            "coverage_pct":       deterministic.get("coverage_pct"),
+            "overall_pct":        deterministic.get("overall_pct"),
+            "overall_score_0_10": deterministic.get("overall_score_0_10"),
+            "n_applicable":       deterministic.get("n_applicable"),
+            "n_not_applicable":   deterministic.get("n_not_applicable"),
+            "n_pass":             deterministic.get("n_pass"),
+            "n_partial":          deterministic.get("n_partial"),
+            "n_fail":             deterministic.get("n_fail"),
+            "n_total_dimensions": deterministic.get("n_total_dimensions"),
             "dimension_fusion": [],
         }
 
@@ -10241,6 +10379,40 @@ def _combine_dimension_results(
         + evaluator_result["pct_score"] * w,
         1,
     )
+
+    # Two-axis breakdown for combined results. Mirrors the math in
+    # grade_response_universal so /api/grade and /api/grade-combined
+    # consumers see the same shape. The combined "quality" is the
+    # weighted-average pct from the fused dimensions; coverage is
+    # n_applicable over the rubric size (use the deterministic side as
+    # the source of truth for n_total because both sides grade the
+    # same rubric).
+    combined_pct = pct if pct is not None else deterministic["pct_score"]
+    n_total_dims = (
+        deterministic.get("n_total_dimensions")
+        or evaluator_result.get("n_total_dimensions")
+        or len(fusion_rows)
+        or 0
+    )
+    n_applicable_combined = len([
+        r for r in fusion_rows
+        if (r.get("status") or "").upper() not in ("NOT_APPLICABLE", "N/A")
+    ])
+    quality_pct_c = round(float(combined_pct), 1)
+    coverage_pct_c = round(
+        (n_applicable_combined / n_total_dims * 100.0)
+        if n_total_dims > 0 else 0.0,
+        1,
+    )
+    q_frac = quality_pct_c / 100.0
+    c_frac = coverage_pct_c / 100.0
+    if (q_frac + c_frac) > 0:
+        overall_pct_c = round(
+            2.0 * q_frac * c_frac / (q_frac + c_frac) * 100.0, 1,
+        )
+    else:
+        overall_pct_c = 0.0
+
     return {
         "mode": "combined",
         "version": version,
@@ -10253,6 +10425,15 @@ def _combine_dimension_results(
         "dimension_fusion": fusion_rows,
         "total_score": round(score_w, 2),
         "total_weight": round(total_w, 2),
+        # Two-axis breakdown (see comment above). Same field names as
+        # /api/grade so the UI can read both endpoints uniformly.
+        "quality_pct":        quality_pct_c,
+        "coverage_pct":       coverage_pct_c,
+        "overall_pct":        overall_pct_c,
+        "overall_score_0_10": round(overall_pct_c / 10.0, 2),
+        "n_applicable":       n_applicable_combined,
+        "n_not_applicable":   max(0, n_total_dims - n_applicable_combined),
+        "n_total_dimensions": n_total_dims,
         "agreement": _evaluator_deterministic_agreement(
             deterministic, evaluator_result,
         ),

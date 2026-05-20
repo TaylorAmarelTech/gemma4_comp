@@ -498,14 +498,221 @@ def test_compare_render_grade_bars_emits_coverage_row() -> None:
 
 def test_compare_grade_close_score_caveat() -> None:
     """When A and B land within 2pp of each other, cmpGrade emits a
-    one-line muted caveat to the activity log explaining that the pct
-    average can hide a real difference in coverage (more applicable
-    dims at PARTIAL quality drags the weighted average down even when
-    the response is more thorough)."""
+    one-line muted caveat to the activity log explaining the close
+    comparison and pointing the reviewer to the per-axis breakdown
+    (Quality / Coverage row added by the rubric refresh)."""
     html = _read("compare.html")
     assert "Math.abs(aPct - bPct) < 2.0" in html, (
         "compare.html cmpGrade must detect close-grade comparisons "
         "(within 2pp) so it can surface the coverage caveat."
     )
     assert "within 2pp" in html
-    assert "see the coverage row" in html
+    assert "Quality / Coverage row" in html, (
+        "The close-grade caveat must point reviewers at the per-axis "
+        "row (Quality / Coverage / Overall) in each grade panel."
+    )
+
+
+# ---------------------------------------------------------------------------
+# Two-axis rubric: quality / coverage / overall
+#
+# The legacy pct_score is a weighted average over applicable dimensions
+# only, which can produce counter-intuitive comparisons: a response
+# that engages with MORE applicable dimensions at PARTIAL quality
+# scores LOWER than a narrower response at slightly higher quality.
+#
+# The fix exposes three new fields on every grade response:
+#   * quality_pct  -- alias of pct_score (depth)
+#   * coverage_pct -- n_applicable / n_total (breadth)
+#   * overall_pct  -- harmonic mean of the two (the principled headline)
+#
+# These tests pin the math and the JSON shape so a future refactor
+# can't silently drop the breakdown.
+# ---------------------------------------------------------------------------
+
+
+def test_grade_universal_returns_two_axis_breakdown() -> None:
+    """grade_response_universal must return quality_pct, coverage_pct,
+    overall_pct, overall_score_0_10 on every call, including the
+    standard PASS / PARTIAL / FAIL paths."""
+    from duecare.chat.harness import grade_response_universal
+    result = grade_response_universal(
+        "ILO C181 Art. 7 prohibits worker-paid recruitment fees. "
+        "POEA MC 14-2017 enforces zero-fee for Filipino domestic "
+        "workers in Hong Kong. The DMW handles complaints.",
+        prompt_text="tell me about PH-HK labor migration fees",
+    )
+    for key in ("quality_pct", "coverage_pct", "overall_pct",
+                "overall_score_0_10"):
+        assert key in result, f"grade_response_universal missing {key}"
+    # Backward-compat aliases preserved.
+    assert result["quality_pct"] == result["pct_score"], (
+        "quality_pct must alias pct_score so legacy callers keep the "
+        "same headline number under the new key."
+    )
+    # Harmonic-mean math: HM(q, c) = 2qc / (q+c).
+    q = result["quality_pct"]
+    c = result["coverage_pct"]
+    if q + c > 0:
+        expected = round(2 * q * c / (q + c), 1)
+        assert abs(result["overall_pct"] - expected) < 0.15, (
+            f"overall_pct={result['overall_pct']} not within 0.15 of "
+            f"HM({q}, {c})={expected}"
+        )
+
+
+def test_grade_universal_overall_is_harmonic_mean() -> None:
+    """Pin the harmonic-mean math: HM(60, 40) = 48.0."""
+    # Use a synthetic input that gets a stable applicability profile.
+    # The actual q/c values depend on the rubric, so we check the math
+    # property: the helper rounds to 1 decimal, and overall is the HM.
+    from duecare.chat.harness import grade_response_universal
+    r = grade_response_universal(
+        "ILO C181 prohibits charging recruitment fees.",
+        prompt_text="x",
+    )
+    q = r["quality_pct"]
+    c = r["coverage_pct"]
+    overall = r["overall_pct"]
+    if q + c > 0:
+        expected = 2 * q * c / (q + c)
+        assert abs(overall - expected) < 0.2
+
+
+def test_grade_combined_inherits_breakdown_without_evaluator() -> None:
+    """The combined grader, when called without an evaluator, must
+    forward quality/coverage/overall from the deterministic side so
+    /api/grade-combined-stream consumers see the same shape."""
+    from duecare.chat.harness import (
+        grade_response_universal, _combine_dimension_results,
+    )
+    det = grade_response_universal(
+        "ILO C181 prohibits charging recruitment fees.",
+        prompt_text="x",
+    )
+    combined = _combine_dimension_results(
+        det, None, evaluator_weight=0.0, version="v2.0",
+    )
+    assert combined.get("quality_pct") == det["quality_pct"]
+    assert combined.get("coverage_pct") == det["coverage_pct"]
+    assert combined.get("overall_pct") == det["overall_pct"]
+
+
+def test_compare_cmpscorenumber_prefers_overall_pct() -> None:
+    """The headline number for ranking in the comparison UI must come
+    from overall_pct so a response that engages with more applicable
+    dimensions doesn't get penalized by the weighted-average pct."""
+    html = _read("compare.html")
+    # The function must check overall_pct FIRST, before pct_score, so
+    # the rubric refresh actually changes the bar / score label.
+    assert "if (typeof g.overall_pct === 'number') return g.overall_pct;" in html, (
+        "cmpScoreNumber must prefer overall_pct over pct_score."
+    )
+    # Quality / Coverage helpers should also be present so the close-
+    # grade caveat can report deltas on each axis.
+    assert "function cmpQualityNumber(g) {" in html
+    assert "function cmpCoverageNumber(g) {" in html
+
+
+def test_compare_render_shows_per_axis_row() -> None:
+    """renderGradeBars must surface Quality / Coverage / Overall as
+    distinct values in the panel so reviewers can read the trade-off
+    instead of guessing from a single pct."""
+    html = _read("compare.html")
+    assert "Quality / Coverage / Overall row" in html, (
+        "compare.html must include the per-axis row comment."
+    )
+    assert "'Overall '" in html
+    assert "'Quality '" in html
+    assert "'Coverage '" in html
+
+
+# ---------------------------------------------------------------------------
+# Evaluator JSON repair
+#
+# Real Kaggle failure: Gemma-4-E4B-it hit max_new_tokens partway
+# through the structured envelope, leaving the JSON unclosed. The
+# parser fell to the keyword scan and the dim was reported with
+# rationale "(parse failed; scanned key)" even though the verdict +
+# score were already on the wire.
+#
+# The fix adds a brace-balancing repair step that auto-closes
+# unterminated strings / arrays / objects before re-attempting parse.
+# Plus the evaluator's default token cap is raised so truncation is
+# rarer in the first place.
+# ---------------------------------------------------------------------------
+
+
+def test_evaluator_parser_recovers_truncated_envelope() -> None:
+    """A real-world truncated JSON envelope (cut off mid-
+    missing_elements list, no closing brace) must still parse to a
+    structured verdict thanks to the brace-balancing repair step."""
+    from duecare.chat.harness import _parse_evaluator_verdict
+    truncated = (
+        '{\n'
+        '  "verdict": "no",\n'
+        '  "applicability_0_10": 0,\n'
+        '  "score_0_10": 0,\n'
+        '  "confidence_0_10": 10,\n'
+        '  "severity": "low",\n'
+        '  "evidence_quote": "",\n'
+        '  "evidence_quotes": [],\n'
+        '  "missing_elements": [\n'
+        '    "first missing item",\n'
+        '    "second missing item",\n'
+        '    "third missing item"'
+    )
+    parsed = _parse_evaluator_verdict(truncated)
+    assert parsed["parse_ok"] is True, (
+        "Truncated envelope with verdict + score on the wire should "
+        "parse_ok=True after JSON repair, not fall to scan."
+    )
+    assert parsed["verdict"] == "no"
+    assert parsed["score_0_10"] == 0.0
+    assert parsed["applicability_0_10"] == 0.0
+    assert parsed["confidence_0_10"] == 10.0
+    assert len(parsed["missing_elements"]) == 3
+
+
+def test_evaluator_parser_recovers_mid_string_truncation() -> None:
+    """When the model is cut off mid-string (no closing quote), the
+    repair step closes the dangling string + outer structures so the
+    parser still extracts the verdict and numeric fields."""
+    from duecare.chat.harness import _parse_evaluator_verdict
+    mid_string = (
+        '{\n'
+        '  "verdict": "partial",\n'
+        '  "applicability_0_10": 8,\n'
+        '  "score_0_10": 5,\n'
+        '  "confidence_0_10": 7,\n'
+        '  "severity": "medium",\n'
+        '  "evidence_quote": "",\n'
+        '  "rationale": "The response addresses fees but does not name'
+    )
+    parsed = _parse_evaluator_verdict(mid_string)
+    assert parsed["parse_ok"] is True
+    assert parsed["verdict"] == "partial"
+    assert parsed["score_0_10"] == 5.0
+
+
+def test_repair_truncated_json_helper_is_idempotent() -> None:
+    """_repair_truncated_json must be a no-op for already-balanced
+    input. Otherwise round-tripping a valid envelope would mutate it."""
+    from duecare.chat.harness import _repair_truncated_json
+    valid = '{"verdict":"yes","score_0_10":9,"missing_elements":[]}'
+    assert _repair_truncated_json(valid) == valid
+
+
+def test_evaluator_max_new_tokens_default_raised() -> None:
+    """DeepGradeRequest.max_new_tokens default was 320, which was
+    routinely too small for the structured envelope. Raise to 640 so
+    truncation is the exception, not the rule. (The repair step
+    catches the leftover cases.)"""
+    app_py = (
+        Path(__file__).parents[1]
+        / "src" / "duecare" / "chat" / "app.py"
+    ).read_text(encoding="utf-8")
+    assert "max_new_tokens: int = Field(default=640" in app_py, (
+        "DeepGradeRequest.max_new_tokens default must be at least "
+        "640 so the structured envelope finishes before truncation."
+    )
