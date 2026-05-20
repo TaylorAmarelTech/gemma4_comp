@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Workbench &middot; Templates</title>
+  <link rel="stylesheet" href="/static/_chrome.css">
+  <script src="/static/_nav.js" defer></script>
+  <script src="/static/_activity_log.js" defer></script>
+  <script src="/static/_workflow.js" defer></script>
+  <style>
+    .wb-page { max-width: 1180px; margin: 24px auto 60px; padding: 0 18px;
+               color: #0E1116; font-family: Inter, system-ui, sans-serif; line-height: 1.55; }
+    .wb-h1 { font-size: 26px; font-weight: 700; margin: 0 0 8px; }
+    .wb-lede { font-size: 13.5px; color: #2A2D34; margin: 0 0 18px; }
+    .wb-card { background: #FFF; border: 1px solid #DDD8C9; border-radius: 12px;
+               padding: 16px 18px; margin-bottom: 14px; }
+    .wb-card h2 { font-size: 15px; font-weight: 600; margin: 0 0 10px; }
+    .wb-muted { color: #5B5F68; font-size: 12px; }
+    .wb-btn-primary { padding: 8px 16px; background: oklch(0.52 0.08 195);
+                       color: #FFF; border: 0; border-radius: 6px;
+                       font-size: 13px; cursor: pointer; }
+    .wb-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+    .wb-btn-secondary { padding: 7px 13px; background: #FFF; color: #0E1116;
+                         border: 1px solid #DDD8C9; border-radius: 6px;
+                         font-size: 12.5px; cursor: pointer; }
+    .tpl-gallery { display: grid; gap: 12px;
+                    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+    .tpl-card { background: #FFF; border: 1px solid #DDD8C9; border-radius: 10px;
+                 padding: 14px 16px; cursor: pointer; text-align: left;
+                 display: flex; flex-direction: column; gap: 6px; }
+    .tpl-card:hover { border-color: oklch(0.52 0.08 195); }
+    .tpl-card.active { border-color: oklch(0.52 0.08 195);
+                        box-shadow: inset 0 0 0 1px oklch(0.52 0.08 195);
+                        background: oklch(0.98 0.01 195); }
+    .tpl-card h3 { font-size: 13.5px; margin: 0; }
+    .tpl-card .tpl-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tpl-card .tpl-meta span {
+      font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+      padding: 1px 7px; border-radius: 999px;
+      background: #EFEDE4; color: #5B5F68;
+    }
+    .tpl-card .tpl-summary { font-size: 11.5px; color: #5B5F68; line-height: 1.45; }
+    .tpl-fields { display: grid;
+                   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                   gap: 10px; margin-top: 8px; }
+    .tpl-field { background: #FAF9F4; border: 1px solid #EFEDE4;
+                  border-radius: 8px; padding: 8px 10px; }
+    .tpl-field label { display: block; font-size: 11px; color: #5B5F68;
+                        text-transform: uppercase; letter-spacing: 0.04em;
+                        margin-bottom: 4px; }
+    .tpl-field input, .tpl-field textarea {
+      width: 100%; box-sizing: border-box; padding: 6px 9px;
+      border: 1px solid #DDD8C9; border-radius: 6px;
+      font-size: 12px; font-family: inherit;
+    }
+    .tpl-field textarea { font-family: 'JetBrains Mono', monospace; min-height: 60px; }
+    .tpl-field .tpl-prov { font-size: 10.5px; color: #5B5F68;
+                            font-family: 'JetBrains Mono', monospace;
+                            margin-top: 4px; }
+    .tpl-field.is-required label::after { content: " *"; color: oklch(0.55 0.16 25); }
+    .tpl-field.prov-gemma { border-color: oklch(0.85 0.05 195);
+                              background: oklch(0.98 0.01 195); }
+    .tpl-field.prov-bundle_hint { border-color: oklch(0.78 0.10 155);
+                                    background: oklch(0.97 0.03 155); }
+    .tpl-field.prov-manual { border-color: oklch(0.80 0.10 80);
+                              background: oklch(0.97 0.04 80); }
+    .tpl-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+  </style>
+</head>
+<body data-nav="templates">
+  <main class="wb-page">
+    <h1 class="wb-h1">Templates</h1>
+    <div class="dc-trust-row is-private" role="note" aria-label="Trust boundary"
+         style="margin-bottom: 14px;">
+      <span class="dc-trust-pill"><span class="dot"></span>LOCAL</span>
+      <span class="dc-trust-pill"><span class="dot"></span>BUNDLE-DRIVEN</span>
+      <span class="dc-trust-pill"><span class="dot"></span>REVIEWER GATED</span>
+      <span class="dc-trust-text">
+        Templates render locally from the case bundle currently held in
+        memory. Gemma 4 fills gaps when loaded; the caseworker always
+        has the final edit before download.
+      </span>
+    </div>
+
+    <p class="wb-lede">
+      Turn a processed case bundle into a draft complaint or referral
+      document. Pick a template, attach the latest bundle from Bulk
+      File Review (or paste structured intelligence as JSON), let
+      Gemma 4 propose field values, then edit and export. Templates
+      ship with HK Labour Department, POEA/DMW, IOM, and a generic
+      NGO intake form; each is a Jinja-style placeholder document
+      with no HTML.
+    </p>
+
+    <div class="wb-muted" id="tpl-gemma-paths-hint"
+         style="margin-bottom: 14px; padding: 10px 12px;
+                background: oklch(0.97 0.02 195);
+                border: 1px solid oklch(0.85 0.05 195);
+                border-radius: 8px; font-size: 11.5px; line-height: 1.55;
+                color: #2A2D34;">
+      <b style="color: oklch(0.32 0.07 195);">Where Gemma 4 runs on this page:</b>
+      <ol style="margin: 4px 0 0 18px; padding: 0;">
+        <li><b>Deterministic field hints (no Gemma)</b> &mdash; the
+          bundle's intelligence (people, employers, payments, journey
+          points) is mapped directly to fields where a source_hint is
+          declared. Green border = filled from the bundle.</li>
+        <li><b>Gemma 4 fills the gaps</b> &mdash; when "Use Gemma 4 to
+          fill" is checked and a model is loaded, Gemma proposes
+          values for the remaining required fields. Teal border =
+          Gemma proposed. Output is strict JSON; the renderer rejects
+          any field Gemma fabricated outside the template's schema.</li>
+        <li><b>Caseworker authority</b> &mdash; manual edits override
+          everything. Amber border = manually overridden. The "missing"
+          tag is honest: Gemma did not have enough evidence and you
+          have not entered the value yet.</li>
+      </ol>
+      <div style="margin-top: 6px; color: #5B5F68;">
+        Names are anonymized to first-initials in proposed values.
+        Names you type manually are preserved as written.
+      </div>
+    </div>
+
+    <div class="wb-card">
+      <h2>1. Pick a template</h2>
+      <div class="tpl-gallery" id="tpl-gallery">
+        <div class="wb-muted" style="grid-column: 1 / -1; padding: 14px;">
+          Loading templates...
+        </div>
+      </div>
+    </div>
+
+    <div class="wb-card" id="tpl-bundle-card">
+      <h2>2. Attach a case bundle</h2>
+      <p class="wb-muted" style="margin: 0 0 10px;">
+        The bundle is the JSON output from Bulk File Review. The most
+        recent run in this browser session is loaded automatically.
+        You can also paste a bundle JSON manually, or generate a
+        fresh one by visiting <a href="/static/process.html">Bulk File
+        Review</a>.
+      </p>
+      <div id="tpl-bundle-status" class="wb-muted">No bundle attached yet.</div>
+      <details style="margin-top: 8px;">
+        <summary style="cursor: pointer; font-size: 12px; font-weight: 600;">
+          Advanced &mdash; paste a bundle JSON
+        </summary>
+        <textarea id="tpl-bundle-json" rows="6"
+                  placeholder="Paste the bundle JSON returned by /api/process/batch/status/{job_id}"
+                  style="width: 100%; box-sizing: border-box; padding: 8px 10px;
+                         border: 1px solid #DDD8C9; border-radius: 6px;
+                         font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+                         margin-top: 8px;"></textarea>
+        <div class="tpl-row">
+          <button class="wb-btn-secondary" type="button" onclick="tplLoadBundleFromTextarea()">
+            Use pasted bundle
+          </button>
+          <button class="wb-btn-secondary" type="button" onclick="tplLoadStoredBundle()">
+            Reload last Bulk File Review bundle
+          </button>
+        </div>
+      </details>
+    </div>
+
+    <div class="wb-card" id="tpl-fields-card" hidden>
+      <h2>3. Review proposed fields</h2>
+      <div class="wb-row" style="display: flex; gap: 10px; flex-wrap: wrap;
+                                  align-items: center;">
+        <label style="font-size: 12px; cursor: pointer;">
+          <input type="checkbox" id="tpl-use-gemma" checked
+                 data-tip="When checked, Gemma 4 proposes values for fields the bundle did not resolve. The model marker on the right reflects whether Gemma actually ran."
+                 data-tip-pos="below">
+          Use Gemma 4 to fill missing fields
+        </label>
+        <span class="dc-gemma-mark is-optional" id="tpl-gemma-mark"
+              data-tip="Honest marker: stays Optional until Gemma actually completes a fill. Promotes to is-done after the kernel confirms the model ran."
+              data-tip-pos="below">Optional &middot; Gemma</span>
+        <button class="wb-btn-primary" type="button" id="tpl-fill-btn"
+                onclick="tplGenerateDraft()" disabled>
+          Generate draft
+        </button>
+        <button class="wb-btn-secondary" type="button" id="tpl-render-btn"
+                onclick="tplRerender()" disabled>
+          Re-render preview
+        </button>
+      </div>
+      <div id="tpl-fields-host" class="tpl-fields" aria-live="polite"></div>
+    </div>
+
+    <div class="wb-card" id="tpl-render-card" hidden>
+      <h2>4. Draft document</h2>
+      <p class="wb-muted" style="margin: 0 0 8px;">
+        Edit directly in the textarea below; manual edits are preserved
+        on re-render unless you click "Generate draft" again which
+        re-runs the Gemma extraction. Download as Markdown to share
+        with the regulator / NGO.
+      </p>
+      <textarea id="tpl-render-edit" rows="16"
+                style="width: 100%; box-sizing: border-box; padding: 12px 14px;
+                       border: 1px solid #DDD8C9; border-radius: 8px;
+                       background: #FAF9F4; color: #0E1116;
+                       font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
+                       line-height: 1.55;"></textarea>
+      <div class="tpl-row">
+        <button class="wb-btn-primary" type="button" onclick="tplDownloadMarkdown()">
+          Download Markdown
+        </button>
+        <button class="wb-btn-secondary" type="button" onclick="tplCopyToClipboard()">
+          Copy to clipboard
+        </button>
+        <span class="wb-muted" id="tpl-render-status"></span>
+      </div>
+    </div>
+
+    <div class="wb-card">
+      <h2>Activity log</h2>
+      <div id="tpl-log" class="dc-activity-log" role="log"
+           aria-label="Activity log" aria-live="polite"
+           data-toolbar="copy-json">
+        <div class="dc-log-idle">No template events yet. Pick a template above to begin.</div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let _tplLog = null;
+    let _tplTemplates = [];
+    let _tplActive = null;
+    let _tplBundle = null;
+    let _tplLastFill = null;
+
+    function tplGetLog() {
+      if (!_tplLog && window.dcActivityLog) {
+        _tplLog = window.dcActivityLog.attach('#tpl-log');
+      }
+      return _tplLog;
+    }
+    function tplLog(kind, msg, detail) {
+      const log = tplGetLog();
+      if (!log) return;
+      const fn = ({info: log.info, ok: log.ok, warn: log.warn,
+                    err: log.err, step: log.step,
+                    net: log.net, anon: log.anon}[kind] || log.info);
+      fn(msg, detail);
+    }
+
+    async function tplLoadTemplates() {
+      tplLog('net', 'GET /api/templates/list');
+      try {
+        const r = await fetch('/api/templates/list', {cache: 'no-store'});
+        if (!r.ok) {
+          tplLog('err', 'HTTP ' + r.status);
+          return;
+        }
+        const data = await r.json();
+        _tplTemplates = data.templates || [];
+        tplLog('ok', 'Loaded ' + _tplTemplates.length + ' templates');
+        tplRenderGallery();
+      } catch (e) {
+        tplLog('err', 'Network error: ' + e);
+      }
+    }
+
+    function tplRenderGallery() {
+      const host = document.getElementById('tpl-gallery');
+      while (host.firstChild) host.removeChild(host.firstChild);
+      if (!_tplTemplates.length) {
+        const empty = document.createElement('div');
+        empty.className = 'wb-muted';
+        empty.style.gridColumn = '1 / -1';
+        empty.style.padding = '14px';
+        empty.textContent = 'No templates registered yet.';
+        host.appendChild(empty);
+        return;
+      }
+      _tplTemplates.forEach(t => {
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'tpl-card' + (_tplActive && _tplActive.id === t.id ? ' active' : '');
+        card.setAttribute('data-template-id', t.id);
+        const title = document.createElement('h3');
+        title.textContent = t.title;
+        card.appendChild(title);
+        const meta = document.createElement('div');
+        meta.className = 'tpl-meta';
+        const j = document.createElement('span');
+        j.textContent = t.jurisdiction;
+        meta.appendChild(j);
+        const a = document.createElement('span');
+        a.textContent = t.audience;
+        meta.appendChild(a);
+        const f = document.createElement('span');
+        f.textContent = t.n_required + ' / ' + t.n_fields + ' required';
+        meta.appendChild(f);
+        card.appendChild(meta);
+        const sum = document.createElement('div');
+        sum.className = 'tpl-summary';
+        sum.textContent = t.summary;
+        card.appendChild(sum);
+        card.addEventListener('click', () => tplSelectTemplate(t.id));
+        host.appendChild(card);
+      });
+    }
+
+    function tplSelectTemplate(id) {
+      const t = _tplTemplates.find(x => x.id === id);
+      if (!t) return;
+      _tplActive = t;
+      tplLog('step', 'Template selected', t.title);
+      tplRenderGallery();
+      tplRenderFieldsCard();
+      document.getElementById('tpl-fields-card').hidden = false;
+      document.getElementById('tpl-fill-btn').disabled = false;
+      document.getElementById('tpl-render-btn').disabled = false;
+      // Bundle is optional but recommended.
+      tplLoadStoredBundle({silent: true});
+    }
+
+    function tplRenderFieldsCard(fillData) {
+      const host = document.getElementById('tpl-fields-host');
+      while (host.firstChild) host.removeChild(host.firstChild);
+      if (!_tplActive) return;
+      const filled = (fillData && fillData.field_values) || {};
+      const provenance = (fillData && fillData.provenance) || {};
+      _tplActive.fields.forEach(field => {
+        const wrap = document.createElement('div');
+        wrap.className = 'tpl-field' + (field.required ? ' is-required' : '');
+        const prov = provenance[field.id] || 'missing';
+        if (prov && prov !== 'missing') {
+          wrap.classList.add('prov-' + prov);
+        }
+        const lbl = document.createElement('label');
+        lbl.textContent = field.label;
+        lbl.setAttribute('for', 'tpl-input-' + field.id);
+        wrap.appendChild(lbl);
+        const useTextarea = (field.id === 'incident_summary'
+                              || field.id === 'incident_timeline'
+                              || field.id === 'case_narrative'
+                              || field.id === 'evidence_list');
+        const input = document.createElement(useTextarea ? 'textarea' : 'input');
+        if (!useTextarea) input.type = 'text';
+        input.id = 'tpl-input-' + field.id;
+        input.name = field.id;
+        input.value = filled[field.id] || '';
+        if (useTextarea) input.rows = 3;
+        wrap.appendChild(input);
+        const provLine = document.createElement('div');
+        provLine.className = 'tpl-prov';
+        provLine.textContent = 'source: ' + prov +
+          (field.source_hint ? ' (' + field.source_hint + ')' : '');
+        wrap.appendChild(provLine);
+        host.appendChild(wrap);
+      });
+    }
+
+    function tplCollectManualFields() {
+      const out = {};
+      if (!_tplActive) return out;
+      _tplActive.fields.forEach(field => {
+        const el = document.getElementById('tpl-input-' + field.id);
+        if (el && el.value && el.value.trim()) {
+          out[field.id] = el.value.trim();
+        }
+      });
+      return out;
+    }
+
+    function tplLoadStoredBundle(opts) {
+      opts = opts || {};
+      try {
+        const raw = window.localStorage.getItem('duecare:wb-bundle');
+        if (raw) {
+          const data = JSON.parse(raw);
+          _tplBundle = data;
+          tplRefreshBundleStatus();
+          if (!opts.silent) tplLog('ok', 'Loaded last Bulk File Review bundle');
+          return true;
+        }
+      } catch (_) {}
+      if (!opts.silent) tplLog('warn', 'No prior bundle found in this browser');
+      tplRefreshBundleStatus();
+      return false;
+    }
+
+    function tplLoadBundleFromTextarea() {
+      const el = document.getElementById('tpl-bundle-json');
+      const raw = (el.value || '').trim();
+      if (!raw) {
+        tplLog('warn', 'Paste a bundle JSON first');
+        return;
+      }
+      try {
+        _tplBundle = JSON.parse(raw);
+        tplRefreshBundleStatus();
+        tplLog('ok', 'Bundle attached from pasted JSON');
+      } catch (e) {
+        tplLog('err', 'Bundle JSON parse failed: ' + e);
+      }
+    }
+
+    function tplRefreshBundleStatus() {
+      const host = document.getElementById('tpl-bundle-status');
+      if (!_tplBundle) {
+        host.textContent = 'No bundle attached yet. Manual + Gemma fill still work without a bundle.';
+        return;
+      }
+      const intel = _tplBundle.intelligence || {};
+      const sum = _tplBundle.summary || intel.summary || {};
+      host.textContent =
+        'Bundle attached: ' +
+        ((_tplBundle.config && _tplBundle.config.source) || _tplBundle.run_id || 'unknown') +
+        ' | rows=' + (sum.n_rows_total || sum.n_rows_processed || 0) +
+        ' | people=' + (sum.n_people_detected || (intel.people || []).length) +
+        ' | edges=' + (sum.n_typed_edges || (intel.evidence_edges || []).length);
+    }
+
+    async function tplGenerateDraft() {
+      if (!_tplActive) {
+        tplLog('warn', 'Pick a template first');
+        return;
+      }
+      const useGemma = document.getElementById('tpl-use-gemma').checked;
+      const gemmaMark = document.getElementById('tpl-gemma-mark');
+      const btn = document.getElementById('tpl-fill-btn');
+      btn.disabled = true;
+      btn.textContent = 'Generating...';
+      if (gemmaMark) {
+        gemmaMark.className = 'dc-gemma-mark is-optional';
+        gemmaMark.textContent = useGemma ? 'Gemma queued' : 'Gemma skipped';
+      }
+      tplLog('net', 'POST /api/templates/fill',
+        'template=' + _tplActive.id + ' | use_gemma=' + useGemma +
+        ' | manual_fields=' + Object.keys(tplCollectManualFields()).length +
+        ' | bundle_attached=' + (_tplBundle ? 'yes' : 'no'));
+      try {
+        const r = await fetch('/api/templates/fill', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            template_id: _tplActive.id,
+            bundle: _tplBundle,
+            manual_fields: tplCollectManualFields(),
+            use_gemma: useGemma,
+          }),
+        });
+        if (window.dcInferenceError) {
+          const queueErr = await window.dcInferenceError.parse(r);
+          if (queueErr) {
+            tplLog('warn', window.dcInferenceError.format(queueErr));
+            if (gemmaMark) {
+              gemmaMark.className = 'dc-gemma-mark is-unavailable';
+              gemmaMark.textContent = 'Gemma busy';
+            }
+            return;
+          }
+        }
+        if (!r.ok) {
+          const text = await r.text();
+          tplLog('err', 'HTTP ' + r.status, text.slice(0, 240));
+          if (gemmaMark) {
+            gemmaMark.className = 'dc-gemma-mark is-unavailable';
+            gemmaMark.textContent = 'Gemma failed';
+          }
+          return;
+        }
+        const data = await r.json();
+        _tplLastFill = data;
+        tplRenderFieldsCard(data);
+        document.getElementById('tpl-render-card').hidden = false;
+        document.getElementById('tpl-render-edit').value = data.rendered || '';
+        if (gemmaMark) {
+          if (data.used_gemma) {
+            gemmaMark.className = 'dc-gemma-mark is-done';
+            gemmaMark.textContent = 'Gemma done';
+          } else if (useGemma) {
+            gemmaMark.className = 'dc-gemma-mark is-unavailable';
+            gemmaMark.textContent = 'Gemma unavailable';
+          } else {
+            gemmaMark.className = 'dc-gemma-mark is-skipped';
+            gemmaMark.textContent = 'Gemma skipped';
+          }
+        }
+        const provs = data.provenance || {};
+        const summary = ['manual', 'bundle_hint', 'gemma', 'missing']
+          .map(k => k + '=' + Object.values(provs).filter(v => v === k).length)
+          .join(' | ');
+        tplLog('ok', 'Draft generated', 'used_gemma=' + data.used_gemma + ' | ' + summary);
+      } catch (e) {
+        tplLog('err', 'Network error: ' + e);
+        if (gemmaMark) {
+          gemmaMark.className = 'dc-gemma-mark is-unavailable';
+          gemmaMark.textContent = 'Gemma failed';
+        }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Generate draft';
+      }
+    }
+
+    function tplRerender() {
+      if (!_tplActive) return;
+      const manual = tplCollectManualFields();
+      const existing = (_tplLastFill && _tplLastFill.field_values) || {};
+      const merged = Object.assign({}, existing, manual);
+      const body = _renderClientSide(_tplActive, merged);
+      if (body) {
+        document.getElementById('tpl-render-edit').value = body;
+      }
+      tplLog('ok', 'Preview re-rendered locally',
+        Object.keys(manual).length + ' manual field(s) applied');
+    }
+
+    function _renderClientSide(template, values) {
+      if (!_tplLastFill || !_tplLastFill.rendered) return '';
+      let out = _tplLastFill.rendered;
+      template.fields.forEach(field => {
+        const value = values[field.id];
+        if (!value) return;
+        const labelEsc = field.label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const pattern = new RegExp(labelEsc + ':?\\s*\\(not provided\\)', 'i');
+        out = out.replace(pattern, function (m) {
+          return m.replace('(not provided)', value);
+        });
+      });
+      return out;
+    }
+
+    function tplDownloadMarkdown() {
+      const body = document.getElementById('tpl-render-edit').value || '';
+      if (!body.trim()) {
+        tplLog('warn', 'Nothing to download yet');
+        return;
+      }
+      const blob = new Blob([body], {type: 'text/markdown'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const fname = (_tplActive ? _tplActive.id : 'template') + '_' +
+        new Date().toISOString().replace(/[:.]/g, '-').slice(0, 16) + '.md';
+      a.download = fname;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      tplLog('ok', 'Downloaded ' + fname, body.length + ' chars');
+    }
+
+    async function tplCopyToClipboard() {
+      const body = document.getElementById('tpl-render-edit').value || '';
+      if (!body.trim()) {
+        tplLog('warn', 'Nothing to copy yet');
+        return;
+      }
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(body);
+          tplLog('ok', 'Copied to clipboard', body.length + ' chars');
+          const status = document.getElementById('tpl-render-status');
+          status.textContent = 'Copied ' + body.length + ' chars to clipboard';
+          setTimeout(() => { status.textContent = ''; }, 3000);
+        } else {
+          tplLog('warn', 'Clipboard API unavailable in this browser');
+        }
+      } catch (e) {
+        tplLog('err', 'Copy failed: ' + e);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      tplGetLog();
+      tplLoadTemplates();
+      tplLoadStoredBundle({silent: true});
+    });
+  </script>
+</body>
+</html>

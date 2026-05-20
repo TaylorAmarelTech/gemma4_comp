@@ -1946,6 +1946,37 @@ def _queue_wrap(backend_fn, slot_name: str):
     return _MODEL_QUEUE.wrap(backend_fn, slot_name)
 
 
+def _parse_bool(value: Any, default: bool = False) -> bool:
+    """Parse a request-body field that should be boolean.
+
+    Python's bare ``bool()`` cast returns True for any non-empty string
+    including ``"false"`` and ``"0"``. Browsers + curl users routinely
+    send JSON booleans as strings; without explicit handling the toggle
+    endpoint silently misinterprets them. This helper accepts:
+
+      * native True / False  -> as-is
+      * 1 / 0                -> True / False
+      * "true" / "false" / "yes" / "no" / "on" / "off" (case-insensitive)
+      * None / missing       -> default
+
+    Anything else returns ``default`` so an obviously bogus value
+    cannot quietly enable a destructive flag.
+    """
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return bool(value)
+    if isinstance(value, str):
+        s = value.strip().lower()
+        if s in ("true", "1", "yes", "y", "on"):
+            return True
+        if s in ("false", "0", "no", "n", "off", ""):
+            return False
+    return default
+
+
 @app.exception_handler(_QueueFull)
 async def _queue_full_handler(request, exc):
     return JSONResponse(
@@ -2904,7 +2935,11 @@ def api_use_chat_as_judge(body: dict = Body(default=None)):
     """
     global _JUDGE_USES_CHAT
     body = body or {}
-    enabled = bool(body.get("enabled", True))
+    # Robust bool parse: bare bool("false") == True is a real footgun.
+    # _parse_bool maps "true"/"false"/"on"/"off"/"yes"/"no"/0/1 to the
+    # expected boolean so a JSON-stringified value cannot accidentally
+    # enable a destructive flag.
+    enabled = _parse_bool(body.get("enabled"), default=True)
     # Serialise the flag flip + evaluator_call assignment against the
     # chat-load thread so we cannot end up with _JUDGE_USES_CHAT=True
     # but app.state.evaluator_call pointing at a stale chat callable
@@ -3216,6 +3251,662 @@ def api_unload_evaluator_model(body: dict = Body(default=None)):
     return _JUDGE_SLOT.unload(
         app, purge_cache=bool(body.get("purge_cache", True)),
     )
+
+
+# ===========================================================================
+# Templates orchestrator (NGO complaint / referral document drafts)
+# ---------------------------------------------------------------------------
+# Lets an NGO caseworker who has just processed a bundle on Bulk File Review
+# turn the structured intelligence (people, employers, journey points,
+# payments, evidence edges) into a filled complaint or referral document via
+# Gemma 4. Each template carries:
+#   * a stable id + audience metadata (Hong Kong Labour Department, POEA/DMW,
+#     IOM, generic NGO intake)
+#   * an ordered field list with id/label/required/source_hint
+#   * a body template with {{field_id}} placeholders, no HTML
+#   * an extraction_prompt that Gemma 4 sees alongside the bundle JSON
+#
+# /api/templates/list returns the registry summary (no body content)
+# /api/templates/fill renders a draft, optionally using Gemma 4 to fill in
+# fields from the bundle. Manual fields override Gemma's suggestions.
+#
+# Trust boundary: bundles are local; nothing in this path makes an external
+# call. The filled draft stays on the kernel until the user explicitly
+# downloads it. Privacy review (PII redaction) is the user's responsibility
+# before they share the rendered document outside the kernel.
+# ===========================================================================
+
+_TEMPLATE_HK_LD_BODY = """COMPLAINT TO HONG KONG LABOUR DEPARTMENT
+Foreign Domestic Helper Section
+Date: {{filed_date}}
+
+COMPLAINANT
+  Name (caseworker): {{complainant_name}}
+  Organisation:      {{complainant_org}}
+  Contact:           {{complainant_contact}}
+
+WORKER (subject of the complaint)
+  Name (anonymized):    {{worker_name}}
+  Nationality:          {{worker_nationality}}
+  Hong Kong ID prefix:  {{worker_hkid_prefix}}
+
+EMPLOYER / AGENCY
+  Employer name:        {{employer_name}}
+  Employer address:     {{employer_address}}
+  Agency name:          {{agency_name}}
+  Agency licence no.:   {{agency_license}}
+
+INCIDENT
+  Date(s):              {{incident_dates}}
+  Placement fee paid:   {{placement_fee_amount_hkd}}
+  Wages owed:           {{wage_owed_hkd}}
+
+SUMMARY
+{{incident_summary}}
+
+ILO FORCED-LABOUR INDICATORS OBSERVED
+{{ilo_indicators}}
+
+EVIDENCE AVAILABLE
+{{evidence_list}}
+
+RELIEF REQUESTED
+{{relief_requested}}
+
+I confirm the above is provided in good faith based on case material
+held by {{complainant_org}}. Worker identity has been redacted in
+this submission; the case file can be released to the Labour
+Department under the agency's standard data-protection terms.
+
+Signature: ________________________    Date: __________
+"""
+
+_TEMPLATE_PH_DMW_BODY = """KOMPLEYNT SA DEPARTMENT OF MIGRANT WORKERS / DMW
+Anti-Illegal Recruitment and Placement Fee Violation
+Petsa: {{filed_date}}
+
+NAGREREKLAMO (NGO caseworker)
+  Pangalan:        {{complainant_name}}
+  Organisasyon:    {{complainant_org}}
+  Contact:         {{complainant_contact}}
+
+MIGRANT WORKER (subject)
+  Pangalan (anonymized):  {{worker_name}}
+  Bansang pinagtatrabauhan: {{destination_country}}
+  Passport prefix:         {{worker_passport_prefix}}
+
+RECRUITMENT AGENCY
+  Pangalan ng ahensiya:    {{agency_name}}
+  POEA / DMW licence no.:  {{agency_license}}
+  Lugar ng tanggapan:      {{agency_address}}
+
+PARTIKULAR NG PAGLABAG
+  Petsa ng deployment:     {{deployment_date}}
+  Placement fee na binayaran (PHP):  {{placement_fee_amount_php}}
+  Allowable cap (POEA MC):           {{placement_fee_cap_php}}
+
+BUOD NG INSIDENTE
+{{incident_summary}}
+
+ILO FORCED-LABOUR INDICATORS
+{{ilo_indicators}}
+
+EVIDENCE
+{{evidence_list}}
+
+HINIHILING NA AKSYON
+{{relief_requested}}
+
+Pinatutunayan kong tama ang impormasyon batay sa case file ng
+{{complainant_org}}. Ang pagkakakilanlan ng manggagawa ay
+ginawang anonymized.
+
+Lagda: ________________________    Petsa: __________
+"""
+
+_TEMPLATE_IOM_REFERRAL_BODY = """IOM REFERRAL FORM
+International Organization for Migration
+Protection / Repatriation Assistance Request
+
+REFERRING ORGANISATION
+  Name:           {{complainant_org}}
+  Caseworker:     {{complainant_name}}
+  Contact:        {{complainant_contact}}
+  Country office: {{referring_country}}
+
+REFERRAL DATE: {{filed_date}}
+
+SUBJECT (anonymized for transmission)
+  Reference code:     {{case_reference}}
+  Nationality:        {{worker_nationality}}
+  Age range:          {{worker_age_range}}
+  Gender:             {{worker_gender}}
+  Current location:   {{current_location}}
+  Country of origin:  {{country_of_origin}}
+
+PROTECTION CONCERN
+  Identified risks:   {{risk_factors}}
+  Trafficking indicators present: {{trafficking_indicators}}
+  Immediate safety concern (Y/N): {{immediate_safety}}
+
+ASSISTANCE REQUESTED
+  Repatriation:       {{repat_required}}
+  Medical:            {{medical_required}}
+  Legal aid:          {{legal_aid_required}}
+  Shelter:            {{shelter_required}}
+
+CASE NARRATIVE
+{{incident_summary}}
+
+EVIDENCE / DOCUMENTATION HELD
+{{evidence_list}}
+
+CONSENT
+The subject has provided informed consent to be referred to IOM
+({{consent_status}}). The referring organisation confirms the case
+file can be shared under IOM's protection-information protocols.
+
+Caseworker signature: ________________________    Date: __________
+"""
+
+_TEMPLATE_NGO_INTAKE_BODY = """CIVIL-SOCIETY CASE INTAKE
+Migrant-Worker Protection Network
+
+CASE REFERENCE: {{case_reference}}
+INTAKE DATE:    {{filed_date}}
+
+RECEIVING ORGANISATION
+  Name:        {{complainant_org}}
+  Caseworker:  {{complainant_name}}
+  Contact:     {{complainant_contact}}
+
+WORKER (intake details)
+  Anonymized identifier:  {{worker_name}}
+  Nationality:            {{worker_nationality}}
+  Sector:                 {{sector}}
+  Corridor:               {{corridor}}
+  Current status:         {{current_status}}
+
+INCIDENT TIMELINE
+{{incident_timeline}}
+
+KEY FACTS
+  Recruitment fee disputed: {{placement_fee_amount}}
+  Wages disputed:           {{wage_owed}}
+  Contract substitution:    {{contract_substitution}}
+  Document retention:       {{document_retention}}
+
+ILO FORCED-LABOUR INDICATORS
+{{ilo_indicators}}
+
+EVIDENCE INVENTORY
+{{evidence_list}}
+
+NEXT STEPS / REFERRAL TARGET
+{{next_steps}}
+
+CONSENT + DATA-SHARING
+The worker has consented to internal case-tracking by
+{{complainant_org}} ({{consent_status}}). External sharing requires
+a separate authorisation.
+
+Caseworker signature: ________________________    Date: __________
+"""
+
+
+def _template_field(field_id: str, label: str, required: bool = False,
+                    source_hint: str = "") -> dict:
+    return {"id": field_id, "label": label, "required": required,
+            "source_hint": source_hint}
+
+
+_TEMPLATES_REGISTRY: "dict[str, dict[str, Any]]" = {
+    "hk_ld_fdh_complaint": {
+        "id": "hk_ld_fdh_complaint",
+        "title": "Hong Kong Labour Department Complaint (FDH)",
+        "jurisdiction": "Hong Kong",
+        "audience": "HK Labour Department · FDH Section",
+        "summary": (
+            "Complaint for fee charging, contract substitution, or wage theft "
+            "against a Hong Kong employer or employment agency of a foreign "
+            "domestic helper. Aligns with EAO and Employment Ordinance."
+        ),
+        "body_template": _TEMPLATE_HK_LD_BODY,
+        "fields": [
+            _template_field("filed_date", "Filing date", True),
+            _template_field("complainant_name", "Caseworker name", True),
+            _template_field("complainant_org", "NGO / organisation", True),
+            _template_field("complainant_contact", "Caseworker contact", True),
+            _template_field("worker_name", "Worker anonymized ID", True, "people[0].label"),
+            _template_field("worker_nationality", "Worker nationality", False, "entities.nationality[0]"),
+            _template_field("worker_hkid_prefix", "Worker HKID prefix (e.g., Z123****)", False),
+            _template_field("employer_name", "Employer name", True, "entities.employer[0]"),
+            _template_field("employer_address", "Employer address", False, "entities.address[0]"),
+            _template_field("agency_name", "Recruitment agency", False, "entities.agency[0]"),
+            _template_field("agency_license", "Agency licence number", False),
+            _template_field("incident_dates", "Incident date(s)", True),
+            _template_field("placement_fee_amount_hkd", "Placement fee paid (HKD)", False, "payments[*].amount"),
+            _template_field("wage_owed_hkd", "Wages owed (HKD)", False),
+            _template_field("incident_summary", "Incident summary (<=300 words)", True, "intelligence.case_brief"),
+            _template_field("ilo_indicators", "ILO indicators observed", False, "intelligence.ilo_indicators"),
+            _template_field("evidence_list", "Evidence available", False, "intelligence.evidence_edges"),
+            _template_field("relief_requested", "Relief requested", True),
+        ],
+    },
+    "ph_dmw_complaint": {
+        "id": "ph_dmw_complaint",
+        "title": "Philippines DMW Complaint (Illegal Recruitment / Fee Cap)",
+        "jurisdiction": "Philippines",
+        "audience": "Department of Migrant Workers · Anti-Illegal Recruitment",
+        "summary": (
+            "Complaint for placement-fee violations or illegal recruitment "
+            "against a Philippine recruitment agency deploying workers "
+            "abroad. References POEA Memorandum Circular fee caps."
+        ),
+        "body_template": _TEMPLATE_PH_DMW_BODY,
+        "fields": [
+            _template_field("filed_date", "Filing date", True),
+            _template_field("complainant_name", "Caseworker name", True),
+            _template_field("complainant_org", "NGO / organisation", True),
+            _template_field("complainant_contact", "Caseworker contact", True),
+            _template_field("worker_name", "Worker anonymized ID", True, "people[0].label"),
+            _template_field("destination_country", "Destination country", True),
+            _template_field("worker_passport_prefix", "Worker passport prefix", False),
+            _template_field("agency_name", "Recruitment agency", True),
+            _template_field("agency_license", "DMW / POEA licence no.", False),
+            _template_field("agency_address", "Agency office address", False),
+            _template_field("deployment_date", "Deployment date", True),
+            _template_field("placement_fee_amount_php", "Placement fee paid (PHP)", False, "payments[*].amount"),
+            _template_field("placement_fee_cap_php", "Allowable POEA cap (PHP)", False),
+            _template_field("incident_summary", "Incident summary", True, "intelligence.case_brief"),
+            _template_field("ilo_indicators", "ILO indicators", False, "intelligence.ilo_indicators"),
+            _template_field("evidence_list", "Evidence", False, "intelligence.evidence_edges"),
+            _template_field("relief_requested", "Relief requested", True),
+        ],
+    },
+    "iom_referral": {
+        "id": "iom_referral",
+        "title": "IOM Referral (Protection / Repatriation)",
+        "jurisdiction": "International (IOM)",
+        "audience": "IOM Country Office · Protection Unit",
+        "summary": (
+            "Referral form for protection assistance, repatriation, medical "
+            "care, legal aid, or shelter. Intended for IOM country offices; "
+            "all PII anonymized at transmission."
+        ),
+        "body_template": _TEMPLATE_IOM_REFERRAL_BODY,
+        "fields": [
+            _template_field("filed_date", "Referral date", True),
+            _template_field("complainant_name", "Caseworker name", True),
+            _template_field("complainant_org", "Referring organisation", True),
+            _template_field("complainant_contact", "Caseworker contact", True),
+            _template_field("referring_country", "Country office (referring)", True),
+            _template_field("case_reference", "Case reference code", True),
+            _template_field("worker_nationality", "Subject nationality", True, "entities.nationality[0]"),
+            _template_field("worker_age_range", "Age range (e.g., 25-30)", False),
+            _template_field("worker_gender", "Gender", False),
+            _template_field("current_location", "Current location", True),
+            _template_field("country_of_origin", "Country of origin", True),
+            _template_field("risk_factors", "Identified risks", True, "intelligence.risk_signals"),
+            _template_field("trafficking_indicators", "Trafficking indicators", False, "intelligence.ilo_indicators"),
+            _template_field("immediate_safety", "Immediate safety concern (Y/N)", True),
+            _template_field("repat_required", "Repatriation assistance needed", False),
+            _template_field("medical_required", "Medical assistance needed", False),
+            _template_field("legal_aid_required", "Legal aid needed", False),
+            _template_field("shelter_required", "Shelter needed", False),
+            _template_field("incident_summary", "Case narrative", True, "intelligence.case_brief"),
+            _template_field("evidence_list", "Documentation held", False, "intelligence.evidence_edges"),
+            _template_field("consent_status", "Subject consent status", True),
+        ],
+    },
+    "ngo_intake": {
+        "id": "ngo_intake",
+        "title": "Generic NGO Case Intake (handover form)",
+        "jurisdiction": "Generic / civil society",
+        "audience": "Civil-society casework network",
+        "summary": (
+            "Internal case-handover form for migrant-worker protection NGOs. "
+            "Captures incident, timeline, evidence, and next-steps without "
+            "binding the case to a specific regulator yet."
+        ),
+        "body_template": _TEMPLATE_NGO_INTAKE_BODY,
+        "fields": [
+            _template_field("filed_date", "Intake date", True),
+            _template_field("case_reference", "Case reference", True),
+            _template_field("complainant_name", "Receiving caseworker", True),
+            _template_field("complainant_org", "Organisation", True),
+            _template_field("complainant_contact", "Contact", True),
+            _template_field("worker_name", "Worker anonymized ID", True, "people[0].label"),
+            _template_field("worker_nationality", "Nationality", False),
+            _template_field("sector", "Sector", False, "intelligence.sector"),
+            _template_field("corridor", "Corridor", False, "intelligence.corridor"),
+            _template_field("current_status", "Current worker status", True),
+            _template_field("incident_timeline", "Incident timeline", True, "intelligence.journey_points"),
+            _template_field("placement_fee_amount", "Recruitment fee disputed", False),
+            _template_field("wage_owed", "Wages disputed", False),
+            _template_field("contract_substitution", "Contract substitution (Y/N + detail)", False),
+            _template_field("document_retention", "Document retention (Y/N + detail)", False),
+            _template_field("ilo_indicators", "ILO indicators", False, "intelligence.ilo_indicators"),
+            _template_field("evidence_list", "Evidence inventory", False, "intelligence.evidence_edges"),
+            _template_field("next_steps", "Next steps / referral target", True),
+            _template_field("consent_status", "Worker consent status", True),
+        ],
+    },
+}
+
+
+def _template_summary(template: dict) -> dict:
+    """Lightweight metadata for /api/templates/list. Excludes the
+    body_template content so the listing payload stays small."""
+    return {
+        "id": template["id"],
+        "title": template["title"],
+        "jurisdiction": template["jurisdiction"],
+        "audience": template["audience"],
+        "summary": template["summary"],
+        "fields": template["fields"],
+        "n_fields": len(template["fields"]),
+        "n_required": sum(1 for f in template["fields"] if f["required"]),
+    }
+
+
+def _render_template(body: str, field_values: dict) -> str:
+    """Replace {{field_id}} placeholders with the provided values.
+    Missing fields render as '(not provided)' so the draft is honest
+    about what the caseworker still needs to fill in. No HTML."""
+    out = body
+    placeholders = re.findall(r"\{\{(\w+)\}\}", body)
+    for fid in set(placeholders):
+        value = field_values.get(fid)
+        if value is None or str(value).strip() == "":
+            replacement = "(not provided)"
+        else:
+            replacement = str(value).strip()
+        out = out.replace("{{" + fid + "}}", replacement)
+    return out
+
+
+def _bundle_field_hints(bundle: dict, source_hint: str) -> Optional[str]:
+    """Best-effort lookup of a source_hint inside a process bundle.
+    Supports a tiny path syntax: 'people[0].label',
+    'entities.employer[0]', 'intelligence.case_brief',
+    'payments[*].amount' (collects all amounts as a list).
+
+    Returns None when the path cannot be resolved. Always honest:
+    never fabricates a value; downstream callers treat None as
+    "Gemma or manual entry should fill this"."""
+    if not bundle or not source_hint:
+        return None
+    try:
+        parts = re.findall(r"[a-zA-Z_]+|\[\d+\]|\[\*\]", source_hint)
+        node: Any = bundle
+        collected: list = []
+        for part in parts:
+            if part == "[*]":
+                if isinstance(node, list):
+                    collected = node
+                    node = collected
+                else:
+                    return None
+            elif part.startswith("[") and part.endswith("]"):
+                idx = int(part[1:-1])
+                if isinstance(node, list) and 0 <= idx < len(node):
+                    node = node[idx]
+                else:
+                    return None
+            else:
+                # If we already collected a list, pluck the key from
+                # each entry; otherwise dict lookup.
+                if collected:
+                    node = [
+                        (x.get(part) if isinstance(x, dict) else None)
+                        for x in collected
+                    ]
+                    node = [x for x in node if x is not None]
+                    collected = node
+                elif isinstance(node, dict):
+                    node = node.get(part)
+                else:
+                    return None
+            if node is None:
+                return None
+        if isinstance(node, list):
+            return ", ".join(str(x) for x in node[:10])
+        if isinstance(node, (dict, set)):
+            return None
+        return str(node)
+    except Exception:
+        return None
+
+
+def _gemma_fill_template(template: dict, bundle: dict,
+                          manual_fields: dict) -> tuple[dict, dict]:
+    """Use Gemma 4 (when wired) to fill template fields from the
+    bundle's intelligence. Manual fields ALWAYS override Gemma's
+    suggestion -- this is the caseworker's authority.
+
+    Returns (filled_values, provenance) where provenance is
+    {field_id: "manual" | "bundle_hint" | "gemma" | "missing"}.
+    """
+    filled: dict = {}
+    provenance: dict = {}
+    # Pass 1: deterministic source hints from the bundle.
+    for field in template["fields"]:
+        fid = field["id"]
+        hint = field.get("source_hint", "")
+        if hint:
+            value = _bundle_field_hints(bundle, hint)
+            if value:
+                filled[fid] = value
+                provenance[fid] = "bundle_hint"
+    # Pass 2: manual fields override (caseworker has final say).
+    for fid, value in (manual_fields or {}).items():
+        if value is None:
+            continue
+        sval = str(value).strip()
+        if not sval:
+            continue
+        filled[fid] = sval
+        provenance[fid] = "manual"
+    # Pass 3: Gemma fills gaps when available + requested.
+    gemma_call = getattr(app.state, "gemma_call", None)
+    used_gemma = False
+    if gemma_call is not None:
+        # Only ask Gemma for fields we couldn't resolve deterministically
+        # AND aren't manually provided.
+        gaps = [
+            f for f in template["fields"]
+            if f["id"] not in filled
+        ]
+        if gaps:
+            bundle_excerpt = _bundle_excerpt_for_template(bundle)
+            field_summary = "\n".join(
+                f"  - {f['id']} ({'required' if f['required'] else 'optional'}): {f['label']}"
+                for f in gaps
+            )
+            prompt = (
+                "You are an NGO caseworker assistant. Based on the case bundle "
+                "below, propose values for the listed fields of an official "
+                "complaint or referral document. Return strict JSON: "
+                "{\"fields\": {\"field_id\": \"value\", ...}}. Do NOT invent "
+                "facts not present in the bundle. Anonymize names to their "
+                "first initial or to '(anonymized)'. Currency values keep "
+                "their numeric amount + currency. If you do not have enough "
+                "evidence for a field, omit it from the JSON.\n\n"
+                f"TEMPLATE: {template['title']}\n"
+                f"FIELDS TO PROPOSE:\n{field_summary}\n\n"
+                f"CASE BUNDLE EXCERPT:\n{bundle_excerpt}\n\n"
+                "Respond with the JSON only."
+            )
+            try:
+                raw = gemma_call(prompt, max_new_tokens=1024, temperature=0.6)
+                used_gemma = True
+                parsed = _safe_json_extract(raw)
+                proposed = (parsed.get("fields") if isinstance(parsed, dict) else None) or {}
+                for fid, value in proposed.items():
+                    if fid in filled:
+                        continue
+                    sval = str(value).strip()
+                    if sval:
+                        filled[fid] = sval
+                        provenance[fid] = "gemma"
+            except Exception as e:  # noqa: BLE001
+                provenance["__gemma_error"] = f"{type(e).__name__}: {str(e)[:120]}"
+    # Mark remaining gaps as missing so the UI can highlight them.
+    for field in template["fields"]:
+        if field["id"] not in filled:
+            provenance[field["id"]] = "missing"
+    return filled, {"per_field": provenance, "used_gemma": used_gemma}
+
+
+def _bundle_excerpt_for_template(bundle: dict) -> str:
+    """Compress a case bundle into a Gemma-friendly text excerpt.
+    Trims to ~3000 chars so we stay inside reasonable prompt budgets."""
+    if not bundle:
+        return "(no bundle provided)"
+    parts: list[str] = []
+    intel = bundle.get("intelligence") or {}
+    summary = intel.get("summary") or bundle.get("summary") or {}
+    if summary:
+        parts.append("SUMMARY: " + json.dumps(summary, default=str)[:600])
+    case_brief = intel.get("case_brief")
+    if case_brief:
+        parts.append("CASE BRIEF: " + str(case_brief)[:800])
+    people = (intel.get("people") or [])[:5]
+    if people:
+        parts.append("PEOPLE: " + json.dumps(people, default=str)[:400])
+    entities = intel.get("entities") or {}
+    if entities:
+        parts.append("ENTITIES: " + json.dumps(entities, default=str)[:400])
+    payments = (intel.get("payments") or [])[:8]
+    if payments:
+        parts.append("PAYMENTS: " + json.dumps(payments, default=str)[:300])
+    journey = (intel.get("journey_points") or [])[:8]
+    if journey:
+        parts.append("JOURNEY: " + json.dumps(journey, default=str)[:600])
+    ilo = intel.get("ilo_indicators") or []
+    if ilo:
+        parts.append("ILO INDICATORS: " + json.dumps(ilo, default=str)[:300])
+    evidence = (intel.get("evidence_edges") or [])[:8]
+    if evidence:
+        parts.append("EVIDENCE: " + json.dumps(evidence, default=str)[:400])
+    text = "\n".join(parts)
+    return text[:3000] if len(text) > 3000 else text
+
+
+def _safe_json_extract(text: str) -> Any:
+    """Pull the first {...} block out of a model response and parse
+    it. Returns {} on failure so callers never see a raw exception."""
+    if not text:
+        return {}
+    # Try direct parse first (when model returns clean JSON).
+    try:
+        return json.loads(text)
+    except Exception:
+        pass
+    # Otherwise scan for a balanced top-level object.
+    depth = 0
+    start = -1
+    for i, ch in enumerate(text):
+        if ch == "{":
+            if depth == 0:
+                start = i
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0 and start >= 0:
+                candidate = text[start:i + 1]
+                try:
+                    return json.loads(candidate)
+                except Exception:
+                    start = -1
+    return {}
+
+
+@app.get("/api/templates/list")
+def api_templates_list():
+    """List all registered NGO complaint / referral templates."""
+    return {
+        "templates": [_template_summary(t) for t in _TEMPLATES_REGISTRY.values()],
+    }
+
+
+@app.post("/api/templates/fill")
+def api_templates_fill(body: dict = Body(...)):
+    """Fill a template with values pulled from a case bundle + manual
+    overrides + an optional Gemma 4 orchestration pass.
+
+    Body params:
+        template_id (str, required): id from /api/templates/list
+        bundle (dict, optional):     case bundle from /api/process/batch
+                                     (output of the Bulk File Review flow)
+        manual_fields (dict, opt):   {field_id: value} overrides; the
+                                     caseworker has final authority
+        use_gemma (bool, default True): when False, only deterministic
+                                       source-hint extraction + manual
+                                       fields are used; Gemma is skipped
+
+    Returns:
+        template:        the template summary (no body)
+        rendered:        the filled body with {{placeholders}} replaced;
+                         missing fields render as '(not provided)' so
+                         the draft is honest about what's still blank
+        field_values:    {field_id: value} after all 3 passes
+        provenance:      {field_id: "manual" | "bundle_hint" | "gemma"
+                         | "missing"} so the UI can label each field
+                         by who proposed it
+        used_gemma:      True if a real Gemma call completed
+    """
+    body = body or {}
+    template_id = (body.get("template_id") or "").strip()
+    template = _TEMPLATES_REGISTRY.get(template_id)
+    if template is None:
+        return JSONResponse(
+            {
+                "status": "unknown_template",
+                "message": (
+                    f"No template registered for id={template_id!r}. "
+                    f"Call /api/templates/list for the available set."
+                ),
+                "available": list(_TEMPLATES_REGISTRY.keys()),
+            },
+            status_code=404,
+        )
+    bundle = body.get("bundle") or {}
+    manual_fields = body.get("manual_fields") or {}
+    use_gemma = body.get("use_gemma", True)
+    if not use_gemma:
+        # Build a stripped template that skips Gemma; manual + hints only.
+        filled: dict = {}
+        provenance: dict = {}
+        for field in template["fields"]:
+            fid = field["id"]
+            hint = field.get("source_hint", "")
+            if hint:
+                value = _bundle_field_hints(bundle, hint)
+                if value:
+                    filled[fid] = value
+                    provenance[fid] = "bundle_hint"
+        for fid, value in manual_fields.items():
+            sval = str(value or "").strip()
+            if sval:
+                filled[fid] = sval
+                provenance[fid] = "manual"
+        for field in template["fields"]:
+            if field["id"] not in filled:
+                provenance[field["id"]] = "missing"
+        prov = {"per_field": provenance, "used_gemma": False}
+    else:
+        filled, prov = _gemma_fill_template(template, bundle, manual_fields)
+    rendered = _render_template(template["body_template"], filled)
+    return {
+        "template": _template_summary(template),
+        "rendered": rendered,
+        "field_values": filled,
+        "provenance": prov.get("per_field", {}),
+        "used_gemma": prov.get("used_gemma", False),
+        "gemma_error": prov.get("__gemma_error") if isinstance(prov, dict) else None,
+    }
 
 
 # Picker overlay: as of chat-package v0.2.3, the picker is owned by

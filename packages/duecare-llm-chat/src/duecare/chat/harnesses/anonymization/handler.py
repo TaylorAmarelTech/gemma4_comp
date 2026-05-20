@@ -39,16 +39,65 @@ def _audit_dir() -> _Path:
     return fallback
 
 
+# Hub allowlist: prevents the submit endpoint from being used as an
+# SSRF vector. The Kaggle tunnel is unauthenticated, so any visitor
+# could otherwise POST {"target_url": "http://169.254.169.254/..."}
+# and have the kernel make an outbound request to internal metadata
+# endpoints or any host reachable from the runtime.
+_HUB_ALLOWLIST_HOSTS = frozenset({
+    "gemma4-comp.onrender.com",
+    "duecare-ai.com",
+    "www.duecare-ai.com",
+})
+
+
+def _is_hub_url_allowed(target_url: str) -> tuple[bool, str]:
+    """Validate that ``target_url`` is one of the approved DueCare
+    submit endpoints. Returns (ok, reason). Blocks:
+      * non-https schemes (including file://, ftp://, javascript:, etc.)
+      * any host outside _HUB_ALLOWLIST_HOSTS
+      * userinfo (e.g., https://attacker.example.com@allowed.com)
+    """
+    if not target_url:
+        return False, "empty target_url"
+    try:
+        from urllib.parse import urlparse as _urlparse
+        parsed = _urlparse(target_url)
+    except Exception as e:  # noqa: BLE001
+        return False, f"parse error: {e}"
+    if parsed.scheme != "https":
+        return False, f"scheme {parsed.scheme!r} not allowed (must be https)"
+    if parsed.username or parsed.password:
+        return False, "userinfo not allowed in target_url"
+    host = (parsed.hostname or "").lower()
+    if not host:
+        return False, "missing host"
+    if host not in _HUB_ALLOWLIST_HOSTS:
+        return False, (
+            f"host {host!r} not on allowlist "
+            f"{sorted(_HUB_ALLOWLIST_HOSTS)}"
+        )
+    return True, ""
+
+
 def _post_payload(target_url: str, payload: dict, sha: str) -> tuple[int | None, str | None, str | None, bool]:
     headers = {
         "Content-Type": "application/json",
         "X-DueCare-Source": "kernel-01",
         "X-DueCare-SHA256": sha,
     }
+    # SSRF gate -- refuse out-of-allowlist URLs before opening a socket.
+    # The Kaggle tunnel has no auth so this prevents a curious visitor
+    # from turning /api/submit/knowledge into an arbitrary HTTP egress.
+    ok, reason = _is_hub_url_allowed(target_url)
+    if not ok:
+        return None, None, f"target_url rejected: {reason}", False
     try:
         try:
             import httpx as _httpx
-            with _httpx.Client(timeout=10.0, follow_redirects=True) as cli:
+            # follow_redirects disabled so an allowed host cannot
+            # bounce the request to an unlisted host via 30x.
+            with _httpx.Client(timeout=10.0, follow_redirects=False) as cli:
                 r = cli.post(target_url, json=payload, headers=headers)
             status = int(r.status_code)
             response = (r.text[:2000] if r.text else None)
