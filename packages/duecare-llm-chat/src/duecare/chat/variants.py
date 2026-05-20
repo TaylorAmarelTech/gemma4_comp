@@ -188,9 +188,56 @@ BUILTIN_VARIANTS: tuple[VariantSpec, ...] = (
 )
 
 
-# Frozen dict-by-id for O(1) lookups. The tuple above is the source of
-# truth for ORDER (picker presentation) and the dict is derived.
+# Dict-by-id for O(1) lookups. The BUILTIN_VARIANTS tuple seeds the
+# initial registry but the dict itself is mutable so callers can
+# ``register_variant(spec)`` to add new variants (e.g., a Gemma 4.5
+# release, a tenant-specific deployment) without forking the package.
+# The set ``_BUILTIN_IDS`` records which ids came from the frozen
+# tuple so ``clear_custom_variants()`` can roll back to the built-in
+# set during tests + redeploys.
 VARIANT_REGISTRY: dict[str, VariantSpec] = {v.id: v for v in BUILTIN_VARIANTS}
+_BUILTIN_IDS: frozenset[str] = frozenset(v.id for v in BUILTIN_VARIANTS)
+
+
+def register_variant(spec: VariantSpec, *, overwrite: bool = False) -> None:
+    """Add a custom variant to the live registry.
+
+    Refuses by default if ``spec.id`` already exists -- explicit
+    ``overwrite=True`` is required to replace a built-in. This makes
+    accidental drift loud: a tenant who adds ``Gemma 4 31B-it`` with
+    a different ``hf_id`` (e.g., a private mirror) must opt in to
+    the overwrite.
+
+    Raises ``ValueError`` on duplicate-without-overwrite or when
+    ``spec`` is not a ``VariantSpec``.
+    """
+    if not isinstance(spec, VariantSpec):
+        raise ValueError(
+            f"register_variant expects a VariantSpec, got {type(spec).__name__}"
+        )
+    if spec.id in VARIANT_REGISTRY and not overwrite:
+        raise ValueError(
+            f"variant id={spec.id!r} already registered (built-in or custom). "
+            f"Pass overwrite=True to replace it."
+        )
+    VARIANT_REGISTRY[spec.id] = spec
+
+
+def clear_custom_variants() -> int:
+    """Roll the registry back to the built-in set. Returns the number
+    of custom variants that were removed. Built-in variants are
+    never touched. Useful for tests that register a temporary variant
+    and need to restore the default state."""
+    custom_ids = [vid for vid in VARIANT_REGISTRY if vid not in _BUILTIN_IDS]
+    for vid in custom_ids:
+        del VARIANT_REGISTRY[vid]
+    return len(custom_ids)
+
+
+def is_builtin_variant(variant_id: str) -> bool:
+    """True if the variant id was registered from BUILTIN_VARIANTS
+    (not added at runtime via register_variant)."""
+    return variant_id in _BUILTIN_IDS
 
 
 # ---------------------------------------------------------------------------
@@ -262,11 +309,14 @@ __all__ = [
     "BUILTIN_VARIANTS",
     "VARIANT_REGISTRY",
     "VariantSpec",
+    "clear_custom_variants",
     "footprint_gb",
     "get_variant",
     "hf_id",
+    "is_builtin_variant",
     "is_cloud_variant",
     "list_variant_ids",
+    "register_variant",
     "to_ui_map",
     "unsloth_alias",
 ]

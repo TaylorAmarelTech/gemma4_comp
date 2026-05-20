@@ -422,6 +422,60 @@ TEMPLATES_REGISTRY: dict[str, TemplateSpec] = {
 }
 
 
+# Track which templates came from the initial registry so
+# clear_custom_templates() can roll back to the built-in set after
+# tests. Custom templates registered via register_template() are not
+# in this set.
+_BUILTIN_TEMPLATE_IDS: frozenset[str] = frozenset(TEMPLATES_REGISTRY.keys())
+
+
+def register_template(spec: TemplateSpec, *, overwrite: bool = False) -> None:
+    """Add a custom template to the live registry.
+
+    Refuses by default if ``spec.id`` already exists -- explicit
+    ``overwrite=True`` is required to replace a built-in. This makes
+    accidental drift loud: a tenant who adds a custom HK Labour
+    Department complaint with different field wording must opt in
+    to the overwrite.
+
+    Templates added via this function are picked up automatically
+    by ``register_template_routes(app)`` because the route handler
+    reads ``TEMPLATES_REGISTRY`` at request time, not at registration.
+
+    Raises ``ValueError`` on duplicate-without-overwrite or when
+    ``spec`` is not a ``TemplateSpec``.
+    """
+    if not isinstance(spec, TemplateSpec):
+        raise ValueError(
+            f"register_template expects a TemplateSpec, got {type(spec).__name__}"
+        )
+    if spec.id in TEMPLATES_REGISTRY and not overwrite:
+        raise ValueError(
+            f"template id={spec.id!r} already registered (built-in or custom). "
+            f"Pass overwrite=True to replace it."
+        )
+    TEMPLATES_REGISTRY[spec.id] = spec
+
+
+def clear_custom_templates() -> int:
+    """Roll the registry back to the built-in set. Returns the number
+    of custom templates that were removed. Built-in templates are
+    never touched. Useful for tests that register a temporary
+    template and need to restore the default state."""
+    custom_ids = [
+        tid for tid in TEMPLATES_REGISTRY if tid not in _BUILTIN_TEMPLATE_IDS
+    ]
+    for tid in custom_ids:
+        del TEMPLATES_REGISTRY[tid]
+    return len(custom_ids)
+
+
+def is_builtin_template(template_id: str) -> bool:
+    """True if the template id was part of the initial registry
+    (not added at runtime via register_template)."""
+    return template_id in _BUILTIN_TEMPLATE_IDS
+
+
 # ---------------------------------------------------------------------------
 # Render + fill primitives
 # ---------------------------------------------------------------------------
@@ -774,8 +828,11 @@ __all__ = [
     "TemplateSpec",
     "bundle_excerpt_for_template",
     "bundle_field_hint",
+    "clear_custom_templates",
     "gemma_fill_template",
+    "is_builtin_template",
     "parse_bool",
+    "register_template",
     "register_template_routes",
     "render_template",
     "safe_json_extract",
