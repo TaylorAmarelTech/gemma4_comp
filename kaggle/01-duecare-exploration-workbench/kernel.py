@@ -2108,166 +2108,11 @@ def api_load_model(body: dict = Body(...)):
 # If the load fails (OOM), the chat model is unaffected.
 # ===========================================================================
 
-class ModelSlot:
-    """Intelligent wrapper for a loadable model slot.
-
-    The kernel exposes two parallel slots that share a lot of logic:
-
-      * CHAT slot   -- writes to ``app.state.gemma_call``. Used by the
-                       chat/A-B endpoints. Backed by the module-level
-                       ``_MODEL_LOAD_STATE`` + ``_MODEL_LOAD_LOCK`` +
-                       ``_MODEL_LOAD_EVENTS`` so the legacy helpers
-                       (``_log_load``, ``_snapshot_load_events``, ...)
-                       keep working unchanged.
-      * JUDGE slot  -- writes to ``app.state.evaluator_call``. Used by
-                       LLM-judge grading. Backed by the ``_EVAL`` -
-                       suffixed module-level dicts.
-
-    Both slots need the same unload + purge logic: drop the callable
-    from ``app.state``, flush CUDA, optionally purge the HF cache for
-    the unloaded variant. This class collapses that duplication into
-    a single ``slot.unload(app, purge_cache=...)`` call so each
-    FastAPI endpoint becomes a 2-line shim.
-
-    The CLASS owns the policy (what to do). The module-level state
-    dicts / locks / event rings are the DATA the class operates on,
-    kept at module level so legacy free functions still work. This
-    is intentionally a thin abstraction: future endpoints (e.g., a
-    third slot for a vision model) get the same behavior by passing
-    in their own state dict / lock / event ring + a tiny ``post_unload``
-    hook for any slot-specific reset (the chat slot also resets
-    ``app.state.model_info`` to a placeholder; the judge slot does
-    not).
-    """
-
-    def __init__(
-        self,
-        name: str,
-        app_state_attr: str,
-        *,
-        state: dict,
-        lock: "threading.Lock",
-        events: list,
-        log_fn,
-        loaded_ref_setter,
-        post_unload_hook=None,
-    ) -> None:
-        self.name = name                          # "chat" / "judge"
-        self.app_state_attr = app_state_attr      # "gemma_call" / "evaluator_call"
-        self.state = state                        # backing dict
-        self.lock = lock                          # backing lock
-        self.events = events                      # backing event ring
-        self.log = log_fn                         # logger fn for THIS slot
-        self.loaded_ref_setter = loaded_ref_setter  # clears the module-level LoadedModel ref
-        self.post_unload_hook = post_unload_hook    # optional slot-specific cleanup
-
-    def is_loaded(self, app) -> bool:
-        return getattr(app.state, self.app_state_attr, None) is not None
-
-    def unload(self, app, *, purge_cache: bool = True) -> Any:
-        """Atomically unload the slot.
-
-        Steps (in order):
-          1. Return idle no-op if nothing is loaded.
-          2. Acquire the slot lock (refuse with 409 if a load is in
-             progress -- swapping mid-load is not safe on Unsloth).
-          3. Drop the callable from ``app.state.<attr>``.
-          4. Clear the loaded LoadedModel reference (so torch tensors
-             release).
-          5. Flush ``torch.cuda.empty_cache()`` (best-effort) so the
-             freed VRAM returns to the pool.
-          6. Reset the slot's state dict to idle.
-          7. Run the optional ``post_unload_hook`` for slot-specific
-             cleanup (e.g., chat slot resets app.state.model_info).
-          8. If ``purge_cache=True``, delete the HF safetensors dir
-             for the unloaded variant via ``_purge_hf_cache_for_variant``.
-          9. Return a structured response dict including the purge
-             result (``{ok, bytes_freed, paths_deleted, ...}``).
-        """
-        if not self.is_loaded(app):
-            return {"status": "idle",
-                    "message": f"No {self.name} model loaded."}
-        if not self.lock.acquire(blocking=False):
-            return JSONResponse(
-                {"status": "busy",
-                 "message": (
-                     f"A {self.name}-model load is in progress. "
-                     "Wait for completion before unloading."
-                 )},
-                status_code=409,
-            )
-        try:
-            current_variant = self.state.get("variant")
-            self.log(f"unloading {self.name} model", phase="unloading")
-            # Step 3: drop the callable.
-            setattr(app.state, self.app_state_attr, None)
-            # Step 4: clear the LoadedModel ref so torch can collect.
-            try:
-                self.loaded_ref_setter(None)
-            except Exception as e:  # noqa: BLE001 -- defensive
-                self.log(
-                    f"loaded-ref setter raised: {type(e).__name__}: {e}",
-                    phase="unloading", level="warn",
-                )
-            # Step 5: CUDA cache flush (best-effort).
-            try:
-                import torch as _torch
-                _torch.cuda.empty_cache()
-                try:
-                    _torch.cuda.synchronize()
-                except Exception:
-                    pass
-                self.log("CUDA cache flushed", phase="unloaded")
-            except Exception as e:
-                self.log(
-                    f"CUDA cache flush skipped: {type(e).__name__}",
-                    phase="unloaded", level="warn",
-                )
-            # Step 6: reset slot state.
-            self.state.update({
-                "status": "idle", "variant": None,
-                "selected_display": None, "phase": "idle",
-                "completed_at": time.time(), "error": None,
-            })
-            # Step 7: slot-specific cleanup (e.g., chat slot resets
-            # app.state.model_info to a placeholder dict).
-            if self.post_unload_hook is not None:
-                try:
-                    self.post_unload_hook(app)
-                except Exception as e:  # noqa: BLE001
-                    self.log(
-                        f"post_unload_hook raised: {type(e).__name__}: {e}",
-                        phase="unloaded", level="warn",
-                    )
-            # Step 8: optional HF disk purge.
-            purged = None
-            if purge_cache and current_variant:
-                purged = _purge_hf_cache_for_variant(current_variant)
-                if purged.get("ok"):
-                    gb = purged.get("gb_freed", 0)
-                    self.log(
-                        (
-                            f"purged HF cache for {current_variant}: "
-                            f"{gb:.2f} GB freed"
-                        ),
-                        phase="purged",
-                    )
-                else:
-                    self.log(
-                        (
-                            f"cache purge for {current_variant} hit an "
-                            f"error: {purged.get('error', 'unknown')}"
-                        ),
-                        phase="purge-error", level="warn",
-                    )
-            return {
-                "status":  "idle",
-                "message": f"{self.name.title()} model unloaded.",
-                "purged":  purged,
-            }
-        finally:
-            self.lock.release()
-
+# ModelSlot moved to duecare.chat.model_slot on 2026-05-20.
+# The kernel constructs two instances (_CHAT_SLOT + _JUDGE_SLOT)
+# below, passing the slot-specific state/lock/log/purge
+# callables.
+from duecare.chat.model_slot import ModelSlot
 
 _MODEL_LOAD_LOCK_EVAL  = threading.Lock()
 _MODEL_LOAD_STATE_EVAL = {
@@ -2308,6 +2153,10 @@ def _set_judge_loaded(model) -> None:
 # slot-aware code should reach for. Existing module-level helpers
 # (_log_load, _log_load_eval, _snapshot_load_events, ...) still work
 # and back the slots transparently.
+# Lambdas wrap _purge_hf_cache_for_variant because that function is
+# defined later in this file; binding the bare name here would fail
+# with NameError. Resolution happens at call time (unload), by which
+# point the function is in the module globals.
 _CHAT_SLOT = ModelSlot(
     name="chat",
     app_state_attr="gemma_call",
@@ -2317,6 +2166,7 @@ _CHAT_SLOT = ModelSlot(
     log_fn=_log_load,
     loaded_ref_setter=_set_chat_loaded,
     post_unload_hook=_chat_post_unload,
+    purge_fn=lambda variant: _purge_hf_cache_for_variant(variant),
 )
 _JUDGE_SLOT = ModelSlot(
     name="judge",
@@ -2326,6 +2176,7 @@ _JUDGE_SLOT = ModelSlot(
     events=_MODEL_LOAD_EVENTS_EVAL,
     log_fn=_log_load_eval,
     loaded_ref_setter=_set_judge_loaded,
+    purge_fn=lambda variant: _purge_hf_cache_for_variant(variant),
 )
 
 

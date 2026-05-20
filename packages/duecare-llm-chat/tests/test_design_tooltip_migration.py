@@ -759,46 +759,42 @@ def test_kernel_exposes_evaluator_load_endpoints() -> None:
     assert '@app.get("/api/load-evaluator-model/status")' in src
 
 
+_MODEL_SLOT_MODULE = (
+    Path(__file__).parents[1]
+    / "src" / "duecare" / "chat" / "model_slot.py"
+)
+
+
 def test_kernel_evaluator_load_uses_separate_state_ring() -> None:
     """The judge-model load must NOT mutate the chat-model state ring.
     Separate _MODEL_LOAD_STATE_EVAL, _MODEL_LOAD_LOCK_EVAL, and
     _MODEL_LOAD_EVENTS_EVAL keep the two surfaces independent so a
     judge load doesn't make /api/load-model/status look busy.
 
-    After the ModelSlot refactor, the evaluator slot still uses its
-    own state dict (passed into ``_JUDGE_SLOT = ModelSlot(...)``); the
-    load thread still writes to ``app.state.evaluator_call``. Unload
-    clears the slot via ``setattr(app.state, self.app_state_attr, None)``
-    where ``app_state_attr="evaluator_call"`` for the judge slot."""
+    After the ModelSlot extraction (2026-05-20), the unload procedure
+    lives in duecare.chat.model_slot; the kernel just wires the two
+    slot singletons with their own state/lock/events."""
     src = _KERNEL_PATH.read_text(encoding="utf-8")
     assert "_MODEL_LOAD_STATE_EVAL" in src
     assert "_MODEL_LOAD_LOCK_EVAL" in src
     assert "_MODEL_LOAD_EVENTS_EVAL" in src
-    # The load thread writes to the evaluator slot. The assignment is
-    # routed through _queue_wrap so concurrent users serialise through
-    # the inference queue; both the wrapper call and the original
-    # backend reference appear on the assignment line.
     assert 'app.state.evaluator_call = _queue_wrap(loaded_local.backend, "judge")' in src
-    # The unload clears the slot via the ModelSlot abstraction.
-    assert "setattr(app.state, self.app_state_attr, None)" in src
     # And the judge slot is wired with the right attr name.
     assert 'app_state_attr="evaluator_call"' in src
+    # The unload procedure lives in the extracted module.
+    slot_src = _MODEL_SLOT_MODULE.read_text(encoding="utf-8")
+    assert "setattr(app.state, self.app_state_attr, None)" in slot_src
 
 
 def test_kernel_evaluator_unload_flushes_cuda_cache() -> None:
     """On unload, the kernel must call torch.cuda.empty_cache() (best-
-    effort) so the freed weights actually release VRAM. After the
-    ModelSlot refactor, the flush lives inside ``ModelSlot.unload``
-    and BOTH slots inherit it -- so we look at the class body, not
-    the endpoint shim."""
-    src = _KERNEL_PATH.read_text(encoding="utf-8")
-    # Look at the ModelSlot class body.
-    cls_idx = src.find("class ModelSlot:")
-    assert cls_idx >= 0, "kernel.py is missing the ModelSlot class"
-    # Find the end of the class by locating the next top-level def or
-    # module-level statement. Take a generous window.
-    region = src[cls_idx:cls_idx + 8000]
-    # CUDA flush is invoked inside the unload procedure.
+    effort) so the freed weights actually release VRAM. The flush
+    lives inside ``ModelSlot.unload`` in duecare.chat.model_slot;
+    BOTH slots inherit it via the shared class."""
+    slot_src = _MODEL_SLOT_MODULE.read_text(encoding="utf-8")
+    cls_idx = slot_src.find("class ModelSlot:")
+    assert cls_idx >= 0, "model_slot.py is missing the ModelSlot class"
+    region = slot_src[cls_idx:cls_idx + 8000]
     assert "_torch.cuda.empty_cache()" in region, (
         "ModelSlot.unload must call torch.cuda.empty_cache() so VRAM "
         "actually returns to the pool after unload."
@@ -1098,27 +1094,32 @@ def test_kernel_purge_helper_returns_expected_shape() -> None:
 
 
 def test_kernel_model_slot_abstraction_present() -> None:
-    """The ModelSlot class consolidates the unload + cache-purge
-    logic so chat and judge slots share one canonical
-    implementation. Two instances must exist: _CHAT_SLOT (writes to
-    gemma_call) and _JUDGE_SLOT (writes to evaluator_call)."""
+    """The ModelSlot class (extracted to duecare.chat.model_slot on
+    2026-05-20) consolidates the unload + cache-purge logic so chat
+    and judge slots share one canonical implementation. Two instances
+    are constructed in kernel.py: _CHAT_SLOT (writes to gemma_call)
+    and _JUDGE_SLOT (writes to evaluator_call)."""
+    slot_src = _MODEL_SLOT_MODULE.read_text(encoding="utf-8")
+    assert "class ModelSlot:" in slot_src
     src = _KERNEL_PATH.read_text(encoding="utf-8")
-    assert "class ModelSlot:" in src
+    assert "from duecare.chat.model_slot import ModelSlot" in src
     assert "_CHAT_SLOT = ModelSlot(" in src
     assert "_JUDGE_SLOT = ModelSlot(" in src
     # The unload endpoints must delegate, not re-implement.
     assert "_CHAT_SLOT.unload(" in src
     assert "_JUDGE_SLOT.unload(" in src
+    # purge_fn is wired so the cache purge keeps working post-extraction.
+    assert "purge_fn=lambda variant: _purge_hf_cache_for_variant(variant)" in src
 
 
 def test_kernel_model_slot_unload_steps_documented() -> None:
     """ModelSlot.unload is the canonical 9-step unload procedure.
     Pin the key steps so a future refactor cannot accidentally
-    drop the CUDA flush, the disk purge, or the lock."""
-    src = _KERNEL_PATH.read_text(encoding="utf-8")
-    idx = src.find("class ModelSlot:")
-    assert idx >= 0
-    body = src[idx:idx + 8000]
+    drop the CUDA flush, the disk purge, or the lock. After the
+    2026-05-20 extraction, the procedure lives in
+    duecare.chat.model_slot."""
+    body = _MODEL_SLOT_MODULE.read_text(encoding="utf-8")
+    assert "class ModelSlot:" in body
     # Lock acquisition and 409 on busy.
     assert "self.lock.acquire(blocking=False)" in body
     assert "status_code=409" in body
@@ -1130,9 +1131,51 @@ def test_kernel_model_slot_unload_steps_documented() -> None:
     assert "_torch.cuda.empty_cache()" in body
     # State reset to idle.
     assert '"status": "idle", "variant": None' in body
-    # HF disk purge gated on purge_cache flag.
-    assert "if purge_cache and current_variant:" in body
-    assert "_purge_hf_cache_for_variant(current_variant)" in body
+    # HF disk purge gated on purge_cache flag + injected purge_fn.
+    assert "if purge_cache and current_variant and self.purge_fn is not None:" in body
+    assert "self.purge_fn(current_variant)" in body
+
+
+def test_model_slot_module_runtime_smoke() -> None:
+    """Round-trip import of the extracted ModelSlot module + a small
+    unit smoke test that proves the class is constructible with the
+    minimum required wiring."""
+    import importlib
+    import sys
+    src_path = str(Path(__file__).parents[1] / "src")
+    sys.path.insert(0, src_path)
+    try:
+        mod = importlib.import_module("duecare.chat.model_slot")
+    finally:
+        try:
+            sys.path.remove(src_path)
+        except ValueError:
+            pass
+    assert hasattr(mod, "ModelSlot")
+    # Construct a minimal instance with mock backing state.
+    class _MockLock:
+        def acquire(self, blocking=False):  # noqa: ARG002
+            return True
+        def release(self):
+            pass
+
+    class _MockApp:
+        class state:
+            gemma_call = None
+
+    slot = mod.ModelSlot(
+        name="test",
+        app_state_attr="gemma_call",
+        state={"variant": None},
+        lock=_MockLock(),
+        events=[],
+        log_fn=lambda msg, **kwargs: None,
+        loaded_ref_setter=lambda ref: None,
+    )
+    # No model loaded -> unload returns idle no-op.
+    result = slot.unload(_MockApp(), purge_cache=False)
+    assert result["status"] == "idle"
+    assert "No test model loaded" in result["message"]
 
 
 def test_nav_html_has_chat_preflight_panel() -> None:
