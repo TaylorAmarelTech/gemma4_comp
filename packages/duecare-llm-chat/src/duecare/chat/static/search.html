@@ -379,6 +379,32 @@
       const mapped = active >= 4 ? 2 : (active >= 3 ? 1 : 0);
       searchSetWorkflow(mapped);
     }
+    // Search result URLs come from third-party backends. Block any
+    // protocol that is not http(s) so a malicious or misconfigured
+    // backend cannot inject a javascript: or data: URL into the
+    // result cards. URL.canParse exists in modern browsers; fall
+    // back to a basic prefix check when it is not available.
+    function safeHref(value) {
+      const raw = String(value == null ? '' : value).trim();
+      if (!raw) return '#';
+      try {
+        const u = typeof URL !== 'undefined' && URL.canParse
+          ? (URL.canParse(raw) ? new URL(raw) : null)
+          : new URL(raw);
+        if (!u) return '#';
+        if (u.protocol === 'http:' || u.protocol === 'https:') return u.href;
+        return '#';
+      } catch (_) {
+        // Relative URLs etc. — only allow if they look like plain
+        // paths starting with / and not //.
+        if (/^\/[^/]/.test(raw)) return raw;
+        return '#';
+      }
+    }
+    // One AbortController per in-flight runSearch so a second click
+    // cancels the prior request instead of accumulating orphan
+    // responses that could overwrite _searchResults out of order.
+    let _searchActiveController = null;
     let searchWorkflowStepper = null;
     function searchGetWorkflowStepper() {
       if (!searchWorkflowStepper && window.dcWorkflow) {
@@ -428,6 +454,16 @@
     async function runSearch() {
       _searchLog = searchGetLog();
       if (_searchLog && _searchLog.clear) _searchLog.clear();
+      // If a previous Search is still in flight, abort it before we
+      // launch a new one. Without this guard a slow first response
+      // can land after a fast second response and clobber the rendered
+      // results.
+      if (_searchActiveController) {
+        try { _searchActiveController.abort(); } catch (_) {}
+        _searchLog && _searchLog.warn('previous search aborted by new click');
+      }
+      const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      _searchActiveController = controller;
       const rawQuery = (document.getElementById('q').value || '').trim();
       if (!rawQuery) return;
       const backend = document.getElementById('backend').value || null;
@@ -453,6 +489,7 @@
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({query: rawQuery, mode: rephrase ? 'rephrase' : 'strict'}),
+            signal: controller ? controller.signal : undefined,
           });
           if (sr.ok) {
             const so = await sr.json();
@@ -482,6 +519,10 @@
             return;
           }
         } catch (e) {
+          if (e && e.name === 'AbortError') {
+            _searchLog && _searchLog.warn('sanitize aborted (superseded by newer search)');
+            return;
+          }
           _searchLog && _searchLog.err('sanitize error: ' + e + '; search stopped');
           document.getElementById('status').textContent =
             'Search stopped because sanitization failed. Disable the sanitizer only for public, non-sensitive queries.';
@@ -501,6 +542,7 @@
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({query, top_n, backend, anonymize_query: anon}),
+          signal: controller ? controller.signal : undefined,
         });
         const dt = Math.round(performance.now() - t0);
         const out = await r.json();
@@ -523,10 +565,17 @@
         renderResults(_searchResults);
         searchSetWorkflow(1);
       } catch (e) {
+        if (e && e.name === 'AbortError') {
+          _searchLog && _searchLog.warn('search aborted (superseded by newer click)');
+          return;
+        }
         _searchLog && _searchLog.err('network failed', '' + e);
         document.getElementById('status').textContent = 'failed: ' + e;
       } finally {
         btn.disabled = false;
+        // Only clear the active-controller slot if it is still ours;
+        // a newer click may have already replaced it.
+        if (_searchActiveController === controller) _searchActiveController = null;
       }
     }
 
@@ -547,7 +596,9 @@
         const lead = document.createElement('span'); lead.textContent = '[' + (r.rank || '?') + '] ';
         h.appendChild(lead);
         const a = document.createElement('a');
-        a.href = String(r.url || '#'); a.target = '_blank'; a.rel = 'noopener';
+        a.href = safeHref(r.url);
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
         a.textContent = String(r.title || r.url || '(untitled)');
         h.appendChild(a);
         card.appendChild(h);
@@ -567,9 +618,9 @@
         actions.appendChild(draft);
         const open = document.createElement('a');
         open.className = 'wb-btn-secondary';
-        open.href = String(r.url || '#');
+        open.href = safeHref(r.url);
         open.target = '_blank';
-        open.rel = 'noopener';
+        open.rel = 'noopener noreferrer';
         open.textContent = 'Open source';
         actions.appendChild(open);
         card.appendChild(actions);
@@ -741,6 +792,17 @@
       }
     }
 
+    // Bump the shared Status counter so /static/status.html reflects
+    // activity from saved search drafts (rule 70 §3).
+    function searchBumpImportsCounter(delta) {
+      try {
+        const n = parseInt(window.localStorage.getItem('duecare:imports-count') || '0', 10) || 0;
+        const inc = Math.max(0, Math.floor(Number(delta) || 0));
+        if (!inc) return;
+        window.localStorage.setItem('duecare:imports-count', String(n + inc));
+        window.localStorage.setItem('duecare:imports-last-at', new Date().toISOString());
+      } catch (_) { /* localStorage may be unavailable */ }
+    }
     async function searchSaveOneDraft(i) {
       const d = _drafts[i];
       if (!d || !d.envelope) return false;
@@ -764,6 +826,7 @@
         });
         if (r.ok) {
           _searchLog && _searchLog.ok('promoted ' + (envelope.id || '(unknown id)'));
+          searchBumpImportsCounter(1);
           return true;
         }
         const t = await r.text();

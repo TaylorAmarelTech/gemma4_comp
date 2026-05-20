@@ -180,7 +180,13 @@
           <div class="kx-progress-box" id="kx-source-progress-box" hidden>
             <div class="kx-progress-head">
               <div><b id="kx-source-progress-stage">Source idle</b><div class="wb-muted" id="kx-source-progress-detail">No source bundle is processing.</div></div>
-              <span class="wb-pill" id="kx-source-progress-label">0%</span>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="wb-pill" id="kx-source-progress-label">0%</span>
+                <button class="wb-btn-secondary" type="button" id="kx-source-cancel-btn" onclick="kxCancelSourceJob()" hidden
+                        style="font-size:11px; padding:4px 10px; background:#FFF7F3; border-color:oklch(0.78 0.10 45); color:oklch(0.40 0.16 25);">
+                  Cancel
+                </button>
+              </div>
             </div>
             <div class="kx-progress-track" aria-hidden="true"><span class="kx-progress-fill" id="kx-source-progress-fill"></span></div>
             <div class="kx-progress-note" id="kx-source-progress-note">Local Process harness progress appears here.</div>
@@ -454,8 +460,16 @@
       }
     }
     async function kxPollProcessJob(jobId, t0){
+      kxActiveSourceJobId = jobId;
+      kxSourceAbort = false;
+      const cancelBtn = document.getElementById('kx-source-cancel-btn');
+      if (cancelBtn) cancelBtn.hidden = false;
       let lastPhase = '';
+      try {
       for (let attempt = 0; attempt < 240; attempt += 1) {
+        if (kxSourceAbort) {
+          throw new Error('Source-bundle polling cancelled by operator.');
+        }
         const r = await fetch('/api/process/batch/status/' + encodeURIComponent(jobId), {cache:'no-store'});
         const text = await r.text();
         let job = null;
@@ -482,6 +496,12 @@
         await kxSleep(1200);
       }
       throw new Error('source bundle polling timed out');
+      } finally {
+        kxActiveSourceJobId = '';
+        kxSourceAbort = false;
+        const cb = document.getElementById('kx-source-cancel-btn');
+        if (cb) cb.hidden = true;
+      }
     }
     function kxBuildTextFromProcessBundle(bundle){
       const s = bundle.summary || {};
@@ -644,8 +664,34 @@
     let _kxSeenDraftEventKeys = new Set();
     let kxActiveDraftJobId = '';
     let kxDraftAbort = false;
-    function kxSleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
+    // Source-bundle abort flag used by kxPollProcessJob. The Cancel
+    // button next to Step 1's progress box flips this and the poll
+    // loop checks it on every iteration so a stuck source-bundle
+    // job can be released without waiting for the 240-attempt budget.
+    // (The previous duplicate kxSleep helper that lived here has been
+    // removed; the async definition higher up is the single source
+    // of truth so test_knowledge_kxsleep_declared_once stays green.)
+    let kxActiveSourceJobId = '';
+    let kxSourceAbort = false;
+    function kxCancelSourceJob() {
+      if (!kxActiveSourceJobId) return;
+      kxSourceAbort = true;
+      wbLog('warn', 'Source-bundle poll cancelled by operator',
+        'job_id=' + kxActiveSourceJobId);
+    }
+    // Bump the shared Status counter so /static/status.html reflects
+    // activity from this page (per rule 70 §3: every page that mutates
+    // kernel state must keep Status discoverable). Promotes and pack
+    // imports both grow the local knowledge store, so they share the
+    // imports counter that sync.html already uses.
+    function kxBumpImportsCounter(delta) {
+      try {
+        const n = parseInt(window.localStorage.getItem('duecare:imports-count') || '0', 10) || 0;
+        const inc = Math.max(0, Math.floor(Number(delta) || 0));
+        if (!inc) return;
+        window.localStorage.setItem('duecare:imports-count', String(n + inc));
+        window.localStorage.setItem('duecare:imports-last-at', new Date().toISOString());
+      } catch (_) { /* localStorage may be unavailable */ }
     }
     function kxLogDraftEvents(jobId, events) {
       (events || []).forEach((evt, idx) => {
@@ -899,6 +945,7 @@
           if (status) status.textContent = 'Promoted to ' + out.type + '/' + out.id;
           if (btn) btn.textContent = 'Promoted';
           kxPromotedDrafts += 1;
+          kxBumpImportsCounter(1);
           document.getElementById("kx-extract-status").textContent =
             kxPromotedDrafts + ' draft(s) promoted. Click Finish review when done.';
           kRefresh();
@@ -1380,6 +1427,7 @@
         }
         const out = await r.json();
         wbLog('ok', 'HTTP ' + r.status + ' (' + dt + 'ms)', 'imported=' + out.n_imported + ' rejected=' + out.n_rejected);
+        kxBumpImportsCounter(out.n_imported || 0);
         let html = '<div style="font-size:12.5px;margin-top:6px;"><b>Imported:</b> ' + out.n_imported + ' &middot; <b>Rejected:</b> ' + out.n_rejected + '</div>';
         if (out.imported && out.imported.length) {
           html += '<details style="margin-top:6px;"><summary class="wb-muted">imported</summary><ul style="margin:4px 0 0 18px;padding:0;">' +
