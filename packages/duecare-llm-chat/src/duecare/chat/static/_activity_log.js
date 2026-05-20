@@ -403,5 +403,23 @@
       const suffix = detail.length ? ' (' + detail.join(', ') + ')' : '';
       return head + suffix + (err.message ? ' — ' + err.message : '');
     },
+    /**
+     * Combined parse + log helper for the common case: when a fetch()
+     * response is a queue 503, log a formatted message at warn level
+     * via the supplied activity-log object and return true so the
+     * caller can early-return from its handler without writing the
+     * same boilerplate on every page. Returns false on non-queue
+     * responses so the caller falls through to its generic error path.
+     */
+    async handle(response, log) {
+      const err = await this.parse(response);
+      if (!err) return false;
+      const message = this.format(err);
+      try {
+        if (log && typeof log.warn === 'function') log.warn(message);
+        else if (typeof log === 'function') log(message);
+      } catch (_) { /* logger failed; don't swallow the return */ }
+      return true;
+    },
   };
 })();

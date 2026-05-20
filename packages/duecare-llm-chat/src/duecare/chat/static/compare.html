@@ -792,16 +792,46 @@
     async function judgeUseChatAsJudge(enabled) {
       const status = _judgeQs('judge-use-chat-status');
       const chk = _judgeQs('judge-use-chat-as-judge');
+      // Toggling the mirror affects every active grader on this
+      // kernel, so the operator token is always required (not just
+      // on force paths). Prompt + cache via the shared helper.
+      let operatorToken = '';
+      if (window.dcOperatorToken) {
+        operatorToken = window.dcOperatorToken.ensure(
+          'Toggling "Use chat model as judge" affects every active '
+          + 'grader. Operator token required.'
+        );
+        if (!operatorToken) {
+          if (chk) chk.checked = !enabled;  // revert toggle
+          if (status) {
+            status.hidden = false;
+            status.textContent = 'Toggle cancelled (no operator token).';
+          }
+          return;
+        }
+      }
+      const headers = {'Content-Type': 'application/json'};
+      if (operatorToken) headers['X-Operator-Token'] = operatorToken;
       try { logEvent(null, 'info',
         '[judge] ' + (enabled ? 'enabling' : 'disabling') +
         ' "Use chat model as judge"'); } catch (_) {}
       try {
         const r = await fetch('/api/use-chat-as-judge', {
           method: 'POST',
-          headers: {'Content-Type': 'application/json'},
+          headers: headers,
           body: JSON.stringify({enabled: !!enabled}),
         });
         const data = await r.json().catch(() => ({}));
+        if (r.status === 401 || r.status === 403) {
+          if (window.dcOperatorToken) window.dcOperatorToken.clear();
+          if (chk) chk.checked = !enabled;
+          if (status) {
+            status.hidden = false;
+            status.textContent = 'Operator token rejected: '
+              + ((data && data.message) || ('HTTP ' + r.status));
+          }
+          return;
+        }
         if (!r.ok) {
           // Common cases: no chat model loaded (400) or a separate
           // judge already loaded (409). Surface the server's message.
@@ -993,15 +1023,40 @@
       const force = !!opts.force;
       const purgeChk = _judgeQs('judge-purge');
       const purge = !purgeChk || purgeChk.checked;  // default true
+      // Force-unload requires the operator token (printed at kernel
+      // startup). Prompt + cache via the shared helper so the user
+      // only enters it once per browser.
+      let operatorToken = '';
+      if (force && window.dcOperatorToken) {
+        operatorToken = window.dcOperatorToken.ensure(
+          'Force-unloading the judge interrupts in-flight grading. '
+          + 'Operator token required.'
+        );
+        if (!operatorToken) {
+          try { logEvent(null, 'warn',
+            '[judge] force-unload cancelled (no operator token)'); } catch (_) {}
+          return;
+        }
+      }
+      const headers = {'Content-Type': 'application/json'};
+      if (operatorToken) headers['X-Operator-Token'] = operatorToken;
       try { logEvent(null, 'info',
         '[judge] unloading' + (purge ? ' (purging disk cache)' : '') +
         (force ? ' (forced)' : '')); } catch (_) {}
       try {
         const r = await fetch('/api/unload-evaluator-model', {
           method: 'POST',
-          headers: {'Content-Type': 'application/json'},
+          headers: headers,
           body: JSON.stringify({purge_cache: purge, force: force}),
         });
+        if (r.status === 401 || r.status === 403) {
+          if (window.dcOperatorToken) window.dcOperatorToken.clear();
+          const data = await r.json().catch(() => ({}));
+          try { logEvent(null, 'err',
+            '[judge] operator token rejected: '
+            + ((data && data.message) || ('HTTP ' + r.status))); } catch (_) {}
+          return;
+        }
         // Queue-busy gate: refuse if other graders are running. Offer
         // a confirm() escape hatch when the operator truly needs to
         // interrupt.

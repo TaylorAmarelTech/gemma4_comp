@@ -1498,7 +1498,7 @@ except Exception:
     def dc_log(*a, **kw):  # type: ignore[no-redef]
         return None
 import uvicorn
-from fastapi import Body
+from fastapi import Body, Request
 from fastapi.responses import JSONResponse
 
 # Placeholder model_info shown until the user picks a variant
@@ -1689,6 +1689,8 @@ class _ModelQueue:
     def _slot(self, name: str) -> dict[str, Any]:
         with self._meta:
             if name not in self._slots:
+                idle = threading.Event()
+                idle.set()  # starts idle (no active tickets yet)
                 self._slots[name] = {
                     "call_lock": threading.Lock(),
                     "tickets": [],
@@ -1699,6 +1701,11 @@ class _ModelQueue:
                     # wired until _queue_wrap is called from the load
                     # thread. The wrapper transitions it to "open".
                     "state": self.STATE_CLOSED,
+                    # idle_event is SET when the slot has no active
+                    # ticket. close_slot blocks on this instead of
+                    # polling, removing the 250ms drain-spin overhead
+                    # and the lock contention that came with it.
+                    "idle_event": idle,
                 }
             return self._slots[name]
 
@@ -1762,15 +1769,22 @@ class _ModelQueue:
                 "forced": True,
             }
 
-        while time.time() < deadline:
-            with self._meta:
-                active_now = sum(
-                    1 for t in slot["tickets"]
-                    if t["started_at"] is not None
-                )
+        # Event-driven wait: idle_event is SET when no tickets are
+        # actively running on the slot. The wrap()'s finally clause
+        # sets it the moment the last active ticket completes. This
+        # replaces a 250ms polling loop that held _meta on every tick
+        # and contended with snapshot() / is_busy() during long drains.
+        idle_event = slot["idle_event"]
+        remaining = max(0.0, deadline - time.time())
+        if remaining > 0:
+            idle_event.wait(timeout=remaining)
+        with self._meta:
+            active_now = sum(
+                1 for t in slot["tickets"]
+                if t["started_at"] is not None
+            )
             if active_now == 0:
-                with self._meta:
-                    slot["state"] = self.STATE_CLOSED
+                slot["state"] = self.STATE_CLOSED
                 return {
                     "state": self.STATE_CLOSED,
                     "active_at_close": active_at_close,
@@ -1779,7 +1793,6 @@ class _ModelQueue:
                     "waited_seconds": round(time.time() - start, 2),
                     "forced": False,
                 }
-            time.sleep(self.DRAIN_POLL_SECONDS)
 
         # Timed out -- slot stays in DRAINING so existing tickets can
         # still finish but no new tickets enter. The caller decides
@@ -1869,6 +1882,10 @@ class _ModelQueue:
                         f"new model finishes loading."
                     )
                 ticket["started_at"] = time.time()
+                # Clear the idle event so any close_slot waiter blocks
+                # until this call completes. The event is set again in
+                # the finally below.
+                slot["idle_event"].clear()
                 try:
                     return backend_fn(*args, **kwargs)
                 finally:
@@ -1877,6 +1894,17 @@ class _ModelQueue:
                         slot["served_total"] = (
                             slot.get("served_total", 0) + 1
                         )
+                        # Set idle_event if no other active ticket
+                        # remains on this slot. Done inside the meta
+                        # lock so the check against the ticket list
+                        # is consistent with the started_at flags.
+                        any_active = any(
+                            t["started_at"] is not None
+                            and t is not ticket
+                            for t in slot["tickets"]
+                        )
+                        if not any_active:
+                            slot["idle_event"].set()
             finally:
                 with self._meta:
                     try:
@@ -2004,15 +2032,123 @@ async def _queue_closed_handler(request, exc):
     )
 
 
+# ---------------------------------------------------------------------------
+# Operator token (gates dangerous flags on a tunneled kernel)
+# ---------------------------------------------------------------------------
+#
+# The Kaggle tunnel is unauthenticated, which means anyone with the URL can
+# call /api/unload-model {"force": true} or /api/use-chat-as-judge and
+# disrupt other users. We can't fully solve that without proper auth, but
+# a startup-printed operator token lets Taylor (and other approved demo
+# operators) prove they hold the secret while keeping casual viewers out
+# of the destructive paths. The token is generated fresh on every kernel
+# restart so a leaked token from a prior session is automatically dead.
+#
+# Callers send the token as `X-Operator-Token: <token>` header OR as the
+# `operator_token` body field (more browser-friendly when constructing
+# fetch from a console).
+import secrets
+
+_OPERATOR_TOKEN = os.environ.get("DUECARE_OPERATOR_TOKEN", "").strip()
+if not _OPERATOR_TOKEN:
+    _OPERATOR_TOKEN = secrets.token_urlsafe(24)
+
+print(
+    "  Operator token (required for force-unload + use-chat-as-judge):\n"
+    f"    {_OPERATOR_TOKEN}\n"
+    "  Pass as `X-Operator-Token` header or `operator_token` body field.\n"
+    "  Override with DUECARE_OPERATOR_TOKEN env var to keep tokens "
+    "stable across cell restarts."
+)
+
+
+def _check_operator_token(request, body) -> tuple[bool, Optional[JSONResponse]]:
+    """Validate the operator token from request header OR body.
+
+    Returns ``(ok, response)`` -- when ok is False the caller should
+    return ``response`` immediately. When ok is True, the request
+    can proceed to the destructive action it gated.
+    """
+    header_token = ""
+    try:
+        header_token = (request.headers.get("X-Operator-Token") or "").strip()
+    except Exception:
+        pass
+    body_token = ""
+    if isinstance(body, dict):
+        body_token = str(body.get("operator_token") or "").strip()
+    candidate = header_token or body_token
+    if not candidate:
+        return False, JSONResponse(
+            {
+                "status": "operator_token_required",
+                "message": (
+                    "This destructive action requires the operator token "
+                    "(printed at kernel startup). Send it as the "
+                    "X-Operator-Token header or operator_token body field."
+                ),
+            },
+            status_code=401,
+        )
+    # Constant-time compare so attackers can't observe length / prefix
+    # via timing.
+    if not secrets.compare_digest(candidate, _OPERATOR_TOKEN):
+        return False, JSONResponse(
+            {
+                "status": "operator_token_invalid",
+                "message": (
+                    "Operator token did not match. Check the Kaggle cell "
+                    "output for the current token."
+                ),
+            },
+            status_code=403,
+        )
+    return True, None
+
+
+# Snapshot TTL: under heavy multi-tab polling (5+ browser tabs each
+# refreshing every 8s plus the model-loader popovers at 4s intervals)
+# we end up at ~10 status calls/s. Each snapshot acquires the queue
+# _meta lock + sorts the waiting list -- microseconds individually
+# but a steady drizzle of contention against in-flight inference.
+# A 1-second TTL collapses bursts to at most one real snapshot per
+# second per process. The cached value is at most 1s stale, which is
+# fine for a UI indicator.
+_QUEUE_SNAPSHOT_TTL_SECONDS = 1.0
+_QUEUE_SNAPSHOT_CACHE: dict[str, Any] = {"ts": 0.0, "data": None}
+_QUEUE_SNAPSHOT_CACHE_LOCK = threading.Lock()
+
+
+def _cached_queue_snapshot() -> dict:
+    """Return a queue snapshot reused for up to _QUEUE_SNAPSHOT_TTL_SECONDS."""
+    now = time.time()
+    with _QUEUE_SNAPSHOT_CACHE_LOCK:
+        cached = _QUEUE_SNAPSHOT_CACHE.get("data")
+        if cached is not None and (now - _QUEUE_SNAPSHOT_CACHE["ts"]) < _QUEUE_SNAPSHOT_TTL_SECONDS:
+            return cached
+        fresh = _MODEL_QUEUE.snapshot()
+        _QUEUE_SNAPSHOT_CACHE["data"] = fresh
+        _QUEUE_SNAPSHOT_CACHE["ts"] = now
+        return fresh
+
+
 @app.get("/api/queue/status")
 def api_queue_status():
     """Live inference queue snapshot.
 
     Polled by the workbench chrome every few seconds so any page can
     show "1 ahead of you" without sprinkling per-page state. Cheap
-    (no model touch); safe to call frequently.
+    (no model touch); safe to call frequently. The Cache-Control hint
+    tells well-behaved browsers they can reuse the response for a
+    second, which combined with the 1s in-process TTL means the
+    actual snapshot work happens at most ~1 Hz regardless of how many
+    tabs are polling.
     """
-    return _MODEL_QUEUE.snapshot()
+    snap = _cached_queue_snapshot()
+    return JSONResponse(
+        snap,
+        headers={"Cache-Control": "max-age=1, must-revalidate"},
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -2758,13 +2894,21 @@ def api_evaluator_preflight(variant: str = "31b-it"):
 
 
 @app.post("/api/unload-model")
-def api_unload_chat_model(body: dict = Body(default=None)):
+def api_unload_chat_model(request: Request, body: dict = Body(default=None)):
     """Free the chat model. Required to swap variants on a kernel
     where /api/load-model otherwise refuses ('already_loaded'). After
     unload, the chat package can re-call /api/load-model with a new
     variant.
 
+    Auth: ``force: true`` requires the operator token (printed at
+    kernel startup). Non-forced unloads are allowed without the
+    token because the queue gate already protects in-flight users.
+
     Body params (all optional):
+        operator_token: str  REQUIRED when force=true. Sent as the
+                            X-Operator-Token header or operator_token
+                            body field. Rejected with 401 / 403 when
+                            invalid.
         purge_cache: bool   default True. Delete the HF safetensors
                             for the unloaded variant from disk so
                             /kaggle/working frees back to its baseline.
@@ -2783,8 +2927,15 @@ def api_unload_chat_model(body: dict = Body(default=None)):
     a single canonical unload implementation.
     """
     body = body or {}
-    force = bool(body.get("force", False))
+    force = _parse_bool(body.get("force"), default=False)
     drain_seconds = float(body.get("drain_seconds", 30))
+    # Operator token gate: only required when the caller asks to
+    # interrupt other users (force=true). The queue gate handles the
+    # safe path on its own.
+    if force:
+        ok, err_response = _check_operator_token(request, body)
+        if not ok:
+            return err_response
     # Refuse a non-force unload while the inference queue still has
     # tickets. Without this gate, freeing the model tensors while
     # another user is mid-generate produces a hard crash on the
@@ -2916,7 +3067,7 @@ def api_load_evaluator_status():
 
 
 @app.post("/api/use-chat-as-judge")
-def api_use_chat_as_judge(body: dict = Body(default=None)):
+def api_use_chat_as_judge(request: Request, body: dict = Body(default=None)):
     """Toggle "Use chat model as judge" mode.
 
     When enabled, the judge slot mirrors the resident chat model so
@@ -2925,7 +3076,14 @@ def api_use_chat_as_judge(body: dict = Body(default=None)):
     slot (one model, one lock); the trade-off is that chat and judge
     contend for the same GPU instead of running in parallel.
 
-    Body params (all optional):
+    Auth: requires the operator token (printed at kernel startup) as
+    the ``X-Operator-Token`` header or ``operator_token`` body field.
+    Toggling this is a kernel-wide state change that affects every
+    user's grading, so it is not exposed to anonymous viewers.
+
+    Body params (all optional except operator_token):
+        operator_token: str  required when the X-Operator-Token
+                       header is not set; rejected with 401 otherwise.
         enabled: bool  default True. False clears the mirror and
                        returns the judge slot to unloaded state.
 
@@ -2935,6 +3093,9 @@ def api_use_chat_as_judge(body: dict = Body(default=None)):
     """
     global _JUDGE_USES_CHAT
     body = body or {}
+    ok, err_response = _check_operator_token(request, body)
+    if not ok:
+        return err_response
     # Robust bool parse: bare bool("false") == True is a real footgun.
     # _parse_bool maps "true"/"false"/"on"/"off"/"yes"/"no"/0/1 to the
     # expected boolean so a JSON-stringified value cannot accidentally
@@ -3201,12 +3362,16 @@ def api_load_evaluator_model(body: dict = Body(...)):
 
 
 @app.post("/api/unload-evaluator-model")
-def api_unload_evaluator_model(body: dict = Body(default=None)):
+def api_unload_evaluator_model(request: Request, body: dict = Body(default=None)):
     """Free the judge model. After this, grading falls back to the
     chat model (app.state.gemma_call). Safe to call when no judge
     model is loaded (no-op).
 
+    Auth: ``force: true`` requires the operator token. Non-forced
+    unloads are unauthenticated because the queue gate is sufficient.
+
     Body params (all optional):
+        operator_token: str  REQUIRED when force=true.
         purge_cache: bool   default True. Delete the HF safetensors
                             for the unloaded variant from disk so
                             /kaggle/working frees back to its baseline.
@@ -3222,8 +3387,12 @@ def api_unload_evaluator_model(body: dict = Body(default=None)):
     the chat slot uses, just bound to a different app.state attr.
     """
     body = body or {}
-    force = bool(body.get("force", False))
+    force = _parse_bool(body.get("force"), default=False)
     drain_seconds = float(body.get("drain_seconds", 30))
+    if force:
+        ok, err_response = _check_operator_token(request, body)
+        if not ok:
+            return err_response
     if _MODEL_QUEUE.is_busy("judge") and not force:
         drain = _MODEL_QUEUE.close_slot(
             "judge", wait_seconds=drain_seconds, force=False,

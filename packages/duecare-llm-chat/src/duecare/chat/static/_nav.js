@@ -79,6 +79,46 @@
     let modelVariantMap = MODEL_FALLBACK_VARIANTS;
     let modelActiveVariant = '';
     let modelUserSelectedVariant = '';
+
+    // ---------------------------------------------------------------------
+    // Operator token (gates the destructive ``force: true`` paths on the
+    // kernel). The token is printed at kernel startup; callers store it
+    // in localStorage so they don't get prompted every action. The
+    // helper is exposed on window.dcOperatorToken so any page can reuse
+    // the same prompt/store flow.
+    // ---------------------------------------------------------------------
+    const _OPERATOR_TOKEN_LS = 'duecare:operator-token';
+    window.dcOperatorToken = {
+        get() {
+            try { return window.localStorage.getItem(_OPERATOR_TOKEN_LS) || ''; }
+            catch (_) { return ''; }
+        },
+        set(value) {
+            try {
+                if (value) window.localStorage.setItem(_OPERATOR_TOKEN_LS, value);
+                else window.localStorage.removeItem(_OPERATOR_TOKEN_LS);
+            } catch (_) { /* localStorage may be unavailable */ }
+        },
+        clear() { this.set(''); },
+        /**
+         * Return the current token, prompting the user via window.prompt
+         * if none is stored. Returns '' when the user cancels.
+         */
+        ensure(reason) {
+            const existing = this.get();
+            if (existing) return existing;
+            const msg = (reason || 'Operator token required for this action.') +
+                '\n\nPaste the token printed at kernel startup. ' +
+                'It will be stored in this browser only until you clear it.';
+            const value = (typeof window.prompt === 'function')
+                ? window.prompt(msg, '')
+                : '';
+            const trimmed = (value || '').trim();
+            if (trimmed) this.set(trimmed);
+            return trimmed;
+        },
+    };
+
     const modelRequiredNavKeys = new Set([
         'chat',
         'compare',
@@ -437,6 +477,22 @@
         const force = !!opts.force;
         const purgeChk = document.getElementById('dc-wb-model-purge');
         const purge = !purgeChk || purgeChk.checked;  // default true
+        // Operator token is required by the kernel when force=true.
+        // Prompt the user once and cache in localStorage so subsequent
+        // force-unloads in this browser don't re-prompt.
+        let operatorToken = '';
+        if (force) {
+            operatorToken = window.dcOperatorToken.ensure(
+                'Force-unloading interrupts other users mid-generate. '
+                + 'Operator token required.'
+            );
+            if (!operatorToken) {
+                setModelPopoverStatus('Force-unload cancelled (no operator token).');
+                return;
+            }
+        }
+        const headers = {'Content-Type': 'application/json'};
+        if (operatorToken) headers['X-Operator-Token'] = operatorToken;
         setModelPopoverStatus(
             'Unloading current model' +
             (purge ? ' (purging disk cache)' : '') +
@@ -446,9 +502,20 @@
         try {
             const r = await fetch('/api/unload-model', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: headers,
                 body: JSON.stringify({purge_cache: purge, force: force})
             });
+            // 401/403 from the operator-token gate: clear the cached
+            // token so the next attempt re-prompts (in case the user
+            // pasted a stale token from a prior session).
+            if (r.status === 401 || r.status === 403) {
+                window.dcOperatorToken.clear();
+                const data = await r.json().catch(() => ({}));
+                setModelPopoverStatus(
+                    'Operator token rejected: ' + ((data && data.message) || ('HTTP ' + r.status))
+                );
+                return;
+            }
             if (r.status === 404) {
                 setModelPopoverStatus(
                     'Unload requires kernel v0.18+ (POST /api/unload-model missing). '
