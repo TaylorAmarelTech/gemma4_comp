@@ -441,3 +441,71 @@ def test_app_grade_stream_isolates_per_event_yield_errors() -> None:
     # deterministic_done payload cannot kill the stream before the
     # judge phase begins.
     assert "first_event not JSON-serializable" in app_py
+
+
+# ---------------------------------------------------------------------------
+# Render-grade resilience + coverage breakdown
+#
+# Real bug: deterministic-mode grade completed but the Variant A/B
+# panels stayed on the prior "(not graded yet)" text -- a silent
+# exception inside renderGradeBars (poisoned dimension shape, missing
+# field, etc.) left the host with no visible feedback. The fix wraps
+# the inner render in try/catch and surfaces a visible error.
+#
+# Related: when two variants land within 2pp of each other, the pct
+# alone hides whether one engaged with more applicable dimensions.
+# renderGradeBars now adds a Coverage row that exposes the underlying
+# applicable / pass / partial / fail counts so the reviewer can read
+# the trade-off honestly.
+# ---------------------------------------------------------------------------
+
+
+def test_compare_render_grade_bars_isolates_exceptions() -> None:
+    """The render function must wrap its body in try/catch so a bad
+    dimension shape can't leave the host stuck on the prior text."""
+    html = _read("compare.html")
+    assert "function _renderGradeBarsInner(host, variant, gradeResult)" in html, (
+        "compare.html must split renderGradeBars into a thin wrapper + "
+        "inner function so the wrapper can catch render errors."
+    )
+    assert "_renderGradeBarsInner(host, variant, gradeResult);" in html, (
+        "The wrapper must invoke the inner function inside try/catch."
+    )
+    # On exception the wrapper must clear the host and surface a
+    # visible error to the user so the panel does not appear frozen.
+    assert "'Render failed: '" in html
+    assert "check the browser console for the full stack." in html
+    # Console-side, log the gradeResult shape so devs can repro.
+    assert "[renderGradeBars]" in html
+
+
+def test_compare_render_grade_bars_emits_coverage_row() -> None:
+    """The Coverage row reads n_applicable / n_not_applicable / n_pass /
+    n_partial / n_fail from the grade payload (present on every
+    /api/grade and /api/grade-combined-stream complete event) and
+    surfaces them so the reviewer can read coverage vs. quality."""
+    html = _read("compare.html")
+    assert "// Coverage breakdown row." in html, (
+        "compare.html must include the Coverage row above the dim details."
+    )
+    assert "gradeResult.n_applicable" in html
+    assert "gradeResult.n_not_applicable" in html
+    assert "gradeResult.n_pass" in html
+    assert "gradeResult.n_partial" in html
+    assert "gradeResult.n_fail" in html
+    assert "'Coverage: '" in html
+
+
+def test_compare_grade_close_score_caveat() -> None:
+    """When A and B land within 2pp of each other, cmpGrade emits a
+    one-line muted caveat to the activity log explaining that the pct
+    average can hide a real difference in coverage (more applicable
+    dims at PARTIAL quality drags the weighted average down even when
+    the response is more thorough)."""
+    html = _read("compare.html")
+    assert "Math.abs(aPct - bPct) < 2.0" in html, (
+        "compare.html cmpGrade must detect close-grade comparisons "
+        "(within 2pp) so it can surface the coverage caveat."
+    )
+    assert "within 2pp" in html
+    assert "see the coverage row" in html
