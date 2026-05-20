@@ -1066,14 +1066,20 @@ def test_kernel_exposes_chat_unload_endpoint() -> None:
 def test_kernel_purge_helper_handles_both_hf_orgs() -> None:
     """_purge_hf_cache_for_variant must check BOTH google/* and
     unsloth/* cache dirs, since the chat runtime falls back to the
-    Unsloth pre-quantized variants when google/* is gated."""
-    src = _KERNEL_PATH.read_text(encoding="utf-8")
-    assert "_UNSLOTH_ALIASES" in src
-    assert "unsloth/gemma-4-E2B-it" in src
-    assert "unsloth/gemma-4-E4B-it" in src
-    assert "unsloth/gemma-4-31B-it" in src
-    assert "def _hf_cache_dir_candidates_for_variant" in src
-    assert "def _purge_hf_cache_for_variant" in src
+    Unsloth pre-quantized variants when google/* is gated. After the
+    2026-05-20 variant-registry extraction, the unsloth aliases live
+    in duecare.chat.variants; the kernel derives its _UNSLOTH_ALIASES
+    dict from there."""
+    kernel_src = _KERNEL_PATH.read_text(encoding="utf-8")
+    assert "_UNSLOTH_ALIASES" in kernel_src
+    assert "def _hf_cache_dir_candidates_for_variant" in kernel_src
+    assert "def _purge_hf_cache_for_variant" in kernel_src
+    # The aliases themselves now live in the variants module.
+    variants_src = _VARIANTS_MODULE.read_text(encoding="utf-8")
+    assert "unsloth/gemma-4-E2B-it" in variants_src
+    assert "unsloth/gemma-4-E4B-it" in variants_src
+    assert "unsloth/gemma-4-31B-it" in variants_src
+    assert "unsloth/gemma-4-26B-A4B-it" in variants_src
 
 
 def test_kernel_purge_helper_returns_expected_shape() -> None:
@@ -1831,12 +1837,18 @@ def test_kernel_sets_hf_home_under_kaggle_working() -> None:
 def test_kernel_lowered_31b_disk_footprint() -> None:
     """The 31b-it disk footprint estimate was lowered from 30GB to the
     quantised-shard reality (~18GB) so preflight does not reject the
-    default chat variant on a fresh Kaggle session."""
-    repo_root = Path(__file__).parents[3]
-    kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
-    # 31b-it disk dropped to 18GB (was 30); jailbroken-31b mirrors.
-    assert '"31b-it":         {"disk": 18.0' in kernel
-    assert '"jailbroken-31b": {"disk": 18.0' in kernel
+    default chat variant on a fresh Kaggle session. After the 2026-05-20
+    variant-registry extraction, the source of truth is variants.py."""
+    src = _VARIANTS_MODULE.read_text(encoding="utf-8")
+    # The 31b-it VariantSpec has disk_gb=18.0; jailbroken-31b mirrors.
+    assert "disk_gb=18.0" in src
+    # And the value is associated with 31b-it, not some other variant.
+    spec_31b_idx = src.find('id="31b-it"')
+    assert spec_31b_idx >= 0
+    # Scan the next ~600 chars for the disk_gb=18.0 line within that
+    # spec's body.
+    spec_block = src[spec_31b_idx:spec_31b_idx + 800]
+    assert "disk_gb=18.0" in spec_block
 
 
 def test_kernel_purges_partial_shards_on_load_failure() -> None:
@@ -2040,6 +2052,86 @@ def test_templates_module_respects_use_gemma_false() -> None:
     fill_body = src[fill_idx:fill_end]
     assert 'parse_bool(body.get("use_gemma")' in fill_body
     assert "if use_gemma else None" in fill_body
+
+
+_VARIANTS_MODULE = (
+    Path(__file__).parents[1]
+    / "src" / "duecare" / "chat" / "variants.py"
+)
+
+
+def test_variants_module_registers_nine_specs() -> None:
+    """The new variants module replaces 4 inline kernel dicts with a
+    single frozen-dataclass registry. All 9 builtin variants must be
+    present and the dataclass must be frozen so the registry cannot
+    drift via in-place mutation."""
+    assert _VARIANTS_MODULE.exists(), f"missing module: {_VARIANTS_MODULE}"
+    src = _VARIANTS_MODULE.read_text(encoding="utf-8")
+    assert "VARIANT_REGISTRY" in src
+    assert "@dataclass(frozen=True)" in src
+    assert "class VariantSpec" in src
+    for vid in (
+        "e2b-it", "e4b-it", "26b-a4b-it", "31b-it",
+        "jailbroken-31b", "jailbroken-e4b",
+        "cloud-gemini", "cloud-openai", "cloud-ollama",
+    ):
+        assert f'id="{vid}"' in src, f"variant {vid} missing from registry"
+    # Helper exports declared in __all__ so the kernel can stay
+    # tightly scoped on what it imports.
+    for helper in ("get_variant", "list_variant_ids", "is_cloud_variant",
+                   "footprint_gb", "hf_id", "unsloth_alias", "to_ui_map"):
+        assert f'"{helper}"' in src, f"helper {helper} missing from __all__"
+
+
+def test_variants_module_round_trips_runtime_smoke() -> None:
+    """Quick runtime smoke -- the registry resolves correctly, the
+    cloud variants are correctly tagged, and the unknown-variant
+    fallback returns the conservative worst-case footprint."""
+    import importlib
+    import sys
+    src_path = str(Path(__file__).parents[1] / "src")
+    sys.path.insert(0, src_path)
+    try:
+        variants = importlib.import_module("duecare.chat.variants")
+    finally:
+        try:
+            sys.path.remove(src_path)
+        except ValueError:
+            pass
+    assert variants.get_variant("31b-it").disk_gb == 18.0
+    assert variants.footprint_gb("31b-it") == {"disk": 18.0, "gpu": 16.0}
+    assert variants.hf_id("31b-it") == "google/gemma-4-31b-it"
+    assert variants.unsloth_alias("31b-it") == "unsloth/gemma-4-31B-it"
+    assert variants.is_cloud_variant("cloud-gemini") is True
+    assert variants.is_cloud_variant("e4b-it") is False
+    # Unknown variant -> conservative fallback, no exception.
+    assert variants.footprint_gb("unknown-xyz") == {"disk": 30.0, "gpu": 20.0}
+    assert variants.hf_id("cloud-gemini") is None
+    assert variants.unsloth_alias("jailbroken-e4b") is None  # no alias
+
+
+def test_kernel_derives_variant_dicts_from_module() -> None:
+    """kernel.py no longer hard-codes the 4 variant dicts inline.
+    _VARIANT_INFO, _VARIANT_FOOTPRINT_GB, and _UNSLOTH_ALIASES are
+    derived from duecare.chat.variants at kernel-load time. The
+    early _VARIANT_HF_ID (defined before duecare.chat is on path)
+    stays inline but has a drift-check that fires at module load."""
+    repo_root = Path(__file__).parents[3]
+    kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
+    # Imports.
+    assert "from duecare.chat.variants import (" in kernel
+    assert "VARIANT_REGISTRY as _DC_VARIANT_REGISTRY" in kernel
+    assert "to_ui_map as _dc_variants_to_ui_map" in kernel
+    # Drift check for the early HF id dict.
+    assert "def _drift_check_hf_id_dict(" in kernel
+    assert "_drift_check_hf_id_dict()" in kernel
+    # Derived dicts (no big inline literals).
+    assert "_VARIANT_INFO = _dc_variants_to_ui_map()" in kernel
+    assert "spec.disk_gb" in kernel and "spec.gpu_gb" in kernel
+    assert "spec.unsloth_alias" in kernel
+    # Make sure the deleted inline literals are NOT back. (Spot-check
+    # the most distinctive line -- e2b-it's display row.)
+    assert '"e2b-it":         {"display": "Gemma 4 E2B-it"' not in kernel
 
 
 def test_kernel_queue_uses_event_based_drain() -> None:

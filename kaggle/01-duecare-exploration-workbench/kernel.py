@@ -1486,6 +1486,49 @@ from duecare.chat import create_app
 from duecare.chat.harness import (
     default_harness, GREP_RULES, RAG_CORPUS, _TOOL_DISPATCH,
 )
+# Variant registry: single source of truth for HF repo ids, display
+# labels, preflight footprints, and Unsloth fallback aliases. Replaces
+# the four inline kernel dicts that drifted in earlier sessions. See
+# duecare.chat.variants for the schema + the 9 built-in specs.
+from duecare.chat.variants import (
+    VARIANT_REGISTRY as _DC_VARIANT_REGISTRY,
+    to_ui_map as _dc_variants_to_ui_map,
+)
+
+
+def _drift_check_hf_id_dict() -> None:
+    """Warn loudly if the early-defined ``_VARIANT_HF_ID`` (line ~167)
+    has drifted from the canonical mapping in duecare.chat.variants.
+    The early dict exists because Phase 0 install runs BEFORE the
+    package is on the path; we can't import from duecare.chat there.
+    This check fires at module load time once both sides are visible."""
+    canonical = {
+        vid: spec.hf_id
+        for vid, spec in _DC_VARIANT_REGISTRY.items()
+        if spec.hf_id and spec.category != "jailbroken"
+    }
+    # Only check the non-jailbroken google/* mapping -- jailbroken HF
+    # ids change repos faster than the registry is updated and are
+    # intentionally allowed to differ from the early dict.
+    early = {
+        k: v for k, v in _VARIANT_HF_ID.items()
+        if k in canonical
+    }
+    if early != canonical:
+        diffs = []
+        for vid, canon in canonical.items():
+            if early.get(vid) != canon:
+                diffs.append(f"  {vid}: early={early.get(vid)!r} canonical={canon!r}")
+        print(
+            "  ! _VARIANT_HF_ID drift detected vs duecare.chat.variants:\n"
+            + "\n".join(diffs)
+            + "\n  -> Update the early dict at the top of kernel.py to match "
+            "duecare.chat.variants.BUILTIN_VARIANTS so the cache purge sees "
+            "the correct HF repo id."
+        )
+
+
+_drift_check_hf_id_dict()
 # Telemetry hook -- canonical structured logging across all DueCare
 # kernels. Defensive try/except so older duecare-llm-chat versions
 # without _dc_log degrade to a no-op stub rather than failing the
@@ -2170,20 +2213,17 @@ _MODEL_LOAD_STATE = {
     "last_status_heartbeat_at": None,
 }
 
-_VARIANT_INFO = {
-    "e2b-it":         {"display": "Gemma 4 E2B-it",          "size_gb": 2.0,  "fits": "single T4",  "category": "on-device", "load_eta": "~20–30 sec"},
-    "e4b-it":         {"display": "Gemma 4 E4B-it",          "size_gb": 4.0,  "fits": "single T4",  "category": "on-device", "load_eta": "~30–60 sec"},
-    "26b-a4b-it":     {"display": "Gemma 4 26B-A4B-it",       "size_gb": 14.0, "fits": "T4 ×2 (4-bit)", "category": "on-device", "load_eta": "~6–15 min first run · ~3–5 min cached"},
-    "31b-it":         {"display": "Gemma 4 31B-it",          "size_gb": 18.0, "fits": "T4 ×2 (4-bit)", "category": "on-device", "load_eta": "~15–25 min first run (HF download) · ~5–8 min cached"},
-    "jailbroken-31b": {"display": "Gemma 4 31B (abliterated)", "size_gb": 18.0, "fits": "T4 ×2 (4-bit)", "category": "jailbroken", "load_eta": "~15–25 min first run · repo quirks possible"},
-    "jailbroken-e4b": {"display": "Gemma 4 E4B (abliterated)", "size_gb": 4.0,  "fits": "single T4",  "category": "jailbroken", "load_eta": "~30–60 sec"},
-    "cloud-gemini":   {"display": "Gemini API (cloud)",       "size_gb": 0.0,  "fits": "no GPU",     "category": "cloud", "load_eta": "instant"},
-    "cloud-openai":   {"display": "OpenAI-compat (cloud)",    "size_gb": 0.0,  "fits": "no GPU",     "category": "cloud", "load_eta": "instant"},
-    "cloud-ollama":   {"display": "Ollama (cloud/local)",     "size_gb": 0.0,  "fits": "no GPU",     "category": "cloud", "load_eta": "instant"},
-}
+# _VARIANT_INFO is the UI-shaped dict the picker + status endpoints
+# return. Derived from duecare.chat.variants.to_ui_map() so a new
+# variant added there shows up in the picker automatically. The
+# portability override below still applies on top for environments
+# that need a runtime-customised UI label (e.g., a kernel rebrand).
+_VARIANT_INFO = _dc_variants_to_ui_map()
 try:
     from duecare.chat.portability import model_variant_ui_map as _dc_model_variant_ui_map
-    _VARIANT_INFO = _dc_model_variant_ui_map()
+    _portability_map = _dc_model_variant_ui_map()
+    if _portability_map:
+        _VARIANT_INFO = _portability_map
 except Exception:
     pass
 
@@ -2624,24 +2664,13 @@ _JUDGE_SLOT = ModelSlot(
 # Conservative estimates for both disk-cache footprint (HF safetensors)
 # and live VRAM footprint at 4-bit. Pad by ~15% so we don't pretend an
 # exact fit is safe; CUDA fragmentation eats headroom.
+# Footprint dict (disk + gpu per variant) derived from the variants
+# registry. Adding a new variant in duecare.chat.variants automatically
+# flows through to the preflight gate. The inline dict was removed
+# 2026-05-20 as part of the variant registry consolidation.
 _VARIANT_FOOTPRINT_GB = {
-    # Footprints are the resident shard size on disk after Unsloth
-    # quantisation + the runtime VRAM ceiling. The disk numbers were
-    # lowered from full-precision estimates to match what actually
-    # lands in /kaggle/working/.cache/huggingface after the
-    # FastModel.from_pretrained(..., load_in_4bit=True) call. Full-
-    # precision shards never download because Unsloth requests the
-    # quantised weights directly. Numbers verified against published
-    # Kaggle session logs; conservative by ~10 percent.
-    "e2b-it":         {"disk": 4.0,  "gpu": 3.0},
-    "e4b-it":         {"disk": 8.0,  "gpu": 5.0},
-    "26b-a4b-it":     {"disk": 16.0, "gpu": 14.0},
-    "31b-it":         {"disk": 18.0, "gpu": 16.0},
-    "jailbroken-31b": {"disk": 18.0, "gpu": 16.0},
-    "jailbroken-e4b": {"disk": 8.0,  "gpu": 5.0},
-    "cloud-gemini":   {"disk": 0.0,  "gpu": 0.0},
-    "cloud-openai":   {"disk": 0.0,  "gpu": 0.0},
-    "cloud-ollama":   {"disk": 0.0,  "gpu": 0.0},
+    vid: {"disk": spec.disk_gb, "gpu": spec.gpu_gb}
+    for vid, spec in _DC_VARIANT_REGISTRY.items()
 }
 
 
@@ -2782,13 +2811,13 @@ def _judge_preflight(variant: str) -> dict:
 # ---------------------------------------------------------------------------
 
 # Pre-quantized Unsloth fallback names the chat package uses when the
-# google/* repo is gated and no Kaggle-attached model exists. Listed
-# here so purge can also clear the Unsloth-shaped cache dir.
+# google/* repo is gated and no Kaggle-attached model exists. Derived
+# from the variants registry so a new variant with an unsloth_alias
+# field automatically participates in the cache purge.
 _UNSLOTH_ALIASES = {
-    "e2b-it":     "unsloth/gemma-4-E2B-it",
-    "e4b-it":     "unsloth/gemma-4-E4B-it",
-    "26b-a4b-it": "unsloth/gemma-4-26B-A4B-it",
-    "31b-it":     "unsloth/gemma-4-31B-it",
+    vid: spec.unsloth_alias
+    for vid, spec in _DC_VARIANT_REGISTRY.items()
+    if spec.unsloth_alias
 }
 
 
