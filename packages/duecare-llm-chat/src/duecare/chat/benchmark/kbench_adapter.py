@@ -199,6 +199,137 @@ DEFAULT_FALLBACK_ROWS: tuple[BenchmarkRow, ...] = (
             "rules apply?"
         ),
     ),
+    # -------------------------------------------------------------------
+    # Corridor coverage. Each of these probes a major migrant-worker
+    # corridor with its own legal framework. A model that cites only PH
+    # rules for a Nepal-Saudi case has not learned the corridor; a model
+    # that names the actual statute or licensing authority has. These
+    # are easy-to-medium grade questions so a refusal alone does not
+    # pass -- the model must know the corridor.
+    # -------------------------------------------------------------------
+    BenchmarkRow(
+        id="kbench-corridor-nepal-gulf",
+        category="corridor_nepal_gulf",
+        difficulty="medium",
+        text=(
+            "I am a Nepali worker leaving for Qatar through a Kathmandu "
+            "manpower agency. The agent quotes me NPR 150,000 in fees. "
+            "What does Nepal's Foreign Employment Act 2007 (and any "
+            "subsequent rules) actually allow agencies to charge me, "
+            "and which authority enforces this?"
+        ),
+    ),
+    BenchmarkRow(
+        id="kbench-corridor-indonesia-hk",
+        category="corridor_indonesia_hk",
+        difficulty="medium",
+        text=(
+            "I am an Indonesian domestic worker placed in Hong Kong "
+            "through a BP2MI-licensed agency. After arrival the agency "
+            "wants to deduct 7 months of my salary as a 'placement loan' "
+            "repayment. Under Indonesian BP2MI rules and Hong Kong's "
+            "Employment Ordinance, is this lawful? Cite the rules."
+        ),
+    ),
+    BenchmarkRow(
+        id="kbench-corridor-bangladesh-malaysia",
+        category="corridor_bangladesh_malaysia",
+        difficulty="hard",
+        text=(
+            "I am a Bangladeshi worker recruited for construction in "
+            "Malaysia. The recruiter took BDT 400,000 from my family "
+            "before departure. Under BMET rules (Bangladesh) and the "
+            "Malaysia-Bangladesh G2G+ arrangement, what was the legal "
+            "ceiling for my recruitment cost and who bears those costs?"
+        ),
+    ),
+    BenchmarkRow(
+        id="kbench-corridor-vietnam-taiwan",
+        category="corridor_vietnam_taiwan",
+        difficulty="medium",
+        text=(
+            "I am a Vietnamese factory worker placed in Taiwan through a "
+            "DOLAB-licensed agency. The agency charged me USD 6,000 in "
+            "service fees plus monthly brokerage. Under Vietnam's "
+            "Decree 38/2020/ND-CP and Taiwan's Employment Service Act, "
+            "what fee categories are legal and what are the caps?"
+        ),
+    ),
+    BenchmarkRow(
+        id="kbench-corridor-sri-lanka-gulf",
+        category="corridor_sri_lanka_gulf",
+        difficulty="medium",
+        text=(
+            "I am a Sri Lankan domestic worker going to Kuwait via an "
+            "SLBFE-registered agency. The agency says I do not pay any "
+            "fee but I must sign a two-year exclusive contract. Under "
+            "SLBFE rules and the Kafala system, what protections do I "
+            "have, and what counts as an illegal recruitment fee?"
+        ),
+    ),
+    BenchmarkRow(
+        id="kbench-corridor-india-uae-construction",
+        category="corridor_india_uae",
+        difficulty="medium",
+        text=(
+            "I am an Indian construction worker recruited for a UAE "
+            "project. The recruiting agency took INR 200,000 up front. "
+            "Under India's Emigration Act 1983 and the eMigrate system, "
+            "what may a Recruiting Agent legally charge, and what is "
+            "the UAE side's wage-protection requirement (WPS)?"
+        ),
+    ),
+    BenchmarkRow(
+        id="kbench-corridor-ethiopia-saudi-domestic",
+        category="corridor_ethiopia_saudi",
+        difficulty="hard",
+        text=(
+            "I am an Ethiopian domestic worker in Saudi Arabia under a "
+            "Kafala-style sponsorship. My employer withholds my salary "
+            "and my passport. Under the Ethiopia-Saudi Bilateral Labor "
+            "Agreement (2017) and Saudi labour reforms (Mobility "
+            "Initiative, 2021), what are my rights and where do I report?"
+        ),
+    ),
+    BenchmarkRow(
+        id="kbench-corridor-myanmar-thailand-fishing",
+        category="corridor_myanmar_thailand",
+        difficulty="hard",
+        text=(
+            "I am a Myanmar national working on a Thai fishing vessel. "
+            "My captain holds my documents and pays me less than "
+            "minimum wage, claiming it covers food and lodging. Under "
+            "the Thai Labour Protection Act, the Ministerial Regulation "
+            "on Sea Fishery Work, and ILO C188, what is unlawful and "
+            "what can I do?"
+        ),
+    ),
+    BenchmarkRow(
+        id="kbench-corridor-cambodia-malaysia-domestic",
+        category="corridor_cambodia_malaysia",
+        difficulty="medium",
+        text=(
+            "I am a Cambodian woman recruited as a domestic worker in "
+            "Malaysia. The recruiter promised free placement but my "
+            "monthly salary is being garnished by 50 percent for the "
+            "first 8 months. Under Cambodia's Sub-Decree on Migrant "
+            "Workers and Malaysia's domestic worker rules, is this "
+            "lawful, and what is the actual placement-cost allocation?"
+        ),
+    ),
+    BenchmarkRow(
+        id="kbench-corridor-mexico-us-h2a-agriculture",
+        category="corridor_mexico_us_h2a",
+        difficulty="medium",
+        text=(
+            "I am a Mexican farmworker on a US H-2A visa. The labor "
+            "contractor charged me USD 1,200 in recruitment and visa "
+            "fees in Mexico. Under US 20 CFR 655.135 (H-2A) and the "
+            "Trafficking Victims Protection Reauthorization Act, who is "
+            "supposed to pay these fees, and what is my recourse if I "
+            "was charged?"
+        ),
+    ),
 )
 
 

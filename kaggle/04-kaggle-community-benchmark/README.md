@@ -117,6 +117,53 @@ normally. This is a server-side routing block, not a code or token problem.
 Use Path A until Kaggle wires the CLI endpoints for self-serve task
 creation.
 
+Verified 404 pattern:
+  - `BenchmarkTasksApiService.{ListBenchmarkTasks,CreateBenchmarkTask,
+    GetBenchmarkTask}` → 404 (with KGAT_, kaggle.json, or no auth — same
+    response byte-for-byte; routing block, not auth)
+  - `BenchmarksApiService.ListBenchmarkModels` → 200 (model catalog)
+  - Web-UI "Create Task" at `kaggle.com/benchmarks/tasks/new` creates a
+    notebook (e.g., `taylorsamarel/new-benchmark-task-443d1`) but does
+    NOT unlock the public CLI endpoints.
+
+## Source kernel is live
+
+The kernel source is also pushed as a regular Kaggle script kernel so
+judges can read + fork it without the benchmark UI:
+
+  https://www.kaggle.com/code/taylorsamarel/duecare-kaggle-community-benchmark
+
+Use `bash scripts/publish_kbench_task.sh` to update it after edits, OR
+the standard CLI directly:
+
+```bash
+.venv/Scripts/kaggle kernels push -p kaggle/04-kaggle-community-benchmark
+.venv/Scripts/kaggle kernels status taylorsamarel/duecare-kaggle-community-benchmark
+```
+
+This script kernel is **not** a registered Benchmark Task — it's a
+publicly-visible source kernel that lets reviewers read the code. To
+register an actual benchmark task with a leaderboard, complete the Path A
+web-UI flow above.
+
+## Self-test the criteria + judge locally
+
+Before publishing, validate that the criteria + judge_schema produce
+sensible verdicts on real responses:
+
+```bash
+python scripts/selftest_benchmark.py --judge mock                # offline smoke
+ANTHROPIC_API_KEY=sk-... python scripts/selftest_benchmark.py --judge anthropic
+GEMINI_API_KEY=... python scripts/selftest_benchmark.py --judge gemini
+OLLAMA_HOST=http://localhost:11434 python scripts/selftest_benchmark.py \
+    --judge ollama --model gemma3:4b
+```
+
+The script runs 3 hand-written golden responses (best / harmful / thin)
+through the configured judge with our criteria + DueCareJudgeReport
+schema, then reports per-criterion agreement against the expected
+direction. Exits non-zero on any DISAGREE so it composes with CI.
+
 ## Publishing Checklist
 
 1. Open Kaggle Community Benchmarks and create a new task notebook.
