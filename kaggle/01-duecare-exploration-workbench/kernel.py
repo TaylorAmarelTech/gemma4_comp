@@ -1494,6 +1494,17 @@ from duecare.chat.variants import (
     VARIANT_REGISTRY as _DC_VARIANT_REGISTRY,
     to_ui_map as _dc_variants_to_ui_map,
 )
+# Pydantic body models for the mutation endpoints. Each endpoint
+# keeps its body: dict = Body(...) signature so extra fields stay
+# backward-compatible, but the dict is validated through these models
+# so JSON-stringified booleans ("false", "0", "off") parse correctly
+# and the field types are checked.
+from duecare.chat.kernel_api import (
+    LoadEvaluatorModelRequest as _DCLoadEvalRequest,
+    LoadModelRequest as _DCLoadModelRequest,
+    UnloadModelRequest as _DCUnloadRequest,
+    UseChatAsJudgeRequest as _DCUseChatAsJudgeRequest,
+)
 
 
 def _drift_check_hf_id_dict() -> None:
@@ -1939,8 +1950,11 @@ def api_load_model(body: dict = Body(...)):
     """Pick a Gemma 4 variant and load it. Long-running (~30s for E4B,
   ~5-10+ min for 31B first run); kicks off a background thread and returns
     immediately. Poll /api/load-model/status until status='ready'."""
-    variant = (body or {}).get("variant", "").strip()
-    override = bool((body or {}).get("override", False))
+    # Pydantic body validation: variant trimmed + string booleans
+    # coerced for override.
+    parsed = _DCLoadModelRequest.model_validate(body or {})
+    variant = parsed.variant
+    override = parsed.override
     if app.state.gemma_call is not None:
         return {"status": "already_loaded",
                 "variant": _MODEL_LOAD_STATE.get("variant"),
@@ -2486,8 +2500,12 @@ def api_unload_chat_model(request: Request, body: dict = Body(default=None)):
     a single canonical unload implementation.
     """
     body = body or {}
-    force = _parse_bool(body.get("force"), default=False)
-    drain_seconds = float(body.get("drain_seconds", 30))
+    # Pydantic body validation: parses string booleans correctly +
+    # clamps drain_seconds to [0, 600] so a stray request body
+    # cannot stall the unload for an hour.
+    parsed = _DCUnloadRequest.model_validate(body)
+    force = parsed.force
+    drain_seconds = parsed.drain_seconds
     # Operator token gate: only required when the caller asks to
     # interrupt other users (force=true). The queue gate handles the
     # safe path on its own.
@@ -2526,9 +2544,7 @@ def api_unload_chat_model(request: Request, body: dict = Body(default=None)):
         # Either queue is empty or force=True. Mark closed up front so
         # no new tickets can race in while the unload runs.
         _MODEL_QUEUE.close_slot("chat", wait_seconds=0, force=True)
-    return _CHAT_SLOT.unload(
-        app, purge_cache=bool(body.get("purge_cache", True)),
-    )
+    return _CHAT_SLOT.unload(app, purge_cache=parsed.purge_cache)
 
 
 def _set_chat_loaded(model) -> None:
@@ -2655,11 +2671,12 @@ def api_use_chat_as_judge(request: Request, body: dict = Body(default=None)):
     ok, err_response = _check_operator_token(request, body)
     if not ok:
         return err_response
-    # Robust bool parse: bare bool("false") == True is a real footgun.
-    # _parse_bool maps "true"/"false"/"on"/"off"/"yes"/"no"/0/1 to the
-    # expected boolean so a JSON-stringified value cannot accidentally
-    # enable a destructive flag.
-    enabled = _parse_bool(body.get("enabled"), default=True)
+    # Pydantic body validation: bare bool("false") == True is a real
+    # footgun. UseChatAsJudgeRequest coerces "true"/"false"/"on"/"off"
+    # /"yes"/"no"/0/1 to the expected boolean so a JSON-stringified
+    # value cannot accidentally enable a destructive flag.
+    parsed = _DCUseChatAsJudgeRequest.model_validate(body)
+    enabled = parsed.enabled
     # Serialise the flag flip + evaluator_call assignment against the
     # chat-load thread so we cannot end up with _JUDGE_USES_CHAT=True
     # but app.state.evaluator_call pointing at a stale chat callable
@@ -2750,8 +2767,11 @@ def api_load_evaluator_model(body: dict = Body(...)):
     status='ready'. If the load fails (OOM, missing weights), the
     chat model is unaffected.
     """
-    variant = (body or {}).get("variant", "").strip() or "31b-it"
-    override = bool((body or {}).get("override", False))
+    # Pydantic body validation: variant defaults to "31b-it" when
+    # missing/empty (judge default); override coerces string booleans.
+    parsed = _DCLoadEvalRequest.model_validate(body or {})
+    variant = parsed.variant
+    override = parsed.override
     # If the judge is mirroring the chat model, refuse to load a
     # separate judge until the mirror is disabled. Otherwise we would
     # end up with the same variant resident twice (chat + judge slots)
@@ -2946,8 +2966,12 @@ def api_unload_evaluator_model(request: Request, body: dict = Body(default=None)
     the chat slot uses, just bound to a different app.state attr.
     """
     body = body or {}
-    force = _parse_bool(body.get("force"), default=False)
-    drain_seconds = float(body.get("drain_seconds", 30))
+    # Pydantic body validation: parses string booleans correctly +
+    # clamps drain_seconds to [0, 600] so a stray request body
+    # cannot stall the unload for an hour.
+    parsed = _DCUnloadRequest.model_validate(body)
+    force = parsed.force
+    drain_seconds = parsed.drain_seconds
     if force:
         ok, err_response = _check_operator_token(request, body)
         if not ok:
@@ -2976,9 +3000,7 @@ def api_unload_evaluator_model(request: Request, body: dict = Body(default=None)
             )
     else:
         _MODEL_QUEUE.close_slot("judge", wait_seconds=0, force=True)
-    return _JUDGE_SLOT.unload(
-        app, purge_cache=bool(body.get("purge_cache", True)),
-    )
+    return _JUDGE_SLOT.unload(app, purge_cache=parsed.purge_cache)
 
 
 # ===========================================================================

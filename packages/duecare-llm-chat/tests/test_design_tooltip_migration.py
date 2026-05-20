@@ -934,8 +934,10 @@ def test_kernel_judge_load_enforces_preflight_with_override() -> None:
     assert 'if not pre["ok"] and not override:' in body
     assert "status_code=503" in body
     assert '"preflight_failed"' in body
-    # Override flag must be read from the request body.
-    assert 'body or {}).get("override"' in body
+    # Override flag is now parsed via the LoadEvaluatorModelRequest
+    # Pydantic model so JSON-stringified booleans coerce correctly.
+    assert "_DCLoadEvalRequest.model_validate" in body
+    assert "override = parsed.override" in body
 
 
 def test_kernel_judge_variant_footprints_documented() -> None:
@@ -2012,19 +2014,95 @@ def test_anonymization_hub_allowlist_blocks_ssrf() -> None:
 
 
 def test_kernel_robust_bool_parser() -> None:
-    """The kernel exposes _parse_bool to avoid bool(\"false\")==True
-    when a request body sends a JSON-stringified boolean. The
-    use-chat-as-judge endpoint routes through this helper."""
+    """The kernel previously called _parse_bool inline; after the
+    Pydantic body-model extraction (2026-05-20 wave), use-chat-as-judge
+    routes through UseChatAsJudgeRequest which carries the boolean
+    coercion as a field validator. The legacy _parse_bool helper
+    still exists in kernel.py for any callers that need it directly,
+    but the toggle endpoint uses the Pydantic model."""
     repo_root = Path(__file__).parents[3]
     kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
-    assert "def _parse_bool(" in kernel
-    # Truthy + falsy strings handled explicitly.
-    assert "true" in kernel.lower() and "false" in kernel.lower()
-    # Endpoint uses the helper for "enabled".
+    assert "def _parse_bool(" in kernel  # legacy helper still present
+    # Endpoint validates via Pydantic now.
     ep_idx = kernel.find("def api_use_chat_as_judge(")
     ep_end = kernel.find("\n@app.post(", ep_idx + 100)
     ep_body = kernel[ep_idx:ep_end]
-    assert '_parse_bool(body.get("enabled")' in ep_body
+    assert "_DCUseChatAsJudgeRequest.model_validate" in ep_body
+    assert "enabled = parsed.enabled" in ep_body
+    # The Pydantic model itself ships in the new kernel_api module.
+    api_path = (
+        Path(__file__).parents[1]
+        / "src" / "duecare" / "chat" / "kernel_api.py"
+    )
+    api_src = api_path.read_text(encoding="utf-8")
+    assert "def parse_request_bool(" in api_src
+    assert 'in ("true", "1", "yes"' in api_src
+    assert 'in ("false", "0", "no"' in api_src
+
+
+def test_variants_module_supports_runtime_registration() -> None:
+    """variants.py exposes register_variant/clear_custom_variants/
+    is_builtin_variant so future models can be plugged in at runtime
+    without forking the package."""
+    src = _VARIANTS_MODULE.read_text(encoding="utf-8")
+    assert "def register_variant(" in src
+    assert "def clear_custom_variants(" in src
+    assert "def is_builtin_variant(" in src
+    assert "_BUILTIN_IDS: frozenset" in src
+    # __all__ includes the new public surfaces.
+    assert '"register_variant"' in src
+    assert '"clear_custom_variants"' in src
+    assert '"is_builtin_variant"' in src
+
+
+def test_templates_module_supports_runtime_registration() -> None:
+    """templates.py exposes register_template/clear_custom_templates/
+    is_builtin_template so tenants can add jurisdiction-specific
+    complaint templates at runtime without forking the package."""
+    src = _TEMPLATES_MODULE.read_text(encoding="utf-8")
+    assert "def register_template(" in src
+    assert "def clear_custom_templates(" in src
+    assert "def is_builtin_template(" in src
+    assert "_BUILTIN_TEMPLATE_IDS: frozenset" in src
+    assert '"register_template"' in src
+    assert '"clear_custom_templates"' in src
+    assert '"is_builtin_template"' in src
+
+
+def test_kernel_api_module_present_with_four_request_models() -> None:
+    """The Pydantic body-model extraction lives at
+    duecare.chat.kernel_api. Each kernel mutation endpoint has a
+    corresponding request model with a field_validator that handles
+    JSON-stringified booleans."""
+    api_path = (
+        Path(__file__).parents[1]
+        / "src" / "duecare" / "chat" / "kernel_api.py"
+    )
+    assert api_path.exists(), f"missing module: {api_path}"
+    src = api_path.read_text(encoding="utf-8")
+    for cls in ("UseChatAsJudgeRequest", "LoadModelRequest",
+                "LoadEvaluatorModelRequest", "UnloadModelRequest"):
+        assert f"class {cls}" in src, f"{cls} missing from kernel_api"
+    # Pydantic v2 field_validator(mode="before") so the coercion runs
+    # on the raw input before type validation.
+    assert '@field_validator(' in src
+    assert 'mode="before"' in src
+
+
+def test_kernel_endpoints_route_through_pydantic_models() -> None:
+    """All 5 mutation endpoints validate their body via the kernel_api
+    models. After this pass no endpoint should be reading booleans
+    via the legacy bool(body.get(...)) pattern."""
+    repo_root = Path(__file__).parents[3]
+    kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
+    assert "from duecare.chat.kernel_api import" in kernel
+    for marker in (
+        "_DCUseChatAsJudgeRequest.model_validate",
+        "_DCLoadModelRequest.model_validate",
+        "_DCLoadEvalRequest.model_validate",
+        "_DCUnloadRequest.model_validate",
+    ):
+        assert marker in kernel, f"missing {marker} in kernel"
 
 
 def test_compare_warns_when_judge_shares_chat_slot() -> None:
