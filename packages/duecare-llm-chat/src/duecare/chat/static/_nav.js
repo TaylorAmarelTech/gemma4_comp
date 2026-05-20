@@ -181,6 +181,11 @@
         if (modelUserSelectedVariant && keys.indexOf(modelUserSelectedVariant) >= 0) sel.value = modelUserSelectedVariant;
         else if (activeVariant && keys.indexOf(activeVariant) >= 0) sel.value = activeVariant;
         else if (prior && keys.indexOf(prior) >= 0) sel.value = prior;
+        // Default the chat picker to 31b-it. Steady-state inference
+        // latency is comparable to smaller variants once loaded, and
+        // using 31b-it for both chat AND judge (via "Use chat model
+        // as judge") avoids loading a second model.
+        else if (keys.indexOf('31b-it') >= 0) sel.value = '31b-it';
         else if (keys.indexOf('e4b-it') >= 0) sel.value = 'e4b-it';
         renderSelectedModelDetail();
     }

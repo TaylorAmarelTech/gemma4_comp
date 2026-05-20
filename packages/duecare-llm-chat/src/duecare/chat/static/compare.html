@@ -360,6 +360,25 @@
             isn't disrupted; both models can stay resident if VRAM
             allows. Recommended: <b>Gemma 4 31B-it</b>.
           </p>
+          <!-- Fast path: when chat is already running on a strong
+               variant (e.g., 31b-it), grade against the same model
+               instead of loading a second one. Saves ~30 GB disk +
+               ~20 GB VRAM at the cost of chat/judge contending for
+               the same queue slot. -->
+          <label style="display:flex; gap:8px; align-items:flex-start;
+                        margin:8px 0; cursor:pointer;
+                        padding:8px 10px; background:oklch(0.97 0.02 195);
+                        border:1px solid oklch(0.85 0.05 195);
+                        border-radius:8px;">
+            <input type="checkbox" id="judge-use-chat-as-judge"
+                   onchange="judgeUseChatAsJudge(this.checked)"
+                   data-tip="When a strong chat model is loaded (e.g., 31b-it), reuse it for grading instead of loading a second model. Chat and judge will share the same queue slot, so concurrent users serialise across both."
+                   data-tip-pos="right">
+            <span><b>Use chat model as judge</b> &mdash; no second model load. Recommended when chat is already running 31b-it.</span>
+          </label>
+          <div id="judge-use-chat-status" class="wb-muted" hidden
+               style="margin:0 0 8px 26px; font-size:11.5px;">
+          </div>
           <label style="display:flex; gap:8px; align-items:flex-start;
                         margin:8px 0; cursor:pointer;">
             <input type="checkbox" id="judge-use-separate"
@@ -726,6 +745,10 @@
         const data = await r.json();
         _judgeLastStatus = data;
         _judgeUpdateSummary(data);
+        // Sync the "Use chat model as judge" checkbox with the
+        // server-reported flag and hide/show the separate-judge
+        // controls accordingly.
+        _judgeRenderMirrorState(data);
         // Mirror new log events into the page activity log so the
         // reviewer sees one stream, not two.
         if (Array.isArray(data.logs) && data.logs.length) {
@@ -739,6 +762,75 @@
         return data;
       } catch (e) {
         return null;
+      }
+    }
+
+    function _judgeRenderMirrorState(data) {
+      const mirror = !!(data && data.judge_uses_chat);
+      const chk = _judgeQs('judge-use-chat-as-judge');
+      const useSepChk = _judgeQs('judge-use-separate');
+      const sepControls = _judgeQs('judge-controls');
+      const status = _judgeQs('judge-use-chat-status');
+      if (chk) chk.checked = mirror;
+      // When mirroring, hide the separate-judge controls + uncheck
+      // the "Use a separate model" sibling so the UI is honest about
+      // what's actually happening server-side.
+      if (mirror) {
+        if (useSepChk) useSepChk.checked = false;
+        if (sepControls) sepControls.style.display = 'none';
+        if (status) {
+          status.hidden = false;
+          status.textContent = 'Active: grading uses the chat model. ' +
+            'Calls queue on the chat slot.';
+        }
+      } else if (status) {
+        status.hidden = true;
+        status.textContent = '';
+      }
+    }
+
+    async function judgeUseChatAsJudge(enabled) {
+      const status = _judgeQs('judge-use-chat-status');
+      const chk = _judgeQs('judge-use-chat-as-judge');
+      try { logEvent(null, 'info',
+        '[judge] ' + (enabled ? 'enabling' : 'disabling') +
+        ' "Use chat model as judge"'); } catch (_) {}
+      try {
+        const r = await fetch('/api/use-chat-as-judge', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({enabled: !!enabled}),
+        });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          // Common cases: no chat model loaded (400) or a separate
+          // judge already loaded (409). Surface the server's message.
+          if (chk) chk.checked = false;  // revert toggle
+          if (status) {
+            status.hidden = false;
+            status.textContent = (data && data.message) || ('HTTP ' + r.status);
+          }
+          try { logEvent(null, 'warn',
+            '[judge] use-chat-as-judge refused: ' +
+            ((data && data.message) || ('HTTP ' + r.status))); } catch (_) {}
+          return;
+        }
+        try {
+          localStorage.setItem('duecare:judge-use-chat', enabled ? '1' : '0');
+        } catch (_) {}
+        try { logEvent(null, 'ok',
+          '[judge] use-chat-as-judge ' + (enabled ? 'enabled' : 'disabled') +
+          ' · ' + (data && data.message || '')); } catch (_) {}
+        // Re-fetch status so the UI reflects the new server truth.
+        judgeRefreshStatus();
+      } catch (e) {
+        if (chk) chk.checked = false;
+        if (status) {
+          status.hidden = false;
+          status.textContent = 'Toggle failed: ' + ((e && e.message) || e);
+        }
+        try { logEvent(null, 'err',
+          '[judge] use-chat-as-judge network error: ' + e); } catch (_) {}
       }
     }
 

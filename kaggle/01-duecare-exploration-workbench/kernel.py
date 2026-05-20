@@ -2103,6 +2103,17 @@ def api_load_model(body: dict = Body(...)):
             # cannot enqueue against a half-initialised callable.
             app.state.gemma_call = _queue_wrap(loaded_local.backend, "chat")
             _MODEL_QUEUE.open_slot("chat")
+            # If "use chat as judge" is active, mirror the freshly-
+            # wired chat callable into the evaluator slot so grading
+            # immediately picks up the new model. Calls still queue
+            # on the chat slot (one model, one lock) but grading
+            # works without a second load.
+            if _JUDGE_USES_CHAT:
+                app.state.evaluator_call = app.state.gemma_call
+                _log_load(
+                    "judge mirrored to chat model (use_chat_as_judge=on)",
+                    phase="ready",
+                )
             app.state.model_info = {
                 "loaded": True, "name": loaded_local.name,
                 "size_b": loaded_local.size_b,
@@ -2333,6 +2344,14 @@ _MODEL_LOAD_EVENTS_EVAL: list[dict[str, Any]] = []
 # torch tensors / tokenizer on unload (otherwise the references stay
 # pinned and VRAM is not released).
 _LOADED_EVAL: Optional["LoadedModel"] = None
+
+# When True, the judge slot reuses the chat model instead of loading a
+# second model into VRAM. Set/cleared via POST /api/use-chat-as-judge.
+# Persisted in-process so a chat-model reload (load -> unload -> load
+# new variant) automatically re-wires the judge to the new chat call.
+# This is the workflow for "Use 31B as both chat and judge" on a
+# kernel with one big model and no disk room for a second.
+_JUDGE_USES_CHAT: bool = False
 
 
 def _set_judge_loaded(model) -> None:
@@ -2697,8 +2716,12 @@ def _set_chat_loaded(model) -> None:
 def _chat_post_unload(app) -> None:
     """Chat-slot specific cleanup: reset app.state.model_info to the
     placeholder dict so the UI shows '(no model loaded)' until a new
-    load completes."""
+    load completes. When the judge was mirroring the chat model, the
+    mirror is also cleared so a stale callable pointing at freed
+    tensors cannot be reached by /api/grade-* routes."""
     app.state.model_info = _placeholder_model_info
+    if _JUDGE_USES_CHAT and getattr(app.state, "evaluator_call", None) is not None:
+        app.state.evaluator_call = None
 
 
 def _log_load_eval(message: str, *, phase: Optional[str] = None,
@@ -2767,9 +2790,100 @@ def api_load_evaluator_status():
         **_MODEL_LOAD_STATE_EVAL,
         "elapsed_s": elapsed,
         "ready": getattr(app.state, "evaluator_call", None) is not None,
+        # When True, the judge slot points at the chat model. UI uses
+        # this to hide the variant selector + load/unload buttons and
+        # show a "Sharing the chat model" banner instead.
+        "judge_uses_chat": _JUDGE_USES_CHAT,
         "variants": _VARIANT_INFO,
         "active_evaluator": _eval_info_snapshot(),
         "logs": list(_MODEL_LOAD_EVENTS_EVAL[-120:]),
+    }
+
+
+@app.post("/api/use-chat-as-judge")
+def api_use_chat_as_judge(body: dict = Body(default=None)):
+    """Toggle "Use chat model as judge" mode.
+
+    When enabled, the judge slot mirrors the resident chat model so
+    grading routes (/api/grade-deep, /api/grade-combined) work without
+    loading a second model into VRAM. Calls still queue on the chat
+    slot (one model, one lock); the trade-off is that chat and judge
+    contend for the same GPU instead of running in parallel.
+
+    Body params (all optional):
+        enabled: bool  default True. False clears the mirror and
+                       returns the judge slot to unloaded state.
+
+    Refuses with HTTP 400 when enabling and no chat model is loaded.
+    Refuses with HTTP 409 when enabling and a separate judge model is
+    already loaded (caller must unload that first).
+    """
+    global _JUDGE_USES_CHAT
+    body = body or {}
+    enabled = bool(body.get("enabled", True))
+    if enabled:
+        chat_call = getattr(app.state, "gemma_call", None)
+        if chat_call is None:
+            return JSONResponse(
+                {
+                    "status": "no_chat_model",
+                    "message": (
+                        "No chat model is loaded. Load a chat model "
+                        "first (POST /api/load-model), then enable "
+                        "'Use chat model as judge'."
+                    ),
+                },
+                status_code=400,
+            )
+        # If a SEPARATE judge model is already loaded, refuse so the
+        # caller does not silently lose that work. Unloading the
+        # separate judge first is a deliberate decision.
+        sep_loaded = (
+            getattr(app.state, "evaluator_call", None) is not None
+            and not _JUDGE_USES_CHAT
+        )
+        if sep_loaded:
+            return JSONResponse(
+                {
+                    "status": "separate_judge_loaded",
+                    "message": (
+                        "A separate judge model is currently loaded. "
+                        "Unload it first (POST /api/unload-evaluator-model) "
+                        "then enable 'Use chat model as judge'."
+                    ),
+                    "judge_variant": _MODEL_LOAD_STATE_EVAL.get("variant"),
+                },
+                status_code=409,
+            )
+        # All clear: wire the mirror.
+        _JUDGE_USES_CHAT = True
+        app.state.evaluator_call = chat_call
+        return {
+            "status": "ok",
+            "judge_uses_chat": True,
+            "message": (
+                "Judge slot is now mirroring the chat model. Grading "
+                "will share the chat queue."
+            ),
+        }
+    # Disable path: clear the mirror only if it was active. Never
+    # touches a separately-loaded judge model.
+    was_mirrored = _JUDGE_USES_CHAT
+    _JUDGE_USES_CHAT = False
+    if was_mirrored:
+        # Only clear when we ourselves had set it -- avoid clobbering
+        # a separately-loaded judge if the flag had drifted out of
+        # sync somehow.
+        app.state.evaluator_call = None
+    return {
+        "status": "ok",
+        "judge_uses_chat": False,
+        "was_mirrored": was_mirrored,
+        "message": (
+            "Mirror disabled. Judge slot is empty -- load a separate "
+            "judge model or keep grading on the chat model via the "
+            "fallback in grade_response_combined."
+        ),
     }
 
 
@@ -2788,6 +2902,23 @@ def api_load_evaluator_model(body: dict = Body(...)):
     """
     variant = (body or {}).get("variant", "").strip() or "31b-it"
     override = bool((body or {}).get("override", False))
+    # If the judge is mirroring the chat model, refuse to load a
+    # separate judge until the mirror is disabled. Otherwise we would
+    # end up with the same variant resident twice (chat + judge slots)
+    # which is exactly the waste use_chat_as_judge was meant to avoid.
+    if _JUDGE_USES_CHAT:
+        return JSONResponse(
+            {
+                "status": "mirroring_chat",
+                "message": (
+                    "The judge slot is currently mirroring the chat model. "
+                    "Disable 'Use chat model as judge' first (POST "
+                    "/api/use-chat-as-judge with {\"enabled\": false}) "
+                    "before loading a separate judge."
+                ),
+            },
+            status_code=409,
+        )
     if getattr(app.state, "evaluator_call", None) is not None:
         return {"status": "already_loaded",
                 "variant": _MODEL_LOAD_STATE_EVAL.get("variant"),
