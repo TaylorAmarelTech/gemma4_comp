@@ -1240,13 +1240,34 @@
       })[ch]);
     }
     function cmpScoreNumber(g) {
+      // The headline number for ranking is overall_pct (harmonic mean
+      // of quality_pct and coverage_pct). This rewards responses that
+      // engage with more applicable dimensions instead of penalizing
+      // them through weighted-average averaging. Fall back to the
+      // legacy pct_score / percent / 0..1 score when overall_pct isn't
+      // present (older grader payloads, partial results, evaluator-
+      // only responses).
       if (!g || typeof g !== 'object') return null;
+      if (typeof g.overall_pct === 'number') return g.overall_pct;
       if (typeof g.pct_score === 'number') return g.pct_score;
       if (typeof g.percent === 'number') return g.percent;
       if (typeof g.score === 'number' && g.score <= 1) return g.score * 100;
+      if (g.combined && typeof g.combined.overall_pct === 'number') return g.combined.overall_pct;
       if (g.combined && typeof g.combined.pct_score === 'number') return g.combined.pct_score;
+      if (g.deterministic && typeof g.deterministic.overall_pct === 'number') return g.deterministic.overall_pct;
       if (g.deterministic && typeof g.deterministic.pct_score === 'number') return g.deterministic.pct_score;
       if (g.evaluator && typeof g.evaluator.pct_score === 'number') return g.evaluator.pct_score;
+      return null;
+    }
+    function cmpQualityNumber(g) {
+      if (!g || typeof g !== 'object') return null;
+      if (typeof g.quality_pct === 'number') return g.quality_pct;
+      if (typeof g.pct_score === 'number') return g.pct_score;
+      return null;
+    }
+    function cmpCoverageNumber(g) {
+      if (!g || typeof g !== 'object') return null;
+      if (typeof g.coverage_pct === 'number') return g.coverage_pct;
       return null;
     }
     function cmpDimsOf(g) {
@@ -1408,13 +1429,35 @@
         : 'No dimension breakdown returned.';
       host.appendChild(summary);
 
-      // Coverage breakdown row. The pct_score is a weighted average over
-      // applicable dimensions only, so two variants with similar pcts can
-      // hide a real difference in coverage. Surfacing n_applicable and the
-      // pass/partial/fail counts lets the reviewer read "fewer N/A means
-      // more dimensions were engaged" instead of guessing from the pct
-      // alone. Renders only when the grader exposes the totals (deterministic
-      // /api/grade always does; combined/deep responses also).
+      // Quality / Coverage / Overall row. The headline number for
+      // ranking is overall_pct (harmonic mean), but we show all three
+      // so the reviewer can read the trade-off:
+      //   * Quality  -- weighted average over applicable dims (legacy)
+      //   * Coverage -- n_applicable / n_total (breadth)
+      //   * Overall  -- HM(quality, coverage), the principled summary
+      const qualityPct = (typeof gradeResult.quality_pct === 'number')
+        ? gradeResult.quality_pct : null;
+      const coveragePct = (typeof gradeResult.coverage_pct === 'number')
+        ? gradeResult.coverage_pct : null;
+      const overallPct = (typeof gradeResult.overall_pct === 'number')
+        ? gradeResult.overall_pct : null;
+      if (qualityPct != null || coveragePct != null || overallPct != null) {
+        const axes = document.createElement('div');
+        axes.style.cssText = 'margin-bottom: 8px; font-family: JetBrains Mono, monospace; ' +
+          'font-size: 11.5px; color: #2A2D34;';
+        const axisParts = [];
+        if (overallPct != null) axisParts.push('Overall ' + overallPct + '%');
+        if (qualityPct != null) axisParts.push('Quality ' + qualityPct + '%');
+        if (coveragePct != null) axisParts.push('Coverage ' + coveragePct + '%');
+        axes.textContent = axisParts.join(' · ');
+        host.appendChild(axes);
+      }
+
+      // Coverage breakdown row. The overall_pct is the headline number
+      // but two variants with similar pcts can still hide a real
+      // difference in n_applicable and pass/partial/fail counts. The
+      // raw counts let the reviewer drill into "what did B engage with
+      // that A didn't?" without scrolling through 74 dimensions.
       const nApp = (typeof gradeResult.n_applicable === 'number')
         ? gradeResult.n_applicable : null;
       const nNA = (typeof gradeResult.n_not_applicable === 'number')
@@ -1942,22 +1985,30 @@
         };
         status.textContent = 'A=' + scoreLabel(gA) + '  |  B=' + scoreLabel(gB);
         logEvent(null, 'ok', 'grade  A=' + scoreLabel(gA) + '  B=' + scoreLabel(gB));
-        // Close-grade caveat: when the two pcts are within 2pp, the
-        // reviewer needs to look at the coverage row (applicable counts +
-        // pass/partial/fail) to read which variant actually did more
-        // work. The pct alone hides this because the rubric averages
-        // weighted contributions over applicable dimensions, so adding
-        // PARTIALs to a higher-pct response can drag the average down
-        // even when the response is objectively more thorough.
+        // Close-grade caveat: when the two overall_pct values are
+        // within 2pp, the reviewer needs to look at the per-axis row
+        // (Quality / Coverage) and the count breakdown to read which
+        // variant did more work. We use overall_pct (the harmonic
+        // mean, which already rewards breadth) so this caveat fires
+        // ONLY when the two responses are genuinely close on both
+        // axes, not just on the legacy quality average.
         try {
           const aPct = cmpScoreNumber(gA);
           const bPct = cmpScoreNumber(gB);
           if (typeof aPct === 'number' && typeof bPct === 'number' &&
               Math.abs(aPct - bPct) < 2.0) {
-            logEvent(null, 'info',
-              'within 2pp — see the coverage row in each grade panel ' +
-              '(more applicable dims + more PARTIALs can score lower ' +
-              'than fewer dims at higher quality)');
+            const aQ = cmpQualityNumber(gA);
+            const bQ = cmpQualityNumber(gB);
+            const aC = cmpCoverageNumber(gA);
+            const bC = cmpCoverageNumber(gB);
+            let msg = 'within 2pp overall — see the Quality / Coverage row in each grade panel.';
+            if (typeof aQ === 'number' && typeof bQ === 'number' &&
+                typeof aC === 'number' && typeof bC === 'number') {
+              const qDelta = (bQ - aQ).toFixed(1);
+              const cDelta = (bC - aC).toFixed(1);
+              msg += ' Quality Δ(B-A)=' + qDelta + 'pp, Coverage Δ(B-A)=' + cDelta + 'pp.';
+            }
+            logEvent(null, 'info', msg);
           }
         } catch (_) { /* non-blocking */ }
         cmpSetExportState(true, true);
