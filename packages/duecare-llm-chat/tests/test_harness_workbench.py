@@ -200,9 +200,13 @@ def test_search_page_blocks_when_page_sanitizer_fails(client):
     assert "body: JSON.stringify(envelope)" in text
     assert 'id="search-step-query" open' in text
     assert "What this workflow does" in text
-    assert "Search does not require Gemma" in text
+    # Hero card now states Gemma 4's role honestly instead of the
+    # former "Search does not require Gemma" line. The Where Gemma 4
+    # Runs hint block names the three Gemma touch points on the page.
+    assert "Gemma 4 role" in text
     assert "Result-to-knowledge path" in text
-    assert "deeper Gemma drafting belongs in Knowledge Extraction" in text
+    assert "Where Gemma 4 runs on this page" in text
+    assert "Query rephrase" in text
     assert "Current phone numbers" in text
     assert 'id="results-card"' in text
     assert 'id="drafts-card"' in text

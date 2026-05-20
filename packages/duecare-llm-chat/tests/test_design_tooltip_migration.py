@@ -1325,3 +1325,91 @@ def test_knowledge_has_where_gemma_runs_hint() -> None:
     assert 'id="kx-gemma-paths-hint"' in html
     assert "Where Gemma 4 runs on this page" in html
     assert "Knowledge draft" in html
+
+
+# ---------------------------------------------------------------------------
+# search.html + share.html Gemma 4 path clarity (2026-05-19 pass 2)
+# ---------------------------------------------------------------------------
+
+
+def test_search_rephrase_is_on_by_default() -> None:
+    """The "Also ask Gemma 4 to rephrase" checkbox is now checked by
+    default so the demo path exercises Gemma 4. The server returns
+    rephrase_wired=false when no model is loaded; the page surfaces
+    that state honestly instead of failing silently."""
+    html = _read("search.html")
+    rephrase_idx = html.find('id="rephrase"')
+    assert rephrase_idx >= 0
+    rephrase_block = html[rephrase_idx:rephrase_idx + 80]
+    assert "checked" in rephrase_block
+    # Updated label uses the explicit "Gemma 4" wording.
+    assert "Also ask Gemma 4 to rephrase" in html
+
+
+def test_search_has_where_gemma_runs_hint() -> None:
+    """The search page explains the three Gemma 4 touch points: query
+    rephrase, per-result drafting, and the linked Knowledge Extraction
+    refinement path."""
+    html = _read("search.html")
+    assert 'id="search-gemma-paths-hint"' in html
+    assert "Where Gemma 4 runs on this page" in html
+    assert "Query rephrase" in html
+
+
+def test_search_hero_card_is_honest_about_gemma() -> None:
+    """The hero "Model fit" card previously said "Search does not require
+    Gemma" which read as "Gemma is not used here at all." Replaced with
+    the honest "Gemma 4 role" description."""
+    html = _read("search.html")
+    assert "Search does not require Gemma" not in html
+    assert "Gemma 4 role" in html
+
+
+def test_share_step3_has_where_gemma_runs_hint() -> None:
+    """The share page Step 3 body now opens with the same Where Gemma 4
+    Runs hint used on the other design-contract pages, naming the
+    regex pass as the always-on gate and Gemma 4 as the optional
+    second control."""
+    html = _read("share.html")
+    assert 'id="share-gemma-paths-hint"' in html
+    assert "Where Gemma 4 runs on this page" in html
+    assert "Regex pass (always)" in html
+    assert "residual-PII review" in html
+
+
+def test_share_diff_render_is_dom_pure() -> None:
+    """wbRenderDiffs must not assign innerHTML with interpolated
+    user-derived strings (XSS smell). All dynamic content now flows
+    through createElement + textContent. The wbAppendLabeled helper
+    handles the label+separator+value pattern in one place."""
+    html = _read("share.html")
+    # Helper present.
+    assert "function wbAppendLabeled(" in html
+    # The body of wbRenderDiffs must not contain raw `+= '<` or
+    # `.innerHTML =` followed by an interpolated value.
+    start = html.find("function wbRenderDiffs(")
+    end = html.find("function wbStep4(", start)
+    assert start >= 0 and end > start
+    body = html[start:end]
+    # No string-built HTML with `+ escapeHtml(` (the previous pattern).
+    assert "+ escapeHtml(" not in body
+    # No innerHTML += pattern.
+    assert ".innerHTML +=" not in body
+    # No `.innerHTML = '<` style template either.
+    assert ".innerHTML = '<" not in body
+
+
+def test_share_diff_renders_two_tier_summary() -> None:
+    """The summary block must label the regex pass and the Gemma 4
+    review independently so a judge can read off "regex did X, Gemma
+    additionally did Y" without inferring."""
+    html = _read("share.html")
+    body_idx = html.find("function wbRenderDiffs(")
+    next_idx = html.find("function wbStep4(", body_idx)
+    body = html[body_idx:next_idx]
+    assert "Regex pass" in body
+    assert "Gemma 4 review" in body
+    assert "wb-anon-summary" in body
+    # Honest labels for the not-ran cases.
+    assert "no model loaded" in body
+    assert "skipped this run" in body

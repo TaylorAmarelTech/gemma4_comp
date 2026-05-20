@@ -127,7 +127,7 @@
         <div class="search-hero-item"><b>Safety first</b><span>PII is stripped before any third-party backend sees the query.</span></div>
         <div class="search-hero-item"><b>Source review</b><span>Each result stays inspectable as a source card before it becomes knowledge.</span></div>
         <div class="search-hero-item"><b>Knowledge path</b><span>Drafts go through the same Knowledge Extraction envelope flow used elsewhere.</span></div>
-        <div class="search-hero-item"><b>Model fit</b><span>Search does not require Gemma. Optional query rephrasing needs a loaded model; deeper Gemma drafting belongs in Knowledge Extraction.</span></div>
+        <div class="search-hero-item"><b>Gemma 4 role</b><span>Gemma 4 rephrases the redacted query for stronger generalization, then optionally drafts envelopes from each result. Without a loaded model the deterministic path still works end-to-end.</span></div>
       </div>
     </section>
 
@@ -195,8 +195,8 @@
             <label title="Sanitize the query via /api/search/sanitize BEFORE dispatching to any external backend. Strips PII (emails, phones, passport numbers, monetary amounts, URLs). Strongly recommended.">
               <input type="checkbox" id="sanitize" checked> <b>Sanitize query before sending</b> (recommended)
             </label>
-            <label title="If a Gemma model is loaded AND sanitize is on, ask Gemma to rephrase the redacted query into a more general form. Slower but stronger generalization.">
-              <input type="checkbox" id="rephrase"> Also ask Gemma to rephrase
+            <label data-tip="If a Gemma model is loaded AND sanitize is on, ask Gemma 4 to rephrase the redacted query into a more general form. Slower but stronger generalization. Default ON so the demo path exercises Gemma; the activity log will say if Gemma is not wired and the search will continue with the deterministic redaction." data-tip-pos="below">
+              <input type="checkbox" id="rephrase" checked> Also ask Gemma 4 to rephrase
             </label>
             <label title="Pass `anonymize_query=true` to the backend so server-side anonymization runs even when the page-side sanitize is off.">
               <input type="checkbox" id="anon" checked> Anonymize on backend too
@@ -208,6 +208,16 @@
             <div style="font-family:'JetBrains Mono', monospace; color:#5B5F68; margin-bottom:4px;">SANITIZED QUERY (sent to backend):</div>
             <div id="sanitize-preview-text" style="font-family:'JetBrains Mono', monospace; color:#0E1116;"></div>
             <div id="sanitize-preview-meta" class="wb-muted" style="margin-top:4px;"></div>
+          </div>
+          <div class="wb-muted" id="search-gemma-paths-hint"
+               style="margin-top:10px; padding:10px 12px; background:oklch(0.97 0.02 195); border:1px solid oklch(0.85 0.05 195); border-radius:8px; font-size:11.5px; line-height:1.55; color:#2A2D34;">
+            <b style="color:oklch(0.32 0.07 195);">Where Gemma 4 runs on this page:</b>
+            <ol style="margin:4px 0 0 18px; padding:0;">
+              <li><b>Query rephrase (Step 1)</b> &mdash; with "Also ask Gemma 4 to rephrase" checked, the loaded model reshapes the redacted query into a more general form before any backend sees it. The sanitize preview labels the redaction count and the activity log records <code>rephrase_fired</code>.</li>
+              <li><b>Per-result drafting (Step 2)</b> &mdash; "Draft this result" sends the snippet through the extraction harness, which will call Gemma 4 when refinement is enabled in Knowledge Extraction.</li>
+              <li><b>Knowledge Extraction (linked)</b> &mdash; deeper Gemma refinement of envelope JSON happens on the dedicated <a href="/static/knowledge.html">Knowledge Extraction</a> page after a result is drafted.</li>
+            </ol>
+            <div style="margin-top:6px; color:#5B5F68;">The activity log surfaces <code>sanitize complete</code>, <code>Gemma rephrase applied</code>, and <code>rephrase requested but Gemma not wired</code> so it is always clear what actually ran.</div>
           </div>
           <div id="status" class="wb-muted" style="margin-top:8px;"></div>
           <div style="margin-top:12px;">
