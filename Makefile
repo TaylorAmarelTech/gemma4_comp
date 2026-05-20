@@ -49,6 +49,12 @@ adversarial:
 cleanroom:
 	python scripts/cleanroom_install.py
 
+# Benchmark surface gate. Runs syntax + notebook + module + selftest
+# + endpoint roundtrip checks. Exits non-zero on any failure so CI
+# / pre-push hooks can wire it without extra glue.
+validate-benchmark:
+	python scripts/validate_benchmark.py
+
 # ── Build ────────────────────────────────────────────────────────
 build:
 	@for pkg in $(PACKAGES); do \
