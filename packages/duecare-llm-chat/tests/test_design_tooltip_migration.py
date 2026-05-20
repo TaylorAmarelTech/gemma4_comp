@@ -1185,3 +1185,143 @@ def test_compare_judge_has_purge_checkbox() -> None:
     unload_body = html[unload_idx:unload_idx + 2000]
     assert "judge-purge" in unload_body
     assert "purge_cache: purge" in unload_body
+
+
+# ---------------------------------------------------------------------------
+# Inline-Gemma watchdog + mode defaults (2026-05-19 pass)
+# ---------------------------------------------------------------------------
+
+
+def test_process_watchdog_is_25_minutes_not_90_seconds() -> None:
+    """The previous 90-second per-phase breaker tripped on healthy Gemma
+    calls (5-15 min is common on Kaggle T4 with larger variants). The new
+    behaviour scales to at least 25 minutes per phase, with a separate
+    soft-warning heartbeat at 60s/5min/15min."""
+    html = _read("process.html")
+    # New generous breaker.
+    assert "25 * 60 * 1000" in html
+    # The old 90-second hardcoded gate must be gone.
+    assert "phaseAgeMs > 90 * 1000" not in html
+    assert "exceeded 90 seconds" not in html
+    # Heartbeat scaffolding is present.
+    assert "_wbGemmaLastHeartbeatSec" in html
+    assert "Gemma phase still running" in html
+
+
+def test_process_standard_review_is_recommended_with_gemma_default() -> None:
+    """Standard review is the demo default: inline Gemma 4 ON, 5-call cap,
+    one call per page item. The mode card carries a Recommended badge."""
+    html = _read("process.html")
+    # WB_REVIEW_MODES.standard_review config.
+    sr_idx = html.find("standard_review: {")
+    assert sr_idx >= 0
+    sr_block = html[sr_idx:sr_idx + 600]
+    assert "calls: 5" in sr_block
+    assert "perItem: 1" in sr_block
+    assert "inlineGemma: true" in sr_block
+    # Quick triage stays deterministic-only (no Gemma calls).
+    qt_idx = html.find("quick_triage: {")
+    assert qt_idx >= 0
+    qt_block = html[qt_idx:qt_idx + 600]
+    assert "calls: 0" in qt_block
+    assert "inlineGemma: false" in qt_block
+    # The mode card surfaces the Recommended-for-demo signal.
+    assert "Recommended for demo" in html
+
+
+def test_process_max_calls_default_is_five() -> None:
+    """The advanced setting #wb-max-gemma-calls now defaults to 5 so it
+    matches the new standard-review preset and the user's request to cap
+    Gemma calls during demos."""
+    html = _read("process.html")
+    assert 'id="wb-max-gemma-calls" type="number" min="0" max="1000" value="5"' in html
+
+
+def test_process_has_where_gemma_runs_hint() -> None:
+    """The advanced settings section explains the three Gemma 4 paths so
+    the reviewer can pick the right button. This was previously implicit."""
+    html = _read("process.html")
+    assert 'id="wb-gemma-paths-hint"' in html
+    assert "Where Gemma 4 runs on this page" in html
+    assert "Explicit edge pass" in html
+    assert "Graph chat" in html
+
+
+def test_process_edge_pass_has_cancel_button_and_abort_flag() -> None:
+    """The Gemma edge pass is the most likely place for a long-running
+    Gemma call. It must expose a Cancel button and abort flag the operator
+    can use to stop the poll loop."""
+    html = _read("process.html")
+    assert 'id="wb-gemma-edge-cancel-btn"' in html
+    assert "wbCancelEdgePass" in html
+    assert "_wbEdgeAbort" in html
+    # The poll loop must check the flag and handle abandoned/cancelled.
+    poll_idx = html.find("async function wbPollGemmaEdgeJob(")
+    assert poll_idx >= 0
+    poll_body = html[poll_idx:poll_idx + 4500]
+    assert "_wbEdgeAbort" in poll_body
+    assert "abandoned" in poll_body
+    assert "cancelled" in poll_body
+
+
+def test_process_edge_pass_start_wraps_json_parse() -> None:
+    """The /api/process/graph-extract/start response body is parsed with
+    a try/catch so a non-JSON 502/524 page does not crash the handler
+    with a silent uncaught exception."""
+    html = _read("process.html")
+    start_idx = html.find("/api/process/graph-extract/start")
+    assert start_idx >= 0
+    # Pull a generous block around the start call and verify the body is
+    # read as text first, then JSON.parse'd inside a try/catch.
+    block = html[start_idx:start_idx + 1800]
+    assert "bodyText = await r.text()" in block
+    assert "JSON.parse(bodyText)" in block
+
+
+# ---------------------------------------------------------------------------
+# knowledge.html progress-event dedup + heartbeat
+# ---------------------------------------------------------------------------
+
+
+def test_knowledge_dedups_progress_event_tiles() -> None:
+    """The poll endpoints return the cumulative events list each call.
+    Without dedup the visible event strip explodes with duplicates
+    (the "queued / layers / model_or_fallback" cascade). The new code
+    keys each tile by (ts, phase, pct, idx) and skips duplicates."""
+    html = _read("knowledge.html")
+    assert "_kxSeenProgressKeys" in html
+    assert "kxResetProgressEvents" in html
+    assert "kxEventKey" in html
+    # The callers now pass idx.
+    assert "kxAddProgressEvent('kx-source', evt, idx)" in html
+    assert "kxAddProgressEvent('kx-draft', evt, idx)" in html
+    # The old raw innerHTML reset on the host has been replaced with
+    # kxResetProgressEvents which clears the seen-key set too.
+    assert "kxResetProgressEvents('kx-source')" in html
+    assert "kxResetProgressEvents('kx-draft')" in html
+
+
+def test_knowledge_useGemma_poll_budget_is_20_minutes() -> None:
+    """The previous useGemma budget of 180 polls (4.5 minutes) tripped
+    on legitimate Gemma calls. New budget is 800 polls (~20 minutes)."""
+    html = _read("knowledge.html")
+    assert "useGemma ? 800 : 40" in html
+
+
+def test_knowledge_has_gemma_phase_heartbeat() -> None:
+    """While in a Gemma model phase, knowledge.html must emit honest
+    "still running" log entries every 60s so the activity log does not
+    go silent during long generations."""
+    html = _read("knowledge.html")
+    assert "Knowledge draft phase:" in html
+    assert "model_or_fallback" in html  # the gated regex literal
+    assert "_kxLastHeartbeatSec" in html
+
+
+def test_knowledge_has_where_gemma_runs_hint() -> None:
+    """The knowledge page explains where Gemma 4 actually runs (Step 2
+    draft refinement, not the local Process harness summary above)."""
+    html = _read("knowledge.html")
+    assert 'id="kx-gemma-paths-hint"' in html
+    assert "Where Gemma 4 runs on this page" in html
+    assert "Knowledge draft" in html

@@ -198,6 +198,15 @@
             </label>
             <span class="dc-gemma-mark is-optional" id="kx-gemma-mark" data-tip="Reflects whether Gemma actually ran. Stays Optional unless a real token stream completes." data-tip-pos="below">Optional · Gemma</span>
           </div>
+          <div class="wb-muted" id="kx-gemma-paths-hint"
+               style="margin-top:8px; padding:10px 12px; background:oklch(0.97 0.02 195); border:1px solid oklch(0.85 0.05 195); border-radius:8px; font-size:11.5px; line-height:1.55; color:#2A2D34;">
+            <b style="color:oklch(0.32 0.07 195);">Where Gemma 4 runs on this page:</b>
+            <ol style="margin:4px 0 0 18px; padding:0;">
+              <li><b>Source bundle processing</b> &mdash; deterministic extraction by default. Gemma settings from Bulk File Review do not apply here; this page summarizes the bundle locally before drafting.</li>
+              <li><b>Knowledge draft (Step 2)</b> &mdash; with "Use Gemma refinement" checked, the loaded Gemma 4 model refines the envelope JSON. Without it, drafts are deterministic templates.</li>
+            </ol>
+            <div style="margin-top:6px; color:#5B5F68;">Gemma calls can take 1-15 minutes on Kaggle T4; the activity log emits heartbeats while a draft is running.</div>
+          </div>
           <div class="kx-step-actions">
             <button class="wb-btn-primary" type="button" onclick="kxContinueToDraft()">Continue to draft</button>
           </div>
@@ -365,13 +374,37 @@
       if (detailEl) detailEl.textContent = detail || '';
       if (noteEl) noteEl.textContent = note || 'Running locally in the Kaggle kernel.';
     }
-    function kxAddProgressEvent(prefix, evt) {
+    // Track which event tiles have already been rendered per prefix
+    // ("kx-source" and "kx-draft"). The poll endpoints return the
+    // cumulative events list every call, so we must dedupe by a
+    // stable key or the strip explodes with duplicates (the
+    // "queued / layers / model_or_fallback" cascade).
+    const _kxSeenProgressKeys = { 'kx-source': new Set(), 'kx-draft': new Set() };
+    function kxResetProgressEvents(prefix) {
+      const host = document.getElementById(prefix + '-progress-events');
+      if (host) host.innerHTML = '';
+      if (_kxSeenProgressKeys[prefix]) _kxSeenProgressKeys[prefix].clear();
+      else _kxSeenProgressKeys[prefix] = new Set();
+    }
+    function kxEventKey(evt, idx) {
+      return [evt && evt.ts, evt && evt.phase, evt && evt.pct, idx].join('|');
+    }
+    function kxAddProgressEvent(prefix, evt, idx) {
       const host = document.getElementById(prefix + '-progress-events');
       if (!host) return;
+      const key = kxEventKey(evt, idx);
+      if (!_kxSeenProgressKeys[prefix]) _kxSeenProgressKeys[prefix] = new Set();
+      if (_kxSeenProgressKeys[prefix].has(key)) return;
+      _kxSeenProgressKeys[prefix].add(key);
       const item = document.createElement('div');
       item.className = 'kx-progress-event' + (evt.status === 'error' ? '' : ' done');
-      item.innerHTML = '<b>' + escapeHtml(evt.phase || evt.status || 'event') + '</b>' +
-        '<div class="wb-muted">' + escapeHtml((evt.pct != null ? evt.pct + '% | ' : '') + (evt.detail || '')) + '</div>';
+      const head = document.createElement('b');
+      head.textContent = String(evt.phase || evt.status || 'event');
+      const detail = document.createElement('div');
+      detail.className = 'wb-muted';
+      detail.textContent = (evt.pct != null ? evt.pct + '% | ' : '') + (evt.detail || '');
+      item.appendChild(head);
+      item.appendChild(detail);
       host.appendChild(item);
     }
     function kxOpenSourceUpload(){
@@ -438,7 +471,7 @@
             'Source-bundle job ' + jobId + ': ' + phase,
             (job.detail || '') + ' | elapsed=' + Math.round(dt / 1000) + 's');
         }
-        (job.events || []).forEach(evt => kxAddProgressEvent('kx-source', evt));
+        (job.events || []).forEach((evt, idx) => kxAddProgressEvent('kx-source', evt, idx));
         const status = document.getElementById('kx-source-file-status');
         if (status) status.textContent = 'Processing source bundle: ' + phase + ' (' + (job.pct || 0) + '%).';
         if (job.status === 'complete') {
@@ -541,8 +574,7 @@
       const status = document.getElementById('kx-source-file-status');
       const rawEl = document.getElementById('kx-raw');
       if (status) status.textContent = 'Processing source bundle through the fast deterministic Bulk File Review path...';
-      const sourceEvents = document.getElementById('kx-source-progress-events');
-      if (sourceEvents) sourceEvents.innerHTML = '';
+      kxResetProgressEvents('kx-source');
       kxSetProgress('kx-source', 5, 'Uploading source bundle', 'Sending bundle to the local Process harness.', 'Upload and parse happen inside the Kaggle kernel.', true);
       wbLog('net', 'POST /api/process/batch/start',
         'source bundle=' + file.name + ' bytes=' + file.size +
@@ -647,9 +679,17 @@
     }
     async function kxPollDraftJob(jobId, t0, statusEl, useGemma) {
       const pollUrl = '/api/knowledge/draft-envelope/status/' + encodeURIComponent(jobId);
-      const maxAttempts = useGemma ? 180 : 40;
+      // Gemma 4 calls on Kaggle T4 commonly take 5-15 minutes for the
+      // 26B-A4B and 31B variants. The old 270-second budget tripped on
+      // healthy runs. Allow up to 20 minutes for the useGemma path
+      // while the deterministic fallback stays at the original short
+      // budget. Operators can still cancel via kxCancelDraftJob.
+      const maxAttempts = useGemma ? 800 : 40;
       kxSetDraftJob(jobId);
       kxDraftAbort = false;
+      let _kxPhase = '';
+      let _kxPhaseStartedAt = Date.now();
+      let _kxLastHeartbeatSec = 0;
       for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
         if (kxDraftAbort) {
           throw new Error('Knowledge draft polling abandoned. Run deterministic only for the recording path.');
@@ -668,7 +708,30 @@
           job.detail || 'running',
           'Knowledge draft job ' + jobId + ' | elapsed ' + Math.round(dt / 1000) + 's',
           job.status !== 'complete');
-        (job.events || []).forEach(evt => kxAddProgressEvent('kx-draft', evt));
+        (job.events || []).forEach((evt, idx) => kxAddProgressEvent('kx-draft', evt, idx));
+        // Heartbeat: emit an honest "still running" log entry roughly
+        // every 60s while in a Gemma model phase so the activity log
+        // doesn't go silent during a long generation.
+        const _kxNowPhase = job.phase || job.status || 'running';
+        if (_kxNowPhase !== _kxPhase) {
+          _kxPhase = _kxNowPhase;
+          _kxPhaseStartedAt = Date.now();
+          _kxLastHeartbeatSec = 0;
+        }
+        if (useGemma && /\bmodel\b|gemma|model_or_fallback/i.test(_kxPhase)) {
+          const phaseSec = Math.floor((Date.now() - _kxPhaseStartedAt) / 1000);
+          if (phaseSec >= 60 && phaseSec - _kxLastHeartbeatSec >= 60) {
+            _kxLastHeartbeatSec = phaseSec;
+            const mins = Math.floor(phaseSec / 60);
+            const lvl = phaseSec >= 15 * 60 ? 'warn' : (phaseSec >= 5 * 60 ? 'warn' : 'info');
+            const note = phaseSec >= 15 * 60
+              ? 'Phase has run over 15 minutes. Click Cancel and use deterministic-only if needed.'
+              : (phaseSec >= 5 * 60
+                  ? 'Phase has run over 5 minutes. Larger Gemma variants (26B-A4B, 31B) often take 5-15 minutes.'
+                  : 'Gemma still working. Larger variants can take several minutes per call.');
+            wbLog(lvl, 'Knowledge draft phase: ' + _kxPhase + ' (' + mins + 'm ' + (phaseSec % 60) + 's)', note);
+          }
+        }
         if (statusEl) {
           statusEl.textContent = 'Draft job ' + jobId + ': ' +
             (job.phase || job.status || 'running') + ' - ' +
@@ -733,8 +796,7 @@
           }
         }
         kxSetWorkflow(1);
-        const draftEvents = document.getElementById('kx-draft-progress-events');
-        if (draftEvents) draftEvents.innerHTML = '';
+        kxResetProgressEvents('kx-draft');
         kxSetProgress('kx-draft', 5, 'Starting knowledge draft', 'Submitting source summary to the local extraction harness.',
           useGemma ? 'Gemma refinement requested; deterministic fallback remains available.' : 'Deterministic draft path selected.', true);
         statusEl.textContent="POST /api/knowledge/draft-envelope/start (" + (useGemma ? "Gemma refinement" : "deterministic draft") + ") ...";
