@@ -929,7 +929,11 @@ def test_kernel_judge_load_enforces_preflight_with_override() -> None:
     src = _KERNEL_PATH.read_text(encoding="utf-8")
     idx = src.find("def api_load_evaluator_model(")
     assert idx >= 0
-    body = src[idx:idx + 4000]
+    # The endpoint body grew over time (mirroring-chat 409 branch +
+    # cross-slot duplicate detection + ModelSlot delegation). Pull a
+    # generous slice so the preflight assertions still find the 503
+    # branch regardless of how many gates have been added in front.
+    body = src[idx:idx + 8000]
     assert "pre = _judge_preflight(variant)" in body
     assert 'if not pre["ok"] and not override:' in body
     assert "status_code=503" in body
@@ -1747,6 +1751,72 @@ def test_kernel_queue_snapshot_includes_slot_state() -> None:
     snap_end = kernel.find("\n_MODEL_QUEUE = ", snap_idx)
     snap = kernel[snap_idx:snap_end]
     assert '"state": slot.get("state", self.STATE_CLOSED)' in snap
+
+
+def test_kernel_has_use_chat_as_judge_endpoint() -> None:
+    """The kernel exposes POST /api/use-chat-as-judge that toggles the
+    _JUDGE_USES_CHAT module flag and mirrors app.state.gemma_call into
+    app.state.evaluator_call. Refuses with 400 when no chat model is
+    loaded; refuses with 409 when a separate judge is already loaded.
+    Chat-load thread re-wires the mirror automatically; chat-unload
+    clears it."""
+    repo_root = Path(__file__).parents[3]
+    kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
+    # Module-level flag.
+    assert "_JUDGE_USES_CHAT" in kernel
+    # Endpoint exists with the new path.
+    assert '@app.post("/api/use-chat-as-judge")' in kernel
+    assert "def api_use_chat_as_judge(" in kernel
+    # 400 + 409 error paths covered explicitly.
+    ep_idx = kernel.find("def api_use_chat_as_judge(")
+    ep_end = kernel.find("\n@app.post(", ep_idx + 100)
+    ep_body = kernel[ep_idx:ep_end]
+    assert '"no_chat_model"' in ep_body
+    assert "status_code=400" in ep_body
+    assert '"separate_judge_loaded"' in ep_body
+    assert "status_code=409" in ep_body
+    # Re-wiring on chat load: when _JUDGE_USES_CHAT is set, the load
+    # thread mirrors gemma_call into evaluator_call.
+    assert "app.state.evaluator_call = app.state.gemma_call" in kernel
+    # /api/load-evaluator-model refuses when mirroring is active.
+    eval_load = kernel[kernel.find("def api_load_evaluator_model("):]
+    eval_load = eval_load[: eval_load.find("\n@app.post(")]
+    assert "_JUDGE_USES_CHAT" in eval_load
+    assert '"mirroring_chat"' in eval_load
+    # Status endpoint surfaces the flag so the UI can render the
+    # mirrored state on page load.
+    status_idx = kernel.find("def api_load_evaluator_status(")
+    status_end = kernel.find("\n@app.post(", status_idx)
+    status_body = kernel[status_idx:status_end]
+    assert '"judge_uses_chat": _JUDGE_USES_CHAT' in status_body
+
+
+def test_compare_has_use_chat_as_judge_toggle() -> None:
+    """The compare page exposes the toggle as a checkbox above the
+    existing 'Use a separate model as judge' control. The handler
+    posts to /api/use-chat-as-judge; the status poller hides the
+    separate-judge controls when the server reports mirroring."""
+    compare = _read("compare.html")
+    assert 'id="judge-use-chat-as-judge"' in compare
+    assert "function judgeUseChatAsJudge(" in compare
+    assert "/api/use-chat-as-judge" in compare
+    assert "function _judgeRenderMirrorState(" in compare
+    # When the server reports mirroring, the separate-judge controls
+    # collapse so the UI is honest about what's resident.
+    assert "data.judge_uses_chat" in compare
+
+
+def test_chat_picker_defaults_to_31b_it() -> None:
+    """The model picker now defaults the chat variant to 31b-it. With
+    'Use chat model as judge', this means one 31b-it serves both
+    chat and grading without a second model load."""
+    nav_js = _read("_nav.js")
+    # The selection ladder now prefers 31b-it before falling back
+    # to e4b-it for legacy compatibility.
+    assert "sel.value = '31b-it'" in nav_js
+    # The e4b-it fallback is still present for older variant lists
+    # that omit 31b-it.
+    assert "sel.value = 'e4b-it'" in nav_js
 
 
 def test_model_picker_handles_queue_busy_unload() -> None:
