@@ -317,16 +317,26 @@
             <div class="wb-mode-row" role="radiogroup" aria-label="Review depth">
               <button class="wb-mode-card" type="button" data-mode="quick_triage" onclick="wbSetReviewMode('quick_triage')" role="radio" aria-checked="false">
                 <b>Quick triage</b>
-                <span>Fast pass for demos and very large archives. Gemma work is a follow-up action.</span>
+                <span>Deterministic only. No Gemma during upload. Fastest path; explicit Gemma edge pass available after review.</span>
               </button>
               <button class="wb-mode-card active" type="button" data-mode="standard_review" onclick="wbSetReviewMode('standard_review')" role="radio" aria-checked="true">
-                <b>Standard review</b>
-                <span>Recommended. Classify and link all items deterministically before optional Gemma passes.</span>
+                <b>Standard review <span style="display:inline-block; margin-left:6px; padding:1px 7px; border-radius:999px; background:oklch(0.92 0.03 195); color:oklch(0.32 0.07 195); font-size:9.5px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase;">Recommended for demo</span></b>
+                <span>Gemma 4 entity and edge detection on up to 5 page items, deterministic everywhere else. Finishes in a few minutes on Kaggle T4.</span>
               </button>
               <button class="wb-mode-card" type="button" data-mode="exhaustive_review" onclick="wbSetReviewMode('exhaustive_review')" role="radio" aria-checked="false">
                 <b>Exhaustive review</b>
-                <span>Deep deterministic pass for final prep; enable inline Gemma only if you can wait.</span>
+                <span>Gemma 4 on every classified item up to 60 calls. Plan for a long-running session.</span>
               </button>
+            </div>
+            <div class="wb-muted" id="wb-gemma-paths-hint"
+                 style="margin-top:10px; padding:10px 12px; background:oklch(0.97 0.02 195); border:1px solid oklch(0.85 0.05 195); border-radius:8px; font-size:11.5px; line-height:1.55; color:#2A2D34;">
+              <b style="color:oklch(0.32 0.07 195);">Where Gemma 4 runs on this page:</b>
+              <ol style="margin:4px 0 0 18px; padding:0;">
+                <li><b>During upload (Step 2)</b> &mdash; inline Gemma 4 reads up to N page items (N = Max Gemma calls). Writes per-row case briefs and typed edges. Only fires when "Run Gemma text brief/edge synthesis inside the upload job" is checked.</li>
+                <li><b>Explicit edge pass (Step 3)</b> &mdash; click "Run local Gemma edge pass" after review. Gemma reviews the consolidated graph and proposes NEW edges between entities the rules missed.</li>
+                <li><b>Graph chat (Step 4)</b> &mdash; ask questions against the confirmed case graph. Each answer is a Gemma call.</li>
+              </ol>
+              <div style="margin-top:6px; color:#5B5F68;">Standard review enables path 1 with a 5-call cap so the demo finishes fast. Quick triage skips path 1 entirely.</div>
             </div>
             <div class="wb-muted" style="margin-top:10px; line-height:1.5;">
               <b>Model fit:</b> Deterministic extraction works without Gemma.
@@ -349,7 +359,7 @@
                 </div>
                 <div class="wb-setting">
                   <label for="wb-max-gemma-calls">Max Gemma calls</label>
-                  <input id="wb-max-gemma-calls" type="number" min="0" max="1000" value="75" onchange="wbUpdateSettingsSummary()">
+                  <input id="wb-max-gemma-calls" type="number" min="0" max="1000" value="5" onchange="wbUpdateSettingsSummary()">
                 </div>
                 <div class="wb-setting">
                   <label for="wb-calls-per-item">Gemma calls per page item</label>
@@ -380,7 +390,7 @@
                 <label><input type="checkbox" class="wb-page-item-type" value="video_frame_or_scene" checked onchange="wbUpdateSettingsSummary()"> Video frames/scenes</label>
               </div>
               <div class="wb-review-checks">
-                <label><input type="checkbox" id="wb-run-inline-gemma" onchange="wbUpdateSettingsSummary()"> Run Gemma text brief/edge synthesis inside the upload job. Leave off for recording; use the explicit edge pass after review.</label>
+                <label><input type="checkbox" id="wb-run-inline-gemma" onchange="wbUpdateSettingsSummary()"> Run Gemma text brief / edge synthesis inside the upload job. Gemma 4 can take 1-15 minutes per call on Kaggle; the Max Gemma calls cap above keeps the total bounded.</label>
                 <label><input type="checkbox" id="wb-generate-knowledge" checked onchange="wbUpdateSettingsSummary()"> Generate reviewable knowledge-object candidates from repeated patterns.</label>
                 <label><input type="checkbox" id="wb-include-knowledge" checked onchange="wbUpdateSettingsSummary()"> Use imported local knowledge files as context for Gemma edge/RAG prompts.</label>
               </div>
@@ -529,6 +539,10 @@
           <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
             <button class="wb-btn-secondary" id="wb-gemma-edge-btn" type="button" onclick="wbRunGemmaEdgePass()">
               Run local Gemma edge pass
+            </button>
+            <button class="wb-btn-secondary" id="wb-gemma-edge-cancel-btn" type="button" onclick="wbCancelEdgePass()" hidden
+                    style="background:#FFF7F3; border-color:oklch(0.78 0.10 45); color:oklch(0.40 0.16 25);">
+              Cancel edge pass
             </button>
             <span class="dc-gemma-mark is-optional" id="wb-gemma-edge-mark">Optional · Gemma</span>
           </div>
@@ -790,6 +804,7 @@
     let _wbProcessWatchPhase = '';
     let _wbProcessPhaseStartedAt = 0;
     let _wbGemmaWatchdogWarned = false;
+    let _wbGemmaLastHeartbeatSec = 0;
     const WB_PROCESS_STAGES = [
       {
         pct: 6,
@@ -1066,30 +1081,41 @@
         ok: 'complete',
       })[status] || String(status || 'pending').replace(/_/g, ' ');
     }
+    // Review modes preset the four most important settings: runtime
+    // budget, max Gemma calls, Gemma calls per page item, and whether
+    // the inline upload-job Gemma path is on. Standard review is the
+    // demo default: inline Gemma 4 ON, capped at 5 calls, so the
+    // bundle still finishes in a few minutes on Kaggle T4 while
+    // showing Gemma at work on real entity and edge proposals. Quick
+    // triage stays deterministic-only for cases where Gemma timing is
+    // unaffordable. Exhaustive runs Gemma broadly for final prep.
     const WB_REVIEW_MODES = {
       quick_triage: {
         label: 'Quick triage',
         runtime: 5,
-        calls: 20,
+        calls: 0,
         perItem: 0,
+        inlineGemma: false,
         strictness: 'conservative',
-        detail: 'Fast pass for demos and very large archives. Deterministic extraction runs everywhere; Gemma text passes are explicit follow-up work.'
+        detail: 'Deterministic only. No Gemma calls during upload. Fastest path. Use the explicit Gemma edge pass after Step 3 to add model-proposed edges.'
       },
       standard_review: {
         label: 'Standard review',
         runtime: 15,
-        calls: 75,
-        perItem: 0,
+        calls: 5,
+        perItem: 1,
+        inlineGemma: true,
         strictness: 'balanced',
-        detail: 'Recommended default. Classify and link all items deterministically, then run optional Gemma prompts after the graph review gate.'
+        detail: 'Recommended for the demo. Runs Gemma 4 on up to 5 page items for entity/edge detection during upload; deterministic extraction covers the rest. Finishes in a few minutes on Kaggle T4.'
       },
       exhaustive_review: {
         label: 'Exhaustive review',
         runtime: 60,
-        calls: 240,
-        perItem: 0,
+        calls: 60,
+        perItem: 1,
+        inlineGemma: true,
         strictness: 'exploratory',
-        detail: 'Deep local pass for final case prep. Enable inline Gemma only when you can wait for long model calls.'
+        detail: 'Deep local pass for final case prep. Runs Gemma 4 on every classified page item up to 60 calls. Plan for a long-running session.'
       }
     };
     let wbReviewMode = 'standard_review';
@@ -1114,7 +1140,14 @@
       if (runtime) runtime.value = String(cfg.runtime);
       if (calls) calls.value = String(cfg.calls);
       if (perItem) perItem.value = String(cfg.perItem);
-      if (inline) inline.checked = false;
+      // Each mode declares whether it wants the inline Gemma path on.
+      // If a prior phase tripped the browser-side lock, leave it off
+      // and surface the existing wb-inline-gemma-guard banner so the
+      // user can clear it explicitly.
+      if (inline) {
+        const wantInline = !!cfg.inlineGemma && !wbInlineGemmaDisabled();
+        inline.checked = wantInline;
+      }
       if (strict) strict.value = cfg.strictness;
       wbUpdateSettingsSummary();
     }
@@ -1195,6 +1228,13 @@
     let _wbLastProcessPollPhase = '';
     let _wbSeenProcessEventKeys = new Set();
     let _wbSeenEdgeEventKeys = new Set();
+    let _wbEdgeAbort = false;
+    let _wbActiveEdgeJobId = '';
+    function wbCancelEdgePass() {
+      _wbEdgeAbort = true;
+      wbLog('warn', 'Cancel requested for Gemma edge pass',
+        _wbActiveEdgeJobId ? ('job_id=' + _wbActiveEdgeJobId) : 'no active job');
+    }
     async function wbSleep(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
     }
@@ -1257,6 +1297,7 @@
       _wbProcessWatchPhase = '';
       _wbProcessPhaseStartedAt = Date.now();
       _wbGemmaWatchdogWarned = false;
+      _wbGemmaLastHeartbeatSec = 0;
       for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
         if (wbActiveProcessAbort) {
           throw new Error('Process job polling abandoned by operator. Retry deterministic mode for the recording path.');
@@ -1275,20 +1316,62 @@
           _wbProcessWatchPhase = phase;
           _wbProcessPhaseStartedAt = Date.now();
           _wbGemmaWatchdogWarned = false;
+          _wbGemmaLastHeartbeatSec = 0;
         }
         const phaseAgeMs = Date.now() - _wbProcessPhaseStartedAt;
+        const phaseSeconds = Math.floor(phaseAgeMs / 1000);
+        // Heartbeat: while in a Gemma model phase, emit an honest
+        // "still running" log entry roughly every 60 seconds. Gemma 4
+        // on a Kaggle T4 can legitimately take 5-15 minutes per call
+        // (especially with 26B-A4B or 31B variants), so the previous
+        // 90s hard breaker was firing on healthy runs. The heartbeat
+        // makes long Gemma work observable instead of looking frozen,
+        // and escalates the log level at 5 and 15 minutes so the
+        // operator can decide whether to cancel.
         if (
           settings?.run_inline_gemma_text &&
           wbIsModelPhase(phase) &&
-          phaseAgeMs > 90 * 1000 &&
+          phaseSeconds >= 60 &&
+          phaseSeconds - _wbGemmaLastHeartbeatSec >= 60
+        ) {
+          _wbGemmaLastHeartbeatSec = phaseSeconds;
+          const mins = Math.floor(phaseSeconds / 60);
+          let lvl = 'info';
+          let note = 'Gemma still working. Larger variants can take several minutes per call.';
+          if (phaseSeconds >= 15 * 60) {
+            lvl = 'warn';
+            note = 'Phase has run over 15 minutes. Consider Cancel and use Quick triage, or load a smaller variant (E4B-it / E2B-it).';
+          } else if (phaseSeconds >= 5 * 60) {
+            lvl = 'warn';
+            note = 'Phase has run over 5 minutes. Larger variants (26B-A4B, 31B) often take 5-15 minutes per Gemma call. Cancel from the progress box if needed.';
+          }
+          wbLog(lvl, 'Gemma phase still running: ' + phase + ' (' + mins + 'm ' + (phaseSeconds % 60) + 's)', note);
+        }
+        // Hard breaker: only fire when a single phase has exceeded the
+        // generous absolute deadline (default 25 minutes, scaled up if
+        // the operator set an even larger runtime budget). This keeps
+        // the lock as a safety net for truly stuck phases while
+        // letting realistic 5-15 minute Gemma calls complete.
+        const phaseHardDeadlineMs = Math.max(
+          25 * 60 * 1000,
+          (Number(settings?.runtime_budget_minutes || 15) * 60 * 1000)
+        );
+        if (
+          settings?.run_inline_gemma_text &&
+          wbIsModelPhase(phase) &&
+          phaseAgeMs > phaseHardDeadlineMs &&
           !_wbGemmaWatchdogWarned
         ) {
           _wbGemmaWatchdogWarned = true;
-          wbSetInlineGemmaBreaker('Inline Gemma upload phase "' + phase + '" exceeded 90 seconds.');
+          const breakerMin = Math.round(phaseHardDeadlineMs / 60000);
+          wbSetInlineGemmaBreaker(
+            'Inline Gemma upload phase "' + phase + '" exceeded ' + breakerMin + ' minutes. '
+            + 'Try a smaller Gemma variant or raise the Runtime budget.'
+          );
           wbLog(
             'warn',
-            'Inline Gemma watchdog tripped',
-            'Future upload jobs will default back to deterministic mode. Use the explicit Gemma edge pass after graph review.'
+            'Inline Gemma watchdog tripped after ' + breakerMin + ' min',
+            'Inline upload calls are auto-disabled for this browser. Clear lock in advanced settings to re-enable.'
           );
         }
         const pct = Math.max(0, Math.min(100, Number(job.pct || 0)));
@@ -1939,34 +2022,78 @@
     }
     async function wbPollGemmaEdgeJob(jobId, t0) {
       const pollUrl = '/api/process/graph-extract/status/' + encodeURIComponent(jobId);
-      for (let attempt = 0; attempt < 600; attempt += 1) {
-        const r = await fetch(pollUrl, {cache: 'no-store'});
-        const text = await r.text();
-        let job = null;
-        try { job = JSON.parse(text); } catch (_) {}
-        const dt = Math.round(performance.now() - t0);
-        if (!r.ok || !job) {
-          wbLog('err', 'Gemma edge job poll failed HTTP ' + r.status + ' (' + dt + 'ms)', text.slice(0, 220));
-          throw new Error('Gemma edge job polling failed: HTTP ' + r.status);
+      _wbEdgeAbort = false;
+      _wbActiveEdgeJobId = jobId;
+      let phaseStartedAt = Date.now();
+      let lastPhase = '';
+      let lastHeartbeatSec = 0;
+      // 1200ms sleep between polls; budget the loop at 25 minutes so a
+      // legitimately slow Gemma call has room to finish. The operator
+      // can still abort at any time via the Cancel button.
+      const maxAttempts = Math.ceil((25 * 60 * 1000) / 1200);
+      try {
+        for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+          if (_wbEdgeAbort) {
+            throw new Error('Gemma edge pass abandoned by operator.');
+          }
+          let r;
+          let text = '';
+          try {
+            r = await fetch(pollUrl, {cache: 'no-store'});
+            text = await r.text();
+          } catch (netErr) {
+            wbLog('err', 'Gemma edge poll network error', String(netErr).slice(0, 220));
+            throw new Error('Gemma edge polling network error: ' + String(netErr).slice(0, 120));
+          }
+          let job = null;
+          try { job = JSON.parse(text); } catch (_) {}
+          const dt = Math.round(performance.now() - t0);
+          if (!r.ok || !job) {
+            wbLog('err', 'Gemma edge job poll failed HTTP ' + r.status + ' (' + dt + 'ms)', String(text).slice(0, 220));
+            throw new Error('Gemma edge job polling failed: HTTP ' + r.status);
+          }
+          const phase = job.phase || job.status || 'running';
+          if (phase !== lastPhase) {
+            lastPhase = phase;
+            phaseStartedAt = Date.now();
+            lastHeartbeatSec = 0;
+          }
+          const phaseSec = Math.floor((Date.now() - phaseStartedAt) / 1000);
+          if (wbIsModelPhase(phase) && phaseSec >= 60 && phaseSec - lastHeartbeatSec >= 60) {
+            lastHeartbeatSec = phaseSec;
+            const mins = Math.floor(phaseSec / 60);
+            const lvl = phaseSec >= 15 * 60 ? 'warn' : (phaseSec >= 5 * 60 ? 'warn' : 'info');
+            const note = phaseSec >= 15 * 60
+              ? 'Phase has run over 15 minutes. Click Cancel if you want to abort.'
+              : (phaseSec >= 5 * 60
+                  ? 'Phase has run over 5 minutes. Larger Gemma variants (26B-A4B, 31B) often take 5-15 minutes per call.'
+                  : 'Gemma still working. Larger variants can take several minutes per call.');
+            wbLog(lvl, 'Edge-pass phase: ' + phase + ' (' + mins + 'm ' + (phaseSec % 60) + 's)', note);
+          }
+          wbSetEdgeProgress(
+            job.pct || 0,
+            'Gemma edge pass: ' + wbStatusLabel(phase),
+            job.detail || ('status=' + (job.status || 'running')),
+            'job_id=' + jobId + ' | elapsed ' + Math.round(dt / 1000) + 's'
+          );
+          wbRenderEdgeEvents(job.events || []);
+          wbLogEdgeJobEvents(jobId, job.events || []);
+          if (job.status === 'complete') {
+            if (!job.result) throw new Error('Gemma edge job completed without a result payload.');
+            return job.result;
+          }
+          if (job.status === 'abandoned' || job.status === 'cancelled') {
+            throw new Error(job.detail || 'Gemma edge job was cancelled.');
+          }
+          if (job.status === 'error') {
+            throw new Error(job.error || job.detail || 'Gemma edge job failed.');
+          }
+          await wbSleep(1200);
         }
-        wbSetEdgeProgress(
-          job.pct || 0,
-          'Gemma edge pass: ' + wbStatusLabel(job.phase || job.status || 'running'),
-          job.detail || ('status=' + (job.status || 'running')),
-          'job_id=' + jobId + ' | elapsed ' + Math.round(dt / 1000) + 's'
-        );
-        wbRenderEdgeEvents(job.events || []);
-        wbLogEdgeJobEvents(jobId, job.events || []);
-        if (job.status === 'complete') {
-          if (!job.result) throw new Error('Gemma edge job completed without a result payload.');
-          return job.result;
-        }
-        if (job.status === 'error') {
-          throw new Error(job.error || job.detail || 'Gemma edge job failed.');
-        }
-        await wbSleep(1200);
+        throw new Error('Gemma edge job polling timed out locally after 25 minutes.');
+      } finally {
+        _wbActiveEdgeJobId = '';
       }
-      throw new Error('Gemma edge job polling timed out locally.');
     }
     async function wbRunGemmaEdgePass() {
       if (!wbBundle) {
@@ -1979,7 +2106,9 @@
         return;
       }
       const btn = document.getElementById('wb-gemma-edge-btn');
+      const cancelBtn = document.getElementById('wb-gemma-edge-cancel-btn');
       if (btn) { btn.disabled = true; btn.textContent = 'Running local Gemma...'; }
+      if (cancelBtn) cancelBtn.hidden = false;
       const edgeMark = document.getElementById('wb-gemma-edge-mark');
       if (edgeMark) {
         edgeMark.className = 'dc-gemma-mark is-active';
@@ -1996,16 +2125,28 @@
         'prompt_id=case_graph_edges | mode=' + modeLabel + ' | returned edge limit=' + limit);
       const t0 = performance.now();
       try {
-        const r = await fetch('/api/process/graph-extract/start', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({prompt_id: 'case_graph_edges', limit: limit})
-        });
-        const start = await r.json();
+        let r;
+        let bodyText = '';
+        try {
+          r = await fetch('/api/process/graph-extract/start', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({prompt_id: 'case_graph_edges', limit: limit})
+          });
+          bodyText = await r.text();
+        } catch (netErr) {
+          throw new Error('Gemma edge start network error: ' + String(netErr).slice(0, 120));
+        }
+        let start = null;
+        try { start = JSON.parse(bodyText); } catch (_) { start = null; }
         const dt = Math.round(performance.now() - t0);
-        if (!r.ok || !start.job_id) {
-          wbLog('err', 'Gemma edge pass failed HTTP ' + r.status + ' (' + dt + 'ms)', JSON.stringify(start).slice(0, 240));
-          return;
+        if (!r.ok || !start || !start.job_id) {
+          const snippet = (bodyText || '').slice(0, 240);
+          wbLog('err', 'Gemma edge pass start failed HTTP ' + r.status + ' (' + dt + 'ms)', snippet);
+          // Throw so the catch block below resets the progress box,
+          // flips the gemma-mark to unavailable, and shows a visible
+          // error instead of leaving "Starting..." on screen.
+          throw new Error('Gemma edge start failed: HTTP ' + r.status + (snippet ? ' | ' + snippet.slice(0, 160) : ''));
         }
         wbLog('ok', 'Gemma edge job accepted (' + dt + 'ms)', 'job_id=' + start.job_id + ' | limit=' + limit);
         const out = await wbPollGemmaEdgeJob(start.job_id, t0);
@@ -2042,6 +2183,8 @@
         }
       } finally {
         if (btn) { btn.disabled = false; btn.textContent = 'Run local Gemma edge pass'; }
+        if (cancelBtn) cancelBtn.hidden = true;
+        _wbEdgeAbort = false;
       }
     }
     function wbRenderJourney(intel) {
