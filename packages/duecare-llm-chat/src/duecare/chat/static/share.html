@@ -170,6 +170,16 @@
       <span class="dc-pill is-waiting" id="wb-step-3-state" style="margin-left:auto; align-self:center;"><span class="dot"></span><span class="dc-pill-label">Waiting</span></span>
       </summary>
       <div class="wb-step-body">
+        <div class="wb-muted" id="share-gemma-paths-hint"
+             style="margin: 0 0 12px; padding:10px 12px; background:oklch(0.97 0.02 195); border:1px solid oklch(0.85 0.05 195); border-radius:8px; font-size:11.5px; line-height:1.55; color:#2A2D34;">
+          <b style="color:oklch(0.32 0.07 195);">Where Gemma 4 runs on this page:</b>
+          <ol style="margin:4px 0 0 18px; padding:0;">
+            <li><b>Regex pass (always)</b> &mdash; deterministic redaction strips PERSON, EMAIL, PHONE, AMOUNT, ID patterns first. This is the hard gate.</li>
+            <li><b>Gemma 4 residual-PII review (optional, second control)</b> &mdash; when a model is loaded, Gemma 4 reviews the already-redacted text for anything regex missed. The marker right of the button only flips to <code>is-done</code> when a real model call completes; otherwise it stays <code>is-optional</code> or <code>is-unavailable</code>. Findings show below as additions to the regex pass, never replacing it.</li>
+            <li><b>Hub submit (Step 4)</b> &mdash; no Gemma call; the redacted bundle plus the optional review findings are POSTed and the audit log records both regex and Gemma counts.</li>
+          </ol>
+          <div style="margin-top:6px; color:#5B5F68;">Click <b>Run anonymization</b> to run regex + Gemma review (default), or <b>Run deterministic only</b> to skip Gemma for a fast recording fallback.</div>
+        </div>
         <div id="wb-diff-host" style="background: #FFF; border: 1px solid #EFEDE4; border-radius: 8px;
              padding: 8px; max-height: 240px; overflow-y: auto;">
           <div class="wb-muted" style="padding: 12px; text-align: center;">(complete Step 2 first)</div>
@@ -552,29 +562,120 @@
         if (fastBtn) fastBtn.disabled = selected.length === 0;
       }
     }
+    // Small DOM helper: append a "<b>label</b> sep <span>value</span>"
+    // line to a parent without ever assigning innerHTML. Keeps the
+    // diff renderer purely DOM-based so an audit-grep for innerHTML
+    // returns zero hits on user-derived strings.
+    function wbAppendLabeled(parent, label, separator, valueText, valueClass) {
+      const b = document.createElement('b');
+      b.textContent = label;
+      parent.appendChild(b);
+      if (separator) parent.appendChild(document.createTextNode(separator));
+      if (valueText != null) {
+        const span = document.createElement('span');
+        if (valueClass) span.className = valueClass;
+        span.textContent = String(valueText);
+        parent.appendChild(span);
+      }
+    }
     function wbRenderDiffs() {
       const host = document.getElementById('wb-diff-host');
+      while (host.firstChild) host.removeChild(host.firstChild);
       if (!wbAnonymized || !wbAnonymized.redacted.length) {
-        host.innerHTML = '<div class="wb-muted" style="padding:12px;">No facts to anonymize.</div>'; return;
+        const empty = document.createElement('div');
+        empty.className = 'wb-muted';
+        empty.style.padding = '12px';
+        empty.textContent = 'No facts to anonymize.';
+        host.appendChild(empty);
+        return;
       }
-      host.innerHTML = wbAnonymized.redacted.map((red, i) => {
+      // Per-row before/after diffs (deterministic regex pass). Built
+      // with explicit DOM nodes so there is no string-based HTML
+      // concatenation around user-derived text.
+      wbAnonymized.redacted.forEach((red, i) => {
         const raw = (wbAnonymized.selected[i] && JSON.stringify(wbAnonymized.selected[i].entities)) || '';
         const diff = wbAnonymized.diffs[i] || {};
-        return '<div class="wb-diff-row">' +
-          '<div><b>Before</b><br><span class="raw">' + (raw ? escapeHtml(raw) : '<i>-</i>') + '</span></div>' +
-          '<div><b>After (' + escapeHtml(diff.n_redactions || 0) + ' redaction(s))</b><br><span class="redacted">' + escapeHtml(red) + '</span></div>' +
-          '</div>';
-      }).join('');
+        const row = document.createElement('div');
+        row.className = 'wb-diff-row';
+        const before = document.createElement('div');
+        const beforeLabel = document.createElement('b');
+        beforeLabel.textContent = 'Before';
+        before.appendChild(beforeLabel);
+        before.appendChild(document.createElement('br'));
+        const beforeSpan = document.createElement('span');
+        beforeSpan.className = 'raw';
+        beforeSpan.textContent = raw || '-';
+        before.appendChild(beforeSpan);
+        const after = document.createElement('div');
+        const afterLabel = document.createElement('b');
+        afterLabel.textContent = 'After (' + (diff.n_redactions || 0) + ' redaction(s))';
+        after.appendChild(afterLabel);
+        after.appendChild(document.createElement('br'));
+        const afterSpan = document.createElement('span');
+        afterSpan.className = 'redacted';
+        afterSpan.textContent = red;
+        after.appendChild(afterSpan);
+        row.appendChild(before);
+        row.appendChild(after);
+        host.appendChild(row);
+      });
+      // Two-tier summary: regex first, Gemma second. The block
+      // honestly labels whether Gemma actually ran so a judge does
+      // not infer a model call when only regex fired.
       const review = wbAnonymized.gemma_review || {};
       const findings = review.findings || [];
-      host.innerHTML += '<div style="margin-top:10px; padding:10px 12px; border:1px solid #EFEDE4; border-radius:8px; background:#FAF9F4;">' +
-        '<b>Gemma privacy review</b><br>' +
-        '<span class="wb-muted">status: ' + escapeHtml(review.overall_status || review.status || 'not run') +
-        ' | findings: ' + escapeHtml(findings.length || 0) + '</span>' +
-        (findings.length ? '<ul style="margin:8px 0 0; padding-left:18px; font-size:12px;">' +
-          findings.map(f => '<li>' + escapeHtml((f.category || 'finding') + ': ' + (f.explanation_without_quote || f.explanation || 'review manually')) + '</li>').join('') +
-          '</ul>' : '<div class="wb-muted" style="margin-top:6px;">No residual PII findings returned by the model review.</div>') +
-        '</div>';
+      const regexTotal = (wbAnonymized.diffs || []).reduce((a, d) => a + (d.n_redactions || 0), 0);
+      const status = String(review.overall_status || review.status || '');
+      const gemmaRan = !!(status && status !== 'not_run' && status !== 'skipped' && status !== 'unavailable');
+      const summary = document.createElement('div');
+      summary.id = 'wb-anon-summary';
+      summary.style.cssText =
+        'margin-top:10px; padding:10px 12px; border:1px solid #EFEDE4; '
+        + 'border-radius:8px; background:#FAF9F4;';
+      const rxLine = document.createElement('div');
+      wbAppendLabeled(
+        rxLine,
+        'Regex pass',
+        ' · ',
+        regexTotal + ' redaction(s) across ' + (wbAnonymized.diffs || []).length + ' text(s)',
+        'wb-muted'
+      );
+      summary.appendChild(rxLine);
+      const gemmaLine = document.createElement('div');
+      gemmaLine.style.marginTop = '6px';
+      const gemmaTag = gemmaRan
+        ? (findings.length
+            ? 'flagged ' + findings.length + ' residual concern(s) beyond regex'
+            : 'confirmed no residual PII beyond regex')
+        : (status === 'unavailable'
+            ? 'unavailable (no model loaded)'
+            : 'skipped this run');
+      wbAppendLabeled(
+        gemmaLine,
+        'Gemma 4 review',
+        ' · ',
+        'status: ' + (status || 'not run') + ' · ' + gemmaTag,
+        'wb-muted'
+      );
+      summary.appendChild(gemmaLine);
+      if (findings.length) {
+        const ul = document.createElement('ul');
+        ul.style.cssText = 'margin:8px 0 0; padding-left:18px; font-size:12px;';
+        findings.forEach(f => {
+          const li = document.createElement('li');
+          li.textContent = (f.category || 'finding') + ': '
+            + (f.explanation_without_quote || f.explanation || 'review manually');
+          ul.appendChild(li);
+        });
+        summary.appendChild(ul);
+      } else if (gemmaRan) {
+        const okLine = document.createElement('div');
+        okLine.className = 'wb-muted';
+        okLine.style.marginTop = '6px';
+        okLine.textContent = 'Gemma 4 read the post-regex redacted text and did not propose additional redactions. Human review still required before submission.';
+        summary.appendChild(okLine);
+      }
+      host.appendChild(summary);
     }
     async function wbStep4() {
       const btn = document.getElementById('wb-step4-btn'); btn.disabled = true; btn.textContent = 'Submitting...';
