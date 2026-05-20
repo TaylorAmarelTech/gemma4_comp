@@ -168,7 +168,7 @@
 <body data-nav="process">
   <main class="wb-page">
     <h1 class="wb-h1">Bulk File Review</h1>
-    <div class="dc-trust-row" role="note" aria-label="Trust boundary" style="margin-bottom: 14px;">
+    <div class="dc-trust-row is-private" role="note" aria-label="Trust boundary" style="margin-bottom: 14px;">
       <span class="dc-trust-pill"><span class="dot"></span>LOCAL</span>
       <span class="dc-trust-pill"><span class="dot"></span>NO REMOTE CALLS</span>
       <span class="dc-trust-pill"><span class="dot"></span>REVIEWER GATED</span>
@@ -2105,14 +2105,21 @@
         wbLog('warn', 'Gemma edge pass blocked', 'Confirm extracted intelligence before running model edge synthesis.');
         return;
       }
+      // Reset the abort flag from any previous run so a stale Cancel
+      // from a prior edge pass does not short-circuit this one.
+      _wbEdgeAbort = false;
       const btn = document.getElementById('wb-gemma-edge-btn');
       const cancelBtn = document.getElementById('wb-gemma-edge-cancel-btn');
       if (btn) { btn.disabled = true; btn.textContent = 'Running local Gemma...'; }
       if (cancelBtn) cancelBtn.hidden = false;
       const edgeMark = document.getElementById('wb-gemma-edge-mark');
+      // Marker honesty: stay Optional with a "Gemma queued" label
+      // until the server actually acknowledges the job. We promote
+      // to is-active only after the start response confirms the job
+      // was accepted (job_id present).
       if (edgeMark) {
-        edgeMark.className = 'dc-gemma-mark is-active';
-        edgeMark.textContent = 'Gemma active';
+        edgeMark.className = 'dc-gemma-mark is-optional';
+        edgeMark.textContent = 'Gemma queued';
       }
       const settings = (wbBundle.config && wbBundle.config.process_settings) || wbProcessSettings();
       const rawLimit = settings.max_gemma_calls || 32;
@@ -2149,6 +2156,11 @@
           throw new Error('Gemma edge start failed: HTTP ' + r.status + (snippet ? ' | ' + snippet.slice(0, 160) : ''));
         }
         wbLog('ok', 'Gemma edge job accepted (' + dt + 'ms)', 'job_id=' + start.job_id + ' | limit=' + limit);
+        // Job confirmed; now the marker can honestly show is-active.
+        if (edgeMark) {
+          edgeMark.className = 'dc-gemma-mark is-active';
+          edgeMark.textContent = 'Gemma active';
+        }
         const out = await wbPollGemmaEdgeJob(start.job_id, t0);
         wbBundle.intelligence = wbBundle.intelligence || {};
         wbBundle.intelligence.gemma_edge_pass = out;

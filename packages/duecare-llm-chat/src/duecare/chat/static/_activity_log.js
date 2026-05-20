@@ -345,4 +345,63 @@
     parseSSE: parseSSE,
     progressRow: progressRow,
   };
+
+  /**
+   * Shared helper for the inference-queue 503 envelope. The kernel
+   * returns {status: "queue_full" | "queue_closed", message, queue}
+   * with the per-slot snapshot. Every page that calls an inference
+   * endpoint should route its non-OK branch through this helper so
+   * users see "queue full, 2 ahead of you" instead of "HTTP 503".
+   *
+   * Usage:
+   *   const queueErr = await window.dcInferenceError.parse(response);
+   *   if (queueErr) {
+   *     log.warn(window.dcInferenceError.format(queueErr));
+   *     return;
+   *   }
+   *
+   * Returns null when the response is not a queue error so the
+   * caller can fall through to its existing generic error handling.
+   */
+  window.dcInferenceError = {
+    async parse(response) {
+      if (!response || response.status !== 503) return null;
+      try {
+        const cloned = (typeof response.clone === 'function')
+          ? response.clone() : response;
+        const data = await cloned.json();
+        if (data && (data.status === 'queue_full' || data.status === 'queue_closed')) {
+          return {
+            status: String(data.status),
+            message: String(data.message || ''),
+            maxWaiting: Number(data.max_waiting || 0),
+            queue: data.queue || null,
+          };
+        }
+      } catch (_) {
+        // Body was not JSON, or already consumed. Fall through and
+        // let the caller use its generic 503 handling.
+      }
+      return null;
+    },
+    format(err) {
+      if (!err) return '';
+      const slots = (err.queue && err.queue.slots) || {};
+      let activeTotal = 0;
+      let waitingTotal = 0;
+      Object.keys(slots).forEach(name => {
+        const s = slots[name] || {};
+        activeTotal += Number(s.n_active || 0);
+        waitingTotal += Number(s.n_waiting || 0);
+      });
+      const head = err.status === 'queue_closed'
+        ? 'Model not accepting requests yet'
+        : 'Inference queue full';
+      const detail = [];
+      if (activeTotal) detail.push(activeTotal + ' running');
+      if (waitingTotal) detail.push(waitingTotal + ' waiting');
+      const suffix = detail.length ? ' (' + detail.join(', ') + ')' : '';
+      return head + suffix + (err.message ? ' — ' + err.message : '');
+    },
+  };
 })();

@@ -1645,7 +1645,10 @@ def test_kernel_has_model_queue_with_chat_and_judge_slots() -> None:
     assert "MAX_WAITING" in kernel
     assert "class _QueueFull" in kernel
     # Both backend assignments now route through the wrapper.
-    assert 'app.state.gemma_call = _queue_wrap(loaded_local.backend, "chat")' in kernel
+    # Chat-load thread captures the wrapped callable in `wrapped_chat`
+    # before the atomic assignment under the queue _meta lock. The
+    # original `_queue_wrap(... "chat")` factory call appears once.
+    assert '_queue_wrap(loaded_local.backend, "chat")' in kernel
     assert 'app.state.evaluator_call = _queue_wrap(loaded_local.backend, "judge")' in kernel
     # 503 handler maps the exception to JSON so each route benefits
     # automatically (no per-route try/except needed).
@@ -1776,8 +1779,12 @@ def test_kernel_has_use_chat_as_judge_endpoint() -> None:
     assert '"separate_judge_loaded"' in ep_body
     assert "status_code=409" in ep_body
     # Re-wiring on chat load: when _JUDGE_USES_CHAT is set, the load
-    # thread mirrors gemma_call into evaluator_call.
-    assert "app.state.evaluator_call = app.state.gemma_call" in kernel
+    # thread mirrors the wrapped chat callable into evaluator_call.
+    # Both the chat-load thread and the toggle endpoint assign through
+    # local variables (wrapped_chat / chat_call) under the queue _meta
+    # lock so the flag and the mirrored callable cannot drift apart.
+    assert "app.state.evaluator_call = wrapped_chat" in kernel
+    assert "app.state.evaluator_call = chat_call" in kernel
     # /api/load-evaluator-model refuses when mirroring is active.
     eval_load = kernel[kernel.find("def api_load_evaluator_model("):]
     eval_load = eval_load[: eval_load.find("\n@app.post(")]
@@ -1804,6 +1811,129 @@ def test_compare_has_use_chat_as_judge_toggle() -> None:
     # When the server reports mirroring, the separate-judge controls
     # collapse so the UI is honest about what's resident.
     assert "data.judge_uses_chat" in compare
+
+
+def test_kernel_sets_hf_home_under_kaggle_working() -> None:
+    """On Kaggle, the HF cache must land under /kaggle/working so the
+    preflight disk gate (which measures that partition) matches the
+    actual download destination. The default is the root filesystem,
+    which has a different quota -- so the kernel sets HF_HOME at
+    import time when /kaggle/working exists."""
+    repo_root = Path(__file__).parents[3]
+    kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
+    assert "/kaggle/working/.cache/huggingface" in kernel
+    assert 'os.environ["HF_HOME"] = _kaggle_hf_home' in kernel
+    # HF_HUB_CACHE is the modern shorthand; TRANSFORMERS_CACHE the legacy.
+    assert "HF_HUB_CACHE" in kernel
+    assert "TRANSFORMERS_CACHE" in kernel
+
+
+def test_kernel_lowered_31b_disk_footprint() -> None:
+    """The 31b-it disk footprint estimate was lowered from 30GB to the
+    quantised-shard reality (~18GB) so preflight does not reject the
+    default chat variant on a fresh Kaggle session."""
+    repo_root = Path(__file__).parents[3]
+    kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
+    # 31b-it disk dropped to 18GB (was 30); jailbroken-31b mirrors.
+    assert '"31b-it":         {"disk": 18.0' in kernel
+    assert '"jailbroken-31b": {"disk": 18.0' in kernel
+
+
+def test_kernel_purges_partial_shards_on_load_failure() -> None:
+    """Mid-download failures (disk full, HF rate limit) used to leave
+    partial shards consuming disk. The load thread's exception path
+    now calls _purge_hf_cache_for_variant so a retry has a clean budget."""
+    repo_root = Path(__file__).parents[3]
+    kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
+    # The chat-load thread purges on failure.
+    err_section_idx = kernel.find('"FAILED:')
+    assert err_section_idx >= 0
+    err_section = kernel[err_section_idx:err_section_idx + 2000]
+    assert "_purge_hf_cache_for_variant(variant)" in err_section
+
+
+def test_queue_wrap_rechecks_state_after_lock_acquire() -> None:
+    """_ModelQueue.wrap must re-check the slot state AFTER acquiring
+    call_lock. A force-close that happened while the ticket waited
+    must raise _QueueClosed rather than invoke a possibly-None
+    backend."""
+    repo_root = Path(__file__).parents[3]
+    kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
+    wrap_idx = kernel.find("def wrap(self, backend_fn, slot_name")
+    wrap_end = kernel.find("def snapshot", wrap_idx)
+    body = kernel[wrap_idx:wrap_end]
+    # The post-acquire re-check is present.
+    assert "Re-check state after acquire" in body
+    assert "post_state != self.STATE_OPEN" in body
+    assert "slot[\"call_lock\"].release()" in body
+
+
+def test_activity_log_exposes_inference_error_helper() -> None:
+    """The shared _activity_log.js exposes window.dcInferenceError so
+    every page can render queue 503 envelopes uniformly instead of
+    leaving them as raw 'HTTP 503' messages."""
+    js = _read("_activity_log.js")
+    assert "window.dcInferenceError" in js
+    assert "async parse(response)" in js
+    assert "queue_full" in js
+    assert "queue_closed" in js
+    # compare.html consumes the helper on the chat-send 503 branch.
+    compare = _read("compare.html")
+    assert "window.dcInferenceError.parse(r)" in compare
+
+
+def test_process_edge_mark_stays_optional_until_job_accepted() -> None:
+    """process.html edge-pass marker must NOT flip to is-active before
+    the start-endpoint returns 200 with a job_id. Stays Optional with
+    'Gemma queued' text during the start fetch, then promotes."""
+    html = _read("process.html")
+    run_idx = html.find("async function wbRunGemmaEdgePass(")
+    run_end = html.find("function wbRenderJourney(", run_idx)
+    body = html[run_idx:run_end]
+    # Initial state is is-optional, not is-active.
+    assert "'dc-gemma-mark is-optional'" in body
+    assert "'Gemma queued'" in body
+    # Promotion happens only after the job is accepted.
+    assert "Job confirmed; now the marker can honestly show is-active" in body
+    # Abort flag is reset at function entry so a prior Cancel does not
+    # short-circuit a fresh run.
+    assert "_wbEdgeAbort = false" in body
+
+
+def test_knowledge_source_abort_reset_on_new_load() -> None:
+    """knowledge.html kxLoadSourceFile must reset kxSourceAbort at the
+    top so a stale Cancel from a prior bundle does not short-circuit a
+    fresh upload."""
+    html = _read("knowledge.html")
+    load_idx = html.find("async function kxLoadSourceFile(")
+    load_end = html.find("async function kxExtract(", load_idx)
+    if load_end == -1:
+        load_end = load_idx + 4000
+    body = html[load_idx:load_end]
+    assert "kxSourceAbort = false" in body
+
+
+def test_design_contract_pages_use_is_private_trust_row() -> None:
+    """process.html and knowledge.html are local-only surfaces; their
+    trust-rows must use the is-private modifier so the dot + border
+    color reflect the privacy posture instead of falling to default."""
+    for page in ("process.html", "knowledge.html"):
+        html = _read(page)
+        assert 'class="dc-trust-row is-private"' in html, (
+            page + " trust-row missing is-private modifier"
+        )
+
+
+def test_compare_log_has_copy_json_toolbar() -> None:
+    """compare.html generates the richest activity log of any page
+    (every per-step grade event, both variants, full SSE traces). It
+    must opt into the Copy JSON toolbar like the four design-contract
+    pages."""
+    compare = _read("compare.html")
+    log_idx = compare.find('id="cmp-log"')
+    log_end = log_idx + 400
+    log_section = compare[log_idx:log_end]
+    assert 'data-toolbar="copy-json"' in log_section
 
 
 def test_chat_picker_defaults_to_31b_it() -> None:
