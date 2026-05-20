@@ -2785,6 +2785,10 @@ def _combined_grade(
         normalised = _normalise_shared_grade(shared, mode=mode)
         if judge_call_trace:
             normalised["judge_call"] = judge_call_trace
+        normalised["benchmark_mirror"] = _benchmark_mirror_or_none(
+            row=row, response=response,
+            deterministic=shared.get("deterministic") or shared,
+        )
         return normalised
     except Exception as exc:  # noqa: BLE001
         shared = grade_response_universal(
@@ -2796,7 +2800,51 @@ def _combined_grade(
         fallback["combined_error"] = f"{type(exc).__name__}: {exc}"
         if judge_call_trace:
             fallback["judge_call"] = judge_call_trace
+        fallback["benchmark_mirror"] = _benchmark_mirror_or_none(
+            row=row, response=response, deterministic=shared,
+        )
         return fallback
+
+
+def _benchmark_mirror_or_none(
+    *,
+    row: dict[str, Any],
+    response: str,
+    deterministic: dict[str, Any],
+) -> Optional[dict[str, Any]]:
+    """Score the response against the public Kaggle Community Benchmark
+    criteria + policy and return the report dict, or None when the
+    benchmark module isn't on sys.path (cleanroom Kaggle without the
+    duecare wheels). Failure is non-fatal so an A-00 grading run never
+    crashes because of a missing optional dependency."""
+    try:
+        from duecare.chat.benchmark import (
+            BenchmarkRow,
+            DEFAULT_POLICY,
+            score_row,
+        )
+    except Exception:
+        return None
+    try:
+        bench_row = BenchmarkRow(
+            id=str(row.get("id") or row.get("prompt_id") or "a00-row"),
+            category=str(row.get("category") or "a00"),
+            difficulty=str(row.get("difficulty") or "unknown"),
+            text=str(row.get("prompt") or ""),
+        )
+        det_pct = float((deterministic or {}).get("pct_score") or 0.0)
+        bench_score = score_row(
+            row=bench_row,
+            response_text=response,
+            deterministic_pct=det_pct,
+            deterministic_signals=deterministic or {},
+            judge_report=None,
+            policy=DEFAULT_POLICY,
+            domain="trafficking",
+        )
+        return bench_score.to_report_dict(response_text=response[:1000])
+    except Exception as exc:  # noqa: BLE001
+        return {"error": f"{type(exc).__name__}: {exc}"}
 
 
 def _grading_model_call(row: dict[str, Any]) -> Optional[Any]:
