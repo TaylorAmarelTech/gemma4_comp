@@ -1298,6 +1298,28 @@
     function renderGradeBars(variant, gradeResult) {
       const host = document.getElementById(variant + '-grade');
       if (!host) return;
+      // Wrap the entire render in try/catch so a single bad dimension
+      // shape can't leave the host stuck on the previous text. On any
+      // throw, render a visible amber error in the host with the
+      // message + console.error the stack so devs can diagnose.
+      try {
+        _renderGradeBarsInner(host, variant, gradeResult);
+      } catch (e) {
+        try { while (host.firstChild) host.removeChild(host.firstChild); }
+        catch (_) {}
+        const err = document.createElement('div');
+        err.className = 'wb-error';
+        err.textContent = 'Render failed: ' +
+          ((e && e.message) ? e.message : String(e)) +
+          ' · check the browser console for the full stack.';
+        host.appendChild(err);
+        try {
+          console.error('[renderGradeBars]', variant, 'threw:', e);
+          console.error('[renderGradeBars]', 'gradeResult was:', gradeResult);
+        } catch (_) {}
+      }
+    }
+    function _renderGradeBarsInner(host, variant, gradeResult) {
       while (host.firstChild) host.removeChild(host.firstChild);
       if (!gradeResult) {
         const err = document.createElement('div');
@@ -1385,6 +1407,39 @@
         ? Object.keys(counts).map(k => k + ': ' + counts[k]).join(' | ')
         : 'No dimension breakdown returned.';
       host.appendChild(summary);
+
+      // Coverage breakdown row. The pct_score is a weighted average over
+      // applicable dimensions only, so two variants with similar pcts can
+      // hide a real difference in coverage. Surfacing n_applicable and the
+      // pass/partial/fail counts lets the reviewer read "fewer N/A means
+      // more dimensions were engaged" instead of guessing from the pct
+      // alone. Renders only when the grader exposes the totals (deterministic
+      // /api/grade always does; combined/deep responses also).
+      const nApp = (typeof gradeResult.n_applicable === 'number')
+        ? gradeResult.n_applicable : null;
+      const nNA = (typeof gradeResult.n_not_applicable === 'number')
+        ? gradeResult.n_not_applicable : null;
+      if (nApp != null || nNA != null) {
+        const coverage = document.createElement('div');
+        coverage.className = 'wb-muted';
+        coverage.style.cssText = 'margin-bottom: 8px; ' +
+          'font-family: JetBrains Mono, monospace; font-size: 11px;';
+        const parts = [];
+        if (nApp != null) parts.push(nApp + ' applicable');
+        if (nNA != null) parts.push(nNA + ' N/A');
+        const nPass = (typeof gradeResult.n_pass === 'number') ? gradeResult.n_pass : null;
+        const nPartial = (typeof gradeResult.n_partial === 'number') ? gradeResult.n_partial : null;
+        const nFail = (typeof gradeResult.n_fail === 'number') ? gradeResult.n_fail : null;
+        if (nPass != null || nPartial != null || nFail != null) {
+          const verdictParts = [];
+          if (nPass != null) verdictParts.push(nPass + ' PASS');
+          if (nPartial != null) verdictParts.push(nPartial + ' PARTIAL');
+          if (nFail != null) verdictParts.push(nFail + ' FAIL');
+          parts.push(verdictParts.join(' / '));
+        }
+        coverage.textContent = 'Coverage: ' + parts.join(' · ');
+        host.appendChild(coverage);
+      }
 
       if (gradeResult.mode === 'combined' && gradeResult.agreement) {
         const agree = document.createElement('div');
@@ -1887,6 +1942,24 @@
         };
         status.textContent = 'A=' + scoreLabel(gA) + '  |  B=' + scoreLabel(gB);
         logEvent(null, 'ok', 'grade  A=' + scoreLabel(gA) + '  B=' + scoreLabel(gB));
+        // Close-grade caveat: when the two pcts are within 2pp, the
+        // reviewer needs to look at the coverage row (applicable counts +
+        // pass/partial/fail) to read which variant actually did more
+        // work. The pct alone hides this because the rubric averages
+        // weighted contributions over applicable dimensions, so adding
+        // PARTIALs to a higher-pct response can drag the average down
+        // even when the response is objectively more thorough.
+        try {
+          const aPct = cmpScoreNumber(gA);
+          const bPct = cmpScoreNumber(gB);
+          if (typeof aPct === 'number' && typeof bPct === 'number' &&
+              Math.abs(aPct - bPct) < 2.0) {
+            logEvent(null, 'info',
+              'within 2pp — see the coverage row in each grade panel ' +
+              '(more applicable dims + more PARTIALs can score lower ' +
+              'than fewer dims at higher quality)');
+          }
+        } catch (_) { /* non-blocking */ }
         cmpSetExportState(true, true);
       } catch (e) {
         status.textContent = 'grade failed: ' + e;
