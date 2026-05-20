@@ -45,6 +45,7 @@ EXPECTED_ROUTES: set[tuple[str, str]] = {
     ("/api/grade", "POST"),
     ("/api/grade-deep", "POST"),
     ("/api/grade-combined", "POST"),
+    ("/api/grade-benchmark", "POST"),
     ("/api/grade-deep-stream", "POST"),
     ("/api/grade-combined-stream", "POST"),
     ("/api/import/upload", "POST"),

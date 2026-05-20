@@ -4033,6 +4033,58 @@ def create_app(
         except Exception as e:  # noqa: BLE001
             raise HTTPException(500, f"combined grading failed: {e}") from e
 
+    @app.post("/api/grade-benchmark")
+    def api_grade_benchmark(req: GradeRequest) -> Any:
+        """Score a response against the public Kaggle Community Benchmark
+        criteria + policy. Returns the same dict shape the published
+        benchmark task writes to its results.json so the workbench can
+        surface 'what the public benchmark would say' alongside the
+        local deterministic + LLM evaluator scores.
+
+        Uses GradeRequest (not DeepGradeRequest) because we want the
+        harness_trace field for applicability detection in the
+        deterministic grader, and we do NOT need the deep-grader's
+        evaluator-specific fields (max_new_tokens, temperature,
+        custom_questions). The judge LLM call is intentionally absent
+        here: the workbench grading is deterministic + offline; the
+        kbench notebook + Kaggle's hosted judge LLM is the place to run
+        the real judge for leaderboard publication.
+        """
+        from .benchmark import (
+            BenchmarkRow,
+            DEFAULT_POLICY,
+            score_row,
+        )
+        from .harness import grade_response_universal
+
+        if not req.response_text or not req.response_text.strip():
+            raise HTTPException(400, "response_text is required")
+        row = BenchmarkRow(
+            id="workbench-row",
+            category="workbench",
+            difficulty="unknown",
+            text=req.prompt_text or "",
+        )
+        deterministic = grade_response_universal(
+            req.response_text,
+            prompt_text=req.prompt_text or "",
+            harness_trace=req.harness_trace,
+        )
+        det_pct = float(deterministic.get("pct_score") or 0.0)
+        try:
+            bench_score = score_row(
+                row=row,
+                response_text=req.response_text,
+                deterministic_pct=det_pct,
+                deterministic_signals=deterministic,
+                judge_report=None,
+                policy=DEFAULT_POLICY,
+                domain="trafficking",
+            )
+        except Exception as e:  # noqa: BLE001
+            raise HTTPException(500, f"benchmark grading failed: {e}") from e
+        return bench_score.to_report_dict(response_text=req.response_text[:1000])
+
     def _grade_stream_response(
         run_grade: Callable[[Callable[[dict], None]], dict],
         first_event: Optional[dict] = None,
