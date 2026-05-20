@@ -74,6 +74,25 @@ clothing, repatriation, and salary-advance loan scenarios (see
 are the questions migrant-worker safety hinges on -- a model that
 cannot cite the actual statutory cap fails real workers in the field.
 
+## Status
+
+As of 2026-05-20 the benchmark task notebook **ran to completion on
+Kaggle**: 13/13 rows scored by the kbench judge LLM in 2.4 minutes,
+with the registered task at:
+
+  https://www.kaggle.com/code/taylorsamarel/new-benchmark-task-443d1
+
+The remaining step is the one-click **Save Task** in the Kaggle web
+UI to register the task on the public benchmarks page. After that,
+"Evaluate More Models" populates the leaderboard.
+
+To update the published task notebook after edits:
+
+```bash
+.venv/Scripts/kaggle kernels push -p kaggle/04-task-notebook-publish
+.venv/Scripts/kaggle kernels status taylorsamarel/new-benchmark-task-443d1
+```
+
 ## Run
 
 There are two publishing paths depending on whether the `kaggle benchmarks
