@@ -1635,25 +1635,28 @@ def test_kernel_cross_slot_duplicate_detection() -> None:
 # ---------------------------------------------------------------------------
 
 
+_QUEUE_MODULE = (
+    Path(__file__).parents[1]
+    / "src" / "duecare" / "chat" / "inference_queue.py"
+)
+
+
 def test_kernel_has_model_queue_with_chat_and_judge_slots() -> None:
-    """The kernel wraps both app.state.gemma_call and
-    app.state.evaluator_call with _ModelQueue.wrap so concurrent
-    users serialise through a FIFO-ish queue with position visibility,
-    backpressure, and per-slot locking."""
+    """The inference queue (extracted to duecare.chat.inference_queue
+    on 2026-05-20) wraps both app.state.gemma_call and
+    app.state.evaluator_call so concurrent users serialise through a
+    FIFO-ish queue with position visibility, backpressure, and
+    per-slot locking. The kernel imports + wires the singleton."""
+    queue_src = _QUEUE_MODULE.read_text(encoding="utf-8")
+    assert "class ModelQueue" in queue_src
+    assert "MAX_WAITING" in queue_src
+    assert "class QueueFull" in queue_src
     repo_root = Path(__file__).parents[3]
-    kernel_path = repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py"
-    assert kernel_path.exists(), f"missing: {kernel_path}"
-    kernel = kernel_path.read_text(encoding="utf-8")
-    # Class + global present.
-    assert "class _ModelQueue" in kernel
+    kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
+    # Kernel imports the queue classes from the package.
+    assert "from duecare.chat.inference_queue import" in kernel
     assert "_MODEL_QUEUE = _ModelQueue()" in kernel
-    # Backpressure constant + exception.
-    assert "MAX_WAITING" in kernel
-    assert "class _QueueFull" in kernel
-    # Both backend assignments now route through the wrapper.
-    # Chat-load thread captures the wrapped callable in `wrapped_chat`
-    # before the atomic assignment under the queue _meta lock. The
-    # original `_queue_wrap(... "chat")` factory call appears once.
+    # Both backend assignments route through the wrapper factory.
     assert '_queue_wrap(loaded_local.backend, "chat")' in kernel
     assert 'app.state.evaluator_call = _queue_wrap(loaded_local.backend, "judge")' in kernel
     # 503 handler maps the exception to JSON so each route benefits
@@ -1664,18 +1667,20 @@ def test_kernel_has_model_queue_with_chat_and_judge_slots() -> None:
 
 def test_kernel_publishes_queue_status_endpoint() -> None:
     """GET /api/queue/status returns a JSON-friendly snapshot the UI
-    can poll for the per-slot 'N waiting' indicator. Endpoint must
-    not touch the model (no extra inference cost)."""
+    can poll for the per-slot 'N waiting' indicator. The endpoint
+    lives in the kernel; the snapshot method that builds the payload
+    lives in duecare.chat.inference_queue."""
     repo_root = Path(__file__).parents[3]
-    kernel_path = repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py"
-    kernel = kernel_path.read_text(encoding="utf-8")
+    kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
     assert '@app.get("/api/queue/status")' in kernel
     assert "def api_queue_status" in kernel
-    # Snapshot must include both slots' active + waiting counts and
-    # a deterministic position field so the UI can render "1 ahead".
-    snap_idx = kernel.find("def snapshot")
-    snap_end = kernel.find("\n_MODEL_QUEUE = ", snap_idx)
-    snap = kernel[snap_idx:snap_end]
+    # Snapshot fields live in the extracted module now.
+    queue_src = _QUEUE_MODULE.read_text(encoding="utf-8")
+    snap_idx = queue_src.find("def snapshot")
+    snap_end = queue_src.find("\n__all__ = ", snap_idx)
+    if snap_end == -1:
+        snap_end = snap_idx + 3000
+    snap = queue_src[snap_idx:snap_end]
     assert '"n_active"' in snap
     assert '"n_waiting"' in snap
     assert '"position"' in snap
@@ -1697,27 +1702,29 @@ def test_nav_chrome_renders_queue_status() -> None:
 
 
 def test_kernel_queue_has_slot_state_machine() -> None:
-    """_ModelQueue protects against use-after-free during model swaps
+    """ModelQueue protects against use-after-free during model swaps
     by gating ticket enqueue on a per-slot state machine. Slots start
     closed, transition to open after a successful load, and to
-    draining/closed during unload. wrap() refuses with _QueueClosed
-    when the slot is not open."""
+    draining/closed during unload. wrap() refuses with QueueClosed
+    when the slot is not open. State machine lives in
+    duecare.chat.inference_queue; the kernel wires it."""
+    queue_src = _QUEUE_MODULE.read_text(encoding="utf-8")
+    # State constants
+    assert 'STATE_CLOSED = "closed"' in queue_src
+    assert 'STATE_OPEN = "open"' in queue_src
+    assert 'STATE_DRAINING = "draining"' in queue_src
+    # State-change methods
+    assert "def open_slot(self, name" in queue_src
+    assert "def close_slot(" in queue_src
+    assert "def is_busy(self, name" in queue_src
+    # The wrapper enforces the gate before enqueuing.
+    assert 'if state != self.STATE_OPEN:' in queue_src
+    # Exception class is in the module (kernel just imports it).
+    assert "class QueueClosed" in queue_src
+    # Kernel-side wiring
     repo_root = Path(__file__).parents[3]
     kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
-    # State constants
-    assert 'STATE_CLOSED = "closed"' in kernel
-    assert 'STATE_OPEN = "open"' in kernel
-    assert 'STATE_DRAINING = "draining"' in kernel
-    # State-change methods
-    assert "def open_slot(self, name" in kernel
-    assert "def close_slot(" in kernel
-    assert "def is_busy(self, name" in kernel
-    # New exception type + handler
-    assert "class _QueueClosed" in kernel
     assert "@app.exception_handler(_QueueClosed)" in kernel
-    # The wrapper enforces the gate before enqueuing.
-    assert 'if state != self.STATE_OPEN:' in kernel
-    # Open is called AFTER backend wiring on both slots.
     assert '_MODEL_QUEUE.open_slot("chat")' in kernel
     assert '_MODEL_QUEUE.open_slot("judge")' in kernel
 
@@ -1753,12 +1760,14 @@ def test_kernel_unload_endpoints_gate_on_queue() -> None:
 def test_kernel_queue_snapshot_includes_slot_state() -> None:
     """The /api/queue/status snapshot must include the per-slot state
     so the UI can render 'idle' vs 'draining' vs 'running' without
-    inferring from the active/waiting counters."""
-    repo_root = Path(__file__).parents[3]
-    kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
-    snap_idx = kernel.find("def snapshot")
-    snap_end = kernel.find("\n_MODEL_QUEUE = ", snap_idx)
-    snap = kernel[snap_idx:snap_end]
+    inferring from the active/waiting counters. Source: ModelQueue.snapshot
+    in duecare.chat.inference_queue."""
+    queue_src = _QUEUE_MODULE.read_text(encoding="utf-8")
+    snap_idx = queue_src.find("def snapshot")
+    snap_end = queue_src.find("\n__all__ = ", snap_idx)
+    if snap_end == -1:
+        snap_end = snap_idx + 3000
+    snap = queue_src[snap_idx:snap_end]
     assert '"state": slot.get("state", self.STATE_CLOSED)' in snap
 
 
@@ -1865,15 +1874,14 @@ def test_kernel_purges_partial_shards_on_load_failure() -> None:
 
 
 def test_queue_wrap_rechecks_state_after_lock_acquire() -> None:
-    """_ModelQueue.wrap must re-check the slot state AFTER acquiring
+    """ModelQueue.wrap must re-check the slot state AFTER acquiring
     call_lock. A force-close that happened while the ticket waited
-    must raise _QueueClosed rather than invoke a possibly-None
-    backend."""
-    repo_root = Path(__file__).parents[3]
-    kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
-    wrap_idx = kernel.find("def wrap(self, backend_fn, slot_name")
-    wrap_end = kernel.find("def snapshot", wrap_idx)
-    body = kernel[wrap_idx:wrap_end]
+    must raise QueueClosed rather than invoke a possibly-None
+    backend. Lives in duecare.chat.inference_queue."""
+    queue_src = _QUEUE_MODULE.read_text(encoding="utf-8")
+    wrap_idx = queue_src.find("def wrap(self, backend_fn, slot_name")
+    wrap_end = queue_src.find("def snapshot", wrap_idx)
+    body = queue_src[wrap_idx:wrap_end]
     # The post-acquire re-check is present.
     assert "Re-check state after acquire" in body
     assert "post_state != self.STATE_OPEN" in body
@@ -2134,21 +2142,71 @@ def test_kernel_derives_variant_dicts_from_module() -> None:
     assert '"e2b-it":         {"display": "Gemma 4 E2B-it"' not in kernel
 
 
-def test_kernel_queue_uses_event_based_drain() -> None:
-    """_ModelQueue.close_slot must wait on a threading.Event instead of
-    spinning at 250ms intervals. The wrap() finally clears the event
-    when a ticket starts and sets it when the active count drops to 0."""
+def test_inference_queue_module_exports() -> None:
+    """The extracted queue module exposes the three public symbols the
+    kernel imports: ModelQueue, QueueFull, QueueClosed. The kernel
+    binds them to underscore-prefixed legacy names so existing call
+    sites in the kernel stay unchanged."""
+    queue_src = _QUEUE_MODULE.read_text(encoding="utf-8")
+    assert 'class ModelQueue' in queue_src
+    assert 'class QueueFull' in queue_src
+    assert 'class QueueClosed' in queue_src
+    assert '"ModelQueue"' in queue_src
+    assert '"QueueFull"' in queue_src
+    assert '"QueueClosed"' in queue_src
+    # Round-trip via real Python import to make sure the module is
+    # syntactically valid and the public symbols are reachable.
+    import importlib
+    import sys
+    src_path = str(Path(__file__).parents[1] / "src")
+    sys.path.insert(0, src_path)
+    try:
+        mod = importlib.import_module("duecare.chat.inference_queue")
+    finally:
+        try:
+            sys.path.remove(src_path)
+        except ValueError:
+            pass
+    assert mod.ModelQueue.MAX_WAITING == 5
+    assert mod.ModelQueue.STATE_OPEN == "open"
+    q = mod.ModelQueue()
+    assert q.slot_state("nonexistent") == mod.ModelQueue.STATE_CLOSED
+
+
+def test_kernel_imports_inference_queue_module() -> None:
+    """kernel.py no longer carries inline ModelQueue / QueueFull /
+    QueueClosed definitions. They are imported from the package and
+    rebound to the legacy underscore names so existing call sites
+    stay unchanged."""
     repo_root = Path(__file__).parents[3]
     kernel = (repo_root / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py").read_text(encoding="utf-8")
+    assert "from duecare.chat.inference_queue import" in kernel
+    assert "ModelQueue as _ModelQueue" in kernel
+    assert "QueueClosed as _QueueClosed" in kernel
+    assert "QueueFull as _QueueFull" in kernel
+    # Inline class definitions are gone.
+    assert "class _ModelQueue:" not in kernel
+    assert "class _QueueFull(Exception):" not in kernel
+    assert "class _QueueClosed(Exception):" not in kernel
+    # Singleton instantiation stays in kernel.
+    assert "_MODEL_QUEUE = _ModelQueue()" in kernel
+
+
+def test_kernel_queue_uses_event_based_drain() -> None:
+    """ModelQueue.close_slot must wait on a threading.Event instead of
+    spinning at 250ms intervals. The wrap() finally clears the event
+    when a ticket starts and sets it when the active count drops to 0.
+    Lives in duecare.chat.inference_queue."""
+    queue_src = _QUEUE_MODULE.read_text(encoding="utf-8")
     # Slot init creates the Event in the SET state (slot starts idle).
-    assert "idle_event" in kernel
-    assert "idle.set()" in kernel
+    assert "idle_event" in queue_src
+    assert "idle.set()" in queue_src
     # close_slot uses Event.wait, not the spin loop.
-    assert "idle_event.wait(timeout=remaining)" in kernel
+    assert "idle_event.wait(timeout=remaining)" in queue_src
     # wrap() clears the event before the model call and sets it in
     # the finally when no other active ticket remains.
-    assert 'slot["idle_event"].clear()' in kernel
-    assert 'slot["idle_event"].set()' in kernel
+    assert 'slot["idle_event"].clear()' in queue_src
+    assert 'slot["idle_event"].set()' in queue_src
 
 
 def test_kernel_queue_status_has_ttl_cache_and_cache_control() -> None:
