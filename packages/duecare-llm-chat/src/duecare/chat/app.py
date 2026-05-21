@@ -2290,6 +2290,29 @@ def create_app(
         version=_b.chat_package_version(),
         description="Gemma 4 chat playground with optional safety-harness toggles.",
     )
+
+    # Request-ID middleware: every response carries X-Request-ID so a
+    # reviewer copying a tunnel URL out of the Kaggle log can grep
+    # local server logs by the same id. Honors an inbound X-Request-ID
+    # when present (lets a curl test pass a deterministic id) and
+    # otherwise generates a short URL-safe token. Adds it to
+    # request.state so downstream handlers can include it in error
+    # bodies without re-reading the header.
+    import secrets as _rid_secrets
+    from starlette.middleware.base import BaseHTTPMiddleware as _RidBase
+
+    class _RequestIDMiddleware(_RidBase):
+        async def dispatch(self, request, call_next):
+            rid = request.headers.get("X-Request-ID")
+            if not rid or len(rid) > 128:
+                rid = _rid_secrets.token_urlsafe(8)
+            request.state.request_id = rid
+            response = await call_next(request)
+            response.headers["X-Request-ID"] = rid
+            return response
+
+    app.add_middleware(_RequestIDMiddleware)
+
     app.state.gemma_call = gemma_call
     app.state.grep_call = grep_call
     app.state.rag_call = rag_call
@@ -2484,6 +2507,21 @@ def create_app(
             },
             "curator_blocks":       curator_blocks,
             "ts":                   time.time(),
+        }
+
+    @app.get("/api/health")
+    def api_health(request: Request) -> Any:
+        """Liveness probe. Returns 200 with the minimal {ok, version,
+        request_id} shape; uvicorn / cloudflared / k8s health checks
+        hit this without paying for the comprehensive harness audit
+        that /api/health-check does. Never raises -- a degraded server
+        should still answer this so the operator can grep the log by
+        request_id."""
+        from . import _brand
+        return {
+            "ok": True,
+            "version": _brand.chat_package_version(),
+            "request_id": getattr(request.state, "request_id", ""),
         }
 
     @app.get("/api/health-check")

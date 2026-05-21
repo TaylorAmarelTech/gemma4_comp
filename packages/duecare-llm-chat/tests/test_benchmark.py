@@ -700,3 +700,55 @@ def test_api_grade_benchmark_endpoint_rejects_empty_response() -> None:
         json={"prompt_text": "x", "response_text": "   "},
     )
     assert resp.status_code == 400
+
+
+def test_api_health_returns_ok_with_version_and_request_id() -> None:
+    """Liveness probe must return 200 quickly with the minimal
+    {ok, version, request_id} shape. Used by uvicorn / cloudflared /
+    k8s health checks. Never raises."""
+    from fastapi.testclient import TestClient
+    from duecare.chat.app import create_app
+
+    app = create_app()
+    client = TestClient(app)
+    resp = client.get("/api/health")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body.get("ok") is True
+    assert isinstance(body.get("version"), str) and body["version"]
+    assert isinstance(body.get("request_id"), str) and body["request_id"]
+    # Middleware must also surface X-Request-ID on the response header.
+    assert resp.headers.get("X-Request-ID") == body["request_id"]
+
+
+def test_request_id_middleware_honors_inbound_header() -> None:
+    """When the caller passes X-Request-ID, the middleware echoes it
+    back instead of generating a new one. Lets curl tests pin a
+    deterministic id; lets a fronting proxy carry its own trace id
+    through the kernel."""
+    from fastapi.testclient import TestClient
+    from duecare.chat.app import create_app
+
+    app = create_app()
+    client = TestClient(app)
+    resp = client.get("/api/health", headers={"X-Request-ID": "my-trace-id-abc123"})
+    assert resp.status_code == 200
+    assert resp.headers.get("X-Request-ID") == "my-trace-id-abc123"
+    assert resp.json()["request_id"] == "my-trace-id-abc123"
+
+
+def test_request_id_middleware_rejects_overlong_inbound_header() -> None:
+    """A bogus 200-char X-Request-ID from an upstream proxy should not
+    propagate; the middleware regenerates a sane short token instead.
+    Defends against log-injection via header smuggling."""
+    from fastapi.testclient import TestClient
+    from duecare.chat.app import create_app
+
+    app = create_app()
+    client = TestClient(app)
+    long_id = "x" * 200
+    resp = client.get("/api/health", headers={"X-Request-ID": long_id})
+    assert resp.status_code == 200
+    returned = resp.headers.get("X-Request-ID")
+    assert returned and returned != long_id
+    assert len(returned) <= 64
