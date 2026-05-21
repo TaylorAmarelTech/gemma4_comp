@@ -74,7 +74,7 @@ Three Kaggle script kernels. Each one is a single `kernel.py` file: copy it into
 Optional benchmark surfaces:
 
 - [`kaggle/03-universal-llm-benchmark`](./kaggle/03-universal-llm-benchmark/) benchmarks arbitrary OpenAI-compatible, Anthropic Messages, or raw JSON endpoints against DueCare prompts and rubric cues, with Claude Opus judging when an Anthropic key is configured.
-- [`kaggle/04-kaggle-community-benchmark`](./kaggle/04-kaggle-community-benchmark/) defines DueCare rows as `kaggle_benchmarks` tasks so runs can use Kaggle's model proxy/quota and produce Community Benchmark artifacts.
+- [`kaggle/04-kaggle-community-benchmark`](./kaggle/04-kaggle-community-benchmark/) defines DueCare rows as `kaggle_benchmarks` tasks so runs can use Kaggle's model proxy/quota and produce Community Benchmark artifacts. Live task at [`kaggle.com/code/taylorsamarel/new-benchmark-task-443d1`](https://www.kaggle.com/code/taylorsamarel/new-benchmark-task-443d1): 23 rows × 6 criteria, Kaggle-hosted judge LLM, hard-veto on operational-uplift. See [`COVERAGE.md`](./kaggle/04-kaggle-community-benchmark/COVERAGE.md) for the row + criteria breakdown.
 
 Neither optional benchmark is required for the primary recording path.
 
