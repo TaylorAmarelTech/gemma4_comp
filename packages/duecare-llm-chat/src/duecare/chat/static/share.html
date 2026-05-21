@@ -110,7 +110,7 @@
           <a class="wb-btn-secondary" href="/static/samples/case_files_media_rich_sample.zip" download="case_files_media_rich_sample.zip">Download sample source bundle</a>
         </div>
         <div class="wb-row">
-          <button class="wb-btn-primary" id="wb-step1-btn" disabled onclick="wbStep1()">Process bundle locally</button>
+          <button class="wb-btn-primary wb-step-cta" id="wb-step1-btn" disabled onclick="wbStep1()">Process bundle locally</button>
         </div>
         <div class="wb-progress-box" id="wb-share-process-progress-box" hidden>
           <div class="wb-progress-head">
@@ -147,7 +147,7 @@
         <div class="wb-row">
           <button class="wb-btn-secondary" id="wb-select-all-btn" disabled onclick="wbSetAllFacts(true)">Select all visible</button>
           <button class="wb-btn-secondary" id="wb-clear-all-btn" disabled onclick="wbSetAllFacts(false)">Clear selection</button>
-          <button class="wb-btn-primary" id="wb-step2-btn" disabled onclick="wbStep2()">Step 2: Confirm review</button>
+          <button class="wb-btn-primary wb-step-cta" id="wb-step2-btn" disabled onclick="wbStep2()">Step 2: Confirm review</button>
           <span class="wb-muted" id="wb-step2-count">0 items selected.</span>
         </div>
       </div>
@@ -185,7 +185,7 @@
           <div class="wb-muted" style="padding: 12px; text-align: center;">(complete Step 2 first)</div>
         </div>
         <div class="wb-row" style="align-items:center; gap:10px; flex-wrap:wrap;">
-          <button class="wb-btn-primary" id="wb-step3-btn" disabled onclick="wbStep3()" data-tip="Deterministic regex redaction always runs. Gemma residual-PII review only runs when a Gemma 4 model is loaded; otherwise it is skipped without blocking submission." data-tip-pos="below">Run anonymization</button>
+          <button class="wb-btn-primary wb-step-cta" id="wb-step3-btn" disabled onclick="wbStep3()" data-tip="Deterministic regex redaction always runs. Gemma residual-PII review only runs when a Gemma 4 model is loaded; otherwise it is skipped without blocking submission." data-tip-pos="below">Run anonymization</button>
           <button class="wb-btn-secondary" id="wb-step3-fast-btn" disabled onclick="wbStep3(false)" data-tip="Fast recording fallback: deterministic salted-hash redaction only." data-tip-pos="below">Run deterministic only</button>
           <span class="dc-gemma-mark is-optional" id="wb-step3-gemma-mark" data-tip="Reflects whether Gemma actually reviewed the redacted text. Stays Optional unless a real model call completes." data-tip-pos="below">Optional · Gemma</span>
         </div>
@@ -233,7 +233,7 @@
           <code>/kaggle/working/audit/submit_log.jsonl</code>. The submission is irreversible.
         </div>
         <div class="wb-row">
-          <button class="wb-btn-primary" id="wb-step4-btn" disabled onclick="wbStep4()" data-tip="Disabled until Step 3 has completed AND you type SUBMIT in the confirmation field above." data-tip-pos="below">Step 4: Submit to hub</button>
+          <button class="wb-btn-primary wb-step-cta" id="wb-step4-btn" disabled onclick="wbStep4()" data-tip="Disabled until Step 3 has completed AND you type SUBMIT in the confirmation field above." data-tip-pos="below">Step 4: Submit to hub</button>
           <button class="wb-btn-secondary" id="wb-step4-cancel-btn" type="button" hidden onclick="wbCancelSubmit()"
                   style="background:#FFF7F3; border-color:oklch(0.78 0.10 45); color:oklch(0.40 0.16 25);">Cancel submit</button>
         </div>

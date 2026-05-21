@@ -214,7 +214,7 @@
             <div style="margin-top:6px; color:#5B5F68;">Gemma calls can take 1-15 minutes on Kaggle T4; the activity log emits heartbeats while a draft is running.</div>
           </div>
           <div class="kx-step-actions">
-            <button class="wb-btn-primary" type="button" onclick="kxContinueToDraft()">Continue to draft</button>
+            <button class="wb-btn-primary wb-step-cta" type="button" onclick="kxContinueToDraft()">Continue to draft</button>
           </div>
           <details style="margin-top:10px;">
             <summary style="cursor:pointer; font-size:12px; font-weight:600;">Advanced draft settings</summary>
@@ -288,7 +288,7 @@
             <button class="wb-btn-secondary" id="kx-cancel-draft-btn" type="button" onclick="kxCancelDraftJob()" disabled>Abandon draft polling</button>
             <button class="wb-btn-secondary" id="kx-deterministic-draft-btn" type="button" onclick="kxExtract(false)" disabled>Draft deterministic only</button>
             <button class="wb-btn-secondary" id="kx-finish-review-btn" type="button" onclick="kxFinishDraftReview()" disabled>Finish review</button>
-            <button class="wb-btn-primary" id="kx-extract-btn" onclick="kxExtract()">Draft knowledge objects</button>
+            <button class="wb-btn-primary wb-step-cta" id="kx-extract-btn" onclick="kxExtract()">Draft knowledge objects</button>
           </div>
         </div>
       </details>
