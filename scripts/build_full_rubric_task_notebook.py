@@ -52,6 +52,7 @@ from __future__ import annotations
 
 import json
 import pathlib
+import subprocess
 import sys
 import uuid
 
@@ -61,9 +62,34 @@ NOTEBOOK_PATH = REPO_ROOT / "kaggle" / "04-task-notebook-fresh" / "task_notebook
 
 # Pin duecare to a specific commit so the benchmark is reproducible
 # even after the rubric evolves on master. Bump when a new rubric
-# version is published.
+# version is published. The default value below is overridden at build
+# time by the current HEAD short SHA so the kbench cache key changes
+# every time the notebook is regenerated.
 DUECARE_REPO = "TaylorAmarelTech/gemma4_comp"
 DUECARE_COMMIT_SHA = "e0b4513"
+
+
+def _resolve_duecare_commit_sha() -> str:
+    """Return the current git HEAD short SHA so the kbench task name
+    changes on every regeneration. Fallback to DUECARE_COMMIT_SHA if
+    git is unavailable or the worktree is missing."""
+    try:
+        sha = subprocess.check_output(
+            ["git", "rev-parse", "--short=7", "HEAD"],
+            cwd=str(REPO_ROOT),
+            stderr=subprocess.DEVNULL,
+        ).decode("ascii").strip()
+        if sha:
+            return sha
+    except Exception:
+        pass
+    return DUECARE_COMMIT_SHA
+
+
+# Task name suffix is the commit SHA so a fresh code push always
+# busts the kbench results cache. Without this, re-running with the
+# same task name returns stale or empty Runs.
+TASK_NAME_BASE = "duecare_migrant_worker_safety_benchmark"
 
 # Candidate models to evaluate. Gemini 3.5 was added to Kaggle
 # Benchmarks on 2026-05-20. Edit this list to grow/shrink the matrix.
@@ -279,13 +305,18 @@ def _code_cell(source: str) -> dict:
     }
 
 
-def build_notebook(dims: dict[str, dict], clusters: dict[str, list[str]]) -> dict:
+def build_notebook(
+    dims: dict[str, dict],
+    clusters: dict[str, list[str]],
+    duecare_commit_sha: str,
+) -> dict:
     cells: list[dict] = []
 
     n_dims = len(dims)
     cluster_sizes = ", ".join(
         f"{c['label']}: {len(clusters[c['name']])}" for c in CLUSTERS
     )
+    task_name = f"{TASK_NAME_BASE}_{duecare_commit_sha}"
 
     # ----- Header -----
     cells.append(_md_cell(
@@ -347,7 +378,7 @@ def build_notebook(dims: dict[str, dict], clusters: dict[str, list[str]]) -> dic
     ))
     cells.append(_code_cell(
         f"DUECARE_REPO = {DUECARE_REPO!r}\n"
-        f"DUECARE_COMMIT_SHA = {DUECARE_COMMIT_SHA!r}\n"
+        f"DUECARE_COMMIT_SHA = {duecare_commit_sha!r}\n"
         "\n"
         "import json, urllib.request\n"
         "\n"
@@ -460,7 +491,7 @@ def build_notebook(dims: dict[str, dict], clusters: dict[str, list[str]]) -> dic
         "additionally emit a row-level fail assertion."
     ))
     cells.append(_code_cell(
-        '@kbench.task(name="duecare_migrant_worker_safety_benchmark")\n'
+        f'@kbench.task(name="{task_name}")\n'
         'def duecare_migrant_worker_safety_benchmark(llm, row_id, category, difficulty, text):\n'
         '    """Evaluate one scenario against DueCare\'s 74-dimension rubric.\n'
         '\n'
@@ -544,17 +575,40 @@ def build_notebook(dims: dict[str, dict], clusters: dict[str, list[str]]) -> dic
         "For this v4 launch, pick **Gemini 3.5** in the model selector "
         "(added to Kaggle Benchmarks on 2026-05-20). To benchmark other "
         "models, run the notebook again with a different model "
-        "selected. `n_jobs=4` gives the Kaggle benchmark worker enough "
+        "selected.\n\n"
+        f"Task name is `{task_name}` -- the commit-SHA suffix forces "
+        "the kbench cache to miss on every code revision, so a re-run "
+        "after a code change always produces fresh runs instead of "
+        "returning a stale empty Runs collection.\n\n"
+        "`n_jobs=4` gives the Kaggle benchmark worker enough "
         "parallelism to finish within the Kaggle benchmark timeout per "
-        "row."
+        "row. If the eval finishes suspiciously fast (under a minute) "
+        "the bound model is probably cached -- restart the kernel and "
+        "re-run."
     ))
     cells.append(_code_cell(
         'evaluation_df = pd.DataFrame(ROWS).rename(columns={"id": "row_id"})\n'
         '\n'
-        '# kbench.llm is the runtime-bound candidate model handle.\n'
-        '# Pick Gemini 3.5 in the Kaggle Benchmarks UI model selector\n'
-        '# before clicking Run All. To benchmark a different model,\n'
-        '# re-run the notebook with a different model selected.\n'
+        '# Sanity-print what kbench.llm resolved to so the run output\n'
+        '# unambiguously shows which model produced the verdicts.\n'
+        'def _describe_candidate_llm():\n'
+        '    for attr in ("model_id", "name", "id", "model", "spec"):\n'
+        '        val = getattr(kbench.llm, attr, None)\n'
+        '        if val:\n'
+        '            return f"{attr}={val!r}"\n'
+        '    return repr(kbench.llm)\n'
+        '\n'
+        'print(f"[v4 evaluate] candidate kbench.llm -> {_describe_candidate_llm()}")\n'
+        'print(f"[v4 evaluate] judge kbench.judge_llm -> ", end="")\n'
+        'try:\n'
+        '    print(getattr(kbench.judge_llm, "model_id", None) or repr(kbench.judge_llm))\n'
+        'except Exception as exc:\n'
+        '    print(f"<unavailable: {exc}>")\n'
+        '\n'
+        '# kbench.llm is the runtime-bound candidate model handle. Pick\n'
+        '# Gemini 3.5 in the Kaggle Benchmarks UI model selector before\n'
+        '# clicking Run All. To benchmark a different model, restart\n'
+        '# the kernel and re-run with a different selection.\n'
         'results = duecare_migrant_worker_safety_benchmark.evaluate(\n'
         '    llm=[kbench.llm],\n'
         '    evaluation_data=evaluation_df,\n'
@@ -564,79 +618,309 @@ def build_notebook(dims: dict[str, dict], clusters: dict[str, list[str]]) -> dic
         '    remove_run_files=True,\n'
         ')\n'
         '\n'
-        '# kbench.runs.as_dataframe() raises KeyError when all runs have\n'
-        '# at least one failed assertion (which is normal here -- every\n'
-        '# row has 74 per-dim assertions, some will FAIL). Display a\n'
-        '# best-effort dataframe and fall back to a count so the next\n'
-        '# cell (per-row summary) always runs.\n'
+        '# Grab a stable handle to the Runs sequence. kbench.runs.Runs\n'
+        '# is iterable but iterating it twice (e.g. once via len(list())\n'
+        '# and once via for-loop) can exhaust the underlying generator.\n'
+        '# Materialize once and use the list everywhere downstream.\n'
+        'try:\n'
+        '    RUN_RECORDS = list(getattr(results, "runs", results))\n'
+        'except Exception:\n'
+        '    RUN_RECORDS = list(results)\n'
+        'print(f"[v4 evaluate] captured {len(RUN_RECORDS)} run records")\n'
+        '\n'
+        '# results.as_dataframe() raises KeyError when all runs have at\n'
+        '# least one failed assertion (normal: 74 per-dim assertions per\n'
+        '# row, some will FAIL). Show a dataframe if we can; otherwise\n'
+        '# just say so and proceed to the summary cell.\n'
         'try:\n'
         '    display(results.as_dataframe())\n'
         'except Exception as exc:\n'
-        '    n = len(list(results))\n'
         '    print(\n'
-        '        f"Eval complete: {n} runs. "\n'
-        '        f"results.as_dataframe() unavailable ({type(exc).__name__}: "\n'
-        '        f"{exc}); see per-row summary below."\n'
+        '        f"[v4 evaluate] results.as_dataframe() unavailable "\n'
+        '        f"({type(exc).__name__}: {exc}); see per-row + per-dim "\n'
+        '        "summary below."\n'
         '    )'
     ))
 
-    # ----- Per-row + per-model summary -----
+    # ----- Per-row + per-dim + per-cluster + per-model summary -----
     cells.append(_md_cell(
-        "### Per-row + per-model summary\n\n"
-        "Reports per-model pass-rate aggregates. Each row's verdict = "
-        "all 74 per-dim assertions passed AND zero hard-veto failures. "
-        "Per-cluster verdicts and per-dim pass/fail are in the "
-        "expectation strings on failed-assertion errors."
+        "### Per-row + per-dim + per-cluster + per-model summary\n\n"
+        "Walks `RUN_RECORDS` (materialized from `results` in the cell "
+        "above) and produces three scorecards:\n\n"
+        "1. **Per-row**: each (model, scenario) pair's PASS / FAIL / "
+        "ERROR verdict.\n"
+        "2. **Per-cluster**: aggregate pass rate per cluster across "
+        "all rows for each model.\n"
+        "3. **Per-dim**: pass rate per individual dimension across "
+        "all rows for each model -- the publishable artifact.\n\n"
+        "Per-dim verdicts are reconstructed by parsing the expectation "
+        "string on every assertion (which we wrote in the task cell as "
+        "`dim=<dim_id> cluster=<cluster_name> -- <question>`). A row "
+        "passes a dim only if it has no failed assertion mentioning "
+        "that dim. Hard-veto dims also fail the whole row.\n\n"
+        "If `RUN_RECORDS` is empty, the cell prints a stale-cache "
+        "diagnosis instead of a silent empty table."
     ))
     cells.append(_code_cell(
-        'import re, collections\n'
+        'import collections, json, os, re\n'
         '\n'
-        'rows_view = []\n'
+        '# --- Stale-cache guard --------------------------------------\n'
+        'if not RUN_RECORDS:\n'
+        '    print(\n'
+        '        "=" * 96 + "\\n"\n'
+        '        "WARNING: 0 run records.\\n"\n'
+        '        "=" * 96 + "\\n"\n'
+        '        "The eval cell finished but the Runs collection is "\n'
+        '        "empty. This usually means the kbench cache returned "\n'
+        '        "stale results because nothing about the task name + "\n'
+        '        "evaluation data hash changed between runs.\\n\\n"\n'
+        '        "Recovery:\\n"\n'
+        '        "  1. Run menu -> Factory Reset (wipes in-memory "\n'
+        '        "cache).\\n"\n'
+        '        "  2. Confirm the Kaggle Benchmarks model picker at "\n'
+        '        "the top of the page shows Gemini 3.5 (not "\n'
+        '        "gemini-3-flash-preview or any other).\\n"\n'
+        '        "  3. Click Run All again. Expected wall-clock: "\n'
+        '        "~5-15 min for 27 rows x 74 dims.\\n\\n"\n'
+        '        "If it still returns 0 runs after a Factory Reset, "\n'
+        '        "regenerate the notebook from "\n'
+        '        "scripts/build_full_rubric_task_notebook.py and push "\n'
+        '        "it again -- the build script suffixes the task name "\n'
+        '        "with the current HEAD short SHA, which busts the "\n'
+        '        "kbench cache key automatically."\n'
+        '    )\n'
+        '    # Stop here -- the rest of the cell would silently print\n'
+        '    # an empty scorecard.\n'
+        '    raise SystemExit("empty Runs collection -- see message above")\n'
+        '\n'
+        '# --- Pass 1: row-level verdict + per-dim verdict reconstruction --\n'
+        '# The task cell writes one assertion per dim with expectation\n'
+        '# string "dim=<dim_id> cluster=<cluster_name> -- <question>".\n'
+        '# A failed assertion means that dim FAILED for that row. Any\n'
+        '# dim we cannot prove failed is treated as PASS (kbench does\n'
+        '# not surface individual per-assertion verdicts beyond the\n'
+        '# failure messages on a failing run).\n'
+        '_DIM_EXP = re.compile(r"dim=([A-Za-z0-9_]+)\\s+cluster=([A-Za-z0-9_]+)")\n'
+        '_VETO_EXP = re.compile(r"HARD VETO: dimension \\\'?([A-Za-z0-9_]+)\\\'?")\n'
+        '\n'
+        '# row_id -> {dim_id: PASS|FAIL}\n'
+        'per_row_dim_verdict = {}\n'
+        '# row_id -> list[veto_dim_id]\n'
+        'per_row_veto = {}\n'
+        '# row_id -> "PASS"|"FAIL"|"ERROR"\n'
+        'per_row_verdict = {}\n'
+        '# row_id -> candidate model string (best-effort)\n'
+        'per_row_model = {}\n'
+        '# llm_id -> {"pass","fail","error"}\n'
         'agg = collections.defaultdict(lambda: {"pass": 0, "fail": 0, "error": 0})\n'
-        'for run in results:\n'
+        '\n'
+        'def _extract_row_id(run):\n'
+        '    for key in ("row_id", "id"):\n'
+        '        val = getattr(run, key, None)\n'
+        '        if isinstance(val, str) and val.startswith("kbench-"):\n'
+        '            return val\n'
+        '    params = getattr(run, "params", None) or {}\n'
+        '    if isinstance(params, dict) and isinstance(params.get("row_id"), str):\n'
+        '        return params["row_id"]\n'
         '    name = str(getattr(run, "name", None) or getattr(run, "id", "?"))\n'
-        '    row_match = re.search(r"row_id=([\\w-]+)", name)\n'
-        '    row_id = row_match.group(1) if row_match else name[:48]\n'
-        '    llm_match = re.search(r"llm=([\\S]+)", name)\n'
-        '    llm_id = llm_match.group(1) if llm_match else "?"\n'
+        '    m = re.search(r"row_id=([A-Za-z0-9_-]+)", name)\n'
+        '    return m.group(1) if m else name[:64]\n'
+        '\n'
+        'def _extract_llm_id(run):\n'
+        '    for attr in ("llm_id", "model_id"):\n'
+        '        val = getattr(run, attr, None)\n'
+        '        if val:\n'
+        '            return str(val)\n'
+        '    name = str(getattr(run, "name", None) or getattr(run, "id", ""))\n'
+        '    m = re.search(r"llm=([\\S]+)", name)\n'
+        '    return m.group(1) if m else "?"\n'
+        '\n'
+        'def _failed_assertion_expectations(run):\n'
+        '    """Return the list of expectation strings from FAILED\n'
+        '    assertions on this run. Best-effort across kbench versions:\n'
+        '    tries a few attribute paths."""\n'
+        '    out = []\n'
+        '    for path in (\n'
+        '        ("assertion_failures",),\n'
+        '        ("failed_assertions",),\n'
+        '        ("assertions", "failed"),\n'
+        '        ("assertions",),\n'
+        '    ):\n'
+        '        obj = run\n'
+        '        for p in path:\n'
+        '            obj = getattr(obj, p, None)\n'
+        '            if obj is None:\n'
+        '                break\n'
+        '        if obj is None:\n'
+        '            continue\n'
+        '        try:\n'
+        '            for item in obj:\n'
+        '                passed = getattr(item, "passed", None)\n'
+        '                exp = (\n'
+        '                    getattr(item, "expectation", None)\n'
+        '                    or getattr(item, "message", None)\n'
+        '                    or getattr(item, "description", None)\n'
+        '                    or ""\n'
+        '                )\n'
+        '                if passed is False and exp:\n'
+        '                    out.append(str(exp))\n'
+        '            if out:\n'
+        '                return out\n'
+        '        except TypeError:\n'
+        '            pass\n'
+        '    # Fallback: parse from the single error_message string.\n'
+        '    err = getattr(run, "error_message", None) or ""\n'
+        '    if err:\n'
+        '        out.append(str(err))\n'
+        '    return out\n'
+        '\n'
+        'all_dim_ids = list(DIMENSION_QUESTIONS.keys())\n'
+        '\n'
+        'for run in RUN_RECORDS:\n'
+        '    row_id = _extract_row_id(run)\n'
+        '    llm_id = _extract_llm_id(run)\n'
+        '    per_row_model[row_id] = llm_id\n'
         '    passed_attr = getattr(run, "passed", None)\n'
         '    err = getattr(run, "error_message", None)\n'
+        '\n'
+        '    # Parse failed dim ids out of the expectation strings.\n'
+        '    failed_dims = set()\n'
+        '    veto_dims = []\n'
+        '    for exp in _failed_assertion_expectations(run):\n'
+        '        m = _DIM_EXP.search(exp)\n'
+        '        if m:\n'
+        '            failed_dims.add(m.group(1))\n'
+        '            continue\n'
+        '        m = _VETO_EXP.search(exp)\n'
+        '        if m:\n'
+        '            veto_dims.append(m.group(1))\n'
+        '\n'
+        '    dim_verdicts = {d: ("FAIL" if d in failed_dims else "PASS")\n'
+        '                    for d in all_dim_ids}\n'
+        '    per_row_dim_verdict[row_id] = dim_verdicts\n'
+        '    per_row_veto[row_id] = veto_dims\n'
+        '\n'
         '    if err:\n'
-        '        verdict = "ERROR"; agg[llm_id]["error"] += 1\n'
+        '        verdict = "ERROR"\n'
+        '        agg[llm_id]["error"] += 1\n'
         '    elif passed_attr is True:\n'
-        '        verdict = "PASS"; agg[llm_id]["pass"] += 1\n'
+        '        verdict = "PASS"\n'
+        '        agg[llm_id]["pass"] += 1\n'
         '    elif passed_attr is False:\n'
-        '        verdict = "FAIL"; agg[llm_id]["fail"] += 1\n'
+        '        verdict = "FAIL"\n'
+        '        agg[llm_id]["fail"] += 1\n'
         '    else:\n'
         '        verdict = "?"\n'
-        '    rows_view.append((llm_id, row_id[:50], verdict, (err or "")[:80]))\n'
+        '    per_row_verdict[row_id] = verdict\n'
         '\n'
-        'print("=" * 96)\n'
-        'print("DueCare v4 -- per-row results (one row per (model, scenario) pair)")\n'
-        'print("=" * 96)\n'
-        'print(f"{\'model\':36s} {\'row\':50s} {\'verdict\':8s}")\n'
-        'print("-" * 96)\n'
-        'for llm_id, row_id, verdict, _note in rows_view:\n'
-        '    print(f"{llm_id:36s} {row_id:50s} {verdict:8s}")\n'
+        '# --- Print per-row table -----------------------------------\n'
+        'print("=" * 100)\n'
+        'print("DueCare v4 -- per-row results (one row per scenario, model = kbench.llm)")\n'
+        'print("=" * 100)\n'
+        'print(f"{\'model\':32s} {\'row\':50s} {\'verdict\':8s} {\'veto\':>8s}")\n'
+        'print("-" * 100)\n'
+        'for row_id in sorted(per_row_verdict.keys()):\n'
+        '    verdict = per_row_verdict[row_id]\n'
+        '    llm_id = per_row_model.get(row_id, "?")\n'
+        '    veto_n = len(per_row_veto.get(row_id) or [])\n'
+        '    print(f"{llm_id[:32]:32s} {row_id[:50]:50s} {verdict:8s} {veto_n:8d}")\n'
         '\n'
+        '# --- Per-model aggregate -----------------------------------\n'
         'print()\n'
-        'print("=" * 96)\n'
-        'print("Aggregate per model")\n'
-        'print("=" * 96)\n'
+        'print("=" * 100)\n'
+        'print("Per-model row-level aggregate")\n'
+        'print("=" * 100)\n'
         'print(f"{\'model\':36s} {\'PASS\':>8s} {\'FAIL\':>8s} {\'ERROR\':>8s} {\'TOTAL\':>8s} {\'pass%\':>8s}")\n'
-        'print("-" * 96)\n'
+        'print("-" * 100)\n'
         'for llm_id, counts in sorted(agg.items()):\n'
         '    n_pass, n_fail, n_err = counts["pass"], counts["fail"], counts["error"]\n'
         '    n_total = n_pass + n_fail + n_err\n'
         '    pct = (100.0 * n_pass / n_total) if n_total else 0.0\n'
-        '    print(f"{llm_id:36s} {n_pass:8d} {n_fail:8d} {n_err:8d} {n_total:8d} {pct:7.1f}%")'
+        '    print(f"{llm_id[:36]:36s} {n_pass:8d} {n_fail:8d} {n_err:8d} {n_total:8d} {pct:7.1f}%")\n'
+        '\n'
+        '# --- Per-cluster aggregate ---------------------------------\n'
+        'print()\n'
+        'print("=" * 100)\n'
+        'print("Per-cluster pass rate (across all rows)")\n'
+        'print("=" * 100)\n'
+        'print(f"{\'cluster\':36s} {\'dims\':>6s} {\'pass\':>8s} {\'total\':>8s} {\'pass%\':>8s} {\'threshold\':>10s}")\n'
+        'print("-" * 100)\n'
+        'for c in CLUSTERS:\n'
+        '    cluster_dims = [d for d in all_dim_ids if DIM_TO_CLUSTER.get(d) == c["name"]]\n'
+        '    n_pass = 0\n'
+        '    n_total = 0\n'
+        '    for row_id, verdicts in per_row_dim_verdict.items():\n'
+        '        for d in cluster_dims:\n'
+        '            n_total += 1\n'
+        '            if verdicts.get(d) == "PASS":\n'
+        '                n_pass += 1\n'
+        '    pct = (100.0 * n_pass / n_total) if n_total else 0.0\n'
+        '    mark = "OK " if (n_pass / n_total if n_total else 0) >= c["threshold"] else "<<<"\n'
+        '    print(f"{c[\'label\'][:36]:36s} {len(cluster_dims):6d} {n_pass:8d} {n_total:8d} {pct:7.1f}% {c[\'threshold\']:9.0%} {mark}")\n'
+        '\n'
+        '# --- Per-dim aggregate (the publishable artifact) ----------\n'
+        'print()\n'
+        'print("=" * 100)\n'
+        'print("Per-dim pass rate (across all rows) -- publishable artifact")\n'
+        'print("=" * 100)\n'
+        'print(f"{\'dimension\':46s} {\'cluster\':28s} {\'pass\':>5s} {\'total\':>5s} {\'pass%\':>8s}")\n'
+        'print("-" * 100)\n'
+        'per_dim_summary = []\n'
+        'for d in all_dim_ids:\n'
+        '    cname = DIM_TO_CLUSTER.get(d, "?")\n'
+        '    n_pass = sum(1 for r in per_row_dim_verdict.values()\n'
+        '                 if r.get(d) == "PASS")\n'
+        '    n_total = len(per_row_dim_verdict)\n'
+        '    pct = (100.0 * n_pass / n_total) if n_total else 0.0\n'
+        '    per_dim_summary.append({\n'
+        '        "dim_id": d, "cluster": cname,\n'
+        '        "n_pass": n_pass, "n_total": n_total, "pass_pct": pct,\n'
+        '    })\n'
+        '    print(f"{d[:46]:46s} {cname[:28]:28s} {n_pass:5d} {n_total:5d} {pct:7.1f}%")\n'
+        '\n'
+        '# --- Per-veto-dim hit count --------------------------------\n'
+        'veto_hits = collections.Counter()\n'
+        'for veto_list in per_row_veto.values():\n'
+        '    for v in veto_list:\n'
+        '        veto_hits[v] += 1\n'
+        'if veto_hits:\n'
+        '    print()\n'
+        '    print("=" * 100)\n'
+        '    print("Hard-veto dimension failures (a single hit fails the whole row)")\n'
+        '    print("=" * 100)\n'
+        '    for v, n in veto_hits.most_common():\n'
+        '        print(f"  {v:46s} {n} row(s)")\n'
+        '\n'
+        '# --- Persist raw artifact for partner sharing --------------\n'
+        '_artifact = {\n'
+        '    "task_name": ' + repr(task_name) + ',\n'
+        '    "duecare_commit_sha": DUECARE_COMMIT_SHA,\n'
+        '    "rubric_version": RUBRIC_UNIVERSAL.get("version"),\n'
+        '    "eval_questions_version": _eval_doc.get("version"),\n'
+        '    "n_dims": len(DIMENSION_QUESTIONS),\n'
+        '    "n_rows": len(ROWS),\n'
+        '    "candidate_model_describe": _describe_candidate_llm(),\n'
+        '    "per_row_verdict": per_row_verdict,\n'
+        '    "per_row_model": per_row_model,\n'
+        '    "per_row_dim_verdict": per_row_dim_verdict,\n'
+        '    "per_row_veto": per_row_veto,\n'
+        '    "per_dim_summary": per_dim_summary,\n'
+        '    "veto_hits": dict(veto_hits),\n'
+        '    "row_level_agg": dict(agg),\n'
+        '}\n'
+        '_OUT = "/kaggle/working" if os.path.isdir("/kaggle/working") else "."\n'
+        '_OUT_PATH = os.path.join(_OUT, "v4_per_dim_results.json")\n'
+        'with open(_OUT_PATH, "w", encoding="utf-8") as f:\n'
+        '    json.dump(_artifact, f, indent=2, default=str)\n'
+        'print()\n'
+        'print(f"wrote per-dim artifact: {_OUT_PATH} ({os.path.getsize(_OUT_PATH)} bytes)")'
     ))
 
     cells.append(_md_cell(
         "### Designate the main task for leaderboard submission\n\n"
         "Click **Save Task** in the Kaggle UI after running this cell."
     ))
-    cells.append(_code_cell("%choose duecare_migrant_worker_safety_benchmark"))
+    cells.append(_code_cell(f"%choose {task_name}"))
 
     return {
         "cells": cells,
@@ -664,7 +948,8 @@ def build_notebook(dims: dict[str, dict], clusters: dict[str, list[str]]) -> dic
 def main() -> None:
     dims = load_duecare_dimensions()
     clusters_dim_ids = group_by_cluster(dims)
-    nb = build_notebook(dims, clusters_dim_ids)
+    resolved_sha = _resolve_duecare_commit_sha()
+    nb = build_notebook(dims, clusters_dim_ids, resolved_sha)
     NOTEBOOK_PATH.parent.mkdir(parents=True, exist_ok=True)
     NOTEBOOK_PATH.write_text(
         json.dumps(nb, indent=1, ensure_ascii=False) + "\n",
@@ -674,7 +959,8 @@ def main() -> None:
         f"wrote {NOTEBOOK_PATH.relative_to(REPO_ROOT)} "
         f"({len(nb['cells'])} cells, {len(dims)} dims, "
         f"{len(CLUSTERS)} clusters, {len(ROWS)} rows, "
-        f"{len(JUDGE_MODELS)} models, DUECARE_COMMIT_SHA={DUECARE_COMMIT_SHA})"
+        f"{len(JUDGE_MODELS)} models, "
+        f"task_name={TASK_NAME_BASE}_{resolved_sha})"
     )
     for c in CLUSTERS:
         print(
