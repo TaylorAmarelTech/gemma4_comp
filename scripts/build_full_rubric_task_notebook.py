@@ -313,9 +313,11 @@ def build_notebook(dims: dict[str, dict], clusters: dict[str, list[str]]) -> dic
         "(Honorable Mention, Overall Track). On gpt-oss-20b every "
         "required criterion failed for V1-V5; this benchmark asks "
         "whether the candidate model does any better.\n"
-        "* **Multi-model evaluation.** Runs against Gemini 3.5 "
-        "(added to Kaggle Benchmarks 2026-05-20), Gemini 3 Flash "
-        "Preview, and Gemini 2.5 Pro side-by-side.\n\n"
+        "* **Gemini 3.5 default**, added to Kaggle Benchmarks on "
+        "2026-05-20. The candidate model is bound at notebook-run "
+        "time via the Kaggle Benchmarks UI picker -- pick Gemini 3.5 "
+        "when you click Run All. Run the notebook again with a "
+        "different model selected to add it to the leaderboard.\n\n"
         "## Design notes\n\n"
         "* **Candidate prompt is the raw scenario text only.** No 'you "
         "are being evaluated' preamble; no list of evaluation "
@@ -532,27 +534,29 @@ def build_notebook(dims: dict[str, dict], clusters: dict[str, list[str]]) -> dic
         '        )'
     ))
 
-    # ----- Multi-model evaluate -----
+    # ----- Evaluate -----
     cells.append(_md_cell(
-        f"### Evaluate across {len(ROWS)} rows against {len(JUDGE_MODELS)} models\n\n"
-        f"Each `llm` in the list runs the full {len(ROWS)}-row x 74-dim sweep "
-        f"({len(ROWS) * 74:,} judge calls per model). `n_jobs=4` gives "
-        "the Kaggle benchmark worker enough parallelism to finish within "
-        "the Kaggle benchmark timeout per row. If a model isn't yet "
-        "available on Kaggle Benchmarks the cell will error out for "
-        "that model only; the others still produce a verdict."
+        f"### Evaluate across {len(ROWS)} rows\n\n"
+        f"Runs the full {len(ROWS)}-row x 74-dim sweep "
+        f"({len(ROWS) * 74:,} judge calls). The candidate LLM is "
+        "`kbench.llm` -- a runtime-bound handle to whatever model the "
+        "Kaggle Benchmarks UI picker selects when you click **Run All**. "
+        "For this v4 launch, pick **Gemini 3.5** in the model selector "
+        "(added to Kaggle Benchmarks on 2026-05-20). To benchmark other "
+        "models, run the notebook again with a different model "
+        "selected. `n_jobs=4` gives the Kaggle benchmark worker enough "
+        "parallelism to finish within the Kaggle benchmark timeout per "
+        "row."
     ))
-    models_src = ",\n        ".join(
-        f"kbench.llm({m!r})" for m in JUDGE_MODELS
-    )
     cells.append(_code_cell(
         'evaluation_df = pd.DataFrame(ROWS).rename(columns={"id": "row_id"})\n'
         '\n'
-        '# Models to evaluate. Comment a line out if Kaggle gates one.\n'
-        f'CANDIDATE_LLMS = [\n        {models_src},\n    ]\n'
-        '\n'
+        '# kbench.llm is the runtime-bound candidate model handle.\n'
+        '# Pick Gemini 3.5 in the Kaggle Benchmarks UI model selector\n'
+        '# before clicking Run All. To benchmark a different model,\n'
+        '# re-run the notebook with a different model selected.\n'
         'results = duecare_migrant_worker_safety_benchmark.evaluate(\n'
-        '    llm=CANDIDATE_LLMS,\n'
+        '    llm=[kbench.llm],\n'
         '    evaluation_data=evaluation_df,\n'
         '    n_jobs=4,\n'
         '    timeout=1800,\n'
