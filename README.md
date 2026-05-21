@@ -205,17 +205,17 @@ public pip entry point for the workflow-oriented stack.
 | [`duecare-llm-agents`](./docs/components/duecare_llm_agents.md) | 12-agent swarm + AgentSupervisor with retry/budget/harm-abort + Gemma 4 function-calling orchestration | Agent tests |
 | [`duecare-llm-workflows`](./docs/components/duecare_llm_workflows.md) | YAML DAG loader + topological runner | Workflow tests |
 | [`duecare-llm-publishing`](./docs/components/duecare_llm_publishing.md) | HF Hub + Kaggle publisher, markdown reports, HF model cards | Publishing tests |
-| `duecare-llm-engine` | Heuristic prescan + GREP KB + RAG + tool-call + Gemma verdict pipeline (the core content-safety harness) | — |
-| `duecare-llm-server` | FastAPI app that hosts the pipeline + audit dashboard (the live demo) | — |
-| `duecare-llm-evidence-db` | Redacted-evidence corpus + audit trail SQLite store | — |
-| `duecare-llm-benchmark` | `smoke_25` + `score_row` + `aggregate` scoring helpers (zero deps) | — |
-| `duecare-llm-training` | Unsloth SFT + DPO scripts, GGUF export | — |
-| `duecare-llm-research-tools` | Playwright scrapers + document extractors for domain corpora | — |
-| `duecare-llm-nl2sql` | NL → SQL translator for evidence DB queries | — |
-| `duecare-llm-chat` | Minimal Gemma 4 chat playground (UI + FastAPI shell, no harness) | — |
-| `duecare-llm-cli` | The `duecare` command-line tool (tree, test, review, status, deps) | — |
-| [`duecare-llm`](./docs/components/duecare_llm_meta.md) (meta) | Public pip entry point for the workflow stack and `duecare` CLI | — |
-| **Current local pytest collection** | | **675 package tests collected on 2026-05-19** |
+| `duecare-llm-engine` | Heuristic prescan + GREP KB + RAG + tool-call + Gemma verdict pipeline (the core content-safety harness) | Pipeline smoke tests |
+| `duecare-llm-server` | FastAPI app that hosts the pipeline + audit dashboard (the live demo) | Route + audit-trail tests |
+| `duecare-llm-evidence-db` | Redacted-evidence corpus + audit trail SQLite store | Schema + integrity tests |
+| `duecare-llm-benchmark` | `smoke_25` + `score_row` + `aggregate` scoring helpers (zero deps) | Scoring + aggregation tests |
+| `duecare-llm-training` | Unsloth SFT + DPO scripts, GGUF export | Training-script smoke tests |
+| `duecare-llm-research-tools` | Playwright scrapers + document extractors for domain corpora | Scraper + extractor tests |
+| `duecare-llm-nl2sql` | NL → SQL translator for evidence DB queries | NL→SQL roundtrip tests |
+| `duecare-llm-chat` | Minimal Gemma 4 chat playground (UI + FastAPI shell, no harness) | 18 test files: harness contract, route, workbench UI, JSON parser, anonymization, design-tooltip migration, model-output sanitizer, process bulk review, etc. |
+| `duecare-llm-cli` | The `duecare` command-line tool (tree, test, review, status, deps) | CLI command tests |
+| [`duecare-llm`](./docs/components/duecare_llm_meta.md) (meta) | Public pip entry point for the workflow stack and `duecare` CLI | Re-export + import tests |
+| **Current local pytest collection** | | **976 package tests collected on 2026-05-21** |
 
 ## Quick start
 
@@ -578,8 +578,8 @@ architecture is **genuinely domain-agnostic**:
 | Pack | Seed prompts in repo config | Evidence items | Categories | Taxonomy dimensions |
 |---|---|---|---|---|
 | `trafficking` | 74,567 | 10 | 5 | sector, corridor, ILO indicator, attack category, difficulty |
-| `tax_evasion` | 4 | 4 | 4 | scheme type, jurisdiction, FATF indicator, sophistication |
-| `financial_crime` | 3 | 3 | 4 | laundering stage, typology, FATF indicator, jurisdiction |
+| `tax_evasion` | 14 | 4 | 4 | scheme type, jurisdiction, FATF indicator, sophistication |
+| `financial_crime` | 13 | 3 | 4 | laundering stage, typology, FATF indicator, jurisdiction |
 
 The full trafficking prompt corpus lives in
 `configs/duecare/domains/trafficking/seed_prompts.jsonl`; the PyPI
@@ -767,12 +767,53 @@ For complete licensing information, see [`THIRD_PARTY_LICENSES.md`](./THIRD_PART
 
 ## Acknowledgements
 
-Built on top of the author's existing *LLM Safety Testing Ecosystem*
-for migrant-worker protection: a 21K-test benchmark, 26 migration
-corridors, 174 scraper seed modules, 20,460+ facts, and 126 attack
-chains. Grounded in ILO Conventions C029 / C097 / C181 / C189, the UN
-Palermo Protocol, the TVPA, 18 years of POEA enforcement data, and the
-FATF 40 Recommendations.
+DueCare is the harness layer on top of a substantial existing body of
+migrant-worker safety research. The author's *LLM Safety Testing
+Ecosystem* — built over four years in Hong Kong investigating
+trafficking and related money laundering across Asia — contributes:
 
-Judged primarily on a 3-minute video. Built for the people who need
-this tool and cannot use the cloud.
+- A **21,000-test benchmark suite** (`trafficking-llm-benchmark`)
+  covering recruitment, debt, document control, wage withholding,
+  passport retention, contract substitution, and victim-side
+  intake patterns
+- **26 migration corridors** from PH↔HK and ID↔HK to NP→Gulf, BD→MY,
+  VN→TW, MX→US H-2A, and ET→SA, each with corridor-specific statute
+  knowledge
+- **174 scraper seed modules** for ILO databases, court records
+  (PACER / AustLII / BAILII), FATF / FATCA publications, NGO case
+  files, and source-country regulator portals
+- **20,460+ extracted facts** linking statute citations, fee caps,
+  ILO indicators, and case outcomes
+- **126 documented attack chains** showing how recruitment fee
+  camouflage, novation, jurisdiction shopping, and side-letter
+  schemes compose into operational trafficking pipelines
+
+The harness is grounded in:
+
+- **ILO Conventions**: C029 (Forced Labour), C095 (Protection of
+  Wages), C097 (Migration for Employment), C181 (Private Employment
+  Agencies — the workhorse "no fees from workers" rule), C189
+  (Domestic Workers), C188 (Work in Fishing), P029 (2014 Forced
+  Labour Protocol)
+- **UN Palermo Protocol** (Protocol to Prevent, Suppress and Punish
+  Trafficking in Persons, 2000) for the canonical trafficking
+  definition and State Party obligations
+- **U.S. TVPRA** (Trafficking Victims Protection Reauthorization
+  Act) — 22 U.S.C. 7102 forced-labour definition + 20 CFR 655.135(j)
+  H-2A prohibited-fee rule
+- **18 years of POEA / DMW enforcement data** (Philippines), the
+  largest single-country corpus of recruitment-agency licensing
+  actions in this space
+- **FATF 40 Recommendations** for the financial-crime side of the
+  graph: predicate offence framing, beneficial ownership tracing,
+  and STR thresholds
+- Source-country statute sets: **Nepal Foreign Employment Act 2007**,
+  **Indonesia UU 18/2017 + BP2MI Reg. 09/2020**, **Bangladesh
+  Overseas Employment and Migrants Act 2013**, **Vietnam Decree
+  38/2020/ND-CP**, **HK Cap. 57 / 57A**
+
+This is judged primarily on a 3-minute video. The architecture
+exists so that frontline NGOs, regulators, and workers themselves
+can run trafficking-pattern recognition on a laptop or phone
+without ever sending case data to a cloud API. Built for the people
+who need this tool and cannot use the cloud.
