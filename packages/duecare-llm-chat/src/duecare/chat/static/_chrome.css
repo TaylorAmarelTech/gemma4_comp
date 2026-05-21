@@ -1297,6 +1297,36 @@ main > .dc-wb-auto-log-card {
   padding: 1px 5px; border-radius: 3px;
 }
 
+/* Step CTA -- canonical "advance to the next step" button.
+
+   Every workbench page (chat / process / knowledge / share /
+   templates / search / sync) gates one critical action per step:
+   "Start processing", "Continue to draft", "Confirm intelligence",
+   "Save this draft", etc. The button that unblocks the next step
+   should look and sit the same way on every page so reviewers
+   always know where to click.
+
+   Convention: add `wb-step-cta` to the .wb-btn-primary that
+   advances the workflow state. The class adds a top margin so the
+   button anchors at the bottom of the step panel, a larger touch
+   target, and an accent focus ring. Plain .wb-btn-primary remains
+   the right class for secondary or inline actions; wb-step-cta is
+   reserved for the ONE button per step that the reviewer expects
+   to click next.
+*/
+.wb-step-cta {
+  margin-top: 14px;
+  min-height: 36px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.wb-step-cta:focus-visible {
+  outline: 2px solid var(--warn);
+  outline-offset: 2px;
+}
+
 /* Status pill — the canonical pill used inside .dc-step headers
    and anywhere a step's lifecycle state should be visible. */
 .dc-pill {

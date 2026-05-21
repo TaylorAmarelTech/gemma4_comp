@@ -297,7 +297,7 @@
                      accept=".zip,.csv,.jsonl,.txt,.md,.log,.rtf,.html,.htm,.eml,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.msg,.pdf,.png,.jpg,.jpeg,.webp,.tif,.tiff,.bmp" onchange="wbHandle(event)">
               <div id="wb-file-info" class="wb-row"></div>
               <div class="wb-row">
-                <button class="wb-btn-primary" id="wb-process-btn" disabled onclick="wbProcess()">Start processing</button>
+                <button class="wb-btn-primary wb-step-cta" id="wb-process-btn" disabled onclick="wbProcess()">Start processing</button>
                 <span class="wb-muted" id="wb-process-hint">Drop a file first.</span>
               </div>
               <div id="wb-error" class="wb-error" style="display: none; margin-top: 10px;" role="alert"></div>
@@ -496,7 +496,7 @@
           style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #DDD8C9; border-radius:8px; font-size:12.5px;"
           placeholder="Optional reviewer notes, corrections, or data-quality concerns. These notes are included in the downloaded JSON export."></textarea>
         <div class="wb-row">
-          <button class="wb-btn-primary" id="wb-confirm-intel-btn" type="button" onclick="wbConfirmIntelligence()" disabled>
+          <button class="wb-btn-primary wb-step-cta" id="wb-confirm-intel-btn" type="button" onclick="wbConfirmIntelligence()" disabled>
             Mark review complete
           </button>
           <span class="wb-muted" id="wb-review-status">Process a bundle first.</span>
