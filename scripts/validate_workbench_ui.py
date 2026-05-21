@@ -202,7 +202,7 @@ def _checks(path: Path, audit: Audit) -> None:
         # plus-style concatenation
         stripped = re.sub(
             r"(escapeHtml|esc|encodeURIComponent|JSON\.stringify|"
-            r"_pickerEscapeHtml|_escapeHtml)\([^)]*\)",
+            r"_pickerEscapeHtml|_escapeHtml|wbEsc)\([^)]*\)",
             "ESCAPED",
             w,
         )

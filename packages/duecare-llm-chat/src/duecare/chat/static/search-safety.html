@@ -50,6 +50,15 @@
 </head>
 <body data-nav="harness">
   <main class="page">
+    <section class="panel wb-trust" style="border-left: 3px solid var(--accent); background: oklch(0.97 0.02 195);">
+      <strong>Trust boundary:</strong> raw queries you paste here stay on the local kernel until
+      you click Sanitize. Sanitize first runs DueCare's regex PII gate, then
+      (only if Gemma is loaded) asks the local model to generalize the redacted
+      query. Nothing is sent to a third-party search backend from this page;
+      this page only exercises the safety gate. The actual outbound search lives
+      on <a href="/static/search.html">Search</a>, which calls the configured
+      backend only AFTER this sanitize gate has approved the query.
+    </section>
     <section class="panel">
       <h1>Search Safety Gate</h1>
       <p class="lede">
