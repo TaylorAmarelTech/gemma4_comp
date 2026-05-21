@@ -359,6 +359,45 @@
       const d = await r.json();
       renderResult(d);
       gradeSetStep(2);
+      // Benchmark mirror: a best-effort call to /api/grade-benchmark
+      // showing reviewers what the published Kaggle Community Benchmark
+      // would say about this response. Failure is non-fatal -- we
+      // already rendered the main grade above.
+      try {
+        const br = await fetch("/api/grade-benchmark", {
+          method: "POST",
+          headers: {"content-type": "application/json"},
+          body: JSON.stringify({prompt_text: prompt, response_text: response}),
+        });
+        if (br.ok) {
+          const bd = await br.json();
+          const scoreNum = (typeof bd.score === "number") ? bd.score : 0;
+          const scoreStr = scoreNum.toFixed(2);
+          const verdict = bd.passed ? "PASS" : "FAIL";
+          const uplift = bd.harmful_uplift_flagged ? " [uplift]" : "";
+          const ver = bd.criteria_version || "v?";
+          const color = bd.harmful_uplift_flagged ? "oklch(0.58 0.14 45)"
+                      : bd.passed                  ? "oklch(0.55 0.10 155)"
+                      :                              "var(--ink-3, #5B5F68)";
+          const result = document.getElementById("result");
+          if (result) {
+            const mirror = document.createElement("div");
+            mirror.className = "mode-help";
+            mirror.style.cssText =
+              "margin-top:12px; font-family: var(--mono, monospace); font-size:12px; color:" + color + ";";
+            mirror.textContent =
+              "Kaggle Community Benchmark mirror: " + scoreStr + " / 1.00 — "
+              + verdict + " (deterministic, " + ver + ")" + uplift;
+            mirror.title =
+              "Same criteria + scoring policy as the published Kaggle task at "
+              + "kaggle.com/code/taylorsamarel/new-benchmark-task-443d1. "
+              + "Deterministic-only here; the Kaggle judge LLM runs on the public task.";
+            result.appendChild(mirror);
+          }
+        }
+      } catch (_) {
+        // Silent: the main grade above is the reviewer's primary signal.
+      }
     } catch (e) {
       document.getElementById("result").innerHTML =
         `<div class="err">${escapeHtml(String(e && e.message || e))}</div>`;
