@@ -125,7 +125,14 @@ _MODEL_CAPABILITY_NOTES: list[dict[str, Any]] = [
     },
 ]
 _DATE_RE = _re.compile(r"\b(?:20\d{2}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+20\d{2})\b", _re.IGNORECASE)
-_CASE_RE = _re.compile(r"\b(?:DC-)?PH[-_ ]?HK[-_ ]?\d{3}\b|\bperson[-_ ]?\d{3}\b|\bCASE[-_ ]?\d{3}\b", _re.IGNORECASE)
+# Trailing assertion is (?!\d) -- "not followed by another digit" --
+# rather than \b. The old \b required a NON-word character after the
+# digits, which failed inside common folder names like
+# DC-DEMO-PH-HK-501_Lina_Santos (underscore is a word character),
+# silently splitting one case into two graph entities. (?!\d) keeps
+# the safeguard against running into a 4-digit case ID while
+# accepting any other suffix.
+_CASE_RE = _re.compile(r"\b(?:DC-)?PH[-_ ]?HK[-_ ]?\d{3}(?!\d)|\bperson[-_ ]?\d{3}(?!\d)|\bCASE[-_ ]?\d{3}(?!\d)", _re.IGNORECASE)
 _NAME_RE = _re.compile(r"\b(?:name|worker_name|complainant|subject)\s*[:=]\s*([A-Z][A-Za-z.' -]{2,60})")
 _EMPLOYER_RE = _re.compile(r"\b(?:employer|household|company)\s*[:=]\s*([A-Z][A-Za-z0-9 &'.,-]{2,80})")
 _AGENCY_RE = _re.compile(r"\b(?:agency|recruiter|broker)\s*[:=]\s*([A-Z][A-Za-z0-9 &'.,-]{2,80})")
@@ -375,6 +382,53 @@ def _norm_case_id(text: str) -> str | None:
         return "DC-" + raw
     digits = _re.search(r"(\d{3})", raw)
     return f"DC-PH-HK-{digits.group(1)}" if digits else raw
+
+
+def _extract_bundle_case_id(rows: list[dict]) -> str | None:
+    """Return the most common case_id signal found across the bundle.
+
+    Scans:
+      1. Any manifest.json row -- if its parsed JSON declares
+         ``case_id``, that wins outright.
+      2. Every row_id (file path) for a case-pattern match.
+      3. The first 240 characters of every row's text.
+
+    Used as the per-row case_id fallback so a bundle whose folder
+    structure clearly says ``DC-DEMO-PH-HK-501_Lina_Santos/`` does
+    not silently split into ``DC-PH-HK-501`` + phantom ``UNKNOWN``
+    just because individual rows (chat transcripts, contract text,
+    caseworker notes) don't mention the case ID in their content.
+    """
+    if not rows:
+        return None
+    # Step 1 -- explicit manifest.json declaration wins.
+    for row in rows:
+        row_id = str(row.get("row_id") or "")
+        if not row_id.endswith("manifest.json"):
+            continue
+        text = row.get("text") or ""
+        match = _re.search(r"\"case_id\"\s*:\s*\"([^\"]+)\"", text)
+        if match:
+            normed = _norm_case_id(match.group(1))
+            if normed:
+                return normed
+    # Step 2 + 3 -- vote across row_ids + text snippets.
+    from collections import Counter as _Counter
+    tally: _Counter[str] = _Counter()
+    for row in rows:
+        row_id = str(row.get("row_id") or "")
+        if row_id:
+            cid = _norm_case_id(row_id)
+            if cid:
+                tally[cid] += 1
+        text = str(row.get("text") or "")[:240]
+        if text:
+            cid = _norm_case_id(text)
+            if cid:
+                tally[cid] += 1
+    if not tally:
+        return None
+    return tally.most_common(1)[0][0]
 
 
 def _first_match(pattern: _re.Pattern, text: str) -> str | None:
@@ -1191,6 +1245,13 @@ def _build_intelligence(
     risk_signal_counts: dict[str, int] = {}
     folder_counts: dict[str, int] = {}
 
+    # Bundle-level case_id default. If the manifest declares one, or
+    # the bundle's folder names converge on a single case ID, every
+    # row in the bundle inherits it -- preventing the silent split
+    # into UNKNOWN when individual rows (chat transcripts, contracts,
+    # caseworker notes) don't restate the case ID in their content.
+    bundle_default_case_id = _extract_bundle_case_id(rows)
+
     by_row = {r.get("row_id"): r for r in results}
     for row in rows:
         row_id = row.get("row_id") or "row"
@@ -1239,7 +1300,12 @@ def _build_intelligence(
                     "Which trafficking, fee, document-control, or coercion indicators are visible?",
                 ],
             })
-        case_id = _norm_case_id(row_id) or _norm_case_id(text) or "UNKNOWN"
+        case_id = (
+            _norm_case_id(row_id)
+            or _norm_case_id(text)
+            or bundle_default_case_id
+            or "UNKNOWN"
+        )
         person = people.setdefault(case_id, {
             "case_id": case_id,
             "name": None,
@@ -1434,14 +1500,38 @@ def _build_intelligence(
                     "modalities": ["plain_text"],
                     "methods": ["keyword_signal", "entity_regex", "row_chunk_linking"],
                 })
-                if "passport" in label or "document" in label:
+                low = label.lower()
+                if "passport" in low or "document" in low:
                     edge_type = "document_control_signal"
-                elif "deduction" in label:
+                elif "deduction" in low:
                     edge_type = "salary_deduction_signal"
-                elif "threat" in label or "coercion" in label:
+                elif "threat" in low or "coercion" in low:
                     edge_type = "threat_or_retaliation_signal"
-                else:
+                elif (
+                    "fee" in low
+                    or "placement" in low
+                    or "loan" in low
+                    or "debt" in low
+                ):
+                    # Fee / debt observations were previously mislabeled
+                    # journey_stage_observation -- giving the demo
+                    # graph rows like
+                    # "journey_stage_observation case:unknown signal:placement_fee".
+                    # They are observations about a payment/debt, not
+                    # about a journey stage like recruitment or arrival.
+                    edge_type = "fee_or_debt_signal"
+                elif any(stage in low for stage in (
+                    "recruitment", "payment_and_debt", "contracting",
+                    "documents_and_identity", "travel",
+                    "arrival_and_placement", "employment_control",
+                    "complaint_and_escalation",
+                )):
                     edge_type = "journey_stage_observation"
+                else:
+                    # Generic risk-signal observation, not a journey
+                    # stage. The latter is now an opt-in match against
+                    # the known stage vocabulary.
+                    edge_type = "risk_signal_observation"
                 typed_edges.append(_typed_edge(
                     edge_type=edge_type,
                     source_node=_node_id("case", case_id),
@@ -2094,6 +2184,23 @@ def _score_rows(rows: list[dict], grep_call: Any) -> tuple[list[dict], dict, dic
                 if ent_label == "STATUTE":
                     for s in seen:
                         agg_statute[s] = agg_statute.get(s, 0) + 1
+
+        # Also scan each fired GREP rule's description for statute
+        # citations. Rule descriptions often name the controlling law
+        # (e.g. "ILO C181 Art. 7 prohibits worker-paid recruitment
+        # fees", "POEA MC 14-2017 establishes zero placement fee"),
+        # but those statutes don't appear in the row's own text. The
+        # old extractor missed them, so the demo showed "Top statutes:
+        # No statute citations detected" even when 9 rules with named
+        # statutes had fired.
+        statute_pat = ENTITY_PATTERNS.get("STATUTE")
+        if statute_pat is not None:
+            for hit in grep_hits:
+                descr = str(hit.get("indicator") or "")
+                if not descr:
+                    continue
+                for s in statute_pat.findall(descr):
+                    agg_statute[s] = agg_statute.get(s, 0) + 1
 
         results.append({
             "row_id": row["row_id"],
