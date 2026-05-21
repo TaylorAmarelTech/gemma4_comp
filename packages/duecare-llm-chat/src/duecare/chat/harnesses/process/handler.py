@@ -46,6 +46,16 @@ _OFFICE_DOC_EXTS = {".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".msg"}
 _DOC_IMAGE_EXTS = _MEDIA_EXTS | {".pdf"} | _OFFICE_DOC_EXTS
 _CHUNK_CHARS = 4500
 _PROCESS_REVIEW_MODES: dict[str, dict[str, Any]] = {
+    "deterministic_only": {
+        "id": "deterministic_only",
+        "label": "Deterministic only (no Gemma)",
+        "runtime_budget_minutes": 2,
+        "max_gemma_calls": 0,
+        "gemma_calls_per_item": 0,
+        "edge_strictness": "conservative",
+        "routing": "deterministic_all_items_no_gemma",
+        "description": "Upload, parse, GREP, entity extraction, folder edges, journey mapping, typed deterministic edges, and media queueing only. No Gemma case brief, no Gemma edge pass. Use when the page intentionally calls Gemma later as a separate job (e.g. knowledge.html runs envelope drafting downstream) or when you want the fastest possible intake.",
+    },
     "quick_triage": {
         "id": "quick_triage",
         "label": "Quick triage",
@@ -215,9 +225,22 @@ def _process_settings_from_mapping(data: Any | None = None) -> dict[str, Any]:
     data = data or {}
     mode = _process_mode(data.get("review_mode") or data.get("mode"))
     page_item_types = _parse_json_list(data.get("page_item_types"), _DEFAULT_PAGE_ITEM_TYPES)
-    runtime_default = int(mode.get("runtime_budget_minutes") or 15)
-    calls_default = int(mode.get("max_gemma_calls") or 75)
-    per_item_default = int(mode.get("gemma_calls_per_item") or 1)
+    # NOTE: avoid `or N` here. `0 or 75` evaluates to 75, which would
+    # silently force a deterministic_only mode to still run 75 Gemma
+    # calls. Pull the value explicitly and only fall back when the key
+    # is missing.
+    runtime_default = int(
+        mode["runtime_budget_minutes"]
+        if "runtime_budget_minutes" in mode else 15
+    )
+    calls_default = int(
+        mode["max_gemma_calls"]
+        if "max_gemma_calls" in mode else 75
+    )
+    per_item_default = int(
+        mode["gemma_calls_per_item"]
+        if "gemma_calls_per_item" in mode else 1
+    )
     max_gemma_calls = _int_setting(
         data.get("max_gemma_calls"),
         calls_default,
@@ -2520,14 +2543,15 @@ def _graph_chat_deterministic_answer(bundle: dict, question: str) -> dict | None
 
 
 def _extract_json_object(text: str) -> dict | None:
-    match = _re.search(r"\{[\s\S]*\}", text or "")
-    if not match:
-        return None
-    try:
-        parsed = _json.loads(match.group(0))
-    except Exception:
-        return None
-    return parsed if isinstance(parsed, dict) else None
+    """Back-compat thin wrapper over the shared robust extractor.
+
+    Retained as a module-level symbol so any in-tree caller that
+    imports ``_extract_json_object`` from this module keeps working.
+    New code should import :func:`duecare.chat._model_json.extract_json`
+    directly so it can inspect the diagnostic ``attempts`` log.
+    """
+    from duecare.chat._model_json import extract_json_object as _impl
+    return _impl(text)
 
 
 def _normalize_model_edge(edge: Any, *, fallback_case_id: str = "UNKNOWN") -> dict | None:
@@ -2632,15 +2656,28 @@ def _gemma_edge_pass(
             (model_out or {}).get("text") or (model_out or {}).get("response") or ""
         )
         text = sanitize_model_output(text)
-        parsed = _extract_json_object(text)
+        from duecare.chat._model_json import extract_json
+        extracted = extract_json(text)
+        parsed = extracted.payload if isinstance(extracted.payload, dict) else None
         if not parsed:
-            mark("parse_model_output", 100, "Gemma output was not valid JSON; keeping deterministic fallback edges visible.")
+            attempts_summary = " -> ".join(extracted.attempts) or "no attempts recorded"
+            mark(
+                "parse_model_output",
+                100,
+                "Gemma output was not valid JSON; keeping deterministic fallback edges visible. "
+                f"Parser attempts: {attempts_summary}",
+            )
             return {
                 **base,
                 "status": "model_unparsed_deterministic_fallback",
                 "model_edges": [],
                 "text_preview": text[:900],
-                "uncertainties": ["Gemma output did not parse as JSON; review deterministic edges."],
+                "parser_attempts": list(extracted.attempts),
+                "raw_preview": extracted.raw_preview,
+                "uncertainties": [
+                    "Gemma output did not parse as JSON; review deterministic edges.",
+                    f"Parser attempts: {attempts_summary}",
+                ],
             }
         fallback_case_id = ((intelligence.get("people") or [{}])[0] or {}).get("case_id") or "UNKNOWN"
         model_edges = [

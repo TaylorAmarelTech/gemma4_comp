@@ -5707,6 +5707,16 @@ def create_app(
     from .harnesses import anonymization as _anonymization_harness
     _anonymization_harness.register_routes(app)
 
+    # /api/templates/* -- complaint and referral template registry used
+    # by static/templates.html. The route helper lives in
+    # duecare.chat.templates; it was previously expected to be wired by
+    # the kernel script, which left the live workbench at 404. Calling
+    # it here ensures every page launched via create_app() has the
+    # template endpoints. Idempotent: register_template_routes() sets
+    # app.state._dc_templates_registered and no-ops on a second call.
+    from .templates import register_template_routes as _register_template_routes
+    _register_template_routes(app)
+
     # ====================================================================
     # search_safety harness (2026-05-13): sanitize outbound search
     # queries before they reach any third-party backend. Defense-in-

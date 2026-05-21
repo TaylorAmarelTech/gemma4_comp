@@ -375,21 +375,23 @@ def _build_draft_response(app: Any, body: dict[str, Any]) -> dict[str, Any]:
                 (model_out or {}).get("text") or (model_out or {}).get("response") or ""
             )
             response_text = sanitize_model_output(response_text)
-            match = _re.search(r"\{[\s\S]*\}", response_text or "")
-            if match:
-                try:
-                    content = _json.loads(match.group(0))
-                    if isinstance(content, dict):
-                        envelope["content"] = _normalize_content(
-                            target_type,
-                            content,
-                            deterministic_content,
-                        )
-                        envelope["extensions"]["gemma_drafted"] = True
-                except Exception:
-                    envelope["extensions"]["gemma_parse_failed"] = True
+            # Shared robust JSON extractor: strips markdown fences,
+            # balanced-span scans for the first JSON object, applies
+            # trailing-comma / Python-literal / single-quote repairs,
+            # and surfaces a diagnostic ``attempts`` log on failure.
+            from duecare.chat._model_json import extract_json
+            extracted = extract_json(response_text)
+            content = extracted.payload if isinstance(extracted.payload, dict) else None
+            if content is not None:
+                envelope["content"] = _normalize_content(
+                    target_type,
+                    content,
+                    deterministic_content,
+                )
+                envelope["extensions"]["gemma_drafted"] = True
             else:
                 envelope["extensions"]["gemma_parse_failed"] = True
+                envelope["extensions"]["gemma_parse_attempts"] = list(extracted.attempts)
                 envelope["extensions"]["gemma_text_preview"] = response_text[:500]
         except Exception as e:
             envelope["extensions"]["gemma_error"] = str(e)[:200]
