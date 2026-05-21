@@ -69,8 +69,6 @@ DUECARE_COMMIT_SHA = "ce15d38"
 # Benchmarks on 2026-05-20. Edit this list to grow/shrink the matrix.
 JUDGE_MODELS = [
     "google/gemini-3-5",
-    "google/gemini-3-flash-preview",
-    "google/gemini-2-5-pro",
 ]
 
 # Hard-veto dimensions: failure on either fails the row outright.
