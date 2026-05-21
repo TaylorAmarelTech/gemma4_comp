@@ -289,60 +289,100 @@
     return "fail";
   }
 
+  function _el(tag, opts) {
+    const node = document.createElement(tag);
+    if (!opts) return node;
+    if (opts.className) node.className = opts.className;
+    if (opts.text != null) node.textContent = String(opts.text);
+    if (opts.style) node.setAttribute("style", opts.style);
+    if (opts.title) node.title = String(opts.title);
+    return node;
+  }
+
   function renderResult(d) {
+    // DOM construction (not innerHTML) so user-influenced dim names,
+    // rationales, summaries, and disagreement payloads cannot inject
+    // markup. Every string field uses textContent.
+    const result = document.getElementById("result");
+    while (result.firstChild) result.removeChild(result.firstChild);
+
     const score = d.score != null ? d.score : (d.overall != null ? d.overall : 0);
     const pct = Math.round(score * 100);
     const verdict = d.verdict || verdictClass(pct);
     const dims = d.dimensions || d.per_dim || d.results || [];
-    const dimsHtml = dims.length ? `
-      <table class="dims">
-        <thead>
-          <tr>
-            <th style="width:200px;">Dimension</th>
-            <th style="width:80px; text-align:right;">Score</th>
-            <th>Rationale</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${dims.map(dim => {
-            const dimScore = (dim.score != null) ? Math.round(dim.score * 100) : (dim.passed ? 100 : 0);
-            const pass = dimScore >= 70 ? "pass" : (dimScore < 40 ? "fail" : "");
-            return `<tr>
-              <td class="dim">${escapeHtml(dim.name || dim.dimension || dim.id || "?")}</td>
-              <td class="score ${pass}">${dimScore}%</td>
-              <td class="rationale">${escapeHtml(dim.rationale || dim.evidence_quote || dim.note || "")}</td>
-            </tr>`;
-          }).join("")}
-        </tbody>
-      </table>` : "";
 
-    document.getElementById("result").innerHTML = `
-      <div class="result-header">
-        <span class="score-big">${pct}%</span>
-        <span class="score-label">overall | ${escapeHtml(mode)} grader</span>
-        <span class="verdict ${verdictClass(pct)}">${escapeHtml(verdict)}</span>
-      </div>
-      <div class="progress"><div class="bar" style="width:${pct}%"></div></div>
-      ${d.summary || d.rationale ? `<div class="mode-help" style="margin-top:14px;">${escapeHtml(d.summary || d.rationale)}</div>` : ""}
-      ${dimsHtml}
-      ${d.disagreement ? `<div class="mode-help" style="margin-top:14px; border-color:oklch(0.85 0.06 80); background:oklch(0.96 0.03 80);">
-        <b>Disagreement panel:</b> ${escapeHtml(JSON.stringify(d.disagreement).slice(0, 600))}</div>` : ""}
-    `;
+    const header = _el("div", {className: "result-header"});
+    header.appendChild(_el("span", {className: "score-big", text: pct + "%"}));
+    header.appendChild(_el("span", {className: "score-label", text: "overall | " + mode + " grader"}));
+    header.appendChild(_el("span", {className: "verdict " + verdictClass(pct), text: verdict}));
+    result.appendChild(header);
+
+    const progress = _el("div", {className: "progress"});
+    progress.appendChild(_el("div", {className: "bar", style: "width:" + pct + "%"}));
+    result.appendChild(progress);
+
+    const summary = d.summary || d.rationale;
+    if (summary) {
+      result.appendChild(_el("div", {className: "mode-help", style: "margin-top:14px;", text: summary}));
+    }
+
+    if (dims.length) {
+      const table = _el("table", {className: "dims"});
+      const thead = _el("thead");
+      const trh = _el("tr");
+      const th1 = _el("th", {text: "Dimension"});
+      th1.setAttribute("style", "width:200px;");
+      const th2 = _el("th", {text: "Score"});
+      th2.setAttribute("style", "width:80px; text-align:right;");
+      const th3 = _el("th", {text: "Rationale"});
+      trh.appendChild(th1); trh.appendChild(th2); trh.appendChild(th3);
+      thead.appendChild(trh);
+      table.appendChild(thead);
+      const tbody = _el("tbody");
+      dims.forEach(dim => {
+        const dimScore = (dim.score != null) ? Math.round(dim.score * 100) : (dim.passed ? 100 : 0);
+        const pass = dimScore >= 70 ? "pass" : (dimScore < 40 ? "fail" : "");
+        const tr = _el("tr");
+        tr.appendChild(_el("td", {className: "dim", text: dim.name || dim.dimension || dim.id || "?"}));
+        tr.appendChild(_el("td", {className: "score " + pass, text: dimScore + "%"}));
+        tr.appendChild(_el("td", {className: "rationale", text: dim.rationale || dim.evidence_quote || dim.note || ""}));
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      result.appendChild(table);
+    }
+
+    if (d.disagreement) {
+      const dwrap = _el("div", {className: "mode-help",
+        style: "margin-top:14px; border-color:oklch(0.85 0.06 80); background:oklch(0.96 0.03 80);"});
+      dwrap.appendChild(_el("b", {text: "Disagreement panel: "}));
+      dwrap.appendChild(document.createTextNode(JSON.stringify(d.disagreement).slice(0, 600)));
+      result.appendChild(dwrap);
+    }
   }
 
   document.getElementById("run").addEventListener("click", async () => {
     const prompt   = document.getElementById("prompt").value.trim();
     const response = document.getElementById("response").value.trim();
     if (!prompt || !response) {
-      document.getElementById("result").innerHTML =
-        `<div class="err">Both prompt and response are required.</div>`;
+      const result = document.getElementById("result");
+      while (result.firstChild) result.removeChild(result.firstChild);
+      result.appendChild(_el("div", {className: "err",
+        text: "Both prompt and response are required."}));
       return;
     }
     const btn = document.getElementById("run");
     gradeSetStep(1);
     btn.disabled = true; btn.textContent = "Grading...";
-    document.getElementById("result").innerHTML =
-      `<div class="empty"><h3>Grading...</h3><p>${mode === "rule" ? "Running 46 rubric rules..." : "Asking Gemma a yes/no question per dimension. This can take 30 to 90 seconds."}</p></div>`;
+    const loadResult = document.getElementById("result");
+    while (loadResult.firstChild) loadResult.removeChild(loadResult.firstChild);
+    const loadBox = _el("div", {className: "empty"});
+    loadBox.appendChild(_el("h3", {text: "Grading..."}));
+    loadBox.appendChild(_el("p", {text:
+      mode === "rule" ? "Running 46 rubric rules..."
+                      : "Asking Gemma a yes/no question per dimension. This can take 30 to 90 seconds."
+    }));
+    loadResult.appendChild(loadBox);
     const endpoint = mode === "rule"     ? "/api/grade"
                    : mode === "deep"     ? "/api/grade-deep"
                    :                       "/api/grade-combined";
@@ -399,8 +439,10 @@
         // Silent: the main grade above is the reviewer's primary signal.
       }
     } catch (e) {
-      document.getElementById("result").innerHTML =
-        `<div class="err">${escapeHtml(String(e && e.message || e))}</div>`;
+      const result = document.getElementById("result");
+      while (result.firstChild) result.removeChild(result.firstChild);
+      result.appendChild(_el("div", {className: "err",
+        text: String(e && e.message || e)}));
     } finally {
       btn.disabled = false; btn.textContent = "Run grade";
     }

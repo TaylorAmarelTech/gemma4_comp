@@ -267,8 +267,13 @@ def install_chat_wheels() -> int:
     start_total = time.time()
 
     # Competition strategy: Pin to specific release artifacts for reproducibility.
+    # COMMIT_SHA default is an immutable commit (not "master") so a partner
+    # who re-runs the kernel next week gets identical code to the demo
+    # session. Override via env var when developing against a newer branch.
     VERSION = os.environ.get("DUECARE_VERSION", "0.17.0")
-    COMMIT_SHA = os.environ.get("DUECARE_COMMIT_SHA", "master")
+    COMMIT_SHA = os.environ.get(
+        "DUECARE_COMMIT_SHA", "73dafd5e6099c566a634e238dc4196f52f263e12"
+    )
 
     # Method 1: GitHub Release Wheels (fastest when available)
     try:
@@ -1095,7 +1100,13 @@ def _attach_shutdown(app, hide_harness_tiles: bool = False) -> None:
     from fastapi.responses import HTMLResponse, JSONResponse
     from starlette.middleware.base import BaseHTTPMiddleware
 
-    def _api_shutdown():
+    def _api_shutdown(request: Request, body: dict = Body(default=None)):
+        # Operator-token gate: any unauth caller hitting POST /api/shutdown
+        # would otherwise kill the kernel mid-demo. The token is printed
+        # once at boot for the operator; partners do NOT see it.
+        ok, err = _check_operator_token(request, body or {})
+        if not ok:
+            return err
         _shutdown_threading.Thread(
             target=lambda: (time.sleep(0.5), _SHUTDOWN_EVENT.set()),
             daemon=True, name="shutdown-fire").start()
@@ -1122,11 +1133,25 @@ def _attach_shutdown(app, hide_harness_tiles: bool = False) -> None:
             "<p>Stops the FastAPI server, closes the browser session "
             "(if any), terminates the cloudflared tunnel, and exits "
             "the Kaggle cell. Re-run the cell to restart.</p>"
-            "<button onclick='doShutdown()'>Confirm shutdown</button>"
+            "<p>Operator token is required. The token printed once to "
+            "the Kaggle cell stdout at boot. Paste it below and click "
+            "Confirm.</p>"
+            "<input id='tok' placeholder='operator token' "
+            "style='width:90%;padding:10px;border:1px solid #d1d5db;"
+            "border-radius:8px;margin-bottom:14px;font-family:monospace'>"
+            "<br><button onclick='doShutdown()'>Confirm shutdown</button>"
             "<div class='meta' id='status'></div></div>"
             "<script>async function doShutdown(){"
+            "const tok=(document.getElementById('tok').value||'').trim();"
+            "if(!tok){document.getElementById('status').textContent="
+            "'paste the operator token first';return;}"
             "document.getElementById('status').textContent='shutting down...';"
-            "try{await fetch('/api/shutdown',{method:'POST'});"
+            "try{const r=await fetch('/api/shutdown',{method:'POST',"
+            "headers:{'Content-Type':'application/json','X-Operator-Token':tok},"
+            "body:JSON.stringify({operator_token:tok})});"
+            "if(r.status===401||r.status===403){const t=await r.text();"
+            "document.getElementById('status').textContent="
+            "'rejected: '+t.slice(0,160);return;}"
             "document.querySelector('.box').innerHTML="
             "\"<h1 style='color:oklch(0.55 0.10 155)'>Shutting down</h1>\"+"
             "\"<p>You can close this tab. The Kaggle cell will exit shortly.</p>\";"
@@ -1333,9 +1358,18 @@ def _load_cloud_route() -> Optional[LoadedModel]:
             payload = _json.dumps({"contents": [{
                 "parts": [{"text": user_text.strip()}]
             }]}).encode("utf-8")
-            url = ("https://generativelanguage.googleapis.com/v1beta/"
-                     "models/gemini-1.5-flash:generateContent?key="
-                     + GEMINI_API_KEY)
+            # Pin a current Gemini model. gemini-1.5-flash was
+            # deprecated in early 2026; gemini-2.5-flash is the cheap
+            # current default. Operators with a different preference
+            # can override via DUECARE_GEMINI_MODEL.
+            gemini_model = os.environ.get(
+                "DUECARE_GEMINI_MODEL", "gemini-2.5-flash"
+            )
+            url = (
+                "https://generativelanguage.googleapis.com/v1beta/"
+                f"models/{gemini_model}:generateContent?key="
+                + GEMINI_API_KEY
+            )
             req = _u.Request(url, data=payload,
                              headers={"Content-Type": "application/json"})
             with _u.urlopen(req, timeout=120) as resp:
@@ -1348,7 +1382,7 @@ def _load_cloud_route() -> Optional[LoadedModel]:
                 return f"[gemini error: {data}]"
         return LoadedModel(
             backend=_gemini_call, tokenizer=None, model=None,
-            name="gemini-1.5-flash (cloud)", size_b=0.0,
+            name=f"{gemini_model} (cloud)", size_b=0.0,
             quantization="cloud-hosted", device="cloud:gemini",
         )
     if variant == "cloud-openai":
@@ -1916,6 +1950,28 @@ try:
         _VARIANT_INFO = _portability_map
 except Exception:
     pass
+
+# Flag abliterated / jailbroken variants as research-only so the picker
+# UI can render them with a clear warning. Without this, an NGO or
+# regulator partner could pick a stripped-safety-layer model by accident
+# and assume the resulting outputs reflect DueCare's normal behavior.
+_RESEARCH_ONLY_VARIANTS = ("jailbroken-31b", "jailbroken-e4b")
+for _v in _RESEARCH_ONLY_VARIANTS:
+    if _v in _VARIANT_INFO:
+        _entry = dict(_VARIANT_INFO[_v])
+        _entry["research_only"] = True
+        _entry["partner_warning"] = (
+            "Abliterated / safety-layer-removed research variant. "
+            "Do NOT use for partner demos -- outputs do not reflect "
+            "DueCare's normal safety behavior."
+        )
+        # Prefix the display label so the warning is visible even on
+        # picker UIs that ignore the research_only flag.
+        if not _entry.get("display", "").startswith("[RESEARCH-ONLY]"):
+            _entry["display"] = (
+                "[RESEARCH-ONLY] " + _entry.get("display", _v)
+            )
+        _VARIANT_INFO[_v] = _entry
 
 
 @app.get("/api/load-model/status")

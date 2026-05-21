@@ -884,16 +884,30 @@
         el.className = 'wb-progress-substep' + (
           complete || idx < activeIndex ? ' done' : (idx === activeIndex ? ' active' : '')
         );
-        el.innerHTML = '<b>' + wbEsc(item.stage) + '</b>' +
-          (complete && item.detail ? '<div class="wb-muted">' + wbEsc(item.detail) + '</div>' : '');
+        // DOM-construct (no innerHTML) so item.stage/item.detail cannot inject markup.
+        const stageB = document.createElement('b');
+        stageB.textContent = item.stage;
+        el.appendChild(stageB);
+        if (complete && item.detail) {
+          const detailDiv = document.createElement('div');
+          detailDiv.className = 'wb-muted';
+          detailDiv.textContent = item.detail;
+          el.appendChild(detailDiv);
+        }
         host.appendChild(el);
       });
       if (complete) {
         WB_PROCESS_FOLLOWUP_STAGES.forEach((item) => {
           const el = document.createElement('div');
           el.className = 'wb-progress-substep deferred';
-          el.innerHTML = '<b>' + wbEsc(item.stage) + '</b>' +
-            '<div class="wb-muted">' + wbEsc(item.detail) + '</div>';
+          // DOM-construct (no innerHTML) so item.stage/item.detail cannot inject markup.
+          const stageB2 = document.createElement('b');
+          stageB2.textContent = item.stage;
+          el.appendChild(stageB2);
+          const detailDiv2 = document.createElement('div');
+          detailDiv2.className = 'wb-muted';
+          detailDiv2.textContent = item.detail;
+          el.appendChild(detailDiv2);
           host.appendChild(el);
         });
       }
@@ -1424,8 +1438,13 @@
       wbBundle = null;
       wbIntelligenceConfirmed = false;
       wbResetReview();
-      document.getElementById('wb-file-info').innerHTML =
-        '<span class="wb-pill">' + wbEsc(f.name) + ' (' + Math.round(f.size / 1024) + ' KB)</span>';
+      // audit-allow:innerHTML-safe: f.name is wbEsc-escaped; size is a rounded number
+      const wbFileInfoEl = document.getElementById('wb-file-info');
+      while (wbFileInfoEl.firstChild) wbFileInfoEl.removeChild(wbFileInfoEl.firstChild);
+      const wbFileInfoPill = document.createElement('span');
+      wbFileInfoPill.className = 'wb-pill';
+      wbFileInfoPill.textContent = f.name + ' (' + Math.round(f.size / 1024) + ' KB)';
+      wbFileInfoEl.appendChild(wbFileInfoPill);
       document.getElementById('wb-process-btn').disabled = false;
       document.getElementById('wb-process-hint').textContent = 'Click Start processing.';
       document.getElementById('wb-error').style.display = 'none';
@@ -1552,8 +1571,8 @@
       wbRenderGraph(intel.graph || {}, intel);
       wbRenderTypedEdges(intel);
       wbRenderJourney(intel);
+      // audit-allow:innerHTML-safe: summary fields are numeric counts from /api/process/batch
       document.getElementById('wb-summary').innerHTML =
-        // audit-allow:innerHTML-safe: summary fields are numeric counts from /api/process/batch
         '<div><b>Rows:</b> ' + s.n_rows_processed + ' / ' + s.n_rows_total +
         (s.truncated ? ' <span class="wb-pill" style="background:oklch(0.94 0.04 45); color:oklch(0.32 0.07 45);">truncated</span>' : '') +
         '</div><div style="margin-top:4px;"><b>GREP rules fired:</b> ' + s.n_grep_rules_fired + '</div>' +
@@ -1736,6 +1755,7 @@
       const folderHtml = folderCounts.length ? '<h3 style="font-size:13px; margin:12px 0 6px;">Folder-derived edges</h3>' + folderCounts.slice(0, 10).map(f =>
         '<div style="display:flex; justify-content:space-between; border-bottom:1px solid #EFEDE4; padding:6px 0;"><code>' + wbEsc(f.folder) + '</code><b>' + wbEsc(f.count) + '</b></div>'
       ).join('') : '';
+      // audit-allow:innerHTML-safe: docHtml + folderHtml are built above from wbEsc-escaped fields
       document.getElementById('wb-hierarchy').innerHTML = docHtml + folderHtml;
       const locs = (intel.locations || []).slice(0, 8).map(l => wbPill(l.name + ' x ' + l.count)).join('');
       const pays = (intel.top_payments || []).slice(0, 8).map(p =>
