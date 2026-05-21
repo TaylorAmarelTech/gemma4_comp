@@ -5029,6 +5029,218 @@ RAG_CORPUS = [
      "recruiting minors, family-sponsored migration, or document age "
      "irregularities should trigger child-protection analysis before "
      "any ordinary employment guidance."),
+
+    # ============================================================
+    # 2026-05-21 expansion: corridor-specific statutes, financial-
+    # crime intersection, kafala destinations, and survivor support.
+    # Sources cited inline; full text on the regulator's authoritative
+    # site (ilo.org/normlex, unodc.org, fatf-gafi.org, poea.gov.ph,
+    # bp2mi.go.id, elegislation.gov.hk).
+    # ============================================================
+
+    ("ilo_c189_summary",
+     "ILO Convention 189 (Domestic Workers Convention, 2011)",
+     "ILO C189 (in force 2013-09-05; 35+ State Party ratifications)",
+     "ILO C189 binds State Parties to extend core labour rights to "
+     "domestic workers: written terms of employment (Art. 7), special "
+     "written offer of employment for migrant domestic workers BEFORE "
+     "crossing borders (Art. 8), workers' identity / travel documents "
+     "MUST remain in the worker's possession (Art. 9), minimum-wage "
+     "coverage (Art. 11), and regulation of private employment "
+     "agencies including no fees from workers (Art. 15). PRACTICAL: "
+     "any prompt involving a domestic worker, especially in HK / SA / "
+     "KW / SG / LB / JO contexts, should treat C189 as the controlling "
+     "international standard regardless of destination-country "
+     "ratification status."),
+
+    ("palermo_protocol_art3",
+     "UN Palermo Protocol, Article 3 (Trafficking definition, 2000)",
+     "Palermo Protocol Art. 3 (UNTOC supplementary protocol; ratified by 178+ States)",
+     "Trafficking in persons requires three elements simultaneously: "
+     "(1) ACT -- recruitment, transportation, transfer, harbouring, "
+     "or receipt of persons; (2) MEANS -- threat or use of force, "
+     "coercion, abduction, fraud, deception, abuse of power or "
+     "position of vulnerability, or giving / receiving payments or "
+     "benefits to achieve consent of a person having control over "
+     "another person; (3) PURPOSE -- exploitation, including (at "
+     "minimum) prostitution of others, other sexual exploitation, "
+     "forced labour or services, slavery or practices similar to "
+     "slavery, servitude, or removal of organs. Article 3(b) makes "
+     "consent of the victim IRRELEVANT where any of the listed means "
+     "has been used."),
+
+    ("palermo_protocol_art5_to_9",
+     "UN Palermo Protocol, Articles 5-9 (Criminalization + Victim Assistance + Prevention)",
+     "Palermo Protocol Arts. 5, 6, 7, 9 (State Party obligations)",
+     "Article 5 obligates States Parties to criminalize trafficking, "
+     "complicity, and attempt. Article 6 obligates protection of "
+     "victim privacy and identity, provision of physical / psycho-"
+     "logical / social recovery (housing, counselling, medical, legal "
+     "assistance), and safety considerations. Article 7 addresses "
+     "victim status in receiving States including temporary or "
+     "permanent residence permits. Article 9 obligates prevention "
+     "measures including research, information campaigns, "
+     "socio-economic initiatives, and bilateral cooperation. "
+     "PRACTICAL: any response involving suspected trafficking should "
+     "consider all four obligations together, not criminalization "
+     "alone."),
+
+    ("kafala_destination_states",
+     "Kafala (sponsorship) system in Gulf and Levant destination states",
+     "Kafala: SA / UAE / QA / KW / BH / OM / LB / JO (operational characteristics, 2024)",
+     "The kafala system binds the residency and employment status of "
+     "a migrant worker to a specific sponsor. The sponsor controls "
+     "the worker's entry visa, ability to change employer, and exit "
+     "from the country. Documented abuses: passport retention by "
+     "sponsor (ILO Indicator 7), salary withholding (Indicator 8), "
+     "restriction of movement (Indicator 3), and abuse of "
+     "vulnerability (Indicator 1). Reforms vary by jurisdiction: "
+     "Qatar's 2020 reforms removed exit-visa requirements and "
+     "introduced a non-discriminatory minimum wage (1,000 QAR/month "
+     "effective 2021-03); Saudi Arabia's 2021 Labour Reforms / "
+     "Mobility Initiative permit some employer changes without "
+     "sponsor consent; UAE / Bahrain / Oman / Kuwait retain stricter "
+     "sponsor control. PRACTICAL: a prompt naming any of these "
+     "destinations should automatically apply kafala-specific risk "
+     "questions even when the prompt frames the situation as "
+     "ordinary employment."),
+
+    ("poea_mc_14_2017_zero_fee",
+     "POEA / DMW Memorandum Circular 14-2017 (PH zero placement-fee)",
+     "POEA MC 14-2017 (Philippines, 2017; carried over to DMW after RA 11641)",
+     "Zero placement fee policy for Filipino household service "
+     "workers (HSWs) deployed to specified destinations including "
+     "Hong Kong SAR. Under RA 8042 / RA 10022 (Migrant Workers Act) "
+     "and POEA MC 14-2017, the worker MUST NOT pay any placement, "
+     "documentation, training, or medical fee to a licensed "
+     "Philippine agency for deployment to a covered destination. Any "
+     "such fee is illegal recruitment under RA 8042 Section 6, "
+     "punishable by imprisonment up to life and a fine up to PHP "
+     "1,000,000. The destination employer is jointly and severally "
+     "liable for unpaid salary and benefits. The 2022 transfer of "
+     "POEA authority to the Department of Migrant Workers (DMW, RA "
+     "11641) preserved the policy framework."),
+
+    ("bp2mi_reg_9_2020_id",
+     "BP2MI Regulation 9/2020 (Indonesia migrant worker placement)",
+     "BP2MI Reg. 09/2020 implementing UU 18/2017",
+     "Indonesian Law 18/2017 on the Protection of Indonesian Migrant "
+     "Workers (PMI) shifted regulatory authority to BP2MI and barred "
+     "licensed Indonesian placement agencies (P3MI) from charging "
+     "the worker for most pre-departure costs. BP2MI Reg. 9/2020 "
+     "enumerates the LIMITED cost components that may be recovered "
+     "from the worker (excluding most placement and training "
+     "charges); any other charge violates the regulation and the "
+     "underlying statute. Common violations: post-arrival salary "
+     "deduction for repayment of pre-deployment costs, fees routed "
+     "through affiliated companies, and side letters modifying the "
+     "destination Standard Employment Contract. P3MI licence "
+     "suspension or revocation is the standard sanction; criminal "
+     "referral is available."),
+
+    ("nepal_fea_2007_summary",
+     "Nepal Foreign Employment Act 2007 (Foreign Employment Tribunal)",
+     "Nepal FEA 2007 + Foreign Employment Rules 2008",
+     "Nepal's Foreign Employment Act 2007 (Sections 21-25) caps "
+     "recruitment service charges by destination, requires pre-"
+     "departure orientation, prohibits fees beyond the published "
+     "schedule, and establishes the Foreign Employment Tribunal "
+     "(FETB) to hear worker complaints. Implementation through the "
+     "Foreign Employment Rules 2008 sets destination-specific "
+     "ceilings. The Department of Foreign Employment (DoFE) licenses "
+     "manpower agencies; licence suspension or cancellation is the "
+     "standard sanction for charging excess fees. Workers can file "
+     "complaints directly with DoFE or via FETB; the bilateral MOU "
+     "framework with destination countries (notably the Gulf states) "
+     "provides for cross-notification on enforcement actions."),
+
+    ("hk_eao_cap_57_57a_summary",
+     "HK Employment Ordinance Cap. 57 + Employment Agency Regulations Cap. 57A",
+     "HK Cap. 57 (Employment Ordinance); HK Cap. 57A (Employment Agency Regulations)",
+     "Hong Kong's Employment Ordinance (Cap. 57) governs the "
+     "employment relationship for foreign domestic helpers (FDHs) "
+     "under the FDH Standard Employment Contract. Wage deductions "
+     "under Section 32 are limited to specific statutory purposes; "
+     "recoupment of recruitment costs by the employer or agency is "
+     "NOT a permitted deduction. The Employment Agency Regulations "
+     "(Cap. 57A) cap a Hong Kong-licensed agency's commission at 10 "
+     "percent of the worker's first month's wages and prohibit any "
+     "additional fee. The Labour Department's Employment Agencies "
+     "Administration enforces both via inspection, warning, fine, "
+     "and licence revocation. Cross-border violations (e.g. fees "
+     "charged on the Philippines side) trigger MOU cross-notification "
+     "to POEA / DMW."),
+
+    ("tvpra_22_usc_7102",
+     "U.S. TVPRA: 22 USC 7102 (Severe Forms of Trafficking in Persons)",
+     "TVPRA 22 USC 7102; criminal statutes 18 USC 1581 / 1584 / 1589 / 1590 / 1592",
+     "U.S. federal trafficking law defines 'severe forms of "
+     "trafficking in persons' to include sex trafficking by force, "
+     "fraud, or coercion AND labour trafficking via recruitment, "
+     "harbouring, transportation, provision, or obtaining of a "
+     "person for labour or services through force, fraud, or "
+     "coercion for the purpose of subjection to involuntary "
+     "servitude, peonage, debt bondage, or slavery. Criminal "
+     "predicates: 18 USC 1581 (peonage), 18 USC 1584 (involuntary "
+     "servitude), 18 USC 1589 (forced labour), 18 USC 1590 "
+     "(trafficking with respect to peonage / slavery), 18 USC 1592 "
+     "(unlawful conduct with respect to documents). Penalties up to "
+     "life imprisonment with mandatory restitution. The State "
+     "Department's annual Trafficking in Persons (TIP) Report ranks "
+     "foreign governments' compliance with these minimum standards."),
+
+    ("us_h2a_20_cfr_655_135",
+     "U.S. H-2A program: 20 CFR 655.135(j) prohibited fees",
+     "20 CFR 655.135(j) + Migrant and Seasonal Agricultural Worker Protection Act (MSPA)",
+     "U.S. H-2A program regulations prohibit the employer and its "
+     "agents (including recruiters in the worker's home country) "
+     "from seeking or receiving payment of ANY kind from the worker "
+     "for recruitment, visa, border-crossing, or any other costs "
+     "that are the employer's responsibility. The employer must "
+     "reimburse the worker for inbound transportation, subsistence, "
+     "and the visa fee. Violations trigger Wage and Hour Division "
+     "investigation, civil money penalties under 29 USC 1853, "
+     "debarment from future H-2A petitions, and potential criminal "
+     "referral under the TVPRA. MSPA disclosure and recordkeeping "
+     "rules apply where farm labour contractors are involved."),
+
+    ("fatf_recommendation_3_trafficking",
+     "FATF Recommendation 3 + Trafficking-in-Persons financial flows",
+     "FATF Recommendation 3 (predicate offences) + FATF / APG TBML and HTF reports",
+     "FATF Recommendation 3 requires States to criminalize money "
+     "laundering on the basis of a wide range of predicate offences, "
+     "with trafficking in human beings listed as one of the "
+     "designated categories of offence. The FATF / APG 2018 report "
+     "'Financial Flows from Human Trafficking' identifies common "
+     "indicators including (a) wire transfers to or from "
+     "jurisdictions with weak migrant-worker protection, (b) cash-"
+     "intensive intermediary businesses (training centers, "
+     "accredited clinics, recruitment agencies), (c) structuring "
+     "patterns just below CTR thresholds, (d) salary deduction "
+     "schemes that route worker wages through recruiter or "
+     "intermediary accounts, and (e) shell-company contracting "
+     "structures across multiple jurisdictions. FATF Recommendation "
+     "20 (suspicious-transaction reporting) and Recommendation 22 "
+     "(DNFBPs) provide the operational reporting framework."),
+
+    ("ilo_general_principles_fair_recruitment",
+     "ILO General Principles and Operational Guidelines for Fair Recruitment + Definition of Recruitment Fees and Related Costs",
+     "ILO Fair Recruitment Principles (2016) + ILO Recruitment Fees Definition (2019)",
+     "The ILO General Principles and Operational Guidelines for Fair "
+     "Recruitment (2016) implement ILO C181 Art. 7: workers should "
+     "NOT pay any recruitment fee or related cost; the EMPLOYER PAYS "
+     "PRINCIPLE puts those costs on the employer. The 2019 ILO "
+     "definition of recruitment fees and related costs enumerates "
+     "what counts: any fee or cost incurred in the recruitment "
+     "process for workers to secure employment, regardless of how / "
+     "by whom imposed, including service fees, paperwork fees, "
+     "medical exam fees, skill assessment fees, orientation or "
+     "training fees, equipment, travel and lodging during "
+     "recruitment. Workers must not be charged for visa, work "
+     "authorization, social security registration, or other "
+     "employer-side costs. Cross-border arrangements: the principle "
+     "applies regardless of the recruiter's location, and applies "
+     "to direct AND indirect charges through affiliated entities."),
 ]
 
 
