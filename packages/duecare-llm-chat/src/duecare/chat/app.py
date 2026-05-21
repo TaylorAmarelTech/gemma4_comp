@@ -2591,6 +2591,24 @@ def create_app(
         return app.state.model_info or {"loaded": False, "name": None,
                                           "display": "(no model)"}
 
+    @app.get("/api/queue/status")
+    def api_queue_status() -> Any:
+        """Inference-queue snapshot for the chrome status strip.
+
+        The chrome's _nav.js polls this on the same cadence as
+        /api/model-info so any page can see how busy the kernel is.
+        If a ModelQueue is wired into app.state.model_queue we expose
+        its snapshot; otherwise we return an empty-slots payload so
+        _renderQueueStatus collapses to "idle" without spamming 404s
+        in the chat activity log."""
+        queue = getattr(app.state, "model_queue", None)
+        if queue is not None:
+            try:
+                return queue.snapshot()
+            except Exception:
+                pass
+        return {"slots": {}}
+
     @app.get("/api/harness/inventory")
     def api_harness_inventory() -> Any:
         """Baseline counts of the built-in knowledge catalog so the
