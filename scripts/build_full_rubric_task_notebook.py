@@ -563,7 +563,21 @@ def build_notebook(dims: dict[str, dict], clusters: dict[str, list[str]]) -> dic
         '    max_attempts=1,\n'
         '    remove_run_files=True,\n'
         ')\n'
-        'results.as_dataframe()'
+        '\n'
+        '# kbench.runs.as_dataframe() raises KeyError when all runs have\n'
+        '# at least one failed assertion (which is normal here -- every\n'
+        '# row has 74 per-dim assertions, some will FAIL). Display a\n'
+        '# best-effort dataframe and fall back to a count so the next\n'
+        '# cell (per-row summary) always runs.\n'
+        'try:\n'
+        '    display(results.as_dataframe())\n'
+        'except Exception as exc:\n'
+        '    n = len(list(results))\n'
+        '    print(\n'
+        '        f"Eval complete: {n} runs. "\n'
+        '        f"results.as_dataframe() unavailable ({type(exc).__name__}: "\n'
+        '        f"{exc}); see per-row summary below."\n'
+        '    )'
     ))
 
     # ----- Per-row + per-model summary -----
