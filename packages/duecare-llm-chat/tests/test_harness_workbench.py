@@ -270,8 +270,12 @@ def test_knowledge_page_uses_guided_auto_suggestion_flow(client):
     assert "kxPollProcessJob" in text
     assert "kxLoadSourceFile" in text
     assert "fast deterministic Bulk File Review path" in text
-    assert "fd.append('max_gemma_calls', '0')" in text
-    assert "fd.append('run_inline_gemma_text', 'false')" in text
+    # Knowledge page now uses the canonical 'deterministic_only' mode
+    # instead of overriding max_gemma_calls / run_inline_gemma_text
+    # individually. The mode selector keeps the two pages consistent
+    # (process.html uses standard_review; knowledge.html uses
+    # deterministic_only and calls Gemma separately downstream).
+    assert "fd.append('review_mode', 'deterministic_only')" in text
     assert "kxBuildTextFromProcessBundle" in text
     assert 'id="kx-source-progress-box"' in text
     assert 'id="kx-draft-progress-box"' in text

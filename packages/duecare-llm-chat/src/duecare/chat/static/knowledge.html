@@ -601,13 +601,14 @@
       kxSetProgress('kx-source', 5, 'Uploading source bundle', 'Sending bundle to the local Process harness.', 'Upload and parse happen inside the Kaggle kernel.', true);
       wbLog('net', 'POST /api/process/batch/start',
         'source bundle=' + file.name + ' bytes=' + file.size +
-        ' | inline_gemma_text=false | max_gemma_calls=0');
+        ' | review_mode=deterministic_only (Gemma runs later as the envelope-drafting job)');
       const fd = new FormData();
       fd.append('file', file);
-      fd.append('review_mode', 'quick_triage');
-      fd.append('max_gemma_calls', '0');
-      fd.append('gemma_calls_per_item', '0');
-      fd.append('run_inline_gemma_text', 'false');
+      // deterministic_only: parse, GREP, entities, folder edges, journey
+      // mapping, deterministic typed edges, media queue. No Gemma calls
+      // here. Knowledge.html calls Gemma separately later via
+      // /api/knowledge/draft-envelope/start.
+      fd.append('review_mode', 'deterministic_only');
       const t0 = performance.now();
       try {
         const r = await fetch('/api/process/batch/start', {method:'POST', body:fd});
