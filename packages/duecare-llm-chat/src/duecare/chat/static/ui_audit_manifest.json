@@ -25,59 +25,749 @@
     "The live inventory endpoint shows no missing sample references, no unmanifested sample files, and complete harness specs."
   ],
   "kernels": [
-    {"id": "01", "folder": "01-duecare-exploration-workbench", "role": "primary product workbench", "ui": "shared static workbench", "status": "live_required"},
-    {"id": "02", "folder": "02-live-demo", "role": "focused live demo", "ui": "single story path", "status": "live_required"},
-    {"id": "A-00", "folder": "A-00-omni-experiment-workbench", "role": "omni experiment workbench", "ui": "A-00 control plane", "status": "static_verified"}
+    {
+      "id": "01",
+      "folder": "01-duecare-exploration-workbench",
+      "role": "primary product workbench",
+      "ui": "shared static workbench",
+      "status": "live_required"
+    },
+    {
+      "id": "02",
+      "folder": "02-live-demo",
+      "role": "focused live demo",
+      "ui": "single story path",
+      "status": "live_required"
+    },
+    {
+      "id": "A-00",
+      "folder": "A-00-omni-experiment-workbench",
+      "role": "omni experiment workbench",
+      "ui": "A-00 control plane",
+      "status": "static_verified"
+    }
   ],
   "static_pages": [
-    {"route": "/", "file": "getting-started.html", "purpose": "home and orientation", "controls": ["top model selector", "workflow links", "endpoint reference"], "outputs": ["orientation", "deployment modes", "trust boundaries"], "audit": ["copy clarity", "local enterprise hub distinction", "no stale names"]},
-    {"route": "/static/chat.html", "file": "index.html", "purpose": "primary chat harness", "controls": ["message input", "image upload", "layer toggles", "examples", "pipeline", "grade"], "outputs": ["SSE answer", "trace", "grade"], "audit": ["hover stability", "model-required state", "example picker parity"]},
-    {"route": "/static/compare.html", "file": "compare.html", "purpose": "A/B harness comparison", "controls": ["prompt", "variant toggles", "run", "interrupt", "grade both", "examples"], "outputs": ["two responses", "two traces", "timing", "grades"], "audit": ["shared model selector", "same examples as chat", "N/A scoring clarity"]},
-    {"route": "/static/process.html", "file": "process.html", "purpose": "bulk file review", "controls": ["file input", "sample bundle", "start processing", "graph chat", "download bundle"], "outputs": ["intelligence graph", "journey points", "OCR queue", "Gemma brief"], "audit": ["media detection", "critical fee points", "graph visualization"]},
-    {"route": "/static/knowledge.html", "file": "knowledge.html", "purpose": "knowledge-object extraction", "controls": ["source bundle upload", "optional source text", "draft", "promote", "knowledge files import/export"], "outputs": ["process-bundle summary", "envelope JSON", "validation notes", "knowledge_files.zip"], "audit": ["Bulk File Review parity", "Gemma requirement label", "knowledge files naming", "draft prompt path visible", "model-fit warning"]},
-    {"route": "/static/search.html", "file": "search.html", "purpose": "search utility after safety", "controls": ["query", "sanitize toggle", "backend", "search", "draft knowledge"], "outputs": ["sanitized query", "results", "draftable snippets"], "audit": ["PII boundary", "backend availability", "citation capture", "result-to-knowledge path visible", "model-fit warning"]},
-    {"route": "/static/share.html", "file": "share.html", "purpose": "anonymization and sharing", "controls": ["source bundle or knowledge files input", "review checkboxes", "anonymize", "Gemma privacy review", "hub URL", "submit hub"], "outputs": ["redacted text", "Gemma residual-PII review", "audit hash", "remote status", "submission status"], "audit": ["no plaintext leakage", "hub target clarity", "human vetting language", "Gemma privacy review framed as second local check"]},
-    {"route": "/static/sync.html", "file": "sync.html", "purpose": "knowledge pack sync", "controls": ["sync vetted", "sync unvetted", "manual import"], "outputs": ["pack counts", "sync log", "vetting loop explanation"], "audit": ["pack provenance", "vetted/unvetted distinction", "pull-only boundary"]},
-    {"route": "/static/status.html", "file": "status.html", "purpose": "runtime status", "controls": ["refresh", "links"], "outputs": ["knowledge counts", "model state", "backend state"], "audit": ["live counts", "single source of truth"]},
-    {"route": "/static/harness.html", "file": "harness.html", "purpose": "harness contract registry", "controls": ["harness selector", "open test page", "open comparison"], "outputs": ["contract details", "routes", "examples"], "audit": ["contract labels", "Gemma vs utility clarity"]},
-    {"route": "/static/ui-audit.html", "file": "ui-audit.html", "purpose": "pre-recording audit", "controls": ["manifest refresh", "route links"], "outputs": ["kernel checklist", "page checklist", "backlog"], "audit": ["complete manifest coverage"]},
-    {"route": "/static/use-cases.html", "file": "use-cases.html", "purpose": "six setup lanes", "controls": ["lane links"], "outputs": ["use-case summaries", "deployment pattern"], "audit": ["public-site alignment", "local enterprise hub distinction"]},
-    {"route": "/static/ecosystem.html", "file": "ecosystem.html", "purpose": "ecosystem architecture diagram", "controls": ["runtime links", "proof links"], "outputs": ["runtime map", "deployment modes", "harness map", "training flywheel"], "audit": ["judge clarity", "no unsupported architecture claims"]},
-    {"route": "/static/demo-recording.html", "file": "demo-recording.html", "purpose": "recording checklist and replay hub", "controls": ["chat preset link", "sample bundle links", "trace JSON download", "workflow links"], "outputs": ["recording checklist", "three-minute path", "safe talk track", "cached moderation trace"], "audit": ["demo stability", "OCR/media truthfulness", "replay artifact access"]},
-    {"route": "/static/showcase-platform.html", "file": "showcase-platform.html", "purpose": "platform safety lane", "controls": ["scenario links"], "outputs": ["lane proof"], "audit": ["UGC examples"]},
-    {"route": "/static/showcase-ngo.html", "file": "showcase-ngo.html", "purpose": "NGO/regulator lane", "controls": ["scenario links"], "outputs": ["case-analysis proof"], "audit": ["local evidence flow"]},
-    {"route": "/static/showcase-worker.html", "file": "showcase-worker.html", "purpose": "worker/mobile lane", "controls": ["scenario links"], "outputs": ["plain-language proof"], "audit": ["no legal overclaim"]},
-    {"route": "/static/showcase-researcher.html", "file": "showcase-researcher.html", "purpose": "researcher lane", "controls": ["scenario links"], "outputs": ["citeable workflow"], "audit": ["graph and hash story"]},
-    {"route": "/static/showcase-developer.html", "file": "showcase-developer.html", "purpose": "developer lane", "controls": ["integration links"], "outputs": ["API story"], "audit": ["harness contract clarity"]},
-    {"route": "/static/grade.html", "file": "grade.html", "purpose": "standalone grading", "controls": ["prompt", "response", "mode", "run grade"], "outputs": ["rule/LLM/combined scores"], "audit": ["dynamic applicability"]},
-    {"route": "/static/grep-tester.html", "file": "grep-tester.html", "purpose": "live GREP tester", "controls": ["text input", "sample buttons", "run"], "outputs": ["rule hits", "latency"], "audit": ["false positives", "rule examples"]},
-    {"route": "/static/grep-rules.html", "file": "grep-rules.html", "purpose": "GREP catalog", "controls": ["filter", "rule select"], "outputs": ["rules", "patterns"], "audit": ["rule metadata"]},
-    {"route": "/static/rag-corpus.html", "file": "rag-corpus.html", "purpose": "RAG corpus browser", "controls": ["filter", "recent retrieval"], "outputs": ["documents", "citations"], "audit": ["source clarity"]},
-    {"route": "/static/rag-graph.html", "file": "rag-graph.html", "purpose": "RAG graph", "controls": ["graph filter"], "outputs": ["citation graph"], "audit": ["graph readability"]},
-    {"route": "/static/tools.html", "file": "tools.html", "purpose": "tool layer", "controls": ["inspect tables"], "outputs": ["fee caps", "hotlines", "ILO indicators"], "audit": ["tool provenance"]},
-    {"route": "/static/persona.html", "file": "persona.html", "purpose": "persona layer", "controls": ["inspect persona"], "outputs": ["system prompt"], "audit": ["scope and refusal clarity"]},
-    {"route": "/static/online.html", "file": "online.html", "purpose": "online layer config", "controls": ["backend settings", "test"], "outputs": ["backend status"], "audit": ["BYOK clarity"]},
-    {"route": "/static/search-safety.html", "file": "search-safety.html", "purpose": "search sanitization", "controls": ["query", "sanitize", "rephrase"], "outputs": ["redactions", "safe query"], "audit": ["PII coverage"]},
-    {"route": "/static/import.html", "file": "import.html", "purpose": "local import corpus", "controls": ["upload", "snippet", "delete"], "outputs": ["local evidence list"], "audit": ["CRUD clarity"]},
-    {"route": "/static/upload.html", "file": "upload.html", "purpose": "legacy upload alias", "controls": ["automatic redirect"], "outputs": ["redirect to /static/process.html"], "audit": ["kept only for old links"]},
-    {"route": "/static/submit.html", "file": "submit.html", "purpose": "legacy submit alias", "controls": ["automatic redirect"], "outputs": ["redirect to /static/share.html"], "audit": ["kept only for old links"]},
-    {"route": "/static/models.html", "file": "models.html", "purpose": "model info", "controls": ["refresh"], "outputs": ["model state"], "audit": ["align with shared top selector"]},
-    {"route": "/static/logs.html", "file": "logs.html", "purpose": "runtime logs", "controls": ["tail", "filter", "clear"], "outputs": ["dc_log events"], "audit": ["privacy-safe logs"]},
-    {"route": "/static/insights.html", "file": "insights.html", "purpose": "legacy insights alias", "controls": ["automatic redirect"], "outputs": ["redirect to /static/process.html"], "audit": ["kept only for old links"]},
-    {"route": "/static/all-tools.html", "file": "all-tools.html", "purpose": "tool index", "controls": ["tool links"], "outputs": ["navigation"], "audit": ["avoid duplicate nav"]},
-    {"route": "/static/hotlines.html", "file": "hotlines.html", "purpose": "contacts", "controls": ["filter"], "outputs": ["hotline list"], "audit": ["citation freshness"]},
-    {"route": "/static/settings.html", "file": "settings.html", "purpose": "settings", "controls": ["config inputs"], "outputs": ["local config"], "audit": ["secret handling"]},
-    {"route": "/static/anonymization-preview.html", "file": "anonymization-preview.html", "purpose": "redaction preview", "controls": ["text input", "preview"], "outputs": ["redacted output"], "audit": ["merge with share if redundant"]}
+    {
+      "route": "/",
+      "file": "getting-started.html",
+      "purpose": "home and orientation",
+      "controls": [
+        "top model selector",
+        "workflow links",
+        "endpoint reference"
+      ],
+      "outputs": [
+        "orientation",
+        "deployment modes",
+        "trust boundaries"
+      ],
+      "audit": [
+        "copy clarity",
+        "local enterprise hub distinction",
+        "no stale names"
+      ]
+    },
+    {
+      "route": "/static/chat.html",
+      "file": "index.html",
+      "purpose": "primary chat harness",
+      "controls": [
+        "message input",
+        "image upload",
+        "layer toggles",
+        "examples",
+        "pipeline",
+        "grade"
+      ],
+      "outputs": [
+        "SSE answer",
+        "trace",
+        "grade"
+      ],
+      "audit": [
+        "hover stability",
+        "model-required state",
+        "example picker parity"
+      ]
+    },
+    {
+      "route": "/static/compare.html",
+      "file": "compare.html",
+      "purpose": "A/B harness comparison",
+      "controls": [
+        "prompt",
+        "variant toggles",
+        "run",
+        "interrupt",
+        "grade both",
+        "examples"
+      ],
+      "outputs": [
+        "two responses",
+        "two traces",
+        "timing",
+        "grades"
+      ],
+      "audit": [
+        "shared model selector",
+        "same examples as chat",
+        "N/A scoring clarity"
+      ]
+    },
+    {
+      "route": "/static/process.html",
+      "file": "process.html",
+      "purpose": "bulk file review",
+      "controls": [
+        "file input",
+        "sample bundle",
+        "start processing",
+        "graph chat",
+        "download bundle"
+      ],
+      "outputs": [
+        "intelligence graph",
+        "journey points",
+        "OCR queue",
+        "Gemma brief"
+      ],
+      "audit": [
+        "media detection",
+        "critical fee points",
+        "graph visualization"
+      ]
+    },
+    {
+      "route": "/static/knowledge.html",
+      "file": "knowledge.html",
+      "purpose": "knowledge-object extraction",
+      "controls": [
+        "source bundle upload",
+        "optional source text",
+        "draft",
+        "promote",
+        "knowledge files import/export"
+      ],
+      "outputs": [
+        "process-bundle summary",
+        "envelope JSON",
+        "validation notes",
+        "knowledge_files.zip"
+      ],
+      "audit": [
+        "Bulk File Review parity",
+        "Gemma requirement label",
+        "knowledge files naming",
+        "draft prompt path visible",
+        "model-fit warning"
+      ]
+    },
+    {
+      "route": "/static/search.html",
+      "file": "search.html",
+      "purpose": "search utility after safety",
+      "controls": [
+        "query",
+        "sanitize toggle",
+        "backend",
+        "search",
+        "draft knowledge"
+      ],
+      "outputs": [
+        "sanitized query",
+        "results",
+        "draftable snippets"
+      ],
+      "audit": [
+        "PII boundary",
+        "backend availability",
+        "citation capture",
+        "result-to-knowledge path visible",
+        "model-fit warning"
+      ]
+    },
+    {
+      "route": "/static/share.html",
+      "file": "share.html",
+      "purpose": "anonymization and sharing",
+      "controls": [
+        "source bundle or knowledge files input",
+        "review checkboxes",
+        "anonymize",
+        "Gemma privacy review",
+        "hub URL",
+        "submit hub"
+      ],
+      "outputs": [
+        "redacted text",
+        "Gemma residual-PII review",
+        "audit hash",
+        "remote status",
+        "submission status"
+      ],
+      "audit": [
+        "no plaintext leakage",
+        "hub target clarity",
+        "human vetting language",
+        "Gemma privacy review framed as second local check"
+      ]
+    },
+    {
+      "route": "/static/sync.html",
+      "file": "sync.html",
+      "purpose": "knowledge pack sync",
+      "controls": [
+        "sync vetted",
+        "sync unvetted",
+        "manual import"
+      ],
+      "outputs": [
+        "pack counts",
+        "sync log",
+        "vetting loop explanation"
+      ],
+      "audit": [
+        "pack provenance",
+        "vetted/unvetted distinction",
+        "pull-only boundary"
+      ]
+    },
+    {
+      "route": "/static/status.html",
+      "file": "status.html",
+      "purpose": "runtime status",
+      "controls": [
+        "refresh",
+        "links"
+      ],
+      "outputs": [
+        "knowledge counts",
+        "model state",
+        "backend state"
+      ],
+      "audit": [
+        "live counts",
+        "single source of truth"
+      ]
+    },
+    {
+      "route": "/static/harness.html",
+      "file": "harness.html",
+      "purpose": "harness contract registry",
+      "controls": [
+        "harness selector",
+        "open test page",
+        "open comparison"
+      ],
+      "outputs": [
+        "contract details",
+        "routes",
+        "examples"
+      ],
+      "audit": [
+        "contract labels",
+        "Gemma vs utility clarity"
+      ]
+    },
+    {
+      "route": "/static/ui-audit.html",
+      "file": "ui-audit.html",
+      "purpose": "pre-recording audit",
+      "controls": [
+        "manifest refresh",
+        "route links"
+      ],
+      "outputs": [
+        "kernel checklist",
+        "page checklist",
+        "backlog"
+      ],
+      "audit": [
+        "complete manifest coverage"
+      ]
+    },
+    {
+      "route": "/static/use-cases.html",
+      "file": "use-cases.html",
+      "purpose": "six setup lanes",
+      "controls": [
+        "lane links"
+      ],
+      "outputs": [
+        "use-case summaries",
+        "deployment pattern"
+      ],
+      "audit": [
+        "public-site alignment",
+        "local enterprise hub distinction"
+      ]
+    },
+    {
+      "route": "/static/ecosystem.html",
+      "file": "ecosystem.html",
+      "purpose": "ecosystem architecture diagram",
+      "controls": [
+        "runtime links",
+        "proof links"
+      ],
+      "outputs": [
+        "runtime map",
+        "deployment modes",
+        "harness map",
+        "training flywheel"
+      ],
+      "audit": [
+        "judge clarity",
+        "no unsupported architecture claims"
+      ]
+    },
+    {
+      "route": "/static/demo-recording.html",
+      "file": "demo-recording.html",
+      "purpose": "recording checklist and replay hub",
+      "controls": [
+        "chat preset link",
+        "sample bundle links",
+        "trace JSON download",
+        "workflow links"
+      ],
+      "outputs": [
+        "recording checklist",
+        "three-minute path",
+        "safe talk track",
+        "cached moderation trace"
+      ],
+      "audit": [
+        "demo stability",
+        "OCR/media truthfulness",
+        "replay artifact access"
+      ]
+    },
+    {
+      "route": "/static/showcase-platform.html",
+      "file": "showcase-platform.html",
+      "purpose": "platform safety lane",
+      "controls": [
+        "scenario links"
+      ],
+      "outputs": [
+        "lane proof"
+      ],
+      "audit": [
+        "UGC examples"
+      ]
+    },
+    {
+      "route": "/static/showcase-ngo.html",
+      "file": "showcase-ngo.html",
+      "purpose": "NGO/regulator lane",
+      "controls": [
+        "scenario links"
+      ],
+      "outputs": [
+        "case-analysis proof"
+      ],
+      "audit": [
+        "local evidence flow"
+      ]
+    },
+    {
+      "route": "/static/showcase-worker.html",
+      "file": "showcase-worker.html",
+      "purpose": "worker/mobile lane",
+      "controls": [
+        "scenario links"
+      ],
+      "outputs": [
+        "plain-language proof"
+      ],
+      "audit": [
+        "no legal overclaim"
+      ]
+    },
+    {
+      "route": "/static/showcase-researcher.html",
+      "file": "showcase-researcher.html",
+      "purpose": "researcher lane",
+      "controls": [
+        "scenario links"
+      ],
+      "outputs": [
+        "citeable workflow"
+      ],
+      "audit": [
+        "graph and hash story"
+      ]
+    },
+    {
+      "route": "/static/showcase-developer.html",
+      "file": "showcase-developer.html",
+      "purpose": "developer lane",
+      "controls": [
+        "integration links"
+      ],
+      "outputs": [
+        "API story"
+      ],
+      "audit": [
+        "harness contract clarity"
+      ]
+    },
+    {
+      "route": "/static/grade.html",
+      "file": "grade.html",
+      "purpose": "standalone grading",
+      "controls": [
+        "prompt",
+        "response",
+        "mode",
+        "run grade"
+      ],
+      "outputs": [
+        "rule/LLM/combined scores"
+      ],
+      "audit": [
+        "dynamic applicability"
+      ]
+    },
+    {
+      "route": "/static/grep-tester.html",
+      "file": "grep-tester.html",
+      "purpose": "live GREP tester",
+      "controls": [
+        "text input",
+        "sample buttons",
+        "run"
+      ],
+      "outputs": [
+        "rule hits",
+        "latency"
+      ],
+      "audit": [
+        "false positives",
+        "rule examples"
+      ]
+    },
+    {
+      "route": "/static/grep-rules.html",
+      "file": "grep-rules.html",
+      "purpose": "GREP catalog",
+      "controls": [
+        "filter",
+        "rule select"
+      ],
+      "outputs": [
+        "rules",
+        "patterns"
+      ],
+      "audit": [
+        "rule metadata"
+      ]
+    },
+    {
+      "route": "/static/rag-corpus.html",
+      "file": "rag-corpus.html",
+      "purpose": "RAG corpus browser",
+      "controls": [
+        "filter",
+        "recent retrieval"
+      ],
+      "outputs": [
+        "documents",
+        "citations"
+      ],
+      "audit": [
+        "source clarity"
+      ]
+    },
+    {
+      "route": "/static/rag-graph.html",
+      "file": "rag-graph.html",
+      "purpose": "RAG graph",
+      "controls": [
+        "graph filter"
+      ],
+      "outputs": [
+        "citation graph"
+      ],
+      "audit": [
+        "graph readability"
+      ]
+    },
+    {
+      "route": "/static/tools.html",
+      "file": "tools.html",
+      "purpose": "tool layer",
+      "controls": [
+        "inspect tables"
+      ],
+      "outputs": [
+        "fee caps",
+        "hotlines",
+        "ILO indicators"
+      ],
+      "audit": [
+        "tool provenance"
+      ]
+    },
+    {
+      "route": "/static/persona.html",
+      "file": "persona.html",
+      "purpose": "persona layer",
+      "controls": [
+        "inspect persona"
+      ],
+      "outputs": [
+        "system prompt"
+      ],
+      "audit": [
+        "scope and refusal clarity"
+      ]
+    },
+    {
+      "route": "/static/online.html",
+      "file": "online.html",
+      "purpose": "online layer config",
+      "controls": [
+        "backend settings",
+        "test"
+      ],
+      "outputs": [
+        "backend status"
+      ],
+      "audit": [
+        "BYOK clarity"
+      ]
+    },
+    {
+      "route": "/static/search-safety.html",
+      "file": "search-safety.html",
+      "purpose": "search sanitization",
+      "controls": [
+        "query",
+        "sanitize",
+        "rephrase"
+      ],
+      "outputs": [
+        "redactions",
+        "safe query"
+      ],
+      "audit": [
+        "PII coverage"
+      ]
+    },
+    {
+      "route": "/static/import.html",
+      "file": "import.html",
+      "purpose": "local import corpus",
+      "controls": [
+        "upload",
+        "snippet",
+        "delete"
+      ],
+      "outputs": [
+        "local evidence list"
+      ],
+      "audit": [
+        "CRUD clarity"
+      ]
+    },
+    {
+      "route": "/static/upload.html",
+      "file": "upload.html",
+      "purpose": "legacy upload alias",
+      "controls": [
+        "automatic redirect"
+      ],
+      "outputs": [
+        "redirect to /static/process.html"
+      ],
+      "audit": [
+        "kept only for old links"
+      ]
+    },
+    {
+      "route": "/static/submit.html",
+      "file": "submit.html",
+      "purpose": "legacy submit alias",
+      "controls": [
+        "automatic redirect"
+      ],
+      "outputs": [
+        "redirect to /static/share.html"
+      ],
+      "audit": [
+        "kept only for old links"
+      ]
+    },
+    {
+      "route": "/static/models.html",
+      "file": "models.html",
+      "purpose": "model info",
+      "controls": [
+        "refresh"
+      ],
+      "outputs": [
+        "model state"
+      ],
+      "audit": [
+        "align with shared top selector"
+      ]
+    },
+    {
+      "route": "/static/logs.html",
+      "file": "logs.html",
+      "purpose": "runtime logs",
+      "controls": [
+        "tail",
+        "filter",
+        "clear"
+      ],
+      "outputs": [
+        "dc_log events"
+      ],
+      "audit": [
+        "privacy-safe logs"
+      ]
+    },
+    {
+      "route": "/static/insights.html",
+      "file": "insights.html",
+      "purpose": "legacy insights alias",
+      "controls": [
+        "automatic redirect"
+      ],
+      "outputs": [
+        "redirect to /static/process.html"
+      ],
+      "audit": [
+        "kept only for old links"
+      ]
+    },
+    {
+      "route": "/static/all-tools.html",
+      "file": "all-tools.html",
+      "purpose": "tool index",
+      "controls": [
+        "tool links"
+      ],
+      "outputs": [
+        "navigation"
+      ],
+      "audit": [
+        "avoid duplicate nav"
+      ]
+    },
+    {
+      "route": "/static/hotlines.html",
+      "file": "hotlines.html",
+      "purpose": "contacts",
+      "controls": [
+        "filter"
+      ],
+      "outputs": [
+        "hotline list"
+      ],
+      "audit": [
+        "citation freshness"
+      ]
+    },
+    {
+      "route": "/static/settings.html",
+      "file": "settings.html",
+      "purpose": "settings",
+      "controls": [
+        "config inputs"
+      ],
+      "outputs": [
+        "local config"
+      ],
+      "audit": [
+        "secret handling"
+      ]
+    },
+    {
+      "route": "/static/anonymization-preview.html",
+      "file": "anonymization-preview.html",
+      "purpose": "redaction preview",
+      "controls": [
+        "text input",
+        "preview"
+      ],
+      "outputs": [
+        "redacted output"
+      ],
+      "audit": [
+        "merge with share if redundant"
+      ]
+    },
+    {
+      "route": "/static/templates.html",
+      "file": "templates.html",
+      "purpose": "NGO complaint / referral template orchestration",
+      "controls": [
+        "template selector",
+        "bundle attach",
+        "gemma autofill button"
+      ],
+      "outputs": [
+        "rendered template body",
+        "missing-field warnings",
+        "autofill diff"
+      ],
+      "audit": [
+        "composite sample data only",
+        "no PII in defaults",
+        "clear template provenance"
+      ]
+    }
   ],
   "backlog": [
-    {"priority": "P0", "item": "Run Playwright against live Kernel 01 for desktop, tablet, and mobile before recording.", "owner": "demo prep"},
-    {"priority": "P0", "item": "Run A-00 quick proof path with baseline plus harnessed exports, then save HTML report.", "owner": "technical proof"},
-    {"priority": "P0", "item": "Run A-00 rubric-polished synthetic generation and a tiny E2B/E4B fine-tune smoke job on Kaggle GPU.", "owner": "training proof"},
-    {"priority": "P1", "item": "Wire OCR engine for PDFs/images and feed OCR plus image to Gemma 4 multimodal extraction.", "owner": "bulk review"},
-    {"priority": "P1", "item": "Add entity-resolution review UI for merged people, agencies, employers, phones, wallets, and locations.", "owner": "bulk review"},
-    {"priority": "P1", "item": "Extend graph visualization controls with filtering, clustering, and evidence-edge detail panels.", "owner": "bulk review"},
-    {"priority": "P1", "item": "Promote the hub civil-society vetting queue into a live reviewer UI with acceptance, rejection, pack diff, and regression-gate status.", "owner": "hub"},
-    {"priority": "P1", "item": "Promote evaluation prompts, dimensions, weights, and judge prompts into downloadable knowledge packs.", "owner": "evaluation"},
-    {"priority": "P2", "item": "Consolidate redundant upload, submit, import, and anonymization helper pages after video recording.", "owner": "UI"}
+    {
+      "priority": "P0",
+      "item": "Run Playwright against live Kernel 01 for desktop, tablet, and mobile before recording.",
+      "owner": "demo prep"
+    },
+    {
+      "priority": "P0",
+      "item": "Run A-00 quick proof path with baseline plus harnessed exports, then save HTML report.",
+      "owner": "technical proof"
+    },
+    {
+      "priority": "P0",
+      "item": "Run A-00 rubric-polished synthetic generation and a tiny E2B/E4B fine-tune smoke job on Kaggle GPU.",
+      "owner": "training proof"
+    },
+    {
+      "priority": "P1",
+      "item": "Wire OCR engine for PDFs/images and feed OCR plus image to Gemma 4 multimodal extraction.",
+      "owner": "bulk review"
+    },
+    {
+      "priority": "P1",
+      "item": "Add entity-resolution review UI for merged people, agencies, employers, phones, wallets, and locations.",
+      "owner": "bulk review"
+    },
+    {
+      "priority": "P1",
+      "item": "Extend graph visualization controls with filtering, clustering, and evidence-edge detail panels.",
+      "owner": "bulk review"
+    },
+    {
+      "priority": "P1",
+      "item": "Promote the hub civil-society vetting queue into a live reviewer UI with acceptance, rejection, pack diff, and regression-gate status.",
+      "owner": "hub"
+    },
+    {
+      "priority": "P1",
+      "item": "Promote evaluation prompts, dimensions, weights, and judge prompts into downloadable knowledge packs.",
+      "owner": "evaluation"
+    },
+    {
+      "priority": "P2",
+      "item": "Consolidate redundant upload, submit, import, and anonymization helper pages after video recording.",
+      "owner": "UI"
+    }
   ]
 }
