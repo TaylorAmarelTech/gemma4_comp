@@ -960,6 +960,14 @@
           ids: ['wb-step-upload', 'wb-step-process', 'wb-step-intelligence',
                 'wb-graph-chat', 'wb-step-export'],
           stateIdFor: (id) => id === 'wb-graph-chat' ? 'wb-step-chat-state' : id + '-state',
+          // Step 5 (export) is a terminal hand-off: download / promote /
+          // anonymize-and-share. Two of the three actions navigate away
+          // from this page, so the workflow rarely advances active to
+          // index 4. After Step 3 confirms, surface Step 5 as Ready so
+          // the pill matches the fact that the actions are unlocked.
+          readyWhen: (idx, activeIdx) =>
+            idx === 4 && (wbIntelligenceConfirmed === true
+              || activeIdx >= 3),
         });
       }
       return wbWorkflowStepper;
