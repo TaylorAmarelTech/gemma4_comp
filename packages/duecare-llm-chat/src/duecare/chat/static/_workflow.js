@@ -22,7 +22,7 @@
     opts = opts || {};
     const completeClass = opts.completeClass || 'complete';
     const labels = Object.assign(
-      {done: 'Done', active: 'Active', waiting: 'Waiting'},
+      {done: 'Done', active: 'Active', waiting: 'Waiting', ready: 'Ready'},
       opts.labels || {}
     );
     const elements = _resolveElements(opts);
@@ -44,9 +44,10 @@
       return el && el.id ? _el(el.id + '-state') : null;
     }
 
-    function _stateKey(complete, open) {
+    function _stateKey(complete, open, ready) {
       if (complete) return 'done';
       if (open) return 'active';
+      if (ready) return 'ready';
       return 'waiting';
     }
 
@@ -77,6 +78,13 @@
         const open = typeof opts.openWhen === 'function'
           ? !!opts.openWhen(idx, activeIdx, el, elements.length)
           : idx === activeIdx;
+        // Terminal hand-off steps (e.g. an export panel whose actions
+        // navigate away) can be marked Ready instead of Waiting once a
+        // prior gate has unlocked them. readyWhen is consulted only
+        // when the step is neither complete nor active.
+        const ready = !complete && !open
+          && typeof opts.readyWhen === 'function'
+          && !!opts.readyWhen(idx, activeIdx, el);
         el.classList.toggle(completeClass, complete);
         if (opts.removeCompleteClass) {
           el.classList.remove(opts.removeCompleteClass);
@@ -84,11 +92,13 @@
         if ('open' in el) el.open = open;
         // Mirror lifecycle to a data-state attribute so CSS selectors like
         // .dc-step[data-state="done"] can react without extra wiring.
-        const key = _stateKey(complete, open);
+        const key = _stateKey(complete, open, ready);
         if (el.dataset) el.dataset.state = key;
         const state = _stateEl(el, idx);
         if (state) {
-          const label = complete ? labels.done : (open ? labels.active : labels.waiting);
+          const label = complete ? labels.done
+            : (open ? labels.active
+                : (ready ? labels.ready : labels.waiting));
           _writeStatePill(state, key, label);
         }
       });
