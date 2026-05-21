@@ -407,14 +407,14 @@
       if (processEvents) processEvents.innerHTML = '';
       wbSetProgress('wb-share-process', 5, 'Uploading source bundle', 'Sending the source bundle to the local Process harness.', 'No remote call is made in Step 1.', true);
       wbLog('info', 'POST /api/process/batch/start',
-        'file=' + wbFile.name + ' | inline_gemma_text=false | max_gemma_calls=0');
+        'file=' + wbFile.name + ' | review_mode=deterministic_only (Gemma runs later in Step 3 anonymization review)');
       const t0 = performance.now();
       try {
         const fd = new FormData(); fd.append('file', wbFile);
-        fd.append('review_mode', 'quick_triage');
-        fd.append('max_gemma_calls', '0');
-        fd.append('gemma_calls_per_item', '0');
-        fd.append('run_inline_gemma_text', 'false');
+        // Share intake is deterministic-only by design: Gemma only
+        // runs on Step 3 (residual-PII review over already-redacted
+        // text). See knowledge.html for the same canonical mode.
+        fd.append('review_mode', 'deterministic_only');
         const r = await fetch('/api/process/batch/start', { method: 'POST', body: fd });
         const dt = Math.round(performance.now() - t0);
         const start = await r.json().catch(() => ({}));

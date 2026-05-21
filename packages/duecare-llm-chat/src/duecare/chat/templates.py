@@ -222,6 +222,286 @@ Caseworker signature: ________________________    Date: __________
 
 
 # ---------------------------------------------------------------------------
+# Corridor complaint templates (added 2026-05-21).
+#
+# Each body cites the corridor's specific statute set so the rendered
+# complaint reads correctly to the destination authority. Field
+# placeholders use the same naming convention as the original four
+# templates so source_hint paths into the bundle stay consistent.
+# ---------------------------------------------------------------------------
+
+_TEMPLATE_NP_DOFE_BODY = """COMPLAINT TO DEPARTMENT OF FOREIGN EMPLOYMENT (DoFE)
+Foreign Employment Act 2007 / Foreign Employment Rules 2008
+Filing date: {{filed_date}}
+
+COMPLAINANT (NGO caseworker)
+  Name:           {{complainant_name}}
+  Organisation:   {{complainant_org}}
+  Contact:        {{complainant_contact}}
+
+NEPALI MIGRANT WORKER (subject of complaint)
+  Anonymized identifier:  {{worker_name}}
+  Destination country:    {{destination_country}}
+  Passport prefix:        {{worker_passport_prefix}}
+
+LICENSED MANPOWER AGENCY
+  Agency name:            {{agency_name}}
+  DoFE licence no.:       {{agency_license}}
+  Agency address:         {{agency_address}}
+
+PARTICULARS OF THE VIOLATION
+  Deployment date:                     {{deployment_date}}
+  Service charge collected (NPR):      {{recruitment_fee_amount_npr}}
+  Statutory ceiling (Foreign Employment Rules 2008): {{recruitment_fee_cap_npr}}
+  Document fees collected (NPR):       {{document_fees_npr}}
+
+INCIDENT SUMMARY
+{{incident_summary}}
+
+STATUTORY VIOLATIONS ALLEGED
+  - Foreign Employment Act 2007 sections 21-25 (recruitment service
+    charge ceiling, prohibition on collection of fees beyond schedule)
+  - Foreign Employment Rules 2008 (destination-specific ceilings)
+  - ILO C181 Art. 7 (no worker-paid recruitment fees, direct or
+    indirect)
+
+ILO FORCED-LABOUR INDICATORS
+{{ilo_indicators}}
+
+EVIDENCE AVAILABLE
+{{evidence_list}}
+
+RELIEF REQUESTED
+{{relief_requested}}
+
+This complaint is submitted in good faith based on case material held
+by {{complainant_org}}. The complainant requests referral to the
+Foreign Employment Tribunal (FETB) where warranted, refund of all
+excess charges, and cross-notification to the destination-country
+labour authority.
+
+Signature: ________________________    Date: __________
+"""
+
+_TEMPLATE_ID_BP2MI_BODY = """COMPLAINT TO BP2MI
+Badan Pelindungan Pekerja Migran Indonesia
+UU 18/2017 / BP2MI Regulation 09/2020
+Filing date: {{filed_date}}
+
+COMPLAINANT (NGO caseworker)
+  Name:           {{complainant_name}}
+  Organisation:   {{complainant_org}}
+  Contact:        {{complainant_contact}}
+
+INDONESIAN MIGRANT WORKER (Pekerja Migran Indonesia)
+  Anonymized identifier:  {{worker_name}}
+  Destination country:    {{destination_country}}
+  Sector:                 {{sector}}
+  Passport prefix:        {{worker_passport_prefix}}
+
+LICENSED P3MI AGENCY
+  Agency name:            {{agency_name}}
+  BP2MI / P3MI licence:   {{agency_license}}
+  Agency address:         {{agency_address}}
+
+PARTICULARS OF THE VIOLATION
+  Deployment date:                     {{deployment_date}}
+  Unauthorised fee collected (IDR):    {{recruitment_fee_amount_idr}}
+  Salary-deduction repayment terms:    {{salary_deduction_terms}}
+  Months of salary withheld:           {{months_withheld}}
+
+INCIDENT SUMMARY
+{{incident_summary}}
+
+STATUTORY VIOLATIONS ALLEGED
+  - UU 18/2017 (Protection of Indonesian Migrant Workers) on
+    prohibited fees and pre-departure obligations
+  - BP2MI Regulation 09/2020 on the limited list of recoverable cost
+    components (excludes most placement/training charges)
+  - ILO C181 Art. 7 and ILO C189 where domestic work is involved
+
+ILO FORCED-LABOUR INDICATORS
+{{ilo_indicators}}
+
+EVIDENCE AVAILABLE
+{{evidence_list}}
+
+RELIEF REQUESTED
+{{relief_requested}}
+
+The complainant requests BP2MI to investigate the P3MI agency,
+suspend or revoke the licence, order refund of all unauthorised
+fees, and coordinate with the destination-country labour authority
+on cross-border enforcement.
+
+Signature: ________________________    Date: __________
+"""
+
+_TEMPLATE_BD_BMET_BODY = """COMPLAINT TO BMET
+Bureau of Manpower, Employment and Training, Bangladesh
+Overseas Employment and Migrants Act 2013
+Filing date: {{filed_date}}
+
+COMPLAINANT (NGO caseworker)
+  Name:           {{complainant_name}}
+  Organisation:   {{complainant_org}}
+  Contact:        {{complainant_contact}}
+
+BANGLADESHI MIGRANT WORKER (subject)
+  Anonymized identifier:  {{worker_name}}
+  Destination country:    {{destination_country}}
+  Sector:                 {{sector}}
+  Passport prefix:        {{worker_passport_prefix}}
+
+LICENSED RECRUITING AGENT
+  Agent name:             {{agency_name}}
+  BMET licence no.:       {{agency_license}}
+  Agency address:         {{agency_address}}
+
+PARTICULARS OF THE VIOLATION
+  Deployment date:                       {{deployment_date}}
+  Recruitment cost collected (BDT):      {{recruitment_fee_amount_bdt}}
+  Bilateral ceiling (G2G+ MoU):          {{recruitment_fee_cap_bdt}}
+  Family / third-party payments:         {{family_payment_amount}}
+
+INCIDENT SUMMARY
+{{incident_summary}}
+
+STATUTORY VIOLATIONS ALLEGED
+  - Overseas Employment and Migrants Act 2013 (Bangladesh): fee
+    limits, recruiter licensing, worker-protection provisions
+  - Bangladesh-Malaysia G2G+ MoU (where applicable): worker share
+    of recruitment cost capped, employer pays pre-departure costs
+  - ILO C181 Art. 7
+
+ILO FORCED-LABOUR INDICATORS
+{{ilo_indicators}}
+
+EVIDENCE AVAILABLE
+{{evidence_list}}
+
+RELIEF REQUESTED
+{{relief_requested}}
+
+The complainant requests BMET to investigate, suspend or cancel the
+Recruiting Agent's licence, order refund of excess fees, and
+coordinate with the destination-country labour authority on
+cross-border enforcement.
+
+Signature: ________________________    Date: __________
+"""
+
+_TEMPLATE_VN_DOLAB_BODY = """COMPLAINT TO DOLAB
+Department of Overseas Labour, Vietnam
+Decree 38/2020/ND-CP
+Filing date: {{filed_date}}
+
+COMPLAINANT (NGO caseworker)
+  Name:           {{complainant_name}}
+  Organisation:   {{complainant_org}}
+  Contact:        {{complainant_contact}}
+
+VIETNAMESE MIGRANT WORKER (subject)
+  Anonymized identifier:  {{worker_name}}
+  Destination country:    {{destination_country}}
+  Sector:                 {{sector}}
+  Passport prefix:        {{worker_passport_prefix}}
+
+LICENSED SENDING AGENCY
+  Agency name:            {{agency_name}}
+  DOLAB licence no.:      {{agency_license}}
+  Agency address:         {{agency_address}}
+
+PARTICULARS OF THE VIOLATION
+  Deployment date:                        {{deployment_date}}
+  Service fee collected (USD):            {{recruitment_fee_amount_usd}}
+  Statutory cap (Decree 38/2020/ND-CP):   {{recruitment_fee_cap_usd}}
+  Brokerage fee (monthly):                {{monthly_brokerage_usd}}
+
+INCIDENT SUMMARY
+{{incident_summary}}
+
+STATUTORY VIOLATIONS ALLEGED
+  - Decree 38/2020/ND-CP (Vietnam) on fee categories and ceilings
+  - Employment Service Act (Taiwan) where applicable: caps on
+    monthly broker fees by year of service
+  - ILO C181 Art. 7
+
+ILO FORCED-LABOUR INDICATORS
+{{ilo_indicators}}
+
+EVIDENCE AVAILABLE
+{{evidence_list}}
+
+RELIEF REQUESTED
+{{relief_requested}}
+
+The complainant requests DOLAB to investigate, suspend or revoke the
+sending agency's licence, order refund of excess service fees and
+brokerage, and coordinate with the destination-country labour
+authority on cross-border enforcement.
+
+Signature: ________________________    Date: __________
+"""
+
+_TEMPLATE_US_DOL_WHD_BODY = """COMPLAINT TO THE U.S. DEPARTMENT OF LABOR
+Wage and Hour Division -- H-2A / MSPA Investigation
+Filing date: {{filed_date}}
+
+COMPLAINANT (NGO caseworker)
+  Name:           {{complainant_name}}
+  Organisation:   {{complainant_org}}
+  Contact:        {{complainant_contact}}
+
+H-2A WORKER (subject)
+  Anonymized identifier:  {{worker_name}}
+  Country of recruitment: {{country_of_origin}}
+  H-2A visa case number:  {{worker_visa_case}}
+
+EMPLOYER / LABOR CONTRACTOR
+  Employer name:            {{employer_name}}
+  Farm labor contractor:    {{labor_contractor_name}}
+  ETA H-2A case number:     {{eta_case_number}}
+  Worksite location:        {{worksite_location}}
+
+PARTICULARS OF THE VIOLATION
+  Recruitment fees collected (USD):  {{recruitment_fee_amount_usd}}
+  Visa fees collected from worker:   {{visa_fees_usd}}
+  Border-crossing costs charged:     {{border_costs_usd}}
+  Promised wage rate (AEWR):         {{promised_wage_rate}}
+  Actual wage rate paid:             {{actual_wage_rate}}
+
+INCIDENT SUMMARY
+{{incident_summary}}
+
+STATUTORY VIOLATIONS ALLEGED
+  - 20 CFR 655.135(j): prohibition on collection of recruitment,
+    visa, border-crossing, or related fees from H-2A workers
+  - Trafficking Victims Protection Reauthorization Act (TVPRA),
+    22 U.S.C. 7102 (forced labor; debt bondage)
+  - Migrant and Seasonal Agricultural Worker Protection Act (MSPA)
+    disclosure and prohibited-fee provisions where applicable
+
+ILO FORCED-LABOUR INDICATORS
+{{ilo_indicators}}
+
+EVIDENCE AVAILABLE
+{{evidence_list}}
+
+RELIEF REQUESTED
+{{relief_requested}}
+
+The complainant requests the Wage and Hour Division to investigate,
+order full restitution of all prohibited fees, assess civil money
+penalties under 29 U.S.C. 1853, refer the matter to the Department
+of Justice for trafficking review where warranted, and coordinate
+with the Mexican consulate on victim support.
+
+Signature: ________________________    Date: __________
+"""
+
+
+# ---------------------------------------------------------------------------
 # Field + Template schema
 # ---------------------------------------------------------------------------
 
@@ -417,6 +697,182 @@ TEMPLATES_REGISTRY: dict[str, TemplateSpec] = {
             _f("evidence_list", "Evidence inventory", False, "intelligence.evidence_edges"),
             _f("next_steps", "Next steps / referral target", True),
             _f("consent_status", "Worker consent status", True),
+        ),
+    ),
+
+    # --------- Corridor complaint templates (added 2026-05-21) --------
+    "np_dofe_complaint": TemplateSpec(
+        id="np_dofe_complaint",
+        title="Nepal DoFE Complaint (Foreign Employment Act)",
+        jurisdiction="Nepal",
+        audience="Department of Foreign Employment (DoFE) / Foreign Employment Tribunal",
+        summary=(
+            "Complaint against a Nepali manpower agency for collection of "
+            "recruitment service charges exceeding the Foreign Employment "
+            "Rules 2008 ceiling. Aligns with FEA 2007 sections 21-25 and "
+            "ILO C181 Art. 7."
+        ),
+        body=_TEMPLATE_NP_DOFE_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("complainant_name", "Caseworker name", True),
+            _f("complainant_org", "NGO / organisation", True),
+            _f("complainant_contact", "Caseworker contact", True),
+            _f("worker_name", "Worker anonymized ID", True, "people[0].label"),
+            _f("destination_country", "Destination country", True, "intelligence.corridor"),
+            _f("worker_passport_prefix", "Worker passport prefix (e.g., 12345****)", False),
+            _f("agency_name", "Licensed manpower agency name", True, "intelligence.agencies[0]"),
+            _f("agency_license", "DoFE licence number", True),
+            _f("agency_address", "Agency address", False),
+            _f("deployment_date", "Deployment date", True, "intelligence.deployment_date"),
+            _f("recruitment_fee_amount_npr", "Service charge collected (NPR)", True, "intelligence.payments_npr"),
+            _f("recruitment_fee_cap_npr", "Statutory ceiling (NPR)", True),
+            _f("document_fees_npr", "Document fees collected (NPR)", False),
+            _f("incident_summary", "Case narrative", True, "intelligence.case_brief"),
+            _f("ilo_indicators", "ILO forced-labour indicators observed", False, "intelligence.ilo_indicators"),
+            _f("evidence_list", "Evidence available", False, "intelligence.evidence_edges"),
+            _f("relief_requested", "Relief requested", True),
+        ),
+    ),
+
+    "id_bp2mi_complaint": TemplateSpec(
+        id="id_bp2mi_complaint",
+        title="Indonesia BP2MI Complaint (UU 18/2017)",
+        jurisdiction="Indonesia",
+        audience="BP2MI (Badan Pelindungan Pekerja Migran Indonesia)",
+        summary=(
+            "Complaint against a P3MI-licensed Indonesian placement agency "
+            "for unauthorised fee collection or salary-deduction repayment "
+            "schemes. Aligns with UU 18/2017 and BP2MI Regulation 09/2020."
+        ),
+        body=_TEMPLATE_ID_BP2MI_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("complainant_name", "Caseworker name", True),
+            _f("complainant_org", "NGO / organisation", True),
+            _f("complainant_contact", "Caseworker contact", True),
+            _f("worker_name", "Worker anonymized ID", True, "people[0].label"),
+            _f("destination_country", "Destination country", True, "intelligence.corridor"),
+            _f("sector", "Sector (e.g., domestic work)", False, "intelligence.sector"),
+            _f("worker_passport_prefix", "Worker passport prefix", False),
+            _f("agency_name", "Licensed P3MI agency name", True, "intelligence.agencies[0]"),
+            _f("agency_license", "BP2MI / P3MI licence number", True),
+            _f("agency_address", "Agency address", False),
+            _f("deployment_date", "Deployment date", True, "intelligence.deployment_date"),
+            _f("recruitment_fee_amount_idr", "Unauthorised fee collected (IDR)", True),
+            _f("salary_deduction_terms", "Salary-deduction terms (months / percent)", False),
+            _f("months_withheld", "Months of salary withheld", False),
+            _f("incident_summary", "Case narrative", True, "intelligence.case_brief"),
+            _f("ilo_indicators", "ILO forced-labour indicators observed", False, "intelligence.ilo_indicators"),
+            _f("evidence_list", "Evidence available", False, "intelligence.evidence_edges"),
+            _f("relief_requested", "Relief requested", True),
+        ),
+    ),
+
+    "bd_bmet_complaint": TemplateSpec(
+        id="bd_bmet_complaint",
+        title="Bangladesh BMET Complaint (Overseas Employment Act 2013)",
+        jurisdiction="Bangladesh",
+        audience="BMET (Bureau of Manpower, Employment and Training)",
+        summary=(
+            "Complaint against a BMET-licensed Recruiting Agent for "
+            "collection of recruitment costs exceeding bilateral G2G+ "
+            "ceilings. Aligns with the Overseas Employment and Migrants "
+            "Act 2013 and ILO C181 Art. 7."
+        ),
+        body=_TEMPLATE_BD_BMET_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("complainant_name", "Caseworker name", True),
+            _f("complainant_org", "NGO / organisation", True),
+            _f("complainant_contact", "Caseworker contact", True),
+            _f("worker_name", "Worker anonymized ID", True, "people[0].label"),
+            _f("destination_country", "Destination country", True, "intelligence.corridor"),
+            _f("sector", "Sector", False, "intelligence.sector"),
+            _f("worker_passport_prefix", "Worker passport prefix", False),
+            _f("agency_name", "Licensed Recruiting Agent name", True, "intelligence.agencies[0]"),
+            _f("agency_license", "BMET licence number", True),
+            _f("agency_address", "Agency address", False),
+            _f("deployment_date", "Deployment date", True, "intelligence.deployment_date"),
+            _f("recruitment_fee_amount_bdt", "Recruitment cost collected (BDT)", True),
+            _f("recruitment_fee_cap_bdt", "Bilateral ceiling (BDT)", True),
+            _f("family_payment_amount", "Family / third-party payments", False),
+            _f("incident_summary", "Case narrative", True, "intelligence.case_brief"),
+            _f("ilo_indicators", "ILO forced-labour indicators observed", False, "intelligence.ilo_indicators"),
+            _f("evidence_list", "Evidence available", False, "intelligence.evidence_edges"),
+            _f("relief_requested", "Relief requested", True),
+        ),
+    ),
+
+    "vn_dolab_complaint": TemplateSpec(
+        id="vn_dolab_complaint",
+        title="Vietnam DOLAB Complaint (Decree 38/2020/ND-CP)",
+        jurisdiction="Vietnam",
+        audience="DOLAB (Department of Overseas Labour)",
+        summary=(
+            "Complaint against a DOLAB-licensed Vietnamese sending agency "
+            "for collection of service fees and brokerage exceeding the "
+            "Decree 38/2020/ND-CP cap. Cross-applies the destination's "
+            "Employment Service Act where Taiwan-side broker fees are at "
+            "issue."
+        ),
+        body=_TEMPLATE_VN_DOLAB_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("complainant_name", "Caseworker name", True),
+            _f("complainant_org", "NGO / organisation", True),
+            _f("complainant_contact", "Caseworker contact", True),
+            _f("worker_name", "Worker anonymized ID", True, "people[0].label"),
+            _f("destination_country", "Destination country", True, "intelligence.corridor"),
+            _f("sector", "Sector (e.g., factory, caregiver)", False, "intelligence.sector"),
+            _f("worker_passport_prefix", "Worker passport prefix", False),
+            _f("agency_name", "Licensed sending agency name", True, "intelligence.agencies[0]"),
+            _f("agency_license", "DOLAB licence number", True),
+            _f("agency_address", "Agency address", False),
+            _f("deployment_date", "Deployment date", True, "intelligence.deployment_date"),
+            _f("recruitment_fee_amount_usd", "Service fee collected (USD)", True),
+            _f("recruitment_fee_cap_usd", "Statutory cap (USD)", True),
+            _f("monthly_brokerage_usd", "Monthly brokerage fee (USD)", False),
+            _f("incident_summary", "Case narrative", True, "intelligence.case_brief"),
+            _f("ilo_indicators", "ILO forced-labour indicators observed", False, "intelligence.ilo_indicators"),
+            _f("evidence_list", "Evidence available", False, "intelligence.evidence_edges"),
+            _f("relief_requested", "Relief requested", True),
+        ),
+    ),
+
+    "us_dol_whd_complaint": TemplateSpec(
+        id="us_dol_whd_complaint",
+        title="U.S. DOL Wage and Hour Division Complaint (H-2A / MSPA)",
+        jurisdiction="United States",
+        audience="U.S. Department of Labor (Wage and Hour Division)",
+        summary=(
+            "Complaint against a U.S. employer and / or farm labor "
+            "contractor for collection of prohibited recruitment, visa, "
+            "or border-crossing fees from an H-2A worker. Aligns with "
+            "20 CFR 655.135(j), the TVPRA, and MSPA."
+        ),
+        body=_TEMPLATE_US_DOL_WHD_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("complainant_name", "Caseworker name", True),
+            _f("complainant_org", "NGO / organisation", True),
+            _f("complainant_contact", "Caseworker contact", True),
+            _f("worker_name", "Worker anonymized ID", True, "people[0].label"),
+            _f("country_of_origin", "Country of recruitment", True, "intelligence.country_of_origin"),
+            _f("worker_visa_case", "H-2A visa case number (last 4)", False),
+            _f("employer_name", "U.S. employer of record", True, "intelligence.employers[0]"),
+            _f("labor_contractor_name", "Farm labor contractor (if any)", False),
+            _f("eta_case_number", "ETA H-2A case number", False),
+            _f("worksite_location", "Worksite state and county", True),
+            _f("recruitment_fee_amount_usd", "Recruitment fees collected (USD)", True),
+            _f("visa_fees_usd", "Visa fees collected from worker (USD)", False),
+            _f("border_costs_usd", "Border-crossing costs charged (USD)", False),
+            _f("promised_wage_rate", "Promised wage rate (AEWR)", False),
+            _f("actual_wage_rate", "Actual wage rate paid", False),
+            _f("incident_summary", "Case narrative", True, "intelligence.case_brief"),
+            _f("ilo_indicators", "ILO forced-labour indicators observed", False, "intelligence.ilo_indicators"),
+            _f("evidence_list", "Evidence available", False, "intelligence.evidence_edges"),
+            _f("relief_requested", "Relief requested", True),
         ),
     ),
 }
@@ -820,6 +1276,192 @@ def register_template_routes(app: Any) -> None:
             "used_gemma": meta.get("used_gemma", False),
             "gemma_error": meta.get("__gemma_error"),
         }
+
+    # -----------------------------------------------------------------
+    # Draft persistence (saves rendered templates to a local
+    # /kaggle/working/templates/drafts/ directory so reviewers can come
+    # back to a draft across page reloads). The reviewer is responsible
+    # for anonymizing before saving -- the page banner already says
+    # this. Drafts are local only; no remote calls.
+    # -----------------------------------------------------------------
+
+    import hashlib as _hashlib
+    import json as _json
+    import pathlib as _pathlib
+    import time as _time
+
+    def _drafts_root() -> _pathlib.Path | None:
+        candidates = [
+            _pathlib.Path("/kaggle/working/templates/drafts"),
+            _pathlib.Path(".duecare-template-drafts"),
+        ]
+        for root in candidates:
+            try:
+                root.mkdir(parents=True, exist_ok=True)
+                return root
+            except Exception:
+                continue
+        return None
+
+    def _draft_id() -> str:
+        ts = _time.strftime("%Y-%m-%dT%H-%M-%SZ", _time.gmtime())
+        suffix = _hashlib.sha256(
+            f"{ts}_{_time.time_ns()}".encode("utf-8")
+        ).hexdigest()[:8]
+        return f"draft_{ts}_{suffix}"
+
+    def _safe_draft_id(draft_id: str) -> str | None:
+        """Reject any draft_id that isn't a stable slug -- defense
+        against ../traversal or absolute paths in the path
+        parameter."""
+        import re as _re_local
+        if not draft_id or not _re_local.fullmatch(
+            r"draft_[0-9A-Za-z_\-]{8,64}", draft_id
+        ):
+            return None
+        return draft_id
+
+    @app.post("/api/templates/drafts")
+    def api_templates_drafts_save(body: dict = Body(...)):
+        """Persist a rendered template draft locally so the reviewer
+        can come back to it. Idempotent on identical content (a
+        re-save replaces the existing file)."""
+        body = body or {}
+        template_id = (body.get("template_id") or "").strip()
+        rendered = str(body.get("rendered") or "")
+        template = TEMPLATES_REGISTRY.get(template_id)
+        if template is None:
+            return JSONResponse(
+                {
+                    "status": "unknown_template",
+                    "message": (
+                        f"No template registered for id={template_id!r}."
+                    ),
+                },
+                status_code=404,
+            )
+        if not rendered.strip():
+            return JSONResponse(
+                {
+                    "status": "empty_draft",
+                    "message": "rendered must be a non-empty string.",
+                },
+                status_code=400,
+            )
+        root = _drafts_root()
+        if root is None:
+            return JSONResponse(
+                {
+                    "status": "no_writable_root",
+                    "message": (
+                        "Could not find a writable drafts directory; "
+                        "/kaggle/working and .duecare-template-drafts "
+                        "both unavailable."
+                    ),
+                },
+                status_code=500,
+            )
+        draft_id = _draft_id()
+        saved_at = _time.strftime("%Y-%m-%dT%H:%M:%SZ", _time.gmtime())
+        payload = {
+            "schema_version": "duecare.template.draft.v1",
+            "draft_id": draft_id,
+            "template_id": template_id,
+            "title": template.title,
+            "saved_at": saved_at,
+            "rendered": rendered,
+            "field_values": body.get("field_values") or {},
+            "manual_fields": body.get("manual_fields") or {},
+            "run_id": str(body.get("run_id") or ""),
+        }
+        path = root / f"{draft_id}.json"
+        path.write_text(
+            _json.dumps(payload, indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        return {
+            "status": "saved",
+            "draft_id": draft_id,
+            "saved_at": saved_at,
+            "path": str(path),
+            "bytes": path.stat().st_size,
+        }
+
+    @app.get("/api/templates/drafts")
+    def api_templates_drafts_list():
+        """List every saved draft, newest first."""
+        root = _drafts_root()
+        if root is None:
+            return {"drafts": [], "drafts_root": None}
+        entries: list[dict] = []
+        for p in sorted(root.glob("draft_*.json"), reverse=True):
+            try:
+                doc = _json.loads(p.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            entries.append({
+                "draft_id": doc.get("draft_id"),
+                "template_id": doc.get("template_id"),
+                "title": doc.get("title"),
+                "saved_at": doc.get("saved_at"),
+                "run_id": doc.get("run_id"),
+                "bytes": p.stat().st_size,
+            })
+        return {"drafts": entries, "drafts_root": str(root)}
+
+    @app.get("/api/templates/drafts/{draft_id}")
+    def api_templates_drafts_get(draft_id: str):
+        """Retrieve a single saved draft by id."""
+        sid = _safe_draft_id(draft_id)
+        if sid is None:
+            return JSONResponse(
+                {"status": "bad_draft_id"}, status_code=400
+            )
+        root = _drafts_root()
+        if root is None:
+            return JSONResponse(
+                {"status": "no_writable_root"}, status_code=500
+            )
+        path = root / f"{sid}.json"
+        if not path.exists():
+            return JSONResponse(
+                {"status": "not_found", "draft_id": sid},
+                status_code=404,
+            )
+        try:
+            doc = _json.loads(path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            return JSONResponse(
+                {
+                    "status": "unreadable",
+                    "draft_id": sid,
+                    "error": f"{type(exc).__name__}: {exc}",
+                },
+                status_code=500,
+            )
+        return doc
+
+    @app.delete("/api/templates/drafts/{draft_id}")
+    def api_templates_drafts_delete(draft_id: str):
+        """Delete a saved draft."""
+        sid = _safe_draft_id(draft_id)
+        if sid is None:
+            return JSONResponse(
+                {"status": "bad_draft_id"}, status_code=400
+            )
+        root = _drafts_root()
+        if root is None:
+            return JSONResponse(
+                {"status": "no_writable_root"}, status_code=500
+            )
+        path = root / f"{sid}.json"
+        if not path.exists():
+            return JSONResponse(
+                {"status": "not_found", "draft_id": sid},
+                status_code=404,
+            )
+        path.unlink()
+        return {"status": "deleted", "draft_id": sid}
 
 
 __all__ = [

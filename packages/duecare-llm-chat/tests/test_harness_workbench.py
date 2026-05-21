@@ -458,9 +458,11 @@ def test_share_page_has_bulk_review_selection_controls(client):
     assert "/api/anonymize/status/" in text
     assert "/api/anonymize/cancel/" in text
     assert "Run deterministic only" in text
-    assert "inline_gemma_text=false | max_gemma_calls=0" in text
-    assert "fd.append('max_gemma_calls', '0')" in text
-    assert "fd.append('run_inline_gemma_text', 'false')" in text
+    # Share intake now uses the canonical 'deterministic_only' mode
+    # instead of overriding three individual flags. Same contract as
+    # knowledge.html. Gemma still runs on Step 3 (residual-PII review).
+    assert "review_mode=deterministic_only" in text
+    assert "fd.append('review_mode', 'deterministic_only')" in text
 
 
 def test_contacts_api_exposes_versioned_last_verified_dates(client):

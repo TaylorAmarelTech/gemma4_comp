@@ -201,7 +201,10 @@
                        font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
                        line-height: 1.55;"></textarea>
       <div class="tpl-row">
-        <button class="wb-btn-primary" type="button" onclick="tplDownloadMarkdown()">
+        <button class="wb-btn-primary" type="button" onclick="tplSaveDraft()">
+          Save this draft
+        </button>
+        <button class="wb-btn-secondary" type="button" onclick="tplDownloadMarkdown()">
           Download Markdown
         </button>
         <button class="wb-btn-secondary" type="button" onclick="tplCopyToClipboard()">
@@ -209,6 +212,13 @@
         </button>
         <span class="wb-muted" id="tpl-render-status"></span>
       </div>
+      <p class="wb-muted" style="margin: 6px 0 0; font-size: 11.5px;">
+        Save this draft writes a JSON copy to
+        <code>/kaggle/working/templates/drafts/</code> so you can come
+        back to the draft after a kernel restart. Anonymize before
+        saving -- the reviewer is responsible for redacting PII before
+        it touches disk.
+      </p>
     </div>
 
     <div class="wb-card">
@@ -540,6 +550,50 @@
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       tplLog('ok', 'Downloaded ' + fname, body.length + ' chars');
+    }
+
+    async function tplSaveDraft() {
+      const body = document.getElementById('tpl-render-edit').value || '';
+      if (!body.trim()) {
+        tplLog('warn', 'Nothing to save yet', 'Generate the draft first.');
+        return;
+      }
+      if (!_tplActive) {
+        tplLog('warn', 'Pick a template first');
+        return;
+      }
+      const status = document.getElementById('tpl-render-status');
+      const payload = {
+        template_id: _tplActive.id,
+        rendered: body,
+        field_values: (_tplLastFill && _tplLastFill.field_values) || {},
+        manual_fields: (_tplLastFill && _tplLastFill.manual_fields) || {},
+        run_id: (_tplBundle && _tplBundle.run_id) || '',
+      };
+      tplLog('net', 'POST /api/templates/drafts',
+        'template=' + _tplActive.id + ' | bytes=' + body.length);
+      try {
+        const r = await fetch('/api/templates/drafts', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload),
+        });
+        const out = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          tplLog('err', 'Save failed (HTTP ' + r.status + ')',
+            (out && out.message) || JSON.stringify(out).slice(0, 200));
+          if (status) status.textContent =
+            'Save failed: HTTP ' + r.status;
+          return;
+        }
+        tplLog('ok', 'Saved draft ' + out.draft_id,
+          out.path + ' (' + out.bytes + ' bytes)');
+        if (status) status.textContent =
+          'Saved draft ' + out.draft_id + ' at ' + out.saved_at;
+      } catch (e) {
+        tplLog('err', 'Save failed', String(e));
+        if (status) status.textContent = 'Save failed: ' + e;
+      }
     }
 
     async function tplCopyToClipboard() {
