@@ -272,7 +272,7 @@ def install_chat_wheels() -> int:
     # session. Override via env var when developing against a newer branch.
     VERSION = os.environ.get("DUECARE_VERSION", "0.17.0")
     COMMIT_SHA = os.environ.get(
-        "DUECARE_COMMIT_SHA", "73dafd5e6099c566a634e238dc4196f52f263e12"
+        "DUECARE_COMMIT_SHA", "02dd4083c429566b2e840849b4a918e68534c0b0"
     )
 
     # Method 1: GitHub Release Wheels (fastest when available)
