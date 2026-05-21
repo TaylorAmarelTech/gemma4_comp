@@ -54,6 +54,7 @@ cleanroom:
 # / pre-push hooks can wire it without extra glue.
 validate-benchmark:
 	python scripts/validate_benchmark.py
+	python scripts/validate_v4_benchmark_notebook.py
 
 # ── Build ────────────────────────────────────────────────────────
 build:
