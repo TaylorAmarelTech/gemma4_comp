@@ -1,8 +1,20 @@
-# Tax Evasion domain pack
+# Tax Evasion domain pack (adjacency proof)
 
-Cross-domain proof pack for the Duecare. Demonstrates that the same
-taxonomy-driven architecture works for tax evasion and financial crime
-as well as for trafficking.
+DueCare's primary domain is **migrant-worker safety / human
+trafficking** -- see `configs/duecare/domains/trafficking/`.
+
+This pack is an **adjacency proof**: it demonstrates that the same
+`FileDomainPack` implementation, harness, and rubric structure
+applies to tax-evasion patterns (transfer-pricing abuse, undisclosed
+offshore, false-deduction construction, treaty shopping) under the
+same architecture. It is intended for partners who want to run
+DueCare's detection on tax-evasion problems that are NOT routed
+through a migrant-worker case. Where tax-evasion patterns DO appear
+inside migrant-worker exploitation (e.g. recruitment-fee laundering,
+shell-company contract structures), they're covered in the
+trafficking pack itself.
+
+The primary product narrative remains migrant-worker protection.
 
 ## Contents
 

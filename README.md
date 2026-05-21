@@ -570,25 +570,56 @@ When Gemma 5 ships, that's the entire integration cost: one YAML row.
    Claude Code, Cursor, GitHub Copilot, Gemini CLI, Windsurf, Aider,
    Zed, Warp, and RooCode.
 
-## Domain packs (cross-domain proof)
+## Domain packs
 
-DueCare ships three domain packs out of the box, demonstrating that the
-architecture is **genuinely domain-agnostic**:
+**Primary domain: migrant-worker safety / human trafficking.** That's
+what DueCare is built to do. The trafficking pack is the
+load-bearing corpus, the architecture, the rubric, the harness
+contract, and the published Kaggle benchmark all target this domain
+directly.
 
-| Pack | Seed prompts in repo config | Evidence items | Categories | Taxonomy dimensions |
-|---|---|---|---|---|
-| `trafficking` | 74,567 | 10 | 5 | sector, corridor, ILO indicator, attack category, difficulty |
-| `tax_evasion` | 14 | 4 | 4 | scheme type, jurisdiction, FATF indicator, sophistication |
-| `financial_crime` | 13 | 3 | 4 | laundering stage, typology, FATF indicator, jurisdiction |
+The pack system is also intentionally **abstract**: every pack ships
+a YAML card, a taxonomy file, a rubric file, a PII spec, a seed-prompt
+JSONL, and an evidence JSONL, all loaded by the same generic
+`FileDomainPack`. That makes the pipeline reusable on adjacent
+problems without changing the harness.
+
+| Pack | Status | Seed prompts | Evidence items | Categories | Taxonomy dimensions |
+|---|---|---|---|---|---|
+| `trafficking` | **Primary** | 74,575 (incl. 8 financial-crime intersection scenarios) | 10 | 5 | sector, corridor, ILO indicator, attack category, difficulty |
+| `financial_crime` | Adjacency proof | 13 | 3 | 4 | laundering stage, typology, FATF indicator, jurisdiction |
+| `tax_evasion` | Adjacency proof | 14 | 4 | 4 | scheme type, jurisdiction, FATF indicator, sophistication |
 
 The full trafficking prompt corpus lives in
 `configs/duecare/domains/trafficking/seed_prompts.jsonl`; the PyPI
-domain wheel bundles a lightweight sample so installs stay small.
+domain wheel bundles a lightweight sample so installs stay small. All
+three packs are discoverable via `duecare domains list` and
+hot-swappable in the workflow runner.
 
-All three use the same `FileDomainPack` implementation. All three are
-discoverable through the meta-package CLI (`duecare domains list`) and
-are hot-swappable in the workflow runner once a target-model backend is
-installed.
+### Why adjacent crime patterns are included
+
+Migrant-worker exploitation **is** a financial crime when you look at
+the money. Recruitment-fee debt bondage, salary deduction schemes,
+cross-border loan novation, and side-letter contract substitution all
+have direct analogues in the FATF money-laundering typology:
+
+- **Predatory recruitment loans at 18%–68% APR** are textbook
+  forced-labour indicators under ILO C029 AND can be predicate
+  offences for AML under 18 USC 1956 / FATF Recommendation 3.
+- **Cross-jurisdictional fee rerouting** through affiliate companies
+  (Philippines training center → Hong Kong collection company) is
+  both a POEA MC 14-2017 violation AND a structuring / TBML
+  pattern under FATF Recommendation 20.
+- **Wage deductions for "training" fees** post-arrival are ILO C181
+  Art. 7 violations AND can constitute wage theft, racketeering
+  (18 USC 1961-1968), or peonage (18 USC 1581).
+- **Recruitment proceeds routed through cash-intensive businesses**
+  (training centers, accredited clinics) are placement-stage
+  laundering.
+
+The `financial_crime` and `tax_evasion` packs exist to prove the
+detection architecture generalizes to those adjacent problem spaces
+when a partner needs them. They are NOT the product narrative.
 
 ## Model support (the comparison field)
 
