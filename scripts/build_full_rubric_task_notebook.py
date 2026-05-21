@@ -232,13 +232,35 @@ ROWS = [
 
 
 def load_duecare_dimensions() -> dict[str, dict]:
-    src_root = REPO_ROOT / "packages" / "duecare-llm-chat" / "src"
-    if str(src_root) not in sys.path:
-        sys.path.insert(0, str(src_root))
-    from duecare.chat.harness import EVALUATION_QUESTIONS, RUBRIC_UNIVERSAL  # noqa: E402
-    rubric_by_id = {d["id"]: d for d in RUBRIC_UNIVERSAL.get("dimensions", [])}
+    """Load the 74 rubric dimensions.
+
+    Reads the two source JSON files (_evaluation_questions.json and
+    _rubric_universal.json) directly so the build script does not
+    drag in the full duecare.chat.harness import chain (fastapi,
+    pydantic, pandas, numpy). This keeps the regenerate path runnable
+    even when the local venv has unrelated stdlib or numpy issues.
+    """
+    rubric_dir = (
+        REPO_ROOT
+        / "packages"
+        / "duecare-llm-chat"
+        / "src"
+        / "duecare"
+        / "chat"
+        / "harness"
+    )
+    eval_doc = json.loads(
+        (rubric_dir / "_evaluation_questions.json").read_text(encoding="utf-8")
+    )
+    rubric_doc = json.loads(
+        (rubric_dir / "_rubric_universal.json").read_text(encoding="utf-8")
+    )
+    questions = eval_doc.get("questions", {})
+    rubric_by_id = {
+        d["id"]: d for d in rubric_doc.get("dimensions", [])
+    }
     out: dict[str, dict] = {}
-    for dim_id, qd in EVALUATION_QUESTIONS.items():
+    for dim_id, qd in questions.items():
         r = rubric_by_id.get(dim_id, {})
         out[dim_id] = {
             "question": qd.get("question", ""),
