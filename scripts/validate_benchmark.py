@@ -236,6 +236,28 @@ def check_grade_benchmark_endpoint(*, quiet: bool) -> list[str]:
         f"version={body['criteria_version']}",
         quiet=quiet,
     )
+    # Liveness sibling: confirm /api/health also serves with the
+    # request-ID middleware applied. A failure here would point at a
+    # bad middleware registration that breaks every endpoint.
+    try:
+        liveness = client.get("/api/health")
+    except Exception as exc:  # noqa: BLE001
+        failures.append(f"/api/health raised: {exc}")
+        _emit("FAIL", f"liveness exception: {exc}", quiet=quiet)
+        return failures
+    if liveness.status_code != 200:
+        failures.append(f"/api/health HTTP {liveness.status_code}")
+        _emit("FAIL", f"/api/health HTTP {liveness.status_code}", quiet=quiet)
+        return failures
+    rid_header = liveness.headers.get("X-Request-ID") or ""
+    rid_body = (liveness.json() or {}).get("request_id") or ""
+    if not rid_header or rid_header != rid_body:
+        failures.append(
+            f"/api/health request-id mismatch: header={rid_header!r} body={rid_body!r}"
+        )
+        _emit("FAIL", "/api/health request-id mismatch", quiet=quiet)
+        return failures
+    _emit("OK", f"/api/health 200 ok request_id={rid_header}", quiet=quiet)
     return failures
 
 
