@@ -63,7 +63,7 @@ NOTEBOOK_PATH = REPO_ROOT / "kaggle" / "04-task-notebook-fresh" / "task_notebook
 # even after the rubric evolves on master. Bump when a new rubric
 # version is published.
 DUECARE_REPO = "TaylorAmarelTech/gemma4_comp"
-DUECARE_COMMIT_SHA = "ce15d38"
+DUECARE_COMMIT_SHA = "e0b4513"
 
 # Candidate models to evaluate. Gemini 3.5 was added to Kaggle
 # Benchmarks on 2026-05-20. Edit this list to grow/shrink the matrix.
@@ -332,11 +332,14 @@ def build_notebook(dims: dict[str, dict], clusters: dict[str, list[str]]) -> dic
         "question), the judge is instructed to mark it passed.\n"
     ))
 
-    # ----- Install duecare from pinned commit -----
+    # ----- Fetch rubric data from pinned commit -----
     cells.append(_md_cell(
-        "### Install DueCare from the pinned repo commit\n\n"
-        "Makes the benchmark reproducible: a re-run of v4 always uses "
-        "the same 74-dim rubric. Bump `DUECARE_COMMIT_SHA` in "
+        "### Fetch DueCare's rubric data from the pinned repo commit\n\n"
+        "Pulls the two JSON files (`_evaluation_questions.json` + "
+        "`_rubric_universal.json`) directly from GitHub raw at the "
+        "pinned commit. No `pip install` and no `git` needed -- the "
+        "Kaggle benchmark sandbox doesn't have either. Bump "
+        "`DUECARE_COMMIT_SHA` in "
         "`scripts/build_full_rubric_task_notebook.py` when a new "
         "rubric version goes out."
     ))
@@ -344,15 +347,26 @@ def build_notebook(dims: dict[str, dict], clusters: dict[str, list[str]]) -> dic
         f"DUECARE_REPO = {DUECARE_REPO!r}\n"
         f"DUECARE_COMMIT_SHA = {DUECARE_COMMIT_SHA!r}\n"
         "\n"
-        "import subprocess, sys\n"
-        "subprocess.check_call([\n"
-        "    sys.executable, '-m', 'pip', 'install', '--quiet',\n"
-        "    f'git+https://github.com/{DUECARE_REPO}.git@{DUECARE_COMMIT_SHA}"
-        "#subdirectory=packages/duecare-llm-chat',\n"
-        "])\n"
-        "from duecare.chat.harness import EVALUATION_QUESTIONS, RUBRIC_UNIVERSAL\n"
-        "print(f'duecare loaded: {len(EVALUATION_QUESTIONS)} dimensions; '\n"
-        "      f'rubric version {RUBRIC_UNIVERSAL.get(\"version\", \"?\")}')\n"
+        "import json, urllib.request\n"
+        "\n"
+        "_BASE = (\n"
+        "    f'https://raw.githubusercontent.com/{DUECARE_REPO}/'\n"
+        "    f'{DUECARE_COMMIT_SHA}/packages/duecare-llm-chat/src/'\n"
+        "    'duecare/chat/harness'\n"
+        ")\n"
+        "\n"
+        "with urllib.request.urlopen(f'{_BASE}/_evaluation_questions.json') as r:\n"
+        "    _eval_doc = json.loads(r.read().decode('utf-8'))\n"
+        "    EVALUATION_QUESTIONS = _eval_doc['questions']\n"
+        "\n"
+        "with urllib.request.urlopen(f'{_BASE}/_rubric_universal.json') as r:\n"
+        "    RUBRIC_UNIVERSAL = json.loads(r.read().decode('utf-8'))\n"
+        "\n"
+        "print(\n"
+        "    f'duecare loaded: {len(EVALUATION_QUESTIONS)} dimensions; '\n"
+        "    f'rubric version {RUBRIC_UNIVERSAL.get(\"version\", \"?\")} '\n"
+        "    f'(eval questions version {_eval_doc.get(\"version\", \"?\")})'\n"
+        ")\n"
     ))
 
     cells.append(_code_cell("import kaggle_benchmarks as kbench\nimport pandas as pd"))
