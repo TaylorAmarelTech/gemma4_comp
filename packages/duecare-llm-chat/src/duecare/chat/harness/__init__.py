@@ -7685,6 +7685,246 @@ GREP_RULES = [
                        "Torture; (4) reentry-services NGO "
                        "referral.",
     },
+
+    # ====================================================================
+    # CHUNK 33 (2026-05-22) — GREP +8: ZZZ-GGGG
+    # Witness intimidation / consular non-cooperation / sham religious /
+    # cult coercion / informal day labour / surrogacy pretext / forced
+    # cybercrime / digital-platform forced labour.
+    # ====================================================================
+
+    {
+        "rule": "zzz_witness_intimidation_family_threats",
+        "patterns": [r"\b(?:if\s+you\s+(?:tell|report|complain|file|talk\s+to|go\s+to)|don'?t\s+(?:tell|report|talk|file))\b.{0,200}\b(?:family\s+(?:back\s+home|in\s+(?:Philippines|Indonesia|Nepal|Bangladesh|Vietnam|Sri\s+Lanka|India|Ethiopia|Cambodia|Myanmar))|your\s+(?:mother|father|children|sister|brother|wife|husband))\b",
+                       r"\b(?:we\s+(?:know|have\s+people)\s+(?:where\s+your\s+family\s+lives|in\s+your\s+village|near\s+your\s+(?:home|family))|family\s+will\s+(?:suffer|be\s+harmed|lose))\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3 (use of threat or "
+                      "coercion); ILO Indicator: 'intimidation + "
+                      "threats'; UN Convention against Transnational "
+                      "Organized Crime Art. 24 (protection of "
+                      "witnesses); destination-country witness-"
+                      "protection statutes (US 18 USC 1512, UK "
+                      "Modern Slavery Act 2015 Sec. 12, AU Crimes "
+                      "(Witness Identity Protection) Act 2011); UN "
+                      "Special Rapporteur on Trafficking 2017 + 2020 "
+                      "reports on witness intimidation",
+        "indicator": "Threats to family back home are the most "
+                       "common control mechanism in migrant-labour "
+                       "trafficking and a documented ILO forced-"
+                       "labour indicator. Provide: (1) destination-"
+                       "country witness-protection programme + "
+                       "T-visa or equivalent immigration relief, "
+                       "(2) safe family-protection plan in the "
+                       "origin country (coordinate with origin-"
+                       "country embassy + NGO), (3) prosecutor "
+                       "victim-witness coordinator, (4) trauma-"
+                       "informed survivor advocate.",
+    },
+
+    {
+        "rule": "aaaa_consular_non_cooperation_pattern",
+        "patterns": [r"\b(?:embassy|consul(?:ate)?|POLO|consular\s+(?:officer|staff))\b.{0,200}\b(?:would\s+not\s+(?:help|assist|see\s+me)|refused\s+(?:to\s+(?:help|assist|meet))|sent\s+me\s+(?:back|away)|cannot\s+(?:do\s+anything|intervene)|told\s+me\s+to\s+(?:go\s+back|stay)|asked\s+for\s+(?:bribe|payment|gift))\b",
+                       r"\b(?:embassy\s+is\s+(?:closed|on\s+holiday|no\s+answer)|consular\s+phone\s+(?:doesn'?t\s+ring|unanswered))\b"],
+        "severity": "medium",
+        "citation": "Vienna Convention on Consular Relations 1963 "
+                      "Art. 5(d) + 5(e) + 5(i) (consular protection "
+                      "of nationals abroad); ILO C181 + bilateral "
+                      "labour agreements requiring consular response "
+                      "to worker complaints; UN GCM Obj. 14 (consular "
+                      "protection); origin-country foreign-service "
+                      "regulations (DFA-PH, Kemlu-ID, MoFA-NP, etc.)",
+        "indicator": "Consular non-cooperation is a documented "
+                       "pattern that strands trafficked workers — "
+                       "the worker can't go home without the "
+                       "consul's involvement (passport, exit "
+                       "documents, repatriation funding). Provide: "
+                       "(1) origin-country foreign-affairs ministry "
+                       "ombudsman / hotline (not the local embassy); "
+                       "(2) IOM regional office; (3) destination-"
+                       "country anti-trafficking unit + civil "
+                       "society partner; (4) origin-country NGO "
+                       "(Migrante PH, Migrant CARE ID, PNCC NP) "
+                       "with home-country political channels.",
+    },
+
+    {
+        "rule": "bbbb_sham_religious_recruitment_for_labour",
+        "patterns": [r"\b(?:pastor|priest|imam|rabbi|monk|nun|missionary|church\s+leader|temple\s+leader|congregation\s+leader)\b.{0,200}\b(?:recruited|brought|sponsored|paid\s+for\s+(?:my\s+)?(?:travel|visa|flight))\b.{0,200}\b(?:work|job|labour|domestic\s+work|cleaning|childcare)\b",
+                       r"\b(?:faith[\s-]?(?:based|community)\s+(?:recruitment|sponsor|placement))\b.{0,200}\b(?:debt|fee|cannot\s+(?:leave|complain)|housing\s+tied)\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3(a) (abuse of position "
+                      "of vulnerability includes religious authority "
+                      "asymmetry); US INA Sec. 101(a)(15)(R) R-1 "
+                      "religious worker visa fraud (cross-ref NNN); "
+                      "Polaris 2018 Faith-Based Trafficking report; "
+                      "FAAST (Faith Alliance Against Slavery + "
+                      "Trafficking) documentation; ILO Helpdesk "
+                      "advisory on religious-cover recruitment",
+        "indicator": "Religious authority asymmetry creates a "
+                       "documented trafficking-risk pattern distinct "
+                       "from R-1 visa fraud (which is one expression "
+                       "of it). Faith-community recruitment for "
+                       "domestic / construction / cleaning labour "
+                       "with embedded debt-bondage or housing-tied "
+                       "control is a documented pattern across "
+                       "multiple sectarian contexts. Provide: (1) "
+                       "FAAST + Polaris referral, (2) intra-"
+                       "denomination ombudsman where available, (3) "
+                       "secular survivor-advocate organisation, "
+                       "(4) destination-country anti-trafficking "
+                       "unit.",
+    },
+
+    {
+        "rule": "cccc_cult_spiritual_coercion_trafficking",
+        "patterns": [r"\b(?:cult|sect|spiritual\s+(?:family|community|movement)|charismatic\s+leader|guru|sangoma|spiritual\s+father|spiritual\s+mother)\b.{0,200}\b(?:cannot\s+(?:leave|see\s+family|talk\s+to\s+outsiders)|spiritual\s+(?:punishment|consequences)|surrender(?:ed)?\s+(?:passport|wages|documents)|all\s+(?:wages|earnings)\s+(?:go\s+to|surrendered\s+to))\b",
+                       r"\b(?:ju[\s-]?ju|voodoo|black\s+magic|spiritual\s+oath|oath\s+of\s+(?:secrecy|silence))\b.{0,200}\b(?:trafficking|exploitation|sex\s+work|forced\s+labour|debt)\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3(a) (use of fraud, "
+                      "deception, abuse of power); UNODC West "
+                      "African Trafficking + Juju Oaths research "
+                      "(documented Nigerian + Edo State pattern); "
+                      "UK Modern Slavery Act 2015 Sec. 1 includes "
+                      "juju oaths as a recognised coercion method "
+                      "(R v Anthony 2018); EU Anti-Trafficking "
+                      "Directive 2011/36 Art. 2; ECPAT documentation",
+        "indicator": "Spiritual-coercion trafficking (juju oaths in "
+                       "West African corridors, sectarian / cult "
+                       "binding in other contexts) is documented but "
+                       "often missed by frontline staff because the "
+                       "control mechanism is invisible to outsiders. "
+                       "Provide: (1) destination-country anti-"
+                       "trafficking unit familiar with the specific "
+                       "binding mechanism, (2) origin-country "
+                       "diaspora-cultural-mediator NGO, (3) trauma-"
+                       "informed survivor advocate, (4) where "
+                       "appropriate, a culturally-informed faith / "
+                       "spiritual counselor to address the binding "
+                       "directly.",
+    },
+
+    {
+        "rule": "dddd_informal_day_labour_no_permit",
+        "patterns": [r"\b(?:day\s+labour(?:er)?|jornalero|jornalera|tagalog\s+puta|sin\s+papeles|undocumented\s+labour(?:er)?|informal\s+worker|street\s+corner\s+(?:hire|labour))\b.{0,200}\b(?:no\s+(?:permit|papers|contract|wage)|cash\s+only|paid\s+less\s+than|wage\s+theft|stiffed|never\s+paid)\b",
+                       r"\b(?:Home\s+Depot\s+parking\s+lot|7-?Eleven\s+(?:corner|parking)|day-?labour\s+(?:corner|site|pickup))\b"],
+        "severity": "medium",
+        "citation": "ILO C97 + C143 + C189 (migrant worker "
+                      "protection regardless of immigration status); "
+                      "UN Convention on the Protection of the Rights "
+                      "of All Migrant Workers and Their Families "
+                      "1990 (in force 2003); destination-country "
+                      "labour laws (US FLSA, AU Fair Work Act, EU "
+                      "labour-rights directives); ILO Helpdesk on "
+                      "informal-economy worker protection",
+        "indicator": "Day labour is documented as one of the "
+                       "highest wage-theft + abuse contexts for "
+                       "undocumented migrant workers, particularly "
+                       "in US border cities + EU agricultural belts. "
+                       "Wage theft on day-labour engagements often "
+                       "rises to the trafficking threshold when "
+                       "coupled with retaliation threats based on "
+                       "immigration status. Provide: (1) day-labour "
+                       "worker centre (Centro de Trabajadores Unidos "
+                       "en la Lucha, NDLON National Day Labor "
+                       "Organizing Network, etc.); (2) wage-theft "
+                       "complaint pathway (US DOL WHD, AU FWO); "
+                       "(3) immigration-status-aware legal aid; "
+                       "(4) consular protection.",
+    },
+
+    {
+        "rule": "eeee_surrogacy_as_trafficking_pretext",
+        "patterns": [r"\b(?:surrogate|surrogacy|gestational\s+(?:carrier|mother)|commercial\s+surrogacy|reproductive\s+(?:tourism|outsourcing))\b.{0,200}\b(?:debt|fee|recruited|broker|agency|cannot\s+(?:keep|see)\s+(?:baby|child)|passport\s+held)\b",
+                       r"\b(?:Ukrainian\s+surrogate|Mexican\s+surrogate|Indian\s+surrogate|Thai\s+surrogate|Cambodian\s+surrogate|Georgian\s+surrogate)\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3 + Optional Protocol on "
+                      "Sale of Children 2000 (OPSC) — sale-of-"
+                      "children prohibition; UN Special Rapporteur "
+                      "on Sale and Sexual Exploitation of Children "
+                      "Najat Maalla M'jid 2014 report on surrogacy; "
+                      "Hague Conference Working Group on Parentage / "
+                      "Surrogacy; UN Convention on the Rights of the "
+                      "Child Art. 35; UK Surrogacy Arrangements Act "
+                      "1985 + 2024 reform consultation; India ART "
+                      "(Regulation) Act 2021 + Surrogacy "
+                      "(Regulation) Act 2021",
+        "indicator": "Commercial surrogacy arrangements in low-"
+                       "regulation jurisdictions (Ukraine pre-2022, "
+                       "Mexico, India pre-2021, Thailand pre-2015, "
+                       "Cambodia, Georgia) document trafficking-"
+                       "adjacent patterns: surrogate recruitment "
+                       "by brokers, debt incurred for medical / "
+                       "travel, contract substitution, passport "
+                       "retention, custody disputes. Provide: (1) "
+                       "Hague Conference resource page; (2) destination-"
+                       "country trafficking unit (where intended "
+                       "parents are based) + origin-country (where "
+                       "surrogate is based); (3) UN SR on Sale of "
+                       "Children mandate; (4) ICAR (International "
+                       "Centre on Adoption Reform).",
+    },
+
+    {
+        "rule": "ffff_forced_cybercrime_compound_scam",
+        "patterns": [r"\b(?:pig\s+butchering|pig-?butchering|sha\s+zhu\s+pan|crypto\s+romance\s+scam|investment\s+romance\s+scam|forced\s+(?:to\s+do\s+)?(?:scam|fraud|cybercrime))\b",
+                       r"\b(?:compound|scam\s+(?:compound|farm|operation|center)|KK\s+Park|Shwe\s+Kokko|Sihanoukville\s+compound|Myawaddy\s+compound)\b.{0,200}\b(?:cannot\s+leave|forced|debt|recruited|trafficked)\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3 (purpose of "
+                      "exploitation includes forced criminal "
+                      "activity); UNODC 2024 Global Report on "
+                      "Cybercrime-Driven Trafficking; ASEAN ACTIP "
+                      "Art. 5; UN Convention against Transnational "
+                      "Organized Crime Art. 2 (organised criminal "
+                      "group); USIP / Global Initiative against "
+                      "Transnational Organized Crime compound-scam "
+                      "research; Myanmar / Cambodia / Laos / "
+                      "Philippines anti-cyberscam operations; "
+                      "Interpol Operation Storm Makers I + II",
+        "indicator": "Compound-scam trafficking (forced cybercrime "
+                       "in fenced compounds in MM / KH / LA / PH) is "
+                       "the fastest-growing trafficking pattern of "
+                       "the 2020s, with UNODC documenting 220,000+ "
+                       "trafficked victims across the region by 2024. "
+                       "Workers are recruited under deceptive job ads "
+                       "and forced to run pig-butchering scams under "
+                       "threat. Provide: (1) origin-country embassy "
+                       "+ specific cyber-trafficking task force; (2) "
+                       "UNODC ASEAN cybercrime referral; (3) IJM "
+                       "(International Justice Mission) compound-"
+                       "scam survivor support; (4) destination-"
+                       "country trafficking unit (often Thai / "
+                       "Cambodian / Lao police anti-trafficking).",
+    },
+
+    {
+        "rule": "gggg_digital_platform_forced_labour",
+        "patterns": [r"\b(?:content\s+moderat(?:or|ion)|AI\s+training\s+(?:data\s+)?label(?:l)?(?:er|ing)|micro[\s-]?task(?:er|ing)?|click[\s-]?worker|crowd[\s-]?work(?:er)?|data\s+annotat(?:or|ion))\b.{0,200}\b(?:no\s+(?:wage|pay|contract)|sub-?minimum|trauma|forced|cannot\s+(?:leave|complain|unionise)|paid\s+below\s+(?:legal\s+)?minimum)\b",
+                       r"\b(?:Sama|Scale\s+AI|Appen|Toloka|Surge\s+AI|Lionbridge)\s+(?:worker|labour|conditions)\b"],
+        "severity": "medium",
+        "citation": "ILO C190 (violence + harassment at work, "
+                      "including online); ILO 2022 Digital Labour "
+                      "Platforms report; UN GCM Obj. 22 + Obj. 5; "
+                      "EU AI Act 2024 (data annotation labour "
+                      "conditions); Time Magazine 2023 Sama / OpenAI "
+                      "investigation; Kenyan court ruling Mathenge "
+                      "v Sama Source 2023 (content moderator "
+                      "occupational health); UC Berkeley Fair Work "
+                      "Foundation",
+        "indicator": "AI training data labellers and content "
+                       "moderators in low-cost outsourcing centres "
+                       "(Kenya, Philippines, Madagascar, Venezuela, "
+                       "Colombia) face documented patterns of sub-"
+                       "minimum wage, psychological trauma, denial "
+                       "of right to organise, fixed-term contracts "
+                       "that evade local protections, and content "
+                       "exposure without trauma support. Provide: "
+                       "(1) Fair Work Foundation rating + ranking; "
+                       "(2) destination-country labour authority; "
+                       "(3) IAWMHRD (African Women in Media Human "
+                       "Rights Defenders) for African corridor; (4) "
+                       "Worker Information Exchange + Foxglove Legal "
+                       "for platform-worker legal aid.",
+    },
 ]
 
 
@@ -11684,6 +11924,197 @@ RAG_CORPUS = [
      "alongside Amnesty + BHRRC + Walk Free Global Slavery "
      "Index for company-specific + country-specific "
      "violation documentation."),
+
+    # ====================================================================
+    # CHUNK 34 (2026-05-22): RAG +8 — international governance bodies,
+    # regional treaty depth, compact-for-migration framework.
+    # ====================================================================
+    ("imo_itf_maritime_governance",
+     "IMO + ITF maritime labour governance for migrant seafarers + fishers",
+     "IMO MLC 2006 + ITF Inspectorate + STCW Convention",
+     "The International Maritime Organization (IMO, UN agency) "
+     "and the International Transport Workers' Federation (ITF, "
+     "non-governmental federation of 700+ transport unions in "
+     "150 countries) together administer the global governance "
+     "of seafarer + fisher labour conditions. Key instruments: "
+     "Maritime Labour Convention 2006 (MLC, the 'seafarer bill "
+     "of rights', 100+ ratifying states), STCW Convention "
+     "(Standards of Training, Certification and Watchkeeping), "
+     "ILO C188 (Work in Fishing, in force 2017), IMO MODU Code "
+     "(for offshore drilling units). The ITF Inspectorate runs "
+     "200+ port-based inspectors who board flag-of-convenience "
+     "vessels to enforce ITF agreements; collected over USD 100M "
+     "in unpaid wages per year. ITF Seafarers' Helpline + ITF "
+     "Crew Help service are the de-facto global hotline for "
+     "trafficked seafarers + fishers. The DueCare harness "
+     "references this cluster for LL (port + offshore), HH "
+     "(fishing vessel), RRR (cruise crew flag-of-convenience), "
+     "and yy (cruise crew exploitation) categories."),
+
+    ("icat_uk_anti_slavery_strategy_2024",
+     "UK Anti-Slavery Strategy 2024 + ICAT (Inter-Agency Coordination Group against Trafficking)",
+     "UK Home Office Anti-Slavery Strategy 2024 + UN ICAT",
+     "The UK Anti-Slavery Strategy (refreshed 2024) is the "
+     "UK Government's cross-departmental framework for combating "
+     "modern slavery, coordinating the Home Office, Foreign + "
+     "Commonwealth + Development Office (FCDO), Department for "
+     "Business + Trade (DBT), Modern Slavery Helpline, National "
+     "Crime Agency, and police forces. Pillars: (1) pursue + "
+     "disrupt, (2) prevent, (3) protect + support victims, "
+     "(4) prepare + improve response. The Inter-Agency "
+     "Coordination Group against Trafficking in Persons (ICAT) "
+     "is the multi-agency UN coordination forum (UNODC, ILO, "
+     "OHCHR, UNICEF, UN Women, IOM, UNHCR, Special Procedures) "
+     "that publishes thematic guidance on cross-cutting "
+     "trafficking issues. ICAT thematic papers (Trafficking in "
+     "Conflict 2023, Pandemic Impact on Trafficking 2021, "
+     "Climate Change + Trafficking 2024) are reference points "
+     "for cross-border policy. The DueCare RAG cites ICAT "
+     "thematic papers for emerging-pattern recognition + cross-"
+     "border coordination questions."),
+
+    ("un_sr_contemporary_forms_of_slavery",
+     "UN Special Rapporteur on Contemporary Forms of Slavery",
+     "UN HRC mandate + Tomoya Obokata + Urmila Bhoola",
+     "The UN Special Rapporteur on Contemporary Forms of Slavery, "
+     "Including its Causes and Consequences is an independent "
+     "UN human-rights mandate created by Human Rights Council "
+     "Resolution 6/14 (2007). Mandate-holders: Gulnara Shahinian "
+     "(2008-2014), Urmila Bhoola (2014-2020), Tomoya Obokata "
+     "(2020-). Distinct from the SR on Trafficking in Persons + "
+     "the SR on Sale and Sexual Exploitation of Children: this "
+     "mandate covers the full spectrum of 'contemporary slavery' "
+     "including descent-based slavery (Mauritania), domestic "
+     "servitude, forced labour in supply chains, debt bondage, "
+     "and child slavery. Recent thematic reports: 'Tackling "
+     "contemporary forms of slavery through transitional justice' "
+     "(2022), 'Slavery in prison-labour systems' (2023), 'Climate "
+     "change and contemporary forms of slavery' (2024). The "
+     "DueCare RAG cites SR thematic reports as authoritative "
+     "framing for severe-exploitation cases that do not fit "
+     "the narrower trafficking definition."),
+
+    ("au_anti_trafficking_framework",
+     "African Union anti-trafficking framework + Ouagadougou Action Plan",
+     "AU Ouagadougou Action Plan 2006 + AU Commission Initiative against Trafficking",
+     "The African Union (AU) anti-trafficking framework is "
+     "anchored by the Ouagadougou Action Plan to Combat "
+     "Trafficking in Human Beings, Especially Women and "
+     "Children (2006, joint AU + EU initiative), which provides "
+     "a continent-wide framework for prevention, protection, "
+     "prosecution, and partnership. Implementation is overseen "
+     "by the AU Commission Initiative against Trafficking (AU.COMMIT) "
+     "campaign. Sub-regional instruments: ECOWAS Plan of Action "
+     "against Trafficking 2001 / 2008 / 2024, SADC 10-Year "
+     "Strategic Plan of Action on Combating Trafficking 2009-"
+     "2019 + successor framework. Notable case-law: ECOWAS "
+     "Court of Justice Hadijatou Mani Koraou v Niger (2008) "
+     "establishing state responsibility for slavery-like "
+     "conditions. The DueCare RAG cites the AU framework + "
+     "ECOWAS instruments for sub-Saharan African corridor "
+     "responses, alongside individual destination-country "
+     "statutes."),
+
+    ("asean_actip_2015_full_text",
+     "ASEAN Convention against Trafficking in Persons (ACTIP) 2015 detailed analysis",
+     "ASEAN ACTIP 2015 + Bohol Trafficking in Persons Work Plan",
+     "The ASEAN Convention against Trafficking in Persons, "
+     "Especially Women and Children (ACTIP, adopted Kuala Lumpur "
+     "2015, in force 8 March 2017) is the only legally-binding "
+     "regional anti-trafficking treaty in ASEAN. Ratified by all "
+     "10 ASEAN member states (BN, KH, ID, LA, MY, MM, PH, SG, "
+     "TH, VN). Key articles: Art. 2 (definitions follow Palermo "
+     "Protocol with regional clarifications), Art. 3 (state-"
+     "party obligations on prevention + protection + prosecution "
+     "+ cooperation), Art. 5 (criminalisation of trafficking + "
+     "related offences including forced marriage + adoption-"
+     "for-trafficking + use of ICTs in trafficking), Art. 13 "
+     "(victim protection + non-punishment), Art. 14 (return + "
+     "reintegration), Art. 17 (international cooperation), Art. "
+     "21 (national rapporteurs / equivalent mechanism). "
+     "Implementation via the Bohol Trafficking in Persons Work "
+     "Plan 2017-2020 (extended 2021-2025). The DueCare RAG "
+     "cites ACTIP as the controlling regional framework for "
+     "intra-ASEAN trafficking corridors (PH-MY domestic worker, "
+     "VN-KH compound-scam, MM-TH fishing, KH-MY-SG-domestic "
+     "etc.) — origin-country statutes + ACTIP + ILO C189 / C188 "
+     "form the layered legal frame."),
+
+    ("council_of_europe_lanzarote_convention",
+     "Council of Europe Convention on the Protection of Children against Sexual Exploitation and Sexual Abuse (Lanzarote 2007)",
+     "Council of Europe Lanzarote Convention CETS 201",
+     "The Lanzarote Convention (Council of Europe Convention on "
+     "the Protection of Children against Sexual Exploitation "
+     "and Sexual Abuse, CETS 201, signed Lanzarote 2007, in "
+     "force 2010) is the first international treaty addressing "
+     "child sexual exploitation comprehensively. Ratified by all "
+     "47 Council of Europe member states + EU + non-member "
+     "states (e.g., Tunisia, Russia until 2022). Key obligations: "
+     "criminalise all forms of child sexual exploitation + abuse "
+     "(Arts. 18-23), criminalise solicitation of children for "
+     "sexual purposes through ICT ('grooming', Art. 23), "
+     "implement preventive measures (Arts. 4-9), provide victim "
+     "assistance + protection (Arts. 11-17), establish "
+     "extraterritorial jurisdiction (Art. 25). Implementation "
+     "monitored by the Lanzarote Committee with country-by-country "
+     "evaluations. Lanzarote Day (18 November) is the annual "
+     "European Day for the Protection of Children against "
+     "Sexual Exploitation. The DueCare RAG cites Lanzarote "
+     "alongside the UN OPSC + CRC for child-protection framing "
+     "(see RR + bbbb categories)."),
+
+    ("global_compact_for_safe_orderly_regular_migration",
+     "Global Compact for Safe, Orderly and Regular Migration (GCM) 2018",
+     "UN GCM (A/RES/73/195) + 23 objectives + International Migration Review Forum",
+     "The Global Compact for Safe, Orderly and Regular Migration "
+     "(GCM), endorsed by UN General Assembly Resolution 73/195 "
+     "(19 December 2018), is the first inter-governmentally "
+     "negotiated framework covering international migration in "
+     "all its dimensions. 152 states voted in favour. The GCM "
+     "is non-binding but establishes a common framework + 23 "
+     "objectives. Objectives most relevant to DueCare: Obj. 5 "
+     "(enhance availability and flexibility of pathways for "
+     "regular migration), Obj. 6 (facilitate fair and ethical "
+     "recruitment + safeguard conditions that ensure decent "
+     "work — directly addresses recruitment-fee issues), Obj. "
+     "10 (prevent, combat and eradicate trafficking in persons "
+     "in the context of international migration), Obj. 13 "
+     "(use migration detention only as a measure of last resort "
+     "and work towards alternatives), Obj. 14 (enhance consular "
+     "protection, assistance and cooperation throughout the "
+     "migration cycle), Obj. 22 (establish mechanisms for "
+     "portability of social security entitlements and earned "
+     "benefits). The International Migration Review Forum (IMRF) "
+     "meets every 4 years to review implementation (2022, 2026, "
+     "2030, 2034). The DueCare RAG cites GCM objectives as the "
+     "international framework for ethical recruitment + fair "
+     "migration governance."),
+
+    ("uflpa_xinjiang_supply_chain_2021",
+     "US Uyghur Forced Labor Prevention Act (UFLPA) 2021 + Xinjiang supply-chain framework",
+     "UFLPA + CBP Forced Labor Enforcement Task Force + Xinjiang Region Goods",
+     "The Uyghur Forced Labor Prevention Act (UFLPA, signed "
+     "23 December 2021, effective 21 June 2022) establishes a "
+     "rebuttable presumption that all goods produced in the "
+     "Xinjiang Uyghur Autonomous Region of China, or by certain "
+     "listed entities, are made with forced labour and are "
+     "therefore prohibited from US import under Tariff Act of "
+     "1930 Sec. 307 (19 USC 1307). The Forced Labor Enforcement "
+     "Task Force (FLETF), chaired by DHS, publishes the UFLPA "
+     "Entity List (~70 entities as of 2024) and the high-priority "
+     "sector list (currently apparel, cotton, polysilicon, "
+     "tomatoes, plus 2024 additions of aluminium, PVC, seafood). "
+     "Rebuttal requires importer to provide clear and convincing "
+     "evidence the goods were not made with forced labour. By "
+     "2024, CBP had detained more than 9,200 UFLPA-related "
+     "shipments worth over $3.2 billion. Companion measures: "
+     "EU Forced Labour Regulation 2024/3015 (similar import "
+     "ban without Xinjiang-specific presumption), UK Modern "
+     "Slavery Act 2015 Sec. 54 transparency requirement, "
+     "Canada S-211 supply-chain reporting. The DueCare RAG "
+     "cites UFLPA as the controlling US supply-chain forced-"
+     "labour instrument and the model for emerging EU + UK "
+     "+ CA + AU equivalents."),
 ]
 
 

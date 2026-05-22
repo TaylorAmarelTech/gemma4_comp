@@ -51,10 +51,11 @@
 > paternalism. Fully offline.
 >
 > **74,640 trafficking seed prompts. 6 weighted rubrics. 66 evaluation
-> criteria. 300 GREP detection rules. 227 RAG knowledge documents
+> criteria. 318 GREP detection rules. 235 RAG knowledge documents
 > (including 6 landmark case-law summaries + 3 national anti-trafficking
 > enforcement units + UN Special Rapporteur mandates + GRETA / UK IASC
-> oversight bodies + major research institutes). 34 complaint / narrative
+> oversight bodies + major research institutes + IMO/ITF + ICAT + AU
+> + ASEAN ACTIP + Lanzarote + GCM + UFLPA). 34 complaint / narrative
 > templates. 22 review personas. 45 fee-camouflage labels. 31 corridor
 > fee-cap entries. 30 NGO contact bundles. 15 ILO conventions.
 > Reproducible CLI and notebook surfaces. On your laptop or in your
@@ -462,8 +463,8 @@ archive note.
 | Adversarial generators | **15** | [310 - Prompt Factory](https://www.kaggle.com/code/taylorsamarel/duecare-310-prompt-factory) |
 | Evaluation frameworks | **7** | |
 | Pytest collection | **976 tests collected** | Across package test surfaces (2026-05-21 local collection) |
-| GREP detection rules | **300** | Categories A-ZZ + SCREENING + AAA-III + JJJ-OOO (dating-app, biometrics, pension denial, refugee leverage, subcontracting, online sex trafficking, sports, US sectoral, criminal exploitation, chain-migration, J-1 SWT / AU WHM, port + offshore, A-3/G-5 diplomatic household, R-1 religious worker, artisanal mining); see [`docs/KNOWLEDGE_SURFACE_VERIFICATION.md`](docs/KNOWLEDGE_SURFACE_VERIFICATION.md) |
-| RAG knowledge documents | **227** | ILO + UN + regional treaties + statutes + bilateral MOUs + screening tools + complaint procedures + 15 case studies + 6 landmark case law (Siliadin, Rantsev, J. and Others v Austria, Hadijatou Mani, Kil Soo Lee, Bradley) + 3 national anti-trafficking units (FBI, AFP HTSC, UK NCA MSHTU) + US HSI HTU + US CBP CEE FLD + UK IASC + GRETA + UN SR on Trafficking + UN SR on Sale + Sexual Exploitation of Children + MPI + Asia Foundation + Amnesty / BHRRC + Solidaridad / Pact / IMPACT + ECPAT + HRW |
+| GREP detection rules | **318** | Categories A-ZZ + SCREENING + AAA-OOO + PPP-YYY + ZZZ-GGGG (dating-app, biometrics, pension denial, refugee leverage, subcontracting, online sex trafficking, sports, US sectoral, criminal exploitation, chain-migration, J-1 SWT / AU WHM, port + offshore, A-3/G-5 diplomatic household, R-1 religious worker, artisanal mining, e-waste, UK hand-carwash, cruise crew + FoC, forced begging, sham marriage / asylum, au pair / J-1, loverboy method, street vending, prison labour, witness intimidation, consular non-cooperation, sham religious + cult coercion, surrogacy pretext, forced cybercrime, digital-platform forced labour); see [`docs/KNOWLEDGE_SURFACE_VERIFICATION.md`](docs/KNOWLEDGE_SURFACE_VERIFICATION.md) |
+| RAG knowledge documents | **235** | ILO + UN + regional treaties + statutes + bilateral MOUs + screening tools + complaint procedures + 15 case studies + 6 landmark case law (Siliadin, Rantsev, J. and Others v Austria, Hadijatou Mani, Kil Soo Lee, Bradley) + 3 national anti-trafficking units (FBI, AFP HTSC, UK NCA MSHTU) + US HSI HTU + US CBP CEE FLD + UK IASC + GRETA + UN SR on Trafficking + UN SR on Sale + Sexual Exploitation of Children + UN SR on Contemporary Forms of Slavery + MPI + Asia Foundation + Amnesty / BHRRC + Solidaridad / Pact / IMPACT + ECPAT + HRW + IMO/ITF + ICAT + AU/Ouagadougou + ASEAN ACTIP detail + Lanzarote + GCM + UFLPA |
 | Complaint / narrative templates | **34** | 5 origin-country, 11 destination-country, 5 referral pathways, 13 madlibs scenario letters / affidavits / worksheets |
 | Review personas | **22** | NGO + lawyer + regulator + clinician + survivor advocate + engineer + FIU + maritime HR + 14 more |
 | Fee-camouflage labels | **45** | Training / medical / process / placement / broker / document / loan-novation patterns |
