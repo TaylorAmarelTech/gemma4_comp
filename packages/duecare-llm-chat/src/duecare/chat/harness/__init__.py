@@ -9138,6 +9138,231 @@ RAG_CORPUS = [
      "complement to the criminal-justice-focused Palermo "
      "Protocol + the rights-monitoring of GRETA + the "
      "implementation focus of UNODC + ICAT."),
+
+    # ----- Tech-platform Trust + Safety policies -----
+    ("meta_human_exploitation_policy", "Meta (Facebook + Instagram + WhatsApp) Human Exploitation + Sex Trafficking Community Standards",
+     "Meta Community Standards",
+     "Meta's Community Standards for Facebook + Instagram + "
+     "WhatsApp prohibit content that facilitates or coordinates "
+     "human exploitation, including human trafficking, smuggling, "
+     "domestic servitude, forced labour, child labour, sexual "
+     "exploitation, and slavery. The Coordinating Harm and "
+     "Promoting Crime policy section enumerates explicit "
+     "prohibitions: offering / soliciting for the purpose of "
+     "human exploitation, coordinating smuggling routes, "
+     "soliciting payment for recruitment fees, and orphanage / "
+     "volunteer-tourism listings that increase trafficking risk. "
+     "Meta partners with NCMEC + Tech Coalition + Polaris and "
+     "publishes quarterly Community Standards Enforcement "
+     "Reports. The 2022 Oversight Board case on a Tigrinya "
+     "post about Eritrean conscription clarified the standard's "
+     "application to politically-coerced labour situations."),
+    ("tiktok_community_guidelines_csec", "TikTok Community Guidelines on Trafficking + CSEAM",
+     "TikTok Community Guidelines",
+     "TikTok's Community Guidelines (2024 update) prohibit "
+     "content that promotes, facilitates, depicts, or normalises "
+     "human trafficking, smuggling, sexual exploitation, child "
+     "sexual abuse material (CSAM) + child sexual exploitation "
+     "material (CSEM), and forced labour. Specific prohibitions: "
+     "recruitment ads with red-flag indicators (urgency, "
+     "vague-job-with-overseas-deployment, no licensed-agency "
+     "reference), CSEC tourism promotion, orphanage-tourism "
+     "videos that increase exploitation risk. TikTok partners "
+     "with NCMEC + Internet Watch Foundation + Thorn + Tech "
+     "Coalition. Reports are filed via in-app + web + bulk-"
+     "reporting for trusted-flagger NGOs. The TikTok Trust "
+     "and Safety Hub publishes transparency reports."),
+    ("linkedin_recruitment_fraud_policy", "LinkedIn Professional Community Policies on Recruitment Fraud + Misrepresentation",
+     "LinkedIn Professional Community Policies",
+     "LinkedIn's Professional Community Policies prohibit fake "
+     "profiles, recruitment fraud, misrepresentation of "
+     "employment opportunities, and predatory recruitment that "
+     "targets vulnerable populations including migrant workers. "
+     "Documented patterns include fake-employer recruitment "
+     "ads, escrow / upfront-fee scams, AI-generated recruiter "
+     "profiles. LinkedIn's Trust + Safety team partners with "
+     "national labour ministries to verify high-volume "
+     "recruiter accounts and operates a Recruitment Fraud "
+     "Reporting page. The 2021 LinkedIn Transparency Report "
+     "introduced country-by-country breakdowns of removed "
+     "fraudulent recruiter accounts."),
+    ("google_app_store_recruitment_policy", "Google Play + Apple App Store policies on recruitment + employment app misrepresentation",
+     "Google Play + Apple App Store Policies",
+     "Both Google Play and Apple App Store prohibit apps that "
+     "facilitate human trafficking, recruitment fraud, or "
+     "predatory employment practices. Specific policy sections: "
+     "Google Play Developer Program Policies (Inappropriate "
+     "Content + Restricted Content categories); Apple App "
+     "Store Review Guidelines Sec. 1.1 (objectionable content) "
+     "+ Sec. 1.4 (physical harm). Documented enforcement: "
+     "removal of compound-trafficking-recruitment apps from "
+     "Southeast Asia, removal of fake-job-board apps targeting "
+     "Pakistani + Indian migrant workers, removal of apps "
+     "facilitating commercial sexual exploitation of children. "
+     "Both stores accept reports from civil-society + "
+     "researchers + law-enforcement."),
+    ("interpol_project_storm_compound", "INTERPOL Project Storm + national counterpart compound-scam advisories",
+     "INTERPOL Project Storm + Advisories",
+     "INTERPOL Project Storm (launched 2022, expanded 2023-2024) "
+     "is the global law-enforcement response to the compound-"
+     "trafficking + cyber-fraud / pig-butchering ecosystem in "
+     "Sihanoukville Cambodia + Bavet Cambodia + Myawaddy "
+     "Myanmar + Bokeo Laos. INTERPOL has issued multiple "
+     "yellow notices for victims + red notices for compound "
+     "operators. National counterpart advisories include: "
+     "Indonesia BP2MI Crisis Center compound-scam advisory; "
+     "Philippines DMW Anti-Illegal Recruitment Branch "
+     "compound-scam advisory; Vietnam DOLAB warning on Lao + "
+     "Cambodia + Myanmar deployments; Thailand MoL inter-"
+     "agency taskforce. Combined ASEAN documentation (UNODC + "
+     "MFA + IOM) estimates 200,000+ victims across the four "
+     "compound regions as of 2024."),
+
+    # ----- Sectoral case-study NGOs + initiatives -----
+    ("sialkot_football_ica_initiative", "Sialkot Pakistan Football-Stitching Initiative against Child Labour (1997-)",
+     "Sialkot ICA Initiative",
+     "The Sialkot ICA (International Children's Action) "
+     "Initiative (Pakistan, launched 1997) is a sector-wide "
+     "response to documented child labour in football "
+     "stitching in Sialkot, Pakistan (which produced 60-80% of "
+     "world hand-stitched footballs in the 1990s). The "
+     "initiative was a coordinated response by ILO + Save the "
+     "Children + UNICEF + Sialkot Chamber of Commerce and "
+     "Industry + 30+ football brands. Components: independent "
+     "monitoring + verification, transition of stitching from "
+     "home-based to factory-based (centralised + monitorable), "
+     "education + rehabilitation for displaced child workers, "
+     "ongoing audit + reporting. Considered a model of "
+     "industry-wide sectoral response and informs current "
+     "Better Work + ETI + RSPO + Fair Wear Foundation "
+     "frameworks."),
+    ("cotton_campaign_uzbek", "Cotton Campaign + ILO supervision of Uzbek Forced-Labour Cotton (2009-2022)",
+     "Cotton Campaign (Uzbek cotton)",
+     "The Cotton Campaign (coalition of human-rights + worker-"
+     "rights NGOs, established 2007) led a 15-year boycott + "
+     "advocacy campaign against state-organised forced labour "
+     "in the Uzbek cotton harvest, where hundreds of thousands "
+     "of citizens were annually coerced into picking cotton. "
+     "Key milestones: 2013 ILO supervisory body finding of "
+     "state-organised forced labour; 2014-2017 progressive "
+     "Uzbek government reforms; 2018-2020 third-party "
+     "monitoring by ILO + civil society; 2022 ILO declaration "
+     "that state-organised forced labour in Uzbek cotton is "
+     "eliminated. The campaign is a model case for "
+     "sectoral + multi-stakeholder advocacy producing "
+     "measurable supply-chain change."),
+    ("cobalt_drc_supply_chain", "DRC Cobalt + Mining Supply-Chain Due Diligence (OECD + RMI + brand audits)",
+     "DRC Cobalt Supply-Chain Due Diligence",
+     "Artisanal + small-scale mining (ASM) in DRC produces ~15-"
+     "20% of global cobalt + significant shares of tantalum + "
+     "tungsten + gold (the 3TG minerals plus cobalt). Documented "
+     "child labour + forced labour + dangerous conditions in "
+     "ASM sites have driven supply-chain due-diligence "
+     "responses including: OECD Due Diligence Guidance for "
+     "Responsible Supply Chains of Minerals from Conflict-"
+     "Affected and High-Risk Areas (2011, updated 2016); the "
+     "Responsible Minerals Initiative (RMI) Smelter Audit; "
+     "Apple + Tesla + Glencore individual due-diligence "
+     "reports; Cobalt for Development (BMW + Samsung SDI + BASF "
+     "+ TDi Sustainability partnership). The US Dodd-Frank "
+     "Section 1502 + EU Conflict Minerals Regulation create "
+     "supply-chain disclosure obligations."),
+    ("cocoa_initiative_ivorian_ghana", "International Cocoa Initiative (ICI) + Cote d'Ivoire + Ghana cocoa labour",
+     "International Cocoa Initiative",
+     "The International Cocoa Initiative (ICI, founded 2002) "
+     "coordinates response to documented child labour in cocoa "
+     "production in Cote d'Ivoire + Ghana (together ~65% of "
+     "world cocoa). Estimated 1.56 million children in "
+     "hazardous work in 2018-19 (NORC-Tulane study) despite "
+     "industry commitments dating to the 2001 Harkin-Engel "
+     "Protocol. ICI develops + scales the Child Labour "
+     "Monitoring and Remediation System (CLMRS) deployed by "
+     "Mars, Nestle, Mondelez, Hershey, Cargill, Barry "
+     "Callebaut, ECOM, Olam. The 2024 EU Forced Labour "
+     "Regulation + Deforestation Regulation create new "
+     "compliance pressure on cocoa supply chains."),
+    ("better_work_ilo_ifc_garment", "ILO + IFC Better Work Programme (garment + footwear)",
+     "ILO/IFC Better Work",
+     "Better Work is a joint programme of the ILO and IFC "
+     "(World Bank Group) operating in producing countries "
+     "including Bangladesh, Cambodia, Egypt, Ethiopia, Haiti, "
+     "Indonesia, Jordan, Nicaragua, Pakistan, Sri Lanka, and "
+     "Vietnam. The programme combines factory-level assessment "
+     "+ training + worker + manager dialogue with policy-level "
+     "reform engagement. Assessment covers 8 compliance "
+     "clusters aligned with ILO core conventions + national "
+     "labour law: child labour, forced labour, freedom of "
+     "association + collective bargaining, discrimination, "
+     "contracts + human resources, compensation, occupational "
+     "safety + health, working time. Better Work reports "
+     "document multi-year improvements in buyer-engaged "
+     "factories + remaining gaps + recommended reforms."),
+    ("fashion_revolution_transparency_index", "Fashion Revolution + Fashion Transparency Index",
+     "Fashion Revolution FTI",
+     "Fashion Revolution (founded 2013 in response to Rana "
+     "Plaza collapse) is a global movement campaigning for "
+     "transparency + accountability in the fashion industry. "
+     "The Fashion Transparency Index (FTI, published annually "
+     "since 2017) scores 250+ major brands on disclosure across "
+     "five categories: policies + commitments, governance, "
+     "supply chain traceability, know + show (supplier "
+     "engagement), and spotlight issues (worker voice, "
+     "purchasing practices, climate, gender + race + caste "
+     "discrimination). Scores in 2024 ranged from 0% to ~89%; "
+     "the average score remained below 30%. FTI is widely "
+     "cited by investors + regulators + civil society."),
+    ("ejf_environmental_justice_fishing", "Environmental Justice Foundation + Sea Shepherd documentation of fishing-vessel forced labour",
+     "EJF + Sea Shepherd fishing-vessel forced labour",
+     "The Environmental Justice Foundation (EJF, founded 2000) "
+     "+ Sea Shepherd Global maintain ongoing documentation of "
+     "forced labour + IUU fishing on long-distance fishing "
+     "vessels operating from Thailand, China, Korea, Taiwan, "
+     "and Pacific islands. Documented patterns: 6-12 month "
+     "at-sea voyages with transshipment to avoid port-state "
+     "inspection; passport retention by captain; physical "
+     "violence + sexual violence; debt-bondage tied to "
+     "predeparture recruitment + advance payments; wage "
+     "withholding for entire voyage. EJF + Sea Shepherd "
+     "investigations led to the EU yellow-card / red-card "
+     "process under IUU Regulation 1005/2008 (Thailand "
+     "yellow-card 2015, lifted 2019 after reforms; Taiwan "
+     "yellow-card 2015, lifted 2019; ongoing concerns about "
+     "China + Korea long-distance fleets)."),
+
+    # ----- Investigative + journalism coverage tier -----
+    ("guardian_reuters_propublica_bbc_coverage", "Guardian + Reuters + ProPublica + BBC + Al Jazeera investigative trafficking coverage",
+     "Investigative journalism (trafficking)",
+     "Major investigative outlets maintain dedicated trafficking + "
+     "modern-slavery beats with searchable archives. Notable "
+     "long-running series: The Guardian Modern-Day Slavery in "
+     "Focus (Pulitzer-recognised seafood + nail-salon + cotton "
+     "exposes); Reuters trafficking + migrant-worker coverage "
+     "(Qatar World Cup workers + Saudi domestic workers + "
+     "Bangladesh garments); ProPublica + Frontline collaboration "
+     "on H-2 visa workers + agricultural trafficking; BBC News "
+     "and BBC Panorama coverage of Sicily-via-Libya trafficking "
+     "+ UK Modern Slavery cases + Romania orphanage trafficking; "
+     "Al Jazeera Investigative Unit coverage of GCC migrant "
+     "workers + Cambodia + Indonesia trafficking. Each outlet "
+     "is a primary-source channel for case-specific "
+     "documentation that informs national policy + UN body "
+     "responses + supply-chain due-diligence audits."),
+    ("anti_slavery_international_oldest_ngo", "Anti-Slavery International (founded 1839) -- oldest international human-rights organisation",
+     "Anti-Slavery International",
+     "Anti-Slavery International (London, founded 1839) is the "
+     "oldest international human-rights organisation, founded "
+     "as the British and Foreign Anti-Slavery Society. Today "
+     "the organisation maintains: programme work in 17 "
+     "countries (UK, India, Bangladesh, Nepal, Mauritania, "
+     "Senegal, Niger, Mali, Burkina Faso, Vietnam, Cambodia, "
+     "Lebanon, Sudan, Ethiopia, Madagascar, Cote d'Ivoire); "
+     "research + advocacy in slavery + forced labour + "
+     "trafficking + debt bondage + forced marriage + child + "
+     "domestic servitude + descent-based slavery; convener of "
+     "the Trade Justice Movement + Stop Trafficking Coalition + "
+     "International Cocoa Initiative. The organisation is "
+     "frequently cited in UN supervisory body reports + EU "
+     "policy submissions + UK Modern Slavery Act enforcement."),
 ]
 
 
