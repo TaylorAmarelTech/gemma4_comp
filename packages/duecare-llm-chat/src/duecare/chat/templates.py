@@ -444,6 +444,681 @@ authority on cross-border enforcement.
 Signature: ________________________    Date: __________
 """
 
+_TEMPLATE_PH_HK_FDH_FEE_REFUND_DEMAND_BODY = """RECRUITMENT FEE REFUND DEMAND LETTER
+Philippines to Hong Kong Foreign Domestic Helper Corridor
+Filing date: {{filed_date}}
+
+TO:    {{agency_name}} (Philippine licensed recruitment agency)
+       {{agency_address}}
+       Attn: {{agency_principal_or_officer}}
+       DMW Recruitment Agency Licence: {{agency_license_no}}
+
+       and
+
+       {{hk_agency_name}} (Hong Kong-side employment agency, if applicable)
+       {{hk_agency_address}}
+       HK EA Licence: {{hk_ea_license_no}}
+
+CC:    Department of Migrant Workers (DMW) Anti-Illegal Recruitment Branch
+       Hong Kong Labour Department, Employment Agencies Administration (EAA)
+       Philippine Migrant Workers Office, Hong Kong
+
+RE:    DEMAND FOR REFUND OF UNAUTHORISED FEES collected from
+       {{worker_name}} (anonymized identifier), Filipino Household
+       Service Worker deployed to Hong Kong on {{deployment_date}}.
+
+Dear Sir / Madam,
+
+We represent {{worker_name}}, a Filipino Household Service Worker
+(HSW) deployed to Hong Kong by your agency under POEA / DMW licence
+referenced above. We write to formally demand the immediate refund
+of all fees collected from the worker in violation of Philippine
+and Hong Kong law.
+
+PARTICULARS OF THE UNAUTHORISED COLLECTION
+  Total amount paid by the worker (PHP):   {{total_paid_php}}
+  Breakdown of charges:
+    - Training fee:                         {{training_fee_php}}
+    - Medical examination fee:              {{medical_fee_php}}
+    - Processing / documentation fee:       {{processing_fee_php}}
+    - Placement fee (any label):            {{placement_fee_php}}
+    - Other (specify):                      {{other_fees_php}}
+  Date(s) of collection:                    {{collection_dates}}
+  Receipts issued / not issued:             {{receipt_status}}
+  Currency received by agency:              PHP
+
+CONTROLLING LAW
+  1. POEA Memorandum Circular No. 14 of 2017 prohibits Philippine
+     licensed recruitment agencies from charging ANY placement fee
+     to Filipino HSWs deployed to Hong Kong, REGARDLESS OF LABEL.
+     This includes training fees, medical fees, processing fees,
+     documentation fees, or any other charge.
+  2. ILO Convention 181 Article 7(1) prohibits private employment
+     agencies from charging fees DIRECTLY OR INDIRECTLY, in whole
+     or in part, to workers. The 2019 ILO Definition of Recruitment
+     Fees and Related Costs enumerates training fees, medical
+     examination fees, orientation / training fees, equipment, and
+     travel during recruitment as worker-prohibited costs.
+  3. Republic Act 8042 (Migrant Workers Act) as amended by RA 10022
+     declares illegal recruitment, including charging amounts in
+     excess of those allowed by law, a criminal offence punishable
+     by 12 years to life imprisonment and fines up to PHP 5 million.
+  4. Hong Kong Employment Agency Regulations Cap. 57A Reg. 2 caps
+     commission from a worker at 10% of first-month wages; ANY
+     additional Hong Kong-side collection from the worker beyond
+     this cap is an EA misconduct under Cap. 57A Reg. 13.
+
+DEMAND FOR REMEDY (within 14 calendar days from receipt of this
+letter):
+  1. Full refund of PHP {{total_paid_php}} to {{worker_name}} via
+     {{preferred_refund_channel}};
+  2. Written confirmation that the worker has no continuing financial
+     obligation to your agency or any common-control affiliate;
+  3. Written undertaking not to retaliate against the worker, the
+     worker's family, the worker's destination employer, or any
+     advocate involved in this matter;
+  4. Copies of all collection receipts and the agency's audit
+     records for the worker's deployment cycle.
+
+FAILURE TO COMPLY by {{compliance_deadline}} will result in:
+  (a) Formal complaint to the DMW Anti-Illegal Recruitment Branch
+      under RA 8042 / RA 10022 for illegal recruitment;
+  (b) Concurrent complaint to the Hong Kong Labour Department EAA
+      under Cap. 57A for EA misconduct;
+  (c) Civil money-claim case before the National Labor Relations
+      Commission (NLRC) for refund plus interest plus damages;
+  (d) Notification to Philippine Migrant Workers Office Hong Kong
+      and Bureau of Immigration for record;
+  (e) Publication in the public DMW recruitment-agency monitoring
+      registry as a non-compliant agency.
+
+The worker is represented by {{complainant_name}}, {{complainant_org}}.
+All correspondence concerning this matter should be directed to
+{{complainant_contact}}. The worker reserves all rights and remedies
+under Philippine, Hong Kong, and international law.
+
+Sincerely,
+
+{{complainant_name}}
+{{complainant_org}}
+{{complainant_contact}}
+
+Date: {{filed_date}}
+
+cc: as above
+"""
+
+
+_TEMPLATE_PASSPORT_RETURN_DEMAND_BODY = """PASSPORT + IDENTITY DOCUMENT RETURN DEMAND LETTER
+Migrant Worker -- Foreign Employer / Sponsor / Recruitment Agency
+Filing date: {{filed_date}}
+
+TO:    {{respondent_name}} (employer / sponsor / agency)
+       {{respondent_address}}
+       Attn: {{respondent_attention}}
+
+CC:    {{destination_country_labour_authority}}
+       {{worker_origin_country_embassy_or_polo}}
+       International Labour Organization (ILO) Hotline for Forced Labour
+
+RE:    DEMAND for the immediate return of passport, identity
+       documents, and travel documents of {{worker_name}}
+       (anonymized identifier), {{worker_nationality}} migrant
+       worker employed at {{worksite_or_household}}.
+
+Dear Sir / Madam,
+
+We represent {{worker_name}}, a {{worker_nationality}} migrant
+worker. We are formally writing to demand the immediate return of
+the worker's passport, identity documents, and any other travel /
+identity documentation that you, your household, your sponsoring
+entity, your recruitment agency, or your common-control affiliate
+is currently retaining.
+
+DOCUMENTS UNLAWFULLY RETAINED
+  - Passport number prefix:                {{passport_prefix}}
+  - Issuing country:                       {{worker_nationality}}
+  - Date of retention:                     {{retention_date}}
+  - Current location of documents:         {{document_current_location}}
+  - Conditions imposed for return:         {{conditions_imposed}}
+
+CONTROLLING LAW (each independently sufficient to require
+return)
+  1. ILO Convention 189 Article 9 (Domestic Workers Convention):
+     "Each Member shall take measures to ensure that domestic
+     workers are entitled to keep in their possession their travel
+     and identity documents." Restrictions and document retention
+     by employers are PROHIBITED regardless of any employment
+     contract clause to the contrary.
+  2. ILO Forced Labour Indicator 7 (Retention of Identity
+     Documents): the retention of identity documents by an employer
+     is one of the eleven ILO operational indicators of forced
+     labour (ILO Special Action Programme to Combat Forced Labour,
+     2012).
+  3. UN Protocol to Prevent, Suppress and Punish Trafficking in
+     Persons (Palermo Protocol) Article 3: the retention of
+     identity documents is a recognised MEANS of trafficking in
+     persons.
+  4. Destination-country statutory prohibition:
+     {{destination_statute_citation}}.
+  5. Vienna Convention on Consular Relations Article 5(d): the
+     worker's national consulate retains the right to issue
+     replacement travel documents notwithstanding the unlawful
+     retention.
+
+DEMAND FOR REMEDY (within 5 calendar days from receipt of this
+letter):
+  1. Return ALL retained documents to the worker directly, or
+     into the worker's authorised representative's hands;
+  2. Confirm in writing that no further retention will occur;
+  3. Confirm that no retaliation will be taken against the worker
+     or the worker's family for asserting this right;
+  4. Pay any out-of-pocket costs the worker has incurred in
+     obtaining replacement documents (if any).
+
+FAILURE TO COMPLY by {{compliance_deadline}} will result in:
+  (a) Formal complaint to {{destination_country_labour_authority}}
+      under {{destination_statute_citation}};
+  (b) Issuance by the worker's national consulate of a replacement
+      travel document; the worker will use that document
+      regardless of your continued retention of the originals;
+  (c) Concurrent notification to the worker's origin-country
+      labour authority for parallel investigation and sanctions
+      against any common-control agency;
+  (d) Inclusion of the document-retention conduct as a Palermo
+      Protocol means in any trafficking investigation;
+  (e) Civil claim for damages including reasonable legal expense.
+
+The worker is currently {{worker_current_safety_status}}. Any
+attempt at retaliation against the worker for asserting this
+right will be documented and added to the record.
+
+Sincerely,
+
+{{complainant_name}}
+{{complainant_org}}
+{{complainant_contact}}
+
+Date: {{filed_date}}
+
+cc: as above
+"""
+
+
+_TEMPLATE_T_VISA_AFFIDAVIT_BODY = """SUPPORTING AFFIDAVIT FOR FORM I-914
+T NONIMMIGRANT VISA APPLICATION -- VICTIM OF SEVERE FORM OF TRAFFICKING IN PERSONS
+United States Citizenship and Immigration Services (USCIS) Vermont Service Center
+
+DECLARANT: {{worker_name}} (Affiant)
+File no:   I-914 -- (assigned on filing)
+Date:      {{filed_date}}
+
+I, {{worker_name}}, declare under penalty of perjury under the
+laws of the United States of America that the following is true
+and correct to the best of my knowledge and recollection:
+
+1. IDENTITY AND BACKGROUND
+   I am a national of {{country_of_origin}}, born in
+   {{year_of_birth}}. My native language is {{native_language}}.
+   I came to the United States on {{us_entry_date}} on a
+   {{visa_status_at_entry}} visa. Before coming to the United
+   States, I was a {{prior_occupation}} in {{country_of_origin}}.
+
+2. RECRUITMENT AND DECEPTION
+   In {{recruitment_year}}, {{trafficker_name_or_anonymized}}
+   ("the trafficker"), {{trafficker_relationship_to_me}}, recruited
+   me through {{recruitment_channel}}. I was promised
+   {{promised_terms}}. The trafficker said I would
+   {{promised_living_situation}}. Based on those promises I
+   agreed to come to the United States.
+
+3. JOURNEY TO THE UNITED STATES
+   The trafficker arranged my travel. {{travel_arrangements_summary}}.
+   When I arrived in the United States on {{us_entry_date}}, the
+   trafficker took possession of my passport and identity documents.
+   I was told that I was now obligated to repay {{debt_amount}}
+   for travel and documentation costs.
+
+4. NATURE OF THE EXPLOITATION ON ARRIVAL
+   On arrival the trafficker brought me to {{first_us_location}},
+   where I was housed at {{housing_address_general}}. The actual
+   work was {{actual_work_type}}, which is different from what was
+   promised in section 2. I was required to work {{hours_per_day}}
+   hours per day, {{days_per_week}} days per week. I was paid
+   {{actual_compensation}}, much less than promised. I was not
+   free to leave because {{reasons_unable_to_leave}}.
+
+5. INDICATORS OF FORCED LABOR / SEVERE FORM OF TRAFFICKING
+   I was subject to the following conditions, each of which
+   constitutes an indicator of a severe form of trafficking
+   under 22 USC 7102(11) and the ILO operational indicators:
+     - Restriction of movement: {{movement_restriction_details}}
+     - Isolation: {{isolation_details}}
+     - Retention of identity documents: {{document_retention_details}}
+     - Withholding of wages: {{wage_withholding_details}}
+     - Debt bondage: {{debt_bondage_details}}
+     - Threats or intimidation: {{threats_details}}
+     - Physical or sexual abuse (only if applicable):
+       {{abuse_details}}
+
+6. ESCAPE OR RESCUE
+   I was able to leave the trafficking situation on
+   {{escape_date}} when {{escape_circumstances}}. Since that
+   date I have been receiving services from {{service_provider_org}}.
+
+7. PHYSICAL PRESENCE ON ACCOUNT OF TRAFFICKING
+   I remain physically present in the United States on account
+   of the trafficking situation I have just described. I have
+   not departed the United States since arrival. I have
+   cooperated with reasonable law-enforcement requests in the
+   following manner: {{law_enforcement_cooperation_summary}}.
+
+8. EXTREME HARDSHIP UPON REMOVAL
+   Removal of the affiant to {{country_of_origin}} would result
+   in extreme hardship involving unusual and severe harm
+   because {{extreme_hardship_reasons}}.
+
+9. SUPPORTING EVIDENCE
+   I have attached the following supporting evidence:
+     - {{supporting_evidence_list}}
+
+10. FAMILY MEMBERS REQUESTING DERIVATIVE STATUS
+    {{derivative_family_members_list_or_none}}
+
+11. STATUTORY FRAMEWORK
+    This declaration is submitted in support of Form I-914
+    pursuant to:
+      - Trafficking Victims Protection Act of 2000 + reauthorisations
+      - 22 USC 7101 - 7113 + 22 USC 7102(11) (definitions)
+      - 8 CFR 214.11 (T Nonimmigrant Status regulations)
+      - 18 USC 1581 - 1592 (criminal trafficking provisions)
+      - UN Palermo Protocol (Article 3 definition of trafficking
+        in persons; Article 3(b) consent irrelevance)
+
+I declare under penalty of perjury under the laws of the
+United States of America that the foregoing is true and
+correct.
+
+Executed at {{place_of_execution}}, this {{filed_date}}.
+
+_____________________________________
+{{worker_name}}, Declarant
+Submitted by:
+{{complainant_name}}
+{{complainant_org}}
+{{complainant_contact}}
+"""
+
+
+_TEMPLATE_ANTI_RETALIATION_TRO_BODY = """REQUEST FOR INTERIM ANTI-RETALIATION ORDER
+Migrant Worker -- Destination-Country Labour Tribunal
+Filing date: {{filed_date}}
+
+CASE / FILE NUMBER: {{case_file_number}}
+TRIBUNAL:           {{tribunal_name}}
+JURISDICTION:       {{jurisdiction_name}}
+
+PETITIONER:   {{worker_name}} (anonymized identifier), through
+              {{complainant_name}}, {{complainant_org}}.
+
+RESPONDENT:   {{respondent_name}} (employer / sponsor / agency).
+
+I.   NATURE OF THE REQUEST
+The petitioner respectfully requests an INTERIM ORDER
+restraining the respondent and any agent, affiliate, or person
+acting in concert with the respondent from retaliating against
+the petitioner in any manner during the pendency of the
+underlying complaint, including but not limited to:
+   (a) termination of employment without statutory cause;
+   (b) cancellation, revocation, or non-renewal of the
+       petitioner's visa, work permit, or sponsorship;
+   (c) eviction or denial of employer-provided housing;
+   (d) initiation or threat of immigration enforcement;
+   (e) refusal to return the petitioner's identity documents;
+   (f) threats or contact with the petitioner's family in
+       the country of origin;
+   (g) defamation or blacklisting through industry channels.
+
+II.  GROUNDS FOR THE REQUEST
+The petitioner has filed a substantive complaint against the
+respondent concerning {{underlying_complaint_summary}}. The
+respondent has demonstrated a likelihood of retaliation through
+{{evidence_of_retaliation_likelihood}}. Without an interim
+order, the petitioner will suffer irreparable harm including
+{{specific_irreparable_harm}}.
+
+III. CONTROLLING LAW
+   - ILO Convention 190 Article 6 (violence and harassment
+     including retaliation)
+   - ILO Convention 181 Article 8 (adequate protection for
+     migrant workers)
+   - Palermo Protocol Article 3 (retaliation and threats as a
+     means of trafficking)
+   - {{jurisdiction_specific_anti_retaliation_statute}}
+
+IV.  PETITIONER'S COMPLIANCE WITH PROCEDURAL REQUIREMENTS
+   - Petitioner has notice-given to the respondent on
+     {{notice_date}}.
+   - Petitioner has provided to the tribunal a copy of the
+     underlying complaint as Exhibit A.
+   - Petitioner has provided sworn declaration of the facts as
+     Exhibit B.
+   - Petitioner has provided evidence of likelihood of
+     retaliation as Exhibit C.
+
+V.   RELIEF REQUESTED
+The petitioner respectfully requests:
+   1. Immediate interim order prohibiting the conduct listed in
+      Section I, effective on issuance and remaining in force
+      until the underlying complaint is finally resolved;
+   2. Direction to the respondent to deliver the petitioner's
+      identity documents to the tribunal registrar pending
+      resolution;
+   3. Direction to the destination-country immigration
+      authority that the petitioner's status will not be
+      adversely affected by the respondent's actions during
+      the pendency of the complaint;
+   4. Reservation of all further remedies including damages
+      for any retaliation that has already occurred.
+
+VI.  SUMMARY EVIDENCE
+{{incident_summary}}
+
+Respectfully submitted,
+
+{{complainant_name}}
+{{complainant_org}}
+{{complainant_contact}}
+
+Date: {{filed_date}}
+"""
+
+
+_TEMPLATE_WITNESS_STATEMENT_BODY = """WITNESS STATEMENT TO LAW ENFORCEMENT
+Trafficking Investigation -- Voluntary Witness
+Filing date: {{filed_date}}
+
+WITNESS: {{witness_name}} (anonymized identifier where appropriate)
+Relationship to victim: {{relationship_to_victim}}
+Witness contact: {{witness_contact}}
+
+INVESTIGATING AUTHORITY: {{investigating_authority}}
+Case / file number: {{case_file_number}}
+Designated officer: {{designated_officer}}
+
+I, {{witness_name}}, hereby state voluntarily and without coercion
+the following matters within my personal knowledge. I understand
+that this statement may be used in criminal, immigration, or
+labour proceedings against persons responsible for the trafficking
+described below.
+
+1. CONTEXT OF OBSERVATION
+   I have known the victim, {{victim_name_or_anonymized}}, since
+   {{when_known}}. Our relationship is {{relationship_to_victim}}.
+   I observed the conduct described below at {{observation_location}}
+   during the period {{observation_period}}.
+
+2. RECRUITMENT
+   I observed the following concerning recruitment of the
+   victim: {{recruitment_observations}}. The recruiter or agent
+   responsible was {{recruiter_name_or_description}}.
+
+3. DEPLOYMENT AND DESTINATION
+   The victim was sent to {{destination_country}} on
+   {{deployment_date_approx}}. The destination employer was
+   {{destination_employer_name_or_description}}. The sector was
+   {{sector}}.
+
+4. INDICATORS OBSERVED
+   I observed the following conditions that may constitute
+   indicators of forced labour under ILO operational indicators
+   and trafficking under the Palermo Protocol:
+     - Restriction of movement: {{movement_observations}}
+     - Isolation: {{isolation_observations}}
+     - Retention of identity documents: {{document_observations}}
+     - Withholding of wages: {{wage_observations}}
+     - Debt bondage: {{debt_observations}}
+     - Physical violence or threats: {{violence_observations}}
+     - Other indicators: {{other_observations}}
+
+5. SPECIFIC EVENTS WITNESSED
+   {{specific_events_witnessed}}
+
+6. EVIDENCE THE WITNESS CAN PROVIDE
+   {{available_evidence_list}}
+
+7. OTHER WITNESSES KNOWN TO THE DECLARANT
+   {{other_witnesses_list}}
+
+8. PROTECTION CONCERNS OF THE WITNESS
+   {{witness_protection_concerns}}
+
+9. STATUTORY FRAMEWORK
+   This statement is provided in support of investigation under:
+     - {{controlling_criminal_statute}}
+     - UN Palermo Protocol Art. 3
+     - ILO Indicators of Forced Labour (2012)
+     - Destination-country labour-protection statute:
+       {{destination_statute}}
+
+I declare that the foregoing is true to the best of my
+knowledge. I am willing to be contacted at the address above
+for further information.
+
+_____________________________________
+{{witness_name}}
+Witness signature                  Date: {{filed_date}}
+
+Witnessed by (caseworker / officer):
+{{complainant_name}}
+{{complainant_org}}
+{{complainant_contact}}
+"""
+
+
+_TEMPLATE_RESTITUTION_CALCULATION_BODY = """RESTITUTION CALCULATION WORKSHEET + DEMAND
+Migrant Worker -- Combined Origin / Destination Restitution Claim
+Filing date: {{filed_date}}
+
+CASE / FILE NUMBER: {{case_file_number}}
+CLAIMANT:           {{worker_name}} (anonymized identifier)
+THROUGH:            {{complainant_name}}, {{complainant_org}}
+
+RESPONDENT(S):      {{respondents_list}}
+
+I.   SUMMARY OF CLAIM
+Claimant seeks restitution in the principal sum of
+{{principal_amount_local_currency}} ({{principal_amount_local_currency}}),
+plus interest, costs, and statutory damages, on the bases
+itemised below.
+
+II.  ITEMISED RESTITUTION CALCULATION
+
+A.   Unauthorised recruitment fees collected (worker-pay
+     prohibited under controlling statute):
+       Training fee:                       {{training_fee_local}}
+       Medical fee:                        {{medical_fee_local}}
+       Processing / documentation fee:     {{processing_fee_local}}
+       Placement fee (any label):          {{placement_fee_local}}
+       Other (specify):                    {{other_fee_local}}
+     SUBTOTAL (A):                         {{fee_subtotal_local}}
+
+B.   Unpaid wages + statutory minimum-wage shortfall:
+       Period of underpayment:             {{underpayment_period}}
+       Months unpaid (full or partial):    {{months_unpaid}}
+       Statutory minimum wage applicable:  {{statutory_min_wage}}
+       Actual wages received:              {{actual_wages_received}}
+       Hours worked beyond statutory cap:  {{overtime_hours}}
+       Overtime owed under destination law: {{overtime_owed}}
+     SUBTOTAL (B):                         {{wages_subtotal_local}}
+
+C.   Illegal deductions (housing / food / loan / kickback):
+       Housing deductions exceeding cap:   {{housing_excess}}
+       Loan / advance repayment deducted:  {{loan_deduction_amount}}
+       Equipment / training cost charged:  {{equipment_charged}}
+       Other illegal deductions:           {{other_deductions}}
+     SUBTOTAL (C):                         {{deduction_subtotal_local}}
+
+D.   Repatriation costs (employer-pays-principle):
+       Air ticket cost charged to worker:  {{airfare_charged}}
+       Other repatriation costs charged:   {{other_repat_costs}}
+     SUBTOTAL (D):                         {{repat_subtotal_local}}
+
+E.   Statutory damages and interest:
+       Pre-judgment interest rate:         {{prejudgment_interest_rate}}
+       Statutory damages provision:        {{statutory_damages_basis}}
+       Liquidated damages (if applicable): {{liquidated_damages}}
+     SUBTOTAL (E):                         {{damages_subtotal_local}}
+
+PRINCIPAL CLAIM (A + B + C + D + E):       {{principal_total_local}}
+Equivalent in USD (informational):         {{principal_total_usd}}
+
+III. CONTROLLING LAW (each independently supporting items A-E)
+   - ILO Convention 181 Art. 7 (no worker-side fees)
+   - ILO Convention 95 Art. 8 + 9 (wage protection)
+   - {{origin_country_fee_cap_statute}}
+   - {{destination_country_wage_statute}}
+   - {{destination_country_overtime_statute}}
+   - {{employer_pays_principle_basis}}
+   - {{prejudgment_interest_authority}}
+
+IV.  EVIDENCE OF CLAIM
+{{evidence_list}}
+
+V.   RELIEF REQUESTED
+The claimant requests:
+   1. Order for payment of {{principal_total_local}} to claimant
+      in {{preferred_payment_channel}} within {{payment_deadline}}
+      days of order;
+   2. Pre-judgment interest from {{interest_start_date}};
+   3. Post-judgment interest until paid in full;
+   4. Statutory damages where authorised by the applicable
+      statute;
+   5. Recovery of reasonable legal expense;
+   6. Anti-retaliation interim order during pendency;
+   7. Any other relief the tribunal deems just and equitable.
+
+Respectfully submitted,
+
+{{complainant_name}}
+{{complainant_org}}
+{{complainant_contact}}
+
+Date: {{filed_date}}
+"""
+
+
+_TEMPLATE_COMPOUND_SCAM_AFFIDAVIT_BODY = """VICTIM IDENTIFICATION AFFIDAVIT
+Sihanoukville / Bavet / Myawaddy / Bokeo Cyber-Fraud Compound -- Combined Trafficking + Forced Criminal Activity Victim
+
+Filing date: {{filed_date}}
+File reference: {{file_reference}}
+
+DECLARANT: {{worker_name}} (anonymized identifier)
+Country of citizenship: {{country_of_citizenship}}
+Year of birth:          {{year_of_birth}}
+Native language:        {{native_language}}
+
+INVESTIGATING / ASSISTING AUTHORITIES:
+   {{origin_country_embassy_or_polo}}
+   INTERPOL Project Storm Coordination Group
+   UNODC Southeast Asia Cyber-Fraud Trafficking Response
+   IOM Regional Office Bangkok
+   {{destination_country_law_enforcement}}
+
+I, {{worker_name}}, declare under oath that the following is true
+and correct to the best of my knowledge:
+
+1. RECRUITMENT
+   In {{recruitment_year}} I was contacted via {{recruitment_channel}}
+   by {{recruiter_handle_or_anonymized}} offering a position as
+   {{advertised_role}} in {{advertised_destination}} with promised
+   monthly compensation of {{advertised_compensation}}. The
+   recruiter said {{recruiter_specific_promises}}. Based on those
+   promises I agreed to travel.
+
+2. JOURNEY
+   The recruiter arranged my travel. I left {{country_of_citizenship}}
+   on {{departure_date}} on a {{visa_status_at_departure}} visa /
+   travel document. The route I took was {{travel_route}}.
+
+3. ARRIVAL AND CONTROL
+   On arrival at {{arrival_location}} I was met by {{handler_description}}.
+   My passport, phone, and personal belongings were taken from me
+   immediately. I was transported to {{compound_location_description}},
+   where I was confined to a guarded compound. The compound was
+   {{compound_physical_description}}.
+
+4. NATURE OF FORCED CRIMINAL ACTIVITY
+   I was forced to {{forced_criminal_activity_type}}. Specifically I
+   was required to {{daily_required_activity}}. I worked
+   {{hours_per_day}} hours per day, {{days_per_week}} days per
+   week. I was paid {{actual_compensation_at_compound}}. Daily
+   quotas were enforced through {{enforcement_mechanism}}.
+
+5. ABUSE AND COERCION
+   I was subject to the following abuse and coercion:
+     - Restriction of movement:    {{movement_restriction_details}}
+     - Document retention:         {{document_retention_details}}
+     - Violence or threats:        {{violence_details}}
+     - Debt bondage:               {{debt_details}}
+     - Isolation:                  {{isolation_details}}
+     - Sexual abuse (if applicable): {{sexual_abuse_details}}
+     - Forced participation in fraud against third-party victims:
+       {{forced_fraud_details}}
+
+6. ESCAPE OR RELEASE
+   I was able to leave the compound on {{escape_date}} by means
+   of {{escape_circumstances}}. Since then I have been receiving
+   support from {{service_provider}}.
+
+7. NON-CRIMINALISATION REQUEST
+   Under Palermo Protocol Article 3 + ASEAN ACTIP Article 14(7) +
+   destination-country law where applicable, the declarant is a
+   victim of trafficking in persons. Where the declarant was
+   coerced into participating in fraud against third parties,
+   the declarant requests non-criminalisation under the
+   destination-country trafficking-victim non-prosecution
+   framework and {{destination_country_non_criminalisation_statute}}.
+
+8. INDICATORS OF TRAFFICKING (Palermo Protocol Article 3)
+   ACT:    Recruitment + transportation + harbouring + receipt
+           (Sections 1-3 above).
+   MEANS:  Deception (advertised role differed from actual);
+           abuse of position of vulnerability; coercion;
+           document retention; debt-bondage.
+   PURPOSE: Forced labour + forced criminal activity. Consent
+           is irrelevant under Article 3(b).
+
+9. REQUEST FOR SERVICES
+   The declarant requests:
+     - Immediate consular protection + safe-passage to the
+       origin country;
+     - Medical + psychological assessment + ongoing care;
+     - Non-criminalisation under destination-country
+       framework;
+     - Cross-border evidence-preservation cooperation with the
+       INTERPOL Project Storm Group, UNODC SE Asia Cyber-Fraud
+       Response, and {{origin_country_law_enforcement}};
+     - Reintegration support upon return.
+
+10. CORRELATIVE EVIDENCE
+    {{available_evidence_list}}
+
+I, {{worker_name}}, declare under penalty of perjury that the
+foregoing is true and correct.
+
+_____________________________________
+{{worker_name}}
+Declarant signature              Date: {{filed_date}}
+
+Witnessed by (caseworker / consular officer):
+{{complainant_name}}
+{{complainant_org}}
+{{complainant_contact}}
+"""
+
+
 _TEMPLATE_KR_EPS_BODY = """COMPLAINT TO KOREA EMPLOYMENT PERMIT SYSTEM (EPS)
 Ministry of Employment and Labor (MOEL) -- E-9 Worker Investigation
 Filing date: {{filed_date}}
@@ -2139,6 +2814,362 @@ TEMPLATES_REGISTRY: dict[str, TemplateSpec] = {
             _f("ilo_indicators", "ILO indicators observed", False, "intelligence.ilo_indicators"),
             _f("evidence_list", "Evidence available", False, "intelligence.evidence_edges"),
             _f("relief_requested", "Relief requested", True),
+        ),
+    ),
+
+    "ph_hk_fdh_fee_refund_demand": TemplateSpec(
+        id="ph_hk_fdh_fee_refund_demand",
+        title="PH-HK FDH Recruitment Fee Refund Demand (POEA MC 14-2017)",
+        jurisdiction="Philippines / Hong Kong",
+        audience="Philippine licensed recruitment agency + HK-side EA",
+        summary=(
+            "Pre-filled demand letter for refund of unauthorised "
+            "training / medical / processing / placement fees "
+            "collected from a Filipino HSW deployed to Hong Kong. "
+            "Cites POEA MC 14-2017, ILO C181 Art. 7 + 2019 "
+            "Definition, RA 8042 / RA 10022, HK Cap. 57A Reg. 2 + "
+            "13. Madlibs style -- only worker-specific blanks remain."
+        ),
+        body=_TEMPLATE_PH_HK_FDH_FEE_REFUND_DEMAND_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("agency_name", "Philippine licensed recruitment agency", True, "intelligence.agencies[0]"),
+            _f("agency_address", "Agency address", False),
+            _f("agency_principal_or_officer", "Agency principal / officer name", False),
+            _f("agency_license_no", "DMW recruitment agency licence", True),
+            _f("hk_agency_name", "Hong Kong-side EA (if applicable)", False),
+            _f("hk_agency_address", "HK EA address", False),
+            _f("hk_ea_license_no", "HK EA licence", False),
+            _f("worker_name", "Worker anonymized ID", True, "people[0].label"),
+            _f("deployment_date", "Deployment date", True, "intelligence.deployment_date"),
+            _f("total_paid_php", "Total amount paid by worker (PHP)", True),
+            _f("training_fee_php", "Training fee (PHP)", False),
+            _f("medical_fee_php", "Medical examination fee (PHP)", False),
+            _f("processing_fee_php", "Processing / documentation fee (PHP)", False),
+            _f("placement_fee_php", "Placement fee (PHP)", False),
+            _f("other_fees_php", "Other fees (PHP)", False),
+            _f("collection_dates", "Date(s) of collection", True),
+            _f("receipt_status", "Receipts issued / not issued", False),
+            _f("preferred_refund_channel", "Preferred refund channel", True),
+            _f("compliance_deadline", "Compliance deadline (14 days from receipt)", True),
+            _f("complainant_name", "Caseworker name", True),
+            _f("complainant_org", "NGO / organisation", True),
+            _f("complainant_contact", "Caseworker contact", True),
+        ),
+    ),
+
+    "passport_return_demand": TemplateSpec(
+        id="passport_return_demand",
+        title="Passport + Identity Document Return Demand (ILO C189 Art. 9)",
+        jurisdiction="Cross-border",
+        audience="Foreign employer / sponsor / recruitment agency",
+        summary=(
+            "Pre-filled demand letter for the immediate return of "
+            "passport + identity documents retained by an employer / "
+            "sponsor / recruitment agency. Cites ILO C189 Art. 9, "
+            "ILO Forced Labour Indicator 7, Palermo Protocol Art. 3, "
+            "and the destination-country statutory prohibition. "
+            "Madlibs style -- only worker-specific + destination-"
+            "country blanks remain."
+        ),
+        body=_TEMPLATE_PASSPORT_RETURN_DEMAND_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("respondent_name", "Respondent name (employer / sponsor / agency)", True, "intelligence.employers[0]"),
+            _f("respondent_address", "Respondent address", False),
+            _f("respondent_attention", "Attention person", False),
+            _f("destination_country_labour_authority", "Destination-country labour authority", True),
+            _f("worker_origin_country_embassy_or_polo", "Worker's origin-country embassy / POLO", True),
+            _f("worker_name", "Worker anonymized ID", True, "people[0].label"),
+            _f("worker_nationality", "Worker nationality", True, "intelligence.country_of_origin"),
+            _f("worksite_or_household", "Worksite or household", True),
+            _f("passport_prefix", "Passport number prefix", False),
+            _f("retention_date", "Date of retention", True),
+            _f("document_current_location", "Current location of documents", False),
+            _f("conditions_imposed", "Conditions imposed for return", False),
+            _f("destination_statute_citation", "Destination-country statutory prohibition (e.g. HK Cap. 57 Sec. 32)", True),
+            _f("compliance_deadline", "Compliance deadline (5 days from receipt)", True),
+            _f("worker_current_safety_status", "Worker current safety status", True),
+            _f("complainant_name", "Caseworker name", True),
+            _f("complainant_org", "NGO / organisation", True),
+            _f("complainant_contact", "Caseworker contact", True),
+        ),
+    ),
+
+    "t_visa_affidavit": TemplateSpec(
+        id="t_visa_affidavit",
+        title="T-Visa (I-914) Supporting Affidavit -- Severe Form of Trafficking",
+        jurisdiction="United States",
+        audience="USCIS Vermont Service Center",
+        summary=(
+            "Pre-filled supporting affidavit for Form I-914 T-Visa "
+            "application. Cites TVPA + 22 USC 7102(11) severe form "
+            "definition + 8 CFR 214.11 + 18 USC 1581-1592 + Palermo "
+            "Protocol. Madlibs style -- 11 numbered paragraphs with "
+            "embedded legal framework; only worker-specific narrative "
+            "blanks remain."
+        ),
+        body=_TEMPLATE_T_VISA_AFFIDAVIT_BODY,
+        fields=(
+            _f("filed_date", "Filing date / execution date", True),
+            _f("worker_name", "Declarant name", True, "people[0].label"),
+            _f("country_of_origin", "Country of origin", True, "intelligence.country_of_origin"),
+            _f("year_of_birth", "Year of birth", False),
+            _f("native_language", "Native language", False),
+            _f("us_entry_date", "US entry date", True),
+            _f("visa_status_at_entry", "Visa status at entry", False),
+            _f("prior_occupation", "Prior occupation in country of origin", False),
+            _f("recruitment_year", "Recruitment year", True),
+            _f("trafficker_name_or_anonymized", "Trafficker name (anonymized if needed)", True),
+            _f("trafficker_relationship_to_me", "Trafficker relationship to declarant", True),
+            _f("recruitment_channel", "Recruitment channel", True),
+            _f("promised_terms", "Terms promised at recruitment", True),
+            _f("promised_living_situation", "Promised living situation", False),
+            _f("travel_arrangements_summary", "Travel arrangements summary", True),
+            _f("debt_amount", "Debt amount asserted on arrival", False),
+            _f("first_us_location", "First US location", True),
+            _f("housing_address_general", "Housing address (general / anonymized)", False),
+            _f("actual_work_type", "Actual work type", True),
+            _f("hours_per_day", "Hours per day required", False),
+            _f("days_per_week", "Days per week required", False),
+            _f("actual_compensation", "Actual compensation received", False),
+            _f("reasons_unable_to_leave", "Reasons unable to leave", True),
+            _f("movement_restriction_details", "Movement restriction details", False),
+            _f("isolation_details", "Isolation details", False),
+            _f("document_retention_details", "Document retention details", False),
+            _f("wage_withholding_details", "Wage withholding details", False),
+            _f("debt_bondage_details", "Debt bondage details", False),
+            _f("threats_details", "Threats details", False),
+            _f("abuse_details", "Abuse details (only if applicable)", False),
+            _f("escape_date", "Escape / rescue date", True),
+            _f("escape_circumstances", "Escape circumstances", True),
+            _f("service_provider_org", "Current service provider organisation", True),
+            _f("law_enforcement_cooperation_summary", "Law-enforcement cooperation summary", True),
+            _f("extreme_hardship_reasons", "Extreme hardship reasons upon removal", True),
+            _f("supporting_evidence_list", "Supporting evidence list", True),
+            _f("derivative_family_members_list_or_none", "Family members requesting derivative status (or none)", False),
+            _f("place_of_execution", "Place of execution", True),
+            _f("complainant_name", "Submitter name", True),
+            _f("complainant_org", "Submitter organisation", True),
+            _f("complainant_contact", "Submitter contact", True),
+        ),
+    ),
+
+    "anti_retaliation_tro": TemplateSpec(
+        id="anti_retaliation_tro",
+        title="Anti-Retaliation Interim Order Request (Destination Labour Tribunal)",
+        jurisdiction="Destination-country labour tribunal",
+        audience="Labour tribunal / labour court / migrant-worker tribunal",
+        summary=(
+            "Pre-filled interim-order request restraining employer / "
+            "sponsor / agency from retaliating against migrant worker "
+            "during the pendency of an underlying complaint. Cites "
+            "ILO C190 Art. 6 + C181 Art. 8 + Palermo Protocol + "
+            "jurisdiction-specific anti-retaliation statute. Madlibs "
+            "style -- 6 numbered sections with embedded relief, "
+            "evidence, and procedural compliance."
+        ),
+        body=_TEMPLATE_ANTI_RETALIATION_TRO_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("case_file_number", "Case / file number", True),
+            _f("tribunal_name", "Tribunal name", True),
+            _f("jurisdiction_name", "Jurisdiction name", True),
+            _f("worker_name", "Petitioner anonymized ID", True, "people[0].label"),
+            _f("respondent_name", "Respondent name", True, "intelligence.employers[0]"),
+            _f("underlying_complaint_summary", "Underlying complaint summary", True, "intelligence.case_brief"),
+            _f("evidence_of_retaliation_likelihood", "Evidence of likelihood of retaliation", True),
+            _f("specific_irreparable_harm", "Specific irreparable harm", True),
+            _f("jurisdiction_specific_anti_retaliation_statute", "Jurisdiction-specific anti-retaliation statute", True),
+            _f("notice_date", "Notice given date", True),
+            _f("incident_summary", "Summary evidence", True),
+            _f("complainant_name", "Caseworker / counsel name", True),
+            _f("complainant_org", "Organisation", True),
+            _f("complainant_contact", "Contact", True),
+        ),
+    ),
+
+    "witness_statement": TemplateSpec(
+        id="witness_statement",
+        title="Voluntary Witness Statement -- Trafficking Investigation",
+        jurisdiction="Cross-border",
+        audience="Investigating law-enforcement / labour authority",
+        summary=(
+            "Pre-filled voluntary witness statement for trafficking "
+            "investigation. Cites controlling criminal statute + "
+            "Palermo Protocol Art. 3 + ILO indicators (2012) + "
+            "destination-country labour statute. Madlibs style -- "
+            "9 numbered sections capturing context, recruitment, "
+            "deployment, ILO indicators, specific events, available "
+            "evidence, other witnesses, witness protection, and "
+            "statutory framework."
+        ),
+        body=_TEMPLATE_WITNESS_STATEMENT_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("witness_name", "Witness name (anonymized if needed)", True),
+            _f("relationship_to_victim", "Relationship to victim", True),
+            _f("witness_contact", "Witness contact", True),
+            _f("investigating_authority", "Investigating authority", True),
+            _f("case_file_number", "Case / file number", True),
+            _f("designated_officer", "Designated officer", False),
+            _f("victim_name_or_anonymized", "Victim name (anonymized)", True),
+            _f("when_known", "When known", True),
+            _f("observation_location", "Observation location", True),
+            _f("observation_period", "Observation period", True),
+            _f("recruitment_observations", "Recruitment observations", True),
+            _f("recruiter_name_or_description", "Recruiter name / description", True),
+            _f("destination_country", "Destination country", True),
+            _f("deployment_date_approx", "Approximate deployment date", True),
+            _f("destination_employer_name_or_description", "Destination employer name / description", True),
+            _f("sector", "Sector", True, "intelligence.sector"),
+            _f("movement_observations", "Movement-restriction observations", False),
+            _f("isolation_observations", "Isolation observations", False),
+            _f("document_observations", "Document-retention observations", False),
+            _f("wage_observations", "Wage-withholding observations", False),
+            _f("debt_observations", "Debt-bondage observations", False),
+            _f("violence_observations", "Violence / threats observations", False),
+            _f("other_observations", "Other indicator observations", False),
+            _f("specific_events_witnessed", "Specific events witnessed", True),
+            _f("available_evidence_list", "Available evidence list", True, "intelligence.evidence_edges"),
+            _f("other_witnesses_list", "Other witnesses known to declarant", False),
+            _f("witness_protection_concerns", "Witness protection concerns", False),
+            _f("controlling_criminal_statute", "Controlling criminal statute", True),
+            _f("destination_statute", "Destination-country labour statute", True),
+            _f("complainant_name", "Caseworker / officer name", True),
+            _f("complainant_org", "Organisation", True),
+            _f("complainant_contact", "Contact", True),
+        ),
+    ),
+
+    "restitution_calculation": TemplateSpec(
+        id="restitution_calculation",
+        title="Restitution Calculation Worksheet + Demand (Multi-Source)",
+        jurisdiction="Cross-border",
+        audience="Destination labour tribunal + origin-country agency bond + civil court",
+        summary=(
+            "Pre-filled itemised restitution calculation worksheet "
+            "covering 5 categories of recoverable loss: (A) "
+            "unauthorised recruitment fees, (B) unpaid wages + "
+            "min-wage shortfall + overtime, (C) illegal deductions, "
+            "(D) repatriation costs, (E) statutory damages + "
+            "interest. Cites ILO C181 + C95, origin-country fee-cap "
+            "statute, destination wage + overtime statutes. Madlibs "
+            "style -- itemised arithmetic + statutory authority + "
+            "relief blocks pre-built."
+        ),
+        body=_TEMPLATE_RESTITUTION_CALCULATION_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("case_file_number", "Case / file number", True),
+            _f("worker_name", "Claimant anonymized ID", True, "people[0].label"),
+            _f("respondents_list", "Respondent(s) list", True),
+            _f("principal_amount_local_currency", "Principal amount (local currency)", True),
+            _f("training_fee_local", "Training fee (local currency)", False),
+            _f("medical_fee_local", "Medical fee (local currency)", False),
+            _f("processing_fee_local", "Processing / documentation fee (local currency)", False),
+            _f("placement_fee_local", "Placement fee (local currency)", False),
+            _f("other_fee_local", "Other fees (local currency)", False),
+            _f("fee_subtotal_local", "Fee subtotal A (local currency)", True),
+            _f("underpayment_period", "Period of underpayment", True),
+            _f("months_unpaid", "Months unpaid", True),
+            _f("statutory_min_wage", "Statutory minimum wage applicable", True),
+            _f("actual_wages_received", "Actual wages received", True),
+            _f("overtime_hours", "Overtime hours beyond statutory cap", False),
+            _f("overtime_owed", "Overtime owed under destination law", False),
+            _f("wages_subtotal_local", "Wages subtotal B (local currency)", True),
+            _f("housing_excess", "Housing deductions exceeding cap", False),
+            _f("loan_deduction_amount", "Loan / advance repayment deducted", False),
+            _f("equipment_charged", "Equipment / training cost charged", False),
+            _f("other_deductions", "Other illegal deductions", False),
+            _f("deduction_subtotal_local", "Deduction subtotal C (local currency)", True),
+            _f("airfare_charged", "Air ticket cost charged to worker", False),
+            _f("other_repat_costs", "Other repatriation costs charged", False),
+            _f("repat_subtotal_local", "Repatriation subtotal D (local currency)", True),
+            _f("prejudgment_interest_rate", "Pre-judgment interest rate", False),
+            _f("statutory_damages_basis", "Statutory damages basis", False),
+            _f("liquidated_damages", "Liquidated damages (if applicable)", False),
+            _f("damages_subtotal_local", "Damages subtotal E (local currency)", True),
+            _f("principal_total_local", "Principal claim total (local currency)", True),
+            _f("principal_total_usd", "Equivalent in USD", False),
+            _f("origin_country_fee_cap_statute", "Origin-country fee-cap statute", True),
+            _f("destination_country_wage_statute", "Destination-country wage statute", True),
+            _f("destination_country_overtime_statute", "Destination-country overtime statute", False),
+            _f("employer_pays_principle_basis", "Employer-pays-principle basis (e.g. ILO C181 Art. 7)", True),
+            _f("prejudgment_interest_authority", "Pre-judgment interest authority", False),
+            _f("evidence_list", "Evidence of claim", True, "intelligence.evidence_edges"),
+            _f("preferred_payment_channel", "Preferred payment channel", True),
+            _f("payment_deadline", "Payment deadline (days)", True),
+            _f("interest_start_date", "Pre-judgment interest start date", False),
+            _f("complainant_name", "Counsel / caseworker name", True),
+            _f("complainant_org", "Organisation", True),
+            _f("complainant_contact", "Contact", True),
+        ),
+    ),
+
+    "compound_scam_victim_affidavit": TemplateSpec(
+        id="compound_scam_victim_affidavit",
+        title="Compound-Scam (Sihanoukville / Bavet / Myawaddy / Bokeo) Victim Affidavit",
+        jurisdiction="Cross-border (INTERPOL Project Storm coverage)",
+        audience="Origin-country embassy + INTERPOL Project Storm + UNODC + IOM + destination law-enforcement",
+        summary=(
+            "Pre-filled victim-identification affidavit for the "
+            "compound-trafficking + cyber-fraud / pig-butchering "
+            "ecosystem in Sihanoukville Cambodia + Bavet Cambodia + "
+            "Myawaddy Myanmar + Bokeo Laos. Cites Palermo Protocol "
+            "Article 3 + ASEAN ACTIP Article 14(7) non-criminalisation "
+            "+ destination-country trafficking-victim non-prosecution "
+            "framework. Madlibs style -- 10 numbered sections covering "
+            "recruitment, journey, control, forced criminal activity, "
+            "abuse, escape, non-criminalisation request, indicators, "
+            "service request, and evidence."
+        ),
+        body=_TEMPLATE_COMPOUND_SCAM_AFFIDAVIT_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("file_reference", "File reference", True),
+            _f("worker_name", "Declarant anonymized ID", True, "people[0].label"),
+            _f("country_of_citizenship", "Country of citizenship", True, "intelligence.country_of_origin"),
+            _f("year_of_birth", "Year of birth", False),
+            _f("native_language", "Native language", False),
+            _f("origin_country_embassy_or_polo", "Origin-country embassy / POLO", True),
+            _f("destination_country_law_enforcement", "Destination-country law enforcement", True),
+            _f("recruitment_year", "Recruitment year", True),
+            _f("recruitment_channel", "Recruitment channel (LinkedIn / Telegram / Facebook / etc.)", True),
+            _f("recruiter_handle_or_anonymized", "Recruiter handle (anonymized)", True),
+            _f("advertised_role", "Advertised role", True),
+            _f("advertised_destination", "Advertised destination", True),
+            _f("advertised_compensation", "Advertised monthly compensation", True),
+            _f("recruiter_specific_promises", "Recruiter-specific promises", False),
+            _f("departure_date", "Departure date", True),
+            _f("visa_status_at_departure", "Visa status at departure", False),
+            _f("travel_route", "Travel route", True),
+            _f("arrival_location", "Arrival location", True),
+            _f("handler_description", "Handler description", True),
+            _f("compound_location_description", "Compound location description", True),
+            _f("compound_physical_description", "Compound physical description", True),
+            _f("forced_criminal_activity_type", "Forced criminal activity type (pig-butchering / phishing / etc.)", True),
+            _f("daily_required_activity", "Daily required activity", True),
+            _f("hours_per_day", "Hours per day", True),
+            _f("days_per_week", "Days per week", True),
+            _f("actual_compensation_at_compound", "Actual compensation at compound", True),
+            _f("enforcement_mechanism", "Enforcement mechanism (violence / fine / debt)", True),
+            _f("movement_restriction_details", "Movement restriction details", True),
+            _f("document_retention_details", "Document retention details", True),
+            _f("violence_details", "Violence / threats details", False),
+            _f("debt_details", "Debt details", False),
+            _f("isolation_details", "Isolation details", False),
+            _f("sexual_abuse_details", "Sexual abuse details (if applicable)", False),
+            _f("forced_fraud_details", "Forced fraud details (third-party victims)", True),
+            _f("escape_date", "Escape date", True),
+            _f("escape_circumstances", "Escape circumstances", True),
+            _f("service_provider", "Current service provider", True),
+            _f("destination_country_non_criminalisation_statute", "Destination-country non-criminalisation statute", True),
+            _f("origin_country_law_enforcement", "Origin-country law enforcement", True),
+            _f("available_evidence_list", "Available evidence list", True, "intelligence.evidence_edges"),
+            _f("complainant_name", "Caseworker / consular officer name", True),
+            _f("complainant_org", "Organisation", True),
+            _f("complainant_contact", "Contact", True),
         ),
     ),
 
