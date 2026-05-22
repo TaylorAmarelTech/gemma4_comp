@@ -7119,6 +7119,252 @@ GREP_RULES = [
                        "screen (see SCR category); (4) trauma-"
                        "informed survivor advocate.",
     },
+
+    # ====================================================================
+    # CATEGORY JJJ: FAMILY-SEPARATION CHAIN-MIGRATION TRAFFICKING (2026-05-22)
+    # severity=medium-high
+    # ====================================================================
+    {
+        "rule": "jjj_send_for_child_chain_pattern",
+        "patterns": [r"\b(?:I\s+will\s+send\s+for|once\s+I\s+arrive\s+I'?ll\s+(?:bring|send\s+for)|after\s+a\s+year\s+I\s+can\s+(?:bring|send\s+for))\b.{0,200}\b(?:my\s+(?:child|son|daughter|kids|family)|the\s+kids)\b",
+                       r"\b(?:family\s+reunification|sponsor\s+(?:my\s+)?(?:child|daughter|son|family))\b.{0,200}\b(?:agent|recruiter|broker|sponsor)\s+(?:will\s+arrange|fixes|handles)\b"],
+        "severity": "high",
+        "citation": "UN CRC Art. 9 + 10 (family reunification + best "
+                      "interests of the child); Palermo Protocol Art. "
+                      "3 + 3(c); ILO C97 + C143; UN Migrant Workers "
+                      "Convention 1990 Art. 44",
+        "indicator": "Deceptive 'I'll send for the family later' "
+                       "framing is a documented pattern where the "
+                       "first-deployed family member ends up in "
+                       "debt-bondage trying to bring children + "
+                       "spouse who then enter under similarly "
+                       "exploitative terms. Provide: (1) explicit "
+                       "warning, (2) family-reunification visa "
+                       "due-diligence (consulate-side process), "
+                       "(3) NGO + legal-aid support, (4) origin-"
+                       "country agency-bond claim path.",
+    },
+    {
+        "rule": "jjj_child_separation_for_remittance",
+        "patterns": [r"\b(?:left\s+(?:my\s+)?(?:child|children|kids))\s+(?:behind|at\s+home|with\s+(?:grandmother|relatives|family))\b.{0,200}\b(?:abroad|overseas|deployment|to\s+send\s+money)\b",
+                       r"\b(?:single\s+mother|single\s+parent)\b.{0,200}\b(?:no\s+other\s+(?:choice|option)|had\s+to\s+leave)\b.{0,200}\b(?:children|kids|baby|infant)\b"],
+        "severity": "medium",
+        "citation": "UN CRC Art. 9 + 18 + 19 + 27; ILO C189 Art. 11; "
+                      "UN Special Rapporteur on Sale + Sexual "
+                      "Exploitation of Children; PH ~5M left-behind "
+                      "children documentation",
+        "indicator": "Left-behind-children patterns at scale (PH "
+                       "~5M, NP + LK comparable) are a vulnerability "
+                       "vector + sometimes a downstream trafficking-"
+                       "risk vector. Provide: (1) origin-country "
+                       "DSWD / child-protection framework; (2) "
+                       "consular family-welfare desk; (3) safe "
+                       "remittance + parental-contact best practice; "
+                       "(4) trauma-informed support if downstream "
+                       "harm has occurred.",
+    },
+
+    # ====================================================================
+    # CATEGORY KKK: TOURISM / WORKING-HOLIDAY VISA ABUSE (2026-05-22)
+    # severity=medium-high
+    # ====================================================================
+    {
+        "rule": "kkk_j1_swt_summer_work_travel_abuse",
+        "patterns": [r"\b(?:J-?1|J1)\s+(?:SWT|Summer\s+Work\s+Travel|cultural\s+exchange|student)\s+(?:visa|program)\b.{0,200}\b(?:fee|debt|deposit|excess\s+hours|under\s+(?:minimum\s+)?wage|no\s+pay)\b",
+                       r"\b(?:Summer\s+Work\s+Travel|J-?1\s+student)\b.{0,200}\b(?:passport\s+held|cannot\s+(?:leave|switch|transfer))\b"],
+        "severity": "medium",
+        "citation": "US 22 CFR 62.32 (Summer Work Travel program); "
+                      "US DOS Bureau of Educational and Cultural "
+                      "Affairs sponsor oversight; CIEE + Intrax + "
+                      "InterExchange sponsor regulation; Polaris "
+                      "J-1 SWT report 2017; CDM (Centro de los "
+                      "Derechos del Migrante)",
+        "indicator": "US J-1 SWT (Summer Work Travel) is documented "
+                       "as a US trafficking vector affecting Eastern "
+                       "European + Asian university students at US "
+                       "resorts, amusement parks, hotels, fast-food. "
+                       "Provide: (1) US State Dept ECA sponsor-"
+                       "complaint pathway, (2) Polaris + CDM "
+                       "referral, (3) DOS Office on Trafficking in "
+                       "Persons J-1 fact sheet, (4) student's home-"
+                       "university international-office support.",
+    },
+    {
+        "rule": "kkk_working_holiday_visa_abuse_aus_nz",
+        "patterns": [r"\b(?:Working\s+Holiday|WHV|417|462|Youth\s+Mobility\s+Scheme|YMS)\b.{0,200}\b(?:88\s+days|specified\s+work|regional|second-?year\s+extension)\b.{0,200}\b(?:fee|debt|excess\s+hours|passport\s+held|sex|fishing|fruit-picking)\b",
+                       r"\b(?:Working\s+Holiday|417|WHV)\s+(?:visa\s+holder)\b.{0,200}\b(?:trafficking|trafficked|exploited|debt|bond)\b"],
+        "severity": "high",
+        "citation": "AU Migration Act 1958 + Working Holiday Maker "
+                      "(417 + 462); AU Modern Slavery Act 2018; AU "
+                      "Fair Work Ombudsman 2018 Wage Theft on "
+                      "Backpacker Workforce + 2021 WHM review; NZ "
+                      "WHV Subclass; UK Youth Mobility Scheme (Tier "
+                      "5)",
+        "indicator": "Australian Working Holiday Maker scheme is "
+                       "the largest documented developed-country "
+                       "labour-trafficking + sexual-exploitation "
+                       "context for backpackers. The 88-day regional "
+                       "specified-work requirement for second-year "
+                       "extension is the primary leverage point. "
+                       "Provide: (1) AU FWO complaint pathway + "
+                       "Migrant Workers Centre VIC/NSW; (2) "
+                       "Department of Home Affairs sponsor + "
+                       "employer-misconduct reporting; (3) AFP 131 "
+                       "AFP hotline; (4) Anti-Slavery Australia "
+                       "(UTS) legal support.",
+    },
+
+    # ====================================================================
+    # CATEGORY LLL: PORT + MARITIME NON-FISHING WORKER EXPLOITATION (2026-05-22)
+    # severity=medium-high
+    # ====================================================================
+    {
+        "rule": "lll_port_stevedore_subcontracting",
+        "patterns": [r"\b(?:port|stevedore|dockworker|longshore|container\s+(?:packing|loader|terminal))\b.{0,200}\b(?:subcontract|labour-?hire|day\s+(?:hire|work)|casual)\b.{0,200}\b(?:no\s+contract|cash|undocumented|unsafe|injury)\b",
+                       r"\b(?:bunker(?:ing)?\s+(?:worker|crew|service)|ship\s+chandler|port\s+services)\b.{0,200}\b(?:debt|fee|passport\s+held|cannot\s+leave|trafficked)\b"],
+        "severity": "medium",
+        "citation": "ILO C137 (Dock Work) + R145; ILO MLC 2006; ITF "
+                      "Inspectorate; Tokyo MoU + Paris MoU port-"
+                      "state control; UN GCM Obj. 6",
+        "indicator": "Port + maritime non-fishing labour is an "
+                       "under-documented but recurring trafficking + "
+                       "exploitation context at transshipment hubs "
+                       "(Singapore, Rotterdam, LA / Long Beach, "
+                       "Dubai, Antwerp, Felixstowe). Subcontracted "
+                       "day-hire diffuses statutory employer "
+                       "liability (see EEE). Provide: (1) ITF "
+                       "Inspectorate contact, (2) destination-"
+                       "country port-state control, (3) flag-state "
+                       "complaint pathway, (4) maritime-union support.",
+    },
+    {
+        "rule": "lll_offshore_oil_gas_rig_worker",
+        "patterns": [r"\b(?:offshore\s+(?:rig|platform|oil|gas)|FPSO|drillship|jackup)\b.{0,200}\b(?:no\s+(?:contract|rest|rotation)|passport\s+held|debt|recruitment\s+fee)\b",
+                       r"\b(?:offshore\s+worker|rig\s+worker)\b.{0,200}\b(?:cannot\s+(?:leave|disembark)|forced\s+to\s+stay|no\s+helicopter\s+out)\b"],
+        "severity": "high",
+        "citation": "ILO MLC 2006 (Title 1 + 2); ILO MODU Code; IMO "
+                      "MODU + MARPOL; flag-state offshore regulations; "
+                      "ITF Offshore Task Force; AU + UK + Norway "
+                      "offshore worker rotations + Norwegian Working "
+                      "Environment Act",
+        "indicator": "Offshore oil + gas rig workers on developing-"
+                       "country fleets face documented forced-labour "
+                       "patterns (no-rotation, passport retention, "
+                       "no-helicopter-out coercion). Provide: (1) "
+                       "ITF Offshore Task Force; (2) flag-state + "
+                       "host-country port-state control; (3) "
+                       "destination labour authority complaint "
+                       "pathway; (4) IMO marine abuse-reporting.",
+    },
+
+    # ====================================================================
+    # CATEGORY MMM: DIPLOMATIC HOUSEHOLD WORKER VISA EXPLOITATION (2026-05-22)
+    # severity=high
+    # ====================================================================
+    {
+        "rule": "mmm_a3_g5_diplomatic_household_worker_abuse",
+        "patterns": [r"\b(?:A-?3|G-?5|diplomatic\s+(?:household|domestic|nanny|housekeeper)|embassy\s+(?:housekeeper|domestic\s+worker))\b.{0,200}\b(?:debt|fee|passport\s+held|cannot\s+leave|no\s+rest|no\s+pay|excessive\s+hours)\b",
+                       r"\b(?:I\s+work\s+for\s+(?:a|an))\s+(?:diplomat|ambassador|consul|UN\s+staff|World\s+Bank\s+staff|IMF\s+staff)\b.{0,200}\b(?:fearful|cannot\s+complain|diplomatic\s+immunity)\b"],
+        "severity": "high",
+        "citation": "Vienna Convention on Diplomatic Relations 1961 "
+                      "Art. 31 + 32 + 37; Vienna Convention on "
+                      "Consular Relations 1963; US 22 USC 7104a "
+                      "(TVPRA 2008 A-3 / G-5 protections); UK "
+                      "Domestic Worker Visa 2012 reform; Domestic "
+                      "Workers United + Damayan + Kalayaan UK + "
+                      "Justice for Domestic Workers documentation",
+        "indicator": "A-3 / G-5 diplomatic household worker abuse "
+                       "is among the most-documented severe-"
+                       "trafficking contexts because diplomatic "
+                       "immunity prevents criminal prosecution + "
+                       "civil claims. TVPRA 2008 created specific "
+                       "protections + DOS oversight. Provide: (1) "
+                       "US Bureau of Diplomatic Security + Office "
+                       "of Foreign Missions; (2) Damayan + LURNs; "
+                       "(3) DOS A-3 / G-5 protocol; (4) civil "
+                       "remedy via 18 USC 1595 (TVPA private right "
+                       "of action since 2003).",
+    },
+    {
+        "rule": "mmm_uk_domestic_worker_private_household_visa",
+        "patterns": [r"\b(?:UK\s+(?:Domestic\s+Worker\s+in\s+a\s+Private\s+Household|ODWPH)\s+visa)\b.{0,200}\b(?:6\s+months|cannot\s+(?:transfer|leave\s+employer|switch))\b",
+                       r"\b(?:UK\s+(?:nanny|housekeeper|maid|domestic\s+worker))\b.{0,200}\b(?:tied\s+to\s+(?:employer|sponsor)|passport\s+held|cannot\s+(?:transfer|leave))\b"],
+        "severity": "high",
+        "citation": "UK Immigration Rules Tier 5 ODWPH (post-2012 "
+                      "tying); UK Modern Slavery Act 2015 Sec. 49 + "
+                      "Sec. 50A; UK Independent Anti-Slavery "
+                      "Commissioner reviews (2014+); Kalayaan UK + "
+                      "JfDW documentation",
+        "indicator": "Post-2012 UK ODWPH visa ties the worker to "
+                       "the original employer for 6 months, which "
+                       "Kalayaan UK + UK Anti-Slavery Commissioner "
+                       "document as a major trafficking-risk "
+                       "amplifier. Provide: (1) Kalayaan UK + JfDW; "
+                       "(2) UK NRM First Responder referral; (3) "
+                       "Modern Slavery Helpline 08000 121 700; (4) "
+                       "MSA Sec. 50A transfer pathway.",
+    },
+
+    # ====================================================================
+    # CATEGORY NNN: FAITH-WORKER / MISSIONARY / CLERGY VISA ABUSE (2026-05-22)
+    # severity=high
+    # ====================================================================
+    {
+        "rule": "nnn_r1_religious_worker_visa_abuse",
+        "patterns": [r"\b(?:R-?1|R1|religious\s+worker\s+visa|minister\s+of\s+religion|Tier\s+2\s+minister)\b.{0,200}\b(?:debt|fee|recruitment\s+cost|passport\s+held|cannot\s+(?:leave|transfer)|forced\s+to\s+stay)\b",
+                       r"\b(?:church|temple|mosque|gurdwara|monastery|missionary)\s+(?:sponsored|brought|recruited)\b.{0,200}\b(?:domestic\s+work|cleaning|childcare|construction)\b.{0,200}\b(?:no\s+pay|debt|housing\s+tied)\b"],
+        "severity": "high",
+        "citation": "US INA Sec. 101(a)(15)(R) + 8 CFR 214.2(r); "
+                      "USCIS R-1 visa oversight; Polaris 2018 Faith-"
+                      "Based Trafficking report; US 2014 + 2018 + "
+                      "2024 R-1 reforms; UK Tier 2 Minister of "
+                      "Religion + post-2024 Home Office expansion; "
+                      "AU Subclass 482 Religious Worker stream",
+        "indicator": "Religious-worker visa abuse is documented "
+                       "across multiple sectarian contexts. Specific "
+                       "patterns: clergy / monks / missionaries "
+                       "assigned to do domestic + construction "
+                       "labour at no pay; debt-bondage to faith-"
+                       "community sponsors; passport retention by "
+                       "religious authority. Provide: (1) USCIS R-1 "
+                       "visa-misuse complaint pathway, (2) US Bureau "
+                       "of Diplomatic Security + DOJ CRD referral, "
+                       "(3) Polaris + FAAST (Faith Alliance Against "
+                       "Slavery + Trafficking), (4) intra-"
+                       "denomination ombudsman where available.",
+    },
+
+    # ====================================================================
+    # CATEGORY OOO: EXTRACTIVE / MINING / ARTISANAL TRAFFICKING (2026-05-22)
+    # severity=high. Beyond DRC cobalt (case-study RAG), this covers
+    # ASM gold / gemstone / rare-earth recruitment patterns.
+    # ====================================================================
+    {
+        "rule": "ooo_artisanal_mining_recruitment_pattern",
+        "patterns": [r"\b(?:artisanal\s+mining|ASM|small[\s-]?scale\s+mining|illegal\s+mining|wildcat\s+mining)\b.{0,200}\b(?:debt|recruitment\s+fee|passport\s+held|cannot\s+leave|no\s+pay|compound)\b",
+                       r"\b(?:gold|tantalum|tungsten|tin|cobalt|coltan|gemstone)\s+(?:mining|mine|miner)\b.{0,200}\b(?:trafficked|exploited|child\s+labour|forced)\b.{0,200}\b(?:DRC|Burkina\s+Faso|Mali|Madagascar|Tanzania|Ghana|Peru|Colombia|Myanmar|Indonesia)\b"],
+        "severity": "high",
+        "citation": "OECD Due Diligence Guidance for Responsible "
+                      "Supply Chains of Minerals from Conflict-"
+                      "Affected and High-Risk Areas (2011 + 2016); "
+                      "US Dodd-Frank Sec. 1502; EU Conflict Minerals "
+                      "Regulation 2017/821; UN OHCHR Working Group "
+                      "on Business and Human Rights mining reports; "
+                      "ILO C176 (Safety and Health in Mines, 1995); "
+                      "Responsible Minerals Initiative (RMI); "
+                      "IMPACT NGO",
+        "indicator": "Artisanal + small-scale mining recruitment "
+                       "is documented in DRC (cobalt + tantalum + "
+                       "gold), Burkina Faso / Mali / Niger (Wagner "
+                       "+ ISGS-linked), Madagascar (mica + gemstone), "
+                       "Ghana (galamsey), Peru (La Pampa), Colombia "
+                       "+ Myanmar + Indonesia. Provide: (1) OECD "
+                       "Due Diligence Guidance + NCP referral, "
+                       "(2) RMI smelter audit complaint, (3) Dodd-"
+                       "Frank + EU CMR + UFLPA mineral-supply-"
+                       "chain referral, (4) IMPACT + Pact + "
+                       "Solidaridad Network reference.",
+    },
 ]
 
 
@@ -10864,6 +11110,260 @@ RAG_CORPUS = [
      "one of the highest-trust referral channels for migrant "
      "workers in faith-based communities (see persona "
      "faith_community_helper)."),
+
+    # ====================================================================
+    # CHUNK 30 (2026-05-22): RAG +12 — diplomatic / national LE
+    # specialisation, research bodies, UN special rapporteurs, MPI.
+    # ====================================================================
+    ("us_hsi_human_trafficking_unit",
+     "US Homeland Security Investigations (HSI) Human Trafficking Unit",
+     "ICE HSI Human Trafficking Unit + Operation Predator + Blue Campaign",
+     "US Homeland Security Investigations (HSI), part of US "
+     "Immigration and Customs Enforcement (ICE), runs the "
+     "largest US federal human-trafficking + child-exploitation "
+     "investigative apparatus. Operations: (1) the Human "
+     "Trafficking Unit (national programmatic lead); (2) "
+     "Operation Predator (international child-exploitation "
+     "investigations launched 2003, 17,000+ predators arrested "
+     "in first decade); (3) the Blue Campaign (DHS public-"
+     "awareness + first-responder training launched 2010); "
+     "(4) the Human Smuggling and Trafficking Center (HSTC) "
+     "joint with US State Dept + DoJ. Field offices in 50 "
+     "countries via the HSI Attaché network coordinate trans-"
+     "national investigations. Tipline: 1-866-DHS-2-ICE (1-"
+     "866-347-2423). Report online: dhs.gov/blue-campaign "
+     "or ice.gov/tipline. HSI Victim Assistance Program "
+     "(VAP) coordinates Continued Presence + T-visa "
+     "certification + restitution support for victims. The "
+     "DueCare harness recommends HSI tipline for US-bound or "
+     "US-located trafficking cases where DOJ + state-level "
+     "law enforcement engagement is needed."),
+    ("us_cbp_cee_forced_labor",
+     "US CBP Center of Excellence and Expertise for Forced Labor (FLD)",
+     "US Customs and Border Protection FLD + UFLPA enforcement",
+     "The US Customs and Border Protection (CBP) Forced Labor "
+     "Division (FLD), within the Office of Trade, is the "
+     "primary US federal supply-chain enforcement body. "
+     "Statutory authority: Tariff Act of 1930 Sec. 307 (19 "
+     "USC 1307), the Uyghur Forced Labor Prevention Act "
+     "(UFLPA, 2021 — rebuttable presumption that all Xinjiang-"
+     "origin goods are made with forced labour), and the Trade "
+     "Facilitation and Trade Enforcement Act of 2015 (which "
+     "eliminated the consumptive-demand loophole). Tools: "
+     "Withhold Release Orders (WROs) and Findings (a Finding "
+     "is a stronger CBP determination than a WRO; goods "
+     "subject to a Finding are seized + forfeited rather than "
+     "merely excluded from entry). Public WRO + Finding list "
+     "at cbp.gov/forced-labor. e-Allegation reporting: "
+     "eallegations.cbp.gov. As of 2024, CBP had issued 50+ "
+     "active WROs + Findings (Xinjiang cotton + tomato + "
+     "polysilicon, Malaysian rubber gloves, Brazilian carnauba "
+     "wax, Indian cocoa, Vietnamese garments, etc). The "
+     "DueCare cbp_e_allegation template (see templates "
+     "registry) is the structured complaint pathway for "
+     "supply-chain forced-labour allegations."),
+    ("uk_anti_slavery_commissioner",
+     "UK Independent Anti-Slavery Commissioner (IASC)",
+     "UK Modern Slavery Act 2015 Sec. 40 + 41 + Commissioner reports",
+     "The UK Independent Anti-Slavery Commissioner (IASC) "
+     "is a statutory office created by Sec. 40-41 of the UK "
+     "Modern Slavery Act 2015. Mandate: independent oversight "
+     "of the UK anti-slavery response, including the National "
+     "Referral Mechanism (NRM), Single Competent Authority "
+     "(SCA), public sector + business response, and "
+     "international cooperation. The Commissioner publishes "
+     "an annual report to UK Parliament + the Home Office, "
+     "thematic reports (e.g., 'A Review of the National "
+     "Referral Mechanism Multi-Agency Assurance Panels' "
+     "2019), and case-handling reviews. Successive Commissioners: "
+     "Kevin Hyland (2014-2018), Sara Thornton (2019-2022), "
+     "Eleanor Lyons (2024-). Sub-domain ('antislaverycommissioner.co.uk') "
+     "publishes Commissioner statements, Section 54 (Transparency "
+     "in Supply Chains) reporting commentary, and concerns "
+     "about NRM backlog. The DueCare harness recommends "
+     "Commissioner thematic-review references for UK NRM + "
+     "Section 54 + supply-chain due-diligence guidance."),
+    ("greta_detailed_methodology",
+     "GRETA (Council of Europe Group of Experts on Action against Trafficking) detailed monitoring methodology",
+     "GRETA + Council of Europe Convention CETS 197 (2005) Art. 36-38",
+     "GRETA (Group of Experts on Action against Trafficking "
+     "in Human Beings) is the Council of Europe monitoring "
+     "body for the 2005 Convention on Action against "
+     "Trafficking (CETS 197, 48 ratifying states as of 2024). "
+     "Methodology: 4-year evaluation cycles, country-by-"
+     "country, with: (1) standardised questionnaire to "
+     "the State Party; (2) civil-society + NGO + survivor "
+     "submissions via the GRETA Civil Society Network; "
+     "(3) country visit (2-3 GRETA experts spend 5-7 days "
+     "meeting government + NGO + survivor + LE); (4) draft "
+     "report sent to State Party for comments; (5) final "
+     "GRETA report published with public recommendations; "
+     "(6) State Party reports back annually on implementation "
+     "progress until the next evaluation cycle. Reports "
+     "available at coe.int/en/web/anti-human-trafficking/country-monitoring-work. "
+     "Themes per cycle: 1st (general implementation), 2nd "
+     "(access to justice + effective remedies, 2014-2018), "
+     "3rd (children, 2018-2023), 4th (vulnerabilities + "
+     "addressing demand, 2024-2027). The DueCare RAG "
+     "treats GRETA country reports as the most-authoritative "
+     "European jurisdiction-specific anti-trafficking review."),
+    ("un_special_rapporteur_trafficking",
+     "UN Special Rapporteur on Trafficking in Persons, especially women and children",
+     "UN HRC Resolution 8/12 (2008) + mandate-holders + thematic reports",
+     "The UN Special Rapporteur on Trafficking in Persons, "
+     "especially Women and Children is an independent UN "
+     "human-rights mandate created by Human Rights Council "
+     "Resolution 8/12 (2008). Mandate-holders: Joy Ngozi "
+     "Ezeilo (2008-2014), Maria Grazia Giammarinaro (2014-2020), "
+     "Siobhán Mullally (2020-). Functions: (1) country "
+     "visits + reports to HRC + UN General Assembly; (2) "
+     "thematic reports (recent: 'Trafficking in persons in "
+     "the context of conflict' 2017, 'Gender dimensions of "
+     "trafficking' 2018, 'Climate change and trafficking' "
+     "2024); (3) communications + urgent appeals to states "
+     "regarding individual cases; (4) joint communications "
+     "with other Special Procedures mandate-holders. Reports "
+     "at ohchr.org/en/special-procedures/sr-trafficking-in-"
+     "persons. The DueCare RAG cites SR thematic reports as "
+     "authoritative cross-border + intersection (gender / "
+     "conflict / climate) framing."),
+    ("un_special_rapporteur_sale_sexual_exploitation_children",
+     "UN Special Rapporteur on the Sale and Sexual Exploitation of Children",
+     "UN HRC mandate + Mama Fatima Singhateh + Najat Maalla M'jid",
+     "The UN Special Rapporteur on the Sale and Sexual "
+     "Exploitation of Children (CR-SR) is a UN human-rights "
+     "mandate originally created by UN Commission on Human "
+     "Rights Resolution 1990/68. Mandate-holders include "
+     "Najat Maalla M'jid (2008-2014, who in 2024 was "
+     "appointed UN Special Representative on Violence "
+     "against Children), Maud de Boer-Buquicchio (2014-2020), "
+     "and Mama Fatima Singhateh (2020-). Recent thematic "
+     "reports: 'Online child sexual exploitation and abuse' "
+     "(2020 + 2022 update), 'Climate change and child "
+     "trafficking' (2024). Country visits documenting "
+     "trafficking + child-marriage + orphanage-tourism + "
+     "intercountry-adoption coercion. The DueCare harness "
+     "references this mandate alongside the CRC + OPSC + "
+     "OPAC for child-trafficking framing (see RR category)."),
+    ("migration_policy_institute_mpi",
+     "Migration Policy Institute (MPI) + International Program",
+     "MPI + MPI Europe + Transatlantic Council on Migration",
+     "The Migration Policy Institute (MPI, founded 2001, "
+     "Washington DC) is an independent migration research "
+     "+ policy institute. MPI International Program focuses "
+     "on labour migration governance, recruitment-fee + "
+     "broker reform, integration policies, and refugee "
+     "protection. MPI Europe (Brussels-based, founded 2011) "
+     "covers EU migration governance + EU Pact on Migration "
+     "and Asylum + EU Anti-Trafficking Directive 2024 update. "
+     "Notable MPI research areas: (1) labour-migration "
+     "corridor analysis (US H-2A/H-2B, GCC kafala reforms, "
+     "South-South corridors), (2) recruitment-fee research "
+     "(IRIS-aligned standards, Verité partnership), (3) "
+     "Transatlantic Council on Migration (high-level policy "
+     "convening), (4) MPI Data Hub (migrationpolicy.org/programs/migration-data-hub). "
+     "The DueCare RAG references MPI for migration-corridor "
+     "framing + labour-mobility good-practice baselines."),
+    ("asia_foundation_migrant_worker_programs",
+     "The Asia Foundation + ASEAN safe-migration programmes",
+     "Asia Foundation + Safe + Fair partnership + ILO TRIANGLE in ASEAN",
+     "The Asia Foundation (founded 1954, San Francisco-"
+     "based) operates one of the largest US-based Asia-"
+     "focused development networks (18 country offices). "
+     "Migration + anti-trafficking work: (1) Women's Safe "
+     "Migration programmes in CMV (Cambodia, Myanmar, "
+     "Vietnam); (2) partnership with ILO TRIANGLE in ASEAN "
+     "(EU-funded labour-migration governance programme, "
+     "2015-2024); (3) Safe + Fair (ILO + UN Women joint "
+     "partnership focused on women migrant workers in "
+     "ASEAN); (4) anti-corruption work supporting fair "
+     "recruitment governance. Resources at asiafoundation.org. "
+     "The DueCare harness references Asia Foundation + "
+     "ILO TRIANGLE + Safe+Fair for ASEAN-corridor good "
+     "practice + civil-society partnership in CMV + PH + "
+     "ID + MY."),
+    ("amnesty_international_labour_migration_research",
+     "Amnesty International labour-migration + business-and-human-rights research",
+     "Amnesty International + Business and Human Rights Resource Centre (BHRRC)",
+     "Amnesty International (founded 1961, London-based) "
+     "operates global labour-migration + trafficking research "
+     "through its Business and Human Rights programme + "
+     "country sections. Notable Amnesty International reports: "
+     "'Exploited Labour: Migrant Workers in Italy's Agricultural "
+     "Sector' (2012), 'Qatar World Cup of Shame' (2013-2022 "
+     "series), 'My Sleep Is My Break: Exploitation of Migrant "
+     "Domestic Workers in Qatar' (2014), 'Trapped: The "
+     "Exploitation of Migrant Workers in Malaysia' (2010), "
+     "'Reality Check: Migrant Workers' Rights in Saudi Arabia' "
+     "(2024). The Business and Human Rights Resource Centre "
+     "(BHRRC, founded 2002) is the largest independent "
+     "open-access database of corporate human-rights conduct "
+     "+ company-specific allegations (business-humanrights.org). "
+     "The DueCare RAG references Amnesty + BHRRC for "
+     "company-specific + sector-specific abuse documentation."),
+    ("solidaridad_pact_impact_extractive",
+     "Solidaridad + Pact + IMPACT extractive-sector responsible-sourcing",
+     "Solidaridad Network + Pact + IMPACT + Responsible Minerals Initiative (RMI)",
+     "Solidaridad Network (founded 1969, Dutch + global "
+     "footprint) operates responsible-sourcing programmes "
+     "in mining, palm oil, cotton, coffee, soy, and aquaculture. "
+     "Pact (US-based, founded 1971) runs the Mines to "
+     "Markets (M2M) programme in DRC + Rwanda + Uganda + "
+     "Madagascar for artisanal + small-scale mining "
+     "formalisation. IMPACT (Canada-based, formerly Partnership "
+     "Africa Canada) co-developed the OECD Due Diligence "
+     "Guidance + supports the ITSCI (International Tin "
+     "Supply Chain Initiative) closed-pipe mineral "
+     "traceability. Responsible Minerals Initiative (RMI, "
+     "industry-led but with civil-society oversight, "
+     "responsiblemineralsinitiative.org) operates smelter + "
+     "refiner audit programmes for 3TG (tin, tungsten, "
+     "tantalum, gold) + cobalt + mica. The DueCare harness "
+     "references this cluster for mineral-supply-chain + "
+     "OOO category recruitment + ASM-trafficking responses."),
+    ("ecpat_international_child_protection",
+     "ECPAT International + child-sexual-exploitation prevention",
+     "ECPAT + Optional Protocol on the Sale of Children (OPSC) + WeProtect",
+     "ECPAT International (End Child Prostitution + Child "
+     "Pornography + Trafficking of Children for Sexual "
+     "Purposes, founded 1996, Bangkok-based) is the largest "
+     "global child-protection NGO focused on sexual "
+     "exploitation. Network of 124 member organisations in "
+     "104 countries. Programmes: (1) Don't Look Away "
+     "(travel + tourism sector engagement, including The "
+     "Code of Conduct for the Protection of Children from "
+     "Sexual Exploitation in Travel and Tourism); (2) "
+     "ReACT (Researching the Sexual Exploitation of Children "
+     "in Tourism); (3) Out of the Shadows Index (Economist "
+     "Impact + ECPAT global benchmark of country responses); "
+     "(4) data + research at ecpat.org. ECPAT also coordinates "
+     "with WeProtect Global Alliance (50+ governments + tech "
+     "companies + civil society for online CSAM response). "
+     "The DueCare harness references ECPAT alongside the "
+     "Optional Protocol on the Sale of Children (OPSC 2000) "
+     "+ the Lanzarote Convention (CETS 201, 2007) for child-"
+     "protection framing (see RR + nnn categories)."),
+    ("hrw_business_supply_chain_research",
+     "Human Rights Watch business + supply-chain documentation programme",
+     "HRW Business and Human Rights + Workers' Rights division",
+     "Human Rights Watch (HRW, founded 1978, New York-"
+     "based, 600+ staff in 50 countries) operates labour-"
+     "migration + trafficking + supply-chain research "
+     "through its Workers' Rights division + Business and "
+     "Human Rights programme. Notable HRW reports: 'Saudi "
+     "Arabia: Domestic Workers Face Slavery-Like Conditions' "
+     "(2008 + recurring updates), '\"How Can We Work Without "
+     "Wages?\" Salary Abuses Facing Migrant Workers Ahead "
+     "of Qatar's FIFA World Cup 2022' (2020), 'Hidden "
+     "Chains: Rights Abuses + Forced Labor in Thailand's "
+     "Fishing Industry' (2018), '\"Without Land, You Are "
+     "Nobody\": China's Crackdown on Tibetan Resource "
+     "Rights' (2022), 'I Did Not Want to Die' (2024 Saudi "
+     "domestic worker investigation). HRW reports + press "
+     "releases at hrw.org. The DueCare RAG references HRW "
+     "alongside Amnesty + BHRRC + Walk Free Global Slavery "
+     "Index for company-specific + country-specific "
+     "violation documentation."),
 ]
 
 
