@@ -182,6 +182,13 @@ every Gemma-bearing handler emits one JSONL row per call to
 | 05 Anonymized knowledge sharing | A partner sharing reviewed, sanitized facts without exposing workers or raw case files | [Hub use cases](./apps/duecare-ai.com/app/templates/use-cases.html) / [Submit information](./apps/duecare-ai.com/app/templates/submit-information.html) / [Submission queue](./apps/duecare-ai.com/app/templates/submissions.html) |
 | 06 Developer / integration partner | A team embedding DueCare into your own product, bot, dashboard, or internal workflow | [Install guide](./docs/install.md) / [Embedding guide](./docs/embedding_guide.md) / [Meta package](./packages/duecare-llm/README.md) / [Client integration](./apps/duecare-ai.com/app/templates/client-connect.html) |
 
+> **Implementation paths by audience:** see
+> [`docs/deployment/`](./docs/deployment/README.md) for the four
+> audience-first deployment paths (Single NGO, NGO Network,
+> Government office, Platform safety) and the cross-cutting email
+> oracle for civil society contribution. Complements the lane table
+> above; same system, audience-first framing.
+
 ## Why this exists
 
 Frontier LLMs fail predictably on **migrant-worker trafficking**
