@@ -5277,6 +5277,327 @@ GREP_RULES = [
                        "consulate pre-deployment briefing contact, "
                        "(4) NGO advisory.",
     },
+
+    # ====================================================================
+    # CATEGORY NN: GIG-PLATFORM EXPLOITATION (2026-05-21)
+    # Patterns specific to algorithmic-wage / app-based labour
+    # (Uber, Lyft, Deliveroo, DoorDash, Grab, Foodpanda, Bolt,
+    # Amazon Flex, Talabat, Careem, Gojek). Combines classic
+    # exploitation (debt bondage, wage theft) with algorithmic
+    # control mechanisms (account deactivation, opaque dispute
+    # process, classification fraud). severity=medium.
+    # ====================================================================
+    {
+        "rule": "nn_gig_algorithmic_wage_theft",
+        "patterns": [r"\b(?:Uber|Lyft|Deliveroo|DoorDash|Grab|Foodpanda|Bolt|Amazon\s+Flex|Talabat|Careem|Gojek)\b.{0,200}\b(?:pay\s+cut|earnings\s+(?:dropped|cut|reduced)|algorithm\s+(?:changed|cut|reduced)|surge\s+(?:disappeared|gone)|tip\s+(?:hidden|stolen|kept))\b",
+                       r"\b(?:dynamic\s+pricing|surge\s+pricing|upfront\s+pricing)\b.{0,200}\b(?:promised|advertised|expected)\s+(?:higher|more|different)\b"],
+        "severity": "medium",
+        "citation": "ILO Decent Work Agenda; ILO Working Group on "
+                      "Digital Labour Platforms (since 2019); US FTC "
+                      "Earnings Claims Rule; UK Supreme Court Uber BV "
+                      "v Aslam [2021] UKSC 5 (worker not contractor); "
+                      "EU Platform Work Directive (in force 2025); "
+                      "national platform-worker statutes (CA AB5; "
+                      "Spain Riders' Law 2021; Portugal 2023 reform)",
+        "indicator": "Worker is reporting algorithmic earnings "
+                       "manipulation. Provide: (1) jurisdiction-"
+                       "specific platform-worker classification "
+                       "(employee vs. independent contractor) by "
+                       "controlling precedent, (2) tools to document "
+                       "the algorithmic change (screenshots before / "
+                       "after, payment history exports, in-app "
+                       "messages), (3) collective-action options "
+                       "(unions like IWGB UK, App Drivers and Couriers "
+                       "Union, Gig Workers Rising US), (4) regulator "
+                       "complaint pathway (CMA UK, FTC US, EU Platform "
+                       "Work Directive enforcement, MOM Singapore "
+                       "Platform Workers Act 2024).",
+    },
+    {
+        "rule": "nn_gig_account_deactivation_threat",
+        "patterns": [r"\b(?:account|app)\s+(?:deactivat(?:ed|ion)|suspend(?:ed|ion)|ban(?:ned|ning)|terminated)\b.{0,200}\b(?:no\s+(?:reason|explanation|appeal|warning)|opaque|black[\s-]?box|algorithmic)\b",
+                       r"\b(?:driver|courier|rider|delivery)\s+(?:account|partner)\s+(?:deactivat(?:ed|ion)|suspended)\b"],
+        "severity": "medium",
+        "citation": "ILO Decent Work Agenda; UK 2021 Uber BV v Aslam; "
+                      "EU Platform Work Directive (2024) Art. 6-11 "
+                      "(algorithmic management transparency); CA AB5; "
+                      "Spain Riders' Law 2021; ILO C190 (violence and "
+                      "harassment - retaliation patterns); UK ACAS "
+                      "Code of Practice on Disciplinary Procedures",
+        "indicator": "Worker reports opaque account deactivation by "
+                       "gig platform. Provide: (1) jurisdiction's "
+                       "rule on platform-worker termination "
+                       "transparency (EU Platform Work Directive "
+                       "requires explanation and human review; UK "
+                       "ACAS Code provides minimum procedural "
+                       "standards even for non-employees; CA AB5 "
+                       "extends UI / WC protections), (2) appeals "
+                       "documentation steps, (3) NGO / union "
+                       "support, (4) class-action awareness if "
+                       "pattern is broader.",
+    },
+    {
+        "rule": "nn_gig_misclassification_1099",
+        "patterns": [r"\b(?:1099|independent\s+contractor|self[\s-]?employed|gig\s+worker|partner)\s+(?:status|classification|agreement)\b.{0,200}\b(?:no\s+(?:benefits|sick\s+pay|holiday\s+pay|UI|workers\s+comp|pension)|hour(?:s|ly)\s+control|set\s+schedule|exclusivity)\b",
+                       r"\b(?:misclassif(?:ied|ication))\b.{0,200}\b(?:gig|platform|courier|driver|rider|delivery)\b"],
+        "severity": "medium",
+        "citation": "US FLSA worker-classification test; US IRS 20-"
+                      "factor test (now superseded by 3-prong common-"
+                      "law test); CA AB5 ABC Test; UK Uber BV v Aslam "
+                      "[2021]; ILO C95 + C181; OECD Employment "
+                      "Outlook 2019 reports on platform "
+                      "misclassification; EU Platform Work Directive "
+                      "presumption of employment (Art. 5)",
+        "indicator": "Worker may be misclassified as 1099 / "
+                       "independent contractor when they meet "
+                       "employee criteria. Provide: (1) "
+                       "jurisdiction-specific classification test "
+                       "(US FLSA + state law; CA AB5; UK Uber test; "
+                       "EU Platform Work Directive presumption of "
+                       "employment), (2) implications (UI, WC, "
+                       "pension, sick pay, FLSA min wage, FICA), "
+                       "(3) misclassification-claim filing pathway "
+                       "with the labour department, (4) class-"
+                       "action potential.",
+    },
+
+    # ====================================================================
+    # CATEGORY OO: SEASONAL-WORKER VISA ABUSE (2026-05-21)
+    # Visa schemes that tie worker to single employer + housing
+    # for a season (US H-2A, H-2B; AU PALM; EU seasonal worker
+    # directive 2014/36/EU; Canada SAWP; UK seasonal worker
+    # scheme). High return-year-control leverage. severity=high.
+    # ====================================================================
+    {
+        "rule": "oo_seasonal_return_year_threat",
+        "patterns": [r"\b(?:H-?2A|H-?2B|PALM|SAWP|seasonal\s+worker(?:\s+visa|\s+scheme)?)\b.{0,200}\b(?:return|come\s+back|next\s+year|next\s+season|re[\s-]?engaged|recommend(?:ed|ation))\b.{0,200}\b(?:depend|condition|requir(?:e|ed)|won'?t|cannot|denied)\b",
+                       r"\b(?:complain|report|union|organize|strike)\b.{0,200}\b(?:won'?t\s+come\s+back|never\s+rehir(?:ed|e)|blacklist(?:ed)?|barred)\b.{0,200}\b(?:next\s+(?:year|season))\b"],
+        "severity": "high",
+        "citation": "US 20 CFR 655.135(d)-(j) (anti-retaliation + "
+                      "free-of-charge transportation + housing); US "
+                      "Trafficking Victims Protection Reauthorization "
+                      "Act 22 USC 7104(c) (protection of seasonal "
+                      "workers); AU Pacific Australia Labour Mobility "
+                      "(PALM) scheme deed of agreement; EU Directive "
+                      "2014/36/EU on seasonal workers; CA SAWP "
+                      "MOU; ILO C181 Art. 8(2)",
+        "indicator": "Return-year-control is the canonical leverage "
+                       "in seasonal-worker schemes. Employer "
+                       "threats to deny rehire next season are "
+                       "explicit retaliation. Provide: (1) anti-"
+                       "retaliation citation for the specific scheme, "
+                       "(2) US H-2A/H-2B worker hotlines and "
+                       "complaint pathways (US DOL WHD Helpline 1-866-"
+                       "487-9243; Polaris Project hotline; Centro de "
+                       "los Derechos del Migrante CDM), (3) "
+                       "destination NGO equivalents (Australia: "
+                       "Migrant Workers Centre; UK: Focus on Labour "
+                       "Exploitation FLEX), (4) statute of limitations "
+                       "for filing.",
+    },
+    {
+        "rule": "oo_seasonal_housing_tied_to_employment",
+        "patterns": [r"\b(?:housing|bunkhouse|barracks|camp|camper|trailer|dormitory)\b.{0,200}\b(?:provided\s+by\s+(?:employer|farm|company)|company\s+camp|employer[\s-]?owned)\b.{0,200}\b(?:eviction|kicked\s+out|forced\s+to\s+leave|locked\s+out)\b",
+                       r"\b(?:H-?2A|H-?2B|SAWP|PALM)\b.{0,200}\b(?:housing|accommodation)\b.{0,200}\b(?:deduction|charge|fee|deposit|rent)\b"],
+        "severity": "high",
+        "citation": "US 20 CFR 655.135(d) (no-charge housing for "
+                      "H-2A); US 20 CFR 655.122 (housing minimum "
+                      "standards); CA SAWP housing standards "
+                      "(provincial - varies); AU PALM Code of "
+                      "Conduct; UK seasonal worker scheme welfare "
+                      "standards; ILO C189 + C190 (live-in worker "
+                      "protection)",
+        "indicator": "Employer-tied housing in seasonal schemes is "
+                       "a major coercion lever -- the worker faces "
+                       "homelessness if they complain. Provide: (1) "
+                       "housing standards under the controlling "
+                       "regulation, (2) the prohibition on "
+                       "housing-charge deductions (varies by scheme), "
+                       "(3) emergency-housing NGO contacts in the "
+                       "destination region, (4) the specific "
+                       "labour-department housing-complaint "
+                       "pathway.",
+    },
+    {
+        "rule": "oo_palm_or_sawp_employer_tied_visa",
+        "patterns": [r"\b(?:PALM|Pacific\s+Australia\s+Labour\s+Mobility|SAWP|Seasonal\s+Agricultural\s+Worker\s+Programme)\b.{0,200}\b(?:transfer|change\s+employer|switch|move)\b.{0,200}\b(?:cannot|not\s+allowed|denied|refused|sent\s+home)\b",
+                       r"\b(?:employer[\s-]?specific|employer[\s-]?bound|tied\s+to\s+(?:employer|farm|company))\b.{0,200}\b(?:PALM|SAWP|seasonal)\b"],
+        "severity": "high",
+        "citation": "AU PALM Deed of Agreement; CA SAWP MOU; US H-2A "
+                      "20 CFR 655.135; UK seasonal worker scheme "
+                      "licence; ILO Forced Labour Indicators 3 + 7 "
+                      "(restriction of movement + retention of "
+                      "documents -- analogous binding effect); "
+                      "Palermo Protocol Art. 3 (abuse of position "
+                      "of vulnerability)",
+        "indicator": "Employer-tied visa is the structural "
+                       "vulnerability in seasonal schemes. Workers "
+                       "lose status if they leave the employer. "
+                       "Provide: (1) scheme-specific transfer rules "
+                       "(PALM transfers between approved employers "
+                       "are limited but possible; CA SAWP transfers "
+                       "permitted under defined criteria), (2) "
+                       "Migrant Workers Centre Australia + IRCC CA "
+                       "compliance pathways, (3) emergency-transfer "
+                       "rights, (4) anti-retaliation citations.",
+    },
+
+    # ====================================================================
+    # CATEGORY PP: REFUGEE / DISPLACED-PERSON RECRUITMENT LEVERAGE (2026-05-21)
+    # Recruitment that weaponises refugee, stateless, undocumented,
+    # or climate-displaced status. severity=high. The worker's
+    # vulnerability is core to the offer.
+    # ====================================================================
+    {
+        "rule": "pp_refugee_papers_promise_recruitment",
+        "patterns": [r"\b(?:refugee|asylum[\s-]?seeker|displaced|stateless|undocumented)\b.{0,200}\b(?:we'?ll\s+(?:get|arrange|fix)\s+(?:papers|status|visa|documents))\b",
+                       r"\b(?:get|arrange|fix)\s+(?:your|the)\s+(?:papers|status|asylum|refugee\s+status|stateless\s+travel\s+document)\b.{0,200}\b(?:once\s+you\s+(?:work|start|arrive)|after\s+(?:deployment|placement))\b"],
+        "severity": "high",
+        "citation": "1951 UN Refugee Convention + 1967 Protocol "
+                      "(non-refoulement); UNHCR Statelessness "
+                      "Convention 1954; Palermo Protocol Art. 3(a) "
+                      "(abuse of position of vulnerability); ILO "
+                      "C97 + C143 (migrant workers - documented and "
+                      "undocumented); ICAO Doc 9303 (travel "
+                      "documents); UN Convention on the Rights of "
+                      "the Child Art. 7-8 (registration + identity)",
+        "indicator": "Recruitment that promises immigration status "
+                       "as a benefit-tied-to-work weaponises the "
+                       "worker's vulnerability and is a Palermo "
+                       "Protocol means. Provide: (1) clear "
+                       "statement that immigration status is "
+                       "granted by the state, not by an employer or "
+                       "recruiter, (2) UNHCR + IOM offices for the "
+                       "destination country, (3) the immigration-"
+                       "fraud risk (worker often ends up with "
+                       "fake documents and criminal exposure), (4) "
+                       "free immigration legal aid contacts.",
+    },
+    {
+        "rule": "pp_undocumented_status_threats",
+        "patterns": [r"\b(?:if\s+you\s+(?:complain|leave|talk|report)|don'?t\s+(?:complain|report|talk))\b.{0,200}\b(?:I'?ll\s+(?:call|report\s+to)|we'?ll\s+(?:call|report\s+to|tell)|will\s+(?:call|report|tell))\b.{0,200}\b(?:immigration|police|ICE|border|removal|deport|undocumented)\b",
+                       r"\b(?:undocumented|illegal|no\s+papers|no\s+status|expired\s+visa|overstayed)\b.{0,200}\b(?:they\s+(?:can'?t|won'?t)\s+(?:complain|report|file|sue))\b"],
+        "severity": "high",
+        "citation": "US TVPRA 22 USC 7102(11) (extortion via "
+                      "immigration); US INA 8 USC 1324 (harboring "
+                      "+ inducing migration with intent to exploit); "
+                      "California Labor Code Sec. 244 (immigration "
+                      "status irrelevant to wage claims); UK Modern "
+                      "Slavery Act 2015; ILO C190; Palermo Protocol "
+                      "Art. 3 (threat as means)",
+        "indicator": "Immigration-status threats to suppress "
+                       "worker complaints are a per-se trafficking "
+                       "means under the Palermo Protocol. Most "
+                       "jurisdictions make wage claims accessible "
+                       "regardless of status (CA Labor Code Sec. "
+                       "244; UK National Living Wage applies to "
+                       "all workers; EU Employer Sanctions Directive "
+                       "2009/52/EC). Provide: (1) the specific "
+                       "statute that protects wage claims by "
+                       "undocumented workers, (2) NGO that handles "
+                       "immigration + labour combined cases (Pew, "
+                       "Workplace Justice Project, JFON), (3) "
+                       "anti-retaliation citation.",
+    },
+    {
+        "rule": "pp_climate_disaster_displaced_recruitment",
+        "patterns": [r"\b(?:typhoon|earthquake|flood|drought|hurricane|cyclone|tsunami|landslide|wildfire|conflict|displacement|IDP)\b.{0,200}\b(?:relief\s+work|reconstruction|rebuilding)\b.{0,200}\b(?:no\s+pay|food\s+only|board\s+only|work\s+for\s+food|debt|loan)\b",
+                       r"\b(?:displaced|IDP|disaster[\s-]?affected|conflict[\s-]?affected)\b.{0,200}\b(?:recruitment|deployment|job\s+offer|placement)\b.{0,200}\b(?:no\s+contract|verbal\s+only|trust\s+me)\b"],
+        "severity": "high",
+        "citation": "IASC Guidelines on Protection of IDPs; UN "
+                      "Guiding Principles on Internal Displacement; "
+                      "Sendai Framework for Disaster Risk Reduction "
+                      "2015-2030 (Priority 4); UNHCR Climate Change "
+                      "and Disaster Displacement Policy; Palermo "
+                      "Protocol Art. 3 (abuse of vulnerability); ILO "
+                      "C29; UN Convention on the Rights of the Child",
+        "indicator": "Disaster + conflict displacement is a "
+                       "documented surge condition for trafficking "
+                       "recruitment. Provide: (1) IASC + UNHCR "
+                       "protection-cluster contact for the "
+                       "displaced population, (2) Sendai Framework "
+                       "Priority 4 (build back better) requirements, "
+                       "(3) IOM Disaster Risk Reduction office, (4) "
+                       "warning that informal disaster-relief work "
+                       "without contract / wage protections is a "
+                       "Palermo Protocol abuse-of-vulnerability "
+                       "pattern.",
+    },
+
+    # ====================================================================
+    # CATEGORY QQ: AI / DEEPFAKE / SYNTHETIC-MEDIA RECRUITMENT FRAUD (2026-05-21)
+    # Emerging tactic: AI-generated voices, deepfake videos,
+    # synthetic-photo profiles, LLM-generated chat that mimics
+    # legitimate recruiters. severity=high. Detection patterns
+    # are tactic-aware, not deterministic.
+    # ====================================================================
+    {
+        "rule": "qq_ai_voice_clone_recruiter_call",
+        "patterns": [r"\b(?:(?:DMW|POEA|BP2MI|BMET|DoFE|DOLAB|HK\s+Labour|MoHRE)\s+(?:officer|representative|agent))\s+(?:called|phoned|rang|contacted)\b.{0,200}\b(?:GCash|TNG|e[\s-]?wallet|PayPal|Western\s+Union|MoneyGram|crypto)\b",
+                       r"\b(?:government|ministry|agency|official)\s+(?:call|voice|recording)\b.{0,200}\b(?:urgent|today|hours|expir(?:e|ing|ation))\b.{0,200}\b(?:deposit|transfer|send)\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3(a) (deception as "
+                      "means); origin-country illegal-recruitment "
+                      "law (RA 8042 / RA 10022 PH; BP2MI Reg. "
+                      "09/2020; Nepal FEA 2007); cybercrime law "
+                      "(PH RA 10175; AU Online Safety Act 2021; UK "
+                      "Online Safety Act 2023); FTC TSR / FCC "
+                      "Robocall rules where applicable",
+        "indicator": "Government-impersonation phone calls "
+                       "demanding worker payment via GCash / "
+                       "e-wallet / wire are AI-generated voice "
+                       "clones in an increasing share of cases. "
+                       "Provide: (1) the controlling rule that "
+                       "labour ministries do NOT request worker "
+                       "payments via consumer-payment channels, "
+                       "(2) the official complaint hotline for the "
+                       "named agency, (3) the cybercrime-complaint "
+                       "pathway, (4) screenshot / call-record "
+                       "evidence preservation steps.",
+    },
+    {
+        "rule": "qq_synthetic_profile_recruiter",
+        "patterns": [r"\b(?:LinkedIn|Facebook|Instagram|WhatsApp|Telegram|Viber)\b.{0,200}\b(?:profile|account)\b.{0,200}\b(?:no\s+(?:photo|history|mutual|connections|posts)|created\s+(?:recently|yesterday|today|this\s+week|this\s+month)|stock\s+photo|too\s+(?:perfect|attractive))\b",
+                       r"\b(?:recruiter|agent|broker|manager)\b.{0,200}\b(?:only\s+(?:WhatsApp|Telegram|Signal)|no\s+(?:office|address|landline|website)|disposable\s+number)\b"],
+        "severity": "medium",
+        "citation": "Origin-country illegal-recruitment law; "
+                      "Palermo Protocol Art. 3(a) (deception); "
+                      "platform Trust & Safety policies; ILO C181 "
+                      "Art. 8 (workers must be informed of terms)",
+        "indicator": "Synthetic / disposable recruiter profile is "
+                       "a documented illegal-recruitment vector "
+                       "online. Provide: (1) due-diligence steps "
+                       "(verify against POEA / DMW + BP2MI + BMET + "
+                       "DoFE + DOLAB licensed-agency registries; "
+                       "check destination labour-authority EA "
+                       "licence; require physical office + landline "
+                       "verification), (2) platform-side reporting "
+                       "pathway, (3) anti-illegal-recruitment "
+                       "complaint hotline.",
+    },
+    {
+        "rule": "qq_deepfake_video_endorsement",
+        "patterns": [r"\b(?:video\s+(?:testimonial|endorsement|message|review)|recorded\s+(?:message|video))\b.{0,200}\b(?:government\s+official|minister|labour\s+minister|migrant\s+(?:welfare|protection)\s+official|celebrity|MP)\b.{0,200}\b(?:endorses|recommends|guarantees)\b",
+                       r"\b(?:deepfake|AI[\s-]?generated|synthetic|cloned)\s+(?:video|voice|endorsement)\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3(a) (deception); EU "
+                      "AI Act (2024) Art. 50 (transparency for "
+                      "synthetic content); UK Online Safety Act "
+                      "2023 (illegal content duty); cybercrime "
+                      "statutes; defamation + impersonation laws",
+        "indicator": "Deepfake video endorsements by government "
+                       "officials or celebrities are an emerging "
+                       "illegal-recruitment vector. Provide: (1) "
+                       "verification steps (cross-check with the "
+                       "named official's verified social-media "
+                       "account; check the official agency website "
+                       "for the same endorsement; reverse-image-"
+                       "search the video frames), (2) the cybercrime "
+                       "complaint pathway including platform-side "
+                       "Trust & Safety reporting, (3) note that "
+                       "government endorsement of a single private "
+                       "agency is unusual and warrants verification.",
+    },
 ]
 
 
