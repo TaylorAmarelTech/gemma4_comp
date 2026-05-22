@@ -6861,6 +6861,264 @@ GREP_RULES = [
                        "informed survivor advocate via Polaris / IJM "
                        "/ GAATW.",
     },
+
+    # ====================================================================
+    # CATEGORY FFF: ONLINE SEX TRAFFICKING + CAM / ESCORT-COVER (2026-05-22)
+    # Recruitment that uses OnlyFans / cam-girl platforms / escort
+    # directories as the front for trafficking. severity=high.
+    # ====================================================================
+    {
+        "rule": "fff_onlyfans_cover_recruitment",
+        "patterns": [r"\b(?:OnlyFans|Fansly|JustForFans|Patreon\s+nsfw|cam\s+(?:site|girl|model)|webcam\s+modeling)\b.{0,200}\b(?:earn(?:ings)?\s+(?:guaranteed|five\s+figures|six\s+figures)|management\s+agency|content\s+(?:agency|house)|chatter)\b",
+                       r"\b(?:adult\s+content\s+creator|cam[\s-]?girl|webcam\s+model)\b.{0,200}\b(?:sign\s+(?:over|away)|share\s+account|account\s+managed\s+by|content\s+made\s+by\s+team|profit\s+split\s+(?:90|95|99))\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3(a) (sexual exploitation "
+                      "as purpose); US TVPRA 22 USC 7102(11)(C); UK "
+                      "Modern Slavery Act 2015; FOSTA-SESTA 18 USC "
+                      "2421A; UN CRC + OPSC if minor; Polaris + "
+                      "Thorn + IJM documentation",
+        "indicator": "Content-creator / cam-platform recruitment "
+                       "with management-takeover terms (account "
+                       "share, profit-split, 'team' content) is a "
+                       "documented sex-trafficking vector. Provide: "
+                       "(1) explicit warning + Palermo Art. 3(a); "
+                       "(2) Polaris hotline + Thorn + IJM survivor "
+                       "support; (3) FTC + state AG consumer-fraud "
+                       "complaint pathway; (4) platform Trust + "
+                       "Safety reporting.",
+    },
+    {
+        "rule": "fff_escort_directory_coercion",
+        "patterns": [r"\b(?:escort\s+(?:agency|directory|website|posting)|sugar\s+(?:daddy|baby)\s+(?:site|platform)|Seeking|SugarBook|Backpage|Eros)\b.{0,200}\b(?:quota|booking|deposit|fine|debt)\b",
+                       r"\b(?:I\s+(?:cannot|am\s+not\s+allowed|never)\s+(?:leave|refuse|say\s+no))\b.{0,200}\b(?:client|booking|date)\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3(a); US TVPRA 22 USC "
+                      "7102(11)(C); 18 USC 1591 (sex trafficking); "
+                      "FOSTA-SESTA 18 USC 2421A; ILO C190; Mann "
+                      "Act 18 USC 2421-2424; UN Special Rapporteur "
+                      "on Trafficking",
+        "indicator": "Escort / sugar-baby / sugar-daddy platform "
+                       "recruitment with quota / deposit / debt / "
+                       "fine controls + cannot-refuse-client = "
+                       "signature pattern of commercial-sexual-"
+                       "exploitation under Palermo Art. 3(a). "
+                       "Provide: (1) explicit warning; (2) trauma-"
+                       "informed support without raid-and-rescue "
+                       "framing; (3) Polaris hotline + sex-worker-"
+                       "led NGO contacts; (4) TVPA + UK NRM non-"
+                       "criminalisation framework.",
+    },
+
+    # ====================================================================
+    # CATEGORY GGG: SPORTS TRAFFICKING DEPTH (2026-05-22)
+    # Boxing camps, esports gaming-house contracts. Football is in
+    # RR. severity=high.
+    # ====================================================================
+    {
+        "rule": "ggg_boxing_camp_youth_trafficking",
+        "patterns": [r"\b(?:boxing\s+(?:camp|gym|academy)|fight\s+(?:camp|gym|academy)|martial\s+arts\s+camp)\b.{0,200}\b(?:abroad|overseas|invited|fully\s+sponsored)\b.{0,200}\b(?:young|teen|aged?\s+(?:1[0-7]|2[0-1])|prospect|signing)\b",
+                       r"\b(?:Russia|Cuba|Thailand|Mexico|Philippines|Nigeria)\s+(?:boxing|fight)\s+(?:scout|recruiter|agent)\b.{0,200}\b(?:no\s+(?:parent|guardian|consent)|alone|move\s+to)\b"],
+        "severity": "high",
+        "citation": "UN CRC Art. 19 + 32 + 34 + 35 + OPSC (2000); "
+                      "Palermo Protocol Art. 3(c); ILO C138 + C182; "
+                      "WBC + IBF + WBO + WBA boxer-protection "
+                      "frameworks; AIBA youth-protection rules",
+        "indicator": "Sports-camp recruitment of youth across "
+                       "borders without parental consent is a "
+                       "documented trafficking vector across "
+                       "football (RR + Foot Solidaire), boxing, "
+                       "MMA, and emerging esports. Provide: (1) "
+                       "explicit warning + UN CRC + Palermo Art. "
+                       "3(c); (2) national governing body youth-"
+                       "protection framework; (3) Foot Solidaire / "
+                       "CulturFoot / national child-protection "
+                       "authority referral.",
+    },
+    {
+        "rule": "ggg_esports_youth_contract_lock",
+        "patterns": [r"\b(?:esports|gaming\s+team|streaming|content\s+creator)\b.{0,200}\b(?:contract|agreement|signing)\b.{0,200}\b(?:age\s+(?:1[2-7])|under\s+18|minor)\b.{0,200}\b(?:exclusive|locked\s+in|cannot\s+(?:leave|transfer|change)|\d+[\s-]?year)\b",
+                       r"\b(?:gaming\s+house|esports\s+(?:gaming\s+house|residence))\b.{0,200}\b(?:live[\s-]?in|move\s+to|no\s+(?:school|education|outside\s+(?:contact|friend)))\b"],
+        "severity": "high",
+        "citation": "UN CRC Art. 19 + 31 + 32; ILO C138 (minimum "
+                      "age) + C182 (worst forms of child labour); "
+                      "documented esports youth-exploitation patterns "
+                      "(Riot Games + Activision + Tencent + KESPA "
+                      "minor-protection responses); national contract-"
+                      "law minor-protection provisions",
+        "indicator": "Esports / gaming youth contracts with multi-"
+                       "year exclusive lock-in + gaming-house "
+                       "isolation + school-disengagement are an "
+                       "emerging documented trafficking + worst-"
+                       "forms-of-child-labour pattern. Provide: (1) "
+                       "explicit warning + UN CRC + ILO C138/C182; "
+                       "(2) national esports association youth-"
+                       "protection guidance (KESPA Korea, BESA UK); "
+                       "(3) child-protection authority + education-"
+                       "rights referral.",
+    },
+
+    # ====================================================================
+    # CATEGORY HHH: US-SPECIFIC SECTORAL TRAFFICKING (2026-05-22)
+    # Nail salon, massage parlor, hotel housekeeping with documented
+    # US trafficking history. severity=high.
+    # ====================================================================
+    {
+        "rule": "hhh_nail_salon_trafficking_pattern",
+        "patterns": [r"\b(?:nail\s+(?:salon|technician|tech)|nail\s+(?:bar|spa))\b.{0,200}\b(?:live[\s-]?in|housing\s+provided|sleep\s+at\s+salon|dormitory)\b",
+                       r"\b(?:nail\s+(?:salon|technician))\b.{0,200}\b(?:no\s+pay|debt|recruitment\s+fee|H-?2B|undocumented|passport\s+held)\b"],
+        "severity": "high",
+        "citation": "US TVPRA 22 USC 7102; 18 USC 1589 + 1590; NY "
+                      "Times 'Perfect Nails Poisoned Workers' 2015 "
+                      "investigation; NY State Nail Salon Industry "
+                      "Enforcement Task Force; CA Bureau of "
+                      "Barbering and Cosmetology + Healthy Nail "
+                      "Salons Collaborative",
+        "indicator": "Nail-salon trafficking is documented in NY, "
+                       "CA, TX, and other US states. Patterns: live-"
+                       "in housing tied to employment, debt-bondage "
+                       "for licensing fees, H-2B / undocumented "
+                       "exploitation, passport retention. Provide: "
+                       "(1) US TVPRA + 18 USC 1589/1590; (2) Polaris "
+                       "hotline 1-888-373-7888; (3) state labour "
+                       "authority (NY DOL, CA Labor Commissioner); "
+                       "(4) Healthy Nail Salons Collaborative + "
+                       "Damayan Migrant Workers Association.",
+    },
+    {
+        "rule": "hhh_massage_parlor_sex_trafficking",
+        "patterns": [r"\b(?:massage\s+(?:parlor|parlour|spa|therapy)|day\s+spa|asian\s+spa)\b.{0,200}\b(?:24[\s\/-]?hour|live[\s-]?in|sleep\s+(?:at|in)\s+(?:the\s+)?spa|no\s+rest\s+day)\b",
+                       r"\b(?:massage\s+(?:parlor|parlour))\b.{0,200}\b(?:debt|recruitment\s+fee|undocumented|passport\s+held|owe|cannot\s+leave)\b"],
+        "severity": "high",
+        "citation": "US TVPRA 22 USC 7102; 18 USC 1589 + 1590 + "
+                      "1591; state IMB enforcement frameworks; "
+                      "Polaris Project Illicit Massage Business "
+                      "report 2018 + 2021; FBI Child Exploitation "
+                      "and Human Trafficking Task Force",
+        "indicator": "US 'illicit massage business' (IMB) "
+                       "trafficking is documented by Polaris (9,000+ "
+                       "IMBs nationally) + FBI as a major front for "
+                       "commercial sexual exploitation + debt-bondage "
+                       "of trafficked Chinese + Thai + Korean + "
+                       "Latina women. Provide: (1) explicit warning "
+                       "+ Polaris IMB report; (2) Polaris hotline + "
+                       "Asian Pacific Institute on Gender-Based "
+                       "Violence; (3) state IMB Task Force pathway; "
+                       "(4) Restore NYC + Garden of Hope LA + "
+                       "regional trauma-informed services.",
+    },
+    {
+        "rule": "hhh_hotel_housekeeping_trafficking",
+        "patterns": [r"\b(?:hotel|motel|resort)\s+(?:housekeeping|cleaning|laundry|breakfast\s+attendant)\b.{0,200}\b(?:J-?1|H-?2B|cultural\s+exchange|seasonal\s+worker|trainee)\b.{0,200}\b(?:no\s+(?:rest|pay|overtime|housing)|debt|fee)\b",
+                       r"\b(?:hotel\s+(?:franchise|brand|chain))\b.{0,200}\b(?:subcontractor|staffing\s+agency|labour\s+broker)\b.{0,200}\b(?:cannot\s+(?:identify|name)\s+(?:real|actual)\s+employer)\b"],
+        "severity": "medium",
+        "citation": "US TVPRA + 22 USC 7102; US DOL Wage and Hour "
+                      "Division; J-1 cultural exchange (22 CFR 62); "
+                      "H-2B; CIW Worker-Driven Social Responsibility "
+                      "adapted to hotels (CIW + Hotel Worker Center)",
+        "indicator": "Hotel housekeeping + cleaning + laundry "
+                       "subcontracting under J-1 / H-2B / staffing-"
+                       "agency layers is documented as a US "
+                       "trafficking vector. Provide: (1) J-1 / H-2B "
+                       "regulatory citations; (2) US DOL WHD 1-866-"
+                       "487-9243; (3) joint-employer doctrine + EEE "
+                       "subcontracting rules; (4) Polaris + National "
+                       "Domestic Workers Alliance.",
+    },
+
+    # ====================================================================
+    # CATEGORY III: CRIMINAL-EXPLOITATION + FOSTER / RUNAWAY PIPELINES (2026-05-22)
+    # Drug-mule recruitment, UK county-lines youth trafficking,
+    # begging-ring child trafficking, foster-to-trafficking pipeline.
+    # severity=high.
+    # ====================================================================
+    {
+        "rule": "iii_drug_mule_recruitment_pattern",
+        "patterns": [r"\b(?:carry|courier|deliver|move|transport)\b.{0,200}\b(?:package|parcel|bag|product|substance|powder|crystal|pills)\b.{0,200}\b(?:cross[\s-]?border|airport|customs|won'?t\s+ask|don'?t\s+open)\b",
+                       r"\b(?:visa|flight|hotel)\s+(?:provided|paid|arranged)\b.{0,200}\b(?:swallow|tape|carry|hide)\b.{0,200}\b(?:package|bag|item)\b"],
+        "severity": "high",
+        "citation": "UN Convention against Transnational Organized "
+                      "Crime + Protocols (2000); UN 1988 Convention "
+                      "against Illicit Traffic in Narcotic Drugs; "
+                      "Palermo Protocol Art. 3(a) (criminal "
+                      "exploitation as purpose); UK NRM criminal-"
+                      "exploitation indicator; INTERPOL drug-mule "
+                      "advisories",
+        "indicator": "Drug-mule recruitment is a documented "
+                       "criminal-exploitation form of trafficking "
+                       "under UK NRM + Palermo Art. 3(a). Provide: "
+                       "(1) non-criminalisation under destination-"
+                       "country framework (UK MSA 2015 Sec. 45, US "
+                       "TVPA); (2) embassy / consular referral if "
+                       "cross-border; (3) trauma-informed support + "
+                       "safe-passage planning; (4) UK NRM First "
+                       "Responder referral.",
+    },
+    {
+        "rule": "iii_county_line_youth_drug_pattern",
+        "patterns": [r"\b(?:county\s+lines?|cuckoo(?:ing)?|trap\s+house)\b.{0,200}\b(?:youth|teen|child|under\s+18|aged?\s+1[2-7])\b",
+                       r"\b(?:older\s+(?:boyfriend|girl|brother|man))\b.{0,200}\b(?:gave\s+me|asked\s+me\s+to|told\s+me\s+to|i\s+had\s+to)\b.{0,200}\b(?:deliver|carry|deal|sell|drop)\b.{0,200}\b(?:drugs|substance|package)\b"],
+        "severity": "high",
+        "citation": "UK Modern Slavery Act 2015 Sec. 45 (statutory "
+                      "defence for compelled criminality); UK NRM "
+                      "criminal-exploitation indicator; UK NCA "
+                      "County Lines Strategy 2023+; Children Act "
+                      "1989 / 2004; Palermo Protocol Art. 3(c); "
+                      "Children's Society + Children's Commissioner "
+                      "for England county-lines research",
+        "indicator": "UK 'county lines' youth drug-trafficking is a "
+                       "named child-trafficking pattern (NCA + "
+                       "Children's Society + Children's "
+                       "Commissioner). Same pattern documented in "
+                       "US as gang-involved-youth trafficking. "
+                       "Provide: (1) UK MSA Sec. 45 + UK NRM child "
+                       "referral; (2) NSPCC + Children's Society + "
+                       "Barnardo's referral; (3) safeguarding team "
+                       "activation; (4) US foster-care + juvenile-"
+                       "justice diversion path.",
+    },
+    {
+        "rule": "iii_begging_ring_child_recruitment",
+        "patterns": [r"\b(?:begging\s+(?:ring|gang|operation|trafficking))\b",
+                       r"\b(?:children|kids|minor|under\s+18)\s+(?:made|forced|recruited|brought)\s+(?:to\s+)?(?:beg|panhandle|sell\s+(?:trinkets|flowers|tissues))\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3(c); ILO C182 Art. 3 "
+                      "(worst forms of child labour); UN CRC Art. "
+                      "32; UNICEF + Save the Children documentation "
+                      "of begging-ring trafficking (EU Roma + West "
+                      "African + South Asian populations)",
+        "indicator": "Begging-ring trafficking is documented in EU "
+                       "Roma + West African child-trafficking + "
+                       "South Asia. Provide: (1) destination-country "
+                       "child-protection authority + Council of "
+                       "Europe GRETA referral; (2) Caritas + Save "
+                       "the Children referral; (3) trauma-informed "
+                       "reintegration; (4) non-criminalisation of "
+                       "the child + investigation of the controlling "
+                       "adult.",
+    },
+    {
+        "rule": "iii_foster_care_to_trafficking_pipeline",
+        "patterns": [r"\b(?:foster\s+(?:care|kid|youth)|aged?\s+out|former\s+foster)\b.{0,200}\b(?:trafficked|exploited|sold|recruited)\b",
+                       r"\b(?:runaway|homeless\s+youth|RHY)\b.{0,200}\b(?:sex\s+trafficking|labor\s+trafficking|exploited|debt|sold)\b"],
+        "severity": "high",
+        "citation": "US TVPRA + ACF Office on Trafficking in Persons; "
+                      "National Foster Youth Institute + Field "
+                      "Center for Children's Policy + Children's "
+                      "Bureau (HHS); UK Care Leavers Association + "
+                      "Looked After Children statistics; AU Senate "
+                      "Standing Committee on Out-of-Home Care",
+        "indicator": "Foster-care + RHY populations are documented "
+                       "as one of the highest-prevalence groups for "
+                       "trafficking victimisation in the US (60-80% "
+                       "of identified child-trafficking victims "
+                       "have a foster-care or RHY history). "
+                       "Provide: (1) Polaris hotline + National "
+                       "Runaway Safeline + Trevor Project for LGBTQ+ "
+                       "youth; (2) Children's Bureau + state child-"
+                       "welfare agency referral; (3) QYIT rapid "
+                       "screen (see SCR category); (4) trauma-"
+                       "informed survivor advocate.",
+    },
 ]
 
 
@@ -10403,6 +10661,209 @@ RAG_CORPUS = [
      "the leading example of worker-driven social responsibility "
      "(WSR) in SE Asia + is increasingly cited by EU CSDDD + "
      "EU FLR implementing guidance."),
+
+    # ----- Landmark anti-trafficking case law -----
+    ("case_siliadin_v_france_2005", "Siliadin v France (ECtHR Application 73316/01, judgment 26 July 2005)",
+     "Siliadin v France (ECtHR 2005)",
+     "Siliadin v France is the European Court of Human Rights' "
+     "landmark judgment establishing that France violated Article "
+     "4 of the European Convention on Human Rights (prohibition "
+     "of slavery, servitude, and forced or compulsory labour) "
+     "by failing to criminalise + effectively prosecute the "
+     "domestic servitude of a Togolese minor. The applicant had "
+     "been brought to France at age 15 + 7 months, had her "
+     "passport confiscated, and worked 15 hours a day, 7 days "
+     "a week, unpaid, for several years. The Court held that "
+     "France's existing criminal law was insufficient to comply "
+     "with the positive obligation under Article 4. Cited as "
+     "the foundational ECtHR servitude precedent + drove the "
+     "2007 amendments to French Penal Code Art. 225-13-1. "
+     "Siliadin remains the most-cited Article 4 ECHR precedent."),
+    ("case_rantsev_v_cyprus_russia_2010", "Rantsev v Cyprus and Russia (ECtHR Application 25965/04, judgment 7 January 2010)",
+     "Rantsev v Cyprus + Russia (ECtHR 2010)",
+     "Rantsev v Cyprus and Russia is the ECtHR's landmark "
+     "trafficking judgment establishing that Article 4 ECHR "
+     "prohibits human trafficking + imposes positive obligations "
+     "on States to prevent + investigate it. Russian citizen "
+     "Oxana Rantseva died in Cyprus while working on a Cypriot "
+     "'artiste visa' (later abolished after EC pressure). The "
+     "Court held both Cyprus (operational measures + effective "
+     "investigation) and Russia (effective investigation of "
+     "Russian-side recruitment) violated Article 4. The judgment "
+     "established that trafficking falls within Article 4's scope "
+     "without needing to invoke separate slavery, servitude, or "
+     "forced-labour categorisations. The judgment is the "
+     "foundational ECtHR trafficking precedent + drove EU Anti-"
+     "Trafficking Directive 2011/36/EU positive-obligation "
+     "framework."),
+    ("case_j_others_v_austria_2017", "J. and Others v Austria (ECtHR Application 58216/12, judgment 17 January 2017)",
+     "J. and Others v Austria (ECtHR 2017)",
+     "J. and Others v Austria is the ECtHR's judgment clarifying "
+     "the scope of state positive obligations to investigate "
+     "human trafficking that occurred outside the State's "
+     "territory. Three Filipino women were trafficked from the "
+     "Philippines through Vienna to Dubai for domestic servitude. "
+     "They escaped in Vienna and sought police investigation; "
+     "Austrian authorities declined to investigate the Dubai "
+     "trafficking on extraterritorial grounds. The Court held "
+     "Austria did not violate Article 4 because it had "
+     "fulfilled procedural obligations within its territory, "
+     "but the judgment is widely cited for clarifying the "
+     "Article 4 ECHR investigation duty + the threshold for "
+     "when a host State must act. Subsequent ECtHR case-law "
+     "(L.E. v Greece 2016; S.M. v Croatia 2020) extended the "
+     "framework."),
+    ("case_hadijatou_mani_v_niger_2008", "Hadijatou Mani Koraou v The Republic of Niger (ECOWAS Court of Justice, judgment 27 October 2008)",
+     "Hadijatou Mani v Niger (ECOWAS 2008)",
+     "Hadijatou Mani Koraou v The Republic of Niger is the "
+     "ECOWAS Court of Justice's landmark slavery judgment. The "
+     "applicant had been sold into 'wahaya' slavery at age 12 "
+     "in Niger and held in domestic + sexual servitude until "
+     "age 24. Niger's courts had failed to enforce the country's "
+     "2003 anti-slavery law in her case. The ECOWAS Court held "
+     "Niger violated the African Charter on Human and Peoples' "
+     "Rights + ECOWAS Treaty obligations + ordered Niger to pay "
+     "10 million CFA francs in damages. The judgment is the "
+     "foundational regional human-rights precedent for descent-"
+     "based slavery in West Africa + is cited in subsequent UN "
+     "Special Rapporteur reports + Anti-Slavery International + "
+     "Timidria Niger documentation."),
+    ("case_us_v_kil_soo_lee_2003", "US v Kil Soo Lee (D. Hawaii, 2003) + American Samoa Daewoosa garment trafficking",
+     "US v Kil Soo Lee (2003)",
+     "US v Kil Soo Lee is one of the largest US-prosecuted "
+     "trafficking cases of the modern era. Korean-American "
+     "garment-factory owner Kil Soo Lee was convicted in 2003 "
+     "of trafficking + holding 200+ Vietnamese + Chinese workers "
+     "in forced labour at his Daewoosa garment factory in "
+     "American Samoa from 1998-2001. Workers had paid Vietnamese "
+     "recruitment fees of USD 4,000-8,000 each, had passports "
+     "retained, were unpaid for extended periods, and were "
+     "subjected to physical violence + threats. Lee was sentenced "
+     "to 40 years in federal prison. The case predates the TVPA "
+     "2003 reauthorisation + drove subsequent criminal-procedure "
+     "+ restitution-procedure reforms. Cited in TVPRA legislative "
+     "history + DOJ Civil Rights Division Human Trafficking "
+     "Prosecution Unit training."),
+    ("case_us_v_bradley_h2b_2004", "US v Bradley (1st Cir., 390 F.3d 145, 2004) -- H-2B forced-labour precedent",
+     "US v Bradley (1st Cir. 2004)",
+     "US v Bradley is a foundational US Court of Appeals "
+     "decision interpreting 18 USC 1589 (forced labour). The "
+     "First Circuit upheld the trafficking conviction of "
+     "Massachusetts tree-service operators who had brought "
+     "Jamaican + Trinidadian H-2B workers to the US, retained "
+     "passports + Social Security cards, paid below the H-2B "
+     "wage rate, and threatened deportation. The court held "
+     "that 'serious harm' under 18 USC 1589 includes financial "
+     "harm + immigration-related threats + does not require "
+     "physical confinement. The case is cited as the foundational "
+     "judicial-interpretation precedent for H-2B trafficking + "
+     "informs the Operation Blooming Onion case (see earlier "
+     "case-study RAG entries) + 20 CFR 655.20 H-2B enforcement."),
+
+    # ----- National anti-trafficking enforcement units -----
+    ("us_fbi_civil_rights_human_trafficking",
+     "US FBI Civil Rights Unit + Child Exploitation and Human Trafficking Task Forces",
+     "FBI Human Trafficking Task Force",
+     "The FBI's Civil Rights Unit handles federal trafficking "
+     "investigations under 18 USC 1581 + 1584 + 1589 + 1590 + "
+     "1591 + 1592. The Bureau operates approximately 80 Child "
+     "Exploitation and Human Trafficking Task Forces (CEHTTFs) "
+     "nationwide that combine FBI agents with state + local "
+     "law enforcement + DOJ Civil Rights Division prosecutors. "
+     "Notable operations: Operation Cross Country (annual child "
+     "sex trafficking sweep), Operation Blooming Onion (H-2A "
+     "labour trafficking), Operation Independence Day. FBI tip "
+     "line: 1-800-CALL-FBI; trafficking-specific: report online "
+     "at tips.fbi.gov + cooperative referral via Polaris National "
+     "Human Trafficking Hotline."),
+    ("au_afp_human_trafficking_strategy_centre",
+     "Australian Federal Police (AFP) Human Trafficking Strategy Centre (HTSC)",
+     "AFP Human Trafficking Strategy Centre",
+     "The AFP Human Trafficking Strategy Centre (HTSC, Canberra-"
+     "headquartered) is the lead federal investigative body for "
+     "trafficking + slavery offences under AU Criminal Code "
+     "Divisions 270 + 271 (slavery, slavery-like + trafficking). "
+     "HTSC operates joint task forces with state police (Vic Pol "
+     "Modern Slavery Unit, NSW Pol Sex Crimes Squad, QLD Pol "
+     "Counter-Terrorism + Major Events Command Trafficking "
+     "Unit). HTSC coordinates with Department of Home Affairs "
+     "Operation Sovereign Borders, Modern Slavery Branch under "
+     "the Modern Slavery Act 2018, and the AFP's Joint Anti-"
+     "Child Exploitation Centre. AFP National Modern Slavery + "
+     "Human Trafficking Hotline: 131 AFP."),
+    ("uk_nca_modern_slavery_human_trafficking_unit",
+     "UK National Crime Agency (NCA) Modern Slavery and Human Trafficking Unit (MSHTU)",
+     "UK NCA MSHTU",
+     "The Modern Slavery and Human Trafficking Unit (MSHTU) "
+     "sits within the National Crime Agency (NCA) Organised "
+     "Crime Command and is the UK's central federal-level "
+     "investigative + intelligence body on modern slavery + "
+     "trafficking under the Modern Slavery Act 2015. MSHTU "
+     "coordinates with the Single Competent Authority (SCA, see "
+     "earlier UK NRM RAG entry), Gangmasters and Labour Abuse "
+     "Authority (GLAA), Border Force, the Metropolitan Police "
+     "Service + regional police-force modern-slavery units, and "
+     "the National County Lines Coordination Centre (NCLCC). "
+     "Modern Slavery Helpline: 08000 121 700 (24/7)."),
+
+    # ----- Research + faith-based + sex-worker-rights bodies -----
+    ("icmec_international_centre_missing_exploited_children",
+     "International Centre for Missing & Exploited Children (ICMEC)",
+     "ICMEC",
+     "ICMEC (founded 1998, US-headquartered) is a global anti-"
+     "child-exploitation NGO + research body. Programmes include "
+     "the Global Missing Children's Network (53+ countries), "
+     "the Global Health Coalition (medical-provider training), "
+     "the Financial Coalition Against Child Sexual Exploitation "
+     "(FCACSE, 50+ financial institutions + crypto firms), and "
+     "the Cyber Safety + Privacy Programme. ICMEC + NCMEC "
+     "(National Center for Missing & Exploited Children, US) + "
+     "Internet Watch Foundation (IWF, UK) + Thorn (US tech-for-"
+     "child-protection) form the core global child-protection + "
+     "anti-CSAM partnership network. ICMEC documentation + "
+     "training are widely cited by Polaris + IJM + Hope for "
+     "Justice + national child-protection frameworks."),
+    ("nswp_global_sex_work_projects",
+     "Global Network of Sex Work Projects (NSWP) + European Sex Workers' Rights Alliance (ESWA)",
+     "NSWP + ESWA (sex-worker rights)",
+     "The Global Network of Sex Work Projects (NSWP, founded "
+     "1992) + European Sex Workers' Rights Alliance (ESWA, "
+     "founded 2004) are the principal sex-worker-led human-"
+     "rights organisations. They advocate for sex-worker "
+     "rights, harm-reduction, decriminalisation, and provide "
+     "a critical counter-perspective to raid-and-rescue anti-"
+     "trafficking frameworks (alongside GAATW). NSWP + ESWA "
+     "positions: anti-trafficking law-enforcement operations "
+     "frequently produce 'collateral damage' for sex workers "
+     "(immigration detention, deportation, raids on housing); "
+     "consensual adult sex work should be distinguished from "
+     "trafficking; survivor + sex-worker voices should drive "
+     "policy. NSWP global secretariat + 200+ member organisations "
+     "across 79 countries. The DueCare harness pattern (no "
+     "raid-and-rescue defaults + survivor-led case approach + "
+     "non-criminalisation of victims) aligns with NSWP + GAATW "
+     "operational guidance."),
+    ("usccb_caritas_faith_based_migrant_outreach",
+     "USCCB Migration and Refugee Services + Caritas Internationalis + Talitha Kum migrant-worker outreach",
+     "USCCB MRS + Caritas + Talitha Kum",
+     "USCCB Migration and Refugee Services (US Conference of "
+     "Catholic Bishops, founded 1920) is one of the largest "
+     "US-based faith-based migrant + refugee + anti-trafficking "
+     "service providers. Programmes: Office of Refugee Resettlement "
+     "(ORR) Refugee Foster Care, the Anti-Trafficking Program "
+     "(case management, repatriation, reintegration), and the "
+     "USCCB Justice for Immigrants Campaign (advocacy). "
+     "Caritas Internationalis (Vatican-based, 160+ member "
+     "organisations globally) coordinates Catholic faith-based "
+     "migrant + refugee + anti-trafficking work, including "
+     "the COATNET (Christian Action and Networking against "
+     "Trafficking) network. Talitha Kum (international network "
+     "of Catholic women religious against trafficking, ~ 60 "
+     "country networks) operates frontline outreach + survivor "
+     "shelter networks. Faith-based outreach is documented as "
+     "one of the highest-trust referral channels for migrant "
+     "workers in faith-based communities (see persona "
+     "faith_community_helper)."),
 ]
 
 
