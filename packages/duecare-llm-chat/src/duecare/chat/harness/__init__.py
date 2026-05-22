@@ -6621,6 +6621,246 @@ GREP_RULES = [
                        "team activation, (4) documentation of "
                        "the controlling-third-party observation.",
     },
+
+    # ====================================================================
+    # CATEGORY AAA: DATING-APP + SOCIAL-MEDIA DIRECT-RECRUITMENT (2026-05-22)
+    # Recruitment over Tinder / Bumble / Hinge / Discord / Telegram /
+    # WhatsApp Business / LinkedIn DM, including the pig-butchering
+    # romance-pretext pipeline. severity=high.
+    # ====================================================================
+    {
+        "rule": "aaa_dating_app_romance_pretext_compound",
+        "patterns": [r"\b(?:Tinder|Bumble|Hinge|Coffee\s+Meets\s+Bagel|Match|OkCupid|Plenty\s+of\s+Fish)\b.{0,200}\b(?:invest|crypto|trading|business\s+opportunity|come\s+visit|come\s+(?:to|see)\s+me)\b.{0,200}\b(?:Cambodia|Sihanoukville|Bavet|Myawaddy|Bokeo|Dubai|Kuala\s+Lumpur)\b",
+                       r"\b(?:dating\s+app|matched\s+(?:on|with))\b.{0,200}\b(?:never\s+met|video\s+call\s+declined|excuse\b.{0,40}\bcamera)\b.{0,200}\b(?:invest|crypto|trading|wallet|move\s+(?:money|funds))\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3 (recruitment by deception "
+                      "+ abuse of vulnerability); UNODC pig-butchering "
+                      "/ romance-fraud typology + INTERPOL Project "
+                      "Storm advisory; FBI IC3 Internet Crime Report; "
+                      "FinCEN advisory on pig-butchering schemes",
+        "indicator": "Dating-app match -> romance buildup -> crypto / "
+                       "investment pivot -> visit-the-compound ask is "
+                       "the documented entry vector to the SE Asia "
+                       "cyber-fraud compound trafficking ecosystem. "
+                       "Provide: (1) explicit pig-butchering warning, "
+                       "(2) FBI IC3 + FinCEN advisory references, (3) "
+                       "DueCare compound-scam victim affidavit "
+                       "template, (4) INTERPOL Project Storm + "
+                       "origin-country embassy contact, (5) "
+                       "no-confrontation safety planning.",
+    },
+    {
+        "rule": "aaa_telegram_discord_channel_recruitment",
+        "patterns": [r"\b(?:Telegram|Discord|Signal)\s+(?:channel|group|broadcast|server)\b.{0,200}\b(?:overseas\s+jobs|remote\s+work|crypto\s+earnings|customer\s+service\s+abroad|chat\s+operator)\b",
+                       r"\b(?:added\s+(?:to|me\s+to))\s+(?:a\s+)?(?:Telegram|Discord)\s+(?:group|channel)\b.{0,200}\b(?:no\s+experience|high\s+pay|visa\s+arranged|flight\s+paid)\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3; origin-country illegal-"
+                      "recruitment laws (RA 8042 / BP2MI Reg. 09/2020 / "
+                      "Nepal FEA 2007); platform Trust + Safety "
+                      "policies; INTERPOL Project Storm; EU DSA "
+                      "illegal-content duty",
+        "indicator": "Telegram + Discord broadcast channels are a "
+                       "documented recruitment vector for compound-"
+                       "scam + cyber-fraud trafficking. Provide: (1) "
+                       "explicit warning to verify any agency against "
+                       "the origin-country licensed-recruiter "
+                       "registry, (2) channel-reporting pathway "
+                       "(Telegram abuse, Discord T&S, EU DSA), (3) "
+                       "red-flag indicators: vague role, urgency, "
+                       "visa-on-arrival, passport-retention promise.",
+    },
+
+    # ====================================================================
+    # CATEGORY BBB: WORKPLACE SURVEILLANCE + BIOMETRIC COERCION (2026-05-22)
+    # Surveillance + biometrics used to restrict movement, intimidate,
+    # or extract overtime without consent. severity=medium. GDPR Art.
+    # 9, EU AI Act, BIPA, CCPA, ILO C181 Art. 6.
+    # ====================================================================
+    {
+        "rule": "bbb_employer_biometric_punch_clock_coercion",
+        "patterns": [r"\b(?:fingerprint|iris|face\s+scan|biometric)\s+(?:punch[\s-]?in|clock[\s-]?in|attendance|tracking|reader)\b.{0,200}\b(?:cannot\s+refuse|mandatory|no\s+choice|forced|or\s+fired)\b",
+                       r"\b(?:biometric\s+(?:consent|enrolment|registration))\b.{0,200}\b(?:no\s+(?:alternative|option|opt[\s-]?out)|under\s+duress)\b"],
+        "severity": "medium",
+        "citation": "GDPR Art. 9 (special-category biometric data); "
+                      "EU AI Act 2024 (biometric categorisation in "
+                      "workplaces); US BIPA (Illinois 740 ILCS 14); "
+                      "CCPA; ILO C181 Art. 6 (data protection); ILO "
+                      "C190 Art. 4 (workplace violence + harassment)",
+        "indicator": "Mandatory biometric enrolment without genuine "
+                       "consent at a migrant-worker worksite is a "
+                       "documented coercion + intimidation pattern. "
+                       "Provide: (1) applicable data-protection law, "
+                       "(2) right to alternative attendance method, "
+                       "(3) destination-country DPA complaint path, "
+                       "(4) NGO + legal-aid contacts.",
+    },
+    {
+        "rule": "bbb_electronic_monitoring_off_the_clock",
+        "patterns": [r"\b(?:GPS|location|tracking|monitoring)\s+(?:app|device|phone|wearable)\b.{0,200}\b(?:off[\s-]?the[\s-]?clock|after\s+work|on\s+rest\s+day|24[\s\/-]?7|always)\b",
+                       r"\b(?:employer\s+(?:installed|requires|monitors))\b.{0,200}\b(?:my\s+(?:phone|location|messages|browser|social\s+media))\b"],
+        "severity": "medium",
+        "citation": "ILO Decent Work Agenda; ILO C190 Art. 4 + 6; EU "
+                      "GDPR Art. 5 + 6 + 88 (employment-context "
+                      "monitoring); CCPA + state privacy laws; UK ICO "
+                      "employment-monitoring guidance",
+        "indicator": "Off-the-clock + always-on electronic monitoring "
+                       "of a migrant worker exceeds legitimate "
+                       "workplace-monitoring purposes under most "
+                       "data-protection regimes. Provide: (1) "
+                       "applicable monitoring guidance (ICO UK, EDPB "
+                       "EU, DPAs in each Member State), (2) right to "
+                       "challenge monitoring scope + retention, (3) "
+                       "DPA complaint pathway, (4) NGO + union.",
+    },
+
+    # ====================================================================
+    # CATEGORY CCC: PENSION + RETRAINING-BONDED-DEBT (2026-05-22)
+    # Pension / EPF / provident-fund denial + retraining-bond
+    # workplace-bond clauses. severity=medium-high.
+    # ====================================================================
+    {
+        "rule": "ccc_pension_provident_fund_denial",
+        "patterns": [r"\b(?:EPF|provident\s+fund|MPF|CPF|GSIS|SSS|MSS|pension)\b.{0,200}\b(?:not\s+(?:contributed|paid|enrolled|deducted)|never\s+(?:contributed|paid|received)|cannot\s+(?:claim|withdraw)|denied|refused)\b",
+                       r"\b(?:end[\s-]?of[\s-]?service\s+(?:gratuity|award|benefit))\b.{0,200}\b(?:denied|refused|not\s+paid|never\s+(?:paid|received))\b"],
+        "severity": "high",
+        "citation": "ILO C102 (Social Security Minimum Standards); ILO "
+                      "C181 Art. 11; ILO C189 Art. 14; destination-"
+                      "country fund statutes (HK MPF, SG CPF, MY EPF, "
+                      "Saudi GOSI, Qatar Law 14/2004 EOS gratuity, "
+                      "UAE Federal Decree 33/2021); origin-country "
+                      "SSS / GSIS / OEMA welfare-fund obligations",
+        "indicator": "Pension / provident-fund / EOS-gratuity denial "
+                       "is both a destination-country statutory "
+                       "violation and a major long-term harm. "
+                       "Provide: (1) controlling destination + origin "
+                       "fund statute, (2) complaint pathway (HK MPFA, "
+                       "SG CPF, Saudi GOSI, Qatar MoL, UAE MoHRE), "
+                       "(3) documentation needed (contract, payslips, "
+                       "fund statements), (4) NGO + legal-aid.",
+    },
+    {
+        "rule": "ccc_retraining_bonded_debt_clause",
+        "patterns": [r"\b(?:training\s+(?:bond|deposit|guarantee))\b.{0,200}\b(?:must\s+(?:work|stay|remain)|cannot\s+(?:leave|resign)|forfeit|repay)\b.{0,200}\b(?:\d+\s+(?:months|years)|until\s+\d{4})\b",
+                       r"\b(?:reimburse|repay)\s+(?:training|orientation|onboarding)\s+(?:cost|expense|fee)\b.{0,200}\b(?:if\s+(?:I\s+)?(?:leave|resign|quit)\s+before)\b"],
+        "severity": "medium",
+        "citation": "ILO C181 Art. 7 (worker-side fees direct or "
+                      "indirect, prohibited); ILO C95 Art. 9 (wage "
+                      "deduction for obtaining or retaining "
+                      "employment, prohibited); destination-country "
+                      "case-law on enforceability (UK tribunals, AU "
+                      "FWO guidance, HK Cap. 57 Sec. 32, US wage-and-"
+                      "hour law)",
+        "indicator": "Retraining-bonded-debt clauses are largely "
+                       "unenforceable under the employer-pays-"
+                       "principle when the worker is in a no-fee "
+                       "corridor. Provide: (1) ILO C181 + C95 "
+                       "citations, (2) destination-country case-law, "
+                       "(3) labour-tribunal pathway, (4) anti-"
+                       "retaliation safety planning.",
+    },
+
+    # ====================================================================
+    # CATEGORY DDD: STATELESS / ASYLUM / CLIMATE-REFUGEE LEVERAGE (2026-05-22)
+    # Recruitment targeting Rohingya / Bidoon / Sahrawi /
+    # asylum-seekers in transit / climate-displaced workers.
+    # severity=high. Extends PP category.
+    # ====================================================================
+    {
+        "rule": "ddd_rohingya_specific_recruitment_pattern",
+        "patterns": [r"\b(?:Rohingya|Cox'?s\s+Bazar|Kutupalong|Nayapara|Ukhia)\b.{0,200}\b(?:job\s+offer|recruitment|deployment|work\s+abroad|skilled\s+worker)\b",
+                       r"\b(?:stateless|no\s+nationality|undocumented|Myanmar\s+refugee)\b.{0,200}\b(?:fishing\s+boat|construction|domestic\s+work|factory)\b.{0,200}\b(?:Malaysia|Thailand|Saudi\s+Arabia|UAE|India|Bangladesh)\b"],
+        "severity": "high",
+        "citation": "1951 UN Refugee Convention + 1967 Protocol; UN "
+                      "Statelessness Conventions 1954 + 1961; UNHCR "
+                      "Rohingya situation reports (2017-); Palermo "
+                      "Protocol Art. 3(a) (abuse of vulnerability); "
+                      "ILO C29 + P029; Malaysian Anti-Trafficking in "
+                      "Persons + Anti-Smuggling Act 2007",
+        "indicator": "Rohingya recruitment patterns are documented "
+                       "as among the highest-risk trafficking "
+                       "vectors globally (UNHCR + IOM + Fortify "
+                       "Rights documentation). Provide: (1) explicit "
+                       "warning of statelessness exploitation under "
+                       "Palermo Art. 3(a), (2) UNHCR Cox's Bazar + "
+                       "MY + TH field-office contacts, (3) Anti-"
+                       "Trafficking in Persons Act referral, (4) "
+                       "Fortify Rights + Rohingya Project contacts.",
+    },
+    {
+        "rule": "ddd_climate_displaced_pacific_recruitment",
+        "patterns": [r"\b(?:climate\s+(?:refugee|displaced|migrant)|sea[\s-]?level\s+(?:rise|migration)|cyclone|drought)\b.{0,200}\b(?:Kiribati|Tuvalu|Vanuatu|Marshall\s+Islands|Solomon\s+Islands|Tonga|Fiji|Samoa|Bangladesh)\b.{0,200}\b(?:work\s+(?:abroad|opportunity)|recruitment|deployment)\b",
+                       r"\b(?:displaced|relocation|resettlement)\b.{0,200}\b(?:work\s+visa|labour\s+migration|seasonal\s+worker)\b.{0,200}\b(?:Australia|New\s+Zealand|US|Canada)\b"],
+        "severity": "high",
+        "citation": "UNHCR Climate Change and Disaster Displacement "
+                      "Policy (2021+); Nansen Initiative Protection "
+                      "Agenda 2015; Platform on Disaster Displacement; "
+                      "Pacific Island Countries Trade Agreement "
+                      "(PICTA) + PACER+; AU PALM + NZ RSE seasonal-"
+                      "worker schemes; Palermo Protocol Art. 3(a)",
+        "indicator": "Climate-displaced Pacific Island workers under "
+                       "PALM (AU) + RSE (NZ) + emerging climate-"
+                       "mobility frameworks face elevated trafficking "
+                       "risk due to displacement vulnerability + "
+                       "employer-tied visa schemes. Provide: (1) "
+                       "PALM Code of Conduct + NZ RSE protections, "
+                       "(2) UNHCR + IOM climate-mobility advisory, "
+                       "(3) Pacific Conference of Churches + Pacific "
+                       "Network on Globalisation NGO support, (4) "
+                       "origin-country embassy contact.",
+    },
+
+    # ====================================================================
+    # CATEGORY EEE: SUBCONTRACTING / LABOUR-HIRE / SPONSORSHIP-PYRAMID (2026-05-22)
+    # Indirect-employment patterns diffusing statutory employer
+    # liability: labour-hire firms, sub-contracting chains, group-
+    # home sponsorship pyramids. severity=medium-high.
+    # ====================================================================
+    {
+        "rule": "eee_labour_hire_indirection_layered",
+        "patterns": [r"\b(?:labour\s+hire|temp\s+agency|staffing\s+agency|contractor|sub[\s-]?contractor)\b.{0,200}\b(?:cannot\s+(?:identify|name)\s+(?:real|actual)\s+employer|chain\s+of\s+(?:agencies|contractors)|3\s+(?:agencies|companies)\s+between\s+me\s+and)\b",
+                       r"\b(?:I\s+work\s+for)\s+(?:Company\s+A|Agency\s+1)\b.{0,200}\b(?:who\s+pays\s+(?:Company\s+B|Agency\s+2))\b.{0,200}\b(?:who\s+(?:supplies|sends)\s+(?:me|us)\s+to)\b"],
+        "severity": "medium",
+        "citation": "ILO C181 Art. 1 + 12 (shared responsibility "
+                      "between user enterprise + private employment "
+                      "agency); EU Temporary Agency Work Directive "
+                      "2008/104/EC; AU Fair Work Act 2009 (sham "
+                      "contracting); UK Agency Worker Regulations "
+                      "2010; US NLRA joint-employer doctrine "
+                      "(Browning-Ferris + NLRB rule-making); ILO "
+                      "joint-employer guidance (2021)",
+        "indicator": "Multi-tier labour-hire indirection diffuses "
+                       "statutory employer liability and obscures "
+                       "the worker's real principal. Provide: (1) "
+                       "joint-employer doctrine + ILO C181 Art. 12 "
+                       "shared-responsibility citations, (2) end-"
+                       "user identification path (worksite + "
+                       "companies-registry lookup), (3) labour-"
+                       "tribunal access regardless of indirection "
+                       "layer, (4) NGO + union support.",
+    },
+    {
+        "rule": "eee_group_home_sponsorship_pyramid",
+        "patterns": [r"\b(?:group\s+home|halfway\s+house|sponsor[\s-]?house|recruitment\s+(?:dormitory|hostel|compound))\b.{0,200}\b(?:multiple\s+(?:tenants|workers|residents))\b.{0,200}\b(?:same\s+sponsor|under\s+one\s+name|all\s+sponsored\s+by)\b",
+                       r"\b(?:sponsor)\b.{0,200}\b(?:30|40|50|100)\s+(?:workers|maids|labourers)\b.{0,200}\b(?:dispatched|placed|spread|sublet)\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3 + 5 (organised "
+                      "trafficking); destination kafala / sponsorship "
+                      "statutes (Saudi Mobility Initiative 2021, UAE "
+                      "Federal Decree 33/2021 + 9/2022, Qatar Law "
+                      "21/2015, Kuwait Law 68/2015, Bahrain Law "
+                      "19/2006); UN TIP Special Rapporteur reports "
+                      "on labour-sponsorship pyramids",
+        "indicator": "Group-home / sponsor-pyramid arrangements "
+                       "where one sponsor controls dozens of workers "
+                       "across multiple worksites is a documented "
+                       "organised-trafficking marker under Palermo "
+                       "Art. 5. Provide: (1) explicit warning + UN "
+                       "TIP referral, (2) destination labour + anti-"
+                       "trafficking taskforce contact, (3) origin-"
+                       "country embassy + POLO / MWO, (4) trauma-"
+                       "informed survivor advocate via Polaris / IJM "
+                       "/ GAATW.",
+    },
 ]
 
 
@@ -9970,6 +10210,199 @@ RAG_CORPUS = [
      "documented contemporary state-organised labour-export "
      "program subject to international supervisory body "
      "scrutiny."),
+
+    # ----- Global frameworks + multilateral coordination -----
+    ("un_gcm_2018", "UN Global Compact for Safe, Orderly and Regular Migration (GCM, 2018)",
+     "UN GCM 2018",
+     "The UN Global Compact for Safe, Orderly and Regular "
+     "Migration (GCM, adopted Marrakech 10 December 2018, "
+     "endorsed by UN General Assembly A/RES/73/195) is the "
+     "first inter-governmentally negotiated agreement covering "
+     "all dimensions of international migration. The GCM "
+     "articulates 23 objectives covering data, drivers + "
+     "vulnerabilities, identity proof, regular pathways, "
+     "decent work, recruitment + skill assessment, social "
+     "protection, gender + child considerations, and "
+     "cross-border cooperation. Implementation runs through "
+     "the UN Network on Migration (chaired by IOM) and "
+     "national-level focal points. The 2026 International "
+     "Migration Review Forum (IMRF) is the second major review "
+     "cycle. The GCM is non-binding but normative; many of its "
+     "objectives align directly with DueCare's harness "
+     "approach (Obj. 6 fair recruitment; Obj. 9 anti-"
+     "trafficking; Obj. 10 anti-smuggling; Obj. 16 inclusion + "
+     "social cohesion)."),
+    ("un_migration_network_chair_iom", "UN Network on Migration (UNNM) -- IOM-chaired implementation network for GCM 2018",
+     "UN Network on Migration",
+     "The UN Network on Migration (UNNM, established 2018) "
+     "coordinates UN system support for GCM implementation, "
+     "review, and follow-up. Members include IOM (chair), "
+     "OHCHR, ILO, UNHCR, UNODC, UNICEF, UN Women, UNDP, World "
+     "Bank, UNDESA, OECD, and the regional commissions. The "
+     "Network produces guidance notes on objectives, supports "
+     "national migration policy development, runs the Migration "
+     "Network Hub (online platform), and convenes regional "
+     "review forums in addition to the IMRF cycle. The Network "
+     "is the primary coordinating body for migrant-worker "
+     "protection across the UN system + key partners."),
+    ("india_ismw_act_1979_2020", "India Inter-State Migrant Workmen Act 1979 + 2020 Code on Social Security amendments",
+     "India ISMW 1979 + 2020 SSC",
+     "The Inter-State Migrant Workmen (Regulation of Employment "
+     "and Conditions of Service) Act 1979 was India's primary "
+     "framework regulating inter-state migrant workers. It "
+     "required registration of contractors, written contracts, "
+     "displacement allowance, and equal wages with local "
+     "workers. The 2020 labour-code consolidation rolled the "
+     "1979 Act into the Code on Social Security 2020 + Occupational "
+     "Safety, Health and Working Conditions Code 2020 + Industrial "
+     "Relations Code 2020. NGO documentation (Centre for "
+     "Equity Studies, Stranded Workers Action Network) post-"
+     "COVID-19 demonstrated weak enforcement during the 2020-2021 "
+     "internal-migration crisis. The Indian inter-state migrant "
+     "framework is the largest national domestic-migration "
+     "policy regime by population covered."),
+    ("china_outbound_migrant_worker_regulations", "China outbound migrant worker regulations + bilateral labour agreements",
+     "China Outbound Migrant Regulations",
+     "China's outbound labour-migration framework is governed by "
+     "the Regulations on the Management of Foreign Labour "
+     "Cooperation (issued by Ministry of Commerce + 2012 + 2016 "
+     "amendments) and the Regulations on the Administration of "
+     "Outbound Employment Agencies. China maintains bilateral "
+     "labour agreements (BLAs) with 60+ countries including "
+     "GCC states, African countries, Russia, Belt and Road "
+     "Initiative partners, and Southeast Asia. China's "
+     "Ministry of Commerce + Ministry of Human Resources and "
+     "Social Security jointly regulate outbound deployment. "
+     "ILO + UNODC + Human Rights Watch documentation has "
+     "raised concerns about Chinese-flagged distant-water "
+     "fishing fleets + Belt and Road construction labour. "
+     "China has not ratified ILO C29 (1930), C87, C98, or "
+     "C181."),
+    ("pakistan_boee_emigration_ordinance_1979", "Pakistan Bureau of Emigration and Overseas Employment (BoEOE) + Emigration Ordinance 1979",
+     "Pakistan BoEOE + Emigration Ordinance 1979",
+     "Pakistan's outbound labour-migration framework is governed "
+     "by the Emigration Ordinance 1979 + Emigration Rules "
+     "1979 + Protector of Emigrants regional offices. The "
+     "Bureau of Emigration and Overseas Employment (BoEOE), "
+     "under the Ministry of Overseas Pakistanis and Human "
+     "Resource Development (MOPHRD), licenses overseas employment "
+     "promoters (OEPs) and operates the Welfare Fund + Insurance "
+     "Scheme. Pakistan deploys ~600,000+ workers annually to "
+     "GCC states + Malaysia + Korea EPS + Italy + Spain. "
+     "Documented patterns + recurring NGO concerns "
+     "(PILER + HRCP + Awaaz Foundation) include OEP "
+     "overcharging, deceptive recruitment to the GCC, and "
+     "weak enforcement against unlicensed sub-agents. The "
+     "2024 Overseas Pakistanis Tribunal reforms aim to "
+     "centralise complaint adjudication."),
+    ("walk_free_global_slavery_index_methodology", "Walk Free Foundation Global Slavery Index methodology",
+     "Walk Free GSI Methodology",
+     "The Global Slavery Index (GSI), published by Walk Free "
+     "Foundation since 2013 (most recent 2023 edition), "
+     "estimates the prevalence + vulnerability + government "
+     "response to modern slavery in 160 countries. The "
+     "methodology combines: (1) prevalence estimates from "
+     "nationally-representative Gallup World Poll surveys + "
+     "data triangulation; (2) a vulnerability index covering "
+     "governance + lack of basic needs + inequality + "
+     "disenfranchised groups + effects of conflict; (3) a "
+     "government response index scoring laws + enforcement + "
+     "victim services + supply chain due diligence. GSI is "
+     "produced jointly with the ILO + IOM for the Global "
+     "Estimates of Modern Slavery (most recent 2022 release "
+     "of 2021 data: 50 million people in modern slavery). "
+     "Used by governments, donors, investors, and NGOs as "
+     "the leading comparative quantitative reference."),
+
+    # ----- Operational NGO platforms + civil-society partnerships -----
+    ("mekong_club_corporate_anti_slavery", "Mekong Club -- corporate-side anti-slavery initiative (Hong Kong, founded 2012)",
+     "Mekong Club (HK)",
+     "The Mekong Club (HK-based, founded 2012) is a corporate-"
+     "side anti-slavery initiative that helps private-sector "
+     "companies (especially financial institutions, hospitality "
+     "+ tourism, retail + manufacturing, professional services) "
+     "implement modern-slavery due diligence, risk assessment, "
+     "and supplier engagement. Resources include the Modern "
+     "Slavery Outreach Project, the Anti-Slavery Compliance "
+     "Self-Assessment Tool, role-specific training modules "
+     "(HR, procurement, finance), and the Apprise + Apprise "
+     "Audit worker-voice mobile apps. The Mekong Club + ILO + "
+     "Issara Institute have jointly piloted Apprise-based "
+     "worker-voice approaches in seafood, electronics, garment, "
+     "and palm-oil supply chains across SE Asia."),
+    ("stop_the_traffik_partnership_platform", "STOP THE TRAFFIK -- intelligence-led anti-trafficking partnership",
+     "STOP THE TRAFFIK",
+     "STOP THE TRAFFIK (UK-headquartered, founded 2006) is an "
+     "intelligence-led anti-trafficking partnership. Its Centre "
+     "for Intelligence-Led Prevention (CILP) aggregates "
+     "trafficking-pattern data from law enforcement, financial "
+     "institutions, NGOs, and corporate partners to identify + "
+     "disrupt trafficking routes. CILP partners with the UK "
+     "National Crime Agency, US Department of Homeland Security, "
+     "INTERPOL, and major banks (HSBC, Barclays, Western Union, "
+     "Visa). STOP THE TRAFFIK runs awareness campaigns + the "
+     "STOP APP victim + bystander reporting platform. The "
+     "intelligence-led approach complements casework-led NGO "
+     "responses (IJM, Polaris) + reform-led approaches (GAATW)."),
+    ("liberty_shared_case_management", "Liberty Shared -- case-management + tech-for-survivors platform (HK-based)",
+     "Liberty Shared",
+     "Liberty Shared (HK-based, founded 2010) provides case-"
+     "management, technology, and capacity-building for anti-"
+     "trafficking NGOs globally. Its FRESH (Frontline Response "
+     "and Engagement against Slavery Hub) platform supports "
+     "casework + survivor-services data management. Liberty "
+     "Shared partners with 50+ NGOs across SE Asia, South Asia, "
+     "GCC region, and Africa, and is a recognised technology "
+     "partner of the UN Network on Migration. Notable areas: "
+     "fishing-vessel forced labour (with EJF + IOM), domestic-"
+     "worker case management (with NGO networks in HK + "
+     "Singapore + GCC), and supply-chain restitution support."),
+    ("truckers_against_trafficking_tat", "Truckers Against Trafficking (TAT) -- US trucking-industry education initiative",
+     "Truckers Against Trafficking (TAT)",
+     "Truckers Against Trafficking (TAT, US-founded 2009) is a "
+     "trucking + bus + energy industry-led initiative that "
+     "trains drivers + dispatchers to recognise + report "
+     "trafficking. TAT-trained drivers have made 1,300+ calls "
+     "to the National Human Trafficking Hotline since 2009, "
+     "leading to multiple federal + state prosecutions. TAT "
+     "training is mandatory in 9 US states for CDL holders + "
+     "voluntarily adopted by major US trucking companies (Werner "
+     "Enterprises, UPS, FedEx, Schneider) and bus operators "
+     "(Greyhound, Megabus). TAT is widely cited as the leading "
+     "model of industry-specific frontline-training anti-"
+     "trafficking program. Its Freedom Drivers Project + Iowa "
+     "Motor Truck Association partnership are widely replicated."),
+    ("hope_for_justice_global_operations", "Hope for Justice -- global anti-slavery NGO with rescue + aftercare model",
+     "Hope for Justice (UK + US + global)",
+     "Hope for Justice (UK-headquartered, founded 2008; US + "
+     "Cambodia + Uganda + Ethiopia + Norway + Australia "
+     "operations) runs a rescue + reintegration + advocacy model "
+     "covering: victim identification + recovery (the HEAL "
+     "Trafficking Screening Toolkit was co-developed with "
+     "Hope for Justice); transit shelter + medical care + "
+     "legal assistance; long-term reintegration support; "
+     "corporate due-diligence consulting (Slave-Free Alliance); "
+     "policy advocacy. The Slave-Free Alliance corporate "
+     "partnership program supports UK MSA + EU CSDDD + EU FLR "
+     "compliance. Hope for Justice is one of the largest UK + "
+     "US-headquartered direct-service anti-trafficking NGOs."),
+    ("issara_institute_worker_voice_detail", "Issara Institute -- Inclusive Labour Monitoring + worker-voice technology platform",
+     "Issara Institute (detail)",
+     "Beyond the high-level Inclusive Labour Monitoring (ILM) "
+     "framework introduced in earlier RAG entries, Issara's "
+     "operational platform comprises: (1) GOLDEN DREAMS, a "
+     "multi-lingual worker-rated platform where Thai + Myanmar "
+     "+ Cambodian + Indonesian + Filipino migrant workers "
+     "review recruiters + employers (akin to a Glassdoor for "
+     "migrant labour); (2) the Issara hotline (WhatsApp + Line "
+     "+ phone), staffed by worker-language case officers; (3) "
+     "supplier-side engagement with brand partners (Nestle, "
+     "Mars, Costco, Walmart) to close gaps reported by workers; "
+     "(4) the Issara Index (annual benchmarking of recruiter + "
+     "buyer responsible-recruitment practice). The model is "
+     "the leading example of worker-driven social responsibility "
+     "(WSR) in SE Asia + is increasingly cited by EU CSDDD + "
+     "EU FLR implementing guidance."),
 ]
 
 
