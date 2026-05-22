@@ -5598,6 +5598,436 @@ GREP_RULES = [
                        "government endorsement of a single private "
                        "agency is unusual and warrants verification.",
     },
+
+    # ====================================================================
+    # CATEGORY RR: CHILD TRAFFICKING SPECIFIC PATTERNS (2026-05-21)
+    # Child-specific recruitment / exploitation patterns under
+    # CRC Art. 32 + 34 + 35, Palermo Protocol Art. 3(c) (no
+    # means element required for under-18), ILO C138 + C182.
+    # severity=high. Children get special protection without
+    # needing to prove the means element.
+    # ====================================================================
+    {
+        "rule": "rr_orphanage_tourism_volunteer_recruitment",
+        "patterns": [r"\b(?:orphanage|children'?s\s+home|residential\s+care\s+home|volunteer\s+orphanage)\b.{0,200}\b(?:tourism|volunteer\s+(?:placement|abroad)|paid\s+placement|study\s+abroad\s+plus\s+volunteer)\b.{0,200}\b(?:Cambodia|Nepal|Haiti|Kenya|Tanzania|Ghana|Romania|Bali|Indonesia)\b",
+                       r"\b(?:short[\s-]?term\s+missions?\s+at\s+orphanage|orphanage\s+volunteer\s+(?:trip|programme|deployment))\b"],
+        "severity": "high",
+        "citation": "UN Convention on the Rights of the Child Art. "
+                      "20 + 21 (alternative care + adoption); "
+                      "Palermo Protocol Art. 3(c) (child trafficking "
+                      "definition requires no means element); UN "
+                      "Sustainable Development Goal 16.2 (end abuse "
+                      "+ exploitation of children); Hague Adoption "
+                      "Convention 1993; Better Volunteering Better "
+                      "Care research network",
+        "indicator": "Orphanage tourism / voluntourism is "
+                       "documented to incentivise child separation "
+                       "from families to meet tourist demand. The "
+                       "Better Volunteering Better Care research "
+                       "network reports that 80%+ of children in "
+                       "Cambodian orphanages have a living parent. "
+                       "Provide: (1) explicit warning that this is "
+                       "a documented child-trafficking driver, (2) "
+                       "ethical alternatives (community-based "
+                       "support, family preservation programs, "
+                       "deinstitutionalisation initiatives), (3) "
+                       "CRC + Palermo Protocol citations, (4) "
+                       "national child-protection authority contact "
+                       "if a specific case is involved.",
+    },
+    {
+        "rule": "rr_sport_academy_youth_recruitment",
+        "patterns": [r"\b(?:football|soccer|basketball|sport)\s+(?:academy|training|trial|prospect)\b.{0,200}\b(?:Europe|England|Spain|Italy|France|Germany|UK|US|Brazil|Mexico|Africa)\b.{0,200}\b(?:young|teen|under\s*1[5-8]|aged?\s+1[2-7]|child)\b",
+                       r"\b(?:football|soccer)\s+(?:agent|scout)\b.{0,200}\b(?:no\s+(?:parent|guardian|consent)|alone|sign(?:ing)?\s+today|trial\s+abroad)\b"],
+        "severity": "high",
+        "citation": "FIFA Regulations on the Status and Transfer of "
+                      "Players Art. 19 (protection of minors); UN "
+                      "CRC Art. 32; Palermo Protocol Art. 3(c); ILO "
+                      "C138 + C182 (worst forms of child labour); "
+                      "Foot Solidaire + CulturFoot research on West "
+                      "African football trafficking; Council of "
+                      "Europe Action Plan on Trafficking in Persons "
+                      "for the Purpose of Labour Exploitation in "
+                      "Sport (CDPC document)",
+        "indicator": "Sports trafficking (especially football / "
+                       "soccer) recruits youth players to Europe / "
+                       "destination countries under promises of "
+                       "academy placement; when the placement "
+                       "fails the youth is often stranded "
+                       "undocumented. FIFA RSTP Art. 19 generally "
+                       "prohibits international transfers of "
+                       "players under 18. Provide: (1) explicit "
+                       "warning, (2) FIFA Art. 19 + national "
+                       "association verification path, (3) Foot "
+                       "Solidaire / CulturFoot NGO referral, (4) "
+                       "national child-protection authority contact "
+                       "in origin + destination country.",
+    },
+    {
+        "rule": "rr_child_marriage_labour_cover",
+        "patterns": [r"\b(?:child\s+marriage|early\s+marriage|under\s*1[5-8]\s+marriage)\b.{0,200}\b(?:abroad|recruitment|placement|domestic\s+work|housekeeping)\b",
+                       r"\b(?:marriage|fianc[ée])\s+(?:visa|arrangement|placement)\b.{0,200}\b(?:age\s+1[2-7]|under\s+18|young|child|minor)\b"],
+        "severity": "high",
+        "citation": "UN Convention on the Rights of the Child Art. "
+                      "32 + 34 + 35; CEDAW Art. 6 + 16; Palermo "
+                      "Protocol Art. 3(c); ILO C138 + C182; UN "
+                      "Sustainable Development Goal 5.3 (end "
+                      "child marriage); Girls Not Brides global "
+                      "partnership; Hague Marriage Convention 1978",
+        "indicator": "Child / forced marriage frequently functions "
+                       "as labour-trafficking cover (the spouse "
+                       "becomes free labour for the household). "
+                       "Under Palermo Protocol Art. 3(c) any "
+                       "recruitment of a child for exploitation is "
+                       "trafficking even without a means element. "
+                       "Provide: (1) explicit warning of "
+                       "trafficking exposure, (2) national legal "
+                       "minimum-marriage-age framework citation, "
+                       "(3) Girls Not Brides + national child-"
+                       "protection authority contact, (4) consular "
+                       "support pathway if cross-border.",
+    },
+
+    # ====================================================================
+    # CATEGORY SS: ORGAN-TRAFFICKING RECRUITMENT (2026-05-21)
+    # Recruitment for organ removal / transplant tourism /
+    # kidney-for-debt patterns. severity=high. Palermo Protocol
+    # Art. 3 explicitly lists organ removal as a purpose of
+    # exploitation.
+    # ====================================================================
+    {
+        "rule": "ss_organ_donation_recruitment_offer",
+        "patterns": [r"\b(?:donate|sell|provide)\s+(?:your\s+)?(?:kidney|liver|cornea|tissue|organ)\b.{0,200}\b(?:money|USD|EUR|payment|reward|compensation|debt|loan)\b",
+                       r"\b(?:transplant\s+tourism|organ\s+trade|kidney\s+for\s+sale)\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3(a) (removal of organs "
+                      "is a purpose of exploitation); WHO Guiding "
+                      "Principles on Human Cell, Tissue and Organ "
+                      "Transplantation (WHA63.22, 2010 -- explicitly "
+                      "prohibits commercialisation); Council of "
+                      "Europe Convention against Trafficking in "
+                      "Human Organs (CETS 216, 2015); Declaration "
+                      "of Istanbul on Organ Trafficking and "
+                      "Transplant Tourism (2008, updated 2018); "
+                      "WMA Statement on Organ and Tissue Donation",
+        "indicator": "Recruitment for paid organ removal is "
+                       "trafficking in persons under Palermo Art. "
+                       "3(a). The Declaration of Istanbul "
+                       "explicitly prohibits transplant tourism + "
+                       "commercialisation. Provide: (1) clear "
+                       "statement that paid organ removal is "
+                       "trafficking in persons even with apparent "
+                       "consent, (2) WHO + Declaration of Istanbul "
+                       "citations, (3) national transplant "
+                       "authority + WHO Health Workforce Department "
+                       "contact, (4) refusal of any operational "
+                       "advice that facilitates organ trafficking.",
+    },
+    {
+        "rule": "ss_kidney_for_debt_recruitment",
+        "patterns": [r"\b(?:repay|clear|settle|pay\s+off)\s+(?:your\s+)?(?:debt|loan|placement\s+loan|recruitment\s+debt)\b.{0,200}\b(?:kidney|organ|cornea|liver|surgery)\b",
+                       r"\b(?:kidney|organ)\b.{0,200}\b(?:debt|loan|repayment|to\s+pay|in\s+exchange|trade)\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3(a); WHO Guiding "
+                      "Principles WHA63.22; Council of Europe "
+                      "Convention Against Trafficking in Human "
+                      "Organs (CETS 216); ILO C29 + 2014 Protocol; "
+                      "UN Special Rapporteur on Trafficking in "
+                      "Persons reports on organ trafficking "
+                      "patterns",
+        "indicator": "Debt-bondage-coupled organ trafficking is "
+                       "documented in PH-China-route, NP-India-"
+                       "route, Pakistan, Egypt, and Bangladesh. "
+                       "Debt-bondage as means of recruitment + "
+                       "organ removal as purpose of exploitation "
+                       "= per-se Palermo Art. 3 trafficking. "
+                       "Provide: (1) explicit warning that the "
+                       "scheme is criminal trafficking and the "
+                       "promised debt-clearance is not legally "
+                       "binding, (2) national transplant ethics "
+                       "authority + Liver / Kidney foundation "
+                       "contacts, (3) trafficking + organ-removal "
+                       "hotline + medical-evidence preservation "
+                       "steps.",
+    },
+    {
+        "rule": "ss_transplant_tourism_intermediary",
+        "patterns": [r"\b(?:transplant\s+tourism|transplant\s+abroad|organ\s+tourism|medical\s+tourism\s+for\s+transplant)\b.{0,200}\b(?:Pakistan|India|Bangladesh|Egypt|Philippines|China|Iran)\b",
+                       r"\b(?:transplant|organ)\s+broker\b"],
+        "severity": "high",
+        "citation": "Declaration of Istanbul (2008/2018); WHO Guiding "
+                      "Principles WHA63.22; Council of Europe "
+                      "Convention CETS 216; national transplant "
+                      "ethics frameworks (THOA India 1994 + 2014 "
+                      "amendments; Pakistan Transplantation of "
+                      "Human Organs and Tissues Act 2010; etc.)",
+        "indicator": "Transplant-tourism brokers represent paid "
+                       "organ-removal services that violate the "
+                       "WHO Guiding Principles and Declaration of "
+                       "Istanbul, and constitute trafficking in "
+                       "persons under Palermo Art. 3 when the "
+                       "donor is exploited by force, debt, or "
+                       "abuse of vulnerability. Provide: (1) "
+                       "explicit warning, (2) the controlling "
+                       "national transplant ethics + organ "
+                       "trafficking statute (India THOA, Pakistan "
+                       "TOHOTA, etc.), (3) WHO + Declaration of "
+                       "Istanbul citations, (4) law enforcement "
+                       "referral path.",
+    },
+
+    # ====================================================================
+    # CATEGORY TT: FORCED MARRIAGE AS LABOUR-TRAFFICKING COVER (2026-05-21)
+    # Marriage visa abuse + bride trafficking + spouse-as-
+    # unpaid-domestic-worker patterns. severity=high.
+    # ====================================================================
+    {
+        "rule": "tt_marriage_visa_as_labour_cover",
+        "patterns": [r"\b(?:marriage|fianc[ée])\s+visa\b.{0,200}\b(?:domestic\s+work|housekeeping|caregiving|24\/7\s+work|childcare)\b",
+                       r"\b(?:wife|husband|spouse|fianc[ée])\s+(?:arrangement|recruitment|placement)\b.{0,200}\b(?:work|labour|cook|clean|care)\b"],
+        "severity": "high",
+        "citation": "ILO/Walk Free/IOM 2022 Global Estimates (22.0M "
+                      "in forced marriage); Palermo Protocol Art. "
+                      "3; CEDAW Art. 16 (consent + freely chosen "
+                      "marriage); CRC Art. 19 + 34 + 35 if minor; "
+                      "ILO C29 + 2014 Protocol; UN Sustainable "
+                      "Development Goal 5.3",
+        "indicator": "Marriage / fiance visa used as cover for "
+                       "domestic-labour recruitment is documented "
+                       "in multiple corridors (MN-Korea, VN-China, "
+                       "BD-Indian-Gulf, MY-Saudi). Provide: (1) "
+                       "explicit warning that consent under "
+                       "deception or abuse-of-vulnerability is "
+                       "invalid under Palermo Art. 3(b), (2) "
+                       "destination-country worker-protection "
+                       "pathways available regardless of marriage "
+                       "status, (3) NGO support (Forced Marriage "
+                       "Unit UK, Cherie Blair Foundation, MFA "
+                       "regional networks), (4) consular pre-"
+                       "departure briefing.",
+    },
+    {
+        "rule": "tt_mail_order_bride_recruitment",
+        "patterns": [r"\b(?:mail[\s-]?order\s+bride|catalog\s+bride|introduction\s+agency)\b",
+                       r"\b(?:international\s+marriage|marriage\s+agency|matchmaker)\b.{0,200}\b(?:Vietnam|Philippines|Thailand|Cambodia|Ukraine|Russia|Belarus|Colombia|Brazil|Dominican\s+Republic)\b.{0,200}\b(?:guarantee|hand[\s-]?picked|young|virgin|traditional|obedient)\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3 (deception + abuse of "
+                      "position of vulnerability as means); CEDAW "
+                      "Art. 6; ILO C29 + 2014 Protocol; US "
+                      "International Marriage Broker Regulation "
+                      "Act (IMBRA, 2005); PH RA 6955 (Anti-Mail "
+                      "Order Bride Act 1990 + 2016 amendments); "
+                      "Migrante International + Lila Pilipina "
+                      "documentation",
+        "indicator": "Mail-order-bride / introduction-agency "
+                       "recruitment of women from low-income "
+                       "countries to wealthier destination "
+                       "marriages is a Palermo Art. 3 trafficking "
+                       "vector when paired with deception or "
+                       "abuse-of-vulnerability. The Philippines "
+                       "explicitly criminalises this business "
+                       "model under RA 6955. Provide: (1) clear "
+                       "explanation that this is a regulated / "
+                       "prohibited business model in many origin "
+                       "countries, (2) IMBRA-required disclosures "
+                       "for US-side, (3) NGO support contacts, "
+                       "(4) embassy / consular pre-departure "
+                       "briefing.",
+    },
+    {
+        "rule": "tt_marriage_followed_by_servitude",
+        "patterns": [r"\b(?:after\s+(?:the\s+)?marriage|once\s+married|post[\s-]?marriage)\b.{0,200}\b(?:served|worked\s+for|cooked\s+for|cleaned\s+for|cared\s+for)\b.{0,200}\b(?:in[\s-]?laws|husband'?s\s+family|extended\s+family)\b.{0,200}\b(?:no\s+pay|no\s+wage|no\s+salary)\b",
+                       r"\b(?:in[\s-]?law(?:s)?|extended\s+family|husband'?s\s+(?:mother|father|brother|sister))\b.{0,200}\b(?:beat|abuse|threat|lock(?:ed)?|control|isolate)\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3 (servitude as purpose "
+                      "of exploitation); ILO C29 + 2014 Protocol; "
+                      "ILO 11 Forced Labour Indicators 3 + 4 + 5 + "
+                      "10; CEDAW Art. 16; UN Special Rapporteur on "
+                      "Violence against Women",
+        "indicator": "Marriage-followed-by-servitude is a "
+                       "documented form of labour-trafficking. "
+                       "Multiple ILO Forced Labour Indicators "
+                       "frequently apply: restriction of movement, "
+                       "isolation, physical violence, abusive "
+                       "working / living conditions. Provide: (1) "
+                       "trauma-informed disclosure handling, (2) "
+                       "destination-country domestic-violence + "
+                       "trafficking response pathway, (3) shelter "
+                       "/ NGO referral with corridor-specific "
+                       "contacts, (4) Palermo + ILO Indicators "
+                       "citation.",
+    },
+
+    # ====================================================================
+    # CATEGORY UU: ANTI-UNION / LABOUR-RIGHTS SUPPRESSION (2026-05-21)
+    # Retaliation patterns against worker organising,
+    # association, or complaints. severity=medium/high.
+    # ====================================================================
+    {
+        "rule": "uu_anti_union_dismissal_threat",
+        "patterns": [r"\b(?:join|joining|formed|forming|organis(?:e|ing)|attempt(?:ed|ing)\s+to\s+(?:join|organi[sz]e))\b.{0,200}\b(?:union|association|workers\s+committee|works\s+council)\b.{0,200}\b(?:fired|dismissed|terminated|sent\s+home|deported|blacklist)\b",
+                       r"\b(?:union|workers\s+committee|association)\b.{0,200}\b(?:not\s+allowed|prohibited|banned|illegal|will\s+lose\s+(?:job|visa|status))\b"],
+        "severity": "high",
+        "citation": "ILO C87 (Freedom of Association + Protection of "
+                      "the Right to Organise, 1948); ILO C98 (Right "
+                      "to Organise and Collective Bargaining, 1949); "
+                      "ILO C181 Art. 8; ILO Declaration on "
+                      "Fundamental Principles and Rights at Work "
+                      "(1998); EU Fundamental Rights Charter Art. "
+                      "12 + 28; US NLRA Sec. 7 + 8(a)(1) + (3); ILO "
+                      "C190 Art. 6 (anti-violence + harassment "
+                      "including retaliation)",
+        "indicator": "Anti-union dismissal of migrant workers is "
+                       "an ILO Declaration on Fundamental "
+                       "Principles violation. Freedom of "
+                       "association is a fundamental right "
+                       "regardless of visa status. Provide: (1) "
+                       "anti-retaliation citations under applicable "
+                       "destination law, (2) ILO supervisory body "
+                       "complaint pathway (CFA Article 24 / 26 "
+                       "representations), (3) NGO + union support "
+                       "(IUF, Building and Wood Workers' "
+                       "International, IndustriALL, regional "
+                       "migrant worker rights coalitions), (4) "
+                       "evidence-preservation steps.",
+    },
+    {
+        "rule": "uu_freedom_of_association_blocked",
+        "patterns": [r"\b(?:foreign\s+workers?|migrant\s+workers?|H-?2A|H-?2B|FDH|EPS|TITP|kafala)\b.{0,200}\b(?:cannot|may\s+not|not\s+allowed|prohibited|banned)\b.{0,200}\b(?:join|form|membership|organi[sz]e)\b.{0,200}\b(?:union|association|workers\s+committee)\b"],
+        "severity": "high",
+        "citation": "ILO C87 + C98; ILO Declaration on Fundamental "
+                      "Principles and Rights at Work (1998); ILO "
+                      "Committee of Experts (CEACR) comments on "
+                      "specific country freedom-of-association "
+                      "restrictions on migrant workers; ILO "
+                      "Committee on Freedom of Association case "
+                      "law; UN International Convention on the "
+                      "Protection of the Rights of All Migrant "
+                      "Workers and Members of Their Families "
+                      "(1990) Art. 26 + 40",
+        "indicator": "Statutory or contractual blocks on migrant-"
+                       "worker freedom of association are an ILO "
+                       "supervisory body concern. Provide: (1) "
+                       "explicit statement that freedom of "
+                       "association is a fundamental ILO right "
+                       "applying regardless of visa status, (2) "
+                       "CEACR comment specific to the country "
+                       "(if available in the corpus), (3) NGO + "
+                       "union support, (4) ILO Article 26 "
+                       "complaint procedure if structural.",
+    },
+    {
+        "rule": "uu_worker_organising_retaliation",
+        "patterns": [r"\b(?:complained|reported|filed|spoke\s+(?:up|out)|talked\s+to\s+(?:union|labour\s+department|NGO|media))\b.{0,200}\b(?:fired|terminated|deported|sent\s+home|housing\s+(?:cut|denied|revoked)|reduced\s+hours|blacklisted)\b",
+                       r"\b(?:retaliation|anti-retaliation|whistleblower\s+protection)\b.{0,200}\b(?:migrant|foreign|H-?2A|H-?2B|FDH)\b"],
+        "severity": "high",
+        "citation": "ILO C190 Art. 4 + 6 (anti-violence + "
+                      "harassment + retaliation); ILO C181 Art. 8; "
+                      "US Migrant and Seasonal Agricultural Worker "
+                      "Protection Act (MSPA); 20 CFR 655.135(d) "
+                      "(anti-retaliation in H-2A); US Whistleblower "
+                      "Protection Act; UK Public Interest "
+                      "Disclosure Act 1998; EU Whistleblowing "
+                      "Directive 2019/1937",
+        "indicator": "Retaliation against worker organising or "
+                       "complaint-filing is itself a violation in "
+                       "most jurisdictions and is an ILO C190 "
+                       "indicator of workplace violence. Provide: "
+                       "(1) anti-retaliation statute citation for "
+                       "the specific jurisdiction + scheme, (2) "
+                       "interim-order / injunction-pathway in the "
+                       "applicable tribunal, (3) NGO + union "
+                       "support contacts, (4) evidence-preservation "
+                       "for retaliation claim.",
+    },
+
+    # ====================================================================
+    # CATEGORY VV: CONFLICT-ZONE / DISASTER RECRUITMENT (2026-05-21)
+    # Recruitment for war-zone construction, post-disaster
+    # cleanup, undocumented post-conflict labour. severity=high.
+    # Complements PP (refugee/displaced) but focuses on
+    # post-conflict / disaster work recruitment specifically.
+    # ====================================================================
+    {
+        "rule": "vv_war_zone_construction_recruitment",
+        "patterns": [r"\b(?:Iraq|Afghanistan|Ukraine|Syria|Yemen|Libya|Sudan|Somalia|Gaza)\b.{0,200}\b(?:construction|labour|labor|reconstruction|US\s+military\s+base|US\s+contractor|coalition\s+force)\b.{0,200}\b(?:high\s+pay|premium|hazard\s+pay|USD\s*[\$]?\s*[2-9],?\d{3,4})\b",
+                       r"\b(?:LN|local\s+national|TCN|third[\s-]?country\s+national)\b.{0,200}\b(?:Iraq|Afghanistan|Ukraine|Syria)\b"],
+        "severity": "high",
+        "citation": "US TVPRA + Federal Acquisition Regulation "
+                      "(FAR) 22.17 + 22.18 (combatting trafficking "
+                      "in persons in federal contracting); UN "
+                      "Universal Declaration of Human Rights Art. "
+                      "23 + 24; ILO C29 + 2014 Protocol; Palermo "
+                      "Protocol Art. 3 (debt bondage + abuse of "
+                      "vulnerability common in conflict-zone "
+                      "recruitment); KBR / Halliburton / Daoud "
+                      "Group case study documentation",
+        "indicator": "Conflict-zone construction-contractor "
+                       "recruitment has historically been a major "
+                       "trafficking vector. Documented MOs: "
+                       "recruitment-fee debt bondage, passport "
+                       "retention at point of arrival, contract "
+                       "substitution from promised role to actual, "
+                       "isolation in fortified compounds with "
+                       "limited NGO + consular access. Provide: "
+                       "(1) FAR 22.17 / 22.18 prime-contractor "
+                       "obligations, (2) US DOL WHD Helpline + "
+                       "Polaris hotline, (3) origin-country "
+                       "consular + NGO contacts, (4) pre-"
+                       "deployment due-diligence checklist.",
+    },
+    {
+        "rule": "vv_post_disaster_relief_no_contract",
+        "patterns": [r"\b(?:post[\s-]?disaster|post[\s-]?conflict|reconstruction|rebuilding|cleanup)\b.{0,200}\b(?:no\s+contract|verbal\s+only|sign\s+later|paid\s+in\s+(?:food|kind))\b",
+                       r"\b(?:emergency|crisis|response|relief|rebuild)\s+(?:work|labour|labor|deployment)\b.{0,200}\b(?:undocumented|no\s+permit|no\s+visa|informal|cash[\s-]?only)\b"],
+        "severity": "high",
+        "citation": "Sendai Framework for Disaster Risk Reduction "
+                      "2015-2030 (Priority 4); IASC Guidelines on "
+                      "Protection of IDPs; UN Guiding Principles "
+                      "on Internal Displacement; Palermo Protocol "
+                      "Art. 3 (abuse of vulnerability); ILO C29 + "
+                      "2014 Protocol; IOM Crisis Response "
+                      "Operating Procedures",
+        "indicator": "Post-disaster and post-conflict reconstruction "
+                       "are documented trafficking surge contexts. "
+                       "Workers should NEVER deploy on verbal "
+                       "agreement + cash-only / kind-only "
+                       "compensation in a disaster zone. Provide: "
+                       "(1) IASC + IOM Crisis Response contact "
+                       "for the specific region, (2) Sendai "
+                       "Priority 4 build-back-better worker-"
+                       "protection requirements, (3) trafficking "
+                       "hotline + protection cluster, (4) "
+                       "evidence-preservation steps.",
+    },
+    {
+        "rule": "vv_ukraine_refugee_labour_exploitation",
+        "patterns": [r"\b(?:Ukrainian\s+refugee|UA\s+refugee|displaced\s+from\s+Ukraine|fleeing\s+Ukraine)\b.{0,200}\b(?:job|work|placement|recruitment)\b.{0,200}\b(?:no\s+contract|cash|under[\s-]?table|undocumented|verbal)\b",
+                       r"\b(?:temporary\s+protection)\b.{0,200}\b(?:exploit(?:ed|ation)|forced|debt|threat|complain(?:t|ed))\b"],
+        "severity": "high",
+        "citation": "EU Temporary Protection Directive 2001/55/EC "
+                      "(activated 2022 for Ukrainian refugees); UN "
+                      "1951 Refugee Convention + 1967 Protocol; "
+                      "Palermo Protocol Art. 3 (abuse of "
+                      "vulnerability); EU Anti-Trafficking "
+                      "Directive 2011/36/EU + 2024 update; "
+                      "Council of Europe Convention on Action "
+                      "against Trafficking in Human Beings (2005)",
+        "indicator": "Ukrainian refugees under EU Temporary "
+                       "Protection have access to legal labour "
+                       "markets and are protected by EU anti-"
+                       "trafficking + temporary-protection "
+                       "frameworks. Recruitment into undocumented "
+                       "/ cash-only work is exploitation. "
+                       "Provide: (1) EU Temporary Protection "
+                       "Directive scope + rights (access to "
+                       "labour market, education, healthcare, "
+                       "social welfare), (2) destination-country "
+                       "anti-trafficking + labour-protection "
+                       "contacts, (3) Ukrainian NGO networks "
+                       "(La Strada Ukraine, Voices of Children), "
+                       "(4) embassy / consular pathway.",
+    },
 ]
 
 
