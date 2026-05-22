@@ -9488,6 +9488,117 @@ CORRIDOR_FEE_CAPS = {
         "url": "https://www.poea.gov.ph/memo-circulars/2017/MC-14-2017.pdf",
         "note": "Zero placement fee from PH side. UAE MoHRE: employer pays all recruitment costs; kafala-system reformed 2022 (sponsorship by federal MoHRE not employer).",
     },
+
+    # ----- Asia-Pacific corridors (chunk 16 expansion) -----
+    ("philippines", "taiwan", "any"): {
+        "statute": "POEA MC 14-2017 + Taiwan Employment Services Act",
+        "max_fee_worker": "Limited; PH side zero, TW side NT$1,800/month service fee + NT$500/month service tax (capped)",
+        "currency": "PHP / TWD",
+        "url": "https://www.poea.gov.ph/memo-circulars/2017/MC-14-2017.pdf",
+        "note": "PH side zero-fee. Taiwan side service-fee cap applies only if monthly wage above legal threshold; otherwise no service fee.",
+    },
+    ("philippines", "qatar", "any"): {
+        "statute": "POEA MC 14-2017 + Qatar Law 15/2017 (Domestic) + Qatar Labor Law (Construction)",
+        "max_fee_worker": "0",
+        "currency": "PHP",
+        "url": "https://www.poea.gov.ph/memo-circulars/2017/MC-14-2017.pdf",
+        "note": "Zero placement fee from PH side. Qatar post-2020 reforms: NOC abolished, non-discriminatory min wage QAR 1,000 + housing + food allowance.",
+    },
+    ("indonesia", "taiwan", "any"): {
+        "statute": "BP2MI Reg. 9/2020 + Taiwan Employment Services Act",
+        "max_fee_worker": "Limited cost components per BP2MI Reg. 9/2020 Art. 36; TW side NT$1,800/month service fee",
+        "currency": "IDR / TWD",
+        "url": "https://bp2mi.go.id/peraturan",
+        "note": "Indonesia side: only medical, training, passport, visa where required. Taiwan side: capped service fee.",
+    },
+    ("indonesia", "malaysia", "any"): {
+        "statute": "BP2MI Reg. 9/2020 + Indonesia-Malaysia MoU 2022 (Domestic Workers)",
+        "max_fee_worker": "Limited cost components per BP2MI Reg. 9/2020 Art. 36; employer pays placement under 2022 MoU",
+        "currency": "IDR / MYR",
+        "url": "https://bp2mi.go.id/peraturan",
+        "note": "Indonesia-Malaysia 2022 MoU re-opened deployment after 2009-2011 moratorium; employer-pays-principle for placement fee.",
+    },
+    ("nepal", "malaysia", "any"): {
+        "statute": "Nepal FEA 2007 §11(2) + Nepal-Malaysia MoU on Workers' Welfare 2018",
+        "max_fee_worker": "0 under FVFT extended to Malaysia (employer pays recruitment)",
+        "currency": "NPR",
+        "url": "http://dofe.gov.np/",
+        "note": "Nepal-Malaysia FVFT operationalises employer-pays for plantation + manufacturing. Worker pays only specific docs (passport, medical certificate).",
+    },
+    ("bangladesh", "qatar", "any"): {
+        "statute": "BD OEMA 2013 + Qatar Law 15/2017 (Domestic) + Qatar Labor Law",
+        "max_fee_worker": "BDT 78,990 ceiling (G2G+ MoU expansion)",
+        "currency": "BDT",
+        "url": "http://bmet.gov.bd/",
+        "note": "Bangladesh-Qatar MoU operationalises G2G+ framework. Cost-sharing: worker pays only enumerated docs + medical; employer pays placement + visa + air.",
+    },
+    ("bangladesh", "uae", "any"): {
+        "statute": "BD OEMA 2013 + UAE MoHRE Decree 765/2015",
+        "max_fee_worker": "BDT 78,990 ceiling (G2G+ alignment)",
+        "currency": "BDT",
+        "url": "http://bmet.gov.bd/",
+        "note": "Bangladesh-UAE deployment cycles tracked by BMET; recruitment-cost cap aligned with G2G+ structure.",
+    },
+
+    # ----- East / Southeast Asia origin corridors -----
+    ("vietnam", "japan", "titp"): {
+        "statute": "VN Law 69/2020/QH14 + Decree 38/2020/ND-CP + JP Ikusei Shuro framework (2027)",
+        "max_fee_worker": "Service fee + brokerage fee capped per Decree 38/2020/ND-CP (typically USD 3,600 service + USD 60/month brokerage during contract)",
+        "currency": "VND",
+        "url": "https://dolab.gov.vn/",
+        "note": "VN-Japan TITP largest VN corridor. 2027 transition to Ikusei Shuro shifts to employer-pays-principle; current TITP rates still allow capped worker-paid fees.",
+    },
+    ("vietnam", "south korea", "eps"): {
+        "statute": "VN Law 69/2020/QH14 + Decree 38/2020/ND-CP + KR Employment Permit System (E-9 visa)",
+        "max_fee_worker": "Worker pays VN-side training + EPS-TOPIK exam + medical; KR side employer pays placement under EPS",
+        "currency": "VND / KRW",
+        "url": "https://dolab.gov.vn/",
+        "note": "VN-Korea EPS operates on employer-pays-principle from KR side; VN-side training + language-exam cost paid by worker.",
+    },
+    ("vietnam", "taiwan", "any"): {
+        "statute": "VN Law 69/2020/QH14 + Decree 38/2020/ND-CP + TW Employment Services Act",
+        "max_fee_worker": "Service fee capped per Decree 38/2020/ND-CP; TW NT$1,800/month service fee",
+        "currency": "VND / TWD",
+        "url": "https://dolab.gov.vn/",
+        "note": "VN-Taiwan factory + caregiver corridors. VN-side service fee cap; TW-side capped monthly service fee.",
+    },
+    ("cambodia", "thailand", "any"): {
+        "statute": "Cambodia Sub-Decree 190 (2011) + Cambodia-Thailand MoU on Cooperation in Employment of Workers",
+        "max_fee_worker": "Limited per Sub-Decree 190 Art. 22-29",
+        "currency": "KHR / THB",
+        "url": "https://www.mlvt.gov.kh/",
+        "note": "Cambodia-Thailand is the largest KH corridor. Recruitment cost components: medical, passport, work permit, transport. Repatriation employer-paid.",
+    },
+    ("myanmar", "thailand", "any"): {
+        "statute": "Myanmar Overseas Employment Agency Law 1999 + Myanmar-Thailand MoU (suspended post-2021, partially resumed 2023-2024)",
+        "max_fee_worker": "Limited; under MoU framework employer pays placement",
+        "currency": "MMK / THB",
+        "url": "",
+        "note": "MM-TH corridor disrupted by 2021 military takeover. Documented elevated forced-labour risk in fishing + plantation deployments per MWRN.",
+    },
+
+    # ----- Latin America / Pacific corridors -----
+    ("mexico", "united states", "h2a"): {
+        "statute": "US 20 CFR 655.135 + 22 CFR 41.31 (H-2A) + 22 USC 7104(c)",
+        "max_fee_worker": "0 (employer-pays-principle under 20 CFR 655.135(j))",
+        "currency": "USD",
+        "url": "https://www.dol.gov/agencies/whd/agriculture/h2a",
+        "note": "H-2A worker pays NOTHING for recruitment. Employer pays visa, transportation (after 50% completion), housing, recruitment costs.",
+    },
+    ("mexico", "united states", "h2b"): {
+        "statute": "US 20 CFR 655.20 + 22 CFR 41.31 (H-2B)",
+        "max_fee_worker": "0 (employer-pays-principle under 20 CFR 655.20(o))",
+        "currency": "USD",
+        "url": "https://www.dol.gov/agencies/whd/foreign-workers/h2b",
+        "note": "H-2B worker pays NOTHING for recruitment. Employer pays visa, recruitment costs.",
+    },
+    ("jamaica", "canada", "sawp"): {
+        "statute": "CA SAWP MOU + Immigration and Refugee Protection Act + Canada Labour Code (Part III)",
+        "max_fee_worker": "0 (employer-pays-principle under SAWP MOU)",
+        "currency": "CAD",
+        "url": "https://www.canada.ca/en/employment-social-development/services/foreign-workers/agricultural/seasonal-agricultural.html",
+        "note": "Caribbean SAWP corridor (Jamaica, Trinidad and Tobago, Barbados, OECS) operates on employer-pays-principle. Worker pays no recruitment fee; employer pays transportation + housing.",
+    },
 }
 
 FEE_CAMOUFLAGE_DICT = {
