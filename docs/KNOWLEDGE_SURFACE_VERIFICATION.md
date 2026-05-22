@@ -7,8 +7,8 @@ Re-runnable via `python scripts/verify_knowledge_surfaces.py`.
 
 | Surface | Count |
 | --- | --- |
-| `GREP_RULES` | 290 (categories A through III, including SCREENING + AAA-III) |
-| `RAG_CORPUS` | 215 (incl. 6 landmark case-law + 3 national anti-trafficking units + research / faith / sex-worker-rights bodies) |
+| `GREP_RULES` | 300 (categories A through OOO, including SCREENING + AAA-III + JJJ-OOO) |
+| `RAG_CORPUS` | 227 (incl. 6 landmark case-law + 3 national anti-trafficking units + research / faith / sex-worker-rights bodies + US HSI / CBP CEE / UK IASC / GRETA / 2 UN SR mandates / MPI / Asia Foundation / Amnesty / BHRRC / Solidaridad cluster / ECPAT / HRW) |
 | `CORRIDOR_FEE_CAPS` | 31 |
 | `FEE_CAMOUFLAGE_DICT` | 45 |
 | `NGO_INTAKE` | 30 |
@@ -19,10 +19,10 @@ Re-runnable via `python scripts/verify_knowledge_surfaces.py`.
 
 ## What is in each surface
 
-### `GREP_RULES` (269 detection patterns)
+### `GREP_RULES` (300 detection patterns)
 
 Multi-category pattern detection across the recruitment + deployment
-+ exploitation lifecycle, organised A through QQ + ZZ + SCREENING:
++ exploitation lifecycle, organised A through OOO:
 
 | Cluster | Categories | Theme |
 | --- | --- | --- |
@@ -47,8 +47,18 @@ Multi-category pattern detection across the recruitment + deployment
 | Tourism | YY | Tourism + cruise crew exploitation |
 | High-skill visa | ZZ | H-1B / Blue Card / TSS 482 / Skilled Worker |
 | Screening | SCR | Validated-screening-tool disclosure patterns |
+| Dating-app / biometrics / pension | AAA-CCC | Dating-app pretext, biometric-coercion, pension denial |
+| Refugee leverage / subcontracting | DDD-EEE | Refugee-leverage extended, multi-tier subcontracting |
+| Online sex / sports / US sectoral | FFF-HHH | OnlyFans cover, boxing camp, nail salon + massage + hotel housekeeping |
+| Criminal exploitation | III | Drug mules, county-line youth, begging rings, foster-care pipeline |
+| Chain-migration | JJJ | Send-for-child pattern, child separation for remittance |
+| Working-holiday | KKK | US J-1 SWT, AU WHM 417/462 |
+| Port / offshore | LLL | Stevedore subcontracting, offshore oil/gas rig |
+| Diplomatic household | MMM | A-3/G-5, UK ODWPH |
+| Faith-worker | NNN | R-1 + UK Tier 2 Minister of Religion |
+| Extractive mining | OOO | Artisanal + small-scale gold/3TG/cobalt/mica |
 
-### `RAG_CORPUS` (191 knowledge documents)
+### `RAG_CORPUS` (227 knowledge documents)
 
 ILO conventions, UN instruments, regional anti-trafficking treaties,
 destination-country statutes, origin-country statutes, bilateral
