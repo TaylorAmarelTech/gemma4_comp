@@ -444,6 +444,467 @@ authority on cross-border enforcement.
 Signature: ________________________    Date: __________
 """
 
+_TEMPLATE_SA_MHRSD_BODY = """COMPLAINT TO SAUDI MINISTRY OF HUMAN RESOURCES + SOCIAL DEVELOPMENT (MHRSD)
+Friendly Settlement -- Labour / Domestic Worker Bylaw
+Filing date: {{filed_date}}
+
+COMPLAINANT (NGO caseworker / Embassy POLO)
+  Name:           {{complainant_name}}
+  Organisation:   {{complainant_org}}
+  Contact:        {{complainant_contact}}
+
+MIGRANT WORKER (subject)
+  Anonymized identifier:    {{worker_name}}
+  Country of origin:        {{country_of_origin}}
+  Iqama / residence number: {{worker_iqama_prefix}}
+  Sector:                   {{sector}}
+
+EMPLOYER / SPONSOR + RECRUITMENT AGENCY
+  Employer / sponsor name:        {{employer_name}}
+  Sponsor commercial register no: {{sponsor_register_no}}
+  Saudi recruitment agency:       {{sa_agency_name}}
+  Musaned contract number:        {{musaned_contract_no}}
+
+PARTICULARS OF THE VIOLATION
+  Unpaid wages (SAR):             {{unpaid_wages_sar}}
+  Months of withheld salary:      {{months_withheld}}
+  Recruitment fee paid (USD/SAR): {{recruitment_fee_amount}}
+  Passport / document retention:  {{document_retention_yes_no}}
+  Restriction of movement:        {{movement_restriction_yes_no}}
+  Working hours per day:          {{hours_per_day}}
+  Weekly rest day (Y / N):        {{weekly_rest_day_yes_no}}
+
+INCIDENT SUMMARY
+{{incident_summary}}
+
+STATUTORY VIOLATIONS ALLEGED
+  - Saudi Labor Law (Royal Decree M/51) provisions on
+    wage protection (Sec. 90) and termination procedures
+  - Domestic Workers Bylaw (Ministerial Decision 310 of
+    1434 H / 2013) on hours, rest, leave, employer
+    obligations
+  - Wage Protection System (WPS) coverage obligation
+  - ILO C181 Art. 7 + ILO C189 (where applicable) +
+    Palermo Protocol Art. 3 (if trafficking indicators)
+
+ILO FORCED-LABOUR INDICATORS
+{{ilo_indicators}}
+
+EVIDENCE AVAILABLE
+{{evidence_list}}
+
+RELIEF REQUESTED
+{{relief_requested}}
+
+The complainant requests Friendly Settlement at the Labour
+Office, with binding determination by the Labour Court if not
+resolved. Coordination requested with POLO / Migrant Worker
+Office of the worker's origin country. Where Saudi Mobility
+Initiative (2021) Tasreeh / Tasreeh Atharia conditions are
+met (unpaid wages 90+ days, physical abuse, no valid work
+permit), the worker requests employer-change permission.
+
+Signature: ________________________    Date: __________
+"""
+
+
+_TEMPLATE_UAE_MOHRE_BODY = """COMPLAINT TO UAE MINISTRY OF HUMAN RESOURCES + EMIRATISATION (MoHRE)
+Tawasul / Tadbeer Service Request
+Filing date: {{filed_date}}
+
+COMPLAINANT (NGO caseworker / Embassy POLO)
+  Name:           {{complainant_name}}
+  Organisation:   {{complainant_org}}
+  Contact:        {{complainant_contact}}
+
+MIGRANT WORKER (subject)
+  Anonymized identifier:   {{worker_name}}
+  Country of origin:       {{country_of_origin}}
+  Emirates ID prefix:      {{emirates_id_prefix}}
+  Sector:                  {{sector}}
+
+EMPLOYER / SPONSOR
+  Employer name:              {{employer_name}}
+  Trade licence number:       {{employer_trade_licence}}
+  Tadbeer / Esna'ad centre:   {{tadbeer_centre_name}}
+  MoHRE work permit number:   {{mohre_permit_no}}
+
+PARTICULARS OF THE VIOLATION
+  Unpaid wages (AED):                  {{unpaid_wages_aed}}
+  Months of withheld salary:           {{months_withheld}}
+  Recruitment fee paid (USD / AED):    {{recruitment_fee_amount}}
+  Passport / document retention:       {{document_retention_yes_no}}
+  Restriction of movement:             {{movement_restriction_yes_no}}
+  Hours per day / rest day:            {{hours_per_day_rest}}
+  Living conditions concern:           {{living_conditions_concern}}
+
+INCIDENT SUMMARY
+{{incident_summary}}
+
+STATUTORY VIOLATIONS ALLEGED
+  - UAE Federal Decree-Law 33/2021 on Regulating Labour
+    Relations (non-domestic worker)
+  - UAE Federal Decree-Law 9/2022 on Domestic Workers
+    (where applicable)
+  - Wage Protection System obligations (MOMRA)
+  - Tadbeer / Esna'ad service obligations under MoHRE
+    domestic-worker regulation
+  - Post-2022 employer-change-without-NOC framework
+    where conditions are met
+
+ILO FORCED-LABOUR INDICATORS
+{{ilo_indicators}}
+
+EVIDENCE AVAILABLE
+{{evidence_list}}
+
+RELIEF REQUESTED
+{{relief_requested}}
+
+The complainant requests amicable settlement via Tawasul (up
+to 14 days non-domestic / 7 days domestic). If unresolved,
+referral to Labour Court (non-domestic) or Family Court
+(domestic). The complainant requests coordination with the
+worker's origin-country POLO / Migrant Worker Office /
+embassy.
+
+Signature: ________________________    Date: __________
+"""
+
+
+_TEMPLATE_QATAR_MOL_BODY = """COMPLAINT TO QATAR MINISTRY OF LABOUR (MoL)
+Labour Dispute Resolution Committee + Workers' Support and Insurance Fund
+Filing date: {{filed_date}}
+
+COMPLAINANT (NGO caseworker / Embassy POLO)
+  Name:           {{complainant_name}}
+  Organisation:   {{complainant_org}}
+  Contact:        {{complainant_contact}}
+
+MIGRANT WORKER (subject)
+  Anonymized identifier:    {{worker_name}}
+  Country of origin:        {{country_of_origin}}
+  QID prefix:               {{qid_prefix}}
+  Sector:                   {{sector}}
+
+EMPLOYER + WORK CONTRACT
+  Employer / kafeel name:    {{employer_name}}
+  Employer CR number:        {{employer_cr_no}}
+  Work permit number:        {{work_permit_no}}
+  Contract start date:       {{contract_start_date}}
+
+PARTICULARS OF THE VIOLATION
+  Unpaid wages (QAR):           {{unpaid_wages_qar}}
+  Months of withheld salary:    {{months_withheld}}
+  WPS-paid (Y / N):             {{wps_paid_yes_no}}
+  Minimum-wage shortfall:       {{min_wage_shortfall}}
+  Housing / food allowance:     {{housing_food_status}}
+  Passport / document retention: {{document_retention_yes_no}}
+  Post-2020 NOC conditions met: {{noc_abolished_conditions}}
+
+INCIDENT SUMMARY
+{{incident_summary}}
+
+STATUTORY VIOLATIONS ALLEGED
+  - Qatar Law 14/2004 (Labour Law)
+  - Qatar Law 15/2017 on Domestic Workers (where applicable)
+  - Wage Protection System obligations
+  - Non-discriminatory minimum wage QAR 1,000 + housing +
+    food allowance (Council of Ministers Decision 25/2020)
+  - Post-2020 NOC abolition (Council of Ministers Decision
+    51/2020); worker may change employer freely after
+    labour-contract end
+  - ILO C181 Art. 7; ILO C190; Palermo Protocol Art. 3 (if
+    trafficking indicators)
+
+ILO FORCED-LABOUR INDICATORS
+{{ilo_indicators}}
+
+EVIDENCE AVAILABLE
+{{evidence_list}}
+
+RELIEF REQUESTED
+{{relief_requested}}
+
+The complainant requests preliminary conciliation at the
+MoL Dispute Settlement Department (7-day target). If
+unresolved, the complainant requests referral to the Labour
+Dispute Resolution Committee (3-week binding decision). The
+complainant requests interim payment from the Workers'
+Support and Insurance Fund pending resolution. Coordination
+requested with POLO / Migrant Worker Office of the worker's
+origin country.
+
+Signature: ________________________    Date: __________
+"""
+
+
+_TEMPLATE_AU_FWO_BODY = """COMPLAINT TO AUSTRALIAN FAIR WORK OMBUDSMAN (FWO)
+Migrant Worker Investigation -- Fair Work Act 2009
+Filing date: {{filed_date}}
+
+COMPLAINANT (NGO caseworker / union official)
+  Name:           {{complainant_name}}
+  Organisation:   {{complainant_org}}
+  Contact:        {{complainant_contact}}
+
+MIGRANT WORKER (subject)
+  Anonymized identifier:   {{worker_name}}
+  Country of origin:       {{country_of_origin}}
+  Visa subclass + status:  {{visa_subclass_status}}
+  Australian visa label:   {{visa_label_prefix}}
+
+EMPLOYER / SPONSOR
+  Employer name:                {{employer_name}}
+  Sponsor ABN:                  {{sponsor_abn}}
+  Worksite address (state):     {{worksite_state}}
+  TSS 482 / PALM nomination:    {{nomination_no}}
+
+PARTICULARS OF THE VIOLATION
+  Unpaid wages (AUD):                  {{unpaid_wages_aud}}
+  Underpayment vs. award rate:         {{award_underpayment}}
+  Sham contracting indicators:         {{sham_contracting_yes_no}}
+  Excess deductions (housing / loan):  {{excess_deductions}}
+  Hours per week worked:               {{hours_per_week}}
+  Passport / document retention:       {{document_retention_yes_no}}
+  Threat of visa cancellation:         {{threat_visa_cancel_yes_no}}
+
+INCIDENT SUMMARY
+{{incident_summary}}
+
+STATUTORY VIOLATIONS ALLEGED
+  - Fair Work Act 2009 (minimum wage + award compliance +
+    record-keeping + non-discrimination + anti-bullying)
+  - Migration Act 1958 (sponsorship obligations; sham
+    contracting)
+  - Modern Slavery Act 2018 (reporting + supply-chain due
+    diligence where applicable to corporate respondent)
+  - AU PALM Code of Conduct (where worker is PALM-scheme)
+  - ILO C181 Art. 7; ILO C189; Palermo Protocol Art. 3
+
+ILO FORCED-LABOUR INDICATORS
+{{ilo_indicators}}
+
+EVIDENCE AVAILABLE
+{{evidence_list}}
+
+RELIEF REQUESTED
+{{relief_requested}}
+
+The complainant requests FWO assistance pathway including
+mediation, formal investigation, compliance notices,
+infringement notices, and where appropriate Federal Court /
+Federal Circuit Court litigation under the Fair Work Act.
+Coordination requested with Migrant Workers Centre VIC / NSW
++ Anti-Slavery Australia (UTS Faculty of Law) + AFP if
+trafficking offences are identified.
+
+Signature: ________________________    Date: __________
+"""
+
+
+_TEMPLATE_UK_NRM_REFERRAL_BODY = """UK NATIONAL REFERRAL MECHANISM (NRM) REFERRAL FORM
+First Responder Organisation -- Single Competent Authority Submission
+Filing date: {{filed_date}}
+
+FIRST RESPONDER ORGANISATION
+  Name:           {{complainant_name}}
+  Organisation:   {{complainant_org}}
+  FRO status:     {{fro_status}}
+  Contact:        {{complainant_contact}}
+
+POTENTIAL VICTIM (subject)
+  Anonymized identifier:  {{worker_name}}
+  Nationality:            {{nationality}}
+  Date of birth (year):   {{year_of_birth}}
+  Age category:           {{age_category}}
+  Gender:                 {{gender}}
+  Languages:              {{languages_spoken}}
+
+EXPLOITATION TYPE
+  Sexual exploitation (Y/N):            {{sex_exploit_yes_no}}
+  Labour exploitation (Y/N):            {{labour_exploit_yes_no}}
+  Domestic servitude (Y/N):             {{dom_servitude_yes_no}}
+  Criminal exploitation (Y/N):          {{criminal_exploit_yes_no}}
+  Organ removal (Y/N):                  {{organ_removal_yes_no}}
+
+TRAFFICKER / EXPLOITER PROFILE
+  Trafficker network description:       {{trafficker_description}}
+  Country of recruitment:               {{country_of_recruitment}}
+  Journey route:                        {{journey_route}}
+  Current location:                     {{current_uk_location}}
+
+INDICATORS PRESENT
+  Recruitment indicators:               {{recruitment_indicators}}
+  Travel indicators:                    {{travel_indicators}}
+  Exploitation indicators:              {{exploitation_indicators}}
+  Restriction-of-movement indicators:   {{movement_indicators}}
+  Document retention:                   {{document_retention_yes_no}}
+  Debt-bondage indicators:              {{debt_bondage_yes_no}}
+
+CONSENT + CURRENT SUPPORT
+  Potential victim consent given:       {{victim_consent_yes_no}}
+  Recovery and Reflection needed:       {{rr_period_needed_yes_no}}
+  Safehouse needed:                     {{safehouse_needed_yes_no}}
+  Children involved:                    {{children_involved_yes_no}}
+
+CASE NARRATIVE
+{{incident_summary}}
+
+STATUTORY FRAMEWORK CITED
+  - Modern Slavery Act 2015 (UK)
+  - Council of Europe Convention on Action against
+    Trafficking in Human Beings (CETS 197)
+  - EU Anti-Trafficking Directive 2011/36/EU (residual
+    applicability where relevant)
+  - Palermo Protocol Art. 3
+  - Children Act 1989 / 2004 (if applicable to a child)
+  - National Crime Agency MSHTU guidance
+
+RELIEF + REFERRAL REQUESTED
+{{relief_requested}}
+
+The First Responder Organisation requests Reasonable Grounds
+decision from the Single Competent Authority (SCA) within 5
+working days. If positive, the potential victim accesses 30+
+days Recovery and Reflection plus NRM-funded support
+(safehouse, casework, financial support, healthcare access).
+Conclusive Grounds decision to follow on balance of
+probabilities.
+
+Signature: ________________________    Date: __________
+"""
+
+
+_TEMPLATE_POLARIS_HOTLINE_REFERRAL_BODY = """POLARIS NATIONAL HUMAN TRAFFICKING HOTLINE -- CASEWORKER REFERRAL SUMMARY
+1-888-373-7888  |  Text BeFree to 233733  |  Web chat
+Filing date: {{filed_date}}
+
+CASEWORKER (referring NGO / clinician)
+  Name:           {{complainant_name}}
+  Organisation:   {{complainant_org}}
+  Contact:        {{complainant_contact}}
+
+POTENTIAL VICTIM (subject)
+  Anonymized identifier:  {{worker_name}}
+  Languages:              {{languages_spoken}}
+  Country of origin:      {{country_of_origin}}
+  Age category:           {{age_category}}
+  Current US location:    {{current_us_location}}
+
+CASE OVERVIEW
+  Trafficking type (sex / labour / mixed):   {{trafficking_type}}
+  Industry / sector:                         {{sector}}
+  Recruitment country:                       {{country_of_recruitment}}
+  Trafficker relationship to victim:         {{trafficker_relationship}}
+  US duration:                               {{us_duration}}
+  Immigration status (if known):             {{immigration_status}}
+
+INDICATORS REPORTED (ILO / Palermo / Polaris Typology)
+  Force / coercion indicators:               {{coercion_indicators}}
+  Document retention:                        {{document_retention_yes_no}}
+  Debt-bondage indicators:                   {{debt_bondage_yes_no}}
+  Restriction of movement:                   {{movement_indicators}}
+  Threats (deportation / family / harm):     {{threats_reported}}
+  Wages owed (USD):                          {{wages_owed_usd}}
+
+CASE NARRATIVE
+{{incident_summary}}
+
+VICTIM GOALS (caller-led)
+  Stated goal of contact:                    {{victim_stated_goal}}
+  Wants law-enforcement involvement (Y/N):   {{wants_le_involvement_yes_no}}
+  Wants T-Visa / U-Visa exploration:         {{wants_t_or_u_visa_yes_no}}
+  Wants medical / mental-health support:     {{wants_medical_support_yes_no}}
+  Wants shelter:                             {{wants_shelter_yes_no}}
+  Wants legal-aid for civil restitution:     {{wants_legal_aid_yes_no}}
+
+CASEWORKER ACTIONS TAKEN
+{{caseworker_actions}}
+
+LOCAL SERVICE PROVIDER RECOMMENDATIONS (Polaris directory)
+{{recommended_service_providers}}
+
+STATUTORY FRAMEWORK
+  - US TVPRA 22 USC 7102 + 18 USC 1581-1592
+  - California Labor Code Sec. 244 (immigration status
+    irrelevant for wage claims; applies in state-level
+    equivalent statutes elsewhere)
+  - State-level victim-restitution + crime-victim statutes
+  - HHS Office on Trafficking in Persons (OTIP) victim
+    services framework
+
+RELIEF + REFERRAL REQUESTED
+{{relief_requested}}
+
+The caseworker requests Polaris hotline intake support
+including: warm-handoff to local service providers, T-Visa
++ U-Visa legal-aid referral via Polaris partner network,
+crisis intervention if active danger, and entry of
+de-identified outcome data into the Counter-Trafficking
+Data Collaborative (CTDC) only with the victim's consent.
+
+Signature: ________________________    Date: __________
+"""
+
+
+_TEMPLATE_CBP_E_ALLEGATIONS_BODY = """U.S. CUSTOMS AND BORDER PROTECTION (CBP) -- E-ALLEGATION SUBMISSION
+Forced Labor Allegation under 19 U.S.C. 1307 / Withhold Release Order (WRO) Petition
+Filing date: {{filed_date}}
+
+SUBMITTER (NGO / researcher / journalist / labour expert)
+  Name:           {{complainant_name}}
+  Organisation:   {{complainant_org}}
+  Contact:        {{complainant_contact}}
+
+SUBJECT MERCHANDISE
+  Product name + HTSUS code:    {{product_name_htsus}}
+  Country of origin:            {{country_of_origin}}
+  Importer name (if known):     {{importer_name}}
+  Manufacturer name:            {{manufacturer_name}}
+  Manufacturer address:         {{manufacturer_address}}
+  Tier of supply chain:         {{supply_chain_tier}}
+
+INDICATORS OF FORCED LABOUR
+  ILO indicators observed (incl. evidence):  {{ilo_indicators}}
+  Palermo Protocol indicators:               {{palermo_indicators}}
+  Worker testimony references:               {{worker_testimony_refs}}
+  Audit + investigative documentation:       {{audit_documentation}}
+  UFLPA Entity List linkage (if any):        {{uflpa_entity_list_linkage}}
+
+FACTUAL BASIS
+{{factual_basis_summary}}
+
+EVIDENCE PROVIDED
+{{evidence_list}}
+
+STATUTORY VIOLATIONS ALLEGED
+  - 19 U.S.C. 1307 (prohibition on importation of merchandise
+    produced by forced labour, indentured labour, convict
+    labour, or child labour)
+  - Tariff Act of 1930 Section 307
+  - Uyghur Forced Labor Prevention Act (UFLPA, 2021) where
+    Xinjiang / UFLPA Entity List linkage exists
+  - Trafficking Victims Protection Reauthorization Act
+    (TVPRA) 22 U.S.C. 7102
+
+RELIEF REQUESTED
+The submitter requests CBP Forced Labor Division to:
+1. Open formal review of the named merchandise + manufacturer
+2. Apply the 'reasonably indicates' standard to issue a
+   Withhold Release Order (WRO) preventing importation
+3. Coordinate with US ICE Homeland Security Investigations
+   on related trafficking + smuggling prosecution under
+   18 USC 1589 / 1590 / 1591 / 1592 where appropriate
+4. Coordinate with the Department of State + USTR on
+   sectoral + diplomatic engagement
+5. Where UFLPA rebuttable presumption applies, require the
+   importer to rebut with clear and convincing evidence
+
+Signature: ________________________    Date: __________
+"""
+
+
 _TEMPLATE_US_DOL_WHD_BODY = """COMPLAINT TO THE U.S. DEPARTMENT OF LABOR
 Wage and Hour Division -- H-2A / MSPA Investigation
 Filing date: {{filed_date}}
@@ -873,6 +1334,298 @@ TEMPLATES_REGISTRY: dict[str, TemplateSpec] = {
             _f("ilo_indicators", "ILO forced-labour indicators observed", False, "intelligence.ilo_indicators"),
             _f("evidence_list", "Evidence available", False, "intelligence.evidence_edges"),
             _f("relief_requested", "Relief requested", True),
+        ),
+    ),
+
+    "sa_mhrsd_complaint": TemplateSpec(
+        id="sa_mhrsd_complaint",
+        title="Saudi MHRSD Complaint (Labour Law M/51 + Domestic Workers Bylaw)",
+        jurisdiction="Saudi Arabia",
+        audience="Ministry of Human Resources and Social Development",
+        summary=(
+            "Complaint against a Saudi employer / sponsor for unpaid "
+            "wages, document retention, restriction of movement, or "
+            "Domestic Workers Bylaw violations. Aligns with Royal "
+            "Decree M/51 + Ministerial Decision 310/1434 H + Wage "
+            "Protection System + Saudi Mobility Initiative 2021."
+        ),
+        body=_TEMPLATE_SA_MHRSD_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("complainant_name", "Caseworker name", True),
+            _f("complainant_org", "NGO / organisation", True),
+            _f("complainant_contact", "Caseworker contact", True),
+            _f("worker_name", "Worker anonymized ID", True, "people[0].label"),
+            _f("country_of_origin", "Country of origin", True, "intelligence.country_of_origin"),
+            _f("worker_iqama_prefix", "Iqama / residence number prefix", False),
+            _f("sector", "Sector (domestic / construction / hospitality)", True, "intelligence.sector"),
+            _f("employer_name", "Employer / sponsor name", True, "intelligence.employers[0]"),
+            _f("sponsor_register_no", "Sponsor commercial register number", False),
+            _f("sa_agency_name", "Saudi recruitment agency", False, "intelligence.agencies[0]"),
+            _f("musaned_contract_no", "Musaned contract number", False),
+            _f("unpaid_wages_sar", "Unpaid wages (SAR)", True),
+            _f("months_withheld", "Months of withheld salary", False),
+            _f("recruitment_fee_amount", "Recruitment fee paid (USD/SAR)", False),
+            _f("document_retention_yes_no", "Passport / document retention (Y/N)", True),
+            _f("movement_restriction_yes_no", "Restriction of movement (Y/N)", True),
+            _f("hours_per_day", "Working hours per day", False),
+            _f("weekly_rest_day_yes_no", "Weekly rest day provided (Y/N)", False),
+            _f("incident_summary", "Case narrative", True, "intelligence.case_brief"),
+            _f("ilo_indicators", "ILO forced-labour indicators observed", False, "intelligence.ilo_indicators"),
+            _f("evidence_list", "Evidence available", False, "intelligence.evidence_edges"),
+            _f("relief_requested", "Relief requested", True),
+        ),
+    ),
+
+    "uae_mohre_complaint": TemplateSpec(
+        id="uae_mohre_complaint",
+        title="UAE MoHRE Complaint (Federal Decree-Law 33/2021 + 9/2022)",
+        jurisdiction="United Arab Emirates",
+        audience="Ministry of Human Resources and Emiratisation (MoHRE)",
+        summary=(
+            "Complaint against a UAE employer / sponsor / Tadbeer / "
+            "Esna'ad centre for unpaid wages, recruitment-fee abuse, "
+            "document retention, or domestic-worker violations. Aligns "
+            "with Federal Decree-Law 33/2021 + Federal Decree-Law "
+            "9/2022 + WPS + Tadbeer regulation."
+        ),
+        body=_TEMPLATE_UAE_MOHRE_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("complainant_name", "Caseworker name", True),
+            _f("complainant_org", "NGO / organisation", True),
+            _f("complainant_contact", "Caseworker contact", True),
+            _f("worker_name", "Worker anonymized ID", True, "people[0].label"),
+            _f("country_of_origin", "Country of origin", True, "intelligence.country_of_origin"),
+            _f("emirates_id_prefix", "Emirates ID prefix", False),
+            _f("sector", "Sector", True, "intelligence.sector"),
+            _f("employer_name", "Employer name", True, "intelligence.employers[0]"),
+            _f("employer_trade_licence", "Employer trade licence number", False),
+            _f("tadbeer_centre_name", "Tadbeer / Esna'ad centre (if domestic)", False),
+            _f("mohre_permit_no", "MoHRE work permit number", False),
+            _f("unpaid_wages_aed", "Unpaid wages (AED)", True),
+            _f("months_withheld", "Months of withheld salary", False),
+            _f("recruitment_fee_amount", "Recruitment fee paid (USD/AED)", False),
+            _f("document_retention_yes_no", "Document retention (Y/N)", True),
+            _f("movement_restriction_yes_no", "Restriction of movement (Y/N)", True),
+            _f("hours_per_day_rest", "Hours per day / rest day status", False),
+            _f("living_conditions_concern", "Living conditions concern (describe)", False),
+            _f("incident_summary", "Case narrative", True, "intelligence.case_brief"),
+            _f("ilo_indicators", "ILO indicators observed", False, "intelligence.ilo_indicators"),
+            _f("evidence_list", "Evidence available", False, "intelligence.evidence_edges"),
+            _f("relief_requested", "Relief requested", True),
+        ),
+    ),
+
+    "qatar_mol_complaint": TemplateSpec(
+        id="qatar_mol_complaint",
+        title="Qatar MoL Complaint (Law 14/2004 + 15/2017 + Workers' Support Fund)",
+        jurisdiction="Qatar",
+        audience="Ministry of Labour + Workers' Support and Insurance Fund",
+        summary=(
+            "Complaint against a Qatari employer / kafeel for unpaid "
+            "wages, WPS non-compliance, minimum-wage shortfall, "
+            "housing / food allowance denial, or document retention. "
+            "Aligns with Law 14/2004 + Law 15/2017 + post-2020 "
+            "non-discriminatory minimum wage + NOC abolition."
+        ),
+        body=_TEMPLATE_QATAR_MOL_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("complainant_name", "Caseworker name", True),
+            _f("complainant_org", "NGO / organisation", True),
+            _f("complainant_contact", "Caseworker contact", True),
+            _f("worker_name", "Worker anonymized ID", True, "people[0].label"),
+            _f("country_of_origin", "Country of origin", True, "intelligence.country_of_origin"),
+            _f("qid_prefix", "QID prefix", False),
+            _f("sector", "Sector", True, "intelligence.sector"),
+            _f("employer_name", "Employer / kafeel name", True, "intelligence.employers[0]"),
+            _f("employer_cr_no", "Employer commercial register number", False),
+            _f("work_permit_no", "Work permit number", False),
+            _f("contract_start_date", "Contract start date", False),
+            _f("unpaid_wages_qar", "Unpaid wages (QAR)", True),
+            _f("months_withheld", "Months of withheld salary", False),
+            _f("wps_paid_yes_no", "WPS-paid (Y/N)", True),
+            _f("min_wage_shortfall", "Minimum-wage shortfall (QAR/month)", False),
+            _f("housing_food_status", "Housing / food allowance status", False),
+            _f("document_retention_yes_no", "Document retention (Y/N)", True),
+            _f("noc_abolished_conditions", "Post-2020 NOC conditions met", False),
+            _f("incident_summary", "Case narrative", True, "intelligence.case_brief"),
+            _f("ilo_indicators", "ILO indicators observed", False, "intelligence.ilo_indicators"),
+            _f("evidence_list", "Evidence available", False, "intelligence.evidence_edges"),
+            _f("relief_requested", "Relief requested", True),
+        ),
+    ),
+
+    "au_fwo_complaint": TemplateSpec(
+        id="au_fwo_complaint",
+        title="Australian Fair Work Ombudsman (FWO) Complaint (Migrant Worker)",
+        jurisdiction="Australia",
+        audience="Fair Work Ombudsman + Migrant Workers Centre + Anti-Slavery Australia",
+        summary=(
+            "Complaint against an Australian employer / sponsor for "
+            "unpaid wages, award underpayment, sham contracting, "
+            "excess deductions, or visa-status threats against a "
+            "migrant worker. Aligns with Fair Work Act 2009 + "
+            "Migration Act 1958 + Modern Slavery Act 2018 + PALM "
+            "Code of Conduct."
+        ),
+        body=_TEMPLATE_AU_FWO_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("complainant_name", "Caseworker / union official name", True),
+            _f("complainant_org", "Organisation", True),
+            _f("complainant_contact", "Contact", True),
+            _f("worker_name", "Worker anonymized ID", True, "people[0].label"),
+            _f("country_of_origin", "Country of origin", True, "intelligence.country_of_origin"),
+            _f("visa_subclass_status", "Visa subclass and status (TSS 482 / PALM / Student / etc.)", True),
+            _f("visa_label_prefix", "Visa label prefix (anonymized)", False),
+            _f("employer_name", "Employer name", True, "intelligence.employers[0]"),
+            _f("sponsor_abn", "Sponsor ABN", False),
+            _f("worksite_state", "Worksite state", True),
+            _f("nomination_no", "Nomination number (TSS 482 / PALM)", False),
+            _f("unpaid_wages_aud", "Unpaid wages (AUD)", True),
+            _f("award_underpayment", "Underpayment vs. award rate (describe)", False),
+            _f("sham_contracting_yes_no", "Sham contracting indicators (Y/N)", False),
+            _f("excess_deductions", "Excess deductions (housing / loan)", False),
+            _f("hours_per_week", "Hours per week", False),
+            _f("document_retention_yes_no", "Document retention (Y/N)", True),
+            _f("threat_visa_cancel_yes_no", "Threat of visa cancellation (Y/N)", True),
+            _f("incident_summary", "Case narrative", True, "intelligence.case_brief"),
+            _f("ilo_indicators", "ILO indicators observed", False, "intelligence.ilo_indicators"),
+            _f("evidence_list", "Evidence available", False, "intelligence.evidence_edges"),
+            _f("relief_requested", "Relief requested", True),
+        ),
+    ),
+
+    "uk_nrm_referral": TemplateSpec(
+        id="uk_nrm_referral",
+        title="UK National Referral Mechanism (NRM) Referral",
+        jurisdiction="United Kingdom",
+        audience="Single Competent Authority (SCA) + First Responder Organisations",
+        summary=(
+            "First Responder Organisation NRM referral to the UK SCA "
+            "for adult or child potential victim of trafficking / "
+            "modern slavery. Aligns with Modern Slavery Act 2015, "
+            "Council of Europe Convention CETS 197, and the Palermo "
+            "Protocol."
+        ),
+        body=_TEMPLATE_UK_NRM_REFERRAL_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("complainant_name", "First Responder name", True),
+            _f("complainant_org", "First Responder Organisation", True),
+            _f("fro_status", "FRO status (Police / NCA / GLAA / Border Force / NGO)", True),
+            _f("complainant_contact", "Contact", True),
+            _f("worker_name", "Potential victim anonymized ID", True, "people[0].label"),
+            _f("nationality", "Nationality", True),
+            _f("year_of_birth", "Year of birth", False),
+            _f("age_category", "Age category (child / adult)", True),
+            _f("gender", "Gender", False),
+            _f("languages_spoken", "Languages spoken", False),
+            _f("sex_exploit_yes_no", "Sexual exploitation (Y/N)", True),
+            _f("labour_exploit_yes_no", "Labour exploitation (Y/N)", True),
+            _f("dom_servitude_yes_no", "Domestic servitude (Y/N)", True),
+            _f("criminal_exploit_yes_no", "Criminal exploitation (Y/N)", False),
+            _f("organ_removal_yes_no", "Organ removal (Y/N)", False),
+            _f("trafficker_description", "Trafficker network description", False),
+            _f("country_of_recruitment", "Country of recruitment", False),
+            _f("journey_route", "Journey route", False),
+            _f("current_uk_location", "Current UK location", False),
+            _f("recruitment_indicators", "Recruitment indicators", False),
+            _f("travel_indicators", "Travel indicators", False),
+            _f("exploitation_indicators", "Exploitation indicators", False),
+            _f("movement_indicators", "Restriction-of-movement indicators", False),
+            _f("document_retention_yes_no", "Document retention (Y/N)", True),
+            _f("debt_bondage_yes_no", "Debt bondage indicators (Y/N)", True),
+            _f("victim_consent_yes_no", "Potential victim consent given (Y/N)", True),
+            _f("rr_period_needed_yes_no", "Recovery and Reflection needed (Y/N)", True),
+            _f("safehouse_needed_yes_no", "Safehouse needed (Y/N)", True),
+            _f("children_involved_yes_no", "Children involved (Y/N)", True),
+            _f("incident_summary", "Case narrative", True, "intelligence.case_brief"),
+            _f("relief_requested", "Referral + support requested", True),
+        ),
+    ),
+
+    "polaris_hotline_referral": TemplateSpec(
+        id="polaris_hotline_referral",
+        title="Polaris US National Human Trafficking Hotline -- Caseworker Referral",
+        jurisdiction="United States",
+        audience="Polaris Project + 1-888-373-7888 hotline + BeFree text-line",
+        summary=(
+            "Caseworker referral to the US National Human Trafficking "
+            "Hotline. Caller-led design; the victim defines the goal "
+            "of the contact. Aligns with US TVPRA + 18 USC "
+            "1581-1592 + California Labor Code Sec. 244 + HHS OTIP "
+            "framework."
+        ),
+        body=_TEMPLATE_POLARIS_HOTLINE_REFERRAL_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("complainant_name", "Caseworker name", True),
+            _f("complainant_org", "NGO / clinic", True),
+            _f("complainant_contact", "Contact", True),
+            _f("worker_name", "Potential victim anonymized ID", True, "people[0].label"),
+            _f("languages_spoken", "Languages", False),
+            _f("country_of_origin", "Country of origin", False, "intelligence.country_of_origin"),
+            _f("age_category", "Age category", True),
+            _f("current_us_location", "Current US location (city / state only)", True),
+            _f("trafficking_type", "Trafficking type (sex / labour / mixed)", True),
+            _f("sector", "Industry / sector", False, "intelligence.sector"),
+            _f("country_of_recruitment", "Recruitment country", False),
+            _f("trafficker_relationship", "Trafficker relationship to victim", False),
+            _f("us_duration", "Duration in US", False),
+            _f("immigration_status", "Immigration status (if known)", False),
+            _f("coercion_indicators", "Force / coercion indicators", False),
+            _f("document_retention_yes_no", "Document retention (Y/N)", False),
+            _f("debt_bondage_yes_no", "Debt-bondage indicators (Y/N)", False),
+            _f("movement_indicators", "Restriction of movement", False),
+            _f("threats_reported", "Threats reported", False),
+            _f("wages_owed_usd", "Wages owed (USD)", False),
+            _f("incident_summary", "Case narrative", True, "intelligence.case_brief"),
+            _f("victim_stated_goal", "Victim's stated goal of contact", True),
+            _f("wants_le_involvement_yes_no", "Wants law enforcement (Y/N)", True),
+            _f("wants_t_or_u_visa_yes_no", "Wants T-Visa / U-Visa exploration (Y/N)", True),
+            _f("wants_medical_support_yes_no", "Wants medical / MH support (Y/N)", True),
+            _f("wants_shelter_yes_no", "Wants shelter (Y/N)", True),
+            _f("wants_legal_aid_yes_no", "Wants legal-aid for civil restitution (Y/N)", True),
+            _f("caseworker_actions", "Caseworker actions taken", True),
+            _f("recommended_service_providers", "Recommended local service providers", False),
+            _f("relief_requested", "Relief + referral requested", True),
+        ),
+    ),
+
+    "cbp_e_allegation": TemplateSpec(
+        id="cbp_e_allegation",
+        title="US CBP e-Allegation -- Forced-Labour Withhold Release Order Petition",
+        jurisdiction="United States",
+        audience="US Customs and Border Protection (CBP) Forced Labor Division",
+        summary=(
+            "Submission to CBP e-Allegations Online Trade Violation "
+            "Reporting platform requesting investigation and possible "
+            "Withhold Release Order under 19 USC 1307 against "
+            "merchandise produced with forced labour. Aligns with "
+            "Tariff Act of 1930 Section 307 + UFLPA + TVPRA."
+        ),
+        body=_TEMPLATE_CBP_E_ALLEGATIONS_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("complainant_name", "Submitter name", True),
+            _f("complainant_org", "Submitter organisation", True),
+            _f("complainant_contact", "Contact", True),
+            _f("product_name_htsus", "Product name + HTSUS code", True),
+            _f("country_of_origin", "Country of origin", True, "intelligence.country_of_origin"),
+            _f("importer_name", "Importer name (if known)", False),
+            _f("manufacturer_name", "Manufacturer name", True),
+            _f("manufacturer_address", "Manufacturer address", False),
+            _f("supply_chain_tier", "Tier of supply chain (Tier 1 / 2 / 3 / raw)", False),
+            _f("ilo_indicators", "ILO forced-labour indicators observed", True, "intelligence.ilo_indicators"),
+            _f("palermo_indicators", "Palermo Protocol indicators", False),
+            _f("worker_testimony_refs", "Worker testimony references", False),
+            _f("audit_documentation", "Audit + investigative documentation", False),
+            _f("uflpa_entity_list_linkage", "UFLPA Entity List linkage (if any)", False),
+            _f("factual_basis_summary", "Factual basis summary", True, "intelligence.case_brief"),
+            _f("evidence_list", "Evidence provided", True, "intelligence.evidence_edges"),
         ),
     ),
 }
