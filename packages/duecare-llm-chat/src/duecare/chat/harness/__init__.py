@@ -6884,6 +6884,179 @@ RAG_CORPUS = [
      "and Operational Guidelines for Fair Recruitment (2016), and "
      "the UN Guiding Principles on Business and Human Rights "
      "(UNGPs, 2011)."),
+
+    # ----- Regional anti-trafficking instruments -----
+    ("eu_anti_trafficking_directive_2011_36", "EU Anti-Trafficking Directive 2011/36/EU (as updated 2024)",
+     "EU Directive 2011/36/EU + 2024 update",
+     "EU Directive 2011/36/EU on preventing and combating "
+     "trafficking in human beings and protecting victims (the EU "
+     "Anti-Trafficking Directive) establishes minimum standards "
+     "across EU Member States for: criminalization of trafficking "
+     "(Art. 2), penalties (Art. 4), non-prosecution of victims "
+     "for unlawful acts they were compelled to commit (Art. 8), "
+     "assistance and support for victims (Art. 11-12), and child-"
+     "specific protections (Art. 13-16). The 2024 amending "
+     "directive (2024/1712) extends scope to forced marriage, "
+     "illegal adoption, and exploitation of surrogacy; reinforces "
+     "support measures for victims; and aligns Member State "
+     "reporting obligations. Together with the EU Strategy on "
+     "Combatting Trafficking in Human Beings, it is the primary "
+     "framework for EU-internal trafficking response."),
+    ("asean_actip_2015", "ASEAN Convention Against Trafficking in Persons, Especially Women and Children (ACTIP) 2015",
+     "ASEAN ACTIP 2015",
+     "ACTIP, signed in Kuala Lumpur in November 2015 and in force "
+     "since 2017, is the binding regional anti-trafficking treaty "
+     "for ASEAN Member States. It defines trafficking consistent "
+     "with the Palermo Protocol, criminalises trafficking "
+     "(Art. 5), establishes non-criminalisation of victims for "
+     "offences committed as a direct consequence of being "
+     "trafficked (Art. 14(7)), and provides for victim "
+     "identification, assistance, repatriation, and cross-border "
+     "cooperation (Chapters IV-VI). The ACTIP Plan of Action "
+     "(2015) operationalises commitments. Member States: Brunei, "
+     "Cambodia, Indonesia, Laos, Malaysia, Myanmar, Philippines, "
+     "Singapore, Thailand, Vietnam (Timor-Leste is an observer)."),
+    ("bali_process", "Bali Process on People Smuggling, Trafficking in Persons and Related Transnational Crime",
+     "Bali Process (since 2002)",
+     "The Bali Process, co-chaired by Indonesia and Australia "
+     "since 2002, is a non-binding consultative regional forum on "
+     "people smuggling, trafficking, and related transnational "
+     "crime. Its membership of 45+ states plus UNHCR, IOM, and "
+     "UNODC observers provides a policy-coordination platform "
+     "across origin, transit, and destination countries in the "
+     "Asia-Pacific. Key outputs include the Bali Process "
+     "Recommendations on the Identification and Protection of "
+     "Victims of Trafficking; the Government and Business Forum "
+     "(2017) on ethical recruitment + supply-chain transparency; "
+     "the Bali Process Strategy for Cooperation; and "
+     "implementation through the Regional Support Office (RSO) "
+     "based in Bangkok."),
+    ("saarc_convention_trafficking_2002", "SAARC Convention on Preventing and Combating Trafficking in Women and Children for Prostitution 2002",
+     "SAARC Convention 2002",
+     "The South Asian Association for Regional Cooperation "
+     "(SAARC) Convention on Preventing and Combating Trafficking "
+     "in Women and Children for Prostitution, signed at Kathmandu "
+     "on 5 January 2002 and in force since November 2005, is the "
+     "binding regional anti-trafficking instrument for SAARC "
+     "Member States (Bangladesh, Bhutan, India, Maldives, Nepal, "
+     "Pakistan, Sri Lanka; Afghanistan joined SAARC in 2007). "
+     "It establishes criminalisation, mutual legal assistance, "
+     "extradition, repatriation, and rehabilitation obligations. "
+     "Limitations noted by NGOs: the convention is narrow in "
+     "scope (women + children, prostitution-purpose only); does "
+     "not address labour trafficking, forced marriage, or organ "
+     "trafficking; and has uneven implementation across Member "
+     "States. The proposed updated SAARC Convention against "
+     "Trafficking in Persons has been under negotiation."),
+
+    # ----- ILO operational indicators -----
+    ("ilo_operational_indicators_trafficking_2009", "ILO/EC Operational Indicators of Trafficking in Human Beings (2009)",
+     "ILO/EC Operational Indicators 2009",
+     "ILO and the European Commission published a 2009 set of "
+     "operational indicators of trafficking in human beings, "
+     "covering recruitment, transit, exploitation, and coercion. "
+     "The indicators are grouped by adult-vs-child status and "
+     "by trafficking-purpose category (labour exploitation, "
+     "sexual exploitation, other). For each indicator there are "
+     "three reliability levels: strong, medium, weak. A typical "
+     "decision rule combines at least one strong + one medium "
+     "(or two strong) indicators from each of two categories "
+     "(deceptive recruitment OR coercive recruitment) AND "
+     "(exploitation OR coercion at destination) AND (abuse of "
+     "vulnerability). The indicator set is widely used by "
+     "national identification authorities and NGOs and is "
+     "complementary to the ILO 11 Forced Labour Indicators "
+     "(which apply to forced labour outcomes, not the full "
+     "trafficking process)."),
+
+    # ----- Sectoral / cross-cutting ethical-recruitment instruments -----
+    ("who_global_code_health_personnel_2010", "WHO Global Code of Practice on the International Recruitment of Health Personnel (2010)",
+     "WHO Health Personnel Code 2010",
+     "The WHO Global Code of Practice on the International "
+     "Recruitment of Health Personnel (adopted by World Health "
+     "Assembly resolution WHA63.16, 21 May 2010) is a voluntary "
+     "framework guiding ethical international recruitment of "
+     "doctors, nurses, midwives, and other health workers. Key "
+     "principles: (1) discourage active recruitment from "
+     "developing countries facing critical health workforce "
+     "shortages on the WHO Health Workforce Support and "
+     "Safeguards List; (2) ensure equal treatment of migrant "
+     "health workers with the domestically trained workforce; "
+     "(3) recruitment agencies act in accordance with the Code; "
+     "(4) Member States gather data and report periodically. The "
+     "WHO Code is reviewed every three years."),
+
+    # ----- Business and human rights frameworks -----
+    ("ungp_2011_business_human_rights", "UN Guiding Principles on Business and Human Rights (UNGPs, 2011)",
+     "UNGPs 2011",
+     "The UN Guiding Principles on Business and Human Rights, "
+     "endorsed by the UN Human Rights Council in 2011 (HRC "
+     "resolution 17/4) and developed by Special Representative "
+     "John Ruggie, set out the State duty to protect human "
+     "rights (Pillar I), the corporate responsibility to respect "
+     "human rights (Pillar II), and access to remedy for victims "
+     "of business-related abuses (Pillar III). Under Pillar II, "
+     "companies must conduct human rights due diligence "
+     "including: a policy commitment, ongoing assessment of "
+     "actual and potential impacts, integration of findings, "
+     "tracking effectiveness, and communicating externally. "
+     "The UNGPs underpin national-level statutes including the "
+     "UK Modern Slavery Act 2015, France Loi de Vigilance 2017, "
+     "Germany Lieferkettengesetz 2021, Norway Transparency Act "
+     "2021, the EU Corporate Sustainability Due Diligence "
+     "Directive (CSDDD, 2024), and the IRIS Standard."),
+    ("oecd_guidelines_mne_2023", "OECD Guidelines for Multinational Enterprises on Responsible Business Conduct (2023 revision)",
+     "OECD Guidelines for MNEs (2023)",
+     "The OECD Guidelines for Multinational Enterprises on "
+     "Responsible Business Conduct, last revised June 2023, are "
+     "the most widely endorsed government-backed recommendations "
+     "on responsible business conduct, covering employment + "
+     "industrial relations, human rights, environment, anti-"
+     "corruption, consumer interests, science + technology, "
+     "competition, and taxation. National Contact Points (NCPs) "
+     "in each adhering government provide a non-judicial "
+     "grievance mechanism: workers and civil-society can file "
+     "Specific Instances against multinational enterprises "
+     "alleging Guideline breaches. The 2023 revision strengthens "
+     "due-diligence guidance, addresses digital technology "
+     "responsibilities, and expands provisions on union "
+     "engagement and worker representation."),
+
+    # ----- AML / FIU operational frameworks -----
+    ("egmont_group_htf_operational", "Egmont Group operational typologies for human-trafficking finance",
+     "Egmont Group HTF typologies",
+     "The Egmont Group of Financial Intelligence Units is a "
+     "global network of 170+ FIUs that share operational HTF "
+     "(human-trafficking finance) typologies and case studies. "
+     "Documented patterns include: cash-deposit structuring "
+     "under reporting thresholds in remittance corridors; "
+     "front-company recruitment agencies acting as collection "
+     "vehicles for cross-border fee-laundering; trade-based "
+     "money laundering with invoice manipulation tied to "
+     "migrant-worker placement cycles; informal value transfer "
+     "systems (hawala) used to move recruitment fees outside "
+     "the formal banking system; and abuse of remittance "
+     "corridors to layer trafficking proceeds. FIU collaboration "
+     "via the Egmont Secure Web (ESW) enables rapid cross-"
+     "border information exchange supporting both prosecution "
+     "and victim-restitution efforts."),
+    ("apg_typologies_htf", "Asia Pacific Group on Money Laundering (APG) HTF typologies",
+     "APG HTF typologies",
+     "The Asia Pacific Group on Money Laundering (APG), a FATF-"
+     "style regional body covering 42 jurisdictions, publishes "
+     "annual typologies reports including specific human-"
+     "trafficking-finance findings relevant to the Asia-Pacific "
+     "migrant-worker corridors. Documented patterns specific to "
+     "the region include: employer-deposit accounts in destination "
+     "country GCC-region banks linked to no-fee-corridor "
+     "violations in PH / ID / NP / BD origin; cash collection at "
+     "destination tied to recruitment-cycle wires from origin; "
+     "shell employment-agency structures across Singapore, Hong "
+     "Kong, and Malaysia jurisdictions; abuse of remittance "
+     "providers (Western Union, MoneyGram, Wise, Remitly, hawala "
+     "networks) for layering. APG's HTF guidance integrates with "
+     "FATF Recs 3, 14, 16, 20, 22, 24, 25 and the 2018 FATF/APG "
+     "joint report on Financial Flows from Human Trafficking."),
 ]
 
 
