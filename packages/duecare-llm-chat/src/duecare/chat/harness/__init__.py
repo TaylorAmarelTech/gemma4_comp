@@ -8611,6 +8611,284 @@ RAG_CORPUS = [
      "trafficking responses to migrants in vulnerable "
      "situations, and integration of technology-facilitated "
      "trafficking."),
+
+    # ----- Screening questionnaires + identification tools -----
+    # Each entry describes a tool's purpose, target setting, item
+    # structure, validation history, and the recommended response
+    # path. The full validated instrument text remains with the
+    # tool publisher; entries here support reviewer awareness +
+    # routing rather than full forensic interviewing.
+    ("heal_trafficking_screening_toolkit", "HEAL Trafficking + Hope for Justice HT Screening Toolkit (clinical settings)",
+     "HEAL Trafficking Toolkit",
+     "HEAL Trafficking is a US-based interdisciplinary network "
+     "of healthcare practitioners + anti-trafficking experts. "
+     "Their HT Screening Toolkit is widely used in US emergency "
+     "departments, primary care, OB-GYN, sexual-and-reproductive-"
+     "health clinics, and occupational-health settings. The "
+     "toolkit organises screening around: (a) presenting injury "
+     "+ medical findings inconsistent with stated history; (b) "
+     "controlling third party in the exam room; (c) "
+     "vulnerability factors (homelessness, foster-care history, "
+     "prior abuse, migration status, language isolation); (d) "
+     "patient-reported indicators (passport-controlled, freedom-"
+     "restricted, fearful, scripted answers). Validated against "
+     "HHS OTIP victim definitions. Response path: separate from "
+     "companion + interpreter (not companion); private exam; "
+     "indirect-then-direct screening; safety plan; multi-"
+     "disciplinary referral. Pair with the IOM Caring for "
+     "Trafficked Persons (CTP) handbook for global use."),
+    ("vera_tvit_trafficking_identification", "Vera Institute Trafficking Victim Identification Tool (TVIT)",
+     "Vera TVIT",
+     "The Trafficking Victim Identification Tool (TVIT), "
+     "developed by the Vera Institute of Justice (US) with "
+     "Department of Justice support, is one of the most widely "
+     "validated trafficking-screening instruments for use in "
+     "social-service + legal-aid + immigrant-services settings. "
+     "Structure: short-form (5 items for rapid triage) and "
+     "long-form (~30 items for fuller intake) covering five "
+     "domains: migration (how the person arrived + who paid + "
+     "documentation), working conditions (hours + freedom + "
+     "pay + retention of earnings), living conditions, force / "
+     "threat / coercion, sexual exploitation. Validation "
+     "studies (Simich et al. 2014) reported ~92% sensitivity + "
+     "~75% specificity in adult immigrant-service settings. "
+     "Available through the Vera website. Response path: "
+     "consent + privacy + interpreter; trauma-informed pacing; "
+     "victim-services referral; T-Visa + Continued Presence + "
+     "VAWA eligibility assessment for US-side cases."),
+    ("ahtst_rti_ovc_adult_trafficking_screening", "Adult Human Trafficking Screening Tool (AHTST) -- RTI International / OVC",
+     "AHTST (RTI / OVC)",
+     "The Adult Human Trafficking Screening Tool (AHTST) was "
+     "developed by RTI International in collaboration with the "
+     "US Office for Victims of Crime (OVC) (2018, updated 2022) "
+     "for use by service providers across sectors (legal aid, "
+     "housing, behavioural health, refugee services, juvenile + "
+     "adult courts). It is publicly available and free. "
+     "Structure: 14 indicator items grouped into three sections "
+     "-- Travel and Migration, Work and Living Conditions, and "
+     "Freedom and Coercion. Designed to be self-administered or "
+     "interviewer-administered in 15-20 minutes. Response path: "
+     "any 'yes' should trigger a more detailed multidisciplinary "
+     "assessment with trauma-informed support. The tool is "
+     "validated for use with both sex-trafficking + labour-"
+     "trafficking populations and is the OVC-recommended adult "
+     "screening tool for US grantees."),
+    ("westcoast_cse_it_youth_screening", "WestCoast Children's Clinic Commercial Sexual Exploitation Identification Tool (CSE-IT)",
+     "CSE-IT (WestCoast)",
+     "The Commercial Sexual Exploitation Identification Tool "
+     "(CSE-IT), developed by WestCoast Children's Clinic "
+     "(Oakland, CA), is the leading validated screening "
+     "instrument for commercial sexual exploitation in youth "
+     "(under-18). Structure: 18 indicator items grouped into "
+     "five categories -- housing + caregiver dynamics, "
+     "previous abuse + system involvement, sexual behaviour + "
+     "STI history, mental health, and direct signs of CSE. "
+     "Validated in California child-welfare + juvenile-justice "
+     "+ behavioural-health settings (Basson et al. 2017 and "
+     "subsequent). The tool produces three risk tiers (no "
+     "concern / possible concern / clear concern) and prompts "
+     "system-of-care multidisciplinary response under CRC "
+     "Art. 19 + 34 + 35 + OPSC 2000. Response path: "
+     "specialised CSE + child-protection multidisciplinary "
+     "team, ECPAT-trained service provider, juvenile "
+     "advocacy programme."),
+    ("qyit_quick_youth_indicators", "Quick Youth Indicators of Human Trafficking (QYIT)",
+     "QYIT",
+     "Quick Youth Indicators of Human Trafficking (QYIT) is a "
+     "brief 4-item screening instrument designed for rapid use "
+     "with youth (under-25) by frontline staff in homeless "
+     "services, runaway-and-homeless-youth (RHY) programmes, "
+     "juvenile justice + child welfare, and emergency "
+     "shelters. The four indicators cover: (1) exchange of sex "
+     "for anything of value (food, shelter, money, "
+     "transportation), (2) sole travel with an adult who is "
+     "not family for purposes of work or relationship, (3) "
+     "close-quarters living with adults the youth does not "
+     "know, (4) cross-state or cross-border travel under "
+     "conditions that prevented return. Any 'yes' triggers a "
+     "fuller assessment using AHTST or CSE-IT (depending on "
+     "context). Tool is widely used by federally-funded RHY "
+     "programmes in the US."),
+    ("uk_nrm_sca_decision_maker_guidance", "UK National Referral Mechanism (NRM) Single Competent Authority (SCA) Decision-Maker Guidance",
+     "UK NRM SCA Guidance",
+     "The UK National Referral Mechanism (NRM) Single Competent "
+     "Authority (SCA, established April 2021) processes adult "
+     "+ child trafficking referrals using two decision stages: "
+     "(1) Reasonable Grounds (RG) -- short threshold within "
+     "5 working days, based on 'reason to believe' the person "
+     "is a victim; (2) Conclusive Grounds (CG) -- on the "
+     "balance of probabilities, based on full case review. "
+     "First-responder organisations (police, UK Border Force, "
+     "GLAA, NCA, local authorities, NGO members) make NRM "
+     "referrals using a structured form covering: trafficker "
+     "history, journey, exploitation type, indicators present, "
+     "current situation. Decision-Maker Guidance enumerates "
+     "indicators across labour, sexual, domestic-servitude, "
+     "criminal-exploitation, and organ-removal types, with "
+     "child-specific protocols. Negative CG decisions are "
+     "judicially reviewable; positive decisions trigger 30 "
+     "days+ Recovery and Reflection plus access to support."),
+    ("us_t_visa_i_914_application", "US T-Visa (I-914) + U-Visa (I-918) + Continued Presence",
+     "US T-Visa / U-Visa / CP",
+     "Three principal US immigration relief mechanisms for "
+     "trafficking + crime victims: (1) T Nonimmigrant Visa "
+     "(Form I-914): for victims of severe forms of trafficking "
+     "(sex or labour); requires presence in US on account of "
+     "trafficking + cooperation with reasonable law-enforcement "
+     "requests + showing of extreme hardship; up to 4 years "
+     "with adjustment to LPR available at 3 years; derivative "
+     "status for qualifying family. (2) U Nonimmigrant Visa "
+     "(Form I-918): for victims of qualifying crimes "
+     "(including trafficking) who have suffered substantial "
+     "physical or mental abuse and assisted law enforcement; "
+     "up to 4 years with LPR adjustment. (3) Continued "
+     "Presence (CP): law-enforcement-initiated temporary "
+     "immigration status for trafficking victims who may be "
+     "potential witnesses; renewable annually. Each "
+     "instrument's eligibility criteria + adjudication forms "
+     "operate as a structured indicator-gathering instrument."),
+    ("polaris_befree_hotline_operations", "Polaris BeFree text-line + 1-888-373-7888 hotline operational protocols",
+     "Polaris BeFree + 1-888-373-7888",
+     "The US National Human Trafficking Hotline operated by "
+     "Polaris Project provides 24/7 multilingual support via "
+     "phone (1-888-373-7888), text (BeFree to 233733), web "
+     "chat, and email. Operational protocols include: (1) "
+     "Confidentiality (except mandated reporting for suspected "
+     "abuse of minors under 18); (2) Survivor-led case "
+     "approach -- the caller defines the goal of the contact; "
+     "(3) Tiered response -- immediate safety + emotional "
+     "support + emergency services if needed, followed by "
+     "service-provider referrals; (4) Trauma-informed advocacy "
+     "without requiring disclosure of trafficker identity; "
+     "(5) Data + tip referral to law-enforcement only with "
+     "caller consent (except mandated reporting). Polaris "
+     "publishes the Counter-Trafficking Data Collaborative "
+     "(CTDC) with IOM. The BeFree text-line script + advocate "
+     "training curriculum are internal but the methodology + "
+     "outcomes are documented publicly through CTDC + "
+     "Polaris research reports."),
+    ("unodc_toolkit_trafficking", "UNODC Toolkit to Combat Trafficking in Persons (2003-2008-2023 cycle)",
+     "UNODC Toolkit",
+     "The UNODC Toolkit to Combat Trafficking in Persons (first "
+     "released 2003, updated 2008 + 2023) is the global "
+     "reference manual for criminal-justice + civil-society + "
+     "frontline staff. The Toolkit covers identification of "
+     "victims (including indicator-based screening), criminal-"
+     "justice response, victim assistance + protection, "
+     "international cooperation, prevention, and indicators "
+     "for non-criminalisation. Sector-specific indicator sets "
+     "include: domestic work, agriculture, fishing, "
+     "construction, manufacturing, hospitality, begging + "
+     "forced criminal activity, sex trafficking, and child "
+     "trafficking. The Toolkit incorporates ILO + IOM + OHCHR "
+     "+ IACAT (Indo) + ARTIP guidance and aligns with the "
+     "Palermo Protocol + UNTOC framework. Toolkit modules are "
+     "freely available on the UNODC website."),
+    ("icat_indicator_papers", "Inter-Agency Coordination Group against Trafficking in Persons (ICAT) indicator + thematic papers",
+     "ICAT thematic papers",
+     "ICAT is the global inter-agency body coordinating UN + "
+     "partner anti-trafficking work; members include ILO, IOM, "
+     "OHCHR, UNHCR, UNODC, UNICEF, UN Women, and OSCE. ICAT "
+     "publishes thematic indicator papers used by states + "
+     "civil society to operationalise the Palermo Protocol. "
+     "Notable papers include: ICAT 2017 on Trafficking in "
+     "Persons in Humanitarian Crises (post-disaster + post-"
+     "conflict indicators); ICAT 2018 on Forced Labour in "
+     "Supply Chains (supply-chain due-diligence indicators); "
+     "ICAT 2019 on Child Trafficking (CRC-aligned indicators); "
+     "ICAT 2020 on Trafficking in Persons during the COVID-19 "
+     "Pandemic; ICAT 2021 on Trafficking for Forced Criminal "
+     "Activities; ICAT 2022 on Statelessness + Trafficking. "
+     "Each paper is paired with implementation guidance."),
+    ("salvation_army_stop_it_toolkit", "Salvation Army STOP-IT Anti-Human Trafficking Toolkit (multi-tier intake)",
+     "Salvation Army STOP-IT",
+     "The Salvation Army STOP-IT Anti-Human Trafficking Toolkit "
+     "is a multi-tier intake + response protocol for first-"
+     "responder + service-provider settings. Tier 1: First-"
+     "contact triage (3-5 minute safety + indicator check). "
+     "Tier 2: Intake assessment (15-30 minute structured "
+     "interview using TVIT / AHTST / CSE-IT depending on age + "
+     "context). Tier 3: Multidisciplinary case-management "
+     "intake (full forensic interview with trained advocate + "
+     "case manager + clinician + legal-aid attorney). The "
+     "toolkit also includes a service-provider self-assessment "
+     "framework + a community-education training curriculum. "
+     "STOP-IT operates in multiple US cities + the UK + "
+     "selected international Salvation Army territories; the "
+     "Chicago + Los Angeles programmes provide longstanding "
+     "case-management evidence + outcome data."),
+    ("greta_council_europe_indicators", "Council of Europe GRETA Group of Experts on Action against Trafficking in Human Beings indicator framework",
+     "GRETA (Council of Europe)",
+     "The Group of Experts on Action against Trafficking in "
+     "Human Beings (GRETA) is the independent monitoring body "
+     "of the Council of Europe Convention on Action against "
+     "Trafficking in Human Beings (CETS 197, 2005). GRETA "
+     "conducts country evaluations on a 4-year cycle, publishes "
+     "indicator-based findings + recommendations, and "
+     "operationalises the Convention's 'identification + "
+     "protection + investigation' standards for the 46 Council "
+     "of Europe Member States. GRETA reports use a structured "
+     "indicator framework covering criminalisation, identification "
+     "of victims, assistance + protection, compensation + access "
+     "to justice, prevention, and partnerships. The 4-yearly "
+     "evaluation rounds make GRETA reports a primary source for "
+     "longitudinal trafficking-policy benchmarking in the Council "
+     "of Europe region."),
+    ("aus_afp_trafficking_indicators", "Australian Federal Police (AFP) Human Trafficking Indicator List + State / Territory Reference Cards",
+     "AFP Trafficking Indicator List",
+     "The Australian Federal Police (AFP), as the central "
+     "trafficking-investigation authority under the National "
+     "Action Plan to Combat Modern Slavery 2020-25, maintains "
+     "a Human Trafficking Indicator List covering general + "
+     "labour + sexual + domestic-servitude + child + organ-"
+     "removal categories. State + Territory partners (Vic Pol, "
+     "NSW Pol, QLD Pol) issue reference cards aligned with "
+     "AFP indicators for frontline patrol officers, migration "
+     "officers, and health/social-care workers. The list "
+     "operationalises AU Criminal Code Divisions 270 + 271 "
+     "(slavery, slavery-like + trafficking offences). The "
+     "national anti-slavery hotline + Modern Slavery + Human "
+     "Trafficking Branch coordinates referrals. The Modern "
+     "Slavery Act 2018 reporting framework + AU PALM Code of "
+     "Conduct extend the indicator approach into supply-chain "
+     "+ migrant-worker contexts."),
+    ("ilo_asean_artip_indicators", "ILO + ASEAN ARTIP Migrant Worker Indicator Set (regional)",
+     "ILO ARTIP (ASEAN)",
+     "The ILO + ASEAN ARTIP (Asia Regional Trafficking in "
+     "Persons project, 2006-2014, succeeded by ASEAN-ACT) "
+     "developed a regional indicator framework specific to "
+     "ASEAN migrant-worker corridors. The framework covers: "
+     "recruitment + deployment indicators (fee abuse, "
+     "deceptive contract, agency licensing, pre-departure "
+     "orientation); destination indicators (employer "
+     "control, document retention, isolation, wage "
+     "withholding); and post-deployment indicators (debt-"
+     "bondage repayment, denial of complaint pathways, "
+     "retaliation). The ARTIP indicator approach was "
+     "operationalised by ASEAN Senior Officials Meeting on "
+     "Transnational Crime (SOMTC) trafficking working group "
+     "and underpins national-level indicator adoption in "
+     "Cambodia, Indonesia, Lao PDR, Myanmar, Philippines, "
+     "Thailand, Vietnam."),
+    ("ohchr_recommended_indicators", "OHCHR Recommended Principles + Guidelines on Human Rights and Human Trafficking",
+     "OHCHR Trafficking Guidelines",
+     "The Office of the High Commissioner for Human Rights "
+     "(OHCHR) Recommended Principles and Guidelines on Human "
+     "Rights and Human Trafficking (E/2002/68/Add.1, 2002, with "
+     "subsequent expanded commentary 2010) is the foundational "
+     "rights-based framework for trafficking response. The "
+     "Principles establish: primacy of human rights of "
+     "trafficked persons; non-discrimination; State "
+     "responsibility for due diligence; criminalisation + "
+     "victim assistance + protection + remedies; trafficker "
+     "accountability + corruption response. The Guidelines "
+     "operationalise the Principles across identification, "
+     "prosecution, protection + assistance, prevention, "
+     "international cooperation, and special measures for "
+     "children. The OHCHR text is the rights-based "
+     "complement to the criminal-justice-focused Palermo "
+     "Protocol + the rights-monitoring of GRETA + the "
+     "implementation focus of UNODC + ICAT."),
 ]
 
 
