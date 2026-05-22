@@ -1,0 +1,125 @@
+==============================================================================
+DueCare composite illicit-conversation transcripts
+Plain-text rendering of configs/duecare/domains/trafficking/examples/illicit_conversations.jsonl entries [0:5].
+All names, agency names, phone numbers, and case IDs are invented composites. Statute citations are public record.
+==============================================================================
+
+### conv_ph_hk_recruiter_chat
+Scenario: PH-HK domestic helper recruiter chats worker via WhatsApp
+Language: en_tl_mixed
+
+[2026-03-01 09:12] recruiter: Lina, the Hong Kong domestic helper slot is confirmed.
+[2026-03-01 09:13] recruiter: The training center invoice is PHP 28,000 and the medical/documentation package is PHP 17,500. You handle these before deployment.
+[2026-03-01 09:15] worker: I don't have PHP 45,500 right now ma'am, can we work out a payment?
+[2026-03-01 09:20] recruiter: If you cannot pay now, sign the salary deduction authority for HKD 1,200 per month until the balance is cleared. The training center will assign the collection to my Hong Kong company once you arrive.
+[2026-03-01 09:22] worker: I read that Hong Kong domestic workers from the Philippines should pay zero placement fee.
+[2026-03-01 09:24] recruiter: These are training and medical fees, not placement fees. POEA MC 14-2017 only restricts placement fees. We are compliant. The deduction is for the training company, separate entity.
+
+Red flags (linked to GREP rule IDs):
+  - fee_camouflage_medical_exam
+  - debt_bondage_loan_salary_deduction
+  - fee_laundering_affiliate_collection
+  - jailbreak_due_diligence_pretext
+Statute violations:
+  - POEA MC 14-2017
+  - ILO C181 Art. 7 (direct AND indirect fees)
+  - ILO C189 Art. 11
+  - HK Cap. 57 sec. 32
+Notes: Compliance-theatre rebuttal at turn 6: cites POEA MC 14-2017 to claim compliance while violating the substance-over-form rule of ILO C181 Art. 7. Worker's knowledge at turn 5 is correct.
+==============================================================================
+
+### conv_id_hk_placement_loan
+Scenario: ID-HK placement-loan recruiter onboarding chat
+Language: id_en_mixed
+
+[2026-04-12 14:00] recruiter: Selamat, your Hong Kong domestic-worker placement is confirmed.
+[2026-04-12 14:01] recruiter: Penempatan loan: Rp 35.000.000 (Rp 35 juta). Bayar dari gaji bulanan, 7 bulan pertama. Tandatangan sini.
+[2026-04-12 14:05] worker: Itu setengah dari gaji saya selama 7 bulan.
+[2026-04-12 14:06] recruiter: Iya tapi setelah 7 bulan you keep full gaji. Bayar agency commission also after arrival, HKD 4,580.
+[2026-04-12 14:08] worker: I heard BP2MI Regulation 9/2020 says P3MI cannot charge placement fee.
+[2026-04-12 14:10] recruiter: Ini bukan placement fee, ini training plus orientasi plus medical loan. BP2MI Reg 9/2020 hanya larang placement fee. Plus HK agency commission diatur HK Cap 57A, 10% legal.
+
+Red flags (linked to GREP rule IDs):
+  - corridor_statute_id_destination_trigger
+  - debt_bondage_loan_salary_deduction
+  - fee_laundering_affiliate_collection
+Statute violations:
+  - UU 18/2017 (Indonesia)
+  - BP2MI Reg. 09/2020
+  - ILO C181 Art. 7
+  - HK Cap. 57A
+Notes: Indonesian-side fee + HK-side commission stacking. Total worker outlay 7 months salary + HKD 4.58K. BP2MI Reg 9/2020 covers training+orientation+medical too, not just 'placement'.
+==============================================================================
+
+### conv_kh_my_compound_lure
+Scenario: KH-Cambodia scam-compound recruiter lures via Telegram
+Language: en_kh_mixed
+
+[2026-05-03 11:00] recruiter: Hi! Saw your CV. We have customer-service position Sihanoukville, USD 1,800/month.
+[2026-05-03 11:02] worker: What kind of customer service?
+[2026-05-03 11:03] recruiter: Online trading platform, English speaking customers. We pay flight, visa on arrival. Just bring passport.
+[2026-05-03 11:05] worker: Why visa on arrival, not work visa in advance?
+[2026-05-03 11:06] recruiter: Faster. Compound has its own immigration arrangement, you'll see when you arrive. Contract signed at the gate.
+[2026-05-03 11:07] recruiter: Bring no extra phone, the compound provides everything. We'll hold your passport for safekeeping.
+
+Red flags (linked to GREP rule IDs):
+  - ii_compound_scam_recruitment_pattern
+  - hh_fishing_vessel_document_holding
+  - kafala_destination_states
+Statute violations:
+  - Palermo Protocol Art. 3
+  - INTERPOL Project Storm
+  - Cambodia Sub-Decree on Migrant Workers
+  - ILO Forced-Labour Indicator 7 (document retention)
+Notes: Signature pattern: visa-on-arrival + passport-on-arrival retention + contract-at-the-gate + 'compound provides phone' = forced labour in pig-butchering / wire-fraud operation. Refuse and refer to local embassy + UNODC.
+==============================================================================
+
+### conv_np_gulf_18pct_loan
+Scenario: NP-Gulf manpower agency offers worker an 18% APR loan for fees
+Language: en
+
+[2026-06-15 10:00] recruiter: Your Qatar construction placement is approved. Total cost NPR 150,000.
+[2026-06-15 10:02] worker: I cannot pay NPR 150,000 in full.
+[2026-06-15 10:03] recruiter: No problem. We arrange a loan. 18% per year, repay over 24 months from your QAR salary. Our partner finance company handles it.
+[2026-06-15 10:05] worker: Is 18% legal?
+[2026-06-15 10:06] recruiter: Yes, it's licensed by Nepal Rastra Bank. Very normal for migrant workers.
+[2026-06-15 10:08] worker: And the NPR 150,000 fee itself - what does FEA 2007 say?
+[2026-06-15 10:09] recruiter: FEA 2007 caps service charge but excludes documentation. We classify NPR 100K as documentation. Cap met.
+
+Red flags (linked to GREP rule IDs):
+  - fee_laundering_predatory_apr_with_corridor
+  - fee_camouflage_medical_exam
+  - corridor_statute_nepal_trigger
+  - debt_bondage_loan_salary_deduction
+Statute violations:
+  - Nepal Foreign Employment Act 2007 sec. 21-25
+  - Foreign Employment Rules 2008
+  - ILO C029 (debt bondage)
+  - ILO C181 Art. 7
+Notes: Documentation reclassification at turn 7 is the fee-camouflage move. Nepal Rastra Bank licensing of the lender does NOT cure the trafficking-risk classification of a worker-paid recruitment debt.
+==============================================================================
+
+### conv_worker_survivor_disclosure
+Scenario: Filipina worker discloses sexual harassment + document retention via chat helpline
+Language: en_tl_mixed
+
+[2026-07-04 02:30] worker: Sister I don't know who to talk to. I'm scared.
+[2026-07-04 02:32] caseworker: I'm here. Take your time. Are you safe to text right now?
+[2026-07-04 02:33] worker: Yes, ma'am in another room. But ma'am has my passport.
+[2026-07-04 02:34] worker: Sir touched me 2 times. Ma'am said I'm imagining.
+[2026-07-04 02:35] worker: I just want to go home. But ma'am said I owe HKD 8,500 placement loan, cannot leave until paid.
+[2026-07-04 02:36] worker: I'm so stupid for coming here. My fault.
+
+Red flags (linked to GREP rule IDs):
+  - survivor_active_fear
+  - survivor_active_confinement
+  - survivor_self_blame
+  - ee_sextortion_recruitment_phase
+  - debt_bondage_loan_salary_deduction
+Statute violations:
+  - ILO C190 (violence and harassment)
+  - Palermo Protocol Art. 3
+  - HK Cap. 57
+  - ILO Forced-Labour Indicators 3 + 6 + 7 + 9
+Notes: Trauma-informed response required. Lead with safety, validate (turn 6 self-blame), refuse to push for chronological narrative. Refer to Mission for Migrant Workers HK + HK Police (CIA Bureau) + Philippine Consulate POLO.
+==============================================================================
