@@ -444,6 +444,631 @@ authority on cross-border enforcement.
 Signature: ________________________    Date: __________
 """
 
+_TEMPLATE_NGO_SURVIVOR_NARRATIVE_BODY = """SURVIVOR NARRATIVE -- NGO INTAKE
+For internal case-management + (with consent) onward referral
+Filing date: {{filed_date}}
+
+CASEWORKER:    {{complainant_name}}
+ORGANISATION:  {{complainant_org}}
+CONTACT:       {{complainant_contact}}
+
+SURVIVOR ANONYMIZED ID:  {{survivor_anon_id}}
+LANGUAGES SPOKEN:        {{languages_spoken}}
+COUNTRY OF ORIGIN:       {{country_of_origin}}
+CURRENT LOCATION:        {{current_general_location}}
+AGE CATEGORY:            {{age_category}}
+
+CONSENT + SAFETY STATUS (filled BEFORE any disclosure detail)
+  Is the survivor safe to disclose now?       {{is_safe_to_disclose}}
+  Is a controlling third party present?       {{controlling_third_party_status}}
+  Interpreter (professional, not companion):  {{interpreter_status}}
+  Mandatory-reporting limits disclosed:       {{mandatory_reporting_disclosed_yes_no}}
+  Survivor has consented to this record:      {{consent_to_record_yes_no}}
+  Onward referral consent (per provider):     {{onward_referral_consent_summary}}
+
+[The narrative below is the survivor's account, recorded in
+the survivor's own words and pacing. The caseworker has not
+asked for chronological order; trauma narratives are
+fragmentary by nature and forcing order re-traumatises.
+Caseworker NOTES are bracketed; survivor's WORDS are not.]
+
+PHASE 1 -- RECRUITMENT
+[The survivor describes the recruitment context.]
+{{recruitment_narrative}}
+
+[Caseworker note: indicators observed in this phase:]
+  - Deception (different role / wage promised):  {{recruit_deception_yes_no}}
+  - Abuse of vulnerability:                      {{recruit_abuse_vulnerability_yes_no}}
+  - Recruitment-fee charged:                     {{recruit_fee_charged_yes_no}}
+  - Recruitment channel:                         {{recruit_channel}}
+
+PHASE 2 -- DEPLOYMENT / JOURNEY
+[The survivor describes the journey + arrival.]
+{{deployment_narrative}}
+
+[Caseworker note: indicators observed in this phase:]
+  - Document retention on arrival:               {{doc_retention_arrival_yes_no}}
+  - Restriction of movement on arrival:          {{movement_restriction_arrival_yes_no}}
+  - Different contract on arrival:               {{contract_substitution_yes_no}}
+
+PHASE 3 -- EXPLOITATION
+[The survivor describes the work and living conditions.]
+{{exploitation_narrative}}
+
+[Caseworker note: indicators observed in this phase:]
+  - Withholding of wages:                        {{wage_withholding_yes_no}}
+  - Excessive overtime:                          {{excessive_overtime_yes_no}}
+  - Isolation:                                   {{isolation_yes_no}}
+  - Physical or sexual violence:                 {{physical_sexual_violence_yes_no}}
+  - Intimidation or threats:                     {{intimidation_threats_yes_no}}
+  - Debt bondage:                                {{debt_bondage_yes_no}}
+  - Abusive working / living conditions:         {{abusive_conditions_yes_no}}
+
+PHASE 4 -- ESCAPE / SUPPORT
+[The survivor describes how they left + current support.]
+{{escape_support_narrative}}
+
+VALIDATION FROM CASEWORKER (pre-filled)
+"What you have described is real. You are not to blame. The
+agreement you signed under deception, debt-pressure, or abuse
+of vulnerability is not legally binding consent under the
+Palermo Protocol Art. 3(b). Multiple ILO Forced-Labour
+Indicators apply to your situation. You have rights regardless
+of immigration status or contract clause."
+
+CONTROLLING LAW (for any future formal proceeding)
+  - UN Palermo Protocol Art. 3 (act / means / purpose) +
+    Art. 3(b) consent irrelevance
+  - ILO 11 Forced Labour Indicators (2012)
+  - ILO Convention 181 Art. 7 (no worker-side fees, direct
+    or indirect)
+  - ILO Convention 189 Art. 9 (passport retention prohibited)
+  - {{corridor_specific_origin_statute}}
+  - {{corridor_specific_destination_statute}}
+
+SURVIVOR-LED NEXT STEPS (only with consent)
+{{survivor_led_next_steps}}
+
+CASEWORKER REFERRAL PATHS (proposed; survivor may decline)
+  1. NGO shelter / safehouse:           {{ngo_shelter_referral}}
+  2. Origin-country embassy / POLO:     {{embassy_polo_referral}}
+  3. Destination labour authority:      {{destination_labour_referral}}
+  4. Legal-aid for civil restitution:   {{legal_aid_referral}}
+  5. Medical / mental-health support:   {{medical_mh_referral}}
+  6. Survivor peer-support network:     {{peer_support_referral}}
+
+Caseworker signature: ________________________   Date: {{filed_date}}
+"""
+
+
+_TEMPLATE_WORKER_FIRST_CONTACT_SCRIPT_BODY = """WORKER FIRST-CONTACT SCRIPT (WhatsApp / SMS / Encrypted Chat)
+Designed for use by NGO advocate / peer helper / community trusted
+person. Worker may be in unsafe location. KEEP MESSAGES SHORT.
+Filing date: {{filed_date}}
+
+ADVOCATE:      {{complainant_name}}
+ORGANISATION:  {{complainant_org}}
+LANGUAGE:      {{primary_language}}
+
+OPENING (turn 1)
+"Hello. My name is {{advocate_first_name_only}}. I work with
+{{complainant_org}}. We help migrant workers. Are you safe to
+text right now? Yes or No."
+
+[If 'No' -> immediately send corridor-emergency contact:
+{{corridor_emergency_one_liner}}.]
+
+[If 'Yes' -> continue with turn 2.]
+
+TURN 2 -- BASIC SAFETY CHECK
+"Thank you. I need to ask a few questions. You do not have to
+answer if you do not feel safe. Anything you say I keep
+private. Police, immigration, and your employer will not see
+this."
+
+  - Are you in {{destination_country}}?
+  - Do you have your passport with you?
+  - Do you have your phone with you all day?
+  - Can you go outside alone?
+
+TURN 3 -- LISTEN
+"Take your time. Tell me what you want me to know."
+
+[Pause. Let the worker reply at their pace. Do NOT push for
+chronological order. Do NOT ask 'what happened' as the first
+question -- it re-traumatises. Use 'what is most on your mind'
+instead.]
+
+TURN 4 -- VALIDATION (pre-filled)
+"What you are describing is real. You are not stupid for
+coming. You did not agree to this. There are rules that say
+your passport must be with you (ILO C189 Art. 9). There are
+rules that say you cannot be charged training fees in
+{{destination_country}} (controlling statute:
+{{worker_side_fee_statute}}). You have rights even without
+papers."
+
+TURN 5 -- IMMEDIATE NEEDS TRIAGE
+"What do you need first?"
+  1. Get to a safe place
+  2. Get my passport back
+  3. Get my unpaid wages
+  4. Go home to {{country_of_origin}}
+  5. Talk to someone about what happened
+  6. Other / I do not know
+
+TURN 6 -- BASED ON ANSWER, ROUTE
+[Caseworker fills in the corridor-specific contact for the
+chosen option. Each contact is a verified NGO + government +
+embassy / POLO from the contacts pack.]
+
+If 1: {{safe_place_contact}}
+If 2: {{document_recovery_contact}}
+If 3: {{wage_recovery_contact}}
+If 4: {{repatriation_contact}}
+If 5: {{psychosocial_contact}}
+
+TURN 7 -- WHAT THE WORKER CAN DO RIGHT NOW
+"While we work on this, you can:
+  - Take photos of your contract, your passport, your room,
+    your work site. Save them somewhere safe (different phone,
+    cloud account with strong password, email to a trusted
+    friend).
+  - Take screenshots of any message from your employer or
+    recruiter. Date matters.
+  - Keep a simple log: date / what happened / who was there /
+    how you felt.
+  - Do not confront your employer or recruiter. We will help
+    you plan that step.
+  - If you need to delete this conversation for your safety,
+    delete it. We will remember. You are not alone."
+
+TURN 8 -- CLOSE
+"I will reach out again in {{follow_up_window}}. If something
+changes before then, text or call this number:
+{{advocate_contact}}. You can also reach the
+{{corridor_specific_hotline}} at {{corridor_hotline_number_or_verify}}.
+You did the right thing by reaching out. Take care."
+
+ADVOCATE NOTES (internal)
+{{advocate_internal_notes}}
+"""
+
+
+_TEMPLATE_JOURNALIST_TIP_BODY = """JOURNALIST TIP / ANONYMIZED CASE BRIEF
+For investigative-journalism partners (Guardian + Reuters +
+ProPublica + BBC + Al Jazeera + national investigative desks)
+Filing date: {{filed_date}}
+
+FROM:    {{complainant_name}}
+         {{complainant_org}}
+         {{complainant_contact}}
+
+TO:      {{journalist_outlet}}
+         Attn: {{journalist_name}}
+
+RE:      Anonymized case brief, request for investigation
+         partnership
+
+This tip is provided on the record with respect to the
+underlying public-record statutes and patterns; all victim-
+specific facts are anonymized and presented in aggregate
+form to protect survivor identity. Specific victim names,
+employer names, and other identifying details are withheld
+pending an editorial decision and survivor consent.
+
+EXECUTIVE SUMMARY
+{{executive_summary}}
+
+PATTERN
+{{pattern_description}}
+
+NUMBERS (de-identified, ranges where appropriate)
+  Affected workers (range):              {{affected_workers_range}}
+  Corridor:                              {{corridor}}
+  Sector:                                {{sector}}
+  Period of conduct:                     {{period_of_conduct}}
+  Estimated worker-paid sum (USD range): {{worker_paid_usd_range}}
+  Repeat-violator pattern (Y / N):       {{repeat_violator_yes_no}}
+
+REGULATORY POSTURE
+  Origin-country regulator:        {{origin_regulator}}
+  Action taken to date:            {{origin_action_to_date}}
+  Destination-country regulator:   {{destination_regulator}}
+  Action taken to date:            {{destination_action_to_date}}
+  Outstanding referrals / complaints: {{outstanding_referrals}}
+
+VERIFICATION QUESTIONS (for the journalist's reporting)
+  1. {{verification_question_1}}
+  2. {{verification_question_2}}
+  3. {{verification_question_3}}
+  4. {{verification_question_4}}
+  5. {{verification_question_5}}
+
+PRIMARY-SOURCE DOCUMENTS AVAILABLE (on request, subject to
+survivor consent + redaction)
+{{available_documents}}
+
+NAMED ENTITIES (public-record only -- regulators / NGOs /
+court filings)
+{{named_public_entities}}
+
+STATUTORY FRAMEWORK
+  - UN Palermo Protocol Art. 3
+  - {{controlling_origin_statute}}
+  - {{controlling_destination_statute}}
+  - ILO Convention 181 Art. 7 + 2019 Definition of
+    Recruitment Fees
+  - {{supply_chain_or_sectoral_framework}}
+
+NGO ETHICAL OPERATIONAL CONSTRAINTS
+  - Survivor identity protected unless / until the survivor
+    affirms publication consent in writing
+  - Trafficker / employer name to be released only when:
+    (a) public-record source already names the entity, OR
+    (b) survivor consents and the journalist accepts the
+        defamation-risk burden after their own diligence
+  - No payment to the survivor for participation in the
+    story; reasonable expenses + accommodation acceptable
+  - Survivor's right to withdraw at any time before
+    publication
+
+The undersigned is willing to support background interviews,
+review draft text for factual accuracy regarding public-record
+elements, and (with survivor consent) facilitate an interview
+with the survivor through a trauma-informed protocol.
+
+Signature:
+
+{{complainant_name}}
+{{complainant_org}}
+{{complainant_contact}}
+
+Date: {{filed_date}}
+"""
+
+
+_TEMPLATE_EMPLOYER_WAGE_DEMAND_BODY = """DIRECT EMPLOYER WAGE ARREARS DEMAND LETTER
+Migrant Worker -- Pre-litigation Demand for Payment
+Filing date: {{filed_date}}
+
+TO:      {{employer_name}}
+         {{employer_address}}
+         Attn: {{employer_attention}}
+
+CC:      {{destination_country_labour_authority}}
+         {{worker_origin_country_embassy_or_polo}}
+
+RE:      DEMAND for payment of unpaid wages owed to
+         {{worker_name}} (anonymized identifier),
+         {{worker_nationality}} migrant worker, period
+         {{wage_period}}.
+
+Dear Sir / Madam,
+
+We represent {{worker_name}}, a {{worker_nationality}} migrant
+worker who was / is employed by you under
+{{contract_reference}}. We write to formally demand payment of
+wages owed for work actually performed during the period
+{{wage_period}}, which to date you have failed to pay.
+
+WAGES OWED
+  Period of underpayment:           {{wage_period}}
+  Hours actually worked:            {{hours_actually_worked}}
+  Statutory minimum wage applicable: {{statutory_min_wage}}
+  Agreed contract wage:             {{contract_wage}}
+  Wages actually paid:              {{wages_actually_paid}}
+  Outstanding wages:                {{wages_outstanding_local}}
+  Currency:                         {{currency}}
+  Equivalent in USD (informational): {{wages_outstanding_usd}}
+
+CONTROLLING LAW
+  1. {{destination_wage_statute}} requires payment of wages in
+     full and on time. Failure to pay is a statutory violation
+     subject to civil penalty and -- in cases of wilful
+     non-payment -- criminal liability.
+  2. ILO Convention 95 Article 12 requires wages to be paid
+     regularly, in legal tender, directly to the worker.
+  3. ILO Forced Labour Indicator 8 (withholding of wages) is
+     one of the eleven ILO operational indicators of forced
+     labour (ILO Special Action Programme to Combat Forced
+     Labour, 2012).
+  4. UN Palermo Protocol Art. 3 -- withholding of wages used
+     as a means of control constitutes trafficking in persons.
+
+DEMAND FOR PAYMENT (within 10 calendar days from receipt of
+this letter):
+  1. Full payment of {{wages_outstanding_local}} to the worker
+     via {{preferred_payment_channel}};
+  2. Written confirmation that no further wages are being
+     withheld;
+  3. Written undertaking that no retaliation will be taken
+     against the worker or the worker's family for asserting
+     this demand;
+  4. Copies of all wage records, timesheets, deduction
+     authorisations, and bank-transfer records for the period
+     in question.
+
+FAILURE TO COMPLY by {{compliance_deadline}} will result in:
+  (a) Formal complaint to {{destination_country_labour_authority}}
+      including request for civil penalty + interest;
+  (b) Civil claim in {{civil_court_or_tribunal}} for
+      principal sum + pre-judgment interest + statutory
+      damages + reasonable legal expense;
+  (c) Concurrent complaint to the worker's origin-country
+      labour authority for parallel investigation and
+      sanctions where applicable;
+  (d) Notification to the worker's national consulate /
+      embassy / POLO for record;
+  (e) Where wilful non-payment + accompanying indicators are
+      present, referral for trafficking investigation under
+      {{trafficking_statute}}.
+
+The worker is represented by {{complainant_name}},
+{{complainant_org}}. All correspondence concerning this
+matter should be directed to {{complainant_contact}}. The
+worker reserves all rights and remedies under destination-
+country law, origin-country law, and international law.
+
+Sincerely,
+
+{{complainant_name}}
+{{complainant_org}}
+{{complainant_contact}}
+
+Date: {{filed_date}}
+
+cc: as above
+"""
+
+
+_TEMPLATE_SUPPLIER_AUDIT_FINDING_BODY = """BUYER -> SUPPLIER AUDIT FINDING LETTER
+Pre-CSDDD / UK MSA / Lieferkettengesetz / Transparency Act
+Compliance Remediation Sequence
+Filing date: {{filed_date}}
+
+FROM:    {{buyer_company_name}}
+         Attn: {{buyer_compliance_officer}}
+         {{buyer_address}}
+
+TO:      {{supplier_company_name}}
+         Attn: {{supplier_contact}}
+         {{supplier_address}}
+
+RE:      Audit findings of {{audit_type}} conducted
+         {{audit_date_range}} at {{supplier_facility_name}}
+         in {{supplier_facility_country}}. Findings include
+         indicators of forced labour, recruitment-fee
+         violations, and / or document retention requiring
+         remediation under our supplier code of conduct and
+         applicable supply-chain due-diligence statutes.
+
+I.   AUDIT METHODOLOGY
+The audit was conducted between {{audit_date_range}} by
+{{audit_provider}}. The methodology covered worker
+interviews ({{n_worker_interviews}} workers), management
+interviews, document review (employment contracts, payroll,
+recruitment-agreement, working-time records,
+accommodation), facility walkthrough, recruitment-channel
+tracing, and verification against the {{recruitment_country}}
+licensing registry.
+
+II.  FINDINGS OF NON-CONFORMANCE
+{{findings_summary}}
+
+Specifically:
+
+(A) RECRUITMENT-FEE VIOLATION
+   Workers reported paying recruitment-related costs to
+   recruiters in {{recruitment_country}}, including
+   {{recruitment_fee_categories}} totalling an average of
+   {{recruitment_fee_average_usd}} per worker.
+   Statutory standard: the employer-pays-principle of ILO
+   C181 Art. 7 + 2019 Definition + IRIS Standard requires
+   that workers shall not be charged any fee or cost for
+   recruitment. Violation is a Tier-1 finding.
+
+(B) DOCUMENT RETENTION
+   {{document_retention_findings}}
+   Statutory standard: ILO C189 Art. 9 + ILO Forced Labour
+   Indicator 7 prohibit retention of identity / travel
+   documents by employer / sponsor. Violation is a Tier-1
+   finding.
+
+(C) WORKING-TIME VIOLATIONS
+   {{working_time_findings}}
+   Statutory standard: {{destination_working_time_statute}}.
+
+(D) WAGE VIOLATIONS
+   {{wage_findings}}
+   Statutory standard: {{destination_wage_statute}}.
+
+(E) OTHER FINDINGS
+   {{other_findings}}
+
+III. REMEDIATION REQUIRED
+
+(A) RECRUITMENT-FEE REIMBURSEMENT
+   The supplier shall, within {{reimbursement_deadline_days}}
+   days, reimburse all affected workers the full amount of
+   recruitment-related fees paid, plus any reasonable
+   interest. Reimbursement shall be paid directly to the
+   worker via {{preferred_payment_channel}}.
+
+(B) DOCUMENT RETURN
+   The supplier shall, within 5 days, return all retained
+   identity / travel documents to the affected workers and
+   confirm in writing that no future retention will occur.
+
+(C) POLICY + PROCEDURE
+   The supplier shall, within {{policy_deadline_days}} days,
+   adopt and submit for review: (i) a written employer-pays-
+   principle policy; (ii) a written document-retention
+   prohibition policy; (iii) a written worker grievance
+   procedure aligned with UNGP 31 effectiveness criteria.
+
+(D) MONITORING + REPORTING
+   The supplier shall participate in monthly remediation
+   monitoring with {{remediation_partner}} until the
+   findings are closed.
+
+IV.  COMPLIANCE FRAMEWORK
+The findings + remediation requirements are issued under:
+  - {{buyer_supplier_code_of_conduct}}
+  - UK Modern Slavery Act 2015 Sec. 54 (if applicable)
+  - EU CSDDD (Regulation 2024/1760, when in force from 2026)
+  - France Loi de Vigilance 2017
+  - Germany Lieferkettengesetz 2021
+  - Norway Transparency Act 2021
+  - US UFLPA + 19 USC 1307 (if any goods enter US market)
+  - EU Forced Labour Regulation 2024/3015 (when in force
+    end-2027)
+  - UN Guiding Principles on Business and Human Rights (2011)
+  - OECD Guidelines for MNEs (2023 revision)
+  - IRIS Standard alignment commitment
+
+V.   ESCALATION
+Failure to meet remediation deadlines will result in:
+  1. Escalation to {{buyer_chief_compliance_officer}};
+  2. Suspension of new purchase orders for affected facility;
+  3. Disclosure in the buyer's annual modern slavery
+     statement to UK Government Modern Slavery Statement
+     Registry + comparable EU / AU registries where
+     applicable;
+  4. Possible business termination + reporting of the
+     supplier to {{regulator_or_industry_initiative}};
+  5. Where applicable, support of affected workers' direct
+     restitution claim under origin-country agency-bond +
+     destination-country labour-tribunal pathways.
+
+This letter is issued without prejudice to the buyer's other
+rights under the supplier agreement and applicable law.
+
+Sincerely,
+
+{{buyer_compliance_officer}}
+{{buyer_company_name}}
+
+Date: {{filed_date}}
+
+cc: as above
+"""
+
+
+_TEMPLATE_UNGP_OECD_REMEDIATION_REQUEST_BODY = """UN GUIDING PRINCIPLES / OECD NCP REMEDIATION REQUEST
+To a Multinational Enterprise -- Pillar III Access-to-Remedy
+Filing date: {{filed_date}}
+
+FROM:    {{complainant_name}}
+         {{complainant_org}}
+         {{complainant_contact}}
+
+TO:      {{multinational_enterprise_name}}
+         Attn: {{mne_contact}}
+         {{mne_address}}
+
+CC:      National Contact Point (NCP), {{ncp_country}}
+         {{ncp_address}}
+         OECD Secretariat, Global Affairs Division
+
+RE:      Pillar III Access-to-Remedy request under UN Guiding
+         Principles on Business and Human Rights (2011) +
+         filing notice under OECD Guidelines for Multinational
+         Enterprises (2023 revision) National Contact Point
+         Specific Instance process.
+
+This communication is submitted on behalf of {{worker_name}}
+(anonymized identifier), {{worker_nationality}} migrant
+worker. The worker is affected by adverse human-rights
+impacts in the {{mne_company_name}} value chain, as detailed
+below.
+
+I.   AFFECTED PARTIES
+   Anonymized worker:           {{worker_name}}
+   Nationality:                 {{worker_nationality}}
+   Country of recruitment:      {{country_of_recruitment}}
+   Sector:                      {{sector}}
+   Direct employer:             {{direct_employer_name}}
+   Tier in MNE value chain:     {{value_chain_tier}}
+   Period of harm:              {{period_of_harm}}
+
+II.  NATURE OF THE ADVERSE IMPACT
+{{nature_of_adverse_impact}}
+
+III. MNE NEXUS
+The MNE's nexus to the harm under UNGP 13 is:
+{{ungp_nexus_description}}
+The MNE is therefore expected under UNGP 22 to:
+  - Identify + assess the actual + potential adverse impacts
+  - Integrate findings + take appropriate action
+  - Track effectiveness of the response
+  - Communicate externally about how the response is
+    addressing the impact
+  - Provide for / cooperate in legitimate remediation through
+    grievance mechanisms aligned with UNGP 31 effectiveness
+    criteria
+
+IV.  PRIOR REQUESTS + RESPONSES
+{{prior_requests_summary}}
+
+V.   REMEDIATION REQUESTED (UNGP 22 + Pillar III)
+The complainant requests the MNE to:
+  1. Convene a remediation dialogue within 30 days;
+  2. Engage with affected worker via trauma-informed +
+     survivor-led process facilitated by {{complainant_org}};
+  3. Provide recruitment-fee reimbursement to affected
+     worker plus any documented dependants;
+  4. Take supplier-side corrective action documented in
+     writing;
+  5. Disclose remediation outcome in the MNE's next annual
+     human-rights or modern-slavery statement;
+  6. Establish or strengthen an operational-level grievance
+     mechanism aligned with UNGP 31 effectiveness criteria
+     (legitimate, accessible, predictable, equitable,
+     transparent, rights-compatible, source of continuous
+     learning, based on engagement and dialogue).
+
+VI.  CONCURRENT NCP FILING
+A concurrent Specific Instance filing under the OECD
+Guidelines for MNEs (2023 revision) is being submitted with
+the NCP at {{ncp_country}}. The complainant requests good-
+offices mediation under the NCP process. The MNE's
+participation in the NCP process is voluntary but expected
+under the OECD framework.
+
+VII. STATUTORY + FRAMEWORK CITATIONS
+   - UN Guiding Principles on Business and Human Rights
+     (HRC Resolution 17/4, 2011)
+   - OECD Guidelines for Multinational Enterprises on
+     Responsible Business Conduct (2023 revision)
+   - {{country_of_origin_due_diligence_statute_if_any}}
+   - {{country_of_destination_due_diligence_statute_if_any}}
+   - UK Modern Slavery Act 2015 + France Loi de Vigilance
+     2017 + Germany Lieferkettengesetz 2021 + Norway
+     Transparency Act 2021 + EU CSDDD 2024 + EU Forced
+     Labour Regulation 2024
+   - ILO Convention 181 Art. 7
+
+VIII. RESERVATION OF RIGHTS
+This request is made without prejudice to the affected
+worker's other rights under origin-country, destination-
+country, and international law, including but not limited
+to labour-tribunal restitution, criminal trafficking
+investigation, and supply-chain enforcement (UFLPA / EU FLR
+/ CBP WRO).
+
+Respectfully submitted,
+
+{{complainant_name}}
+{{complainant_org}}
+{{complainant_contact}}
+
+Date: {{filed_date}}
+
+cc: as above
+"""
+
+
 _TEMPLATE_PH_HK_FDH_FEE_REFUND_DEMAND_BODY = """RECRUITMENT FEE REFUND DEMAND LETTER
 Philippines to Hong Kong Foreign Domestic Helper Corridor
 Filing date: {{filed_date}}
@@ -2814,6 +3439,295 @@ TEMPLATES_REGISTRY: dict[str, TemplateSpec] = {
             _f("ilo_indicators", "ILO indicators observed", False, "intelligence.ilo_indicators"),
             _f("evidence_list", "Evidence available", False, "intelligence.evidence_edges"),
             _f("relief_requested", "Relief requested", True),
+        ),
+    ),
+
+    "ngo_survivor_narrative": TemplateSpec(
+        id="ngo_survivor_narrative",
+        title="NGO Survivor Narrative -- Trauma-Informed Intake (4 phases)",
+        jurisdiction="Cross-border",
+        audience="NGO caseworker + (with consent) onward referral",
+        summary=(
+            "Pre-filled four-phase survivor narrative intake "
+            "template covering recruitment, deployment, "
+            "exploitation, escape / support. Pre-fills the "
+            "consent + safety status check + caseworker "
+            "validation paragraph + Palermo Protocol + ILO 11 "
+            "Indicators framework. Madlibs style -- ILO indicator "
+            "checkboxes + narrative-by-phase blocks + 6 referral "
+            "paths."
+        ),
+        body=_TEMPLATE_NGO_SURVIVOR_NARRATIVE_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("complainant_name", "Caseworker name", True),
+            _f("complainant_org", "NGO / organisation", True),
+            _f("complainant_contact", "Contact", True),
+            _f("survivor_anon_id", "Survivor anonymized ID", True, "people[0].label"),
+            _f("languages_spoken", "Languages spoken", False),
+            _f("country_of_origin", "Country of origin", True, "intelligence.country_of_origin"),
+            _f("current_general_location", "Current general location (city / region only)", False),
+            _f("age_category", "Age category (child / adult)", True),
+            _f("is_safe_to_disclose", "Safe to disclose now (Y/N)", True),
+            _f("controlling_third_party_status", "Controlling third party present (describe)", True),
+            _f("interpreter_status", "Interpreter (professional / not companion)", True),
+            _f("mandatory_reporting_disclosed_yes_no", "Mandatory-reporting limits disclosed (Y/N)", True),
+            _f("consent_to_record_yes_no", "Consent to record (Y/N)", True),
+            _f("onward_referral_consent_summary", "Onward-referral consent summary", True),
+            _f("recruitment_narrative", "Recruitment narrative (survivor's words)", True),
+            _f("recruit_deception_yes_no", "Recruitment deception (Y/N)", True),
+            _f("recruit_abuse_vulnerability_yes_no", "Abuse of vulnerability at recruitment (Y/N)", True),
+            _f("recruit_fee_charged_yes_no", "Recruitment fee charged (Y/N)", True),
+            _f("recruit_channel", "Recruitment channel", False),
+            _f("deployment_narrative", "Deployment / journey narrative", True),
+            _f("doc_retention_arrival_yes_no", "Document retention on arrival (Y/N)", True),
+            _f("movement_restriction_arrival_yes_no", "Movement restriction on arrival (Y/N)", True),
+            _f("contract_substitution_yes_no", "Different contract on arrival (Y/N)", True),
+            _f("exploitation_narrative", "Exploitation narrative", True),
+            _f("wage_withholding_yes_no", "Withholding of wages (Y/N)", True),
+            _f("excessive_overtime_yes_no", "Excessive overtime (Y/N)", True),
+            _f("isolation_yes_no", "Isolation (Y/N)", True),
+            _f("physical_sexual_violence_yes_no", "Physical or sexual violence (Y/N)", True),
+            _f("intimidation_threats_yes_no", "Intimidation or threats (Y/N)", True),
+            _f("debt_bondage_yes_no", "Debt bondage (Y/N)", True),
+            _f("abusive_conditions_yes_no", "Abusive working / living conditions (Y/N)", True),
+            _f("escape_support_narrative", "Escape / support narrative", True),
+            _f("corridor_specific_origin_statute", "Corridor-specific origin statute", True),
+            _f("corridor_specific_destination_statute", "Corridor-specific destination statute", True),
+            _f("survivor_led_next_steps", "Survivor-led next steps", True),
+            _f("ngo_shelter_referral", "NGO shelter / safehouse referral", False),
+            _f("embassy_polo_referral", "Embassy / POLO referral", False),
+            _f("destination_labour_referral", "Destination labour authority referral", False),
+            _f("legal_aid_referral", "Legal-aid referral", False),
+            _f("medical_mh_referral", "Medical / mental-health referral", False),
+            _f("peer_support_referral", "Survivor peer-support referral", False),
+        ),
+    ),
+
+    "worker_first_contact_script": TemplateSpec(
+        id="worker_first_contact_script",
+        title="Worker First-Contact Script (WhatsApp / SMS / Encrypted Chat)",
+        jurisdiction="Cross-border",
+        audience="NGO advocate / peer helper -- worker who may be in unsafe location",
+        summary=(
+            "Pre-filled 8-turn first-contact script for use by NGO "
+            "advocate or peer helper communicating with a migrant "
+            "worker via WhatsApp / SMS / Signal / Line. Pre-fills the "
+            "safety check + validation + immediate-needs triage + "
+            "evidence preservation steps. Madlibs style -- short "
+            "turns to keep readable on small screens with limited "
+            "data; corridor + language blanks only."
+        ),
+        body=_TEMPLATE_WORKER_FIRST_CONTACT_SCRIPT_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("complainant_name", "Advocate name", True),
+            _f("complainant_org", "Organisation", True),
+            _f("primary_language", "Primary language for outreach", True),
+            _f("advocate_first_name_only", "Advocate first name only", True),
+            _f("destination_country", "Destination country", True),
+            _f("corridor_emergency_one_liner", "Corridor-emergency one-liner (if unsafe)", True),
+            _f("worker_side_fee_statute", "Worker-side fee statute (corridor-specific)", True),
+            _f("country_of_origin", "Country of origin", True, "intelligence.country_of_origin"),
+            _f("safe_place_contact", "Safe-place contact (option 1)", False),
+            _f("document_recovery_contact", "Document-recovery contact (option 2)", False),
+            _f("wage_recovery_contact", "Wage-recovery contact (option 3)", False),
+            _f("repatriation_contact", "Repatriation contact (option 4)", False),
+            _f("psychosocial_contact", "Psychosocial contact (option 5)", False),
+            _f("follow_up_window", "Follow-up window (e.g. 24h / 3 days / weekly)", True),
+            _f("advocate_contact", "Advocate contact (callable / textable)", True),
+            _f("corridor_specific_hotline", "Corridor-specific hotline name", True),
+            _f("corridor_hotline_number_or_verify", "Hotline number (or 'verify via contacts pack')", True),
+            _f("advocate_internal_notes", "Advocate internal notes", False),
+        ),
+    ),
+
+    "journalist_tip_brief": TemplateSpec(
+        id="journalist_tip_brief",
+        title="Journalist Tip / Anonymized Case Brief (investigative outlets)",
+        jurisdiction="Cross-border",
+        audience="Investigative journalist (Guardian / Reuters / ProPublica / BBC / Al Jazeera / national outlets)",
+        summary=(
+            "Pre-filled journalist-tip case brief covering pattern, "
+            "de-identified numbers, regulatory posture, verification "
+            "questions, primary-source documents (subject to consent), "
+            "named public-record entities, statutory framework, and "
+            "NGO ethical operational constraints. Madlibs style -- "
+            "pre-fills the safe-conduct + survivor-protection + "
+            "defamation-burden language; only case-specific facts "
+            "blank."
+        ),
+        body=_TEMPLATE_JOURNALIST_TIP_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("complainant_name", "Submitter name", True),
+            _f("complainant_org", "Organisation", True),
+            _f("complainant_contact", "Contact", True),
+            _f("journalist_outlet", "Journalist outlet", True),
+            _f("journalist_name", "Journalist name", True),
+            _f("executive_summary", "Executive summary", True, "intelligence.case_brief"),
+            _f("pattern_description", "Pattern description", True),
+            _f("affected_workers_range", "Affected workers (range)", True),
+            _f("corridor", "Corridor", True, "intelligence.corridor"),
+            _f("sector", "Sector", True, "intelligence.sector"),
+            _f("period_of_conduct", "Period of conduct", True),
+            _f("worker_paid_usd_range", "Estimated worker-paid sum (USD range)", False),
+            _f("repeat_violator_yes_no", "Repeat-violator pattern (Y/N)", False),
+            _f("origin_regulator", "Origin-country regulator", True),
+            _f("origin_action_to_date", "Origin regulator action to date", False),
+            _f("destination_regulator", "Destination-country regulator", True),
+            _f("destination_action_to_date", "Destination regulator action to date", False),
+            _f("outstanding_referrals", "Outstanding referrals / complaints", False),
+            _f("verification_question_1", "Verification question 1", True),
+            _f("verification_question_2", "Verification question 2", True),
+            _f("verification_question_3", "Verification question 3", True),
+            _f("verification_question_4", "Verification question 4", False),
+            _f("verification_question_5", "Verification question 5", False),
+            _f("available_documents", "Available primary-source documents", True),
+            _f("named_public_entities", "Named public-record entities", False),
+            _f("controlling_origin_statute", "Controlling origin statute", True),
+            _f("controlling_destination_statute", "Controlling destination statute", True),
+            _f("supply_chain_or_sectoral_framework", "Supply-chain or sectoral framework", False),
+        ),
+    ),
+
+    "employer_wage_demand": TemplateSpec(
+        id="employer_wage_demand",
+        title="Direct Employer Wage Arrears Demand Letter",
+        jurisdiction="Destination-country",
+        audience="Foreign employer / sponsor -- pre-litigation",
+        summary=(
+            "Pre-filled direct demand letter to foreign employer for "
+            "unpaid wages. Cites destination-country wage statute + "
+            "ILO C95 Art. 12 + ILO Indicator 8 (withholding of "
+            "wages) + Palermo Protocol Art. 3. Itemised wage "
+            "calculation + 10-day compliance deadline + 5-tier "
+            "escalation. Madlibs style -- statutory framework + "
+            "relief blocks pre-built; only worker-specific + "
+            "destination-country blanks remain."
+        ),
+        body=_TEMPLATE_EMPLOYER_WAGE_DEMAND_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("employer_name", "Employer name", True, "intelligence.employers[0]"),
+            _f("employer_address", "Employer address", False),
+            _f("employer_attention", "Attention person", False),
+            _f("destination_country_labour_authority", "Destination labour authority", True),
+            _f("worker_origin_country_embassy_or_polo", "Worker's origin embassy / POLO", True),
+            _f("worker_name", "Worker anonymized ID", True, "people[0].label"),
+            _f("worker_nationality", "Worker nationality", True, "intelligence.country_of_origin"),
+            _f("contract_reference", "Contract reference", True),
+            _f("wage_period", "Wage period / period of underpayment", True),
+            _f("hours_actually_worked", "Hours actually worked", True),
+            _f("statutory_min_wage", "Statutory minimum wage applicable", True),
+            _f("contract_wage", "Agreed contract wage", True),
+            _f("wages_actually_paid", "Wages actually paid", True),
+            _f("wages_outstanding_local", "Outstanding wages (local currency)", True),
+            _f("currency", "Currency", True),
+            _f("wages_outstanding_usd", "Outstanding wages (USD equivalent)", False),
+            _f("destination_wage_statute", "Destination-country wage statute", True),
+            _f("preferred_payment_channel", "Preferred payment channel", True),
+            _f("compliance_deadline", "Compliance deadline (10 days from receipt)", True),
+            _f("civil_court_or_tribunal", "Civil court or labour tribunal", True),
+            _f("trafficking_statute", "Trafficking statute (for referral)", True),
+            _f("complainant_name", "Caseworker name", True),
+            _f("complainant_org", "Organisation", True),
+            _f("complainant_contact", "Contact", True),
+        ),
+    ),
+
+    "supplier_audit_finding_letter": TemplateSpec(
+        id="supplier_audit_finding_letter",
+        title="Buyer -> Supplier Audit Finding Letter (CSDDD / UK MSA / Lieferkettengesetz)",
+        jurisdiction="Cross-border supply-chain",
+        audience="Supplier compliance officer + buyer compliance officer",
+        summary=(
+            "Pre-filled buyer-to-supplier audit-finding letter with "
+            "Tier-1 forced-labour findings (recruitment-fee violation, "
+            "document retention, working-time, wage violations). "
+            "Pre-cites the supplier code of conduct + UK MSA + EU "
+            "CSDDD + France Loi de Vigilance + Germany "
+            "Lieferkettengesetz + Norway Transparency Act + US UFLPA "
+            "+ 19 USC 1307 + EU Forced Labour Regulation + UNGP + "
+            "OECD MNE Guidelines + IRIS Standard. Madlibs style -- "
+            "remediation requirements + escalation sequence pre-"
+            "built; only audit-finding blanks remain."
+        ),
+        body=_TEMPLATE_SUPPLIER_AUDIT_FINDING_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("buyer_company_name", "Buyer company name", True),
+            _f("buyer_compliance_officer", "Buyer compliance officer", True),
+            _f("buyer_address", "Buyer address", False),
+            _f("supplier_company_name", "Supplier company name", True),
+            _f("supplier_contact", "Supplier contact", True),
+            _f("supplier_address", "Supplier address", False),
+            _f("audit_type", "Audit type (Tier 1 / Tier 2 / unannounced / follow-up)", True),
+            _f("audit_date_range", "Audit date range", True),
+            _f("supplier_facility_name", "Supplier facility name", True),
+            _f("supplier_facility_country", "Facility country", True),
+            _f("audit_provider", "Audit provider", True),
+            _f("n_worker_interviews", "Number of worker interviews", False),
+            _f("recruitment_country", "Recruitment country", True),
+            _f("findings_summary", "Findings summary", True),
+            _f("recruitment_fee_categories", "Recruitment-fee categories observed", True),
+            _f("recruitment_fee_average_usd", "Average recruitment fee per worker (USD)", True),
+            _f("document_retention_findings", "Document-retention findings", False),
+            _f("working_time_findings", "Working-time findings", False),
+            _f("destination_working_time_statute", "Destination working-time statute", False),
+            _f("wage_findings", "Wage findings", False),
+            _f("destination_wage_statute", "Destination wage statute", False),
+            _f("other_findings", "Other findings", False),
+            _f("reimbursement_deadline_days", "Reimbursement deadline (days)", True),
+            _f("preferred_payment_channel", "Preferred payment channel", False),
+            _f("policy_deadline_days", "Policy + procedure deadline (days)", True),
+            _f("remediation_partner", "Remediation monitoring partner", False),
+            _f("buyer_supplier_code_of_conduct", "Buyer supplier code of conduct reference", True),
+            _f("buyer_chief_compliance_officer", "Buyer chief compliance officer", False),
+            _f("regulator_or_industry_initiative", "Regulator or industry-initiative for reporting", False),
+        ),
+    ),
+
+    "ungp_oecd_remediation_request": TemplateSpec(
+        id="ungp_oecd_remediation_request",
+        title="UNGP / OECD NCP Remediation Request (Pillar III Access to Remedy)",
+        jurisdiction="Cross-border",
+        audience="Multinational enterprise (MNE) + NCP",
+        summary=(
+            "Pre-filled UNGP Pillar III access-to-remedy request to "
+            "an MNE plus concurrent OECD NCP Specific Instance filing. "
+            "Cites UNGP HRC Resolution 17/4 (2011) + UNGP 13 + 22 + "
+            "31 effectiveness criteria + OECD Guidelines for MNEs "
+            "(2023 revision) + UK MSA + France Loi de Vigilance + "
+            "Germany Lieferkettengesetz + Norway Transparency Act + "
+            "EU CSDDD + EU FLR. Madlibs style -- 8 numbered sections "
+            "with pre-built remediation requests + reservation of "
+            "rights."
+        ),
+        body=_TEMPLATE_UNGP_OECD_REMEDIATION_REQUEST_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("complainant_name", "Counsel / caseworker name", True),
+            _f("complainant_org", "Organisation", True),
+            _f("complainant_contact", "Contact", True),
+            _f("multinational_enterprise_name", "MNE name", True),
+            _f("mne_contact", "MNE contact", True),
+            _f("mne_address", "MNE address", False),
+            _f("ncp_country", "National Contact Point country", True),
+            _f("ncp_address", "NCP address", False),
+            _f("worker_name", "Affected worker anonymized ID", True, "people[0].label"),
+            _f("worker_nationality", "Worker nationality", True, "intelligence.country_of_origin"),
+            _f("country_of_recruitment", "Country of recruitment", True),
+            _f("sector", "Sector", True, "intelligence.sector"),
+            _f("direct_employer_name", "Direct employer name", True, "intelligence.employers[0]"),
+            _f("value_chain_tier", "Tier in MNE value chain", True),
+            _f("period_of_harm", "Period of harm", True),
+            _f("nature_of_adverse_impact", "Nature of adverse impact", True),
+            _f("ungp_nexus_description", "UNGP 13 nexus description (caused / contributed / linked)", True),
+            _f("mne_company_name", "MNE company name", True),
+            _f("prior_requests_summary", "Prior requests + responses summary", False),
+            _f("country_of_origin_due_diligence_statute_if_any", "Origin-country due-diligence statute (if any)", False),
+            _f("country_of_destination_due_diligence_statute_if_any", "Destination-country due-diligence statute (if any)", False),
         ),
     ),
 
