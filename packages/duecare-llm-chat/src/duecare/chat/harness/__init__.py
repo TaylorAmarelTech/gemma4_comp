@@ -7315,6 +7315,277 @@ RAG_CORPUS = [
      "Guiding Principles and OECD Guidelines for MNEs. Civil-"
      "liability provisions allow affected persons to bring "
      "claims for damages."),
+
+    # ----- Origin-country statute detail -----
+    ("ph_ra_8042_and_ra_10022", "Philippines RA 8042 (Migrant Workers and Overseas Filipinos Act 1995) as amended by RA 10022 (2010)",
+     "PH RA 8042 / RA 10022",
+     "RA 8042 + RA 10022 is the primary Philippine framework "
+     "protecting OFWs. Key sections: Sec. 4 (deployment only to "
+     "countries certified by DFA as protecting OFW rights); "
+     "Sec. 6 (definition + penalty for illegal recruitment, "
+     "including charging amounts in excess of those allowed); "
+     "Sec. 7 (penalties for illegal recruitment by syndicate "
+     "or large scale -- imprisonment 12 years to life + fine "
+     "up to PHP 5 million); Sec. 10 (money claims jurisdiction "
+     "of NLRC for OFW claims); Sec. 22-25 (assistance to "
+     "victims including legal aid, repatriation, "
+     "reintegration). RA 10022 amendments (2010) strengthened "
+     "regulatory oversight, expanded recruitment-fee "
+     "prohibitions, established Joint Manning Agency Council, "
+     "and required Pre-Employment Orientation Seminar (PEOS) "
+     "+ Pre-Departure Orientation Seminar (PDOS). RA 11641 "
+     "(2021) created the Department of Migrant Workers (DMW)."),
+    ("ph_ra_9208_and_ra_10364", "Philippines RA 9208 (Anti-Trafficking in Persons Act 2003) as expanded by RA 10364 (2012)",
+     "PH RA 9208 / RA 10364",
+     "RA 9208 is the primary Philippine anti-trafficking "
+     "statute, expanded by RA 10364 (2012). Key sections: "
+     "Sec. 4 (acts of trafficking + qualified trafficking); "
+     "Sec. 5 (acts that promote trafficking); Sec. 6 "
+     "(qualified trafficking when victim is a child or there "
+     "is sexual exploitation in combination); Sec. 7 "
+     "(confidentiality of records, victim identity protection); "
+     "Sec. 10 (penalties -- 20 years to life imprisonment); "
+     "Sec. 13 (Inter-Agency Council Against Trafficking IACAT); "
+     "Sec. 15-17 (mandatory services for victims: counselling, "
+     "free legal aid, witness protection, livelihood "
+     "assistance). RA 10364 (Expanded Anti-Trafficking) added "
+     "labour trafficking + child trafficking via online "
+     "channels + organ trafficking. Implementation through "
+     "IACAT secretariat at DOJ, with DSWD case management."),
+    ("ph_dmw_act_ra_11641", "Philippines Department of Migrant Workers Act (RA 11641, 2021)",
+     "PH DMW Act / RA 11641",
+     "RA 11641 (the DMW Act, December 2021) consolidated the "
+     "Philippine government's migrant-worker mandate into a "
+     "single Department of Migrant Workers (DMW), absorbing "
+     "POEA, OWWA, ILAB, IMFOAH, and NRCO. Key features: DMW "
+     "as the lead agency for OFW protection + welfare; "
+     "consolidation of all recruitment-regulation functions "
+     "from POEA into DMW; expanded mandate covering "
+     "pre-deployment, in-country, and reintegration phases; "
+     "creation of the Office of the Migrant Workers Affairs "
+     "(OMWA) for case management; integration of the "
+     "Philippine Overseas Labor Office (POLO) network; "
+     "establishment of the Migrant Workers Office (MWO) in "
+     "destination countries. POEA Memorandum Circulars "
+     "(including MC 14-2017 zero-fee policy for PH-HK FDH) "
+     "remain in force under DMW administrative continuity. "
+     "POEA Registry of Licensed Recruitment Agencies became "
+     "the DMW Registry."),
+    ("id_uu_18_2017_pmi", "Indonesia Law 18/2017 on Protection of Indonesian Migrant Workers (UU 18/2017 / PMI)",
+     "Indonesia UU 18/2017 (PMI)",
+     "Indonesia Law 18/2017 (Undang-Undang Pelindungan Pekerja "
+     "Migran Indonesia / PMI) replaced UU 39/2004 and is the "
+     "primary statute protecting Indonesian migrant workers. "
+     "Key articles: Art. 3 (worker rights including protection "
+     "before / during / after employment); Art. 4 (prohibition "
+     "of trafficking-related practices, charging of fees, "
+     "forced labour); Art. 32 (placement procedure requiring "
+     "BP2MI certificate); Art. 36 (worker-paid items LIMITED "
+     "to medical examination, training certificate, "
+     "passport, and visa where required; placement fee, "
+     "agency commission, employment fee are PROHIBITED); "
+     "Art. 60-67 (sanctions for violators including criminal "
+     "penalties + license revocation). Indonesia's Migrant "
+     "Workers Welfare Insurance (Jamsostek BPJS) covers PMI. "
+     "The BP2MI / Badan Pelindungan Pekerja Migran Indonesia "
+     "is the regulator; BP3TKI provincial offices handle "
+     "predeparture orientation (PAP)."),
+    ("id_bp2mi_reg_9_2020", "Indonesia BP2MI Regulation 9/2020 (Implementing Rules for PMI Placement)",
+     "BP2MI Reg. 09/2020",
+     "BP2MI Regulation 9/2020 (Peraturan Badan Nomor 9 Tahun "
+     "2020) implements UU 18/2017 by specifying placement "
+     "procedures, worker-paid cost components, and P3MI "
+     "(Perusahaan Penempatan Pekerja Migran Indonesia / "
+     "private placement company) obligations. Key articles: "
+     "Art. 36 (worker may be charged ONLY for: medical "
+     "examination certificate; training certificate; "
+     "passport; visa, if explicitly required by destination "
+     "country -- ALL OTHER COMPONENTS are paid by the "
+     "employer / placement company); Art. 38-42 (placement "
+     "process: pre-departure orientation PAP, contract "
+     "verification, BP2MI certification); Art. 56-58 "
+     "(sanctions including blacklist + license suspension). "
+     "The 2020 reform of cost-sharing was a major step "
+     "toward the ILO C181 employer-pays-principle, though "
+     "implementation gaps persist."),
+    ("np_foreign_employment_act_2007", "Nepal Foreign Employment Act 2007 + 2015 amendments + 2025 directives",
+     "Nepal FEA 2007 + amendments",
+     "Nepal's Foreign Employment Act 2007 (BS 2064) is the "
+     "primary statute regulating Nepali migrant workers. Key "
+     "sections: Sec. 11(2) + Schedule (worker-paid recruitment "
+     "fee cap, varied by destination corridor and updated by "
+     "Department of Foreign Employment notifications -- as of "
+     "recent notifications, NPR 10,000 for Gulf destinations); "
+     "Sec. 14 (mandatory pre-deployment orientation); Sec. 17 "
+     "(prohibition of illegal recruitment); Sec. 21-25 "
+     "(licensing of recruitment agencies + sanctions including "
+     "license cancellation + criminal prosecution); Sec. 36 "
+     "(Foreign Employment Welfare Fund -- worker contribution "
+     "+ employer contribution funds compensation + repatriation "
+     "+ medical insurance); Sec. 41 (Foreign Employment "
+     "Tribunal for disputes). The 2015 amendments aligned "
+     "with the post-2015-earthquake migration surge. The 2022 "
+     "free-visa-free-ticket policy (FVFT) for selected Gulf "
+     "corridors operationalises employer-pays-principle for "
+     "those routes."),
+    ("bd_oema_2013", "Bangladesh Overseas Employment and Migrants Act 2013 + 2022 amendments",
+     "BD OEMA 2013",
+     "Bangladesh's Overseas Employment and Migrants Act 2013 "
+     "replaced the Emigration Ordinance 1982 and is the "
+     "primary statute regulating Bangladeshi migrant workers. "
+     "Key provisions: Sec. 7 (Bureau of Manpower, Employment "
+     "and Training BMET is the regulator); Sec. 17-22 "
+     "(licensing of recruitment agencies / RAs); Sec. 26 "
+     "(maximum recruitment cost recoverable from worker -- set "
+     "by Ministry notification and varies by corridor); "
+     "Sec. 32 (mandatory pre-departure orientation through "
+     "BMET training centers); Sec. 36 (Wage Earners' Welfare "
+     "Fund for compensation, repatriation, training, and "
+     "skill development); Sec. 41-48 (penalties for "
+     "fraudulent recruitment + worker-protection violations). "
+     "The Bangladesh-Malaysia G2G+ MoU operationalises "
+     "lower-cost migration for the BD-MY corridor with "
+     "shared costs between governments + employers, though "
+     "documented violations persist."),
+    ("vn_law_69_2020", "Vietnam Law 69/2020/QH14 on Contractual Vietnamese Overseas Workers + Decree 38/2020/ND-CP",
+     "VN Law 69/2020 + Decree 38/2020/ND-CP",
+     "Vietnam's Law 69/2020/QH14 (effective January 2022) "
+     "replaced the 2006 Law on Vietnamese Guest Workers and "
+     "is the current statute regulating Vietnamese migrant "
+     "workers. Key features: licensing of service-providing "
+     "enterprises (SPEs); maximum worker-paid service-fee + "
+     "brokerage-fee ceilings set by Decree 38/2020/ND-CP "
+     "(varying by destination corridor); pre-departure "
+     "training requirement (Department of Overseas Labour / "
+     "DOLAB); compulsory deposit by SPE for worker "
+     "compensation; mandatory written contract; right of "
+     "workers to early termination + repatriation in case of "
+     "employer breach. Decree 38/2020/ND-CP specifies "
+     "maximum service fees by corridor (Japan TITP, Korea "
+     "EPS, Taiwan factory, Saudi Arabia construction, etc.). "
+     "Vietnam-Japan TITP corridor accounts for the largest "
+     "share of deployments; reform pressure increased "
+     "following Japan's TITP-to-Ikusei-Shuro transition."),
+    ("kh_sub_decree_190", "Cambodia Sub-Decree on the Management of Migration of Cambodian Workers Abroad through Private Recruitment Agencies (No. 190 of 2011)",
+     "Cambodia Sub-Decree 190 (2011)",
+     "Cambodia Sub-Decree 190 (Anukret 190 of 2011) regulates "
+     "Cambodian migrant workers placed through private "
+     "recruitment agencies (PRAs). Key articles: Art. 4-12 "
+     "(licensing requirements for PRAs through Ministry of "
+     "Labour and Vocational Training MoLVT); Art. 13-20 "
+     "(pre-departure orientation); Art. 22-29 (worker-paid "
+     "cost limits and PRA obligations for repatriation, "
+     "medical insurance, and case management); Art. 35-44 "
+     "(sanctions including PRA license revocation + criminal "
+     "prosecution). Key destinations: Thailand (the largest "
+     "corridor), Malaysia, Korea EPS, Japan TITP / Ikusei "
+     "Shuro, Singapore. The 2024 review of Sub-Decree 190 "
+     "responds to mounting documentation of fee abuses and "
+     "compound-trafficking from KH-recruited workers into "
+     "Sihanoukville cyber-fraud compounds (an issue spanning "
+     "multiple ASEAN countries -- INTERPOL Project Storm "
+     "documentation)."),
+    ("mm_overseas_employment_law", "Myanmar Overseas Employment Agency Law 1999 + 2014 amendments",
+     "Myanmar OEAL 1999",
+     "Myanmar's Overseas Employment Agency Law 1999 (as "
+     "amended 2014) regulates licensed overseas employment "
+     "agencies (OEAs). Key features: licensing through "
+     "Ministry of Labour, Immigration and Population (MOLIP); "
+     "Department of Labour issues placement certificates; "
+     "worker-paid cost limits and OEA repatriation obligations; "
+     "MoUs with destination countries (Thailand, Malaysia, "
+     "Korea EPS, Japan TITP, Singapore). The 2021 military "
+     "takeover disrupted the regulatory framework; major "
+     "destination-country MoUs were suspended; informal "
+     "channels grew. Documentation by Migrant Workers Rights "
+     "Network (MWRN) Thailand and HK-based NGOs shows "
+     "elevated forced-labour risk in MM-TH fishing vessel "
+     "deployments and MM-MY palm-oil plantation contexts. "
+     "Engagement with destination countries on bilateral "
+     "MoUs partially resumed in 2023-2024 with limitations."),
+
+    # ----- Africa / Latin America origin-country statutes -----
+    ("ng_naptip_act_2015", "Nigeria NAPTIP Act (Trafficking in Persons Prohibition Enforcement and Administration Act 2003 / 2015)",
+     "Nigeria NAPTIP Act 2015",
+     "The Nigerian Trafficking in Persons (Prohibition) "
+     "Enforcement and Administration Act 2015 (replacing the "
+     "2003 Act) is administered by the National Agency for "
+     "the Prohibition of Trafficking in Persons (NAPTIP). "
+     "Key sections: Sec. 13 (criminalisation of trafficking, "
+     "5-25 years imprisonment); Sec. 14 (slavery / forced "
+     "labour); Sec. 15 (procurement of person for sexual "
+     "exploitation); Sec. 18 (offences related to organ "
+     "removal); Sec. 50 (victim protection + assistance + "
+     "shelter); Sec. 56 (witness protection); Sec. 62 (forfeiture "
+     "of trafficker assets + restitution to victims). NAPTIP "
+     "operates shelters in Lagos, Benin City, Abuja, Sokoto, "
+     "and other cities. Major patterns include "
+     "Edo-Italy-trafficking-for-sexual-exploitation route "
+     "(documented by IOM Italy and Italian Anti-Mafia "
+     "investigations) and Libya transit routes."),
+    ("gh_human_trafficking_act_2005", "Ghana Human Trafficking Act 2005 (Act 694)",
+     "Ghana Human Trafficking Act 2005",
+     "Ghana's Human Trafficking Act 2005 (Act 694) is the "
+     "primary anti-trafficking statute, expanded by Human "
+     "Trafficking (Amendment) Act 2009 (Act 784). Key "
+     "provisions: definition of trafficking consistent with "
+     "Palermo Protocol; criminalisation of trafficking + "
+     "labour exploitation + slavery + sex trafficking + "
+     "trafficking of children; minimum penalty of 5 years "
+     "imprisonment up to 25 years; victim-centric provisions "
+     "including non-criminalisation of victims, mandatory "
+     "shelter + counselling + repatriation. The Human "
+     "Trafficking Management Board oversees implementation; "
+     "the Anti-Human Trafficking Unit of Ghana Police Service "
+     "investigates. Documented exploitation patterns: GH "
+     "children trafficked into Lake Volta fishing; GH youth "
+     "trafficked to Gulf states for domestic work + "
+     "construction; GH minors trafficked to Ivorian cocoa "
+     "farms (ICI / Cote d'Ivoire Cocoa Initiative coverage)."),
+
+    # ----- US framework detail -----
+    ("us_tvpra_reauthorizations", "US Trafficking Victims Protection Reauthorization Acts (TVPRA, 2003 through 2023)",
+     "US TVPRA cycle",
+     "The US Trafficking Victims Protection Act (TVPA, 2000) "
+     "has been reauthorized seven times: 2003 (PL 108-193), "
+     "2005 (PL 109-164), 2008 (PL 110-457 Wilberforce Act), "
+     "2013 (PL 113-4, Violence Against Women Reauthorization), "
+     "2017 (PL 115-393), 2019 (PL 117-103), and 2023 (in "
+     "progress as of writing). Each reauthorization expanded "
+     "victim protections, federal prosecution authority, and "
+     "demand-reduction provisions. The 2008 Wilberforce Act "
+     "added unaccompanied minor protections, the foreign "
+     "labour-recruitment regulation provisions implemented at "
+     "20 CFR 655.135 (H-2A) + 20 CFR 655.20 (H-2B), and "
+     "victim-witness assistance through HHS Office on "
+     "Trafficking in Persons (OTIP). The Department of "
+     "Labor's Wage and Hour Division enforces H-2A / H-2B "
+     "violations + MSPA violations; DOJ Civil Rights "
+     "Division Human Trafficking Prosecution Unit handles "
+     "criminal prosecution under 18 USC 1581 (peonage), 1584 "
+     "(involuntary servitude), 1589 (forced labour), 1590 "
+     "(trafficking into servitude), 1591 (sex trafficking), "
+     "1592 (document servitude)."),
+
+    # ----- Regional African / Pacific frameworks -----
+    ("ecowas_protocol_against_trafficking", "ECOWAS Plan of Action against Trafficking in Persons + Migration Dialogue for West Africa",
+     "ECOWAS TIP Plan of Action",
+     "The Economic Community of West African States (ECOWAS) "
+     "adopted a Plan of Action against Trafficking in Persons "
+     "in Dakar (2001, updated 2008-2015). The Plan of Action "
+     "supports Member State implementation of the Palermo "
+     "Protocol through harmonised criminalisation, victim "
+     "protection, prevention, and partnership with civil "
+     "society. The Migration Dialogue for West Africa (MIDWA) "
+     "and the ECOWAS Free Movement Protocol (1979, revised) "
+     "interact with anti-trafficking efforts -- free movement "
+     "creates labour mobility benefits but also vulnerability "
+     "to trafficking patterns from Nigeria, Ghana, Senegal, "
+     "Mali, Burkina Faso, Cote d'Ivoire, and Niger toward "
+     "Libya, Algeria, and onward to Europe. The ECOWAS "
+     "Court of Justice has jurisdiction over individual "
+     "human-rights complaints, providing an additional remedy "
+     "for trafficking victims."),
 ]
 
 
