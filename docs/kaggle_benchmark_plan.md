@@ -48,7 +48,7 @@ A composite score can be shown, but the component scores should remain visible.
 | Smoke | 25 | Fast CI/Kaggle CPU check. Already aligned with `duecare-llm-benchmark`. |
 | Public submission | 200-500 | Judge/reviewer benchmark with transparent categories. |
 | Extended research | 1K-5K | Model comparison and ablation work. |
-| Full corpus | 74,567 | Research asset; not the default benchmark because it is too large for casual reruns. |
+| Full corpus | 74,640 | Research asset; not the default benchmark because it is too large for casual reruns. |
 
 ## Manual Kaggle publishing flow
 

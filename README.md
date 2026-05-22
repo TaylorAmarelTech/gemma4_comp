@@ -50,15 +50,20 @@
 > same harness ecosystem pre-stages the refund claim. Harm reduction, not
 > paternalism. Fully offline.
 >
-> **74,567 repo-config prompts. 6 weighted rubrics. 66 evaluation criteria.
-> Reproducible CLI and notebook surfaces. On your laptop or in your pocket.**
+> **74,640 trafficking seed prompts. 6 weighted rubrics. 66 evaluation
+> criteria. 269 GREP detection rules. 191 RAG knowledge documents.
+> 34 complaint / narrative templates. 22 review personas. 45
+> fee-camouflage labels. 31 corridor fee-cap entries. 30 NGO contact
+> bundles. 15 ILO conventions. Reproducible CLI and notebook surfaces.
+> On your laptop or in your pocket.** Re-run all counts via
+> `python scripts/verify_knowledge_surfaces.py` (pure stdlib, no pip).
 >
 > **Built for the [Gemma 4 Good Hackathon](https://www.kaggle.com/competitions/gemma-4-good-hackathon).**
 > Gemma 4 is DueCare's first published benchmark.
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
-[![Pytest collection](https://img.shields.io/badge/pytest%20collection-675%20collected-blue.svg)](#tests)
+[![Pytest collection](https://img.shields.io/badge/pytest%20collection-976%20collected-blue.svg)](#tests)
 [![Packages](https://img.shields.io/badge/packages-17-blue.svg)](#packages)
 
 ## Try DueCare in 30 seconds
@@ -446,7 +451,7 @@ archive note.
 | Trafficking prompt corpus | **74,640** | [110 - Prompt Prioritizer](https://www.kaggle.com/code/taylorsamarel/00a-duecare-prompt-prioritizer-data-pipeline) |
 | Adversarial generators | **15** | [310 - Prompt Factory](https://www.kaggle.com/code/taylorsamarel/duecare-310-prompt-factory) |
 | Evaluation frameworks | **7** | |
-| Pytest collection | **675 tests collected** | Across package test surfaces (2026-05-19 local collection) |
+| Pytest collection | **976 tests collected** | Across package test surfaces (2026-05-21 local collection) |
 | GREP detection rules | **269** | Categories A-ZZ + SCREENING-INDICATORS; see [`docs/KNOWLEDGE_SURFACE_VERIFICATION.md`](docs/KNOWLEDGE_SURFACE_VERIFICATION.md) |
 | RAG knowledge documents | **191** | ILO + UN + regional treaties + statutes + bilateral MOUs + screening tools + complaint procedures + 15 case studies |
 | Complaint / narrative templates | **34** | 5 origin-country, 11 destination-country, 5 referral pathways, 13 madlibs scenario letters / affidavits / worksheets |
@@ -683,7 +688,7 @@ python -m pytest packages/duecare-llm-core/src/forge/core/enums -v
 Latest local collection:
 
 ```
-675 tests collected across package test surfaces on 2026-05-19.
+976 tests collected across package test surfaces on 2026-05-21.
 ```
 
 ## Demo notebooks

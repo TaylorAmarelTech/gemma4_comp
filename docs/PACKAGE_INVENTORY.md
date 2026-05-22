@@ -12,7 +12,7 @@ Generated/verified during the 2026-05-10 readiness cleanup pass. The workspace c
 | `duecare-llm-chat` | 0.17.0 | `src/duecare` | none | none | Gemma 4 workbench, harness UI, sample bundles, knowledge-file I/O, and the reusable portability contract consumed by the Kaggle notebooks. |
 | `duecare-llm-cli` | 0.1.0 | `src/duecare` | `duecare` | none | Current reliable CLI package for `duecare init`, `duecare demo-stage`, and `duecare serve`. |
 | `duecare-llm-core` | 0.1.0 | `src/duecare` | none | none | Core contracts, schemas, enums, registries, provenance, and observability. |
-| `duecare-llm-domains` | 0.1.0 | `src/duecare` | none | none | Domain pack system with lightweight bundled data; the full 74,567-prompt trafficking corpus lives in repo config/Kaggle assets. |
+| `duecare-llm-domains` | 0.1.0 | `src/duecare` | none | none | Domain pack system with lightweight bundled data; the full 74,640-prompt trafficking corpus lives in repo config/Kaggle assets. |
 | `duecare-llm-engine` | 0.1.0 | `src/duecare` | none | `otel` | Pipeline engine wrapper. |
 | `duecare-llm-evidence-db` | 0.1.0 | `src/duecare` | none | `postgres`, `all` | Evidence database backends. |
 | `duecare-llm-models` | 0.1.0 | `src/duecare` | none | `transformers`, `unsloth`, `llama-cpp`, `ollama`, `openai`, `anthropic`, `google`, `hf-endpoint`, `all` | Model adapters. |
