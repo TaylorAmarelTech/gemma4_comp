@@ -444,6 +444,348 @@ authority on cross-border enforcement.
 Signature: ________________________    Date: __________
 """
 
+_TEMPLATE_KR_EPS_BODY = """COMPLAINT TO KOREA EMPLOYMENT PERMIT SYSTEM (EPS)
+Ministry of Employment and Labor (MOEL) -- E-9 Worker Investigation
+Filing date: {{filed_date}}
+
+COMPLAINANT (NGO caseworker / Embassy POLO)
+  Name:           {{complainant_name}}
+  Organisation:   {{complainant_org}}
+  Contact:        {{complainant_contact}}
+
+MIGRANT WORKER (subject)
+  Anonymized identifier:   {{worker_name}}
+  Country of origin:       {{country_of_origin}}
+  ARC prefix:              {{arc_prefix}}
+  E-9 visa start date:     {{visa_start_date}}
+  Sector:                  {{sector}}
+
+EMPLOYER + WORKPLACE
+  Employer name:             {{employer_name}}
+  Business registration no:  {{employer_brn}}
+  Worksite address (city):   {{worksite_city}}
+  EPS-issuing agency:        {{eps_issuing_agency}}
+
+PARTICULARS OF THE VIOLATION
+  Unpaid wages (KRW):                {{unpaid_wages_krw}}
+  Months of withheld salary:         {{months_withheld}}
+  Recruitment / training fee (KRW):  {{recruitment_fee_amount}}
+  Employer-paid principle violated:  {{employer_pays_violation}}
+  Workplace transfer denied:         {{workplace_transfer_denied_yes_no}}
+  Severance pay (toejikgeum) denied: {{severance_denied_yes_no}}
+  Document retention:                {{document_retention_yes_no}}
+  Restriction of movement:           {{movement_restriction_yes_no}}
+
+INCIDENT SUMMARY
+{{incident_summary}}
+
+STATUTORY VIOLATIONS ALLEGED
+  - Act on the Employment etc. of Foreign Workers (EPS Act,
+    2003) provisions on employer-pays-principle + workplace
+    transfer for employer fault
+  - Labor Standards Act provisions on wages + severance pay
+    + working hours + rest
+  - National Health Insurance Act + Industrial Accident
+    Compensation Insurance Act coverage for E-9 workers
+  - ILO C181 Art. 7 + Palermo Protocol Art. 3 (if
+    trafficking indicators)
+
+ILO FORCED-LABOUR INDICATORS
+{{ilo_indicators}}
+
+EVIDENCE AVAILABLE
+{{evidence_list}}
+
+RELIEF REQUESTED
+{{relief_requested}}
+
+The complainant requests Korea MOEL Employment Centre and
+Labour Inspectorate investigation, recovery of unpaid wages
++ severance pay, employer sanctions (suspension from EPS
+employment authority), and where applicable workplace
+transfer authorisation for employer fault under the EPS
+Act. Coordination requested with worker's origin-country
+embassy + Korea Migrants' Centre + ARWB.
+
+Signature: ________________________    Date: __________
+"""
+
+
+_TEMPLATE_TW_MOL_BODY = """COMPLAINT TO TAIWAN MINISTRY OF LABOR (MOL)
+Employment Services Act + Workforce Development Agency Investigation
+Filing date: {{filed_date}}
+
+COMPLAINANT (NGO caseworker / Embassy office)
+  Name:           {{complainant_name}}
+  Organisation:   {{complainant_org}}
+  Contact:        {{complainant_contact}}
+
+MIGRANT WORKER (subject)
+  Anonymized identifier:    {{worker_name}}
+  Country of origin:        {{country_of_origin}}
+  ARC number prefix:        {{arc_prefix}}
+  Sector:                   {{sector}}
+  Caregiver / factory / fishing / construction: {{worker_category}}
+
+EMPLOYER + BROKER
+  Employer / household:       {{employer_name}}
+  Employer business reg:      {{employer_id}}
+  Brokerage agency name:      {{tw_broker_name}}
+  Brokerage licence number:   {{tw_broker_license}}
+  Origin-country counterpart: {{origin_country_agency}}
+
+PARTICULARS OF THE VIOLATION
+  Unpaid wages (TWD):                {{unpaid_wages_twd}}
+  Months of withheld salary:         {{months_withheld}}
+  Brokerage fee exceeded cap:        {{brokerage_fee_excess}}
+  Service-fee deduction exceeded:    {{service_fee_excess}}
+  Document retention:                {{document_retention_yes_no}}
+  Restriction of movement:           {{movement_restriction_yes_no}}
+  Live-in caregiver no-rest-day:     {{caregiver_no_rest_day_yes_no}}
+  Working hours per day / week:      {{hours_per_day_week}}
+
+INCIDENT SUMMARY
+{{incident_summary}}
+
+STATUTORY VIOLATIONS ALLEGED
+  - Employment Services Act (ESA, 1992 as amended) including
+    service-fee + brokerage-fee caps + transfer rules
+  - Labor Standards Act provisions on wages + hours + rest +
+    occupational safety
+  - Domestic / Caregiver regulations under MOL + Council of
+    Labor Affairs
+  - 1955 Hire-Purchase Agreement and Recruitment of Foreign
+    Workers Regulations
+  - ILO C181 Art. 7 + ILO C189 (caregiver context) + Palermo
+    Protocol Art. 3
+
+ILO FORCED-LABOUR INDICATORS
+{{ilo_indicators}}
+
+EVIDENCE AVAILABLE
+{{evidence_list}}
+
+RELIEF REQUESTED
+{{relief_requested}}
+
+The complainant requests MOL Workforce Development Agency
+investigation, broker licence suspension / revocation where
+applicable, refund of overcharges, recovery of unpaid
+wages, and worker employer-transfer authorisation where
+employer fault is established. Coordination requested with
+Hope Workers' Center + worker's origin-country POLO / MWO /
+KDEI / DOLAB / embassy.
+
+Signature: ________________________    Date: __________
+"""
+
+
+_TEMPLATE_SG_MOM_BODY = """COMPLAINT TO SINGAPORE MINISTRY OF MANPOWER (MOM)
+Employment of Foreign Manpower Act (EFMA) + Employment Act Investigation
+Filing date: {{filed_date}}
+
+COMPLAINANT (NGO caseworker / Embassy office)
+  Name:           {{complainant_name}}
+  Organisation:   {{complainant_org}}
+  Contact:        {{complainant_contact}}
+
+MIGRANT WORKER (subject)
+  Anonymized identifier:    {{worker_name}}
+  Country of origin:        {{country_of_origin}}
+  Work permit number prefix: {{work_permit_prefix}}
+  Sector:                   {{sector}}
+  FDW / Construction / Marine / Process: {{worker_category}}
+
+EMPLOYER + AGENCY
+  Employer / household name:      {{employer_name}}
+  Employer UEN:                   {{employer_uen}}
+  EA agency name:                 {{ea_agency_name}}
+  EA licence number:              {{ea_license_number}}
+  Origin-country counterpart:     {{origin_country_agency}}
+
+PARTICULARS OF THE VIOLATION
+  Unpaid wages (SGD):              {{unpaid_wages_sgd}}
+  Months of withheld salary:       {{months_withheld}}
+  Agency fee exceeded cap:         {{agency_fee_excess}}
+  Loan / advance deduction abuse:  {{loan_deduction_abuse}}
+  Document retention:              {{document_retention_yes_no}}
+  Restriction of movement:         {{movement_restriction_yes_no}}
+  Hours per day (FDW context):     {{fdw_hours_per_day}}
+  Weekly rest day (FDW):           {{fdw_rest_day_yes_no}}
+
+INCIDENT SUMMARY
+{{incident_summary}}
+
+STATUTORY VIOLATIONS ALLEGED
+  - Employment of Foreign Manpower Act (EFMA, Cap. 91A)
+    including security-bond + medical insurance obligations
+  - Employment Act (Cap. 91) wage + leave + hours provisions
+  - Employment Agencies Act (Cap. 92) + Code of Practice
+    for Employment Agencies
+  - Settling-In Programme + FDW Code obligations
+  - ILO C181 Art. 7 + ILO C189 (FDW context) + Palermo
+    Protocol Art. 3
+
+ILO FORCED-LABOUR INDICATORS
+{{ilo_indicators}}
+
+EVIDENCE AVAILABLE
+{{evidence_list}}
+
+RELIEF REQUESTED
+{{relief_requested}}
+
+The complainant requests MOM mediation, formal investigation,
+EA licence suspension where applicable, refund of overcharges,
+recovery of unpaid wages, and where appropriate referral to
+Tripartite Alliance for Dispute Management (TADM). For FDW
+cases, coordination with HOME + AIDHA + worker's origin-
+country POLO / MWO / KDEI / SLBFE / embassy.
+
+Signature: ________________________    Date: __________
+"""
+
+
+_TEMPLATE_IL_PIBA_BODY = """COMPLAINT TO ISRAEL POPULATION + IMMIGRATION + BORDER AUTHORITY (PIBA)
+Foreign Workers Law 1991 / Bilateral Agreement Investigation
+Filing date: {{filed_date}}
+
+COMPLAINANT (NGO caseworker / Embassy)
+  Name:           {{complainant_name}}
+  Organisation:   {{complainant_org}}
+  Contact:        {{complainant_contact}}
+
+MIGRANT WORKER (subject)
+  Anonymized identifier:    {{worker_name}}
+  Country of origin:        {{country_of_origin}}
+  B/1 visa number prefix:   {{b1_visa_prefix}}
+  Sector:                   {{sector}}
+  Caregiver / agriculture / construction: {{worker_category}}
+
+EMPLOYER + RECRUITMENT
+  Employer name:              {{employer_name}}
+  Employer ID number:         {{employer_id}}
+  Recruitment agency (IL):    {{il_agency_name}}
+  Recruitment agency licence: {{il_agency_license}}
+  Origin-country counterpart: {{origin_country_agency}}
+
+PARTICULARS OF THE VIOLATION
+  Unpaid wages (NIS):                  {{unpaid_wages_nis}}
+  Months of withheld salary:           {{months_withheld}}
+  Recruitment fee exceeded cap:        {{recruitment_fee_excess}}
+  Document retention:                  {{document_retention_yes_no}}
+  Restriction of movement (geo+sector): {{movement_restriction_yes_no}}
+  Caregiver no-rest-day:               {{caregiver_no_rest_day_yes_no}}
+  Hours per day / week:                {{hours_per_day_week}}
+  GBV / harassment indicators:         {{gbv_indicators_yes_no}}
+
+INCIDENT SUMMARY
+{{incident_summary}}
+
+STATUTORY VIOLATIONS ALLEGED
+  - Israel Foreign Workers Law 1991 + 2016 amendments on
+    recruitment-fee regulation + complaint pathway
+  - Bilateral Agreement framework (Israel-Nepal, Israel-Sri
+    Lanka, Israel-Philippines, Israel-Moldova) recruitment
+    fee caps
+  - Hours of Work and Rest Law 1951
+  - Israel Law for the Prevention of Sexual Harassment 1998
+  - ILO C181 Art. 7 + ILO C189 + ILO C190 + Palermo
+    Protocol Art. 3
+
+ILO FORCED-LABOUR INDICATORS
+{{ilo_indicators}}
+
+EVIDENCE AVAILABLE
+{{evidence_list}}
+
+RELIEF REQUESTED
+{{relief_requested}}
+
+The complainant requests PIBA investigation, recruitment-
+agency licence sanctions where applicable, refund of
+overcharges, recovery of unpaid wages, employer-change
+authorisation where employer fault is established. The
+complainant requests coordination with Kav LaOved (Workers
+Hotline) + Hotline for Refugees and Migrants + worker's
+origin-country POLO / MWO / DoFE / embassy. For caregiver
+cases involving GBV, immediate safety planning + shelter
+referral via Israeli NGO partners.
+
+Signature: ________________________    Date: __________
+"""
+
+
+_TEMPLATE_CA_SAWP_BODY = """COMPLAINT TO CANADA SAWP LIAISON SERVICE + IRCC + ESDC
+Seasonal Agricultural Worker Programme (SAWP) Investigation
+Filing date: {{filed_date}}
+
+COMPLAINANT (NGO caseworker / Liaison Officer)
+  Name:           {{complainant_name}}
+  Organisation:   {{complainant_org}}
+  Contact:        {{complainant_contact}}
+
+SAWP WORKER (subject)
+  Anonymized identifier:    {{worker_name}}
+  Country of origin:        {{country_of_origin}}
+  SAWP cohort year:         {{sawp_year}}
+  Work permit number:       {{work_permit_no}}
+  Sector:                   {{sector}}
+
+EMPLOYER + LIAISON OFFICER
+  Farm employer name:        {{employer_name}}
+  Province + region:         {{province_region}}
+  Employer LMIA number:      {{lmia_no}}
+  Liaison officer name:      {{liaison_officer_name}}
+  Origin-country counterpart: {{origin_country_agency}}
+
+PARTICULARS OF THE VIOLATION
+  Unpaid wages (CAD):                  {{unpaid_wages_cad}}
+  Hours per day / week:                {{hours_per_day_week}}
+  Housing standards concern:           {{housing_concern}}
+  Health and safety concern:           {{health_safety_concern}}
+  Anti-retaliation concern:            {{anti_retaliation_concern}}
+  Document retention:                  {{document_retention_yes_no}}
+  Excess deductions:                   {{excess_deductions}}
+  Threat of non-recall / blacklist:    {{threat_no_recall_yes_no}}
+
+INCIDENT SUMMARY
+{{incident_summary}}
+
+STATUTORY VIOLATIONS ALLEGED
+  - CA SAWP MOU (Mexico-Canada, Caribbean-Canada -- Jamaica,
+    Trinidad and Tobago, Barbados, OECS)
+  - Immigration and Refugee Protection Act (IRPA) +
+    Regulations
+  - Canada Labour Code Part III (federal jurisdiction)
+  - Provincial Employment Standards Acts + Occupational
+    Health and Safety Acts
+  - ILO C97 + C143 + C181 + C188 (where applicable) +
+    Palermo Protocol Art. 3 + 4
+
+ILO FORCED-LABOUR INDICATORS
+{{ilo_indicators}}
+
+EVIDENCE AVAILABLE
+{{evidence_list}}
+
+RELIEF REQUESTED
+{{relief_requested}}
+
+The complainant requests Liaison Service intervention,
+ESDC Integrity Services + IRCC inspection, employer
+remediation, recovery of unpaid wages, anti-retaliation
+interim order, and worker employer-transfer authorisation
+under the SAWP MOU where employer fault is established.
+Coordination requested with Justicia for Migrant Workers
+Canada + Canadian Council for Refugees + worker's origin-
+country counterpart Liaison Service (Mexico Embassy Mexican
+Consulate or Caribbean Community / CARICOM Secretariat).
+
+Signature: ________________________    Date: __________
+"""
+
+
 _TEMPLATE_SA_MHRSD_BODY = """COMPLAINT TO SAUDI MINISTRY OF HUMAN RESOURCES + SOCIAL DEVELOPMENT (MHRSD)
 Friendly Settlement -- Labour / Domestic Worker Bylaw
 Filing date: {{filed_date}}
@@ -1626,6 +1968,220 @@ TEMPLATES_REGISTRY: dict[str, TemplateSpec] = {
             _f("uflpa_entity_list_linkage", "UFLPA Entity List linkage (if any)", False),
             _f("factual_basis_summary", "Factual basis summary", True, "intelligence.case_brief"),
             _f("evidence_list", "Evidence provided", True, "intelligence.evidence_edges"),
+        ),
+    ),
+
+    "kr_eps_complaint": TemplateSpec(
+        id="kr_eps_complaint",
+        title="Korea Employment Permit System (EPS) Complaint (E-9 Worker)",
+        jurisdiction="South Korea",
+        audience="Ministry of Employment and Labor (MOEL) + Labour Inspectorate",
+        summary=(
+            "Complaint against a Korean employer for unpaid wages, "
+            "severance pay denial, workplace-transfer denial, or "
+            "employer-pays-principle violation. Aligns with EPS Act "
+            "+ Labor Standards Act + bilateral EPS-TOPIK MoU "
+            "framework."
+        ),
+        body=_TEMPLATE_KR_EPS_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("complainant_name", "Caseworker name", True),
+            _f("complainant_org", "NGO / organisation", True),
+            _f("complainant_contact", "Caseworker contact", True),
+            _f("worker_name", "Worker anonymized ID", True, "people[0].label"),
+            _f("country_of_origin", "Country of origin", True, "intelligence.country_of_origin"),
+            _f("arc_prefix", "Alien Registration Card prefix", False),
+            _f("visa_start_date", "E-9 visa start date", False),
+            _f("sector", "Sector", True, "intelligence.sector"),
+            _f("employer_name", "Employer name", True, "intelligence.employers[0]"),
+            _f("employer_brn", "Business registration number", False),
+            _f("worksite_city", "Worksite city", True),
+            _f("eps_issuing_agency", "EPS-issuing agency (HRD Service of Korea)", False),
+            _f("unpaid_wages_krw", "Unpaid wages (KRW)", True),
+            _f("months_withheld", "Months of withheld salary", False),
+            _f("recruitment_fee_amount", "Recruitment / training fee (KRW)", False),
+            _f("employer_pays_violation", "Employer-pays-principle violation (describe)", False),
+            _f("workplace_transfer_denied_yes_no", "Workplace transfer denied (Y/N)", False),
+            _f("severance_denied_yes_no", "Severance pay (toejikgeum) denied (Y/N)", False),
+            _f("document_retention_yes_no", "Document retention (Y/N)", True),
+            _f("movement_restriction_yes_no", "Restriction of movement (Y/N)", False),
+            _f("incident_summary", "Case narrative", True, "intelligence.case_brief"),
+            _f("ilo_indicators", "ILO indicators observed", False, "intelligence.ilo_indicators"),
+            _f("evidence_list", "Evidence available", False, "intelligence.evidence_edges"),
+            _f("relief_requested", "Relief requested", True),
+        ),
+    ),
+
+    "tw_mol_complaint": TemplateSpec(
+        id="tw_mol_complaint",
+        title="Taiwan MOL Complaint (Employment Services Act + Caregiver Regs)",
+        jurisdiction="Taiwan",
+        audience="Ministry of Labor (MOL) + Workforce Development Agency",
+        summary=(
+            "Complaint against a Taiwanese employer or broker for "
+            "service-fee overcharge, brokerage-fee cap violations, "
+            "live-in caregiver no-rest-day, or document retention. "
+            "Aligns with Employment Services Act + Labor Standards "
+            "Act + Hire-Purchase / Foreign Worker Regulations."
+        ),
+        body=_TEMPLATE_TW_MOL_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("complainant_name", "Caseworker name", True),
+            _f("complainant_org", "NGO / organisation", True),
+            _f("complainant_contact", "Caseworker contact", True),
+            _f("worker_name", "Worker anonymized ID", True, "people[0].label"),
+            _f("country_of_origin", "Country of origin", True, "intelligence.country_of_origin"),
+            _f("arc_prefix", "ARC number prefix", False),
+            _f("sector", "Sector", True, "intelligence.sector"),
+            _f("worker_category", "Worker category (caregiver / factory / fishing / construction)", True),
+            _f("employer_name", "Employer / household name", True, "intelligence.employers[0]"),
+            _f("employer_id", "Employer business registration ID", False),
+            _f("tw_broker_name", "Taiwan brokerage agency", False, "intelligence.agencies[0]"),
+            _f("tw_broker_license", "Brokerage licence number", False),
+            _f("origin_country_agency", "Origin-country counterpart agency", False),
+            _f("unpaid_wages_twd", "Unpaid wages (TWD)", True),
+            _f("months_withheld", "Months of withheld salary", False),
+            _f("brokerage_fee_excess", "Brokerage fee excess over cap (describe)", False),
+            _f("service_fee_excess", "Service-fee deduction excess (describe)", False),
+            _f("document_retention_yes_no", "Document retention (Y/N)", True),
+            _f("movement_restriction_yes_no", "Restriction of movement (Y/N)", False),
+            _f("caregiver_no_rest_day_yes_no", "Caregiver no-rest-day (Y/N)", False),
+            _f("hours_per_day_week", "Working hours per day / week", False),
+            _f("incident_summary", "Case narrative", True, "intelligence.case_brief"),
+            _f("ilo_indicators", "ILO indicators observed", False, "intelligence.ilo_indicators"),
+            _f("evidence_list", "Evidence available", False, "intelligence.evidence_edges"),
+            _f("relief_requested", "Relief requested", True),
+        ),
+    ),
+
+    "sg_mom_complaint": TemplateSpec(
+        id="sg_mom_complaint",
+        title="Singapore MOM Complaint (EFMA + Employment Act + EA Code)",
+        jurisdiction="Singapore",
+        audience="Ministry of Manpower (MOM) + Tripartite Alliance for Dispute Management",
+        summary=(
+            "Complaint against a Singapore employer or employment "
+            "agency for unpaid wages, agency-fee cap violations, "
+            "FDW Code violations, or document retention. Aligns with "
+            "EFMA Cap. 91A + Employment Act Cap. 91 + Employment "
+            "Agencies Act Cap. 92."
+        ),
+        body=_TEMPLATE_SG_MOM_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("complainant_name", "Caseworker name", True),
+            _f("complainant_org", "NGO / organisation", True),
+            _f("complainant_contact", "Caseworker contact", True),
+            _f("worker_name", "Worker anonymized ID", True, "people[0].label"),
+            _f("country_of_origin", "Country of origin", True, "intelligence.country_of_origin"),
+            _f("work_permit_prefix", "Work permit number prefix", False),
+            _f("sector", "Sector", True, "intelligence.sector"),
+            _f("worker_category", "Worker category (FDW / Construction / Marine / Process)", True),
+            _f("employer_name", "Employer / household name", True, "intelligence.employers[0]"),
+            _f("employer_uen", "Employer UEN", False),
+            _f("ea_agency_name", "EA agency name", False, "intelligence.agencies[0]"),
+            _f("ea_license_number", "EA licence number", False),
+            _f("origin_country_agency", "Origin-country counterpart agency", False),
+            _f("unpaid_wages_sgd", "Unpaid wages (SGD)", True),
+            _f("months_withheld", "Months of withheld salary", False),
+            _f("agency_fee_excess", "Agency fee excess over cap", False),
+            _f("loan_deduction_abuse", "Loan / advance deduction abuse", False),
+            _f("document_retention_yes_no", "Document retention (Y/N)", True),
+            _f("movement_restriction_yes_no", "Restriction of movement (Y/N)", False),
+            _f("fdw_hours_per_day", "Hours per day (FDW)", False),
+            _f("fdw_rest_day_yes_no", "Weekly rest day (FDW, Y/N)", False),
+            _f("incident_summary", "Case narrative", True, "intelligence.case_brief"),
+            _f("ilo_indicators", "ILO indicators observed", False, "intelligence.ilo_indicators"),
+            _f("evidence_list", "Evidence available", False, "intelligence.evidence_edges"),
+            _f("relief_requested", "Relief requested", True),
+        ),
+    ),
+
+    "il_piba_complaint": TemplateSpec(
+        id="il_piba_complaint",
+        title="Israel PIBA Complaint (Foreign Workers Law 1991 + Bilateral Agreement)",
+        jurisdiction="Israel",
+        audience="Population, Immigration and Border Authority (PIBA) + Kav LaOved",
+        summary=(
+            "Complaint against an Israeli employer / recruitment "
+            "agency for recruitment-fee cap violation, document "
+            "retention, caregiver no-rest-day, or GBV / harassment. "
+            "Aligns with Foreign Workers Law 1991 + 2016 amendments "
+            "+ Bilateral Agreement framework."
+        ),
+        body=_TEMPLATE_IL_PIBA_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("complainant_name", "Caseworker name", True),
+            _f("complainant_org", "NGO / organisation", True),
+            _f("complainant_contact", "Caseworker contact", True),
+            _f("worker_name", "Worker anonymized ID", True, "people[0].label"),
+            _f("country_of_origin", "Country of origin", True, "intelligence.country_of_origin"),
+            _f("b1_visa_prefix", "B/1 visa number prefix", False),
+            _f("sector", "Sector", True, "intelligence.sector"),
+            _f("worker_category", "Worker category (caregiver / agriculture / construction)", True),
+            _f("employer_name", "Employer name", True, "intelligence.employers[0]"),
+            _f("employer_id", "Employer ID number", False),
+            _f("il_agency_name", "Israel recruitment agency", False, "intelligence.agencies[0]"),
+            _f("il_agency_license", "Recruitment agency licence", False),
+            _f("origin_country_agency", "Origin-country counterpart agency", False),
+            _f("unpaid_wages_nis", "Unpaid wages (NIS)", True),
+            _f("months_withheld", "Months of withheld salary", False),
+            _f("recruitment_fee_excess", "Recruitment fee excess over cap", False),
+            _f("document_retention_yes_no", "Document retention (Y/N)", True),
+            _f("movement_restriction_yes_no", "Restriction of movement (geo+sector, Y/N)", False),
+            _f("caregiver_no_rest_day_yes_no", "Caregiver no-rest-day (Y/N)", False),
+            _f("hours_per_day_week", "Hours per day / week", False),
+            _f("gbv_indicators_yes_no", "GBV / harassment indicators (Y/N)", True),
+            _f("incident_summary", "Case narrative", True, "intelligence.case_brief"),
+            _f("ilo_indicators", "ILO indicators observed", False, "intelligence.ilo_indicators"),
+            _f("evidence_list", "Evidence available", False, "intelligence.evidence_edges"),
+            _f("relief_requested", "Relief requested", True),
+        ),
+    ),
+
+    "ca_sawp_complaint": TemplateSpec(
+        id="ca_sawp_complaint",
+        title="Canada SAWP Liaison Service + IRCC + ESDC Complaint",
+        jurisdiction="Canada",
+        audience="Liaison Service + ESDC Integrity Services + IRCC + Justicia for Migrant Workers",
+        summary=(
+            "Complaint against a Canadian farm employer (SAWP "
+            "scheme) for unpaid wages, housing standards violations, "
+            "health and safety concerns, anti-retaliation violations, "
+            "or threat of non-recall. Aligns with SAWP MOU + IRPA + "
+            "Canada Labour Code Part III + provincial ESA / OHSA."
+        ),
+        body=_TEMPLATE_CA_SAWP_BODY,
+        fields=(
+            _f("filed_date", "Filing date", True),
+            _f("complainant_name", "Caseworker / Liaison Officer", True),
+            _f("complainant_org", "NGO / organisation", True),
+            _f("complainant_contact", "Contact", True),
+            _f("worker_name", "Worker anonymized ID", True, "people[0].label"),
+            _f("country_of_origin", "Country of origin", True, "intelligence.country_of_origin"),
+            _f("sawp_year", "SAWP cohort year", True),
+            _f("work_permit_no", "Work permit number", False),
+            _f("sector", "Sector (horticulture / poultry / etc.)", True, "intelligence.sector"),
+            _f("employer_name", "Farm employer name", True, "intelligence.employers[0]"),
+            _f("province_region", "Province + region", True),
+            _f("lmia_no", "Employer LMIA number", False),
+            _f("liaison_officer_name", "Liaison officer (origin-country)", False),
+            _f("origin_country_agency", "Origin-country counterpart", False),
+            _f("unpaid_wages_cad", "Unpaid wages (CAD)", True),
+            _f("hours_per_day_week", "Hours per day / week", False),
+            _f("housing_concern", "Housing standards concern (describe)", False),
+            _f("health_safety_concern", "Health and safety concern (describe)", False),
+            _f("anti_retaliation_concern", "Anti-retaliation concern (describe)", False),
+            _f("document_retention_yes_no", "Document retention (Y/N)", True),
+            _f("excess_deductions", "Excess deductions (housing / loan / etc.)", False),
+            _f("threat_no_recall_yes_no", "Threat of non-recall / blacklist (Y/N)", True),
+            _f("incident_summary", "Case narrative", True, "intelligence.case_brief"),
+            _f("ilo_indicators", "ILO indicators observed", False, "intelligence.ilo_indicators"),
+            _f("evidence_list", "Evidence available", False, "intelligence.evidence_edges"),
+            _f("relief_requested", "Relief requested", True),
         ),
     ),
 }
