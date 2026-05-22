@@ -51,12 +51,14 @@
 > paternalism. Fully offline.
 >
 > **74,640 trafficking seed prompts. 6 weighted rubrics. 66 evaluation
-> criteria. 269 GREP detection rules. 191 RAG knowledge documents.
-> 34 complaint / narrative templates. 22 review personas. 45
-> fee-camouflage labels. 31 corridor fee-cap entries. 30 NGO contact
-> bundles. 15 ILO conventions. Reproducible CLI and notebook surfaces.
-> On your laptop or in your pocket.** Re-run all counts via
-> `python scripts/verify_knowledge_surfaces.py` (pure stdlib, no pip).
+> criteria. 290 GREP detection rules. 215 RAG knowledge documents
+> (including 6 landmark case-law summaries + 3 national anti-trafficking
+> enforcement units). 34 complaint / narrative templates. 22 review
+> personas. 45 fee-camouflage labels. 31 corridor fee-cap entries.
+> 30 NGO contact bundles. 15 ILO conventions. Reproducible CLI and
+> notebook surfaces. On your laptop or in your pocket.** Re-run all
+> counts via `python scripts/verify_knowledge_surfaces.py` (pure
+> stdlib, no pip).
 >
 > **Built for the [Gemma 4 Good Hackathon](https://www.kaggle.com/competitions/gemma-4-good-hackathon).**
 > Gemma 4 is DueCare's first published benchmark.
@@ -452,8 +454,8 @@ archive note.
 | Adversarial generators | **15** | [310 - Prompt Factory](https://www.kaggle.com/code/taylorsamarel/duecare-310-prompt-factory) |
 | Evaluation frameworks | **7** | |
 | Pytest collection | **976 tests collected** | Across package test surfaces (2026-05-21 local collection) |
-| GREP detection rules | **269** | Categories A-ZZ + SCREENING-INDICATORS; see [`docs/KNOWLEDGE_SURFACE_VERIFICATION.md`](docs/KNOWLEDGE_SURFACE_VERIFICATION.md) |
-| RAG knowledge documents | **191** | ILO + UN + regional treaties + statutes + bilateral MOUs + screening tools + complaint procedures + 15 case studies |
+| GREP detection rules | **290** | Categories A-ZZ + SCREENING + AAA-EEE + FFF-III (dating-app, biometrics, pension denial, refugee leverage, subcontracting, online sex trafficking, sports, US sectoral, criminal exploitation); see [`docs/KNOWLEDGE_SURFACE_VERIFICATION.md`](docs/KNOWLEDGE_SURFACE_VERIFICATION.md) |
+| RAG knowledge documents | **215** | ILO + UN + regional treaties + statutes + bilateral MOUs + screening tools + complaint procedures + 15 case studies + 6 landmark case law (Siliadin, Rantsev, J. and Others v Austria, Hadijatou Mani, Kil Soo Lee, Bradley) + 3 national anti-trafficking units (FBI, AFP HTSC, UK NCA MSHTU) |
 | Complaint / narrative templates | **34** | 5 origin-country, 11 destination-country, 5 referral pathways, 13 madlibs scenario letters / affidavits / worksheets |
 | Review personas | **22** | NGO + lawyer + regulator + clinician + survivor advocate + engineer + FIU + maritime HR + 14 more |
 | Fee-camouflage labels | **45** | Training / medical / process / placement / broker / document / loan-novation patterns |
