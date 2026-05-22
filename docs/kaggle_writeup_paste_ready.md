@@ -51,9 +51,10 @@ Gemma 4 is one of the newest and most capable open-weight model families, but ea
 
 To address this, DueCare wraps Gemma 4 in model harnesses and logic pipelines:
 
-- **GREP:** 165+ deterministic rules for fee camouflage, wage assignment, debt novation, restricted provider choice, document retention, retaliation, contract substitution, and corridor-cap violations.
-- **Context:** audience-aware framing for workers, caseworkers, regulators, researchers, platform moderators, and developers.
-- **Knowledge packs:** 55+ curated documents covering ILO C029 / C181 / C189, Palermo Protocol, POEA MC 14-2017, BP2MI Reg 9/2020, Nepal FEA 2007 section 11(2), HK Cap. 57 / 163 / 57A, SG EFMA Cap. 91A section 22A, UAE MoHRE Decree 765/2015, and RA 8042 / RA 10022.
+- **GREP:** 269 deterministic rules covering fee camouflage, debt novation, document retention, contract substitution, child + organ + sex trafficking, forced marriage, gig-platform exploitation, seasonal-visa abuse, refugee leverage, and AI-deepfake recruitment fraud.
+- **Context:** 22 audience-aware personas (worker, NGO, regulator, clinician, survivor advocate, FIU, engineer).
+- **Knowledge packs:** 191 documents — 15 ILO conventions, Palermo, regional treaties (EU 2011/36, ASEAN ACTIP, SAARC, Bali Process), 26 destination + origin statutes (POEA MC 14-2017, BP2MI 9/2020, FEA 2007, HK 57/57A, UAE 33/2021, Saudi RD M/51, Qatar 15/2017, TVPRA + UFLPA, UK MSA, EU CSDDD), 6 screening tools (HEAL, TVIT, AHTST, CSE-IT, QYIT, NRM), 15 case studies.
+- **Templates:** 34 pre-filled complaint + narrative templates — citations + procedural language baked in; only worker-specific blanks remain.
 - **Tools:** corridor fee-cap lookup, trusted-contact lookup, statute validation, agency/license checks, source verification, and case-graph queries.
 - **Sensitive-data handling:** raw worker chats, case files, IDs, contact details, and private documents stay on the worker device or trusted NGO hardware unless an authorized user creates a sanitized submission. Local Gemma 4 and deterministic detectors anonymize sensitive PII before anything reaches the hub; the server runs a second PII detector before storage.
 - **Rubric grading:** refusal correctness, legal grounding, evidence preservation, contact quality, retaliation-risk handling, privacy minimization, and statute-section validity.
