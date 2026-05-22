@@ -7,8 +7,8 @@ Re-runnable via `python scripts/verify_knowledge_surfaces.py`.
 
 | Surface | Count |
 | --- | --- |
-| `GREP_RULES` | 269 (categories A through ZZ + SCREENING-INDICATORS) |
-| `RAG_CORPUS` | 191 |
+| `GREP_RULES` | 290 (categories A through III, including SCREENING + AAA-III) |
+| `RAG_CORPUS` | 215 (incl. 6 landmark case-law + 3 national anti-trafficking units + research / faith / sex-worker-rights bodies) |
 | `CORRIDOR_FEE_CAPS` | 31 |
 | `FEE_CAMOUFLAGE_DICT` | 45 |
 | `NGO_INTAKE` | 30 |
