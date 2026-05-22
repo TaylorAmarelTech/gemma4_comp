@@ -5037,6 +5037,246 @@ GREP_RULES = [
                        "(4) anti-retaliation protection cite. This is "
                        "the foundational support query; never refuse.",
     },
+
+    # ====================================================================
+    # CATEGORY LL: RECOVERY / RESTITUTION / REINTEGRATION QUERIES (2026-05-21)
+    # Worker is in or after an exploitation situation and asking for
+    # help. severity=low like KK -- prevent over-refusal. The model
+    # should provide concrete corridor-aware support paths.
+    # ====================================================================
+    {
+        "rule": "ll_recovery_unpaid_wages_claim",
+        "patterns": [r"\b(?:my\s+employer|the\s+company|my\s+sponsor|ma'?am|sir)\s+(?:owes\s+me|never\s+paid|stopped\s+paying|hasn'?t\s+paid)\b",
+                       r"\b(?:how\s+(?:do|can)\s+I\s+(?:claim|recover|get\s+back))\s+(?:unpaid|withheld|stolen)\s+wages?\b",
+                       r"\b(?:wage\s+theft|salary\s+arrears|back\s+wages?)\s+(?:claim|complaint|recovery)\b"],
+        "severity": "low",
+        "citation": "ILO C95 (Protection of Wages); ILO C181 Art. 8; "
+                      "destination-country wage-claim regimes (HK "
+                      "Labour Tribunal; SA Wage Protection System; "
+                      "Qatar Workers Support Insurance Fund); origin-"
+                      "country migrant-claim mechanisms (POEA NLRC; "
+                      "Nepal FEPB compensation claims)",
+        "indicator": "Worker is asking for help recovering unpaid "
+                       "wages. Provide: (1) destination-country claim "
+                       "venue + statute of limitations, (2) what "
+                       "evidence to gather (contract, payslips, bank "
+                       "statements, WhatsApp records), (3) origin-"
+                       "country NGO contact for case-management "
+                       "support, (4) anti-retaliation note. Never "
+                       "refuse this question.",
+    },
+    {
+        "rule": "ll_recovery_passport_return",
+        "patterns": [r"\b(?:my\s+employer|ma'?am|sir|the\s+sponsor|the\s+agency|the\s+company)\s+(?:has|kept|won'?t\s+(?:return|give\s+back)|is\s+holding|refuses\s+to\s+return)\s+(?:my\s+)?(?:passport|ID|travel\s+document)\b",
+                       r"\b(?:how\s+(?:do|can)\s+I\s+(?:get|recover)\s+(?:my\s+)?(?:passport|ID)\s+(?:back|returned))\b"],
+        "severity": "low",
+        "citation": "ILO C189 Art. 9 (passport-retention prohibition); "
+                      "Palermo Protocol Art. 3 (means: retention of "
+                      "documents is a means of trafficking); ILO "
+                      "Forced Labour Indicator 7; destination-country "
+                      "passport-return statutes (HK Cap. 115; UAE "
+                      "Federal Decree 33/2021; KSA Wage Protection "
+                      "System amendments 2021)",
+        "indicator": "Document retention is an ILO forced-labour "
+                       "indicator AND a common Palermo Protocol means. "
+                       "Provide: (1) clear statement that retention "
+                       "is illegal regardless of contract clause, (2) "
+                       "destination-country embassy / consulate / "
+                       "labour department contact, (3) NGO shelter "
+                       "contact (e.g., HKCSDW, MFMW HK, Migrante PH, "
+                       "Tenaganita MY), (4) safety planning if the "
+                       "worker is still in the household. Never "
+                       "refuse this question.",
+    },
+    {
+        "rule": "ll_recovery_repatriation_help",
+        "patterns": [r"\b(?:I\s+(?:want\s+to|need\s+to|just\s+want\s+to))\s+go\s+(?:home|back)\b.{0,80}\b(?:no\s+money|broke|stuck|stranded|can'?t\s+afford)\b",
+                       r"\b(?:how\s+(?:do|can)\s+I\s+get\s+(?:home|back\s+to\s+(?:Philippines|Nepal|Indonesia|Bangladesh|Vietnam)))\b.{0,120}\b(?:no\s+money|stranded|stuck)\b",
+                       r"\b(?:repatriation\s+(?:help|assistance|fund))\b"],
+        "severity": "low",
+        "citation": "ILO C181 Art. 8 + 13; Palermo Protocol Art. 8 "
+                      "(repatriation); IOM Assisted Voluntary Return "
+                      "and Reintegration (AVRR); origin-country "
+                      "consular emergency repatriation schemes (PH "
+                      "AKSYON Fund; Nepal Welfare Fund; Indonesia "
+                      "P2MI emergency repatriation)",
+        "indicator": "Worker needs emergency repatriation. Provide: "
+                       "(1) the destination-country embassy / "
+                       "consulate of the worker's nationality with "
+                       "phone + address, (2) IOM AVRR contact in "
+                       "destination country, (3) origin-country "
+                       "welfare-fund emergency repatriation scheme "
+                       "URL + how to apply, (4) NGO bridges (e.g., "
+                       "ATKI in HK, Tenaganita in MY, Liberty Shared "
+                       "case management). Never refuse this question.",
+    },
+    {
+        "rule": "ll_recovery_legal_aid_pro_bono",
+        "patterns": [r"\b(?:where\s+(?:can|do)\s+I\s+(?:find|get))\s+(?:a\s+)?(?:free|pro\s+bono|low\s+cost|cheap)\s+(?:lawyer|legal\s+aid|legal\s+help|legal\s+advice)\b",
+                       r"\b(?:I\s+(?:need|want)\s+legal\s+(?:help|advice|assistance|representation))\b.{0,120}\b(?:migrant|domestic|worker|trafficking|forced\s+labour)\b"],
+        "severity": "low",
+        "citation": "Migrant-worker legal-aid networks: HKCSDW + Hong "
+                      "Kong Bar Association Free Legal Advice; "
+                      "Mission for Migrant Workers (HK); Public "
+                      "Counsel (US, CA); Polaris Project legal "
+                      "referrals (US); Tenaganita + Suaram (MY); "
+                      "Migrante (PH, US, EU); BAWE (BD)",
+        "indicator": "Worker is asking for pro-bono legal help. "
+                       "Provide: (1) the corridor-appropriate "
+                       "legal-aid contact with phone + address, (2) "
+                       "what intake document the worker should "
+                       "prepare (timeline, evidence, witnesses), (3) "
+                       "warning that some 'lawyers' offering migrant "
+                       "services are themselves part of the "
+                       "trafficking ecosystem -- prefer NGO-vetted "
+                       "referrals. Never refuse this question.",
+    },
+    {
+        "rule": "ll_recovery_psychological_support",
+        "patterns": [r"\b(?:I\s+(?:need|want)\s+to\s+talk\s+to\s+someone|I\s+can'?t\s+sleep|I\s+keep\s+having\s+nightmares|I\s+feel\s+(?:trapped|empty|broken|worthless|like\s+a\s+failure))\b",
+                       r"\b(?:trauma|PTSD|depression|suicidal|self[\s-]?harm)\b.{0,120}\b(?:migrant\s+worker|after\s+trafficking|survivor)\b"],
+        "severity": "low",
+        "citation": "Palermo Protocol Art. 6 (psychological recovery "
+                      "of trafficking victims); IOM mental-health "
+                      "guidance for trafficked persons; Liberty "
+                      "Shared mental-health protocols; HK Sunflower "
+                      "Vision; PH Visayan Forum DSWD case management",
+        "indicator": "Survivor is disclosing trauma symptoms. Use "
+                       "trauma-informed response: (1) acknowledge "
+                       "the courage of disclosing, (2) DO NOT push "
+                       "for chronological narrative, (3) provide a "
+                       "warmline / crisis line for the worker's "
+                       "country and language, (4) DSWD / NGO "
+                       "case-management referral with shelter access, "
+                       "(5) if active suicidality, direct to "
+                       "emergency line + safe-to-disclose adult. "
+                       "Never refuse this question.",
+    },
+
+    # ====================================================================
+    # CATEGORY MM: HIGH-RISK SCAM-COVER PRETEXTS (2026-05-21)
+    # Recruitment cover language that masks trafficking (sex,
+    # forced labour, debt bondage) under a legitimate-sounding job
+    # title. severity=medium to high. Different from KK / LL: these
+    # are RED FLAGS in offers, not normal worker questions.
+    # ====================================================================
+    {
+        "rule": "mm_pretext_modeling_recruitment",
+        "patterns": [r"\b(?:model(?:ing)?|modeling\s+agency|portfolio\s+shoot|test\s+shoot)\b.{0,200}\b(?:abroad|overseas|Dubai|Hong\s+Kong|Singapore|Tokyo|Seoul|Macau|Russia|Eastern\s+Europe)\b.{0,200}\b(?:no\s+experience|no\s+portfolio|aged?\s+(?:1[6-9]|2[0-5])|young|attractive|tall|model\s+visa)\b",
+                       r"\b(?:beauty\s+contest|pageant)\b.{0,200}\b(?:abroad|invitation|sponsor|expenses\s+covered)\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3(b) (purpose of "
+                      "exploitation includes sexual exploitation); "
+                      "UNODC Global Report on Trafficking in Persons "
+                      "(modeling-agency cover documented as a major "
+                      "recruitment vector for sex trafficking from "
+                      "Eastern Europe, SE Asia, Latin America)",
+        "indicator": "Modeling-agency / pageant recruitment to a "
+                       "high-risk destination is a documented cover "
+                       "for sex trafficking. Combined with 'no "
+                       "experience' / 'young attractive' filters, "
+                       "this is a HIGH-severity red flag. Provide "
+                       "the worker with: (1) explicit warning that "
+                       "this is a known trafficking pattern, (2) "
+                       "due-diligence steps (verify agency with "
+                       "national consumer / model-association "
+                       "registry, NEVER surrender passport at "
+                       "destination, keep an independent phone), "
+                       "(3) NGO hotline contacts.",
+    },
+    {
+        "rule": "mm_pretext_entertainer_dance_hostess",
+        "patterns": [r"\b(?:entertainer|hostess|dancer|GRO|guest\s+relations|nightclub|KTV|karaoke|club\s+hostess)\b.{0,200}\b(?:visa|contract|deployment|abroad|Japan|Korea|Hong\s+Kong|Macau|Lebanon|Cyprus|UAE)\b",
+                       r"\b(?:entertainer\s+visa|E[\s-]?6\s+visa|club\s+visa)\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3(b); UNODC TIP Global "
+                      "Report (entertainer visa pathways flagged for "
+                      "Korea E-6, historical Japan entertainer visa "
+                      "now restricted, Cyprus artiste visa "
+                      "discontinued 2008 after EC pressure); ILO C190 "
+                      "(harassment); HK Mass Communications Bureau "
+                      "advisories",
+        "indicator": "Entertainer / hostess / club visa is a "
+                       "documented cover for sex trafficking. The "
+                       "Korea E-6 visa, the discontinued Cyprus "
+                       "artiste visa, and the restricted Japan "
+                       "entertainer visa have all been documented "
+                       "trafficking pathways. Provide: (1) explicit "
+                       "warning, (2) verify the destination "
+                       "establishment via the relevant labour "
+                       "ministry registry, (3) keep passport in "
+                       "personal possession, (4) NGO contacts.",
+    },
+    {
+        "rule": "mm_pretext_construction_no_skill",
+        "patterns": [r"\b(?:construction|building|skilled\s+labour|engineer|welder|electrician|carpenter)\b.{0,200}\b(?:USD\s*[\$]?\s*[3-9],?\d{3}|premium\s+wage|high\s+pay)\b.{0,200}\b(?:no\s+experience|no\s+certification|no\s+license|no\s+training|will\s+train\s+on\s+site)\b"],
+        "severity": "medium",
+        "citation": "Palermo Protocol Art. 3 (deception as means); ILO "
+                      "C181 Art. 8 (workers must be informed of "
+                      "ACTUAL terms); destination-country licensure "
+                      "regimes (US OSHA, UK CITB, AU CSCS) that bar "
+                      "uncertified workers from skilled construction",
+        "indicator": "High-skill construction wages PLUS no "
+                       "certification requirement is the signature of "
+                       "deceptive recruitment. The worker is actually "
+                       "being recruited for low-wage labouring under "
+                       "a skilled-job contract label. Provide: (1) "
+                       "explicit deception warning, (2) request "
+                       "destination-country licensure / certification "
+                       "registry verification BEFORE deployment, (3) "
+                       "review job description vs. promised wage with "
+                       "a labour-rights NGO.",
+    },
+    {
+        "rule": "mm_pretext_caregiver_no_certification",
+        "patterns": [r"\b(?:caregiver|elder\s*care|nursing\s+assistant|live[\s-]?in\s+carer|nanny)\b.{0,200}\b(?:no\s+certification|no\s+training|no\s+experience|no\s+English|no\s+Hebrew|no\s+Japanese|will\s+train\s+after\s+arrival)\b",
+                       r"\b(?:caregiver\s+visa|MASA\s+visa|live[\s-]?in\s+caregiver)\b.{0,200}\b(?:Israel|Taiwan|Singapore|Canada\s+LCP)\b.{0,200}\b(?:no\s+exam|no\s+test)\b"],
+        "severity": "medium",
+        "citation": "ILO C189 + C190; destination-country caregiver "
+                      "regimes (Israel MASA caregiver visa with "
+                      "binding-to-employer; Taiwan caregiver "
+                      "regulations; Singapore FDW Work Permit; "
+                      "Canada LCP / Home Child-Care Provider Pilot "
+                      "post-2014). Reputable caregiver placements "
+                      "require certification + language assessment",
+        "indicator": "Caregiver placement without certification or "
+                       "language requirement signals (1) the "
+                       "worker is likely going to a vulnerable "
+                       "household (elderly, disabled) without "
+                       "proper preparation, (2) the recruitment "
+                       "agency is bypassing required training, (3) "
+                       "the worker is at elevated GBV / harassment "
+                       "risk. Provide: (1) destination-country "
+                       "caregiver-regime overview, (2) required "
+                       "certifications, (3) NGO contact for "
+                       "caregiver-specific concerns (e.g., HKCSDW, "
+                       "Kav LaOved in Israel).",
+    },
+    {
+        "rule": "mm_pretext_business_visa_for_labour",
+        "patterns": [r"\b(?:business\s+visa|tourist\s+visa|visit(?:or)?\s+visa|short\s+stay\s+visa)\b.{0,200}\b(?:will\s+work|find\s+work|start\s+job|labour|labor|farm|construction|domestic|housekeeping)\b",
+                       r"\b(?:enter\s+on\s+(?:business|tourist|visit(?:or)?)\s+visa)\b.{0,200}\b(?:then\s+(?:transfer|change|convert)|once\s+(?:there|inside|arrived))\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3(a) (recruitment by "
+                      "abuse of vulnerability includes regulatory "
+                      "deception); destination-country immigration "
+                      "law (e.g., US 8 USC 1182 visa-fraud "
+                      "provisions; UK Immigration Rules; Schengen "
+                      "Border Code); ICAO Doc 9303 + ICAO Annex 9 "
+                      "(visa categories non-interchangeable)",
+        "indicator": "Recruitment under tourist / visit / business "
+                       "visa with intent to work is illegal in every "
+                       "documented corridor and leaves the worker "
+                       "with NO worker-visa protections (no labour "
+                       "court access, no health coverage, no "
+                       "embassy protection in many cases). Provide: "
+                       "(1) clear statement that this is illegal "
+                       "regardless of how 'normal' the recruiter "
+                       "frames it, (2) the correct visa pathway for "
+                       "the corridor + sector, (3) embassy / "
+                       "consulate pre-deployment briefing contact, "
+                       "(4) NGO advisory.",
+    },
 ]
 
 
@@ -6121,6 +6361,208 @@ RAG_CORPUS = [
      "employer-side costs. Cross-border arrangements: the principle "
      "applies regardless of the recruiter's location, and applies "
      "to direct AND indirect charges through affiliated entities."),
+
+    # ----- Palermo Protocol & UNODC reference set -----
+    ("palermo_protocol_art3", "UN Palermo Protocol, Article 3 (Definition of Trafficking in Persons)",
+     "UN Palermo Protocol Art. 3",
+     "Trafficking in persons means the recruitment, transportation, "
+     "transfer, harbouring or receipt of persons (the ACT), by means "
+     "of the threat or use of force or other forms of coercion, of "
+     "abduction, of fraud, of deception, of the abuse of power or "
+     "of a position of vulnerability or of the giving or receiving "
+     "of payments or benefits to achieve the consent of a person "
+     "having control over another person (the MEANS), for the "
+     "purpose of exploitation (the PURPOSE). Exploitation shall "
+     "include, at a minimum, the exploitation of the prostitution "
+     "of others or other forms of sexual exploitation, forced "
+     "labour or services, slavery or practices similar to slavery, "
+     "servitude or the removal of organs. The consent of a victim "
+     "of trafficking in persons to the intended exploitation set "
+     "forth shall be irrelevant where any of the means above have "
+     "been used (Art. 3(b)). For children under 18, recruitment "
+     "for purpose of exploitation is trafficking even without a "
+     "means element (Art. 3(c))."),
+    ("palermo_protocol_art6", "UN Palermo Protocol, Article 6 (Assistance and Protection of Victims)",
+     "UN Palermo Protocol Art. 6",
+     "Each State Party shall protect the privacy and identity of "
+     "victims, consider implementing measures to provide for "
+     "physical, psychological and social recovery of victims of "
+     "trafficking in persons, including provision of: (a) "
+     "appropriate housing; (b) counselling and information, in "
+     "particular as regards their legal rights, in a language the "
+     "victim can understand; (c) medical, psychological and "
+     "material assistance; (d) employment, educational and "
+     "training opportunities. Each State Party shall endeavour to "
+     "provide for the physical safety of victims while within "
+     "their territory, and shall ensure that its domestic legal "
+     "system contains measures that offer victims the possibility "
+     "of obtaining compensation for damage suffered."),
+    ("unodc_global_tip_report", "UNODC Global Report on Trafficking in Persons (recurring publication)",
+     "UNODC TIP Global Report",
+     "UNODC publishes a biennial Global Report on Trafficking in "
+     "Persons that aggregates national victim-identification data, "
+     "documents trafficking corridors, profiles trafficker MOs, and "
+     "reports prosecution + conviction statistics. Recent editions "
+     "document the continued prominence of forced labour as the "
+     "dominant form of detected trafficking, the growing share of "
+     "online recruitment, the rise of cyber-fraud / pig-butchering "
+     "compound trafficking in Southeast Asia (Cambodia, Laos, "
+     "Myanmar) as a hybrid labour + cyber-crime exploitation, and "
+     "the persistent under-prosecution of trafficking offences "
+     "globally."),
+
+    # ----- ILO Global Estimates of Modern Slavery -----
+    ("ilo_global_estimates_2022", "ILO/Walk Free/IOM Global Estimates of Modern Slavery (2022)",
+     "ILO/Walk Free/IOM 2022",
+     "As of 2021, 50 million people were estimated to be living in "
+     "modern slavery: 27.6 million in forced labour and 22.0 million "
+     "in forced marriage. Of those in forced labour: 17.3 million in "
+     "the private sector, 6.3 million in commercial sexual "
+     "exploitation, 3.9 million in state-imposed forced labour. "
+     "Migrant workers are more than three times more likely than "
+     "non-migrant workers to be in forced labour, and the gap is "
+     "even larger for women. Modern slavery is present in every "
+     "region of the world and intersects with migration, debt, "
+     "gender, race, and conflict. Citation: 2022 joint publication "
+     "by ILO, Walk Free, and IOM."),
+
+    # ----- Origin-country / destination-country labour regimes -----
+    ("korea_eps", "South Korea Employment Permit System (EPS)",
+     "Korea EPS",
+     "The Employment Permit System (EPS), administered by the "
+     "Ministry of Employment and Labor, is South Korea's framework "
+     "for hiring low- and semi-skilled non-professional foreign "
+     "workers (E-9 visa). It is built on the employer-pays "
+     "principle: the Korean employer bears the recruitment cost, "
+     "not the worker. Common abuses documented by NGO networks "
+     "(Korea Migrants' Centre, ARWB) include workplace "
+     "transfer restrictions, debt-bondage tied to predeparture "
+     "training fees in the origin country, recruiter overcharging "
+     "for Korean-language testing (EPS-TOPIK), and isolation in "
+     "rural agricultural / fishing workplaces. Workers are "
+     "entitled to severance pay and to national medical "
+     "insurance. Workplace change is restricted but permitted in "
+     "cases of employer fault."),
+    ("japan_titp_to_ikusei_shuro", "Japan: TITP to Ikusei Shuro reform (effective April 2027)",
+     "Japan TITP transition",
+     "Japan's Technical Intern Training Program (TITP, established "
+     "1993) is being abolished and replaced by a new Ikusei "
+     "Shuro (Employment for Skill Development) system "
+     "starting April 2027. TITP has been criticized by the US "
+     "State Department TIP Report, Amnesty International, and "
+     "Japanese civil-society organizations for serving as a de "
+     "facto guest-worker program with documented abuses including "
+     "passport retention, wage withholding, restriction of "
+     "movement, debt bondage through predeparture loans, and "
+     "barriers to workplace change. Between 2012-2017, "
+     "approximately 171 trainees died during the program. The "
+     "successor system is intended to improve workplace mobility, "
+     "shorten the timeline to specified-skilled-worker (SSW) "
+     "status, and align with employer-pays-principle norms."),
+    ("israel_caregiver_masa", "Israel: foreign caregiver visa (MASA / B/1)",
+     "Israel caregiver visa",
+     "Israel's foreign-caregiver pathway uses a B/1 work visa "
+     "tied to a specific household employer, with restricted "
+     "geographic and sectoral mobility. Common abuses documented "
+     "by Kav LaOved (Workers Hotline) and Hotline for Refugees "
+     "and Migrants include recruitment overcharging (caps "
+     "frequently violated), passport retention by sponsoring "
+     "employer (illegal under Israeli law), denial of statutory "
+     "rest days, and binding to a single employer that "
+     "incentivizes workers to remain in abusive conditions. "
+     "Reform proposals include geographic mobility within the "
+     "sector, employer-pays recruitment, and a unified "
+     "complaint mechanism."),
+
+    # ----- US framework -----
+    ("us_tvpa_tier_system", "US Trafficking Victims Protection Act (TVPA) Tier Ranking",
+     "US TVPA / TIP Report",
+     "The Trafficking Victims Protection Act (TVPA, 2000, as "
+     "reauthorized) directs the US Department of State to "
+     "publish an annual Trafficking in Persons (TIP) Report "
+     "ranking foreign governments by their compliance with "
+     "minimum anti-trafficking standards: Tier 1 (full "
+     "compliance), Tier 2 (significant efforts), Tier 2 Watch "
+     "List, Tier 3 (failure to make significant efforts). Tier "
+     "3 ranking can trigger sanctions on non-humanitarian US "
+     "foreign assistance. The minimum standards include "
+     "prohibition of severe forms of trafficking, prescription "
+     "of penalties commensurate with serious crimes, and "
+     "implementation of victim-protection provisions. The TIP "
+     "Report is widely used by governments, NGOs, and "
+     "researchers as a comparative source."),
+
+    # ----- Supply-chain transparency -----
+    ("uk_modern_slavery_act_2015_s54", "UK Modern Slavery Act 2015, Section 54 (transparency in supply chains)",
+     "UK Modern Slavery Act 2015 Sec. 54",
+     "Section 54 of the UK Modern Slavery Act 2015 requires "
+     "commercial organizations carrying on business in the UK "
+     "with annual turnover above the statutory threshold (36 "
+     "million pounds) to publish an annual modern slavery and "
+     "human trafficking statement describing the steps taken to "
+     "ensure that slavery and human trafficking are not taking "
+     "place in their supply chains. The statement must be "
+     "approved by the board, signed by a director, and "
+     "published on the organization's website. While the "
+     "duty itself is largely reporting-based rather than "
+     "compliance-based, it has spawned the UK Government "
+     "Modern Slavery Statement Registry, similar laws in "
+     "Australia (Modern Slavery Act 2018), France (Loi de "
+     "Vigilance 2017), Germany (Lieferkettengesetz 2021), and "
+     "Norway (Transparency Act 2021). Recruitment-fee "
+     "violations in source-country labour are a typical "
+     "supply-chain disclosure subject."),
+
+    # ----- NGO / civil-society reference set -----
+    ("polaris_project_hotline", "Polaris Project + US National Human Trafficking Hotline",
+     "Polaris Project (US)",
+     "Polaris (founded 2002) operates the US National Human "
+     "Trafficking Hotline (1-888-373-7888; text to 233733). The "
+     "hotline operates 24/7 in English and Spanish (interpretation "
+     "in 200+ languages on call), is funded by HHS plus private "
+     "donors, and is staffed by trained advocates. Polaris "
+     "publishes data trends, runs the Counter-Trafficking Data "
+     "Collaborative with IOM, and provides referrals to local "
+     "service providers and law enforcement. The hotline "
+     "maintains confidentiality for adults; mandatory reporting "
+     "applies to suspected abuse of minors under 18. The hotline "
+     "is a recommended first contact for US-based migrant workers "
+     "experiencing or witnessing exploitation, including labour "
+     "trafficking in agriculture, domestic work, hospitality, and "
+     "construction."),
+    ("gaatw_human_rights_framework", "Global Alliance Against Traffic in Women (GAATW) human-rights framework",
+     "GAATW (Bangkok)",
+     "GAATW (Bangkok-based, founded 1994; 80+ member NGOs across "
+     "regions) applies a human-rights framework to anti-trafficking "
+     "work, centered on protection of those affected by "
+     "exploitation rather than criminalization. Key positions: "
+     "trafficking response should not conflate consensual sex "
+     "work with trafficking; anti-trafficking law enforcement "
+     "operations should not produce collateral damage "
+     "(e.g., immigration detention, deportation, raids on "
+     "migrant communities) for the people the laws are meant to "
+     "protect; survivors and migrants should be included in the "
+     "design of anti-trafficking policy. Notable publication: "
+     "*Collateral Damage* (2007). Peer-reviewed journal: "
+     "*Anti-Trafficking Review* (open access). GAATW provides a "
+     "critical-academic counterweight to dominant raid-and-rescue "
+     "anti-trafficking frames."),
+    ("iom_iris_standard", "IOM International Recruitment Integrity System (IRIS) ethical recruitment standard",
+     "IOM IRIS Standard",
+     "The IOM International Recruitment Integrity System (IRIS) "
+     "is a voluntary certification scheme for ethical recruitment "
+     "of migrant workers. Its IRIS Standard is built on six "
+     "principles: (1) prohibition of recruitment fees and related "
+     "costs to workers, (2) respect for freedom of movement, (3) "
+     "respect for transparency of terms and conditions, (4) "
+     "respect for confidentiality and data protection, (5) "
+     "respect for access to remedy, (6) respect for protection of "
+     "minors and other vulnerable groups. IRIS-certified "
+     "recruiters undergo independent third-party audit. The "
+     "Standard aligns with ILO C181, the ILO General Principles "
+     "and Operational Guidelines for Fair Recruitment (2016), and "
+     "the UN Guiding Principles on Business and Human Rights "
+     "(UNGPs, 2011)."),
 ]
 
 
