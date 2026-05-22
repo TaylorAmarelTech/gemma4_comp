@@ -7,8 +7,8 @@ Re-runnable via `python scripts/verify_knowledge_surfaces.py`.
 
 | Surface | Count |
 | --- | --- |
-| `GREP_RULES` | 300 (categories A through OOO, including SCREENING + AAA-III + JJJ-OOO) |
-| `RAG_CORPUS` | 227 (incl. 6 landmark case-law + 3 national anti-trafficking units + research / faith / sex-worker-rights bodies + US HSI / CBP CEE / UK IASC / GRETA / 2 UN SR mandates / MPI / Asia Foundation / Amnesty / BHRRC / Solidaridad cluster / ECPAT / HRW) |
+| `GREP_RULES` | 318 (categories A through GGGG, including SCREENING + AAA-III + JJJ-OOO + PPP-YYY + ZZZ-GGGG) |
+| `RAG_CORPUS` | 235 (incl. 6 landmark case-law + 3 national anti-trafficking units + research / faith / sex-worker-rights bodies + US HSI / CBP CEE / UK IASC / GRETA / 3 UN SR mandates / MPI / Asia Foundation / Amnesty / BHRRC / Solidaridad cluster / ECPAT / HRW + IMO/ITF + ICAT + AU/Ouagadougou + ASEAN ACTIP detail + Lanzarote + GCM + UFLPA) |
 | `CORRIDOR_FEE_CAPS` | 31 |
 | `FEE_CAMOUFLAGE_DICT` | 45 |
 | `NGO_INTAKE` | 30 |

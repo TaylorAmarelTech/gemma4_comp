@@ -74,6 +74,27 @@ audience description matches yours and skip to the linked brief.
 - `scripts/verify_knowledge_surfaces.py` — knowledge layer
   verification used by all paths
 
+## Implementation status
+
+The deployment docs describe the **target** end-state. Some
+referenced CLI subcommands and packages do not yet exist as
+shipped code; they are tracked as follow-up work.
+
+| Command / package | Status (as of 2026-05-22) | Tracking |
+|---|---|---|
+| `duecare init` / `doctor` / `demo` / `process` / `ingest` / `query` / `serve` / `moderate` / `worker` | Implemented | `packages/duecare-llm-cli/` |
+| `duecare workbench` | Planned — alias for existing Kernel 01 FastAPI app launcher | Follow-up task |
+| `duecare model pull <name>` | Planned — wraps existing Gemma 4 download path | Follow-up task |
+| `duecare knowledge sync` / `export` / `search` | Planned — knowledge-pack publishing + sync wire-up | Follow-up task #118-related |
+| `duecare anonymise envelope` | Planned — anonymisation gate CLI surface | Follow-up task |
+| `duecare oracle subscribers` / `send-questions` | Planned — `packages/duecare-llm-oracle/` package not yet built | Follow-up task #124 |
+| `packages/duecare-llm-oracle/` | Planned | Follow-up task #124 |
+
+The reference architecture, schemas, trust boundaries, and
+workflows in these docs are stable. The CLI surface is the
+remaining gap; existing functionality is reachable through the
+Kernel 01 FastAPI workbench while the CLI catches up.
+
 ## Cross-cutting components
 
 - [**Email oracle**](oracle_email_solicitation.md) — server-side
