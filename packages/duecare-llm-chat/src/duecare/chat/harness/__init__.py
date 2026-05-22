@@ -9893,6 +9893,124 @@ ILO_CONVENTIONS = {
               "violence + harassment; particularly relevant to migrant "
               "domestic workers + women in fishing/agriculture",
               "30+ ratifying States; entered into force 25 June 2021"),
+    "087": (1948, "Freedom of Association and Protection of the Right to Organise Convention",
+              ["Art. 2 (right of workers and employers to establish "
+                  "and join organisations of their own choosing)",
+               "Art. 3 (organisations have right to draw up "
+                  "constitutions + rules + elect representatives + "
+                  "organise activities + formulate programmes)",
+               "Art. 8 (in exercising the rights, workers + employers "
+                  "shall respect the law of the land)",
+               "Art. 11 (Member to take measures to ensure that workers "
+                  "and employers may exercise freely the right to "
+                  "organise)"],
+              "Foundational ILO convention on freedom of association. "
+              "Part of the ILO Declaration on Fundamental Principles "
+              "and Rights at Work (1998) -- core right binding on all "
+              "Member States regardless of ratification status",
+              "157+ ratifying States; not ratified by US, India, China, "
+              "Saudi Arabia, UAE, Qatar; ILO Committee on Freedom of "
+              "Association handles complaints regardless of "
+              "ratification"),
+    "098": (1949, "Right to Organise and Collective Bargaining Convention",
+              ["Art. 1 (workers shall enjoy adequate protection against "
+                  "acts of anti-union discrimination -- esp. dismissal "
+                  "and prejudice for union membership / participation)",
+               "Art. 2 (workers' and employers' organisations shall "
+                  "enjoy adequate protection against interference by "
+                  "each other)",
+               "Art. 4 (Member to encourage and promote machinery for "
+                  "voluntary negotiation between employers and workers' "
+                  "organisations)"],
+              "Foundational ILO convention on collective bargaining. "
+              "Part of the ILO Declaration on Fundamental Principles "
+              "and Rights at Work (1998) -- core right binding on all "
+              "Member States regardless of ratification status",
+              "167+ ratifying States; ILO CFA jurisprudence applies "
+              "to migrant workers regardless of immigration status"),
+    "100": (1951, "Equal Remuneration Convention",
+              ["Art. 1 (equal remuneration for men and women workers "
+                  "for work of equal value)",
+               "Art. 2 (Member shall ensure application of the "
+                  "principle through national law, machinery for wage "
+                  "determination, collective agreements, or "
+                  "combination)",
+               "Art. 3 (objective appraisal of jobs on basis of work "
+                  "performed)"],
+              "Equal-pay-for-work-of-equal-value foundational convention. "
+              "Part of the ILO Declaration on Fundamental Principles "
+              "and Rights at Work (1998). Particularly relevant to "
+              "migrant women workers facing wage discrimination",
+              "173+ ratifying States (near-universal); UN SDG 5 + 8 "
+              "tracking integrates C100 principles"),
+    "111": (1958, "Discrimination (Employment and Occupation) Convention",
+              ["Art. 1 (discrimination definition -- race, colour, sex, "
+                  "religion, political opinion, national extraction, "
+                  "social origin; Members may add other grounds with "
+                  "social-partner consultation)",
+               "Art. 2 (Member to declare and pursue a national policy "
+                  "to promote equality of opportunity and treatment)",
+               "Art. 3 (legislation + administrative measures + "
+                  "agreement to repeal discriminatory provisions)"],
+              "Anti-discrimination foundational convention. Part of the "
+              "ILO Declaration on Fundamental Principles and Rights at "
+              "Work (1998). Frequently invoked in migrant-worker race + "
+              "nationality + religion discrimination cases",
+              "175+ ratifying States; ILO CEACR observations regularly "
+              "address migrant-worker discrimination + kafala-system "
+              "abuses"),
+    "138": (1973, "Minimum Age Convention",
+              ["Art. 2 (Member shall specify a minimum age for "
+                  "admission to employment; generally not less than the "
+                  "age of compulsory schooling and in any case not "
+                  "less than 15)",
+               "Art. 3 (minimum age of 18 for any type of employment "
+                  "or work which by its nature or circumstances may "
+                  "jeopardise the health, safety or morals of young "
+                  "persons -- 'hazardous work')",
+               "Art. 7 (national laws may permit light work for "
+                  "persons aged 13-15)"],
+              "Foundational ILO convention on minimum age. Part of the "
+              "ILO Declaration on Fundamental Principles and Rights at "
+              "Work (1998) -- abolition of child labour as core right",
+              "175+ ratifying States; complements C182 (Worst Forms "
+              "of Child Labour) which applies to all under-18; the UN "
+              "CRC + OPSC provide complementary protections"),
+    "182": (1999, "Worst Forms of Child Labour Convention",
+              ["Art. 1 (immediate + effective measures to secure "
+                  "prohibition + elimination)",
+               "Art. 2 (child = under-18)",
+               "Art. 3 (worst forms: (a) all forms of slavery / "
+                  "trafficking / debt bondage / serfdom / forced "
+                  "labour / forced recruitment for armed conflict; "
+                  "(b) prostitution + production of pornography + "
+                  "pornographic performances; (c) illicit activities "
+                  "incl. drug trafficking; (d) hazardous work)"],
+              "Foundational ILO convention on the worst forms of child "
+              "labour. Part of the ILO Declaration on Fundamental "
+              "Principles and Rights at Work (1998). Universally "
+              "ratified 2020 -- the only ILO convention to achieve "
+              "this status before P029",
+              "187 ratifying States (universal ratification 2020)"),
+    "p029": (2014, "Protocol of 2014 to the Forced Labour Convention",
+              ["Art. 1 (Member to take effective measures to prevent + "
+                  "eliminate forced labour + provide protection + "
+                  "remedies for victims)",
+               "Art. 2 (preventive measures include education + "
+                  "vulnerability-reduction + due diligence by public + "
+                  "private sectors + addressing root causes)",
+               "Art. 3 (identification + release + protection + "
+                  "recovery + rehabilitation of victims)",
+               "Art. 4 (access to remedies + compensation + "
+                  "non-prosecution for unlawful acts they were "
+                  "compelled to commit)"],
+              "Protocol modernising C29 (1930) by adding victim "
+              "protection + remedies + recruitment regulation + "
+              "supply-chain due diligence. Provides the international-"
+              "law basis for the modern anti-trafficking framework",
+              "60+ ratifying States; entered into force 9 November "
+              "2016; ILO has called for universal ratification by "
+              "2030"),
 }
 
 
