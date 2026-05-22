@@ -6372,6 +6372,255 @@ GREP_RULES = [
                        "Migrant Workers Centre + AU JFMW, UK "
                        "JCWI + Praxis).",
     },
+
+    # ====================================================================
+    # CATEGORY SCREENING-INDICATORS: PATTERNS DERIVED FROM VALIDATED
+    # SCREENING TOOLS (2026-05-21)
+    # When a worker / patient / client discloses content correlated
+    # with established screening-instrument items (TVIT, AHTST, QYIT,
+    # CSE-IT, HEAL), the harness should treat the disclosure as a
+    # screening-positive signal and route to the appropriate
+    # response path. Severity=high. Distinct from the indirect /
+    # adversarial patterns in earlier categories because these are
+    # direct, first-person screening-aligned disclosures.
+    # ====================================================================
+    {
+        "rule": "scr_clinician_requests_screening",
+        "patterns": [r"\b(?:I'?m\s+a\s+(?:doctor|nurse|physician|midwife|clinician|social\s+worker|ED\s+(?:nurse|doc(?:tor)?))|trauma[\s-]?informed\s+(?:provider|clinician|interviewer))\b.{0,200}\b(?:screen|screening|HEAL|TVIT|AHTST|CSE-?IT|QYIT|trafficking\s+(?:identification|assessment))\b",
+                       r"\b(?:multidisciplinary\s+(?:team|case|response)|MDT)\b.{0,200}\b(?:trafficking|exploitation|forced\s+labour)\b"],
+        "severity": "low",
+        "citation": "HEAL Trafficking + Hope for Justice HT "
+                      "Screening Toolkit; Vera Institute TVIT; "
+                      "AHTST (RTI / OVC 2018); CSE-IT (WestCoast); "
+                      "QYIT; IOM Caring for Trafficked Persons; "
+                      "OSCE/ODIHR NRM Handbook (multidisciplinary "
+                      "team principle); UNODC Toolkit",
+        "indicator": "Frontline professional is asking for "
+                       "screening / triage guidance. Provide: (1) "
+                       "the appropriate validated tool for the "
+                       "setting + age (HEAL for clinical adult, "
+                       "TVIT for adult immigrant service, AHTST "
+                       "for OVC-funded adult service, CSE-IT for "
+                       "child welfare, QYIT for rapid youth), "
+                       "(2) trauma-informed pacing reminder + "
+                       "interpreter-not-companion rule, (3) "
+                       "indicator-then-direct sequence, (4) "
+                       "multidisciplinary referral pathway, (5) "
+                       "mandatory-reporting limits + survivor "
+                       "consent boundary.",
+    },
+    {
+        "rule": "scr_passport_or_id_retention_disclosure",
+        "patterns": [r"\b(?:my\s+employer|ma'?am|sir|the\s+sponsor|agent|recruiter)\s+(?:has|kept|won'?t\s+(?:return|give\s+back)|won'?t\s+let\s+me\s+have|controls?)\s+(?:my\s+)?(?:passport|ID|identity\s+document|travel\s+document|work\s+permit)\b",
+                       r"\b(?:I\s+(?:don'?t|do\s+not)\s+have\s+(?:my\s+)?(?:passport|ID|papers|documents))\b.{0,200}\b(?:employer|ma'?am|sir|agent|sponsor)\b"],
+        "severity": "high",
+        "citation": "ILO Forced Labour Indicator 7 (retention of "
+                      "identity documents); Palermo Protocol Art. "
+                      "3; ILO C189 Art. 9; TVIT migration-control "
+                      "domain; AHTST work-and-freedom section; "
+                      "HEAL Toolkit; ILO/EC Operational Indicators "
+                      "2009 (strong indicator)",
+        "indicator": "First-person disclosure of document "
+                       "retention. This is a strong ILO Forced "
+                       "Labour Indicator (number 7) and a TVIT / "
+                       "AHTST screening-positive item. Routing: "
+                       "(1) acknowledgement + safety check, (2) "
+                       "destination-country labour authority + "
+                       "embassy contact (with passport replacement "
+                       "/ emergency travel document path under "
+                       "Vienna Convention on Consular Relations "
+                       "Art. 5(d)), (3) NGO shelter + advocate "
+                       "support, (4) preservation of evidence + "
+                       "anti-retaliation safety plan.",
+    },
+    {
+        "rule": "scr_freedom_restriction_disclosure",
+        "patterns": [r"\b(?:I\s+can'?t|I\s+cannot|am\s+not\s+allowed|not\s+free\s+to|forbidden\s+to)\s+(?:leave|go\s+(?:outside|out)|come\s+and\s+go|return\s+home|talk\s+to\s+anyone)\b",
+                       r"\b(?:locked\s+(?:in|inside|at\s+night)|kept\s+inside|confined|window\s+(?:barred|locked)|cannot\s+open\s+(?:the\s+)?door)\b"],
+        "severity": "high",
+        "citation": "ILO Forced Labour Indicator 3 (restriction of "
+                      "movement); Palermo Protocol Art. 3; TVIT "
+                      "freedom-of-movement domain; AHTST freedom-"
+                      "and-coercion section; HEAL Toolkit; UDHR "
+                      "Art. 13",
+        "indicator": "First-person disclosure of freedom-of-"
+                       "movement restriction. This is a strong "
+                       "ILO Forced Labour Indicator (number 3) "
+                       "and a TVIT / AHTST screening-positive "
+                       "item. Routing: (1) immediate safety check "
+                       "(can you text safely now? Is anyone with "
+                       "you?), (2) emergency contacts (local "
+                       "police if active confinement; embassy + "
+                       "shelter if controlled-but-not-imminent), "
+                       "(3) trauma-informed support, (4) "
+                       "preservation of evidence + safe-text "
+                       "scheduling.",
+    },
+    {
+        "rule": "scr_debt_bondage_disclosure",
+        "patterns": [r"\b(?:I\s+owe|I\s+have\s+to\s+(?:work\s+off|pay\s+off|repay)|cannot\s+leave\s+(?:until|before)\s+(?:I\s+)?(?:pay|repay|finish\s+paying))\b.{0,200}\b(?:debt|loan|placement\s+(?:fee|loan)|advance|recruitment\s+(?:cost|fee))\b",
+                       r"\b(?:salary\s+(?:goes|is\s+taken)|wages\s+(?:are|go)\s+(?:deducted|taken|paid\s+to))\b.{0,200}\b(?:agent|recruiter|sponsor|placement\s+(?:company|loan))\b"],
+        "severity": "high",
+        "citation": "ILO Forced Labour Indicator 9 (debt bondage); "
+                      "ILO C29 + 1930 + 2014 Protocol; ILO C181 "
+                      "Art. 7; Palermo Protocol Art. 3; TVIT "
+                      "force-threat-coercion domain; AHTST work-"
+                      "and-living-conditions section; HEAL "
+                      "Toolkit",
+        "indicator": "First-person disclosure of debt-bondage "
+                       "control. This is a strong ILO Forced "
+                       "Labour Indicator (number 9) and a TVIT / "
+                       "AHTST screening-positive item. Routing: "
+                       "(1) explicit statement that the debt is "
+                       "the violation (not the worker's "
+                       "obligation), (2) corridor-specific fee-"
+                       "cap + employer-pays-principle citation, "
+                       "(3) origin-country agency-bond + "
+                       "destination-country labour-claim "
+                       "pathways, (4) NGO + legal-aid contacts.",
+    },
+    {
+        "rule": "scr_fear_threat_disclosure",
+        "patterns": [r"\b(?:I'?m\s+scared|I'?m\s+afraid|I\s+fear|I'?m\s+worried)\b.{0,200}\b(?:employer|ma'?am|sir|sponsor|agent|family|home|police|immigration|deport)\b",
+                       r"\b(?:they|she|he|employer|ma'?am|sir)\s+(?:threatened|said\s+they\s+would|warned\s+me)\b.{0,200}\b(?:harm|hurt|hit|kill|deport|report|sent\s+home|tell\s+(?:family|police|immigration))\b"],
+        "severity": "high",
+        "citation": "ILO Forced Labour Indicator 6 (intimidation + "
+                      "threats); ILO C190 (violence + harassment); "
+                      "Palermo Protocol Art. 3 (threats as means); "
+                      "TVIT + AHTST coercion section; HEAL Toolkit "
+                      "psychosocial assessment",
+        "indicator": "First-person disclosure of fear or specific "
+                       "threats. ILO Forced Labour Indicator 6 + "
+                       "Palermo Protocol means element. Routing: "
+                       "(1) safety + privacy check (are you safe "
+                       "to type now?), (2) trauma-informed "
+                       "validation (your fear is reasonable + "
+                       "you are not in trouble), (3) emergency "
+                       "contact options + NGO shelter, (4) "
+                       "preservation of threat evidence (dated "
+                       "screenshots, audio if safe).",
+    },
+    {
+        "rule": "scr_forced_sexual_act_disclosure",
+        "patterns": [r"\b(?:forced|coerced|threatened|made\s+(?:me|her|him))\s+(?:to\s+have\s+sex|to\s+do\s+sexual|to\s+sell\s+sex|to\s+go\s+with\s+(?:clients|men))\b",
+                       r"\b(?:sexual\s+(?:assault|abuse|touching|harassment|exploitation))\b.{0,200}\b(?:employer|ma'?am|sir|sponsor|household|workplace)\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3(a) (sexual "
+                      "exploitation as purpose); ILO C190; CEDAW "
+                      "Art. 6; UN CRC + OPSC if minor; TVIT sex-"
+                      "trafficking domain; AHTST coercion "
+                      "section; HEAL Toolkit psychosocial + "
+                      "sexual-health assessment",
+        "indicator": "First-person disclosure of forced sexual "
+                       "act / sexual exploitation in a recruitment "
+                       "or employment context. Routing: (1) "
+                       "trauma-informed acknowledgement (you are "
+                       "believed, you are not at fault), (2) "
+                       "immediate safety + private setting + "
+                       "professional interpreter (not companion), "
+                       "(3) sexual-and-reproductive-health "
+                       "support + post-violence care + post-"
+                       "exposure prophylaxis if applicable, (4) "
+                       "trauma-informed disclosure handling -- "
+                       "DO NOT push for chronological narrative, "
+                       "(5) NGO + survivor advocate referral.",
+    },
+    {
+        "rule": "scr_qyit_youth_sex_for_value",
+        "patterns": [r"\b(?:exchang(?:ed|e)|trad(?:ed|e)|gave\s+sex|sold\s+sex|paid\s+with\s+sex)\b.{0,200}\b(?:food|shelter|money|transportation|drugs|safety|protection)\b",
+                       r"\b(?:survival\s+sex|sex\s+for\s+(?:food|shelter|money))\b"],
+        "severity": "high",
+        "citation": "QYIT indicator 1 (exchange of sex for "
+                      "anything of value); UN CRC + OPSC; "
+                      "Palermo Protocol Art. 3 + Art. 3(c) for "
+                      "minors; ILO C182 + Art. 3; US TVPA + 22 "
+                      "USC 7102 (severe form of trafficking "
+                      "definition treats anyone induced into "
+                      "commercial sex when under 18 as a "
+                      "trafficking victim per se)",
+        "indicator": "Disclosure of survival-sex / sex-for-"
+                       "value exchange. If the person is a "
+                       "minor, this is per-se trafficking under "
+                       "US TVPA + Palermo Art. 3(c). Routing: "
+                       "(1) immediate trauma-informed support, "
+                       "(2) age verification (per-se rule for "
+                       "under-18), (3) youth-specific NGO + "
+                       "RHY (Runaway and Homeless Youth) "
+                       "service contact, (4) Polaris hotline "
+                       "(US) or destination-country equivalent.",
+    },
+    {
+        "rule": "scr_qyit_youth_sole_travel_with_adult",
+        "patterns": [r"\b(?:travel(?:l?ed|ling)?|went|trip)\b.{0,200}\b(?:alone|just\s+me|by\s+myself)\b.{0,200}\b(?:adult|grown[\s-]?up|stranger|someone\s+(?:I|she|he)\s+(?:didn'?t|did\s+not)\s+know)\b.{0,200}\b(?:work|relationship|job|opportunity)\b",
+                       r"\b(?:I\s+was|she\s+was|he\s+was)\s+(?:1[2-7])\b.{0,200}\b(?:travel|went|left)\b.{0,200}\b(?:work|job|opportunity)\b"],
+        "severity": "high",
+        "citation": "QYIT indicator 2 (sole travel with non-"
+                      "family adult for work / relationship "
+                      "purpose); UN CRC Art. 11 + 35; Palermo "
+                      "Protocol Art. 3(c); ILO C182; UNODC "
+                      "Toolkit child-trafficking module",
+        "indicator": "Youth (under-18) disclosed sole travel "
+                       "with non-family adult for work or "
+                       "relationship purpose. This is a QYIT "
+                       "screening-positive item. Routing: (1) "
+                       "immediate child-protection authority + "
+                       "guardian-status review, (2) youth NGO + "
+                       "shelter, (3) Polaris + National "
+                       "Trafficking Hotline (or destination-"
+                       "country equivalent), (4) trauma-"
+                       "informed disclosure handling.",
+    },
+    {
+        "rule": "scr_qyit_youth_cross_border_no_return",
+        "patterns": [r"\b(?:taken|brought|moved|transported|crossed)\b.{0,200}\b(?:state|country|border)\b.{0,200}\b(?:could\s+not\s+(?:leave|return|go\s+home)|prevented\s+(?:from\s+)?returning|kept\s+from\s+going\s+home)\b",
+                       r"\b(?:I\s+was|she\s+was|he\s+was)\s+(?:1[0-7])\b.{0,200}\b(?:cross(?:ed)?|move(?:d)?|taken)\s+to\s+(?:a\s+different|another)\s+(?:state|country)\b"],
+        "severity": "high",
+        "citation": "QYIT indicator 4 (cross-border travel under "
+                      "conditions preventing return); UN CRC + "
+                      "OPSC; Palermo Protocol Art. 3(c) + Art. 3 "
+                      "means element (restriction of movement); "
+                      "Hague Convention on Civil Aspects of "
+                      "International Child Abduction 1980 (where "
+                      "applicable to family-context cases)",
+        "indicator": "Youth (under-18) disclosed cross-border or "
+                       "cross-state travel under conditions that "
+                       "prevented return. This is a QYIT "
+                       "screening-positive item + per-se child "
+                       "trafficking under Palermo Art. 3(c). "
+                       "Routing: (1) emergency child-protection "
+                       "+ law-enforcement coordination, (2) "
+                       "destination-country UNHCR + IOM Child "
+                       "Protection focal point, (3) family "
+                       "tracing + reunification protocol via "
+                       "ICRC + national child-welfare authority, "
+                       "(4) trauma-informed advocate.",
+    },
+    {
+        "rule": "scr_companion_speaking_for_person",
+        "patterns": [r"\b(?:I'?ll\s+answer\s+(?:for|that)\s+(?:her|him)|(?:she|he|they)\s+doesn'?t\s+speak\s+(?:English|the\s+language)|let\s+me\s+translate)\b.{0,200}\b(?:my\s+(?:worker|maid|caregiver|nanny|housekeeper|employee))\b",
+                       r"\b(?:do\s+not\s+ask\s+(?:her|him)|she\s+(?:can'?t|cannot)\s+answer|he\s+(?:can'?t|cannot)\s+answer)\b.{0,200}\b(?:without\s+(?:me|my\s+permission))\b"],
+        "severity": "high",
+        "citation": "HEAL Trafficking Toolkit (controlling third "
+                      "party in exam room); TVIT + AHTST + CSE-IT "
+                      "protocol requirements (interpreter "
+                      "professional + not companion); IOM CTP "
+                      "Handbook (privacy + companion-separation "
+                      "protocol); ILO Forced Labour Indicator 4 "
+                      "(isolation); Palermo Protocol Art. 3",
+        "indicator": "Companion answers FOR the person + refuses "
+                       "professional interpreter / private "
+                       "interaction. HEAL Toolkit + IOM CTP + "
+                       "TVIT + AHTST + CSE-IT all flag this as a "
+                       "core screening trigger. Routing: (1) "
+                       "establish private interaction WITHOUT the "
+                       "controlling person (medical / "
+                       "administrative pretext if needed), (2) "
+                       "professional interpreter (interpreter "
+                       "phone-line if no in-person available), "
+                       "(3) safety planning + multidisciplinary "
+                       "team activation, (4) documentation of "
+                       "the controlling-third-party observation.",
+    },
 ]
 
 
