@@ -7365,6 +7365,326 @@ GREP_RULES = [
                        "chain referral, (4) IMPACT + Pact + "
                        "Solidaridad Network reference.",
     },
+
+    # ====================================================================
+    # CHUNK 31 (2026-05-22) — GREP +10 in additional categories:
+    # PPP e-waste, QQQ carwash, RRR cruise crew, SSS forced begging,
+    # TTT sham marriage rings, UUU sham asylum / visa-broker schemes.
+    # ====================================================================
+
+    # ====================================================================
+    # CATEGORY PPP: E-WASTE / ELECTRONICS-RECYCLING FORCED LABOUR (2026-05-22)
+    # ====================================================================
+    {
+        "rule": "ppp_e_waste_recycling_forced_labour",
+        "patterns": [r"\b(?:e-?waste|electronic\s+waste|electronics\s+recycling|computer\s+(?:recycling|refurbishment)|circuit\s+board)\b.{0,200}\b(?:debt|recruitment\s+fee|cash\s+only|undocumented|no\s+protection|children|forced)\b",
+                       r"\b(?:Agbogbloshie|Guiyu|Karachi\s+e-?waste|Delhi\s+e-?waste|Vietnam\s+e-?waste)\b"],
+        "severity": "high",
+        "citation": "Basel Convention 1989 + Basel Ban Amendment "
+                      "(in force 2019); ILO 'The Global Impact of "
+                      "E-Waste' (2019); StEP Initiative (Solving "
+                      "the E-Waste Problem); EU WEEE Directive "
+                      "2012/19/EU + EU Conflict Minerals Regulation; "
+                      "EPA RCRA Subtitle C for hazardous waste; "
+                      "Pure Earth Top Polluted Places Index",
+        "indicator": "E-waste recycling at Agbogbloshie (Ghana), "
+                       "Guiyu (China — now largely shut down), "
+                       "Delhi + Mumbai + Karachi + Lagos + HCMC "
+                       "is documented to involve child + adolescent "
+                       "labour with severe lead + mercury + dioxin "
+                       "exposure. Provide: (1) Basel Convention "
+                       "Focal Point in country, (2) Pure Earth "
+                       "/ Blacksmith Institute remediation network, "
+                       "(3) origin-country labour ministry + "
+                       "occupational-health authority, (4) StEP "
+                       "+ Closing the Loop / NGO referral.",
+    },
+
+    # ====================================================================
+    # CATEGORY QQQ: CARWASH HAND-CARWASH FORCED LABOUR (2026-05-22)
+    # ====================================================================
+    {
+        "rule": "qqq_hand_carwash_forced_labour",
+        "patterns": [r"\b(?:hand\s+(?:car\s*wash|carwash)|car\s+(?:wash|valet)|carwash\s+(?:operator|attendant|worker))\b.{0,200}\b(?:cash\s+only|undocumented|no\s+contract|no\s+wage|sleeping\s+(?:at|on)\s+site|debt)\b",
+                       r"\b(?:UK\s+(?:hand\s+)?car\s*wash|Polish\s+carwash|Vietnamese\s+carwash|Romanian\s+carwash)\b.{0,200}\b(?:trafficking|modern\s+slavery|labour\s+exploitation)\b"],
+        "severity": "medium",
+        "citation": "UK Modern Slavery Act 2015; UK Gangmasters + "
+                      "Labour Abuse Authority (GLAA); Responsible "
+                      "Car Wash Scheme (UK industry); UK Independent "
+                      "Anti-Slavery Commissioner thematic reports; "
+                      "Wales: Anti-Slavery Wales hand-carwash "
+                      "research; SafeCarWash app (Clewer Initiative + "
+                      "Church of England)",
+        "indicator": "UK hand-carwashes are one of the most-"
+                       "documented modern-slavery contexts. Indicators: "
+                       "cash-only operation, workers sleeping on "
+                       "site, no PPE, no contract, frozen-water "
+                       "exposure, Eastern European or Vietnamese "
+                       "worker base, debt-bondage to operator. "
+                       "Provide: (1) UK Modern Slavery Helpline "
+                       "08000 121 700, (2) GLAA complaint pathway "
+                       "for England + Wales, (3) Police 101 (non-"
+                       "emergency), (4) SafeCarWash community-"
+                       "reporting app.",
+    },
+
+    # ====================================================================
+    # CATEGORY RRR: CRUISE CREW + FLAG-OF-CONVENIENCE EXPLOITATION (2026-05-22)
+    # ====================================================================
+    {
+        "rule": "rrr_cruise_crew_flag_of_convenience",
+        "patterns": [r"\b(?:cruise\s+(?:crew|ship|line|worker|cabin|housekeeping)|cruise\s+(?:line)?\s*(?:contract|sign-?on))\b.{0,200}\b(?:6\s+months|8\s+months|10\s+months|no\s+rest|excessive\s+hours|recruitment\s+fee|passport\s+held|tips\s+(?:withheld|deducted))\b",
+                       r"\b(?:Bahamas|Panama|Liberia|Marshall\s+Islands|Malta)\s+(?:flagged|flag)\b.{0,200}\b(?:cruise|cargo|tanker|crew)\b.{0,200}\b(?:no\s+protection|cannot\s+(?:disembark|leave|complain))\b"],
+        "severity": "high",
+        "citation": "ILO Maritime Labour Convention (MLC) 2006 "
+                      "Title 1 + 2 + 4; ITF Inspectorate + ITF "
+                      "Flags of Convenience Campaign; STCW "
+                      "Convention; IMO MARPOL; ILO C188 (Work in "
+                      "Fishing) for fishing vessels (cross-ref HH); "
+                      "Cruise Lines International Association "
+                      "(CLIA) Code of Conduct; ICC International "
+                      "Maritime Bureau",
+        "indicator": "Cruise ship crew (cabin stewards, "
+                       "housekeeping, dining, kitchen, deck) "
+                       "predominantly from PH, ID, IN, HN, IT, "
+                       "RO face documented 10-12-month contracts "
+                       "with no contractual rest, no overtime "
+                       "pay, recruitment-fee leverage, and "
+                       "withheld tips. Provide: (1) ITF "
+                       "Inspectorate contact (itfseafarers.org), "
+                       "(2) ITF Crew Help service, (3) flag-"
+                       "state port-state control complaint, "
+                       "(4) Seafarers' Rights International "
+                       "(SRI) referral.",
+    },
+
+    # ====================================================================
+    # CATEGORY SSS: FORCED BEGGING (2026-05-22)
+    # severity=high. ECtHR + UNODC + IOM documentation.
+    # ====================================================================
+    {
+        "rule": "sss_forced_begging_organised_rings",
+        "patterns": [r"\b(?:forced\s+begging|child\s+begging|organised\s+begging|begging\s+ring)\b.{0,200}\b(?:trafficker|controller|handler|debt|recruited|brought\s+from)\b",
+                       r"\b(?:Roma\s+(?:beggar|begging)|Senegalese\s+Talib(?:é|e)|Quranic\s+school\s+begging|Mauritania\s+begging|Egyptian\s+street\s+children)\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3 (exploitation includes "
+                       "forced begging); ECtHR S.M. v Croatia "
+                       "(2020) + V.C.L. and A.N. v United Kingdom "
+                       "(2021); UNODC Global Report on Trafficking "
+                       "in Persons (begging as the second-most-"
+                       "frequent child-trafficking purpose in "
+                       "many regions); ILO C182 (worst forms of "
+                       "child labour); Talibé / Senegalese "
+                       "Daara reform efforts (HRW Off the "
+                       "Backs of the Children 2010 + 2017)",
+        "indicator": "Forced begging is documented as the second-"
+                       "most-frequent purpose of detected child "
+                       "trafficking (UNODC 2022 GLOTIP). Variants: "
+                       "Roma children + adults trafficked across "
+                       "EU borders (Romania, Bulgaria → western "
+                       "EU); Senegalese Talibé children at "
+                       "exploitative Daara Quranic schools; "
+                       "Egyptian street-children trafficking; "
+                       "South Asian child + disabled-adult "
+                       "begging rings. Provide: (1) destination-"
+                       "country NRM referral, (2) UNICEF Child "
+                       "Protection / IRC, (3) Anti-Slavery "
+                       "International + La Strada International, "
+                       "(4) origin-country social-services + "
+                       "child-welfare referral.",
+    },
+
+    # ====================================================================
+    # CATEGORY TTT: SHAM MARRIAGE + VISA FRAUD RINGS (2026-05-22)
+    # ====================================================================
+    {
+        "rule": "ttt_sham_marriage_visa_fraud_ring",
+        "patterns": [r"\b(?:sham\s+marriage|fake\s+marriage|marriage\s+(?:of\s+convenience|fraud|broker)|paper\s+marriage)\b.{0,200}\b(?:visa|residency|EU\s+freedom\s+of\s+movement|spouse\s+visa|fee|paid)\b",
+                       r"\b(?:Latvian|Lithuanian|Polish|Slovak|Czech|Romanian|Bulgarian)\s+(?:bride|groom|spouse)\b.{0,200}\b(?:Pakistani|Indian|Bangladeshi|Nigerian|Algerian|Egyptian)\b.{0,200}\b(?:UK|Ireland|EU|Germany|France)\b"],
+        "severity": "high",
+        "citation": "EU Directive 2004/38/EC (free movement of EU "
+                      "citizens); EU Council Resolution on "
+                      "Marriages of Convenience 1997; UK Immigration "
+                      "Act 2014 + Sham Marriages Investigation "
+                      "Operations; Eurostat + EUROPOL EMSC reports; "
+                      "European Migration Network EMN study 2012 "
+                      "+ 2024 update on marriages of convenience",
+        "indicator": "Sham-marriage trafficking is a documented "
+                       "EU + UK pattern, particularly Eastern "
+                       "European EU brides (LV, LT, PL, RO, BG, "
+                       "SK, CZ) trafficked for sham marriages to "
+                       "third-country nationals seeking EU "
+                       "freedom-of-movement rights. Brides are "
+                       "typically trafficked, threatened, or "
+                       "manipulated with promises of work. "
+                       "Provide: (1) destination-country NRM, "
+                       "(2) origin-country embassy + consulate, "
+                       "(3) La Strada International (multi-"
+                       "country EU network), (4) UK Modern "
+                       "Slavery Helpline / Polish + Latvian "
+                       "police international cooperation.",
+    },
+
+    # ====================================================================
+    # CATEGORY UUU: SHAM ASYLUM + VISA-BROKER SCHEMES (2026-05-22)
+    # ====================================================================
+    {
+        "rule": "uuu_visa_broker_smuggling_scheme",
+        "patterns": [r"\b(?:visa\s+(?:broker|agent|fixer|escort)|smuggler\s+fee|smuggling\s+ring)\b.{0,200}\b(?:asylum|protection|refugee|tourist\s+then\s+overstay|fake\s+(?:passport|documents))\b",
+                       r"\b(?:I\s+paid|cost\s+me|fee\s+was)\s+(?:[\$£€]\s*\d{1,3}[,.]?\d{0,3}|US?\$\d+)\b.{0,200}\b(?:get\s+(?:me\s+)?(?:to|into)|(?:to|into)\s+(?:the\s+UK|Europe|US|Canada|Australia))\b"],
+        "severity": "high",
+        "citation": "UN Smuggling Protocol (2000); Palermo Protocol "
+                      "Art. 3 + Art. 4 trafficking-smuggling distinction; "
+                      "UNHCR 1951 Refugee Convention + 1967 Protocol "
+                      "non-penalisation Art. 31; EUROPOL EMSC; "
+                      "UNODC Smuggling of Migrants Protocol; "
+                      "MSF / IRC Mediterranean / Aegean route "
+                      "documentation",
+        "indicator": "Migrant smuggling networks frequently "
+                       "transition into trafficking once payment "
+                       "is made (debt accumulation during transit, "
+                       "sexual assault, forced labour at "
+                       "destination, document retention). The "
+                       "trafficking-smuggling distinction "
+                       "depends on consent + exploitation. "
+                       "Provide: (1) UNHCR + IOM in transit "
+                       "country, (2) destination-country asylum "
+                       "+ NRM pathway (without penalisation under "
+                       "Article 31), (3) MSF / IRC humanitarian "
+                       "support, (4) destination-country anti-"
+                       "trafficking unit referral if exploitation "
+                       "has occurred.",
+    },
+
+    # ====================================================================
+    # CATEGORY VVV: AU PAIR + J-1 INTERN / TRAINEE EXPLOITATION (2026-05-22)
+    # ====================================================================
+    {
+        "rule": "vvv_au_pair_visa_exploitation",
+        "patterns": [r"\b(?:au\s+pair|au-?pair\s+visa|J-?1\s+(?:au\s+pair|intern|trainee))\b.{0,200}\b(?:excessive\s+hours|45\s+hours|>\s*45|domestic\s+work|childcare\s+(?:plus|and)\s+(?:cleaning|cooking)|isolation|live-?in)\b",
+                       r"\b(?:au\s+pair)\s+(?:agency|placement|programme)\b.{0,200}\b(?:fee|debt|recruitment\s+cost|cannot\s+(?:leave|transfer|switch))\b"],
+        "severity": "medium",
+        "citation": "Council of Europe European Agreement on Au Pair "
+                      "Placement 1969 (CETS 068); US 22 CFR 62.31 "
+                      "(J-1 Au Pair Program); EU Au Pair frameworks "
+                      "(varies by member state); UK Tier 5 Youth "
+                      "Mobility Scheme (au-pair pathway absorbed); "
+                      "International Au Pair Association (IAPA); "
+                      "Au Pair in America + Cultural Care Au Pair "
+                      "sponsor oversight",
+        "indicator": "US J-1 Au Pair (max 45 hours / week, max 18 "
+                       "months) and EU au-pair placements are "
+                       "documented contexts for exploitation when "
+                       "host families demand domestic work beyond "
+                       "childcare, exceed weekly-hour caps, isolate "
+                       "the worker, or use the 'cultural exchange' "
+                       "framing to suppress wage complaints. "
+                       "Provide: (1) US DOS BECA + sponsor "
+                       "complaint (Au Pair in America, Cultural "
+                       "Care Au Pair, etc.), (2) destination-"
+                       "country labour authority, (3) IAPA "
+                       "complaint pathway, (4) NGO referral "
+                       "(Damayan + Polaris + Migrant Justice).",
+    },
+
+    # ====================================================================
+    # CATEGORY WWW: LOVERBOY / INTIMATE-PARTNER PRETEXT TRAFFICKING (2026-05-22)
+    # severity=high. Documented across NL / BE / DE / UK + ECtHR.
+    # ====================================================================
+    {
+        "rule": "www_loverboy_intimate_partner_trafficking",
+        "patterns": [r"\b(?:loverboy|lover\s+boy|loverboy\s+method|loverboy\s+technique)\b",
+                       r"\b(?:boyfriend|fianc(?:é|e)|husband|partner)\s+(?:promised|brought|recruited|took\s+me)\b.{0,200}\b(?:abroad|to\s+work|to\s+do\s+(?:sex\s+work|escorting|prostitution|webcam))\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3(a) (recruitment by "
+                      "means of deception or abuse of vulnerability "
+                      "constitutes trafficking); ECtHR S.M. v "
+                      "Croatia (GC, 2020) — boyfriend-trafficker "
+                      "patterns covered by Article 4; Council of "
+                      "Europe Convention CETS 197; NL CoMensha "
+                      "(National Rapporteur on Human Trafficking) "
+                      "+ Stichting Loverboy Preventie; BE Pag-Asa "
+                      "+ Payoke + Sürya specialist NGOs; UK Anti-"
+                      "Trafficking and Labour Exploitation Unit "
+                      "(ATLEU) caseload",
+        "indicator": "The 'loverboy method' — perpetrator "
+                       "befriends + grooms a young woman via "
+                       "feigned romantic relationship, then "
+                       "exploits her in prostitution — is "
+                       "documented across NL, BE, DE, UK, FR, "
+                       "and increasingly Eastern European corridors. "
+                       "Survivors often do not initially identify "
+                       "as trafficked. Provide: (1) trauma-"
+                       "informed survivor advocate referral, (2) "
+                       "specialist NGO (CoMensha NL, Payoke BE, "
+                       "Solwodi DE, ATLEU UK), (3) NRM referral "
+                       "with non-punishment clause, (4) safe-"
+                       "house placement away from controller.",
+    },
+
+    # ====================================================================
+    # CATEGORY XXX: STREET VENDING / INFORMAL-ECONOMY FORCED LABOUR (2026-05-22)
+    # ====================================================================
+    {
+        "rule": "xxx_street_vending_forced_labour",
+        "patterns": [r"\b(?:street\s+vendor|street\s+vending|hawker|peddler|peddling|rose\s+seller|paper\s+seller|tissue\s+seller)\b.{0,200}\b(?:must\s+sell|quota|debt|brought\s+from|trafficked|controller|cash\s+to\s+(?:boss|patron))\b",
+                       r"\b(?:Egyptian\s+(?:street\s+children|paper\s+sellers)|Vietnamese\s+rose\s+sellers|African\s+migrant\s+(?:vendors|hawkers))\b"],
+        "severity": "medium",
+        "citation": "ILO C182 (worst forms of child labour); ILO "
+                      "C189 + C190 informal-economy worker "
+                      "protection; UN CRC Art. 32 + 36; UNODC "
+                      "Global Report on Trafficking in Persons "
+                      "(forced labour in begging + street vending); "
+                      "WIEGO (Women in Informal Employment: "
+                      "Globalizing and Organizing); StreetNet "
+                      "International",
+        "indicator": "Street vending under quota + controller "
+                       "discipline is a documented child + adult "
+                       "trafficking pattern (Senegalese rose "
+                       "sellers in Italy + France + Belgium; "
+                       "Vietnamese sellers in EU tourist zones; "
+                       "Roma children in BG / RO; Latin American "
+                       "vendors in US border cities). Provide: "
+                       "(1) destination-country anti-trafficking "
+                       "unit, (2) WIEGO + StreetNet referral "
+                       "where relevant, (3) UNICEF + Save the "
+                       "Children if children involved, (4) "
+                       "origin-country embassy + consular "
+                       "assistance.",
+    },
+
+    # ====================================================================
+    # CATEGORY YYY: PRISON LABOUR / POST-DETENTION EXPLOITATION (2026-05-22)
+    # ====================================================================
+    {
+        "rule": "yyy_prison_post_detention_exploitation",
+        "patterns": [r"\b(?:prison\s+labour|prison\s+work|inmate\s+labour|incarcerated\s+labour|convict\s+labour)\b.{0,200}\b(?:forced|sub-?wage|below\s+minimum|no\s+choice|disciplinary|punishment)\b",
+                       r"\b(?:released\s+(?:from|on)\s+(?:prison|detention)|post-?detention|reentry|halfway\s+house|work-?release)\b.{0,200}\b(?:debt|fee|housing\s+tied|exploitative|forced|kept\s+(?:against\s+will|in\s+programme))\b"],
+        "severity": "medium",
+        "citation": "ILO C029 Art. 2(2)(c) (prison-labour exception "
+                      "narrow + conditional); ILO P029 (2014 "
+                      "Protocol); UN Mandela Rules (Standard "
+                      "Minimum Rules for the Treatment of Prisoners); "
+                      "US 13th Amendment Sec. 1 (slavery-except-"
+                      "as-punishment clause); UN Special Rapporteur "
+                      "on Modern Slavery 'Modern slavery in "
+                      "prison-labour systems' (2023); ACLU + Worth "
+                      "Rises US prison-labour research; UK ICVA "
+                      "Independent Custody Visitors Association",
+        "indicator": "Prison + post-detention labour exploitation "
+                       "is documented in US (state + private "
+                       "prison contracting; immigration detention "
+                       "voluntary-work programmes; some halfway-"
+                       "house work-release schemes), UK (HMPPS "
+                       "+ private prison contracts), China + "
+                       "Vietnam (re-education + labour-reform "
+                       "facilities — see DRC + UFLPA cross-ref). "
+                       "Provide: (1) ACLU / Worth Rises (US); "
+                       "(2) Howard League for Penal Reform (UK); "
+                       "(3) UN SR on Modern Slavery + UN SR on "
+                       "Torture; (4) reentry-services NGO "
+                       "referral.",
+    },
 ]
 
 
