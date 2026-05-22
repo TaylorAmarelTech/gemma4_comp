@@ -8016,6 +8016,257 @@ RAG_CORPUS = [
      "Court of Justice has jurisdiction over individual "
      "human-rights complaints, providing an additional remedy "
      "for trafficking victims."),
+
+    # ----- Bilateral MOUs (origin <-> destination) -----
+    ("ph_saudi_bilateral_2013_2018", "Philippines-Saudi Arabia Bilateral Labour Agreement (2013) + Standardised Employment Contract (2018)",
+     "PH-SA Bilateral 2013/2018",
+     "The Philippines-Saudi Arabia Bilateral Agreement on "
+     "Domestic Worker Recruitment (2013) and the standardised "
+     "domestic-worker employment contract (2018) are the "
+     "foundational bilateral instruments for PH OFWs in Saudi "
+     "Arabia. Key features: monthly minimum wage (SAR 1,500 for "
+     "domestic workers as of recent revision); weekly rest day "
+     "(traditionally negotiated, formalised in standardised "
+     "contract); annual leave (one month after 2 years of "
+     "service); employer-paid recruitment costs (placement "
+     "fee, visa, airfare, medical examination); right of "
+     "worker to keep travel and identity documents; mandatory "
+     "Wage Protection System (WPS) coverage; standardised "
+     "complaint pathway through Philippine Overseas Labor "
+     "Office (POLO) and Saudi Ministry of Labour. Documented "
+     "gaps include enforcement of rest-day + leave provisions, "
+     "shelter access during disputes, and recruitment-fee "
+     "violations through Saudi-side substitute fee structures."),
+    ("ph_hk_sec_fdh_standardised", "Philippines-Hong Kong Foreign Domestic Helper Standard Employment Contract (SEC)",
+     "PH-HK FDH SEC",
+     "The PH-HK Foreign Domestic Helper Standard Employment "
+     "Contract operationalises the POEA MC 14-2017 zero-fee "
+     "policy + HK Cap. 57A + HK Immigration TID 407. Key "
+     "features (in addition to TID 407): MAW reviewed annually "
+     "(HKD 4,990 / month effective 30 September 2024 plus food "
+     "allowance if not provided); placement fee paid by HK "
+     "employer; medical examination + visa + airfare paid by "
+     "HK employer; mandatory accident + medical insurance; "
+     "two-year fixed-term contract renewable; two-week rule "
+     "on termination plus right to seek alternative employment "
+     "during visa validity; explicit clause requiring worker to "
+     "keep travel and identity documents in personal "
+     "possession. The contract is the model for FDH recruitment "
+     "under POEA MC 14-2017 + DMW continuation rules."),
+    ("bd_my_g2g_plus_mou_2022", "Bangladesh-Malaysia G2G+ MoU (2016 expanded 2022)",
+     "BD-MY G2G+ MoU",
+     "The Bangladesh-Malaysia Government-to-Government Plus "
+     "(G2G+) MoU on Recruitment of Workers was first signed in "
+     "2016 and substantially expanded in 2022 covering "
+     "construction, plantation, and services sectors. Key "
+     "features: maximum worker-paid recruitment cost set at "
+     "BDT 78,990 (2022 ceiling) covering medical, training, "
+     "passport, smartcard, visa-stamping, and welfare-fund "
+     "contributions; Malaysian employer pays placement fee + "
+     "airfare + work-permit cost + repatriation cost; "
+     "deployment through 100 BMET-approved Bangladeshi "
+     "recruitment agencies; mandatory pre-departure training "
+     "at BMET training centers; minimum wage in destination "
+     "set by Malaysian Minimum Wages Order 2022. NGO "
+     "documentation (BAWE, Ovibashi Karmi Unnayan Program OKUP, "
+     "ANTHRA Malaysia) shows continuing violations: agency-"
+     "side overcharging beyond the BDT 78,990 ceiling, "
+     "Malaysian-side employer-deduction schemes, and shortage "
+     "of independent grievance mechanisms."),
+    ("id_saudi_msa_2014", "Indonesia-Saudi Arabia MoU on Domestic Workers (2014, expanded 2018)",
+     "ID-SA Domestic Worker MoU",
+     "The Indonesia-Saudi Arabia MoU on Recruitment and "
+     "Placement of Domestic Workers (signed 2014, expanded "
+     "2018 with the Joint Working Committee operationalisation) "
+     "follows Indonesia's 2011 moratorium on Saudi domestic-"
+     "worker deployment after the high-profile execution + "
+     "violence cases of Indonesian workers. Key features: "
+     "minimum monthly salary; weekly rest day; passport "
+     "retention by worker; mandatory standard employment "
+     "contract registered with both labour ministries; "
+     "complaint pathway through Indonesian Embassy + Saudi "
+     "Ministry of Human Resources. The 2018 expansion added "
+     "a 24/7 shelter + helpline + post-arrival registration "
+     "system. Documentation by Migrant Care + Solidaritas "
+     "Perempuan shows persistent gaps in the kafala-system "
+     "destination context."),
+    ("np_qatar_mou_2020", "Nepal-Qatar Bilateral Labour Agreement (2020)",
+     "NP-Qatar Bilateral 2020",
+     "The Nepal-Qatar Bilateral Labour Agreement (2020) "
+     "updated the 2005 BLA and codified Qatar's 2020-2022 "
+     "kafala-reform principles for Nepalese workers. Key "
+     "features: Nepalese workers can change employers freely "
+     "after labour-contract end (post-2020 NOC abolition); "
+     "non-discriminatory minimum wage QAR 1,000 + housing + "
+     "food allowance; mandatory WPS-paid salaries; "
+     "guaranteed accommodation + medical insurance; "
+     "standardised contract registered with Ministry of "
+     "Labour Qatar + Department of Foreign Employment Nepal. "
+     "Pre-departure orientation through Foreign Employment "
+     "Promotion Board (FEPB) is mandatory. Nepal-Qatar FVFT "
+     "(Free Visa Free Ticket) policy extends to specific "
+     "subsectors, shifting cost components to employer. "
+     "Pravasi Nepali Coordination Committee + Pourakhi "
+     "documentation tracks ongoing implementation gaps."),
+    ("il_ph_bilateral_2017", "Israel-Philippines Bilateral Agreement on Caregivers (2017)",
+     "IL-PH Caregivers 2017",
+     "The Israel-Philippines Bilateral Agreement on Caregivers "
+     "(signed 2017, operationalised 2018) governs Filipino "
+     "caregiver recruitment to Israel's B/1 visa scheme. Key "
+     "features: monthly minimum wage (NIS 5,300 as of recent "
+     "Israeli minimum wage); 25 hours of rest per week; "
+     "annual paid leave; medical insurance; recruitment-cost "
+     "cap (USD 600 worker-paid, employer pays the remainder); "
+     "complaint pathway through Philippine Embassy Tel Aviv + "
+     "Israel PIBA. The agreement reduced Israeli-side broker "
+     "fees from typical USD 8-10K to the USD 600 cap, "
+     "marking one of the most successful corridor-level "
+     "reductions. Kav LaOved + Workers Hotline documentation "
+     "tracks compliance + identifies remaining gaps."),
+
+    # ----- Sectoral ethical-recruitment standards -----
+    ("rspo_principles_criteria_2018", "RSPO Principles and Criteria (Roundtable on Sustainable Palm Oil, 2018 + 2023 revision)",
+     "RSPO P&C 2018/2023",
+     "The Roundtable on Sustainable Palm Oil (RSPO) Principles "
+     "and Criteria 2018 + 2023 revision is the dominant "
+     "voluntary certification scheme for sustainable palm "
+     "oil production, covering ~20% of global palm-oil "
+     "supply. Workers and human-rights criteria include: "
+     "P6.1.1 (no recruitment fees charged to workers / "
+     "employer-pays-principle); P6.5 (no use of forced "
+     "labour or trafficked persons); P6.7 (freedom of "
+     "association); P6.8 (child-labour prohibition); P6.13 "
+     "(grievance mechanism accessible to workers). The 2018 "
+     "+ 2023 revisions strengthened these provisions in "
+     "response to documented forced-labour in Sarawak, "
+     "Sabah, and Sumatra plantations (Verite + Amnesty "
+     "International documentation). The RSPO Complaints "
+     "Mechanism provides a non-judicial grievance pathway."),
+    ("eti_base_code", "Ethical Trading Initiative (ETI) Base Code",
+     "ETI Base Code",
+     "The Ethical Trading Initiative (ETI) Base Code is a "
+     "multi-stakeholder code of labour practice covering nine "
+     "core principles aligned with ILO core conventions: (1) "
+     "Employment is freely chosen; (2) Freedom of "
+     "association + collective bargaining are respected; (3) "
+     "Working conditions are safe + hygienic; (4) Child "
+     "labour shall not be used; (5) Living wages are paid; "
+     "(6) Working hours are not excessive; (7) No "
+     "discrimination is practised; (8) Regular employment is "
+     "provided; (9) No harsh or inhumane treatment is "
+     "allowed. ETI member companies (including major UK / EU "
+     "retailers) integrate the Base Code into supplier "
+     "contracts and conduct due-diligence audits. The Code "
+     "is influential in garment, food, electronics, and "
+     "horticulture supply chains."),
+    ("issara_institute_inclusive_labour_monitoring", "Issara Institute Inclusive Labour Monitoring (ILM)",
+     "Issara Institute ILM",
+     "The Issara Institute Inclusive Labour Monitoring (ILM) "
+     "is a worker-voice-based responsible sourcing approach "
+     "developed in Thailand (2014+) and now operating in "
+     "Thailand, Indonesia, Malaysia, and Bangladesh. ILM "
+     "couples a worker hotline + WhatsApp / Line channel "
+     "(in worker first languages) with engagement of brand + "
+     "supplier + auditor + civil-society stakeholders to "
+     "resolve documented grievances. The Issara model has "
+     "documented + remediated thousands of cases of forced "
+     "labour, recruitment-fee abuse, and contract substitution "
+     "in seafood, garment, and electronics supply chains. The "
+     "approach informs the ILO Promoting Fundamental "
+     "Principles and Rights at Work (PROMOTE) project + Ship "
+     "to Shore Rights ASEAN program."),
+    ("verite_responsible_sourcing_tool", "Verite Responsible Sourcing Tool (RST) + Fair Hiring Framework",
+     "Verite RST + Fair Hiring",
+     "Verite is a US-based non-profit that maintains the "
+     "Responsible Sourcing Tool (RST, hosted at "
+     "responsiblesourcingtool.org with US Department of State) "
+     "+ the Fair Hiring Framework. The RST provides 20+ "
+     "country-specific risk profiles, recruiter-due-diligence "
+     "checklists, and supplier-audit templates for forced-"
+     "labour + trafficking risk. The Fair Hiring Framework "
+     "implements the employer-pays-principle of ILO C181 + "
+     "the IRIS Standard via 8 elements: policy commitment, "
+     "due diligence on recruiters, transparent recruitment "
+     "agreements, contract integrity, no document retention, "
+     "worker voice + grievance, fee reimbursement when "
+     "violations are found, continuous improvement. Verite + "
+     "Humanity United co-founded the Responsible Labor "
+     "Initiative for the electronics industry."),
+
+    # ----- Enforcement instruments (forced-labour import bans) -----
+    ("us_cbp_withhold_release_orders", "US Customs and Border Protection Withhold Release Orders (WROs) + Forced Labour Import Ban (19 USC 1307)",
+     "US CBP WRO / 19 USC 1307",
+     "US Customs and Border Protection (CBP) under 19 USC "
+     "1307 may issue Withhold Release Orders (WROs) and "
+     "Findings to prevent the importation of merchandise "
+     "produced by forced labour. The Tariff Act of 1930 "
+     "Section 307 ban applies to all forms of forced labour "
+     "(including indentured + convict + child labour). The "
+     "Uyghur Forced Labor Prevention Act (UFLPA, 2021) "
+     "creates a rebuttable presumption against goods from "
+     "Xinjiang + entities on the UFLPA Entity List. WROs / "
+     "Findings issued since 2016 have targeted seafood from "
+     "Taiwanese vessels, palm oil from Malaysia (Sime Darby + "
+     "FGV WROs), apparel from Xinjiang, cobalt + lithium "
+     "supply chains, and Brazilian carbon. CBP enforcement "
+     "data is publicly available + creates supply-chain "
+     "audit pressure compounding the UK MSA, France Loi de "
+     "Vigilance, Germany Lieferkettengesetz, and EU CSDDD."),
+    ("eu_forced_labour_regulation_2024", "EU Forced Labour Regulation (Regulation 2024/3015)",
+     "EU Forced Labour Regulation 2024",
+     "EU Regulation 2024/3015 on prohibiting products made with "
+     "forced labour on the Union market (adopted November 2024, "
+     "applies from end-2027) prohibits placing on the EU "
+     "market, making available on the EU market, and "
+     "exporting from the EU market products made with forced "
+     "labour. Key features: applies to all products and all "
+     "economic operators regardless of size; product-level "
+     "(not entity-level) ban; investigations conducted by "
+     "Commission + Member State competent authorities through "
+     "a centralised Forced Labour Single Portal; mandatory "
+     "investigation when substantiated concern + risk-based "
+     "priorities. Companies must conduct due diligence under "
+     "OECD MNE Guidelines + UNGPs. The Regulation complements "
+     "CSDDD + UK MSA + national supply-chain laws and "
+     "operationalises the EU's coordinated approach to "
+     "trafficking + forced labour."),
+
+    # ----- Survivor support frameworks -----
+    ("iom_caring_for_trafficked_persons", "IOM Caring for Trafficked Persons -- Guidance for Health Providers (handbook 2009/2019)",
+     "IOM CTP Handbook",
+     "The IOM Caring for Trafficked Persons (CTP) handbook is "
+     "the leading guide for healthcare providers caring for "
+     "trafficking survivors. Key components: trauma-informed "
+     "approach principles (safety, trustworthiness, peer "
+     "support, collaboration, empowerment, cultural humility); "
+     "screening tools (Adult HEAL HT Screening Tool, Vera "
+     "Trafficking Victim Identification Tool, RCN guidance "
+     "for paediatric assessment); presenting-illness "
+     "patterns by trafficking-type (sexual, labour, "
+     "domestic-servitude); informed consent + confidentiality "
+     "+ mandatory-reporting boundaries; safety-planning + "
+     "multidisciplinary referral. The 2019 updated edition "
+     "extends to children + adolescents and incorporates "
+     "post-traumatic growth + resilience-building frameworks."),
+    ("osce_odihr_national_referral_mechanism", "OSCE/ODIHR National Referral Mechanism (NRM) Handbook (2004 / 2022 update)",
+     "OSCE/ODIHR NRM Handbook",
+     "The OSCE/ODIHR National Referral Mechanism (NRM) "
+     "Handbook is the principal cross-border guide for "
+     "designing and operating national-level victim-"
+     "identification + protection + referral mechanisms. The "
+     "Handbook lays out the institutional architecture "
+     "(coordinator + working group + protocol), the actors "
+     "(law enforcement, immigration, social services, "
+     "NGOs), the procedural cycle (identification -> "
+     "reflection period -> assistance + protection -> "
+     "long-term support / return / reintegration), and the "
+     "rights-based standards (non-criminalisation, victim-"
+     "centred approach, child-specific protection). The "
+     "2022 update incorporates lessons from Ukraine, EU "
+     "Temporary Protection Directive activation, anti-"
+     "trafficking responses to migrants in vulnerable "
+     "situations, and integration of technology-facilitated "
+     "trafficking."),
 ]
 
 
