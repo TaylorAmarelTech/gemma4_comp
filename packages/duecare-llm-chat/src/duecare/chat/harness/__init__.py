@@ -6028,6 +6028,350 @@ GREP_RULES = [
                        "(La Strada Ukraine, Voices of Children), "
                        "(4) embassy / consular pathway.",
     },
+
+    # ====================================================================
+    # CATEGORY WW: DOMESTIC-VIOLENCE x LABOUR-TRAFFICKING INTERSECTION (2026-05-21)
+    # When live-in arrangements (FDH, caregiver, au pair, child
+    # bride) combine intimate-partner / household violence with
+    # labour exploitation. severity=high. Multiple ILO Forced
+    # Labour Indicators typically apply.
+    # ====================================================================
+    {
+        "rule": "ww_dv_with_live_in_employment",
+        "patterns": [r"\b(?:live[\s-]?in|stay[\s-]?in|reside\s+with\s+employer|sleeps?\s+in\s+the\s+employer'?s\s+(?:house|home))\b.{0,200}\b(?:beat|hit|slap|punch|kick|push|burn|cut|sexual\s+(?:assault|abuse|touch(?:ing)?))\b",
+                       r"\b(?:domestic\s+worker|live[\s-]?in\s+(?:carer|nanny|maid)|caregiver|au\s+pair)\b.{0,200}\b(?:abuse|violence|threat|harassment|fear)\b"],
+        "severity": "high",
+        "citation": "ILO C190 (violence and harassment, 2019); UN "
+                      "CEDAW Art. 6; UN Declaration on the "
+                      "Elimination of Violence Against Women (1993); "
+                      "Palermo Protocol Art. 3 (intimidation + "
+                      "physical violence as means); ILO Forced "
+                      "Labour Indicators 4 + 5 + 6; ILO C189 Art. "
+                      "5 (effective protection from abuse); "
+                      "destination-country domestic-violence "
+                      "statutes (e.g. HK Domestic and Cohabitation "
+                      "Relationships Violence Ordinance Cap. 189)",
+        "indicator": "Domestic violence in a live-in employment "
+                       "context is BOTH a domestic-violence + a "
+                       "trafficking situation. Multiple ILO Forced "
+                       "Labour Indicators typically apply. The "
+                       "live-in nature creates additional "
+                       "vulnerability beyond standard DV cases. "
+                       "Provide: (1) immediate safety planning + "
+                       "emergency contact + safe-place options, "
+                       "(2) trauma-informed disclosure handling, "
+                       "(3) NGO shelter contacts (MFMW HK shelter, "
+                       "Bethune House, ATKI, Kav LaOved, regional "
+                       "equivalents), (4) DV + trafficking "
+                       "complaint paths, (5) anti-retaliation + "
+                       "alternative-employment provisions if "
+                       "available in the corridor.",
+    },
+    {
+        "rule": "ww_employer_isolating_communication",
+        "patterns": [r"\b(?:ma'?am|sir|employer|sponsor|missy?)\s+(?:took|kept|seized|control(?:s|led)|monitor(?:s|ed))\s+(?:my\s+)?(?:phone|SIM|laptop|messages|WhatsApp|social\s+media)\b",
+                       r"\b(?:cannot|am\s+not\s+allowed|forbidden|prohibited)\s+(?:to\s+)?(?:call|text|message|chat|contact)\b.{0,200}\b(?:family|friends|home|relatives|outside)\b"],
+        "severity": "high",
+        "citation": "ILO Forced Labour Indicator 4 (isolation); "
+                      "ILO C189 Art. 9 (right to keep documents); "
+                      "Palermo Protocol Art. 3 (restriction of "
+                      "movement / communication as means); UN "
+                      "International Covenant on Civil and "
+                      "Political Rights Art. 17 (right to "
+                      "privacy + correspondence); EU Convention "
+                      "on Human Rights Art. 8 (private life + "
+                      "correspondence)",
+        "indicator": "Employer control of worker communication "
+                       "is a documented isolation tactic and an "
+                       "ILO Forced Labour Indicator. Provide: "
+                       "(1) explicit statement that this practice "
+                       "is unlawful regardless of contract clause, "
+                       "(2) safety planning to preserve evidence "
+                       "(secret SIM, encrypted messaging where "
+                       "safe, scheduled NGO check-ins), (3) "
+                       "destination-country authority contact for "
+                       "the worker (labour department, embassy, "
+                       "NGO), (4) information-preservation "
+                       "guidance for any complaint.",
+    },
+    {
+        "rule": "ww_forced_marriage_with_household_labour",
+        "patterns": [r"\b(?:husband|in[\s-]?laws|family)\s+(?:says|insists|demands|requires)\s+(?:I|she)\s+(?:work|cook|clean|care|wash|serve)\b.{0,200}\b(?:without\s+pay|no\s+wages?|family\s+duty|free\s+labour|free\s+work)\b",
+                       r"\b(?:bride|wife)\s+(?:treated|used|considered)\s+(?:as|like)\s+(?:servant|maid|slave|free\s+labour|free\s+worker)\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3 (servitude as purpose "
+                      "of exploitation); ILO/Walk Free/IOM 2022 "
+                      "Global Estimates (22.0M in forced "
+                      "marriage); CEDAW Art. 16; UN Declaration "
+                      "on the Elimination of Violence Against "
+                      "Women; ILO Forced Labour Indicators 1 + 3 "
+                      "+ 4 + 9 + 10",
+        "indicator": "Forced marriage with unpaid household "
+                       "labour is a documented form of "
+                       "trafficking-for-servitude. Provide: (1) "
+                       "trauma-informed support, (2) destination-"
+                       "country forced-marriage + DV pathway "
+                       "(Forced Marriage Unit UK, similar in AU / "
+                       "DE / FR), (3) NGO + shelter referral, "
+                       "(4) anti-retaliation safety planning.",
+    },
+
+    # ====================================================================
+    # CATEGORY XX: MEDICAL / HEALTH-CARE WORKER RECRUITMENT FRAUD (2026-05-21)
+    # Nurse + caregiver + paramedic recruitment with fee abuse,
+    # credential fraud, or deceptive role-substitution. severity=
+    # medium-high. WHO Health Personnel Code violations.
+    # ====================================================================
+    {
+        "rule": "xx_nurse_credential_fee_abuse",
+        "patterns": [r"\b(?:nurse|RN|registered\s+nurse|nursing|midwife|paramedic|nursing\s+assistant)\b.{0,200}\b(?:credential|license|registration|NMC|NCLEX|prometric|HAAD|DHA|MOH)\b.{0,200}\b(?:fee|cost|charge|deduction|advance|loan)\b.{0,200}\b(?:USD\s*[\$]?\s*[3-9]?,?\d{3,4}|EUR\s*\d{3,4}|GBP\s*\d{3,4})\b",
+                       r"\b(?:nursing|nurse)\s+(?:placement|recruitment|deployment)\b.{0,200}\b(?:training\s+fee|exam\s+fee|skill\s+test\s+fee|credentialing\s+fee|registration\s+fee)\b"],
+        "severity": "high",
+        "citation": "WHO Global Code of Practice on the "
+                      "International Recruitment of Health "
+                      "Personnel (WHA63.16, 2010); ILO C181 Art. "
+                      "7; IOM IRIS Standard; ICN Code of Ethics "
+                      "for Nurses; NMC + NCLEX + DHA + HAAD + "
+                      "MOH registration regimes",
+        "indicator": "Nurse + health-worker credentialing fees "
+                       "are routinely camouflaged placement fees. "
+                       "WHO Code + ILO C181 Art. 7 prohibit "
+                       "worker-side recruitment fees including "
+                       "credentialing costs. Provide: (1) WHO + "
+                       "ILO C181 citation, (2) the destination-"
+                       "country nursing-council fee schedule from "
+                       "the OFFICIAL source (UK NMC, US NCLEX/CGFNS, "
+                       "UAE DHA, KSA SCFHS, Australian APRA), (3) "
+                       "verify the recruitment agency holds the "
+                       "WHO + IRIS-aligned commitment, (4) NGO + "
+                       "professional body contact (ICN affiliates, "
+                       "national nursing associations).",
+    },
+    {
+        "rule": "xx_nurse_role_substitution_at_arrival",
+        "patterns": [r"\b(?:nurse|nursing)\s+(?:contract|deployment|placement)\b.{0,200}\b(?:assigned|put|placed|reassigned)\s+(?:to|as|in)\b.{0,200}\b(?:caregiver|domestic\s+worker|housekeeper|aide|nursing\s+aide|cleaner)\b",
+                       r"\b(?:promised|hired\s+as|recruited\s+as)\s+(?:nurse|RN)\b.{0,200}\b(?:actually|in\s+reality|on\s+arrival|reassigned)\b.{0,200}\b(?:caregiver|cleaner|aide|domestic|hospitality)\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3(a) (deception as "
+                      "means); ILO C181 Art. 8 (workers informed "
+                      "of terms); ILO C189 (if reassigned to "
+                      "domestic work); WHO Health Personnel Code "
+                      "(role-specific equal treatment); IRIS "
+                      "Standard Principle 3 (transparency of "
+                      "terms)",
+        "indicator": "Nurse recruited under nursing terms then "
+                       "reassigned to caregiver / aide / domestic "
+                       "role is deceptive recruitment under "
+                       "Palermo Protocol Art. 3(a). Pay band, "
+                       "professional standing, professional "
+                       "development, working hours, and "
+                       "credential-portability differ "
+                       "substantially. Provide: (1) deception "
+                       "warning + Palermo / ILO C181 Art. 8 + "
+                       "IRIS Principle 3 citations, (2) "
+                       "destination-country nursing-licensing "
+                       "authority contact (verifying the "
+                       "credential status), (3) labour-tribunal "
+                       "pathway for contract-substitution claim, "
+                       "(4) origin-country agency-bond claim.",
+    },
+    {
+        "rule": "xx_health_worker_active_recruitment_safeguards_list",
+        "patterns": [r"\b(?:nurse|doctor|midwife|physician)\b.{0,200}\b(?:Liberia|Sierra\s+Leone|Malawi|Lesotho|Zimbabwe|Zambia|Tanzania|Uganda|Kenya|Ethiopia|Madagascar|Mozambique|DRC|Burkina\s+Faso|Mali|Niger|Chad|CAR|South\s+Sudan|Sudan|Eritrea|Somalia|Yemen|Afghanistan|Bangladesh|Nepal|Cambodia|Lao|Timor[\s-]?Leste|Burundi|Rwanda|Comoros|Solomon\s+Islands|Vanuatu|Kiribati|Tuvalu)\b.{0,200}\b(?:active(?:ly)?\s+recruit(?:ed|ing|ment)|hiring|placement|deployment)\b"],
+        "severity": "medium",
+        "citation": "WHO Global Code of Practice on the "
+                      "International Recruitment of Health "
+                      "Personnel (WHA63.16, 2010) - WHO Health "
+                      "Workforce Support and Safeguards List "
+                      "2023 ; OECD Health Workforce "
+                      "Migration data; ICN Position Statement on "
+                      "Ethical Nurse Recruitment",
+        "indicator": "Active recruitment from countries on the "
+                       "WHO Health Workforce Support and "
+                       "Safeguards List violates the WHO Code. "
+                       "The list (most recent 2023 update) "
+                       "includes the named African + Asian + "
+                       "Pacific countries with critical health "
+                       "workforce shortages. Provide: (1) WHO "
+                       "Code + safeguards list citation, (2) "
+                       "compliance-with-WHO check on the "
+                       "recruitment agency + destination "
+                       "employer, (3) NGO + ICN affiliate "
+                       "contact, (4) note that the list updates "
+                       "every 3 years so check the current "
+                       "version.",
+    },
+
+    # ====================================================================
+    # CATEGORY YY: TRAFFICKING IN TOURISM / HOSPITALITY (2026-05-21)
+    # Tourism + hospitality recruitment + commercial sexual
+    # exploitation in tourism patterns. severity=medium-high.
+    # ====================================================================
+    {
+        "rule": "yy_tourism_seasonal_worker_overstay",
+        "patterns": [r"\b(?:tourism|hospitality|hotel|resort|spa|cruise)\b.{0,200}\b(?:seasonal|summer|winter|peak[\s-]?season)\b.{0,200}\b(?:after\s+(?:visa|permit|season)|overstay|stay\s+(?:longer|illegally|undocumented))\b",
+                       r"\b(?:hotel|resort|cruise\s+ship|all[\s-]?inclusive)\s+(?:worker|crew|staff)\b.{0,200}\b(?:passport\s+(?:held|kept)|no\s+contract|no\s+rest\s+day|18[\s-]?hour|excessive\s+overtime)\b"],
+        "severity": "medium",
+        "citation": "Palermo Protocol Art. 3; ILO C181 Art. 7; ILO "
+                      "C189 (where applicable); EU Seasonal "
+                      "Workers Directive 2014/36/EU; US H-2B "
+                      "regulations (20 CFR 655.20); ECPAT "
+                      "International Code of Conduct for the "
+                      "Protection of Children from Sexual "
+                      "Exploitation in Travel and Tourism (1998 "
+                      "+ ongoing)",
+        "indicator": "Tourism + hospitality + cruise-crew "
+                       "recruitment with overstay encouragement, "
+                       "passport retention, no rest day, or "
+                       "excessive overtime presents trafficking "
+                       "exposure. Provide: (1) destination-country "
+                       "seasonal-worker statute + protections, "
+                       "(2) labour-department + tourism-authority "
+                       "complaint paths, (3) NGO support (Focus "
+                       "on Labour Exploitation FLEX, ECPAT "
+                       "regional affiliates, Tourism Workers "
+                       "Solidarity Network), (4) embassy + "
+                       "consular pathway.",
+    },
+    {
+        "rule": "yy_csec_tourism_destination",
+        "patterns": [r"\b(?:tourism|tourist|holiday|sex\s+tour|adult\s+tourism|girlfriend\s+experience)\b.{0,200}\b(?:Thailand|Cambodia|Philippines|Indonesia|Vietnam|Dominican\s+Republic|Brazil|Mexico|Colombia|Kenya|Madagascar|Mozambique|Senegal|Sri\s+Lanka|Nepal)\b.{0,200}\b(?:young|minor|teen|girl|boy|aged?\s+(?:1[2-9]|2[0-1]))\b"],
+        "severity": "high",
+        "citation": "UN Convention on the Rights of the Child Art. "
+                      "34 + 35 + OPSC (Optional Protocol on Sale "
+                      "of Children, Child Prostitution and Child "
+                      "Pornography 2000); Palermo Protocol Art. "
+                      "3(c); ECPAT International Code of Conduct "
+                      "for Tourism (1998+); UNWTO Global Code of "
+                      "Ethics for Tourism Art. 2(3); destination-"
+                      "country anti-trafficking + child-protection "
+                      "law",
+        "indicator": "Commercial sexual exploitation of children "
+                       "in tourism is criminal trafficking + child "
+                       "sexual exploitation in essentially every "
+                       "destination-country statute and is "
+                       "covered by extra-territorial jurisdiction "
+                       "in most origin countries (US PROTECT Act "
+                       "2003, UK Sexual Offences Act 2003, AU "
+                       "Crimes Act, etc.). Provide: (1) explicit "
+                       "criminal-law warning under both origin + "
+                       "destination law, (2) child-protection "
+                       "hotline + NGO (ECPAT, Polaris, IJM, "
+                       "regional equivalents), (3) law-enforcement "
+                       "referral path (e.g. INTERPOL child-"
+                       "exploitation channels, US ICE HSI Tip "
+                       "Line, UK National Crime Agency CEOP).",
+    },
+    {
+        "rule": "yy_cruise_ship_crew_exploitation",
+        "patterns": [r"\b(?:cruise\s+ship|cruise\s+(?:line|crew)|flag\s+of\s+convenience|cabotage)\b.{0,200}\b(?:no\s+rest|excessive\s+overtime|tip\s+(?:withheld|stolen|kept)|passport\s+held|18[\s-]?hour\s+(?:day|shifts)|wage\s+(?:cut|withheld))\b",
+                       r"\b(?:cruise|seafarer|maritime\s+hospitality)\b.{0,200}\b(?:MLC\s+(?:violation|breach)|abandonment|repatriation\s+denied|grievance\s+suppressed)\b"],
+        "severity": "high",
+        "citation": "ILO MLC 2006 (seafarers + maritime hospitality "
+                      "workers); ILO C188 (fishing); ILO C190; "
+                      "Tokyo MoU + Paris MoU port-state control; "
+                      "International Transport Workers' Federation "
+                      "(ITF) flag-of-convenience campaign; US PSC "
+                      "regional MoUs",
+        "indicator": "Cruise-ship + flag-of-convenience crew "
+                       "exploitation is documented in multiple "
+                       "MLC + ITF reports. Tip-pooling abuses, "
+                       "passport retention, excessive overtime, "
+                       "repatriation denial, and abandonment are "
+                       "MLC violations. Provide: (1) ITF "
+                       "Seafarers Helpline + ITF Inspectorate "
+                       "contact, (2) MLC abandonment-insurance + "
+                       "complaint procedure, (3) next port-of-"
+                       "call PSC inspection request channel, (4) "
+                       "flag-state contact + national maritime "
+                       "authority of seafarer's origin country.",
+    },
+
+    # ====================================================================
+    # CATEGORY ZZ: HIGH-SKILL VISA ABUSE (2026-05-21)
+    # Patterns specific to professional visas (US H-1B, L-1; EU
+    # Blue Card; AU TSS 482; UK Skilled Worker). High-skill
+    # workers face employer-tied visa leverage that resembles
+    # kafala despite higher wages. severity=medium.
+    # ====================================================================
+    {
+        "rule": "zz_h1b_employer_tied_threats",
+        "patterns": [r"\b(?:H-?1B|H1B|H[\s-]?1B|L-?1|L1)\b.{0,200}\b(?:if\s+you\s+(?:complain|leave|talk)|don'?t\s+(?:complain|report))\b.{0,200}\b(?:visa|status|deport(?:ed|ation)|sent\s+home|removal)\b",
+                       r"\b(?:H-?1B|L-?1)\s+(?:visa|petition|transfer|portability)\b.{0,200}\b(?:revoked|withdrawn|terminated)\b"],
+        "severity": "medium",
+        "citation": "US 8 USC 1184(g) + 8 CFR 214.2(h) (H-1B); 8 "
+                      "CFR 274a.12(b)(20) (H-1B portability under "
+                      "AC21); INA 212(n)(2)(C)(iv) (anti-retaliation "
+                      "for H-1B complaint); 20 CFR 655 Subpart H "
+                      "(H-1B Labor Condition Application); US Wage "
+                      "and Hour Division WHD enforcement",
+        "indicator": "H-1B + L-1 employer-tied visa leverage is "
+                       "less coercive than H-2A / H-2B + kafala "
+                       "but still creates retaliation risk. The "
+                       "American Competitiveness in the 21st "
+                       "Century Act (AC21, 2000) provides H-1B "
+                       "portability + 60-day grace period after "
+                       "loss of employment. INA 212(n)(2)(C)(iv) "
+                       "provides anti-retaliation protection for "
+                       "H-1B complaints. Provide: (1) H-1B "
+                       "portability rights under AC21, (2) "
+                       "Wage and Hour Division WHD complaint "
+                       "process, (3) NGO + legal-aid contacts "
+                       "(South Asian Bar Association, ACLU "
+                       "Immigrants' Rights Project, AILA, "
+                       "American Immigration Council), (4) anti-"
+                       "retaliation statute citation.",
+    },
+    {
+        "rule": "zz_eu_blue_card_threats",
+        "patterns": [r"\b(?:EU\s+Blue\s+Card|Blue\s+Card\s+(?:visa|status|holder))\b.{0,200}\b(?:revoke|withdraw|terminate|deport)\b",
+                       r"\b(?:ICT|intra[\s-]?corporate\s+transferee)\s+visa\b.{0,200}\b(?:complain|report|leave|change\s+employer)\b.{0,200}\b(?:cannot|not\s+allowed|denied)\b"],
+        "severity": "medium",
+        "citation": "EU Directive 2009/50/EC (Blue Card) as "
+                      "amended by Directive 2021/1883 (Blue Card "
+                      "Recast); EU Directive 2014/66/EU (ICT "
+                      "Directive); EU Fundamental Rights Charter "
+                      "Art. 12 + 28 + 31; ILO C87 + C98",
+        "indicator": "EU Blue Card + Intra-Corporate Transferee "
+                       "(ICT) visa workers have legal-employer-"
+                       "change rights and anti-retaliation "
+                       "protections under EU law. Provide: (1) "
+                       "Blue Card portability under the 2021 "
+                       "Recast (Art. 17 + 18 + 19), (2) ICT "
+                       "Directive worker protections (Art. 14 "
+                       "+ 18), (3) national equivalent of US "
+                       "WHD (e.g. Germany Federal Employment "
+                       "Agency BA, France Inspection du Travail, "
+                       "Netherlands Inspectie SZW), (4) NGO + "
+                       "legal-aid contacts (ECRE European "
+                       "Council on Refugees and Exiles, PICUM).",
+    },
+    {
+        "rule": "zz_au_tss_482_employer_tied",
+        "patterns": [r"\b(?:TSS|482|Subclass\s+482|Temporary\s+Skill\s+Shortage)\b.{0,200}\b(?:sponsor(?:ed|ship)?|nominat(?:ed|ion))\b.{0,200}\b(?:complain|report|leave|change\s+employer)\b.{0,200}\b(?:cannot|not\s+allowed|sent\s+home|deport|cancel)\b",
+                       r"\b(?:482|TSS|Subclass\s+186|Skilled\s+Worker\s+UK|Tier\s+2)\s+(?:visa|sponsorship)\b.{0,200}\b(?:training\s+(?:fee|cost)|deduction|reimburse|repay)\b"],
+        "severity": "medium",
+        "citation": "AU Migration Act 1958 + Migration Regulations "
+                      "1994; AU Fair Work Act 2009 (anti-"
+                      "discrimination + sham contracting); UK "
+                      "Skilled Worker visa (Immigration Rules "
+                      "Part 6A); UK Immigration Act 2016 + 2024 "
+                      "amendments; ILO C181 Art. 7",
+        "indicator": "AU TSS 482 + UK Skilled Worker visa "
+                       "workers face employer-sponsorship "
+                       "leverage. Worker is typically obligated "
+                       "to remain with the sponsor; transfer "
+                       "requires a new sponsorship. Training-"
+                       "cost-reimbursement-on-departure clauses "
+                       "are often deemed unenforceable "
+                       "(employer-pays-principle implications). "
+                       "Provide: (1) AU FWO / UK ACAS "
+                       "complaint pathway, (2) transfer-of-"
+                       "sponsorship process, (3) NGO + union "
+                       "support, (4) legal-aid contacts (AU "
+                       "Migrant Workers Centre + AU JFMW, UK "
+                       "JCWI + Praxis).",
+    },
 ]
 
 
