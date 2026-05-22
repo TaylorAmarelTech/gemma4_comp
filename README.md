@@ -443,10 +443,18 @@ archive note.
 | Refusal rate | **36%** | Clear refusal on exploitation requests |
 | With RAG context | **0.59** (+23% over plain) | [260 - RAG Comparison](https://www.kaggle.com/code/taylorsamarel/duecare-260-rag-comparison) |
 | With guided prompt | **0.62** (+28% over plain) | [260 - RAG Comparison](https://www.kaggle.com/code/taylorsamarel/duecare-260-rag-comparison) |
-| Trafficking prompt corpus | **74,567** | [110 - Prompt Prioritizer](https://www.kaggle.com/code/taylorsamarel/00a-duecare-prompt-prioritizer-data-pipeline) |
+| Trafficking prompt corpus | **74,640** | [110 - Prompt Prioritizer](https://www.kaggle.com/code/taylorsamarel/00a-duecare-prompt-prioritizer-data-pipeline) |
 | Adversarial generators | **15** | [310 - Prompt Factory](https://www.kaggle.com/code/taylorsamarel/duecare-310-prompt-factory) |
 | Evaluation frameworks | **7** | |
 | Pytest collection | **675 tests collected** | Across package test surfaces (2026-05-19 local collection) |
+| GREP detection rules | **269** | Categories A-ZZ + SCREENING-INDICATORS; see [`docs/KNOWLEDGE_SURFACE_VERIFICATION.md`](docs/KNOWLEDGE_SURFACE_VERIFICATION.md) |
+| RAG knowledge documents | **191** | ILO + UN + regional treaties + statutes + bilateral MOUs + screening tools + complaint procedures + 15 case studies |
+| Complaint / narrative templates | **34** | 5 origin-country, 11 destination-country, 5 referral pathways, 13 madlibs scenario letters / affidavits / worksheets |
+| Review personas | **22** | NGO + lawyer + regulator + clinician + survivor advocate + engineer + FIU + maritime HR + 14 more |
+| Fee-camouflage labels | **45** | Training / medical / process / placement / broker / document / loan-novation patterns |
+| Corridor fee-cap entries | **31** | PH / ID / NP / BD / VN / KH / MM origin x HK / SG / SA / KW / LB / QA / UAE / TW / JP / KR / MY + MX-US H-2A/B + JM-CA SAWP |
+| NGO contact bundles | **30** | Per-corridor + regional (any-US, any-UK, any-EU) + survivor-led global |
+| ILO conventions (lookup table) | **15** | C029, C087, C095, C097, C098, C100, C111, C138, C143, C181, C182, C188, C189, C190, P029 |
 
 ### Use it as a library
 
@@ -586,7 +594,7 @@ problems without changing the harness.
 
 | Pack | Status | Seed prompts | Evidence items | Categories | Taxonomy dimensions |
 |---|---|---|---|---|---|
-| `trafficking` | **Primary** | 74,575 (incl. 8 financial-crime intersection scenarios) | 10 | 5 | sector, corridor, ILO indicator, attack category, difficulty |
+| `trafficking` | **Primary** | 74,640 (incl. 8 financial-crime intersection scenarios + 65 worker / agency / researcher query prompts + 12 illicit ad examples + 10 illicit-conversation examples) | 10 | 5 | sector, corridor, ILO indicator, attack category, difficulty |
 | `financial_crime` | Adjacency proof | 13 | 3 | 4 | laundering stage, typology, FATF indicator, jurisdiction |
 | `tax_evasion` | Adjacency proof | 14 | 4 | 4 | scheme type, jurisdiction, FATF indicator, sophistication |
 
