@@ -917,6 +917,9 @@
             } else if (modelRequested && modelAvail) {
               kxGemmaMark.className = 'dc-gemma-mark is-done';
               kxGemmaMark.textContent = 'Gemma 4 refined this draft';
+              // Bump the top-bar Gemma 4 session tally — only on this
+              // is-done branch (Gemma 4 actually ran, not the fallback).
+              if (window.dcGemmaStats) window.dcGemmaStats.bump('draft');
             } else {
               kxGemmaMark.className = 'dc-gemma-mark is-optional';
               kxGemmaMark.textContent = 'Gemma 4 refinement — runs by default when a draft starts';

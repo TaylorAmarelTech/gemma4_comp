@@ -481,6 +481,9 @@
           if (data.used_gemma) {
             gemmaMark.className = 'dc-gemma-mark is-done';
             gemmaMark.textContent = 'Gemma done';
+            // Bump the top-bar Gemma 4 session tally — Gemma 4 actually
+            // ran the fill, confirmed by server-side data.used_gemma.
+            if (window.dcGemmaStats) window.dcGemmaStats.bump('template_fill');
           } else if (useGemma) {
             gemmaMark.className = 'dc-gemma-mark is-unavailable';
             gemmaMark.textContent = 'Gemma unavailable';
