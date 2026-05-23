@@ -33,12 +33,19 @@ For every screen:
 
 ## Bulk File Review Follow-Up
 
-The current implementation now detects text chunks, extractable PDF pages,
-images, scanned PDFs, media assets, OCR/multimodal work queues, people,
-payments, locations, evidence edges, timeline events, and journey-stage
-critical points. The next implementation step is wiring real OCR and Gemma 4
-multimodal extraction per page/image, then feeding those extracted facts back
-into entity resolution and graph chat.
+The current implementation detects text chunks, extractable PDF pages,
+images, scanned PDFs, media assets, people, payments, locations, evidence
+edges, timeline events, and journey-stage critical points. During the
+upload job, Standard review (the default) runs three Gemma 4 inline
+passes: the text case-brief pass, the typed-edge + RAG synthesis pass,
+and the contextual media review (where Gemma 4 predicts proposed_edges
+per queued asset from filename + folder + linked-case context, capped by
+the Max Gemma calls budget). The next implementation step is wiring real
+pixel-level OCR (Tesseract / EasyOCR / PaddleOCR / Docling) and Gemma 4
+pixel multimodal extraction via the AutoProcessor + image-byte path, then
+replacing the contextual predictions with direct image-bytes inspection
+and feeding those extracted facts back into entity resolution and graph
+chat.
 
 ## Synthetic Data And Fine-Tune Follow-Up
 
