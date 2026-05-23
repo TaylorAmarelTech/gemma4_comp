@@ -54,7 +54,15 @@ _PROCESS_REVIEW_MODES: dict[str, dict[str, Any]] = {
         "gemma_calls_per_item": 0,
         "edge_strictness": "conservative",
         "routing": "deterministic_all_items_no_gemma",
-        "description": "Upload, parse, GREP, entity extraction, folder edges, journey mapping, typed deterministic edges, and media queueing only. No Gemma case brief, no Gemma edge pass. Use when the page intentionally calls Gemma later as a separate job (e.g. knowledge.html runs envelope drafting downstream) or when you want the fastest possible intake.",
+        "description": (
+            "Upload, parse, GREP, entity extraction, folder edges, journey "
+            "mapping, typed deterministic edges, and media-asset enumeration. "
+            "None of the three Gemma 4 inline passes fire — no text case "
+            "brief, no typed-edge + RAG synthesis pass, no contextual media "
+            "review. Use when you want the fastest possible intake or when "
+            "downstream pages (e.g. knowledge.html) will call Gemma later "
+            "as a separate job."
+        ),
     },
     "quick_triage": {
         "id": "quick_triage",
@@ -64,7 +72,16 @@ _PROCESS_REVIEW_MODES: dict[str, dict[str, Any]] = {
         "gemma_calls_per_item": 1,
         "edge_strictness": "conservative",
         "routing": "deterministic_all_items_gemma_high_risk_only",
-        "description": "Fast first pass for very large uploads. Deterministic extraction runs everywhere; Gemma is reserved for highest-risk items and repeated entities.",
+        "description": (
+            "Fast first pass for very large uploads. Deterministic "
+            "extraction runs everywhere. Up to 20 Gemma 4 calls are "
+            "available across the case-brief pass, the typed-edge "
+            "synthesis pass, and the contextual media review (capped here "
+            "so a 500-row bundle still finishes in under 5 minutes on "
+            "Kaggle T4). The browser demo path caps to 0 calls by default "
+            "for the fastest possible recording; raise the form value to "
+            "exercise inline Gemma."
+        ),
     },
     "standard_review": {
         "id": "standard_review",
@@ -74,7 +91,20 @@ _PROCESS_REVIEW_MODES: dict[str, dict[str, Any]] = {
         "gemma_calls_per_item": 1,
         "edge_strictness": "balanced",
         "routing": "classify_all_items_gemma_high_signal_and_media",
-        "description": "Recommended default. OCR/layout and deterministic edges run broadly; Gemma reviews high-signal text, media, receipts, chats, contracts, and repeated clusters.",
+        "description": (
+            "Recommended default. Deterministic extraction runs broadly, "
+            "plus three Gemma 4 inline passes during the upload job: "
+            "(1) text case brief sending the bundle summary to Gemma 4; "
+            "(2) typed-edge + RAG synthesis sending the seed graph to "
+            "Gemma 4 to extract additional typed edges + RAG candidates; "
+            "(3) contextual media review sending each queued image / scan "
+            "/ PDF / binary-Office asset to Gemma 4 with filename + folder "
+            "+ linked-case context + prepared review questions. The server "
+            "ceiling is 75 Gemma calls per upload; the browser demo path "
+            "caps to 10 by default (1 brief + 1 synthesis + up to 8 "
+            "contextual media items) so the bundle still finishes in a "
+            "few minutes on Kaggle T4."
+        ),
     },
     "exhaustive_review": {
         "id": "exhaustive_review",
@@ -84,7 +114,16 @@ _PROCESS_REVIEW_MODES: dict[str, dict[str, Any]] = {
         "gemma_calls_per_item": 2,
         "edge_strictness": "exploratory",
         "routing": "classify_and_target_every_page_item_with_budget",
-        "description": "Deep local review for smaller bundles or final case prep. Gemma can run multiple targeted prompts per page item until the local budget is exhausted.",
+        "description": (
+            "Deep local review for smaller bundles or final case prep. "
+            "Deterministic extraction runs broadly, plus the three Gemma 4 "
+            "inline passes (case brief + typed-edge synthesis + contextual "
+            "media review) with up to 2 calls per classified page item. "
+            "The server ceiling is 240 Gemma calls; the browser demo path "
+            "caps to 60 so a representative session still completes within "
+            "30-90 minutes on Kaggle T4 depending on which Gemma variant "
+            "is loaded."
+        ),
     },
 }
 _DEFAULT_PAGE_ITEM_TYPES = [
