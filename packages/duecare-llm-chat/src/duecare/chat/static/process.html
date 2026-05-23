@@ -318,15 +318,15 @@
             <div class="wb-mode-row" role="radiogroup" aria-label="Review depth">
               <button class="wb-mode-card" type="button" data-mode="quick_triage" onclick="wbSetReviewMode('quick_triage')" role="radio" aria-checked="false">
                 <b>Quick triage</b>
-                <span>Deterministic only. No Gemma during upload. Fastest path; explicit Gemma edge pass available after review.</span>
+                <span>Deterministic parse, GREP, entity extraction, and folder/journey edges only. No Gemma 4 calls during upload. Fastest path; use the Re-run Gemma 4 edge pass button on Step 3 after review if you want model-proposed edges.</span>
               </button>
               <button class="wb-mode-card active" type="button" data-mode="standard_review" onclick="wbSetReviewMode('standard_review')" role="radio" aria-checked="true">
                 <b>Standard review <span style="display:inline-block; margin-left:6px; padding:1px 7px; border-radius:999px; background:oklch(0.92 0.03 195); color:oklch(0.32 0.07 195); font-size:9.5px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase;">Recommended for demo</span></b>
-                <span>Gemma 4 entity and edge detection on up to 5 page items, deterministic everywhere else. Finishes in a few minutes on Kaggle T4.</span>
+                <span>Deterministic extraction plus three Gemma 4 inline passes during the upload job: the text case brief (1 call), the typed-edge + RAG synthesis (1 call), and the contextual media review (up to 8 queued assets, one call each). Total cap: 10 Gemma 4 calls. Finishes in a few minutes on Kaggle T4.</span>
               </button>
               <button class="wb-mode-card" type="button" data-mode="exhaustive_review" onclick="wbSetReviewMode('exhaustive_review')" role="radio" aria-checked="false">
                 <b>Exhaustive review</b>
-                <span>Gemma 4 on every classified item up to 60 calls. Plan for a long-running session.</span>
+                <span>Deterministic extraction plus Gemma 4 on every classified page item up to 60 calls (case brief + edge pass + many contextual media). Plan for a long-running session on Kaggle T4 — full bundle can take 30-90 minutes depending on Gemma variant.</span>
               </button>
             </div>
             <div class="wb-muted" id="wb-gemma-paths-hint"
@@ -1298,16 +1298,16 @@
         perItem: 0,
         inlineGemma: false,
         strictness: 'conservative',
-        detail: 'Deterministic only. No Gemma calls during upload. Fastest path. Use the explicit Gemma edge pass after Step 3 to add model-proposed edges.'
+        detail: 'Deterministic only. No Gemma 4 calls during upload (no case brief, no typed-edge synthesis, no contextual media review). Fastest path. Use the Re-run Gemma 4 edge pass button on Step 3 after review to add model-proposed edges.'
       },
       standard_review: {
         label: 'Standard review',
         runtime: 15,
-        calls: 5,
+        calls: 10,
         perItem: 1,
         inlineGemma: true,
         strictness: 'balanced',
-        detail: 'Recommended for the demo. Runs Gemma 4 on up to 5 page items for entity/edge detection during upload; deterministic extraction covers the rest. Finishes in a few minutes on Kaggle T4.'
+        detail: 'Recommended for the demo. Runs three Gemma 4 inline passes during the upload job — case brief, typed-edge synthesis, and up to 8 contextual media reviews — for a 10-call total. Deterministic extraction covers the rest. Finishes in a few minutes on Kaggle T4.'
       },
       exhaustive_review: {
         label: 'Exhaustive review',
@@ -1316,7 +1316,7 @@
         perItem: 1,
         inlineGemma: true,
         strictness: 'exploratory',
-        detail: 'Deep local pass for final case prep. Runs Gemma 4 on every classified page item up to 60 calls. Plan for a long-running session.'
+        detail: 'Deep local pass for final case prep. Runs Gemma 4 on every classified page item up to 60 calls (case brief + edge pass + many contextual media). Plan for a 30-90 minute session on Kaggle T4 depending on which Gemma variant is loaded.'
       }
     };
     let wbReviewMode = 'standard_review';
