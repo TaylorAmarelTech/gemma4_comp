@@ -239,47 +239,42 @@
             <div>
               <h2>Sample case bundles</h2>
               <p class="wb-muted" style="font-size:12px; margin:4px 0 10px;">
-                Use the streamlined demo for a short, reliable presentation.
-                Use the media-rich bundle as the full judge demo: it shows
-                Messenger and WhatsApp screenshots, receipt photos, passport
-                photos, DOCX, PDF, XLSX, email, and queued Office artifacts.
-                The broad bundle is available when you want graph scale across
-                30 synthetic people.
+                The primary media-rich bundle is the judge demo: WhatsApp +
+                Messenger screenshots, receipt photos, passport scans, DOCX,
+                PDF, XLSX, email, queued Office artifacts. One click loads
+                it into the upload picker.
               </p>
               <div class="wb-row" style="gap:8px;">
-                <a class="wb-btn-primary" href="/static/samples/case_files_streamlined_demo.zip"
-                   download="case_files_streamlined_demo.zip"
-                   title="Download the streamlined five-document demo bundle ZIP">
-                  Download streamlined demo
-                </a>
-                <button class="wb-btn-secondary" type="button" onclick="wbUseSample('streamlined')"
-                   title="Fetch the streamlined sample ZIP into the file picker so you can press Start processing">
-                  Use streamlined demo
+                <button class="wb-btn-primary" type="button" onclick="wbUseSample('media')"
+                   title="Fetch the primary media-rich sample ZIP into the file picker so you can press Start processing">
+                  Use primary media-rich sample
                 </button>
-              </div>
-              <div class="wb-row" style="gap:8px; margin-top:8px;">
-                <a class="wb-btn-primary" href="/static/samples/case_files_media_rich_sample.zip"
+                <a class="wb-btn-secondary" href="/static/samples/case_files_media_rich_sample.zip"
                    download="case_files_media_rich_sample.zip"
                    title="Download the primary media-rich synthetic case bundle ZIP">
-                  Download primary media-rich bundle
+                  Download ZIP
                 </a>
-                <button class="wb-btn-secondary" type="button" onclick="wbUseSample('media')"
-                   title="Fetch the media-rich sample ZIP into the file picker so you can press Start processing">
-                  Use primary sample
-                </button>
-              </div>
-              <div class="wb-row" style="gap:8px; margin-top:8px;">
-                <a class="wb-btn-secondary" href="/static/samples/case_files_sample.zip"
-                   download="case_files_sample.zip"
-                   title="Download the broad synthetic case bundle ZIP">
-                  Download broad bundle
-                </a>
-                <button class="wb-btn-secondary" type="button" onclick="wbUseSample('broad')"
-                   title="Fetch the broad sample ZIP into the file picker so you can press Start processing">
-                  Use broad bundle
-                </button>
                 <span class="wb-muted" id="wb-sample-status"></span>
               </div>
+              <details style="margin-top:10px;">
+                <summary style="cursor:pointer; font-size:12px; color:#5B5F68;">Other sample bundles</summary>
+                <div class="wb-row" style="gap:8px; margin-top:8px;">
+                  <button class="wb-btn-secondary" type="button" onclick="wbUseSample('streamlined')"
+                     title="Streamlined five-document demo — short reliable presentation path">
+                    Use streamlined demo
+                  </button>
+                  <a class="wb-btn-secondary" href="/static/samples/case_files_streamlined_demo.zip"
+                     download="case_files_streamlined_demo.zip">Download streamlined ZIP</a>
+                </div>
+                <div class="wb-row" style="gap:8px; margin-top:8px;">
+                  <button class="wb-btn-secondary" type="button" onclick="wbUseSample('broad')"
+                     title="Broad bundle — 30 synthetic people for graph scale">
+                    Use broad bundle
+                  </button>
+                  <a class="wb-btn-secondary" href="/static/samples/case_files_sample.zip"
+                     download="case_files_sample.zip">Download broad ZIP</a>
+                </div>
+              </details>
             </div>
             <div>
               <h2>Upload evidence bundle</h2>
@@ -334,7 +329,7 @@
               <ol style="margin:4px 0 0 18px; padding:0;">
                 <li><b>During upload (Step 2)</b> &mdash; inline Gemma 4 reads up to N page items (N = Max Gemma calls). Writes per-row case briefs and typed edges. Only fires when "Run Gemma text brief/edge synthesis inside the upload job" is checked.</li>
                 <li><b>Explicit edge pass (Step 3)</b> &mdash; click "Run local Gemma edge pass" after review. Gemma reviews the consolidated graph and proposes NEW edges between entities the rules missed.</li>
-                <li><b>Graph chat (Step 4)</b> &mdash; ask questions against the confirmed case graph. Each answer is a Gemma call.</li>
+                <li><b>Graph chat (Step 4)</b> &mdash; deterministic graph analyst answers from the cached graph, then a short Gemma 4 synthesis adds a conversational read on top. Route badge above each answer shows which path fired.</li>
               </ol>
               <div style="margin-top:6px; color:#5B5F68;">Standard review enables path 1 with a 5-call cap so the demo finishes fast. Quick triage skips path 1 entirely.</div>
             </div>
@@ -623,6 +618,12 @@
       <details style="margin-top:6px;">
         <summary style="cursor:pointer; font-size:12px; color:#5B5F68;">More example questions</summary>
         <div class="wb-row" style="gap:6px; margin-top:6px;">
+          <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Compare the two strongest cases in plain language — which one do I escalate first, and what tips the balance?')">Compare top two</button>
+          <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('If this bundle had to go to court tomorrow, what is the single piece of evidence I am most likely to be missing, and why?')">Court-ready check</button>
+          <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('What would a skeptical defense lawyer push back on first when looking at this evidence? Be specific.')">Steelman the defense</button>
+          <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Is there evidence that a single recruiter, agency, or employer is coordinating across multiple cases here? Cite the linking edges.')">Single coordinator?</button>
+          <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Walk me through the recruitment-to-arrival timeline for the highest-risk case in this bundle, using the journey-stage edges.')">Recruitment timeline</button>
+          <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('In plain language, what should the worker in the highest-risk case do this week to protect themselves?')">Worker next steps</button>
           <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which people have the strongest evidence of placement fees above the legal cap? Cite row IDs.')">Fee risk</button>
           <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which people could plausibly be grouped into a class-style or pattern case, and what common agency, fee, folder, document, or journey-stage links connect them?')">Grouped action</button>
           <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which rows show passport retention or identity document control?')">Document control</button>

@@ -8188,6 +8188,404 @@ GREP_RULES = [
                        "cases; (4) Against Child Trafficking + "
                        "Both Ends advocacy network.",
     },
+
+    # ====================================================================
+    # CHUNK 36 (2026-05-23) — GREP +12: PPPP-AAAAA
+    # AI/deepfake recruitment / crypto fee laundering / closed-channel
+    # recruitment / impersonation / organ trafficking / war-corridor
+    # fraud / surrogacy / climate-displacement / esports recruitment /
+    # compelled streaming / sham retreats / document-coercion ladder.
+    # ====================================================================
+
+    {
+        "rule": "pppp_ai_deepfake_recruitment_scams",
+        "patterns": [r"\b(?:AI[\s-]?generated|deep\s*fake|synthetic\s+(?:video|voice|persona)|GPT[\s-]?(?:generated|written)|chatbot\s+recruiter|fake\s+(?:video|profile)\s+(?:call|interview)|voice[\s-]?cloned?)\b.{0,200}\b(?:recruiter|hiring|interview|job|offer|placement|agency)\b",
+                       r"\b(?:recruiter|HR|placement\s+officer)\b.{0,160}\b(?:would\s+not\s+(?:turn\s+on\s+camera|video\s+call|meet\s+in\s+person)|only\s+text|cannot\s+meet|always\s+pre[\s-]?recorded|sent\s+(?:a\s+)?video\s+message\s+instead)\b"],
+        "severity": "high",
+        "citation": "EU AI Act 2024 Art. 50 (transparency for AI-generated "
+                      "content); US FTC Final Rule on AI-generated impersonation "
+                      "2024; UK Online Safety Act 2023 Sec. 179 (false-"
+                      "communications); Australia Online Safety (Basic Online "
+                      "Safety Expectations) Determination 2022; Sentinel "
+                      "Hate Speech + Synthetic Media reports; INTERPOL "
+                      "Cyber-Enabled Financial Crime + Synthetic Identity "
+                      "advisories; FATF Recommendation 24/25 on beneficial "
+                      "ownership transparency.",
+        "indicator": "AI-generated job ads, deepfake recruiter video calls, "
+                       "voice-cloned callbacks impersonating known agencies, "
+                       "and chatbot-only recruitment channels are 2024-2026 "
+                       "emerging trafficking-recruitment patterns. The "
+                       "synthetic-media layer obscures recruiter identity, "
+                       "defeats licensing verification, and enables mass "
+                       "industrial-scale fraud. Refuse to verify a recruiter "
+                       "who refuses live video; cross-check the company "
+                       "against the licensing-authority registry by phone, "
+                       "not via the URL or contact from the ad. Report to "
+                       "the platform's trust-and-safety channel and to the "
+                       "national cybercrime authority (US FBI IC3; UK NCA "
+                       "NCSC; AU ACSC; SG SPF; IN I4C).",
+    },
+
+    {
+        "rule": "qqqq_crypto_recruitment_fee_laundering",
+        "patterns": [r"\b(?:USDT|USDC|stablecoin|crypto|cryptocurrency|bitcoin|BTC|ETH|TRC[\s-]?20|ERC[\s-]?20|BEP[\s-]?20|wallet\s+address|0x[a-fA-F0-9]{6,}|T[a-zA-Z0-9]{8,})\b.{0,200}\b(?:recruitment\s+fee|placement\s+fee|training\s+fee|processing\s+fee|deposit|advance|down\s+payment|agency\s+fee)\b",
+                       r"\b(?:pay\s+(?:in|with|via)\s+crypto|transfer\s+to\s+wallet|send\s+to\s+(?:USDT|stablecoin)|deposit\s+in\s+(?:Binance|OKX|Bybit|Coinbase|Bitget))\b.{0,150}\b(?:job|placement|deployment|visa|agency|recruiter)\b"],
+        "severity": "high",
+        "citation": "FATF Recommendation 15 (Virtual Asset Service Providers + "
+                      "the Travel Rule); FATF Updated Guidance on a "
+                      "Risk-Based Approach to Virtual Assets 2021 + 2023; "
+                      "EU MiCA Regulation 2023/1114; US FinCEN Guidance "
+                      "FIN-2019-G001 (convertible virtual currencies); "
+                      "Singapore MAS PS-N02 (Notice on AML/CFT for digital "
+                      "payment token services); HK SFC VATP Guidance 2023; "
+                      "FATF/APG 2018 Financial Flows from Human Trafficking; "
+                      "Chainalysis Crypto Crime Reports 2022-2024.",
+        "indicator": "Recruitment fees demanded in cryptocurrency (USDT on "
+                       "TRC-20 is dominant in Southeast-Asia trafficking-finance "
+                       "rings, USDC + ETH in higher-end operations) are a "
+                       "2022-2026 emergent typology. Crypto fees evade the "
+                       "labour-authority remittance-record requirement, defeat "
+                       "agency-bond claims, and allow rapid cross-border "
+                       "laundering. ANY worker-side recruitment fee in a "
+                       "fee-free corridor is illegal regardless of medium; "
+                       "the crypto channel adds AML predicate-offence layering. "
+                       "Refer to the destination FIU (FINCEN, AUSTRAC, FINTRAC, "
+                       "JFIU, AMLC, FIA-IND) AND the labour authority "
+                       "simultaneously; the FIU's blockchain-tracing capability "
+                       "can identify the receiving wallet's owner via VASP "
+                       "Travel-Rule data.",
+    },
+
+    {
+        "rule": "rrrr_closed_channel_telegram_signal_recruitment",
+        "patterns": [r"\b(?:Telegram|Signal|Discord|Wire|Session|Threema)\b.{0,180}\b(?:recruiter|job|placement|deployment|hiring|recruitment|agency|group|channel|broker)\b",
+                       r"\b(?:join\s+(?:our|the)\s+(?:Telegram|Signal|Discord)|message\s+(?:us|me)\s+on\s+(?:Telegram|Signal|Discord)|@\w{4,}|t\.me/|signal\.me/|discord\.gg/)\b.{0,150}\b(?:job|placement|visa|agency|recruiter|salary|deploy)\b"],
+        "severity": "medium",
+        "citation": "ILO C181 Art. 8 (transparency in private employment "
+                      "agency operations); Origin-country recruitment "
+                      "licensure typically requires registered office + "
+                      "verifiable contact (POEA MC 14-2017; BP2MI Reg. "
+                      "09/2020; Nepal FEA 2007 §11; Bangladesh OEM Act "
+                      "2013 Sec. 7); EU Platform Work Directive 2024; "
+                      "INTERPOL + EUROPOL closed-channel recruitment "
+                      "typology bulletins 2022-2024.",
+        "indicator": "Recruitment conducted ONLY through closed messaging "
+                       "channels (Telegram channels, Signal groups, Discord "
+                       "servers, WhatsApp-only groups with no formal email "
+                       "/ website / office address) defeats verification "
+                       "by both the worker and the licensing authority. "
+                       "This is itself a red flag — legitimate licensed "
+                       "agencies have verifiable registered offices and "
+                       "are listed on the origin-country licensing "
+                       "registry. Closed-channel-only recruiters are "
+                       "almost always either unlicensed or sanctioned. "
+                       "Cross-check the recruiter's claimed agency on the "
+                       "official registry; refer suspect channels to the "
+                       "platform's trust-and-safety pathway and the "
+                       "origin-country labour-attaché network.",
+    },
+
+    {
+        "rule": "ssss_whatsapp_caller_id_family_impersonation",
+        "patterns": [r"\b(?:caller[\s-]?ID|displayed\s+(?:number|name)|appeared\s+to\s+be|seemed\s+like|looked\s+like)\b.{0,160}\b(?:(?:my|her|his|their)\s+(?:mother|father|sister|brother|cousin|relative|family)|known\s+number|home\s+number)\b.{0,200}\b(?:recruiter|placement|job|agency|broker|trafficker|stranger)\b",
+                       r"\b(?:WhatsApp\s+(?:profile|photo|status)|caller\s+(?:ID|number)|displayed\s+name)\b.{0,160}\b(?:fake|spoofed|impersonat|cloned|forged|hijacked|stolen)\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3(a) (deception as means of "
+                      "trafficking); UN UNODC Toolkit to Combat Trafficking "
+                      "in Persons (deception typologies); ITU + GSMA "
+                      "anti-spoofing guidance; US FCC TRACED Act 2019 + "
+                      "STIR/SHAKEN framework; UK Ofcom Number-Spoofing "
+                      "Code 2022; INTERPOL Identity-Based Crime Bulletins; "
+                      "WhatsApp + Meta Trust + Safety researcher reports "
+                      "on impersonation typologies.",
+        "indicator": "Recruiters impersonating a worker's family member "
+                       "(via caller-ID spoofing, hijacked WhatsApp account, "
+                       "stolen profile photo, AI-cloned voice) to issue "
+                       "recruitment instructions is a documented "
+                       "trafficking-recruitment pattern in PH-Gulf, NP-"
+                       "Malaysia, BD-Gulf, ID-Saudi corridors. The family-"
+                       "voice authority defeats normal worker caution and "
+                       "is a clear case of deception under Palermo Art. "
+                       "3(a). Verify any unexpected family-channel "
+                       "recruitment instruction via an independent channel "
+                       "(call back on a known good number; meet in person; "
+                       "ask a verifiable family question). Report to the "
+                       "destination labour authority + cybercrime unit "
+                       "AND to the carrier's anti-fraud desk.",
+    },
+
+    {
+        "rule": "tttt_organ_trafficking_medical_tourism_pretext",
+        "patterns": [r"\b(?:medical\s+tourism|health\s+travel|treatment\s+abroad|hospital\s+visa|surgery\s+overseas)\b.{0,200}\b(?:donate|donation|sell|paid|compensation|reward|inducement)\b.{0,200}\b(?:kidney|cornea|liver|blood|organ|tissue|stem\s+cells|bone\s+marrow|ova|eggs|surrogacy)\b",
+                       r"\b(?:kidney|cornea|liver|organ)\b.{0,150}\b(?:trafficking|sold|paid\s+for|black\s+market|broker|matched\s+abroad|paired\s+with\s+recipient|harvest)\b"],
+        "severity": "high",
+        "citation": "WHO Guiding Principles on Human Cell, Tissue and "
+                      "Organ Transplantation (updated 2010); Declaration "
+                      "of Istanbul on Organ Trafficking + Transplant "
+                      "Tourism 2008 + 2018 Edition; Council of Europe "
+                      "Convention against Trafficking in Human Organs "
+                      "2014 (Santiago Convention); UN Palermo Protocol "
+                      "Art. 3(a) (organ removal is a purpose of "
+                      "trafficking); UN Trafficking in Persons for the "
+                      "Purpose of Organ Removal special reports 2015-"
+                      "2024; INTERPOL Trafficking in Human Organs "
+                      "operational manuals; national transplant statutes "
+                      "(US NOTA + UAGA; UK Human Tissue Act 2004; PRC "
+                      "Regulations on Human Organ Transplantation 2007; "
+                      "IN Transplantation of Human Organs Act 1994).",
+        "indicator": "Cross-border 'medical tourism' brokering organ "
+                       "donation in exchange for payment is trafficking "
+                       "under Palermo Art. 3(a). Documented corridors: "
+                       "Egypt/Sudan, PRC/HK/SEA, Pakistan/Gulf, Costa Rica/"
+                       "Israel, Kosovo network. The donor is typically a "
+                       "migrant or poor person under debt or coercion; the "
+                       "broker takes 60-90% of the payment. Refuse any "
+                       "operational support; refer to: (1) WHO Notify "
+                       "Library; (2) Declaration of Istanbul Custodian "
+                       "Group; (3) destination-country transplant "
+                       "authority; (4) origin-country labour and health "
+                       "ministry; (5) INTERPOL via the national NCB.",
+    },
+
+    {
+        "rule": "uuuu_war_corridor_evacuation_recruitment_fraud",
+        "patterns": [r"\b(?:evacuation|safe\s+passage|humanitarian\s+corridor|war[\s-]?zone\s+exit|emergency\s+resettlement|protected\s+route|refugee\s+escape)\b.{0,200}\b(?:fee|charge|payment|debt|deposit|advance|placement|broker|smuggler)\b",
+                       r"\b(?:Ukraine|Russia|Syria|Sudan|Yemen|Afghanistan|Myanmar|Gaza|war\s+zone|conflict\s+area|conflict\s+zone)\b.{0,200}\b(?:recruiter|placement\s+agent|labour\s+broker|visa\s+broker|trafficker)\b.{0,180}\b(?:Europe|Gulf|UAE|Saudi|Turkey|Russia|abroad)\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3(a) (abuse of position of "
+                      "vulnerability); UN Smuggling of Migrants Protocol "
+                      "2000; 1951 Refugee Convention + 1967 Protocol Art. "
+                      "31 (non-penalisation for irregular entry of refugees); "
+                      "UNHCR Standard Operating Procedures on Trafficking "
+                      "in Refugee Settings 2014; OHCHR Recommended Principles "
+                      "+ Guidelines on Trafficking 2002 + 2020 commentary; "
+                      "IOM Counter-Trafficking in Emergencies framework "
+                      "2018; Global Compact on Refugees 2018 + Global "
+                      "Compact for Safe, Orderly and Regular Migration 2018.",
+        "indicator": "War-zone and humanitarian-corridor recruitment fraud "
+                       "exploits displaced people who are at the highest "
+                       "vulnerability under Palermo Art. 3(a). Documented "
+                       "in: Ukrainian women trafficked from EU reception "
+                       "centres into sex and domestic-work exploitation "
+                       "(2022-present); Afghan evacuees defrauded by fake "
+                       "P-2 visa brokers; Syrian + Sudanese refugees "
+                       "recruited from camps into Gulf forced labour; "
+                       "Rohingya brokered out of Cox's Bazar onto Thai/"
+                       "Malaysian fishing vessels. Refuse any operational "
+                       "support for an 'evacuation fee'; refer to UNHCR "
+                       "country office (verified contact via UNHCR Help "
+                       "site only); IOM Counter-Trafficking desk; the "
+                       "destination-country embassy; INTERPOL via national "
+                       "NCB. Never share the affected person's location "
+                       "via an unsecured channel.",
+    },
+
+    {
+        "rule": "vvvv_surrogacy_reproductive_labour_trafficking",
+        "patterns": [r"\b(?:surrogate|surrogacy|gestational\s+carrier|womb\s+rental|egg\s+donor|ova\s+donor|reproductive\s+services)\b.{0,200}\b(?:trafficking|broker|debt|coerced|paid|compensation|cross[\s-]?border|abroad|tourism)\b",
+                       r"\b(?:Cambodia|Kenya|Mexico|Georgia|Ukraine|Cyprus|Greece|North\s+Cyprus|Russia|Albania|Laos)\b.{0,200}\b(?:surrogacy|surrogate|gestational|IVF|fertility|reproductive)\b.{0,150}\b(?:commercial|paid|fee|broker|agency|tourism)\b"],
+        "severity": "high",
+        "citation": "Hague Conference Parentage / Surrogacy Project 2011-"
+                      "2024 reports + draft principles; UN Special Rapporteur "
+                      "on Sale + Sexual Exploitation of Children 2018 "
+                      "Surrogacy report; UN HRC Resolution 49/2 on protection "
+                      "of children's rights including in surrogacy; UN "
+                      "Palermo Protocol Art. 3(a) where coercion/deception "
+                      "establish trafficking; Council of Europe Parliamentary "
+                      "Assembly Resolution 2008 (2014) on Human Rights and "
+                      "Bioethics; national prohibitions on commercial "
+                      "surrogacy (FR Code civil Art. 16-7; DE EmbryonenschutzG "
+                      "§1; ES Ley 14/2006 Art. 10; IT Legge 40/2004 Art. 12; "
+                      "Indian Surrogacy (Regulation) Act 2021); EU Anti-"
+                      "Trafficking Directive 2024 explicitly including "
+                      "surrogacy exploitation.",
+        "indicator": "Cross-border commercial surrogacy can constitute "
+                       "trafficking when the surrogate is recruited via "
+                       "deception, debt bondage, abuse of vulnerability, "
+                       "or restriction of movement (Palermo Art. 3(a)). "
+                       "Documented patterns: rural-Cambodian women bonded "
+                       "into Indian/Israeli-broker surrogacy rings (pre-"
+                       "2016 ban); Ukrainian/Russian surrogacy hubs with "
+                       "war-displacement leverage; Mexican/Georgian "
+                       "broker rings; Kenyan rural recruitment for "
+                       "Nairobi clinics. Surrogate's passport often "
+                       "retained; payment often diverted to broker; "
+                       "child custody often disputed. Refer to the "
+                       "destination-country surrogacy-regulator (if any); "
+                       "Hague Conference Central Authority; UN SR on "
+                       "Sale of Children; national child-protection "
+                       "authority; the originating country's labour "
+                       "+ women's-rights ministry.",
+    },
+
+    {
+        "rule": "wwww_climate_displacement_driven_trafficking",
+        "patterns": [r"\b(?:climate\s+(?:displacement|migration|refugee|change|disaster)|sea[\s-]?level\s+rise|coastal\s+inundation|cyclone|typhoon|drought|wildfire|flood|tsunami|monsoon\s+failure)\b.{0,250}\b(?:trafficking|recruited|brokered|deceived|debt|fee|placement|forced)\b",
+                       r"\b(?:Pacific\s+Islands|Tuvalu|Kiribati|Marshall\s+Islands|Bangladesh\s+delta|Mekong\s+delta|Sahel|Horn\s+of\s+Africa|Sundarbans|Sundarban)\b.{0,200}\b(?:recruiter|placement|broker|migration\s+offer|safe\s+passage)\b"],
+        "severity": "medium",
+        "citation": "Global Compact for Migration 2018 (Objective 2 + 5); "
+                      "Global Compact on Refugees 2018; IOM Migration, "
+                      "Environment + Climate Change framework 2014 + "
+                      "subsequent reports; UN HRC Resolution 35/20 on "
+                      "human rights + climate change; Sendai Framework "
+                      "for Disaster Risk Reduction 2015-2030; Nansen "
+                      "Initiative on Cross-Border Displacement in Context "
+                      "of Disasters 2015; Platform on Disaster "
+                      "Displacement; UNDRR PreventionWeb; Pacific Climate "
+                      "Mobility Framework 2022; UN SR on Trafficking "
+                      "thematic report on climate-related trafficking "
+                      "(2023).",
+        "indicator": "Climate disasters (sudden — cyclones, floods; slow-"
+                       "onset — drought, sea-level rise, salinisation) "
+                       "produce predictable trafficking spikes 6-18 "
+                       "months post-event. Documented in: Bangladesh "
+                       "post-Sidr/Aila/Amphan cycles; Pacific Islands "
+                       "post-cyclone displacement; Horn of Africa drought "
+                       "cycles; Philippines post-Haiyan; Sundarbans "
+                       "ecological collapse. Recruiters target affected "
+                       "villages with 'safe passage' or 'job offer' "
+                       "framings; payment structures shift to debt "
+                       "bondage; women + girls disproportionately "
+                       "targeted for domestic work + sex trafficking; "
+                       "boys + men for fishing + construction. Pre-"
+                       "position protection assets in advance of "
+                       "predictable cycles; coordinate with IOM + UNHCR "
+                       "+ local NGO networks. Use the IDMC + UN OCHA "
+                       "data layers to identify high-risk regions.",
+    },
+
+    {
+        "rule": "xxxx_gaming_esports_scholarship_recruitment_fraud",
+        "patterns": [r"\b(?:e[\s-]?sports?|gaming\s+(?:scholarship|academy|team)|pro\s+player|streaming\s+career|content\s+creator\s+(?:contract|deal)|gaming\s+visa|talent\s+visa)\b.{0,200}\b(?:fee|deposit|debt|equipment\s+cost|housing|placement|broker|agency|recruiter)\b",
+                       r"\b(?:Twitch|YouTube|TikTok|Kick|Bigo\s+Live|Mlive|Streamer)\b.{0,180}\b(?:contract|exclusive|recruitment|signed|trafficking|forced|coerced)\b.{0,150}\b(?:debt|fee|housing|tied|cannot\s+leave|move\s+abroad)\b"],
+        "severity": "medium",
+        "citation": "ILO C181 Art. 7 (no worker-side fee); IOC + IESF "
+                      "athlete-trafficking guidance; FIFPro Sport-Trafficking "
+                      "framework (extends to esports); EU Sport Forum + "
+                      "Council of Europe Resolution 2199 (2018) on "
+                      "trafficking of young athletes; UN SR on Trafficking "
+                      "extension of sports-trafficking framework to "
+                      "esports + streaming (2024 thematic); platform "
+                      "trust-and-safety standards (Twitch Community "
+                      "Guidelines; YouTube Creator Responsibility Centre; "
+                      "TikTok Community Guidelines).",
+        "indicator": "Esports + content-streaming recruitment fraud is a "
+                       "2020-2026 emerging pattern. Recruiters offer "
+                       "'scholarships', 'pro-team contracts', 'streaming "
+                       "careers' to young people in PH, ID, VN, BR, "
+                       "MX, NG, with cross-border deployment to PRC, KR, "
+                       "JP, RU, US, EU. Fees disguised as 'equipment "
+                       "cost', 'visa cost', 'housing deposit', 'training "
+                       "academy fee'. Once deployed, the worker is "
+                       "compelled to stream / play hours that breach "
+                       "child-protection rules where applicable, with "
+                       "earnings retained by the broker / 'team owner'. "
+                       "Refer to the platform's trust-and-safety pathway; "
+                       "destination labour authority; if a minor, the "
+                       "child-protection authority; if cross-border, "
+                       "origin-country labour attaché.",
+    },
+
+    {
+        "rule": "yyyy_compelled_livestream_content_creation_labour",
+        "patterns": [r"\b(?:livestream|live[\s-]?streaming|cam(?:girl|boy|model)?|mukbang|ASMR|hourly\s+broadcast|24[\s-]?hour\s+broadcast|nonstop\s+stream)\b.{0,200}\b(?:forced|coerced|cannot\s+stop|debt|cannot\s+leave|locked\s+in|held|trafficked|housed|controlled)\b",
+                       r"\b(?:Bigo|TikTok\s+Live|Twitch|Mlive|Stripchat|Chaturbate|OnlyFans|Bilibili|Douyu|YouTube\s+Live)\b.{0,180}\b(?:agency|talent\s+house|streamer\s+house|recruited|deployed|fee|debt|brokered)\b"],
+        "severity": "high",
+        "citation": "ILO C029 (Forced Labour); UN Palermo Protocol Art. "
+                      "3(a) (exploitation in all forms); ILO C190 on "
+                      "Violence + Harassment 2019; Council of Europe "
+                      "Convention on Cybercrime + Additional Protocols; "
+                      "Council of Europe Lanzarote Convention on Sexual "
+                      "Exploitation of Children 2007; INTERPOL CybSEC "
+                      "Centre + DR_DataExchange tools; National "
+                      "Center for Missing + Exploited Children (NCMEC) "
+                      "for victim cases; platform community guidelines "
+                      "(Bigo Live + TikTok Live + Twitch + OnlyFans "
+                      "+ Stripchat policies on forced content).",
+        "indicator": "Compelled livestreaming + content-creation labour "
+                       "is documented across SEA + East Asia: 'talent "
+                       "houses' / 'streamer houses' where 10-30 "
+                       "workers (often young women) are confined to "
+                       "mass apartments and compelled to stream 12-18 "
+                       "hours/day for 'company points' that are largely "
+                       "retained by the broker / agency. Often crosses "
+                       "into commercial sexual exploitation. Documented "
+                       "in PRC, VN, ID, MY, PH, TH; cross-border "
+                       "deployment to PRC, KH, MM. Refer to NCMEC + "
+                       "INTERPOL + ICAC if minors involved; destination "
+                       "labour + cybercrime authority; the platform's "
+                       "trust-and-safety + abuse desk; coordinate with "
+                       "the platform's local-jurisdiction legal team.",
+    },
+
+    {
+        "rule": "zzzz_sham_wellness_yoga_retreat_labour_extraction",
+        "patterns": [r"\b(?:yoga|wellness|spiritual|meditation|retreat|ashram|guru|spiritual\s+master|enlightenment)\b.{0,250}\b(?:work[\s-]?exchange|karma\s+yoga|seva|volunteer|stipend|debt|fee|housing\s+tied|cannot\s+leave|locked\s+in)\b",
+                       r"\b(?:teacher\s+training|yoga\s+teacher|TT[\s-]?C|certification\s+program|ashram\s+stay)\b.{0,200}\b(?:fee|deposit|housing\s+work|cleaning|cooking|sleeping\s+(?:in|on)|no\s+pay|cannot\s+leave|passport\s+held)\b"],
+        "severity": "medium",
+        "citation": "ILO C029 (Forced Labour); Palermo Protocol Art. 3(a); "
+                      "Council of Europe Convention against Trafficking; "
+                      "national cult / sect / religious-coercion statutes "
+                      "(FR Loi About-Picard 2001; DE BVerfG sect "
+                      "jurisprudence; AU Cult Protection guidelines; UK "
+                      "Modern Slavery Act 2015 + cult / religious-coercion "
+                      "case law); UN SR on Trafficking 2023 thematic on "
+                      "religious + wellness-context exploitation; "
+                      "Cult Information + Family Support (CIFS) Australia; "
+                      "Family Survival Trust UK.",
+        "indicator": "Sham wellness, yoga, meditation, and spiritual-retreat "
+                       "recruitment is a documented trafficking pattern "
+                       "targeting young women + men in destinations like "
+                       "Bali, Goa, Rishikesh, Sedona, Tulum, Costa Rica. "
+                       "Pattern: paid 'teacher training' or 'retreat' becomes "
+                       "compelled karma-yoga / seva / volunteer work, often "
+                       "with passport retention, debt bondage for 'continued "
+                       "training', sexual exploitation by guru / teacher, "
+                       "and cult-style coercive control. Most cases do not "
+                       "self-identify as trafficking initially. Refer to: "
+                       "cult-recovery network (CIFS + ICSA + Family Survival "
+                       "Trust); destination labour + women's-protection "
+                       "authority; embassy welfare; mental-health "
+                       "trauma-informed clinician.",
+    },
+
+    {
+        "rule": "aaaaa_document_coercion_ladder",
+        "patterns": [r"\b(?:passport|visa|work\s+permit|ID\s+card|labour\s+card|residence\s+permit|Aqama|Iqama|Emirates\s+ID)\b.{0,180}\b(?:expired|expiring|cancelled|invalid|revoked|withheld|kept\s+for\s+safekeeping)\b.{0,200}\b(?:cannot\s+leave|cannot\s+work\s+elsewhere|illegal|deportation|absconder|complaint|withdrawn)\b",
+                       r"\b(?:overstay|out\s+of\s+status|illegal\s+presence|absconding\s+report|labour\s+abscondment|exit\s+permit)\b.{0,200}\b(?:threatened|warned|told|under\s+threat|coerced|forced)\b.{0,150}\b(?:work|stay|comply|continue|silent|sign)\b"],
+        "severity": "high",
+        "citation": "ILO Forced-Labour Indicators #7 (retention of documents) "
+                      "+ #6 (intimidation) + #3 (restriction of movement); "
+                      "Palermo Protocol Art. 3(a); ILO C189 Art. 9 (passport "
+                      "retention prohibited for domestic workers); ILO C188 "
+                      "Art. 22 (document retention prohibited for fishers); "
+                      "destination-side statutes — UAE Federal Decree-Law "
+                      "33/2021 Art. 16 (passport retention prohibited); "
+                      "Saudi Labor Law Art. 8 + Council of Ministers Decision "
+                      "166/1421 (passport retention prohibited); Qatar Law "
+                      "21/2015 + Law 19/2020 (passport retention prohibited; "
+                      "exit-permit abolished); Kuwait Decree 5/2018 + Civil "
+                      "Service Law (passport retention prohibited); HK EAA "
+                      "+ HK Cap. 57 case-law; Singapore EFMA + MOM rules.",
+        "indicator": "The document-coercion ladder is a layered abuse pattern: "
+                       "(1) employer or agency retains passport 'for "
+                       "safekeeping'; (2) work permit is allowed to expire "
+                       "or cancelled, making the worker 'illegal' in the "
+                       "destination; (3) the worker is told that any complaint "
+                       "or escape will trigger deportation + 'absconder' "
+                       "designation that blocks re-entry; (4) the worker is "
+                       "coerced into continued unpaid or underpaid labour to "
+                       "'work off' the now-engineered immigration violation. "
+                       "Each rung of the ladder is independently illegal "
+                       "under the destination statute AND is an ILO Forced-"
+                       "Labour Indicator. Document each rung explicitly when "
+                       "interviewing the worker. Refer to: destination "
+                       "labour authority (file a passport-retention complaint); "
+                       "embassy welfare (request temporary travel document "
+                       "under Vienna Convention on Consular Relations Art. "
+                       "5(d)); ILO supervisory body if persistent pattern; "
+                       "destination court if available.",
+    },
 ]
 
 
