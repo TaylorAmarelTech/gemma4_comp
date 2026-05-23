@@ -908,6 +908,15 @@
             badgeFg = "oklch(0.32 0.10 25)";
             badgeIcon = "Fallback";
           }
+          // Bump the top-bar Gemma 4 session tally when either Gemma 4
+          // path actually ran (synthesis layered on deterministic, OR
+          // the pure-Gemma fallback for unmatched questions). The
+          // deterministic-only path does not bump because Gemma 4 did
+          // not run for that answer.
+          if (window.dcGemmaStats &&
+              (out.route === "graph_analyst+gemma_synthesis" || out.route === "gemma_only")) {
+            window.dcGemmaStats.bump('synthesis');
+          }
           if (badgeEl) {
             if (routeLabel) {
               badgeEl.innerHTML = "";
@@ -1838,6 +1847,27 @@
               ' | gemma_calls=' + _gc +
               ' | gemma_edge_status=' + ((wbBundle.summary || {}).gemma_edge_pass_status || 'not_run') +
               _mediaSummary);
+        // Bump the top-bar Gemma 4 session tally with each pass that
+        // actually ran during the upload job, plus the proposed-edge
+        // count from the typed-edge pass and contextual media pass.
+        if (window.dcGemmaStats) {
+          const briefStatus = (wbBundle.intelligence || {}).gemma_case_brief || {};
+          const briefRan = briefStatus.status === 'ok'
+            || (briefStatus.deferred === false && !!briefStatus.json);
+          if (briefRan) window.dcGemmaStats.bump('brief');
+          const edgeOut = (wbBundle.intelligence || {}).gemma_edge_pass || {};
+          const edgeOkStatuses = {'ok': true, 'salvaged_partial_edges': true, 'salvaged_after_exception': true};
+          if (edgeOkStatuses[edgeOut.status]) {
+            window.dcGemmaStats.bump('edge_pass');
+            window.dcGemmaStats.addProposedEdges((edgeOut.model_edges || []).length);
+          }
+          if (_mediaProc > 0) {
+            window.dcGemmaStats.bump('media', _mediaProc);
+            window.dcGemmaStats.addProposedEdges(
+              Number((wbBundle.intelligence || {}).n_typed_edges_from_media || 0)
+            );
+          }
+        }
         wbRender(wbBundle);
         wbUpdateReviewReady();
         const procSummary = wbBundle.summary || {};
@@ -2726,6 +2756,14 @@
             edgeMark.className = 'dc-gemma-mark is-done';
             edgeMark.textContent = 'Gemma done';
           }
+        }
+        // Bump the top-bar Gemma 4 session tally when the re-run
+        // actually invoked the model. The model_unparsed and
+        // model_error statuses still hit the model server-side, so
+        // they count too; only deterministic_no_model does not.
+        if (!noModel && window.dcGemmaStats) {
+          window.dcGemmaStats.bump('edge_pass');
+          window.dcGemmaStats.addProposedEdges((out.model_edges || []).length);
         }
       } catch (e) {
         wbSetEdgeProgress(100, 'Gemma edge pass failed', String(e).slice(0, 200));
