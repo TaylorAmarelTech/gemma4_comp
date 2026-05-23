@@ -7925,6 +7925,269 @@ GREP_RULES = [
                        "Worker Information Exchange + Foxglove Legal "
                        "for platform-worker legal aid.",
     },
+
+    # ====================================================================
+    # CHUNK 35 (2026-05-22) — GREP +8: HHHH-OOOO
+    # Defense contractor / pearl-diving / gold-panning / pilgrimage /
+    # fake vocational / ride-share visa / live-stream coercion /
+    # adoption-fraud trafficking pretext.
+    # ====================================================================
+
+    {
+        "rule": "hhhh_defense_contractor_base_labour_logcap",
+        "patterns": [r"\b(?:LOGCAP|KBR|Fluor|DynCorp|Vectrus|PAE\s+government|defense\s+contractor)\b.{0,200}\b(?:third[\s-]?country\s+national|TCN|recruited\s+from|Nepali|Filipino|Indian|Sri\s+Lankan|Bangladeshi)\b.{0,200}\b(?:Iraq|Afghanistan|Kuwait|Qatar|base|camp|FOB)\b",
+                       r"\b(?:base\s+(?:labour|labor|cleaner|cook|laundry|kitchen|janitor)|TCN\s+worker)\b.{0,200}\b(?:debt|recruitment\s+fee|passport\s+held|cannot\s+(?:leave|repatriate)|no\s+pay)\b"],
+        "severity": "high",
+        "citation": "US 22 USC 7104a (TVPRA 2008 + 2013 + 2017 + "
+                      "2019 reauthorisation; defense-contractor "
+                      "anti-trafficking + recruitment-fee "
+                      "prohibitions); US Defense Federal Acquisition "
+                      "Regulation Supplement (DFARS) 252.222-7007 "
+                      "(Combating Trafficking in Persons); US "
+                      "Government Accountability Office (GAO) 2014 "
+                      "+ 2017 LOGCAP TCN trafficking reports; ACLU "
+                      "+ AIIA (American Indian Institute) class-"
+                      "action filings (Nepali workers killed in "
+                      "Iraq 2004 + Daoud & Partners cases)",
+        "indicator": "US defense-contractor 'third-country "
+                       "national' (TCN) labour in Iraq + Afghanistan "
+                       "+ Kuwait + Qatar bases is documented as "
+                       "one of the largest US-government-funded "
+                       "trafficking risks of the 2000s-2010s; TVPRA "
+                       "+ DFARS reforms responded but recruitment-"
+                       "chain abuses persist via subcontractor "
+                       "layers. Provide: (1) US DoD Combating "
+                       "Trafficking in Persons (CTIP) program "
+                       "office; (2) US DOL ILAB defense-contractor "
+                       "investigation; (3) US Embassy in worker's "
+                       "destination country; (4) Polaris + ACLU "
+                       "+ EarthRights International (TCN class-"
+                       "action support).",
+    },
+
+    {
+        "rule": "iiii_pearl_diving_shellfish_farming",
+        "patterns": [r"\b(?:pearl\s+(?:diver|diving|farm|cultivation)|shellfish\s+(?:farm|farming|harvester)|abalone\s+(?:diver|farming)|seaweed\s+(?:farm|farming|harvester))\b.{0,200}\b(?:debt|recruitment\s+fee|passport\s+held|no\s+protection|cannot\s+leave|trafficked)\b",
+                       r"\b(?:Bangladeshi\s+pearl|Burmese\s+pearl|Filipina\s+pearl|Indonesian\s+seaweed)\b"],
+        "severity": "high",
+        "citation": "ILO C188 (Work in Fishing 2007); ILO MLC 2006 "
+                      "(where applicable to fish-farm vessels); UN "
+                      "FAO Code of Conduct for Responsible Fisheries; "
+                      "Indonesian Government Regulation 27/2021 "
+                      "(fishery worker protection); UN GCM Obj. 6 "
+                      "(ethical recruitment); Walk Free + Stella "
+                      "Maris (Apostleship of the Sea) seafarer "
+                      "trafficking documentation; KKP (Kementerian "
+                      "Kelautan dan Perikanan, Indonesia)",
+        "indicator": "Pearl-diving + abalone-diving + seaweed-"
+                       "farming + shellfish-farming are documented "
+                       "but under-recognised aquaculture trafficking "
+                       "contexts. Patterns: long-shift undersea "
+                       "work without safety equipment, deductions "
+                       "for diving-gear rental, debt-bondage to the "
+                       "farm operator, passport retention. Provide: "
+                       "(1) Stella Maris / Apostleship of the Sea "
+                       "port chaplain; (2) destination-country "
+                       "maritime labour authority; (3) origin-"
+                       "country embassy / consulate; (4) ITF "
+                       "Inspectorate where the operation involves "
+                       "vessels.",
+    },
+
+    {
+        "rule": "jjjj_informal_gold_panning_placer_mining",
+        "patterns": [r"\b(?:gold\s+(?:panning|panner|placer|prospect(?:or|ing))|alluvial\s+(?:gold|mining)|galamsey|garimpeiro|sluice\s+box|river\s+(?:dredg|mining))\b.{0,200}\b(?:debt|cannot\s+leave|forced|trafficked|child\s+labour|recruited|fee)\b",
+                       r"\b(?:Ghanaian\s+galamsey|Peruvian\s+gold|Brazilian\s+garimpeiro|Colombian\s+oro|Indonesian\s+gold)\b.{0,200}\b(?:trafficking|forced\s+labour|child)\b"],
+        "severity": "high",
+        "citation": "OECD Due Diligence Guidance for Responsible "
+                      "Supply Chains of Minerals (2011 / 2016); "
+                      "ILO C176 (Safety + Health in Mines 1995); "
+                      "ILO C182 (worst forms of child labour); UN "
+                      "Special Rapporteur on Toxics + Human Rights "
+                      "mercury reports; Minamata Convention on "
+                      "Mercury (2013, in force 2017); Pure Earth + "
+                      "Blacksmith Institute Top Polluted Places; "
+                      "World Gold Council Responsible Gold Mining "
+                      "Principles; Pact + IMPACT artisanal-mining "
+                      "formalisation programs",
+        "indicator": "Individual gold-panning + placer-mining + "
+                       "alluvial-gold extraction is documented as "
+                       "trafficking-adjacent across Ghana (galamsey), "
+                       "Peru (La Pampa Madre de Dios), Brazil "
+                       "(Yanomami garimpeiros), Colombia, Suriname, "
+                       "DRC, Indonesia. Distinct from OOO corporate "
+                       "ASM in that it often involves family-unit "
+                       "or village-unit migration into the mining "
+                       "site with no formal employer. Provide: (1) "
+                       "Minamata Convention Focal Point + UNEP "
+                       "Global Mercury Programme; (2) origin-region "
+                       "indigenous-rights organisation where "
+                       "applicable; (3) IMPACT NGO + Pact M2M; "
+                       "(4) destination-region labour authority.",
+    },
+
+    {
+        "rule": "kkkk_pilgrimage_cover_trafficking",
+        "patterns": [r"\b(?:Hajj|Umrah|pilgrimage\s+(?:visa|cover|trip)|religious\s+tourism)\b.{0,200}\b(?:overstayed|domestic\s+work|labour|stayed\s+behind|never\s+returned)\b",
+                       r"\b(?:Hajj\s+(?:agent|operator|broker)|Umrah\s+(?:agent|operator|package))\b.{0,200}\b(?:fee|debt|cannot\s+(?:return|leave)|trafficked)\b"],
+        "severity": "medium",
+        "citation": "Saudi Hajj + Umrah visa regulations (residency "
+                      "restrictions; overstay penalties); origin-"
+                      "country pilgrimage-broker regulations "
+                      "(Indonesia Kementerian Agama, Malaysia "
+                      "Lembaga Tabung Haji, etc.); UNODC GLOTIP "
+                      "2024 documentation of pilgrimage-cover "
+                      "trafficking; Saudi MHRSD + Ministry of "
+                      "Hajj enforcement records; ILO C29 + Palermo "
+                      "Protocol Art. 3",
+        "indicator": "Pilgrimage-cover trafficking is documented "
+                       "in Saudi Arabia (Hajj/Umrah visa abuse — "
+                       "particularly from Indonesia, Pakistan, "
+                       "Bangladesh, Niger, Mauritania) and to a "
+                       "lesser extent in Christian pilgrimage "
+                       "contexts (Lourdes, Fatima, Holy Land). "
+                       "Pattern: pilgrim is recruited by a broker "
+                       "with an overstay-and-work arrangement; "
+                       "documents retained on arrival; debt "
+                       "accumulated for travel + visa. Provide: "
+                       "(1) origin-country religious-affairs "
+                       "ministry; (2) Saudi MHRSD labour-complaint "
+                       "pathway; (3) origin-country embassy + "
+                       "Hajj/Umrah-affairs liaison; (4) IOM "
+                       "regional office.",
+    },
+
+    {
+        "rule": "llll_fake_vocational_nursing_school_recruitment",
+        "patterns": [r"\b(?:vocational\s+school|training\s+(?:institute|academy|center)|nursing\s+school|caregiver\s+(?:school|training)|hospitality\s+(?:school|academy)|culinary\s+(?:school|academy))\b.{0,200}\b(?:fake|sham|fraud(?:ulent)?|unaccredited|unrecognised|not\s+real)\b",
+                       r"\b(?:enrolled\s+in\s+(?:nursing|caregiver|hospitality|culinary))\b.{0,200}\b(?:no\s+(?:diploma|certificate|recognition)|forced\s+to\s+work|debt|fee|trafficked)\b"],
+        "severity": "high",
+        "citation": "Origin-country higher-education accreditation "
+                      "regulations (Philippines CHED, Indonesia "
+                      "Kemdikbud, India UGC, Nigeria NBTE); "
+                      "destination-country visa-fraud statutes "
+                      "(US 18 USC 1546, UK Immigration Act 1971); "
+                      "POEA + DMW recruitment-agency licensing "
+                      "rules forbidding school-disguised "
+                      "recruitment; ILO C189 + ILO Domestic Workers "
+                      "Tag (caregiver trafficking pattern reports)",
+        "indicator": "Fake vocational / nursing / caregiver schools "
+                       "that funnel students into illegal "
+                       "recruitment overseas are a documented "
+                       "pattern across Philippines, Indonesia, "
+                       "India, Nigeria, Sri Lanka. Pattern: school "
+                       "charges PHP/IDR/INR enrollment fee, never "
+                       "issues a real diploma, places 'graduates' "
+                       "with overseas recruiters at additional "
+                       "fees. Provide: (1) origin-country "
+                       "education-ministry verification of school "
+                       "accreditation; (2) origin-country "
+                       "recruitment-licensing authority (POEA, "
+                       "DMW, BP2MI, BMET); (3) ILO Helpdesk on "
+                       "deceptive recruitment; (4) destination-"
+                       "country licensing-recognition check.",
+    },
+
+    {
+        "rule": "mmmm_ride_share_driver_visa_exploitation",
+        "patterns": [r"\b(?:ride[\s-]?share|Uber|Lyft|Bolt|Grab|Lyft|Ola|Didi|Cabify|FreeNow)\s+(?:driver|car|account)\b.{0,200}\b(?:visa|sponsor(?:ed)?|seasonal\s+work|work\s+permit)\b.{0,200}\b(?:debt|account\s+rent(?:al|er)|car\s+rental|fees|cannot\s+(?:switch|leave)|trafficked)\b",
+                       r"\b(?:rent(?:al|ing)\s+(?:an?\s+)?(?:Uber|Lyft|Grab|Bolt|ride[\s-]?share)\s+account)\b.{0,200}\b(?:from\s+(?:my\s+)?(?:sponsor|agent|recruiter|broker))\b"],
+        "severity": "medium",
+        "citation": "UK Driver Visa Scheme + Skilled Worker route "
+                      "(post-2021); EU Posted Workers Directive "
+                      "(96/71/EC, 2018 revision); destination-"
+                      "country gig-worker classification disputes "
+                      "(US AB5, UK Uber BV v Aslam 2021 Supreme "
+                      "Court); ILO 2022 Digital Labour Platforms "
+                      "report; UK GLAA + Worker Information "
+                      "Exchange documentation of rented-account + "
+                      "rented-car patterns",
+        "indicator": "Ride-share driver visa exploitation is "
+                       "documented in UK (post-2021 immigration "
+                       "system changes), AU, NZ, US, EU. Pattern: "
+                       "worker on a sponsored visa rents the Uber "
+                       "account + car from a 'broker' at "
+                       "extractive terms; account-holder takes a "
+                       "cut + threatens visa cancellation if "
+                       "worker complains. Provide: (1) "
+                       "destination-country labour authority (UK "
+                       "GLAA, AU FWO); (2) destination-country "
+                       "immigration helpline; (3) Worker "
+                       "Information Exchange + Foxglove Legal "
+                       "(UK platform-worker advocacy); (4) "
+                       "destination-country immigrant-workers' "
+                       "rights NGO.",
+    },
+
+    {
+        "rule": "nnnn_live_stream_cam_coercion",
+        "patterns": [r"\b(?:live[\s-]?stream|cam[\s-]?(?:girl|model|worker)|webcam\s+(?:girl|model|worker)|streamer)\b.{0,200}\b(?:trafficked|forced|debt|cannot\s+(?:leave|quit)|account\s+held|earnings\s+(?:withheld|controlled))\b",
+                       r"\b(?:Chaturbate|Stripchat|MyFreeCams|LiveJasmin|OnlyFans|Fansly)\s+(?:account|model|earnings)\b.{0,200}\b(?:controlled\s+by|held\s+by|managed\s+by|account\s+rental)\b"],
+        "severity": "high",
+        "citation": "Palermo Protocol Art. 3 (exploitation includes "
+                      "pornographic exploitation); ILO C182 (worst "
+                      "forms of child labour where minor involved); "
+                      "destination-country sex-trafficking statutes "
+                      "(US 18 USC 1591, UK MSA 2015 Sec. 1, EU "
+                      "Anti-Trafficking Directive Art. 2); platform "
+                      "Trust + Safety policies on coerced content; "
+                      "NCMEC + ECPAT + Polaris documentation of "
+                      "cam-coercion patterns; SAFE Initiative + "
+                      "NSWP sex-worker rights perspective",
+        "indicator": "Live-stream + cam-girl coercion is a "
+                       "documented sex-trafficking sub-pattern "
+                       "distinct from physical-location sex "
+                       "trafficking. Worker streams from a managed "
+                       "house or remote arrangement; broker "
+                       "controls the platform account, retains "
+                       "earnings, threatens to publish content if "
+                       "worker tries to leave. Cross-cuts FFF "
+                       "(online sex trafficking) but specific to "
+                       "platform-mediated streaming. Provide: (1) "
+                       "destination-country anti-trafficking unit "
+                       "with technology-facilitated sexual abuse "
+                       "(TFSA) expertise; (2) NCMEC CyberTipline "
+                       "if minors involved; (3) platform Trust + "
+                       "Safety report; (4) SAFE Initiative + NSWP "
+                       "for sex-worker-rights perspective.",
+    },
+
+    {
+        "rule": "oooo_false_adoption_orphanage_placement",
+        "patterns": [r"\b(?:adoption\s+(?:agency|broker|facilitator)|orphanage|children'?s\s+home|child\s+placement)\b.{0,200}\b(?:fee|debt|paid\s+for|brokered|coerced|trafficked|sold)\b",
+                       r"\b(?:intercountry\s+adoption|international\s+adoption|adoption\s+from\s+(?:Ethiopia|Vietnam|Cambodia|Guatemala|Russia|Romania|China|DRC|Haiti|Nigeria))\b.{0,200}\b(?:trafficking|fraud|sham|paper)\b"],
+        "severity": "high",
+        "citation": "Hague Convention on Protection of Children + "
+                      "Cooperation in Respect of Intercountry "
+                      "Adoption 1993 (in force 1995); UN OPSC "
+                      "(Optional Protocol on Sale of Children "
+                      "2000); UN CRC Art. 21 + 35; UN Special "
+                      "Rapporteur on Sale + Sexual Exploitation "
+                      "of Children adoption thematic reports; US "
+                      "Universal Accreditation Act 2012; "
+                      "Schuster Institute for Investigative "
+                      "Journalism adoption-trafficking database; "
+                      "Both Ends + Against Child Trafficking "
+                      "documentation",
+        "indicator": "Adoption-fraud and orphanage-tourism are "
+                       "documented trafficking patterns affecting "
+                       "Ethiopia (pre-2018 ban), Vietnam (pre-"
+                       "2008 moratorium), Cambodia (pre-2009 "
+                       "moratorium), Guatemala (pre-2008 ban), "
+                       "Russia + DRC + Haiti + Nigeria. Pattern: "
+                       "child trafficked into an orphanage under "
+                       "false-orphan pretext; intercountry-"
+                       "adoption agency charges destination-"
+                       "country couple substantial fees; biological "
+                       "family was coerced or deceived. Provide: "
+                       "(1) Hague Conference Central Authority in "
+                       "origin AND destination country; (2) "
+                       "Schuster Institute database for known-"
+                       "fraud agencies; (3) US Office of Children's "
+                       "Issues (Department of State) for US-bound "
+                       "cases; (4) Against Child Trafficking + "
+                       "Both Ends advocacy network.",
+    },
 ]
 
 
