@@ -202,7 +202,7 @@
                    data-tip-pos="below">
               <input type="checkbox" id="kx-use-gemma" checked> Use Gemma 4 refinement (1 call per draft)
             </label>
-            <span class="dc-gemma-mark is-optional" id="kx-gemma-mark" data-tip="Reflects whether Gemma actually ran. Stays Optional unless a real token stream completes." data-tip-pos="below">Optional · Gemma</span>
+            <span class="dc-gemma-mark is-optional" id="kx-gemma-mark" data-tip="Reflects whether Gemma 4 actually ran. Reads 'idle' before a draft, 'active' during the call, 'ran' on success, 'unavailable' on error, and 'not loaded' when the deterministic fallback was used because no model was attached." data-tip-pos="below">Gemma 4 refinement — runs by default when a draft starts</span>
           </div>
           <div class="wb-muted" id="kx-gemma-paths-hint"
                style="margin-top:8px; padding:10px 12px; background:oklch(0.97 0.02 195); border:1px solid oklch(0.85 0.05 195); border-radius:8px; font-size:11.5px; line-height:1.55; color:#2A2D34;">
@@ -894,12 +894,32 @@
           document.getElementById('kx-finish-review-btn').disabled = false;
           wbLog('ok', 'Draft suggestions ready (' + dt + 'ms)', 'suggestions=' + kxDrafts.length);
           if (kxGemmaMark) {
-            if (useGemma) {
+            // Read the server-side provenance fields to tell apart
+            // "Gemma 4 actually ran" from "Gemma 4 was requested but the
+            // deterministic fallback ran because the model is not loaded
+            // or the call errored". The first draft envelope carries the
+            // ground truth in extensions.{fallback, model_call_available,
+            // model_call_requested}.
+            const firstEnv = kxDrafts[0] || {};
+            const ext = (firstEnv && firstEnv.extensions) || {};
+            const fellBack = !!ext.fallback;
+            const modelAvail = ext.model_call_available === true;
+            const modelRequested = ext.model_call_requested === true;
+            if (!useGemma) {
+              kxGemmaMark.className = 'dc-gemma-mark is-optional';
+              kxGemmaMark.textContent = 'Gemma 4 refinement skipped by reviewer — deterministic draft shown';
+            } else if (fellBack && !modelAvail) {
+              kxGemmaMark.className = 'dc-gemma-mark is-optional';
+              kxGemmaMark.textContent = 'Gemma 4 not loaded — deterministic draft shown';
+            } else if (fellBack) {
+              kxGemmaMark.className = 'dc-gemma-mark is-unavailable';
+              kxGemmaMark.textContent = 'Gemma 4 fell back to deterministic — see activity log';
+            } else if (modelRequested && modelAvail) {
               kxGemmaMark.className = 'dc-gemma-mark is-done';
-              kxGemmaMark.textContent = 'Gemma done';
+              kxGemmaMark.textContent = 'Gemma 4 refined this draft';
             } else {
               kxGemmaMark.className = 'dc-gemma-mark is-optional';
-              kxGemmaMark.textContent = 'Optional · Gemma';
+              kxGemmaMark.textContent = 'Gemma 4 refinement — runs by default when a draft starts';
             }
           }
           resultEl.innerHTML = kxDrafts.map((env, idx) =>
