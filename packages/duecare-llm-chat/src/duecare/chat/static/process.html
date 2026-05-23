@@ -655,6 +655,7 @@
           questions use local Gemma 4 only if a model is already loaded.
         </div>
       </div>
+      <div id="pg-route-badge" style="display:none; margin-top:10px;"></div>
       <div id="pg-answer" style="margin-top:10px; font-family:var(--mono); font-size:12px; white-space:pre-wrap; padding:0;"></div>
       <p class="wb-muted" style="font-size:11px; margin-top:14px; padding-top:10px; border-top:1px solid #EFEDE4;">
         The graph stays in <code>/kaggle/working/process-staging/</code>.
@@ -708,6 +709,8 @@
         statusEl.textContent="Graph analyst running...";
         pgSetProgress(18, 'Preparing graph question', 'Sending question and cached local graph to the process harness.');
         ansEl.textContent="";
+        const badgeElReset = document.getElementById('pg-route-badge');
+        if (badgeElReset) { badgeElReset.style.display = "none"; badgeElReset.innerHTML = ""; }
         if (typeof wbLog === 'function') {
           wbLog('net', 'POST /api/process/graph-chat', q.slice(0, 180));
         }
@@ -741,21 +744,64 @@
           if(out.cited_rows && Array.isArray(out.cited_rows)) extra+=" cited rows: "+out.cited_rows.length;
           if(out.evidence_edges!=null) extra+=" | evidence edges: "+out.evidence_edges;
           else if(out.grep_hits!=null) extra+=" | GREP rules: "+out.grep_hits;
-          // Route badge: surface which path actually answered so the
-          // reviewer can tell deterministic vs Gemma vs hybrid at a glance.
+          // Route badge: render as a visible colored pill above the answer
+          // so the reviewer can see at a glance whether Gemma 4 contributed
+          // to this response. Replaces the previous hidden-in-status-line text.
+          const badgeEl = document.getElementById('pg-route-badge');
           let routeLabel = "";
+          let badgeBg = "";
+          let badgeFg = "";
+          let badgeIcon = "";
           if (out.route === "graph_analyst+gemma_synthesis") {
-            routeLabel = "Route: Graph analyst + Gemma 4 synthesis";
-            if (out.synthesis_ms) routeLabel += " (" + out.synthesis_ms + "ms synth)";
+            routeLabel = "Graph analyst (deterministic) + Gemma 4 synthesis";
+            if (out.synthesis_ms) routeLabel += " · " + out.synthesis_ms + "ms";
+            badgeBg = "oklch(0.94 0.05 195)";
+            badgeFg = "oklch(0.32 0.10 195)";
+            badgeIcon = "Gemma 4 active";
           } else if (out.route === "graph_analyst_only") {
-            routeLabel = "Route: Graph analyst (deterministic)";
-            if (out.synthesis_error) routeLabel += " — synthesis error: " + out.synthesis_error;
+            routeLabel = "Graph analyst (deterministic only — model not loaded or synthesis failed)";
+            if (out.synthesis_error) routeLabel += " · err: " + out.synthesis_error;
+            badgeBg = "oklch(0.94 0.03 80)";
+            badgeFg = "oklch(0.32 0.09 80)";
+            badgeIcon = "Deterministic";
           } else if (out.route === "gemma_only") {
-            routeLabel = "Route: Gemma 4 only";
+            routeLabel = "Gemma 4 graph chat (no deterministic match)";
+            badgeBg = "oklch(0.94 0.05 195)";
+            badgeFg = "oklch(0.32 0.10 195)";
+            badgeIcon = "Gemma 4 active";
           } else if (out.fallback) {
-            routeLabel = "Route: fallback (" + out.fallback + ")";
+            routeLabel = "Fallback: " + out.fallback;
+            badgeBg = "oklch(0.94 0.04 25)";
+            badgeFg = "oklch(0.32 0.10 25)";
+            badgeIcon = "Fallback";
           }
-          statusEl.textContent="Answered."+extra+(routeLabel?" | "+routeLabel:"");
+          if (badgeEl) {
+            if (routeLabel) {
+              badgeEl.innerHTML = "";
+              const pill = document.createElement('span');
+              pill.style.cssText = "display:inline-flex; align-items:center; gap:8px; "
+                + "background:" + badgeBg + "; color:" + badgeFg
+                + "; padding:6px 12px; border-radius:999px; font-size:11.5px; font-weight:600; "
+                + "border:1px solid " + badgeFg + ";";
+              const icon = document.createElement('span');
+              icon.style.cssText = "font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; opacity:0.85;";
+              icon.textContent = badgeIcon;
+              const sep = document.createElement('span');
+              sep.style.cssText = "opacity:0.5;";
+              sep.textContent = "·";
+              const lbl = document.createElement('span');
+              lbl.textContent = routeLabel;
+              pill.appendChild(icon);
+              pill.appendChild(sep);
+              pill.appendChild(lbl);
+              badgeEl.appendChild(pill);
+              badgeEl.style.display = "block";
+            } else {
+              badgeEl.style.display = "none";
+              badgeEl.innerHTML = "";
+            }
+          }
+          statusEl.textContent="Answered."+extra;
           pgSetProgress(100, 'Graph answer ready', 'Answered in ' + dt + 'ms.' + extra,
             routeLabel || (out.fallback ? 'Fallback: ' + out.fallback : 'Answer returned from the local graph analyst path.'));
           if (typeof wbLog === 'function') {

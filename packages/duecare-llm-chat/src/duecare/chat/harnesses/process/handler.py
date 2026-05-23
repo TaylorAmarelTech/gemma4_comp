@@ -2799,6 +2799,12 @@ def _graph_chat_deterministic_answer(bundle: dict, question: str) -> dict | None
                 lines_p.append("  Missing — request next:")
                 for _etype, desc in missing[:5]:
                     lines_p.append(f"    - {desc}")
+            else:
+                lines_p.append(
+                    "  No gaps detected against the expected-edge schema. "
+                    "Proceed with reviewer confirmation; this case file looks "
+                    "complete for escalation prep."
+                )
             per_case_sections.append("\n".join(lines_p))
 
         # Bundle-level gaps that apply to every case.
@@ -3046,7 +3052,16 @@ def _gemma_edge_pass(
         return out
 
     try:
-        mark("model_call", 58, "Calling local Gemma 4 for typed edge and RAG-candidate synthesis.")
+        n_seed = len(deterministic_edges)
+        n_cands = len(deterministic_candidates) if isinstance(deterministic_candidates, list) else 0
+        mark(
+            "model_call",
+            58,
+            f"Sending case graph to Gemma 4 — {n_seed} seed edges, {n_cands} RAG candidates, "
+            f"~{len(prompt)} chars. Asking it to extract typed edges (charged_or_collected_fee, "
+            "fee_camouflage_evidence, document_control_signal, journey_stage_observation, etc.) "
+            "plus new RAG candidate phrases.",
+        )
         try:
             model_out = gc(messages, max_new_tokens=1200, temperature=0.15)
         except TypeError:
@@ -3183,18 +3198,19 @@ def _gemma_edge_pass(
 
 
 _MEDIA_CONTEXT_SYSTEM_PROMPT = (
-    "You review queued media assets from a case file. You do NOT see the "
-    "raw image yet — only the filename, folder path, media type, and "
-    "linked case context. Use that to predict what entities, document "
-    "types, and edges a full Gemma 4 vision pass would surface. Cite "
-    "concrete signals (passport retention, fee receipt, employer ID, "
-    "wage deduction, recruitment chat) when the path or folder hints at "
-    "them. Return short, plain reasoning followed by a JSON block of "
-    "proposed_edges. Each proposed edge must have edge_type, source_node "
-    "(case:<case_id>), target_node, and a one-line evidence.quote. Do "
-    "not fabricate amounts, names, or dates that the file path does "
-    "not imply. If the asset is uninformative without the bytes, say "
-    "so and return an empty proposed_edges list."
+    "You're a caseworker triaging a queued media asset before a colleague "
+    "runs the full vision pass. You can only see the filename, folder "
+    "path, media type, and linked case context — NOT the pixels. Talk "
+    "through what you'd expect this file to contain in 1-2 plain "
+    "sentences (\"This looks like a passport scan, so I'd expect to see "
+    "the photo page plus issue/expiry dates\"; \"A receipt at this path "
+    "is probably the placement-fee one we've been chasing\"). Then emit "
+    "a JSON block of `proposed_edges` you'd want the vision pass to "
+    "confirm. Each edge needs edge_type, source_node (case:<case_id>), "
+    "target_node, and a one-line evidence.quote that starts with "
+    "\"predicted: \". Never invent specific amounts, names, or dates "
+    "the file path doesn't imply. If the path is too generic to predict "
+    "anything useful, say that plainly and return an empty list."
 )
 
 
@@ -3202,14 +3218,36 @@ def _build_media_context_prompt(asset: dict, bundle: dict) -> str:
     """Build the per-asset context prompt for the contextual media pass."""
     intelligence = bundle.get("intelligence") or {}
     summary = bundle.get("summary") or {}
-    case_id = asset.get("row_id", "").split("/")[0] or "UNKNOWN"
-    # Try to find the matching person to ground reasoning in case context.
+    # Find a real case_id, in priority order:
+    # 1. _CASE_RE match against source_path / row_id (catches DC-PH-HK-101 etc.)
+    # 2. person_match whose case_id appears inside the source_path
+    # 3. fallback to the bundle's first detected person, then "UNKNOWN"
     people = intelligence.get("people") or []
+    haystack = " ".join(filter(None, [
+        str(asset.get("row_id") or ""),
+        str(asset.get("source_path") or ""),
+        " ".join(asset.get("folders") or []),
+    ]))
     person_match = None
-    for p in people:
-        if str(p.get("case_id")) in str(asset.get("source_path", "")):
-            person_match = p
-            break
+    case_id_match = _CASE_RE.search(haystack)
+    case_id = (
+        _norm_case_id(case_id_match.group(0)) if case_id_match else None
+    )
+    if case_id:
+        for p in people:
+            if str(p.get("case_id")) == case_id:
+                person_match = p
+                break
+    if person_match is None:
+        for p in people:
+            if str(p.get("case_id")) and str(p.get("case_id")) in haystack:
+                person_match = p
+                case_id = case_id or str(p.get("case_id"))
+                break
+    if not case_id:
+        case_id = (
+            (people[0].get("case_id") if people else None) or "UNKNOWN"
+        )
     person_block = ""
     if person_match:
         person_block = (
@@ -3299,7 +3337,22 @@ def _gemma_media_contextual_pass(
     for idx, asset in enumerate(to_process):
         pct = 10 + round(((idx + 1) / max(1, n_items)) * 80)
         src = asset.get("source_path") or asset.get("row_id") or "?"
-        mark("media_item", pct, f"Reviewing media asset {idx + 1}/{n_items}: {src}")
+        media_t = asset.get("media_type") or "media"
+        # Pick a concise extraction-target hint from the prepared review
+        # questions so the activity log reads as a real call narration
+        # ("sending X to Gemma with Y to extract Z") instead of a generic
+        # "reviewing item" placeholder.
+        target_hint = (
+            "document type + named entities + fee, ID-control, "
+            "wage-deduction indicators"
+        )
+        mark(
+            "media_item",
+            pct,
+            f"Sending {src} ({media_t}) to Gemma 4 with the contextual-vision "
+            f"prompt — asking it to predict {target_hint} from filename, folder, "
+            f"and linked case context. Asset {idx + 1}/{n_items}.",
+        )
         prompt = _build_media_context_prompt(asset, bundle)
         messages = [
             {"role": "system", "content": [{"type": "text", "text": _MEDIA_CONTEXT_SYSTEM_PROMPT}]},
@@ -3540,7 +3593,17 @@ def register_routes(app: Any) -> None:
         )
         n_gemma_calls_attempted = 0
         if run_gemma_text:
-            mark("gemma_case_brief", 82, "Calling local Gemma 4 for the text case brief.")
+            n_rows_brief = bundle["summary"].get("n_rows_processed", 0)
+            n_people_brief = intelligence.get("n_people", 0)
+            n_grep_brief = bundle["summary"].get("n_grep_rules_fired", 0)
+            mark(
+                "gemma_case_brief",
+                82,
+                f"Sending bundle summary to Gemma 4 — {n_rows_brief} rows, "
+                f"{n_people_brief} people, {n_grep_brief} GREP rules fired. "
+                "Asking it to extract corridor, top rules, top entities, "
+                "journey-stage rollup, and a 2-paragraph case-brief narrative.",
+            )
             n_gemma_calls_attempted += 1
             gemma_brief = _gemma_case_brief(app, bundle, intelligence)
             gemma_brief["deferred"] = False
@@ -3605,7 +3668,10 @@ def register_routes(app: Any) -> None:
             mark(
                 "gemma_media_start",
                 94,
-                f"Reviewing up to {min(media_budget, media_count)} of {media_count} queued media asset(s) with Gemma 4.",
+                f"Starting contextual media review — {min(media_budget, media_count)} of "
+                f"{media_count} queued asset(s) will be sent to Gemma 4 one at a time, "
+                "each with its filename, folder, media type, and linked-case context, "
+                "asking the model to predict document type and trafficking-indicator edges.",
             )
             gemma_media_out = _gemma_media_contextual_pass(
                 app,
@@ -3618,7 +3684,10 @@ def register_routes(app: Any) -> None:
 
             # Fold media-pass proposed edges into typed_edges so graph
             # chat and the Step 3 review surface can cite them. Cap to
-            # avoid runaway growth from a noisy contextual pass.
+            # avoid runaway growth from a noisy contextual pass. Update
+            # the count fields so harness_trace, bundle summary, the
+            # demo replay record, and the page UI all reflect the post-
+            # media-pass total instead of the pre-media-pass snapshot.
             media_typed_edges: list[dict] = []
             for s in gemma_media_out.get("asset_summaries") or []:
                 for edge in (s.get("proposed_edges") or [])[:6]:
@@ -3627,6 +3696,13 @@ def register_routes(app: Any) -> None:
                 existing_typed = intelligence.get("typed_edges") or []
                 existing_typed.extend(media_typed_edges[:120])
                 intelligence["typed_edges"] = existing_typed
+                intelligence["n_typed_edges"] = len(existing_typed)
+                # Track separately so the UI / replay can say "X media-derived
+                # of Y total" instead of guessing.
+                intelligence["n_typed_edges_from_media"] = (
+                    int(intelligence.get("n_typed_edges_from_media") or 0)
+                    + len(media_typed_edges[:120])
+                )
 
         if run_gemma_text:
             mark("model_passes_done", 98, "Local Gemma 4 text + media passes finished; finalizing bundle.")
@@ -4242,14 +4318,21 @@ def register_routes(app: Any) -> None:
                     import time as _time
                     _t0 = _time.monotonic()
                     synth_system = (
-                        "You are a case-review assistant. The reviewer just saw "
-                        "a deterministic graph-analyst answer. Add EXACTLY 2-3 "
-                        "sentences that (a) name the most important finding in "
-                        "plain English and (b) flag a single concrete next "
-                        "evidence ask or worker action. Do NOT repeat the "
-                        "table. Do NOT invent amounts, names, or edges. Do "
-                        "NOT cite row IDs the deterministic answer did not "
-                        "cite. If nothing is conclusive, say that plainly."
+                        "You are a senior caseworker talking through evidence "
+                        "with a colleague who just pulled up the deterministic "
+                        "data tables. Reply in 2-3 conversational sentences. "
+                        "Lead with what stands out to you in plain language "
+                        "(\"What jumps out here is...\", \"The pattern that "
+                        "worries me is...\", \"Honestly, the strongest signal "
+                        "is...\"). End with the single most concrete next "
+                        "evidence ask or worker action (\"Before we escalate, "
+                        "I'd want to see...\", \"The next thing I'd pull is..."
+                        "\"). Speak naturally — like you're at a shared desk, "
+                        "not writing a report. Reference specific case IDs or "
+                        "entities only when they appear in the deterministic "
+                        "answer; never invent amounts, names, edges, or row "
+                        "IDs. If the evidence doesn't yet point anywhere "
+                        "confidently, just say that clearly."
                     )
                     synth_user = (
                         f"Question: {question}\n\n"
@@ -4278,10 +4361,15 @@ def register_routes(app: Any) -> None:
 
             composed = det_answer
             if synthesis_text:
+                # Conversational answer leads, structured evidence follows.
+                # The header makes it clear which is opinion vs which is data
+                # so a reviewer doesn't treat the synthesis as a citation.
                 composed = (
-                    det_answer
-                    + "\n\n**Gemma 4 synthesis (narrative wrap; not new evidence):**\n"
+                    "**Gemma 4 — quick read:**\n"
                     + synthesis_text
+                    + "\n\n---\n\n"
+                    + "**Supporting data (graph analyst, deterministic):**\n\n"
+                    + det_answer
                 )
 
             route = "graph_analyst+gemma_synthesis" if synthesis_text else "graph_analyst_only"
