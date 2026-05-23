@@ -328,13 +328,15 @@
             </div>
             <div class="wb-muted" id="wb-gemma-paths-hint"
                  style="margin-top:10px; padding:10px 12px; background:oklch(0.97 0.02 195); border:1px solid oklch(0.85 0.05 195); border-radius:8px; font-size:11.5px; line-height:1.55; color:#2A2D34;">
-              <b style="color:oklch(0.32 0.07 195);">Where Gemma 4 runs on this page:</b>
+              <b style="color:oklch(0.32 0.07 195);">Where Gemma 4 runs on this page (current defaults):</b>
               <ol style="margin:4px 0 0 18px; padding:0;">
-                <li><b>During upload (Step 2)</b> &mdash; inline Gemma 4 reads up to N page items (N = Max Gemma calls). Writes per-row case briefs and typed edges. Only fires when "Run Gemma text brief/edge synthesis inside the upload job" is checked.</li>
-                <li><b>Explicit edge pass (Step 3)</b> &mdash; click "Run local Gemma edge pass" after review. Gemma reviews the consolidated graph and proposes NEW edges between entities the rules missed.</li>
-                <li><b>Graph chat (Step 4)</b> &mdash; deterministic graph analyst answers from the cached graph, then a short Gemma 4 synthesis adds a conversational read on top. Route badge above each answer shows which path fired.</li>
+                <li><b>Upload job — Gemma 4 text case brief</b> &mdash; the upload job sends the bundle summary to Gemma 4 and gets back a 2-paragraph case brief. 1 call.</li>
+                <li><b>Upload job — Gemma 4 typed-edge + RAG synthesis</b> &mdash; the upload job sends the seed graph to Gemma 4 to extract additional typed edges (charged_or_collected_fee, fee_camouflage_evidence, document_control_signal, etc.) and RAG candidates. 1 call.</li>
+                <li><b>Upload job — Gemma 4 contextual media review</b> &mdash; for each queued image / scan / PDF, the upload job sends Gemma 4 the filename, folder, linked case, and prepared review questions; Gemma predicts proposed_edges. Up to (Max Gemma calls &minus; 2) per upload.</li>
+                <li><b>Step 3 button — Re-run Gemma 4 edge pass</b> &mdash; optional. Re-runs the edge synthesis on the updated graph after the reviewer adjusts or imports new knowledge.</li>
+                <li><b>Step 4 graph chat</b> &mdash; deterministic graph analyst answers from the cached graph, then a short Gemma 4 synthesis adds a 2-3 sentence conversational read. Route badge above each answer shows which path fired.</li>
               </ol>
-              <div style="margin-top:6px; color:#5B5F68;">Standard review enables path 1 with a 5-call cap so the demo finishes fast. Quick triage skips path 1 entirely.</div>
+              <div style="margin-top:6px; color:#5B5F68;">Standard review (default) sets Max Gemma calls to 10, runs all three upload-job passes inline, then enables the graph-chat synthesis. Quick triage skips the upload-job passes; Exhaustive review increases the cap.</div>
             </div>
             <div class="wb-muted" style="margin-top:10px; line-height:1.5;">
               <b>Model fit:</b> Deterministic extraction works without Gemma.
@@ -409,7 +411,7 @@
             <span class="wb-step-index">2</span>
             <span>
               <span class="wb-step-title">Process bundle and review trace</span>
-              <span class="wb-step-summary">See parser counts, GREP hits, OCR queue status, Gemma 4 case-brief status, and any errors.</span>
+              <span class="wb-step-summary">Watch the upload job run: deterministic parser counts, GREP hits, Gemma 4 case-brief status, Gemma 4 typed-edge pass status, Gemma 4 contextual media review per asset, and any errors. Each Gemma 4 stage carries a teal badge so you can see exactly when the model is being called and why.</span>
             </span>
             <span class="wb-step-state dc-pill is-waiting" id="wb-step-process-state"><span class="dot"></span><span class="dc-pill-label">Waiting</span></span>
           </summary>
@@ -440,19 +442,24 @@
               <h2>Harness trace</h2>
               <div class="wb-pipeline" id="wb-trace"></div>
             </div>
-            <div class="dc-deferred-tile" id="wb-media-deferred-tile" aria-label="OCR and multimodal queue status">
+            <div class="dc-deferred-tile" id="wb-media-deferred-tile" aria-label="Gemma 4 contextual media review status">
               <div class="dc-deferred-head">
                 <span class="dc-pill is-deferred" id="wb-media-deferred-pill"><span class="dot"></span><span class="dc-pill-label">Idle</span></span>
-                <span>OCR / multimodal queue</span>
+                <span>Gemma 4 contextual media review</span>
               </div>
               <div id="wb-media-deferred-desc">
-                Upload a bundle to populate this queue. Once Gemma 4 is loaded
-                and the upload runs, queued media assets are reviewed in batches
-                up to the Max Gemma calls budget; anything over the budget remains
-                queued for a follow-up pass.
+                After you upload a bundle, this tile reports what the Gemma 4
+                contextual media pass did with the queued image, scan, PDF, and
+                binary-Office assets. The pass sends each asset's filename,
+                folder, linked-case context, and prepared review questions to
+                Gemma 4 and records the proposed_edges Gemma 4 predicted, capped
+                by the Max Gemma calls budget. Pixel-level OCR and pixel-level
+                multimodal vision are a separate queued capability — when wired,
+                they will replace this contextual prediction with direct image
+                inspection.
               </div>
               <div style="font-family: var(--mono); font-size: 11.5px; color: var(--ink-2);">
-                items queued: <span id="wb-media-deferred-count">0</span>
+                media items detected in this bundle: <span id="wb-media-deferred-count">0</span>
                 <span id="wb-media-deferred-extra"></span>
               </div>
             </div>
@@ -494,7 +501,7 @@
         <div class="wb-review-checks" aria-label="Reviewer verification checklist">
           <label><input type="checkbox" class="wb-review-check" onchange="wbUpdateReviewReady()"> People, case IDs, and folder-derived links look reasonable.</label>
           <label><input type="checkbox" class="wb-review-check" onchange="wbUpdateReviewReady()"> Payments, currencies, dates, and journey-stage labels have been spot checked.</label>
-          <label><input type="checkbox" class="wb-review-check" onchange="wbUpdateReviewReady()"> OCR, scan, image, PDF, and Gemma 4 media queue status has been reviewed.</label>
+          <label><input type="checkbox" class="wb-review-check" onchange="wbUpdateReviewReady()"> The Gemma 4 contextual media review results above (proposed edges per image, scan, PDF, and binary-Office asset) have been spot-checked. Pixel-level OCR remains queued for a future wiring step and is honestly labeled.</label>
         </div>
         <textarea id="wb-review-notes" rows="2"
           style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #DDD8C9; border-radius:8px; font-size:12.5px;"
@@ -534,21 +541,33 @@
           <div>
             <h2 style="margin:0 0 4px;">Typed edges and RAG candidates</h2>
             <div class="wb-muted">
-              Deterministic edges use a stable source-node, target-node,
-              evidence, extractor, confidence, and review-status schema.
-              Run the local Gemma 4 edge pass after review to propose
-              additional edges and candidate knowledge objects.
+              The table below mixes deterministic rule-fired edges with the
+              edges Gemma 4 generated during the upload job (text edge pass
+              + contextual media review). Each row carries a source badge so
+              you can tell at a glance who proposed what. Re-run the Gemma 4
+              edge pass with the button below after editing the graph or
+              importing new knowledge.
             </div>
           </div>
           <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
             <button class="wb-btn-secondary" id="wb-gemma-edge-btn" type="button" onclick="wbRunGemmaEdgePass()">
-              Run local Gemma edge pass
+              Re-run Gemma 4 edge pass
             </button>
             <button class="wb-btn-secondary" id="wb-gemma-edge-cancel-btn" type="button" onclick="wbCancelEdgePass()" hidden
                     style="background:#FFF7F3; border-color:oklch(0.78 0.10 45); color:oklch(0.40 0.16 25);">
               Cancel edge pass
             </button>
-            <span class="dc-gemma-mark is-optional" id="wb-gemma-edge-mark">Optional · Gemma</span>
+            <span class="dc-gemma-mark is-optional" id="wb-gemma-edge-mark">Gemma 4 edge pass — runs during upload by default; this button re-runs it</span>
+          </div>
+          <div class="wb-muted" style="font-size:11.5px; margin-top:8px; line-height:1.55;">
+            Standard review already ran one Gemma 4 typed-edge pass during the
+            upload job; the table above includes its output, tagged
+            <code>Gemma 4</code>. Use this button to re-run the same pass
+            against the current graph — useful after you delete a noisy
+            person, promote a knowledge object, or import a new local
+            knowledge pack and want Gemma 4 to re-propose typed edges with
+            the updated context. The new pass runs as a separate background
+            job with its own progress strip below.
           </div>
         </div>
         <div id="wb-typed-edges" style="margin-top:10px;"></div>
@@ -577,12 +596,17 @@
         <div id="wb-journey"></div>
       </div>
       <div class="wb-card">
-        <h2>Gemma 4 case brief <span class="dc-gemma-mark is-optional" id="wb-gemma-brief-mark">Optional · Gemma</span></h2>
+        <h2>Gemma 4 case brief <span class="dc-gemma-mark is-optional" id="wb-gemma-brief-mark">Gemma 4 case brief — runs during upload by default</span></h2>
         <p class="wb-muted" style="font-size:12px; margin:4px 0 8px;">
-          Not started automatically. The rule-based graph above is already usable.
-          The brief flips to <code>Gemma active</code> when the model is loaded
-          and inference begins, and to <code>Gemma done</code> only after a real
-          token stream completes.
+          This card shows the result of the Gemma 4 text case-brief pass that
+          runs automatically during the upload job (Standard review default).
+          Gemma 4 receives the bundle summary — total rows, people detected,
+          GREP rules fired, top entities, and journey-stage rollup — and returns
+          a two-paragraph narrative that names the corridor, the top risk
+          signals, and the journey-stage pattern in plain language. If Gemma 4
+          is not loaded or inline passes are disabled in advanced settings,
+          this card shows the deterministic fallback brief instead, and the
+          status mark above reads <code>deferred</code>.
         </p>
         <div id="wb-gemma-brief"></div>
       </div>
@@ -2040,17 +2064,25 @@
       const briefStatus = brief.status || 'not run';
       // Mirror brief lifecycle onto the in-header Gemma marker so reviewers
       // can read "did the model actually run?" from the heading alone.
+      // Important distinction: brief.json is populated even when the
+      // deterministic fallback runs (Gemma unloaded), so we can't treat
+      // briefJson alone as "Gemma done" — we have to read brief.status
+      // and brief.deferred explicitly.
       const briefMark = document.getElementById('wb-gemma-brief-mark');
       if (briefMark) {
+        const deferred = brief.deferred === true || briefStatus === 'deterministic_deferred_model';
         if (briefStatus === 'model_error_deterministic_fallback') {
           briefMark.className = 'dc-gemma-mark is-unavailable';
-          briefMark.textContent = 'Gemma unavailable';
-        } else if (briefJson || brief.text) {
+          briefMark.textContent = 'Gemma 4 unavailable — deterministic fallback shown';
+        } else if (deferred) {
+          briefMark.className = 'dc-gemma-mark is-optional';
+          briefMark.textContent = 'Gemma 4 not loaded — deterministic brief shown';
+        } else if (briefStatus === 'ok' || (briefJson && !deferred)) {
           briefMark.className = 'dc-gemma-mark is-done';
-          briefMark.textContent = 'Gemma done';
+          briefMark.textContent = 'Gemma 4 brief ran';
         } else {
           briefMark.className = 'dc-gemma-mark is-optional';
-          briefMark.textContent = 'Optional · Gemma';
+          briefMark.textContent = 'Gemma 4 brief idle';
         }
       }
       const briefHead = briefStatus === 'model_error_deterministic_fallback'
@@ -2163,7 +2195,7 @@
       ).join('');
       wbLastGraphSvg = '<svg id="wb-process-graph-svg" width="100%" height="' + height + '" viewBox="0 0 1000 ' + height + '" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Process intelligence graph">' +
         '<rect x="0" y="0" width="1000" height="' + height + '" fill="#FAF9F4"/>' +
-        '<text x="16" y="24" font-size="12" fill="#5B5F68">Edge sources: plain text, file structure, typed-edge schema, queued OCR, local Gemma 4 edge pass</text>' +
+        '<text x="16" y="24" font-size="12" fill="#5B5F68">Edge sources: plain-text GREP rules; folder-path and file-structure context; deterministic typed-edge schema (located_at, filed_under, journey_stage_observation, etc.); local Gemma 4 typed-edge pass over the seed graph; local Gemma 4 contextual media review per queued asset.</text>' +
         edgeSvg + nodeSvg + '</svg>';
       host.innerHTML = '<div style="padding:10px 12px; font-size:11px; border-bottom:1px solid #EFEDE4;">' + legend + '</div>' + wbLastGraphSvg;
       wbGraphSelect(nodes[0].id);
