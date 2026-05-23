@@ -187,7 +187,7 @@
         <div class="wb-row" style="align-items:center; gap:10px; flex-wrap:wrap;">
           <button class="wb-btn-primary wb-step-cta" id="wb-step3-btn" disabled onclick="wbStep3()" data-tip="Deterministic regex redaction always runs. Gemma residual-PII review only runs when a Gemma 4 model is loaded; otherwise it is skipped without blocking submission." data-tip-pos="below">Run anonymization</button>
           <button class="wb-btn-secondary" id="wb-step3-fast-btn" disabled onclick="wbStep3(false)" data-tip="Fast recording fallback: deterministic salted-hash redaction only." data-tip-pos="below">Run deterministic only</button>
-          <span class="dc-gemma-mark is-optional" id="wb-step3-gemma-mark" data-tip="Reflects whether Gemma actually reviewed the redacted text. Stays Optional unless a real model call completes." data-tip-pos="below">Optional · Gemma</span>
+          <span class="dc-gemma-mark is-optional" id="wb-step3-gemma-mark" data-tip="Reflects whether Gemma 4 actually reviewed the redacted text. Reads 'idle' before a run, 'queued' while polling, 'Gemma done' on a real model call, 'Gemma unavailable' when no model was loaded, and 'Gemma skipped' when the deterministic-only button was used." data-tip-pos="below">Gemma 4 residual-PII review — runs by default; Run deterministic only skips it</span>
         </div>
         <div class="wb-progress-box" id="wb-anon-progress-box" hidden>
           <div class="wb-progress-head">
