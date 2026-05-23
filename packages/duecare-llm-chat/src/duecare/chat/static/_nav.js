@@ -1219,6 +1219,131 @@
         };
     }
 
+    // Gemma 4 session-tally store: a tiny localStorage-backed counter
+    // that every workbench page can increment via window.dcGemmaStats.
+    // The top-bar badge reflects the running total + per-kind breakdown
+    // so a reviewer can see Gemma 4's contribution accumulate across
+    // pages without having to read every individual activity log.
+    const GEMMA_STATS_KEY = 'duecare:gemma_session_stats';
+    const GEMMA_STATS_DEFAULT = {
+        calls: 0,
+        brief: 0,
+        edge_pass: 0,
+        media: 0,
+        synthesis: 0,
+        rephrase: 0,
+        draft: 0,
+        template_fill: 0,
+        anonymize_review: 0,
+        chat: 0,
+        compare: 0,
+        edges_proposed: 0,
+        started_at: null,
+        updated_at: null
+    };
+    function gemmaStatsRead() {
+        try {
+            const raw = localStorage.getItem(GEMMA_STATS_KEY);
+            if (!raw) return Object.assign({}, GEMMA_STATS_DEFAULT);
+            const parsed = JSON.parse(raw);
+            return Object.assign({}, GEMMA_STATS_DEFAULT, parsed);
+        } catch (_) {
+            return Object.assign({}, GEMMA_STATS_DEFAULT);
+        }
+    }
+    function gemmaStatsWrite(stats) {
+        try {
+            localStorage.setItem(GEMMA_STATS_KEY, JSON.stringify(stats));
+        } catch (_) { /* storage full / private mode — silent */ }
+    }
+    function gemmaTallyRender() {
+        const valueEl = document.getElementById('dc-wb-status-gemma-tally');
+        const btnEl = document.getElementById('dc-wb-gemma-tally-btn');
+        if (!valueEl || !btnEl) return;
+        const stats = gemmaStatsRead();
+        valueEl.textContent = String(stats.calls || 0);
+        // Tooltip lists the breakdown so hovering the badge reveals
+        // exactly where Gemma 4 was active.
+        const breakdown = [
+            stats.brief ? 'case briefs ' + stats.brief : '',
+            stats.edge_pass ? 'edge passes ' + stats.edge_pass : '',
+            stats.media ? 'media reviews ' + stats.media : '',
+            stats.synthesis ? 'graph-chat syntheses ' + stats.synthesis : '',
+            stats.chat ? 'chat replies ' + stats.chat : '',
+            stats.draft ? 'knowledge drafts ' + stats.draft : '',
+            stats.template_fill ? 'template fills ' + stats.template_fill : '',
+            stats.anonymize_review ? 'PII reviews ' + stats.anonymize_review : '',
+            stats.rephrase ? 'search rephrases ' + stats.rephrase : '',
+            stats.compare ? 'comparisons ' + stats.compare : '',
+        ].filter(Boolean).join(' · ') || 'none yet — call Gemma 4 from any workbench page';
+        btnEl.title = 'Gemma 4 calls this browser session: ' +
+            (stats.calls || 0) + ' total. Breakdown: ' + breakdown +
+            '. Edges Gemma 4 proposed across passes: ' + (stats.edges_proposed || 0) +
+            '. Click to see the breakdown panel or reset.';
+    }
+    // Public API. Each page calls dcGemmaStats.bump('kind') after a
+    // server-confirmed Gemma 4 call completes. The 'kind' must match
+    // one of the counter fields in GEMMA_STATS_DEFAULT (anything else
+    // is ignored). All increments are 1 unless n is passed.
+    window.dcGemmaStats = {
+        bump: function (kind, n) {
+            const stats = gemmaStatsRead();
+            const delta = typeof n === 'number' && n > 0 ? Math.floor(n) : 1;
+            if (kind && Object.prototype.hasOwnProperty.call(stats, kind)) {
+                stats[kind] = (stats[kind] || 0) + delta;
+                stats.calls = (stats.calls || 0) + delta;
+                if (!stats.started_at) stats.started_at = new Date().toISOString();
+                stats.updated_at = new Date().toISOString();
+                gemmaStatsWrite(stats);
+                gemmaTallyRender();
+            }
+        },
+        addProposedEdges: function (n) {
+            const stats = gemmaStatsRead();
+            const delta = typeof n === 'number' && n > 0 ? Math.floor(n) : 0;
+            if (delta > 0) {
+                stats.edges_proposed = (stats.edges_proposed || 0) + delta;
+                stats.updated_at = new Date().toISOString();
+                gemmaStatsWrite(stats);
+                gemmaTallyRender();
+            }
+        },
+        snapshot: function () { return gemmaStatsRead(); },
+        reset: function () {
+            gemmaStatsWrite(Object.assign({}, GEMMA_STATS_DEFAULT));
+            gemmaTallyRender();
+        }
+    };
+    function wireGemmaTally() {
+        const btn = document.getElementById('dc-wb-gemma-tally-btn');
+        if (!btn || btn.getAttribute('data-dc-wired') === 'true') return;
+        btn.setAttribute('data-dc-wired', 'true');
+        btn.addEventListener('click', function () {
+            const s = window.dcGemmaStats.snapshot();
+            const breakdown = [
+                'Case briefs: ' + (s.brief || 0),
+                'Typed-edge passes: ' + (s.edge_pass || 0),
+                'Contextual media reviews: ' + (s.media || 0),
+                'Graph-chat syntheses: ' + (s.synthesis || 0),
+                'Chat replies: ' + (s.chat || 0),
+                'Knowledge drafts: ' + (s.draft || 0),
+                'Template fills: ' + (s.template_fill || 0),
+                'Residual-PII reviews: ' + (s.anonymize_review || 0),
+                'Search rephrases: ' + (s.rephrase || 0),
+                'Model comparisons: ' + (s.compare || 0),
+                '',
+                'Edges Gemma 4 proposed across passes: ' + (s.edges_proposed || 0),
+                'Session started: ' + (s.started_at ? new Date(s.started_at).toLocaleString() : 'not yet'),
+                'Last update: ' + (s.updated_at ? new Date(s.updated_at).toLocaleString() : 'never')
+            ].join('\n');
+            const msg = 'Gemma 4 session breakdown (' + (s.calls || 0) + ' total calls):\n\n' +
+                breakdown + '\n\nReset session counters?';
+            if (window.confirm(msg)) {
+                window.dcGemmaStats.reset();
+            }
+        });
+        gemmaTallyRender();
+    }
     function setupChrome(nav) {
         if (!nav || nav.getAttribute('data-dc-wb-wired') === 'true') return;
         nav.setAttribute('data-dc-wb-wired', 'true');
@@ -1238,6 +1363,7 @@
         wireShutdown();
         wireClearChat();
         wireReplayDownload();
+        wireGemmaTally();
         ensureDefaultActivityLog();
         refreshStatus();
         refreshModelLoaderStatus().then(function (state) {

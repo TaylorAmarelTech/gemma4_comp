@@ -48,6 +48,17 @@
         <span class="dc-wb-status-label">Queue</span>
         <span class="dc-wb-status-value" id="dc-wb-status-queue">idle</span>
       </span>
+      <span class="dc-wb-status-sep" aria-hidden="true">|</span>
+      <button type="button"
+              class="dc-wb-status-item dc-wb-status-gemma-tally"
+              id="dc-wb-gemma-tally-btn"
+              title="Total Gemma 4 calls completed in this browser session, across every workbench page. Click for a breakdown by call kind. The tally persists across page reloads and resets only when you click Reset session in the breakdown popover."
+              aria-haspopup="dialog"
+              aria-expanded="false"
+              style="background: oklch(0.97 0.025 195); border: 1px solid oklch(0.78 0.06 195);">
+        <span class="dc-wb-status-label" style="color: oklch(0.32 0.10 195);">Gemma 4 calls (session)</span>
+        <span class="dc-wb-status-value" id="dc-wb-status-gemma-tally" style="color: oklch(0.32 0.10 195); font-weight: 700;">0</span>
+      </button>
       <a href="https://gemma4-comp.onrender.com/"
          target="_blank"
          rel="noopener"
