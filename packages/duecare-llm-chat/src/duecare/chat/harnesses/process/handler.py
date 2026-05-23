@@ -384,6 +384,39 @@ def _norm_case_id(text: str) -> str | None:
     return f"DC-PH-HK-{digits.group(1)}" if digits else raw
 
 
+def _redact_path_for_display(path: str) -> str:
+    """Strip name-like suffixes from path components before displaying.
+
+    Folder names in case bundles often follow `<CASE_ID>_<Worker_Name>`
+    (e.g., `DC-PH-HK-101_Ana_Cruz/passport.jpg`). The case ID is safe to
+    show in activity logs and demo recordings; the trailing name part
+    is PII. This redactor keeps the case-ID prefix and replaces the
+    name tail with `_…` so the log line stays informative without
+    leaking worker names.
+
+    Synthetic composite names (Maria, Ramesh, Sita) appearing in our
+    sample bundles are still redacted; the writeup labels them as
+    composites separately. Real worker uploads get the same treatment.
+    """
+    if not path:
+        return ""
+    parts = str(path).replace("\\", "/").split("/")
+    cleaned: list[str] = []
+    for part in parts:
+        m = _CASE_RE.search(part)
+        if m:
+            # Keep the case ID prefix, replace name tail with `_…`.
+            case_token = m.group(0)
+            tail_start = part.find(case_token) + len(case_token)
+            if tail_start < len(part):
+                cleaned.append(part[: tail_start] + "_…")
+            else:
+                cleaned.append(part)
+        else:
+            cleaned.append(part)
+    return "/".join(cleaned)
+
+
 def _extract_bundle_case_id(rows: list[dict]) -> str | None:
     """Return the most common case_id signal found across the bundle.
 
@@ -3346,10 +3379,14 @@ def _gemma_media_contextual_pass(
             "document type + named entities + fee, ID-control, "
             "wage-deduction indicators"
         )
+        # Redact name-tails from path for activity-log display so worker
+        # names baked into folder paths do not leak into screenshots or
+        # demo recordings.
+        src_display = _redact_path_for_display(src)
         mark(
             "media_item",
             pct,
-            f"Sending {src} ({media_t}) to Gemma 4 with the contextual-vision "
+            f"Sending {src_display} ({media_t}) to Gemma 4 with the contextual-vision "
             f"prompt — asking it to predict {target_hint} from filename, folder, "
             f"and linked case context. Asset {idx + 1}/{n_items}.",
         )
@@ -4281,6 +4318,16 @@ def register_routes(app: Any) -> None:
         question = (body.get("question") or "").strip()
         if not question:
             raise HTTPException(400, "question is required")
+        # Cap question length to keep the synthesis prompt within Gemma's
+        # context window and prevent oversized payloads from a malformed
+        # client. 4000 chars is roughly 800-1000 tokens; well below the
+        # context cap and big enough for any reasonable reviewer question.
+        if len(question) > 4000:
+            raise HTTPException(
+                400,
+                f"question is too long ({len(question)} chars); cap is 4000. "
+                "Trim the question and re-ask.",
+            )
 
         bundle = getattr(app.state, "last_process_bundle", None)
         gc = getattr(app.state, "gemma_call", None)
@@ -4334,9 +4381,20 @@ def register_routes(app: Any) -> None:
                         "IDs. If the evidence doesn't yet point anywhere "
                         "confidently, just say that clearly."
                     )
+                    # Truncate det_answer for the synthesis prompt so a
+                    # very long deterministic table (e.g., 6-case missing-
+                    # evidence output) doesn't blow the context window
+                    # and silently break the synthesis call.
+                    det_for_synth = det_answer
+                    if len(det_for_synth) > 6000:
+                        det_for_synth = (
+                            det_for_synth[:6000]
+                            + "\n…[truncated to 6000 chars for synthesis; "
+                            "full table is in Supporting data below]"
+                        )
                     synth_user = (
                         f"Question: {question}\n\n"
-                        f"Deterministic answer:\n{det_answer}\n\n"
+                        f"Deterministic answer:\n{det_for_synth}\n\n"
                         f"Bundle context: {summary.get('n_rows_processed', 0)} rows, "
                         f"{summary.get('n_people_detected', 0)} people, "
                         f"{summary.get('n_typed_edges', 0)} typed edges."

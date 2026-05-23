@@ -282,14 +282,19 @@
             <div class="kx-progress-events" id="kx-draft-progress-events"></div>
           </div>
           <div class="kx-step-actions">
-            <span id="kx-extract-status" class="wb-muted" style="font-size:11.5px;"></span>
-            <a class="wb-btn-secondary" href="/api/knowledge/taxonomy" target="_blank">Runtime taxonomy JSON</a>
-            <a class="wb-btn-secondary" href="/api/knowledge/type-catalog" target="_blank">Type catalog JSON</a>
-            <button class="wb-btn-secondary" id="kx-cancel-draft-btn" type="button" onclick="kxCancelDraftJob()" disabled>Abandon draft polling</button>
-            <button class="wb-btn-secondary" id="kx-deterministic-draft-btn" type="button" onclick="kxExtract(false)" disabled>Draft deterministic only</button>
-            <button class="wb-btn-secondary" id="kx-finish-review-btn" type="button" onclick="kxFinishDraftReview()" disabled>Finish review</button>
             <button class="wb-btn-primary wb-step-cta" id="kx-extract-btn" onclick="kxExtract()">Draft knowledge objects</button>
+            <button class="wb-btn-secondary" id="kx-finish-review-btn" type="button" onclick="kxFinishDraftReview()" disabled>Finish review</button>
+            <button class="wb-btn-secondary" id="kx-cancel-draft-btn" type="button" onclick="kxCancelDraftJob()" disabled>Abandon draft polling</button>
+            <span id="kx-extract-status" class="wb-muted" style="font-size:11.5px;"></span>
           </div>
+          <details style="margin-top:8px;">
+            <summary style="cursor:pointer; font-size:12px; color:#5B5F68;">Advanced draft actions</summary>
+            <div class="kx-step-actions" style="margin-top:6px;">
+              <button class="wb-btn-secondary" id="kx-deterministic-draft-btn" type="button" onclick="kxExtract(false)" disabled>Draft deterministic only (no Gemma)</button>
+              <a class="wb-btn-secondary" href="/api/knowledge/taxonomy" target="_blank">Runtime taxonomy JSON</a>
+              <a class="wb-btn-secondary" href="/api/knowledge/type-catalog" target="_blank">Type catalog JSON</a>
+            </div>
+          </details>
         </div>
       </details>
 
