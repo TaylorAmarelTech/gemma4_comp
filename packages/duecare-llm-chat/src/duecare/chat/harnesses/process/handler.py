@@ -1882,15 +1882,21 @@ def _build_intelligence(
             },
             {
                 "id": "ocr",
-                "label": "OCR and layout extraction",
+                "label": "OCR and layout extraction (pixel-level)",
                 "status": "queued_contract",
-                "detail": "Media assets are detected and queued; OCR engine wiring is the next implementation step.",
+                "detail": "Pixel-level OCR (Tesseract / EasyOCR / PaddleOCR / Docling) is not wired in this kernel; queued media assets are currently reviewed by the Gemma 4 contextual pass below using path + folder + linked-case context. Wiring an OCR engine upgrades this to direct image-text extraction.",
+            },
+            {
+                "id": "gemma_contextual_media",
+                "label": "Gemma 4 contextual media review",
+                "status": "implemented",
+                "detail": "For each queued image, scan, or binary-Office asset, Gemma 4 receives filename + folder + media type + linked-case context + prepared review questions, and predicts proposed_edges (document type, named entities, fee / ID-control / wage-deduction indicators). Confidence is capped at 0.5 until pixel-level vision is wired. Capped by remaining Max Gemma calls budget.",
             },
             {
                 "id": "gemma_multimodal",
-                "label": "Gemma 4 multimodal extraction",
-                "status": "queued_contract",
-                "detail": "Each media asset needs a Gemma vision pass over image plus OCR text to extract entities and edges.",
+                "label": "Gemma 4 multimodal pixel vision",
+                "status": "queued_contract_when_multimodal_processor_wired",
+                "detail": "Direct image-byte pass via the Gemma 4 AutoProcessor is queued. When wired, it replaces the contextual prediction with real visual inspection of receipts, IDs, screenshots, and scanned pages.",
             },
             {
                 "id": "gemma_text_edges",
