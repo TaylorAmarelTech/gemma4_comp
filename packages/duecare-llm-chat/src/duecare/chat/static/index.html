@@ -5326,6 +5326,14 @@ async function sendMessage() {
   _chatBusy = false;
   document.getElementById('input').focus();
 
+  // Bump the top-bar Gemma 4 session tally — a real chat reply just
+  // came back from /api/chat/send. Skips when the result was an error
+  // path (no result.response) or an empty body so the count reflects
+  // successful Gemma 4 generations only.
+  if (result && result.response && window.dcGemmaStats) {
+    window.dcGemmaStats.bump('chat');
+  }
+
   // Background auto-grade: fire-and-forget Universal grade so the
   // user sees inline chips (score / indicators / citations) without
   // having to click "Grade response". Failure is silent — chips

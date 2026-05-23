@@ -605,6 +605,10 @@
           if (gemmaActuallyRan) {
             gMark.className = 'dc-gemma-mark is-done';
             gMark.textContent = 'Gemma done';
+            // Bump the top-bar Gemma 4 session tally — Gemma 4 actually
+            // reviewed the redacted text (gemmaActuallyRan filters out
+            // skipped / model_unavailable / no_model statuses).
+            if (window.dcGemmaStats) window.dcGemmaStats.bump('anonymize_review');
           } else if (gemmaReview) {
             gMark.className = 'dc-gemma-mark is-unavailable';
             gMark.textContent = 'Gemma unavailable';

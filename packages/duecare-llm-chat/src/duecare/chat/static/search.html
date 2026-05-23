@@ -501,6 +501,13 @@
               (kinds.length ? kinds.length + ' redaction(s): ' + kinds.join(', ') : 'no PII detected')
               + (so.rephrase_fired ? ' · Gemma rephrase applied' : '')
               + (so.rephrase_wired === false && rephrase ? ' · (rephrase requested but Gemma not wired)' : '');
+            // Bump the top-bar Gemma 4 session tally — only when the
+            // server reports rephrase_fired (the model was actually
+            // called for the rephrase). Skips the rephrase_wired=false
+            // case where Gemma was requested but the model was missing.
+            if (so.rephrase_fired && window.dcGemmaStats) {
+              window.dcGemmaStats.bump('rephrase');
+            }
             previewMeta.textContent = previewMeta.textContent
               .replace(/\u00c2\u00b7/g, ' | ')
               .replace(/\s+\|\s+/g, ' | ');

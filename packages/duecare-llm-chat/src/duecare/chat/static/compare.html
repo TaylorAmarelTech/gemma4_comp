@@ -2491,6 +2491,10 @@
           if (bothOk) {
             cmpGMark.className = 'dc-gemma-mark is-done';
             cmpGMark.textContent = 'Gemma done';
+            // Bump the top-bar Gemma 4 session tally — both variants
+            // actually generated. Comparing model A and model B counts
+            // as 2 Gemma 4 calls (one per variant) per comparison.
+            if (window.dcGemmaStats) window.dcGemmaStats.bump('compare', 2);
           } else if (anyAborted) {
             cmpGMark.className = 'dc-gemma-mark is-skipped';
             cmpGMark.textContent = 'Gemma aborted';
