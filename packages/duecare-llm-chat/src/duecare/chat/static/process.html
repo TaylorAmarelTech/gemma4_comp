@@ -181,15 +181,18 @@
     <p class="wb-lede">
       Drop a ZIP, CSV, JSONL, Office document, PDF, image, email, or text bundle of case material:
       chat exports, scans, recruitment ads, court excerpts, recorded testimony
-      transcripts, and document photos.
-      Each row goes through the process harness: GREP, entity extraction,
-      document typing, person linking, hierarchy construction, and a local
-      deterministic case brief. Optional Gemma 4 passes are explicit follow-up
-      jobs for typed-edge proposals, graph synthesis, and privacy-safe review,
-      so the upload path stays fast for recording. When available, a fine-tuned Gemma 4
+      transcripts, and document photos. Each row goes through the process
+      harness: GREP, entity extraction, document typing, person linking,
+      hierarchy construction, and a deterministic case brief. With Standard
+      review (the default), the upload job ALSO runs three Gemma 4 passes
+      inline — a text case-brief pass, a typed-edge + RAG synthesis pass,
+      and a contextual media-review pass over each queued asset — capped
+      by the Max Gemma calls budget. The Re-run Gemma 4 edge pass button in
+      Step 3 lets you re-trigger the typed-edge synthesis after edits or
+      after importing a new local knowledge pack. When a fine-tuned Gemma 4
       adapter trained on reviewed document-classification and graph-edge
-      examples can improve page-item routing, edge typing, and bulk
-      file edge generation quality.
+      examples is loaded, it replaces the base model and improves
+      page-item routing, edge typing, and bulk-file edge quality.
     </p>
 
     <section class="wb-hero" aria-label="Bulk file review overview">
@@ -2306,11 +2309,37 @@
       const pass = intel.gemma_edge_pass || {};
       const passStatus = String(pass.status || 'not_run');
       const passAttempted = passStatus !== 'not_run';
+      // Mirror the inline edge-pass result onto the heading marker next to
+      // the "Re-run Gemma 4 edge pass" button. Without this update, the
+      // marker stays at its initial "runs during upload" placeholder even
+      // after the inline pass already ran, contradicting the result card
+      // immediately below.
+      const edgeMarkEl = document.getElementById('wb-gemma-edge-mark');
+      if (edgeMarkEl) {
+        if (passStatus === 'ok') {
+          edgeMarkEl.className = 'dc-gemma-mark is-done';
+          edgeMarkEl.textContent = 'Gemma 4 edge pass ran during upload — ' +
+            ((pass.model_edges || []).length) + ' model edge(s) added';
+        } else if (passStatus === 'salvaged_partial_edges' || passStatus === 'salvaged_after_exception') {
+          edgeMarkEl.className = 'dc-gemma-mark is-active';
+          edgeMarkEl.textContent = 'Gemma 4 partial salvage — ' +
+            ((pass.model_edges || []).length) + ' edge(s) recovered from malformed output';
+        } else if (passStatus === 'deterministic_no_model') {
+          edgeMarkEl.className = 'dc-gemma-mark is-optional';
+          edgeMarkEl.textContent = 'Gemma 4 edge pass skipped — model not loaded; deterministic edges only';
+        } else if (passStatus === 'model_unparsed_deterministic_fallback' || passStatus === 'model_error_deterministic_fallback') {
+          edgeMarkEl.className = 'dc-gemma-mark is-unavailable';
+          edgeMarkEl.textContent = 'Gemma 4 edge pass returned fallback — deterministic edges only';
+        } else {
+          edgeMarkEl.className = 'dc-gemma-mark is-optional';
+          edgeMarkEl.textContent = 'Gemma 4 edge pass — runs during upload by default; this button re-runs it';
+        }
+      }
       const passTitle = passStatus === 'ok'
-        ? 'Gemma edge pass complete'
+        ? 'Gemma 4 edge pass complete — ' + ((pass.model_edges || []).length) + ' model edge(s) added to the graph during upload'
         : (passStatus === 'deterministic_no_model'
-          ? 'Gemma edge pass not run: no model loaded'
-          : (passAttempted ? 'Gemma edge pass returned fallback' : 'Gemma edge pass idle'));
+          ? 'Gemma 4 edge pass not run: no model loaded'
+          : (passAttempted ? 'Gemma 4 edge pass returned fallback' : 'Gemma 4 edge pass idle — re-run from button above'));
       const passPct = passAttempted ? '100' : '0';
       const passDetail = passStatus === 'deterministic_no_model'
         ? 'No local Gemma 4 model was loaded, so the page returned deterministic seed edges only.'
