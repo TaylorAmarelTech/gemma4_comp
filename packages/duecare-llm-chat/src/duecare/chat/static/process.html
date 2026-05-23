@@ -75,6 +75,9 @@
     .wb-progress-substep.done { border-color: oklch(0.76 0.08 155); color: oklch(0.32 0.08 155); }
     .wb-progress-substep.active { border-color: oklch(0.52 0.08 195); color: #0E1116; background: oklch(0.97 0.02 195); }
     .wb-progress-substep.deferred { border-color: oklch(0.78 0.06 80); color: oklch(0.36 0.06 80); background: oklch(0.98 0.02 80); }
+    .wb-progress-substep.skipped { border-color: oklch(0.86 0.02 0); color: oklch(0.50 0.02 0); background: oklch(0.97 0.005 0); }
+    .wb-progress-substep.gemma { border-left: 3px solid oklch(0.52 0.08 195); }
+    .wb-progress-substep .wb-gemma-badge { display:inline-block; margin-left:6px; padding:0 6px; border-radius:999px; background: oklch(0.92 0.04 195); color: oklch(0.32 0.07 195); font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; vertical-align: 2px; }
     .wb-inline-guard { margin-top: 10px; border: 1px solid oklch(0.78 0.06 80); background: oklch(0.98 0.02 80); color: oklch(0.34 0.07 80); border-radius: 8px; padding: 9px 10px; font-size: 12px; line-height: 1.45; }
     .wb-action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
     .wb-action-card { border: 1px solid #EFEDE4; border-radius: 8px; padding: 12px; background: #FAF9F4; }
@@ -354,7 +357,7 @@
                 </div>
                 <div class="wb-setting">
                   <label for="wb-max-gemma-calls">Max Gemma calls</label>
-                  <input id="wb-max-gemma-calls" type="number" min="0" max="1000" value="8" onchange="wbUpdateSettingsSummary()">
+                  <input id="wb-max-gemma-calls" type="number" min="0" max="1000" value="10" onchange="wbUpdateSettingsSummary()">
                 </div>
                 <div class="wb-setting">
                   <label for="wb-calls-per-item">Gemma calls per page item</label>
@@ -439,17 +442,18 @@
             </div>
             <div class="dc-deferred-tile" id="wb-media-deferred-tile" aria-label="OCR and multimodal queue status">
               <div class="dc-deferred-head">
-                <span class="dc-pill is-deferred"><span class="dot"></span><span class="dc-pill-label">Deferred</span></span>
+                <span class="dc-pill is-deferred" id="wb-media-deferred-pill"><span class="dot"></span><span class="dc-pill-label">Idle</span></span>
                 <span>OCR / multimodal queue</span>
               </div>
-              <div>
-                Images, scans, and PDFs become explicit media work items.
-                When local OCR or Gemma 4 vision is not wired in this kernel,
-                the queue stays here labeled <b>rule-based fallback (no Gemma)</b>.
-                Nothing here is implied to have run.
+              <div id="wb-media-deferred-desc">
+                Upload a bundle to populate this queue. Once Gemma 4 is loaded
+                and the upload runs, queued media assets are reviewed in batches
+                up to the Max Gemma calls budget; anything over the budget remains
+                queued for a follow-up pass.
               </div>
               <div style="font-family: var(--mono); font-size: 11.5px; color: var(--ink-2);">
                 items queued: <span id="wb-media-deferred-count">0</span>
+                <span id="wb-media-deferred-extra"></span>
               </div>
             </div>
             <div class="wb-card">
@@ -873,61 +877,113 @@
     let _wbGemmaLastHeartbeatSec = 0;
     const WB_PROCESS_STAGES = [
       {
-        pct: 6,
+        pct: 5,
         stage: 'Uploading bundle to Kaggle kernel',
-        detail: 'The browser is transferring the file through the Cloudflare tunnel to the FastAPI process harness.'
+        detail: 'The browser is transferring the file through the Cloudflare tunnel to the FastAPI process harness.',
+        gemma: false
       },
       {
-        pct: 18,
+        pct: 12,
         stage: 'Receiving multipart upload',
-        detail: 'The kernel is reading the request body. This is still upload/transfer time, before ZIP extraction starts.'
+        detail: 'The kernel is reading the request body. This is still upload/transfer time, before ZIP extraction starts.',
+        gemma: false
       },
       {
-        pct: 30,
+        pct: 20,
         stage: 'Unpacking archive and inventorying paths',
-        detail: 'ZIP entries, file names, and folder labels are being read; folder names become graph context edges.'
+        detail: 'ZIP entries, file names, and folder labels are being read; folder names become graph context edges.',
+        gemma: false
       },
       {
-        pct: 42,
+        pct: 28,
         stage: 'Extracting text and file metadata',
-        detail: 'Text, CSV, JSONL, DOCX, XLSX, email, HTML, RTF, and extractable PDF text are chunked locally.'
+        detail: 'Text, CSV, JSONL, DOCX, XLSX, email, HTML, RTF, and extractable PDF text are chunked locally.',
+        gemma: false
       },
       {
-        pct: 54,
+        pct: 36,
         stage: 'Detecting media and queued work',
-        detail: 'Images, screenshots, scans, binary Office files, and scanned PDFs are counted and queued; OCR and Gemma 4 vision do not run in the upload request.'
+        detail: 'Images, screenshots, scans, and binary Office files are counted; each becomes a contextual-vision work item for the Gemma 4 pass below.',
+        gemma: false
       },
       {
-        pct: 66,
+        pct: 44,
         stage: 'Running GREP and entity extraction',
-        detail: 'Rules are firing and the harness is extracting amounts, people, agencies, locations, dates, statutes, and corridors.'
+        detail: 'Rules are firing and the harness is extracting amounts, people, agencies, locations, dates, statutes, and corridors.',
+        gemma: false
       },
       {
-        pct: 78,
+        pct: 52,
         stage: 'Classifying documents and linking graph edges',
-        detail: 'Rows are being mapped to document types, journey stages, people, folders, payments, and risk signals.'
+        detail: 'Rows are mapped to document types, journey stages, people, folders, payments, and risk signals.',
+        gemma: false
       },
       {
-        pct: 88,
+        pct: 60,
         stage: 'Building deterministic case brief',
-        detail: 'The upload job returns a deterministic brief by default. Inline Gemma text passes run only when explicitly enabled in advanced settings.'
+        detail: 'A deterministic case brief is generated as the fallback so the page always has data even if Gemma is unloaded.',
+        gemma: false
       },
       {
-        pct: 94,
+        pct: 70,
+        stage: 'Gemma 4 — text case-brief pass',
+        detail: 'Sending the bundle summary (rows, people, GREP totals, journey stages) to local Gemma 4. The model writes the case-brief narrative.',
+        gemma: true
+      },
+      {
+        pct: 82,
+        stage: 'Gemma 4 — typed-edge + RAG synthesis',
+        detail: 'Sending the seed graph (deterministic typed edges + RAG candidates) to Gemma 4 to extract additional typed edges and candidate knowledge phrases.',
+        gemma: true
+      },
+      {
+        pct: 92,
+        stage: 'Gemma 4 — contextual media review',
+        detail: 'Iterating queued media assets one at a time; each is sent to Gemma 4 with its filename, folder, linked case, and prepared review questions. Capped by the remaining Max Gemma calls budget.',
+        gemma: true
+      },
+      {
+        pct: 97,
         stage: 'Finalizing response payload',
-        detail: 'The local bundle, trace, graph metrics, media queue, and row-level evidence are being serialized for this page.'
+        detail: 'The local bundle, trace, graph metrics, media queue, and row-level evidence are being serialized for this page.',
+        gemma: false
       }
     ];
-    const WB_PROCESS_FOLLOWUP_STAGES = [
-      {
-        stage: 'OCR/layout extraction deferred',
-        detail: 'Media assets are queued for a separate OCR/page-review worker; the ZIP upload does not run OCR.'
-      },
-      {
-        stage: 'Gemma 4 media vision deferred',
-        detail: 'Image/page vision remains queued contract work on this page; text brief and edge synthesis run only when a model is loaded.'
+    // Followup stages render after the main job completes, with status
+    // computed from the actual harness_trace + gemma_media_pass result.
+    // No more static "deferred" labels — each step reflects what really
+    // happened.
+    function wbBuildFollowupStages(intel) {
+      const trace = (intel && intel.harness_trace) || [];
+      const mediaPass = (intel && intel.gemma_media_pass) || {};
+      const stages = [];
+      const findTrace = (id) => trace.find(t => t.id === id) || {};
+      const gemmaText = findTrace('gemma_text');
+      stages.push({
+        stage: 'Gemma 4 text passes — result',
+        status: gemmaText.status || 'not_run',
+        gemma: true,
+        detail: gemmaText.detail || 'Gemma text passes did not run (model unloaded or inline disabled).'
+      });
+      const mediaQueue = findTrace('media_queue');
+      const nProc = mediaPass.n_processed || 0;
+      const nQueued = mediaPass.n_queued_total || 0;
+      const nOver = mediaPass.n_skipped_over_cap || 0;
+      const mediaStatus = mediaQueue.status || mediaPass.status || 'not_run';
+      let mediaDetail = mediaQueue.detail || '';
+      if (!mediaDetail) {
+        if (nProc) mediaDetail = `${nProc}/${nQueued} media item(s) reviewed contextually by Gemma 4; ${nOver} over Max-Gemma-calls cap.`;
+        else if (nQueued) mediaDetail = `${nQueued} media item(s) queued; Gemma 4 contextual pass did not run (budget=0 or model not loaded).`;
+        else mediaDetail = 'No media items in this bundle.';
       }
-    ];
+      stages.push({
+        stage: 'Gemma 4 contextual media review — result',
+        status: mediaStatus,
+        gemma: true,
+        detail: mediaDetail
+      });
+      return stages;
+    }
     function wbSetProcessProgress(percent, stage, detail, note) {
       const pct = Math.max(0, Math.min(100, Number(percent) || 0));
       const fill = document.getElementById('wb-process-progress-fill');
@@ -941,19 +997,27 @@
       if (detailEl) detailEl.textContent = detail || '';
       if (noteEl) noteEl.textContent = note || 'Progress is estimated while the in-kernel request is running. Actual parser counts appear when the local harness returns.';
     }
-    function wbRenderProcessSubsteps(activeIndex, complete) {
+    function wbRenderProcessSubsteps(activeIndex, complete, intel) {
       const host = document.getElementById('wb-process-substeps');
       if (!host) return;
       host.innerHTML = '';
       WB_PROCESS_STAGES.forEach((item, idx) => {
         const el = document.createElement('div');
-        el.className = 'wb-progress-substep' + (
-          complete || idx < activeIndex ? ' done' : (idx === activeIndex ? ' active' : '')
-        );
+        let cls = 'wb-progress-substep';
+        if (item.gemma) cls += ' gemma';
+        if (complete || idx < activeIndex) cls += ' done';
+        else if (idx === activeIndex) cls += ' active';
+        el.className = cls;
         // DOM-construct (no innerHTML) so item.stage/item.detail cannot inject markup.
         const stageB = document.createElement('b');
         stageB.textContent = item.stage;
         el.appendChild(stageB);
+        if (item.gemma) {
+          const badge = document.createElement('span');
+          badge.className = 'wb-gemma-badge';
+          badge.textContent = 'Gemma 4';
+          stageB.appendChild(badge);
+        }
         if (complete && item.detail) {
           const detailDiv = document.createElement('div');
           detailDiv.className = 'wb-muted';
@@ -963,13 +1027,30 @@
         host.appendChild(el);
       });
       if (complete) {
-        WB_PROCESS_FOLLOWUP_STAGES.forEach((item) => {
+        const followup = wbBuildFollowupStages(intel || {});
+        followup.forEach((item) => {
           const el = document.createElement('div');
-          el.className = 'wb-progress-substep deferred';
-          // DOM-construct (no innerHTML) so item.stage/item.detail cannot inject markup.
+          // Map server status into a substep visual state.
+          const st = String(item.status || '').toLowerCase();
+          let stateCls = 'deferred';
+          if (st === 'complete' || st === 'complete_contextual' || st === 'ok' || st === 'salvaged_partial_edges' || st === 'salvaged_after_exception') stateCls = 'done';
+          else if (st === 'no_media' || st === 'skipped') stateCls = 'skipped';
+          else if (st === 'deferred' || st === 'not_run' || st === 'deterministic_no_model' || st === 'no_budget') stateCls = 'deferred';
+          el.className = 'wb-progress-substep ' + stateCls + (item.gemma ? ' gemma' : '');
           const stageB2 = document.createElement('b');
           stageB2.textContent = item.stage;
           el.appendChild(stageB2);
+          if (item.gemma) {
+            const badge = document.createElement('span');
+            badge.className = 'wb-gemma-badge';
+            badge.textContent = 'Gemma 4';
+            stageB2.appendChild(badge);
+          }
+          // Append a clear status label so reviewers can read it at a glance.
+          const statusLabel = document.createElement('div');
+          statusLabel.style.cssText = 'font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.04em; opacity:0.85; margin-top:2px;';
+          statusLabel.textContent = 'status: ' + (item.status || 'not_run');
+          el.appendChild(statusLabel);
           const detailDiv2 = document.createElement('div');
           detailDiv2.className = 'wb-muted';
           detailDiv2.textContent = item.detail;
@@ -1329,6 +1410,25 @@
     function wbIsModelPhase(phase) {
       return /\bgemma\b|gemma_|model_pass/i.test(String(phase || ''));
     }
+    // Map a Gemma phase id to a one-line "what's being sent + what we
+    // expect back" narration. Used in heartbeats so a long-running call
+    // never reads as "still working..." without saying WHY.
+    function wbGemmaPhaseNarration(phase) {
+      const p = String(phase || '').toLowerCase();
+      if (p.includes('case_brief')) {
+        return 'Sending the bundle summary (rows, people, GREP rule totals, journey-stage rollup) to Gemma 4 with the case-brief prompt. Expected output: a 2-paragraph narrative case brief that names the corridor, the top risk signals, and the journey-stage pattern.';
+      }
+      if (p.includes('edge_model_call') || p.includes('edge_pass') || p.includes('typed_edge')) {
+        return 'Sending the seed graph (deterministic typed edges + RAG candidates + JSON schema) to Gemma 4 with the typed-edge extraction prompt. Expected output: new typed_edge objects (charged_or_collected_fee, fee_camouflage_evidence, document_control_signal, journey_stage_observation, etc.) and RAG candidate phrases for downstream review.';
+      }
+      if (p.includes('media_item') || p.includes('media_pass') || p.includes('gemma_media')) {
+        return 'Sending one queued media asset (filename + folder + media type + linked-case context + prepared review questions) to Gemma 4 with the contextual-vision prompt. Expected output: a 1-2 sentence prediction of what the asset contains and a JSON block of proposed_edges to verify against the bytes.';
+      }
+      if (p.includes('graph_chat') || p.includes('synthesis')) {
+        return 'Sending the user question + deterministic graph-analyst answer + bundle context to Gemma 4 with the synthesis prompt. Expected output: a 2-3 sentence conversational read on top of the deterministic data, ending with a concrete next-evidence ask.';
+      }
+      return 'Gemma 4 is processing locally. The phase id is ' + (phase || 'unknown') + ' — see harness handler for the exact prompt.';
+    }
     async function wbAbandonProcessJob(jobId, silent) {
       if (!jobId) return null;
       wbActiveProcessAbort = true;
@@ -1424,16 +1524,21 @@
         ) {
           _wbGemmaLastHeartbeatSec = phaseSeconds;
           const mins = Math.floor(phaseSeconds / 60);
+          const narration = wbGemmaPhaseNarration(phase);
           let lvl = 'info';
-          let note = 'Gemma still working. Larger variants can take several minutes per call.';
+          let timing = 'Gemma still working. Larger variants can take several minutes per call.';
           if (phaseSeconds >= 15 * 60) {
             lvl = 'warn';
-            note = 'Phase has run over 15 minutes. Consider Cancel and use Quick triage, or load a smaller variant (E4B-it / E2B-it).';
+            timing = 'Over 15 minutes. Consider Cancel and use Quick triage, or load a smaller variant (E4B-it / E2B-it).';
           } else if (phaseSeconds >= 5 * 60) {
             lvl = 'warn';
-            note = 'Phase has run over 5 minutes. Larger variants (26B-A4B, 31B) often take 5-15 minutes per Gemma call. Cancel from the progress box if needed.';
+            timing = 'Over 5 minutes. Larger variants (26B-A4B, 31B) often take 5-15 minutes per Gemma call. Cancel from the progress box if needed.';
           }
-          wbLog(lvl, 'Gemma phase still running: ' + phase + ' (' + mins + 'm ' + (phaseSeconds % 60) + 's)', note);
+          wbLog(
+            lvl,
+            'Gemma 4 still working — ' + phase + ' (' + mins + 'm ' + (phaseSeconds % 60) + 's)',
+            narration + ' ' + timing
+          );
         }
         // Hard breaker: only fire when a single phase has exceeded the
         // generous absolute deadline (default 25 minutes, scaled up if
@@ -1599,17 +1704,22 @@
         const procSummary = wbBundle.summary || {};
         const gemmaCalls = Number(procSummary.n_gemma_calls_attempted || 0);
         const edgeStatus = procSummary.gemma_edge_pass_status || 'not_run';
+        const intelForSubsteps = wbBundle.intelligence || {};
+        const mediaPass = intelForSubsteps.gemma_media_pass || {};
+        const mediaNote = mediaPass.n_processed
+          ? (' Contextual media review: ' + mediaPass.n_processed + '/' + (mediaPass.n_queued_total || 0)
+             + ' assets reviewed by Gemma 4; ' + (mediaPass.n_skipped_over_cap || 0) + ' over cap.')
+          : (mediaPass.n_queued_total ? ' Contextual media review did not run (budget=0 or model unloaded).' : '');
         const finalNote = gemmaCalls > 0
-          ? ('Gemma text passes ran during processing: calls=' + gemmaCalls +
-             ', edge_pass=' + edgeStatus + '. OCR/media vision remains explicit queued work.')
-          : 'No Gemma model call ran during processing. Load a model and keep max Gemma calls above zero, then run the explicit edge pass after review.';
+          ? ('Gemma 4 ran ' + gemmaCalls + ' call(s) during processing — edge pass: ' + edgeStatus + '.' + mediaNote)
+          : 'No Gemma model call ran during processing. Load a model and keep Max Gemma calls above zero, then re-upload or run the explicit edge pass after review.';
         wbSetProcessProgress(
           100,
           'Processing complete',
-          'Local deterministic extraction, graph linking, and queued-media accounting are complete.',
+          'Local deterministic extraction, graph linking, and Gemma 4 passes finished.',
           finalNote
         );
-        wbRenderProcessSubsteps(WB_PROCESS_STAGES.length - 1, true);
+        wbRenderProcessSubsteps(WB_PROCESS_STAGES.length - 1, true, intelForSubsteps);
         wbSetWorkflow(2);
       } catch (e) {
         wbStopProcessProgressLoop();
@@ -1640,7 +1750,7 @@
       const s = b.summary || {};
       const intel = b.intelligence || {};
       wbRenderTrace(intel.harness_trace || []);
-      wbRenderProcessingPlan(intel.processing_plan || {});
+      wbRenderProcessingPlan(intel.processing_plan || {}, intel);
       wbRenderIntelligence(intel, s);
       wbRenderGraph(intel.graph || {}, intel);
       wbRenderTypedEdges(intel);
@@ -1694,14 +1804,77 @@
         }
       ).join('');
     }
-    function wbRenderProcessingPlan(plan) {
+    function wbRenderProcessingPlan(plan, intel) {
       const host = document.getElementById('wb-processing-plan');
       const passes = plan.passes || [];
       const media = plan.media_assets || [];
-      // Mirror the deferred-queue count into the persistent OCR/multimodal tile
-      // so reviewers can never mistake "queued" for "done".
+      // Update the OCR / multimodal queue tile to reflect ACTUAL media-pass
+      // result, not a static "Deferred" label. After the contextual media
+      // pass runs, the tile reads "Reviewed by Gemma 4 — X/Y" instead of
+      // implying nothing ran.
       const deferredCountEl = document.getElementById('wb-media-deferred-count');
+      const deferredExtraEl = document.getElementById('wb-media-deferred-extra');
+      const deferredPillEl = document.getElementById('wb-media-deferred-pill');
+      const deferredDescEl = document.getElementById('wb-media-deferred-desc');
       if (deferredCountEl) deferredCountEl.textContent = String(media.length || 0);
+      if (deferredExtraEl) deferredExtraEl.textContent = '';
+      if (deferredPillEl && deferredDescEl) {
+        const mediaPass = (intel && intel.gemma_media_pass) || {};
+        const mpStatus = String(mediaPass.status || '').toLowerCase();
+        const nProc = Number(mediaPass.n_processed || 0);
+        const nQueued = Number(mediaPass.n_queued_total || media.length || 0);
+        const nOver = Number(mediaPass.n_skipped_over_cap || 0);
+        const setPill = (cls, label) => {
+          deferredPillEl.className = 'dc-pill ' + cls;
+          deferredPillEl.innerHTML = '';
+          const dot = document.createElement('span'); dot.className = 'dot'; deferredPillEl.appendChild(dot);
+          const lbl = document.createElement('span'); lbl.className = 'dc-pill-label'; lbl.textContent = label; deferredPillEl.appendChild(lbl);
+        };
+        if (mpStatus === 'complete_contextual') {
+          setPill('is-ready', 'Gemma 4 reviewed');
+          deferredDescEl.textContent = (
+            'Gemma 4 reviewed ' + nProc + ' of ' + nQueued + ' queued media asset(s) ' +
+            'contextually — each was sent to Gemma 4 with the filename, folder, linked-case, and prepared review questions to predict document type and trafficking-indicator edges. ' +
+            (nOver ? nOver + ' asset(s) remained over the Max-Gemma-calls cap. ' : '') +
+            'Confidence on contextual edges is capped at 0.5 until full pixel-level vision is wired.'
+          );
+          if (deferredExtraEl) deferredExtraEl.textContent = ' · reviewed by Gemma 4: ' + nProc + (nOver ? ' · over cap: ' + nOver : '');
+        } else if (mpStatus === 'salvaged_partial_edges' || mpStatus === 'salvaged_after_exception') {
+          setPill('is-warn', 'Partial salvage');
+          deferredDescEl.textContent = (
+            'Gemma 4 ran but the JSON output was malformed; the salvage path recovered ' +
+            nProc + ' partial edge(s) from raw text. Review carefully before citing.'
+          );
+        } else if (mpStatus === 'no_media') {
+          setPill('is-ready', 'Not applicable');
+          deferredDescEl.textContent = 'No image / scan / PDF media items in this bundle. Gemma 4 contextual media review was skipped because there was nothing to review.';
+        } else if (mpStatus === 'deterministic_no_model') {
+          setPill('is-deferred', 'Deferred (model not loaded)');
+          deferredDescEl.textContent = (
+            'Local Gemma 4 model is not loaded, so the contextual media review did not run. ' +
+            nQueued + ' media asset(s) remain queued. Load a model on the Models page and re-upload to run the contextual pass.'
+          );
+        } else if (mpStatus === 'no_budget') {
+          setPill('is-deferred', 'Deferred (budget=0)');
+          deferredDescEl.textContent = (
+            nQueued + ' media asset(s) queued; Gemma 4 contextual review did not run because Max Gemma calls or Calls per item was set to 0. Set both above zero in Processing configuration and re-upload.'
+          );
+        } else if (mpStatus === 'error') {
+          setPill('is-warn', 'Error');
+          deferredDescEl.textContent = 'Gemma 4 contextual media review attempted but every asset failed. Check the activity log for the underlying error.';
+        } else if (!mpStatus) {
+          setPill('is-deferred', 'Idle');
+          deferredDescEl.textContent = (
+            'Upload a bundle to populate this queue. Once Gemma 4 is loaded ' +
+            'and the upload runs, queued media assets are reviewed in batches ' +
+            'up to the Max Gemma calls budget; anything over the budget remains ' +
+            'queued for a follow-up pass.'
+          );
+        } else {
+          setPill('is-deferred', mpStatus);
+          deferredDescEl.textContent = 'Status: ' + mpStatus + '. ' + nQueued + ' media item(s) detected.';
+        }
+      }
       const parentDocs = plan.parent_documents || [];
       const methods = plan.analysis_methods || [];
       const local = plan.local_processing_contract || {};
@@ -2165,13 +2338,18 @@
           if (wbIsModelPhase(phase) && phaseSec >= 60 && phaseSec - lastHeartbeatSec >= 60) {
             lastHeartbeatSec = phaseSec;
             const mins = Math.floor(phaseSec / 60);
+            const narration = wbGemmaPhaseNarration(phase);
             const lvl = phaseSec >= 15 * 60 ? 'warn' : (phaseSec >= 5 * 60 ? 'warn' : 'info');
-            const note = phaseSec >= 15 * 60
-              ? 'Phase has run over 15 minutes. Click Cancel if you want to abort.'
+            const timing = phaseSec >= 15 * 60
+              ? 'Over 15 minutes. Click Cancel if you want to abort.'
               : (phaseSec >= 5 * 60
-                  ? 'Phase has run over 5 minutes. Larger Gemma variants (26B-A4B, 31B) often take 5-15 minutes per call.'
+                  ? 'Over 5 minutes. Larger Gemma variants (26B-A4B, 31B) often take 5-15 minutes per call.'
                   : 'Gemma still working. Larger variants can take several minutes per call.');
-            wbLog(lvl, 'Edge-pass phase: ' + phase + ' (' + mins + 'm ' + (phaseSec % 60) + 's)', note);
+            wbLog(
+              lvl,
+              'Gemma 4 edge pass — ' + phase + ' (' + mins + 'm ' + (phaseSec % 60) + 's)',
+              narration + ' ' + timing
+            );
           }
           wbSetEdgeProgress(
             job.pct || 0,
