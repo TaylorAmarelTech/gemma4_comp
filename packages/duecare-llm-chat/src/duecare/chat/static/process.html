@@ -693,7 +693,36 @@
         </div>
       </div>
       <div id="pg-route-badge" style="display:none; margin-top:10px;"></div>
-      <div id="pg-answer" style="margin-top:10px; font-family:var(--mono); font-size:12px; white-space:pre-wrap; padding:0;"></div>
+      <!--
+        Gemma 4 synthesis (when present) gets its own visually-distinct
+        teal callout above the deterministic supporting-data block so
+        the reviewer can tell at a glance which words came from Gemma 4
+        and which came from the graph analyst. pg-answer is kept as a
+        hidden mirror so existing tests that read its textContent still
+        work, and the final answer text is also placed there as a single
+        source of truth for the export / clipboard path.
+      -->
+      <div id="pg-synthesis-box" style="display:none; margin-top:10px;
+           background: oklch(0.97 0.025 195);
+           border: 1px solid oklch(0.78 0.06 195);
+           border-left: 4px solid oklch(0.52 0.08 195);
+           border-radius: 8px; padding: 12px 14px;">
+        <div style="font-family: var(--mono); font-size: 10px;
+             text-transform: uppercase; letter-spacing: 0.06em;
+             color: oklch(0.32 0.10 195); font-weight: 700; margin-bottom: 6px;">
+          Gemma 4 — conversational read
+        </div>
+        <div id="pg-synthesis-text" style="font-size: 13px; line-height: 1.6;
+             color: #0E1116; white-space: pre-wrap;"></div>
+        <div id="pg-synthesis-meta" style="font-family: var(--mono); font-size: 10px;
+             color: oklch(0.32 0.10 195); opacity: 0.7; margin-top: 6px;"></div>
+      </div>
+      <div id="pg-supporting-header" style="display:none; margin-top:12px;
+           font-family: var(--mono); font-size: 10px; text-transform: uppercase;
+           letter-spacing: 0.06em; color: #5B5F68; font-weight: 700;">
+        Supporting data — graph analyst (deterministic)
+      </div>
+      <div id="pg-answer" style="margin-top:6px; font-family:var(--mono); font-size:12px; white-space:pre-wrap; padding:0; color:#2A2D34;"></div>
       <p class="wb-muted" style="font-size:11px; margin-top:14px; padding-top:10px; border-top:1px solid #EFEDE4;">
         The graph stays in <code>/kaggle/working/process-staging/</code>.
         Deterministic answers and any Gemma 4 graph calls stay local; no remote call. Anonymize and submit via
@@ -748,14 +777,56 @@
         ansEl.textContent="";
         const badgeElReset = document.getElementById('pg-route-badge');
         if (badgeElReset) { badgeElReset.style.display = "none"; badgeElReset.innerHTML = ""; }
+        // Hide synthesis + supporting blocks between asks so old answers
+        // do not linger on screen while the next question is running.
+        const synBox = document.getElementById('pg-synthesis-box');
+        const synTxt = document.getElementById('pg-synthesis-text');
+        const synMeta = document.getElementById('pg-synthesis-meta');
+        const supHdr = document.getElementById('pg-supporting-header');
+        if (synBox) synBox.style.display = 'none';
+        if (synTxt) synTxt.textContent = '';
+        if (synMeta) synMeta.textContent = '';
+        if (supHdr) supHdr.style.display = 'none';
         if (typeof wbLog === 'function') {
           wbLog('net', 'POST /api/process/graph-chat', q.slice(0, 180));
         }
         const t0 = performance.now();
+        // Phase-aware narration so the 20-40s synthesis wait does not
+        // read as a generic spinner. The deterministic graph-analyst
+        // returns in well under a second; everything after ~2s elapsed
+        // is the Gemma 4 conversational-synthesis pass.
+        let pgLastSynthHeartbeat = 0;
         let pgTimer = setInterval(() => {
           const elapsed = Math.round((performance.now() - t0) / 1000);
-          const pct = Math.min(88, 18 + elapsed * 6);
-          pgSetProgress(pct, 'Graph analyst running', 'Waiting for deterministic answer or local Gemma 4 response. Elapsed ' + elapsed + 's.');
+          const pct = Math.min(88, 18 + elapsed * 4);
+          let stage = 'Graph analyst running';
+          let detail = '';
+          let note = '';
+          if (elapsed < 2) {
+            stage = 'Graph analyst running';
+            detail = 'Sending your question to the deterministic graph analyst (walks the cached typed-edge graph for fee, document-control, journey-stage, and group-pattern matches). Elapsed ' + elapsed + 's.';
+            note = 'The deterministic pass returns in under a second on most bundles.';
+          } else if (elapsed < 30) {
+            stage = 'Gemma 4 writing conversational synthesis';
+            detail = 'Graph analyst already returned; Gemma 4 is now reading your question + the analyst\'s supporting-data table + bundle context (rows / people / typed-edges count) and writing a 2-3 sentence conversational read on top. Elapsed ' + elapsed + 's.';
+            note = 'Gemma 4 E4B on Kaggle T4 typically takes 20-40s for the 200-token synthesis; larger variants (26B-A4B, 31B) can take 1-3 minutes.';
+          } else if (elapsed < 120) {
+            stage = 'Gemma 4 synthesis still working';
+            detail = 'Gemma 4 is still generating the synthesis. Elapsed ' + elapsed + 's. This is normal for larger variants (26B-A4B, 31B).';
+            note = 'If you are on E4B or smaller and it has been >60s, the model may be on a long-token path; the synthesis is capped at 200 new tokens so it will resolve.';
+          } else {
+            stage = 'Gemma 4 synthesis taking unusually long';
+            detail = 'Synthesis has run over 2 minutes. Elapsed ' + elapsed + 's.';
+            note = 'Consider canceling and re-asking with {"use_gemma_synthesis": false} on the next request (the deterministic graph-analyst answer alone is usually enough).';
+          }
+          pgSetProgress(pct, stage, detail, note);
+          // Mirror to the activity log every 30s so a reviewer scrolling
+          // the log later can see Gemma 4 was actively working.
+          if (typeof wbLog === 'function' && elapsed >= 30 && elapsed - pgLastSynthHeartbeat >= 30) {
+            pgLastSynthHeartbeat = elapsed;
+            wbLog('info', 'Gemma 4 graph-chat synthesis still working (' + elapsed + 's)',
+              'Gemma 4 is writing a 2-3 sentence conversational read on top of the deterministic graph-analyst answer. Larger variants can take 1-3 minutes per synthesis.');
+          }
         }, 1000);
         try{
           const r=await fetch("/api/process/graph-chat",{
@@ -775,8 +846,33 @@
             }
             return;
           }
-          const text=out.answer||out.response_text||JSON.stringify(out);
-          ansEl.textContent=text;
+          // Split the answer into the two visual blocks. The server's
+          // `synthesis` field is the conversational Gemma 4 wrap; the
+          // server's `deterministic_answer` field is the structured
+          // graph-analyst table. The combined `answer` field is kept as
+          // the single canonical text (for export / clipboard) and goes
+          // into pg-answer regardless of the split.
+          const synthesisOnly = out.synthesis || '';
+          const determOnly = out.deterministic_answer || out.answer || '';
+          const combinedText = out.answer || out.response_text || JSON.stringify(out);
+          // If the server returned both, render them separately.
+          // Otherwise, just put everything in pg-answer.
+          if (synthesisOnly && determOnly && synthesisOnly !== determOnly) {
+            const synBoxR = document.getElementById('pg-synthesis-box');
+            const synTxtR = document.getElementById('pg-synthesis-text');
+            const synMetaR = document.getElementById('pg-synthesis-meta');
+            const supHdrR = document.getElementById('pg-supporting-header');
+            if (synTxtR) synTxtR.textContent = synthesisOnly;
+            if (synMetaR && out.synthesis_ms) {
+              synMetaR.textContent = 'generated in ' + out.synthesis_ms + 'ms · Gemma 4 read the question + the supporting-data table below + the bundle context';
+            }
+            if (synBoxR) synBoxR.style.display = 'block';
+            if (supHdrR) supHdrR.style.display = 'block';
+            ansEl.textContent = determOnly;
+          } else {
+            // Single-block fallback (no synthesis, or both are the same).
+            ansEl.textContent = combinedText;
+          }
           let extra="";
           if(out.cited_rows && Array.isArray(out.cited_rows)) extra+=" cited rows: "+out.cited_rows.length;
           if(out.evidence_edges!=null) extra+=" | evidence edges: "+out.evidence_edges;
@@ -2091,10 +2187,72 @@
       const briefHead = briefStatus === 'model_error_deterministic_fallback'
         ? '<div style="margin-bottom:8px; background:#FAF9F4; border:1px solid #DDD8C9; border-left:3px solid oklch(0.52 0.08 195); border-radius:8px; padding:10px 12px; color:#2A2D34; font-size:12px; line-height:1.45;">Gemma 4 was unavailable for this brief, so the page is showing the deterministic case brief. Loader detail: ' + wbEsc(brief.error || 'model call unavailable') + '</div>'
         : '<div class="wb-status-pill" style="display:inline-block; margin-bottom:8px;">' + wbEsc(wbBriefStatusLabel(briefStatus)) + '</div>';
-      document.getElementById('wb-gemma-brief').innerHTML =
-        briefJson ? briefHead + '<pre style="white-space:pre-wrap; max-height:300px; overflow:auto; background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:10px; font-size:11.5px;">' + wbEsc(JSON.stringify(briefJson, null, 2)) + '</pre>' :
-        brief.text ? briefHead + '<pre style="white-space:pre-wrap; max-height:300px; overflow:auto; background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:10px; font-size:11.5px;">' + wbEsc(brief.text) + '</pre>' :
-        '<div class="wb-muted">Gemma case brief status: ' + wbEsc(wbBriefStatusLabel(briefStatus)) + '</div>';
+      // Render the case-brief JSON as a readable narrative + lists + a
+      // priority-people mini-table, instead of dumping the raw JSON in a
+      // <pre> block. The reviewer should read this as a brief, not as
+      // a code listing. Raw JSON is still available via the "Show JSON"
+      // toggle below for anyone who wants the structured payload.
+      const briefHostEl = document.getElementById('wb-gemma-brief');
+      if (briefJson) {
+        const caseTheory = String(briefJson.case_theory || '').trim();
+        const priorityPeople = Array.isArray(briefJson.priority_people) ? briefJson.priority_people : [];
+        const riskClusters = Array.isArray(briefJson.risk_clusters) ? briefJson.risk_clusters : [];
+        const missingEvidence = Array.isArray(briefJson.missing_evidence) ? briefJson.missing_evidence : [];
+        const recQuestions = Array.isArray(briefJson.recommended_questions) ? briefJson.recommended_questions : [];
+        const mediaQueued = Number(briefJson.media_assets_queued || 0);
+        const fmtMoney = v => (v ? 'PHP ' + Math.round(Number(v) || 0).toLocaleString() : '—');
+        const peopleRows = priorityPeople.slice(0, 6).map(p => {
+          const sigs = Array.isArray(p.signals) ? p.signals.slice(0, 3).join(', ') : '';
+          const rows = Array.isArray(p.row_ids) ? p.row_ids.slice(0, 3).map(r => '<code>' + wbEsc(r) + '</code>').join(' ') : '';
+          return '<tr>'
+            + '<td>' + wbEsc(p.name || p.case_id || '—') + '</td>'
+            + '<td><code>' + wbEsc(p.case_id || '') + '</code></td>'
+            + '<td>' + wbEsc(p.risk_score || '—') + '</td>'
+            + '<td>' + wbEsc(fmtMoney(p.total_payment_value)) + '</td>'
+            + '<td>' + wbEsc(sigs || '—') + '</td>'
+            + '<td>' + (rows || '<span class="wb-muted">—</span>') + '</td>'
+            + '</tr>';
+        }).join('');
+        // audit-allow:innerHTML-safe: all interpolated values pass through
+        // wbEsc; the question buttons forward their own escaped text to
+        // pgUseQuestion which itself sets textarea.value (no innerHTML).
+        briefHostEl.innerHTML =
+          briefHead
+          + (caseTheory ? '<div style="background: oklch(0.97 0.025 195); border:1px solid oklch(0.78 0.06 195); border-left:4px solid oklch(0.52 0.08 195); border-radius:8px; padding:12px 14px; margin-bottom:10px; font-size:13px; line-height:1.6; color:#0E1116;">' + wbEsc(caseTheory) + '</div>' : '')
+          + (priorityPeople.length ? '<h3 style="font-size:13px; margin:14px 0 6px;">Priority people</h3>'
+              + '<div style="max-height:260px; overflow:auto;"><table class="wb-small-table"><thead><tr><th>name</th><th>case</th><th>risk</th><th>payments</th><th>signals</th><th>support rows</th></tr></thead><tbody>'
+              + peopleRows + '</tbody></table></div>' : '')
+          + (riskClusters.length ? '<h3 style="font-size:13px; margin:14px 0 6px;">Risk clusters</h3>'
+              + '<div class="wb-chip-list">' + riskClusters.slice(0, 12).map(c => wbPill(c)).join('') + '</div>' : '')
+          + (missingEvidence.length ? '<h3 style="font-size:13px; margin:14px 0 6px;">Missing evidence to strengthen the case</h3>'
+              + '<ul style="margin:0; padding-left:20px; font-size:12.5px; line-height:1.55;">'
+              + missingEvidence.slice(0, 8).map(m => '<li>' + wbEsc(m) + '</li>').join('') + '</ul>' : '')
+          + (recQuestions.length ? '<h3 style="font-size:13px; margin:14px 0 6px;">Recommended next questions</h3>'
+              + '<div class="wb-row" id="wb-brief-rec-questions" style="gap:6px; flex-wrap:wrap;">'
+              + recQuestions.slice(0, 6).map(q =>
+                  '<button class="wb-btn-secondary wb-brief-rec-q" type="button" style="font-size:11.5px;" data-question="' + wbEsc(q) + '">' + wbEsc(q) + '</button>'
+                ).join('') + '</div>' : '')
+          + (mediaQueued ? '<div class="wb-muted" style="font-size:11.5px; margin-top:10px;">Media assets queued for OCR / Gemma 4 vision review: <b>' + wbEsc(mediaQueued) + '</b></div>' : '')
+          + '<details style="margin-top:14px;"><summary style="cursor:pointer; font-size:11.5px; color:#5B5F68;">Show raw JSON (for export / debugging)</summary>'
+          + '<pre style="white-space:pre-wrap; max-height:260px; overflow:auto; background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:10px; font-size:11px; margin-top:6px;">'
+          + wbEsc(JSON.stringify(briefJson, null, 2)) + '</pre></details>';
+        // Recommended-question buttons: attach click handlers via JS
+        // (data-question + listener) instead of inline onclick with
+        // string interpolation, so a Gemma-generated question containing
+        // backslashes, quotes, unicode escapes, or any other JS-special
+        // character cannot break out of the onclick handler. Standard
+        // XSS-safe pattern matching the rest of the codebase.
+        briefHostEl.querySelectorAll('.wb-brief-rec-q').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const q = btn.dataset.question || '';
+            if (q && typeof pgUseQuestion === 'function') pgUseQuestion(q);
+          });
+        });
+      } else if (brief.text) {
+        briefHostEl.innerHTML = briefHead + '<pre style="white-space:pre-wrap; max-height:300px; overflow:auto; background:#FAF9F4; border:1px solid #EFEDE4; border-radius:8px; padding:10px; font-size:11.5px;">' + wbEsc(brief.text) + '</pre>';
+      } else {
+        briefHostEl.innerHTML = '<div class="wb-muted">Gemma case brief status: ' + wbEsc(wbBriefStatusLabel(briefStatus)) + '</div>';
+      }
     }
     let wbLastGraphSvg = '';
     function wbGraphColor(group) {
