@@ -2501,6 +2501,110 @@ def _graph_chat_deterministic_answer(bundle: dict, question: str) -> dict | None
             "analysis_kind": "media_queue",
         }
 
+    if (wants_fee or wants_strongest) and (wants_group or wants_folder):
+        # Compound question: rank ENTITIES (agencies, employers, folders)
+        # by aggregate fee value, not a raw folder count. This catches
+        # "highest overcharging amounts grouped by recruiter/agency/
+        # employer/source folder" before the standalone folder branch
+        # returns a row-count dump.
+        by_agency: dict[str, dict] = {}
+        by_employer: dict[str, dict] = {}
+        by_folder: dict[str, dict] = {}
+
+        def _add(bucket: dict, key: str, person: dict, value: float) -> None:
+            slot = bucket.setdefault(key, {
+                "key": key,
+                "total_value": 0.0,
+                "people": [],
+                "row_ids": [],
+                "risk_signals": set(),
+            })
+            slot["total_value"] += value
+            if person.get("case_id") not in {p.get("case_id") for p in slot["people"]}:
+                slot["people"].append(person)
+            for row in _person_support_rows(person, limit=3):
+                if row and row not in slot["row_ids"]:
+                    slot["row_ids"].append(row)
+            for signal in (person.get("risk_signals") or [])[:3]:
+                slot["risk_signals"].add(str(signal))
+
+        for person in people:
+            value = float(person.get("total_payment_value") or 0)
+            agency = (person.get("agency") or "").strip()
+            employer = (person.get("employer") or "").strip()
+            if agency:
+                _add(by_agency, agency, person, value)
+            if employer:
+                _add(by_employer, employer, person, value)
+            for folder in person.get("folders") or []:
+                folder_str = str(folder or "").strip()
+                if folder_str:
+                    _add(by_folder, folder_str, person, value)
+
+        def _ranked(bucket: dict, top: int = 6) -> list[dict]:
+            return sorted(
+                bucket.values(),
+                key=lambda s: (-s["total_value"], -len(s["people"]), s["key"]),
+            )[:top]
+
+        ranked_agencies = _ranked(by_agency)
+        ranked_employers = _ranked(by_employer)
+        ranked_folders = _ranked(by_folder)
+
+        def _row(label: str, slot: dict) -> str:
+            money = _format_money(slot["total_value"])
+            people_label = ", ".join(
+                f"`{p.get('case_id')}`" for p in slot["people"][:5]
+            )
+            sigs = ", ".join(sorted(slot["risk_signals"])[:3]) or "—"
+            rows_str = ", ".join(f"`{r}`" for r in slot["row_ids"][:4]) or "—"
+            return (
+                f"- **{label}** | total payments observed: {money} | "
+                f"people: {len(slot['people'])} ({people_label}) | "
+                f"signals: {sigs} | support rows: {rows_str}"
+            )
+
+        sections: list[str] = []
+        if ranked_agencies:
+            sections.append("**Agencies ranked by total observed payments:**\n")
+            for slot in ranked_agencies:
+                add_rows(slot["row_ids"])
+                sections.append(_row(slot["key"], slot))
+        if ranked_employers:
+            if sections:
+                sections.append("")
+            sections.append("**Employers ranked by total observed payments:**\n")
+            for slot in ranked_employers:
+                add_rows(slot["row_ids"])
+                sections.append(_row(slot["key"], slot))
+        if ranked_folders:
+            if sections:
+                sections.append("")
+            sections.append("**Source folders ranked by total observed payments:**\n")
+            for slot in ranked_folders:
+                add_rows(slot["row_ids"])
+                sections.append(_row(slot["key"], slot))
+
+        if sections:
+            sections.append("")
+            sections.append(
+                "Aggregates combine `total_payment_value` per person across the "
+                "available agency, employer, and folder labels. Confirm the "
+                "underlying receipts and contract clauses before treating any "
+                "single entity as the recruitment-fee recipient. Run the local "
+                "Gemma 4 edge pass to surface explicit "
+                "`charged_or_collected_fee` and `fee_camouflage_evidence` edges "
+                "for higher-confidence attribution."
+            )
+            return {
+                "answer": "\n".join(sections),
+                "cited_rows": cited_rows,
+                "analysis_kind": "fee_by_entity",
+            }
+        # No employer/agency/folder labels on people in this bundle;
+        # fall through to the standalone folder branch below so the
+        # reviewer still sees something useful instead of an empty reply.
+
     if wants_folder:
         folders = intelligence.get("folder_counts") or []
         lines = [
@@ -2628,22 +2732,113 @@ def _graph_chat_deterministic_answer(bundle: dict, question: str) -> dict | None
         }
 
     if wants_missing:
+        # Walk this bundle's actual graph rather than printing a static
+        # checklist. For each case, compute which evidence edge types
+        # are PRESENT and which expected types are ABSENT. Surface the
+        # specific gaps with cited row IDs so the reviewer knows what
+        # to request next.
         media_count = ((intelligence.get("processing_plan") or {})
                        .get("n_media_assets", 0))
-        answer = (
-            "Evidence that would strengthen this bundle before escalation:\n\n"
-            "1. Original receipts or transfer records showing fee recipient and date.\n"
-            "2. Agency, broker, employer, and payment-account identifiers.\n"
-            "3. Employment contract, side letter, and any replacement contract.\n"
-            "4. Screenshots with timestamps and sender handles.\n"
-            "5. Passport or identity-document custody evidence.\n"
-            "6. Complaint filings, case numbers, and retaliation messages.\n"
-            f"7. OCR and Gemma 4 vision review for queued media assets: {media_count}."
+        # Edge types we expect a strong case file to have. The label
+        # describes what to request when the edge is absent.
+        expected_edges: list[tuple[str, str]] = [
+            ("charged_or_collected_fee", "original receipts or transfer records naming the fee recipient and amount"),
+            ("fee_camouflage_evidence", "explicit fee-camouflage proof (placement/training/medical/repayment relabeling)"),
+            ("document_control_signal", "passport or identity-document custody evidence"),
+            ("dated_evidence", "timestamps on payments, contracts, or chat messages"),
+            ("journey_stage_observation", "documentation of recruitment, deployment, and termination stages"),
+            ("provider_choice_restriction", "evidence of forced single-provider use (housing, medical, remittance)"),
+            ("salary_deduction_signal", "wage-deduction records linked to recruitment debt"),
+        ]
+        # Index edges by case_id.
+        edges_by_case: dict[str, set[str]] = {}
+        rows_by_case_edge: dict[tuple[str, str], list[str]] = {}
+        for edge in typed_edges:
+            case = str(edge.get("case_id") or "UNKNOWN")
+            etype = str(edge.get("edge_type") or "")
+            row = str(edge.get("row_id") or "")
+            if not etype:
+                continue
+            edges_by_case.setdefault(case, set()).add(etype)
+            if row:
+                rows_by_case_edge.setdefault((case, etype), [])
+                if row not in rows_by_case_edge[(case, etype)]:
+                    rows_by_case_edge[(case, etype)].append(row)
+
+        # Build per-case gap analysis.
+        per_case_sections: list[str] = []
+        rankable_people = [p for p in people if str(p.get("case_id") or "").upper() != "UNKNOWN"]
+        ranked_people = sorted(
+            rankable_people,
+            key=lambda p: (-int(p.get("risk_score") or 0), -float(p.get("total_payment_value") or 0)),
+        )[:6]
+
+        for person in ranked_people:
+            case_id = str(person.get("case_id") or "UNKNOWN")
+            present = edges_by_case.get(case_id, set())
+            present_short = sorted(t for t in present if t in {e[0] for e in expected_edges})
+            missing = [(etype, desc) for etype, desc in expected_edges if etype not in present]
+            label = person.get("name") or case_id
+            lines_p = [
+                f"**{label}** (`{case_id}`) | risk: {person.get('risk_score')} | "
+                f"payments observed: {_format_money(float(person.get('total_payment_value') or 0))}"
+            ]
+            if present_short:
+                # Cite a couple of supporting rows from existing edges.
+                supporting: list[str] = []
+                for etype in present_short[:3]:
+                    for r in rows_by_case_edge.get((case_id, etype), [])[:2]:
+                        if r and r not in supporting:
+                            supporting.append(r)
+                add_rows(supporting)
+                lines_p.append(
+                    "  Present evidence: " + ", ".join(present_short)
+                    + (" | rows: " + ", ".join(f"`{r}`" for r in supporting[:4]) if supporting else "")
+                )
+            if missing:
+                lines_p.append("  Missing — request next:")
+                for _etype, desc in missing[:5]:
+                    lines_p.append(f"    - {desc}")
+            per_case_sections.append("\n".join(lines_p))
+
+        # Bundle-level gaps that apply to every case.
+        bundle_gaps: list[str] = []
+        if media_count:
+            bundle_gaps.append(
+                f"Run OCR + Gemma 4 vision on {media_count} queued media asset(s). "
+                "Visual receipts, signed contracts, and ID-document scans often "
+                "carry evidence the plain-text pass cannot reach."
+            )
+        unknown_count = sum(1 for p in people if str(p.get("case_id") or "").upper() == "UNKNOWN")
+        if unknown_count:
+            bundle_gaps.append(
+                f"{unknown_count} row group(s) lack a stable case ID. Reconcile "
+                "loose chat/receipt files to a worker case before escalation."
+            )
+
+        answer_parts = ["**Missing evidence per case (top-risk first):**", ""]
+        if per_case_sections:
+            answer_parts.append("\n\n".join(per_case_sections))
+        else:
+            answer_parts.append(
+                "No cases with stable IDs were identified in this bundle yet. "
+                "Reconcile rows to a worker first, then re-ask."
+            )
+        if bundle_gaps:
+            answer_parts.append("")
+            answer_parts.append("**Bundle-level gaps:**")
+            for gap in bundle_gaps:
+                answer_parts.append(f"- {gap}")
+        answer_parts.append("")
+        answer_parts.append(
+            "These gaps are computed from the typed-edge graph for this "
+            "specific bundle. Re-run after uploading additional receipts, "
+            "contracts, or running the Gemma 4 media-vision pass to update."
         )
         return {
-            "answer": answer,
-            "cited_rows": [],
-            "analysis_kind": "missing_evidence",
+            "answer": "\n".join(answer_parts),
+            "cited_rows": cited_rows,
+            "analysis_kind": "missing_evidence_graph_aware",
         }
 
     return None
@@ -2703,6 +2898,85 @@ def _normalize_model_edge(edge: Any, *, fallback_case_id: str = "UNKNOWN") -> di
     return normalized
 
 
+def _salvage_edge_objects(text: str) -> list[dict]:
+    """Extract edge-shaped JSON objects from possibly-malformed text.
+
+    Walks the text counting brace depth (string-aware) to find every
+    balanced ``{...}`` block, tries to parse each one independently, and
+    keeps any dict that looks like an edge contract (has at least
+    ``edge_type``, ``source_node``, and ``target_node``).
+
+    This lets the edge pass return useful edges even when the top-level
+    JSON wrapper is malformed (missing closing brace, trailing comma,
+    duplicate keys, model emitted prose around the JSON, etc).
+    """
+    if not text:
+        return []
+    candidates: list[dict] = []
+    depth = 0
+    start = -1
+    in_string = False
+    escape = False
+    n = len(text)
+    for i in range(n):
+        ch = text[i]
+        if in_string:
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == '"':
+                in_string = False
+            continue
+        if ch == '"':
+            in_string = True
+            continue
+        if ch == "{":
+            if depth == 0:
+                start = i
+            depth += 1
+        elif ch == "}":
+            if depth > 0:
+                depth -= 1
+                if depth == 0 and start >= 0:
+                    blob = text[start:i + 1]
+                    start = -1
+                    try:
+                        obj = _json.loads(blob)
+                    except Exception:
+                        obj = None
+                    if (
+                        isinstance(obj, dict)
+                        and obj.get("edge_type")
+                        and obj.get("source_node")
+                        and obj.get("target_node")
+                    ):
+                        candidates.append(obj)
+    return candidates
+
+
+def _normalize_edges_safe(
+    raw_edges: list[Any],
+    *,
+    fallback_case_id: str,
+) -> list[dict]:
+    """Normalize a list of raw edge dicts, swallowing per-edge errors.
+
+    ``_normalize_model_edge`` can throw on out-of-range confidence values
+    or unexpected types. We never want one bad edge to wipe the whole
+    pass, so each call is wrapped individually.
+    """
+    out: list[dict] = []
+    for raw in raw_edges:
+        try:
+            normalized = _normalize_model_edge(raw, fallback_case_id=fallback_case_id)
+        except Exception:
+            normalized = None
+        if normalized:
+            out.append(normalized)
+    return out
+
+
 def _gemma_edge_pass(
     app: Any,
     bundle: dict,
@@ -2752,6 +3026,25 @@ def _gemma_edge_pass(
         {"role": "system", "content": [{"type": "text", "text": GRAPH_EDGE_EXTRACTION_SYSTEM_PROMPT}]},
         {"role": "user", "content": [{"type": "text", "text": prompt}]},
     ]
+    fallback_case_id = ((intelligence.get("people") or [{}])[0] or {}).get("case_id") or "UNKNOWN"
+    text_for_salvage = ""
+
+    def _dedup_edges(*lists: list[dict]) -> list[dict]:
+        seen: set[tuple[str, str, str]] = set()
+        out: list[dict] = []
+        for edges in lists:
+            for edge in edges:
+                key = (
+                    str(edge.get("edge_type") or ""),
+                    str(edge.get("source_node") or ""),
+                    str(edge.get("target_node") or ""),
+                )
+                if key in seen:
+                    continue
+                seen.add(key)
+                out.append(edge)
+        return out
+
     try:
         mark("model_call", 58, "Calling local Gemma 4 for typed edge and RAG-candidate synthesis.")
         try:
@@ -2763,61 +3056,328 @@ def _gemma_edge_pass(
             (model_out or {}).get("text") or (model_out or {}).get("response") or ""
         )
         text = sanitize_model_output(text)
+        text_for_salvage = text
         from duecare.chat._model_json import extract_json
         extracted = extract_json(text)
         parsed = extracted.payload if isinstance(extracted.payload, dict) else None
-        if not parsed:
-            attempts_summary = " -> ".join(extracted.attempts) or "no attempts recorded"
+
+        # Always salvage edge-shaped objects from raw text, regardless of
+        # whether the top-level JSON parsed. Small models often emit
+        # individually-valid edges inside a malformed wrapper.
+        salvaged_raw = _salvage_edge_objects(text)
+        salvaged_edges = _normalize_edges_safe(
+            salvaged_raw, fallback_case_id=fallback_case_id,
+        )
+
+        if parsed:
+            primary_edges = _normalize_edges_safe(
+                parsed.get("edges") or [], fallback_case_id=fallback_case_id,
+            )
+            model_edges = _dedup_edges(primary_edges, salvaged_edges)[:limit]
+            candidates = parsed.get("rag_candidates")
+            if not isinstance(candidates, list):
+                candidates = deterministic_candidates
+            uncertainties = parsed.get("uncertainties")
+            if not isinstance(uncertainties, list):
+                uncertainties = []
+            extra_salvaged = max(0, len(model_edges) - len(primary_edges))
+            mark("merge_results", 92, "Merging model-proposed edges with deterministic review context.")
+            return {
+                **base,
+                "status": "ok",
+                "model_edges": model_edges,
+                "rag_candidates": candidates[:12],
+                "uncertainties": [str(x)[:240] for x in uncertainties[:12]],
+                "prompt_chars": len(prompt),
+                "salvaged_extra_edges": extra_salvaged,
+            }
+
+        # Top-level JSON failed. If salvage recovered edges, use them.
+        attempts_summary = " -> ".join(extracted.attempts) or "no attempts recorded"
+        if salvaged_edges:
             mark(
-                "parse_model_output",
-                100,
-                "Gemma output was not valid JSON; keeping deterministic fallback edges visible. "
-                f"Parser attempts: {attempts_summary}",
+                "merge_results",
+                92,
+                f"Top-level JSON failed but salvage recovered {len(salvaged_edges)} edge(s) "
+                f"from raw text. Parser attempts: {attempts_summary}.",
             )
             return {
                 **base,
-                "status": "model_unparsed_deterministic_fallback",
-                "model_edges": [],
+                "status": "salvaged_partial_edges",
+                "model_edges": salvaged_edges[:limit],
                 "text_preview": text[:900],
                 "parser_attempts": list(extracted.attempts),
                 "raw_preview": extracted.raw_preview,
+                "salvaged_extra_edges": len(salvaged_edges),
                 "uncertainties": [
-                    "Gemma output did not parse as JSON; review deterministic edges.",
-                    f"Parser attempts: {attempts_summary}",
+                    f"Top-level JSON did not parse ({attempts_summary}); "
+                    f"recovered {len(salvaged_edges)} edge(s) via brace-matched salvage. "
+                    "Review carefully — partial output may omit context.",
                 ],
+                "prompt_chars": len(prompt),
             }
-        fallback_case_id = ((intelligence.get("people") or [{}])[0] or {}).get("case_id") or "UNKNOWN"
-        model_edges = [
-            e for e in (
-                _normalize_model_edge(edge, fallback_case_id=fallback_case_id)
-                for edge in (parsed.get("edges") or [])
-            )
-            if e
-        ][:limit]
-        candidates = parsed.get("rag_candidates")
-        if not isinstance(candidates, list):
-            candidates = deterministic_candidates
-        uncertainties = parsed.get("uncertainties")
-        if not isinstance(uncertainties, list):
-            uncertainties = []
-        mark("merge_results", 92, "Merging model-proposed edges with deterministic review context.")
+
+        mark(
+            "parse_model_output",
+            100,
+            "Gemma output was not valid JSON and salvage found no edge-shaped objects; "
+            f"keeping deterministic fallback edges visible. Parser attempts: {attempts_summary}",
+        )
         return {
             **base,
-            "status": "ok",
-            "model_edges": model_edges,
-            "rag_candidates": candidates[:12],
-            "uncertainties": [str(x)[:240] for x in uncertainties[:12]],
-            "prompt_chars": len(prompt),
+            "status": "model_unparsed_deterministic_fallback",
+            "model_edges": [],
+            "text_preview": text[:900],
+            "parser_attempts": list(extracted.attempts),
+            "raw_preview": extracted.raw_preview,
+            "uncertainties": [
+                "Gemma output did not parse as JSON and no edge-shaped objects could be salvaged; "
+                "review deterministic edges.",
+                f"Parser attempts: {attempts_summary}",
+            ],
         }
     except Exception as exc:
-        mark("model_error", 100, "Gemma edge pass failed; returning deterministic fallback edges.")
+        # Even on exception, attempt salvage from whatever text we captured.
+        salvaged_after_error: list[dict] = []
+        if text_for_salvage:
+            try:
+                salvaged_raw = _salvage_edge_objects(text_for_salvage)
+                salvaged_after_error = _normalize_edges_safe(
+                    salvaged_raw, fallback_case_id=fallback_case_id,
+                )
+            except Exception:
+                salvaged_after_error = []
+
+        err_msg = f"{type(exc).__name__}: {exc}"[:300]
+        if salvaged_after_error:
+            mark(
+                "model_error",
+                100,
+                f"Gemma edge pass raised {type(exc).__name__} but salvage recovered "
+                f"{len(salvaged_after_error)} edge(s) from partial output.",
+            )
+            return {
+                **base,
+                "status": "salvaged_after_exception",
+                "model_edges": salvaged_after_error[:limit],
+                "error": err_msg,
+                "salvaged_extra_edges": len(salvaged_after_error),
+                "uncertainties": [
+                    f"Gemma edge pass raised {type(exc).__name__}; "
+                    f"recovered {len(salvaged_after_error)} edge(s) via salvage. "
+                    "Original error preserved in `error` for diagnosis.",
+                ],
+                "text_preview": text_for_salvage[:900],
+            }
+        mark("model_error", 100, f"Gemma edge pass failed ({type(exc).__name__}); returning deterministic fallback edges.")
         return {
             **base,
             "status": "model_error_deterministic_fallback",
             "model_edges": [],
-            "error": f"{type(exc).__name__}: {exc}"[:300],
-            "uncertainties": ["Gemma edge pass failed; deterministic typed edges remain available."],
+            "error": err_msg,
+            "uncertainties": [
+                f"Gemma edge pass failed: {err_msg}. Deterministic typed edges remain available.",
+            ],
+            "text_preview": (text_for_salvage or "")[:900],
         }
+
+
+_MEDIA_CONTEXT_SYSTEM_PROMPT = (
+    "You review queued media assets from a case file. You do NOT see the "
+    "raw image yet — only the filename, folder path, media type, and "
+    "linked case context. Use that to predict what entities, document "
+    "types, and edges a full Gemma 4 vision pass would surface. Cite "
+    "concrete signals (passport retention, fee receipt, employer ID, "
+    "wage deduction, recruitment chat) when the path or folder hints at "
+    "them. Return short, plain reasoning followed by a JSON block of "
+    "proposed_edges. Each proposed edge must have edge_type, source_node "
+    "(case:<case_id>), target_node, and a one-line evidence.quote. Do "
+    "not fabricate amounts, names, or dates that the file path does "
+    "not imply. If the asset is uninformative without the bytes, say "
+    "so and return an empty proposed_edges list."
+)
+
+
+def _build_media_context_prompt(asset: dict, bundle: dict) -> str:
+    """Build the per-asset context prompt for the contextual media pass."""
+    intelligence = bundle.get("intelligence") or {}
+    summary = bundle.get("summary") or {}
+    case_id = asset.get("row_id", "").split("/")[0] or "UNKNOWN"
+    # Try to find the matching person to ground reasoning in case context.
+    people = intelligence.get("people") or []
+    person_match = None
+    for p in people:
+        if str(p.get("case_id")) in str(asset.get("source_path", "")):
+            person_match = p
+            break
+    person_block = ""
+    if person_match:
+        person_block = (
+            f"\nLinked case context:\n"
+            f"  case_id: {person_match.get('case_id')}\n"
+            f"  name: {person_match.get('name') or 'unknown'}\n"
+            f"  agency: {person_match.get('agency') or 'unknown'}\n"
+            f"  employer: {person_match.get('employer') or 'unknown'}\n"
+            f"  corridor: {person_match.get('corridor') or 'unknown'}\n"
+            f"  risk signals: {', '.join((person_match.get('risk_signals') or [])[:6]) or 'none'}\n"
+        )
+    questions = "\n".join(f"  - {q}" for q in (asset.get("gemma_questions") or [])[:4])
+    folders = ", ".join(asset.get("folders") or []) or "—"
+    return (
+        f"Queued media asset:\n"
+        f"  row_id: {asset.get('row_id')}\n"
+        f"  source_path: {asset.get('source_path')}\n"
+        f"  media_type: {asset.get('media_type')}\n"
+        f"  folders: {folders}\n"
+        f"  bytes: {asset.get('bytes')}\n"
+        f"{person_block}\n"
+        f"Standard review questions for this asset:\n{questions}\n\n"
+        f"Bundle context: {summary.get('n_rows_processed', 0)} rows processed, "
+        f"{summary.get('n_grep_rules_fired', 0)} GREP rules fired, "
+        f"{summary.get('n_people_detected', 0)} people detected.\n\n"
+        "Task:\n"
+        "1. In 2-3 sentences, predict what evidence this asset likely contains and "
+        "which review questions matter most.\n"
+        "2. Emit a JSON block:\n"
+        '{"proposed_edges": [\n'
+        '  {"edge_type": "...", "source_node": "case:' + case_id + '", '
+        '"target_node": "...", "evidence": {"quote": "predicted: ..."}, "confidence": 0.4}\n'
+        ']}\n'
+        "Use confidence <= 0.5 because you have not seen the bytes yet. "
+        "If nothing useful can be predicted without the bytes, emit an empty list."
+    )
+
+
+def _gemma_media_contextual_pass(
+    app: Any,
+    bundle: dict,
+    *,
+    limit: int,
+    progress: Any | None = None,
+) -> dict:
+    """Run Gemma 4 over queued media assets using filename + folder context.
+
+    Real multimodal pixel vision requires Gemma 4's AutoProcessor pair
+    (image preprocessing + tokenizer). Until that's verified end-to-end,
+    this pass gives Gemma the per-asset structural context (path, folder,
+    media type, prepared review questions, linked case) and asks for
+    predicted entities and proposed edges. Output is marked with low
+    confidence (<= 0.5) so reviewers know it's contextual prediction,
+    not pixel evidence.
+
+    This converts the previous "47 queued, all deferred" failure mode
+    into "N processed contextually, M over cap" with concrete Gemma 4
+    output per asset within budget.
+    """
+
+    def mark(phase: str, pct: int, detail: str) -> None:
+        if progress:
+            progress(phase=phase, pct=pct, detail=detail)
+
+    intelligence = bundle.get("intelligence") or {}
+    media_assets = ((intelligence.get("processing_plan") or {}).get("media_assets") or [])
+    gc = getattr(app.state, "gemma_call", None)
+    base = {
+        "schema_version": "duecare.process.gemma_media_pass.v1",
+        "pass_kind": "contextual",
+        "local_only": True,
+        "limit": int(limit),
+        "n_queued_total": len(media_assets),
+    }
+    if not media_assets:
+        return {**base, "status": "no_media", "n_processed": 0, "n_errors": 0, "n_skipped_over_cap": 0, "asset_summaries": []}
+    if gc is None:
+        return {**base, "status": "deterministic_no_model", "n_processed": 0, "n_errors": 0, "n_skipped_over_cap": len(media_assets), "asset_summaries": []}
+    if limit <= 0:
+        return {**base, "status": "no_budget", "n_processed": 0, "n_errors": 0, "n_skipped_over_cap": len(media_assets), "asset_summaries": []}
+
+    to_process = media_assets[:limit]
+    summaries: list[dict] = []
+    fallback_case_id = ((intelligence.get("people") or [{}])[0] or {}).get("case_id") or "UNKNOWN"
+
+    n_items = len(to_process)
+    for idx, asset in enumerate(to_process):
+        pct = 10 + round(((idx + 1) / max(1, n_items)) * 80)
+        src = asset.get("source_path") or asset.get("row_id") or "?"
+        mark("media_item", pct, f"Reviewing media asset {idx + 1}/{n_items}: {src}")
+        prompt = _build_media_context_prompt(asset, bundle)
+        messages = [
+            {"role": "system", "content": [{"type": "text", "text": _MEDIA_CONTEXT_SYSTEM_PROMPT}]},
+            {"role": "user", "content": [{"type": "text", "text": prompt}]},
+        ]
+        try:
+            try:
+                model_out = gc(messages, max_new_tokens=500, temperature=0.2)
+            except TypeError:
+                model_out = gc(messages)
+        except Exception as exc:
+            summaries.append({
+                "row_id": asset.get("row_id"),
+                "source_path": src,
+                "media_type": asset.get("media_type"),
+                "status": "error",
+                "error": f"{type(exc).__name__}: {str(exc)[:160]}",
+            })
+            continue
+        text = model_out if isinstance(model_out, str) else (
+            (model_out or {}).get("text") or (model_out or {}).get("response") or ""
+        )
+        text = sanitize_model_output(text)
+
+        # Try strict JSON parse first; fall back to brace-matched salvage.
+        proposed_raw: list[dict] = []
+        try:
+            from duecare.chat._model_json import extract_json
+            extracted = extract_json(text)
+            parsed = extracted.payload if isinstance(extracted.payload, dict) else None
+            if parsed and isinstance(parsed.get("proposed_edges"), list):
+                proposed_raw = [e for e in parsed["proposed_edges"] if isinstance(e, dict)]
+        except Exception:
+            proposed_raw = []
+        if not proposed_raw:
+            proposed_raw = _salvage_edge_objects(text)
+
+        normalized = _normalize_edges_safe(proposed_raw, fallback_case_id=fallback_case_id)
+        # Force confidence cap because we have not seen the bytes yet.
+        for edge in normalized:
+            try:
+                edge["confidence"] = min(float(edge.get("confidence") or 0.4), 0.5)
+            except Exception:
+                edge["confidence"] = 0.4
+            edge.setdefault("extractors", []).append("gemma4_contextual_media")
+            edge["review_status"] = "needs_image_pass"
+
+        summaries.append({
+            "row_id": asset.get("row_id"),
+            "source_path": src,
+            "media_type": asset.get("media_type"),
+            "status": "ok",
+            "answer": text[:1500],
+            "proposed_edges": normalized[:8],
+            "n_proposed_edges": len(normalized),
+        })
+
+    n_processed = sum(1 for s in summaries if s.get("status") == "ok")
+    n_errors = sum(1 for s in summaries if s.get("status") == "error")
+    n_skipped = max(0, len(media_assets) - n_items)
+    overall_status = (
+        "complete_contextual" if n_processed
+        else ("error" if n_errors else "no_progress")
+    )
+    return {
+        **base,
+        "status": overall_status,
+        "n_processed": n_processed,
+        "n_errors": n_errors,
+        "n_skipped_over_cap": n_skipped,
+        "asset_summaries": summaries,
+        "note": (
+            "Contextual media review uses file path, folder, linked case, and "
+            "media type to ask Gemma 4 for predicted entities and edges per "
+            "asset. Full pixel-level vision will replace this once the "
+            "AutoProcessor + image-byte path is wired."
+        ),
+    }
 
 
 def register_routes(app: Any) -> None:
@@ -3029,8 +3589,47 @@ def register_routes(app: Any) -> None:
             )
             intelligence["gemma_edge_pass"] = gemma_edge_out
         media_count = ((intelligence.get("processing_plan") or {}).get("n_media_assets", 0))
+
+        # Contextual media pass — run Gemma 4 over queued media assets
+        # within the remaining budget so they no longer all show as
+        # "deferred". Predicts entities/edges from file path + folder +
+        # linked case + prepared review questions; confidence is capped
+        # at 0.5 because we have not seen the raw bytes yet.
+        gemma_media_out: dict = {}
+        media_budget = max(0, gemma_budget - n_gemma_calls_attempted) if run_gemma_text else 0
+        if run_gemma_text and media_count > 0 and media_budget > 0:
+            def _media_progress(*, phase: str, pct: int, detail: str, **_: Any) -> None:
+                mapped_pct = 94 + round(max(0, min(100, int(pct))) * 0.04)
+                mark(f"gemma_media_{phase}", mapped_pct, detail)
+
+            mark(
+                "gemma_media_start",
+                94,
+                f"Reviewing up to {min(media_budget, media_count)} of {media_count} queued media asset(s) with Gemma 4.",
+            )
+            gemma_media_out = _gemma_media_contextual_pass(
+                app,
+                bundle,
+                limit=min(media_budget, media_count),
+                progress=_media_progress,
+            )
+            n_gemma_calls_attempted += int(gemma_media_out.get("n_processed") or 0)
+            intelligence["gemma_media_pass"] = gemma_media_out
+
+            # Fold media-pass proposed edges into typed_edges so graph
+            # chat and the Step 3 review surface can cite them. Cap to
+            # avoid runaway growth from a noisy contextual pass.
+            media_typed_edges: list[dict] = []
+            for s in gemma_media_out.get("asset_summaries") or []:
+                for edge in (s.get("proposed_edges") or [])[:6]:
+                    media_typed_edges.append(edge)
+            if media_typed_edges:
+                existing_typed = intelligence.get("typed_edges") or []
+                existing_typed.extend(media_typed_edges[:120])
+                intelligence["typed_edges"] = existing_typed
+
         if run_gemma_text:
-            mark("model_passes_done", 94, "Local Gemma 4 text passes finished; finalizing bundle.")
+            mark("model_passes_done", 98, "Local Gemma 4 text + media passes finished; finalizing bundle.")
         edge_status = str(gemma_edge_out.get("status") or "not_run")
         text_status = "complete" if run_gemma_text else "deferred"
         if run_gemma_text and (
@@ -3082,10 +3681,23 @@ def register_routes(app: Any) -> None:
             {
                 "id": "media_queue",
                 "label": "OCR and Gemma 4 media vision queue",
-                "status": "deferred" if media_count else "skipped",
+                "status": (
+                    "complete_contextual" if gemma_media_out.get("n_processed")
+                    else ("skipped" if not media_count else "deferred")
+                ),
                 "detail": (
-                    f"{media_count} media item(s) queued for OCR/Gemma 4 page review. "
-                    "The current upload pass does not run image/page vision."
+                    (
+                        f"{gemma_media_out.get('n_processed', 0)}/{media_count} media item(s) reviewed by "
+                        f"Gemma 4 (contextual: file path + folder + linked case). "
+                        f"{gemma_media_out.get('n_skipped_over_cap', 0)} over Gemma-call cap. "
+                        f"{gemma_media_out.get('n_errors', 0)} errors. "
+                        "Pixel-level vision pending AutoProcessor wiring."
+                    ) if gemma_media_out.get("n_processed") is not None and gemma_media_out
+                    else (
+                        f"{media_count} media item(s) queued. Enable inline Gemma "
+                        "and set Max Gemma calls > text-pass count to run the "
+                        "contextual media review."
+                    )
                 ),
             },
             {
@@ -3611,29 +4223,103 @@ def register_routes(app: Any) -> None:
         if deterministic is not None:
             summary = bundle.get("summary") or {}
             cited = deterministic.get("cited_rows") or []
+            det_answer = deterministic.get("answer", "")
+
+            # Gemma synthesis: layer a brief narrative wrap on top of the
+            # deterministic answer so the reviewer sees Gemma 4 actively
+            # contextualizing the graph, not just static tables. Opt-out
+            # via {"use_gemma_synthesis": false}. Bounded to ~200 tokens
+            # so it adds < ~30s on Kaggle E4B and far less on smaller
+            # variants.
+            use_synthesis = body.get("use_gemma_synthesis")
+            if use_synthesis is None:
+                use_synthesis = True
+            synthesis_text: str | None = None
+            synthesis_error: str | None = None
+            synthesis_ms = 0
+            if gc is not None and use_synthesis:
+                try:
+                    import time as _time
+                    _t0 = _time.monotonic()
+                    synth_system = (
+                        "You are a case-review assistant. The reviewer just saw "
+                        "a deterministic graph-analyst answer. Add EXACTLY 2-3 "
+                        "sentences that (a) name the most important finding in "
+                        "plain English and (b) flag a single concrete next "
+                        "evidence ask or worker action. Do NOT repeat the "
+                        "table. Do NOT invent amounts, names, or edges. Do "
+                        "NOT cite row IDs the deterministic answer did not "
+                        "cite. If nothing is conclusive, say that plainly."
+                    )
+                    synth_user = (
+                        f"Question: {question}\n\n"
+                        f"Deterministic answer:\n{det_answer}\n\n"
+                        f"Bundle context: {summary.get('n_rows_processed', 0)} rows, "
+                        f"{summary.get('n_people_detected', 0)} people, "
+                        f"{summary.get('n_typed_edges', 0)} typed edges."
+                    )
+                    synth_msgs = [
+                        {"role": "system", "content": [{"type": "text", "text": synth_system}]},
+                        {"role": "user", "content": [{"type": "text", "text": synth_user}]},
+                    ]
+                    try:
+                        synth_out = gc(synth_msgs, max_new_tokens=200, temperature=0.2)
+                    except TypeError:
+                        synth_out = gc(synth_msgs)
+                    raw = synth_out if isinstance(synth_out, str) else (
+                        (synth_out or {}).get("text") or (synth_out or {}).get("response") or ""
+                    )
+                    raw = sanitize_model_output(raw)
+                    if raw and not _looks_like_reasoning_leak(raw):
+                        synthesis_text = raw[:1500]
+                    synthesis_ms = int((_time.monotonic() - _t0) * 1000)
+                except Exception as exc:
+                    synthesis_error = f"{type(exc).__name__}: {str(exc)[:160]}"
+
+            composed = det_answer
+            if synthesis_text:
+                composed = (
+                    det_answer
+                    + "\n\n**Gemma 4 synthesis (narrative wrap; not new evidence):**\n"
+                    + synthesis_text
+                )
+
+            route = "graph_analyst+gemma_synthesis" if synthesis_text else "graph_analyst_only"
             try:
                 from .._training_log import log_interaction as _log
                 _log(
                     "process",
                     input_payload={"question": question, "bundle_run_id": bundle.get("run_id")},
-                    output_payload=deterministic.get("answer", ""),
-                    applied_layers={"graph_analyst": {"fired": True}},
+                    output_payload=composed,
+                    applied_layers={
+                        "graph_analyst": {"fired": True},
+                        "gemma_synthesis": {"fired": bool(synthesis_text), "ms": synthesis_ms},
+                    },
                     trace={
                         "cited_rows": cited,
                         "analysis_kind": deterministic.get("analysis_kind"),
+                        "route": route,
                     },
                     extra={"kind": "graph_chat"},
                 )
             except Exception:
                 pass
             return JSONResponse({
-                "answer": deterministic.get("answer", ""),
+                "answer": composed,
+                "deterministic_answer": det_answer,
+                "synthesis": synthesis_text,
+                "synthesis_error": synthesis_error,
+                "synthesis_ms": synthesis_ms,
+                "route": route,
                 "bundle_present": True,
                 "cited_rows": cited[:30],
                 "grep_hits": summary.get("n_grep_rules_fired", 0),
                 "evidence_edges": (bundle.get("summary") or {}).get("n_evidence_edges", 0),
                 "analysis_kind": deterministic.get("analysis_kind"),
-                "applied_layers": {"graph_analyst": {"fired": True}},
+                "applied_layers": {
+                    "graph_analyst": {"fired": True},
+                    "gemma_synthesis": {"fired": bool(synthesis_text), "ms": synthesis_ms},
+                },
             })
 
         if gc is None:
@@ -3729,4 +4415,5 @@ def register_routes(app: Any) -> None:
             "cited_rows": cited_rows,
             "grep_hits": summary.get("n_grep_rules_fired", 0),
             "applied_layers": layer_out["trace"],
+            "route": "gemma_only",
         })
