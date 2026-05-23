@@ -198,9 +198,9 @@
               <input type="checkbox" id="kx-anonymize" checked> Anonymize raw text first
             </label>
             <label style="font-size:12px; margin-left:8px;"
-                   data-tip="Fast deterministic drafts are the default. Enable this when you want the loaded local Gemma model to refine the envelope JSON; larger models are more reliable."
+                   data-tip="On by default: one Gemma 4 call per draft refines the envelope JSON. Uncheck for deterministic templates only (faster, no model dependency)."
                    data-tip-pos="below">
-              <input type="checkbox" id="kx-use-gemma"> Use Gemma refinement
+              <input type="checkbox" id="kx-use-gemma" checked> Use Gemma 4 refinement (1 call per draft)
             </label>
             <span class="dc-gemma-mark is-optional" id="kx-gemma-mark" data-tip="Reflects whether Gemma actually ran. Stays Optional unless a real token stream completes." data-tip-pos="below">Optional · Gemma</span>
           </div>
@@ -209,7 +209,7 @@
             <b style="color:oklch(0.32 0.07 195);">Where Gemma 4 runs on this page:</b>
             <ol style="margin:4px 0 0 18px; padding:0;">
               <li><b>Source bundle processing</b> &mdash; deterministic extraction by default. Gemma settings from Bulk File Review do not apply here; this page summarizes the bundle locally before drafting.</li>
-              <li><b>Knowledge draft (Step 2)</b> &mdash; with "Use Gemma refinement" checked, the loaded Gemma 4 model refines the envelope JSON. Without it, drafts are deterministic templates.</li>
+              <li><b>Knowledge draft (Step 2)</b> &mdash; Gemma 4 refinement runs by default (1 call per draft) when the model is loaded. Uncheck "Use Gemma 4 refinement" to use deterministic templates only.</li>
             </ol>
             <div style="margin-top:6px; color:#5B5F68;">Gemma calls can take 1-15 minutes on Kaggle T4; the activity log emits heartbeats while a draft is running.</div>
           </div>

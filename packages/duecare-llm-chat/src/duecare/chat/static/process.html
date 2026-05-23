@@ -359,13 +359,13 @@
                 </div>
                 <div class="wb-setting">
                   <label for="wb-max-gemma-calls">Max Gemma calls</label>
-                  <input id="wb-max-gemma-calls" type="number" min="0" max="1000" value="5" onchange="wbUpdateSettingsSummary()">
+                  <input id="wb-max-gemma-calls" type="number" min="0" max="1000" value="8" onchange="wbUpdateSettingsSummary()">
                 </div>
                 <div class="wb-setting">
                   <label for="wb-calls-per-item">Gemma calls per page item</label>
                   <select id="wb-calls-per-item" onchange="wbUpdateSettingsSummary()">
-                    <option value="0" selected>0 - deterministic upload</option>
-                    <option value="1">1 - targeted inline pass</option>
+                    <option value="0">0 - deterministic upload</option>
+                    <option value="1" selected>1 - targeted inline pass</option>
                     <option value="2">2 - classification + target</option>
                     <option value="3">3 - deeper branch review</option>
                   </select>
@@ -390,7 +390,7 @@
                 <label><input type="checkbox" class="wb-page-item-type" value="video_frame_or_scene" checked onchange="wbUpdateSettingsSummary()"> Video frames/scenes</label>
               </div>
               <div class="wb-review-checks">
-                <label><input type="checkbox" id="wb-run-inline-gemma" onchange="wbUpdateSettingsSummary()"> Run Gemma text brief / edge synthesis inside the upload job. Gemma 4 can take 1-15 minutes per call on Kaggle; the Max Gemma calls cap above keeps the total bounded.</label>
+                <label><input type="checkbox" id="wb-run-inline-gemma" checked onchange="wbUpdateSettingsSummary()"> Run Gemma text brief / edge synthesis / contextual media review inside the upload job. Gemma 4 can take 1-15 minutes per call on Kaggle; the Max Gemma calls cap above keeps the total bounded.</label>
                 <label><input type="checkbox" id="wb-generate-knowledge" checked onchange="wbUpdateSettingsSummary()"> Generate reviewable knowledge-object candidates from repeated patterns.</label>
                 <label><input type="checkbox" id="wb-include-knowledge" checked onchange="wbUpdateSettingsSummary()"> Use imported local knowledge files as context for Gemma edge/RAG prompts.</label>
               </div>
@@ -616,16 +616,21 @@
         missing evidence, media queues, and folder-derived links.
       </p>
       <div class="wb-row" style="gap:6px;">
-        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which individuals have the strongest cases to move forward first, and what row IDs support that ranking?')">Strongest cases</button>
-        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which people have the strongest evidence of placement fees above the legal cap? Cite row IDs.')">Fee risk</button>
-        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which entities or folders are associated with the highest overcharging amounts? Group by recruiter, agency, employer, or source folder when available.')">Overcharging entities</button>
-        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which people could plausibly be grouped into a class-style or pattern case, and what common agency, fee, folder, document, or journey-stage links connect them?')">Grouped action</button>
-        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('What missing evidence would strengthen this case before escalation?')">Missing evidence</button>
-        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which rows show passport retention or identity document control?')">Document control</button>
-        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Build a PH to HK timeline across travel, payments, and complaints.')">Timeline</button>
-        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('What does the file and folder structure suggest about clients, agencies, stages, or evidence sources? Cite the folder-derived edges and row IDs.')">Folder clues</button>
-        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which media, scan, image, or PDF items still need OCR or Gemma 4 vision review, and what questions should be asked of each page?')">Media queue</button>
+        <button class="wb-btn-primary" type="button" onclick="pgUseQuestion('Which individuals have the strongest cases to move forward first, and what row IDs support that ranking?')">Strongest cases</button>
+        <button class="wb-btn-primary" type="button" onclick="pgUseQuestion('Which entities or folders are associated with the highest overcharging amounts? Group by recruiter, agency, employer, or source folder when available.')">Overcharging entities</button>
+        <button class="wb-btn-primary" type="button" onclick="pgUseQuestion('What missing evidence would strengthen this case before escalation?')">Missing evidence</button>
       </div>
+      <details style="margin-top:6px;">
+        <summary style="cursor:pointer; font-size:12px; color:#5B5F68;">More example questions</summary>
+        <div class="wb-row" style="gap:6px; margin-top:6px;">
+          <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which people have the strongest evidence of placement fees above the legal cap? Cite row IDs.')">Fee risk</button>
+          <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which people could plausibly be grouped into a class-style or pattern case, and what common agency, fee, folder, document, or journey-stage links connect them?')">Grouped action</button>
+          <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which rows show passport retention or identity document control?')">Document control</button>
+          <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Build a PH to HK timeline across travel, payments, and complaints.')">Timeline</button>
+          <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('What does the file and folder structure suggest about clients, agencies, stages, or evidence sources? Cite the folder-derived edges and row IDs.')">Folder clues</button>
+          <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which media, scan, image, or PDF items still need OCR or Gemma 4 vision review, and what questions should be asked of each page?')">Media queue</button>
+        </div>
+      </details>
       <div class="wb-row" style="gap: 8px; align-items: stretch;">
         <textarea id="pg-question" rows="2"
           style="flex:1; min-width: 280px; padding: 10px; border: 1px solid #DDD8C9;
@@ -736,12 +741,26 @@
           if(out.cited_rows && Array.isArray(out.cited_rows)) extra+=" cited rows: "+out.cited_rows.length;
           if(out.evidence_edges!=null) extra+=" | evidence edges: "+out.evidence_edges;
           else if(out.grep_hits!=null) extra+=" | GREP rules: "+out.grep_hits;
-          statusEl.textContent="Answered."+extra;
+          // Route badge: surface which path actually answered so the
+          // reviewer can tell deterministic vs Gemma vs hybrid at a glance.
+          let routeLabel = "";
+          if (out.route === "graph_analyst+gemma_synthesis") {
+            routeLabel = "Route: Graph analyst + Gemma 4 synthesis";
+            if (out.synthesis_ms) routeLabel += " (" + out.synthesis_ms + "ms synth)";
+          } else if (out.route === "graph_analyst_only") {
+            routeLabel = "Route: Graph analyst (deterministic)";
+            if (out.synthesis_error) routeLabel += " — synthesis error: " + out.synthesis_error;
+          } else if (out.route === "gemma_only") {
+            routeLabel = "Route: Gemma 4 only";
+          } else if (out.fallback) {
+            routeLabel = "Route: fallback (" + out.fallback + ")";
+          }
+          statusEl.textContent="Answered."+extra+(routeLabel?" | "+routeLabel:"");
           pgSetProgress(100, 'Graph answer ready', 'Answered in ' + dt + 'ms.' + extra,
-            out.fallback ? 'Fallback: ' + out.fallback : 'Answer returned from the local graph analyst path.');
+            routeLabel || (out.fallback ? 'Fallback: ' + out.fallback : 'Answer returned from the local graph analyst path.'));
           if (typeof wbLog === 'function') {
             wbLog('ok', 'Graph-chat answered (' + dt + 'ms)',
-              'chars=' + text.length + extra + (out.fallback ? ' | fallback=' + out.fallback : ''));
+              'chars=' + text.length + extra + (routeLabel ? ' | ' + routeLabel : '') + (out.fallback ? ' | fallback=' + out.fallback : ''));
           }
         }catch(e){
           clearInterval(pgTimer);
