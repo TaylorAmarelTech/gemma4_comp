@@ -315,6 +315,219 @@ def _normalize_content(
     return merged
 
 
+def _value_list(value: Any) -> list[str]:
+    """Return a compact list from JSON list/string fields."""
+    if value is None:
+        return []
+    if isinstance(value, (list, tuple, set)):
+        raw = value
+    else:
+        raw = _re.split(r"[,;]", str(value))
+    out: list[str] = []
+    for item in raw:
+        text = str(item or "").strip()
+        if text and text not in out:
+            out.append(text)
+    return out
+
+
+def _edge_quote(edge: dict[str, Any]) -> str:
+    evidence = edge.get("evidence") if isinstance(edge.get("evidence"), dict) else {}
+    return str(
+        evidence.get("quote")
+        or edge.get("evidence_quote")
+        or edge.get("label")
+        or ""
+    ).strip()
+
+
+def _edge_text(edge: dict[str, Any]) -> str:
+    parts: list[str] = [
+        str(edge.get("edge_type") or ""),
+        str(edge.get("source_node") or ""),
+        str(edge.get("target_node") or ""),
+        _edge_quote(edge),
+        str(edge.get("row_id") or ""),
+        str(edge.get("case_id") or ""),
+    ]
+    for key in ("corridor", "journey_stage", "stage", "amount"):
+        value = edge.get(key)
+        if isinstance(value, dict):
+            parts.append(_json.dumps(value, sort_keys=True, default=str))
+        elif value is not None:
+            parts.append(str(value))
+    return " ".join(p for p in parts if p)
+
+
+def _edge_indicators(edge: dict[str, Any]) -> list[str]:
+    text = _edge_text(edge)
+    edge_low = text.lower()
+    out = (
+        _value_list(edge.get("indicators"))
+        + _value_list(edge.get("applies_to_indicators"))
+        + _value_list(edge.get("ilo_indicators"))
+        + _indicators(text)
+    )
+    if any(x in edge_low for x in ("fee", "processing", "placement", "training", "medical")):
+        out.append("fee_camouflage")
+    if any(x in edge_low for x in ("salary_deduction", "salary deduction", "deduct")):
+        out.append("salary_deduction")
+    if any(x in edge_low for x in ("loan", "debt", "repay")):
+        out.append("debt_bondage")
+    if "passport" in edge_low:
+        out.append("passport_retention")
+    if any(x in edge_low for x in ("document_control", "document control", "identity document")):
+        out.append("document_control")
+    if any(x in edge_low for x in ("threat", "retaliation", "blacklist")):
+        out.append("retaliation_risk")
+    if any(x in edge_low for x in ("wage", "withheld")):
+        out.append("wage_theft")
+    if not out:
+        out.append("case_signal")
+    return list(dict.fromkeys(out))
+
+
+def _edge_corridors(edge: dict[str, Any]) -> list[str]:
+    text = _edge_text(edge)
+    out = (
+        _value_list(edge.get("corridors"))
+        + _value_list(edge.get("applicable_corridors"))
+        + _value_list(edge.get("applies_to_corridors"))
+        + _value_list(edge.get("corridor"))
+        + _corridors(text)
+    )
+    for match in _re.findall(r"\b[A-Za-z]{2}\s*[-_/]\s*[A-Za-z]{2}\b", text):
+        out.append(match)
+    return list(dict.fromkeys(out))
+
+
+def _edge_stage(edge: dict[str, Any]) -> str:
+    direct = str(edge.get("journey_stage") or edge.get("stage") or "").strip()
+    if direct:
+        return direct
+    text = _edge_text(edge).lower()
+    for prefix in ("stage:", "journey_stage:"):
+        for node in (str(edge.get("target_node") or ""), str(edge.get("source_node") or "")):
+            node_low = node.lower()
+            if node_low.startswith(prefix):
+                return node.split(":", 1)[1]
+    if any(x in text for x in ("fee", "loan", "debt", "deduct", "payment")):
+        return "payment_and_debt"
+    if any(x in text for x in ("passport", "document", "contract")):
+        return "recruitment"
+    if any(x in text for x in ("employer", "placement", "arrival")):
+        return "arrival_and_placement"
+    if any(x in text for x in ("work", "wage", "salary", "overtime")):
+        return "employment"
+    return "recruitment"
+
+
+def _edge_confidence_0_10(edge: dict[str, Any]) -> float:
+    value = edge.get("confidence_0_10")
+    if value is None:
+        value = edge.get("confidence")
+    try:
+        score = float(value)
+    except Exception:
+        score = 5.0
+    if score <= 1.0:
+        score *= 10.0
+    return round(max(0.0, min(10.0, score)), 1)
+
+
+def _build_envelope_from_edge(edge: dict[str, Any]) -> dict[str, Any]:
+    """Build a deterministic draft KnowledgeObject from a process typed edge.
+
+    The edge already contains structured source/target/evidence fields,
+    so the server only maps them into the same reviewable envelope shape
+    that /api/knowledge/draft-envelope returns.
+    """
+    if not isinstance(edge, dict):
+        raise HTTPException(400, "edge object is required")
+
+    from ...app import KO_BRANCHES
+
+    target_type = "extracted_fact"
+    edge_type = str(edge.get("edge_type") or "typed_edge")
+    source_node = str(edge.get("source_node") or "")
+    target_node = str(edge.get("target_node") or "")
+    row_id = str(edge.get("row_id") or "")
+    case_id = str(edge.get("case_id") or "")
+    quote = _edge_quote(edge)
+    if not quote:
+        quote = f"{edge_type}: {source_node} -> {target_node}".strip()
+    clean_quote = _clean_for_knowledge_fact(quote)
+    summary_bits = [
+        edge_type.replace("_", " "),
+        source_node,
+        "to" if source_node and target_node else "",
+        target_node,
+    ]
+    summary = " ".join(bit for bit in summary_bits if bit).strip()
+    source_json = _json.dumps(edge, sort_keys=True, default=str)
+    source_hash = hashlib.sha256(source_json.encode("utf-8")).hexdigest()
+    amount = edge.get("amount")
+    if isinstance(amount, dict):
+        amount_raw = amount.get("raw") or amount.get("amount") or amount.get("value")
+        currency = amount.get("currency")
+    else:
+        amount_raw = amount
+        currency = edge.get("currency")
+
+    content = {
+        "fact_type": edge_type,
+        "fact_summary": summary or "Typed edge extracted from process bundle",
+        "indicators": _edge_indicators(edge),
+        "corridors": _edge_corridors(edge),
+        "journey_stage": _edge_stage(edge),
+        "amount": str(amount_raw or "").strip(),
+        "currency": str(currency or "").strip().upper(),
+        "evidence_quote": clean_quote,
+        "source_excerpt": clean_quote,
+        "confidence_0_10": _edge_confidence_0_10(edge),
+        "share_scope": "non_pii_fact_needs_review",
+        "aggregation_keys": {
+            "edge_type": edge_type,
+            "source_node": source_node,
+            "target_node": target_node,
+            "row_id": row_id,
+            "case_id": case_id,
+        },
+        "source_context": "process_typed_edge",
+        "source_node": source_node,
+        "target_node": target_node,
+        "source_row_id": row_id,
+        "source_edge_id": str(edge.get("edge_id") or source_hash[:14]),
+    }
+    content = _standardize_fact_envelope(content, target_type)
+    ts = _dt.now(_UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
+    slug_base = _slug(f"{edge_type}-{source_node}-{target_node}", "typed-edge")
+    return {
+        "schema_version": "1.0",
+        "knowledge_object_type": target_type,
+        "id": f"{slug_base}-{source_hash[:8]}-{target_type}-draft",
+        "version": "v1-draft",
+        "provenance": {
+            "created_at": ts,
+            "created_by": "kernel-01:knowledge-from-edge",
+            "source_sha256": source_hash[:16],
+        },
+        "content": content,
+        "tags": [f"branch:{KO_BRANCHES.get(target_type, 'unknown')}", "source:process_typed_edge"],
+        "extensions": {
+            "draft": True,
+            "needs_review": True,
+            "auto_suggested": False,
+            "source_harness": "process",
+            "source_edge_id": str(edge.get("edge_id") or ""),
+            "source_row_id": row_id,
+            "model_call_requested": False,
+            "model_call_available": False,
+            "standardized_shape": True,
+        },
+    }
+
+
 def _build_draft_response(app: Any, body: dict[str, Any]) -> dict[str, Any]:
     raw_text = (body.get("raw_text") or "").strip()
     requested_type = body.get("target_type") or body.get("target_leaf") or "auto"
@@ -1084,6 +1297,75 @@ def register_routes(app: Any) -> None:
         except Exception:
             raise HTTPException(400, "invalid JSON body")
         return JSONResponse(_build_draft_response(app, body))
+
+    @app.post("/api/knowledge/from-edge")
+    async def api_knowledge_from_edge(request: Request) -> Any:
+        """Deterministically convert a process typed edge into a draft fact."""
+        try:
+            body = await request.json()
+        except Exception:
+            raise HTTPException(400, "invalid JSON body")
+        edge = body.get("edge") if isinstance(body, dict) else None
+        if not isinstance(edge, dict):
+            raise HTTPException(400, "edge object is required")
+        envelope = _build_envelope_from_edge(edge)
+        model_available = getattr(app.state, "gemma_call", None) is not None
+        envelope["extensions"]["model_call_available"] = model_available
+        try:
+            from .._training_log import log_interaction as _log
+            _log(
+                "extraction",
+                input_payload={
+                    "source": "process_typed_edge",
+                    "edge_type": edge.get("edge_type"),
+                    "edge_id": edge.get("edge_id"),
+                    "row_id": edge.get("row_id"),
+                },
+                output_payload={"suggestions": [envelope]},
+                applied_layers={"process_typed_edge": {"fired": True}},
+                trace={
+                    "n_suggestions": 1,
+                    "suggested_types": [envelope.get("knowledge_object_type")],
+                },
+                anonymize=False,
+            )
+        except Exception:
+            pass
+        return JSONResponse({
+            "envelope": envelope,
+            "suggestions": [envelope],
+            "auto_suggested": False,
+            "suggested_types": [envelope.get("knowledge_object_type")],
+            "model_call_requested": False,
+            "model_call_available": model_available,
+            "demo_replay": demo_replay(
+                lane="knowledge_extraction",
+                endpoint="/api/knowledge/from-edge",
+                request={
+                    "source": "process_typed_edge",
+                    "edge_type": edge.get("edge_type"),
+                    "edge_id": edge.get("edge_id"),
+                    "row_id": edge.get("row_id"),
+                    "edge_sha256": hashlib.sha256(
+                        _json.dumps(edge, sort_keys=True, default=str).encode("utf-8")
+                    ).hexdigest(),
+                },
+                response_summary={
+                    "n_suggestions": 1,
+                    "suggested_types": [envelope.get("knowledge_object_type")],
+                    "model_call_available": model_available,
+                },
+                artifacts=[{
+                    "name": "suggestions",
+                    "kind": "inline_response_json",
+                    "count": 1,
+                }],
+                note=(
+                    "The process typed edge is represented by sha256/id here. "
+                    "Use the processed bundle export to replay the exact source edge."
+                ),
+            ),
+        })
 
     @app.post("/api/knowledge/polish-envelope")
     async def api_knowledge_polish_envelope(request: Request) -> Any:
