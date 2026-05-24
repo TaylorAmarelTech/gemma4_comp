@@ -26,6 +26,7 @@ spec = HarnessSpec(
     endpoints=(
         {"method": "POST", "path": "/api/knowledge/source-file", "summary": "Parse uploaded source files through the process parser"},
         {"method": "POST", "path": "/api/knowledge/draft-envelope", "summary": "Draft a knowledge-object envelope"},
+        {"method": "POST", "path": "/api/knowledge/polish-envelope", "summary": "Two-pass Gemma critique + rewrite of a draft envelope"},
         {"method": "POST", "path": "/api/knowledge/promote", "summary": "Promote reviewed draft to local knowledge store"},
         {"method": "POST", "path": "/api/knowledge/import", "summary": "Import knowledge files ZIP"},
     ),

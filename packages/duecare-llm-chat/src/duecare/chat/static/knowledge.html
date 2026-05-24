@@ -954,6 +954,19 @@
               wbLog('warn', 'Gemma 4 errored on ' + errorEnvs.length + ' of ' + kxDrafts.length + ' draft(s)',
                 'Deterministic fallback content shown for those envelopes. First error: ' + firstErrMsg + suggestion);
             }
+            // Surface noise-scrub provenance. The extraction handler
+            // strips kernel run IDs, /kaggle/working/... paths, ZIP
+            // filenames, and synthetic case folder names (DC-PH-HK-101_Ana_Cruz/...)
+            // before either the Gemma prompt or the deterministic
+            // template sees the text. Reviewers should know when this
+            // fired — it explains why a draft's evidence_quote no
+            // longer matches the raw text word-for-word.
+            const scrubbedEnvs = kxDrafts.filter(d => d && d.extensions && d.extensions.noise_scrubbed_before_gemma === true);
+            if (scrubbedEnvs.length > 0 && typeof wbLog === 'function') {
+              wbLog('info', 'Noise scrub applied before drafting',
+                'Removed kernel run IDs, /kaggle/working/... paths, ZIP/JSONL filenames, and synthetic case folder names from the source text on ' +
+                scrubbedEnvs.length + ' of ' + kxDrafts.length + ' draft(s) so the saved knowledge facts read as anonymized prose, not as build-log fragments.');
+            }
           }
           resultEl.innerHTML = kxDrafts.map((env, idx) => {
             const envExt = (env && env.extensions) || {};
@@ -967,6 +980,9 @@
               : envUsedGemma
                 ? '<span class="dc-gemma-mark is-done" title="Gemma 4 actually refined this draft (server confirmed model_call_available + no fallback + no error).">Gemma 4 refined</span>'
                 : '<span class="dc-gemma-mark is-optional" title="Server returned the deterministic template for this draft.">Deterministic</span>';
+            const scrubBadge = envExt.noise_scrubbed_before_gemma === true
+              ? ' <span class="dc-gemma-mark is-done" title="The source text was scrubbed of kernel run IDs, /kaggle/working/... paths, ZIP/JSONL filenames, and synthetic case folder names before this draft was generated, so the saved fact reads as anonymized prose instead of build-log fragments.">Noise scrubbed</span>'
+              : '';
             const errorBanner = envError
               ? '<div style="margin: 8px 0; padding: 9px 12px; background: oklch(0.97 0.025 25); border: 1px solid oklch(0.78 0.10 45); border-left: 4px solid oklch(0.55 0.18 25); border-radius: 6px; font-size: 12px; line-height: 1.5; color: oklch(0.32 0.10 25);">'
                 + '<b style="display:block; margin-bottom:3px;">Gemma 4 did not refine this envelope.</b>'
@@ -979,9 +995,10 @@
             return '<section class="wb-card" style="background:#FAF9F4; margin:8px 0; padding:12px;">' +
               '<div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; align-items:center;">' +
               '<div><b>' + escapeHtml(env.knowledge_object_type || 'knowledge_object') + '</b> ' +
-              '<span class="wb-muted">' + escapeHtml(env.id || '') + '</span> ' + sourceBadge + '</div>' +
+              '<span class="wb-muted">' + escapeHtml(env.id || '') + '</span> ' + sourceBadge + scrubBadge + '</div>' +
               '<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">' +
               '<span class="wb-muted" id="kx-promote-status-' + idx + '">Not promoted</span>' +
+              '<button class="wb-btn-secondary" id="kx-polish-btn-' + idx + '" type="button" onclick="kxPolishDraft(' + idx + ')" title="Two Gemma 4 passes: first lists what is vague/operational/missing-indicator, second rewrites the draft applying every fix. Re-runs the standardize step so field ordering + indicator vocabulary stay canonical.">Polish further (Gemma 4)</button>' +
               '<button class="wb-btn-primary" id="kx-promote-btn-' + idx + '" type="button" onclick="kxPromoteDraft(' + idx + ')">Promote draft</button>' +
               '</div>' +
               '</div>' +
@@ -1002,6 +1019,128 @@
           if (detBtn) detBtn.disabled = !(document.getElementById("kx-raw").value || "").trim();
         }
       }
+      async function kxPolishDraft(idx){
+        // Two-pass Gemma polish: critique (pass 1) then rewrite (pass 2).
+        // Re-standardizes the envelope shape afterwards so canonical
+        // field order + indicator vocabulary are preserved.
+        const env = kxDrafts[idx];
+        if (!env || !env.content) { return; }
+        const btn = document.getElementById('kx-polish-btn-' + idx);
+        const status = document.getElementById('kx-promote-status-' + idx);
+        const promoteBtn = document.getElementById('kx-promote-btn-' + idx);
+        const t0 = performance.now();
+        if (btn) { btn.disabled = true; btn.textContent = 'Polishing pass 1/2...'; }
+        if (promoteBtn) promoteBtn.disabled = true;
+        if (status) status.textContent = 'Gemma 4 critique pass...';
+        wbLog('net', 'POST /api/knowledge/polish-envelope',
+              'type=' + (env.knowledge_object_type || '?')
+              + ' | iterative critique + rewrite');
+        try {
+          const r = await fetch('/api/knowledge/polish-envelope', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({envelope: env, use_gemma: true, max_passes: 2}),
+          });
+          if (!r.ok) {
+            const txt = await r.text();
+            wbLog('err', 'Polish failed (HTTP ' + r.status + ')', txt.slice(0, 240));
+            if (status) status.textContent = 'Polish failed';
+            return;
+          }
+          const out = await r.json();
+          const dt = Math.round(performance.now() - t0);
+          if (out && out.envelope) {
+            kxDrafts[idx] = out.envelope;
+            // Render the diff inline so reviewers see exactly what changed.
+            const diff = Array.isArray(out.diff) ? out.diff.filter(d => d.changed) : [];
+            const passes = out.passes || 0;
+            const critique = out.critique || null;
+            const critiqueIssues = critique && Array.isArray(critique.issues) ? critique.issues : [];
+            // Build a small inline "what changed" panel and replace the
+            // <pre> block + the source badge for this idx.
+            const card = btn ? btn.closest('section.wb-card') : null;
+            if (card) {
+              const pre = card.querySelector('pre');
+              if (pre) {
+                pre.textContent = JSON.stringify(out.envelope, null, 2);
+              }
+              // Insert a polish-notes block if we don't already have one.
+              const existingNotes = card.querySelector('.kx-polish-notes');
+              if (existingNotes) existingNotes.remove();
+              const notes = document.createElement('div');
+              notes.className = 'kx-polish-notes';
+              notes.style.cssText = 'margin: 8px 0; padding: 10px 12px; '
+                + 'background: oklch(0.97 0.025 195); '
+                + 'border: 1px solid oklch(0.78 0.06 195); '
+                + 'border-left: 4px solid oklch(0.52 0.08 195); '
+                + 'border-radius: 6px; font-size: 12px; line-height: 1.5;';
+              let html = '<b style="color: oklch(0.32 0.07 195);">Gemma 4 polish: '
+                + passes + ' pass(es), ' + diff.length + ' field(s) changed</b>';
+              if (critique && critique.overall) {
+                html += '<div style="margin-top: 4px; color: oklch(0.32 0.07 195);"><i>'
+                  + escapeHtml(String(critique.overall).slice(0, 280))
+                  + '</i></div>';
+              }
+              if (critiqueIssues.length) {
+                html += '<ul style="margin: 6px 0 4px 18px; padding: 0;">';
+                for (const iss of critiqueIssues.slice(0, 6)) {
+                  html += '<li style="margin-bottom: 2px;"><b>'
+                    + escapeHtml(String(iss.field || iss.category || '?'))
+                    + '</b>: ' + escapeHtml(String(iss.why || ''))
+                    + ' <span class="wb-muted">→ '
+                    + escapeHtml(String(iss.suggested_fix || ''))
+                    + '</span></li>';
+                }
+                html += '</ul>';
+              }
+              if (diff.length) {
+                html += '<details style="margin-top: 6px;"><summary style="cursor: pointer; font-weight: 600;">Field-level diff ('
+                  + diff.length + ' changed)</summary>'
+                  + '<table style="width: 100%; margin-top: 6px; font-size: 11.5px; border-collapse: collapse;">'
+                  + '<thead><tr style="background: oklch(0.97 0.02 195);"><th style="text-align:left; padding: 4px 6px;">Field</th><th style="text-align:left; padding: 4px 6px;">Before</th><th style="text-align:left; padding: 4px 6px;">After</th></tr></thead><tbody>';
+                for (const d of diff.slice(0, 20)) {
+                  html += '<tr><td style="padding:4px 6px; vertical-align: top; font-family: \'JetBrains Mono\', monospace;">'
+                    + escapeHtml(d.key) + '</td>'
+                    + '<td style="padding:4px 6px; vertical-align: top; color: #8A8E97;">'
+                    + escapeHtml(d.before || '<empty>') + '</td>'
+                    + '<td style="padding:4px 6px; vertical-align: top; color: oklch(0.32 0.07 195);">'
+                    + escapeHtml(d.after || '<empty>') + '</td></tr>';
+                }
+                html += '</tbody></table></details>';
+              }
+              if (out.envelope.extensions && out.envelope.extensions.polish_clean_pass) {
+                html += '<div style="margin-top: 6px; color: oklch(0.32 0.07 155);">Gemma found no issues — the draft already reads as a clean, anonymized pattern. The standardize pass re-ordered fields to canonical shape.</div>';
+              } else if (passes === 0) {
+                html += '<div style="margin-top: 6px; color: oklch(0.40 0.10 80);">Polish skipped: '
+                  + escapeHtml(String(out.envelope.extensions && out.envelope.extensions.polish_skipped || 'no model'))
+                  + '. The standardize pass still ran.</div>';
+              }
+              notes.innerHTML = html;
+              // Insert above the JSON pre block.
+              if (pre) pre.parentNode.insertBefore(notes, pre);
+              else card.appendChild(notes);
+            }
+            // Tally bump (only if Gemma actually ran)
+            if (window.dcGemmaStats && passes > 0) {
+              window.dcGemmaStats.bump('chat'); // reuse 'chat' bucket; could add 'polish'
+            }
+            wbLog('ok', 'Polish complete (' + dt + 'ms)',
+                  passes + ' pass(es), ' + diff.length + ' field(s) changed'
+                  + (critique && critique.overall ? ' — ' + critique.overall : ''));
+            if (status) status.textContent = 'Polished ✓ (' + passes + ' pass)';
+          } else {
+            wbLog('err', 'Polish returned no envelope', JSON.stringify(out).slice(0, 200));
+            if (status) status.textContent = 'Polish failed';
+          }
+        } catch (e) {
+          wbLog('err', 'Polish error: ' + String(e).slice(0, 200));
+          if (status) status.textContent = 'Polish error';
+        } finally {
+          if (btn) { btn.disabled = false; btn.textContent = 'Polish further (Gemma 4)'; }
+          if (promoteBtn) promoteBtn.disabled = false;
+        }
+      }
+
       async function kxPromoteDraft(idx){
         const env = kxDrafts[idx];
         if(!env){ return; }

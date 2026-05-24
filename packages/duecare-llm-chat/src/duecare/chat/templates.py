@@ -38,6 +38,16 @@ from typing import Any, Callable, Optional
 from fastapi import Body
 from fastapi.responses import JSONResponse
 
+# Shared scrub used to keep operational kernel metadata out of the
+# bundle excerpt Gemma sees and out of the filled field values that
+# end up in the rendered complaint document. Without this, paths like
+# /kaggle/working/process-staging/case_files_*.zip can land verbatim
+# in an HK Labour Department complaint draft.
+from .harnesses._safe_text import (
+    clean_for_knowledge_fact as _clean_for_knowledge_fact,
+    fact_excerpt as _fact_excerpt,
+)
+
 
 # ---------------------------------------------------------------------------
 # Template body literals (Jinja-style placeholders, no HTML)
@@ -4305,6 +4315,11 @@ def bundle_excerpt_for_template(bundle: dict, *, max_chars: int = 3000) -> str:
     if evidence:
         parts.append("EVIDENCE: " + json.dumps(evidence, default=str)[:400])
     text = "\n".join(parts)
+    # Scrub kernel paths, RUN_IDs, ZIP/JSONL filenames, synthetic case
+    # folder names. The complaint template Gemma is about to draft is
+    # NGO/regulator-facing — kernel staging metadata in the body would
+    # be embarrassing and unprofessional.
+    text = _clean_for_knowledge_fact(text)
     return text[:max_chars] if len(text) > max_chars else text
 
 
@@ -4358,15 +4373,20 @@ def gemma_fill_template(
     filled: dict = {}
     provenance: dict = {}
 
-    # Pass 1: deterministic source hints from the bundle.
+    # Pass 1: deterministic source hints from the bundle. Bundle-derived
+    # values are scrubbed because the process bundle may carry kernel
+    # paths and synthetic case folder names that should never appear in
+    # an NGO/regulator-facing complaint body.
     for field in template.fields:
         if field.source_hint:
             value = bundle_field_hint(bundle, field.source_hint)
             if value:
-                filled[field.id] = value
+                filled[field.id] = _clean_for_knowledge_fact(str(value))
                 provenance[field.id] = "bundle_hint"
 
-    # Pass 2: manual fields override (caseworker has final say).
+    # Pass 2: manual fields override (caseworker has final say). Manual
+    # entries are NOT scrubbed — the caseworker is authoritative and
+    # may need to enter a literal path/ID for case tracking.
     for fid, value in (manual_fields or {}).items():
         if value is None:
             continue
@@ -4416,7 +4436,10 @@ def gemma_fill_template(
                         continue
                     sval = str(value).strip()
                     if sval:
-                        filled[fid] = sval
+                        # Gemma occasionally echoes a path/ID from the
+                        # bundle excerpt into its proposed value;
+                        # scrub before writing into the complaint body.
+                        filled[fid] = _clean_for_knowledge_fact(sval)
                         provenance[fid] = "gemma"
             except Exception as e:  # noqa: BLE001
                 gemma_error = f"{type(e).__name__}: {str(e)[:120]}"
@@ -4529,6 +4552,12 @@ def register_template_routes(app: Any) -> None:
             "provenance": meta.get("per_field", {}),
             "used_gemma": meta.get("used_gemma", False),
             "gemma_error": meta.get("__gemma_error"),
+            # Provenance flag: bundle text fed into Gemma + any value
+            # auto-filled from the bundle was passed through the shared
+            # noise scrub so kernel run IDs, /kaggle/working/... paths,
+            # ZIP/JSONL filenames, and synthetic case folder names
+            # cannot leak into the final complaint body.
+            "noise_scrubbed_before_gemma": True,
         }
 
     # -----------------------------------------------------------------

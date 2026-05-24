@@ -20,6 +20,7 @@ from fastapi.responses import JSONResponse
 
 from ..._model_output import sanitize_model_output
 from .._replay import demo_replay, sha256_json
+from .._safe_text import fact_excerpt as _fact_excerpt
 from .detector import PII_PATTERNS
 from .redactor import DEFAULT_SALT, placeholder, raw_sha256
 
@@ -200,7 +201,12 @@ def _gemma_anonymization_review(app: Any, redacted_texts: list[str]) -> dict:
                 "severity": "medium",
                 "explanation_without_quote": "Gemma returned non-JSON output; review anonymized text manually before submit.",
             }],
-            "text_preview": text[:500],
+            # Scrub kernel run IDs / staging paths / synthetic case
+            # folder names so the worker-facing fallback text reads as
+            # the (possibly malformed) Gemma narrative, not as a
+            # build-log fragment. fact_excerpt also picks a sentence
+            # boundary so the preview doesn't trail off mid-word.
+            "text_preview": _fact_excerpt(text, 500),
             "prompt_chars": len(prompt),
         }
     except Exception as exc:

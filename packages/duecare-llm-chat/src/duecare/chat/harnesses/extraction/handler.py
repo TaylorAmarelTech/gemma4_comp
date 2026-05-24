@@ -21,6 +21,12 @@ from fastapi.responses import JSONResponse
 
 from ..._model_output import sanitize_model_output
 from .._replay import demo_replay
+from .._safe_text import (
+    clean_for_knowledge_fact as _clean_for_knowledge_fact,
+    fact_excerpt as _fact_excerpt,
+    standardize_fact_envelope as _standardize_fact_envelope,
+    was_scrubbed as _was_scrubbed,
+)
 from .prompts import build_system_prompt
 
 
@@ -50,6 +56,12 @@ def _light_anonymize(text: str) -> tuple[str, list[str]]:
             redacted = pattern.sub(placeholder, redacted)
             used.append(placeholder)
     return redacted, used
+
+
+# Noise scrubbing (kernel run IDs, /kaggle/working/... paths, ZIP /
+# JSONL filenames, synthetic case folder names) is provided by the
+# shared `_safe_text` module so every fact / share / search handler
+# applies the same contract. See harnesses/_safe_text.py.
 
 
 def _infer_target_types(text: str) -> list[str]:
@@ -144,12 +156,19 @@ def _indicators(text: str) -> list[str]:
 
 
 def _deterministic_content(target_type: str, text: str) -> dict[str, Any]:
-    low = text.lower()
-    title = " ".join(text.split())[:90] or "Draft knowledge"
-    money = _money_mentions(text)
-    entities = _entity_mentions(text)
-    corridors = _corridors(text)
-    indicators = _indicators(text)
+    # Strip operational noise (kernel run IDs, /kaggle/working/...
+    # paths, ZIP filenames, synthetic case folder names) before any
+    # excerpt or title is computed. This is the single chokepoint
+    # downstream envelopes go through, so cleaning here makes every
+    # target_type branch produce reader-facing prose instead of
+    # build-log fragments.
+    clean = _clean_for_knowledge_fact(text)
+    low = clean.lower()
+    title = " ".join(clean.split())[:90] or "Draft knowledge"
+    money = _money_mentions(clean)
+    entities = _entity_mentions(clean)
+    corridors = _corridors(clean)
+    indicators = _indicators(clean)
     if target_type == "grep_rule":
         category = "fee_bondage" if any(x in low for x in ("fee", "deduction", "loan", "debt")) else "case_signal"
         pattern = r"\b(training|medical|processing|placement)\s+fee\b|\bsalary\s+deduction\b"
@@ -161,7 +180,7 @@ def _deterministic_content(target_type: str, text: str) -> dict[str, Any]:
             "severity": "high" if category in {"fee_bondage", "document_control"} else "medium",
             "pattern": pattern,
             "description": title,
-            "test_phrases": [text[:160]],
+            "test_phrases": [_fact_excerpt(clean, 160)],
             "false_positive_notes": "Review against legal context and corridor before automatic escalation.",
         }
     if target_type == "rag_doc":
@@ -169,13 +188,13 @@ def _deterministic_content(target_type: str, text: str) -> dict[str, Any]:
             "title": title,
             "jurisdiction": "unknown",
             "source_url": "",
-            "text": text,
+            "text": clean,
         }
     if target_type == "context_snippet":
         return {
             "applies_to_corridors": corridors,
             "applies_to_indicators": indicators,
-            "text": text,
+            "text": clean,
             "response_guidance": (
                 "Use this snippet to recognize the pattern, cite relevant "
                 "corridor law, and avoid operational advice that enables abuse."
@@ -211,7 +230,7 @@ def _deterministic_content(target_type: str, text: str) -> dict[str, Any]:
                 {"name": "source_row_id", "type": "string", "required": True},
                 {"name": "evidence_quote", "type": "string", "required": True},
             ],
-            "source_excerpt": text[:500],
+            "source_excerpt": _fact_excerpt(clean, 500),
         }
     if target_type == "extracted_fact":
         first_money = money[0] if money else {}
@@ -224,7 +243,7 @@ def _deterministic_content(target_type: str, text: str) -> dict[str, Any]:
             "locations": ["Hong Kong"] if "hong kong" in low else [],
             "indicators": indicators,
             "journey_stage": "payment_and_debt" if money else "recruitment",
-            "evidence_quote": text[:500],
+            "evidence_quote": _fact_excerpt(clean, 500),
             "confidence_0_10": 7,
             "share_scope": "non_pii_fact_needs_review",
             "aggregation_keys": {
@@ -240,7 +259,7 @@ def _deterministic_content(target_type: str, text: str) -> dict[str, Any]:
             "entity_type": "agency" if "agency" in low else "unknown",
             "corridor": corridors[0] if corridors else "",
             "signal_types": indicators,
-            "evidence_quote": text[:500],
+            "evidence_quote": _fact_excerpt(clean, 500),
             "source_context": "drafted_from_local_source_text",
             "confidence_0_10": 6 if entities else 4,
             "pii_status": "organization_or_unknown_entity_not_worker_pii",
@@ -262,12 +281,12 @@ def _deterministic_content(target_type: str, text: str) -> dict[str, Any]:
                 "arrival through salary deduction or pressure from an agency, "
                 "employer, broker, or collection entity."
             ),
-            "non_pii_example": text[:300],
+            "non_pii_example": _fact_excerpt(clean, 300),
             "applicable_corridors": corridors,
             "chart_dimensions": ["corridor", "indicator", "entity_name", "currency", "journey_stage"],
             "related_fact_types": ["extracted_fact", "entity_signal"],
         }
-    return {"text": text}
+    return {"text": clean}
 
 
 def _normalize_content(
@@ -319,6 +338,16 @@ def _build_draft_response(app: Any, body: dict[str, Any]) -> dict[str, Any]:
     placeholders_used: list[str] = []
     if anonymize:
         text_to_send, placeholders_used = _light_anonymize(raw_text)
+    # Scrub operational noise (run IDs, /kaggle/working/... paths, ZIP
+    # filenames, synthetic case folder names like
+    # DC-PH-HK-101_Ana_Cruz/...). We want the Gemma prompt and the
+    # deterministic fallback to both see prose that describes the
+    # pattern, never the staging filenames a process bundle was built
+    # from. Applied AFTER anonymization so the existing PII placeholders
+    # are preserved.
+    pre_scrub = text_to_send
+    text_to_send = _clean_for_knowledge_fact(text_to_send)
+    scrubbed_noise = _was_scrubbed(pre_scrub, text_to_send)
 
     from .._layers import compose_layers
     layer_out = compose_layers(app, raw_text, layers=("grep", "rag"))
@@ -347,6 +376,7 @@ def _build_draft_response(app: Any, body: dict[str, Any]) -> dict[str, Any]:
                 "auto_suggested": requested_type in {"auto", "suggest", "infer", ""},
                 "anonymized_before_gemma": anonymize,
                 "placeholders_used": placeholders_used,
+                "noise_scrubbed_before_gemma": scrubbed_noise,
                 "applied_layers": layer_out["trace"],
                 "model_call_requested": use_gemma,
                 "model_call_available": gc is not None,
@@ -395,6 +425,20 @@ def _build_draft_response(app: Any, body: dict[str, Any]) -> dict[str, Any]:
                 envelope["extensions"]["gemma_text_preview"] = response_text[:500]
         except Exception as e:
             envelope["extensions"]["gemma_error"] = str(e)[:200]
+        # Last step before append: standardize the envelope content
+        # so every page renders the same field order + indicator
+        # vocabulary + corridor format, and so any lingering noise in
+        # a Gemma-produced string field gets scrubbed once more.
+        # Idempotent — safe if the deterministic path already produced
+        # canonical content.
+        try:
+            envelope["content"] = _standardize_fact_envelope(
+                envelope.get("content") or {},
+                envelope.get("knowledge_object_type") or "",
+            )
+            envelope["extensions"]["standardized_shape"] = True
+        except Exception as _std_err:  # noqa: BLE001
+            envelope["extensions"]["standardize_error"] = str(_std_err)[:200]
         envelopes.append(envelope)
     try:
         from .._training_log import log_interaction as _log
@@ -446,6 +490,244 @@ def _build_draft_response(app: Any, body: dict[str, Any]) -> dict[str, Any]:
             ),
         ),
     }
+
+
+# Critique prompt: Gemma reads a draft envelope and lists specific
+# issues. We keep it terse and strict-JSON so the rewrite pass has a
+# structured input. Built once at import time so the polish endpoint
+# doesn't reconstruct it per call.
+_POLISH_CRITIQUE_SYSTEM = (
+    "You are a senior anti-trafficking reviewer auditing a draft "
+    "knowledge fact before it's saved to the local knowledge store. "
+    "Read the draft. List specific, fixable problems in JSON. Be "
+    "concrete about WHICH FIELD and WHY. Categories you should flag:\n"
+    " - vague_phrasing: a field uses hedging language where a concrete "
+    "verb/noun would be clearer\n"
+    " - missing_ilo_indicator: the fact describes a pattern that "
+    "should be tagged with a canonical ILO indicator but isn't\n"
+    " - non_pattern_quote: evidence_quote / non_pii_example reads as a "
+    "build-log fragment or operational metadata, not as the abstract "
+    "pattern the fact teaches\n"
+    " - missing_corridor: the text references a corridor but the "
+    "corridor field is empty or wrong format\n"
+    " - missing_stage: the fact describes a stage but journey_stage "
+    "is missing or wrong\n"
+    " - unsupported_claim: a claim in the text has no evidence in the "
+    "fact's other fields\n"
+    " - dangling_money: a numeric amount with no currency or context\n"
+    " - personally_identifying: a specific person or org name appears "
+    "where a role/category would be more durable\n\n"
+    "Output STRICT JSON ONLY (no markdown, no prose):\n"
+    "{\"issues\": [{\"category\": <one of above>, \"field\": <str>, "
+    "\"why\": <one sentence>, \"suggested_fix\": <one sentence>}], "
+    "\"overall\": <one sentence summary>}\n"
+    "If the draft is already good, return {\"issues\": [], \"overall\": "
+    "\"draft reads as a clean, anonymized pattern\"}."
+)
+
+_POLISH_REWRITE_SYSTEM = (
+    "You are a senior anti-trafficking reviewer rewriting a draft "
+    "knowledge fact based on a critique list. Apply EVERY suggested "
+    "fix without inventing new facts. Keep the draft's "
+    "knowledge_object_type. Preserve any field the critique did not "
+    "flag.\n\n"
+    "Rules:\n"
+    " - Talk about patterns, not specific people. Replace personal "
+    "names with role descriptors (worker, recruiter, employer).\n"
+    " - Use the canonical ILO indicator vocabulary: fee_camouflage, "
+    "fee_bondage, salary_deduction, debt_bondage, passport_retention, "
+    "document_control, retaliation_risk, jurisdiction_shopping, "
+    "wage_theft, deceptive_recruitment, movement_restriction.\n"
+    " - Corridors are XX-YY uppercase (PH-HK, ID-MY, BD-LB).\n"
+    " - Journey stages: recruitment, training, payment_and_debt, "
+    "departure, transit, arrival_and_placement, employment, exit, "
+    "post_return.\n"
+    " - Quotes describe the pattern in abstract terms, not 'in this "
+    "case the worker'.\n\n"
+    "Output STRICT JSON ONLY: the polished content dict with the "
+    "same top-level field names as the input draft."
+)
+
+
+def _build_polish_response(app: Any, body: dict[str, Any]) -> dict[str, Any]:
+    """Two-pass critique + rewrite polish for an existing draft envelope."""
+    envelope = body.get("envelope") or {}
+    if not isinstance(envelope, dict) or not envelope.get("content"):
+        raise HTTPException(400, "envelope.content is required")
+    use_gemma = bool(body.get("use_gemma", True))
+    max_passes = int(body.get("max_passes") or 1)
+    max_passes = max(1, min(max_passes, 2))
+
+    target_type = (
+        envelope.get("knowledge_object_type")
+        or envelope.get("target_type")
+        or "extracted_fact"
+    )
+    original_content = dict(envelope.get("content") or {})
+
+    gc = getattr(app.state, "gemma_call", None) if use_gemma else None
+    base_extensions = dict(envelope.get("extensions") or {})
+    base_extensions["model_call_requested"] = use_gemma
+    base_extensions["model_call_available"] = gc is not None
+
+    # Short-circuit when Gemma isn't available: just re-standardize the
+    # existing content (idempotent) so the reviewer still gets a
+    # cleanly-shaped envelope back without spinning up the model.
+    if gc is None:
+        polished_content = _standardize_fact_envelope(
+            original_content, target_type
+        )
+        base_extensions["polish_skipped"] = (
+            "gemma disabled by caller" if not use_gemma
+            else "no model loaded"
+        )
+        base_extensions["standardized_shape"] = True
+        return {
+            "envelope": {
+                **envelope,
+                "content": polished_content,
+                "extensions": base_extensions,
+            },
+            "critique": None,
+            "passes": 0,
+            "diff": _diff_fields(original_content, polished_content),
+        }
+
+    # Pass 1: critique
+    critique: dict[str, Any] = {"issues": [], "overall": ""}
+    critique_raw = ""
+    critique_error: str | None = None
+    try:
+        crit_msgs = [
+            {"role": "system", "content": [{"type": "text", "text": _POLISH_CRITIQUE_SYSTEM}]},
+            {"role": "user", "content": [{"type": "text", "text":
+                "Draft envelope content (target_type="
+                + str(target_type) + "):\n"
+                + _json.dumps(original_content, indent=2, default=str)
+            }]},
+        ]
+        crit_out = gc(crit_msgs, max_new_tokens=512, temperature=0.1)
+        critique_raw = crit_out if isinstance(crit_out, str) else (
+            (crit_out or {}).get("text")
+            or (crit_out or {}).get("response")
+            or ""
+        )
+        critique_raw = sanitize_model_output(critique_raw)
+        from duecare.chat._model_json import extract_json
+        ex = extract_json(critique_raw)
+        if isinstance(ex.payload, dict) and isinstance(ex.payload.get("issues"), list):
+            critique = ex.payload
+        else:
+            critique_error = "critique JSON did not parse"
+    except Exception as e:  # noqa: BLE001
+        critique_error = f"{type(e).__name__}: {str(e)[:160]}"
+
+    # If critique failed OR found no issues, skip rewrite and just
+    # re-standardize so the reviewer still gets a clean envelope.
+    if critique_error or not critique.get("issues"):
+        polished_content = _standardize_fact_envelope(
+            original_content, target_type
+        )
+        base_extensions["standardized_shape"] = True
+        if critique_error:
+            base_extensions["polish_critique_error"] = critique_error
+        else:
+            base_extensions["polish_clean_pass"] = True
+        return {
+            "envelope": {
+                **envelope,
+                "content": polished_content,
+                "extensions": base_extensions,
+            },
+            "critique": critique if not critique_error else {"error": critique_error},
+            "passes": 1,
+            "diff": _diff_fields(original_content, polished_content),
+        }
+
+    # Pass 2: rewrite
+    rewrite_error: str | None = None
+    rewritten_content: dict[str, Any] = dict(original_content)
+    try:
+        critique_text = _json.dumps(critique, indent=2, default=str)
+        rw_msgs = [
+            {"role": "system", "content": [{"type": "text", "text": _POLISH_REWRITE_SYSTEM}]},
+            {"role": "user", "content": [{"type": "text", "text":
+                "Current draft (target_type=" + str(target_type) + "):\n"
+                + _json.dumps(original_content, indent=2, default=str)
+                + "\n\nCritique (apply EVERY fix):\n"
+                + critique_text
+            }]},
+        ]
+        rw_out = gc(rw_msgs, max_new_tokens=768, temperature=0.2)
+        rw_raw = rw_out if isinstance(rw_out, str) else (
+            (rw_out or {}).get("text")
+            or (rw_out or {}).get("response")
+            or ""
+        )
+        rw_raw = sanitize_model_output(rw_raw)
+        from duecare.chat._model_json import extract_json
+        ex = extract_json(rw_raw)
+        if isinstance(ex.payload, dict):
+            # Merge: keep the original keys but overwrite with the
+            # rewritten values. This protects against Gemma dropping a
+            # field it didn't explicitly fix.
+            merged = dict(original_content)
+            merged.update({k: v for k, v in ex.payload.items() if v is not None})
+            rewritten_content = merged
+        else:
+            rewrite_error = "rewrite JSON did not parse"
+    except Exception as e:  # noqa: BLE001
+        rewrite_error = f"{type(e).__name__}: {str(e)[:160]}"
+
+    polished_content = _standardize_fact_envelope(
+        rewritten_content, target_type
+    )
+    base_extensions["standardized_shape"] = True
+    base_extensions["polished_by_gemma"] = True
+    base_extensions["polish_passes"] = 2 if not rewrite_error else 1
+    if rewrite_error:
+        base_extensions["polish_rewrite_error"] = rewrite_error
+
+    return {
+        "envelope": {
+            **envelope,
+            "content": polished_content,
+            "extensions": base_extensions,
+        },
+        "critique": critique,
+        "passes": 2 if not rewrite_error else 1,
+        "diff": _diff_fields(original_content, polished_content),
+    }
+
+
+def _diff_fields(before: dict, after: dict) -> list[dict[str, Any]]:
+    """Produce a compact per-field diff for the UI. Each entry is
+    {"key", "before", "after", "changed"}. before/after are stringified
+    so the UI can render them without JSON.parse acrobatics."""
+    keys = sorted(set(before.keys()) | set(after.keys()))
+    out: list[dict[str, Any]] = []
+    for k in keys:
+        b = before.get(k)
+        a = after.get(k)
+        out.append({
+            "key": k,
+            "before": _short_repr(b),
+            "after": _short_repr(a),
+            "changed": (b != a),
+        })
+    return out
+
+
+def _short_repr(value: Any) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        return value if len(value) <= 240 else (value[:240] + "…")
+    try:
+        s = _json.dumps(value, default=str)
+    except Exception:
+        s = str(value)
+    return s if len(s) <= 240 else (s[:240] + "…")
 
 
 def register_routes(app: Any) -> None:
@@ -802,3 +1084,26 @@ def register_routes(app: Any) -> None:
         except Exception:
             raise HTTPException(400, "invalid JSON body")
         return JSONResponse(_build_draft_response(app, body))
+
+    @app.post("/api/knowledge/polish-envelope")
+    async def api_knowledge_polish_envelope(request: Request) -> Any:
+        """Two-pass Gemma 4 polish of an existing draft envelope.
+
+        Pass 1 (critique): Gemma reads the draft and produces a JSON
+        list of specific issues — vague phrasing, unsupported claims,
+        missing ILO indicator vocabulary, build-log-flavored quotes,
+        operational metadata leakage.
+
+        Pass 2 (rewrite): Gemma applies the critique, returning a
+        polished content dict that goes through the standard fact
+        normalizer one more time before we hand it back.
+
+        Returns the polished envelope, the critique notes, the
+        per-field diff, and provenance flags so the reviewer can see
+        what changed and why. If Gemma is unavailable, returns the
+        original envelope with a clear `polish_skipped` reason."""
+        try:
+            body = await request.json()
+        except Exception:
+            raise HTTPException(400, "invalid JSON body")
+        return JSONResponse(_build_polish_response(app, body))

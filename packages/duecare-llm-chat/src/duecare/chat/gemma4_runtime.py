@@ -282,19 +282,49 @@ class Gemma4Runtime:
             else:
                 inputs = tokenizer(prompt, return_tensors="pt")
                 inputs = {k: v.to(input_device) for k, v in inputs.items()}
-            out = model.generate(
-                **inputs,
-                max_new_tokens=max_new_tokens,
-                use_cache=True,
-                do_sample=temperature > 0,
-                temperature=max(float(temperature or 0.0), 0.01),
-                top_p=top_p,
-                top_k=top_k,
-            )
+            out = None
+            text = ""
             try:
-                text = tokenizer.batch_decode(out)[0]
-            except Exception:
-                text = tokenizer.decode(out[0], skip_special_tokens=True)
+                out = model.generate(
+                    **inputs,
+                    max_new_tokens=max_new_tokens,
+                    use_cache=True,
+                    do_sample=temperature > 0,
+                    temperature=max(float(temperature or 0.0), 0.01),
+                    top_p=top_p,
+                    top_k=top_k,
+                )
+                try:
+                    text = tokenizer.batch_decode(out)[0]
+                except Exception:
+                    text = tokenizer.decode(out[0], skip_special_tokens=True)
+            finally:
+                # Free per-call intermediate tensors (input ids, attention
+                # mask, model outputs, and the KV cache from this generate
+                # call) so back-to-back model invocations on a large
+                # variant (26B-A4B / 31B) don't accumulate VRAM and OOM
+                # the second / third call. Observed in the live tunnel:
+                # case-brief succeeded, then knowledge-draft batch OOM'd
+                # because the prior generation's KV cache stayed pinned.
+                #
+                # Two-step cleanup: (1) drop Python references to the
+                # generated tensor + the input tensors so the garbage
+                # collector can release them; (2) ask PyTorch's caching
+                # allocator to return free blocks to the CUDA driver.
+                try:
+                    inputs = None
+                    out = None
+                    import gc as _gc_local
+                    _gc_local.collect()
+                    if hasattr(torch, "cuda") and torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+                        # synchronize so empty_cache actually reclaims
+                        # before the next call's allocation starts.
+                        torch.cuda.synchronize()
+                except Exception:
+                    # Memory cleanup is best-effort — if it fails (e.g.
+                    # torch.cuda unavailable), don't break the call.
+                    pass
             from duecare.chat._model_output import sanitize_model_output
 
             return sanitize_model_output(text)

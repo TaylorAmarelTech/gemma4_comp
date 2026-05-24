@@ -34,6 +34,10 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from .experiment_contracts import experiment_contract_payload
+from .harnesses._safe_text import (
+    fact_excerpt as _safe_fact_excerpt,
+    smart_excerpt as _safe_smart_excerpt,
+)
 from .portability import portability_contract_payload
 
 
@@ -5128,8 +5132,14 @@ def create_app(
                 trace["persona"].update({
                     "fired": True,
                     "elapsed_ms": 0,
-                    "text_preview": persona_text[:280] +
-                                       ("…" if len(persona_text) > 280 else ""),
+                    # Boundary-aware truncation so the persona preview
+                    # in the chat trace reads as a self-contained
+                    # statement instead of trailing off mid-word. The
+                    # persona is reviewer-defined so no noise scrub
+                    # applies — smart_excerpt only cuts on a sentence
+                    # boundary.
+                    "text_preview": (_safe_smart_excerpt(persona_text, 280)
+                                       + ("…" if len(persona_text) > 280 else "")),
                     "summary": f"persona prepended ({len(persona_text)} chars)",
                 })
                 prepend_snippets.append(
@@ -5970,7 +5980,15 @@ def create_app(
                     for k in _headline_keys.get(ko_type, ()):
                         val = content.get(k)
                         if val:
-                            summary = str(val)[:160]
+                            # fact_excerpt scrubs kernel-metadata noise
+                            # (run IDs, /kaggle/working/... paths, ZIP /
+                            # JSONL filenames, synthetic case folder
+                            # names) AND truncates at a sentence
+                            # boundary. Listing summaries are read in
+                            # bulk by reviewers, so a clean cut +
+                            # de-noised text matters more than the
+                            # extra 5 chars saved by a hard slice.
+                            summary = _safe_fact_excerpt(str(val), 160)
                             break
                 out.append({
                     "id": env.get("id"),
