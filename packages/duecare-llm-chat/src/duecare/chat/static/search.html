@@ -733,11 +733,226 @@
       save.textContent = 'Save this draft';
       save.addEventListener('click', () => searchSaveOneDraft(idx));
       row.appendChild(save);
+      const polish = document.createElement('button');
+      polish.className = 'wb-btn-secondary';
+      polish.type = 'button';
+      polish.id = 'search-polish-btn-' + idx;
+      polish.title = 'Two Gemma 4 passes: first critiques vague or missing fields, second rewrites the draft and re-runs standardization.';
+      polish.textContent = 'Polish further (Gemma 4)';
+      polish.addEventListener('click', () => searchPolishDraft(idx));
+      row.appendChild(polish);
       card.appendChild(row);
       const pre = document.createElement('pre');
       pre.textContent = JSON.stringify(env, null, 2);
       card.appendChild(pre);
       draftsList.appendChild(card);
+    }
+
+    function searchFormatPolishValue(value) {
+      if (value === undefined || value === null || value === '') return '<empty>';
+      if (typeof value === 'string') return value;
+      try {
+        return JSON.stringify(value);
+      } catch (_) {
+        return String(value);
+      }
+    }
+
+    function searchPolishCell(text, extraStyle) {
+      const td = document.createElement('td');
+      td.style.cssText = 'padding:4px 6px; vertical-align: top;' + (extraStyle || '');
+      td.textContent = text;
+      return td;
+    }
+
+    function searchRenderPolishNotes(card, pre, out) {
+      const existingNotes = card.querySelector('.search-polish-notes');
+      if (existingNotes) existingNotes.remove();
+      const diff = Array.isArray(out.diff) ? out.diff.filter(d => d && d.changed) : [];
+      const passes = out.passes || 0;
+      const critique = out.critique || null;
+      const critiqueIssues = critique && Array.isArray(critique.issues) ? critique.issues : [];
+
+      const notes = document.createElement('div');
+      notes.className = 'search-polish-notes';
+      notes.style.cssText = 'margin: 8px 0; padding: 10px 12px; '
+        + 'background: oklch(0.97 0.025 195); '
+        + 'border: 1px solid oklch(0.78 0.06 195); '
+        + 'border-left: 4px solid oklch(0.52 0.08 195); '
+        + 'border-radius: 6px; font-size: 12px; line-height: 1.5;';
+
+      const header = document.createElement('b');
+      header.style.color = 'oklch(0.32 0.07 195)';
+      header.textContent = 'Gemma 4 polish: ' + passes + ' pass(es), '
+        + diff.length + ' field(s) changed';
+      notes.appendChild(header);
+
+      if (critique && critique.overall) {
+        const overall = document.createElement('div');
+        overall.style.cssText = 'margin-top: 4px; color: oklch(0.32 0.07 195);';
+        const italic = document.createElement('i');
+        italic.textContent = String(critique.overall).slice(0, 280);
+        overall.appendChild(italic);
+        notes.appendChild(overall);
+      }
+
+      if (critiqueIssues.length) {
+        const ul = document.createElement('ul');
+        ul.style.cssText = 'margin: 6px 0 4px 18px; padding: 0;';
+        critiqueIssues.slice(0, 6).forEach((iss) => {
+          const li = document.createElement('li');
+          li.style.marginBottom = '2px';
+          const field = document.createElement('b');
+          field.textContent = String(iss.field || iss.category || '?');
+          li.appendChild(field);
+          li.appendChild(document.createTextNode(': ' + String(iss.why || '')));
+          if (iss.suggested_fix) {
+            const fix = document.createElement('span');
+            fix.className = 'wb-muted';
+            fix.textContent = ' -> ' + String(iss.suggested_fix || '');
+            li.appendChild(fix);
+          }
+          ul.appendChild(li);
+        });
+        notes.appendChild(ul);
+      }
+
+      const details = document.createElement('details');
+      details.style.marginTop = '6px';
+      const summary = document.createElement('summary');
+      summary.style.cssText = 'cursor: pointer; font-weight: 600;';
+      summary.textContent = 'Field-level diff (' + diff.length + ' changed)';
+      details.appendChild(summary);
+
+      const table = document.createElement('table');
+      table.style.cssText = 'width: 100%; margin-top: 6px; font-size: 11.5px; border-collapse: collapse;';
+      const thead = document.createElement('thead');
+      const headRow = document.createElement('tr');
+      headRow.style.background = 'oklch(0.97 0.02 195)';
+      ['Field', 'Before', 'After'].forEach((label) => {
+        const th = document.createElement('th');
+        th.style.cssText = 'text-align:left; padding: 4px 6px;';
+        th.textContent = label;
+        headRow.appendChild(th);
+      });
+      thead.appendChild(headRow);
+      table.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+      if (diff.length) {
+        diff.slice(0, 20).forEach((d) => {
+          const tr = document.createElement('tr');
+          tr.appendChild(searchPolishCell(
+            String(d.key || '?'),
+            " font-family: 'JetBrains Mono', monospace;",
+          ));
+          tr.appendChild(searchPolishCell(
+            searchFormatPolishValue(d.before),
+            ' color: #8A8E97;',
+          ));
+          tr.appendChild(searchPolishCell(
+            searchFormatPolishValue(d.after),
+            ' color: oklch(0.32 0.07 195);',
+          ));
+          tbody.appendChild(tr);
+        });
+      } else {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 3;
+        td.style.cssText = 'padding:4px 6px; color:#8A8E97;';
+        td.textContent = 'No field-level changes.';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+      }
+      table.appendChild(tbody);
+      details.appendChild(table);
+      notes.appendChild(details);
+
+      const ext = (out.envelope && out.envelope.extensions) || {};
+      if (ext.polish_clean_pass) {
+        const clean = document.createElement('div');
+        clean.style.cssText = 'margin-top: 6px; color: oklch(0.32 0.07 155);';
+        clean.textContent = 'Gemma found no issues; the standardize pass still kept the field order canonical.';
+        notes.appendChild(clean);
+      } else if (passes === 0) {
+        const skipped = document.createElement('div');
+        skipped.style.cssText = 'margin-top: 6px; color: oklch(0.40 0.10 80);';
+        skipped.textContent = 'Polish skipped: '
+          + String(ext.polish_skipped || 'no model')
+          + '. The standardize pass still ran.';
+        notes.appendChild(skipped);
+      }
+
+      if (pre) pre.parentNode.insertBefore(notes, pre);
+      else card.appendChild(notes);
+      return {diff, passes, critique};
+    }
+
+    async function searchPolishDraft(idx) {
+      const entry = _drafts[idx];
+      const env = entry && entry.envelope;
+      if (!env || !env.content) return;
+      const btn = document.getElementById('search-polish-btn-' + idx);
+      const title = (entry.title || entry.url || env.id || ('draft ' + (idx + 1)));
+      const t0 = performance.now();
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Polishing pass 1/2...';
+      }
+      _searchLog = searchGetLog();
+      _searchLog && _searchLog.net('POST /api/knowledge/polish-envelope', title);
+      try {
+        const r = await fetch('/api/knowledge/polish-envelope', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({envelope: env, use_gemma: true, max_passes: 2}),
+        });
+        const dt = Math.round(performance.now() - t0);
+        if (!r.ok) {
+          const txt = await r.text();
+          _searchLog && _searchLog.err('Polish failed (HTTP ' + r.status + ')', txt.slice(0, 240));
+          return;
+        }
+        const out = await r.json();
+        if (!out || !out.envelope) {
+          _searchLog && _searchLog.err('Polish returned no envelope', JSON.stringify(out || {}).slice(0, 200));
+          return;
+        }
+        entry.envelope = out.envelope;
+        const card = btn ? btn.closest('.wb-draft-card') : null;
+        const pre = card ? card.querySelector('pre') : null;
+        if (pre) pre.textContent = JSON.stringify(out.envelope, null, 2);
+        const rendered = card ? searchRenderPolishNotes(card, pre, out) : {
+          diff: Array.isArray(out.diff) ? out.diff.filter(d => d && d.changed) : [],
+          passes: out.passes || 0,
+          critique: out.critique || null,
+        };
+        if (window.dcGemmaStats && rendered.passes > 0) {
+          window.dcGemmaStats.bump('chat');
+        }
+        const ext = (out.envelope && out.envelope.extensions) || {};
+        if (rendered.passes === 0) {
+          _searchLog && _searchLog.warn(
+            'Polish skipped: ' + String(ext.polish_skipped || 'no model'),
+            'The draft remains usable; the standardize pass still ran.',
+          );
+        }
+        _searchLog && _searchLog.ok(
+          'Polish complete (' + dt + 'ms)',
+          rendered.passes + ' pass(es), ' + rendered.diff.length + ' field(s) changed'
+            + (rendered.critique && rendered.critique.overall
+              ? ' - ' + String(rendered.critique.overall).slice(0, 180)
+              : ''),
+        );
+      } catch (e) {
+        _searchLog && _searchLog.err('Polish failed (network)', String(e).slice(0, 200));
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Polish further (Gemma 4)';
+        }
+      }
     }
 
     async function searchDraftResultAt(i) {
