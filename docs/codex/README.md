@@ -35,7 +35,7 @@ For no-stop runs across multiple goals, use [`dispatch_all_goals.md`](dispatch_a
 | 3 | [`goal_03_field_source_preview/`](goal_03_field_source_preview/handoff.md) | PENDING | Show field-source colors on templates.html BEFORE Generate is clicked |
 | 4 | [`goal_04_process_to_knowledge/`](goal_04_process_to_knowledge/handoff.md) | PENDING | One-click "Draft as knowledge fact" on every typed edge in process.html |
 | 5 | [`goal_05_auto_polish_queue/`](goal_05_auto_polish_queue/handoff.md) | PENDING | Checkbox that auto-polishes every new draft |
-| 6 | [`goal_06_template_sample_bundle/`](goal_06_template_sample_bundle/handoff.md) | PENDING | Synthetic case bundle + buttons so templates.html round-trips in 30s |
+| 6 | [`goal_06_template_sample_bundle/`](goal_06_template_sample_bundle/handoff.md) | **DONE 2026-05-24 (`61c076e`)** | Synthetic case bundle + buttons so templates.html round-trips in 30s |
 | 7 | [`goal_07_vocab_audit_script/`](goal_07_vocab_audit_script/handoff.md) | PENDING | Stdlib script that audits saved envelopes against canonical vocab |
 | 8 | [`goal_08_inline_diff/`](goal_08_inline_diff/handoff.md) | PENDING | Word-level inline diff in the polish panel |
 | 9 | [`goal_09_inline_vocab_normalize/`](goal_09_inline_vocab_normalize/handoff.md) | PENDING | Apply canonical vocab normalization to graph-chat synthesis free-text |

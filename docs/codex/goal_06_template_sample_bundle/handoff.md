@@ -1,6 +1,6 @@
 # Goal 6 — Sample bundle for templates.html
 
-> Status: **PENDING**. Created 2026-05-24.
+> Status: **DONE 2026-05-24** in commit `61c076e`. Created 2026-05-24.
 
 ## 1. Goal
 
@@ -87,7 +87,7 @@ python scripts/build_static_samples.py
 
 python -c "import json, pathlib; b = json.loads(pathlib.Path('packages/duecare-llm-chat/src/duecare/chat/static/samples/template_bundle_sample.json').read_text(encoding='utf-8')); intel = b['intelligence']; assert intel.get('case_brief') and intel.get('payments') and intel.get('ilo_indicators'); print('PASS sample shape')"
 
-python -c "import json, pathlib; m = json.loads(pathlib.Path('packages/duecare-llm-chat/src/duecare/chat/static/samples/sample_manifest.json').read_text(encoding='utf-8')); samples = m.get('samples', m if isinstance(m,list) else []); assert any(s.get('path','').endswith('template_bundle_sample.json') for s in samples); print('PASS manifest')"
+python -c "import json, pathlib; m = json.loads(pathlib.Path('packages/duecare-llm-chat/src/duecare/chat/static/samples/sample_manifest.json').read_text(encoding='utf-8')); samples = m.get('entries', m.get('samples', m if isinstance(m,list) else [])); assert any(s.get('path','').endswith('template_bundle_sample.json') for s in samples); print('PASS manifest')"
 
 python -c "import pathlib; t = pathlib.Path('packages/duecare-llm-chat/src/duecare/chat/static/templates.html').read_text(encoding='utf-8'); assert 'template_bundle_sample.json' in t and ('Use sample bundle' in t or 'Use sample' in t); print('PASS UI')"
 ```
