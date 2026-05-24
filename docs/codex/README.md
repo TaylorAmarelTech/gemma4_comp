@@ -30,7 +30,7 @@ For no-stop runs across multiple goals, use [`dispatch_all_goals.md`](dispatch_a
 
 | # | Directory | Status | Summary |
 |---|---|---|---|
-| 1 | [`goal_01_polish_button_search/`](goal_01_polish_button_search/handoff.md) | PENDING | Add "Polish further (Gemma 4)" button to search.html draft cards |
+| 1 | [`goal_01_polish_button_search/`](goal_01_polish_button_search/handoff.md) | **DONE 2026-05-24 (`713444e`)** | Add "Polish further (Gemma 4)" button to search.html draft cards |
 | 2 | [`goal_02_multi_template_fill/`](goal_02_multi_template_fill/handoff.md) | PENDING | Fill multiple complaint templates from one bundle in one batch |
 | 3 | [`goal_03_field_source_preview/`](goal_03_field_source_preview/handoff.md) | PENDING | Show field-source colors on templates.html BEFORE Generate is clicked |
 | 4 | [`goal_04_process_to_knowledge/`](goal_04_process_to_knowledge/handoff.md) | PENDING | One-click "Draft as knowledge fact" on every typed edge in process.html |
