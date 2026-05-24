@@ -900,18 +900,35 @@
           if (kxGemmaMark) {
             // Read the server-side provenance fields to tell apart
             // "Gemma 4 actually ran" from "Gemma 4 was requested but the
-            // deterministic fallback ran because the model is not loaded
-            // or the call errored". The first draft envelope carries the
-            // ground truth in extensions.{fallback, model_call_available,
-            // model_call_requested}.
+            // deterministic fallback ran because the model is not loaded,
+            // the call OOM'd, or otherwise errored". The first draft
+            // envelope carries the ground truth in extensions.{fallback,
+            // model_call_available, model_call_requested, gemma_error}.
+            // CRITICAL: also check gemma_error — if Gemma was requested
+            // and available but the actual call raised (typically CUDA
+            // OOM on large variants), the server populates gemma_error
+            // and uses the deterministic content as fallback WITHOUT
+            // setting extensions.fallback. Without the gemma_error check
+            // the UI would falsely say "Gemma 4 refined this draft".
             const firstEnv = kxDrafts[0] || {};
             const ext = (firstEnv && firstEnv.extensions) || {};
             const fellBack = !!ext.fallback;
             const modelAvail = ext.model_call_available === true;
             const modelRequested = ext.model_call_requested === true;
+            // Aggregate gemma_error across all drafts in the batch since
+            // each envelope may have its own error string (typically the
+            // same OOM message for every envelope on a memory-pressured
+            // run). Surfaces the count + the first error message.
+            const errorEnvs = kxDrafts.filter(d => d && d.extensions && d.extensions.gemma_error);
+            const anyError = errorEnvs.length > 0;
+            const firstErrMsg = anyError ? String(errorEnvs[0].extensions.gemma_error).slice(0, 240) : '';
             if (!useGemma) {
               kxGemmaMark.className = 'dc-gemma-mark is-optional';
               kxGemmaMark.textContent = 'Gemma 4 refinement skipped by reviewer — deterministic draft shown';
+            } else if (anyError) {
+              kxGemmaMark.className = 'dc-gemma-mark is-unavailable';
+              kxGemmaMark.textContent = 'Gemma 4 errored on ' + errorEnvs.length + ' of ' + kxDrafts.length +
+                ' draft(s) — deterministic fallback shown. First error: ' + firstErrMsg;
             } else if (fellBack && !modelAvail) {
               kxGemmaMark.className = 'dc-gemma-mark is-optional';
               kxGemmaMark.textContent = 'Gemma 4 not loaded — deterministic draft shown';
@@ -922,26 +939,56 @@
               kxGemmaMark.className = 'dc-gemma-mark is-done';
               kxGemmaMark.textContent = 'Gemma 4 refined this draft';
               // Bump the top-bar Gemma 4 session tally — only on this
-              // is-done branch (Gemma 4 actually ran, not the fallback).
+              // is-done branch (Gemma 4 actually ran for every draft).
               if (window.dcGemmaStats) window.dcGemmaStats.bump('draft');
             } else {
               kxGemmaMark.className = 'dc-gemma-mark is-optional';
               kxGemmaMark.textContent = 'Gemma 4 refinement — runs by default when a draft starts';
             }
+            // Also log a clear summary to the activity log so the user
+            // sees the error count + a one-line OOM-recovery suggestion.
+            if (anyError && typeof wbLog === 'function') {
+              const suggestion = firstErrMsg.toLowerCase().indexOf('cuda out of memory') >= 0 || firstErrMsg.toLowerCase().indexOf('oom') >= 0
+                ? ' Suggestion: Gemma is out of GPU memory. Load a smaller variant (E4B / E2B) via the Model picker, or click Shutdown + reload to clear GPU state and reload only the model you need.'
+                : ' Suggestion: see activity log + Settings → Inference queue for kernel state.';
+              wbLog('warn', 'Gemma 4 errored on ' + errorEnvs.length + ' of ' + kxDrafts.length + ' draft(s)',
+                'Deterministic fallback content shown for those envelopes. First error: ' + firstErrMsg + suggestion);
+            }
           }
-          resultEl.innerHTML = kxDrafts.map((env, idx) =>
-            '<section class="wb-card" style="background:#FAF9F4; margin:8px 0; padding:12px;">' +
-            '<div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap;">' +
-            '<div><b>' + escapeHtml(env.knowledge_object_type || 'knowledge_object') + '</b> ' +
-            '<span class="wb-muted">' + escapeHtml(env.id || '') + '</span></div>' +
-            '<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">' +
-            '<span class="wb-muted" id="kx-promote-status-' + idx + '">Not promoted</span>' +
-            '<button class="wb-btn-primary" id="kx-promote-btn-' + idx + '" type="button" onclick="kxPromoteDraft(' + idx + ')">Promote draft</button>' +
-            '</div>' +
-            '</div>' +
-            '<pre style="background:#FFF; border:1px solid #DDD8C9; padding:10px; border-radius:6px; font-size:11.5px; overflow:auto; max-height:240px;">' +
-            escapeHtml(JSON.stringify(env, null, 2)) + '</pre></section>'
-          ).join('');
+          resultEl.innerHTML = kxDrafts.map((env, idx) => {
+            const envExt = (env && env.extensions) || {};
+            const envError = envExt.gemma_error ? String(envExt.gemma_error).slice(0, 280) : '';
+            const envUsedGemma = envExt.model_call_requested === true
+              && envExt.model_call_available === true
+              && !envExt.gemma_error
+              && !envExt.fallback;
+            const sourceBadge = envError
+              ? '<span class="dc-gemma-mark is-unavailable" title="Gemma 4 was attempted but errored; the deterministic template is shown instead.">Deterministic (Gemma 4 errored)</span>'
+              : envUsedGemma
+                ? '<span class="dc-gemma-mark is-done" title="Gemma 4 actually refined this draft (server confirmed model_call_available + no fallback + no error).">Gemma 4 refined</span>'
+                : '<span class="dc-gemma-mark is-optional" title="Server returned the deterministic template for this draft.">Deterministic</span>';
+            const errorBanner = envError
+              ? '<div style="margin: 8px 0; padding: 9px 12px; background: oklch(0.97 0.025 25); border: 1px solid oklch(0.78 0.10 45); border-left: 4px solid oklch(0.55 0.18 25); border-radius: 6px; font-size: 12px; line-height: 1.5; color: oklch(0.32 0.10 25);">'
+                + '<b style="display:block; margin-bottom:3px;">Gemma 4 did not refine this envelope.</b>'
+                + 'Reason: ' + escapeHtml(envError)
+                + (envError.toLowerCase().indexOf('cuda out of memory') >= 0 || envError.toLowerCase().indexOf('oom') >= 0
+                    ? '<div style="margin-top:6px; opacity:0.85;">Recovery: load a smaller Gemma 4 variant (E4B / E2B) via the Model picker, OR Shutdown + reload the kernel to clear GPU state. The deterministic template below is still usable for promotion.</div>'
+                    : '<div style="margin-top:6px; opacity:0.85;">The deterministic template below is still usable for promotion; check the activity log for kernel state.</div>')
+                + '</div>'
+              : '';
+            return '<section class="wb-card" style="background:#FAF9F4; margin:8px 0; padding:12px;">' +
+              '<div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; align-items:center;">' +
+              '<div><b>' + escapeHtml(env.knowledge_object_type || 'knowledge_object') + '</b> ' +
+              '<span class="wb-muted">' + escapeHtml(env.id || '') + '</span> ' + sourceBadge + '</div>' +
+              '<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">' +
+              '<span class="wb-muted" id="kx-promote-status-' + idx + '">Not promoted</span>' +
+              '<button class="wb-btn-primary" id="kx-promote-btn-' + idx + '" type="button" onclick="kxPromoteDraft(' + idx + ')">Promote draft</button>' +
+              '</div>' +
+              '</div>' +
+              errorBanner +
+              '<pre style="background:#FFF; border:1px solid #DDD8C9; padding:10px; border-radius:6px; font-size:11.5px; overflow:auto; max-height:240px;">' +
+              escapeHtml(JSON.stringify(env, null, 2)) + '</pre></section>';
+          }).join('');
         }catch(e){
           statusEl.textContent="Extract failed: "+String(e).slice(0,200);
           wbLog('err', 'Draft suggestions failed', String(e).slice(0,200));
