@@ -497,6 +497,10 @@
           .map(k => k + '=' + Object.values(provs).filter(v => v === k).length)
           .join(' | ');
         tplLog('ok', 'Draft generated', 'used_gemma=' + data.used_gemma + ' | ' + summary);
+        if (data.noise_scrubbed_before_gemma) {
+          tplLog('info', 'Noise scrub applied to bundle text',
+            'Kernel run IDs, /kaggle/working/... paths, ZIP/JSONL filenames, and synthetic case folder names were stripped from the bundle excerpt before Gemma drafted, and from every bundle-derived field value before the complaint body was rendered. Manual field values are preserved as you typed them.');
+        }
       } catch (e) {
         tplLog('err', 'Network error: ' + e);
         if (gemmaMark) {

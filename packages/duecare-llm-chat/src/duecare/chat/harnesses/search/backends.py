@@ -13,6 +13,8 @@ import os
 import time
 from typing import Any, Callable, Optional, Protocol
 
+from .._safe_text import smart_excerpt as _smart_excerpt
+
 
 class SearchBackend(Protocol):
     name: str
@@ -49,7 +51,15 @@ class SearXNGBackend:
                 "rank": i,
                 "title": (r.get("title") or "").strip(),
                 "url": (r.get("url") or "").strip(),
-                "snippet": ((r.get("content") or r.get("snippet") or "")[:400]).strip(),
+                # Sentence-boundary truncation so the result preview
+                # reads as a complete clause, not a mid-word slice.
+                # External web content isn't scrubbed (it's the web,
+                # not our kernel staging), so we use smart_excerpt
+                # rather than fact_excerpt here.
+                "snippet": _smart_excerpt(
+                    (r.get("content") or r.get("snippet") or "").strip(),
+                    400,
+                ),
             })
         return {
             "results": results,

@@ -680,6 +680,7 @@
 
     function searchRenderDraftCard(entry, idx) {
       const env = entry.envelope || {};
+      const ext = env.extensions || {};
       const draftsList = document.getElementById('drafts-list');
       draftsList.className = '';
       const card = document.createElement('div');
@@ -692,6 +693,37 @@
       meta.className = 'wb-muted';
       meta.textContent = (env.knowledge_object_type || 'knowledge_object') + ' | ' + (entry.url || '');
       card.appendChild(meta);
+      // Provenance badge row: source (Gemma 4 / Deterministic) +
+      // noise-scrub + standardized-shape pills. Mirrors the badges on
+      // knowledge.html so reviewers see the same signals regardless of
+      // which page produced the envelope.
+      const provRow = document.createElement('div');
+      provRow.style.cssText = 'display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 4px;';
+      const usedGemma = ext.gemma_drafted === true
+        && ext.model_call_available === true
+        && !ext.fallback && !ext.gemma_error;
+      const srcSpan = document.createElement('span');
+      srcSpan.className = 'dc-gemma-mark ' + (usedGemma ? 'is-done' : 'is-optional');
+      srcSpan.title = usedGemma
+        ? 'Gemma 4 refined this draft (server confirmed model_call_available + no fallback + no error).'
+        : 'Server returned the deterministic template for this draft.';
+      srcSpan.textContent = usedGemma ? 'Gemma 4 refined' : 'Deterministic';
+      provRow.appendChild(srcSpan);
+      if (ext.noise_scrubbed_before_gemma === true) {
+        const scrubSpan = document.createElement('span');
+        scrubSpan.className = 'dc-gemma-mark is-done';
+        scrubSpan.title = 'Source text was scrubbed of kernel run IDs, /kaggle/working/... paths, ZIP/JSONL filenames, and synthetic case folder names before this draft was generated.';
+        scrubSpan.textContent = 'Noise scrubbed';
+        provRow.appendChild(scrubSpan);
+      }
+      if (ext.standardized_shape === true) {
+        const stdSpan = document.createElement('span');
+        stdSpan.className = 'dc-gemma-mark is-done';
+        stdSpan.title = 'Envelope content was normalized to the canonical fact schema: same field names, field order, ILO indicator vocabulary, corridor format across every page.';
+        stdSpan.textContent = 'Standard shape';
+        provRow.appendChild(stdSpan);
+      }
+      card.appendChild(provRow);
       const row = document.createElement('div');
       row.className = 'wb-row';
       row.style.cssText = 'gap:8px; margin:8px 0;';

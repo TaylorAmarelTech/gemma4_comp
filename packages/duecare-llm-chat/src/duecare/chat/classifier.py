@@ -54,6 +54,7 @@ from pydantic import BaseModel, Field
 from duecare.chat.app import (
     DEFAULT_PERSONA, GenerationParams, HarnessToggles, _IMAGE_STORE,
 )
+from duecare.chat.harnesses._safe_text import smart_excerpt as _safe_smart_excerpt
 
 
 CLASSIFIER_PERSONA = """You are a content risk classifier for migrant-worker exploitation, trafficking, predatory recruitment, debt bondage, and labour-rights scenarios.
@@ -309,8 +310,12 @@ def create_classifier_app(
             if persona_text:
                 trace["persona"].update({
                     "fired": True,
-                    "text_preview": persona_text[:280] +
-                        ("…" if len(persona_text) > 280 else ""),
+                    # Sentence-boundary cut so the persona preview in
+                    # the classifier trace reads as a self-contained
+                    # clause. Persona is reviewer-defined so no noise
+                    # scrub applies.
+                    "text_preview": (_safe_smart_excerpt(persona_text, 280)
+                        + ("…" if len(persona_text) > 280 else "")),
                     "summary": f"persona prepended ({len(persona_text)} chars)",
                 })
                 prepend_snippets.append(

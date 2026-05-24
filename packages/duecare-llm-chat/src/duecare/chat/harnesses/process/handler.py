@@ -25,6 +25,7 @@ from fastapi.responses import JSONResponse
 
 from ..._model_output import sanitize_model_output
 from .._replay import demo_replay
+from .._safe_text import fact_excerpt as _fact_excerpt
 from .extractor import ENTITY_PATTERNS
 from .prompts import (
     EDGE_EXTRACTION_POINTED_QUESTIONS,
@@ -3224,7 +3225,7 @@ def _gemma_edge_pass(
                 **base,
                 "status": "salvaged_partial_edges",
                 "model_edges": salvaged_edges[:limit],
-                "text_preview": text[:900],
+                "text_preview": _fact_excerpt(text, 900),
                 "parser_attempts": list(extracted.attempts),
                 "raw_preview": extracted.raw_preview,
                 "salvaged_extra_edges": len(salvaged_edges),
@@ -3246,7 +3247,7 @@ def _gemma_edge_pass(
             **base,
             "status": "model_unparsed_deterministic_fallback",
             "model_edges": [],
-            "text_preview": text[:900],
+            "text_preview": _fact_excerpt(text, 900),
             "parser_attempts": list(extracted.attempts),
             "raw_preview": extracted.raw_preview,
             "uncertainties": [
@@ -3286,7 +3287,7 @@ def _gemma_edge_pass(
                     f"recovered {len(salvaged_after_error)} edge(s) via salvage. "
                     "Original error preserved in `error` for diagnosis.",
                 ],
-                "text_preview": text_for_salvage[:900],
+                "text_preview": _fact_excerpt(text_for_salvage, 900),
             }
         mark("model_error", 100, f"Gemma edge pass failed ({type(exc).__name__}); returning deterministic fallback edges.")
         return {
@@ -3297,7 +3298,7 @@ def _gemma_edge_pass(
             "uncertainties": [
                 f"Gemma edge pass failed: {err_msg}. Deterministic typed edges remain available.",
             ],
-            "text_preview": (text_for_salvage or "")[:900],
+            "text_preview": _fact_excerpt(text_for_salvage or "", 900),
         }
 
 
