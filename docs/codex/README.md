@@ -33,7 +33,7 @@ For no-stop runs across multiple goals, use [`dispatch_all_goals.md`](dispatch_a
 | 1 | [`goal_01_polish_button_search/`](goal_01_polish_button_search/handoff.md) | **DONE 2026-05-24 (`713444e`)** | Add "Polish further (Gemma 4)" button to search.html draft cards |
 | 2 | [`goal_02_multi_template_fill/`](goal_02_multi_template_fill/handoff.md) | PENDING | Fill multiple complaint templates from one bundle in one batch |
 | 3 | [`goal_03_field_source_preview/`](goal_03_field_source_preview/handoff.md) | **DONE 2026-05-24 (`8294b5a`)** | Show field-source colors on templates.html BEFORE Generate is clicked |
-| 4 | [`goal_04_process_to_knowledge/`](goal_04_process_to_knowledge/handoff.md) | PENDING | One-click "Draft as knowledge fact" on every typed edge in process.html |
+| 4 | [`goal_04_process_to_knowledge/`](goal_04_process_to_knowledge/handoff.md) | **DONE 2026-05-24 (`fc7d53f`)** | One-click "Draft as knowledge fact" on every typed edge in process.html |
 | 5 | [`goal_05_auto_polish_queue/`](goal_05_auto_polish_queue/handoff.md) | PENDING | Checkbox that auto-polishes every new draft |
 | 6 | [`goal_06_template_sample_bundle/`](goal_06_template_sample_bundle/handoff.md) | **DONE 2026-05-24 (`61c076e`)** | Synthetic case bundle + buttons so templates.html round-trips in 30s |
 | 7 | [`goal_07_vocab_audit_script/`](goal_07_vocab_audit_script/handoff.md) | PENDING | Stdlib script that audits saved envelopes against canonical vocab |
