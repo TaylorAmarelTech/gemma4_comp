@@ -4638,6 +4638,16 @@ async function _streamGradeRun(url, body, pane, mode) {
     pane.innerHTML = `<div style="color:#ef4444; padding:16px 0;">Stream ended without a final result. Check the browser console for details.</div>`;
     return;
   }
+  // Bump the top-bar Gemma 4 session tally — both LLM-evaluator (deep)
+  // and combined modes call Gemma 4 once per evaluated dimension. n_total
+  // is the dimension count returned by the stream; fall back to 1 for the
+  // unusual case where the count is missing. Uses the 'grade' counter so
+  // the breakdown panel distinguishes graded calls from chat replies and
+  // graph-chat syntheses.
+  if (window.dcGemmaStats) {
+    const nGrade = typeof nTotal === 'number' && nTotal > 0 ? nTotal : 1;
+    window.dcGemmaStats.bump('grade', nGrade);
+  }
   if (finalResult.mode === 'llm_evaluator') {
     pane.innerHTML = _renderEvaluatorGradeResult(finalResult);
   } else if (finalResult.mode === 'combined') {
@@ -5090,6 +5100,16 @@ function useHint(text) {
 }
 
 function resetChat() {
+  // Guard against accidental clicks during a recording — Clear deletes
+  // every message in the thread and is not reversible. Only the empty
+  // initial state skips the confirm (no messages to lose).
+  if (messages.length > 0 || pendingImages.length > 0) {
+    const msg = 'Clear the chat thread?\n\n' +
+      'This deletes ' + messages.length + ' message(s) and ' +
+      pendingImages.length + ' pending image(s) from the composer. ' +
+      'Cannot be undone.';
+    if (!window.confirm(msg)) return;
+  }
   messages.length = 0;
   pendingImages.length = 0;
   renderPendingImages();
