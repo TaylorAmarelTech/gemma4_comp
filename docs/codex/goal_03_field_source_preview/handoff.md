@@ -1,6 +1,6 @@
 # Goal 3 — Field-source preview on templates.html
 
-> Status: **PENDING**. Created 2026-05-24.
+> Status: **DONE 2026-05-24** in commit `8294b5a`. Created 2026-05-24.
 
 ## 1. Goal
 
