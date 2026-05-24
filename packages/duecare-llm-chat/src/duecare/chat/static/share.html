@@ -125,6 +125,8 @@
       </div>
     </details>
 
+    <div class="wb-step-flow" aria-hidden="true"></div>
+
     <!-- Step 2 -->
     <details class="wb-step" id="wb-step-2">
       <summary>
@@ -152,6 +154,8 @@
         </div>
       </div>
     </details>
+
+    <div class="wb-step-flow" aria-hidden="true"></div>
 
     <!-- Step 3 -->
     <details class="wb-step" id="wb-step-3">
@@ -202,6 +206,8 @@
       </div>
     </details>
 
+    <div class="wb-step-flow" aria-hidden="true"></div>
+
     <!-- Step 4 -->
     <details class="wb-step" id="wb-step-4">
       <summary>
@@ -234,8 +240,8 @@
         </div>
         <div class="wb-row">
           <button class="wb-btn-primary wb-step-cta" id="wb-step4-btn" disabled onclick="wbStep4()" data-tip="Disabled until Step 3 has completed AND you type SUBMIT in the confirmation field above." data-tip-pos="below">Step 4: Submit to hub</button>
-          <button class="wb-btn-secondary" id="wb-step4-cancel-btn" type="button" hidden onclick="wbCancelSubmit()"
-                  style="background:#FFF7F3; border-color:oklch(0.78 0.10 45); color:oklch(0.40 0.16 25);">Cancel submit</button>
+          <button class="wb-btn-destructive" id="wb-step4-cancel-btn" type="button" hidden onclick="wbCancelSubmit()"
+                  title="Cancel the in-flight hub submission. The redacted bundle is not sent; you can re-submit after editing.">Cancel submit</button>
         </div>
         <div id="wb-step4-result" style="margin-top: 12px;"></div>
       </div>

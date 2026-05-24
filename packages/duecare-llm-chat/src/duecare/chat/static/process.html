@@ -406,7 +406,7 @@
         </div>
       </details>
 
-    
+      <div class="wb-step-flow" aria-hidden="true"></div>
 
       <div id="wb-results">
         <details class="wb-workflow-step" id="wb-step-process">
@@ -436,7 +436,7 @@
                 harness returns.
               </div>
               <div class="wb-progress-actions">
-                <button class="wb-btn-secondary" id="wb-process-cancel-btn" type="button" onclick="wbCancelProcessJob()" disabled>Abandon polling</button>
+                <button class="wb-btn-destructive" id="wb-process-cancel-btn" type="button" onclick="wbCancelProcessJob()" disabled title="Stop polling the running upload job and let the kernel finish in the background. Will not undo work already done.">Abandon polling</button>
                 <button class="wb-btn-secondary" id="wb-process-deterministic-retry-btn" type="button" onclick="wbRetryDeterministicProcess()" disabled>Retry deterministic</button>
               </div>
               <div class="wb-progress-substeps" id="wb-process-substeps" aria-label="Processing stages"></div>
@@ -483,6 +483,8 @@
             </div>
           </div>
         </details>
+
+        <div class="wb-step-flow" aria-hidden="true"></div>
 
         <details class="wb-workflow-step" id="wb-step-intelligence">
           <summary>
@@ -556,8 +558,8 @@
             <button class="wb-btn-secondary" id="wb-gemma-edge-btn" type="button" onclick="wbRunGemmaEdgePass()">
               Re-run Gemma 4 edge pass
             </button>
-            <button class="wb-btn-secondary" id="wb-gemma-edge-cancel-btn" type="button" onclick="wbCancelEdgePass()" hidden
-                    style="background:#FFF7F3; border-color:oklch(0.78 0.10 45); color:oklch(0.40 0.16 25);">
+            <button class="wb-btn-destructive" id="wb-gemma-edge-cancel-btn" type="button" onclick="wbCancelEdgePass()" hidden
+                    title="Cancel the running Gemma 4 edge pass. Already-proposed edges from this run are discarded; the deterministic edges in the table above remain.">
               Cancel edge pass
             </button>
             <span class="dc-gemma-mark is-optional" id="wb-gemma-edge-mark">Gemma 4 edge pass — runs during upload by default; this button re-runs it</span>
@@ -630,7 +632,9 @@
           </div>
         </details>
       </div>
-  
+
+      <div class="wb-step-flow" aria-hidden="true"></div>
+
       <details class="wb-workflow-step" id="wb-graph-chat">
         <summary>
           <span class="wb-step-index">4</span>
@@ -960,6 +964,9 @@
         }finally{ btn.disabled=false; btn.textContent=origTxt; }
       }
     </script>
+
+      <div class="wb-step-flow" aria-hidden="true"></div>
+
       <details class="wb-workflow-step" id="wb-step-export">
         <summary>
           <span class="wb-step-index">5</span>
