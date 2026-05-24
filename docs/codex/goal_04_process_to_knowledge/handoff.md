@@ -1,6 +1,6 @@
 # Goal 4 — Process bundle → knowledge fact: one-click promote
 
-> Status: **PENDING**. Created 2026-05-24.
+> Status: **DONE 2026-05-24 (`fc7d53f`)**. Created 2026-05-24.
 
 ## 1. Goal
 
