@@ -1,6 +1,6 @@
 # Goal 1 — Polish button on search.html
 
-> Status: **PENDING**. Created 2026-05-24. Built on top of commit `92f45ac` (Goal 10 E2E tests).
+> Status: **DONE 2026-05-24 in commit `713444e`**. Created 2026-05-24. Built on top of commit `92f45ac` (Goal 10 E2E tests).
 
 ## 1. Goal
 
