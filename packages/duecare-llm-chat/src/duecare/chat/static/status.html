@@ -103,6 +103,16 @@
           <div class="stat-value" id="stat-hub-submits-count">--</div>
           <div class="stat-sub" id="stat-hub-submits-last">last submit: never</div>
         </div>
+        <div class="stat-card" style="border-color: oklch(0.78 0.06 195); background: oklch(0.97 0.025 195);">
+          <div class="stat-label" style="color: oklch(0.32 0.10 195);">Gemma 4 calls (session)</div>
+          <div class="stat-value" id="stat-gemma-calls" style="color: oklch(0.32 0.10 195);">--</div>
+          <div class="stat-sub" id="stat-gemma-calls-sub">no calls yet</div>
+        </div>
+        <div class="stat-card" style="border-color: oklch(0.78 0.06 195); background: oklch(0.97 0.025 195);">
+          <div class="stat-label" style="color: oklch(0.32 0.10 195);">Edges Gemma 4 proposed</div>
+          <div class="stat-value" id="stat-gemma-edges" style="color: oklch(0.32 0.10 195);">--</div>
+          <div class="stat-sub" id="stat-gemma-edges-sub">across edge passes + media reviews</div>
+        </div>
         <div class="stat-card">
           <div class="stat-label">Search backends available</div>
           <div class="stat-value" id="stat-backends">--</div>
@@ -367,9 +377,54 @@
       const hubLast = document.getElementById('stat-hub-submits-last');
       if (hubLast) hubLast.textContent =
         'last submit: ' + (c.hubSubmitsLastAt || 'never');
+
+      // Gemma 4 session-tally cards. Pulls from the dcGemmaStats global
+      // when available (set by _nav.js after chrome injection), otherwise
+      // reads the same localStorage key directly so the cards stay correct
+      // even before the chrome wiring completes.
+      let gStats = null;
+      if (window.dcGemmaStats && typeof window.dcGemmaStats.snapshot === 'function') {
+        gStats = window.dcGemmaStats.snapshot();
+      } else {
+        try {
+          const raw = localStorage.getItem('duecare:gemma_session_stats');
+          if (raw) gStats = JSON.parse(raw);
+        } catch (_) { gStats = null; }
+      }
+      const gCallsEl = document.getElementById('stat-gemma-calls');
+      const gCallsSubEl = document.getElementById('stat-gemma-calls-sub');
+      const gEdgesEl = document.getElementById('stat-gemma-edges');
+      const gEdgesSubEl = document.getElementById('stat-gemma-edges-sub');
+      if (gStats && gCallsEl) {
+        gCallsEl.textContent = String(gStats.calls || 0);
+        const parts = [];
+        if (gStats.brief) parts.push(gStats.brief + ' brief');
+        if (gStats.edge_pass) parts.push(gStats.edge_pass + ' edge');
+        if (gStats.media) parts.push(gStats.media + ' media');
+        if (gStats.synthesis) parts.push(gStats.synthesis + ' synth');
+        if (gStats.chat) parts.push(gStats.chat + ' chat');
+        if (gStats.grade) parts.push(gStats.grade + ' graded');
+        if (gStats.draft) parts.push(gStats.draft + ' draft');
+        if (gStats.template_fill) parts.push(gStats.template_fill + ' template');
+        if (gStats.anonymize_review) parts.push(gStats.anonymize_review + ' PII');
+        if (gStats.rephrase) parts.push(gStats.rephrase + ' rephrase');
+        if (gStats.compare) parts.push(gStats.compare + ' compare');
+        gCallsSubEl.textContent = parts.length
+          ? parts.join(' · ')
+          : 'no calls yet — open Bulk File Review or Chat to invoke Gemma 4';
+      }
+      if (gStats && gEdgesEl) {
+        gEdgesEl.textContent = String(gStats.edges_proposed || 0);
+        gEdgesSubEl.textContent = gStats.edges_proposed
+          ? ('across ' + ((gStats.edge_pass || 0) + (gStats.media || 0)) + ' edge / media pass(es)')
+          : 'across edge passes + media reviews';
+      }
+
       _statusLog.info('local counters',
         'syncs=' + c.syncsCount + ' imports=' + c.importsCount +
-        ' hub_submits=' + c.hubSubmitsCount);
+        ' hub_submits=' + c.hubSubmitsCount +
+        ' gemma_calls=' + ((gStats && gStats.calls) || 0) +
+        ' gemma_edges=' + ((gStats && gStats.edges_proposed) || 0));
     }
 
     async function statusRefresh() {
