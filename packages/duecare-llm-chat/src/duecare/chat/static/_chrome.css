@@ -1254,6 +1254,15 @@ code, .mono {
 .dc-activity-log .dc-log-event-gemma .dc-log-detail {
   margin-left: 22px;
 }
+/* Explicit [GEMMA 4] prefix tag — prepended on every Gemma 4 row by
+   _activity_log.js so the model activity reads as Gemma 4 even in
+   grayscale screenshots or for color-vision-impaired viewers. Bold,
+   teal-on-dark, monospace; matches the codebase's Gemma color. */
+.dc-activity-log .dc-log-tag-gemma {
+  color: oklch(0.78 0.12 195);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
 .dc-activity-log .dc-log-idle {
   color: #8A8E97; font-style: italic; padding: 4px 0;
 }
