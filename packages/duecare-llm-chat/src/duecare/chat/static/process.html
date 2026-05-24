@@ -952,7 +952,7 @@
             routeLabel || (out.fallback ? 'Fallback: ' + out.fallback : 'Answer returned from the local graph analyst path.'));
           if (typeof wbLog === 'function') {
             wbLog('ok', 'Graph-chat answered (' + dt + 'ms)',
-              'chars=' + text.length + extra + (routeLabel ? ' | ' + routeLabel : '') + (out.fallback ? ' | fallback=' + out.fallback : ''));
+              'chars=' + (combinedText ? combinedText.length : 0) + extra + (routeLabel ? ' | ' + routeLabel : '') + (out.fallback ? ' | fallback=' + out.fallback : ''));
           }
         }catch(e){
           clearInterval(pgTimer);

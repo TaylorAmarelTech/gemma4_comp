@@ -3549,6 +3549,39 @@ def _gemma_media_contextual_pass(
     }
 
 
+def _media_queue_ui_status(gemma_media_out: dict, media_count: int) -> str:
+    """Map a contextual-media-pass result dict to a UI status string.
+
+    Replaces the legacy heuristic that treated n_processed=0 as
+    "deferred" — that conflated four distinct situations into one
+    pill: "no media in bundle", "no model loaded", "budget exhausted",
+    and "ran but processed nothing". Each now gets its own status so
+    the wb-step-flow UI + dc-pill mapping can render the right state.
+
+    Maps:
+      complete_contextual           -> complete_contextual (done)
+      salvaged_partial_edges        -> complete_contextual (done; partial)
+      salvaged_after_exception      -> complete_contextual (done; partial)
+      no_media                      -> skipped (no items to process)
+      deterministic_no_model        -> deferred (load a model)
+      no_budget                     -> deferred (raise Max Gemma calls)
+      error                         -> warn (check activity log)
+      not_run / empty dict / unset  -> deferred (pass guard didn't fire)
+    """
+    pass_status = str((gemma_media_out or {}).get("status") or "not_run").lower()
+    if pass_status in {"complete_contextual", "salvaged_partial_edges", "salvaged_after_exception"}:
+        return "complete_contextual"
+    if pass_status == "no_media":
+        return "skipped"
+    if pass_status in {"deterministic_no_model", "no_budget"}:
+        return "deferred"
+    if pass_status == "error":
+        return "warn"
+    if not media_count:
+        return "skipped"
+    return "deferred"
+
+
 def register_routes(app: Any) -> None:
     """Attach the process routes to a FastAPI app."""
 
@@ -3759,6 +3792,17 @@ def register_routes(app: Any) -> None:
                 ),
             }
         intelligence["gemma_case_brief"] = gemma_brief
+        # CRITICAL: attach intelligence to bundle BEFORE _gemma_edge_pass
+        # and _gemma_media_contextual_pass run. Both passes read
+        # bundle.get("intelligence") to find the seed graph + media list;
+        # if we wait until after the passes (the legacy position was at
+        # bundle finalization), the passes see an empty intelligence dict
+        # and silently return no_media / zero edges. Setting it here makes
+        # the bundle the canonical source of truth for the rest of the
+        # orchestration too — every subsequent intelligence mutation (e.g.
+        # the gemma_edge_pass result, the gemma_media_pass typed_edges
+        # fold-in) mutates the same dict that is already on the bundle.
+        bundle["intelligence"] = intelligence
         gemma_edge_out = intelligence.get("gemma_edge_pass") or {}
         if run_gemma_text and gemma_budget > 1:
             edge_limit = max(4, min(32, gemma_budget - 1))
@@ -3881,22 +3925,28 @@ def register_routes(app: Any) -> None:
             {
                 "id": "media_queue",
                 "label": "OCR and Gemma 4 media vision queue",
-                "status": (
-                    "complete_contextual" if gemma_media_out.get("n_processed")
-                    else ("skipped" if not media_count else "deferred")
-                ),
+                # Use the pass's actual status string instead of the
+                # falsy-n_processed heuristic. The heuristic conflated
+                # "ran but processed 0" with "didn't run at all" — both
+                # showed as "deferred" even though they're different
+                # situations. Map each real status to a concrete UI state.
+                "status": _media_queue_ui_status(gemma_media_out, media_count),
                 "detail": (
                     (
                         f"{gemma_media_out.get('n_processed', 0)}/{media_count} media item(s) reviewed by "
                         f"Gemma 4 (contextual: file path + folder + linked case). "
                         f"{gemma_media_out.get('n_skipped_over_cap', 0)} over Gemma-call cap. "
                         f"{gemma_media_out.get('n_errors', 0)} errors. "
+                        f"Pass status: {gemma_media_out.get('status', 'not_run')}. "
                         "Pixel-level vision pending AutoProcessor wiring."
-                    ) if gemma_media_out.get("n_processed") is not None and gemma_media_out
+                    ) if gemma_media_out
                     else (
-                        f"{media_count} media item(s) queued. Enable inline Gemma "
-                        "and set Max Gemma calls > text-pass count to run the "
-                        "contextual media review."
+                        f"{media_count} media item(s) queued. The contextual "
+                        "Gemma 4 media review did not run for this upload — "
+                        "either Max Gemma calls was 0, the model was not "
+                        "loaded, or all calls were spent on the text passes. "
+                        "Increase Max Gemma calls in advanced settings and "
+                        "re-upload."
                     )
                 ),
             },
