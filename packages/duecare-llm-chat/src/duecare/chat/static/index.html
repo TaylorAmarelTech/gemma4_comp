@@ -181,6 +181,15 @@ header.bar .badge.loaded .dot {
   color: var(--ink); font-weight: 500;
 }
 .composer .btn.secondary:hover { background: var(--panel2); border-color: var(--muted); }
+/* Destructive variant for actions that delete chat history or
+   irreversibly reset state. Amber-tinted so the reviewer never
+   confuses Clear with a benign secondary action. Matches the
+   .wb-btn-destructive convention used on the workbench pages. */
+.composer .btn.destructive {
+  background: oklch(0.97 0.025 25); color: oklch(0.40 0.16 25);
+  border: 1px solid oklch(0.78 0.10 45); font-weight: 500;
+}
+.composer .btn.destructive:hover { background: oklch(0.94 0.04 25); }
 .composer .controls {
   display: flex; gap: 16px; align-items: center;
   margin-top: 12px; font-size: 12px; color: var(--muted);
@@ -792,7 +801,7 @@ header.bar .badge.loaded .dot {
       <label>top_p <input type="range" id="topp" min="0.1" max="1" step="0.05" value="0.95" oninput="document.getElementById('topp-out').value=this.value"><input type="number" id="topp-out" value="0.95" min="0" max="1" step="0.05"></label>
       <label>top_k <input type="number" id="topk" value="64" min="0" max="500"></label>
       <label>max tokens <input type="number" id="maxtok" value="4096" min="32" max="32768"></label>
-      <button class="btn secondary" style="margin-left:auto" onclick="resetChat()">Clear</button>
+      <button class="btn destructive" style="margin-left:auto" onclick="resetChat()" title="Delete every message in the current chat thread and reset the harness layer state for this session. Cannot be undone.">Clear</button>
     </div>
     <div class="harness-tiles" id="harness-tiles">
       <div class="harness-tiles-header">
