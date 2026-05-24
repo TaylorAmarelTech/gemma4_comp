@@ -16,10 +16,15 @@ The goals come from [`docs/codex_followup_goals.md`](../codex_followup_goals.md)
 4. Codex reads the named files, makes the change, and runs the verification commands.
 5. Review the diff before merging.
 
+For no-stop runs across multiple goals, use [`dispatch_all_goals.md`](dispatch_all_goals.md) or the copy-paste `/goal` packs in [`goal_commands/`](goal_commands/README.md).
+
 ## Foundation documents (apply to every goal)
 
 - [`00_do_not_break.md`](00_do_not_break.md) — **mandatory contract**. Lists the kernels, endpoints, DOM IDs, activity-log handles, sample artifacts, and instructions Codex must not break. Every per-goal handoff links to this. If a proposed change would violate it, the change gets re-scoped.
 - [`00_execution_order.md`](00_execution_order.md) — suggested order + dependencies between goals. Goal 10 is already done (commit `92f45ac`); Goal 1 is the natural next pickup since it reuses the contract Goal 10 locked in.
+- [`00_kernel_compatibility_gate.md`](00_kernel_compatibility_gate.md) — global verification gate for the five non-archived Kaggle `kernel.py` files. Run it before committing every goal.
+- [`dispatch_all_goals.md`](dispatch_all_goals.md) — prompt sizes for completing every remaining PENDING goal without routine checkpoints.
+- [`goal_commands/`](goal_commands/README.md) — copy-paste `/goal` command packs for full, reviewer-visible, templates, polish, and vocabulary/diagnostics runs.
 
 ## Goal directory map
 
@@ -52,6 +57,12 @@ Every goal handoff follows the same 12 sections so you and Codex can scan them q
 10. **Verification commands** — paste-ready, all stdlib where possible
 11. **The Codex prompt** — the copy-paste block to hand off
 12. **Out of scope** — explicit non-goals so Codex doesn't sprawl
+
+In addition to each goal's section 10 commands, every goal run should execute the global main-kernel gate:
+
+```bash
+python scripts/validate_main_kaggle_kernels.py
+```
 
 ## Why the protective contract matters
 
