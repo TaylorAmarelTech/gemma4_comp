@@ -1,0 +1,190 @@
+{
+  "_meta": {
+    "created_at": "2026-05-24T00:00:00Z",
+    "created_by": "scripts/build_static_samples.py",
+    "pii_status": "synthetic_initials_only",
+    "purpose": "Judge-safe one-click sample for templates.html",
+    "synthetic": true
+  },
+  "config": {
+    "corridor": "PH-HK",
+    "source": "template_bundle_sample",
+    "target_template": "hk_ld_fdh_complaint"
+  },
+  "entities": {
+    "address": [
+      "Hong Kong district withheld for sample"
+    ],
+    "agency": [
+      "Composite Placement Agency A"
+    ],
+    "broker": [
+      "R.S."
+    ],
+    "employer": [
+      "Employer Household B"
+    ],
+    "nationality": [
+      "Philippines"
+    ]
+  },
+  "intelligence": {
+    "case_brief": "M.A., a composite Philippine worker recruited for Hong Kong domestic work, reports that broker R.S. and Composite Placement Agency A described a PHP 50000 charge as training, medical, and processing costs. After arrival, Employer Household B deducted HKD 4000 from the first month of wages and held travel documents for safekeeping. The worker fears retaliation if the complaint is filed without anonymization.",
+    "corridor": "PH-HK",
+    "entities": {
+      "address": [
+        "Hong Kong district withheld for sample"
+      ],
+      "agency": [
+        "Composite Placement Agency A"
+      ],
+      "broker": [
+        "R.S."
+      ],
+      "employer": [
+        "Employer Household B"
+      ],
+      "nationality": [
+        "Philippines"
+      ]
+    },
+    "evidence_edges": [
+      {
+        "detail": "PHP 50000 labelled as training, medical, and processing costs.",
+        "edge_type": "charged_fee",
+        "evidence": "receipt-summary-1",
+        "from": "Composite Placement Agency A",
+        "to": "M.A."
+      },
+      {
+        "detail": "HKD 4000 deducted from the first month of wages.",
+        "edge_type": "deducted_wages",
+        "evidence": "wage-ledger-1",
+        "from": "Employer Household B",
+        "to": "M.A."
+      },
+      {
+        "detail": "Travel documents held for safekeeping after arrival.",
+        "edge_type": "retained_document",
+        "evidence": "intake-note-1",
+        "from": "Employer Household B",
+        "to": "M.A."
+      },
+      {
+        "detail": "Worker feared complaint would trigger job loss or debt pressure.",
+        "edge_type": "retaliation_risk",
+        "evidence": "caseworker-note-1",
+        "from": "R.S.",
+        "to": "M.A."
+      }
+    ],
+    "ilo_indicators": [
+      "fee_camouflage",
+      "passport_retention",
+      "salary_deduction",
+      "retaliation_risk"
+    ],
+    "journey_points": [
+      {
+        "stage": "recruitment",
+        "summary": "Broker R.S. described a placement charge as medical, training, and processing costs."
+      },
+      {
+        "stage": "arrival_and_placement",
+        "summary": "Worker arrived in Hong Kong and was placed with Employer Household B."
+      },
+      {
+        "stage": "employment",
+        "summary": "Employer deducted HKD 4000 from wages and retained travel documents."
+      }
+    ],
+    "payments": [
+      {
+        "amount": "PHP 50000",
+        "collector": "Composite Placement Agency A / broker R.S.",
+        "currency": "PHP",
+        "kind": "placement_fee",
+        "timing": "recruitment"
+      },
+      {
+        "amount": "HKD 4000",
+        "collector": "Employer Household B",
+        "currency": "HKD",
+        "kind": "salary_deduction",
+        "timing": "first month after arrival"
+      }
+    ],
+    "people": [
+      {
+        "label": "M.A.",
+        "nationality": "Philippines",
+        "role": "worker"
+      },
+      {
+        "label": "R.S.",
+        "role": "broker"
+      },
+      {
+        "label": "E.H.",
+        "role": "employer_contact"
+      }
+    ],
+    "sector": "domestic_work",
+    "summary": {
+      "case_overview": "Composite PH-HK domestic-work case involving disguised placement fees, salary deductions, passport retention, and retaliation concerns.",
+      "n_indicators": 4,
+      "n_payments": 2,
+      "n_people_detected": 3,
+      "n_rows_processed": 7,
+      "n_rows_total": 7,
+      "n_typed_edges": 4
+    }
+  },
+  "payments": [
+    {
+      "amount": "PHP 50000",
+      "collector": "Composite Placement Agency A / broker R.S.",
+      "currency": "PHP",
+      "evidence_ref": "receipt-summary-1",
+      "kind": "placement_fee",
+      "timing": "recruitment"
+    },
+    {
+      "amount": "HKD 4000",
+      "collector": "Employer Household B",
+      "currency": "HKD",
+      "evidence_ref": "wage-ledger-1",
+      "kind": "salary_deduction",
+      "timing": "first month after arrival"
+    }
+  ],
+  "people": [
+    {
+      "label": "M.A.",
+      "nationality": "Philippines",
+      "notes": "Anonymized composite worker; no real identity.",
+      "role": "worker"
+    },
+    {
+      "label": "R.S.",
+      "notes": "Composite recruiter/broker initials only.",
+      "role": "broker"
+    },
+    {
+      "label": "E.H.",
+      "notes": "Composite employer contact initials only.",
+      "role": "employer_contact"
+    }
+  ],
+  "run_id": "template-bundle-sample",
+  "schema_version": "duecare.template_bundle_sample.v1",
+  "summary": {
+    "case_overview": "Composite PH-HK domestic-work case involving disguised placement fees, salary deductions, passport retention, and retaliation concerns.",
+    "n_indicators": 4,
+    "n_payments": 2,
+    "n_people_detected": 3,
+    "n_rows_processed": 7,
+    "n_rows_total": 7,
+    "n_typed_edges": 4
+  }
+}

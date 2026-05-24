@@ -139,6 +139,16 @@
         fresh one by visiting <a href="/static/process.html">Bulk File
         Review</a>.
       </p>
+      <div class="tpl-row" style="margin-bottom: 8px;">
+        <button class="wb-btn-secondary" id="tpl-download-sample-btn"
+                type="button" onclick="tplDownloadSampleBundle()">
+          Download sample bundle
+        </button>
+        <button class="wb-btn-secondary" id="tpl-use-sample-btn"
+                type="button" onclick="tplUseSampleBundle()">
+          Use sample bundle
+        </button>
+      </div>
       <div id="tpl-bundle-status" class="wb-muted">No bundle attached yet.</div>
       <details style="margin-top: 8px;">
         <summary style="cursor: pointer; font-size: 12px; font-weight: 600;">
@@ -237,6 +247,7 @@
     let _tplActive = null;
     let _tplBundle = null;
     let _tplLastFill = null;
+    const TPL_SAMPLE_BUNDLE_URL = '/static/samples/template_bundle_sample.json';
 
     function tplGetLog() {
       if (!_tplLog && window.dcActivityLog) {
@@ -404,6 +415,100 @@
         tplLog('ok', 'Bundle attached from pasted JSON');
       } catch (e) {
         tplLog('err', 'Bundle JSON parse failed: ' + e);
+      }
+    }
+
+    function tplSampleBundleCounts(bundle) {
+      const intel = (bundle && bundle.intelligence) || {};
+      return {
+        people: (intel.people || (bundle && bundle.people) || []).length,
+        payments: (intel.payments || (bundle && bundle.payments) || []).length,
+        indicators: (intel.ilo_indicators || []).length,
+      };
+    }
+
+    function tplRefreshAfterBundleLoad() {
+      tplRefreshBundleStatus();
+      if (typeof tplDryRunPreview === 'function') {
+        try {
+          const maybe = tplDryRunPreview();
+          if (maybe && typeof maybe.catch === 'function') {
+            maybe.catch(e => tplLog('err', 'Sample preview failed', String(e).slice(0, 200)));
+          }
+          return;
+        } catch (e) {
+          tplLog('err', 'Sample preview failed', String(e).slice(0, 200));
+        }
+      }
+      if (_tplActive) {
+        document.getElementById('tpl-fields-card').hidden = false;
+        document.getElementById('tpl-fill-btn').disabled = false;
+        document.getElementById('tpl-render-btn').disabled = false;
+        tplRenderFieldsCard();
+        tplLog('info', 'Sample bundle attached', 'Click Generate draft to fill the selected template.');
+      }
+    }
+
+    async function tplFetchSampleBundle() {
+      const r = await fetch(TPL_SAMPLE_BUNDLE_URL, {cache: 'no-store'});
+      if (!r.ok) {
+        throw new Error('HTTP ' + r.status);
+      }
+      return await r.json();
+    }
+
+    async function tplUseSampleBundle() {
+      const btn = document.getElementById('tpl-use-sample-btn');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Loading sample...';
+      }
+      tplLog('net', 'GET ' + TPL_SAMPLE_BUNDLE_URL);
+      try {
+        const data = await tplFetchSampleBundle();
+        _tplBundle = data;
+        try {
+          window.localStorage.setItem('duecare:wb-bundle', JSON.stringify(data));
+        } catch (_) {}
+        const el = document.getElementById('tpl-bundle-json');
+        if (el) el.value = JSON.stringify(data, null, 2);
+        tplRefreshAfterBundleLoad();
+        const counts = tplSampleBundleCounts(data);
+        tplLog('ok', 'Sample bundle loaded',
+          counts.people + ' people, ' + counts.payments + ' payments, '
+          + counts.indicators + ' indicators');
+      } catch (e) {
+        tplLog('err', 'Sample bundle load failed', String(e).slice(0, 200));
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Use sample bundle';
+        }
+      }
+    }
+
+    async function tplDownloadSampleBundle() {
+      const btn = document.getElementById('tpl-download-sample-btn');
+      if (btn) btn.disabled = true;
+      tplLog('net', 'GET ' + TPL_SAMPLE_BUNDLE_URL);
+      try {
+        const r = await fetch(TPL_SAMPLE_BUNDLE_URL, {cache: 'no-store'});
+        if (!r.ok) {
+          tplLog('err', 'Sample download failed (HTTP ' + r.status + ')');
+          return;
+        }
+        const blob = await r.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'template_bundle_sample.json';
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        tplLog('ok', 'Downloaded sample bundle', blob.size + ' bytes');
+      } catch (e) {
+        tplLog('err', 'Sample download failed', String(e).slice(0, 200));
+      } finally {
+        if (btn) btn.disabled = false;
       }
     }
 
