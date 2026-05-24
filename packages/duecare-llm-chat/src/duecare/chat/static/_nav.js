@@ -1344,6 +1344,58 @@
         });
         gemmaTallyRender();
     }
+    // Step-flow chevron pulse: for every .wb-step-flow connector on the
+    // page, mark it .wb-step-flow-next-active when the very next sibling
+    // workflow step (wb-workflow-step / wb-step / kx-workflow-step) is
+    // currently [open]. CSS handles the bobbing animation. Re-evaluates
+    // on every <details>.toggle event so the pulse follows the user as
+    // they expand/collapse steps.
+    function wbStepFlowMatchesStep(el) {
+        if (!el) return false;
+        return el.matches && (el.matches('details.wb-workflow-step') ||
+                              el.matches('details.wb-step') ||
+                              el.matches('details.kx-workflow-step'));
+    }
+    function refreshStepFlowChevrons() {
+        const chevrons = document.querySelectorAll('.wb-step-flow');
+        chevrons.forEach(function (chev) {
+            let next = chev.nextElementSibling;
+            // Skip wrappers (some pages put steps inside an extra div).
+            while (next && !wbStepFlowMatchesStep(next)) {
+                if (next.querySelector && next.querySelector('details.wb-workflow-step, details.wb-step, details.kx-workflow-step')) {
+                    next = next.querySelector('details.wb-workflow-step, details.wb-step, details.kx-workflow-step');
+                    break;
+                }
+                next = next.nextElementSibling;
+            }
+            if (next && next.open) {
+                chev.classList.add('wb-step-flow-next-active');
+            } else {
+                chev.classList.remove('wb-step-flow-next-active');
+            }
+        });
+    }
+    function wireStepFlowChevrons() {
+        if (document.body.getAttribute('data-dc-stepflow-wired') === 'true') return;
+        document.body.setAttribute('data-dc-stepflow-wired', 'true');
+        // Listen on the document for any details toggle so we catch
+        // both initial-open states and user clicks. The 'toggle' event
+        // doesn't bubble in some browsers, so use capture.
+        document.addEventListener('toggle', function (e) {
+            const t = e.target;
+            if (wbStepFlowMatchesStep(t)) {
+                refreshStepFlowChevrons();
+            }
+        }, true);
+        // Initial pass — runs once on chrome setup so the pulse appears
+        // immediately for whichever step is open at page load.
+        refreshStepFlowChevrons();
+        // Also re-evaluate after a short delay so any in-flight
+        // wbSetWorkflow / kxSetWorkflow calls have a chance to expand
+        // the right step before we paint.
+        setTimeout(refreshStepFlowChevrons, 250);
+        setTimeout(refreshStepFlowChevrons, 1000);
+    }
     function setupChrome(nav) {
         if (!nav || nav.getAttribute('data-dc-wb-wired') === 'true') return;
         nav.setAttribute('data-dc-wb-wired', 'true');
@@ -1364,6 +1416,7 @@
         wireClearChat();
         wireReplayDownload();
         wireGemmaTally();
+        wireStepFlowChevrons();
         ensureDefaultActivityLog();
         refreshStatus();
         refreshModelLoaderStatus().then(function (state) {

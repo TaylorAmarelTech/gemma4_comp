@@ -1202,6 +1202,22 @@ code, .mono {
 }
 .dc-activity-log .dc-log-channel-A { color: oklch(0.78 0.12 195); }
 .dc-activity-log .dc-log-channel-B { color: oklch(0.80 0.14 80); }
+/* Gemma 4 log rows — added by _activity_log.js when the message or
+   detail mentions "gemma" (case-insensitive). Renders the row with a
+   teal left accent + subtle teal background tint so a reviewer scrolling
+   the activity log can immediately see which lines are Gemma 4 calls
+   versus generic info / step events. */
+.dc-activity-log .dc-log-event-gemma {
+  padding: 3px 6px 3px 8px;
+  margin-left: -4px;
+  margin-right: -4px;
+  border-left: 3px solid oklch(0.78 0.12 195);
+  background: oklch(0.18 0.025 195 / 0.45);
+  border-radius: 0 4px 4px 0;
+}
+.dc-activity-log .dc-log-event-gemma .dc-log-detail {
+  margin-left: 22px;
+}
 .dc-activity-log .dc-log-idle {
   color: #8A8E97; font-style: italic; padding: 4px 0;
 }
