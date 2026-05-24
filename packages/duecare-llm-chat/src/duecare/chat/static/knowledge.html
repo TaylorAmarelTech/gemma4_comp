@@ -954,13 +954,16 @@
               wbLog('warn', 'Gemma 4 errored on ' + errorEnvs.length + ' of ' + kxDrafts.length + ' draft(s)',
                 'Deterministic fallback content shown for those envelopes. First error: ' + firstErrMsg + suggestion);
             }
-            // Surface noise-scrub provenance. The extraction handler
-            // strips kernel run IDs, /kaggle/working/... paths, ZIP
-            // filenames, and synthetic case folder names (DC-PH-HK-101_Ana_Cruz/...)
+            // Surface noise-scrub provenance. The shared
+            // duecare.chat.harnesses._safe_text helper strips kernel
+            // run IDs, /kaggle/working/... paths, ZIP filenames, and
+            // synthetic case folder names (DC-PH-HK-101_Ana_Cruz/...)
             // before either the Gemma prompt or the deterministic
-            // template sees the text. Reviewers should know when this
-            // fired — it explains why a draft's evidence_quote no
-            // longer matches the raw text word-for-word.
+            // template sees the text. The extraction handler also
+            // pipes the final envelope through standardize_fact_envelope
+            // so canonical fields land in canonical order. Reviewers
+            // should know when this fired — it explains why a draft's
+            // evidence_quote no longer matches the raw text word-for-word.
             const scrubbedEnvs = kxDrafts.filter(d => d && d.extensions && d.extensions.noise_scrubbed_before_gemma === true);
             if (scrubbedEnvs.length > 0 && typeof wbLog === 'function') {
               wbLog('info', 'Noise scrub applied before drafting',
