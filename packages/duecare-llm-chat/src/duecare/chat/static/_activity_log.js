@@ -155,6 +155,17 @@
       events.push(event);
       const row = document.createElement('div');
       row.className = 'dc-log-event';
+      // Highlight Gemma 4 events so model activity stands out from
+      // generic info / step events. Pattern-match the message text:
+      // any mention of 'Gemma' (case-insensitive) marks the row with
+      // a class the chrome CSS uses to render a teal left accent +
+      // subtle background. Reviewer scrolling the log can pick out
+      // Gemma activity at a glance.
+      const _msgLow = String(event.msg || '').toLowerCase();
+      const _detLow = String(event.detail || '').toLowerCase();
+      if (_msgLow.indexOf('gemma') >= 0 || _detLow.indexOf('gemma') >= 0) {
+        row.classList.add('dc-log-event-gemma');
+      }
       const tsSpan = document.createElement('span');
       tsSpan.className = 'dc-log-ts';
       tsSpan.textContent = '[' + ts + '] ';
