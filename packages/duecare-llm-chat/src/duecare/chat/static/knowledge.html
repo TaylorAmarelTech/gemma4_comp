@@ -182,8 +182,8 @@
               <div><b id="kx-source-progress-stage">Source idle</b><div class="wb-muted" id="kx-source-progress-detail">No source bundle is processing.</div></div>
               <div style="display:flex; align-items:center; gap:8px;">
                 <span class="wb-pill" id="kx-source-progress-label">0%</span>
-                <button class="wb-btn-secondary" type="button" id="kx-source-cancel-btn" onclick="kxCancelSourceJob()" hidden
-                        style="font-size:11px; padding:4px 10px; background:#FFF7F3; border-color:oklch(0.78 0.10 45); color:oklch(0.40 0.16 25);">
+                <button class="wb-btn-destructive" type="button" id="kx-source-cancel-btn" onclick="kxCancelSourceJob()" hidden
+                        style="font-size:11px; padding:4px 10px;" title="Cancel the running source-processing job. Partial output from this run is discarded.">
                   Cancel
                 </button>
               </div>
@@ -237,6 +237,8 @@
         </div>
       </details>
 
+      <div class="wb-step-flow" aria-hidden="true"></div>
+
       <details class="kx-workflow-step" id="kx-step-draft">
         <summary>
           <span class="kx-step-index">2</span>
@@ -284,7 +286,7 @@
           <div class="kx-step-actions">
             <button class="wb-btn-primary wb-step-cta" id="kx-extract-btn" onclick="kxExtract()">Draft knowledge objects</button>
             <button class="wb-btn-secondary" id="kx-finish-review-btn" type="button" onclick="kxFinishDraftReview()" disabled>Finish review</button>
-            <button class="wb-btn-secondary" id="kx-cancel-draft-btn" type="button" onclick="kxCancelDraftJob()" disabled>Abandon draft polling</button>
+            <button class="wb-btn-destructive" id="kx-cancel-draft-btn" type="button" onclick="kxCancelDraftJob()" disabled title="Stop polling the running draft job and let the kernel finish in the background.">Abandon draft polling</button>
             <span id="kx-extract-status" class="wb-muted" style="font-size:11.5px;"></span>
           </div>
           <details style="margin-top:8px;">
@@ -297,6 +299,8 @@
           </details>
         </div>
       </details>
+
+      <div class="wb-step-flow" aria-hidden="true"></div>
 
       <details class="kx-workflow-step" id="kx-step-pack">
         <summary>

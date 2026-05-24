@@ -249,11 +249,11 @@
       <div class="wb-row" style="margin-top: 12px; align-items: center; gap: 10px; flex-wrap: wrap;">
         <button id="cmp-run" class="wb-btn-primary" onclick="cmpRun()" aria-label="Run comparison">4. Run comparison</button>
         <span class="dc-gemma-mark is-optional" id="cmp-gemma-mark" title="Reflects whether Gemma actually generated. Flips to Gemma active when a model call begins, Gemma done when both variants complete.">Optional · Gemma</span>
-        <button id="cmp-interrupt" class="wb-btn-secondary"
+        <button id="cmp-interrupt" class="wb-btn-destructive"
                 onclick="cmpInterrupt()" disabled
                 title="Cancel the in-flight comparison; both variants stop after the current step"
                 aria-label="Interrupt running comparison">Interrupt</button>
-        <button class="wb-btn-secondary" onclick="cmpReset()" aria-label="Reset comparison state">Reset</button>
+        <button class="wb-btn-destructive" onclick="cmpReset()" aria-label="Reset comparison state" title="Clear both variant outputs, timing, and grade so you can start a fresh comparison.">Reset</button>
         <span class="wb-muted" id="cmp-status" aria-live="polite"></span>
       </div>
       <div id="cmp-error" class="wb-error" style="display:none;" role="alert"></div>

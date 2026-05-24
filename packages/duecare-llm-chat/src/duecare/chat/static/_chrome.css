@@ -1039,6 +1039,68 @@ code, .mono {
 .dc-btn-danger   { background: oklch(0.55 0.18 25); color: var(--paper); }
 .dc-btn-ghost    { background: transparent; color: var(--accent); padding: 6px 10px; }
 
+/* Workbench destructive button — visually distinct from wb-btn-secondary
+   so reviewers never confuse a cancel/abandon/reset action with a benign
+   secondary action. Amber-tinted on a warm paper background; matches the
+   codebase's existing "deferred" / "warning" colorway. Applied to all
+   cancel/abandon/reset buttons across the workbench (process, knowledge,
+   share, compare, templates, etc.). Per-page wb-btn-* declarations do
+   NOT shadow this rule because the page-local rules only define -primary
+   and -secondary; -destructive is defined here once and inherited. */
+.wb-btn-destructive {
+  background: oklch(0.97 0.025 25);
+  color: oklch(0.40 0.16 25);
+  border: 1px solid oklch(0.78 0.10 45);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: background 120ms, opacity 120ms;
+}
+.wb-btn-destructive:hover:not(:disabled) {
+  background: oklch(0.94 0.04 25);
+}
+.wb-btn-destructive:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Workbench section-progression flow indicator — a small centered
+   chevron rendered BETWEEN workflow steps so the eye can follow the
+   1 → 2 → 3 → 4 → 5 ordering at a glance. Used by inserting
+   <div class="wb-step-flow" aria-hidden="true"></div> in the HTML
+   between each <details class="wb-workflow-step"> pair. The chevron
+   pulses subtly when the next step is the current "active" step so
+   the reviewer sees where the workflow is pointing right now. */
+.wb-step-flow {
+  text-align: center;
+  margin: 6px 0 2px;
+  pointer-events: none;
+  user-select: none;
+  line-height: 1;
+}
+.wb-step-flow::before {
+  content: "↓";
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: oklch(0.52 0.08 195);
+  opacity: 0.45;
+  letter-spacing: 0;
+}
+.wb-step-flow.wb-step-flow-next-active::before {
+  opacity: 0.95;
+  animation: wbStepFlowPulse 1.6s ease-in-out infinite;
+}
+@keyframes wbStepFlowPulse {
+  0%, 100% { transform: translateY(0); opacity: 0.6; }
+  50%      { transform: translateY(2px); opacity: 1; }
+}
+
 /* Card grid utility */
 .dc-grid { display: grid; gap: 14px; }
 .dc-grid-2 { grid-template-columns: repeat(2, 1fr); }
