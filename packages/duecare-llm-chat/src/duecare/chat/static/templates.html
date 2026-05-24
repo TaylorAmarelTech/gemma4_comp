@@ -65,6 +65,17 @@
                                     background: oklch(0.97 0.03 155); }
     .tpl-field.prov-manual { border-color: oklch(0.80 0.10 80);
                               background: oklch(0.97 0.04 80); }
+    .tpl-field.prov-missing { border-color: #DDD8C9;
+                               background: #F4F2EA; }
+    .tpl-dry-run-banner {
+      border: 1px solid oklch(0.78 0.10 155);
+      background: oklch(0.97 0.03 155);
+      color: oklch(0.32 0.07 155);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 12.5px;
+      margin-bottom: 10px;
+    }
     .tpl-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
   </style>
 </head>
@@ -173,6 +184,8 @@
 
     <div class="wb-card" id="tpl-fields-card" hidden>
       <h2>3. Review proposed fields</h2>
+      <div id="tpl-dry-run-banner" class="tpl-dry-run-banner"
+           aria-live="polite" hidden></div>
       <div class="wb-row" style="display: flex; gap: 10px; flex-wrap: wrap;
                                   align-items: center;">
         <label style="font-size: 12px; cursor: pointer;">
@@ -247,6 +260,8 @@
     let _tplActive = null;
     let _tplBundle = null;
     let _tplLastFill = null;
+    let _tplDryRunPreview = null;
+    let _tplDryRunSeq = 0;
     const TPL_SAMPLE_BUNDLE_URL = '/static/samples/template_bundle_sample.json';
 
     function tplGetLog() {
@@ -326,6 +341,7 @@
       const t = _tplTemplates.find(x => x.id === id);
       if (!t) return;
       _tplActive = t;
+      tplClearDryRunPreview();
       tplLog('step', 'Template selected', t.title);
       tplRenderGallery();
       tplRenderFieldsCard();
@@ -333,7 +349,11 @@
       document.getElementById('tpl-fill-btn').disabled = false;
       document.getElementById('tpl-render-btn').disabled = false;
       // Bundle is optional but recommended.
-      tplLoadStoredBundle({silent: true});
+      if (_tplBundle) {
+        tplRefreshAfterBundleLoad();
+      } else {
+        tplLoadStoredBundle({silent: true});
+      }
     }
 
     function tplRenderFieldsCard(fillData) {
@@ -341,12 +361,20 @@
       while (host.firstChild) host.removeChild(host.firstChild);
       if (!_tplActive) return;
       const filled = (fillData && fillData.field_values) || {};
-      const provenance = (fillData && fillData.provenance) || {};
+      const provenance = (
+        (fillData && fillData.provenance)
+        || (_tplDryRunPreview && _tplDryRunPreview.field_sources)
+        || {}
+      );
       _tplActive.fields.forEach(field => {
         const wrap = document.createElement('div');
         wrap.className = 'tpl-field' + (field.required ? ' is-required' : '');
-        const prov = provenance[field.id] || 'missing';
-        if (prov && prov !== 'missing') {
+        const hasProvenance = Object.prototype.hasOwnProperty.call(
+          provenance, field.id
+        );
+        const prov = hasProvenance ? provenance[field.id] : 'missing';
+        if (hasProvenance
+            && ['bundle_hint', 'gemma', 'manual', 'missing'].includes(prov)) {
           wrap.classList.add('prov-' + prov);
         }
         const lbl = document.createElement('label');
@@ -373,6 +401,112 @@
       });
     }
 
+    function tplSetDryRunBanner(data) {
+      const banner = document.getElementById('tpl-dry-run-banner');
+      if (!banner) return;
+      if (!_tplActive || !data) {
+        banner.hidden = true;
+        banner.textContent = '';
+        return;
+      }
+      const sources = data.field_sources || {};
+      const missingRequired = _tplActive.fields.filter(
+        f => f.required && sources[f.id] === 'missing'
+      ).length;
+      const required = Number(data.n_required || 0);
+      banner.textContent = 'If you click Generate, Gemma will fill '
+        + missingRequired + ' of ' + required + ' missing required fields.';
+      banner.hidden = false;
+    }
+
+    function tplFieldSourceLabel(field, source, preview) {
+      return 'source: ' + source + (preview ? ' (preview)' : '') +
+        (field.source_hint ? ' (' + field.source_hint + ')' : '');
+    }
+
+    function tplApplyFieldSources(fieldSources, preview) {
+      if (!_tplActive) return;
+      const classes = ['prov-bundle_hint', 'prov-gemma', 'prov-manual', 'prov-missing'];
+      _tplActive.fields.forEach(field => {
+        const input = document.getElementById('tpl-input-' + field.id);
+        if (!input) return;
+        const wrap = input.closest('.tpl-field');
+        if (!wrap) return;
+        classes.forEach(c => wrap.classList.remove(c));
+        const source = fieldSources[field.id] || 'missing';
+        if (['bundle_hint', 'gemma', 'manual', 'missing'].includes(source)) {
+          wrap.classList.add('prov-' + source);
+        }
+        const line = wrap.querySelector('.tpl-prov');
+        if (line) line.textContent = tplFieldSourceLabel(field, source, preview);
+      });
+    }
+
+    function tplClearDryRunPreview() {
+      _tplDryRunSeq += 1;
+      _tplDryRunPreview = null;
+      tplSetDryRunBanner(null);
+      if (_tplActive) {
+        const classes = ['prov-bundle_hint', 'prov-gemma', 'prov-manual', 'prov-missing'];
+        _tplActive.fields.forEach(field => {
+          const input = document.getElementById('tpl-input-' + field.id);
+          if (!input) return;
+          const wrap = input.closest('.tpl-field');
+          if (!wrap) return;
+          classes.forEach(c => wrap.classList.remove(c));
+          const line = wrap.querySelector('.tpl-prov');
+          if (line) line.textContent = tplFieldSourceLabel(field, 'missing', false);
+        });
+      }
+    }
+
+    async function tplDryRunPreview() {
+      const seq = ++_tplDryRunSeq;
+      if (!_tplActive || !_tplBundle) {
+        tplClearDryRunPreview();
+        return null;
+      }
+      const banner = document.getElementById('tpl-dry-run-banner');
+      if (banner) {
+        banner.textContent = 'Checking bundle coverage before Generate...';
+        banner.hidden = false;
+      }
+      tplLog('net', 'POST /api/templates/dry-run-fill', _tplActive.title);
+      try {
+        const r = await fetch('/api/templates/dry-run-fill', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            template_id: _tplActive.id,
+            bundle: _tplBundle
+          })
+        });
+        if (seq !== _tplDryRunSeq) return null;
+        if (!r.ok) {
+          const text = await r.text();
+          tplLog('err', 'Dry-run preview failed (HTTP ' + r.status + ')',
+            text.slice(0, 200));
+          tplClearDryRunPreview();
+          return null;
+        }
+        const data = await r.json();
+        _tplDryRunPreview = data;
+        tplApplyFieldSources(data.field_sources || {}, true);
+        tplSetDryRunBanner(data);
+        const total = Number(data.n_bundle_hits || 0) + Number(data.n_missing || 0);
+        tplLog('info', 'Dry-run preview',
+          _tplActive.title + ': bundle covers ' + data.n_bundle_hits
+          + ' of ' + total + ' fields');
+        return data;
+      } catch (e) {
+        if (seq === _tplDryRunSeq) {
+          tplLog('err', 'Dry-run preview failed', String(e).slice(0, 200));
+          tplClearDryRunPreview();
+        }
+        return null;
+      }
+    }
+
     function tplCollectManualFields() {
       const out = {};
       if (!_tplActive) return out;
@@ -392,13 +526,14 @@
         if (raw) {
           const data = JSON.parse(raw);
           _tplBundle = data;
-          tplRefreshBundleStatus();
+          tplRefreshAfterBundleLoad();
           if (!opts.silent) tplLog('ok', 'Loaded last Bulk File Review bundle');
           return true;
         }
       } catch (_) {}
       if (!opts.silent) tplLog('warn', 'No prior bundle found in this browser');
       tplRefreshBundleStatus();
+      tplClearDryRunPreview();
       return false;
     }
 
@@ -411,7 +546,7 @@
       }
       try {
         _tplBundle = JSON.parse(raw);
-        tplRefreshBundleStatus();
+        tplRefreshAfterBundleLoad();
         tplLog('ok', 'Bundle attached from pasted JSON');
       } catch (e) {
         tplLog('err', 'Bundle JSON parse failed: ' + e);
@@ -433,11 +568,11 @@
         try {
           const maybe = tplDryRunPreview();
           if (maybe && typeof maybe.catch === 'function') {
-            maybe.catch(e => tplLog('err', 'Sample preview failed', String(e).slice(0, 200)));
+            maybe.catch(e => tplLog('err', 'Dry-run preview failed', String(e).slice(0, 200)));
           }
           return;
         } catch (e) {
-          tplLog('err', 'Sample preview failed', String(e).slice(0, 200));
+          tplLog('err', 'Dry-run preview failed', String(e).slice(0, 200));
         }
       }
       if (_tplActive) {

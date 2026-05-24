@@ -35,9 +35,6 @@ import re
 from dataclasses import dataclass
 from typing import Any, Callable, Optional
 
-from fastapi import Body
-from fastapi.responses import JSONResponse
-
 # Shared scrub used to keep operational kernel metadata out of the
 # bundle excerpt Gemma sees and out of the filled field values that
 # end up in the rendered complaint document. Without this, paths like
@@ -4455,6 +4452,35 @@ def gemma_fill_template(
     return filled, meta
 
 
+def dry_run_fill_template(template: TemplateSpec, bundle: dict) -> dict:
+    """Preview the deterministic bundle-hint pass without Gemma.
+
+    The response intentionally mirrors the provenance buckets used by
+    ``gemma_fill_template`` so templates.html can color field cards
+    before spending a model call.
+    """
+    field_sources: dict[str, str] = {}
+    n_bundle_hits = 0
+    for field in template.fields:
+        value = (
+            bundle_field_hint(bundle, field.source_hint)
+            if field.source_hint else None
+        )
+        if value:
+            field_sources[field.id] = "bundle_hint"
+            n_bundle_hits += 1
+        else:
+            field_sources[field.id] = "missing"
+    n_fields = len(template.fields)
+    return {
+        "field_sources": field_sources,
+        "n_bundle_hits": n_bundle_hits,
+        "n_missing": n_fields - n_bundle_hits,
+        "n_optional": sum(1 for field in template.fields if not field.required),
+        "n_required": sum(1 for field in template.fields if field.required),
+    }
+
+
 # ---------------------------------------------------------------------------
 # Robust boolean parsing for body fields
 # ---------------------------------------------------------------------------
@@ -4508,6 +4534,8 @@ def register_template_routes(app: Any) -> None:
     if getattr(app.state, "_dc_templates_registered", False):
         return
     app.state._dc_templates_registered = True
+    from fastapi import Body
+    from fastapi.responses import JSONResponse
 
     @app.get("/api/templates/list")
     def api_templates_list():
@@ -4515,6 +4543,26 @@ def register_template_routes(app: Any) -> None:
         return {
             "templates": [t.summary_payload() for t in TEMPLATES_REGISTRY.values()],
         }
+
+    @app.post("/api/templates/dry-run-fill")
+    def api_templates_dry_run_fill(body: dict = Body(...)):
+        """Run only the deterministic bundle-hint pass for a template."""
+        body = body or {}
+        template_id = (body.get("template_id") or "").strip()
+        template = TEMPLATES_REGISTRY.get(template_id)
+        if template is None:
+            return JSONResponse(
+                {
+                    "status": "unknown_template",
+                    "message": (
+                        f"No template registered for id={template_id!r}. "
+                        f"Call /api/templates/list for the available set."
+                    ),
+                    "available": list(TEMPLATES_REGISTRY.keys()),
+                },
+                status_code=404,
+            )
+        return dry_run_fill_template(template, body.get("bundle") or {})
 
     @app.post("/api/templates/fill")
     def api_templates_fill(body: dict = Body(...)):
@@ -4754,6 +4802,7 @@ __all__ = [
     "bundle_excerpt_for_template",
     "bundle_field_hint",
     "clear_custom_templates",
+    "dry_run_fill_template",
     "gemma_fill_template",
     "is_builtin_template",
     "parse_bool",
