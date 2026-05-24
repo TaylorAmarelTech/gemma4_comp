@@ -3132,13 +3132,39 @@ def _gemma_edge_pass(
     try:
         n_seed = len(deterministic_edges)
         n_cands = len(deterministic_candidates) if isinstance(deterministic_candidates, list) else 0
+        # Enumerate the SPECIFIC edge types and pointed questions being
+        # asked so the activity log shows judges exactly what Gemma 4 is
+        # being instructed to extract, not just a generic "typed edges".
+        edge_types_asked = (
+            "charged_or_collected_fee, fee_camouflage_evidence, "
+            "fee_amount_observed, salary_deduction_signal, "
+            "document_control_signal, threat_or_retaliation_signal, "
+            "dated_evidence, journey_stage_observation, located_at, "
+            "filed_under, provider_choice_restriction, "
+            "affiliate_or_common_control_signal, contract_clause_flag, "
+            "same_actor_or_phrase, candidate_rag_grounding"
+        )
+        # Take the first 4 pointed questions as representative; the full
+        # 12 are in EDGE_EXTRACTION_POINTED_QUESTIONS but the log line
+        # only needs a sample so judges see the kind of reasoning Gemma
+        # is being asked to do.
+        sample_questions = [
+            "Which exact row, page, chunk, or file grounds this edge?",
+            "Who is the worker, recruiter, employer, agency, lender, payer, payee, or document holder?",
+            "What amount, currency, fee label, date, channel, and deduction language are visible?",
+            "Is there passport, identity-document, travel, or movement-control evidence?",
+        ]
+        questions_str = "; ".join('"' + q + '"' for q in sample_questions)
         mark(
             "model_call",
             58,
-            f"Sending case graph to Gemma 4 — {n_seed} seed edges, {n_cands} RAG candidates, "
-            f"~{len(prompt)} chars. Asking it to extract typed edges (charged_or_collected_fee, "
-            "fee_camouflage_evidence, document_control_signal, journey_stage_observation, etc.) "
-            "plus new RAG candidate phrases.",
+            f"Sending case graph to Gemma 4 — {n_seed} seed edges, "
+            f"{n_cands} RAG candidates, ~{len(prompt)} chars. Asking it "
+            f"to extract these 15 edge types: {edge_types_asked}. "
+            f"Pointed questions Gemma 4 is being asked to answer per "
+            f"candidate: {questions_str} (plus 8 more in the prompt). "
+            "Each proposed edge must include edge_type, source_node, "
+            "target_node, evidence.quote, confidence, and review_status."
         )
         try:
             model_out = gc(messages, max_new_tokens=1200, temperature=0.15)
@@ -3416,24 +3442,32 @@ def _gemma_media_contextual_pass(
         pct = 10 + round(((idx + 1) / max(1, n_items)) * 80)
         src = asset.get("source_path") or asset.get("row_id") or "?"
         media_t = asset.get("media_type") or "media"
-        # Pick a concise extraction-target hint from the prepared review
-        # questions so the activity log reads as a real call narration
-        # ("sending X to Gemma with Y to extract Z") instead of a generic
-        # "reviewing item" placeholder.
-        target_hint = (
-            "document type + named entities + fee, ID-control, "
-            "wage-deduction indicators"
-        )
         # Redact name-tails from path for activity-log display so worker
         # names baked into folder paths do not leak into screenshots or
         # demo recordings.
         src_display = _redact_path_for_display(src)
+        # Surface the specific questions Gemma 4 is being asked about THIS
+        # asset (prepared at parse time and stored on the asset). Plus the
+        # exact JSON contract Gemma 4 must return. Judges see what the
+        # model is being asked, per-asset.
+        asset_questions = (asset.get("gemma_questions") or [])[:4]
+        questions_str = (
+            " | ".join('"' + q + '"' for q in asset_questions)
+            if asset_questions
+            else "(none prepared — predicting from path + folder only)"
+        )
+        folder_label = ", ".join(asset.get("folders") or []) or "—"
         mark(
             "media_item",
             pct,
-            f"Sending {src_display} ({media_t}) to Gemma 4 with the contextual-vision "
-            f"prompt — asking it to predict {target_hint} from filename, folder, "
-            f"and linked case context. Asset {idx + 1}/{n_items}.",
+            f"Sending {src_display} ({media_t}) to Gemma 4 — asset "
+            f"{idx + 1}/{n_items}. Context: folder=[{folder_label}], "
+            f"bytes={asset.get('bytes') or 0}. Gemma 4 must answer these "
+            f"specific questions about this asset: {questions_str}. "
+            "Required output shape: 1-2 sentence prediction + JSON "
+            "block of proposed_edges (each with edge_type, source_node, "
+            "target_node, evidence.quote starting with 'predicted:', "
+            "confidence capped at 0.5 because the bytes are not seen)."
         )
         prompt = _build_media_context_prompt(asset, bundle)
         messages = [
@@ -3683,8 +3717,16 @@ def register_routes(app: Any) -> None:
                 82,
                 f"Sending bundle summary to Gemma 4 — {n_rows_brief} rows, "
                 f"{n_people_brief} people, {n_grep_brief} GREP rules fired. "
-                "Asking it to extract corridor, top rules, top entities, "
-                "journey-stage rollup, and a 2-paragraph case-brief narrative.",
+                "Asking it to fill these specific JSON fields: case_theory "
+                "(2-paragraph narrative naming the corridor + top risk "
+                "signals + journey-stage pattern), priority_people (top-6 "
+                "ranked by risk_score with case_id/name/risk/payments/"
+                "signals/row_ids), risk_clusters (top-8 signal-x-count "
+                "pairs), missing_evidence (5-bullet checklist of receipts/"
+                "contracts/identity-docs/timestamps/complaints to request "
+                "next), recommended_questions (4 questions the reviewer "
+                "should ask the case file next), media_assets_queued (int "
+                "count of items waiting for OCR/vision)."
             )
             n_gemma_calls_attempted += 1
             gemma_brief = _gemma_case_brief(app, bundle, intelligence)
