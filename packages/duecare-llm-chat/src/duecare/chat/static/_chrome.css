@@ -1068,6 +1068,19 @@ code, .mono {
   cursor: not-allowed;
 }
 
+/* Top-bar Gemma 4 session-tally badge pulse — triggered by
+   window.dcGemmaStats.bump() after every Gemma 4 call completes so the
+   reviewer sees the badge briefly flash + lift, signaling that the
+   count just incremented. Animation auto-removes after 1.5s. */
+@keyframes wbGemmaTallyPulse {
+  0%   { transform: scale(1);    box-shadow: 0 0 0 0 oklch(0.52 0.08 195 / 0.55); }
+  35%  { transform: scale(1.08); box-shadow: 0 0 0 6px oklch(0.52 0.08 195 / 0.18); }
+  100% { transform: scale(1);    box-shadow: 0 0 0 0 oklch(0.52 0.08 195 / 0); }
+}
+.dc-wb-gemma-tally-pulse {
+  animation: wbGemmaTallyPulse 1.4s ease-out;
+}
+
 /* Workbench section-progression flow indicator — a small centered
    chevron rendered BETWEEN workflow steps so the eye can follow the
    1 → 2 → 3 → 4 → 5 ordering at a glance. Used by inserting

@@ -1237,6 +1237,7 @@
         anonymize_review: 0,
         chat: 0,
         compare: 0,
+        grade: 0,
         edges_proposed: 0,
         started_at: null,
         updated_at: null
@@ -1270,6 +1271,7 @@
             stats.media ? 'media reviews ' + stats.media : '',
             stats.synthesis ? 'graph-chat syntheses ' + stats.synthesis : '',
             stats.chat ? 'chat replies ' + stats.chat : '',
+            stats.grade ? 'graded dimensions ' + stats.grade : '',
             stats.draft ? 'knowledge drafts ' + stats.draft : '',
             stats.template_fill ? 'template fills ' + stats.template_fill : '',
             stats.anonymize_review ? 'PII reviews ' + stats.anonymize_review : '',
@@ -1285,6 +1287,21 @@
     // server-confirmed Gemma 4 call completes. The 'kind' must match
     // one of the counter fields in GEMMA_STATS_DEFAULT (anything else
     // is ignored). All increments are 1 unless n is passed.
+    function _flashTallyBadge() {
+        const btn = document.getElementById('dc-wb-gemma-tally-btn');
+        if (!btn) return;
+        // Toggle the pulse class on -> off so the CSS animation restarts
+        // even when bump() fires twice in quick succession (e.g. brief +
+        // edge_pass + media all completing within the same wbRender pass).
+        btn.classList.remove('dc-wb-gemma-tally-pulse');
+        // Force a reflow so the next class add actually re-triggers the
+        // animation rather than being collapsed by the browser.
+        void btn.offsetWidth;
+        btn.classList.add('dc-wb-gemma-tally-pulse');
+        setTimeout(function () {
+            btn.classList.remove('dc-wb-gemma-tally-pulse');
+        }, 1500);
+    }
     window.dcGemmaStats = {
         bump: function (kind, n) {
             const stats = gemmaStatsRead();
@@ -1296,6 +1313,7 @@
                 stats.updated_at = new Date().toISOString();
                 gemmaStatsWrite(stats);
                 gemmaTallyRender();
+                _flashTallyBadge();
             }
         },
         addProposedEdges: function (n) {
@@ -1326,6 +1344,7 @@
                 'Contextual media reviews: ' + (s.media || 0),
                 'Graph-chat syntheses: ' + (s.synthesis || 0),
                 'Chat replies: ' + (s.chat || 0),
+                'Per-dimension graded calls (LLM / Combined): ' + (s.grade || 0),
                 'Knowledge drafts: ' + (s.draft || 0),
                 'Template fills: ' + (s.template_fill || 0),
                 'Residual-PII reviews: ' + (s.anonymize_review || 0),

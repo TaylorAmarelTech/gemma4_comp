@@ -2384,6 +2384,17 @@
       cmpSetExportState(false, false);
     }
     function cmpReset() {
+      // Guard against accidental clicks during a recording. Reset wipes
+      // BOTH variant outputs, the timing summary, and the grade. Skips
+      // the confirm when there are no results yet (nothing to lose).
+      const a = window._cmpResults && window._cmpResults.A;
+      const b = window._cmpResults && window._cmpResults.B;
+      if ((a && a.ok) || (b && b.ok)) {
+        const msg = 'Reset the comparison?\n\n' +
+          'This clears both variant outputs (A and B), the timing summary, ' +
+          'and the grade panel. Cannot be undone.';
+        if (!window.confirm(msg)) return;
+      }
       document.getElementById('cmp-prompt').value = '';
       const log = getLog(); if (log) log.clear();
       for (const v of VARIANTS) {
