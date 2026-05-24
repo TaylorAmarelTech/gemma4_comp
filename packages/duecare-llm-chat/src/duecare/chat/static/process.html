@@ -1557,21 +1557,37 @@
     // Map a Gemma phase id to a one-line "what's being sent + what we
     // expect back" narration. Used in heartbeats so a long-running call
     // never reads as "still working..." without saying WHY.
-    function wbGemmaPhaseNarration(phase) {
+    // Heartbeat narration helper. Returns a string that varies by both
+    // PHASE and ELAPSED time so the log shows DIFFERENT useful info every
+    // minute instead of repeating the same text. Earlier minutes describe
+    // what was sent + expected; later minutes describe likely state
+    // (waiting on first token / generating mid-stream / unusually long).
+    function wbGemmaPhaseNarration(phase, elapsedSec) {
       const p = String(phase || '').toLowerCase();
+      const sec = Number(elapsedSec || 0);
+      // Phase-specific extraction targets (matches the server-side mark
+      // events). Detail varies as time passes so the log keeps adding
+      // information instead of repeating.
+      const lateState = (
+        sec < 60   ? '' :
+        sec < 180  ? ' Model now generating output tokens; typical 200-tok response on E4B takes 25-45s, 26B-A4B takes 60-180s.' :
+        sec < 600  ? ' Phase has exceeded typical E4B duration; this is normal for 26B-A4B or 31B variants on a busy T4.' :
+        sec < 900  ? ' Over 10 minutes — if your variant is E4B/E2B, the generation may be looping on long-form output. Cancel and retry with Quick triage if needed.' :
+                     ' Over 15 minutes — unusually long. Cancel from the progress box and check the kernel logs for OOM / model stall.'
+      );
       if (p.includes('case_brief')) {
-        return 'Sending the bundle summary (rows, people, GREP rule totals, journey-stage rollup) to Gemma 4 with the case-brief prompt. Expected output: a 2-paragraph narrative case brief that names the corridor, the top risk signals, and the journey-stage pattern.';
+        return 'Sending the bundle summary (n_rows + n_people + GREP totals + journey-stage rollup) to Gemma 4. Asking for the specific JSON fields: case_theory (2-paragraph narrative naming corridor + top risk signals + journey pattern), priority_people (top-6 ranked with risk/payments/signals/row_ids), risk_clusters (top-8 signal counts), missing_evidence (5-bullet checklist of receipts/contracts/IDs/timestamps/complaints to request), recommended_questions (4 follow-ups), media_assets_queued (int).' + lateState;
       }
       if (p.includes('edge_model_call') || p.includes('edge_pass') || p.includes('typed_edge')) {
-        return 'Sending the seed graph (deterministic typed edges + RAG candidates + JSON schema) to Gemma 4 with the typed-edge extraction prompt. Expected output: new typed_edge objects (charged_or_collected_fee, fee_camouflage_evidence, document_control_signal, journey_stage_observation, etc.) and RAG candidate phrases for downstream review.';
+        return 'Sending the seed graph + JSON schema to Gemma 4. Asking for these 15 specific edge types: charged_or_collected_fee, fee_camouflage_evidence, fee_amount_observed, salary_deduction_signal, document_control_signal, threat_or_retaliation_signal, dated_evidence, journey_stage_observation, located_at, filed_under, provider_choice_restriction, affiliate_or_common_control_signal, contract_clause_flag, same_actor_or_phrase, candidate_rag_grounding. Each must include edge_type, source_node, target_node, evidence.quote, confidence, review_status.' + lateState;
       }
       if (p.includes('media_item') || p.includes('media_pass') || p.includes('gemma_media')) {
-        return 'Sending one queued media asset (filename + folder + media type + linked-case context + prepared review questions) to Gemma 4 with the contextual-vision prompt. Expected output: a 1-2 sentence prediction of what the asset contains and a JSON block of proposed_edges to verify against the bytes.';
+        return 'Sending one queued media asset to Gemma 4 with its specific review questions (e.g. "What type of document or screenshot is this page?" / "What names, agencies, employers, amounts, dates, and locations are visible?" / "Which trafficking, fee, document-control, or coercion indicators are visible?"). Asking for: 1-2 sentence prediction of contents + JSON block of proposed_edges (each with edge_type, source_node=case:<id>, target_node, evidence.quote starting with "predicted:", confidence ≤ 0.5 since bytes are not seen yet).' + lateState;
       }
       if (p.includes('graph_chat') || p.includes('synthesis')) {
-        return 'Sending the user question + deterministic graph-analyst answer + bundle context to Gemma 4 with the synthesis prompt. Expected output: a 2-3 sentence conversational read on top of the deterministic data, ending with a concrete next-evidence ask.';
+        return 'Sending the user question + the deterministic graph-analyst answer + bundle context (n_rows + n_people + n_typed_edges) to Gemma 4. Asking for a 2-3 sentence conversational read in a senior-caseworker voice that (a) names the most important finding in plain language, (b) flags ONE concrete next evidence ask or worker action. Capped at 200 new tokens; never cites row_ids the deterministic answer did not cite.' + lateState;
       }
-      return 'Gemma 4 is processing locally. The phase id is ' + (phase || 'unknown') + ' — see harness handler for the exact prompt.';
+      return 'Gemma 4 is processing locally. The phase id is ' + (phase || 'unknown') + ' — see harness handler for the exact prompt.' + lateState;
     }
     async function wbAbandonProcessJob(jobId, silent) {
       if (!jobId) return null;
@@ -1668,7 +1684,7 @@
         ) {
           _wbGemmaLastHeartbeatSec = phaseSeconds;
           const mins = Math.floor(phaseSeconds / 60);
-          const narration = wbGemmaPhaseNarration(phase);
+          const narration = wbGemmaPhaseNarration(phase, (typeof phaseSeconds === 'number') ? phaseSeconds : (typeof phaseSec === 'number' ? phaseSec : 0));
           let lvl = 'info';
           let timing = 'Gemma still working. Larger variants can take several minutes per call.';
           if (phaseSeconds >= 15 * 60) {
@@ -2635,7 +2651,7 @@
           if (wbIsModelPhase(phase) && phaseSec >= 60 && phaseSec - lastHeartbeatSec >= 60) {
             lastHeartbeatSec = phaseSec;
             const mins = Math.floor(phaseSec / 60);
-            const narration = wbGemmaPhaseNarration(phase);
+            const narration = wbGemmaPhaseNarration(phase, (typeof phaseSeconds === 'number') ? phaseSeconds : (typeof phaseSec === 'number' ? phaseSec : 0));
             const lvl = phaseSec >= 15 * 60 ? 'warn' : (phaseSec >= 5 * 60 ? 'warn' : 'info');
             const timing = phaseSec >= 15 * 60
               ? 'Over 15 minutes. Click Cancel if you want to abort.'
