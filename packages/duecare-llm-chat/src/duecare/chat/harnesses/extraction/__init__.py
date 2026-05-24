@@ -26,6 +26,7 @@ spec = HarnessSpec(
     endpoints=(
         {"method": "POST", "path": "/api/knowledge/source-file", "summary": "Parse uploaded source files through the process parser"},
         {"method": "POST", "path": "/api/knowledge/draft-envelope", "summary": "Draft a knowledge-object envelope"},
+        {"method": "POST", "path": "/api/knowledge/from-edge", "summary": "Draft a knowledge-object envelope from a Process typed edge"},
         {"method": "POST", "path": "/api/knowledge/polish-envelope", "summary": "Two-pass Gemma critique + rewrite of a draft envelope"},
         {"method": "POST", "path": "/api/knowledge/promote", "summary": "Promote reviewed draft to local knowledge store"},
         {"method": "POST", "path": "/api/knowledge/import", "summary": "Import knowledge files ZIP"},
@@ -62,10 +63,10 @@ spec = HarnessSpec(
         HarnessLogicPath(
             id="draft_envelope",
             label="KnowledgeObject drafting",
-            entrypoints=("/api/knowledge/source-file", "/api/knowledge/draft-envelope", "/static/knowledge.html"),
+            entrypoints=("/api/knowledge/source-file", "/api/knowledge/draft-envelope", "/api/knowledge/from-edge", "/static/knowledge.html"),
             steps=(
                 "parse or receive compact source text",
-                "infer useful KnowledgeObject leaf type and deterministic hints",
+                "infer useful KnowledgeObject leaf type and deterministic hints, or map a Process typed edge directly",
                 "compose GREP/RAG grounding for the draft",
                 "ask Gemma 4 for schema-shaped JSON when loaded",
                 "validate and mark draft for human promotion",

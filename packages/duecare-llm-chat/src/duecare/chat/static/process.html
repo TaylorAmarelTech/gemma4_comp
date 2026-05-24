@@ -157,6 +157,61 @@
       word-break: break-word;
       white-space: normal;
     }
+    .wb-edge-knowledge-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 100000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(14, 17, 22, 0.42);
+      padding: 18px;
+    }
+    .wb-edge-knowledge-modal.open { display: flex; }
+    .wb-edge-knowledge-dialog {
+      width: min(920px, 100%);
+      max-height: min(84vh, 820px);
+      overflow: auto;
+      background: #FFF;
+      border: 1px solid #DDD8C9;
+      border-radius: 12px;
+      box-shadow: 0 24px 70px rgba(14, 17, 22, 0.28);
+      padding: 18px 20px;
+    }
+    .wb-edge-knowledge-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .wb-edge-knowledge-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      margin: 10px 0;
+    }
+    .wb-edge-knowledge-json {
+      background: #FAF9F4;
+      border: 1px solid #DDD8C9;
+      border-radius: 8px;
+      padding: 10px;
+      max-height: 360px;
+      overflow: auto;
+      font-size: 11.5px;
+    }
+    .wb-edge-knowledge-notes {
+      margin: 8px 0;
+      padding: 10px 12px;
+      background: oklch(0.97 0.025 195);
+      border: 1px solid oklch(0.78 0.06 195);
+      border-left: 4px solid oklch(0.52 0.08 195);
+      border-radius: 6px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
     a { color: oklch(0.32 0.07 195); }
   
     @media (max-width: 620px) {
@@ -2453,6 +2508,303 @@
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       wbLog('info', 'Downloaded process graph SVG', 'duecare-process-graph.svg');
     }
+    let _wbEdgeKnowledgeDraft = null;
+    let _wbEdgeKnowledgePolish = null;
+    let _wbLastModalFocus = null;
+    function wbAppendText(parent, tag, text, className) {
+      const el = document.createElement(tag);
+      if (className) el.className = className;
+      el.textContent = text == null ? '' : String(text);
+      parent.appendChild(el);
+      return el;
+    }
+    function wbEnsureEdgeKnowledgeModal() {
+      let modal = document.getElementById('wb-edge-knowledge-modal');
+      if (modal) return modal;
+      modal = document.createElement('div');
+      modal.id = 'wb-edge-knowledge-modal';
+      modal.className = 'wb-edge-knowledge-modal';
+      modal.setAttribute('aria-hidden', 'true');
+      modal.addEventListener('click', ev => {
+        if (ev.target === modal) wbCloseEdgeKnowledgeModal();
+      });
+      const dialog = document.createElement('section');
+      dialog.className = 'wb-edge-knowledge-dialog';
+      dialog.setAttribute('role', 'dialog');
+      dialog.setAttribute('aria-modal', 'true');
+      dialog.setAttribute('aria-labelledby', 'wb-edge-knowledge-title');
+      dialog.tabIndex = -1;
+      modal.appendChild(dialog);
+
+      const head = document.createElement('div');
+      head.className = 'wb-edge-knowledge-head';
+      const titleWrap = document.createElement('div');
+      const title = document.createElement('h2');
+      title.id = 'wb-edge-knowledge-title';
+      title.style.cssText = 'margin:0 0 4px; font-size:17px;';
+      title.textContent = 'Draft knowledge fact';
+      const meta = document.createElement('div');
+      meta.id = 'wb-edge-knowledge-meta';
+      meta.className = 'wb-muted';
+      titleWrap.appendChild(title);
+      titleWrap.appendChild(meta);
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'wb-btn-secondary';
+      closeBtn.type = 'button';
+      closeBtn.textContent = 'Close';
+      closeBtn.addEventListener('click', wbCloseEdgeKnowledgeModal);
+      head.appendChild(titleWrap);
+      head.appendChild(closeBtn);
+      dialog.appendChild(head);
+
+      const status = document.createElement('div');
+      status.id = 'wb-edge-knowledge-status';
+      status.className = 'wb-muted';
+      dialog.appendChild(status);
+
+      const actions = document.createElement('div');
+      actions.className = 'wb-edge-knowledge-actions';
+      const polishBtn = document.createElement('button');
+      polishBtn.id = 'wb-edge-knowledge-polish-btn';
+      polishBtn.className = 'wb-btn-secondary';
+      polishBtn.type = 'button';
+      polishBtn.textContent = 'Polish further (Gemma 4)';
+      polishBtn.addEventListener('click', wbPolishEdgeKnowledgeDraft);
+      const promoteBtn = document.createElement('button');
+      promoteBtn.id = 'wb-edge-knowledge-promote-btn';
+      promoteBtn.className = 'wb-btn-primary';
+      promoteBtn.type = 'button';
+      promoteBtn.textContent = 'Promote draft';
+      promoteBtn.addEventListener('click', wbPromoteEdgeKnowledgeDraft);
+      actions.appendChild(polishBtn);
+      actions.appendChild(promoteBtn);
+      dialog.appendChild(actions);
+
+      const notes = document.createElement('div');
+      notes.id = 'wb-edge-knowledge-notes';
+      dialog.appendChild(notes);
+
+      const pre = document.createElement('pre');
+      pre.id = 'wb-edge-knowledge-json';
+      pre.className = 'wb-edge-knowledge-json';
+      dialog.appendChild(pre);
+
+      document.body.appendChild(modal);
+      return modal;
+    }
+    function wbRenderEdgeKnowledgeModal() {
+      const modal = wbEnsureEdgeKnowledgeModal();
+      const env = _wbEdgeKnowledgeDraft || {};
+      const ext = env.extensions || {};
+      const meta = document.getElementById('wb-edge-knowledge-meta');
+      const status = document.getElementById('wb-edge-knowledge-status');
+      const notes = document.getElementById('wb-edge-knowledge-notes');
+      const pre = document.getElementById('wb-edge-knowledge-json');
+      const polishBtn = document.getElementById('wb-edge-knowledge-polish-btn');
+      const promoteBtn = document.getElementById('wb-edge-knowledge-promote-btn');
+      if (meta) meta.textContent = (env.knowledge_object_type || 'extracted_fact') + ' | ' + (env.id || 'draft');
+      if (status) {
+        status.textContent = ext.standardized_shape
+          ? 'Standardized deterministic draft from the selected typed edge.'
+          : 'Draft created from the selected typed edge.';
+      }
+      if (pre) pre.textContent = JSON.stringify(env, null, 2);
+      if (polishBtn) polishBtn.disabled = !env.content;
+      if (promoteBtn) promoteBtn.disabled = !env.content;
+      if (notes) {
+        notes.replaceChildren();
+        notes.className = '';
+        if (_wbEdgeKnowledgePolish) {
+          notes.className = 'wb-edge-knowledge-notes';
+          const diff = Array.isArray(_wbEdgeKnowledgePolish.diff)
+            ? _wbEdgeKnowledgePolish.diff.filter(d => d && d.changed)
+            : [];
+          const passes = Number(_wbEdgeKnowledgePolish.passes || 0);
+          wbAppendText(notes, 'b', 'Gemma 4 polish: ' + passes + ' pass(es), ' + diff.length + ' field(s) changed');
+          const critique = _wbEdgeKnowledgePolish.critique || null;
+          if (critique && critique.overall) {
+            wbAppendText(notes, 'div', String(critique.overall).slice(0, 280));
+          }
+          const issues = critique && Array.isArray(critique.issues) ? critique.issues : [];
+          if (issues.length) {
+            const ul = document.createElement('ul');
+            ul.style.margin = '6px 0 4px 18px';
+            issues.slice(0, 6).forEach(iss => {
+              const li = document.createElement('li');
+              const label = (iss.field || iss.category || '?') + ': ';
+              li.textContent = label + (iss.why || '');
+              ul.appendChild(li);
+            });
+            notes.appendChild(ul);
+          }
+          if (diff.length) {
+            const details = document.createElement('details');
+            const summary = document.createElement('summary');
+            summary.textContent = 'Field-level diff (' + diff.length + ' changed)';
+            details.appendChild(summary);
+            const table = document.createElement('table');
+            table.className = 'wb-small-table';
+            const head = document.createElement('thead');
+            const headRow = document.createElement('tr');
+            ['Field', 'Before', 'After'].forEach(h => wbAppendText(headRow, 'th', h));
+            head.appendChild(headRow);
+            table.appendChild(head);
+            const tbody = document.createElement('tbody');
+            diff.slice(0, 20).forEach(d => {
+              const row = document.createElement('tr');
+              wbAppendText(row, 'td', d.key || '');
+              wbAppendText(row, 'td', d.before || '<empty>');
+              wbAppendText(row, 'td', d.after || '<empty>');
+              tbody.appendChild(row);
+            });
+            table.appendChild(tbody);
+            details.appendChild(table);
+            notes.appendChild(details);
+          } else if (passes === 0) {
+            wbAppendText(notes, 'div', 'Polish skipped or standardized only; no model pass changed the draft.');
+          }
+        }
+      }
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+      const dialog = modal.querySelector('.wb-edge-knowledge-dialog');
+      if (dialog && typeof dialog.focus === 'function') dialog.focus();
+    }
+    function wbCloseEdgeKnowledgeModal() {
+      const modal = document.getElementById('wb-edge-knowledge-modal');
+      if (!modal) return;
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+      if (_wbLastModalFocus && typeof _wbLastModalFocus.focus === 'function') {
+        _wbLastModalFocus.focus();
+      }
+    }
+    document.addEventListener('keydown', ev => {
+      if (ev.key === 'Escape') wbCloseEdgeKnowledgeModal();
+    });
+    async function wbDraftEdgeAsKnowledge(idx) {
+      const edge = (window._wbTypedEdges || [])[Number(idx)];
+      if (!edge) {
+        wbLog('err', 'No typed edge found for knowledge draft', 'idx=' + idx);
+        return;
+      }
+      _wbLastModalFocus = document.activeElement;
+      _wbEdgeKnowledgeDraft = null;
+      _wbEdgeKnowledgePolish = null;
+      wbLog('net', 'POST /api/knowledge/from-edge', 'edge=' + (edge.edge_type || 'edge'));
+      const t0 = performance.now();
+      try {
+        const r = await fetch('/api/knowledge/from-edge', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({edge: edge}),
+        });
+        const txt = await r.text();
+        const dt = Math.round(performance.now() - t0);
+        let out = null;
+        try { out = JSON.parse(txt); } catch (_) {}
+        if (!r.ok || !out || !out.envelope) {
+          wbLog('err', 'Edge draft failed HTTP ' + r.status + ' (' + dt + 'ms)', String(txt).slice(0, 220));
+          return;
+        }
+        _wbEdgeKnowledgeDraft = out.envelope;
+        wbLog('ok', 'Draft created from edge', 'env=' + (_wbEdgeKnowledgeDraft.id || 'draft'));
+        wbRenderEdgeKnowledgeModal();
+      } catch (e) {
+        wbLog('err', 'Edge draft failed', String(e).slice(0, 220));
+      }
+    }
+    async function wbPolishEdgeKnowledgeDraft() {
+      const env = _wbEdgeKnowledgeDraft;
+      if (!env || !env.content) return;
+      const btn = document.getElementById('wb-edge-knowledge-polish-btn');
+      const promoteBtn = document.getElementById('wb-edge-knowledge-promote-btn');
+      const status = document.getElementById('wb-edge-knowledge-status');
+      if (btn) { btn.disabled = true; btn.textContent = 'Polishing pass 1/2...'; }
+      if (promoteBtn) promoteBtn.disabled = true;
+      if (status) status.textContent = 'Gemma 4 critique pass...';
+      wbLog('net', 'POST /api/knowledge/polish-envelope',
+        'type=' + (env.knowledge_object_type || '?') + ' | process edge modal');
+      const t0 = performance.now();
+      try {
+        const r = await fetch('/api/knowledge/polish-envelope', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({envelope: env, use_gemma: true, max_passes: 2}),
+        });
+        const txt = await r.text();
+        const dt = Math.round(performance.now() - t0);
+        let out = null;
+        try { out = JSON.parse(txt); } catch (_) {}
+        if (!r.ok || !out || !out.envelope) {
+          wbLog('err', 'Polish failed HTTP ' + r.status + ' (' + dt + 'ms)', String(txt).slice(0, 240));
+          if (status) status.textContent = 'Polish failed';
+          return;
+        }
+        _wbEdgeKnowledgeDraft = out.envelope;
+        _wbEdgeKnowledgePolish = out;
+        const diff = Array.isArray(out.diff) ? out.diff.filter(d => d && d.changed) : [];
+        const passes = Number(out.passes || 0);
+        if (window.dcGemmaStats && passes > 0) {
+          window.dcGemmaStats.bump('chat');
+        }
+        wbLog('ok', 'Polish complete (' + dt + 'ms)',
+          passes + ' pass(es), ' + diff.length + ' field(s) changed');
+        wbRenderEdgeKnowledgeModal();
+      } catch (e) {
+        wbLog('err', 'Polish error', String(e).slice(0, 220));
+        if (status) status.textContent = 'Polish error';
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Polish further (Gemma 4)'; }
+        if (promoteBtn) promoteBtn.disabled = false;
+      }
+    }
+    async function wbPromoteEdgeKnowledgeDraft() {
+      const env = _wbEdgeKnowledgeDraft;
+      if (!env) return;
+      const promoted = JSON.parse(JSON.stringify(env));
+      promoted.id = String(promoted.id || 'edge-knowledge-draft').replace(/-draft$/, '');
+      promoted.version = 'v1';
+      promoted.extensions = Object.assign({}, promoted.extensions || {}, {
+        draft: false,
+        needs_review: false,
+        promoted_from_draft: env.id || '',
+        promoted_at: new Date().toISOString(),
+      });
+      const btn = document.getElementById('wb-edge-knowledge-promote-btn');
+      const polishBtn = document.getElementById('wb-edge-knowledge-polish-btn');
+      const status = document.getElementById('wb-edge-knowledge-status');
+      if (btn) { btn.disabled = true; btn.textContent = 'Promoting...'; }
+      if (polishBtn) polishBtn.disabled = true;
+      if (status) status.textContent = 'POST /api/knowledge/promote ...';
+      wbLog('net', 'POST /api/knowledge/promote',
+        'type=' + promoted.knowledge_object_type + ' id=' + promoted.id);
+      const t0 = performance.now();
+      try {
+        const r = await fetch('/api/knowledge/promote', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(promoted),
+        });
+        const txt = await r.text();
+        const dt = Math.round(performance.now() - t0);
+        let out = null;
+        try { out = JSON.parse(txt); } catch (_) {}
+        if (!r.ok || !out) {
+          wbLog('err', 'Promote failed HTTP ' + r.status + ' (' + dt + 'ms)', String(txt).slice(0, 220));
+          if (status) status.textContent = 'Promote failed';
+          return;
+        }
+        wbLog('ok', 'Promoted', 'id=' + (out.id || promoted.id));
+        wbCloseEdgeKnowledgeModal();
+      } catch (e) {
+        wbLog('err', 'Promote failed', String(e).slice(0, 220));
+        if (status) status.textContent = 'Promote failed. See activity log.';
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Promote draft'; }
+        if (polishBtn) polishBtn.disabled = false;
+      }
+    }
     function wbRenderTypedEdges(intel) {
       const typedHost = document.getElementById('wb-typed-edges');
       const ragHost = document.getElementById('wb-rag-candidates');
@@ -2476,13 +2828,15 @@
         }
         return '<span class="wb-gemma-badge" style="background:oklch(0.94 0.02 80); color:oklch(0.36 0.06 80);">Deterministic</span>';
       };
-      const edgeRows = edges.slice(0, 18).map(e =>
+      window._wbTypedEdges = edges.slice(0, 18);
+      const edgeRows = window._wbTypedEdges.map((e, idx) =>
         '<tr><td>' + wbEsc(e.edge_type || 'edge') + ' ' + edgeSourceBadge(e) + '</td>' +
         '<td><code>' + wbEsc(e.source_node || '') + '</code></td>' +
         '<td><code>' + wbEsc(e.target_node || '') + '</code></td>' +
         '<td><code>' + wbEsc(e.row_id || '') + '</code></td>' +
         '<td>' + wbEsc(((e.evidence || {}).quote || e.label || '').slice(0, 160)) + '</td>' +
-        '<td>' + wbEsc(e.confidence == null ? '' : e.confidence) + '</td></tr>'
+        '<td>' + wbEsc(e.confidence == null ? '' : e.confidence) + '</td>' +
+        '<td><button class="wb-btn-secondary" type="button" onclick="wbDraftEdgeAsKnowledge(' + idx + ')">Draft as knowledge fact</button></td></tr>'
       ).join('');
       // Count how many typed edges Gemma 4 generated (edge pass + contextual
       // media pass) versus deterministic rules, so the reviewer can see the
@@ -2503,8 +2857,8 @@
         (counts.length ? '<div class="wb-chip-list" style="margin-bottom:8px;">' +
           counts.slice(0, 10).map(c => wbPill((c.edge_type || 'edge') + ' x ' + (c.count || 0))).join('') +
           '</div>' : '') +
-        '<div style="max-height:260px; overflow:auto;"><table class="wb-small-table"><thead><tr><th>edge</th><th>source</th><th>target</th><th>row</th><th>evidence quote</th><th>conf</th></tr></thead><tbody>' +
-        (edgeRows || '<tr><td colspan="6" class="wb-muted">No typed edges returned.</td></tr>') +
+        '<div style="max-height:260px; overflow:auto;"><table class="wb-small-table"><thead><tr><th>edge</th><th>source</th><th>target</th><th>row</th><th>evidence quote</th><th>conf</th><th>action</th></tr></thead><tbody>' +
+        (edgeRows || '<tr><td colspan="7" class="wb-muted">No typed edges returned.</td></tr>') +
         '</tbody></table></div>';
       ragHost.innerHTML = candidates.length
         ? '<h3 style="font-size:13px; margin:0 0 6px;">Reviewable RAG / knowledge candidates</h3>' +
