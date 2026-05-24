@@ -37,6 +37,14 @@ Plus optional benchmarks (not part of the recording-critical path but still publ
 **Allowed:** internal additions inside `kernel.py` that don't change the documented boot flow.
 **Forbidden:** renaming the directory, removing `kernel.py`, changing the boot command, removing a documented entrypoint, removing dependencies from the inline `!pip install` block.
 
+**Kernel compatibility gate:** Before committing any goal, run:
+
+```bash
+python scripts/validate_main_kaggle_kernels.py
+```
+
+This gate protects only the three active kernels above plus the two optional benchmark kernels above. Appendix notebooks, archived notebooks, and legacy notebook-era folders are not part of this check unless Taylor explicitly asks to restore them.
+
 ---
 
 ## 2. Existing API routes (DO NOT RENAME OR REMOVE)
@@ -204,7 +212,7 @@ These are silent contracts the codebase relies on:
 
 ## 10. Documentation invariants
 
-- `CLAUDE.md` is protected setup metadata. Edit only when the user explicitly asks.
+- `CLAUDE.md` is protected setup metadata, but Taylor has explicitly allowed reconciliation edits. Update it only when a completed goal, active kernel constraint, or operating brief needs to stay consistent; keep unrelated CLAUDE.md refactors out of goal commits.
 - `docs/DOCUMENTATION_GUIDE.md` is the canonical public-facts policy. New docs must follow it.
 - Per-rule files under `.claude/rules/` are auto-loaded. Don't add or remove files there without confirming the rule precedence chain.
 

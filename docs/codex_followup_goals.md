@@ -369,8 +369,8 @@ TestPolishEndpointFallback:
 | 3 | Goal 6 (Sample bundle for templates) | Unblocks reviewers' first-time-templates-flow |
 | 4 | Goal 3 (Field-source preview) | Improves templates UX with no Gemma cost |
 | 5 | Goal 4 (Process → knowledge one-click) | Connects two big surfaces |
-| 6 | Goal 8 (Inline word diff) | Polish UX polish |
-| 7 | Goal 5 (Auto-polish queue) | Power-user feature, depends on Goal 1 |
+| 6 | Goal 5 (Auto-polish queue) | Power-user feature, depends on Goal 1 |
+| 7 | Goal 8 (Inline word diff) | Polish UX polish, depends on Goals 1 and 5 |
 | 8 | Goal 2 (Multi-template fill) | Larger refactor; do after the small wins |
 | 9 | Goal 9 (Inline vocab normalize) | Surface polish |
 | 10 | Goal 7 (Vocab audit script) | Diagnostic tool; not urgent unless you're auditing |
@@ -380,8 +380,9 @@ TestPolishEndpointFallback:
 1. Pick a goal that matches what's painful right now.
 2. Paste the "Copy-paste prompt" block into your Codex session.
 3. Codex reads the named files first, makes the change, and runs the suggested verification command.
-4. Review the resulting diff before merging.
-5. If you want to know the rationale (the "Why this matters" section), paste that too — it gives Codex context for judgment calls.
+4. Run `python scripts/validate_main_kaggle_kernels.py` before committing so the three active Kaggle kernels and two optional benchmark kernels keep parsing and keep their Kaggle boot tokens.
+5. Review the resulting diff before merging.
+6. If you want to know the rationale (the "Why this matters" section), paste that too — it gives Codex context for judgment calls.
 
 ## What I deliberately did NOT include
 
