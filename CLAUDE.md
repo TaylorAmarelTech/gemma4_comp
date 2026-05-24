@@ -10,14 +10,15 @@
 > (current operating brief, three overarching goals, rules index,
 > project intro, author, project memory).
 
-## Current operating brief (2026-05-22)
+## Current operating brief (2026-05-24)
 
 - Active submission work is the three-kernel path: `kaggle/01-duecare-exploration-workbench`, `kaggle/02-live-demo`, and `kaggle/A-00-omni-experiment-workbench`. Recording-critical contract: [`.claude/rules/80_active_surface.md`](.claude/rules/80_active_surface.md).
 - Optional benchmark work lives in `kaggle/03-universal-llm-benchmark` for arbitrary endpoint comparisons and `kaggle/04-kaggle-community-benchmark` for Kaggle-native Community Benchmark tasks. Neither replaces the three-kernel recording path.
 - The public story has six setup lanes in this order: Platform safety, NGO & regulator, Individual worker / mobile, Researcher, Anonymized knowledge sharing, Developer / integration partner.
-- The workspace has 17 `duecare-llm*` package directories. The latest verified local collection is 675 package tests collected; do not claim a full pass unless you ran the full suite.
+- The workspace has 17 `duecare-llm*` package directories. As of 2026-05-22 the collection was 675 tests; the safe-text scrub/standardize/polish work added ~50 more in `tests/test_knowledge_noise_scrub.py` (now 48 test functions in that file alone). Do not claim a full pass unless you ran the full suite.
+- **Safe-text layer (2026-05-24):** `packages/duecare-llm-chat/src/duecare/chat/harnesses/_safe_text.py` is the single chokepoint every fact / share / search / template output flows through. Three concentric layers — scrub (kernel paths / RUN_IDs / synthetic case folder names), standardize (canonical 47-field envelope shape + 16 ILO indicators + 9 stages + XX-YY corridors), and the iterative polish endpoint `POST /api/knowledge/polish-envelope` (two Gemma 4 passes: critique then rewrite). UI: "Polish further (Gemma 4)" button in knowledge.html. Full reference: [`docs/safe_text_layer.md`](docs/safe_text_layer.md). Follow-up improvements ready to dispatch: [`docs/codex_followup_goals.md`](docs/codex_followup_goals.md).
 - **Knowledge surface state (verified via `scripts/verify_knowledge_surfaces.py`):** 318 GREP rules (categories A-GGGG) · 235 RAG documents (incl. 6 landmark case-law + 3 national anti-trafficking units + UN SRs + GRETA + IASC + research institutes + IMO/ITF + ICAT + AU + ACTIP + Lanzarote + GCM + UFLPA) · 34 complaint / narrative templates · 22 review personas · 45 fee-camouflage labels · 31 corridor fee-cap entries · 30 NGO contact bundles · 15 ILO conventions · 74,640 trafficking seed prompts. See [`docs/KNOWLEDGE_SURFACE_VERIFICATION.md`](docs/KNOWLEDGE_SURFACE_VERIFICATION.md).
-- Local pip + venv currently broken (OneDrive-sync corruption — `typing_extensions`, `pip._vendor`, `numpy._core` missing across Python 3.10/3.12/3.14 installs). `scripts/verify_knowledge_surfaces.py` works around this with pure stdlib parsing. Boot via Kaggle, which uses each `kernel.py`'s own dependency block.
+- Local pip + venv currently broken (OneDrive-sync corruption — `typing_extensions`, `pip._vendor`, `numpy._core` missing across Python 3.10/3.12/3.14 installs). `scripts/verify_knowledge_surfaces.py` works around this with pure stdlib parsing. Boot via Kaggle, which uses each `kernel.py`'s own dependency block. For pure-helper verification, run modules with `python -c "import runpy; runpy.run_path('<path>.py')"` to bypass the import chain.
 - Documentation edits should follow `docs/DOCUMENTATION_GUIDE.md`; agent edits should also honor the root `AGENTS.md`.
 - Repo-organization edits should also keep `docs/FILE_PURPOSE_GUIDE.md` and the relevant directory index current.
 - Keep generated report files out of commits unless Taylor explicitly asks to publish them.
@@ -70,11 +71,15 @@ Harness contract docs (load with `@docs/...` when relevant):
 - [`docs/harness_ecosystem.md`](docs/harness_ecosystem.md) - vocabulary + registered inventory.
 - [`docs/harness_standard_contract.md`](docs/harness_standard_contract.md) - HarnessSpec fields.
 - [`docs/MIGRATION_HARNESS_PATTERN.md`](docs/MIGRATION_HARNESS_PATTERN.md) - migration from singular `duecare.chat.harness` to `duecare.chat.harnesses`.
+- [`docs/safe_text_layer.md`](docs/safe_text_layer.md) - shared scrub / standardize / iterative-polish chokepoint (2026-05-24). Canonical fact-envelope shape, ILO vocab, polish endpoint, provenance flags.
+- [`docs/codex_followup_goals.md`](docs/codex_followup_goals.md) - ten copy-paste improvement prompts sized for a single Codex session each.
 
 ## What this project is
 
 A submission for the **Gemma 4 Good Hackathon** on Kaggle (2026-04-02 through
 2026-05-18, $200K prize pool across Main/Impact/Special Technology tracks).
+**Submission window closed 2026-05-18.** Post-deadline work continues on the
+same kernels for polish, NGO-partner-ready integration, and judge-facing UX.
 
 **Concept:** Fine-tune Gemma 4 E4B on the author's existing 21K-test
 migrant-worker trafficking benchmark (graded response examples, worst->best)
@@ -128,6 +133,7 @@ When you need detail on:
 - **How Gemma 4 loads / harness contract / workbench UI:** see [`81_canonical_runtime.md`](.claude/rules/81_canonical_runtime.md).
 - **Repo layout / archive hygiene / Python conventions:** see [`82_project_structure.md`](.claude/rules/82_project_structure.md).
 - **How to publish to Kaggle / useful CLI commands:** see [`83_kaggle_workflow.md`](.claude/rules/83_kaggle_workflow.md).
+- **Fact-shape normalization / noise scrubbing / iterative Gemma polish:** see [`docs/safe_text_layer.md`](docs/safe_text_layer.md). Pickable next-up improvements: [`docs/codex_followup_goals.md`](docs/codex_followup_goals.md).
 - **Knowledge-layer current counts + smoke verification:** see [`docs/KNOWLEDGE_SURFACE_VERIFICATION.md`](docs/KNOWLEDGE_SURFACE_VERIFICATION.md).
 
 All rules files are auto-loaded so you do not need to manually open them
