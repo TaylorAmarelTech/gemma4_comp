@@ -108,6 +108,22 @@
       "expects_manifest_or_metadata": true
     },
     {
+      "name": "template_bundle_sample.json",
+      "path": "samples/template_bundle_sample.json",
+      "role": "template_case_bundle",
+      "used_by": ["templates.html"],
+      "artifact_kind": "template_case_bundle",
+      "label": "Templates page synthetic case bundle",
+      "primary_for": ["templates"],
+      "also_used_by": ["tests", "video_demo"],
+      "expected_inputs": ["json", "case_bundle"],
+      "expected_outputs": ["filled_template_fields", "draft_complaint_markdown"],
+      "demo_story": "Synthetic PH-HK complaint bundle for one-click HK Labour Department template fill.",
+      "privacy_note": "Synthetic initials-only bundle. No real names, phone numbers, addresses, or case files.",
+      "expects_readme": false,
+      "expects_manifest_or_metadata": true
+    },
+    {
       "name": "prompt_eval_training_seed_sample.zip",
       "artifact_kind": "prompt_eval_training_seed",
       "label": "Prompt, grading, and synthetic tuning seed",

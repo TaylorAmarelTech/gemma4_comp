@@ -9,6 +9,7 @@ reviewer round-trip the upload/import flow on the workbench pages:
   knowledge_object_sample.json   -> used on /static/knowledge.html
   knowledge_bundle_sample.zip    -> used on /static/knowledge.html
   knowledge_files_sample.zip     -> import/share-ready knowledge files ZIP
+  template_bundle_sample.json     -> used on /static/templates.html
 
 All names, employers, and corridor specifics are composite. PII is
 synthetic. Re-run this script to regenerate; the output is
@@ -2104,6 +2105,210 @@ def build_knowledge_source_examples_zip() -> None:
     print(f"wrote {out}  ({out.stat().st_size:,} bytes)")
 
 
+# Section 5: Template bundle sample
+
+TEMPLATE_BUNDLE_SAMPLE = {
+    "schema_version": "duecare.template_bundle_sample.v1",
+    "run_id": "template-bundle-sample",
+    "_meta": {
+        "synthetic": True,
+        "created_at": "2026-05-24T00:00:00Z",
+        "created_by": "scripts/build_static_samples.py",
+        "purpose": "Judge-safe one-click sample for templates.html",
+        "pii_status": "synthetic_initials_only",
+    },
+    "config": {
+        "source": "template_bundle_sample",
+        "corridor": "PH-HK",
+        "target_template": "hk_ld_fdh_complaint",
+    },
+    "summary": {
+        "case_overview": (
+            "Composite PH-HK domestic-work case involving disguised "
+            "placement fees, salary deductions, passport retention, and "
+            "retaliation concerns."
+        ),
+        "n_rows_total": 7,
+        "n_rows_processed": 7,
+        "n_people_detected": 3,
+        "n_typed_edges": 4,
+        "n_payments": 2,
+        "n_indicators": 4,
+    },
+    # Root-level aliases match existing TemplateSpec source_hint paths
+    # such as people[0].label, entities.employer[0], and payments[*].amount.
+    "people": [
+        {
+            "label": "M.A.",
+            "role": "worker",
+            "nationality": "Philippines",
+            "notes": "Anonymized composite worker; no real identity.",
+        },
+        {
+            "label": "R.S.",
+            "role": "broker",
+            "notes": "Composite recruiter/broker initials only.",
+        },
+        {
+            "label": "E.H.",
+            "role": "employer_contact",
+            "notes": "Composite employer contact initials only.",
+        },
+    ],
+    "entities": {
+        "nationality": ["Philippines"],
+        "employer": ["Employer Household B"],
+        "address": ["Hong Kong district withheld for sample"],
+        "agency": ["Composite Placement Agency A"],
+        "broker": ["R.S."],
+    },
+    "payments": [
+        {
+            "amount": "PHP 50000",
+            "currency": "PHP",
+            "kind": "placement_fee",
+            "collector": "Composite Placement Agency A / broker R.S.",
+            "timing": "recruitment",
+            "evidence_ref": "receipt-summary-1",
+        },
+        {
+            "amount": "HKD 4000",
+            "currency": "HKD",
+            "kind": "salary_deduction",
+            "collector": "Employer Household B",
+            "timing": "first month after arrival",
+            "evidence_ref": "wage-ledger-1",
+        },
+    ],
+    "intelligence": {
+        "summary": {
+            "case_overview": (
+                "Composite PH-HK domestic-work case involving disguised "
+                "placement fees, salary deductions, passport retention, and "
+                "retaliation concerns."
+            ),
+            "n_rows_total": 7,
+            "n_rows_processed": 7,
+            "n_people_detected": 3,
+            "n_typed_edges": 4,
+            "n_payments": 2,
+            "n_indicators": 4,
+        },
+        "case_brief": (
+            "M.A., a composite Philippine worker recruited for Hong Kong "
+            "domestic work, reports that broker R.S. and Composite Placement "
+            "Agency A described a PHP 50000 charge as training, medical, and "
+            "processing costs. After arrival, Employer Household B deducted "
+            "HKD 4000 from the first month of wages and held travel documents "
+            "for safekeeping. The worker fears retaliation if the complaint "
+            "is filed without anonymization."
+        ),
+        "people": [
+            {
+                "label": "M.A.",
+                "role": "worker",
+                "nationality": "Philippines",
+            },
+            {"label": "R.S.", "role": "broker"},
+            {"label": "E.H.", "role": "employer_contact"},
+        ],
+        "payments": [
+            {
+                "amount": "PHP 50000",
+                "currency": "PHP",
+                "kind": "placement_fee",
+                "collector": "Composite Placement Agency A / broker R.S.",
+                "timing": "recruitment",
+            },
+            {
+                "amount": "HKD 4000",
+                "currency": "HKD",
+                "kind": "salary_deduction",
+                "collector": "Employer Household B",
+                "timing": "first month after arrival",
+            },
+        ],
+        "journey_points": [
+            {
+                "stage": "recruitment",
+                "summary": (
+                    "Broker R.S. described a placement charge as medical, "
+                    "training, and processing costs."
+                ),
+            },
+            {
+                "stage": "arrival_and_placement",
+                "summary": (
+                    "Worker arrived in Hong Kong and was placed with "
+                    "Employer Household B."
+                ),
+            },
+            {
+                "stage": "employment",
+                "summary": (
+                    "Employer deducted HKD 4000 from wages and retained "
+                    "travel documents."
+                ),
+            },
+        ],
+        "ilo_indicators": [
+            "fee_camouflage",
+            "passport_retention",
+            "salary_deduction",
+            "retaliation_risk",
+        ],
+        "entities": {
+            "agency": ["Composite Placement Agency A"],
+            "employer": ["Employer Household B"],
+            "broker": ["R.S."],
+            "nationality": ["Philippines"],
+            "address": ["Hong Kong district withheld for sample"],
+        },
+        "evidence_edges": [
+            {
+                "edge_type": "charged_fee",
+                "from": "Composite Placement Agency A",
+                "to": "M.A.",
+                "detail": "PHP 50000 labelled as training, medical, and processing costs.",
+                "evidence": "receipt-summary-1",
+            },
+            {
+                "edge_type": "deducted_wages",
+                "from": "Employer Household B",
+                "to": "M.A.",
+                "detail": "HKD 4000 deducted from the first month of wages.",
+                "evidence": "wage-ledger-1",
+            },
+            {
+                "edge_type": "retained_document",
+                "from": "Employer Household B",
+                "to": "M.A.",
+                "detail": "Travel documents held for safekeeping after arrival.",
+                "evidence": "intake-note-1",
+            },
+            {
+                "edge_type": "retaliation_risk",
+                "from": "R.S.",
+                "to": "M.A.",
+                "detail": "Worker feared complaint would trigger job loss or debt pressure.",
+                "evidence": "caseworker-note-1",
+            },
+        ],
+        "corridor": "PH-HK",
+        "sector": "domestic_work",
+    },
+}
+
+
+def build_template_bundle_sample() -> None:
+    out = OUT / "template_bundle_sample.json"
+    out.write_text(
+        json.dumps(TEMPLATE_BUNDLE_SAMPLE, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    print(f"wrote {out}  ({out.stat().st_size:,} bytes)")
+
+
 def build_search_intake_sample_zip() -> None:
     """Search page repeatability bundle with queries, source cards, and draft envelopes."""
     source_cards = [
@@ -2270,6 +2475,7 @@ def main() -> None:
     build_knowledge_bundle_zip()
     build_knowledge_pack_rich_zip()
     build_knowledge_source_examples_zip()
+    build_template_bundle_sample()
     build_search_intake_sample_zip()
     build_prompt_eval_training_seed_zip()
     print(f"\nAll samples in {OUT}")
