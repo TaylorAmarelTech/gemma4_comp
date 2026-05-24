@@ -1081,6 +1081,29 @@ code, .mono {
   animation: wbGemmaTallyPulse 1.4s ease-out;
 }
 
+/* In-flight indicator — a continuous slow ring pulse on the Gemma 4
+   tally badge while the inference queue reports at least one active
+   or waiting call. Distinct from the discrete post-bump pulse: this
+   one runs continuously so judges see Gemma 4 is actively working
+   DURING a long call (e.g. a 30s synthesis or a 5min edge pass), not
+   just AFTER it completes. The chrome's refreshStatus loop (every
+   8s) is the source of truth; the class toggles on/off based on
+   /api/queue/status. */
+@keyframes wbGemmaTallyInflight {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(0.52 0.08 195 / 0); }
+  50%      { box-shadow: 0 0 0 5px oklch(0.52 0.08 195 / 0.35); }
+}
+.dc-wb-gemma-tally-inflight {
+  animation: wbGemmaTallyInflight 1.6s ease-in-out infinite;
+}
+/* When BOTH the discrete post-bump pulse and the in-flight ring are
+   active, the post-bump pulse takes priority (the count just changed,
+   that's the more important signal). The :not() selector enforces
+   that without JS coordination. */
+.dc-wb-gemma-tally-pulse.dc-wb-gemma-tally-inflight {
+  animation: wbGemmaTallyPulse 1.4s ease-out;
+}
+
 /* Workbench section-progression flow indicator — a small centered
    chevron rendered BETWEEN workflow steps so the eye can follow the
    1 → 2 → 3 → 4 → 5 ordering at a glance. Used by inserting

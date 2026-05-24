@@ -735,8 +735,35 @@
             if (r.ok) {
                 const q = await r.json();
                 setText('dc-wb-status-queue', _renderQueueStatus(q));
+                // Mirror queue state onto the Gemma 4 tally badge so
+                // judges see Gemma 4 is actively working DURING a long
+                // call, not just AFTER the post-bump pulse. The badge
+                // gets dc-wb-gemma-tally-inflight when any slot has an
+                // active or waiting call, which CSS renders as a small
+                // spinning ring around the count.
+                const inflight = _queueIsBusy(q);
+                const tallyBtn = document.getElementById('dc-wb-gemma-tally-btn');
+                if (tallyBtn) {
+                    tallyBtn.classList.toggle('dc-wb-gemma-tally-inflight', inflight);
+                }
             }
         } catch (_) { /* quiet */ }
+    }
+    /**
+     * Returns true iff any inference slot reported by /api/queue/status
+     * has a call running or waiting. Defensive about missing fields so
+     * older kernel snapshots (no slots, or slots without n_active /
+     * n_waiting) just read as not-busy instead of crashing the chrome.
+     */
+    function _queueIsBusy(snapshot) {
+        const slots = (snapshot && snapshot.slots) || {};
+        for (const k in slots) {
+            const s = slots[k] || {};
+            const active = Number(s.n_active || 0);
+            const waiting = Number(s.n_waiting || 0);
+            if (active > 0 || waiting > 0) return true;
+        }
+        return false;
     }
 
     /**
