@@ -159,17 +159,27 @@
       // generic info / step events. Pattern-match the message text:
       // any mention of 'Gemma' (case-insensitive) marks the row with
       // a class the chrome CSS uses to render a teal left accent +
-      // subtle background. Reviewer scrolling the log can pick out
-      // Gemma activity at a glance.
+      // subtle background, PLUS prepends an explicit '[GEMMA 4]' tag
+      // so judges scrolling the log see model activity unmissably.
       const _msgLow = String(event.msg || '').toLowerCase();
       const _detLow = String(event.detail || '').toLowerCase();
-      if (_msgLow.indexOf('gemma') >= 0 || _detLow.indexOf('gemma') >= 0) {
+      const _isGemma = (_msgLow.indexOf('gemma') >= 0 || _detLow.indexOf('gemma') >= 0);
+      if (_isGemma) {
         row.classList.add('dc-log-event-gemma');
       }
       const tsSpan = document.createElement('span');
       tsSpan.className = 'dc-log-ts';
       tsSpan.textContent = '[' + ts + '] ';
       row.appendChild(tsSpan);
+      if (_isGemma) {
+        // Explicit [GEMMA 4] tag so the row reads as Gemma 4 activity
+        // even without the colored background (e.g. in screenshots
+        // converted to grayscale or for users with color-vision issues).
+        const gTag = document.createElement('span');
+        gTag.className = 'dc-log-tag-gemma';
+        gTag.textContent = '[GEMMA 4] ';
+        row.appendChild(gTag);
+      }
       if (activeChannel) {
         const chSpan = document.createElement('span');
         chSpan.className = 'dc-log-channel-' + activeChannel;
