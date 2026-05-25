@@ -60,6 +60,7 @@ These packs are meant for one long Codex session that continues automatically, n
 Every pack must run `python scripts/validate_main_kaggle_kernels.py` before each goal commit. That gate covers the three active submission kernels plus the two optional benchmark kernels; appendix and archived notebooks are out of scope unless Taylor says otherwise.
 
 - **Full no-stop dispatch**: Goal 1 -> Goal 6 -> Goal 3 -> Goal 4 -> Goal 5 -> Goal 8 -> Goal 2 -> Goal 9 -> Goal 7.
+- **Post-pack architecture follow-up**: Goal 11. This is intentionally outside the current no-stop pack because it is Large: it changes Bulk File Review graph extraction, model-call scheduling, process logs, and process tests.
 - **Reviewer-visible first wave**: Goal 1 -> Goal 6 -> Goal 3 -> Goal 4. Best when preparing a recording or judge walkthrough.
 - **Templates deep pack**: Goal 6 -> Goal 3 -> Goal 2. Run in that sequence because Goal 2's selector benefits from the sample and dry-run preview being stable.
 - **Polish pipeline pack**: Goal 1 -> Goal 5 -> Goal 8. Do not skip Goal 5 before Goal 8.

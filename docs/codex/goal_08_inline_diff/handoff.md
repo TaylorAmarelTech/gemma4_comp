@@ -1,6 +1,6 @@
 # Goal 8 — Inline word diff in the polish panel
 
-> Status: **PENDING**. Created 2026-05-24. Depends on Goal 1 and Goal 5 being landed (so the diff renderer is the same across surfaces).
+> Status: **DONE 2026-05-24 (`5738729`)**. Created 2026-05-24. Depends on Goal 1 and Goal 5 being landed (so the diff renderer is the same across surfaces).
 
 ## 1. Goal
 
