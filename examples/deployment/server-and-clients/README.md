@@ -115,7 +115,7 @@ Settings → Cloud model:
 - Model name: `gemma4:e2b`
 - API key: (your auth token, if you put auth in front of `/chat`)
 
-Sample env file: [`./android-config-example.env`](./android-config-example.env)
+Sample env file: [`./android-config-example.env.example`](./android-config-example.env.example)
 
 ### Client B — React widget on an NGO website
 
