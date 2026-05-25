@@ -278,24 +278,166 @@ KNOWLEDGE_IO_CONTRACTS: tuple[dict[str, Any], ...] = (
     },
 )
 
+PUBLIC_SETUP_LANES: tuple[str, ...] = (
+    "Platform safety",
+    "NGO & regulator",
+    "Individual worker / mobile",
+    "Researcher",
+    "Anonymized knowledge sharing",
+    "Developer / integration partner",
+)
+
+ONBOARDING_PATHS: tuple[dict[str, Any], ...] = (
+    {
+        "id": "kaggle_judge",
+        "label": "Kaggle judge",
+        "start_here": "Run kaggle/01-duecare-exploration-workbench, then open /static/getting-started.html and /static/process.html.",
+        "portable_artifacts": [
+            "case_files_media_rich_sample.zip",
+            "knowledge_files_sample.zip",
+            "process replay JSON",
+            "comparison export",
+        ],
+        "local_boundary": "Raw sample bundles, model traces, and graph drafts stay in the Kaggle kernel unless exported.",
+        "verification": "Run scripts/validate_main_kaggle_kernels.py and scripts/validate_public_surface.py before publishing.",
+    },
+    {
+        "id": "ngo_regulator",
+        "label": "NGO & regulator",
+        "start_here": "Use Bulk File Review, Knowledge Extraction, Templates, and Anonymization & Sharing as a local case-review node.",
+        "portable_artifacts": [
+            "reviewed evidence graph",
+            "redacted referral draft",
+            "knowledge_files.zip",
+            "redacted_submission.json",
+        ],
+        "local_boundary": "Case files, worker names, contacts, and unreviewed notes remain local to the office or regulator.",
+        "verification": "Confirm Step 3 review gates before templates, graph questions, or hub submission.",
+    },
+    {
+        "id": "worker_mobile",
+        "label": "Individual worker / mobile",
+        "start_here": "Use a local or mobile instance for private answers, saved notes, and plain-language evidence preparation.",
+        "portable_artifacts": [
+            "private note export",
+            "worker-support answer",
+            "NGO intake draft",
+        ],
+        "local_boundary": "Personal history and device-held notes are never network submissions by default.",
+        "verification": "Prefer locally versioned knowledge objects for law, fee, and contact claims.",
+    },
+    {
+        "id": "researcher",
+        "label": "Researcher",
+        "start_here": "Import reviewed knowledge packs, run Search Safety, and produce aggregate corridor or risk-signal reports.",
+        "portable_artifacts": [
+            "aggregate signal table",
+            "public-source knowledge proposal",
+            "benchmark row",
+            "graph export",
+        ],
+        "local_boundary": "Only de-identified facts, counts, and public-source references leave the research workspace.",
+        "verification": "Keep row-level provenance, source URLs, hashes, and review status on every exported object.",
+    },
+    {
+        "id": "developer_integrator",
+        "label": "Developer / integration partner",
+        "start_here": "Install duecare-llm-chat, call /api/portability, and reuse the shared chrome, model service, and harness contracts.",
+        "portable_artifacts": [
+            "portability contract JSON",
+            "type catalog",
+            "sample manifest",
+            "API route inventory",
+        ],
+        "local_boundary": "Integrations should keep tenant data inside the tenant-owned review environment unless a redaction gate sends a submission.",
+        "verification": "Run pytest collection, focused chat tests, and the public-surface validator after route or UI changes.",
+    },
+    {
+        "id": "benchmark_user",
+        "label": "Benchmark user",
+        "start_here": "Use kaggle/03-universal-llm-benchmark or kaggle/04-kaggle-community-benchmark for optional proof runs.",
+        "portable_artifacts": [
+            "benchmark prompts",
+            "judge rubric",
+            "model comparison table",
+            "benchmark_rows",
+        ],
+        "local_boundary": "Benchmark rows should be synthetic, public-source, or anonymized; raw case files are not benchmark inputs.",
+        "verification": "Record model, harness profile, dataset version, grader version, and git SHA with every result.",
+    },
+)
+
+LOCAL_NODE_NETWORK_CONTRACT: dict[str, Any] = {
+    "schema_version": "duecare.local_node_network.v1",
+    "purpose": (
+        "Let many independent local nodes convert sensitive case material into "
+        "reviewed, anonymized intelligence without centralizing raw worker files."
+    ),
+    "local_inputs": [
+        "source_case_bundle",
+        "folder_hierarchy",
+        "document_pages",
+        "paragraph_chunks",
+        "tables",
+        "media_assets",
+        "caseworker_notes",
+    ],
+    "shareable_outputs": [
+        "anonymized_fact_objects",
+        "graph_edges",
+        "risk_signal_counts",
+        "benchmark_rows",
+        "knowledge_pack_updates",
+    ],
+    "never_share": [
+        "raw_pii",
+        "worker_contact_details",
+        "unredacted_documents",
+        "private caseworker_notes",
+        "unreviewed_model_drafts",
+    ],
+    "review_gates": [
+        "process_review_confirmation",
+        "knowledge_object_promotion",
+        "regex_redaction",
+        "optional_gemma_residual_pii_review",
+        "literal_submit_confirmation",
+    ],
+    "aggregation_value": (
+        "Repeated anonymized fact objects and evidence edges expose corridor, "
+        "fee, document-control, and coercion patterns that a single local "
+        "office cannot see alone."
+    ),
+}
+
 CORE_NOTEBOOKS: tuple[dict[str, str], ...] = (
     {
         "id": "01",
         "path": "kaggle/01-duecare-exploration-workbench",
+        "status": "active",
         "role": "full workbench and portability source of truth",
         "serves": "all harnesses, samples, taxonomy, inventory, and UI audit",
     },
     {
         "id": "02",
         "path": "kaggle/02-live-demo",
+        "status": "active",
         "role": "focused live product demonstration",
         "serves": "scripted but live Gemma 4 interaction over the same contract",
     },
     {
-        "id": "A-00",
-        "path": "kaggle/A-00-omni-experiment-workbench",
-        "role": "appendix control plane",
-        "serves": "bulk evaluation, synthetic data, fine-tune handoff, graph reports",
+        "id": "03",
+        "path": "kaggle/03-universal-llm-benchmark",
+        "status": "optional",
+        "role": "optional universal LLM benchmark",
+        "serves": "external API benchmarking with DueCare prompts and judge rubrics",
+    },
+    {
+        "id": "04",
+        "path": "kaggle/04-kaggle-community-benchmark",
+        "status": "optional",
+        "role": "optional Kaggle community benchmark",
+        "serves": "community benchmark tasks that can use Kaggle model proxy quota",
     },
 )
 
@@ -358,8 +500,16 @@ NOTEBOOK_REUSE_TARGETS: tuple[dict[str, str], ...] = (
         "reuse": "Call live inventory/type-catalog endpoints and reuse the media-rich PH-HK sample story.",
     },
     {
-        "notebook": "A-00-omni-experiment-workbench",
-        "reuse": "Consume knowledge files, prompt/eval seeds, and graph-edge schema for training and reports.",
+        "notebook": "03-universal-llm-benchmark",
+        "reuse": "Consume prompts, harness profiles, judge rubrics, and graph-edge schema for optional external API comparisons.",
+    },
+    {
+        "notebook": "04-kaggle-community-benchmark",
+        "reuse": "Reuse synthetic or anonymized benchmark rows while keeping raw case bundles out of benchmark inputs.",
+    },
+    {
+        "notebook": "archived A-series notebooks",
+        "reuse": "Keep prior A-00 and appendix experiments in kaggle/_archive for provenance, not active judging validation.",
     },
     {
         "notebook": "archived appendix kernels",
@@ -415,6 +565,14 @@ def sample_artifact_map() -> dict[str, str]:
 
 def notebook_role_map() -> dict[str, dict[str, str]]:
     return {item["id"]: dict(item) for item in CORE_NOTEBOOKS}
+
+
+def onboarding_path_map() -> dict[str, dict[str, Any]]:
+    return {item["id"]: dict(item) for item in ONBOARDING_PATHS}
+
+
+def local_node_network_contract() -> dict[str, Any]:
+    return dict(LOCAL_NODE_NETWORK_CONTRACT)
 
 
 def evaluate_portability_contract(
@@ -486,6 +644,9 @@ def portability_contract_payload(
         "process_phases": list(PROCESS_PHASES),
         "graph_edge_contract": dict(GRAPH_EDGE_CONTRACT),
         "knowledge_io_contracts": list(KNOWLEDGE_IO_CONTRACTS),
+        "public_setup_lanes": list(PUBLIC_SETUP_LANES),
+        "onboarding_paths": list(ONBOARDING_PATHS),
+        "local_node_network_contract": dict(LOCAL_NODE_NETWORK_CONTRACT),
         "quantitative_experiment_contract": experiment_contract_payload(),
         "core_notebooks": list(CORE_NOTEBOOKS),
         "reusable_primitives": list(REUSABLE_PRIMITIVES),

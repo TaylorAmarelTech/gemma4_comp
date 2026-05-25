@@ -32,7 +32,13 @@ showcase a coherent Gemma 4 ecosystem for migrant-worker safety, including:
 - universal LLM benchmarking
 - Kaggle Community Benchmark readiness
 - standardized packaging and setup paths for different user groups
+- portable, copyable local-node processes for Kaggle judges, NGOs/regulators,
+  individual worker/mobile use, researchers, developers/integrators, and
+  benchmark users
 - GitHub-facing onboarding instructions and showcase surfaces
+- GitHub Pages that presents DueCare as a true Gemma 4 ecosystem: many local
+  nodes can anonymize and share fact objects, graph edges, and aggregate
+  intelligence without centralizing raw worker files
 
 Do not pause for ordinary test failures, missing packages, broken local Python
 installs, import errors, route smoke failures, or UI inconsistencies. Diagnose,
@@ -274,11 +280,15 @@ across:
 
 - Kaggle judges copying `kernel.py` from the active folders
 - NGO / regulator reviewers using the live demo or a local workbench
+- individual worker / mobile users who need a private first-run path
 - developers installing the packages and running targeted tests
 - benchmark users running the universal LLM benchmark or Kaggle Community
   Benchmark without paid/live model calls
 - researchers exploring reusable evidence, template, graph, and anonymization
   artifacts
+- packageable local-node processes that can be repeated in different
+  deployments without relying on Taylor's machine, local virtualenv, secrets,
+  or current Cloudflare tunnel
 
 Identify places where packaging could be more standard across these use cases:
 
@@ -314,6 +324,8 @@ should explain:
   graph evidence without exposing raw worker files
 - how aggregated, anonymized fact objects from many trusted local nodes can
   improve intelligence against trafficking and recruitment-abuse patterns
+- how different user groups can start from portable packages, scripts,
+  validation commands, and sample artifacts instead of one-off notebook state
 - how it avoids raw PII, secrets, volatile legal claims, and unverified metrics
 - whether it can reuse existing static/site assets instead of creating a
   separate marketing-only page

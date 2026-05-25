@@ -1271,18 +1271,18 @@ def test_process_watchdog_is_25_minutes_not_90_seconds() -> None:
     assert "exceeded 90 seconds" not in html
     # Heartbeat scaffolding is present.
     assert "_wbGemmaLastHeartbeatSec" in html
-    assert "Gemma phase still running" in html
+    assert "Gemma 4 still working" in html
 
 
 def test_process_standard_review_is_recommended_with_gemma_default() -> None:
-    """Standard review is the demo default: inline Gemma 4 ON, 5-call cap,
+    """Standard review is the demo default: inline Gemma 4 ON, 10-call cap,
     one call per page item. The mode card carries a Recommended badge."""
     html = _read("process.html")
     # WB_REVIEW_MODES.standard_review config.
     sr_idx = html.find("standard_review: {")
     assert sr_idx >= 0
     sr_block = html[sr_idx:sr_idx + 600]
-    assert "calls: 5" in sr_block
+    assert "calls: 10" in sr_block
     assert "perItem: 1" in sr_block
     assert "inlineGemma: true" in sr_block
     # Quick triage stays deterministic-only (no Gemma calls).
@@ -1295,12 +1295,11 @@ def test_process_standard_review_is_recommended_with_gemma_default() -> None:
     assert "Recommended for demo" in html
 
 
-def test_process_max_calls_default_is_five() -> None:
-    """The advanced setting #wb-max-gemma-calls now defaults to 5 so it
-    matches the new standard-review preset and the user's request to cap
-    Gemma calls during demos."""
+def test_process_max_calls_default_is_ten() -> None:
+    """The advanced setting #wb-max-gemma-calls defaults to 10 so it
+    matches the standard-review hierarchy/media upload budget."""
     html = _read("process.html")
-    assert 'id="wb-max-gemma-calls" type="number" min="0" max="1000" value="5"' in html
+    assert 'id="wb-max-gemma-calls" type="number" min="0" max="1000" value="10"' in html
 
 
 def test_process_has_where_gemma_runs_hint() -> None:
@@ -1309,7 +1308,7 @@ def test_process_has_where_gemma_runs_hint() -> None:
     html = _read("process.html")
     assert 'id="wb-gemma-paths-hint"' in html
     assert "Where Gemma 4 runs on this page" in html
-    assert "Explicit edge pass" in html
+    assert "Re-run Gemma 4 edge pass" in html
     assert "Graph chat" in html
 
 

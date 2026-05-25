@@ -3,6 +3,21 @@
 Five paths, ranked from "I just want to try it" to "I'm running this
 in production." Pick one.
 
+## Portable onboarding by role
+
+DueCare is packaged as repeatable local-node processes. Start with the
+smallest path that matches the user, keep raw case material local, and
+only export reviewed artifacts.
+
+| Role | Start | Verification |
+|---|---|---|
+| Kaggle judge | Run `kaggle/01-duecare-exploration-workbench`, open Getting Started, then Bulk File Review. | `python scripts/validate_main_kaggle_kernels.py` and `python scripts/validate_public_surface.py` before publishing. |
+| NGO & regulator | Use Bulk File Review, Knowledge Extraction, Templates, and Anonymization & Sharing on a local case bundle. | Confirm Process review, knowledge promotion, redaction, and typed `SUBMIT` gates. |
+| Individual worker / mobile | Use the worker self-help path or mobile app for private answers and intake prep. | Keep volatile law/contact facts in versioned knowledge objects. |
+| Researcher | Import reviewed packs, use Search Safety, and export aggregate signals. | Preserve source URLs, hashes, review status, and dataset versions. |
+| Developer / integration partner | Install `duecare-llm-chat`, run the app, and inspect `/api/portability`. | Run pytest collection plus the focused tests for changed routes or pages. |
+| Benchmark user | Use optional `kaggle/03-universal-llm-benchmark` or `kaggle/04-kaggle-community-benchmark`. | Record model, harness profile, dataset version, grader version, and git SHA. |
+
 ## Path 1: One-line install (fastest, ~60 seconds)
 
 Linux / macOS / WSL:

@@ -78,6 +78,9 @@
       this kernel you can chat with Gemma 4, compare harness configs,
       process case bundles, draft new knowledge, search the web through
       a sanitization layer, and sync vetted knowledge from the public hub.
+      The portable pattern is a network of local nodes: each deployment
+      keeps raw material private, then shares only reviewed anonymized
+      fact objects, graph edges, and aggregate signals.
     </p>
 
     <div class="wb-toc">
@@ -85,6 +88,8 @@
       <ol>
         <li><a href="#quick-start">Quick start</a></li>
         <li><a href="#competition-runbook">Competition runbook</a></li>
+        <li><a href="#portable-start-paths">Portable start paths</a></li>
+        <li><a href="#local-node-network">Local node network</a></li>
         <li><a href="#deployment-modes">Deployment modes</a></li>
         <li><a href="#architecture">Architecture &amp; data flow</a></li>
         <li><a href="/static/ecosystem.html">Ecosystem map</a></li>
@@ -132,8 +137,9 @@
         <div class="wb-flow-step">
           <h4>Step 5</h4><h5>Process a sample</h5>
           <p>Go to <a href="/static/process.html">Bulk File Review</a>, click
-            Use sample. See GREP rule firings, entity extraction,
-            document attributes, and graph edges on a PH to HK case bundle.</p>
+            Use primary media-rich sample. See GREP rule firings, entity
+            extraction, document attributes, hierarchy-level nodes, and graph
+            edges on a PH to HK case bundle.</p>
         </div>
         <div class="wb-flow-step">
           <h4>Step 6</h4><h5>Check Status</h5>
@@ -145,7 +151,8 @@
           <h4>Step 7</h4><h5>Show the ecosystem</h5>
           <p>Open <a href="/static/ecosystem.html">Ecosystem Map</a> to explain
             how runtime harnesses, evaluation, synthetic data, fine-tuning,
-            and deployment targets fit together.</p>
+            deployment targets, and local-node anonymized intelligence sharing
+            fit together.</p>
         </div>
       </div>
     </div>
@@ -153,17 +160,18 @@
     <div class="wb-card" id="competition-runbook">
       <h2>Competition runbook</h2>
       <p>
-        The three active kernels should stay distinct. Kernel 01 is the
-        exploration workbench and validation surface. Kernel 02 is the
-        focused live demo with one loaded Gemma 4 model. A-00 is the
-        quantitative proof path for benchmark, training, judging, and reports.
+        Keep the active judging path narrow. Kernel 01 is the exploration
+        workbench and validation surface. Kernel 02 is the focused live demo
+        with one loaded Gemma 4 model. Kernels 03 and 04 are optional proof
+        surfaces for benchmark work; archived A-series notebooks are
+        provenance, not the main run path.
       </p>
       <div class="wb-grid-3">
         <div class="wb-flow-step">
           <h4>01</h4><h5>Exploration Workbench</h5>
           <p>Test every harness, create synthetic case artifacts, build
-            knowledge packs, run grading, and export evidence bundles for
-            appendix notebooks.</p>
+            knowledge packs, run grading, review hierarchical graph evidence,
+            and export evidence bundles.</p>
         </div>
         <div class="wb-flow-step">
           <h4>02</h4><h5>Live Demo</h5>
@@ -172,20 +180,66 @@
             Search Safety, and grading.</p>
         </div>
         <div class="wb-flow-step">
-          <h4>03</h4><h5>Video Pitch</h5>
-          <p>Use deterministic scenes to film the value proposition without
-            waiting on inference. The visible names and harness sequence
-            should mirror the live demo.</p>
+          <h4>03</h4><h5>Universal LLM Benchmark</h5>
+          <p>Optional external API benchmarking with DueCare prompts, harness
+            profiles, and judge rubrics. Use synthetic or anonymized rows.</p>
+        </div>
+        <div class="wb-flow-step">
+          <h4>04</h4><h5>Kaggle Community Benchmark</h5>
+          <p>Optional community benchmark tasks that can use Kaggle model
+            proxy quota. Do not make raw case files benchmark inputs.</p>
         </div>
       </div>
       <p>
         Kaggle sessions can realistically keep only one large model resident.
-        Appendix notebooks should pass artifacts between runs: synthetic data
-        JSONL, knowledge-pack ZIPs, grading reports, graph exports, adapter
-        metadata, and model-comparison tables. That supports base, harnessed,
-        fine-tuned, and fine-tuned plus harnessed comparisons without loading
-        multiple large models in one session.
+        Pass artifacts between runs instead of expanding the active root:
+        synthetic data JSONL, knowledge-pack ZIPs, grading reports, graph
+        exports, adapter metadata, and model-comparison tables.
       </p>
+    </div>
+
+    <div class="wb-card" id="portable-start-paths">
+      <h2>Portable start paths</h2>
+      <p>
+        DueCare should be understandable as a set of portable processes, not
+        only a single notebook. Each role can start from the same local
+        workbench and leave with reviewable artifacts that fit its operating
+        environment.
+      </p>
+      <table class="wb-table">
+        <thead><tr><th>Role</th><th>Start Here</th><th>Portable Output</th></tr></thead>
+        <tbody>
+          <tr><td><b>Kaggle judge</b></td><td>Run Kernel 01, open this page, then Bulk File Review.</td><td>Replay JSON, graph export, comparison scores, UI audit.</td></tr>
+          <tr><td><b>NGO &amp; regulator</b></td><td>Process a local case bundle, review evidence, draft templates, anonymize.</td><td>Reviewed graph, referral draft, knowledge_files.zip, redacted_submission.json.</td></tr>
+          <tr><td><b>Individual worker / mobile</b></td><td>Ask local questions and prepare private notes or intake materials.</td><td>Plain-language answer, saved note, NGO intake draft.</td></tr>
+          <tr><td><b>Researcher</b></td><td>Import reviewed packs and run public-source search through Search Safety.</td><td>Aggregate signal table, public-source proposal, benchmark row.</td></tr>
+          <tr><td><b>Developer / integration partner</b></td><td>Install the package and inspect <code>/api/portability</code>.</td><td>Route inventory, type catalog, sample manifest, reusable harness contract.</td></tr>
+          <tr><td><b>Benchmark user</b></td><td>Use Kernel 03 or 04 after the active demo path is stable.</td><td>Prompt set, judge rubric, comparison table, reproducibility metadata.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="wb-card" id="local-node-network">
+      <h2>Local node network</h2>
+      <p>
+        The ecosystem gets stronger when many deployments act as local
+        intelligence nodes. A node can analyze folders, documents, pages,
+        paragraph chunks, tables, media, people, cases, and cross-case rollups
+        locally. Only after human review should it create anonymized fact
+        objects, generalized graph edges, risk-signal counts, or benchmark
+        rows for shared learning.
+      </p>
+      <table class="wb-table">
+        <thead><tr><th>Local Inputs</th><th>Review Gate</th><th>Shareable Intelligence</th><th>Never Share</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Case ZIPs, PDFs, images, folders, pages, paragraph chunks, tables, and notes.</td>
+            <td>Process review, knowledge-object promotion, regex redaction, optional residual-PII review, typed <code>SUBMIT</code>.</td>
+            <td>Anonymized fact objects, generalized evidence edges, corridor signals, pack updates, benchmark rows.</td>
+            <td>Raw PII, worker contact details, unredacted documents, private notes, unreviewed model drafts.</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <div class="wb-card" id="deployment-modes">

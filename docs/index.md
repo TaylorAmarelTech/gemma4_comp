@@ -107,6 +107,17 @@ happens. Or after, to recover the money.
     Read the [install guide](install.md), [embedding guide](embedding_guide.md),
     or [chief-architect view](scenarios/chief-architect.md).
 
+## Portable onboarding paths
+
+| Path | Start | What Leaves The Local Node |
+|---|---|---|
+| **Kaggle judge** | Run Kernel 01, then open Getting Started, Bulk File Review, and the Ecosystem Map. | Replay JSON, graph export, comparison scores, UI audit. |
+| **NGO & regulator** | Process a local case bundle, review evidence, draft templates, and anonymize. | Reviewed graph, referral draft, `knowledge_files.zip`, `redacted_submission.json`. |
+| **Individual worker / mobile** | Ask local questions, save private notes, and prepare intake material. | Worker-approved note or intake draft. |
+| **Researcher** | Import reviewed packs and run public-source search through Search Safety. | Aggregate signal table, public-source proposal, benchmark row. |
+| **Developer / integration partner** | Install `duecare-llm-chat` and inspect `/api/portability`. | Route inventory, type catalog, sample manifest, reusable harness contract. |
+| **Benchmark user** | Use optional Kernel 03 or 04 after the active demo path is stable. | Synthetic or anonymized prompt rows, judge rubric, comparison table, reproducibility metadata. |
+
 ## What ships in the box
 
 <div class="grid cards" markdown>
