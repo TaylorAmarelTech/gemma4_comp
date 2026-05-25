@@ -80,6 +80,137 @@
     let modelActiveVariant = '';
     let modelUserSelectedVariant = '';
 
+    // Shared word-level diff renderer used by polish panels on Knowledge
+    // Extraction and Search. It only works with DOM nodes and textContent;
+    // callers pass already-stringified before/after values.
+    function dcDiffFormatValue(value) {
+        if (value === undefined || value === null || value === '') return '<empty>';
+        if (typeof value === 'string') return value;
+        try { return JSON.stringify(value); }
+        catch (_) { return String(value); }
+    }
+
+    function dcDiffTokens(value) {
+        const text = String(value == null ? '' : value);
+        const tokens = text.match(/\S+\s*/g);
+        return tokens && tokens.length ? tokens : (text ? [text] : []);
+    }
+
+    function dcDiffPushSegment(segments, op, text) {
+        if (!text) return;
+        const last = segments[segments.length - 1];
+        if (last && last.op === op) last.text += text;
+        else segments.push({op: op, text: text});
+    }
+
+    function wordDiff(before, after) {
+        const a = dcDiffTokens(before);
+        const b = dcDiffTokens(after);
+        const rows = a.length + 1;
+        const cols = b.length + 1;
+        const dp = Array.from({length: rows}, function () {
+            return Array(cols).fill(0);
+        });
+        for (let i = a.length - 1; i >= 0; i -= 1) {
+            for (let j = b.length - 1; j >= 0; j -= 1) {
+                dp[i][j] = a[i] === b[j]
+                    ? dp[i + 1][j + 1] + 1
+                    : Math.max(dp[i + 1][j], dp[i][j + 1]);
+            }
+        }
+        const segments = [];
+        let i = 0;
+        let j = 0;
+        while (i < a.length && j < b.length) {
+            if (a[i] === b[j]) {
+                dcDiffPushSegment(segments, 'eq', a[i]);
+                i += 1;
+                j += 1;
+            } else if (dp[i + 1][j] >= dp[i][j + 1]) {
+                dcDiffPushSegment(segments, 'del', a[i]);
+                i += 1;
+            } else {
+                dcDiffPushSegment(segments, 'ins', b[j]);
+                j += 1;
+            }
+        }
+        while (i < a.length) {
+            dcDiffPushSegment(segments, 'del', a[i]);
+            i += 1;
+        }
+        while (j < b.length) {
+            dcDiffPushSegment(segments, 'ins', b[j]);
+            j += 1;
+        }
+        return segments;
+    }
+
+    function dcDiffAppendInline(parent, before, after) {
+        wordDiff(before, after).forEach(function (seg) {
+            if (seg.op === 'eq') {
+                parent.appendChild(document.createTextNode(seg.text));
+            } else if (seg.op === 'del') {
+                const d = document.createElement('del');
+                d.style.cssText = 'color: oklch(0.55 0.18 25); text-decoration: line-through;';
+                d.textContent = seg.text;
+                parent.appendChild(d);
+            } else {
+                const ins = document.createElement('ins');
+                ins.style.cssText = 'color: oklch(0.62 0.10 155); text-decoration: underline;';
+                ins.textContent = seg.text;
+                parent.appendChild(ins);
+            }
+        });
+    }
+
+    function dcDiffCell(text, extraStyle) {
+        const td = document.createElement('td');
+        td.style.cssText = 'padding:4px 6px; vertical-align: top;' + (extraStyle || '');
+        td.textContent = text;
+        return td;
+    }
+
+    function dcDiffAppendFieldRows(tbody, diff) {
+        const changed = Array.isArray(diff) ? diff.filter(function (d) {
+            return d && d.changed;
+        }) : [];
+        if (!changed.length) {
+            const tr = document.createElement('tr');
+            const td = dcDiffCell('No field-level changes.', ' color:#8A8E97;');
+            td.colSpan = 3;
+            tr.appendChild(td);
+            tbody.appendChild(tr);
+            return;
+        }
+        changed.slice(0, 20).forEach(function (d) {
+            const before = dcDiffFormatValue(d.before);
+            const after = dcDiffFormatValue(d.after);
+            const tr = document.createElement('tr');
+            tr.appendChild(dcDiffCell(
+                String(d.key || '?'),
+                " font-family: 'JetBrains Mono', monospace;",
+            ));
+            if (before.length <= 240 && after.length <= 240) {
+                const cell = document.createElement('td');
+                cell.colSpan = 2;
+                cell.style.cssText = 'padding:4px 6px; vertical-align: top;';
+                dcDiffAppendInline(cell, before, after);
+                tr.appendChild(cell);
+            } else {
+                tr.appendChild(dcDiffCell(before, ' color: #8A8E97;'));
+                tr.appendChild(dcDiffCell(after, ' color: oklch(0.32 0.07 195);'));
+            }
+            tbody.appendChild(tr);
+        });
+    }
+
+    window.dcDiff = window.dcDiff || {
+        wordDiff: wordDiff,
+        appendInline: dcDiffAppendInline,
+        appendFieldRows: dcDiffAppendFieldRows,
+        formatValue: dcDiffFormatValue,
+    };
+
     // ---------------------------------------------------------------------
     // Operator token (gates the destructive ``force: true`` paths on the
     // kernel). The token is printed at kernel startup; callers store it
