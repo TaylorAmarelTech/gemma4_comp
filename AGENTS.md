@@ -57,6 +57,12 @@ constraints; closest file wins.
 - Bulk File Review, Knowledge Extraction, Search, and Anonymization & Sharing
   should expose visible progress, activity logs, replay/export artifacts, and a
   plain trust boundary.
+- Bulk File Review deterministic extraction runs first. When inline Gemma is
+  enabled, the case brief is only bundle-level synthesis; the separate
+  `hierarchical_gemma_graph` pass is the one that creates reviewable
+  hierarchy-level model nodes and edges for selected bundle/root, folder,
+  document, page, paragraph/chunk, table-row, media, person/case, and
+  cross-case rollup items. Keep those provenance fields visible.
 
 ## Validation Commands
 

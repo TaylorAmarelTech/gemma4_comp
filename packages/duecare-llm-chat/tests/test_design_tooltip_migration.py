@@ -1304,7 +1304,7 @@ def test_process_max_calls_default_is_five() -> None:
 
 
 def test_process_has_where_gemma_runs_hint() -> None:
-    """The advanced settings section explains the three Gemma 4 paths so
+    """The advanced settings section explains the Gemma 4 paths so
     the reviewer can pick the right button. This was previously implicit."""
     html = _read("process.html")
     assert 'id="wb-gemma-paths-hint"' in html

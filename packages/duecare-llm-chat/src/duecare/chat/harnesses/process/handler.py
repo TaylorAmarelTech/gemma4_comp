@@ -33,9 +33,12 @@ from .prompts import (
     GRAPH_CHAT_SYSTEM_PROMPT,
     GRAPH_EDGE_EXTRACTION_SYSTEM_PROMPT,
     GRAPH_EDGE_PROMPT_TEMPLATES,
+    HIERARCHICAL_GRAPH_LEVELS,
+    HIERARCHICAL_ITEM_GRAPH_SYSTEM_PROMPT,
     PAGE_ITEM_PROMPT_TREE,
     build_context_block,
     build_graph_edge_extraction_prompt,
+    build_hierarchical_item_graph_prompt,
 )
 
 
@@ -58,9 +61,9 @@ _PROCESS_REVIEW_MODES: dict[str, dict[str, Any]] = {
         "description": (
             "Upload, parse, GREP, entity extraction, folder edges, journey "
             "mapping, typed deterministic edges, and media-asset enumeration. "
-            "None of the three Gemma 4 inline passes fire — no text case "
-            "brief, no typed-edge + RAG synthesis pass, no contextual media "
-            "review. Use when you want the fastest possible intake or when "
+            "None of the Gemma 4 inline passes fire: no text case brief, no "
+            "typed-edge + RAG synthesis pass, no hierarchical item graph pass, "
+            "and no contextual media review. Use when you want the fastest possible intake or when "
             "downstream pages (e.g. knowledge.html) will call Gemma later "
             "as a separate job."
         ),
@@ -77,7 +80,8 @@ _PROCESS_REVIEW_MODES: dict[str, dict[str, Any]] = {
             "Fast first pass for very large uploads. Deterministic "
             "extraction runs everywhere. Up to 20 Gemma 4 calls are "
             "available across the case-brief pass, the typed-edge "
-            "synthesis pass, and the contextual media review (capped here "
+            "synthesis pass, the hierarchical item graph pass, and the "
+            "contextual media review (capped here "
             "so a 500-row bundle still finishes in under 5 minutes on "
             "Kaggle T4). The browser demo path caps to 0 calls by default "
             "for the fastest possible recording; raise the form value to "
@@ -94,11 +98,13 @@ _PROCESS_REVIEW_MODES: dict[str, dict[str, Any]] = {
         "routing": "classify_all_items_gemma_high_signal_and_media",
         "description": (
             "Recommended default. Deterministic extraction runs broadly, "
-            "plus three Gemma 4 inline passes during the upload job: "
+            "plus four Gemma 4 inline passes during the upload job: "
             "(1) text case brief sending the bundle summary to Gemma 4; "
             "(2) typed-edge + RAG synthesis sending the seed graph to "
             "Gemma 4 to extract additional typed edges + RAG candidates; "
-            "(3) contextual media review sending each queued image / scan "
+            "(3) hierarchical item graph extraction over bounded bundle, "
+            "folder, document, page, chunk, table, media, case, and rollup "
+            "items; (4) contextual media review sending each queued image / scan "
             "/ PDF / binary-Office asset to Gemma 4 with filename + folder "
             "+ linked-case context + prepared review questions. The server "
             "ceiling is 75 Gemma calls per upload; the browser demo path "
@@ -117,9 +123,10 @@ _PROCESS_REVIEW_MODES: dict[str, dict[str, Any]] = {
         "routing": "classify_and_target_every_page_item_with_budget",
         "description": (
             "Deep local review for smaller bundles or final case prep. "
-            "Deterministic extraction runs broadly, plus the three Gemma 4 "
-            "inline passes (case brief + typed-edge synthesis + contextual "
-            "media review) with up to 2 calls per classified page item. "
+            "Deterministic extraction runs broadly, plus the Gemma 4 inline "
+            "passes (case brief + typed-edge synthesis + hierarchical item "
+            "graph extraction + contextual media review) with up to 2 calls "
+            "per classified page item. "
             "The server ceiling is 240 Gemma calls; the browser demo path "
             "caps to 60 so a representative session still completes within "
             "30-90 minutes on Kaggle T4 depending on which Gemma variant "
@@ -147,6 +154,11 @@ _MODEL_CAPABILITY_NOTES: list[dict[str, Any]] = [
         "capability": "text_edge_pass",
         "status": "works_with_small_text_models",
         "detail": "Smaller local Gemma text models can propose text-grounded typed edges and RAG candidates, but use conservative budgets and expect more reviewer validation on long or messy bundles.",
+    },
+    {
+        "capability": "hierarchical_item_graph_pass",
+        "status": "budgeted_inline_when_enabled",
+        "detail": "Local Gemma 4 can create reviewable nodes and edges for selected bundle, folder, document, page, chunk, table-row, media, person/case, and cross-case rollup items after deterministic extraction has run.",
     },
     {
         "capability": "multimodal_page_review",
@@ -1772,6 +1784,7 @@ def _build_intelligence(
             "edge_strictness": process_settings.get("edge_strictness", "balanced"),
             "knowledge_candidates_enabled": bool(process_settings.get("generate_knowledge_candidates", True)),
             "include_imported_knowledge": bool(process_settings.get("include_imported_knowledge", True)),
+            "hierarchical_graph_levels": HIERARCHICAL_GRAPH_LEVELS,
         },
         "model_capability_notes": _MODEL_CAPABILITY_NOTES,
         "edge_quality_dimensions": EDGE_QUALITY_DIMENSIONS,
@@ -1802,6 +1815,7 @@ def _build_intelligence(
                 "entity_regex",
                 "journey_stage_mapping",
                 "typed_edge_contract",
+                "hierarchical_work_item_planning",
             ],
             "optional_local_engines": [
                 {
@@ -1813,6 +1827,11 @@ def _build_intelligence(
                     "id": "gemma4_text_edge_pass",
                     "examples": ["Gemma 4 local text model over OCR/text chunks"],
                     "status": "implemented_as_post_process_endpoint",
+                },
+                {
+                    "id": "gemma4_hierarchical_item_graph_pass",
+                    "examples": ["Gemma 4 local text model over bounded folder/document/page/chunk/table/media/case items"],
+                    "status": "implemented_budgeted_inline_when_enabled",
                 },
                 {
                     "id": "gemma4_multimodal_edge_pass",
@@ -1858,6 +1877,7 @@ def _build_intelligence(
                 "targeted_prompt_branching",
                 "deterministic_entity_edges",
                 "gemma4_text_edge_pass",
+                "gemma4_hierarchical_item_graph_pass",
                 "gemma4_multimodal_edge_pass_when_available",
                 "entity_resolution",
                 "edge_merge_and_conflict_check",
@@ -1890,6 +1910,11 @@ def _build_intelligence(
                 "id": "gemma_page_questions",
                 "label": "Gemma 4 page-item prompt tree",
                 "detail": "Each document/page/page-region starts with classification, then routes into targeted prompts for receipts, chats, contracts, cross-document linking, and knowledge-object candidates within the selected local budget.",
+            },
+            {
+                "id": "hierarchical_gemma_graph",
+                "label": "Hierarchical Gemma graph pass",
+                "detail": "After deterministic extraction, a separate bounded Gemma 4 pass can create reviewable nodes and edges for selected bundle/root, folder, document, page, paragraph/chunk, table-row, media, person/case, and cross-case rollup items.",
             },
             {
                 "id": "knowledge_object_context",
@@ -1925,6 +1950,12 @@ def _build_intelligence(
                 "label": "OCR and layout extraction (pixel-level)",
                 "status": "queued_contract",
                 "detail": "Pixel-level OCR (Tesseract / EasyOCR / PaddleOCR / Docling) is not wired in this kernel; queued media assets are currently reviewed by the Gemma 4 contextual pass below using path + folder + linked-case context. Wiring an OCR engine upgrades this to direct image-text extraction.",
+            },
+            {
+                "id": "gemma_hierarchical_graph",
+                "label": "Gemma 4 hierarchical item graph pass",
+                "status": "implemented_budgeted_inline_when_enabled",
+                "detail": "Selected bundle/root, folder, document, page, paragraph/chunk, table-row, media, person/case, and cross-case rollup items are sent to local Gemma 4 within the remaining upload budget. Every proposed node/edge keeps level, source_path, parent_doc, page, chunk_id, row_id, and quote provenance.",
             },
             {
                 "id": "gemma_contextual_media",
@@ -1987,6 +2018,21 @@ def _build_intelligence(
             "detail": "Run /api/process/graph-extract after review to ask local Gemma 4 for additional typed edges and RAG candidates.",
             "prompt_templates": GRAPH_EDGE_PROMPT_TEMPLATES,
             "page_item_prompt_tree": PAGE_ITEM_PROMPT_TREE,
+        },
+        "hierarchical_gemma_graph": {
+            "schema_version": "duecare.process.hierarchical_gemma_graph.v1",
+            "status": "not_run",
+            "detail": "The upload orchestrator fills this with the budgeted hierarchy-item Gemma graph pass or a deterministic fallback contract.",
+            "levels_planned": HIERARCHICAL_GRAPH_LEVELS,
+            "levels_attempted": [],
+            "levels_skipped": [],
+            "n_items_considered": 0,
+            "n_items_processed": 0,
+            "n_model_nodes": 0,
+            "n_model_edges": 0,
+            "n_rollup_edges": 0,
+            "budget": {},
+            "errors": [],
         },
         "graph": graph,
         "journey_points": _balanced_journey_points(journey_points, limit=120),
@@ -3062,6 +3108,749 @@ def _normalize_edges_safe(
     return out
 
 
+def _empty_hierarchical_gemma_graph(
+    *,
+    status: str,
+    process_settings: dict[str, Any],
+    remaining_budget: int,
+    gemma_available: bool,
+    inline_enabled: bool,
+    items: list[dict] | None = None,
+    detail: str = "",
+    errors: list[str] | None = None,
+) -> dict[str, Any]:
+    items = items or []
+    return {
+        "schema_version": "duecare.process.hierarchical_gemma_graph.v1",
+        "status": status,
+        "detail": detail,
+        "local_only": True,
+        "remote_api_calls": False,
+        "levels_planned": HIERARCHICAL_GRAPH_LEVELS,
+        "levels_available": sorted({str(i.get("level")) for i in items if i.get("level")}),
+        "levels_attempted": [],
+        "levels_skipped": [
+            {
+                "level": str(i.get("level") or "unknown"),
+                "item_id": str(i.get("item_id") or ""),
+                "reason": status,
+            }
+            for i in items[:120]
+        ],
+        "items_considered": [
+            {
+                "item_id": i.get("item_id"),
+                "level": i.get("level"),
+                "source_path": i.get("source_path"),
+                "parent_doc": i.get("parent_doc"),
+                "page": i.get("page"),
+                "chunk_id": i.get("chunk_id"),
+                "row_id": i.get("row_id"),
+            }
+            for i in items[:80]
+        ],
+        "n_items_considered": len(items),
+        "n_items_processed": 0,
+        "model_nodes": [],
+        "model_edges": [],
+        "rollup_edges": [],
+        "n_model_nodes": 0,
+        "n_model_edges": 0,
+        "n_rollup_edges": 0,
+        "budget": {
+            "max_gemma_calls": int(process_settings.get("max_gemma_calls") or 0),
+            "remaining_at_start": max(0, int(remaining_budget or 0)),
+            "calls_used": 0,
+            "gemma_calls_per_item": int(process_settings.get("gemma_calls_per_item") or 0),
+            "runtime_budget_minutes": int(process_settings.get("runtime_budget_minutes") or 0),
+            "model_loaded": bool(gemma_available),
+            "inline_enabled": bool(inline_enabled),
+        },
+        "errors": list(errors or []),
+    }
+
+
+def _hierarchy_item_from_row(
+    row: dict[str, Any],
+    *,
+    level: str,
+    summary: str | None = None,
+) -> dict[str, Any]:
+    row_id = str(row.get("row_id") or "")
+    page = row.get("page_index")
+    try:
+        page_out = int(page) if page is not None else None
+    except Exception:
+        page_out = None
+    text = str(row.get("text") or "")
+    source_path = str(row.get("source_path") or row_id)
+    return {
+        "item_id": _edge_id("hierarchy_item", level, source_path, page_out, row.get("chunk_index"), row_id),
+        "level": level,
+        "source_path": source_path,
+        "parent_doc": row.get("parent_doc") or row_id,
+        "page": page_out,
+        "chunk_id": _chunk_id(row),
+        "row_id": row_id,
+        "quote": _fact_excerpt(text, 700),
+        "summary": summary or _fact_excerpt(text, 260),
+        "folders": row.get("folders") or [],
+        "folder_context": row.get("folder_context"),
+        "processing_level": row.get("processing_level"),
+        "media_type": row.get("media_type"),
+        "needs_ocr": bool(row.get("needs_ocr")),
+    }
+
+
+def _build_hierarchical_gemma_items(bundle: dict, rows: list[dict]) -> list[dict]:
+    intelligence = bundle.get("intelligence") or {}
+    summary = bundle.get("summary") or {}
+    plan = intelligence.get("processing_plan") or {}
+    results_by_row = {
+        str(r.get("row_id") or ""): r for r in (bundle.get("results") or []) if isinstance(r, dict)
+    }
+    items: list[dict] = []
+    seen: set[tuple[str, str]] = set()
+
+    def add(item: dict[str, Any]) -> None:
+        key = (str(item.get("level") or ""), str(item.get("item_id") or ""))
+        if not key[0] or not key[1] or key in seen:
+            return
+        seen.add(key)
+        items.append(item)
+
+    top_signals = ", ".join(
+        f"{s.get('signal')} x{s.get('count')}"
+        for s in (intelligence.get("top_risk_signals") or [])[:6]
+    )
+    if summary.get("n_rows_processed") or intelligence.get("n_typed_edges"):
+        add({
+            "item_id": "bundle:uploaded_bundle",
+            "level": "bundle/root",
+            "source_path": str((bundle.get("config") or {}).get("source") or "uploaded_bundle"),
+            "parent_doc": None,
+            "page": None,
+            "chunk_id": None,
+            "row_id": None,
+            "quote": "",
+            "summary": (
+                f"{summary.get('n_rows_processed', 0)} processed rows; "
+                f"{intelligence.get('n_people', 0)} people; "
+                f"{intelligence.get('n_typed_edges', 0)} typed edges; "
+                f"top signals: {top_signals or 'none'}."
+            ),
+        })
+
+    for folder in (intelligence.get("folder_counts") or [])[:12]:
+        label = str(folder.get("folder") or "").strip()
+        if not label:
+            continue
+        add({
+            "item_id": f"folder:{_slug_id(label)}",
+            "level": "folder",
+            "source_path": label,
+            "parent_doc": None,
+            "page": None,
+            "chunk_id": None,
+            "row_id": None,
+            "quote": "",
+            "summary": f"Folder/path context appears in {folder.get('count', 0)} row(s).",
+        })
+
+    for doc in (intelligence.get("parent_documents") or plan.get("parent_documents") or [])[:16]:
+        source_path = str(doc.get("source_path") or doc.get("document_id") or "")
+        if not source_path:
+            continue
+        add({
+            "item_id": f"document:{_edge_id(source_path)}",
+            "level": "document",
+            "source_path": source_path,
+            "parent_doc": doc.get("document_id") or source_path,
+            "page": None,
+            "chunk_id": None,
+            "row_id": None,
+            "quote": "",
+            "summary": (
+                f"Document has {doc.get('chunks', 0)} chunk(s), "
+                f"{doc.get('n_pages', 0)} page(s), types={doc.get('document_types') or {}}."
+            ),
+            "folders": doc.get("folders") or [],
+            "needs_ocr": bool(doc.get("needs_ocr")),
+            "media_type": doc.get("media_type"),
+        })
+
+    page_seen: set[tuple[str, int]] = set()
+    for row in rows:
+        page = row.get("page_index")
+        if page is None:
+            continue
+        try:
+            page_int = int(page)
+        except Exception:
+            continue
+        parent_doc = str(row.get("parent_doc") or row.get("row_id") or "")
+        key = (parent_doc, page_int)
+        if key in page_seen:
+            continue
+        page_seen.add(key)
+        add(_hierarchy_item_from_row(
+            row,
+            level="page",
+            summary=f"Page {page_int} from {parent_doc or row.get('row_id')}.",
+        ))
+        if len(page_seen) >= 16:
+            break
+
+    scored_rows = sorted(
+        rows,
+        key=lambda r: (
+            -len((results_by_row.get(str(r.get("row_id") or "")) or {}).get("grep_hits") or []),
+            bool(r.get("needs_ocr")),
+            str(r.get("row_id") or ""),
+        ),
+    )
+    chunk_count = 0
+    table_count = 0
+    for row in scored_rows:
+        row_id = str(row.get("row_id") or "")
+        source_path = str(row.get("source_path") or row_id).lower()
+        if not row.get("needs_ocr") and chunk_count < 20:
+            add(_hierarchy_item_from_row(row, level="paragraph/chunk"))
+            chunk_count += 1
+        if (
+            table_count < 12
+            and (
+                source_path.endswith(".csv")
+                or ".csv#" in source_path
+                or source_path.endswith(".xlsx")
+                or ".xlsx#" in source_path
+                or "sheet_" in str(row.get("text") or "").lower()
+            )
+        ):
+            add(_hierarchy_item_from_row(row, level="table row"))
+            table_count += 1
+        if chunk_count >= 20 and table_count >= 12:
+            break
+
+    for asset in (plan.get("media_assets") or [])[:20]:
+        source_path = str(asset.get("source_path") or asset.get("row_id") or "")
+        if not source_path:
+            continue
+        add({
+            "item_id": f"media:{_edge_id(source_path, asset.get('media_type'))}",
+            "level": "extracted image/media item",
+            "source_path": source_path,
+            "parent_doc": asset.get("document_id") or source_path,
+            "page": None,
+            "chunk_id": None,
+            "row_id": asset.get("row_id"),
+            "quote": "queued_for_ocr_and_multimodal_extraction",
+            "summary": (
+                f"Queued {asset.get('media_type') or 'media'} asset with "
+                f"{asset.get('bytes') or 0} bytes. Questions: "
+                + "; ".join((asset.get("gemma_questions") or [])[:3])
+            ),
+            "folders": asset.get("folders") or [],
+            "media_type": asset.get("media_type"),
+            "needs_ocr": True,
+        })
+
+    for person in (intelligence.get("people") or [])[:12]:
+        case_id = str(person.get("case_id") or "UNKNOWN")
+        if not case_id or case_id == "UNKNOWN":
+            continue
+        add({
+            "item_id": f"case:{_slug_id(case_id)}",
+            "level": "person/case rollup",
+            "source_path": "",
+            "parent_doc": None,
+            "page": None,
+            "chunk_id": None,
+            "row_id": ",".join((person.get("row_ids") or [])[:6]),
+            "quote": "",
+            "summary": (
+                f"{case_id}: risk={person.get('risk_score', 0)}, "
+                f"documents={person.get('n_documents', 0)}, "
+                f"payments={person.get('n_payments', 0)}, "
+                f"signals={', '.join((person.get('risk_signals') or [])[:6])}."
+            ),
+            "case_id": case_id,
+        })
+
+    if len([p for p in (intelligence.get("people") or []) if p.get("case_id") != "UNKNOWN"]) > 1:
+        add({
+            "item_id": "cross_case:top_patterns",
+            "level": "cross-case rollup",
+            "source_path": "",
+            "parent_doc": None,
+            "page": None,
+            "chunk_id": None,
+            "row_id": None,
+            "quote": "",
+            "summary": (
+                "Cross-case rollup over repeated risk signals and folder/path "
+                f"contexts: {top_signals or 'no repeated top signals yet'}."
+            ),
+        })
+
+    level_rank = {level: idx for idx, level in enumerate(HIERARCHICAL_GRAPH_LEVELS)}
+    items.sort(key=lambda i: (level_rank.get(str(i.get("level")), 99), str(i.get("source_path") or ""), str(i.get("row_id") or "")))
+    return items
+
+
+def _hierarchical_provenance(item: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "level": item.get("level"),
+        "source_path": item.get("source_path") or "",
+        "parent_doc": item.get("parent_doc"),
+        "page": item.get("page"),
+        "chunk_id": item.get("chunk_id") or "",
+        "row_id": item.get("row_id") or "",
+        "quote": str(item.get("quote") or item.get("summary") or "")[:320],
+    }
+
+
+def _normalize_hierarchical_model_node(raw: Any, item: dict[str, Any]) -> dict[str, Any] | None:
+    if not isinstance(raw, dict):
+        return None
+    prov = _hierarchical_provenance(item)
+    label = str(raw.get("label") or raw.get("node_id") or raw.get("node_type") or item.get("level") or "").strip()
+    if not label:
+        return None
+    node_type = str(raw.get("node_type") or raw.get("type") or _slug_id(str(item.get("level") or "item"))).strip()
+    node_id = str(raw.get("node_id") or _node_id(node_type, label)).strip()
+    try:
+        confidence = round(max(0.0, min(1.0, float(raw.get("confidence") or 0.55))), 2)
+    except Exception:
+        confidence = 0.55
+    return {
+        "schema_version": "duecare.process.hierarchical_node.v1",
+        "node_id": node_id,
+        "node_type": node_type,
+        "label": label[:180],
+        **prov,
+        "confidence": confidence,
+        "review_status": "needs_review",
+        "local_only": True,
+        "extractors": list(dict.fromkeys(
+            [str(x) for x in (raw.get("extractors") or []) if str(x).strip()]
+            + ["gemma4_hierarchical_item_pass"]
+        )),
+    }
+
+
+def _normalize_hierarchical_model_edge(
+    raw: Any,
+    item: dict[str, Any],
+    *,
+    fallback_case_id: str,
+) -> dict[str, Any] | None:
+    normalized = _normalize_model_edge(raw, fallback_case_id=fallback_case_id)
+    if not normalized:
+        return None
+    prov = _hierarchical_provenance(item)
+    evidence = normalized.get("evidence") if isinstance(normalized.get("evidence"), dict) else {}
+    edge = {
+        **normalized,
+        "schema_version": "duecare.process.hierarchical_edge.v1",
+        **prov,
+        "row_id": str(raw.get("row_id") or evidence.get("row_id") or normalized.get("row_id") or prov.get("row_id") or ""),
+        "case_id": str(raw.get("case_id") or item.get("case_id") or normalized.get("case_id") or fallback_case_id),
+        "source_item_id": item.get("item_id"),
+        "evidence": {
+            "file": evidence.get("file") or prov.get("source_path") or prov.get("row_id") or "",
+            "source_path": prov.get("source_path") or evidence.get("source_path") or "",
+            "parent_doc": prov.get("parent_doc") or evidence.get("parent_doc"),
+            "page": evidence.get("page") if evidence.get("page") is not None else prov.get("page"),
+            "chunk_id": evidence.get("chunk_id") or prov.get("chunk_id") or "",
+            "row_id": raw.get("row_id") or evidence.get("row_id") or normalized.get("row_id") or prov.get("row_id") or "",
+            "quote": str(raw.get("quote") or evidence.get("quote") or prov.get("quote") or "")[:320],
+        },
+        "extractors": list(dict.fromkeys(
+            [str(x) for x in (normalized.get("extractors") or []) if str(x).strip()]
+            + ["gemma4_hierarchical_item_pass"]
+        )),
+        "review_status": "needs_review",
+        "local_only": True,
+    }
+    edge["edge_id"] = _edge_id(
+        "hierarchical",
+        edge.get("edge_type"),
+        edge.get("source_node"),
+        edge.get("target_node"),
+        edge.get("source_item_id"),
+        edge["evidence"].get("quote"),
+    )
+    return edge
+
+
+def _dedup_hierarchical_graph(
+    nodes: list[dict[str, Any]],
+    edges: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    node_seen: set[str] = set()
+    node_out: list[dict[str, Any]] = []
+    for node in nodes:
+        key = str(node.get("node_id") or "")
+        if not key or key in node_seen:
+            continue
+        node_seen.add(key)
+        node_out.append(node)
+    edge_seen: set[str] = set()
+    edge_out: list[dict[str, Any]] = []
+    for edge in edges:
+        key = str(edge.get("edge_id") or "")
+        if not key:
+            key = "|".join(str(edge.get(k) or "") for k in ("edge_type", "source_node", "target_node", "source_item_id"))
+        if key in edge_seen:
+            continue
+        edge_seen.add(key)
+        edge_out.append(edge)
+    return node_out, edge_out
+
+
+def _nodes_from_hierarchical_edges(edges: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    nodes: list[dict[str, Any]] = []
+    for edge in edges:
+        for role in ("source_node", "target_node"):
+            node_id = str(edge.get(role) or "").strip()
+            if not node_id:
+                continue
+            nodes.append({
+                "schema_version": "duecare.process.hierarchical_node.v1",
+                "node_id": node_id,
+                "node_type": node_id.split(":", 1)[0] if ":" in node_id else "model_entity",
+                "label": node_id,
+                "level": edge.get("level"),
+                "source_path": edge.get("source_path") or "",
+                "parent_doc": edge.get("parent_doc"),
+                "page": edge.get("page"),
+                "chunk_id": edge.get("chunk_id") or "",
+                "row_id": edge.get("row_id") or "",
+                "quote": edge.get("quote") or ((edge.get("evidence") or {}).get("quote") if isinstance(edge.get("evidence"), dict) else ""),
+                "confidence": edge.get("confidence", 0.55),
+                "review_status": "needs_review",
+                "local_only": True,
+                "extractors": ["gemma4_hierarchical_item_pass"],
+            })
+    return nodes
+
+
+def _build_hierarchical_rollup_edges(model_edges: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rollups: list[dict[str, Any]] = []
+    by_case: dict[str, list[dict[str, Any]]] = {}
+    by_type: dict[str, list[dict[str, Any]]] = {}
+    for edge in model_edges:
+        case_id = str(edge.get("case_id") or "UNKNOWN")
+        if case_id and case_id != "UNKNOWN":
+            by_case.setdefault(case_id, []).append(edge)
+        edge_type = str(edge.get("edge_type") or "")
+        if edge_type:
+            by_type.setdefault(edge_type, []).append(edge)
+    for case_id, edges in sorted(by_case.items()):
+        edge_ids = [str(e.get("edge_id") or "") for e in edges if e.get("edge_id")]
+        rollups.append({
+            "schema_version": "duecare.process.hierarchical_edge.v1",
+            "edge_id": _edge_id("hierarchical_case_rollup", case_id, ",".join(edge_ids)),
+            "edge_type": "hierarchical_case_model_evidence_rollup",
+            "source_node": f"case:{case_id}",
+            "target_node": "hierarchy_level:person_case_rollup",
+            "case_id": case_id,
+            "level": "person/case rollup",
+            "source_path": "",
+            "parent_doc": None,
+            "page": None,
+            "chunk_id": "",
+            "row_id": "",
+            "quote": f"Rollup over {len(edges)} hierarchical Gemma model edge(s).",
+            "evidence": {
+                "quote": f"Rollup over {len(edges)} hierarchical Gemma model edge(s).",
+                "source_edge_ids": edge_ids[:40],
+            },
+            "source_edge_ids": edge_ids[:40],
+            "confidence": 0.6,
+            "review_status": "needs_review",
+            "local_only": True,
+            "extractors": ["deterministic_rollup_from_gemma4_hierarchical_item_pass"],
+        })
+    for edge_type, edges in sorted(by_type.items()):
+        cases = sorted({str(e.get("case_id") or "") for e in edges if str(e.get("case_id") or "") not in {"", "UNKNOWN"}})
+        if len(cases) < 2:
+            continue
+        edge_ids = [str(e.get("edge_id") or "") for e in edges if e.get("edge_id")]
+        rollups.append({
+            "schema_version": "duecare.process.hierarchical_edge.v1",
+            "edge_id": _edge_id("hierarchical_cross_case_rollup", edge_type, ",".join(cases)),
+            "edge_type": "hierarchical_cross_case_pattern_rollup",
+            "source_node": f"pattern:{edge_type}",
+            "target_node": "bundle:uploaded_bundle",
+            "case_id": "MULTI_CASE",
+            "level": "cross-case rollup",
+            "source_path": "",
+            "parent_doc": None,
+            "page": None,
+            "chunk_id": "",
+            "row_id": "",
+            "quote": f"{edge_type} appears across {len(cases)} case(s).",
+            "evidence": {
+                "quote": f"{edge_type} appears across {len(cases)} case(s).",
+                "source_edge_ids": edge_ids[:40],
+            },
+            "source_edge_ids": edge_ids[:40],
+            "confidence": 0.58,
+            "review_status": "needs_review",
+            "local_only": True,
+            "extractors": ["deterministic_rollup_from_gemma4_hierarchical_item_pass"],
+        })
+    return rollups[:80]
+
+
+def _run_hierarchical_gemma_graph_pass(
+    app: Any,
+    bundle: dict,
+    rows: list[dict],
+    *,
+    process_settings: dict[str, Any],
+    remaining_budget: int,
+    inline_enabled: bool,
+    progress: Any | None = None,
+) -> dict[str, Any]:
+    def mark(phase: str, pct: int, detail: str) -> None:
+        if progress:
+            progress(phase=phase, pct=pct, detail=detail)
+
+    items = _build_hierarchical_gemma_items(bundle, rows)
+    gc = getattr(app.state, "gemma_call", None)
+    gemma_available = gc is not None
+    if not items:
+        return _empty_hierarchical_gemma_graph(
+            status="no_items",
+            process_settings=process_settings,
+            remaining_budget=remaining_budget,
+            gemma_available=gemma_available,
+            inline_enabled=inline_enabled,
+            detail="No hierarchy items were available after deterministic parsing.",
+            items=items,
+        )
+    if not gemma_available:
+        return _empty_hierarchical_gemma_graph(
+            status="deterministic_no_model",
+            process_settings=process_settings,
+            remaining_budget=remaining_budget,
+            gemma_available=False,
+            inline_enabled=inline_enabled,
+            detail=(
+                "Deterministic extraction planned hierarchy items, but no local "
+                "Gemma 4 model is loaded for item-level node/edge creation."
+            ),
+            items=items,
+        )
+    if not inline_enabled:
+        return _empty_hierarchical_gemma_graph(
+            status="deferred_inline_disabled",
+            process_settings=process_settings,
+            remaining_budget=remaining_budget,
+            gemma_available=True,
+            inline_enabled=False,
+            detail=(
+                "Hierarchy items were planned, but inline Gemma text passes were "
+                "disabled for this upload."
+            ),
+            items=items,
+        )
+    if int(process_settings.get("gemma_calls_per_item") or 0) <= 0 or remaining_budget <= 0:
+        return _empty_hierarchical_gemma_graph(
+            status="no_budget",
+            process_settings=process_settings,
+            remaining_budget=remaining_budget,
+            gemma_available=True,
+            inline_enabled=True,
+            detail=(
+                "Hierarchy items were planned, but all configured Gemma calls "
+                "were spent before the hierarchical graph pass."
+            ),
+            items=items,
+        )
+
+    limit = min(len(items), max(0, int(remaining_budget)))
+    by_level: dict[str, list[dict[str, Any]]] = {}
+    for item in items:
+        by_level.setdefault(str(item.get("level") or "unknown"), []).append(item)
+    to_process: list[dict[str, Any]] = []
+    selected_ids: set[str] = set()
+    for level in HIERARCHICAL_GRAPH_LEVELS:
+        if len(to_process) >= limit:
+            break
+        candidates = by_level.get(level) or []
+        if candidates:
+            item = candidates[0]
+            item_id = str(item.get("item_id") or "")
+            selected_ids.add(item_id)
+            to_process.append(item)
+    for item in items:
+        if len(to_process) >= limit:
+            break
+        item_id = str(item.get("item_id") or "")
+        if item_id in selected_ids:
+            continue
+        selected_ids.add(item_id)
+        to_process.append(item)
+    skipped = [
+        {
+            "level": str(i.get("level") or "unknown"),
+            "item_id": str(i.get("item_id") or ""),
+            "reason": "budget_exhausted",
+        }
+        for i in items
+        if str(i.get("item_id") or "") not in selected_ids
+    ]
+    skipped = skipped[:120]
+    model_nodes: list[dict[str, Any]] = []
+    model_edges: list[dict[str, Any]] = []
+    errors: list[str] = []
+    attempted: list[str] = []
+    fallback_case_id = (((bundle.get("intelligence") or {}).get("people") or [{}])[0] or {}).get("case_id") or "UNKNOWN"
+    mark(
+        "hierarchy_plan",
+        10,
+        f"Planned {len(items)} hierarchy item(s) across "
+        f"{len({i.get('level') for i in items})} level(s); "
+        f"processing {len(to_process)} within remaining Gemma budget.",
+    )
+
+    for idx, item in enumerate(to_process):
+        level = str(item.get("level") or "unknown")
+        attempted.append(level)
+        pct = 15 + round(((idx + 1) / max(1, len(to_process))) * 75)
+        src = _redact_path_for_display(str(item.get("source_path") or item.get("row_id") or level))
+        mark(
+            f"hierarchy_item_{_slug_id(level)}",
+            pct,
+            f"Hierarchical Gemma graph pass — {level} item "
+            f"{idx + 1}/{len(to_process)} ({src}). Asking for local-only "
+            "nodes and edges with level/source_path/parent_doc/page/"
+            "chunk_id/row_id/quote provenance.",
+        )
+        prompt = build_hierarchical_item_graph_prompt(item, bundle, max_edges=4)
+        messages = [
+            {"role": "system", "content": [{"type": "text", "text": HIERARCHICAL_ITEM_GRAPH_SYSTEM_PROMPT}]},
+            {"role": "user", "content": [{"type": "text", "text": prompt}]},
+        ]
+        try:
+            try:
+                model_out = gc(messages, max_new_tokens=700, temperature=0.2)
+            except TypeError:
+                model_out = gc(messages)
+            text = model_out if isinstance(model_out, str) else (
+                (model_out or {}).get("text") or (model_out or {}).get("response") or ""
+            )
+            text = sanitize_model_output(text)
+            parsed: dict[str, Any] | None = None
+            try:
+                from duecare.chat._model_json import extract_json
+                extracted = extract_json(text)
+                if isinstance(extracted.payload, dict):
+                    parsed = extracted.payload
+            except Exception:
+                parsed = _extract_json_object(text)
+            raw_nodes = (parsed or {}).get("nodes") if isinstance(parsed, dict) else []
+            raw_edges = (parsed or {}).get("edges") if isinstance(parsed, dict) else []
+            if not isinstance(raw_nodes, list):
+                raw_nodes = []
+            if not isinstance(raw_edges, list):
+                raw_edges = []
+            if not raw_edges:
+                raw_edges = _salvage_edge_objects(text)
+            for raw_node in raw_nodes[:8]:
+                node = _normalize_hierarchical_model_node(raw_node, item)
+                if node:
+                    model_nodes.append(node)
+            for raw_edge in raw_edges[:8]:
+                edge = _normalize_hierarchical_model_edge(raw_edge, item, fallback_case_id=fallback_case_id)
+                if edge:
+                    model_edges.append(edge)
+        except Exception as exc:
+            errors.append(f"{level}:{item.get('item_id')}: {type(exc).__name__}: {exc}")
+
+    model_nodes.extend(_nodes_from_hierarchical_edges(model_edges))
+    model_nodes, model_edges = _dedup_hierarchical_graph(model_nodes, model_edges)
+    rollups = _build_hierarchical_rollup_edges(model_edges)
+    levels_attempted = sorted(set(attempted), key=lambda level: HIERARCHICAL_GRAPH_LEVELS.index(level) if level in HIERARCHICAL_GRAPH_LEVELS else 99)
+    if rollups:
+        for level in ("person/case rollup", "cross-case rollup"):
+            if any(edge.get("level") == level for edge in rollups) and level not in levels_attempted:
+                levels_attempted.append(level)
+    if errors and not (model_nodes or model_edges):
+        status = "error"
+    elif errors:
+        status = "partial_with_errors"
+    else:
+        status = "ok"
+    mark(
+        "hierarchy_done",
+        96,
+        f"Hierarchical Gemma graph pass {status}: {len(model_nodes)} node(s), "
+        f"{len(model_edges)} item edge(s), {len(rollups)} rollup edge(s), "
+        f"{len(skipped)} item(s) over budget.",
+    )
+    return {
+        "schema_version": "duecare.process.hierarchical_gemma_graph.v1",
+        "status": status,
+        "detail": (
+            "Separate from the bundle-level case brief: local Gemma 4 ran "
+            "bounded item graph extraction over planned hierarchy levels."
+        ),
+        "local_only": True,
+        "remote_api_calls": False,
+        "levels_planned": HIERARCHICAL_GRAPH_LEVELS,
+        "levels_available": sorted({str(i.get("level")) for i in items if i.get("level")}),
+        "levels_attempted": levels_attempted,
+        "levels_skipped": skipped,
+        "items_considered": [
+            {
+                "item_id": i.get("item_id"),
+                "level": i.get("level"),
+                "source_path": i.get("source_path"),
+                "parent_doc": i.get("parent_doc"),
+                "page": i.get("page"),
+                "chunk_id": i.get("chunk_id"),
+                "row_id": i.get("row_id"),
+            }
+            for i in items[:80]
+        ],
+        "items_processed": [
+            {
+                "item_id": i.get("item_id"),
+                "level": i.get("level"),
+                "source_path": i.get("source_path"),
+                "parent_doc": i.get("parent_doc"),
+                "page": i.get("page"),
+                "chunk_id": i.get("chunk_id"),
+                "row_id": i.get("row_id"),
+            }
+            for i in to_process[:80]
+        ],
+        "n_items_considered": len(items),
+        "n_items_processed": len(to_process),
+        "model_nodes": model_nodes[:160],
+        "model_edges": model_edges[:160],
+        "rollup_edges": rollups[:80],
+        "n_model_nodes": len(model_nodes),
+        "n_model_edges": len(model_edges),
+        "n_rollup_edges": len(rollups),
+        "budget": {
+            "max_gemma_calls": int(process_settings.get("max_gemma_calls") or 0),
+            "remaining_at_start": max(0, int(remaining_budget or 0)),
+            "calls_used": len(to_process),
+            "gemma_calls_per_item": int(process_settings.get("gemma_calls_per_item") or 0),
+            "runtime_budget_minutes": int(process_settings.get("runtime_budget_minutes") or 0),
+            "model_loaded": True,
+            "inline_enabled": True,
+        },
+        "errors": errors[:20],
+    }
+
+
 def _gemma_edge_pass(
     app: Any,
     bundle: dict,
@@ -3808,7 +4597,7 @@ def register_routes(app: Any) -> None:
         if run_gemma_text and gemma_budget > 1:
             edge_limit = max(4, min(32, gemma_budget - 1))
             def _edge_progress(*, phase: str, pct: int, detail: str, **_: Any) -> None:
-                mapped_pct = 84 + round(max(0, min(100, int(pct))) * 0.10)
+                mapped_pct = 84 + round(max(0, min(100, int(pct))) * 0.06)
                 mark(f"gemma_edge_{phase}", mapped_pct, detail)
 
             n_gemma_calls_attempted += 1
@@ -3821,6 +4610,23 @@ def register_routes(app: Any) -> None:
             )
             intelligence["gemma_edge_pass"] = gemma_edge_out
         media_count = ((intelligence.get("processing_plan") or {}).get("n_media_assets", 0))
+
+        def _hierarchy_progress(*, phase: str, pct: int, detail: str, **_: Any) -> None:
+            mapped_pct = 90 + round(max(0, min(100, int(pct))) * 0.04)
+            mark(f"gemma_hierarchy_{phase}", mapped_pct, detail)
+
+        hierarchy_budget = max(0, gemma_budget - n_gemma_calls_attempted) if run_gemma_text else 0
+        hierarchical_graph_out = _run_hierarchical_gemma_graph_pass(
+            app,
+            bundle,
+            capped,
+            process_settings=process_settings,
+            remaining_budget=hierarchy_budget,
+            inline_enabled=inline_gemma_enabled,
+            progress=_hierarchy_progress if run_gemma_text else None,
+        )
+        n_gemma_calls_attempted += int((hierarchical_graph_out.get("budget") or {}).get("calls_used") or 0)
+        intelligence["hierarchical_gemma_graph"] = hierarchical_graph_out
 
         # Contextual media pass — run Gemma 4 over queued media assets
         # within the remaining budget so they no longer all show as
@@ -3874,8 +4680,9 @@ def register_routes(app: Any) -> None:
                 )
 
         if run_gemma_text:
-            mark("model_passes_done", 98, "Local Gemma 4 text + media passes finished; finalizing bundle.")
+            mark("model_passes_done", 98, "Local Gemma 4 text, hierarchy, and media passes finished; finalizing bundle.")
         edge_status = str(gemma_edge_out.get("status") or "not_run")
+        hierarchy_status = str(hierarchical_graph_out.get("status") or "not_run")
         text_status = "complete" if run_gemma_text else "deferred"
         if run_gemma_text and (
             gemma_brief.get("status") in {"model_error_deterministic_fallback"}
@@ -3915,11 +4722,14 @@ def register_routes(app: Any) -> None:
             },
             {
                 "id": "gemma_text",
-                "label": "Gemma 4 text brief / edge pass",
+                "label": "Gemma 4 text brief / edge / hierarchy passes",
                 "status": text_status,
                 "detail": (
                     f"case_brief={gemma_brief.get('status', 'not_run')}; "
                     f"edge_pass={edge_status}; "
+                    f"hierarchical_graph={hierarchy_status}; "
+                    f"hierarchy_items={hierarchical_graph_out.get('n_items_processed', 0)}/"
+                    f"{hierarchical_graph_out.get('n_items_considered', 0)}; "
                     f"model_calls_attempted={n_gemma_calls_attempted}"
                 ),
             },
@@ -3968,7 +4778,10 @@ def register_routes(app: Any) -> None:
         bundle["summary"]["n_typed_edges"] = intelligence.get("n_typed_edges", 0)
         bundle["summary"]["gemma_case_brief_status"] = gemma_brief.get("status")
         bundle["summary"]["gemma_edge_pass_status"] = edge_status
+        bundle["summary"]["hierarchical_gemma_graph_status"] = hierarchy_status
         bundle["summary"]["n_model_proposed_edges"] = len(gemma_edge_out.get("model_edges") or [])
+        bundle["summary"]["n_hierarchical_model_edges"] = int(hierarchical_graph_out.get("n_model_edges") or 0)
+        bundle["summary"]["n_hierarchical_rollup_edges"] = int(hierarchical_graph_out.get("n_rollup_edges") or 0)
         bundle["summary"]["n_gemma_calls_attempted"] = n_gemma_calls_attempted
         bundle["summary"]["gemma_model_loaded"] = gemma_available
         bundle["config"]["gemma_case_brief"] = gemma_brief.get("status") or "deferred"
@@ -3990,6 +4803,8 @@ def register_routes(app: Any) -> None:
                 "n_typed_edges": bundle["summary"].get("n_typed_edges"),
                 "gemma_case_brief_status": bundle["summary"].get("gemma_case_brief_status"),
                 "gemma_edge_pass_status": bundle["summary"].get("gemma_edge_pass_status"),
+                "hierarchical_gemma_graph_status": bundle["summary"].get("hierarchical_gemma_graph_status"),
+                "n_hierarchical_model_edges": bundle["summary"].get("n_hierarchical_model_edges"),
                 "n_gemma_calls_attempted": bundle["summary"].get("n_gemma_calls_attempted"),
             },
             artifacts=[{

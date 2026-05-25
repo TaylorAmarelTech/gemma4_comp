@@ -239,10 +239,10 @@
       transcripts, and document photos. Each row goes through the process
       harness: GREP, entity extraction, document typing, person linking,
       hierarchy construction, and a deterministic case brief. With Standard
-      review (the default), the upload job ALSO runs three Gemma 4 passes
-      inline — a text case-brief pass, a typed-edge + RAG synthesis pass,
-      and a contextual media-review pass over each queued asset — capped
-      by the Max Gemma calls budget. The Re-run Gemma 4 edge pass button in
+      review (the default), the upload job ALSO runs four Gemma 4 passes
+      inline: a text case-brief pass, a typed-edge + RAG synthesis pass,
+      a hierarchical item graph pass, and a contextual media-review pass
+      over queued assets, all capped by the Max Gemma calls budget. The Re-run Gemma 4 edge pass button in
       Step 3 lets you re-trigger the typed-edge synthesis after edits or
       after importing a new local knowledge pack. When a fine-tuned Gemma 4
       adapter trained on reviewed document-classification and graph-edge
@@ -260,7 +260,7 @@
       </p>
       <div class="wb-hero-grid">
         <div class="wb-hero-item"><b>Local only by default</b><span>No cloud API calls are required. Rows, media queue, graph edges, and notes stay in the Kaggle kernel until you explicitly export or share.</span></div>
-        <div class="wb-hero-item"><b>Deterministic plus Gemma</b><span>Parsing, GREP, entity extraction, folder edges, and journey mapping run deterministically. Local Gemma 4 can add typed edge and RAG candidates when loaded.</span></div>
+        <div class="wb-hero-item"><b>Deterministic plus Gemma</b><span>Parsing, GREP, entity extraction, folder edges, and journey mapping run deterministically. Local Gemma 4 can add typed edges, RAG candidates, and hierarchy-level graph nodes when loaded.</span></div>
         <div class="wb-hero-item"><b>Fine-tuned model ready</b><span>A fine-tuned Gemma 4 adapter can be used for document classification, page-item routing, and graph-edge generation while preserving the local review gate.</span></div>
         <div class="wb-hero-item"><b>Reviewer controlled</b><span>Step 3 is a review gate. Confirm extracted intelligence before graph questions or downstream export.</span></div>
         <div class="wb-hero-item"><b>Evidence oriented</b><span>Every answer should point back to row IDs, folders, files, people, payments, dates, or queued media work.</span></div>
@@ -377,11 +377,11 @@
               </button>
               <button class="wb-mode-card active" type="button" data-mode="standard_review" onclick="wbSetReviewMode('standard_review')" role="radio" aria-checked="true">
                 <b>Standard review <span style="display:inline-block; margin-left:6px; padding:1px 7px; border-radius:999px; background:oklch(0.92 0.03 195); color:oklch(0.32 0.07 195); font-size:9.5px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase;">Recommended for demo</span></b>
-                <span>Deterministic extraction plus three Gemma 4 inline passes during the upload job: the text case brief (1 call), the typed-edge + RAG synthesis (1 call), and the contextual media review (up to 8 queued assets, one call each). Total cap: 10 Gemma 4 calls. Finishes in a few minutes on Kaggle T4.</span>
+                <span>Deterministic extraction plus four Gemma 4 inline passes during the upload job: the text case brief (1 call), the typed-edge + RAG synthesis (1 call), selected hierarchy item graph passes, and contextual media review for any remaining queued assets. Total cap: 10 Gemma 4 calls. Finishes in a few minutes on Kaggle T4.</span>
               </button>
               <button class="wb-mode-card" type="button" data-mode="exhaustive_review" onclick="wbSetReviewMode('exhaustive_review')" role="radio" aria-checked="false">
                 <b>Exhaustive review</b>
-                <span>Deterministic extraction plus a larger bounded Gemma 4 upload budget: case brief, typed-edge synthesis, and more contextual media-review items up to 60 total calls. Current code does not yet run a separate Gemma pass for every document, page, paragraph, or table row. Plan for a long-running session on Kaggle T4.</span>
+                <span>Deterministic extraction plus a larger bounded Gemma 4 upload budget: case brief, typed-edge synthesis, selected hierarchy item graph passes across bundle/root, folder, document, page, paragraph/chunk, table-row, media, person/case, and cross-case rollup levels, then contextual media review up to 60 total calls. Plan for a long-running session on Kaggle T4.</span>
               </button>
             </div>
             <div class="wb-muted" id="wb-gemma-paths-hint"
@@ -390,11 +390,12 @@
               <ol style="margin:4px 0 0 18px; padding:0;">
                 <li><b>Upload job — Gemma 4 text case brief</b> &mdash; the upload job sends the bundle summary to Gemma 4 and gets back a 2-paragraph case brief. 1 call.</li>
                 <li><b>Upload job — Gemma 4 typed-edge + RAG synthesis</b> &mdash; the upload job sends the seed graph to Gemma 4 to extract additional typed edges (charged_or_collected_fee, fee_camouflage_evidence, document_control_signal, etc.) and RAG candidates. 1 call.</li>
-                <li><b>Upload job — Gemma 4 contextual media review</b> &mdash; for each queued image / scan / PDF, the upload job sends Gemma 4 the filename, folder, linked case, and prepared review questions; Gemma predicts proposed_edges. Up to (Max Gemma calls &minus; 2) per upload.</li>
+                <li><b>Upload job — Gemma 4 hierarchical item graph pass</b> &mdash; after deterministic extraction, selected bundle/root, folder, document, page, paragraph/chunk, table-row, media, person/case, and cross-case rollup items are sent to Gemma 4 for reviewable nodes and edges with level/source_path/parent_doc/page/chunk_id/row_id/quote provenance. Uses the remaining bounded upload budget.</li>
+                <li><b>Upload job — Gemma 4 contextual media review</b> &mdash; for each queued image / scan / PDF, the upload job sends Gemma 4 the filename, folder, linked case, and prepared review questions; Gemma predicts proposed_edges with low confidence until pixel-level vision is wired. Uses any remaining upload budget.</li>
                 <li><b>Step 3 button — Re-run Gemma 4 edge pass</b> &mdash; optional. Re-runs the edge synthesis on the updated graph after the reviewer adjusts or imports new knowledge.</li>
                 <li><b>Step 4 graph chat</b> &mdash; deterministic graph analyst answers from the cached graph, then a short Gemma 4 synthesis adds a 2-3 sentence conversational read. Route badge above each answer shows which path fired.</li>
               </ol>
-              <div style="margin-top:6px; color:#5B5F68;">Standard review (default) sets Max Gemma calls to 10, runs all three upload-job passes inline, then enables the graph-chat synthesis. Quick triage skips the upload-job passes; Exhaustive review increases the cap.</div>
+              <div style="margin-top:6px; color:#5B5F68;">Standard review (default) sets Max Gemma calls to 10, runs the upload-job passes inline, then enables the graph-chat synthesis. Quick triage skips the upload-job passes; Exhaustive review increases the cap.</div>
             </div>
             <div class="wb-muted" style="margin-top:10px; line-height:1.5;">
               <b>Model fit:</b> Deterministic extraction works without Gemma.
@@ -448,7 +449,7 @@
                 <label><input type="checkbox" class="wb-page-item-type" value="video_frame_or_scene" checked onchange="wbUpdateSettingsSummary()"> Video frames/scenes</label>
               </div>
               <div class="wb-review-checks">
-                <label><input type="checkbox" id="wb-run-inline-gemma" checked onchange="wbUpdateSettingsSummary()"> Run Gemma text brief / edge synthesis / contextual media review inside the upload job. Gemma 4 can take 1-15 minutes per call on Kaggle; the Max Gemma calls cap above keeps the total bounded.</label>
+                <label><input type="checkbox" id="wb-run-inline-gemma" checked onchange="wbUpdateSettingsSummary()"> Run Gemma text brief / edge synthesis / hierarchical graph item passes / contextual media review inside the upload job. Gemma 4 can take 1-15 minutes per call on Kaggle; the Max Gemma calls cap above keeps the total bounded.</label>
                 <label><input type="checkbox" id="wb-generate-knowledge" checked onchange="wbUpdateSettingsSummary()"> Generate reviewable knowledge-object candidates from repeated patterns.</label>
                 <label><input type="checkbox" id="wb-include-knowledge" checked onchange="wbUpdateSettingsSummary()"> Use imported local knowledge files as context for Gemma edge/RAG prompts.</label>
               </div>
@@ -469,7 +470,7 @@
             <span class="wb-step-index">2</span>
             <span>
               <span class="wb-step-title">Process bundle and review trace</span>
-              <span class="wb-step-summary">Watch the upload job run: deterministic parser counts, GREP hits, Gemma 4 case-brief status, Gemma 4 typed-edge pass status, Gemma 4 contextual media review per asset, and any errors. Each Gemma 4 stage carries a teal badge so you can see exactly when the model is being called and why.</span>
+              <span class="wb-step-summary">Watch the upload job run: deterministic parser counts, GREP hits, Gemma 4 case-brief status, typed-edge pass status, hierarchical graph item counts, contextual media review per asset, and any errors. Each Gemma 4 stage carries a teal badge so you can see exactly when the model is being called and why.</span>
             </span>
             <span class="wb-step-state dc-pill is-waiting" id="wb-step-process-state"><span class="dot"></span><span class="dc-pill-label">Waiting</span></span>
           </summary>
@@ -524,10 +525,12 @@
             <div class="wb-card">
               <h2>Advanced processing plan</h2>
               <p class="wb-muted" style="margin-top:0;">
-                Bulk review runs four stacked passes: (1) deterministic
+                Bulk review runs five stacked passes: (1) deterministic
                 inventory + chunking + GREP + entity extraction; (2) Gemma 4
                 text case-brief; (3) Gemma 4 typed-edge + RAG synthesis;
-                (4) Gemma 4 contextual media review per queued asset
+                (4) Gemma 4 hierarchical item graph extraction across
+                bundle/root, folder, document, page, chunk, table, media,
+                person/case, and cross-case levels; (5) Gemma 4 contextual media review per queued asset
                 (filename + folder + linked-case context to predict edges).
                 Pixel-level OCR/vision is intentionally still queued — when
                 the local OCR engine + Gemma 4 multimodal processor are
@@ -1137,6 +1140,12 @@
       },
       {
         pct: 92,
+        stage: 'Gemma 4 — hierarchical graph item pass',
+        detail: 'Sending selected bundle/root, folder, document, page, paragraph/chunk, table-row, media, person/case, and cross-case rollup items to Gemma 4 with strict provenance fields.',
+        gemma: true
+      },
+      {
+        pct: 94,
         stage: 'Gemma 4 — contextual media review',
         detail: 'Iterating queued media assets one at a time; each is sent to Gemma 4 with its filename, folder, linked case, and prepared review questions. Capped by the remaining Max Gemma calls budget.',
         gemma: true
@@ -1163,6 +1172,21 @@
         status: gemmaText.status || 'not_run',
         gemma: true,
         detail: gemmaText.detail || 'Gemma text passes did not run (model unloaded or inline disabled).'
+      });
+      const hierarchy = (intel && intel.hierarchical_gemma_graph) || {};
+      const hStatus = hierarchy.status || 'not_run';
+      const hDetail = (
+        'status=' + hStatus +
+        ' | items=' + (hierarchy.n_items_processed || 0) + '/' + (hierarchy.n_items_considered || 0) +
+        ' | nodes=' + (hierarchy.n_model_nodes || 0) +
+        ' | edges=' + (hierarchy.n_model_edges || 0) +
+        ' | rollups=' + (hierarchy.n_rollup_edges || 0)
+      );
+      stages.push({
+        stage: 'Gemma 4 hierarchical graph item pass — result',
+        status: hStatus,
+        gemma: true,
+        detail: hDetail
       });
       const mediaQueue = findTrace('media_queue');
       const nProc = mediaPass.n_processed || 0;
@@ -1465,7 +1489,7 @@
         perItem: 0,
         inlineGemma: false,
         strictness: 'conservative',
-        detail: 'Deterministic only. No Gemma 4 calls during upload (no case brief, no typed-edge synthesis, no contextual media review). Fastest path. Use the Re-run Gemma 4 edge pass button on Step 3 after review to add model-proposed edges.'
+        detail: 'Deterministic only. No Gemma 4 calls during upload (no case brief, no typed-edge synthesis, no hierarchical graph item pass, no contextual media review). Fastest path. Use the Re-run Gemma 4 edge pass button on Step 3 after review to add model-proposed edges.'
       },
       standard_review: {
         label: 'Standard review',
@@ -1474,7 +1498,7 @@
         perItem: 1,
         inlineGemma: true,
         strictness: 'balanced',
-        detail: 'Recommended for the demo. Runs three Gemma 4 inline passes during the upload job — case brief, typed-edge synthesis, and up to 8 contextual media reviews — for a 10-call total. Deterministic extraction covers the rest. Finishes in a few minutes on Kaggle T4.'
+        detail: 'Recommended for the demo. Runs four Gemma 4 inline passes during the upload job: case brief, typed-edge synthesis, selected hierarchical graph item passes, and contextual media review if budget remains. Total cap: 10 Gemma 4 calls. Deterministic extraction covers the rest. Finishes in a few minutes on Kaggle T4.'
       },
       exhaustive_review: {
         label: 'Exhaustive review',
@@ -1483,7 +1507,7 @@
         perItem: 1,
         inlineGemma: true,
         strictness: 'exploratory',
-        detail: 'Deep local pass for final case prep. Raises the upload budget to 60 Gemma 4 calls for the case brief, typed-edge synthesis, and more contextual media-review items. It does not yet run a separate Gemma pass for every document, page, paragraph, or table row. Plan for a long Kaggle T4 session depending on which Gemma variant is loaded.'
+        detail: 'Deep local pass for final case prep. Raises the upload budget to 60 Gemma 4 calls for the case brief, typed-edge synthesis, hierarchy-level item graph extraction, and contextual media-review items. Plan for a long Kaggle T4 session depending on which Gemma variant is loaded.'
       }
     };
     let wbReviewMode = 'standard_review';
@@ -1911,12 +1935,16 @@
         wbStopProcessProgressLoop();
         wbSetProcessProgress(96, 'Response received', 'Parsing the returned JSON and rendering the intelligence graph.');
         const _gc = Number((wbBundle.summary || {}).n_gemma_calls_attempted || 0);
+        const _hierarchyPass = (wbBundle.intelligence || {}).hierarchical_gemma_graph || {};
         const _mediaPass = (wbBundle.intelligence || {}).gemma_media_pass || {};
         const _mediaProc = Number(_mediaPass.n_processed || 0);
         const _mediaTotal = Number(_mediaPass.n_queued_total || 0);
         const _mediaSummary = _mediaTotal
           ? ' | gemma_media_reviewed=' + _mediaProc + '/' + _mediaTotal
           : '';
+        const _hierarchySummary = ' | hierarchy=' + (_hierarchyPass.status || 'not_run') +
+          ' ' + Number(_hierarchyPass.n_items_processed || 0) + '/' + Number(_hierarchyPass.n_items_considered || 0) +
+          ' items edges=' + Number(_hierarchyPass.n_model_edges || 0);
         wbLog('ok', 'Process job complete',
               'run_id=' + wbBundle.run_id +
               ' | rows_processed=' + wbBundle.summary.n_rows_processed +
@@ -1924,6 +1952,7 @@
               ' | entities=' + wbBundle.summary.n_entities_extracted +
               ' | gemma_calls=' + _gc +
               ' | gemma_edge_status=' + ((wbBundle.summary || {}).gemma_edge_pass_status || 'not_run') +
+              _hierarchySummary +
               _mediaSummary);
         // Bump the top-bar Gemma 4 session tally with each pass that
         // actually ran during the upload job, plus the proposed-edge
@@ -1939,6 +1968,10 @@
             window.dcGemmaStats.bump('edge_pass');
             window.dcGemmaStats.addProposedEdges((edgeOut.model_edges || []).length);
           }
+          if ((_hierarchyPass.budget || {}).calls_used > 0) {
+            window.dcGemmaStats.bump('hierarchy', Number((_hierarchyPass.budget || {}).calls_used || 1));
+            window.dcGemmaStats.addProposedEdges(Number(_hierarchyPass.n_model_edges || 0));
+          }
           if (_mediaProc > 0) {
             window.dcGemmaStats.bump('media', _mediaProc);
             window.dcGemmaStats.addProposedEdges(
@@ -1952,13 +1985,20 @@
         const gemmaCalls = Number(procSummary.n_gemma_calls_attempted || 0);
         const edgeStatus = procSummary.gemma_edge_pass_status || 'not_run';
         const intelForSubsteps = wbBundle.intelligence || {};
+        const hierarchyPass = intelForSubsteps.hierarchical_gemma_graph || {};
         const mediaPass = intelForSubsteps.gemma_media_pass || {};
+        const hierarchyNote = hierarchyPass.n_items_considered
+          ? (' Hierarchical graph pass: ' + (hierarchyPass.status || 'not_run') + ', ' +
+             (hierarchyPass.n_items_processed || 0) + '/' + (hierarchyPass.n_items_considered || 0) +
+             ' items, ' + (hierarchyPass.n_model_edges || 0) + ' model edge(s), ' +
+             (hierarchyPass.n_rollup_edges || 0) + ' rollup edge(s).')
+          : '';
         const mediaNote = mediaPass.n_processed
           ? (' Contextual media review: ' + mediaPass.n_processed + '/' + (mediaPass.n_queued_total || 0)
              + ' assets reviewed by Gemma 4; ' + (mediaPass.n_skipped_over_cap || 0) + ' over cap.')
           : (mediaPass.n_queued_total ? ' Contextual media review did not run (budget=0 or model unloaded).' : '');
         const finalNote = gemmaCalls > 0
-          ? ('Gemma 4 ran ' + gemmaCalls + ' call(s) during processing — edge pass: ' + edgeStatus + '.' + mediaNote)
+          ? ('Gemma 4 ran ' + gemmaCalls + ' call(s) during processing — edge pass: ' + edgeStatus + '.' + hierarchyNote + mediaNote)
           : 'No Gemma model call ran during processing. Load a model and keep Max Gemma calls above zero, then re-upload or run the explicit edge pass after review.';
         wbSetProcessProgress(
           100,
@@ -2464,7 +2504,7 @@
       ).join('');
       wbLastGraphSvg = '<svg id="wb-process-graph-svg" width="100%" height="' + height + '" viewBox="0 0 1000 ' + height + '" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Process intelligence graph">' +
         '<rect x="0" y="0" width="1000" height="' + height + '" fill="#FAF9F4"/>' +
-        '<text x="16" y="24" font-size="12" fill="#5B5F68">Edge sources: plain-text GREP rules; folder-path and file-structure context; deterministic typed-edge schema (located_at, filed_under, journey_stage_observation, etc.); local Gemma 4 typed-edge pass over the seed graph; local Gemma 4 contextual media review per queued asset.</text>' +
+        '<text x="16" y="24" font-size="12" fill="#5B5F68">Edge sources: plain-text GREP rules; folder-path and file-structure context; deterministic typed-edge schema; local Gemma 4 typed-edge pass over the seed graph; local Gemma 4 hierarchical item graph pass; local Gemma 4 contextual media review per queued asset.</text>' +
         edgeSvg + nodeSvg + '</svg>';
       host.innerHTML = '<div style="padding:10px 12px; font-size:11px; border-bottom:1px solid #EFEDE4;">' + legend + '</div>' + wbLastGraphSvg;
       wbGraphSelect(nodes[0].id);
@@ -2814,12 +2854,16 @@
       const edges = intel.typed_edges || [];
       const candidates = intel.rag_candidates || [];
       // Pre-compute an extractor badge per edge so reviewers can tell at
-      // a glance whether the edge came from a deterministic rule, the
-      // Gemma 4 edge pass, the Gemma 4 contextual media pass, or a mix.
+      // a glance whether the edge came from a deterministic rule, a
+      // Gemma 4 text pass, a Gemma 4 hierarchy/media pass, or a mix.
       const edgeSourceBadge = (e) => {
         const exts = Array.isArray(e.extractors) ? e.extractors.map(x => String(x).toLowerCase()) : [];
         const fromGemmaText = exts.some(x => x === 'gemma4_local' || x === 'gemma4');
         const fromGemmaMedia = exts.some(x => x === 'gemma4_contextual_media');
+        const fromGemmaHierarchy = exts.some(x => x === 'gemma4_hierarchical_item_pass');
+        if (fromGemmaHierarchy) {
+          return '<span class="wb-gemma-badge" style="background:oklch(0.91 0.05 250); color:oklch(0.30 0.10 250);">Gemma 4 (hierarchy)</span>';
+        }
         if (fromGemmaMedia) {
           return '<span class="wb-gemma-badge" style="background:oklch(0.92 0.06 195); color:oklch(0.32 0.10 195);">Gemma 4 (media)</span>';
         }
@@ -2844,6 +2888,9 @@
       const gemmaGenerated = edges.filter(e => Array.isArray(e.extractors) &&
         e.extractors.some(x => String(x).toLowerCase().startsWith('gemma4'))).length;
       const fromMediaPass = Number(intel.n_typed_edges_from_media || 0);
+      const hierarchy = intel.hierarchical_gemma_graph || {};
+      const hModelEdges = Array.isArray(hierarchy.model_edges) ? hierarchy.model_edges : [];
+      const hRollups = Array.isArray(hierarchy.rollup_edges) ? hierarchy.rollup_edges : [];
       // audit-allow:innerHTML-safe: all interpolated values are numeric
       // (counts/.length/Number()) and pass through wbEsc; the badge HTML
       // is fully hardcoded with no user input.
@@ -2851,6 +2898,7 @@
         '<div class="wb-intel-grid" style="margin-bottom:10px;">' +
         '<div class="wb-metric"><div class="label">Typed edges (total)</div><div class="value">' + wbEsc(intel.n_typed_edges || edges.length || 0) + '</div></div>' +
         '<div class="wb-metric"><div class="label">Gemma 4 generated</div><div class="value">' + wbEsc(gemmaGenerated) + (fromMediaPass ? '<div class="wb-muted" style="font-size:10px; font-weight:normal;">incl. ' + wbEsc(fromMediaPass) + ' from media review</div>' : '') + '</div></div>' +
+        '<div class="wb-metric"><div class="label">Hierarchy model edges</div><div class="value">' + wbEsc(hierarchy.n_model_edges || hModelEdges.length || 0) + '</div></div>' +
         '<div class="wb-metric"><div class="label">Edge types</div><div class="value">' + wbEsc(counts.length || 0) + '</div></div>' +
         '<div class="wb-metric"><div class="label">RAG candidates</div><div class="value">' + wbEsc(candidates.length || 0) + '</div></div>' +
         '</div>' +
@@ -2913,6 +2961,30 @@
         '<tr><td>' + wbEsc(e.edge_type || 'edge') + '</td><td><code>' + wbEsc(e.source_node || '') + '</code></td>' +
         '<td><code>' + wbEsc(e.target_node || '') + '</code></td><td>' + wbEsc(((e.evidence || {}).quote || '').slice(0, 180)) + '</td></tr>'
       ).join('');
+      const hierarchyStatus = String(hierarchy.status || 'not_run');
+      const hierarchyRows = hModelEdges.slice(0, 12).map(e =>
+        '<tr><td>' + wbEsc(e.level || '') + '</td><td>' + wbEsc(e.edge_type || 'edge') + '</td>' +
+        '<td><code>' + wbEsc(e.source_node || '') + '</code></td><td><code>' + wbEsc(e.target_node || '') + '</code></td>' +
+        '<td><code>' + wbEsc(e.row_id || ((e.evidence || {}).row_id || '')) + '</code></td>' +
+        '<td>' + wbEsc(((e.evidence || {}).quote || e.quote || '').slice(0, 180)) + '</td></tr>'
+      ).join('');
+      const rollupRows = hRollups.slice(0, 8).map(e =>
+        '<tr><td>' + wbEsc(e.level || '') + '</td><td>' + wbEsc(e.edge_type || 'rollup') + '</td>' +
+        '<td><code>' + wbEsc(e.source_node || '') + '</code></td><td><code>' + wbEsc(e.target_node || '') + '</code></td>' +
+        '<td>' + wbEsc((e.source_edge_ids || []).slice(0, 4).join(', ')) + '</td></tr>'
+      ).join('');
+      const hierarchyCard =
+        '<h3 style="font-size:13px; margin:12px 0 6px;">Gemma 4 hierarchical graph item pass</h3>' +
+        '<div class="wb-muted">Status: ' + wbEsc(hierarchyStatus) +
+        ' | items: ' + wbEsc(hierarchy.n_items_processed || 0) + '/' + wbEsc(hierarchy.n_items_considered || 0) +
+        ' | model nodes: ' + wbEsc(hierarchy.n_model_nodes || 0) +
+        ' | model edges: ' + wbEsc(hierarchy.n_model_edges || hModelEdges.length || 0) +
+        ' | rollups: ' + wbEsc(hierarchy.n_rollup_edges || hRollups.length || 0) +
+        ' | calls used: ' + wbEsc((hierarchy.budget || {}).calls_used || 0) + '</div>' +
+        '<div class="wb-muted" style="margin-top:4px;">Levels attempted: ' + wbEsc((hierarchy.levels_attempted || []).join(', ') || 'none') + '</div>' +
+        (hierarchyRows ? '<div style="max-height:220px; overflow:auto; margin-top:8px;"><table class="wb-small-table"><thead><tr><th>level</th><th>edge</th><th>source</th><th>target</th><th>row</th><th>quote</th></tr></thead><tbody>' + hierarchyRows + '</tbody></table></div>' : '') +
+        (rollupRows ? '<div style="max-height:180px; overflow:auto; margin-top:8px;"><table class="wb-small-table"><thead><tr><th>rollup level</th><th>edge</th><th>source</th><th>target</th><th>source edge ids</th></tr></thead><tbody>' + rollupRows + '</tbody></table></div>' : '') +
+        (hierarchy.errors && hierarchy.errors.length ? '<div class="wb-error" style="margin-top:8px;">' + wbEsc(hierarchy.errors.slice(0, 3).join(' | ')) + '</div>' : '');
       passHost.innerHTML =
         '<h3 style="font-size:13px; margin:0 0 6px;">Gemma 4 local edge pass</h3>' +
         '<div class="wb-progress-box" id="wb-edge-progress-box" style="margin:0 0 10px;">' +
@@ -2926,7 +2998,8 @@
         '<div class="wb-muted">Status: ' + wbEsc(passStatus) +
         ' | model proposed edges: ' + wbEsc((pass.model_edges || []).length || 0) +
         ' | local_only: ' + wbEsc(pass.local_only === false ? 'false' : 'true') + '</div>' +
-        (modelRows ? '<div style="max-height:220px; overflow:auto; margin-top:8px;"><table class="wb-small-table"><thead><tr><th>edge</th><th>source</th><th>target</th><th>quote</th></tr></thead><tbody>' + modelRows + '</tbody></table></div>' : '');
+        (modelRows ? '<div style="max-height:220px; overflow:auto; margin-top:8px;"><table class="wb-small-table"><thead><tr><th>edge</th><th>source</th><th>target</th><th>quote</th></tr></thead><tbody>' + modelRows + '</tbody></table></div>' : '') +
+        hierarchyCard;
     }
     function wbSetEdgeProgress(pct, stage, detail, note) {
       const box = document.getElementById('wb-edge-progress-box');
