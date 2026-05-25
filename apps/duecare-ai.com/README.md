@@ -1,8 +1,16 @@
-# Duecare AI public hub
+# DueCare AI public hub
 
 **Public coordination for safer DueCare deployments.**
 
 This is the public website and coordination service for **duecare-ai.com**. It is intentionally lightweight and CPU-only: it does **not** load Gemma 4 directly. Kaggle/local/edge deployments run Gemma 4; this hub coordinates anonymized updates around it.
+
+## Public URLs and responsibilities
+
+| Surface | URL | Responsibility |
+|---|---|---|
+| Main server website / public hub | https://duecare-ai.com/ | Render-hosted FastAPI app from this folder. It serves the public product website, hub APIs, knowledge-pack metadata, anonymized signal intake, and consent-aware submission flows. |
+| GitHub source repo | https://github.com/TaylorAmarelTech/gemma4_comp | Monorepo source of truth for packages, Kaggle kernels, docs, validation scripts, GitHub Actions, and this Render app. |
+| GitHub Pages docs | https://tayloramareltech.github.io/gemma4_comp/ | Static MkDocs site generated from `docs/`. It is for onboarding, install docs, architecture, reproducibility, and judge/reviewer documentation; it is not the API server. |
 
 ## Monorepo source of truth
 
