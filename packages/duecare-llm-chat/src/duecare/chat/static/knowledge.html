@@ -1231,7 +1231,7 @@
             }
             // Tally bump (only if Gemma actually ran)
             if (window.dcGemmaStats && passes > 0) {
-              window.dcGemmaStats.bump('chat'); // reuse 'chat' bucket; could add 'polish'
+              window.dcGemmaStats.bump('polish');
             }
             wbLog('ok', 'Polish complete (' + dt + 'ms)',
                   passes + ' pass(es), ' + diff.length + ' field(s) changed'

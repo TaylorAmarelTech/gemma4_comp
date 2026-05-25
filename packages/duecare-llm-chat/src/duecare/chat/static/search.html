@@ -37,6 +37,17 @@
     .wb-result .url { color: #8A8E97; font-size: 11px; word-break: break-all; }
     .wb-result .snippet { font-size: 12.5px; margin-top: 6px; color: #2A2D34;
                             white-space: pre-wrap; }
+    .wb-verification { display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 8px; padding: 3px 8px; border-radius: 999px;
+      border: 1px solid #DDD8C9; background: #FFF; color: #5B5F68;
+      font-size: 11px; font-weight: 600; }
+    .wb-verification.accepted { border-color: oklch(0.72 0.11 155);
+      background: oklch(0.97 0.03 155); color: oklch(0.35 0.08 155); }
+    .wb-verification.review { border-color: oklch(0.76 0.12 75);
+      background: oklch(0.97 0.04 75); color: oklch(0.38 0.08 75); }
+    .wb-verification.blocked { border-color: oklch(0.68 0.13 30);
+      background: oklch(0.96 0.04 30); color: oklch(0.42 0.10 30); }
+    .wb-verification.pending { border-color: #DAD6C8; background: #F7F6F1; }
     a { color: oklch(0.32 0.07 195); }
     label { font-size: 12.5px; }
     select, input[type=text], input[type=number] { padding: 6px 10px;
@@ -110,9 +121,9 @@
       utility surface, not a Gemma response harness by itself. Uses SearXNG when
       configured (privacy-preserving meta-search), falls back to the
       kernel's wired Tavily/Brave/DDG. Search Safety strips PII
-      before the query reaches any backend. After results arrive,
-      use the result cards to draft knowledge envelopes from each
-      snippet or download the result set as JSON or markdown.
+      before the query reaches any backend. After results arrive, the local
+      post-search verification gate scores source quality, relevance, and
+      deanonymization risk before a result can be drafted into knowledge.
     </p>
 
     <section class="search-hero" aria-label="Search overview">
@@ -232,14 +243,15 @@
         <span class="search-step-index">2</span>
         <span>
           <span class="search-step-title">Review source cards</span>
-          <span class="search-step-summary">Inspect each source card, download the result set, or draft knowledge from useful results without leaving this page.</span>
+          <span class="search-step-summary">Inspect each source card, verify source quality and deanonymization risk, then draft useful results without leaving this page.</span>
         </span>
         <span class="search-step-state dc-pill is-waiting" id="results-card-state"><span class="dot"></span><span class="dc-pill-label">Waiting</span></span>
       </summary>
       <div class="search-step-body">
       <p class="wb-muted" style="margin:0 0 10px;">
-        Use <b>Draft this result</b> on a specific source, or draft from all
-        visible results. Drafts are reviewable before anything is saved.
+        Use <b>Draft this result</b> on a specific verified source, or draft
+        from all accepted/reviewable results. Blocked results stay out of
+        knowledge drafts.
       </p>
       <details style="margin-bottom:10px;">
         <summary style="cursor:pointer; font-size:12px; font-weight:600; color: var(--ink-2);">How result-to-knowledge drafting works (click to expand)</summary>
@@ -336,6 +348,8 @@
     // ============== State ==============
     let _searchLog = null;
     let _searchResults = [];   // raw results from last search
+    let _searchVerification = null;
+    let _searchVerificationByIndex = {};
     let _searchQuery = '';
     let _searchBackend = '';
     let _drafts = [];          // {url, title, envelope}
@@ -400,6 +414,85 @@
         if (/^\/[^/]/.test(raw)) return raw;
         return '#';
       }
+    }
+    function searchVerificationForIndex(idx) {
+      return _searchVerificationByIndex && _searchVerificationByIndex[String(idx)]
+        ? _searchVerificationByIndex[String(idx)]
+        : null;
+    }
+    function searchVerificationStatus(idx) {
+      const row = searchVerificationForIndex(idx);
+      return row ? String(row.status || '') : '';
+    }
+    function searchIsDraftableIndex(idx) {
+      const status = searchVerificationStatus(idx);
+      return status === 'accepted' || status === 'review';
+    }
+    function searchDraftableIndexes() {
+      const out = [];
+      for (let i = 0; i < _searchResults.length; i++) {
+        if (searchIsDraftableIndex(i)) out.push(i);
+      }
+      return out;
+    }
+    function searchRefreshDraftAllButton() {
+      const btn = document.getElementById('draft-btn');
+      if (!btn) return;
+      const draftable = searchDraftableIndexes();
+      btn.disabled = !_searchResults.length || !draftable.length;
+      btn.textContent = draftable.length && draftable.length !== _searchResults.length
+        ? 'Draft verified results (' + draftable.length + ')'
+        : 'Draft from all results';
+    }
+    function searchVerificationLabel(row) {
+      if (!row) return 'Verification pending';
+      const quality = row.source_quality || 'unknown';
+      const relevance = row.relevance_score == null ? '?' : row.relevance_score;
+      if (row.status === 'blocked') return 'Blocked | risk=' + (row.deanonymization_risk || 'unknown');
+      if (row.status === 'review') return 'Review | quality=' + quality + ' relevance=' + relevance;
+      return 'Accepted | quality=' + quality + ' relevance=' + relevance;
+    }
+    function searchIndexVerificationRows(out) {
+      const map = {};
+      const rows = []
+        .concat((out && Array.isArray(out.verified_results)) ? out.verified_results : [])
+        .concat((out && Array.isArray(out.blocked_results)) ? out.blocked_results : []);
+      rows.forEach(row => {
+        if (!row) return;
+        map[String(row.index)] = row;
+      });
+      return map;
+    }
+    async function searchVerifyResults(query, results, signal) {
+      _searchVerification = null;
+      _searchVerificationByIndex = {};
+      if (!results || !results.length) return null;
+      _searchLog && _searchLog.net('POST /api/search/verify-results',
+        'Scoring source quality, relevance, contradictions, and deanonymization risk.');
+      const t0 = performance.now();
+      const resp = await fetch('/api/search/verify-results', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({query: query || '', results: results}),
+        signal: signal || undefined,
+      });
+      const parsed = await searchReadJsonOrText(resp);
+      const out = parsed.json;
+      const dt = Math.round(performance.now() - t0);
+      if (!out) {
+        const preview = (parsed.text || '').replace(/\s+/g, ' ').slice(0, 240);
+        throw new Error('verify-results returned non-JSON: HTTP ' + resp.status + ' ' + preview);
+      }
+      if (!resp.ok) {
+        throw new Error('verify-results HTTP ' + resp.status + ': ' + JSON.stringify(out).slice(0, 200));
+      }
+      _searchVerification = out;
+      _searchVerificationByIndex = searchIndexVerificationRows(out);
+      _searchLog && _searchLog.ok('verification complete (' + dt + 'ms)',
+        'accepted=' + (out.n_accepted || 0)
+        + ' review=' + (out.n_review || 0)
+        + ' blocked=' + (out.n_blocked || 0));
+      return out;
     }
     // One AbortController per in-flight runSearch so a second click
     // cancels the prior request instead of accumulating orphan
@@ -568,8 +661,21 @@
                        + ' results=' + ((out.results || []).length));
         if (note && _searchLog) _searchLog.info('note: ' + note);
         _searchResults = out.results || [];
+        _searchVerification = null;
+        _searchVerificationByIndex = {};
         searchSetPipeline(3);
         renderResults(_searchResults);
+        try {
+          await searchVerifyResults(_searchQuery, _searchResults, controller ? controller.signal : undefined);
+          renderResults(_searchResults);
+        } catch (verifyErr) {
+          if (verifyErr && verifyErr.name === 'AbortError') {
+            _searchLog && _searchLog.warn('verification aborted (superseded by newer search)');
+            return;
+          }
+          _searchLog && _searchLog.err('post-search verification failed', String(verifyErr).slice(0, 240));
+          renderResults(_searchResults);
+        }
         searchSetWorkflow(1);
       } catch (e) {
         if (e && e.name === 'AbortError') {
@@ -594,6 +700,7 @@
         host.className = 'search-empty';
         const p = document.createElement('div'); p.className = 'wb-muted'; p.style.padding = '20px';
         p.textContent = 'no results'; host.appendChild(p);
+        searchRefreshDraftAllButton();
         return;
       }
       host.className = '';
@@ -614,13 +721,32 @@
         const s = document.createElement('div'); s.className = 'snippet';
         s.textContent = String(r.snippet || '');
         card.appendChild(s);
+        const vRow = searchVerificationForIndex(idx);
+        const v = document.createElement('div');
+        const vStatus = vRow ? String(vRow.status || 'review') : 'pending';
+        v.className = 'wb-verification ' + (vStatus || 'pending');
+        v.textContent = searchVerificationLabel(vRow);
+        if (vRow && Array.isArray(vRow.source_quality_reasons) && vRow.source_quality_reasons.length) {
+          v.title = vRow.source_quality_reasons.join('; ');
+        } else if (!vRow) {
+          v.title = 'Waiting for /api/search/verify-results before this source can be drafted.';
+        }
+        card.appendChild(v);
         const actions = document.createElement('div');
         actions.className = 'wb-row';
         actions.style.cssText = 'margin-top:8px; gap:8px;';
         const draft = document.createElement('button');
         draft.type = 'button';
         draft.className = 'wb-btn-secondary';
-        draft.textContent = 'Draft this result';
+        draft.textContent = vStatus === 'blocked' ? 'Blocked by verification' : 'Draft this result';
+        draft.disabled = !searchIsDraftableIndex(idx);
+        if (vStatus === 'pending') {
+          draft.title = 'Verification is still pending; run result verification before drafting.';
+        } else if (vStatus === 'blocked') {
+          draft.title = 'This result has high deanonymization risk and cannot become prompt context.';
+        } else if (vStatus === 'review') {
+          draft.title = 'Reviewer inspection required before promotion; drafting keeps the envelope reviewable.';
+        }
         draft.addEventListener('click', () => searchDraftOne(idx));
         actions.appendChild(draft);
         const open = document.createElement('a');
@@ -633,6 +759,7 @@
         card.appendChild(actions);
         host.appendChild(card);
       });
+      searchRefreshDraftAllButton();
     }
 
     // Post-result actions
@@ -647,9 +774,11 @@
                         '> query: ' + _searchQuery,
                         '> backend: ' + (_searchBackend || '(none)'),
                         '> retrieved: ' + new Date().toISOString(), ''];
-        _searchResults.forEach(r => {
+        _searchResults.forEach((r, idx) => {
+          const v = searchVerificationForIndex(idx);
           lines.push('## [' + (r.rank || '?') + '] ' + (r.title || r.url));
           lines.push('Source: ' + (r.url || ''));
+          lines.push('Verification: ' + searchVerificationLabel(v));
           lines.push('');
           lines.push((r.snippet || '').replace(/\r?\n/g, ' '));
           lines.push('');
@@ -661,6 +790,7 @@
           query: _searchQuery,
           backend: _searchBackend,
           retrieved_at: new Date().toISOString(),
+          verification: _searchVerification,
           results: _searchResults,
         };
         blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
@@ -931,7 +1061,7 @@
           critique: out.critique || null,
         };
         if (window.dcGemmaStats && rendered.passes > 0) {
-          window.dcGemmaStats.bump('chat');
+          window.dcGemmaStats.bump('polish');
         }
         const ext = (out.envelope && out.envelope.extensions) || {};
         if (rendered.passes === 0) {
@@ -960,6 +1090,12 @@
     async function searchDraftResultAt(i) {
       const r = _searchResults[i];
       if (!r) return 0;
+      if (!searchIsDraftableIndex(i)) {
+        const row = searchVerificationForIndex(i);
+        _searchLog && _searchLog.warn('draft blocked by post-search verification',
+          row ? searchVerificationLabel(row) : 'verification missing for result ' + (i + 1));
+        return 0;
+      }
       _searchLog = searchGetLog();
       const rawText = searchRawTextForResult(r);
       _searchLog && _searchLog.step('drafting result ' + (i + 1), r.title || r.url);
@@ -1019,10 +1155,18 @@
         _searchLog && _searchLog.warn('no results to draft from');
         return;
       }
+      const draftable = searchDraftableIndexes();
+      if (!draftable.length) {
+        _searchLog && _searchLog.warn('no verified results to draft',
+          'Run search result verification first or inspect blocked/review statuses.');
+        document.getElementById('draft-status').textContent =
+          'No accepted or reviewable verified results are available to draft.';
+        return;
+      }
       const btn = document.getElementById('draft-btn');
       btn.disabled = true;
       searchSetPipeline(4);
-      searchSetDraftProgress(0, _searchResults.length, 'Drafting knowledge suggestions', 'Starting with result 1 of ' + _searchResults.length + '.');
+      searchSetDraftProgress(0, draftable.length, 'Drafting knowledge suggestions', 'Starting with verified result 1 of ' + draftable.length + '.');
       document.getElementById('draft-status').textContent =
         'Drafting moved to Step 3. Suggestions appear there as each source finishes.';
       _drafts = [];
@@ -1030,18 +1174,19 @@
       while (draftsList.firstChild) draftsList.removeChild(draftsList.firstChild);
       draftsList.className = '';
       try {
-        for (let i = 0; i < _searchResults.length; i++) {
+        for (let pos = 0; pos < draftable.length; pos++) {
+          const i = draftable[pos];
           const title = (_searchResults[i] && (_searchResults[i].title || _searchResults[i].url)) || ('result ' + (i + 1));
-          searchSetDraftProgress(i, _searchResults.length, 'Drafting result ' + (i + 1) + ' of ' + _searchResults.length, title);
+          searchSetDraftProgress(pos, draftable.length, 'Drafting verified result ' + (pos + 1) + ' of ' + draftable.length, title);
           try {
             await searchDraftResultAt(i);
           } catch (e) {
           _searchLog && _searchLog.err('draft ' + (i + 1) + ' failed', '' + e);
           }
-          searchSetDraftProgress(i + 1, _searchResults.length, 'Drafted ' + (i + 1) + ' of ' + _searchResults.length, _drafts.length + ' envelope suggestion(s) created so far.');
+          searchSetDraftProgress(pos + 1, draftable.length, 'Drafted ' + (pos + 1) + ' of ' + draftable.length, _drafts.length + ' envelope suggestion(s) created so far.');
         }
         document.getElementById('draft-status').textContent =
-          'Drafted ' + _drafts.length + ' / ' + _searchResults.length + '. Review below.';
+          'Drafted ' + _drafts.length + ' / ' + draftable.length + ' verified result(s). Review below.';
         searchSetDraftProgress(_searchResults.length, _searchResults.length, 'Draft run complete', 'Created ' + _drafts.length + ' reviewable envelope suggestion(s).');
       } finally {
         btn.disabled = false;
