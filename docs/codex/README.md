@@ -37,9 +37,10 @@ For no-stop runs across multiple goals, use [`dispatch_all_goals.md`](dispatch_a
 | 5 | [`goal_05_auto_polish_queue/`](goal_05_auto_polish_queue/handoff.md) | **DONE 2026-05-24 (`2c7cbd1`)** | Checkbox that auto-polishes every new draft |
 | 6 | [`goal_06_template_sample_bundle/`](goal_06_template_sample_bundle/handoff.md) | **DONE 2026-05-24 (`61c076e`)** | Synthetic case bundle + buttons so templates.html round-trips in 30s |
 | 7 | [`goal_07_vocab_audit_script/`](goal_07_vocab_audit_script/handoff.md) | PENDING | Stdlib script that audits saved envelopes against canonical vocab |
-| 8 | [`goal_08_inline_diff/`](goal_08_inline_diff/handoff.md) | PENDING | Word-level inline diff in the polish panel |
+| 8 | [`goal_08_inline_diff/`](goal_08_inline_diff/handoff.md) | **DONE 2026-05-24 (`5738729`)** | Word-level inline diff in the polish panel |
 | 9 | [`goal_09_inline_vocab_normalize/`](goal_09_inline_vocab_normalize/handoff.md) | PENDING | Apply canonical vocab normalization to graph-chat synthesis free-text |
 | 10 | [`goal_10_polish_e2e_tests/`](goal_10_polish_e2e_tests/handoff.md) | **DONE 2026-05-24 (`92f45ac`)** | End-to-end tests for /api/knowledge/polish-envelope |
+| 11 | [`goal_11_hierarchical_gemma_graph/`](goal_11_hierarchical_gemma_graph/handoff.md) | PENDING | Budgeted Gemma node/edge passes across folder, document, page, chunk, media, person, case, and rollup levels |
 
 ## Handoff template
 
