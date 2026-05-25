@@ -1,6 +1,6 @@
 # Goal 13 - Kernel 02 recording-path polish and replay verification
 
-> Status: **PENDING**. Created 2026-05-25 after reviewing `/start`,
+> Status: **DONE 2026-05-25 (`6b353d0`)**. Polished Kernel 02 recording pages, setup-lane wording, and slide surface checks after reviewing `/start`,
 > `/slides`, and `/slides/setup` from source.
 
 ## 1. Goal
