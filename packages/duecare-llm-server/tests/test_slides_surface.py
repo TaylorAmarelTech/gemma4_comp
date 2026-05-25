@@ -105,9 +105,22 @@ def test_slides_deck_uses_recording_safe_ecosystem_story() -> None:
         "data-slide-id=\"knowledge-sharing-demo\"",
         "data-slide-id=\"module-ecosystem\"",
         "Exploitation continues because the protective workflow is fragmented",
-        "Six comparable workflows, one shared local substrate",
+        "Six public setup lanes, one shared local safety stack",
     ]:
         assert marker in html
+    assert "substrate" not in html.lower()
+    lane_cursor = -1
+    for marker in [
+        "Platform safety",
+        "NGO &amp; regulator",
+        "Individual worker / mobile",
+        "Researcher",
+        "Anonymized knowledge sharing",
+        "Developer / integration partner",
+    ]:
+        marker_index = html.find(marker)
+        assert marker_index > lane_cursor, f"missing or out-of-order lane: {marker}"
+        lane_cursor = marker_index
     assert "Full screen" not in html
     assert "arrows / space" not in html
     assert "Hiring 30 Filipina maids for Saudi Arabia" in html
@@ -129,7 +142,7 @@ def test_slides_deck_uses_recording_safe_ecosystem_story() -> None:
         'data-demo-run="chat"',
         'data-demo-run="research"',
         'data-demo-run="sharing"',
-        "Six comparable workflows, one shared local substrate",
+        "Six public setup lanes, one shared local safety stack",
         "Gemma 4 is not another lane",
     ]:
         assert marker in html
@@ -138,7 +151,7 @@ def test_slides_deck_uses_recording_safe_ecosystem_story() -> None:
 def test_slides_deck_exposes_new_unique_and_knowledge_pack_slides() -> None:
     """The 2026-05-18 deck adds two new slides: a 4-tile 'what makes
     this unique' emphasis slide and a 'download the knowledge packs'
-    take-it-home slide. Pin their anchors + the substrate counts that
+    take-it-home slide. Pin their anchors + the evidence-stack counts that
     appear on the unique tile."""
     c = _client()
     r = c.get("/slides")
@@ -260,6 +273,8 @@ def test_slides_setup_serves_audience_and_use_case_selectors() -> None:
     assert "duecare.slides.demo.pack" in html
     assert "Preload recording pack" in html
     assert 'option value="platform" selected' in html
+    assert "Platform safety &mdash; moderation" in html
+    assert "Developer / integration partner &mdash; API + harness integration" in html
     assert "captured Gemma E4B call took 287.5s" in html
     assert "replays without GPU latency" in html
 
