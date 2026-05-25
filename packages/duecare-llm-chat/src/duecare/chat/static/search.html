@@ -829,7 +829,7 @@
       const thead = document.createElement('thead');
       const headRow = document.createElement('tr');
       headRow.style.background = 'oklch(0.97 0.02 195)';
-      ['Field', 'Before', 'After'].forEach((label) => {
+      ['Field', 'Diff / Before', 'After'].forEach((label) => {
         const th = document.createElement('th');
         th.style.cssText = 'text-align:left; padding: 4px 6px;';
         th.textContent = label;
@@ -839,7 +839,9 @@
       table.appendChild(thead);
 
       const tbody = document.createElement('tbody');
-      if (diff.length) {
+      if (window.dcDiff && typeof window.dcDiff.appendFieldRows === 'function') {
+        window.dcDiff.appendFieldRows(tbody, diff);
+      } else if (diff.length) {
         diff.slice(0, 20).forEach((d) => {
           const tr = document.createElement('tr');
           tr.appendChild(searchPolishCell(

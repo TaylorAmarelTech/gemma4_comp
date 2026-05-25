@@ -1145,48 +1145,86 @@
                 + 'border: 1px solid oklch(0.78 0.06 195); '
                 + 'border-left: 4px solid oklch(0.52 0.08 195); '
                 + 'border-radius: 6px; font-size: 12px; line-height: 1.5;';
-              let html = '<b style="color: oklch(0.32 0.07 195);">Gemma 4 polish: '
-                + passes + ' pass(es), ' + diff.length + ' field(s) changed</b>';
+              const header = document.createElement('b');
+              header.style.color = 'oklch(0.32 0.07 195)';
+              header.textContent = 'Gemma 4 polish: '
+                + passes + ' pass(es), ' + diff.length + ' field(s) changed';
+              notes.appendChild(header);
               if (critique && critique.overall) {
-                html += '<div style="margin-top: 4px; color: oklch(0.32 0.07 195);"><i>'
-                  + escapeHtml(String(critique.overall).slice(0, 280))
-                  + '</i></div>';
+                const overall = document.createElement('div');
+                overall.style.cssText = 'margin-top: 4px; color: oklch(0.32 0.07 195);';
+                const ital = document.createElement('i');
+                ital.textContent = String(critique.overall).slice(0, 280);
+                overall.appendChild(ital);
+                notes.appendChild(overall);
               }
               if (critiqueIssues.length) {
-                html += '<ul style="margin: 6px 0 4px 18px; padding: 0;">';
+                const ul = document.createElement('ul');
+                ul.style.cssText = 'margin: 6px 0 4px 18px; padding: 0;';
                 for (const iss of critiqueIssues.slice(0, 6)) {
-                  html += '<li style="margin-bottom: 2px;"><b>'
-                    + escapeHtml(String(iss.field || iss.category || '?'))
-                    + '</b>: ' + escapeHtml(String(iss.why || ''))
-                    + ' <span class="wb-muted">→ '
-                    + escapeHtml(String(iss.suggested_fix || ''))
-                    + '</span></li>';
+                  const li = document.createElement('li');
+                  li.style.marginBottom = '2px';
+                  const field = document.createElement('b');
+                  field.textContent = String(iss.field || iss.category || '?');
+                  li.appendChild(field);
+                  li.appendChild(document.createTextNode(': ' + String(iss.why || '')));
+                  if (iss.suggested_fix) {
+                    const fix = document.createElement('span');
+                    fix.className = 'wb-muted';
+                    fix.textContent = ' -> ' + String(iss.suggested_fix || '');
+                    li.appendChild(fix);
+                  }
+                  ul.appendChild(li);
                 }
-                html += '</ul>';
+                notes.appendChild(ul);
               }
-              if (diff.length) {
-                html += '<details style="margin-top: 6px;"><summary style="cursor: pointer; font-weight: 600;">Field-level diff ('
-                  + diff.length + ' changed)</summary>'
-                  + '<table style="width: 100%; margin-top: 6px; font-size: 11.5px; border-collapse: collapse;">'
-                  + '<thead><tr style="background: oklch(0.97 0.02 195);"><th style="text-align:left; padding: 4px 6px;">Field</th><th style="text-align:left; padding: 4px 6px;">Before</th><th style="text-align:left; padding: 4px 6px;">After</th></tr></thead><tbody>';
-                for (const d of diff.slice(0, 20)) {
-                  html += '<tr><td style="padding:4px 6px; vertical-align: top; font-family: \'JetBrains Mono\', monospace;">'
-                    + escapeHtml(d.key) + '</td>'
-                    + '<td style="padding:4px 6px; vertical-align: top; color: #8A8E97;">'
-                    + escapeHtml(d.before || '<empty>') + '</td>'
-                    + '<td style="padding:4px 6px; vertical-align: top; color: oklch(0.32 0.07 195);">'
-                    + escapeHtml(d.after || '<empty>') + '</td></tr>';
-                }
-                html += '</tbody></table></details>';
+              const details = document.createElement('details');
+              details.style.marginTop = '6px';
+              const summary = document.createElement('summary');
+              summary.style.cssText = 'cursor: pointer; font-weight: 600;';
+              summary.textContent = 'Field-level diff (' + diff.length + ' changed)';
+              details.appendChild(summary);
+              const table = document.createElement('table');
+              table.style.cssText = 'width: 100%; margin-top: 6px; font-size: 11.5px; border-collapse: collapse;';
+              const thead = document.createElement('thead');
+              const headRow = document.createElement('tr');
+              headRow.style.background = 'oklch(0.97 0.02 195)';
+              ['Field', 'Diff / Before', 'After'].forEach((label) => {
+                const th = document.createElement('th');
+                th.style.cssText = 'text-align:left; padding: 4px 6px;';
+                th.textContent = label;
+                headRow.appendChild(th);
+              });
+              thead.appendChild(headRow);
+              table.appendChild(thead);
+              const tbody = document.createElement('tbody');
+              if (window.dcDiff && typeof window.dcDiff.appendFieldRows === 'function') {
+                window.dcDiff.appendFieldRows(tbody, diff);
+              } else {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 3;
+                td.style.cssText = 'padding:4px 6px; color:#8A8E97;';
+                td.textContent = 'Inline diff helper unavailable.';
+                tr.appendChild(td);
+                tbody.appendChild(tr);
               }
+              table.appendChild(tbody);
+              details.appendChild(table);
+              notes.appendChild(details);
               if (out.envelope.extensions && out.envelope.extensions.polish_clean_pass) {
-                html += '<div style="margin-top: 6px; color: oklch(0.32 0.07 155);">Gemma found no issues — the draft already reads as a clean, anonymized pattern. The standardize pass re-ordered fields to canonical shape.</div>';
+                const clean = document.createElement('div');
+                clean.style.cssText = 'margin-top: 6px; color: oklch(0.32 0.07 155);';
+                clean.textContent = 'Gemma found no issues -- the draft already reads as a clean, anonymized pattern. The standardize pass re-ordered fields to canonical shape.';
+                notes.appendChild(clean);
               } else if (passes === 0) {
-                html += '<div style="margin-top: 6px; color: oklch(0.40 0.10 80);">Polish skipped: '
-                  + escapeHtml(String(out.envelope.extensions && out.envelope.extensions.polish_skipped || 'no model'))
-                  + '. The standardize pass still ran.</div>';
+                const skipped = document.createElement('div');
+                skipped.style.cssText = 'margin-top: 6px; color: oklch(0.40 0.10 80);';
+                skipped.textContent = 'Polish skipped: '
+                  + String(out.envelope.extensions && out.envelope.extensions.polish_skipped || 'no model')
+                  + '. The standardize pass still ran.';
+                notes.appendChild(skipped);
               }
-              notes.innerHTML = html;
               // Insert above the JSON pre block.
               if (pre) pre.parentNode.insertBefore(notes, pre);
               else card.appendChild(notes);
