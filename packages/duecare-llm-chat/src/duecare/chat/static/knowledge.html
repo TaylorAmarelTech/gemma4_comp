@@ -271,6 +271,10 @@
               a stronger local preprocessing/model path.
             </div>
           </details>
+          <label class="kx-action-note" style="display:flex; align-items:center; gap:8px; margin-top:10px; cursor:pointer;">
+            <input type="checkbox" id="kx-auto-polish">
+            <span>Auto-polish new drafts (uses 2x Gemma calls per draft)</span>
+          </label>
           <div id="kx-extract-result" class="kx-empty" style="margin-top:10px;">
             Drafted envelopes will appear here with promote buttons after Step 1 has source text.
           </div>
@@ -686,6 +690,69 @@
     // of truth so test_knowledge_kxsleep_declared_once stays green.)
     let kxActiveSourceJobId = '';
     let kxSourceAbort = false;
+    let kxAutoPolishRunning = false;
+    function kxAutoPolishEnabled() {
+      const cb = document.getElementById('kx-auto-polish');
+      if (cb) return !!cb.checked;
+      try { return window.localStorage.getItem('duecare:auto-polish') === '1'; }
+      catch (_) { return false; }
+    }
+    function kxInitAutoPolish() {
+      const cb = document.getElementById('kx-auto-polish');
+      if (!cb) return;
+      try {
+        cb.checked = window.localStorage.getItem('duecare:auto-polish') === '1';
+      } catch (_) {
+        cb.checked = false;
+      }
+      cb.addEventListener('change', function() {
+        try {
+          window.localStorage.setItem('duecare:auto-polish', this.checked ? '1' : '0');
+        } catch (_) { /* localStorage may be unavailable */ }
+        wbLog(
+          this.checked ? 'info' : 'warn',
+          this.checked ? 'Auto-polish enabled for future drafts' : 'Auto-polish disabled',
+          this.checked ? 'New draft batches will queue sequential polish calls.' : 'Current in-flight polish will finish; queued drafts will be skipped.'
+        );
+      });
+    }
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', kxInitAutoPolish);
+    } else {
+      kxInitAutoPolish();
+    }
+    async function kxRunAutoPolishQueue(totalDrafts) {
+      const total = Math.max(0, Number(totalDrafts || 0));
+      if (!total || !kxAutoPolishEnabled()) return;
+      if (kxAutoPolishRunning) {
+        wbLog('warn', 'Auto-polish already running', 'Skipping duplicate queue request.');
+        return;
+      }
+      kxAutoPolishRunning = true;
+      let polished = 0;
+      let skipped = 0;
+      wbLog('info', 'Auto-polish enabled', 'queuing ' + total + ' draft(s) for polish');
+      try {
+        for (let idx = 0; idx < total; idx += 1) {
+          if (!kxAutoPolishEnabled()) {
+            skipped += (total - idx);
+            break;
+          }
+          try {
+            const ok = await kxPolishDraft(idx);
+            if (ok) polished += 1;
+            else skipped += 1;
+          } catch (e) {
+            skipped += 1;
+            wbLog('err', 'Auto-polish skipped draft ' + (idx + 1), String(e).slice(0, 220));
+          }
+        }
+      } finally {
+        kxAutoPolishRunning = false;
+        wbLog('ok', 'Auto-polish complete',
+          polished + ' of ' + total + ' polished (' + skipped + ' skipped for OOM/error)');
+      }
+    }
     function kxCancelSourceJob() {
       if (!kxActiveSourceJobId) return;
       kxSourceAbort = true;
@@ -1009,6 +1076,7 @@
               '<pre style="background:#FFF; border:1px solid #DDD8C9; padding:10px; border-radius:6px; font-size:11.5px; overflow:auto; max-height:240px;">' +
               escapeHtml(JSON.stringify(env, null, 2)) + '</pre></section>';
           }).join('');
+          void kxRunAutoPolishQueue(kxDrafts.length);
         }catch(e){
           statusEl.textContent="Extract failed: "+String(e).slice(0,200);
           wbLog('err', 'Draft suggestions failed', String(e).slice(0,200));
@@ -1027,7 +1095,7 @@
         // Re-standardizes the envelope shape afterwards so canonical
         // field order + indicator vocabulary are preserved.
         const env = kxDrafts[idx];
-        if (!env || !env.content) { return; }
+        if (!env || !env.content) { return false; }
         const btn = document.getElementById('kx-polish-btn-' + idx);
         const status = document.getElementById('kx-promote-status-' + idx);
         const promoteBtn = document.getElementById('kx-promote-btn-' + idx);
@@ -1048,7 +1116,7 @@
             const txt = await r.text();
             wbLog('err', 'Polish failed (HTTP ' + r.status + ')', txt.slice(0, 240));
             if (status) status.textContent = 'Polish failed';
-            return;
+            return false;
           }
           const out = await r.json();
           const dt = Math.round(performance.now() - t0);
@@ -1131,13 +1199,16 @@
                   passes + ' pass(es), ' + diff.length + ' field(s) changed'
                   + (critique && critique.overall ? ' — ' + critique.overall : ''));
             if (status) status.textContent = 'Polished ✓ (' + passes + ' pass)';
+            return passes > 0;
           } else {
             wbLog('err', 'Polish returned no envelope', JSON.stringify(out).slice(0, 200));
             if (status) status.textContent = 'Polish failed';
+            return false;
           }
         } catch (e) {
           wbLog('err', 'Polish error: ' + String(e).slice(0, 200));
           if (status) status.textContent = 'Polish error';
+          return false;
         } finally {
           if (btn) { btn.disabled = false; btn.textContent = 'Polish further (Gemma 4)'; }
           if (promoteBtn) promoteBtn.disabled = false;
