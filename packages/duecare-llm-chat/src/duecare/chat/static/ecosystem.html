@@ -44,10 +44,11 @@
   <main class="page">
     <h1>DueCare Ecosystem Map</h1>
     <p class="lede">
-      Judge-facing map of how the live workbench, harnesses, knowledge packs,
-      evaluation, synthetic data, fine-tuning, and deployment targets fit
-      together. The diagram is implemented in HTML and CSS so it ships inside
-      the Kaggle demo without an external image dependency.
+      Judge-facing map of how Gemma 4, local workbench nodes, knowledge packs,
+      evaluation, synthetic data, optional benchmarks, and deployment targets
+      fit together. Each node can keep raw case material local while sharing
+      only reviewed anonymized fact objects, graph edges, and aggregate
+      signals with the wider ecosystem.
     </p>
 
     <section class="panel">
@@ -63,7 +64,7 @@
           </div>
         </div>
         <div class="flow-row">
-          <div class="flow-label">Safety substrate</div>
+          <div class="flow-label">Safety controls</div>
           <div class="flow-track">
             <div class="step"><b>Persona</b><small>bounded expert role and refusal posture</small></div>
             <div class="step"><b>GREP</b><small>100+ deterministic risk rules</small></div>
@@ -91,12 +92,58 @@
     </section>
 
     <section class="panel">
+      <h2>Local Node Intelligence Network</h2>
+      <p class="lede">
+        DueCare is strongest as an ecosystem of many local nodes: a worker
+        device, NGO office, regulator queue, platform safety team, researcher,
+        or developer integration can all run the same privacy-first process.
+        Gemma 4 helps each node convert messy local evidence into reviewable
+        hierarchy-level facts before anything leaves the node.
+      </p>
+      <div class="flow">
+        <div class="flow-row">
+          <div class="flow-label">Local node</div>
+          <div class="flow-track">
+            <div class="step"><b>Folders</b><small>case directories, source paths, custody and review context</small></div>
+            <div class="step"><b>Documents</b><small>PDFs, scans, chats, contracts, receipts, CSV/JSONL rows</small></div>
+            <div class="step"><b>Page items</b><small>pages, paragraph chunks, tables, images, media questions</small></div>
+            <div class="step"><b>People and cases</b><small>roles, payments, dates, locations, journey stages</small></div>
+          </div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-label">Review gate</div>
+          <div class="flow-track">
+            <div class="step"><b>Confirm evidence</b><small>human review before graph Q&amp;A or export</small></div>
+            <div class="step"><b>Promote objects</b><small>draft knowledge becomes local KnowledgeObject records</small></div>
+            <div class="step"><b>Redact</b><small>regex first, optional Gemma residual-PII review</small></div>
+            <div class="step"><b>Submit deliberately</b><small>typed confirmation before hub-bound transfer</small></div>
+          </div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-label">Shared intelligence</div>
+          <div class="flow-track">
+            <div class="step"><b>Fact objects</b><small>reviewed, redacted, source-linked claims</small></div>
+            <div class="step"><b>Graph edges</b><small>generalized signals with provenance and confidence</small></div>
+            <div class="step"><b>Aggregate patterns</b><small>corridors, fees, document control, coercion counts</small></div>
+            <div class="step"><b>Benchmarks</b><small>synthetic or anonymized rows for reproducible evaluation</small></div>
+          </div>
+        </div>
+      </div>
+      <div class="legend">
+        <span class="pill">many local nodes</span>
+        <span class="pill">raw files never centralized</span>
+        <span class="pill">reviewed fact objects</span>
+        <span class="pill">ecosystem intelligence</span>
+      </div>
+    </section>
+
+    <section class="panel">
       <h2>Deployment Modes</h2>
       <p class="lede">
         The same harness contracts support three operational shapes. Judges can
         test the local Kaggle instance today, while partners can map the same
         contracts into tenant-owned moderation queues or a privacy-preserving
-        knowledge network.
+        network of nodes that share reviewed anonymized intelligence.
       </p>
       <table>
         <thead><tr><th>Mode</th><th>Primary Users</th><th>What Runs Locally</th><th>What Can Touch The Network</th></tr></thead>
@@ -111,13 +158,13 @@
             <td>Enterprise or on-prem screening</td>
             <td>Platform safety, regulator, NGO office, integration partner</td>
             <td>Moderation API, batch review queue, tenant packs, audit logs, local graph, and reviewer UI.</td>
-            <td>Optional anonymized pattern signals and vetted pack pulls. The enterprise review pipeline decides actions.</td>
+            <td>Optional anonymized fact objects, pattern signals, and vetted pack pulls. The enterprise review pipeline decides actions.</td>
           </tr>
           <tr>
             <td>Networked knowledge hub</td>
             <td>Civil-society curators, researchers, partner deployments</td>
             <td>Local anonymization, consent labels, hash receipts, and proposal preview.</td>
-            <td>Public-source facts, anonymized signals, vetted/unvetted pack metadata, and curator-approved updates.</td>
+            <td>Public-source facts, anonymized evidence edges, vetted/unvetted pack metadata, and curator-approved updates.</td>
           </tr>
         </tbody>
       </table>
@@ -133,11 +180,11 @@
       <h2>Seven Surfaces</h2>
       <div class="grid">
         <div class="node primary"><strong>Chat</strong><span>Gemma-backed primary harness: Persona, GREP, RAG, Tools, optional Official Sources, optional Online.</span></div>
-        <div class="node primary"><strong>Process</strong><span>Gemma-backed bulk review: GREP, RAG, Tools, graph chat, media queue.</span></div>
-        <div class="node primary"><strong>Extraction</strong><span>Gemma-assisted knowledge-object drafting with validation.</span></div>
-        <div class="node gate"><strong>Anonymization</strong><span>Hard privacy gate. No Gemma required before boundary crossing.</span></div>
+        <div class="node primary"><strong>Process</strong><span>Gemma-backed bulk review across folder, document, page, paragraph, table, media, person, and case levels.</span></div>
+        <div class="node primary"><strong>Extraction</strong><span>Gemma-assisted knowledge-object drafting with validation and reviewer promotion.</span></div>
+        <div class="node gate"><strong>Anonymization</strong><span>Hard privacy gate before fact objects or edges can cross from a local node to shared intelligence.</span></div>
         <div class="node gate"><strong>Search Safety</strong><span>Hard outbound-query gate with optional Gemma rephrase.</span></div>
-        <div class="node"><strong>Search</strong><span>Secondary utility after query sanitization.</span></div>
+        <div class="node"><strong>Search</strong><span>Secondary utility after query sanitization; public-source results become reviewed source cards.</span></div>
         <div class="node"><strong>Import Corpus</strong><span>Secondary evidence CRUD. Feeds Gemma-backed harnesses.</span></div>
       </div>
     </section>
@@ -147,11 +194,11 @@
       <table>
         <thead><tr><th>Stage</th><th>What It Proves</th><th>Where To Test</th></tr></thead>
         <tbody>
-          <tr><td>Baseline run</td><td>Stock Gemma 4 behavior on the same prompts.</td><td>A-00 or Compare with no harness.</td></tr>
-          <tr><td>Harnessed run</td><td>Quality lift from safety layers, RAG, tools, and traceable grounding.</td><td>A-00 batch run or live Compare.</td></tr>
-          <tr><td>Rubric-polished synthetic data</td><td>Ideal response structure for SFT/DPO rows, with volatile facts marked for tools.</td><td>A-00 Synthetic Data, `rubric_polisher` mode.</td></tr>
-          <tr><td>Fine-tune smoke</td><td>Small-model training path works before a full GPU run.</td><td>A-00 Train Adapter, tiny 5-step script.</td></tr>
-          <tr><td>Report</td><td>Quality scores, latency, local cost, provenance, and research-graph artifacts across exports.</td><td>A-00 HTML report and ZIP bundle.</td></tr>
+          <tr><td>Baseline run</td><td>Stock Gemma 4 behavior on the same prompts.</td><td>Compare with no harness, or optional Kernel 03.</td></tr>
+          <tr><td>Harnessed run</td><td>Quality lift from safety layers, RAG, tools, and traceable grounding.</td><td>Live Compare, Kernel 03, or Kernel 04.</td></tr>
+          <tr><td>Rubric-polished synthetic data</td><td>Ideal response structure for SFT/DPO rows, with volatile facts marked for tools.</td><td>Optional benchmark/training artifacts, not active root clutter.</td></tr>
+          <tr><td>Fine-tune smoke</td><td>Small-model training path works before a full GPU run.</td><td>Archived A-series provenance or a separate optional run.</td></tr>
+          <tr><td>Report</td><td>Quality scores, latency, local cost, provenance, and research-graph artifacts across exports.</td><td>Workbench exports plus optional benchmark reports.</td></tr>
         </tbody>
       </table>
       <div class="actions">

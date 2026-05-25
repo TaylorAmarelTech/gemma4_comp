@@ -1,14 +1,21 @@
 # duecare-llm-server
 
-FastAPI server exposing the Duecare engine + evidence DB through a
-card-style homepage with four surfaces:
+FastAPI server package for the focused DueCare live-demo surface. The
+active Kaggle recording path is owned by `kaggle/02-live-demo`, which
+boots this package, opens a Cloudflare URL, and serves the product demo
+around the same Gemma 4 ecosystem contracts used by the workbench.
 
-| Card | Surface | Path |
+| Surface | Path | Purpose |
 |---|---|---|
-| Platform safety | content moderation queue + classifier | `/enterprise` |
-| Individual worker | worker / family education chatbot | `/individual` |
-| NGO & regulator insights | graph + NL Q&A over evidence DB | `/knowledge` |
-| Settings | DB + engine + tunnel config | `/settings` |
+| Demo start | `/start` | choose the short demo path or setup lanes |
+| Live slides | `/slides` | recording-friendly narrative and interaction flow |
+| Setup lanes | `/slides/setup` | six public setup lanes and deployment notes |
+| Slide APIs | `/api/slides/*` | scripted state, examples, and demo telemetry |
+
+The companion workbench package (`duecare-llm-chat`) owns the broader
+local-node flows: Bulk File Review, Knowledge Extraction, Search,
+Templates, Anonymization & Sharing, portability contracts, and sample
+artifacts.
 
 ## Launch (local)
 

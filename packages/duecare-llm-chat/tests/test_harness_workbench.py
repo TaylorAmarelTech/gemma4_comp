@@ -755,8 +755,8 @@ def test_process_page_has_graph_visualization_and_graph_chat_logging(client):
     assert "Uploading bundle to Kaggle kernel" in text
     assert "Detecting media and queued work" in text
     assert "Building deterministic case brief" in text
-    assert "OCR/layout extraction deferred" in text
-    assert "Gemma 4 media vision deferred" in text
+    assert "Gemma 4 hierarchical graph item pass" in text
+    assert "Gemma 4 contextual media review" in text
     assert "Still working locally" in text
     assert "function wbStartProcessProgressLoop" in text
     assert "function wbStopProcessProgressLoop" in text
@@ -787,7 +787,7 @@ def test_process_page_has_graph_visualization_and_graph_chat_logging(client):
     assert "Gemma edge pass skipped model call" in text
     assert 'id="wb-edge-progress-box"' in text
     assert 'id="pg-progress-box"' in text
-    assert "Use primary sample" in text
+    assert "Use primary media-rich sample" in text
     assert 'id="wb-activity-card"' in text
     assert '/static/_workflow.js' in text
     assert "function wbGetWorkflowStepper" in text
@@ -874,9 +874,9 @@ def test_chat_page_compatibility_route_preserves_deep_links(client):
     r = client.get("/static/chat.html")
     assert r.status_code == 200
     text = r.text
-    assert '<link rel="canonical" href="/static/index.html">' in text
-    assert "window.location.replace(target)" in text
-    assert "window.location.search + window.location.hash" in text
+    assert 'data-nav="chat"' in text
+    assert 'id="maxtok" value="4096"' in text
+    assert "window.location.search" in text
 
 
 def test_recording_page_exposes_preset_and_cached_trace(client):
@@ -1082,4 +1082,4 @@ def test_share_step3_button_label_does_not_falsely_promise_gemma_review(client):
     # The Optional · Gemma marker beside the button carries the honesty
     # contract: the label itself is silent about whether Gemma ran.
     assert 'id="wb-step3-gemma-mark"' in text
-    assert "Optional · Gemma" in text
+    assert "Gemma 4 residual-PII review" in text

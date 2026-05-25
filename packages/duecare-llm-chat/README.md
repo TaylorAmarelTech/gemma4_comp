@@ -10,6 +10,14 @@ sync/status pages, replay artifacts, and sample bundles. It is designed
 to pair with the Unsloth FastModel loader so it can serve any Gemma 4
 variant (E2B, E4B, 26B-A4B, 31B) through the same app shell.
 
+The package is also the portable local-node contract for the project.
+It gives judges, NGOs, regulators, researchers, workers, developers,
+and benchmark users the same privacy boundary: analyze raw folders,
+documents, pages, paragraph chunks, tables, media, people, and cases
+locally; review the results; then share only anonymized fact objects,
+generalized graph edges, aggregate signals, or reproducible benchmark
+rows.
+
 ## Public API
 
 ```python
@@ -46,7 +54,21 @@ run_server(gemma_call=my_gemma_call, port=8080)
 | POST | `/api/anonymize` | selected evidence -> redacted local sharing payload |
 | GET | `/api/templates/list` | available complaint/referral templates |
 | GET | `/api/model-info` | `{name, size_b, quantization, device, display}` |
+| GET | `/api/portability` | machine-readable onboarding, sample, route, graph, and local-node contracts |
+| GET | `/api/experiment-contract` | benchmark, training, judging, and comparison profiles |
+| GET | `/api/audit/workbench-inventory` | live inventory of pages, samples, routes, and counts |
 | GET | `/healthz` | `{ok: true, ts}` |
+
+## Portable onboarding
+
+| User | First route | Local output |
+|---|---|---|
+| Kaggle judge | `/static/getting-started.html` then `/static/process.html` | replay JSON, graph export, comparison evidence |
+| NGO & regulator | `/static/process.html`, `/static/templates.html`, `/static/share.html` | reviewed graph, referral draft, redacted submission |
+| Individual worker / mobile | `/static/chat.html` or a mobile client over the same knowledge packs | private answer, saved note, intake draft |
+| Researcher | `/static/knowledge.html` and `/static/search.html` | aggregate signals, source proposals, benchmark rows |
+| Developer / integration partner | `/api/portability` and `/api/audit/workbench-inventory` | route/type/sample contracts |
+| Benchmark user | optional Kaggle 03 or 04 surfaces | prompt rows, judge rubric, comparison table |
 
 ## Why a separate package
 

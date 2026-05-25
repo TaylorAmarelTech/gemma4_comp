@@ -45,6 +45,28 @@ def test_portability_contract_module_evaluates_current_app():
     assert {item["artifact_kind"] for item in reference["knowledge_io_contracts"]}.issuperset(
         {"source_case_bundle", "knowledge_files", "redacted_submission"}
     )
+    assert reference["public_setup_lanes"] == [
+        "Platform safety",
+        "NGO & regulator",
+        "Individual worker / mobile",
+        "Researcher",
+        "Anonymized knowledge sharing",
+        "Developer / integration partner",
+    ]
+    assert {item["id"] for item in reference["onboarding_paths"]} == {
+        "kaggle_judge",
+        "ngo_regulator",
+        "worker_mobile",
+        "researcher",
+        "developer_integrator",
+        "benchmark_user",
+    }
+    network = reference["local_node_network_contract"]
+    assert network["schema_version"] == "duecare.local_node_network.v1"
+    assert set(network["shareable_outputs"]).issuperset(
+        {"anonymized_fact_objects", "graph_edges", "risk_signal_counts"}
+    )
+    assert "raw_pii" in network["never_share"]
     experiment = reference["quantitative_experiment_contract"]
     assert experiment["schema_version"] == "duecare.experiment_contract.v1"
     assert experiment["quantitative_run_profiles"]["bulk_text_25"]["limit"] == 25
@@ -53,7 +75,7 @@ def test_portability_contract_module_evaluates_current_app():
         arm["id"]
         for arm in experiment["comparison_matrices"]["stock_vs_finetuned_harness_matrix"]["arms"]
     } == {"stock", "stock_harness", "finetuned", "finetuned_harness"}
-    assert {item["id"] for item in reference["core_notebooks"]} == {"01", "02", "A-00"}
+    assert {item["id"] for item in reference["core_notebooks"]} == {"01", "02", "03", "04"}
 
     app = create_app()
     payload = verify_app_contract(
@@ -91,6 +113,7 @@ def test_portability_model_and_sample_helpers_are_canonical():
     from duecare.chat.portability import (
         model_variant_map,
         model_variant_ui_map,
+        onboarding_path_map,
         notebook_role_map,
         sample_artifact_map,
     )
@@ -134,7 +157,14 @@ def test_portability_model_and_sample_helpers_are_canonical():
 
     notebooks = notebook_role_map()
     assert notebooks["01"]["role"].startswith("full workbench")
-    assert notebooks["A-00"]["path"].endswith("A-00-omni-experiment-workbench")
+    assert notebooks["01"]["status"] == "active"
+    assert notebooks["03"]["status"] == "optional"
+    assert notebooks["04"]["path"].endswith("04-kaggle-community-benchmark")
+
+    onboarding = onboarding_path_map()
+    assert onboarding["kaggle_judge"]["start_here"].startswith("Run kaggle/01")
+    assert "knowledge_files.zip" in onboarding["ngo_regulator"]["portable_artifacts"]
+    assert "benchmark_rows" in onboarding["benchmark_user"]["portable_artifacts"]
 
 
 def test_portability_contract_reports_missing_routes_and_samples(tmp_path):
