@@ -67,6 +67,17 @@
                               background: oklch(0.97 0.04 80); }
     .tpl-field.prov-missing { border-color: #DDD8C9;
                                background: #F4F2EA; }
+    .tpl-batch-draft { border: 1px solid #DDD8C9; border-radius: 8px;
+                       margin: 8px 0; background: #FFF; }
+    .tpl-batch-draft summary { cursor: pointer; padding: 10px 12px;
+                               font-weight: 600; }
+    .tpl-batch-body { padding: 0 12px 12px; }
+    .tpl-batch-rendered { width: 100%; box-sizing: border-box;
+                          min-height: 120px; padding: 10px 12px;
+                          border: 1px solid #DDD8C9; border-radius: 8px;
+                          background: #FAF9F4; color: #0E1116;
+                          font-family: 'JetBrains Mono', monospace;
+                          font-size: 11.5px; line-height: 1.5; }
     .tpl-dry-run-banner {
       border: 1px solid oklch(0.78 0.10 155);
       background: oklch(0.97 0.03 155);
@@ -159,6 +170,10 @@
                 type="button" onclick="tplUseSampleBundle()">
           Use sample bundle
         </button>
+        <button class="wb-btn-primary" id="tpl-fill-relevant-btn"
+                type="button" onclick="tplGenerateBatchDraft()" disabled>
+          Fill all relevant
+        </button>
       </div>
       <div id="tpl-bundle-status" class="wb-muted">No bundle attached yet.</div>
       <details style="margin-top: 8px;">
@@ -244,6 +259,12 @@
       </p>
     </div>
 
+    <div class="wb-card" id="tpl-batch-card" hidden>
+      <h2>Batch drafts</h2>
+      <div id="tpl-batch-status" class="wb-muted"></div>
+      <div id="tpl-batch-host" aria-live="polite"></div>
+    </div>
+
     <div class="wb-card">
       <h2>Activity log</h2>
       <div id="tpl-log" class="dc-activity-log" role="log"
@@ -291,6 +312,7 @@
         _tplTemplates = data.templates || [];
         tplLog('ok', 'Loaded ' + _tplTemplates.length + ' templates');
         tplRenderGallery();
+        tplUpdateBatchButton();
       } catch (e) {
         tplLog('err', 'Network error: ' + e);
       }
@@ -519,6 +541,50 @@
       return out;
     }
 
+    function tplBundleIndicators() {
+      const intel = (_tplBundle && _tplBundle.intelligence) || {};
+      const raw = intel.ilo_indicators || [];
+      if (Array.isArray(raw)) return raw.map(x => String(x || '').trim()).filter(Boolean);
+      if (typeof raw === 'string') {
+        return raw.split(/[,;\s]+/).map(x => x.trim()).filter(Boolean);
+      }
+      return [];
+    }
+
+    function tplRelevantTemplates() {
+      const indicators = new Set(tplBundleIndicators());
+      if (!indicators.size) return [];
+      return _tplTemplates.filter(t => {
+        const rel = Array.isArray(t.relevance_indicators) ? t.relevance_indicators : [];
+        return rel.some(ind => indicators.has(ind));
+      });
+    }
+
+    function tplUpdateBatchButton() {
+      const btn = document.getElementById('tpl-fill-relevant-btn');
+      if (!btn) return;
+      const indicators = tplBundleIndicators();
+      const relevant = tplRelevantTemplates();
+      btn.disabled = !_tplBundle || !indicators.length || !relevant.length;
+      if (!_tplBundle) {
+        btn.title = 'Attach a case bundle first.';
+      } else if (!indicators.length) {
+        btn.title = 'The attached bundle has no intelligence.ilo_indicators.';
+      } else if (!relevant.length) {
+        btn.title = 'No templates overlap the attached bundle indicators.';
+      } else {
+        btn.title = 'Fill ' + relevant.length + ' templates matching the bundle indicators.';
+      }
+    }
+
+    function tplManualFieldsByTemplateId(templateIds) {
+      const out = {};
+      if (_tplActive && templateIds.includes(_tplActive.id)) {
+        out[_tplActive.id] = tplCollectManualFields();
+      }
+      return out;
+    }
+
     function tplLoadStoredBundle(opts) {
       opts = opts || {};
       try {
@@ -651,6 +717,7 @@
       const host = document.getElementById('tpl-bundle-status');
       if (!_tplBundle) {
         host.textContent = 'No bundle attached yet. Manual + Gemma fill still work without a bundle.';
+        tplUpdateBatchButton();
         return;
       }
       const intel = _tplBundle.intelligence || {};
@@ -661,6 +728,175 @@
         ' | rows=' + (sum.n_rows_total || sum.n_rows_processed || 0) +
         ' | people=' + (sum.n_people_detected || (intel.people || []).length) +
         ' | edges=' + (sum.n_typed_edges || (intel.evidence_edges || []).length);
+      tplUpdateBatchButton();
+    }
+
+    function tplTemplateById(templateId) {
+      return _tplTemplates.find(t => t.id === templateId) || null;
+    }
+
+    function tplRenderBatchFields(host, template, draft) {
+      const grid = document.createElement('div');
+      grid.className = 'tpl-fields';
+      const values = draft.field_values || {};
+      const provenance = draft.provenance || {};
+      (template.fields || []).forEach(field => {
+        const wrap = document.createElement('div');
+        wrap.className = 'tpl-field' + (field.required ? ' is-required' : '');
+        const prov = provenance[field.id] || 'missing';
+        if (['bundle_hint', 'gemma', 'manual', 'missing'].includes(prov)) {
+          wrap.classList.add('prov-' + prov);
+        }
+        const lbl = document.createElement('label');
+        lbl.textContent = field.label;
+        wrap.appendChild(lbl);
+        const value = document.createElement('div');
+        value.style.cssText = 'font-size: 12px; line-height: 1.45; white-space: pre-wrap;';
+        value.textContent = values[field.id] || '(not provided)';
+        wrap.appendChild(value);
+        const provLine = document.createElement('div');
+        provLine.className = 'tpl-prov';
+        provLine.textContent = tplFieldSourceLabel(field, prov, false);
+        wrap.appendChild(provLine);
+        grid.appendChild(wrap);
+      });
+      host.appendChild(grid);
+    }
+
+    function tplRenderBatchDrafts(data) {
+      const card = document.getElementById('tpl-batch-card');
+      const host = document.getElementById('tpl-batch-host');
+      const status = document.getElementById('tpl-batch-status');
+      if (!card || !host) return;
+      while (host.firstChild) host.removeChild(host.firstChild);
+      const drafts = data.drafts || [];
+      card.hidden = false;
+      if (status) {
+        status.textContent = drafts.length + ' template draft(s); shared excerpt '
+          + (data.shared_excerpt_chars || 0) + ' chars.';
+      }
+      drafts.forEach((draft, idx) => {
+        const template = draft.template || tplTemplateById(draft.template_id) || {};
+        const details = document.createElement('details');
+        details.className = 'tpl-batch-draft';
+        if (idx === 0) details.open = true;
+        const summary = document.createElement('summary');
+        summary.textContent = (template.title || draft.template_id || 'Template')
+          + ' - ' + (draft.used_gemma ? 'Gemma filled' : 'local fill');
+        details.appendChild(summary);
+        const body = document.createElement('div');
+        body.className = 'tpl-batch-body';
+        tplRenderBatchFields(body, template, draft);
+        const rendered = document.createElement('textarea');
+        rendered.className = 'tpl-batch-rendered';
+        rendered.value = draft.rendered || '';
+        body.appendChild(rendered);
+        details.appendChild(body);
+        host.appendChild(details);
+      });
+    }
+
+    async function tplGenerateBatchDraft() {
+      const btn = document.getElementById('tpl-fill-relevant-btn');
+      const relevant = tplRelevantTemplates();
+      const templateIds = relevant.map(t => t.id);
+      if (!_tplBundle) {
+        tplLog('warn', 'Attach a case bundle first');
+        tplUpdateBatchButton();
+        return;
+      }
+      if (!tplBundleIndicators().length) {
+        tplLog('warn', 'No bundle indicators found', 'Expected intelligence.ilo_indicators.');
+        tplUpdateBatchButton();
+        return;
+      }
+      if (!templateIds.length) {
+        tplLog('warn', 'No relevant templates found');
+        tplUpdateBatchButton();
+        return;
+      }
+      const useGemmaEl = document.getElementById('tpl-use-gemma');
+      const useGemma = useGemmaEl ? useGemmaEl.checked : true;
+      const gemmaMark = document.getElementById('tpl-gemma-mark');
+      const t0 = performance.now();
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Filling relevant...';
+      }
+      if (gemmaMark) {
+        gemmaMark.className = 'dc-gemma-mark is-optional';
+        gemmaMark.textContent = useGemma ? 'Gemma queued' : 'Gemma skipped';
+      }
+      tplLog('net', 'POST /api/templates/fill-batch', templateIds.length + ' templates');
+      try {
+        const r = await fetch('/api/templates/fill-batch', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            bundle: _tplBundle,
+            template_ids: templateIds,
+            manual_fields: tplManualFieldsByTemplateId(templateIds),
+            use_gemma: useGemma,
+          }),
+        });
+        if (window.dcInferenceError) {
+          const queueErr = await window.dcInferenceError.parse(r);
+          if (queueErr) {
+            tplLog('warn', window.dcInferenceError.format(queueErr));
+            if (gemmaMark) {
+              gemmaMark.className = 'dc-gemma-mark is-unavailable';
+              gemmaMark.textContent = 'Gemma busy';
+            }
+            return;
+          }
+        }
+        if (!r.ok) {
+          const text = await r.text();
+          tplLog('err', 'Batch fill failed (HTTP ' + r.status + ')', text.slice(0, 240));
+          if (gemmaMark) {
+            gemmaMark.className = 'dc-gemma-mark is-unavailable';
+            gemmaMark.textContent = 'Gemma failed';
+          }
+          return;
+        }
+        const data = await r.json();
+        tplRenderBatchDrafts(data);
+        const drafts = data.drafts || [];
+        const used = drafts.filter(d => d.used_gemma).length;
+        if (window.dcGemmaStats) {
+          drafts.forEach(d => {
+            if (d.used_gemma) window.dcGemmaStats.bump('template_fill');
+          });
+        }
+        if (gemmaMark) {
+          if (used) {
+            gemmaMark.className = 'dc-gemma-mark is-done';
+            gemmaMark.textContent = 'Gemma done';
+          } else if (useGemma) {
+            gemmaMark.className = 'dc-gemma-mark is-unavailable';
+            gemmaMark.textContent = 'Gemma unavailable';
+          } else {
+            gemmaMark.className = 'dc-gemma-mark is-skipped';
+            gemmaMark.textContent = 'Gemma skipped';
+          }
+        }
+        const dt = Math.round(performance.now() - t0);
+        tplLog('ok', 'Batch fill complete (' + dt + 'ms)',
+          drafts.length + ' filled, ' + used + ' used_gemma');
+        if (drafts.some(d => d.noise_scrubbed_before_gemma)) {
+          tplLog('info', 'Noise scrub applied to batch bundle text',
+            'The shared bundle excerpt and bundle-derived fields were scrubbed before each draft was rendered.');
+        }
+      } catch (e) {
+        tplLog('err', 'Batch fill network error: ' + e);
+        if (gemmaMark) {
+          gemmaMark.className = 'dc-gemma-mark is-unavailable';
+          gemmaMark.textContent = 'Gemma failed';
+        }
+      } finally {
+        if (btn) btn.textContent = 'Fill all relevant';
+        tplUpdateBatchButton();
+      }
     }
 
     async function tplGenerateDraft() {

@@ -2657,6 +2657,7 @@ class TemplateSpec:
     summary: str
     body: str
     fields: tuple[TemplateField, ...]
+    relevance_indicators: tuple[str, ...] = ()
 
     def summary_payload(self) -> dict:
         """Lightweight metadata for /api/templates/list. Excludes the
@@ -2670,7 +2671,141 @@ class TemplateSpec:
             "fields": [f.to_dict() for f in self.fields],
             "n_fields": len(self.fields),
             "n_required": sum(1 for f in self.fields if f.required),
+            "relevance_indicators": list(template_relevance_indicators(self)),
         }
+
+
+_CANONICAL_TEMPLATE_INDICATORS: tuple[str, ...] = (
+    "fee_camouflage",
+    "fee_bondage",
+    "salary_deduction",
+    "debt_bondage",
+    "passport_retention",
+    "document_control",
+    "retaliation_risk",
+    "jurisdiction_shopping",
+    "wage_theft",
+    "deceptive_recruitment",
+    "movement_restriction",
+    "isolation",
+    "abuse_of_vulnerability",
+    "excessive_overtime",
+    "withheld_wages",
+    "case_signal",
+)
+
+_TEMPLATE_RELEVANCE_DEFAULTS: dict[str, tuple[str, ...]] = {
+    "hk_ld_fdh_complaint": (
+        "fee_camouflage", "fee_bondage", "salary_deduction",
+        "wage_theft", "passport_retention", "retaliation_risk",
+    ),
+    "ph_dmw_complaint": (
+        "fee_camouflage", "fee_bondage", "debt_bondage",
+        "deceptive_recruitment", "passport_retention",
+    ),
+    "iom_referral": (
+        "debt_bondage", "movement_restriction", "isolation",
+        "abuse_of_vulnerability", "document_control",
+    ),
+    "ngo_intake": (
+        "fee_camouflage", "fee_bondage", "salary_deduction",
+        "debt_bondage", "passport_retention", "document_control",
+        "retaliation_risk", "wage_theft", "deceptive_recruitment",
+        "movement_restriction", "isolation", "abuse_of_vulnerability",
+        "excessive_overtime", "withheld_wages", "case_signal",
+    ),
+}
+
+_TEMPLATE_INDICATOR_KEYWORDS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("fee", ("fee_camouflage", "fee_bondage")),
+    ("placement", ("fee_camouflage", "fee_bondage")),
+    ("deduction", ("salary_deduction", "withheld_wages")),
+    ("salary", ("salary_deduction", "wage_theft")),
+    ("wage", ("wage_theft", "withheld_wages")),
+    ("debt", ("debt_bondage",)),
+    ("passport", ("passport_retention", "document_control")),
+    ("document", ("document_control",)),
+    ("identity", ("document_control",)),
+    ("retaliation", ("retaliation_risk",)),
+    ("threat", ("retaliation_risk",)),
+    ("contract substitution", ("deceptive_recruitment",)),
+    ("deceptive", ("deceptive_recruitment",)),
+    ("movement", ("movement_restriction",)),
+    ("confinement", ("movement_restriction", "isolation")),
+    ("isolation", ("isolation",)),
+    ("vulnerability", ("abuse_of_vulnerability",)),
+    ("overtime", ("excessive_overtime",)),
+)
+
+
+def _normalize_template_indicator(value: Any) -> str | None:
+    raw = str(value or "").strip().lower().replace("-", "_").replace(" ", "_")
+    raw = re.sub(r"[^a-z0-9_]+", "", raw)
+    return raw if raw in _CANONICAL_TEMPLATE_INDICATORS else None
+
+
+def template_relevance_indicators(template: TemplateSpec) -> tuple[str, ...]:
+    """Return canonical indicator tags used by the batch-fill selector.
+
+    Existing registry entries predate explicit relevance metadata. Keep
+    the dataclass field for custom templates, provide high-signal
+    defaults for the flagship templates, then infer conservative tags
+    from labels/summary/body for the broader built-in catalog.
+    """
+    explicit = [
+        norm for norm in (
+            _normalize_template_indicator(v)
+            for v in (template.relevance_indicators or ())
+        )
+        if norm
+    ]
+    if explicit:
+        return tuple(dict.fromkeys(explicit))
+    if template.id in _TEMPLATE_RELEVANCE_DEFAULTS:
+        return _TEMPLATE_RELEVANCE_DEFAULTS[template.id]
+    haystack = " ".join([
+        template.id,
+        template.title,
+        template.jurisdiction,
+        template.audience,
+        template.summary,
+        template.body[:2000],
+        " ".join(f.label for f in template.fields),
+    ]).lower()
+    inferred: list[str] = []
+    for needle, indicators in _TEMPLATE_INDICATOR_KEYWORDS:
+        if needle in haystack:
+            inferred.extend(indicators)
+    return tuple(dict.fromkeys(inferred or ["case_signal"]))
+
+
+def bundle_ilo_indicators(bundle: dict) -> tuple[str, ...]:
+    """Canonical ILO indicator tuple from a process/template bundle."""
+    intel = (bundle or {}).get("intelligence") or {}
+    raw = intel.get("ilo_indicators") or []
+    if isinstance(raw, str):
+        raw = re.split(r"[,;\s]+", raw)
+    out = [
+        norm for norm in (_normalize_template_indicator(v) for v in raw)
+        if norm
+    ]
+    return tuple(dict.fromkeys(out))
+
+
+def select_relevant_templates_for_bundle(
+    bundle: dict,
+    *,
+    templates: Optional[dict[str, TemplateSpec]] = None,
+) -> list[TemplateSpec]:
+    """Select templates whose relevance indicators overlap the bundle."""
+    indicators = set(bundle_ilo_indicators(bundle))
+    if not indicators:
+        return []
+    registry = templates or TEMPLATES_REGISTRY
+    return [
+        spec for spec in registry.values()
+        if indicators.intersection(template_relevance_indicators(spec))
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -4354,6 +4489,8 @@ def gemma_fill_template(
     bundle: dict,
     manual_fields: dict,
     gemma_call: Optional[Callable[..., Any]] = None,
+    *,
+    bundle_excerpt: Optional[str] = None,
 ) -> tuple[dict, dict]:
     """Three-pass fill: deterministic source hints, manual overrides,
     Gemma orchestration for remaining gaps.
@@ -4399,7 +4536,11 @@ def gemma_fill_template(
     if gemma_call is not None:
         gaps = [f for f in template.fields if f.id not in filled]
         if gaps:
-            bundle_excerpt = bundle_excerpt_for_template(bundle)
+            shared_excerpt = (
+                bundle_excerpt
+                if bundle_excerpt is not None
+                else bundle_excerpt_for_template(bundle)
+            )
             field_summary = "\n".join(
                 f"  - {f.id} ({'required' if f.required else 'optional'}): {f.label}"
                 for f in gaps
@@ -4415,7 +4556,7 @@ def gemma_fill_template(
                 "evidence for a field, omit it from the JSON.\n\n"
                 f"TEMPLATE: {template.title}\n"
                 f"FIELDS TO PROPOSE:\n{field_summary}\n\n"
-                f"CASE BUNDLE EXCERPT:\n{bundle_excerpt}\n\n"
+                f"CASE BUNDLE EXCERPT:\n{shared_excerpt}\n\n"
                 "Respond with the JSON only."
             )
             try:
@@ -4450,6 +4591,50 @@ def gemma_fill_template(
     if gemma_error:
         meta["__gemma_error"] = gemma_error
     return filled, meta
+
+
+def gemma_fill_batch(
+    templates: list[TemplateSpec],
+    bundle: dict,
+    manual_fields_by_id: dict,
+    gemma_call: Optional[Callable[..., Any]] = None,
+) -> dict:
+    """Fill multiple templates while sharing one bundle excerpt.
+
+    Each template still gets its own Gemma call through
+    ``gemma_fill_template``. The expensive/sensitive bundle excerpt is
+    computed once and passed into every fill so the batch has the same
+    source context and tests can lock the reuse contract.
+    """
+    shared_excerpt = bundle_excerpt_for_template(bundle or {})
+    drafts: list[dict] = []
+    manual_by_id = manual_fields_by_id or {}
+    for template in templates:
+        manual = manual_by_id.get(template.id) or {}
+        if not isinstance(manual, dict):
+            manual = {}
+        filled, meta = gemma_fill_template(
+            template,
+            bundle or {},
+            manual,
+            gemma_call=gemma_call,
+            bundle_excerpt=shared_excerpt,
+        )
+        drafts.append({
+            "template_id": template.id,
+            "template": template.summary_payload(),
+            "rendered": render_template(template.body, filled),
+            "field_values": filled,
+            "manual_fields": manual,
+            "provenance": meta.get("per_field", {}),
+            "used_gemma": meta.get("used_gemma", False),
+            "gemma_error": meta.get("__gemma_error"),
+            "noise_scrubbed_before_gemma": True,
+        })
+    return {
+        "drafts": drafts,
+        "shared_excerpt_chars": len(shared_excerpt),
+    }
 
 
 def dry_run_fill_template(template: TemplateSpec, bundle: dict) -> dict:
@@ -4607,6 +4792,56 @@ def register_template_routes(app: Any) -> None:
             # cannot leak into the final complaint body.
             "noise_scrubbed_before_gemma": True,
         }
+
+    @app.post("/api/templates/fill-batch")
+    def api_templates_fill_batch(body: dict = Body(...)):
+        """Fill multiple templates from one case bundle.
+
+        Additive route: /api/templates/fill remains unchanged. The
+        batch route validates every requested template id up front,
+        computes the bundle excerpt once, then runs the same
+        gemma_fill_template primitive once per template.
+        """
+        body = body or {}
+        raw_ids = body.get("template_ids") or []
+        if isinstance(raw_ids, str):
+            raw_ids = [x.strip() for x in raw_ids.split(",") if x.strip()]
+        template_ids = [
+            str(tid or "").strip()
+            for tid in raw_ids
+            if str(tid or "").strip()
+        ]
+        unknown = [
+            tid for tid in template_ids
+            if tid not in TEMPLATES_REGISTRY
+        ]
+        if unknown:
+            return JSONResponse(
+                {
+                    "status": "unknown_template",
+                    "message": (
+                        f"No template registered for id={unknown[0]!r}. "
+                        f"Call /api/templates/list for the available set."
+                    ),
+                    "available": list(TEMPLATES_REGISTRY.keys()),
+                },
+                status_code=404,
+            )
+        templates = [TEMPLATES_REGISTRY[tid] for tid in template_ids]
+        bundle = body.get("bundle") or {}
+        manual_fields = body.get("manual_fields") or {}
+        if not isinstance(manual_fields, dict):
+            manual_fields = {}
+        use_gemma = parse_bool(body.get("use_gemma"), default=True)
+        gemma_call = (
+            getattr(app.state, "gemma_call", None) if use_gemma else None
+        )
+        return gemma_fill_batch(
+            templates,
+            bundle,
+            manual_fields,
+            gemma_call=gemma_call,
+        )
 
     # -----------------------------------------------------------------
     # Draft persistence (saves rendered templates to a local
@@ -4799,10 +5034,12 @@ __all__ = [
     "TEMPLATES_REGISTRY",
     "TemplateField",
     "TemplateSpec",
+    "bundle_ilo_indicators",
     "bundle_excerpt_for_template",
     "bundle_field_hint",
     "clear_custom_templates",
     "dry_run_fill_template",
+    "gemma_fill_batch",
     "gemma_fill_template",
     "is_builtin_template",
     "parse_bool",
@@ -4810,4 +5047,6 @@ __all__ = [
     "register_template_routes",
     "render_template",
     "safe_json_extract",
+    "select_relevant_templates_for_bundle",
+    "template_relevance_indicators",
 ]
