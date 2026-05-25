@@ -17,7 +17,7 @@
 > deterministic Contacts directory. The remaining components are:
 >
 > - #3 **Exchange** — see [`architecture/duecare_exchange.md`](architecture/duecare_exchange.md). No code in this repo; bridge today is curator-block PRs.
-> - #5 **Trainer** — see [`architecture/duecare_trainer.md`](architecture/duecare_trainer.md). Anchored in `kaggle/A-00-omni-experiment-workbench/`.
+> - #5 **Trainer** — see [`architecture/duecare_trainer.md`](architecture/duecare_trainer.md). Anchored in `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/`.
 > - #6 **Sentinel** — see [`architecture/duecare_sentinel.md`](architecture/duecare_sentinel.md). Bridge today: `scripts/v141_validate_contacts.py`.
 > - #7 **Channels** — see [`architecture/duecare_channels.md`](architecture/duecare_channels.md). No code in this repo.
 > - #8 **Mobile** — see [`architecture/duecare_mobile.md`](architecture/duecare_mobile.md). Sibling repo `duecare-journey-android` v0.9.0.

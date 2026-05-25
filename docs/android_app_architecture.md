@@ -117,7 +117,7 @@ builds, a JNI bridge, and per-architecture binaries. LiteRT is
 first-class on Android with NNAPI delegation and AI Edge Torch
 conversion, and is what the Special Technology Track rewards. The active
 training/export proof now lives in the A-00 preconfigured pipeline
-(`kaggle/A-00-omni-experiment-workbench/`); the older notebook-era path is
+(`kaggle/_archive/notebooks/A-00-omni-experiment-workbench/`); the older notebook-era path is
 archived.
 
 ### Layer 2 — Journal (Room + SQLCipher)

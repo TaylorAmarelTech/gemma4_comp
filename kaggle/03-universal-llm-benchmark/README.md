@@ -12,7 +12,9 @@ still:
 
 1. `01-duecare-exploration-workbench`
 2. `02-live-demo`
-3. `A-00-omni-experiment-workbench`
+
+A-00 is archived proof material under `kaggle/_archive/notebooks/`, not part
+of the active recording path.
 
 Use this kernel when you want to compare external APIs, local OpenAI-compatible
 servers, hosted endpoints, or future Gemma variants without editing the main

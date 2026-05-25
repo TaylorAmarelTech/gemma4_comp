@@ -2,7 +2,7 @@
 
 This is the current 2026-05-17 verification path for the DueCare Gemma 4
 Good Hackathon submission. Older notebook-era material is archived or marked
-historical; the active Kaggle path is exactly the three script kernels listed
+historical; the active Kaggle path is exactly the two script kernels listed
 below.
 
 ## Thirty-Second Summary
@@ -10,26 +10,28 @@ below.
 DueCare is a Gemma 4 harness ecosystem for migrant-worker exploitation risk.
 It wraps Gemma 4 with reusable safety layers, knowledge packs, deterministic
 tools, sensitive-data handling, evaluation, and report generation. The current proof
-focuses on three surfaces:
+focuses on two active surfaces:
 
 | Surface | Purpose |
 |---|---|
 | `kaggle/01-duecare-exploration-workbench/` | Broad interactive workbench: chat, harness comparison, search, knowledge extraction, bulk review, traces, and activity logs. |
 | `kaggle/02-live-demo/` | Focused live demo and video path. |
-| `kaggle/A-00-omni-experiment-workbench/` | Quantitative pipeline: base Gemma, harnessed Gemma, synthetic data, optional LoRA fine-tune, final combined rule + LLM judging, and evidence reports. |
 
 The active inventory is tracked in [`kaggle/_INDEX.md`](../kaggle/_INDEX.md)
 and [`docs/current_kaggle_notebook_state.md`](current_kaggle_notebook_state.md).
+A-00 remains available as archived proof material, not an active recording
+kernel.
 
 ## What To Verify First
 
 1. Open `01-duecare-exploration-workbench` and run the chat/harness comparison
    path. Confirm the default harness uses Persona + GREP + RAG/context + tools,
    with online search/imports only when explicitly enabled.
-2. Open `A-00-omni-experiment-workbench` and run the preconfigured path for a
-   small prompt count. Confirm the Activity log shows the numbered pipeline
-   steps, prompt/response artifacts, combined rule + LLM grading, and report
-   bundle links under `/kaggle/working`.
+2. Optional only: open archived `A-00-omni-experiment-workbench` and run the
+   preconfigured path for a small prompt count if new proof artifacts are
+   needed. Confirm the Activity log shows the numbered pipeline steps,
+   prompt/response artifacts, combined rule + LLM grading, and report bundle
+   links under `/kaggle/working`.
 3. Confirm all local inference model loading goes through
    `Gemma4Runtime.load()` and the Unsloth `FastModel` recipe documented in
    [`docs/model_loading_trace.md`](model_loading_trace.md).
@@ -47,13 +49,13 @@ The authoritative harness docs are:
 
 The registered harnesses are `chat`, `process`, `extraction`,
 `anonymization`, `search_safety`, `post_search_verification`, `search`, and
-`import_corpus`. A-00 also uses pipeline-specific harness families for
+`import_corpus`. Archived A-00 also uses pipeline-specific harness families for
 synthetic data generation, fine-tuning, combined judging, checkpointing, and
 report/export bundles.
 
-## A-00 Proof Path
+## Archived A-00 Proof Path
 
-The preconfigured A-00 pipeline should:
+The preconfigured archived A-00 pipeline should:
 
 1. Check/unload current model state.
 2. Check disk space and clean if needed.
@@ -79,7 +81,7 @@ From the repository root:
 $env:PYTHONPATH='packages/duecare-llm-models/src;packages/duecare-llm-chat/src;packages/duecare-llm-core/src'
 
 python -m py_compile `
-  kaggle\A-00-omni-experiment-workbench\kernel.py `
+  kaggle\_archive\notebooks\A-00-omni-experiment-workbench\kernel.py `
   scripts\generate_notebook_guide.py `
   scripts\kaggle_notebook_utils.py
 

@@ -45,7 +45,7 @@ Taylor explicitly asks:
 - `kaggle/02-live-demo/kernel.py` — focused interactive demo path. Uses
   `duecare.chat.gemma4_runtime.Gemma4Runtime` via `_LIVE_MODEL_RUNTIME`
   and `duecare.server.create_app` for the live-demo surface.
-- `kaggle/A-00-omni-experiment-workbench/kernel.py` — quantitative
+- `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py` — quantitative
   control plane for benchmark / synthetic-data / fine-tuning / judging /
   reports. Uses `Gemma4Runtime` via `A00_MODEL_RUNTIME`.
 
@@ -199,7 +199,7 @@ Plus, for harness families beyond the registered:
 
 ## A-00 preconfigured pipeline contract (current state)
 
-`PipelineRequest` defaults in `kaggle/A-00-omni-experiment-workbench/kernel.py:1085`:
+`PipelineRequest` defaults in `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py:1085`:
 
 - `preset_id = "synthetic_train_benchmark_cycle"`
 - `model_a_ref = A00_SMALL_MODEL_REF` (`google/gemma-4-2b-it`)
@@ -260,7 +260,7 @@ Code:
 - `packages/duecare-llm-chat/src/duecare/chat/static/harness.html`
 - `kaggle/01-duecare-exploration-workbench/kernel.py`
 - `kaggle/02-live-demo/kernel.py`
-- `kaggle/A-00-omni-experiment-workbench/kernel.py`
+- `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py`
 
 Docs to read first:
 - `CLAUDE.md` (protected setup metadata — **flag changes, do not auto-edit**)
@@ -297,7 +297,7 @@ Pick any one. Each is small enough to commit independently.
 
 ### 1. Migrate A-00 external judge factories to `call_model_backend`
 
-`kaggle/A-00-omni-experiment-workbench/kernel.py:2057-2147` currently
+`kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py:2057-2147` currently
 hand-roll HTTP for Ollama and Anthropic. Replace with the
 `model_interface.call_model_backend(...)` path so usage / latency /
 tool calls normalize through `UniversalModelResponse`. Keep the
@@ -319,7 +319,7 @@ rewired, and the archive README was updated:
 
 ### 3. Align GREP and RAG layer step status with new `pass/noop/degraded`
 
-In `kaggle/A-00-omni-experiment-workbench/kernel.py::_build_harness_prompt`,
+In `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py::_build_harness_prompt`,
 the tools layer now emits `pass` / `noop` / `degraded` step statuses
 (commit 76e44a1 + 1bde14b). Completed in a follow-up cleanup pass:
 GREP and RAG now emit `noop` when they run but find zero hits/facts,
@@ -347,7 +347,7 @@ scope for the default A-00 proof path (Online stays off there).
 
 Resolved in commit e2d3857 ("Reduce doc drift and tighten harness
 traces"). `docs/notebook_guide.md` was regenerated against the active
-three-kernel inventory and the four `tests/test_kaggle_notebook_utils.py`
+former three-kernel inventory and the four `tests/test_kaggle_notebook_utils.py`
 tests now pass.
 
 ### 7. `tests/unit/*` collection errors
@@ -384,7 +384,7 @@ git fetch origin
 git status --short --branch
 git log --oneline -10
 
-python -m py_compile kaggle\A-00-omni-experiment-workbench\kernel.py
+python -m py_compile kaggle\_archive\notebooks\A-00-omni-experiment-workbench\kernel.py
 
 $env:PYTHONPATH='packages/duecare-llm-models/src;packages/duecare-llm-chat/src;packages/duecare-llm-core/src'
 

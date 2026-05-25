@@ -201,7 +201,7 @@ The technical-depth angle. Key data points:
 - 12 migration corridors with statute lookups
 - 100+ GREP rules for pattern detection
 - 50+ document legal RAG corpus (ILO conventions, POEA MCs, etc.)
-- Three active Kaggle kernels for reproducibility, with A-00 exporting the quantitative evidence bundle
+- Two active Kaggle kernels for reproducibility, with archived A-00 exporting the quantitative evidence bundle
 
 ### "Open-source labor protection for the global south"
 

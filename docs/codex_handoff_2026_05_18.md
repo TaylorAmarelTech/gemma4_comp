@@ -1,4 +1,4 @@
-# Codex handoff — 2026-05-18 (final session snapshot)
+﻿# Codex handoff â€” 2026-05-18 (final session snapshot)
 
 > Snapshot of the DueCare submission state at end of the 2026-05-18
 > work session. Read this top-to-bottom before picking up the
@@ -21,8 +21,8 @@ the new kernel names. The writeup and deck now include the measured
 Statutory mis-citation fixed
 project-wide and pinned by a contract test. Attribution doc
 (`docs/CREDITS.md`) added. Writeup (`docs/writeup_draft.md`,
-1494 / 1500 words) positions DueCare for the **Impact Track →
-Safety & Trust ($10K)** plus **Special Technology → Unsloth ($10K)**
+1494 / 1500 words) positions DueCare for the **Impact Track â†’
+Safety & Trust ($10K)** plus **Special Technology â†’ Unsloth ($10K)**
 and **LiteRT ($10K)** prizes.
 
 ## Commit log (this session, newest first)
@@ -49,7 +49,7 @@ All pushed to `origin/master`.
 |---|---|---|---|
 | Exploration Workbench | **DueCare App** | `taylorsamarel/duecare-app` | `kaggle/01-duecare-exploration-workbench/` |
 | Live Demo | **DueCare Live Demo** | `taylorsamarel/duecare-live-demo` | `kaggle/02-live-demo/` |
-| A-00 Omni Experiment Workbench | **DueCare Fine-tuning and Evaluation** | `taylorsamarel/duecare-fine-tuning-and-evaluation` | `kaggle/A-00-omni-experiment-workbench/` |
+| A-00 Omni Experiment Workbench | **DueCare Fine-tuning and Evaluation** | `taylorsamarel/duecare-fine-tuning-and-evaluation` | `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/` |
 
 **Intentionally not renamed** (stable contract surfaces):
 - folder paths under `kaggle/`
@@ -63,14 +63,14 @@ All pushed to `origin/master`.
 
 ```
 1.  The problem at a scale generic AI is not closing
-2.  Why "DueCare" — Cal. Civ. Code §1714(a) duty-of-care
+2.  Why "DueCare" â€” Cal. Civ. Code Â§1714(a) duty-of-care
 3.  Solution: six lanes, one local substrate (6-lane table)
 4.  How Gemma 4's unique features are load-bearing
     - native function calling (tool dispatch)
     - multimodal understanding (Bulk File Review vision queue)
     - local frontier intelligence
     - fine-tunable (Unsloth)
-5.  The substrate — components in detail
+5.  The substrate â€” components in detail
     (165+ GREP rules, 55+ knowledge packs, persona,
      graph extraction, sensitive-data handling, refusal head, grading)
 6.  Main server architecture (FastAPI + harness contract)
@@ -89,9 +89,9 @@ Track positioning declared up top: **Safety & Trust** (Impact),
 ## What's in the deck (23 slides)
 
 ```
-01. Title — "Local Gemma 4 safety infrastructure for migrant-worker protection"
-02. Stakes — scale + capability gap (28M / $236B / 169M / 3x)
-03. Solution — 6 lanes + shared substrate
+01. Title â€” "Local Gemma 4 safety infrastructure for migrant-worker protection"
+02. Stakes â€” scale + capability gap (28M / $236B / 169M / 3x)
+03. Solution â€” 6 lanes + shared substrate
 04. Moderation overview (3 FB cards)
 05. Moderation demo (FB post + 5-stage harness)
 06. Case-analysis overview (pipeline + lanes)
@@ -103,7 +103,7 @@ Track positioning declared up top: **Safety & Trust** (Impact),
 12. Anonymized-sharing overview (4-step flow)
 13. Anonymized-sharing demo (dropzone + KO candidates)
 14. Components (6 substrate lanes)
-15. Download knowledge packs (6 download cards) ← NEW
+15. Download knowledge packs (6 download cards) â† NEW
 16. Module ecosystem (reinforcement loop)
 17. Benchmarks (measured A-00 smoke matrix)
 18. Why Gemma 4 (6 lanes)
@@ -127,12 +127,12 @@ Track positioning declared up top: **Safety & Trust** (Impact),
 | `packages/duecare-llm-server/src/duecare/server/static/slides-setup.html` | Cached chat-row generator at `/slides/setup`. |
 | `packages/duecare-llm-server/src/duecare/server/static/start.html` | Two-tile landing at `/start`. |
 | `packages/duecare-llm-server/tests/test_slides_surface.py` | Contract tests (19 now, was 14). |
-| `scripts/prebake_slide_cached_io.py` | NEW CLI. Pre-bakes the 6×7=42 cached chat rows. |
+| `scripts/prebake_slide_cached_io.py` | NEW CLI. Pre-bakes the 6Ã—7=42 cached chat rows. |
 | `README.md` | GitHub front page with "Try in 30 seconds" hero. |
 | `kaggle/_INDEX.md` | Three-kernel index (slug + title columns). |
 | `kaggle/01-duecare-exploration-workbench/README.md` | DueCare App README. |
 | `kaggle/02-live-demo/README.md` | DueCare Live Demo README with 5-click bootstrap. |
-| `kaggle/A-00-omni-experiment-workbench/README.md` | Fine-tuning and Evaluation README with 5-click bootstrap. |
+| `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/README.md` | Fine-tuning and Evaluation README with 5-click bootstrap. |
 | `apps/duecare-ai.com/app/templates/use-cases.html` | Website 6-card lane page. |
 | `apps/duecare-ai.com/app/templates/kernels.html` | Website kernel cards (new slugs). |
 
@@ -174,7 +174,7 @@ scripts/prebake_slide_cached_io.py
   python scripts/prebake_slide_cached_io.py --out prebaked_42_rows.json --pretty
 ```
 
-Generates all 42 (6 audience × 7 use case) cached chat rows so
+Generates all 42 (6 audience Ã— 7 use case) cached chat rows so
 Taylor can pick one per recording take and paste a single JS snippet
 into the browser DevTools to populate `localStorage['duecare.slides.demo.chat']`
 without using the `/slides/setup` UI.
@@ -193,7 +193,7 @@ don't exist on Kaggle yet. Before submission:
   Recommendation: publish new, leave old as redirect-style
   archive-note pages.
 
-Per CLAUDE.md rule 50, Kaggle pushes are **manual** — Codex must not
+Per CLAUDE.md rule 50, Kaggle pushes are **manual** â€” Codex must not
 run `kaggle kernels push` without Taylor's explicit OK.
 
 ### 2. A-00 smoke matrix now reflected
@@ -252,16 +252,16 @@ uvicorn.run(create_app(s), host='127.0.0.1', port=8771)
 Then open `http://127.0.0.1:8771/start`, click *Project slides*,
 arrow through all 23. Open `http://127.0.0.1:8771/slides/setup` to
 pre-bake the cached worker question for the `/slides#demo-chat`
-slide — or use the new `scripts/prebake_slide_cached_io.py` CLI.
+slide â€” or use the new `scripts/prebake_slide_cached_io.py` CLI.
 
 ## Pointer: the live demo flow for the recording
 
-1. **Open `/start`** — show the two-tile landing.
-2. **Click *Project slide setup*** — pick an audience + use case →
-   *Generate* → *Save for slides*. Cached row in localStorage.
-3. **Click *Project slides*** — walk through all 23 slides. Each
-   demo runner is labelled "cached · replays in ~3s".
-4. **On `/slides#demo-chat`** — cached prompt + response appears
+1. **Open `/start`** â€” show the two-tile landing.
+2. **Click *Project slide setup*** â€” pick an audience + use case â†’
+   *Generate* â†’ *Save for slides*. Cached row in localStorage.
+3. **Click *Project slides*** â€” walk through all 23 slides. Each
+   demo runner is labelled "cached Â· replays in ~3s".
+4. **On `/slides#demo-chat`** â€” cached prompt + response appears
    immediately.
 5. **Optional**: from `/start`, click *Bulk File Review*
    (`/wb-static/process.html`) and drop in the
@@ -270,9 +270,9 @@ slide — or use the new `scripts/prebake_slide_cached_io.py` CLI.
 
 ## Communication style notes (project conventions)
 
-- Don't headline "Privacy is non-negotiable" — privacy is one
+- Don't headline "Privacy is non-negotiable" â€” privacy is one
   boundary among many, not the slogan.
-- Don't use "ship/shipping" verbs — Taylor has rejected the metaphor.
+- Don't use "ship/shipping" verbs â€” Taylor has rejected the metaphor.
 - Composite agency names ("Sunburst", "HK Domestic Jobs") must
   carry a visible "(composite)" label in any published artifact.
 - "Filipina" must never appear in published copy.

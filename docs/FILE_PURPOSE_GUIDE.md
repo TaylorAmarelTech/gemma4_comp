@@ -1,4 +1,4 @@
-# File Purpose Guide
+﻿# File Purpose Guide
 
 This guide keeps the repository readable for reviewers and future agents. It
 does not list every generated artifact one by one; instead it defines where
@@ -74,7 +74,6 @@ Primary recording path:
 
 1. `kaggle/01-duecare-exploration-workbench`
 2. `kaggle/02-live-demo`
-3. `kaggle/A-00-omni-experiment-workbench`
 
 Optional evaluation surface:
 
@@ -84,7 +83,12 @@ Optional evaluation surface:
 Archived reference material:
 
 - `kaggle/_archive/notebooks/03-duecare-video-pitch`
+- `kaggle/_archive/notebooks/A-00-omni-experiment-workbench`
 - `kaggle/_archive/notebooks/A-01` through `A-24`
+
+Do not add appendix `A-*` folders at the root of `kaggle/`. The only root
+`04-*` folder should be `kaggle/04-kaggle-community-benchmark`; other `04-*`
+notebook snapshots belong under `kaggle/_archive/notebooks/`.
 
 ## Commit Checklist
 

@@ -2,7 +2,7 @@
 
 Targets A-05 (lingering Method 2 fallback), A-06/A-07/A-09/A-10/A-11
 (no GitHub install at all). Each kernel gets the canonical install_duecare_from_github()
-function (matching kaggle/A-08-research-graphs/kernel.py) and its existing
+function (matching kaggle/_archive/notebooks/A-08-research-graphs/kernel.py) and its existing
 wheel-walking install function body is replaced with a thin call.
 
 Policy 2026-05-11: NO Kaggle wheel datasets. GitHub Release wheels (Tier 1),
@@ -81,7 +81,7 @@ def install_duecare_from_github() -> bool:
 
 def fix_a05() -> None:
     """Remove lingering Method 2 wheel fallback from A-05."""
-    path = ROOT / 'kaggle/A-05-gemma-content-classification-evaluation/kernel.py'
+    path = ROOT / 'kaggle/_archive/notebooks/A-05-gemma-content-classification-evaluation/kernel.py'
     text = path.read_text(encoding='utf-8')
     pattern = re.compile(
         r'    # Method 2: Fallback to wheels dataset \(original logic\)\n'
@@ -161,7 +161,7 @@ def replace_install_function(folder: str, func_name: str) -> bool:
 def fix_a10() -> None:
     """A-10 has top-level wheel install (not a function). Inject CANONICAL_INSTALL,
     replace the inline install block with a call to install_duecare_from_github()."""
-    path = ROOT / 'kaggle/A-10-chat-playground-jailbroken-models/kernel.py'
+    path = ROOT / 'kaggle/_archive/notebooks/A-10-chat-playground-jailbroken-models/kernel.py'
     text = path.read_text(encoding='utf-8')
     idx = text.find('found = sorted(p for p in Path("/kaggle/input").rglob("*.whl")')
     if idx == -1:
@@ -188,7 +188,7 @@ def fix_a10() -> None:
 def fix_a11() -> None:
     """A-11 uses pip install --no-index --find-links WHEELS_DIR. Replace with
     GitHub install."""
-    path = ROOT / 'kaggle/A-11-grading-evaluation/kernel.py'
+    path = ROOT / 'kaggle/_archive/notebooks/A-11-grading-evaluation/kernel.py'
     text = path.read_text(encoding='utf-8')
     wheels_dir_idx = text.find('WHEELS_DIR = "/kaggle/input/')
     if wheels_dir_idx == -1:

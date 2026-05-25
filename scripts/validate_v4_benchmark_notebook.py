@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """scripts/validate_v4_benchmark_notebook.py
 
-Local smoke test for kaggle/04-task-notebook-fresh/task_notebook.ipynb.
+Local smoke test for kaggle/_archive/notebooks/04-task-notebook-fresh/task_notebook.ipynb.
 
 What this catches BEFORE we push to Kaggle:
   - Code cells with syntax errors.

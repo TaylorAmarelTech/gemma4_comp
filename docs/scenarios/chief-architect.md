@@ -248,7 +248,7 @@ shape changes.
 - [ADR-001: Multi-package PyPI split](../adr/001-multi-package-pypi-split.md) — why 17 packages
 - [ADR-002: Folder-per-module](../adr/002-folder-per-module-pattern.md) — why the source layout
 - [ADR-003: On-device default; cloud opt-in](../adr/003-on-device-default-cloud-opt-in.md) — why the privacy posture
-- [ADR-004: 6+5 notebook shape](../_archive/2026-05-16-legacy-notebook-era/004-six-plus-five-notebook-shape.md) — historical submission-shape decision (archived; superseded by the active three-kernel scope)
+- [ADR-004: 6+5 notebook shape](../_archive/2026-05-16-legacy-notebook-era/004-six-plus-five-notebook-shape.md) — historical submission-shape decision (archived; superseded by the active two-kernel scope)
 - [ADR-005: Tenant id from edge proxy](../adr/005-tenant-id-from-edge-proxy.md) — why we don't bake auth in
 
 These are decisions you might revisit; the ADR explains what was

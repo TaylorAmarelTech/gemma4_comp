@@ -1,4 +1,4 @@
-# DueCare System Map
+﻿# DueCare System Map
 
 Current as of 2026-05-17.
 
@@ -44,7 +44,7 @@ flowchart TD
 |---|---|
 | `kaggle/01-duecare-exploration-workbench/` | Broad interactive harness workbench. |
 | `kaggle/02-live-demo/` | Focused demo and video route. |
-| `kaggle/A-00-omni-experiment-workbench/` | Quantitative proof run and export bundle. |
+| `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/` | Quantitative proof run and export bundle. |
 
 The retired A-series notebook ladder is archived and is not the current
 reviewer path.

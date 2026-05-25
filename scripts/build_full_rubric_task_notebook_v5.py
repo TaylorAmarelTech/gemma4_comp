@@ -57,7 +57,14 @@ import uuid
 
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
-NOTEBOOK_PATH = REPO_ROOT / "kaggle" / "04-task-notebook-v5" / "task_notebook.ipynb"
+NOTEBOOK_PATH = (
+    REPO_ROOT
+    / "kaggle"
+    / "_archive"
+    / "notebooks"
+    / "04-task-notebook-v5"
+    / "task_notebook.ipynb"
+)
 
 DUECARE_REPO = "TaylorAmarelTech/gemma4_comp"
 DUECARE_COMMIT_SHA = "d98dd9f"

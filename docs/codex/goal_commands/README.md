@@ -16,7 +16,7 @@ Every command in this directory assumes:
 - Push after each goal commit
 - Update the goal `handoff.md` status and `docs/codex/README.md` after completion
 - Run `python scripts/validate_main_kaggle_kernels.py` before committing each goal
-- Keep the five non-archived main Kaggle `kernel.py` files green; appendix and archived notebooks are out of scope unless Taylor explicitly says otherwise
+- Keep the four active/optional root Kaggle `kernel.py` files and the Kaggle root layout green; appendix and archived notebooks are out of scope unless Taylor explicitly says otherwise
 - `CLAUDE.md` may be edited only for reconciliation of completed goal state, kernel constraints, or operating brief
 - Do not stage unrelated dirty files, deleted generated/data artifacts, or user changes
 - Stop only for unrecoverable verification failure, main-kernel gate failure, do-not-break conflict, destructive-action approval, or a user change that makes safe continuation impossible

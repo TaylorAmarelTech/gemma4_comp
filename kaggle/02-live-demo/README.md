@@ -1,4 +1,4 @@
-# DueCare Live Demo (#02 Core)
+﻿# DueCare Live Demo (#02 Core)
 
 > Focused product demo with real Gemma 4 inference. Use this notebook when
 > judges want to click a running product surface.
@@ -24,7 +24,7 @@ working runtime surfaces.
 |---|---|
 | Lede | Focused live product demo for the DueCare harness. |
 | What it does | Starts FastAPI, loads the selected Gemma 4 variant, opens a Cloudflare URL, and runs the safety-harness pipeline with audit trail. |
-| Demo path | Run all, open the printed URL, send the curated PH-HK prompt, inspect the harness trace, then use A-00 for quantitative comparison. |
+| Demo path | Run all, open the printed URL, send the curated PH-HK prompt, and inspect the harness trace. Archived A-00 proof artifacts can be used separately for quantitative comparison. |
 | Audience | Platform safety, NGO/regulator, worker, researcher, developer. |
 | Gemma 4 features | Local inference, structured tool use, grounded response generation, and harnessed safety behavior. |
 | Outputs | Live web demo, responses, traces, and audit events. |
@@ -46,7 +46,7 @@ Copy-paste reproduction path so a judge can run this kernel without leaving Kagg
 
 1. **New Notebook** on Kaggle (`https://www.kaggle.com/code`). Choose **+ New Notebook**.
 2. **Set the accelerator** in the right-hand panel: **Accelerator: GPU T4 x2**, **Internet: On**.
-3. **Add the model** in the right-hand panel: **+ Add Input → Models → `google/gemma-4`**.
+3. **Add the model** in the right-hand panel: **+ Add Input â†’ Models â†’ `google/gemma-4`**.
    The default kernel resolves to **`gemma-4-2b-it`** (E2B). If you have the
    `gemma-4-4b-it` (E4B) or larger variants attached, the kernel picks them up
    automatically.
@@ -61,7 +61,7 @@ Copy-paste reproduction path so a judge can run this kernel without leaving Kagg
 If you only have a single-T4 free tier, the kernel still works for the
 small-Gemma path; expect slower load. Heuristic-only mode (no model attached)
 still serves `/start`, `/slides`, the deterministic GREP / RAG / tools paths,
-and the cached-chat slot — the model only matters for the live `/chat`
+and the cached-chat slot â€” the model only matters for the live `/chat`
 endpoint and the optional Gemma edge pass on Bulk File Review.
 
 ## What to Show
@@ -83,7 +83,7 @@ For a screen-recording walkthrough:
    from the Start page. Use the streamlined sample bundle to show
    upload, processing progress, optional local Gemma 4 edge creation,
    graph inspection, and graph chat.
-6. Use A-00 (`kaggle/A-00-omni-experiment-workbench`) for quantitative
+6. Optional only: use archived A-00 (`kaggle/_archive/notebooks/A-00-omni-experiment-workbench`) for quantitative
    proof: baseline vs harnessed responses, rule/LLM judging, grading
    dimensions, and reproducible reports.
 
@@ -123,7 +123,7 @@ Before recording or sharing the live URL, verify:
 3. The trace shows the applied harness layers and the exact evidence used.
 4. The grading output includes dynamic dimensions, contact grounding, and non-uplift checks.
 5. The run context is documented: model variant, quantization, GPU, package version, and public URL.
-6. A-00 can reproduce the same prompt set as a baseline and harnessed comparison export.
+6. Archived A-00 can reproduce the same prompt set as a baseline and harnessed comparison export.
 
 ## Files
 
@@ -138,5 +138,5 @@ Before recording or sharing the live URL, verify:
 ## Related Notebooks
 
 - `../01-duecare-exploration-workbench/`: full workbench.
-- `../A-00-omni-experiment-workbench/`: proof reports, synthetic data, and training.
+- `../_archive/notebooks/A-00-omni-experiment-workbench/`: archived proof reports, synthetic data, and training.
 - `../_archive/notebooks/`: former appendix and video-pitch kernels, kept as reference material only.

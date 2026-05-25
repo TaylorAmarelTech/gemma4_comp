@@ -1,4 +1,4 @@
-# DueCare Report Card
+﻿# DueCare Report Card
 
 Status date: 2026-05-19
 
@@ -11,7 +11,7 @@ The active public submission path is intentionally narrow:
 
 1. `kaggle/01-duecare-exploration-workbench/` - broad live workbench.
 2. `kaggle/02-live-demo/` - focused screen-recording surface and slides.
-3. `kaggle/A-00-omni-experiment-workbench/` - evaluation, training, and
+3. `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/` - evaluation, training, and
    benchmarking console.
 
 Archived A-series notebooks remain under `kaggle/_archive/notebooks/` as

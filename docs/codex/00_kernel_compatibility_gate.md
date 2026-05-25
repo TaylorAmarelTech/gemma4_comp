@@ -1,20 +1,24 @@
-# 00 - Kernel compatibility gate
+﻿# 00 - Kernel compatibility gate
 
 > Created 2026-05-24. Applies to every Codex goal that touches packages, static workbench pages, routes, sample artifacts, Kaggle publishing behavior, or docs that instruct agents to commit/push goal work.
 
 ## Scope
 
-This gate protects the five non-archived Kaggle `kernel.py` files and their Kaggle metadata that a judge or reviewer can still run:
+This gate protects the Kaggle root layout, the two active Kaggle `kernel.py`
+files, and the two optional benchmark `kernel.py` files that a judge or
+reviewer can still run:
 
 | Tier | Path | Why it matters |
 |---|---|---|
 | Active | `kaggle/01-duecare-exploration-workbench/kernel.py` | Main DueCare App / reviewer workbench |
 | Active | `kaggle/02-live-demo/kernel.py` | Focused recording and live demo path |
-| Active | `kaggle/A-00-omni-experiment-workbench/kernel.py` | Fine-tuning, evaluation, and experiment control plane |
 | Optional | `kaggle/03-universal-llm-benchmark/kernel.py` | External endpoint benchmark |
 | Optional | `kaggle/04-kaggle-community-benchmark/kernel.py` | Kaggle Community Benchmark task flow |
 
-Appendix notebooks, archived notebooks, and legacy notebook-era folders are intentionally out of scope for this gate unless Taylor explicitly asks to restore or migrate them.
+Appendix notebooks, archived notebooks, and legacy notebook-era folders are
+intentionally out of scope for kernel compatibility unless Taylor explicitly
+asks to restore or migrate them. The layout check still fails if appendix
+`A-*` folders or extra `04-*` snapshots are reintroduced at the root.
 
 ## Required command
 
@@ -24,8 +28,11 @@ Run this before committing each goal:
 python scripts/validate_main_kaggle_kernels.py
 ```
 
-This is a static, pure-stdlib check. It does not import DueCare packages, launch FastAPI, install dependencies, download models, or start cloudflared. It verifies that the main kernels:
+This is a static, pure-stdlib check. It does not import DueCare packages,
+launch FastAPI, install dependencies, download models, or start cloudflared. It
+verifies that the Kaggle root layout and main kernels:
 
+- keep appendix `A-*` and extra `04-*` task snapshots out of root `kaggle/`,
 - still exist in their published folders,
 - parse as Python,
 - are UTF-8 readable,

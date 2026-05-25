@@ -240,8 +240,8 @@ proposal is safe enough to ship.
 
 ### 5. Duecare Trainer — model adaptation / retraining pipeline
 
-**Prototype (A-00 pathway).** The preconfigured pipeline at
-`kaggle/A-00-omni-experiment-workbench/` is the current reference
+**Prototype (archived A-00 pathway).** The preconfigured pipeline at
+`kaggle/_archive/notebooks/A-00-omni-experiment-workbench/` is the archived reference
 implementation for synthetic rows, LoRA smoke training, checkpoint/resume,
 adapter save/load, and report exports; full multi-tenant Trainer service is
 post-hackathon.
@@ -502,12 +502,12 @@ Module** prototype shipped through the DueCare Fine-tuning and Evaluation.
 - **Quality Testing Framework** (partial) — multi-dimension rubric + adversarial suite + multiple grade modes.
 - **Contacts directory** — curated entries for regulators, NGOs, embassies, and hotlines.
 - **Synthetic multimodal evidence** — bundled CC0 images + structured-post JSONs.
-- **Kaggle live proof path** — three active kernels: exploration workbench,
-  live demo, and DueCare Fine-tuning and Evaluation.
+- **Kaggle live proof path** — two active kernels: exploration workbench
+  and live demo. DueCare Fine-tuning and Evaluation is archived proof material.
 
 ### Prototype / appendix / near-term
 
-- **Fine-Tuning Module** — `kaggle/A-00-omni-experiment-workbench/` runs synthetic row generation, Unsloth LoRA smoke training, checkpoint/resume, adapter save/load, four-arm comparison, combined judging, and report exports. Adapter targets are scoped; multi-tenant fine-tuning service is post-hackathon.
+- **Fine-Tuning Module** — archived `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/` runs synthetic row generation, Unsloth LoRA smoke training, checkpoint/resume, adapter save/load, four-arm comparison, combined judging, and report exports. Adapter targets are scoped; multi-tenant fine-tuning service is post-hackathon.
 - **NGO / government RAG packs** — `_contacts.json` curator-block pattern is the bridge. Tenant-specific packs are post-hackathon.
 - **Complaint draft workflows** — `/static/hotlines.html` + `/api/contacts` produce `mailto:` drafts. Channel-specific UX (Messenger / WhatsApp) is roadmap.
 

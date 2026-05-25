@@ -1,4 +1,4 @@
-# Rubric Alignment
+﻿# Rubric Alignment
 
 Current as of 2026-05-17.
 
@@ -13,7 +13,7 @@ Active Kaggle path:
 
 - `kaggle/01-duecare-exploration-workbench/`
 - `kaggle/02-live-demo/`
-- `kaggle/A-00-omni-experiment-workbench/`
+- `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/`
 
 ## Technical Depth
 

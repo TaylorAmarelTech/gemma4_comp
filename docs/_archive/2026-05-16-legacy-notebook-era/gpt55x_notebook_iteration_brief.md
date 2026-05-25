@@ -1,4 +1,4 @@
-# DueCare Kaggle Kernels — Iteration Brief for GPT 5.5x
+﻿# DueCare Kaggle Kernels â€” Iteration Brief for GPT 5.5x
 
 > **Current workflow correction (2026-05-11).** The active submission is
 > kernel-first, not notebook-first. Treat `kaggle/*/kernel.py` plus each
@@ -17,7 +17,7 @@
 ## 0. Read this first
 
 Today is **2026-05-11**. The Gemma 4 Good Hackathon submission is due
-**2026-05-18** — T-7 days. The submission publishes **27 Kaggle kernel folders**
+**2026-05-18** â€” T-7 days. The submission publishes **27 Kaggle kernel folders**
 plus a public website plus a writeup plus a 3-minute video.
 
 **The video is a screen recording of the live product**, not slides or
@@ -59,7 +59,7 @@ exist and is not tracked.
 This brief was prepared in two phases. **Phase 1 has already landed
 on `master`.** You're picking up Phase 2.
 
-### 2026-05-11 direction update — make the appendices an experiment ladder
+### 2026-05-11 direction update â€” make the appendices an experiment ladder
 
 Taylor's latest preference is that the appendix sequence should read less
 like a loose collection of playgrounds and more like a reproducible model
@@ -71,34 +71,34 @@ and metadata.
 
 Target appendix flow to evaluate against during Phase 2:
 
-1. **Appendix 01 — Stock Gemma 4 baseline runner.** User selects any Gemma 4
+1. **Appendix 01 â€” Stock Gemma 4 baseline runner.** User selects any Gemma 4
   model, runs the shared test-prompt library with the harness off, and
   downloads raw model responses plus run metadata.
-2. **Appendix 02 — Harnessed Gemma 4 runner.** User selects the same Gemma 4
+2. **Appendix 02 â€” Harnessed Gemma 4 runner.** User selects the same Gemma 4
   model, runs the same shared prompt library with the DueCare harness on,
   and downloads harnessed responses plus trace metadata.
-3. **Appendix 03 — Baseline vs harness comparison.** User uploads A-01 and
+3. **Appendix 03 â€” Baseline vs harness comparison.** User uploads A-01 and
   A-02 artifacts. The kernel runs both the new harness evaluator and the
   legacy harness evaluator, then renders comparison visuals and exports the
   evaluation package.
-4. **Appendix 04 — Synthetic training-data generator.** Gemma 4 + harness
+4. **Appendix 04 â€” Synthetic training-data generator.** Gemma 4 + harness
   generates synthetic SafetyJudge training/test prompts and graded response
   ladders using `WORST`, `BAD`, `NEUTRAL`, `GOOD`, `BEST` labels.
-5. **Appendix 05 — Synthetic-data fine-tune.** Trains a new Gemma 4 adapter or
+5. **Appendix 05 â€” Synthetic-data fine-tune.** Trains a new Gemma 4 adapter or
   model from the A-04 synthetic training data, with small-model settings for
   quick validation and larger-model settings for final runs.
-6. **Appendix 06 — Fine-tuned model baseline runner.** Same job as A-01, but
+6. **Appendix 06 â€” Fine-tuned model baseline runner.** Same job as A-01, but
   using the newly trained model or adapter.
-7. **Appendix 07 — Fine-tuned model harnessed runner.** Same job as A-02, but
+7. **Appendix 07 â€” Fine-tuned model harnessed runner.** Same job as A-02, but
   using the newly trained model or adapter plus harness.
-8. **Appendix 08 — Fine-tuned comparison.** Same job as A-03, but comparing
+8. **Appendix 08 â€” Fine-tuned comparison.** Same job as A-03, but comparing
   fine-tuned off/on artifacts and showing stock-vs-fine-tuned deltas.
-9. **Appendix 09 — Abliterated adversary data generator.** Uses abliterated or
+9. **Appendix 09 â€” Abliterated adversary data generator.** Uses abliterated or
   less-aligned Gemma variants to develop harder legacy tests and response
   ladders with Worst/Bad/Neutral/Good/Best semantic examples. These rows are
   adversarial/evaluation material, not trusted Best-label SFT rows unless
   reviewed.
-10. **Appendix 10+ — Privacy/PII fine-tuning track.** Dedicated kernels for
+10. **Appendix 10+ â€” Privacy/PII fine-tuning track.** Dedicated kernels for
   generating synthetic/composite anonymization cases, training a Gemma 4
   PrivacyRedactor adapter, and evaluating leakage prevention behind
   deterministic PII gates.
@@ -116,7 +116,7 @@ Constraints for this ladder:
   ladder, mark which current kernels already satisfy the target, and list
   which ones need reframing, merging, or replacement.
 
-### Phase 1 — completed (do not redo these)
+### Phase 1 â€” completed (do not redo these)
 
 Verify against the commit log if you doubt any item, but don't propose
 them again as "edits":
@@ -128,7 +128,7 @@ them again as "edits":
   / A-10 (chat-shell).
 - **5 audience showcase pages.** `showcase-platform.html`,
   `showcase-ngo.html`, `showcase-worker.html`, `showcase-researcher.html`,
-  `showcase-developer.html` — each has 3 curated corridor-grounded
+  `showcase-developer.html` â€” each has 3 curated corridor-grounded
   prompts that deep-link to the chat homepage via `?prompt=&audience=`.
 - **`build_minimal_shell()` extended** with `homepage_html` +
   `extra_routes` kwargs (backward-compatible). Default summary view
@@ -145,15 +145,15 @@ them again as "edits":
   `taylorsamarel/duecare-exploration-workbench`). Dataset sources
   attached for each.
 - **All 13 kernel.py files have a `<!-- duecare:kernel-intro -->`
-  header block** — uniform 14-line summary at the top with the demo
+  header block** â€” uniform 14-line summary at the top with the demo
   path and what-to-look-for-after-Run-All.
 - **Cross-link footer added to all 13 READMEs.** Standard 4-link
-  block: workbench → live-demo → kernel-specific "next step"
-  sibling → public website. The "next step" choice is curated per
-  kernel to drive a 5-minute judge journey. Treat A-06 → A-07 as the
-  synthetic-data → adapter-training path. Treat A-11 as runtime harness
+  block: workbench â†’ live-demo â†’ kernel-specific "next step"
+  sibling â†’ public website. The "next step" choice is curated per
+  kernel to drive a 5-minute judge journey. Treat A-06 â†’ A-07 as the
+  synthetic-data â†’ adapter-training path. Treat A-11 as runtime harness
   OFF/ON lift only; it does **not** verify fine-tuned-model lift.
-- **28 docs / 40 references renamed** `01-duecare-harness-chat` →
+- **28 docs / 40 references renamed** `01-duecare-harness-chat` â†’
   `01-duecare-exploration-workbench` across active markdown (READMEs,
   FOR_KAGGLE_JUDGES, REPO_LAYOUT, kaggle/_INDEX, etc.). `_archive/`
   left untouched.
@@ -167,16 +167,16 @@ them again as "edits":
 - **`duecare-llm-chat 0.16.0`** + **`duecare-llm-server 0.1.2`**
   built and propagated to all 13 `kaggle/*/wheels/` folders.
 
-### Phase 2 — what you (GPT 5.5x) own now
+### Phase 2 â€” what you (GPT 5.5x) own now
 
 These are deliberately deferred because they need your judgment, are
 higher-effort, or are stylistic preferences worth a second pair of eyes:
 
-1. **HIGHEST PRIORITY — convert all 11 wheel-loading kernels to
+1. **HIGHEST PRIORITY â€” convert all 11 wheel-loading kernels to
    GitHub-only install.** Policy as of 2026-05-11: **all DueCare
    packages must install directly from GitHub. No attached Kaggle
    `*-wheels` datasets.** Notebook 01 (`kaggle/01-duecare-exploration-
-   workbench/kernel.py` — function `install_chat_wheels()`) is the
+   workbench/kernel.py` â€” function `install_chat_wheels()`) is the
    canonical reference. The pattern is two-tier:
      - **Method 1:** GitHub Release wheels at
        `https://github.com/TaylorAmarelTech/gemma4_comp/releases/download/v{VERSION}/{wheel_name}`.
@@ -186,7 +186,7 @@ higher-effort, or are stylistic preferences worth a second pair of eyes:
    What's already done by Phase 1: every `kernel-metadata.json` has had
    its `*-wheels` slug stripped from `dataset_sources` (13/13). The
    `_INDEX.md` "How to run" docs now say "enable Internet" instead of
-   "Add data → wheels dataset".
+   "Add data â†’ wheels dataset".
 
    What's NOT done and is your job: rewrite the install function in
    each of the 11 kernels that still walk `/kaggle/input/**/*.whl`:
@@ -194,7 +194,7 @@ higher-effort, or are stylistic preferences worth a second pair of eyes:
    For each kernel:
      - Remove the `DATASET_SLUG = "...-wheels"` constant.
      - Remove any `Path("/kaggle/input").rglob("*.whl")` discovery.
-     - Remove any "Add Data → datasets → ..." error messages.
+     - Remove any "Add Data â†’ datasets â†’ ..." error messages.
      - Replace the install function body with notebook 01's two-tier
        pattern, parameterized by the package list this kernel needs.
      - Most kernels need only `["duecare-llm-chat"]` (it transitively
@@ -202,7 +202,7 @@ higher-effort, or are stylistic preferences worth a second pair of eyes:
        fine-tuning. A-11 explicitly imports core + models + chat.
      - Bump the pinned `COMMIT_SHA` to whatever the latest master
        SHA is when you run.
-   Note: physical `kaggle/*/wheels/` directories can stay — they're
+   Note: physical `kaggle/*/wheels/` directories can stay â€” they're
    harmless leftovers. Don't delete them as part of this pass; Taylor
    will sweep them separately. Just stop referencing them from the
    kernel.py install code.
@@ -213,11 +213,11 @@ higher-effort, or are stylistic preferences worth a second pair of eyes:
    says "DueCare AI" (CamelCase). Recommend a canonical pick and
    output the full replacement set as a single batch edit.
 
-2. **Per-kernel polish review (Layer A in §16 below).** For each of
+2. **Per-kernel polish review (Layer A in Â§16 below).** For each of
    the 27 (3 core + 24 appendix), output the top 5 concrete edits with
    file:line precision.
    Cover the empty/loading/error states each kernel hits before the
-   model loads — those are camera-on moments.
+   model loads â€” those are camera-on moments.
 
 3. **README skeleton uniformity.** Each README has a different last
    pre-cross-links section (Troubleshooting / Status / Publishing /
@@ -225,7 +225,7 @@ higher-effort, or are stylistic preferences worth a second pair of eyes:
    canonical 6-section skeleton (Lede, What it does, Demo path,
    Audience, Outputs, Cross-links) and output the gap-fill edits.
 
-4. **Above-the-fold homepage clarity** for each served-UI kernel —
+4. **Above-the-fold homepage clarity** for each served-UI kernel â€”
    what does a judge see in the first 800 pixels before scrolling?
    Audit the 5 chat-shell kernels (01, A-01, A-02, A-10), the
    server-shell kernel (02), the 3 custom-FastAPI kernels (A-03, A-04,
@@ -236,8 +236,8 @@ higher-effort, or are stylistic preferences worth a second pair of eyes:
    so the status strip renders identically. Audit, list deltas,
    propose the canonical shape.
 
-6. **The 3-minute click path (Layer C).** Exact open-URL → pause → click
-   → cut sequence with time budgets per action.
+6. **The 3-minute click path (Layer C).** Exact open-URL â†’ pause â†’ click
+   â†’ cut sequence with time budgets per action.
 
 7. **Risk register (Layer D).** Top 8 risks ranked by score impact and
    cost-to-fix.
@@ -246,10 +246,10 @@ higher-effort, or are stylistic preferences worth a second pair of eyes:
    fit a layer, flag it as an item 9+ in Layer A or as a sidebar in
    Layer B.
 
-### Phase 2 — explicit "do not" guardrails for you
+### Phase 2 â€” explicit "do not" guardrails for you
 
 - **Do not bump wheel versions on your own.** Chat is at `0.16.0`,
-  server at `0.1.2`. Only bump if Taylor asks — propose the diff for
+  server at `0.1.2`. Only bump if Taylor asks â€” propose the diff for
   approval first.
 - **Do not modify `_chrome.css`, `_nav.html`, `_nav.js`, `showcase.css`,
   or `_dc_log.py`.** These are source-of-truth primitives. If you find
@@ -261,7 +261,7 @@ higher-effort, or are stylistic preferences worth a second pair of eyes:
   A-06/A-07 rather than adding A-12: SafetyJudge anti-exploitation data and
   PrivacyRedactor anonymization data.
 - **Do not publish, push, or upload anything to Kaggle.** Taylor handles
-  that manually (see §15). Local edits only.
+  that manually (see Â§15). Local edits only.
 - **Do not touch `_archive/`, root `legacy_notebooks/`, or `skunkworks/`.**
   Frozen historical material.
 - **Do not introduce new dependencies** (no new pip installs, no new
@@ -273,14 +273,14 @@ higher-effort, or are stylistic preferences worth a second pair of eyes:
 
 ## 1. Mission (one paragraph)
 
-You are reviewing **DueCare** — a Gemma 4-powered safety harness for
+You are reviewing **DueCare** â€” a Gemma 4-powered safety harness for
 migrant-worker protection. The harness wraps Gemma 4 with persona +
 161 deterministic GREP regex rules + 46-doc RAG corpus across 27
 jurisdictions + 5 function-calling tools + an optional online-search
 layer, so the model produces grounded, citable, audience-appropriate
 responses about labor recruitment, fee scams, passport retention, debt
 bondage, and corridor-specific legal protections. The Kaggle submission
-contains **3 core + 24 appendix = 27 script kernels** — all visible to judges.
+contains **3 core + 24 appendix = 27 script kernels** â€” all visible to judges.
 Each has a `kernel.py` (script kernel source) and a `README.md`. The
 team has unified them under a shared workbench shell built around three
 primitives (`_chrome.css`, `_nav.js`, `dc_log`) plus four bespoke
@@ -328,65 +328,65 @@ Banned alternatives (these labels have been explicitly retired):
 
 ```
 gemma4_comp/
-├── apps/
-│   └── duecare-ai.com/                        ← public website (deployed to Render)
-│       └── app/
-│           ├── static/styles.css               ← public-site CSS (uses same tokens)
-│           └── templates/_nav.html             ← single-row nav template
-├── packages/
-│   ├── duecare-llm-chat/                      ← chat package (the workbench)
-│   │   ├── pyproject.toml                      ← version 0.16.0
-│   │   └── src/duecare/chat/
-│   │       ├── app.py                          ← FastAPI app factory + chat endpoints
-│   │       ├── kernel_shell.py                 ← build_minimal_shell() helper
-│   │       ├── _dc_log.py                      ← JSON-Lines logging primitive
-│   │       └── static/
-│   │           ├── _chrome.css                 ← design tokens + shell styles
-│   │           ├── _nav.html                   ← status strip + single-row nav
-│   │           ├── _nav.js                     ← auto-injects nav, polls APIs
-│   │           ├── showcase.css                ← shared audience-page styles
-│   │           ├── index.html                  ← chat homepage (data-nav="chat")
-│   │           ├── showcase-*.html             ← 5 audience landing pages
-│   │           ├── all-tools.html              ← Tools menu index
-│   │           ├── grade.html                  ← standalone grader (data-nav="grade")
-│   │           ├── models.html                 ← model picker (data-nav="models")
-│   │           ├── logs.html                   ← dc_log viewer (data-nav="logs")
-│   │           ├── import.html                 ← doc import (data-nav="import")
-│   │           ├── settings.html               ← retrieval/online config (data-nav="settings")
-│   │           ├── harness.html                ← layer catalog (data-nav="layers")
-│   │           ├── persona.html                ← (data-nav="layers")
-│   │           ├── grep-rules.html             ← (data-nav="layers")
-│   │           ├── grep-tester.html            ← (data-nav="layers")
-│   │           ├── rag-corpus.html             ← (data-nav="layers")
-│   │           ├── rag-graph.html              ← (data-nav="layers")
-│   │           ├── tools.html                  ← function-calling tools (data-nav="layers")
-│   │           ├── online.html                 ← (data-nav="layers")
-│   │           ├── search.html                 ← cross-layer search (data-nav="search")
-│   │           ├── hotlines.html               ← hotline directory (data-nav="hotlines")
-│   │           └── anonymization-preview.html  ← (data-nav="anonymize")
-│   └── duecare-llm-server/                    ← server package (the public hub)
-│       ├── pyproject.toml                      ← version 0.1.2
-│       └── src/duecare/server/
-│           ├── app.py                          ← FastAPI app + /wb-static/ cross-mount
-│           └── static/                         ← server-specific homepage assets
-└── kaggle/
-    ├── 01-duecare-exploration-workbench/      <- CORE kernel #1
-    │   ├── kernel.py
-    │   ├── kernel-metadata.json
-    │   ├── README.md
-    │   └── wheels/                             ← duecare-llm-chat-0.16.0.whl + deps
-    ├── 02-live-demo/                          <- CORE kernel #2
-    ├── A-01-chat-playground/                  ← appendix
-    ├── A-02-chat-playground-with-grep-rag-tools/
-    ├── A-03-content-classification-playground/
-    ├── A-04-content-knowledge-builder-playground/
-    ├── A-05-gemma-content-classification-evaluation/
-    ├── A-06-prompt-generation/                ← has corpus-browser dashboard
-    ├── A-07-bench-and-tune/                   ← has training-pipeline dashboard
-    ├── A-08-research-graphs/                  ← has inline-chart dashboard
-    ├── A-09-chat-playground-with-agentic-research/
-    ├── A-10-chat-playground-jailbroken-models/
-    └── A-11-grading-evaluation/               ← has lift dashboard
+â”œâ”€â”€ apps/
+â”‚   â””â”€â”€ duecare-ai.com/                        â† public website (deployed to Render)
+â”‚       â””â”€â”€ app/
+â”‚           â”œâ”€â”€ static/styles.css               â† public-site CSS (uses same tokens)
+â”‚           â””â”€â”€ templates/_nav.html             â† single-row nav template
+â”œâ”€â”€ packages/
+â”‚   â”œâ”€â”€ duecare-llm-chat/                      â† chat package (the workbench)
+â”‚   â”‚   â”œâ”€â”€ pyproject.toml                      â† version 0.16.0
+â”‚   â”‚   â””â”€â”€ src/duecare/chat/
+â”‚   â”‚       â”œâ”€â”€ app.py                          â† FastAPI app factory + chat endpoints
+â”‚   â”‚       â”œâ”€â”€ kernel_shell.py                 â† build_minimal_shell() helper
+â”‚   â”‚       â”œâ”€â”€ _dc_log.py                      â† JSON-Lines logging primitive
+â”‚   â”‚       â””â”€â”€ static/
+â”‚   â”‚           â”œâ”€â”€ _chrome.css                 â† design tokens + shell styles
+â”‚   â”‚           â”œâ”€â”€ _nav.html                   â† status strip + single-row nav
+â”‚   â”‚           â”œâ”€â”€ _nav.js                     â† auto-injects nav, polls APIs
+â”‚   â”‚           â”œâ”€â”€ showcase.css                â† shared audience-page styles
+â”‚   â”‚           â”œâ”€â”€ index.html                  â† chat homepage (data-nav="chat")
+â”‚   â”‚           â”œâ”€â”€ showcase-*.html             â† 5 audience landing pages
+â”‚   â”‚           â”œâ”€â”€ all-tools.html              â† Tools menu index
+â”‚   â”‚           â”œâ”€â”€ grade.html                  â† standalone grader (data-nav="grade")
+â”‚   â”‚           â”œâ”€â”€ models.html                 â† model picker (data-nav="models")
+â”‚   â”‚           â”œâ”€â”€ logs.html                   â† dc_log viewer (data-nav="logs")
+â”‚   â”‚           â”œâ”€â”€ import.html                 â† doc import (data-nav="import")
+â”‚   â”‚           â”œâ”€â”€ settings.html               â† retrieval/online config (data-nav="settings")
+â”‚   â”‚           â”œâ”€â”€ harness.html                â† layer catalog (data-nav="layers")
+â”‚   â”‚           â”œâ”€â”€ persona.html                â† (data-nav="layers")
+â”‚   â”‚           â”œâ”€â”€ grep-rules.html             â† (data-nav="layers")
+â”‚   â”‚           â”œâ”€â”€ grep-tester.html            â† (data-nav="layers")
+â”‚   â”‚           â”œâ”€â”€ rag-corpus.html             â† (data-nav="layers")
+â”‚   â”‚           â”œâ”€â”€ rag-graph.html              â† (data-nav="layers")
+â”‚   â”‚           â”œâ”€â”€ tools.html                  â† function-calling tools (data-nav="layers")
+â”‚   â”‚           â”œâ”€â”€ online.html                 â† (data-nav="layers")
+â”‚   â”‚           â”œâ”€â”€ search.html                 â† cross-layer search (data-nav="search")
+â”‚   â”‚           â”œâ”€â”€ hotlines.html               â† hotline directory (data-nav="hotlines")
+â”‚   â”‚           â””â”€â”€ anonymization-preview.html  â† (data-nav="anonymize")
+â”‚   â””â”€â”€ duecare-llm-server/                    â† server package (the public hub)
+â”‚       â”œâ”€â”€ pyproject.toml                      â† version 0.1.2
+â”‚       â””â”€â”€ src/duecare/server/
+â”‚           â”œâ”€â”€ app.py                          â† FastAPI app + /wb-static/ cross-mount
+â”‚           â””â”€â”€ static/                         â† server-specific homepage assets
+â””â”€â”€ kaggle/
+    â”œâ”€â”€ 01-duecare-exploration-workbench/      <- CORE kernel #1
+    â”‚   â”œâ”€â”€ kernel.py
+    â”‚   â”œâ”€â”€ kernel-metadata.json
+    â”‚   â”œâ”€â”€ README.md
+    â”‚   â””â”€â”€ wheels/                             â† duecare-llm-chat-0.16.0.whl + deps
+    â”œâ”€â”€ 02-live-demo/                          <- CORE kernel #2
+    â”œâ”€â”€ A-01-chat-playground/                  â† appendix
+    â”œâ”€â”€ A-02-chat-playground-with-grep-rag-tools/
+    â”œâ”€â”€ A-03-content-classification-playground/
+    â”œâ”€â”€ A-04-content-knowledge-builder-playground/
+    â”œâ”€â”€ A-05-gemma-content-classification-evaluation/
+    â”œâ”€â”€ A-06-prompt-generation/                â† has corpus-browser dashboard
+    â”œâ”€â”€ A-07-bench-and-tune/                   â† has training-pipeline dashboard
+    â”œâ”€â”€ A-08-research-graphs/                  â† has inline-chart dashboard
+    â”œâ”€â”€ A-09-chat-playground-with-agentic-research/
+    â”œâ”€â”€ A-10-chat-playground-jailbroken-models/
+    â””â”€â”€ A-11-grading-evaluation/               â† has lift dashboard
 ```
 
 ---
@@ -421,7 +421,7 @@ intentional shutdown overlay).
 --line:      #DDD8C9;
 --line-soft: #E8E4D7;
 
-/* Accent (civic teal) — sparingly */
+/* Accent (civic teal) â€” sparingly */
 --accent:      oklch(0.52 0.08 195);
 --accent-soft: oklch(0.92 0.03 195);
 --accent-ink:  oklch(0.32 0.07 195);
@@ -441,11 +441,11 @@ intentional shutdown overlay).
 
 **Banned colors (legacy palette retired in earlier sessions):**
 - `#1e40af`, `#1e3a8a`, `#3b82f6`, `#2563eb`, `#0066ff` (legacy dark-blue)
-  — only acceptable as semantic jurisdiction-flag colors in `_brand.py`.
-- `#f59e0b`, `#ec4899` (legacy amber/pink) — replace with `--warn` /
+  â€” only acceptable as semantic jurisdiction-flag colors in `_brand.py`.
+- `#f59e0b`, `#ec4899` (legacy amber/pink) â€” replace with `--warn` /
   `--ember` / `--accent` as appropriate.
 - Tailwind grays (`#f8fafc`, `#1f2937`, `#9ca3af`, `#6b7280`, `#e5e7eb`,
-  `#d1d5db`) — replace with the paper/ink/line tokens.
+  `#d1d5db`) â€” replace with the paper/ink/line tokens.
 
 ---
 
@@ -454,7 +454,7 @@ intentional shutdown overlay).
 Every served UI page in the project uses these three primitives so they
 look like part of the same product.
 
-### 6.1 `_chrome.css` — the design tokens + base styles
+### 6.1 `_chrome.css` â€” the design tokens + base styles
 
 ```html
 <link rel="stylesheet" href="/static/_chrome.css">
@@ -465,7 +465,7 @@ classes (`.primary`, `.secondary`, `.danger`, `.utility`), card
 styles, pill styles, focus rings, table styles. Importing this file
 gives a page the entire visual system.
 
-### 6.2 `_nav.html` + `_nav.js` — the shared top chrome
+### 6.2 `_nav.html` + `_nav.js` â€” the shared top chrome
 
 ```html
 <body data-nav="<key>">     <!-- key matches a nav-key in _nav.html -->
@@ -483,14 +483,14 @@ gives a page the entire visual system.
 Layout (top to bottom):
 
 ```
-┌──────────────────────────────────────────────────────────────────────┐
-│ ● Model: gemma-4-e4b-it · v0.16.0 · 1.2GB GPU      [⏻ Shutdown]      │  ← status strip
-├──────────────────────────────────────────────────────────────────────┤
-│ DueCare Workbench  Platform · NGO · Worker · Researcher · Developer  │  ← single-row nav
-│                                                          [Tools →]   │
-├──────────────────────────────────────────────────────────────────────┤
-│  [page content]                                                      │
-└──────────────────────────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ â— Model: gemma-4-e4b-it Â· v0.16.0 Â· 1.2GB GPU      [â» Shutdown]      â”‚  â† status strip
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚ DueCare Workbench  Platform Â· NGO Â· Worker Â· Researcher Â· Developer  â”‚  â† single-row nav
+â”‚                                                          [Tools â†’]   â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚  [page content]                                                      â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 Valid `data-nav` keys:
@@ -498,10 +498,10 @@ Valid `data-nav` keys:
 - `platform`, `ngo`, `worker`, `researcher`, `developer` (5 audience tabs)
 - `tools` (Tools utility link)
 - `grade`, `models`, `logs`, `import`, `settings`, `layers`, `search`,
-  `hotlines`, `anonymize` (sub-tools — won't match any nav link but the
+  `hotlines`, `anonymize` (sub-tools â€” won't match any nav link but the
   brand stays as the home indicator)
 
-### 6.3 `dc_log` — JSON-Lines logging primitive
+### 6.3 `dc_log` â€” JSON-Lines logging primitive
 
 ```python
 from duecare.chat._dc_log import dc_log, set_kernel_id
@@ -517,9 +517,9 @@ Writes one JSON line per event to both stderr AND
 
 The Logs page (`/static/logs.html`) reads back via `GET /api/dc-logs?
 tail=200&level=warn&kind=grep&layer=rag`. Available endpoints:
-- `GET /api/dc-logs` — events tail
-- `GET /api/dc-logs/stats` — counts by level/kind
-- `POST /api/dc-logs/clear` — drop the ring buffer
+- `GET /api/dc-logs` â€” events tail
+- `GET /api/dc-logs/stats` â€” counts by level/kind
+- `POST /api/dc-logs/clear` â€” drop the ring buffer
 
 ---
 
@@ -562,7 +562,7 @@ Signature (chat 0.16.0):
 from duecare.chat.kernel_shell import build_minimal_shell
 
 app, url = build_minimal_shell(
-    summary={                        # required — fallback summary view
+    summary={                        # required â€” fallback summary view
         "title": "...",
         "audience": "researcher",
         "lede": "...",
@@ -573,8 +573,8 @@ app, url = build_minimal_shell(
     },
     kernel_id="a-XX-some-kernel",
     port=8080,
-    homepage_html=my_dashboard_html, # OPTIONAL — overrides GET /
-    extra_routes={                   # OPTIONAL — kernel-specific routes
+    homepage_html=my_dashboard_html, # OPTIONAL â€” overrides GET /
+    extra_routes={                   # OPTIONAL â€” kernel-specific routes
         "/api/lift":        ("GET", _api_lift_handler),
         "/export/lift.csv": ("GET", _export_csv_handler),
     },
@@ -582,12 +582,12 @@ app, url = build_minimal_shell(
 ```
 
 Always-available routes (the helper wires these for you):
-- `GET /` — dashboard or summary
-- `GET /summary` — default summary (always reachable)
+- `GET /` â€” dashboard or summary
+- `GET /summary` â€” default summary (always reachable)
 - `GET /healthz`, `/api/version`, `/api/model-info`, `/api/brand`
 - `GET /api/dc-logs`, `/api/dc-logs/stats`, `POST /api/dc-logs/clear`
-- `GET /artifact/{name:path}` — downloads from `/kaggle/working/`
-- `/static/*` — chat package static (so `_chrome.css` and `_nav.js` work)
+- `GET /artifact/{name:path}` â€” downloads from `/kaggle/working/`
+- `/static/*` â€” chat package static (so `_chrome.css` and `_nav.js` work)
 
 ---
 
@@ -595,22 +595,22 @@ Always-available routes (the helper wires these for you):
 
 ### 9.1 A-11 lift dashboard (`kaggle/A-11-grading-evaluation/kernel.py`)
 
-Hero KPIs (mean lift pp, win/loss/tie tally, score before→after,
+Hero KPIs (mean lift pp, win/loss/tie tally, score beforeâ†’after,
 grounding lift) + per-prompt scorecard with side-by-side score bars +
 provenance footer. Exports: JSON, MD, CSV. Routes: `/api/lift`,
 `/export/lift.csv`.
 
-### 9.2 A-08 inline Plotly viewer (`kaggle/A-08-research-graphs/kernel.py`)
+### 9.2 A-08 inline Plotly viewer (`kaggle/_archive/notebooks/A-08-research-graphs/kernel.py`)
 
 All 6 charts (entity graph, corridor Sankey, benchmark bars,
 fee-camouflage heatmap, ILO indicator hits, RAG sunburst) embedded as
-iframes with per-chart Open ↗ / Download. Routes: `/api/charts`.
+iframes with per-chart Open â†— / Download. Routes: `/api/charts`.
 
 ### 9.3 A-07 training pipeline (`kaggle/A-07-bench-and-tune/kernel.py`)
 
 Adapter-training visualization for one Gemma 4 backbone with routed
-DueCare adapters. Default path is SafetyJudge: Load → bench-stock →
-SFT-dataset → SFT → DPO-dataset → DPO → bench-FT → GGUF → HF-push.
+DueCare adapters. Default path is SafetyJudge: Load â†’ bench-stock â†’
+SFT-dataset â†’ SFT â†’ DPO-dataset â†’ DPO â†’ bench-FT â†’ GGUF â†’ HF-push.
 A-06 generated graded responses should be consumed first when attached;
 harness-distilled prompts are the fallback. PrivacyRedactor rows from A-06
 stay on a separate anonymization adapter/eval track and should not be
@@ -641,15 +641,15 @@ and links `/static/_chrome.css` + `/static/_nav.js`.
 Live at `packages/duecare-llm-chat/src/duecare/chat/static/showcase-*.html`.
 
 Each page follows the same skeleton:
-1. **Crumbs:** `Showcase · For <audience> teams`
+1. **Crumbs:** `Showcase Â· For <audience> teams`
 2. **H1:** action-oriented sentence (~10 words)
 3. **Lede:** 3-sentence problem-and-solution paragraph
-4. **CTA row:** `Open the playground →` + secondary
+4. **CTA row:** `Open the playground â†’` + secondary
 5. **Curated prompts:** 3 audience-specific sample buttons that deep-link
    to `/?prompt=<URL-encoded>&audience=<lane>`
 6. **Tools row:** 4 tool cards from `all-tools.html` curated to this lane
 
-Click flow: showcase page → click curated prompt → chat homepage
+Click flow: showcase page â†’ click curated prompt â†’ chat homepage
 pre-fills the input via `URLSearchParams` consumer in `index.html` line
 1779. The chat homepage strips the params from the URL after consumption
 so a refresh doesn't re-pre-fill.
@@ -658,9 +658,9 @@ Existing curated-prompt examples (each grounded in real corridors):
 - Platform: Saudi domestic-worker recruitment ad with debt-bondage
   warning signs; UAE recruiter DM with passport-retention pattern; PH
   forum post about likely-unlicensed agency with refundable-deposit scam.
-- NGO: PH→HK passport-retention case; PH→UAE pre-departure fee scam;
-  NP→KSA kafala wage-theft + complaint draft.
-- Worker: PH→HK placement-fee legality check; PH→KSA passport-retention
+- NGO: PHâ†’HK passport-retention case; PHâ†’UAE pre-departure fee scam;
+  NPâ†’KSA kafala wage-theft + complaint draft.
+- Worker: PHâ†’HK placement-fee legality check; PHâ†’KSA passport-retention
   rights; recruiter-linked salary-advance loan debt-bondage signs.
 - Researcher: multi-jurisdiction legal comparison; DAN-style jailbreak;
   5-indicator compound case (the headline-lift demo).
@@ -691,20 +691,20 @@ Existing curated-prompt examples (each grounded in real corridors):
 
 ---
 
-## 12. UI/UX rubric (the 13 principles — apply consistently)
+## 12. UI/UX rubric (the 13 principles â€” apply consistently)
 
 Source-of-truth: `docs/workbench_audit.md`.
 
 1. **One page, one job.** Primary action describable in one sentence.
-2. **Progressive disclosure.** ≤ 3 prominent CTAs above the fold;
+2. **Progressive disclosure.** â‰¤ 3 prominent CTAs above the fold;
    advanced knobs hidden behind expanders.
 3. **Transparency is a clickable ribbon, not a wall.** Every assistant
    response shows a one-line trace strip
-   (`PERSONA · GREP(7) · RAG(top-5) · TOOLS(2) · 1.4s`) that expands.
+   (`PERSONA Â· GREP(7) Â· RAG(top-5) Â· TOOLS(2) Â· 1.4s`) that expands.
 4. **Citations are clickable evidence.** Every "ILO C181" / "POEA
    Circular 015" must link to the actual source text in the RAG corpus.
 5. **Audience-first nav.** 5-lane top nav reflects the canonical
-   audiences; capability tabs live as `Tools →` index.
+   audiences; capability tabs live as `Tools â†’` index.
 6. **Logs are first-class.** Audit/governance/pipeline traces reachable
    in 1 click from the top nav, not buried.
 7. **Showcase every functionality on its own stage.** Every API
@@ -712,7 +712,7 @@ Source-of-truth: `docs/workbench_audit.md`.
    primitives.
 8. **Modals fit the viewport.** `min(92vh, 100dvh - 48px)`. Body scrolls,
    chrome stays pinned. Absolutely no overflow-hidden traps.
-9. **Mobile is not an afterthought.** ≥ 44px touch targets;
+9. **Mobile is not an afterthought.** â‰¥ 44px touch targets;
    single-column at < 600px; no horizontal scroll.
 10. **Match duecare-ai.com visual language.** Same tokens, same fonts,
     same single-row nav restraint.
@@ -720,7 +720,7 @@ Source-of-truth: `docs/workbench_audit.md`.
     cross-link to the live API and the live page.
 12. **Don't break what works.** Extractions preserve identical behavior;
     only the page composition changes.
-13. **Single-row top nav, 4–7 items max.** Brand left, utility right.
+13. **Single-row top nav, 4â€“7 items max.** Brand left, utility right.
     No two-row nav, no permanent sub-tabs, no top-level dropdowns with
     multi-level nesting.
 
@@ -735,10 +735,10 @@ These are derived from `.claude/rules/*.md` plus durable user feedback.
   numbers, real passport IDs, real emails, real bank accounts. Composite
   characters (Maria, Ramesh, Sita) must be explicitly labeled composite.
   Real NGO names (Polaris, IJM, POEA, BP2MI) are public organizations
-  and load-bearing for the impact story — they stay.
+  and load-bearing for the impact story â€” they stay.
 
 ### Truncation / placeholder content
-- **Never truncate displayed text** — no `text[:N]...`, no `..."`
+- **Never truncate displayed text** â€” no `text[:N]...`, no `..."`
   ellipsis on responses, no `response_preview` fields. Show the full
   content. Pandas: call `pd.set_option('display.max_colwidth', None)`
   before `display()`.
@@ -759,14 +759,14 @@ These are derived from `.claude/rules/*.md` plus durable user feedback.
   not `LEGAL VIOLATIONS:`.
 
 ### Kaggle viewer compatibility (archived notebook outputs only)
-- **No `display: flex` / `flex-wrap`** — gets stripped. Use
+- **No `display: flex` / `flex-wrap`** â€” gets stripped. Use
   `pandas.Styler` tables instead.
-- **No `max-height: ...; overflow: auto`** — overflow gets stripped,
+- **No `max-height: ...; overflow: auto`** â€” overflow gets stripped,
   produces unscrollable giant blocks. Render full-height.
-- **No `<script>` tags in archived notebook outputs** — stripped. Use Plotly's
+- **No `<script>` tags in archived notebook outputs** â€” stripped. Use Plotly's
   safe JS injection path for interactivity.
-- **No `position: fixed|absolute|sticky`** — stripped.
-- **No external stylesheets in archived notebook outputs** — use inline `style=`
+- **No `position: fixed|absolute|sticky`** â€” stripped.
+- **No external stylesheets in archived notebook outputs** â€” use inline `style=`
   only.
 
 ### Web UI (served pages, not notebooks)
@@ -784,7 +784,7 @@ These are derived from `.claude/rules/*.md` plus durable user feedback.
 
 ### Build / wheel hygiene
 - Every chat-package change bumps `pyproject.toml` version
-  (`0.16.0` → `0.16.1` etc.).
+  (`0.16.0` â†’ `0.16.1` etc.).
 - After `pip wheel`, propagate the new `.whl` to all 13
   `kaggle/*/wheels/` folders. Remove the older version.
 
@@ -799,7 +799,7 @@ These are derived from `.claude/rules/*.md` plus durable user feedback.
 # Root metadata validator (active submission folders must be script kernels)
 .venv/Scripts/python.exe -c "import json, pathlib; bad=[]; [bad.append(str(p)) for p in pathlib.Path('kaggle').glob('*/kernel-metadata.json') if json.loads(p.read_text()).get('code_file') != 'kernel.py' or json.loads(p.read_text()).get('kernel_type') != 'script']; assert not bad, bad"
 
-# Package test suite (must exit 0 — meta-pkg CLI test fails without
+# Package test suite (must exit 0 â€” meta-pkg CLI test fails without
 # editable installs, that's expected)
 .venv/Scripts/python.exe -m pytest packages/ \
     --ignore=packages/duecare-llm/tests \
@@ -811,10 +811,10 @@ python -c "import ast; [ast.parse(open(p).read()) for p in [...]]"
 ```
 
 The audit script checks four invariants:
-1. `drift_terms` — no banned terms / stale slugs / legacy palette
-2. `hub_routes_200` — 41 declared routes resolve (9 nav + 19 footer)
-3. `five_lane_order` — the 5 canonical audiences appear in correct order
-4. `kaggle_lane_labels` — all 13 numbered Kaggle folders use canonical
+1. `drift_terms` â€” no banned terms / stale slugs / legacy palette
+2. `hub_routes_200` â€” 41 declared routes resolve (9 nav + 19 footer)
+3. `five_lane_order` â€” the 5 canonical audiences appear in correct order
+4. `kaggle_lane_labels` â€” all 13 numbered Kaggle folders use canonical
    audience labels
 
 ---
@@ -859,7 +859,7 @@ they regressed.
 
 Return four layers of output.
 
-#### Layer A — Per-kernel polish edits (13 sections)
+#### Layer A â€” Per-kernel polish edits (13 sections)
 
 For each of the 13 kernels, output:
 
@@ -879,7 +879,7 @@ For each of the 13 kernels, output:
 4. **Demo-recording readiness.** Score 1-5 (where 5 = no friction during
    the 3-min recording). If <5, list the specific friction.
 
-#### Layer B — Cross-kernel consistency edits
+#### Layer B â€” Cross-kernel consistency edits
 
 Output specific changes that align the 13 kernels as a series:
 
@@ -895,11 +895,11 @@ Output specific changes that align the 13 kernels as a series:
 4. **Status strip consistency.** Every served-UI kernel should report
    the same shape from `/api/version` + `/api/model-info`. Audit the
    13 kernels and list any inconsistencies.
-5. **Naming consistency.** The 24 appendix slugs (A-01 ... A-11) — are
+5. **Naming consistency.** The 24 appendix slugs (A-01 ... A-11) â€” are
    they well-ordered for the 5-minute judge journey? If a different
    ordering would tell a better story, propose it.
 
-#### Layer C — Demo-recording strategy
+#### Layer C â€” Demo-recording strategy
 
 Output a click-by-click script for the 3-minute screen recording:
 
@@ -913,10 +913,10 @@ Output a click-by-click script for the 3-minute screen recording:
    scrolling, the citation graph rotating, a Plotly chart drilling in)?
 4. **Pre-record checklist.** What 8-12 verifications must Taylor run
    before hitting Record? (e.g., "Kaggle session is warm", "model is
-   loaded — check the green dot in the status strip", "Audience pages
+   loaded â€” check the green dot in the status strip", "Audience pages
    all load < 1s").
 
-#### Layer D — Risk register (what could embarrass us)
+#### Layer D â€” Risk register (what could embarrass us)
 
 List the top 8 design / engineering risks that could hurt the judging
 score on Impact / Video / Tech-Depth axes. For each:
@@ -935,11 +935,11 @@ For Layer A, use this exact shape:
 
 ```markdown
 ## 01 exploration-workbench
-- Audience match: <which lane(s)> — <evidence in code>
+- Audience match: <which lane(s)> â€” <evidence in code>
 - Primary action: "<single sentence>"
 - Demo-readiness: 4/5 (friction: <list>)
 - Top 5 edits:
-  1. `<file>:<line-range>` — <description or replacement>
+  1. `<file>:<line-range>` â€” <description or replacement>
   2. ...
   3. ...
   4. ...
@@ -971,10 +971,10 @@ should cite the file path and approximate line number.
 - Multi-row nav, sticky sub-tabs, multi-level dropdown menus.
 - Adding new top-level audiences ("activist", "media", etc.).
 - Renaming the `duecare-` slug prefix.
-- Adding cloud-hosted dependencies (no LLM API as a hard requirement —
+- Adding cloud-hosted dependencies (no LLM API as a hard requirement â€”
   must work fully offline on the Kaggle GPU).
 - Building the actual video. Taylor will record after polish completes.
-- Touching `_archive/` — frozen historical material.
+- Touching `_archive/` â€” frozen historical material.
 
 ---
 

@@ -1,4 +1,4 @@
-# DueCare System Components And Critical Paths
+﻿# DueCare System Components And Critical Paths
 
 This document is the stable map for the active DueCare/Gemma 4
 submission. It intentionally avoids exact inventory counts except for
@@ -8,17 +8,18 @@ exported artifacts.
 
 ## Current Active Scope
 
-The active Kaggle surface is three kernels:
+The active Kaggle surface is two kernels:
 
 | Kernel | Purpose |
 |---|---|
 | `kaggle/01-duecare-exploration-workbench/` | Interactive exploration, harness comparison, search safety, extraction, anonymization, grading, and layer inspection. |
 | `kaggle/02-live-demo/` | Focused reviewer demo using the shared Gemma runtime and the same harness primitives. |
-| `kaggle/A-00-omni-experiment-workbench/` | Quantitative control plane for benchmark runs, synthetic data, optional LoRA training, checkpoint/resume, judging, and report exports. |
 
-Archived appendix notebooks are historical context. They are not the
-current competition path unless they are explicitly revived by a new
-decision.
+Archived appendix notebooks, the A-00 experiment console, and task-notebook
+snapshots are historical context. They are not the current competition path
+unless they are explicitly revived by a new decision. Root `kaggle/` should
+not contain appendix `A-*` folders, and the only root `04-*` folder should be
+`04-kaggle-community-benchmark`.
 
 ## Main Components
 
@@ -29,7 +30,7 @@ decision.
 | Core chat harness primitives | Canonical GREP rules, RAG corpus, tool dispatch, contacts, grading helpers, and shared comparison behavior. | `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py` |
 | Knowledge objects and packs | Portable facts, rules, docs, rubrics, contacts, tool metadata, and extracted evidence envelopes. | Harness JSON packs, import/export routes, and A-00 generated artifacts |
 | Universal model interface | Normalizes local model calls and external endpoints such as Ollama, Anthropic, OpenAI-compatible services, Gemini, or future hosted judges. | `packages/duecare-llm-chat/src/duecare/chat/harnesses/model_interface.py` |
-| A-00 experiment pipeline | Orchestrates benchmark arms, synthetic row generation, optional training, checkpoint handling, judging, and report generation. | `kaggle/A-00-omni-experiment-workbench/kernel.py` |
+| Archived A-00 experiment pipeline | Orchestrates benchmark arms, synthetic row generation, optional training, checkpoint handling, judging, and report generation. | `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py` |
 | Evaluation and judging | Combines deterministic rubric scoring with optional LLM judging and produces comparison summaries. | `duecare.chat.harness`, A-00 judging helpers |
 | Report and artifact export | Saves JSON, markdown, HTML, activity logs, training outputs, adapters, and checkpoint references. | A-00 export/report helpers |
 
@@ -134,7 +135,7 @@ review gate.
    experiment controls.
 3. The output demonstrates the safety and grounding loop quickly.
 
-### A-00 Quantitative Proof
+### Archived A-00 Quantitative Proof
 
 1. The user selects a model and run size.
 2. A-00 checks loaded model state, memory, and disk conditions.
@@ -208,9 +209,9 @@ Key A-00 runtime knobs:
 
 1. Static docs should avoid exact live catalog counts.
 2. Runtime APIs and generated reports may show exact current counts.
-3. Kernel 01, Kernel 02, and A-00 should share model loading through
+3. Kernel 01 and Kernel 02 should share model loading through
    `Gemma4Runtime` for inference.
-4. A-00 should consume shared GREP/RAG/tool/grading primitives rather
+4. Archived A-00 should consume shared GREP/RAG/tool/grading primitives rather
    than duplicating them.
 5. External model and judge endpoints should flow through the universal
    model interface where practical.

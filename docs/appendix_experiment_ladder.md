@@ -1,4 +1,4 @@
-# Appendix Experiment Ladder
+﻿# Appendix Experiment Ladder
 
 The original A-series notebook ladder is now archived. The active Kaggle
 submission path is:
@@ -7,7 +7,7 @@ submission path is:
 |---|---|---|
 | 01 | `kaggle/01-duecare-exploration-workbench/` | Broad workbench and reviewer entry point. |
 | 02 | `kaggle/02-live-demo/` | Focused screen-recording surface and slides. |
-| A-00 | `kaggle/A-00-omni-experiment-workbench/` | Evaluation, fine-tuning, and benchmark console. |
+| A-00 | `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/` | Evaluation, fine-tuning, and benchmark console. |
 
 Archived slots A-01 through A-24 live under `kaggle/_archive/notebooks/`.
 They document the research path that led to the active kernels, but new judge

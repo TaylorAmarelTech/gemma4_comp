@@ -381,7 +381,7 @@ cd packages/duecare-llm-core && python -m build
 
 ## Demo kernel
 
-The package-surface demo is now the active three-kernel submission tree.
+The package-surface demo is now the active two-kernel submission tree.
 The clearest end-to-end exercise of the published DueCare package surface
 from a clean install lives in
 [`kaggle/01-duecare-exploration-workbench/`](../../kaggle/01-duecare-exploration-workbench/),

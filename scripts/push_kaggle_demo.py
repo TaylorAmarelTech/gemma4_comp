@@ -275,7 +275,7 @@ _KERNEL_PRESETS = {
         "model_sources": _DEFAULT_GEMMA4_MODELS,
     },
     "chat-playground": {
-        "notebook_dir": "kaggle/A-01-chat-playground",
+        "notebook_dir": "kaggle/_archive/notebooks/A-01-chat-playground",
         "kernel_py": "kernel.py",
         "slug": "duecare-chat-playground",
         "title": "DueCare Chat Playground",
@@ -284,7 +284,7 @@ _KERNEL_PRESETS = {
         "model_sources": _DEFAULT_GEMMA4_MODELS,
     },
     "bench-and-tune": {
-        "notebook_dir": "kaggle/A-07-bench-and-tune",
+        "notebook_dir": "kaggle/_archive/notebooks/A-07-bench-and-tune",
         "kernel_py": "kernel.py",
         "slug": "duecare-bench-and-tune",
         # Title MUST derive to the slug above when lowercased + spaces->hyphens
@@ -297,7 +297,7 @@ _KERNEL_PRESETS = {
         "model_sources": _DEFAULT_GEMMA4_MODELS,
     },
     "chat-playground-with-grep-rag-tools": {
-        "notebook_dir": "kaggle/A-02-chat-playground-with-grep-rag-tools",
+        "notebook_dir": "kaggle/_archive/notebooks/A-02-chat-playground-with-grep-rag-tools",
         "kernel_py": "kernel.py",
         "slug": "duecare-chat-playground-with-grep-rag-tools",
         "title": "DueCare Chat Playground with GREP RAG Tools",
@@ -306,7 +306,7 @@ _KERNEL_PRESETS = {
         "model_sources": _DEFAULT_GEMMA4_MODELS,
     },
     "content-classifier": {
-        "notebook_dir": "kaggle/A-05-gemma-content-classification-evaluation",
+        "notebook_dir": "kaggle/_archive/notebooks/A-05-gemma-content-classification-evaluation",
         "kernel_py": "kernel.py",
         "slug": "duecare-gemma-content-classification-evaluation",
         "title": "DueCare Gemma Content Classification Evaluation",
@@ -315,7 +315,7 @@ _KERNEL_PRESETS = {
         "model_sources": _DEFAULT_GEMMA4_MODELS,
     },
     "prompt-generation": {
-        "notebook_dir": "kaggle/A-06-prompt-generation",
+        "notebook_dir": "kaggle/_archive/notebooks/A-06-prompt-generation",
         "kernel_py": "kernel.py",
         "slug": "duecare-prompt-generation",
         "title": "DueCare Prompt Generation",
@@ -324,7 +324,7 @@ _KERNEL_PRESETS = {
         "model_sources": _DEFAULT_GEMMA4_MODELS,
     },
     "research-graphs": {
-        "notebook_dir": "kaggle/A-08-research-graphs",
+        "notebook_dir": "kaggle/_archive/notebooks/A-08-research-graphs",
         "kernel_py": "kernel.py",
         "slug": "duecare-research-graphs",
         "title": "DueCare Research Graphs",
@@ -333,7 +333,7 @@ _KERNEL_PRESETS = {
         "model_sources": [],   # pure visualization, no model attached
     },
     "content-classification-playground": {
-        "notebook_dir": "kaggle/A-03-content-classification-playground",
+        "notebook_dir": "kaggle/_archive/notebooks/A-03-content-classification-playground",
         "kernel_py": "kernel.py",
         "slug": "duecare-content-classification-playground",
         "title": "DueCare Content Classification Playground",
@@ -342,7 +342,7 @@ _KERNEL_PRESETS = {
         "model_sources": _DEFAULT_GEMMA4_MODELS,
     },
     "content-knowledge-builder-playground": {
-        "notebook_dir": "kaggle/A-04-content-knowledge-builder-playground",
+        "notebook_dir": "kaggle/_archive/notebooks/A-04-content-knowledge-builder-playground",
         "kernel_py": "kernel.py",
         "slug": "duecare-content-knowledge-builder-playground",
         "title": "DueCare Content Knowledge Builder Playground",
@@ -351,7 +351,7 @@ _KERNEL_PRESETS = {
         "model_sources": _DEFAULT_GEMMA4_MODELS[:2],  # only E4B + E2B
     },
     "chat-playground-with-agentic-research": {
-        "notebook_dir": "kaggle/A-09-chat-playground-with-agentic-research",
+        "notebook_dir": "kaggle/_archive/notebooks/A-09-chat-playground-with-agentic-research",
         "kernel_py": "kernel.py",
         "slug": "duecare-chat-playground-with-agentic-research",
         "title": "DueCare Chat Playground with Agentic Research",
@@ -360,7 +360,7 @@ _KERNEL_PRESETS = {
         "model_sources": _DEFAULT_GEMMA4_MODELS,
     },
     "chat-playground-jailbroken-models": {
-        "notebook_dir": "kaggle/A-10-chat-playground-jailbroken-models",
+        "notebook_dir": "kaggle/_archive/notebooks/A-10-chat-playground-jailbroken-models",
         "kernel_py": "kernel.py",
         "slug": "duecare-chat-playground-jailbroken-models",
         "title": "DueCare Chat Playground Jailbroken Models",

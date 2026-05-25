@@ -2,13 +2,12 @@
 
 ## Active Submission Path
 
-Only three Kaggle script kernels are active for the current submission and recording path:
+Only two Kaggle script kernels are active for the current submission and recording path:
 
 | Order | Folder | Kaggle slug | Title | Purpose |
 |---|---|---|---|---|
 | 01 | `01-duecare-exploration-workbench` | `taylorsamarel/duecare-app` | **DueCare App** | Full reviewer workbench: chat, harness comparison, bulk file review, knowledge extraction, search, sharing, traces, and activity logs. |
 | 02 | `02-live-demo` | `taylorsamarel/duecare-live-demo` | **DueCare Live Demo** | Focused live demo for judges and video capture. Hosts the recording-grade pitch deck at `/start` and `/slides`. |
-| 03 | `A-00-omni-experiment-workbench` | `taylorsamarel/duecare-fine-tuning-and-evaluation` | **DueCare Fine-tuning and Evaluation** | Experiment control plane for benchmarking, synthetic data, fine-tuning, grading, and reports. |
 
 Each active kernel is intended to be copied into Kaggle, run on T4 x2 with Internet enabled, install DueCare from GitHub, write outputs under `/kaggle/working`, launch the local server, and print a public `https://*.trycloudflare.com` URL.
 
@@ -25,9 +24,16 @@ path:
 
 ## Archived Notebooks
 
-The former `03-duecare-video-pitch` notebook and appendix notebooks `A-01` through `A-24` have been moved to `kaggle/_archive/notebooks/`. They remain reference material only; they are not part of active validation, recording, or the required Kaggle run path.
+The former `03-duecare-video-pitch` notebook, A-00 experiment console, appendix
+notebooks `A-01` through `A-24`, and task-notebook snapshots have been moved to
+`kaggle/_archive/notebooks/`. They remain reference material only; they are not
+part of active validation, recording, or the required Kaggle run path.
 
-## A-00 Default Proof Path
+Root `kaggle/` should not contain appendix `A-*` folders. The only root
+`04-*` folder should be `04-kaggle-community-benchmark`; other `04-*` notebook
+snapshots belong under `kaggle/_archive/notebooks/`.
+
+## Archived A-00 Proof Path
 
 A-00 now opens with two choices:
 

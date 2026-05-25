@@ -396,15 +396,15 @@ def _line_or_above_has_allow(lines: list[str], line_idx_1based: int) -> bool:
 # this commit MUST include checksums or join this list with a
 # documented reason.
 _MANIFEST_CHECKSUM_GRANDFATHERED: frozenset[str] = frozenset({
-    "kaggle/A-09-chat-playground-with-agentic-research/kernel.py",
-    "kaggle/A-10-chat-playground-jailbroken-models/kernel.py",
-    "kaggle/A-12-pii-fine-tune-eval/kernel.py",
-    "kaggle/A-13-multimodal-document-analyzer/kernel.py",
-    "kaggle/A-14-on-device-export/kernel.py",
-    "kaggle/A-15-ugc-batch-moderator/kernel.py",
-    "kaggle/A-16-ngo-local-kb/kernel.py",
-    "kaggle/A-17-knowledge-pack-builder/kernel.py",
-    "kaggle/A-18-sentinel-research-monitor/kernel.py",
+    "kaggle/_archive/notebooks/A-09-chat-playground-with-agentic-research/kernel.py",
+    "kaggle/_archive/notebooks/A-10-chat-playground-jailbroken-models/kernel.py",
+    "kaggle/_archive/notebooks/A-12-pii-fine-tune-eval/kernel.py",
+    "kaggle/_archive/notebooks/A-13-multimodal-document-analyzer/kernel.py",
+    "kaggle/_archive/notebooks/A-14-on-device-export/kernel.py",
+    "kaggle/_archive/notebooks/A-15-ugc-batch-moderator/kernel.py",
+    "kaggle/_archive/notebooks/A-16-ngo-local-kb/kernel.py",
+    "kaggle/_archive/notebooks/A-17-knowledge-pack-builder/kernel.py",
+    "kaggle/_archive/notebooks/A-18-sentinel-research-monitor/kernel.py",
 })
 
 

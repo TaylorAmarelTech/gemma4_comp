@@ -5,7 +5,7 @@
 > matters for readers who want to go deeper.
 >
 > Current-scope note: this appendix index includes historical and
-> roadmap material. For the active three-kernel Kaggle path, use
+> roadmap material. For the active two-kernel Kaggle path, use
 > [`current_kaggle_notebook_state.md`](../current_kaggle_notebook_state.md)
 > and [`kaggle/_INDEX.md`](../../kaggle/_INDEX.md).
 >
@@ -40,7 +40,7 @@ submission.
 | B1 | [Architecture](../architecture.md) | The 17-package PyPI workspace + harness ecosystem mechanics + 4-phase execution arc |
 | B2 | [Embedding guide](../embedding_guide.md) | Embed the harness in your own product (OpenAPI + JS widget + AAR plan) |
 | B3 | [Extension pack format](../extension_pack_format.md) | Build + sign your own GREP/RAG packs (Ed25519-signed) |
-| B4 | [Current Kaggle state](../current_kaggle_notebook_state.md) | The active three-kernel submission path and what older generated mirrors mean |
+| B4 | [Current Kaggle state](../current_kaggle_notebook_state.md) | The active two-kernel submission path and what older generated mirrors mean |
 
 ## C. Deployment + operations
 
@@ -84,7 +84,7 @@ submission.
 | F2 | [ADR-001 Multi-package PyPI split](../adr/001-multi-package-pypi-split.md) | Why 17 packages instead of 1 monolith |
 | F3 | [ADR-002 Folder-per-module](../adr/002-folder-per-module-pattern.md) | Self-describing module convention |
 | F4 | [ADR-003 On-device default](../adr/003-on-device-default-cloud-opt-in.md) | Privacy-first defaults |
-| F5 | [ADR-004 6+5 notebook shape](../_archive/2026-05-16-legacy-notebook-era/004-six-plus-five-notebook-shape.md) (archived; superseded by the three-kernel scope) | Historical submission-surface design |
+| F5 | [ADR-004 6+5 notebook shape](../_archive/2026-05-16-legacy-notebook-era/004-six-plus-five-notebook-shape.md) (archived; superseded by the two-kernel scope) | Historical submission-surface design |
 | F6 | [ADR-005 Tenant from edge proxy](../adr/005-tenant-id-from-edge-proxy.md) | Multi-tenant header strategy |
 
 ## G. Outreach + adoption
@@ -104,11 +104,11 @@ submission.
 |---|---|---|
 | H1 | [For judges](../FOR_KAGGLE_JUDGES.md) | The hackathon-judge entry point + 2-min and 5-min verification paths |
 | H2 | [Readiness dashboard](../readiness_dashboard.md) | Single-screen status across every dimension |
-| H3 | [Manual TODO checklist](../USER_TODO.md) | Current manual submitter actions for the three active kernels |
+| H3 | [Manual TODO checklist](../USER_TODO.md) | Current manual submitter actions for the two active kernels |
 | H4 | [Post-submission sustainability](../post_submission_sustainability.md) | T+7 → T+365 plan with 8 non-negotiable principles |
 | H5 | [2-week submission plan](../two_week_submission_plan.md) | T-16 to T-0 day-by-day |
-| H6 | [Current Kaggle state](../current_kaggle_notebook_state.md) | Active three-kernel inventory and archived-notebook explanation |
-| H7 | [A-00 proof path](../FOR_PEER_REVIEW.md#a-00-proof-path) | Current quantitative baseline, harness, optional training, judging, and export flow |
+| H6 | [Current Kaggle state](../current_kaggle_notebook_state.md) | Active two-kernel inventory and archived-notebook explanation |
+| H7 | [Archived A-00 proof path](../FOR_PEER_REVIEW.md#archived-a-00-proof-path) | Quantitative baseline, harness, optional training, judging, and export flow |
 | H8 | [Cross-NGO trends federation](../cross_ngo_trends_federation.md) | Privacy-preserving aggregation protocol design |
 | H9 | [Smoke test report 2026-05-02](../_archive/2026-05-16-legacy-notebook-era/smoke_test_report_2026-05-02.md) | Historical 24-category smoke snapshot from the former notebook-era scope |
 

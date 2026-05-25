@@ -1,7 +1,7 @@
-# Codex handoff — DueCare Gemma 4 (snapshot 2026-05-17, HEAD=965e1f9)
+﻿# Codex handoff â€” DueCare Gemma 4 (snapshot 2026-05-17, HEAD=965e1f9)
 
 Paste this into your Codex session when picking up DueCare work after
-the Claude Code pass that ended at commit `965e1f9`. Self-contained —
+the Claude Code pass that ended at commit `965e1f9`. Self-contained â€”
 you do not need the prior session's chat history.
 
 ---
@@ -26,11 +26,11 @@ explicitly asked.
 
 Three Kaggle kernels are the entire competition surface:
 
-- `kaggle/01-duecare-exploration-workbench/kernel.py` — interactive
+- `kaggle/01-duecare-exploration-workbench/kernel.py` â€” interactive
   reviewer workbench. Uses `duecare.chat.create_app(**default_harness())`.
-- `kaggle/02-live-demo/kernel.py` — focused demo. Uses
+- `kaggle/02-live-demo/kernel.py` â€” focused demo. Uses
   `_LIVE_MODEL_RUNTIME = Gemma4Runtime(...)` and `duecare.server.create_app`.
-- `kaggle/A-00-omni-experiment-workbench/kernel.py` — quantitative
+- `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py` â€” quantitative
   control plane (benchmark / synthetic-data / fine-tune / judge / report).
   Uses `A00_MODEL_RUNTIME = Gemma4Runtime(...)`.
 
@@ -71,7 +71,7 @@ prompt, full response, and harness trace without silent truncation.
 ## Universal harness contract
 
 `packages/duecare-llm-chat/src/duecare/chat/harnesses/base.py` exports:
-- `HarnessBase` Protocol — every harness exposes `name`,
+- `HarnessBase` Protocol â€” every harness exposes `name`,
   `applied_layers`, `register_routes(app)`.
 - `BaseHarness` opt-in class.
 - `HarnessSpec` with `logic_paths`, `knowledge_packs`, `logic_packs`,
@@ -81,7 +81,7 @@ prompt, full response, and harness trace without silent truncation.
 
 `packages/duecare-llm-chat/src/duecare/chat/harnesses/model_interface.py`
 provides `UniversalModelRequest`, `UniversalModelResponse`,
-`normalize_model_messages(...)`, `call_model_backend(...)` — supports
+`normalize_model_messages(...)`, `call_model_backend(...)` â€” supports
 `duecare-llm-models` adapters with `.generate(...)`, objects with
 `.chat(...)` or `.complete(...)`, and direct callables.
 
@@ -89,27 +89,27 @@ Registered harnesses in
 `packages/duecare-llm-chat/src/duecare/chat/harnesses/__init__.py`:
 
 **Primary (6):**
-1. `chat` — persona / GREP / RAG / tools / online / imports
-2. `process` — bulk file review, graph extraction, graph-chat
-3. `extraction` — drafts typed `KnowledgeObject` envelopes
-4. `anonymization` — regex PII gate; optional Gemma review
-5. `search_safety` — outbound query sanitization
-6. `post_search_verification` — verifies search results before prompt injection
+1. `chat` â€” persona / GREP / RAG / tools / online / imports
+2. `process` â€” bulk file review, graph extraction, graph-chat
+3. `extraction` â€” drafts typed `KnowledgeObject` envelopes
+4. `anonymization` â€” regex PII gate; optional Gemma review
+5. `search_safety` â€” outbound query sanitization
+6. `post_search_verification` â€” verifies search results before prompt injection
 
 **Secondary (2):**
-7. `search` — sanitized search execution
-8. `import_corpus` — local evidence import
+7. `search` â€” sanitized search execution
+8. `import_corpus` â€” local evidence import
 
 External judge factories (Ollama / Anthropic) route through
 `call_model_backend(...)` via `_OllamaJudgeBackend` and the
-`model_interface` shape — no hand-rolled HTTP remaining.
+`model_interface` shape â€” no hand-rolled HTTP remaining.
 
 ## Harness documentation trinity
 
 Three docs define the system, all cross-linked at the top:
-- `docs/harness_ecosystem.md` — authoritative inventory.
-- `docs/harness_pattern.md` — module contract + 10-step recipe.
-- `docs/harness_standard_contract.md` — `HarnessSpec` field shape.
+- `docs/harness_ecosystem.md` â€” authoritative inventory.
+- `docs/harness_pattern.md` â€” module contract + 10-step recipe.
+- `docs/harness_standard_contract.md` â€” `HarnessSpec` field shape.
 
 If they disagree about a registered harness, `harness_ecosystem.md`
 wins. Update the other two to match it.
@@ -155,7 +155,7 @@ wins. Update the other two to match it.
 ## A-00 preconfigured pipeline contract
 
 `PipelineRequest` defaults at
-`kaggle/A-00-omni-experiment-workbench/kernel.py:1085`:
+`kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py:1085`:
 
 - `preset_id = "synthetic_train_benchmark_cycle"`
 - `model_a_ref = A00_SMALL_MODEL_REF` (`google/gemma-4-2b-it`)
@@ -167,8 +167,8 @@ wins. Update the other two to match it.
 - `training_save_steps = 10` / `training_save_total_limit = 3`
 
 External judges (env-var gated):
-- `_configure_ollama_judge_for_pipeline` — requires `OLLAMA_API_KEY` for cloud
-- `_configure_anthropic_judge_for_pipeline` — requires `ANTHROPIC_API_KEY`
+- `_configure_ollama_judge_for_pipeline` â€” requires `OLLAMA_API_KEY` for cloud
+- `_configure_anthropic_judge_for_pipeline` â€” requires `ANTHROPIC_API_KEY`
 
 Both now route through `call_model_backend(...)` from
 `duecare.chat.harnesses.model_interface`.
@@ -196,25 +196,25 @@ Code:
 - `packages/duecare-llm-chat/src/duecare/chat/static/harness.html`
 - `kaggle/01-duecare-exploration-workbench/kernel.py`
 - `kaggle/02-live-demo/kernel.py`
-- `kaggle/A-00-omni-experiment-workbench/kernel.py`
+- `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py`
 
 Docs to read first:
-- `CLAUDE.md` (**protected setup metadata — flag changes, do not auto-edit**)
+- `CLAUDE.md` (**protected setup metadata â€” flag changes, do not auto-edit**)
 - `docs/system_components_and_critical_paths.md`
 - `docs/model_loading_trace.md`
 - `docs/harness_ecosystem.md` / `docs/harness_pattern.md` / `docs/harness_standard_contract.md`
 
 Available specialized review prompts:
-- `docs/claude_north_star_drift_review_prompt.md` — drift-hardening audit
-- `docs/claude_north_star_harness_review_prompt.md` — universal contract / model_targets / checkpoint
-- `docs/claude_harness_ecosystem_a00_review_prompt.md` — ecosystem language + inventory
-- `docs/claude_omni_fastmodel_review_prompt.md` — original runtime parity
-- `docs/claude_a00_tool_dispatch_and_trace_review_prompt.md` — per-tool dispatch + trace consistency
-- `docs/copilot_handoff_2026_05_16.md` — broader handoff with more context
+- `docs/claude_north_star_drift_review_prompt.md` â€” drift-hardening audit
+- `docs/claude_north_star_harness_review_prompt.md` â€” universal contract / model_targets / checkpoint
+- `docs/claude_harness_ecosystem_a00_review_prompt.md` â€” ecosystem language + inventory
+- `docs/claude_omni_fastmodel_review_prompt.md` â€” original runtime parity
+- `docs/claude_a00_tool_dispatch_and_trace_review_prompt.md` â€” per-tool dispatch + trace consistency
+- `docs/copilot_handoff_2026_05_16.md` â€” broader handoff with more context
 
 ## One outstanding flag
 
-**`CLAUDE.md:279`** — primary safety gates list is stale. Apply this
+**`CLAUDE.md:279`** â€” primary safety gates list is stale. Apply this
 diff manually (CLAUDE.md is protected setup metadata that should not
 be auto-edited):
 
@@ -231,7 +231,7 @@ Pick any of these. Each is small enough to commit independently.
    to bring the protected metadata in sync with the registered
    inventory.
 
-2. **`harness.html` external-trust-boundary visual cue** — verify the
+2. **`harness.html` external-trust-boundary visual cue** â€” verify the
    recent pill/color treatment renders clearly across the registered harnesses
    on the page, especially for `chat`'s `frontier_chat_or_judge`
    target and `post_search_verification`'s `external_result_reviewer`.
@@ -251,7 +251,7 @@ Pick any of these. Each is small enough to commit independently.
 
 5. **Document the new env override** in
    `docs/system_components_and_critical_paths.md` or
-   `docs/model_loading_trace.md` — `DUECARE_A00_INFERENCE_MAX_SEQ_LENGTH`
+   `docs/model_loading_trace.md` â€” `DUECARE_A00_INFERENCE_MAX_SEQ_LENGTH`
    should be listed alongside the other A-00 env knobs
    (`A00_TRAINING_TIMEOUT_SEC`, `DUECARE_A00_ALLOW_DRY_RUN`,
    `DUECARE_A00_SMALL_MODEL_REF`, etc.) so reviewers can find it.
@@ -280,7 +280,7 @@ git fetch origin
 git status --short --branch
 git log --oneline -10
 
-python -m py_compile kaggle\A-00-omni-experiment-workbench\kernel.py
+python -m py_compile kaggle\_archive\notebooks\A-00-omni-experiment-workbench\kernel.py
 
 $env:PYTHONPATH = 'packages/duecare-llm-models/src;packages/duecare-llm-chat/src;packages/duecare-llm-core/src'
 
@@ -327,7 +327,7 @@ python -m pytest `
   status now emits `pass/noop/degraded` aligned with the tools layer,
   and three legacy docs already moved to `_archive/`.
 
-Pick from "Suggested next work" — items 1 and 5 are the smallest;
+Pick from "Suggested next work" â€” items 1 and 5 are the smallest;
 item 3 is the most directly load-bearing if you want to harden the
 grading path further.
 

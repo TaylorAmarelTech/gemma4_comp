@@ -6,9 +6,8 @@
 |---|---|---|
 | `01-duecare-exploration-workbench` / `duecare-app` | Full workbench and shared primitive source of truth. | Run in Kaggle with Internet and T4 x2. Open the printed Cloudflare URL for `/static/demo-recording.html`, chat, bulk review, knowledge, search, and sharing. |
 | `02-live-demo` / `duecare-live-demo` | Focused judge-facing live demo and slides. | Run after 01 is stable. Open the printed Cloudflare URL for `/start`, `/slides`, `/slides/setup`, and `/api/slides/recording-pack`. |
-| `A-00-omni-experiment-workbench` / `duecare-fine-tuning-and-evaluation` | Quantitative control plane for benchmark, synthetic data, fine-tuning, grading, and reports. | Run the preconfigured pipeline first; use Custom only for partial reruns or uploads. |
 
-## A-00 Happy Path
+## Archived A-00 Happy Path
 
 Use the `Preconfigured Harness, Training, and Evaluation` card:
 
@@ -32,7 +31,13 @@ The pipeline runs:
 
 ## Archive
 
-`03-duecare-video-pitch` and `A-01` through `A-24` are archived under `kaggle/_archive/notebooks/`. They are retained as reference material only.
+`03-duecare-video-pitch`, A-00, `A-01` through `A-24`, and task-notebook
+snapshots are archived under `kaggle/_archive/notebooks/`. They are retained as
+reference material only.
+
+Root `kaggle/` should not contain appendix `A-*` folders. The only root
+`04-*` folder should be `04-kaggle-community-benchmark`; other `04-*` notebook
+snapshots belong under `kaggle/_archive/notebooks/`.
 
 ## Optional Benchmark Kernels
 

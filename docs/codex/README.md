@@ -22,7 +22,7 @@ For no-stop runs across multiple goals, use [`dispatch_all_goals.md`](dispatch_a
 
 - [`00_do_not_break.md`](00_do_not_break.md) — **mandatory contract**. Lists the kernels, endpoints, DOM IDs, activity-log handles, sample artifacts, and instructions Codex must not break. Every per-goal handoff links to this. If a proposed change would violate it, the change gets re-scoped.
 - [`00_execution_order.md`](00_execution_order.md) — suggested order + dependencies between goals. Goal 10 is already done (commit `92f45ac`); Goal 1 is the natural next pickup since it reuses the contract Goal 10 locked in.
-- [`00_kernel_compatibility_gate.md`](00_kernel_compatibility_gate.md) — global verification gate for the five non-archived Kaggle `kernel.py` files. Run it before committing every goal.
+- [`00_kernel_compatibility_gate.md`](00_kernel_compatibility_gate.md) — global verification gate for the Kaggle root layout plus the four active/optional root `kernel.py` files. Run it before committing every goal.
 - [`dispatch_all_goals.md`](dispatch_all_goals.md) — prompt sizes for completing every remaining PENDING goal without routine checkpoints.
 - [`goal_commands/`](goal_commands/README.md) — copy-paste `/goal` command packs for full, reviewer-visible, templates, polish, and vocabulary/diagnostics runs.
 

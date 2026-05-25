@@ -1,4 +1,4 @@
-# Dispatch-all-goals prompts
+﻿# Dispatch-all-goals prompts
 
 > Created 2026-05-24, updated 2026-05-24. Prompt sizes for dispatching the 9 PENDING Codex goals without routine checkpoints. All prompts point at the same handoff packages.
 
@@ -19,7 +19,7 @@ Read docs/codex/README.md, docs/codex/00_do_not_break.md, docs/codex/00_kernel_c
 Use this when you want Codex's goal runner to keep working across many goals:
 
 ```text
-/goal Complete every remaining DueCare Codex goal in C:\Users\amare\OneDrive\Documents\gemma4_comp without routine checkpoints: read docs/codex/README.md, docs/codex/00_do_not_break.md, docs/codex/00_kernel_compatibility_gate.md, and docs/codex/00_execution_order.md, then implement Goals 1,6,3,4,5,8,2,9,7 in that order. For each goal read its handoff.md, follow sections 5-9, run section 10 verification plus python scripts/validate_main_kaggle_kernels.py, satisfy section 8 acceptance criteria, stage only goal-scoped files, commit and push, update the handoff status plus docs/codex/README.md with DONE/date/SHA, and continue. Skip Goal 10. Keep all five non-archived main Kaggle kernel.py files working; appendix and archived notebooks are out of scope. CLAUDE.md may be edited only for reconciliation of completed goal state, kernel constraints, or operating brief; do not stage unrelated dirty files. Stop only for unrecoverable verification failure, main-kernel gate failure, do-not-break conflict, or required destructive-action approval.
+/goal Complete every remaining DueCare Codex goal in C:\Users\amare\OneDrive\Documents\gemma4_comp without routine checkpoints: read docs/codex/README.md, docs/codex/00_do_not_break.md, docs/codex/00_kernel_compatibility_gate.md, and docs/codex/00_execution_order.md, then implement Goals 1,6,3,4,5,8,2,9,7 in that order. For each goal read its handoff.md, follow sections 5-9, run section 10 verification plus python scripts/validate_main_kaggle_kernels.py, satisfy section 8 acceptance criteria, stage only goal-scoped files, commit and push, update the handoff status plus docs/codex/README.md with DONE/date/SHA, and continue. Skip Goal 10. Keep the four active/optional root Kaggle kernel.py files working and keep root kaggle/ free of A-* folders and extra 04-* task snapshots; appendix and archived notebooks are otherwise out of scope. CLAUDE.md may be edited only for reconciliation of completed goal state, kernel constraints, or operating brief; do not stage unrelated dirty files. Stop only for unrecoverable verification failure, main-kernel gate failure, do-not-break conflict, or required destructive-action approval.
 ```
 
 ## Short prompt - use if the tiny prompt drifts
@@ -41,7 +41,7 @@ Loop per goal:
 9. Update the goal handoff status and docs/codex/README.md with DONE, date, and SHA.
 10. Continue to the next goal without asking for a checkpoint.
 
-CLAUDE.md may be edited only for reconciliation of completed goal state, kernel constraints, or operating brief. Do not pick up unrelated dirty files or deleted data artifacts. Keep the five main non-archived Kaggle kernel.py files green; appendix and archived notebooks are out of scope. Stop only if verification remains red after a focused fix attempt, the main-kernel gate fails, a do-not-break conflict appears, or a destructive action/user approval is required.
+CLAUDE.md may be edited only for reconciliation of completed goal state, kernel constraints, or operating brief. Do not pick up unrelated dirty files or deleted data artifacts. Keep the four active/optional root Kaggle kernel.py files and the Kaggle root layout green; appendix and archived notebooks are otherwise out of scope. Stop only if verification remains red after a focused fix attempt, the main-kernel gate fails, a do-not-break conflict appears, or a destructive action/user approval is required.
 ```
 
 ## Long prompt - fallback for less capable agents
@@ -89,7 +89,7 @@ Hard rules:
 - Do not use innerHTML for user-derived strings.
 - Do not combine unrelated goals into one implementation commit.
 - Do not alter published Kaggle kernel boot flows.
-- Keep `kaggle/01-duecare-exploration-workbench/kernel.py`, `kaggle/02-live-demo/kernel.py`, `kaggle/A-00-omni-experiment-workbench/kernel.py`, `kaggle/03-universal-llm-benchmark/kernel.py`, and `kaggle/04-kaggle-community-benchmark/kernel.py` green under `python scripts/validate_main_kaggle_kernels.py`.
+- Keep `kaggle/01-duecare-exploration-workbench/kernel.py`, `kaggle/02-live-demo/kernel.py`, `kaggle/03-universal-llm-benchmark/kernel.py`, and `kaggle/04-kaggle-community-benchmark/kernel.py` green under `python scripts/validate_main_kaggle_kernels.py`. That same gate must also keep appendix `A-*` folders and extra `04-*` task snapshots out of root `kaggle/`.
 - Do not spend time on appendix or archived notebooks unless Taylor explicitly asks.
 - Use one goal-scoped commit per implementation. Bookkeeping may be a separate docs commit if needed.
 - If local pytest is broken, run the handoff's AST/stdlib checks and say pytest was unavailable; do not claim a full test pass.

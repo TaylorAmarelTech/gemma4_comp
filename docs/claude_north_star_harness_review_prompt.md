@@ -1,4 +1,4 @@
-# Claude Code Prompt: North-Star Harness, Runtime, and A-00 Review
+﻿# Claude Code Prompt: North-Star Harness, Runtime, and A-00 Review
 
 Copy/paste this into Claude Code from the repo root:
 
@@ -16,10 +16,12 @@ Read these first:
 - docs/claude_harness_ecosystem_a00_review_prompt.md
 
 Context:
-We recently consolidated the project around three active Kaggle kernels only:
+We recently consolidated the project around two active Kaggle kernels only:
 - kaggle/01-duecare-exploration-workbench
 - kaggle/02-live-demo
-- kaggle/A-00-omni-experiment-workbench
+
+Archived proof material:
+- kaggle/_archive/notebooks/A-00-omni-experiment-workbench
 
 The archived scope is intentional:
 - kaggle/03-duecare-video-pitch is archived for this push.
@@ -56,7 +58,7 @@ Review and edit these primary files:
 - packages/duecare-llm-chat/src/duecare/chat/static/harness.html
 - kaggle/01-duecare-exploration-workbench/kernel.py
 - kaggle/02-live-demo/kernel.py
-- kaggle/A-00-omni-experiment-workbench/kernel.py
+- kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py
 - tests/test_harness_standard_contract.py
 - tests/test_harness_universal_model_contract.py
 - tests/test_a00_runtime_and_parity_contract.py
@@ -110,7 +112,7 @@ North-star checks:
    - Add or update focused tests for every behavior you change.
    - Prefer contract tests that prevent regression without running GPU model loads.
    - Suggested gates:
-     python -m py_compile packages/duecare-llm-chat/src/duecare/chat/harnesses/base.py packages/duecare-llm-chat/src/duecare/chat/harnesses/model_interface.py packages/duecare-llm-chat/src/duecare/chat/app.py kaggle/A-00-omni-experiment-workbench/kernel.py
+     python -m py_compile packages/duecare-llm-chat/src/duecare/chat/harnesses/base.py packages/duecare-llm-chat/src/duecare/chat/harnesses/model_interface.py packages/duecare-llm-chat/src/duecare/chat/app.py kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py
      $env:PYTHONPATH='packages/duecare-llm-chat/src;packages/duecare-llm-core/src;packages/duecare-llm-models/src'; python -m pytest tests/test_harness_universal_model_contract.py tests/test_harness_standard_contract.py tests/test_harness_imports.py packages/duecare-llm-chat/tests/test_harness_workbench.py packages/duecare-llm-chat/tests/test_workbench_inventory_integrity.py tests/test_a00_runtime_and_parity_contract.py tests/test_a00_notebook_contract.py packages/duecare-llm-models/tests/test_models_package_smoke.py -q
 
 Output requirements:

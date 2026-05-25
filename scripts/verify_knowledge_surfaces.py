@@ -34,7 +34,7 @@ PERSONAS_JSON = (
 KAGGLE_KERNELS = [
     REPO_ROOT / "kaggle/01-duecare-exploration-workbench/kernel.py",
     REPO_ROOT / "kaggle/02-live-demo/kernel.py",
-    REPO_ROOT / "kaggle/A-00-omni-experiment-workbench/kernel.py",
+    REPO_ROOT / "kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py",
 ]
 
 

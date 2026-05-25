@@ -38,11 +38,11 @@ KERNEL_FILES = [
     REPO_ROOT / "kaggle/01-duecare-exploration-workbench/kernel.py",
     REPO_ROOT / "kaggle/02-live-demo/kernel.py",
     REPO_ROOT / "kaggle/04-kaggle-community-benchmark/kernel.py",
-    REPO_ROOT / "kaggle/A-00-omni-experiment-workbench/kernel.py",
+    REPO_ROOT / "kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py",
 ]
 TASK_NOTEBOOKS = [
     REPO_ROOT / "kaggle/04-kaggle-community-benchmark/task_notebook.ipynb",
-    REPO_ROOT / "kaggle/04-task-notebook-publish/task_notebook.ipynb",
+    REPO_ROOT / "kaggle/_archive/notebooks/04-task-notebook-publish/task_notebook.ipynb",
 ]
 
 

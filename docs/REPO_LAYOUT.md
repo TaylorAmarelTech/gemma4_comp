@@ -1,4 +1,4 @@
-# Repository Layout
+﻿# Repository Layout
 
 Current as of 2026-05-19.
 
@@ -11,10 +11,10 @@ Current as of 2026-05-19.
 | [`kaggle/`](../kaggle/) | Active Kaggle submission path plus archived notebook-era material. Source of truth: [`kaggle/_INDEX.md`](../kaggle/_INDEX.md). | Live |
 | [`kaggle/01-duecare-exploration-workbench/`](../kaggle/01-duecare-exploration-workbench/) | Broad interactive workbench: chat, harness comparison, search, extraction, traces, and knowledge flows. | Active |
 | [`kaggle/02-live-demo/`](../kaggle/02-live-demo/) | Focused demo/video path. | Active |
-| [`kaggle/A-00-omni-experiment-workbench/`](../kaggle/A-00-omni-experiment-workbench/) | Quantitative proof path: baseline, harness, synthetic rows, optional LoRA, judging, and report exports. | Active |
+| [`kaggle/_archive/notebooks/A-00-omni-experiment-workbench/`](../kaggle/_archive/notebooks/A-00-omni-experiment-workbench/) | Quantitative proof path: baseline, harness, synthetic rows, optional LoRA, judging, and report exports. | Historical |
 | [`kaggle/03-universal-llm-benchmark/`](../kaggle/03-universal-llm-benchmark/) | Optional endpoint-comparison kernel for arbitrary API targets, DueCare prompt/rubric cues, and Claude Opus judging. | Optional |
 | [`kaggle/04-kaggle-community-benchmark/`](../kaggle/04-kaggle-community-benchmark/) | Optional Kaggle Community Benchmark surface using `kaggle_benchmarks` and Kaggle model proxy calls. | Optional |
-| [`kaggle/_archive/notebooks/`](../kaggle/_archive/notebooks/) | Retired A-series and video-pitch notebook-era surfaces. | Historical |
+| [`kaggle/_archive/notebooks/`](../kaggle/_archive/notebooks/) | Retired A-series, A-00, video-pitch, and task-notebook-era surfaces. | Historical |
 | [`docs/`](../docs/) | Current docs plus archived historical docs. Main reviewer entry: [`FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md). | Live |
 | [`docs/_archive/`](../docs/_archive/) | Historical docs retained for provenance. | Historical |
 | [`tests/`](../tests/) | Cross-package contract and documentation tests. | Live |
@@ -37,4 +37,7 @@ Current as of 2026-05-19.
 If a doc primarily describes the retired appendix ladder, old publish status,
 old score projections, or A-01 through A-24 as the active submission path, it
 belongs under `docs/_archive/2026-05-16-legacy-notebook-era/` unless it has been
-rewritten around the current three-kernel scope.
+rewritten around the current two-kernel scope.
+
+Root `kaggle/` must not contain appendix `A-*` folders, and the only root
+`04-*` folder should be `04-kaggle-community-benchmark`.

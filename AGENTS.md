@@ -1,4 +1,4 @@
-# DueCare Agent Guide
+﻿# DueCare Agent Guide
 
 This is the root orientation file for AI coding agents working in this
 repository. More specific `AGENTS.md` files inside `packages/` may add local
@@ -7,15 +7,19 @@ constraints; closest file wins.
 ## Current Truth
 
 - Active branch: `master`.
-- Active Kaggle submission surfaces: `kaggle/01-duecare-exploration-workbench`,
-  `kaggle/02-live-demo`, and `kaggle/A-00-omni-experiment-workbench`.
+- Active Kaggle submission surfaces: `kaggle/01-duecare-exploration-workbench`
+  and `kaggle/02-live-demo`.
 - Optional benchmark surfaces: `kaggle/03-universal-llm-benchmark` for external
   API benchmarking with DueCare prompts and Claude Opus judging, and
   `kaggle/04-kaggle-community-benchmark` for Kaggle Community Benchmark tasks
   that can use Kaggle's model proxy quota. They are not part of the primary
   recording path unless Taylor says so.
 - Archived notebook-era surfaces under `kaggle/_archive/` are provenance, not
-  blockers, unless Taylor explicitly asks to restore or migrate them.
+  blockers, unless Taylor explicitly asks to restore or migrate them. Do not
+  restore appendix `A-*` folders at the `kaggle/` root.
+- The only root `04-*` folder should be
+  `kaggle/04-kaggle-community-benchmark`; task-notebook snapshots and other
+  `04-*` variants belong under `kaggle/_archive/notebooks/`.
 - The public setup lanes are exactly six, in this order: Platform safety,
   NGO & regulator, Individual worker / mobile, Researcher, Anonymized
   knowledge sharing, Developer / integration partner.

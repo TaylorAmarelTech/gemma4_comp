@@ -1,4 +1,4 @@
-# Multi-harness architecture
+﻿# Multi-harness architecture
 
 Every safety-bearing surface in the kernel ecosystem is a **harness** -- a
 self-contained module exposing the same minimal contract. In the broader
@@ -8,13 +8,13 @@ export logic wrapped around Gemma 4 or a trust boundary for a specific goal.
 
 ## See also (the harness documentation trinity)
 
-- [`docs/harness_ecosystem.md`](harness_ecosystem.md) — vocabulary,
+- [`docs/harness_ecosystem.md`](harness_ecosystem.md) â€” vocabulary,
   registered harness inventory, broader harness families, naming. The
   authoritative inventory.
-- **`docs/harness_pattern.md`** (this file) — required module contract,
+- **`docs/harness_pattern.md`** (this file) â€” required module contract,
   per-task JSONL training-data flow, and the 10-step recipe for adding
   a new registered harness.
-- [`docs/harness_standard_contract.md`](harness_standard_contract.md) —
+- [`docs/harness_standard_contract.md`](harness_standard_contract.md) â€”
   the `HarnessSpec` field shape that every registered harness declares.
 
 This document covers the registered `duecare.chat.harnesses` module contract.
@@ -149,7 +149,7 @@ task.
 - **Per-task tools/knowledge**: scoped namespaces prevent global registry sprawl
 - **Verifiability**: a regulator can grep `applied_layers` and verify
   `anonymization` declares `()` -- i.e., never passes raw PII to Gemma
-- **Reusability**: the exploration workbench and A-00 proof path reuse the
+- **Reusability**: the exploration workbench and archived A-00 proof path reuse the
   same registered harness contracts and shared GREP/RAG/tool primitives instead
   of carrying divergent local copies.
 
@@ -162,19 +162,18 @@ task.
 
 ## Active Kaggle Integration
 
-The active competition path is the three script-kernel set in
+The active competition path is the two script-kernel set in
 `kaggle/_INDEX.md`:
 
 | Pattern | Used by | How to opt in |
 |---|---|---|
 | `duecare.chat.create_app(**default_harness())` | `01-duecare-exploration-workbench` | Auto-inherits the registered harness ecosystem through the chat app |
 | `duecare.server.create_app` plus `Gemma4Runtime` | `02-live-demo` | Uses the shared runtime and focused demo surface |
-| A-00 pipeline with shared harness callables | `A-00-omni-experiment-workbench` | Calls the shared GREP/RAG/tools and combined grading primitives from the pipeline |
 
 ### Legacy minimal-shell kernels
 
 The minimal shell remains useful reference code for archived appendix kernels
-or future small demos, but it is not part of the active three-kernel submission
+or future small demos, but it is not part of the active two-kernel submission
 path. If it is used again, pass explicit harness modules:
 
 ```python
@@ -192,9 +191,8 @@ app, url = build_minimal_shell(
 
 The example uses a hypothetical kernel name. The active submission
 runs through the three kernels in
-`kaggle/01-duecare-exploration-workbench/`,
-`kaggle/02-live-demo/`, and
-`kaggle/A-00-omni-experiment-workbench/`; the minimal-shell pattern
+`kaggle/01-duecare-exploration-workbench/` and
+`kaggle/02-live-demo/`; the minimal-shell pattern
 remains available for any future single-purpose kernel that needs a
 subset of the registered harnesses.
 
@@ -265,9 +263,9 @@ list, and generate targeted training data for exactly those KO types.
 
 `harnesses/base.py` exports both:
 
-- **`HarnessBase` Protocol** — structural typing contract (required for
+- **`HarnessBase` Protocol** â€” structural typing contract (required for
   every harness, enforced by `test_harness_imports.py`).
-- **`BaseHarness` class** — opt-in convenience base for new harnesses
+- **`BaseHarness` class** â€” opt-in convenience base for new harnesses
   that want shared helpers without writing them by hand.
 
 ```python

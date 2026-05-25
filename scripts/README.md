@@ -19,4 +19,4 @@ memorizing module paths.
 One-shot scripts:
 - `scaffold.py` - creates the src/ module tree (run once at setup)
 - `scaffold.py` is idempotent and safe to re-run.
-- `validate_main_kaggle_kernels.py` - static compatibility gate for the five non-archived Kaggle `kernel.py` files plus their `kernel-metadata.json` publish settings; appendix and archived notebooks are intentionally out of scope.
+- `validate_main_kaggle_kernels.py` - static compatibility gate for the Kaggle root layout plus the four active/optional root `kernel.py` files and their `kernel-metadata.json` publish settings; appendix and archived notebooks are intentionally out of kernel compatibility.

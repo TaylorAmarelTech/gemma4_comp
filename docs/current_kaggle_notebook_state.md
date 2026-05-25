@@ -1,4 +1,4 @@
-# Current Kaggle Submission State
+﻿# Current Kaggle Submission State
 
 This file is the short operational pointer for the current Kaggle scope.
 Older generated notebook mirrors still exist for provenance and tooling, but
@@ -6,14 +6,13 @@ they are not the active submission path.
 
 ## Active Judge-Facing Kernels
 
-The active competition and recording path is exactly three script kernels,
+The active competition and recording path is exactly two script kernels,
 also listed in [`kaggle/_INDEX.md`](../kaggle/_INDEX.md):
 
 | Folder | Role |
 |---|---|
 | `kaggle/01-duecare-exploration-workbench/` | Broad workbench: chat, harness comparison, bulk review, knowledge extraction, search, sharing, traces, and activity logs. |
 | `kaggle/02-live-demo/` | Focused live demo for judges and video capture. |
-| `kaggle/A-00-omni-experiment-workbench/` | Quantitative pipeline for baseline, harnessed, synthetic-data, fine-tuning, judging, and report artifacts. |
 
 Each active folder uses `kernel.py` as source of truth. Do not recreate or
 publish historical `.ipynb` wrappers for these active folders unless Taylor
@@ -24,18 +23,21 @@ explicitly asks.
 `kaggle/03-universal-llm-benchmark/` is a separate endpoint-comparison kernel.
 It can test OpenAI-compatible, Anthropic Messages, or raw JSON APIs against
 DueCare prompts and rubric cues, with Claude Opus judging when configured. It
-is useful for model comparison work, but it is not part of the three-kernel
+is useful for model comparison work, but it is not part of the two-kernel
 recording path above.
 
 `kaggle/04-kaggle-community-benchmark/` is a separate Kaggle-native benchmark
 kernel. It defines DueCare rows as `kaggle_benchmarks` tasks so model calls can
 use Kaggle's model proxy/quota and publish Community Benchmark task/run
-artifacts. It is also optional and not part of the three-kernel recording path.
+artifacts. It is also optional and not part of the two-kernel recording path.
 
 ## Archived Or Reference-Only Material
 
-- `kaggle/_archive/notebooks/` contains the former `03` and `A-01` through
-  `A-24` notebook-era surfaces.
+- `kaggle/_archive/notebooks/` contains the former `03`, A-00 experiment
+  console, `A-01` through `A-24` notebook-era surfaces, and task-notebook
+  snapshots.
+- Root `kaggle/` must not contain appendix `A-*` folders, and the only root
+  `04-*` folder should be `04-kaggle-community-benchmark`.
 - `kaggle/kernels/` contains generated/research notebook mirror material used
   by older tooling and tests. It is not the current judge path.
 - `_archive/kaggle-notebook-previews-2026-05-11/` contains historical notebook

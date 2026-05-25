@@ -1,4 +1,4 @@
-# Claude Code Review Prompt: Harness Ecosystem and A-00 Omni Workbench
+﻿# Claude Code Review Prompt: Harness Ecosystem and A-00 Omni Workbench
 
 You are Claude Code working in:
 
@@ -26,7 +26,7 @@ Review active notebooks and runtime paths only:
 
 - `kaggle/01-duecare-exploration-workbench/kernel.py`
 - `kaggle/02-live-demo/kernel.py`
-- `kaggle/A-00-omni-experiment-workbench/kernel.py`
+- `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py`
 - `packages/duecare-llm-chat/src/duecare/chat/gemma4_runtime.py`
 - `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py`
 - `packages/duecare-llm-chat/src/duecare/chat/harnesses/`
@@ -50,7 +50,7 @@ references.
    - Does it avoid overstating partially implemented items such as civil-society email intake and post-search verification?
 
 2. **Core harness parity**
-   - Does A-00 `chat_no_online` use the same authoritative GREP, RAG, tools, and grading primitives as Kernel 01’s harness comparison page?
+   - Does A-00 `chat_no_online` use the same authoritative GREP, RAG, tools, and grading primitives as Kernel 01â€™s harness comparison page?
    - Confirm A-00 is not using stale hardcoded duplicate GREP/RAG/tool logic except as a defensive fallback.
    - Confirm default A-00 preconfigured pipeline uses:
      - baseline harness: `none`
@@ -106,7 +106,7 @@ references.
    - Confirm A-00 can save training checkpoints under `/kaggle/working`.
    - Confirm checkpoint paths, adapter paths, run outputs, reports, and activity logs survive normal Kaggle output persistence.
    - Confirm resume-from-checkpoint behavior is wired clearly enough for multiple Kaggle runs.
-   - Identify any risk that a run hitting Kaggle’s 12-hour limit loses critical artifacts.
+   - Identify any risk that a run hitting Kaggleâ€™s 12-hour limit loses critical artifacts.
 
 6. **External judge options**
    - Confirm A-00 supports local Gemma judging, Ollama/OpenAI-compatible judging, and Anthropic/Claude judging without breaking the no-API-key default path.
@@ -137,9 +137,9 @@ references.
    - Identify whether report links/downloads are obvious enough in the UI.
 
 9. **Website/product language**
-   - Confirm public copy now says “harness ecosystem” where appropriate.
-   - Confirm we still use “core content harness” or “chat harness” when specifically referring to persona/GREP/RAG/tools around a prompt.
-   - Search for stale misleading language like “one harness,” “single content-safety harness,” or broad claims that imply all harnesses are fully implemented.
+   - Confirm public copy now says â€œharness ecosystemâ€ where appropriate.
+   - Confirm we still use â€œcore content harnessâ€ or â€œchat harnessâ€ when specifically referring to persona/GREP/RAG/tools around a prompt.
+   - Search for stale misleading language like â€œone harness,â€ â€œsingle content-safety harness,â€ or broad claims that imply all harnesses are fully implemented.
 
 10. **Tests/contracts**
     - Confirm the existing tests pin the important contracts.
@@ -160,14 +160,14 @@ references.
 - Do not change archived notebooks.
 - Do not remove flexibility or advanced options unless they clearly conflict with the default competition path.
 - If you make code edits, keep them narrowly scoped and list every changed file.
-- Preserve the current competition-ready path: copy/paste three active Kaggle kernels, run on T4x2, get Cloudflare URL, run A-00 proof path, produce saved artifacts under `/kaggle/working`.
+- Preserve the current competition-ready path: copy/paste the two active Kaggle kernels, run on T4x2, get Cloudflare URL, and treat A-00 proof runs as archived/optional evidence under `/kaggle/working`.
 
 ## Suggested Fast Checks
 
 Run only focused checks unless you find a reason to expand:
 
 ```powershell
-python -m py_compile kaggle\A-00-omni-experiment-workbench\kernel.py
+python -m py_compile kaggle\_archive\notebooks\A-00-omni-experiment-workbench\kernel.py
 python -m pytest tests\test_harness_ecosystem_docs.py tests\test_harness_imports.py tests\test_multi_harness_integration.py tests\test_a00_notebook_contract.py tests\test_a00_runtime_and_parity_contract.py packages\duecare-llm-chat\tests\test_kaggle_kernel01_portability.py -q
 ```
 
