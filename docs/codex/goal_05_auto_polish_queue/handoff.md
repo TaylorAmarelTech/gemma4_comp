@@ -1,6 +1,6 @@
 # Goal 5 — Auto-polish queue
 
-> Status: **PENDING**. Created 2026-05-24. Depends on Goal 1 being landed.
+> Status: **DONE 2026-05-24 (`2c7cbd1`)**. Created 2026-05-24. Depends on Goal 1 being landed.
 
 ## 1. Goal
 
