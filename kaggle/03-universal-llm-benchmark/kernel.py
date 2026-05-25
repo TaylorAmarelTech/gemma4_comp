@@ -27,6 +27,7 @@ from typing import Any, Dict, Iterable, List, Optional
 
 
 APP_TITLE = "DueCare Universal LLM Benchmark"
+REPORT_SCHEMA = "duecare.universal_llm_benchmark.v2"
 OUT_ROOT = pathlib.Path(os.environ.get("DUECARE_BENCHMARK_OUT", "/kaggle/working/universal-benchmark"))
 DEFAULT_JUDGE_MODEL = os.environ.get("DUECARE_JUDGE_MODEL", "claude-opus-4-7")
 DEFAULT_MAX_PROMPTS = int(os.environ.get("DUECARE_BENCHMARK_MAX_PROMPTS", "5"))
@@ -85,6 +86,61 @@ def _now() -> str:
 
 def _json(obj: Any) -> str:
     return json.dumps(obj, ensure_ascii=False, sort_keys=True)
+
+
+def _slug(value: Any) -> str:
+    text = re.sub(r"[^a-z0-9]+", "-", str(value or "").lower()).strip("-")
+    return text or "target"
+
+
+def redact_target_config(target: Dict[str, Any]) -> Dict[str, Any]:
+    """Return target metadata safe to write into reports and job payloads."""
+    safe: Dict[str, Any] = {}
+    for key, value in (target or {}).items():
+        if key in {"api_key", "headers", "auth_prefix"}:
+            safe[key + "_redacted"] = bool(value)
+        elif key in {"body_template"}:
+            safe[key] = "<template redacted from report>"
+        else:
+            safe[key] = value
+    if "api_key_env" not in safe and target:
+        safe["api_key_env"] = "OPENAI_API_KEY"
+    return safe
+
+
+def redact_config(config: Dict[str, Any]) -> Dict[str, Any]:
+    safe = dict(config or {})
+    if isinstance(safe.get("target"), dict):
+        safe["target"] = redact_target_config(safe["target"])
+    if isinstance(safe.get("targets"), list):
+        safe["targets"] = [
+            redact_target_config(t) for t in safe["targets"] if isinstance(t, dict)
+        ]
+    if isinstance(safe.get("judge"), dict):
+        judge = dict(safe["judge"])
+        if "api_key" in judge:
+            judge["api_key_redacted"] = bool(judge.pop("api_key"))
+        safe["judge"] = judge
+    return safe
+
+
+def target_list_from_config(config: Dict[str, Any]) -> List[Dict[str, Any]]:
+    targets = config.get("targets")
+    if isinstance(targets, list) and targets:
+        out = [dict(t) for t in targets if isinstance(t, dict)]
+    else:
+        out = [dict(config.get("target") or {})]
+    if not out:
+        out = [dict(DEFAULT_CONFIG["target"])]
+    seen: Dict[str, int] = {}
+    for idx, target in enumerate(out, start=1):
+        base = target.get("name") or target.get("id") or target.get("model") or f"target-{idx}"
+        name = _slug(base)
+        seen[name] = seen.get(name, 0) + 1
+        if seen[name] > 1:
+            name = f"{name}-{seen[name]}"
+        target["name"] = name
+    return out
 
 
 def _repo_candidates() -> List[pathlib.Path]:
@@ -209,6 +265,11 @@ def discover_catalog(max_prompts: int = 25, domain: str = "trafficking") -> Dict
         "prompts": prompts,
         "dimensions": dimensions,
         "evidence_count": evidence_count,
+        "target_presets": [
+            {"provider": "openai_compatible", "description": "OpenAI, vLLM, Ollama OpenAI server, LM Studio, Together, Fireworks"},
+            {"provider": "anthropic_messages", "description": "Anthropic Messages-compatible endpoint"},
+            {"provider": "raw_http", "description": "Custom JSON POST endpoint with prompt/model template fields"},
+        ],
         "catalog_generated_at": _now(),
     }
 
@@ -418,10 +479,16 @@ def run_benchmark(config: Dict[str, Any]) -> Dict[str, Any]:
     max_prompts = int(config.get("max_prompts", DEFAULT_MAX_PROMPTS))
     timeout_s = int(config.get("timeout_s", DEFAULT_TIMEOUT_S))
     catalog = discover_catalog(max_prompts=max_prompts, domain=domain)
-    target = config.get("target") or {}
+    targets = target_list_from_config(config)
     judge = config.get("judge") or {}
     dimensions = config.get("dimensions") or catalog["dimensions"]
-    run_id = _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + hashlib.sha1(_json(config).encode()).hexdigest()[:8]
+    safe_config = redact_config(config)
+    safe_targets = [redact_target_config(t) for t in targets]
+    run_id = (
+        _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        + "-"
+        + hashlib.sha1(_json(safe_config).encode()).hexdigest()[:8]
+    )
     run_dir = OUT_ROOT / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
     calls_path = run_dir / "calls.jsonl"
@@ -429,49 +496,119 @@ def run_benchmark(config: Dict[str, Any]) -> Dict[str, Any]:
     rows = []
     for idx, prompt_obj in enumerate(catalog["prompts"][:max_prompts], start=1):
         prompt = prompt_obj["text"]
-        record: Dict[str, Any] = {
-            "idx": idx,
-            "prompt_id": prompt_obj.get("id", f"prompt-{idx}"),
-            "category": prompt_obj.get("category"),
-            "difficulty": prompt_obj.get("difficulty"),
-            "prompt": prompt,
-            "started_at": _now(),
-        }
-        try:
-            target_result = call_target(prompt, target, timeout_s)
-            record["target"] = {
-                "provider": target_result.get("provider"),
-                "model": target_result.get("model"),
-                "ok": target_result.get("ok"),
-                "status_code": target_result.get("status_code"),
-                "elapsed_ms": target_result.get("elapsed_ms"),
+        for target in targets:
+            target_name = str(target.get("name") or "target")
+            record: Dict[str, Any] = {
+                "idx": idx,
+                "prompt_id": prompt_obj.get("id", f"prompt-{idx}"),
+                "category": prompt_obj.get("category"),
+                "difficulty": prompt_obj.get("difficulty"),
+                "target_name": target_name,
+                "prompt": prompt,
+                "started_at": _now(),
             }
-            record["answer"] = target_result.get("answer", "")
-            record["judge"] = judge_with_claude(prompt, record["answer"], list(dimensions), judge, timeout_s)
-        except Exception as exc:
-            record["error"] = str(exc)
-            record["traceback"] = traceback.format_exc(limit=8)
-            record["judge"] = {"judge": "error", "score": 0.0, "rationale": str(exc)}
-        record["finished_at"] = _now()
-        rows.append(record)
-        with calls_path.open("a", encoding="utf-8") as fh:
-            fh.write(_json(record) + "\n")
+            target_meta = redact_target_config(target)
+            try:
+                target_result = call_target(prompt, target, timeout_s)
+                target_meta.update({
+                    "provider": target_result.get("provider"),
+                    "model": target_result.get("model"),
+                    "ok": target_result.get("ok"),
+                    "status_code": target_result.get("status_code"),
+                    "elapsed_ms": target_result.get("elapsed_ms"),
+                })
+                record["target"] = target_meta
+                record["answer"] = target_result.get("answer", "")
+            except Exception as exc:
+                record["target"] = {
+                    **target_meta,
+                    "ok": False,
+                    "elapsed_ms": None,
+                    "error_class": type(exc).__name__,
+                }
+                record["answer"] = ""
+                record["error"] = str(exc)
+                record["traceback"] = traceback.format_exc(limit=8)
+            if record.get("answer"):
+                try:
+                    record["judge"] = judge_with_claude(
+                        prompt,
+                        record["answer"],
+                        list(dimensions),
+                        judge,
+                        timeout_s,
+                    )
+                except Exception as exc:
+                    record["judge"] = {
+                        "judge": "judge_error",
+                        "score": 0.0,
+                        "rationale": str(exc),
+                        "error_class": type(exc).__name__,
+                    }
+            else:
+                record["judge"] = {
+                    "judge": "target_error",
+                    "score": 0.0,
+                    "rationale": record.get("error") or "target returned no answer",
+                }
+            record["finished_at"] = _now()
+            rows.append(record)
+            with calls_path.open("a", encoding="utf-8") as fh:
+                fh.write(_json(record) + "\n")
 
     scores = [float(r.get("judge", {}).get("score") or 0.0) for r in rows]
+    target_summaries = []
+    for safe_target in safe_targets:
+        name = str(safe_target.get("name") or "target")
+        target_rows = [r for r in rows if r.get("target_name") == name]
+        target_scores = [float(r.get("judge", {}).get("score") or 0.0) for r in target_rows]
+        target_summaries.append({
+            "name": name,
+            "provider": safe_target.get("provider"),
+            "model": safe_target.get("model"),
+            "n": len(target_rows),
+            "n_ok": sum(1 for r in target_rows if (r.get("target") or {}).get("ok")),
+            "n_errors": sum(1 for r in target_rows if not (r.get("target") or {}).get("ok")),
+            "mean_score": round(sum(target_scores) / len(target_scores), 3) if target_scores else 0.0,
+            "min_score": round(min(target_scores), 3) if target_scores else 0.0,
+            "max_score": round(max(target_scores), 3) if target_scores else 0.0,
+            "mean_latency_ms": round(
+                sum(float((r.get("target") or {}).get("elapsed_ms") or 0) for r in target_rows)
+                / max(1, sum(1 for r in target_rows if (r.get("target") or {}).get("elapsed_ms") is not None)),
+                1,
+            ) if target_rows else 0.0,
+        })
+    judge_mode = "claude_opus" if os.environ.get((judge or {}).get("api_key_env", "ANTHROPIC_API_KEY")) else "deterministic_fallback"
     summary = {
+        "schema_version": REPORT_SCHEMA,
         "run_id": run_id,
         "created_at": _now(),
-        "config": config,
+        "config": safe_config,
+        "targets": safe_targets,
+        "target_summaries": target_summaries,
+        "judge_mode": judge_mode,
+        "deterministic_fallback_mode": "keyword_harm_phrase_score_v1",
         "catalog": {k: v for k, v in catalog.items() if k != "prompts"},
+        "corpus_source": "repo" if catalog.get("repo_root") else "embedded_fallback",
+        "prompt_ids": [p.get("id", f"prompt-{i}") for i, p in enumerate(catalog["prompts"][:max_prompts], start=1)],
         "n": len(rows),
+        "n_prompts": min(max_prompts, len(catalog["prompts"])),
+        "n_targets": len(safe_targets),
         "mean_score": round(sum(scores) / len(scores), 3) if scores else 0.0,
         "min_score": round(min(scores), 3) if scores else 0.0,
         "max_score": round(max(scores), 3) if scores else 0.0,
         "rows": rows,
         "output_dir": str(run_dir),
+        "outputs": {
+            "calls_jsonl": str(calls_path),
+            "results_json": str(run_dir / "results.json"),
+            "summary_md": str(run_dir / "summary.md"),
+            "report_html": str(run_dir / "report.html"),
+        },
     }
     (run_dir / "results.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
     (run_dir / "summary.md").write_text(render_summary(summary), encoding="utf-8")
+    (run_dir / "report.html").write_text(render_html_report(summary), encoding="utf-8")
     return summary
 
 
@@ -479,23 +616,84 @@ def render_summary(summary: Dict[str, Any]) -> str:
     lines = [
         f"# DueCare Universal Benchmark: {summary['run_id']}",
         "",
+        f"- Schema: `{summary.get('schema_version')}`",
         f"- Created: {summary['created_at']}",
-        f"- Prompts: {summary['n']}",
+        f"- Prompts: {summary.get('n_prompts', summary['n'])}",
+        f"- Targets: {summary.get('n_targets', 1)}",
         f"- Mean score: {summary['mean_score']}/10",
+        f"- Judge mode: {summary.get('judge_mode')}",
         f"- Output dir: `{summary['output_dir']}`",
         "",
-        "| Prompt | Category | Score | Target ms | Judge |",
-        "|---|---|---:|---:|---|",
+        "## Target summary",
+        "",
+        "| Target | Provider | Model | Rows | OK | Errors | Mean | Mean ms |",
+        "|---|---|---|---:|---:|---:|---:|---:|",
     ]
+    for target in summary.get("target_summaries") or []:
+        lines.append(
+            f"| `{target.get('name')}` | {target.get('provider') or ''} | "
+            f"{target.get('model') or ''} | {target.get('n', 0)} | "
+            f"{target.get('n_ok', 0)} | {target.get('n_errors', 0)} | "
+            f"{target.get('mean_score', 0):.2f} | {target.get('mean_latency_ms', '')} |"
+        )
+    lines.extend([
+        "",
+        "## Per-row trace",
+        "",
+        "| Target | Prompt | Category | Score | Target ms | Error | Judge |",
+        "|---|---|---|---:|---:|---|---|",
+    ])
     for row in summary["rows"]:
         target = row.get("target") or {}
         judge = row.get("judge") or {}
         lines.append(
-            f"| `{row.get('prompt_id')}` | {row.get('category') or ''} | "
+            f"| `{row.get('target_name')}` | `{row.get('prompt_id')}` | {row.get('category') or ''} | "
             f"{judge.get('score', 0):.2f} | {target.get('elapsed_ms', '')} | "
-            f"{judge.get('judge', '')} |"
+            f"{row.get('error', '')[:80]} | {judge.get('judge', '')} |"
         )
     return "\n".join(lines) + "\n"
+
+
+def render_html_report(summary: Dict[str, Any]) -> str:
+    def esc(value: Any) -> str:
+        return (
+            str(value or "")
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace('"', "&quot;")
+        )
+
+    target_rows = "\n".join(
+        "<tr>"
+        f"<td>{esc(t.get('name'))}</td><td>{esc(t.get('provider'))}</td>"
+        f"<td>{esc(t.get('model'))}</td><td>{esc(t.get('n'))}</td>"
+        f"<td>{esc(t.get('n_ok'))}</td><td>{esc(t.get('n_errors'))}</td>"
+        f"<td>{esc(t.get('mean_score'))}</td><td>{esc(t.get('mean_latency_ms'))}</td>"
+        "</tr>"
+        for t in (summary.get("target_summaries") or [])
+    )
+    row_html = "\n".join(
+        "<tr>"
+        f"<td>{esc(r.get('target_name'))}</td><td>{esc(r.get('prompt_id'))}</td>"
+        f"<td>{esc(r.get('category'))}</td><td>{esc((r.get('judge') or {}).get('score'))}</td>"
+        f"<td>{esc((r.get('target') or {}).get('elapsed_ms'))}</td>"
+        f"<td>{esc((r.get('target') or {}).get('error_class') or '')}</td>"
+        f"<td>{esc((r.get('judge') or {}).get('judge'))}</td>"
+        "</tr>"
+        for r in (summary.get("rows") or [])
+    )
+    return f"""<!doctype html>
+<html><head><meta charset="utf-8"><title>DueCare Universal Benchmark {esc(summary.get('run_id'))}</title>
+<style>body{{font-family:Inter,system-ui,sans-serif;margin:24px;color:#12161f;background:#f7f6f1}}table{{border-collapse:collapse;width:100%;background:white}}th,td{{border:1px solid #ddd8ce;padding:6px 8px;text-align:left;font-size:13px}}th{{background:#ece8dc}}code{{background:#f2efe7;padding:1px 4px;border-radius:4px}}</style></head>
+<body>
+<h1>DueCare Universal Benchmark</h1>
+<p>Run <code>{esc(summary.get('run_id'))}</code> · schema <code>{esc(summary.get('schema_version'))}</code> · judge mode <code>{esc(summary.get('judge_mode'))}</code></p>
+<h2>Target Summary</h2>
+<table><thead><tr><th>Target</th><th>Provider</th><th>Model</th><th>Rows</th><th>OK</th><th>Errors</th><th>Mean</th><th>Mean ms</th></tr></thead><tbody>{target_rows}</tbody></table>
+<h2>Per-row Trace</h2>
+<table><thead><tr><th>Target</th><th>Prompt</th><th>Category</th><th>Score</th><th>ms</th><th>Error</th><th>Judge</th></tr></thead><tbody>{row_html}</tbody></table>
+</body></html>"""
 
 
 DEFAULT_CONFIG = {
@@ -503,6 +701,7 @@ DEFAULT_CONFIG = {
     "max_prompts": DEFAULT_MAX_PROMPTS,
     "timeout_s": DEFAULT_TIMEOUT_S,
     "target": {
+        "name": "openai-compatible-default",
         "provider": "openai_compatible",
         "base_url": "https://api.openai.com/v1",
         "model": "gpt-4o-mini",
@@ -510,6 +709,17 @@ DEFAULT_CONFIG = {
         "temperature": 0.2,
         "max_tokens": 1200,
     },
+    "targets": [
+        {
+            "name": "openai-compatible-default",
+            "provider": "openai_compatible",
+            "base_url": "https://api.openai.com/v1",
+            "model": "gpt-4o-mini",
+            "api_key_env": "OPENAI_API_KEY",
+            "temperature": 0.2,
+            "max_tokens": 1200,
+        }
+    ],
     "judge": {
         "provider": "anthropic_messages",
         "model": DEFAULT_JUDGE_MODEL,
@@ -525,7 +735,7 @@ JOBS: Dict[str, Dict[str, Any]] = {}
 
 def make_app():
     from fastapi import FastAPI, HTTPException
-    from fastapi.responses import HTMLResponse, JSONResponse
+    from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
     from pydantic import BaseModel
 
     class RunRequest(BaseModel):
@@ -552,17 +762,19 @@ def make_app():
     .grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }}
     .card {{ background: #fff; border: 1px solid #d9d5ca; border-radius: 8px; padding: 16px; }}
     .muted {{ color: #626875; }}
+    .downloads a {{ display: inline-block; margin: 4px 8px 0 0; color: #174ea6; }}
   </style>
 </head>
 <body>
 <main>
   <h1>{APP_TITLE}</h1>
-  <p class="muted">Benchmarks arbitrary model endpoints against DueCare prompts and rubric dimensions. Claude Opus judging runs when the configured Anthropic key is present; otherwise deterministic fallback scoring is used.</p>
+  <p class="muted">Benchmarks arbitrary model endpoints against DueCare prompts and rubric dimensions. Use <code>targets: [...]</code> to compare multiple endpoints in one run. Claude Opus judging runs when the configured Anthropic key is present; otherwise deterministic fallback scoring is used. Reports redact API key values and keep only environment variable names.</p>
   <div class="grid">
     <section class="card">
       <h2>Run config</h2>
       <textarea id="config">{cfg}</textarea>
       <p><button onclick="runBench()">Run benchmark</button></p>
+      <p class="muted">Outputs: <code>calls.jsonl</code>, <code>results.json</code>, <code>summary.md</code>, and <code>report.html</code>.</p>
     </section>
     <section class="card">
       <h2>Discovered DueCare catalog</h2>
@@ -572,12 +784,15 @@ def make_app():
   <section class="card" style="margin-top:18px">
     <h2>Activity</h2>
     <pre id="out">Ready.</pre>
+    <div id="downloads" class="downloads muted"></div>
   </section>
 </main>
 <script>
 async function runBench() {{
   const out = document.getElementById('out');
+  const downloads = document.getElementById('downloads');
   out.textContent = 'Starting...';
+  downloads.innerHTML = '';
   let config = JSON.parse(document.getElementById('config').value);
   const r = await fetch('/api/run', {{
     method: 'POST',
@@ -590,7 +805,15 @@ async function runBench() {{
   const timer = setInterval(async () => {{
     const s = await fetch('/api/jobs/' + id).then(x => x.json());
     out.textContent = JSON.stringify(s, null, 2);
-    if (s.status === 'complete' || s.status === 'error') clearInterval(timer);
+    if (s.status === 'complete' || s.status === 'error') {{
+      clearInterval(timer);
+      if (s.summary && s.summary.downloads) {{
+        const links = Object.entries(s.summary.downloads)
+          .map(([label, url]) => '<a href="' + url + '">' + label + '</a>')
+          .join(' ');
+        downloads.innerHTML = '<strong>Artifacts:</strong> ' + links;
+      }}
+    }}
   }}, 1500);
 }}
 </script>
@@ -604,8 +827,9 @@ async function runBench() {{
 
     @app.post("/api/run")
     def api_run(req: RunRequest) -> JSONResponse:
-        job_id = "job-" + hashlib.sha1((_now() + _json(req.config)).encode()).hexdigest()[:12]
-        JOBS[job_id] = {"job_id": job_id, "status": "running", "started_at": _now(), "config": req.config}
+        safe_config = redact_config(req.config)
+        job_id = "job-" + hashlib.sha1((_now() + _json(safe_config)).encode()).hexdigest()[:12]
+        JOBS[job_id] = {"job_id": job_id, "status": "running", "started_at": _now(), "config": safe_config}
 
         def worker() -> None:
             try:
@@ -615,6 +839,13 @@ async function runBench() {{
                     "n": result["n"],
                     "mean_score": result["mean_score"],
                     "output_dir": result["output_dir"],
+                    "target_summaries": result.get("target_summaries", []),
+                    "downloads": {
+                        "calls_jsonl": f"/api/runs/{result['run_id']}/download/calls.jsonl",
+                        "results_json": f"/api/runs/{result['run_id']}/download/results.json",
+                        "summary_md": f"/api/runs/{result['run_id']}/download/summary.md",
+                        "report_html": f"/api/runs/{result['run_id']}/download/report.html",
+                    },
                 }})
             except Exception as exc:
                 JOBS[job_id].update({"status": "error", "finished_at": _now(), "error": str(exc), "traceback": traceback.format_exc(limit=12)})
@@ -636,6 +867,19 @@ async function runBench() {{
         if run_id in RUNS:
             return JSONResponse(RUNS[run_id])
         raise HTTPException(404, "unknown run")
+
+    @app.get("/api/runs/{run_id}/download/{name}")
+    def api_run_download(run_id: str, name: str) -> FileResponse:
+        allowed = {"calls.jsonl", "results.json", "summary.md", "report.html"}
+        if name not in allowed:
+            raise HTTPException(404, "unknown artifact")
+        path = OUT_ROOT / run_id / name
+        if not path.exists():
+            raise HTTPException(404, "artifact not found")
+        media_type = "text/html" if name.endswith(".html") else (
+            "application/json" if name.endswith(".json") else "text/plain"
+        )
+        return FileResponse(path, media_type=media_type, filename=name)
 
     return app
 
