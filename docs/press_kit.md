@@ -73,19 +73,22 @@ who files the refund claim; the regulator who investigates the
 recruiter; the recruitment agency that wants to self-audit before
 a regulator does.
 
-## Headline numbers
+## Headline proxy evidence
 
 These are reproducible per `(git_sha, dataset_version, model_revision)`
-— see [RESULTS.md](../RESULTS.md):
+— see [RESULTS.md](../RESULTS.md). Treat them as smoke / proxy
+evaluation results for the checked-in harness, not production traffic,
+weeks-long local Gemma operation, or a field deployment:
 
 - **Measured A-00 smoke-matrix lift:** stock Gemma 4 2B scored 29.5%,
   stock + chat-offline harness scored 35.6%, fine-tuned scored 26.4%,
   and fine-tuned + harness scored 41.2%
-- **+87.5 percentage points** specifically on jurisdiction-specific
-  rule citations (the most demanding category)
-- **+51.2 percentage points** on ILO / international convention citations
-- **100%** of the 207 graded prompts saw the harness help; 0
-  saw it hurt
+- **+73.8 percentage points** specifically on jurisdiction-specific
+  rule citations in the proxy harness-lift report
+- **+55.4 percentage points** on ILO / international convention citations
+  in the proxy harness-lift report
+- **Nearly all** graded proxy prompts saw the harness help; the
+  generated report lists the exact current count
 - **11** ILO C029 forced-labour indicators encoded
 - **12** migration corridors with statute lookups (PH-HK, ID-HK,
   PH-SA, NP-SA, BD-SA, ID-SG + MX-US, VE-CO, GH-LB, NG-LB,
@@ -123,10 +126,11 @@ These are reproducible per `(git_sha, dataset_version, model_revision)`
 > a benchmark suite that quantifies how off-the-shelf LLMs handle
 > recruitment-fraud and trafficking-shaped prompts. The benchmark
 > revealed that frontier models, including Gemma 4 out of the box,
-> citing the wrong statute or no statute at all on most
-> migrant-labour questions — at a 0.4% pass rate. With the Duecare
-> harness around the same model, that rate climbs to 87.8% on
-> jurisdiction-specific citations. Taylor's research has informed
+> often cite the wrong statute or no statute at all on
+> migrant-labour questions. In the current reproducible proxy
+> harness-lift report, the jurisdiction-specific citation score moves
+> from 0.4% to 74.2%; a longer live Gemma run is still needed before
+> treating that as a production reliability metric. Taylor's research has informed
 > conversations with NGOs serving Filipino, Indonesian, Nepali,
 > and Bangladeshi migrant communities. Duecare is open-source MIT
 > and submitted to Google's 2026 Gemma 4 Good Hackathon under the
@@ -179,10 +183,10 @@ The contrast with Azure / OpenAI / Hive moderation. Key data points:
 ### "Quantifying Gemma 4's jurisdiction-specific reasoning gap"
 
 The harness-lift research angle. Key data points:
-- 207 hand-graded prompts
-- Stock Gemma: 0.4% pass rate on jurisdiction-specific citations
-- With harness: 87.8% pass rate (+87.5 pp)
-- Methodology: hand-graded 5-point rubric, blinded evaluation
+- 200+ prompt proxies from the checked-in rubric set
+- Harness-OFF proxy: 0.4% pass rate on jurisdiction-specific citations
+- Harness-ON proxy: 74.2% mean score (+73.8 pp)
+- Methodology: 5-tier rubric examples plus live GREP/RAG context
 - See [`docs/harness_lift_report.md`](./harness_lift_report.md)
 
 ### "Zero-budget tools for under-resourced NGOs"
@@ -237,8 +241,10 @@ Honest framing for reporters:
 ## How to verify any claim in the writeup
 
 Every published metric is anchored to `(git_sha, dataset_version,
-model_revision)` per [RESULTS.md](../RESULTS.md). To independently
-reproduce:
+model_revision)` per [RESULTS.md](../RESULTS.md). The current
+headline lift figures are proxy measurements; production-grade claims
+require archived live Gemma outputs and a manual citation-grounding
+review. To independently reproduce:
 
 ```bash
 git clone https://github.com/TaylorAmarelTech/gemma4_comp

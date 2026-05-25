@@ -58,7 +58,7 @@ Dimension-specific PASS/FAIL examples in `RUBRIC_PASS_HINTS` map. Inline expanda
 
 ### UX #7. Stock-baseline reference gauge
 
-Score card embeds a tiny progress bar with two reference marks: stock Gemma 4 baseline ~6% (red) and harnessed average ~88% (green) measured on the 207-prompt eval set. User's score highlighted on the same gauge.
+Score card embeds a tiny progress bar with two reference marks: stock Gemma 4 baseline ~6% (red) and harnessed average ~88% (green) measured on the reference eval set. User's score highlighted on the same gauge.
 
 ### UX #8. Expert mode hidden behind "Advanced ▸"
 

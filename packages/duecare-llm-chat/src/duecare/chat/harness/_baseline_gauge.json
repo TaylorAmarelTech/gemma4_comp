@@ -9,14 +9,14 @@
     "value":  6.0,
     "color":  "#ef4444",
     "title":  "Stock Gemma 4 baseline measured against v3.5 rubric (re-measure against v3.10 pending)",
-    "notes":  "Average pct_score across the 207-prompt eval set with all harness layers OFF and the default Gemma 4 E4B-it persona-free. Measured against v3.5 rubric (19 dims). Re-measurement against v3.10 (46 dims) pending GPU budget; expected lift is similar or higher because the new harm-axis dims discriminate strongly between stock (often ships operational tips) and harnessed (refuses with grounding)."
+    "notes":  "Average pct_score across the reference eval set with all harness layers OFF and the default Gemma 4 E4B-it persona-free. Measured against v3.5 rubric (19 dims). Re-measurement against v3.10 (46 dims) pending GPU budget; expected lift is similar or higher because the new harm-axis dims discriminate strongly between stock (often ships operational tips) and harnessed (refuses with grounding)."
   },
   "harnessed": {
     "label":  "harnessed 88% (v3.5)",
     "value":  88.0,
     "color":  "#10b981",
     "title":  "Harnessed average measured against v3.5 rubric (re-measure against v3.10 pending)",
-    "notes":  "Average pct_score across the 207-prompt eval set with persona + GREP + RAG + Tools all ON. Measured against v3.5 rubric (19 dims). Re-measurement against v3.10 (46 dims) pending GPU budget."
+    "notes":  "Average pct_score across the reference eval set with persona + GREP + RAG + Tools all ON. Measured against v3.5 rubric (19 dims). Re-measurement against v3.10 (46 dims) pending GPU budget."
   },
   "remeasure_pending": true,
   "remeasure_note":    "Headline numbers are honest about the rubric they were measured against (v3.5, 19 dims). Live grader uses v3.10 (46 dims). Until re-measurement is run on a Kaggle T4, trust the live grader output over this gauge.",

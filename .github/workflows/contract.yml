@@ -31,7 +31,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ./packages/duecare-llm-core
           pip install -e ./packages/duecare-llm-chat[test]
-          pip install fastapi httpx "pydantic>=2"
+          pip install fastapi httpx "pydantic>=2" pytest python-multipart
 
       - name: Route contract (every endpoint pinned)
         run: pytest tests/test_route_contract.py -q

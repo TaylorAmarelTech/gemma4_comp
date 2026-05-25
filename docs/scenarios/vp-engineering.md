@@ -214,8 +214,10 @@ Top-line, in priority order:
 1. **Harness lift** — for your T&S team's hand-graded rubric, what
    percentage of prompts get a "better" response with Duecare on
    vs off? The published number for trafficking-specific prompts
-   is +56.5 pp mean across 207 prompts ([`docs/harness_lift_report.md`](../harness_lift_report.md));
-   yours will differ by domain.
+   is a +51.4 pp mean proxy measurement across the current 200+ prompt set
+   ([`docs/harness_lift_report.md`](../harness_lift_report.md));
+   yours will differ by domain and should be backed by archived live
+   model outputs before being treated as a production metric.
 2. **Per-tenant token cost** — `duecare_model_tokens_out_total` rolled
    up per tenant per day, multiplied by your internal cost-per-1k.
    Should be predictable + within budget.

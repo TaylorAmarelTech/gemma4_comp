@@ -32,6 +32,7 @@ Every command in this directory assumes:
 | Vocab and diagnostics pack | [`05_vocab_diagnostics_pack.md`](05_vocab_diagnostics_pack.md) | 9, 7 | You want canonical vocabulary cleanup plus read-only auditing |
 | Kaggle surface long-run dispatch | [`06_kaggle_surface_long_run.md`](06_kaggle_surface_long_run.md) | 12, 13, 11, 14, 15 | You want a few-hour source-first pass over the active 01/02 pages, hierarchical Gemma graph, and optional benchmark kernels |
 | Verification and showcase hardening | [`07_verification_showcase_hardening.md`](07_verification_showcase_hardening.md) | post-Goals 11-15 | You want a clean Python env, runtime smoke tests, manual path tracing, and Gemma 4 ecosystem/design polish without exceeding `/goal` length |
+| Pages and number hardening | [`08_pages_number_hardening.md`](08_pages_number_hardening.md) | same-day launch polish | You need GitHub Pages enabled/deploying ASAP while removing fragile public magic numbers and keeping Kaggle gates green |
 
 ## Dependency notes
 

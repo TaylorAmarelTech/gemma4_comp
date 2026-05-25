@@ -25,7 +25,7 @@
 | Pattern-match 10,000 scraped Facebook job ads for trafficking signals | Run the GREP layer over the dataset; get back per-ad rule firings (10k posts/sec on CPU) |
 | Understand the kafala system without a 2-week reading list | Ask the chat surface; get plain-language explanations citing ILO C189 + Saudi MoHR + Lebanon General Security |
 | Map fee-camouflage patterns across an investigation | The Reports tab structures fee data with legality flags + corridor-specific cost rollups |
-| Build a publishable methodology section | Reproducibility provenance via `(git_sha, dataset_version, model_revision)` + the 207-prompt rubric in `docs/harness_lift_report.md` |
+| Build a publishable methodology section | Reproducibility provenance via `(git_sha, dataset_version, model_revision)` + the 200+ prompt proxy rubric in `docs/harness_lift_report.md` |
 | Get the right NGO contact for a story's quote / source | Bundled directory: 3-4 vetted NGOs per corridor, with phones + URLs |
 
 ## Source protection — read this first
@@ -189,10 +189,10 @@ If Duecare's harness analysis is load-bearing in your story:
 If you used the published rubric numbers:
 
 > "Independent reproducibility analysis published by Duecare's
-> harness-lift report (207 hand-graded prompts, +56.5 percentage
-> points mean improvement) shows that off-the-shelf large language
-> models miss jurisdiction-specific recruitment-fee regulations 99.6%
-> of the time without an external research layer."
+> harness-lift report (200+ prompt proxies, +51.4 percentage points
+> mean improvement in a smoke / regression evaluation) suggests that
+> off-the-shelf large language models often miss jurisdiction-specific
+> recruitment-fee regulations without an external research layer."
 
 Bibtex for academic-style references: see
 [`docs/scenarios/researcher-analysis.md`](./researcher-analysis.md)
@@ -218,7 +218,7 @@ If you're looking for an angle, here are five your editor will
 react to:
 
 1. **"How $0/year open-source AI is outperforming Big Tech moderation
-   on trafficking-specific prompts"** — the +87.5 pp jurisdiction-
+   on trafficking-specific prompts"** — the +73.8 pp jurisdiction-
    specific lift is the headline number; the open-source-vs-Hive-
    Sift cost comparison is the body.
 2. **"The recruitment-fee underground that an Android app exposes"**

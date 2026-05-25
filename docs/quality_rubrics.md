@@ -99,7 +99,8 @@ Throughout the rubrics, capabilities are tagged `[W]`, `[N]`, `[R]`, `[E]`, `[I]
 
 - `docs/writeup_draft.md` (~1450 words, Kaggle cap 1500) with 8 sections.
 - `docs/FOR_PEER_REVIEW.md` audience-specific (Researcher / Engineer audiences).
-- `docs/harness_lift_report.md` quantifies +87.5/+51.2/+34.1 pp lift across 3 dimensions on 207 prompts.
+- `docs/harness_lift_report.md` quantifies +73.8/+55.4/+21.2 pp
+  proxy lift across 3 dimensions on the current 200+ prompt set.
 - `docs/prior_art.md` cites Just Good Work + Polaris + Tella + HarmBench/AILuminate + DoNotPay caveat.
 - `RESULTS.md` pins every metric to `(git_sha, dataset_version, model_revision)`.
 - **Gap:** no third-party review yet (a peer's read would catch our blind spots).

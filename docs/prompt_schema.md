@@ -31,7 +31,7 @@ Programmatic access:
 from duecare.chat.harness import (
     EXAMPLE_PROMPTS,         # list[dict]   -- 394 entries
     CLASSIFIER_EXAMPLES,     # list[dict]   -- 16 entries
-    RUBRICS_5TIER,           # dict[str, dict]  -- 207 entries keyed by prompt_hash_id
+    RUBRICS_5TIER,           # dict[str, dict]  -- 200+ entries keyed by prompt_hash_id
     RUBRICS_REQUIRED,        # dict[str, dict]  -- 5 entries keyed by category
     grade_response_5tier,    # function: (prompt_id, text) -> {tier, label, ...}
     grade_response_required, # function: (category, text) -> {criteria, pct_score, ...}

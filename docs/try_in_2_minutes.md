@@ -82,8 +82,8 @@ python scripts/run_local_gemma.py --graded-only --output reproduce.jsonl
 ```
 
 Compare your output to [`docs/harness_lift_report.md`](./harness_lift_report.md).
-You should see a comparable mean lift across 207
-prompts.
+You should see a comparable mean lift across the current checked
+prompt set.
 
 Or, if you don't want to install anything: read the report
 directly. Every metric is anchored to `(git_sha,

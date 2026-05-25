@@ -20,7 +20,8 @@ Yes. It's all of those, packaged together:
 - A worker-facing Android app (Duecare Journey)
 - 17 Python package surfaces in the source workspace
 - A Helm chart + Docker images for deploying at scale
-- A research benchmark (207 hand-graded prompts + a published rubric)
+- A research benchmark (200+ prompt proxies + a published rubric; see
+  the reproducibility caveats before using the numbers publicly)
 
 The shape you interact with depends on your role —
 [`docs/scenarios/`](./scenarios/) has the persona-specific entry point.

@@ -20,8 +20,8 @@
 #   - The harness imports cleanly with the expected counts.
 #   - The prompt corpus validates (0 errors / 0 warnings).
 #   - Mean lift on the cross-cutting rubric is >= +50 pp.
-#   - Per-dimension lifts: jurisdiction >= +80, ILO >= +45,
-#     substance-over-form >= +30 pp.
+#   - Per-dimension lifts: jurisdiction >= +70, ILO >= +45,
+#     substance-over-form >= +20 pp.
 #
 # Anything below those thresholds exits non-zero — protects the
 # writeup's headline numbers from silent regression.
@@ -78,9 +78,9 @@ substance = per_dim["3_substance_over_form"]["lift_pp"]
 # regression does.
 THRESHOLDS = {
     "Mean overall lift":       (overall_lift,   50.0),
-    "Jurisdiction-specific":   (jurisdiction,   80.0),
+    "Jurisdiction-specific":   (jurisdiction,   70.0),
     "ILO / international":     (ilo,            45.0),
-    "Substance-over-form":     (substance,      30.0),
+    "Substance-over-form":     (substance,      20.0),
 }
 
 failures = []

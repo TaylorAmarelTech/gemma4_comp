@@ -190,7 +190,7 @@ Expected output:
   [  OK  ]  RAG corpus             current >= required   documents (ILO conventions, statutes, NGO briefs)
   [  OK  ]  Tools                  current >= required   lookup functions
   [  OK  ]  Example prompts        current >= required   bundled examples library
-  [  OK  ]  5-tier rubrics         current >= required   hand-graded worst..best response examples
+  [  OK  ]  5-tier rubrics         current >= required   graded worst..best response examples
   [  OK  ]  Required rubrics       current >= required   required-element rubric categories
   [  OK  ]  Classifier examples    current >= required   pre-built classifier examples
   [  OK  ]  Universal rubric dims  current >= required   universal rubric dimensions

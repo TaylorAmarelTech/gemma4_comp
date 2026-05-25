@@ -179,7 +179,7 @@ reviewer understands the reasoning.
 ### `_grader_config.json`
 
 Tunable thresholds. Don't change these casually — they're calibrated
-against the 207-prompt eval set. Examples of legitimate edits:
+against the current prompt eval set. Examples of legitimate edits:
 
 - Loosening the gaming-defense cap (60% → 70%) when running against a
   research benchmark where bag-of-keywords gaming is rare

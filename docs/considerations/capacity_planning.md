@@ -18,8 +18,8 @@
 | 20,000+ | C (server, multi-region) | Multi-region k8s + dedicated inference pool | $10,000+ |
 
 Worker = one human-day of typical use ≈ 10-20 chat turns. Numbers
-assume `gemma4:e2b` (default model) and the published harness lift
-profile (207-prompt rubric, +56.5 pp mean). Bigger models scale costs
+assume `gemma4:e2b` (default model) and the published proxy harness
+profile (200+ prompt rubric, +51.4 pp mean). Bigger models scale costs
 roughly linearly with parameter count.
 
 ## Per-RPS sizing (Topology C)

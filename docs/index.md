@@ -207,25 +207,29 @@ Sorted by who you are:
 - :material-tune-vertical: [**Archived A-00 proof path**](FOR_PEER_REVIEW.md#archived-a-00-proof-path) — preconfigured baseline, harness, optional LoRA, judging, and export run
 - :material-clock-fast: [**Judge 5-min test plan**](peer_review_5min_test_plan.md) — the entry point for hackathon judges
 
-## Headline numbers
+## Headline proxy evidence
 
-The measured harness-lift report shows:
+The measured harness-lift report shows current smoke / regression
+evidence. These are not field-deployment, production-traffic, or
+weeks-long local Gemma reliability numbers:
 
-- **+56.5 pp** mean lift across the published hand-graded prompt set *(historical measurement; see caveat below)*
-- **+87.5 pp** on jurisdiction-specific rule citations
-- **+51.2 pp** on ILO / international convention citations
-- **100%** of prompts saw the harness help; 0 saw it hurt
+- **+51.4 pp** mean lift across the published 200+ prompt proxy set
+- **+73.8 pp** on jurisdiction-specific rule citations
+- **+55.4 pp** on ILO / international convention citations
+- **+21.2 pp** on substance-over-form analysis
+- **Nearly all** checked proxy prompts saw the harness help; the
+  generated report lists the exact current count
 
 Numbers are reproducible — see the [harness lift report](harness_lift_report.md),
 the [reproducibility doc](reproducibility.md) (provenance for every
 quantitative claim), and [`RESULTS.md`](https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/RESULTS.md)
 for the `(git_sha, dataset_version, model_revision)` tuples.
 
-**Caveat:** the +56.5pp / +87.5pp / +51.2pp / +34.1pp numbers were
-last measured 2026-05-03 against an earlier GREP revision; the
-current expansion to the larger rule set is additive but should be re-measured
-so the lift is expected to remain at-or-above these floors. Re-run
-the active DueCare Fine-tuning and Evaluation to refresh.
+**Measurement note:** these numbers were regenerated from the current
+source on May 25, 2026 with `python scripts/rubric_comparison.py`.
+Re-run that command before copying the figures into a new public claim.
+Run and archive live Gemma outputs before claiming long-run citation
+traceability or field performance.
 
 ## Sensitive data stays local
 

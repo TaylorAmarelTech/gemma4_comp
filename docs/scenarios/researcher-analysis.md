@@ -30,14 +30,14 @@
 
 ### Workflow 1: Reproduce a published number
 
-Suppose you read in the writeup: *"+56.5 pp mean lift on the
-207-prompt rubric"* and you want to verify it.
+Suppose you read in the writeup: *"+51.4 pp mean lift on the
+200+ prompt proxy rubric"* and you want to verify it.
 
 ```bash
 # 1. Install
 pip install duecare-llm-chat duecare-llm-tasks duecare-llm-domains
 
-# 2. Get the dataset (the 207 prompts + their hand-grade rubrics)
+# 2. Get the dataset (the 200+ prompts + their rubric examples)
 git clone https://github.com/TaylorAmarelTech/gemma4_comp.git
 cd gemma4_comp
 
@@ -129,7 +129,7 @@ papers:
 python scripts/run_comparison.py \
   --models gemma4:e2b gemma4:e4b claude-sonnet-4 gpt-4o \
   --rubric trafficking_legal_citation_quality \
-  --n-prompts 207 \
+  --n-prompts 200 \
   --output comparison.jsonl
 ```
 
@@ -164,8 +164,8 @@ same numbers (within the model's nondeterminism tolerance).
 
 Example footnote in a paper:
 
-> Lift figures (+56.5 pp mean) computed against 207 hand-graded
-> prompts using the Duecare safety harness at git SHA `c235e14`,
+> Proxy lift figures (+51.4 pp mean) computed against 200+ prompt
+> proxies using the Duecare safety harness at git SHA `c235e14`,
 > dataset `taylorsamarel/duecare-trafficking-prompts@v3`, model
 > `google/gemma-4-e2b-it@main` as of 2026-05-02. Reproduction
 > instructions: `docs/scenarios/researcher-analysis.md`,
@@ -178,7 +178,7 @@ Bundled / public:
 | Dataset | Slug | Size | License |
 |---|---|---|---|
 | Trafficking prompts (public) | `taylorsamarel/duecare-trafficking-prompts` | 21K prompts + 5 rubrics | CC-BY-4.0 |
-| 5-grade rubric annotations | (in the same dataset) | 207 hand-graded | CC-BY-4.0 |
+| 5-grade rubric annotations | (in the same dataset) | 200+ prompt proxies | CC-BY-4.0 |
 | Corridor lookup tables | (bundled in `duecare-llm-domains`) | 6 corridors | MIT |
 | Trafficking GREP rule catalog | (bundled in `duecare-llm-chat`) | 100+ rules | MIT |
 | RAG legal corpus | (bundled in `duecare-llm-chat`) | 50+ docs | CC-BY-4.0 (each doc has its own attribution) |
@@ -186,7 +186,7 @@ Bundled / public:
 For your own data:
 
 - Hand-grade 50-100 prompts in your domain. That's the rubric you'll
-  cite. The published 207-prompt rubric took ~30 hours of focused
+  cite. The published 200+ prompt rubric took ~30 hours of focused
   hand-grading; budget similar.
 - Save in JSONL: `{"id": "...", "prompt": "...", "expected": ["..."]}`.
 - Use `duecare-llm-tasks` to run the rubric against any model.
@@ -200,7 +200,7 @@ legal citation quality by N pp on our domain":
    running the model. Otherwise post-hoc rubric design will leak
    the result you want.
 2. **Hand-grade > 100 prompts** — fewer and your confidence
-   intervals are too wide to publish. The bundled rubric uses 207.
+   intervals are too wide to publish. The bundled rubric uses 200+.
 3. **Report nondeterminism** — run each prompt 3+ times with
    `temperature=0.7`; report mean ± std. Or use `temperature=0`
    for a deterministic single run (and note this disables Gemma's
@@ -221,7 +221,7 @@ legal citation quality by N pp on our domain":
   Gemma 4's responses" produces a self-flattering rubric that
   doesn't generalize. Hand-grade or use a different LLM as judge.
 - **Don't conflate harness lift with model improvement.** The
-  +56.5 pp number is *the harness's* contribution; it doesn't
+  +51.4 pp number is *the harness's* contribution; it doesn't
   mean Gemma 4 got smarter. Always report harness OFF vs ON
   separately so the contributions are visible.
 - **Don't draw causal conclusions from cross-sectional data.**

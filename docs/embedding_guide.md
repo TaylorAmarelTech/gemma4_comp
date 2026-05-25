@@ -7,8 +7,8 @@ matches your stack.
 
 > **What you get when you embed Duecare:** the same safety harness
 > + chat surface that powers the Kaggle notebooks, the HF Space, and
-> the Android app. Same prompt assembly, same harness lift (+87.5 /
-> +51.2 / +34.1 pp on the legal_citation_quality rubric), same
+> the Android app. Same prompt assembly, same harness lift (+73.8 /
+> +55.4 / +21.2 pp on the legal_citation_quality rubric), same
 > privacy posture (no telemetry by default, local-first wherever
 > possible).
 

@@ -3,7 +3,7 @@ against the v3.6 rubric (21 dims, harm-axis dims, use-case-aware
 weighting).
 
 Designed to run on Kaggle T4 with a loaded Gemma 4 (E4B-it default,
-configurable). Reads the bundled 207-prompt eval set, runs each
+configurable). Reads the bundled prompt eval set, runs each
 prompt twice (HARNESS OFF and HARNESS ON), grades both with
 `grade_response_universal` (deterministic v3.6 grader), aggregates,
 and writes the refreshed reference numbers to
@@ -126,7 +126,7 @@ def _mock_model_call(prompt: str) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--eval-set", default="bundled",
-                            help="'bundled' uses the 207 examples in EXAMPLE_PROMPTS; "
+                            help="'bundled' uses the packaged examples in EXAMPLE_PROMPTS; "
                                   "'/path/to/jsonl' uses a custom file with {prompt} per line")
     parser.add_argument("--max-prompts", type=int, default=0,
                             help="Cap (0 = run all)")

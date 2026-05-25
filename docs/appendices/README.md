@@ -26,7 +26,7 @@ submission.
 
 | # | Appendix | What it covers |
 |---|---|---|
-| A1 | [Harness lift report](../harness_lift_report.md) | Full +56.5pp / +87.5pp / +51.2pp / +34.1pp methodology + 4 appendices (refusal rate, layer ablation, fabrication detection) |
+| A1 | [Harness lift report](../harness_lift_report.md) | Full +51.4pp / +73.8pp / +55.4pp / +21.2pp methodology + 4 appendices (refusal rate, layer ablation, fabrication detection) |
 | A2 | [Prompt schema](../prompt_schema.md) | Full data shape + vocabulary for the prompt corpus |
 | A3 | [Corpus coverage matrix](../corpus_coverage.md) | 2D coverage heatmaps across category × sector × corridor × difficulty × ILO |
 | A4 | [Contributing prompts guide](../contributing_prompts.md) | 5-step add-path + style guide for new evaluation prompts |
