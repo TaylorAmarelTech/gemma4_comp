@@ -26,14 +26,20 @@ runner for OpenAI-compatible, Anthropic Messages, and raw HTTP targets. Use this
 - Uses `kbench.llm` or `kbench.llms[model_name]` instead of direct API calls.
 - Loads prompt rows from `configs/duecare/domains/<domain>/seed_prompts.jsonl`
   when the repository is attached as a Kaggle dataset.
+- Blends in canonical fee-limit and corridor probes from the shared benchmark
+  adapter so the default preview proves coverage beyond generic trafficking
+  prompts.
 - Falls back to a compact built-in trafficking benchmark if the repo is not
-  attached.
+  attached or the shared adapter is unavailable.
 - Scores refusal correctness, harmful operational uplift, legal grounding,
   forced-labor indicators, privacy minimization, and evidence preservation.
 - Optionally asks a Kaggle-hosted judge model to grade the response, then falls
   back to deterministic scoring if the judge is unavailable.
 - Writes a replayable DueCare JSON report to
   `/kaggle/working/duecare-kbench/`.
+- Writes report schema `duecare.kaggle_community_benchmark.v3`, including
+  execution mode, row coverage, assertion counts, judge availability,
+  registration notes, and shared-vs-embedded fallback alignment.
 
 ## Kaggle Credits
 
@@ -47,7 +53,7 @@ uses the configured endpoint's own billing or key.
 | Variable | Default | Purpose |
 |---|---|---|
 | `DUECARE_KBENCH_DOMAIN` | `trafficking` | Domain pack to load from `configs/duecare/domains/`. Also selects the kbench criteria profile (`trafficking`, `tax_evasion`, `financial_crime`, `fee_limits`). |
-| `DUECARE_KBENCH_LIMIT` | `12` | Number of prompt rows to evaluate. |
+| `DUECARE_KBENCH_LIMIT` | `12` | Number of prompt rows to evaluate. The selector reserves fee-limit and corridor probes when the limit is large enough. |
 | `DUECARE_KBENCH_MODEL` | empty | Optional Kaggle model name; empty uses `kbench.llm`. |
 | `DUECARE_KBENCH_USE_JUDGE` | `0` | Set to `1` to ask a Kaggle-hosted judge model. |
 | `DUECARE_KBENCH_JUDGE_MODEL` | `anthropic/claude-opus-4` | Preferred judge model name when available. |
@@ -87,6 +93,14 @@ with the registered task at:
 The remaining step is the one-click **Save Task** in the Kaggle web
 UI to register the task on the public benchmarks page. After that,
 "Evaluate More Models" populates the leaderboard.
+
+As of 2026-05-25 the root `04-kaggle-community-benchmark/kernel.py` local
+preview writes an explicit `local_preview_no_model` report. Local preview
+does not call `kbench.llm`, a target model, or a judge model; it scores a fixed
+preview response only so the report schema and coverage can be inspected
+offline. A real benchmark run reports `kaggle_model_proxy_execution` and
+`uses_kaggle_benchmarks: true` only when `kbench.llm` is wired inside a Kaggle
+Benchmark task notebook.
 
 To update the published task notebook after edits:
 
@@ -198,8 +212,12 @@ direction. Exits non-zero on any DISAGREE so it composes with CI.
 6. Keep `DUECARE_KBENCH_USE_JUDGE=0` for the first publishable run. Enable it
    only after confirming the preferred judge model is available in Kaggle.
 7. Run the task. Confirm the output reports:
+   - `schema: duecare.kaggle_community_benchmark.v3`
+   - `execution_mode: kaggle_model_proxy_execution`
    - `uses_kaggle_benchmarks: true`
    - rows loaded from the intended domain
+   - row coverage includes fee-limit and corridor probes
+   - observed assertion count stays at or below 6 per row
    - no operational-uplift assertion failures hidden by fallback logic
 8. Download `/kaggle/working/duecare-kbench/<run_id>/results.json` and
    `summary.md` as the first reproducibility artifact.
