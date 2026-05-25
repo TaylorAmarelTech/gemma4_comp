@@ -31,6 +31,8 @@ showcase a coherent Gemma 4 ecosystem for migrant-worker safety, including:
 - anonymization and sharing
 - universal LLM benchmarking
 - Kaggle Community Benchmark readiness
+- standardized packaging and setup paths for different user groups
+- GitHub-facing onboarding instructions and showcase surfaces
 
 Do not pause for ordinary test failures, missing packages, broken local Python
 installs, import errors, route smoke failures, or UI inconsistencies. Diagnose,
@@ -266,6 +268,56 @@ viewers into the strongest workbench pages.
 Check that optional Kernel 03 and Kernel 04 benchmarks read as evaluation proof
 surfaces, not as the main recording path.
 
+Review whether the repository itself helps different users get started without
+copying private local assumptions. Look for concrete improvement opportunities
+across:
+
+- Kaggle judges copying `kernel.py` from the active folders
+- NGO / regulator reviewers using the live demo or a local workbench
+- developers installing the packages and running targeted tests
+- benchmark users running the universal LLM benchmark or Kaggle Community
+  Benchmark without paid/live model calls
+- researchers exploring reusable evidence, template, graph, and anonymization
+  artifacts
+
+Identify places where packaging could be more standard across these use cases:
+
+- package names, extras, CLI entrypoints, and README install commands
+- local development versus Kaggle copy-paste versus published wheel paths
+- shared sample data, replay artifacts, and no-secrets test fixtures
+- clear boundaries between active submission kernels, optional benchmarks,
+  archived notebooks, and reusable Python packages
+- versioned artifacts and release notes that would help users reproduce a demo
+
+Review the GitHub onboarding surface. If gaps are found, prefer improving or
+proposing small, durable docs rather than adding a new top-level surface unless
+the purpose map is updated. Check:
+
+- root `README.md`
+- `kaggle/_INDEX.md`
+- `docs/REPO_LAYOUT.md`
+- `docs/FILE_PURPOSE_GUIDE.md`
+- package READMEs for the primary install/run/test paths
+- scripts that validate public docs and Kaggle copy-paste contracts
+
+Consider whether the project should add or strengthen a GitHub Pages-style
+showcase that helps users understand and start the project from GitHub. Treat
+this as an opportunity review unless the fix is obviously small and low-risk.
+Any GitHub Pages recommendation should preserve the Kaggle judging path and
+should explain:
+
+- what the public page would show first
+- how it links to the active Kaggle kernels and live demo
+- how it points developers to package install and test commands
+- how it presents DueCare as an ecosystem of components, not a single chatbot
+- how local nodes can anonymize case material into shareable fact objects and
+  graph evidence without exposing raw worker files
+- how aggregated, anonymized fact objects from many trusted local nodes can
+  improve intelligence against trafficking and recruitment-abuse patterns
+- how it avoids raw PII, secrets, volatile legal claims, and unverified metrics
+- whether it can reuse existing static/site assets instead of creating a
+  separate marketing-only page
+
 Improve copy only where it makes the Gemma 4 ecosystem more concrete, more
 specific, and more truthful. Do not inflate claims beyond verified source
 behavior.
@@ -386,6 +438,8 @@ The final report must include:
 - manual path-tracing findings
 - Gemma 4 ecosystem showcase findings
 - UI/layout consistency findings
+- packaging and GitHub onboarding findings
+- GitHub Pages / public showcase recommendation, if applicable
 - commits and push status
 - unresolved blockers
 - whether the repo is ready to test in Kaggle

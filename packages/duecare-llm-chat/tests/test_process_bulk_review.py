@@ -440,7 +440,9 @@ def test_process_background_job_calls_loaded_gemma_for_brief_and_edges():
     hgraph = intel["hierarchical_gemma_graph"]
     assert hgraph["n_items_processed"] == 1
     assert hgraph["budget"]["calls_used"] == 1
-    assert hgraph["levels_attempted"] == ["bundle/root"]
+    assert hgraph["levels_attempted"] == ["bundle/root", "person/case rollup"]
+    assert hgraph["n_rollup_edges"] >= 1
+    assert hgraph["rollup_edges"][0]["level"] == "person/case rollup"
     hedge = hgraph["model_edges"][0]
     assert hedge["edge_type"] == "fee_camouflage_evidence"
     assert hedge["level"] == "bundle/root"
