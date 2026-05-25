@@ -4,22 +4,40 @@ hide:
   - toc
 ---
 
-# Duecare
+# DueCare: A Gemma 4 Safety Ecosystem
 
-> **Current competition scope (2026-05-16):** this documentation site
-> still contains broader product, deployment, and historical notebook
-> material. The active Kaggle submission path is the two-kernel set
-> in [`kaggle/_INDEX.md`](../kaggle/_INDEX.md). The current Gemma 4
-> runtime and harness ecosystem handoff is
-> [`docs/copilot_handoff_2026_05_16.md`](copilot_handoff_2026_05_16.md).
-> The harness documentation trinity is
-> [`harness_ecosystem.md`](harness_ecosystem.md),
-> [`harness_pattern.md`](harness_pattern.md), and
-> [`harness_standard_contract.md`](harness_standard_contract.md).
+> **Current competition scope (2026-05-25):** the active Kaggle
+> judging path is `kaggle/01-duecare-exploration-workbench` plus
+> `kaggle/02-live-demo`. Optional proof surfaces live in
+> `kaggle/03-universal-llm-benchmark` and
+> `kaggle/04-kaggle-community-benchmark`. Appendix notebooks and
+> A-series experiments are archived provenance; they are not the
+> main run path. See
+> [`kaggle/_INDEX.md`](https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/kaggle/_INDEX.md).
 
 > **Open-source AI safety harness around Google's Gemma 4 — for
 > migrant workers, NGOs, regulators, and researchers fighting
 > recruitment fraud and trafficking. MIT licensed. Runs offline.**
+
+## The ecosystem idea
+
+DueCare is not a single chatbot. It is a Gemma 4 workbench plus a
+set of reusable safety components: local model runtime, deterministic
+rules, retrieval packs, templates, search, anonymization, evidence
+graphs, evaluation, and optional community benchmarks.
+
+The strongest use case is a network of trusted local nodes. A worker,
+NGO office, regulator, platform team, or researcher can process raw
+case material locally. DueCare helps turn that material into reviewed
+fact objects, evidence edges, and risk-pattern summaries. Raw worker
+files stay where they belong. Only explicitly reviewed, redacted, and
+anonymized facts or aggregate signals move outward.
+
+When many local nodes share those safe fact objects, the ecosystem can
+see recruitment-abuse and trafficking patterns that no single office
+can see alone: repeated fee requests, passport-retention clauses,
+corridor-specific false promises, and cross-case signals that justify
+stronger prevention, investigation, and worker support.
 
 ## What it does
 
@@ -38,11 +56,15 @@ happens. Or after, to recover the money.
 
 === "I'm curious"
 
-    Open the live chat playground on Kaggle:
+    Open the active DueCare App on Kaggle:
 
     [duecare-app :octicons-arrow-right-24:](https://www.kaggle.com/code/taylorsamarel/duecare-app){ .md-button .md-button--primary }
 
-    Click "Run All". Type:
+    Click "Run All". When the Cloudflare URL appears, open the
+    workbench and try Bulk File Review, Knowledge Extraction, Search,
+    Templates, or Anonymization & Sharing.
+
+    For the quick chat path, type:
 
     > *Is a 50,000 PHP training fee legal for a Filipino domestic
     > worker going to Hong Kong?*
@@ -61,7 +83,7 @@ happens. Or after, to recover the money.
 
 === "I'm an NGO director"
 
-    Run the whole stack on a Mac mini in your office:
+    Start with the active Kaggle demo or a local office deployment:
 
     ``` bash
     git clone https://github.com/TaylorAmarelTech/gemma4_comp
@@ -72,12 +94,18 @@ happens. Or after, to recover the money.
     Read the [90-minute office deployment guide](scenarios/ngo-office-deployment.md)
     for the full setup.
 
-=== "I'm an enterprise"
+=== "I'm a developer or integrator"
 
-    Read the [enterprise pilot plan](scenarios/enterprise_pilot.md)
-    (30-day adoption, 1.5 FTE, $300-1500/mo) or jump to the
-    [chief-architect view](scenarios/chief-architect.md) for the
-    integration patterns.
+    Install the Python packages, run the public-surface checks, and
+    choose the lane that matches your deployment:
+
+    ``` bash
+    python -m pip install -e packages/duecare-llm-chat
+    python scripts/validate_public_surface.py
+    ```
+
+    Read the [install guide](install.md), [embedding guide](embedding_guide.md),
+    or [chief-architect view](scenarios/chief-architect.md).
 
 ## What ships in the box
 
@@ -115,6 +143,13 @@ happens. Or after, to recover the money.
 
     Drop-in lesson plans (1-hour to 2-week). Press kit with
     one-pager + suggested story angles + facts + quotes.
+
+- :material-share-variant: **Anonymized fact-object sharing**
+
+    Local deployments can create reviewed, redacted fact objects and
+    graph evidence without uploading raw worker files. Shared safely,
+    those objects become corridor intelligence, knowledge-pack updates,
+    and benchmark rows.
 
 </div>
 

@@ -6,12 +6,16 @@
 
 ## You're a curious developer
 
-Open the live demo notebook on Kaggle:
+Open the active DueCare App notebook on Kaggle:
 
-→ **[duecare-chat-playground-with-grep-rag-tools](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools)**
+→ **[duecare-app](https://www.kaggle.com/code/taylorsamarel/duecare-app)**
 
-Click "Copy & Edit", then "Run All". When the chat surface
-renders, type:
+Click "Copy & Edit", then "Run All". When the Cloudflare URL appears,
+open the workbench. Try Bulk File Review for the end-to-end ecosystem
+view: deterministic extraction, a Gemma 4 case brief, hierarchical
+nodes and edges, replay/export artifacts, and anonymized sharing.
+
+For the quick chat path, type:
 
 > "Is a 50,000 PHP training fee legal for a Filipino domestic
 > worker going to Hong Kong?"
@@ -20,9 +24,9 @@ You'll see the response cite **POEA Memorandum Circular 14-2017
 §3** with the harness Pipeline modal showing exactly which GREP
 rule + RAG doc + tool call fired.
 
-(Two-minute version. The full demo is the
+(Two-minute version. The focused recording path is the
 [duecare-live-demo](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo)
-notebook — guided walkthrough + audit Workbench + classifier dashboard.)
+notebook with `/start`, `/slides`, setup selectors, and cached replay APIs.)
 
 ## You're a migrant worker (OFW / domestic helper / etc.)
 
@@ -45,7 +49,8 @@ Everything stays on your phone.
 
 ## You're an NGO director / IT lead
 
-On a Mac mini or any laptop with Docker:
+Start from the active Kaggle app, then move to a local office setup
+when you are ready to keep raw case files on hardware you control:
 
 ```bash
 git clone https://github.com/TaylorAmarelTech/gemma4_comp
@@ -59,6 +64,11 @@ responds with statute citations.
 
 Read [`docs/scenarios/ngo-office-deployment.md`](./scenarios/ngo-office-deployment.md)
 for the 90-minute office-deployment guide.
+
+The key pattern is local-first: case files stay inside the worker,
+NGO, regulator, or platform deployment. DueCare turns reviewed evidence
+into anonymized fact objects and graph edges that can be shared only
+after redaction and human approval.
 
 ## You're a researcher / academic / journalist
 
@@ -125,9 +135,9 @@ for batch / proactive workflows.
 
 ## You're a compliance officer at a recruitment agency
 
-Paste your fee schedule into the live chat:
+Paste your fee schedule into the active DueCare App:
 
-→ **[duecare-chat-playground-with-grep-rag-tools](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools)**
+→ **[duecare-app](https://www.kaggle.com/code/taylorsamarel/duecare-app)**
 
 Type: *"Our fee schedule for Indonesian domestic workers going to
 Hong Kong is: training fee IDR 8M, medical IDR 1.5M, visa
