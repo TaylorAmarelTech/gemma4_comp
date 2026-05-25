@@ -44,8 +44,8 @@ For no-stop runs across multiple goals, use [`dispatch_all_goals.md`](dispatch_a
 | 11 | [`goal_11_hierarchical_gemma_graph/`](goal_11_hierarchical_gemma_graph/handoff.md) | **DONE 2026-05-25 (`32f35a7`)** | Budgeted Gemma node/edge passes across folder, document, page, chunk, media, person, case, and rollup levels |
 | 12 | [`goal_12_kaggle_01_page_polish/`](goal_12_kaggle_01_page_polish/handoff.md) | **DONE 2026-05-25 (`4aca757`)** | Source-first cleanup of the active Kernel 01 workbench pages and page-source regression gate |
 | 13 | [`goal_13_kaggle_02_recording_polish/`](goal_13_kaggle_02_recording_polish/handoff.md) | **DONE 2026-05-25 (`6b353d0`)** | Recording-path polish for Kernel 02 `/start`, `/slides`, `/slides/setup`, and cached replay |
-| 14 | [`goal_14_universal_llm_benchmark_upgrade/`](goal_14_universal_llm_benchmark_upgrade/handoff.md) | PENDING | Multi-target comparison/report upgrade for the Universal LLM Benchmark |
-| 15 | [`goal_15_kaggle_community_benchmark_maturity/`](goal_15_kaggle_community_benchmark_maturity/handoff.md) | PENDING | Kaggle Community Benchmark local-preview, coverage, and registration-proof maturity |
+| 14 | [`goal_14_universal_llm_benchmark_upgrade/`](goal_14_universal_llm_benchmark_upgrade/handoff.md) | **DONE 2026-05-25 (`2adfa60`)** | Multi-target comparison/report upgrade for the Universal LLM Benchmark |
+| 15 | [`goal_15_kaggle_community_benchmark_maturity/`](goal_15_kaggle_community_benchmark_maturity/handoff.md) | **DONE 2026-05-25 (`2adfa60`)** | Kaggle Community Benchmark local-preview, coverage, and registration-proof maturity |
 
 ## Handoff template
 
