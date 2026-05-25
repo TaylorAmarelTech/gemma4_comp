@@ -30,9 +30,11 @@ Every command in this directory assumes:
 | Templates deep pack | [`03_templates_deep_pack.md`](03_templates_deep_pack.md) | 6, 3, 2 | You want templates.html to become a full sample + preview + batch-fill flow |
 | Polish pipeline pack | [`04_polish_pipeline_pack.md`](04_polish_pipeline_pack.md) | 1, 5, 8 | You want polish UX across manual, queued, and inline-diff flows |
 | Vocab and diagnostics pack | [`05_vocab_diagnostics_pack.md`](05_vocab_diagnostics_pack.md) | 9, 7 | You want canonical vocabulary cleanup plus read-only auditing |
+| Kaggle surface long-run dispatch | [`06_kaggle_surface_long_run.md`](06_kaggle_surface_long_run.md) | 12, 13, 11, 14, 15 | You want a few-hour source-first pass over the active 01/02 pages, hierarchical Gemma graph, and optional benchmark kernels |
 
 ## Dependency notes
 
 - Goal 8 comes after Goal 5. Do not paste a command that runs Goal 8 before Goal 5.
 - Goal 2 comes after Goals 6 and 3. It can be implemented earlier, but the selector and tests are better after the sample bundle and dry-run preview are stable.
 - Goal 7 is read-only diagnostics; run it after vocabulary-normalization work so the report reflects the current code.
+- For Kaggle surface work, run Goal 12 before Goal 13, then Goal 11. Goals 14 and 15 are optional benchmark improvements after the active recording/workbench path is stable.

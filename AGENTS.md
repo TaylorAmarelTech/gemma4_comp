@@ -68,6 +68,13 @@ python scripts/validate_public_surface.py
 python -m pytest packages --collect-only -q
 ```
 
+For Kaggle kernel, static page, or benchmark-surface changes, also run:
+
+```bash
+python scripts/validate_main_kaggle_kernels.py
+py -3.12 scripts/validate_kaggle_page_sources.py
+```
+
 For workbench UI changes, also run the affected chat package tests, for
 example:
 
