@@ -39,6 +39,20 @@ can see alone: repeated fee requests, passport-retention clauses,
 corridor-specific false promises, and cross-case signals that justify
 stronger prevention, investigation, and worker support.
 
+The Render public hub is the reference website for this ecosystem story:
+[duecare-ai.com](https://duecare-ai.com/). Its source lives in
+[`apps/duecare-ai.com`](https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/apps/duecare-ai.com),
+so Pages documentation, Kaggle surfaces, and the public website can be
+reviewed against the same repo.
+
+## Public URLs
+
+| Surface | URL | Role |
+|---|---|---|
+| **Main server website / public hub** | [duecare-ai.com](https://duecare-ai.com/) | Render-hosted FastAPI site and coordination service. It shows the public product story, serves hub APIs, and accepts only public-source proposals, vetted pack metadata, anonymized aggregate signals, hash receipts, and consented contact metadata. |
+| **GitHub source repo** | [github.com/TaylorAmarelTech/gemma4_comp](https://github.com/TaylorAmarelTech/gemma4_comp) | Source of truth for the monorepo: Kaggle kernels, packages, docs, Render website source, scripts, validation gates, and GitHub Actions. |
+| **GitHub Pages docs** | [tayloramareltech.github.io/gemma4_comp](https://tayloramareltech.github.io/gemma4_comp/) | Static MkDocs documentation generated from `docs/`. This is the easiest route for onboarding, install guides, scenarios, architecture, reproducibility notes, and judge-facing review pages. |
+
 ## What it does
 
 A 23-year-old domestic worker leaves the Philippines for Hong Kong.

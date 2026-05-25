@@ -1,16 +1,20 @@
 ﻿# DueCare: A Gemma 4 Safety Ecosystem for Migrant-Worker Protection
 
-> **Public hub:** [duecare-ai.com](https://duecare-ai.com) |
+> **Main server website / public hub:** [duecare-ai.com](https://duecare-ai.com) |
+> **GitHub source repo:** [github.com/TaylorAmarelTech/gemma4_comp](https://github.com/TaylorAmarelTech/gemma4_comp) |
+> **GitHub Pages docs:** [tayloramareltech.github.io/gemma4_comp](https://tayloramareltech.github.io/gemma4_comp/) |
 > **DueCare App on Kaggle:** [kaggle.com/code/taylorsamarel/duecare-app](https://www.kaggle.com/code/taylorsamarel/duecare-app) |
 > **Fine-tuning &amp; Evaluation:** [kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation) |
 > **Android APK:** [github.com/TaylorAmarelTech/duecare-journey-android/releases](https://github.com/TaylorAmarelTech/duecare-journey-android/releases) |
-> **Source:** this repo (MIT)
+> **License:** MIT
 >
 > **Headline result (2026-05-18 smoke matrix):** Stock Gemma 4 2B **29.5%** Â·
 > Stock + chat-offline harness **35.6%** (+6.1pp) Â· Fine-tuned **26.4%** Â·
 > Fine-tuned + harness **41.2%** (+14.8pp over fine-tuning alone, +11.7pp over stock).
 > The harness supplies the facts, citations, tools, data-minimization checks,
-> and forced-labor indicators that fine-tuning alone cannot.
+> and forced-labor indicators that fine-tuning alone cannot. This is a
+> dated smoke-matrix result, not a field-deployment, production-traffic, or
+> weeks-long local Gemma reliability claim.
 >
 > **DueCare is Gemma 4-powered safety infrastructure for migrant-worker
 > protection.** It does three things: **prevents exploitation before it
@@ -50,24 +54,20 @@
 > same harness ecosystem pre-stages the refund claim. Harm reduction, not
 > paternalism. Fully offline.
 >
-> **74,640 trafficking seed prompts. 6 weighted rubrics. 66 evaluation
-> criteria. 318 GREP detection rules. 235 RAG knowledge documents
-> (including 6 landmark case-law summaries + 3 national anti-trafficking
-> enforcement units + UN Special Rapporteur mandates + GRETA / UK IASC
-> oversight bodies + major research institutes + IMO/ITF + ICAT + AU
-> + ASEAN ACTIP + Lanzarote + GCM + UFLPA). 34 complaint / narrative
-> templates. 22 review personas. 45 fee-camouflage labels. 31 corridor
-> fee-cap entries. 30 NGO contact bundles. 15 ILO conventions.
+> **Large trafficking prompt corpus, weighted rubrics, hundreds of GREP
+> detection rules, hundreds of RAG knowledge documents, complaint and
+> narrative templates, review personas, fee-camouflage labels, corridor
+> fee-cap entries, NGO contact bundles, and ILO convention coverage.
 > Reproducible CLI and notebook surfaces. On your laptop or in your
-> pocket.** Re-run all counts via `python scripts/verify_knowledge_surfaces.py`
-> (pure stdlib, no pip).
+> pocket.** Re-run current counts via `python scripts/verify_knowledge_surfaces.py`
+> (pure stdlib, no pip) before copying an exact figure into public copy.
 >
 > **Built for the [Gemma 4 Good Hackathon](https://www.kaggle.com/competitions/gemma-4-good-hackathon).**
 > Gemma 4 is DueCare's first published benchmark.
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
-[![Pytest collection](https://img.shields.io/badge/pytest%20collection-976%20collected-blue.svg)](#tests)
+[![Pytest collection](https://img.shields.io/badge/pytest%20collection-checked-blue.svg)](#tests)
 [![Packages](https://img.shields.io/badge/packages-17-blue.svg)](#packages)
 
 ## Try DueCare in 30 seconds
@@ -230,7 +230,7 @@ public pip entry point for the workflow-oriented stack.
 | `duecare-llm-chat` | DueCare reviewer workbench: FastAPI app, shared chrome, static pages, harness contracts, and Gemma 4 runtime hooks | 18 test files: harness contract, route, workbench UI, JSON parser, anonymization, design-tooltip migration, model-output sanitizer, process bulk review, etc. |
 | `duecare-llm-cli` | The `duecare` command-line tool (tree, test, review, status, deps) | CLI command tests |
 | [`duecare-llm`](./docs/components/duecare_llm_meta.md) (meta) | Public pip entry point for the workflow stack and `duecare` CLI | Re-export + import tests |
-| **Current local pytest collection** | | **976 package tests collected on 2026-05-21** |
+| **Current local pytest collection gate** | | Run `python -m pytest packages --collect-only -q` before publishing an exact count. |
 
 ## Quick start
 
@@ -461,17 +461,17 @@ snapshots belong under `kaggle/_archive/notebooks/`.
 | Refusal rate | **36%** | Clear refusal on exploitation requests |
 | With RAG context | **0.59** (+23% over plain) | [260 - RAG Comparison](https://www.kaggle.com/code/taylorsamarel/duecare-260-rag-comparison) |
 | With guided prompt | **0.62** (+28% over plain) | [260 - RAG Comparison](https://www.kaggle.com/code/taylorsamarel/duecare-260-rag-comparison) |
-| Trafficking prompt corpus | **74,640** | [110 - Prompt Prioritizer](https://www.kaggle.com/code/taylorsamarel/00a-duecare-prompt-prioritizer-data-pipeline) |
+| Trafficking prompt corpus | **Large corpus; regenerate exact count** | [110 - Prompt Prioritizer](https://www.kaggle.com/code/taylorsamarel/00a-duecare-prompt-prioritizer-data-pipeline) plus `python scripts/verify_knowledge_surfaces.py` |
 | Adversarial generators | **15** | [310 - Prompt Factory](https://www.kaggle.com/code/taylorsamarel/duecare-310-prompt-factory) |
 | Evaluation frameworks | **7** | |
-| Pytest collection | **976 tests collected** | Across package test surfaces (2026-05-21 local collection) |
-| GREP detection rules | **318** | Categories A-ZZ + SCREENING + AAA-OOO + PPP-YYY + ZZZ-GGGG (dating-app, biometrics, pension denial, refugee leverage, subcontracting, online sex trafficking, sports, US sectoral, criminal exploitation, chain-migration, J-1 SWT / AU WHM, port + offshore, A-3/G-5 diplomatic household, R-1 religious worker, artisanal mining, e-waste, UK hand-carwash, cruise crew + FoC, forced begging, sham marriage / asylum, au pair / J-1, loverboy method, street vending, prison labour, witness intimidation, consular non-cooperation, sham religious + cult coercion, surrogacy pretext, forced cybercrime, digital-platform forced labour); see [`docs/KNOWLEDGE_SURFACE_VERIFICATION.md`](docs/KNOWLEDGE_SURFACE_VERIFICATION.md) |
-| RAG knowledge documents | **235** | ILO + UN + regional treaties + statutes + bilateral MOUs + screening tools + complaint procedures + 15 case studies + 6 landmark case law (Siliadin, Rantsev, J. and Others v Austria, Hadijatou Mani, Kil Soo Lee, Bradley) + 3 national anti-trafficking units (FBI, AFP HTSC, UK NCA MSHTU) + US HSI HTU + US CBP CEE FLD + UK IASC + GRETA + UN SR on Trafficking + UN SR on Sale + Sexual Exploitation of Children + UN SR on Contemporary Forms of Slavery + MPI + Asia Foundation + Amnesty / BHRRC + Solidaridad / Pact / IMPACT + ECPAT + HRW + IMO/ITF + ICAT + AU/Ouagadougou + ASEAN ACTIP detail + Lanzarote + GCM + UFLPA |
-| Complaint / narrative templates | **34** | 5 origin-country, 11 destination-country, 5 referral pathways, 13 madlibs scenario letters / affidavits / worksheets |
-| Review personas | **22** | NGO + lawyer + regulator + clinician + survivor advocate + engineer + FIU + maritime HR + 14 more |
-| Fee-camouflage labels | **45** | Training / medical / process / placement / broker / document / loan-novation patterns |
-| Corridor fee-cap entries | **31** | PH / ID / NP / BD / VN / KH / MM origin x HK / SG / SA / KW / LB / QA / UAE / TW / JP / KR / MY + MX-US H-2A/B + JM-CA SAWP |
-| NGO contact bundles | **30** | Per-corridor + regional (any-US, any-UK, any-EU) + survivor-led global |
+| Pytest collection | **Collect-only gate** | Run `python -m pytest packages --collect-only -q`; do not publish a static count without the current output. |
+| GREP detection rules | **Hundreds; regenerate exact count** | Categories A-ZZ + SCREENING + later category packs; see [`docs/KNOWLEDGE_SURFACE_VERIFICATION.md`](docs/KNOWLEDGE_SURFACE_VERIFICATION.md) |
+| RAG knowledge documents | **Hundreds; regenerate exact count** | ILO + UN + regional treaties + statutes + bilateral MOUs + screening tools + complaint procedures + case studies + case law + public enforcement and oversight sources |
+| Complaint / narrative templates | **Dozens; regenerate exact count** | Origin-country, destination-country, referral pathway, scenario-letter, affidavit, and worksheet templates |
+| Review personas | **Dozens; regenerate exact count** | NGO, lawyer, regulator, clinician, survivor advocate, engineer, FIU, maritime HR, and adjacent reviewer roles |
+| Fee-camouflage labels | **Dozens; regenerate exact count** | Training / medical / process / placement / broker / document / loan-novation patterns |
+| Corridor fee-cap entries | **Dozens; regenerate exact count** | Source and destination corridor entries, with volatile fee rules kept versioned rather than hardcoded into model answers |
+| NGO contact bundles | **Dozens; regenerate exact count** | Per-corridor and regional bundles; verify volatile contact data before public reuse |
 | ILO conventions (lookup table) | **15** | C029, C087, C095, C097, C098, C100, C111, C138, C143, C181, C182, C188, C189, C190, P029 |
 
 ### Use it as a library
@@ -612,7 +612,7 @@ problems without changing the harness.
 
 | Pack | Status | Seed prompts | Evidence items | Categories | Taxonomy dimensions |
 |---|---|---|---|---|---|
-| `trafficking` | **Primary** | 74,640 (incl. 8 financial-crime intersection scenarios + 65 worker / agency / researcher query prompts + 12 illicit ad examples + 10 illicit-conversation examples) | 10 | 5 | sector, corridor, ILO indicator, attack category, difficulty |
+| `trafficking` | **Primary** | Large generated corpus; regenerate exact count before quoting | Evidence-backed examples and public-source-derived scenarios | Multi-category | sector, corridor, ILO indicator, attack category, difficulty |
 | `financial_crime` | Adjacency proof | 13 | 3 | 4 | laundering stage, typology, FATF indicator, jurisdiction |
 | `tax_evasion` | Adjacency proof | 14 | 4 | 4 | scheme type, jurisdiction, FATF indicator, sophistication |
 
@@ -698,10 +698,10 @@ python -m pytest packages/duecare-llm-core -v
 python -m pytest packages/duecare-llm-core/src/forge/core/enums -v
 ```
 
-Latest local collection:
+Collection gate:
 
 ```
-976 tests collected across package test surfaces on 2026-05-21.
+python -m pytest packages --collect-only -q
 ```
 
 ## Demo notebooks

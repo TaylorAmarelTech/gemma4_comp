@@ -1,9 +1,9 @@
-site_name: Duecare
+site_name: DueCare
 site_url: https://tayloramareltech.github.io/gemma4_comp/
 site_description: >-
-  Open-source AI safety harness around Google's Gemma 4 — for migrant
-  workers, NGOs, regulators, and researchers fighting recruitment
-  fraud and trafficking. MIT licensed. Runs offline.
+  Open-source Gemma 4 safety ecosystem for migrant workers, NGOs,
+  regulators, researchers, platform safety teams, and anonymized
+  knowledge sharing. MIT licensed. Runs offline.
 site_author: Taylor Amarel
 repo_url: https://github.com/TaylorAmarelTech/gemma4_comp
 repo_name: TaylorAmarelTech/gemma4_comp
