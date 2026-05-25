@@ -41,9 +41,9 @@ For no-stop runs across multiple goals, use [`dispatch_all_goals.md`](dispatch_a
 | 8 | [`goal_08_inline_diff/`](goal_08_inline_diff/handoff.md) | **DONE 2026-05-24 (`5738729`)** | Word-level inline diff in the polish panel |
 | 9 | [`goal_09_inline_vocab_normalize/`](goal_09_inline_vocab_normalize/handoff.md) | PENDING | Apply canonical vocab normalization to graph-chat synthesis free-text |
 | 10 | [`goal_10_polish_e2e_tests/`](goal_10_polish_e2e_tests/handoff.md) | **DONE 2026-05-24 (`92f45ac`)** | End-to-end tests for /api/knowledge/polish-envelope |
-| 11 | [`goal_11_hierarchical_gemma_graph/`](goal_11_hierarchical_gemma_graph/handoff.md) | PENDING | Budgeted Gemma node/edge passes across folder, document, page, chunk, media, person, case, and rollup levels |
-| 12 | [`goal_12_kaggle_01_page_polish/`](goal_12_kaggle_01_page_polish/handoff.md) | PENDING | Source-first cleanup of the active Kernel 01 workbench pages and page-source regression gate |
-| 13 | [`goal_13_kaggle_02_recording_polish/`](goal_13_kaggle_02_recording_polish/handoff.md) | PENDING | Recording-path polish for Kernel 02 `/start`, `/slides`, `/slides/setup`, and cached replay |
+| 11 | [`goal_11_hierarchical_gemma_graph/`](goal_11_hierarchical_gemma_graph/handoff.md) | **DONE 2026-05-25 (`32f35a7`)** | Budgeted Gemma node/edge passes across folder, document, page, chunk, media, person, case, and rollup levels |
+| 12 | [`goal_12_kaggle_01_page_polish/`](goal_12_kaggle_01_page_polish/handoff.md) | **DONE 2026-05-25 (`4aca757`)** | Source-first cleanup of the active Kernel 01 workbench pages and page-source regression gate |
+| 13 | [`goal_13_kaggle_02_recording_polish/`](goal_13_kaggle_02_recording_polish/handoff.md) | **DONE 2026-05-25 (`6b353d0`)** | Recording-path polish for Kernel 02 `/start`, `/slides`, `/slides/setup`, and cached replay |
 | 14 | [`goal_14_universal_llm_benchmark_upgrade/`](goal_14_universal_llm_benchmark_upgrade/handoff.md) | PENDING | Multi-target comparison/report upgrade for the Universal LLM Benchmark |
 | 15 | [`goal_15_kaggle_community_benchmark_maturity/`](goal_15_kaggle_community_benchmark_maturity/handoff.md) | PENDING | Kaggle Community Benchmark local-preview, coverage, and registration-proof maturity |
 

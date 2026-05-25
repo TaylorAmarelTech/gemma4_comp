@@ -1,6 +1,6 @@
 # Goal 12 - Kernel 01 workbench page polish and source gate
 
-> Status: **PENDING**. Created 2026-05-25 after the root Kaggle cleanup and
+> Status: **DONE 2026-05-25 (`4aca757`)**. Added the Kernel 01 page-source gate, chat redirect compatibility, and process/templates page polish after the root Kaggle cleanup and
 > source review.
 
 ## 1. Goal

@@ -1,6 +1,6 @@
 # Goal 11 - Hierarchical Gemma graph passes for Bulk File Review
 
-> Status: **PENDING**. Created 2026-05-24 after reviewing Bulk File Review activity logs. This is a post-pack architectural goal, not part of the current Goal 1/6/3/4/5/8/2/9/7 no-stop dispatch.
+> Status: **DONE 2026-05-25 (`32f35a7`)**. Implemented a budgeted hierarchical Gemma graph pass for Bulk File Review with deterministic fallback, provenance-preserving model nodes/edges, rollup edges, UI visibility, and source gates.
 
 ## 1. Goal
 
