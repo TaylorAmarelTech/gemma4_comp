@@ -206,6 +206,33 @@ def test_process_batch_returns_intelligence_for_sample():
     assert body["config"]["gemma_case_brief"] == "deterministic_deferred_model"
     assert intel["gemma_case_brief"]["status"] == "deterministic_deferred_model"
     assert intel["gemma_case_brief"]["deferred"] is True
+    hgraph = intel["hierarchical_gemma_graph"]
+    assert hgraph["status"] == "deterministic_no_model"
+    assert hgraph["n_items_considered"] > 0
+    assert hgraph["n_items_processed"] == 0
+    assert hgraph["n_model_nodes"] == 0
+    assert hgraph["n_model_edges"] == 0
+    assert {
+        "bundle/root",
+        "folder",
+        "document",
+        "paragraph/chunk",
+        "extracted image/media item",
+        "person/case rollup",
+        "cross-case rollup",
+    }.issubset(set(hgraph["levels_available"]))
+    assert {
+        "status",
+        "levels_attempted",
+        "n_items_considered",
+        "n_items_processed",
+        "n_model_nodes",
+        "n_model_edges",
+        "n_rollup_edges",
+        "budget",
+        "errors",
+    }.issubset(hgraph)
+    assert body["summary"]["hierarchical_gemma_graph_status"] == "deterministic_no_model"
     assert len(intel["harness_trace"]) >= 5
     assert any(step["id"] == "stage" for step in intel["harness_trace"])
     assert intel["top_risk_signals"]
@@ -230,6 +257,7 @@ def test_process_batch_returns_intelligence_for_sample():
     assert {
         "deterministic_processing",
         "text_edge_pass",
+        "hierarchical_item_graph_pass",
         "multimodal_page_review",
         "exhaustive_review",
         "finetuned_document_classifier",
@@ -247,6 +275,10 @@ def test_process_batch_returns_intelligence_for_sample():
         "pii_minimization_for_candidates",
     }.issubset(edge_quality_ids)
     assert intel["processing_plan"]["page_item_prompt_tree"]
+    assert "hierarchical_gemma_graph" in {
+        method["id"] for method in intel["processing_plan"]["analysis_methods"]
+    }
+    assert "bundle/root" in intel["processing_plan"]["gemma_budget"]["hierarchical_graph_levels"]
     assert {
         "classify",
         "target_fee_payment",
@@ -395,16 +427,28 @@ def test_process_background_job_calls_loaded_gemma_for_brief_and_edges():
     bundle = final["result"]
     summary = bundle["summary"]
     intel = bundle["intelligence"]
-    assert len(calls) >= 2
+    assert len(calls) >= 3
     assert summary["gemma_model_loaded"] is True
-    assert summary["n_gemma_calls_attempted"] >= 2
+    assert summary["n_gemma_calls_attempted"] >= 3
     assert summary["gemma_case_brief_status"] == "ok"
     assert summary["gemma_edge_pass_status"] == "ok"
+    assert summary["hierarchical_gemma_graph_status"] == "ok"
     assert summary["n_model_proposed_edges"] == 1
+    assert summary["n_hierarchical_model_edges"] == 1
     assert intel["gemma_case_brief"]["deferred"] is False
     assert intel["gemma_edge_pass"]["model_edges"][0]["edge_type"] == "fee_camouflage_evidence"
+    hgraph = intel["hierarchical_gemma_graph"]
+    assert hgraph["n_items_processed"] == 1
+    assert hgraph["budget"]["calls_used"] == 1
+    assert hgraph["levels_attempted"] == ["bundle/root"]
+    hedge = hgraph["model_edges"][0]
+    assert hedge["edge_type"] == "fee_camouflage_evidence"
+    assert hedge["level"] == "bundle/root"
+    assert {"source_path", "parent_doc", "page", "chunk_id", "row_id", "quote"}.issubset(hedge)
+    assert hedge["evidence"]["quote"]
     trace = {step["id"]: step for step in intel["harness_trace"]}
     assert trace["gemma_text"]["status"] == "complete"
+    assert "hierarchical_graph=ok" in trace["gemma_text"]["detail"]
     assert "model_calls_attempted" in trace["gemma_text"]["detail"]
 
 
@@ -455,8 +499,13 @@ def test_process_batch_start_defers_gemma_by_default_even_when_model_loaded():
     assert bundle["summary"]["gemma_model_loaded"] is True
     assert bundle["summary"]["n_gemma_calls_attempted"] == 0
     assert bundle["summary"]["gemma_case_brief_status"] == "deterministic_deferred_model"
+    assert bundle["summary"]["hierarchical_gemma_graph_status"] == "deferred_inline_disabled"
     detail = bundle["intelligence"]["gemma_case_brief"]["detail"]
     assert "inline Gemma text passes disabled" in detail
+    hgraph = bundle["intelligence"]["hierarchical_gemma_graph"]
+    assert hgraph["status"] == "deferred_inline_disabled"
+    assert hgraph["n_items_considered"] > 0
+    assert hgraph["budget"]["calls_used"] == 0
     assert bundle["config"]["process_settings"]["run_inline_gemma_text"] is False
 
 
@@ -497,8 +546,10 @@ def test_process_batch_accepts_review_mode_settings():
     assert settings["include_imported_knowledge"] is False
     assert settings["page_item_types"] == ["text_block", "receipt"]
     assert plan["gemma_budget"]["knowledge_candidates_enabled"] is False
+    assert "table row" in plan["gemma_budget"]["hierarchical_graph_levels"]
     assert plan["knowledge_context"]["disabled_by_settings"] is True
     assert plan["page_item_prompt_tree"][0]["prompt_id"] == "page_item_classification"
+    assert body["intelligence"]["hierarchical_gemma_graph"]["status"] == "deterministic_no_model"
 
 
 def test_process_batch_returns_intelligence_for_media_rich_sample():

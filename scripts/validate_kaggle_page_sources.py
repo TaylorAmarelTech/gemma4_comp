@@ -178,9 +178,9 @@ def _check_workbench_primary_pages() -> list[Finding]:
     if process.exists():
         text = _read(process)
         honest_markers = (
-            "Current code does not yet run a separate Gemma pass for every document",
             "Gemma 4 text case brief",
             "Gemma 4 typed-edge + RAG synthesis",
+            "Gemma 4 hierarchical item graph pass",
             "Gemma 4 contextual media review",
             "wb-max-gemma-calls",
             "/api/process/graph-extract/start",

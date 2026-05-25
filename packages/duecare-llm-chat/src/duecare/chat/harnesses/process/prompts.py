@@ -250,6 +250,34 @@ PAGE_ITEM_PROMPT_TREE: list[dict] = [
     },
 ]
 
+HIERARCHICAL_GRAPH_LEVELS: list[str] = [
+    "bundle/root",
+    "folder",
+    "document",
+    "page",
+    "paragraph/chunk",
+    "table row",
+    "extracted image/media item",
+    "person/case rollup",
+    "cross-case rollup",
+]
+
+HIERARCHICAL_ITEM_GRAPH_SYSTEM_PROMPT = (
+    "You are DueCare's local hierarchical graph extractor. You receive one "
+    "bounded hierarchy item from a case bundle that was processed inside the "
+    "Kaggle kernel. Create only reviewable nodes and edges grounded in this "
+    "item and its supplied local context. Do not use cloud services, external "
+    "search, or private knowledge. Do not invent names, amounts, statutes, "
+    "contacts, dates, page numbers, row IDs, or source paths. Return JSON "
+    "only with keys: nodes, edges, uncertainties. Every node and edge must "
+    "preserve provenance fields level, source_path, parent_doc, page, "
+    "chunk_id, row_id, and quote when present. Every edge must include "
+    "edge_type, source_node, target_node, confidence, local_only=true, "
+    "review_status='needs_review', and extractors containing "
+    "'gemma4_hierarchical_item_pass'. Media items are contextual predictions "
+    "unless OCR or pixel evidence is explicitly supplied."
+)
+
 GRAPH_EDGE_EXTRACTION_SYSTEM_PROMPT = (
     "You are DueCare's local graph extraction harness. You receive a compact "
     "summary of a case bundle already processed inside the Kaggle kernel. "
@@ -267,6 +295,125 @@ GRAPH_EDGE_EXTRACTION_SYSTEM_PROMPT = (
     "used for this pass when available, but the same local-only evidence and "
     "review-status contract still applies."
 )
+
+
+def build_hierarchical_item_graph_prompt(
+    item: dict | None,
+    bundle: dict | None,
+    *,
+    max_edges: int = 4,
+) -> str:
+    """Render one bounded hierarchy-item prompt for local Gemma graph extraction."""
+    item = item or {}
+    bundle = bundle or {}
+    intelligence = bundle.get("intelligence") or {}
+    compact = {
+        "schema_version": "duecare.process.hierarchical_item_prompt.v1",
+        "local_only": True,
+        "remote_api_calls": False,
+        "task": (
+            "Create evidence-grounded graph nodes and edges for this one "
+            "hierarchy item. Keep the output small and reviewable."
+        ),
+        "hierarchical_levels": HIERARCHICAL_GRAPH_LEVELS,
+        "current_item": item,
+        "max_edges": max(1, min(int(max_edges or 4), 8)),
+        "required_node_fields": [
+            "node_id",
+            "node_type",
+            "label",
+            "level",
+            "source_path",
+            "parent_doc",
+            "page",
+            "chunk_id",
+            "row_id",
+            "quote",
+            "confidence",
+            "review_status",
+            "local_only",
+            "extractors",
+        ],
+        "required_edge_fields": [
+            "edge_type",
+            "source_node",
+            "target_node",
+            "level",
+            "source_path",
+            "parent_doc",
+            "page",
+            "chunk_id",
+            "row_id",
+            "quote",
+            "confidence",
+            "review_status",
+            "local_only",
+            "extractors",
+        ],
+        "allowed_edge_types": [
+            "item_mentions_person_or_case",
+            "item_mentions_fee_or_debt",
+            "item_mentions_document_control",
+            "item_mentions_threat_or_retaliation",
+            "item_mentions_salary_deduction",
+            "item_mentions_agency_or_employer",
+            "item_mentions_journey_stage",
+            "item_supports_risk_signal",
+            "item_requires_ocr_or_vision",
+            "item_conflicts_with_other_evidence",
+            "folder_contains_document",
+            "document_contains_page",
+            "page_contains_chunk",
+            "table_row_supports_case_fact",
+            "media_item_requires_confirmation",
+            "case_rollup_supported_by_item",
+            "cross_case_pattern_supported_by_item",
+        ],
+        "page_item_prompt_tree": PAGE_ITEM_PROMPT_TREE,
+        "edge_quality_dimensions": EDGE_QUALITY_DIMENSIONS,
+        "pointed_edge_questions": EDGE_EXTRACTION_POINTED_QUESTIONS,
+        "bundle_summary": bundle.get("summary") or {},
+        "deterministic_seed_edges": (intelligence.get("typed_edges") or [])[:12],
+        "people": (intelligence.get("people") or [])[:10],
+        "top_risk_signals": (intelligence.get("top_risk_signals") or [])[:10],
+        "folder_counts": (intelligence.get("folder_counts") or [])[:10],
+    }
+    return (
+        "Run this local Gemma 4 hierarchical graph item pass.\n"
+        "Output JSON only with nodes, edges, and uncertainties. "
+        "Every claim must preserve the supplied hierarchy provenance.\n\n"
+        + _json.dumps(compact, ensure_ascii=False)[:26000]
+    )
+
+
+def build_hierarchical_rollup_graph_prompt(
+    level: str,
+    source_edges: list[dict] | None,
+    bundle: dict | None,
+    *,
+    max_edges: int = 6,
+) -> str:
+    """Render a bounded rollup prompt when a future model rollup pass is enabled."""
+    bundle = bundle or {}
+    compact = {
+        "schema_version": "duecare.process.hierarchical_rollup_prompt.v1",
+        "local_only": True,
+        "remote_api_calls": False,
+        "level": level,
+        "hierarchical_levels": HIERARCHICAL_GRAPH_LEVELS,
+        "source_edges": (source_edges or [])[:40],
+        "max_edges": max(1, min(int(max_edges or 6), 12)),
+        "bundle_summary": bundle.get("summary") or {},
+        "contract": (
+            "Rollups must cite source_edge_ids and must not replace the "
+            "lower-level item edges that support them."
+        ),
+    }
+    return (
+        "Run this local Gemma 4 hierarchical rollup pass.\n"
+        "Output JSON only. Every rollup edge must include source_edge_ids.\n\n"
+        + _json.dumps(compact, ensure_ascii=False)[:22000]
+    )
 
 
 def build_graph_edge_extraction_prompt(

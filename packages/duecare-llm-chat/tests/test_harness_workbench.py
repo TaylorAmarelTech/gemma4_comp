@@ -202,7 +202,7 @@ def test_search_page_blocks_when_page_sanitizer_fails(client):
     assert "What this workflow does" in text
     # Hero card now states Gemma 4's role honestly instead of the
     # former "Search does not require Gemma" line. The Where Gemma 4
-    # Runs hint block names the three Gemma touch points on the page.
+    # Runs hint block names the Gemma touch points on the page.
     assert "Gemma 4 role" in text
     assert "Result-to-knowledge path" in text
     assert "Where Gemma 4 runs on this page" in text
