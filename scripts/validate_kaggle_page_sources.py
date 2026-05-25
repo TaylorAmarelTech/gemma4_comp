@@ -108,6 +108,16 @@ def _check_server_recording_pages() -> list[Finding]:
         for marker in ('href="/slides"', 'href="/slides/setup"', 'href="/wb-static/process.html"'):
             if marker not in text:
                 findings.append(Finding(start, 1, f"missing recording navigation marker {marker}"))
+        for marker in (
+            "Platform safety",
+            "NGO &amp; regulator",
+            "Individual worker / mobile",
+            "Researcher",
+            "Anonymized knowledge sharing",
+            "Developer / integration partner",
+        ):
+            if marker not in text:
+                findings.append(Finding(start, 1, f"missing public lane marker {marker}"))
 
     setup = SERVER_STATIC / "slides-setup.html"
     if setup.exists():
@@ -120,6 +130,25 @@ def _check_server_recording_pages() -> list[Finding]:
         ):
             if marker not in text:
                 findings.append(Finding(setup, 1, f"missing slide setup marker {marker}"))
+
+    slides = SERVER_STATIC / "slides.html"
+    if slides.exists():
+        text = _read(slides)
+        if "substrate" in text.lower():
+            findings.append(Finding(slides, 1, "submission deck should use safety/evidence stack wording"))
+        for marker in (
+            "Six public setup lanes, one shared local safety stack",
+            "Shared local safety stack",
+            "Anti-exploitation evidence stack",
+            "Platform safety",
+            "NGO &amp; regulator",
+            "Individual worker / mobile",
+            "Researcher",
+            "Anonymized knowledge sharing",
+            "Developer / integration partner",
+        ):
+            if marker not in text:
+                findings.append(Finding(slides, 1, f"missing slide deck marker {marker}"))
     return findings
 
 
