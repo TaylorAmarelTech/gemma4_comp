@@ -258,7 +258,7 @@ details. MfMW HK refers her to Duecare's
 [`docs/press_kit.md`](press_kit.md) for project background.
 
 The journalist:
-- Reproduces the +56.5pp lift number from `docs/harness_lift_report.md`
+- Reproduces the +51.4pp lift number from `docs/harness_lift_report.md`
   on her own laptop using the [researcher walkthrough](scenarios/researcher-analysis.md)
 - Interviews 3 NGO directors (composite quotes from Anna's
   organization + 2 others); cites their MfMW HK / Polaris / IJM

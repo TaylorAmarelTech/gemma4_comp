@@ -7,27 +7,27 @@
 > `(git_sha, dataset_version, eval_set, grader_version, n)` and a
 > one-command path to re-measure.
 >
-> **Most important caveat:** the historical headline lift numbers were
-> measured before the later GREP rule expansion.
-> They have **not** been re-measured against the larger rule set
-> at the time of submission. We expect the lift to remain at-or-
-> above the cited values (more rules = more catches), but the
-> exact pp deltas may have shifted. The current DueCare Fine-tuning and Evaluation is
-> the preferred regenerator for new presentation-quality evidence
-> bundles; running it against the current `git HEAD` produces fresh JSON,
-> CSV, Markdown, HTML, PDF where available, and Activity ZIP artifacts.
+> **Most important caveat:** the headline lift numbers below were
+> re-measured on May 25, 2026 from the current source with
+> `python scripts/rubric_comparison.py`. Do not copy older +56.5pp /
+> +87.5pp / +51.2pp / +34.1pp figures into new public materials.
+> Re-run the command before making a fresh public claim.
+>
+> **Evidence maturity:** these are reproducible smoke / proxy
+> measurements for regression tracking. They are not the result of a
+> weeks-long local Gemma run, production traffic, or a field deployment.
 
 ## Headline numeric claims and their provenance
 
 | Claim | Where cited | Last measured | Provenance |
 |---|---|---|---|
-| **+87.5 pp** Jurisdiction-specific rules | writeup §2, video 1:42-1:50 callout | 2026-05-03 (pre v3.16) | `git_sha=...` snapshot in `harness_lift_report.md`, eval set: 207 prompts × `legal_citation_quality` 12-criterion rubric |
-| **+51.2 pp** ILO / international regulations | writeup §2, video 1:42-1:50 callout | 2026-05-03 (pre v3.16) | same |
-| **+34.1 pp** Substance-over-form analysis | writeup §2, video 1:42-1:50 callout | 2026-05-03 (pre v3.16) | same |
-| **+56.5 pp** combined GREP+RAG (the headline) | writeup §2 + §3 (live-demo card) + §6 + video closer | 2026-05-03 (pre v3.16) | layer ablation: `legal_citation_quality` weighted average over 207 prompts |
-| **+35 pp** GREP only | writeup §2 (layer ablation) | 2026-05-03 (pre v3.16) | same |
-| **+47 pp** RAG only | writeup §2 (layer ablation) | 2026-05-03 (pre v3.16) | same |
-| **99.3 %** of citations trace to corpus | writeup §2 | 2026-05-03 (pre v3.16) | historical citation cross-reference snapshot (per-citation `grounded_via` field) |
+| **+73.8 pp** Jurisdiction-specific rules | docs site + harness lift report | 2026-05-25 | `docs/harness_lift_data.json`, current 200+ prompt proxy eval set x `legal_citation_quality` 12-criterion rubric |
+| **+55.4 pp** ILO / international regulations | docs site + harness lift report | 2026-05-25 | same |
+| **+21.2 pp** Substance-over-form analysis | docs site + harness lift report | 2026-05-25 | same |
+| **+51.4 pp** combined GREP+RAG (current headline) | docs site + harness lift report | 2026-05-25 | layer ablation: `legal_citation_quality` weighted average over the current 200+ prompt proxy eval set |
+| **+46.9 pp** GREP only | harness lift report | 2026-05-25 | appendix B layer ablation |
+| **+29.7 pp** RAG only | harness lift report | 2026-05-25 | appendix B layer ablation |
+| Citation-shaped strings outside the allowlist in harness-ON proxy outputs | harness lift report | 2026-05-25 | appendix C citation-grounding scan; exact generated counts live in `docs/harness_lift_data.json`; review signal, not production defect rate |
 | **100+ GREP rules** (current) | writeup §2 + §3 + UI tile + Pipeline modal | current run | runtime `len(GREP_RULES)` |
 | **50+ RAG documents** | writeup §3 + UI + Pipeline | current run | runtime `len(RAG_CORPUS)` |
 | **Lookup tools** | writeup §3 + UI + Pipeline | current run | runtime tool registry / A-00 export |
@@ -39,44 +39,22 @@
 | **Required-element rubrics** | writeup §3 + harness_lift_report.md | historical snapshot | historical eval bundle |
 | **Citation corpus** | writeup §2 + harness_lift_report.md | current run | corpus manifest / A-00 evidence bundle |
 
-## What changed in v3.16 that may shift the lift numbers
+## Current re-measurement notes
 
-The +56.5 pp headline was measured with an earlier GREP layer on
-2026-05-03. The later expansion added broader
-categories the eval set did not previously stress:
+The current measurement compares harness-OFF proxy responses against
+harness-ON proxy responses augmented with the active GREP and RAG
+layers. It still uses the current 200+ prompt `legal_citation_quality`
+evaluation set, but the active rule corpus has changed since the older
+May 3 snapshot. The current numbers are therefore the only smoke /
+proxy figures that should be used on the docs site and in new public
+materials until a live Gemma run produces a dated artifact bundle.
 
-- Sector-specific labour abuse (10 rules) — construction wage holding,
-  agriculture, garment, mining, meatpacking, etc.
-- Kafala extended mechanisms (8 rules) — exit permit denial, NOC,
-  iqama renewal fee, family visa, etc.
-- Cross-border financial flows (6 rules) — hawala, money mule,
-  structured deposits, crypto, etc.
-- Employer abuse patterns (8 rules)
-- Document fraud (6 rules)
-- Recruiter sales tactics (6 rules)
-- Recovery suppression / repatriation (5 rules)
-- Additional corridors (5 rules) — Lebanon-internal, Libya transit,
-  Iraq KRG, Cyprus North, Taiwan
-- Platform / digital recruitment (5 rules)
-
-**Expected effect on the headline lift:** unchanged or higher.
-
-- The eval set (207 prompts) was curated for the original 5-category
-  rule set and tests jurisdictional citation, ILO citation, and
-  substance-over-form analysis. The new 9 categories are mostly
-  orthogonal: they extend coverage to scenarios the eval set doesn't
-  yet stress.
-- The new rules don't replace any old rules; they're additive. So a
-  prompt that previously matched several rules under harness-ON still
-  matches at least those same rules.
-- A fresh measurement may show **slight upward drift** if any new
-  rules happen to fire on prompts already in the eval set
-  (e.g., a domestic-worker prompt may now also fire `no_day_off_chronic`
-  or `inadequate_sleeping_quarters` if the prompt mentions those
-  patterns).
-
-The honest path forward is to re-measure, not to update the writeup
-with extrapolated numbers.
+The active CI guard uses conservative floors under the current
+measurement: mean lift >= +50pp, jurisdiction-specific lift >= +70pp,
+ILO/international lift >= +45pp, and substance-over-form lift >= +20pp.
+If any floor fails, fix the harness or update the public claims with a
+new dated measurement. Do not promote these floors into field,
+production, or long-run reliability claims.
 
 ## How to re-measure
 
@@ -85,7 +63,11 @@ resulting evidence bundle from `/kaggle/working/a00_outputs`. For a
 fast smoke run, keep prompt and synthetic-row counts small. For
 presentation-quality claims, use the largest prompt count that fits the
 available runtime and GPU budget, then cite the exported report bundle
-and Activity ZIP.
+and Activity ZIP. For production-quality claims, run a medium-sized
+Gemma variant that fits the target hardware for multiple hours or days,
+save the prompts, model revision, seed/config, logs, outputs, and
+grading artifacts, and then update this page with the exact evidence
+path.
 
 The output `.md` file contains the regenerated table with the same
 column shape as `harness_lift_report.md`, plus a provenance tuple
@@ -122,9 +104,9 @@ walks through:
 
 ## What we explicitly do NOT claim
 
-- **We do not claim the +56.5 pp number was measured against the current
-  expanded rule set.** It was measured against an earlier rule set. The
-  number is a floor pending re-measurement.
+- **We do not claim the older +56.5 pp number still represents the
+  current expanded rule set.** The current checked-in measurement is
+  +51.4 pp mean lift.
 - **We do not claim the universal rubric grader matches human
   graders perfectly.** It catches the failure modes the rubric was
   designed for; semantic equivalents the lexicon doesn't know
@@ -133,11 +115,26 @@ walks through:
   the same Gemma 4 model the response came from (self-consistency
   check, not external auditor). For external audit, swap in any
   cloud BYOK route via the model selector.
-- **We do not claim 100% citation traceability.** In the historical
-  snapshot, 99.3% of emitted citations traced to the citation corpus; the remaining 0.7%
-  are model-generated paraphrases or compound citations that the
-  cross-reference flags as "grounded via inference, not direct
-  match" — surfaced in the grade output's `grounded_via` field.
+- **We do not claim production citation traceability yet.** The current
+  harness-lift proxy found some citation-shaped strings outside the
+  allowlist among the harness-ON citation-shaped strings. Treat the
+  generated counts as a manual-review signal from a heuristic scan,
+  not a production defect rate and not a weeks-long Gemma reliability
+  measurement.
+
+## Next evidence target
+
+The next stronger claim should come from a long-running local Gemma
+evaluation, not from this smoke gate. Minimum useful evidence:
+
+1. Run a medium-sized Gemma variant that fits the available hardware
+   for a multi-hour or multi-day benchmark.
+2. Keep every prompt, model revision, seed/config, retrieved knowledge
+   object, generated answer, grading output, and Activity ZIP.
+3. Report citation grounding as an audited artifact: supported,
+   unsupported, ambiguous, and manually reviewed.
+4. Publish the dated artifact path before updating docs, press copy, or
+   GitHub Pages headline metrics.
 
 ## Citation-by-citation traceability
 

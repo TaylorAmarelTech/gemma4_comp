@@ -16,16 +16,18 @@ as proxies for the two pipeline configurations:
       The simulation mirrors what the real chat app does -- it runs
       `_rag_call(prompt)` and `_grep_call(prompt)` and appends the
       retrieved doc text + matched rule citations to the response.
-      This faithfully reproduces the lift the harness actually
-      delivers in production: RAG inserts statute text with section
-      numbers, GREP injects ILO citations, and the model incorporates
-      both into its output.
+      This is a reproducible proxy for the context the real chat app
+      supplies to Gemma: RAG inserts statute text with section numbers
+      and GREP injects ILO citations. It is not a long-running local
+      Gemma measurement, a production deployment metric, or a field
+      study.
 
 Both responses are graded against the new cross-cutting
 `legal_citation_quality` rubric (12 criteria covering jurisdiction-
 specific rules, ILO/international regulations, and substance-over-form).
-The percentage-point delta is the headline harness-lift number until
-GPU quota resets and we re-run with real Gemma generations.
+The percentage-point delta is a regression-tracking harness-lift number
+until we re-run the same prompt set with live Gemma generations and
+published artifacts.
 
 Usage
 -----
@@ -37,10 +39,12 @@ Usage
 from __future__ import annotations
 
 import argparse
+import importlib
 import importlib.util
 import json
 import re
 import statistics
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -62,10 +66,10 @@ def _load_harness() -> Any:
     """Import the harness module by file path so this script works
     even when the local Python build toolchain is broken (Python 3.14
     typing_extensions issue)."""
-    spec = importlib.util.spec_from_file_location("h", HARNESS_INIT)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+    src_root = REPO_ROOT / "packages" / "duecare-llm-chat" / "src"
+    if str(src_root) not in sys.path:
+        sys.path.insert(0, str(src_root))
+    return importlib.import_module("duecare.chat.harness")
 
 
 def _simulate_harness_augmented(harness: Any, prompt_text: str,
@@ -377,7 +381,7 @@ def measure_layer_ablation(harness: Any,
                             target_category: str) -> dict[str, Any]:
     """Appendix B — layer-ablation lift.
 
-    Run four conditions on the same 207 prompts:
+    Run four conditions on the current bundled prompt set:
       - OFF:        `1_worst` alone (baseline)
       - GREP-only:  `5_best` + GREP injections only
       - RAG-only:   `5_best` + RAG injections only
@@ -508,8 +512,9 @@ def measure_fabrication_rate(harness: Any) -> dict[str, Any]:
        not a ground-truth count.
 
     Compares: harness-OFF (1_worst alone) vs harness-ON (5_best +
-    injections). Real Gemma may produce different patterns; this proxy
-    measures how often EITHER baseline produces unsupported numbers."""
+    injections). Live Gemma may produce different patterns; this proxy
+    measures how often EITHER baseline produces unsupported citation-shaped
+    strings."""
     canonical_low = {c.lower() for c in _CANONICAL_CITATIONS}
 
     def _fabrication_count(text: str) -> tuple[int, int]:
@@ -593,13 +598,18 @@ def render_markdown(
         f"**Target rubric:** `{target_category}` "
         "(legal citation quality, cross-cutting)",
         "",
-        "**One-line takeaway.** The Duecare safety harness moves Gemma 4 "
-        "responses from near-zero legal grounding to mid-50%-plus on a "
-        "12-criterion rubric, with the strongest lift on jurisdiction-"
-        "specific citations (+87.5 pp) and meaningful gains on ILO + "
-        "substance-over-form. Three appendices at the bottom (refusal "
-        "rate, layer ablation, fabrication detection) add depth for "
-        "technical readers.",
+        f"**One-line takeaway.** In this reproducible proxy evaluation, "
+        f"the Duecare safety harness moves the checked-in response set "
+        f"from {overall['worst_mean_pct']:.1f}% to "
+        f"{overall['best_mean_pct']:.1f}% mean legal grounding on a "
+        f"12-criterion rubric, with the strongest lift on jurisdiction-"
+        f"specific citations (+{per_dim['1_jurisdiction']['lift_pp']:.1f} pp), "
+        f"+{per_dim['2_ilo_international']['lift_pp']:.1f} pp on ILO / "
+        f"international standards, and +{per_dim['3_substance_over_form']['lift_pp']:.1f} "
+        f"pp on substance-over-form analysis. These figures are smoke / "
+        f"regression evidence, not weeks-long local Gemma or field results. "
+        f"Three appendices at the bottom (refusal rate, layer ablation, "
+        f"citation-grounding review) add depth for technical readers.",
         "",
         "## Contents",
         "",
@@ -646,7 +656,7 @@ def render_markdown(
     lines += [
         "",
         "**Reading the table.** *OFF mean / ON mean* are the average "
-        "weighted score across all 207 prompts in this dimension. "
+        "weighted score across every prompt in this dimension. "
         "*OFF pass-rate / ON pass-rate* is the fraction of all individual "
         "criterion checks (n_prompts × n_criteria) that hit PASS — useful "
         "as a recall-style measure of how often the harness inserts at "
@@ -720,9 +730,9 @@ def render_markdown(
         "",
         "## Methodology",
         "",
-        "This is a CPU-only proxy measurement that mirrors the real chat "
-        "app's pipeline. We compare two configurations against the same "
-        "prompt:",
+        "This is a CPU-only proxy measurement for the real chat app's "
+        "context-building pipeline. We compare two configurations against "
+        "the same prompt:",
         "",
         "- **Harness OFF.** The `1_worst` example response from the 5-tier "
         "rubric (raw, unhelpful, no legal citations).",
@@ -736,15 +746,15 @@ def render_markdown(
         "Both responses are graded against the cross-cutting "
         "`legal_citation_quality` rubric (12 criteria mapping to the three "
         "dimensions in the headline table). The percentage-point delta is "
-        "the proxy headline until GPU quota resets and we re-run with real "
-        "Gemma generations.",
+        "a regression-tracking proxy until the same prompt set is rerun "
+        "with live Gemma generations and saved artifacts.",
         "",
         "**How to interpret a single lift number.**",
         "",
         "- High mean lift (+30 pp or more) on the cross-cutting rubric means "
-        "the harness is the source of legal-citation quality, not the "
-        "underlying model. That is the central technical claim of the "
-        "Duecare submission.",
+        "the checked-in harness context is carrying much of the legal-"
+        "citation signal in this proxy. Live-model and field claims require "
+        "separate evidence.",
         "- A negative lift on a specific prompt means the `5_best` example "
         "scored worse than `1_worst` against THIS rubric -- usually a sign "
         "that the rubric is overly narrow for that prompt class.",
@@ -795,13 +805,11 @@ def render_markdown(
             "rights under ILO C189 + the BMET hotline\" is correct "
             "behavior for a worker-side question but does not contain "
             "explicit refusal language (\"cannot assist\", \"refuse\"). "
-            "So the OFF→ON lift on this rubric reads low even when the "
-            "harness has clearly improved safety. Real Gemma generations "
-            "(GPU mode) under harness ON refuse more decisively because "
-            "the GREP-injected citations flag the prompt as trafficking-"
-            "shaped — the proxy understates this. Treat this number as a "
-            "FLOOR; the real refusal lift is expected to be substantially "
-            "higher when measured on live model generations.",
+            "So the OFF-to-ON lift on this rubric reads low even when the "
+            "harness has improved the context. Treat this number as a "
+            "proxy-only regression signal; live refusal lift still needs a "
+            "saved Gemma run before it should be used as a public "
+            "performance claim.",
             "",
         ]
 
@@ -813,7 +821,7 @@ def render_markdown(
             "",
             "**Why this matters.** Are GREP and RAG independently load-"
             "bearing, or is one of them redundant? This appendix runs the "
-            "same 207 prompts under four conditions and grades each "
+            "same bundled prompt set under four conditions and grades each "
             "against the cross-cutting rubric.",
             "",
             "| Condition | n | Mean score | Lift vs OFF |",
@@ -877,7 +885,9 @@ def render_markdown(
             f"— *(no citations to ground)* | "
             f"**{on_grounded_pct}%** |",
             "",
-            "**The right way to read this table.** The OFF baseline "
+            "**The right way to read this table.** This is a heuristic "
+            "citation-grounding scan over proxy outputs, not a production "
+            "defect rate. The OFF baseline "
             "doesn't cite ANY statutes (the `1_worst` proxy responses "
             "are vague affirmations like \"this is standard practice\"), "
             f"so OFF has 0/0 citations and the grounding rate is "
@@ -885,30 +895,32 @@ def render_markdown(
             f"**{fabrication['on_total_citations']:,} statutory "
             f"citations**, of which "
             f"**{on_grounded_pct}% trace directly to the bundled "
-            "RAG corpus + GREP rules**. The remaining ~"
+            "RAG corpus + GREP rules** under this allowlist. The remaining ~"
             f"{round(100 - on_grounded_pct, 1)}% are mostly Article-"
             "number references the allowlist heuristic doesn't recognize "
             "(e.g. \"Article 9\" without the convention name attached) "
-            "— inspect `docs/harness_lift_data.json` for the raw counts.",
+            "or citation-like strings that need manual review. Inspect "
+            "`docs/harness_lift_data.json` for the raw counts.",
             "",
-            "**The headline claim.** The harness's value is two-fold: "
-            "(1) it makes citations *exist* — moving from 0 statutes "
-            "cited (harness OFF) to ~6 per response (harness ON); and "
-            "(2) it makes them *grounded* — virtually every citation "
-            "traces back to a doc the harness retrieved.",
+            "**The cautious claim.** In this proxy, the harness's value is "
+            "two-fold: (1) it makes citations *exist* -- moving from 0 "
+            "statutes cited (harness OFF) to about 6 per response "
+            "(harness ON); and (2) most citation-shaped strings are "
+            "allowlist-grounded. This does not prove production citation "
+            "traceability.",
             "",
             "**Caveats.**",
             "",
             "- The detector is *conservative on false positives*: only "
             "citations that LOOK statutory trigger the check. Bare "
             "phrases like \"the labour law\" don't qualify.",
-            "- The allowlist comes from the bundled 33-doc RAG corpus + "
-            "108 GREP rule citations. A real legal citation that's NOT in "
-            "our corpus is flagged as unsupported here. Treat the "
+            "- The allowlist comes from the bundled RAG corpus + GREP rule "
+            "citations. A real legal citation that's NOT in our corpus is "
+            "flagged as unsupported here. Treat the "
             "unsupported-rate as a CEILING, not a ground-truth count.",
-            "- Real Gemma (GPU mode) is expected to incorporate the "
-            "RAG-injected citations more naturally than this proxy "
-            "appends them, raising the grounding rate further.",
+            "- Live Gemma citation behavior must be measured separately "
+            "from this proxy before claiming long-run grounding or "
+            "traceability rates.",
             "",
         ]
 
@@ -988,14 +1000,14 @@ def main() -> None:
         print(f"    {cond:10s}  {a['mean_pct']:5.1f}%   "
               f"(lift vs OFF: +{a['lift_vs_off']:.1f} pp)")
 
-    print("  Appendix C: statute fabrication rate ...")
+    print("  Appendix C: citation-grounding proxy scan ...")
     fabrication = measure_fabrication_rate(h)
     print(f"    OFF: {fabrication['off_total_fabrications']}/"
           f"{fabrication['off_total_citations']} = "
-          f"{fabrication['off_fabrication_rate_pct']}% fabrications")
+          f"{fabrication['off_fabrication_rate_pct']}% unsupported")
     print(f"    ON:  {fabrication['on_total_fabrications']}/"
           f"{fabrication['on_total_citations']} = "
-          f"{fabrication['on_fabrication_rate_pct']}% fabrications "
+          f"{fabrication['on_fabrication_rate_pct']}% unsupported "
           f"(delta {fabrication['fabrication_rate_delta_pp']:+.1f} pp)")
 
     md = render_markdown(args.target_category, overall, per_cat, per_dim,

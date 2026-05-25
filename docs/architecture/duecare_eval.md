@@ -56,7 +56,7 @@ users don't mistake it for a current measurement.
 ## Reproducibility tuple
 
 Every grade carries `(model_revision, git_sha, dataset_version)`.
-The "+56.5pp" headline regenerates live via the active evaluation
+The "+51.4pp" headline regenerates live via the active evaluation
 path or via a single-button `â–¸ Run ablation` in
 the chat UI (4 generations OFF / GREP / RAG / BOTH).
 

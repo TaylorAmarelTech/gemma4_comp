@@ -147,11 +147,12 @@ Avoid:
   bundled implementation. If you need to extend the GREP catalog
   for your domain, see [`docs/extension_pack_format.md`](../extension_pack_format.md).
 - **"Run Duecare with our internal model only; skip Gemma 4
-  benchmarking"** — defeats the point. The harness's lift numbers
-  (+56.5 pp mean across 207 hand-graded prompts) are measured
-  against Gemma 4. If you want to run it against your internal
-  model, run the A-00 preconfigured pipeline against that model
-  first to establish a baseline.
+  benchmarking"** — defeats the point. The harness's current lift
+  numbers (+51.4 pp mean across the current 200+ prompt proxy set) are proxy
+  measurements against the checked-in Gemma-oriented harness. If you
+  want to run it against your internal model, run the A-00
+  preconfigured pipeline against that model first to establish a
+  baseline and archive the outputs.
 - **"Build a custom UI; don't use the bundled chat playground"** —
   the playgrounds are reference UIs. Your product surface is your
   call. The harness exposes `/api/chat` + `/api/classify` +

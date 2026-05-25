@@ -367,7 +367,7 @@ Across these 5 textbook prompts:
 | **Mean** | **4.6%** | **88.4%** | **+83.8 pp** |
 
 This is a hand-curated, judge-impact subset. The broader historical
-+56.5pp** measurement averages over a broader distribution that
++51.4pp** measurement averages over a broader distribution that
 includes prompts where stock Gemma 4 already does reasonably well
 (e.g., open-ended worker-protection questions); the harness lift on
 those is naturally smaller since the baseline isn't near zero.

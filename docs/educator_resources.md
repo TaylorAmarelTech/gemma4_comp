@@ -110,7 +110,7 @@ content as templates.
 + [`docs/scenarios/researcher-analysis.md`](./scenarios/researcher-analysis.md).
 
 **Project structure:**
-- Week 1: each student reproduces the +56.5 pp number on a 50-prompt
+- Week 1: each student reproduces the +51.4 pp number on a 50-prompt
   subset; documents any discrepancies
 - Week 2: each student designs an alternative rubric (a 12-criterion
   rubric on a different domain or sub-domain) and runs the harness

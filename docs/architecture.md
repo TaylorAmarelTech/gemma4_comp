@@ -386,7 +386,8 @@ The chat UI's `▸ View pipeline` modal renders [a]–[h] byte-for-byte
 for any one chat response, and `▸ Grade response` renders [i] as a
 PASS/PARTIAL/FAIL table per criterion. The harness lift report at
 [`docs/harness_lift_report.md`](./harness_lift_report.md) quantifies
-the [i]-step delta between toggles-OFF and toggles-ON across 207 prompts.
+the [i]-step delta between toggles-OFF and toggles-ON across the checked
+prompt set.
 The 2026-05-18 A-00 smoke matrix (`e2b-full-train-eval`) recorded
 29.5% stock, 35.6% stock + chat-offline harness, 26.4% fine-tuned,
 and 41.2% fine-tuned + harness under the combined rule + LLM judge.

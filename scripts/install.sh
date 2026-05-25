@@ -12,7 +12,7 @@
 #   2. Creates a venv at ./.venv (or uses the active one).
 #   3. Installs duecare-llm (the meta package; pulls in the 7
 #      worker-side packages).
-#   4. Runs `duecare verify` to confirm the harness works (108 GREP
+#   4. Runs `duecare verify` to confirm the harness works (runtime
 #      rules, 26 RAG docs, 6 rubric categories — all importable).
 #   5. Prints the next 3 commands the user can run.
 #
@@ -109,7 +109,7 @@ print(f'  GREP rules:           {len(GREP_RULES)}      (expect >= 108)')
 print(f'  RAG docs:             {len(RAG_CORPUS)}      (expect >= 26)')
 print(f'  Tools:                {len(_TOOL_DISPATCH)}       (expect >= 4)')
 print(f'  Example prompts:      {len(EXAMPLE_PROMPTS)}     (expect >= 407)')
-print(f'  5-tier rubrics:       {len(RUBRICS_5TIER)}     (expect >= 207)')
+print(f'  5-tier rubrics:       {len(RUBRICS_5TIER)}     (expect >= 200)')
 print(f'  Required-rubric cats: {len(RUBRICS_REQUIRED)}       (expect >= 6)')
 assert len(GREP_RULES) >= 108, 'GREP rule count regression'
 assert len(RAG_CORPUS) >= 26, 'RAG doc count regression'

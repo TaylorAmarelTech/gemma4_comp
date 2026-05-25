@@ -153,7 +153,7 @@ graph TB
     end
 
     subgraph L3P["Layer 3+ (research / training)"]
-        BENCHMARK["duecare-llm-benchmark<br/>207-prompt rubric"]
+        BENCHMARK["duecare-llm-benchmark<br/>200+ prompt rubric"]
         TRAINING["duecare-llm-training<br/>Unsloth SFT + DPO"]
         RESEARCH_TOOLS["duecare-llm-research-tools<br/>Tavily/Brave/Serper/DDG"]
     end

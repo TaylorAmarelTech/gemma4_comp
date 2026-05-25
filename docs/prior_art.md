@@ -38,7 +38,7 @@ with **(cite)** are close enough that we should reference them in the writeup;
   methods x 33 LLMs. General-purpose; trafficking is not deeply specified.
   **Duecare differs:** 21K migrant-worker-specific tests with worst->best
   graded responses, plus quantified harness-off vs harness-on lift
-  (+87.5/+51.2/+34.1 pp on three rubric axes). **(cite)**
+  (+73.8/+55.4/+21.2 pp on three rubric axes). **(cite)**
 - **AILuminate v1.0 / v1.1 (MLCommons)** — https://mlcommons.org/benchmarks/ailuminate/;
   paper https://arxiv.org/abs/2503.05731. 12 hazard categories incl. labor
   trafficking under "Non-Violent Crimes" and sex trafficking under "Sex-Related
@@ -173,6 +173,6 @@ Duecare Journey sits at the intersection of three under-served niches:
    eyeWitness document atrocities-by-others; Duecare documents
    process-against-self for refund/complaint pursuit).
 
-The harness-off vs harness-on quantified ablation (+87.5/+51.2/+34.1 pp) is
+The harness-off vs harness-on quantified ablation (+73.8/+55.4/+21.2 pp) is
 the technical contribution with no clear precedent in the trafficking-LLM
 benchmark literature.

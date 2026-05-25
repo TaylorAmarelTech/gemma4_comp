@@ -12,8 +12,8 @@ Three claims:
 
 1. **Stock Gemma 4 fails predictably** on migrant-worker
    trafficking prompts (no ILO citations, gives traffickers advice).
-2. **A layered chat harness with local-first privacy boundaries fixes
-   it** with a measurable lift. The 2026-05-18 A-00 smoke matrix
+2. **A layered chat harness with local-first privacy boundaries improves
+   it** in a measurable smoke run. The 2026-05-18 A-00 smoke matrix
    scored stock Gemma 4 2B at 29.5%, stock + chat-offline harness at
    35.6%, fine-tuned at 26.4%, and fine-tuned + harness at 41.2%.
 3. **The grader is itself adversarially defended** with a 4-mode
