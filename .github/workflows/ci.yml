@@ -251,7 +251,7 @@ jobs:
 
       - name: Install workspace (all 17 packages)
         run: |
-          uv sync --all-packages --no-install-project
+          uv sync --all-packages --no-install-project --no-install-package forge-workspace
           uv pip install pytest pyyaml
 
       - name: Run unit + integration suite
@@ -325,7 +325,7 @@ jobs:
 
       - name: Install workspace
         run: |
-          uv sync --all-packages --no-install-project
+          uv sync --all-packages --no-install-project --no-install-package forge-workspace
           uv pip install jupyter nbconvert
 
       - name: Execute each notebook
