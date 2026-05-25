@@ -2433,6 +2433,11 @@ def test_templates_page_exists_with_design_contract_chrome() -> None:
     assert 'class="dc-gemma-mark is-optional"' in html
     # Activity log opts into the Copy JSON toolbar.
     assert 'data-toolbar="copy-json"' in html
+    # Template generation has a visible progress strip like the other
+    # reviewer-facing workflow pages, so long Gemma fills do not look frozen.
+    assert 'id="tpl-fill-progress-box"' in html
+    assert "function tplSetProgress" in html
+    assert "Draft ready for review" in html
     # Where Gemma 4 runs hint block.
     assert 'id="tpl-gemma-paths-hint"' in html
     assert "Where Gemma 4 runs on this page" in html

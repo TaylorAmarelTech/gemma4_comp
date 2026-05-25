@@ -51,6 +51,8 @@ def test_start_landing_serves_two_tiles() -> None:
     r = c.get("/start")
     assert r.status_code == 200
     html = r.text
+    assert 'href="/static/style.css"' in html
+    assert 'href="/static/styles.css"' not in html
     assert 'href="/slides"' in html, "Project slides tile must link to /slides"
     assert 'href="/slides/setup"' in html, \
         "Slide setup tile must link to /slides/setup"
@@ -240,6 +242,8 @@ def test_slides_setup_serves_audience_and_use_case_selectors() -> None:
     r = c.get("/slides/setup")
     assert r.status_code == 200
     html = r.text
+    assert 'href="/static/style.css"' in html
+    assert 'href="/static/styles.css"' not in html
     for key in ["worker", "ngo", "regulator",
                 "researcher", "developer", "platform"]:
         assert f'value="{key}"' in html, \
@@ -258,6 +262,16 @@ def test_slides_setup_serves_audience_and_use_case_selectors() -> None:
     assert 'option value="platform" selected' in html
     assert "captured Gemma E4B call took 287.5s" in html
     assert "replays without GPU latency" in html
+
+
+def test_slide_surface_stylesheet_is_served() -> None:
+    c = _client()
+    r = c.get("/static/style.css")
+    assert r.status_code == 200
+    assert "text/css" in r.headers.get("content-type", "")
+    assert b"Source of truth" in r.content
+    stale = c.get("/static/styles.css")
+    assert stale.status_code == 404
 
 
 # --------------------------------------------------------------------------

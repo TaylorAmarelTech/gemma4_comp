@@ -833,7 +833,7 @@ def test_process_case_brief_calls_gemma_with_message_contract():
 
 
 def test_chat_page_uses_shared_model_selector(client):
-    r = client.get("/static/chat.html")
+    r = client.get("/static/index.html")
     assert r.status_code == 200
     text = r.text
     assert "function openModelPickerFromUI" in text
@@ -849,7 +849,7 @@ def test_chat_page_uses_shared_model_selector(client):
 
 
 def test_chat_page_exposes_official_source_layer(client):
-    r = client.get("/static/chat.html")
+    r = client.get("/static/index.html")
     assert r.status_code == 200
     text = r.text
     for marker in [
@@ -868,6 +868,15 @@ def test_chat_page_exposes_official_source_layer(client):
     ]:
         assert marker in text
     assert "const layers = enable ? localLayers : allLayers;" in text
+
+
+def test_chat_page_compatibility_route_preserves_deep_links(client):
+    r = client.get("/static/chat.html")
+    assert r.status_code == 200
+    text = r.text
+    assert '<link rel="canonical" href="/static/index.html">' in text
+    assert "window.location.replace(target)" in text
+    assert "window.location.search + window.location.hash" in text
 
 
 def test_recording_page_exposes_preset_and_cached_trace(client):
@@ -906,7 +915,7 @@ def test_recording_page_exposes_preset_and_cached_trace(client):
 
 
 def test_chat_page_exposes_recording_platform_preset(client):
-    r = client.get("/static/chat.html")
+    r = client.get("/static/index.html")
     assert r.status_code == 200
     text = r.text
     for marker in [

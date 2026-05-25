@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DueCare Chat</title>
+  <link rel="canonical" href="/static/index.html">
+  <link rel="stylesheet" href="/static/_chrome.css">
+  <meta http-equiv="refresh" content="0; url=/static/index.html">
+</head>
+<body>
+  <main class="dc-page">
+    <section class="dc-card" style="margin:24px auto; max-width:640px;">
+      <h1>Opening DueCare Chat</h1>
+      <p>This compatibility route forwards to the canonical chat workbench.</p>
+      <p><a class="dc-btn dc-btn-primary" href="/static/index.html">Open chat</a></p>
+    </section>
+  </main>
+  <script>
+    (function () {
+      'use strict';
+      var target = '/static/index.html' + window.location.search + window.location.hash;
+      window.location.replace(target);
+    }());
+  </script>
+</body>
+</html>

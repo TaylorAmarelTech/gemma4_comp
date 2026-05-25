@@ -40,6 +40,17 @@ verifies that the Kaggle root layout and main kernels:
 - keep the Kaggle-facing boot tokens that make the notebook runnable in Kaggle,
 - keep `kernel-metadata.json` publish settings aligned with the intended Kaggle slug, `kernel.py` code file, script kernel type, Internet setting, and GPU setting.
 
+For source changes to the Kernel 01/02 HTML pages or the optional benchmark
+kernels, run the companion page-source gate as well:
+
+```bash
+py -3.12 scripts/validate_kaggle_page_sources.py
+```
+
+That gate checks `/static/*` and `/wb-static/*` asset references, Kernel 02
+recording-page markers, primary Kernel 01 workbench markers, and benchmark
+kernel entrypoint markers without importing DueCare packages.
+
 ## When the gate fails
 
 If this gate fails after a goal change:
