@@ -58,7 +58,14 @@ import uuid
 
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
-NOTEBOOK_PATH = REPO_ROOT / "kaggle" / "04-task-notebook-fresh" / "task_notebook.ipynb"
+NOTEBOOK_PATH = (
+    REPO_ROOT
+    / "kaggle"
+    / "_archive"
+    / "notebooks"
+    / "04-task-notebook-fresh"
+    / "task_notebook.ipynb"
+)
 
 # Pin duecare to a specific commit so the benchmark is reproducible
 # even after the rubric evolves on master. Bump when a new rubric

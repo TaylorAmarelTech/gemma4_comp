@@ -1,4 +1,4 @@
-# Submission Readiness Audit -- 2026-05-17
+﻿# Submission Readiness Audit -- 2026-05-17
 
 > Status snapshot of the DueCare submission ahead of recording and
 > Kaggle upload. Lists every active surface, what is built, what is
@@ -135,12 +135,12 @@ Kaggle or in a browser has not happened yet.
   * Each page's "Use sample" button round-trips the sample artifact
     under `/static/samples/`.
 
-## 3. DueCare Fine-tuning and Evaluation (`kaggle/A-00-omni-experiment-workbench/`)
+## 3. DueCare Fine-tuning and Evaluation (`kaggle/_archive/notebooks/A-00-omni-experiment-workbench/`)
 
 ### 3.1 Preconfigured pipeline
 
 * **State:** Built + happy-path landing.
-* **Files:** `kaggle/A-00-omni-experiment-workbench/kernel.py`.
+* **Files:** `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py`.
 * **Verified locally:**
   * `Gemma4Runtime.load(...)` is the inference loader.
   * 16K context constant `A00_INFERENCE_MAX_SEQ_LENGTH` is in place.
@@ -283,7 +283,7 @@ Kaggle or in a browser has not happened yet.
   does not push kernels.
 * **Built:** `kaggle/02-live-demo/kernel.py`,
   `kaggle/01-duecare-app/kernel.py`,
-  `kaggle/A-00-omni-experiment-workbench/kernel.py`; each folder has a
+  `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py`; each folder has a
   `README.md` and a kernel-metadata file.
 * **Needs human action before recording:**
   1. Re-paste the updated `02-live-demo/kernel.py` into the Kaggle UI

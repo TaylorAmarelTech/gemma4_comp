@@ -161,7 +161,7 @@ Avoid:
 
 | You get | You build |
 |---|---|
-| Python packages + three active Kaggle proof kernels + Helm chart + Docker image | Your client UI (web / mobile / Slack / Discord / etc.) |
+| Python packages + two active Kaggle proof kernels + Helm chart + Docker image | Your client UI (web / mobile / Slack / Discord / etc.) |
 | 100+ GREP rules + 50+ RAG docs + 5 corridor and ILO lookups | Your domain-specific extensions (custom GREP rules, internal corpus, internal tools) |
 | 11 ILO C029 indicators + 20 corridor profiles | Your jurisdiction-specific corridors / regulators / NGO lists |
 | Per-tenant token + cost meter | Hook to your billing pipeline |

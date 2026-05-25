@@ -1,4 +1,4 @@
-# Project Overview - DueCare Gemma 4 Good Submission
+﻿# Project Overview - DueCare Gemma 4 Good Submission
 
 ## Competition Context
 
@@ -67,7 +67,7 @@ sensitive-data handling, and combined rule + LLM grading around the model.
 3. **Public code repository:** this GitHub repo.
 4. **Live demo:** `kaggle/02-live-demo/kernel.py` prints a Cloudflare URL;
    open `/start`, `/slides`, and `/wb-static/process.html`.
-5. **Evaluation:** `kaggle/A-00-omni-experiment-workbench/` produces the
+5. **Evaluation:** `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/` produces the
    stock / harnessed / fine-tuned / fine-tuned+harness matrix.
 6. **Public hub:** `apps/duecare-ai.com/` documents the broader ecosystem,
    pack registry, and anonymized signal path.

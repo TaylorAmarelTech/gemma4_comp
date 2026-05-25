@@ -1,4 +1,4 @@
-# DueCare Kaggle Community Benchmark
+﻿# DueCare Kaggle Community Benchmark
 
 <!-- duecare:lane-label -->
 > **Serves lanes:** Researcher; Developer / integration partner.
@@ -12,7 +12,9 @@ replace, the primary submission path:
 
 1. `01-duecare-exploration-workbench`
 2. `02-live-demo`
-3. `A-00-omni-experiment-workbench`
+
+A-00 is archived proof material under `kaggle/_archive/notebooks/`, not part
+of the active recording path.
 
 It also complements `03-universal-llm-benchmark`, which is the BYO-endpoint
 runner for OpenAI-compatible, Anthropic Messages, and raw HTTP targets. Use this
@@ -89,7 +91,7 @@ UI to register the task on the public benchmarks page. After that,
 To update the published task notebook after edits:
 
 ```bash
-.venv/Scripts/kaggle kernels push -p kaggle/04-task-notebook-publish
+.venv/Scripts/kaggle kernels push -p kaggle/_archive/notebooks/04-task-notebook-publish
 .venv/Scripts/kaggle kernels status taylorsamarel/new-benchmark-task-443d1
 ```
 
@@ -110,7 +112,7 @@ tasks` CLI endpoints are unlocked for your account (see "Diagnostics" below).
    Detail page, then use **Evaluate More Models** to populate the
    leaderboard.
 
-`task_notebook.ipynb` is **self-contained** — inline 6 criteria + 13 rows
+`task_notebook.ipynb` is **self-contained** â€” inline 6 criteria + 13 rows
 (3 main + 10 fee-limit probes). No external installs beyond what Kaggle
 preinstalls (`kaggle_benchmarks`, `pandas`).
 
@@ -138,9 +140,9 @@ creation.
 
 Verified 404 pattern:
   - `BenchmarkTasksApiService.{ListBenchmarkTasks,CreateBenchmarkTask,
-    GetBenchmarkTask}` → 404 (with KGAT_, kaggle.json, or no auth — same
+    GetBenchmarkTask}` â†’ 404 (with KGAT_, kaggle.json, or no auth â€” same
     response byte-for-byte; routing block, not auth)
-  - `BenchmarksApiService.ListBenchmarkModels` → 200 (model catalog)
+  - `BenchmarksApiService.ListBenchmarkModels` â†’ 200 (model catalog)
   - Web-UI "Create Task" at `kaggle.com/benchmarks/tasks/new` creates a
     notebook (e.g., `taylorsamarel/new-benchmark-task-443d1`) but does
     NOT unlock the public CLI endpoints.
@@ -160,7 +162,7 @@ the standard CLI directly:
 .venv/Scripts/kaggle kernels status taylorsamarel/duecare-kaggle-community-benchmark
 ```
 
-This script kernel is **not** a registered Benchmark Task — it's a
+This script kernel is **not** a registered Benchmark Task â€” it's a
 publicly-visible source kernel that lets reviewers read the code. To
 register an actual benchmark task with a leaderboard, complete the Path A
 web-UI flow above.

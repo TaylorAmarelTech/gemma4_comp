@@ -12,7 +12,7 @@ each file in the wheels folder as a blob, then creates a new dataset
 version referencing those blobs.
 
 Run:
-    python scripts/push_kaggle_dataset_version_direct.py kaggle/A-01-chat-playground/wheels/ \\
+    python scripts/push_kaggle_dataset_version_direct.py kaggle/_archive/notebooks/A-01-chat-playground/wheels/ \\
         --notes "42 GREP rules"
 
 Or push all chat-bundling wheels datasets:

@@ -22,7 +22,7 @@ Files that get patched if changed:
 Usage:
     python scripts/patch_chat_wheel.py                # patch all wheels
     python scripts/patch_chat_wheel.py --dry-run      # show what would change
-    python scripts/patch_chat_wheel.py --target kaggle/A-01-chat-playground
+    python scripts/patch_chat_wheel.py --target kaggle/_archive/notebooks/A-01-chat-playground
 """
 
 from __future__ import annotations
@@ -150,7 +150,7 @@ def main() -> None:
                      help="show what would change without writing")
     ap.add_argument("--target",
                      help="patch only one wheels dir (e.g. "
-                          "kaggle/A-01-chat-playground/wheels)")
+                          "kaggle/_archive/notebooks/A-01-chat-playground/wheels)")
     args = ap.parse_args()
 
     targets = find_targets(args.target)

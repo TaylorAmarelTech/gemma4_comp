@@ -1,9 +1,9 @@
-# Final Submission Execution Plan
+﻿# Final Submission Execution Plan
 
 Current as of 2026-05-17. This document replaces the old 2026-05-02 two-week
 appendix-ladder plan. The remaining work is no longer broad notebook publishing;
-it is validating the three active kernels and preserving evidence from the A-00
-pipeline.
+it is validating the two active kernels and preserving optional evidence from
+the archived A-00 pipeline.
 
 ## Scope
 
@@ -11,24 +11,24 @@ Run and verify:
 
 - `kaggle/01-duecare-exploration-workbench/`
 - `kaggle/02-live-demo/`
-- `kaggle/A-00-omni-experiment-workbench/`
-
 Everything under `kaggle/_archive/notebooks/` is historical unless explicitly
-revived later.
+revived later, including A-00 and task-notebook snapshots. Root `kaggle/`
+should not contain appendix `A-*` folders, and the only root `04-*` folder
+should be `04-kaggle-community-benchmark`.
 
 ## Priority Order
 
 1. Confirm the official Kaggle submission requirements and final deadline.
 2. Run Kernel 01 and capture the default harness comparison path.
 3. Run Kernel 02 and capture the live demo/video path.
-4. Run A-00 with a small proof configuration to confirm exports and report
-   links.
-5. Run A-00 again with the best available prompt count/training settings that
-   fit the remaining wall-clock budget.
+4. Optional only: run archived A-00 with a small proof configuration to confirm
+   exports and report links if new proof artifacts are needed.
+5. Optional only: run archived A-00 again with the best available prompt
+   count/training settings that fit the remaining wall-clock budget.
 6. Download `/kaggle/working` outputs after every meaningful phase.
-7. Submit with the current three-kernel story, not the archived A-series story.
+7. Submit with the current two-kernel story, not the archived A-series story.
 
-## A-00 Runtime Strategy
+## Archived A-00 Runtime Strategy
 
 Use the preconfigured pipeline for the main proof. Keep options narrow:
 

@@ -1,4 +1,4 @@
-# Claude Prompt: North-Star Drift, Harness, And A-00 Review
+﻿# Claude Prompt: North-Star Drift, Harness, And A-00 Review
 
 You are Claude Code working in:
 `C:\Users\amare\OneDrive\Documents\gemma4_comp`
@@ -21,7 +21,7 @@ Review:
 
 - `kaggle/01-duecare-exploration-workbench/kernel.py`
 - `kaggle/02-live-demo/kernel.py`
-- `kaggle/A-00-omni-experiment-workbench/kernel.py`
+- `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py`
 - `packages/duecare-llm-chat/src/duecare/chat/gemma4_runtime.py`
 - `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py`
 - `packages/duecare-llm-chat/src/duecare/chat/harnesses/`

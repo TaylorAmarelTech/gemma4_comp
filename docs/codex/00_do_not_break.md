@@ -1,4 +1,4 @@
-# 00 — Do not break
+﻿# 00 â€” Do not break
 
 > The protective contract every Codex improvement must honor. Created 2026-05-24. Every per-goal handoff in this directory links here.
 
@@ -19,13 +19,12 @@ This document enumerates exactly what's load-bearing. **If a proposed change wou
 
 ## 1. Published kernels (DO NOT RENAME OR DELETE)
 
-These three kernel directories are the recording-critical path per `.claude/rules/80_active_surface.md`:
+These two kernel directories are the recording-critical path:
 
 | Path | Role |
 |---|---|
-| `kaggle/01-duecare-exploration-workbench/kernel.py` | Reviewer workbench — broadest surface |
+| `kaggle/01-duecare-exploration-workbench/kernel.py` | Reviewer workbench â€” broadest surface |
 | `kaggle/02-live-demo/kernel.py` | Focused live-demo path |
-| `kaggle/A-00-omni-experiment-workbench/kernel.py` | Quantitative control plane |
 
 Plus optional benchmarks (not part of the recording-critical path but still published):
 
@@ -43,7 +42,12 @@ Plus optional benchmarks (not part of the recording-critical path but still publ
 python scripts/validate_main_kaggle_kernels.py
 ```
 
-This gate protects only the three active kernels above plus the two optional benchmark kernels above. Appendix notebooks, archived notebooks, and legacy notebook-era folders are not part of this check unless Taylor explicitly asks to restore them.
+This gate protects the Kaggle root layout, the two active kernels above, and the two optional benchmark kernels above. Appendix notebooks, archived notebooks, and legacy notebook-era folders are not part of kernel compatibility unless Taylor explicitly asks to restore them.
+
+**Kaggle root layout:** keep appendix folders out of the root. Root `kaggle/`
+must not contain `A-*` folders, and the only root `04-*` folder should be
+`04-kaggle-community-benchmark`. Task-notebook snapshots such as
+`04-task-notebook-*` belong under `kaggle/_archive/notebooks/`.
 
 ---
 
@@ -75,7 +79,7 @@ Every route below is exposed by the live workbench app (`packages/duecare-llm-ch
 ### Anonymization / Share
 - `POST /api/anonymize` + `/start` + `/status/{job_id}` + `/cancel/{job_id}`
 - `POST /api/submit/knowledge`
-- `POST /api/submit/local` (deprecated alias — keep for now)
+- `POST /api/submit/local` (deprecated alias â€” keep for now)
 
 ### Search + Safety
 - `POST /api/search/client`
@@ -94,7 +98,7 @@ Every route below is exposed by the live workbench app (`packages/duecare-llm-ch
 - `GET /api/version`
 
 **Allowed:** adding NEW routes next to old ones (e.g. `POST /api/templates/fill-batch` next to `POST /api/templates/fill`).
-**Forbidden:** renaming, removing, or breaking the request/response shape of any route above. If you must change a response shape, add a new optional key — never remove or rename an existing one.
+**Forbidden:** renaming, removing, or breaking the request/response shape of any route above. If you must change a response shape, add a new optional key â€” never remove or rename an existing one.
 
 ---
 
@@ -124,9 +128,9 @@ use-cases.html | getting-started.html | demo-recording.html
 The JS on each page references specific element IDs. Tests pin them (`packages/duecare-llm-chat/tests/test_compare.py` is the canonical example). Renaming any ID below silently breaks the page.
 
 **Reference test for full ID lists per page:**
-- `tests/test_compare.py` — compare.html IDs
-- `tests/test_harness_workbench.py` — knowledge.html / process.html IDs
-- `tests/test_design_tooltip_migration.py` — tooltip data-tip attributes
+- `tests/test_compare.py` â€” compare.html IDs
+- `tests/test_harness_workbench.py` â€” knowledge.html / process.html IDs
+- `tests/test_design_tooltip_migration.py` â€” tooltip data-tip attributes
 
 **Categorical rule:** any ID that starts with `wb-`, `kx-`, `tpl-`, `cmp-`, `search-`, `graph-`, `pg-`, `pgs-`, `dc-`, `sn-` is load-bearing JS plumbing. There are ~219 such IDs across 8 active pages. If you must rename one, find every JS file that calls `document.getElementById('<id>')` first and update them in the same commit.
 
@@ -188,9 +192,9 @@ Reviewers click "Use sample" / "Download sample" buttons that hit these paths. *
 
 These vocabulary tuples are committed to git and saved knowledge envelopes reference them by string match:
 
-- `STANDARD_FACT_KEY_ORDER` (47 fields) — in `harnesses/_safe_text.py`
-- `STANDARD_FACT_INDICATORS` (16 ILO indicators) — same file
-- `STANDARD_FACT_STAGES` (9 journey stages) — same file
+- `STANDARD_FACT_KEY_ORDER` (47 fields) â€” in `harnesses/_safe_text.py`
+- `STANDARD_FACT_INDICATORS` (16 ILO indicators) â€” same file
+- `STANDARD_FACT_STAGES` (9 journey stages) â€” same file
 
 Renaming `fee_bondage` to `feeBondage` would break every saved envelope that referenced the old name. Same for stages and key order.
 
@@ -204,7 +208,7 @@ Renaming `fee_bondage` to `feeBondage` would break every saved envelope that ref
 These are silent contracts the codebase relies on:
 
 - `Gemma4Runtime.load()` is the canonical model loader (`gemma4_runtime.py`). Don't replace it with a different loader. See `.claude/rules/81_canonical_runtime.md`.
-- Activity-log JS uses `document.createElement` + `textContent` only — **no `innerHTML` for user-derived strings**. New code must follow the same rule.
+- Activity-log JS uses `document.createElement` + `textContent` only â€” **no `innerHTML` for user-derived strings**. New code must follow the same rule.
 - The shared scrub helper `clean_for_knowledge_fact` is idempotent. Any new pattern added to `_KNOWLEDGE_NOISE_PATTERNS` must preserve idempotence.
 - The polish endpoint contract is pinned by `tests/test_polish_envelope.py`. Don't change the response shape `{envelope, critique, passes, diff}` without updating that test.
 
@@ -220,12 +224,12 @@ These are silent contracts the codebase relies on:
 
 ## How to apply this contract in a goal
 
-Every per-goal `handoff.md` has a "Do-not-break checklist" section. It should be specific to that goal — pick the items from this contract that the goal could plausibly violate, and list them.
+Every per-goal `handoff.md` has a "Do-not-break checklist" section. It should be specific to that goal â€” pick the items from this contract that the goal could plausibly violate, and list them.
 
 Example (Goal 1):
 > **Do-not-break checklist:**
 > - Don't rename `_searchLog` (section 5).
 > - Don't change the `searchRenderDraftCard()` function signature or break the existing per-card layout (section 4).
 > - The new "Polish further (Gemma 4)" button must be added next to "Save this draft", not replacing it (section 3).
-> - Reuse the existing `POST /api/knowledge/polish-envelope` endpoint — no schema changes (section 2).
+> - Reuse the existing `POST /api/knowledge/polish-envelope` endpoint â€” no schema changes (section 2).
 > - Bump `window.dcGemmaStats` with an existing bucket, not a new one (section 6).

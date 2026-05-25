@@ -1,10 +1,12 @@
-"""Validate the non-archived DueCare Kaggle kernel.py files.
+"""Validate the root DueCare Kaggle kernel.py files and layout.
 
 This is a static compatibility gate. It parses the active/public Kaggle
 script kernels without executing them, then checks for the boot-path tokens
 that make them runnable after copy/paste into Kaggle.
 
-Appendix and archived notebooks are intentionally out of scope.
+Appendix and archived notebooks are intentionally out of scope. Root
+``kaggle/`` should not contain appendix ``A-*`` folders or extra ``04-*``
+task-notebook snapshots.
 """
 
 from __future__ import annotations
@@ -17,6 +19,7 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+ALLOWED_ROOT_04_FOLDERS = {"04-kaggle-community-benchmark"}
 
 
 @dataclass(frozen=True)
@@ -65,23 +68,6 @@ KERNELS: tuple[KernelContract, ...] = (
         ),
     ),
     KernelContract(
-        path="kaggle/A-00-omni-experiment-workbench/kernel.py",
-        tier="active",
-        role="quantitative control plane",
-        kaggle_id="taylorsamarel/duecare-fine-tuning-and-evaluation",
-        enable_gpu=True,
-        required_tokens=(
-            "DueCare Fine-tuning and Evaluation",
-            "DUECARE_REPO",
-            "TaylorAmarelTech/gemma4_comp",
-            "DUECARE_PACKAGES",
-            "build_minimal_shell",
-            "trycloudflare.com",
-            "/api/a00/pipeline/run",
-            "/kaggle/working",
-        ),
-    ),
-    KernelContract(
         path="kaggle/03-universal-llm-benchmark/kernel.py",
         tier="optional",
         role="universal endpoint benchmark",
@@ -111,6 +97,35 @@ KERNELS: tuple[KernelContract, ...] = (
         ),
     ),
 )
+
+
+def validate_kaggle_root_layout() -> list[str]:
+    kaggle_root = REPO_ROOT / "kaggle"
+    failures: list[str] = []
+    if not kaggle_root.exists():
+        return ["missing kaggle/ directory"]
+
+    root_dirs = sorted(path.name for path in kaggle_root.iterdir() if path.is_dir())
+    root_appendix = [name for name in root_dirs if name.startswith("A-")]
+    if root_appendix:
+        failures.append(
+            "root kaggle/ must not contain appendix A-* folders; move them to "
+            "kaggle/_archive/notebooks/: " + ", ".join(root_appendix)
+        )
+
+    extra_04 = [
+        name
+        for name in root_dirs
+        if name.startswith("04-") and name not in ALLOWED_ROOT_04_FOLDERS
+    ]
+    if extra_04:
+        failures.append(
+            "root kaggle/ must keep only 04-kaggle-community-benchmark as a "
+            "04-* folder; archive task-notebook snapshots under "
+            "kaggle/_archive/notebooks/: " + ", ".join(extra_04)
+        )
+
+    return failures
 
 
 def _line_has_conflict_marker(line: str) -> bool:
@@ -189,6 +204,16 @@ def main() -> int:
     total_failures = 0
     print("Main Kaggle kernel compatibility gate")
     print("=" * 72)
+
+    layout_failures = validate_kaggle_root_layout()
+    if layout_failures:
+        total_failures += len(layout_failures)
+        print("[FAIL] kaggle root layout")
+        for failure in layout_failures:
+            print(f"  - {failure}")
+    else:
+        print("[OK  ] kaggle root layout")
+
     for contract in KERNELS:
         failures = validate_kernel(contract)
         label = f"{contract.tier:8s} {contract.path} ({contract.role})"
@@ -204,8 +229,9 @@ def main() -> int:
         print(f"FAILED: {total_failures} finding(s)")
         return 1
     print(
-        "PASS: all active/optional main Kaggle kernels parse, keep their "
-        "boot tokens, and match Kaggle metadata"
+        "PASS: Kaggle root layout is clean and all active/optional root "
+        "Kaggle kernels parse, keep their boot tokens, and match Kaggle "
+        "metadata"
     )
     return 0
 

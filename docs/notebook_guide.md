@@ -1,4 +1,4 @@
-# DueCare Kaggle Kernel Guide
+﻿# DueCare Kaggle Kernel Guide
 
 `kaggle/_INDEX.md` and `docs/current_kaggle_notebook_state.md` are the authoritative active-kernel inventory. This guide is the human-readable purpose map generated from the same root `kaggle/*/kernel-metadata.json` script-kernel folders, plus `scripts/kaggle_live_slug_map.json` for public live status.
 
@@ -37,7 +37,7 @@ Every judge-facing Kaggle bundle must make its own bootstrap path explicit: prin
 
 1. **DueCare App** - `kaggle/01-duecare-exploration-workbench/kernel.py`, `packages/duecare-llm-chat/src/duecare/chat/app.py`, and the registered harness pages.
 2. **Live demo** - `kaggle/02-live-demo/kernel.py`, `packages/duecare-llm-server/src/duecare/server`, and the Cloudflare launch path.
-3. **A-00 experiment pipeline** - `kaggle/A-00-omni-experiment-workbench/kernel.py`, checkpointing, activity artifacts, reports, and judge options.
+3. **Archived A-00 experiment pipeline** - `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py`, checkpointing, activity artifacts, reports, and judge options.
 4. **Shared runtime and harnesses** - `gemma4_runtime.py`, `harness/__init__.py`, `harnesses/base.py`, and `harnesses/model_interface.py`.
 5. **Docs and contract tests** - harness trinity docs, model-loading trace, A-00 parity tests, workbench UI tests, and active Kaggle state docs.
 

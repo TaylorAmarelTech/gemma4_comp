@@ -8,7 +8,7 @@ hide:
 
 > **Current competition scope (2026-05-16):** this documentation site
 > still contains broader product, deployment, and historical notebook
-> material. The active Kaggle submission path is the three-kernel set
+> material. The active Kaggle submission path is the two-kernel set
 > in [`kaggle/_INDEX.md`](../kaggle/_INDEX.md). The current Gemma 4
 > runtime and harness ecosystem handoff is
 > [`docs/copilot_handoff_2026_05_16.md`](copilot_handoff_2026_05_16.md).
@@ -158,7 +158,7 @@ Sorted by who you are:
 - :material-clipboard-check: [**Reproducibility**](reproducibility.md) — every quantitative claim grounded with `(git_sha, dataset_version, eval_set, grader_version)` provenance + one-command re-measurement path
 - :material-table-of-contents: [**Corpus index**](corpus_index.md) — source-of-truth pointers for the live GREP, RAG, tool, rubric, and judge inventories
 - :material-compare-horizontal: [**Stock vs harnessed examples**](stock_vs_harnessed.md) — 5 textbook prompts side-by-side (mean lift 4.6% → 88.4%)
-- :material-tune-vertical: [**A-00 proof path**](FOR_PEER_REVIEW.md#a-00-proof-path) — preconfigured baseline, harness, optional LoRA, judging, and export run
+- :material-tune-vertical: [**Archived A-00 proof path**](FOR_PEER_REVIEW.md#archived-a-00-proof-path) — preconfigured baseline, harness, optional LoRA, judging, and export run
 - :material-clock-fast: [**Judge 5-min test plan**](peer_review_5min_test_plan.md) — the entry point for hackathon judges
 
 ## Headline numbers

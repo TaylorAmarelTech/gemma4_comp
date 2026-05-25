@@ -1,4 +1,4 @@
-# Manual TODO Checklist
+﻿# Manual TODO Checklist
 
 Current as of 2026-05-18. This list is intentionally limited to actions that
 cannot be completed by local code edits alone.
@@ -18,13 +18,12 @@ cannot be completed by local code edits alone.
 - If the live form wording differs, update `docs/writeup_draft.md`,
   `docs/video_script.md`, and the submission text before final submission.
 
-## 2. Run The Three Active Kaggle Kernels
+## 2. Run The Two Active Kaggle Kernels
 
 Active scope is exactly:
 
 - `kaggle/01-duecare-exploration-workbench/`
 - `kaggle/02-live-demo/`
-- `kaggle/A-00-omni-experiment-workbench/`
 
 For each kernel:
 
@@ -43,14 +42,15 @@ fine-tuned, 41.2% fine-tuned + harness. For archival quality:
   charts, and output manifest from `/kaggle/working`.
 - Keep the generated static report screenshot available for the video or
   writeup evidence appendix.
-- Optional only: rerun the preconfigured A-00 pipeline on a larger prompt set
-  if there is enough time and GPU budget.
+- Optional only: rerun the archived A-00 preconfigured pipeline from
+  `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/` on a larger
+  prompt set if there is enough time and GPU budget.
 
 ## 4. Capture Final Demo Assets
 
 - Exploration workbench: model load, chat prompt, harness trace, and harness
   catalog pages.
-- A-00: preconfigured pipeline card, numbered Activity log, training checkpoint
+- Archived A-00: preconfigured pipeline card, numbered Activity log, training checkpoint
   panel, judging progress, report/evidence download links.
 - Final report: score chart, latency chart, prompt/response table, and exported
   evidence ZIP contents.
@@ -61,5 +61,5 @@ fine-tuned, 41.2% fine-tuned + harness. For archival quality:
 - Confirm `git status` is clean after committing and pushing.
 - Confirm GitHub shows the final commit.
 - Confirm Kaggle notebooks use the intended commit or attached wheel version.
-- Confirm the writeup references the current three-kernel path, not archived
+- Confirm the writeup references the current two-kernel path, not archived
   A-series notebook-era material.

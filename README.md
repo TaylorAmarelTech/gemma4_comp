@@ -1,4 +1,4 @@
-# DueCare: A Gemma 4 Safety Ecosystem for Migrant-Worker Protection
+﻿# DueCare: A Gemma 4 Safety Ecosystem for Migrant-Worker Protection
 
 > **Public hub:** [duecare-ai.com](https://duecare-ai.com) |
 > **DueCare App on Kaggle:** [kaggle.com/code/taylorsamarel/duecare-app](https://www.kaggle.com/code/taylorsamarel/duecare-app) |
@@ -6,8 +6,8 @@
 > **Android APK:** [github.com/TaylorAmarelTech/duecare-journey-android/releases](https://github.com/TaylorAmarelTech/duecare-journey-android/releases) |
 > **Source:** this repo (MIT)
 >
-> **Headline result (2026-05-18 smoke matrix):** Stock Gemma 4 2B **29.5%** ·
-> Stock + chat-offline harness **35.6%** (+6.1pp) · Fine-tuned **26.4%** ·
+> **Headline result (2026-05-18 smoke matrix):** Stock Gemma 4 2B **29.5%** Â·
+> Stock + chat-offline harness **35.6%** (+6.1pp) Â· Fine-tuned **26.4%** Â·
 > Fine-tuned + harness **41.2%** (+14.8pp over fine-tuning alone, +11.7pp over stock).
 > The harness supplies the facts, citations, tools, data-minimization checks,
 > and forced-labor indicators that fine-tuning alone cannot.
@@ -28,8 +28,8 @@
 > Stakeholder Engagement, Newsletter and Alerts, Fine-Tuning, Channel and
 > Deployment Package. **Live core** for the Kaggle submission is Gemma 4 +
 > Safety Guidance + Knowledge Packs + Bulk File Review + Quality Testing.
-> **Prototype:**
-> Fine-tuning and benchmarking (`kaggle/A-00-omni-experiment-workbench/`). **Roadmap:** Central server
+> **Archived prototype:**
+> Fine-tuning and benchmarking (`kaggle/_archive/notebooks/A-00-omni-experiment-workbench/`). **Roadmap:** Central server
 > modules, research monitor, stakeholder engagement, newsletter, and channel
 > deployment. **Sibling repo (live):** Mobile (DueCare Journey
 > v0.9.0). Full canonical definition:
@@ -72,22 +72,21 @@
 
 ## Try DueCare in 30 seconds
 
-Three Kaggle script kernels. Each one is a single `kernel.py` file: copy it into a fresh Kaggle Notebook, set **Accelerator: GPU T4 x2** + **Internet: On**, click **+ Add Input → Models → `google/gemma-4`**, then **Run All**. ~30 seconds later the kernel prints a public `https://*.trycloudflare.com` URL.
+Two active Kaggle script kernels. Each one is a single `kernel.py` file: copy it into a fresh Kaggle Notebook, set **Accelerator: GPU T4 x2** + **Internet: On**, click **+ Add Input â†’ Models â†’ `google/gemma-4`**, then **Run All**. ~30 seconds later the kernel prints a public `https://*.trycloudflare.com` URL.
 
 | | Kernel | What you see when it starts |
 |---|---|---|
-| 🟢 | **DueCare App** &nbsp;·&nbsp; [Kaggle](https://www.kaggle.com/code/taylorsamarel/duecare-app) &nbsp;·&nbsp; [`kaggle/01-duecare-exploration-workbench/kernel.py`](./kaggle/01-duecare-exploration-workbench/kernel.py) | The broad reviewer workbench. Open `/` for the audience showcase, then click into chat / Bulk File Review / harness comparison / grading. |
-| 🎬 | **DueCare Live Demo** &nbsp;·&nbsp; [Kaggle](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) &nbsp;·&nbsp; [`kaggle/02-live-demo/kernel.py`](./kaggle/02-live-demo/kernel.py) | Focused demo + the recording-grade pitch deck. Open `/start` → click **Project slides** → 23-slide deck loads (works without a model). |
-| 📊 | **DueCare Fine-tuning and Evaluation** &nbsp;·&nbsp; [Kaggle](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation) &nbsp;·&nbsp; [`kaggle/A-00-omni-experiment-workbench/kernel.py`](./kaggle/A-00-omni-experiment-workbench/kernel.py) | The quantitative control plane. Pick **Preconfigured Harness, Training, and Evaluation** for the fast guided path (base + harnessed + fine-tuned + fine-tuned-plus-harness arms, combined rule + LLM grading, exported artifact bundle). |
+| ðŸŸ¢ | **DueCare App** &nbsp;Â·&nbsp; [Kaggle](https://www.kaggle.com/code/taylorsamarel/duecare-app) &nbsp;Â·&nbsp; [`kaggle/01-duecare-exploration-workbench/kernel.py`](./kaggle/01-duecare-exploration-workbench/kernel.py) | The broad reviewer workbench. Open `/` for the audience showcase, then click into chat / Bulk File Review / harness comparison / grading. |
+| ðŸŽ¬ | **DueCare Live Demo** &nbsp;Â·&nbsp; [Kaggle](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) &nbsp;Â·&nbsp; [`kaggle/02-live-demo/kernel.py`](./kaggle/02-live-demo/kernel.py) | Focused demo + the recording-grade pitch deck. Open `/start` â†’ click **Project slides** â†’ 23-slide deck loads (works without a model). |
 
 Optional benchmark surfaces:
 
 - [`kaggle/03-universal-llm-benchmark`](./kaggle/03-universal-llm-benchmark/) benchmarks arbitrary OpenAI-compatible, Anthropic Messages, or raw JSON endpoints against DueCare prompts and rubric cues, with Claude Opus judging when an Anthropic key is configured.
-- [`kaggle/04-kaggle-community-benchmark`](./kaggle/04-kaggle-community-benchmark/) defines DueCare rows as `kaggle_benchmarks` tasks so runs can use Kaggle's model proxy/quota and produce Community Benchmark artifacts. **v4 task** at [`kaggle.com/code/taylorsamarel/new-benchmark-task-0a35d`](https://www.kaggle.com/code/taylorsamarel/new-benchmark-task-0a35d): 27 composite scenarios × DueCare's full 74-dimension universal rubric, one judge call per dimension (1,998 calls per model), evaluated against **Gemini 3.5** (added to Kaggle Benchmarks on 2026-05-20). The 27 scenarios bundle 23 corridor/fee/policy probes with 4 composite vulnerability prompts (V2/V3/V4/V5) from the 2025-08 [OpenAI gpt-oss-20b red-teaming submission](https://www.kaggle.com/competitions/openai-gpt-oss-20b-red-teaming/writeups/llm-complicity-in-modern-slavery-from-native-blind) where gpt-oss-20b failed every required criterion — this benchmark asks whether the candidate model does any better. Hard-veto on `harm_enablement_check` and `no_operational_optimization`. The notebook pip-installs `duecare-llm-chat` from a pinned commit so the rubric is always in sync with the repo. See [`COVERAGE.md`](./kaggle/04-kaggle-community-benchmark/COVERAGE.md) for the row + dimension breakdown.
+- [`kaggle/04-kaggle-community-benchmark`](./kaggle/04-kaggle-community-benchmark/) defines DueCare rows as `kaggle_benchmarks` tasks so runs can use Kaggle's model proxy/quota and produce Community Benchmark artifacts. **v4 task** at [`kaggle.com/code/taylorsamarel/new-benchmark-task-0a35d`](https://www.kaggle.com/code/taylorsamarel/new-benchmark-task-0a35d): 27 composite scenarios Ã— DueCare's full 74-dimension universal rubric, one judge call per dimension (1,998 calls per model), evaluated against **Gemini 3.5** (added to Kaggle Benchmarks on 2026-05-20). The 27 scenarios bundle 23 corridor/fee/policy probes with 4 composite vulnerability prompts (V2/V3/V4/V5) from the 2025-08 [OpenAI gpt-oss-20b red-teaming submission](https://www.kaggle.com/competitions/openai-gpt-oss-20b-red-teaming/writeups/llm-complicity-in-modern-slavery-from-native-blind) where gpt-oss-20b failed every required criterion â€” this benchmark asks whether the candidate model does any better. Hard-veto on `harm_enablement_check` and `no_operational_optimization`. The notebook pip-installs `duecare-llm-chat` from a pinned commit so the rubric is always in sync with the repo. See [`COVERAGE.md`](./kaggle/04-kaggle-community-benchmark/COVERAGE.md) for the row + dimension breakdown.
 
 Neither optional benchmark is required for the primary recording path.
 
-Heuristic-only mode (no model attached) still serves `/start`, `/slides`, deterministic GREP / RAG / tools, and the cached worker-question slot — the model only matters for the live `/chat` endpoint and the optional Gemma edge pass on Bulk File Review.
+Heuristic-only mode (no model attached) still serves `/start`, `/slides`, deterministic GREP / RAG / tools, and the cached worker-question slot â€” the model only matters for the live `/chat` endpoint and the optional Gemma edge pass on Bulk File Review.
 
 **Verify locally (60 seconds):**
 
@@ -97,28 +96,28 @@ cd gemma4_comp
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e packages/duecare-llm-server
 python -c "from duecare.server import create_app; from duecare.server.state import ServerState; import tempfile, pathlib, uvicorn; tmp=tempfile.mkdtemp(); pathlib.Path(tmp,'out').mkdir(parents=True,exist_ok=True); s=ServerState(db_path=str(pathlib.Path(tmp)/'t.duckdb'),pipeline_output_dir=str(pathlib.Path(tmp)/'out')); uvicorn.run(create_app(s), host='127.0.0.1', port=8771)"
-# Open http://127.0.0.1:8771/start in a browser → click Project slides → 23-slide deck.
-# Open http://127.0.0.1:8771/slides/setup → Generate → Save for slides → the worker-question slide is now cached.
+# Open http://127.0.0.1:8771/start in a browser â†’ click Project slides â†’ 23-slide deck.
+# Open http://127.0.0.1:8771/slides/setup â†’ Generate â†’ Save for slides â†’ the worker-question slide is now cached.
 ```
 
 > ### Submitted to the Gemma 4 Good Hackathon (2026-05-18)
 >
-> **Active Kaggle path: 01 + 02 + A-00.** Judges land on
+> **Active Kaggle path: 01 + 02.** Judges land on
 > the exploration workbench, then proceed to the focused live
-> demo and the A-00 experiment console. The former video-pitch
-> and appendix notebooks are archived under `kaggle/_archive/notebooks`
+> demo. The former video-pitch, A-00 experiment console, and
+> appendix notebooks are archived under `kaggle/_archive/notebooks`
 > to keep the submission path testable.
 >
 > **Core (judges evaluate first, in this order):**
 >
-> 1. **DueCare App** — [`duecare-app`](https://www.kaggle.com/code/taylorsamarel/duecare-app) — the broad workbench. Chat, Harness Comparison, Bulk File Review, Knowledge Extraction, Search, Anonymization and Sharing, Sync, Status, UI Audit, live layer catalogs, global model selector, A/B comparison, retrieval trace, grading, local imports, and RAG graph views.
-> 2. **DueCare Live Demo** — [`duecare-live-demo`](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) — focused live product demo with real Gemma 4 inference, the recording-grade pitch deck at `/start` and `/slides`, and a curated safety-harness scenario.
+> 1. **DueCare App** â€” [`duecare-app`](https://www.kaggle.com/code/taylorsamarel/duecare-app) â€” the broad workbench. Chat, Harness Comparison, Bulk File Review, Knowledge Extraction, Search, Anonymization and Sharing, Sync, Status, UI Audit, live layer catalogs, global model selector, A/B comparison, retrieval trace, grading, local imports, and RAG graph views.
+> 2. **DueCare Live Demo** â€” [`duecare-live-demo`](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) â€” focused live product demo with real Gemma 4 inference, the recording-grade pitch deck at `/start` and `/slides`, and a curated safety-harness scenario.
 >
-> **Experiment command center:**
+> **Archived proof and optional benchmark surfaces:**
 >
-> - **DueCare Fine-tuning and Evaluation** — [`duecare-fine-tuning-and-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation) ([source](./kaggle/A-00-omni-experiment-workbench/)) is the technical proof surface: baseline vs harness vs fine-tuned vs fine-tuned-plus-harness exports, rule and LLM grading, synthetic SFT/DPO generation, tiny LoRA smoke bundles, local research graphs, and HTML/PDF reports.
-> - **DueCare Universal LLM Benchmark** — [`kaggle/03-universal-llm-benchmark`](./kaggle/03-universal-llm-benchmark/) is optional: it tests arbitrary API endpoints against DueCare prompt/rubric/evidence cues and can use Claude Opus as an external judge.
-> - **DueCare Kaggle Community Benchmark** — [`kaggle/04-kaggle-community-benchmark`](./kaggle/04-kaggle-community-benchmark/) is optional: it converts DueCare rows into `kaggle_benchmarks` tasks so Kaggle-hosted model quota and leaderboard artifacts can be used.
+> - **DueCare Fine-tuning and Evaluation** â€” [`duecare-fine-tuning-and-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation) ([archived source](./kaggle/_archive/notebooks/A-00-omni-experiment-workbench/)) is provenance for prior proof runs: baseline vs harness vs fine-tuned vs fine-tuned-plus-harness exports, rule and LLM grading, synthetic SFT/DPO generation, tiny LoRA smoke bundles, local research graphs, and HTML/PDF reports.
+> - **DueCare Universal LLM Benchmark** â€” [`kaggle/03-universal-llm-benchmark`](./kaggle/03-universal-llm-benchmark/) is optional: it tests arbitrary API endpoints against DueCare prompt/rubric/evidence cues and can use Claude Opus as an external judge.
+> - **DueCare Kaggle Community Benchmark** â€” [`kaggle/04-kaggle-community-benchmark`](./kaggle/04-kaggle-community-benchmark/) is optional: it converts DueCare rows into `kaggle_benchmarks` tasks so Kaggle-hosted model quota and leaderboard artifacts can be used.
 > - Archived A-01 through A-24 plus the former video-pitch kernel remain available as reference material, but they are not part of the active validation or recording path.
 >
 > **Judges start here:** [`docs/FOR_KAGGLE_JUDGES.md`](./docs/FOR_KAGGLE_JUDGES.md) (hackathon-specific quick path).
@@ -193,7 +192,7 @@ every Gemma-bearing handler emits one JSONL row per call to
 ## Why this exists
 
 Frontier LLMs fail predictably on **migrant-worker trafficking**
-scenarios — documented in the author's prior
+scenarios â€” documented in the author's prior
 [OpenAI gpt-oss-20b Red-Teaming Challenge writeup](https://www.kaggle.com/competitions/openai-gpt-oss-20b-red-teaming/writeups/llm-complicity-in-modern-slavery-from-native-blind).
 The people and institutions closest to the harm need practical tools:
 platforms need earlier moderation signals, frontline NGOs and regulators
@@ -227,7 +226,7 @@ public pip entry point for the workflow-oriented stack.
 | `duecare-llm-benchmark` | `smoke_25` + `score_row` + `aggregate` scoring helpers (zero deps) | Scoring + aggregation tests |
 | `duecare-llm-training` | Unsloth SFT + DPO scripts, GGUF export | Training-script smoke tests |
 | `duecare-llm-research-tools` | Playwright scrapers + document extractors for domain corpora | Scraper + extractor tests |
-| `duecare-llm-nl2sql` | NL → SQL translator for evidence DB queries | NL→SQL roundtrip tests |
+| `duecare-llm-nl2sql` | NL â†’ SQL translator for evidence DB queries | NLâ†’SQL roundtrip tests |
 | `duecare-llm-chat` | DueCare reviewer workbench: FastAPI app, shared chrome, static pages, harness contracts, and Gemma 4 runtime hooks | 18 test files: harness contract, route, workbench UI, JSON parser, anonymization, design-tooltip migration, model-output sanitizer, process bulk review, etc. |
 | `duecare-llm-cli` | The `duecare` command-line tool (tree, test, review, status, deps) | CLI command tests |
 | [`duecare-llm`](./docs/components/duecare_llm_meta.md) (meta) | Public pip entry point for the workflow stack and `duecare` CLI | Re-export + import tests |
@@ -301,41 +300,41 @@ After deploy: `make doctor` for a one-screen health report,
 Five runnable topology examples at [`examples/deployment/`](./examples/deployment/).
 Optional enterprise governance supplements (SLOs, runbook,
 compliance crosswalk, threat model, vendor questionnaire) at
-[`docs/considerations/`](./docs/considerations/) — read only if you need them.
+[`docs/considerations/`](./docs/considerations/) â€” read only if you need them.
 
 ### Just want to look at it?
 
-- 🌐 **[Browse the docs site](https://tayloramareltech.github.io/gemma4_comp/)**
-  — full searchable site, no install, persistent. Diagrams render
+- ðŸŒ **[Browse the docs site](https://tayloramareltech.github.io/gemma4_comp/)**
+  â€” full searchable site, no install, persistent. Diagrams render
   via Mermaid; nav by persona / topology / surface.
-- [**Try in 2 minutes**](./docs/try_in_2_minutes.md) — fastest path
+- [**Try in 2 minutes**](./docs/try_in_2_minutes.md) â€” fastest path
   per persona, no install required for most options
-- [**Harness ecosystem**](./docs/harness_ecosystem.md) — the current
+- [**Harness ecosystem**](./docs/harness_ecosystem.md) â€” the current
   inventory of content, privacy, search, graph, synthetic-data,
   fine-tuning, judging, and report harnesses
-- [**Ecosystem overview**](./docs/ecosystem_overview.md) — how the
+- [**Ecosystem overview**](./docs/ecosystem_overview.md) â€” how the
   3 outcomes and 5 setup lanes compose around the shared harness
   ecosystem, with Mermaid diagrams
 - [**Maria's case end-to-end**](./docs/marias_case_end_to_end.md)
-  — composite case traced through every layer of the ecosystem
+  â€” composite case traced through every layer of the ecosystem
   (writeup + video + pitch material)
 - [**Cross-NGO trends federation**](./docs/cross_ngo_trends_federation.md)
-  — privacy-preserving aggregation protocol for sharing patterns
+  â€” privacy-preserving aggregation protocol for sharing patterns
   across NGOs without sharing PII
 - [**Comparison vs alternatives**](./docs/comparison_to_alternatives.md)
-  — when DueCare fits vs when Hive / Sift / Azure / OpenAI / Llama
+  â€” when DueCare fits vs when Hive / Sift / Azure / OpenAI / Llama
   Guard fit better
-- [**Press kit**](./docs/press_kit.md) — one-pager + facts + quotes
+- [**Press kit**](./docs/press_kit.md) â€” one-pager + facts + quotes
   for journalists, NGO comms, academics
-- [**Educator resources**](./docs/educator_resources.md) — drop-in
+- [**Educator resources**](./docs/educator_resources.md) â€” drop-in
   lesson plans for AI-ethics / social-work / migration-studies courses
 - [**First-deployer feedback template**](./docs/first_deployer_feedback.md)
-  — if you tried it in your real environment, your input shapes v0.10
+  â€” if you tried it in your real environment, your input shapes v0.10
 
 ### Run on Kaggle (GPU)
 
 Open the notebook, set Accelerator to **GPU T4 x2**, and run:
-- [100 — Gemma Exploration](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-exploration) — real Gemma inference + scoring
+- [100 â€” Gemma Exploration](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-exploration) â€” real Gemma inference + scoring
 
 ### Run the validated local CLI bootstrap
 
@@ -389,9 +388,9 @@ uvicorn src.demo.app:app --port 8080
 # Open http://localhost:8080 for the HTML dashboard
 ```
 
-### Kaggle submission — judge reading order
+### Kaggle submission â€” judge reading order
 
-The active submission path is intentionally narrow: three Kaggle folders under
+The active submission path is intentionally narrow: two Kaggle folders under
 `kaggle/`. Each active kernel installs the DueCare packages from GitHub, writes
 outputs under `/kaggle/working`, launches a local server, and must print a
 public `https://*.trycloudflare.com` URL for browser access. The former video
@@ -404,49 +403,52 @@ pitch kernel and A-01 through A-24 appendix notebooks are archived under
 |---|---|---|
 | 01 | [`kaggle/01-duecare-exploration-workbench/`](./kaggle/01-duecare-exploration-workbench/) | Core omni workbench with model picker, layer toggles, traces, and A/B comparison |
 | 02 | [`kaggle/02-live-demo/`](./kaggle/02-live-demo/) | Focused screen-recording surface and public-hub demo |
-| A-00 | [`kaggle/A-00-omni-experiment-workbench/`](./kaggle/A-00-omni-experiment-workbench/) | Two-path experiment console: preconfigured harness/training/evaluation pipeline or custom runs |
 
 See [`kaggle/_INDEX.md`](./kaggle/_INDEX.md) for the active folder list and
 archive note.
 
+Root `kaggle/` intentionally has no `A-*` folders, and the only root `04-*`
+folder should be `04-kaggle-community-benchmark`; appendix and task-notebook
+snapshots belong under `kaggle/_archive/notebooks/`.
+
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         DueCare Pipeline                        │
-│                                                                 │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐       │
-│  │ Acquire  │→ │ Classify │→ │ Extract  │→ │ Build KB │       │
-│  │ (Stage 1)│  │ (Stage 2)│  │ (Stage 3)│  │ (Stage 4)│       │
-│  │ ILO,POEA │  │ Gemma 4  │  │ Gemma 4  │  │ 111 facts│       │
-│  └──────────┘  └──────────┘  └──────────┘  └────┬─────┘       │
-│                                                  │              │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌────▼─────┐       │
-│  │ Baseline │← │ Remix    │← │ Rate     │← │ Generate │       │
-│  │ (Stage 8)│  │ (Stage 7)│  │ (Stage 6)│  │ (Stage 5)│       │
-│  │ 3 modes  │  │ 15 gens  │  │ rank     │  │ from KB  │       │
-│  └────┬─────┘  └──────────┘  └──────────┘  └──────────┘       │
-│       │                                                         │
-│  ┌────▼─────────────────────────────────────────────┐          │
-│  │              EVALUATION LAYER                     │          │
-│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌────────┐ │          │
-│  │  │Weighted │ │Multi-   │ │LLM-as-  │ │FATF /  │ │          │
-│  │  │Rubric   │ │Layer    │ │Judge    │ │TIPS    │ │          │
-│  │  │(54 crit)│ │(6 stage)│ │(0-100)  │ │Ratings │ │          │
-│  │  └─────────┘ └─────────┘ └─────────┘ └────────┘ │          │
-│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐            │          │
-│  │  │Failure  │ │Citation │ │Comparatv│            │          │
-│  │  │Analyzer │ │Verifier │ │Grading  │            │          │
-│  │  │(6 modes)│ │(31 laws)│ │(anchor) │            │          │
-│  │  └─────────┘ └─────────┘ └─────────┘            │          │
-│  └──────────────────────────────────────────────────┘          │
-│                         │                                       │
-│                    ┌────▼─────┐                                │
-│                    │ Phase 3  │                                │
-│                    │ Fine-tune│                                │
-│                    │ (Unsloth)│                                │
-│                    └──────────┘                                │
-└─────────────────────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                         DueCare Pipeline                        â”‚
+â”‚                                                                 â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”       â”‚
+â”‚  â”‚ Acquire  â”‚â†’ â”‚ Classify â”‚â†’ â”‚ Extract  â”‚â†’ â”‚ Build KB â”‚       â”‚
+â”‚  â”‚ (Stage 1)â”‚  â”‚ (Stage 2)â”‚  â”‚ (Stage 3)â”‚  â”‚ (Stage 4)â”‚       â”‚
+â”‚  â”‚ ILO,POEA â”‚  â”‚ Gemma 4  â”‚  â”‚ Gemma 4  â”‚  â”‚ 111 factsâ”‚       â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”˜       â”‚
+â”‚                                                  â”‚              â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â–¼â”€â”€â”€â”€â”€â”       â”‚
+â”‚  â”‚ Baseline â”‚â† â”‚ Remix    â”‚â† â”‚ Rate     â”‚â† â”‚ Generate â”‚       â”‚
+â”‚  â”‚ (Stage 8)â”‚  â”‚ (Stage 7)â”‚  â”‚ (Stage 6)â”‚  â”‚ (Stage 5)â”‚       â”‚
+â”‚  â”‚ 3 modes  â”‚  â”‚ 15 gens  â”‚  â”‚ rank     â”‚  â”‚ from KB  â”‚       â”‚
+â”‚  â””â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜       â”‚
+â”‚       â”‚                                                         â”‚
+â”‚  â”Œâ”€â”€â”€â”€â–¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”          â”‚
+â”‚  â”‚              EVALUATION LAYER                     â”‚          â”‚
+â”‚  â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â” â”‚          â”‚
+â”‚  â”‚  â”‚Weighted â”‚ â”‚Multi-   â”‚ â”‚LLM-as-  â”‚ â”‚FATF /  â”‚ â”‚          â”‚
+â”‚  â”‚  â”‚Rubric   â”‚ â”‚Layer    â”‚ â”‚Judge    â”‚ â”‚TIPS    â”‚ â”‚          â”‚
+â”‚  â”‚  â”‚(54 crit)â”‚ â”‚(6 stage)â”‚ â”‚(0-100)  â”‚ â”‚Ratings â”‚ â”‚          â”‚
+â”‚  â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â””â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚          â”‚
+â”‚  â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”            â”‚          â”‚
+â”‚  â”‚  â”‚Failure  â”‚ â”‚Citation â”‚ â”‚Comparatvâ”‚            â”‚          â”‚
+â”‚  â”‚  â”‚Analyzer â”‚ â”‚Verifier â”‚ â”‚Grading  â”‚            â”‚          â”‚
+â”‚  â”‚  â”‚(6 modes)â”‚ â”‚(31 laws)â”‚ â”‚(anchor) â”‚            â”‚          â”‚
+â”‚  â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜            â”‚          â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜          â”‚
+â”‚                         â”‚                                       â”‚
+â”‚                    â”Œâ”€â”€â”€â”€â–¼â”€â”€â”€â”€â”€â”                                â”‚
+â”‚                    â”‚ Phase 3  â”‚                                â”‚
+â”‚                    â”‚ Fine-tuneâ”‚                                â”‚
+â”‚                    â”‚ (Unsloth)â”‚                                â”‚
+â”‚                    â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜                                â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ### Key results (real Kaggle GPU runs)
@@ -528,45 +530,45 @@ When Gemma 5 ships, that's the entire integration cost: one YAML row.
 ## Architecture
 
 ```
-                    ┌───────────────────────────────────┐
-                    │  LAYER 6: PUBLICATION             │
-                    │  HF Hub, Kaggle, reports, cards   │
-                    └──────────────┬────────────────────┘
-                                   │
-                    ┌──────────────┴────────────────────┐
-                    │  LAYER 5: ORCHESTRATION           │
-                    │  WorkflowRunner, DAG, AgentSupervisor │
-                    └──────────────┬────────────────────┘
-                                   │
-                    ┌──────────────┴────────────────────┐
-                    │  LAYER 4: AGENT SWARM             │
-                    │  12 autonomous agents             │
-                    │  ┌──────┐┌──────┐┌──────┐        │
-                    │  │Scout ││Judge ││Curator│ ...   │
-                    │  └──────┘└──────┘└──────┘        │
-                    └──────────────┬────────────────────┘
-                                   │
-                    ┌──────────────┴────────────────────┐
-                    │  LAYER 3: TASKS                   │
-                    │  9 capability tests per (model,   │
-                    │  domain) pair                     │
-                    └──────────────┬────────────────────┘
-                                   │
-                ┌──────────────────┴──────────────────┐
-                │                                     │
-   ┌────────────┴───────────┐           ┌────────────┴───────────┐
-   │ LAYER 2a: MODELS       │           │ LAYER 2b: DOMAINS      │
-   │ 8 pluggable adapters   │           │ 3 shipped packs + any  │
-   │                        │           │ custom pack            │
-   └────────────┬───────────┘           └────────────┬───────────┘
-                │                                     │
-                └──────────────┬──────────────────────┘
-                               │
-                ┌──────────────┴───────────────────────┐
-                │  LAYER 1: CORE / CONTRACTS           │
-                │  Protocols, schemas, Registry,       │
-                │  provenance, observability           │
-                └──────────────────────────────────────┘
+                    â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+                    â”‚  LAYER 6: PUBLICATION             â”‚
+                    â”‚  HF Hub, Kaggle, reports, cards   â”‚
+                    â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                                   â”‚
+                    â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+                    â”‚  LAYER 5: ORCHESTRATION           â”‚
+                    â”‚  WorkflowRunner, DAG, AgentSupervisor â”‚
+                    â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                                   â”‚
+                    â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+                    â”‚  LAYER 4: AGENT SWARM             â”‚
+                    â”‚  12 autonomous agents             â”‚
+                    â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”â”Œâ”€â”€â”€â”€â”€â”€â”â”Œâ”€â”€â”€â”€â”€â”€â”        â”‚
+                    â”‚  â”‚Scout â”‚â”‚Judge â”‚â”‚Curatorâ”‚ ...   â”‚
+                    â”‚  â””â”€â”€â”€â”€â”€â”€â”˜â””â”€â”€â”€â”€â”€â”€â”˜â””â”€â”€â”€â”€â”€â”€â”˜        â”‚
+                    â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                                   â”‚
+                    â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+                    â”‚  LAYER 3: TASKS                   â”‚
+                    â”‚  9 capability tests per (model,   â”‚
+                    â”‚  domain) pair                     â”‚
+                    â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                                   â”‚
+                â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+                â”‚                                     â”‚
+   â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”           â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+   â”‚ LAYER 2a: MODELS       â”‚           â”‚ LAYER 2b: DOMAINS      â”‚
+   â”‚ 8 pluggable adapters   â”‚           â”‚ 3 shipped packs + any  â”‚
+   â”‚                        â”‚           â”‚ custom pack            â”‚
+   â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜           â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                â”‚                                     â”‚
+                â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                               â”‚
+                â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+                â”‚  LAYER 1: CORE / CONTRACTS           â”‚
+                â”‚  Protocols, schemas, Registry,       â”‚
+                â”‚  provenance, observability           â”‚
+                â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ### Key design decisions
@@ -580,15 +582,15 @@ When Gemma 5 ships, that's the entire integration cost: one YAML row.
 4. **AgentSupervisor meta-agent** enforces retry, budget, and
    abort-on-harm policies across every agent call. Validator can
    signal `harm_detected=True` to abort a release workflow immediately.
-5. **Folder-per-module** — every module is its own folder with 7 meta
+5. **Folder-per-module** â€” every module is its own folder with 7 meta
    files (PURPOSE, AGENTS, INPUTS_OUTPUTS, HIERARCHY, DIAGRAM, TESTS,
    STATUS) auto-generated from a descriptor list. Changing a module's
    dependencies regenerates cross-references across the whole tree in
    one script run.
-6. **Provenance on every record** — `(run_id, git_sha, config_hash,
+6. **Provenance on every record** â€” `(run_id, git_sha, config_hash,
    dataset_version)` stamped on every artifact so runs are reproducible
    to the byte.
-7. **AGENTS.md standard** — the 58 per-module `AGENTS.md` files are
+7. **AGENTS.md standard** â€” the 58 per-module `AGENTS.md` files are
    compliant with the Linux Foundation's
    [AGENTS.md standard](https://agents.md/), which is read natively by
    Claude Code, Cursor, GitHub Copilot, Gemini CLI, Windsurf, Aider,
@@ -627,11 +629,11 @@ the money. Recruitment-fee debt bondage, salary deduction schemes,
 cross-border loan novation, and side-letter contract substitution all
 have direct analogues in the FATF money-laundering typology:
 
-- **Predatory recruitment loans at 18%–68% APR** are textbook
+- **Predatory recruitment loans at 18%â€“68% APR** are textbook
   forced-labour indicators under ILO C029 AND can be predicate
   offences for AML under 18 USC 1956 / FATF Recommendation 3.
 - **Cross-jurisdictional fee rerouting** through affiliate companies
-  (Philippines training center → Hong Kong collection company) is
+  (Philippines training center â†’ Hong Kong collection company) is
   both a POEA MC 14-2017 violation AND a structuring / TBML
   pattern under FATF Recommendation 20.
 - **Wage deductions for "training" fees** post-arrival are ILO C181
@@ -649,11 +651,11 @@ when a partner needs them. They are NOT the product narrative.
 
 Ten registered models in `configs/duecare/models.yaml`:
 
-- **Gemma 4** (primary subject): E2B, E4B — local via Transformers
-- **Open competition**: GPT-OSS 20B, Qwen 2.5 7B, Llama 3.1 8B — local
-- **API**: Mistral Small, DeepSeek V3 — via OpenAI-compatible adapter
+- **Gemma 4** (primary subject): E2B, E4B â€” local via Transformers
+- **Open competition**: GPT-OSS 20B, Qwen 2.5 7B, Llama 3.1 8B â€” local
+- **API**: Mistral Small, DeepSeek V3 â€” via OpenAI-compatible adapter
 - **Reference (closed)**: GPT-4o mini, Claude Haiku 4.5, Gemini 2.0
-  Flash — via their native adapters
+  Flash â€” via their native adapters
 
 Eight model adapters in total. New providers = new adapter file + new
 YAML row; no changes to any downstream layer.
@@ -661,11 +663,11 @@ YAML row; no changes to any downstream layer.
 ## The 12-agent swarm
 
 ```
-Scout → DataGenerator → Adversary → Anonymizer → Curator → Judge →
-CurriculumDesigner → Trainer → Validator → Exporter → Historian
+Scout â†’ DataGenerator â†’ Adversary â†’ Anonymizer â†’ Curator â†’ Judge â†’
+CurriculumDesigner â†’ Trainer â†’ Validator â†’ Exporter â†’ Historian
 
-                              ▲
-                              │
+                              â–²
+                              â”‚
                         Coordinator
                   (Gemma 4 E4B + function calling)
 ```
@@ -674,7 +676,7 @@ Every agent is in its own folder with real code, real tests, and a
 stable contract. The Coordinator wraps the others in an
 `AgentSupervisor` that enforces retries, hard budget caps, and
 abort-on-harm. The Validator can set `harm_detected=True` on the
-shared blackboard — the Supervisor raises `HarmDetected` and aborts
+shared blackboard â€” the Supervisor raises `HarmDetected` and aborts
 the workflow before anything gets published.
 
 See [`docs/components/duecare_llm_agents.md`](./docs/components/duecare_llm_agents.md)
@@ -705,9 +707,9 @@ Latest local collection:
 ## Demo notebooks
 
 The active notebook sources live under `kaggle/`. For the final hackathon
-submission path, use `01-duecare-exploration-workbench`, `02-live-demo`, and
-`A-00-omni-experiment-workbench`. The former video-pitch notebook and A-01
-through A-24 appendix notebooks are archived under `kaggle/_archive/notebooks/`.
+submission path, use `01-duecare-exploration-workbench` and `02-live-demo`.
+The former video-pitch notebook, A-00 experiment console, and A-01 through
+A-24 appendix notebooks are archived under `kaggle/_archive/notebooks/`.
 
 The old `legacy_notebooks/` and `skunkworks/` root folders have been
 archived under `_archive/legacy-research-2026-05-09/` and are not part
@@ -719,25 +721,25 @@ All configuration lives in `configs/duecare/` as YAML:
 
 ```
 configs/duecare/
-├── models.yaml                   # model registry
-├── workflows/
-│   ├── rapid_probe.yaml          # 15-min smoke test
-│   ├── evaluate_only.yaml        # 2-hour eval
-│   ├── evaluate_and_finetune.yaml  # 12-hour full cycle
-│   └── evaluate_only_comparison.yaml
-└── domains/
-    ├── trafficking/
-    ├── tax_evasion/
-    └── financial_crime/
+â”œâ”€â”€ models.yaml                   # model registry
+â”œâ”€â”€ workflows/
+â”‚   â”œâ”€â”€ rapid_probe.yaml          # 15-min smoke test
+â”‚   â”œâ”€â”€ evaluate_only.yaml        # 2-hour eval
+â”‚   â”œâ”€â”€ evaluate_and_finetune.yaml  # 12-hour full cycle
+â”‚   â””â”€â”€ evaluate_only_comparison.yaml
+â””â”€â”€ domains/
+    â”œâ”€â”€ trafficking/
+    â”œâ”€â”€ tax_evasion/
+    â””â”€â”€ financial_crime/
 ```
 
-Secrets (API keys) come from environment variables only — see
+Secrets (API keys) come from environment variables only â€” see
 [`.env.example`](./.env.example).
 
 ## Repository layout
 
 > See [`docs/REPO_LAYOUT.md`](./docs/REPO_LAYOUT.md) for a one-screen
-> map of every top-level directory — including supporting
+> map of every top-level directory â€” including supporting
 > infrastructure (`infra/`, `deployment/`, `configs/`), data folders,
 > archived snapshots, and hidden dev-only paths. The sketch below
 > highlights the most important entries. See [`ROOT_FILES.md`](./ROOT_FILES.md)
@@ -745,47 +747,48 @@ Secrets (API keys) come from environment variables only — see
 
 ```
 gemma4_comp/
-├── packages/                     # 17 package surfaces (workspace members)
-│   ├── duecare-llm-core/         # contracts, schemas, observability
-│   ├── duecare-llm-models/       # 8 model adapters
-│   ├── duecare-llm-domains/      # pluggable domain packs
-│   ├── duecare-llm-tasks/        # 9 capability tests
-│   ├── duecare-llm-agents/       # 12-agent swarm
-│   ├── duecare-llm-workflows/    # YAML DAG runner
-│   ├── duecare-llm-publishing/   # HF Hub + Kaggle uploaders
-│   ├── duecare-llm-engine/       # heuristic + GREP + RAG + tools pipeline
-│   ├── duecare-llm-server/       # FastAPI app for the live demo
-│   ├── duecare-llm-evidence-db/  # redacted evidence + audit trail
-│   ├── duecare-llm-benchmark/    # smoke_25 + score_row + aggregate
-│   ├── duecare-llm-training/     # Unsloth SFT + DPO scripts
-│   ├── duecare-llm-research-tools/ # Playwright scrapers + extractors
-│   ├── duecare-llm-nl2sql/       # NL → SQL for evidence DB
-│   ├── duecare-llm-chat/         # DueCare workbench app and Gemma 4 harnesses
-│   ├── duecare-llm-cli/          # the `duecare` CLI
-│   └── duecare-llm/              # meta package and workflow CLI entry point
-├── kaggle/                       # Kaggle deliverables (per-notebook bundles)
-│   ├── 01-duecare-exploration-workbench/  # CORE #01: omni playground (script kernel)
-│   ├── 02-live-demo/             # CORE #02: focused live URL
-│   ├── A-00-omni-experiment-workbench/  # ACTIVE: harness/training/evaluation console
-│   ├── _archive/notebooks/        # archived video pitch and A-01 through A-24
-│   ├── shared-datasets/          # cross-notebook: trafficking-prompts, eval-results
-│   ├── kernels/                  # 9 generated/research kernels (separate from submission folders)
-│   └── models/                   # Kaggle Models artifacts
-├── configs/duecare/              # YAML configuration (models, workflows, domains)
-├── docs/                         # architecture, component docs, writeup, video script
-│   └── components/               # per-package component docs
-├── _archive/                     # archived legacy notebooks/skunkworks + superseded snapshots
-├── scripts/                      # implementation + maintenance scripts
-├── tests/                        # integration tests
-├── pyproject.toml                # uv workspace root
-├── .mcp.json                     # Claude Code MCP servers (empty by default)
-├── .mcp.json.example             # example MCP config (GitHub / Claude Context / Repomix)
-├── .github/workflows/            # CI (@claude PR review + pytest)
-├── .claude/
-│   ├── rules/                    # auto-loaded Claude Code rules
-│   └── commands/                 # project slash commands
-├── ROOT_FILES.md                 # root-file manifest and cleanup policy
-└── CLAUDE.md                     # AI-assistant context
+â”œâ”€â”€ packages/                     # 17 package surfaces (workspace members)
+â”‚   â”œâ”€â”€ duecare-llm-core/         # contracts, schemas, observability
+â”‚   â”œâ”€â”€ duecare-llm-models/       # 8 model adapters
+â”‚   â”œâ”€â”€ duecare-llm-domains/      # pluggable domain packs
+â”‚   â”œâ”€â”€ duecare-llm-tasks/        # 9 capability tests
+â”‚   â”œâ”€â”€ duecare-llm-agents/       # 12-agent swarm
+â”‚   â”œâ”€â”€ duecare-llm-workflows/    # YAML DAG runner
+â”‚   â”œâ”€â”€ duecare-llm-publishing/   # HF Hub + Kaggle uploaders
+â”‚   â”œâ”€â”€ duecare-llm-engine/       # heuristic + GREP + RAG + tools pipeline
+â”‚   â”œâ”€â”€ duecare-llm-server/       # FastAPI app for the live demo
+â”‚   â”œâ”€â”€ duecare-llm-evidence-db/  # redacted evidence + audit trail
+â”‚   â”œâ”€â”€ duecare-llm-benchmark/    # smoke_25 + score_row + aggregate
+â”‚   â”œâ”€â”€ duecare-llm-training/     # Unsloth SFT + DPO scripts
+â”‚   â”œâ”€â”€ duecare-llm-research-tools/ # Playwright scrapers + extractors
+â”‚   â”œâ”€â”€ duecare-llm-nl2sql/       # NL â†’ SQL for evidence DB
+â”‚   â”œâ”€â”€ duecare-llm-chat/         # DueCare workbench app and Gemma 4 harnesses
+â”‚   â”œâ”€â”€ duecare-llm-cli/          # the `duecare` CLI
+â”‚   â””â”€â”€ duecare-llm/              # meta package and workflow CLI entry point
+â”œâ”€â”€ kaggle/                       # Kaggle deliverables (per-notebook bundles)
+â”‚   â”œâ”€â”€ 01-duecare-exploration-workbench/  # CORE #01: omni playground (script kernel)
+â”‚   â”œâ”€â”€ 02-live-demo/             # CORE #02: focused live URL
+â”‚   â”œâ”€â”€ 03-universal-llm-benchmark/ # optional external endpoint benchmark
+â”‚   â”œâ”€â”€ 04-kaggle-community-benchmark/ # optional Kaggle benchmark surface
+â”‚   â”œâ”€â”€ _archive/notebooks/        # archived video pitch, A-00, and A-01 through A-24
+â”‚   â”œâ”€â”€ shared-datasets/          # cross-notebook: trafficking-prompts, eval-results
+â”‚   â”œâ”€â”€ kernels/                  # 9 generated/research kernels (separate from submission folders)
+â”‚   â””â”€â”€ models/                   # Kaggle Models artifacts
+â”œâ”€â”€ configs/duecare/              # YAML configuration (models, workflows, domains)
+â”œâ”€â”€ docs/                         # architecture, component docs, writeup, video script
+â”‚   â””â”€â”€ components/               # per-package component docs
+â”œâ”€â”€ _archive/                     # archived legacy notebooks/skunkworks + superseded snapshots
+â”œâ”€â”€ scripts/                      # implementation + maintenance scripts
+â”œâ”€â”€ tests/                        # integration tests
+â”œâ”€â”€ pyproject.toml                # uv workspace root
+â”œâ”€â”€ .mcp.json                     # Claude Code MCP servers (empty by default)
+â”œâ”€â”€ .mcp.json.example             # example MCP config (GitHub / Claude Context / Repomix)
+â”œâ”€â”€ .github/workflows/            # CI (@claude PR review + pytest)
+â”œâ”€â”€ .claude/
+â”‚   â”œâ”€â”€ rules/                    # auto-loaded Claude Code rules
+â”‚   â””â”€â”€ commands/                 # project slash commands
+â”œâ”€â”€ ROOT_FILES.md                 # root-file manifest and cleanup policy
+â””â”€â”€ CLAUDE.md                     # AI-assistant context
 ```
 
 ## License
@@ -824,15 +827,15 @@ For complete licensing information, see [`THIRD_PARTY_LICENSES.md`](./THIRD_PART
 
 DueCare is the harness layer on top of a substantial existing body of
 migrant-worker safety research. The author's *LLM Safety Testing
-Ecosystem* — built over four years in Hong Kong investigating
-trafficking and related money laundering across Asia — contributes:
+Ecosystem* â€” built over four years in Hong Kong investigating
+trafficking and related money laundering across Asia â€” contributes:
 
 - A **21,000-test benchmark suite** (`trafficking-llm-benchmark`)
   covering recruitment, debt, document control, wage withholding,
   passport retention, contract substitution, and victim-side
   intake patterns
-- **26 migration corridors** from PH↔HK and ID↔HK to NP→Gulf, BD→MY,
-  VN→TW, MX→US H-2A, and ET→SA, each with corridor-specific statute
+- **26 migration corridors** from PHâ†”HK and IDâ†”HK to NPâ†’Gulf, BDâ†’MY,
+  VNâ†’TW, MXâ†’US H-2A, and ETâ†’SA, each with corridor-specific statute
   knowledge
 - **174 scraper seed modules** for ILO databases, court records
   (PACER / AustLII / BAILII), FATF / FATCA publications, NGO case
@@ -847,14 +850,14 @@ The harness is grounded in:
 
 - **ILO Conventions**: C029 (Forced Labour), C095 (Protection of
   Wages), C097 (Migration for Employment), C181 (Private Employment
-  Agencies — the workhorse "no fees from workers" rule), C189
+  Agencies â€” the workhorse "no fees from workers" rule), C189
   (Domestic Workers), C188 (Work in Fishing), P029 (2014 Forced
   Labour Protocol)
 - **UN Palermo Protocol** (Protocol to Prevent, Suppress and Punish
   Trafficking in Persons, 2000) for the canonical trafficking
   definition and State Party obligations
 - **U.S. TVPRA** (Trafficking Victims Protection Reauthorization
-  Act) — 22 U.S.C. 7102 forced-labour definition + 20 CFR 655.135(j)
+  Act) â€” 22 U.S.C. 7102 forced-labour definition + 20 CFR 655.135(j)
   H-2A prohibited-fee rule
 - **18 years of POEA / DMW enforcement data** (Philippines), the
   largest single-country corpus of recruitment-agency licensing

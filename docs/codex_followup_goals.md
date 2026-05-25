@@ -380,7 +380,7 @@ TestPolishEndpointFallback:
 1. Pick a goal that matches what's painful right now.
 2. Paste the "Copy-paste prompt" block into your Codex session.
 3. Codex reads the named files first, makes the change, and runs the suggested verification command.
-4. Run `python scripts/validate_main_kaggle_kernels.py` before committing so the three active Kaggle kernels and two optional benchmark kernels keep parsing and keep their Kaggle boot tokens.
+4. Run `python scripts/validate_main_kaggle_kernels.py` before committing so the Kaggle root layout, two active Kaggle kernels, and two optional benchmark kernels keep parsing and keep their Kaggle boot tokens.
 5. Review the resulting diff before merging.
 6. If you want to know the rationale (the "Why this matters" section), paste that too — it gives Codex context for judgment calls.
 

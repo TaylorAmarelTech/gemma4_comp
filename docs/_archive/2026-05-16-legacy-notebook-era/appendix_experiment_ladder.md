@@ -1,9 +1,9 @@
-# Canonical appendix experiment ladder (locked 2026-05-11)
+﻿# Canonical appendix experiment ladder (locked 2026-05-11)
 
 > **Source-of-truth for the 24 appendix kernels.** Per Taylor's
 > 2026-05-11 directive, the appendices form a reproducible
 > end-to-end model-improvement pipeline rather than a loose
-> collection of playgrounds. **Do not regress this structure** —
+> collection of playgrounds. **Do not regress this structure** â€”
 > any future relabeling, reordering, or slot-merge must come from
 > Taylor in writing.
 >
@@ -11,7 +11,7 @@
 > defines the cross-kernel JSON/JSONL/ZIP handoff format that A-03 and
 > A-08 consume from A-01/A-02/A-06/A-07.
 
-## Hard rules — every appendix kernel
+## Hard rules â€” every appendix kernel
 
 These are non-negotiable. Validate every new or edited appendix
 kernel against this list before committing.
@@ -20,7 +20,7 @@ kernel against this list before committing.
    Two-tier: GitHub Release wheels first, then
    `git+https://...@<sha>#subdirectory=packages/<pkg>` as fallback.
    Canonical reference implementation:
-   `kaggle/A-08-research-graphs/kernel.py` →
+   `kaggle/_archive/notebooks/A-08-research-graphs/kernel.py` â†’
    `install_duecare_from_github()`. Pin commit SHA (immutable),
    never use moving refs like `main` / `master` / `HEAD`.
 2. **One model loaded per kernel run.** Cross-kernel handoff happens
@@ -51,62 +51,62 @@ kernel against this list before committing.
 ## The 23 appendix slots (canonical order)
 
 ```
-A-01 Stock baseline runner       — model picker, library prompts,
+A-01 Stock baseline runner       â€” model picker, library prompts,
                                     harness OFF, emit bundle
-A-02 Harnessed runner            — same model + library prompts,
+A-02 Harnessed runner            â€” same model + library prompts,
                                     harness ON (persona+GREP+RAG+tools),
                                     emit bundle with harness_trace
-A-03 Upload + compare            — accept A-01 + A-02 bundles, run
+A-03 Upload + compare            â€” accept A-01 + A-02 bundles, run
                                     new harness evaluator + legacy
                                     evaluator, render lift visuals,
                                     emit comparison report
-A-04 Synthetic data generator    — Gemma 4 + harness produces
+A-04 Synthetic data generator    â€” Gemma 4 + harness produces
                                     SafetyJudge + PrivacyRedactor
                                     training material
                                     (worst/bad/neutral/good/best ladders)
-A-05 Fine-tune trainer           — Unsloth LoRA on A-04 JSONL,
+A-05 Fine-tune trainer           â€” Unsloth LoRA on A-04 JSONL,
                                     push adapter to HF Hub
-A-06 New-model baseline runner   — A-01 logic, but loads the LoRA
+A-06 New-model baseline runner   â€” A-01 logic, but loads the LoRA
                                     adapter from A-05
-A-07 New-model harnessed runner  — A-02 logic, but loads the LoRA
+A-07 New-model harnessed runner  â€” A-02 logic, but loads the LoRA
                                     adapter from A-05
-A-08 New-model comparison        — A-03 logic, but compares A-06 + A-07
+A-08 New-model comparison        â€” A-03 logic, but compares A-06 + A-07
                                     bundles (or stock-vs-finetuned)
-A-09 Abliterated test generator  — abliterated/cracked Gemma → develop
+A-09 Abliterated test generator  â€” abliterated/cracked Gemma â†’ develop
                                     legacy adversarial tests with
                                     WORST/BAD/NEUTRAL/GOOD/BEST examples
-A-10 PII synthetic data generator — composite intake + gold redaction
+A-10 PII synthetic data generator â€” composite intake + gold redaction
                                      plans for PrivacyRedactor adapter
-A-11 PII fine-tune + evaluation  — train + benchmark PrivacyRedactor LoRA
+A-11 PII fine-tune + evaluation  â€” train + benchmark PrivacyRedactor LoRA
                                     behind deterministic PII gates
 ```
 
 ## Build status (live as of 2026-05-11; update on each commit)
 
-- A-01 batch baseline runner — committed `13a4240`
-- A-02 batch harnessed runner — committed `f4b21c0`
-- A-03 upload + compare — committed `b8b7d99`
+- A-01 batch baseline runner â€” committed `13a4240`
+- A-02 batch harnessed runner â€” committed `f4b21c0`
+- A-03 upload + compare â€” committed `b8b7d99`
   (lives in `kaggle/A-03-content-classification-playground/`;
   folder rename pending separate cleanup pass)
-- A-04 synthetic data generator — committed `26aaa24`
+- A-04 synthetic data generator â€” committed `26aaa24`
   (lives in `kaggle/A-06-prompt-generation/`; folder rename pending)
-- A-05 fine-tune trainer — committed `ec49ca9`
+- A-05 fine-tune trainer â€” committed `ec49ca9`
   (lives in `kaggle/A-07-bench-and-tune/`; folder rename pending)
-- A-06 new-model baseline runner — committed `20db869`
+- A-06 new-model baseline runner â€” committed `20db869`
   (lives in `kaggle/A-04-content-knowledge-builder-playground/`)
-- A-07 new-model harnessed runner — committed `7c371ad`
+- A-07 new-model harnessed runner â€” committed `7c371ad`
   (lives in `kaggle/A-05-gemma-content-classification-evaluation/`)
-- A-08 new-model comparison — committed (this batch)
+- A-08 new-model comparison â€” committed (this batch)
   (lives in `kaggle/A-11-grading-evaluation/`)
-- A-09 abliterated test generator — committed `7197600` (rename) +
+- A-09 abliterated test generator â€” committed `7197600` (rename) +
   `cd864a8` (batch ladder generator). Activate the
   WORST/BAD/NEUTRAL/GOOD/BEST 5-frame ladder mode by setting
   `DUECARE_LADDER_MODE=1`. Lives in
   `kaggle/A-10-chat-playground-jailbroken-models/`.
-- A-10 PII synth data generator — committed `dc6a93a`. Lives in
+- A-10 PII synth data generator â€” committed `dc6a93a`. Lives in
   `kaggle/A-09-chat-playground-with-agentic-research/`.
   Template-based; 100% synthetic PII; CPU-only.
-- A-11 PII fine-tune + evaluation — committed in this batch. Lives
+- A-11 PII fine-tune + evaluation â€” committed in this batch. Lives
   in NEW folder `kaggle/A-12-pii-fine-tune-eval/` (no legacy slot
   available; folder created per Taylor's "if we need more notebooks
   we can create more appendix" directive).
@@ -137,13 +137,13 @@ advertises and what the appendix kernels demonstrate. Two more
 
 Per `.claude/rules/00_overarching_goals.md`:
 
-- **Impact & Vision (40 pts)** — covered by A-04 / A-05 (the model
+- **Impact & Vision (40 pts)** â€” covered by A-04 / A-05 (the model
   improvement story), A-12 (multimodal worker-side angle), A-13
   (on-device worker reach), A-15 (NGO operational impact), A-18
   (the video that shows all of this).
-- **Video Pitch (30 pts)** — A-24 demo replay is the load-bearing
+- **Video Pitch (30 pts)** â€” A-24 demo replay is the load-bearing
   kernel. Setup + slides modes are the next-priority upgrade.
-- **Technical Depth (30 pts)** — A-09 abliterated test ladders,
+- **Technical Depth (30 pts)** â€” A-09 abliterated test ladders,
   A-12 multimodal vision, A-13 GGUF + LiteRT export are the
   rubric-required Gemma 4 unique-features anchors.
 
@@ -165,22 +165,22 @@ naming. Until `git mv` rename pass, the mapping is:
 | A-08 | (pending) target: `kaggle/A-11-grading-evaluation/` |
 | A-09 | (pending) target: `kaggle/A-10-chat-playground-jailbroken-models/` |
 | A-10 | (pending) target: `kaggle/A-09-chat-playground-with-agentic-research/` |
-| A-11 | (pending) — new folder required (no remaining legacy slot) |
+| A-11 | (pending) â€” new folder required (no remaining legacy slot) |
 
 ## Folder rename policy
 
 When physically moving a slot (e.g. current
-`kaggle/A-06-prompt-generation/` →
+`kaggle/A-06-prompt-generation/` â†’
 `kaggle/A-04-synthetic-data-generator/`): **adjust, don't delete**.
 Use `git mv` so history is preserved. The old folder path may stay
-empty until the next folder rebuild — do not `rm -rf` historical
+empty until the next folder rebuild â€” do not `rm -rf` historical
 kernel folders without Taylor's explicit approval.
 
 ## Cross-kernel artifact handoff
 
 A-03 and A-08 consume bundles from A-01/A-02/A-06/A-07 via the v1.0
 schema. Reviewers and demo viewers should never see "live link to
-A-01 output" — only `Add Data → A-01 bundle dataset` followed by an
+A-01 output" â€” only `Add Data â†’ A-01 bundle dataset` followed by an
 upload UI inside A-03/A-08. See
 [`appendix_artifact_schema.md`](appendix_artifact_schema.md) for the
 full contract.
@@ -188,7 +188,7 @@ full contract.
 ## Reference implementations to study before edits
 
 - **Install pattern (GitHub-only):**
-  `kaggle/A-08-research-graphs/kernel.py` →
+  `kaggle/_archive/notebooks/A-08-research-graphs/kernel.py` â†’
   `install_duecare_from_github()`
 - **Batch baseline runner:** `kaggle/A-01-chat-playground/kernel.py`
   (after commit `13a4240`)
@@ -196,7 +196,7 @@ full contract.
   `kaggle/A-02-chat-playground-with-grep-rag-tools/kernel.py`
   (after commit `f4b21c0`)
 - **Workbench shell + summary UI:**
-  `packages/duecare-llm-chat/src/duecare/chat/kernel_shell.py` →
+  `packages/duecare-llm-chat/src/duecare/chat/kernel_shell.py` â†’
   `build_minimal_shell()`
 - **Test prompt library:**
   `packages/duecare-llm-chat/src/duecare/chat/harness/_examples.json`

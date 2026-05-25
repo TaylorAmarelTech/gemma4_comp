@@ -1,4 +1,4 @@
-# Knowledge surface verification
+﻿# Knowledge surface verification
 
 Snapshot of DueCare harness knowledge-layer state as of 2026-05-22.
 Re-runnable via `python scripts/verify_knowledge_surfaces.py`.
@@ -163,7 +163,7 @@ All critical files parse cleanly:
 | `packages/duecare-llm-chat/src/duecare/chat/harness/_personas.json` | -- | JSON OK |
 | `kaggle/01-duecare-exploration-workbench/kernel.py` | 3,300 | AST OK |
 | `kaggle/02-live-demo/kernel.py` | 2,084 | AST OK |
-| `kaggle/A-00-omni-experiment-workbench/kernel.py` | 8,061 | AST OK |
+| `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py` | 8,061 | AST OK |
 
 ## Local-runtime caveat
 

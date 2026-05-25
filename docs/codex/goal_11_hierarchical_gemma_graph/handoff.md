@@ -64,7 +64,7 @@ None required. If the scheduler grows too large, create a focused process submod
 4. The existing deterministic graph path still runs first and remains the fallback when no model is loaded or budget is zero.
 5. Logs distinguish `gemma_case_brief` from per-item graph extraction. The UI must not imply that the brief did document, page, paragraph, table-row, image, or folder analysis.
 6. The pass respects `max_gemma_calls`, `runtime_budget_minutes`, `gemma_calls_per_item`, and row caps. It must not run unbounded calls on Kaggle.
-7. The five non-archived main Kaggle `kernel.py` files remain green under `python scripts/validate_main_kaggle_kernels.py`.
+7. The four active/optional root Kaggle `kernel.py` files and the Kaggle root layout remain green under `python scripts/validate_main_kaggle_kernels.py`.
 8. Public docs and CLAUDE/AGENTS context clearly describe the hierarchy-level behavior once implemented.
 
 ## 9. Do-not-break checklist

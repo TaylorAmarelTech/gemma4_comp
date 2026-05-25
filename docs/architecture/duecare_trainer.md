@@ -1,7 +1,7 @@
 ﻿# Duecare Trainer — model adaptation / retraining
 
 **Status: Prototype (A-00 pathway).** The active proof lives in
-[`kaggle/A-00-omni-experiment-workbench/`](../../kaggle/A-00-omni-experiment-workbench/)
+[`kaggle/_archive/notebooks/A-00-omni-experiment-workbench/`](../../kaggle/_archive/notebooks/A-00-omni-experiment-workbench/)
 and `packages/duecare-llm-training/`. A-00 is the current reference
 implementation for synthetic rows, LoRA smoke training, checkpoint/resume,
 adapter save/load, and report exports; the full Trainer service is
@@ -98,7 +98,7 @@ the plaintext.
 
 ## Today's bridge (what's actually built)
 
-- **`kaggle/A-00-omni-experiment-workbench/`** - synthetic SFT row
+- **`kaggle/_archive/notebooks/A-00-omni-experiment-workbench/`** - synthetic SFT row
   generation, Unsloth LoRA smoke training, checkpoint/resume, adapter
   save/load, four-arm comparison, combined judging, and report exports.
 - **`packages/duecare-llm-training/`** — training-helper utilities:

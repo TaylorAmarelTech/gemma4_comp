@@ -1,4 +1,4 @@
-# Claude Code Review Prompt: A-00 Tool Dispatch and Tools-Trace Hardening (commit 76e44a1)
+﻿# Claude Code Review Prompt: A-00 Tool Dispatch and Tools-Trace Hardening (commit 76e44a1)
 
 Paste the block below into a fresh Claude / Claude Code session opened
 on this repo. The reviewer audits the focused hardening pass landed in
@@ -17,7 +17,7 @@ This is a follow-up to:
 The prior prompts answer "is the universal contract in place" and "do
 the harnesses fit the ecosystem language." This one answers "did the
 2026-05-16 validation pass actually improve trace quality, tool
-context, and reviewer visibility — and can it regress silently?"
+context, and reviewer visibility â€” and can it regress silently?"
 
 ---
 
@@ -42,9 +42,9 @@ coverage:
 - docs/claude_harness_ecosystem_a00_review_prompt.md
 - docs/claude_north_star_harness_review_prompt.md
 
-Context — what commit 76e44a1 changed:
+Context â€” what commit 76e44a1 changed:
 
-- `kaggle/A-00-omni-experiment-workbench/kernel.py`
+- `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py`
   - `_format_shared_tool_call` was rewritten to dispatch by tool name.
     Each of the five deterministic tools from
     `duecare.chat.harness._heuristic_tool_calls` now has a per-name
@@ -72,10 +72,10 @@ Context — what commit 76e44a1 changed:
     extraction declaring the local `gemma4_runtime` default target,
     and a py_compile smoke for the kernel.
 
-Active scope — review only these surfaces:
+Active scope â€” review only these surfaces:
 
 Primary code:
-- `kaggle/A-00-omni-experiment-workbench/kernel.py`
+- `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py`
   - `_format_shared_tool_call` and its five per-tool branches
   - `_build_harness_prompt`'s tools branch and trace assembly
   - `_pack_rules_as_grep_extras`, `_pack_facts_as_rag_extras`
@@ -89,7 +89,7 @@ Primary code:
 - `packages/duecare-llm-chat/src/duecare/chat/static/harness.html`
   (the `model-target-list` rendering block)
 - `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py`
-  (the five tools `_tool_lookup_*` and `_heuristic_tool_calls` — to
+  (the five tools `_tool_lookup_*` and `_heuristic_tool_calls` â€” to
   validate that `_format_shared_tool_call`'s per-tool field
   extraction matches the actual result schemas)
 
@@ -113,7 +113,7 @@ Out of scope (do not broaden):
 
 Specific questions to answer:
 
-Group A — `_format_shared_tool_call` correctness
+Group A â€” `_format_shared_tool_call` correctness
 
 A1. Walk the five per-tool branches end to end. For each tool, name
     the actual result schema returned by
@@ -137,7 +137,7 @@ A3. The `lookup_ngo_intake` branch surfaces up to three hotline
 A4. The `lookup_ilo_convention` branch surfaces the first two
     `key_articles`. Confirm two is enough for citation cross-check.
     For C189 (domestic workers) the relevant article for travel
-    document retention is Art. 9 — verify that surfaces in the
+    document retention is Art. 9 â€” verify that surfaces in the
     first two entries.
 
 A5. Are there opportunities for the renderer to add value beyond
@@ -146,7 +146,7 @@ A5. Are there opportunities for the renderer to add value beyond
     for the same corridor, or a length-aware concatenation when
     the rendered context approaches a model context window.
 
-Group B — Tools-layer trace consistency
+Group B â€” Tools-layer trace consistency
 
 B1. Confirm `trace["tools"]` is always set when `"tools"` is in
     `layers`. Walk the four code paths: shared with results,
@@ -166,18 +166,18 @@ B3. `step.status` is currently `pass` / `noop` / `degraded`. Is
     shared error, or does the recovered path silently mark `pass`?
 
 B4. The pre-existing GREP and RAG branches use `pass` / `degraded`
-    too, but they do not have a `noop` status — they always emit
+    too, but they do not have a `noop` status â€” they always emit
     `pass` even when zero hits/facts. Should they be aligned with
     the tools layer's pass/noop/degraded scheme for cross-layer
     consistency? Pros vs cons.
 
-Group C — harness.html model-target surface
+Group C â€” harness.html model-target surface
 
 C1. Read the rendering block in
     `packages/duecare-llm-chat/src/duecare/chat/static/harness.html`
     and confirm `trust_boundary` and `notes` render only when
     present. Pass the page through TestClient against
-    `create_app()` and inspect the rendered HTML — does the absence
+    `create_app()` and inspect the rendered HTML â€” does the absence
     of `notes` produce a clean line break or a dangling separator?
 
 C2. Five harnesses declare `model_targets`. Render each via the
@@ -192,7 +192,7 @@ C3. The `trust_boundary` value can be `local`, `external`, or
     propose minimal CSS that reinforces "external" as the
     privacy-sensitive boundary.
 
-Group D — New contract tests
+Group D â€” New contract tests
 
 D1. For each of the six new contract tests in
     `tests/test_a00_runtime_and_parity_contract.py`
@@ -230,7 +230,7 @@ D3. The
     truly load-bearing (must not change without review) or is it
     cosmetic? If load-bearing, document why.
 
-Group E — Cross-cutting
+Group E â€” Cross-cutting
 
 E1. Run the full focused gate and report results (PowerShell):
     ```powershell
@@ -260,11 +260,11 @@ E1. Run the full focused gate and report results (PowerShell):
     ```
     Expected baseline: ~394 passed. Report any failure with the
     failing assertion text. Skip the pre-existing `tests/unit/*`
-    collection errors — they are unrelated missing-module failures.
+    collection errors â€” they are unrelated missing-module failures.
 
 E2. Run the kernel compile smoke alone:
     ```powershell
-    python -m py_compile kaggle\A-00-omni-experiment-workbench\kernel.py
+    python -m py_compile kaggle\_archive\notebooks\A-00-omni-experiment-workbench\kernel.py
     ```
     Must compile cleanly. Report the exit code.
 
@@ -300,11 +300,11 @@ For each finding include:
 End with:
 
 1. **Verdict** per group: PASS / PARTIAL / FAIL
-   - Group A — `_format_shared_tool_call` correctness
-   - Group B — Tools-layer trace consistency
-   - Group C — `harness.html` model-target surface
-   - Group D — New contract tests
-   - Group E — Cross-cutting
+   - Group A â€” `_format_shared_tool_call` correctness
+   - Group B â€” Tools-layer trace consistency
+   - Group C â€” `harness.html` model-target surface
+   - Group D â€” New contract tests
+   - Group E â€” Cross-cutting
 2. **Overall verdict** in one line.
 3. **Tests run + result line** (e.g., "394 passed in 211s").
 4. **Changed files** (if you made any edits during the review).

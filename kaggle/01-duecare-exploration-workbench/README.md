@@ -140,7 +140,8 @@ the kernel.py doesn't need to change.
 ## Portability contract for the next notebooks
 
 Kernel 01 is now the reference runtime contract for the focused live
-demo (02) and the A-00 omni experiment workbench.
+demo (02). Archived A-00 proof code should keep reusing the same shared
+primitives when it is touched.
 After `create_app(...)`, `kernel.py` verifies the reusable API surface,
 knowledge taxonomy, type catalog, and bundled sample assets are present.
 If a stale wheel is served, the kernel fails early instead of opening a
@@ -235,12 +236,9 @@ This is **core notebook #1** of 3:
   toggle, switch every model, exercise every harness layer.
 - **#2** `duecare-live-demo`: focused interactive demo kernel that also
   hosts the recording-grade pitch deck at `/start` and `/slides`.
-- **#3** `A-00-omni-experiment-workbench`: quantitative control plane —
-  base vs harnessed vs LoRA-tuned vs fine-tuned + harness arms,
-  combined rule + LLM grading, exportable artifact bundle.
-
-The former 25-notebook appendix lineup is archived; the active
-submission is this three-kernel set. See `kaggle/_INDEX.md` for the
+The former 25-notebook appendix lineup, A-00 experiment console, and task
+notebook snapshots are archived; the active submission is this two-kernel set.
+See `kaggle/_INDEX.md` for the
 current index.
 
 ## Troubleshooting
@@ -273,7 +271,7 @@ current index.
 
 - **Core workbench:** this notebook.
 - **Focused live demo + pitch deck:** [#02 core: Live demo](../02-live-demo/README.md).
-- **Quantitative proof + benchmark + fine-tune:** [A-00 omni experiment workbench](../A-00-omni-experiment-workbench/README.md).
+- **Archived quantitative proof + benchmark + fine-tune:** [A-00 omni experiment workbench](../_archive/notebooks/A-00-omni-experiment-workbench/README.md).
 - **Public website:** [duecare-ai.com](https://duecare-ai.com).
 
 ---
@@ -286,7 +284,7 @@ You are here: **#01 active: Exploration workbench**.
 
 - **[#01 active: Exploration workbench](../01-duecare-exploration-workbench/README.md)**
 - [#02 active: Live demo](../02-live-demo/README.md)
-- [#A00 active: Omni experiment workbench](../A-00-omni-experiment-workbench/README.md)
+- [#A00 archived: Omni experiment workbench](../_archive/notebooks/A-00-omni-experiment-workbench/README.md)
 
 Archived reference notebooks live under `../_archive/notebooks/`.
 
@@ -298,5 +296,5 @@ Index page: [`kaggle/_INDEX.md`](../_INDEX.md).
 
 - **[DueCare App (#01)](https://www.kaggle.com/code/taylorsamarel/duecare-app)**: the full chat playground with the safety harness layers, local imports/evidence, 9-variant model picker, 4 grading modes, A/B compare, and every visualization in one place.
 - **[DueCare Live Demo (#02)](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo)**: focused public-hub walkthrough plus the recording-grade pitch deck at `/start` and `/slides`.
-- **[DueCare Fine-tuning and Evaluation](../A-00-omni-experiment-workbench/README.md)**: run the preconfigured benchmark, synthetic SFT, LoRA, four-arm evaluation, and final report path.
+- **[DueCare Fine-tuning and Evaluation](../_archive/notebooks/A-00-omni-experiment-workbench/README.md)**: archived preconfigured benchmark, synthetic SFT, LoRA, four-arm evaluation, and final report path.
 - **[Public hub: duecare-ai.com](https://duecare-ai.com)**: knowledge-pack registry, anonymized signal intake, public-source proposal intake, and the six-lane audience showcase.

@@ -1,4 +1,4 @@
-# Duecare — Local setup
+﻿# Duecare â€” Local setup
 
 > **Picking a deployment shape?** Read
 > [`docs/deployment_topologies.md`](./deployment_topologies.md) first
@@ -9,15 +9,15 @@
 
 Three local-deployment paths, fastest to most-controlled:
 
-1. **Ollama** — easiest, CPU works, no Python env required
-2. **Kaggle notebook (run locally on your GPU)** — same kernel.py
-   that runs on Kaggle's free T4×2 also runs on your local box
-3. **`pip install duecare-llm` + run the FastAPI app yourself** —
+1. **Ollama** â€” easiest, CPU works, no Python env required
+2. **Kaggle notebook (run locally on your GPU)** â€” same kernel.py
+   that runs on Kaggle's free T4Ã—2 also runs on your local box
+3. **`pip install duecare-llm` + run the FastAPI app yourself** â€”
    most controlled, integrates into your existing Python stack
 
 ---
 
-## Path 1 — Ollama (5 minutes, no Python needed)
+## Path 1 â€” Ollama (5 minutes, no Python needed)
 
 Best for "I just want to chat with Gemma 4 on my laptop and try the
 harness." Skips the FastAPI server / harness entirely; you talk to
@@ -35,20 +35,20 @@ ollama run gemma4:e4b
 ```
 
 For the **harness** behavior (Persona / GREP / RAG / Tools), you need
-one of the other two paths — Ollama doesn't run our FastAPI app.
+one of the other two paths â€” Ollama doesn't run our FastAPI app.
 
 ---
 
-## Path 2 — Kaggle kernel.py on your local GPU (recommended for full demo)
+## Path 2 â€” Kaggle kernel.py on your local GPU (recommended for full demo)
 
 Best for "I want the same core chat playground / classifier that judges
 see, with the layered harness (Persona / GREP / RAG / Tools / Online /
-Imports), the Pipeline modal, the history queue — running on my own GPU."
+Imports), the Pipeline modal, the history queue â€” running on my own GPU."
 
 ### Prerequisites
 
-- An NVIDIA GPU with ≥16 GB VRAM (single 4090, A100, H100, etc. for
-  E4B at 4-bit; 31B needs ≥48 GB total = single A100 80GB or 2× T4)
+- An NVIDIA GPU with â‰¥16 GB VRAM (single 4090, A100, H100, etc. for
+  E4B at 4-bit; 31B needs â‰¥48 GB total = single A100 80GB or 2Ã— T4)
 - Python 3.11+
 - ~30 GB free disk for the model cache
 - A Hugging Face account + token (Gemma 4 is gated)
@@ -102,7 +102,7 @@ View pipeline modal, Persona library, custom rule additions.
 ### To run the **experiment pipeline** instead
 
 ```bash
-python kaggle/A-00-omni-experiment-workbench/kernel.py
+python kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py
 ```
 
 Same setup; serves the A-00 quantitative workbench for baseline, harnessed,
@@ -116,14 +116,14 @@ Edit `GEMMA_MODEL_VARIANT` in the kernel.py:
 |---|---|---|
 | `e2b-it` | ~2 GB | very fast (CPU possible) |
 | `e4b-it` | ~5.5 GB | fast on a single 4090 |
-| `26b-a4b-it` | ~14 GB | needs 2× T4 / 1× A100 |
-| `31b-it` | ~18 GB | needs 2× T4 / 1× A100 |
+| `26b-a4b-it` | ~14 GB | needs 2Ã— T4 / 1Ã— A100 |
+| `31b-it` | ~18 GB | needs 2Ã— T4 / 1Ã— A100 |
 
 For development, `e4b-it` is the sweet spot.
 
 ---
 
-## Path 3 — `pip install duecare-llm` + run the app yourself
+## Path 3 â€” `pip install duecare-llm` + run the app yourself
 
 For integration into your existing Python service, skip the kernel.py
 and import the app directly.
@@ -225,7 +225,7 @@ print(result["tool_calls"])  # list of {name, args, result}
 ```
 
 Each function accepts an `extra_*` kwarg to merge custom rules /
-docs / data tables per call. Full extension docs in the `▸ View`
+docs / data tables per call. Full extension docs in the `â–¸ View`
 modal of any layer in the chat UI, or in
 `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py`
 (the `LAYER_DOCS` constant).
@@ -266,7 +266,7 @@ Install the Hanchen pin: see Path 2 step 3 above.
 Drop max_new_tokens in the UI from 8192 to 2048. Or switch to E4B.
 
 **Cloudflare 524 timeout**
-Only relevant for Kaggle's cloudflared tunnel — not local. The local
+Only relevant for Kaggle's cloudflared tunnel â€” not local. The local
 FastAPI server has no proxy timeout; the SSE keepalive runs anyway.
 
 **Gemma 4 download is gated**
