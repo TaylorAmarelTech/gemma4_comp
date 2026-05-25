@@ -226,6 +226,10 @@ def test_search_page_blocks_when_page_sanitizer_fails(client):
     assert "searchReadJsonOrText" in text
     assert "returned non-JSON" in text
     assert "Drafting moved to Step 3" in text
+    assert "/api/search/verify-results" in text
+    assert "function searchVerifyResults" in text
+    assert "searchDraftableIndexes" in text
+    assert "Blocked by verification" in text
     assert "search-step-actions" in text
     assert "function searchSetWorkflow" in text
     assert '/static/_workflow.js' in text
@@ -619,6 +623,8 @@ def test_workbench_chrome_exposes_browser_replay_download(client):
     assert "duecare.browser_replay_log.v1" in text
     assert "installReplayRecorder" in text
     assert "window.dcWbDownloadReplayJson" in text
+    assert "polish: 0" in text
+    assert "Polish passes:" in text
 
 
 def test_sync_page_uses_guided_pack_flow(client):

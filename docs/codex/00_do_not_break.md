@@ -159,7 +159,7 @@ Each page declares its own log handle. **Do not rename**:
 
 `window.dcGemmaStats` (defined in `static/_nav.js`) is read by every page that calls Gemma. Its API:
 
-- `.bump(bucket)` where bucket is one of: `brief`, `edge_pass`, `media`, `synthesis`, `rephrase`, `draft`, `template_fill`, `anonymize_review`, `chat`, `compare`, `grade`
+- `.bump(bucket)` where bucket is one of: `brief`, `edge_pass`, `media`, `synthesis`, `rephrase`, `draft`, `template_fill`, `anonymize_review`, `chat`, `polish`, `compare`, `grade`
 - `.addProposedEdges(n)`
 - `.snapshot()` returns `{calls, brief, edge_pass, ..., started_at, updated_at}`
 - `.reset()`

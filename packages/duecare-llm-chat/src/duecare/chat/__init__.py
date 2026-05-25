@@ -1,4 +1,4 @@
-"""Minimal Gemma 4 chat playground."""
+"""DueCare reviewer workbench and Gemma 4 harness app."""
 from __future__ import annotations
 
 from duecare.chat.app import create_app, run_server

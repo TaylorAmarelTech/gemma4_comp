@@ -228,7 +228,7 @@ public pip entry point for the workflow-oriented stack.
 | `duecare-llm-training` | Unsloth SFT + DPO scripts, GGUF export | Training-script smoke tests |
 | `duecare-llm-research-tools` | Playwright scrapers + document extractors for domain corpora | Scraper + extractor tests |
 | `duecare-llm-nl2sql` | NL → SQL translator for evidence DB queries | NL→SQL roundtrip tests |
-| `duecare-llm-chat` | Minimal Gemma 4 chat playground (UI + FastAPI shell, no harness) | 18 test files: harness contract, route, workbench UI, JSON parser, anonymization, design-tooltip migration, model-output sanitizer, process bulk review, etc. |
+| `duecare-llm-chat` | DueCare reviewer workbench: FastAPI app, shared chrome, static pages, harness contracts, and Gemma 4 runtime hooks | 18 test files: harness contract, route, workbench UI, JSON parser, anonymization, design-tooltip migration, model-output sanitizer, process bulk review, etc. |
 | `duecare-llm-cli` | The `duecare` command-line tool (tree, test, review, status, deps) | CLI command tests |
 | [`duecare-llm`](./docs/components/duecare_llm_meta.md) (meta) | Public pip entry point for the workflow stack and `duecare` CLI | Re-export + import tests |
 | **Current local pytest collection** | | **976 package tests collected on 2026-05-21** |
@@ -760,7 +760,7 @@ gemma4_comp/
 │   ├── duecare-llm-training/     # Unsloth SFT + DPO scripts
 │   ├── duecare-llm-research-tools/ # Playwright scrapers + extractors
 │   ├── duecare-llm-nl2sql/       # NL → SQL for evidence DB
-│   ├── duecare-llm-chat/         # minimal Gemma 4 chat playground
+│   ├── duecare-llm-chat/         # DueCare workbench app and Gemma 4 harnesses
 │   ├── duecare-llm-cli/          # the `duecare` CLI
 │   └── duecare-llm/              # meta package and workflow CLI entry point
 ├── kaggle/                       # Kaggle deliverables (per-notebook bundles)

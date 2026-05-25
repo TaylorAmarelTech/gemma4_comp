@@ -4,11 +4,11 @@
 
 ## 1. Goal
 
-Make Bulk File Review run explicit Gemma node/edge passes at every useful hierarchy level: folder, document, page, paragraph/chunk, table row, media item, person, case, and cross-case pattern rollup.
+Make Bulk File Review run explicit Gemma node/edge passes at every useful hierarchy level: bundle/root, folder, document, page, paragraph/chunk, table row, extracted image/media item, person, case, and cross-case pattern rollup.
 
 ## 2. Why it matters
 
-The current activity log can look like Gemma is doing detailed document analysis, but the visible `gemma_case_brief` phase is mostly bundle-level synthesis. Deterministic parsing already produces row/page/chunk-grounded facts, and the bounded graph-edge pass can add model-proposed edges, but the product story should be stronger: Gemma should create specific evidence-level nodes and edges first, then generalized hierarchical rollups second.
+The current activity log can look like Gemma is doing detailed document analysis, but the visible `gemma_case_brief` phase is mostly bundle-level synthesis. Deterministic parsing already produces row/page/chunk-grounded facts, and the bounded graph-edge pass can add model-proposed edges, but the product story should be stronger: Gemma should create specific evidence-level nodes and edges first, then generalized hierarchical rollups second. A single bundle-level brief must never count as the hierarchical graph pass.
 
 ## 3. Current state
 
@@ -22,11 +22,12 @@ The current activity log can look like Gemma is doing detailed document analysis
 
 - Bulk File Review has a visible, budgeted "Hierarchical Gemma graph pass" separate from the bundle brief.
 - The pass schedules work items by hierarchy level:
+  - bundle/root context
   - folder and path context
   - document-level summary and document type
   - page-level or sheet-level facts
   - paragraph/chunk/table-row evidence
-  - extracted image/media item context and OCR/vision placeholder
+  - extracted image/media item context, with a clear split between contextual prediction and real OCR/vision evidence
   - person/case rollups
   - cross-case pattern rollups
 - Each Gemma item pass returns normalized nodes and edges with local-only provenance: `level`, `source_path`, `parent_doc`, `page`, `chunk_id`, `row_id`, `quote`, `edge_type`, `source_node`, `target_node`, `confidence`, `review_status`, and `extractors`.
@@ -59,9 +60,9 @@ None required. If the scheduler grows too large, create a focused process submod
 
 1. The process response includes a `hierarchical_gemma_graph` object with `status`, `levels_attempted`, `n_items_considered`, `n_items_processed`, `n_model_nodes`, `n_model_edges`, `n_rollup_edges`, `budget`, and `errors`.
 2. Model-created nodes/edges preserve source hierarchy fields: `level`, `source_path`, `parent_doc`, `page`, `chunk_id`, `row_id`, and evidence `quote` when available.
-3. At least four levels are represented when the bundle has matching material: folder, document, page/chunk, and case/person rollup.
+3. When matching material exists and budget permits, `levels_attempted` includes bundle/root, folder, document, page, paragraph/chunk, table row, extracted image/media item, person/case rollup, and cross-case rollup. Budget-capped or unavailable levels are reported in `levels_skipped` with a reason; they are not silently collapsed into `gemma_case_brief`.
 4. The existing deterministic graph path still runs first and remains the fallback when no model is loaded or budget is zero.
-5. Logs distinguish `gemma_case_brief` from per-item graph extraction. The UI must not imply that the brief did paragraph/page analysis.
+5. Logs distinguish `gemma_case_brief` from per-item graph extraction. The UI must not imply that the brief did document, page, paragraph, table-row, image, or folder analysis.
 6. The pass respects `max_gemma_calls`, `runtime_budget_minutes`, `gemma_calls_per_item`, and row caps. It must not run unbounded calls on Kaggle.
 7. The five non-archived main Kaggle `kernel.py` files remain green under `python scripts/validate_main_kaggle_kernels.py`.
 8. Public docs and CLAUDE/AGENTS context clearly describe the hierarchy-level behavior once implemented.
@@ -95,11 +96,13 @@ packages/duecare-llm-chat/tests/test_process_bulk_review.py.
 Implement a budgeted hierarchical Gemma graph pass for Bulk File Review.
 The current gemma_case_brief is bundle-level synthesis; keep it, but add a
 separate item/rollup pass that creates reviewable nodes and edges at folder,
-document, page/chunk/table row/media item, person/case, and cross-case pattern
+document, page, paragraph/chunk, table row, extracted image/media item,
+person/case, and cross-case pattern
 levels. Every model-created node/edge must preserve local-only provenance:
 level, source_path, parent_doc, page, chunk_id, row_id, quote, confidence,
 review_status, and source edge IDs for rollups. Deterministic extraction must
-run first and remain the fallback.
+run first and remain the fallback. A bundle-level case brief is useful, but it
+does not satisfy this goal by itself.
 
 Update process.html activity logs so reviewers can see which hierarchy level
 Gemma is analyzing. Do not imply the bundle brief is per-document or

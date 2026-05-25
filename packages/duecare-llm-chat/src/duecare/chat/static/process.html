@@ -381,7 +381,7 @@
               </button>
               <button class="wb-mode-card" type="button" data-mode="exhaustive_review" onclick="wbSetReviewMode('exhaustive_review')" role="radio" aria-checked="false">
                 <b>Exhaustive review</b>
-                <span>Deterministic extraction plus Gemma 4 on every classified page item up to 60 calls (case brief + edge pass + many contextual media). Plan for a long-running session on Kaggle T4 — full bundle can take 30-90 minutes depending on Gemma variant.</span>
+                <span>Deterministic extraction plus a larger bounded Gemma 4 upload budget: case brief, typed-edge synthesis, and more contextual media-review items up to 60 total calls. Current code does not yet run a separate Gemma pass for every document, page, paragraph, or table row. Plan for a long-running session on Kaggle T4.</span>
               </button>
             </div>
             <div class="wb-muted" id="wb-gemma-paths-hint"
@@ -1483,7 +1483,7 @@
         perItem: 1,
         inlineGemma: true,
         strictness: 'exploratory',
-        detail: 'Deep local pass for final case prep. Runs Gemma 4 on every classified page item up to 60 calls (case brief + edge pass + many contextual media). Plan for a 30-90 minute session on Kaggle T4 depending on which Gemma variant is loaded.'
+        detail: 'Deep local pass for final case prep. Raises the upload budget to 60 Gemma 4 calls for the case brief, typed-edge synthesis, and more contextual media-review items. It does not yet run a separate Gemma pass for every document, page, paragraph, or table row. Plan for a long Kaggle T4 session depending on which Gemma variant is loaded.'
       }
     };
     let wbReviewMode = 'standard_review';
@@ -2746,7 +2746,7 @@
         const diff = Array.isArray(out.diff) ? out.diff.filter(d => d && d.changed) : [];
         const passes = Number(out.passes || 0);
         if (window.dcGemmaStats && passes > 0) {
-          window.dcGemmaStats.bump('chat');
+          window.dcGemmaStats.bump('polish');
         }
         wbLog('ok', 'Polish complete (' + dt + 'ms)',
           passes + ' pass(es), ' + diff.length + ' field(s) changed');
