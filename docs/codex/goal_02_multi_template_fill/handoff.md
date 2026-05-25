@@ -1,6 +1,6 @@
 # Goal 2 — Multi-template fill from one bundle
 
-> Status: **PENDING**. Created 2026-05-24.
+> Status: **DONE 2026-05-24 (`1c0d3ff`)**. Created 2026-05-24.
 
 ## 1. Goal
 
