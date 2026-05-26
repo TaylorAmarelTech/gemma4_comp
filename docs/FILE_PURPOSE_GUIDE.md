@@ -27,7 +27,7 @@ published evidence.
 | Public website | `apps/duecare-ai.com/README.md`, page templates, route tests |
 | Python packages | Each package `README.md`, package tests, generated component docs |
 | Agent handoff | `AGENTS.md`, `CLAUDE.md`, `.claude/rules/` |
-| Competition docs | `docs/FOR_KAGGLE_JUDGES.md`, `docs/kaggle_writeup_paste_ready.md`, `docs/video_script.md` |
+| Competition docs | `docs/FOR_KAGGLE_JUDGES.md`, `docs/kaggle_writeup_paste_ready.md`, `docs/kaggle_post_networked_knowledge_sharing.md`, `docs/video_script.md` |
 
 ## Generated Module Metadata
 

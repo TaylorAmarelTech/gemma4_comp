@@ -147,6 +147,7 @@ nav:
       - Notebook guide: notebook_guide.md
   - Information Sharing:
       - Why networked Gemma sharing matters: gemma_networked_knowledge_sharing.md
+      - Kaggle community post: kaggle_post_networked_knowledge_sharing.md
       - Architecture: information_sharing_architecture.md
       - Anonymization policy: anonymization_policy.md
       - Submission labeling policy: submission_labeling_policy.md

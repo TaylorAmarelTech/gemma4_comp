@@ -124,6 +124,7 @@ python -c "from duecare.server import create_app; from duecare.server.state impo
 > **Judges start here:** [`docs/FOR_KAGGLE_JUDGES.md`](./docs/FOR_KAGGLE_JUDGES.md) (hackathon-specific quick path).
 > Or: [`docs/FOR_PEER_REVIEW.md`](./docs/FOR_PEER_REVIEW.md) (full verification roster).
 > **Writeup (1500 words max):** [`docs/writeup_draft.md`](./docs/writeup_draft.md).
+> **Kaggle community post draft:** [`docs/kaggle_post_networked_knowledge_sharing.md`](./docs/kaggle_post_networked_knowledge_sharing.md).
 > **Video script (~2:50):** [`docs/video_script.md`](./docs/video_script.md).
 > **Audit / report card:** [`docs/REPORT_CARD.md`](./docs/REPORT_CARD.md).
 > **Harness lift report:** [`docs/harness_lift_report.md`](./docs/harness_lift_report.md) - quantifies how the safety layers change rubric scores.
