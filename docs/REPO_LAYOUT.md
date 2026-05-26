@@ -31,7 +31,7 @@ Current as of 2026-05-25.
 - Root file policy: [`ROOT_FILES.md`](../ROOT_FILES.md)
 - File purpose policy: [`docs/FILE_PURPOSE_GUIDE.md`](FILE_PURPOSE_GUIDE.md)
 - Kaggle Community Benchmark notes: [`docs/KAGGLE_COMMUNITY_BENCHMARK.md`](KAGGLE_COMMUNITY_BENCHMARK.md)
-- Kaggle community post draft: [`docs/kaggle_post_networked_knowledge_sharing.md`](kaggle_post_networked_knowledge_sharing.md)
+- Copy-ready networked knowledge-sharing Kaggle post: [`docs/kaggle_post_networked_knowledge_sharing.md`](kaggle_post_networked_knowledge_sharing.md)
 - Screenshot audit checklist: [`docs/SCREENSHOT_AUDIT.md`](SCREENSHOT_AUDIT.md)
 
 ## Archival Rule

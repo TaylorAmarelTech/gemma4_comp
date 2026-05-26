@@ -13,12 +13,12 @@ Use this page as the public chooser. The detailed component vocabulary lives in
 
 | User path | What you are trying to do | Start here |
 |---|---|---|
-| Platform safety | Screen recruitment posts, ads, profiles, and messages before workers are harmed. | [Platform safety](scenarios/enterprise_pilot.md) |
-| NGO & regulator | Review cases, documents, messages, referrals, and corridor evidence with a human decision maker in control. | [Caseworker workflow](scenarios/caseworker_workflow.md) |
-| Individual worker / mobile | Check suspicious offers, contracts, fees, document requests, threats, or recruiter messages privately. | [Worker self-help](scenarios/worker-self-help.md) |
-| Researcher | Reproduce model behavior, inspect evidence traces, compare safety interventions, and audit claims from source artifacts. | [Researcher analysis](scenarios/researcher-analysis.md) |
-| Anonymized knowledge sharing | Turn reviewed local evidence into sanitized objects that can improve shared packs without exposing workers. | [Information sharing architecture](information_sharing_architecture.md) |
-| Developer / integration partner | Install packages, call APIs, embed components, or connect DueCare to another review workflow. | [Embedding guide](embedding_guide.md) |
+| I am on a platform safety team | Screen recruitment posts, ads, profiles, and messages before workers are harmed. | [Platform safety](scenarios/enterprise_pilot.md) |
+| I am an NGO, caseworker, regulator, or legal-aid reviewer | Review cases, documents, messages, referrals, and corridor evidence with a human decision maker in control. | [Caseworker workflow](scenarios/caseworker_workflow.md) |
+| I am a migrant worker or prospective worker | Check suspicious offers, contracts, fees, document requests, threats, or recruiter messages privately. | [Worker self-help](scenarios/worker-self-help.md) |
+| I am a researcher, evaluator, or auditor | Reproduce model behavior, inspect evidence traces, compare safety interventions, and audit claims from source artifacts. | [Researcher analysis](scenarios/researcher-analysis.md) |
+| I am sharing anonymized knowledge | Turn reviewed local evidence into sanitized objects that can improve shared packs without exposing workers. | [Information sharing architecture](information_sharing_architecture.md) |
+| I am a developer or integration partner | Install packages, call APIs, embed components, or connect DueCare to another review workflow. | [Embedding guide](embedding_guide.md) |
 
 ## What stays local
 

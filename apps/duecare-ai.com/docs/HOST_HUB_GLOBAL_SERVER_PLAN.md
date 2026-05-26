@@ -214,7 +214,7 @@ No user-generated contribution becomes downloadable by default. Downloadable sha
 
 The website should show these labels beside every user-generated pack and repeat that Duecare is hosting a reviewed contribution, not certifying it as official legal guidance.
 
-### 7. Coordinates outbound anonymized sharing
+### 7. Coordinates outbound anonymized knowledge sharing
 
 Local, mobile, NGO, regulator, or platform deployments may send only sanitized information objects to the hub.
 

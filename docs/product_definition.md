@@ -73,7 +73,7 @@ Older phrases map to the canonical names as follows:
 | NGOs, government bodies, consulates, regulators | **NGO & regulator** |
 | Mobile/private checker, worker-facing app | **Individual worker / mobile** |
 | Researchers, evaluators, Kaggle judges, reproducibility | **Researcher** |
-| Knowledge exchange, anonymized sharing, signal exchange | **Anonymized knowledge sharing** |
+| Knowledge exchange, anonymized knowledge sharing, signal exchange | **Anonymized knowledge sharing** |
 | Developers, IT teams, custom integrations | **Developer / integration partner** |
 
 OFWs are a demo persona. Migrant workers globally is the category.
