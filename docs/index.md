@@ -61,7 +61,7 @@ ecosystem, not separate products.
 | **I am on a platform safety team** | Screen risky recruitment posts, ads, profiles, and messages before workers are harmed. | [Enterprise pilot](scenarios/enterprise_pilot.md), [Deployment guide](deployment_enterprise.md), and the content screening API. |
 | **I am an NGO, caseworker, regulator, or legal-aid reviewer** | Turn messages, documents, and public rules into grounded drafts, referrals, complaint materials, and corridor updates. | [Caseworker workflow](scenarios/caseworker_workflow.md), [NGO office deployment](scenarios/ngo-office-deployment.md), and [Regulator pattern analysis](scenarios/regulator-pattern-analysis.md). |
 | **I am a migrant worker or prospective worker** | Understand suspicious offers, contracts, recruiter messages, fee demands, document retention, threats, and next steps privately. | [Worker self-help](scenarios/worker-self-help.md) and the [DueCare Journey Android releases](https://github.com/TaylorAmarelTech/duecare-journey-android/releases). |
-| **I am an academic researcher, evaluator, or auditor** | Reproduce model behavior, compare safety interventions, inspect pack hashes, and audit every claim from source artifacts. | [Researcher analysis](scenarios/researcher-analysis.md), [Reproducibility](reproducibility.md), and [A-00 proof path](FOR_PEER_REVIEW.md#a-00-proof-path). |
+| **I am a researcher, evaluator, or auditor** | Reproduce model behavior, compare safety interventions, inspect pack hashes, and audit every claim from source artifacts. | [Researcher analysis](scenarios/researcher-analysis.md), [Reproducibility](reproducibility.md), and [A-00 proof path](FOR_PEER_REVIEW.md#a-00-proof-path). |
 | **I am sharing anonymized knowledge** | Convert reviewed local evidence into sanitized fact objects that improve shared packs without centralizing raw worker case data. | [Anonymization policy](anonymization_policy.md), [Submission labeling policy](submission_labeling_policy.md), and the workbench Anonymization & Sharing page. |
 | **I am a developer or integration partner** | Embed DueCare into moderation tools, NGO systems, mobile clients, dashboards, or custom workflows. | [Install guide](install.md), [Embedding guide](embedding_guide.md), [OpenAPI spec](openapi.yaml), and [Client connect](https://duecare-ai.com/client-connect). |
 
@@ -94,6 +94,8 @@ without becoming one raw case-data warehouse.
 
 Read the focused [Information Sharing Architecture](information_sharing_architecture.md)
 page for the object types, trust boundary, and hub/local responsibilities.
+For a shorter public explanation, read
+[Gemma 4 for Networked Knowledge Sharing Without Centralizing PII](gemma_networked_knowledge_sharing.md).
 
 ## Core Components
 

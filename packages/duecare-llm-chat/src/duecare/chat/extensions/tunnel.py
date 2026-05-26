@@ -32,8 +32,35 @@ import threading
 import time
 import urllib.request
 from typing import Optional
+from urllib.parse import urlsplit
 
-_URL_RE = re.compile(r"https?://[A-Za-z0-9.\-_]+\.trycloudflare\.com")
+_URL_RE = re.compile(r"https://[A-Za-z0-9.\-_]+\.trycloudflare\.com(?:/[^\s\"']*)?")
+
+
+def _is_public_tunnel_url(url: str) -> bool:
+    try:
+        parsed = urlsplit(url.strip())
+    except Exception:
+        return False
+    if parsed.scheme != "https":
+        return False
+    host = (parsed.hostname or "").lower()
+    suffix = ".trycloudflare.com"
+    if not host.endswith(suffix):
+        return False
+    label = host[: -len(suffix)]
+    if label in {"api", "www"}:
+        return False
+    return bool(re.fullmatch(r"[a-z0-9-]{3,63}", label))
+
+
+def _extract_public_url(line: str) -> Optional[str]:
+    for match in _URL_RE.finditer(line or ""):
+        raw = match.group(0).rstrip(".,)")
+        if _is_public_tunnel_url(raw):
+            parsed = urlsplit(raw)
+            return f"{parsed.scheme}://{parsed.hostname}"
+    return None
 
 
 def _install_cloudflared() -> Optional[str]:
@@ -84,7 +111,7 @@ def start_cloudflared_tunnel(port: int, timeout: float = 60.0) -> Optional[str]:
         from duecare.server.tunnel import open_tunnel  # type: ignore
 
         url = open_tunnel("cloudflared", int(port))
-        if url and url.startswith("http"):
+        if url and _is_public_tunnel_url(url):
             return url
     except Exception:
         # Fall back to inline implementation below.
@@ -123,9 +150,9 @@ def start_cloudflared_tunnel(port: int, timeout: float = 60.0) -> Optional[str]:
                     time.sleep(0.1)
                     continue
                 print(f"[tunnel] {line.rstrip()}", flush=True)
-                m = _URL_RE.search(line)
-                if m and not holder["url"]:
-                    holder["url"] = m.group(0)
+                url = _extract_public_url(line)
+                if url and not holder["url"]:
+                    holder["url"] = url
                     ready.set()
         except Exception:
             if not ready.is_set():

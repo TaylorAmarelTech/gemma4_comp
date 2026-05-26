@@ -61,7 +61,7 @@ Goal 9 does not strictly depend on the feature goals, but it should run before G
 
 These packs are meant for one long Codex session that continues automatically, not for one combined commit. Keep one implementation commit per goal plus any required status/bookkeeping update.
 
-Every pack must run `python scripts/validate_main_kaggle_kernels.py` before each goal commit. That gate covers the Kaggle root layout, the two active submission kernels, and the two optional benchmark kernels; appendix and archived notebooks are out of kernel compatibility unless Taylor says otherwise.
+Every pack must run `python scripts/validate_main_kaggle_kernels.py` before each goal commit. That gate covers the Kaggle root layout, the active `01`, `02`, and `A-00` submission kernels, plus the two optional benchmark kernels; archived appendix notebooks are out of kernel compatibility unless Taylor says otherwise.
 
 - **Full no-stop dispatch**: Goal 1 -> Goal 6 -> Goal 3 -> Goal 4 -> Goal 5 -> Goal 8 -> Goal 2 -> Goal 9 -> Goal 7.
 - **Post-pack Kaggle surface follow-up**: Goal 12 -> Goal 13 -> Goal 11 -> Goal 14 -> Goal 15. This sequence first stabilizes the active `01`/`02` reviewer and recording pages, then takes the larger Bulk File Review hierarchy architecture, then improves the optional benchmark proof surfaces.
@@ -100,7 +100,7 @@ When Codex completes a goal:
 
 1. Update the goal's `handoff.md` STATUS marker from PENDING to DONE with the commit SHA.
 2. Update [`README.md`](README.md)'s goal-directory map with the same status.
-3. Run `python scripts/validate_main_kaggle_kernels.py` and keep the four active/optional root Kaggle kernels plus the Kaggle root layout green.
+3. Run `python scripts/validate_main_kaggle_kernels.py` and keep the active and optional root Kaggle kernels plus the Kaggle root layout green.
 4. If the goal touches Kernel 01/02 pages or optional benchmark kernels, run `py -3.12 scripts/validate_kaggle_page_sources.py`.
 5. If the goal added a new route, DOM ID, sample artifact, or public contract, update [`00_do_not_break.md`](00_do_not_break.md) only if the new item is now load-bearing.
 6. Taylor has allowed `CLAUDE.md` reconciliation edits. Update it only when a goal completion, kernel gate, or active operating brief needs to stay consistent; keep unrelated CLAUDE.md refactors out of goal commits.

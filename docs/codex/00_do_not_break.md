@@ -19,12 +19,13 @@ This document enumerates exactly what's load-bearing. **If a proposed change wou
 
 ## 1. Published kernels (DO NOT RENAME OR DELETE)
 
-These two kernel directories are the recording-critical path:
+These three kernel directories are the active Kaggle path:
 
 | Path | Role |
 |---|---|
 | `kaggle/01-duecare-exploration-workbench/kernel.py` | Reviewer workbench â€” broadest surface |
 | `kaggle/02-live-demo/kernel.py` | Focused live-demo path |
+| `kaggle/A-00-omni-experiment-workbench/kernel.py` | Quantitative proof, training, evaluation, and report path |
 
 Plus optional benchmarks (not part of the recording-critical path but still published):
 
@@ -45,7 +46,8 @@ python scripts/validate_main_kaggle_kernels.py
 This gate protects the Kaggle root layout, the active kernels above, and the two optional benchmark kernels above. Appendix notebooks, archived notebooks, and legacy notebook-era folders are not part of kernel compatibility unless Taylor explicitly asks to restore them.
 
 **Kaggle root layout:** keep appendix folders out of the root. Root `kaggle/`
-must not contain `A-*` folders, and the only root `04-*` folder should be
+must not contain `A-*` folders except the active
+`A-00-omni-experiment-workbench`, and the only root `04-*` folder should be
 `04-kaggle-community-benchmark`. Task-notebook snapshots such as
 `04-task-notebook-*` belong under `kaggle/_archive/notebooks/`.
 

@@ -3,8 +3,8 @@
 Duecare is composed of five things that can live in different places:
 
 1. **Gemma 4** — the language model itself
-2. **GREP layer** — deterministic regex rules (42 trafficking patterns)
-3. **RAG layer** — 50+ document legal corpus + BM25 retrieval
+2. **GREP layer** — versioned deterministic risk and evidence rules
+3. **RAG layer** — versioned legal, policy, and corridor corpus with retrieval
 4. **Tools layer** — corridor fee caps, ILO indicator lookup, NGO directory
 5. **Internet search** — `duecare-llm-research-tools` (Tavily / Brave /
    Serper / DuckDuckGo / Wikipedia / arbitrary URL fetch)
