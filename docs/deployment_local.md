@@ -102,7 +102,7 @@ View pipeline modal, Persona library, custom rule additions.
 ### To run the **experiment pipeline** instead
 
 ```bash
-python kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py
+python kaggle/A-00-omni-experiment-workbench/kernel.py
 ```
 
 Same setup; serves the A-00 quantitative workbench for baseline, harnessed,

@@ -2,8 +2,8 @@
 
 Current as of 2026-05-17. This document replaces the old 2026-05-02 two-week
 appendix-ladder plan. The remaining work is no longer broad notebook publishing;
-it is validating the two active kernels and preserving optional evidence from
-the archived A-00 pipeline.
+it is validating the active kernels and preserving optional evidence from
+the active A-00 pipeline.
 
 ## Scope
 
@@ -21,12 +21,12 @@ should be `04-kaggle-community-benchmark`.
 1. Confirm the official Kaggle submission requirements and final deadline.
 2. Run Kernel 01 and capture the default harness comparison path.
 3. Run Kernel 02 and capture the live demo/video path.
-4. Optional only: run archived A-00 with a small proof configuration to confirm
+4. Optional only: run active A-00 with a small proof configuration to confirm
    exports and report links if new proof artifacts are needed.
-5. Optional only: run archived A-00 again with the best available prompt
+5. Optional only: run active A-00 again with the best available prompt
    count/training settings that fit the remaining wall-clock budget.
 6. Download `/kaggle/working` outputs after every meaningful phase.
-7. Submit with the current two-kernel story, not the archived A-series story.
+7. Submit with the current active Kaggle story, not the archived A-series story.
 
 ## Archived A-00 Runtime Strategy
 

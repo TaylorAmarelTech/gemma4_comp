@@ -11,7 +11,7 @@ The active public submission path is intentionally narrow:
 
 1. `kaggle/01-duecare-exploration-workbench/` - broad live workbench.
 2. `kaggle/02-live-demo/` - focused screen-recording surface and slides.
-3. `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/` - evaluation, training, and
+3. `kaggle/A-00-omni-experiment-workbench/` - evaluation, training, and
    benchmarking console.
 
 Archived A-series notebooks remain under `kaggle/_archive/notebooks/` as
@@ -53,4 +53,3 @@ reference material, but they are not the default reviewer path.
   background work.
 - The repository includes archived research material. Public validation should
   focus on the active README, docs, examples, packages, and Kaggle folders.
-

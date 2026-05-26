@@ -6,25 +6,22 @@ hide:
 
 # DueCare: A Gemma 4 Safety Ecosystem
 
-> **Current competition scope (2026-05-25):** the active Kaggle
-> judging path is `kaggle/01-duecare-exploration-workbench` plus
-> `kaggle/02-live-demo`. Optional proof surfaces live in
-> `kaggle/03-universal-llm-benchmark` and
-> `kaggle/04-kaggle-community-benchmark`. Appendix notebooks and
-> A-series experiments are archived provenance; they are not the
-> main run path. See
-> [`kaggle/_INDEX.md`](https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/kaggle/_INDEX.md).
-
-> **Open-source AI safety harness around Google's Gemma 4 — for
-> migrant workers, NGOs, regulators, and researchers fighting
-> recruitment fraud and trafficking. MIT licensed. Runs offline.**
+DueCare is an interoperable ecosystem for turning frontline evidence
+into reviewed intelligence against recruitment fraud and trafficking.
+Gemma 4 is the reasoning engine, but the strength comes from the
+components around it: workbenches, harnesses, knowledge packs, search
+guards, anonymization gates, graph extraction, evaluation, benchmarks,
+and a public hub that can exchange only safe, reviewed objects.
 
 ## The ecosystem idea
 
-DueCare is not a single chatbot. It is a Gemma 4 workbench plus a
-set of reusable safety components: local model runtime, deterministic
-rules, retrieval packs, templates, search, anonymization, evidence
-graphs, evaluation, and optional community benchmarks.
+DueCare is not a single chatbot. It is a set of components designed to
+talk to each other through shared fact objects, evidence edges,
+versioned packs, traces, and exports. A document review can feed
+Knowledge Extraction. Knowledge Extraction can feed Search and
+evaluation. Search results pass through safety and verification before
+they become context. Anonymization & Sharing is the consent gate before
+anything leaves a local node.
 
 The strongest use case is a network of trusted local nodes. A worker,
 NGO office, regulator, platform team, or researcher can process raw
@@ -53,208 +50,87 @@ reviewed against the same repo.
 | **GitHub source repo** | [github.com/TaylorAmarelTech/gemma4_comp](https://github.com/TaylorAmarelTech/gemma4_comp) | Source of truth for the monorepo: Kaggle kernels, packages, docs, Render website source, scripts, validation gates, and GitHub Actions. |
 | **GitHub Pages docs** | [tayloramareltech.github.io/gemma4_comp](https://tayloramareltech.github.io/gemma4_comp/) | Static MkDocs documentation generated from `docs/`. This is the easiest route for onboarding, install guides, scenarios, architecture, reproducibility notes, and judge-facing review pages. |
 
-## What it does
+## Choose Your User Path
 
-A 23-year-old domestic worker leaves the Philippines for Hong Kong.
-A recruiter charges her ₱50,000 in "training fees" before her visa
-is released — but Philippine law says that fee is illegal.
+DueCare uses the same six lanes as the public hub at
+[duecare-ai.com](https://duecare-ai.com/). They are roles in one
+ecosystem, not separate products.
 
-She doesn't know that. She pays.
-
-Duecare is the tool she — or her caseworker, or her lawyer, or her
-country's labor regulator — can use to spot that the fee is illegal,
-in 5 seconds, with the actual statute citation, before any harm
-happens. Or after, to recover the money.
-
-## Try it now (2 minutes)
-
-=== "I'm curious"
-
-    Open the active DueCare App on Kaggle:
-
-    [duecare-app :octicons-arrow-right-24:](https://www.kaggle.com/code/taylorsamarel/duecare-app){ .md-button .md-button--primary }
-
-    Click "Run All". When the Cloudflare URL appears, open the
-    workbench and try Bulk File Review, Knowledge Extraction, Search,
-    Templates, or Anonymization & Sharing.
-
-    For the quick chat path, type:
-
-    > *Is a 50,000 PHP training fee legal for a Filipino domestic
-    > worker going to Hong Kong?*
-
-    The harness cites POEA Memorandum Circular 14-2017 §3.
-
-=== "I'm a migrant worker"
-
-    On your Android phone:
-
-    [Get the v0.9 APK :octicons-arrow-right-24:](https://github.com/TaylorAmarelTech/duecare-journey-android/releases){ .md-button .md-button--primary }
-
-    Read the [worker self-help guide](scenarios/worker-self-help.md)
-    (also available in [Tagalog draft](scenarios/translations/worker-self-help.tl.md)
-    and [Spanish draft](scenarios/translations/worker-self-help.es.md)).
-
-=== "I'm an NGO director"
-
-    Start with the active Kaggle demo or a local office deployment:
-
-    ``` bash
-    git clone https://github.com/TaylorAmarelTech/gemma4_comp
-    cd gemma4_comp
-    make demo
-    ```
-
-    Read the [90-minute office deployment guide](scenarios/ngo-office-deployment.md)
-    for the full setup.
-
-=== "I'm a developer or integrator"
-
-    Install the Python packages, run the public-surface checks, and
-    choose the lane that matches your deployment:
-
-    ``` bash
-    python -m pip install -e packages/duecare-llm-chat
-    python scripts/validate_public_surface.py
-    ```
-
-    Read the [install guide](install.md), [embedding guide](embedding_guide.md),
-    or [chief-architect view](scenarios/chief-architect.md).
-
-## Portable onboarding paths
-
-| Path | Start | What Leaves The Local Node |
+| User Path | What You Need | Where To Start |
 |---|---|---|
-| **Kaggle judge** | Run Kernel 01, then open Getting Started, Bulk File Review, and the Ecosystem Map. | Replay JSON, graph export, comparison scores, UI audit. |
-| **NGO & regulator** | Process a local case bundle, review evidence, draft templates, and anonymize. | Reviewed graph, referral draft, `knowledge_files.zip`, `redacted_submission.json`. |
-| **Individual worker / mobile** | Ask local questions, save private notes, and prepare intake material. | Worker-approved note or intake draft. |
-| **Researcher** | Import reviewed packs and run public-source search through Search Safety. | Aggregate signal table, public-source proposal, benchmark row. |
-| **Developer / integration partner** | Install `duecare-llm-chat` and inspect `/api/portability`. | Route inventory, type catalog, sample manifest, reusable harness contract. |
-| **Benchmark user** | Use optional Kernel 03 or 04 after the active demo path is stable. | Synthetic or anonymized prompt rows, judge rubric, comparison table, reproducibility metadata. |
+| **I am on a platform safety team** | Screen risky recruitment posts, ads, profiles, and messages before workers are harmed. | [Enterprise pilot](scenarios/enterprise_pilot.md), [Deployment guide](deployment_enterprise.md), and the content screening API. |
+| **I am an NGO, caseworker, regulator, or legal-aid reviewer** | Turn messages, documents, and public rules into grounded drafts, referrals, complaint materials, and corridor updates. | [Caseworker workflow](scenarios/caseworker_workflow.md), [NGO office deployment](scenarios/ngo-office-deployment.md), and [Regulator pattern analysis](scenarios/regulator-pattern-analysis.md). |
+| **I am a migrant worker or prospective worker** | Understand suspicious offers, contracts, recruiter messages, fee demands, document retention, threats, and next steps privately. | [Worker self-help](scenarios/worker-self-help.md) and the [DueCare Journey Android releases](https://github.com/TaylorAmarelTech/duecare-journey-android/releases). |
+| **I am an academic researcher, evaluator, or auditor** | Reproduce model behavior, compare safety interventions, inspect pack hashes, and audit every claim from source artifacts. | [Researcher analysis](scenarios/researcher-analysis.md), [Reproducibility](reproducibility.md), and [A-00 proof path](FOR_PEER_REVIEW.md#a-00-proof-path). |
+| **I am sharing anonymized knowledge** | Convert reviewed local evidence into sanitized fact objects that improve shared packs without centralizing raw worker case data. | [Anonymization policy](anonymization_policy.md), [Submission labeling policy](submission_labeling_policy.md), and the workbench Anonymization & Sharing page. |
+| **I am a developer or integration partner** | Embed DueCare into moderation tools, NGO systems, mobile clients, dashboards, or custom workflows. | [Install guide](install.md), [Embedding guide](embedding_guide.md), [OpenAPI spec](openapi.yaml), and [Client connect](https://duecare-ai.com/client-connect). |
 
-## What ships in the box
+## Deployment And Use Cases
 
-<div class="grid cards" markdown>
+The same components can be assembled for different operating contexts.
+Each deployment keeps the sensitive-data boundary explicit.
 
-- :material-shield-check: **Harness**
+| Use Case | Local Components | Shared Components |
+|---|---|---|
+| **Kaggle workbench and live demo** | Gemma 4 runtime, workbench pages, harness layers, Bulk File Review, Knowledge Extraction, Search, Templates, Anonymization & Sharing, and A-00 proof runs. | Exported reports, benchmark rows, replay artifacts, comparison scores, and public documentation. |
+| **Platform safety deployment** | Content screening API, GREP rules, corridor packs, risk explanations, queue-ready review payloads, and moderation audit traces. | Anonymized pattern signals and vetted pack updates. |
+| **NGO & regulator office deployment** | Local case-bundle review, citation-backed summaries, referral drafts, graph extraction, document review, and caseworker-controlled exports. | Reviewed public facts, sanitized observations, pack proposals, and aggregate corridor trends. |
+| **Individual worker / mobile deployment** | Trusted mobile or chat experience, private notes, local guidance, evidence organization, and worker-controlled sharing. | Only worker-approved notes, intake drafts, or sanitized signals. |
+| **Academic research and benchmark deployment** | Reproducible prompts, model comparisons, rule and LLM judging, optional community benchmark runs, and A-00 training/evaluation artifacts. | Versioned scorecards, model cards, evaluation metadata, and pack hashes. |
+| **Developer / integration deployment** | FastAPI routes, package modules, schemas, Docker/runtime examples, client snippets, and local validation scripts. | Public APIs, docs, pack registry, release artifacts, and integration examples. |
 
-    100+ GREP rules + 50+ RAG documents + ILO indicator and corridor
-    packs. Quantified lift is documented in the reproducibility reports.
+## Information Sharing Architecture
 
-- :material-cellphone-android: **Android app**
+DueCare is designed for many local nodes to learn from each other
+without becoming one raw case-data warehouse.
 
-    `duecare-journey-android` v0.9. On-device Gemma 4. Encrypted
-    SQLCipher journal. Reports tab with NGO intake document.
-
-- :material-server: **Server**
-
-    FastAPI + the Duecare package family. Per-tenant token + cost meter.
-    Per-tenant rate limits. Prometheus / OpenTelemetry / Loki
-    observability stack.
-
-- :material-package-variant-closed: **Containers**
-
-    Multi-arch Docker image at `ghcr.io/tayloramareltech/duecare-llm`.
-    Helm chart with HPA + PDB + NetworkPolicy. Multi-platform
-    cloud deploy cookbook.
-
-- :material-book-open-page-variant: **Persona walkthroughs**
-
-    From migrant workers to Big Tech CTOs. Day-1 setup + day-2
-    operational rhythm + day-30 expansion + when-something-breaks
-    table per persona.
-
-- :material-school: **Educator + journalist materials**
-
-    Drop-in lesson plans (1-hour to 2-week). Press kit with
-    one-pager + suggested story angles + facts + quotes.
-
-- :material-share-variant: **Anonymized fact-object sharing**
-
-    Local deployments can create reviewed, redacted fact objects and
-    graph evidence without uploading raw worker files. Shared safely,
-    those objects become corridor intelligence, knowledge-pack updates,
-    and benchmark rows.
-
-</div>
-
-## Pick your path
-
-Sorted by who you are:
-
-| You are... | Read |
+| Stage | Component | Output | Boundary |
 |---|---|
-| **OFW / migrant worker** | [Worker self-help](scenarios/worker-self-help.md) |
-| **Caseworker** | [Caseworker workflow](scenarios/caseworker_workflow.md) |
-| **NGO director** | [NGO office deployment](scenarios/ngo-office-deployment.md) |
-| **Legal aid lawyer** | [Lawyer evidence prep](scenarios/lawyer-evidence-prep.md) |
-| **Government regulator** | [Regulator pattern analysis](scenarios/regulator-pattern-analysis.md) |
-| **Embassy / consulate officer** | [Embassy + consular workflow](scenarios/embassy-consular.md) |
-| **ILO / IOM regional staff** | [Supra-national analysis](scenarios/ilo-iom-regional.md) |
-| **Recruitment compliance officer** | [Self-audit](scenarios/recruiter-self-audit.md) |
-| **Researcher** | [Researcher analysis](scenarios/researcher-analysis.md) |
-| **Investigative journalist** | [Journalist investigation](scenarios/journalist-investigation.md) |
-| **IT director** | [IT director TCO + ops](scenarios/it-director.md) |
-| **Chief architect** | [Architect integration](scenarios/chief-architect.md) |
-| **VP Engineering** | [VP 90-day plan](scenarios/vp-engineering.md) |
-| **Platform CTO at Big Tech** | [Enterprise pilot](scenarios/enterprise_pilot.md) |
+| **Local review** | Workbench, mobile app, or tenant deployment | Drafts, citations, graph edges, review decisions, and local audit traces. | Raw chats, case files, IDs, screenshots, and private documents stay local. |
+| **Local anonymization** | Anonymization & Sharing workflow | Sanitized fact object, aggregate signal, public-source proposal, or hash receipt. | Reviewer consent and redaction happen before upload. |
+| **Hub intake** | duecare-ai.com public hub | Review queue entry, validation result, and submission receipt. | Server-side PII checks reject raw private case content. |
+| **Curation** | Curator and civil-society review | Vetted pack update, contact metadata update, benchmark row, or rejected proposal. | Human review is required before shared knowledge becomes reusable. |
+| **Reuse** | Local nodes pulling updated packs | Better rules, citations, examples, and evaluation artifacts in future local deployments. | Shared intelligence returns as versioned packs, not as exposed case narratives. |
 
-## Quick links
+Read the focused [Information Sharing Architecture](information_sharing_architecture.md)
+page for the object types, trust boundary, and hub/local responsibilities.
 
-- :material-map-marker-radius: [**System map**](system_map.md) — interactive bird's-eye view of all components, users, deployments, notebooks
-- :material-sitemap-outline: [**System components and critical paths**](system_components_and_critical_paths.md) — stable component map, harness inventory, critical paths, users, and drift rules
-- :material-notebook-edit-outline: [**Author's notes**](authors_notes.md) — informal observations, what didn't work, design judgments
-- :material-bookshelf: [**Appendices**](appendices/README.md) — index of deeper enclosures linked from the writeup
-- :material-format-quote-open: [Press kit](press_kit.md) — one-pager + facts + quotes for journalists
-- :material-school: [Educator resources](educator_resources.md) — drop-in lesson plans
-- :material-compare: [Comparison vs alternatives](comparison_to_alternatives.md) — when Duecare fits vs Hive / Sift / Azure / OpenAI
-- :material-check-decagram: [For judges](FOR_PEER_REVIEW.md) — the hackathon-judge view
-- :material-view-dashboard: [Readiness dashboard](readiness_dashboard.md) — single-screen status across every dimension
-- :material-account-multiple-check: [Persona readiness audit](persona_readiness_audit.md) — happy path verified per persona
-- :material-frequently-asked-questions: [FAQ](FAQ.md) — common questions answered
+## Core Components
 
-### Verifiability + reproducibility (judge-focused)
+| Component | Purpose |
+|---|---|
+| **Gemma 4 model layer** | Local reasoning, classification, summarization, multimodal reading, and draft generation. |
+| **Safety guidance layer** | Persona, GREP rules, retrieval, tools, imports, search verification, and traceable response assembly. |
+| **Knowledge packs** | Versioned rules, citations, contacts, corridor facts, tool definitions, examples, and evaluation data. |
+| **Local anonymization module** | Converts reviewed sensitive material into redacted fact objects or aggregate signals before sharing. |
+| **Central knowledge server** | Hosts public docs, APIs, vetted pack metadata, anonymized aggregate signals, and review queues. |
+| **Quality and training layer** | Reproducible evaluation, A-00 proof runs, benchmark artifacts, and optional Gemma 4 adaptation. |
 
-- :material-clipboard-check: [**Reproducibility**](reproducibility.md) — every quantitative claim grounded with `(git_sha, dataset_version, eval_set, grader_version)` provenance + one-command re-measurement path
-- :material-table-of-contents: [**Corpus index**](corpus_index.md) — source-of-truth pointers for the live GREP, RAG, tool, rubric, and judge inventories
-- :material-compare-horizontal: [**Stock vs harnessed examples**](stock_vs_harnessed.md) — 5 textbook prompts side-by-side (mean lift 4.6% → 88.4%)
-- :material-tune-vertical: [**Archived A-00 proof path**](FOR_PEER_REVIEW.md#archived-a-00-proof-path) — preconfigured baseline, harness, optional LoRA, judging, and export run
-- :material-clock-fast: [**Judge 5-min test plan**](peer_review_5min_test_plan.md) — the entry point for hackathon judges
+## Run Or Verify
 
-## Headline proxy evidence
+| Goal | Start |
+|---|---|
+| **Try the workbench** | Open [DueCare App on Kaggle](https://www.kaggle.com/code/taylorsamarel/duecare-app), run it, and open the Cloudflare URL. |
+| **Review the proof path** | Use [For Judges and Reviewers](FOR_PEER_REVIEW.md) and the active A-00 proof path. |
+| **Install locally** | Use [Install](install.md) and [Local deployment](deployment_local.md). |
+| **Embed in another system** | Use [Embedding guide](embedding_guide.md), [OpenAPI spec](openapi.yaml), and [Deployment enterprise](deployment_enterprise.md). |
+| **Audit claims** | Use [Reproducibility](reproducibility.md), [Notebook guide](notebook_guide.md), and the validation commands linked there. |
 
-The measured harness-lift report shows current smoke / regression
-evidence. These are not field-deployment, production-traffic, or
-weeks-long local Gemma reliability numbers:
+## Sensitive Data Boundary
 
-- **+51.4 pp** mean lift across the published 200+ prompt proxy set
-- **+73.8 pp** on jurisdiction-specific rule citations
-- **+55.4 pp** on ILO / international convention citations
-- **+21.2 pp** on substance-over-form analysis
-- **Nearly all** checked proxy prompts saw the harness help; the
-  generated report lists the exact current count
+- Raw worker chats, case files, IDs, contact details, and private documents
+  stay on the worker device, Kaggle session, trusted NGO machine, or
+  tenant-owned deployment unless an authorized user creates a sanitized object.
+- Sensitive PII is anonymized by the local workflow before anything is
+  submitted to the public hub.
+- The public server receives public-source facts, vetted pack metadata,
+  anonymized aggregate signals, hash receipts, and consented contact metadata.
+- The public server should not receive raw worker chats, phone numbers,
+  addresses, passports, private documents, or personal case narratives.
 
-Numbers are reproducible — see the [harness lift report](harness_lift_report.md),
-the [reproducibility doc](reproducibility.md) (provenance for every
-quantitative claim), and [`RESULTS.md`](https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/RESULTS.md)
-for the `(git_sha, dataset_version, model_revision)` tuples.
-
-**Measurement note:** these numbers were regenerated from the current
-source on May 25, 2026 with `python scripts/rubric_comparison.py`.
-Re-run that command before copying the figures into a new public claim.
-Run and archive live Gemma outputs before claiming long-run citation
-traceability or field performance.
-
-## Sensitive data stays local
-
-- **By default, nothing leaves your machine** beyond the one-time AI model download.
-- **No telemetry.** No analytics. No phone-home. The maintainer doesn't operate any service your data passes through.
-- **Audit log records hashes**, not plaintext.
-- **Panic-wipe primitive** in the Android app erases everything in one tap.
-- **Open source**, MIT licensed, fork-able.
-
-Read the [threat model](considerations/THREAT_MODEL.md) for the
-detailed STRIDE breakdown across 4 trust boundaries.
+Read the [threat model](considerations/THREAT_MODEL.md) and
+[submission labeling policy](submission_labeling_policy.md) for the detailed
+trust boundary.
 
 ---
 

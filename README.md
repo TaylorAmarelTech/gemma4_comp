@@ -32,8 +32,8 @@
 > Stakeholder Engagement, Newsletter and Alerts, Fine-Tuning, Channel and
 > Deployment Package. **Live core** for the Kaggle submission is Gemma 4 +
 > Safety Guidance + Knowledge Packs + Bulk File Review + Quality Testing.
-> **Archived prototype:**
-> Fine-tuning and benchmarking (`kaggle/_archive/notebooks/A-00-omni-experiment-workbench/`). **Roadmap:** Central server
+> **Proof pipeline:**
+> Fine-tuning and benchmarking (`kaggle/A-00-omni-experiment-workbench/`). **Roadmap:** Central server
 > modules, research monitor, stakeholder engagement, newsletter, and channel
 > deployment. **Sibling repo (live):** Mobile (DueCare Journey
 > v0.9.0). Full canonical definition:
@@ -72,7 +72,7 @@
 
 ## Try DueCare in 30 seconds
 
-Two active Kaggle script kernels. Each one is a single `kernel.py` file: copy it into a fresh Kaggle Notebook, set **Accelerator: GPU T4 x2** + **Internet: On**, click **+ Add Input â†’ Models â†’ `google/gemma-4`**, then **Run All**. ~30 seconds later the kernel prints a public `https://*.trycloudflare.com` URL.
+Two demo Kaggle script kernels are the fastest way to try DueCare. Each one is a single `kernel.py` file: copy it into a fresh Kaggle Notebook, set **Accelerator: GPU T4 x2** + **Internet: On**, click **+ Add Input â†’ Models â†’ `google/gemma-4`**, then **Run All**. ~30 seconds later the kernel prints a public `https://*.trycloudflare.com` URL. A-00 is the active proof kernel for longer fine-tuning, evaluation, and report-bundle runs.
 
 | | Kernel | What you see when it starts |
 |---|---|---|
@@ -102,20 +102,21 @@ python -c "from duecare.server import create_app; from duecare.server.state impo
 
 > ### Submitted to the Gemma 4 Good Hackathon (2026-05-18)
 >
-> **Active Kaggle path: 01 + 02.** Judges land on
+> **Active Kaggle path: 01 + 02 + A-00.** Judges land on
 > the exploration workbench, then proceed to the focused live
-> demo. The former video-pitch, A-00 experiment console, and
-> appendix notebooks are archived under `kaggle/_archive/notebooks`
-> to keep the submission path testable.
+> demo. A-00 remains the active proof and training/evaluation path.
+> The former video-pitch and A-01 through A-24 appendix notebooks are
+> archived under `kaggle/_archive/notebooks` to keep the submission
+> path testable.
 >
 > **Core (judges evaluate first, in this order):**
 >
 > 1. **DueCare App** â€” [`duecare-app`](https://www.kaggle.com/code/taylorsamarel/duecare-app) â€” the broad workbench. Chat, Harness Comparison, Bulk File Review, Knowledge Extraction, Search, Anonymization and Sharing, Sync, Status, UI Audit, live layer catalogs, global model selector, A/B comparison, retrieval trace, grading, local imports, and RAG graph views.
 > 2. **DueCare Live Demo** â€” [`duecare-live-demo`](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo) â€” focused live product demo with real Gemma 4 inference, the recording-grade pitch deck at `/start` and `/slides`, and a curated safety-harness scenario.
 >
-> **Archived proof and optional benchmark surfaces:**
+> **Proof and optional benchmark surfaces:**
 >
-> - **DueCare Fine-tuning and Evaluation** â€” [`duecare-fine-tuning-and-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation) ([archived source](./kaggle/_archive/notebooks/A-00-omni-experiment-workbench/)) is provenance for prior proof runs: baseline vs harness vs fine-tuned vs fine-tuned-plus-harness exports, rule and LLM grading, synthetic SFT/DPO generation, tiny LoRA smoke bundles, local research graphs, and HTML/PDF reports.
+> - **DueCare Fine-tuning and Evaluation** â€” [`duecare-fine-tuning-and-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation) ([active source](./kaggle/A-00-omni-experiment-workbench/)) is the proof path for baseline vs harness vs fine-tuned vs fine-tuned-plus-harness exports, rule and LLM grading, synthetic SFT/DPO generation, tiny LoRA smoke bundles, local research graphs, and HTML/PDF reports.
 > - **DueCare Universal LLM Benchmark** â€” [`kaggle/03-universal-llm-benchmark`](./kaggle/03-universal-llm-benchmark/) is optional: it tests arbitrary API endpoints against DueCare prompt/rubric/evidence cues and can use Claude Opus as an external judge.
 > - **DueCare Kaggle Community Benchmark** â€” [`kaggle/04-kaggle-community-benchmark`](./kaggle/04-kaggle-community-benchmark/) is optional: it converts DueCare rows into `kaggle_benchmarks` tasks so Kaggle-hosted model quota and leaderboard artifacts can be used.
 > - Archived A-01 through A-24 plus the former video-pitch kernel remain available as reference material, but they are not part of the active validation or recording path.
@@ -708,7 +709,7 @@ python -m pytest packages --collect-only -q
 
 The active notebook sources live under `kaggle/`. For the final hackathon
 submission path, use `01-duecare-exploration-workbench` and `02-live-demo`.
-The former video-pitch notebook, A-00 experiment console, and A-01 through
+The former video-pitch notebook and A-01 through
 A-24 appendix notebooks are archived under `kaggle/_archive/notebooks/`.
 
 The old `legacy_notebooks/` and `skunkworks/` root folders have been
@@ -770,7 +771,7 @@ gemma4_comp/
 â”‚   â”œâ”€â”€ 02-live-demo/             # CORE #02: focused live URL
 â”‚   â”œâ”€â”€ 03-universal-llm-benchmark/ # optional external endpoint benchmark
 â”‚   â”œâ”€â”€ 04-kaggle-community-benchmark/ # optional Kaggle benchmark surface
-â”‚   â”œâ”€â”€ _archive/notebooks/        # archived video pitch, A-00, and A-01 through A-24
+â”‚   â”œâ”€â”€ _archive/notebooks/        # archived video pitch and A-01 through A-24
 â”‚   â”œâ”€â”€ shared-datasets/          # cross-notebook: trafficking-prompts, eval-results
 â”‚   â”œâ”€â”€ kernels/                  # 9 generated/research kernels (separate from submission folders)
 â”‚   â””â”€â”€ models/                   # Kaggle Models artifacts

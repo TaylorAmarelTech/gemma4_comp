@@ -27,7 +27,7 @@ intentionally narrower:
 
 1. `kaggle/01-duecare-exploration-workbench/` shows the broad harness surface.
 2. `kaggle/02-live-demo/` supports the focused demo and video story.
-3. `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/` produces the quantitative evidence
+3. `kaggle/A-00-omni-experiment-workbench/` produces the quantitative evidence
    run: baseline, harnessed output, synthetic rows, optional LoRA training,
    combined judging, and exports.
 

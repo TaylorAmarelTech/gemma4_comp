@@ -19,6 +19,17 @@ KERNELS_DIR = REPO_ROOT / "kaggle"
 NOTEBOOKS_DIR = REPO_ROOT / "legacy_notebooks"
 SKUNKWORKS_NOTEBOOKS_DIR = REPO_ROOT / "skunkworks" / "notebooks"
 
+ACTIVE_KERNEL_DIRS = {
+    "01-duecare-exploration-workbench",
+    "02-live-demo",
+    "A-00-omni-experiment-workbench",
+}
+
+OPTIONAL_BENCHMARK_DIRS = {
+    "03-universal-llm-benchmark",
+    "04-kaggle-community-benchmark",
+}
+
 TITLE_TOKEN_OVERRIDES = {
     "api": "API",
     "duecare": "DueCare",
@@ -107,12 +118,17 @@ def discover_kernel_notebooks(
     kernels_dir: Path = KERNELS_DIR,
     notebooks_dir: Path | None = NOTEBOOKS_DIR,
     skunkworks_dir: Path | None = SKUNKWORKS_NOTEBOOKS_DIR,
+    *,
+    include_optional: bool = False,
 ) -> list[KaggleNotebook]:
-    """Return every tracked Kaggle kernel discovered from metadata files.
+    """Return the active judge-facing Kaggle kernels.
 
-    Top-level Kaggle kernel directories are authoritative. Legacy and skunkworks
-    notebooks are optional archive mirrors; when those folders have been
-    moved out of the repo, entries simply report `mirror_path=None`."""
+    Top-level Kaggle kernel directories are authoritative. By default this
+    returns the active competition set: Kernel 01, Kernel 02, and A-00. Optional
+    benchmark kernels can be included by passing ``include_optional=True``.
+    Legacy and skunkworks notebooks are optional archive mirrors; when those
+    folders have been moved out of the repo, entries report ``mirror_path=None``.
+    """
     entries: list[KaggleNotebook] = []
     mirror_dirs = [
         candidate
@@ -120,6 +136,10 @@ def discover_kernel_notebooks(
         if candidate is not None and candidate.exists()
     ]
     for dir_path in sorted(child for child in kernels_dir.iterdir() if child.is_dir()):
+        if dir_path.name not in ACTIVE_KERNEL_DIRS and not (
+            include_optional and dir_path.name in OPTIONAL_BENCHMARK_DIRS
+        ):
+            continue
         meta_path = dir_path / "kernel-metadata.json"
         if not meta_path.exists():
             continue

@@ -24,7 +24,7 @@ DueCare App workbench and the DueCare Live Demo. Together they prove the same
 end-to-end system:
 Gemma 4 runtime, safety harness, Bulk File Review case analysis,
 graph extraction, anonymized knowledge sharing, and contact routing. The
-archived A-00 path preserves the stock/fine-tuned/harness evaluation matrix.
+active A-00 path preserves the stock/fine-tuned/harness evaluation matrix.
 The public hub at
 [duecare-ai.com](https://duecare-ai.com) is the companion website for
 the judges-facing story, kernel links, knowledge-pack registry, and
@@ -49,7 +49,7 @@ and a sibling DueCare Journey Android APK proving the LiteRT/offline
 edge path.
 
 **Notebook status note:** the current judge-facing Kaggle path is the
-two-kernel set in `kaggle/_INDEX.md`: exploration workbench and live demo.
+active kernel set in `kaggle/_INDEX.md`: exploration workbench, live demo, and A-00 proof path.
 DueCare Fine-tuning and Evaluation is archived proof material. Retired
 notebook-era surfaces are historical.
 
@@ -89,7 +89,7 @@ maps each requirement to a concrete surface below.
 | Track | Why this submission qualifies | Anchored to |
 |---|---|---|
 | **Impact Track â†’ Safety & Trust** | Core concept is LLM safety for the most vulnerable migrant-worker populations. The harness directly targets known trafficking-detection failure modes. | The 50-prompt adversarial suite + the harness-on-vs-harness-off A/B comparison. |
-| **Special Tech â†’ Unsloth** | Fine-tune is via Unsloth + LoRA on Gemma 4. A-00 preserves the training config, checkpoints, adapter path, and comparison report. | `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py` + exported A-00 report bundle |
+| **Special Tech â†’ Unsloth** | Fine-tune is via Unsloth + LoRA on Gemma 4. A-00 preserves the training config, checkpoints, adapter path, and comparison report. | `kaggle/A-00-omni-experiment-workbench/kernel.py` + exported A-00 report bundle |
 | **Special Tech â†’ LiteRT** | The sibling Android app bundles harness metadata and uses the LiteRT path for the worker-facing offline surface. | `C:/Users/amare/OneDrive/Documents/duecare-journey-android` + GitHub Actions APK artifact |
 | **Main Track** | Pursued in parallel; depends on overall execution + video. | All of the above bundled. |
 
@@ -112,7 +112,7 @@ printed by that kernel. The route sequence below is stable:
    entities from the local staging directory.
 6. **Open the DueCare App kernel** for the full chat harness and A/B
    comparison surfaces.
-7. **Optional:** open the archived A-00 report to verify the stock, harness,
+7. **Optional:** open the A-00 report to verify the stock, harness,
    fine-tuned, and fine-tuned-plus-harness evaluation matrix.
 
 If you can do all 7 steps, you have empirical verification of the

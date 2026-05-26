@@ -237,7 +237,7 @@ This is **core notebook #1** of 3:
 - **#2** `duecare-live-demo`: focused interactive demo kernel that also
   hosts the recording-grade pitch deck at `/start` and `/slides`.
 The former 25-notebook appendix lineup, A-00 experiment console, and task
-notebook snapshots are archived; the active submission is this two-kernel set.
+notebook snapshots are archived; the active submission keeps this workbench plus the live demo and A-00 proof path runnable.
 See `kaggle/_INDEX.md` for the
 current index.
 

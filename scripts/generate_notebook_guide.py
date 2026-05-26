@@ -184,7 +184,7 @@ def render_notebook_guide(*, existing_path: Path = OUTPUT_PATH) -> str:
     lines.append("")
     lines.append("1. **Exploration workbench** - `kaggle/01-duecare-exploration-workbench/kernel.py`, `packages/duecare-llm-chat/src/duecare/chat/app.py`, and the registered harness pages.")
     lines.append("2. **Live demo** - `kaggle/02-live-demo/kernel.py`, `packages/duecare-llm-server/src/duecare/server`, and the Cloudflare launch path.")
-    lines.append("3. **Archived A-00 experiment pipeline** - `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py`, checkpointing, activity artifacts, reports, and judge options.")
+    lines.append("3. **Active A-00 experiment pipeline** - `kaggle/A-00-omni-experiment-workbench/kernel.py`, checkpointing, activity artifacts, reports, and judge options.")
     lines.append("4. **Shared runtime and harnesses** - `gemma4_runtime.py`, `harness/__init__.py`, `harnesses/base.py`, and `harnesses/model_interface.py`.")
     lines.append("5. **Docs and contract tests** - harness trinity docs, model-loading trace, A-00 parity tests, workbench UI tests, and active Kaggle state docs.")
     lines.append("")

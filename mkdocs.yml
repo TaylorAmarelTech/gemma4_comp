@@ -105,90 +105,59 @@ plugins:
   # - git-revision-date-localized
   # - minify
 
-# Navigation — curated path through the docs tree. Untouched docs
-# remain indexable + searchable but don't appear in the sidebar.
+# Keep the public Pages build focused on the current ecosystem,
+# onboarding, deployment, and information-sharing paths. Historical
+# appendices remain in git for provenance but should not be indexed as
+# primary public docs.
+exclude_docs: |
+  _archive/
+  appendices/
+  appendix_experiment_ladder.md
+  claude_*.md
+  codex_handoff_*.md
+  copilot_handoff_*.md
+  component_diagram.md
+  REVIEW_PROMPTS.md
+  submission_readiness_audit.md
+  system_map.md
+  system_map.html
+
+# Navigation - simplified GitHub Pages path.
+# The public site focuses on users, deployments, and anonymized
+# information sharing. Older reports, diagrams, appendices, and internal
+# handoffs remain in the repository for provenance but are de-emphasized
+# from the public Pages navigation.
 nav:
   - Home: index.md
-  - Get started:
-      - Try in 2 minutes: try_in_2_minutes.md
-      - Pick a deployment shape: deployment_topologies.md
-      - Launch packaging options: launch_packaging_options.md
-      - Pick a Gemma 4 variant: gemma4_model_guide.md
-      - Local install: deployment_local.md
-      - Cloud deploy (13 platforms): cloud_deployment.md
-      - Container guide: containers.md
-  - Scenarios:
-      - Index: scenarios/README.md
-      - For users:
-          - OFW / migrant worker: scenarios/worker-self-help.md
-          - "OFW (Tagalog draft)": scenarios/translations/worker-self-help.tl.md
-          - "OFW (Spanish draft)": scenarios/translations/worker-self-help.es.md
+  - User Paths:
+      - Overview: canonical_use_cases_and_components.md
+      - Platform safety: scenarios/enterprise_pilot.md
+      - NGO & regulator:
           - Caseworker workflow: scenarios/caseworker_workflow.md
-          - Legal aid lawyer: scenarios/lawyer-evidence-prep.md
-          - Researcher: scenarios/researcher-analysis.md
-          - Investigative journalist: scenarios/journalist-investigation.md
-          - Recruitment compliance: scenarios/recruiter-self-audit.md
-      - For organizations:
-          - NGO director: scenarios/ngo-office-deployment.md
-          - IT director: scenarios/it-director.md
-          - Chief architect: scenarios/chief-architect.md
-          - VP Engineering: scenarios/vp-engineering.md
-          - Platform CTO: scenarios/enterprise_pilot.md
-          - Government regulator: scenarios/regulator-pattern-analysis.md
-          - Embassy / consulate: scenarios/embassy-consular.md
-          - ILO / IOM regional: scenarios/ilo-iom-regional.md
-  - Strategic:
-      - Ecosystem overview: ecosystem_overview.md
-      - "Maria's case end-to-end": marias_case_end_to_end.md
-      - Cross-NGO trends federation: cross_ngo_trends_federation.md
-      - 2-week submission plan: two_week_submission_plan.md
-  - Submission:
-      - For judges: FOR_KAGGLE_JUDGES.md
-      - Writeup draft: writeup_draft.md
-      - System map (bird's-eye): system_map.md
-      - Author's notes: authors_notes.md
-      - Appendices index: appendices/README.md
-      - Readiness dashboard: readiness_dashboard.md
-      - Persona readiness audit: persona_readiness_audit.md
-      - Submission gate checklist: submission_gate_checklist.md
-      - Post-submission sustainability: post_submission_sustainability.md
-      - Smoke test report (2026-05-02): smoke_test_report_2026-05-02.md
-      - Rubric evaluation: rubric_evaluation_v07.md
-      - Project status: project_status.md
-      - Notebook QA companion: notebook_qa_companion.md
-      - Bench-and-tune readiness: bench_and_tune_readiness.md
-      - Repo cleanup review: repo_cleanup_review_2026-05-10.md
-  - Architecture:
-      - Overview: architecture.md
-      - Deployment topologies: deployment_topologies.md
-      - Submission labeling policy: submission_labeling_policy.md
-      - Embedding guide: embedding_guide.md
+          - NGO office deployment: scenarios/ngo-office-deployment.md
+          - Regulator pattern analysis: scenarios/regulator-pattern-analysis.md
+      - Individual worker / mobile: scenarios/worker-self-help.md
+      - Academic researcher: scenarios/researcher-analysis.md
+      - Anonymized knowledge sharing: information_sharing_architecture.md
+      - Developer / integration partner: embedding_guide.md
+  - Deployment:
+      - Deployment overview: deployment_topologies.md
+      - Install locally: install.md
+      - Local deployment: deployment_local.md
+      - Platform / on-prem deployment: deployment_enterprise.md
+      - Cloud / hub deployment: cloud_deployment.md
+      - Kaggle kernel state: current_kaggle_notebook_state.md
       - Notebook guide: notebook_guide.md
-      - Decision records:
-          - ADR index: adr/README.md
-          - 001 Multi-package PyPI split: adr/001-multi-package-pypi-split.md
-          - 002 Folder-per-module: adr/002-folder-per-module-pattern.md
-          - 003 On-device default: adr/003-on-device-default-cloud-opt-in.md
-          - 004 6+5 notebook shape: adr/004-six-plus-five-notebook-shape.md
-          - 005 Tenant id from edge proxy: adr/005-tenant-id-from-edge-proxy.md
-  - Enterprise considerations:
-      - Index: considerations/README.md
-      - Enterprise readiness: considerations/enterprise_readiness.md
-      - SLO: considerations/SLO.md
-      - Runbook: considerations/runbook.md
-      - Multi-tenancy: considerations/multi_tenancy.md
-      - Threat model: considerations/THREAT_MODEL.md
-      - Compliance: considerations/COMPLIANCE.md
-      - Vendor questionnaire: considerations/vendor_questionnaire.md
-      - Capacity planning: considerations/capacity_planning.md
-  - Outreach:
-      - Press kit: press_kit.md
-      - Educator resources: educator_resources.md
-      - Comparison vs alternatives: comparison_to_alternatives.md
-      - First-deployer feedback: first_deployer_feedback.md
-      - FAQ: FAQ.md
-  - Research:
+  - Information Sharing:
+      - Architecture: information_sharing_architecture.md
+      - Anonymization policy: anonymization_policy.md
+      - Submission labeling policy: submission_labeling_policy.md
+      - Knowledge object taxonomy: adr/007-knowledge-object-taxonomy.md
+      - Knowledge module schema: knowledge_module_schema.md
+  - Run And Verify:
+      - For judges and reviewers: FOR_PEER_REVIEW.md
+      - Reproducibility: reproducibility.md
       - Harness lift report: harness_lift_report.md
-      - Kaggle benchmark plan: kaggle_benchmark_plan.md
-      - Project phases: project_phases.md
-      - Cloud deployment: cloud_deployment.md
+      - OpenAPI spec: openapi.yaml
+      - Threat model: considerations/THREAT_MODEL.md
+      - FAQ: FAQ.md

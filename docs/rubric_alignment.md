@@ -13,7 +13,7 @@ Active Kaggle path:
 
 - `kaggle/01-duecare-exploration-workbench/`
 - `kaggle/02-live-demo/`
-- `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/`
+- `kaggle/A-00-omni-experiment-workbench/`
 
 ## Technical Depth
 

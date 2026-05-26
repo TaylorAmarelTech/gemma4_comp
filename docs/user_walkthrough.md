@@ -1,6 +1,6 @@
 ﻿# User Walkthrough
 
-Current as of 2026-05-17. This walkthrough uses the active two-kernel path.
+Current as of 2026-05-25. This walkthrough uses the active Kaggle path.
 Older zero-inference appendix-ladder walkthroughs are historical and archived.
 
 ## Three Time Budgets
@@ -37,7 +37,7 @@ Verify:
 
 ## 60+ Minute Path: Archived A-00
 
-Open `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/` and use the preconfigured
+Open `kaggle/A-00-omni-experiment-workbench/` and use the preconfigured
 pipeline.
 
 For a proof run:

@@ -1,4 +1,4 @@
-﻿# DueCare Kaggle Kernel Guide
+# DueCare Kaggle Kernel Guide
 
 `kaggle/_INDEX.md` and `docs/current_kaggle_notebook_state.md` are the authoritative active-kernel inventory. This guide is the human-readable purpose map generated from the same root `kaggle/*/kernel-metadata.json` script-kernel folders, plus `scripts/kaggle_live_slug_map.json` for public live status.
 
@@ -16,28 +16,24 @@ Every judge-facing Kaggle bundle must make its own bootstrap path explicit: prin
 
 | Priority | Notebooks / modules | Why review in depth |
 |---|---|---|
-| P0 | 01-duecare-app | Broad reviewer workbench: chat, harness comparison, search, knowledge extraction, bulk review, and trace inspection. |
+| P0 | 01-duecare-exploration-workbench | Broad reviewer workbench: chat, harness comparison, search, knowledge extraction, bulk review, and trace inspection. |
 | P0 | 02-live-demo | Focused live demo and video path for the current judging story. |
 | P1 | A-00-omni-experiment-workbench | Quantitative proof path: baseline, harnessed, synthetic-data, fine-tuning, judging, and report artifacts. |
-| P1 | 03-universal-llm-benchmark | Optional endpoint-comparison kernel for testing arbitrary APIs with DueCare prompts and Claude Opus judging. Not required for the recording path. |
-| P1 | 04-kaggle-community-benchmark | Optional Kaggle-native Community Benchmark for running DueCare rows through `kaggle_benchmarks` and Kaggle model proxy quota. Not required for the recording path. |
-| P2 | kaggle/kernels/* generated mirrors | Reference-only generated mirror material. Do not treat it as the active submission path. |
+| P1 | kaggle/kernels/* generated mirrors | Reference-only generated mirror material. Do not treat it as the active submission path. |
 
 ## Active kernel purpose map
 
 | ID | Title | Status | Kaggle URL | Purpose |
 |---|---|---|---|---|
-| `01-duecare-app` | DueCare App | Tracked draft | Pending publication | Broad reviewer workbench for chat, harness comparison, bulk review, knowledge extraction, search, sharing, traces, and activity logs. |
+| `01-duecare-exploration-workbench` | DueCare App | Tracked draft | Pending publication | Broad reviewer workbench for chat, harness comparison, bulk review, knowledge extraction, search, sharing, traces, and activity logs. |
 | `02-live-demo` | DueCare Live Demo | Tracked draft | Pending publication | Focused live demo path for judges and video capture, using the shared Gemma 4 runtime and live-demo surface. |
 | `A-00-omni-experiment-workbench` | DueCare Fine-tuning and Evaluation | Tracked draft | Pending publication | Quantitative control plane for baseline, harnessed, synthetic-data, fine-tuning, judging, checkpointing, and report evidence bundles. |
-| `03-universal-llm-benchmark` | DueCare Universal LLM Benchmark | Optional | Pending publication | Endpoint-comparison workbench for OpenAI-compatible, Anthropic Messages, and raw JSON APIs, with Claude Opus judging when configured. |
-| `04-kaggle-community-benchmark` | DueCare Kaggle Community Benchmark | Optional | Pending publication | Kaggle-native `kaggle_benchmarks` task surface for model-proxy benchmark runs and leaderboard publishing. |
 
 ## Active module deep-review queue
 
-1. **DueCare App** - `kaggle/01-duecare-exploration-workbench/kernel.py`, `packages/duecare-llm-chat/src/duecare/chat/app.py`, and the registered harness pages.
+1. **Exploration workbench** - `kaggle/01-duecare-exploration-workbench/kernel.py`, `packages/duecare-llm-chat/src/duecare/chat/app.py`, and the registered harness pages.
 2. **Live demo** - `kaggle/02-live-demo/kernel.py`, `packages/duecare-llm-server/src/duecare/server`, and the Cloudflare launch path.
-3. **Archived A-00 experiment pipeline** - `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py`, checkpointing, activity artifacts, reports, and judge options.
+3. **Active A-00 experiment pipeline** - `kaggle/A-00-omni-experiment-workbench/kernel.py`, checkpointing, activity artifacts, reports, and judge options.
 4. **Shared runtime and harnesses** - `gemma4_runtime.py`, `harness/__init__.py`, `harnesses/base.py`, and `harnesses/model_interface.py`.
 5. **Docs and contract tests** - harness trinity docs, model-loading trace, A-00 parity tests, workbench UI tests, and active Kaggle state docs.
 
