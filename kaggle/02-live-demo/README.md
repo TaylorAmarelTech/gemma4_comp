@@ -38,7 +38,7 @@ working runtime surfaces.
 | Internet | On |
 | Secrets | `HF_TOKEN` when downloading gated weights |
 | Models | Gemma 4 E2B, E4B, 26B-A4B, or 31B IT variants |
-| Expected runtime | About 30 seconds for E4B after install, longer for larger variants |
+| Expected runtime | Variable: package install, model download/load, Kaggle worker state, and Cloudflare quick-tunnel startup can take minutes; larger variants take longer |
 
 ## Run It On Kaggle (5 clicks)
 
@@ -53,8 +53,10 @@ Copy-paste reproduction path so a judge can run this kernel without leaving Kagg
 4. **Paste `kernel.py`** from this folder into the notebook (overwrite the default cell).
    The wheels and bootstrap install run inside `kernel.py`; you do **not** need to
    attach a separate `wheels/` dataset for the current rolling-source path.
-5. **Run All.** Within roughly thirty seconds the kernel prints a public
-   `https://*.trycloudflare.com` URL. Click `/start` for the two-tile landing,
+5. **Run All.** After install, package verification, model setup, and tunnel
+   startup, the kernel prints a public `https://*.trycloudflare.com` URL. If
+   Cloudflare quick tunnel times out, rerun the cell or wait for the tunnel
+   retry path rather than treating the app server as failed. Click `/start` for the two-tile landing,
    `/slides` for the recording-grade 23-slide pitch deck, or `/slides/setup`
    to pre-bake a cached worker question for the `/slides#demo-chat` slide.
 
@@ -75,7 +77,7 @@ For a screen-recording walkthrough:
    worker or operator exchange for `/slides#demo-chat`.
 3. Click **Project slides**. The recording-safe ecosystem deck loads:
    problem scale, solution diagram, Gemma 4 engine, content moderation,
-   case analysis, worker information access, research, anonymized
+   case analysis, worker support, research, anonymized
    knowledge sharing, resources, FAQ, and appendix.
 4. On `/slides#demo-chat`, the cached prompt + response from step 2
    appears immediately -- no inference wait during the recording.

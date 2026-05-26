@@ -20,7 +20,7 @@
 | Read complaints one at a time, manually flagging patterns | Batch-classify in seconds; the rules + ILO indicators are pre-coded |
 | Cite the wrong section of the same regulation 3 times in a year | The statute citation is consistent across every classification |
 | Lose track of which recruiter has had 5 prior complaints | Per-recruiter rollup in the dashboard |
-| Spend 30 min drafting a complaint-disposition letter | Generate a draft from the structured analysis in 30 seconds |
+| Spend 30 min drafting a complaint-disposition letter | Generate a draft from the structured analysis for reviewer editing |
 | Reactive, complaint-driven enforcement | Proactive — feed Facebook job-group scrapes through the same pipeline |
 
 ## What it is, in regulator terms

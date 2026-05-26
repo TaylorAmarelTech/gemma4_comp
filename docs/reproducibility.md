@@ -136,10 +136,11 @@ evaluation, not from this smoke gate. Minimum useful evidence:
 4. Publish the dated artifact path before updating docs, press copy, or
    GitHub Pages headline metrics.
 
-## Citation-by-citation traceability
+## Citation grounding scan
 
-Every emitted citation in a Gemma response is checked against the
-current citation corpus:
+Citation-shaped strings in evaluated Gemma responses are checked by the
+current heuristic and corpus scan. Treat this as an audited grounding artifact,
+not as a production guarantee that every future answer will be fully cited:
 
 | Source class | Count | Examples |
 |---|---:|---|
@@ -153,9 +154,9 @@ current citation corpus:
 | National statutes | varies | POEA RA 8042/10022/MC 14-2017, BP2MI Reg 9/2020, Nepal FEA, BD OEA, Saudi MoHR Resolutions, UAE Federal Decrees, HK Cap. 57/57A/163, SG EFMA 91A, etc. |
 | International protocols | 3 | Palermo, ICRMW, Vienna Consular Convention |
 
-Total citation-corpus size should be read from the current corpus
-manifest or A-00 evidence bundle rather than copied from this historical
-snapshot.
+Total citation-corpus size and supported/unsupported citation rates should be
+read from the current corpus manifest, A-00 evidence bundle, or manual review
+artifact rather than copied from this historical snapshot.
 
 ## Provenance for non-numeric claims
 
@@ -163,12 +164,12 @@ snapshot.
 |---|---|
 | "no PII in the repo" | git history clean post `c07019c` purge; pre-commit hook + `.claude/rules/10_safety_gate.md` |
 | "MIT license" | `LICENSE` file |
-| "uses Gemma 4 (E2B / E4B / 26B-A4B / 31B)" | `kaggle/01-duecare-app/kernel.py:_VARIANT_HF_ID` |
-| "9-variant model selector" | `kernel.py` line 102-109 (6 on-device + 3 cloud BYOK) |
-| "5 harness toggles" | `harness/__init__.py:default_harness()` returns persona/grep/rag/tools/online |
-| "4 grade modes" | `app.py` endpoints `/api/grade-universal`, `/api/grade-expert`, `/api/grade-deep`, `/api/grade-combined` |
-| "16 corridors" | `harness/__init__.py:CORRIDOR_FEE_CAPS` + `OPF_CORRIDORS` |
-| "12 NGO intake groups" | `harness/__init__.py:NGO_INTAKE` |
+| "uses Gemma 4 variants" | Active Kaggle kernels: `kaggle/01-duecare-exploration-workbench/kernel.py` and `kaggle/02-live-demo/kernel.py`; re-check the variant map before naming an exact set. |
+| "model selector" | Shared workbench chrome (`_nav.html`, `_nav.js`, `_chrome.css`) plus the active kernel variant map; do not publish an exact variant count without a current audit. |
+| "harness toggles" | `harness/__init__.py:default_harness()`; cite runtime self-audit output for exact enabled layers. |
+| "grading endpoints" | Chat package API routes for universal/expert/deep/combined grading; re-run route inventory before publishing an exact count. |
+| "corridor lookup tables" | `harness/__init__.py:CORRIDOR_FEE_CAPS` + `OPF_CORRIDORS`; cite the current runtime inventory for exact corridor counts. |
+| "NGO intake registry" | `harness/__init__.py:NGO_INTAKE`; cite the current runtime inventory for exact group counts. |
 
 ## Summary table (what to read in what order)
 

@@ -1,339 +1,191 @@
-﻿# Frequently asked questions
+# Frequently Asked Questions
 
-> Quick answers to the questions that come up over and over.
-> If your question isn't here, file an issue or check
-> [`docs/scenarios/`](./scenarios/) for the persona-specific
-> walkthrough that probably answers it in context.
+Quick answers for reviewers, Kaggle users, NGOs, platform teams, researchers,
+and developers. For exact metrics, use a dated artifact and verification
+command from [Reproducibility](reproducibility.md).
 
-## What this is
+## What This Is
 
-### Q: In one sentence, what does Duecare do?
+### Q: In one sentence, what does DueCare do?
 
-It's an AI safety harness around Google Gemma 4 that helps migrant
-workers, NGOs, and regulators recognize recruitment fraud and
-trafficking patterns — running locally with no data sent anywhere.
+DueCare is an open-source Gemma 4 safety ecosystem that helps local or
+tenant-controlled deployments review recruitment-risk evidence, draft grounded
+next steps, and share only reviewed anonymized intelligence.
 
-### Q: Is this a chatbot? An app? A library? A platform?
+### Q: Is this a chatbot, an app, a library, or a platform?
 
-Yes. It's all of those, packaged together:
-- A chat playground (Kaggle notebook + a FastAPI server)
-- A worker-facing Android app (Duecare Journey)
-- 17 Python package surfaces in the source workspace
-- A Helm chart + Docker images for deploying at scale
-- A research benchmark (200+ prompt proxies + a published rubric; see
-  the reproducibility caveats before using the numbers publicly)
+It is a component ecosystem:
 
-The shape you interact with depends on your role —
-[`docs/scenarios/`](./scenarios/) has the persona-specific entry point.
+- Kaggle workbench and live-demo kernels for judges and reviewers.
+- Workbench pages for chat, Bulk File Review, Knowledge Extraction, Search,
+  Templates, and Anonymization & Sharing.
+- Python package surfaces for embedding the harness in other systems.
+- Public hub and GitHub Pages docs for onboarding, APIs, and knowledge-sharing
+  architecture.
+- A-00 and optional benchmark surfaces for reproducible evaluation.
 
-### Q: Who is this for?
+### Q: Who is it for?
 
-11 documented personas, from migrant workers using the Android app
-to Big Tech CTOs running an enterprise pilot. The
-[scenarios index](./scenarios/README.md) lists them all.
+The public lanes are exactly:
 
-## Cost + licensing
+1. Platform safety
+2. NGO & regulator
+3. Individual worker / mobile
+4. Researcher
+5. Anonymized knowledge sharing
+6. Developer / integration partner
 
-### Q: How much does it cost?
+Start with [User Paths](user_paths.md) to choose the right route.
 
-Zero in license fees (MIT). Hardware/cloud costs depend on
-deployment shape:
-- Solo on a laptop: $0
-- NGO on a Mac mini: $250-800 one-time
-- Small cloud server: $25-100/mo
-- National-scale regulator: $1,500-10k/mo
-
-See [`docs/considerations/capacity_planning.md`](./considerations/capacity_planning.md)
-for sizing tables.
-
-### Q: Are there hidden costs?
-
-Two:
-1. **Optional cloud-LLM fallback** — if you point Duecare at a
-   commercial Gemma endpoint (HF Inference, OpenAI-compatible
-   service), you pay the provider's per-token rate. Cap with the
-   per-tenant token budget in `metering.py`.
-2. **Optional internet search** — Tavily/Brave/Serper free tiers
-   give 1k-2.5k queries/mo; above that, paid plans apply.
-
-Both are off by default.
-
-### Q: What's the license?
-
-MIT for the project. Apache 2.0 for the Gemma 4 model itself
-(via the Google `litert-community` repos). Each Python package surface
-declares MIT in its `pyproject.toml`.
-
-### Q: Can I use it commercially?
-
-Yes. MIT permits commercial use. Attribution is required only
-when you redistribute the source.
-
-## Privacy + security
+## Privacy And Safety
 
 ### Q: Does my data leave my machine?
 
-By default: only the one-time AI model download. No telemetry,
-no analytics, no phone-home.
+Raw worker chats, private case files, IDs, phone numbers, passports, and
+personal narratives should stay in the local Kaggle session, worker device,
+trusted NGO machine, or tenant-owned deployment. Sharing is a separate step:
+only reviewed, redacted fact objects, aggregate signals, pack proposals,
+benchmark rows, or hash receipts should move to the public hub.
 
-If you opt in (Settings → Cloud model in Android, or env vars on
-the server), each chat goes to your configured cloud endpoint.
-The maintainers don't operate any service the data passes through.
+If an operator configures a cloud model or hosted integration, that deployment
+must document its own data path and consent boundary.
 
 ### Q: Can the maintainer see my prompts?
 
-No. There's no Duecare cloud service. The maintainer has no
-ability to see what you do with the software. (This is enforced
-by the absence of any maintainer-operated infrastructure, not by
-a privacy policy.)
+Not from a local, Kaggle, or tenant-controlled deployment. The maintainer can
+only see material that someone submits to a public DueCare service, GitHub,
+Kaggle, email, or another hosted endpoint. Do not submit raw private case data
+to the public hub.
 
-### Q: Is the journal encrypted?
+### Q: Is DueCare certified for SOC 2, HIPAA, GDPR, or FedRAMP?
 
-On Android: yes, SQLCipher with the key in Android Keystore. On
-the server: encryption is your responsibility — Postgres TDE, RDS
-encryption, GCP CMEK, Azure Key Vault, etc.
+No. DueCare is open-source software and documentation. A specific deployment
+may be designed to support an organization's audit or compliance process, but
+the project itself is not certified.
 
-### Q: What happens if my phone is stolen?
+### Q: Is DueCare an emergency service?
 
-The journal is encrypted at rest. To read it, an attacker needs:
-1. To unlock the phone (or bypass the lock screen)
-2. To retrieve the SQLCipher key from Android Keystore (requires
-   a rooted phone + significant skill)
+No. DueCare can organize information and surface relevant public resources,
+but emergency support, legal advice, investigation, and enforcement require
+qualified people and institutions.
 
-For a higher threat model, set up a quick-launch shortcut to the
-**Settings → Panic wipe** action (one tap erases everything).
+## Trying It
 
-### Q: What if the recruiter forces me to unlock my phone?
+### Q: What is the fastest way to try it?
 
-Use the panic wipe primitive. The recruiter sees you tap one
-button; the data is gone. Re-install the APK later when safe.
+Use the active Kaggle kernels:
 
-The app's icon is intentionally generic ("Duecare Journey" with a
-blue book) — it doesn't say "anti-trafficking" anywhere on the
-home screen.
+- [DueCare App](https://www.kaggle.com/code/taylorsamarel/duecare-app)
+- [DueCare Live Demo](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo)
+- [A-00 proof path](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation)
 
-### Q: Are you SOC 2 / GDPR / HIPAA / FedRAMP certified?
+Copy the active `kernel.py`, use **GPU T4 x2** and **Internet: On**, attach
+`google/gemma-4`, then run the notebook. Startup time varies by Kaggle worker,
+package install path, model cache state, model variant, and Cloudflare quick
+tunnel availability.
 
-No. The *deployment can support* such certifications — see
-[`docs/considerations/COMPLIANCE.md`](./considerations/COMPLIANCE.md) —
-but the open-source project itself isn't certified. Your
-auditor's review is on you.
+### Q: Can it run without a model attached?
 
-## Comparison + alternatives
+Yes for many demo and inspection paths. Heuristic-only mode can serve the start
+page, slides, deterministic GREP/RAG/tools paths, sample flows, and cached
+recording slots. Live chat and optional Gemma graph/edge passes need a model.
 
-### Q: Why not just use Azure Content Safety / OpenAI Moderation / Hive / Sift?
+### Q: Can I install it locally?
 
-[`docs/comparison_to_alternatives.md`](./comparison_to_alternatives.md)
-is the honest matrix. Short answer:
-- For generic content moderation (CSAM / hate speech / spam),
-  use a commercial API
-- For trafficking-specific use cases with on-prem requirements,
-  Duecare is purpose-built
-- For everything in between, run your own benchmark on YOUR
-  domain before deciding
+Use [Install](install.md), [Local Deployment](deployment_local.md), and the
+[Embedding Guide](embedding_guide.md). Treat the Kaggle kernels as the primary
+judge-safe path during active judging.
 
-### Q: How does it compare to Llama Guard 3 / ShieldGemma?
+## What It Does And Does Not Do
 
-Those are content-classifier models. Duecare is a content-classifier
-model + a domain-grounded harness (100+ GREP rules + 50+ RAG docs +
-20 corridor lookups + a chat surface). Use Llama Guard if you
-want just a model; use Duecare if you want the full domain stack.
+### Q: Does DueCare detect trafficking?
 
-### Q: How does it compare to building in-house?
+It surfaces exploitation and recruitment-risk patterns associated with
+trafficking. It does not confirm a trafficking case. Confirmation requires
+investigation, context, and qualified human judgment.
 
-3-month adoption + 1.5 FTE for Duecare vs 6-18 months + 3 FTE
-for in-house. See [`docs/scenarios/vp-engineering.md`](./scenarios/vp-engineering.md)
-for the detailed math.
+### Q: Does DueCare replace lawyers, NGOs, caseworkers, or regulators?
 
-## Deployment
+No. It drafts, explains, extracts, checks, and organizes. A trusted person or
+institution decides what to do.
 
-### Q: What's the fastest way to try it?
+### Q: Does it cover every country or corridor?
 
-Open the Kaggle notebook
-[duecare-chat-playground-with-grep-rag-tools](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools).
-"Run All". Type a question. Two-minute time investment.
+No. Corridor and policy coverage is versioned knowledge, not a blanket claim.
+Use the current corpus manifest or runtime self-audit before naming exact
+coverage.
 
-For the Docker stack: `git clone` + `make demo`. Five minutes.
+### Q: Can it read documents and images?
 
-### Q: Can I run it without Docker?
+The workbench can organize document bundles and queue/extract text or media
+evidence depending on the runtime path. Public claims should distinguish
+deterministic extraction, queued OCR/vision work, and optional Gemma passes.
 
-Yes — `pip install duecare-llm` installs the meta package
-(all 17 wheels). See [`docs/deployment_local.md`](./deployment_local.md).
+## Research And Claims
 
-### Q: Does it need a GPU?
+### Q: Can I cite DueCare?
 
-No. The default `gemma4:e2b` model runs on CPU. GPU helps
-throughput (5x-15x RPS per pod) but isn't required.
+Yes. Use [Researcher Analysis](scenarios/researcher-analysis.md),
+[Reproducibility](reproducibility.md), and the repository citation metadata.
+When citing metrics, include the git SHA, dataset/export, model revision, and
+verification command.
 
-### Q: Which cloud platforms work?
+### Q: Are the headline lift numbers production guarantees?
 
-13 documented:
-- Hugging Face Spaces, Render, Fly.io, Railway (quickest)
-- AWS EKS / Lightsail, GCP GKE / Cloud Run, Azure AKS / Container Apps
-- Self-hosted k8s, k3s, air-gapped
+No. Treat them as dated smoke/proxy evaluation artifacts unless a current
+weeks-long or field deployment artifact proves otherwise.
 
-[`docs/cloud_deployment.md`](./cloud_deployment.md) has the per-platform recipes.
+### Q: How do I audit public claims?
 
-### Q: How big is the AI model?
+Run:
 
-| Variant | Size | RAM needed |
-|---|---:|---:|
-| gemma3:1b | 600 MB | 4 GB |
-| gemma4:e2b INT4 | 750 MB | 4 GB |
-| gemma4:e2b INT8 (default) | 1.5 GB | 8 GB |
-| gemma4:e4b INT4 | 2 GB | 8 GB |
-| gemma4:e4b INT8 | 3.5 GB | 16 GB |
-| gemma4:31b | 18 GB | 32 GB + GPU |
+```bash
+python scripts/validate_public_surface.py
+python scripts/validate_main_kaggle_kernels.py
+python scripts/validate_kaggle_page_sources.py
+python -m pytest packages --collect-only -q
+```
 
-[`docs/gemma4_model_guide.md`](./gemma4_model_guide.md) has the
-detailed picker.
+Then read [Reproducibility](reproducibility.md) for the artifact policy.
 
-## What it does + doesn't do
+## Deployment And Integration
 
-### Q: Does it predict trafficking?
+### Q: I am an NGO or regulator. Where should I start?
 
-It detects exploitation patterns associated with trafficking. The
-patterns map to ILO C029 indicators 1-11. Conversion to a confirmed
-trafficking case requires investigation — the harness produces
-evidence + draft documents, not verdicts.
+Read [Caseworker Workflow](scenarios/caseworker_workflow.md),
+[NGO Office Deployment](scenarios/ngo-office-deployment.md), and
+[Regulator Pattern Analysis](scenarios/regulator-pattern-analysis.md).
 
-### Q: Does it cover my country / corridor?
+### Q: I am a platform team. Where should I start?
 
-Bundled corridors as of v0.8: PH-HK, ID-HK, PH-SA, NP-SA, BD-SA,
-ID-SG, MX-US, VE-CO, GH-LB, NG-LB, SY-DE, UA-PL.
+Read [Enterprise Pilot](scenarios/enterprise_pilot.md) and
+[Platform / On-Prem Deployment](deployment_enterprise.md).
 
-For other corridors, you can add an extension pack per
-[`docs/extension_pack_format.md`](./extension_pack_format.md) —
-roughly 1-2 days of work per corridor for someone who knows the
-local recruitment regulations.
+### Q: I am a developer or integrator. Where should I start?
 
-### Q: Does it speak my language?
+Read [Install](install.md), [Embedding Guide](embedding_guide.md), and the
+[OpenAPI spec](openapi.yaml).
 
-Chat surface: any language Gemma 4 understands (which is most
-major migrant-corridor languages — Tagalog, Bahasa, Nepali, Bangla,
-Arabic, Spanish, French, etc.).
+### Q: I am interested in anonymized knowledge sharing. Where should I start?
 
-UI labels: English-only as of v0.8. Translation is on the v0.9
-roadmap.
-
-### Q: Can it read photos?
-
-The Android app v0.7+ accepts photo attachments and stores them.
-**Photo OCR** (extracting text from contract / receipt photos) is
-v0.9 — currently the photo is stored as evidence but not analyzed.
-
-The harness's `Scout` agent supports multimodal input via Gemma 4's
-image encoder; full integration into the chat surface is in flight.
-
-### Q: Can it draft legal documents?
-
-It drafts a refund-claim cover letter (the bundled refund-claim
-template, populated with the controlling statute + amount + recipient).
-For other document types — affidavits, complaint forms,
-representation letters — your legal team customizes.
-
-### Q: Can it represent me / my client in court?
-
-No. It's a research + drafting tool, not a lawyer. See
-[`docs/scenarios/lawyer-evidence-prep.md`](./scenarios/lawyer-evidence-prep.md)
-for how legal-aid lawyers use it appropriately.
-
-## Updates + maintenance
-
-### Q: Who maintains this?
-
-Single maintainer (Taylor Amarel) as of 2026. No Big Tech behind
-it — the project is fully open source MIT.
-
-### Q: What's the release cadence?
-
-Roughly weekly during the hackathon (2026-Q2); ~monthly after.
-Current versions (2026-05-02):
-- Android app: v0.8.0
-- Python packages: v0.1.0
-- Docker image: latest = git SHA on master
-
-### Q: How do I get notified of new releases?
-
-Watch the GitHub repo
-(https://github.com/TaylorAmarelTech/gemma4_comp). For the
-Android app, watch
-(https://github.com/TaylorAmarelTech/duecare-journey-android).
-
-### Q: What if the maintainer disappears?
-
-The image you've already pulled keeps working forever. The repo
-is forkable. Your data lives on the hardware you control. No
-license activation, no SaaS dependency.
-
-### Q: How do I report a bug / contribute?
-
-GitHub issues at https://github.com/TaylorAmarelTech/gemma4_comp/issues
-for the harness; same path on the Android sibling repo for app-specific
-issues. Security issues: see `SECURITY.md` for private disclosure.
-
-## For specific use cases
-
-### Q: I'm a researcher — can I cite this?
-
-Yes. See [`CITATION.cff`](../CITATION.cff) or
-[`docs/scenarios/researcher-analysis.md`](./scenarios/researcher-analysis.md)
-for the full bibtex + reproduction instructions.
-
-### Q: I'm a journalist — can I write about it?
-
-Yes. [`docs/press_kit.md`](./press_kit.md) has the one-pager,
-quotes, suggested story angles, and what NOT to claim.
-
-### Q: I'm an educator — can I use it in class?
-
-Yes. [`docs/educator_resources.md`](./educator_resources.md) has
-drop-in lesson plans (1-hour to 2-week), discussion prompts, and
-suggested external readings.
-
-### Q: I'm at an NGO and want to deploy it — what's the path?
-
-Read [`docs/scenarios/ngo-office-deployment.md`](./scenarios/ngo-office-deployment.md).
-90-minute setup + day-2 / day-30 / when-broken sections. Or jump
-straight to `make demo` if you're comfortable with Docker.
-
-After you deploy, fill out
-[`docs/first_deployer_feedback.md`](./first_deployer_feedback.md) —
-your real-world experience shapes the next release.
-
-### Q: I'm a migrant worker — is this safe to install?
-
-The honest answer:
-- The app icon doesn't say "anti-trafficking"
-- The app doesn't ask for an account, email, or phone number
-- Nothing leaves your phone unless you tap Share
-- Panic-wipe erases everything in one tap
-- The AI model + journal stay encrypted on your phone
-
-[`docs/scenarios/worker-self-help.md`](./scenarios/worker-self-help.md)
-has the full plain-language explanation, including "what to do if
-your recruiter sees the app on your phone."
+Read [Information Sharing Architecture](information_sharing_architecture.md),
+[Anonymization Policy](anonymization_policy.md), and
+[Submission Labeling Policy](submission_labeling_policy.md).
 
 ## Other
 
 ### Q: Is this affiliated with Google?
 
-No. It's an independent open-source project that uses Google's
-Gemma 4 model (which is open-weights Apache 2.0). Submitted to
-Google's 2026 Gemma 4 Good Hackathon under the Safety & Trust track.
+No. It is an independent open-source project built for the Google Gemma 4 Good
+Hackathon and uses Gemma 4 as a model layer.
 
-### Q: Why "Duecare"?
+### Q: Where are the public URLs?
 
-Named for California Civil Code §1714(a) — the duty-of-care
-standard a CA jury applied in March 2026 to find Meta and Google
-negligent for defective platform design. The name signals: does
-the model exercise *due care* on prompts about trafficking and
-exploitation?
+- Main server website / public hub: <https://duecare-ai.com/>
+- GitHub Pages docs: <https://tayloramareltech.github.io/gemma4_comp/>
+- Source code: <https://github.com/TaylorAmarelTech/gemma4_comp>
 
-### Q: I have a question that isn't here.
+### Q: I have a question that is not here.
 
-File an issue at
-https://github.com/TaylorAmarelTech/gemma4_comp/issues, or email
-`amarel.taylor.s [at] gmail.com` (subject: `[duecare question]`).
-
-If the question recurs, it lands in this FAQ on the next pass.
+File an issue at <https://github.com/TaylorAmarelTech/gemma4_comp/issues> or
+email `amarel.taylor.s [at] gmail.com` with subject `[duecare question]`.

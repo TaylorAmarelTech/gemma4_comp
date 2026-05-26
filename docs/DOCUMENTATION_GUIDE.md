@@ -15,7 +15,7 @@ Keep these facts consistent across public-facing docs:
 | Optional benchmark kernels | `03-universal-llm-benchmark` for arbitrary endpoint comparisons; `04-kaggle-community-benchmark` for Kaggle Community Benchmark tasks and model-proxy quota |
 | Six lanes | Platform safety; NGO & regulator; Individual worker / mobile; Researcher; Anonymized knowledge sharing; Developer / integration partner |
 | Package shape | 17 `duecare-llm*` package directories in the workspace |
-| Current local collection | 675 package tests collected on 2026-05-19 |
+| Current local collection | Run `python -m pytest packages --collect-only -q`; publish the dated output only when the command was run in this pass |
 | Headline smoke matrix | 2026-05-18: stock 2B 29.5%, stock+harness 35.6%, fine-tuned 26.4%, fine-tuned+harness 41.2% |
 
 Do not describe A-01 through A-24 or `03-duecare-video-pitch` as the active

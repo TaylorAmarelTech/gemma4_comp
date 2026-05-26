@@ -97,6 +97,11 @@ DRIFT_TERMS: tuple[tuple[str, str, str], ...] = (
     (r"\bduecare harness run\b", "unverified CLI command on a public surface", "remove or label as planned"),
     (r"\bsigned pack\b", "stale terminology", "vetted pack"),
     (r"\bOpenClaw\b", "non-DueCare brand name in active prose", "server automation"),
+    (r"Try DueCare in 30 seconds", "fragile startup promise", "Try DueCare on Kaggle"),
+    (r"Within roughly thirty seconds", "fragile startup promise", "describe startup as variable"),
+    (r"About 30 seconds for E4B", "fragile startup promise", "describe startup as variable"),
+    (r"Gemma 4 never produced harmful content", "overbroad safety claim", "limit the claim to the dated checked run"),
+    (r"\b207 5-tier rubrics\b", "fragile rubric magic number", "cite the current rubric manifest or use a generalized phrase"),
     (r"^# .*Privacy is non-negotiable", "privacy slogan as h1 headline", "concrete data-rule sentence"),
     (r"<h[1-3][^>]*>\s*Privacy is non-negotiable", "privacy slogan as h1-h3 headline", "concrete data-rule sentence"),
 )
