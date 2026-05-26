@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import re
 from pathlib import Path
+from typing import Optional
 
 
 REPO = Path(__file__).parents[3]
@@ -376,9 +377,42 @@ def test_primary_kernels_bootstrap_from_github_source_with_full_package_closure(
             assert module in text, f"{label} does not verify {module}"
 
 
+def test_kernel01_rejects_cloudflare_control_api_tunnel_logs():
+    tree = ast.parse(_text(KERNEL), filename=str(KERNEL))
+    helper_names = {
+        "_is_cloudflare_quick_tunnel_url",
+        "_cloudflare_quick_tunnel_url_from_line",
+    }
+    helpers = [
+        node
+        for node in tree.body
+        if isinstance(node, ast.FunctionDef) and node.name in helper_names
+    ]
+    assert {node.name for node in helpers} == helper_names
+
+    module = ast.Module(body=helpers, type_ignores=[])
+    ast.fix_missing_locations(module)
+    ns = {"re": re, "Optional": Optional}
+    exec(compile(module, str(KERNEL), "exec"), ns)
+
+    is_url = ns["_is_cloudflare_quick_tunnel_url"]
+    extract = ns["_cloudflare_quick_tunnel_url_from_line"]
+    failure = (
+        'failed to request quick Tunnel: Post "https://api.trycloudflare.com/tunnel": '
+        "context deadline exceeded"
+    )
+    success = "INF + https://combined-absence-ide-echo.trycloudflare.com"
+
+    assert extract(failure) is None
+    assert not is_url("https://api.trycloudflare.com/tunnel")
+    assert not is_url("https://www.trycloudflare.com")
+    assert not is_url("http://combined-absence-ide-echo.trycloudflare.com")
+    assert extract(success) == "https://combined-absence-ide-echo.trycloudflare.com"
+
+
 def test_primary_browser_kernels_fail_loudly_without_public_tunnel():
     """READY without a usable Cloudflare URL is misleading on Kaggle."""
-    for path in [LIVE_DEMO_KERNEL, A00_KERNEL]:
+    for path in [KERNEL, LIVE_DEMO_KERNEL, A00_KERNEL]:
         text = _text(path)
         rel = str(path.relative_to(REPO))
         assert "DUECARE_ALLOW_LOCAL_ONLY" in text, rel

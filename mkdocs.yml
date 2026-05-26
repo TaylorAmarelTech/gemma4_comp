@@ -130,14 +130,11 @@ exclude_docs: |
 nav:
   - Home: index.md
   - User Paths:
-      - Overview: canonical_use_cases_and_components.md
+      - Choose a path: user_paths.md
       - Platform safety: scenarios/enterprise_pilot.md
-      - NGO & regulator:
-          - Caseworker workflow: scenarios/caseworker_workflow.md
-          - NGO office deployment: scenarios/ngo-office-deployment.md
-          - Regulator pattern analysis: scenarios/regulator-pattern-analysis.md
+      - NGO & regulator: scenarios/caseworker_workflow.md
       - Individual worker / mobile: scenarios/worker-self-help.md
-      - Academic researcher: scenarios/researcher-analysis.md
+      - Researcher: scenarios/researcher-analysis.md
       - Anonymized knowledge sharing: information_sharing_architecture.md
       - Developer / integration partner: embedding_guide.md
   - Deployment:
@@ -149,6 +146,7 @@ nav:
       - Kaggle kernel state: current_kaggle_notebook_state.md
       - Notebook guide: notebook_guide.md
   - Information Sharing:
+      - Why networked Gemma sharing matters: gemma_networked_knowledge_sharing.md
       - Architecture: information_sharing_architecture.md
       - Anonymization policy: anonymization_policy.md
       - Submission labeling policy: submission_labeling_policy.md

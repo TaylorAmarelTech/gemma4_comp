@@ -177,6 +177,39 @@ PORT   = 8080
 TUNNEL = "cloudflared"
 
 
+def _is_cloudflare_quick_tunnel_url(url: str) -> bool:
+    from urllib.parse import urlsplit
+
+    try:
+        parsed = urlsplit((url or "").strip())
+    except Exception:
+        return False
+    if parsed.scheme != "https":
+        return False
+    host = (parsed.hostname or "").lower()
+    suffix = ".trycloudflare.com"
+    if not host.endswith(suffix):
+        return False
+    label = host[: -len(suffix)]
+    if label in {"api", "www"}:
+        return False
+    return bool(re.fullmatch(r"[a-z0-9-]{3,63}", label))
+
+
+def _cloudflare_quick_tunnel_url_from_line(line: str) -> Optional[str]:
+    from urllib.parse import urlsplit
+
+    for match in re.finditer(
+        r"https://[A-Za-z0-9.-]+\.trycloudflare\.com(?:/[^\s\"']*)?",
+        line or "",
+    ):
+        raw = match.group(0).rstrip(".,)")
+        if _is_cloudflare_quick_tunnel_url(raw):
+            parsed = urlsplit(raw)
+            return f"{parsed.scheme}://{parsed.hostname}"
+    return None
+
+
 # ===========================================================================
 # PHASE 0 -- install Hanchen's pinned Unsloth stack BEFORE any torch import.
 # ===========================================================================
@@ -3183,7 +3216,9 @@ print("\n" + "=" * 76)
 print(f"[4/5] opening {TUNNEL} tunnel")
 print("=" * 76)
 
-public_url = f"http://localhost:{PORT}"
+local_url = f"http://localhost:{PORT}"
+public_url: Optional[str] = local_url if TUNNEL == "none" else None
+public_tunnel_ready = False
 if TUNNEL != "none":
     try:
         import shutil as _shutil, urllib.request as _urlreq, stat as _stat
@@ -3199,34 +3234,90 @@ if TUNNEL != "none":
                                   | _stat.S_IXOTH)
                 print(f"  ✓ downloaded "
                       f"{os.path.getsize(cf_bin)//1_000_000} MB to {cf_bin}")
-        proc = subprocess.Popen(
-            [cf_bin, "tunnel", "--url", f"http://localhost:{PORT}"],
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-            text=True, bufsize=1)
-        _CLOUDFLARED_PROC['p'] = proc
-        t0 = time.time()
-        while time.time() - t0 < 60:
-            line = proc.stdout.readline()
-            if not line:
-                time.sleep(0.1); continue
-            print(f"  [tunnel] {line.rstrip()}")
-            if "trycloudflare.com" in line:
-                m = re.search(r"https://[a-z0-9\-]+\.trycloudflare\.com", line)
-                if m:
-                    public_url = m.group(0)
+        attempts = max(1, int(os.environ.get("DUECARE_TUNNEL_ATTEMPTS", "3")))
+        timeout_s = max(15.0, float(os.environ.get("DUECARE_TUNNEL_TIMEOUT", "75")))
+        last_tunnel_error = ""
+        for attempt in range(1, attempts + 1):
+            if attempts > 1:
+                print(f"  cloudflared quick-tunnel attempt {attempt}/{attempts}")
+            proc = subprocess.Popen(
+                [cf_bin, "tunnel", "--url", f"http://localhost:{PORT}"],
+                stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                text=True, bufsize=1)
+            _CLOUDFLARED_PROC['p'] = proc
+            t0 = time.time()
+            while time.time() - t0 < timeout_s:
+                line = proc.stdout.readline() if proc.stdout else ""
+                if not line:
+                    if proc.poll() is not None:
+                        last_tunnel_error = (
+                            f"cloudflared exited with code {proc.returncode} "
+                            "before announcing a public URL"
+                        )
+                        break
+                    time.sleep(0.1)
+                    continue
+                stripped = line.rstrip()
+                print(f"  [tunnel] {stripped}")
+                candidate = _cloudflare_quick_tunnel_url_from_line(stripped)
+                if candidate:
+                    public_url = candidate
+                    public_tunnel_ready = True
                     print(f"  ✓ tunnel ready: {public_url}")
                     break
-        # Drain cloudflared stdout in a daemon thread so the OS pipe
-        # buffer never fills (otherwise cloudflared blocks on write
-        # and the tunnel 1033s within minutes).
-        def _drain_stdout(p=proc):
-            try:
-                for _ in p.stdout: pass
-            except Exception: pass
-        threading.Thread(target=_drain_stdout, daemon=True,
-                          name="cloudflared-stdout-drain").start()
+                lowered = stripped.lower()
+                if (
+                    "failed to request quick tunnel" in lowered
+                    or "context deadline exceeded" in lowered
+                ):
+                    last_tunnel_error = stripped
+                    break
+            if public_tunnel_ready:
+                # Drain cloudflared stdout in a daemon thread so the OS pipe
+                # buffer never fills (otherwise cloudflared blocks on write
+                # and the tunnel 1033s within minutes).
+                def _drain_stdout(p=proc):
+                    try:
+                        for _ in p.stdout: pass
+                    except Exception: pass
+                threading.Thread(target=_drain_stdout, daemon=True,
+                                  name="cloudflared-stdout-drain").start()
+                break
+            if proc.poll() is None:
+                try:
+                    proc.terminate()
+                    proc.wait(timeout=5)
+                except Exception:
+                    try:
+                        proc.kill()
+                    except Exception:
+                        pass
+            _CLOUDFLARED_PROC['p'] = None
+            if attempt < attempts:
+                if last_tunnel_error:
+                    print(f"  tunnel attempt failed: {last_tunnel_error}")
+                time.sleep(min(2 * attempt, 5))
+        if not public_tunnel_ready:
+            if not last_tunnel_error:
+                last_tunnel_error = (
+                    f"cloudflared did not announce a valid public URL "
+                    f"within {timeout_s:.0f}s"
+                )
+            print(f"  tunnel FAILED: {last_tunnel_error}")
     except Exception as e:
         print(f"  tunnel error: {type(e).__name__}: {e}")
+
+if TUNNEL != "none" and not public_tunnel_ready:
+    print("  public Cloudflare URL unavailable; the server is local-only.")
+    print(f"  local server URL inside this runtime: {local_url}")
+    print("  Do not use https://api.trycloudflare.com; it is Cloudflare's control API.")
+    if os.environ.get("DUECARE_ALLOW_LOCAL_ONLY") != "1":
+        raise SystemExit(
+            "Kernel 01 requires a public Cloudflare URL on Kaggle. "
+            "Re-run the cell to retry the quick tunnel, or set "
+            "DUECARE_ALLOW_LOCAL_ONLY=1 only for local developer testing."
+        )
+    public_url = local_url
 
 
 # ===========================================================================
@@ -3235,8 +3326,13 @@ if TUNNEL != "none":
 print("\n" + "=" * 76)
 print("[5/5] DUECARE HARNESS CHAT (omni playground) is LIVE")
 print("=" * 76)
-print(f"\n   open this URL on your laptop:")
-print(f"\n       {public_url}\n")
+if public_tunnel_ready:
+    print(f"\n   open this URL on your laptop:")
+    print(f"\n       {public_url}\n")
+else:
+    print("\n   public Cloudflare URL is not available in this run.")
+    print(f"\n       {public_url}\n")
+    print("   This local URL is useful only inside the notebook runtime.")
 print(f"   model:    (none yet — pick one in the browser overlay)")
 print(f"   variants: e2b-it, e4b-it, 26b-a4b-it, 31b-it,")
 print(f"               jailbroken-31b, jailbroken-e4b,")

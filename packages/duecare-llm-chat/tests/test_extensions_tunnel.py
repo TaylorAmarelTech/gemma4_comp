@@ -108,3 +108,33 @@ def test_server_tunnel_auto_installs_to_temp_not_system_bin() -> None:
     assert "tempfile.gettempdir()" in source
     assert 'target = "/usr/local/bin/cloudflared"' not in source
     assert "downloaded" in source and "cloudflared" in source
+
+
+def test_cloudflare_control_api_url_is_not_treated_as_public_tunnel() -> None:
+    """A failed quick-tunnel request logs api.trycloudflare.com/tunnel.
+
+    That is Cloudflare's control API, not the browser URL. Both tunnel
+    helpers must ignore it and wait for a generated quick-tunnel hostname.
+    """
+    import duecare.chat.extensions.tunnel as chat_tunnel
+    import duecare.server.tunnel as server_tunnel
+
+    failure = (
+        'failed to request quick Tunnel: Post "https://api.trycloudflare.com/tunnel": '
+        "context deadline exceeded"
+    )
+    success = "INF + https://combined-absence-ide-echo.trycloudflare.com"
+
+    assert chat_tunnel._extract_public_url(failure) is None
+    assert server_tunnel._extract_public_url(failure) is None
+    assert not chat_tunnel._is_public_tunnel_url("https://api.trycloudflare.com/tunnel")
+    assert not server_tunnel._is_public_tunnel_url("https://api.trycloudflare.com/tunnel")
+
+    assert (
+        chat_tunnel._extract_public_url(success)
+        == "https://combined-absence-ide-echo.trycloudflare.com"
+    )
+    assert (
+        server_tunnel._extract_public_url(success)
+        == "https://combined-absence-ide-echo.trycloudflare.com"
+    )

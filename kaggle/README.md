@@ -8,8 +8,9 @@ The current submission path uses three script-kernel folders:
 |---|---|
 | `01-duecare-exploration-workbench` / `taylorsamarel/duecare-app` | Full product workbench and source of truth for shared primitives, harnesses, model picker, bulk processing, knowledge extraction, search, sharing, tracing, activity logs, and `/static/demo-recording.html`. |
 | `02-live-demo` / `taylorsamarel/duecare-live-demo` | Focused live demo surface for judges, including `/start`, `/slides`, `/slides/setup`, and `/api/slides/recording-pack`. |
+| `A-00-omni-experiment-workbench` / `taylorsamarel/duecare-fine-tuning-and-evaluation` | Quantitative proof path for baseline, harnessed, synthetic-data, fine-tuning, judging, checkpointing, and report artifacts. |
 
-Run each by copying its `kernel.py` into a Kaggle code cell, enabling Internet and T4 x2 GPU, and running the cell. The kernel installs the DueCare packages from GitHub, stages outputs under `/kaggle/working`, launches the server, and prints a `https://*.trycloudflare.com` URL.
+Run `01` and `02` by copying `kernel.py` into a Kaggle code cell, enabling Internet and T4 x2 GPU, and running the cell. Those kernels install the DueCare packages from GitHub, stage outputs under `/kaggle/working`, launch the server, and print a `https://*.trycloudflare.com` URL. Use `A-00` when you want the longer proof pipeline and report artifacts rather than the reviewer web UI.
 
 ## Archived Reference Notebooks
 
@@ -17,9 +18,10 @@ The former `03-duecare-video-pitch` notebook, appendix
 notebooks `A-01` through `A-24`, and task-notebook snapshots are archived under
 `kaggle/_archive/notebooks/`. They are not part of the active run path.
 
-Root `kaggle/` should not contain appendix `A-*` folders. The only root
-`04-*` folder should be `04-kaggle-community-benchmark`; other `04-*` notebook
-snapshots belong under `kaggle/_archive/notebooks/`.
+Root `kaggle/` should not contain appendix `A-*` folders other than active
+`A-00-omni-experiment-workbench`. The only root `04-*` folder should be
+`04-kaggle-community-benchmark`; other `04-*` notebook snapshots belong under
+`kaggle/_archive/notebooks/`.
 
 ## Optional Benchmarks
 

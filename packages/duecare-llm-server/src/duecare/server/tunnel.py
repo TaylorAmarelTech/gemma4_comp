@@ -130,6 +130,32 @@ _URL_RX = re.compile(r"https://[A-Za-z0-9_\-.]+\.(?:trycloudflare\.com|"
                        r"ngrok-free\.app|ngrok\.app|ngrok\.io)")
 
 
+def _is_public_tunnel_url(url: str) -> bool:
+    from urllib.parse import urlsplit
+
+    try:
+        parsed = urlsplit(url.strip())
+    except Exception:
+        return False
+    if parsed.scheme != "https":
+        return False
+    host = (parsed.hostname or "").lower()
+    if host.endswith(".trycloudflare.com"):
+        label = host[: -len(".trycloudflare.com")]
+        if label in {"api", "www"}:
+            return False
+        return bool(re.fullmatch(r"[a-z0-9-]{3,63}", label))
+    return host.endswith((".ngrok-free.app", ".ngrok.app", ".ngrok.io"))
+
+
+def _extract_public_url(line: str) -> Optional[str]:
+    for match in _URL_RX.finditer(line or ""):
+        url = match.group(0).rstrip(".,)")
+        if _is_public_tunnel_url(url):
+            return url
+    return None
+
+
 def _scan_for_url(proc: subprocess.Popen, timeout: float) -> Optional[str]:
     """Watch a tunnel subprocess's stdout for its public URL."""
     found: dict = {"url": None}
@@ -139,9 +165,9 @@ def _scan_for_url(proc: subprocess.Popen, timeout: float) -> Optional[str]:
             line = line.rstrip()
             if line:
                 print(f"[tunnel] {line}")
-            m = _URL_RX.search(line or "")
-            if m and not found["url"]:
-                found["url"] = m.group(0)
+            url = _extract_public_url(line or "")
+            if url and not found["url"]:
+                found["url"] = url
 
     t = threading.Thread(target=reader, daemon=True)
     t.start()

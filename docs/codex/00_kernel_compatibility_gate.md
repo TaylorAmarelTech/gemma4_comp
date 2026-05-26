@@ -4,7 +4,7 @@
 
 ## Scope
 
-This gate protects the Kaggle root layout, the two active Kaggle `kernel.py`
+This gate protects the Kaggle root layout, the active Kaggle `kernel.py`
 files, and the two optional benchmark `kernel.py` files that a judge or
 reviewer can still run:
 
@@ -12,13 +12,15 @@ reviewer can still run:
 |---|---|---|
 | Active | `kaggle/01-duecare-exploration-workbench/kernel.py` | Main DueCare App / reviewer workbench |
 | Active | `kaggle/02-live-demo/kernel.py` | Focused recording and live demo path |
+| Active | `kaggle/A-00-omni-experiment-workbench/kernel.py` | Quantitative proof, training/evaluation, and report path |
 | Optional | `kaggle/03-universal-llm-benchmark/kernel.py` | External endpoint benchmark |
 | Optional | `kaggle/04-kaggle-community-benchmark/kernel.py` | Kaggle Community Benchmark task flow |
 
 Appendix notebooks, archived notebooks, and legacy notebook-era folders are
 intentionally out of scope for kernel compatibility unless Taylor explicitly
 asks to restore or migrate them. The layout check still fails if appendix
-`A-*` folders or extra `04-*` snapshots are reintroduced at the root.
+`A-*` folders other than the active `A-00-omni-experiment-workbench`, or extra
+`04-*` snapshots, are reintroduced at the root.
 
 ## Required command
 
@@ -32,7 +34,8 @@ This is a static, pure-stdlib check. It does not import DueCare packages,
 launch FastAPI, install dependencies, download models, or start cloudflared. It
 verifies that the Kaggle root layout and main kernels:
 
-- keep appendix `A-*` and extra `04-*` task snapshots out of root `kaggle/`,
+- keep appendix `A-*` other than active `A-00`, and extra `04-*` task snapshots,
+  out of root `kaggle/`,
 - still exist in their published folders,
 - parse as Python,
 - are UTF-8 readable,

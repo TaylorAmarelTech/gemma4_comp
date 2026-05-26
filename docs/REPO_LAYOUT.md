@@ -1,6 +1,6 @@
 ﻿# Repository Layout
 
-Current as of 2026-05-19.
+Current as of 2026-05-25.
 
 | Path | Purpose | Status |
 |---|---|---|
@@ -24,6 +24,7 @@ Current as of 2026-05-19.
 - Reviewer path: [`docs/FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md)
 - Manual checklist: [`docs/USER_TODO.md`](USER_TODO.md)
 - Current status: [`docs/readiness_dashboard.md`](readiness_dashboard.md)
+- User path chooser: [`docs/user_paths.md`](user_paths.md)
 - Active Kaggle inventory: [`docs/current_kaggle_notebook_state.md`](current_kaggle_notebook_state.md)
 - Model loading: [`docs/model_loading_trace.md`](model_loading_trace.md)
 - Harness inventory: [`docs/harness_ecosystem.md`](harness_ecosystem.md)
@@ -39,5 +40,6 @@ old score projections, or A-01 through A-24 as the active submission path, it
 belongs under `docs/_archive/2026-05-16-legacy-notebook-era/` unless it has been
 rewritten around the current active Kaggle scope.
 
-Root `kaggle/` must not contain appendix `A-*` folders, and the only root
-`04-*` folder should be `04-kaggle-community-benchmark`.
+Root `kaggle/` must not contain appendix `A-*` folders other than the active
+`A-00-omni-experiment-workbench`, and the only root `04-*` folder should be
+`04-kaggle-community-benchmark`.

@@ -7,8 +7,8 @@ constraints; closest file wins.
 ## Current Truth
 
 - Active branch: `master`.
-- Active Kaggle submission surfaces: `kaggle/01-duecare-exploration-workbench`
-  and `kaggle/02-live-demo`.
+- Active Kaggle submission surfaces: `kaggle/01-duecare-exploration-workbench`,
+  `kaggle/02-live-demo`, and `kaggle/A-00-omni-experiment-workbench`.
 - Optional benchmark surfaces: `kaggle/03-universal-llm-benchmark` for external
   API benchmarking with DueCare prompts and Claude Opus judging, and
   `kaggle/04-kaggle-community-benchmark` for Kaggle Community Benchmark tasks
@@ -16,7 +16,8 @@ constraints; closest file wins.
   recording path unless Taylor says so.
 - Archived notebook-era surfaces under `kaggle/_archive/` are provenance, not
   blockers, unless Taylor explicitly asks to restore or migrate them. Do not
-  restore appendix `A-*` folders at the `kaggle/` root.
+  restore appendix `A-*` folders at the `kaggle/` root except the active
+  `A-00-omni-experiment-workbench` proof path.
 - The only root `04-*` folder should be
   `kaggle/04-kaggle-community-benchmark`; task-notebook snapshots and other
   `04-*` variants belong under `kaggle/_archive/notebooks/`.
