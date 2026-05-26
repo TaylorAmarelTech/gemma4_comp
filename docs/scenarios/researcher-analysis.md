@@ -177,9 +177,9 @@ Bundled / public:
 
 | Dataset | Slug | Size | License |
 |---|---|---|---|
-| Trafficking prompts (public) | `taylorsamarel/duecare-trafficking-prompts` | 21K prompts + 5 rubrics | CC-BY-4.0 |
-| 5-grade rubric annotations | (in the same dataset) | 200+ prompt proxies | CC-BY-4.0 |
-| Corridor lookup tables | (bundled in `duecare-llm-domains`) | 6 corridors | MIT |
+| Trafficking prompts (public) | `taylorsamarel/duecare-trafficking-prompts` | Large public prompt set; verify the current manifest before citing an exact count | CC-BY-4.0 |
+| 5-grade rubric annotations | (in the same dataset) | 200+ prompt proxies; cite the current export for exact counts | CC-BY-4.0 |
+| Corridor lookup tables | (bundled in `duecare-llm-domains`) | Versioned corridor tables; cite the current package manifest for exact counts | MIT |
 | Trafficking GREP rule catalog | (bundled in `duecare-llm-chat`) | 100+ rules | MIT |
 | RAG legal corpus | (bundled in `duecare-llm-chat`) | 50+ docs | CC-BY-4.0 (each doc has its own attribution) |
 

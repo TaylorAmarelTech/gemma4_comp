@@ -70,9 +70,9 @@
 [![Pytest collection](https://img.shields.io/badge/pytest%20collection-checked-blue.svg)](#tests)
 [![Packages](https://img.shields.io/badge/packages-17-blue.svg)](#packages)
 
-## Try DueCare in 30 seconds
+## Try DueCare on Kaggle
 
-Two demo Kaggle script kernels are the fastest way to try DueCare. Each one is a single `kernel.py` file: copy it into a fresh Kaggle Notebook, set **Accelerator: GPU T4 x2** + **Internet: On**, click **+ Add Input â†’ Models â†’ `google/gemma-4`**, then **Run All**. ~30 seconds later the kernel prints a public `https://*.trycloudflare.com` URL. A-00 is the active proof kernel for longer fine-tuning, evaluation, and report-bundle runs.
+Two demo Kaggle script kernels are the fastest way to try DueCare. Each one is a single `kernel.py` file: copy it into a fresh Kaggle Notebook, set **Accelerator: GPU T4 x2** + **Internet: On**, click **+ Add Input â†’ Models â†’ `google/gemma-4`**, then **Run All**. After install, package verification, model setup, and tunnel startup, the kernel prints a public `https://*.trycloudflare.com` URL. Timing varies by Kaggle worker, selected Gemma 4 variant, package install path, model cache state, and Cloudflare quick-tunnel availability. A-00 is the active proof kernel for longer fine-tuning, evaluation, and report-bundle runs.
 
 | | Kernel | What you see when it starts |
 |---|---|---|
@@ -81,14 +81,14 @@ Two demo Kaggle script kernels are the fastest way to try DueCare. Each one is a
 
 Optional benchmark surfaces:
 
-- [`kaggle/03-universal-llm-benchmark`](./kaggle/03-universal-llm-benchmark/) benchmarks arbitrary OpenAI-compatible, Anthropic Messages, or raw JSON endpoints against DueCare prompts and rubric cues, with Claude Opus judging when an Anthropic key is configured.
-- [`kaggle/04-kaggle-community-benchmark`](./kaggle/04-kaggle-community-benchmark/) defines DueCare rows as `kaggle_benchmarks` tasks so runs can use Kaggle's model proxy/quota and produce Community Benchmark artifacts. The current v4 task at [`kaggle.com/code/taylorsamarel/new-benchmark-task-0a35d`](https://www.kaggle.com/code/taylorsamarel/new-benchmark-task-0a35d) combines corridor, fee, policy, and composite vulnerability scenarios with DueCare's universal rubric, including hard-veto dimensions such as `harm_enablement_check` and `no_operational_optimization`. The notebook pip-installs `duecare-llm-chat` from a pinned commit so the rubric is synced to a reproducible source snapshot. See [`COVERAGE.md`](./kaggle/04-kaggle-community-benchmark/COVERAGE.md) for the current row and dimension breakdown.
+- [`kaggle/03-universal-llm-benchmark`](./kaggle/03-universal-llm-benchmark/) benchmarks arbitrary OpenAI-compatible, Anthropic Messages, or raw JSON endpoints against DueCare prompts and rubric cues, with Claude Opus judging only when an Anthropic key is configured. Fixture/self-test paths do not require paid model calls.
+- [`kaggle/04-kaggle-community-benchmark`](./kaggle/04-kaggle-community-benchmark/) defines DueCare rows as `kaggle_benchmarks` tasks so runs can use Kaggle's model proxy/quota and produce Community Benchmark artifacts. The current task combines corridor, fee, policy, and composite vulnerability scenarios with DueCare's universal rubric, including hard-veto dimensions such as `harm_enablement_check` and `no_operational_optimization`. The notebook pip-installs `duecare-llm-chat` from a pinned commit so the rubric is synced to a reproducible source snapshot. See [`COVERAGE.md`](./kaggle/04-kaggle-community-benchmark/COVERAGE.md) for the current row and dimension breakdown.
 
 Neither optional benchmark is required for the primary recording path.
 
 Heuristic-only mode (no model attached) still serves `/start`, `/slides`, deterministic GREP / RAG / tools, and the cached worker-question slot â€” the model only matters for the live `/chat` endpoint and the optional Gemma edge pass on Bulk File Review.
 
-**Verify locally (60 seconds):**
+**Verify locally:**
 
 ```bash
 git clone https://github.com/TaylorAmarelTech/gemma4_comp.git
@@ -453,13 +453,13 @@ snapshots belong under `kaggle/_archive/notebooks/`.
 â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
-### Key results (real Kaggle GPU runs)
+### Key results (dated Kaggle and proxy runs)
 
 | Metric | Value | Source |
 |---|---|---|
 | Stock Gemma 4 E4B mean score | **0.610** | [100 - Gemma Exploration](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-exploration) |
 | Stock Gemma 4 E4B pass rate | **20%** | 100 (50 graded prompts) |
-| Harmful phrase rate | **0.0%** | Gemma 4 never produced harmful content |
+| Harmful phrase rate | **0.0% in this checked run** | No harmful phrase hits in the 50-prompt graded run; not a global safety guarantee |
 | Refusal rate | **36%** | Clear refusal on exploitation requests |
 | With RAG context | **0.59** (+23% over plain) | [260 - RAG Comparison](https://www.kaggle.com/code/taylorsamarel/duecare-260-rag-comparison) |
 | With guided prompt | **0.62** (+28% over plain) | [260 - RAG Comparison](https://www.kaggle.com/code/taylorsamarel/duecare-260-rag-comparison) |
@@ -828,25 +828,17 @@ For complete licensing information, see [`THIRD_PARTY_LICENSES.md`](./THIRD_PART
 ## Acknowledgements
 
 DueCare is the harness layer on top of a substantial existing body of
-migrant-worker safety research. The author's *LLM Safety Testing
-Ecosystem* â€” built over four years in Hong Kong investigating
-trafficking and related money laundering across Asia â€” contributes:
+migrant-worker safety research. Historical benchmark, corpus, and
+case-pattern inventories helped shape the current project, but those
+old counts are not public product guarantees. Treat any exact corpus,
+prompt, rubric, corridor, or seed-module number as an artifact that must
+be re-measured from the cited script, manifest, or A-00 export before it
+is reused in public copy.
 
-- A **21,000-test benchmark suite** (`trafficking-llm-benchmark`)
-  covering recruitment, debt, document control, wage withholding,
-  passport retention, contract substitution, and victim-side
-  intake patterns
-- **26 migration corridors** from PHâ†”HK and IDâ†”HK to NPâ†’Gulf, BDâ†’MY,
-  VNâ†’TW, MXâ†’US H-2A, and ETâ†’SA, each with corridor-specific statute
-  knowledge
-- **174 scraper seed modules** for ILO databases, court records
-  (PACER / AustLII / BAILII), FATF / FATCA publications, NGO case
-  files, and source-country regulator portals
-- **20,460+ extracted facts** linking statute citations, fee caps,
-  ILO indicators, and case outcomes
-- **126 documented attack chains** showing how recruitment fee
-  camouflage, novation, jurisdiction shopping, and side-letter
-  schemes compose into operational trafficking pipelines
+The reusable contribution is the shape of the system: trafficking-aware
+prompts and rubrics, corridor and fee-rule knowledge, evidence graphs,
+anonymization gates, and review workflows that help Gemma 4 operate as
+part of a safer local-node ecosystem.
 
 The harness is grounded in:
 
@@ -872,8 +864,7 @@ The harness is grounded in:
   Overseas Employment and Migrants Act 2013**, **Vietnam Decree
   38/2020/ND-CP**, **HK Cap. 57 / 57A**
 
-This is judged primarily on a 3-minute video. The architecture
-exists so that frontline NGOs, regulators, and workers themselves
-can run trafficking-pattern recognition on a laptop or phone
-without ever sending case data to a cloud API. Built for the people
-who need this tool and cannot use the cloud.
+The public claim rule is simple: explain the six-lane ecosystem and the
+local-to-anonymized-sharing boundary clearly, but publish exact metrics
+only when the dated artifact and verification command are named beside
+the number.

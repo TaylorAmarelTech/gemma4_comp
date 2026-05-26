@@ -113,14 +113,40 @@ exclude_docs: |
   _archive/
   appendices/
   appendix_experiment_ladder.md
+  android_app_architecture.md
   claude_*.md
   codex_handoff_*.md
   copilot_handoff_*.md
   component_diagram.md
+  duecare_app_launch_guide.md
+  ecosystem_overview.md
+  architecture.md
+  extension_pack_format.md
+  integration_plan.md
+  kaggle_integration.md
+  marias_case_end_to_end.md
+  prior_art.md
+  project_phases.md
+  quality_rubrics.md
   REVIEW_PROMPTS.md
   submission_readiness_audit.md
+  stock_vs_harnessed.md
   system_map.md
   system_map.html
+  youtube_description.md
+  deployment/01_ngo_caseworker_quickstart.md
+  deployment/01_ngo_pilot_brief.md
+  deployment/02_network_curator_role.md
+  deployment/04_platform_cto_pitch.md
+  scenarios/chief-architect.md
+  scenarios/embassy-consular.md
+  scenarios/ilo-iom-regional.md
+  scenarios/it-director.md
+  scenarios/journalist-investigation.md
+  scenarios/lawyer-evidence-prep.md
+  scenarios/recruiter-self-audit.md
+  scenarios/translations/
+  scenarios/vp-engineering.md
 
 # Navigation - simplified GitHub Pages path.
 # The public site focuses on users, deployments, and anonymized

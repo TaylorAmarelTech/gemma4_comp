@@ -1,16 +1,18 @@
-﻿# Embedding Duecare in Other Apps
+# Embedding DueCare in Other Apps
 
-The Duecare safety harness (Gemma 4 + 100+ GREP rules + 50+ RAG docs +
+The DueCare safety harness (Gemma 4 + 100+ GREP rules + 50+ RAG docs +
 function-calling tools + the rubric system) is designed to be embeddable into other
 applications via multiple integration paths. Pick the one that
 matches your stack.
 
-> **What you get when you embed Duecare:** the same safety harness
+> **What you get when you embed DueCare:** the same safety harness
 > + chat surface that powers the Kaggle notebooks, the HF Space, and
-> the Android app. Same prompt assembly, same harness lift (+73.8 /
-> +55.4 / +21.2 pp on the legal_citation_quality rubric), same
-> privacy posture (no telemetry by default, local-first wherever
-> possible).
+> the worker-support/mobile-adjacent lane. Same prompt assembly, same
+> measured proxy-lift artifacts when the harness is enabled, and the same
+> sensitive-data posture: keep raw case material local or tenant-controlled,
+> then share only reviewed anonymized intelligence. See
+> [`harness_lift_report.md`](harness_lift_report.md) before citing exact
+> lift numbers.
 
 ## Pick your integration path
 
