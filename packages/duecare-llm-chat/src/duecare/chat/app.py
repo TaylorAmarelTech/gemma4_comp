@@ -2327,6 +2327,8 @@ def create_app(
     app.state.rerank_call = rerank_call
     app.state.embed_call  = embed_call
     app.state.evaluator_call = evaluator_call
+    app.state.evaluator_last_error = None
+    app.state.evaluator_recovery_events = []
     app.state.rubrics_required_categories = (
         rubrics_required_categories or []
     )
@@ -2561,9 +2563,12 @@ def create_app(
                 or _ONLINE_CONFIG.get("tavily_api_key")
             )
         online_wired = app.state.online_search_call is not None or online_keyed
+        chat_ready = app.state.gemma_call is not None
+        evaluator_ready = getattr(app.state, "evaluator_call", None) is not None
         return {
             "ok":             True,
-            "ready":          app.state.gemma_call is not None,
+            "ready":          chat_ready,
+            "grade_ready":    chat_ready or evaluator_ready,
             "ts":             time.time(),
             "model": {
                 "loaded":  bool((app.state.model_info or {}).get("loaded")),
@@ -2582,8 +2587,15 @@ def create_app(
             "grade_modes": {
                 "universal":  True,
                 "expert":     bool(app.state.grade_call),
-                "deep":       app.state.gemma_call is not None,
-                "combined":   app.state.gemma_call is not None,
+                "deep":       chat_ready or evaluator_ready,
+                "combined":   chat_ready or evaluator_ready,
+            },
+            "evaluator": {
+                "wired": evaluator_ready,
+                "last_error": getattr(app.state, "evaluator_last_error", None),
+                "recent_recovery_events": (
+                    getattr(app.state, "evaluator_recovery_events", []) or []
+                )[-5:],
             },
             "harness_counts": harness_counts,
             "examples":       len(app.state.example_prompts or []),
@@ -2660,9 +2672,8 @@ def create_app(
         itself, no kernel callable required.
 
         `grade_deep` reflects whether the LLM-evaluator endpoint
-        will work — it requires `gemma_call` to be wired so the
-        kernel can ask its own loaded Gemma the dimension yes/no
-        questions."""
+        will work: either the chat model or a dedicated evaluator
+        callable can answer the dimension yes/no questions."""
         with _ONLINE_CONFIG_LOCK:
             online_brave_key = bool(_ONLINE_CONFIG.get("brave_api_key"))
             online_tavily_key = bool(_ONLINE_CONFIG.get("tavily_api_key"))
@@ -2696,7 +2707,10 @@ def create_app(
             # _IMPORT_STORE is always reachable.
             "import":           True,
             "grade":            app.state.grade_call is not None,
-            "grade_deep":       app.state.gemma_call is not None,
+            "grade_deep":       (
+                app.state.gemma_call is not None
+                or getattr(app.state, "evaluator_call", None) is not None
+            ),
             "grade_categories": app.state.rubrics_required_categories or [],
         }
 
@@ -3916,6 +3930,161 @@ def create_app(
             pass
         return result
 
+    def _evaluator_error_text(exc: BaseException) -> str:
+        return f"{type(exc).__name__}: {exc}"
+
+    def _evaluator_signature_type_error(exc: BaseException) -> bool:
+        if not isinstance(exc, TypeError):
+            return False
+        msg = str(exc).lower()
+        # Model/runtime failures can also be TypeError in notebook
+        # wrappers. Only fall back to the bare callable signature for
+        # actual Python argument-shape failures.
+        if "load failed" in msg:
+            return False
+        return any(marker in msg for marker in (
+            "unexpected keyword",
+            "got an unexpected",
+            "positional argument",
+            "required positional",
+            "takes ",
+            "missing ",
+            "keyword argument",
+        ))
+
+    def _evaluator_retryable_error(exc: BaseException) -> bool:
+        if isinstance(exc, HTTPException):
+            if exc.status_code in {
+                408, 409, 425, 429, 500, 502, 503, 504,
+                520, 522, 524, 529, 530,
+            }:
+                return True
+        msg = _evaluator_error_text(exc).lower()
+        return any(marker in msg for marker in (
+            "load failed",
+            "http 408",
+            "http 409",
+            "http 425",
+            "http 429",
+            "http 500",
+            "http 502",
+            "http 503",
+            "http 504",
+            "http 520",
+            "http 522",
+            "http 524",
+            "http 529",
+            "http 530",
+            "failed to fetch",
+            "connection",
+            "connection reset",
+            "remote disconnected",
+            "timeout",
+            "timed out",
+            "temporarily unavailable",
+            "rate limit",
+            "queue_full",
+            "queue full",
+            "queue closed",
+            "cuda out of memory",
+            "out of memory",
+            "device-side assert",
+            "cublas",
+            "xet",
+        ))
+
+    def _record_evaluator_recovery(
+        label: str,
+        kind: str,
+        attempt: int,
+        error: str = "",
+        *,
+        retrying: bool = False,
+        fallback_to: str | None = None,
+    ) -> None:
+        event = {
+            "ts": time.time(),
+            "label": label,
+            "kind": kind,
+            "attempt": int(attempt),
+            "error": str(error or "")[:500],
+            "retrying": bool(retrying),
+            "fallback_to": fallback_to,
+        }
+        try:
+            events = getattr(app.state, "evaluator_recovery_events", None)
+            if not isinstance(events, list):
+                events = []
+                app.state.evaluator_recovery_events = events
+            events.append(event)
+            if len(events) > 50:
+                del events[:-50]
+            if error:
+                app.state.evaluator_last_error = event
+        except Exception:
+            pass
+
+    def _reclaim_evaluator_gpu() -> None:
+        try:
+            import torch  # type: ignore
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+        except Exception:
+            pass
+
+    def _call_judge_backend(
+        label: str,
+        call: Callable,
+        messages: list[dict],
+        *,
+        max_new_tokens: int,
+        temperature: float,
+        attempts: int,
+        use_lock: bool,
+    ) -> str:
+        def _invoke() -> str:
+            try:
+                return call(
+                    messages,
+                    max_new_tokens=max_new_tokens,
+                    temperature=temperature,
+                    top_p=0.95,
+                    top_k=20,
+                ) or ""
+            except TypeError as e:
+                if not _evaluator_signature_type_error(e):
+                    raise
+                return call(messages) or ""
+
+        attempts = max(1, int(attempts))
+        for attempt in range(1, attempts + 1):
+            try:
+                if use_lock:
+                    with _GEMMA_LOCK:
+                        out = _invoke()
+                else:
+                    out = _invoke()
+                if attempt > 1:
+                    _record_evaluator_recovery(
+                        label, "retry_success", attempt,
+                    )
+                return out
+            except Exception as exc:  # noqa: BLE001
+                retryable = _evaluator_retryable_error(exc)
+                should_retry = retryable and attempt < attempts
+                _record_evaluator_recovery(
+                    label,
+                    "retryable_failure" if retryable else "failure",
+                    attempt,
+                    _evaluator_error_text(exc),
+                    retrying=should_retry,
+                )
+                if not should_retry:
+                    raise
+                _reclaim_evaluator_gpu()
+                time.sleep(min(2.0, 0.35 * (2 ** (attempt - 1))))
+        raise RuntimeError(f"{label} failed without raising an exception")
+
     def _evaluator_model_call(prompt_str: str, *, max_new_tokens: int,
                                 temperature: float) -> str:
         """Wrap the LLM-judge model into the (prompt: str) -> str
@@ -3961,32 +4130,68 @@ def create_app(
         }]
         # When evaluator_call is wired, use it. The kernel decides
         # whether to share a CUDA lock with chat or run its evaluator
-        # on a separate device / network.
+        # on a separate device / network. Transient load, transport,
+        # and GPU-memory failures get short retries; if the dedicated
+        # judge still fails and chat is loaded, fall back to chat.
         if ec is not None:
             try:
-                return ec(
+                return _call_judge_backend(
+                    "evaluator",
+                    ec,
                     messages,
                     max_new_tokens=max_new_tokens,
                     temperature=eff_temp,
-                    top_p=0.95,
-                    top_k=20,
-                ) or ""
-            except TypeError:
-                return ec(messages) or ""
+                    attempts=3,
+                    use_lock=False,
+                )
+            except Exception as eval_exc:  # noqa: BLE001
+                if gc is not None and gc is not ec:
+                    _record_evaluator_recovery(
+                        "evaluator",
+                        "fallback_to_chat",
+                        0,
+                        _evaluator_error_text(eval_exc),
+                        fallback_to="chat",
+                    )
+                    try:
+                        return _call_judge_backend(
+                            "chat_fallback",
+                            gc,
+                            messages,
+                            max_new_tokens=max_new_tokens,
+                            temperature=eff_temp,
+                            attempts=2,
+                            use_lock=True,
+                        )
+                    except Exception as chat_exc:  # noqa: BLE001
+                        raise RuntimeError(
+                            "judge model failed after retries "
+                            f"({_evaluator_error_text(eval_exc)}); "
+                            "chat fallback also failed "
+                            f"({_evaluator_error_text(chat_exc)})"
+                        ) from chat_exc
+                raise RuntimeError(
+                    "judge model failed after retries "
+                    f"({_evaluator_error_text(eval_exc)})"
+                ) from eval_exc
         # Fall back to the chat model (on-device self-grade).
         # H1 (R2): serialise gemma_call. Concurrent generations corrupt
         # CUDA state. The lock is held for the full forward pass.
-        with _GEMMA_LOCK:
-            try:
-                return gc(
-                    messages,
-                    max_new_tokens=max_new_tokens,
-                    temperature=eff_temp,
-                    top_p=0.95,
-                    top_k=20,
-                ) or ""
-            except TypeError:
-                return gc(messages) or ""
+        try:
+            return _call_judge_backend(
+                "chat_judge",
+                gc,
+                messages,
+                max_new_tokens=max_new_tokens,
+                temperature=eff_temp,
+                attempts=3,
+                use_lock=True,
+            )
+        except Exception as exc:  # noqa: BLE001
+            raise RuntimeError(
+                "chat judge failed after retries "
+                f"({_evaluator_error_text(exc)})"
+            ) from exc
 
     @app.post("/api/grade-deep")
     def api_grade_deep(req: DeepGradeRequest) -> Any:
@@ -4002,10 +4207,12 @@ def create_app(
         see. Together they form a defence-in-depth grading stack.
         Follows the same paradigm as G-Eval, MT-Bench, Prometheus.
         """
-        if app.state.gemma_call is None:
+        if (app.state.gemma_call is None
+                and getattr(app.state, "evaluator_call", None) is None):
             raise HTTPException(
                 503,
-                "deep grading not available — kernel did not wire gemma_call",
+                "deep grading not available — kernel did not wire "
+                "gemma_call or evaluator_call",
             )
         if not req.response_text or not req.response_text.strip():
             raise HTTPException(400, "response_text is required")
@@ -4054,7 +4261,8 @@ def create_app(
         Surfaces an `agreement` block listing dimensions where the
         two graders disagree — those are the high-information cases
         for a reviewer to look at."""
-        if app.state.gemma_call is None:
+        if (app.state.gemma_call is None
+                and getattr(app.state, "evaluator_call", None) is None):
             # No model wired → fall back to deterministic only
             from .harness import grade_response_combined
             return grade_response_combined(
@@ -4323,7 +4531,8 @@ def create_app(
         events, then finishes with a "complete" event carrying the
         full combined payload.
         """
-        if app.state.gemma_call is None:
+        if (app.state.gemma_call is None
+                and getattr(app.state, "evaluator_call", None) is None):
             # Deterministic-only fallback: run synchronously and return
             # as a single "complete" event (no streaming benefit but
             # keeps the wire format consistent).

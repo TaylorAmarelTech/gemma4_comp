@@ -2113,6 +2113,33 @@
         host.appendChild(err);
         return;
       }
+      if (gradeResult.recovery && !gradeResult.partial) {
+        const rec = gradeResult.recovery || {};
+        const banner = document.createElement('div');
+        banner.setAttribute('data-role', 'grade-recovery-banner');
+        banner.style.cssText = 'background: oklch(0.96 0.04 85); ' +
+          'border-left: 3px solid oklch(0.63 0.10 85); padding: 8px 10px; ' +
+          'border-radius: 6px; margin-bottom: 8px; color: oklch(0.32 0.10 80); ' +
+          'font-size: 12px; line-height: 1.5;';
+        const head = document.createElement('div');
+        const strong = document.createElement('b');
+        strong.textContent = 'Recovered grade';
+        head.appendChild(strong);
+        const attempts = rec.attempts || rec.stream_open_attempts || rec.stream_attempts || '';
+        head.appendChild(document.createTextNode(
+          ' · ' + String(rec.kind || 'fallback') +
+          (attempts ? ' · attempts=' + String(attempts) : '')
+        ));
+        banner.appendChild(head);
+        if (rec.reason) {
+          const reason = document.createElement('div');
+          reason.style.cssText = 'font-family: JetBrains Mono, monospace; ' +
+            'font-size: 10.5px; margin-top: 3px; color: oklch(0.32 0.10 80);';
+          reason.textContent = 'reason: ' + String(rec.reason).slice(0, 260);
+          banner.appendChild(reason);
+        }
+        host.appendChild(banner);
+      }
       const pct = cmpScoreNumber(gradeResult);
       const barWrap = document.createElement('div');
       barWrap.style.cssText = 'background:#EFEDE4; border-radius:6px; height:8px; overflow:hidden; margin:6px 0 10px;';
@@ -2523,13 +2550,137 @@
     // Benchmark task (duecare.chat.benchmark). Runs deterministic-only
     // so it doesn't burn the chat queue. Failure is non-fatal: a
     // benchmark fetch error never blocks the local grade panel.
+    const CMP_RETRYABLE_HTTP = new Set([
+      408, 409, 425, 429, 500, 502, 503, 504, 520, 522, 524, 529, 530,
+    ]);
+    function cmpSleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    function cmpRetryDelayMs(attempt) {
+      const delays = [0, 450, 1200, 2500];
+      return delays[Math.min(attempt, delays.length - 1)];
+    }
+    function cmpIsRetryableFetchError(e) {
+      const msg = String((e && e.message) || e || '').toLowerCase();
+      return msg.includes('load failed') || msg.includes('failed to fetch') ||
+        msg.includes('network') || msg.includes('timeout') ||
+        msg.includes('timed out') || msg.includes('connection') ||
+        msg.includes('body stream');
+    }
+    async function cmpFetchWithRetry(url, options, opts) {
+      const cfg = opts || {};
+      const attempts = Math.max(1, cfg.attempts || 3);
+      const label = cfg.label || url;
+      let last = {error: 'not attempted', attempts: 0};
+      for (let attempt = 1; attempt <= attempts; attempt += 1) {
+        try {
+          const r = await fetch(url, options);
+          if (r.ok) return {ok: true, response: r, attempts: attempt};
+          const body = await r.text().catch(() => '');
+          last = {
+            error: 'HTTP ' + r.status,
+            status: r.status,
+            body: body,
+            attempts: attempt,
+          };
+          if (attempt < attempts && CMP_RETRYABLE_HTTP.has(Number(r.status))) {
+            if (cfg.onRetry) {
+              cfg.onRetry(label + ' HTTP ' + r.status, attempt + 1, attempts);
+            }
+            await cmpSleep(cmpRetryDelayMs(attempt));
+            continue;
+          }
+          return last;
+        } catch (e) {
+          last = {
+            error: String((e && e.message) || e),
+            attempts: attempt,
+            exception_type: (e && e.name) || 'Error',
+          };
+          if (attempt < attempts && cmpIsRetryableFetchError(e)) {
+            if (cfg.onRetry) {
+              cfg.onRetry(label + ' ' + last.error, attempt + 1, attempts);
+            }
+            await cmpSleep(cmpRetryDelayMs(attempt));
+            continue;
+          }
+          return last;
+        }
+      }
+      return {...last, retry_exhausted: true};
+    }
+    function cmpRecoveryMeta(kind, reason, extra) {
+      return Object.assign({
+        kind: kind,
+        reason: reason || '',
+        ts: new Date().toISOString(),
+      }, extra || {});
+    }
+    async function cmpGradeRecoveryPreflight(variant, mode, progress) {
+      if (mode === 'deterministic') return {ok: true};
+      let judgeStatus = null;
+      try { judgeStatus = await judgeRefreshStatus(); } catch (_) {}
+      let health = null;
+      const healthOut = await cmpFetchWithRetry('/api/health-check', {
+        cache: 'no-store',
+      }, {
+        attempts: 2,
+        label: 'grade health preflight ' + variant,
+        onRetry: (msg, next, total) => {
+          progress('Variant ' + variant + ': ' + msg +
+            '; health retry ' + next + '/' + total);
+        },
+      });
+      if (healthOut.ok) {
+        try { health = await healthOut.response.json(); } catch (_) {}
+      }
+
+      const separateLoaded = !!(judgeStatus && judgeStatus.active_evaluator
+        && judgeStatus.active_evaluator.loaded);
+      const usesChatJudge = !!(judgeStatus && judgeStatus.judge_uses_chat);
+      const judgeLoading = !!(judgeStatus && judgeStatus.status === 'loading');
+      const judgeError = !!(judgeStatus && judgeStatus.status === 'error');
+      const gradeModes = (health && health.grade_modes) || {};
+      const healthKnown = !!(health && health.grade_modes);
+      const modeReady = mode === 'deep' ? !!gradeModes.deep : !!gradeModes.combined;
+      const chatLoaded = !!(health && (health.ready || health.grade_ready ||
+        (health.model && health.model.loaded)));
+
+      if (judgeLoading) {
+        progress('Variant ' + variant +
+          ': judge model is still loading; using available judge route.');
+        return {ok: true, status: judgeStatus, health: health};
+      }
+      if (healthKnown && !modeReady) {
+        return {
+          ok: false,
+          reason: 'LLM judge is not ready; using deterministic fallback',
+          status: judgeStatus,
+          health: health,
+        };
+      }
+      if (judgeError && !separateLoaded && !usesChatJudge && !chatLoaded) {
+        return {
+          ok: false,
+          reason: (judgeStatus.error || 'judge load failed') +
+            '; no chat judge is ready',
+          status: judgeStatus,
+          health: health,
+        };
+      }
+      if (healthOut && !healthOut.ok) {
+        progress('Variant ' + variant +
+          ': health preflight unavailable; continuing with stream retries.');
+      }
+      return {ok: true, status: judgeStatus, health: health};
+    }
     async function cmpBenchmarkOne(variant, res, prompt) {
       const responseText = (res && res.final && res.final.response) || '';
       if (!responseText.trim()) {
         return {error: 'empty response_text'};
       }
       try {
-        const r = await fetch('/api/grade-benchmark', {
+        const out = await cmpFetchWithRetry('/api/grade-benchmark', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
@@ -2537,13 +2688,36 @@
             prompt_text: prompt,
             harness_trace: (res && res.final && res.final.harness_trace) || null,
           }),
+        }, {
+          attempts: 3,
+          label: 'benchmark ' + variant,
+          onRetry: (msg, next, total) => {
+            try { logEvent(variant, 'warn',
+              msg + '; retry ' + next + '/' + total); } catch (_) {}
+          },
         });
-        if (!r.ok) {
-          return {error: 'HTTP ' + r.status, body: await r.text()};
+        if (!out.ok) {
+          return {
+            error: out.error || 'benchmark unavailable',
+            body: out.body,
+            recovery: cmpRecoveryMeta('benchmark_retry_exhausted', out.error, {
+              attempts: out.attempts,
+              status: out.status || null,
+            }),
+          };
         }
-        return await r.json();
+        const data = await out.response.json();
+        if (out.attempts > 1 && data && typeof data === 'object') {
+          data.recovery = cmpRecoveryMeta('benchmark_retry_success', '', {
+            attempts: out.attempts,
+          });
+        }
+        return data;
       } catch (e) {
-        return {error: String(e)};
+        return {
+          error: String(e),
+          recovery: cmpRecoveryMeta('benchmark_parse_failed', String(e)),
+        };
       }
     }
 
@@ -2552,7 +2726,9 @@
       if (!el) return;
       if (!result || result.error) {
         const msg = (result && result.error) ? String(result.error) : 'unavailable';
-        el.textContent = 'benchmark: ' + msg;
+        const attempts = result && result.recovery && result.recovery.attempts;
+        el.textContent = 'benchmark: ' + msg +
+          (attempts ? ' after ' + attempts + ' attempt(s)' : '');
         el.style.color = 'var(--ink-3, #5B5F68)';
         return;
       }
@@ -2590,9 +2766,10 @@
           'judge sharing chat slot (mirror ON) — may wait up to 120s '
           + 'if another user is mid-generation'); } catch (_) {}
       }
-      if (mode === 'deterministic') {
-        progress('Variant ' + variant + ': running deterministic grader...');
-        const r = await fetch('/api/grade', {
+      async function cmpRunDeterministicGrade(reason, recoveryKind) {
+        progress('Variant ' + variant + ': running deterministic grader' +
+          (reason ? ' after judge recovery...' : '...'));
+        const out = await cmpFetchWithRetry('/api/grade', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
@@ -2601,9 +2778,56 @@
             harness_trace: (res.final && res.final.harness_trace) || null,
             mode: 'universal',
           }),
+        }, {
+          attempts: 3,
+          label: 'deterministic grade ' + variant,
+          onRetry: (msg, next, total) => {
+            progress('Variant ' + variant + ': ' + msg +
+              '; retry ' + next + '/' + total);
+          },
         });
-        if (!r.ok) return {error: 'HTTP ' + r.status, body: await r.text()};
-        return r.json();
+        if (!out.ok) {
+          return {
+            error: out.error || 'deterministic grade unavailable',
+            body: out.body,
+            recovery: cmpRecoveryMeta(
+              recoveryKind || 'deterministic_retry_exhausted',
+              reason || out.error,
+              {attempts: out.attempts, status: out.status || null},
+            ),
+          };
+        }
+        let data;
+        try {
+          data = await out.response.json();
+        } catch (e) {
+          return {
+            error: 'grade JSON parse failed: ' + e,
+            recovery: cmpRecoveryMeta(
+              recoveryKind || 'deterministic_parse_failed',
+              reason || String(e),
+              {attempts: out.attempts},
+            ),
+          };
+        }
+        if ((out.attempts > 1 || reason) && data && typeof data === 'object') {
+          data.recovery = cmpRecoveryMeta(
+            recoveryKind || 'deterministic_retry_success',
+            reason || '',
+            {attempts: out.attempts},
+          );
+        }
+        return data;
+      }
+      if (mode === 'deterministic') {
+        return cmpRunDeterministicGrade('', 'deterministic_retry_success');
+      }
+      const preflight = await cmpGradeRecoveryPreflight(variant, mode, progress);
+      if (preflight && !preflight.ok) {
+        return cmpRunDeterministicGrade(
+          preflight.reason || 'judge preflight failed',
+          'judge_preflight_deterministic_fallback',
+        );
       }
       const url = mode === 'deep'
         ? '/api/grade-deep-stream'
@@ -2612,12 +2836,36 @@
       const body = mode === 'deep'
         ? {response_text: responseText, prompt_text: prompt}
         : {response_text: responseText, prompt_text: prompt, evaluator_weight: 0.5};
-      const r = await fetch(url, {
+      const opened = await cmpFetchWithRetry(url, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(body),
+      }, {
+        attempts: 3,
+        label: 'judge stream ' + variant,
+        onRetry: (msg, next, total) => {
+          progress('Variant ' + variant + ': ' + msg +
+            '; reopening ' + next + '/' + total);
+        },
       });
-      if (!r.ok) return {error: 'HTTP ' + r.status, body: await r.text()};
+      if (!opened.ok) {
+        const reason = opened.error || 'judge stream unavailable';
+        const fallback = await cmpRunDeterministicGrade(
+          reason,
+          'judge_stream_open_failed_deterministic_fallback',
+        );
+        if (fallback && !fallback.error) return fallback;
+        return {
+          error: reason,
+          body: opened.body,
+          recovery: cmpRecoveryMeta('judge_stream_open_failed', reason, {
+            stream_attempts: opened.attempts,
+            status: opened.status || null,
+            fallback_error: fallback && fallback.error ? fallback.error : null,
+          }),
+        };
+      }
+      const r = opened.response;
       const reader = r.body.getReader();
       const decoder = new TextDecoder('utf-8');
       let buffer = '';
@@ -2646,6 +2894,10 @@
           n_done: lastNDone || partialDims.length,
           n_total: lastNTotal,
           dropped_frames: droppedFrames,
+          recovery: cmpRecoveryMeta('judge_stream_partial', errMsg, {
+            stream_open_attempts: opened.attempts,
+            code: code || null,
+          }),
         };
       }
 
@@ -2708,12 +2960,26 @@
                 (lastNDone || '?') + '/' + (lastNTotal || '?') + ' - ' + dimLabel);
             } else if (evt.type === 'complete') {
               finalResult = evt.result || evt;
+              if (opened.attempts > 1 && finalResult && typeof finalResult === 'object') {
+                finalResult.recovery = cmpRecoveryMeta(
+                  'judge_stream_retry_success',
+                  '',
+                  {stream_open_attempts: opened.attempts},
+                );
+              }
               break;
             } else if (evt.type === 'error') {
               // Server-emitted error (e.g., evaluator-breaker). Treat as
               // partial: keep the dims that DID complete before the
               // breaker tripped so the user sees real evidence.
-              return buildPartial(evt.error || 'stream error', evt.code);
+              const errMsg = evt.error || 'stream error';
+              if (partialDims.length === 0 && deterministic == null) {
+                return cmpRunDeterministicGrade(
+                  errMsg,
+                  'judge_stream_error_deterministic_fallback',
+                );
+              }
+              return buildPartial(errMsg, evt.code);
             }
           } catch (e) {
             droppedFrames += 1;
@@ -2726,6 +2992,12 @@
       if (finalResult) return finalResult;
       // Either reader.read() threw or the stream ended without a
       // complete event. Both paths surface the partial result.
+      if (partialDims.length === 0 && deterministic == null) {
+        return cmpRunDeterministicGrade(
+          streamError || 'stream ended without final result',
+          'judge_stream_empty_deterministic_fallback',
+        );
+      }
       return buildPartial(
         streamError || 'stream ended without final result',
         null
