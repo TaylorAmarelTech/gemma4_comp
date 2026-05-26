@@ -1,4 +1,4 @@
-# Try Duecare in 2 minutes
+# Try DueCare in 2 minutes
 
 > The fastest possible path from "what's this?" to "I see what it
 > does." Pick the row that matches you. None require installing
@@ -13,7 +13,7 @@ Open the active DueCare App notebook on Kaggle:
 Click "Copy & Edit", then "Run All". When the Cloudflare URL appears,
 open the workbench. Try Bulk File Review for the end-to-end ecosystem
 view: deterministic extraction, a Gemma 4 case brief, hierarchical
-nodes and edges, replay/export artifacts, and anonymized sharing.
+nodes and edges, replay/export artifacts, and anonymized knowledge sharing.
 
 For the quick chat path, type:
 
@@ -32,7 +32,7 @@ notebook with `/start`, `/slides`, setup selectors, and cached replay APIs.)
 
 On your Android phone, in any browser:
 
-→ **[Duecare Journey APK](https://github.com/TaylorAmarelTech/duecare-journey-android/releases)**
+→ **[DueCare Journey APK](https://github.com/TaylorAmarelTech/duecare-journey-android/releases)**
 
 Tap the latest `.apk` file. Allow "install unknown apps" if
 prompted (the app isn't in the Play Store yet — that's deliberate,

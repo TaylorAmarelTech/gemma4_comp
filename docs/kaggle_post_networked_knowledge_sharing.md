@@ -1,16 +1,26 @@
-# Kaggle Post: Gemma 4 for Networked Knowledge Sharing Without Centralizing PII
+# Copy-ready Kaggle Post: DueCare Networked Knowledge Sharing
 
-Purpose: paste-ready Kaggle community post copy for explaining DueCare as a
-Gemma 4 ecosystem of local nodes, reviewed fact objects, anonymized evidence
-edges, and privacy-preserving knowledge sharing. This is intentionally separate
-from the formal hackathon writeup so it can stay shorter, clearer, and less
-metric-heavy.
+This page is a copy/paste draft for introducing DueCare on Kaggle as a Gemma 4
+ecosystem of local nodes, reviewed fact objects, anonymized evidence edges, and
+privacy-preserving knowledge sharing. It is intentionally separate from the
+formal hackathon writeup so it can stay short, plain, and less metric-heavy.
 
-## Suggested title
+## Copy this title
 
-DueCare: Gemma 4 local nodes for anonymized anti-trafficking intelligence sharing
+**DueCare: Gemma 4 for networked anti-trafficking intelligence sharing without centralizing PII**
 
-## Paste-ready Kaggle post
+## Copy this introduction paragraph
+
+Many proposed anti-trafficking tools are local implementations: NGO case
+review, worker-support apps, regulator analysis, platform safety queues,
+research workbenches, and developer integrations. That is the right privacy
+default because raw case files and worker identities should not be centralized.
+But isolated local tools miss the network effect. DueCare explores how Gemma 4
+can help each local node process sensitive material privately, then share only
+reviewed, anonymized fact objects, evidence edges, risk signals, benchmark
+rows, and knowledge-pack updates.
+
+## Copy this full post
 
 Hi Kaggle community,
 

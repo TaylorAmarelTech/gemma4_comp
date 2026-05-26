@@ -4,14 +4,15 @@ hide:
   - toc
 ---
 
-# DueCare: A Gemma 4 Safety Ecosystem
+# DueCare: A Gemma 4 Safety Ecosystem for Migrant-Worker Protection
 
-DueCare is an interoperable ecosystem for turning frontline evidence
-into reviewed intelligence against recruitment fraud and trafficking.
-Gemma 4 is the reasoning engine, but the strength comes from the
-components around it: workbenches, harnesses, knowledge packs, search
-guards, anonymization gates, graph extraction, evaluation, benchmarks,
-and a public hub that can exchange only safe, reviewed objects.
+DueCare is open-source software that helps platforms, NGOs, regulators,
+researchers, developers, and worker-support deployments spot recruitment
+fraud, illegal fees, coercive control, and trafficking risk earlier. Gemma 4 is
+the reasoning engine, but the strength comes from the component ecosystem
+around it: workbenches, harnesses, knowledge packs, search guards,
+anonymization gates, graph extraction, evaluation, benchmarks, and a public hub
+that can exchange only safe, reviewed objects.
 
 ## The ecosystem idea
 
@@ -53,8 +54,10 @@ reviewed against the same repo.
 ## Choose Your User Path
 
 DueCare uses the same six lanes as the public hub at
-[duecare-ai.com](https://duecare-ai.com/). They are roles in one
-ecosystem, not separate products.
+[duecare-ai.com](https://duecare-ai.com/). They are roles in one ecosystem, not
+separate products: content moderation, case analysis, worker support,
+research, anonymized knowledge sharing, and custom API implementations all use
+the same Gemma 4-centered safety stack.
 
 | User Path | What You Need | Where To Start |
 |---|---|---|
@@ -72,11 +75,11 @@ Each deployment keeps the sensitive-data boundary explicit.
 
 | Use Case | Local Components | Shared Components |
 |---|---|---|
-| **Kaggle workbench and live demo** | Gemma 4 runtime, workbench pages, harness layers, Bulk File Review, Knowledge Extraction, Search, Templates, Anonymization & Sharing, and A-00 proof runs. | Exported reports, benchmark rows, replay artifacts, comparison scores, and public documentation. |
 | **Platform safety deployment** | Content screening API, GREP rules, corridor packs, risk explanations, queue-ready review payloads, and moderation audit traces. | Anonymized pattern signals and vetted pack updates. |
 | **NGO & regulator office deployment** | Local case-bundle review, citation-backed summaries, referral drafts, graph extraction, document review, and caseworker-controlled exports. | Reviewed public facts, sanitized observations, pack proposals, and aggregate corridor trends. |
 | **Individual worker / mobile deployment** | Trusted mobile or chat experience, private notes, local guidance, evidence organization, and worker-controlled sharing. | Only worker-approved notes, intake drafts, or sanitized signals. |
-| **Academic research and benchmark deployment** | Reproducible prompts, model comparisons, rule and LLM judging, optional community benchmark runs, and A-00 training/evaluation artifacts. | Versioned scorecards, model cards, evaluation metadata, and pack hashes. |
+| **Researcher deployment** | Reproducible prompts, model comparisons, rule and LLM judging, optional community benchmark runs, and A-00 training/evaluation artifacts. | Versioned scorecards, model cards, evaluation metadata, and pack hashes. |
+| **Anonymized knowledge sharing deployment** | Local redaction, PII checks, consent-aware metadata, fact-object review, evidence-edge review, and hash receipts. | Sanitized fact objects, aggregate signals, vetted pack proposals, benchmark rows, and rejected-submission receipts. |
 | **Developer / integration deployment** | FastAPI routes, package modules, schemas, Docker/runtime examples, client snippets, and local validation scripts. | Public APIs, docs, pack registry, release artifacts, and integration examples. |
 
 ## Information Sharing Architecture
@@ -85,7 +88,7 @@ DueCare is designed for many local nodes to learn from each other
 without becoming one raw case-data warehouse.
 
 | Stage | Component | Output | Boundary |
-|---|---|
+|---|---|---|---|
 | **Local review** | Workbench, mobile app, or tenant deployment | Drafts, citations, graph edges, review decisions, and local audit traces. | Raw chats, case files, IDs, screenshots, and private documents stay local. |
 | **Local anonymization** | Anonymization & Sharing workflow | Sanitized fact object, aggregate signal, public-source proposal, or hash receipt. | Reviewer consent and redaction happen before upload. |
 | **Hub intake** | duecare-ai.com public hub | Review queue entry, validation result, and submission receipt. | Server-side PII checks reject raw private case content. |
@@ -96,8 +99,8 @@ Read the focused [Information Sharing Architecture](information_sharing_architec
 page for the object types, trust boundary, and hub/local responsibilities.
 For a shorter public explanation, read
 [Gemma 4 for Networked Knowledge Sharing Without Centralizing PII](gemma_networked_knowledge_sharing.md).
-For paste-ready Kaggle discussion copy, use
-[Kaggle Post: Gemma 4 for Networked Knowledge Sharing Without Centralizing PII](kaggle_post_networked_knowledge_sharing.md).
+For copy-ready Kaggle discussion copy with a title and opening paragraph, use
+[Copy-ready Kaggle Post: DueCare Networked Knowledge Sharing](kaggle_post_networked_knowledge_sharing.md).
 
 ## Core Components
 

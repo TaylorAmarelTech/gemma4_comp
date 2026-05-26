@@ -45,7 +45,7 @@ def test_public_website_pages_render_design_templates(tmp_path) -> None:
     client = TestClient(create_app(data_dir=tmp_path))
 
     expected = {
-        "/": "Local Gemma 4 safety infrastructure",
+        "/": "Gemma 4 safety ecosystem",
         "/components": "The full system, with honest labels.",
         "/grep-rules": "Rules fire <em>before</em> the model speaks.",
         "/tools": "Six tools. All local. All draft-only.",

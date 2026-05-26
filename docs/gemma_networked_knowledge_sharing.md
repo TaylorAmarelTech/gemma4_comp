@@ -100,6 +100,10 @@ safe to share.
 
 ## Short public post
 
+Copy-ready post title:
+
+**DueCare: Gemma 4 for networked anti-trafficking intelligence sharing without centralizing PII**
+
 DueCare uses Gemma 4 as part of a privacy-preserving intelligence ecosystem:
 local nodes analyze posts, documents, screenshots, contracts, and case bundles;
 anonymization gates remove sensitive details; reviewed fact objects become
@@ -109,3 +113,6 @@ worker data.
 The power is the network: platform safety teams, NGOs, regulators, individual
 workers, researchers, anonymized knowledge sharing users, and developers can
 use compatible components while keeping PII out of the shared layer.
+
+For the full copy-ready discussion draft, use
+[Copy-ready Kaggle Post: DueCare Networked Knowledge Sharing](kaggle_post_networked_knowledge_sharing.md).

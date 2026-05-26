@@ -1,13 +1,14 @@
-# Kaggle community post — copy-paste source
+# Archived long-form Kaggle community post — copy-paste source
 
-Post-deadline community-discussion post written in Taylor's voice.
-Copy the **"## Body"** section below into a new Kaggle Discussion on
-the Gemma 4 Good Hackathon community page (or on any of the three
-DueCare kernels). Edit the optional links section before posting.
+This is an older, long-form community-discussion draft written in Taylor's
+voice. The current shorter post focused on Gemma 4, local nodes, and
+anonymized knowledge sharing is
+[`kaggle_post_networked_knowledge_sharing.md`](kaggle_post_networked_knowledge_sharing.md).
+Use this archived draft only if you want the longer post-deadline version.
 
 ---
 
-## Suggested title
+## Archived long-form title
 
 **DueCare — a Gemma 4 safety ecosystem for migrant-worker protection (post-deadline community share)**
 
