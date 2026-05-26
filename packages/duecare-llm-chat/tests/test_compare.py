@@ -241,6 +241,36 @@ def test_compare_apples_to_apples_validity_guard(client):
     assert "To retry:" in text
 
 
+def test_compare_resume_surfacing(client):
+    """Resumable grading must be visible to the reviewer: the page reads
+    resume_cached_dims from the grade stream, logs a 'resuming' line, and
+    the partial-grade guidance says a re-grade RESUMES (not restarts)."""
+    r = client.get("/static/compare.html")
+    text = r.text
+    assert "resume_cached_dims" in text
+    assert "resuming —" in text
+    assert "RESUMES from where" in text
+    assert "regrade_resumes_from_where_it_stopped" in text
+
+
+def test_grade_resume_server_plumbing():
+    """The server memoizes per-dimension judge responses in a bounded,
+    TTL'd session cache so a stream-cut grade resumes instead of
+    restarting at dimension 1. Pinned at source level because the grading
+    module can't be imported in a minimal (no-torch/pydantic) env."""
+    from pathlib import Path
+    base = Path(__file__).resolve().parents[1] / "src" / "duecare" / "chat"
+    app_src = (base / "app.py").read_text(encoding="utf-8")
+    assert "_GRADE_SESSIONS" in app_src
+    assert "def _grade_resume_cache" in app_src
+    assert "def _grade_session_id" in app_src
+    assert "model_call_cache=_resume_cache" in app_src
+    harness_src = (base / "harness" / "__init__.py").read_text(encoding="utf-8")
+    assert "model_call_cache: dict[str, str] | None = None" in harness_src
+    assert "resumed_from_cache" in harness_src
+    assert '"resumed":' in harness_src
+
+
 def test_pipeline_step_labels_match_chat(client):
     """The pipeline steps on Compare must match the Chat page's
     labels exactly; mismatched labels confuse reviewers."""

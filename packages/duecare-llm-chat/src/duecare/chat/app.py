@@ -46,6 +46,63 @@ except Exception:  # pragma: no cover - defensive
     MAX_INFERENCE_SECONDS = 45 * 60
 
 
+# ---- Resumable grading session cache ------------------------------------
+# Per-dimension LLM-judge responses are memoized here so a grade whose SSE
+# stream was cut (e.g. the Cloudflare tunnel dropped a long multi-dimension
+# run) resumes from where it stopped instead of restarting at dimension 1.
+# Keyed by a (model, prompt, response, gen-params) hash so re-grading the
+# same response transparently resumes. Bounded + TTL'd so it never grows
+# without limit. The per-session ``cache`` dict is handed to
+# grade_response_via_evaluator and mutated in place as dimensions finish,
+# so progress survives even when the worker thread outlives the stream.
+_GRADE_SESSIONS: dict[str, dict] = {}
+_GRADE_SESSIONS_LOCK = threading.Lock()
+_GRADE_SESSIONS_MAX = 6
+_GRADE_SESSIONS_TTL_S = 2 * 60 * 60  # 2 hours
+
+
+def _grade_resume_cache(grade_id: str) -> dict:
+    """Return the created-or-existing per-dimension model-call cache for a
+    grade session, evicting expired sessions and trimming to the most
+    recent ``_GRADE_SESSIONS_MAX`` first. The returned dict is mutated in
+    place by the grader as dimensions complete."""
+    now = time.time()
+    with _GRADE_SESSIONS_LOCK:
+        expired = [
+            k for k, v in _GRADE_SESSIONS.items()
+            if now - float(v.get("created", now)) > _GRADE_SESSIONS_TTL_S
+        ]
+        for k in expired:
+            _GRADE_SESSIONS.pop(k, None)
+        sess = _GRADE_SESSIONS.get(grade_id)
+        if sess is None:
+            while len(_GRADE_SESSIONS) >= _GRADE_SESSIONS_MAX:
+                oldest = min(
+                    _GRADE_SESSIONS.items(),
+                    key=lambda kv: kv[1].get("created", 0.0),
+                )[0]
+                _GRADE_SESSIONS.pop(oldest, None)
+            sess = {"created": now, "cache": {}}
+            _GRADE_SESSIONS[grade_id] = sess
+        return sess["cache"]
+
+
+def _grade_session_id(
+    *, response_text: str, prompt_text: str,
+    max_new_tokens: int, temperature: float, model_name: str,
+) -> str:
+    """Deterministic id so the same (model, prompt, response, gen params)
+    resumes its cached per-dimension judge responses. Over-invalidates
+    safely on a model swap (never serves a stale judge response)."""
+    import hashlib
+    h = hashlib.sha256()
+    h.update(f"{model_name}\x00{max_new_tokens}\x00{temperature}\x00".encode())
+    h.update((prompt_text or "").encode("utf-8", "replace"))
+    h.update(b"\x00")
+    h.update((response_text or "").encode("utf-8", "replace"))
+    return h.hexdigest()[:16]
+
+
 # In-memory image store (transient, request-scoped). Each upload
 # returns an id; the client sends the id in subsequent chat calls.
 _IMAGE_STORE: dict[str, tuple[bytes, str]] = {}
@@ -4533,6 +4590,19 @@ def create_app(
                 temperature=req.temperature,
             )
 
+        _resume_cache = _grade_resume_cache(_grade_session_id(
+            response_text=req.response_text,
+            prompt_text=req.prompt_text or "",
+            max_new_tokens=req.max_new_tokens,
+            temperature=req.temperature,
+            model_name=str(
+                (getattr(app.state, "model_info", None) or {}).get("name")
+                or (getattr(app.state, "model_info", None) or {}).get("variant")
+                or ""
+            ),
+        ))
+        _n_cached = len(_resume_cache)
+
         def run_grade(progress_cb: Callable[[dict], None]) -> dict:
             return grade_response_via_evaluator(
                 req.response_text,
@@ -4543,9 +4613,17 @@ def create_app(
                 custom_questions=req.custom_questions,
                 custom_envelope=req.custom_envelope,
                 progress_callback=progress_cb,
+                model_call_cache=_resume_cache,
             )
 
-        return _grade_stream_response(run_grade)
+        # When prior dimensions are already cached from a stream-cut run,
+        # announce it as the first SSE frame so the client shows "resuming
+        # N dims" instead of looking like a fresh grade.
+        _first = (
+            {"type": "resume_info", "resume_cached_dims": _n_cached}
+            if _n_cached else None
+        )
+        return _grade_stream_response(run_grade, first_event=_first)
 
     @app.post("/api/grade-combined-stream")
     def api_grade_combined_stream(req: DeepGradeRequest) -> Any:
@@ -4600,7 +4678,22 @@ def create_app(
             prompt_text=req.prompt_text or "",
             harness_trace=None,
         )
-        first_event = {"type": "deterministic_done", "result": deterministic}
+        _resume_cache = _grade_resume_cache(_grade_session_id(
+            response_text=req.response_text,
+            prompt_text=req.prompt_text or "",
+            max_new_tokens=req.max_new_tokens,
+            temperature=req.temperature,
+            model_name=str(
+                (getattr(app.state, "model_info", None) or {}).get("name")
+                or (getattr(app.state, "model_info", None) or {}).get("variant")
+                or ""
+            ),
+        ))
+        first_event = {
+            "type": "deterministic_done",
+            "result": deterministic,
+            "resume_cached_dims": len(_resume_cache),
+        }
 
         # NaN/Inf guard mirrors grade_response_combined()
         import math as _math
@@ -4615,6 +4708,7 @@ def create_app(
                 model_call=model_call,
                 prompt_text=req.prompt_text or "",
                 progress_callback=progress_cb,
+                model_call_cache=_resume_cache,
             )
             return _combine_dimension_results(
                 deterministic,
