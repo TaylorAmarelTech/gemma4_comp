@@ -49,7 +49,7 @@ Canonical product definition: [`../product_definition.md`](../product_definition
 
 ## What's roadmap
 
-- **Channels** (component #7) — NGO / government chatbot integrations on Messenger / WhatsApp / SMS / web / embassy portal. Today, the chat package's FastAPI surface is the substrate Channels would wrap with platform-specific adapters. Live Channels deployment requires a named NGO tenant + business-account approval + Eval-gated tenant pack — not done at hackathon time.
+- **Channels** (component #7) — NGO / government chatbot integrations on Messenger / WhatsApp / SMS / web / embassy portal. Today, the chat package's FastAPI surface is the integration surface Channels would wrap with platform-specific adapters. Live Channels deployment requires a named NGO tenant + business-account approval + Eval-gated tenant pack — not done at hackathon time.
 
 ## How the six canonical lanes map to the components
 

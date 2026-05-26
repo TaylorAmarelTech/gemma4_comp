@@ -1029,7 +1029,7 @@ the larger view with the source note.
     id: 'why_gemma',
     tag: 'Why Gemma 4',
     tagBg: 'oklch(0.95 0.03 155)', tagFg: 'oklch(0.32 0.10 155)',
-    title: 'Why Gemma 4 is the right substrate.',
+    title: 'Why Gemma 4 is the right model engine.',
     autoSec: 14,
     body: `
 <div class="dc-twocol-layout">
@@ -1055,19 +1055,19 @@ the larger view with the source note.
   <div class="dc-twocol-card good">
     <h2 style="margin-top:0;color:oklch(0.32 0.10 155)">Safety baseline (good news)</h2>
     <p style="font-size:14px;margin-top:0">
-    On a similar evaluation framework to Taylor's
+    On a similar evaluation style to Taylor's
     <a href="https://www.kaggle.com/competitions/openai-gpt-oss-20b-red-teaming" target="_blank" rel="noopener noreferrer"><b>OpenAI gpt-oss-20b Red-Teaming Challenge submission</b></a>,
-    stock Gemma 4 E4B produces <b>materially less harmful output
-    than gpt-oss-20b</b> on exploitation-pattern probes.
+    Gemma 4 E4B gives DueCare a practical open-weight baseline for
+    exploitation-pattern probes: inspectable, repeatable, and local-run friendly.
     </p>
     <p style="font-size:14px">
-    Gemma is the safer base out of the box. What stock Gemma
+    Gemma is the model engine, not the full product. What stock Gemma
     doesn't yet know is the jurisdictional facts an operator needs
     (statute numbers, fee caps, licence status, hotline contacts)
     and that's exactly where the next slide picks up.
     </p>
     <div class="dc-callout success" style="background:oklch(0.95 0.03 155);border-left:4px solid #10b981;padding:10px 14px;margin:0">
-    <b>Bottom line.</b> Gemma 4 is the right base substrate;
+    <b>Bottom line.</b> Gemma 4 is the right model engine;
     the architecture in the next two slides explains how we
     enhance it for operator-grade output.
     </div>
@@ -1075,11 +1075,10 @@ the larger view with the source note.
 </div>
 <div class="dc-callout success" style="margin-top:auto">
 <b>Two deployment modes, one architecture.</b>
-&nbsp;&nbsp;<b>Platform safety:</b> ~100 verdicts/min on a single A100,
-roughly zero per-call cost after deploy, audit-trail-friendly under
-CA AB 587.
-&nbsp;&nbsp;<b>Local / on-device:</b> E2B/E4B 4-bit in 2-6GB VRAM,
-data stays where the operator chooses.
+&nbsp;&nbsp;<b>Platform safety:</b> batchable local or tenant deployment for
+moderation queues, with audit-trail-friendly outputs.
+&nbsp;&nbsp;<b>Local / on-device:</b> E2B/E4B quantized paths where hardware
+allows, so data stays where the operator chooses.
 &nbsp;&nbsp;Same KB, same tools, same audit format.
 </div>`
   },

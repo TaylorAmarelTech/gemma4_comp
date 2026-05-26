@@ -60,8 +60,8 @@ Visual: slides 3 and 18. Keep Gemma 4 visually under the lanes, not as
 a lane itself.
 
 Voiceover:
-"DueCare is one local substrate across six lanes: platform moderation,
-NGO and regulator case analysis, worker information access, research,
+"DueCare is one local safety stack across six lanes: platform moderation,
+NGO and regulator case analysis, worker support, research,
 anonymized knowledge sharing, and developer integration. Gemma 4 is the engine underneath: tool-capable,
 fine-tunable with Unsloth, multimodal for file review, and small enough
 to run locally."
@@ -97,7 +97,7 @@ if stable. Show plain-language answer, formal protections, practical
 retaliation risk, contacts, and evidence preservation.
 
 Voiceover:
-"For workers, the same substrate becomes plain-language guidance:
+"For workers, the same stack becomes plain-language guidance:
 what is illegal, what evidence to preserve, where to report safely, and
 what retaliation risk still exists in practice. The Android path keeps
 that help offline with bundled harness metadata."

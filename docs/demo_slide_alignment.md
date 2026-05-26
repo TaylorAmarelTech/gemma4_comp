@@ -12,12 +12,12 @@ not a single chatbot and not a raw central case-management system.
 The demo story should move in this order:
 
 1. Scale problem: exploitation persists because content moderation, case
-   analysis, worker information access, and research workflows are fragmented.
+   analysis, worker support, and research workflows are fragmented.
 2. Solution diagram: one local harness ecosystem supports several channels.
-3. Gemma 4 role: open-weight, efficient, tool-capable, fine-tunable substrate.
+3. Gemma 4 role: open-weight, efficient, tool-capable, fine-tunable model engine.
 4. Content moderation: pre-publish or queue-time screening for exploitative UGC.
 5. Case analysis: bulk file review, typed edges, evidence graph, complaint draft.
-6. Worker information access: phone-first and offline-capable when the selected
+6. Worker support: phone-first and offline-capable when the selected
    model build and local packs are available.
 7. Research: corridor trends, recurring agencies, accounts, and verified facts.
 8. Anonymized knowledge sharing: reviewed facts can improve packs without
