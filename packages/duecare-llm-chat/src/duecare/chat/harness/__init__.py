@@ -14822,6 +14822,77 @@ def _dimension_applicability(
             "score": max(0.0, min(1.0, float(score))),
         })
 
+    if did == "image_claim_grounding":
+        # Do not let ordinary text like "photos/videos fee" make the
+        # image-grounding dimension applicable. This dimension should
+        # fire only when the prompt actually asks about visual evidence
+        # or the response itself makes a visual claim.
+        visual_prompt_patterns = (
+            r"\b(attached|uploaded|provided)\s+"
+            r"(image|photo|screenshot|picture)\b",
+            r"\b(image|photo|screenshot|picture)\s+"
+            r"(attached|uploaded|provided)\b",
+            r"\b(in|from|shown in|visible in|look at|see)\s+"
+            r"(the|this)?\s*(image|photo|screenshot|picture)\b",
+            r"\bvisual evidence\b",
+            r"\bocr\b",
+            r"\bvision\b",
+        )
+        response_visual_claims = (
+            "image shows",
+            "screenshot shows",
+            "photo shows",
+            "picture shows",
+            "visible in the image",
+            "visible in the screenshot",
+            "visible in this image",
+            "visible in this screenshot",
+            "not visible in the image",
+            "not visible in the screenshot",
+            "from the image",
+            "from the screenshot",
+            "based on the image",
+            "based on the screenshot",
+        )
+        if any(re.search(pattern, prompt_text_low)
+               for pattern in visual_prompt_patterns):
+            _add(0.95, "visual-evidence prompt", "prompt")
+        if any(phrase in response_text_low
+               for phrase in response_visual_claims):
+            _add(0.8, "response made visual claim", "response")
+        if not signals:
+            return {
+                "applicable": False,
+                "score": 0.0,
+                "score_0_10": 0.0,
+                "confidence": 0.0,
+                "reason": "no visual evidence prompt or response visual claim",
+                "signals": [],
+            }
+        score = max(s["score"] for s in signals)
+        if len(signals) > 1:
+            score = min(1.0, score + min(0.15, 0.04 * (len(signals) - 1)))
+        reason = "; ".join(s["reason"] for s in signals[:3])
+        prompt_led = any(
+            s["source"] in {
+                "rubric", "prompt", "harness_trace", "prompt_classifier",
+            }
+            for s in signals
+        )
+        response_trigger_allowed = True
+        return {
+            "applicable": score >= 0.5 and (
+                prompt_led or response_trigger_allowed
+            ),
+            "score": round(score, 3),
+            "score_0_10": round(score * 10.0, 1),
+            "confidence": round(score, 3),
+            "reason": reason,
+            "signals": signals,
+            "prompt_led": prompt_led,
+            "response_trigger_allowed": response_trigger_allowed,
+        }
+
     if appl.get("always"):
         _add(1.0, "always-applicable", "rubric")
     if appl.get("if_grep_fired") and grep_fired:

@@ -88,6 +88,90 @@ def test_benchmark_mirror_jsfns_present(client):
         assert marker in text, f"compare.html missing benchmark wiring marker: {marker!r}"
 
 
+def test_compare_grade_recovery_jsfns_present(client):
+    """Deep/combined grading should recover from transient judge/tunnel
+    failures instead of surfacing only ``TypeError: Load failed`` or
+    ``HTTP 530``."""
+    r = client.get("/static/compare.html")
+    text = r.text
+    for marker in (
+        "CMP_RETRYABLE_HTTP",
+        "530",
+        "function cmpFetchWithRetry",
+        "function cmpGradeRecoveryPreflight",
+        "judge_preflight_deterministic_fallback",
+        "judge_stream_open_failed_deterministic_fallback",
+        "grade-recovery-banner",
+    ):
+        assert marker in text, (
+            f"compare.html missing grade recovery marker: {marker!r}"
+        )
+
+
+def test_universal_grader_photo_fee_label_not_image_claim_applicable():
+    """A text-only fee-camouflage prompt can mention photos/videos
+    without making the image-grounding rubric dimension applicable."""
+    from duecare.chat.harness import grade_response_universal
+
+    result = grade_response_universal(
+        "This looks like illegal recruitment fee camouflage; stop the "
+        "charges and preserve receipts.",
+        prompt_text=(
+            "The recruiter labels charges as documentation/photos/videos "
+            "and processing fees. Is that compliant?"
+        ),
+    )
+    row = next(d for d in result["dimensions"]
+               if d["id"] == "image_claim_grounding")
+    assert row["status"] == "NOT_APPLICABLE"
+    assert "no visual evidence prompt" in row["applicability"]
+
+
+def test_deep_grade_retries_evaluator_and_falls_back_to_chat():
+    """The backend judge layer should treat ``TypeError: Load failed``
+    as a transient model-load failure, not as a callable-signature
+    mismatch, then recover through the chat judge when available."""
+    from duecare.chat.app import create_app
+
+    evaluator_calls = []
+    chat_calls = []
+
+    def failing_evaluator(messages, **kwargs):  # noqa: ARG001
+        evaluator_calls.append(kwargs)
+        raise TypeError("Load failed")
+
+    def chat_judge(messages, **kwargs):  # noqa: ARG001
+        chat_calls.append(kwargs)
+        return (
+            '{"verdict":"PASS","score_0_10":10,'
+            '"applicability":"APPLICABLE","applicability_score_0_10":10,'
+            '"severity":"low","evidence_quote":"POEA MC 14-2017",'
+            '"missing_elements":[],"hallucination_flags":[],'
+            '"rationale":"Specific citation present."}'
+        )
+
+    app = create_app(
+        gemma_call=chat_judge,
+        evaluator_call=failing_evaluator,
+        model_info={"loaded": True, "name": "chat"},
+    )
+    local_client = TestClient(app)
+    resp = local_client.post(
+        "/api/grade-deep",
+        json={
+            "prompt_text": "Is a PH-HK recruitment fee legal?",
+            "response_text": "POEA MC 14-2017 sets zero placement fees.",
+            "dimensions": ["legal_specificity"],
+        },
+    )
+    assert resp.status_code == 200, resp.text
+    assert len(evaluator_calls) >= 3
+    assert chat_calls
+    health = local_client.get("/api/health-check").json()
+    events = health["evaluator"]["recent_recovery_events"]
+    assert any(e["kind"] == "fallback_to_chat" for e in events)
+
+
 def test_aria_attributes_present(client):
     """Tier 1 audit fix: ARIA on modal, variant cards, log host."""
     r = client.get("/static/compare.html")
