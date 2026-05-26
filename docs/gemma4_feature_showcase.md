@@ -1,16 +1,16 @@
 ﻿# Gemma 4 Feature Showcase
 
-Current as of 2026-05-17. This document now describes the active two-kernel
+Current as of 2026-05-25. This document now describes the active Kaggle
 submission path instead of the retired A-series appendix ladder.
 
 ## Features Demonstrated
 
 | Feature | Where It Appears | Why It Matters |
 |---|---|---|
-| Small-model local inference | Kernels 01 and 02, with archived A-00 proof artifacts | Shows Gemma 4 can be wrapped for practical safety work without a remote frontier dependency. |
+| Small-model local inference | Kernels 01 and 02, with active A-00 proof artifacts | Shows Gemma 4 can be wrapped for practical safety work without a remote frontier dependency. |
 | Shared Unsloth FastModel runtime | `Gemma4Runtime.load()` | Standardizes loading, generation defaults, chat template, quantization, and device mapping. |
-| Harnessed generation | Kernel 01 and archived A-00 | Holds the base prompt constant while adding DueCare context, rules, and tools. |
-| Deterministic tool use | Kernel 01 and archived A-00 `chat_no_online` | Grounds answers in fee caps, ILO indicators, convention lookups, and NGO-intake style checks. |
+| Harnessed generation | Kernel 01 and active A-00 | Holds the base prompt constant while adding DueCare context, rules, and tools. |
+| Deterministic tool use | Kernel 01 and active A-00 `chat_no_online` | Grounds answers in fee caps, ILO indicators, convention lookups, and NGO-intake style checks. |
 | Synthetic SFT row generation | Archived A-00 | Uses harnessed Gemma outputs to create filtered training rows. |
 | LoRA fine-tuning | Archived A-00 | Demonstrates the Unsloth/PEFT training path and adapter save/load flow. |
 | Combined rule + LLM judging | Archived A-00 | Produces a defensible score using deterministic rules plus a Gemma/frontier-style judge. |
@@ -30,7 +30,7 @@ recipe uses:
 - `gemma-4-thinking` chat template
 - generation defaults `temperature=1.0`, `top_p=0.95`, `top_k=64`
 
-The direct `FastModel.from_pretrained` exception is archived A-00's training
+The direct `FastModel.from_pretrained` exception is active A-00's training
 script, where the model is loaded for LoRA fine-tuning rather than inference.
 
 ## Active Kernel Map

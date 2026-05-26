@@ -42,8 +42,8 @@ fine-tuned, 41.2% fine-tuned + harness. For archival quality:
   charts, and output manifest from `/kaggle/working`.
 - Keep the generated static report screenshot available for the video or
   writeup evidence appendix.
-- Optional only: rerun the archived A-00 preconfigured pipeline from
-  `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/` on a larger
+- Optional only: rerun the active A-00 preconfigured pipeline from
+  `kaggle/A-00-omni-experiment-workbench/` on a larger
   prompt set if there is enough time and GPU budget.
 
 ## 4. Capture Final Demo Assets
@@ -61,5 +61,5 @@ fine-tuned, 41.2% fine-tuned + harness. For archival quality:
 - Confirm `git status` is clean after committing and pushing.
 - Confirm GitHub shows the final commit.
 - Confirm Kaggle notebooks use the intended commit or attached wheel version.
-- Confirm the writeup references the current two-kernel path, not archived
+- Confirm the writeup references the current active Kaggle path, not archived
   A-series notebook-era material.

@@ -304,6 +304,18 @@ def test_kernel01_model_status_endpoint_keeps_lightbox_alive_during_load():
     assert "still loading {variant}; phase={phase}; {elapsed}s elapsed" in text
 
 
+def test_kernel01_model_slot_helpers_are_defined_before_slot_construction():
+    text = _text(KERNEL)
+    slot_pos = text.index("_CHAT_SLOT = ModelSlot(")
+    for helper in [
+        "def _set_chat_loaded",
+        "def _chat_post_unload",
+        "def _log_load_eval",
+    ]:
+        assert text.index(helper) < slot_pos, helper
+    assert text.index("_JUDGE_SLOT = ModelSlot(") > text.index("def _log_load_eval")
+
+
 def test_model_loading_trace_documents_the_shared_fastmodel_path():
     doc = _text(MODEL_LOADING_TRACE)
     for token in [

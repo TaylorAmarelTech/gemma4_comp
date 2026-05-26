@@ -7,7 +7,7 @@ submission path is:
 |---|---|---|
 | 01 | `kaggle/01-duecare-exploration-workbench/` | Broad workbench and reviewer entry point. |
 | 02 | `kaggle/02-live-demo/` | Focused screen-recording surface and slides. |
-| A-00 | `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/` | Evaluation, fine-tuning, and benchmark console. |
+| A-00 | `kaggle/A-00-omni-experiment-workbench/` | Active evaluation, fine-tuning, and benchmark console. |
 
 Archived slots A-01 through A-24 live under `kaggle/_archive/notebooks/`.
 They document the research path that led to the active kernels, but new judge
@@ -32,4 +32,3 @@ New kernels should only be added when they create a distinct reviewer value.
 Register them in [kaggle/_INDEX.md](../kaggle/_INDEX.md), keep outputs in the
 [BundleEnvelope v1.0](./data_primitives.md) shape, and mark archived or
 roadmap material clearly.
-

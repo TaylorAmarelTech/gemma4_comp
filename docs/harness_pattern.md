@@ -149,7 +149,7 @@ task.
 - **Per-task tools/knowledge**: scoped namespaces prevent global registry sprawl
 - **Verifiability**: a regulator can grep `applied_layers` and verify
   `anonymization` declares `()` -- i.e., never passes raw PII to Gemma
-- **Reusability**: the exploration workbench and archived A-00 proof path reuse the
+- **Reusability**: the exploration workbench and active A-00 proof path reuse the
   same registered harness contracts and shared GREP/RAG/tool primitives instead
   of carrying divergent local copies.
 
@@ -173,7 +173,7 @@ The active competition path is the two script-kernel set in
 ### Legacy minimal-shell kernels
 
 The minimal shell remains useful reference code for archived appendix kernels
-or future small demos, but it is not part of the active two-kernel submission
+or future small demos, but it is not part of the primary demo submission
 path. If it is used again, pass explicit harness modules:
 
 ```python

@@ -2,12 +2,15 @@
 
 ## Active Submission Path
 
-Only two Kaggle script kernels are active for the current submission and recording path:
+Only three Kaggle script kernels are active for the current competition scope.
+The first two are the primary recording path; A-00 is the quantitative proof
+and training/evaluation path:
 
 | Order | Folder | Kaggle slug | Title | Purpose |
 |---|---|---|---|---|
 | 01 | `01-duecare-exploration-workbench` | `taylorsamarel/duecare-app` | **DueCare App** | Full reviewer workbench: chat, harness comparison, bulk file review, knowledge extraction, search, sharing, traces, and activity logs. |
 | 02 | `02-live-demo` | `taylorsamarel/duecare-live-demo` | **DueCare Live Demo** | Focused live demo for judges and video capture. Hosts the recording-grade pitch deck at `/start` and `/slides`. |
+| A-00 | `A-00-omni-experiment-workbench` | `taylorsamarel/duecare-fine-tuning-and-evaluation` | **DueCare Fine-tuning and Evaluation** | Quantitative proof path for baseline, harnessed, synthetic-data, fine-tuning, judging, checkpointing, and report artifacts. |
 
 Each active kernel is intended to be copied into Kaggle, run on T4 x2 with Internet enabled, install DueCare from GitHub, write outputs under `/kaggle/working`, launch the local server, and print a public `https://*.trycloudflare.com` URL.
 
@@ -24,16 +27,17 @@ path:
 
 ## Archived Notebooks
 
-The former `03-duecare-video-pitch` notebook, A-00 experiment console, appendix
-notebooks `A-01` through `A-24`, and task-notebook snapshots have been moved to
+The former `03-duecare-video-pitch` notebook, appendix notebooks `A-01`
+through `A-24`, and task-notebook snapshots have been moved to
 `kaggle/_archive/notebooks/`. They remain reference material only; they are not
 part of active validation, recording, or the required Kaggle run path.
 
-Root `kaggle/` should not contain appendix `A-*` folders. The only root
-`04-*` folder should be `04-kaggle-community-benchmark`; other `04-*` notebook
-snapshots belong under `kaggle/_archive/notebooks/`.
+Root `kaggle/` should not contain appendix `A-*` folders other than active
+`A-00-omni-experiment-workbench`. The only root `04-*` folder should be
+`04-kaggle-community-benchmark`; other `04-*` notebook snapshots belong under
+`kaggle/_archive/notebooks/`.
 
-## Archived A-00 Proof Path
+## A-00 Proof Path
 
 A-00 now opens with two choices:
 

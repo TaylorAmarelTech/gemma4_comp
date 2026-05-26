@@ -14,7 +14,7 @@ verdict format.
 
 | Prompt | Audit window | When to use |
 |---|---|---|
-| [`docs/claude_omni_fastmodel_review_prompt.md`](claude_omni_fastmodel_review_prompt.md) | Original Gemma 4 runtime + A-00 preconfigured pipeline parity. | Verify `Gemma4Runtime` is wired correctly across the two active kernels and archived A-00 follows the Unsloth FastModel recipe. |
+| [`docs/claude_omni_fastmodel_review_prompt.md`](claude_omni_fastmodel_review_prompt.md) | Original Gemma 4 runtime + A-00 preconfigured pipeline parity. | Verify `Gemma4Runtime` is wired correctly across the active kernels and A-00 follows the Unsloth FastModel recipe. |
 | [`docs/claude_harness_ecosystem_a00_review_prompt.md`](claude_harness_ecosystem_a00_review_prompt.md) | Harness ecosystem language + broader inventory. | Verify the documentation trinity (`harness_ecosystem.md`, `harness_pattern.md`, `harness_standard_contract.md`) is consistent and naming hygiene is preserved. |
 | [`docs/claude_north_star_harness_review_prompt.md`](claude_north_star_harness_review_prompt.md) | Universal harness contract: `HarnessSpec`, `MODEL_TRANSPORTS`, `model_targets`, checkpoint readiness. | Verify every registered harness declares the full standardized contract and the universal model interface is wired. |
 | [`docs/claude_a00_tool_dispatch_and_trace_review_prompt.md`](claude_a00_tool_dispatch_and_trace_review_prompt.md) | Per-tool dispatch (`_format_shared_tool_call`) + tools-layer trace consistency + harness.html model-target surface + the six contract tests. | Verify the A-00 tool rendering / trace honesty hardening pass landed cleanly. |

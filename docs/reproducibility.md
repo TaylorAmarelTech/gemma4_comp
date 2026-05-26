@@ -58,7 +58,7 @@ production, or long-run reliability claims.
 
 ## How to re-measure
 
-Use `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py` and export the
+Use `kaggle/A-00-omni-experiment-workbench/kernel.py` and export the
 resulting evidence bundle from `/kaggle/working/a00_outputs`. For a
 fast smoke run, keep prompt and synthetic-row counts small. For
 presentation-quality claims, use the largest prompt count that fits the

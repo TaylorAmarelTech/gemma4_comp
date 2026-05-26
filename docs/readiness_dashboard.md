@@ -1,7 +1,7 @@
 ﻿# Readiness Dashboard
 
 Current as of 2026-05-17. This replaces the historical 2026-05-02
-appendix-ladder dashboard; the active submission scope is now the two-kernel
+appendix-ladder dashboard; the active submission scope is now the active Kaggle
 Gemma 4 path.
 
 ## Active Scope
@@ -22,7 +22,7 @@ and [`kaggle/_INDEX.md`](../kaggle/_INDEX.md).
 | Area | Current State |
 |---|---|
 | Harness contract | Documented in [`harness_ecosystem.md`](harness_ecosystem.md), [`harness_pattern.md`](harness_pattern.md), and [`harness_standard_contract.md`](harness_standard_contract.md). |
-| Model loading | Standardized through [`Gemma4Runtime.load()`](model_loading_trace.md) for inference, with archived A-00 training as the only direct FastModel exception. |
+| Model loading | Standardized through [`Gemma4Runtime.load()`](model_loading_trace.md) for inference, with active A-00 training as the only direct FastModel exception. |
 | Archived A-00 default harness | `chat_no_online`: Persona + GREP + RAG/context + deterministic tools, with internet/import off. |
 | Archived A-00 judging | Combined rule + LLM judging with local Gemma by default and optional external judge adapters. |
 | Archived A-00 exports | HTML, Markdown, JSON, CSV, charts, activity/evidence bundles, and report manifest under `/kaggle/working`. |
@@ -31,11 +31,11 @@ and [`kaggle/_INDEX.md`](../kaggle/_INDEX.md).
 ## Remaining Human Actions
 
 1. Run the two active Kaggle kernels on the intended GPU/runtime shape.
-2. Optional only: produce an archived A-00 evidence run with checkpoint/resume
+2. Optional only: produce an A-00 evidence run with checkpoint/resume
    enabled if new proof artifacts are needed.
 3. Download `/kaggle/working` artifacts before Kaggle shutdown.
 4. Capture final demo screenshots/video clips from Kernel 01 and Kernel 02.
-5. Submit with links pointing to the current two-kernel path.
+5. Submit with links pointing to the current active Kaggle path.
 
 The manual checklist lives in [`USER_TODO.md`](USER_TODO.md).
 
@@ -62,8 +62,8 @@ Required exported evidence:
 |---|---|
 | Kaggle runtime hits the time limit | Keep checkpoint/resume enabled and save artifacts after each major phase. |
 | A-00 judging takes too long | Use local small Gemma for proof runs; reserve larger/frontier judges for final scoring or post-run regrade. |
-| Old docs confuse reviewers | Active entry docs now point to the two-kernel scope; legacy roadmap docs live under `docs/_archive/`. |
-| Harness parity drifts | Contract tests pin Kernel 01 and archived A-00 parity for runtime loading, default harness layers, and shared GREP/RAG/tool usage. |
+| Old docs confuse reviewers | Active entry docs now point to the current Kaggle scope; legacy roadmap docs live under `docs/_archive/`. |
+| Harness parity drifts | Contract tests pin Kernel 01 and active A-00 parity for runtime loading, default harness layers, and shared GREP/RAG/tool usage. |
 
 ## Start Here
 

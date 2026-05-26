@@ -24,7 +24,7 @@ working runtime surfaces.
 |---|---|
 | Lede | Focused live product demo for the DueCare harness. |
 | What it does | Starts FastAPI, loads the selected Gemma 4 variant, opens a Cloudflare URL, and runs the safety-harness pipeline with audit trail. |
-| Demo path | Run all, open the printed URL, send the curated PH-HK prompt, and inspect the harness trace. Archived A-00 proof artifacts can be used separately for quantitative comparison. |
+| Demo path | Run all, open the printed URL, send the curated PH-HK prompt, and inspect the harness trace. Active A-00 proof artifacts can be used separately for quantitative comparison. |
 | Audience | Platform safety, NGO/regulator, worker, researcher, developer. |
 | Gemma 4 features | Local inference, structured tool use, grounded response generation, and harnessed safety behavior. |
 | Outputs | Live web demo, responses, traces, and audit events. |
@@ -83,7 +83,7 @@ For a screen-recording walkthrough:
    from the Start page. Use the streamlined sample bundle to show
    upload, processing progress, optional local Gemma 4 edge creation,
    graph inspection, and graph chat.
-6. Optional only: use archived A-00 (`kaggle/_archive/notebooks/A-00-omni-experiment-workbench`) for quantitative
+6. Use active A-00 (`kaggle/A-00-omni-experiment-workbench`) for quantitative
    proof: baseline vs harnessed responses, rule/LLM judging, grading
    dimensions, and reproducible reports.
 
@@ -123,7 +123,7 @@ Before recording or sharing the live URL, verify:
 3. The trace shows the applied harness layers and the exact evidence used.
 4. The grading output includes dynamic dimensions, contact grounding, and non-uplift checks.
 5. The run context is documented: model variant, quantization, GPU, package version, and public URL.
-6. Archived A-00 can reproduce the same prompt set as a baseline and harnessed comparison export.
+6. Active A-00 can reproduce the same prompt set as a baseline and harnessed comparison export.
 
 ## Files
 
@@ -138,5 +138,5 @@ Before recording or sharing the live URL, verify:
 ## Related Notebooks
 
 - `../01-duecare-exploration-workbench/`: full workbench.
-- `../_archive/notebooks/A-00-omni-experiment-workbench/`: archived proof reports, synthetic data, and training.
+- `../A-00-omni-experiment-workbench/`: active proof reports, synthetic data, and training.
 - `../_archive/notebooks/`: former appendix and video-pitch kernels, kept as reference material only.

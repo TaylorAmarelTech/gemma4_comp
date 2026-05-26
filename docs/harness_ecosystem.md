@@ -22,7 +22,7 @@ For project language, use this definition:
 | `packages/duecare-llm-chat/src/duecare/chat/gemma4_runtime.py` | Shared Gemma 4 runtime primitive for loading, unloading, and generating with Unsloth `FastModel`. |
 | `packages/duecare-llm-chat/src/duecare/chat/experiment_contracts.py` | Shared experiment profiles for harness comparison, synthetic data, training, and comparison matrices. |
 | `kaggle/01-duecare-exploration-workbench/kernel.py` | Canonical live exploration and harness comparison workbench. |
-| `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py` | Quantitative control plane for benchmark runs, synthetic data, LoRA training, judging, reports, and research graphs. |
+| `kaggle/A-00-omni-experiment-workbench/kernel.py` | Quantitative control plane for benchmark runs, synthetic data, LoRA training, judging, reports, and research graphs. |
 
 ## The harness documentation trinity
 

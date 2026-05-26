@@ -2212,11 +2212,53 @@ _LOADED_EVAL: Optional["LoadedModel"] = None
 _JUDGE_USES_CHAT: bool = False
 
 
+def _set_chat_loaded(model) -> None:
+    """Setter for the module-level chat LoadedModel ref.
+    Used by ModelSlot.unload() to release tensors after unload."""
+    global loaded
+    loaded = model
+
+
 def _set_judge_loaded(model) -> None:
     """Setter for the module-level judge LoadedModel ref.
     Used by ModelSlot.unload() to release tensors after unload."""
     global _LOADED_EVAL
     _LOADED_EVAL = model
+
+
+def _chat_post_unload(app) -> None:
+    """Chat-slot specific cleanup after ModelSlot unload."""
+    app.state.model_info = _placeholder_model_info
+    if _JUDGE_USES_CHAT and getattr(app.state, "evaluator_call", None) is not None:
+        app.state.evaluator_call = None
+
+
+def _log_load_eval(message: str, *, phase: Optional[str] = None,
+                   level: str = "info") -> None:
+    """Mirror of _log_load() but writes to the evaluator state ring."""
+    state = _MODEL_LOAD_STATE_EVAL
+    elapsed = None
+    if state.get("started_at"):
+        elapsed = round(time.time() - float(state["started_at"]), 1)
+    event = {
+        "ts": time.strftime("%H:%M:%S"),
+        "elapsed_s": elapsed,
+        "phase": phase,
+        "level": level,
+        "message": message,
+    }
+    _MODEL_LOAD_EVENTS_EVAL.append(event)
+    if len(_MODEL_LOAD_EVENTS_EVAL) > 500:
+        del _MODEL_LOAD_EVENTS_EVAL[:-500]
+    state["last_log"] = message
+    state["updated_at"] = time.time()
+    state["log_seq"] = len(_MODEL_LOAD_EVENTS_EVAL)
+    if phase:
+        state["phase"] = phase
+    prefix = f"  [load-evaluator][{level}]"
+    if phase:
+        prefix += f"[{phase}]"
+    print(f"{prefix} {message}")
 
 
 # Two ModelSlot instances -- the only kernel-side surface that new
@@ -2601,53 +2643,6 @@ def api_unload_chat_model(request: Request, body: dict = Body(default=None)):
         # no new tickets can race in while the unload runs.
         _MODEL_QUEUE.close_slot("chat", wait_seconds=0, force=True)
     return _CHAT_SLOT.unload(app, purge_cache=parsed.purge_cache)
-
-
-def _set_chat_loaded(model) -> None:
-    """Setter for the module-level chat LoadedModel ref.
-    Used by ModelSlot.unload() to release tensors after unload."""
-    global loaded
-    loaded = model
-
-
-def _chat_post_unload(app) -> None:
-    """Chat-slot specific cleanup: reset app.state.model_info to the
-    placeholder dict so the UI shows '(no model loaded)' until a new
-    load completes. When the judge was mirroring the chat model, the
-    mirror is also cleared so a stale callable pointing at freed
-    tensors cannot be reached by /api/grade-* routes."""
-    app.state.model_info = _placeholder_model_info
-    if _JUDGE_USES_CHAT and getattr(app.state, "evaluator_call", None) is not None:
-        app.state.evaluator_call = None
-
-
-def _log_load_eval(message: str, *, phase: Optional[str] = None,
-                   level: str = "info") -> None:
-    """Mirror of _log_load() but writes to the evaluator state ring.
-    Keeps the chat-model log clean from judge-model events."""
-    state = _MODEL_LOAD_STATE_EVAL
-    elapsed = None
-    if state.get("started_at"):
-        elapsed = round(time.time() - float(state["started_at"]), 1)
-    event = {
-        "ts": time.strftime("%H:%M:%S"),
-        "elapsed_s": elapsed,
-        "phase": phase,
-        "level": level,
-        "message": message,
-    }
-    _MODEL_LOAD_EVENTS_EVAL.append(event)
-    if len(_MODEL_LOAD_EVENTS_EVAL) > 500:
-        del _MODEL_LOAD_EVENTS_EVAL[:-500]
-    state["last_log"] = message
-    state["updated_at"] = time.time()
-    state["log_seq"] = len(_MODEL_LOAD_EVENTS_EVAL)
-    if phase:
-        state["phase"] = phase
-    prefix = f"  [load-evaluator][{level}]"
-    if phase:
-        prefix += f"[{phase}]"
-    print(f"{prefix} {message}")
 
 
 def _eval_info_snapshot() -> dict:

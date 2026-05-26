@@ -22,7 +22,7 @@ Canonical product definition: [`../product_definition.md`](../product_definition
 - **Runtime** (component #1, **Live**) — Gemma 4 model selector across local and cloud/BYOK targets, with output sanitizer regression coverage (`packages/duecare-llm-chat/src/duecare/chat/_model_output.py`).
 - **Harness** (component #2, **Live**) — 100+ GREP rules, 50+ document RAG, function-calling tools, contacts, audit trace via `▸ View pipeline` modal, and dedicated viewer pages.
 - **Eval** (component #4, **Partial**) — multi-dimension universal rubric + adversarial suite + LLM-judge mode + Combined mode; CI regression gate is post-hackathon.
-- **Trainer** (component #5, **Prototype / A-00**) — Unsloth SFT smoke training, checkpoint/resume, adapter save/load, and final comparison reports live in `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/`; full multi-tenant Trainer service is post-hackathon.
+- **Trainer** (component #5, **Prototype / A-00**) — Unsloth SFT smoke training, checkpoint/resume, adapter save/load, and final comparison reports live in `kaggle/A-00-omni-experiment-workbench/`; full multi-tenant Trainer service is post-hackathon.
 - **Mobile** (component #8, **Live**, sibling repo) — Duecare Journey v0.9.0 with MediaPipe LiteRT on-device Gemma 4 E2B, ILO indicator packs, and corridor packs. APK at [`duecare-journey-android`](https://github.com/TaylorAmarelTech/duecare-journey-android/releases).
 
 ## What's hub-scaffolded (live but not full Exchange / Sentinel yet)

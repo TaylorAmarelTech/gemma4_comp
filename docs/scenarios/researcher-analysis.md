@@ -123,7 +123,7 @@ papers:
 
 ```bash
 # Use the A-00 comparison pipeline directly
-# Open the archived A-00 omni experiment workbench and export the report bundle
+# Open the active A-00 omni experiment workbench and export the report bundle
 #
 # OR locally:
 python scripts/run_comparison.py \

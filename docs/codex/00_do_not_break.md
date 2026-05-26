@@ -42,7 +42,7 @@ Plus optional benchmarks (not part of the recording-critical path but still publ
 python scripts/validate_main_kaggle_kernels.py
 ```
 
-This gate protects the Kaggle root layout, the two active kernels above, and the two optional benchmark kernels above. Appendix notebooks, archived notebooks, and legacy notebook-era folders are not part of kernel compatibility unless Taylor explicitly asks to restore them.
+This gate protects the Kaggle root layout, the active kernels above, and the two optional benchmark kernels above. Appendix notebooks, archived notebooks, and legacy notebook-era folders are not part of kernel compatibility unless Taylor explicitly asks to restore them.
 
 **Kaggle root layout:** keep appendix folders out of the root. Root `kaggle/`
 must not contain `A-*` folders, and the only root `04-*` folder should be

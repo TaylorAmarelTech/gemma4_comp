@@ -7,7 +7,7 @@
 >
 > **Composite responses, generated 2026-05-04** under an earlier harness
 > snapshot; later additive rule maintenance adds coverage, not regression.
-> To regenerate against current `git HEAD`, use the archived A-00 omni
+> To regenerate against current `git HEAD`, use the active A-00 omni
 > experiment workbench and select the same prompt ids.
 
 ---
@@ -372,7 +372,7 @@ includes prompts where stock Gemma 4 already does reasonably well
 (e.g., open-ended worker-protection questions); the harness lift on
 those is naturally smaller since the baseline isn't near zero.
 
-For the falsifiable per-prompt regenerator, run the archived A-00 omni
+For the falsifiable per-prompt regenerator, run the active A-00 omni
 experiment workbench with the prompt ids above.
 
 ---

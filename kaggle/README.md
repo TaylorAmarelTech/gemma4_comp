@@ -2,7 +2,7 @@
 
 ## Active Kernels
 
-The current submission path uses two script kernels:
+The current submission path uses three script-kernel folders:
 
 | Folder | Role |
 |---|---|
@@ -13,7 +13,7 @@ Run each by copying its `kernel.py` into a Kaggle code cell, enabling Internet a
 
 ## Archived Reference Notebooks
 
-The former `03-duecare-video-pitch` notebook, A-00 experiment console, appendix
+The former `03-duecare-video-pitch` notebook, appendix
 notebooks `A-01` through `A-24`, and task-notebook snapshots are archived under
 `kaggle/_archive/notebooks/`. They are not part of the active run path.
 
@@ -27,7 +27,7 @@ snapshots belong under `kaggle/_archive/notebooks/`.
 loads DueCare prompt/rubric/evidence cues when available, can call
 OpenAI-compatible, Anthropic Messages, or raw JSON endpoints, and uses Claude
 Opus as judge when an Anthropic key is configured. It is useful for external
-model comparisons, but it does not replace the two-kernel recording path.
+model comparisons, but it does not replace the primary recording path.
 
 `04-kaggle-community-benchmark` is the Kaggle-native benchmark-publishing
 surface. It defines DueCare rows as `kaggle_benchmarks` tasks and routes model
@@ -38,9 +38,9 @@ Kaggle-hosted model quota and produce Community Benchmark task/run artifacts.
 
 1. `01-duecare-exploration-workbench`: verify the main harness UI and product surfaces.
 2. `02-live-demo`: verify the focused judge-facing demo.
-3. Optional only: use archived A-00 proof artifacts from `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/` if a prior fine-tuning/evaluation reference is needed.
+3. Use `kaggle/A-00-omni-experiment-workbench/` when a quantitative fine-tuning/evaluation proof path is needed.
 
-## Archived A-00 Preconfigured Pipeline
+## A-00 Preconfigured Pipeline
 
 The default A-00 path is designed to be one or two clicks:
 

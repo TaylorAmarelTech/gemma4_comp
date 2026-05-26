@@ -5,7 +5,8 @@ script kernels without executing them, then checks for the boot-path tokens
 that make them runnable after copy/paste into Kaggle.
 
 Appendix and archived notebooks are intentionally out of scope. Root
-``kaggle/`` should not contain appendix ``A-*`` folders or extra ``04-*``
+``kaggle/`` should not contain appendix ``A-*`` folders other than the active
+``A-00-omni-experiment-workbench`` proof kernel, or extra ``04-*``
 task-notebook snapshots.
 """
 
@@ -20,6 +21,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ALLOWED_ROOT_04_FOLDERS = {"04-kaggle-community-benchmark"}
+ALLOWED_ROOT_A_FOLDERS = {"A-00-omni-experiment-workbench"}
 
 
 @dataclass(frozen=True)
@@ -68,6 +70,22 @@ KERNELS: tuple[KernelContract, ...] = (
         ),
     ),
     KernelContract(
+        path="kaggle/A-00-omni-experiment-workbench/kernel.py",
+        tier="active",
+        role="quantitative proof and training/evaluation",
+        kaggle_id="taylorsamarel/duecare-fine-tuning-and-evaluation",
+        enable_gpu=True,
+        required_tokens=(
+            "DueCare Fine-tuning and Evaluation",
+            "A00_PRECONFIGURED_HTML",
+            "experiment_contract_payload",
+            "Gemma4Runtime",
+            "grade_response_combined",
+            "trycloudflare.com",
+            "/kaggle/working",
+        ),
+    ),
+    KernelContract(
         path="kaggle/03-universal-llm-benchmark/kernel.py",
         tier="optional",
         role="universal endpoint benchmark",
@@ -106,10 +124,15 @@ def validate_kaggle_root_layout() -> list[str]:
         return ["missing kaggle/ directory"]
 
     root_dirs = sorted(path.name for path in kaggle_root.iterdir() if path.is_dir())
-    root_appendix = [name for name in root_dirs if name.startswith("A-")]
+    root_appendix = [
+        name
+        for name in root_dirs
+        if name.startswith("A-") and name not in ALLOWED_ROOT_A_FOLDERS
+    ]
     if root_appendix:
         failures.append(
-            "root kaggle/ must not contain appendix A-* folders; move them to "
+            "root kaggle/ must not contain appendix A-* folders other than "
+            "A-00-omni-experiment-workbench; move them to "
             "kaggle/_archive/notebooks/: " + ", ".join(root_appendix)
         )
 

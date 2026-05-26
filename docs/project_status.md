@@ -4,7 +4,7 @@ Current as of 2026-05-17.
 
 ## Active Submission Scope
 
-The active Kaggle path is exactly two script kernels:
+The active Kaggle path is exactly three script-kernel folders:
 
 | Kernel | Role |
 |---|---|
@@ -48,13 +48,13 @@ snapshots, and older checklist/status docs are archived under
 ## Remaining Work
 
 1. Run and capture the two active Kaggle kernels.
-2. Optional only: produce a reproducible archived A-00 evidence run and
+2. Optional only: produce a reproducible A-00 evidence run and
    preserve `/kaggle/working` outputs before shutdown if new proof artifacts
    are needed.
 3. Use checkpoint/resume for any longer training run.
 4. Attach the final report, activity log, prompt/response artifacts, training
    metadata, charts, and evidence ZIP to the writeup/video workflow.
-5. Keep new documentation changes pointed at the current two-kernel path; treat
+5. Keep new documentation changes pointed at the current active Kaggle path; treat
    A-00 as archived proof material unless Taylor explicitly restores it.
 
 ## Verification
