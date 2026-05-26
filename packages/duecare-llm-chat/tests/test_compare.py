@@ -214,6 +214,33 @@ def test_chat_generation_default_is_demo_safe(client):
     assert GenerationParams().max_new_tokens == 4096
 
 
+def test_compare_judge_token_cap(client):
+    """The compare grade path caps the per-dimension LLM-judge budget so
+    a long multi-dimension grade (one model call per applicable dim)
+    finishes before the Cloudflare tunnel drops the SSE stream. Separate
+    knob from the chat-generation max_new_tokens; route default is 640."""
+    r = client.get("/static/compare.html")
+    text = r.text
+    assert "const CMP_JUDGE_MAX_TOKENS = 448;" in text
+    assert "max_new_tokens: CMP_JUDGE_MAX_TOKENS" in text
+
+
+def test_compare_apples_to_apples_validity_guard(client):
+    """A partial/errored grade arm must not be read as a valid head-to-
+    head. cmpGrade computes a `comparable` flag; when false it logs a
+    'not directly comparable' note plus next-step guidance and gates the
+    close-grade caveat behind comparability."""
+    r = client.get("/static/compare.html")
+    text = r.text
+    assert "const comparable = aGradeOK && bGradeOK;" in text
+    assert "not directly comparable" in text
+    # close-grade caveat must only fire when both arms are comparable
+    assert "if (comparable && typeof aPct" in text
+    # actionable next-step guidance in the activity log on a partial grade
+    assert "Still valid now:" in text
+    assert "To retry:" in text
+
+
 def test_pipeline_step_labels_match_chat(client):
     """The pipeline steps on Compare must match the Chat page's
     labels exactly; mismatched labels confuse reviewers."""

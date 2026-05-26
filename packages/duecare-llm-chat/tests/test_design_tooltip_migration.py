@@ -2291,6 +2291,12 @@ def test_inference_queue_module_exports() -> None:
     assert mod.ModelQueue.STATE_OPEN == "open"
     q = mod.ModelQueue()
     assert q.slot_state("nonexistent") == mod.ModelQueue.STATE_CLOSED
+    # 45-min single-source-of-truth per-call cap (raised from 30 min on
+    # 2026-05-26). The chat-send and grade-stream SSE generators import
+    # this and enforce it as a watchdog so a hung call emits a structured
+    # timeout instead of streaming keepalives forever.
+    assert mod.MAX_INFERENCE_SECONDS == 45 * 60
+    assert mod.ModelQueue.MAX_CALL_SECONDS == mod.MAX_INFERENCE_SECONDS
 
 
 def test_kernel_imports_inference_queue_module() -> None:

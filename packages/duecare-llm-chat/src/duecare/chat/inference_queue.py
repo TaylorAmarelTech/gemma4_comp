@@ -39,6 +39,17 @@ import time
 import uuid
 from typing import Any
 
+# Single source of truth for the maximum wall-clock time any one
+# inference or grading call is allowed to occupy a model slot before
+# the streaming layer gives up on it. Raised from 30 to 45 minutes on
+# 2026-05-26 so first-run 31B / 26B-A4B generations on a cold Kaggle T4
+# (download + load + a long multi-dimension grade) are not cut short.
+# The SSE generators in harnesses/chat/send.py and app.py's
+# _grade_stream_response enforce this as a watchdog; exceeding it emits a
+# structured {"type":"error","reason":"inference_timeout"|"grade_timeout"}
+# event so the client records an unsuccessful call instead of hanging.
+MAX_INFERENCE_SECONDS = 45 * 60
+
 
 class QueueFull(Exception):
     """Raised when more than :attr:`ModelQueue.MAX_WAITING` tickets are
@@ -78,7 +89,11 @@ class ModelQueue:
     """
 
     MAX_WAITING = 5
-    MAX_CALL_SECONDS = 30 * 60      # 30-minute generous cap for 31B prompts
+    # Generous per-call cap, kept as a class attribute for backward
+    # reference. Sourced from the module-level MAX_INFERENCE_SECONDS so
+    # there is exactly one number to change; the streaming layer is what
+    # actually enforces it (see MAX_INFERENCE_SECONDS docstring above).
+    MAX_CALL_SECONDS = MAX_INFERENCE_SECONDS
     DRAIN_POLL_SECONDS = 0.25       # legacy fallback; Event-based drain skips this
 
     STATE_CLOSED = "closed"
@@ -366,6 +381,7 @@ class ModelQueue:
 
 
 __all__ = [
+    "MAX_INFERENCE_SECONDS",
     "ModelQueue",
     "QueueClosed",
     "QueueFull",

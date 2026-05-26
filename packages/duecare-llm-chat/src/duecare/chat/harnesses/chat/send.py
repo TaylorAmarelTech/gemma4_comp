@@ -16,6 +16,11 @@ from typing import Any, Callable
 
 from fastapi.responses import StreamingResponse
 
+try:  # single source of truth for the per-call wall-clock cap
+    from ...inference_queue import MAX_INFERENCE_SECONDS
+except Exception:  # pragma: no cover - defensive: keep streaming usable
+    MAX_INFERENCE_SECONDS = 45 * 60
+
 
 async def serve_chat_send(
     req: Any,
@@ -192,6 +197,27 @@ async def serve_chat_send(
             except queue.Empty:
                 await asyncio.sleep(0.25)
                 now = time.time()
+                if now - t_start >= MAX_INFERENCE_SECONDS:
+                    # Hard per-call wall-clock cap (single source of truth:
+                    # inference_queue.MAX_INFERENCE_SECONDS). The worker is a
+                    # daemon thread running a non-cancellable CUDA generate;
+                    # we stop streaming and emit a structured timeout so the
+                    # client records an unsuccessful call instead of waiting
+                    # on a possibly-hung generate. The slot's call_lock stays
+                    # held until generate actually returns -- the cap bounds
+                    # the CLIENT's wait, it cannot kill the kernel-side call.
+                    timeout_evt = {
+                        "type": "error",
+                        "error": (
+                            f"inference exceeded the "
+                            f"{MAX_INFERENCE_SECONDS // 60}-minute per-call cap"
+                        ),
+                        "reason": "inference_timeout",
+                        "code": 504,
+                        "elapsed_s": int(now - t_start),
+                    }
+                    yield (f"data: {json.dumps(timeout_evt)}\n\n").encode()
+                    return
                 if now - last_keepalive >= 5.0:
                     elapsed_s = int(now - t_start)
                     yield (f": keepalive elapsed={elapsed_s}s\n\n").encode()

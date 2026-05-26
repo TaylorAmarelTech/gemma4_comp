@@ -40,6 +40,11 @@ from .harnesses._safe_text import (
 )
 from .portability import portability_contract_payload
 
+try:  # single source of truth for the per-call wall-clock cap (chat + grade)
+    from .inference_queue import MAX_INFERENCE_SECONDS
+except Exception:  # pragma: no cover - defensive
+    MAX_INFERENCE_SECONDS = 45 * 60
+
 
 # In-memory image store (transient, request-scoped). Each upload
 # returns an id; the client sends the id in subsequent chat calls.
@@ -4426,6 +4431,26 @@ def create_app(
                 except queue.Empty:
                     await asyncio.sleep(0.25)
                     now = time.time()
+                    if now - t_start >= MAX_INFERENCE_SECONDS:
+                        # Hard per-call wall-clock cap (single source of
+                        # truth: inference_queue.MAX_INFERENCE_SECONDS). A
+                        # 21-dim 31B grade can run long, but a hung judge
+                        # must not stream keepalives forever. Emit a
+                        # structured timeout so the client's recovery path
+                        # records an unsuccessful grade and preserves any
+                        # partial dimensions instead of waiting unbounded.
+                        timeout_evt = {
+                            "type":      "error",
+                            "error": (
+                                f"grading exceeded the "
+                                f"{MAX_INFERENCE_SECONDS // 60}-minute cap"
+                            ),
+                            "reason":    "grade_timeout",
+                            "code":      504,
+                            "elapsed_s": int(now - t_start),
+                        }
+                        yield (f"data: {json.dumps(timeout_evt)}\n\n").encode()
+                        return
                     if now - last_keepalive >= 5.0:
                         elapsed_s = int(now - t_start)
                         yield (f": keepalive elapsed={elapsed_s}s\n\n").encode()
