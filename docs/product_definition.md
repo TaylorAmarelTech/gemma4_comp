@@ -331,7 +331,7 @@ clients pull update
 ### 7. Channel and Deployment Package
 
 **Roadmap.** Design target. Today's bridge: the chat package's
-FastAPI surface is the substrate Channels would wrap with
+FastAPI surface is the integration surface Channels would wrap with
 platform-specific adapters. No code in this repo currently sends
 messages on Messenger / WhatsApp / SMS.
 
@@ -515,7 +515,7 @@ Module** prototype shipped through the DueCare Fine-tuning and Evaluation.
 
 - **Central Knowledge Server and Information Submission** — privacy-preserving vetted-pack distribution. Today's bridge: curator-block PRs reviewed by humans.
 - **Public Information Research Monitor** — continuous public-source update server. Today's bridge: `scripts/v141_validate_contacts.py` is a read-only HEAD-pinger seed.
-- **Channel and Deployment Package** — Messenger / WhatsApp / web / SMS / embassy-portal adapters. Today's bridge: the chat package's FastAPI surface is the substrate; no live channel deployment.
+- **Channel and Deployment Package** — Messenger / WhatsApp / web / SMS / embassy-portal adapters. Today's bridge: the chat package's FastAPI surface is the integration surface; no live channel deployment.
 - **Individual worker / mobile app** v1.0 — Duecare Journey v0.9.0 ships today; v1.0 consumes vetted packs, expands multimodal screenshot scanner, expands corridor coverage.
 
 This is a strong "real now + scalable vision" story: **functional

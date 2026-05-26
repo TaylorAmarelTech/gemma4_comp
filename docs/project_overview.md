@@ -29,13 +29,13 @@ workers using monitored or low-connectivity devices.
 
 ## Solution
 
-DueCare wraps Gemma 4 in a local, inspectable safety substrate:
+DueCare wraps Gemma 4 in a local, inspectable safety stack:
 
 1. **Content moderation** - recruitment ads, listings, and messages are
    classified against trafficking indicators and cited policy rules.
 2. **Case analysis** - bounded case bundles become people, payments, dates,
    journey stages, typed graph edges, and reviewable evidence rows.
-3. **Worker information access** - short questions receive plain-language
+3. **Worker support** - short questions receive plain-language
    rights guidance, safe reporting paths, contacts, and evidence-preservation
    steps.
 4. **Research and enforcement** - repeated patterns can be queried across

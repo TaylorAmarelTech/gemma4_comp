@@ -45,7 +45,7 @@ def test_homepage_renders() -> None:
         assert b"duecare" in r.content.lower()
 
 
-def test_homepage_uses_five_lane_live_demo_console() -> None:
+def test_homepage_uses_six_lane_live_demo_console() -> None:
     pytest.importorskip("fastapi.testclient")
     from fastapi.testclient import TestClient
     with tempfile.TemporaryDirectory() as tmp:
@@ -57,16 +57,26 @@ def test_homepage_uses_five_lane_live_demo_console() -> None:
         r = client.get("/")
         assert r.status_code == 200
         html = r.text
+        assert "Six use cases" in html
+        assert "Five use cases" not in html
+        lane_cursor = -1
         for marker in [
             "Run the Gemma 4 harness ecosystem.",
             "Platform safety",
             "NGO &amp; regulator",
             "Individual worker / mobile",
             "Researcher",
+            "Anonymized knowledge sharing",
             "Developer / integration partner",
             "Processing surfaces",
         ]:
             assert marker in html
+            if marker != "Run the Gemma 4 harness ecosystem." and marker != "Processing surfaces":
+                marker_index = html.find(marker)
+                assert marker_index > lane_cursor, f"missing or out-of-order lane: {marker}"
+                lane_cursor = marker_index
+        assert '<a href="/knowledge"><span>05</span>' in html
+        assert '<a href="/architecture"><span>06</span>' in html
         assert "Use case 1" not in html
         assert "Use case 2" not in html
 

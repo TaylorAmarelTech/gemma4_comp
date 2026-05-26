@@ -64,13 +64,13 @@ All pushed to `origin/master`.
 ```
 1.  The problem at a scale generic AI is not closing
 2.  Why "DueCare" â€” Cal. Civ. Code Â§1714(a) duty-of-care
-3.  Solution: six lanes, one local substrate (6-lane table)
+3.  Solution: six lanes, one local safety stack (6-lane table)
 4.  How Gemma 4's unique features are load-bearing
     - native function calling (tool dispatch)
     - multimodal understanding (Bulk File Review vision queue)
     - local frontier intelligence
     - fine-tunable (Unsloth)
-5.  The substrate â€” components in detail
+5.  The safety stack â€” components in detail
     (165+ GREP rules, 55+ knowledge packs, persona,
      graph extraction, sensitive-data handling, refusal head, grading)
 6.  Main server architecture (FastAPI + harness contract)
@@ -91,7 +91,7 @@ Track positioning declared up top: **Safety & Trust** (Impact),
 ```
 01. Title â€” "Local Gemma 4 safety infrastructure for migrant-worker protection"
 02. Stakes â€” scale + capability gap (28M / $236B / 169M / 3x)
-03. Solution â€” 6 lanes + shared substrate
+03. Solution â€” 6 lanes + shared safety stack
 04. Moderation overview (3 FB cards)
 05. Moderation demo (FB post + 5-stage harness)
 06. Case-analysis overview (pipeline + lanes)
@@ -102,12 +102,12 @@ Track positioning declared up top: **Safety & Trust** (Impact),
 11. Research demo (dropzone + cluster results)
 12. Anonymized-sharing overview (4-step flow)
 13. Anonymized-sharing demo (dropzone + KO candidates)
-14. Components (6 substrate lanes)
+14. Components (6 safety-stack lanes)
 15. Download knowledge packs (6 download cards) â† NEW
 16. Module ecosystem (reinforcement loop)
 17. Benchmarks (measured A-00 smoke matrix)
 18. Why Gemma 4 (6 lanes)
-19. What makes this unique (4 tiles: substrate counts /
+19. What makes this unique (4 tiles: safety-stack counts /
     on-device APK / sharing reinforcement / evolving eval)
 20. Conclusion
 21. Resources (3 kernel cards with new slugs)
@@ -160,8 +160,8 @@ pytest packages/duecare-llm-server/tests/test_slides_surface.py       ->  19/19 
 - placeholder benchmark percentages (62.0/81.5/74.8/88.2)
   forbidden
 - copy phrases: "Exploitation continues because the protective
-  workflow is fragmented", "Five comparable workflows, one shared
-  local substrate", "Gemma 4 is not another lane"
+  workflow is fragmented", "Six comparable workflows, one shared
+  local safety stack", "Gemma 4 is not another lane"
 - forbidden strings: `Filipina`, `class="slide dark"`,
   `class="slide accent"`, `--camera-safe-right`, `arrows / space`
 

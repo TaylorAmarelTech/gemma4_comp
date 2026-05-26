@@ -70,6 +70,42 @@ def test_start_landing_is_recording_oriented() -> None:
         "Landing should mention the cached I/O path"
 
 
+def test_live_demo_home_serves_six_lanes() -> None:
+    c = _client()
+    r = c.get("/")
+    assert r.status_code == 200
+    html = r.text
+    assert "Six use cases" in html
+    assert "Five use cases" not in html
+    lane_cursor = -1
+    for marker in [
+        "Platform safety",
+        "NGO &amp; regulator",
+        "Individual worker / mobile",
+        "Researcher",
+        "Anonymized knowledge sharing",
+        "Developer / integration partner",
+    ]:
+        marker_index = html.find(marker)
+        assert marker_index > lane_cursor, f"missing or out-of-order lane: {marker}"
+        lane_cursor = marker_index
+    assert '<a href="/knowledge"><span>05</span>' in html
+    assert '<a href="/architecture"><span>06</span>' in html
+
+
+def test_legacy_demo_copy_avoids_fragile_claims() -> None:
+    c = _client()
+    r = c.get("/demo")
+    assert r.status_code == 200
+    html = r.text
+    lower = html.lower()
+    assert "Why Gemma 4 is the right model engine." in html
+    assert "substrate" not in lower
+    assert "materially less harmful" not in lower
+    assert "verdicts/min" not in lower
+    assert "roughly zero per-call cost" not in lower
+
+
 def test_slides_deck_serves_full_screen_pitch() -> None:
     c = _client()
     r = c.get("/slides")

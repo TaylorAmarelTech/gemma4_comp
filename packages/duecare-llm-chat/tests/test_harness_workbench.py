@@ -983,24 +983,40 @@ def test_harness_info_reports_official_source_wiring():
                for c in data["official_source_checks"])
 
 
-def test_use_cases_page_serves_five_audience_lanes(client):
+def test_use_cases_page_serves_six_audience_lanes(client):
     r = client.get("/static/use-cases.html")
     assert r.status_code == 200
     text = r.text
+    assert "Six ways to test DueCare with Gemma 4." in text
+    assert "Five ways" not in text
     for marker in [
         'data-nav="use-cases"',
         "Platform safety",
         "For NGOs &amp; regulators",
         "Individual worker / mobile",
         "Researcher",
+        "Anonymized knowledge sharing",
         "Developer / integration partner",
         "/static/showcase-platform.html",
         "/static/showcase-ngo.html",
         "/static/showcase-worker.html",
         "/static/showcase-researcher.html",
+        "/static/share.html",
         "/static/showcase-developer.html",
     ]:
         assert marker in text
+    lane_cursor = -1
+    for marker in [
+        "01 Platform safety",
+        "02 For NGOs &amp; regulators",
+        "03 Individual worker / mobile",
+        "04 Researcher",
+        "05 Anonymized knowledge sharing",
+        "06 Developer / integration partner",
+    ]:
+        marker_index = text.find(marker)
+        assert marker_index > lane_cursor, f"missing or out-of-order lane: {marker}"
+        lane_cursor = marker_index
 
 
 def test_showcase_pages_use_consistent_chat_alias(client):

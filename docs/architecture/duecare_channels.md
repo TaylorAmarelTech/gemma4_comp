@@ -2,7 +2,7 @@
 
 **Status: Roadmap.** Design target. Today's bridge:
 `packages/duecare-llm-chat` already exposes the harness through a
-FastAPI surface — that's the substrate Channels would wrap with
+FastAPI surface — that's the integration surface Channels would wrap with
 platform adapters. No code in this repo currently sends messages on
 Messenger / WhatsApp / SMS.
 

@@ -73,7 +73,7 @@ not exhaustive — the full inventory lives in
   from native-blind...*
   ([Kaggle write-up](https://www.kaggle.com/competitions/openai-gpt-oss-20b-red-teaming/writeups/llm-complicity-in-modern-slavery-from-native-blind)).
   The empirical evidence that frontier LLMs consistently fail on
-  migrant-worker safety prompts. Motivates the harness substrate.
+  migrant-worker safety prompts. Motivates the harness design.
 - **Sister synthetic-evidence harness** — a fully synthetic test-data
   generator (`synthetic_test_evidence/`) with closed-set indicator
   vocabulary, prompt packs (v1 lenient, v2 chain-of-thought + strict
