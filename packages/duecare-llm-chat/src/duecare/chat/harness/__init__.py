@@ -18106,6 +18106,7 @@ def grade_response_via_evaluator(
     custom_questions: dict | None = None,
     custom_envelope: str | None = None,
     progress_callback: Callable[[dict], None] | None = None,
+    model_call_cache: dict[str, str] | None = None,
 ) -> dict:
     """LLM-evaluator grader: ask the loaded model dimension-by-
     dimension yes/no questions about its own response. Same paradigm
@@ -18359,22 +18360,45 @@ def grade_response_via_evaluator(
             "dim_call_start",
         )
         t0 = _time.time()
-        try:
-            evaluator_response = model_call(prompt) or ""
-            consecutive_errors = 0  # reset on success
-        except Exception as e:  # noqa: BLE001 -- surface as FAIL not crash
-            evaluator_response = f'{{"verdict":"uncertain","rationale":"evaluator_error: {e}"}}'
-            consecutive_errors += 1
-            total_errors += 1
-            if consecutive_errors >= 3 or total_errors >= 5:
-                # Evaluator is unhealthy. Raise so the API surface
-                # returns 503 instead of finishing with all-uncertain
-                # results that look like real verdicts.
-                raise RuntimeError(
-                    f"LLM evaluator unhealthy: {total_errors} errors total, "
-                    f"{consecutive_errors} consecutive. Last: "
-                    f"{type(e).__name__}: {str(e)[:200]}"
-                ) from e
+        # Resumable grading: if this dimension's LLM response was cached
+        # on an earlier (possibly stream-cut) run for the same response /
+        # prompt / model, replay it instead of paying for the ~75s model
+        # call again. The cache dict is mutated in place, so dimensions
+        # graded before a tunnel drop are already persisted for the next
+        # attempt -- a re-grade resumes instead of restarting at dim 1.
+        cache_key = dim["id"]
+        cached_resp = (
+            model_call_cache.get(cache_key)
+            if model_call_cache is not None else None
+        )
+        resumed_from_cache = cached_resp is not None
+        if resumed_from_cache:
+            evaluator_response = cached_resp
+            consecutive_errors = 0
+        else:
+            try:
+                evaluator_response = model_call(prompt) or ""
+                consecutive_errors = 0  # reset on success
+            except Exception as e:  # noqa: BLE001 -- surface as FAIL not crash
+                evaluator_response = f'{{"verdict":"uncertain","rationale":"evaluator_error: {e}"}}'
+                consecutive_errors += 1
+                total_errors += 1
+                if consecutive_errors >= 3 or total_errors >= 5:
+                    # Evaluator is unhealthy. Raise so the API surface
+                    # returns 503 instead of finishing with all-uncertain
+                    # results that look like real verdicts.
+                    raise RuntimeError(
+                        f"LLM evaluator unhealthy: {total_errors} errors total, "
+                        f"{consecutive_errors} consecutive. Last: "
+                        f"{type(e).__name__}: {str(e)[:200]}"
+                    ) from e
+            else:
+                # Persist only genuine model output (the error placeholder
+                # lands in the except branch, never here), so a transient
+                # per-dimension failure is retried -- not cached -- on the
+                # next resume. Cap stored size to bound session memory.
+                if model_call_cache is not None and evaluator_response:
+                    model_call_cache[cache_key] = evaluator_response[:16384]
         elapsed_ms = (_time.time() - t0) * 1000.0
         latencies.append(elapsed_ms)
         parsed = _parse_evaluator_verdict(evaluator_response)
@@ -18446,6 +18470,7 @@ def grade_response_via_evaluator(
             "hallucination_flags":         parsed.get("hallucination_flags", []),
             "rationale":                   parsed["rationale"],
             "parse_ok":                    parsed["parse_ok"],
+            "resumed":                     resumed_from_cache,
             "evaluator_prompt_chars":      len(prompt),
             "evaluator_response_chars":    len(evaluator_response),
             "evaluator_latency_ms":        round(elapsed_ms, 1),
@@ -18711,6 +18736,7 @@ def grade_response_combined(
     harness_trace: dict | None = None,
     evaluator_weight: float = 0.5,
     progress_callback: Callable[[dict], None] | None = None,
+    model_call_cache: dict[str, str] | None = None,
 ) -> dict:
     """Combine the deterministic multi-signal grader (v3) with the
     LLM evaluator into a single weighted score. When `model_call`
@@ -18747,6 +18773,7 @@ def grade_response_combined(
             response_text, model_call=model_call,
             prompt_text=prompt_text,
             progress_callback=progress_callback,
+            model_call_cache=model_call_cache,
         )
     except RuntimeError as e:
         return {

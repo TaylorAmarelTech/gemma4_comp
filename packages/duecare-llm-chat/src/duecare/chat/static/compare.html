@@ -2958,9 +2958,21 @@
           // (unexpected shape, missing field, etc.) doesn't kill the
           // whole stream parse.
           try {
-            if (evt.type === 'deterministic_done') {
-              deterministic = (evt.result != null) ? evt.result : null;
-              progress('Variant ' + variant + ': deterministic pass complete; waiting for LLM judge...');
+            if (evt.type === 'resume_info' || evt.type === 'deterministic_done') {
+              if (evt.type === 'deterministic_done') {
+                deterministic = (evt.result != null) ? evt.result : null;
+              }
+              // Resumable grading: the server replays dimensions graded
+              // on a prior (stream-cut) run from cache, so a re-grade
+              // continues where it stopped instead of restarting at dim 1.
+              const nResume = (typeof evt.resume_cached_dims === 'number')
+                ? evt.resume_cached_dims : 0;
+              if (nResume > 0) {
+                progress('Variant ' + variant + ': resuming — ' + nResume +
+                  ' judge dimension(s) replayed from cache (no re-grade)');
+              } else if (evt.type === 'deterministic_done') {
+                progress('Variant ' + variant + ': deterministic pass complete; waiting for LLM judge...');
+              }
             } else if (evt.type === 'dim_done') {
               if (evt.row && typeof evt.row === 'object') {
                 partialDims.push(evt.row);
@@ -3110,11 +3122,12 @@
             'compare apples-to-apples (rules-based, no judge call, always ' +
             'complete).');
           logEvent(null, 'info',
-            'To retry: click "Grade both" again — the LLM judge re-runs ' +
-            'from dimension 1' +
-            (anyPartial ? ' (the partial arm dropped mid-run; this is a '
-              + 'transient tunnel cut, safe to retry)' : '') +
-            ', and each dimension is faster now at the capped judge budget.');
+            'To retry: click "Grade both" again — grading RESUMES from where ' +
+            'it stopped' +
+            (anyPartial ? ' (the partial arm dropped mid-run — a transient '
+              + 'tunnel cut, safe to retry)' : '') +
+            '. Already-graded dimensions replay instantly from cache; only ' +
+            'the unreached ones re-run.');
           logEvent(null, 'info',
             'Note: grading speed is hardware-bound. The large model is the ' +
             'most capable judge — keep it. On a 2x T4 each dimension takes ' +
@@ -3124,8 +3137,8 @@
             window._cmpGradeResults.validity_note = vnote;
             window._cmpGradeResults.next_steps = [
               'deterministic_and_benchmark_rows_are_valid_now',
-              'regrade_retries_llm_judge_from_dim_1',
-              'use_smaller_judge_for_long_grades',
+              'regrade_resumes_from_where_it_stopped',
+              'grading_speed_is_hardware_bound_large_model_stays_judge',
             ];
           }
         }
