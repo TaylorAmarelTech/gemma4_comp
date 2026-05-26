@@ -2833,9 +2833,21 @@
         ? '/api/grade-deep-stream'
         : '/api/grade-combined-stream';
       progress('Variant ' + variant + ': opening ' + url + '...');
+      // Per-dimension judge budget. The verdict envelope (verdict +
+      // score + short rationale + evidence quote) needs ~200 tokens;
+      // the route default is 640. A full grade is one model call PER
+      // applicable dimension (~50 of 74), so this cap is the main lever
+      // to shorten a long multi-dimension grade enough that it finishes
+      // before the Cloudflare tunnel drops the SSE stream. Tunable. The
+      // large model is the most capable judge and should stay selected;
+      // on slow GPUs (2x T4) the real limiter is hardware, not this cap --
+      // faster GPUs (A6000, Blackwell) grade each dimension in seconds.
+      const CMP_JUDGE_MAX_TOKENS = 448;
       const body = mode === 'deep'
-        ? {response_text: responseText, prompt_text: prompt}
-        : {response_text: responseText, prompt_text: prompt, evaluator_weight: 0.5};
+        ? {response_text: responseText, prompt_text: prompt,
+           max_new_tokens: CMP_JUDGE_MAX_TOKENS}
+        : {response_text: responseText, prompt_text: prompt,
+           evaluator_weight: 0.5, max_new_tokens: CMP_JUDGE_MAX_TOKENS};
       const opened = await cmpFetchWithRetry(url, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -3064,6 +3076,59 @@
         };
         status.textContent = 'A=' + scoreLabel(gA) + '  |  B=' + scoreLabel(gB);
         logEvent(null, 'ok', 'grade  A=' + scoreLabel(gA) + '  B=' + scoreLabel(gB));
+        // Apples-to-apples validity guard. A head-to-head is only valid
+        // when BOTH arms graded on the same basis. If one arm is a
+        // partial grade (SSE stream closed mid-run) or errored while the
+        // other completed, the two overall_pct values use different
+        // denominators and must NOT be read as a winner. Surface that
+        // explicitly and point the reviewer at the deterministic
+        // "benchmark" row, which always completes for both arms.
+        const aGradeOK = !!(gA && !gA.partial && !gA.error);
+        const bGradeOK = !!(gB && !gB.partial && !gB.error);
+        const comparable = aGradeOK && bGradeOK;
+        if (window._cmpGradeResults) {
+          window._cmpGradeResults.comparable = comparable;
+        }
+        if (!comparable) {
+          const why = [];
+          if (!aGradeOK) why.push('A=' + scoreLabel(gA));
+          if (!bGradeOK) why.push('B=' + scoreLabel(gB));
+          const vnote = 'Not directly comparable (' + why.join(', ') +
+            '): the LLM-judge run did not finish on both arms, so the ' +
+            'percentages use different denominators. Compare on the ' +
+            'deterministic "benchmark" row (always complete for both), ' +
+            'or re-grade the incomplete arm.';
+          status.textContent = 'A=' + scoreLabel(gA) + ' | B=' +
+            scoreLabel(gB) + ' — not directly comparable';
+          logEvent(null, 'warn', vnote);
+          // Actionable next-step guidance: tell the reviewer what is
+          // valid right now and what a re-grade will (and won't) do, so
+          // a dropped stream is a recoverable state, not a dead end.
+          const anyPartial = !!((gA && gA.partial) || (gB && gB.partial));
+          logEvent(null, 'info',
+            'Still valid now: the deterministic + benchmark scores above ' +
+            'compare apples-to-apples (rules-based, no judge call, always ' +
+            'complete).');
+          logEvent(null, 'info',
+            'To retry: click "Grade both" again — the LLM judge re-runs ' +
+            'from dimension 1' +
+            (anyPartial ? ' (the partial arm dropped mid-run; this is a '
+              + 'transient tunnel cut, safe to retry)' : '') +
+            ', and each dimension is faster now at the capped judge budget.');
+          logEvent(null, 'info',
+            'Note: grading speed is hardware-bound. The large model is the ' +
+            'most capable judge — keep it. On a 2x T4 each dimension takes ' +
+            '~75s so a full grade can outlast the tunnel; faster GPUs ' +
+            '(A6000, Blackwell) grade each dimension in seconds.');
+          if (window._cmpGradeResults) {
+            window._cmpGradeResults.validity_note = vnote;
+            window._cmpGradeResults.next_steps = [
+              'deterministic_and_benchmark_rows_are_valid_now',
+              'regrade_retries_llm_judge_from_dim_1',
+              'use_smaller_judge_for_long_grades',
+            ];
+          }
+        }
         // Close-grade caveat: when the two overall_pct values are
         // within 2pp, the reviewer needs to look at the per-axis row
         // (Quality / Coverage) and the count breakdown to read which
@@ -3074,7 +3139,7 @@
         try {
           const aPct = cmpScoreNumber(gA);
           const bPct = cmpScoreNumber(gB);
-          if (typeof aPct === 'number' && typeof bPct === 'number' &&
+          if (comparable && typeof aPct === 'number' && typeof bPct === 'number' &&
               Math.abs(aPct - bPct) < 2.0) {
             const aQ = cmpQualityNumber(gA);
             const bQ = cmpQualityNumber(gB);
