@@ -96,6 +96,8 @@ Read the focused [Information Sharing Architecture](information_sharing_architec
 page for the object types, trust boundary, and hub/local responsibilities.
 For a shorter public explanation, read
 [Gemma 4 for Networked Knowledge Sharing Without Centralizing PII](gemma_networked_knowledge_sharing.md).
+For paste-ready Kaggle discussion copy, use
+[Kaggle Post: Gemma 4 for Networked Knowledge Sharing Without Centralizing PII](kaggle_post_networked_knowledge_sharing.md).
 
 ## Core Components
 
