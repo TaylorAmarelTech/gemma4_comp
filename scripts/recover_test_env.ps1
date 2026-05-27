@@ -136,6 +136,7 @@ if ($Run -or $Full) {
     Where-Object { Test-Path $_ }
   $env:PYTHONPATH = ($srcRoots -join ";")
 
+  $customTests = [bool]$Tests   # did the caller pass -Tests explicitly?
   if (-not $Tests) {
     if ($Full) {
       # Entire suite. NOTE (2026-05-27): green EXCEPT 17 PRE-EXISTING drift
@@ -153,7 +154,7 @@ if ($Run -or $Full) {
       )
     }
   }
-  $label = if ($Full) { "FULL suite" } else { "grading subset" }
+  $label = if ($customTests) { "custom tests" } elseif ($Full) { "FULL suite" } else { "grading subset" }
   Info "running $label on the clean interpreter..."
   Push-Location $RepoRoot
   try {
