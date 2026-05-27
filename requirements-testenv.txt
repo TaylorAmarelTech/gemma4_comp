@@ -1,0 +1,35 @@
+# Known-working pinned dependencies for the ISOLATED local test interpreter.
+#
+# WHY THIS FILE EXISTS
+# --------------------
+# This repo lives under a OneDrive-synced path. OneDrive sync intermittently
+# corrupts the SYSTEM Python install -- it strips files from BOTH site-packages
+# AND the standard library. Observed missing during one episode (2026-05-27):
+#   - typing_extensions               (pure-Python dep)
+#   - pydantic_core._pydantic_core    (compiled .pyd)
+#   - pydantic.main                   (pure-Python dep)
+#   - html.entities                   (STANDARD LIBRARY module)
+# Once the stdlib itself is Swiss-cheesed, the interpreter cannot import the
+# app or run pytest, and shadowing individual packages cannot fix it.
+#
+# THE FIX
+# -------
+# scripts/recover_test_env.ps1 builds a clean, uv-managed CPython venv OUTSIDE
+# the OneDrive tree (in %LOCALAPPDATA%, which is never synced) and installs
+# exactly these versions into it -- so a corrupted system Python no longer
+# blocks testing, and the env can be regenerated on demand.
+#
+# This pin set was verified green: 408 grading tests passed on 2026-05-27
+# (Python 3.12.13, uv-managed). uv resolves a consistent transitive set:
+#   pydantic-core==2.46.4  starlette==1.1.0  anyio==4.13.0
+#   typing-extensions==4.15.0  h11==0.16.0  httpcore==1.0.9  idna==3.16
+#   annotated-types==0.7.0  pluggy==1.6.0  iniconfig  packaging  certifi
+#
+# Direct (top-level) pins -- uv resolves the rest:
+pytest==9.0.3
+pytest-timeout==2.4.0
+fastapi==0.136.3
+httpx==0.28.1
+python-multipart==0.0.29
+jinja2==3.1.6
+pydantic==2.13.4
