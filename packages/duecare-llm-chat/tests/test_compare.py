@@ -270,10 +270,24 @@ def test_grade_resume_server_plumbing():
     assert "def _grade_resume_cache" in app_src
     assert "def _grade_session_id" in app_src
     assert "model_call_cache=_resume_cache" in app_src
+    # Cache key folds in the actual JUDGE model (chat + a distinct
+    # evaluator), so swapping the evaluator busts the cache even when the
+    # chat model is unchanged.
+    assert "def _judge_model_name" in app_src
+    assert "model_name=_judge_model_name(app)" in app_src
+    assert "evaluator_model_info" in app_src
     harness_src = (base / "harness" / "__init__.py").read_text(encoding="utf-8")
     assert "model_call_cache: dict[str, str] | None = None" in harness_src
     assert "resumed_from_cache" in harness_src
     assert '"resumed":' in harness_src
+    # The kernel publishes the distinct-evaluator identity onto app.state
+    # so the key can fingerprint it (only kernel-module state knows the
+    # evaluator variant).
+    kernel_src = (
+        Path(__file__).resolve().parents[3]
+        / "kaggle" / "01-duecare-exploration-workbench" / "kernel.py"
+    ).read_text(encoding="utf-8")
+    assert "app.state.evaluator_model_info" in kernel_src
 
 
 def test_pipeline_step_labels_match_chat(client):
