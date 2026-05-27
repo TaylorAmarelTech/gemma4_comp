@@ -2833,21 +2833,16 @@
         ? '/api/grade-deep-stream'
         : '/api/grade-combined-stream';
       progress('Variant ' + variant + ': opening ' + url + '...');
-      // Per-dimension judge budget. The verdict envelope (verdict +
-      // score + short rationale + evidence quote) needs ~200 tokens;
-      // the route default is 640. A full grade is one model call PER
-      // applicable dimension (~50 of 74), so this cap is the main lever
-      // to shorten a long multi-dimension grade enough that it finishes
-      // before the Cloudflare tunnel drops the SSE stream. Tunable. The
-      // large model is the most capable judge and should stay selected;
-      // on slow GPUs (2x T4) the real limiter is hardware, not this cap --
-      // faster GPUs (A6000, Blackwell) grade each dimension in seconds.
-      const CMP_JUDGE_MAX_TOKENS = 448;
+      // Each dimension is graded in its OWN isolated judge call (the
+      // server loops one model call per applicable dimension) and uses
+      // the route's full token budget. Do NOT cap tokens for speed and
+      // do NOT batch dimensions into one call: batching blurs the
+      // verdicts together and corrupts the per-dimension grade. Slowness
+      // on a T4 is a hardware artifact (an A6000 grades each call in
+      // seconds), not a reason to compromise grading integrity.
       const body = mode === 'deep'
-        ? {response_text: responseText, prompt_text: prompt,
-           max_new_tokens: CMP_JUDGE_MAX_TOKENS}
-        : {response_text: responseText, prompt_text: prompt,
-           evaluator_weight: 0.5, max_new_tokens: CMP_JUDGE_MAX_TOKENS};
+        ? {response_text: responseText, prompt_text: prompt}
+        : {response_text: responseText, prompt_text: prompt, evaluator_weight: 0.5};
       const opened = await cmpFetchWithRetry(url, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},

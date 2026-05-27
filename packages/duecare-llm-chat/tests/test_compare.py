@@ -214,15 +214,18 @@ def test_chat_generation_default_is_demo_safe(client):
     assert GenerationParams().max_new_tokens == 4096
 
 
-def test_compare_judge_token_cap(client):
-    """The compare grade path caps the per-dimension LLM-judge budget so
-    a long multi-dimension grade (one model call per applicable dim)
-    finishes before the Cloudflare tunnel drops the SSE stream. Separate
-    knob from the chat-generation max_new_tokens; route default is 640."""
+def test_compare_grader_no_token_cap_or_batching(client):
+    """Grading integrity guard: each dimension is judged in its OWN
+    isolated call at the route's full token budget. The compare grade
+    body must NOT cap the judge tokens for speed (truncation risk), and
+    dimensions must NEVER be batched into one call — batching blurs the
+    verdicts together and corrupts the per-dimension grade. Slowness on a
+    T4 is a hardware artifact, not a reason to compromise integrity."""
     r = client.get("/static/compare.html")
     text = r.text
-    assert "const CMP_JUDGE_MAX_TOKENS = 448;" in text
-    assert "max_new_tokens: CMP_JUDGE_MAX_TOKENS" in text
+    assert "CMP_JUDGE_MAX_TOKENS" not in text
+    assert "do NOT batch dimensions" in text
+    assert "one model call per applicable dimension" in text
 
 
 def test_compare_apples_to_apples_validity_guard(client):
