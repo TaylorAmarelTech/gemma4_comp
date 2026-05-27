@@ -51,6 +51,7 @@
 param(
   [switch]$Regenerate,
   [switch]$Run,
+  [switch]$Full,
   [string]$PythonVersion = "3.12",
   [string[]]$Tests
 )
@@ -126,8 +127,8 @@ Invoke-Native $UvExe @("pip", "install", "--python", $VenvPy, "-r", $Reqs) "uv p
 Info "verifying clean interpreter..."
 Invoke-Native $VenvPy @("-c", "import html.entities; from fastapi.testclient import TestClient; import pydantic; print('[recover-env] clean interpreter OK; pydantic ' + pydantic.VERSION)") "interpreter verify"
 
-# 5. Optionally run the grading test suite.
-if ($Run) {
+# 5. Optionally run tests on the clean interpreter.
+if ($Run -or $Full) {
   # duecare is a PEP 420 namespace spread across packages/*/src -- put every
   # such src root on PYTHONPATH so the namespace resolves without an install.
   $srcRoots = Get-ChildItem (Join-Path $RepoRoot "packages") -Directory |
@@ -136,16 +137,24 @@ if ($Run) {
   $env:PYTHONPATH = ($srcRoots -join ";")
 
   if (-not $Tests) {
-    $Tests = @(
-      "packages/duecare-llm-chat/tests/test_compare.py",
-      "packages/duecare-llm-chat/tests/test_harness_behavior.py",
-      "packages/duecare-llm-chat/tests/test_harness_v3_6.py",
-      "packages/duecare-llm-chat/tests/test_benchmark.py",
-      "packages/duecare-llm-chat/tests/test_design_tooltip_migration.py",
-      "tests/test_route_contract.py"
-    )
+    if ($Full) {
+      # Entire suite. NOTE (2026-05-27): green EXCEPT 17 PRE-EXISTING drift
+      # failures in top-level tests/ -- see docs/handoff_2026_05_27.md.
+      $Tests = @("packages", "tests")
+    } else {
+      # Grading/harness subset -- the verified-green baseline.
+      $Tests = @(
+        "packages/duecare-llm-chat/tests/test_compare.py",
+        "packages/duecare-llm-chat/tests/test_harness_behavior.py",
+        "packages/duecare-llm-chat/tests/test_harness_v3_6.py",
+        "packages/duecare-llm-chat/tests/test_benchmark.py",
+        "packages/duecare-llm-chat/tests/test_design_tooltip_migration.py",
+        "tests/test_route_contract.py"
+      )
+    }
   }
-  Info "running grading tests on the clean interpreter..."
+  $label = if ($Full) { "FULL suite" } else { "grading subset" }
+  Info "running $label on the clean interpreter..."
   Push-Location $RepoRoot
   try {
     & $VenvPy -m pytest @Tests --timeout=180 -p no:cacheprovider -q
@@ -156,4 +165,5 @@ if ($Run) {
 }
 
 Info "done. Interpreter: $VenvPy"
-Info "run the grading suite with:  pwsh scripts/recover_test_env.ps1 -Run"
+Info "run the grading subset with:  pwsh scripts/recover_test_env.ps1 -Run"
+Info "run the full suite with:      pwsh scripts/recover_test_env.ps1 -Full"
