@@ -65,8 +65,13 @@ What the script does, in order:
 # Build / refresh the clean interpreter:
 pwsh scripts/recover_test_env.ps1
 
-# Build (if needed) and run the grading test suite:
+# Build (if needed) and run the grading/harness subset (verified-green baseline):
 pwsh scripts/recover_test_env.ps1 -Run
+
+# Run the ENTIRE suite (packages + tests). As of 2026-05-27 this is green
+# except 17 PRE-EXISTING drift failures in top-level tests/ — cataloged in
+# docs/handoff_2026_05_27.md (none are in packages/*/tests):
+pwsh scripts/recover_test_env.ps1 -Full
 
 # The venv itself got corrupted (it can, if ever placed under OneDrive) —
 # nuke and rebuild from scratch:
