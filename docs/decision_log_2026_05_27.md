@@ -92,6 +92,9 @@ fixes is the fastest way to introduce real errors. My grading work added **zero*
 failures.
 **Confidence: Judgment** (defensible; revisit if the owner wants them done now —
 safest-first order is in the handoff §8).
+**Update (2026-05-27, `d08650a`).** On owner request, fixed the highest-value
+single cluster first — the 2 forge e2e cross-domain tests (test-only wiring,
+verified green). **15 pre-existing failures remain**; the rest follow §8 order.
 
 ### 7. Workflow: commit + push directly to master, no PRs
 **Chosen.** Per owner direction — direct commits/pushes to master; force-push
@@ -102,10 +105,10 @@ scope, master has no branch protection). Saved to memory.
 
 ## Things worth reviewing in the future
 
-1. **The 17 pre-existing full-suite failures** — the deeper remediation
-   (handoff §4 has the per-cluster catalog + likely fixes). None touch the grading
-   layer; several touch published kernels — keep fixes additive + re-run the Kaggle
-   validators.
+1. **The remaining 15 pre-existing full-suite failures** (was 17; 2 forge e2e
+   fixed 2026-05-27) — the deeper remediation (handoff §4 has the per-cluster
+   catalog + likely fixes). None touch the grading layer; several touch published
+   kernels — keep fixes additive + re-run the Kaggle validators.
 2. **Uncommitted in-flight work** — the 6-file benchmark-surface workstream and the
    ~1001-file cache/archive purge in the working tree. Decide commit-vs-revert
    deliberately; the single working-tree-only test failure clears once the notebook
