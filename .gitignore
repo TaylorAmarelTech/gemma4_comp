@@ -1,6 +1,9 @@
 # Reference material (not part of the public hackathon repo)
 _reference/
 
+# Local code-intelligence index (codegraph MCP server, per-machine)
+.codegraph/
+
 # Python
 __pycache__/
 *.py[cod]
