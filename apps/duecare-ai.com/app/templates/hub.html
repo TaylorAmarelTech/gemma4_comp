@@ -582,7 +582,7 @@
           <h4>Pull the latest version of a pack</h4>
           <p>Resolve the latest version of any corridor pack by id. The body is JSON; mirror it locally and your runtime stays offline-capable.</p>
 <pre><span class="c"># latest version of the PHL→KWT corridor pack</span>
-curl https://gemma4-comp.onrender.com/api/hub/packs/phl-kwt-domestic
+curl https://duecare-ai.com/api/hub/packs/phl-kwt-domestic
 </pre>
         </div>
 
@@ -590,10 +590,10 @@ curl https://gemma4-comp.onrender.com/api/hub/packs/phl-kwt-domestic
           <h4>Filter the registry by characteristic</h4>
           <p>Combine any of <code>kind</code>, <code>jurisdiction</code>, <code>corridor</code>, <code>tag</code>, <code>status_</code>. The response also lists the discoverable values for each filter so a UI can populate dropdowns.</p>
 <pre><span class="c"># every grep-rule pack vetted for any jurisdiction</span>
-curl "https://gemma4-comp.onrender.com/api/hub/packs?kind=GrepRulePack&amp;status_=vetted"
+curl "https://duecare-ai.com/api/hub/packs?kind=GrepRulePack&amp;status_=vetted"
 
 <span class="c"># every pack tagged 'fees' for the Philippines</span>
-curl "https://gemma4-comp.onrender.com/api/hub/packs?tag=fees&amp;jurisdiction=PHL"
+curl "https://duecare-ai.com/api/hub/packs?tag=fees&amp;jurisdiction=PHL"
 </pre>
         </div>
 
@@ -601,10 +601,10 @@ curl "https://gemma4-comp.onrender.com/api/hub/packs?tag=fees&amp;jurisdiction=P
           <h4>Pin a specific version for reproducibility</h4>
           <p>List every known version, then pin the one you want. The pinned URL is stable forever; nothing is overwritten.</p>
 <pre><span class="c"># every version of a pack</span>
-curl https://gemma4-comp.onrender.com/api/hub/packs/phl-kwt-domestic/versions
+curl https://duecare-ai.com/api/hub/packs/phl-kwt-domestic/versions
 
 <span class="c"># pull a specific version</span>
-curl https://gemma4-comp.onrender.com/api/hub/packs/phl-kwt-domestic/1.7.2
+curl https://duecare-ai.com/api/hub/packs/phl-kwt-domestic/1.7.2
 </pre>
         </div>
 
@@ -612,10 +612,10 @@ curl https://gemma4-comp.onrender.com/api/hub/packs/phl-kwt-domestic/1.7.2
           <h4>Auto-sync only what changed</h4>
           <p>Tell the hub the timestamp of your last successful sync. The response lists every vetted pack vetted after that and gives you the next cursor.</p>
 <pre><span class="c"># first sync (no cursor): list every vetted pack</span>
-curl https://gemma4-comp.onrender.com/api/hub/sync
+curl https://duecare-ai.com/api/hub/sync
 
 <span class="c"># subsequent sync: pass the next_cursor from the previous response</span>
-curl "https://gemma4-comp.onrender.com/api/hub/sync?since=2026-04-12T09:14:00%2B00:00"
+curl "https://duecare-ai.com/api/hub/sync?since=2026-04-12T09:14:00%2B00:00"
 </pre>
           <p class="muted" style="margin-top: 12px; font-size: 13px;">
             Recommended: poll every 6 hours from a cron and atomic-swap the pack file on disk only when the hash differs.
@@ -625,7 +625,7 @@ curl "https://gemma4-comp.onrender.com/api/hub/sync?since=2026-04-12T09:14:00%2B
         <div class="pane" id="p-signal" role="tabpanel">
           <h4>Send an anonymized usage signal</h4>
           <p>Aggregate counts only. Free text, identifiers, and case content are rejected at the schema boundary. The hub re-checks for PII even after your local anonymizer runs.</p>
-<pre>curl -X POST https://gemma4-comp.onrender.com/api/hub/signals \
+<pre>curl -X POST https://duecare-ai.com/api/hub/signals \
   -H 'content-type: application/json' \
   -d '{
     "source": "ngo_case_intake",
@@ -652,7 +652,7 @@ curl "https://gemma4-comp.onrender.com/api/hub/sync?since=2026-04-12T09:14:00%2B
         <div class="pane" id="p-submit" role="tabpanel">
           <h4>Submit a public-source proposal</h4>
           <p>Same endpoint the website's contribute form posts to. The server-side automation triages the summary; the curator queue is shared. <code>kind</code> picks the proposal type.</p>
-<pre>curl -X POST https://gemma4-comp.onrender.com/api/hub/client/submission \
+<pre>curl -X POST https://duecare-ai.com/api/hub/client/submission \
   -H 'content-type: application/json' \
   -d '{
     "kind": "context",
@@ -670,7 +670,7 @@ curl "https://gemma4-comp.onrender.com/api/hub/sync?since=2026-04-12T09:14:00%2B
         <div class="pane" id="p-retract" role="tabpanel">
           <h4>Retract a submission before vetting</h4>
           <p>Only succeeds while the submission is still <code>proposed</code> or <code>needs_review</code>. Once a curator approves or rejects, the record is immutable.</p>
-<pre>curl -X POST https://gemma4-comp.onrender.com/api/hub/client/submission/retract \
+<pre>curl -X POST https://duecare-ai.com/api/hub/client/submission/retract \
   -H 'content-type: application/json' \
   -d '{
     "submission_id": "cli_abc123def456",

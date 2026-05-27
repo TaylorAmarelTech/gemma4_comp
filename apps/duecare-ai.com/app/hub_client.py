@@ -45,11 +45,11 @@ from typing import Any
 
 LOGGER = logging.getLogger(__name__)
 
-DEFAULT_PUBLIC_HUB = "https://gemma4-comp.onrender.com"
-"""Public coordination hub for DueCare. Will move to https://duecare-ai.com
-once the custom domain is live; both hostnames will resolve to the same
-service. Override with the ``DUECARE_HUB_URL`` env var or the per-call
-``hub_url`` argument."""
+DEFAULT_PUBLIC_HUB = "https://duecare-ai.com"
+"""Public coordination hub for DueCare, live at https://duecare-ai.com
+(the Render service). The legacy https://gemma4-comp.onrender.com hostname
+still resolves to the same service for back-compat. Override with the
+``DUECARE_HUB_URL`` env var or the per-call ``hub_url`` argument."""
 
 
 def default_hub_url() -> str:
