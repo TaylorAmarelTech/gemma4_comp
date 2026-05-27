@@ -2833,11 +2833,13 @@
         ? '/api/grade-deep-stream'
         : '/api/grade-combined-stream';
       progress('Variant ' + variant + ': opening ' + url + '...');
-      // Each dimension is graded in its OWN isolated judge call (the
-      // server loops one model call per applicable dimension) and uses
-      // the route's full token budget. Do NOT cap tokens for speed and
-      // do NOT batch dimensions into one call: batching blurs the
-      // verdicts together and corrupts the per-dimension grade. Slowness
+      // Each dimension is graded in its OWN isolated judge call by
+      // default (the server loops one model call per applicable
+      // dimension) at the route's full token budget. One dimension per
+      // call is the correct default; do NOT cap tokens for speed.
+      // Batching multiple dimensions into one call is bad practice (it
+      // blurs the verdicts together) and may exist only as an opt-in
+      // advanced setting for extreme cases -- never the default. Slowness
       // on a T4 is a hardware artifact (an A6000 grades each call in
       // seconds), not a reason to compromise grading integrity.
       const body = mode === 'deep'

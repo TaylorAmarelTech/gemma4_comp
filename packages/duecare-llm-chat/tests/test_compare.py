@@ -214,18 +214,20 @@ def test_chat_generation_default_is_demo_safe(client):
     assert GenerationParams().max_new_tokens == 4096
 
 
-def test_compare_grader_no_token_cap_or_batching(client):
-    """Grading integrity guard: each dimension is judged in its OWN
-    isolated call at the route's full token budget. The compare grade
-    body must NOT cap the judge tokens for speed (truncation risk), and
-    dimensions must NEVER be batched into one call — batching blurs the
-    verdicts together and corrupts the per-dimension grade. Slowness on a
-    T4 is a hardware artifact, not a reason to compromise integrity."""
+def test_compare_grader_single_dimension_default_no_token_cap(client):
+    """Grading integrity guard: one dimension per isolated judge call is
+    the DEFAULT, at the route's full token budget. The compare grade body
+    must NOT cap the judge tokens for speed (truncation risk). Batching
+    multiple dimensions per call is bad practice (blurs the verdicts) and
+    may only ever be an opt-in advanced setting — never the default.
+    Slowness on a T4 is a hardware artifact, not a reason to compromise."""
     r = client.get("/static/compare.html")
     text = r.text
     assert "CMP_JUDGE_MAX_TOKENS" not in text
-    assert "do NOT batch dimensions" in text
-    assert "one model call per applicable dimension" in text
+    assert "one model call per applicable" in text
+    assert "do NOT cap tokens for speed" in text
+    assert "never the default" in text
+    assert "is bad practice" in text
 
 
 def test_compare_apples_to_apples_validity_guard(client):
