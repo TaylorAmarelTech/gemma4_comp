@@ -2807,6 +2807,9 @@ def api_use_chat_as_judge(request: Request, body: dict = Body(default=None)):
         with _MODEL_QUEUE._meta:
             _JUDGE_USES_CHAT = True
             app.state.evaluator_call = chat_call
+            # Judge now mirrors chat; clear any stale distinct-evaluator
+            # identity so the grade-resume key uses the chat model_info.
+            app.state.evaluator_model_info = None
         return {
             "status": "ok",
             "judge_uses_chat": True,
@@ -2992,6 +2995,15 @@ def api_load_evaluator_model(body: dict = Body(...)):
             app.state.evaluator_call = _queue_wrap(loaded_local.backend, "judge")
             _MODEL_QUEUE.open_slot("judge")
             _LOADED_EVAL = loaded_local
+            # Publish the distinct-evaluator identity so the grade-resume
+            # cache key (duecare.chat.app._judge_model_name) busts when the
+            # JUDGE model is swapped, even if the chat model is unchanged.
+            app.state.evaluator_model_info = {
+                "name": loaded_local.name,
+                "variant": variant,
+                "device": loaded_local.device,
+                "loaded_at": time.time(),
+            }
             _MODEL_LOAD_STATE_EVAL.update({
                 "status": "ready", "phase": "ready",
                 "completed_at": time.time(), "updated_at": time.time(),

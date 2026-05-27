@@ -113,6 +113,23 @@ def _grade_session_id(
     return h.hexdigest()[:16]
 
 
+def _judge_model_name(app) -> str:
+    """Combined identity of the model(s) that determine a grade's
+    per-dimension responses: the loaded chat model, plus a DISTINCT
+    evaluator model when one is wired (not mirrored from chat). Folded
+    into the grade-resume key so swapping EITHER busts the cache — this
+    closes the case where only the evaluator changes while the chat
+    model_info is unchanged. When no distinct evaluator is wired (judge
+    mirrors chat, or evaluator unloaded), the judge IS the chat model and
+    the chat identity alone is correct."""
+    mi = getattr(app.state, "model_info", None) or {}
+    chat = str(mi.get("name") or mi.get("variant") or "")
+    ec = getattr(app.state, "evaluator_call", None)
+    emi = getattr(app.state, "evaluator_model_info", None)
+    judge = str(emi) if (ec is not None and emi) else ""
+    return f"{chat}|judge={judge}"
+
+
 # In-memory image store (transient, request-scoped). Each upload
 # returns an id; the client sends the id in subsequent chat calls.
 _IMAGE_STORE: dict[str, tuple[bytes, str]] = {}
@@ -4605,11 +4622,7 @@ def create_app(
             prompt_text=req.prompt_text or "",
             max_new_tokens=req.max_new_tokens,
             temperature=req.temperature,
-            model_name=str(
-                (getattr(app.state, "model_info", None) or {}).get("name")
-                or (getattr(app.state, "model_info", None) or {}).get("variant")
-                or ""
-            ),
+            model_name=_judge_model_name(app),
             custom_questions=req.custom_questions,
             custom_envelope=req.custom_envelope,
         ))
@@ -4695,11 +4708,7 @@ def create_app(
             prompt_text=req.prompt_text or "",
             max_new_tokens=req.max_new_tokens,
             temperature=req.temperature,
-            model_name=str(
-                (getattr(app.state, "model_info", None) or {}).get("name")
-                or (getattr(app.state, "model_info", None) or {}).get("variant")
-                or ""
-            ),
+            model_name=_judge_model_name(app),
         ))
         first_event = {
             "type": "deterministic_done",
