@@ -95,8 +95,8 @@ class TestDuecareEndToEnd:
     def test_rapid_probe_workflow_runs_end_to_end(self, scripted_model, reports_dir):
         """The rapid_probe workflow walks scout -> judge -> historian
         successfully against a real trafficking domain pack and the
-        scripted model. Judge skips (no target_model_instance in this
-        minimal pipeline); Scout and Historian run for real."""
+        scripted model, which is wired in via target_model_instance so
+        the judge runs for real (not skipped)."""
         if not WORKFLOWS_ROOT.exists():
             pytest.skip("workflows not populated")
         if not DOMAINS_ROOT.exists():
@@ -114,6 +114,7 @@ class TestDuecareEndToEnd:
         run = runner.run(
             target_model_id="gemma_4_e4b_stock",
             domain_id="trafficking",
+            target_model_instance=scripted_model,
         )
 
         assert run.status == TaskStatus.COMPLETED
@@ -146,7 +147,7 @@ class TestDuecareEndToEnd:
         ar._by_id["historian"] = HistorianAgent(output_dir=reports_dir)
 
         runner = WorkflowRunner.from_yaml(WORKFLOWS_ROOT / "rapid_probe.yaml")
-        run = runner.run(target_model_id="gemma_4_e4b_stock", domain_id="trafficking")
+        run = runner.run(target_model_id="gemma_4_e4b_stock", domain_id="trafficking", target_model_instance=scripted_model)
 
         data = run.model_dump()
         restored = WorkflowRun(**data)
@@ -169,7 +170,7 @@ class TestDuecareEndToEnd:
         runner = WorkflowRunner.from_yaml(WORKFLOWS_ROOT / "rapid_probe.yaml")
         results = {}
         for domain_id in ["trafficking", "tax_evasion", "financial_crime"]:
-            run = runner.run(target_model_id="gemma_4_e4b_stock", domain_id=domain_id)
+            run = runner.run(target_model_id="gemma_4_e4b_stock", domain_id=domain_id, target_model_instance=scripted_model)
             results[domain_id] = run
             assert run.status == TaskStatus.COMPLETED, f"{domain_id} failed: {run.error}"
 
