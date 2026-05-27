@@ -18396,9 +18396,12 @@ def grade_response_via_evaluator(
                 # Persist only genuine model output (the error placeholder
                 # lands in the except branch, never here), so a transient
                 # per-dimension failure is retried -- not cached -- on the
-                # next resume. Cap stored size to bound session memory.
+                # next resume. Cap stored size at the SAME 64 KB the
+                # parser reads (_parse_evaluator_verdict caps raw_full at
+                # 65_536), so a cached re-parse is byte-identical to a
+                # fresh parse and can never produce a different verdict.
                 if model_call_cache is not None and evaluator_response:
-                    model_call_cache[cache_key] = evaluator_response[:16384]
+                    model_call_cache[cache_key] = evaluator_response[:65_536]
         elapsed_ms = (_time.time() - t0) * 1000.0
         latencies.append(elapsed_ms)
         parsed = _parse_evaluator_verdict(evaluator_response)

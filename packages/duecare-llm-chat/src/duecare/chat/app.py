@@ -90,16 +90,26 @@ def _grade_resume_cache(grade_id: str) -> dict:
 def _grade_session_id(
     *, response_text: str, prompt_text: str,
     max_new_tokens: int, temperature: float, model_name: str,
+    custom_questions: dict | None = None, custom_envelope: str | None = None,
 ) -> str:
-    """Deterministic id so the same (model, prompt, response, gen params)
-    resumes its cached per-dimension judge responses. Over-invalidates
-    safely on a model swap (never serves a stale judge response)."""
+    """Deterministic id so the same (model, prompt, response, gen params,
+    custom rubric inputs) resumes its cached per-dimension judge
+    responses. Over-invalidates safely on a model swap (never serves a
+    stale judge response). custom_questions / custom_envelope are part of
+    the key because they change the per-dimension judge PROMPT — leaving
+    them out could replay a cached response built for a different prompt."""
     import hashlib
+    import json as _json
     h = hashlib.sha256()
     h.update(f"{model_name}\x00{max_new_tokens}\x00{temperature}\x00".encode())
     h.update((prompt_text or "").encode("utf-8", "replace"))
     h.update(b"\x00")
     h.update((response_text or "").encode("utf-8", "replace"))
+    h.update(b"\x00")
+    h.update(_json.dumps(custom_questions or {}, sort_keys=True,
+                         default=str).encode("utf-8", "replace"))
+    h.update(b"\x00")
+    h.update((custom_envelope or "").encode("utf-8", "replace"))
     return h.hexdigest()[:16]
 
 
@@ -4600,6 +4610,8 @@ def create_app(
                 or (getattr(app.state, "model_info", None) or {}).get("variant")
                 or ""
             ),
+            custom_questions=req.custom_questions,
+            custom_envelope=req.custom_envelope,
         ))
         _n_cached = len(_resume_cache)
 
