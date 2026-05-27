@@ -409,6 +409,60 @@ def test_pack_registry_sync(tmp_path) -> None:
     assert delta["count"] == 0
 
 
+def test_knowledge_packs_runtime_projection(tmp_path) -> None:
+    """GET /api/knowledge/packs returns the runtime projection on-device
+    consumers (the A-00 kernel) execute: {slug, version, trust, rules, facts}
+    drawn from the same registry as /api/hub/packs."""
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    resp = client.get("/api/knowledge/packs")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["vetted_only"] is True
+    assert body["count"] == len(body["packs"]) >= 4
+
+    by_slug = {pack["slug"]: pack for pack in body["packs"]}
+    # Every pack carries the flat runtime contract the kernel reads.
+    for pack in body["packs"]:
+        assert {"slug", "version", "trust", "rules", "facts"} <= set(pack)
+
+    # GrepRulePack -> executable GREP rules (and no facts).
+    fee = by_slug["global-fee-rules"]
+    assert fee["trust"] == "vetted"
+    assert fee["rules"] and all(rule["pattern"] for rule in fee["rules"])
+    assert any(rule["id"] == "fee_request_explicit" for rule in fee["rules"])
+    assert fee["facts"] == []
+
+    # ContextPack -> RAG facts from sections (and no rules).
+    corridor = by_slug["phl-kwt-domestic"]
+    assert corridor["rules"] == []
+    assert corridor["facts"] and all(fact["text"] for fact in corridor["facts"])
+
+    # ContactPack -> contacts surface as facts tagged with their role.
+    contacts = by_slug["global-contacts"]
+    assert any("regulator" in fact["tags"] for fact in contacts["facts"])
+
+
+def test_knowledge_packs_vetted_flag_and_filters(tmp_path) -> None:
+    """vetted defaults true; vetted=false widens the set; the kind /
+    jurisdiction filters compose exactly as on /api/hub/packs."""
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    vetted = client.get("/api/knowledge/packs?vetted=true").json()
+    every = client.get("/api/knowledge/packs?vetted=false").json()
+    assert vetted["vetted_only"] is True
+    assert every["vetted_only"] is False
+    assert every["count"] >= vetted["count"]
+    assert all(pack["trust"] == "vetted" for pack in vetted["packs"])
+
+    grep = client.get("/api/knowledge/packs?kind=GrepRulePack").json()
+    assert grep["count"] >= 1
+    assert all(pack["rules"] for pack in grep["packs"])
+
+    phl = client.get("/api/knowledge/packs?jurisdiction=PHL").json()
+    assert any(pack["slug"] == "phl-kwt-domestic" for pack in phl["packs"])
+
+
 def test_retract_unvetted_submission(tmp_path) -> None:
     client = TestClient(create_app(data_dir=tmp_path))
 

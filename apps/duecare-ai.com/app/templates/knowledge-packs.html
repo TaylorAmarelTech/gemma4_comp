@@ -65,6 +65,16 @@
       <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/knowledge_module_schema.md">KnowledgeObject v1.0</a>
       with status, version, and content_hash on every entry.
     </p>
+    <p style="margin-top: 14px; font-size: 12.5px; color: var(--ink-3);">
+      On-device and kernel consumers that execute packs directly (rather than
+      mirroring the ZIP) pull the runtime projection:
+      <code>GET /api/knowledge/packs?vetted=true</code> returns each pack
+      flattened to <code>{slug, version, trust, rules, facts}</code> &mdash;
+      <code>rules</code> drive deterministic GREP, <code>facts</code> drive
+      local RAG &mdash; from the same registry as
+      <a href="/api/hub/packs">/api/hub/packs</a> (which serves the full JSON-LD
+      envelopes). Pass <code>vetted=false</code> to include unvetted packs.
+    </p>
   </div>
 </section>
 

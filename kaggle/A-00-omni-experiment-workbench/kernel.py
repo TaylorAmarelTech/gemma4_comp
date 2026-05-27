@@ -6585,7 +6585,14 @@ def api_pack_sync(req: PackSyncRequest) -> Any:
         errors.append("requests not available")
     else:
         try:
-            r = requests.get(req.hub_url, timeout=30)
+            # Mirror Kernel 01's download convention: encode the vetted/unvetted
+            # choice in the query so the hub returns the right set. The hub's
+            # /api/knowledge/packs serves runtime-shape packs ({slug, version,
+            # trust, rules, facts}); the client-side trust filter below stays as
+            # defense-in-depth.
+            sep = "&" if "?" in req.hub_url else "?"
+            full_url = f"{req.hub_url}{sep}vetted={'false' if req.include_unvetted else 'true'}"
+            r = requests.get(full_url, timeout=30)
             r.raise_for_status()
             data = r.json()
             packs = data.get("packs") if isinstance(data, dict) else data

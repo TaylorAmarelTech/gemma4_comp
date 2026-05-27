@@ -32,6 +32,7 @@ from . import __version__
 from . import automation
 from . import local_kb
 from . import packs as pack_registry
+from . import runtime_packs
 from .pii import detect_pii, redact_pii
 
 SignalSource = Literal[
@@ -1628,6 +1629,45 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
                     detail=f"Invalid ISO timestamp for `since`: {exc}",
                 ) from exc
         return pack_registry.sync_since(cursor)
+
+    @application.get(
+        "/api/knowledge/packs",
+        tags=["knowledge-packs"],
+        summary="Runtime-ready knowledge packs for on-device / kernel consumers",
+    )
+    async def knowledge_packs(
+        vetted: bool = True,
+        kind: str | None = None,
+        jurisdiction: str | None = None,
+        corridor: str | None = None,
+        tag: str | None = None,
+    ) -> dict[str, object]:
+        """Registry packs projected into the flat runtime shape on-device
+        consumers execute: ``{slug, version, trust, rules, facts, ...}``.
+
+        Same single registry source of truth as ``/api/hub/packs`` — that
+        route returns the rich JSON-LD envelopes for federation / curation;
+        this one returns the runtime projection (``rules`` for deterministic
+        GREP, ``facts`` for local RAG) so a kernel can sync and execute
+        without re-implementing the pack schema. The projection lives in
+        :mod:`app.runtime_packs`, the single place that knows each
+        ``@type``'s content layout.
+
+        Defaults to vetted-only (the safe default for on-device consumers);
+        pass ``vetted=false`` to include proposed / community-submitted
+        packs, each tagged ``trust:"unvetted"`` so a consumer can fail
+        closed. The same ``kind`` / ``jurisdiction`` / ``corridor`` / ``tag``
+        filters as ``/api/hub/packs`` compose here.
+        """
+        bodies = pack_registry.list_packs(
+            kind=kind,
+            status="vetted" if vetted else None,
+            jurisdiction=jurisdiction,
+            corridor=corridor,
+            tag=tag,
+        )
+        packs = [runtime_packs.to_runtime_pack(body).model_dump() for body in bodies]
+        return {"count": len(packs), "vetted_only": vetted, "packs": packs}
 
     @application.post(
         "/api/hub/signals",
