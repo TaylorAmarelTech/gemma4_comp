@@ -25,7 +25,7 @@ from .detector import PII_PATTERNS
 from .redactor import DEFAULT_SALT, placeholder, raw_sha256
 
 
-_DEFAULT_HUB_SUBMIT_URL = "https://gemma4-comp.onrender.com/api/submit/knowledge"
+_DEFAULT_HUB_SUBMIT_URL = "https://duecare-ai.com/api/submit/knowledge"
 
 
 def _audit_dir() -> _Path:

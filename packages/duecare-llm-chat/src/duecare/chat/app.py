@@ -6530,7 +6530,7 @@ def create_app(
             body = await request.json()
         except Exception:
             body = {}
-        target_url = body.get("target_url") or "https://gemma4-comp.onrender.com/api/hub/knowledge/download"
+        target_url = body.get("target_url") or "https://duecare-ai.com/api/hub/knowledge/download"
         include_unvetted = bool(body.get("include_unvetted", False))
         full_url = target_url + ("?vetted=false" if include_unvetted else "?vetted=true")
 

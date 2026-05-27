@@ -1064,7 +1064,7 @@ class ReportRequest(BaseModel):
 
 
 class PackSyncRequest(BaseModel):
-    hub_url: str = "https://gemma4-comp.onrender.com/api/knowledge/packs"
+    hub_url: str = "https://duecare-ai.com/api/knowledge/packs"
     include_unvetted: bool = False
 
 
@@ -7095,7 +7095,7 @@ __A00_SHUTDOWN_CONTROL__
       </div>
       <div>
         <h3>Knowledge packs</h3>
-        <label>Hub URL <input id="hub-url" value="https://gemma4-comp.onrender.com/api/knowledge/packs"></label>
+        <label>Hub URL <input id="hub-url" value="https://duecare-ai.com/api/knowledge/packs"></label>
         <div class="row action-row"><button onclick="syncPacks()">Sync packs</button><input type="file" id="pack-file"><button class="secondary" onclick="importPack()">Import pack</button></div>
       </div>
       <div>

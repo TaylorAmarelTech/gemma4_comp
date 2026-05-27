@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: POST /api/sentinel/run-due
         env:
-          HUB_URL: ${{ vars.DUECARE_HUB_URL || 'https://gemma4-comp.onrender.com' }}
+          HUB_URL: ${{ vars.DUECARE_HUB_URL || 'https://duecare-ai.com' }}
           ADMIN_TOKEN: ${{ secrets.DUECARE_ADMIN_TOKEN }}
         run: |
           if [ -z "$ADMIN_TOKEN" ]; then
