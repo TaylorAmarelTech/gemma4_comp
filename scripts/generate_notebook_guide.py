@@ -36,6 +36,11 @@ REVIEW_PRIORITY_ROWS = [
         "Quantitative proof path: baseline, harnessed, synthetic-data, fine-tuning, judging, and report artifacts.",
     ),
     (
+        "Optional",
+        "03-universal-llm-benchmark + 04-kaggle-community-benchmark",
+        "Benchmark surfaces for proof runs; useful, but not required for the primary recording path.",
+    ),
+    (
         "P1",
         "kaggle/kernels/* generated mirrors",
         "Reference-only generated mirror material. Do not treat it as the active submission path.",
@@ -124,6 +129,11 @@ def _status_and_url(entry: KaggleNotebook, live_map: dict[str, str | None]) -> t
 def render_notebook_guide(*, existing_path: Path = OUTPUT_PATH) -> str:
     """Render the notebook guide from metadata plus preserved purpose text."""
     entries = discover_kernel_notebooks()
+    all_root_entries = discover_kernel_notebooks(include_optional=True)
+    optional_entries = [
+        entry for entry in all_root_entries
+        if entry.dir_name not in {active.dir_name for active in entries}
+    ]
     live_map = _load_live_map()
     existing_purposes = _extract_existing_purposes(existing_path)
     live_count = sum(1 for entry in entries if live_map.get(entry.dir_name))
@@ -173,6 +183,22 @@ def render_notebook_guide(*, existing_path: Path = OUTPUT_PATH) -> str:
     lines.append("| ID | Title | Status | Kaggle URL | Purpose |")
     lines.append("|---|---|---|---|---|")
     for entry in entries:
+        status, url = _status_and_url(entry, live_map)
+        purpose = _purpose_for(entry, existing_purposes)
+        display_id = entry.notebook_number if entry.notebook_number != "kernel" else entry.dir_name
+        lines.append(
+            f"| `{display_id}` | {entry.title} | {status} | {url} | {purpose} |"
+        )
+    lines.append("")
+    lines.append("## Optional benchmark surfaces")
+    lines.append("")
+    lines.append(
+        "These root Kaggle kernels are maintained public proof surfaces, but they are not required for the primary recording path."
+    )
+    lines.append("")
+    lines.append("| ID | Title | Status | Kaggle URL | Purpose |")
+    lines.append("|---|---|---|---|---|")
+    for entry in optional_entries:
         status, url = _status_and_url(entry, live_map)
         purpose = _purpose_for(entry, existing_purposes)
         display_id = entry.notebook_number if entry.notebook_number != "kernel" else entry.dir_name

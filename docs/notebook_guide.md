@@ -19,6 +19,7 @@ Every judge-facing Kaggle bundle must make its own bootstrap path explicit: prin
 | P0 | 01-duecare-exploration-workbench | Broad reviewer workbench: chat, harness comparison, search, knowledge extraction, bulk review, and trace inspection. |
 | P0 | 02-live-demo | Focused live demo and video path for the current judging story. |
 | P1 | A-00-omni-experiment-workbench | Quantitative proof path: baseline, harnessed, synthetic-data, fine-tuning, judging, and report artifacts. |
+| Optional | 03-universal-llm-benchmark + 04-kaggle-community-benchmark | Benchmark surfaces for proof runs; useful, but not required for the primary recording path. |
 | P1 | kaggle/kernels/* generated mirrors | Reference-only generated mirror material. Do not treat it as the active submission path. |
 
 ## Active kernel purpose map
@@ -28,6 +29,15 @@ Every judge-facing Kaggle bundle must make its own bootstrap path explicit: prin
 | `01-duecare-exploration-workbench` | DueCare App | Tracked draft | Pending publication | Broad reviewer workbench for chat, harness comparison, bulk review, knowledge extraction, search, sharing, traces, and activity logs. |
 | `02-live-demo` | DueCare Live Demo | Tracked draft | Pending publication | Focused live demo path for judges and video capture, using the shared Gemma 4 runtime and live-demo surface. |
 | `A-00-omni-experiment-workbench` | DueCare Fine-tuning and Evaluation | Tracked draft | Pending publication | Quantitative control plane for baseline, harnessed, synthetic-data, fine-tuning, judging, checkpointing, and report evidence bundles. |
+
+## Optional benchmark surfaces
+
+These root Kaggle kernels are maintained public proof surfaces, but they are not required for the primary recording path.
+
+| ID | Title | Status | Kaggle URL | Purpose |
+|---|---|---|---|---|
+| `03-universal-llm-benchmark` | DueCare Universal LLM Benchmark | Tracked draft | Pending publication | Tracked DueCare notebook for DueCare Universal LLM Benchmark; review builder, setup, outputs, and publication status before relying on it in the demo. |
+| `04-kaggle-community-benchmark` | DueCare Kaggle Community Benchmark | Tracked draft | Pending publication | Tracked DueCare notebook for DueCare Kaggle Community Benchmark; review builder, setup, outputs, and publication status before relying on it in the demo. |
 
 ## Active module deep-review queue
 
