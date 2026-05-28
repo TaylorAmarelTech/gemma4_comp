@@ -5,6 +5,7 @@
   "language": "python",
   "kernel_type": "script",
   "is_private": false,
+  "keywords": ["gemma-4", "kaggle-benchmarks", "community-benchmark", "anti-trafficking", "safety", "evaluation"],
   "enable_gpu": false,
   "enable_internet": true,
   "dataset_sources": [],

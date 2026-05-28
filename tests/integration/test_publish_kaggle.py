@@ -3,6 +3,12 @@
 These tests prove the orchestrator's logic works without needing real
 Kaggle credentials by exercising --dry-run mode and by isolating the
 auth-check path.
+
+The publishable surface is the active root Kaggle kernels (01, 02, A-00)
+plus the optional benchmark kernels (03, 04) -- the same set
+``discover_kernel_notebooks(..., include_optional=True)`` returns and that
+``publish_kaggle.push_notebooks`` iterates. The legacy ``kaggle/kernels/*``
+mirror is no longer the publish target.
 """
 
 from __future__ import annotations
@@ -16,11 +22,22 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = REPO_ROOT / "scripts" / "publish_kaggle.py"
-KERNELS_DIR = REPO_ROOT / "kaggle" / "kernels"
+KAGGLE_ROOT = REPO_ROOT / "kaggle"
+
+SCRIPTS_DIR = REPO_ROOT / "scripts"
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
+
+from kaggle_notebook_utils import discover_kernel_notebooks
+
+
+def _published_notebooks():
+    """The kernels publish_kaggle actually pushes: active + optional root."""
+    return discover_kernel_notebooks(KAGGLE_ROOT, include_optional=True)
 
 
 def _tracked_kernel_count() -> int:
-    return sum(1 for kernel_dir in KERNELS_DIR.iterdir() if (kernel_dir / "kernel-metadata.json").exists())
+    return len(_published_notebooks())
 
 
 def _run(*args: str, env_overrides: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
@@ -67,13 +84,10 @@ class TestDryRun:
         tracked = _tracked_kernel_count()
         assert f"# push-notebooks ({tracked} kernels)" in result.stdout
         assert result.stdout.count("kernels push") == tracked
-        for kernel in (
-            "duecare_010_quickstart",
-            "duecare_200_cross_domain_proof",
-            "duecare_610_submission_walkthrough",
-            "duecare_695_custom_domain_adoption",
-        ):
-            assert kernel in result.stdout, f"missing kernel {kernel} in dry-run output"
+        for entry in _published_notebooks():
+            assert entry.dir_name in result.stdout, (
+                f"missing kernel {entry.dir_name} in dry-run output"
+            )
 
     def test_publish_dataset_dry_run(self):
         result = _run("--dry-run", "publish-dataset")
@@ -94,11 +108,13 @@ class TestDryRun:
         assert f"# push-notebooks ({_tracked_kernel_count()} kernels)" in result.stdout
 
     def test_push_notebooks_dry_run_limit_and_ids(self):
-        result = _run("--dry-run", "push-notebooks", "--ids", "010", "610", "--limit", "1")
+        # 01 and A-00 both match; sorted by dir name 01 comes first, so
+        # --limit 1 keeps only the exploration workbench.
+        result = _run("--dry-run", "push-notebooks", "--ids", "01", "A-00", "--limit", "1")
         assert result.returncode == 0, result.stderr
         assert "# push-notebooks (1 kernels)" in result.stdout
-        assert "duecare_010_quickstart" in result.stdout
-        assert "duecare_610_submission_walkthrough" not in result.stdout
+        assert "01-duecare-exploration-workbench" in result.stdout
+        assert "A-00-omni-experiment-workbench" not in result.stdout
 
     def test_status_notebooks_without_creds_fails_fast(self, tmp_path: Path):
         result = _run(
@@ -122,23 +138,23 @@ class TestDryRun:
 
 class TestValidation:
     def test_every_kernel_metadata_is_valid_json(self):
-        """Each kernel dir has a complete, parseable kernel-metadata.json
-        whose code_file sibling exists on disk."""
-        for kernel_dir in sorted(KERNELS_DIR.iterdir()):
-            if not kernel_dir.is_dir():
-                continue
-            meta = kernel_dir / "kernel-metadata.json"
-            assert meta.exists(), f"{kernel_dir}: missing kernel-metadata.json"
-            data = json.loads(meta.read_text())
+        """Each published kernel (active + optional root) has a complete,
+        parseable kernel-metadata.json whose code_file sibling exists. The
+        active kernels install DueCare from GitHub source, so they declare no
+        wheels dataset or competition source; the contract here is the
+        Kaggle-required metadata shape plus public visibility + keywords."""
+        entries = _published_notebooks()
+        assert entries, "no publishable kernels discovered"
+        for entry in entries:
+            meta = entry.dir_path / "kernel-metadata.json"
+            assert meta.exists(), f"{entry.dir_path}: missing kernel-metadata.json"
+            data = json.loads(meta.read_text(encoding="utf-8"))
             for field in ("id", "title", "code_file", "kernel_type", "language"):
                 assert field in data, f"{meta}: missing field {field}"
-            nb = kernel_dir / data["code_file"]
+            nb = entry.dir_path / data["code_file"]
             assert nb.exists(), f"{meta}: code_file {nb} does not exist"
-            # Wheels dataset must be attached as a source.
-            assert "taylorsamarel/duecare-llm-wheels" in data.get("dataset_sources", [])
-            assert data.get("keywords"), f"{meta}: keywords missing"
             assert data.get("is_private") is False, f"{meta}: is_private should be false"
-            assert "gemma-4-good-hackathon" in data.get("competition_sources", [])
+            assert data.get("keywords"), f"{meta}: keywords missing"
 
     def test_dataset_metadata_is_valid(self):
         meta = REPO_ROOT / "kaggle" / "shared-datasets" / "eval-results" / "dataset-metadata.json"
