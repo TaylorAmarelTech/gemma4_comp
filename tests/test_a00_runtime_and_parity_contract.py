@@ -291,7 +291,11 @@ def test_a00_synthetic_generation_exposes_source_scope_and_audit() -> None:
     assert "def _trace_source_grounding(prompt_id: str, trace: dict[str, Any]) -> dict[str, Any]:" in text
     assert '"source_grounding": grounding' in text
     assert 'source_audit_path = TRAIN_DIR / f"{base_id}_source_audit.json"' in text
-    assert '"schema_version": "duecare.a00.synthetic.source_audit.v1"' in text
+    # The typed schema id lives in handoff_kind; schema_version stays the
+    # literal "1.0" across every A-00 payload (the public-surface
+    # bundle_envelope_v1 audit enforces schema_version == "1.0"). Assert the
+    # typed id under the key the kernel actually — and canonically — uses.
+    assert '"handoff_kind": "duecare.a00.synthetic.source_audit.v1"' in text
     assert '"source_scope": source_scope' in text
     assert '"source_audit_summary": source_audit_summary' in text
     assert '"source_scope": _synthetic_source_scope()' in text
