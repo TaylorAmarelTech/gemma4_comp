@@ -16,12 +16,18 @@ from kaggle_notebook_utils import discover_kernel_notebooks, render_inventory_ma
 
 def test_discover_kernel_notebooks_finds_current_inventory() -> None:
     entries = discover_kernel_notebooks()
-    expected_count = len(
-        list((REPO_ROOT / "kaggle").glob("*/kernel-metadata.json"))
-    )
 
-    assert len(entries) == expected_count
-    assert expected_count == 3
+    # discover_kernel_notebooks() returns the active set only. The kaggle/
+    # tree also carries optional benchmark kernels (03, 04) that have their
+    # own kernel-metadata.json, so the active count is pinned explicitly
+    # rather than by counting every metadata file under kaggle/.
+    assert len(entries) == 3
+    for name in (
+        "01-duecare-exploration-workbench",
+        "02-live-demo",
+        "A-00-omni-experiment-workbench",
+    ):
+        assert (REPO_ROOT / "kaggle" / name / "kernel-metadata.json").exists()
     assert all((entry.dir_path / entry.code_file).exists() for entry in entries)
     assert {entry.dir_name for entry in entries} == {
         "01-duecare-exploration-workbench",

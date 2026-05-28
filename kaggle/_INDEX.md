@@ -29,8 +29,8 @@ path:
 
 The former `03-duecare-video-pitch` notebook, appendix notebooks `A-01`
 through `A-24`, and task-notebook snapshots have been moved to
-`kaggle/_archive/notebooks/`. They remain reference material only; they are not
-part of active validation, recording, or the required Kaggle run path.
+`kaggle/_archive/notebooks/`. They remain reference material only; they are
+not part of active validation, recording, or the required Kaggle run path.
 
 Root `kaggle/` should not contain appendix `A-*` folders other than active
 `A-00-omni-experiment-workbench`. The only root `04-*` folder should be

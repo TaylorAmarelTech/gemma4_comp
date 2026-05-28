@@ -879,6 +879,7 @@ def assertion_policy_summary(results: List[Dict[str, Any]]) -> Dict[str, Any]:
 
 def task_registration_notes(execution_mode: str) -> Dict[str, Any]:
     return {
+        "schema_version": "duecare.kaggle_community_benchmark.v1",
         "canonical_task_name": "duecare_migrant_worker_safety_benchmark",
         "current_run_mode": execution_mode,
         "manual_steps": [
