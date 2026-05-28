@@ -10,6 +10,7 @@ The active Kaggle path is exactly three script-kernel folders:
 |---|---|
 | `kaggle/01-duecare-exploration-workbench/` | Broad interactive workbench for chat, harness comparison, extraction, search controls, knowledge packs, traces, and activity logs. |
 | `kaggle/02-live-demo/` | Focused live demo and video narrative path. |
+| `kaggle/A-00-omni-experiment-workbench/` | Quantitative proof path: baseline vs harnessed arms, synthetic data, fine-tune, judging, and report artifacts. |
 
 The retired A-series notebook ladder, A-00 experiment console, task-notebook
 snapshots, and older checklist/status docs are archived under

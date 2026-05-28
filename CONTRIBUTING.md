@@ -100,7 +100,7 @@ paths = write_v1_bundle(env, Path("/kaggle/working"))
 ```
 
 The full v1.0 envelope shape is in
-[`docs/data_primitives.md`](docs/data_primitives.md).
+[`docs/knowledge_module_schema.md`](docs/knowledge_module_schema.md).
 
 **3. README sections (required).** Every kernel README must carry:
 
@@ -170,7 +170,7 @@ except Exception:
 For the slot-numbering convention and the experiment-ladder
 relationships (which kernel produces inputs for which downstream
 kernel), see
-[`docs/appendix_experiment_ladder.md`](docs/appendix_experiment_ladder.md).
+[`docs/current_kaggle_notebook_state.md`](docs/current_kaggle_notebook_state.md).
 
 ## Development setup
 

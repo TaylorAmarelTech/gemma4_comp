@@ -126,7 +126,7 @@ python -c "from duecare.server import create_app; from duecare.server.state impo
 > **Writeup (1500 words max):** [`docs/writeup_draft.md`](./docs/writeup_draft.md).
 > **Copy-ready networked knowledge-sharing Kaggle post:** [`docs/kaggle_post_networked_knowledge_sharing.md`](./docs/kaggle_post_networked_knowledge_sharing.md).
 > **Video script (~2:50):** [`docs/video_script.md`](./docs/video_script.md).
-> **Audit / report card:** [`docs/REPORT_CARD.md`](./docs/REPORT_CARD.md).
+> **Audit / readiness:** [`docs/readiness_dashboard.md`](./docs/readiness_dashboard.md).
 > **Harness lift report:** [`docs/harness_lift_report.md`](./docs/harness_lift_report.md) - quantifies how the safety layers change rubric scores.
 > **Corpus coverage:** [`docs/corpus_coverage.md`](./docs/corpus_coverage.md) - coverage matrices across category, sector, corridor, and ILO indicator.
 > **Stretch Android path:** [`docs/android_app_architecture.md`](./docs/android_app_architecture.md) - DueCare Journey, the on-device companion.

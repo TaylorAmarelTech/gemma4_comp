@@ -1,4 +1,4 @@
-﻿# Readiness Dashboard
+# Readiness Dashboard
 
 Current as of 2026-05-17. This replaces the historical 2026-05-02
 appendix-ladder dashboard; the active submission scope is now the active Kaggle
@@ -10,8 +10,9 @@ Gemma 4 path.
 |---|---|---|
 | `kaggle/01-duecare-exploration-workbench/` | Active | Interactive harness comparison, chat, extraction, search controls, traces, and knowledge-pack flows. |
 | `kaggle/02-live-demo/` | Active | Focused live demo and video narrative path. |
+| `kaggle/A-00-omni-experiment-workbench/` | Active | Quantitative proof path: baseline vs harnessed arms, synthetic data, fine-tune, judging, and report artifacts. |
 
-Archived A-series notebooks, A-00, task-notebook snapshots, and old generated
+Archived A-series notebooks, task-notebook snapshots, and old generated
 mirrors are not the active competition path. Root `kaggle/` should not contain
 appendix `A-*` folders, and the only root `04-*` folder should be
 `04-kaggle-community-benchmark`. See [`current_kaggle_notebook_state.md`](current_kaggle_notebook_state.md)

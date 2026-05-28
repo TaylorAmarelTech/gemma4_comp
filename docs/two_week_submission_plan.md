@@ -11,8 +11,10 @@ Run and verify:
 
 - `kaggle/01-duecare-exploration-workbench/`
 - `kaggle/02-live-demo/`
+- `kaggle/A-00-omni-experiment-workbench/`
+
 Everything under `kaggle/_archive/notebooks/` is historical unless explicitly
-revived later, including A-00 and task-notebook snapshots. Root `kaggle/`
+revived later, including legacy notebook wrappers and task-notebook snapshots. Root `kaggle/`
 should not contain appendix `A-*` folders, and the only root `04-*` folder
 should be `04-kaggle-community-benchmark`.
 

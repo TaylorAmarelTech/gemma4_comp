@@ -16,7 +16,7 @@ Launch the demo interfaces by forking the notebooks below into your Kaggle accou
 
 Inside the main workbench, `/static/demo-recording.html` provides the recording checklist, lane order, bundled sample artifacts, and cached replay trace for the platform-moderation example.
 
-Kernel split for recording: `duecare-app` is the operational workbench (`/static/chat.html`, `/static/process.html`, `/static/knowledge.html`, `/static/search.html`, `/static/share.html`, and `/static/demo-recording.html`); `duecare-live-demo` is the focused walkthrough and slide deck (`/start`, `/slides`, `/slides/setup`, and `/api/slides/recording-pack`); `duecare-fine-tuning-and-evaluation` is the benchmark/evaluation notebook.
+Kernel split for recording: `duecare-app` is the operational workbench (`/static/chat.html`, `/static/process.html`, `/static/knowledge.html`, `/static/search.html`, `/static/share.html`, and `/static/demo-recording.html`); `duecare-live-demo` is the focused walkthrough and slide deck (`/start`, `/slides`, `/slides/setup`, and `/api/slides/recording-pack`); `duecare-fine-tuning-and-evaluation` is the benchmark/evaluation notebook. Repo sources, respectively: `kaggle/01-duecare-exploration-workbench/`, `kaggle/02-live-demo/`, and `kaggle/A-00-omni-experiment-workbench/`.
 
 ## 1. The problem: migrant-worker exploitation
 
