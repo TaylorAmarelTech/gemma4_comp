@@ -39,6 +39,7 @@ script, where the model is loaded for LoRA fine-tuning rather than inference.
 |---|---|
 | `kaggle/01-duecare-exploration-workbench/` | Broad harness comparison, trace inspection, knowledge extraction, search controls, and model-runtime UX. |
 | `kaggle/02-live-demo/` | Focused end-user narrative and video-safe interaction path. |
+| `kaggle/A-00-omni-experiment-workbench/` | Quantitative proof path: baseline vs harnessed arms, synthetic data, fine-tune, judging, and report artifacts. |
 
 ## Optional Better-Than-Demo Upgrades
 

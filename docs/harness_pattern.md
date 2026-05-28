@@ -1,4 +1,4 @@
-﻿# Multi-harness architecture
+# Multi-harness architecture
 
 Every safety-bearing surface in the kernel ecosystem is a **harness** -- a
 self-contained module exposing the same minimal contract. In the broader
@@ -162,13 +162,14 @@ task.
 
 ## Active Kaggle Integration
 
-The active competition path is the two script-kernel set in
+The active competition path is the three script-kernel set in
 `kaggle/_INDEX.md`:
 
 | Pattern | Used by | How to opt in |
 |---|---|---|
 | `duecare.chat.create_app(**default_harness())` | `01-duecare-exploration-workbench` | Auto-inherits the registered harness ecosystem through the chat app |
 | `duecare.server.create_app` plus `Gemma4Runtime` | `02-live-demo` | Uses the shared runtime and focused demo surface |
+| `Gemma4Runtime` plus the preconfigured train->eval pipeline | `A-00-omni-experiment-workbench` | Quantitative proof: baseline, harnessed, synthetic data, fine-tune, judge, and report artifacts |
 
 ### Legacy minimal-shell kernels
 
