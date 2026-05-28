@@ -86,6 +86,13 @@ data/drive_*.npz
 data/_drive_*
 data/_curated_drive_*
 
+# Scraped multimodal image caches (chat screenshots, ID/passport/contract
+# scans). ~181 MB of binary fixtures with real-person-named files — a
+# 10_safety_gate.md PII concern in a public repo, and pure bloat. No test
+# imports them; regenerate via scripts/curate_multimodal_test_set.py.
+data/curation_cache/
+data/multimodal_test_set/
+
 # Logs and outputs
 *.log
 logs/
