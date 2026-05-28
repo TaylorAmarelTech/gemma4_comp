@@ -196,7 +196,7 @@
         <tbody>
           <tr><td>Baseline run</td><td>Stock Gemma 4 behavior on the same prompts.</td><td>Compare with no harness, or optional Kernel 03.</td></tr>
           <tr><td>Harnessed run</td><td>Quality lift from safety layers, RAG, tools, and traceable grounding.</td><td>Live Compare, Kernel 03, or Kernel 04.</td></tr>
-          <tr><td>Rubric-polished synthetic data</td><td>Ideal response structure for SFT/DPO rows, with volatile facts marked for tools.</td><td>Optional benchmark/training artifacts, not active root clutter.</td></tr>
+          <tr><td>Rubric-polished synthetic data (<code>generator_mode=rubric_polisher</code>)</td><td>Ideal response structure for SFT/DPO rows, with volatile facts marked for tools.</td><td>Optional benchmark/training artifacts, not active root clutter.</td></tr>
           <tr><td>Fine-tune smoke</td><td>Small-model training path works before a full GPU run.</td><td>Archived A-series provenance or a separate optional run.</td></tr>
           <tr><td>Report</td><td>Quality scores, latency, local cost, provenance, and research-graph artifacts across exports.</td><td>Workbench exports plus optional benchmark reports.</td></tr>
         </tbody>

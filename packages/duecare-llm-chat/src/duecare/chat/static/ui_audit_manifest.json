@@ -92,6 +92,30 @@
       ]
     },
     {
+      "route": "/static/chat.html",
+      "file": "chat.html",
+      "purpose": "Primary multimodal safety chat with the full harness ecosystem",
+      "controls": [
+        "prompt",
+        "image upload",
+        "send",
+        "interrupt",
+        "examples",
+        "harness layer toggles"
+      ],
+      "outputs": [
+        "streamed response",
+        "per-layer trace",
+        "GREP/RAG/tools/online steps",
+        "activity log"
+      ],
+      "audit": [
+        "shared model selector",
+        "SSE step events",
+        "trust boundary disclosed"
+      ]
+    },
+    {
       "route": "/static/compare.html",
       "file": "compare.html",
       "purpose": "A/B harness comparison",
