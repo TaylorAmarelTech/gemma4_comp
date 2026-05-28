@@ -6979,7 +6979,7 @@ GREP_RULES = [
                        "for licensing fees, H-2B / undocumented "
                        "exploitation, passport retention. Provide: "
                        "(1) US TVPRA + 18 USC 1589/1590; (2) Polaris "
-                       "hotline 1-888-373-7888; (3) state labour "
+                       "hotline (current number via the contacts pack); (3) state labour "
                        "authority (NY DOL, CA Labor Commissioner); "
                        "(4) Healthy Nail Salons Collaborative + "
                        "Damayan Migrant Workers Association.",
@@ -9826,7 +9826,7 @@ RAG_CORPUS = [
     ("polaris_project_hotline", "Polaris Project + US National Human Trafficking Hotline",
      "Polaris Project (US)",
      "Polaris (founded 2002) operates the US National Human "
-     "Trafficking Hotline (1-888-373-7888; text to 233733). The "
+     "Trafficking Hotline (current number + text shortcode via the contacts pack). The "
      "hotline operates 24/7 in English and Spanish (interpretation "
      "in 200+ languages on call), is funded by HHS plus private "
      "donors, and is staffed by trained advocates. Polaris "
@@ -10961,11 +10961,11 @@ RAG_CORPUS = [
      "potential witnesses; renewable annually. Each "
      "instrument's eligibility criteria + adjudication forms "
      "operate as a structured indicator-gathering instrument."),
-    ("polaris_befree_hotline_operations", "Polaris BeFree text-line + 1-888-373-7888 hotline operational protocols",
-     "Polaris BeFree + 1-888-373-7888",
+    ("polaris_befree_hotline_operations", "Polaris BeFree text-line + national hotline operational protocols",
+     "Polaris BeFree + national hotline",
      "The US National Human Trafficking Hotline operated by "
      "Polaris Project provides 24/7 multilingual support via "
-     "phone (1-888-373-7888), text (BeFree to 233733), web "
+     "phone (current number via the contacts pack), text (BeFree to 233733), web "
      "chat, and email. Operational protocols include: (1) "
      "Confidentiality (except mandated reporting for suspected "
      "abuse of minors under 18); (2) Survivor-led case "
@@ -11466,7 +11466,7 @@ RAG_CORPUS = [
     ("proc_polaris_hotline_intake", "Polaris US National Human Trafficking Hotline intake procedure",
      "Polaris Hotline Procedure",
      "Polaris operational protocol for the US National Human "
-     "Trafficking Hotline (1-888-373-7888 / text BeFree to "
+     "Trafficking Hotline (current number via the contacts pack / text BeFree to "
      "233733 / web chat / email) intake. Step 1 -- safety + "
      "rapport: trained advocate establishes that the caller is "
      "safe to talk + acknowledges what the caller is "
@@ -13538,9 +13538,9 @@ NGO_INTAKE = {
         {"name": "Centro de los Derechos del Migrante (CDM)",
           "phone": "verify via contacts pack", "url": "https://cdmigrante.org/"},
         {"name": "US DOL Wage and Hour Division",
-          "phone": "1-866-487-9243 (verify)", "url": "https://www.dol.gov/agencies/whd"},
+          "phone": "verify via contacts pack", "url": "https://www.dol.gov/agencies/whd"},
         {"name": "Polaris National Human Trafficking Hotline",
-          "phone": "1-888-373-7888 (text BEFREE to 233733)", "url": "https://humantraffickinghotline.org/"},
+          "phone": "verify via contacts pack", "url": "https://humantraffickinghotline.org/"},
         {"name": "Justice in Motion (former Global Workers Justice Alliance)",
           "phone": "verify via contacts pack", "url": "https://www.justiceinmotion.org/"},
     ],
@@ -13556,9 +13556,9 @@ NGO_INTAKE = {
     # ----- US-side trafficking response (cross-corridor) -----
     ("any", "us"): [
         {"name": "Polaris National Human Trafficking Hotline",
-          "phone": "1-888-373-7888 (text BEFREE to 233733)", "url": "https://humantraffickinghotline.org/"},
+          "phone": "verify via contacts pack", "url": "https://humantraffickinghotline.org/"},
         {"name": "US DOL Wage and Hour Division",
-          "phone": "1-866-487-9243 (verify)", "url": "https://www.dol.gov/agencies/whd"},
+          "phone": "verify via contacts pack", "url": "https://www.dol.gov/agencies/whd"},
         {"name": "HHS Office on Trafficking in Persons (OTIP)",
           "phone": "verify via contacts pack", "url": "https://www.acf.hhs.gov/otip"},
         {"name": "Tahirih Justice Center",
@@ -13590,7 +13590,7 @@ NGO_INTAKE = {
     # ----- Survivor / global support escalation -----
     ("survivor", "global"): [
         {"name": "Polaris Project Survivor Leadership Council",
-          "phone": "1-888-373-7888 (text BEFREE to 233733)", "url": "https://polarisproject.org/survivor-led-program/"},
+          "phone": "verify via contacts pack", "url": "https://polarisproject.org/survivor-led-program/"},
         {"name": "International Justice Mission Survivor Network",
           "phone": "global intake", "url": "https://www.ijm.org/"},
         {"name": "GAATW (Global Alliance Against Traffic in Women)",
