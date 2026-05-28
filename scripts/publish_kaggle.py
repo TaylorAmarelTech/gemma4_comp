@@ -147,6 +147,20 @@ def _kaggle_exe() -> list[str]:
     )
 
 
+def _kaggle_cmd(*, dry_run: bool) -> list[str]:
+    """Return the Kaggle command for real calls, or a printable stand-in.
+
+    Dry runs should validate DueCare packaging logic without requiring the
+    caller's machine or CI runner to have Kaggle installed.
+    """
+    try:
+        return _kaggle_exe()
+    except FileNotFoundError:
+        if dry_run:
+            return ["kaggle"]
+        raise
+
+
 # --------------------------- auth ------------------------------
 
 
@@ -185,11 +199,11 @@ def auth_check(*, dry_run: bool) -> int:
     # Probe the live API.  `kaggle config view` confirms the token can
     # actually authenticate (which `--version` does not).
     if dry_run:
-        return run(_kaggle_exe() + ["--version"], dry_run=True).returncode
-    version = run(_kaggle_exe() + ["--version"], dry_run=False)
+        return run(_kaggle_cmd(dry_run=True) + ["--version"], dry_run=True).returncode
+    version = run(_kaggle_cmd(dry_run=False) + ["--version"], dry_run=False)
     if not version.ok:
         return version.returncode
-    cfg = run(_kaggle_exe() + ["config", "view"], dry_run=False)
+    cfg = run(_kaggle_cmd(dry_run=False) + ["config", "view"], dry_run=False)
     return 0 if cfg.ok else cfg.returncode
 
 
@@ -239,15 +253,24 @@ def _normalize_notebook_ids(raw_ids: list[str] | None) -> set[str] | None:
 
 
 def _selected_notebooks(*, notebook_ids: set[str] | None = None, limit: int | None = None):
-    entries = discover_kernel_notebooks(KERNELS_DIR)
+    entries = discover_kernel_notebooks(KERNELS_DIR, include_optional=True)
     if notebook_ids is not None:
-        entries = [
-            entry
-            for entry in entries
-            if entry.notebook_number in notebook_ids
-            or entry.dir_name in notebook_ids
-            or entry.kernel_id in notebook_ids
-        ]
+        selected = []
+        for entry in entries:
+            parts = entry.dir_name.split("-")
+            aliases = {
+                entry.notebook_number,
+                entry.dir_name,
+                entry.kernel_id,
+                entry.kernel_id.split("/", 1)[-1],
+            }
+            if parts and parts[0].isdigit():
+                aliases.add(parts[0])
+            if len(parts) >= 2 and parts[0] == "A":
+                aliases.add("-".join(parts[:2]))
+            if aliases & notebook_ids:
+                selected.append(entry)
+        entries = selected
     if limit is not None:
         entries = entries[:limit]
     return entries
@@ -277,7 +300,7 @@ def push_notebooks(
             print(f"  ! validation failed for {d.name}: {e}", file=sys.stderr)
             failures += 1
             continue
-        result = run(_kaggle_exe() + ["kernels", "push", "-p", str(d)], dry_run=dry_run)
+        result = run(_kaggle_cmd(dry_run=dry_run) + ["kernels", "push", "-p", str(d)], dry_run=dry_run)
         if not result.ok:
             failures += 1
     return 0 if failures == 0 else 1
@@ -302,7 +325,7 @@ def status_notebooks(
             failures += 1
             continue
         kernel_id = json.loads(meta_path.read_text())["id"]
-        result = run(_kaggle_exe() + ["kernels", "status", kernel_id], dry_run=dry_run)
+        result = run(_kaggle_cmd(dry_run=dry_run) + ["kernels", "status", kernel_id], dry_run=dry_run)
         if not result.ok:
             failures += 1
     return 0 if failures == 0 else 1
@@ -333,25 +356,25 @@ def publish_dataset(*, dry_run: bool, dataset_dir: Path | None = None, auth_chec
     if dry_run:
         print("  (dry-run) would run one of the following:")
         run(
-            _kaggle_exe() + ["datasets", "create", "-p", str(target)],
+            _kaggle_cmd(dry_run=True) + ["datasets", "create", "-p", str(target)],
             dry_run=True,
         )
         run(
-            _kaggle_exe() + ["datasets", "version", "-p", str(target), "-m", version_note],
+            _kaggle_cmd(dry_run=True) + ["datasets", "version", "-p", str(target), "-m", version_note],
             dry_run=True,
         )
         return 0
 
     # Try version first (more common path once the dataset exists).
     versioned = run(
-        _kaggle_exe() + ["datasets", "version", "-p", str(target), "-m", version_note],
+        _kaggle_cmd(dry_run=False) + ["datasets", "version", "-p", str(target), "-m", version_note],
         dry_run=False,
     )
     if versioned.ok:
         return 0
     # Fallback: create for first time.
     created = run(
-        _kaggle_exe() + ["datasets", "create", "-p", str(target)],
+        _kaggle_cmd(dry_run=False) + ["datasets", "create", "-p", str(target)],
         dry_run=False,
     )
     return 0 if created.ok else created.returncode
@@ -376,7 +399,7 @@ def publish_model(*, dry_run: bool, model_dir: Path | None = None, auth_checked:
 
     # First attempt: create the model.  If it already exists, create an instance version.
     create = run(
-        _kaggle_exe() + ["models", "create", "-p", str(target)],
+        _kaggle_cmd(dry_run=dry_run) + ["models", "create", "-p", str(target)],
         dry_run=dry_run,
     )
     if create.ok:
@@ -392,14 +415,14 @@ def publish_model(*, dry_run: bool, model_dir: Path | None = None, auth_checked:
         return create.returncode
 
     inst = run(
-        _kaggle_exe() + ["models", "instances", "create", "-p", str(target)],
+        _kaggle_cmd(dry_run=dry_run) + ["models", "instances", "create", "-p", str(target)],
         dry_run=dry_run,
     )
     if inst.ok:
         return 0
 
     version = run(
-        _kaggle_exe() + ["models", "instances", "versions", "create", "-p", str(target), "-n", "refresh"],
+        _kaggle_cmd(dry_run=dry_run) + ["models", "instances", "versions", "create", "-p", str(target), "-n", "refresh"],
         dry_run=dry_run,
     )
     return 0 if version.ok else version.returncode
