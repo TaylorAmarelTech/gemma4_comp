@@ -131,7 +131,11 @@ def _entity_mentions(text: str) -> list[str]:
 def _corridors(text: str) -> list[str]:
     low = (text or "").lower()
     out: list[str] = []
-    if "ph-hk" in low or ("philipp" in low and "hong kong" in low):
+    if (
+        "ph-hk" in low
+        or ("philipp" in low and "hong kong" in low)
+        or ("php" in low and "hong kong" in low)
+    ):
         out.append("PH-HK")
     if "indonesia" in low and "hong kong" in low:
         out.append("ID-HK")

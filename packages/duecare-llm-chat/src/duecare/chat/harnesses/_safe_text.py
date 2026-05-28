@@ -80,9 +80,10 @@ def _smart_cut(text: str, limit: int) -> str:
     if not text or len(text) <= limit:
         return text or ""
     head = text[:limit]
+    min_boundary = max(8, int(limit * 0.30))
     for sep in (". ", "? ", "! ", "; ", ", "):
         idx = head.rfind(sep)
-        if idx >= int(limit * 0.55):
+        if idx >= min_boundary:
             return head[: idx + 1].strip()
     idx = head.rfind(" ")
     if idx >= int(limit * 0.55):
