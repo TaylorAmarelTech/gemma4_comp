@@ -42,6 +42,7 @@ kaggle/kernels/**/*.ipynb
 # out of the active submission workspace unless explicitly restored.
 legacy_notebooks/
 skunkworks/
+/notebooks/
 
 # IDE / editors
 .vscode/
@@ -56,6 +57,7 @@ Thumbs.db
 # transient session logs or nested app-local agent state.
 .claude/sessions/
 apps/**/.claude/
+packages/**/.claude/
 
 # Models, weights, checkpoints (too large for git; publish via HF Hub)
 *.bin
