@@ -1331,7 +1331,11 @@ def register_routes(app: Any) -> None:
                     "n_suggestions": 1,
                     "suggested_types": [envelope.get("knowledge_object_type")],
                 },
-                anonymize=False,
+                # Edge envelopes can carry verbatim evidence quotes lifted from
+                # uploaded documents, so the training-log write MUST be scrubbed
+                # (10_safety_gate.md). _anonymize() is a deterministic regex pass
+                # (no model call) and is idempotent on already-redacted text.
+                anonymize=True,
             )
         except Exception:
             pass

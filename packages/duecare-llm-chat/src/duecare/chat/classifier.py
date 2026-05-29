@@ -146,16 +146,17 @@ def _strip_to_json(text: str) -> Optional[dict]:
     if first == -1 or last == -1 or last <= first:
         return None
     candidate = text[first:last + 1]
-    # Try parse as-is
-    for tries in range(3):
+    # Try parse as-is, then with a single trailing-comma repair. The repair is
+    # idempotent, so once it stops changing the string there is nothing left to
+    # try -- bail out instead of re-parsing the identical candidate.
+    while True:
         try:
             return json.loads(candidate)
         except json.JSONDecodeError:
-            # Common fix: trailing commas before } or ]
-            candidate = re.sub(r",(\s*[}\]])", r"\1", candidate)
-            if tries == 2:
+            repaired = re.sub(r",(\s*[}\]])", r"\1", candidate)
+            if repaired == candidate:
                 return None
-    return None
+            candidate = repaired
 
 
 def create_classifier_app(

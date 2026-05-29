@@ -20,9 +20,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
+_LOG = logging.getLogger(__name__)
 
 
 def _training_dir() -> Path:
@@ -103,5 +106,12 @@ def log_interaction(
         with open(path, "a", encoding="utf-8") as f:
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
         return path
-    except Exception:
+    except Exception as exc:
+        # Never raise (a training-log failure must not break the live response),
+        # but never swallow silently either: a persistent write failure means
+        # the finetuning corpus is accumulating gaps. Log the harness + error
+        # type (no payload text -> no PII) so the gap is visible in the logs.
+        _LOG.warning(
+            "training-log write failed for harness %r: %s", harness, type(exc).__name__
+        )
         return None

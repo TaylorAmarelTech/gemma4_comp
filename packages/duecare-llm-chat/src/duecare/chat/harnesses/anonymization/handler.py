@@ -284,6 +284,12 @@ def _build_anonymize_response(app: Any, body: dict[str, Any], *, replay_endpoint
         "redacted": out_texts,
         "diffs": out_diffs,
         "gemma_review": gemma_review,
+        # Hard, top-level signal that the second-layer Gemma residual-PII review
+        # crashed (vs. ran and flagged nothing). The regex redaction above still
+        # ran, but callers must be able to hard-block submission on a review
+        # *failure* instead of mistaking the soft "review_required" advisory for
+        # a clean pass. UIs gate the Submit button on this.
+        "gemma_review_model_error": gemma_review.get("status") == "model_error",
         "demo_replay": demo_replay(
             lane="anonymization_sharing",
             endpoint=replay_endpoint,

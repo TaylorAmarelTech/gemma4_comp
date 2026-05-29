@@ -43,6 +43,11 @@ from .prompts import (
 
 
 _ROW_CAP = 300
+# Hard cap on a single multipart upload. UploadFile.read(size) bounds how much
+# we pull into memory, so a hostile or accidental giant file (or the raw bytes
+# of a decompression-bomb archive) is rejected with 413 instead of OOM-ing the
+# Kaggle T4 kernel mid-demo. Generous enough for legitimate case-file bundles.
+_MAX_UPLOAD_BYTES = 64 * 1024 * 1024  # 64 MB
 _TEXT_EXTS = {".txt", ".md", ".csv", ".json", ".jsonl", ".log", ".rtf", ".html", ".htm", ".eml"}
 _MEDIA_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".tif", ".tiff", ".bmp"}
 _SPREADSHEET_EXTS = {".xlsx"}
@@ -4860,7 +4865,13 @@ def register_routes(app: Any) -> None:
         upload = form.get("file")
         if upload is None:
             raise HTTPException(400, "no `file` field in multipart upload")
-        contents = await upload.read()
+        contents = await upload.read(_MAX_UPLOAD_BYTES + 1)
+        if len(contents) > _MAX_UPLOAD_BYTES:
+            raise HTTPException(
+                413,
+                f"upload exceeds the {_MAX_UPLOAD_BYTES // (1024 * 1024)} MB limit; "
+                "split the bundle or remove large media before uploading.",
+            )
         filename = getattr(upload, "filename", "uploaded") or "uploaded"
         process_settings = _process_settings_from_form(form)
         return JSONResponse(_build_process_bundle(
@@ -4876,7 +4887,13 @@ def register_routes(app: Any) -> None:
         upload = form.get("file")
         if upload is None:
             raise HTTPException(400, "no `file` field in multipart upload")
-        contents = await upload.read()
+        contents = await upload.read(_MAX_UPLOAD_BYTES + 1)
+        if len(contents) > _MAX_UPLOAD_BYTES:
+            raise HTTPException(
+                413,
+                f"upload exceeds the {_MAX_UPLOAD_BYTES // (1024 * 1024)} MB limit; "
+                "split the bundle or remove large media before uploading.",
+            )
         filename = getattr(upload, "filename", "uploaded") or "uploaded"
         process_settings = _process_settings_from_form(form)
         if form.get("run_inline_gemma_text") is None:
