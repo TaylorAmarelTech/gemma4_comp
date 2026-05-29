@@ -8586,6 +8586,141 @@ GREP_RULES = [
                        "5(d)); ILO supervisory body if persistent pattern; "
                        "destination court if available.",
     },
+    # ====================================================================
+    # CATEGORY HHHH: SECTOR CONVENTIONS + CROSS-CORRIDOR INDICATORS
+    # (added 2026-05-28) — ILO C189 domestic work, C188 fishing, MLC 2006
+    # seafarers, contract substitution, document "safekeeping", Palermo
+    # act+means. Stable, well-attested ILO/UN instruments under-covered above.
+    # ====================================================================
+    {
+        "rule": "c189_domestic_worker_confinement_or_document_hold",
+        "patterns": [r"\b(domestic worker|housemaid|maid|helper|kasambahay|"
+                      r"household worker|live-?in)\b",
+                      r"\b(not allowed to leave|cannot leave|locked in|confined|"
+                      r"keep(?:s|ing)?\s+(?:her|his|their)?\s*passport|"
+                      r"hold(?:s|ing)?\s+(?:her|his|their)?\s*(?:passport|documents))\b"],
+        "all_required": True,
+        "severity": "critical",
+        "citation": "ILO C189 (Domestic Workers Convention, 2011) Art. 9 "
+                      "(domestic workers free to keep their own travel/identity "
+                      "documents and free to leave the household during rest) + "
+                      "Art. 6; ILO Forced-Labour Indicators 3, 4, 7",
+        "indicator": "Restriction of movement / isolation / document retention "
+                       "for a live-in domestic worker. ILO C189 Art. 9 requires "
+                       "domestic workers retain their own documents and be free "
+                       "to leave the household during rest periods; confinement "
+                       "or 'safekeeping' of documents is a forced-labour "
+                       "indicator EVEN with claimed consent.",
+    },
+    {
+        "rule": "c189_domestic_worker_no_weekly_rest",
+        "patterns": [r"\b(domestic worker|housemaid|maid|helper|kasambahay|"
+                      r"household worker|live-?in)\b",
+                      r"\b(no (?:day|days) off|no rest day|seven days a week|"
+                      r"7 days a week|on call (?:24|twenty-?four)|"
+                      r"never (?:gets?|has) (?:a )?day off)\b"],
+        "all_required": True,
+        "severity": "high",
+        "citation": "ILO C189 Art. 10 (weekly rest of at least 24 consecutive "
+                      "hours) + Art. 7; HK Employment Ord. Cap. 57 §17 (one rest "
+                      "day in 7)",
+        "indicator": "Denial of weekly rest to a domestic worker. ILO C189 "
+                       "Art. 10 guarantees at least 24 consecutive hours of "
+                       "weekly rest; continuous on-call availability is an "
+                       "abusive-conditions / excessive-overtime indicator.",
+    },
+    {
+        "rule": "c188_fishing_no_agreement_or_at_sea_retention",
+        "patterns": [r"\b(fisher|fisherman|fishing (?:vessel|boat|crew)|"
+                      r"trawler|deckhand|at sea|transshipment|transhipment)\b",
+                      r"\b(no (?:written )?(?:contract|agreement)|documents? "
+                      r"(?:held|kept|taken|confiscated)|cannot (?:leave|return|"
+                      r"go home)|stranded at sea)\b"],
+        "all_required": True,
+        "severity": "critical",
+        "citation": "ILO C188 (Work in Fishing Convention, 2007) Arts. 16-20 "
+                      "(fisher's work agreement) + Annex II; ILO Forced-Labour "
+                      "Indicators 2, 3, 7",
+        "indicator": "Fishing-sector forced labour: no written fisher's work "
+                       "agreement (ILO C188 Arts. 16-20), document retention, or "
+                       "inability to leave the vessel (including via at-sea "
+                       "transshipment) are recognized indicators of forced "
+                       "labour in fishing.",
+    },
+    {
+        "rule": "mlc2006_seafarer_recruitment_fee_or_abandonment",
+        "patterns": [r"\b(seafarer|seaman|crew member|merchant (?:vessel|ship)|"
+                      r"flag of convenience)\b",
+                      r"\b(recruitment fee|placement fee|paid (?:to|the) agency|"
+                      r"abandoned|not repatriated|cannot be sent home|"
+                      r"wages (?:unpaid|withheld))\b"],
+        "all_required": True,
+        "severity": "high",
+        "citation": "ILO MLC 2006 (Maritime Labour Convention) Reg. 1.4 (no "
+                      "fees charged to seafarers for recruitment/placement) + "
+                      "Reg. 2.5 (repatriation, with financial security for "
+                      "abandonment) + Reg. 2.2 (wages); ILO C181 Art. 7",
+        "indicator": "Seafarer charged a recruitment/placement fee (prohibited "
+                       "by MLC 2006 Reg. 1.4) or abandoned / not repatriated "
+                       "(Reg. 2.5). Crew abandonment with unpaid wages is a "
+                       "documented forced-labour and human-rights-at-sea risk.",
+    },
+    {
+        "rule": "contract_substitution_on_arrival",
+        "patterns": [r"\b(different|new|another|second|changed|revised|"
+                      r"replaced?)\b.{0,40}\bcontract\b",
+                      r"\b(on arrival|at the airport|once (?:you|they) (?:arrive|"
+                      r"land)|at destination|after (?:arrival|landing)|"
+                      r"sign(?:ed)? (?:a )?(?:new|another) (?:one|contract|again))\b"],
+        "all_required": True,
+        "severity": "high",
+        "citation": "ILO Forced-Labour Indicator 2 (deception); Palermo "
+                      "Protocol (2000) Art. 3(a) (means: fraud/deception); ILO "
+                      "C181 Art. 8 (migrant worker protection); Dhaka Principle 2",
+        "indicator": "Contract substitution: presenting a different (worse) "
+                       "contract on arrival than was agreed at origin is the "
+                       "textbook ILO 'deception' indicator and a Palermo Art. 3 "
+                       "trafficking 'means'. The origin-signed contract is the "
+                       "benchmark; substitution under duress is independently "
+                       "actionable regardless of a signature obtained on arrival.",
+    },
+    {
+        "rule": "passport_document_safekeeping_euphemism",
+        "patterns": [r"\b(passport|documents?|id|identity card|travel document)\b",
+                      r"\b(safe-?keeping|keep(?:s|ing)? (?:it|them) safe|"
+                      r"hold(?:s|ing)? (?:it|them) for (?:you|safety|security)|"
+                      r"for your protection|stored? securely)\b"],
+        "all_required": True,
+        "severity": "high",
+        "citation": "ILO Forced-Labour Indicator 7 (retention of identity "
+                      "documents); UAE Federal Decree-Law 33/2021 + Qatar Law "
+                      "21/2015 (employer retention of worker documents "
+                      "prohibited); ILO C189 Art. 9",
+        "indicator": "'Safekeeping' framing for an employer/agency holding a "
+                       "worker's passport or documents is a known euphemism for "
+                       "the ILO document-retention indicator. Voluntary-sounding "
+                       "language does not neutralize it; many destination "
+                       "statutes prohibit employer document retention outright.",
+    },
+    {
+        "rule": "palermo_recruitment_with_coercive_means",
+        "patterns": [r"\b(recruit(?:ed|ing|ment)?|transport(?:ed|ing)?|"
+                      r"harbou?r(?:ed|ing)?|receiv(?:ed|ing)|brought (?:in|over))\b",
+                      r"\b(threat|coerc(?:e|ed|ion)|deception|fraud|"
+                      r"abuse of (?:power|vulnerability)|debt bondage|"
+                      r"withhold(?:ing)? (?:wages|documents)|forced)\b"],
+        "all_required": True,
+        "severity": "high",
+        "citation": "Palermo Protocol (UN Protocol to Prevent, Suppress and "
+                      "Punish Trafficking in Persons, 2000) Art. 3(a); ILO P029 "
+                      "(2014); UNODC Model Law on Trafficking in Persons",
+        "indicator": "Co-occurrence of a trafficking ACT (recruit/transport/"
+                       "harbour/receive) with a coercive MEANS (threat, "
+                       "deception, debt bondage, abuse of vulnerability, "
+                       "document/wage withholding) maps onto the Palermo Art. 3 "
+                       "trafficking definition. Where a 'means' is present, the "
+                       "victim's consent is legally irrelevant.",
+    },
 ]
 
 
@@ -12783,6 +12918,78 @@ RAG_CORPUS = [
      "cites UFLPA as the controlling US supply-chain forced-"
      "labour instrument and the model for emerging EU + UK "
      "+ CA + AU equivalents."),
+    # ----- Sector conventions + Palermo (added 2026-05-28) -----
+    ("ilo_c189_art9_documents", "ILO Convention 189, Article 9 (Domestic Workers)",
+     "ILO C189 Art. 9",
+     "Each Member shall take measures to ensure that domestic workers are free "
+     "to reach agreement with their employer on whether to reside in the "
+     "household; that domestic workers who reside in the household are not "
+     "obliged to remain in the household or with household members during "
+     "periods of daily and weekly rest or annual leave; and that domestic "
+     "workers are entitled to keep in their possession their travel and "
+     "identity documents. Confinement of a live-in worker, or employer "
+     "retention of the worker's documents, contradicts C189 Art. 9 and is an "
+     "ILO forced-labour indicator."),
+    ("ilo_c189_art10_rest", "ILO Convention 189, Article 10 (Hours of Work / Weekly Rest)",
+     "ILO C189 Art. 10",
+     "Members shall take measures to ensure equal treatment between domestic "
+     "workers and workers generally as regards normal hours of work, overtime "
+     "compensation, daily and weekly rest periods and paid annual leave. "
+     "Weekly rest shall be at least 24 consecutive hours. Periods during which "
+     "domestic workers are not free to dispose of their time as they please "
+     "and remain at the disposal of the household to respond to possible calls "
+     "('on call') shall be regarded as hours of work to the extent determined "
+     "by national law."),
+    ("ilo_c188_fishing", "ILO Convention 188 (Work in Fishing, 2007)",
+     "ILO C188",
+     "C188 requires that every fisher on a fishing vessel have a written "
+     "fisher's work agreement, comprehensible to the fisher and specifying the "
+     "minimum particulars in Annex II (Arts. 16-20), plus repatriation, "
+     "minimum age, medical fitness, hours of rest and a crew list. Absence of "
+     "a work agreement, retention of documents, debt bondage, or inability to "
+     "leave the vessel (including via at-sea transshipment) are recognized "
+     "indicators of forced labour in the fishing sector."),
+    ("ilo_mlc2006_recruit_repatriation", "ILO MLC 2006 (Maritime Labour Convention)",
+     "ILO MLC 2006 Reg. 1.4 + 2.5",
+     "The Maritime Labour Convention, 2006 requires (Reg. 1.4) that seafarer "
+     "recruitment and placement services charge NO fees or other charges to "
+     "the seafarer, directly or indirectly, for recruitment or placement; and "
+     "(Reg. 2.5) that seafarers have a right to repatriation at no cost to "
+     "themselves in defined circumstances, backed by a financial-security "
+     "system covering abandonment. Worker-paid recruitment fees and crew "
+     "abandonment with unpaid wages are forced-labour and human-rights-at-sea "
+     "risks."),
+    ("palermo_protocol_art3", "UN Palermo Protocol, Article 3 (Definition of Trafficking)",
+     "Palermo Protocol (2000) Art. 3",
+     "'Trafficking in persons' means the recruitment, transportation, transfer, "
+     "harbouring or receipt of persons, by means of the threat or use of force "
+     "or other forms of coercion, of abduction, of fraud, of deception, of the "
+     "abuse of power or of a position of vulnerability, or of the giving or "
+     "receiving of payments or benefits to achieve the consent of a person "
+     "having control over another person, for the purpose of exploitation. "
+     "Where any such means is used, the consent of the victim is irrelevant. "
+     "For a child under 18, no 'means' element is required: the act plus "
+     "exploitative purpose suffices."),
+    ("ilo_p029_2014", "ILO Protocol of 2014 to the Forced Labour Convention (P029)",
+     "ILO P029 (2014)",
+     "The 2014 Protocol to ILO C029 obliges States to take effective measures "
+     "to PREVENT forced labour, to PROTECT victims and ensure access to "
+     "remedies such as compensation, and to enforce. It requires protecting "
+     "migrant workers from abusive and fraudulent recruitment, and provides "
+     "that victims of forced labour should not be prosecuted or penalised for "
+     "unlawful activities they were compelled to commit. P029 modernises C029 "
+     "for contemporary forms including debt bondage and trafficking for labour "
+     "exploitation."),
+    ("contract_substitution_deception", "Contract Substitution as a Forced-Labour Indicator",
+     "ILO Indicator 2 (deception) + Dhaka Principles",
+     "Contract substitution -- replacing the contract a worker agreed to at "
+     "origin with different, usually worse, terms on arrival at destination -- "
+     "is a leading form of the ILO 'deception' indicator and a Palermo Art. 3 "
+     "trafficking 'means'. The IRIS Standard and the Dhaka Principles for "
+     "Migration with Dignity (Principle 2: no fees charged to workers + a "
+     "clear, enforceable contract) treat the origin-signed contract as the "
+     "benchmark; any destination-side substitution under duress is "
+     "independently actionable regardless of a signature obtained on arrival."),
 ]
 
 
