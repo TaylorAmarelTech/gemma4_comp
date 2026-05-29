@@ -91,13 +91,19 @@ def _post(url: str, body: dict, headers: dict) -> dict:
 
 
 def call_ollama(model: str, prompt: str) -> str:
+    # Ollama Cloud is a SaaS (ollama.com), OpenAI-compatible endpoint. Reasoning
+    # models (e.g. gpt-oss) may put the answer in `content`, or leave `content`
+    # empty and emit `reasoning`/`reasoning_content`; fall back so we never score
+    # an empty string as a 0.
     out = _post(
         "https://ollama.com/v1/chat/completions",
         {"model": model, "messages": [{"role": "user", "content": prompt}],
          "stream": False, "temperature": 0.0, "max_tokens": MAX_TOKENS},
         {"Authorization": f"Bearer {OLLAMA_KEY}"},
     )
-    return out["choices"][0]["message"]["content"]
+    msg = out["choices"][0]["message"]
+    return (msg.get("content") or msg.get("reasoning")
+            or msg.get("reasoning_content") or "(empty)")
 
 
 def call_gemini(model: str, prompt: str) -> str:
