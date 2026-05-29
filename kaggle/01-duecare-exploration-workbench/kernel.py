@@ -300,13 +300,12 @@ def install_chat_wheels() -> int:
     start_total = time.time()
 
     # Competition strategy: Pin to specific release artifacts for reproducibility.
-    # COMMIT_SHA default is an immutable commit (not "master") so a partner
-    # who re-runs the kernel next week gets identical code to the demo
-    # session. Override via env var when developing against a newer branch.
+    # Post-deadline iteration tracks "master" so a re-run picks up the latest
+    # fixes (matches kernel 02's DUECARE_COMMIT_SHA default). To freeze a
+    # reproducible build for a partner hand-off / release, override
+    # DUECARE_COMMIT_SHA with an immutable commit SHA.
     VERSION = os.environ.get("DUECARE_VERSION", "0.17.0")
-    COMMIT_SHA = os.environ.get(
-        "DUECARE_COMMIT_SHA", "0cd20021721e94dcda19e5b5bcaa28f485c6831b"
-    )
+    COMMIT_SHA = os.environ.get("DUECARE_COMMIT_SHA", "master")
 
     # Method 1: GitHub Release Wheels (fastest when available)
     try:
