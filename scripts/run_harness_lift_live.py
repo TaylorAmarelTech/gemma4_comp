@@ -37,7 +37,10 @@ from duecare.chat.harness_lift import build_harness_preamble  # noqa: E402
 OLLAMA_KEY = os.environ["OLLAMA_API_KEY"]
 GEMINI_KEY = os.environ["GEMINI_API_KEY"]
 JUDGE_MODEL = os.environ.get("JUDGE_MODEL", "gemini-3-pro-preview")
-MAX_TOKENS = int(os.environ.get("LIFT_MAX_TOKENS", "640"))
+# 640 was too low: a long DueCare grounding preamble eats the harnessed arm's
+# output budget and truncates the ANSWER, scoring a real improvement as a near
+# zero. 1200 lets both arms answer fully; raise via LIFT_MAX_TOKENS if needed.
+MAX_TOKENS = int(os.environ.get("LIFT_MAX_TOKENS", "1200"))
 TIMEOUT = int(os.environ.get("LIFT_TIMEOUT", "120"))
 
 # Candidate models: (label, kind, model_id). kind in {ollama, gemini}.
@@ -120,6 +123,13 @@ def call_gemini(model: str, prompt: str) -> str:
     return "".join(p.get("text", "") for p in parts) or "(empty)"
 
 
+def call_model(model: str, prompt: str) -> str:
+    """Route to the right backend by model name: gemini-* -> Gemini, else
+    Ollama Cloud. Lets the JUDGE be a strong Ollama model (e.g. gpt-oss:120b)
+    instead of the hard-rate-limited Gemini key."""
+    return call_gemini(model, prompt) if model.startswith("gemini") else call_ollama(model, prompt)
+
+
 def model_caller(kind: str, model: str):
     fn = call_ollama if kind == "ollama" else call_gemini
     return lambda prompt, **_kw: fn(model, prompt)
@@ -140,7 +150,7 @@ _RUBRIC = (
 def judge(prompt: str, response: str) -> float:
     text = (f"{_RUBRIC}\n\n=== WORKER MESSAGE ===\n{prompt}\n\n"
             f"=== ASSISTANT REPLY ===\n{response}\n\n=== YOUR JSON SCORE ===")
-    raw = call_gemini(JUDGE_MODEL, text).strip()
+    raw = call_model(JUDGE_MODEL, text).strip()
     # Strip ```json fences then take the JSON object. Raise (do NOT silently
     # return 0.0) on an unparseable judge response so a failure is visible as an
     # error rather than masquerading as a real zero score.
