@@ -1,0 +1,103 @@
+{
+  "_README": "DueCare harness-lift benchmark sample. Runs each model target in TWO arms — 'baseline' (raw prompt) and 'harnessed' (duecare.chat.harness_lift.build_harness_preamble() output + prompt: fired GREP rules + cited RAG docs + an ILO-reasoning/refusal instruction). Both arms are graded with the same per-dimension rubric and judge model; the headline metric is the LIFT = harnessed_score - baseline_score per model. TO RUN: (1) export the API keys for the external arms you want — GEMINI_API_KEY for google_gemini and ANTHROPIC_API_KEY for anthropic (also the judge key); local_gemma needs no key but needs the Gemma 4 weights loaded; targets with an unset key are skipped. (2) Strip the leading // comment block to get pure JSON. (3) Feed the JSON to the harness-lift runner (the lift-aware sibling of kaggle/03-universal-llm-benchmark/kernel.py), which expands each target's arms, builds the preamble once per prompt, calls each model per arm, grades every answer, and reports per-target {baseline, harnessed, lift}. PRIVACY (rule 81): external frontier targets (google_gemini, anthropic) receive ONLY public 21K-test benchmark prompts plus the public harness grounding (stable GREP rule descriptions, public RAG citations, the generic ILO-reasoning instruction) — NEVER raw worker chats, IDs, contacts, or private documents. Stable detection patterns/citations live in GREP/RAG and may be sent; volatile facts (fee amounts, phone numbers, current advisories) are resolved at runtime via tools/synced knowledge packs, never hardcoded here. Reports redact API-key values and keep only env-var names.",
+
+  "schema_version": "harness_lift.v1",
+  "name": "harness-lift-sample",
+
+  "// domain": "Selects the public prompt corpus + rubric: configs/duecare/domains/trafficking/seed_prompts.jsonl (the public 21K-test benchmark) and its rubric.yaml. Only public prompts are ever sent to external models.",
+  "domain": "trafficking",
+
+  "// max_prompts": "How many public prompts to run per arm. Kept small for a fast/cheap sample; total model calls = max_prompts * sum(len(arms) per active target). Raise for a full pass.",
+  "max_prompts": 12,
+
+  "// arms_default": "Arms applied to every target unless the target overrides its own 'arms'. 'baseline' = raw prompt; 'harnessed' = harness preamble + prompt. The lift is harnessed_score - baseline_score.",
+  "arms_default": ["baseline", "harnessed"],
+
+  "// harness": "Controls how the 'harnessed' arm preamble is built. These map to duecare.chat.harness_lift.build_harness_preamble(text, *, grep_call, rag_call, rag_top_k, max_chars). The preamble is PUBLIC grounding only — safe to send to external models. GREP fires deterministic ILO forced-labor indicator rules; RAG cites public legal/NGO documents; the ILO-reasoning instruction is a generic refusal/evidence-first directive (no volatile facts).",
+  "harness": {
+    "module": "duecare.chat.harness_lift",
+    "builder": "build_harness_preamble",
+    "grep": { "enabled": true, "ruleset": "trafficking" },
+    "rag": { "enabled": true, "rag_top_k": 4 },
+    "ilo_reasoning_instruction": true,
+    "max_chars": 4000,
+    "// max_chars_note": "Hard cap on preamble length so the harnessed prompt stays within model context and the grounding is bounded/auditable."
+  },
+
+  "// dimensions": "Per-dimension rubric (matches kaggle/03 DEFAULT_DIMENSIONS). The judge scores EACH dimension 0-10 for every answer in both arms, plus an overall 0-10 score. Per-dimension scoring keeps verdicts crisp (one concern per dimension) — see feedback_per_dimension_grading_integrity.",
+  "dimensions": [
+    "direct_answer",
+    "refusal_correctness",
+    "legal_grounding",
+    "forced_labor_indicators",
+    "fee_camouflage_detection",
+    "privacy_minimization",
+    "evidence_preservation",
+    "safe_referral",
+    "no_operational_uplift"
+  ],
+
+  "// targets": "Each entry is one model run in BOTH arms. Field names match kaggle/03 (name, provider, base_url/url, model, api_key_env). 'arms' may be omitted to inherit arms_default. external_pii_policy is an explicit per-target guard the runner enforces before any outbound call.",
+  "targets": [
+    {
+      "// target_local_gemma": "On-device Gemma 4 via the canonical Gemma4Runtime.load() path (rule 81). No api_key needed; runs entirely in-kernel. This is the headline 'can the same harness lift the local on-device model?' target. It is the only target technically capable of seeing non-public data, but this sample feeds it the same public prompts for an apples-to-apples comparison.",
+      "name": "local-gemma-4-e4b",
+      "provider": "local_gemma",
+      "model": "google/gemma-4-E4B-it",
+      "model_runtime": "Gemma4Runtime.load",
+      "arms": ["baseline", "harnessed"],
+      "api_key_env": null,
+      "external_pii_policy": "on_device_only"
+    },
+    {
+      "// target_gemini": "Google Gemini 3.5 via the provider-neutral caller (call_model_backend). External frontier target: receives PUBLIC prompts + PUBLIC harness grounding ONLY. base_url is the Gemini OpenAI-compatible endpoint; the runner reads GEMINI_API_KEY from the environment (value never stored in the report).",
+      "name": "gemini-3.5",
+      "provider": "google_gemini",
+      "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
+      "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+      "model": "gemini-3.5",
+      "api_key_env": "GEMINI_API_KEY",
+      "arms": ["baseline", "harnessed"],
+      "external_pii_policy": "public_prompts_only",
+      "max_tokens": 1024,
+      "temperature": 0.0
+    },
+    {
+      "// target_anthropic": "Claude Opus 4.8 via the Anthropic Messages API. External frontier target: PUBLIC prompts + PUBLIC harness grounding ONLY. Same model is also the judge below; every arm (including Opus's own) is scored by the same judge prompt so the lift delta stays consistent. Reads ANTHROPIC_API_KEY from the environment.",
+      "name": "claude-opus-4-8",
+      "provider": "anthropic",
+      "url": "https://api.anthropic.com/v1/messages",
+      "model": "claude-opus-4-8",
+      "api_key_env": "ANTHROPIC_API_KEY",
+      "arms": ["baseline", "harnessed"],
+      "external_pii_policy": "public_prompts_only",
+      "max_tokens": 1024,
+      "temperature": 0.0
+    }
+  ],
+
+  "// judge": "The grader. Uses Claude Opus via the Anthropic Messages endpoint (provider 'anthropic_messages', matching kaggle/03 judge_with_claude). Scores every answer in every arm against the per-dimension rubric above (0-10 per dimension + overall 0-10). If ANTHROPIC_API_KEY is unset, the runner falls back to deterministic keyword scoring. temperature 0.0 for reproducible grading. The judge sees only the (public) prompt and the model's answer — never private data.",
+  "judge": {
+    "provider": "anthropic_messages",
+    "url": "https://api.anthropic.com/v1/messages",
+    "model": "claude-opus-4-8",
+    "per_dimension": true,
+    "score_scale": [0, 10],
+    "api_key_env": "ANTHROPIC_API_KEY",
+    "max_tokens": 1200,
+    "temperature": 0.0,
+    "fallback": "deterministic"
+  },
+
+  "// report": "What the lift-aware runner emits beyond kaggle/03's raw report. Per target it records baseline + harnessed scores and their delta, ranks targets by lift, and surfaces the fired GREP rule ids and cited RAG doc ids per prompt for the transparency/'real, not faked' story.",
+  "report": {
+    "primary_metric": "lift",
+    "lift_formula": "harnessed_score - baseline_score",
+    "per_dimension_lift": true,
+    "rank_targets_by": "lift",
+    "include_preamble": true,
+    "include_grep_fired": true,
+    "include_rag_doc_ids": true,
+    "redact_api_keys": true
+  }
+}
