@@ -139,7 +139,11 @@ def create_app(state: Optional[ServerState] = None) -> FastAPI:
                 return await call_next(request)
             if path.startswith("/api/"):
                 hdr = request.headers.get("authorization", "")
-                if hdr != f"Bearer {api_token}":
+                expected = f"Bearer {api_token}"
+                # Constant-time compare to avoid a token timing oracle. Encode to
+                # bytes first so a non-ASCII Authorization header can't make
+                # compare_digest raise (which would turn a 401 into a 500).
+                if not secrets.compare_digest(hdr.encode("utf-8"), expected.encode("utf-8")):
                     return JSONResponse(
                         {"error": "unauthorized -- set "
                                    "Authorization: Bearer <DUECARE_API_TOKEN>"},

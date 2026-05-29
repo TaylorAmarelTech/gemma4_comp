@@ -100,7 +100,11 @@ class WorkflowRunner:
                 if out.status == TaskStatus.FAILED:
                     error = out.error
                     if self.workflow.coordinator.failure_policy.on_agent_error == "retry_then_skip":
-                        log.warning("workflow.agent_failed agent=%s; continuing", agent_id)
+                        log.warning("workflow.agent_failed agent=%s; skipping", agent_id)
+                        # Record the skip so the post-loop check marks the run
+                        # SKIPPED (naming the failed agents) instead of silently
+                        # COMPLETED — skipped_agents was never appended here.
+                        skipped_agents.append(agent_id)
                         continue
                     result_status = TaskStatus.FAILED
                     break
