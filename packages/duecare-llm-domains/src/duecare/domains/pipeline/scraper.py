@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 import httpx
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # ---------------------------------------------------------------------------
@@ -36,8 +36,7 @@ class RawDocument(BaseModel):
     status_code: int = 0
     language: str = "en"
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 # ---------------------------------------------------------------------------

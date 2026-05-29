@@ -120,6 +120,14 @@ def register_routes(app) -> None:
                 try:
                     rephrased = str(gemma_call(prompt, max_new_tokens=128)).strip()
                     if rephrased and len(rephrased) <= 400:
+                        # Defense-in-depth: `sanitized` is what gets sent to the
+                        # external backend, and the model could echo back or
+                        # hallucinate PII into its rephrase. Re-run the
+                        # deterministic redactor over the model output before
+                        # trusting it as the outbound query.
+                        rephrased, reredactions = _regex_redact(rephrased)
+                        if reredactions:
+                            rephrase_trace["post_rephrase_redactions"] = len(reredactions)
                         sanitized = rephrased
                         rephrase_trace["fired"] = True
                 except Exception as e:  # noqa: BLE001

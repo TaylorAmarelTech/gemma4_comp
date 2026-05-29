@@ -1412,7 +1412,10 @@ def _import_add(title: str, source: str, text: str) -> Optional[str]:
     if len(text.encode("utf-8")) > _IMPORT_MAX_DOC_BYTES:
         # Truncate rather than reject — preserve as much as fits so a
         # ZIP with one giant file still contributes its first chunk.
-        text = text[:_IMPORT_MAX_DOC_BYTES]
+        # Truncate by BYTES (the cap is in bytes); slicing by character would
+        # let multi-byte scripts (Arabic / Bengali / CJK) keep up to ~4x the
+        # cap. "ignore" drops any partial trailing multibyte sequence.
+        text = text.encode("utf-8")[:_IMPORT_MAX_DOC_BYTES].decode("utf-8", "ignore")
     doc_id = uuid4().hex[:12]
     # Chunk OUTSIDE the lock — chunking can be expensive on a huge doc
     # (regex pass + paragraph splitting) and we don't want to block
@@ -1733,8 +1736,12 @@ def _hybrid_fuse_with_dense(query_text: str, candidates: list,
         # title+text if missing.
         for i, c in enumerate(candidates):
             c.setdefault("id", f"_rrf_{i:04d}")
-        for c in dense_ranked:
-            c.setdefault("id", c.get("id") or f"_rrf_{i:04d}")
+        # dense_ranked[k] is a copy of candidates[sims[k][1]]; give each item
+        # the SAME synthetic id as its source candidate so RRF can fuse the two
+        # rank lists by id. (Previously this reused the stale loop variable `i`,
+        # collapsing every id-less dense item onto one duplicate id.)
+        for (_score, src_idx), c in zip(sims, dense_ranked):
+            c.setdefault("id", f"_rrf_{src_idx:04d}")
         fused = reciprocal_rank_fusion([candidates, dense_ranked], k=rrf_k)
         _path_trace_record(trace, layer=layer, stage="rrf",
                               n_in=len(candidates) + len(dense_ranked),
