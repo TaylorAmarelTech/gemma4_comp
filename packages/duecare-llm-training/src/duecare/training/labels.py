@@ -31,6 +31,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import re
 import uuid
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
@@ -210,10 +211,12 @@ class SyntheticLabelGenerator:
                                       f"{d['doc_id']}::{key}"),
                     target_kind="entity_type",
                     target_id=f"{d['doc_id']}::{key}",
-                    input_text=f"In a recruitment-context document, "
-                               f"the value '{v}' appears in field "
-                               f"'{k}'. What entity type does this "
-                               f"refer to?",
+                    # Teach the field->type signal WITHOUT embedding the raw
+                    # value `v` (worker PII): the label `hint` is derived from
+                    # the field name `k`, which carries the signal on its own.
+                    input_text=f"In a recruitment-context document, a value "
+                               f"appears in the field '{k}'. What entity type "
+                               f"does that field hold?",
                     label=hint,
                     confidence=0.92,
                     source_strategy="multi_pass_agreement",
@@ -249,9 +252,12 @@ class SyntheticLabelGenerator:
                     "cross_doc", "entity_type", r["entity_id"]),
                 target_kind="entity_type",
                 target_id=r["entity_id"],
-                input_text=(f"The value '{r['canonical_name']}' was "
-                             f"extracted from {dc} documents. What "
-                             f"entity type is it?"),
+                # Drop the raw canonical_name (worker PII, and per rule 81 we do
+                # NOT train the model to memorize specific entities). Keep only
+                # the non-identifying cross-document frequency signal.
+                input_text=(f"An entity was extracted from {dc} source "
+                             f"documents in a recruitment context. What "
+                             f"entity type is it most likely?"),
                 label=r["etype"],
                 confidence=round(confidence, 3),
                 source_strategy="cross_doc_consistency",
@@ -373,7 +379,10 @@ class SyntheticLabelGenerator:
             "run_id": "",
             "target_kind": ex.target_kind,
             "target_id": ex.target_id,
-            "input_text": ex.input_text,
+            # Hard PII gate at the persistence boundary: input_text is written to
+            # the labeled_examples table and exported to the JSONL training
+            # corpus, so it must never carry raw worker PII (10_safety_gate.md).
+            "input_text": _scrub_pii(ex.input_text),
             "input_image_path": ex.input_image_path or "",
             "label": ex.label,
             "confidence": float(ex.confidence),
@@ -383,6 +392,37 @@ class SyntheticLabelGenerator:
             "created_at": datetime.now(),
             "reviewed_at": None,
         })
+
+
+_PII_SUBS: list = [
+    (re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+"), "<EMAIL>"),
+    (re.compile(r"\b[A-Z]{2}\d{2}[A-Z0-9]{10,30}\b"), "<IBAN>"),
+    (re.compile(r"\b[A-Z]{1,2}\d{6,9}\b"), "<DOC_ID>"),            # passport/visa/national id
+    (re.compile(r"(?<!\d)\+?\d[\d().\-]{6,}\d(?!\d)"), "<PHONE_OR_ID>"),
+    (re.compile(r"\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b"), "<DATE>"),  # DOB -> generalize
+    # field-labelled names / employers / agents: "name: Maria Santos" -> "name: <REDACTED>"
+    (re.compile(
+        r"(?i)\b(name|worker_name|complainant|subject|employer|household|recruiter|agency|agent|broker)\b\s*[:=]\s*"
+        r"[A-Z][\w.'&-]*(?:\s+[A-Z][\w.'&-]*){0,4}"),
+        r"\1: <REDACTED>"),
+]
+
+
+def _scrub_pii(text: str) -> str:
+    """Defense-in-depth PII scrub at the training-artifact boundary.
+
+    No raw worker PII may reach the labeled_examples table or the JSONL
+    training corpus (10_safety_gate.md). Covers the structured pii_spec.yaml
+    categories; comprehensive free-text name NER stays the upstream Anonymizer
+    (A6) job, and the value-bearing label strategies are additionally
+    generalized so they never embed a raw entity value in the first place.
+    """
+    if not text:
+        return text
+    out = text
+    for pat, repl in _PII_SUBS:
+        out = pat.sub(repl, out)
+    return out
 
 
 def _eid(strategy: str, kind: str, target: str) -> str:

@@ -8612,15 +8612,22 @@ def _grep_call(text: str, extra_rules=None) -> dict:
         for pat in patterns:
             m = re.search(pat, lower, re.IGNORECASE)
             if m is None:
+                # `continue`, not `break`: for all_required=False (ANY-match)
+                # rules a miss on one pattern must NOT stop the others from being
+                # evaluated, or a later matching pattern is never seen (a GREP
+                # false negative). The all_required gate below still uses
+                # all_matched to require every pattern when that flag is set.
                 all_matched = False
-                break
+                continue
             # Numeric threshold check (used by the APR rule)
             if min_capture is not None and m.groups():
                 try:
                     val = int(m.group(1))
                     if val < min_capture:
+                        # Below threshold -> this pattern doesn't qualify; keep
+                        # checking the rest (same ANY-match reasoning as above).
                         all_matched = False
-                        break
+                        continue
                 except (ValueError, IndexError):
                     pass
             # Capture surrounding context for excerpt
@@ -18380,7 +18387,10 @@ def grade_response_via_evaluator(
                 evaluator_response = model_call(prompt) or ""
                 consecutive_errors = 0  # reset on success
             except Exception as e:  # noqa: BLE001 -- surface as FAIL not crash
-                evaluator_response = f'{{"verdict":"uncertain","rationale":"evaluator_error: {e}"}}'
+                # Only the exception TYPE goes into this browser-reachable
+                # response string — the full message can echo the prompt that
+                # was just sent (case content / PII), per 10_safety_gate.md.
+                evaluator_response = f'{{"verdict":"uncertain","rationale":"evaluator_error: {type(e).__name__}"}}'
                 consecutive_errors += 1
                 total_errors += 1
                 if consecutive_errors >= 3 or total_errors >= 5:
@@ -18390,7 +18400,7 @@ def grade_response_via_evaluator(
                     raise RuntimeError(
                         f"LLM evaluator unhealthy: {total_errors} errors total, "
                         f"{consecutive_errors} consecutive. Last: "
-                        f"{type(e).__name__}: {str(e)[:200]}"
+                        f"{type(e).__name__}"  # type only; message can carry PII
                     ) from e
             else:
                 # Persist only genuine model output (the error placeholder

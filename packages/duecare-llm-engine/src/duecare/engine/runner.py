@@ -65,9 +65,15 @@ class Engine:
                     "engine.subprocess.failed",
                     {"return_code": proc.returncode},
                 )
+                # Do NOT embed raw stdout/stderr in the exception message:
+                # subprocess output can carry document text, file paths, or model
+                # output (PII) that would then land in logs (10_safety_gate.md).
+                # Surface only the return code + byte sizes; the full captured
+                # output stays on the proc object for explicit local inspection.
                 raise EngineError(
-                    f"pipeline exited with code {proc.returncode}. "
-                    f"stdout: {proc.stdout!r} stderr: {proc.stderr!r}")
+                    f"pipeline exited with code {proc.returncode} "
+                    f"(stdout {len(proc.stdout or b'')} bytes, "
+                    f"stderr {len(proc.stderr or b'')} bytes)")
             with otel.trace_span("engine.run.load"):
                 run = Run.load(cfg.output_dir)
                 run.started_at = started_at
