@@ -78,24 +78,25 @@
   </div>
 
   <script>
-    const TOKEN = "{{ token }}";
+    const TOKEN = {{ token | tojson }};
+    const AUTH_HEADERS = {'X-DueCare-Admin-Token': TOKEN};
     function setStatus(msg) { document.getElementById('status').textContent = msg; }
     async function trigger(slug) {
       setStatus('triggering ' + slug + ' ...');
-      const r = await fetch('/api/sentinel/trigger/' + slug + '?token=' + TOKEN, {method: 'POST'});
+      const r = await fetch('/api/sentinel/trigger/' + slug, {method: 'POST', headers: AUTH_HEADERS});
       const out = await r.json();
       setStatus('done: ' + JSON.stringify(out).slice(0, 200));
       setTimeout(reloadDrafts, 600);
     }
     async function runDue() {
       setStatus('running all due queries ...');
-      const r = await fetch('/api/sentinel/run-due?token=' + TOKEN, {method: 'POST'});
+      const r = await fetch('/api/sentinel/run-due', {method: 'POST', headers: AUTH_HEADERS});
       const out = await r.json();
       setStatus('done: ' + out.n_run + ' run, ' + out.n_skipped + ' skipped');
       setTimeout(reloadDrafts, 600);
     }
     async function reloadDrafts() {
-      const r = await fetch('/api/sentinel/drafts?token=' + TOKEN);
+      const r = await fetch('/api/sentinel/drafts', {headers: AUTH_HEADERS});
       const drafts = await r.json();
       document.getElementById('drafts').textContent =
         drafts.length

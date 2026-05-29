@@ -56,10 +56,11 @@
   </table>
 
   <script>
-    const TOKEN = "{{ token }}";
+    const TOKEN = {{ token | tojson }};
+    const AUTH_HEADERS = {'X-DueCare-Admin-Token': TOKEN};
 
     async function loadQueue() {
-      const r = await fetch('/api/curator/queue');
+      const r = await fetch('/api/curator/queue', {headers: AUTH_HEADERS});
       if (!r.ok) {
         document.getElementById('rows').innerHTML =
           '<tr><td colspan="7" class="empty">HTTP ' + r.status + '</td></tr>';
@@ -105,7 +106,7 @@
         '/api/curator/decide/' + submissionId + '/' + itemIndex,
         {
           method: 'POST',
-          headers: {'Content-Type': 'application/json'},
+          headers: {'Content-Type': 'application/json', ...AUTH_HEADERS},
           body: JSON.stringify({
             decision: decision,
             reason: reason,
