@@ -102,6 +102,8 @@ outputs/
 reports/*.html
 reports/*.pdf
 reports/test-run-*.md
+reports/*.jsonl
+reports/*.responses.jsonl
 mlruns/
 wandb/
 
