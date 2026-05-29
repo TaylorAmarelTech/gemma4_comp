@@ -70,13 +70,21 @@ class Registry(Generic[T]):
         ):
             return True
 
-        # A bare __qualname__ match (ignoring __module__) would treat two
-        # genuinely different plugins that share a class name in different
-        # modules (e.g. gemma.Adapter vs openai.Adapter) as the same
-        # registration and silently drop the second. The (__module__,
-        # __qualname__) pair above already covers the pytest-importlib
-        # re-import case, so anything reaching here is a real id collision.
-        return False
+        # Fall back to a __qualname__-only match. This IS load-bearing: under
+        # pytest importlib mode (and editable namespace installs) a plugin
+        # module is re-exec'd during full-suite collection under a DIFFERENT
+        # __module__, so the (__module__, __qualname__) pair above misses the
+        # re-import and `add()` would raise "id already registered", breaking
+        # collection of the whole suite. Qualname-only keeps the re-import
+        # idempotent. (Trade-off: two genuinely DIFFERENT plugins that share a
+        # class name across modules would be treated as the same here — but no
+        # in-tree plugin does that, and breaking full-suite collection is the
+        # worse failure. A 2026-05-28 attempt to `return False` here regressed
+        # the full suite; do not remove this branch without a real cross-module
+        # qualname-collision test proving it is safe.)
+        return getattr(existing_obj, "__qualname__", None) == getattr(
+            candidate_obj, "__qualname__", None
+        )
 
     def get(self, id: str) -> T:
         if id not in self._by_id:
