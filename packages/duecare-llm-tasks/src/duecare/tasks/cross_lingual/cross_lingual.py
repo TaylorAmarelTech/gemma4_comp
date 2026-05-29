@@ -39,6 +39,7 @@ class CrossLingualTask:
 
         total_score = 0.0
         n = len(LOCALE_PROMPTS)
+        n_scored = 0
 
         for lang, text in LOCALE_PROMPTS.items():
             try:
@@ -53,6 +54,7 @@ class CrossLingualTask:
                 )
                 grade, score, signals = score_against_rubric(gen.text, rubric)
                 total_score += score
+                n_scored += 1
 
                 result.per_item.append(
                     ItemResult(
@@ -70,8 +72,11 @@ class CrossLingualTask:
                 )
 
         result.metrics = {
-            "mean_score": total_score / n if n else 0.0,
+            # divide by languages actually scored, not attempted -- a failed
+            # model call must not halve the mean. n_languages = attempted.
+            "mean_score": total_score / n_scored if n_scored else 0.0,
             "n_languages": float(n),
+            "n_scored": float(n_scored),
         }
         result.status = TaskStatus.COMPLETED
         result.ended_at = datetime.now()

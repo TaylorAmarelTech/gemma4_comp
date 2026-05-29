@@ -93,9 +93,17 @@ class AnonymizationTask:
                 redacted_count = max(0, expected_count - remaining_count)
                 recall = redacted_count / expected_count if expected_count else 1.0
 
-                # Precision proxy: did the model add obvious false positives?
-                fp_tags = gen.text.count("[") - gen.text.count("]")  # rough
-                precision = 1.0 if fp_tags == 0 else 0.5
+                # Precision proxy: penalize emitting materially MORE redaction
+                # tags than there was PII to redact. The old signed imbalance
+                # (count('[') - count(']')) scored balanced over-redaction
+                # ("[A] [B] [C] ...") as perfect precision regardless of how many
+                # tags were added. Count opening brackets as the emitted-tag
+                # count and compare against the expected PII count.
+                emitted_tags = gen.text.count("[")
+                if emitted_tags <= expected_count:
+                    precision = 1.0
+                else:
+                    precision = max(0.0, expected_count / emitted_tags)
 
                 total_recall += recall
                 total_precision += precision
