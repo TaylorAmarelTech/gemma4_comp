@@ -25,7 +25,13 @@ from duecare.core.schemas import (
     WorkflowRun,
 )
 from duecare.agents import agent_registry
-from duecare.agents.base import AgentSupervisor, fresh_agent_output, noop_model
+from duecare.agents.base import (
+    AgentSupervisor,
+    BudgetExceeded,
+    HarmDetected,
+    fresh_agent_output,
+    noop_model,
+)
 
 
 # Tools exposed to Gemma 4 in function-calling mode. One per agent in
@@ -184,6 +190,12 @@ class CoordinatorAgent:
                 "orchestration_mode_code": 1.0 if self.use_gemma_orchestration else 0.0,
             }
             out.context_updates = {"orchestration_mode": mode}
+        except (HarmDetected, BudgetExceeded):
+            # Safety / budget aborts are HARD stops, not generic failures.
+            # Swallowing them into a FAILED output would let a caller treat an
+            # abort-on-harm or an exhausted budget as a routine failure it might
+            # retry or ignore — defeating the supervisor's guardrail. Propagate.
+            raise
         except Exception as e:
             out.status = TaskStatus.FAILED
             out.decision = f"failed: {e}"
