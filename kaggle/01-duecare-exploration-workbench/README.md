@@ -271,7 +271,7 @@ current index.
 
 - **Core workbench:** this notebook.
 - **Focused live demo + pitch deck:** [#02 core: Live demo](../02-live-demo/README.md).
-- **Archived quantitative proof + benchmark + fine-tune:** [A-00 omni experiment workbench](../_archive/notebooks/A-00-omni-experiment-workbench/README.md).
+- **Quantitative proof + benchmark + fine-tune:** [A-00 omni experiment workbench](../A-00-omni-experiment-workbench/README.md).
 - **Public website:** [duecare-ai.com](https://duecare-ai.com).
 
 ---
@@ -284,7 +284,7 @@ You are here: **#01 active: Exploration workbench**.
 
 - **[#01 active: Exploration workbench](../01-duecare-exploration-workbench/README.md)**
 - [#02 active: Live demo](../02-live-demo/README.md)
-- [#A00 archived: Omni experiment workbench](../_archive/notebooks/A-00-omni-experiment-workbench/README.md)
+- [#A00 active: Omni experiment workbench](../A-00-omni-experiment-workbench/README.md)
 
 Archived reference notebooks live under `../_archive/notebooks/`.
 
@@ -296,5 +296,5 @@ Index page: [`kaggle/_INDEX.md`](../_INDEX.md).
 
 - **[DueCare App (#01)](https://www.kaggle.com/code/taylorsamarel/duecare-app)**: the full chat playground with the safety harness layers, local imports/evidence, 9-variant model picker, 4 grading modes, A/B compare, and every visualization in one place.
 - **[DueCare Live Demo (#02)](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo)**: focused public-hub walkthrough plus the recording-grade pitch deck at `/start` and `/slides`.
-- **[DueCare Fine-tuning and Evaluation](../_archive/notebooks/A-00-omni-experiment-workbench/README.md)**: archived preconfigured benchmark, synthetic SFT, LoRA, four-arm evaluation, and final report path.
+- **[DueCare Fine-tuning and Evaluation](../A-00-omni-experiment-workbench/README.md)**: active preconfigured benchmark, synthetic SFT, LoRA, four-arm evaluation, and final report path.
 - **[Public hub: duecare-ai.com](https://duecare-ai.com)**: knowledge-pack registry, anonymized signal intake, public-source proposal intake, and the six-lane audience showcase.
