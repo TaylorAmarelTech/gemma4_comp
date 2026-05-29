@@ -680,6 +680,13 @@ def _build_draft_response(app: Any, body: dict[str, Any]) -> dict[str, Any]:
         "suggested_types": [e.get("knowledge_object_type") for e in envelopes],
         "model_call_requested": use_gemma,
         "model_call_available": gc is not None,
+        # Top-level signal that the Gemma draft/refine pass FAILED on at least
+        # one envelope (the per-envelope detail stays in extensions.gemma_error).
+        # Lets the UI flag a draft as deterministic-only rather than burying the
+        # failure where a reviewer might promote it believing Gemma refined it.
+        "gemma_call_failed": any(
+            e.get("extensions", {}).get("gemma_error") for e in envelopes
+        ),
         "demo_replay": demo_replay(
             lane="knowledge_extraction",
             endpoint=replay_endpoint,

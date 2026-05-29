@@ -48,6 +48,11 @@ _ROW_CAP = 300
 # of a decompression-bomb archive) is rejected with 413 instead of OOM-ing the
 # Kaggle T4 kernel mid-demo. Generous enough for legitimate case-file bundles.
 _MAX_UPLOAD_BYTES = 64 * 1024 * 1024  # 64 MB
+# Decompression-bomb guards for ZIP uploads: a 64 MB archive of compressible
+# data can expand to many GB. Bound a single member and the cumulative
+# uncompressed total (sizes read from the ZIP central directory -> no decompress).
+_MAX_ZIP_MEMBER_BYTES = 64 * 1024 * 1024    # 64 MB per member
+_MAX_ZIP_TOTAL_BYTES = 256 * 1024 * 1024    # 256 MB cumulative uncompressed
 _TEXT_EXTS = {".txt", ".md", ".csv", ".json", ".jsonl", ".log", ".rtf", ".html", ".htm", ".eml"}
 _MEDIA_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".tif", ".tiff", ".bmp"}
 _SPREADSHEET_EXTS = {".xlsx"}
@@ -2161,9 +2166,38 @@ def _parse_upload(filename: str, contents: bytes) -> list[dict]:
     rows: list[dict] = []
     if fname_l.endswith(".zip"):
         with zipfile.ZipFile(_io.BytesIO(contents)) as zf:
-            for name in zf.namelist():
+            total_uncompressed = 0
+            for info in zf.infolist():
+                name = info.filename
                 if name.endswith("/"):
                     continue
+                # Zip-slip guard: skip members whose path escapes the archive
+                # root. Nothing here writes to disk, but `name` flows into
+                # row_ids and Gemma prompts, so reject traversal-shaped entries.
+                if any(part == ".." for part in name.replace("\\", "/").split("/")):
+                    continue
+                # Decompression-bomb guard: bound per-member and cumulative
+                # uncompressed size BEFORE reading the member into memory.
+                if (
+                    info.file_size > _MAX_ZIP_MEMBER_BYTES
+                    or total_uncompressed + info.file_size > _MAX_ZIP_TOTAL_BYTES
+                ):
+                    rows.append({
+                        "row_id": name,
+                        "text": (
+                            "[skipped: archive member too large to expand safely]\n"
+                            f"file: {name}\n"
+                            f"declared_uncompressed_bytes: {info.file_size}\n"
+                            "status: skipped_to_protect_kernel_memory"
+                        ),
+                        "source": filename,
+                        "parent_doc": name,
+                        "chunk_index": 0,
+                        "processing_level": "skipped_oversize",
+                        **_path_metadata(name),
+                    })
+                    continue
+                total_uncompressed += info.file_size
                 data = zf.read(name)
                 if _ext(name) == ".docx":
                     docx_rows = _try_docx_text_rows(name, data, filename)
@@ -5298,6 +5332,15 @@ def register_routes(app: Any) -> None:
                 f"question is too long ({len(question)} chars); cap is 4000. "
                 "Trim the question and re-ask.",
             )
+        # Strip Gemma chat-control tokens before the question is interpolated
+        # into the synthesis prompt below: a question carrying <start_of_turn>/
+        # <end_of_turn>/<bos>/<eos> could otherwise try to break out of the user
+        # turn and steer the (reviewer-facing) analysis output.
+        for _ctl in ("<start_of_turn>", "<end_of_turn>", "<bos>", "<eos>"):
+            question = question.replace(_ctl, "")
+        question = question.strip()
+        if not question:
+            raise HTTPException(400, "question is required")
 
         bundle = getattr(app.state, "last_process_bundle", None)
         gc = getattr(app.state, "gemma_call", None)

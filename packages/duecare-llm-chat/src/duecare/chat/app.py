@@ -1539,6 +1539,9 @@ def _retrieve_imports(user_text: str, *, max_docs: int = 5,
         tokens_snapshot = dict(_IMPORT_BM25["doc_tokens"])
         lens_snapshot   = dict(_IMPORT_BM25["doc_lens"])
         n_docs          = _IMPORT_BM25["n_docs"]
+        # Snapshot the doc->chunk_ids map too: it was previously read outside
+        # the lock below, so a concurrent upload/evict could mutate it mid-read.
+        chunk_by_doc_snapshot = {k: list(v) for k, v in _IMPORT_CHUNK_BY_DOC.items()}
     if not all_docs:
         return []
     query_toks = _import_chunk_tokenize(user_text or "")
@@ -1549,7 +1552,7 @@ def _retrieve_imports(user_text: str, *, max_docs: int = 5,
         out = []
         total = 0
         for d in all_docs[:max_docs]:
-            chunk_ids = _IMPORT_CHUNK_BY_DOC.get(d["id"], [])
+            chunk_ids = chunk_by_doc_snapshot.get(d["id"], [])
             if not chunk_ids:
                 continue
             first = chunks_snapshot.get(chunk_ids[0]) or {}
@@ -4238,7 +4241,11 @@ def create_app(
                     max_new_tokens=max_new_tokens,
                     temperature=eff_temp,
                     attempts=3,
-                    use_lock=False,
+                    # A separate evaluator (its own device/network) needs no
+                    # shared CUDA lock. But if the kernel wired the SAME callable
+                    # for chat and evaluator, the judge call MUST take _GEMMA_LOCK
+                    # or it races a concurrent chat generation and corrupts CUDA.
+                    use_lock=(ec is gc),
                 )
             except Exception as eval_exc:  # noqa: BLE001
                 if gc is not None and gc is not ec:
