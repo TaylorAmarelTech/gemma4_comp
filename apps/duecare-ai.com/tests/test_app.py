@@ -328,7 +328,11 @@ def test_rejects_raw_pii_in_signal(tmp_path) -> None:
     assert response.status_code == 422
 
 
-def test_accepts_opencrawl_update_as_proposal(tmp_path) -> None:
+def test_accepts_opencrawl_update_as_proposal(tmp_path, monkeypatch) -> None:
+    # The inbound POST is open (crawlers/automation submit proposals); the GET
+    # that lists the raw proposal log is admin-gated (it can carry consented
+    # submitter contact emails), so reading it back requires the admin token.
+    monkeypatch.setenv("DUECARE_ADMIN_TOKEN", "test-admin-token")
     client = TestClient(create_app(data_dir=tmp_path))
 
     response = client.post(
@@ -347,8 +351,14 @@ def test_accepts_opencrawl_update_as_proposal(tmp_path) -> None:
 
     assert response.status_code == 202
     assert response.json()["status"] == "proposed"
-    updates = client.get("/api/hub/opencrawl/updates").json()
+    updates = client.get(
+        "/api/hub/opencrawl/updates",
+        headers={"X-DueCare-Admin-Token": "test-admin-token"},
+    ).json()
     assert len(updates) == 1
+
+    # Without the admin token the raw-log read is rejected.
+    assert client.get("/api/hub/opencrawl/updates").status_code == 401
 
 
 def test_pack_registry_list_and_filter(tmp_path) -> None:

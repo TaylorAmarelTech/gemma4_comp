@@ -1249,6 +1249,7 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
     @application.get("/api/curator/queue", tags=["curator"])
     async def curator_queue(request: Request) -> dict:
         """Stage 04 queue. No raw content -- only metadata + sha256."""
+        _require_admin_access(request)
         import json as _json
         state = _state(request)
         root = state.store.root
@@ -1297,6 +1298,7 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         body: CuratorDecisionIn,
     ) -> CuratorDecisionReceipt:
         """Stage 04 -- curator accepts / rejects / requests changes."""
+        _require_admin_access(request)
         import json as _json, hashlib as _hashlib
         from datetime import UTC as _UTC, datetime as _dt
         if body.decision not in {"accept", "reject", "request_changes"}:
@@ -1536,6 +1538,7 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
     async def list_packs(
         kind: str | None = None,
         status_: str | None = None,
+        status: str | None = None,
         jurisdiction: str | None = None,
         corridor: str | None = None,
         tag: str | None = None,
@@ -1545,14 +1548,18 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
 
         Filters compose: pass any subset of ``kind`` (ContextPack /
         GrepRulePack / ToolPack / ContactPack / RubricPack / EvalPromptPack
-        / TrainingExamplePack), ``status_`` (vetted / proposed /
-        needs_review / deprecated), ``jurisdiction`` (ISO code), ``corridor``
-        (e.g. ``PHL-KWT``), ``tag``. Set ``latest_only=false`` to get every
-        version that matches.
+        / TrainingExamplePack), status (``status`` or its legacy alias
+        ``status_``: vetted / proposed / needs_review / deprecated),
+        ``jurisdiction`` (ISO code), ``corridor`` (e.g. ``PHL-KWT``), ``tag``.
+        Set ``latest_only=false`` to get every version that matches.
+
+        ``status`` is the canonical query key (matches the tool manifest);
+        ``status_`` is accepted for back-compat with the reference hub_client.
         """
+        status_filter = status if status is not None else status_
         bodies = pack_registry.list_packs(
             kind=kind,
-            status=status_,
+            status=status_filter,
             jurisdiction=jurisdiction,
             corridor=corridor,
             tag=tag,
@@ -1562,7 +1569,7 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
             "count": len(bodies),
             "filters": {
                 "kind": kind,
-                "status": status_,
+                "status": status_filter,
                 "jurisdiction": jurisdiction,
                 "corridor": corridor,
                 "tag": tag,
@@ -1756,9 +1763,16 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         )
 
     @application.get("/api/hub/opencrawl/updates", response_model=list[UpdateProposalRecord], tags=["updates"])
-    async def list_opencrawl_updates(request: Request) -> list[UpdateProposalRecord]:
+    async def list_opencrawl_updates(request: Request, limit: int = 200) -> list[UpdateProposalRecord]:
+        # Admin-only + bounded: the raw proposal log can carry submitter contact
+        # emails (when consented) and grows unbounded as the Sentinel harvests,
+        # so it must not be a public, full-table dump.
+        _require_admin_access(request)
         state = _state(request)
-        return [UpdateProposalRecord.model_validate(record) for record in state.store.read_all("updates.jsonl")]
+        records = state.store.read_all("updates.jsonl")
+        if limit and limit > 0:
+            records = records[-limit:]
+        return [UpdateProposalRecord.model_validate(record) for record in records]
 
     @application.post(
         "/api/hub/automation/inbound-email",
