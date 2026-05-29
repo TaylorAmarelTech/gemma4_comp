@@ -898,8 +898,13 @@ def _enrich_search_with_pages(search_result: dict, *,
                                 if not c.get("snippet") and c.get("text"):
                                     c["snippet"] = c["text"]
                             ranked = rerank_call(query, ranked) or ranked
-                        except Exception:  # noqa: BLE001
-                            pass  # rerank failure → keep BM25 order
+                        except Exception as _rr_exc:  # noqa: BLE001
+                            # rerank failure -> keep BM25 order, but log it so a
+                            # persistently-broken reranker is visible, not silent.
+                            from duecare.chat._dc_log import dc_log as _dc
+                            _dc("online.rerank",
+                                f"rerank failed; kept bm25 order ({type(_rr_exc).__name__})",
+                                level="warn")
                     kept = ranked[:max(1, int(chunks_per_page))]
                     # Replace `text` with breadcrumbed chunk concat
                     # capped at max_chars.
@@ -963,8 +968,12 @@ def _enrich_search_with_pages(search_result: dict, *,
                         try:
                             g = grep_call(page["text"]) or {}
                             page["grep_hits"] = g.get("hits") or []
-                        except Exception:  # noqa: BLE001
+                        except Exception as _ge:  # noqa: BLE001
+                            # GREP over the fetched page failed -> no hits, but
+                            # record the error (like chunk_error above) so the UI
+                            # shows the layer broke rather than "clean, no hits".
                             page["grep_hits"] = []
+                            page["grep_error"] = f"{type(_ge).__name__}: {_ge}"[:200]
             fetched_pages.append(page)
     fetched_pages.sort(key=lambda p: p.get("rank", 999))
     search_result["fetched_pages"] = fetched_pages
