@@ -74,15 +74,22 @@ def relevant_groups(meta: dict) -> set[str]:
     return groups
 
 
-def relevant_dim_ids(meta: dict, all_dims: list[dict]) -> list[str]:
+def relevant_dim_ids(meta: dict, all_dims: list[dict], judge: dict | None = None) -> list[str]:
     """Return the relevant dimension ids for ``meta``.
 
-    Sector/corridor groups are special: only the dim matching the prompt's
-    sector/corridor is included (not all 12/14), and only when tagged.
+    Hybrid applicability: the deterministic rules (category/framing/jurisdiction)
+    set the floor; an optional model APPLICABILITY-JUDGE result augments them.
+    ``judge`` = {"groups": [...], "sector": "...", "corridor": "..."} -- the
+    judge can ADD groups the rules missed (union) and fill in a sector/corridor
+    the tags lack. Sector/corridor groups stay special: only the dim matching the
+    prompt's (or judge's) sector/corridor is included (not all 12/14).
     """
     groups = relevant_groups(meta)
-    sector = str(meta.get("sector", "")).lower().strip()
-    corridor = str(meta.get("corridor", "")).upper().strip()
+    if judge:  # model judge AUGMENTS the rule-based applicability (never prunes core)
+        groups |= {str(g) for g in (judge.get("groups") or [])}
+    j = judge or {}
+    sector = (str(meta.get("sector", "")) or str(j.get("sector", ""))).lower().strip()
+    corridor = (str(meta.get("corridor", "")) or str(j.get("corridor", ""))).upper().strip()
     out: list[str] = []
     for d in all_dims:
         did = str(d["id"])

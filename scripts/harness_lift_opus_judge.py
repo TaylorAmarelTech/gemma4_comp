@@ -41,6 +41,7 @@ for _src in glob.glob(str(_ROOT / "packages" / "*" / "src")):
 
 from harness_lift_scheduled import aggregate, cell_key, load_checkpoint  # noqa: E402
 from dimension_selector import relevant_dim_ids  # noqa: E402
+from applicability_judge import load_tags as _load_applic_tags  # noqa: E402
 
 _BENCH = _ROOT / "configs" / "duecare" / "benchmarks"
 _REPORTS = _ROOT / "reports"
@@ -97,6 +98,7 @@ def make_batches(responses_path: pathlib.Path, checkpoint_path: pathlib.Path,
     dims = json.loads((_BENCH / "harness_lift_dimensions.json").read_text(encoding="utf-8"))["dimensions"]
     prompts = _load_prompts(prompts_file)
     meta_by_id = _load_prompt_meta(prompts_file)
+    judge_tags = _load_applic_tags()  # model applicability-judge results (augment the rules)
     judged = {ck.rsplit("|", 1)[0] for ck in load_checkpoint(checkpoint_path)}  # pid|model|arm
     responses = _load_responses(responses_path)
 
@@ -112,7 +114,8 @@ def make_batches(responses_path: pathlib.Path, checkpoint_path: pathlib.Path,
         # prompt -- other sectors/corridors, attack groups on a worker prompt, etc.)
         pending.append({"prompt_id": r["prompt_id"], "model": r["model"], "arm": r["arm"],
                         "prompt": prompts.get(pid, ""), "response": r["response"],
-                        "dim_ids": relevant_dim_ids(meta_by_id.get(pid, {}), dims)})
+                        "dim_ids": relevant_dim_ids(meta_by_id.get(pid, {}), dims,
+                                                    judge=judge_tags.get(pid))})
 
     _BATCH_DIR.mkdir(parents=True, exist_ok=True)
     n = 0
