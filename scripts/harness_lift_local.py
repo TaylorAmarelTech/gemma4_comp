@@ -206,8 +206,9 @@ def run(
 
 def main() -> None:
     bench = _ROOT / "configs" / "duecare" / "benchmarks"
+    prompts_file = os.environ.get("LIFT_PROMPTS_FILE", "harness_lift_prompts_100.json")
     prompts = json.loads(
-        (bench / "harness_lift_prompts_100.json").read_text(encoding="utf-8"))["prompts"]
+        (bench / prompts_file).read_text(encoding="utf-8"))["prompts"]
     prompts = prompts[: int(os.environ.get("LIFT_N_PROMPTS", str(len(prompts))))]
     models = [m.strip() for m in os.environ.get(
         "LIFT_MODELS", "gpt-oss:20b,gemma4:31b,gemini-3.5-flash").split(",") if m.strip()]
