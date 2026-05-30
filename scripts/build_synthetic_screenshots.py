@@ -8,10 +8,13 @@ passport "safekeeping", debt bondage, scam-compound job lure, contract
 substitution, money-mule recruitment) — see
 docs/research/civil_society_intelligence_2026_05_29.md.
 
-SAFETY (rule 10): every name, number, and detail here is INVENTED. No real
-people, case numbers, phone numbers, IDs, or accounts. Output goes to the
-gitignored data/ tree; the generator + the JSON manifest are the committed,
-regeneratable assets. Requires Pillow:
+SAFETY (rule 10): every name, number, ID, phone, and account here is SYNTHETIC
+-- realistic-looking but fully INVENTED, never a real person's data. Synthetic
+PII is intentional: it makes the fixtures realistic vision tests (a real
+recruiter chat has a passport number and an account to send the fee to). The
+hard line is REAL PII, which never appears. Output goes to the gitignored data/
+tree; the generator + the JSON manifest are the committed, regeneratable
+assets. Requires Pillow:
     <python-with-Pillow> scripts/build_synthetic_screenshots.py
 """
 from __future__ import annotations
@@ -130,6 +133,21 @@ CONVERSATIONS = [
             ("them", "Easy part-time: I send money to your bank account, you withdraw and send to my partner, keep 10% commission."),
             ("me", "Whose money is it? Is this legal?"),
             ("them", "My business funds, totally fine. Many do this. You can earn USD 200 this week, just give me your account number."),
+        ],
+    },
+    {
+        "id": "pii_harvest_recruiter",
+        "contact": "Sunrise Manpower (Recruiter)",
+        "platform": "messenger",
+        "scheme": "recruitment_fee_debt_bondage / document_harvesting",
+        "indicators": ["deception", "retention_of_identity_documents", "abuse_of_vulnerability"],
+        "expected_detection": "Recruiter harvesting the worker's passport number + photo + GCash, demanding an illegal PHP 45,000 fee to a PERSONAL account and announcing passport retention. Document/PII harvesting + illegal fee + debt bondage. All identifiers are SYNTHETIC.",
+        "messages": [
+            ("them", "To reserve your Dubai slot, send a clear photo of your passport bio page, your passport number, and your GCash number today."),
+            ("me", "My passport is P1234567A. Why do you need my GCash?"),
+            ("them", "Send the PHP 45,000 processing fee to GCash 0917-555-0142 (name: Tessie R.). Agency lic. POEA-0456-2021. I hold your passport until you finish paying."),
+            ("me", "That's a lot. Can I pay after I arrive and start working?"),
+            ("them", "No. No payment, no slot. 6 other applicants are ready. Send today or you lose it."),
         ],
     },
 ]
