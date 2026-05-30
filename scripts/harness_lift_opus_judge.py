@@ -40,6 +40,7 @@ for _src in glob.glob(str(_ROOT / "packages" / "*" / "src")):
         sys.path.insert(0, _src)
 
 from harness_lift_scheduled import aggregate, cell_key, load_checkpoint  # noqa: E402
+from dimension_selector import relevant_dim_ids  # noqa: E402
 
 _BENCH = _ROOT / "configs" / "duecare" / "benchmarks"
 _REPORTS = _ROOT / "reports"
@@ -64,12 +65,38 @@ def _load_prompts(prompts_file: str) -> dict[str, str]:
     return {str(p["id"]): p["text"] for p in data["prompts"]}
 
 
+def _load_prompt_meta(prompts_file: str) -> dict[str, dict]:
+    """{id: {category, framing, sector, corridor}} for the dimension selector,
+    drawn from the prompts file and enriched from the (richer) expansion corpus."""
+    meta: dict[str, dict] = {}
+    try:
+        for p in json.loads((_BENCH / prompts_file).read_text(encoding="utf-8"))["prompts"]:
+            corr = p.get("corridors") or []
+            meta[str(p["id"])] = {"category": p.get("category", ""), "framing": p.get("framing", ""),
+                                  "sector": p.get("sector", ""),
+                                  "corridor": (corr[0] if corr else p.get("corridor", ""))}
+    except Exception:
+        pass
+    exp = _BENCH / "harness_lift_prompts_expansion.jsonl"
+    if exp.exists():
+        for line in exp.read_text(encoding="utf-8").splitlines():
+            try:
+                d = json.loads(line)
+            except Exception:
+                continue
+            if d.get("id"):
+                meta[str(d["id"])] = {"category": d.get("category", ""), "framing": d.get("framing", ""),
+                                      "sector": d.get("sector", ""), "corridor": d.get("corridor", "")}
+    return meta
+
+
 def make_batches(responses_path: pathlib.Path, checkpoint_path: pathlib.Path,
                  prompts_file: str, *, batch_size: int = 8) -> int:
     """Write batch files for every (prompt, model, arm) response not yet judged.
     Returns the number of batch files written."""
     dims = json.loads((_BENCH / "harness_lift_dimensions.json").read_text(encoding="utf-8"))["dimensions"]
     prompts = _load_prompts(prompts_file)
+    meta_by_id = _load_prompt_meta(prompts_file)
     judged = {ck.rsplit("|", 1)[0] for ck in load_checkpoint(checkpoint_path)}  # pid|model|arm
     responses = _load_responses(responses_path)
 
@@ -80,8 +107,12 @@ def make_batches(responses_path: pathlib.Path, checkpoint_path: pathlib.Path,
         if rc in judged or rc in seen:
             continue
         seen.add(rc)
+        pid = str(r["prompt_id"])
+        # Per-item RELEVANT dimension subset (skip dims that do not apply to this
+        # prompt -- other sectors/corridors, attack groups on a worker prompt, etc.)
         pending.append({"prompt_id": r["prompt_id"], "model": r["model"], "arm": r["arm"],
-                        "prompt": prompts.get(str(r["prompt_id"]), ""), "response": r["response"]})
+                        "prompt": prompts.get(pid, ""), "response": r["response"],
+                        "dim_ids": relevant_dim_ids(meta_by_id.get(pid, {}), dims)})
 
     _BATCH_DIR.mkdir(parents=True, exist_ok=True)
     n = 0
