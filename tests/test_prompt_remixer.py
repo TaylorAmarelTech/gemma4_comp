@@ -1,0 +1,51 @@
+"""Tests for the deterministic prompt remixer (anti-benchmark-maxing)."""
+from __future__ import annotations
+
+import importlib
+import pathlib
+import sys
+
+_ROOT = pathlib.Path(__file__).resolve().parents[1]
+_SCRIPTS = _ROOT / "scripts"
+if str(_SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS))
+
+rx = importlib.import_module("prompt_remixer")
+
+
+def _bases(n):
+    return [{"id": f"B{i}", "text": f"worker scenario number {i} with a fee question?",
+             "category": "x", "framing": "worker_query"} for i in range(n)]
+
+
+def test_remix_records_provenance_and_all_transforms():
+    out = rx.remix(_bases(6))
+    transforms = {v["transform"] for v in out}
+    assert {"pad_buried", "persona_shift", "punctuate", "combine"} <= transforms
+    for v in out:
+        assert v["id"].startswith("RMX-")
+        assert v["base_ids"]                      # provenance recorded
+        assert v["category"] == f"remix_{v['transform']}"
+        if v["transform"] == "combine":
+            assert len(v["base_ids"]) == 2        # composed from two bases
+
+
+def test_remix_is_deterministic():
+    a = rx.remix(_bases(8))
+    b = rx.remix(_bases(8))
+    assert [v["id"] for v in a] == [v["id"] for v in b]
+
+
+def test_heldout_split_is_disjoint():
+    bases = _bases(20)
+    seen, held = rx.split_bases(bases, held_out_every=5)
+    seen_ids = {b["id"] for b in seen}
+    held_ids = {b["id"] for b in held}
+    assert seen_ids.isdisjoint(held_ids)
+    assert len(seen) + len(held) == 20
+    assert len(held) == 4                          # every 5th of 20
+
+
+def test_punctuate_changes_text():
+    base = "this is a normal sentence about wages and fees."
+    assert any(rx._punctuate(base, i) != base for i in range(4))
