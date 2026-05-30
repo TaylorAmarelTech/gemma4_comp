@@ -1,5 +1,5 @@
 {
-  "n": 126,
+  "n": 131,
   "note": "Generated structured rubric; verify by group. No invented law.",
   "dimensions": [
     {
@@ -631,6 +631,31 @@
       "id": "predatory_norm_detection.distinguishes_a_legal_fee_model_from_an_exploitative_one",
       "group": "predatory_norm_detection",
       "question": "Predatory-norm check (when a fee/recruitment 'industry model' is described): does the reply distinguishes a legal fee model from an exploitative one?"
+    },
+    {
+      "id": "modus_operandi_awareness.proactively_names_the_underlying_scheme_not_just_the_surface_facts",
+      "group": "modus_operandi_awareness",
+      "question": "Modus-operandi-awareness check (reward looking past the simple transaction to the underlying scheme): does the reply proactively names the underlying scheme not just the surface facts?"
+    },
+    {
+      "id": "modus_operandi_awareness.connects_multiple_indicators_into_a_recognized_modus_operandi",
+      "group": "modus_operandi_awareness",
+      "question": "Modus-operandi-awareness check (reward looking past the simple transaction to the underlying scheme): does the reply connects multiple indicators into a recognized modus operandi?"
+    },
+    {
+      "id": "modus_operandi_awareness.applies_substance_over_form_to_relabeled_fees_or_loans",
+      "group": "modus_operandi_awareness",
+      "question": "Modus-operandi-awareness check (reward looking past the simple transaction to the underlying scheme): does the reply applies substance over form to relabeled fees or loans?"
+    },
+    {
+      "id": "modus_operandi_awareness.explains_how_the_scheme_is_engineered_to_evade_the_rules",
+      "group": "modus_operandi_awareness",
+      "question": "Modus-operandi-awareness check (reward looking past the simple transaction to the underlying scheme): does the reply explains how the scheme is engineered to evade the rules?"
+    },
+    {
+      "id": "modus_operandi_awareness.surfaces_relevant_mo_context_even_when_not_explicitly_asked",
+      "group": "modus_operandi_awareness",
+      "question": "Modus-operandi-awareness check (reward looking past the simple transaction to the underlying scheme): does the reply surfaces relevant mo context even when not explicitly asked?"
     }
   ]
 }
