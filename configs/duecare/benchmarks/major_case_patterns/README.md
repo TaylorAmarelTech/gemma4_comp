@@ -15,6 +15,8 @@ This directory intentionally contains only aggregate and synthetic artifacts:
 - `scenario_mix_prompts.jsonl`: deterministic synthetic scenario-mixer prompts
   across perspectives, sectors, behavior families, camouflage patterns, and
   response traps.
+- `harness_lift_prompts_major_case.jsonl`: merged harness-ready synthetic prompt
+  file built from the derived and scenario-mixer prompts.
 - `knowledge_facts.jsonl`: generic facts about exploitation behaviors and
   camouflage patterns, including public-fact-derived entries without raw
   private evidence.

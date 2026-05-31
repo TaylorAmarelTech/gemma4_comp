@@ -1,6 +1,6 @@
 {
   "schema_version": "major_case_dimensions.v1",
-  "generated_at": "2026-05-31T19:32:32+00:00",
+  "generated_at": "2026-05-31T19:35:54+00:00",
   "note": "Derived from sensitive casefile patterns. Source paths, filenames, snippets, and PII are intentionally omitted.",
   "dimensions": [
     {

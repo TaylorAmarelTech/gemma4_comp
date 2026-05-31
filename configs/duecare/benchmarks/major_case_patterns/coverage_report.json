@@ -1,10 +1,12 @@
 {
   "schema_version": "major_case_coverage.v1",
-  "generated_at": "2026-05-31T19:32:32+00:00",
+  "generated_at": "2026-05-31T19:35:54+00:00",
   "counts": {
     "patterns": 19,
     "dimensions": 32,
+    "derived_prompts": 43,
     "scenario_mix_prompts": 220,
+    "harness_lift_prompts": 263,
     "knowledge_facts": 53,
     "public_research_facts": 21,
     "public_research_sources": 8
@@ -79,6 +81,7 @@
   "targets": {
     "dimensions_ge_30": true,
     "scenario_prompts_ge_200": true,
+    "harness_prompts_ge_250": true,
     "knowledge_facts_ge_50": true,
     "public_research_facts_ge_20": true,
     "perspectives_ge_8": true,
