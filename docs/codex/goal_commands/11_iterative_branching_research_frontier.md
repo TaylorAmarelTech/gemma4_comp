@@ -11,14 +11,17 @@ This goal follows:
 - the public research spider artifacts in
   `configs/duecare/benchmarks/research_spider/`
 
-It is intentionally more iterative than Goal 10. The agent should not treat the
-first successful search, first pack generation, first commit, or first green
-test run as completion. Green tests are loop checkpoints.
+It is intentionally more iterative than Goal 10. It also forces a tool/repo
+discovery phase so the run keeps improving its search, spidering, fetching,
+document-extraction, archival, and validation machinery instead of only adding
+more prompts. The agent should not treat the first successful search, first
+pack generation, first commit, or first green test run as completion. Green
+tests are loop checkpoints.
 
 ## Copy-paste `/goal`
 
 ```text
-/goal In C:\Users\amare\OneDrive\Documents\gemma4_comp, work on master without switching branches and follow docs/codex/goal_commands/11_iterative_branching_research_frontier.md as a multi-hour iterative branching research-frontier run. Start from the current public research spider artifacts and major-case aggregate pattern outputs, then repeatedly branch outward from each high-yield source candidate, knowledge object, source profile, failed query, and coverage gap. For each loop: extract new search terms and dorks; search official/court/immigration/justice/labour/law-enforcement/intergovernmental/nontraditional sources; profile new public documents; distill dated candidate knowledge objects; create or refine dimensions, tests, single-turn prompts, multi-turn conversations, hybrid scenario mixes, adversarial detection/refusal prompts, and long-context stress prompts; regenerate deterministic artifacts; run focused tests, leak scans, and repo gates; commit and push coherent slices; update resume state; then continue to the next highest-value branch without asking Taylor. Escalate only for credentials, destructive actions, unresolved PII/secrets risk, private-data exposure risk, or validation blockers that repeat after three genuine fix attempts. Do not stop after planning, one country, one source cluster, one batch of dorks, one generated corpus, one commit, or one successful validation pass.
+/goal In C:\Users\amare\OneDrive\Documents\gemma4_comp, work on master without switching branches and follow docs/codex/goal_commands/11_iterative_branching_research_frontier.md as a 24-72 hour iterative branching research-frontier run. Start from the current public research spider artifacts and major-case aggregate pattern outputs. Spend the first several loops searching for and profiling better public search, spider, crawler, browser-automation, document-extraction, WARC/archive, dork-generation, and OSINT-adjacent Python repos/tools, then create a tool evaluation matrix and adopt only safe optional adapters behind deterministic tests. After that, repeatedly branch outward from each high-yield source candidate, tool candidate, knowledge object, source profile, failed query, and coverage gap. For each loop: extract new search terms and dorks; search official/court/immigration/justice/labour/law-enforcement/intergovernmental/nontraditional sources; profile new public documents; distill dated candidate knowledge objects; create or refine dimensions, tests, single-turn prompts, multi-turn conversations, hybrid scenario mixes, adversarial detection/refusal prompts, and long-context stress prompts; regenerate deterministic artifacts; run focused tests, leak scans, and repo gates; commit and push coherent slices; update resume state; then continue to the next highest-value branch without asking Taylor. Escalate only for credentials, destructive actions, unresolved PII/secrets risk, private-data exposure risk, or validation blockers that repeat after three genuine fix attempts. Do not stop after planning, one tool survey, one country, one source cluster, one batch of dorks, one generated corpus, one commit, or one successful validation pass.
 ```
 
 ## Mission
@@ -53,10 +56,13 @@ determinism, or validation.
 
 ## Runtime Target
 
-Target runtime: 12-36 hours of useful work if resources are available.
+Target runtime: 24-72 hours of useful work if resources are available.
 
 Minimum loop target before calling the run complete:
 
+- 2+ tool/repo discovery loops
+- 1+ tool evaluation matrix loop
+- 1+ safe optional adapter or deterministic no-network provider loop
 - 6+ research-frontier loops
 - 4+ source-profile and knowledge-object loops
 - 3+ prompt/conversation/scenario-mixing loops
@@ -67,6 +73,8 @@ This goal is not complete after:
 
 - writing a plan
 - creating only this file
+- only surveying tools without artifact adoption or rejection notes
+- adding a dependency without a safety, license, maintenance, and test review
 - only running the existing spider once
 - adding only one jurisdiction or source family
 - adding only single-turn prompts
@@ -150,11 +158,125 @@ Allowed:
 - adversarial prompts only when the expected safe answer refuses operational
   concealment and converts the request into detection/remediation
 
+## Tool Discovery And Adoption Track
+
+The first phase of a long run is not only "search for sources." It is also
+"search for better search and extraction machinery." Treat tools as frontier
+branches and profile them before using them.
+
+Create or update a tool evaluation matrix before adding any new dependency or
+long-lived integration:
+
+- `configs/duecare/benchmarks/research_spider/tool_evaluation_matrix.jsonl`
+- `configs/duecare/benchmarks/research_spider/tool_adoption_notes.md`
+- `configs/duecare/benchmarks/research_spider/search_provider_registry.json`
+- `configs/duecare/benchmarks/research_spider/crawler_provider_registry.json`
+- `configs/duecare/benchmarks/research_spider/extractor_provider_registry.json`
+
+Use fields like:
+
+- `tool_id`
+- `tool_name`
+- `repo_url`
+- `docs_url`
+- `category`
+- `license`
+- `maintenance_signal`
+- `python_support`
+- `network_behavior`
+- `robots_or_rate_limit_support`
+- `privacy_risk`
+- `install_risk`
+- `dependency_risk`
+- `fit_score`
+- `adoption_decision`
+- `rejection_reason`
+- `notes`
+- `checked_date`
+
+Tool categories to search and compare:
+
+- Search APIs and metasearch: Brave Search API, SerpApi, SearXNG, DDGS or
+  duckduckgo-search successors, GitHub Search API, and browser-ready manual
+  fallback queues.
+- General crawlers and spiders: Scrapy, Crawlee for Python, advertools spider
+  and sitemap utilities, Crawl4AI, and a minimal `httpx`/`requests` plus
+  `BeautifulSoup` fallback.
+- Browser automation for JavaScript-heavy public pages: Playwright for Python
+  behind explicit opt-in and small allowlisted fetch scopes.
+- URL discovery and cleaning: sitemap parsers, robots.txt parsers, courlan, and
+  deterministic URL normalization helpers.
+- Text extraction from HTML: trafilatura, readability-style extractors,
+  BeautifulSoup fallback extraction, and Crawl4AI Markdown output when safe.
+- PDF and document extraction: PyMuPDF, pdfplumber, pypdf, Microsoft
+  MarkItDown, unstructured, and any lighter extractor that handles public
+  reports without sending content to remote services.
+- Archival and reproducibility: warcio/WARC capture, cached HTTP responses,
+  content hashes, source snapshots that exclude PII, and manifest-only replay.
+- Dork generation and query expansion: deterministic dork templates, language
+  variants, phrase mining from source profiles, and search-engine-specific
+  operators.
+- OSINT-adjacent inspiration only: pagodo, Photon, theHarvester, Metagoofil,
+  and similar repos may inform query/dork/source-discovery patterns, but do not
+  run broad people, email, subdomain, credential, or target-enumeration harvests
+  from this repo.
+
+Seed tool sources to inspect first, then branch from their docs, issues,
+alternatives, and dependency graphs:
+
+- Scrapy docs and `scrapy/scrapy`
+- Crawlee for Python `apify/crawlee-python`
+- Crawl4AI docs and `unclecode/crawl4ai`
+- trafilatura docs and `adbar/trafilatura`
+- advertools docs
+- Playwright for Python docs
+- SearXNG docs, Brave Search API docs, SerpApi docs, and DDGS/duckduckgo-search
+  successor repos
+- PyMuPDF docs, pdfplumber, pypdf, Microsoft MarkItDown, and unstructured
+- warcio docs and `webrecorder/warcio`
+- courlan and other URL-normalization helpers
+- pagodo, Photon, theHarvester, and Metagoofil as cautionary OSINT-adjacent
+  design references only
+
+Adoption rules:
+
+- Prefer deterministic, dependency-light wrappers first.
+- Do not add a package dependency merely because it looks useful; profile it,
+  record the license, maintenance signal, install risk, and privacy risk.
+- Keep adapters optional. The repo must still generate core artifacts in a
+  no-network/no-credential mode.
+- Do not send private casefile content, raw extracted PII, secrets, or
+  unresolved worker details to remote APIs or remote LLMs.
+- Do not bypass paywalls, authentication, CAPTCHA, robots exclusions, rate
+  limits, or source terms.
+- Do not use stealth, evasion, proxy-rotation, browser-fingerprinting, or
+  anti-bot-bypass features.
+- Wrap each provider behind a small interface that can return synthetic fixture
+  results in tests.
+- Add tests before relying on an adapter for generated artifacts.
+- Record rejected tools. Rejections are useful when the reason is privacy,
+  license, maintenance, install risk, remote-data exposure, or hostile scraping
+  behavior.
+
+Minimum tool-discovery search loops:
+
+1. Search and profile public search providers and metasearch options.
+2. Search and profile crawlers/spiders, including Python repos and framework
+   docs.
+3. Search and profile HTML, PDF, Office, CSV, JSON, and WARC extraction tools.
+4. Search and profile OSINT-adjacent dorking/source-discovery tools only for
+   safe design lessons and explicit anti-patterns.
+5. Prototype one low-risk optional adapter or improve the deterministic
+   no-network fallback if every external option is too risky.
+6. Add focused tests and update the run state with adopted, rejected, and
+   deferred tools.
+
 ## Branching Algorithm
 
 Each loop chooses branches from a frontier. A branch may be a query, source
-candidate, source profile, knowledge object, dimension gap, prompt gap, failed
-search, source-family gap, jurisdiction gap, sector gap, or test gap.
+candidate, tool candidate, source profile, knowledge object, dimension gap,
+prompt gap, failed search, source-family gap, jurisdiction gap, sector gap, or
+test gap.
 
 For every branch:
 
@@ -183,6 +305,9 @@ For every branch:
    - otherwise write browser-ready manual fallbacks
    - respect robots and rate limits for fetches
    - log rejected/paywalled/blocked sources instead of stalling
+   - record which provider/tool produced each result
+   - fall back across providers when a source family is sparse
+   - preserve manual dorks when automated providers are blocked or unsafe
 4. Profile candidate sources:
    - public URL
    - title
@@ -196,14 +321,23 @@ For every branch:
    - evidence type
    - source quality
    - verification needs
-5. Distill candidate knowledge:
+5. Profile candidate tools when the branch is tooling:
+   - repo and documentation URLs
+   - install and runtime requirements
+   - license and maintenance signal
+   - whether it supports polite crawling, robots, caching, and rate limits
+   - whether it requires credentials, remote services, browsers, or native deps
+   - privacy, PII, and secrets exposure risks
+   - deterministic fixture strategy
+   - adoption, rejection, or defer decision
+6. Distill candidate knowledge:
    - source date or update date, when known
    - source type: court, statute, report, guidance, dataset, operation, news lead
    - paraphrased public fact candidates
    - limitations and confidence
    - corroboration links
    - privacy flags
-6. Generate benchmark artifacts:
+7. Generate benchmark artifacts:
    - dimensions
    - tests
    - single-turn prompts
@@ -212,14 +346,14 @@ For every branch:
    - long-context distractor prompts
    - applicability-judge seeds
    - refusal/detection prompts for camouflage/evasion requests
-7. Validate:
+8. Validate:
    - focused tests
    - deterministic regeneration checks
    - leak scans
    - relevant repo gates
-8. Commit and push coherent slices.
-9. Update frontier and resume state.
-10. Continue to the next branch.
+9. Commit and push coherent slices.
+10. Update frontier and resume state.
+11. Continue to the next branch.
 
 ## Branch Scoring
 
@@ -229,13 +363,15 @@ Prioritize branches by this order:
 2. Current failing test or validation caused by this work.
 3. High-tier official, court, intergovernmental, prosecution, or labour
    inspectorate source.
-4. Under-covered behavior family.
-5. Under-covered jurisdiction, source language, source type, sector, or corridor.
-6. Source with concrete case facts, indicators, prosecution facts, or guidance.
-7. Source that can corroborate an existing candidate knowledge object.
-8. Source that adds a new camouflage pattern.
-9. Source that improves prompt/conversation realism.
-10. Source that only duplicates already-covered context.
+4. Tool candidate that unlocks safer, broader, or more reproducible search,
+   crawling, extraction, or archival.
+5. Under-covered behavior family.
+6. Under-covered jurisdiction, source language, source type, sector, or corridor.
+7. Source with concrete case facts, indicators, prosecution facts, or guidance.
+8. Source that can corroborate an existing candidate knowledge object.
+9. Source that adds a new camouflage pattern.
+10. Source that improves prompt/conversation realism.
+11. Source that only duplicates already-covered context.
 
 Suggested score fields:
 
@@ -246,7 +382,9 @@ Suggested score fields:
 - `corroboration_score`
 - `recency_score`
 - `artifact_value_score`
+- `tool_adoption_value_score`
 - `privacy_risk_penalty`
+- `license_or_dependency_penalty`
 - `fetch_or_access_penalty`
 
 ## Source Clusters
@@ -377,6 +515,36 @@ Add language variants when useful:
 - `trafico de pessoas`
 - `trabalho forcado`
 
+## Tool Discovery Dork Families
+
+Use these for the tool/repo phase, then extend them from useful results:
+
+```text
+site:github.com Python crawler framework public data extraction
+site:github.com Python "web scraping" "robots.txt" "rate limit"
+site:github.com Python "search API" "metasearch" JSON
+site:github.com Python "Google dork" OR "search dork" OSINT
+site:github.com Python "PDF extraction" "table extraction" "markdown"
+site:github.com Python "WARC" "web archive" crawl
+site:readthedocs.io Python crawler scraping extraction documentation
+site:docs.* Python "crawler" "scraper" "Markdown" "LLM"
+"Scrapy" "robots.txt" "AutoThrottle" Python
+"Crawlee" Python crawler Playwright BeautifulSoup
+"Crawl4AI" Python Markdown crawler extraction
+"trafilatura" Python text extraction crawler
+"MarkItDown" Python document Markdown conversion
+"PyMuPDF" OR "pdfplumber" "table extraction" "public reports"
+"SearXNG" "Search API" JSON
+"Brave Search API" Python web search
+"SerpApi" Python Google Search API
+"theHarvester" OR "Photon" OR "pagodo" OR "Metagoofil" Python OSINT crawler
+```
+
+For OSINT-adjacent tools, the output must be design lessons, rejection notes,
+or safe query templates. Do not produce instructions for target enumeration,
+credential discovery, exploit development, evasive scraping, or personal-data
+harvesting.
+
 ## Artifacts To Create Or Extend
 
 Prefer extending the current public research spider and major-case benchmark
@@ -386,6 +554,11 @@ Likely artifacts:
 
 - `configs/duecare/benchmarks/research_spider/research_frontier.json`
 - `configs/duecare/benchmarks/research_spider/research_run_state.json`
+- `configs/duecare/benchmarks/research_spider/tool_evaluation_matrix.jsonl`
+- `configs/duecare/benchmarks/research_spider/tool_adoption_notes.md`
+- `configs/duecare/benchmarks/research_spider/search_provider_registry.json`
+- `configs/duecare/benchmarks/research_spider/crawler_provider_registry.json`
+- `configs/duecare/benchmarks/research_spider/extractor_provider_registry.json`
 - `configs/duecare/benchmarks/research_spider/source_profile_coverage.json`
 - `configs/duecare/benchmarks/research_spider/rejected_sources.jsonl`
 - `configs/duecare/benchmarks/research_spider/corroboration_links.jsonl`
@@ -399,6 +572,9 @@ Likely artifacts:
 Likely scripts:
 
 - `scripts/public_research_spider.py`
+- `scripts/public_tool_survey.py`
+- `scripts/public_search_providers.py`
+- `scripts/public_fetch_extract.py`
 - `scripts/public_research_frontier.py`
 - `scripts/public_source_profiler.py`
 - `scripts/public_knowledge_distiller.py`
@@ -408,6 +584,9 @@ Likely scripts:
 Likely tests:
 
 - `tests/test_public_research_spider.py`
+- `tests/test_public_tool_survey.py`
+- `tests/test_public_search_providers.py`
+- `tests/test_public_fetch_extract.py`
 - `tests/test_public_research_frontier.py`
 - `tests/test_public_knowledge_distiller.py`
 - `tests/test_public_conversation_generator.py`
@@ -420,6 +599,10 @@ more deterministic, resumable, or testable.
 
 If resources allow, work toward:
 
+- 50+ search/crawl/extraction/archive tools or repos considered
+- 15+ tools shortlisted with license, maintenance, privacy, and fit notes
+- 5+ safe optional adapters or provider wrappers prototyped or improved
+- 3+ deterministic fixture suites covering provider fallbacks
 - 10,000+ search/dork queries generated or considered
 - 3,000+ candidate URLs considered
 - 1,000+ public source profiles created or refreshed
@@ -505,7 +688,12 @@ Run focused tests after each implementation slice:
 C:\Users\amare\AppData\Local\gemma4-testenv\venv\Scripts\python.exe -m pytest tests/test_public_research_spider.py tests/test_major_case_pattern_extractor.py -q
 ```
 
-Add or run any new focused tests created by the loop.
+Add and run any new focused tests created by the loop. If tool scripts are
+created, expected focused tests include:
+
+```bash
+C:\Users\amare\AppData\Local\gemma4-testenv\venv\Scripts\python.exe -m pytest tests/test_public_tool_survey.py tests/test_public_search_providers.py tests/test_public_fetch_extract.py -q
+```
 
 Run leak scans over changed scripts, tests, and generated artifacts. Classify
 any repo-wide hits as new-vs-pre-existing before treating them as blockers; this
@@ -539,6 +727,8 @@ test environment and record the failing interpreter separately.
 
 Commit and push coherent increments. Good commit boundaries:
 
+- tool evaluation matrix and provider registry
+- safe optional search/crawl/extraction adapter with synthetic fixtures
 - frontier/state tooling
 - source-profile generation
 - knowledge-object distillation
@@ -585,6 +775,10 @@ Do not stop because:
 When the run pauses or completes, report:
 
 - commit SHA and push status
+- tools/repos searched
+- tool evaluation matrix count
+- tools adopted, deferred, and rejected with reasons
+- optional adapters created or improved
 - source candidates considered
 - source profiles created/refreshed
 - knowledge objects created/refreshed
