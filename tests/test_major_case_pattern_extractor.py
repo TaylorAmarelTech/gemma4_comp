@@ -86,6 +86,74 @@ def test_reads_docx_text_and_tracks_skipped_binary_extensions(tmp_path):
     assert summary["files_seen"] == 2
 
 
+def test_detects_document_harvesting_and_visa_pretext(tmp_path):
+    source = tmp_path / "source_cases"
+    source.mkdir()
+    (source / "document_upload.txt").write_text(
+        "The recruiter asks [WORKER] to upload documents, including a passport copy, "
+        "selfie, and bank account screenshot. They call the charge visa processing "
+        "and document processing for travel documents.",
+        encoding="utf-8",
+    )
+
+    summary = mc.analyze_cases(source)
+
+    assert summary["pattern_counts"]["document_harvesting_identity_misuse"] == 1
+    assert summary["pattern_counts"]["visa_travel_document_pretext"] == 1
+
+
+def test_noisy_single_terms_do_not_trigger_cooccurrence_rules(tmp_path):
+    source = tmp_path / "source_cases"
+    source.mkdir()
+    (source / "generic_vendor_audit.txt").write_text(
+        "The vendor policy mentions an audit and a normal contract, but no worker control, "
+        "payroll intermediary, or labor-supply chain.",
+        encoding="utf-8",
+    )
+
+    summary = mc.analyze_cases(source)
+
+    assert "subcontractor_chain_obscuring" not in summary["pattern_counts"]
+    assert "evidence_suppression_or_audit_staging" not in summary["pattern_counts"]
+
+
+def test_public_research_facts_have_required_source_metadata():
+    facts = mc.public_research_facts()
+    assert len(facts) >= 20
+    required = {
+        "id", "fact_type", "statement", "source_title", "publisher", "url",
+        "accessed_date", "jurisdictions", "sectors", "related_indicators",
+        "related_behavior_ids", "related_camouflage_ids", "confidence",
+    }
+    for fact in facts:
+        assert required <= set(fact)
+        assert fact["url"].startswith("https://")
+        assert fact["source"] == "public_research"
+        assert fact["statement"]
+
+
+def test_scenario_mixer_is_deterministic_and_placeholder_safe(tmp_path):
+    source = tmp_path / "source_cases"
+    source.mkdir()
+    (source / "fee_case.txt").write_text(
+        "A worker describes a recruitment fee, processing fee, salary deduction, "
+        "and a consent form saying the deduction is voluntary.",
+        encoding="utf-8",
+    )
+    summary = mc.analyze_cases(source)
+
+    first = mc.scenario_mix_prompts(summary, target=24, seed=7)
+    second = mc.scenario_mix_prompts(summary, target=24, seed=7)
+
+    assert first == second
+    assert len(first) == 24
+    assert len({p["text"] for p in first}) == 24
+    assert all(p["metadata"]["synthetic"] for p in first)
+    assert all("[WORKER]" in p["text"] or "[SECTOR:" in p["text"] for p in first)
+    assert all(p["metadata"]["dimension_ids"] for p in first)
+    assert {p["metadata"]["response_trap"] for p in first}
+
+
 def test_committed_major_case_pattern_artifacts_are_pii_safe():
     out_dir = _ROOT / "configs" / "duecare" / "benchmarks" / "major_case_patterns"
     assert out_dir.exists()
@@ -93,9 +161,19 @@ def test_committed_major_case_pattern_artifacts_are_pii_safe():
 
     dims = json.loads((out_dir / "derived_dimensions.json").read_text(encoding="utf-8"))
     prompts = [json.loads(line) for line in (out_dir / "derived_prompts.jsonl").read_text(encoding="utf-8").splitlines()]
+    scenario_prompts = [json.loads(line) for line in (out_dir / "scenario_mix_prompts.jsonl").read_text(encoding="utf-8").splitlines()]
     facts = [json.loads(line) for line in (out_dir / "knowledge_facts.jsonl").read_text(encoding="utf-8").splitlines()]
+    public_facts = [json.loads(line) for line in (out_dir / "public_research_facts.jsonl").read_text(encoding="utf-8").splitlines()]
+    coverage = json.loads((out_dir / "coverage_report.json").read_text(encoding="utf-8"))
 
-    assert len(dims["dimensions"]) >= 10
+    assert len(dims["dimensions"]) >= 30
     assert len(prompts) >= 20
-    assert len(facts) >= 10
+    assert len(scenario_prompts) >= 200
+    assert len(facts) >= 50
+    assert len(public_facts) >= 20
     assert all(p["metadata"]["pii_policy"] == "placeholders_only_no_case_snippets" for p in prompts)
+    assert all(p["metadata"]["pii_policy"] == "placeholders_only_no_case_snippets" for p in scenario_prompts)
+    assert coverage["targets"]["dimensions_ge_30"]
+    assert coverage["targets"]["scenario_prompts_ge_200"]
+    assert coverage["targets"]["knowledge_facts_ge_50"]
+    assert coverage["targets"]["public_research_facts_ge_20"]
