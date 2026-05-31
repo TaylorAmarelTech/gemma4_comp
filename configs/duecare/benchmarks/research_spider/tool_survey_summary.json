@@ -1,0 +1,56 @@
+{
+  "adopted_or_candidate_tools": [
+    "manual_dork_queue",
+    "brave_search_api",
+    "github_search_api",
+    "scrapy",
+    "advertools",
+    "trafilatura",
+    "courlan",
+    "pdfplumber",
+    "pypdf",
+    "warcio"
+  ],
+  "category_counts": {
+    "archive_reproducibility": 1,
+    "browser_automation": 1,
+    "crawler": 3,
+    "crawler_extractor": 1,
+    "document_extractor": 5,
+    "html_extractor": 1,
+    "osint_adjacent_crawler": 1,
+    "osint_adjacent_dorking": 1,
+    "osint_adjacent_metadata": 1,
+    "osint_adjacent_recon": 1,
+    "search_provider": 5,
+    "tool_discovery": 1,
+    "url_filter": 1
+  },
+  "decision_counts": {
+    "adopt_deterministic_core": 1,
+    "adopt_optional_adapter_candidate": 9,
+    "defer_allowlisted_javascript_only": 1,
+    "defer_extension_review": 1,
+    "defer_heavy_dependency": 2,
+    "defer_optional_unstable_backend": 1,
+    "defer_requires_credentials_or_budget": 1,
+    "defer_requires_license_and_instance_review": 1,
+    "defer_requires_license_review": 1,
+    "defer_until_scrapy_gap_is_clear": 1,
+    "reject_operational_use_inspiration_only": 4
+  },
+  "generated_at": "2026-05-31T00:00:00Z",
+  "privacy": {
+    "osint_adjacent_tools_operationalized": false,
+    "raw_private_cases_ingested": false,
+    "remote_private_queries_allowed": false
+  },
+  "rejected_operational_tools": [
+    "pagodo",
+    "photon",
+    "theharvester",
+    "metagoofil"
+  ],
+  "schema_version": "public_research_tool_survey_summary.v1",
+  "tool_profiles": 23
+}
