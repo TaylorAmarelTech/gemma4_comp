@@ -154,6 +154,27 @@ def test_scenario_mixer_is_deterministic_and_placeholder_safe(tmp_path):
     assert {p["metadata"]["response_trap"] for p in first}
 
 
+def test_harness_lift_prompt_merge_is_deterministic_and_synthetic(tmp_path):
+    source = tmp_path / "source_cases"
+    source.mkdir()
+    (source / "mixed_case.txt").write_text(
+        "A recruiter describes a recruitment fee, visa processing, passport copy upload, "
+        "and a voluntary waiver with salary deduction.",
+        encoding="utf-8",
+    )
+    summary = mc.analyze_cases(source)
+
+    merged = mc.harness_lift_prompts(summary)
+    again = mc.harness_lift_prompts(summary)
+
+    assert merged == again
+    assert len(merged) >= 200
+    assert len({p["text"] for p in merged}) == len(merged)
+    assert all(p["metadata"]["harness_lift_ready"] for p in merged)
+    assert all(p["metadata"]["synthetic"] for p in merged)
+    assert all(p["metadata"]["pii_policy"] == "placeholders_only_no_case_snippets" for p in merged)
+
+
 def test_committed_major_case_pattern_artifacts_are_pii_safe():
     out_dir = _ROOT / "configs" / "duecare" / "benchmarks" / "major_case_patterns"
     assert out_dir.exists()
@@ -162,6 +183,7 @@ def test_committed_major_case_pattern_artifacts_are_pii_safe():
     dims = json.loads((out_dir / "derived_dimensions.json").read_text(encoding="utf-8"))
     prompts = [json.loads(line) for line in (out_dir / "derived_prompts.jsonl").read_text(encoding="utf-8").splitlines()]
     scenario_prompts = [json.loads(line) for line in (out_dir / "scenario_mix_prompts.jsonl").read_text(encoding="utf-8").splitlines()]
+    harness_prompts = [json.loads(line) for line in (out_dir / "harness_lift_prompts_major_case.jsonl").read_text(encoding="utf-8").splitlines()]
     facts = [json.loads(line) for line in (out_dir / "knowledge_facts.jsonl").read_text(encoding="utf-8").splitlines()]
     public_facts = [json.loads(line) for line in (out_dir / "public_research_facts.jsonl").read_text(encoding="utf-8").splitlines()]
     coverage = json.loads((out_dir / "coverage_report.json").read_text(encoding="utf-8"))
@@ -169,11 +191,15 @@ def test_committed_major_case_pattern_artifacts_are_pii_safe():
     assert len(dims["dimensions"]) >= 30
     assert len(prompts) >= 20
     assert len(scenario_prompts) >= 200
+    assert len(harness_prompts) >= 250
+    assert len({p["text"] for p in harness_prompts}) == len(harness_prompts)
+    assert all(p["metadata"]["harness_lift_ready"] for p in harness_prompts)
     assert len(facts) >= 50
     assert len(public_facts) >= 20
     assert all(p["metadata"]["pii_policy"] == "placeholders_only_no_case_snippets" for p in prompts)
     assert all(p["metadata"]["pii_policy"] == "placeholders_only_no_case_snippets" for p in scenario_prompts)
     assert coverage["targets"]["dimensions_ge_30"]
     assert coverage["targets"]["scenario_prompts_ge_200"]
+    assert coverage["targets"]["harness_prompts_ge_250"]
     assert coverage["targets"]["knowledge_facts_ge_50"]
     assert coverage["targets"]["public_research_facts_ge_20"]

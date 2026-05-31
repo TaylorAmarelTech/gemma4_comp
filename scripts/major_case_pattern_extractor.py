@@ -1323,6 +1323,7 @@ def knowledge_facts(summary: dict) -> list[dict]:
 
 def coverage_report(summary: dict) -> dict:
     prompts = scenario_mix_prompts(summary)
+    harness_prompts = harness_lift_prompts(summary)
     dims = derived_dimensions(summary)["dimensions"]
     facts = knowledge_facts(summary)
     public_facts = public_research_facts()
@@ -1332,7 +1333,9 @@ def coverage_report(summary: dict) -> dict:
         "counts": {
             "patterns": len(summary.get("pattern_counts", {})),
             "dimensions": len(dims),
+            "derived_prompts": len(derived_prompts(summary)),
             "scenario_mix_prompts": len(prompts),
+            "harness_lift_prompts": len(harness_prompts),
             "knowledge_facts": len(facts),
             "public_research_facts": len(public_facts),
             "public_research_sources": len(PUBLIC_RESEARCH_SOURCES),
@@ -1354,6 +1357,7 @@ def coverage_report(summary: dict) -> dict:
         "targets": {
             "dimensions_ge_30": len(dims) >= 30,
             "scenario_prompts_ge_200": len(prompts) >= 200,
+            "harness_prompts_ge_250": len(harness_prompts) >= 250,
             "knowledge_facts_ge_50": len(facts) >= 50,
             "public_research_facts_ge_20": len(public_facts) >= 20,
             "perspectives_ge_8": len({p["metadata"]["perspective"] for p in prompts}) >= 8,
@@ -1369,6 +1373,35 @@ def coverage_report(summary: dict) -> dict:
     }
 
 
+def harness_lift_prompts(summary: dict) -> list[dict]:
+    merged: list[dict] = []
+    seen: set[str] = set()
+    for prompt in [*derived_prompts(summary), *scenario_mix_prompts(summary)]:
+        text = prompt["text"]
+        key = text.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        item = {
+            "id": prompt["id"],
+            "text": text,
+            "category": prompt["category"],
+            "difficulty": prompt["difficulty"],
+            "framing": prompt["framing"],
+            "scheme": prompt.get("scheme", ""),
+            "indicators": prompt.get("indicators", []),
+            "source": prompt.get("source", "major_case_patterns_derived"),
+            "metadata": {
+                **prompt.get("metadata", {}),
+                "harness_lift_ready": True,
+                "synthetic": True,
+                "pii_policy": "placeholders_only_no_case_snippets",
+            },
+        }
+        merged.append(item)
+    return merged
+
+
 def write_outputs(summary: dict, out_dir: Path) -> dict[str, Path]:
     out_dir.mkdir(parents=True, exist_ok=True)
     paths = {
@@ -1376,6 +1409,7 @@ def write_outputs(summary: dict, out_dir: Path) -> dict[str, Path]:
         "dimensions": out_dir / "derived_dimensions.json",
         "prompts": out_dir / "derived_prompts.jsonl",
         "scenario_prompts": out_dir / "scenario_mix_prompts.jsonl",
+        "harness_prompts": out_dir / "harness_lift_prompts_major_case.jsonl",
         "facts": out_dir / "knowledge_facts.jsonl",
         "public_facts": out_dir / "public_research_facts.jsonl",
         "source_manifest": out_dir / "source_research_manifest.jsonl",
@@ -1391,6 +1425,9 @@ def write_outputs(summary: dict, out_dir: Path) -> dict[str, Path]:
             f.write(json.dumps(prompt, ensure_ascii=False) + "\n")
     with paths["scenario_prompts"].open("w", encoding="utf-8", newline="\n") as f:
         for prompt in scenario_mix_prompts(summary):
+            f.write(json.dumps(prompt, ensure_ascii=False) + "\n")
+    with paths["harness_prompts"].open("w", encoding="utf-8", newline="\n") as f:
+        for prompt in harness_lift_prompts(summary):
             f.write(json.dumps(prompt, ensure_ascii=False) + "\n")
     with paths["facts"].open("w", encoding="utf-8", newline="\n") as f:
         for fact in knowledge_facts(summary):
@@ -1419,6 +1456,8 @@ This directory intentionally contains only aggregate and synthetic artifacts:
 - `scenario_mix_prompts.jsonl`: deterministic synthetic scenario-mixer prompts
   across perspectives, sectors, behavior families, camouflage patterns, and
   response traps.
+- `harness_lift_prompts_major_case.jsonl`: merged harness-ready synthetic prompt
+  file built from the derived and scenario-mixer prompts.
 - `knowledge_facts.jsonl`: generic facts about exploitation behaviors and
   camouflage patterns, including public-fact-derived entries without raw
   private evidence.
