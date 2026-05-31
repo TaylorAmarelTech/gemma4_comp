@@ -1,0 +1,50 @@
+{
+  "fallbacks": [
+    {
+      "failure": "missing_api_key",
+      "next": "write manual search URLs and continue"
+    },
+    {
+      "failure": "http_429_or_quota",
+      "next": "rotate to next API provider, reduce count, keep query pending"
+    },
+    {
+      "failure": "robots_disallow",
+      "next": "do not fetch; keep URL/title/snippet metadata only"
+    },
+    {
+      "failure": "non_html_or_large_pdf",
+      "next": "store source metadata and require manual/PDF-specific extraction"
+    },
+    {
+      "failure": "low_source_score",
+      "next": "hold for manual review; do not generate public facts automatically"
+    },
+    {
+      "failure": "pii_redaction_detected",
+      "next": "generate prompts only from placeholders and source-level metadata"
+    },
+    {
+      "failure": "contradictory_sources",
+      "next": "create conflict-resolution prompt instead of a new fact"
+    }
+  ],
+  "politeness": {
+    "concurrency": "Prefer per-host serial fetches; broaden by query/source family rather than hammering one host.",
+    "crawl_delay": "Use robots crawl-delay when present; otherwise default to at least 2 seconds per host.",
+    "robots_txt": "Check before page fetch; keep blocked URLs as metadata-only candidates.",
+    "user_agent": "DueCareResearchSpider/0.1 (public-source benchmark proposals; no private case ingestion)"
+  },
+  "privacy": {
+    "raw_private_cases": "Never send raw private case text to search providers.",
+    "search_queries": "Use public seed labels and behavior terms, not names, phone numbers, document IDs, or exact private locations.",
+    "snippets": "Redact email, phone-like, passport-like, and SSN-like strings before writing artifacts."
+  },
+  "schema_version": "public_research_spider_fallbacks.v1",
+  "search_provider_order": [
+    "brave",
+    "bing",
+    "serper",
+    "manual_search_urls"
+  ]
+}

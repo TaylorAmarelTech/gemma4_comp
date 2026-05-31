@@ -1,0 +1,14 @@
+{
+  "network_search_run": false,
+  "privacy": {
+    "public_urls_allowed": true,
+    "raw_private_cases_ingested": false,
+    "snippets_redacted": true
+  },
+  "prompt_candidates": 80,
+  "provider_errors": [],
+  "queries": 144,
+  "schema_version": "public_research_spider_summary.v1",
+  "source_candidates": 22,
+  "test_candidates": 12
+}
