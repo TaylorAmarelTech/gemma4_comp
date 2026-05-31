@@ -1,15 +1,15 @@
 {
   "schema_version": "major_case_coverage.v1",
-  "generated_at": "2026-05-31T20:10:12+00:00",
+  "generated_at": "2026-05-31T21:15:40+00:00",
   "counts": {
     "patterns": 27,
-    "dimensions": 57,
+    "dimensions": 62,
     "derived_prompts": 43,
     "scenario_mix_prompts": 480,
     "harness_lift_prompts": 523,
-    "knowledge_facts": 126,
-    "public_research_facts": 73,
-    "public_research_sources": 43
+    "knowledge_facts": 146,
+    "public_research_facts": 91,
+    "public_research_sources": 61
   },
   "coverage": {
     "perspectives": [
@@ -31,6 +31,7 @@
       "worker_support_advocate"
     ],
     "sectors": [
+      "H-2A agriculture",
       "agriculture",
       "airport departure screening",
       "cannabis forced criminality",
@@ -39,9 +40,11 @@
       "customer-service scam hubs",
       "domestic work",
       "entertainment work",
+      "financial crime review",
       "fishing",
       "gaming and BPO fronts",
       "guest-worker education",
+      "healthcare recruitment",
       "hospitality",
       "logistics",
       "manufacturing",
@@ -52,8 +55,10 @@
       "overseas domestic work",
       "platform work",
       "quarry and stone crushing",
+      "rubber glove manufacturing",
       "rural ranching",
       "seafood supply chain",
+      "shipyard guest work",
       "strawberry agriculture",
       "textile workshops",
       "visa-sponsored hospitality"
@@ -82,6 +87,7 @@
     "behavior_patterns": [
       "contract_or_role_substitution",
       "debt_bondage_fee_stack",
+      "debt_ledger_fine_or_kickback_control",
       "document_harvesting_identity_misuse",
       "document_retention_control",
       "escort_or_bitbit_facilitation",
@@ -103,7 +109,9 @@
     "camouflage_patterns": [
       "authority_or_wage_dispute_misclassification",
       "consent_waiver_or_voluntary_label",
+      "contract_penalty_or_quit_fee_coercion",
       "deposit_bond_or_guarantee_wrapper",
+      "employer_pays_or_zero_fee_policy_evasion",
       "jurisdiction_forum_arbitrage",
       "licensed_front_or_legal_cover",
       "loan_advance_relabeling",
@@ -152,6 +160,7 @@
       "Department of Justice Canada",
       "European Court of Human Rights",
       "Federal Bureau of Investigation",
+      "Financial Action Task Force and Asia/Pacific Group on Money Laundering",
       "High Court of Australia / UNODC case-law library",
       "Hong Kong Court of Final Appeal / Department of Justice summary",
       "Inter-American Court of Human Rights",
@@ -168,18 +177,25 @@
       "Supreme Court of the United Kingdom",
       "Transactions of the Association for Computational Linguistics / arXiv",
       "United Nations Office on Drugs and Crime",
+      "United States Court of Appeals for the Eighth Circuit / Justia",
+      "United States Court of Appeals for the Fifth Circuit / Justia",
       "United States Court of Appeals for the Ninth Circuit / Justia",
       "United States Court of Appeals for the Second Circuit / FindLaw",
+      "United States Court of Appeals for the Second Circuit / Justia",
+      "United States Customs and Border Protection",
+      "United States Department of Homeland Security Blue Campaign",
+      "United States Department of Justice",
+      "United States Department of Labor",
       "United States District Court / vLex public case archive"
     ]
   },
   "targets": {
-    "dimensions_ge_50": true,
+    "dimensions_ge_60": true,
     "scenario_prompts_ge_480": true,
     "harness_prompts_ge_500": true,
-    "knowledge_facts_ge_115": true,
-    "public_research_facts_ge_70": true,
-    "public_research_sources_ge_35": true,
+    "knowledge_facts_ge_140": true,
+    "public_research_facts_ge_90": true,
+    "public_research_sources_ge_60": true,
     "perspectives_ge_12": true,
     "complexity_strategies_ge_6": true,
     "behavior_families_ge_14": true,
