@@ -25,7 +25,7 @@ For no-stop runs across multiple goals, use [`dispatch_all_goals.md`](dispatch_a
 - [`00_kernel_compatibility_gate.md`](00_kernel_compatibility_gate.md) — global verification gate for the Kaggle root layout plus the four active/optional root `kernel.py` files. Run it before committing every goal.
 - [`01_next_phase_kaggle_surface_goals.md`](01_next_phase_kaggle_surface_goals.md) — source review, next goal set, and verification matrix for cleaning the active `01`/`02` pages and improving the optional `03`/`04` benchmark kernels.
 - [`dispatch_all_goals.md`](dispatch_all_goals.md) — prompt sizes for completing every remaining PENDING goal without routine checkpoints.
-- [`goal_commands/`](goal_commands/README.md) — copy-paste `/goal` command packs for full, reviewer-visible, templates, polish, vocabulary/diagnostics, and Kaggle surface long-run dispatches.
+- [`goal_commands/`](goal_commands/README.md) — copy-paste `/goal` command packs for full, reviewer-visible, templates, polish, vocabulary/diagnostics, Kaggle surface long-run dispatches, and major-case benchmark/research expansion.
 
 ## Goal directory map
 
