@@ -1,6 +1,6 @@
 {
   "schema_version": "major_case_patterns.v1",
-  "generated_at": "2026-05-31T21:15:40+00:00",
+  "generated_at": "2026-05-31T21:39:49+00:00",
   "source_root_hash": "05885a756ecd",
   "privacy": {
     "raw_paths_emitted": false,
@@ -64,6 +64,7 @@
     "wage_withholding_and_deduction": 12,
     "evidence_suppression_or_audit_staging": 11,
     "training_orientation_fee_wrapper": 9,
+    "domestic_worker_agency_overcharge_or_loan_control": 8,
     "visa_sponsorship_or_legal_process_control": 7,
     "escort_or_bitbit_facilitation": 6,
     "subcontractor_chain_obscuring": 4,
@@ -73,27 +74,27 @@
     "worksite_lodging_blended_confinement": 1
   },
   "kind_counts": {
-    "behavior": 1614,
+    "behavior": 1622,
     "camouflage": 463
   },
   "indicator_counts": {
     "abuse_of_vulnerability": 1697,
     "intimidation_and_threats": 1489,
     "deception": 393,
-    "debt_bondage": 372,
-    "withholding_of_wages": 114,
-    "retention_of_identity_documents": 61,
+    "debt_bondage": 380,
+    "withholding_of_wages": 122,
+    "retention_of_identity_documents": 69,
     "restriction_of_movement": 44,
     "isolation": 30,
     "abusive_working_living_conditions": 1
   },
   "scheme_counts": {
     "VISM-001": 540,
-    "RFDB-001": 298,
+    "RFDB-001": 306,
     "PRED-001": 217,
-    "WAGM-001": 115,
+    "WAGM-001": 123,
     "SUBCH-001": 90,
-    "PASC-001": 59,
+    "PASC-001": 67,
     "ISOL-001": 30,
     "CSUB-001": 12
   },
@@ -142,11 +143,13 @@
     "threats_retaliation_or_deportation+visa_sponsorship_or_legal_process_control": 7,
     "consent_waiver_or_voluntary_label+tourist_exit_or_transit_deception": 7,
     "licensed_front_or_legal_cover+loan_advance_relabeling": 7,
+    "debt_bondage_fee_stack+domestic_worker_agency_overcharge_or_loan_control": 7,
     "debt_bondage_fee_stack+isolation_communication_control": 7,
     "threats_retaliation_or_deportation+tourist_exit_or_transit_deception": 7,
     "supply_chain_benefit_or_buyer_distancing+witness_retraction_or_settlement_pressure": 7,
     "debt_bondage_fee_stack+visa_travel_document_pretext": 6,
     "debt_bondage_fee_stack+training_orientation_fee_wrapper": 6,
+    "domestic_worker_agency_overcharge_or_loan_control+threats_retaliation_or_deportation": 6,
     "debt_bondage_fee_stack+escort_or_bitbit_facilitation": 6,
     "forced_criminality_or_money_mule+licensed_front_or_legal_cover": 6,
     "consent_waiver_or_voluntary_label+evidence_suppression_or_audit_staging": 6,
@@ -166,6 +169,8 @@
     "evidence_suppression_or_audit_staging+isolation_communication_control": 4,
     "forced_criminality_or_money_mule+isolation_communication_control": 4,
     "forced_criminality_or_money_mule+wage_withholding_and_deduction": 4,
+    "contract_or_role_substitution+domestic_worker_agency_overcharge_or_loan_control": 4,
+    "domestic_worker_agency_overcharge_or_loan_control+wage_withholding_and_deduction": 4,
     "contract_or_role_substitution+threats_retaliation_or_deportation": 4,
     "deposit_bond_or_guarantee_wrapper+supply_chain_benefit_or_buyer_distancing": 4,
     "licensed_front_or_legal_cover+tourist_exit_or_transit_deception": 4,
@@ -173,11 +178,7 @@
     "consent_waiver_or_voluntary_label+escort_or_bitbit_facilitation": 4,
     "debt_bondage_fee_stack+movement_restriction_and_exit_control": 4,
     "evidence_suppression_or_audit_staging+witness_retraction_or_settlement_pressure": 4,
-    "original_document_evidence_gap+visa_sponsorship_or_legal_process_control": 4,
-    "visa_sponsorship_or_legal_process_control+witness_retraction_or_settlement_pressure": 4,
-    "forced_criminality_or_money_mule+witness_retraction_or_settlement_pressure": 4,
-    "debt_bondage_fee_stack+subcontractor_chain_obscuring": 4,
-    "licensed_front_or_legal_cover+subcontractor_chain_obscuring": 4
+    "original_document_evidence_gap+visa_sponsorship_or_legal_process_control": 4
   },
   "source_ids_by_pattern": {
     "consent_waiver_or_voluntary_label": [
@@ -294,6 +295,16 @@
       "src_aba721d0bcd9d72d",
       "src_ba6580e656e79845",
       "src_c7996ae2be3a630e"
+    ],
+    "domestic_worker_agency_overcharge_or_loan_control": [
+      "src_417fb0037cbbc8ea",
+      "src_432d70e2d7d3366a",
+      "src_5136bc4d2a8c7736",
+      "src_5362abae56e6fd84",
+      "src_53aff68f95e75043",
+      "src_7090b4565212cda5",
+      "src_8bd629cce508c503",
+      "src_e6d49b4f319c7e27"
     ],
     "escort_or_bitbit_facilitation": [
       "src_21d256f9bc4dd855",

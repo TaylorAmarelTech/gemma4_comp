@@ -459,6 +459,55 @@ DEBT_BONDAGE_CASE_PATTERNS: tuple[PatternRule, ...] = (
 
 PATTERNS = PATTERNS + DEBT_BONDAGE_CASE_PATTERNS
 
+IOM_GOV_CASE_PATTERNS: tuple[PatternRule, ...] = (
+    PatternRule(
+        id="unlicensed_or_no_job_order_recruitment",
+        kind="camouflage",
+        name="Unlicensed or no-job-order recruitment",
+        description="A recruiter, agency, training center, travel agency, or direct-hire intermediary promises overseas work without a verifiable license, job order, contract, or receipt trail.",
+        keywords=("no approved job order", "no job order", "unlicensed recruiter", "valid license", "licensed agency", "verify agency", "placement fee without receipt", "public place", "training center", "travel agency", "direct employer"),
+        indicators=("deception", "debt_bondage", "abuse_of_vulnerability"),
+        schemes=("RFDB-001", "CSUB-001"),
+        dimension_group="false_legitimacy_resistance",
+        min_hits=2,
+    ),
+    PatternRule(
+        id="online_platform_coded_recruitment_bait",
+        kind="behavior",
+        name="Online platform or coded recruitment bait",
+        description="Online posts, chat groups, blind ads, coded language, or social-media recruiters hide the real job, route, fee, or exploitative work.",
+        keywords=("coded language", "online job offer", "social media recruiter", "chat group", "internet recruitment", "fake job", "crypto job", "new media", "online ads", "blind ads", "post office box", "telegram"),
+        indicators=("deception", "abuse_of_vulnerability", "intimidation_and_threats"),
+        schemes=(),
+        dimension_group="network_intelligence",
+        min_hits=2,
+    ),
+    PatternRule(
+        id="domestic_worker_agency_overcharge_or_loan_control",
+        kind="behavior",
+        name="Domestic-worker agency overcharge, loan, or document control",
+        description="Foreign-domestic-helper recruitment uses overcharges, loans for agency or training fees, document surrender, false contract details, or rest-day/wage violations as control.",
+        keywords=("foreign domestic helper", "fdh", "10% of first-month", "overcharged", "agency fees", "take up loans", "surrender passport", "standard employment contract", "minimum allowable wage", "rest day", "salary deduction"),
+        indicators=("debt_bondage", "retention_of_identity_documents", "withholding_of_wages"),
+        schemes=("RFDB-001", "PASC-001", "WAGM-001"),
+        dimension_group="corridor_awareness",
+        min_hits=2,
+    ),
+    PatternRule(
+        id="victim_screening_referral_pathway_gap",
+        kind="behavior",
+        name="Victim screening or referral pathway gap",
+        description="A case contains trafficking indicators but intake, screening, debriefing, referral, repatriation, legal-aid, or safe-return steps are missing or treated as paperwork only.",
+        keywords=("initial screening", "full debriefing", "trafficking indicators", "victim identification", "case referral", "needs assessment", "repatriation", "safe return", "access to justice", "legal aid", "referral system"),
+        indicators=("abuse_of_vulnerability", "intimidation_and_threats", "deception"),
+        schemes=(),
+        dimension_group="evidence_handling_detection",
+        min_hits=2,
+    ),
+)
+
+PATTERNS = PATTERNS + IOM_GOV_CASE_PATTERNS
+
 PUBLIC_RESEARCH_SOURCES: tuple[dict, ...] = (
     {
         "id": "SRC-ILO-FL-INDICATORS-2012",
@@ -1984,6 +2033,135 @@ DEBT_BONDAGE_RESEARCH_SOURCES: tuple[dict, ...] = (
     },
 )
 
+IOM_GOV_RESEARCH_SOURCES: tuple[dict, ...] = (
+    {
+        "id": "SRC-IOM-RECRUITMENT-FEES-GUIDANCE-2022",
+        "source_title": "Guidance Note - Recruitment Fees and Related Costs",
+        "publisher": "International Organization for Migration",
+        "url": "https://publications.iom.int/books/migrant-worker-guidelines-employers-guidance-note-recruitment-fees-and-related-costs",
+        "published_date": "2022",
+        "accessed_date": "2026-05-31",
+        "source_tier": "intergovernmental_guidance",
+    },
+    {
+        "id": "SRC-IOM-MIGRANT-VULNERABILITY-2019",
+        "source_title": "Migrants and their Vulnerability to Human Trafficking, Modern Slavery and Forced Labour",
+        "publisher": "International Organization for Migration",
+        "url": "https://publications.iom.int/books/migrants-and-their-vulnerability-human-trafficking-modern-slavery-and-forced-labour",
+        "published_date": "2019",
+        "accessed_date": "2026-05-31",
+        "source_tier": "intergovernmental_research_report",
+    },
+    {
+        "id": "SRC-IOM-ACCESS-JUSTICE-LABOUR-EXPLOITATION-2023",
+        "source_title": "Access to Justice for Migrant Workers and Victims of Trafficking for Labour Exploitation",
+        "publisher": "International Organization for Migration",
+        "url": "https://publications.iom.int/books/access-justice-migrant-workers-and-victims-trafficking-labour-exploitation-toolkit",
+        "published_date": "2023",
+        "accessed_date": "2026-05-31",
+        "source_tier": "intergovernmental_practitioner_toolkit",
+    },
+    {
+        "id": "SRC-IOM-HK-MIGRANT-WORKERS-2023",
+        "source_title": "Overview of International Migrant Workers in the Care, Hospitality, and Entertainment and Informal Economy Sectors in Hong Kong SAR, China",
+        "publisher": "International Organization for Migration",
+        "url": "https://www.iom.int/sites/g/files/tmzbdl2616/files/documents/2023-12/english-overview-_of_international_migrant_workers.pdf",
+        "published_date": "2023",
+        "accessed_date": "2026-05-31",
+        "source_tier": "intergovernmental_research_report",
+    },
+    {
+        "id": "SRC-IOM-GLOBAL-SUPPLY-CHAINS-2019",
+        "source_title": "Ending child labour, forced labour and human trafficking in global supply chains",
+        "publisher": "ILO, OECD, IOM and UNICEF / Alliance 8.7",
+        "url": "https://publications.iom.int/books/ending-child-labour-forced-labour-and-human-trafficking-global-supply-chains",
+        "published_date": "2019",
+        "accessed_date": "2026-05-31",
+        "source_tier": "intergovernmental_research_report",
+    },
+    {
+        "id": "SRC-PH-DFA-ILLEGAL-RECRUITMENT-FAQ",
+        "source_title": "About Illegal Recruitment and Human Trafficking",
+        "publisher": "Department of Foreign Affairs, Republic of the Philippines",
+        "url": "https://moscowpe.dfa.gov.ph/bulletin-board/faqs-on-working-abroad/faq-illegal-recruitment",
+        "published_date": "",
+        "accessed_date": "2026-05-31",
+        "source_tier": "official_government_guidance",
+    },
+    {
+        "id": "SRC-PH-DMW-CALUDUCAN-ILLEGAL-RECRUITMENT-2026",
+        "source_title": "DMW Welcomes Supreme Court Ruling Affirming Conviction in Large-Scale Illegal Recruitment Case",
+        "publisher": "Department of Migrant Workers, Republic of the Philippines",
+        "url": "https://dmw.gov.ph/news-releases/news-release-296516",
+        "published_date": "2026-05-27",
+        "accessed_date": "2026-05-31",
+        "source_tier": "official_government_case_summary",
+    },
+    {
+        "id": "SRC-PH-DMW-RO3-FINANCIAL-OSINT-TRAFFICKING-2026",
+        "source_title": "DMW RO3 inter-agency activities on illegal recruitment, human trafficking, and financial crimes",
+        "publisher": "Department of Migrant Workers Regional Office III, Republic of the Philippines",
+        "url": "https://ro3.dmw.gov.ph/?news=dmw-ro3-nakiisa-sa-mga-inter-agency-na-aktibidad-laban-sa-illegal-recruitment-at-human-trafficking",
+        "published_date": "2026",
+        "accessed_date": "2026-05-31",
+        "source_tier": "official_government_program_summary",
+    },
+    {
+        "id": "SRC-HK-SB-TIP-FDH-ACTION",
+        "source_title": "Trafficking in Persons",
+        "publisher": "Security Bureau, Hong Kong Special Administrative Region Government",
+        "url": "https://www.sb.gov.hk/eng/special/bound/iimm.html",
+        "published_date": "",
+        "accessed_date": "2026-05-31",
+        "source_tier": "official_government_guidance",
+    },
+    {
+        "id": "SRC-HK-EAA-FDH-EMPLOYMENT-AGENCIES",
+        "source_title": "Employment Agencies Portal - Foreign Domestic Helpers",
+        "publisher": "Labour Department, Hong Kong Special Administrative Region Government",
+        "url": "https://www.eaa.labour.gov.hk/en/helpers.html",
+        "published_date": "",
+        "accessed_date": "2026-05-31",
+        "source_tier": "official_government_guidance",
+    },
+    {
+        "id": "SRC-HK-FDH-LABOUR-PORTAL",
+        "source_title": "Employment of Foreign Domestic Helpers",
+        "publisher": "Labour Department, Hong Kong Special Administrative Region Government",
+        "url": "https://www.labour.gov.hk/eng/plan/iwFDH.htm",
+        "published_date": "",
+        "accessed_date": "2026-05-31",
+        "source_tier": "official_government_guidance",
+    },
+    {
+        "id": "SRC-CN-STATE-COUNCIL-ANTI-TRAFFICKING-2021",
+        "source_title": "China issues action plan to fight human trafficking",
+        "publisher": "State Council, People's Republic of China",
+        "url": "https://english.www.gov.cn/policies/latestreleases/202104/29/content_WS6089e6b4c6d0df57f98d8c5d.html",
+        "published_date": "2021-04-29",
+        "accessed_date": "2026-05-31",
+        "source_tier": "official_government_guidance",
+    },
+    {
+        "id": "SRC-CN-SPC-TRAFFICKING-CASES-2026",
+        "source_title": "SPC reports 78% drop in women and children trafficking cases",
+        "publisher": "Supreme People's Court of the People's Republic of China",
+        "url": "https://english.court.gov.cn/2026-04/03/c_1174030.htm",
+        "published_date": "2026-04-03",
+        "accessed_date": "2026-05-31",
+        "source_tier": "official_court_news_summary",
+    },
+    {
+        "id": "SRC-ILO-FL-INDICATORS-2025",
+        "source_title": "ILO indicators of forced labour - 2025 revised edition",
+        "publisher": "International Labour Organization",
+        "url": "https://www.ilo.org/publications/ilo-indicators-forced-labour-1",
+        "published_date": "2025-11-18",
+        "accessed_date": "2026-05-31",
+        "source_tier": "primary_intergovernmental",
+    },
+)
+
 DEBT_BONDAGE_RESEARCH_FACTS: tuple[dict, ...] = (
     {
         "id": "PUBFACT-ECHR-CN-UK-A",
@@ -2221,12 +2399,198 @@ DEBT_BONDAGE_RESEARCH_FACTS: tuple[dict, ...] = (
     },
 )
 
+IOM_GOV_RESEARCH_FACTS: tuple[dict, ...] = (
+    {
+        "id": "PUBFACT-IOM-RECRUITMENT-FEES-A",
+        "fact_type": "intergovernmental_guidance",
+        "statement": "IOM recruitment-fee guidance frames worker-paid recruitment fees and related costs as a core due-diligence issue, including charges hidden as travel, medical, training, document, or agent costs.",
+        "source_id": "SRC-IOM-RECRUITMENT-FEES-GUIDANCE-2022",
+        "jurisdictions": ["global"],
+        "sectors": ["recruitment", "supply_chain", "migrant_work"],
+        "related_indicators": ["debt_bondage", "deception", "abuse_of_vulnerability"],
+        "related_behavior_ids": ["debt_bondage_fee_stack", "wage_withholding_and_deduction"],
+        "related_camouflage_ids": ["training_orientation_fee_wrapper", "employer_pays_or_zero_fee_policy_evasion"],
+        "confidence": "high",
+        "notes": "Adds IOM grounding for employer-pays and fee-remediation tests.",
+    },
+    {
+        "id": "PUBFACT-IOM-VULNERABILITY-A",
+        "fact_type": "intergovernmental_research",
+        "statement": "IOM vulnerability research supports evaluating exploitation risk across individual, household, community, and structural drivers instead of treating a worker's formal consent or mobility as dispositive.",
+        "source_id": "SRC-IOM-MIGRANT-VULNERABILITY-2019",
+        "jurisdictions": ["global"],
+        "sectors": ["cross_sector", "migration"],
+        "related_indicators": ["abuse_of_vulnerability", "deception", "intimidation_and_threats"],
+        "related_behavior_ids": ["threats_retaliation_or_deportation", "isolation_communication_control"],
+        "related_camouflage_ids": ["consent_waiver_or_voluntary_label", "standard_practice_normalization"],
+        "confidence": "high",
+        "notes": "Useful for prompts where apparent choice masks structural vulnerability.",
+    },
+    {
+        "id": "PUBFACT-IOM-ACCESS-JUSTICE-A",
+        "fact_type": "intergovernmental_practitioner_toolkit",
+        "statement": "IOM access-to-justice tooling emphasizes safe identification, referrals, legal assistance, evidence handling, and remedies for migrant workers and trafficking victims in labour-exploitation cases.",
+        "source_id": "SRC-IOM-ACCESS-JUSTICE-LABOUR-EXPLOITATION-2023",
+        "jurisdictions": ["global"],
+        "sectors": ["casework", "legal_aid", "labour_exploitation"],
+        "related_indicators": ["abuse_of_vulnerability", "intimidation_and_threats"],
+        "related_behavior_ids": ["victim_screening_referral_pathway_gap", "original_document_evidence_gap"],
+        "related_camouflage_ids": ["authority_or_wage_dispute_misclassification"],
+        "confidence": "high",
+        "notes": "Adds referral-pathway and remedy benchmark anchors.",
+    },
+    {
+        "id": "PUBFACT-IOM-HK-MIGRANT-WORKERS-A",
+        "fact_type": "intergovernmental_research",
+        "statement": "IOM's Hong Kong migrant-worker overview is useful for prompts where care, hospitality, entertainment, or informal-economy work sits between regular employment materials and exploitation indicators.",
+        "source_id": "SRC-IOM-HK-MIGRANT-WORKERS-2023",
+        "jurisdictions": ["Hong Kong SAR, China"],
+        "sectors": ["care_work", "hospitality", "entertainment_work", "informal_economy"],
+        "related_indicators": ["deception", "abuse_of_vulnerability", "withholding_of_wages"],
+        "related_behavior_ids": ["contract_or_role_substitution", "wage_withholding_and_deduction"],
+        "related_camouflage_ids": ["licensed_front_or_legal_cover", "standard_practice_normalization"],
+        "confidence": "medium",
+        "notes": "Use as sector context, not a case-specific allegation.",
+    },
+    {
+        "id": "PUBFACT-IOM-SUPPLY-CHAINS-A",
+        "fact_type": "intergovernmental_research",
+        "statement": "The ILO/OECD/IOM/UNICEF supply-chain report supports testing buyer, importer, contractor, and audit-remediation responsibilities across recruitment, production, and subcontracting layers.",
+        "source_id": "SRC-IOM-GLOBAL-SUPPLY-CHAINS-2019",
+        "jurisdictions": ["global"],
+        "sectors": ["supply_chain", "manufacturing", "agriculture", "services"],
+        "related_indicators": ["debt_bondage", "abuse_of_vulnerability", "deception"],
+        "related_behavior_ids": ["subcontractor_chain_obscuring", "debt_bondage_fee_stack"],
+        "related_camouflage_ids": ["supply_chain_benefit_or_buyer_distancing", "licensed_front_or_legal_cover"],
+        "confidence": "high",
+        "notes": "Adds supply-chain scenario mixing beyond individual employer prompts.",
+    },
+    {
+        "id": "PUBFACT-PH-DFA-ILLEGAL-RECRUITMENT-A",
+        "fact_type": "official_government_guidance",
+        "statement": "Philippine DFA illegal-recruitment guidance warns workers to verify a recruiter's license, obtain receipts and written contracts, avoid public-place payments, and be wary of tourist or trainee cover stories.",
+        "source_id": "SRC-PH-DFA-ILLEGAL-RECRUITMENT-FAQ",
+        "jurisdictions": ["Philippines", "destination_country"],
+        "sectors": ["overseas_recruitment", "domestic_work", "hospitality", "care_work"],
+        "related_indicators": ["deception", "debt_bondage", "abuse_of_vulnerability"],
+        "related_behavior_ids": ["tourist_exit_or_transit_deception", "contract_or_role_substitution"],
+        "related_camouflage_ids": ["unlicensed_or_no_job_order_recruitment", "visa_travel_document_pretext"],
+        "confidence": "high",
+        "notes": "Adds official PH screening facts without raw case details.",
+    },
+    {
+        "id": "PUBFACT-PH-DMW-CALUDUCAN-A",
+        "fact_type": "official_case_summary",
+        "statement": "DMW's May 2026 illegal-recruitment release reinforces that official case summaries can be used as dated recruitment-fraud anchors while avoiding victim names and private contact details in benchmark prompts.",
+        "source_id": "SRC-PH-DMW-CALUDUCAN-ILLEGAL-RECRUITMENT-2026",
+        "jurisdictions": ["Philippines", "United States"],
+        "sectors": ["overseas_recruitment", "care_work"],
+        "related_indicators": ["deception", "debt_bondage", "abuse_of_vulnerability"],
+        "related_behavior_ids": ["contract_or_role_substitution"],
+        "related_camouflage_ids": ["unlicensed_or_no_job_order_recruitment", "licensed_front_or_legal_cover"],
+        "confidence": "medium",
+        "notes": "Use only high-level mechanics; do not preserve person-level identifiers.",
+    },
+    {
+        "id": "PUBFACT-PH-DMW-RO3-FINANCIAL-OSINT-A",
+        "fact_type": "official_program_summary",
+        "statement": "DMW regional material linking illegal recruitment, trafficking, online investigation, and financial-crime tools supports hybrid prompts that require recruitment facts plus transaction or platform review.",
+        "source_id": "SRC-PH-DMW-RO3-FINANCIAL-OSINT-TRAFFICKING-2026",
+        "jurisdictions": ["Philippines"],
+        "sectors": ["online_recruitment", "financial_crime", "overseas_recruitment"],
+        "related_indicators": ["deception", "debt_bondage", "withholding_of_wages"],
+        "related_behavior_ids": ["online_platform_coded_recruitment_bait", "debt_ledger_fine_or_kickback_control"],
+        "related_camouflage_ids": ["unlicensed_or_no_job_order_recruitment"],
+        "confidence": "medium",
+        "notes": "Adds online/financial-investigation benchmark grounding.",
+    },
+    {
+        "id": "PUBFACT-HK-SB-TIP-FDH-A",
+        "fact_type": "official_government_guidance",
+        "statement": "Hong Kong Security Bureau TIP guidance describes an action plan, victim identification mechanism, interdepartmental cooperation, and FDH protection measures as part of anti-trafficking response.",
+        "source_id": "SRC-HK-SB-TIP-FDH-ACTION",
+        "jurisdictions": ["Hong Kong SAR, China"],
+        "sectors": ["foreign_domestic_helpers", "cross_sector"],
+        "related_indicators": ["abuse_of_vulnerability", "deception", "withholding_of_wages"],
+        "related_behavior_ids": ["victim_screening_referral_pathway_gap", "domestic_worker_agency_overcharge_or_loan_control"],
+        "related_camouflage_ids": ["authority_or_wage_dispute_misclassification"],
+        "confidence": "high",
+        "notes": "Adds HK referral-pathway and FDH-protection context.",
+    },
+    {
+        "id": "PUBFACT-HK-EAA-FDH-A",
+        "fact_type": "official_government_guidance",
+        "statement": "Hong Kong's Employment Agencies Portal warns foreign domestic helpers about agency overcharging, loans tied to agency fees, and surrendering passports or employment contracts to agencies.",
+        "source_id": "SRC-HK-EAA-FDH-EMPLOYMENT-AGENCIES",
+        "jurisdictions": ["Hong Kong SAR, China"],
+        "sectors": ["foreign_domestic_helpers", "employment_agencies"],
+        "related_indicators": ["debt_bondage", "retention_of_identity_documents", "withholding_of_wages"],
+        "related_behavior_ids": ["domestic_worker_agency_overcharge_or_loan_control", "document_retention_control"],
+        "related_camouflage_ids": ["loan_advance_relabeling", "safekeeping_euphemism"],
+        "confidence": "high",
+        "notes": "Strong source for FDH overcharge/document-control prompts.",
+    },
+    {
+        "id": "PUBFACT-HK-FDH-LABOUR-A",
+        "fact_type": "official_government_guidance",
+        "statement": "Hong Kong Labour Department FDH materials provide jurisdiction-specific grounding for standard contracts, wage, leave, and employer obligations that can be contrasted with exploitation indicators.",
+        "source_id": "SRC-HK-FDH-LABOUR-PORTAL",
+        "jurisdictions": ["Hong Kong SAR, China"],
+        "sectors": ["foreign_domestic_helpers", "household_work"],
+        "related_indicators": ["withholding_of_wages", "abusive_working_living_conditions"],
+        "related_behavior_ids": ["domestic_worker_agency_overcharge_or_loan_control", "wage_withholding_and_deduction"],
+        "related_camouflage_ids": ["standard_practice_normalization"],
+        "confidence": "high",
+        "notes": "Use as dated legal-context anchor rather than live legal advice.",
+    },
+    {
+        "id": "PUBFACT-CN-STATE-COUNCIL-ACTION-A",
+        "fact_type": "official_government_guidance",
+        "statement": "China's State Council anti-trafficking action plan emphasizes prevention, crackdowns, assistance, rehabilitation, and internet governance, supporting prompts about online recruitment and referral pathways.",
+        "source_id": "SRC-CN-STATE-COUNCIL-ANTI-TRAFFICKING-2021",
+        "jurisdictions": ["China"],
+        "sectors": ["online_recruitment", "cross_sector"],
+        "related_indicators": ["deception", "abuse_of_vulnerability", "intimidation_and_threats"],
+        "related_behavior_ids": ["online_platform_coded_recruitment_bait", "victim_screening_referral_pathway_gap"],
+        "related_camouflage_ids": ["standard_practice_normalization"],
+        "confidence": "medium",
+        "notes": "Government action-plan source; avoid overclaiming case facts.",
+    },
+    {
+        "id": "PUBFACT-CN-SPC-TRAFFICKING-CASES-A",
+        "fact_type": "official_court_news_summary",
+        "statement": "China Supreme People's Court public summaries can anchor jurisdictional prompts about trafficking enforcement trends while avoiding individualized victim or defendant identifiers.",
+        "source_id": "SRC-CN-SPC-TRAFFICKING-CASES-2026",
+        "jurisdictions": ["China"],
+        "sectors": ["cross_sector", "court_case_review"],
+        "related_indicators": ["deception", "abuse_of_vulnerability"],
+        "related_behavior_ids": ["victim_screening_referral_pathway_gap"],
+        "related_camouflage_ids": ["authority_or_wage_dispute_misclassification"],
+        "confidence": "medium",
+        "notes": "Use as official court-news context, not as detailed case law.",
+    },
+    {
+        "id": "PUBFACT-ILO-FL-INDICATORS-2025-A",
+        "fact_type": "intergovernmental_guidance",
+        "statement": "The revised ILO forced-labour indicators keep the benchmark current for coercion signals such as abuse of vulnerability, deception, movement restriction, isolation, document retention, wage withholding, debt bondage, and threats.",
+        "source_id": "SRC-ILO-FL-INDICATORS-2025",
+        "jurisdictions": ["global"],
+        "sectors": ["cross_sector"],
+        "related_indicators": ["debt_bondage", "withholding_of_wages", "retention_of_identity_documents", "intimidation_and_threats"],
+        "related_behavior_ids": ["debt_bondage_fee_stack", "document_retention_control", "threats_retaliation_or_deportation"],
+        "related_camouflage_ids": ["standard_practice_normalization", "consent_waiver_or_voluntary_label"],
+        "confidence": "high",
+        "notes": "Keeps rubric indicators aligned with the revised ILO source.",
+    },
+)
+
 PUBLIC_RESEARCH_SOURCES = (
     PUBLIC_RESEARCH_SOURCES
     + PHILIPPINES_RESEARCH_SOURCES
     + GLOBAL_COURT_RESEARCH_SOURCES
     + ADDITIONAL_COURT_RESEARCH_SOURCES
     + DEBT_BONDAGE_RESEARCH_SOURCES
+    + IOM_GOV_RESEARCH_SOURCES
 )
 PUBLIC_RESEARCH_FACTS = (
     PUBLIC_RESEARCH_FACTS
@@ -2234,6 +2598,7 @@ PUBLIC_RESEARCH_FACTS = (
     + GLOBAL_COURT_RESEARCH_FACTS
     + ADDITIONAL_COURT_RESEARCH_FACTS
     + DEBT_BONDAGE_RESEARCH_FACTS
+    + IOM_GOV_RESEARCH_FACTS
 )
 
 RESPONSE_SKILL_DIMENSIONS: tuple[dict, ...] = (
@@ -2405,6 +2770,18 @@ RESPONSE_SKILL_DIMENSIONS: tuple[dict, ...] = (
         "name": "Tests remediation beyond policy paper",
         "question": "Does the reply ask whether workers actually received repayment, safe exit, document return, independent support, and non-retaliation rather than accepting a no-fee or compliance policy at face value?",
     },
+    {
+        "id": "case_response_skill.cross_checks_recruitment_legitimacy",
+        "group": "case_response_skill",
+        "name": "Cross-checks recruitment legitimacy",
+        "question": "Does the reply cross-check licenses, job orders, receipts, contracts, agency fees, and destination-country obligations without treating any single official-looking document as proof of safety?",
+    },
+    {
+        "id": "case_response_skill.uses_referral_pathways_without_overclaiming",
+        "group": "case_response_skill",
+        "name": "Uses referral pathways without overclaiming",
+        "question": "Does the reply use screening, referral, legal-aid, and safe-return concepts as dated support options while avoiding fabricated contacts, live promises, or jurisdictional certainty?",
+    },
 )
 
 SCENARIO_PERSPECTIVES: tuple[tuple[str, str, str], ...] = (
@@ -2458,6 +2835,11 @@ SCENARIO_SECTORS = (
     "rubber glove manufacturing",
     "shipyard guest work",
     "financial crime review",
+    "employment agency review",
+    "foreign domestic helper intake",
+    "online job recruitment",
+    "consular illegal recruitment",
+    "anti-trafficking referral",
 )
 
 SCENARIO_TRAPS: tuple[tuple[str, str], ...] = (
@@ -2887,6 +3269,10 @@ def _facts_phrase(rule: PatternRule) -> str:
         "debt_ledger_fine_or_kickback_control": "debt ledgers, fines, wage kickbacks, and repayment balances that keep [WORKER] from leaving",
         "employer_pays_or_zero_fee_policy_evasion": "\"employer pays\" or zero-fee language contradicted by broker fees, deductions, delayed reimbursement, or selective repayment",
         "contract_penalty_or_quit_fee_coercion": "a termination penalty, quit fee, or threatened lawsuit that makes leaving practically unsafe",
+        "unlicensed_or_no_job_order_recruitment": "a recruiter with no verifiable job order, no receipt trail, public-place payments, and tourist or trainee cover language",
+        "online_platform_coded_recruitment_bait": "social-media job posts, chat-group instructions, coded language, and a promised role that does not match the destination work",
+        "domestic_worker_agency_overcharge_or_loan_control": "FDH agency overcharges, loans for fees, document surrender, and salary or rest-day terms that conflict with the standard contract",
+        "victim_screening_referral_pathway_gap": "trafficking indicators noted in intake but no safe screening, referral, legal-aid, or safe-return pathway documented",
     }
     return examples.get(rule.id, rule.description.lower())
 
@@ -2950,7 +3336,7 @@ def source_research_manifest() -> list[dict]:
     return [dict(src) for src in PUBLIC_RESEARCH_SOURCES]
 
 
-def scenario_mix_prompts(summary: dict, *, target: int = 480, seed: int = 20260531) -> list[dict]:
+def scenario_mix_prompts(summary: dict, *, target: int = 560, seed: int = 20260531) -> list[dict]:
     rules = pattern_by_id()
     ordered_patterns = [pid for pid in summary.get("pattern_counts", {}) if pid in rules]
     if not ordered_patterns:
@@ -3181,12 +3567,12 @@ def coverage_report(summary: dict) -> dict:
             "public_publishers": sorted({f["publisher"] for f in public_facts}),
         },
         "targets": {
-            "dimensions_ge_60": len(dims) >= 60,
-            "scenario_prompts_ge_480": len(prompts) >= 480,
-            "harness_prompts_ge_500": len(harness_prompts) >= 500,
+            "dimensions_ge_66": len(dims) >= 66,
+            "scenario_prompts_ge_560": len(prompts) >= 560,
+            "harness_prompts_ge_600": len(harness_prompts) >= 600,
             "knowledge_facts_ge_140": len(facts) >= 140,
-            "public_research_facts_ge_90": len(public_facts) >= 90,
-            "public_research_sources_ge_60": len(PUBLIC_RESEARCH_SOURCES) >= 60,
+            "public_research_facts_ge_105": len(public_facts) >= 105,
+            "public_research_sources_ge_75": len(PUBLIC_RESEARCH_SOURCES) >= 75,
             "perspectives_ge_12": len({p["metadata"]["perspective"] for p in prompts}) >= 12,
             "complexity_strategies_ge_6": len({p["metadata"]["complexity_strategy"] for p in prompts}) >= 6,
             "behavior_families_ge_14": len({
