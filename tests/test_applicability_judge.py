@@ -23,6 +23,24 @@ def test_parse_filters_to_valid_groups_and_reads_sector():
     assert out["sector"] == "fishing" and out["corridor"] == "PH_HK"
 
 
+def test_parse_can_normalize_sector_and_gulf_corridor():
+    out = aj.parse('{"groups":["response_quality"],"sector":"hotel","corridor":"PH_SA"}',
+                   _VALID,
+                   valid_sectors=["hospitality", "domestic_work"],
+                   valid_corridors=["PH_GULF", "PH_HK"])
+    assert out["sector"] == "hospitality"
+    assert out["corridor"] == "PH_GULF"
+
+
+def test_prompt_lists_valid_sector_and_corridor_ids():
+    prompt = aj.build_prompt("message", ["response_quality"],
+                             sectors=["hospitality"],
+                             corridors=["PH_GULF"])
+    assert "SECTORS: hospitality" in prompt
+    assert "CORRIDORS: PH_GULF" in prompt
+    assert "use the available *_GULF corridor ID" in prompt
+
+
 def test_parse_handles_garbage():
     assert aj.parse("no json here", _VALID) == {"groups": [], "sector": "", "corridor": ""}
 

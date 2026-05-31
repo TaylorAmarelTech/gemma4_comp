@@ -61,3 +61,32 @@ def test_aggregate_by_group_splits_on_dim_prefix(tmp_path, monkeypatch):
     groups = {r["group"]: r for r in by["m"]}
     assert groups["ilo_indicator"]["lift"] == 6.0   # 8 - 2
     assert groups["scheme_detection"]["lift"] == 2.0  # 6 - 4
+
+
+def test_make_batches_applies_applicability_judge_tags(tmp_path, monkeypatch):
+    bench = tmp_path / "bench"
+    bench.mkdir()
+    (bench / "harness_lift_dimensions.json").write_text(json.dumps({"dimensions": [
+        {"id": "response_quality.a", "group": "response_quality"},
+        {"id": "financial_obfuscation_detection.a", "group": "financial_obfuscation_detection"},
+        {"id": "corridor_awareness.PH_GULF", "group": "corridor_awareness"},
+    ]}), encoding="utf-8")
+    (bench / "prompts.json").write_text(json.dumps({"prompts": [
+        {"id": "p1", "text": "worker message", "category": "rights_query"},
+    ]}), encoding="utf-8")
+    responses = tmp_path / "responses.jsonl"
+    responses.write_text(json.dumps({"prompt_id": "p1", "model": "m", "arm": "baseline",
+                                     "response": "answer"}) + "\n", encoding="utf-8")
+
+    monkeypatch.setattr(opus, "_BENCH", bench)
+    monkeypatch.setattr(opus, "_BATCH_DIR", tmp_path / "batches")
+    monkeypatch.setattr(opus, "_load_applic_tags", lambda: {
+        "p1": {"groups": ["financial_obfuscation_detection"], "corridor": "PH_SA"},
+    })
+
+    assert opus.make_batches(responses, tmp_path / "empty_ckpt.jsonl", "prompts.json") == 1
+    batch = json.loads((tmp_path / "batches" / "batch_0000.json").read_text(encoding="utf-8"))
+    dim_ids = set(batch["items"][0]["dim_ids"])
+    assert "response_quality.a" in dim_ids
+    assert "financial_obfuscation_detection.a" in dim_ids
+    assert "corridor_awareness.PH_GULF" in dim_ids
