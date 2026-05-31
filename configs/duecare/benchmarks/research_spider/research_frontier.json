@@ -1,0 +1,314 @@
+{
+  "branches": [
+    {
+      "action": "Add an env-key-gated Brave Search API wrapper with synthetic fixture tests.",
+      "branch_id": "prototype_brave_search_adapter",
+      "kind": "tool",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 1,
+      "status": "queued",
+      "tool_fit_context": {
+        "advertools": 78,
+        "brave_search_api": 82,
+        "courlan": 75,
+        "crawl4ai": 64,
+        "crawlee_python": 74,
+        "ddgs": 62,
+        "github_search_api": 80,
+        "manual_dork_queue": 95,
+        "markitdown": 76,
+        "metagoofil": 15,
+        "pagodo": 25,
+        "pdfplumber": 84,
+        "photon": 20,
+        "playwright_python": 58,
+        "pymupdf": 70,
+        "pypdf": 80,
+        "scrapy": 84,
+        "searxng": 76,
+        "serpapi": 72,
+        "theharvester": 10,
+        "trafilatura": 88,
+        "unstructured": 60,
+        "warcio": 78
+      }
+    },
+    {
+      "action": "Use GitHub Search API to refresh Python tool candidates without private queries.",
+      "branch_id": "prototype_github_search_tool_discovery",
+      "kind": "tool",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 2,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Extract public HTML text after existing fetch/robots gates.",
+      "branch_id": "prototype_trafilatura_html_extractor",
+      "kind": "tool",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 3,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Extract public PDF text/tables from court and report fixtures.",
+      "branch_id": "prototype_pdfplumber_pdf_extractor",
+      "kind": "tool",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 4,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Add a lightweight PDF fallback for simple public documents.",
+      "branch_id": "prototype_pypdf_lightweight_fallback",
+      "kind": "tool",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 5,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Capture public-source fetch manifests and WARC metadata after redaction gates.",
+      "branch_id": "prototype_warcio_manifest_archiving",
+      "kind": "tool",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 6,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Test sitemap-first expansion for official public domains.",
+      "branch_id": "evaluate_advertools_sitemap_crawl",
+      "kind": "tool",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 7,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Prototype a small Scrapy spider only if sitemap/manual discovery stalls.",
+      "branch_id": "evaluate_scrapy_polite_crawler",
+      "kind": "tool",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 8,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Write allowlist policy before any JavaScript browser fetches.",
+      "branch_id": "defer_playwright_allowlist_policy",
+      "kind": "tool",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 9,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Keep pagodo, Photon, theHarvester, and Metagoofil out of provider registries.",
+      "branch_id": "reject_osint_operationalization",
+      "kind": "tool",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 10,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Search public Philippine court/prosecution sources for illegal recruitment and debt bondage.",
+      "branch_id": "philippines_court_illegal_recruitment_cases",
+      "kind": "source",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 11,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Search Hong Kong public sources for FDH agency overcharge, loan, passport, and rest-day indicators.",
+      "branch_id": "hong_kong_fdh_agency_fee_cases",
+      "kind": "source",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 12,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Branch from China court summaries into fraud, trafficking, and coded-language public cases.",
+      "branch_id": "china_court_new_trafficking_forms",
+      "kind": "source",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 13,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Corroborate recruitment-fee and related-cost guidance with IOM/ILO documents.",
+      "branch_id": "iom_recruitment_fee_guidance",
+      "kind": "source",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 14,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Extract prompt seeds from ILO forced-labour indicators and sector material.",
+      "branch_id": "ilo_forced_labour_indicators",
+      "kind": "source",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 15,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Search UNODC case-law material for coercion, servitude, and debt-bondage examples.",
+      "branch_id": "unodc_case_law_forced_labor",
+      "kind": "source",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 16,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Extract financial-obfuscation indicators from FATF/APG trafficking typologies.",
+      "branch_id": "fatf_financial_flows_typologies",
+      "kind": "source",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 17,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Search regional sources for transit, scam-compound, and referral pathway patterns.",
+      "branch_id": "asean_bali_process_corridors",
+      "kind": "source",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 18,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Profile EU law-enforcement operations for cross-border exploitation indicators.",
+      "branch_id": "europol_eurojust_frontex_operations",
+      "kind": "source",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 19,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Search public Canadian justice/labour cases for immigration-status coercion.",
+      "branch_id": "canada_temporary_foreign_worker_cases",
+      "kind": "source",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 20,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Branch from AFP/Home Affairs trafficking material into prosecution and referral examples.",
+      "branch_id": "australia_afp_forced_marriage_servitude",
+      "kind": "source",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 21,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Search NZ immigration/employment sources for exploitation and deception cases.",
+      "branch_id": "new_zealand_migrant_exploitation_cases",
+      "kind": "source",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 22,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Profile Singapore MOM/ICA/police sources for recruitment and permit-control prompts.",
+      "branch_id": "singapore_mom_agency_fee_guidance",
+      "kind": "source",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 23,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Generate synthetic conversations with jurisdiction ambiguity and referral needs.",
+      "branch_id": "multi_turn_worker_triage_conversations",
+      "kind": "prompt",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 24,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Mix debt, document control, immigration status, wage deductions, and benign distractors.",
+      "branch_id": "hybrid_moe_stress_scenarios",
+      "kind": "prompt",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 25,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Create seed tags where content implies sectors missing from metadata.",
+      "branch_id": "applicability_judge_seed_tags",
+      "kind": "prompt",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 26,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Add dimensions for deductions, kickbacks, debt ledgers, and payroll intermediaries.",
+      "branch_id": "financial_obfuscation_dimensions",
+      "kind": "dimension",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 27,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Add dimensions for safekeeping, training fees, tourist processing, and legal-cover pretexts.",
+      "branch_id": "camouflage_pretext_dimensions",
+      "kind": "dimension",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 28,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Add fixture tests for search/crawl/extract provider fallback behavior.",
+      "branch_id": "provider_registry_fixture_tests",
+      "kind": "test",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 29,
+      "status": "queued",
+      "tool_fit_context": {}
+    },
+    {
+      "action": "Refresh frontier_handoff.md after each committed slice.",
+      "branch_id": "frontier_resume_state_refresh",
+      "kind": "handoff",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 30,
+      "status": "queued",
+      "tool_fit_context": {}
+    }
+  ],
+  "frontier_source": "tool_survey_and_existing_public_research_spider",
+  "generated_at": "2026-05-31T00:00:00Z",
+  "schema_version": "public_research_frontier.v1",
+  "tool_decision_counts": {
+    "adopt_deterministic_core": 1,
+    "adopt_optional_adapter_candidate": 9,
+    "defer_allowlisted_javascript_only": 1,
+    "defer_extension_review": 1,
+    "defer_heavy_dependency": 2,
+    "defer_optional_unstable_backend": 1,
+    "defer_requires_credentials_or_budget": 1,
+    "defer_requires_license_and_instance_review": 1,
+    "defer_requires_license_review": 1,
+    "defer_until_scrapy_gap_is_clear": 1,
+    "reject_operational_use_inspiration_only": 4
+  }
+}

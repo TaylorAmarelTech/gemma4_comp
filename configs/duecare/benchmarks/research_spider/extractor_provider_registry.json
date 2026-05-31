@@ -1,0 +1,130 @@
+{
+  "generated_at": "2026-05-31T00:00:00Z",
+  "privacy_boundary": {
+    "credential_or_evasion_features_allowed": false,
+    "pii_harvesting_allowed": false,
+    "raw_private_cases_allowed": false,
+    "remote_private_queries_allowed": false
+  },
+  "providers": [
+    {
+      "adapter_status": "defer_heavy_dependency",
+      "category": "crawler_extractor",
+      "fixture_strategy": "synthetic_provider_results_only",
+      "network_behavior": "browser_or_http_crawling_markdown_output",
+      "notes": "Strong Markdown/RAG design reference; avoid remote LLM extraction in this repo.",
+      "privacy_risk": "medium_to_high_if_llm_extraction_or_browser_features_enabled",
+      "requires_credentials": false,
+      "robots_or_rate_limit_support": "requires_adapter_review_before_fetching",
+      "safe_default": false,
+      "tool_id": "crawl4ai",
+      "tool_name": "Crawl4AI"
+    },
+    {
+      "adapter_status": "adopt_optional_adapter_candidate",
+      "category": "html_extractor",
+      "fixture_strategy": "synthetic_provider_results_only",
+      "network_behavior": "can_extract_from_local_html_or_downloaded_public_html",
+      "notes": "Best first optional extractor for public HTML text and metadata.",
+      "privacy_risk": "low_for_local_public_html",
+      "requires_credentials": false,
+      "robots_or_rate_limit_support": "safe_when_used_after_existing_fetch_gate",
+      "safe_default": false,
+      "tool_id": "trafilatura",
+      "tool_name": "trafilatura"
+    },
+    {
+      "adapter_status": "adopt_optional_adapter_candidate",
+      "category": "url_filter",
+      "fixture_strategy": "synthetic_provider_results_only",
+      "network_behavior": "local_url_filtering_no_fetch_required",
+      "notes": "Good candidate for dedupe, filtering, and URL canonicalization after source discovery.",
+      "privacy_risk": "low",
+      "requires_credentials": false,
+      "robots_or_rate_limit_support": "normalization_only_fetch_gate_still_required",
+      "safe_default": false,
+      "tool_id": "courlan",
+      "tool_name": "courlan"
+    },
+    {
+      "adapter_status": "defer_requires_license_review",
+      "category": "document_extractor",
+      "fixture_strategy": "synthetic_provider_results_only",
+      "network_behavior": "local_document_extraction",
+      "notes": "Technically strong for PDFs, but license/commercial boundary matters.",
+      "privacy_risk": "low_for_public_documents_high_for_private_files",
+      "requires_credentials": false,
+      "robots_or_rate_limit_support": "not_applicable_after_safe_fetch",
+      "safe_default": false,
+      "tool_id": "pymupdf",
+      "tool_name": "PyMuPDF"
+    },
+    {
+      "adapter_status": "adopt_optional_adapter_candidate",
+      "category": "document_extractor",
+      "fixture_strategy": "synthetic_provider_results_only",
+      "network_behavior": "local_pdf_extraction",
+      "notes": "Good first PDF/table extractor candidate for public reports and court PDFs.",
+      "privacy_risk": "low_for_public_documents_high_for_private_files",
+      "requires_credentials": false,
+      "robots_or_rate_limit_support": "not_applicable_after_safe_fetch",
+      "safe_default": false,
+      "tool_id": "pdfplumber",
+      "tool_name": "pdfplumber"
+    },
+    {
+      "adapter_status": "adopt_optional_adapter_candidate",
+      "category": "document_extractor",
+      "fixture_strategy": "synthetic_provider_results_only",
+      "network_behavior": "local_pdf_extraction",
+      "notes": "Good lightweight fallback for simple public PDF text extraction.",
+      "privacy_risk": "low_for_public_documents_high_for_private_files",
+      "requires_credentials": false,
+      "robots_or_rate_limit_support": "not_applicable_after_safe_fetch",
+      "safe_default": false,
+      "tool_id": "pypdf",
+      "tool_name": "pypdf"
+    },
+    {
+      "adapter_status": "defer_extension_review",
+      "category": "document_extractor",
+      "fixture_strategy": "synthetic_provider_results_only",
+      "network_behavior": "local_conversion_for_most_formats_optional_remote_extensions",
+      "notes": "Promising Markdown conversion for Office/public reports; remote services must stay off.",
+      "privacy_risk": "medium_disable_remote_or_ai_extensions",
+      "requires_credentials": false,
+      "robots_or_rate_limit_support": "not_applicable_after_safe_fetch",
+      "safe_default": false,
+      "tool_id": "markitdown",
+      "tool_name": "Microsoft MarkItDown"
+    },
+    {
+      "adapter_status": "defer_heavy_dependency",
+      "category": "document_extractor",
+      "fixture_strategy": "synthetic_provider_results_only",
+      "network_behavior": "local_partitioning_possible_remote_platform_must_not_be_used",
+      "notes": "Useful design reference for partitioned document elements and metadata.",
+      "privacy_risk": "medium_to_high_if_remote_platform_or_ocr_extras_are_enabled",
+      "requires_credentials": false,
+      "robots_or_rate_limit_support": "not_applicable_after_safe_fetch",
+      "safe_default": false,
+      "tool_id": "unstructured",
+      "tool_name": "unstructured"
+    },
+    {
+      "adapter_status": "adopt_optional_adapter_candidate",
+      "category": "archive_reproducibility",
+      "fixture_strategy": "synthetic_provider_results_only",
+      "network_behavior": "local_read_write_warc_records",
+      "notes": "Good candidate for reproducible public-source snapshots with strict redaction gates.",
+      "privacy_risk": "medium_archives_can_capture_pii_if_fetch_scope_is_wrong",
+      "requires_credentials": false,
+      "robots_or_rate_limit_support": "archive_after_safe_fetch_only",
+      "safe_default": false,
+      "tool_id": "warcio",
+      "tool_name": "warcio"
+    }
+  ],
+  "schema_version": "public_research_extractor_provider_registry.v1",
+  "source_matrix": "tool_evaluation_matrix.jsonl"
+}

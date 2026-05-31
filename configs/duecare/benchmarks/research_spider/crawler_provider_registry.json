@@ -1,0 +1,78 @@
+{
+  "generated_at": "2026-05-31T00:00:00Z",
+  "privacy_boundary": {
+    "credential_or_evasion_features_allowed": false,
+    "pii_harvesting_allowed": false,
+    "raw_private_cases_allowed": false,
+    "remote_private_queries_allowed": false
+  },
+  "providers": [
+    {
+      "adapter_status": "adopt_optional_adapter_candidate",
+      "category": "crawler",
+      "fixture_strategy": "synthetic_provider_results_only",
+      "network_behavior": "direct_crawler_requests",
+      "notes": "Strong candidate for polite, resumable public-source crawling if dependency cost is acceptable.",
+      "privacy_risk": "low_with_public_allowlist_and_redaction",
+      "requires_credentials": false,
+      "robots_or_rate_limit_support": "supports_robots_and_autothrottle_configuration",
+      "safe_default": false,
+      "tool_id": "scrapy",
+      "tool_name": "Scrapy"
+    },
+    {
+      "adapter_status": "defer_until_scrapy_gap_is_clear",
+      "category": "crawler",
+      "fixture_strategy": "synthetic_provider_results_only",
+      "network_behavior": "direct_requests_or_browser_automation",
+      "notes": "Good design reference for queues, storage, retries, and browser-backed crawling.",
+      "privacy_risk": "medium_if_browser_or_storage_features_are_enabled",
+      "requires_credentials": false,
+      "robots_or_rate_limit_support": "review_per_adapter_before_use",
+      "safe_default": false,
+      "tool_id": "crawlee_python",
+      "tool_name": "Crawlee for Python"
+    },
+    {
+      "adapter_status": "adopt_optional_adapter_candidate",
+      "category": "crawler",
+      "fixture_strategy": "synthetic_provider_results_only",
+      "network_behavior": "crawler_and_sitemap_fetches",
+      "notes": "Useful for sitemap-first public source expansion and JSONL crawl outputs.",
+      "privacy_risk": "low_with_public_scope",
+      "requires_credentials": false,
+      "robots_or_rate_limit_support": "docs_show_robotstxt_obey_and_jsonl_outputs",
+      "safe_default": false,
+      "tool_id": "advertools",
+      "tool_name": "advertools"
+    },
+    {
+      "adapter_status": "defer_heavy_dependency",
+      "category": "crawler_extractor",
+      "fixture_strategy": "synthetic_provider_results_only",
+      "network_behavior": "browser_or_http_crawling_markdown_output",
+      "notes": "Strong Markdown/RAG design reference; avoid remote LLM extraction in this repo.",
+      "privacy_risk": "medium_to_high_if_llm_extraction_or_browser_features_enabled",
+      "requires_credentials": false,
+      "robots_or_rate_limit_support": "requires_adapter_review_before_fetching",
+      "safe_default": false,
+      "tool_id": "crawl4ai",
+      "tool_name": "Crawl4AI"
+    },
+    {
+      "adapter_status": "defer_allowlisted_javascript_only",
+      "category": "browser_automation",
+      "fixture_strategy": "synthetic_provider_results_only",
+      "network_behavior": "real_browser_public_page_requests",
+      "notes": "No stealth, CAPTCHA bypass, login automation, or fingerprint evasion.",
+      "privacy_risk": "medium_browser_state_must_not_persist_private_data",
+      "requires_credentials": false,
+      "robots_or_rate_limit_support": "must_be_enforced_by_wrapper_and_allowlist",
+      "safe_default": false,
+      "tool_id": "playwright_python",
+      "tool_name": "Playwright Python"
+    }
+  ],
+  "schema_version": "public_research_crawler_provider_registry.v1",
+  "source_matrix": "tool_evaluation_matrix.jsonl"
+}

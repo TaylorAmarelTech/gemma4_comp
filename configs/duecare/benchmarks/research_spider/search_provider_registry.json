@@ -1,0 +1,91 @@
+{
+  "generated_at": "2026-05-31T00:00:00Z",
+  "privacy_boundary": {
+    "credential_or_evasion_features_allowed": false,
+    "pii_harvesting_allowed": false,
+    "raw_private_cases_allowed": false,
+    "remote_private_queries_allowed": false
+  },
+  "providers": [
+    {
+      "adapter_status": "adopt_deterministic_core",
+      "category": "search_provider",
+      "fixture_strategy": "synthetic_provider_results_only",
+      "network_behavior": "no_network_by_default_browser_ready_urls_only",
+      "notes": "Best default fallback for source discovery when credentials or network are unavailable.",
+      "privacy_risk": "low_if_private_terms_are_never_used",
+      "requires_credentials": false,
+      "robots_or_rate_limit_support": "manual_review_required_before_fetch",
+      "safe_default": true,
+      "tool_id": "manual_dork_queue",
+      "tool_name": "Manual dork queue"
+    },
+    {
+      "adapter_status": "adopt_optional_adapter_candidate",
+      "category": "search_provider",
+      "fixture_strategy": "synthetic_provider_results_only",
+      "network_behavior": "remote_search_api_requires_key",
+      "notes": "Good optional API candidate for public-source discovery; never send private case terms.",
+      "privacy_risk": "medium_queries_leave_machine",
+      "requires_credentials": true,
+      "robots_or_rate_limit_support": "provider_rate_limits_apply_fetches_still_need_robots",
+      "safe_default": false,
+      "tool_id": "brave_search_api",
+      "tool_name": "Brave Search API"
+    },
+    {
+      "adapter_status": "defer_requires_license_and_instance_review",
+      "category": "search_provider",
+      "fixture_strategy": "synthetic_provider_results_only",
+      "network_behavior": "self_host_or_instance_api",
+      "notes": "Useful metasearch design reference; registry can support self-hosted endpoint later.",
+      "privacy_risk": "medium_instance_operator_can_see_queries",
+      "requires_credentials": false,
+      "robots_or_rate_limit_support": "instance_limits_apply_fetches_still_need_robots",
+      "safe_default": false,
+      "tool_id": "searxng",
+      "tool_name": "SearXNG"
+    },
+    {
+      "adapter_status": "defer_requires_credentials_or_budget",
+      "category": "search_provider",
+      "fixture_strategy": "synthetic_provider_results_only",
+      "network_behavior": "remote_search_api_requires_key",
+      "notes": "Good fallback for exact Google result parity if credentials are available.",
+      "privacy_risk": "medium_queries_leave_machine",
+      "requires_credentials": true,
+      "robots_or_rate_limit_support": "provider_limits_apply_fetches_still_need_robots",
+      "safe_default": false,
+      "tool_id": "serpapi",
+      "tool_name": "SerpApi Google Search API"
+    },
+    {
+      "adapter_status": "defer_optional_unstable_backend",
+      "category": "search_provider",
+      "fixture_strategy": "synthetic_provider_results_only",
+      "network_behavior": "remote_search_requests_without_official_sla",
+      "notes": "Useful for experimentation, but not a core dependency.",
+      "privacy_risk": "medium_queries_leave_machine",
+      "requires_credentials": false,
+      "robots_or_rate_limit_support": "backend_rate_limits_can_be_opaque",
+      "safe_default": false,
+      "tool_id": "ddgs",
+      "tool_name": "DDGS / duckduckgo-search successor"
+    },
+    {
+      "adapter_status": "adopt_optional_adapter_candidate",
+      "category": "tool_discovery",
+      "fixture_strategy": "synthetic_provider_results_only",
+      "network_behavior": "remote_api_optional_token_for_higher_limits",
+      "notes": "Best source for discovering and refreshing public Python repo candidates.",
+      "privacy_risk": "low_for_public_tool_queries",
+      "requires_credentials": false,
+      "robots_or_rate_limit_support": "api_rate_limits_apply",
+      "safe_default": false,
+      "tool_id": "github_search_api",
+      "tool_name": "GitHub Search API"
+    }
+  ],
+  "schema_version": "public_research_search_provider_registry.v1",
+  "source_matrix": "tool_evaluation_matrix.jsonl"
+}
