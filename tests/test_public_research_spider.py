@@ -22,9 +22,27 @@ def test_build_queries_covers_requested_public_source_families():
     assert "site:gov.ph" in text or "site:dmw.gov.ph" in text
     assert "site:gov.hk" in text or "site:labour.gov.hk" in text
     assert "site:gov.cn" in text or "site:english.court.gov.cn" in text
+    assert "site:justice.gov" in text or "site:dhs.gov" in text
+    assert "site:gov.uk" in text or "site:cps.gov.uk" in text
+    assert "site:publicsafety.gc.ca" in text or "site:justice.gc.ca" in text
+    assert "site:ag.gov.au" in text or "site:afp.gov.au" in text
+    assert "site:immigration.govt.nz" in text or "site:employment.govt.nz" in text
+    assert "site:mom.gov.sg" in text or "site:police.gov.sg" in text
     assert "filetype:pdf" in text
     assert any(q["intent"] == "debt_bondage_mechanics" for q in queries)
     assert any(q["intent"] == "victim_referral_access_to_justice" for q in queries)
+
+
+def test_deep_dorks_include_google_operators_and_non_html_artifacts():
+    dorks = spider.build_deep_dorks(max_per_family=220)
+    text = "\n".join(q["query"] for q in dorks)
+
+    assert "intitle:" in text
+    assert "inurl:" in text
+    assert "filetype:pdf" in text
+    assert "filetype:xlsx" in text
+    assert "after:2020" in text
+    assert any(q["intent"] == "case_digest_evidence" for q in dorks)
 
 
 def test_redaction_and_prompt_generation_do_not_emit_contact_details():
@@ -55,6 +73,33 @@ def test_redaction_and_prompt_generation_do_not_emit_contact_details():
     assert "[REDACTED_EMAIL]" not in prompt_text
     assert "[WORKER]" not in prompt_text  # this spider uses prose placeholders, not raw worker facts
     assert "public-source context" in prompts[0]["text"]
+
+
+def test_source_profile_second_wave_and_knowledge_objects_stay_public_metadata_only():
+    candidates = spider.source_candidates_from_hits(
+        [
+            spider.SearchHit(
+                url="https://www.justice.gov/humantrafficking/example?utm_source=x",
+                title="Forced labor prosecution involving recruitment fees",
+                snippet="Public report mentions debt bondage, passport confiscation, and victim identification.",
+            )
+        ]
+    )
+
+    terms = spider.extract_terms_for_candidate(candidates[0])
+    profiles = spider.source_profiles(candidates)
+    wave2 = spider.second_wave_queries(candidates, max_per_source=4)
+    knowledge = spider.generate_knowledge_objects(candidates, profiles)
+    dimensions = spider.generate_dimension_candidates(knowledge)
+
+    assert "debt bondage" in terms
+    assert profiles[0]["recommended_followup_terms"]
+    assert len(wave2) == 4
+    assert all(row["parent_source_candidate_id"] == candidates[0]["id"] for row in wave2)
+    assert knowledge[0]["status"] == "candidate_needs_human_or_model_verification"
+    assert knowledge[0]["safe_use"]["private_case_ingestion"] is False
+    assert dimensions
+    assert "private names" in " ".join(dimensions[0]["negative_controls"])
 
 
 def test_url_normalization_and_scoring_prefer_official_sources():
@@ -123,14 +168,27 @@ def test_pipeline_writes_deterministic_no_network_artifacts(tmp_path):
     summary = spider.run_pipeline(args)
 
     assert summary["queries"] >= 20
-    assert summary["source_candidates"] >= 8
+    assert summary["deep_search_dorks"] >= 20
+    assert summary["source_candidates"] >= 40
+    assert summary["source_profiles"] == summary["source_candidates"]
+    assert summary["second_wave_queries"] >= summary["source_candidates"]
+    assert summary["knowledge_objects"] == summary["source_candidates"]
+    assert summary["dimension_candidates"] >= 10
     assert summary["prompt_candidates"] == 6
     assert summary["test_candidates"] >= 6
     assert (tmp_path / "search_queries.jsonl").exists()
+    assert (tmp_path / "deep_search_dorks.jsonl").exists()
     assert (tmp_path / "source_candidates.jsonl").exists()
+    assert (tmp_path / "source_profiles.jsonl").exists()
+    assert (tmp_path / "second_wave_queries.jsonl").exists()
+    assert (tmp_path / "knowledge_objects.jsonl").exists()
+    assert (tmp_path / "dimension_candidates.jsonl").exists()
     assert (tmp_path / "prompt_candidates.jsonl").exists()
     assert (tmp_path / "fallback_playbook.json").exists()
 
     prompt_text = (tmp_path / "prompt_candidates.jsonl").read_text(encoding="utf-8")
+    knowledge_text = (tmp_path / "knowledge_objects.jsonl").read_text(encoding="utf-8")
     assert "public_url_metadata_only_no_private_case_snippets" in prompt_text
     assert "C:\\projects\\major_cases" not in prompt_text
+    assert "candidate_needs_human_or_model_verification" in knowledge_text
+    assert "C:\\projects\\major_cases" not in knowledge_text

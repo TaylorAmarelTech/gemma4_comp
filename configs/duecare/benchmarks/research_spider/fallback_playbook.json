@@ -1,4 +1,10 @@
 {
+  "deep_search_layers": [
+    "base official-source queries",
+    "Google-style dorks across document types, dates, URL terms, titles, and sector/corridor combinations",
+    "candidate-specific second-wave dorks derived from each source title, snippet, URL, and signal profile",
+    "knowledge-object drafts that preserve provenance and verification status"
+  ],
   "fallbacks": [
     {
       "failure": "missing_api_key",
@@ -27,6 +33,10 @@
     {
       "failure": "contradictory_sources",
       "next": "create conflict-resolution prompt instead of a new fact"
+    },
+    {
+      "failure": "knowledge_object_uncorroborated",
+      "next": "keep candidate_needs_human_or_model_verification until source date/type and corroboration are recorded"
     }
   ],
   "politeness": {

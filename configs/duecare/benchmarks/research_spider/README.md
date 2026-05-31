@@ -9,12 +9,27 @@ Artifacts:
 
 - `search_queries.jsonl`: aggressive official-source query expansion across
   IOM, Philippine government, Hong Kong government, China government/court,
-  intergovernmental, and public case-law sources.
+  US justice/DHS/State, UK Home Office/CPS/NCA, Canada public safety/justice,
+  Australia Home Affairs/AGD/AFP, New Zealand immigration/employment/police,
+  Singapore MOM/police, EU/Interpol law-enforcement, supply-chain due
+  diligence, intergovernmental, and public case-law sources.
+- `deep_search_dorks.jsonl`: Google-style dorks for PDF/non-HTML artifacts,
+  URL/title operators, recent reports, case/prosecution language, indicator
+  guidance, sector/corridor combinations, and noise-filtered broad searches.
 - `manual_search_fallbacks.jsonl`: browser-ready fallback URLs for search
   providers when API keys, quotas, or network access fail.
 - `source_candidates.jsonl`: scored public-source candidates using URL,
   title, snippet, source family, source tier, jurisdictions, and redaction
   counts.
+- `source_profiles.jsonl`: per-source extracted terms, signals, and
+  recommended follow-up terms.
+- `second_wave_queries.jsonl`: per-source follow-up dorks generated from each
+  candidate's title, snippet, URL path, source family, and detected signals.
+- `knowledge_objects.jsonl`: candidate knowledge/context objects distilled
+  from public metadata and signal templates. These are not confirmed facts
+  until source dates, source types, and corroboration are verified.
+- `dimension_candidates.jsonl`: candidate rubric dimensions derived from
+  recurring public-source behavior patterns.
 - `prompt_candidates.jsonl`: synthetic prompt candidates derived from public
   source metadata only.
 - `test_candidates.jsonl`: regression-test ideas for crawler safety,
@@ -22,6 +37,18 @@ Artifacts:
 - `fallback_playbook.json`: provider, robots.txt, parsing, privacy, and
   manual-review fallbacks.
 - `summary.json`: counts and privacy metadata.
+
+Current deterministic no-network pack:
+
+- 560 base search queries
+- 2,520 deep search dorks
+- 55 public source candidates
+- 55 source profiles
+- 550 second-wave source-specific queries
+- 55 candidate knowledge objects
+- 39 candidate dimensions
+- 180 synthetic prompt candidates
+- 15 spider regression-test candidates
 
 Privacy rules:
 
@@ -31,4 +58,7 @@ Privacy rules:
   SSN-like strings before artifacts are written.
 - Prompt candidates use public URL metadata only and must keep people,
   organizations, and case facts abstract or placeholder-based.
+- Knowledge objects are context drafts, not production facts; keep them in
+  `candidate_needs_human_or_model_verification` state until independently
+  checked against public sources.
 - Robots-disallowed pages remain metadata-only candidates; they are not fetched.
