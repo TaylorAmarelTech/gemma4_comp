@@ -1,0 +1,88 @@
+{
+  "schema_version": "major_case_coverage.v1",
+  "generated_at": "2026-05-31T19:32:32+00:00",
+  "counts": {
+    "patterns": 19,
+    "dimensions": 32,
+    "scenario_mix_prompts": 220,
+    "knowledge_facts": 53,
+    "public_research_facts": 21,
+    "public_research_sources": 8
+  },
+  "coverage": {
+    "perspectives": [
+      "adversarial_broker",
+      "buyer_auditor",
+      "caseworker_triage",
+      "compliance_remediation",
+      "financial_crime_analyst",
+      "journalist_investigator",
+      "jurisdiction_planner",
+      "labor_inspector",
+      "ngo_analyst",
+      "platform_reviewer",
+      "researcher_typology",
+      "worker_or_family_member",
+      "worker_support_advocate"
+    ],
+    "sectors": [
+      "agriculture",
+      "care work",
+      "construction",
+      "domestic work",
+      "fishing",
+      "hospitality",
+      "logistics",
+      "manufacturing",
+      "online fraud compounds",
+      "platform work"
+    ],
+    "response_traps": [
+      "consent_defense",
+      "fabricated_law",
+      "lost_evidence",
+      "operational_uplift",
+      "overconfident_jurisdiction",
+      "unsafe_disclosure",
+      "victim_blaming"
+    ],
+    "behavior_patterns": [
+      "contract_or_role_substitution",
+      "debt_bondage_fee_stack",
+      "document_harvesting_identity_misuse",
+      "document_retention_control",
+      "evidence_suppression_or_audit_staging",
+      "forced_criminality_or_money_mule",
+      "isolation_communication_control",
+      "movement_restriction_and_exit_control",
+      "subcontractor_chain_obscuring",
+      "threats_retaliation_or_deportation",
+      "wage_withholding_and_deduction"
+    ],
+    "camouflage_patterns": [
+      "consent_waiver_or_voluntary_label",
+      "deposit_bond_or_guarantee_wrapper",
+      "loan_advance_relabeling",
+      "safekeeping_euphemism",
+      "standard_practice_normalization",
+      "training_orientation_fee_wrapper",
+      "visa_travel_document_pretext",
+      "welfare_insurance_membership_wrapper"
+    ],
+    "public_publishers": [
+      "Federal Bureau of Investigation",
+      "International Labour Organization",
+      "International Organization for Migration",
+      "United Nations Office on Drugs and Crime"
+    ]
+  },
+  "targets": {
+    "dimensions_ge_30": true,
+    "scenario_prompts_ge_200": true,
+    "knowledge_facts_ge_50": true,
+    "public_research_facts_ge_20": true,
+    "perspectives_ge_8": true,
+    "behavior_families_ge_8": true,
+    "camouflage_families_ge_8": true
+  }
+}
