@@ -72,6 +72,15 @@ def prep(prompts_file: str, n: int, batch_size: int = 8) -> int:
             if pid not in seen and pid in text_by_id:
                 seen.add(pid)
                 ordered_ids.append(pid)
+    # Top up to n from the prompts-file order: open-overlap prompts come first
+    # (so the apples-to-apples 3-way subset is covered), then fill the remainder
+    # from the corpus so a larger Opus-only run (e.g. n=100) is possible.
+    for pid in text_by_id:
+        if len(ordered_ids) >= n:
+            break
+        if pid not in seen:
+            seen.add(pid)
+            ordered_ids.append(pid)
     ordered_ids = ordered_ids[:n]
 
     items = []

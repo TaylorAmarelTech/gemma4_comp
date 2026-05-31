@@ -59,3 +59,21 @@ def test_selection_is_a_strict_subset():
     ids = ds.relevant_dim_ids(meta, _DIMS)
     allids = {d["id"] for d in _DIMS}
     assert set(ids) <= allids and len(ids) < len(_DIMS)     # fewer than all
+
+
+def test_judge_sector_and_corridor_aliases_normalize_to_rubric_ids():
+    dims = [
+        {"id": "sector_awareness.hospitality", "group": "sector_awareness"},
+        {"id": "sector_awareness.domestic_work", "group": "sector_awareness"},
+        {"id": "corridor_awareness.PH_GULF", "group": "corridor_awareness"},
+        {"id": "corridor_awareness.PH_HK", "group": "corridor_awareness"},
+    ]
+    ids = set(ds.relevant_dim_ids(
+        {"category": "rights_query"},
+        dims,
+        judge={"sector": "hotel", "corridor": "PH_SA"},
+    ))
+    assert "sector_awareness.hospitality" in ids
+    assert "sector_awareness.domestic_work" not in ids
+    assert "corridor_awareness.PH_GULF" in ids
+    assert "corridor_awareness.PH_HK" not in ids

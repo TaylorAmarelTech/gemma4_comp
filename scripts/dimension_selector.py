@@ -49,10 +49,167 @@ _NON_WORKER_CATS = {"pretext_jailbreak", "override_jailbreak", "predatory_norm",
                     "contract_language_extraction", "compliant_system_extraction",
                     "broker_chat", "punctuated_obfuscation"}
 
+_SECTOR_ALIASES = {
+    "domestic": "domestic_work",
+    "domestic_worker": "domestic_work",
+    "domestic_workers": "domestic_work",
+    "household": "domestic_work",
+    "housekeeping": "hospitality",
+    "hotel": "hospitality",
+    "hotels": "hospitality",
+    "resort": "hospitality",
+    "resorts": "hospitality",
+    "garment": "manufacturing_garment",
+    "manufacturing": "manufacturing_garment",
+    "factory": "manufacturing_garment",
+    "care": "care_work",
+    "caregiver": "care_work",
+    "caregiving": "care_work",
+    "eldercare": "care_work",
+    "fishery": "fishing",
+    "seafood": "food_processing",
+    "food": "food_processing",
+    "logistics": "transport_logistics",
+    "transport": "transport_logistics",
+}
+
+_ORIGIN_ALIASES = {
+    "BGD": "BD",
+    "BD": "BD",
+    "KHM": "KH",
+    "CAMBODIA": "KH",
+    "KH": "KH",
+    "ETH": "ET",
+    "ETHIOPIA": "ET",
+    "ET": "ET",
+    "IND": "IN",
+    "INDIA": "IN",
+    "IN": "IN",
+    "IDN": "ID",
+    "INDONESIA": "ID",
+    "ID": "ID",
+    "KEN": "KE",
+    "KENYA": "KE",
+    "KE": "KE",
+    "LKA": "LK",
+    "SRI_LANKA": "LK",
+    "LK": "LK",
+    "MEX": "MX",
+    "MEXICO": "MX",
+    "MX": "MX",
+    "MMR": "MM",
+    "MYANMAR": "MM",
+    "BURMA": "MM",
+    "MM": "MM",
+    "NPL": "NP",
+    "NEPAL": "NP",
+    "NP": "NP",
+    "PHL": "PH",
+    "PHILIPPINES": "PH",
+    "PH": "PH",
+    "UKR": "UA",
+    "UKRAINE": "UA",
+    "UA": "UA",
+    "VNM": "VN",
+    "VIETNAM": "VN",
+    "VN": "VN",
+}
+
+_DEST_ALIASES = {
+    "HKG": "HK",
+    "HONG_KONG": "HK",
+    "HK": "HK",
+    "MYS": "MY",
+    "MALAYSIA": "MY",
+    "MY": "MY",
+    "THA": "TH",
+    "THAILAND": "TH",
+    "TH": "TH",
+    "TWN": "TW",
+    "TAIWAN": "TW",
+    "TW": "TW",
+    "USA": "US",
+    "UNITED_STATES": "US",
+    "US": "US",
+    "EUROPE": "EU",
+    "EU": "EU",
+    "AE": "GULF",
+    "ARE": "GULF",
+    "UAE": "GULF",
+    "SA": "GULF",
+    "SAU": "GULF",
+    "KSA": "GULF",
+    "SAUDI": "GULF",
+    "SAUDI_ARABIA": "GULF",
+    "QA": "GULF",
+    "QAT": "GULF",
+    "QATAR": "GULF",
+    "KW": "GULF",
+    "KWT": "GULF",
+    "KUWAIT": "GULF",
+    "OM": "GULF",
+    "OMN": "GULF",
+    "OMAN": "GULF",
+    "BH": "GULF",
+    "BHR": "GULF",
+    "BAHRAIN": "GULF",
+    "GULF": "GULF",
+}
+
 
 def _tags(meta: dict) -> str:
     return " ".join(str(meta.get(k, "")) for k in
                     ("category", "framing", "scheme", "transform")).lower()
+
+
+def _special_values(all_dims: list[dict], group: str) -> set[str]:
+    prefix = group + "."
+    return {str(d["id"])[len(prefix):] for d in all_dims
+            if str(d.get("group") or str(d["id"]).split(".", 1)[0]) == group
+            and str(d["id"]).startswith(prefix)}
+
+
+def _clean_token(value: str) -> str:
+    return (value.strip().replace("->", "_").replace(">", "_").replace("-", "_")
+            .replace("/", "_").replace(" ", "_"))
+
+
+def _normalize_sector(value: object, valid: set[str]) -> str:
+    raw = _clean_token(str(value or "")).lower()
+    if not raw:
+        return ""
+    raw = _SECTOR_ALIASES.get(raw, raw)
+    if raw in valid:
+        return raw
+    for sector in valid:
+        if raw in sector or sector in raw:
+            return sector
+    return ""
+
+
+def _normalize_corridor(value: object, valid: set[str]) -> str:
+    raw = _clean_token(str(value or "")).upper()
+    if not raw:
+        return ""
+    raw = raw.replace("__", "_")
+    if raw in valid:
+        return raw
+    parts = [p for p in raw.split("_") if p]
+    if len(parts) >= 2:
+        origin = _ORIGIN_ALIASES.get(parts[0], parts[0])
+        dest = _DEST_ALIASES.get(parts[-1], parts[-1])
+        normalized = f"{origin}_{dest}"
+        if normalized in valid:
+            return normalized
+    return ""
+
+
+def normalize_sector(value: object, valid: set[str]) -> str:
+    return _normalize_sector(value, valid)
+
+
+def normalize_corridor(value: object, valid: set[str]) -> str:
+    return _normalize_corridor(value, valid)
 
 
 def relevant_groups(meta: dict) -> set[str]:
@@ -88,8 +245,12 @@ def relevant_dim_ids(meta: dict, all_dims: list[dict], judge: dict | None = None
     if judge:  # model judge AUGMENTS the rule-based applicability (never prunes core)
         groups |= {str(g) for g in (judge.get("groups") or [])}
     j = judge or {}
-    sector = (str(meta.get("sector", "")) or str(j.get("sector", ""))).lower().strip()
-    corridor = (str(meta.get("corridor", "")) or str(j.get("corridor", ""))).upper().strip()
+    valid_sectors = _special_values(all_dims, "sector_awareness")
+    valid_corridors = _special_values(all_dims, "corridor_awareness")
+    sector = (_normalize_sector(meta.get("sector", ""), valid_sectors)
+              or _normalize_sector(j.get("sector", ""), valid_sectors))
+    corridor = (_normalize_corridor(meta.get("corridor", ""), valid_corridors)
+                or _normalize_corridor(j.get("corridor", ""), valid_corridors))
     out: list[str] = []
     for d in all_dims:
         did = str(d["id"])
