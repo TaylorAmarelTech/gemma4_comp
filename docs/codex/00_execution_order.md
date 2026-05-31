@@ -70,7 +70,7 @@ Every pack must run `python scripts/validate_main_kaggle_kernels.py` before each
 - **Templates deep pack**: Goal 6 -> Goal 3 -> Goal 2. Run in that sequence because Goal 2's selector benefits from the sample and dry-run preview being stable.
 - **Polish pipeline pack**: Goal 1 -> Goal 5 -> Goal 8. Do not skip Goal 5 before Goal 8.
 - **Vocab and diagnostics pack**: Goal 9 -> Goal 7. Keeps the read-only audit after the inline normalizer.
-- **Iterative research frontier pack**: `docs/codex/goal_commands/11_iterative_branching_research_frontier.md`. Run after or alongside the major-case/global research packs when the priority is hours of source-frontier branching, dorks, public knowledge objects, dimensions, prompts, multi-turn conversations, tests, validation, commits, and resumable handoff state.
+- **Iterative research frontier pack**: `docs/codex/goal_commands/11_iterative_branching_research_frontier.md`. Run after or alongside the major-case/global research packs when the priority is a 24-72 hour tool-assisted run: search for better spiders/search APIs/extractors first, then continue source-frontier branching, dorks, public knowledge objects, dimensions, prompts, multi-turn conversations, tests, validation, commits, and resumable handoff state.
 
 ## Unsafe combinations
 
