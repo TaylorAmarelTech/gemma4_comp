@@ -102,6 +102,28 @@ def test_detects_document_harvesting_and_visa_pretext(tmp_path):
     assert summary["pattern_counts"]["visa_travel_document_pretext"] == 1
 
 
+def test_detects_philippines_scam_hub_and_evidence_gap_patterns(tmp_path):
+    source = tmp_path / "source_cases"
+    source.mkdir()
+    (source / "scam_hub_packet.txt").write_text(
+        "The recruiter said [WORKER] should travel as a tourist through Vietnam with a group "
+        "of friends and meet a handler at the airport. The company profile called the job a "
+        "licensed BPO customer service representative role, but messages describe a Cambodia "
+        "scam hub, catphishing quotas, punishment, missing original documents, photocopied "
+        "receipts, and testimony that changed after settlement pressure.",
+        encoding="utf-8",
+    )
+
+    summary = mc.analyze_cases(source)
+
+    assert summary["pattern_counts"]["tourist_exit_or_transit_deception"] == 1
+    assert summary["pattern_counts"]["scam_compound_quota_punishment"] == 1
+    assert summary["pattern_counts"]["escort_or_bitbit_facilitation"] == 1
+    assert summary["pattern_counts"]["licensed_front_or_legal_cover"] == 1
+    assert summary["pattern_counts"]["original_document_evidence_gap"] == 1
+    assert summary["pattern_counts"]["witness_retraction_or_settlement_pressure"] == 1
+
+
 def test_noisy_single_terms_do_not_trigger_cooccurrence_rules(tmp_path):
     source = tmp_path / "source_cases"
     source.mkdir()
@@ -117,9 +139,26 @@ def test_noisy_single_terms_do_not_trigger_cooccurrence_rules(tmp_path):
     assert "evidence_suppression_or_audit_staging" not in summary["pattern_counts"]
 
 
+def test_detects_global_court_case_pattern_families(tmp_path):
+    source = tmp_path / "source_cases"
+    source.mkdir()
+    (source / "workshop_and_authority_gap.txt").write_text(
+        "The packet says workers lived at the workshop, slept on the floor, and used "
+        "the same premises for meals, transport, and supervision. The complaint was "
+        "handled as a wage claim only and not investigated as trafficking even though "
+        "messages describe threats, no wages, and controlled movement.",
+        encoding="utf-8",
+    )
+
+    summary = mc.analyze_cases(source)
+
+    assert summary["pattern_counts"]["worksite_lodging_blended_confinement"] == 1
+    assert summary["pattern_counts"]["authority_or_wage_dispute_misclassification"] == 1
+
+
 def test_public_research_facts_have_required_source_metadata():
     facts = mc.public_research_facts()
-    assert len(facts) >= 20
+    assert len(facts) >= 70
     required = {
         "id", "fact_type", "statement", "source_title", "publisher", "url",
         "accessed_date", "jurisdictions", "sectors", "related_indicators",
@@ -130,6 +169,15 @@ def test_public_research_facts_have_required_source_metadata():
         assert fact["url"].startswith("https://")
         assert fact["source"] == "public_research"
         assert fact["statement"]
+    assert any("Philippines" in f["jurisdictions"] for f in facts)
+    assert any("Brazil" in f["jurisdictions"] for f in facts)
+    assert any("New Zealand" in f["jurisdictions"] for f in facts)
+    assert any("Argentina" in f["jurisdictions"] for f in facts)
+    assert any("Singapore" in f["jurisdictions"] for f in facts)
+    assert any(f["source_tier"] == "primary_court_decision" for f in facts)
+    assert any(f["source_id"] == "SRC-AKLAN-FISHERIES-ASEAN-ACT-2023" for f in facts)
+    assert any(f["source_id"] == "SRC-IACHR-BRASIL-VERDE" for f in facts)
+    assert any(f["source_id"] == "SRC-HK-ZN-CFA" for f in facts)
 
 
 def test_scenario_mixer_is_deterministic_and_placeholder_safe(tmp_path):
@@ -152,6 +200,32 @@ def test_scenario_mixer_is_deterministic_and_placeholder_safe(tmp_path):
     assert all("[WORKER]" in p["text"] or "[SECTOR:" in p["text"] for p in first)
     assert all(p["metadata"]["dimension_ids"] for p in first)
     assert {p["metadata"]["response_trap"] for p in first}
+    assert all(p["metadata"]["secondary_pattern_id"] for p in first)
+    assert all("middle_context_needle" in p["metadata"]["moe_stress_tags"] for p in first)
+
+
+def test_scenario_mixer_builds_long_composite_moe_stress_prompts(tmp_path):
+    source = tmp_path / "source_cases"
+    source.mkdir()
+    (source / "corridor_case.txt").write_text(
+        "A tourist itinerary conflicts with a customer service job offer. The handler says "
+        "the licensed call center is normal, asks for passport copies and selfies, and later "
+        "mentions love scam quotas, salary deductions, and copied receipts.",
+        encoding="utf-8",
+    )
+    summary = mc.analyze_cases(source)
+
+    prompts = mc.scenario_mix_prompts(summary, target=36, seed=13)
+
+    assert len(prompts) == 36
+    assert min(len(p["text"]) for p in prompts) > 900
+    assert {p["metadata"]["complexity_strategy"] for p in prompts} == {
+        strategy[0] for strategy in mc.SCENARIO_COMPLEXITY_STRATEGIES
+    }
+    assert all(len(p["metadata"]["dimension_ids"]) >= 3 for p in prompts)
+    assert all("Middle-context needle:" in p["text"] for p in prompts)
+    assert all("Benchmark stressor:" in p["text"] for p in prompts)
+    assert all("[HANDLER]" in p["text"] for p in prompts)
 
 
 def test_harness_lift_prompt_merge_is_deterministic_and_synthetic(tmp_path):
@@ -168,7 +242,7 @@ def test_harness_lift_prompt_merge_is_deterministic_and_synthetic(tmp_path):
     again = mc.harness_lift_prompts(summary)
 
     assert merged == again
-    assert len(merged) >= 200
+    assert len(merged) >= 480
     assert len({p["text"] for p in merged}) == len(merged)
     assert all(p["metadata"]["harness_lift_ready"] for p in merged)
     assert all(p["metadata"]["synthetic"] for p in merged)
@@ -188,18 +262,21 @@ def test_committed_major_case_pattern_artifacts_are_pii_safe():
     public_facts = [json.loads(line) for line in (out_dir / "public_research_facts.jsonl").read_text(encoding="utf-8").splitlines()]
     coverage = json.loads((out_dir / "coverage_report.json").read_text(encoding="utf-8"))
 
-    assert len(dims["dimensions"]) >= 30
+    assert len(dims["dimensions"]) >= 50
     assert len(prompts) >= 20
-    assert len(scenario_prompts) >= 200
-    assert len(harness_prompts) >= 250
+    assert len(scenario_prompts) >= 480
+    assert len(harness_prompts) >= 500
     assert len({p["text"] for p in harness_prompts}) == len(harness_prompts)
     assert all(p["metadata"]["harness_lift_ready"] for p in harness_prompts)
-    assert len(facts) >= 50
-    assert len(public_facts) >= 20
+    assert len(facts) >= 115
+    assert len(public_facts) >= 70
     assert all(p["metadata"]["pii_policy"] == "placeholders_only_no_case_snippets" for p in prompts)
     assert all(p["metadata"]["pii_policy"] == "placeholders_only_no_case_snippets" for p in scenario_prompts)
-    assert coverage["targets"]["dimensions_ge_30"]
-    assert coverage["targets"]["scenario_prompts_ge_200"]
-    assert coverage["targets"]["harness_prompts_ge_250"]
-    assert coverage["targets"]["knowledge_facts_ge_50"]
-    assert coverage["targets"]["public_research_facts_ge_20"]
+    assert all(p["metadata"]["complexity_strategy"] for p in scenario_prompts)
+    assert coverage["targets"]["dimensions_ge_50"]
+    assert coverage["targets"]["scenario_prompts_ge_480"]
+    assert coverage["targets"]["harness_prompts_ge_500"]
+    assert coverage["targets"]["knowledge_facts_ge_115"]
+    assert coverage["targets"]["public_research_facts_ge_70"]
+    assert coverage["targets"]["public_research_sources_ge_35"]
+    assert coverage["targets"]["complexity_strategies_ge_6"]

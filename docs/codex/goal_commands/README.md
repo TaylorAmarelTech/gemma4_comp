@@ -34,6 +34,7 @@ Every command in this directory assumes:
 | Verification and showcase hardening | [`07_verification_showcase_hardening.md`](07_verification_showcase_hardening.md) | post-Goals 11-15 | You want a clean Python env, runtime smoke tests, manual path tracing, and Gemma 4 ecosystem/design polish without exceeding `/goal` length |
 | Pages and number hardening | [`08_pages_number_hardening.md`](08_pages_number_hardening.md) | same-day launch polish | You need GitHub Pages enabled/deploying ASAP while removing fragile public magic numbers and keeping Kaggle gates green |
 | Major-case multi-hour research benchmark expansion | [`09_major_case_research_benchmark_expansion.md`](09_major_case_research_benchmark_expansion.md) | benchmark capability growth | You want a 3-8 hour no-stop pass with web research, casefile-derived dimensions, scenario mixing, knowledge facts, repeated commits, and strict private-data safety |
+| Global research corpus + multi-turn benchmark expansion | [`10_global_research_corpus_multiturn_benchmark.md`](10_global_research_corpus_multiturn_benchmark.md) | autonomous long-run capability growth | You want an 8-24+ hour run that profiles 1,000+ public sources, continuously improves dimensions/facts/prompts, adds multi-turn conversations, and resumes without human re-planning |
 
 ## Dependency notes
 
