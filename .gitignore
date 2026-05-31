@@ -102,10 +102,12 @@ outputs/
 reports/*.html
 reports/*.pdf
 reports/test-run-*.md
+reports/*_rapid_probe.md
 reports/*.jsonl
 reports/*.responses.jsonl
 reports/**/*.jsonl
 reports/**/*.json
+reports/**/*.py
 mlruns/
 wandb/
 
