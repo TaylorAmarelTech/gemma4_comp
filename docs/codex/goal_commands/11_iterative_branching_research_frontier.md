@@ -367,15 +367,15 @@ Add language variants when useful:
 - `trata de personas`
 - `trabajo forzoso`
 - `servidumbre`
-- `traite des êtres humains`
-- `travail forcé`
+- `traite des etres humains`
+- `travail force`
 - `traite des personnes`
 - `Menschenhandel`
 - `Zwangsarbeit`
 - `tratta di esseri umani`
 - `lavoro forzato`
-- `tráfico de pessoas`
-- `trabalho forçado`
+- `trafico de pessoas`
+- `trabalho forcado`
 
 ## Artifacts To Create Or Extend
 
@@ -507,11 +507,20 @@ C:\Users\amare\AppData\Local\gemma4-testenv\venv\Scripts\python.exe -m pytest te
 
 Add or run any new focused tests created by the loop.
 
-Run leak scans over changed scripts, tests, and generated artifacts. At minimum:
+Run leak scans over changed scripts, tests, and generated artifacts. Classify
+any repo-wide hits as new-vs-pre-existing before treating them as blockers; this
+repo has older synthetic fixtures and redaction-test strings that should not be
+confused with newly introduced leaks.
+
+At minimum, scan the files touched by the current loop and any newly generated
+artifacts:
 
 ```bash
-rg -n "C:\\projects\\major_cases|/projects/major_cases|john\.doe@example|helper@example\.org|AB1234567|\+1 202 555|AQ\.Ab8RN6|c72673292f" configs scripts tests
+rg -n "C:\\projects\\major_cases|/projects/major_cases|john\.doe@example|helper@example\.org|AB1234567|\+1 202 555|AQ\.Ab8RN6|c72673292f" <changed files and generated artifact paths>
 ```
+
+For a broad scan, first capture the existing baseline, then fail only on new or
+unexplained hits.
 
 Before every commit that changes public docs, benchmark surfaces, or Kaggle
 surfaces, run the applicable gates:
