@@ -156,9 +156,27 @@ def test_detects_global_court_case_pattern_families(tmp_path):
     assert summary["pattern_counts"]["authority_or_wage_dispute_misclassification"] == 1
 
 
+def test_detects_debt_bondage_spider_case_pattern_families(tmp_path):
+    source = tmp_path / "source_cases"
+    source.mkdir()
+    (source / "fee_ledger_packet.txt").write_text(
+        "The recruiter says the employer pays and has a zero fee policy, but workers describe "
+        "a broker fee, recruitment cost reimbursement delays, a debt ledger with fines, a "
+        "kickback where wages must be returned, and a liquidated damages termination penalty "
+        "with legal action if anyone leaves early.",
+        encoding="utf-8",
+    )
+
+    summary = mc.analyze_cases(source)
+
+    assert summary["pattern_counts"]["debt_ledger_fine_or_kickback_control"] == 1
+    assert summary["pattern_counts"]["employer_pays_or_zero_fee_policy_evasion"] == 1
+    assert summary["pattern_counts"]["contract_penalty_or_quit_fee_coercion"] == 1
+
+
 def test_public_research_facts_have_required_source_metadata():
     facts = mc.public_research_facts()
-    assert len(facts) >= 70
+    assert len(facts) >= 90
     required = {
         "id", "fact_type", "statement", "source_title", "publisher", "url",
         "accessed_date", "jurisdictions", "sectors", "related_indicators",
@@ -174,10 +192,15 @@ def test_public_research_facts_have_required_source_metadata():
     assert any("New Zealand" in f["jurisdictions"] for f in facts)
     assert any("Argentina" in f["jurisdictions"] for f in facts)
     assert any("Singapore" in f["jurisdictions"] for f in facts)
+    assert any("Malaysia" in f["jurisdictions"] for f in facts)
+    assert any("Azerbaijan" in f["jurisdictions"] for f in facts)
     assert any(f["source_tier"] == "primary_court_decision" for f in facts)
     assert any(f["source_id"] == "SRC-AKLAN-FISHERIES-ASEAN-ACT-2023" for f in facts)
     assert any(f["source_id"] == "SRC-IACHR-BRASIL-VERDE" for f in facts)
     assert any(f["source_id"] == "SRC-HK-ZN-CFA" for f in facts)
+    assert any(f["source_id"] == "SRC-DOL-DEBT-BONDAGE-REMEDIATION" for f in facts)
+    assert any(f["source_id"] == "SRC-US-PAGUIRIGAN-PROMPT-NURSING" for f in facts)
+    assert any(f["source_id"] == "SRC-FATF-APG-FINANCIAL-FLOWS-2018" for f in facts)
 
 
 def test_scenario_mixer_is_deterministic_and_placeholder_safe(tmp_path):
@@ -262,21 +285,21 @@ def test_committed_major_case_pattern_artifacts_are_pii_safe():
     public_facts = [json.loads(line) for line in (out_dir / "public_research_facts.jsonl").read_text(encoding="utf-8").splitlines()]
     coverage = json.loads((out_dir / "coverage_report.json").read_text(encoding="utf-8"))
 
-    assert len(dims["dimensions"]) >= 50
+    assert len(dims["dimensions"]) >= 60
     assert len(prompts) >= 20
     assert len(scenario_prompts) >= 480
     assert len(harness_prompts) >= 500
     assert len({p["text"] for p in harness_prompts}) == len(harness_prompts)
     assert all(p["metadata"]["harness_lift_ready"] for p in harness_prompts)
-    assert len(facts) >= 115
-    assert len(public_facts) >= 70
+    assert len(facts) >= 140
+    assert len(public_facts) >= 90
     assert all(p["metadata"]["pii_policy"] == "placeholders_only_no_case_snippets" for p in prompts)
     assert all(p["metadata"]["pii_policy"] == "placeholders_only_no_case_snippets" for p in scenario_prompts)
     assert all(p["metadata"]["complexity_strategy"] for p in scenario_prompts)
-    assert coverage["targets"]["dimensions_ge_50"]
+    assert coverage["targets"]["dimensions_ge_60"]
     assert coverage["targets"]["scenario_prompts_ge_480"]
     assert coverage["targets"]["harness_prompts_ge_500"]
-    assert coverage["targets"]["knowledge_facts_ge_115"]
-    assert coverage["targets"]["public_research_facts_ge_70"]
-    assert coverage["targets"]["public_research_sources_ge_35"]
+    assert coverage["targets"]["knowledge_facts_ge_140"]
+    assert coverage["targets"]["public_research_facts_ge_90"]
+    assert coverage["targets"]["public_research_sources_ge_60"]
     assert coverage["targets"]["complexity_strategies_ge_6"]
