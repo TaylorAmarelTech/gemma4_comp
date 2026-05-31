@@ -174,9 +174,30 @@ def test_detects_debt_bondage_spider_case_pattern_families(tmp_path):
     assert summary["pattern_counts"]["contract_penalty_or_quit_fee_coercion"] == 1
 
 
+def test_detects_iom_gov_spider_case_pattern_families(tmp_path):
+    source = tmp_path / "source_cases"
+    source.mkdir()
+    (source / "iom_gov_spider_packet.txt").write_text(
+        "The unlicensed recruiter says there is no approved job order but asks for public place "
+        "payments through a travel agency and tells workers to verify agency details later. A "
+        "social media recruiter uses a chat group with coded language for an online job offer. "
+        "The FDH packet describes agency fees, pressure to take up loans, surrender passport "
+        "requests, and no rest day. The intake mentions trafficking indicators but no initial "
+        "screening, victim identification, referral, safe return, or legal aid pathway.",
+        encoding="utf-8",
+    )
+
+    summary = mc.analyze_cases(source)
+
+    assert summary["pattern_counts"]["unlicensed_or_no_job_order_recruitment"] == 1
+    assert summary["pattern_counts"]["online_platform_coded_recruitment_bait"] == 1
+    assert summary["pattern_counts"]["domestic_worker_agency_overcharge_or_loan_control"] == 1
+    assert summary["pattern_counts"]["victim_screening_referral_pathway_gap"] == 1
+
+
 def test_public_research_facts_have_required_source_metadata():
     facts = mc.public_research_facts()
-    assert len(facts) >= 90
+    assert len(facts) >= 105
     required = {
         "id", "fact_type", "statement", "source_title", "publisher", "url",
         "accessed_date", "jurisdictions", "sectors", "related_indicators",
@@ -194,6 +215,8 @@ def test_public_research_facts_have_required_source_metadata():
     assert any("Singapore" in f["jurisdictions"] for f in facts)
     assert any("Malaysia" in f["jurisdictions"] for f in facts)
     assert any("Azerbaijan" in f["jurisdictions"] for f in facts)
+    assert any("Hong Kong SAR, China" in f["jurisdictions"] for f in facts)
+    assert any("China" in f["jurisdictions"] for f in facts)
     assert any(f["source_tier"] == "primary_court_decision" for f in facts)
     assert any(f["source_id"] == "SRC-AKLAN-FISHERIES-ASEAN-ACT-2023" for f in facts)
     assert any(f["source_id"] == "SRC-IACHR-BRASIL-VERDE" for f in facts)
@@ -201,6 +224,10 @@ def test_public_research_facts_have_required_source_metadata():
     assert any(f["source_id"] == "SRC-DOL-DEBT-BONDAGE-REMEDIATION" for f in facts)
     assert any(f["source_id"] == "SRC-US-PAGUIRIGAN-PROMPT-NURSING" for f in facts)
     assert any(f["source_id"] == "SRC-FATF-APG-FINANCIAL-FLOWS-2018" for f in facts)
+    assert any(f["source_id"] == "SRC-IOM-RECRUITMENT-FEES-GUIDANCE-2022" for f in facts)
+    assert any(f["source_id"] == "SRC-PH-DMW-CALUDUCAN-ILLEGAL-RECRUITMENT-2026" for f in facts)
+    assert any(f["source_id"] == "SRC-HK-EAA-FDH-EMPLOYMENT-AGENCIES" for f in facts)
+    assert any(f["source_id"] == "SRC-CN-STATE-COUNCIL-ANTI-TRAFFICKING-2021" for f in facts)
 
 
 def test_scenario_mixer_is_deterministic_and_placeholder_safe(tmp_path):
@@ -285,21 +312,21 @@ def test_committed_major_case_pattern_artifacts_are_pii_safe():
     public_facts = [json.loads(line) for line in (out_dir / "public_research_facts.jsonl").read_text(encoding="utf-8").splitlines()]
     coverage = json.loads((out_dir / "coverage_report.json").read_text(encoding="utf-8"))
 
-    assert len(dims["dimensions"]) >= 60
+    assert len(dims["dimensions"]) >= 66
     assert len(prompts) >= 20
-    assert len(scenario_prompts) >= 480
-    assert len(harness_prompts) >= 500
+    assert len(scenario_prompts) >= 560
+    assert len(harness_prompts) >= 600
     assert len({p["text"] for p in harness_prompts}) == len(harness_prompts)
     assert all(p["metadata"]["harness_lift_ready"] for p in harness_prompts)
     assert len(facts) >= 140
-    assert len(public_facts) >= 90
+    assert len(public_facts) >= 105
     assert all(p["metadata"]["pii_policy"] == "placeholders_only_no_case_snippets" for p in prompts)
     assert all(p["metadata"]["pii_policy"] == "placeholders_only_no_case_snippets" for p in scenario_prompts)
     assert all(p["metadata"]["complexity_strategy"] for p in scenario_prompts)
-    assert coverage["targets"]["dimensions_ge_60"]
-    assert coverage["targets"]["scenario_prompts_ge_480"]
-    assert coverage["targets"]["harness_prompts_ge_500"]
+    assert coverage["targets"]["dimensions_ge_66"]
+    assert coverage["targets"]["scenario_prompts_ge_560"]
+    assert coverage["targets"]["harness_prompts_ge_600"]
     assert coverage["targets"]["knowledge_facts_ge_140"]
-    assert coverage["targets"]["public_research_facts_ge_90"]
-    assert coverage["targets"]["public_research_sources_ge_60"]
+    assert coverage["targets"]["public_research_facts_ge_105"]
+    assert coverage["targets"]["public_research_sources_ge_75"]
     assert coverage["targets"]["complexity_strategies_ge_6"]
