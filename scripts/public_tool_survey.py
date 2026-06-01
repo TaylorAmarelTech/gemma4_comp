@@ -685,6 +685,13 @@ def load_benchmark_expansion_summary(out_dir: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def load_source_archive_summary(out_dir: Path) -> dict:
+    path = out_dir / "source_archive_summary.json"
+    if not path.exists():
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
 def next_frontier_branches(rows: list[dict]) -> list[dict]:
     branch_specs = [
         ("tool", "prototype_brave_search_adapter", "Add an env-key-gated Brave Search API wrapper with synthetic fixture tests."),
@@ -725,6 +732,7 @@ def next_frontier_branches(rows: list[dict]) -> list[dict]:
         "prototype_trafilatura_html_extractor",
         "prototype_pdfplumber_pdf_extractor",
         "prototype_pypdf_lightweight_fallback",
+        "prototype_warcio_manifest_archiving",
         "provider_registry_fixture_tests",
         "frontier_resume_state_refresh",
     }
@@ -750,6 +758,7 @@ def research_run_state(
     spider_summary: dict,
     manifest_summary: dict,
     expansion_summary: dict,
+    archive_summary: dict,
 ) -> dict:
     return {
         "schema_version": "public_research_frontier_run_state.v1",
@@ -782,6 +791,7 @@ def research_run_state(
             "hybrid_scenario_prompts": expansion_summary.get("hybrid_scenario_prompts", 0),
             "applicability_seed_tags": expansion_summary.get("applicability_seed_tags", 0),
             "rejected_or_deferred_sources": expansion_summary.get("rejected_or_deferred_sources", 0),
+            "source_archive_manifest": archive_summary.get("source_archive_manifest", 0),
         },
         "next_30_branches": next_frontier_branches(rows),
         "privacy": summary["privacy"],
@@ -828,6 +838,7 @@ def frontier_handoff(state: dict, summary: dict) -> str:
         f"- Source candidates already in spider pack: {state['artifact_counts']['source_candidates']}",
         f"- Source fetch manifest entries: {state['artifact_counts']['source_fetch_manifest']}",
         f"- Source domain frontier entries: {state['artifact_counts']['source_domain_frontier']}",
+        f"- Source archive manifest entries: {state['artifact_counts']['source_archive_manifest']}",
         f"- Knowledge objects already in spider pack: {state['artifact_counts']['knowledge_objects']}",
         f"- Corroboration links: {state['artifact_counts']['corroboration_links']}",
         f"- Verified-for-benchmark knowledge objects: {state['artifact_counts']['verified_knowledge_objects']}",
@@ -932,7 +943,8 @@ def run_pipeline(out_dir: Path) -> dict:
     spider_summary = load_research_spider_summary(out_dir)
     manifest_summary = load_source_manifest_summary(out_dir)
     expansion_summary = load_benchmark_expansion_summary(out_dir)
-    state = research_run_state(rows, summary, spider_summary, manifest_summary, expansion_summary)
+    archive_summary = load_source_archive_summary(out_dir)
+    state = research_run_state(rows, summary, spider_summary, manifest_summary, expansion_summary, archive_summary)
 
     write_json(out_dir / "search_provider_registry.json", search_registry)
     write_json(out_dir / "crawler_provider_registry.json", crawler_registry)

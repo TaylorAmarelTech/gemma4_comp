@@ -21,6 +21,7 @@ Counts:
 - Source candidates already in spider pack: 98
 - Source fetch manifest entries: 98
 - Source domain frontier entries: 45
+- Source archive manifest entries: 98
 - Knowledge objects already in spider pack: 98
 - Corroboration links: 240
 - Verified-for-benchmark knowledge objects: 84
@@ -36,7 +37,7 @@ Next 30 branches:
 3. `prototype_trafilatura_html_extractor` [completed] - Extract public HTML text after existing fetch/robots gates.
 4. `prototype_pdfplumber_pdf_extractor` [completed] - Extract public PDF text/tables from court and report fixtures.
 5. `prototype_pypdf_lightweight_fallback` [completed] - Add a lightweight PDF fallback for simple public documents.
-6. `prototype_warcio_manifest_archiving` [queued] - Capture public-source fetch manifests and WARC metadata after redaction gates.
+6. `prototype_warcio_manifest_archiving` [completed] - Capture public-source fetch manifests and WARC metadata after redaction gates.
 7. `evaluate_advertools_sitemap_crawl` [queued] - Test sitemap-first expansion for official public domains.
 8. `evaluate_scrapy_polite_crawler` [queued] - Prototype a small Scrapy spider only if sitemap/manual discovery stalls.
 9. `defer_playwright_allowlist_policy` [queued] - Write allowlist policy before any JavaScript browser fetches.
