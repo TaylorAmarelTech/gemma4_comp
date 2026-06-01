@@ -147,6 +147,7 @@ def test_pipeline_writes_deterministic_artifacts(tmp_path):
     assert branch_status["evaluate_advertools_sitemap_crawl"] == "completed"
     assert branch_status["philippines_court_illegal_recruitment_cases"] == "completed"
     assert branch_status["china_court_new_trafficking_forms"] == "completed"
+    assert branch_status["iom_recruitment_fee_guidance"] == "completed"
     assert branch_status["unodc_case_law_forced_labor"] == "completed"
     assert branch_status["asean_bali_process_corridors"] == "completed"
     assert branch_status["multi_turn_worker_triage_conversations"] == "completed"

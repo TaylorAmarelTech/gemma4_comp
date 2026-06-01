@@ -18,21 +18,21 @@ Counts:
 - Implemented search provider wrappers: 3
 - Implemented extractor wrappers: 5
 - Rejected operational tools: 4
-- Source candidates already in spider pack: 189
-- Source fetch manifest entries: 189
+- Source candidates already in spider pack: 198
+- Source fetch manifest entries: 198
 - Source domain frontier entries: 67
-- Source archive manifest entries: 189
+- Source archive manifest entries: 198
 - Sitemap probe queue entries: 201
 - Domain crawl policy entries: 67
 - Sitemap discovery dorks: 268
 - Branching research queue leads: 1000
-- Knowledge objects already in spider pack: 189
+- Knowledge objects already in spider pack: 198
 - Corroboration links: 240
-- Verified-for-benchmark knowledge objects: 155
-- Source decompositions: 189
-- Decomposition follow-up dorks: 413
-- Decomposition mixed conversations: 189
-- Multi-turn conversation prompts: 189
+- Verified-for-benchmark knowledge objects: 160
+- Source decompositions: 198
+- Decomposition follow-up dorks: 434
+- Decomposition mixed conversations: 198
+- Multi-turn conversation prompts: 198
 - Hybrid scenario prompts: 360
 - Long-context stress prompts: 120
 - Refusal/detection prompts: 180
@@ -54,7 +54,7 @@ Next 30 branches:
 11. `philippines_court_illegal_recruitment_cases` [completed] - Search public Philippine court/prosecution sources for illegal recruitment and debt bondage.
 12. `hong_kong_fdh_agency_fee_cases` [completed] - Search Hong Kong public sources for FDH agency overcharge, loan, passport, and rest-day indicators.
 13. `china_court_new_trafficking_forms` [completed] - Branch from China court summaries into fraud, trafficking, and coded-language public cases.
-14. `iom_recruitment_fee_guidance` [queued] - Corroborate recruitment-fee and related-cost guidance with IOM/ILO documents.
+14. `iom_recruitment_fee_guidance` [completed] - Corroborate recruitment-fee and related-cost guidance with IOM/ILO documents.
 15. `ilo_forced_labour_indicators` [completed] - Extract prompt seeds from ILO forced-labour indicators and sector material.
 16. `unodc_case_law_forced_labor` [completed] - Search UNODC case-law material for coercion, servitude, and debt-bondage examples.
 17. `fatf_financial_flows_typologies` [queued] - Extract financial-obfuscation indicators from FATF/APG trafficking typologies.
