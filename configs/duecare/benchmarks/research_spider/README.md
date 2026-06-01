@@ -74,10 +74,13 @@ Artifacts:
 - `verified_knowledge_objects.jsonl`: knowledge rows verified only for
   benchmark seed use unless source content/date checks are later recorded.
 - `conversation_prompts.jsonl`: synthetic multi-turn benchmark conversations.
-- `conversation_manifest.json`: conversation, hybrid, and applicability
-  coverage counts.
+- `conversation_manifest.json`: conversation, hybrid, long-context, and
+  applicability coverage counts.
 - `hybrid_scenario_prompts.jsonl`: synthetic mixed scenarios combining public
   source signals with aggregate private pattern IDs.
+- `long_context_stress_prompts.jsonl`: synthetic long-context benchmark
+  packets with middle-needle indicators, benign distractors, sparse metadata,
+  and aggregate private pattern IDs only.
 - `applicability_seed_tags.jsonl`: seeds where prompt content should add
   applicability groups beyond sparse rule tags.
 - `rejected_sources.jsonl`: rejected or deferred source branches and retry
@@ -118,23 +121,24 @@ Current deterministic no-network pack:
 
 - 640 base search queries
 - 3,520 deep search dorks
-- 137 public source candidates
-- 137 source profiles
-- 1,370 second-wave source-specific queries
-- 137 source fetch manifest entries across 54 domains
-- 137 source archive/replay manifest entries
+- 144 public source candidates
+- 144 source profiles
+- 1,440 second-wave source-specific queries
+- 144 source fetch manifest entries across 54 domains
+- 144 source archive/replay manifest entries
 - 162 sitemap probe queue entries
 - 54 domain crawl policy entries
 - 216 sitemap discovery dorks
 - 1,000 branching research queue leads
-- 137 candidate knowledge objects
-- 84 candidate dimensions
+- 144 candidate knowledge objects
+- 94 candidate dimensions
 - 240 synthetic prompt candidates
 - 240 corroboration links
-- 118 verified-for-benchmark knowledge objects
-- 137 multi-turn conversation prompts
+- 121 verified-for-benchmark knowledge objects
+- 144 multi-turn conversation prompts
 - 360 hybrid scenario prompts
-- 133 applicability seed tags
+- 120 long-context stress prompts
+- 140 applicability seed tags
 - 8 rejected/deferred source branches
 - 15 spider regression-test candidates
 - 23 profiled search/crawl/extraction/archive/tool-discovery candidates

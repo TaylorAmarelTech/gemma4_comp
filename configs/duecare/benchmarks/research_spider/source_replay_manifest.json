@@ -1,10 +1,10 @@
 {
   "archive_manifest": "source_archive_manifest.jsonl",
   "counts": {
-    "archive_entries": 137,
+    "archive_entries": 144,
     "content_kinds": {
-      "html": 112,
-      "pdf": 21,
+      "html": 116,
+      "pdf": 24,
       "plain_or_unknown": 4
     },
     "domains": 54,
@@ -15,17 +15,17 @@
       "courts_case_law": 3,
       "eu_interpol_law_enforcement": 11,
       "hong_kong_gov": 15,
-      "intergovernmental": 15,
+      "intergovernmental": 18,
       "iom": 11,
       "malaysia_labour_homeaffairs": 4,
       "netherlands_gov_justice": 2,
-      "new_zealand_immigration_employment": 3,
+      "new_zealand_immigration_employment": 4,
       "other_public": 6,
       "philippines_gov": 12,
       "singapore_mom_police": 4,
       "supply_chain_due_diligence": 5,
       "uk_homeoffice_cps": 14,
-      "us_justice_dhs_state": 17
+      "us_justice_dhs_state": 20
     }
   },
   "next_steps": [
@@ -48,21 +48,29 @@
     "ARCH-A2CC1525CDA763B6",
     "ARCH-E808F24520870C4D",
     "ARCH-CEB3848645BA2E6B",
+    "ARCH-C44BB9A71B77EDBF",
     "ARCH-996A77A93F53B938",
     "ARCH-851E7FD892E47F8B",
     "ARCH-ED23EEA56001E750",
     "ARCH-50D136AFC4DFE58B",
+    "ARCH-90B8626DAF50D1F3",
     "ARCH-359023894280DC7E",
     "ARCH-487121EC5D3B60E8",
     "ARCH-82F0BF349BFEF446",
+    "ARCH-06BEE2C1C534A5CC",
     "ARCH-A5EEC826249BCA79",
+    "ARCH-5DD9760485A11DA4",
     "ARCH-5484E8621EE03838",
     "ARCH-716C4E749F331514",
     "ARCH-9367DA7379C0D20C",
     "ARCH-74906BE6A131F070",
     "ARCH-20507CA1C3AA2192",
     "ARCH-3D9BE42D724F1250",
+    "ARCH-6C7406B423E712CE",
+    "ARCH-3D8E4FCB2D58C50B",
     "ARCH-3145A1D78ECB380A",
+    "ARCH-0C582F62ABADF0D7",
+    "ARCH-B061661078D4BB15",
     "ARCH-88838013E00163D9",
     "ARCH-918D3EFA9CD4E63F",
     "ARCH-3BFAB7957878AEBB",
@@ -71,15 +79,7 @@
     "ARCH-2D0FD37008730857",
     "ARCH-C58B80175B67C76A",
     "ARCH-BFDAC9510539A8A6",
-    "ARCH-48154B73B6753018",
-    "ARCH-62054C8BA790A54E",
-    "ARCH-C10A0C8F3D920D7A",
-    "ARCH-9149179282ED37F6",
-    "ARCH-B8628C5F9AAE6799",
-    "ARCH-DFB2CC1D14B7A689",
-    "ARCH-4800C3F79DB819B8",
-    "ARCH-2E5DA69E4AFCEB47",
-    "ARCH-25DE614FDD2EB439"
+    "ARCH-48154B73B6753018"
   ],
   "schema_version": "public_source_replay_manifest.v1"
 }

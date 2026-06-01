@@ -127,6 +127,8 @@ def test_pipeline_writes_deterministic_artifacts(tmp_path):
     assert state["artifact_counts"]["branching_research_queue"] == 0
     assert state["artifact_counts"]["conversation_prompts"] == 0
     assert state["artifact_counts"]["hybrid_scenario_prompts"] == 0
+    assert state["artifact_counts"]["long_context_stress_prompts"] == 0
+    assert "Long-context stress prompts" in (tmp_path / "frontier_handoff.md").read_text(encoding="utf-8")
     branch_status = {branch["branch_id"]: branch["status"] for branch in state["next_30_branches"]}
     assert branch_status["prototype_brave_search_adapter"] == "completed"
     assert branch_status["prototype_github_search_tool_discovery"] == "completed"

@@ -104,10 +104,23 @@ def test_corroboration_links_require_shared_signal_and_different_source_context(
 def test_prompts_are_synthetic_and_keep_applicability_expectations():
     profile = _profile("A", "hong_kong_gov", "Hong Kong SAR, China", ["document_control"], "domestic helper")
     conversations = expander.conversation_prompt_rows([profile])
+    long_context = expander.long_context_stress_rows(
+        [profile],
+        {
+            "coverage": {
+                "behavior_patterns": ["debt_bondage_fee_stack"],
+                "camouflage_patterns": ["safekeeping_euphemism"],
+                "response_traps": ["middle_needle"],
+            }
+        },
+    )
     applicability = expander.applicability_seed_rows([profile])
 
     assert conversations[0]["privacy"]["synthetic_placeholders_only"] is True
     assert conversations[0]["turns"][0]["speaker"] == "Worker A"
+    assert long_context[0]["privacy"]["aggregate_private_pattern_ids_only"] is True
+    assert "Long-context benchmark" in long_context[0]["prompt"]
+    assert "middle_needle" in long_context[0]["response_trap"]
     assert applicability[0]["prompt_metadata_tags"]["sector"] == "generic_work"
     assert applicability[0]["content_derived_expectations"]["sector"] == "domestic_work"
     assert applicability[0]["judge_should_add"] == ["document_control"]
@@ -151,10 +164,12 @@ def test_pipeline_writes_expansion_artifacts(tmp_path):
     assert summary["verified_knowledge_objects"] >= 1
     assert summary["conversation_prompts"] == 3
     assert summary["hybrid_scenario_prompts"] >= 3
+    assert summary["long_context_stress_prompts"] == 3
     assert summary["applicability_seed_tags"] == 2
     assert summary["rejected_or_deferred_sources"] >= 1
     assert (out_dir / "source_profile_coverage.json").exists()
     assert (out_dir / "conversation_manifest.json").exists()
+    assert (out_dir / "long_context_stress_prompts.jsonl").exists()
     assert len(_jsonl(out_dir / "conversation_prompts.jsonl")) == 3
     combined = "\n".join(path.read_text(encoding="utf-8") for path in out_dir.iterdir())
     assert '"raw_private_cases_ingested": true' not in combined
