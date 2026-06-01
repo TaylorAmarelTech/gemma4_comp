@@ -7,6 +7,7 @@ Current slice:
 - Tool/repo discovery matrix created.
 - Search, crawler, and extractor provider registries created.
 - Manual, Brave, and GitHub search provider wrappers implemented with fixture tests.
+- Public HTML, PDF, and document extraction wrappers implemented with no-network fixtures.
 - OSINT-adjacent tools remain rejected for operational use.
 - No private case files or raw private text were ingested.
 
@@ -14,19 +15,20 @@ Counts:
 
 - Tool profiles: 23
 - Adopted/candidate tools: 10
-- Implemented provider wrappers: 3
+- Implemented search provider wrappers: 3
+- Implemented extractor wrappers: 5
 - Rejected operational tools: 4
-- Source candidates already in spider pack: 55
-- Knowledge objects already in spider pack: 55
+- Source candidates already in spider pack: 81
+- Knowledge objects already in spider pack: 81
 - Prompt candidates already in spider pack: 180
 
 Next 30 branches:
 
 1. `prototype_brave_search_adapter` [completed] - Add an env-key-gated Brave Search API wrapper with synthetic fixture tests.
 2. `prototype_github_search_tool_discovery` [completed] - Use GitHub Search API to refresh Python tool candidates without private queries.
-3. `prototype_trafilatura_html_extractor` [queued] - Extract public HTML text after existing fetch/robots gates.
-4. `prototype_pdfplumber_pdf_extractor` [queued] - Extract public PDF text/tables from court and report fixtures.
-5. `prototype_pypdf_lightweight_fallback` [queued] - Add a lightweight PDF fallback for simple public documents.
+3. `prototype_trafilatura_html_extractor` [completed] - Extract public HTML text after existing fetch/robots gates.
+4. `prototype_pdfplumber_pdf_extractor` [completed] - Extract public PDF text/tables from court and report fixtures.
+5. `prototype_pypdf_lightweight_fallback` [completed] - Add a lightweight PDF fallback for simple public documents.
 6. `prototype_warcio_manifest_archiving` [queued] - Capture public-source fetch manifests and WARC metadata after redaction gates.
 7. `evaluate_advertools_sitemap_crawl` [queued] - Test sitemap-first expansion for official public domains.
 8. `evaluate_scrapy_polite_crawler` [queued] - Prototype a small Scrapy spider only if sitemap/manual discovery stalls.
@@ -51,4 +53,4 @@ Next 30 branches:
 27. `financial_obfuscation_dimensions` [queued] - Add dimensions for deductions, kickbacks, debt ledgers, and payroll intermediaries.
 28. `camouflage_pretext_dimensions` [queued] - Add dimensions for safekeeping, training fees, tourist processing, and legal-cover pretexts.
 29. `provider_registry_fixture_tests` [completed] - Add fixture tests for search/crawl/extract provider fallback behavior.
-30. `frontier_resume_state_refresh` [queued] - Refresh frontier_handoff.md after each committed slice.
+30. `frontier_resume_state_refresh` [completed] - Refresh frontier_handoff.md after each committed slice.

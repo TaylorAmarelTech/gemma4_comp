@@ -94,6 +94,13 @@ def test_pipeline_writes_deterministic_artifacts(tmp_path):
         "brave_search_api",
         "github_search_api",
     }
+    assert set(summary["implemented_extractor_wrappers"]) == {
+        "stdlib_html",
+        "trafilatura_optional",
+        "pdfplumber_optional",
+        "pypdf_optional",
+        "markitdown_optional",
+    }
     assert "theharvester" in summary["rejected_operational_tools"]
 
     matrix = _jsonl(tmp_path / "tool_evaluation_matrix.jsonl")
@@ -110,7 +117,13 @@ def test_pipeline_writes_deterministic_artifacts(tmp_path):
     state = json.loads((tmp_path / "research_run_state.json").read_text(encoding="utf-8"))
     assert len(state["next_30_branches"]) == 30
     assert state["artifact_counts"]["implemented_search_provider_wrappers"] == 3
-    assert state["next_30_branches"][0]["status"] == "completed"
+    assert state["artifact_counts"]["implemented_extractor_wrappers"] == 5
+    branch_status = {branch["branch_id"]: branch["status"] for branch in state["next_30_branches"]}
+    assert branch_status["prototype_brave_search_adapter"] == "completed"
+    assert branch_status["prototype_github_search_tool_discovery"] == "completed"
+    assert branch_status["prototype_trafilatura_html_extractor"] == "completed"
+    assert branch_status["prototype_pdfplumber_pdf_extractor"] == "completed"
+    assert branch_status["prototype_pypdf_lightweight_fallback"] == "completed"
     assert state["privacy"]["osint_adjacent_tools_operationalized"] is False
 
     combined = "\n".join(path.read_text(encoding="utf-8") for path in tmp_path.iterdir())

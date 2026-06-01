@@ -17,9 +17,18 @@ Counts:
 
 - Tool profiles: 23
 - Candidate/adopt decisions: 10
-- Implemented provider wrappers: 3
+- Implemented search provider wrappers: 3
+- Implemented extractor wrappers: 5
 - Deferred decisions: 9
 - Rejected operational tools: 4
+
+Implemented extractor wrappers:
+
+- `stdlib_html`: available through `scripts/public_fetch_extract.py` with redaction and fixture tests.
+- `trafilatura_optional`: available through `scripts/public_fetch_extract.py` with redaction and fixture tests.
+- `pdfplumber_optional`: available through `scripts/public_fetch_extract.py` with redaction and fixture tests.
+- `pypdf_optional`: available through `scripts/public_fetch_extract.py` with redaction and fixture tests.
+- `markitdown_optional`: available through `scripts/public_fetch_extract.py` with redaction and fixture tests.
 
 Adopt or prototype first:
 
