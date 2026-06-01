@@ -13,6 +13,7 @@
     "prompt_candidates": 180,
     "rejected_or_deferred_sources": 10,
     "search_provider_registry": 6,
+    "source_archive_manifest": 98,
     "source_candidates": 98,
     "source_domain_frontier": 45,
     "source_fetch_manifest": 98,
@@ -115,7 +116,7 @@
       "kind": "tool",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 6,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {

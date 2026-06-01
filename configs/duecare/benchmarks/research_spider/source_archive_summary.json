@@ -1,0 +1,11 @@
+{
+  "privacy": {
+    "manual_review_and_robots_required": true,
+    "network_fetch_default": false,
+    "no_private_case_archives": true,
+    "raw_archives_committed_to_git": false
+  },
+  "schema_version": "public_source_archive_summary.v1",
+  "source_archive_manifest": 98,
+  "source_replay_manifest": 1
+}
