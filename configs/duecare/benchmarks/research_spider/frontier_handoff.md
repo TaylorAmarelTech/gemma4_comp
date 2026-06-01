@@ -18,10 +18,15 @@ Counts:
 - Implemented search provider wrappers: 3
 - Implemented extractor wrappers: 5
 - Rejected operational tools: 4
-- Source candidates already in spider pack: 90
-- Source fetch manifest entries: 90
-- Source domain frontier entries: 43
-- Knowledge objects already in spider pack: 90
+- Source candidates already in spider pack: 98
+- Source fetch manifest entries: 98
+- Source domain frontier entries: 45
+- Knowledge objects already in spider pack: 98
+- Corroboration links: 240
+- Verified-for-benchmark knowledge objects: 84
+- Multi-turn conversation prompts: 98
+- Hybrid scenario prompts: 360
+- Applicability seed tags: 94
 - Prompt candidates already in spider pack: 180
 
 Next 30 branches:

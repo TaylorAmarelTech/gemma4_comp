@@ -139,6 +139,14 @@ DOMAIN_TIERS: tuple[dict, ...] = (
         "jurisdictions": ("United Kingdom",),
     },
     {
+        "id": "netherlands_gov_justice",
+        "domains": ("open.overheid.nl", "nationaalrapporteur.nl", "overheid.nl", "politie.nl", "om.nl"),
+        "site_filters": ("site:open.overheid.nl", "site:nationaalrapporteur.nl", "site:overheid.nl", "site:politie.nl", "site:om.nl"),
+        "tier": "official_government_or_rapporteur",
+        "base_score": 46,
+        "jurisdictions": ("Netherlands",),
+    },
+    {
         "id": "canada_public_safety_justice",
         "domains": ("publicsafety.gc.ca", "justice.gc.ca", "canada.ca", "rcmp-grc.gc.ca"),
         "site_filters": ("site:publicsafety.gc.ca", "site:justice.gc.ca", "site:canada.ca", "site:rcmp-grc.gc.ca"),
@@ -1061,6 +1069,54 @@ DEFAULT_SEED_SOURCES: tuple[dict, ...] = (
         "title": "AIC publication page for forced-criminality cyber-scam centre report",
         "snippet": "Australian Institute of Criminology publication page linking gender, technology, trafficking, forced criminality, scam centres, fraud, and victim-survivor support considerations.",
         "seed_family": "australia_homeaffairs_agd_afp",
+    },
+    {
+        "url": "https://www.justice.gov/archives/opa/pr/motel-manager-pleads-guilty-coercing-labor-and-sex-acts-female-victim",
+        "title": "US DOJ motel manager forced labor and housing-control case",
+        "snippet": "US DOJ release on motel management, housing dependency, threats of eviction or reporting, vulnerability abuse, forced labor, commercial sex acts, and coercive control.",
+        "seed_family": "us_justice_dhs_state",
+    },
+    {
+        "url": "https://www.justice.gov/archives/opa/pr/south-carolina-man-charged-forcing-victim-intellectual-disability-work-restaurant",
+        "title": "US DOJ restaurant forced labor case involving disability vulnerability",
+        "snippet": "US DOJ release on restaurant work allegedly compelled through force, threats, restraint, coercion, disability vulnerability, long duration, and forced labor charges.",
+        "seed_family": "us_justice_dhs_state",
+    },
+    {
+        "url": "https://www.justice.gov/archives/opa/pr/two-defendants-plead-guilty-alien-harboring-scheme-involving-labor-exploitation-nebraska",
+        "title": "US DOJ motel labor exploitation and debt-control case",
+        "snippet": "US DOJ release on motel labor exploitation involving immigration-status vulnerability, long hours, nonpayment, debt claims, harboring, and financial-gain charges.",
+        "seed_family": "us_justice_dhs_state",
+    },
+    {
+        "url": "https://www.justice.gov/archive/usao/cac/Pressroom/pr2009/035.html",
+        "title": "US DOJ elder-care forced labor case involving smuggling debt and passports",
+        "snippet": "US DOJ release on elder-care businesses, smuggling debt, passport confiscation, threats to turn workers over to authorities, forced labor, and document servitude.",
+        "seed_family": "us_justice_dhs_state",
+    },
+    {
+        "url": "https://www.gov.uk/government/publications/gangmasters-and-labour-abuse-authority-annual-report-and-accounts-2024-to-2025/gangmasters-and-labour-abuse-authority-annual-report-and-accounts-for-2024-to-2025-accessible",
+        "title": "UK GLAA annual report with modern slavery and unlicensed labour exploitation case studies",
+        "snippet": "UK GLAA annual report case studies covering debt bondage, unsafe accommodation, wage control, victim navigation, unlicensed labour, multi-agency response, and safeguarding.",
+        "seed_family": "uk_homeoffice_cps",
+    },
+    {
+        "url": "https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/989255/Tackling_modern_slavery_in_PPE_supply_chains_-_tools_for_PPE_suppliers.pdf",
+        "title": "UK government PPE supply-chain guidance on recruitment fees and debt bondage",
+        "snippet": "UK government PPE supply-chain guidance explaining how recruitment fees, supplier policies, loans, remediation gaps, and Employer Pays Principle failures create debt-bondage risk.",
+        "seed_family": "uk_homeoffice_cps",
+    },
+    {
+        "url": "https://open.overheid.nl/documenten/ronl-e0e0f958-aa49-4e33-ab1a-0202c9cfb9b3/pdf",
+        "title": "Netherlands integrated approach guidance on labour exploitation",
+        "snippet": "Dutch government guidance on labour exploitation, criminal-law coordination, debt bondage, Article 273f assessment, multiple actors, and evidence for exploitation thresholds.",
+        "seed_family": "netherlands_gov_justice",
+    },
+    {
+        "url": "https://open.overheid.nl/repository/ronl-4af6b43c-dc9c-49f5-b176-8155851e4e19/1/pdf/tk-bijlage-dadermonitor-mensenhandel-2013-2017.pdf",
+        "title": "Netherlands national rapporteur offender monitor with labour-exploitation case law",
+        "snippet": "Dutch national rapporteur monitor discussing labour exploitation case law, work-and-income settings, atypical work, forced services, compensation, and trafficking convictions.",
+        "seed_family": "netherlands_gov_justice",
     },
 )
 

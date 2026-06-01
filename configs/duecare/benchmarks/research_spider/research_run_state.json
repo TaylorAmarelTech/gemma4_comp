@@ -1,18 +1,24 @@
 {
   "artifact_counts": {
+    "applicability_seed_tags": 94,
+    "conversation_prompts": 98,
+    "corroboration_links": 240,
     "crawler_provider_registry": 5,
-    "dimension_candidates": 54,
+    "dimension_candidates": 57,
     "extractor_provider_registry": 9,
+    "hybrid_scenario_prompts": 360,
     "implemented_extractor_wrappers": 5,
     "implemented_search_provider_wrappers": 3,
-    "knowledge_objects": 90,
+    "knowledge_objects": 98,
     "prompt_candidates": 180,
+    "rejected_or_deferred_sources": 10,
     "search_provider_registry": 6,
-    "source_candidates": 90,
-    "source_domain_frontier": 43,
-    "source_fetch_manifest": 90,
-    "source_profiles": 90,
-    "tool_profiles": 23
+    "source_candidates": 98,
+    "source_domain_frontier": 45,
+    "source_fetch_manifest": 98,
+    "source_profiles": 98,
+    "tool_profiles": 23,
+    "verified_knowledge_objects": 84
   },
   "completed_loops": [
     "tool_repo_discovery_profiled_23_candidates",
