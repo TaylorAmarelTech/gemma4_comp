@@ -66,6 +66,24 @@ def test_sparse_signal_terms_and_sources_are_seeded():
     assert "migrant exploitation protection work visa" in dork_text
 
 
+def test_iom_and_hong_kong_official_report_sources_are_seeded():
+    candidates = spider.seed_source_candidates()
+    source_text = "\n".join(
+        " ".join([row["url"], row["title"], row["snippet"], *row["signals"]])
+        for row in candidates
+    )
+    signals = {signal for row in candidates for signal in row["signals"]}
+
+    assert spider.profile_for_url("https://publications.iom.int/system/files/pdf/Fair-Ethical-Recruitment.pdf")["id"] == "iom"
+    assert spider.profile_for_url("https://www.fdh.labour.gov.hk/en/faq.html")["id"] == "hong_kong_gov"
+    assert "regional-baseline-assessment-forced-labour-unfair-and-unethical-recruitment-practices" in source_text
+    assert "Fair-Ethical-Recruitment.pdf" in source_text
+    assert "migrants_and_their_vulnerability.pdf" in source_text
+    assert "P2018012600676" in source_text
+    assert "fdh.labour.gov.hk/en/faq.html" in source_text
+    assert {"debt_bondage", "fee_overcharging", "forced_labor"} <= signals
+
+
 def test_financial_obfuscation_and_nonpunishment_sources_are_seeded():
     candidates = spider.seed_source_candidates()
     source_text = "\n".join(

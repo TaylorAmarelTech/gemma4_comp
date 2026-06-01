@@ -791,6 +791,24 @@ DEFAULT_SEED_SOURCES: tuple[dict, ...] = (
         "seed_family": "iom",
     },
     {
+        "url": "https://publications.iom.int/books/regional-baseline-assessment-forced-labour-unfair-and-unethical-recruitment-practices",
+        "title": "IOM regional baseline on forced labour and unethical recruitment",
+        "snippet": "IOM assessment on forced labour, trafficking in persons, modern slavery, unethical recruitment, labour-market information gaps, victim protection, and inter-agency cooperation.",
+        "seed_family": "iom",
+    },
+    {
+        "url": "https://publications.iom.int/system/files/pdf/Fair-Ethical-Recruitment.pdf",
+        "title": "IOM fair and ethical recruitment case studies",
+        "snippet": "IOM case-study report on labour recruiters, ethical recruitment, human trafficking, debt bondage, forced labour, subcontracting, worker-rights uncertainty, and recruitment governance gaps.",
+        "seed_family": "iom",
+    },
+    {
+        "url": "https://publications.iom.int/system/files/pdf/migrants_and_their_vulnerability.pdf",
+        "title": "IOM PDF on migrants and vulnerability to trafficking and forced labour",
+        "snippet": "IOM PDF on migrant vulnerability to human trafficking, modern slavery, forced labour, recruitment-agency control, de facto debt bondage, fees, bonds, and barriers to asserting rights.",
+        "seed_family": "iom",
+    },
+    {
         "url": "https://publications.iom.int/books/migrants-and-their-vulnerability-human-trafficking-modern-slavery-and-forced-labour",
         "title": "IOM report on migrant vulnerability to trafficking and forced labour",
         "snippet": "IOM research report on vulnerability factors, migration pathways, trafficking, modern slavery, and forced labour risk analysis.",
@@ -1208,6 +1226,24 @@ DEFAULT_SEED_SOURCES: tuple[dict, ...] = (
         "url": "https://www.info.gov.hk/gia/general/201803/21/P2018032100478.htm",
         "title": "Hong Kong action plan on trafficking in persons and foreign domestic helper protection",
         "snippet": "Official HKSAR release on victim identification, protection and support, investigation, enforcement, prosecution, prevention, and FDH protection measures.",
+        "seed_family": "hong_kong_gov",
+    },
+    {
+        "url": "https://www.info.gov.hk/gia/general/201801/26/P2018012600676.htm",
+        "title": "Hong Kong employment agency overcharging conviction involving foreign domestic helpers",
+        "snippet": "Official HKSAR release on an employment agency convicted of overcharging foreign domestic helpers, complaint handling, agency licensing, commission limits, and labour enforcement.",
+        "seed_family": "hong_kong_gov",
+    },
+    {
+        "url": "https://www.fdh.labour.gov.hk/en/faq.html",
+        "title": "Hong Kong FDH FAQ on agency licensing, exploitation, and employer change",
+        "snippet": "Official Hong Kong foreign domestic helper FAQ covering agency licence checks, abuse or exploitation, employer changes, contract termination, accommodation, and worker protections.",
+        "seed_family": "hong_kong_gov",
+    },
+    {
+        "url": "https://www.fdh.labour.gov.hk/en/home.html",
+        "title": "Hong Kong foreign domestic helper official portal",
+        "snippet": "Official Hong Kong FDH portal covering employment agency use, accommodation, food, medical care, employment protections, standard contracts, and complaint pathways.",
         "seed_family": "hong_kong_gov",
     },
     {

@@ -797,6 +797,7 @@ def research_run_state(
             "safe_public_fetch_extract_interface_html_pdf_docs",
             "public_court_case_frontier_seeded",
             "decomposition_followup_dorks_and_mixed_conversations",
+            "iom_hong_kong_official_reports_seeded",
         ],
         "implemented_provider_wrappers": summary["implemented_provider_wrappers"],
         "implemented_extractor_wrappers": summary["implemented_extractor_wrappers"],

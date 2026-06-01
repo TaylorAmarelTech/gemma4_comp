@@ -1,12 +1,12 @@
 {
   "counts": {
-    "applicability_seed_tags": 166,
-    "conversation_prompts": 169,
-    "decomposition_followup_queries": 384,
-    "decomposition_mixed_conversations": 169,
+    "applicability_seed_tags": 171,
+    "conversation_prompts": 175,
+    "decomposition_followup_queries": 389,
+    "decomposition_mixed_conversations": 175,
     "hybrid_scenario_prompts": 360,
     "long_context_stress_prompts": 120,
-    "refusal_detection_prompts": 169
+    "refusal_detection_prompts": 175
   },
   "coverage": {
     "conversation_by_jurisdiction": {
@@ -14,7 +14,7 @@
       "Canada": 12,
       "China": 10,
       "European Union": 22,
-      "Hong Kong SAR, China": 30,
+      "Hong Kong SAR, China": 36,
       "Malaysia": 8,
       "Netherlands": 4,
       "New Zealand": 8,
@@ -22,7 +22,7 @@
       "Singapore": 8,
       "United Kingdom": 30,
       "United States": 40,
-      "global": 98,
+      "global": 104,
       "multi_jurisdiction": 38,
       "unknown": 4
     },
@@ -30,33 +30,33 @@
       "agriculture": 10,
       "care_work": 6,
       "construction": 2,
-      "domestic_work": 22,
+      "domestic_work": 28,
       "fishing": 20,
       "garments": 6,
       "hospitality": 14,
       "logistics": 4,
       "platform_work": 16,
       "scam_compound": 22,
-      "unspecified_sector": 216
+      "unspecified_sector": 222
     },
     "conversation_by_signal": {
       "accommodation_control": 12,
       "contract_deception": 12,
-      "debt_bondage": 128,
+      "debt_bondage": 132,
       "document_control": 22,
-      "fee_overcharging": 14,
+      "fee_overcharging": 16,
       "financial_obfuscation": 34,
       "forced_criminality": 24,
-      "forced_labor": 204,
+      "forced_labor": 212,
       "illegal_recruitment": 14,
       "immigration_status_control": 16,
-      "law_enforcement": 80,
+      "law_enforcement": 82,
       "online_bait": 16,
       "referral": 40,
-      "source_quality": 3,
+      "source_quality": 4,
       "supply_chain": 18,
       "surveillance_isolation": 14,
-      "unknown_signal": 3,
+      "unknown_signal": 4,
       "wage_theft": 16
     }
   },

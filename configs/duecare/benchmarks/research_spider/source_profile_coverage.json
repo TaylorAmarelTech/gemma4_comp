@@ -1,10 +1,10 @@
 {
   "counts": {
     "dimension_candidates": 105,
-    "knowledge_objects": 169,
+    "knowledge_objects": 175,
     "sectors_covered": 10,
     "signals_covered": 16,
-    "source_profiles": 169
+    "source_profiles": 175
   },
   "coverage": {
     "by_jurisdiction": {
@@ -12,7 +12,7 @@
       "Canada": 16,
       "China": 5,
       "European Union": 11,
-      "Hong Kong SAR, China": 15,
+      "Hong Kong SAR, China": 18,
       "Malaysia": 4,
       "Netherlands": 2,
       "New Zealand": 4,
@@ -20,7 +20,7 @@
       "Singapore": 4,
       "United Kingdom": 15,
       "United States": 35,
-      "global": 60,
+      "global": 63,
       "multi_jurisdiction": 19,
       "unknown": 2
     },
@@ -28,27 +28,27 @@
       "agriculture": 9,
       "care_work": 3,
       "construction": 4,
-      "domestic_work": 11,
+      "domestic_work": 14,
       "fishing": 11,
       "garments": 4,
       "hospitality": 8,
       "logistics": 4,
       "platform_work": 9,
       "scam_compound": 19,
-      "unspecified_sector": 108
+      "unspecified_sector": 111
     },
     "by_signal": {
       "accommodation_control": 6,
       "contract_deception": 6,
-      "debt_bondage": 64,
+      "debt_bondage": 66,
       "document_control": 11,
-      "fee_overcharging": 7,
+      "fee_overcharging": 8,
       "financial_obfuscation": 17,
       "forced_criminality": 12,
-      "forced_labor": 102,
+      "forced_labor": 106,
       "illegal_recruitment": 7,
       "immigration_status_control": 8,
-      "law_enforcement": 40,
+      "law_enforcement": 41,
       "online_bait": 8,
       "referral": 20,
       "supply_chain": 9,
@@ -62,9 +62,9 @@
       "courts_case_law": 19,
       "eu_interpol_law_enforcement": 11,
       "financial_intelligence": 10,
-      "hong_kong_gov": 15,
+      "hong_kong_gov": 18,
       "intergovernmental": 23,
-      "iom": 11,
+      "iom": 14,
       "malaysia_labour_homeaffairs": 4,
       "netherlands_gov_justice": 2,
       "new_zealand_immigration_employment": 4,

@@ -135,29 +135,29 @@ Current deterministic no-network pack:
 
 - 680 base search queries
 - 3,740 deep search dorks
-- 169 public source candidates
-- 169 source profiles
-- 1,690 second-wave source-specific queries
-- 169 source fetch manifest entries across 65 domains
-- 169 source archive/replay manifest entries
+- 175 public source candidates
+- 175 source profiles
+- 1,750 second-wave source-specific queries
+- 175 source fetch manifest entries across 65 domains
+- 175 source archive/replay manifest entries
 - 195 sitemap probe queue entries
 - 65 domain crawl policy entries
 - 260 sitemap discovery dorks
 - 1,000 branching research queue leads
-- 169 candidate knowledge objects
+- 175 candidate knowledge objects
 - 105 candidate dimensions
 - 240 synthetic prompt candidates
 - 240 corroboration links
-- 140 verified-for-benchmark knowledge objects
-- 169 source decomposition cards
-- 384 decomposition follow-up dorks
-- 169 decomposition mixed conversations
-- 169 multi-turn conversation prompts
+- 145 verified-for-benchmark knowledge objects
+- 175 source decomposition cards
+- 389 decomposition follow-up dorks
+- 175 decomposition mixed conversations
+- 175 multi-turn conversation prompts
 - 360 hybrid scenario prompts
 - 120 long-context stress prompts
-- 169 refusal/detection prompts
-- 166 applicability seed tags
-- 7 rejected/deferred source branches
+- 175 refusal/detection prompts
+- 171 applicability seed tags
+- 8 rejected/deferred source branches
 - 15 spider regression-test candidates
 - 23 profiled search/crawl/extraction/archive/tool-discovery candidates
 - 6 search-provider registry entries
