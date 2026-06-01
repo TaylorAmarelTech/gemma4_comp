@@ -72,7 +72,8 @@ SOURCE_TERM_PATTERNS = {
     "document_control": re.compile(r"\b(passport|travel document|identity document|identification documents?|identity-document retention|document retention|withheld documents?|surrender|confiscat)\b", re.I),
     "online_bait": re.compile(r"\b(social media|facebook|telegram|online job|online recruitment|online advertisements?|sham employment websites?|apps?|digital platforms?|internet|coded language|scam hub|scam compound|cyber-?scam centres?|crypto scam|catphishing|cyber fraud)\b", re.I),
     "relationship_lure": re.compile(r"\b(people they know and trust|friends?, family members?,? and romantic partners?|romantic partners?|personal relationships? to lower suspicion|fraudulent relationships?|online sweetheart|romance investment scams?|trust-?based recruitment|relational-?trust)\b", re.I),
-    "referral": re.compile(r"\b(screening|victim identification|referral|repatriation|safe return|legal aid|access to justice)\b", re.I),
+    "referral": re.compile(r"\b(screening|victim identification|referral|repatriation|safe return|legal aid|access to justice|access to remedy|remedy pathways?|complaint mechanisms?|grievance mechanisms?)\b", re.I),
+    "worker_voice_grievance": re.compile(r"\b(worker voice|migrant worker voice|interviewing migrant workers|migrant worker interview|worker interviews?|confidentiality|confidential interview|grievance mechanisms?|complaint mechanisms?|access to remedy|business grievance|protect migrant workers who participate|worker safety and well-being)\b", re.I),
     "immigration_status_control": re.compile(r"\b(immigration status|lawful immigration status|deportation|threaten(?:ing)? arrest|threats? of arrest|visa|wrong or missing visa|work permit|temporary resident permits?|migrant exploitation protection work visa|special pass|irregular migration|temporary visa program)\b", re.I),
     "forced_criminality": re.compile(r"\b(forced criminality|forced to commit|section 45|non-punishment|cannabis house|scam operation|telecom fraud)\b", re.I),
     "role_shifting_complicity": re.compile(r"\b(role-?shifters?|facilitate or shield operations|complicity|corruption|front compan(?:y|ies)|compound managers?|criminal infrastructure|state and non-state systems|adaptability and mobility|shift jurisdictions|weak KYC|financial oversight gaps)\b", re.I),
@@ -309,6 +310,11 @@ QUERY_INTENTS: tuple[dict, ...] = (
         "expected_signals": ("referral", "forced_labor"),
     },
     {
+        "id": "worker_voice_grievance_remedy",
+        "terms": ("migrant worker interview", "worker voice", "grievance mechanism", "access to remedy", "confidentiality"),
+        "expected_signals": ("worker_voice_grievance", "referral", "forced_labor"),
+    },
+    {
         "id": "case_law_boundary",
         "terms": ("court case", "forced labor", "servitude", "trafficking", "debt"),
         "expected_signals": ("forced_labor", "debt_bondage"),
@@ -407,6 +413,7 @@ SIGNAL_FOLLOWUP_TERMS: dict[str, tuple[str, ...]] = {
     "online_bait": ("online job ad", "social media recruitment", "scam hub", "coded language", "crypto scam"),
     "relationship_lure": ("people they know and trust", "romantic partners", "personal relationship lure", "online sweetheart", "relational trust"),
     "referral": ("victim identification", "national referral mechanism", "screening indicators", "repatriation", "legal aid"),
+    "worker_voice_grievance": ("migrant worker interview", "worker voice", "grievance mechanism", "access to remedy", "confidentiality"),
     "immigration_status_control": ("immigration status", "deportation threats", "temporary permit", "work permit dependency"),
     "forced_criminality": ("forced criminality", "non-punishment", "forced begging", "forced scam operation"),
     "role_shifting_complicity": ("role-shifters", "complicity", "front companies", "compound managers", "weak KYC"),
@@ -584,6 +591,20 @@ SIGNAL_DISTILLATIONS: dict[str, dict[str, tuple[str, ...]]] = {
             "Worker fears officials because trafficker linked help-seeking to deportation or arrest.",
         ),
     },
+    "worker_voice_grievance": {
+        "core_behaviors": (
+            "Worker interviews, worker voice channels, and grievance mechanisms are part of detecting recruitment, employment, and return-stage risks.",
+            "Safe interviews must protect confidentiality, separate identifying details from responses, and avoid turning worker disclosure into retaliation risk.",
+        ),
+        "camouflage_patterns": (
+            "Paper grievance channel exists but workers cannot safely use it or fear retaliation.",
+            "Employer-led interview treated as independent worker voice even when a recruiter, supervisor, or translator controls the setting.",
+        ),
+        "indicators": (
+            "Source calls for private migrant-worker interviews, confidential notes, worker safety, or access-to-remedy pathways.",
+            "Complaint mechanism exists but the worker lacks language access, independence, documentation, or safe follow-up.",
+        ),
+    },
     "immigration_status_control": {
         "core_behaviors": (
             "Visa, work-permit, or immigration status dependency is used to maintain control.",
@@ -750,6 +771,11 @@ DEEP_DORK_TERMS: tuple[str, ...] = (
     "role-shifters",
     "cyber-scam centres",
     "SHERLOC case law",
+    "migrant worker interview",
+    "worker voice",
+    "grievance mechanism",
+    "access to remedy",
+    "confidentiality",
     "migrant fishers",
     "transport logistics",
     "fishing vessel",
@@ -882,6 +908,60 @@ DEFAULT_SEED_SOURCES: tuple[dict, ...] = (
         "url": "https://publications.iom.int/books/migrant-worker-guidelines-employers-guidance-note-recruitment-fees-and-related-costs",
         "title": "IOM guidance note on recruitment fees and related costs",
         "snippet": "IOM guidance for employers on recruitment fees, related costs, worker-paid charges, due diligence, and responsible remediation.",
+        "seed_family": "iom",
+    },
+    {
+        "url": "https://publications.iom.int/books/migrant-worker-guidelines-employers",
+        "title": "IOM migrant worker guidelines for employers",
+        "snippet": "IOM employer guidance for ethical recruitment and employment of migrant workers across sectors, supporting due diligence, recruiter agreements, employment contracts, accommodation, recruitment fees, and worker protections.",
+        "seed_family": "iom",
+    },
+    {
+        "url": "https://publications.iom.int/books/migrant-worker-guidelines-employers-checklist-labour-recruiter-service-agreements",
+        "title": "IOM checklist for labour recruiter service agreements",
+        "snippet": "IOM checklist for employer agreements with labour recruiters covering service provisions, recruitment-fee controls, responsibility allocation, due diligence, and prevention of abusive recruitment practices.",
+        "seed_family": "iom",
+    },
+    {
+        "url": "https://publications.iom.int/books/migrant-worker-guidelines-employers-checklist-employment-contracts",
+        "title": "IOM checklist for migrant worker employment contracts",
+        "snippet": "IOM checklist on preparing, signing, and handling employment contracts with migrant workers to reduce contract deception, substituted terms, language barriers, and recruitment-related confusion.",
+        "seed_family": "iom",
+    },
+    {
+        "url": "https://publications.iom.int/books/migrant-worker-guidelines-employers-checklist-migrant-workers-accommodations",
+        "title": "IOM checklist for migrant workers' accommodations",
+        "snippet": "IOM checklist on adequate and gender-responsive living conditions in employer-owned or operated accommodation, spacing standards, worker welfare, and accommodation-control risk.",
+        "seed_family": "iom",
+    },
+    {
+        "url": "https://publications.iom.int/system/files/pdf/MWG-Tool-1-Summary_0.pdf",
+        "title": "IOM summary of common migrant worker challenges across labour migration",
+        "snippet": "IOM summary of common challenges and risks experienced by migrant workers across recruitment, employment, return, human-rights due diligence, risk identification, and remediation planning.",
+        "seed_family": "iom",
+    },
+    {
+        "url": "https://publications.iom.int/books/labour-migration-process-mapping-guide-understanding-and-assessing-human-and-labour-rights",
+        "title": "IOM labour migration process mapping guide",
+        "snippet": "IOM guide for retracing migrant worker journeys from origin to destination to identify recruitment, employment, and return-stage human-rights risks, forced labour risks, recruiter roles, and supply-chain controls.",
+        "seed_family": "iom",
+    },
+    {
+        "url": "https://publications.iom.int/books/labour-migration-process-mapping-guide-migrant-worker-interview-tool",
+        "title": "IOM labour migration process mapping migrant worker interview tool",
+        "snippet": "IOM tool for safe migrant worker interviews covering recruitment, employment, return, confidentiality, worker safety and well-being, fees paid, financing sources, receipts, and grievance or remedy needs.",
+        "seed_family": "iom",
+    },
+    {
+        "url": "https://publications.iom.int/books/establishing-ethical-recruitment-practices-hospitality-industry",
+        "title": "IOM ethical recruitment practices in the hospitality industry",
+        "snippet": "IOM and Sustainable Hospitality Alliance guidance for hotels on ethical recruitment, no worker-paid job fees, freedom of movement, debt prevention, labour recruiters, worker voice, procurement, and access to remedy.",
+        "seed_family": "iom",
+    },
+    {
+        "url": "https://publications.iom.int/books/establishing-ethical-recruitment-practices-hospitality-industry-guidance-note-a",
+        "title": "IOM hospitality guidance note on ethical recruitment principles",
+        "snippet": "IOM hospitality guidance note explaining ethical recruitment for hotels, IRIS alignment, no-fee recruitment, freedom of movement, debt prevention, supplier practices, and migrant worker protections.",
         "seed_family": "iom",
     },
     {

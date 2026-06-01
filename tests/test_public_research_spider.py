@@ -35,7 +35,7 @@ def test_build_queries_covers_requested_public_source_families():
 
 
 def test_deep_dorks_include_google_operators_and_non_html_artifacts():
-    dorks = spider.build_deep_dorks(max_per_family=220)
+    dorks = spider.build_deep_dorks(max_per_family=300)
     text = "\n".join(q["query"] for q in dorks)
 
     assert "intitle:" in text
@@ -55,7 +55,7 @@ def test_sparse_signal_terms_and_sources_are_seeded():
         " ".join([row["url"], row["title"], row["snippet"], *row["signals"]])
         for row in candidates
     )
-    dork_text = "\n".join(q["query"] for q in spider.build_deep_dorks(max_per_family=220))
+    dork_text = "\n".join(q["query"] for q in spider.build_deep_dorks(max_per_family=300))
     signals = {signal for row in candidates for signal in row["signals"]}
 
     assert "indicators-human-trafficking" in source_text
@@ -82,6 +82,30 @@ def test_iom_and_hong_kong_official_report_sources_are_seeded():
     assert "P2018012600676" in source_text
     assert "fdh.labour.gov.hk/en/faq.html" in source_text
     assert {"debt_bondage", "fee_overcharging", "forced_labor"} <= signals
+
+
+def test_iom_worker_voice_and_employer_guidance_sources_are_seeded():
+    candidates = spider.seed_source_candidates()
+    source_text = "\n".join(
+        " ".join([row["url"], row["title"], row["snippet"], *row["signals"]])
+        for row in candidates
+    )
+    dork_text = "\n".join(q["query"] for q in spider.build_deep_dorks(max_per_family=300))
+    signals = {signal for row in candidates for signal in row["signals"]}
+
+    for needle in [
+        "migrant-worker-guidelines-employers-checklist-labour-recruiter-service-agreements",
+        "migrant-worker-guidelines-employers-checklist-employment-contracts",
+        "migrant-worker-guidelines-employers-checklist-migrant-workers-accommodations",
+        "MWG-Tool-1-Summary_0.pdf",
+        "labour-migration-process-mapping-guide-migrant-worker-interview-tool",
+        "establishing-ethical-recruitment-practices-hospitality-industry",
+    ]:
+        assert needle in source_text
+    assert {"worker_voice_grievance", "referral", "accommodation_control"} <= signals
+    assert "migrant worker interview" in dork_text
+    assert "grievance mechanism" in dork_text
+    assert "access to remedy" in dork_text
 
 
 def test_sherloc_bali_and_relationship_lure_sources_are_seeded():

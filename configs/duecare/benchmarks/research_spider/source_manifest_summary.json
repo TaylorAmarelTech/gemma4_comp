@@ -1,7 +1,7 @@
 {
   "content_kinds": {
-    "html": 152,
-    "pdf": 33,
+    "html": 160,
+    "pdf": 34,
     "plain_or_unknown": 4
   },
   "privacy": {
@@ -11,5 +11,5 @@
   },
   "schema_version": "public_source_manifest_summary.v1",
   "source_domain_frontier": 67,
-  "source_fetch_manifest": 189
+  "source_fetch_manifest": 198
 }

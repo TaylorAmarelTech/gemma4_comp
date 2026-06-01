@@ -1,10 +1,10 @@
 {
   "counts": {
-    "dimension_candidates": 117,
-    "knowledge_objects": 189,
+    "dimension_candidates": 119,
+    "knowledge_objects": 198,
     "sectors_covered": 10,
     "signals_covered": 16,
-    "source_profiles": 189
+    "source_profiles": 198
   },
   "coverage": {
     "by_jurisdiction": {
@@ -21,7 +21,7 @@
       "Singapore": 4,
       "United Kingdom": 15,
       "United States": 35,
-      "global": 72,
+      "global": 81,
       "multi_jurisdiction": 20
     },
     "by_sector": {
@@ -31,31 +31,32 @@
       "domestic_work": 14,
       "fishing": 12,
       "garments": 4,
-      "hospitality": 9,
+      "hospitality": 11,
       "logistics": 4,
       "platform_work": 17,
       "scam_compound": 27,
-      "unspecified_sector": 116
+      "unspecified_sector": 123
     },
     "by_signal": {
       "accommodation_control": 6,
-      "contract_deception": 6,
-      "debt_bondage": 69,
+      "contract_deception": 8,
+      "debt_bondage": 74,
       "document_control": 11,
       "fee_overcharging": 8,
       "financial_obfuscation": 20,
       "forced_criminality": 15,
-      "forced_labor": 115,
+      "forced_labor": 116,
       "illegal_recruitment": 8,
       "immigration_status_control": 8,
       "law_enforcement": 44,
       "online_bait": 16,
-      "referral": 21,
+      "referral": 23,
       "relationship_lure": 3,
       "role_shifting_complicity": 5,
-      "supply_chain": 9,
+      "supply_chain": 10,
       "surveillance_isolation": 8,
-      "wage_theft": 8
+      "wage_theft": 8,
+      "worker_voice_grievance": 4
     },
     "by_source_family": {
       "australia_homeaffairs_agd_afp": 6,
@@ -66,7 +67,7 @@
       "financial_intelligence": 10,
       "hong_kong_gov": 18,
       "intergovernmental": 30,
-      "iom": 14,
+      "iom": 23,
       "malaysia_labour_homeaffairs": 4,
       "netherlands_gov_justice": 2,
       "new_zealand_immigration_employment": 4,
@@ -237,6 +238,10 @@
         "official_government",
         "official_government_or_prosecution_guidance",
         "public_case_law",
+        "public_due_diligence_or_official_supply_chain"
+      ],
+      "worker_voice_grievance": [
+        "intergovernmental",
         "public_due_diligence_or_official_supply_chain"
       ]
     }
