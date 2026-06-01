@@ -43,14 +43,14 @@ TARGET_SIGNALS = (
     "law_enforcement",
 )
 TARGET_SECTORS = {
-    "domestic_work": re.compile(r"\b(domestic|helper|caregiver|household|servant)\b", re.I),
-    "fishing": re.compile(r"\b(fishing|seafood|vessel|fair seas)\b", re.I),
-    "construction": re.compile(r"\b(construction|building|site)\b", re.I),
-    "agriculture": re.compile(r"\b(agriculture|farm|seasonal|rural|caravan)\b", re.I),
-    "hospitality": re.compile(r"\b(hotel|motel|hospitality|restaurant|cafeteria|bar|entertainment)\b", re.I),
-    "care_work": re.compile(r"\b(care|elder|adult social|nursing|home care)\b", re.I),
-    "garments": re.compile(r"\b(garment|footwear|textile|apparel|ppe)\b", re.I),
-    "logistics": re.compile(r"\b(logistics|transport|driver|warehouse|delivery)\b", re.I),
+    "domestic_work": re.compile(r"\b(domestic work|domestic helper|helper|caregiver|household|servant|live-in)\b", re.I),
+    "fishing": re.compile(r"\b(fish(?:ing|ers?|meal)?|fisheries|seafood|vessels?|fair seas|ship to shore|blue economy)\b", re.I),
+    "construction": re.compile(r"\b(construction|building|worksite|construction site|brick(?:s)?|kiln(?:s)?|labou?rer|masonry)\b", re.I),
+    "agriculture": re.compile(r"\b(agriculture|agricultural|farm(?:work|er|ing)?|seasonal worker|seasonal|rural|caravan|harvest|plantation|sugarcane|palm oil|cocoa|tobacco)\b", re.I),
+    "hospitality": re.compile(r"\b(hotel|motel|hospitality|restaurant|cafeteria|bar|entertainment|car wash|nail salon)\b", re.I),
+    "care_work": re.compile(r"\b(care sector|care work|elder|elder care|adult social|nursing|home care|childcare)\b", re.I),
+    "garments": re.compile(r"\b(garments?|footwear|textiles?|apparel|ppe|factory|sweatshop)\b", re.I),
+    "logistics": re.compile(r"\b(logistics|transport|drivers?|warehouse|delivery|freight|haulage|shipping|port|cargo|courier)\b", re.I),
     "platform_work": re.compile(r"\b(platform|online job|app-based|gig)\b", re.I),
     "scam_compound": re.compile(r"\b(scam|fraud|cyber|telecom|crypto|compound|customer support)\b", re.I),
 }
@@ -90,8 +90,11 @@ def write_jsonl(path: Path, rows: Iterable[dict]) -> int:
 def profile_text(profile: dict) -> str:
     values = [
         profile.get("url", ""),
+        profile.get("source_title", ""),
+        profile.get("source_snippet", ""),
         profile.get("source_family", ""),
         " ".join(profile.get("jurisdictions", [])),
+        " ".join(profile.get("sector_terms", [])),
         " ".join(profile.get("top_terms", [])),
         " ".join(profile.get("recommended_followup_terms", [])),
         " ".join(profile.get("signal_terms", [])),

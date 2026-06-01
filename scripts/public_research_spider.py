@@ -63,19 +63,32 @@ PII_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
 SOURCE_TERM_PATTERNS = {
     "debt_bondage": re.compile(r"\b(debt bondage|bonded labour|bonded labor|debt|fees?|loan|salary deduction|repay)\b", re.I),
     "fee_overcharging": re.compile(r"\b(overcharg(?:e|ed|ing)|excessive (?:commission|fee|placement fee)|kickback|forced repayment)\b", re.I),
-    "wage_theft": re.compile(r"\b(wage withholding|withholding wages|withheld wages|unpaid wages|nonpayment|underpay(?:ing|ment)|low or no salary|illegal wage deduction)\b", re.I),
-    "accommodation_control": re.compile(r"\b(overcrowded|unsafe accommodation|cramped|deplorable housing|living with (?:the )?employer|tied accommodation|dormitor(?:y|ies))\b", re.I),
+    "wage_theft": re.compile(r"\b(wage theft|wage withholding|withholding wages|withheld wages|unpaid wages|delayed wages|nonpayment|underpay(?:ing|ment)|low (?:or no )?wages?|low or no salary|illegal wage deduction)\b", re.I),
+    "accommodation_control": re.compile(r"\b(overcrowded|unsafe accommodation|cramped|deplorable housing|working and living conditions|on-?board (?:vessels?|housing|conditions)|living with (?:the )?employer|tied accommodation|dormitor(?:y|ies))\b", re.I),
     "surveillance_isolation": re.compile(r"\b(isolation|constant surveillance|confine(?:d|ment)|unable to speak alone|scripted answers|monitored|restricted movement)\b", re.I),
-    "contract_deception": re.compile(r"\b(contract substitution|deceived about (?:the )?(?:job|contract|wages)|false promises?|bait-and-switch|misrepresent(?:ed|ing) working conditions)\b", re.I),
+    "contract_deception": re.compile(r"\b(contract substitution|deceived about (?:the )?(?:job|contract|wages)|false promises?|bait-and-switch|misrepresent(?:ed|ing) working conditions|work agreements?|employment contracts?)\b", re.I),
     "forced_labor": re.compile(r"\b(forced labo[u]?r|servitude|coercion|coerced|exploit(?:ed|ation))\b", re.I),
     "illegal_recruitment": re.compile(r"\b(illegal recruitment|unlicensed recruiter|no job order|fake job|placement fee)\b", re.I),
-    "document_control": re.compile(r"\b(passport|travel document|identity document|surrender|confiscat)\b", re.I),
+    "document_control": re.compile(r"\b(passport|travel document|identity document|identification documents?|identity-document retention|document retention|withheld documents?|surrender|confiscat)\b", re.I),
     "online_bait": re.compile(r"\b(social media|facebook|telegram|online job|coded language|scam hub|crypto scam|catphishing)\b", re.I),
     "referral": re.compile(r"\b(screening|victim identification|referral|repatriation|safe return|legal aid|access to justice)\b", re.I),
     "immigration_status_control": re.compile(r"\b(immigration status|deportation|visa|work permit|temporary resident permit|special pass|irregular migration)\b", re.I),
     "forced_criminality": re.compile(r"\b(forced criminality|forced to commit|section 45|non-punishment|cannabis house|scam operation|telecom fraud)\b", re.I),
-    "supply_chain": re.compile(r"\b(supply chain|forced labour import|forced labor import|procurement|modern slavery statement|contractor)\b", re.I),
+    "supply_chain": re.compile(r"\b(supply chains?|forced labour import|forced labor import|procurement|modern slavery statement|contractor|production tiers?|traceability|downstream goods?)\b", re.I),
     "law_enforcement": re.compile(r"\b(prosecution|investigation|law enforcement|justice department|police|court|conviction|sentence)\b", re.I),
+}
+
+SECTOR_TERM_PATTERNS = {
+    "domestic_work": re.compile(r"\b(domestic work|domestic helper|caregiver|household|servant|live-in)\b", re.I),
+    "fishing": re.compile(r"\b(fish(?:ing|ers?|meal)?|fisheries|seafood|vessels?|fair seas|ship to shore|blue economy)\b", re.I),
+    "construction": re.compile(r"\b(construction|building|worksite|construction site|brick(?:s)?|kiln(?:s)?|labou?rer|masonry)\b", re.I),
+    "agriculture": re.compile(r"\b(agriculture|agricultural|farm(?:work|er|ing)?|seasonal worker|harvest|plantation|sugarcane|palm oil|cocoa|tobacco)\b", re.I),
+    "hospitality": re.compile(r"\b(hotel|motel|hospitality|restaurant|cafeteria|bar|entertainment|car wash|nail salon)\b", re.I),
+    "care_work": re.compile(r"\b(care sector|elder care|adult social care|nursing|home care|childcare)\b", re.I),
+    "garments": re.compile(r"\b(garments?|footwear|textiles?|apparel|ppe|factory|sweatshop)\b", re.I),
+    "logistics": re.compile(r"\b(logistics|transport|drivers?|warehouse|delivery|freight|haulage|shipping|port|cargo|courier)\b", re.I),
+    "platform_work": re.compile(r"\b(platform|online job|app-based|gig)\b", re.I),
+    "scam_compound": re.compile(r"\b(scam|fraud|cyber|telecom|crypto|compound|customer support)\b", re.I),
 }
 
 DOMAIN_TIERS: tuple[dict, ...] = (
@@ -274,6 +287,21 @@ QUERY_INTENTS: tuple[dict, ...] = (
         "id": "supply_chain_forced_labor_reports",
         "terms": ("forced labour", "supply chain", "procurement", "modern slavery", "report"),
         "expected_signals": ("supply_chain", "forced_labor"),
+    },
+    {
+        "id": "fishing_seafood_forced_labor",
+        "terms": ("migrant fishers", "fishing vessel", "seafood processing", "debt bondage", "forced labour"),
+        "expected_signals": ("debt_bondage", "forced_labor", "document_control"),
+    },
+    {
+        "id": "construction_logistics_labor_exploitation",
+        "terms": ("construction", "transport logistics", "warehouse", "labour exploitation", "document retention"),
+        "expected_signals": ("forced_labor", "document_control", "wage_theft"),
+    },
+    {
+        "id": "garment_agriculture_supply_chain_abuse",
+        "terms": ("garment factory", "seasonal agriculture", "brick kiln", "wage withholding", "recruitment fees"),
+        "expected_signals": ("supply_chain", "wage_theft", "debt_bondage"),
     },
 )
 
@@ -584,6 +612,15 @@ DEEP_DORK_TERMS: tuple[str, ...] = (
     "debt bondage",
     "recruitment fees",
     "passport confiscation",
+    "migrant fishers",
+    "fishing vessel",
+    "seafood processing",
+    "construction labour",
+    "transport logistics",
+    "warehouse labour",
+    "garment factory",
+    "seasonal agriculture",
+    "brick kiln",
     "withholding wages",
     "forced criminality",
     "forced begging",
@@ -597,6 +634,7 @@ DEEP_DORK_TERMS: tuple[str, ...] = (
     "placement fee",
     "supply chain due diligence",
     "modern slavery statement",
+    "palm oil recruitment fees",
 )
 
 DEFAULT_SEED_SOURCES: tuple[dict, ...] = (
@@ -1368,6 +1406,78 @@ DEFAULT_SEED_SOURCES: tuple[dict, ...] = (
         "snippet": "ILO resource on Thai fisheries and seafood labour standards, migrant workers, debt bondage, forced labour, trafficking, and supply-chain compliance guidance.",
         "seed_family": "intergovernmental",
     },
+    {
+        "url": "https://www.ilo.org/resource/other/guidelines-fair-labour-market-services-migrant-fishers",
+        "title": "ILO guidelines for fair labour market services for migrant fishers",
+        "snippet": "ILO guidance on migrant fishers, recruitment processes, work agreements, complaint procedures, enforcement measures, and fair treatment in fishing labour markets.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://www.ilo.org/projects-and-partnerships/projects/ship-shore-rights-sea-fisher-workers-and-seafood-processors-thailand",
+        "title": "ILO Ship to Shore Rights project for fisher workers and seafood processors",
+        "snippet": "ILO project page on Thai fisher workers and seafood processors, labour standards, forced labour, debt, recruitment, and supply-chain protections.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://www.ilo.org/publications/tripartite-action-protect-rights-migrant-workers-within-and-seafood",
+        "title": "ILO tripartite action for migrant workers in seafood supply chains",
+        "snippet": "ILO working paper on recruitment and working conditions in seafood processing, migrant-worker protections, labour brokers, fees, and supply-chain accountability.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://www.ilo.org/publications/decent-working-conditions-safety-and-social-protection-%E2%80%93-work-fishing",
+        "title": "ILO Work in Fishing Convention materials on decent conditions at sea",
+        "snippet": "ILO publication on fishing vessel work agreements, occupational safety, social protection, recruitment, and working and living conditions on-board vessels.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://www.dol.gov/agencies/ilab/reports/child-labor/list-of-goods/supply-chains",
+        "title": "US DOL SupplyChainTrace portal for forced-labour supply-chain risks",
+        "snippet": "Official DOL portal on tracing supply chains across tiers, detecting abusive labour risks, downstream goods, fish, cocoa, palm oil, solar, batteries, and forced labour.",
+        "seed_family": "supply_chain_due_diligence",
+    },
+    {
+        "url": "https://www.gov.uk/government/publications/transparency-in-supply-chains-a-practical-guide/transparency-in-supply-chains-a-practical-guide-accessible",
+        "title": "UK transparency in supply chains statutory guidance",
+        "snippet": "UK Home Office guidance on modern slavery statements, supply-chain risk assessment, worker engagement, remediation, incident response, and continuous risk review.",
+        "seed_family": "uk_homeoffice_cps",
+    },
+    {
+        "url": "https://www.gov.uk/government/publications/ppn-009-tackling-modern-slavery-in-government-supply-chains/ppn-009-guidance-on-tackling-modern-slavery-in-government-supply-chains-html",
+        "title": "UK government supply-chain modern slavery procurement guidance",
+        "snippet": "UK public-procurement guidance on high-risk sectors, supplier risk assessment, remediation, selection questions, contracts, and modern slavery in supply chains.",
+        "seed_family": "uk_homeoffice_cps",
+    },
+    {
+        "url": "https://www.justice.gov/archive/opa/pr/2000/November/650crm.htm",
+        "title": "US DOJ imported workers forced to work as domestic servants and labourers",
+        "snippet": "US DOJ release on imported workers, domestic service, labourers, passport confiscation, no pay, poor living conditions, threats, and involuntary servitude allegations.",
+        "seed_family": "us_justice_dhs_state",
+    },
+    {
+        "url": "https://www.justice.gov/archive/opa/pr/2002/February/02_crt_100.htm",
+        "title": "US DOJ forced labour suit involving a garment factory",
+        "snippet": "US DOJ release alleging involuntary servitude in a garment factory, wage withholding, poor conditions, immigration vulnerability, and forced labour indicators.",
+        "seed_family": "us_justice_dhs_state",
+    },
+    {
+        "url": "https://www.europol.europa.eu/crime-areas/trafficking-in-human-beings",
+        "title": "Europol trafficking in human beings crime area page",
+        "snippet": "Europol page on trafficking for labour exploitation, criminal networks, transport and logistics risk, construction, agriculture, domestic work, and cross-border enforcement.",
+        "seed_family": "eu_interpol_law_enforcement",
+    },
+    {
+        "url": "https://www.europol.europa.eu/publications-events/main-reports/european-union-serious-and-organised-crime-threat-assessment-2025-the-changing-dna-of-serious-and-organised-crime",
+        "title": "Europol SOCTA 2025 organized-crime threat assessment",
+        "snippet": "Europol SOCTA lead for organized crime, trafficking in human beings, forced criminality, labour exploitation, online recruitment, logistics corridors, and financial flows.",
+        "seed_family": "eu_interpol_law_enforcement",
+    },
+    {
+        "url": "https://www.state.gov/reports/2023-trafficking-in-persons-report/thailand/",
+        "title": "US State Department Thailand TIP report narrative",
+        "snippet": "Official country narrative covering trafficking in fishing, seafood, agriculture, domestic work, recruitment fees, debt bondage, document retention, and victim protection.",
+        "seed_family": "us_justice_dhs_state",
+    },
 )
 
 
@@ -1550,8 +1660,8 @@ def build_deep_dorks(*, max_per_family: int = 120) -> list[dict]:
     for profile in DOMAIN_TIERS:
         made_for_family = 0
         for site_idx, site_filter in enumerate(profile["site_filters"]):
-            for template in DEEP_DORK_TEMPLATES:
-                for term in DEEP_DORK_TERMS:
+            for term in DEEP_DORK_TERMS:
+                for template in DEEP_DORK_TEMPLATES:
                     query = template["template"].format(site=site_filter, term=term)
                     normalized = " ".join(query.split())
                     if normalized.lower() in seen:
@@ -1696,23 +1806,34 @@ def extract_terms_for_candidate(candidate: dict, *, limit: int = 14) -> list[str
     return [term for term, _weight in ranked[:limit]]
 
 
+def sector_terms_for_candidate(candidate: dict) -> list[str]:
+    text, _counts = redact_text(
+        " ".join(str(candidate.get(k, "")) for k in ("title", "snippet", "url", "source_family"))
+    )
+    return [sector for sector, pattern in SECTOR_TERM_PATTERNS.items() if pattern.search(text)]
+
+
 def source_profiles(candidates: list[dict]) -> list[dict]:
     rows: list[dict] = []
     for cand in candidates:
-        terms = extract_terms_for_candidate(cand)
+        sector_terms = sector_terms_for_candidate(cand)
+        terms = list(dict.fromkeys([*sector_terms, *extract_terms_for_candidate(cand, limit=16)]))[:16]
         signal_terms: list[str] = []
         for signal in cand.get("signals", []):
             signal_terms.extend(SIGNAL_FOLLOWUP_TERMS.get(signal, ())[:3])
-        recommended = list(dict.fromkeys([*terms[:8], *signal_terms]))[:12]
+        recommended = list(dict.fromkeys([*sector_terms, *terms[:8], *signal_terms]))[:14]
         rows.append(
             {
                 "id": f"SRC-PROFILE-{stable_hash(cand['id'], n=10).upper()}",
                 "source_candidate_id": cand["id"],
                 "url": cand["url"],
+                "source_title": cand.get("title", ""),
+                "source_snippet": cand.get("snippet", ""),
                 "source_family": cand["source_family"],
                 "source_tier": cand["source_tier"],
                 "jurisdictions": cand.get("jurisdictions", []),
                 "signals": cand.get("signals", []),
+                "sector_terms": sector_terms,
                 "top_terms": terms,
                 "signal_terms": list(dict.fromkeys(signal_terms)),
                 "recommended_followup_terms": recommended,

@@ -1,7 +1,7 @@
 {
   "counts": {
-    "applicability_seed_tags": 121,
-    "conversation_prompts": 125,
+    "applicability_seed_tags": 133,
+    "conversation_prompts": 137,
     "hybrid_scenario_prompts": 360
   },
   "coverage": {
@@ -9,46 +9,48 @@
       "Australia": 4,
       "Canada": 6,
       "China": 5,
-      "European Union": 9,
+      "European Union": 11,
       "Hong Kong SAR, China": 15,
       "Malaysia": 4,
       "Netherlands": 2,
       "New Zealand": 3,
       "Philippines": 12,
       "Singapore": 4,
-      "United Kingdom": 12,
-      "United States": 14,
-      "global": 26,
+      "United Kingdom": 14,
+      "United States": 17,
+      "global": 31,
       "multi_jurisdiction": 3,
       "unknown": 6
     },
     "conversation_by_sector": {
-      "agriculture": 1,
+      "agriculture": 3,
       "care_work": 3,
-      "domestic_work": 12,
-      "garments": 1,
-      "hospitality": 4,
+      "domestic_work": 11,
+      "fishing": 10,
+      "garments": 3,
+      "hospitality": 7,
+      "logistics": 2,
       "platform_work": 4,
       "scam_compound": 9,
-      "unspecified_sector": 91
+      "unspecified_sector": 85
     },
     "conversation_by_signal": {
-      "accommodation_control": 2,
-      "contract_deception": 3,
-      "debt_bondage": 53,
-      "document_control": 4,
+      "accommodation_control": 3,
+      "contract_deception": 6,
+      "debt_bondage": 56,
+      "document_control": 10,
       "fee_overcharging": 7,
-      "forced_criminality": 7,
-      "forced_labor": 79,
+      "forced_criminality": 8,
+      "forced_labor": 85,
       "illegal_recruitment": 6,
       "immigration_status_control": 4,
       "law_enforcement": 27,
       "online_bait": 4,
       "referral": 16,
-      "supply_chain": 1,
+      "supply_chain": 7,
       "surveillance_isolation": 5,
       "unknown_signal": 4,
-      "wage_theft": 3
+      "wage_theft": 6
     }
   },
   "privacy": {
