@@ -1,18 +1,18 @@
 {
   "archive_manifest": "source_archive_manifest.jsonl",
   "counts": {
-    "archive_entries": 157,
+    "archive_entries": 169,
     "content_kinds": {
-      "html": 126,
-      "pdf": 27,
+      "html": 134,
+      "pdf": 31,
       "plain_or_unknown": 4
     },
-    "domains": 60,
+    "domains": 65,
     "source_families": {
       "australia_homeaffairs_agd_afp": 4,
       "canada_public_safety_justice": 6,
       "china_gov_courts": 5,
-      "courts_case_law": 3,
+      "courts_case_law": 19,
       "eu_interpol_law_enforcement": 11,
       "financial_intelligence": 10,
       "hong_kong_gov": 15,
@@ -21,8 +21,8 @@
       "malaysia_labour_homeaffairs": 4,
       "netherlands_gov_justice": 2,
       "new_zealand_immigration_employment": 4,
-      "other_public": 3,
-      "philippines_gov": 12,
+      "other_public": 2,
+      "philippines_gov": 9,
       "singapore_mom_police": 4,
       "supply_chain_due_diligence": 5,
       "uk_homeoffice_cps": 15,
@@ -47,7 +47,6 @@
     "ARCH-6289D29F578BEB5D",
     "ARCH-5DD9760485A11DA4",
     "ARCH-8935B8BAE83EFC91",
-    "ARCH-21E247E98C332B27",
     "ARCH-F591E940600C415D",
     "ARCH-A2CC1525CDA763B6",
     "ARCH-E808F24520870C4D",
@@ -67,7 +66,7 @@
     "ARCH-716C4E749F331514",
     "ARCH-9367DA7379C0D20C",
     "ARCH-74906BE6A131F070",
-    "ARCH-20507CA1C3AA2192",
+    "ARCH-21E247E98C332B27",
     "ARCH-3D9BE42D724F1250",
     "ARCH-2078F1C351511CF9",
     "ARCH-6C7406B423E712CE",
@@ -80,7 +79,8 @@
     "ARCH-80EC4C66D328EAD8",
     "ARCH-918D3EFA9CD4E63F",
     "ARCH-3BFAB7957878AEBB",
-    "ARCH-AEF7D31FABC91D1E"
+    "ARCH-AEF7D31FABC91D1E",
+    "ARCH-7B5BE40276A968F8"
   ],
   "schema_version": "public_source_replay_manifest.v1"
 }

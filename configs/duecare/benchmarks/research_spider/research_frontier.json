@@ -120,7 +120,7 @@
       "kind": "source",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 11,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
@@ -237,7 +237,7 @@
       "kind": "prompt",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 24,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
@@ -246,7 +246,7 @@
       "kind": "prompt",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 25,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
@@ -255,7 +255,7 @@
       "kind": "prompt",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 26,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {

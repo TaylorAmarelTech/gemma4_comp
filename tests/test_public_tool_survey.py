@@ -126,6 +126,8 @@ def test_pipeline_writes_deterministic_artifacts(tmp_path):
     assert state["artifact_counts"]["sitemap_discovery_dorks"] == 0
     assert state["artifact_counts"]["branching_research_queue"] == 0
     assert state["artifact_counts"]["conversation_prompts"] == 0
+    assert state["artifact_counts"]["decomposition_followup_queries"] == 0
+    assert state["artifact_counts"]["decomposition_mixed_conversations"] == 0
     assert state["artifact_counts"]["hybrid_scenario_prompts"] == 0
     assert state["artifact_counts"]["long_context_stress_prompts"] == 0
     assert state["artifact_counts"]["refusal_detection_prompts"] == 0
@@ -133,6 +135,8 @@ def test_pipeline_writes_deterministic_artifacts(tmp_path):
     assert "Long-context stress prompts" in (tmp_path / "frontier_handoff.md").read_text(encoding="utf-8")
     assert "Refusal/detection prompts" in (tmp_path / "frontier_handoff.md").read_text(encoding="utf-8")
     assert "Source decompositions" in (tmp_path / "frontier_handoff.md").read_text(encoding="utf-8")
+    assert "Decomposition follow-up dorks" in (tmp_path / "frontier_handoff.md").read_text(encoding="utf-8")
+    assert "Decomposition mixed conversations" in (tmp_path / "frontier_handoff.md").read_text(encoding="utf-8")
     branch_status = {branch["branch_id"]: branch["status"] for branch in state["next_30_branches"]}
     assert branch_status["prototype_brave_search_adapter"] == "completed"
     assert branch_status["prototype_github_search_tool_discovery"] == "completed"
@@ -141,6 +145,10 @@ def test_pipeline_writes_deterministic_artifacts(tmp_path):
     assert branch_status["prototype_pypdf_lightweight_fallback"] == "completed"
     assert branch_status["prototype_warcio_manifest_archiving"] == "completed"
     assert branch_status["evaluate_advertools_sitemap_crawl"] == "completed"
+    assert branch_status["philippines_court_illegal_recruitment_cases"] == "completed"
+    assert branch_status["multi_turn_worker_triage_conversations"] == "completed"
+    assert branch_status["hybrid_moe_stress_scenarios"] == "completed"
+    assert branch_status["applicability_judge_seed_tags"] == "completed"
     assert state["privacy"]["osint_adjacent_tools_operationalized"] is False
 
     combined = "\n".join(path.read_text(encoding="utf-8") for path in tmp_path.iterdir())

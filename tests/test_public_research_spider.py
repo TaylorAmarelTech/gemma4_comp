@@ -92,6 +92,26 @@ def test_financial_obfuscation_and_nonpunishment_sources_are_seeded():
     assert "money laundering" in dork_text
 
 
+def test_public_court_case_frontier_sources_are_seeded():
+    source_text = json.dumps(spider.DEFAULT_SEED_SOURCES)
+
+    assert spider.profile_for_url("https://elibrary.judiciary.gov.ph/thebookshelf/showdocs/1/67018")["id"] == "courts_case_law"
+    assert spider.profile_for_url("https://www.corteidh.or.cr/docs/casos/articulos/seriec_318_esp.pdf")["id"] == "courts_case_law"
+    assert spider.profile_for_url("https://supremecourt.uk/cases/uksc-2019-0055")["id"] == "courts_case_law"
+    assert spider.profile_for_url("https://api.sci.gov.in/supremecourt/example.pdf")["id"] == "courts_case_law"
+    assert spider.profile_for_url("https://indiankanoon.org/doc/595099/")["id"] == "courts_case_law"
+    for needle in [
+        "showdocs/1/67018",
+        "showdocs/1/53646",
+        "001-172365",
+        "seriec_318_esp.pdf",
+        "uksc-2019-0055",
+        "4072_2020_8_1502_47917",
+        "indiankanoon.org/doc/595099",
+    ]:
+        assert needle in source_text
+
+
 def test_redaction_and_prompt_generation_do_not_emit_contact_details():
     email = "helper" + "@example.org"
     phone = "+1 202" + " 555 0100"

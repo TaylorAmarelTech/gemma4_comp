@@ -1,10 +1,10 @@
 {
   "counts": {
-    "dimension_candidates": 103,
-    "knowledge_objects": 157,
+    "dimension_candidates": 105,
+    "knowledge_objects": 169,
     "sectors_covered": 10,
     "signals_covered": 16,
-    "source_profiles": 157
+    "source_profiles": 169
   },
   "coverage": {
     "by_jurisdiction": {
@@ -16,16 +16,16 @@
       "Malaysia": 4,
       "Netherlands": 2,
       "New Zealand": 4,
-      "Philippines": 22,
+      "Philippines": 19,
       "Singapore": 4,
       "United Kingdom": 15,
       "United States": 35,
       "global": 60,
-      "multi_jurisdiction": 3,
-      "unknown": 3
+      "multi_jurisdiction": 19,
+      "unknown": 2
     },
     "by_sector": {
-      "agriculture": 7,
+      "agriculture": 9,
       "care_work": 3,
       "construction": 4,
       "domestic_work": 11,
@@ -35,31 +35,31 @@
       "logistics": 4,
       "platform_work": 9,
       "scam_compound": 19,
-      "unspecified_sector": 98
+      "unspecified_sector": 108
     },
     "by_signal": {
       "accommodation_control": 6,
       "contract_deception": 6,
-      "debt_bondage": 60,
+      "debt_bondage": 64,
       "document_control": 11,
       "fee_overcharging": 7,
       "financial_obfuscation": 17,
       "forced_criminality": 12,
-      "forced_labor": 92,
-      "illegal_recruitment": 6,
+      "forced_labor": 102,
+      "illegal_recruitment": 7,
       "immigration_status_control": 8,
-      "law_enforcement": 29,
+      "law_enforcement": 40,
       "online_bait": 8,
       "referral": 20,
-      "supply_chain": 8,
-      "surveillance_isolation": 6,
-      "wage_theft": 7
+      "supply_chain": 9,
+      "surveillance_isolation": 7,
+      "wage_theft": 8
     },
     "by_source_family": {
       "australia_homeaffairs_agd_afp": 4,
       "canada_public_safety_justice": 6,
       "china_gov_courts": 5,
-      "courts_case_law": 3,
+      "courts_case_law": 19,
       "eu_interpol_law_enforcement": 11,
       "financial_intelligence": 10,
       "hong_kong_gov": 15,
@@ -68,8 +68,8 @@
       "malaysia_labour_homeaffairs": 4,
       "netherlands_gov_justice": 2,
       "new_zealand_immigration_employment": 4,
-      "other_public": 3,
-      "philippines_gov": 12,
+      "other_public": 2,
+      "philippines_gov": 9,
       "singapore_mom_police": 4,
       "supply_chain_due_diligence": 5,
       "uk_homeoffice_cps": 15,
@@ -136,7 +136,6 @@
         "official_government_or_prosecution_guidance",
         "official_government_or_rapporteur",
         "official_or_multilateral_law_enforcement",
-        "other_public",
         "public_case_law",
         "public_due_diligence_or_official_supply_chain"
       ],
@@ -177,7 +176,8 @@
       ],
       "illegal_recruitment": [
         "official_government",
-        "official_or_multilateral_law_enforcement"
+        "official_or_multilateral_law_enforcement",
+        "public_case_law"
       ],
       "immigration_status_control": [
         "intergovernmental",
@@ -208,15 +208,18 @@
         "intergovernmental",
         "official_government",
         "official_government_or_prosecution_guidance",
+        "public_case_law",
         "public_due_diligence_or_official_supply_chain"
       ],
       "surveillance_isolation": [
-        "official_government"
+        "official_government",
+        "public_case_law"
       ],
       "wage_theft": [
         "intergovernmental",
         "official_government",
         "official_government_or_prosecution_guidance",
+        "public_case_law",
         "public_due_diligence_or_official_supply_chain"
       ]
     }

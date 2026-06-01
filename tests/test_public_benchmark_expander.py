@@ -118,6 +118,49 @@ def test_source_decompositions_turn_profiles_into_reviewable_understanding_objec
     assert rows[0]["privacy"]["raw_private_cases_ingested"] is False
 
 
+def test_decomposition_followup_queries_branch_from_reviewable_understanding_objects():
+    profiles = [
+        _profile("A", "courts_case_law", "multi_jurisdiction", ["debt_bondage", "forced_labor"], "agricultural labour"),
+    ]
+    knowledge = [_knowledge(profiles[0])]
+    decompositions = expander.source_decomposition_rows(profiles, knowledge, [])
+    rows = expander.decomposition_followup_query_rows(decompositions)
+
+    assert rows[0]["schema_version"].endswith(".decomposition_followup_query.v1")
+    assert rows[0]["source_decomposition_id"] == decompositions[0]["id"]
+    assert rows[0]["query"].startswith("site:courts_case_law.example.org")
+    assert "debt_bondage" in rows[0]["behavior_signals"]
+    assert "source_decomposition" in rows[0]["expected_work_products"]
+    assert rows[0]["privacy"]["do_not_include_private_search_terms"] is True
+    assert rows[0]["privacy"]["raw_private_cases_ingested"] is False
+
+
+def test_decomposition_mixed_conversations_create_long_hybrid_safety_prompts():
+    profiles = [
+        _profile("A", "financial_intelligence", "Canada", ["financial_obfuscation", "forced_labor"], "payroll"),
+    ]
+    knowledge = [_knowledge(profiles[0])]
+    decompositions = expander.source_decomposition_rows(profiles, knowledge, [])
+    rows = expander.decomposition_mixed_conversation_rows(
+        decompositions,
+        {
+            "coverage": {
+                "behavior_patterns": ["debt_bondage_fee_stack"],
+                "camouflage_patterns": ["safekeeping_euphemism"],
+            }
+        },
+    )
+
+    assert rows[0]["schema_version"].endswith(".decomposition_mixed_conversation.v1")
+    assert rows[0]["conversation_type"] == "long_hybrid_public_source_private_pattern_moe_stress"
+    assert len(rows[0]["turns"]) >= 6
+    assert rows[0]["turns"][4]["role"] == "unsafe_user"
+    assert rows[0]["expected_response"]["must_refuse_evasion_or_record_alteration"] is True
+    assert rows[0]["expected_response"]["must_generate_safe_followup_search_terms"] is True
+    assert rows[0]["privacy"]["aggregate_private_pattern_ids_only"] is True
+    assert rows[0]["privacy"]["raw_private_cases_ingested"] is False
+
+
 def test_prompts_are_synthetic_and_keep_applicability_expectations():
     profile = _profile("A", "hong_kong_gov", "Hong Kong SAR, China", ["document_control"], "domestic helper")
     conversations = expander.conversation_prompt_rows([profile])
@@ -184,6 +227,8 @@ def test_pipeline_writes_expansion_artifacts(tmp_path):
     assert summary["corroboration_links"] >= 1
     assert summary["verified_knowledge_objects"] >= 1
     assert summary["source_decompositions"] == 3
+    assert summary["decomposition_followup_queries"] >= 9
+    assert summary["decomposition_mixed_conversations"] == 3
     assert summary["conversation_prompts"] == 3
     assert summary["hybrid_scenario_prompts"] >= 3
     assert summary["long_context_stress_prompts"] == 3
@@ -192,10 +237,14 @@ def test_pipeline_writes_expansion_artifacts(tmp_path):
     assert summary["rejected_or_deferred_sources"] >= 1
     assert (out_dir / "source_profile_coverage.json").exists()
     assert (out_dir / "source_decompositions.jsonl").exists()
+    assert (out_dir / "decomposition_followup_queries.jsonl").exists()
+    assert (out_dir / "decomposition_mixed_conversations.jsonl").exists()
     assert (out_dir / "conversation_manifest.json").exists()
     assert (out_dir / "long_context_stress_prompts.jsonl").exists()
     assert (out_dir / "refusal_detection_prompts.jsonl").exists()
     assert len(_jsonl(out_dir / "conversation_prompts.jsonl")) == 3
+    assert len(_jsonl(out_dir / "decomposition_followup_queries.jsonl")) == summary["decomposition_followup_queries"]
+    assert len(_jsonl(out_dir / "decomposition_mixed_conversations.jsonl")) == 3
     combined = "\n".join(path.read_text(encoding="utf-8") for path in out_dir.iterdir())
     assert '"raw_private_cases_ingested": true' not in combined
     assert "Worker A" in combined
