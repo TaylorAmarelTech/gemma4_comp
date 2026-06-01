@@ -1,7 +1,7 @@
 {
   "deep_search_dorks": 2520,
-  "dimension_candidates": 50,
-  "knowledge_objects": 81,
+  "dimension_candidates": 54,
+  "knowledge_objects": 90,
   "network_search_run": false,
   "privacy": {
     "public_urls_allowed": true,
@@ -12,8 +12,8 @@
   "provider_errors": [],
   "queries": 560,
   "schema_version": "public_research_spider_summary.v1",
-  "second_wave_queries": 810,
-  "source_candidates": 81,
-  "source_profiles": 81,
+  "second_wave_queries": 900,
+  "source_candidates": 90,
+  "source_profiles": 90,
   "test_candidates": 15
 }

@@ -1008,6 +1008,60 @@ DEFAULT_SEED_SOURCES: tuple[dict, ...] = (
         "snippet": "AustLII legislation text defining debt bondage offences and factors including migration status, language ability, economic relationship, contracts, dependence, and document confiscation.",
         "seed_family": "courts_case_law",
     },
+    {
+        "url": "https://www.fatf-gafi.org/en/publications/Methodsandtrends/Human-trafficking.html",
+        "title": "FATF/APG financial flows from human trafficking report page",
+        "snippet": "FATF/APG typology source on financial information that can identify human trafficking for sexual exploitation or forced labour, profit generation, and laundering patterns.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://www.unodc.org/documents/southernafrica/Publications/CriminalJusticeIntegrity/TraffickinginPersons/Regional_Case_Digest_Southern_Africa_-_English.pdf",
+        "title": "UNODC regional case digest on trafficking in persons issues",
+        "snippet": "UNODC regional case digest discussing trafficking case evidence, debt bondage, supervision, coercion, detention, and court treatment of exploitation duration.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://sherloc.unodc.org/cld/case-law-doc/traffickingpersonscrimetype/usa/2015/case_0715.html?lng=en",
+        "title": "UNODC SHERLOC case on financial benefit from trafficking facilitation",
+        "snippet": "UNODC SHERLOC case summary involving motel facilitation, financial benefit, coercive sex trafficking, recruitment or hiring acts, and knowledge of exploitation.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://www.unodc.org/pdf/india/SOP_Investigation_Forced_Labour.pdf",
+        "title": "UNODC South Asia SOP on investigating trafficking for forced labour",
+        "snippet": "UNODC SOP for forced-labour trafficking investigations covering bonded labour, victim-sensitive response, police and labour coordination, and child protection.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://www.baliprocess.net/trafficking-in-persons/",
+        "title": "Bali Process trafficking in persons regional resource page",
+        "snippet": "Bali Process regional page on trafficking in persons, forced labour, domestic servitude, forced marriage, exploitation risk, and regional cooperation.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://rso.baliprocess.net/?p=9980",
+        "title": "Bali Process RSO initiative on forced criminality in cyber-scam centres",
+        "snippet": "Regional Support Office note on preventing trafficking for forced criminality into cyber-scam centres, fraudulent recruitment, false job offers, and warning-sign access.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://rso.baliprocess.net/new-rso-australian-institute-of-criminology-report-highlights-womens-unique-experiences-and-vulnerabilities-in-the-context-of-trafficking-for-forced-criminality-into-cyber-scam-centres/",
+        "title": "Bali Process RSO summary of AIC forced-criminality cyber-scam centre report",
+        "snippet": "RSO summary of AIC research on women trafficked into cyber-scam centres, relational-trust recruitment, online fraud, domestic labour, sexual violence, surveillance, and non-punishment.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://www.aic.gov.au/sites/default/files/2026-04/gender_technology_and_trafficking_in_persons.pdf",
+        "title": "AIC report on gender, technology, and trafficking into cyber-scam centres",
+        "snippet": "Australian Institute of Criminology report on women's experiences of forced criminality in Southeast Asian cyber-scam centres, recruitment, control, exit routes, and victim identification.",
+        "seed_family": "australia_homeaffairs_agd_afp",
+    },
+    {
+        "url": "https://www.aic.gov.au/publications/special/special-22",
+        "title": "AIC publication page for forced-criminality cyber-scam centre report",
+        "snippet": "Australian Institute of Criminology publication page linking gender, technology, trafficking, forced criminality, scam centres, fraud, and victim-survivor support considerations.",
+        "seed_family": "australia_homeaffairs_agd_afp",
+    },
 )
 
 
