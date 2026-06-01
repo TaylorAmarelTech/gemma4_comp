@@ -18,25 +18,25 @@ Counts:
 - Implemented search provider wrappers: 3
 - Implemented extractor wrappers: 5
 - Rejected operational tools: 4
-- Source candidates already in spider pack: 175
-- Source fetch manifest entries: 175
-- Source domain frontier entries: 65
-- Source archive manifest entries: 175
-- Sitemap probe queue entries: 195
-- Domain crawl policy entries: 65
-- Sitemap discovery dorks: 260
+- Source candidates already in spider pack: 189
+- Source fetch manifest entries: 189
+- Source domain frontier entries: 67
+- Source archive manifest entries: 189
+- Sitemap probe queue entries: 201
+- Domain crawl policy entries: 67
+- Sitemap discovery dorks: 268
 - Branching research queue leads: 1000
-- Knowledge objects already in spider pack: 175
+- Knowledge objects already in spider pack: 189
 - Corroboration links: 240
-- Verified-for-benchmark knowledge objects: 145
-- Source decompositions: 175
-- Decomposition follow-up dorks: 389
-- Decomposition mixed conversations: 175
-- Multi-turn conversation prompts: 175
+- Verified-for-benchmark knowledge objects: 155
+- Source decompositions: 189
+- Decomposition follow-up dorks: 413
+- Decomposition mixed conversations: 189
+- Multi-turn conversation prompts: 189
 - Hybrid scenario prompts: 360
 - Long-context stress prompts: 120
-- Refusal/detection prompts: 175
-- Applicability seed tags: 171
+- Refusal/detection prompts: 180
+- Applicability seed tags: 180
 - Prompt candidates already in spider pack: 240
 
 Next 30 branches:
@@ -53,12 +53,12 @@ Next 30 branches:
 10. `reject_osint_operationalization` [queued] - Keep pagodo, Photon, theHarvester, and Metagoofil out of provider registries.
 11. `philippines_court_illegal_recruitment_cases` [completed] - Search public Philippine court/prosecution sources for illegal recruitment and debt bondage.
 12. `hong_kong_fdh_agency_fee_cases` [completed] - Search Hong Kong public sources for FDH agency overcharge, loan, passport, and rest-day indicators.
-13. `china_court_new_trafficking_forms` [queued] - Branch from China court summaries into fraud, trafficking, and coded-language public cases.
+13. `china_court_new_trafficking_forms` [completed] - Branch from China court summaries into fraud, trafficking, and coded-language public cases.
 14. `iom_recruitment_fee_guidance` [queued] - Corroborate recruitment-fee and related-cost guidance with IOM/ILO documents.
 15. `ilo_forced_labour_indicators` [completed] - Extract prompt seeds from ILO forced-labour indicators and sector material.
-16. `unodc_case_law_forced_labor` [queued] - Search UNODC case-law material for coercion, servitude, and debt-bondage examples.
+16. `unodc_case_law_forced_labor` [completed] - Search UNODC case-law material for coercion, servitude, and debt-bondage examples.
 17. `fatf_financial_flows_typologies` [queued] - Extract financial-obfuscation indicators from FATF/APG trafficking typologies.
-18. `asean_bali_process_corridors` [queued] - Search regional sources for transit, scam-compound, and referral pathway patterns.
+18. `asean_bali_process_corridors` [completed] - Search regional sources for transit, scam-compound, and referral pathway patterns.
 19. `europol_eurojust_frontex_operations` [completed] - Profile EU law-enforcement operations for cross-border exploitation indicators.
 20. `canada_temporary_foreign_worker_cases` [completed] - Search public Canadian justice/labour cases for immigration-status coercion.
 21. `australia_afp_forced_marriage_servitude` [queued] - Branch from AFP/Home Affairs trafficking material into prosecution and referral examples.

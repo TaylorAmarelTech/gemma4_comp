@@ -1,34 +1,34 @@
 {
   "artifact_counts": {
-    "applicability_seed_tags": 171,
+    "applicability_seed_tags": 180,
     "branching_research_queue": 1000,
-    "conversation_prompts": 175,
+    "conversation_prompts": 189,
     "corroboration_links": 240,
     "crawler_provider_registry": 5,
-    "decomposition_followup_queries": 389,
-    "decomposition_mixed_conversations": 175,
-    "dimension_candidates": 105,
-    "domain_crawl_policy": 65,
+    "decomposition_followup_queries": 413,
+    "decomposition_mixed_conversations": 189,
+    "dimension_candidates": 117,
+    "domain_crawl_policy": 67,
     "extractor_provider_registry": 9,
     "hybrid_scenario_prompts": 360,
     "implemented_extractor_wrappers": 5,
     "implemented_search_provider_wrappers": 3,
-    "knowledge_objects": 175,
+    "knowledge_objects": 189,
     "long_context_stress_prompts": 120,
     "prompt_candidates": 240,
-    "refusal_detection_prompts": 175,
+    "refusal_detection_prompts": 180,
     "rejected_or_deferred_sources": 8,
     "search_provider_registry": 6,
-    "sitemap_discovery_dorks": 260,
-    "sitemap_probe_queue": 195,
-    "source_archive_manifest": 175,
-    "source_candidates": 175,
-    "source_decompositions": 175,
-    "source_domain_frontier": 65,
-    "source_fetch_manifest": 175,
-    "source_profiles": 175,
+    "sitemap_discovery_dorks": 268,
+    "sitemap_probe_queue": 201,
+    "source_archive_manifest": 189,
+    "source_candidates": 189,
+    "source_decompositions": 189,
+    "source_domain_frontier": 67,
+    "source_fetch_manifest": 189,
+    "source_profiles": 189,
     "tool_profiles": 23,
-    "verified_knowledge_objects": 145
+    "verified_knowledge_objects": 155
   },
   "completed_loops": [
     "tool_repo_discovery_profiled_23_candidates",
@@ -36,7 +36,10 @@
     "safe_public_fetch_extract_interface_html_pdf_docs",
     "public_court_case_frontier_seeded",
     "decomposition_followup_dorks_and_mixed_conversations",
-    "iom_hong_kong_official_reports_seeded"
+    "iom_hong_kong_official_reports_seeded",
+    "unodc_sherloc_case_law_seeded",
+    "asean_bali_scam_compound_reports_seeded",
+    "relationship_lure_role_shift_signals_added"
   ],
   "current_loop": "tool_discovery_matrix_v1",
   "generated_at": "2026-05-31T00:00:00Z",
@@ -191,7 +194,7 @@
       "kind": "source",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 13,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
@@ -218,7 +221,7 @@
       "kind": "source",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 16,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
@@ -236,7 +239,7 @@
       "kind": "source",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 18,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
