@@ -18,21 +18,23 @@ Counts:
 - Implemented search provider wrappers: 3
 - Implemented extractor wrappers: 5
 - Rejected operational tools: 4
-- Source candidates already in spider pack: 144
-- Source fetch manifest entries: 144
-- Source domain frontier entries: 54
-- Source archive manifest entries: 144
-- Sitemap probe queue entries: 162
-- Domain crawl policy entries: 54
-- Sitemap discovery dorks: 216
+- Source candidates already in spider pack: 157
+- Source fetch manifest entries: 157
+- Source domain frontier entries: 60
+- Source archive manifest entries: 157
+- Sitemap probe queue entries: 180
+- Domain crawl policy entries: 60
+- Sitemap discovery dorks: 240
 - Branching research queue leads: 1000
-- Knowledge objects already in spider pack: 144
+- Knowledge objects already in spider pack: 157
 - Corroboration links: 240
-- Verified-for-benchmark knowledge objects: 121
-- Multi-turn conversation prompts: 144
+- Verified-for-benchmark knowledge objects: 129
+- Source decompositions: 157
+- Multi-turn conversation prompts: 157
 - Hybrid scenario prompts: 360
 - Long-context stress prompts: 120
-- Applicability seed tags: 140
+- Refusal/detection prompts: 157
+- Applicability seed tags: 154
 - Prompt candidates already in spider pack: 240
 
 Next 30 branches:

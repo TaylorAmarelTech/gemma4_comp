@@ -1,7 +1,7 @@
 {
-  "deep_search_dorks": 3520,
-  "dimension_candidates": 94,
-  "knowledge_objects": 144,
+  "deep_search_dorks": 3740,
+  "dimension_candidates": 103,
+  "knowledge_objects": 157,
   "network_search_run": false,
   "privacy": {
     "public_urls_allowed": true,
@@ -10,10 +10,10 @@
   },
   "prompt_candidates": 240,
   "provider_errors": [],
-  "queries": 640,
+  "queries": 680,
   "schema_version": "public_research_spider_summary.v1",
-  "second_wave_queries": 1440,
-  "source_candidates": 144,
-  "source_profiles": 144,
+  "second_wave_queries": 1570,
+  "source_candidates": 157,
+  "source_profiles": 157,
   "test_candidates": 15
 }

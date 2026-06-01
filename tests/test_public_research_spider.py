@@ -66,6 +66,32 @@ def test_sparse_signal_terms_and_sources_are_seeded():
     assert "migrant exploitation protection work visa" in dork_text
 
 
+def test_financial_obfuscation_and_nonpunishment_sources_are_seeded():
+    candidates = spider.seed_source_candidates()
+    source_text = "\n".join(
+        " ".join([row["url"], row["title"], row["snippet"], *row["signals"]])
+        for row in candidates
+    )
+    dork_text = "\n".join(q["query"] for q in spider.build_deep_dorks(max_per_family=220))
+    signals = {signal for row in candidates for signal in row["signals"]}
+
+    assert spider.profile_for_url("https://www.fincen.gov/resources/advisories/example")["id"] == "financial_intelligence"
+    assert spider.profile_for_url("https://www.amlc.gov.ph/example")["id"] == "financial_intelligence"
+    assert "fincen-advisory-fin-2020-a008" in source_text
+    assert "FinCEN-WCHT-Notice.pdf" in source_text
+    assert "fincen-advisory-fin-2014-a008" in source_text
+    assert "oai-hts-2021-eng" in source_text
+    assert "bulletins/sport-eng" in source_text
+    assert "DetectingAndStoppingForcedSexualServitude" in source_text
+    assert "philippines-exposure-to-external-and-internal-threats" in source_text
+    assert "secretariat/438323" in source_text
+    assert "principle-of-non-criminalization-of-victims" in source_text
+    assert "section 45" in source_text
+    assert "financial_obfuscation" in signals
+    assert "suspicious activity report" in dork_text
+    assert "money laundering" in dork_text
+
+
 def test_redaction_and_prompt_generation_do_not_emit_contact_details():
     email = "helper" + "@example.org"
     phone = "+1 202" + " 555 0100"
@@ -175,6 +201,26 @@ def test_new_public_source_signals_create_dimension_candidates():
     dim_ids = {row["candidate_dim_id"] for row in dimensions}
     assert any("detects_fee_overcharging" in dim_id for dim_id in dim_ids)
     assert any("detects_wage_theft" in dim_id for dim_id in dim_ids)
+
+
+def test_financial_obfuscation_signal_creates_dimension_candidate():
+    candidates = spider.source_candidates_from_hits(
+        [
+            spider.SearchHit(
+                url="https://www.fincen.gov/example",
+                title="Human trafficking financial red flags",
+                snippet=(
+                    "Financial institutions identified suspicious activity reports, payment patterns, "
+                    "money laundering, and financial benefit from forced labor."
+                ),
+            )
+        ]
+    )
+
+    assert "financial_obfuscation" in candidates[0]["signals"]
+    knowledge = spider.generate_knowledge_objects(candidates, spider.source_profiles(candidates))
+    dimensions = spider.generate_dimension_candidates(knowledge)
+    assert any("detects_financial_obfuscation" in row["candidate_dim_id"] for row in dimensions)
 
 
 def test_url_normalization_and_scoring_prefer_official_sources():
