@@ -1,10 +1,10 @@
 {
   "counts": {
-    "dimension_candidates": 84,
-    "knowledge_objects": 137,
+    "dimension_candidates": 94,
+    "knowledge_objects": 144,
     "sectors_covered": 10,
     "signals_covered": 15,
-    "source_profiles": 137
+    "source_profiles": 144
   },
   "coverage": {
     "by_jurisdiction": {
@@ -15,12 +15,12 @@
       "Hong Kong SAR, China": 15,
       "Malaysia": 4,
       "Netherlands": 2,
-      "New Zealand": 3,
+      "New Zealand": 4,
       "Philippines": 12,
       "Singapore": 4,
       "United Kingdom": 14,
-      "United States": 22,
-      "global": 42,
+      "United States": 25,
+      "global": 45,
       "multi_jurisdiction": 3,
       "unknown": 6
     },
@@ -33,26 +33,26 @@
       "garments": 4,
       "hospitality": 7,
       "logistics": 4,
-      "platform_work": 4,
-      "scam_compound": 14,
-      "unspecified_sector": 85
+      "platform_work": 9,
+      "scam_compound": 17,
+      "unspecified_sector": 88
     },
     "by_signal": {
-      "accommodation_control": 3,
+      "accommodation_control": 6,
       "contract_deception": 6,
-      "debt_bondage": 56,
-      "document_control": 10,
+      "debt_bondage": 58,
+      "document_control": 11,
       "fee_overcharging": 7,
-      "forced_criminality": 8,
-      "forced_labor": 85,
+      "forced_criminality": 10,
+      "forced_labor": 87,
       "illegal_recruitment": 6,
-      "immigration_status_control": 4,
+      "immigration_status_control": 8,
       "law_enforcement": 27,
-      "online_bait": 4,
-      "referral": 16,
-      "supply_chain": 7,
-      "surveillance_isolation": 5,
-      "wage_theft": 6
+      "online_bait": 8,
+      "referral": 18,
+      "supply_chain": 8,
+      "surveillance_isolation": 6,
+      "wage_theft": 7
     },
     "by_source_family": {
       "australia_homeaffairs_agd_afp": 4,
@@ -61,17 +61,17 @@
       "courts_case_law": 3,
       "eu_interpol_law_enforcement": 11,
       "hong_kong_gov": 15,
-      "intergovernmental": 15,
+      "intergovernmental": 18,
       "iom": 11,
       "malaysia_labour_homeaffairs": 4,
       "netherlands_gov_justice": 2,
-      "new_zealand_immigration_employment": 3,
+      "new_zealand_immigration_employment": 4,
       "other_public": 6,
       "philippines_gov": 12,
       "singapore_mom_police": 4,
       "supply_chain_due_diligence": 5,
       "uk_homeoffice_cps": 14,
-      "us_justice_dhs_state": 17
+      "us_justice_dhs_state": 20
     },
     "major_case_aggregate_camouflage_patterns": [
       "authority_or_wage_dispute_misclassification",
@@ -118,6 +118,7 @@
     "source_tiers_by_signal": {
       "accommodation_control": [
         "intergovernmental",
+        "official_government",
         "official_government_or_prosecution_guidance",
         "public_due_diligence_or_official_supply_chain"
       ],
@@ -147,6 +148,7 @@
         "official_government"
       ],
       "forced_criminality": [
+        "intergovernmental",
         "official_government_or_court",
         "official_or_multilateral_law_enforcement",
         "other_public"
@@ -179,8 +181,10 @@
         "public_case_law"
       ],
       "online_bait": [
+        "intergovernmental",
         "official_government",
-        "official_government_or_court"
+        "official_government_or_court",
+        "official_or_multilateral_law_enforcement"
       ],
       "referral": [
         "intergovernmental",
@@ -191,6 +195,7 @@
       ],
       "supply_chain": [
         "intergovernmental",
+        "official_government",
         "official_government_or_prosecution_guidance",
         "public_due_diligence_or_official_supply_chain"
       ],
@@ -214,11 +219,7 @@
       "Use aggregate private pattern IDs only when mixing private-derived patterns."
     ],
     "sparse_sectors": [],
-    "sparse_signals": [
-      "accommodation_control",
-      "immigration_status_control",
-      "online_bait"
-    ]
+    "sparse_signals": []
   },
   "privacy": {
     "private_pattern_aggregates_only": true,

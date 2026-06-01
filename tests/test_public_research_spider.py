@@ -49,6 +49,23 @@ def test_deep_dorks_include_google_operators_and_non_html_artifacts():
     assert "transport logistics" in text
 
 
+def test_sparse_signal_terms_and_sources_are_seeded():
+    candidates = spider.seed_source_candidates()
+    source_text = "\n".join(
+        " ".join([row["url"], row["title"], row["snippet"], *row["signals"]])
+        for row in candidates
+    )
+    dork_text = "\n".join(q["query"] for q in spider.build_deep_dorks(max_per_family=220))
+    signals = {signal for row in candidates for signal in row["signals"]}
+
+    assert "indicators-human-trafficking" in source_text
+    assert "technology-facilitating-trafficking" in source_text
+    assert "working-to-stop-migrant-exploitation" in source_text
+    assert {"accommodation_control", "immigration_status_control", "online_bait"} <= signals
+    assert "sham employment websites" in dork_text
+    assert "migrant exploitation protection work visa" in dork_text
+
+
 def test_redaction_and_prompt_generation_do_not_emit_contact_details():
     email = "helper" + "@example.org"
     phone = "+1 202" + " 555 0100"
