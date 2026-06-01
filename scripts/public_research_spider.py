@@ -74,6 +74,7 @@ SOURCE_TERM_PATTERNS = {
     "referral": re.compile(r"\b(screening|victim identification|referral|repatriation|safe return|legal aid|access to justice)\b", re.I),
     "immigration_status_control": re.compile(r"\b(immigration status|lawful immigration status|deportation|threaten(?:ing)? arrest|threats? of arrest|visa|wrong or missing visa|work permit|temporary resident permits?|migrant exploitation protection work visa|special pass|irregular migration|temporary visa program)\b", re.I),
     "forced_criminality": re.compile(r"\b(forced criminality|forced to commit|section 45|non-punishment|cannabis house|scam operation|telecom fraud)\b", re.I),
+    "financial_obfuscation": re.compile(r"\b(financial flows?|financial red flags?|financial indicators?|financial-?crime|suspicious activity reports?|SARs?|money laundering|laundering patterns?|profit-?generation|proceeds|financial-?benefit|material-?benefit|financial-?gain|finance control|financially controlled|benefits? control|bank cards?|payroll records?|remittance|payment patterns?|transactions?|money mule|virtual currency)\b", re.I),
     "supply_chain": re.compile(r"\b(supply chains?|forced labour import|forced labor import|procurement|modern slavery statement|contractor|production tiers?|traceability|downstream goods?)\b", re.I),
     "law_enforcement": re.compile(r"\b(prosecution|investigation|law enforcement|justice department|police|court|conviction|sentence)\b", re.I),
 }
@@ -125,9 +126,17 @@ DOMAIN_TIERS: tuple[dict, ...] = (
         "jurisdictions": ("China",),
     },
     {
+        "id": "financial_intelligence",
+        "domains": ("fincen.gov", "fatf-gafi.org", "austrac.gov.au", "fintrac-canafe.canada.ca", "amlc.gov.ph"),
+        "site_filters": ("site:fincen.gov", "site:fatf-gafi.org", "site:austrac.gov.au", "site:fintrac-canafe.canada.ca", "site:amlc.gov.ph"),
+        "tier": "official_financial_intelligence_or_typology",
+        "base_score": 46,
+        "jurisdictions": ("global", "United States", "Australia", "Canada", "Philippines"),
+    },
+    {
         "id": "intergovernmental",
-        "domains": ("ilo.org", "unodc.org", "ohchr.org", "fatf-gafi.org"),
-        "site_filters": ("site:ilo.org", "site:unodc.org", "site:ohchr.org", "site:fatf-gafi.org"),
+        "domains": ("ilo.org", "unodc.org", "ohchr.org", "osce.org", "coe.int", "baliprocess.net"),
+        "site_filters": ("site:ilo.org", "site:unodc.org", "site:ohchr.org", "site:osce.org", "site:coe.int", "site:baliprocess.net"),
         "tier": "intergovernmental",
         "base_score": 44,
         "jurisdictions": ("global",),
@@ -318,6 +327,11 @@ QUERY_INTENTS: tuple[dict, ...] = (
         "terms": ("online recruitment", "sham employment websites", "social media", "scam compounds", "forced criminality"),
         "expected_signals": ("online_bait", "forced_criminality", "forced_labor"),
     },
+    {
+        "id": "financial_flows_and_obfuscation",
+        "terms": ("financial flows", "money laundering", "suspicious activity report", "payment patterns", "human trafficking"),
+        "expected_signals": ("financial_obfuscation", "law_enforcement", "forced_labor"),
+    },
 )
 
 TERM_STOPWORDS = {
@@ -343,6 +357,7 @@ SIGNAL_FOLLOWUP_TERMS: dict[str, tuple[str, ...]] = {
     "referral": ("victim identification", "national referral mechanism", "screening indicators", "repatriation", "legal aid"),
     "immigration_status_control": ("immigration status", "deportation threats", "temporary permit", "work permit dependency"),
     "forced_criminality": ("forced criminality", "non-punishment", "forced begging", "forced scam operation"),
+    "financial_obfuscation": ("financial red flags", "suspicious activity report", "money laundering", "payment patterns", "financial benefit"),
     "supply_chain": ("supply chain due diligence", "forced labor import", "modern slavery statement", "subcontractor risk"),
     "law_enforcement": ("prosecution", "conviction", "investigation", "case digest", "annual report"),
 }
@@ -530,6 +545,20 @@ SIGNAL_DISTILLATIONS: dict[str, dict[str, tuple[str, ...]]] = {
             "Controls combine confinement, threats, debt, and fear of prosecution.",
         ),
     },
+    "financial_obfuscation": {
+        "core_behaviors": (
+            "Payments, debts, wages, benefits, or remittances are structured to hide who profits from the exploitation.",
+            "Financial records can reveal control even when the visible story is a labour dispute, loan, gift, or routine payroll practice.",
+        ),
+        "camouflage_patterns": (
+            "Debt ledgers, payroll deductions, benefits, or remittances are framed as voluntary accounting or family support.",
+            "Third-party accounts, cash withdrawals, money transfers, or platform payments obscure the controller and beneficiary.",
+        ),
+        "indicators": (
+            "Financial records, transaction patterns, or benefits control point to exploitation proceeds or worker dependency.",
+            "A response asks for source-date checks and safe evidence preservation instead of naming unverified suspects or exposing account details.",
+        ),
+    },
     "supply_chain": {
         "core_behaviors": (
             "Exploitation risk is hidden across subcontractors, labour brokers, production tiers, or procurement chains.",
@@ -626,6 +655,15 @@ DEEP_DORK_TEMPLATES: tuple[dict, ...] = (
 DEEP_DORK_TERMS: tuple[str, ...] = (
     "debt bondage",
     "recruitment fees",
+    "sham employment websites",
+    "online recruitment",
+    "migrant exploitation protection work visa",
+    "financial flows",
+    "financial red flags",
+    "suspicious activity report",
+    "money laundering",
+    "payment patterns",
+    "financial benefit",
     "passport confiscation",
     "migrant fishers",
     "fishing vessel",
@@ -640,9 +678,6 @@ DEEP_DORK_TERMS: tuple[str, ...] = (
     "sleeping at work premises",
     "deportation threats",
     "temporary visa program",
-    "migrant exploitation protection work visa",
-    "online recruitment",
-    "sham employment websites",
     "digital platforms",
     "scam compounds",
     "cyber fraud",
@@ -1216,6 +1251,84 @@ DEFAULT_SEED_SOURCES: tuple[dict, ...] = (
         "seed_family": "intergovernmental",
     },
     {
+        "url": "https://www.fincen.gov/resources/advisories/fincen-advisory-fin-2020-a008",
+        "title": "FinCEN supplemental advisory on identifying and reporting human trafficking activity",
+        "snippet": "Official FinCEN advisory page for financial institutions covering human trafficking red flags, suspicious activity reporting, transaction patterns, virtual currency, and law-enforcement reporting terms.",
+        "seed_family": "financial_intelligence",
+    },
+    {
+        "url": "https://www.fincen.gov/system/files/2026-05/FinCEN-WCHT-Notice.pdf",
+        "title": "FinCEN 2026 World Cup notice on human trafficking suspicious activity",
+        "snippet": "Official FinCEN notice for financial institutions on human trafficking risks around major events, SAR filing, payroll anomalies, peer-to-peer transfers, prepaid access cards, digital assets, and labour trafficking.",
+        "seed_family": "financial_intelligence",
+    },
+    {
+        "url": "https://www.fincen.gov/resources/advisories/fincen-advisory-fin-2014-a008",
+        "title": "FinCEN advisory on human smuggling and human trafficking financial red flags",
+        "snippet": "Official FinCEN advisory on recognizing financial activity associated with human smuggling or trafficking, including financial indicators, suspicious activity reports, payment stages, debt bondage, and forced labor.",
+        "seed_family": "financial_intelligence",
+    },
+    {
+        "url": "https://www.fatf-gafi.org/content/dam/fatf-gafi/reports/Human-Trafficking-2018.pdf.coredownload.pdf",
+        "title": "FATF/APG report PDF on financial flows from human trafficking",
+        "snippet": "FATF/APG report PDF covering money laundering and terrorist-financing risks from human trafficking, red flag indicators, proceeds, profit generation, payment channels, and forced labour.",
+        "seed_family": "financial_intelligence",
+    },
+    {
+        "url": "https://fintrac-canafe.canada.ca/intel/operation/oai-hts-2021-eng",
+        "title": "FINTRAC 2021 updated indicators on laundering proceeds from human trafficking",
+        "snippet": "Canadian FIU operational alert for Project Protect covering suspicious transaction reports, money laundering indicators, nominees, front companies, virtual currencies, prepaid cards, and trafficking proceeds.",
+        "seed_family": "financial_intelligence",
+    },
+    {
+        "url": "https://fintrac-canafe.canada.ca/intel/bulletins/sport-eng",
+        "title": "FINTRAC 2026 special bulletin on human trafficking risks around major events",
+        "snippet": "Canadian FIU special bulletin on major-event trafficking risks, labour trafficking in hospitality, cleaning, construction and transportation, payroll control, recruitment fees, remittance patterns, and suspicious transaction reports.",
+        "seed_family": "financial_intelligence",
+    },
+    {
+        "url": "https://www.austrac.gov.au/sites/default/files/2022-02/AUSTRAC_FCG_DetectingAndStoppingForcedSexualServitude_web.pdf",
+        "title": "AUSTRAC financial crime guide on detecting forced sexual servitude",
+        "snippet": "Australian FIU guide describing financial indicators of forced sexual servitude, transaction monitoring, suspicious matter reports, short-term accommodation payments, rideshare expenses, and payment reference patterns.",
+        "seed_family": "financial_intelligence",
+    },
+    {
+        "url": "https://www.amlc.gov.ph/home/16-news-and-announcements/652-an-assessment-of-the-philippines-exposure-to-external-and-internal-threats-based-on-suspicious-transaction-reports-for-2021-to-1h-2024",
+        "title": "Philippines AMLC assessment of suspicious transaction reports and trafficking in persons",
+        "snippet": "Philippine FIU assessment using suspicious transaction reports from 2021 to 1H 2024, including trafficking in persons, transaction flows, predicate offenses, illicit funds, and money laundering risk.",
+        "seed_family": "financial_intelligence",
+    },
+    {
+        "url": "https://www.amlc.gov.ph/home/16-news-and-announcements/410-rules-and-regulations-implementing-section-9-d-of-republic-act-no-9208-as-amended-by-republic-act-no-11862-otherwise-known-as-the-expanded-anti-trafficking-in-persons-act-of-2022",
+        "title": "Philippines AMLC rules on anti-trafficking suspicious activity and transaction reports",
+        "snippet": "Philippine AMLC rules for Expanded Anti-Trafficking in Persons Act reporting, suspicious activities, suspicious transaction reports, bank inquiry, non-bank financial records, and red flag indicators.",
+        "seed_family": "financial_intelligence",
+    },
+    {
+        "url": "https://cthb.osce.org/secretariat/438323",
+        "title": "OSCE following the money guide for financial investigations into trafficking",
+        "snippet": "OSCE compendium and step-by-step guide for financial investigations into trafficking in human beings, including asset tracing, proceeds, money flows, exploitation networks, and victim-centered safeguards.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://sherloc.unodc.org/cld/en/education/tertiary/tip-and-som/module-8/key-issues/principle-of-non-criminalization-of-victims.html",
+        "title": "UNODC SHERLOC module on non-criminalization of trafficking victims",
+        "snippet": "UNODC education module explaining non-criminalization of trafficking victims for offences linked to exploitation, including immigration, labour, forged-document, prostitution, and drug offences.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://www.osce.org/secretariat/101002",
+        "title": "OSCE recommendations on non-punishment for victims of trafficking",
+        "snippet": "OSCE report on the non-punishment principle, court examples, policy recommendations, forced criminality, victim identification, and prosecution safeguards.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://www.cps.gov.uk/prosecution-guidance/modern-slavery-and-human-trafficking-offences-and-defences-including-section",
+        "title": "UK CPS section 45 and non-punishment prosecution guidance",
+        "snippet": "Official CPS guidance on modern slavery offences, section 45 defence, non-punishment, victim identification, public-interest decisions, compelled criminality, and financial-crime investigation routes.",
+        "seed_family": "uk_homeoffice_cps",
+    },
+    {
         "url": "https://www.unodc.org/documents/southernafrica/Publications/CriminalJusticeIntegrity/TraffickinginPersons/Regional_Case_Digest_Southern_Africa_-_English.pdf",
         "title": "UNODC regional case digest on trafficking in persons issues",
         "snippet": "UNODC regional case digest discussing trafficking case evidence, debt bondage, supervision, coercion, detention, and court treatment of exploitation duration.",
@@ -1609,7 +1722,10 @@ def domain_for_url(url: str) -> str:
 def profile_for_url(url: str) -> dict:
     domain = domain_for_url(url)
     for profile in DOMAIN_TIERS:
-        if any(domain == d or domain.endswith("." + d) for d in profile["domains"]):
+        if any(domain == d for d in profile["domains"]):
+            return profile
+    for profile in DOMAIN_TIERS:
+        if any(domain.endswith("." + d) for d in profile["domains"]):
             return profile
     return {
         "id": "other_public",

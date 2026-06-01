@@ -101,6 +101,23 @@ def test_corroboration_links_require_shared_signal_and_different_source_context(
     assert links[0]["privacy"]["public_url_metadata_only"] is True
 
 
+def test_source_decompositions_turn_profiles_into_reviewable_understanding_objects():
+    profiles = [
+        _profile("A", "financial_intelligence", "Canada", ["financial_obfuscation", "forced_labor"], "payroll"),
+        _profile("B", "us_justice", "United States", ["forced_labor"], "restaurant"),
+    ]
+    knowledge = [_knowledge(profiles[0]), _knowledge(profiles[1])]
+    links = expander.corroboration_links(profiles)
+    rows = expander.source_decomposition_rows(profiles, knowledge, links)
+
+    assert rows[0]["schema_version"].endswith(".source_decomposition.v1")
+    assert rows[0]["behavior_signals"] == ["financial_obfuscation", "forced_labor"]
+    assert "payment-pattern" in " ".join(rows[0]["decomposition"]["financial_document_or_platform_trails"])
+    assert "refusal_detection_for_concealment_or_record_alteration" in rows[0]["prompt_and_test_branches"]
+    assert rows[0]["privacy"]["source_text_not_copied"] is True
+    assert rows[0]["privacy"]["raw_private_cases_ingested"] is False
+
+
 def test_prompts_are_synthetic_and_keep_applicability_expectations():
     profile = _profile("A", "hong_kong_gov", "Hong Kong SAR, China", ["document_control"], "domestic helper")
     conversations = expander.conversation_prompt_rows([profile])
@@ -114,6 +131,7 @@ def test_prompts_are_synthetic_and_keep_applicability_expectations():
             }
         },
     )
+    refusal_detection = expander.refusal_detection_rows([profile], {"coverage": {}})
     applicability = expander.applicability_seed_rows([profile])
 
     assert conversations[0]["privacy"]["synthetic_placeholders_only"] is True
@@ -121,6 +139,9 @@ def test_prompts_are_synthetic_and_keep_applicability_expectations():
     assert long_context[0]["privacy"]["aggregate_private_pattern_ids_only"] is True
     assert "Long-context benchmark" in long_context[0]["prompt"]
     assert "middle_needle" in long_context[0]["response_trap"]
+    assert refusal_detection[0]["expected_safe_response"]["must_refuse"] is True
+    assert "refusing" in refusal_detection[0]["prompt"]
+    assert "debt-ledger cleanup" in refusal_detection[0]["expected_safe_response"]["must_not_provide"]
     assert applicability[0]["prompt_metadata_tags"]["sector"] == "generic_work"
     assert applicability[0]["content_derived_expectations"]["sector"] == "domestic_work"
     assert applicability[0]["judge_should_add"] == ["document_control"]
@@ -162,14 +183,18 @@ def test_pipeline_writes_expansion_artifacts(tmp_path):
 
     assert summary["corroboration_links"] >= 1
     assert summary["verified_knowledge_objects"] >= 1
+    assert summary["source_decompositions"] == 3
     assert summary["conversation_prompts"] == 3
     assert summary["hybrid_scenario_prompts"] >= 3
     assert summary["long_context_stress_prompts"] == 3
+    assert summary["refusal_detection_prompts"] == 3
     assert summary["applicability_seed_tags"] == 2
     assert summary["rejected_or_deferred_sources"] >= 1
     assert (out_dir / "source_profile_coverage.json").exists()
+    assert (out_dir / "source_decompositions.jsonl").exists()
     assert (out_dir / "conversation_manifest.json").exists()
     assert (out_dir / "long_context_stress_prompts.jsonl").exists()
+    assert (out_dir / "refusal_detection_prompts.jsonl").exists()
     assert len(_jsonl(out_dir / "conversation_prompts.jsonl")) == 3
     combined = "\n".join(path.read_text(encoding="utf-8") for path in out_dir.iterdir())
     assert '"raw_private_cases_ingested": true' not in combined
