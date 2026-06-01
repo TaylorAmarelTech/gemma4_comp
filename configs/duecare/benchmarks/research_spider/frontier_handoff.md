@@ -6,6 +6,7 @@ Current slice:
 
 - Tool/repo discovery matrix created.
 - Search, crawler, and extractor provider registries created.
+- Manual, Brave, and GitHub search provider wrappers implemented with fixture tests.
 - OSINT-adjacent tools remain rejected for operational use.
 - No private case files or raw private text were ingested.
 
@@ -13,6 +14,7 @@ Counts:
 
 - Tool profiles: 23
 - Adopted/candidate tools: 10
+- Implemented provider wrappers: 3
 - Rejected operational tools: 4
 - Source candidates already in spider pack: 55
 - Knowledge objects already in spider pack: 55
@@ -20,33 +22,33 @@ Counts:
 
 Next 30 branches:
 
-1. `prototype_brave_search_adapter` - Add an env-key-gated Brave Search API wrapper with synthetic fixture tests.
-2. `prototype_github_search_tool_discovery` - Use GitHub Search API to refresh Python tool candidates without private queries.
-3. `prototype_trafilatura_html_extractor` - Extract public HTML text after existing fetch/robots gates.
-4. `prototype_pdfplumber_pdf_extractor` - Extract public PDF text/tables from court and report fixtures.
-5. `prototype_pypdf_lightweight_fallback` - Add a lightweight PDF fallback for simple public documents.
-6. `prototype_warcio_manifest_archiving` - Capture public-source fetch manifests and WARC metadata after redaction gates.
-7. `evaluate_advertools_sitemap_crawl` - Test sitemap-first expansion for official public domains.
-8. `evaluate_scrapy_polite_crawler` - Prototype a small Scrapy spider only if sitemap/manual discovery stalls.
-9. `defer_playwright_allowlist_policy` - Write allowlist policy before any JavaScript browser fetches.
-10. `reject_osint_operationalization` - Keep pagodo, Photon, theHarvester, and Metagoofil out of provider registries.
-11. `philippines_court_illegal_recruitment_cases` - Search public Philippine court/prosecution sources for illegal recruitment and debt bondage.
-12. `hong_kong_fdh_agency_fee_cases` - Search Hong Kong public sources for FDH agency overcharge, loan, passport, and rest-day indicators.
-13. `china_court_new_trafficking_forms` - Branch from China court summaries into fraud, trafficking, and coded-language public cases.
-14. `iom_recruitment_fee_guidance` - Corroborate recruitment-fee and related-cost guidance with IOM/ILO documents.
-15. `ilo_forced_labour_indicators` - Extract prompt seeds from ILO forced-labour indicators and sector material.
-16. `unodc_case_law_forced_labor` - Search UNODC case-law material for coercion, servitude, and debt-bondage examples.
-17. `fatf_financial_flows_typologies` - Extract financial-obfuscation indicators from FATF/APG trafficking typologies.
-18. `asean_bali_process_corridors` - Search regional sources for transit, scam-compound, and referral pathway patterns.
-19. `europol_eurojust_frontex_operations` - Profile EU law-enforcement operations for cross-border exploitation indicators.
-20. `canada_temporary_foreign_worker_cases` - Search public Canadian justice/labour cases for immigration-status coercion.
-21. `australia_afp_forced_marriage_servitude` - Branch from AFP/Home Affairs trafficking material into prosecution and referral examples.
-22. `new_zealand_migrant_exploitation_cases` - Search NZ immigration/employment sources for exploitation and deception cases.
-23. `singapore_mom_agency_fee_guidance` - Profile Singapore MOM/ICA/police sources for recruitment and permit-control prompts.
-24. `multi_turn_worker_triage_conversations` - Generate synthetic conversations with jurisdiction ambiguity and referral needs.
-25. `hybrid_moe_stress_scenarios` - Mix debt, document control, immigration status, wage deductions, and benign distractors.
-26. `applicability_judge_seed_tags` - Create seed tags where content implies sectors missing from metadata.
-27. `financial_obfuscation_dimensions` - Add dimensions for deductions, kickbacks, debt ledgers, and payroll intermediaries.
-28. `camouflage_pretext_dimensions` - Add dimensions for safekeeping, training fees, tourist processing, and legal-cover pretexts.
-29. `provider_registry_fixture_tests` - Add fixture tests for search/crawl/extract provider fallback behavior.
-30. `frontier_resume_state_refresh` - Refresh frontier_handoff.md after each committed slice.
+1. `prototype_brave_search_adapter` [completed] - Add an env-key-gated Brave Search API wrapper with synthetic fixture tests.
+2. `prototype_github_search_tool_discovery` [completed] - Use GitHub Search API to refresh Python tool candidates without private queries.
+3. `prototype_trafilatura_html_extractor` [queued] - Extract public HTML text after existing fetch/robots gates.
+4. `prototype_pdfplumber_pdf_extractor` [queued] - Extract public PDF text/tables from court and report fixtures.
+5. `prototype_pypdf_lightweight_fallback` [queued] - Add a lightweight PDF fallback for simple public documents.
+6. `prototype_warcio_manifest_archiving` [queued] - Capture public-source fetch manifests and WARC metadata after redaction gates.
+7. `evaluate_advertools_sitemap_crawl` [queued] - Test sitemap-first expansion for official public domains.
+8. `evaluate_scrapy_polite_crawler` [queued] - Prototype a small Scrapy spider only if sitemap/manual discovery stalls.
+9. `defer_playwright_allowlist_policy` [queued] - Write allowlist policy before any JavaScript browser fetches.
+10. `reject_osint_operationalization` [queued] - Keep pagodo, Photon, theHarvester, and Metagoofil out of provider registries.
+11. `philippines_court_illegal_recruitment_cases` [queued] - Search public Philippine court/prosecution sources for illegal recruitment and debt bondage.
+12. `hong_kong_fdh_agency_fee_cases` [queued] - Search Hong Kong public sources for FDH agency overcharge, loan, passport, and rest-day indicators.
+13. `china_court_new_trafficking_forms` [queued] - Branch from China court summaries into fraud, trafficking, and coded-language public cases.
+14. `iom_recruitment_fee_guidance` [queued] - Corroborate recruitment-fee and related-cost guidance with IOM/ILO documents.
+15. `ilo_forced_labour_indicators` [queued] - Extract prompt seeds from ILO forced-labour indicators and sector material.
+16. `unodc_case_law_forced_labor` [queued] - Search UNODC case-law material for coercion, servitude, and debt-bondage examples.
+17. `fatf_financial_flows_typologies` [queued] - Extract financial-obfuscation indicators from FATF/APG trafficking typologies.
+18. `asean_bali_process_corridors` [queued] - Search regional sources for transit, scam-compound, and referral pathway patterns.
+19. `europol_eurojust_frontex_operations` [queued] - Profile EU law-enforcement operations for cross-border exploitation indicators.
+20. `canada_temporary_foreign_worker_cases` [queued] - Search public Canadian justice/labour cases for immigration-status coercion.
+21. `australia_afp_forced_marriage_servitude` [queued] - Branch from AFP/Home Affairs trafficking material into prosecution and referral examples.
+22. `new_zealand_migrant_exploitation_cases` [queued] - Search NZ immigration/employment sources for exploitation and deception cases.
+23. `singapore_mom_agency_fee_guidance` [queued] - Profile Singapore MOM/ICA/police sources for recruitment and permit-control prompts.
+24. `multi_turn_worker_triage_conversations` [queued] - Generate synthetic conversations with jurisdiction ambiguity and referral needs.
+25. `hybrid_moe_stress_scenarios` [queued] - Mix debt, document control, immigration status, wage deductions, and benign distractors.
+26. `applicability_judge_seed_tags` [queued] - Create seed tags where content implies sectors missing from metadata.
+27. `financial_obfuscation_dimensions` [queued] - Add dimensions for deductions, kickbacks, debt ledgers, and payroll intermediaries.
+28. `camouflage_pretext_dimensions` [queued] - Add dimensions for safekeeping, training fees, tourist processing, and legal-cover pretexts.
+29. `provider_registry_fixture_tests` [completed] - Add fixture tests for search/crawl/extract provider fallback behavior.
+30. `frontier_resume_state_refresh` [queued] - Refresh frontier_handoff.md after each committed slice.

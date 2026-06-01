@@ -17,6 +17,7 @@ Counts:
 
 - Tool profiles: 23
 - Candidate/adopt decisions: 10
+- Implemented provider wrappers: 3
 - Deferred decisions: 9
 - Rejected operational tools: 4
 

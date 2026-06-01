@@ -6,7 +6,7 @@
       "kind": "tool",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 1,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {
         "advertools": 78,
         "brave_search_api": 82,
@@ -39,7 +39,7 @@
       "kind": "tool",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 2,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
@@ -282,7 +282,7 @@
       "kind": "test",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 29,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
