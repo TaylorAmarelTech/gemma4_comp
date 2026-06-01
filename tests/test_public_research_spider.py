@@ -15,7 +15,7 @@ spider = importlib.import_module("public_research_spider")
 
 
 def test_build_queries_covers_requested_public_source_families():
-    queries = spider.build_queries(max_per_family=12)
+    queries = spider.build_queries(max_per_family=20)
     text = "\n".join(q["query"] for q in queries)
 
     assert "site:iom.int" in text or "site:publications.iom.int" in text
@@ -44,6 +44,9 @@ def test_deep_dorks_include_google_operators_and_non_html_artifacts():
     assert "filetype:xlsx" in text
     assert "after:2020" in text
     assert any(q["intent"] == "case_digest_evidence" for q in dorks)
+    assert any(q["intent"] == "fishing_seafood_forced_labor" for q in spider.build_queries(max_per_family=20))
+    assert "migrant fishers" in text
+    assert "transport logistics" in text
 
 
 def test_redaction_and_prompt_generation_do_not_emit_contact_details():
@@ -101,6 +104,31 @@ def test_source_profile_second_wave_and_knowledge_objects_stay_public_metadata_o
     assert knowledge[0]["safe_use"]["private_case_ingestion"] is False
     assert dimensions
     assert "private names" in " ".join(dimensions[0]["negative_controls"])
+
+
+def test_source_profiles_preserve_redacted_public_metadata_and_sector_terms():
+    candidates = spider.source_candidates_from_hits(
+        [
+            spider.SearchHit(
+                url="https://www.ilo.org/example/fair-seas",
+                title="Guidelines for fair labour market services for migrant fishers",
+                snippet="Fishing vessel and seafood processing workers faced debt bondage, document retention, and wage theft.",
+            ),
+            spider.SearchHit(
+                url="https://www.europol.europa.eu/example/action-days",
+                title="Labour exploitation in transport logistics and construction",
+                snippet="Public action days flagged warehouse, driver, construction site, and document-control indicators.",
+            ),
+        ]
+    )
+
+    profiles = spider.source_profiles(candidates)
+
+    all_sectors = {sector for profile in profiles for sector in profile["sector_terms"]}
+    assert {"fishing", "construction", "logistics"} <= all_sectors
+    assert profiles[0]["source_title"]
+    assert profiles[0]["source_snippet"]
+    assert all(profile["privacy"]["public_url_metadata_only"] is True for profile in profiles)
 
 
 def test_new_public_source_signals_create_dimension_candidates():

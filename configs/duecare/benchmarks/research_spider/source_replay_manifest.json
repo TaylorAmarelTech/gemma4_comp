@@ -1,9 +1,9 @@
 {
   "archive_manifest": "source_archive_manifest.jsonl",
   "counts": {
-    "archive_entries": 125,
+    "archive_entries": 137,
     "content_kinds": {
-      "html": 100,
+      "html": 112,
       "pdf": 21,
       "plain_or_unknown": 4
     },
@@ -13,9 +13,9 @@
       "canada_public_safety_justice": 6,
       "china_gov_courts": 5,
       "courts_case_law": 3,
-      "eu_interpol_law_enforcement": 9,
+      "eu_interpol_law_enforcement": 11,
       "hong_kong_gov": 15,
-      "intergovernmental": 11,
+      "intergovernmental": 15,
       "iom": 11,
       "malaysia_labour_homeaffairs": 4,
       "netherlands_gov_justice": 2,
@@ -23,9 +23,9 @@
       "other_public": 6,
       "philippines_gov": 12,
       "singapore_mom_police": 4,
-      "supply_chain_due_diligence": 4,
-      "uk_homeoffice_cps": 12,
-      "us_justice_dhs_state": 14
+      "supply_chain_due_diligence": 5,
+      "uk_homeoffice_cps": 14,
+      "us_justice_dhs_state": 17
     }
   },
   "next_steps": [
@@ -42,7 +42,9 @@
   "replay_order": [
     "ARCH-AB0B6E1C55D26B5B",
     "ARCH-6289D29F578BEB5D",
+    "ARCH-8935B8BAE83EFC91",
     "ARCH-21E247E98C332B27",
+    "ARCH-F591E940600C415D",
     "ARCH-A2CC1525CDA763B6",
     "ARCH-E808F24520870C4D",
     "ARCH-CEB3848645BA2E6B",
@@ -50,22 +52,22 @@
     "ARCH-851E7FD892E47F8B",
     "ARCH-ED23EEA56001E750",
     "ARCH-50D136AFC4DFE58B",
+    "ARCH-359023894280DC7E",
     "ARCH-487121EC5D3B60E8",
     "ARCH-82F0BF349BFEF446",
+    "ARCH-A5EEC826249BCA79",
     "ARCH-5484E8621EE03838",
     "ARCH-716C4E749F331514",
-    "ARCH-8935B8BAE83EFC91",
+    "ARCH-9367DA7379C0D20C",
     "ARCH-74906BE6A131F070",
     "ARCH-20507CA1C3AA2192",
     "ARCH-3D9BE42D724F1250",
     "ARCH-3145A1D78ECB380A",
+    "ARCH-88838013E00163D9",
     "ARCH-918D3EFA9CD4E63F",
     "ARCH-3BFAB7957878AEBB",
     "ARCH-AEF7D31FABC91D1E",
-    "ARCH-F591E940600C415D",
-    "ARCH-359023894280DC7E",
     "ARCH-9A25F2EFC6C0E184",
-    "ARCH-A5EEC826249BCA79",
     "ARCH-2D0FD37008730857",
     "ARCH-C58B80175B67C76A",
     "ARCH-BFDAC9510539A8A6",
@@ -75,11 +77,9 @@
     "ARCH-9149179282ED37F6",
     "ARCH-B8628C5F9AAE6799",
     "ARCH-DFB2CC1D14B7A689",
+    "ARCH-4800C3F79DB819B8",
     "ARCH-2E5DA69E4AFCEB47",
-    "ARCH-25DE614FDD2EB439",
-    "ARCH-A4DE5FBF156BDF62",
-    "ARCH-E41F5CBC41C65CF3",
-    "ARCH-B093038E4C442AA9"
+    "ARCH-25DE614FDD2EB439"
   ],
   "schema_version": "public_source_replay_manifest.v1"
 }

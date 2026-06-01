@@ -1,64 +1,67 @@
 {
   "counts": {
-    "dimension_candidates": 75,
-    "knowledge_objects": 125,
-    "sectors_covered": 7,
+    "dimension_candidates": 84,
+    "knowledge_objects": 137,
+    "sectors_covered": 10,
     "signals_covered": 15,
-    "source_profiles": 125
+    "source_profiles": 137
   },
   "coverage": {
     "by_jurisdiction": {
       "Australia": 4,
       "Canada": 6,
       "China": 5,
-      "European Union": 9,
+      "European Union": 11,
       "Hong Kong SAR, China": 15,
       "Malaysia": 4,
       "Netherlands": 2,
       "New Zealand": 3,
       "Philippines": 12,
       "Singapore": 4,
-      "United Kingdom": 12,
-      "United States": 18,
-      "global": 35,
+      "United Kingdom": 14,
+      "United States": 22,
+      "global": 42,
       "multi_jurisdiction": 3,
       "unknown": 6
     },
     "by_sector": {
-      "agriculture": 1,
-      "care_work": 4,
-      "domestic_work": 12,
-      "garments": 1,
-      "hospitality": 4,
+      "agriculture": 7,
+      "care_work": 3,
+      "construction": 3,
+      "domestic_work": 11,
+      "fishing": 11,
+      "garments": 4,
+      "hospitality": 7,
+      "logistics": 4,
       "platform_work": 4,
-      "scam_compound": 13,
-      "unspecified_sector": 91
+      "scam_compound": 14,
+      "unspecified_sector": 85
     },
     "by_signal": {
-      "accommodation_control": 2,
-      "contract_deception": 3,
-      "debt_bondage": 53,
-      "document_control": 4,
+      "accommodation_control": 3,
+      "contract_deception": 6,
+      "debt_bondage": 56,
+      "document_control": 10,
       "fee_overcharging": 7,
-      "forced_criminality": 7,
-      "forced_labor": 79,
+      "forced_criminality": 8,
+      "forced_labor": 85,
       "illegal_recruitment": 6,
       "immigration_status_control": 4,
       "law_enforcement": 27,
       "online_bait": 4,
       "referral": 16,
-      "supply_chain": 1,
+      "supply_chain": 7,
       "surveillance_isolation": 5,
-      "wage_theft": 3
+      "wage_theft": 6
     },
     "by_source_family": {
       "australia_homeaffairs_agd_afp": 4,
       "canada_public_safety_justice": 6,
       "china_gov_courts": 5,
       "courts_case_law": 3,
-      "eu_interpol_law_enforcement": 9,
+      "eu_interpol_law_enforcement": 11,
       "hong_kong_gov": 15,
-      "intergovernmental": 11,
+      "intergovernmental": 15,
       "iom": 11,
       "malaysia_labour_homeaffairs": 4,
       "netherlands_gov_justice": 2,
@@ -66,9 +69,9 @@
       "other_public": 6,
       "philippines_gov": 12,
       "singapore_mom_police": 4,
-      "supply_chain_due_diligence": 4,
-      "uk_homeoffice_cps": 12,
-      "us_justice_dhs_state": 14
+      "supply_chain_due_diligence": 5,
+      "uk_homeoffice_cps": 14,
+      "us_justice_dhs_state": 17
     },
     "major_case_aggregate_camouflage_patterns": [
       "authority_or_wage_dispute_misclassification",
@@ -114,6 +117,7 @@
     ],
     "source_tiers_by_signal": {
       "accommodation_control": [
+        "intergovernmental",
         "official_government_or_prosecution_guidance",
         "public_due_diligence_or_official_supply_chain"
       ],
@@ -133,8 +137,10 @@
         "public_due_diligence_or_official_supply_chain"
       ],
       "document_control": [
+        "intergovernmental",
         "official_government",
-        "official_government_or_prosecution_guidance"
+        "official_government_or_prosecution_guidance",
+        "public_due_diligence_or_official_supply_chain"
       ],
       "fee_overcharging": [
         "intergovernmental",
@@ -184,41 +190,34 @@
         "other_public"
       ],
       "supply_chain": [
+        "intergovernmental",
+        "official_government_or_prosecution_guidance",
         "public_due_diligence_or_official_supply_chain"
       ],
       "surveillance_isolation": [
         "official_government"
       ],
       "wage_theft": [
+        "intergovernmental",
         "official_government",
-        "official_government_or_prosecution_guidance"
+        "official_government_or_prosecution_guidance",
+        "public_due_diligence_or_official_supply_chain"
       ]
     }
   },
   "gaps": {
-    "missing_sectors": [
-      "fishing",
-      "construction",
-      "logistics"
-    ],
+    "missing_sectors": [],
     "missing_signals": [],
     "next_gap_branches": [
       "Add public source profiles for each missing or sparse sector.",
       "Create multi-turn prompts where signal metadata is intentionally incomplete.",
       "Use aggregate private pattern IDs only when mixing private-derived patterns."
     ],
-    "sparse_sectors": [
-      "agriculture",
-      "garments"
-    ],
+    "sparse_sectors": [],
     "sparse_signals": [
-      "wage_theft",
       "accommodation_control",
-      "contract_deception",
-      "document_control",
       "immigration_status_control",
-      "online_bait",
-      "supply_chain"
+      "online_bait"
     ]
   },
   "privacy": {

@@ -67,6 +67,26 @@ def test_coverage_counts_signals_families_and_sector_terms():
     assert coverage["privacy"]["raw_private_cases_ingested"] is False
 
 
+def test_detect_sectors_uses_redacted_public_metadata_fields():
+    fishing = {
+        "url": "https://www.ilo.org/example",
+        "source_family": "intergovernmental",
+        "source_title": "Guidelines for fair labour market services for migrant fishers",
+        "source_snippet": "Fishing vessel and seafood processing workers faced document retention and wage theft.",
+        "sector_terms": ["fishing"],
+    }
+    mixed = {
+        "url": "https://www.europol.europa.eu/example",
+        "source_family": "eu_interpol_law_enforcement",
+        "source_title": "Action days in transport logistics and construction",
+        "source_snippet": "Warehouse drivers and construction-site workers were screened for labour exploitation.",
+        "top_terms": ["document retention"],
+    }
+
+    assert expander.detect_sectors(fishing) == ["fishing"]
+    assert {"construction", "logistics"} <= set(expander.detect_sectors(mixed))
+
+
 def test_corroboration_links_require_shared_signal_and_different_source_context():
     profiles = [
         _profile("A", "philippines_gov", "Philippines", ["debt_bondage", "forced_labor"]),
