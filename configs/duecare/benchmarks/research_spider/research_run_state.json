@@ -5,6 +5,7 @@
     "corroboration_links": 240,
     "crawler_provider_registry": 5,
     "dimension_candidates": 57,
+    "domain_crawl_policy": 45,
     "extractor_provider_registry": 9,
     "hybrid_scenario_prompts": 360,
     "implemented_extractor_wrappers": 5,
@@ -13,6 +14,8 @@
     "prompt_candidates": 180,
     "rejected_or_deferred_sources": 10,
     "search_provider_registry": 6,
+    "sitemap_discovery_dorks": 180,
+    "sitemap_probe_queue": 135,
     "source_archive_manifest": 98,
     "source_candidates": 98,
     "source_domain_frontier": 45,
@@ -125,7 +128,7 @@
       "kind": "tool",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 7,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
