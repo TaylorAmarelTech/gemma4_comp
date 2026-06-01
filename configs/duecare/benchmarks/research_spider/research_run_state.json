@@ -1,28 +1,28 @@
 {
   "artifact_counts": {
-    "applicability_seed_tags": 94,
-    "conversation_prompts": 98,
+    "applicability_seed_tags": 121,
+    "conversation_prompts": 125,
     "corroboration_links": 240,
     "crawler_provider_registry": 5,
-    "dimension_candidates": 57,
-    "domain_crawl_policy": 45,
+    "dimension_candidates": 75,
+    "domain_crawl_policy": 54,
     "extractor_provider_registry": 9,
     "hybrid_scenario_prompts": 360,
     "implemented_extractor_wrappers": 5,
     "implemented_search_provider_wrappers": 3,
-    "knowledge_objects": 98,
-    "prompt_candidates": 180,
-    "rejected_or_deferred_sources": 10,
+    "knowledge_objects": 125,
+    "prompt_candidates": 240,
+    "rejected_or_deferred_sources": 11,
     "search_provider_registry": 6,
-    "sitemap_discovery_dorks": 180,
-    "sitemap_probe_queue": 135,
-    "source_archive_manifest": 98,
-    "source_candidates": 98,
-    "source_domain_frontier": 45,
-    "source_fetch_manifest": 98,
-    "source_profiles": 98,
+    "sitemap_discovery_dorks": 216,
+    "sitemap_probe_queue": 162,
+    "source_archive_manifest": 125,
+    "source_candidates": 125,
+    "source_domain_frontier": 54,
+    "source_fetch_manifest": 125,
+    "source_profiles": 125,
     "tool_profiles": 23,
-    "verified_knowledge_objects": 84
+    "verified_knowledge_objects": 110
   },
   "completed_loops": [
     "tool_repo_discovery_profiled_23_candidates",
@@ -173,7 +173,7 @@
       "kind": "source",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 12,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
@@ -200,7 +200,7 @@
       "kind": "source",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 15,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
@@ -236,7 +236,7 @@
       "kind": "source",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 19,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
@@ -245,7 +245,7 @@
       "kind": "source",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 20,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
@@ -308,7 +308,7 @@
       "kind": "dimension",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 27,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
@@ -317,7 +317,7 @@
       "kind": "dimension",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 28,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {

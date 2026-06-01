@@ -741,6 +741,12 @@ def next_frontier_branches(rows: list[dict]) -> list[dict]:
         "prototype_pypdf_lightweight_fallback",
         "prototype_warcio_manifest_archiving",
         "evaluate_advertools_sitemap_crawl",
+        "hong_kong_fdh_agency_fee_cases",
+        "ilo_forced_labour_indicators",
+        "europol_eurojust_frontex_operations",
+        "canada_temporary_foreign_worker_cases",
+        "financial_obfuscation_dimensions",
+        "camouflage_pretext_dimensions",
         "provider_registry_fixture_tests",
         "frontier_resume_state_refresh",
     }

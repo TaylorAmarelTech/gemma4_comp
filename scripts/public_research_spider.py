@@ -62,6 +62,11 @@ PII_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
 
 SOURCE_TERM_PATTERNS = {
     "debt_bondage": re.compile(r"\b(debt bondage|bonded labour|bonded labor|debt|fees?|loan|salary deduction|repay)\b", re.I),
+    "fee_overcharging": re.compile(r"\b(overcharg(?:e|ed|ing)|excessive (?:commission|fee|placement fee)|kickback|forced repayment)\b", re.I),
+    "wage_theft": re.compile(r"\b(wage withholding|withholding wages|withheld wages|unpaid wages|nonpayment|underpay(?:ing|ment)|low or no salary|illegal wage deduction)\b", re.I),
+    "accommodation_control": re.compile(r"\b(overcrowded|unsafe accommodation|cramped|deplorable housing|living with (?:the )?employer|tied accommodation|dormitor(?:y|ies))\b", re.I),
+    "surveillance_isolation": re.compile(r"\b(isolation|constant surveillance|confine(?:d|ment)|unable to speak alone|scripted answers|monitored|restricted movement)\b", re.I),
+    "contract_deception": re.compile(r"\b(contract substitution|deceived about (?:the )?(?:job|contract|wages)|false promises?|bait-and-switch|misrepresent(?:ed|ing) working conditions)\b", re.I),
     "forced_labor": re.compile(r"\b(forced labo[u]?r|servitude|coercion|coerced|exploit(?:ed|ation))\b", re.I),
     "illegal_recruitment": re.compile(r"\b(illegal recruitment|unlicensed recruiter|no job order|fake job|placement fee)\b", re.I),
     "document_control": re.compile(r"\b(passport|travel document|identity document|surrender|confiscat)\b", re.I),
@@ -116,8 +121,8 @@ DOMAIN_TIERS: tuple[dict, ...] = (
     },
     {
         "id": "courts_case_law",
-        "domains": ("hudoc.echr.coe.int", "law.justia.com", "caselaw.findlaw.com", "lawphil.net"),
-        "site_filters": ("site:hudoc.echr.coe.int", "site:law.justia.com", "site:caselaw.findlaw.com", "site:lawphil.net"),
+        "domains": ("hudoc.echr.coe.int", "law.justia.com", "caselaw.findlaw.com", "lawphil.net", "canlii.org"),
+        "site_filters": ("site:hudoc.echr.coe.int", "site:law.justia.com", "site:caselaw.findlaw.com", "site:lawphil.net", "site:canlii.org"),
         "tier": "public_case_law",
         "base_score": 42,
         "jurisdictions": ("multi_jurisdiction",),
@@ -132,8 +137,8 @@ DOMAIN_TIERS: tuple[dict, ...] = (
     },
     {
         "id": "uk_homeoffice_cps",
-        "domains": ("gov.uk", "homeoffice.gov.uk", "cps.gov.uk", "nationalcrimeagency.gov.uk"),
-        "site_filters": ("site:gov.uk", "site:homeoffice.gov.uk", "site:cps.gov.uk", "site:nationalcrimeagency.gov.uk"),
+        "domains": ("gov.uk", "homeoffice.gov.uk", "cps.gov.uk", "nationalcrimeagency.gov.uk", "gla.gov.uk"),
+        "site_filters": ("site:gov.uk", "site:homeoffice.gov.uk", "site:cps.gov.uk", "site:nationalcrimeagency.gov.uk", "site:gla.gov.uk"),
         "tier": "official_government_or_prosecution_guidance",
         "base_score": 47,
         "jurisdictions": ("United Kingdom",),
@@ -177,6 +182,14 @@ DOMAIN_TIERS: tuple[dict, ...] = (
         "tier": "official_government",
         "base_score": 46,
         "jurisdictions": ("Singapore",),
+    },
+    {
+        "id": "malaysia_labour_homeaffairs",
+        "domains": ("mohr.gov.my", "jtksm.mohr.gov.my", "moha.gov.my", "atia.gov.my"),
+        "site_filters": ("site:mohr.gov.my", "site:jtksm.mohr.gov.my", "site:moha.gov.my", "site:atia.gov.my"),
+        "tier": "official_government",
+        "base_score": 46,
+        "jurisdictions": ("Malaysia",),
     },
     {
         "id": "eu_interpol_law_enforcement",
@@ -275,6 +288,11 @@ TERM_STOPWORDS = {
 
 SIGNAL_FOLLOWUP_TERMS: dict[str, tuple[str, ...]] = {
     "debt_bondage": ("debt bondage", "recruitment fees", "salary deduction", "loan repayment", "worker-paid fees"),
+    "fee_overcharging": ("overcharging", "excessive commission", "placement fee refund", "kickback", "forced repayment"),
+    "wage_theft": ("wage withholding", "unpaid wages", "illegal wage deduction", "underpayment", "nonpayment"),
+    "accommodation_control": ("unsafe accommodation", "overcrowded housing", "tied accommodation", "living with employer", "dormitory control"),
+    "surveillance_isolation": ("constant surveillance", "isolation", "scripted answers", "restricted movement", "unable to speak alone"),
+    "contract_deception": ("contract substitution", "false promises", "bait-and-switch recruitment", "deceived about wages", "misrepresented working conditions"),
     "forced_labor": ("forced labor", "forced labour", "servitude", "coercion", "work without pay"),
     "illegal_recruitment": ("illegal recruitment", "unlicensed recruiter", "fake job order", "placement fee", "tourist cover"),
     "document_control": ("passport confiscation", "identity document retention", "travel document withheld"),
@@ -299,6 +317,76 @@ SIGNAL_DISTILLATIONS: dict[str, dict[str, tuple[str, ...]]] = {
         "indicators": (
             "Worker describes unpaid debt tied to job access or travel.",
             "Employer, broker, or agency controls deductions without transparent accounting.",
+        ),
+    },
+    "fee_overcharging": {
+        "core_behaviors": (
+            "Recruiter, agency, employer, or associate charges more than lawful or promised fees.",
+            "Refunds, receipts, or commission limits become key evidence of financial control.",
+        ),
+        "camouflage_patterns": (
+            "Overcharge framed as processing, training, loan service, replacement, or documentation cost.",
+            "Associate or overseas partner collects fees so the licensed agency appears compliant.",
+        ),
+        "indicators": (
+            "Worker reports excessive commission, attempted overcharging, kickbacks, or forced repayment.",
+            "Fee collection coincides with debt pressure, job-change dependency, or complaint fear.",
+        ),
+    },
+    "wage_theft": {
+        "core_behaviors": (
+            "Pay is withheld, delayed, underpaid, or redirected to create dependency.",
+            "Wage records, actual hours, and worker receipts do not match.",
+        ),
+        "camouflage_patterns": (
+            "Deductions framed as savings, board, damage penalties, uniform costs, or debt service.",
+            "Nonpayment framed as probation, training, family help, or business hardship.",
+        ),
+        "indicators": (
+            "Worker receives little or no salary despite long hours or promised wages.",
+            "Employer controls bank cards, benefits, payroll records, or repayment ledgers.",
+        ),
+    },
+    "accommodation_control": {
+        "core_behaviors": (
+            "Housing, dormitories, or live-in arrangements are used to restrict exit or reporting.",
+            "Unsafe or overcrowded accommodation compounds wage, debt, or immigration-status pressure.",
+        ),
+        "camouflage_patterns": (
+            "Confinement framed as free housing, safety, curfew, quarantine, or transport logistics.",
+            "Employer-provided accommodation hides who controls documents, wages, and movement.",
+        ),
+        "indicators": (
+            "Worker lives with employer or recruiter and cannot leave freely or speak privately.",
+            "Housing is overcrowded, unsafe, surveilled, or tied to job/visa loss.",
+        ),
+    },
+    "surveillance_isolation": {
+        "core_behaviors": (
+            "Monitoring, isolation, or scripted communication blocks private disclosure.",
+            "Threats may be implicit because the controller is present during questions or movement.",
+        ),
+        "camouflage_patterns": (
+            "Monitoring framed as translation help, family supervision, training, or quality control.",
+            "Isolation framed as cultural preference, worker shyness, security, or employer convenience.",
+        ),
+        "indicators": (
+            "Worker cannot speak alone, gives rehearsed answers, or seeks approval before responding.",
+            "Controller controls phone access, transport, visitors, or contact with authorities.",
+        ),
+    },
+    "contract_deception": {
+        "core_behaviors": (
+            "Recruitment promise, written contract, actual job, wages, or location materially differ.",
+            "Initial consent is undermined by deception, bait-and-switch terms, or hidden costs.",
+        ),
+        "camouflage_patterns": (
+            "Substitution framed as normal transfer, temporary assignment, training, or emergency routing.",
+            "Different-language documents or oral promises are used to confuse worker expectations.",
+        ),
+        "indicators": (
+            "Worker was promised one job but placed into a different sector, location, wage, or task.",
+            "Contract, visa, job order, and actual work conditions conflict.",
         ),
     },
     "forced_labor": {
@@ -1117,6 +1205,168 @@ DEFAULT_SEED_SOURCES: tuple[dict, ...] = (
         "title": "Netherlands national rapporteur offender monitor with labour-exploitation case law",
         "snippet": "Dutch national rapporteur monitor discussing labour exploitation case law, work-and-income settings, atypical work, forced services, compensation, and trafficking convictions.",
         "seed_family": "netherlands_gov_justice",
+    },
+    {
+        "url": "https://www.eaa.labour.gov.hk/en/news.html?news-id=246&news-year=2024",
+        "title": "Hong Kong employment agency convicted of attempted FDH overcharging",
+        "snippet": "Official Labour Department case note on attempted overcharging, commission limits, prosecution, and licence consequences for foreign domestic helper recruitment.",
+        "seed_family": "hong_kong_gov",
+    },
+    {
+        "url": "https://www.fdh.labour.gov.hk/en/news_detail.php?n_id=290&year=2024",
+        "title": "Hong Kong employment agency licence revoked after attempted overcharging conviction",
+        "snippet": "Official FDH portal notice on licence revocation after attempted commission overcharging, agency compliance, and complaint pathways without using private complainant details.",
+        "seed_family": "hong_kong_gov",
+    },
+    {
+        "url": "https://www.eaa.labour.gov.hk/en/news.html?news-id=74&news-year=2019",
+        "title": "Hong Kong employment agency associate convicted for overcharging FDHs",
+        "snippet": "Official Labour Department prosecution note on multiple FDH complaints, excessive commission, court-ordered refund, and agency-control indicators.",
+        "seed_family": "hong_kong_gov",
+    },
+    {
+        "url": "https://www.eaa.labour.gov.hk/en/news.html?news-id=93&news-year=2020",
+        "title": "Hong Kong employment agency convicted of overcharging a foreign domestic helper",
+        "snippet": "Official Labour Department note on excessive commission, prosecution, penalty exposure, and reporting path for employment-agency overcharging.",
+        "seed_family": "hong_kong_gov",
+    },
+    {
+        "url": "https://www.mohr.gov.my/index.php/sumber/penerbitan1",
+        "title": "Malaysia Ministry of Human Resources publication page for forced labour action plan",
+        "snippet": "Official Malaysia labour publication index listing the National Action Plan on Forced Labour, annual labour reports, and labour-policy materials.",
+        "seed_family": "malaysia_labour_homeaffairs",
+    },
+    {
+        "url": "https://www.moha.gov.my/utama/images/laporan/BPAReport_LATEST_compressed-compressed-compressed.pdf",
+        "title": "Malaysia home affairs report on trafficking and forced labour indicators",
+        "snippet": "Official Malaysia home-affairs PDF discussing forced labour indicators including movement restriction, wage or identity-document withholding, intimidation, and fraudulent debt.",
+        "seed_family": "malaysia_labour_homeaffairs",
+    },
+    {
+        "url": "https://www.mohr.gov.my/images/pdf/MALAYSIA%E2%80%99S%20COMMITMENT%20TOWARD%20COMBATING%20FORCED%20LABOR%20AND%20PROTECTING%20DOMESTIC%20WORKERS%20WELFARE.pdf",
+        "title": "Malaysia statement on forced labour and domestic worker welfare",
+        "snippet": "Official Malaysia labour statement on forced labour, domestic worker protections, inspection, victim support, bilateral recruitment arrangements, and worker welfare.",
+        "seed_family": "malaysia_labour_homeaffairs",
+    },
+    {
+        "url": "https://jtksm.mohr.gov.my/sites/default/files/2026-04/LAPORAN-TAHUNAN-2025.pdf",
+        "title": "Malaysia labour department annual report with forced labour action-plan activity",
+        "snippet": "Official annual report referencing forced-labour action-plan implementation, ATIP operations, labour enforcement, and anti-trafficking policy execution.",
+        "seed_family": "malaysia_labour_homeaffairs",
+    },
+    {
+        "url": "https://www.gla.gov.uk/who-we-are/modern-slavery/who-we-are-modern-slavery-human-trafficking-forced-labour-and-debt-bondage/",
+        "title": "UK GLAA explainer on trafficking, forced labour, and debt bondage",
+        "snippet": "Official GLAA resource describing forced labour, debt bondage, sector risk, recruitment debt, threats, surveillance, and worker-control tactics.",
+        "seed_family": "uk_homeoffice_cps",
+    },
+    {
+        "url": "https://www.gla.gov.uk/our-impact/strategic-assessment/strategic-assessment-202324/",
+        "title": "UK GLAA strategic assessment on care, agriculture, fees, and debt bondage",
+        "snippet": "Official GLAA assessment covering recruitment fees, debt bondage, seasonal workers, care-sector exploitation, unlicensed labour, accommodation, and forced labour indicators.",
+        "seed_family": "uk_homeoffice_cps",
+    },
+    {
+        "url": "https://www.gla.gov.uk/whats-new/press-release-archive/181024-exploitation-is-on-the-rise-in-the-care-sector",
+        "title": "UK GLAA warning on exploitation rising in the care sector",
+        "snippet": "Official GLAA release on care-sector labour exploitation, recruitment fees, debt bondage, hidden coercion, vacancies, and worker vulnerability.",
+        "seed_family": "uk_homeoffice_cps",
+    },
+    {
+        "url": "https://www.gla.gov.uk/whats-new/press-release-archive/22102018-responsible-car-wash-scheme",
+        "title": "UK GLAA car-wash scheme addressing debt bondage and labour abuse",
+        "snippet": "Official GLAA release on car-wash labour abuse, debt bondage, wage underpayment, unsafe work conditions, and compliance screening.",
+        "seed_family": "uk_homeoffice_cps",
+    },
+    {
+        "url": "https://www.gla.gov.uk/publications/resources/seasonal-workers-scheme/",
+        "title": "UK GLAA seasonal worker rights resource",
+        "snippet": "Official GLAA resource for seasonal migrant workers covering agriculture, labour-provider accountability, forced labour, human trafficking, and rights awareness.",
+        "seed_family": "uk_homeoffice_cps",
+    },
+    {
+        "url": "https://www.justice.gov/usao-nj/pr/burlington-county-couple-convicted-forced-labor-and-other-federal-crimes",
+        "title": "US DOJ domestic forced-labour conviction involving passports and surveillance",
+        "snippet": "US DOJ release on domestic labour and childcare coercion involving false promises, passport confiscation, immigration-status vulnerability, isolation, and constant surveillance.",
+        "seed_family": "us_justice_dhs_state",
+    },
+    {
+        "url": "https://www.justice.gov/crt/case-document/united-states-v-toure-and-cros-toure-brief-appellee",
+        "title": "US DOJ appellate brief on long-running domestic servitude and serious harm",
+        "snippet": "US DOJ brief discussing forced labour, domestic servitude, isolation, immigration-status manipulation, psychological harm, and evidentiary framing of serious harm.",
+        "seed_family": "us_justice_dhs_state",
+    },
+    {
+        "url": "https://www.justice.gov/usao-sdin/human-trafficking-0",
+        "title": "US DOJ district trafficking indicators page",
+        "snippet": "US DOJ district guidance listing debt bondage, document control, scripted answers, employer housing, low pay, isolation, and trafficking support pathways.",
+        "seed_family": "us_justice_dhs_state",
+    },
+    {
+        "url": "https://www.justice.gc.ca/eng/rp-pr/cj-jp/tp/hcjpotp-gtpupjp/p3.html",
+        "title": "Canada criminal-justice handbook on trafficking indicators and control tactics",
+        "snippet": "Official Justice Canada handbook covering forced labour indicators, identity-document control, job deception, long hours, no salary, isolation, debt bondage, and victim safety.",
+        "seed_family": "canada_public_safety_justice",
+    },
+    {
+        "url": "https://www.rcmp-grc.gc.ca/en/news/2021/alberta-rcmp-integrated-border-enforcement-team-investigation-results-human-trafficking",
+        "title": "Canada RCMP labour-trafficking charges involving foreign workers and cleaning work",
+        "snippet": "Official RCMP release on alleged recruitment through a temporary foreign-worker route, cleaning-business labour exploitation, material benefit, and survivor support coordination.",
+        "seed_family": "canada_public_safety_justice",
+    },
+    {
+        "url": "https://www.canlii.org/w/canlii/2014CanLIIDocs71.pdf",
+        "title": "CanLII discussion of Domotor labour-trafficking debt-bondage case patterns",
+        "snippet": "Public legal source summarizing deceptive recruitment, document confiscation, debt bondage, false applications, poor housing, long manual labour, and threats.",
+        "seed_family": "courts_case_law",
+    },
+    {
+        "url": "https://www.interpol.int/en/News-and-Events/News/2023/INTERPOL-issues-global-warning-on-human-trafficking-fueled-fraud",
+        "title": "INTERPOL global warning on trafficking-fueled online fraud and forced criminality",
+        "snippet": "INTERPOL warning on fake job advertisements, online scam centres, forced criminality, debt bondage, detention, violence, and cross-border victim identification.",
+        "seed_family": "eu_interpol_law_enforcement",
+    },
+    {
+        "url": "https://www.europol.europa.eu/media-press/newsroom/news/630-potential-victims-of-exploitation-identified-during-europe-wide-coordinated-action-days",
+        "title": "Europol action days identifying labour-exploitation victims across Europe",
+        "snippet": "Europol release on labour-intensive sectors, domestic work, transport, logistics, construction, nail salons, asylum-procedure vulnerability, debt bondage, and false documents.",
+        "seed_family": "eu_interpol_law_enforcement",
+    },
+    {
+        "url": "https://www.europol.europa.eu/media-press/newsroom/news/38-arrests-in-action-against-agricultural-labour-exploitation",
+        "title": "Europol agricultural labour-exploitation action with debt and document-control indicators",
+        "snippet": "Europol release on agricultural exploitation, minimum-wage and hours violations, debt bondage, identity-document withholding, forged documents, and fake job adverts.",
+        "seed_family": "eu_interpol_law_enforcement",
+    },
+    {
+        "url": "https://www.eurojust.europa.eu/crime-types-and-cases/crime-types/trafficking-human-beings",
+        "title": "Eurojust trafficking in human beings page on labour exploitation sectors",
+        "snippet": "Eurojust page describing forced labour in construction, mining, fishing, agriculture, domestic servitude, cross-border coordination, and victim identification barriers.",
+        "seed_family": "eu_interpol_law_enforcement",
+    },
+    {
+        "url": "https://prd.frontex.europa.eu/wp-content/uploads/jhaan_report_on_victims_of_human_trafficking-1.pdf",
+        "title": "EU JHA agencies report on identifying and protecting trafficking victims",
+        "snippet": "EU agencies report on victim identification, border and justice coordination, labour exploitation, protection pathways, and cross-agency referral challenges.",
+        "seed_family": "eu_interpol_law_enforcement",
+    },
+    {
+        "url": "https://www.dol.gov/sites/dolgov/files/ILAB/Supply-Chain-Study-Thailand-Fish-508.pdf",
+        "title": "US DOL study on forced labour in the Thailand fishing supply chain",
+        "snippet": "Official DOL study on fishing supply chains, worker interviews, debt manipulation, low wages, coercion, involuntariness, informal processing, and forced labour risk.",
+        "seed_family": "supply_chain_due_diligence",
+    },
+    {
+        "url": "https://www.dol.gov/agencies/ilab/reports/child-labor/list-of-goods",
+        "title": "US DOL forced-labour goods list covering fishing, garments, and recruitment debt",
+        "snippet": "Official DOL list describing forced labour indicators in fish, fishmeal, shrimp, garments, recruitment fees, identity-document retention, wage deductions, and long hours.",
+        "seed_family": "supply_chain_due_diligence",
+    },
+    {
+        "url": "https://www.ilo.org/resource/good-labour-practices-glp-programme-addressing-child-labour-and-forced",
+        "title": "ILO good labour practices programme for Thai fisheries and seafood",
+        "snippet": "ILO resource on Thai fisheries and seafood labour standards, migrant workers, debt bondage, forced labour, trafficking, and supply-chain compliance guidance.",
+        "seed_family": "intergovernmental",
     },
 )
 

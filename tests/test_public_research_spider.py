@@ -28,6 +28,7 @@ def test_build_queries_covers_requested_public_source_families():
     assert "site:ag.gov.au" in text or "site:afp.gov.au" in text
     assert "site:immigration.govt.nz" in text or "site:employment.govt.nz" in text
     assert "site:mom.gov.sg" in text or "site:police.gov.sg" in text
+    assert "site:mohr.gov.my" in text or "site:moha.gov.my" in text
     assert "filetype:pdf" in text
     assert any(q["intent"] == "debt_bondage_mechanics" for q in queries)
     assert any(q["intent"] == "victim_referral_access_to_justice" for q in queries)
@@ -102,6 +103,35 @@ def test_source_profile_second_wave_and_knowledge_objects_stay_public_metadata_o
     assert "private names" in " ".join(dimensions[0]["negative_controls"])
 
 
+def test_new_public_source_signals_create_dimension_candidates():
+    candidates = spider.source_candidates_from_hits(
+        [
+            spider.SearchHit(
+                url="https://www.gla.gov.uk/example",
+                title="Forced labour report on care-sector recruitment fees and housing",
+                snippet=(
+                    "Workers faced attempted overcharging, unpaid wages, unsafe accommodation, "
+                    "constant surveillance, and bait-and-switch contract deception."
+                ),
+            )
+        ]
+    )
+
+    signals = set(candidates[0]["signals"])
+    assert {
+        "fee_overcharging",
+        "wage_theft",
+        "accommodation_control",
+        "surveillance_isolation",
+        "contract_deception",
+    } <= signals
+    knowledge = spider.generate_knowledge_objects(candidates, spider.source_profiles(candidates))
+    dimensions = spider.generate_dimension_candidates(knowledge)
+    dim_ids = {row["candidate_dim_id"] for row in dimensions}
+    assert any("detects_fee_overcharging" in dim_id for dim_id in dim_ids)
+    assert any("detects_wage_theft" in dim_id for dim_id in dim_ids)
+
+
 def test_url_normalization_and_scoring_prefer_official_sources():
     assert (
         spider.normalize_url("https://Example.org/report?utm_source=x&b=2#a")
@@ -121,6 +151,8 @@ def test_url_normalization_and_scoring_prefer_official_sources():
 
     assert spider.score_hit(official)["score"] > spider.score_hit(commentary)["score"]
     assert spider.score_hit(official)["source_family"] == "hong_kong_gov"
+    assert spider.profile_for_url("https://jtksm.mohr.gov.my/report.pdf")["id"] == "malaysia_labour_homeaffairs"
+    assert spider.profile_for_url("https://www.gla.gov.uk/who-we-are/modern-slavery")["id"] == "uk_homeoffice_cps"
 
 
 def test_robots_cache_disallows_blocked_paths_and_defaults_conservatively():

@@ -52,15 +52,17 @@ def _jsonl(path: pathlib.Path) -> list[dict]:
 
 def test_coverage_counts_signals_families_and_sector_terms():
     profiles = [
-        _profile("A", "philippines_gov", "Philippines", ["debt_bondage"], "domestic helper"),
+        _profile("A", "philippines_gov", "Philippines", ["debt_bondage", "fee_overcharging"], "domestic helper"),
         _profile("B", "us_justice", "United States", ["forced_labor"], "restaurant"),
     ]
     coverage = expander.coverage_summary(profiles, [_knowledge(profiles[0])], [], {"coverage": {}})
 
     assert coverage["counts"]["source_profiles"] == 2
     assert coverage["coverage"]["by_signal"]["debt_bondage"] == 1
+    assert coverage["coverage"]["by_signal"]["fee_overcharging"] == 1
     assert coverage["coverage"]["by_source_family"]["philippines_gov"] == 1
     assert coverage["coverage"]["by_sector"]["domestic_work"] == 1
+    assert "fee_overcharging" not in coverage["gaps"]["missing_signals"]
     assert "document_control" in coverage["gaps"]["missing_signals"]
     assert coverage["privacy"]["raw_private_cases_ingested"] is False
 
