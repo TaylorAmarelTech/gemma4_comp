@@ -118,6 +118,8 @@ def test_pipeline_writes_deterministic_artifacts(tmp_path):
     assert len(state["next_30_branches"]) == 30
     assert state["artifact_counts"]["implemented_search_provider_wrappers"] == 3
     assert state["artifact_counts"]["implemented_extractor_wrappers"] == 5
+    assert state["artifact_counts"]["source_fetch_manifest"] == 0
+    assert state["artifact_counts"]["source_domain_frontier"] == 0
     branch_status = {branch["branch_id"]: branch["status"] for branch in state["next_30_branches"]}
     assert branch_status["prototype_brave_search_adapter"] == "completed"
     assert branch_status["prototype_github_search_tool_discovery"] == "completed"

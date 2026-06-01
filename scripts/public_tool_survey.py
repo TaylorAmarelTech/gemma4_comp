@@ -671,6 +671,13 @@ def load_research_spider_summary(out_dir: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def load_source_manifest_summary(out_dir: Path) -> dict:
+    path = out_dir / "source_manifest_summary.json"
+    if not path.exists():
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
 def next_frontier_branches(rows: list[dict]) -> list[dict]:
     branch_specs = [
         ("tool", "prototype_brave_search_adapter", "Add an env-key-gated Brave Search API wrapper with synthetic fixture tests."),
@@ -730,7 +737,7 @@ def next_frontier_branches(rows: list[dict]) -> list[dict]:
     return branches
 
 
-def research_run_state(rows: list[dict], summary: dict, spider_summary: dict) -> dict:
+def research_run_state(rows: list[dict], summary: dict, spider_summary: dict, manifest_summary: dict) -> dict:
     return {
         "schema_version": "public_research_frontier_run_state.v1",
         "generated_at": f"{CHECKED_DATE}T00:00:00Z",
@@ -754,6 +761,8 @@ def research_run_state(rows: list[dict], summary: dict, spider_summary: dict) ->
             "knowledge_objects": spider_summary.get("knowledge_objects", 0),
             "dimension_candidates": spider_summary.get("dimension_candidates", 0),
             "prompt_candidates": spider_summary.get("prompt_candidates", 0),
+            "source_fetch_manifest": manifest_summary.get("source_fetch_manifest", 0),
+            "source_domain_frontier": manifest_summary.get("source_domain_frontier", 0),
         },
         "next_30_branches": next_frontier_branches(rows),
         "privacy": summary["privacy"],
@@ -798,6 +807,8 @@ def frontier_handoff(state: dict, summary: dict) -> str:
         f"- Implemented extractor wrappers: {len(summary['implemented_extractor_wrappers'])}",
         f"- Rejected operational tools: {len(summary['rejected_operational_tools'])}",
         f"- Source candidates already in spider pack: {state['artifact_counts']['source_candidates']}",
+        f"- Source fetch manifest entries: {state['artifact_counts']['source_fetch_manifest']}",
+        f"- Source domain frontier entries: {state['artifact_counts']['source_domain_frontier']}",
         f"- Knowledge objects already in spider pack: {state['artifact_counts']['knowledge_objects']}",
         f"- Prompt candidates already in spider pack: {state['artifact_counts']['prompt_candidates']}",
         "",
@@ -895,7 +906,8 @@ def run_pipeline(out_dir: Path) -> dict:
     extractor_registry = provider_registry("extractor", rows)
     summary = summarize(rows)
     spider_summary = load_research_spider_summary(out_dir)
-    state = research_run_state(rows, summary, spider_summary)
+    manifest_summary = load_source_manifest_summary(out_dir)
+    state = research_run_state(rows, summary, spider_summary, manifest_summary)
 
     write_json(out_dir / "search_provider_registry.json", search_registry)
     write_json(out_dir / "crawler_provider_registry.json", crawler_registry)
