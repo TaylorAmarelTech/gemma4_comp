@@ -1,0 +1,197 @@
+{
+  "counts": {
+    "dimension_candidates": 57,
+    "knowledge_objects": 98,
+    "sectors_covered": 7,
+    "signals_covered": 9,
+    "source_profiles": 98
+  },
+  "coverage": {
+    "by_jurisdiction": {
+      "Australia": 4,
+      "Canada": 4,
+      "China": 5,
+      "European Union": 4,
+      "Hong Kong SAR, China": 11,
+      "Netherlands": 2,
+      "New Zealand": 3,
+      "Philippines": 12,
+      "Singapore": 4,
+      "United Kingdom": 7,
+      "United States": 13,
+      "global": 27,
+      "multi_jurisdiction": 2,
+      "unknown": 6
+    },
+    "by_sector": {
+      "care_work": 2,
+      "domestic_work": 8,
+      "fishing": 1,
+      "garments": 1,
+      "hospitality": 4,
+      "platform_work": 4,
+      "scam_compound": 12,
+      "unspecified_sector": 71
+    },
+    "by_signal": {
+      "debt_bondage": 39,
+      "document_control": 3,
+      "forced_criminality": 6,
+      "forced_labor": 60,
+      "illegal_recruitment": 4,
+      "immigration_status_control": 4,
+      "law_enforcement": 22,
+      "online_bait": 4,
+      "referral": 12
+    },
+    "by_source_family": {
+      "australia_homeaffairs_agd_afp": 4,
+      "canada_public_safety_justice": 4,
+      "china_gov_courts": 5,
+      "courts_case_law": 2,
+      "eu_interpol_law_enforcement": 4,
+      "hong_kong_gov": 11,
+      "intergovernmental": 10,
+      "iom": 11,
+      "netherlands_gov_justice": 2,
+      "new_zealand_immigration_employment": 3,
+      "other_public": 6,
+      "philippines_gov": 12,
+      "singapore_mom_police": 4,
+      "supply_chain_due_diligence": 2,
+      "uk_homeoffice_cps": 7,
+      "us_justice_dhs_state": 11
+    },
+    "major_case_aggregate_camouflage_patterns": [
+      "authority_or_wage_dispute_misclassification",
+      "consent_waiver_or_voluntary_label",
+      "contract_penalty_or_quit_fee_coercion",
+      "deposit_bond_or_guarantee_wrapper",
+      "employer_pays_or_zero_fee_policy_evasion",
+      "jurisdiction_forum_arbitrage",
+      "licensed_front_or_legal_cover",
+      "loan_advance_relabeling",
+      "safekeeping_euphemism",
+      "standard_practice_normalization",
+      "supply_chain_benefit_or_buyer_distancing",
+      "training_orientation_fee_wrapper",
+      "unlicensed_or_no_job_order_recruitment",
+      "visa_travel_document_pretext",
+      "welfare_insurance_membership_wrapper"
+    ],
+    "major_case_aggregate_patterns": [
+      "contract_or_role_substitution",
+      "debt_bondage_fee_stack",
+      "debt_ledger_fine_or_kickback_control",
+      "document_harvesting_identity_misuse",
+      "document_retention_control",
+      "domestic_worker_agency_overcharge_or_loan_control",
+      "escort_or_bitbit_facilitation",
+      "evidence_suppression_or_audit_staging",
+      "forced_criminality_or_money_mule",
+      "housing_and_living_condition_control",
+      "isolation_communication_control",
+      "movement_restriction_and_exit_control",
+      "online_platform_coded_recruitment_bait",
+      "original_document_evidence_gap",
+      "scam_compound_quota_punishment",
+      "subcontractor_chain_obscuring",
+      "threats_retaliation_or_deportation",
+      "tourist_exit_or_transit_deception",
+      "victim_screening_referral_pathway_gap",
+      "visa_sponsorship_or_legal_process_control",
+      "wage_withholding_and_deduction",
+      "witness_retraction_or_settlement_pressure",
+      "worksite_lodging_blended_confinement"
+    ],
+    "source_tiers_by_signal": {
+      "debt_bondage": [
+        "intergovernmental",
+        "official_government",
+        "official_government_or_law_enforcement",
+        "official_government_or_prosecution_guidance",
+        "official_government_or_rapporteur",
+        "other_public",
+        "public_case_law",
+        "public_due_diligence_or_official_supply_chain"
+      ],
+      "document_control": [
+        "official_government",
+        "official_government_or_prosecution_guidance"
+      ],
+      "forced_criminality": [
+        "official_government_or_court",
+        "official_or_multilateral_law_enforcement",
+        "other_public"
+      ],
+      "forced_labor": [
+        "intergovernmental",
+        "official_government",
+        "official_government_or_law_enforcement",
+        "official_government_or_prosecution_guidance",
+        "official_government_or_rapporteur",
+        "official_or_multilateral_law_enforcement",
+        "other_public",
+        "public_case_law",
+        "public_due_diligence_or_official_supply_chain"
+      ],
+      "illegal_recruitment": [
+        "official_government"
+      ],
+      "immigration_status_control": [
+        "intergovernmental",
+        "official_government"
+      ],
+      "law_enforcement": [
+        "intergovernmental",
+        "official_government",
+        "official_government_or_court",
+        "official_government_or_law_enforcement",
+        "official_government_or_prosecution_guidance",
+        "public_case_law"
+      ],
+      "online_bait": [
+        "official_government",
+        "official_government_or_court"
+      ],
+      "referral": [
+        "intergovernmental",
+        "official_government",
+        "official_government_or_prosecution_guidance",
+        "official_or_multilateral_law_enforcement",
+        "other_public"
+      ]
+    }
+  },
+  "gaps": {
+    "missing_sectors": [
+      "construction",
+      "agriculture",
+      "logistics"
+    ],
+    "missing_signals": [
+      "supply_chain"
+    ],
+    "next_gap_branches": [
+      "Add public source profiles for each missing or sparse sector.",
+      "Create multi-turn prompts where signal metadata is intentionally incomplete.",
+      "Use aggregate private pattern IDs only when mixing private-derived patterns."
+    ],
+    "sparse_sectors": [
+      "fishing",
+      "care_work",
+      "garments"
+    ],
+    "sparse_signals": [
+      "illegal_recruitment",
+      "document_control",
+      "immigration_status_control",
+      "online_bait"
+    ]
+  },
+  "privacy": {
+    "private_pattern_aggregates_only": true,
+    "raw_private_cases_ingested": false
+  },
+  "schema_version": "public_benchmark_expansion.source_profile_coverage.v1"
+}

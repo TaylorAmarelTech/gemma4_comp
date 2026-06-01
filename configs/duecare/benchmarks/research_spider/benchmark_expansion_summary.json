@@ -1,0 +1,21 @@
+{
+  "applicability_seed_tags": 94,
+  "conversation_prompts": 98,
+  "corroboration_links": 240,
+  "hybrid_scenario_prompts": 360,
+  "privacy": {
+    "aggregate_private_pattern_ids_only": true,
+    "raw_private_cases_ingested": false,
+    "synthetic_placeholders_only": true
+  },
+  "rejected_or_deferred_sources": 10,
+  "schema_version": "public_benchmark_expansion.summary.v1",
+  "source_profile_coverage": {
+    "dimension_candidates": 57,
+    "knowledge_objects": 98,
+    "sectors_covered": 7,
+    "signals_covered": 9,
+    "source_profiles": 98
+  },
+  "verified_knowledge_objects": 84
+}
