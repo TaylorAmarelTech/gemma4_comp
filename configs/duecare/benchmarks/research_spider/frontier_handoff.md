@@ -18,20 +18,20 @@ Counts:
 - Implemented search provider wrappers: 3
 - Implemented extractor wrappers: 5
 - Rejected operational tools: 4
-- Source candidates already in spider pack: 98
-- Source fetch manifest entries: 98
-- Source domain frontier entries: 45
-- Source archive manifest entries: 98
-- Sitemap probe queue entries: 135
-- Domain crawl policy entries: 45
-- Sitemap discovery dorks: 180
-- Knowledge objects already in spider pack: 98
+- Source candidates already in spider pack: 125
+- Source fetch manifest entries: 125
+- Source domain frontier entries: 54
+- Source archive manifest entries: 125
+- Sitemap probe queue entries: 162
+- Domain crawl policy entries: 54
+- Sitemap discovery dorks: 216
+- Knowledge objects already in spider pack: 125
 - Corroboration links: 240
-- Verified-for-benchmark knowledge objects: 84
-- Multi-turn conversation prompts: 98
+- Verified-for-benchmark knowledge objects: 110
+- Multi-turn conversation prompts: 125
 - Hybrid scenario prompts: 360
-- Applicability seed tags: 94
-- Prompt candidates already in spider pack: 180
+- Applicability seed tags: 121
+- Prompt candidates already in spider pack: 240
 
 Next 30 branches:
 
@@ -46,22 +46,22 @@ Next 30 branches:
 9. `defer_playwright_allowlist_policy` [queued] - Write allowlist policy before any JavaScript browser fetches.
 10. `reject_osint_operationalization` [queued] - Keep pagodo, Photon, theHarvester, and Metagoofil out of provider registries.
 11. `philippines_court_illegal_recruitment_cases` [queued] - Search public Philippine court/prosecution sources for illegal recruitment and debt bondage.
-12. `hong_kong_fdh_agency_fee_cases` [queued] - Search Hong Kong public sources for FDH agency overcharge, loan, passport, and rest-day indicators.
+12. `hong_kong_fdh_agency_fee_cases` [completed] - Search Hong Kong public sources for FDH agency overcharge, loan, passport, and rest-day indicators.
 13. `china_court_new_trafficking_forms` [queued] - Branch from China court summaries into fraud, trafficking, and coded-language public cases.
 14. `iom_recruitment_fee_guidance` [queued] - Corroborate recruitment-fee and related-cost guidance with IOM/ILO documents.
-15. `ilo_forced_labour_indicators` [queued] - Extract prompt seeds from ILO forced-labour indicators and sector material.
+15. `ilo_forced_labour_indicators` [completed] - Extract prompt seeds from ILO forced-labour indicators and sector material.
 16. `unodc_case_law_forced_labor` [queued] - Search UNODC case-law material for coercion, servitude, and debt-bondage examples.
 17. `fatf_financial_flows_typologies` [queued] - Extract financial-obfuscation indicators from FATF/APG trafficking typologies.
 18. `asean_bali_process_corridors` [queued] - Search regional sources for transit, scam-compound, and referral pathway patterns.
-19. `europol_eurojust_frontex_operations` [queued] - Profile EU law-enforcement operations for cross-border exploitation indicators.
-20. `canada_temporary_foreign_worker_cases` [queued] - Search public Canadian justice/labour cases for immigration-status coercion.
+19. `europol_eurojust_frontex_operations` [completed] - Profile EU law-enforcement operations for cross-border exploitation indicators.
+20. `canada_temporary_foreign_worker_cases` [completed] - Search public Canadian justice/labour cases for immigration-status coercion.
 21. `australia_afp_forced_marriage_servitude` [queued] - Branch from AFP/Home Affairs trafficking material into prosecution and referral examples.
 22. `new_zealand_migrant_exploitation_cases` [queued] - Search NZ immigration/employment sources for exploitation and deception cases.
 23. `singapore_mom_agency_fee_guidance` [queued] - Profile Singapore MOM/ICA/police sources for recruitment and permit-control prompts.
 24. `multi_turn_worker_triage_conversations` [queued] - Generate synthetic conversations with jurisdiction ambiguity and referral needs.
 25. `hybrid_moe_stress_scenarios` [queued] - Mix debt, document control, immigration status, wage deductions, and benign distractors.
 26. `applicability_judge_seed_tags` [queued] - Create seed tags where content implies sectors missing from metadata.
-27. `financial_obfuscation_dimensions` [queued] - Add dimensions for deductions, kickbacks, debt ledgers, and payroll intermediaries.
-28. `camouflage_pretext_dimensions` [queued] - Add dimensions for safekeeping, training fees, tourist processing, and legal-cover pretexts.
+27. `financial_obfuscation_dimensions` [completed] - Add dimensions for deductions, kickbacks, debt ledgers, and payroll intermediaries.
+28. `camouflage_pretext_dimensions` [completed] - Add dimensions for safekeeping, training fees, tourist processing, and legal-cover pretexts.
 29. `provider_registry_fixture_tests` [completed] - Add fixture tests for search/crawl/extract provider fallback behavior.
 30. `frontier_resume_state_refresh` [completed] - Refresh frontier_handoff.md after each committed slice.

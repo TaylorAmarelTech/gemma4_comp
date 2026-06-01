@@ -27,6 +27,11 @@ DEFAULT_MAJOR_COVERAGE = REPO_ROOT / "configs" / "duecare" / "benchmarks" / "maj
 SCHEMA_PREFIX = "public_benchmark_expansion"
 TARGET_SIGNALS = (
     "debt_bondage",
+    "fee_overcharging",
+    "wage_theft",
+    "accommodation_control",
+    "surveillance_isolation",
+    "contract_deception",
     "forced_labor",
     "illegal_recruitment",
     "document_control",

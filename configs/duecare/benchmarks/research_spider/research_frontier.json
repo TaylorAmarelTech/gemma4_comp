@@ -129,7 +129,7 @@
       "kind": "source",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 12,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
@@ -156,7 +156,7 @@
       "kind": "source",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 15,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
@@ -192,7 +192,7 @@
       "kind": "source",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 19,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
@@ -201,7 +201,7 @@
       "kind": "source",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 20,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
@@ -264,7 +264,7 @@
       "kind": "dimension",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 27,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
@@ -273,7 +273,7 @@
       "kind": "dimension",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 28,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {

@@ -108,25 +108,25 @@ Artifacts:
 
 Current deterministic no-network pack:
 
-- 600 base search queries
-- 2,700 deep search dorks
-- 98 public source candidates
-- 98 source profiles
-- 980 second-wave source-specific queries
-- 98 source fetch manifest entries across 45 domains
-- 98 source archive/replay manifest entries
-- 135 sitemap probe queue entries
-- 45 domain crawl policy entries
-- 180 sitemap discovery dorks
-- 98 candidate knowledge objects
-- 57 candidate dimensions
-- 180 synthetic prompt candidates
+- 640 base search queries
+- 3,520 deep search dorks
+- 125 public source candidates
+- 125 source profiles
+- 1,250 second-wave source-specific queries
+- 125 source fetch manifest entries across 54 domains
+- 125 source archive/replay manifest entries
+- 162 sitemap probe queue entries
+- 54 domain crawl policy entries
+- 216 sitemap discovery dorks
+- 125 candidate knowledge objects
+- 75 candidate dimensions
+- 240 synthetic prompt candidates
 - 240 corroboration links
-- 84 verified-for-benchmark knowledge objects
-- 98 multi-turn conversation prompts
+- 110 verified-for-benchmark knowledge objects
+- 125 multi-turn conversation prompts
 - 360 hybrid scenario prompts
-- 94 applicability seed tags
-- 10 rejected/deferred source branches
+- 121 applicability seed tags
+- 11 rejected/deferred source branches
 - 15 spider regression-test candidates
 - 23 profiled search/crawl/extraction/archive/tool-discovery candidates
 - 6 search-provider registry entries
