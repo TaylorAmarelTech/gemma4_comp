@@ -35,7 +35,8 @@ Artifacts:
   US justice/DHS/State, UK Home Office/CPS/NCA, Canada public safety/justice,
   Australia Home Affairs/AGD/AFP, New Zealand immigration/employment/police,
   Singapore MOM/police, EU/Interpol law-enforcement, supply-chain due
-  diligence, intergovernmental, and public case-law sources.
+  diligence, intergovernmental, regional research-program, and public
+  case-law sources.
 - `deep_search_dorks.jsonl`: Google-style dorks for PDF/non-HTML artifacts,
   URL/title operators, recent reports, case/prosecution language, indicator
   guidance, sector/corridor combinations, and noise-filtered broad searches.
@@ -133,30 +134,30 @@ Artifacts:
 
 Current deterministic no-network pack:
 
-- 680 base search queries
-- 3,740 deep search dorks
-- 175 public source candidates
-- 175 source profiles
-- 1,750 second-wave source-specific queries
-- 175 source fetch manifest entries across 65 domains
-- 175 source archive/replay manifest entries
-- 195 sitemap probe queue entries
-- 65 domain crawl policy entries
-- 260 sitemap discovery dorks
+- 720 base search queries
+- 3,960 deep search dorks
+- 189 public source candidates
+- 189 source profiles
+- 1,890 second-wave source-specific queries
+- 189 source fetch manifest entries across 67 domains
+- 189 source archive/replay manifest entries
+- 201 sitemap probe queue entries
+- 67 domain crawl policy entries
+- 268 sitemap discovery dorks
 - 1,000 branching research queue leads
-- 175 candidate knowledge objects
-- 105 candidate dimensions
+- 189 candidate knowledge objects
+- 117 candidate dimensions
 - 240 synthetic prompt candidates
 - 240 corroboration links
-- 145 verified-for-benchmark knowledge objects
-- 175 source decomposition cards
-- 389 decomposition follow-up dorks
-- 175 decomposition mixed conversations
-- 175 multi-turn conversation prompts
+- 155 verified-for-benchmark knowledge objects
+- 189 source decomposition cards
+- 413 decomposition follow-up dorks
+- 189 decomposition mixed conversations
+- 189 multi-turn conversation prompts
 - 360 hybrid scenario prompts
 - 120 long-context stress prompts
-- 175 refusal/detection prompts
-- 171 applicability seed tags
+- 180 refusal/detection prompts
+- 180 applicability seed tags
 - 8 rejected/deferred source branches
 - 15 spider regression-test candidates
 - 23 profiled search/crawl/extraction/archive/tool-discovery candidates

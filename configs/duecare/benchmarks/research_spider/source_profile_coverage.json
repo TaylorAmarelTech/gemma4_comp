@@ -1,14 +1,15 @@
 {
   "counts": {
-    "dimension_candidates": 105,
-    "knowledge_objects": 175,
+    "dimension_candidates": 117,
+    "knowledge_objects": 189,
     "sectors_covered": 10,
     "signals_covered": 16,
-    "source_profiles": 175
+    "source_profiles": 189
   },
   "coverage": {
     "by_jurisdiction": {
-      "Australia": 14,
+      "Asia-Pacific": 2,
+      "Australia": 16,
       "Canada": 16,
       "China": 5,
       "European Union": 11,
@@ -16,60 +17,61 @@
       "Malaysia": 4,
       "Netherlands": 2,
       "New Zealand": 4,
-      "Philippines": 19,
+      "Philippines": 23,
       "Singapore": 4,
       "United Kingdom": 15,
       "United States": 35,
-      "global": 63,
-      "multi_jurisdiction": 19,
-      "unknown": 2
+      "global": 72,
+      "multi_jurisdiction": 20
     },
     "by_sector": {
       "agriculture": 9,
       "care_work": 3,
       "construction": 4,
       "domestic_work": 14,
-      "fishing": 11,
+      "fishing": 12,
       "garments": 4,
-      "hospitality": 8,
+      "hospitality": 9,
       "logistics": 4,
-      "platform_work": 9,
-      "scam_compound": 19,
-      "unspecified_sector": 111
+      "platform_work": 17,
+      "scam_compound": 27,
+      "unspecified_sector": 116
     },
     "by_signal": {
       "accommodation_control": 6,
       "contract_deception": 6,
-      "debt_bondage": 66,
+      "debt_bondage": 69,
       "document_control": 11,
       "fee_overcharging": 8,
-      "financial_obfuscation": 17,
-      "forced_criminality": 12,
-      "forced_labor": 106,
-      "illegal_recruitment": 7,
+      "financial_obfuscation": 20,
+      "forced_criminality": 15,
+      "forced_labor": 115,
+      "illegal_recruitment": 8,
       "immigration_status_control": 8,
-      "law_enforcement": 41,
-      "online_bait": 8,
-      "referral": 20,
+      "law_enforcement": 44,
+      "online_bait": 16,
+      "referral": 21,
+      "relationship_lure": 3,
+      "role_shifting_complicity": 5,
       "supply_chain": 9,
-      "surveillance_isolation": 7,
+      "surveillance_isolation": 8,
       "wage_theft": 8
     },
     "by_source_family": {
-      "australia_homeaffairs_agd_afp": 4,
+      "australia_homeaffairs_agd_afp": 6,
       "canada_public_safety_justice": 6,
       "china_gov_courts": 5,
-      "courts_case_law": 19,
+      "courts_case_law": 20,
       "eu_interpol_law_enforcement": 11,
       "financial_intelligence": 10,
       "hong_kong_gov": 18,
-      "intergovernmental": 23,
+      "intergovernmental": 30,
       "iom": 14,
       "malaysia_labour_homeaffairs": 4,
       "netherlands_gov_justice": 2,
       "new_zealand_immigration_employment": 4,
-      "other_public": 2,
-      "philippines_gov": 9,
+      "philippines_gov": 13,
+      "regional_research_programs": 2,
       "singapore_mom_police": 4,
       "supply_chain_due_diligence": 5,
       "uk_homeoffice_cps": 15,
@@ -154,14 +156,16 @@
         "official_financial_intelligence_or_typology",
         "official_government",
         "official_government_or_prosecution_guidance",
-        "official_or_multilateral_law_enforcement"
+        "official_or_multilateral_law_enforcement",
+        "public_regional_research_or_practitioner_network"
       ],
       "forced_criminality": [
         "intergovernmental",
         "official_government_or_court",
+        "official_government_or_law_enforcement",
         "official_government_or_prosecution_guidance",
         "official_or_multilateral_law_enforcement",
-        "other_public"
+        "public_regional_research_or_practitioner_network"
       ],
       "forced_labor": [
         "intergovernmental",
@@ -195,14 +199,26 @@
         "intergovernmental",
         "official_government",
         "official_government_or_court",
+        "official_government_or_law_enforcement",
         "official_or_multilateral_law_enforcement"
       ],
       "referral": [
         "intergovernmental",
         "official_government",
+        "official_government_or_law_enforcement",
         "official_government_or_prosecution_guidance",
-        "official_or_multilateral_law_enforcement",
-        "other_public"
+        "official_or_multilateral_law_enforcement"
+      ],
+      "relationship_lure": [
+        "intergovernmental",
+        "official_government",
+        "official_government_or_court"
+      ],
+      "role_shifting_complicity": [
+        "intergovernmental",
+        "official_financial_intelligence_or_typology",
+        "official_government",
+        "public_regional_research_or_practitioner_network"
       ],
       "supply_chain": [
         "intergovernmental",
@@ -212,6 +228,7 @@
         "public_due_diligence_or_official_supply_chain"
       ],
       "surveillance_isolation": [
+        "intergovernmental",
         "official_government",
         "public_case_law"
       ],

@@ -70,11 +70,13 @@ SOURCE_TERM_PATTERNS = {
     "forced_labor": re.compile(r"\b(forced labo[u]?r|servitude|coercion|coerced|exploit(?:ed|ation))\b", re.I),
     "illegal_recruitment": re.compile(r"\b(illegal recruitment|unlicensed recruiter|no job order|fake job|placement fee)\b", re.I),
     "document_control": re.compile(r"\b(passport|travel document|identity document|identification documents?|identity-document retention|document retention|withheld documents?|surrender|confiscat)\b", re.I),
-    "online_bait": re.compile(r"\b(social media|facebook|telegram|online job|online recruitment|online advertisements?|sham employment websites?|apps?|digital platforms?|internet|coded language|scam hub|scam compound|crypto scam|catphishing|cyber fraud)\b", re.I),
+    "online_bait": re.compile(r"\b(social media|facebook|telegram|online job|online recruitment|online advertisements?|sham employment websites?|apps?|digital platforms?|internet|coded language|scam hub|scam compound|cyber-?scam centres?|crypto scam|catphishing|cyber fraud)\b", re.I),
+    "relationship_lure": re.compile(r"\b(people they know and trust|friends?, family members?,? and romantic partners?|romantic partners?|personal relationships? to lower suspicion|fraudulent relationships?|online sweetheart|romance investment scams?|trust-?based recruitment|relational-?trust)\b", re.I),
     "referral": re.compile(r"\b(screening|victim identification|referral|repatriation|safe return|legal aid|access to justice)\b", re.I),
     "immigration_status_control": re.compile(r"\b(immigration status|lawful immigration status|deportation|threaten(?:ing)? arrest|threats? of arrest|visa|wrong or missing visa|work permit|temporary resident permits?|migrant exploitation protection work visa|special pass|irregular migration|temporary visa program)\b", re.I),
     "forced_criminality": re.compile(r"\b(forced criminality|forced to commit|section 45|non-punishment|cannabis house|scam operation|telecom fraud)\b", re.I),
-    "financial_obfuscation": re.compile(r"\b(financial flows?|financial red flags?|financial indicators?|financial-?crime|suspicious activity reports?|SARs?|money laundering|laundering patterns?|profit-?generation|proceeds|financial-?benefit|material-?benefit|financial-?gain|finance control|financially controlled|benefits? control|bank cards?|payroll records?|remittance|payment patterns?|transactions?|money mule|virtual currency)\b", re.I),
+    "role_shifting_complicity": re.compile(r"\b(role-?shifters?|facilitate or shield operations|complicity|corruption|front compan(?:y|ies)|compound managers?|criminal infrastructure|state and non-state systems|adaptability and mobility|shift jurisdictions|weak KYC|financial oversight gaps)\b", re.I),
+    "financial_obfuscation": re.compile(r"\b(financial flows?|financial red flags?|financial indicators?|financial-?crime|suspicious activity reports?|SARs?|money laundering|laundering patterns?|profit-?generation|proceeds|financial-?benefit|material-?benefit|financial-?gain|finance control|financially controlled|benefits? control|bank cards?|payroll records?|remittance|payment patterns?|transactions?|money mule|virtual currency|digital-?asset exchanges?)\b", re.I),
     "supply_chain": re.compile(r"\b(supply chains?|forced labour import|forced labor import|procurement|modern slavery statement|contractor|production tiers?|traceability|downstream goods?)\b", re.I),
     "law_enforcement": re.compile(r"\b(prosecution|investigation|law enforcement|justice department|police|court|conviction|sentence)\b", re.I),
 }
@@ -135,8 +137,8 @@ DOMAIN_TIERS: tuple[dict, ...] = (
     },
     {
         "id": "intergovernmental",
-        "domains": ("ilo.org", "unodc.org", "ohchr.org", "osce.org", "coe.int", "baliprocess.net"),
-        "site_filters": ("site:ilo.org", "site:unodc.org", "site:ohchr.org", "site:osce.org", "site:coe.int", "site:baliprocess.net"),
+        "domains": ("ilo.org", "unodc.org", "sherloc.unodc.org", "ohchr.org", "osce.org", "coe.int", "baliprocess.net"),
+        "site_filters": ("site:ilo.org", "site:unodc.org", "site:sherloc.unodc.org", "site:ohchr.org", "site:osce.org", "site:coe.int", "site:baliprocess.net"),
         "tier": "intergovernmental",
         "base_score": 44,
         "jurisdictions": ("global",),
@@ -209,8 +211,8 @@ DOMAIN_TIERS: tuple[dict, ...] = (
     },
     {
         "id": "australia_homeaffairs_agd_afp",
-        "domains": ("homeaffairs.gov.au", "ag.gov.au", "afp.gov.au", "abf.gov.au"),
-        "site_filters": ("site:homeaffairs.gov.au", "site:ag.gov.au", "site:afp.gov.au", "site:abf.gov.au"),
+        "domains": ("homeaffairs.gov.au", "ag.gov.au", "afp.gov.au", "abf.gov.au", "aic.gov.au"),
+        "site_filters": ("site:homeaffairs.gov.au", "site:ag.gov.au", "site:afp.gov.au", "site:abf.gov.au", "site:aic.gov.au"),
         "tier": "official_government_or_law_enforcement",
         "base_score": 47,
         "jurisdictions": ("Australia",),
@@ -269,6 +271,14 @@ DOMAIN_TIERS: tuple[dict, ...] = (
         "tier": "public_due_diligence_or_official_supply_chain",
         "base_score": 42,
         "jurisdictions": ("global", "United States"),
+    },
+    {
+        "id": "regional_research_programs",
+        "domains": ("aseanact.org", "globalinitiative.net", "freedomcollaborative.org"),
+        "site_filters": ("site:aseanact.org", "site:globalinitiative.net", "site:freedomcollaborative.org"),
+        "tier": "public_regional_research_or_practitioner_network",
+        "base_score": 40,
+        "jurisdictions": ("Asia-Pacific", "global"),
     },
 )
 
@@ -354,6 +364,21 @@ QUERY_INTENTS: tuple[dict, ...] = (
         "expected_signals": ("online_bait", "forced_criminality", "forced_labor"),
     },
     {
+        "id": "relationship_lure_recruitment",
+        "terms": ("people they know and trust", "romantic partners", "relational trust", "false job offers", "forced criminality"),
+        "expected_signals": ("relationship_lure", "online_bait", "forced_criminality"),
+    },
+    {
+        "id": "scam_compound_role_shifting",
+        "terms": ("role-shifters", "facilitate or shield operations", "cyber-scam centres", "weak KYC", "forced criminality"),
+        "expected_signals": ("role_shifting_complicity", "forced_criminality", "financial_obfuscation"),
+    },
+    {
+        "id": "sherloc_forced_labor_case_law",
+        "terms": ("SHERLOC case law", "forced labour or services", "domestic servitude", "debt bondage", "compensation"),
+        "expected_signals": ("forced_labor", "debt_bondage", "law_enforcement"),
+    },
+    {
         "id": "financial_flows_and_obfuscation",
         "terms": ("financial flows", "money laundering", "suspicious activity report", "payment patterns", "human trafficking"),
         "expected_signals": ("financial_obfuscation", "law_enforcement", "forced_labor"),
@@ -380,9 +405,11 @@ SIGNAL_FOLLOWUP_TERMS: dict[str, tuple[str, ...]] = {
     "illegal_recruitment": ("illegal recruitment", "unlicensed recruiter", "fake job order", "placement fee", "tourist cover"),
     "document_control": ("passport confiscation", "identity document retention", "travel document withheld"),
     "online_bait": ("online job ad", "social media recruitment", "scam hub", "coded language", "crypto scam"),
+    "relationship_lure": ("people they know and trust", "romantic partners", "personal relationship lure", "online sweetheart", "relational trust"),
     "referral": ("victim identification", "national referral mechanism", "screening indicators", "repatriation", "legal aid"),
     "immigration_status_control": ("immigration status", "deportation threats", "temporary permit", "work permit dependency"),
     "forced_criminality": ("forced criminality", "non-punishment", "forced begging", "forced scam operation"),
+    "role_shifting_complicity": ("role-shifters", "complicity", "front companies", "compound managers", "weak KYC"),
     "financial_obfuscation": ("financial red flags", "suspicious activity report", "money laundering", "payment patterns", "financial benefit"),
     "supply_chain": ("supply chain due diligence", "forced labor import", "modern slavery statement", "subcontractor risk"),
     "law_enforcement": ("prosecution", "conviction", "investigation", "case digest", "annual report"),
@@ -529,6 +556,20 @@ SIGNAL_DISTILLATIONS: dict[str, dict[str, tuple[str, ...]]] = {
             "Job details are inconsistent across messages, documents, and verbal instructions.",
         ),
     },
+    "relationship_lure": {
+        "core_behaviors": (
+            "Recruitment or coercion is routed through trusted friends, family members, romantic partners, or intimate online relationships.",
+            "Personal trust lowers suspicion, especially when the visible channel looks less risky than anonymous online advertising.",
+        ),
+        "camouflage_patterns": (
+            "Recruitment framed as help from a friend, partner, or family contact.",
+            "Romantic or emotional attachment used to normalize money requests, travel, images, or meeting arrangements.",
+        ),
+        "indicators": (
+            "Worker or potential victim describes trust-based pressure from a personal contact rather than a formal recruiter.",
+            "Relationship history, messages, travel timing, and promised work or money do not align.",
+        ),
+    },
     "referral": {
         "core_behaviors": (
             "Potential victim needs safe identification, referral, legal aid, and assistance without punishment.",
@@ -569,6 +610,20 @@ SIGNAL_DISTILLATIONS: dict[str, dict[str, tuple[str, ...]]] = {
         "indicators": (
             "Person reports being punished for refusing illegal tasks.",
             "Controls combine confinement, threats, debt, and fear of prosecution.",
+        ),
+    },
+    "role_shifting_complicity": {
+        "core_behaviors": (
+            "Different actors shift between public, business, facilitation, enforcement, and criminal roles to keep an exploitation system running.",
+            "Complicity, front companies, weak oversight, or jurisdiction-shifting hide who enables recruitment, confinement, laundering, or retaliation.",
+        ),
+        "camouflage_patterns": (
+            "Actor presented as a landlord, contractor, official contact, investor, fixer, or compliance adviser while facilitating exploitation.",
+            "Operation relocates, pauses, changes company names, or shifts jurisdiction after enforcement attention.",
+        ),
+        "indicators": (
+            "Same people or entities appear across recruitment, transport, housing, payroll, financial flows, and enforcement-facing paperwork.",
+            "Public source links trafficking to corruption, role-shifters, front companies, compound management, or financial oversight gaps.",
         ),
     },
     "financial_obfuscation": {
@@ -691,11 +746,15 @@ DEEP_DORK_TERMS: tuple[str, ...] = (
     "payment patterns",
     "financial benefit",
     "passport confiscation",
+    "people they know and trust",
+    "role-shifters",
+    "cyber-scam centres",
+    "SHERLOC case law",
     "migrant fishers",
+    "transport logistics",
     "fishing vessel",
     "seafood processing",
     "construction labour",
-    "transport logistics",
     "warehouse labour",
     "garment factory",
     "seasonal agriculture",
@@ -712,6 +771,11 @@ DEEP_DORK_TERMS: tuple[str, ...] = (
     "forced begging",
     "online job recruitment",
     "scam compound",
+    "romantic partners",
+    "relational trust",
+    "compound managers",
+    "weak KYC",
+    "financial oversight gaps",
     "victim identification",
     "national referral mechanism",
     "temporary resident permit",
@@ -782,6 +846,36 @@ DEFAULT_SEED_SOURCES: tuple[dict, ...] = (
         "url": "https://www.pna.gov.ph/articles/1040248",
         "title": "Philippine public report on cruise-ship trafficking and illegal recruitment rescue",
         "snippet": "Philippine News Agency report about a large rescue involving overseas work promises, missing proper visa processing, and illegal recruitment allegations.",
+        "seed_family": "philippines_gov",
+    },
+    {
+        "url": "https://sc.judiciary.gov.ph/sc-online-sweetheart-guilty-of-rape-and-qualified-trafficking-for-sexual-exploitation-of-minor/",
+        "title": "Philippine Supreme Court press summary on online sweetheart qualified trafficking",
+        "snippet": "Official court press summary on online sweetheart grooming, Facebook Messenger contact, threat to post images, vulnerability abuse, sexual exploitation, qualified trafficking, and online coercion.",
+        "seed_family": "philippines_gov",
+    },
+    {
+        "url": "https://elibrary.judiciary.gov.ph/thebookshelf/showdocs/1/69188",
+        "title": "Philippine Supreme Court e-library decision on qualified trafficking and worst-form child labour",
+        "snippet": "Official Philippine court decision discussing qualified trafficking, worst-form child labour, entertainment-sector exploitation, financial stranglehold, forced labor or services, and debt bondage statutory language.",
+        "seed_family": "courts_case_law",
+    },
+    {
+        "url": "https://www.pna.gov.ph/index.php/articles/1254089",
+        "title": "Philippine public report on trafficked-person assistance and forced-labor caseloads",
+        "snippet": "Philippine News Agency report on government assistance to trafficked persons, forced labor as a leading assisted trafficking form, illegal recruitment, OSAEC, temporary shelter, legal assistance, and psychosocial support.",
+        "seed_family": "philippines_gov",
+    },
+    {
+        "url": "https://www.pna.gov.ph/index.php/articles/1263630",
+        "title": "Philippine public report on POGO-linked qualified trafficking conviction",
+        "snippet": "Philippine News Agency report on qualified trafficking conviction tied to POGO-linked online scam operations, life imprisonment, compound forfeiture, labor trafficking, corruption exposure, and transnational crime links.",
+        "seed_family": "philippines_gov",
+    },
+    {
+        "url": "https://www.pna.gov.ph/articles/1250200",
+        "title": "Philippine public report on POGO-hub trafficking arrest warrants",
+        "snippet": "Philippine News Agency report on arrest warrants in a POGO-hub trafficking case involving forced labor, slavery, debt bondage, involuntary servitude, recruitment, harboring, and maintaining persons for exploitation.",
         "seed_family": "philippines_gov",
     },
     {
@@ -1481,6 +1575,30 @@ DEFAULT_SEED_SOURCES: tuple[dict, ...] = (
         "seed_family": "intergovernmental",
     },
     {
+        "url": "https://sherloc.unodc.org/cld/en/case-law-doc/traffickingpersonscrimetype/jor/case_no._23572010.html",
+        "title": "UNODC SHERLOC Jordan domestic servitude forced-labour case",
+        "snippet": "UNODC SHERLOC case-law summary on recruitment, harbouring, threats, physical abuse, domestic servitude, forced labour or services, and compensation for a migrant domestic worker.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://sherloc.unodc.org/cld/case-law-doc/traffickingpersonscrimetype/phl/2007/crim._case_no._21898.html",
+        "title": "UNODC SHERLOC Philippines trafficking case with overseas employment pretext",
+        "snippet": "UNODC SHERLOC Philippine case-law summary on recruitment under the pretext of overseas employment, confinement, forced labour, slavery, involuntary servitude, debt bondage, and large-scale syndicate trafficking.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://sherloc.unodc.org/cld/case-law-doc/traffickingpersonscrimetype/gbr/2011/o.o.o._and_others_v_commissioner_of_police_for_the_metropolis.html",
+        "title": "UNODC SHERLOC UK domestic servitude duty-to-investigate case",
+        "snippet": "UNODC SHERLOC case-law summary on state duties to investigate trafficking, domestic servitude, deception, vulnerability abuse, forced labour or services, and Article 4 positive obligations.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://sherloc.unodc.org/cld/case-law-doc/traffickingpersonscrimetype/usa/2006/united_states_v._abdel_nasser_youssef_ibrahim.html?lng=en",
+        "title": "UNODC SHERLOC US domestic servitude forced-labour case",
+        "snippet": "UNODC SHERLOC case-law summary on domestic servitude, forced labour, involuntary servitude, unpaid work, isolated sleeping conditions, coercion, and abuse of vulnerability.",
+        "seed_family": "intergovernmental",
+    },
+    {
         "url": "https://www.unodc.org/pdf/india/SOP_Investigation_Forced_Labour.pdf",
         "title": "UNODC South Asia SOP on investigating trafficking for forced labour",
         "snippet": "UNODC SOP for forced-labour trafficking investigations covering bonded labour, victim-sensitive response, police and labour coordination, and child protection.",
@@ -1503,6 +1621,36 @@ DEFAULT_SEED_SOURCES: tuple[dict, ...] = (
         "title": "Bali Process RSO summary of AIC forced-criminality cyber-scam centre report",
         "snippet": "RSO summary of AIC research on women trafficked into cyber-scam centres, relational-trust recruitment, online fraud, domestic labour, sexual violence, surveillance, and non-punishment.",
         "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://www.baliprocess.net/transnational-crime-and-technology/",
+        "title": "Bali Process transnational crime and technology page on cyber-scam centres",
+        "snippet": "Bali Process regional page on trafficking into cyber-scam centres for forced criminality, social media and AI-enabled recruitment, misuse of technology, money laundering, IUU fishing links, and cross-regional cooperation.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://rso.baliprocess.net/new-reports-explore-how-transnational-crime-networks-fund-and-expand-cyber-scam-operations-across-southeast-asia/",
+        "title": "Bali Process RSO report branch on cyber-scam compound operations and economics",
+        "snippet": "RSO publication page on cyber-scam compounds as multi-crime hubs linking trafficking, forced labour, money laundering, illegal gambling, corruption, role-shifters, weak KYC, financial oversight gaps, and relocation across jurisdictions.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://rso.baliprocess.net/rso-and-freedom-collaborative-bring-together-frontline-partners-and-asean-consular-officials-in-nairobi-to-strengthen-prevention-of-trafficking-for-forced-criminality-into-cyber-scam-centres/",
+        "title": "Bali Process RSO Nairobi prevention workshop on East Africa to Southeast Asia scam-centre recruitment",
+        "snippet": "RSO public workshop note on trafficking for forced criminality into cyber-scam centres, recruitment across multiple regions, East African victim pathways, false job offers, intermediary brokers, consular prevention, and referral gaps.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://globalinitiative.net/analysis/compound-crime-cyber-scam-operations-in-southeast-asia/",
+        "title": "GI-TOC compound crime report on Southeast Asia cyber-scam operations",
+        "snippet": "Specialist public research report on cyber-scam operations, forced recruits, trafficking in persons, role-shifters, corruption, front companies, compound managers, relocation, and criminal infrastructure.",
+        "seed_family": "regional_research_programs",
+    },
+    {
+        "url": "https://globalinitiative.net/analysis/cyber-scam-operations-southeast-asia/",
+        "title": "GI-TOC economics of cyber-scam operations report",
+        "snippet": "Specialist public research report on proceeds, cryptocurrency, banks, fintech platforms, digital-asset exchanges, weak KYC, financial oversight gaps, laundering networks, reinvestment into criminal infrastructure, and forced criminality.",
+        "seed_family": "regional_research_programs",
     },
     {
         "url": "https://www.aic.gov.au/sites/default/files/2026-04/gender_technology_and_trafficking_in_persons.pdf",

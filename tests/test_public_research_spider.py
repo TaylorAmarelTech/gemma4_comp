@@ -15,7 +15,7 @@ spider = importlib.import_module("public_research_spider")
 
 
 def test_build_queries_covers_requested_public_source_families():
-    queries = spider.build_queries(max_per_family=20)
+    queries = spider.build_queries(max_per_family=48)
     text = "\n".join(q["query"] for q in queries)
 
     assert "site:iom.int" in text or "site:publications.iom.int" in text
@@ -82,6 +82,37 @@ def test_iom_and_hong_kong_official_report_sources_are_seeded():
     assert "P2018012600676" in source_text
     assert "fdh.labour.gov.hk/en/faq.html" in source_text
     assert {"debt_bondage", "fee_overcharging", "forced_labor"} <= signals
+
+
+def test_sherloc_bali_and_relationship_lure_sources_are_seeded():
+    candidates = spider.seed_source_candidates()
+    source_text = "\n".join(
+        " ".join([row["url"], row["title"], row["snippet"], *row["signals"]])
+        for row in candidates
+    )
+    dork_text = "\n".join(q["query"] for q in spider.build_deep_dorks(max_per_family=220))
+    signals = {signal for row in candidates for signal in row["signals"]}
+
+    assert spider.profile_for_url("https://sherloc.unodc.org/cld/en/case-law-doc/example")["id"] == "intergovernmental"
+    assert spider.profile_for_url("https://www.aic.gov.au/publications/special/special-22")["id"] == "australia_homeaffairs_agd_afp"
+    assert spider.profile_for_url("https://globalinitiative.net/example.pdf")["id"] == "regional_research_programs"
+    for needle in [
+        "case_no._23572010",
+        "crim._case_no._21898",
+        "o.o.o._and_others_v_commissioner",
+        "united_states_v._abdel_nasser_youssef_ibrahim",
+        "sc-online-sweetheart-guilty",
+        "showdocs/1/69188",
+        "articles/1263630",
+        "new-reports-explore-how-transnational-crime-networks",
+        "compound-crime-cyber-scam-operations",
+        "cyber-scam-operations-southeast-asia",
+    ]:
+        assert needle in source_text
+    assert {"relationship_lure", "role_shifting_complicity", "forced_criminality"} <= signals
+    assert "people they know and trust" in dork_text
+    assert "role-shifters" in dork_text
+    assert "SHERLOC case law" in dork_text
 
 
 def test_financial_obfuscation_and_nonpunishment_sources_are_seeded():
