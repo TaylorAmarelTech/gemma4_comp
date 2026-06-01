@@ -699,6 +699,13 @@ def load_sitemap_frontier_summary(out_dir: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def load_branching_research_summary(out_dir: Path) -> dict:
+    path = out_dir / "branching_research_summary.json"
+    if not path.exists():
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
 def next_frontier_branches(rows: list[dict]) -> list[dict]:
     branch_specs = [
         ("tool", "prototype_brave_search_adapter", "Add an env-key-gated Brave Search API wrapper with synthetic fixture tests."),
@@ -774,6 +781,7 @@ def research_run_state(
     expansion_summary: dict,
     archive_summary: dict,
     sitemap_summary: dict,
+    branching_summary: dict,
 ) -> dict:
     return {
         "schema_version": "public_research_frontier_run_state.v1",
@@ -810,6 +818,7 @@ def research_run_state(
             "sitemap_probe_queue": sitemap_summary.get("sitemap_probe_queue", 0),
             "domain_crawl_policy": sitemap_summary.get("domain_crawl_policy", 0),
             "sitemap_discovery_dorks": sitemap_summary.get("sitemap_discovery_dorks", 0),
+            "branching_research_queue": branching_summary.get("branching_research_queue", 0),
         },
         "next_30_branches": next_frontier_branches(rows),
         "privacy": summary["privacy"],
@@ -860,6 +869,7 @@ def frontier_handoff(state: dict, summary: dict) -> str:
         f"- Sitemap probe queue entries: {state['artifact_counts']['sitemap_probe_queue']}",
         f"- Domain crawl policy entries: {state['artifact_counts']['domain_crawl_policy']}",
         f"- Sitemap discovery dorks: {state['artifact_counts']['sitemap_discovery_dorks']}",
+        f"- Branching research queue leads: {state['artifact_counts']['branching_research_queue']}",
         f"- Knowledge objects already in spider pack: {state['artifact_counts']['knowledge_objects']}",
         f"- Corroboration links: {state['artifact_counts']['corroboration_links']}",
         f"- Verified-for-benchmark knowledge objects: {state['artifact_counts']['verified_knowledge_objects']}",
@@ -966,6 +976,7 @@ def run_pipeline(out_dir: Path) -> dict:
     expansion_summary = load_benchmark_expansion_summary(out_dir)
     archive_summary = load_source_archive_summary(out_dir)
     sitemap_summary = load_sitemap_frontier_summary(out_dir)
+    branching_summary = load_branching_research_summary(out_dir)
     state = research_run_state(
         rows,
         summary,
@@ -974,6 +985,7 @@ def run_pipeline(out_dir: Path) -> dict:
         expansion_summary,
         archive_summary,
         sitemap_summary,
+        branching_summary,
     )
 
     write_json(out_dir / "search_provider_registry.json", search_registry)

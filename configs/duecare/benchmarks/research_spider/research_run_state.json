@@ -1,6 +1,7 @@
 {
   "artifact_counts": {
     "applicability_seed_tags": 121,
+    "branching_research_queue": 1000,
     "conversation_prompts": 125,
     "corroboration_links": 240,
     "crawler_provider_registry": 5,
