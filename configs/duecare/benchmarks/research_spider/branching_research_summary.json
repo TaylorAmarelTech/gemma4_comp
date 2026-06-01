@@ -2,7 +2,7 @@
   "branching_research_queue": 1000,
   "lead_types": {
     "court_or_prosecution_case_search": 85,
-    "cross_jurisdiction_language_variant_search": 75,
+    "cross_jurisdiction_language_variant_search": 76,
     "dataset_or_training_artifact_search": 85,
     "immigration_control_search": 85,
     "indicator_guidance_search": 85,
@@ -10,7 +10,7 @@
     "official_report_or_guidance_search": 170,
     "public_search_branch": 136,
     "sitemap_discovery_search": 55,
-    "source_profile_review": 3,
+    "source_profile_review": 2,
     "supply_chain_document_search": 85,
     "topical_title_search": 68
   },
@@ -22,22 +22,22 @@
   },
   "schema_version": "public_branching_research_summary.v1",
   "signals": {
-    "accommodation_control": 4,
-    "contract_deception": 3,
-    "debt_bondage": 431,
-    "document_control": 7,
+    "accommodation_control": 3,
+    "contract_deception": 2,
+    "debt_bondage": 429,
+    "document_control": 6,
     "fee_overcharging": 4,
     "financial_obfuscation": 8,
     "forced_criminality": 10,
-    "forced_labor": 162,
-    "illegal_recruitment": 3,
+    "forced_labor": 165,
+    "illegal_recruitment": 1,
     "immigration_status_control": 132,
-    "law_enforcement": 13,
-    "online_bait": 411,
-    "referral": 21,
-    "supply_chain": 5,
-    "surveillance_isolation": 3,
-    "wage_theft": 6
+    "law_enforcement": 16,
+    "online_bait": 409,
+    "referral": 20,
+    "supply_chain": 6,
+    "surveillance_isolation": 2,
+    "wage_theft": 5
   },
   "source_families": {
     "": 55,
@@ -53,11 +53,11 @@
     "malaysia_labour_homeaffairs": 55,
     "netherlands_gov_justice": 55,
     "new_zealand_immigration_employment": 55,
-    "other_public": 3,
+    "other_public": 2,
     "philippines_gov": 56,
     "singapore_mom_police": 55,
     "supply_chain_due_diligence": 55,
     "uk_homeoffice_cps": 55,
-    "us_justice_dhs_state": 55
+    "us_justice_dhs_state": 56
   }
 }

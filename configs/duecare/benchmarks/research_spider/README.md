@@ -78,6 +78,12 @@ Artifacts:
 - `source_decompositions.jsonl`: per-source decomposition cards that turn
   public metadata into reviewable behavior hypotheses, camouflage patterns,
   indicator trails, next-search terms, and prompt/test branches.
+- `decomposition_followup_queries.jsonl`: source-decomposition-derived search
+  dorks that branch each article/case/report into same-domain and cross-domain
+  public follow-up leads.
+- `decomposition_mixed_conversations.jsonl`: longer hybrid conversations that
+  combine public source metadata, aggregate private pattern IDs, benign
+  distractors, unsafe record-alteration requests, and expected safe responses.
 - `conversation_prompts.jsonl`: synthetic multi-turn benchmark conversations.
 - `conversation_manifest.json`: conversation, hybrid, long-context,
   refusal/detection, and applicability coverage counts.
@@ -129,26 +135,28 @@ Current deterministic no-network pack:
 
 - 680 base search queries
 - 3,740 deep search dorks
-- 157 public source candidates
-- 157 source profiles
-- 1,570 second-wave source-specific queries
-- 157 source fetch manifest entries across 60 domains
-- 157 source archive/replay manifest entries
-- 180 sitemap probe queue entries
-- 60 domain crawl policy entries
-- 240 sitemap discovery dorks
+- 169 public source candidates
+- 169 source profiles
+- 1,690 second-wave source-specific queries
+- 169 source fetch manifest entries across 65 domains
+- 169 source archive/replay manifest entries
+- 195 sitemap probe queue entries
+- 65 domain crawl policy entries
+- 260 sitemap discovery dorks
 - 1,000 branching research queue leads
-- 157 candidate knowledge objects
-- 103 candidate dimensions
+- 169 candidate knowledge objects
+- 105 candidate dimensions
 - 240 synthetic prompt candidates
 - 240 corroboration links
-- 129 verified-for-benchmark knowledge objects
-- 157 source decomposition cards
-- 157 multi-turn conversation prompts
+- 140 verified-for-benchmark knowledge objects
+- 169 source decomposition cards
+- 384 decomposition follow-up dorks
+- 169 decomposition mixed conversations
+- 169 multi-turn conversation prompts
 - 360 hybrid scenario prompts
 - 120 long-context stress prompts
-- 157 refusal/detection prompts
-- 154 applicability seed tags
+- 169 refusal/detection prompts
+- 166 applicability seed tags
 - 7 rejected/deferred source branches
 - 15 spider regression-test candidates
 - 23 profiled search/crawl/extraction/archive/tool-discovery candidates
