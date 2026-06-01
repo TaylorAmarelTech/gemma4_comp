@@ -121,6 +121,9 @@ def test_pipeline_writes_deterministic_artifacts(tmp_path):
     assert state["artifact_counts"]["source_fetch_manifest"] == 0
     assert state["artifact_counts"]["source_domain_frontier"] == 0
     assert state["artifact_counts"]["source_archive_manifest"] == 0
+    assert state["artifact_counts"]["sitemap_probe_queue"] == 0
+    assert state["artifact_counts"]["domain_crawl_policy"] == 0
+    assert state["artifact_counts"]["sitemap_discovery_dorks"] == 0
     assert state["artifact_counts"]["conversation_prompts"] == 0
     assert state["artifact_counts"]["hybrid_scenario_prompts"] == 0
     branch_status = {branch["branch_id"]: branch["status"] for branch in state["next_30_branches"]}
@@ -130,6 +133,7 @@ def test_pipeline_writes_deterministic_artifacts(tmp_path):
     assert branch_status["prototype_pdfplumber_pdf_extractor"] == "completed"
     assert branch_status["prototype_pypdf_lightweight_fallback"] == "completed"
     assert branch_status["prototype_warcio_manifest_archiving"] == "completed"
+    assert branch_status["evaluate_advertools_sitemap_crawl"] == "completed"
     assert state["privacy"]["osint_adjacent_tools_operationalized"] is False
 
     combined = "\n".join(path.read_text(encoding="utf-8") for path in tmp_path.iterdir())

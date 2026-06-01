@@ -1,0 +1,17 @@
+{
+  "domain_crawl_policy": 45,
+  "domains": 45,
+  "privacy": {
+    "manual_review_before_fetch": true,
+    "network_fetch_default": false,
+    "private_case_terms_allowed": false,
+    "raw_private_cases_ingested": false
+  },
+  "probe_types": {
+    "robots_txt": 45,
+    "sitemap": 90
+  },
+  "schema_version": "public_sitemap_frontier_summary.v1",
+  "sitemap_discovery_dorks": 180,
+  "sitemap_probe_queue": 135
+}
