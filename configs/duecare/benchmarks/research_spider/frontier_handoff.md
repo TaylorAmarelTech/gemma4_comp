@@ -25,6 +25,7 @@ Counts:
 - Sitemap probe queue entries: 162
 - Domain crawl policy entries: 54
 - Sitemap discovery dorks: 216
+- Branching research queue leads: 1000
 - Knowledge objects already in spider pack: 125
 - Corroboration links: 240
 - Verified-for-benchmark knowledge objects: 110

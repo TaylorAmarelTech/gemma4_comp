@@ -124,6 +124,7 @@ def test_pipeline_writes_deterministic_artifacts(tmp_path):
     assert state["artifact_counts"]["sitemap_probe_queue"] == 0
     assert state["artifact_counts"]["domain_crawl_policy"] == 0
     assert state["artifact_counts"]["sitemap_discovery_dorks"] == 0
+    assert state["artifact_counts"]["branching_research_queue"] == 0
     assert state["artifact_counts"]["conversation_prompts"] == 0
     assert state["artifact_counts"]["hybrid_scenario_prompts"] == 0
     branch_status = {branch["branch_id"]: branch["status"] for branch in state["next_30_branches"]}

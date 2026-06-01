@@ -1,0 +1,56 @@
+{
+  "branching_research_queue": 1000,
+  "lead_types": {
+    "court_or_prosecution_case_search": 256,
+    "coverage_gap_branch": 12,
+    "indicator_guidance_search": 157,
+    "official_report_or_guidance_search": 512,
+    "sitemap_discovery_search": 57,
+    "source_profile_review": 6
+  },
+  "privacy": {
+    "no_people_search_or_contact_harvesting": true,
+    "private_case_terms_allowed": false,
+    "public_source_metadata_only": true,
+    "raw_private_cases_ingested": false
+  },
+  "schema_version": "public_branching_research_summary.v1",
+  "signals": {
+    "accommodation_control": 2,
+    "contract_deception": 4,
+    "debt_bondage": 153,
+    "document_control": 68,
+    "fee_overcharging": 53,
+    "forced_criminality": 136,
+    "forced_labor": 42,
+    "illegal_recruitment": 99,
+    "immigration_status_control": 101,
+    "law_enforcement": 15,
+    "online_bait": 67,
+    "referral": 142,
+    "supply_chain": 97,
+    "surveillance_isolation": 3,
+    "wage_theft": 69
+  },
+  "source_families": {
+    "": 57,
+    "australia_homeaffairs_agd_afp": 58,
+    "canada_public_safety_justice": 58,
+    "china_gov_courts": 58,
+    "courts_case_law": 58,
+    "coverage_gap": 12,
+    "eu_interpol_law_enforcement": 57,
+    "hong_kong_gov": 58,
+    "intergovernmental": 58,
+    "iom": 58,
+    "malaysia_labour_homeaffairs": 57,
+    "netherlands_gov_justice": 58,
+    "new_zealand_immigration_employment": 58,
+    "other_public": 6,
+    "philippines_gov": 58,
+    "singapore_mom_police": 58,
+    "supply_chain_due_diligence": 57,
+    "uk_homeoffice_cps": 58,
+    "us_justice_dhs_state": 58
+  }
+}
