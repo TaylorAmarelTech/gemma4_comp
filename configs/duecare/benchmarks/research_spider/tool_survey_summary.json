@@ -40,6 +40,13 @@
     "reject_operational_use_inspiration_only": 4
   },
   "generated_at": "2026-05-31T00:00:00Z",
+  "implemented_extractor_wrappers": [
+    "stdlib_html",
+    "trafilatura_optional",
+    "pdfplumber_optional",
+    "pypdf_optional",
+    "markitdown_optional"
+  ],
   "implemented_provider_wrappers": [
     "manual_dork_queue",
     "brave_search_api",

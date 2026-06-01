@@ -48,7 +48,7 @@
       "kind": "tool",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 3,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
@@ -57,7 +57,7 @@
       "kind": "tool",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 4,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
@@ -66,7 +66,7 @@
       "kind": "tool",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 5,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
@@ -291,7 +291,7 @@
       "kind": "handoff",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 30,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     }
   ],

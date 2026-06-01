@@ -33,6 +33,13 @@ IMPLEMENTED_PROVIDER_WRAPPERS = (
     "brave_search_api",
     "github_search_api",
 )
+IMPLEMENTED_EXTRACTOR_WRAPPERS = (
+    "stdlib_html",
+    "trafilatura_optional",
+    "pdfplumber_optional",
+    "pypdf_optional",
+    "markitdown_optional",
+)
 
 REQUIRED_MATRIX_FIELDS = {
     "tool_id",
@@ -648,6 +655,7 @@ def summarize(rows: list[dict]) -> dict:
         "adopted_or_candidate_tools": adopted,
         "rejected_operational_tools": rejected,
         "implemented_provider_wrappers": list(IMPLEMENTED_PROVIDER_WRAPPERS),
+        "implemented_extractor_wrappers": list(IMPLEMENTED_EXTRACTOR_WRAPPERS),
         "privacy": {
             "raw_private_cases_ingested": False,
             "remote_private_queries_allowed": False,
@@ -700,7 +708,11 @@ def next_frontier_branches(rows: list[dict]) -> list[dict]:
     completed_branches = {
         "prototype_brave_search_adapter",
         "prototype_github_search_tool_discovery",
+        "prototype_trafilatura_html_extractor",
+        "prototype_pdfplumber_pdf_extractor",
+        "prototype_pypdf_lightweight_fallback",
         "provider_registry_fixture_tests",
+        "frontier_resume_state_refresh",
     }
     branches = []
     for index, (kind, branch_id, action) in enumerate(branch_specs, start=1):
@@ -726,11 +738,14 @@ def research_run_state(rows: list[dict], summary: dict, spider_summary: dict) ->
         "completed_loops": [
             "tool_repo_discovery_profiled_23_candidates",
             "safe_search_provider_interface_manual_brave_github",
+            "safe_public_fetch_extract_interface_html_pdf_docs",
         ],
         "implemented_provider_wrappers": summary["implemented_provider_wrappers"],
+        "implemented_extractor_wrappers": summary["implemented_extractor_wrappers"],
         "artifact_counts": {
             "tool_profiles": summary["tool_profiles"],
             "implemented_search_provider_wrappers": len(summary["implemented_provider_wrappers"]),
+            "implemented_extractor_wrappers": len(summary["implemented_extractor_wrappers"]),
             "search_provider_registry": len(provider_registry("search", rows)["providers"]),
             "crawler_provider_registry": len(provider_registry("crawler", rows)["providers"]),
             "extractor_provider_registry": len(provider_registry("extractor", rows)["providers"]),
@@ -771,6 +786,7 @@ def frontier_handoff(state: dict, summary: dict) -> str:
         "- Tool/repo discovery matrix created.",
         "- Search, crawler, and extractor provider registries created.",
         "- Manual, Brave, and GitHub search provider wrappers implemented with fixture tests.",
+        "- Public HTML, PDF, and document extraction wrappers implemented with no-network fixtures.",
         "- OSINT-adjacent tools remain rejected for operational use.",
         "- No private case files or raw private text were ingested.",
         "",
@@ -778,7 +794,8 @@ def frontier_handoff(state: dict, summary: dict) -> str:
         "",
         f"- Tool profiles: {summary['tool_profiles']}",
         f"- Adopted/candidate tools: {len(summary['adopted_or_candidate_tools'])}",
-        f"- Implemented provider wrappers: {len(summary['implemented_provider_wrappers'])}",
+        f"- Implemented search provider wrappers: {len(summary['implemented_provider_wrappers'])}",
+        f"- Implemented extractor wrappers: {len(summary['implemented_extractor_wrappers'])}",
         f"- Rejected operational tools: {len(summary['rejected_operational_tools'])}",
         f"- Source candidates already in spider pack: {state['artifact_counts']['source_candidates']}",
         f"- Knowledge objects already in spider pack: {state['artifact_counts']['knowledge_objects']}",
@@ -817,13 +834,21 @@ def adoption_notes(rows: list[dict], summary: dict) -> str:
         "",
         f"- Tool profiles: {summary['tool_profiles']}",
         f"- Candidate/adopt decisions: {len(adopted)}",
-        f"- Implemented provider wrappers: {len(summary['implemented_provider_wrappers'])}",
+        f"- Implemented search provider wrappers: {len(summary['implemented_provider_wrappers'])}",
+        f"- Implemented extractor wrappers: {len(summary['implemented_extractor_wrappers'])}",
         f"- Deferred decisions: {len(deferred)}",
         f"- Rejected operational tools: {len(rejected)}",
         "",
-        "Adopt or prototype first:",
+        "Implemented extractor wrappers:",
         "",
     ]
+    for tool_id in summary["implemented_extractor_wrappers"]:
+        lines.append(f"- `{tool_id}`: available through `scripts/public_fetch_extract.py` with redaction and fixture tests.")
+    lines.extend([
+        "",
+        "Adopt or prototype first:",
+        "",
+    ])
     for row in adopted:
         lines.append(f"- `{row['tool_id']}` ({row['category']}): {row['notes']}")
     lines.extend(["", "Deferred until a concrete need or review exists:", ""])
