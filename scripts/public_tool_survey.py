@@ -28,6 +28,11 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT_DIR = REPO_ROOT / "configs" / "duecare" / "benchmarks" / "research_spider"
 CHECKED_DATE = "2026-05-31"
 SCHEMA_VERSION = "public_research_tool_survey.v1"
+IMPLEMENTED_PROVIDER_WRAPPERS = (
+    "manual_dork_queue",
+    "brave_search_api",
+    "github_search_api",
+)
 
 REQUIRED_MATRIX_FIELDS = {
     "tool_id",
@@ -642,6 +647,7 @@ def summarize(rows: list[dict]) -> dict:
         "category_counts": categories,
         "adopted_or_candidate_tools": adopted,
         "rejected_operational_tools": rejected,
+        "implemented_provider_wrappers": list(IMPLEMENTED_PROVIDER_WRAPPERS),
         "privacy": {
             "raw_private_cases_ingested": False,
             "remote_private_queries_allowed": False,
@@ -691,6 +697,11 @@ def next_frontier_branches(rows: list[dict]) -> list[dict]:
         ("handoff", "frontier_resume_state_refresh", "Refresh frontier_handoff.md after each committed slice."),
     ]
     tool_score = {row["tool_id"]: row["fit_score"] for row in rows}
+    completed_branches = {
+        "prototype_brave_search_adapter",
+        "prototype_github_search_tool_discovery",
+        "provider_registry_fixture_tests",
+    }
     branches = []
     for index, (kind, branch_id, action) in enumerate(branch_specs, start=1):
         branches.append(
@@ -699,7 +710,7 @@ def next_frontier_branches(rows: list[dict]) -> list[dict]:
                 "branch_id": branch_id,
                 "kind": kind,
                 "action": action,
-                "status": "queued",
+                "status": "completed" if branch_id in completed_branches else "queued",
                 "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
                 "tool_fit_context": tool_score if index == 1 else {},
             }
@@ -712,9 +723,14 @@ def research_run_state(rows: list[dict], summary: dict, spider_summary: dict) ->
         "schema_version": "public_research_frontier_run_state.v1",
         "generated_at": f"{CHECKED_DATE}T00:00:00Z",
         "current_loop": "tool_discovery_matrix_v1",
-        "completed_loops": ["tool_repo_discovery_profiled_23_candidates"],
+        "completed_loops": [
+            "tool_repo_discovery_profiled_23_candidates",
+            "safe_search_provider_interface_manual_brave_github",
+        ],
+        "implemented_provider_wrappers": summary["implemented_provider_wrappers"],
         "artifact_counts": {
             "tool_profiles": summary["tool_profiles"],
+            "implemented_search_provider_wrappers": len(summary["implemented_provider_wrappers"]),
             "search_provider_registry": len(provider_registry("search", rows)["providers"]),
             "crawler_provider_registry": len(provider_registry("crawler", rows)["providers"]),
             "extractor_provider_registry": len(provider_registry("extractor", rows)["providers"]),
@@ -754,6 +770,7 @@ def frontier_handoff(state: dict, summary: dict) -> str:
         "",
         "- Tool/repo discovery matrix created.",
         "- Search, crawler, and extractor provider registries created.",
+        "- Manual, Brave, and GitHub search provider wrappers implemented with fixture tests.",
         "- OSINT-adjacent tools remain rejected for operational use.",
         "- No private case files or raw private text were ingested.",
         "",
@@ -761,6 +778,7 @@ def frontier_handoff(state: dict, summary: dict) -> str:
         "",
         f"- Tool profiles: {summary['tool_profiles']}",
         f"- Adopted/candidate tools: {len(summary['adopted_or_candidate_tools'])}",
+        f"- Implemented provider wrappers: {len(summary['implemented_provider_wrappers'])}",
         f"- Rejected operational tools: {len(summary['rejected_operational_tools'])}",
         f"- Source candidates already in spider pack: {state['artifact_counts']['source_candidates']}",
         f"- Knowledge objects already in spider pack: {state['artifact_counts']['knowledge_objects']}",
@@ -770,7 +788,7 @@ def frontier_handoff(state: dict, summary: dict) -> str:
         "",
     ]
     for branch in state["next_30_branches"]:
-        lines.append(f"{branch['rank']}. `{branch['branch_id']}` - {branch['action']}")
+        lines.append(f"{branch['rank']}. `{branch['branch_id']}` [{branch['status']}] - {branch['action']}")
     lines.append("")
     return "\n".join(lines)
 
@@ -799,6 +817,7 @@ def adoption_notes(rows: list[dict], summary: dict) -> str:
         "",
         f"- Tool profiles: {summary['tool_profiles']}",
         f"- Candidate/adopt decisions: {len(adopted)}",
+        f"- Implemented provider wrappers: {len(summary['implemented_provider_wrappers'])}",
         f"- Deferred decisions: {len(deferred)}",
         f"- Rejected operational tools: {len(rejected)}",
         "",

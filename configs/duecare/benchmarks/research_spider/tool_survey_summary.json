@@ -40,6 +40,11 @@
     "reject_operational_use_inspiration_only": 4
   },
   "generated_at": "2026-05-31T00:00:00Z",
+  "implemented_provider_wrappers": [
+    "manual_dork_queue",
+    "brave_search_api",
+    "github_search_api"
+  ],
   "privacy": {
     "osint_adjacent_tools_operationalized": false,
     "raw_private_cases_ingested": false,
