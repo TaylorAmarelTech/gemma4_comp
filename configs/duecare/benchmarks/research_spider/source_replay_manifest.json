@@ -1,10 +1,10 @@
 {
   "archive_manifest": "source_archive_manifest.jsonl",
   "counts": {
-    "archive_entries": 169,
+    "archive_entries": 175,
     "content_kinds": {
-      "html": 134,
-      "pdf": 31,
+      "html": 138,
+      "pdf": 33,
       "plain_or_unknown": 4
     },
     "domains": 65,
@@ -15,9 +15,9 @@
       "courts_case_law": 19,
       "eu_interpol_law_enforcement": 11,
       "financial_intelligence": 10,
-      "hong_kong_gov": 15,
+      "hong_kong_gov": 18,
       "intergovernmental": 23,
-      "iom": 11,
+      "iom": 14,
       "malaysia_labour_homeaffairs": 4,
       "netherlands_gov_justice": 2,
       "new_zealand_immigration_employment": 4,
@@ -79,8 +79,8 @@
     "ARCH-80EC4C66D328EAD8",
     "ARCH-918D3EFA9CD4E63F",
     "ARCH-3BFAB7957878AEBB",
-    "ARCH-AEF7D31FABC91D1E",
-    "ARCH-7B5BE40276A968F8"
+    "ARCH-14C571DC0637F2A2",
+    "ARCH-AEF7D31FABC91D1E"
   ],
   "schema_version": "public_source_replay_manifest.v1"
 }
