@@ -732,6 +732,7 @@ def next_frontier_branches(rows: list[dict]) -> list[dict]:
         ("source", "new_zealand_migrant_exploitation_cases", "Search NZ immigration/employment sources for exploitation and deception cases."),
         ("source", "singapore_mom_agency_fee_guidance", "Profile Singapore MOM/ICA/police sources for recruitment and permit-control prompts."),
         ("source", "asean_gulf_official_corridor_sources", "Profile Thailand, Cambodia, Singapore, UAE, Qatar, and Saudi official sources for forced criminality, recruitment fees, passport, and mobility-control prompts."),
+        ("source", "gulf_sponsorship_mobility_deepening", "Profile ILO/IOM and Bahrain, Kuwait, Oman official sources for kafala, exit, transfer, free-visa, and tied-employer mobility-control patterns."),
         ("prompt", "multi_turn_worker_triage_conversations", "Generate synthetic conversations with jurisdiction ambiguity and referral needs."),
         ("prompt", "hybrid_moe_stress_scenarios", "Mix debt, document control, immigration status, wage deductions, and benign distractors."),
         ("prompt", "applicability_judge_seed_tags", "Create seed tags where content implies sectors missing from metadata."),
@@ -759,6 +760,7 @@ def next_frontier_branches(rows: list[dict]) -> list[dict]:
         "europol_eurojust_frontex_operations",
         "canada_temporary_foreign_worker_cases",
         "asean_gulf_official_corridor_sources",
+        "gulf_sponsorship_mobility_deepening",
         "multi_turn_worker_triage_conversations",
         "hybrid_moe_stress_scenarios",
         "applicability_judge_seed_tags",
@@ -779,7 +781,7 @@ def next_frontier_branches(rows: list[dict]) -> list[dict]:
                 "tool_fit_context": tool_score if index == 1 else {},
             }
         )
-    return branches
+    return branches[:30]
 
 
 def research_run_state(
@@ -809,6 +811,7 @@ def research_run_state(
             "iom_employer_guidelines_worker_voice_seeded",
             "asean_gulf_official_corridor_sources_seeded",
             "fatf_payment_instrument_typologies_seeded",
+            "gulf_sponsorship_mobility_deepening_seeded",
         ],
         "implemented_provider_wrappers": summary["implemented_provider_wrappers"],
         "implemented_extractor_wrappers": summary["implemented_extractor_wrappers"],

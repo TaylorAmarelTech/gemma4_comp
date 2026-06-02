@@ -1,15 +1,16 @@
 {
   "archive_manifest": "source_archive_manifest.jsonl",
   "counts": {
-    "archive_entries": 232,
+    "archive_entries": 244,
     "content_kinds": {
-      "html": 185,
-      "pdf": 42,
+      "html": 195,
+      "pdf": 44,
       "plain_or_unknown": 5
     },
-    "domains": 82,
+    "domains": 86,
     "source_families": {
       "australia_homeaffairs_agd_afp": 6,
+      "bahrain_kuwait_oman_gulf_mobility": 6,
       "cambodia_gov_scam_enforcement": 6,
       "canada_public_safety_justice": 6,
       "china_gov_courts": 5,
@@ -17,15 +18,15 @@
       "eu_interpol_law_enforcement": 11,
       "financial_intelligence": 14,
       "hong_kong_gov": 18,
-      "intergovernmental": 30,
-      "iom": 23,
+      "intergovernmental": 33,
+      "iom": 25,
       "malaysia_labour_homeaffairs": 4,
       "netherlands_gov_justice": 2,
       "new_zealand_immigration_employment": 4,
       "philippines_gov": 13,
       "qatar_labour_anti_trafficking": 3,
       "regional_research_programs": 2,
-      "saudi_labour_human_rights": 6,
+      "saudi_labour_human_rights": 7,
       "singapore_mom_police": 8,
       "supply_chain_due_diligence": 5,
       "thailand_labor_justice": 6,
@@ -50,13 +51,16 @@
     "ARCH-1BE617F17F59C595",
     "ARCH-996A77A93F53B938",
     "ARCH-AB0B6E1C55D26B5B",
+    "ARCH-4E9F22585CD0333F",
     "ARCH-53CF71B1307A0043",
     "ARCH-3DFEDAF22B4EE331",
     "ARCH-6289D29F578BEB5D",
     "ARCH-5DD9760485A11DA4",
+    "ARCH-B933D4A080D50D58",
     "ARCH-62994903A1AA1114",
     "ARCH-BCA51A03A129C8C0",
     "ARCH-38CEAEE9C2D79624",
+    "ARCH-B2B7E872A92B6B47",
     "ARCH-8935B8BAE83EFC91",
     "ARCH-F591E940600C415D",
     "ARCH-A2CC1525CDA763B6",
@@ -82,10 +86,7 @@
     "ARCH-030F41FAD8B79704",
     "ARCH-5484E8621EE03838",
     "ARCH-C90FBEFA10A0D615",
-    "ARCH-75CB53662DA1D968",
-    "ARCH-A1D0058190F0F07E",
-    "ARCH-716C4E749F331514",
-    "ARCH-9367DA7379C0D20C"
+    "ARCH-75CB53662DA1D968"
   ],
   "schema_version": "public_source_replay_manifest.v1"
 }
