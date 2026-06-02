@@ -1,9 +1,9 @@
 {
   "counts": {
     "applicability_seed_tags": 180,
-    "conversation_prompts": 232,
-    "decomposition_followup_queries": 515,
-    "decomposition_mixed_conversations": 232,
+    "conversation_prompts": 240,
+    "decomposition_followup_queries": 520,
+    "decomposition_mixed_conversations": 240,
     "hybrid_scenario_prompts": 360,
     "long_context_stress_prompts": 120,
     "refusal_detection_prompts": 180
@@ -12,11 +12,12 @@
     "conversation_by_jurisdiction": {
       "Asia-Pacific": 4,
       "Australia": 12,
-      "Cambodia": 12,
+      "Bahrain": 12,
+      "Cambodia": 11,
       "Canada": 12,
       "China": 10,
       "European Union": 22,
-      "Hong Kong SAR, China": 36,
+      "Hong Kong SAR, China": 34,
       "Malaysia": 8,
       "Netherlands": 4,
       "New Zealand": 8,
@@ -25,10 +26,10 @@
       "Saudi Arabia": 12,
       "Singapore": 16,
       "Thailand": 12,
-      "United Arab Emirates": 8,
+      "United Arab Emirates": 7,
       "United Kingdom": 30,
       "United States": 42,
-      "global": 144,
+      "global": 152,
       "multi_jurisdiction": 40
     },
     "conversation_by_sector": {
@@ -41,33 +42,33 @@
       "hospitality": 20,
       "logistics": 6,
       "platform_work": 30,
-      "scam_compound": 36,
-      "unspecified_sector": 292
+      "scam_compound": 35,
+      "unspecified_sector": 309
     },
     "conversation_by_signal": {
       "accommodation_control": 12,
       "contract_deception": 18,
       "debt_bondage": 166,
-      "document_control": 28,
+      "document_control": 36,
       "fee_overcharging": 18,
       "financial_obfuscation": 50,
       "forced_criminality": 42,
-      "forced_labor": 262,
+      "forced_labor": 269,
       "illegal_recruitment": 16,
       "immigration_status_control": 18,
-      "law_enforcement": 98,
+      "law_enforcement": 102,
       "online_bait": 34,
       "payment_instrument_control": 12,
-      "referral": 56,
+      "referral": 62,
       "relationship_lure": 6,
       "role_shifting_complicity": 10,
       "source_quality": 11,
-      "sponsorship_mobility_control": 4,
+      "sponsorship_mobility_control": 20,
       "supply_chain": 20,
-      "surveillance_isolation": 18,
-      "unknown_signal": 11,
-      "wage_theft": 16,
-      "worker_voice_grievance": 14
+      "surveillance_isolation": 20,
+      "unknown_signal": 8,
+      "wage_theft": 18,
+      "worker_voice_grievance": 16
     }
   },
   "privacy": {

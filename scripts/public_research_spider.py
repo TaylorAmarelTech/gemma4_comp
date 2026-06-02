@@ -75,7 +75,7 @@ SOURCE_TERM_PATTERNS = {
     "referral": re.compile(r"\b(screening|victim identification|referral|repatriation|safe return|legal aid|access to justice|access to remedy|remedy pathways?|complaint mechanisms?|grievance mechanisms?)\b", re.I),
     "worker_voice_grievance": re.compile(r"\b(worker voice|migrant worker voice|interviewing migrant workers|migrant worker interview|worker interviews?|confidentiality|confidential interview|grievance mechanisms?|complaint mechanisms?|access to remedy|business grievance|protect migrant workers who participate|worker safety and well-being)\b", re.I),
     "immigration_status_control": re.compile(r"\b(immigration status|lawful immigration status|deportation|threaten(?:ing)? arrest|threats? of arrest|visa|wrong or missing visa|work permit|temporary resident permits?|migrant exploitation protection work visa|special pass|irregular migration|temporary visa program)\b", re.I),
-    "sponsorship_mobility_control": re.compile(r"\b(sponsorship system|kafala|exit permits?|change employers?|transfer of services?|service transfer|worker mobility|labou?r mobility|employer consent|no objection certificate|NOC|tied visa|tied work permit|sponsor(?:ed|ship)?|musaned|ajeer)\b", re.I),
+    "sponsorship_mobility_control": re.compile(r"\b(sponsorship system|kafala|exit permits?|change employers?|change jobs?|transfer of services?|service transfer|sponsor transfer|worker mobility|labou?r mobility|labou?r market mobility|job mobility freedom|employer consent|no objection certificate|NOC|tied visa|tied work permit|employer-?tied|sponsor(?:ed|ship)?|self sponsorship|flexi work permits?|free visas?|absconding reports?|runaway reports?|musaned|ajeer)\b", re.I),
     "forced_criminality": re.compile(r"\b(forced criminality|forced to commit|section 45|non-punishment|cannabis house|scam operation|telecom fraud|online scam operations?|technology-enabled offences?|online fraud|cybercrime syndicates?)\b", re.I),
     "role_shifting_complicity": re.compile(r"\b(role-?shifters?|facilitate or shield operations|complicity|corruption|front compan(?:y|ies)|compound managers?|criminal infrastructure|state and non-state systems|adaptability and mobility|shift jurisdictions|weak KYC|financial oversight gaps)\b", re.I),
     "financial_obfuscation": re.compile(r"\b(financial flows?|financial red flags?|financial indicators?|financial-?crime|suspicious activity reports?|SARs?|money laundering|laundering patterns?|profit-?generation|proceeds|financial-?benefit|material-?benefit|financial-?gain|finance control|financially controlled|benefits? control|bank cards?|payroll records?|remittance|payment patterns?|transactions?|money mule|virtual currency|digital-?asset exchanges?)\b", re.I),
@@ -285,6 +285,14 @@ DOMAIN_TIERS: tuple[dict, ...] = (
         "jurisdictions": ("Saudi Arabia",),
     },
     {
+        "id": "bahrain_kuwait_oman_gulf_mobility",
+        "domains": ("lmra.gov.bh", "blog.lmra.gov.bh", "moi.gov.kw", "scpd.gov.kw", "fm.gov.om"),
+        "site_filters": ("site:lmra.gov.bh", "site:blog.lmra.gov.bh", "site:moi.gov.kw", "site:scpd.gov.kw", "site:fm.gov.om"),
+        "tier": "official_government",
+        "base_score": 44,
+        "jurisdictions": ("Bahrain", "Kuwait", "Oman"),
+    },
+    {
         "id": "eu_interpol_law_enforcement",
         "domains": (
             "home-affairs.ec.europa.eu",
@@ -443,7 +451,7 @@ QUERY_INTENTS: tuple[dict, ...] = (
     },
     {
         "id": "gulf_sponsorship_and_mobility_controls",
-        "terms": ("sponsorship system", "exit permits", "transfer of services", "employer consent", "recruitment fees"),
+        "terms": ("sponsorship system", "kafala", "labour market mobility", "employer consent", "forced labour"),
         "expected_signals": ("sponsorship_mobility_control", "immigration_status_control", "debt_bondage"),
     },
     {
@@ -477,7 +485,7 @@ SIGNAL_FOLLOWUP_TERMS: dict[str, tuple[str, ...]] = {
     "referral": ("victim identification", "national referral mechanism", "screening indicators", "repatriation", "legal aid"),
     "worker_voice_grievance": ("migrant worker interview", "worker voice", "grievance mechanism", "access to remedy", "confidentiality"),
     "immigration_status_control": ("immigration status", "deportation threats", "temporary permit", "work permit dependency"),
-    "sponsorship_mobility_control": ("sponsorship system", "exit permit", "transfer of services", "employer consent", "worker mobility"),
+    "sponsorship_mobility_control": ("sponsorship system", "kafala", "exit permit", "transfer of services", "job mobility freedom", "worker mobility", "labour market mobility", "employer consent", "no objection certificate", "flexi work permit"),
     "forced_criminality": ("forced criminality", "non-punishment", "forced begging", "forced scam operation"),
     "role_shifting_complicity": ("role-shifters", "complicity", "front companies", "compound managers", "weak KYC"),
     "financial_obfuscation": ("financial red flags", "suspicious activity report", "money laundering", "payment patterns", "financial benefit"),
@@ -691,10 +699,12 @@ SIGNAL_DISTILLATIONS: dict[str, dict[str, tuple[str, ...]]] = {
         "camouflage_patterns": (
             "Mobility restriction framed as ordinary sponsorship administration, contract discipline, service transfer, or platform paperwork.",
             "A worker's inability to change employer or leave is treated as a private contract issue instead of a coercion indicator.",
+            "Retaliation risk framed as an absconding, runaway, or free-visa compliance problem rather than a barrier to safe reporting.",
         ),
         "indicators": (
             "Worker needs employer or sponsor action to transfer, exit, recover documents, or access a complaint/remedy pathway.",
             "Public source discusses sponsorship, exit permits, transfer of services, employer consent, or domestic-worker recruitment controls alongside exploitation risks.",
+            "Source links mobility limits with passport retention, unpaid wages, recruitment-fee debt, domestic-worker exclusion, or forced-labour indicators.",
         ),
     },
     "forced_criminality": {
@@ -869,6 +879,13 @@ DEEP_DORK_TERMS: tuple[str, ...] = (
     "deported foreign nationals",
     "casino scam center",
     "sponsorship system",
+    "kafala",
+    "labour market mobility",
+    "job mobility freedom",
+    "no objection certificate",
+    "flexi work permit",
+    "free visa",
+    "absconding report",
     "virtual asset service providers",
     "money mule",
     "exit permit",
@@ -2335,6 +2352,78 @@ DEFAULT_SEED_SOURCES: tuple[dict, ...] = (
         "title": "Saudi HRSD domestic-worker contractual relationship controls",
         "snippet": "Official controls on domestic-worker contractual relationships, recruitment offices, worker transfer, parties' obligations, complaint handling, and regulation of domestic service arrangements.",
         "seed_family": "saudi_labour_human_rights",
+    },
+    {
+        "url": "https://www.hrsd.gov.sa/en/knowledge-centre/articles/progress-saudi-labor-market",
+        "title": "Saudi HRSD progress in the Saudi labor market",
+        "snippet": "Official HRSD article on the Labor Reform Initiative, reduced dependency on sponsors, Job Mobility Freedom, Musaned, wage protection, passport withholding prohibition, movement restrictions, domestic work, forced labour policy, and access to justice.",
+        "seed_family": "saudi_labour_human_rights",
+    },
+    {
+        "url": "https://www.ilo.org/resource/other/sponsorship-reform-and-internal-labour-market-mobility-migrant-workers-arab",
+        "title": "ILO sponsorship reform and internal labour market mobility in the Arab States",
+        "snippet": "ILO regional note on kafala and sponsorship arrangements, worker ability to terminate employment, switch employers, renew work permits, leave destination countries, domestic-worker exclusions, and forced-labour and trafficking risks.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://www.ilo.org/publications/employer-survey-internal-labour-market-mobility-promoting-more-flexible",
+        "title": "ILO Kuwait employer survey on internal labour market mobility",
+        "snippet": "ILO policy brief on Kuwait's rigid sponsorship system, employer survey evidence, migrant-worker ability to change employers, mobility reform options, recruitment cost reduction, and international labour standards compliance.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://www.ilo.org/resource/overview-qatars-labour-reforms",
+        "title": "ILO overview of Qatar labour reforms",
+        "snippet": "ILO overview of Qatar reforms removing exit-permit and no-objection-certificate requirements, improving labour mobility, wage protection, worker support funds, labour inspection, domestic-worker gaps, and forced-labour and trafficking training.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://publications.iom.int/books/other-migrant-crisis-protecting-migrant-workers-against-exploitation-middle-east-and-north",
+        "title": "IOM Other Migrant Crisis report on protecting migrant workers in MENA",
+        "snippet": "IOM report on migrant-worker exploitation in MENA, the role of the kafala system in preventing workers from leaving abusive employers, domestic servitude, confinement at workplaces, forced labour, trafficking, and protection gaps.",
+        "seed_family": "iom",
+    },
+    {
+        "url": "https://publications.iom.int/books/iom-strategy-gulf-countries-2021-2024",
+        "title": "IOM strategy for the Gulf countries 2021-2024",
+        "snippet": "IOM regional strategy on Gulf labour migration-system changes, whole-of-government migrant protection, trafficking prevention, vulnerable migrants, regular pathways, protection programming, and cross-border cooperation.",
+        "seed_family": "iom",
+    },
+    {
+        "url": "https://blog.lmra.gov.bh/en/2020/06/26/anti-trafficking-success-praised/",
+        "title": "Bahrain LMRA anti-trafficking success praised",
+        "snippet": "Official LMRA media-centre item citing forced-labour investigations and convictions, flexi work permits, self-sponsorship permits, recruitment-agency licence action, passport retention, wage protection, domestic-worker vulnerability, and trafficking indicators.",
+        "seed_family": "bahrain_kuwait_oman_gulf_mobility",
+    },
+    {
+        "url": "https://blog.lmra.gov.bh/en/2009/06/18/trafficking-battle-call/",
+        "title": "Bahrain LMRA trafficking battle call",
+        "snippet": "Official LMRA media-centre item on trafficking enforcement, manpower agencies accused of passport confiscation, contract switching, wage withholding, employer release orders, change-employer reforms, free visas, domestic-worker exclusion, and victim identification gaps.",
+        "seed_family": "bahrain_kuwait_oman_gulf_mobility",
+    },
+    {
+        "url": "https://www.moi.gov.kw/main/content/docs/antihumantrafficking/ar/combating-human-traficking.pdf",
+        "title": "Kuwait Ministry of Interior combating human trafficking guide",
+        "snippet": "Official Kuwait anti-trafficking guide defining trafficking actions, means, and exploitation, including forced labour, debt, unfair pay, abuse of vulnerability, victim confidentiality, anti-trafficking department, prosecution, shelter, and IOM referral support.",
+        "seed_family": "bahrain_kuwait_oman_gulf_mobility",
+    },
+    {
+        "url": "https://www.scpd.gov.kw/archive/52698_Kuwait_SDG_VNR_Report_2019_Full_July1_Web.pdf",
+        "title": "Kuwait voluntary national review migration governance annex",
+        "snippet": "Official Kuwait report on migration governance, temporary contractual employment through the sponsorship system, passport-confiscation prohibitions, private-sector labour law, domestic-worker protections, trafficking law, and bilateral labour agreements.",
+        "seed_family": "bahrain_kuwait_oman_gulf_mobility",
+    },
+    {
+        "url": "https://www.fm.gov.om/policy/human-trafficking/",
+        "title": "Oman Foreign Ministry human trafficking policy page",
+        "snippet": "Official Oman page on trafficking in persons, labour exploitation, domestic servitude, sexual exploitation, deception, coercion, cross-border exploitation, national committee coordination, and victim reporting pathways.",
+        "seed_family": "bahrain_kuwait_oman_gulf_mobility",
+    },
+    {
+        "url": "https://www.fm.gov.om/royal-decree-no-78-2025-promulgates-the-law-on-combating-human-trafficking/",
+        "title": "Oman Royal Decree No. 78/2025 on combating human trafficking",
+        "snippet": "Official Oman Foreign Ministry item on the 2025 anti-trafficking law, legal framework update, prevention, protection, prosecution, support for victims, and current national anti-trafficking reforms.",
+        "seed_family": "bahrain_kuwait_oman_gulf_mobility",
     },
 )
 

@@ -36,6 +36,7 @@ def test_build_queries_covers_requested_public_source_families():
     assert "site:mohre.gov.ae" in text
     assert "site:mol.gov.qa" in text
     assert "site:hrsd.gov.sa" in text or "site:my.gov.sa" in text
+    assert "site:lmra.gov.bh" in text or "site:fm.gov.om" in text
     assert "filetype:pdf" in text
     assert any(q["intent"] == "debt_bondage_mechanics" for q in queries)
     assert any(q["intent"] == "victim_referral_access_to_justice" for q in queries)
@@ -191,7 +192,7 @@ def test_asean_gulf_official_corridor_sources_are_seeded():
         " ".join([row["url"], row["title"], row["snippet"], *row["signals"]])
         for row in candidates
     )
-    dork_text = "\n".join(q["query"] for q in spider.build_deep_dorks(max_per_family=260))
+    dork_text = "\n".join(q["query"] for q in spider.build_deep_dorks(max_per_family=360))
     signals = {signal for row in candidates for signal in row["signals"]}
 
     assert spider.profile_for_url("https://www.dsi.go.th/en/Detail/example")["id"] == "thailand_labor_justice"
@@ -199,6 +200,9 @@ def test_asean_gulf_official_corridor_sources_are_seeded():
     assert spider.profile_for_url("https://www.mohre.gov.ae/en/example")["id"] == "uae_mohre_domestic_work"
     assert spider.profile_for_url("https://www.mol.gov.qa/admin/Publications/example.pdf")["id"] == "qatar_labour_anti_trafficking"
     assert spider.profile_for_url("https://prod.hrsd.gov.sa/sites/default/files/example.pdf")["id"] == "saudi_labour_human_rights"
+    assert spider.profile_for_url("https://blog.lmra.gov.bh/en/example")["id"] == "bahrain_kuwait_oman_gulf_mobility"
+    assert spider.profile_for_url("https://www.moi.gov.kw/main/content/docs/example.pdf")["id"] == "bahrain_kuwait_oman_gulf_mobility"
+    assert spider.profile_for_url("https://www.fm.gov.om/policy/human-trafficking/")["id"] == "bahrain_kuwait_oman_gulf_mobility"
     for needle in [
         "26c3d68bdb19b24daaa84decdfc68890",
         "20500b7c6eecef0d371cb5f403e43995",
@@ -209,10 +213,20 @@ def test_asean_gulf_official_corridor_sources_are_seeded():
         "labour-inspector-guide-combating-forced-labour-en",
         "The%20National%20Report%20on%20Combating%20Human%20Trafficking%202024.pdf",
         "The%20National%20Policy%20for%20the%20Elimination%20of%20Forced%20Labor",
+        "sponsorship-reform-and-internal-labour-market-mobility",
+        "employer-survey-internal-labour-market-mobility",
+        "progress-saudi-labor-market",
+        "anti-trafficking-success-praised",
+        "combating-human-traficking.pdf",
+        "policy/human-trafficking",
+        "royal-decree-no-78-2025",
     ]:
         assert needle in source_text
     assert {"sponsorship_mobility_control", "forced_criminality", "fee_overcharging", "document_control"} <= signals
     assert "sponsorship system" in dork_text
+    assert "kafala" in dork_text
+    assert "flexi work permit" in dork_text
+    assert "absconding report" in dork_text
     assert "deported foreign nationals" in dork_text
     assert "casino scam center" in dork_text
 
