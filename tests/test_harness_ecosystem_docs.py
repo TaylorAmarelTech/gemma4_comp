@@ -250,6 +250,10 @@ def test_public_static_copy_avoids_hardcoded_catalog_counts():
         "All 26 Kaggle kernels",
         "all 6 harness layers",
         "6-card index",
+        "55 RAG docs",
+        "A harness ecosystem around Gemma 4 for migrant-worker recruitment",
+        "This kernel ships a baseline catalog of",
+        "knowledge taxonomy spanning 7 branches",
         "5 tools + corridor",
         "207-prompt offline reference",
     ]
