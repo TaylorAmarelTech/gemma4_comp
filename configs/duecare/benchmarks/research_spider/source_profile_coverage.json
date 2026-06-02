@@ -1,33 +1,33 @@
 {
   "counts": {
-    "dimension_candidates": 149,
-    "knowledge_objects": 227,
+    "dimension_candidates": 151,
+    "knowledge_objects": 232,
     "sectors_covered": 10,
-    "signals_covered": 17,
-    "source_profiles": 227
+    "signals_covered": 18,
+    "source_profiles": 232
   },
   "coverage": {
     "by_jurisdiction": {
       "Asia-Pacific": 2,
-      "Australia": 16,
+      "Australia": 20,
       "Cambodia": 6,
-      "Canada": 16,
+      "Canada": 20,
       "China": 5,
       "European Union": 11,
       "Hong Kong SAR, China": 18,
       "Malaysia": 4,
       "Netherlands": 2,
       "New Zealand": 4,
-      "Philippines": 23,
+      "Philippines": 27,
       "Qatar": 3,
       "Saudi Arabia": 6,
       "Singapore": 8,
       "Thailand": 6,
       "United Arab Emirates": 4,
       "United Kingdom": 15,
-      "United States": 35,
-      "global": 81,
-      "multi_jurisdiction": 20
+      "United States": 40,
+      "global": 85,
+      "multi_jurisdiction": 34
     },
     "by_sector": {
       "agriculture": 9,
@@ -39,8 +39,8 @@
       "hospitality": 11,
       "logistics": 5,
       "platform_work": 18,
-      "scam_compound": 34,
-      "unspecified_sector": 142
+      "scam_compound": 35,
+      "unspecified_sector": 146
     },
     "by_signal": {
       "accommodation_control": 6,
@@ -48,13 +48,14 @@
       "debt_bondage": 83,
       "document_control": 14,
       "fee_overcharging": 9,
-      "financial_obfuscation": 21,
+      "financial_obfuscation": 25,
       "forced_criminality": 21,
-      "forced_labor": 130,
+      "forced_labor": 131,
       "illegal_recruitment": 8,
       "immigration_status_control": 9,
       "law_enforcement": 49,
       "online_bait": 17,
+      "payment_instrument_control": 6,
       "referral": 28,
       "relationship_lure": 3,
       "role_shifting_complicity": 5,
@@ -71,7 +72,7 @@
       "china_gov_courts": 5,
       "courts_case_law": 20,
       "eu_interpol_law_enforcement": 11,
-      "financial_intelligence": 10,
+      "financial_intelligence": 14,
       "hong_kong_gov": 18,
       "intergovernmental": 30,
       "iom": 23,
@@ -87,7 +88,7 @@
       "thailand_labor_justice": 6,
       "uae_mohre_domestic_work": 4,
       "uk_homeoffice_cps": 15,
-      "us_justice_dhs_state": 20
+      "us_justice_dhs_state": 21
     },
     "major_case_aggregate_camouflage_patterns": [
       "authority_or_wage_dispute_misclassification",
@@ -216,6 +217,10 @@
         "official_government_or_court",
         "official_government_or_law_enforcement",
         "official_or_multilateral_law_enforcement"
+      ],
+      "payment_instrument_control": [
+        "official_financial_intelligence_or_typology",
+        "official_government"
       ],
       "referral": [
         "intergovernmental",

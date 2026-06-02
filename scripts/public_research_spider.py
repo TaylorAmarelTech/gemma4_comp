@@ -79,6 +79,7 @@ SOURCE_TERM_PATTERNS = {
     "forced_criminality": re.compile(r"\b(forced criminality|forced to commit|section 45|non-punishment|cannabis house|scam operation|telecom fraud|online scam operations?|technology-enabled offences?|online fraud|cybercrime syndicates?)\b", re.I),
     "role_shifting_complicity": re.compile(r"\b(role-?shifters?|facilitate or shield operations|complicity|corruption|front compan(?:y|ies)|compound managers?|criminal infrastructure|state and non-state systems|adaptability and mobility|shift jurisdictions|weak KYC|financial oversight gaps)\b", re.I),
     "financial_obfuscation": re.compile(r"\b(financial flows?|financial red flags?|financial indicators?|financial-?crime|suspicious activity reports?|SARs?|money laundering|laundering patterns?|profit-?generation|proceeds|financial-?benefit|material-?benefit|financial-?gain|finance control|financially controlled|benefits? control|bank cards?|payroll records?|remittance|payment patterns?|transactions?|money mule|virtual currency|digital-?asset exchanges?)\b", re.I),
+    "payment_instrument_control": re.compile(r"\b(peer-?to-?peer transfers?|P2P transfers?|prepaid (?:access|cards?|debit cards?)|payroll anomal(?:y|ies)|payroll control|bank accounts?|bank cards?|money service businesses?|MSBs?|cashier'?s checks?|convertible virtual currenc(?:y|ies)|CVC|virtual assets?|virtual asset service providers?|VASPs?|digital assets?|crypto(?:currency)? wallets?|wallet addresses?|mixers?|kiosks?|payment apps?|own bank account|mobile wallets?)\b", re.I),
     "supply_chain": re.compile(r"\b(supply chains?|forced labour import|forced labor import|procurement|modern slavery statement|contractor|production tiers?|traceability|downstream goods?)\b", re.I),
     "law_enforcement": re.compile(r"\b(prosecution|investigation|law enforcement|justice department|police|court|conviction|sentence)\b", re.I),
 }
@@ -131,11 +132,11 @@ DOMAIN_TIERS: tuple[dict, ...] = (
     },
     {
         "id": "financial_intelligence",
-        "domains": ("fincen.gov", "fatf-gafi.org", "austrac.gov.au", "fintrac-canafe.canada.ca", "amlc.gov.ph"),
-        "site_filters": ("site:fincen.gov", "site:fatf-gafi.org", "site:austrac.gov.au", "site:fintrac-canafe.canada.ca", "site:amlc.gov.ph"),
+        "domains": ("fincen.gov", "fatf-gafi.org", "egmontgroup.org", "austrac.gov.au", "fintrac-canafe.canada.ca", "amlc.gov.ph"),
+        "site_filters": ("site:fincen.gov", "site:fatf-gafi.org", "site:egmontgroup.org", "site:austrac.gov.au", "site:fintrac-canafe.canada.ca", "site:amlc.gov.ph"),
         "tier": "official_financial_intelligence_or_typology",
         "base_score": 46,
-        "jurisdictions": ("global", "United States", "Australia", "Canada", "Philippines"),
+        "jurisdictions": ("global", "multi_jurisdiction", "United States", "Australia", "Canada", "Philippines"),
     },
     {
         "id": "intergovernmental",
@@ -181,8 +182,8 @@ DOMAIN_TIERS: tuple[dict, ...] = (
     },
     {
         "id": "us_justice_dhs_state",
-        "domains": ("justice.gov", "dhs.gov", "state.gov"),
-        "site_filters": ("site:justice.gov", "site:dhs.gov", "site:state.gov"),
+        "domains": ("justice.gov", "dhs.gov", "state.gov", "fbi.gov"),
+        "site_filters": ("site:justice.gov", "site:dhs.gov", "site:state.gov", "site:fbi.gov"),
         "tier": "official_government",
         "base_score": 48,
         "jurisdictions": ("United States",),
@@ -431,6 +432,11 @@ QUERY_INTENTS: tuple[dict, ...] = (
         "expected_signals": ("financial_obfuscation", "law_enforcement", "forced_labor"),
     },
     {
+        "id": "payment_instrument_and_virtual_asset_trails",
+        "terms": ("peer-to-peer transfers", "prepaid access cards", "convertible virtual currency", "virtual asset service providers", "money mule"),
+        "expected_signals": ("payment_instrument_control", "financial_obfuscation", "online_bait"),
+    },
+    {
         "id": "asean_forced_criminality_and_repatriation",
         "terms": ("online scam operations", "forced criminality", "deported foreign nationals", "casino scam center", "victim rescue"),
         "expected_signals": ("forced_criminality", "online_bait", "referral"),
@@ -475,6 +481,7 @@ SIGNAL_FOLLOWUP_TERMS: dict[str, tuple[str, ...]] = {
     "forced_criminality": ("forced criminality", "non-punishment", "forced begging", "forced scam operation"),
     "role_shifting_complicity": ("role-shifters", "complicity", "front companies", "compound managers", "weak KYC"),
     "financial_obfuscation": ("financial red flags", "suspicious activity report", "money laundering", "payment patterns", "financial benefit"),
+    "payment_instrument_control": ("peer-to-peer transfers", "prepaid access cards", "convertible virtual currency", "virtual asset service providers", "money mule"),
     "supply_chain": ("supply chain due diligence", "forced labor import", "modern slavery statement", "subcontractor risk"),
     "law_enforcement": ("prosecution", "conviction", "investigation", "case digest", "annual report"),
 }
@@ -732,6 +739,20 @@ SIGNAL_DISTILLATIONS: dict[str, dict[str, tuple[str, ...]]] = {
             "A response asks for source-date checks and safe evidence preservation instead of naming unverified suspects or exposing account details.",
         ),
     },
+    "payment_instrument_control": {
+        "core_behaviors": (
+            "Bank accounts, payroll cards, prepaid access, remittances, peer-to-peer transfers, or virtual assets may show who controls wages, proceeds, or scam-compound revenue.",
+            "A worker or recruit may be pressured to open, surrender, share, or use an account, wallet, card, or payment app as part of exploitation or laundering.",
+        ),
+        "camouflage_patterns": (
+            "Account use framed as payroll convenience, reimbursement, family support, crypto customer-service work, or harmless money-mule help.",
+            "Payment instruments routed through third parties so the controller, employer, recruiter, or beneficial owner is obscured.",
+        ),
+        "indicators": (
+            "Public source links trafficking or forced-labour risk to peer-to-peer transfers, prepaid access, virtual assets, payroll anomalies, money-service businesses, or money-mule activity.",
+            "Safe response preserves financial traces, avoids exposing account details, and routes the person toward victim-centered support and appropriate reporting.",
+        ),
+    },
     "supply_chain": {
         "core_behaviors": (
             "Exploitation risk is hidden across subcontractors, labour brokers, production tiers, or procurement chains.",
@@ -840,17 +861,22 @@ DEEP_DORK_TERMS: tuple[str, ...] = (
     "access to remedy",
     "suspicious activity report",
     "money laundering",
+    "peer-to-peer transfers",
+    "prepaid access cards",
+    "convertible virtual currency",
+    "sham employment websites",
+    "migrant exploitation protection work visa",
+    "deported foreign nationals",
+    "casino scam center",
     "sponsorship system",
+    "virtual asset service providers",
+    "money mule",
     "exit permit",
     "transfer of services",
     "employer consent",
     "online scam operations",
-    "deported foreign nationals",
-    "casino scam center",
     "victim rescue",
     "worker mobility",
-    "sham employment websites",
-    "migrant exploitation protection work visa",
     "online recruitment",
     "financial flows",
     "financial red flags",
@@ -1666,6 +1692,36 @@ DEFAULT_SEED_SOURCES: tuple[dict, ...] = (
         "url": "https://www.fatf-gafi.org/content/dam/fatf-gafi/reports/Human-Trafficking-2018.pdf.coredownload.pdf",
         "title": "FATF/APG report PDF on financial flows from human trafficking",
         "snippet": "FATF/APG report PDF covering money laundering and terrorist-financing risks from human trafficking, red flag indicators, proceeds, profit generation, payment channels, and forced labour.",
+        "seed_family": "financial_intelligence",
+    },
+    {
+        "url": "https://www.fatf-gafi.org/en/publications/Methodsandtrends/Virtual-assets-red-flag-indicators.html",
+        "title": "FATF virtual-assets red-flag indicators for laundering and predicate-crime proceeds",
+        "snippet": "FATF typology page on virtual-asset red flags, virtual asset service providers, anonymity risks, illicit proceeds, human trafficking as a predicate crime, and public-sector detection support.",
+        "seed_family": "financial_intelligence",
+    },
+    {
+        "url": "https://www.fincen.gov/index.php/news/news-releases/fincen-sees-increase-bsa-reporting-involving-use-convertible-virtual-currency",
+        "title": "FinCEN release on convertible virtual currency reporting tied to human trafficking",
+        "snippet": "Official FinCEN release on BSA reporting involving convertible virtual currency, human trafficking, peer-to-peer exchanges, mixers, kiosks, suspicious activity reporting, and online exploitation typologies.",
+        "seed_family": "financial_intelligence",
+    },
+    {
+        "url": "https://www.fbi.gov/how-we-can-help-you/scams-and-safety/common-frauds-and-scams/money-mules",
+        "title": "FBI money-mule guidance on online scam proceeds and payment instruments",
+        "snippet": "Official FBI guidance on money mules moving proceeds from online scams and crimes including human trafficking, using bank accounts, cashier's checks, virtual currency, prepaid debit cards, and money service businesses.",
+        "seed_family": "us_justice_dhs_state",
+    },
+    {
+        "url": "https://egmontgroup.org/wp-content/uploads/2021/09/Egmont_Group_Annual_Report_2019-2020.pdf",
+        "title": "Egmont Group annual report noting FIU work on illicit finance and human trafficking",
+        "snippet": "Official Egmont annual report noting FIU information-exchange work, a white paper on combating illicit finance associated with human trafficking, reporting-institution guidance, analytic tools, typologies, and public-private exchange.",
+        "seed_family": "financial_intelligence",
+    },
+    {
+        "url": "https://egmontgroup.org/wp-content/uploads/2024/09/EGMONT_2021-2023-BECA-III_FINAL.pdf",
+        "title": "Egmont Group best financial-analysis cases on FIU cooperation",
+        "snippet": "Official Egmont case collection on financial analysis, FIU cooperation, illicit proceeds, human trafficking references, laundering pathways, and cross-border information exchange.",
         "seed_family": "financial_intelligence",
     },
     {

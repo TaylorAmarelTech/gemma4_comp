@@ -18,21 +18,21 @@ Counts:
 - Implemented search provider wrappers: 3
 - Implemented extractor wrappers: 5
 - Rejected operational tools: 4
-- Source candidates already in spider pack: 227
-- Source fetch manifest entries: 227
-- Source domain frontier entries: 80
-- Source archive manifest entries: 227
-- Sitemap probe queue entries: 240
-- Domain crawl policy entries: 80
-- Sitemap discovery dorks: 320
+- Source candidates already in spider pack: 232
+- Source fetch manifest entries: 232
+- Source domain frontier entries: 82
+- Source archive manifest entries: 232
+- Sitemap probe queue entries: 246
+- Domain crawl policy entries: 82
+- Sitemap discovery dorks: 328
 - Branching research queue leads: 1000
-- Knowledge objects already in spider pack: 227
+- Knowledge objects already in spider pack: 232
 - Corroboration links: 240
 - Verified-for-benchmark knowledge objects: 160
-- Source decompositions: 227
-- Decomposition follow-up dorks: 501
-- Decomposition mixed conversations: 227
-- Multi-turn conversation prompts: 227
+- Source decompositions: 232
+- Decomposition follow-up dorks: 515
+- Decomposition mixed conversations: 232
+- Multi-turn conversation prompts: 232
 - Hybrid scenario prompts: 360
 - Long-context stress prompts: 120
 - Refusal/detection prompts: 180
@@ -57,7 +57,7 @@ Next 30 branches:
 14. `iom_recruitment_fee_guidance` [completed] - Corroborate recruitment-fee and related-cost guidance with IOM/ILO documents.
 15. `ilo_forced_labour_indicators` [completed] - Extract prompt seeds from ILO forced-labour indicators and sector material.
 16. `unodc_case_law_forced_labor` [completed] - Search UNODC case-law material for coercion, servitude, and debt-bondage examples.
-17. `fatf_financial_flows_typologies` [queued] - Extract financial-obfuscation indicators from FATF/APG trafficking typologies.
+17. `fatf_financial_flows_typologies` [completed] - Extract financial-obfuscation indicators from FATF/APG trafficking typologies.
 18. `asean_bali_process_corridors` [completed] - Search regional sources for transit, scam-compound, and referral pathway patterns.
 19. `europol_eurojust_frontex_operations` [completed] - Profile EU law-enforcement operations for cross-border exploitation indicators.
 20. `canada_temporary_foreign_worker_cases` [completed] - Search public Canadian justice/labour cases for immigration-status coercion.

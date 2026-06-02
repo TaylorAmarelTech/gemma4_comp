@@ -24,6 +24,8 @@ def test_build_queries_covers_requested_public_source_families():
     assert "site:gov.cn" in text or "site:english.court.gov.cn" in text
     assert "site:justice.gov" in text or "site:dhs.gov" in text
     assert "site:gov.uk" in text or "site:cps.gov.uk" in text
+    assert "site:fbi.gov" in text
+    assert "site:egmontgroup.org" in text
     assert "site:publicsafety.gc.ca" in text or "site:justice.gc.ca" in text
     assert "site:ag.gov.au" in text or "site:afp.gov.au" in text
     assert "site:immigration.govt.nz" in text or "site:employment.govt.nz" in text
@@ -39,6 +41,7 @@ def test_build_queries_covers_requested_public_source_families():
     assert any(q["intent"] == "victim_referral_access_to_justice" for q in queries)
     assert any(q["intent"] == "asean_forced_criminality_and_repatriation" for q in queries)
     assert any(q["intent"] == "gulf_sponsorship_and_mobility_controls" for q in queries)
+    assert any(q["intent"] == "payment_instrument_and_virtual_asset_trails" for q in queries)
 
 
 def test_deep_dorks_include_google_operators_and_non_html_artifacts():
@@ -157,9 +160,16 @@ def test_financial_obfuscation_and_nonpunishment_sources_are_seeded():
 
     assert spider.profile_for_url("https://www.fincen.gov/resources/advisories/example")["id"] == "financial_intelligence"
     assert spider.profile_for_url("https://www.amlc.gov.ph/example")["id"] == "financial_intelligence"
+    assert spider.profile_for_url("https://egmontgroup.org/wp-content/uploads/example.pdf")["id"] == "financial_intelligence"
+    assert spider.profile_for_url("https://www.fbi.gov/example")["id"] == "us_justice_dhs_state"
     assert "fincen-advisory-fin-2020-a008" in source_text
     assert "FinCEN-WCHT-Notice.pdf" in source_text
     assert "fincen-advisory-fin-2014-a008" in source_text
+    assert "Virtual-assets-red-flag-indicators" in source_text
+    assert "fincen-sees-increase-bsa-reporting-involving-use-convertible-virtual-currency" in source_text
+    assert "money-mules" in source_text
+    assert "Egmont_Group_Annual_Report_2019-2020.pdf" in source_text
+    assert "EGMONT_2021-2023-BECA-III_FINAL.pdf" in source_text
     assert "oai-hts-2021-eng" in source_text
     assert "bulletins/sport-eng" in source_text
     assert "DetectingAndStoppingForcedSexualServitude" in source_text
@@ -167,7 +177,10 @@ def test_financial_obfuscation_and_nonpunishment_sources_are_seeded():
     assert "secretariat/438323" in source_text
     assert "principle-of-non-criminalization-of-victims" in source_text
     assert "section 45" in source_text
-    assert "financial_obfuscation" in signals
+    assert {"financial_obfuscation", "payment_instrument_control"} <= signals
+    assert "peer-to-peer transfers" in dork_text
+    assert "prepaid access cards" in dork_text
+    assert "convertible virtual currency" in dork_text
     assert "suspicious activity report" in dork_text
     assert "money laundering" in dork_text
 
