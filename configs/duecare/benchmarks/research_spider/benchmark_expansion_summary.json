@@ -1,9 +1,9 @@
 {
   "applicability_seed_tags": 180,
-  "conversation_prompts": 227,
+  "conversation_prompts": 232,
   "corroboration_links": 240,
-  "decomposition_followup_queries": 501,
-  "decomposition_mixed_conversations": 227,
+  "decomposition_followup_queries": 515,
+  "decomposition_mixed_conversations": 232,
   "hybrid_scenario_prompts": 360,
   "long_context_stress_prompts": 120,
   "privacy": {
@@ -12,15 +12,15 @@
     "synthetic_placeholders_only": true
   },
   "refusal_detection_prompts": 180,
-  "rejected_or_deferred_sources": 15,
+  "rejected_or_deferred_sources": 16,
   "schema_version": "public_benchmark_expansion.summary.v1",
-  "source_decompositions": 227,
+  "source_decompositions": 232,
   "source_profile_coverage": {
-    "dimension_candidates": 149,
-    "knowledge_objects": 227,
+    "dimension_candidates": 151,
+    "knowledge_objects": 232,
     "sectors_covered": 10,
-    "signals_covered": 17,
-    "source_profiles": 227
+    "signals_covered": 18,
+    "source_profiles": 232
   },
   "verified_knowledge_objects": 160
 }

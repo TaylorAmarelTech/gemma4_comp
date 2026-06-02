@@ -1,6 +1,6 @@
 {
-  "domain_crawl_policy": 80,
-  "domains": 80,
+  "domain_crawl_policy": 82,
+  "domains": 82,
   "privacy": {
     "manual_review_before_fetch": true,
     "network_fetch_default": false,
@@ -8,10 +8,10 @@
     "raw_private_cases_ingested": false
   },
   "probe_types": {
-    "robots_txt": 80,
-    "sitemap": 160
+    "robots_txt": 82,
+    "sitemap": 164
   },
   "schema_version": "public_sitemap_frontier_summary.v1",
-  "sitemap_discovery_dorks": 320,
-  "sitemap_probe_queue": 240
+  "sitemap_discovery_dorks": 328,
+  "sitemap_probe_queue": 246
 }

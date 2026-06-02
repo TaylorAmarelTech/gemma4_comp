@@ -41,6 +41,7 @@ TARGET_SIGNALS = (
     "sponsorship_mobility_control",
     "forced_criminality",
     "financial_obfuscation",
+    "payment_instrument_control",
     "online_bait",
     "referral",
     "supply_chain",
