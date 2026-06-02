@@ -18,21 +18,21 @@ Counts:
 - Implemented search provider wrappers: 3
 - Implemented extractor wrappers: 5
 - Rejected operational tools: 4
-- Source candidates already in spider pack: 198
-- Source fetch manifest entries: 198
-- Source domain frontier entries: 67
-- Source archive manifest entries: 198
-- Sitemap probe queue entries: 201
-- Domain crawl policy entries: 67
-- Sitemap discovery dorks: 268
+- Source candidates already in spider pack: 227
+- Source fetch manifest entries: 227
+- Source domain frontier entries: 80
+- Source archive manifest entries: 227
+- Sitemap probe queue entries: 240
+- Domain crawl policy entries: 80
+- Sitemap discovery dorks: 320
 - Branching research queue leads: 1000
-- Knowledge objects already in spider pack: 198
+- Knowledge objects already in spider pack: 227
 - Corroboration links: 240
 - Verified-for-benchmark knowledge objects: 160
-- Source decompositions: 198
-- Decomposition follow-up dorks: 434
-- Decomposition mixed conversations: 198
-- Multi-turn conversation prompts: 198
+- Source decompositions: 227
+- Decomposition follow-up dorks: 501
+- Decomposition mixed conversations: 227
+- Multi-turn conversation prompts: 227
 - Hybrid scenario prompts: 360
 - Long-context stress prompts: 120
 - Refusal/detection prompts: 180
@@ -64,10 +64,10 @@ Next 30 branches:
 21. `australia_afp_forced_marriage_servitude` [queued] - Branch from AFP/Home Affairs trafficking material into prosecution and referral examples.
 22. `new_zealand_migrant_exploitation_cases` [queued] - Search NZ immigration/employment sources for exploitation and deception cases.
 23. `singapore_mom_agency_fee_guidance` [queued] - Profile Singapore MOM/ICA/police sources for recruitment and permit-control prompts.
-24. `multi_turn_worker_triage_conversations` [completed] - Generate synthetic conversations with jurisdiction ambiguity and referral needs.
-25. `hybrid_moe_stress_scenarios` [completed] - Mix debt, document control, immigration status, wage deductions, and benign distractors.
-26. `applicability_judge_seed_tags` [completed] - Create seed tags where content implies sectors missing from metadata.
-27. `financial_obfuscation_dimensions` [completed] - Add dimensions for deductions, kickbacks, debt ledgers, and payroll intermediaries.
-28. `camouflage_pretext_dimensions` [completed] - Add dimensions for safekeeping, training fees, tourist processing, and legal-cover pretexts.
-29. `provider_registry_fixture_tests` [completed] - Add fixture tests for search/crawl/extract provider fallback behavior.
-30. `frontier_resume_state_refresh` [completed] - Refresh frontier_handoff.md after each committed slice.
+24. `asean_gulf_official_corridor_sources` [completed] - Profile Thailand, Cambodia, Singapore, UAE, Qatar, and Saudi official sources for forced criminality, recruitment fees, passport, and mobility-control prompts.
+25. `multi_turn_worker_triage_conversations` [completed] - Generate synthetic conversations with jurisdiction ambiguity and referral needs.
+26. `hybrid_moe_stress_scenarios` [completed] - Mix debt, document control, immigration status, wage deductions, and benign distractors.
+27. `applicability_judge_seed_tags` [completed] - Create seed tags where content implies sectors missing from metadata.
+28. `financial_obfuscation_dimensions` [completed] - Add dimensions for deductions, kickbacks, debt ledgers, and payroll intermediaries.
+29. `camouflage_pretext_dimensions` [completed] - Add dimensions for safekeeping, training fees, tourist processing, and legal-cover pretexts.
+30. `provider_registry_fixture_tests` [completed] - Add fixture tests for search/crawl/extract provider fallback behavior.

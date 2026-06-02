@@ -1,15 +1,16 @@
 {
   "archive_manifest": "source_archive_manifest.jsonl",
   "counts": {
-    "archive_entries": 198,
+    "archive_entries": 227,
     "content_kinds": {
-      "html": 160,
-      "pdf": 34,
-      "plain_or_unknown": 4
+      "html": 182,
+      "pdf": 40,
+      "plain_or_unknown": 5
     },
-    "domains": 67,
+    "domains": 80,
     "source_families": {
       "australia_homeaffairs_agd_afp": 6,
+      "cambodia_gov_scam_enforcement": 6,
       "canada_public_safety_justice": 6,
       "china_gov_courts": 5,
       "courts_case_law": 20,
@@ -22,9 +23,13 @@
       "netherlands_gov_justice": 2,
       "new_zealand_immigration_employment": 4,
       "philippines_gov": 13,
+      "qatar_labour_anti_trafficking": 3,
       "regional_research_programs": 2,
-      "singapore_mom_police": 4,
+      "saudi_labour_human_rights": 6,
+      "singapore_mom_police": 8,
       "supply_chain_due_diligence": 5,
+      "thailand_labor_justice": 6,
+      "uae_mohre_domestic_work": 4,
       "uk_homeoffice_cps": 15,
       "us_justice_dhs_state": 20
     }
@@ -41,9 +46,11 @@
     "raw_archives_committed_to_git": false
   },
   "replay_order": [
+    "ARCH-241049B473836A1F",
     "ARCH-1BE617F17F59C595",
     "ARCH-996A77A93F53B938",
     "ARCH-AB0B6E1C55D26B5B",
+    "ARCH-53CF71B1307A0043",
     "ARCH-3DFEDAF22B4EE331",
     "ARCH-6289D29F578BEB5D",
     "ARCH-5DD9760485A11DA4",
@@ -56,6 +63,8 @@
     "ARCH-E808F24520870C4D",
     "ARCH-CEB3848645BA2E6B",
     "ARCH-C44BB9A71B77EDBF",
+    "ARCH-5012E0A8AE50A3F1",
+    "ARCH-7BCC43776EF89F92",
     "ARCH-851E7FD892E47F8B",
     "ARCH-ED23EEA56001E750",
     "ARCH-50D136AFC4DFE58B",
@@ -67,6 +76,8 @@
     "ARCH-06BEE2C1C534A5CC",
     "ARCH-A5EEC826249BCA79",
     "ARCH-2D0FD37008730857",
+    "ARCH-E108A53F88A4E3D3",
+    "ARCH-14059B44D588FB14",
     "ARCH-030F41FAD8B79704",
     "ARCH-5484E8621EE03838",
     "ARCH-C90FBEFA10A0D615",
@@ -74,13 +85,7 @@
     "ARCH-A1D0058190F0F07E",
     "ARCH-716C4E749F331514",
     "ARCH-9367DA7379C0D20C",
-    "ARCH-74906BE6A131F070",
-    "ARCH-21E247E98C332B27",
-    "ARCH-3D9BE42D724F1250",
-    "ARCH-2078F1C351511CF9",
-    "ARCH-6C7406B423E712CE",
-    "ARCH-3D8E4FCB2D58C50B",
-    "ARCH-3145A1D78ECB380A"
+    "ARCH-74906BE6A131F070"
   ],
   "schema_version": "public_source_replay_manifest.v1"
 }

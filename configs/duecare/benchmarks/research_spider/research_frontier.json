@@ -232,11 +232,20 @@
       "tool_fit_context": {}
     },
     {
+      "action": "Profile Thailand, Cambodia, Singapore, UAE, Qatar, and Saudi official sources for forced criminality, recruitment fees, passport, and mobility-control prompts.",
+      "branch_id": "asean_gulf_official_corridor_sources",
+      "kind": "source",
+      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
+      "rank": 24,
+      "status": "completed",
+      "tool_fit_context": {}
+    },
+    {
       "action": "Generate synthetic conversations with jurisdiction ambiguity and referral needs.",
       "branch_id": "multi_turn_worker_triage_conversations",
       "kind": "prompt",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
-      "rank": 24,
+      "rank": 25,
       "status": "completed",
       "tool_fit_context": {}
     },
@@ -245,7 +254,7 @@
       "branch_id": "hybrid_moe_stress_scenarios",
       "kind": "prompt",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
-      "rank": 25,
+      "rank": 26,
       "status": "completed",
       "tool_fit_context": {}
     },
@@ -254,7 +263,7 @@
       "branch_id": "applicability_judge_seed_tags",
       "kind": "prompt",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
-      "rank": 26,
+      "rank": 27,
       "status": "completed",
       "tool_fit_context": {}
     },
@@ -263,7 +272,7 @@
       "branch_id": "financial_obfuscation_dimensions",
       "kind": "dimension",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
-      "rank": 27,
+      "rank": 28,
       "status": "completed",
       "tool_fit_context": {}
     },
@@ -272,7 +281,7 @@
       "branch_id": "camouflage_pretext_dimensions",
       "kind": "dimension",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
-      "rank": 28,
+      "rank": 29,
       "status": "completed",
       "tool_fit_context": {}
     },
@@ -280,15 +289,6 @@
       "action": "Add fixture tests for search/crawl/extract provider fallback behavior.",
       "branch_id": "provider_registry_fixture_tests",
       "kind": "test",
-      "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
-      "rank": 29,
-      "status": "completed",
-      "tool_fit_context": {}
-    },
-    {
-      "action": "Refresh frontier_handoff.md after each committed slice.",
-      "branch_id": "frontier_resume_state_refresh",
-      "kind": "handoff",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 30,
       "status": "completed",

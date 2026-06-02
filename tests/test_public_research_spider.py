@@ -29,9 +29,16 @@ def test_build_queries_covers_requested_public_source_families():
     assert "site:immigration.govt.nz" in text or "site:employment.govt.nz" in text
     assert "site:mom.gov.sg" in text or "site:police.gov.sg" in text
     assert "site:mohr.gov.my" in text or "site:moha.gov.my" in text
+    assert "site:dsi.go.th" in text or "site:mol.go.th" in text
+    assert "site:akp.gov.kh" in text or "site:interior.gov.kh" in text
+    assert "site:mohre.gov.ae" in text
+    assert "site:mol.gov.qa" in text
+    assert "site:hrsd.gov.sa" in text or "site:my.gov.sa" in text
     assert "filetype:pdf" in text
     assert any(q["intent"] == "debt_bondage_mechanics" for q in queries)
     assert any(q["intent"] == "victim_referral_access_to_justice" for q in queries)
+    assert any(q["intent"] == "asean_forced_criminality_and_repatriation" for q in queries)
+    assert any(q["intent"] == "gulf_sponsorship_and_mobility_controls" for q in queries)
 
 
 def test_deep_dorks_include_google_operators_and_non_html_artifacts():
@@ -163,6 +170,38 @@ def test_financial_obfuscation_and_nonpunishment_sources_are_seeded():
     assert "financial_obfuscation" in signals
     assert "suspicious activity report" in dork_text
     assert "money laundering" in dork_text
+
+
+def test_asean_gulf_official_corridor_sources_are_seeded():
+    candidates = spider.seed_source_candidates()
+    source_text = "\n".join(
+        " ".join([row["url"], row["title"], row["snippet"], *row["signals"]])
+        for row in candidates
+    )
+    dork_text = "\n".join(q["query"] for q in spider.build_deep_dorks(max_per_family=260))
+    signals = {signal for row in candidates for signal in row["signals"]}
+
+    assert spider.profile_for_url("https://www.dsi.go.th/en/Detail/example")["id"] == "thailand_labor_justice"
+    assert spider.profile_for_url("https://rnk.gov.kh/article/example")["id"] == "cambodia_gov_scam_enforcement"
+    assert spider.profile_for_url("https://www.mohre.gov.ae/en/example")["id"] == "uae_mohre_domestic_work"
+    assert spider.profile_for_url("https://www.mol.gov.qa/admin/Publications/example.pdf")["id"] == "qatar_labour_anti_trafficking"
+    assert spider.profile_for_url("https://prod.hrsd.gov.sa/sites/default/files/example.pdf")["id"] == "saudi_labour_human_rights"
+    for needle in [
+        "26c3d68bdb19b24daaa84decdfc68890",
+        "20500b7c6eecef0d371cb5f403e43995",
+        "post/detail/342578",
+        "rnk.gov.kh/article/66354",
+        "can-an-employer-keep-a-workers-passport",
+        "mohre-12-unlicensed-domestic-worker-recruitment-offices",
+        "labour-inspector-guide-combating-forced-labour-en",
+        "The%20National%20Report%20on%20Combating%20Human%20Trafficking%202024.pdf",
+        "The%20National%20Policy%20for%20the%20Elimination%20of%20Forced%20Labor",
+    ]:
+        assert needle in source_text
+    assert {"sponsorship_mobility_control", "forced_criminality", "fee_overcharging", "document_control"} <= signals
+    assert "sponsorship system" in dork_text
+    assert "deported foreign nationals" in dork_text
+    assert "casino scam center" in dork_text
 
 
 def test_public_court_case_frontier_sources_are_seeded():
