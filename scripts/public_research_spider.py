@@ -74,6 +74,7 @@ SOURCE_TERM_PATTERNS = {
     "relationship_lure": re.compile(r"\b(people they know and trust|friends?, family members?,? and romantic partners?|romantic partners?|personal relationships? to lower suspicion|fraudulent relationships?|online sweetheart|romance investment scams?|trust-?based recruitment|relational-?trust)\b", re.I),
     "referral": re.compile(r"\b(screening|victim identification|referral|repatriation|safe return|legal aid|access to justice|access to remedy|remedy pathways?|complaint mechanisms?|grievance mechanisms?)\b", re.I),
     "worker_voice_grievance": re.compile(r"\b(worker voice|migrant worker voice|interviewing migrant workers|migrant worker interview|worker interviews?|confidentiality|confidential interview|grievance mechanisms?|complaint mechanisms?|access to remedy|business grievance|protect migrant workers who participate|worker safety and well-being)\b", re.I),
+    "source_country_recruitment_grievance": re.compile(r"\b(foreign employment complaints?|complaint against recruiting agents?|recruiting agency complaints?|recruitment agency complaints?|foreign employment offences?|foreign employment misdemeanor cases?|overseas employment promoters?|licensed foreign employment agencies?|licensed recruitment agencies?|conciliation division|complaint management system|special investigation division|human trafficking unit|job substitution notice|promised job|fake visa employment schemes?|fraudulent foreign employment schemes?|illegal recruitment instructions?)\b", re.I),
     "immigration_status_control": re.compile(r"\b(immigration status|lawful immigration status|deportation|threaten(?:ing)? arrest|threats? of arrest|visa|wrong or missing visa|work permit|temporary resident permits?|migrant exploitation protection work visa|special pass|irregular migration|temporary visa program)\b", re.I),
     "sponsorship_mobility_control": re.compile(r"\b(sponsorship system|kafala|exit permits?|change employers?|change jobs?|transfer of services?|service transfer|sponsor transfer|worker mobility|labou?r mobility|labou?r market mobility|job mobility freedom|employer consent|no objection certificate|NOC|tied visa|tied work permit|employer-?tied|sponsor(?:ed|ship)?|self sponsorship|flexi work permits?|free visas?|absconding reports?|runaway reports?|musaned|ajeer)\b", re.I),
     "forced_criminality": re.compile(r"\b(forced criminality|forced to commit|section 45|non-punishment|cannabis house|scam operation|telecom fraud|online scam operations?|technology-enabled offences?|online fraud|cybercrime syndicates?)\b", re.I),
@@ -293,6 +294,46 @@ DOMAIN_TIERS: tuple[dict, ...] = (
         "jurisdictions": ("Bahrain", "Kuwait", "Oman"),
     },
     {
+        "id": "india_bonded_labour_migration",
+        "domains": ("labour.gov.in", "nhrc.nic.in", "sci.gov.in", "api.sci.gov.in", "emigrate.gov.in"),
+        "site_filters": ("site:labour.gov.in", "site:nhrc.nic.in", "site:sci.gov.in", "site:api.sci.gov.in", "site:emigrate.gov.in"),
+        "tier": "official_government_or_court",
+        "base_score": 46,
+        "jurisdictions": ("India",),
+    },
+    {
+        "id": "bangladesh_overseas_employment",
+        "domains": ("bmet.gov.bd", "probashi.gov.bd", "bdlaws.minlaw.gov.bd", "bangladesh.gov.bd"),
+        "site_filters": ("site:bmet.gov.bd", "site:probashi.gov.bd", "site:bdlaws.minlaw.gov.bd", "site:bangladesh.gov.bd"),
+        "tier": "official_government",
+        "base_score": 44,
+        "jurisdictions": ("Bangladesh",),
+    },
+    {
+        "id": "nepal_foreign_employment",
+        "domains": ("dofe.gov.np", "moless.gov.np", "lawcommission.gov.np", "nhrcnepal.org"),
+        "site_filters": ("site:dofe.gov.np", "site:moless.gov.np", "site:lawcommission.gov.np", "site:nhrcnepal.org"),
+        "tier": "official_government_or_rapporteur",
+        "base_score": 44,
+        "jurisdictions": ("Nepal",),
+    },
+    {
+        "id": "sri_lanka_foreign_employment",
+        "domains": ("slbfe.lk", "labourdept.gov.lk", "documents.gov.lk", "justice.gov.lk"),
+        "site_filters": ("site:slbfe.lk", "site:labourdept.gov.lk", "site:documents.gov.lk", "site:justice.gov.lk"),
+        "tier": "official_government",
+        "base_score": 44,
+        "jurisdictions": ("Sri Lanka",),
+    },
+    {
+        "id": "pakistan_overseas_employment",
+        "domains": ("beoe.gov.pk", "ophrd.gov.pk", "molaw.gov.pk", "na.gov.pk"),
+        "site_filters": ("site:beoe.gov.pk", "site:ophrd.gov.pk", "site:molaw.gov.pk", "site:na.gov.pk"),
+        "tier": "official_government",
+        "base_score": 44,
+        "jurisdictions": ("Pakistan",),
+    },
+    {
         "id": "eu_interpol_law_enforcement",
         "domains": (
             "home-affairs.ec.europa.eu",
@@ -455,6 +496,11 @@ QUERY_INTENTS: tuple[dict, ...] = (
         "expected_signals": ("sponsorship_mobility_control", "immigration_status_control", "debt_bondage"),
     },
     {
+        "id": "south_asia_source_country_recruitment_grievance",
+        "terms": ("foreign employment complaint", "recruiting agent", "recruitment fees", "job substitution", "forced labour"),
+        "expected_signals": ("source_country_recruitment_grievance", "illegal_recruitment", "debt_bondage"),
+    },
+    {
         "id": "official_passport_fee_rules",
         "terms": ("passport retention", "agency fee cap", "refund recruitment fees", "worker-paid fees", "licensed recruitment offices"),
         "expected_signals": ("document_control", "fee_overcharging", "debt_bondage"),
@@ -484,6 +530,7 @@ SIGNAL_FOLLOWUP_TERMS: dict[str, tuple[str, ...]] = {
     "relationship_lure": ("people they know and trust", "romantic partners", "personal relationship lure", "online sweetheart", "relational trust"),
     "referral": ("victim identification", "national referral mechanism", "screening indicators", "repatriation", "legal aid"),
     "worker_voice_grievance": ("migrant worker interview", "worker voice", "grievance mechanism", "access to remedy", "confidentiality"),
+    "source_country_recruitment_grievance": ("foreign employment complaint", "complaint against recruiting agent", "foreign employment offence", "complaint management system", "licensed recruitment agency", "job substitution notice"),
     "immigration_status_control": ("immigration status", "deportation threats", "temporary permit", "work permit dependency"),
     "sponsorship_mobility_control": ("sponsorship system", "kafala", "exit permit", "transfer of services", "job mobility freedom", "worker mobility", "labour market mobility", "employer consent", "no objection certificate", "flexi work permit"),
     "forced_criminality": ("forced criminality", "non-punishment", "forced begging", "forced scam operation"),
@@ -677,6 +724,20 @@ SIGNAL_DISTILLATIONS: dict[str, dict[str, tuple[str, ...]]] = {
             "Complaint mechanism exists but the worker lacks language access, independence, documentation, or safe follow-up.",
         ),
     },
+    "source_country_recruitment_grievance": {
+        "core_behaviors": (
+            "Recruitment abuse is recorded or remedied through a source-country complaint, tribunal, licensing, or labour-migration oversight pathway.",
+            "The source-country process must preserve evidence of fees, job substitution, license status, contracts, receipts, and destination-country harm without exposing the worker.",
+        ),
+        "camouflage_patterns": (
+            "Post-departure job substitution framed as delay, paperwork, or a private agency dispute.",
+            "Illegal fees framed as service charges, training fees, visa facilitation, deposits, or voluntary travel costs.",
+        ),
+        "indicators": (
+            "Public source mentions complaints against recruiting agents, foreign-employment offences, licensed agencies, complaint management systems, or recruitment-agency enforcement.",
+            "Worker needs source-country agency records, receipts, contracts, job-order approvals, or safe complaint intake to distinguish fraud, labour-law breach, trafficking, and debt-bondage indicators.",
+        ),
+    },
     "immigration_status_control": {
         "core_behaviors": (
             "Visa, work-permit, or immigration status dependency is used to maintain control.",
@@ -856,36 +917,133 @@ DEEP_DORK_TEMPLATES: tuple[dict, ...] = (
     },
 )
 
+DORK_VISIBILITY_TEMPLATE = {
+    "id": "quoted_seed_visibility",
+    "template": '{site} "{term}" ("trafficking in persons" OR "human trafficking" OR "modern slavery") filetype:pdf',
+    "reason": "Guarantee every high-priority behavior phrase appears before expanded/spun variants consume the per-family cap.",
+}
+
+DORK_EXPANSION_TEMPLATES: tuple[dict, ...] = (
+    {
+        "id": "spun_exact_injection",
+        "template": '{site} "{term}" "{injection}" ("trafficking in persons" OR "human trafficking")',
+        "reason": "Multiply exact phrase searches with safe source-type, evidence, and behavior modifiers.",
+    },
+    {
+        "id": "spun_inurl_injection",
+        "template": '{site} inurl:{url_token} "{term}" "{injection}"',
+        "reason": "Find buried public pages where URL paths carry complaint, case, report, law, recruitment, or forced-labour cues.",
+    },
+    {
+        "id": "spun_title_intext",
+        "template": '{site} intitle:"{title_token}" intext:"{term}" "{injection}"',
+        "reason": "Combine title and body operators for official pages where the title is broad but the body carries behavior terms.",
+    },
+    {
+        "id": "spun_proximity",
+        "template": '{site} "{term}" AROUND(6) "{injection}"',
+        "reason": "Use proximity-style manual dorks to find nearby behavior and evidence terms in long reports.",
+    },
+)
+
+DORK_TERM_SPINS: dict[str, tuple[str, ...]] = {
+    "recruitment fees": ("placement fees", "worker-paid fees", "recruitment costs"),
+    "debt bondage": ("bonded labour", "bonded labor", "debt-linked coercion"),
+    "passport confiscation": ("passport retention", "travel document withheld", "identity document retention"),
+    "forced labour": ("forced labor", "servitude", "compelled labour"),
+    "foreign employment complaint": ("overseas employment complaint", "foreign employment grievance"),
+    "complaint against recruiting agent": ("recruiting agency complaint", "recruitment agency complaint"),
+    "job substitution": ("contract substitution", "promised job not received", "bait-and-switch job"),
+    "illegal recruitment instructions": ("unlicensed recruitment warning", "illegal recruitment warning"),
+    "sponsorship system": ("kafala system", "tied-employer visa", "employer consent"),
+    "money laundering": ("financial flows", "suspicious transaction", "illicit proceeds"),
+    "peer-to-peer transfers": ("P2P transfers", "payment app transfers"),
+    "sham employment websites": ("fake job websites", "fraudulent employment websites"),
+}
+
+DORK_SEARCH_INJECTIONS: tuple[str, ...] = (
+    "complaint",
+    "case digest",
+    "case law",
+    "prosecution",
+    "conviction",
+    "annual report",
+    "progress report",
+    "victim identification",
+    "screening indicators",
+    "recruitment agency",
+    "licensed agency",
+    "bonded labour",
+    "forced labour",
+    "document retention",
+    "wage withholding",
+    "job order",
+    "safe return",
+)
+
+URL_INJECTION_TOKENS: tuple[str, ...] = (
+    "complaint",
+    "case",
+    "report",
+    "law",
+    "recruit",
+    "traffick",
+    "forced",
+    "bonded",
+    "migration",
+    "employment",
+)
+
+TITLE_INJECTION_TOKENS: tuple[str, ...] = (
+    "trafficking",
+    "forced labour",
+    "forced labor",
+    "recruitment",
+    "complaint",
+    "bonded labour",
+    "migration",
+)
+
 DEEP_DORK_TERMS: tuple[str, ...] = (
     "debt bondage",
     "recruitment fees",
     "passport confiscation",
+    "sham employment websites",
+    "migrant exploitation protection work visa",
+    "peer-to-peer transfers",
+    "prepaid access cards",
+    "convertible virtual currency",
+    "suspicious activity report",
+    "money laundering",
+    "sponsorship system",
+    "kafala",
+    "flexi work permit",
+    "absconding report",
+    "deported foreign nationals",
+    "casino scam center",
     "people they know and trust",
     "role-shifters",
-    "cyber-scam centres",
     "SHERLOC case law",
     "migrant worker interview",
     "migrant fishers",
     "transport logistics",
     "grievance mechanism",
     "access to remedy",
-    "suspicious activity report",
-    "money laundering",
-    "peer-to-peer transfers",
-    "prepaid access cards",
-    "convertible virtual currency",
-    "sham employment websites",
-    "migrant exploitation protection work visa",
-    "deported foreign nationals",
-    "casino scam center",
-    "sponsorship system",
-    "kafala",
+    "foreign employment complaint",
+    "complaint against recruiting agent",
+    "foreign employment offence",
+    "job substitution",
+    "brick kiln bonded labour",
+    "free visa free ticket",
+    "licensed foreign employment agency",
+    "illegal recruitment instructions",
+    "fraudulent foreign employment scheme",
+    "bonded labour rehabilitation",
+    "cyber-scam centres",
     "labour market mobility",
     "job mobility freedom",
     "no objection certificate",
-    "flexi work permit",
     "free visa",
-    "absconding report",
     "virtual asset service providers",
     "money mule",
     "exit permit",
@@ -2425,6 +2583,162 @@ DEFAULT_SEED_SOURCES: tuple[dict, ...] = (
         "snippet": "Official Oman Foreign Ministry item on the 2025 anti-trafficking law, legal framework update, prevention, protection, prosecution, support for victims, and current national anti-trafficking reforms.",
         "seed_family": "bahrain_kuwait_oman_gulf_mobility",
     },
+    {
+        "url": "https://www.ilo.org/regions-and-countries/asia-and-pacific/countries-covered-ilo-regional-office-asia-and-pacific/ilo-india-and-south-asia/areas-work/labour-migration-south-asia",
+        "title": "ILO labour migration in South Asia overview",
+        "snippet": "ILO regional overview on South Asian labour migration, fair recruitment, migrant-worker vulnerability, poor employment conditions, substandard living conditions, forced-labour risk, women migrants, and source-destination policy coordination.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://www.ilo.org/publications/comprehensive-mapping-and-assessment-reintegration-measures-south-asian",
+        "title": "ILO-IOM reintegration mapping for South Asian Colombo Process members",
+        "snippet": "ILO and IOM report mapping reintegration support for returnee migrant workers from Bangladesh, India, Nepal, Pakistan, and Sri Lanka, with gaps relevant to safe return, referral, debt, and recruitment-abuse remediation.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://www.unodc.org/southasia/en/topics/frontpage/2009/trafficking-in-persons-and-smuggling-of-migrants.html",
+        "title": "UNODC South Asia trafficking in persons and smuggling overview",
+        "snippet": "UNODC regional page on South Asia as source, transit, and destination region for trafficking, forced labour, bonded labour, forced marriages, irregular migration, organised crime, and scattered evidence bases.",
+        "seed_family": "intergovernmental",
+    },
+    {
+        "url": "https://www.labour.gov.in/en/acts/bonded-labour-system-abolition-act9th-february-1976",
+        "title": "India Bonded Labour System Abolition Act page",
+        "snippet": "Official Indian labour-ministry page for the Bonded Labour System Abolition Act, grounding bonded-labour detection, debt liquidation, release, rehabilitation, and forced-labour legal context.",
+        "seed_family": "india_bonded_labour_migration",
+    },
+    {
+        "url": "https://www.labour.gov.in/offerings",
+        "title": "India labour-ministry schemes and bonded-labour rehabilitation listing",
+        "snippet": "Official Indian labour-ministry schemes page listing rehabilitation of bonded labourers and related labour protections, useful for source-country rescue, release, rehabilitation, and referral prompts.",
+        "seed_family": "india_bonded_labour_migration",
+    },
+    {
+        "url": "https://nhrc.nic.in/media/press-release/nhrc%2C-india-hears-online-216-cases-of-alleged-bonded-labour-cases-in-uttar-pradesh-brick-kilns",
+        "title": "India NHRC hearing on alleged bonded labour in brick kilns",
+        "snippet": "Official NHRC India press release on a large bonded-labour hearing involving brick kilns, official apathy, district reporting, release, skilling, rehabilitation, Supreme Court directives, and worker vulnerability.",
+        "seed_family": "india_bonded_labour_migration",
+    },
+    {
+        "url": "https://nhrc.nic.in/media/press-release/nhrc%2C-india-takes-suo-motu-cognizance-of-the-reported-indian-migrant-workers-stranded-in-dubai",
+        "title": "India NHRC cognizance of migrant workers stranded in Dubai",
+        "snippet": "Official NHRC India press release on migrant workers abroad alleging passport seizure, unpaid wages, travel-cost deductions, food insecurity, denial of return, and state migrant-worker control-room reporting.",
+        "seed_family": "india_bonded_labour_migration",
+    },
+    {
+        "url": "https://api.sci.gov.in/supremecourt/2023/51059/51059_2023_1_1502_56228_Judgement_03-Oct-2024.pdf",
+        "title": "India Supreme Court judgment discussing bonded and forced labour under Article 23",
+        "snippet": "Official Supreme Court judgment PDF discussing bonded labour, forced labour, minimum-wage compulsion, Article 23, public-interest labour enforcement, and broad legal understanding of coercive labour.",
+        "seed_family": "india_bonded_labour_migration",
+    },
+    {
+        "url": "https://bmet.gov.bd/pages/forms/complaint-form-against-recruiting-agent-1d1b39-6922da18933eb65569e0272f",
+        "title": "Bangladesh BMET complaint form against recruiting agents",
+        "snippet": "Official BMET form page for complaints against recruiting agents, supporting source-country evidence preservation for recruitment fees, agency misconduct, job substitution, and overseas-employment grievance intake.",
+        "seed_family": "bangladesh_overseas_employment",
+    },
+    {
+        "url": "https://bmet.gov.bd/site/notices/1fbce8ee-8557-4d53-a6eb-280eb08b1c04/nolink/-",
+        "title": "Bangladesh BMET notice on promised overseas jobs not received after departure",
+        "snippet": "Official BMET notice concerning workers legally sent by recruiting agencies who wait abroad or do not receive promised jobs, useful for job-substitution, contract deception, and source-country complaint scenarios.",
+        "seed_family": "bangladesh_overseas_employment",
+    },
+    {
+        "url": "https://probashi.gov.bd/pages/miscellaneous-infos/the-prevention-and-suppression-of-human-trafficking-act-2012-5c3071-6940380aa31054345f0dff79",
+        "title": "Bangladesh ministry page on the Prevention and Suppression of Human Trafficking Act 2012",
+        "snippet": "Official overseas-employment ministry page for Bangladesh's trafficking law, grounding safe migration, trafficking prevention, labour exploitation, victim protection, and source-country legal framing.",
+        "seed_family": "bangladesh_overseas_employment",
+    },
+    {
+        "url": "https://bangladesh.gov.bd/sites/default/files/files/bangladesh.gov.bd/gurd_file_new/4240d402_e5b9_4afa_87fa_2ef9c7f4635a/%E0%A6%AA%E0%A6%BE%E0%A6%9A%E0%A6%BE%E0%A6%B0%20%E0%A6%AA%E0%A7%8D%E0%A6%B0%E0%A6%A4%E0%A6%BF%E0%A6%B0%E0%A7%8B%E0%A6%A7%20%E0%A6%93%20%E0%A6%A6%E0%A6%AE%E0%A6%A8%20%E0%A6%86%E0%A6%87%E0%A6%A8-%E0%A7%A8%E0%A7%A6%E0%A7%A7%E0%A7%A8.pdf",
+        "title": "Bangladesh Gazette PDF for the Prevention and Suppression of Human Trafficking Act 2012",
+        "snippet": "Official Bangladesh government PDF for the human-trafficking law, covering recruitment, transfer, confinement, labour exploitation, deception, vulnerability, benefits paid for control, protection, and safe migration.",
+        "seed_family": "bangladesh_overseas_employment",
+    },
+    {
+        "url": "https://nhrcnepal.org/uploads/publication/Migration_Trafficking_in_Nepal.pdf",
+        "title": "Nepal NHRC report on foreign labour migration and trafficking",
+        "snippet": "NHRC Nepal report on foreign labour migration and trafficking, recruitment-agency deception, excessive recruitment charges, contract discrepancies, forced labour, kafala, and trafficking risk for migrant workers.",
+        "seed_family": "nepal_foreign_employment",
+    },
+    {
+        "url": "https://www.nhrcnepal.org/uploads/publication/Research_Report_on_the_Situation_of_The_Rights_of_MW.pdf",
+        "title": "Nepal NHRC research report on rights of migrant workers",
+        "snippet": "NHRC Nepal report on migrant-worker rights, recruitment misinformation, illegal fees, loan pressure, document return, forced-labour risk, trafficking definitions, and failure to enforce free-visa/free-ticket policy.",
+        "seed_family": "nepal_foreign_employment",
+    },
+    {
+        "url": "https://dofe.gov.np/content/190/details-of-foreign-employment-misdemeanor-cases/",
+        "title": "Nepal Department of Foreign Employment offence-case details page",
+        "snippet": "Official DOFE page for foreign-employment offence case details, relevant to source-country complaint, evidence, enforcement, and recruitment-abuse adjudication prompts.",
+        "seed_family": "nepal_foreign_employment",
+    },
+    {
+        "url": "https://lawcommission.gov.np/content/13307/foreign-employment-act--2064/",
+        "title": "Nepal Law Commission Foreign Employment Act page",
+        "snippet": "Official Nepal Law Commission page for the Foreign Employment Act, useful for recruitment-agency obligations, foreign-employment offences, complaint pathways, labour-migration governance, and worker protection.",
+        "seed_family": "nepal_foreign_employment",
+    },
+    {
+        "url": "https://lawcommission.gov.np/content/12921/12921-human-trafficking-and-transpor/",
+        "title": "Nepal Law Commission Human Trafficking and Transportation Control Act page",
+        "snippet": "Official Nepal Law Commission page for the anti-trafficking law, grounding trafficking, transportation, exploitation, prevention, complaint, victim protection, and source-country legal analysis.",
+        "seed_family": "nepal_foreign_employment",
+    },
+    {
+        "url": "https://www.slbfe.lk/slbfe-news/special-announcement-beware-of-fraudulent-korean-e-8-visa-employment-schemes/",
+        "title": "Sri Lanka SLBFE warning on fraudulent Korean E-8 visa employment schemes",
+        "snippet": "Official SLBFE warning on fake visa employment schemes, illegal collection of money, unapproved agencies or intermediaries, overseas-employment fraud, and public reporting.",
+        "seed_family": "sri_lanka_foreign_employment",
+    },
+    {
+        "url": "https://www.slbfe.lk/slbfe-news/foreign-employment-scam-using-social-media-platforms/",
+        "title": "Sri Lanka SLBFE warning on social-media foreign-employment scam",
+        "snippet": "Official SLBFE warning on deceptive social-media foreign-employment claims, edited worker videos, money collected under false job promises, licensed-agent requirements, court reporting, and investigation.",
+        "seed_family": "sri_lanka_foreign_employment",
+    },
+    {
+        "url": "https://www.slbfe.lk/law-enforcement/",
+        "title": "Sri Lanka SLBFE law enforcement page",
+        "snippet": "Official SLBFE law-enforcement page on licensing, monitoring, investigations, legal prosecution, illegal recruitment complaints, labour-rights violations, trafficking in persons, and migrant-worker protection.",
+        "seed_family": "sri_lanka_foreign_employment",
+    },
+    {
+        "url": "https://www.slbfe.lk/complaint-management/",
+        "title": "Sri Lanka SLBFE complaint management page",
+        "snippet": "Official SLBFE complaint-management page on migrant-worker complaints, diplomatic mission labour sections, complaint intake, investigation, licensed agencies, foreign employers, and complaint-record systems.",
+        "seed_family": "sri_lanka_foreign_employment",
+    },
+    {
+        "url": "https://www.slbfe.lk/wp-content/uploads/2025/08/SLBFE-Annual-Report-English-2023.pdf",
+        "title": "Sri Lanka SLBFE annual report 2023",
+        "snippet": "Official SLBFE annual report with complaint, investigation, recruitment, welfare, and enforcement material relevant to licensed-agency misconduct, Qatar recruitment complaints, and migrant-worker protection.",
+        "seed_family": "sri_lanka_foreign_employment",
+    },
+    {
+        "url": "https://beoe.gov.pk/illegal-recruitment",
+        "title": "Pakistan Bureau of Emigration illegal-recruitment instructions",
+        "snippet": "Official Pakistan BE&OE guidance warning against unlicensed agencies, missing job orders, unauthorized representatives, excessive placement fees, unofficial payments, training-center promises, and tourist-visa recruitment.",
+        "seed_family": "pakistan_overseas_employment",
+    },
+    {
+        "url": "https://www.na.gov.pk/uploads/documents/1532935755_919.pdf",
+        "title": "Pakistan National Assembly Prevention of Trafficking in Persons Act 2018 PDF",
+        "snippet": "Official Pakistan National Assembly PDF for the anti-trafficking law, defining trafficking through force, fraud, coercion, compelled labour, commercial sex acts, victim protection, and penalties.",
+        "seed_family": "pakistan_overseas_employment",
+    },
+    {
+        "url": "https://www.na.gov.pk/uploads/documents/67b34630de511_584.pdf",
+        "title": "Pakistan National Assembly trafficking-act amendment bill on non-punishment and financial benefit",
+        "snippet": "Official National Assembly bill text proposing victim non-punishment, special-court handling for cross-border trafficking, and presumptions around financial or material benefit from victims.",
+        "seed_family": "pakistan_overseas_employment",
+    },
+    {
+        "url": "https://ophrd.gov.pk/Detail/NjVjNmU1ZjktNjc4Yy00MzI3LTkxODItOTNiNmVhMDAxMzQw",
+        "title": "Pakistan overseas ministry Qatar employment FAQ",
+        "snippet": "Official overseas ministry FAQ on Qatar employment, recruitment fees, employer change, documented demand approvals, worker awareness, authorized overseas employment promoters, and free-visa risk.",
+        "seed_family": "pakistan_overseas_employment",
+    },
 )
 
 
@@ -2604,6 +2918,62 @@ def _query_row(
     return row
 
 
+def spun_terms_for_dork(term: str) -> tuple[str, ...]:
+    variants = [term]
+    variants.extend(DORK_TERM_SPINS.get(term, ()))
+    if "labour" in term:
+        variants.append(term.replace("labour", "labor"))
+    if "labor" in term:
+        variants.append(term.replace("labor", "labour"))
+    if "trafficking" in term:
+        variants.extend((term.replace("trafficking", "trafficking in persons"), term.replace("trafficking", "human trafficking")))
+    return tuple(dict.fromkeys(" ".join(value.split()) for value in variants if value.strip()))
+
+
+def dork_injections_for_term(term: str, *, limit: int = 4) -> tuple[str, ...]:
+    text = term.lower()
+    ranked: list[str] = []
+    if any(word in text for word in ("complaint", "agency", "recruit", "employment", "job")):
+        ranked.extend(("complaint", "recruitment agency", "licensed agency", "job order", "case law"))
+    if any(word in text for word in ("debt", "bonded", "fee", "placement", "cost")):
+        ranked.extend(("bonded labour", "recruitment agency", "wage withholding", "case digest", "victim identification"))
+    if any(word in text for word in ("passport", "document", "visa", "sponsor", "kafala", "permit")):
+        ranked.extend(("document retention", "complaint", "forced labour", "screening indicators", "safe return"))
+    if any(word in text for word in ("money", "financial", "payment", "transfer", "currency")):
+        ranked.extend(("suspicious transaction", "financial flows", "prosecution", "annual report"))
+    ranked.extend(DORK_SEARCH_INJECTIONS)
+    return tuple(dict.fromkeys(ranked))[:limit]
+
+
+def _append_dork_row(
+    rows: list[dict],
+    seen: set[str],
+    *,
+    query: str,
+    profile: dict,
+    template: dict,
+    site_filter: str,
+    term: str,
+) -> bool:
+    normalized = " ".join(query.split())
+    if normalized.lower() in seen:
+        return False
+    seen.add(normalized.lower())
+    rows.append(
+        _query_row(
+            query=normalized,
+            family=profile["id"],
+            intent=template["id"],
+            site_filter=site_filter,
+            expected_signals=_signals_for_term(term),
+            priority=max(0, 10000 - len(rows)),
+            prefix="DORK",
+            reason=template["reason"],
+        )
+    )
+    return True
+
+
 def build_deep_dorks(*, max_per_family: int = 120) -> list[dict]:
     rows: list[dict] = []
     seen: set[str] = set()
@@ -2611,25 +2981,50 @@ def build_deep_dorks(*, max_per_family: int = 120) -> list[dict]:
         made_for_family = 0
         for site_idx, site_filter in enumerate(profile["site_filters"]):
             for term in DEEP_DORK_TERMS:
+                query = DORK_VISIBILITY_TEMPLATE["template"].format(site=site_filter, term=term)
+                if _append_dork_row(rows, seen, query=query, profile=profile, template=DORK_VISIBILITY_TEMPLATE, site_filter=site_filter, term=term):
+                    made_for_family += 1
+                if made_for_family >= max_per_family:
+                    break
+            if made_for_family >= max_per_family:
+                break
+
+        for site_idx, site_filter in enumerate(profile["site_filters"]):
+            if made_for_family >= max_per_family:
+                break
+            expansion_stop = max(0, max_per_family - min(72, max_per_family // 3))
+            if made_for_family >= expansion_stop:
+                break
+            for term in DEEP_DORK_TERMS[:28]:
+                for spun_term in spun_terms_for_dork(term)[:4]:
+                    for injection in dork_injections_for_term(spun_term, limit=3):
+                        for template_idx, template in enumerate(DORK_EXPANSION_TEMPLATES):
+                            query = template["template"].format(
+                                site=site_filter,
+                                term=spun_term,
+                                injection=injection,
+                                url_token=URL_INJECTION_TOKENS[(site_idx + template_idx) % len(URL_INJECTION_TOKENS)],
+                                title_token=TITLE_INJECTION_TOKENS[(site_idx + template_idx) % len(TITLE_INJECTION_TOKENS)],
+                            )
+                            if _append_dork_row(rows, seen, query=query, profile=profile, template=template, site_filter=site_filter, term=spun_term):
+                                made_for_family += 1
+                            if made_for_family >= expansion_stop:
+                                break
+                        if made_for_family >= expansion_stop:
+                            break
+                    if made_for_family >= expansion_stop:
+                        break
+                if made_for_family >= expansion_stop:
+                    break
+
+        for site_idx, site_filter in enumerate(profile["site_filters"]):
+            if made_for_family >= max_per_family:
+                break
+            for term in DEEP_DORK_TERMS:
                 for template in DEEP_DORK_TEMPLATES:
                     query = template["template"].format(site=site_filter, term=term)
-                    normalized = " ".join(query.split())
-                    if normalized.lower() in seen:
-                        continue
-                    seen.add(normalized.lower())
-                    rows.append(
-                        _query_row(
-                            query=normalized,
-                            family=profile["id"],
-                            intent=template["id"],
-                            site_filter=site_filter,
-                            expected_signals=_signals_for_term(term),
-                            priority=max(0, 10000 - len(rows)),
-                            prefix="DORK",
-                            reason=template["reason"],
-                        )
-                    )
-                    made_for_family += 1
+                    if _append_dork_row(rows, seen, query=query, profile=profile, template=template, site_filter=site_filter, term=term):
+                        made_for_family += 1
                     if made_for_family >= max_per_family:
                         break
                 if made_for_family >= max_per_family:
@@ -3298,6 +3693,8 @@ def fallback_playbook() -> dict:
         ],
         "deep_search_layers": [
             "base official-source queries",
+            "quoted seed visibility dorks that keep every priority behavior phrase in the capped queue",
+            "deterministic word spinning, search-word injection, inurl, intitle, intext, and proximity dorks",
             "Google-style dorks across document types, dates, URL terms, titles, and sector/corridor combinations",
             "candidate-specific second-wave dorks derived from each source title, snippet, URL, and signal profile",
             "knowledge-object drafts that preserve provenance and verification status",

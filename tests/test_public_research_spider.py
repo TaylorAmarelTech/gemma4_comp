@@ -37,11 +37,17 @@ def test_build_queries_covers_requested_public_source_families():
     assert "site:mol.gov.qa" in text
     assert "site:hrsd.gov.sa" in text or "site:my.gov.sa" in text
     assert "site:lmra.gov.bh" in text or "site:fm.gov.om" in text
+    assert "site:labour.gov.in" in text or "site:nhrc.nic.in" in text
+    assert "site:bmet.gov.bd" in text or "site:probashi.gov.bd" in text
+    assert "site:dofe.gov.np" in text or "site:nhrcnepal.org" in text
+    assert "site:slbfe.lk" in text
+    assert "site:beoe.gov.pk" in text or "site:na.gov.pk" in text
     assert "filetype:pdf" in text
     assert any(q["intent"] == "debt_bondage_mechanics" for q in queries)
     assert any(q["intent"] == "victim_referral_access_to_justice" for q in queries)
     assert any(q["intent"] == "asean_forced_criminality_and_repatriation" for q in queries)
     assert any(q["intent"] == "gulf_sponsorship_and_mobility_controls" for q in queries)
+    assert any(q["intent"] == "south_asia_source_country_recruitment_grievance" for q in queries)
     assert any(q["intent"] == "payment_instrument_and_virtual_asset_trails" for q in queries)
 
 
@@ -49,6 +55,7 @@ def test_deep_dorks_include_google_operators_and_non_html_artifacts():
     dorks = spider.build_deep_dorks(max_per_family=300)
     text = "\n".join(q["query"] for q in dorks)
 
+    assert "passport confiscation" in text
     assert "intitle:" in text
     assert "inurl:" in text
     assert "filetype:pdf" in text
@@ -58,6 +65,25 @@ def test_deep_dorks_include_google_operators_and_non_html_artifacts():
     assert any(q["intent"] == "fishing_seafood_forced_labor" for q in spider.build_queries(max_per_family=20))
     assert "migrant fishers" in text
     assert "transport logistics" in text
+
+
+def test_deep_dorks_spin_terms_and_inject_search_words_without_losing_base_terms():
+    dorks = spider.build_deep_dorks(max_per_family=420)
+    text = "\n".join(q["query"] for q in dorks)
+    intents = {row["intent"] for row in dorks}
+
+    assert "quoted_seed_visibility" in intents
+    assert "spun_exact_injection" in intents
+    assert "spun_inurl_injection" in intents
+    assert "spun_title_intext" in intents
+    assert "spun_proximity" in intents
+    assert '"placement fees"' in text or '"worker-paid fees"' in text
+    assert 'inurl:complaint' in text or 'inurl:case' in text
+    assert 'intitle:"trafficking"' in text or 'intitle:"forced labour"' in text
+    assert 'intext:"debt bondage"' in text or 'intext:"recruitment fees"' in text
+    assert 'AROUND(6)' in text
+    assert "passport confiscation" in text
+    assert "foreign employment complaint" in text
 
 
 def test_sparse_signal_terms_and_sources_are_seeded():
@@ -229,6 +255,39 @@ def test_asean_gulf_official_corridor_sources_are_seeded():
     assert "absconding report" in dork_text
     assert "deported foreign nationals" in dork_text
     assert "casino scam center" in dork_text
+
+
+def test_south_asia_source_country_recruitment_grievance_sources_are_seeded():
+    candidates = spider.seed_source_candidates()
+    source_text = "\n".join(
+        " ".join([row["url"], row["title"], row["snippet"], *row["signals"]])
+        for row in candidates
+    )
+    dork_text = "\n".join(q["query"] for q in spider.build_deep_dorks(max_per_family=360))
+    signals = {signal for row in candidates for signal in row["signals"]}
+
+    assert spider.profile_for_url("https://nhrc.nic.in/media/press-release/example")["id"] == "india_bonded_labour_migration"
+    assert spider.profile_for_url("https://bmet.gov.bd/pages/forms/example")["id"] == "bangladesh_overseas_employment"
+    assert spider.profile_for_url("https://lawcommission.gov.np/content/example")["id"] == "nepal_foreign_employment"
+    assert spider.profile_for_url("https://www.slbfe.lk/law-enforcement/")["id"] == "sri_lanka_foreign_employment"
+    assert spider.profile_for_url("https://beoe.gov.pk/illegal-recruitment")["id"] == "pakistan_overseas_employment"
+    for needle in [
+        "labour-migration-south-asia",
+        "Migration_Trafficking_in_Nepal.pdf",
+        "Research_Report_on_the_Situation_of_The_Rights_of_MW.pdf",
+        "complaint-form-against-recruiting-agent",
+        "foreign-employment-scam-using-social-media-platforms",
+        "special-announcement-beware-of-fraudulent-korean-e-8-visa-employment-schemes",
+        "illegal-recruitment",
+        "1532935755_919.pdf",
+        "67b34630de511_584.pdf",
+    ]:
+        assert needle in source_text
+    assert {"source_country_recruitment_grievance", "illegal_recruitment", "debt_bondage"} <= signals
+    assert "foreign employment complaint" in dork_text
+    assert "complaint against recruiting agent" in dork_text
+    assert "job substitution" in dork_text
+    assert "brick kiln bonded labour" in dork_text
 
 
 def test_public_court_case_frontier_sources_are_seeded():
