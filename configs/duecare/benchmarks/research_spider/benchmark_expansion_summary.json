@@ -12,15 +12,15 @@
     "synthetic_placeholders_only": true
   },
   "refusal_detection_prompts": 180,
-  "rejected_or_deferred_sources": 17,
+  "rejected_or_deferred_sources": 19,
   "schema_version": "public_benchmark_expansion.summary.v1",
-  "source_decompositions": 244,
+  "source_decompositions": 260,
   "source_profile_coverage": {
-    "dimension_candidates": 164,
-    "knowledge_objects": 244,
+    "dimension_candidates": 189,
+    "knowledge_objects": 269,
     "sectors_covered": 10,
-    "signals_covered": 18,
-    "source_profiles": 244
+    "signals_covered": 19,
+    "source_profiles": 269
   },
   "verified_knowledge_objects": 160
 }

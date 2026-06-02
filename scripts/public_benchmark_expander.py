@@ -37,6 +37,7 @@ TARGET_SIGNALS = (
     "forced_labor",
     "illegal_recruitment",
     "document_control",
+    "source_country_recruitment_grievance",
     "immigration_status_control",
     "sponsorship_mobility_control",
     "forced_criminality",

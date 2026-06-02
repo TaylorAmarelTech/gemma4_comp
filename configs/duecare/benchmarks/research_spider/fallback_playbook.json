@@ -1,6 +1,8 @@
 {
   "deep_search_layers": [
     "base official-source queries",
+    "quoted seed visibility dorks that keep every priority behavior phrase in the capped queue",
+    "deterministic word spinning, search-word injection, inurl, intitle, intext, and proximity dorks",
     "Google-style dorks across document types, dates, URL terms, titles, and sector/corridor combinations",
     "candidate-specific second-wave dorks derived from each source title, snippet, URL, and signal profile",
     "knowledge-object drafts that preserve provenance and verification status"
