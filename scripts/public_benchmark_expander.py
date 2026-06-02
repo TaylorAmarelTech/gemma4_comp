@@ -38,6 +38,7 @@ TARGET_SIGNALS = (
     "illegal_recruitment",
     "document_control",
     "immigration_status_control",
+    "sponsorship_mobility_control",
     "forced_criminality",
     "financial_obfuscation",
     "online_bait",

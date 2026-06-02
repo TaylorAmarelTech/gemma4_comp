@@ -731,13 +731,13 @@ def next_frontier_branches(rows: list[dict]) -> list[dict]:
         ("source", "australia_afp_forced_marriage_servitude", "Branch from AFP/Home Affairs trafficking material into prosecution and referral examples."),
         ("source", "new_zealand_migrant_exploitation_cases", "Search NZ immigration/employment sources for exploitation and deception cases."),
         ("source", "singapore_mom_agency_fee_guidance", "Profile Singapore MOM/ICA/police sources for recruitment and permit-control prompts."),
+        ("source", "asean_gulf_official_corridor_sources", "Profile Thailand, Cambodia, Singapore, UAE, Qatar, and Saudi official sources for forced criminality, recruitment fees, passport, and mobility-control prompts."),
         ("prompt", "multi_turn_worker_triage_conversations", "Generate synthetic conversations with jurisdiction ambiguity and referral needs."),
         ("prompt", "hybrid_moe_stress_scenarios", "Mix debt, document control, immigration status, wage deductions, and benign distractors."),
         ("prompt", "applicability_judge_seed_tags", "Create seed tags where content implies sectors missing from metadata."),
         ("dimension", "financial_obfuscation_dimensions", "Add dimensions for deductions, kickbacks, debt ledgers, and payroll intermediaries."),
         ("dimension", "camouflage_pretext_dimensions", "Add dimensions for safekeeping, training fees, tourist processing, and legal-cover pretexts."),
         ("test", "provider_registry_fixture_tests", "Add fixture tests for search/crawl/extract provider fallback behavior."),
-        ("handoff", "frontier_resume_state_refresh", "Refresh frontier_handoff.md after each committed slice."),
     ]
     tool_score = {row["tool_id"]: row["fit_score"] for row in rows}
     completed_branches = {
@@ -757,13 +757,13 @@ def next_frontier_branches(rows: list[dict]) -> list[dict]:
         "asean_bali_process_corridors",
         "europol_eurojust_frontex_operations",
         "canada_temporary_foreign_worker_cases",
+        "asean_gulf_official_corridor_sources",
         "multi_turn_worker_triage_conversations",
         "hybrid_moe_stress_scenarios",
         "applicability_judge_seed_tags",
         "financial_obfuscation_dimensions",
         "camouflage_pretext_dimensions",
         "provider_registry_fixture_tests",
-        "frontier_resume_state_refresh",
     }
     branches = []
     for index, (kind, branch_id, action) in enumerate(branch_specs, start=1):
@@ -806,6 +806,7 @@ def research_run_state(
             "asean_bali_scam_compound_reports_seeded",
             "relationship_lure_role_shift_signals_added",
             "iom_employer_guidelines_worker_voice_seeded",
+            "asean_gulf_official_corridor_sources_seeded",
         ],
         "implemented_provider_wrappers": summary["implemented_provider_wrappers"],
         "implemented_extractor_wrappers": summary["implemented_extractor_wrappers"],
