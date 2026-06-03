@@ -41,6 +41,32 @@
       background: #EFEDE4; color: #5B5F68;
     }
     .tpl-card .tpl-summary { font-size: 11.5px; color: #5B5F68; line-height: 1.45; }
+    .tpl-card-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 4px; }
+    .tpl-card-actions .wb-btn-secondary { flex: 1 1 118px; text-align: center; }
+    .tpl-walkthrough { display: grid; gap: 10px;
+                       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+    .tpl-stage { border: 1px solid #EFEDE4; border-radius: 8px;
+                 background: #FAF9F4; padding: 10px 12px; min-height: 92px; }
+    .tpl-stage b { display: block; font-size: 12px; margin-bottom: 4px; color: #0E1116; }
+    .tpl-stage span { display: block; color: #5B5F68; font-size: 11.5px; line-height: 1.45; }
+    .tpl-recommend-layout { display: grid; gap: 12px;
+                            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                            margin-top: 12px; }
+    .tpl-recommend-panel { border: 1px solid #EFEDE4; border-radius: 8px;
+                           background: #FAF9F4; padding: 10px 12px; }
+    .tpl-recommend-panel h3 { margin: 0 0 8px; font-size: 12.5px; }
+    .tpl-fact-list, .tpl-recommend-list { display: grid; gap: 8px; }
+    .tpl-fact, .tpl-recommendation { border: 1px solid #DDD8C9;
+                                     border-radius: 8px; background: #FFF;
+                                     padding: 9px 10px; }
+    .tpl-fact b, .tpl-recommendation b { display: block; font-size: 12px; }
+    .tpl-fact span, .tpl-recommendation span { display: block; color: #5B5F68;
+                                               font-size: 11.5px; line-height: 1.45;
+                                               margin-top: 3px; }
+    .tpl-chip-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+    .tpl-chip { font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+                padding: 1px 7px; border-radius: 999px;
+                background: #EFEDE4; color: #5B5F68; }
     .tpl-fields { display: grid;
                    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
                    gap: 10px; margin-top: 8px; }
@@ -118,13 +144,13 @@
 
     <p class="wb-lede">
       Turn a processed case bundle into a draft complaint or referral
-      document. Pick a template, attach the latest bundle from Bulk
-      File Review (or paste structured intelligence as JSON), let
-      Gemma 4 propose field values, then edit and export. Templates
-      ship with HK Labour Department, POEA/DMW, IOM, and a generic
-      NGO intake form; each is a Jinja-style placeholder document
-      with no HTML. Drafts are local case-support artifacts, not shared
-      fact objects until they pass the anonymization gate.
+      document. Every template now has a synthetic example bundle to
+      download or load, and the page follows the same pipeline as Bulk
+      File Review: extract complaint facts, recommend appropriate
+      filing paths, fill fields, then edit and export. Templates are
+      Jinja-style placeholder documents with no HTML. Drafts are local
+      case-support artifacts, not shared fact objects until they pass
+      the anonymization gate.
     </p>
 
     <div class="wb-muted" id="tpl-gemma-paths-hint"
@@ -139,6 +165,11 @@
           bundle's intelligence (people, employers, payments, journey
           points) is mapped directly to fields where a source_hint is
           declared. Green border = filled from the bundle.</li>
+        <li><b>Gemma 4 recommends complaint paths</b> &mdash; after a
+          bundle is attached, the page extracts sanitized knowledge-fact
+          candidates and asks Gemma which registered complaint or
+          referral templates are appropriate. Deterministic indicator
+          matches remain the floor.</li>
         <li><b>Gemma 4 fills the gaps</b> &mdash; when "Use Gemma 4 to
           fill" is checked and a model is loaded, Gemma proposes
           values for the remaining required fields. Teal border =
@@ -156,7 +187,29 @@
     </div>
 
     <div class="wb-card">
-      <h2>1. Pick a template</h2>
+      <h2>Walkthrough</h2>
+      <div class="tpl-walkthrough">
+        <div class="tpl-stage">
+          <b>1. Load evidence</b>
+          <span>Use the latest Bulk File Review bundle, paste JSON, or load the synthetic example on any template card.</span>
+        </div>
+        <div class="tpl-stage">
+          <b>2. Extract facts</b>
+          <span>The page summarizes indicators, payments, evidence edges, and complaint-readiness facts without expanding PII.</span>
+        </div>
+        <div class="tpl-stage">
+          <b>3. Choose routes</b>
+          <span>Gemma 4 can recommend which complaint or referral templates fit the facts; deterministic matches are kept.</span>
+        </div>
+        <div class="tpl-stage">
+          <b>4. Draft and gate</b>
+          <span>Bundle hints fill first, Gemma fills unresolved fields, and the caseworker edits before any download or sharing.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="wb-card">
+      <h2>1. Pick a template or example</h2>
       <div class="tpl-gallery" id="tpl-gallery">
         <div class="wb-muted" style="grid-column: 1 / -1; padding: 14px;">
           Loading templates...
@@ -169,22 +222,22 @@
       <p class="wb-muted" style="margin: 0 0 10px;">
         The bundle is the JSON output from Bulk File Review. The most
         recent run in this browser session is loaded automatically.
-        You can also paste a bundle JSON manually, or generate a
-        fresh one by visiting <a href="/static/process.html">Bulk File
-        Review</a>.
+        You can also paste JSON, generate a fresh run in
+        <a href="/static/process.html">Bulk File Review</a>, or use the
+        synthetic example attached to each template.
       </p>
       <div class="tpl-row" style="margin-bottom: 8px;">
         <button class="wb-btn-secondary" id="tpl-download-sample-btn"
                 type="button" onclick="tplDownloadSampleBundle()">
-          Download sample bundle
+          Download selected example
         </button>
         <button class="wb-btn-secondary" id="tpl-use-sample-btn"
                 type="button" onclick="tplUseSampleBundle()">
-          Use sample bundle
+          Use selected example
         </button>
         <button class="wb-btn-primary" id="tpl-fill-relevant-btn"
                 type="button" onclick="tplGenerateBatchDraft()" disabled>
-          Fill all relevant
+          Fill recommended
         </button>
       </div>
       <div id="tpl-bundle-status" class="wb-muted">No bundle attached yet.</div>
@@ -209,8 +262,50 @@
       </details>
     </div>
 
+    <div class="wb-card" id="tpl-recommend-card">
+      <h2>3. Extract facts and recommend complaints</h2>
+      <p class="wb-muted" style="margin: 0 0 10px;">
+        This step turns the attached bundle into sanitized routing facts,
+        then asks Gemma 4 which registered complaint or referral templates
+        are appropriate. The output is a recommendation queue; it does not
+        file anything or publish knowledge.
+      </p>
+      <div class="tpl-row" style="margin-bottom: 8px;">
+        <label style="font-size: 12px; cursor: pointer;">
+          <input type="checkbox" id="tpl-use-gemma-recommend" checked
+                 data-tip="When checked, Gemma 4 reviews the sanitized bundle excerpt and returns registered template IDs that fit the facts."
+                 data-tip-pos="below">
+          Use Gemma 4 to recommend appropriate complaints
+        </label>
+        <span class="dc-gemma-mark is-optional" id="tpl-recommend-gemma-mark"
+              data-tip="Honest marker: promotes only after /api/templates/recommend confirms Gemma ran."
+              data-tip-pos="below">Optional</span>
+        <button class="wb-btn-primary" id="tpl-recommend-btn"
+                type="button" onclick="tplRecommendTemplates()" disabled>
+          Extract facts + recommend complaints
+        </button>
+      </div>
+      <div id="tpl-recommend-status" class="wb-muted">
+        Attach a bundle or load a template example to start.
+      </div>
+      <div class="tpl-recommend-layout">
+        <div class="tpl-recommend-panel">
+          <h3>Knowledge fact candidates</h3>
+          <div id="tpl-fact-host" class="tpl-fact-list" aria-live="polite">
+            <div class="wb-muted">No facts extracted yet.</div>
+          </div>
+        </div>
+        <div class="tpl-recommend-panel">
+          <h3>Complaint / referral paths</h3>
+          <div id="tpl-recommend-host" class="tpl-recommend-list" aria-live="polite">
+            <div class="wb-muted">No recommendations yet.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="wb-card" id="tpl-fields-card" hidden>
-      <h2>3. Review proposed fields</h2>
+      <h2>4. Review proposed fields</h2>
       <div id="tpl-dry-run-banner" class="tpl-dry-run-banner"
            aria-live="polite" hidden></div>
       <div class="wb-row" style="display: flex; gap: 10px; flex-wrap: wrap;
@@ -252,7 +347,7 @@
     </div>
 
     <div class="wb-card" id="tpl-render-card" hidden>
-      <h2>4. Draft document</h2>
+      <h2>5. Draft document</h2>
       <p class="wb-muted" style="margin: 0 0 8px;">
         Edit directly in the textarea below; manual edits are preserved
         on re-render unless you click "Generate draft" again which
@@ -287,7 +382,7 @@
     </div>
 
     <div class="wb-card" id="tpl-batch-card" hidden>
-      <h2>Batch drafts</h2>
+      <h2>Recommended batch drafts</h2>
       <div id="tpl-batch-status" class="wb-muted"></div>
       <div id="tpl-batch-host" aria-live="polite"></div>
     </div>
@@ -310,6 +405,7 @@
     let _tplLastFill = null;
     let _tplDryRunPreview = null;
     let _tplDryRunSeq = 0;
+    let _tplRecommendations = null;
     const TPL_SAMPLE_BUNDLE_URL = '/static/samples/template_bundle_sample.json';
 
     function tplGetLog() {
@@ -377,8 +473,9 @@
         return;
       }
       _tplTemplates.forEach(t => {
-        const card = document.createElement('button');
-        card.type = 'button';
+        const card = document.createElement('div');
+        card.setAttribute('role', 'button');
+        card.tabIndex = 0;
         card.className = 'tpl-card' + (_tplActive && _tplActive.id === t.id ? ' active' : '');
         card.setAttribute('data-template-id', t.id);
         const title = document.createElement('h3');
@@ -400,7 +497,48 @@
         sum.className = 'tpl-summary';
         sum.textContent = t.summary;
         card.appendChild(sum);
+        const rec = tplRecommendationFor(t.id);
+        if (rec) {
+          const chips = document.createElement('div');
+          chips.className = 'tpl-chip-row';
+          const score = document.createElement('span');
+          score.className = 'tpl-chip';
+          score.textContent = 'recommended ' + rec.score;
+          chips.appendChild(score);
+          const source = document.createElement('span');
+          source.className = 'tpl-chip';
+          source.textContent = rec.source;
+          chips.appendChild(source);
+          card.appendChild(chips);
+        }
+        const actions = document.createElement('div');
+        actions.className = 'tpl-card-actions';
+        const useBtn = document.createElement('button');
+        useBtn.type = 'button';
+        useBtn.className = 'wb-btn-secondary';
+        useBtn.textContent = 'Use example';
+        useBtn.addEventListener('click', evt => {
+          evt.stopPropagation();
+          tplUseTemplateSample(t.id, {select: true, recommend: true});
+        });
+        actions.appendChild(useBtn);
+        const downloadBtn = document.createElement('button');
+        downloadBtn.type = 'button';
+        downloadBtn.className = 'wb-btn-secondary';
+        downloadBtn.textContent = 'Download example';
+        downloadBtn.addEventListener('click', evt => {
+          evt.stopPropagation();
+          tplDownloadTemplateSample(t.id);
+        });
+        actions.appendChild(downloadBtn);
+        card.appendChild(actions);
         card.addEventListener('click', () => tplSelectTemplate(t.id));
+        card.addEventListener('keydown', evt => {
+          if (evt.key === 'Enter' || evt.key === ' ') {
+            evt.preventDefault();
+            tplSelectTemplate(t.id);
+          }
+        });
         host.appendChild(card);
       });
     }
@@ -597,7 +735,21 @@
       return [];
     }
 
+    function tplRecommendationFor(templateId) {
+      const recs = (_tplRecommendations && _tplRecommendations.recommendations) || [];
+      return recs.find(r => r.template_id === templateId) || null;
+    }
+
+    function tplRecommendedTemplates() {
+      const recs = (_tplRecommendations && _tplRecommendations.recommendations) || [];
+      const ids = new Set(recs.map(r => r.template_id).filter(Boolean));
+      if (!ids.size) return [];
+      return _tplTemplates.filter(t => ids.has(t.id));
+    }
+
     function tplRelevantTemplates() {
+      const recommended = tplRecommendedTemplates();
+      if (recommended.length) return recommended;
       const indicators = new Set(tplBundleIndicators());
       if (!indicators.size) return [];
       return _tplTemplates.filter(t => {
@@ -606,21 +758,37 @@
       });
     }
 
+    function tplUpdateRecommendButton() {
+      const btn = document.getElementById('tpl-recommend-btn');
+      if (!btn) return;
+      btn.disabled = !_tplBundle;
+      btn.title = _tplBundle
+        ? 'Extract sanitized facts and ask Gemma 4 which complaint paths fit.'
+        : 'Attach a case bundle first.';
+    }
+
     function tplUpdateBatchButton() {
       const btn = document.getElementById('tpl-fill-relevant-btn');
       if (!btn) return;
       const indicators = tplBundleIndicators();
       const relevant = tplRelevantTemplates();
-      btn.disabled = !_tplBundle || !indicators.length || !relevant.length;
+      const hasRecommendationQueue = !!(
+        _tplRecommendations && (_tplRecommendations.recommendations || []).length
+      );
+      btn.disabled = !_tplBundle || !relevant.length
+        || (!indicators.length && !hasRecommendationQueue);
       if (!_tplBundle) {
         btn.title = 'Attach a case bundle first.';
-      } else if (!indicators.length) {
+      } else if (!indicators.length && !hasRecommendationQueue) {
         btn.title = 'The attached bundle has no intelligence.ilo_indicators.';
       } else if (!relevant.length) {
         btn.title = 'No templates overlap the attached bundle indicators.';
+      } else if (hasRecommendationQueue) {
+        btn.title = 'Fill ' + relevant.length + ' template(s) from the recommendation queue.';
       } else {
         btn.title = 'Fill ' + relevant.length + ' templates matching the bundle indicators.';
       }
+      tplUpdateRecommendButton();
     }
 
     function tplManualFieldsByTemplateId(templateIds) {
@@ -631,6 +799,213 @@
       return out;
     }
 
+    function tplClearRecommendations() {
+      _tplRecommendations = null;
+      tplRenderRecommendations(null);
+      tplRenderGallery();
+      tplUpdateBatchButton();
+    }
+
+    function tplRenderFacts(facts) {
+      const host = document.getElementById('tpl-fact-host');
+      if (!host) return;
+      while (host.firstChild) host.removeChild(host.firstChild);
+      if (!facts || !facts.length) {
+        const empty = document.createElement('div');
+        empty.className = 'wb-muted';
+        empty.textContent = 'No facts extracted yet.';
+        host.appendChild(empty);
+        return;
+      }
+      facts.forEach(fact => {
+        const item = document.createElement('div');
+        item.className = 'tpl-fact';
+        const title = document.createElement('b');
+        title.textContent = fact.label || fact.fact_type || 'Fact candidate';
+        item.appendChild(title);
+        const body = document.createElement('span');
+        body.textContent = fact.statement || '';
+        item.appendChild(body);
+        const chips = document.createElement('div');
+        chips.className = 'tpl-chip-row';
+        ['source', 'pii_status', 'indicator'].forEach(key => {
+          if (!fact[key]) return;
+          const chip = document.createElement('span');
+          chip.className = 'tpl-chip';
+          chip.textContent = fact[key];
+          chips.appendChild(chip);
+        });
+        if (chips.childNodes.length) item.appendChild(chips);
+        host.appendChild(item);
+      });
+    }
+
+    function tplRenderRecommendationList(recs) {
+      const host = document.getElementById('tpl-recommend-host');
+      if (!host) return;
+      while (host.firstChild) host.removeChild(host.firstChild);
+      if (!recs || !recs.length) {
+        const empty = document.createElement('div');
+        empty.className = 'wb-muted';
+        empty.textContent = 'No recommendations yet.';
+        host.appendChild(empty);
+        return;
+      }
+      recs.forEach(rec => {
+        const item = document.createElement('div');
+        item.className = 'tpl-recommendation';
+        const title = document.createElement('b');
+        title.textContent = rec.title || rec.template_id || 'Template';
+        item.appendChild(title);
+        const reason = document.createElement('span');
+        reason.textContent = rec.reason || 'Recommended from bundle indicators.';
+        item.appendChild(reason);
+        const chips = document.createElement('div');
+        chips.className = 'tpl-chip-row';
+        const score = document.createElement('span');
+        score.className = 'tpl-chip';
+        score.textContent = 'score ' + (rec.score || 0);
+        chips.appendChild(score);
+        const source = document.createElement('span');
+        source.className = 'tpl-chip';
+        source.textContent = rec.source || 'selector';
+        chips.appendChild(source);
+        (rec.matched_indicators || []).slice(0, 4).forEach(ind => {
+          const chip = document.createElement('span');
+          chip.className = 'tpl-chip';
+          chip.textContent = ind;
+          chips.appendChild(chip);
+        });
+        item.appendChild(chips);
+        const actions = document.createElement('div');
+        actions.className = 'tpl-card-actions';
+        const selectBtn = document.createElement('button');
+        selectBtn.type = 'button';
+        selectBtn.className = 'wb-btn-secondary';
+        selectBtn.textContent = 'Select';
+        selectBtn.addEventListener('click', () => tplSelectTemplate(rec.template_id));
+        actions.appendChild(selectBtn);
+        const fillBtn = document.createElement('button');
+        fillBtn.type = 'button';
+        fillBtn.className = 'wb-btn-secondary';
+        fillBtn.textContent = 'Fill this';
+        fillBtn.addEventListener('click', async () => {
+          tplSelectTemplate(rec.template_id);
+          await tplGenerateDraft();
+        });
+        actions.appendChild(fillBtn);
+        item.appendChild(actions);
+        host.appendChild(item);
+      });
+    }
+
+    function tplRenderRecommendations(data) {
+      const status = document.getElementById('tpl-recommend-status');
+      const facts = (data && data.knowledge_fact_candidates) || [];
+      const recs = (data && data.recommendations) || [];
+      tplRenderFacts(facts);
+      tplRenderRecommendationList(recs);
+      if (status) {
+        if (!data) {
+          status.textContent = _tplBundle
+            ? 'Bundle attached. Run extraction to recommend complaint paths.'
+            : 'Attach a bundle or load a template example to start.';
+        } else {
+          const used = data.used_gemma ? 'Gemma reviewed routes' : 'deterministic route selection';
+          status.textContent = facts.length + ' fact candidate(s), '
+            + recs.length + ' recommended path(s), ' + used + '.';
+        }
+      }
+    }
+
+    async function tplRecommendTemplates(opts) {
+      opts = opts || {};
+      if (!_tplBundle) {
+        tplLog('warn', 'Attach a case bundle first');
+        tplUpdateRecommendButton();
+        return null;
+      }
+      const btn = document.getElementById('tpl-recommend-btn');
+      const useGemmaEl = document.getElementById('tpl-use-gemma-recommend');
+      const mark = document.getElementById('tpl-recommend-gemma-mark');
+      const useGemma = useGemmaEl ? useGemmaEl.checked : true;
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Recommending...';
+      }
+      if (mark) {
+        mark.className = 'dc-gemma-mark is-optional';
+        mark.textContent = useGemma ? 'Gemma queued' : 'Gemma skipped';
+      }
+      tplLog('net', 'POST /api/templates/recommend');
+      try {
+        const r = await fetch('/api/templates/recommend', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            bundle: _tplBundle,
+            use_gemma: useGemma,
+            max_results: 12,
+          }),
+        });
+        if (window.dcInferenceError) {
+          const queueErr = await window.dcInferenceError.parse(r);
+          if (queueErr) {
+            tplLog('warn', window.dcInferenceError.format(queueErr));
+            if (mark) {
+              mark.className = 'dc-gemma-mark is-unavailable';
+              mark.textContent = 'Gemma busy';
+            }
+            return null;
+          }
+        }
+        if (!r.ok) {
+          const text = await r.text();
+          tplLog('err', 'Recommendation failed (HTTP ' + r.status + ')', text.slice(0, 240));
+          if (mark) {
+            mark.className = 'dc-gemma-mark is-unavailable';
+            mark.textContent = 'Gemma failed';
+          }
+          return null;
+        }
+        const data = await r.json();
+        _tplRecommendations = data;
+        tplRenderRecommendations(data);
+        tplRenderGallery();
+        tplUpdateBatchButton();
+        const recs = data.recommendations || [];
+        if (!_tplActive && recs.length) tplSelectTemplate(recs[0].template_id);
+        if (mark) {
+          if (data.used_gemma) {
+            mark.className = 'dc-gemma-mark is-done';
+            mark.textContent = 'Gemma done';
+            if (window.dcGemmaStats) window.dcGemmaStats.bump('template_recommend');
+          } else if (useGemma) {
+            mark.className = 'dc-gemma-mark is-unavailable';
+            mark.textContent = 'Gemma unavailable';
+          } else {
+            mark.className = 'dc-gemma-mark is-skipped';
+            mark.textContent = 'Gemma skipped';
+          }
+        }
+        tplLog('ok', 'Template recommendations ready',
+          recs.length + ' paths, ' + ((data.knowledge_fact_candidates || []).length) + ' facts');
+        return data;
+      } catch (e) {
+        tplLog('err', 'Recommendation network error: ' + e);
+        if (mark) {
+          mark.className = 'dc-gemma-mark is-unavailable';
+          mark.textContent = 'Gemma failed';
+        }
+        return null;
+      } finally {
+        if (btn) {
+          btn.textContent = 'Extract facts + recommend complaints';
+        }
+        tplUpdateRecommendButton();
+      }
+    }
+
     function tplLoadStoredBundle(opts) {
       opts = opts || {};
       try {
@@ -638,6 +1013,7 @@
         if (raw) {
           const data = JSON.parse(raw);
           _tplBundle = data;
+          tplClearRecommendations();
           tplRefreshAfterBundleLoad();
           if (!opts.silent) tplLog('ok', 'Loaded last Bulk File Review bundle');
           return true;
@@ -658,6 +1034,7 @@
       }
       try {
         _tplBundle = JSON.parse(raw);
+        tplClearRecommendations();
         tplRefreshAfterBundleLoad();
         tplLog('ok', 'Bundle attached from pasted JSON');
       } catch (e) {
@@ -696,24 +1073,35 @@
       }
     }
 
-    async function tplFetchSampleBundle() {
-      const r = await fetch(TPL_SAMPLE_BUNDLE_URL, {cache: 'no-store'});
+    function tplSampleUrl(templateId) {
+      const t = tplTemplateById(templateId);
+      return (t && t.sample_bundle_url)
+        || ('/api/templates/sample-bundle/' + encodeURIComponent(templateId || ''));
+    }
+
+    async function tplFetchSampleBundle(templateId) {
+      const url = templateId ? tplSampleUrl(templateId) : TPL_SAMPLE_BUNDLE_URL;
+      const r = await fetch(url, {cache: 'no-store'});
       if (!r.ok) {
         throw new Error('HTTP ' + r.status);
       }
       return await r.json();
     }
 
-    async function tplUseSampleBundle() {
-      const btn = document.getElementById('tpl-use-sample-btn');
-      if (btn) {
-        btn.disabled = true;
-        btn.textContent = 'Loading sample...';
+    async function tplUseTemplateSample(templateId, opts) {
+      opts = opts || {};
+      const t = tplTemplateById(templateId);
+      if (!t) {
+        tplLog('warn', 'Pick a template first');
+        return;
       }
-      tplLog('net', 'GET ' + TPL_SAMPLE_BUNDLE_URL);
+      if (opts.select) tplSelectTemplate(templateId);
+      const url = tplSampleUrl(templateId);
+      tplLog('net', 'GET ' + url);
       try {
-        const data = await tplFetchSampleBundle();
+        const data = await tplFetchSampleBundle(templateId);
         _tplBundle = data;
+        tplClearRecommendations();
         try {
           window.localStorage.setItem('duecare:wb-bundle', JSON.stringify(data));
         } catch (_) {}
@@ -721,39 +1109,86 @@
         if (el) el.value = JSON.stringify(data, null, 2);
         tplRefreshAfterBundleLoad();
         const counts = tplSampleBundleCounts(data);
-        tplLog('ok', 'Sample bundle loaded',
+        tplLog('ok', 'Example bundle loaded for ' + t.title,
           counts.people + ' people, ' + counts.payments + ' payments, '
           + counts.indicators + ' indicators');
+        if (opts.recommend !== false) {
+          await tplRecommendTemplates({auto: true});
+        }
       } catch (e) {
-        tplLog('err', 'Sample bundle load failed', String(e).slice(0, 200));
+        tplLog('err', 'Example bundle load failed', String(e).slice(0, 200));
+      }
+    }
+
+    async function tplUseSampleBundle() {
+      const btn = document.getElementById('tpl-use-sample-btn');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Loading example...';
+      }
+      try {
+        if (_tplActive) {
+          await tplUseTemplateSample(_tplActive.id, {select: false, recommend: true});
+        } else {
+          tplLog('net', 'GET ' + TPL_SAMPLE_BUNDLE_URL);
+          const data = await tplFetchSampleBundle();
+          _tplBundle = data;
+          tplClearRecommendations();
+          try {
+            window.localStorage.setItem('duecare:wb-bundle', JSON.stringify(data));
+          } catch (_) {}
+          const el = document.getElementById('tpl-bundle-json');
+          if (el) el.value = JSON.stringify(data, null, 2);
+          tplRefreshAfterBundleLoad();
+          tplLog('ok', 'Generic sample bundle loaded');
+          await tplRecommendTemplates({auto: true});
+        }
+      } catch (e) {
+        tplLog('err', 'Example bundle load failed', String(e).slice(0, 200));
       } finally {
         if (btn) {
           btn.disabled = false;
-          btn.textContent = 'Use sample bundle';
+          btn.textContent = 'Use selected example';
         }
+      }
+    }
+
+    async function tplDownloadTemplateSample(templateId) {
+      const t = tplTemplateById(templateId);
+      if (!t) {
+        tplLog('warn', 'Pick a template first');
+        return;
+      }
+      const url = tplSampleUrl(templateId);
+      tplLog('net', 'GET ' + url);
+      try {
+        const r = await fetch(url, {cache: 'no-store'});
+        if (!r.ok) {
+          tplLog('err', 'Example download failed (HTTP ' + r.status + ')');
+          return;
+        }
+        const blob = await r.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = templateId + '_sample_bundle.json';
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+        tplLog('ok', 'Downloaded example bundle for ' + t.title, blob.size + ' bytes');
+      } catch (e) {
+        tplLog('err', 'Example download failed', String(e).slice(0, 200));
       }
     }
 
     async function tplDownloadSampleBundle() {
       const btn = document.getElementById('tpl-download-sample-btn');
       if (btn) btn.disabled = true;
-      tplLog('net', 'GET ' + TPL_SAMPLE_BUNDLE_URL);
       try {
-        const r = await fetch(TPL_SAMPLE_BUNDLE_URL, {cache: 'no-store'});
-        if (!r.ok) {
-          tplLog('err', 'Sample download failed (HTTP ' + r.status + ')');
-          return;
+        if (_tplActive) {
+          await tplDownloadTemplateSample(_tplActive.id);
+        } else {
+          tplLog('warn', 'Pick a template first');
         }
-        const blob = await r.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'template_bundle_sample.json';
-        a.click();
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
-        tplLog('ok', 'Downloaded sample bundle', blob.size + ' bytes');
-      } catch (e) {
-        tplLog('err', 'Sample download failed', String(e).slice(0, 200));
       } finally {
         if (btn) btn.disabled = false;
       }
@@ -851,7 +1286,10 @@
         tplUpdateBatchButton();
         return;
       }
-      if (!tplBundleIndicators().length) {
+      const hasRecommendationQueue = !!(
+        _tplRecommendations && (_tplRecommendations.recommendations || []).length
+      );
+      if (!tplBundleIndicators().length && !hasRecommendationQueue) {
         tplLog('warn', 'No bundle indicators found', 'Expected intelligence.ilo_indicators.');
         tplUpdateBatchButton();
         return;
@@ -867,12 +1305,12 @@
       const t0 = performance.now();
       if (btn) {
         btn.disabled = true;
-        btn.textContent = 'Filling relevant...';
+        btn.textContent = 'Filling recommended...';
       }
       tplSetProgress(
         12,
         'Preparing batch template fill',
-        templateIds.length + ' relevant template(s) selected from the attached bundle.',
+        templateIds.length + ' template(s) selected from recommendation or indicator overlap.',
         true,
         'Bundle-derived field hints are used first; Gemma 4 only fills unresolved fields when requested and available.'
       );
@@ -953,7 +1391,7 @@
           gemmaMark.textContent = 'Gemma failed';
         }
       } finally {
-        if (btn) btn.textContent = 'Fill all relevant';
+        if (btn) btn.textContent = 'Fill recommended';
         tplUpdateBatchButton();
       }
     }

@@ -5,11 +5,15 @@ from fastapi.testclient import TestClient
 
 from duecare.chat import templates as tpl
 from duecare.chat.templates import (
+    TEMPLATES_REGISTRY,
     TemplateField,
     TemplateSpec,
+    extract_template_knowledge_facts,
     gemma_fill_batch,
+    recommend_templates_for_bundle,
     register_template_routes,
     select_relevant_templates_for_bundle,
+    template_sample_bundle,
 )
 
 
@@ -122,3 +126,78 @@ class TestFillBatch:
         body = response.json()
         assert body["status"] == "unknown_template"
         assert "available" in body
+
+    def test_template_sample_bundle_recommends_its_target(self):
+        app = FastAPI()
+        register_template_routes(app)
+        client = TestClient(app)
+        template = TEMPLATES_REGISTRY["hk_ld_fdh_complaint"]
+
+        listing = client.get("/api/templates/list").json()["templates"]
+        listed = next(t for t in listing if t["id"] == template.id)
+        assert listed["sample_bundle_url"] == (
+            "/api/templates/sample-bundle/hk_ld_fdh_complaint"
+        )
+
+        sample = client.get(listed["sample_bundle_url"])
+
+        assert sample.status_code == 200
+        bundle = sample.json()
+        assert bundle["_meta"]["synthetic"] is True
+        assert bundle["_meta"]["contains_real_pii"] is False
+        assert bundle["config"]["target_template"] == template.id
+        assert bundle["knowledge_fact_candidates"]
+
+        rec = client.post(
+            "/api/templates/recommend",
+            json={"bundle": bundle, "use_gemma": False},
+        )
+
+        assert rec.status_code == 200
+        body = rec.json()
+        assert body["used_gemma"] is False
+        ids = [r["template_id"] for r in body["recommendations"]]
+        assert template.id in ids
+        assert body["knowledge_fact_candidates"]
+
+    def test_gemma_recommendation_can_add_valid_template_only(self):
+        template_ids = list(TEMPLATES_REGISTRY)
+        deterministic_id = template_ids[0]
+        gemma_id = next(tid for tid in template_ids if tid != deterministic_id)
+        bundle = template_sample_bundle(TEMPLATES_REGISTRY[deterministic_id])
+
+        def fake_gemma(prompt, **kwargs):
+            assert "TEMPLATE OPTIONS" in prompt
+            return {
+                "recommendations": [
+                    {"template_id": gemma_id, "reason": "Adjacent route"},
+                    {"template_id": "fabricated_template", "reason": "Ignore"},
+                ],
+            }
+
+        out = recommend_templates_for_bundle(bundle, gemma_call=fake_gemma)
+
+        ids = [r["template_id"] for r in out["recommendations"]]
+        assert out["used_gemma"] is True
+        assert deterministic_id in ids
+        assert gemma_id in ids
+        assert "fabricated_template" not in ids
+
+    def test_extracted_fact_cards_redact_contact_like_pii(self):
+        bundle = {
+            "intelligence": {
+                "case_brief": (
+                    "Worker wrote jane@example.com, called +852 1234 5678, "
+                    "and cited passport no A1234567 in the fee complaint."
+                ),
+                "ilo_indicators": ["fee_bondage"],
+            }
+        }
+
+        facts = extract_template_knowledge_facts(bundle)
+        text = str(facts)
+
+        assert "jane@example.com" not in text
+        assert "+852 1234 5678" not in text
+        assert "A1234567" not in text
+        assert "redacted" in text
