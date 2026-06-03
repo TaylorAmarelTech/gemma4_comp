@@ -2139,6 +2139,8 @@ def test_templates_module_has_registry_and_endpoints() -> None:
     assert "def register_template_routes(" in src
     assert '@app.get("/api/templates/list")' in src
     assert '@app.post("/api/templates/fill")' in src
+    assert '@app.get("/api/templates/sample-bundle/{template_id}")' in src
+    assert '@app.post("/api/templates/recommend")' in src
     # Unknown template returns 404 with the available list.
     assert '"unknown_template"' in src
     assert 'status_code=404' in src
@@ -2443,6 +2445,10 @@ def test_templates_page_exists_with_design_contract_chrome() -> None:
     assert 'id="tpl-fill-progress-box"' in html
     assert "function tplSetProgress" in html
     assert "Draft ready for review" in html
+    assert "Use example" in html
+    assert "Download example" in html
+    assert "Extract facts + recommend complaints" in html
+    assert "function tplRecommendTemplates" in html
     # Where Gemma 4 runs hint block.
     assert 'id="tpl-gemma-paths-hint"' in html
     assert "Where Gemma 4 runs on this page" in html
@@ -2458,6 +2464,8 @@ def test_templates_page_calls_kernel_endpoints() -> None:
     html = _read("templates.html")
     assert "/api/templates/list" in html
     assert "/api/templates/fill" in html
+    assert "/api/templates/recommend" in html
+    assert "/api/templates/sample-bundle/" in html
     fill_call_idx = html.find("/api/templates/fill")
     fill_section = html[fill_call_idx:fill_call_idx + 800]
     assert "template_id" in fill_section

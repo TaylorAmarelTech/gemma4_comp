@@ -2672,6 +2672,13 @@ class TemplateSpec:
             "n_fields": len(self.fields),
             "n_required": sum(1 for f in self.fields if f.required),
             "relevance_indicators": list(template_relevance_indicators(self)),
+            "sample_bundle_url": f"/api/templates/sample-bundle/{self.id}",
+            "walkthrough": [
+                "Load this template's synthetic example bundle.",
+                "Extract complaint facts and ILO indicators from the bundle.",
+                "Ask Gemma 4 which complaint or referral paths fit.",
+                "Fill required fields with bundle hints, Gemma gaps, and manual edits.",
+            ],
         }
 
 
@@ -4666,6 +4673,506 @@ def dry_run_fill_template(template: TemplateSpec, bundle: dict) -> dict:
     }
 
 
+_FACT_EMAIL_RE = re.compile(r"\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b")
+_FACT_PHONE_RE = re.compile(
+    r"(?<!\w)(?:\+?\d[\d ()\-.]{7,}\d)(?!\w)"
+)
+_FACT_ID_RE = re.compile(
+    r"\b(?:passport|hkid|id|license|licence)\s*(?:no\.?|number|#)?\s*"
+    r"[:=-]?\s*[A-Z0-9][A-Z0-9\-]{4,}\b",
+    re.I,
+)
+
+
+def _template_fact_text(value: Any, *, limit: int = 260) -> str:
+    """Sanitize local fact-card text before the Templates page displays it."""
+    text = _clean_for_knowledge_fact(str(value or ""))
+    text = _FACT_EMAIL_RE.sub("[email redacted]", text)
+    text = _FACT_PHONE_RE.sub("[phone redacted]", text)
+    text = _FACT_ID_RE.sub("[identifier redacted]", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    if len(text) <= limit:
+        return text
+    head = text[:limit].rsplit(" ", 1)[0].strip()
+    return head or text[:limit].strip()
+
+
+def _template_amount_text(payment: Any) -> str:
+    if not isinstance(payment, dict):
+        return _template_fact_text(payment, limit=120)
+    amount = payment.get("amount") or payment.get("value") or payment.get("total")
+    currency = payment.get("currency") or payment.get("ccy") or ""
+    kind = (
+        payment.get("type") or payment.get("category")
+        or payment.get("purpose") or "payment"
+    )
+    parts = [str(kind)]
+    if amount not in (None, ""):
+        parts.append(str(amount))
+    if currency:
+        parts.append(str(currency))
+    return _template_fact_text(" ".join(parts), limit=140)
+
+
+def _bundle_list(bundle: dict, key: str) -> list:
+    intel = (bundle or {}).get("intelligence") or {}
+    value = intel.get(key)
+    if value is None:
+        value = (bundle or {}).get(key)
+    if isinstance(value, list):
+        return value
+    if value in (None, ""):
+        return []
+    return [value]
+
+
+def extract_template_knowledge_facts(bundle: dict) -> list[dict]:
+    """Return non-explosive fact candidates useful for complaint routing.
+
+    This is deliberately a routing/review aid, not a public knowledge-object
+    publisher. It summarizes indicators, payments, evidence edges, and a short
+    sanitized case brief without returning people/entity lists.
+    """
+    bundle = bundle or {}
+    intel = bundle.get("intelligence") or {}
+    facts: list[dict] = []
+    indicators = list(bundle_ilo_indicators(bundle))
+    if indicators:
+        facts.append({
+            "fact_type": "ilo_indicator_set",
+            "label": "ILO indicators observed",
+            "statement": ", ".join(indicators),
+            "source": "intelligence.ilo_indicators",
+            "pii_status": "no_direct_identifiers",
+        })
+    case_brief = intel.get("case_brief")
+    if case_brief:
+        facts.append({
+            "fact_type": "case_narrative_summary",
+            "label": "Complaint narrative signal",
+            "statement": _template_fact_text(case_brief, limit=320),
+            "source": "intelligence.case_brief",
+            "pii_status": "redacted_excerpt",
+        })
+    for idx, payment in enumerate(_bundle_list(bundle, "payments")[:5], start=1):
+        statement = _template_amount_text(payment)
+        if statement:
+            facts.append({
+                "fact_type": "payment_or_deduction",
+                "label": f"Payment signal {idx}",
+                "statement": statement,
+                "source": "payments",
+                "pii_status": "amount_only_or_redacted",
+            })
+    for idx, edge in enumerate(_bundle_list(bundle, "evidence_edges")[:6], start=1):
+        if isinstance(edge, dict):
+            raw = (
+                edge.get("summary") or edge.get("text") or edge.get("label")
+                or edge.get("evidence") or edge
+            )
+            indicator = edge.get("indicator") or edge.get("type")
+        else:
+            raw = edge
+            indicator = ""
+        statement = _template_fact_text(raw, limit=260)
+        if statement:
+            facts.append({
+                "fact_type": "evidence_edge",
+                "label": f"Evidence signal {idx}",
+                "statement": statement,
+                "source": "intelligence.evidence_edges",
+                "indicator": _template_fact_text(indicator, limit=80),
+                "pii_status": "redacted_excerpt",
+            })
+    return facts[:14]
+
+
+def _sample_context_for_template(template: TemplateSpec) -> dict:
+    haystack = " ".join([
+        template.id,
+        template.title,
+        template.jurisdiction,
+        template.audience,
+        template.summary,
+    ]).lower()
+    context = {
+        "origin": "source country",
+        "destination": template.jurisdiction,
+        "corridor": "SRC-DST",
+        "sector": "migrant work",
+        "worker": "W.A.",
+        "employer": "Sample destination employer",
+        "agency": "Sample sending agency",
+        "amount": "USD 1200 equivalent",
+    }
+    if "hong kong" in haystack or "_hk" in haystack or "fdh" in haystack:
+        context.update({
+            "origin": "Philippines",
+            "destination": "Hong Kong",
+            "corridor": "PH-HK",
+            "sector": "domestic work",
+            "employer": "Sample household employer",
+            "agency": "Sample HK employment agency",
+            "amount": "HKD 9800",
+        })
+    elif "philippines" in haystack or "dmw" in haystack or "poea" in haystack:
+        context.update({
+            "origin": "Philippines",
+            "destination": "Gulf destination",
+            "corridor": "PH-GCC",
+            "sector": "hospitality",
+            "agency": "Sample Philippine recruitment agency",
+            "amount": "PHP 78000",
+        })
+    elif "nepal" in haystack or "dofe" in haystack:
+        context.update({
+            "origin": "Nepal",
+            "destination": "Malaysia",
+            "corridor": "NP-MY",
+            "sector": "security work",
+            "agency": "Sample Nepali manpower agency",
+            "amount": "NPR 180000",
+        })
+    elif "indonesia" in haystack or "bp2mi" in haystack:
+        context.update({
+            "origin": "Indonesia",
+            "destination": "Taiwan",
+            "corridor": "ID-TW",
+            "sector": "factory work",
+            "agency": "Sample P3MI placement agency",
+            "amount": "IDR 22000000",
+        })
+    elif "bangladesh" in haystack or "bmet" in haystack:
+        context.update({
+            "origin": "Bangladesh",
+            "destination": "Malaysia",
+            "corridor": "BD-MY",
+            "sector": "construction",
+            "agency": "Sample BMET recruiting agent",
+            "amount": "BDT 420000",
+        })
+    elif "vietnam" in haystack or "dolab" in haystack:
+        context.update({
+            "origin": "Vietnam",
+            "destination": "Taiwan",
+            "corridor": "VN-TW",
+            "sector": "manufacturing",
+            "agency": "Sample DOLAB licensed enterprise",
+            "amount": "VND 65000000",
+        })
+    elif "united states" in haystack or "h-2a" in haystack:
+        context.update({
+            "origin": "Mexico",
+            "destination": "United States",
+            "corridor": "MX-US",
+            "sector": "agriculture",
+            "employer": "Sample farm employer",
+            "agency": "Sample farm labor contractor",
+            "amount": "USD 1850",
+        })
+    elif "iom" in haystack or "referral" in haystack:
+        context.update({
+            "origin": "Indonesia",
+            "destination": "Malaysia",
+            "corridor": "ID-MY",
+            "sector": "domestic work",
+            "amount": "USD 950 equivalent",
+        })
+    return context
+
+
+def template_sample_bundle(template: TemplateSpec) -> dict:
+    """Synthetic, downloadable example bundle for one template."""
+    indicators = list(template_relevance_indicators(template))
+    context = _sample_context_for_template(template)
+    case_brief = (
+        f"Synthetic example: an anonymized {context['origin']} worker in "
+        f"{context['destination']} reports recruitment fees, salary deductions, "
+        f"and document-control pressure connected to {context['sector']}. "
+        f"The bundle is designed to exercise {template.title} and may also "
+        "surface adjacent complaint or referral routes."
+    )
+    people = [
+        {
+            "label": context["worker"],
+            "role": "worker",
+            "pii_status": "synthetic_initials_only",
+        },
+        {
+            "label": "C.W.",
+            "role": "caseworker",
+            "pii_status": "synthetic_initials_only",
+        },
+    ]
+    entities = {
+        "nationality": [context["origin"]],
+        "employer": [context["employer"]],
+        "agency": [context["agency"]],
+        "address": [f"{context['destination']} worksite address withheld"],
+        "destination_country": [context["destination"]],
+        "origin_country": [context["origin"]],
+        "sector": [context["sector"]],
+    }
+    payments = [
+        {
+            "type": "recruitment_fee_or_debt",
+            "amount": context["amount"],
+            "timing": "pre-departure and post-arrival",
+            "source": "synthetic_sample",
+        },
+        {
+            "type": "salary_deduction_or_wage_shortfall",
+            "amount": "amount disputed",
+            "timing": "first three months",
+            "source": "synthetic_sample",
+        },
+    ]
+    evidence_edges = [
+        {
+            "indicator": indicators[0] if indicators else "case_signal",
+            "summary": (
+                "Message and receipt excerpts indicate fees or deductions "
+                "linked to continued placement."
+            ),
+            "source_ref": f"sample::{template.id}::fee",
+        },
+        {
+            "indicator": (
+                "passport_retention"
+                if "passport_retention" in indicators
+                else "document_control"
+            ),
+            "summary": (
+                "Worker states identity documents or contract papers were "
+                "controlled by the employer, agency, or broker."
+            ),
+            "source_ref": f"sample::{template.id}::documents",
+        },
+    ]
+    intelligence = {
+        "case_brief": case_brief,
+        "summary": {
+            "n_rows_total": 9,
+            "n_people_detected": len(people),
+            "n_typed_edges": len(evidence_edges),
+        },
+        "corridor": context["corridor"],
+        "sector": context["sector"],
+        "ilo_indicators": indicators,
+        "people": people,
+        "entities": entities,
+        "payments": payments,
+        "journey_points": [
+            {"stage": "recruitment", "place": context["origin"]},
+            {"stage": "employment", "place": context["destination"]},
+        ],
+        "evidence_edges": evidence_edges,
+        "complaint_readiness": {
+            "target_template_id": template.id,
+            "reviewer_action": (
+                "Use the recommendation step, inspect missing fields, then "
+                "edit before download."
+            ),
+        },
+    }
+    bundle = {
+        "schema_version": "duecare.template_sample_bundle.v1",
+        "run_id": f"template_sample_{template.id}",
+        "_meta": {
+            "synthetic": True,
+            "contains_real_pii": False,
+            "target_template_id": template.id,
+        },
+        "config": {
+            "source": "template_sample",
+            "target_template": template.id,
+            "recommended_template_ids": [template.id],
+            "jurisdiction": template.jurisdiction,
+        },
+        "summary": intelligence["summary"],
+        "people": people,
+        "entities": entities,
+        "payments": payments,
+        "intelligence": intelligence,
+    }
+    bundle["knowledge_fact_candidates"] = extract_template_knowledge_facts(bundle)
+    bundle["intelligence"]["knowledge_fact_candidates"] = bundle[
+        "knowledge_fact_candidates"
+    ]
+    return bundle
+
+
+def _gemma_recommendation_items(parsed: Any) -> list[dict]:
+    if not isinstance(parsed, dict):
+        return []
+    raw = parsed.get("recommendations")
+    items: list[dict] = []
+    if isinstance(raw, list):
+        for item in raw:
+            if isinstance(item, dict):
+                tid = item.get("template_id") or item.get("id")
+                reason = item.get("reason") or item.get("rationale") or ""
+                items.append({"template_id": tid, "reason": reason})
+            elif isinstance(item, str):
+                items.append({"template_id": item, "reason": ""})
+    for key in ("template_ids", "templates", "complaint_template_ids"):
+        raw_ids = parsed.get(key)
+        if isinstance(raw_ids, str):
+            raw_ids = [raw_ids]
+        if isinstance(raw_ids, list):
+            for tid in raw_ids:
+                if isinstance(tid, dict):
+                    items.append({
+                        "template_id": tid.get("template_id") or tid.get("id"),
+                        "reason": tid.get("reason") or tid.get("rationale") or "",
+                    })
+                else:
+                    items.append({"template_id": tid, "reason": ""})
+    tid = parsed.get("template_id")
+    if tid:
+        items.append({"template_id": tid, "reason": parsed.get("reason") or ""})
+    return items
+
+
+def recommend_templates_for_bundle(
+    bundle: dict,
+    *,
+    gemma_call: Optional[Callable[..., Any]] = None,
+    max_results: int = 8,
+) -> dict:
+    """Recommend complaint/referral templates from bundle facts.
+
+    Deterministic indicator overlap is the floor. Gemma can add or promote
+    templates, but invalid template IDs are ignored and deterministic matches
+    are never pruned.
+    """
+    bundle = bundle or {}
+    indicators = set(bundle_ilo_indicators(bundle))
+    facts = extract_template_knowledge_facts(bundle)
+    rows: dict[str, dict] = {}
+
+    def add_template(
+        template: TemplateSpec,
+        *,
+        source: str,
+        score: int,
+        reason: str,
+    ) -> None:
+        rel = set(template_relevance_indicators(template))
+        matched = sorted(indicators.intersection(rel))
+        existing = rows.get(template.id)
+        if existing:
+            existing["score"] = max(existing["score"], score)
+            existing["source"] = (
+                existing["source"] if existing["source"] == source else "both"
+            )
+            if reason and reason not in existing["reason"]:
+                existing["reason"] = (existing["reason"] + " " + reason).strip()
+            return
+        rows[template.id] = {
+            "template_id": template.id,
+            "title": template.title,
+            "jurisdiction": template.jurisdiction,
+            "audience": template.audience,
+            "score": score,
+            "source": source,
+            "matched_indicators": matched,
+            "reason": _template_fact_text(reason, limit=220),
+            "template": template.summary_payload(),
+        }
+
+    for spec in select_relevant_templates_for_bundle(bundle):
+        matches = set(template_relevance_indicators(spec)).intersection(indicators)
+        reason = (
+            "Deterministic overlap with bundle indicators: "
+            + ", ".join(sorted(matches))
+        )
+        add_template(
+            spec,
+            source="deterministic",
+            score=70 + min(25, 5 * len(matches)),
+            reason=reason,
+        )
+
+    used_gemma = False
+    gemma_error: Optional[str] = None
+    if gemma_call is not None:
+        options = [
+            {
+                "template_id": t.id,
+                "title": t.title,
+                "jurisdiction": t.jurisdiction,
+                "audience": t.audience,
+                "summary": t.summary,
+                "relevance_indicators": list(template_relevance_indicators(t)),
+            }
+            for t in TEMPLATES_REGISTRY.values()
+        ]
+        prompt = (
+            "You are choosing appropriate complaint or referral templates for "
+            "an anonymized migrant-worker case bundle. Use only template_id "
+            "values from TEMPLATE OPTIONS. Do not invent facts. Recommend "
+            "one to six templates, with a short reason for each. Return JSON "
+            "only: {\"recommendations\":[{\"template_id\":\"...\","
+            "\"reason\":\"...\"}]}.\n\n"
+            f"CASE BUNDLE EXCERPT:\n{bundle_excerpt_for_template(bundle)}\n\n"
+            "SANITIZED FACT CANDIDATES:\n"
+            f"{json.dumps(facts, ensure_ascii=False)[:1800]}\n\n"
+            "TEMPLATE OPTIONS:\n"
+            f"{json.dumps(options, ensure_ascii=False)[:5200]}"
+        )
+        try:
+            raw = gemma_call(prompt, max_new_tokens=900, temperature=0.2)
+            used_gemma = True
+            raw_text = raw if isinstance(raw, str) else json.dumps(raw, default=str)
+            parsed = safe_json_extract(raw_text)
+            for item in _gemma_recommendation_items(parsed):
+                tid = str(item.get("template_id") or "").strip()
+                spec = TEMPLATES_REGISTRY.get(tid)
+                if spec is None:
+                    continue
+                add_template(
+                    spec,
+                    source="gemma",
+                    score=92,
+                    reason=str(item.get("reason") or "Gemma selected this route."),
+                )
+        except Exception as e:  # noqa: BLE001
+            gemma_error = f"{type(e).__name__}: {str(e)[:120]}"
+
+    if not rows:
+        fallback = next(
+            (
+                spec for spec in TEMPLATES_REGISTRY.values()
+                if "ngo" in spec.id.lower() or "ngo" in spec.title.lower()
+            ),
+            None,
+        )
+        if fallback is not None:
+            add_template(
+                fallback,
+                source="fallback",
+                score=40,
+                reason=(
+                    "No strong indicator overlap was found; start with the "
+                    "generic intake pathway and add facts manually."
+                ),
+            )
+
+    recommendations = sorted(
+        rows.values(),
+        key=lambda row: (-row["score"], row["title"].lower()),
+    )[:max_results]
+    return {
+        "schema_version": "duecare.template.recommendations.v1",
+        "used_gemma": used_gemma,
+        "gemma_error": gemma_error,
+        "bundle_indicators": sorted(indicators),
+        "knowledge_fact_candidates": facts,
+        "recommendations": recommendations,
+    }
+
+
 # ---------------------------------------------------------------------------
 # Robust boolean parsing for body fields
 # ---------------------------------------------------------------------------
@@ -4728,6 +5235,44 @@ def register_template_routes(app: Any) -> None:
         return {
             "templates": [t.summary_payload() for t in TEMPLATES_REGISTRY.values()],
         }
+
+    @app.get("/api/templates/sample-bundle/{template_id}")
+    def api_templates_sample_bundle(template_id: str):
+        """Return one synthetic, template-specific example bundle."""
+        template = TEMPLATES_REGISTRY.get((template_id or "").strip())
+        if template is None:
+            return JSONResponse(
+                {
+                    "status": "unknown_template",
+                    "message": (
+                        f"No template registered for id={template_id!r}. "
+                        f"Call /api/templates/list for the available set."
+                    ),
+                    "available": list(TEMPLATES_REGISTRY.keys()),
+                },
+                status_code=404,
+            )
+        return template_sample_bundle(template)
+
+    @app.post("/api/templates/recommend")
+    def api_templates_recommend(body: dict = Body(...)):
+        """Extract routing facts and recommend complaint/referral templates."""
+        body = body or {}
+        bundle = body.get("bundle") or {}
+        use_gemma = parse_bool(body.get("use_gemma"), default=True)
+        raw_max = body.get("max_results", 8)
+        try:
+            max_results = max(1, min(20, int(raw_max)))
+        except Exception:
+            max_results = 8
+        gemma_call = (
+            getattr(app.state, "gemma_call", None) if use_gemma else None
+        )
+        return recommend_templates_for_bundle(
+            bundle,
+            gemma_call=gemma_call,
+            max_results=max_results,
+        )
 
     @app.post("/api/templates/dry-run-fill")
     def api_templates_dry_run_fill(body: dict = Body(...)):
@@ -5039,14 +5584,17 @@ __all__ = [
     "bundle_field_hint",
     "clear_custom_templates",
     "dry_run_fill_template",
+    "extract_template_knowledge_facts",
     "gemma_fill_batch",
     "gemma_fill_template",
     "is_builtin_template",
     "parse_bool",
+    "recommend_templates_for_bundle",
     "register_template",
     "register_template_routes",
     "render_template",
     "safe_json_extract",
     "select_relevant_templates_for_bundle",
+    "template_sample_bundle",
     "template_relevance_indicators",
 ]
