@@ -13,22 +13,6 @@
                color: #0E1116; font-family: Inter, system-ui, sans-serif; line-height: 1.55; }
     .wb-h1 { font-size: 26px; font-weight: 700; margin: 0 0 8px; }
     .wb-lede { font-size: 13.5px; color: #2A2D34; margin: 0 0 18px; }
-    .wb-card { background: #FFF; border: 1px solid #DDD8C9; border-radius: 12px;
-               padding: 16px 18px; margin-bottom: 14px; }
-    .wb-card h2 { font-size: 15px; font-weight: 600; margin: 0 0 10px; }
-    .wb-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-    .wb-btn-primary { padding: 8px 16px; background: oklch(0.52 0.08 195);
-                       color: #FFF; border: 0; border-radius: 6px;
-                       font-size: 13px; cursor: pointer; }
-    .wb-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
-    .wb-btn-secondary { padding: 7px 13px; background: #FFF; color: #0E1116;
-                         border: 1px solid #DDD8C9; border-radius: 6px;
-                         font-size: 12.5px; cursor: pointer; text-decoration: none;
-                         display: inline-block; }
-    .wb-muted { color: #5B5F68; font-size: 12px; }
-    .wb-pill { display: inline-block; padding: 1px 8px; background: #F1EFE7;
-                border-radius: 3px; font-size: 11px; color: #5B5F68;
-                font-family: 'JetBrains Mono', monospace; }
     .wb-result { padding: 12px 14px; background: #FAF9F4; border-radius: 8px;
                   margin-bottom: 8px; border: 1px solid #EFEDE4; }
     .wb-result h3 { font-size: 13px; font-weight: 600; margin: 0 0 4px;
@@ -110,7 +94,7 @@
 <body data-nav="search">
   <main class="wb-page">
     <h1 class="wb-h1">Search and Source Intake</h1>
-    <div class="dc-trust-row is-audit" role="note" aria-label="Trust boundary" style="margin-bottom:14px;">
+    <div class="dc-trust-row" role="note" aria-label="Trust boundary" style="margin-bottom:14px;">
       <span class="dc-trust-pill"><span class="dot"></span>SANITIZE FIRST</span>
       <span class="dc-trust-pill"><span class="dot"></span>NETWORK SEARCH GATED</span>
       <span class="dc-trust-pill"><span class="dot"></span>RESULTS REVIEWED</span>
@@ -271,7 +255,8 @@
           <h3>Draft knowledge</h3>
           <p>Create fast reviewable knowledge-object drafts from all visible result snippets.</p>
           <div class="search-card-actions">
-            <button class="wb-btn-primary" id="draft-btn" onclick="searchDraftKnowledge()">Draft from all results</button>
+            <button class="wb-btn-primary" id="draft-btn" onclick="searchDraftKnowledge()" disabled
+                    title="Run a search in Step 1 first.">Draft from all results</button>
           </div>
         </div>
         <div class="search-action-card">
@@ -328,8 +313,10 @@
       <div id="drafts-list" class="search-empty">Drafted knowledge objects appear here after Step 2.</div>
       <div class="search-step-actions">
         <span class="wb-muted" id="save-status"></span>
-        <button class="wb-btn-secondary" id="download-drafts-btn" onclick="searchDownloadDrafts()">Download drafts (.json)</button>
-        <button class="wb-btn-primary" id="save-all-btn" onclick="searchSaveAllDrafts()">Save all to local knowledge store</button>
+        <button class="wb-btn-secondary" id="download-drafts-btn" onclick="searchDownloadDrafts()" disabled
+                title="Draft knowledge objects from Step 2 first.">Download drafts (.json)</button>
+        <button class="wb-btn-primary wb-step-cta" id="save-all-btn" onclick="searchSaveAllDrafts()" disabled
+                title="Draft knowledge objects from Step 2 first.">Save all to local knowledge store</button>
       </div>
       </div>
     </details>
@@ -441,9 +428,23 @@
       if (!btn) return;
       const draftable = searchDraftableIndexes();
       btn.disabled = !_searchResults.length || !draftable.length;
+      btn.title = btn.disabled ? 'Run a search in Step 1 first.' : '';
       btn.textContent = draftable.length && draftable.length !== _searchResults.length
         ? 'Draft verified results (' + draftable.length + ')'
         : 'Draft from all results';
+    }
+    function searchRefreshSaveButtons() {
+      const hasDrafts = _drafts.length > 0;
+      const saveBtn = document.getElementById('save-all-btn');
+      const dlBtn   = document.getElementById('download-drafts-btn');
+      if (saveBtn) {
+        saveBtn.disabled = !hasDrafts;
+        saveBtn.title = hasDrafts ? '' : 'Draft knowledge objects from Step 2 first.';
+      }
+      if (dlBtn) {
+        dlBtn.disabled = !hasDrafts;
+        dlBtn.title = hasDrafts ? '' : 'Draft knowledge objects from Step 2 first.';
+      }
     }
     function searchVerificationLabel(row) {
       if (!row) return 'Verification pending';
@@ -859,7 +860,9 @@
       row.className = 'wb-row';
       row.style.cssText = 'gap:8px; margin:8px 0;';
       const save = document.createElement('button');
-      save.className = 'wb-btn-secondary';
+      save.className = 'wb-btn-primary';
+      save.style.fontSize = '12px';
+      save.style.padding = '6px 12px';
       save.type = 'button';
       save.textContent = 'Save this draft';
       save.addEventListener('click', () => searchSaveOneDraft(idx));
@@ -877,6 +880,7 @@
       pre.textContent = JSON.stringify(env, null, 2);
       card.appendChild(pre);
       draftsList.appendChild(card);
+      searchRefreshSaveButtons();
     }
 
     function searchFormatPolishValue(value) {
@@ -1149,6 +1153,7 @@
       document.getElementById('draft-status').textContent =
         made ? 'Drafted ' + made + ' suggestion(s). Review below.' : 'No draft created.';
       searchSetDraftProgress(1, 1, made ? 'Selected result drafted' : 'Selected result finished with no draft', made ? made + ' suggestion(s) created.' : 'Check the activity log for details.');
+      searchRefreshSaveButtons();
     }
 
     async function searchDraftKnowledge() {
@@ -1191,6 +1196,7 @@
         searchSetDraftProgress(_searchResults.length, _searchResults.length, 'Draft run complete', 'Created ' + _drafts.length + ' reviewable envelope suggestion(s).');
       } finally {
         btn.disabled = false;
+        searchRefreshSaveButtons();
       }
     }
 
@@ -1240,7 +1246,11 @@
     }
 
     async function searchSaveAllDrafts() {
-      if (!_drafts.length) return;
+      if (!_drafts.length) {
+        _searchLog = searchGetLog();
+        _searchLog && _searchLog.warn('save-all: no drafts — run Draft in Step 2 first');
+        return;
+      }
       const btn = document.getElementById('save-all-btn');
       btn.disabled = true;
       const saveStatus = document.getElementById('save-status');
@@ -1271,6 +1281,8 @@
     document.addEventListener('DOMContentLoaded', function () {
       searchGetLog();
       loadBackends();
+      searchRefreshDraftAllButton();
+      searchRefreshSaveButtons();
     });
   </script>
 </body>

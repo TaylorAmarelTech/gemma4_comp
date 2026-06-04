@@ -21,7 +21,9 @@
 
   <div class="cta-row">
     <a class="cta cta-primary" href="/static/chat.html?audience=platform">Open Chat</a>
-    <a class="cta cta-ghost" href="/classifier">Single-content classifier</a>
+    <button class="cta cta-ghost" disabled
+            title="Single-item classifier — not yet mounted; use Chat for now"
+            style="opacity:0.55;cursor:not-allowed;">Single-content classifier (not available)</button>
   </div>
 
   <section class="section">
@@ -51,10 +53,11 @@
   <section class="section">
     <h2>Tools for this lane</h2>
     <div class="tools-row">
-      <a class="tool-card" href="/classifier">
-        <div class="name">Classify</div>
-        <div class="desc">Score a single content item, get the recommended action and per-rule explanation.</div>
-      </a>
+      <div class="tool-card" style="opacity:0.55;cursor:default;"
+           title="Classifier not yet mounted on this instance — use Chat with a scoring prompt in the meantime">
+        <div class="name">Classify <span style="font-size:0.75em;font-weight:400;">(not available)</span></div>
+        <div class="desc">Single-content classifier — not yet available. Use Chat with a scoring prompt in the meantime.</div>
+      </div>
       <a class="tool-card" href="/static/grep-tester.html">
         <div class="name">Live GREP tester</div>
         <div class="desc">Paste any text and see which of the deterministic rules fire. No LLM call.</div>

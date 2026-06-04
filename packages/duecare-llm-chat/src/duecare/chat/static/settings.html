@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Settings | DueCare Workbench</title>
   <link rel="stylesheet" href="/static/_chrome.css">
-  <link rel="stylesheet" href="/static/showcase.css">
   <script src="/static/_nav.js" defer></script>
   <script src="/static/_activity_log.js" defer></script>
   <style>
@@ -38,15 +37,7 @@
       box-shadow: 0 0 0 4px oklch(0.85 0.05 195 / 0.3); }
     .check-row label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
     .actions { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
-    .btn {
-      padding: 9px 16px; border-radius: 8px; border: 1px solid var(--ink);
-      background: var(--ink); color: var(--paper); cursor: pointer;
-      font-weight: 500; font-size: 14px; font-family: var(--sans);
-    }
-    .btn:hover { background: #1a1d24; }
-    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .btn.ghost { background: var(--paper); color: var(--ink); }
-    .btn.ghost:hover { background: var(--paper-2); }
+    /* .wb-btn-primary and .wb-btn-secondary resolve from _chrome.css */
     .wired-pill {
       display: inline-flex; align-items: center; gap: 5px;
       padding: 3px 9px; border-radius: 999px;
@@ -103,8 +94,8 @@
 </style>
 </head>
 <body data-nav="settings">
-<main class="showcase">
-  <div class="wb-trust" style="background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin: 0 0 14px;"><b>Trust boundary:</b> All settings on this page are stored in <code>localStorage</code> on your device or in the kernel's in-memory config (retrieval / online-search). BYOK API keys are only used at request time and are never written to disk inside the kernel.</div>
+<main class="dc-chrome-container" style="max-width: 900px;">
+  <div class="wb-trust"><b>Trust boundary:</b> All settings on this page are stored in <code>localStorage</code> on your device or in the kernel's in-memory config (retrieval / online-search). BYOK API keys are only used at request time and are never written to disk inside the kernel. To opt out of online search, leave the API key fields blank and set the backend to <code>ddg</code> (no key required).</div>
   <div class="crumbs">Workbench tool | System &amp; observability</div>
   <h1>Settings</h1>
   <p class="lede">
@@ -203,9 +194,9 @@
       </div>
     </div>
     <div class="actions">
-      <button class="btn"       type="button" onclick="saveRetrieval()">Save retrieval config</button>
-      <button class="btn ghost" type="button" onclick="loadRetrieval()">Reload</button>
-      <button class="btn ghost" type="button" onclick="clearEmbedCache()">Clear embed cache</button>
+      <button class="wb-btn-primary" type="button" onclick="saveRetrieval()">Save retrieval config</button>
+      <button class="wb-btn-secondary" type="button" onclick="loadRetrieval()">Reload</button>
+      <button class="wb-btn-secondary" type="button" onclick="clearEmbedCache()">Clear embed cache</button>
     </div>
     <div id="ret-flash"></div>
     <details style="margin-top:14px;">
@@ -247,9 +238,9 @@
       </div>
     </div>
     <div class="actions">
-      <button class="btn"       type="button" onclick="saveOnline()">Save online config</button>
-      <button class="btn ghost" type="button" onclick="loadOnline()">Reload</button>
-      <button class="btn ghost" type="button" onclick="testOnline()">Test query</button>
+      <button class="wb-btn-primary" type="button" onclick="saveOnline()">Save online config</button>
+      <button class="wb-btn-secondary" type="button" onclick="loadOnline()">Reload</button>
+      <button class="wb-btn-secondary" type="button" onclick="testOnline()">Test query</button>
     </div>
     <div id="online-flash"></div>
     <div id="online-test-out" style="margin-top: 12px;"></div>
@@ -286,8 +277,12 @@
       </div>
     </div>
     <div class="actions">
-      <button class="btn" type="button" onclick="saveModelLoadMode()">Save mode</button>
-      <button class="btn ghost" type="button" onclick="resetModelLoadMode()">Reset to single</button>
+      <button class="wb-btn-primary" type="button" onclick="saveModelLoadMode()">Save mode</button>
+      <button class="wb-btn-secondary" type="button" onclick="resetModelLoadMode()"
+              style="margin-left: auto;"
+              title="Resets the model-load preference to single (safe default). You can change it again at any time.">
+        Reset to default
+      </button>
     </div>
     <div id="model-load-mode-flash" class="flash" style="display:none;"></div>
     <p style="margin-top: 14px; font-size: 11.5px; color: var(--ink-3);">
@@ -313,7 +308,7 @@
        workbench surface.</p>
   </section>
 
-    <div class="wb-card" id="page-activity-log-card" style="margin-top: 14px;">
+    <div class="panel" id="page-activity-log-card" style="margin-top: 14px;">
       <h2>Activity log</h2>
       <p class="wb-muted" style="margin: 0 0 8px;">
         Live trace of API calls + per-step events from this page.
@@ -326,13 +321,20 @@
   </main>
 
 <script>
+  // Activity log handle — populated in DOMContentLoaded once _activity_log.js is ready.
+  let log = null;
+
   function escapeHtml(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
       ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
   function flash(elId, msg, ok) {
     const el = document.getElementById(elId);
-    el.innerHTML = `<div class="flash ${ok ? "ok" : "err"}">${escapeHtml(msg)}</div>`;
+    const wrap = document.createElement('div');
+    wrap.className = 'flash ' + (ok ? 'ok' : 'err');
+    wrap.textContent = msg;
+    el.innerHTML = '';
+    el.appendChild(wrap);
     setTimeout(() => { el.innerHTML = ""; }, 4000);
   }
   function settingsSetStep(active) {
@@ -342,6 +344,7 @@
   }
 
   async function loadRetrieval() {
+    log && log.info('GET /api/retrieval/config');
     try {
       const r = await fetch("/api/retrieval/config", {cache: "no-store"});
       const d = await r.json();
@@ -355,19 +358,32 @@
       document.getElementById("ret-chunk").value = d.chunk_max_chars || 850;
       document.getElementById("ret-rerank").checked = !!d.rerank_enabled;
       document.getElementById("ret-trace").checked = !!d.path_trace_enabled;
-      const fallback = d.fallback_reason ? `<br><span>${escapeHtml(d.fallback_reason)}</span>` : "";
-      document.getElementById("ret-status").innerHTML = `
-        <span class="wired-pill ${d.rerank_wired ? "on" : "off"}">rerank: ${d.rerank_wired ? "wired" : "not wired"}</span>
-        <span class="wired-pill ${d.embed_wired  ? "on" : "off"}">embed: ${d.embed_wired  ? "wired" : "not wired"}</span>
-        <span class="wired-pill on">effective: ${escapeHtml(d.effective_mode || d.retrieval_mode || "pending")}</span>
-        <div style="margin-top:8px; color:var(--ink-3); font-size:12.5px; line-height:1.5;">${escapeHtml(d.rag_vs_grep || "")}${fallback}</div>
-      `;
+      const retStatus = document.getElementById("ret-status");
+      retStatus.innerHTML = '';
+      function makePill(cls, text) {
+        const s = document.createElement('span');
+        s.className = 'wired-pill ' + cls;
+        s.textContent = text;
+        return s;
+      }
+      retStatus.appendChild(makePill(d.rerank_wired ? 'on' : 'off', 'rerank: ' + (d.rerank_wired ? 'wired' : 'not wired')));
+      retStatus.appendChild(makePill(d.embed_wired  ? 'on' : 'off', 'embed: '  + (d.embed_wired  ? 'wired' : 'not wired')));
+      retStatus.appendChild(makePill('on', 'effective: ' + (d.effective_mode || d.retrieval_mode || 'pending')));
+      if (d.rag_vs_grep || d.fallback_reason) {
+        const note = document.createElement('div');
+        note.style.cssText = 'margin-top:8px; color:var(--ink-3); font-size:12.5px; line-height:1.5;';
+        note.textContent = (d.rag_vs_grep || '') + (d.fallback_reason ? ' — ' + d.fallback_reason : '');
+        retStatus.appendChild(note);
+      }
       document.getElementById("ret-dump").textContent = JSON.stringify(d, null, 2);
+      log && log.ok('Retrieval config loaded', 'mode=' + (d.effective_mode || d.retrieval_mode || 'pending'));
     } catch (e) {
+      log && log.err('loadRetrieval failed', e && e.message);
       flash("ret-flash", `Load failed: ${e && e.message || e}`, false);
     }
   }
   async function saveRetrieval() {
+    log && log.step('POST /api/retrieval/config');
     const body = {
       retrieval_mode: document.getElementById("ret-mode").value,
       rerank_keep: parseInt(document.getElementById("ret-keep").value, 10),
@@ -385,25 +401,35 @@
         method: "POST", headers: {"content-type": "application/json"},
         body: JSON.stringify(body),
       });
-      if (!r.ok) { flash("ret-flash", `HTTP ${r.status}`, false); return; }
+      if (!r.ok) {
+        log && log.err('HTTP ' + r.status);
+        flash("ret-flash", `HTTP ${r.status}`, false);
+        return;
+      }
+      log && log.ok('Retrieval config saved');
       flash("ret-flash", "Retrieval config saved.", true);
       settingsSetStep(0);
       loadRetrieval();
     } catch (e) {
+      log && log.err('saveRetrieval failed', e && e.message);
       flash("ret-flash", `Save failed: ${e && e.message || e}`, false);
     }
   }
   async function clearEmbedCache() {
     if (!window.confirm("Clear embed cache? Next dense/rrf retrieval will re-embed.")) return;
+    log && log.step('POST /api/retrieval/embed-cache/clear');
     try {
       await fetch("/api/retrieval/embed-cache/clear", {method: "POST"});
+      log && log.ok('Embed cache cleared');
       flash("ret-flash", "Embed cache cleared.", true);
     } catch (e) {
+      log && log.err('clearEmbedCache failed', e && e.message);
       flash("ret-flash", `Clear failed: ${e && e.message || e}`, false);
     }
   }
 
   async function loadOnline() {
+    log && log.info('GET /api/online/config');
     try {
       const r = await fetch("/api/online/config", {cache: "no-store"});
       const d = await r.json();
@@ -412,17 +438,26 @@
       document.getElementById("online-brave").value = d.brave_configured ? "(set)" : "";
       document.getElementById("online-tavily").value = d.tavily_configured ? "(set)" : "";
       document.getElementById("online-fetch").checked = !!d.fetch_pages;
-      document.getElementById("online-status").innerHTML = `
-        <span class="wired-pill ${d.brave_configured  ? "on" : "off"}">brave: ${d.brave_configured  ? "key set" : "no key"}</span>
-        <span class="wired-pill ${d.tavily_configured ? "on" : "off"}">tavily: ${d.tavily_configured ? "key set" : "no key"}</span>
-        <span class="wired-pill ${d.fetch_pages    ? "on" : "off"}">deep-fetch: ${d.fetch_pages ? "on" : "off"}</span>
-      `;
+      const onlineStatus = document.getElementById("online-status");
+      onlineStatus.innerHTML = '';
+      function makeOPill(cls, text) {
+        const s = document.createElement('span');
+        s.className = 'wired-pill ' + cls;
+        s.textContent = text;
+        return s;
+      }
+      onlineStatus.appendChild(makeOPill(d.brave_configured  ? 'on' : 'off', 'brave: '      + (d.brave_configured  ? 'key set' : 'no key')));
+      onlineStatus.appendChild(makeOPill(d.tavily_configured ? 'on' : 'off', 'tavily: '     + (d.tavily_configured ? 'key set' : 'no key')));
+      onlineStatus.appendChild(makeOPill(d.fetch_pages       ? 'on' : 'off', 'deep-fetch: ' + (d.fetch_pages       ? 'on'      : 'off')));
       document.getElementById("online-dump").textContent = JSON.stringify(d, null, 2);
+      log && log.ok('Online config loaded', 'backend=' + (d.backend || 'auto'));
     } catch (e) {
+      log && log.err('loadOnline failed', e && e.message);
       flash("online-flash", `Load failed: ${e && e.message || e}`, false);
     }
   }
   async function saveOnline() {
+    log && log.step('POST /api/online/config');
     const body = {
       backend: document.getElementById("online-backend").value,
       fetch_top_n: parseInt(document.getElementById("online-topn").value, 10),
@@ -437,18 +472,31 @@
         method: "POST", headers: {"content-type": "application/json"},
         body: JSON.stringify(body),
       });
-      if (!r.ok) { flash("online-flash", `HTTP ${r.status}`, false); return; }
+      if (!r.ok) {
+        log && log.err('HTTP ' + r.status);
+        flash("online-flash", `HTTP ${r.status}`, false);
+        return;
+      }
+      log && log.ok('Online config saved');
       flash("online-flash", "Online config saved.", true);
       settingsSetStep(1);
       loadOnline();
     } catch (e) {
+      log && log.err('saveOnline failed', e && e.message);
       flash("online-flash", `Save failed: ${e && e.message || e}`, false);
     }
   }
   async function testOnline() {
     const out = document.getElementById("online-test-out");
     settingsSetStep(1);
-    out.innerHTML = `<div class="flash" style="background:var(--paper-2); color:var(--ink-2);">Running test query. This hits the configured backend.</div>`;
+    log && log.step('POST /api/online/test (POEA placement fee query)');
+    const pending = document.createElement('div');
+    pending.className = 'flash';
+    pending.style.background = 'var(--paper-2)';
+    pending.style.color = 'var(--ink-2)';
+    pending.textContent = 'Running test query. This hits the configured backend.';
+    out.innerHTML = '';
+    out.appendChild(pending);
     try {
       const r = await fetch("/api/online/test", {
         method: "POST", headers: {"content-type": "application/json"},
@@ -456,13 +504,28 @@
       });
       const d = await r.json();
       const results = d.results || [];
+      out.innerHTML = '';
       if (!results.length) {
-        out.innerHTML = `<div class="flash err">No results. Backend may be unreachable or rate-limited.</div>`;
+        log && log.warn('Online test: no results returned');
+        const noResult = document.createElement('div');
+        noResult.className = 'flash err';
+        noResult.textContent = 'No results. Backend may be unreachable or rate-limited.';
+        out.appendChild(noResult);
         return;
       }
-      out.innerHTML = `<div class="json-dump">${escapeHtml(JSON.stringify(results.slice(0, 3), null, 2))}</div>`;
+      const backend = document.getElementById('online-backend').value || 'auto';
+      log && log.ok('Online test: ' + results.length + ' result(s)', 'backend=' + backend);
+      const dump = document.createElement('div');
+      dump.className = 'json-dump';
+      dump.textContent = JSON.stringify(results.slice(0, 3), null, 2);
+      out.appendChild(dump);
     } catch (e) {
-      out.innerHTML = `<div class="flash err">${escapeHtml(e && e.message || e)}</div>`;
+      out.innerHTML = '';
+      log && log.err('Online test failed', e && e.message);
+      const errDiv = document.createElement('div');
+      errDiv.className = 'flash err';
+      errDiv.textContent = e && e.message || String(e);
+      out.appendChild(errDiv);
     }
   }
 
@@ -502,8 +565,10 @@
       settingsSetStep(2);
       _modeFlash('ok', 'Saved: model-load-mode = ' + mode
         + (mode === 'multi' ? ' (caveat: needs VRAM; watch for OOMs)' : ''));
+      log && log.ok('model-load-mode = ' + mode);
     } catch (e) {
       _modeFlash('err', 'localStorage unavailable: ' + e);
+      log && log.err('saveModelLoadMode failed', String(e));
     }
   }
   function resetModelLoadMode() {
@@ -512,14 +577,23 @@
       renderModelLoadModeState();
       settingsSetStep(2);
       _modeFlash('ok', 'Reset to single (safe default).');
+      log && log.ok('model-load-mode reset to single');
     } catch (e) {
       _modeFlash('err', 'localStorage unavailable: ' + e);
+      log && log.err('resetModelLoadMode failed', String(e));
     }
   }
 
-  loadRetrieval();
-  loadOnline();
-  renderModelLoadModeState();
+  document.addEventListener('DOMContentLoaded', function () {
+    if (window.dcActivityLog) {
+      log = window.dcActivityLog.attach('#page-activity-log', {
+        idlePlaceholder: 'Waiting for settings interaction…'
+      });
+    }
+    loadRetrieval();
+    loadOnline();
+    renderModelLoadModeState();
+  });
 </script>
 </body>
 </html>

@@ -6,6 +6,7 @@
   <title>Recording Checklist | DueCare Workbench</title>
   <link rel="stylesheet" href="/static/_chrome.css">
   <script src="/static/_nav.js" defer></script>
+  <script src="/static/_activity_log.js" defer></script>
   <style>
     .page { max-width: 1120px; margin: 24px auto 64px; padding: 0 18px; color: var(--ink); font-family: Inter, system-ui, sans-serif; line-height: 1.55; }
     h1 { font-size: 26px; margin: 0 0 6px; letter-spacing: 0; }
@@ -19,9 +20,6 @@
     .card small { color: var(--ink-3); font-size: 11.5px; display: block; }
     .stepno { font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; }
     .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-    .btn { border: 1px solid var(--line); border-radius: 7px; padding: 8px 12px; background: var(--paper); color: var(--ink); text-decoration: none; font-size: 12.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
-    .btn.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-    .btn.warn { border-color: var(--ember); color: var(--ember); }
     .checklist { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
     .checklist li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; align-items: start; color: var(--ink-2); font-size: 12.5px; }
     .box { width: 14px; height: 14px; border: 1px solid var(--line); border-radius: 3px; margin-top: 2px; background: #fff; }
@@ -46,6 +44,16 @@
       each lane in a stable order, preload the platform moderation prompt
       with its synthetic image, and download JSON replay artifacts after
       each run.
+    </p>
+
+    <p class="wb-trust">
+      Health checks query local kernel endpoints only
+      (<code>/api/version</code>, <code>/api/model-info</code>,
+      <code>/api/audit/workbench-inventory</code>, etc.).
+      No user data is sent off-device. External links (Live Demo, Evaluation)
+      open corresponding Kaggle notebooks in a new tab and are read-only
+      navigation targets. Sample artifact downloads are synthetic
+      composite data only — no real case files or PII.
     </p>
 
     <section class="panel">
@@ -88,7 +96,10 @@
       <p class="lede" style="margin-bottom:10px;">
         Run this before recording. All checks are local to the current Cloudflare/Kaggle URL and should finish quickly.
       </p>
-      <button class="btn primary" type="button" onclick="dcRunRecordingHealthChecks()">Run health checks</button>
+      <button class="dc-btn dc-btn-primary" type="button" onclick="dcRunRecordingHealthChecks()">Run health checks</button>
+      <div id="recording-health-log" class="dc-activity-log" style="margin-top:10px;">
+        <div class="dc-log-idle">Click "Run health checks" to see results.</div>
+      </div>
       <div class="health-grid" id="recording-health">
         <div class="health-row"><b>Waiting</b><code>Click Run health checks.</code><span class="health-status">idle</span></div>
       </div>
@@ -102,8 +113,12 @@
           <b>Moderate a Facebook recruitment post</b>
           <small>Loads the PH-Saudi prompt and bundled synthetic post image. Show GREP/RAG/tools and the pipeline trace.</small>
           <div class="actions">
-            <a class="btn primary" href="/static/chat.html?example=ent_mod_001&amp;audience=platform">Open preset</a>
-            <a class="btn" href="/static/samples/recording_platform_moderation_trace.json" download>Trace JSON</a>
+            <a class="dc-btn dc-btn-primary" href="/static/chat.html?example=ent_mod_001&amp;audience=platform">Open preset</a>
+            <!-- Rule 4 note: download-only intentional; round-trip via nav Replay JSON button, not this page -->
+            <a class="dc-btn dc-btn-secondary"
+               href="/static/samples/recording_platform_moderation_trace.json"
+               download
+               title="Download cached platform moderation trace — import via the nav Replay JSON button for offline replay">Trace JSON</a>
           </div>
         </div>
         <div class="card">
@@ -111,8 +126,8 @@
           <b>Process a case bundle</b>
           <small>Use the streamlined ZIP for speed, then mention the media-rich bundle and queued OCR/media accounting.</small>
           <div class="actions">
-            <a class="btn primary" href="/static/process.html">Open Bulk Review</a>
-            <a class="btn" href="/static/samples/case_files_streamlined_demo.zip" download>Streamlined ZIP</a>
+            <a class="dc-btn dc-btn-primary" href="/static/process.html">Open Bulk Review</a>
+            <a class="dc-btn dc-btn-secondary" href="/static/samples/case_files_streamlined_demo.zip" download>Streamlined ZIP</a>
           </div>
         </div>
         <div class="card">
@@ -120,8 +135,8 @@
           <b>Draft reviewable knowledge objects</b>
           <small>Upload the source examples bundle. Drafting now uses start/poll calls so long Gemma refinement stays visible.</small>
           <div class="actions">
-            <a class="btn primary" href="/static/knowledge.html">Open Knowledge</a>
-            <a class="btn" href="/static/samples/knowledge_source_examples_sample.zip" download>Source ZIP</a>
+            <a class="dc-btn dc-btn-primary" href="/static/knowledge.html">Open Knowledge</a>
+            <a class="dc-btn dc-btn-secondary" href="/static/samples/knowledge_source_examples_sample.zip" download>Source ZIP</a>
           </div>
         </div>
         <div class="card">
@@ -129,8 +144,8 @@
           <b>Show safe public-source intake</b>
           <small>Use search examples, show sanitized query logging, then draft source cards into knowledge candidates.</small>
           <div class="actions">
-            <a class="btn primary" href="/static/search.html">Open Search</a>
-            <a class="btn" href="/static/samples/search_intake_examples_sample.zip" download>Search ZIP</a>
+            <a class="dc-btn dc-btn-primary" href="/static/search.html">Open Search</a>
+            <a class="dc-btn dc-btn-secondary" href="/static/samples/search_intake_examples_sample.zip" download>Search ZIP</a>
           </div>
         </div>
         <div class="card">
@@ -138,8 +153,8 @@
           <b>Anonymize before hub sharing</b>
           <small>Show that source bundles are processed locally, redactions are reviewable, and hub submissions are sanitized proposals.</small>
           <div class="actions">
-            <a class="btn primary" href="/static/share.html">Open Sharing</a>
-            <a class="btn" href="/static/samples/knowledge_files_sample.zip" download>Knowledge ZIP</a>
+            <a class="dc-btn dc-btn-primary" href="/static/share.html">Open Sharing</a>
+            <a class="dc-btn dc-btn-secondary" href="/static/samples/knowledge_files_sample.zip" download>Knowledge ZIP</a>
           </div>
         </div>
         <div class="card">
@@ -147,8 +162,12 @@
           <b>Evaluation and slides</b>
           <small>Use the live-demo notebook for <code>/start</code> and <code>/slides</code>. Use A-00 for scores and exported reports.</small>
           <div class="actions">
-            <a class="btn" href="https://www.kaggle.com/code/taylorsamarel/duecare-live-demo" target="_blank" rel="noopener">Live Demo</a>
-            <a class="btn" href="https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation" target="_blank" rel="noopener">Evaluation</a>
+            <a class="dc-btn dc-btn-primary"
+               href="https://www.kaggle.com/code/taylorsamarel/duecare-live-demo"
+               target="_blank" rel="noopener">Live Demo ↗</a>
+            <a class="dc-btn dc-btn-secondary"
+               href="https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation"
+               target="_blank" rel="noopener">Evaluation ↗</a>
           </div>
         </div>
       </div>
@@ -198,22 +217,27 @@
     async function dcRunRecordingHealthChecks() {
       const host = document.getElementById('recording-health');
       if (!host) return;
+      const log = window.dcActivityLog
+        ? window.dcActivityLog.attach('#recording-health-log',
+            {idlePlaceholder: 'Waiting for checks…'})
+        : null;
       host.innerHTML = '';
       for (const [label, path] of DC_RECORDING_HEALTH_CHECKS) {
+        if (log) log.step(label + ' — checking');
         const pending = dcRecordingHealthRow(label, path, 'checking', path);
         host.appendChild(pending);
         const started = performance.now();
         try {
           const r = await fetch(path, {cache: 'no-store'});
           const elapsed = Math.round(performance.now() - started);
+          const detail = path + ' | HTTP ' + r.status + ' | ' + elapsed + 'ms';
           pending.replaceWith(dcRecordingHealthRow(
-            label,
-            path,
-            r.ok ? 'ok' : 'fail',
-            path + ' | HTTP ' + r.status + ' | ' + elapsed + 'ms'
-          ));
+            label, path, r.ok ? 'ok' : 'fail', detail));
+          if (log) { if (r.ok) log.ok(label, detail); else log.err(label + ' failed', detail); }
         } catch (e) {
-          pending.replaceWith(dcRecordingHealthRow(label, path, 'fail', path + ' | ' + e));
+          const detail = path + ' | ' + e;
+          pending.replaceWith(dcRecordingHealthRow(label, path, 'fail', detail));
+          if (log) log.err(label + ' error', detail);
         }
       }
     }

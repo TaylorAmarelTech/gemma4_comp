@@ -24,18 +24,6 @@
     }
     textarea:focus { outline: 0; border-color: var(--accent); box-shadow: 0 0 0 4px oklch(0.85 0.05 195 / 0.3); }
     .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 10px; }
-    .btn {
-      display: inline-flex; align-items: center; justify-content: center; min-height: 34px;
-      padding: 7px 13px; border-radius: 7px; border: 1px solid var(--line);
-      background: var(--paper); color: var(--ink); text-decoration: none; cursor: pointer;
-      font-size: 12.5px; font-weight: 600;
-    }
-    .btn.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-    .btn:hover { border-color: var(--accent); }
-    .pill {
-      display: inline-block; padding: 2px 7px; border-radius: 999px; background: var(--paper-2);
-      border: 1px solid var(--line); font-family: var(--mono); font-size: 10.5px; color: var(--ink-2);
-    }
     .result {
       background: var(--paper-2); border: 1px solid var(--line-soft); border-radius: 8px;
       padding: 12px; min-height: 90px; white-space: pre-wrap; overflow-wrap: anywhere;
@@ -69,8 +57,8 @@
         <span class="pill">primary safety surface</span>
         <span class="pill">applied_layers: none</span>
         <span class="pill">Gemma: optional rephrase</span>
-        <a class="btn" href="/static/search.html">Open Search utility</a>
-        <a class="btn" href="/static/harness.html">Harness Workbench</a>
+        <a class="wb-btn-secondary" href="/static/search.html">Open Search utility</a>
+        <a class="wb-btn-secondary" href="/static/harness.html">Harness Workbench</a>
       </div>
     </section>
 
@@ -82,9 +70,9 @@
           <label><input type="checkbox" id="mode-rephrase"> Ask Gemma 4 to rephrase after redaction</label>
         </div>
         <div class="row">
-          <button class="btn primary" type="button" onclick="runSanitize()">Sanitize query</button>
-          <button class="btn" type="button" onclick="runComparison()">Compare strict vs rephrase</button>
-          <button class="btn" type="button" onclick="useSafeExample()">Use safe example</button>
+          <button class="wb-btn-primary" type="button" onclick="runSanitize()">Sanitize query</button>
+          <button class="wb-btn-secondary" type="button" onclick="runComparison()">Compare strict vs rephrase</button>
+          <button class="wb-btn-secondary" type="button" onclick="useSafeExample()">Use safe example</button>
         </div>
         <div class="muted" id="status" style="margin-top:8px;">Checking search-safety wiring...</div>
       </div>
@@ -110,24 +98,55 @@
         </div>
       </div>
     </section>
+
+    <section class="panel" style="margin-top:0;">
+      <h2 style="margin:0 0 8px;font-size:14px;">Activity</h2>
+      <div class="dc-activity-log" id="ss-log">
+        <div class="dc-log-idle">Waiting for first run...</div>
+      </div>
+    </section>
   </main>
 
   <script>
+    let log;
+    document.addEventListener('DOMContentLoaded', function() {
+      log = window.dcActivityLog.attach('#ss-log', {
+        idlePlaceholder: 'Waiting for first run...'
+      });
+      loadInfo();
+    });
+
     function esc(s) {
-      return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
-        ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      return String(s == null ? "" : s).replace(/[&<>"']/g, function(c) {
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+      });
     }
     function mode() {
       return document.getElementById("mode-rephrase").checked ? "rephrase" : "strict";
     }
+    function setStatus(text, isError) {
+      var s = document.getElementById("status");
+      s.textContent = text;
+      s.style.color = isError ? 'oklch(0.40 0.16 25)' : '';
+    }
     async function loadInfo() {
+      log.step('loading safety-info');
       try {
         const r = await fetch("/api/search/safety-info", {cache: "no-store"});
         const d = await r.json();
-        document.getElementById("status").innerHTML =
-          `Regex redaction: ${d.regex_redaction ? "on" : "off"}; Gemma rephrase: ${d.gemma_rephrase_available ? "available" : "not loaded"}; patterns: ${(d.patterns || []).map(esc).join(", ")}`;
+        const patternCount = (d.patterns || []).length;
+        const summary =
+          'Regex redaction: ' + (d.regex_redaction ? 'on' : 'off') +
+          '; Gemma rephrase: ' + (d.gemma_rephrase_available ? 'available' : 'not loaded') +
+          '; patterns: ' + (d.patterns || []).map(esc).join(', ');
+        log.ok('safety-info loaded',
+          'regex=' + (d.regex_redaction ? 'on' : 'off') +
+          '; gemma_rephrase=' + (d.gemma_rephrase_available ? 'available' : 'not loaded') +
+          '; patterns=' + patternCount);
+        setStatus(summary, false);
       } catch (err) {
-        document.getElementById("status").textContent = "Could not load safety info: " + err.message;
+        log.err('safety-info failed', err.message);
+        setStatus('Could not load safety info: ' + err.message, true);
       }
     }
     async function sanitize(query, chosenMode) {
@@ -140,52 +159,96 @@
       if (!r.ok) throw new Error(d.detail || d.error || r.statusText);
       return d;
     }
+    function buildRedactionsDOM(reds) {
+      var frag = document.createDocumentFragment();
+      reds.forEach(function(rd) {
+        var row = document.createElement('div');
+        row.className = 'redaction';
+        var pill = document.createElement('span');
+        pill.className = 'pill';
+        pill.textContent = rd.kind;
+        var codeEl = document.createElement('code');
+        codeEl.textContent = rd.replacement;
+        var sha = document.createElement('span');
+        sha.className = 'muted';
+        sha.textContent = rd.original_sha256 ? 'sha256:' + rd.original_sha256 : '';
+        row.appendChild(pill);
+        row.appendChild(document.createTextNode(' '));
+        row.appendChild(codeEl);
+        row.appendChild(document.createTextNode(' '));
+        row.appendChild(sha);
+        frag.appendChild(row);
+      });
+      return frag;
+    }
     function renderResult(d) {
       document.getElementById("sanitized").textContent = d.sanitized || "";
       const reds = d.redactions || [];
-      document.getElementById("redactions").innerHTML = reds.length ? reds.map(r => `
-        <div class="redaction">
-          <span class="pill">${esc(r.kind)}</span>
-          <code>${esc(r.replacement)}</code>
-          <span class="muted">sha256:${esc(r.original_sha256)}</span>
-        </div>
-      `).join("") : "No PII-like patterns detected.";
-      document.getElementById("status").textContent =
-        `mode=${d.mode}; blocked=${d.blocked}; rephrase_fired=${d.rephrase_fired}; rephrase_wired=${d.rephrase_wired}`;
+      const redEl = document.getElementById("redactions");
+      redEl.textContent = '';
+      if (reds.length) {
+        redEl.appendChild(buildRedactionsDOM(reds));
+      } else {
+        redEl.textContent = 'No PII-like patterns detected.';
+      }
+      setStatus(
+        'mode=' + d.mode + '; blocked=' + d.blocked +
+        '; rephrase_fired=' + d.rephrase_fired + '; rephrase_wired=' + d.rephrase_wired,
+        false
+      );
+    }
+    function renderResultInto(el, d) {
+      el.textContent = d.sanitized || '(empty)';
     }
     async function runSanitize() {
       const q = document.getElementById("query").value.trim();
       if (!q) return;
-      document.getElementById("status").textContent = "Sanitizing...";
+      const m = mode();
+      log.step('sanitize (mode=' + m + ')');
+      setStatus('Sanitizing...', false);
       try {
-        renderResult(await sanitize(q, mode()));
+        const d = await sanitize(q, m);
+        renderResult(d);
+        log.ok('sanitize complete',
+          'blocked=' + d.blocked + '; rephrase_fired=' + d.rephrase_fired +
+          '; redactions=' + (d.redactions || []).length);
       } catch (err) {
-        document.getElementById("status").textContent = "Sanitize failed: " + err.message;
+        log.err('sanitize failed', err.message);
+        setStatus('Sanitize failed: ' + err.message, true);
       }
     }
     async function runComparison() {
       const q = document.getElementById("query").value.trim();
       if (!q) return;
       document.getElementById("compare-panel").style.display = "block";
+
+      log.step('comparison: strict arm starting');
       document.getElementById("strict-result").textContent = "Running strict...";
-      document.getElementById("rephrase-result").textContent = "Running rephrase...";
       try {
         const strict = await sanitize(q, "strict");
-        document.getElementById("strict-result").textContent = JSON.stringify(strict, null, 2);
+        renderResultInto(document.getElementById("strict-result"), strict);
+        log.ok('strict arm done',
+          'blocked=' + strict.blocked + '; redactions=' + (strict.redactions || []).length);
       } catch (err) {
         document.getElementById("strict-result").textContent = "Strict failed: " + err.message;
+        log.err('strict arm failed', err.message);
       }
+
+      log.step('comparison: rephrase arm starting');
+      document.getElementById("rephrase-result").textContent = "Running rephrase...";
       try {
         const rephrase = await sanitize(q, "rephrase");
-        document.getElementById("rephrase-result").textContent = JSON.stringify(rephrase, null, 2);
+        renderResultInto(document.getElementById("rephrase-result"), rephrase);
+        log.ok('rephrase arm done',
+          rephrase.rephrase_fired ? 'Gemma 4 rephrase fired' : 'Gemma 4 not fired (not loaded)');
       } catch (err) {
         document.getElementById("rephrase-result").textContent = "Rephrase failed: " + err.message;
+        log.err('rephrase arm failed', err.message);
       }
     }
     function useSafeExample() {
       document.getElementById("query").value = "ILO C181 recruitment fee prohibition for migrant domestic workers";
     }
-    loadInfo();
   </script>
 </body>
 </html>

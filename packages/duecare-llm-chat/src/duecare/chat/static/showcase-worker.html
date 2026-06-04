@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="/static/_chrome.css">
   <link rel="stylesheet" href="/static/showcase.css">
   <script src="/static/_nav.js" defer></script>
+  <script src="/static/_activity_log.js" defer></script>
 </head>
 <body data-nav="use-cases">
 <main class="showcase">
@@ -26,10 +27,13 @@
     resources and trusted caseworkers.
   </p>
 
-  <div class="note">
-    <strong>Privacy boundary:</strong> messages typed here stay on the kernel
-    running this URL. Nothing is sent to the public hub unless you explicitly
-    use an anonymization and sharing flow.
+  <div class="wb-trust">
+    <strong>Privacy boundary:</strong> Messages typed in the chat stay on this
+    kernel and are processed locally by the Gemma 4 model. Nothing reaches the
+    public DueCare hub unless you explicitly click "Share anonymized case" in
+    the anonymization flow — you can review and cancel that step at any time
+    before anything sends. You can also close this page at any moment without
+    any data leaving your device.
   </div>
 
   <div class="cta-row">
@@ -44,19 +48,19 @@
     <h2>Try checking a sample message</h2>
     <div class="demo-prompts">
       <button class="demo-prompt" type="button"
-              onclick="window.location.href='/static/chat.html?audience=worker&prompt=' + encodeURIComponent(this.dataset.prompt)"
+              onclick="window.location.href='/static/chat.html?audience=worker&amp;prompt=' + encodeURIComponent(this.dataset.prompt)"
               data-prompt="My recruiter says I need to pay PHP 50,000 for 'training and documentation' before deployment to Hong Kong as a domestic worker. Is this fee legal? What should I check before paying?">
         <span class="tag">Fee check</span>
         <span class="text">PH to HK domestic worker placement-fee question: is the amount legal?</span>
       </button>
       <button class="demo-prompt" type="button"
-              onclick="window.location.href='/static/chat.html?audience=worker&prompt=' + encodeURIComponent(this.dataset.prompt)"
+              onclick="window.location.href='/static/chat.html?audience=worker&amp;prompt=' + encodeURIComponent(this.dataset.prompt)"
               data-prompt="My future employer in Saudi Arabia said they will hold my passport for 'safekeeping' during my contract. Is this normal? What are my rights?">
         <span class="tag">Passport question</span>
         <span class="text">PH to KSA passport-retention question: is this allowed?</span>
       </button>
       <button class="demo-prompt" type="button"
-              onclick="window.location.href='/static/chat.html?audience=worker&prompt=' + encodeURIComponent(this.dataset.prompt)"
+              onclick="window.location.href='/static/chat.html?audience=worker&amp;prompt=' + encodeURIComponent(this.dataset.prompt)"
               data-prompt="A WhatsApp recruiter offered me a USD 28,400 'salary advance loan' from his partner lender, with monthly deductions from my Hong Kong salary for 21 months. Is this a normal arrangement?">
         <span class="tag">Loan offer</span>
         <span class="text">Recruiter-linked salary-advance loan and debt-bondage warning signs.</span>
@@ -85,14 +89,28 @@
       </a>
     </div>
   </section>
+
+  <div id="page-log" class="dc-activity-log" style="margin-top: 32px;"
+       data-toolbar="copy-json">
+    <div class="dc-log-idle">Ready — tap a prompt card or tool to continue.</div>
+  </div>
 </main>
 <script>
 (function () {
   "use strict";
   var btn = document.getElementById("dcInstallBtn");
+  var log = null;
+
+  // Attach activity log once DOM + _activity_log.js are ready.
+  window.addEventListener("DOMContentLoaded", function () {
+    log = window.dcActivityLog && window.dcActivityLog.attach("#page-log",
+      { idlePlaceholder: "Ready — tap a prompt card or tool to continue." });
+  });
+
   function setHint(t) {
     var h = document.getElementById("dcInstallHint");
     if (h) { h.textContent = t; h.hidden = false; }
+    if (log) { log.ok(t); }
   }
   // Service worker = offline shell + installability. https/localhost only;
   // a harmless no-op where unsupported. Progressive enhancement, never blocks.
@@ -102,7 +120,14 @@
         .then(function () {
           setHint("Saved for offline use — hotlines and the rule-book check keep working without a connection.");
         })
-        .catch(function () { /* offline-first is optional; ignore */ });
+        .catch(function (err) {
+          // Offline shell unavailable (HTTP / cross-origin / unsupported env).
+          // Page works fully online. Dev note only.
+          if (window.location.hostname === "localhost" || window.__dcDevMode) {
+            console.warn("[DueCare SW]", err);
+          }
+          if (log) { log.info("Offline shell unavailable in this environment — page works fully online."); }
+        });
     });
   }
   // Custom install affordance (Chrome / Edge / Android beforeinstallprompt).
@@ -111,13 +136,19 @@
     e.preventDefault();
     deferred = e;
     if (btn) { btn.hidden = false; }
+    if (log) { log.info("Install prompt available — tap 'Install app' to add to home screen."); }
   });
   if (btn) {
     btn.addEventListener("click", function () {
       if (!deferred) { return; }
+      if (log) { log.step("Showing install prompt…"); }
       deferred.prompt();
       deferred.userChoice.then(function (choice) {
-        if (choice && choice.outcome === "accepted") { setHint("Installing DueCare to your home screen…"); }
+        if (choice && choice.outcome === "accepted") {
+          setHint("Installing DueCare to your home screen…");
+        } else {
+          if (log) { log.info("Install prompt dismissed."); }
+        }
         btn.hidden = true;
         deferred = null;
       });

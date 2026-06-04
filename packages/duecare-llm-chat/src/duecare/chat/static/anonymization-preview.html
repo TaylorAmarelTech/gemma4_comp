@@ -112,30 +112,8 @@
     .ap-controls input:focus, .ap-controls select:focus { outline: 0; border-color: var(--accent);
       box-shadow: 0 0 0 4px oklch(0.85 0.05 195 / 0.3); }
 
-    button.primary {
-      background: var(--ink);
-      color: var(--paper);
-      border: 1px solid var(--ink);
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-family: var(--sans);
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-    }
-    button.primary:hover { background: #1a1d24; }
-    button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
-    button.ghost {
-      background: var(--paper);
-      color: var(--ink);
-      border: 1px solid var(--line);
-      padding: 8px 14px;
-      border-radius: 6px;
-      font-family: var(--sans);
-      font-size: 14px;
-      cursor: pointer;
-    }
-    button.ghost:hover { background: var(--paper-2); border-color: var(--ink-3); }
+    /* button.primary and button.ghost replaced by shared .dc-primary-button,
+       .dc-secondary-button, and .wb-btn-destructive from _chrome.css (rule 6) */
 
     .ap-stage-info {
       font-size: 13px;
@@ -225,11 +203,14 @@
     <a href="/" style="font-family: var(--mono); font-size: 12px; color: var(--ink-3);">Back to chat</a>
   </header>
 
-  <div class="wb-trust" style="background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin: 10px 18px;">
-    <b>Trust boundary:</b> Anonymization runs locally inside this kernel.
-    Raw text never leaves the kernel; only the redacted preview is
-    shown. PII detection is regex + NER; the audit log stores
-    <code>sha256(original)</code>, never plaintext.
+  <div class="dc-trust-row" style="margin: 10px 18px;">
+    <span class="dc-trust-pill"><span class="dot" aria-hidden="true"></span>Local only</span>
+    <span class="dc-trust-text">
+      Anonymization runs inside this kernel. Raw text never leaves your device.
+      PII detection is regex + NER; the audit log stores
+      <code>sha256(original)</code>, never plaintext.
+      To opt out of sending entirely, click <strong>Keep local only</strong>.
+    </span>
   </div>
 
   <nav class="dc-chrome-nav" aria-label="Cross-page nav">
@@ -294,8 +275,8 @@
       </select>
       <input id="jurisdiction" placeholder="Jurisdiction (e.g. PHL)" />
       <input id="corridor" placeholder="Corridor (e.g. PHL-KWT)" />
-      <button class="primary" id="run">Run anonymization</button>
-      <button class="ghost" id="clear">Clear</button>
+      <button class="dc-primary-button" id="run">Run anonymization</button>
+      <button class="dc-secondary-button" id="clear">Clear</button>
     </div>
 
     <div id="status" class="ap-status"></div>
@@ -330,9 +311,15 @@
       <div class="label-block">
         <strong>Ready to send?</strong> The payload above goes to the hub at <code id="hubUrl">/api/hub/client/submission</code>. A curator reviews before any vetted pack changes.
       </div>
-      <div style="display: flex; gap: 10px;">
-        <button class="ghost" id="keepLocal">Keep local only</button>
-        <button class="primary" id="send" disabled>Send to hub</button>
+      <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <button class="wb-btn-destructive" id="keepLocal">Keep local only</button>
+        <div>
+          <p id="send-prereq" class="ap-stage-info" style="font-size:12px;margin:0 0 4px;">
+            Run anonymization above to enable.
+          </p>
+          <button class="dc-primary-button" id="send" disabled
+            data-tip="Run anonymization above first" data-tip-pos="above">Send to hub</button>
+        </div>
       </div>
     </div>
 
@@ -383,13 +370,37 @@
 
     let lastPayload = null;
 
+    // Wire the shared activity log helper once the DOM + deferred scripts are ready.
+    let log;
+    document.addEventListener("DOMContentLoaded", function () {
+      log = window.dcActivityLog
+        ? window.dcActivityLog.attach('#page-activity-log', {
+            idlePlaceholder: 'No activity yet. Run anonymization to populate.'
+          })
+        : null;
+    });
+    // Fallback: if DOMContentLoaded already fired (deferred script), attach immediately.
+    if (document.readyState !== 'loading') {
+      log = window.dcActivityLog
+        ? window.dcActivityLog.attach('#page-activity-log', {
+            idlePlaceholder: 'No activity yet. Run anonymization to populate.'
+          })
+        : null;
+    }
+    function _log(method, msg, detail) {
+      if (log && typeof log[method] === 'function') log[method](msg, detail);
+    }
+
     document.getElementById("run").addEventListener("click", () => {
       const raw = document.getElementById("input").value;
       if (!raw || raw.trim().length < 10) {
         setStatus("warn", "Type at least 10 characters of text first.");
+        _log('warn', 'Input too short - need at least 10 chars');
         return;
       }
+      _log('step', 'Local anonymization running...');
       const {out, findings} = anonymize(raw);
+      const findingCount = Object.values(findings).reduce((a, b) => a + b, 0);
       const tags = Object.entries(findings)
         .map(([k, n]) => `<span class="ap-pii-tag">${escapeHtml(k)} &times; ${n}</span>`)
         .join("");
@@ -397,6 +408,13 @@
       document.getElementById("redactedNote").innerHTML = tags
         ? `Local regex pass redacted: ${tags}`
         : "Local regex pass found no obvious PII patterns. The server will re-check anyway.";
+
+      if (findingCount > 0) {
+        const summary = Object.entries(findings).map(([k, n]) => k + '=' + n).join(', ');
+        _log('anon', 'Regex pass complete', summary);
+      } else {
+        _log('ok', 'Regex pass: no PII patterns detected');
+      }
 
       const payload = {
         kind: document.getElementById("kind").value,
@@ -411,7 +429,15 @@
       Object.keys(payload).forEach(k => { if (payload[k] === null || payload[k] === "") delete payload[k]; });
       lastPayload = payload;
       document.getElementById("payload").textContent = JSON.stringify(payload, null, 2);
-      document.getElementById("send").disabled = false;
+
+      // Enable send button and clear its prerequisite hint.
+      const sendBtn = document.getElementById("send");
+      sendBtn.disabled = false;
+      sendBtn.removeAttribute("data-tip");
+      const prereq = document.getElementById("send-prereq");
+      if (prereq) prereq.style.display = "none";
+
+      _log('ok', 'Outbound payload ready', 'kind=' + payload.kind);
       setAnonymizeStep(1);
       setStatus("ok", "Pipeline ran locally. Review the outbound payload before sending.");
     });
@@ -421,21 +447,31 @@
       document.getElementById("redacted").textContent = "Paste text and click Run anonymization to preview.";
       document.getElementById("redactedNote").textContent = "Local rules look for emails, phone numbers, ID-like strings, and street addresses.";
       document.getElementById("payload").textContent = "Run anonymization above to see the JSON that would be sent.";
-      document.getElementById("send").disabled = true;
+
+      // Reset send button to locked state with prereq hint.
+      const sendBtn = document.getElementById("send");
+      sendBtn.disabled = true;
+      sendBtn.setAttribute("data-tip", "Run anonymization above first");
+      const prereq = document.getElementById("send-prereq");
+      if (prereq) prereq.style.display = "";
+
       lastPayload = null;
       setAnonymizeStep(0);
       setStatus("", "");
       document.getElementById("status").style.display = "none";
+      _log('info', 'Cleared');
     });
 
     document.getElementById("keepLocal").addEventListener("click", () => {
       setStatus("ok", "Kept local. Nothing was sent to the hub.");
       document.getElementById("send").disabled = true;
       setAnonymizeStep(2);
+      _log('ok', 'Kept local - nothing sent');
     });
 
     document.getElementById("send").addEventListener("click", async () => {
       if (!lastPayload) return;
+      _log('net', 'POST /api/hub/client/submission...');
       try {
         const r = await fetch("/api/hub/client/submission", {
           method: "POST",
@@ -444,13 +480,38 @@
         });
         const data = await r.json();
         if (r.ok) {
+          _log('ok', 'Sent to hub', 'tracking id=' + data.id + ' verdict=' + data.automation_verdict);
           setStatus("ok", `Sent. Tracking id: ${data.id}. Server automation verdict: ${data.automation_verdict} (${data.automation_model}).`);
           document.getElementById("send").disabled = true;
           setAnonymizeStep(2);
+
+          // P2: add "Submit another" affordance next to the status message.
+          const band = document.querySelector('.ap-cta-band');
+          if (band && !document.getElementById('send-again')) {
+            const btn = document.createElement('button');
+            btn.id = 'send-again';
+            btn.className = 'dc-secondary-button';
+            btn.textContent = 'Submit another';
+            btn.style.marginTop = '8px';
+            btn.addEventListener('click', function () {
+              document.getElementById('clear').click();
+              btn.remove();
+            });
+            band.appendChild(btn);
+          }
+
+          // P2: bump localStorage submission counter for Status page (rule 3).
+          try {
+            const prev = parseInt(localStorage.getItem('duecare:submissions-count') || '0', 10);
+            localStorage.setItem('duecare:submissions-count', String(prev + 1));
+            localStorage.setItem('duecare:submissions-last-at', new Date().toISOString());
+          } catch (_) { /* localStorage unavailable */ }
         } else {
+          _log('err', 'Hub rejected', data.detail || String(r.status));
           setStatus("err", `Server rejected: ${data.detail || r.status}`);
         }
       } catch (err) {
+        _log('err', 'Network error', err.message);
         setStatus("err", `Network error: ${err.message}`);
       }
     });

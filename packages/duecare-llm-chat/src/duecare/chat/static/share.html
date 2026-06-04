@@ -15,12 +15,6 @@
     .wb-lede { font-size: 13.5px; line-height: 1.6; color: #2A2D34; margin: 0 0 22px; }
     .wb-pill { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 10px;
                color: #2A2D34; background: #EFEDE4; border-radius: 4px; padding: 2px 7px; margin: 0 4px 4px 0; }
-    .wb-btn-primary { background: oklch(0.52 0.08 195); color: #F7F6F1; border: 0; padding: 9px 18px;
-                       border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
-    .wb-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
-    .wb-btn-secondary { background: #FFF; color: #0E1116; border: 1px solid #DDD8C9; padding: 8px 14px;
-                         border-radius: 8px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
-    .wb-btn-secondary:disabled { opacity: 0.55; cursor: not-allowed; }
     .wb-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
     .wb-status-pill { background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155);
                        padding: 6px 12px; border-radius: 999px; font-size: 11px; }
@@ -129,6 +123,10 @@
           <a class="wb-btn-secondary" href="/static/samples/knowledge_files_sample.zip" download="knowledge_files_sample.zip">Download sample knowledge files</a>
           <a class="wb-btn-secondary" href="/static/samples/case_files_media_rich_sample.zip" download="case_files_media_rich_sample.zip">Download sample source bundle</a>
         </div>
+        <div class="wb-row" style="margin-top:4px;">
+          <button class="wb-btn-primary" id="wb-use-sample-btn" onclick="wbUseSample()">Try sample (knowledge_files_sample.zip)</button>
+          <span class="wb-muted" style="font-size:11px;">Loads the synthetic sample without leaving the page.</span>
+        </div>
         <div class="wb-row">
           <button class="wb-btn-primary wb-step-cta" id="wb-step1-btn" disabled onclick="wbStep1()">Process bundle locally</button>
         </div>
@@ -166,11 +164,13 @@
             </tbody>
           </table>
         </div>
+        <div class="wb-muted" id="wb-step2-count" style="font-size:11.5px; margin-top:10px; margin-bottom:6px;">Select items to submit, then confirm.</div>
         <div class="wb-row">
           <button class="wb-btn-secondary" id="wb-select-all-btn" disabled onclick="wbSetAllFacts(true)">Select all visible</button>
           <button class="wb-btn-secondary" id="wb-clear-all-btn" disabled onclick="wbSetAllFacts(false)">Clear selection</button>
-          <button class="wb-btn-primary wb-step-cta" id="wb-step2-btn" disabled onclick="wbStep2()">Step 2: Confirm review</button>
-          <span class="wb-muted" id="wb-step2-count">0 items selected.</span>
+          <button class="wb-btn-primary wb-step-cta" id="wb-step2-btn" disabled onclick="wbStep2()"
+                  data-tip="Check at least one row in the table above, then click to confirm your selection."
+                  data-tip-pos="below">Confirm review</button>
         </div>
       </div>
     </details>
@@ -258,8 +258,9 @@
           Step 4 performs a real HTTPS POST to the hub URL above and writes a row to
           <code>/kaggle/working/audit/submit_log.jsonl</code>. The submission is irreversible.
         </div>
-        <div class="wb-row">
-          <button class="wb-btn-primary wb-step-cta" id="wb-step4-btn" disabled onclick="wbStep4()" data-tip="Disabled until Step 3 has completed AND you type SUBMIT in the confirmation field above." data-tip-pos="below">Step 4: Submit to hub</button>
+        <div class="wb-row" style="align-items:center;">
+          <button class="wb-btn-primary wb-step-cta" id="wb-step4-btn" disabled onclick="wbStep4()" data-tip="Disabled until Step 3 has completed AND you type SUBMIT in the confirmation field above." data-tip-pos="below">Submit to hub</button>
+          <span style="flex:1;"></span>
           <button class="wb-btn-destructive" id="wb-step4-cancel-btn" type="button" hidden onclick="wbCancelSubmit()"
                   title="Cancel the in-flight hub submission. The redacted bundle is not sent; you can re-submit after editing.">Cancel submit</button>
         </div>
@@ -305,6 +306,13 @@
         try { _wbSubmitController.abort(); } catch (_) {}
         wbLog('warn', 'Submit aborted by operator',
           'No outbound POST was confirmed by the hub; audit row may still be present.');
+        const resultHost = document.getElementById('wb-step4-result');
+        if (resultHost && !resultHost.childElementCount) {
+          const note = document.createElement('div');
+          note.className = 'wb-error';
+          note.textContent = 'Submit cancelled by operator. Check /kaggle/working/audit/submit_log.jsonl to confirm no row was written.';
+          resultHost.appendChild(note);
+        }
       }
     }
     let wbShareStepper = null;
@@ -322,6 +330,9 @@
     function wbSetStep(active) {
       const stepper = wbGetShareStepper();
       if (stepper) stepper.set((Number(active) || 1) - 1);
+      document.querySelectorAll('.wb-step-flow').forEach(function(el, i) {
+        el.classList.toggle('wb-step-flow-next-active', i === (Number(active) - 2));
+      });
     }
         // Shared activity-log primitive (window.dcActivityLog). The
     // previous bespoke wbLog() hand-rolled DOM construction; we now
@@ -494,7 +505,14 @@
     function wbUpdateStep2Btn() {
       const c = wbChecked.size;
       const n = ((wbBundle && wbBundle.results) || []).length;
-      document.getElementById('wb-step2-count').textContent = c + ' items selected.';
+      const countEl = document.getElementById('wb-step2-count');
+      if (countEl) {
+        countEl.textContent = n === 0
+          ? 'Complete Step 1 to load items.'
+          : c === 0
+            ? 'No items selected — check at least one row above.'
+            : c + ' item' + (c === 1 ? '' : 's') + ' selected.';
+      }
       document.getElementById('wb-step2-btn').disabled = c === 0;
       document.getElementById('wb-select-all-btn').disabled = n === 0 || c === n;
       document.getElementById('wb-clear-all-btn').disabled = c === 0;
@@ -869,8 +887,34 @@
         // Refresh the gate -- in success cases the button stays
         // disabled via wbSubmittedRunId; in error cases the operator
         // can retype SUBMIT and try again.
-        btn.textContent = 'Step 4: Submit to hub';
+        btn.textContent = 'Submit to hub';
         wbRefreshSubmitGate();
+      }
+    }
+    async function wbUseSample() {
+      const btn = document.getElementById('wb-use-sample-btn');
+      if (btn) { btn.disabled = true; btn.textContent = 'Loading sample...'; }
+      try {
+        const resp = await fetch('/static/samples/knowledge_files_sample.zip');
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const blob = await resp.blob();
+        const file = new File([blob], 'knowledge_files_sample.zip', { type: 'application/zip' });
+        wbFile = file;
+        const infoEl = document.getElementById('wb-file-info');
+        if (infoEl) {
+          while (infoEl.firstChild) infoEl.removeChild(infoEl.firstChild);
+          const pill = document.createElement('span');
+          pill.className = 'wb-pill';
+          pill.textContent = file.name + ' (sample, ' + Math.round(file.size / 1024) + ' KB)';
+          infoEl.appendChild(pill);
+        }
+        document.getElementById('wb-step1-btn').disabled = false;
+        wbSetStep(1);
+        wbLog('info', 'Sample file loaded: ' + file.name + ' (' + file.size + ' bytes)');
+      } catch (e) {
+        wbLog('err', 'Could not load sample: ' + (e && e.message || e));
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Try sample (knowledge_files_sample.zip)'; }
       }
     }
     const dz = document.getElementById('wb-dropzone');

@@ -13,20 +13,8 @@
                color: #0E1116; font-family: Inter, system-ui, sans-serif; line-height: 1.55; }
     .wb-h1 { font-size: 26px; font-weight: 700; margin: 0 0 8px; }
     .wb-lede { font-size: 13.5px; color: #2A2D34; margin: 0 0 18px; }
-    .wb-card { background: #FFF; border: 1px solid #DDD8C9; border-radius: 12px;
-               padding: 16px 18px; margin-bottom: 14px; }
-    .wb-card h2 { font-size: 15px; font-weight: 600; margin: 0 0 10px; }
-    .wb-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-    .wb-btn-primary { padding: 8px 16px; background: oklch(0.52 0.08 195); color: #FFF;
-                      border: 0; border-radius: 6px; font-size: 13px; font-weight: 500;
-                      cursor: pointer; }
-    .wb-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
-    .wb-btn-secondary { padding: 7px 13px; background: #FFF; color: #0E1116;
-                         border: 1px solid #DDD8C9; border-radius: 6px; font-size: 12.5px;
-                         font-weight: 500; cursor: pointer; text-decoration: none; }
-    .wb-muted { color: #5B5F68; font-size: 12px; }
-    .wb-pill { display: inline-block; padding: 1px 8px; background: #F1EFE7; border-radius: 3px;
-                font-size: 11px; color: #5B5F68; font-family: 'JetBrains Mono', monospace; }
+    /* Shared classes (.wb-card, .wb-row, .wb-btn-primary, .wb-btn-secondary,
+       .wb-muted, .wb-pill) are defined in _chrome.css — do not re-define here. */
     .wb-twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     @media (max-width: 980px) { .wb-twocol { grid-template-columns: 1fr; } }
     @media (max-width: 620px) {
@@ -115,7 +103,7 @@
       <span class="dc-trust-pill"><span class="dot"></span>LOCAL</span>
       <span class="dc-trust-pill"><span class="dot"></span>APPLES-TO-APPLES</span>
       <span class="dc-trust-pill"><span class="dot"></span>SAME MODEL · SAME PROMPT</span>
-      <span class="dc-trust-text">Use the top <b>Model</b> control to load or switch the active model for both variants.</span>
+      <span class="dc-trust-text">Both variants run on the local Gemma 4 model in this kernel — no prompt text leaves the kernel unless <b>Official Sources</b> or <b>Online</b> is enabled (both are off by default). No anonymization is applied; prompts are sent as typed. Disable Official Sources and Online to keep everything local.</span>
     </div>
     <p class="wb-lede">
       Same prompt, two harness configurations. Send one prompt through both and see what
@@ -249,12 +237,16 @@
       <div class="wb-row" style="margin-top: 12px; align-items: center; gap: 10px; flex-wrap: wrap;">
         <button id="cmp-run" class="wb-btn-primary" onclick="cmpRun()" aria-label="Run comparison">4. Run comparison</button>
         <span class="dc-gemma-mark is-optional" id="cmp-gemma-mark" title="Reflects whether Gemma actually generated. Flips to Gemma active when a model call begins, Gemma done when both variants complete.">Optional · Gemma</span>
-        <button id="cmp-interrupt" class="wb-btn-destructive"
-                onclick="cmpInterrupt()" disabled
-                title="Cancel the in-flight comparison; both variants stop after the current step"
-                aria-label="Interrupt running comparison">Interrupt</button>
-        <button class="wb-btn-destructive" onclick="cmpReset()" aria-label="Reset comparison state" title="Clear both variant outputs, timing, and grade so you can start a fresh comparison.">Reset</button>
         <span class="wb-muted" id="cmp-status" aria-live="polite"></span>
+        <span style="margin-left: auto; display: inline-flex; gap: 8px; align-items: center;">
+          <button id="cmp-interrupt" class="wb-btn-destructive"
+                  onclick="cmpInterrupt()" disabled
+                  title="Cancel the in-flight comparison; both variants stop after the current step"
+                  aria-label="Interrupt running comparison">Interrupt</button>
+          <button class="wb-btn-destructive" onclick="cmpReset()"
+                  aria-label="Reset comparison state"
+                  title="Clear both variant outputs, timing, and grade. Cannot be undone.">Reset</button>
+        </span>
       </div>
       <div id="cmp-error" class="wb-error" style="display:none;" role="alert"></div>
     </div>
@@ -492,8 +484,10 @@
             <option value="combined">combined (50/50 blend)</option>
           </select>
         </label>
-        <button class="wb-btn-primary" id="grade-btn" onclick="cmpGrade()" disabled>Grade both</button>
-        <span class="wb-muted" id="grade-status">Available once both variants finish running.</span>
+        <button class="wb-btn-primary" id="grade-btn" onclick="cmpGrade()" disabled
+                title="Run both variants first."
+                aria-describedby="grade-status">Grade both</button>
+        <span class="wb-muted" id="grade-status" aria-live="polite">Available once both variants finish running.</span>
       </div>
       <div class="wb-twocol" style="margin-top: 12px;">
         <div class="wb-grade">
@@ -527,8 +521,12 @@
                 title="Open the Chat page with Variant B's toggles preset (via URL hash)">Send Variant B config to Chat</button>
         <button class="wb-btn-secondary" id="postrun-share" onclick="cmpCopyShareLink()"
                 title="Copy a prompt/config URL for this current kernel">Copy prompt link</button>
-        <button class="wb-btn-secondary" id="postrun-copy-md" onclick="cmpCopyGradeMarkdown()" disabled>Copy Markdown report</button>
-        <button class="wb-btn-secondary" id="postrun-copy-json" onclick="cmpCopyGradeJson()" disabled>Copy JSON results</button>
+        <button class="wb-btn-secondary" id="postrun-copy-md" onclick="cmpCopyGradeMarkdown()" disabled
+                title="Grade both variants first."
+                aria-describedby="postrun-status">Copy Markdown report</button>
+        <button class="wb-btn-secondary" id="postrun-copy-json" onclick="cmpCopyGradeJson()" disabled
+                title="Grade both variants first."
+                aria-describedby="postrun-status">Copy JSON results</button>
         <span class="wb-muted" id="postrun-status"></span>
       </div>
     </div>
@@ -1185,12 +1183,14 @@
         const r = await fetch('/api/chat/upload-image', {method: 'POST', body: fd});
         if (!r.ok) {
           status.textContent = 'upload failed: HTTP ' + r.status;
+          logEvent(null, 'err', 'image upload failed: HTTP ' + r.status);
           return;
         }
         const out = await r.json();
         const ref = _cmpStoreRefFromUpload(out);
         if (!ref) {
           status.textContent = 'upload returned no image id';
+          logEvent(null, 'err', 'image upload: server returned no image id');
           return;
         }
         _cmpImageRef = ref;
@@ -1199,6 +1199,7 @@
         logEvent(null, 'info', 'image attached for both variants', _cmpImageRef);
       } catch (e) {
         status.textContent = 'upload error: ' + e;
+        logEvent(null, 'err', 'image upload error: ' + e);
       }
     }
     async function cmpAttachSyntheticImage(imagePath, imageId) {
@@ -1221,12 +1222,14 @@
         const r = await fetch('/api/chat/upload-image', {method: 'POST', body: fd});
         if (!r.ok) {
           status.textContent = 'bundled image upload failed: HTTP ' + r.status;
+          logEvent(null, 'err', 'bundled image upload failed: HTTP ' + r.status);
           return;
         }
         const out = await r.json();
         const ref = _cmpStoreRefFromUpload(out);
         if (!ref) {
           status.textContent = 'bundled image upload returned no image id';
+          logEvent(null, 'err', 'bundled image upload: server returned no image id');
           return;
         }
         _cmpImageRef = ref;
@@ -1235,6 +1238,7 @@
         logEvent(null, 'info', 'bundled image attached for both variants', _cmpImageRef);
       } catch (e) {
         status.textContent = 'bundled image attach error: ' + e;
+        logEvent(null, 'err', 'bundled image attach error: ' + e);
       }
     }
     function cmpClearImage() {

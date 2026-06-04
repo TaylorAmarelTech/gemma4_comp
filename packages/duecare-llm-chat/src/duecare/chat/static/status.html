@@ -27,21 +27,6 @@
     .stat-value { font-size: 28px; font-weight: 700; color: oklch(0.32 0.07 195);
                    font-variant-numeric: tabular-nums; line-height: 1.1; }
     .stat-sub { font-size: 11.5px; color: #5B5F68; margin-top: 4px; }
-    .wb-pill { display: inline-block; padding: 2px 8px; background: #F1EFE7;
-                border-radius: 4px; font-size: 11px; color: #5B5F68;
-                font-family: 'JetBrains Mono', monospace; margin: 0 4px 4px 0; }
-    .wb-pill.ok      { background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); }
-    .wb-pill.warn    { background: oklch(0.94 0.04 80);  color: oklch(0.34 0.07 80); }
-    .wb-pill.danger  { background: oklch(0.94 0.04 25);  color: oklch(0.34 0.07 25); }
-    .wb-btn-secondary { padding: 7px 13px; background: #FFF; color: #0E1116;
-                         border: 1px solid #DDD8C9; border-radius: 6px;
-                         font-size: 12.5px; cursor: pointer; text-decoration: none;
-                         display: inline-block; }
-    .wb-btn-primary { padding: 8px 16px; background: oklch(0.52 0.08 195);
-                       color: #FFF; border: 0; border-radius: 6px;
-                       font-size: 13px; cursor: pointer; }
-    .wb-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-    .wb-muted { color: #5B5F68; font-size: 11.5px; }
     table { width: 100%; border-collapse: collapse; font-size: 12px; }
     th, td { padding: 6px 10px; border-bottom: 1px solid #EFEDE4; text-align: left;
               vertical-align: top; }
@@ -70,14 +55,22 @@
       sent anywhere). Click <b>Refresh all</b> to re-query everything.
     </p>
 
+    <div class="dc-trust-row is-audit" style="margin-bottom: 14px;">
+      <span class="dc-trust-pill"><span class="dot"></span>Queries local kernel only</span>
+      <span class="dc-trust-pill"><span class="dot"></span>localStorage counters stay on this device</span>
+      <span class="dc-trust-pill"><span class="dot"></span>No data leaves the kernel</span>
+    </div>
+
     <div class="wb-row" style="margin-bottom: 10px;">
       <button class="wb-btn-primary" onclick="statusRefresh()">Refresh all</button>
-      <a class="wb-btn-secondary" href="/static/sync.html">Sync</a>
-      <a class="wb-btn-secondary" href="/static/knowledge.html">Knowledge extraction</a>
-      <a class="wb-btn-secondary" href="/static/harness.html">Harnesses</a>
-      <a class="wb-btn-secondary" href="/static/ecosystem.html">Ecosystem</a>
-      <a class="wb-btn-secondary" href="/static/ui-audit.html">UI audit</a>
+      <a class="wb-btn-secondary" href="/static/sync.html">Sync knowledge</a>
+      <a class="wb-btn-secondary" href="/static/knowledge.html">Extract knowledge</a>
+      <span class="wb-muted" style="align-self: center; padding: 0 2px;">|</span>
+      <a class="wb-muted" style="font-size: 12px; text-decoration: none;" href="/static/harness.html">Harnesses</a>
+      <a class="wb-muted" style="font-size: 12px; text-decoration: none;" href="/static/ecosystem.html">Ecosystem</a>
+      <a class="wb-muted" style="font-size: 12px; text-decoration: none;" href="/static/ui-audit.html">UI audit</a>
       <span class="wb-muted" id="status-refreshed-at"></span>
+      <span id="status-fetch-status" style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#8A8E97;"></span>
     </div>
 
     <div class="wb-card">
@@ -224,6 +217,10 @@
 
   <script>
     let _statusLog = null;
+    function _log(level, msg, detail) {
+      if (!_statusLog || typeof _statusLog[level] !== 'function') return;
+      detail !== undefined ? _statusLog[level](msg, detail) : _statusLog[level](msg);
+    }
 
     const KO_BRANCH_MAP = {
       matching_knowledge: ['grep_rule', 'glob_rule', 'classifier_rule', 'heuristic_rule'],
@@ -251,27 +248,30 @@
     }
 
     async function loadKnowledgeCounts() {
-      _statusLog.info('GET /api/knowledge/list');
+      _log('info', 'GET /api/knowledge/list');
       const t0 = performance.now();
       try {
         const r = await fetch('/api/knowledge/list');
         const dt = Math.round(performance.now() - t0);
         if (!r.ok) {
-          _statusLog.err('HTTP ' + r.status + ' (' + dt + 'ms)');
+          _log('err', 'HTTP ' + r.status + ' (' + dt + 'ms)');
           return null;
         }
         const out = await r.json();
         const n = (out && out.n) != null ? out.n : (out && out.objects ? out.objects.length : 0);
-        _statusLog.ok('HTTP 200 (' + dt + 'ms) n=' + n);
+        _log('ok', 'HTTP 200 (' + dt + 'ms) n=' + n);
         return out;
       } catch (e) {
-        _statusLog.err('GET /api/knowledge/list failed', '' + e);
+        _log('err', 'GET /api/knowledge/list failed', '' + e);
         return null;
       }
     }
     function renderKnowledgeCounts(out) {
       if (!out) {
-        document.getElementById('stat-ko-total').textContent = '?';
+        const el = document.getElementById('stat-ko-total');
+        el.textContent = '!';
+        el.style.color = 'oklch(0.58 0.14 45)';
+        el.title = 'Query failed — see activity log below';
         return;
       }
       const objects = out.objects || [];
@@ -305,11 +305,17 @@
     }
 
     async function loadBackends() {
-      _statusLog.info('GET /api/search/backends');
+      _log('info', 'GET /api/search/backends');
       try {
         const r = await fetch('/api/search/backends');
         if (!r.ok) {
-          _statusLog.err('GET /api/search/backends HTTP ' + r.status);
+          _log('err', 'GET /api/search/backends HTTP ' + r.status);
+          const backendsEl = document.getElementById('stat-backends');
+          if (backendsEl) {
+            backendsEl.textContent = '!';
+            backendsEl.style.color = 'oklch(0.58 0.14 45)';
+            backendsEl.title = 'Query failed — see activity log below';
+          }
           return;
         }
         const b = await r.json();
@@ -333,14 +339,20 @@
           ? 'DUECARE_SEARXNG_URL: ' + b.configured_searxng_url
           : 'DUECARE_SEARXNG_URL not set';
         host.appendChild(note);
-        _statusLog.ok('backends available=' + available + ' / ' + backends.length);
+        _log('ok', 'backends available=' + available + ' / ' + backends.length);
       } catch (e) {
-        _statusLog.err('backends fetch failed', '' + e);
+        _log('err', 'backends fetch failed', '' + e);
+        const backendsEl = document.getElementById('stat-backends');
+        if (backendsEl) {
+          backendsEl.textContent = '!';
+          backendsEl.style.color = 'oklch(0.58 0.14 45)';
+          backendsEl.title = 'Query failed — see activity log below';
+        }
       }
     }
 
     async function loadModelInfo() {
-      _statusLog.info('GET /api/model-info + /api/version');
+      _log('info', 'GET /api/model-info + /api/version');
       try {
         const [mi, vi] = await Promise.all([
           fetch('/api/model-info').then(r => r.ok ? r.json() : null).catch(() => null),
@@ -350,17 +362,19 @@
           const name = mi.model_name || mi.name || mi.id || '(unknown model)';
           const params = mi.params || mi.size || '';
           document.getElementById('stat-model').textContent = name + (params ? ' (' + params + ')' : '');
-          _statusLog.ok('model=' + name);
+          _log('ok', 'model=' + name);
         } else {
           document.getElementById('stat-model').textContent = '(no model wired)';
-          _statusLog.warn('no model wired');
+          _log('warn', 'no model wired');
         }
         if (vi) {
           const v = vi.version || vi.duecare_version || vi.kernel_version || '(unknown)';
           document.getElementById('stat-version').textContent = 'version: ' + v;
+        } else {
+          document.getElementById('stat-version').textContent = 'version: unavailable';
         }
       } catch (e) {
-        _statusLog.err('model/version fetch failed', '' + e);
+        _log('err', 'model/version fetch failed', '' + e);
       }
     }
 
@@ -420,7 +434,7 @@
           : 'across edge passes + media reviews';
       }
 
-      _statusLog.info('local counters',
+      _log('info', 'local counters',
         'syncs=' + c.syncsCount + ' imports=' + c.importsCount +
         ' hub_submits=' + c.hubSubmitsCount +
         ' gemma_calls=' + ((gStats && gStats.calls) || 0) +
@@ -437,6 +451,8 @@
         loadBackends(),
         loadModelInfo(),
       ]);
+      const fetchStatusEl = document.getElementById('status-fetch-status');
+      if (fetchStatusEl) fetchStatusEl.textContent = '— queries done';
     }
 
     document.addEventListener('DOMContentLoaded', function () {

@@ -17,12 +17,6 @@
     .wb-card h2 { font-size: 16px; font-weight: 600; margin: 0 0 8px; }
     .wb-pill { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 10px;
                color: #2A2D34; background: #EFEDE4; border-radius: 4px; padding: 2px 7px; margin: 0 4px 4px 0; }
-    .wb-btn-primary { background: oklch(0.52 0.08 195); color: #F7F6F1; border: 0; padding: 8px 14px;
-                       border-radius: 6px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
-    .wb-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
-    .wb-btn-secondary { background: #EFEDE4; color: #0E1116; border: 1px solid #DDD8C9;
-                         padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer;
-                         text-decoration: none; display: inline-block; }
     .wb-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
     .wb-muted { color: #5B5F68; font-size: 11.5px; }
     .wb-status-pill { background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155);
@@ -37,17 +31,10 @@
     .sync-step .name { font-weight: 700; font-size: 12.5px; margin: 5px 0 3px; }
     .sync-step .detail { color: #5B5F68; font-size: 11px; line-height: 1.4; padding: 0 0 10px 18px; }
     .sync-step.complete { border-color: oklch(0.72 0.08 155); background: oklch(0.97 0.02 155); }
-    .wb-trust { background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155);
-                 padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin-bottom: 14px; }
     label { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; }
     code { background: #F1EFE7; padding: 1px 5px; border-radius: 3px; font-size: 11.5px; font-family: 'JetBrains Mono', monospace; }
-    .wb-log { background: #0E1116; color: #E4E1D7; font-family: 'JetBrains Mono', monospace;
-               font-size: 11px; border-radius: 8px; padding: 10px 12px; max-height: 240px; overflow-y: auto; }
-    .wb-log .ts { color: #8A8E97; }
-    .wb-log .ok { color: oklch(0.78 0.14 155); }
-    .wb-log .err { color: oklch(0.72 0.16 25); }
     a { color: oklch(0.32 0.07 195); }
-  
+
     @media (max-width: 620px) {
       .wb-page { padding: 0 12px !important; }
       .wb-h1 { font-size: 22px !important; }
@@ -128,9 +115,11 @@
       </p>
       <div class="wb-row" style="gap:8px;">
         <input type="file" id="sync-upload-file" accept=".zip"
-               style="font-size:12px;">
+               style="font-size:12px;"
+               onchange="document.getElementById('sync-upload-btn').disabled = !this.files.length">
         <button class="wb-btn-primary" id="sync-upload-btn"
-                onclick="syncManualUpload()">Upload + import ZIP</button>
+                onclick="syncManualUpload()" disabled
+                title="Choose a ZIP file above first">Upload + import ZIP</button>
         <a class="wb-btn-secondary"
            href="/static/samples/knowledge_files_sample.zip"
            download="knowledge_files_sample.zip"
@@ -197,27 +186,21 @@
       const stepper = syncGetWorkflowStepper();
       if (stepper) stepper.set(active);
     }
-        // Shared activity-log primitive (window.dcActivityLog). The
-    // previous bespoke wbLog() hand-rolled DOM construction; we now
-    // delegate to the shared helper so styling, sanitisation, and
-    // trim/scroll behaviour are uniform across the workbench.
-    let _dcLog = null;
-    function wbGetLog(){
-      if (!_dcLog && window.dcActivityLog) {
-        _dcLog = window.dcActivityLog.attach('#wb-log', {idlePlaceholder: 'Waiting...'});
+    // Shared activity-log primitive - direct delegation to window.dcActivityLog.
+    let _log = null;
+    function getLog() {
+      if (!_log && window.dcActivityLog) {
+        _log = window.dcActivityLog.attach('#wb-log', { idlePlaceholder: 'Waiting...' });
       }
-      return _dcLog;
+      return _log;
     }
+    // Legacy shim: wbLog(kind, msg, detail) kept so existing call-sites work unchanged.
     const wbLog = (kind, msg, detail) => {
-      const _dcLog = wbGetLog();
-      if (!_dcLog) return;
-      const fn = ({info: _dcLog.info, ok: _dcLog.ok, warn: _dcLog.warn,
-                    err: _dcLog.err, step: _dcLog.step,
-                    net: _dcLog.net, anon: _dcLog.anon}[kind]
-                   || _dcLog.info);
-      fn(msg, detail);
+      const l = getLog();
+      if (!l) return;
+      (l[kind] || l.info)(msg, detail);
     };
-    window.addEventListener('DOMContentLoaded', wbGetLog);
+    window.addEventListener('DOMContentLoaded', getLog);
     function _syncErrLine(target, msg){
       while(target.firstChild) target.removeChild(target.firstChild);
       const d=document.createElement('div');
@@ -247,6 +230,8 @@
           return;
         }
         wbLog('ok','HTTP '+r.status+' ('+dt+'ms)','imported='+out.n_imported+' rejected='+out.n_rejected+' grep_extras='+(out.runtime_matching_extras&&out.runtime_matching_extras.grep));
+        wbLog('step','Step 2: envelope validation','imported='+(out.n_imported||0)+' rejected='+(out.n_rejected||0));
+        syncSetStep(2);
         syncSetStep(3);
         document.getElementById('sync-status').textContent='Sync complete.';
         // Bump local sync counter so /static/status.html can report it.
@@ -258,6 +243,15 @@
         // Render result entirely via DOM nodes; no innerHTML on
         // network-sourced content.
         while(resultEl.firstChild) resultEl.removeChild(resultEl.firstChild);
+        const successHeader = document.createElement('div');
+        successHeader.style.cssText = 'margin-bottom: 10px;';
+        const successPill = document.createElement('span');
+        successPill.className = 'wb-status-pill';
+        successPill.textContent = out.n_imported > 0
+          ? 'Sync complete - ' + out.n_imported + ' new envelopes applied'
+          : 'Sync complete - knowledge is already up to date';
+        successHeader.appendChild(successPill);
+        resultEl.appendChild(successHeader);
         const mkRow=(label, val)=>{
           const d=document.createElement('div');
           const b=document.createElement('b'); b.textContent=label+': ';
@@ -370,7 +364,15 @@
         }
         wbLog('ok','Import HTTP 200 ('+dt+'ms)',
               'imported='+(out.n_imported||0)+' rejected='+(out.n_rejected||0));
+        wbLog('step','Step 2: envelope validation','imported='+(out.n_imported||0)+' rejected='+(out.n_rejected||0));
+        syncSetStep(2);
         statusEl.textContent='Imported '+(out.n_imported||0)+' rejected '+(out.n_rejected||0);
+        const importPillH = document.createElement('div'); importPillH.style.cssText='margin-bottom:10px;';
+        const importPill = document.createElement('span'); importPill.className='wb-status-pill';
+        importPill.textContent = (out.n_imported||0) > 0
+          ? 'Import complete - '+(out.n_imported||0)+' envelopes applied'
+          : 'Import complete - no new envelopes';
+        importPillH.appendChild(importPill); resultEl.appendChild(importPillH);
         syncSetStep(3);
         // Bump local manual-import counter for /static/status.html.
         try{

@@ -13,15 +13,9 @@
     .wb-page { max-width: 1180px; margin: 0 auto; padding: 24px 22px 80px; }
     .wb-h1 { font-size: 26px; font-weight: 600; margin: 6px 0 6px; }
     .wb-lede { font-size: 13.5px; line-height: 1.6; color: #2A2D34; margin: 0 0 14px; }
-    .wb-card { background: #FFF; border: 1px solid #DDD8C9; border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; }
     .wb-card h3 { font-size: 14px; font-weight: 600; margin: 0 0 6px; }
-    .wb-pill { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #2A2D34; background: #EFEDE4; border-radius: 4px; padding: 2px 7px; margin: 0 4px 4px 0; }
-    .wb-btn-primary { background: oklch(0.52 0.08 195); color: #F7F6F1; border: 0; padding: 7px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
-    .wb-btn-secondary { background: #EFEDE4; color: #0E1116; border: 1px solid #DDD8C9; padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; text-decoration: none; display: inline-block; }
-    .wb-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
     .wb-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     @media (max-width: 760px) { .wb-grid-2 { grid-template-columns: 1fr; } }
-    .wb-muted { color: #5B5F68; font-size: 11.5px; }
     .wb-status-pill { background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 6px 12px; border-radius: 999px; font-size: 11px; }
     input[type=text], textarea, select { width: 100%; box-sizing: border-box; padding: 6px 8px; font-size: 12px; font-family: inherit; line-height: 1.4; background: #FFF; color: #0E1116; border: 1px solid #DDD8C9; border-radius: 6px; }
     textarea { resize: vertical; min-height: 48px; }
@@ -205,7 +199,7 @@
                    data-tip-pos="below">
               <input type="checkbox" id="kx-use-gemma" checked> Use Gemma 4 refinement (1 call per draft)
             </label>
-            <span class="dc-gemma-mark is-optional" id="kx-gemma-mark" data-tip="Reflects whether Gemma 4 actually ran. Reads 'idle' before a draft, 'active' during the call, 'ran' on success, 'unavailable' on error, and 'not loaded' when the deterministic fallback was used because no model was attached." data-tip-pos="below">Gemma 4 refinement — runs by default when a draft starts</span>
+            <span class="dc-gemma-mark is-optional" id="kx-gemma-mark" data-tip="Reflects whether Gemma 4 actually ran. Reads 'idle' before a draft, 'active' during the call, 'ran' on success, 'unavailable' on error, and 'not loaded' when the deterministic fallback was used because no model was attached." data-tip-pos="below">Gemma 4 refinement - runs by default when a draft starts</span>
           </div>
           <div class="wb-muted" id="kx-gemma-paths-hint"
                style="margin-top:8px; padding:10px 12px; background:oklch(0.97 0.02 195); border:1px solid oklch(0.85 0.05 195); border-radius:8px; font-size:11.5px; line-height:1.55; color:#2A2D34;">
@@ -290,12 +284,23 @@
             <div class="kx-progress-note" id="kx-draft-progress-note">Deterministic drafting is fast; Gemma refinement can take longer on large source summaries.</div>
             <div class="kx-progress-events" id="kx-draft-progress-events"></div>
           </div>
-          <div class="kx-step-actions">
-            <button class="wb-btn-primary wb-step-cta" id="kx-extract-btn" onclick="kxExtract()">Draft knowledge objects</button>
-            <button class="wb-btn-secondary" id="kx-finish-review-btn" type="button" onclick="kxFinishDraftReview()" disabled>Finish review</button>
-            <button class="wb-btn-destructive" id="kx-cancel-draft-btn" type="button" onclick="kxCancelDraftJob()" disabled title="Stop polling the running draft job and let the kernel finish in the background.">Abandon draft polling</button>
-            <span id="kx-extract-status" class="wb-muted" style="font-size:11.5px;"></span>
+          <div class="kx-step-actions" style="justify-content:space-between; align-items:center;">
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <button class="wb-btn-primary wb-step-cta" id="kx-extract-btn" onclick="kxExtract()">Draft knowledge objects</button>
+              <button class="wb-btn-secondary" id="kx-finish-review-btn" type="button"
+                      onclick="kxFinishDraftReview()" disabled
+                      title="Run 'Draft knowledge objects' first">Finish review</button>
+              <span id="kx-extract-status" class="wb-muted" style="font-size:11.5px;"></span>
+            </div>
+            <div>
+              <button class="wb-btn-destructive" id="kx-cancel-draft-btn" type="button"
+                      onclick="kxCancelDraftJob()" disabled
+                      title="Cancel progress updates - the job keeps running in the kernel. Re-draft or refresh later to see results.">Stop waiting for draft</button>
+            </div>
           </div>
+          <p class="wb-muted" id="kx-finish-review-hint" style="font-size:11.5px; margin-top:6px;">
+            Draft suggestions first, then promote the useful ones here.
+          </p>
           <details style="margin-top:8px;">
             <summary style="cursor:pointer; font-size:12px; color:#5B5F68;">Advanced draft actions</summary>
             <div class="kx-step-actions" style="margin-top:6px;">
@@ -664,8 +669,13 @@
       wbLog('info', 'Example source loaded', text.slice(0, 120));
     }
     function kxContinueToDraft(){
-      const raw=(document.getElementById("kx-raw").value||"").trim();
       const statusEl=document.getElementById("kx-extract-status");
+      if (kxActiveSourceJobId) {
+        if (statusEl) statusEl.textContent = 'Source bundle is still processing - wait for it to finish.';
+        wbLog('warn', 'Continue blocked', 'Source bundle upload still in progress.');
+        return;
+      }
+      const raw=(document.getElementById("kx-raw").value||"").trim();
       if(!raw){
         if (statusEl) statusEl.textContent="Paste source text or load an example first.";
         wbLog('warn', 'Draft step blocked', 'No source text.');
@@ -893,6 +903,11 @@
         kxSetWorkflow(1);
         return;
       }
+      if (kxDrafts.length && kxPromotedDrafts === 0) {
+        if (!window.confirm('No drafts have been promoted yet. Finish review anyway?')) return;
+        wbLog('warn', 'Finish review with 0 promoted drafts',
+              'Reviewer proceeded without promoting any suggestion.');
+      }
       document.getElementById("kx-extract-status").textContent="Review finished. Export, import, or share knowledge packs in Step 3.";
       wbLog('ok', 'Knowledge draft review finished', kxDrafts.length + ' suggestion(s) reviewed.');
       kxSetWorkflow(2);
@@ -943,7 +958,7 @@
           if (window.dcInferenceError) {
             const handled = await window.dcInferenceError.handle(r, _dcLog);
             if (handled) {
-              statusEl.textContent = 'Inference queue full — retry shortly.';
+              statusEl.textContent = 'Inference queue full - retry shortly.';
               return;
             }
           }
@@ -966,6 +981,8 @@
           kxDrafts = out.suggestions || (out.envelope ? [out.envelope] : [out]);
           kxPromotedDrafts = 0;
           document.getElementById('kx-finish-review-btn').disabled = false;
+          const _kxHint = document.getElementById('kx-finish-review-hint');
+          if (_kxHint) _kxHint.hidden = true;
           wbLog('ok', 'Draft suggestions ready (' + dt + 'ms)', 'suggestions=' + kxDrafts.length);
           if (kxGemmaMark) {
             // Read the server-side provenance fields to tell apart
@@ -974,7 +991,7 @@
             // the call OOM'd, or otherwise errored". The first draft
             // envelope carries the ground truth in extensions.{fallback,
             // model_call_available, model_call_requested, gemma_error}.
-            // CRITICAL: also check gemma_error — if Gemma was requested
+            // CRITICAL: also check gemma_error - if Gemma was requested
             // and available but the actual call raised (typically CUDA
             // OOM on large variants), the server populates gemma_error
             // and uses the deterministic content as fallback WITHOUT
@@ -994,26 +1011,26 @@
             const firstErrMsg = anyError ? String(errorEnvs[0].extensions.gemma_error).slice(0, 240) : '';
             if (!useGemma) {
               kxGemmaMark.className = 'dc-gemma-mark is-optional';
-              kxGemmaMark.textContent = 'Gemma 4 refinement skipped by reviewer — deterministic draft shown';
+              kxGemmaMark.textContent = 'Gemma 4 refinement skipped by reviewer - deterministic draft shown';
             } else if (anyError) {
               kxGemmaMark.className = 'dc-gemma-mark is-unavailable';
               kxGemmaMark.textContent = 'Gemma 4 errored on ' + errorEnvs.length + ' of ' + kxDrafts.length +
-                ' draft(s) — deterministic fallback shown. First error: ' + firstErrMsg;
+                ' draft(s) - deterministic fallback shown. First error: ' + firstErrMsg;
             } else if (fellBack && !modelAvail) {
               kxGemmaMark.className = 'dc-gemma-mark is-optional';
-              kxGemmaMark.textContent = 'Gemma 4 not loaded — deterministic draft shown';
+              kxGemmaMark.textContent = 'Gemma 4 not loaded - deterministic draft shown';
             } else if (fellBack) {
               kxGemmaMark.className = 'dc-gemma-mark is-unavailable';
-              kxGemmaMark.textContent = 'Gemma 4 fell back to deterministic — see activity log';
+              kxGemmaMark.textContent = 'Gemma 4 fell back to deterministic - see activity log';
             } else if (modelRequested && modelAvail) {
               kxGemmaMark.className = 'dc-gemma-mark is-done';
               kxGemmaMark.textContent = 'Gemma 4 refined this draft';
-              // Bump the top-bar Gemma 4 session tally — only on this
+              // Bump the top-bar Gemma 4 session tally - only on this
               // is-done branch (Gemma 4 actually ran for every draft).
               if (window.dcGemmaStats) window.dcGemmaStats.bump('draft');
             } else {
               kxGemmaMark.className = 'dc-gemma-mark is-optional';
-              kxGemmaMark.textContent = 'Gemma 4 refinement — runs by default when a draft starts';
+              kxGemmaMark.textContent = 'Gemma 4 refinement - runs by default when a draft starts';
             }
             // Also log a clear summary to the activity log so the user
             // sees the error count + a one-line OOM-recovery suggestion.
@@ -1032,7 +1049,7 @@
             // template sees the text. The extraction handler also
             // pipes the final envelope through standardize_fact_envelope
             // so canonical fields land in canonical order. Reviewers
-            // should know when this fired — it explains why a draft's
+            // should know when this fired - it explains why a draft's
             // evidence_quote no longer matches the raw text word-for-word.
             const scrubbedEnvs = kxDrafts.filter(d => d && d.extensions && d.extensions.noise_scrubbed_before_gemma === true);
             if (scrubbedEnvs.length > 0 && typeof wbLog === 'function') {
@@ -1238,7 +1255,7 @@
             }
             wbLog('ok', 'Polish complete (' + dt + 'ms)',
                   passes + ' pass(es), ' + diff.length + ' field(s) changed'
-                  + (critique && critique.overall ? ' — ' + critique.overall : ''));
+                  + (critique && critique.overall ? ' - ' + critique.overall : ''));
             if (status) status.textContent = 'Polished ✓ (' + passes + ' pass)';
             return passes > 0;
           } else {
@@ -1578,7 +1595,7 @@
         <a class="wb-btn-secondary" href="/api/knowledge/type-catalog" target="_blank">GET /api/knowledge/type-catalog</a>
       </div>
     </div>
-  <div class="wb-card">
+  <div class="wb-card" style="position:sticky; bottom:0; background:#FFF; box-shadow:0 -2px 8px rgba(14,17,22,0.06); z-index:10;">
       <h2>Activity log</h2>
       <div id="wb-log" class="dc-activity-log" role="log" aria-label="Activity log" aria-live="polite" data-toolbar="copy-json">
         <div class="wb-muted">No activity yet.</div>

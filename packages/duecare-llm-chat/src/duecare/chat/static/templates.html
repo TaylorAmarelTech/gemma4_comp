@@ -13,17 +13,7 @@
                color: #0E1116; font-family: Inter, system-ui, sans-serif; line-height: 1.55; }
     .wb-h1 { font-size: 26px; font-weight: 700; margin: 0 0 8px; }
     .wb-lede { font-size: 13.5px; color: #2A2D34; margin: 0 0 18px; }
-    .wb-card { background: #FFF; border: 1px solid #DDD8C9; border-radius: 12px;
-               padding: 16px 18px; margin-bottom: 14px; }
     .wb-card h2 { font-size: 15px; font-weight: 600; margin: 0 0 10px; }
-    .wb-muted { color: #5B5F68; font-size: 12px; }
-    .wb-btn-primary { padding: 8px 16px; background: oklch(0.52 0.08 195);
-                       color: #FFF; border: 0; border-radius: 6px;
-                       font-size: 13px; cursor: pointer; }
-    .wb-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
-    .wb-btn-secondary { padding: 7px 13px; background: #FFF; color: #0E1116;
-                         border: 1px solid #DDD8C9; border-radius: 6px;
-                         font-size: 12.5px; cursor: pointer; }
     .tpl-gallery { display: grid; gap: 12px;
                     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
     .tpl-card { background: #FFF; border: 1px solid #DDD8C9; border-radius: 10px;
@@ -226,7 +216,7 @@
         <a href="/static/process.html">Bulk File Review</a>, or use the
         synthetic example attached to each template.
       </p>
-      <div class="tpl-row" style="margin-bottom: 8px;">
+      <div class="tpl-row" style="margin-bottom: 4px;">
         <button class="wb-btn-secondary" id="tpl-download-sample-btn"
                 type="button" onclick="tplDownloadSampleBundle()">
           Download selected example
@@ -235,10 +225,13 @@
                 type="button" onclick="tplUseSampleBundle()">
           Use selected example
         </button>
+      </div>
+      <div class="tpl-row" style="margin-top: 6px; margin-bottom: 8px;">
         <button class="wb-btn-primary" id="tpl-fill-relevant-btn"
                 type="button" onclick="tplGenerateBatchDraft()" disabled>
           Fill recommended
         </button>
+        <div id="tpl-fill-hint" class="wb-muted" style="font-size: 11.5px;"></div>
       </div>
       <div id="tpl-bundle-status" class="wb-muted">No bundle attached yet.</div>
       <details style="margin-top: 8px;">
@@ -270,6 +263,9 @@
         are appropriate. The output is a recommendation queue; it does not
         file anything or publish knowledge.
       </p>
+      <div id="tpl-recommend-status" class="wb-muted" style="margin-bottom: 6px;">
+        Attach a bundle or load a template example to start.
+      </div>
       <div class="tpl-row" style="margin-bottom: 8px;">
         <label style="font-size: 12px; cursor: pointer;">
           <input type="checkbox" id="tpl-use-gemma-recommend" checked
@@ -284,9 +280,6 @@
                 type="button" onclick="tplRecommendTemplates()" disabled>
           Extract facts + recommend complaints
         </button>
-      </div>
-      <div id="tpl-recommend-status" class="wb-muted">
-        Attach a bundle or load a template example to start.
       </div>
       <div class="tpl-recommend-layout">
         <div class="tpl-recommend-panel">
@@ -327,6 +320,7 @@
                 onclick="tplRerender()" disabled>
           Re-render preview
         </button>
+        <span id="tpl-fill-hint-inline" class="wb-muted" style="font-size: 11.5px;"></span>
       </div>
       <div class="tpl-progress-box" id="tpl-fill-progress-box" hidden aria-live="polite">
         <div class="tpl-progress-head">
@@ -360,6 +354,14 @@
                        background: #FAF9F4; color: #0E1116;
                        font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
                        line-height: 1.55;"></textarea>
+      <div class="dc-trust-row is-private" role="note" style="margin: 10px 0 6px; font-size: 11.5px;">
+        <span class="dc-trust-pill"><span class="dot"></span>LOCAL</span>
+        <span class="dc-trust-text">
+          Anonymize before saving &mdash; the reviewer is responsible for redacting PII.
+          <b>Save this draft</b> writes a JSON copy to <code>/kaggle/working/templates/drafts/</code>
+          on the kernel disk. <b>Download Markdown</b> and <b>Copy to clipboard</b> do not persist to disk.
+        </span>
+      </div>
       <div class="tpl-row">
         <button class="wb-btn-primary wb-step-cta" type="button" onclick="tplSaveDraft()">
           Save this draft
@@ -372,13 +374,6 @@
         </button>
         <span class="wb-muted" id="tpl-render-status"></span>
       </div>
-      <p class="wb-muted" style="margin: 6px 0 0; font-size: 11.5px;">
-        Save this draft writes a JSON copy to
-        <code>/kaggle/working/templates/drafts/</code> so you can come
-        back to the draft after a kernel restart. Anonymize before
-        saving -- the reviewer is responsible for redacting PII before
-        it touches disk.
-      </p>
     </div>
 
     <div class="wb-card" id="tpl-batch-card" hidden>
@@ -554,6 +549,8 @@
       document.getElementById('tpl-fields-card').hidden = false;
       document.getElementById('tpl-fill-btn').disabled = false;
       document.getElementById('tpl-render-btn').disabled = false;
+      const inlineHint = document.getElementById('tpl-fill-hint-inline');
+      if (inlineHint) inlineHint.textContent = '';
       // Bundle is optional but recommended.
       if (_tplBundle) {
         tplRefreshAfterBundleLoad();
@@ -765,6 +762,12 @@
       btn.title = _tplBundle
         ? 'Extract sanitized facts and ask Gemma 4 which complaint paths fit.'
         : 'Attach a case bundle first.';
+      const status = document.getElementById('tpl-recommend-status');
+      if (status && !_tplBundle) {
+        status.style.color = 'oklch(0.40 0.12 80)';
+      } else if (status) {
+        status.style.color = '';
+      }
     }
 
     function tplUpdateBatchButton() {
@@ -787,6 +790,18 @@
         btn.title = 'Fill ' + relevant.length + ' template(s) from the recommendation queue.';
       } else {
         btn.title = 'Fill ' + relevant.length + ' templates matching the bundle indicators.';
+      }
+      const hint = document.getElementById('tpl-fill-hint');
+      if (hint) {
+        if (!_tplBundle) {
+          hint.textContent = 'Prerequisite: attach a bundle (step 2 below), then run “Extract facts + recommend” (step 3).';
+        } else if (!indicators.length && !hasRecommendationQueue) {
+          hint.textContent = 'Prerequisite: run “Extract facts + recommend” (step 3) first — the bundle has no ILO indicators yet.';
+        } else if (!relevant.length) {
+          hint.textContent = 'No templates overlap the attached indicators. Run “Extract facts + recommend” to get a recommendation queue.';
+        } else {
+          hint.textContent = '';
+        }
       }
       tplUpdateRecommendButton();
     }
@@ -891,6 +906,8 @@
         fillBtn.textContent = 'Fill this';
         fillBtn.addEventListener('click', async () => {
           tplSelectTemplate(rec.template_id);
+          const fieldsCard = document.getElementById('tpl-fields-card');
+          if (fieldsCard) fieldsCard.scrollIntoView({behavior: 'smooth', block: 'start'});
           await tplGenerateDraft();
         });
         actions.appendChild(fillBtn);
@@ -1256,6 +1273,26 @@
         status.textContent = drafts.length + ' template draft(s); shared excerpt '
           + (data.shared_excerpt_chars || 0) + ' chars.';
       }
+      const legend = document.createElement('div');
+      legend.className = 'wb-muted';
+      legend.style.cssText = 'font-size: 11px; margin-bottom: 8px;';
+      const legendLabel = document.createTextNode('Field borders: ');
+      legend.appendChild(legendLabel);
+      const legendItems = [
+        {color: 'oklch(0.52 0.08 195)', label: 'Gemma'},
+        {color: 'oklch(0.55 0.10 155)', label: 'bundle hint'},
+        {color: 'oklch(0.65 0.10 80)', label: 'manual'},
+        {color: '#8A8E97', label: 'missing'},
+      ];
+      legendItems.forEach((item, i) => {
+        const swatch = document.createElement('span');
+        swatch.style.cssText = 'color:' + item.color + '; margin-right: 2px;';
+        swatch.textContent = '■';
+        legend.appendChild(swatch);
+        const lbl = document.createTextNode(' ' + item.label + (i < legendItems.length - 1 ? '  ' : ''));
+        legend.appendChild(lbl);
+      });
+      host.appendChild(legend);
       drafts.forEach((draft, idx) => {
         const template = draft.template || tplTemplateById(draft.template_id) || {};
         const details = document.createElement('details');
@@ -1272,6 +1309,40 @@
         rendered.className = 'tpl-batch-rendered';
         rendered.value = draft.rendered || '';
         body.appendChild(rendered);
+        const saveRow = document.createElement('div');
+        saveRow.className = 'tpl-row';
+        saveRow.style.marginTop = '8px';
+        const saveBtn = document.createElement('button');
+        saveBtn.type = 'button';
+        saveBtn.className = 'wb-btn-secondary';
+        saveBtn.textContent = 'Save batch draft';
+        saveBtn.addEventListener('click', function () {
+          const payload = {
+            template_id: draft.template_id,
+            rendered: rendered.value,
+            field_values: draft.field_values || {},
+            manual_fields: {},
+            run_id: (_tplBundle && _tplBundle.run_id) || '',
+          };
+          fetch('/api/templates/drafts', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload),
+          }).then(function (r) { return r.json(); }).then(function (out) {
+            tplLog('ok', 'Saved batch draft ' + out.draft_id, out.path);
+            saveBtn.textContent = 'Saved';
+            setTimeout(function () { saveBtn.textContent = 'Save batch draft'; }, 2500);
+            try {
+              var prev = Number(window.localStorage.getItem('duecare:drafts-count') || '0');
+              window.localStorage.setItem('duecare:drafts-count', String(prev + 1));
+              window.localStorage.setItem('duecare:drafts-last-at', new Date().toISOString());
+            } catch (_) {}
+          }).catch(function (e) {
+            tplLog('err', 'Batch draft save failed', String(e));
+          });
+        });
+        saveRow.appendChild(saveBtn);
+        body.appendChild(saveRow);
         details.appendChild(body);
         host.appendChild(details);
       });
@@ -1583,6 +1654,11 @@
           out.path + ' (' + out.bytes + ' bytes)');
         if (status) status.textContent =
           'Saved draft ' + out.draft_id + ' at ' + out.saved_at;
+        try {
+          var prev = Number(window.localStorage.getItem('duecare:drafts-count') || '0');
+          window.localStorage.setItem('duecare:drafts-count', String(prev + 1));
+          window.localStorage.setItem('duecare:drafts-last-at', new Date().toISOString());
+        } catch (_) {}
       } catch (e) {
         tplLog('err', 'Save failed', String(e));
         if (status) status.textContent = 'Save failed: ' + e;

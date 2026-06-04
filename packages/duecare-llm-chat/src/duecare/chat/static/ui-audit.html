@@ -6,6 +6,7 @@
   <title>UI Audit | DueCare Workbench</title>
   <link rel="stylesheet" href="/static/_chrome.css">
   <script src="/static/_nav.js" defer></script>
+  <script src="/static/_activity_log.js" defer></script>
   <style>
     .page { max-width: 1120px; margin: 24px auto 60px; padding: 0 18px; color: var(--ink); font-family: Inter, system-ui, sans-serif; line-height: 1.55; }
     h1 { font-size: 26px; margin: 0 0 6px; }
@@ -25,27 +26,33 @@
     .priority-P2 { background: oklch(0.94 0.03 250); color: oklch(0.34 0.06 250); }
     .muted { color: var(--ink-3); font-size: 12px; }
     .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
-    button, .btn { border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 7px; padding: 8px 12px; font-size: 12.5px; cursor: pointer; text-decoration: none; }
-    button.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
     code { background: var(--paper-2); border-radius: 4px; padding: 1px 5px; font-family: var(--mono); font-size: 11.5px; }
   </style>
 </head>
 <body data-nav="audit">
   <main class="page">
     <h1>UI Audit</h1>
+    <div class="dc-operator-note" style="margin-bottom: 14px; font-size: 12.5px;">
+      This page reads <code>/static/ui_audit_manifest.json</code> and
+      <code>/api/audit/workbench-inventory</code> — both local to this kernel.
+      No data leaves the kernel and no user content is submitted.
+    </div>
     <p class="lede">
       Pre-recording checklist for every kernel and shared workbench page. This
       page is backed by <code>/static/ui_audit_manifest.json</code> so the audit
       stays versioned with the code.
     </p>
+    <div id="audit-log" class="dc-activity-log" style="margin-bottom: 14px;">
+      <div class="dc-log-idle">Waiting for manifest load...</div>
+    </div>
     <div class="toolbar">
-      <button class="primary" type="button" onclick="loadAudit()">Refresh manifest</button>
-      <a class="btn" href="/api/audit/workbench-inventory" target="_blank">Live inventory JSON</a>
-      <a class="btn" href="/static/samples/sample_manifest.json" target="_blank">Sample manifest</a>
-      <a class="btn" href="/api/knowledge/type-catalog" target="_blank">Type catalog</a>
-      <a class="btn" href="/static/status.html">Status</a>
-      <a class="btn" href="/static/process.html">Bulk File Review</a>
-      <a class="btn" href="/static/compare.html">Harness Comparison</a>
+      <button class="dc-btn dc-btn-primary" type="button" onclick="loadAudit()">Refresh manifest</button>
+      <a class="dc-toolbar-button" href="/api/audit/workbench-inventory" target="_blank">Live inventory JSON</a>
+      <a class="dc-toolbar-button" href="/static/samples/sample_manifest.json" target="_blank">Sample manifest</a>
+      <a class="dc-toolbar-button" href="/api/knowledge/type-catalog" target="_blank">Type catalog</a>
+      <a class="dc-toolbar-button" href="/static/status.html">Status</a>
+      <a class="dc-toolbar-button" href="/static/process.html">Bulk File Review</a>
+      <a class="dc-toolbar-button" href="/static/compare.html">Harness Comparison</a>
     </div>
 
     <section class="grid" id="metrics"></section>
@@ -59,9 +66,27 @@
   <script>
     const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const pills = (items) => (items || []).map(x => '<span class="pill">' + esc(x) + '</span>').join('');
+
+    let log;
+    document.addEventListener('DOMContentLoaded', () => {
+      log = window.dcActivityLog.attach('#audit-log', {idlePlaceholder: 'Waiting...'});
+    });
+
     async function loadAudit() {
-      const r = await fetch('/static/ui_audit_manifest.json', {cache: 'no-store'});
-      const data = await r.json();
+      if (log) log.step('Loading ui_audit_manifest.json');
+      let data;
+      try {
+        const r = await fetch('/static/ui_audit_manifest.json', {cache: 'no-store'});
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        data = await r.json();
+        if (log) log.ok('Manifest loaded', (data.backlog || []).length + ' backlog items');
+      } catch (e) {
+        if (log) log.err('Manifest load failed', String(e));
+        document.getElementById('gates').textContent = 'Failed to load audit manifest: ' + e;
+        document.getElementById('inventory').textContent = 'Skipped — manifest failed.';
+        return;
+      }
+
       document.getElementById('metrics').innerHTML = [
         ['Kernels', (data.kernels || []).length],
         ['Static pages', (data.static_pages || []).length],
@@ -82,30 +107,37 @@
         (data.backlog || []).map(b => '<tr><td><span class="pill priority-' + esc(b.priority) + '">' + esc(b.priority) + '</span></td><td>' + esc(b.item) + '</td><td>' + esc(b.owner) + '</td></tr>').join('') +
         '</tbody></table>';
 
-      const ir = await fetch('/api/audit/workbench-inventory', {cache: 'no-store'});
-      const inv = await ir.json();
-      const c = inv.counts || {};
-      const sampleIssues = []
-        .concat((inv.samples || {}).missing_referenced_samples || [])
-        .concat((inv.samples || {}).manifest_entries_without_file || [])
-        .concat((inv.samples || {}).unmanifested_sample_files || []);
-      document.getElementById('inventory').innerHTML =
-        '<div class="grid">' +
-        [
-          ['Harnesses', c.harnesses],
-          ['Knowledge types', c.knowledge_types],
-          ['Knowledge branches', c.knowledge_branches],
-          ['Sample files', c.sample_files],
-          ['Manifest entries', c.sample_manifest_entries],
-          ['Scanned pages', c.static_pages],
-        ].map(([label, value]) => '<div class="metric"><span>' + esc(label) + '</span><b>' + esc(value) + '</b></div>').join('') +
-        '</div><p class="muted">' +
-        (sampleIssues.length ? 'Sample catalog issues: ' + esc(sampleIssues.join(', ')) : 'Sample references and manifest entries are aligned.') +
-        '</p>';
+      if (log) log.step('Loading workbench inventory');
+      try {
+        const ir = await fetch('/api/audit/workbench-inventory', {cache: 'no-store'});
+        if (!ir.ok) throw new Error('HTTP ' + ir.status);
+        const inv = await ir.json();
+        if (log) log.ok('Inventory loaded', JSON.stringify(inv.counts || {}));
+        const c = inv.counts || {};
+        const sampleIssues = []
+          .concat((inv.samples || {}).missing_referenced_samples || [])
+          .concat((inv.samples || {}).manifest_entries_without_file || [])
+          .concat((inv.samples || {}).unmanifested_sample_files || []);
+        document.getElementById('inventory').innerHTML =
+          '<div class="grid">' +
+          [
+            ['Harnesses', c.harnesses],
+            ['Knowledge types', c.knowledge_types],
+            ['Knowledge branches', c.knowledge_branches],
+            ['Sample files', c.sample_files],
+            ['Manifest entries', c.sample_manifest_entries],
+            ['Scanned pages', c.static_pages],
+          ].map(([label, value]) => '<div class="metric"><span>' + esc(label) + '</span><b>' + esc(value) + '</b></div>').join('') +
+          '</div><p class="muted">' +
+          (sampleIssues.length ? 'Sample catalog issues: ' + esc(sampleIssues.join(', ')) : 'Sample references and manifest entries are aligned.') +
+          '</p>';
+      } catch (e) {
+        if (log) log.err('Inventory load failed', String(e));
+        document.getElementById('inventory').textContent = 'Failed to load inventory: ' + e;
+      }
     }
-    loadAudit().catch(e => {
-      document.getElementById('gates').textContent = 'Failed to load audit manifest: ' + e;
-    });
+
+    loadAudit();
   </script>
 </body>
 </html>
