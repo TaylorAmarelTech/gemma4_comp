@@ -62,3 +62,20 @@ def test_surface_transforms_meaning_preserving_and_deterministic():
     assert rx._contraction("the agency will not return it", 0) == "the agency won't return it"
     # short / empty text never crashes (no eligible words -> unchanged)
     assert rx._typo("hi", 0) == "hi" and rx._leet("", 0) == ""
+
+
+def test_spintax_expand_deterministic_and_enumerates():
+    t = "I am {an investigator|a researcher} asking about a {fee|loan}."
+    a, b = rx._spintax_expand(t, 0), rx._spintax_expand(t, 1)
+    assert "{" not in a                          # fully expanded
+    assert a == rx._spintax_expand(t, 0)         # deterministic
+    assert a != b                                # different seed -> different combo
+    assert len({rx._spintax_expand(t, s) for s in range(4)}) == 4   # full 2x2 cross-product
+
+
+def test_spintax_variants_are_expanded_combined_attack():
+    v = rx.spintax_variants(per_template=5)
+    assert v
+    assert all(x["category"] == "combined_attack" and x["transform"] == "spintax" for x in v)
+    assert all("{" not in x["text"] for x in v)  # no unexpanded templates leak through
+    assert all(x["id"].startswith("RMX-") for x in v)
