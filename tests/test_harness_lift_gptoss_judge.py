@@ -24,6 +24,15 @@ def test_parse_scorecard_keeps_valid_ids_and_clamps():
     assert "bogus" not in out
 
 
+def test_parse_scorecard_excludes_not_applicable():
+    # quoted "NA", bare NA, N/A, and null all mean "facet absent" -> excluded;
+    # crucially a BARE NA must not nuke the whole scorecard (stays valid JSON).
+    out = gj.parse_scorecard(
+        '{"a.x": 8, "b.y": "NA", "c.z": NA, "d.w": N/A, "e.v": null, "f.u": 3}',
+        {"a.x", "b.y", "c.z", "d.w", "e.v", "f.u"})
+    assert out == {"a.x": 8.0, "f.u": 3.0}                  # only real numeric scores
+
+
 def test_run_writes_cells_and_is_resumable(tmp_path, monkeypatch):
     # Minimal fixture: one prompt, both arms; fake judge scores 2 dims.
     bench = tmp_path / "bench"
