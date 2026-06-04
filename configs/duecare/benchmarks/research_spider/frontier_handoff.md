@@ -20,17 +20,17 @@ Counts:
 - Implemented search provider wrappers: 3
 - Implemented extractor wrappers: 5
 - Rejected operational tools: 4
-- Source candidates already in spider pack: 285
-- Source fetch manifest entries: 285
-- Source domain frontier entries: 100
-- Source archive manifest entries: 285
-- Sitemap probe queue entries: 300
-- Domain crawl policy entries: 100
-- Browser fetch allowlist entries: 100
-- Sitemap discovery dorks: 400
+- Source candidates already in spider pack: 296
+- Source fetch manifest entries: 296
+- Source domain frontier entries: 103
+- Source archive manifest entries: 296
+- Sitemap probe queue entries: 309
+- Domain crawl policy entries: 103
+- Browser fetch allowlist entries: 103
+- Sitemap discovery dorks: 412
 - Branching research queue leads: 1000
-- Knowledge objects already in spider pack: 285
-- Dimension candidates already in spider pack: 197
+- Knowledge objects already in spider pack: 296
+- Dimension candidates already in spider pack: 199
 - Corroboration links: 240
 - Verified-for-benchmark knowledge objects: 160
 - Source decompositions: 260
@@ -106,3 +106,14 @@ Latest continuation, 2026-06-04:
 - Added `osint_rejection_summary.json` so future tool runs can prove those tools remain design references only.
 - Each row blocks network execution, adapters, provider-registry inclusion, private case ingestion, people/email/contact harvesting, subdomain or credential harvesting, stealth/evasion/proxy rotation, and remote private queries.
 - Allowed lessons are limited to safe design cautions such as query metadata, URL denylisting, provider-boundary documentation, and metadata-stripping checks.
+
+Latest continuation, 2026-06-04:
+
+- Completed loop: `netherlands_malaysia_qatar_sparse_family_deepening`.
+- Added 11 public official/report seed sources across sparse families:
+  - Netherlands: Government.nl trafficking/labour-exploitation guidance, Government.nl forced-labour imports risk report, and National Rapporteur 2025 annual report on fast-changing online recruitment/coercion risks.
+  - Malaysia: labour-department foreign-worker approval guidance, wage-payment instrument FAQ, worker accommodation FAQ, and ATIPSOM public legal reference.
+  - Qatar: labour complaints/whistleblower FAQ, Labour Law worker-paid recruitment-fee prohibition, domestic-workers law, and official fee schedule separating state fees from bogus worker-paid charges.
+- Regenerated deterministic no-network artifacts: 296 source candidates/profiles/knowledge objects, 199 dimensions, 2,960 second-wave queries, 296 source fetch/archive entries, 103 source-domain frontier entries, 309 sitemap probes, 103 domain policies, 103 browser allowlist rows, 412 sitemap dorks, and 1,000 branching queue leads.
+- Coverage moved to Malaysia 8, Netherlands 5, and Qatar 7. Added regression test: `test_netherlands_malaysia_qatar_sparse_families_are_deepened`.
+- Privacy posture remains public URL metadata plus paraphrased snippets only; no private case files, private filenames, raw private text, contact details, document numbers, or API keys were ingested.

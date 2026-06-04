@@ -199,8 +199,8 @@ DOMAIN_TIERS: tuple[dict, ...] = (
     },
     {
         "id": "netherlands_gov_justice",
-        "domains": ("open.overheid.nl", "nationaalrapporteur.nl", "overheid.nl", "politie.nl", "om.nl"),
-        "site_filters": ("site:open.overheid.nl", "site:nationaalrapporteur.nl", "site:overheid.nl", "site:politie.nl", "site:om.nl"),
+        "domains": ("open.overheid.nl", "nationaalrapporteur.nl", "overheid.nl", "government.nl", "politie.nl", "om.nl"),
+        "site_filters": ("site:open.overheid.nl", "site:nationaalrapporteur.nl", "site:overheid.nl", "site:government.nl", "site:politie.nl", "site:om.nl"),
         "tier": "official_government_or_rapporteur",
         "base_score": 46,
         "jurisdictions": ("Netherlands",),
@@ -271,8 +271,8 @@ DOMAIN_TIERS: tuple[dict, ...] = (
     },
     {
         "id": "qatar_labour_anti_trafficking",
-        "domains": ("mol.gov.qa", "nccht.gov.qa"),
-        "site_filters": ("site:mol.gov.qa", "site:nccht.gov.qa"),
+        "domains": ("mol.gov.qa", "nccht.gov.qa", "adlsa.gov.qa", "acms.adlsa.gov.qa"),
+        "site_filters": ("site:mol.gov.qa", "site:nccht.gov.qa", "site:adlsa.gov.qa", "site:acms.adlsa.gov.qa"),
         "tier": "official_government",
         "base_score": 46,
         "jurisdictions": ("Qatar",),
@@ -2216,6 +2216,24 @@ DEFAULT_SEED_SOURCES: tuple[dict, ...] = (
         "seed_family": "netherlands_gov_justice",
     },
     {
+        "url": "https://www.government.nl/themes/international-cooperation/human-trafficking/combating-human-trafficking",
+        "title": "Netherlands Government guidance on trafficking and labour exploitation",
+        "snippet": "Official Dutch government guidance describing labour exploitation as forced income handover or inhumane working conditions, alongside criminal exploitation, victim support, coercion, violence, and deception.",
+        "seed_family": "netherlands_gov_justice",
+    },
+    {
+        "url": "https://www.government.nl/site/binaries/site-content/collections/documents/2025/02/28/assessing-forced-labour-risks-in-dutch-imports/Assessing%2BForced%2BLabour%2BRisks%2Bin%2BDutch%2BImports%2B20250708.pdf",
+        "title": "Netherlands forced-labour risks in Dutch imports report",
+        "snippet": "Official Dutch government report on forced-labour risk in imports, supply-chain exposure, procurement due diligence, imported-goods risk, and forced-labour screening for companies and public buyers.",
+        "seed_family": "netherlands_gov_justice",
+    },
+    {
+        "url": "https://www.nationaalrapporteur.nl/documenten/2026/03/24/jaarverslag-2025-een-kwart-eeuw-strijd-tegen-mensenhandel-en-seksueel-geweld-tegen-kinderen",
+        "title": "Netherlands national rapporteur annual report on online trafficking risks",
+        "snippet": "Dutch national rapporteur annual report warning that online platforms create fast-changing recruitment and coercion risks, requiring monitoring, knowledge-building, victim identification, and policy adaptation.",
+        "seed_family": "netherlands_gov_justice",
+    },
+    {
         "url": "https://www.eaa.labour.gov.hk/en/news.html?news-id=246&news-year=2024",
         "title": "Hong Kong employment agency convicted of attempted FDH overcharging",
         "snippet": "Official Labour Department case note on attempted overcharging, commission limits, prosecution, and licence consequences for foreign domestic helper recruitment.",
@@ -2261,6 +2279,30 @@ DEFAULT_SEED_SOURCES: tuple[dict, ...] = (
         "url": "https://jtksm.mohr.gov.my/sites/default/files/2026-04/LAPORAN-TAHUNAN-2025.pdf",
         "title": "Malaysia labour department annual report with forced labour action-plan activity",
         "snippet": "Official annual report referencing forced-labour action-plan implementation, ATIP operations, labour enforcement, and anti-trafficking policy execution.",
+        "seed_family": "malaysia_labour_homeaffairs",
+    },
+    {
+        "url": "https://jtksm.mohr.gov.my/ms/perkhidmatan/penggajian-pekerja-asing-0",
+        "title": "Malaysia labour department foreign-worker employment approval guidance",
+        "snippet": "Official labour-department page on prior approval for hiring non-citizen workers, employer obligations, work-pass context, foreign-worker recruitment controls, and compliance checkpoints.",
+        "seed_family": "malaysia_labour_homeaffairs",
+    },
+    {
+        "url": "https://jtksm.mohr.gov.my/ms/soalan-lazim/soalan-lazim-instrumen-pembayaran-gaji",
+        "title": "Malaysia labour department wage payment instrument FAQ for foreign workers",
+        "snippet": "Official FAQ on wage-payment instruments for foreign workers, domestic workers, payment-provider conditions, worker service-fee limits, wage-channel controls, and labour-claim routing.",
+        "seed_family": "malaysia_labour_homeaffairs",
+    },
+    {
+        "url": "https://jtksm.mohr.gov.my/ms/soalan-lazim/perumahan-penginapan-dan-kemudahan-pekerja",
+        "title": "Malaysia labour department worker accommodation FAQ",
+        "snippet": "Official FAQ on worker housing and accommodation enforcement, foreign-worker accommodation duties, maximum accommodation charges, inspections, and living-condition compliance.",
+        "seed_family": "malaysia_labour_homeaffairs",
+    },
+    {
+        "url": "https://jtksm.mohr.gov.my/sites/default/files/2023-03/4.%20Anti-Trafficking%20in%20Persons%20and%20Anti-Smuggling%20of%20Migrants%20Act%202007.pdf",
+        "title": "Malaysia ATIPSOM Act public legal reference",
+        "snippet": "Official legal PDF for Malaysia's anti-trafficking and anti-smuggling framework, including labour-officer roles, trafficking and smuggling distinctions, victim handling, and enforcement powers.",
         "seed_family": "malaysia_labour_homeaffairs",
     },
     {
@@ -2585,6 +2627,30 @@ DEFAULT_SEED_SOURCES: tuple[dict, ...] = (
         "url": "https://www.mol.gov.qa/admin/Services%20documents/%D8%B9%D9%82%D8%AF%20%D8%B9%D9%85%D9%84%20%D9%84%D9%84%D9%85%D8%B3%D8%AA%D8%AE%D8%AF%D9%85%D9%8A%D9%86%20%D9%81%D9%8A%20%D8%A7%D9%84%D9%85%D9%86%D8%A7%D8%B2%D9%84.pdf",
         "title": "Qatar Ministry of Labour domestic-worker contract template",
         "snippet": "Official contract template stating recruitment agency or employer bears recruitment fees, worker deductions are not allowed, contract termination follows law, and domestic-worker rights must be documented.",
+        "seed_family": "qatar_labour_anti_trafficking",
+    },
+    {
+        "url": "https://acms.adlsa.gov.qa/en/faq",
+        "title": "Qatar labour complaints and whistleblower platform FAQ",
+        "snippet": "Official public FAQ for Qatar's labour complaints and whistleblower platform covering establishment and domestic-worker complaints, violation reports, worker records, multilingual access, and complaint follow-up.",
+        "seed_family": "qatar_labour_anti_trafficking",
+    },
+    {
+        "url": "https://www.mol.gov.qa/admin/LawsDocuments/Law%20No.%20%2814%29%20of%202004%20Promulgating%20the%20Labour%20Law.pdf",
+        "title": "Qatar Labour Law prohibition on worker-paid recruitment charges",
+        "snippet": "Official Labour Law PDF stating licensed recruiters may not collect fees, recruitment charges, or other costs from recruited workers, and setting supervision and recordkeeping duties for recruitment offices.",
+        "seed_family": "qatar_labour_anti_trafficking",
+    },
+    {
+        "url": "https://www.mol.gov.qa/admin/LawsDocuments/Law%20No.%20%2815%29%20of%202017%20on%20Domestic%20Workers.pdf",
+        "title": "Qatar domestic workers law on housing, wages, and recruitment",
+        "snippet": "Official domestic-workers law covering licensed recruitment, written contracts, wages, housing, health care, food, age limits, and employer obligations without imposing financial burden on the worker.",
+        "seed_family": "qatar_labour_anti_trafficking",
+    },
+    {
+        "url": "https://www.mol.gov.qa/admin/LawsDocuments/Council%20of%20Ministers%E2%80%99%20Resolution%20No.%20%2836%29%20of%202006%20on%20Determining%20Fees%20for%20Work%20Permits%2C%20Recruitment%20of%20Workers%20and%20Ratification%20of%20Seals%2C%20Certificates%20and%20Other%20Documents.pdf",
+        "title": "Qatar official fee schedule for work permits and recruitment-office licences",
+        "snippet": "Official fee schedule separating state work-permit and recruitment-office licensing fees from prohibited worker-paid recruitment charges, useful for detecting fee-shifting and bogus fee narratives.",
         "seed_family": "qatar_labour_anti_trafficking",
     },
     {

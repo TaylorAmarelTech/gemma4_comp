@@ -1,13 +1,13 @@
 {
   "archive_manifest": "source_archive_manifest.jsonl",
   "counts": {
-    "archive_entries": 285,
+    "archive_entries": 296,
     "content_kinds": {
-      "html": 229,
-      "pdf": 51,
+      "html": 235,
+      "pdf": 56,
       "plain_or_unknown": 5
     },
-    "domains": 100,
+    "domains": 103,
     "source_families": {
       "australia_homeaffairs_agd_afp": 11,
       "bahrain_kuwait_oman_gulf_mobility": 6,
@@ -22,13 +22,13 @@
       "india_bonded_labour_migration": 4,
       "intergovernmental": 36,
       "iom": 25,
-      "malaysia_labour_homeaffairs": 4,
+      "malaysia_labour_homeaffairs": 8,
       "nepal_foreign_employment": 5,
-      "netherlands_gov_justice": 2,
+      "netherlands_gov_justice": 5,
       "new_zealand_immigration_employment": 10,
       "pakistan_overseas_employment": 4,
       "philippines_gov": 13,
-      "qatar_labour_anti_trafficking": 3,
+      "qatar_labour_anti_trafficking": 7,
       "regional_research_programs": 2,
       "saudi_labour_human_rights": 7,
       "singapore_mom_police": 13,
