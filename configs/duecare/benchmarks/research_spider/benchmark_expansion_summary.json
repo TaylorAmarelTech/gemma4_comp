@@ -16,11 +16,11 @@
   "schema_version": "public_benchmark_expansion.summary.v1",
   "source_decompositions": 260,
   "source_profile_coverage": {
-    "dimension_candidates": 189,
-    "knowledge_objects": 269,
+    "dimension_candidates": 197,
+    "knowledge_objects": 285,
     "sectors_covered": 10,
     "signals_covered": 19,
-    "source_profiles": 269
+    "source_profiles": 285
   },
   "verified_knowledge_objects": 160
 }

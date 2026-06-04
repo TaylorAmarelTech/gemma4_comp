@@ -290,6 +290,61 @@ def test_south_asia_source_country_recruitment_grievance_sources_are_seeded():
     assert "brick kiln bonded labour" in dork_text
 
 
+def test_australia_new_zealand_singapore_frontier_sources_are_deepened():
+    candidates = spider.seed_source_candidates()
+    source_text = "\n".join(
+        " ".join([row["url"], row["title"], row["snippet"], *row["signals"]])
+        for row in candidates
+    )
+    family_counts = {}
+    for row in candidates:
+        family_counts[row["source_family"]] = family_counts.get(row["source_family"], 0) + 1
+    signals = {signal for row in candidates for signal in row["signals"]}
+    dork_text = "\n".join(q["query"] for q in spider.build_deep_dorks(max_per_family=420))
+
+    assert family_counts["australia_homeaffairs_agd_afp"] >= 11
+    assert family_counts["new_zealand_immigration_employment"] >= 10
+    assert family_counts["singapore_mom_police"] >= 13
+    for needle in [
+        "modern-slavery-offences",
+        "qld-women-charged-forced-labour-debt-bondage-offences",
+        "afp-warns-rise-forced-labour-and-exploitation-australia",
+        "schools-urged-help-afp-prevent-forced-marriage",
+        "resolving-problems/migrant-exploitation",
+        "your-rights-as-a-worker-from-overseas",
+        "temporary-migrant-worker-exploitation-review",
+        "7109-temporary-migrant-worker-exploitation-in-new-zealand",
+        "0301-oral-answer-to-pq-on-kickback-offenses",
+        "employment-agency-publications/ea-alerts",
+        "ea-alert-021224-ea-alert-do-not-collect-agency-fees-upfront-from-jobseekers.pdf",
+        "0528-2-singaporeans-and-an-employment-agency-charged-for-efma-offences",
+    ]:
+        assert needle in source_text
+    assert {
+        "debt_bondage",
+        "fee_overcharging",
+        "document_control",
+        "immigration_status_control",
+        "contract_deception",
+        "wage_theft",
+        "forced_labor",
+        "referral",
+    } <= signals
+    for term in [
+        "report of exploitation assessment letter",
+        "employer named on work visa",
+        "upfront agency fees",
+        "kickback offences",
+        "false declaration of salary",
+        "visa sponsorship fee",
+        "support for trafficked people program",
+        "forced marriage indicators",
+        "servitude indicators",
+        "deceptive recruitment tactics",
+    ]:
+        assert term in dork_text
+
+
 def test_public_court_case_frontier_sources_are_seeded():
     source_text = json.dumps(spider.DEFAULT_SEED_SOURCES)
 

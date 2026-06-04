@@ -9,6 +9,8 @@ Current slice:
 - Manual, Brave, and GitHub search provider wrappers implemented with fixture tests.
 - Public HTML, PDF, and document extraction wrappers implemented with no-network fixtures.
 - OSINT-adjacent tools remain rejected for operational use.
+- Australia, New Zealand, and Singapore official-source frontier branches deepened with public AGD/AFP/Home Affairs, Employment NZ/Immigration NZ/MBIE, and MOM/SPF leads.
+- Search vocabulary expanded for exploitation assessment letters, employer-named work visas, upfront agency fees, kickbacks, false salary declarations, visa sponsorship fees, forced marriage indicators, servitude indicators, and deceptive recruitment tactics.
 - No private case files or raw private text were ingested.
 
 Counts:
@@ -18,15 +20,16 @@ Counts:
 - Implemented search provider wrappers: 3
 - Implemented extractor wrappers: 5
 - Rejected operational tools: 4
-- Source candidates already in spider pack: 269
-- Source fetch manifest entries: 269
-- Source domain frontier entries: 99
-- Source archive manifest entries: 269
-- Sitemap probe queue entries: 297
-- Domain crawl policy entries: 99
-- Sitemap discovery dorks: 396
+- Source candidates already in spider pack: 285
+- Source fetch manifest entries: 285
+- Source domain frontier entries: 100
+- Source archive manifest entries: 285
+- Sitemap probe queue entries: 300
+- Domain crawl policy entries: 100
+- Sitemap discovery dorks: 400
 - Branching research queue leads: 1000
-- Knowledge objects already in spider pack: 269
+- Knowledge objects already in spider pack: 285
+- Dimension candidates already in spider pack: 197
 - Corroboration links: 240
 - Verified-for-benchmark knowledge objects: 160
 - Source decompositions: 260
@@ -61,9 +64,9 @@ Next 30 branches:
 18. `asean_bali_process_corridors` [completed] - Search regional sources for transit, scam-compound, and referral pathway patterns.
 19. `europol_eurojust_frontex_operations` [completed] - Profile EU law-enforcement operations for cross-border exploitation indicators.
 20. `canada_temporary_foreign_worker_cases` [completed] - Search public Canadian justice/labour cases for immigration-status coercion.
-21. `australia_afp_forced_marriage_servitude` [queued] - Branch from AFP/Home Affairs trafficking material into prosecution and referral examples.
-22. `new_zealand_migrant_exploitation_cases` [queued] - Search NZ immigration/employment sources for exploitation and deception cases.
-23. `singapore_mom_agency_fee_guidance` [queued] - Profile Singapore MOM/ICA/police sources for recruitment and permit-control prompts.
+21. `australia_afp_forced_marriage_servitude` [completed] - Branch from AFP/Home Affairs trafficking material into prosecution and referral examples.
+22. `new_zealand_migrant_exploitation_cases` [completed] - Search NZ immigration/employment sources for exploitation and deception cases.
+23. `singapore_mom_agency_fee_guidance` [completed] - Profile Singapore MOM/ICA/police sources for recruitment and permit-control prompts.
 24. `asean_gulf_official_corridor_sources` [completed] - Profile Thailand, Cambodia, Singapore, UAE, Qatar, and Saudi official sources for forced criminality, recruitment fees, passport, and mobility-control prompts.
 25. `gulf_sponsorship_mobility_deepening` [completed] - Profile ILO/IOM and Bahrain, Kuwait, Oman official sources for kafala, exit, transfer, free-visa, and tied-employer mobility-control patterns.
 26. `south_asia_source_country_grievance_cases` [completed] - Profile India, Bangladesh, Nepal, Sri Lanka, and Pakistan source-country recruitment, bonded-labour, complaint, and trafficking-law sources.
@@ -71,3 +74,15 @@ Next 30 branches:
 28. `hybrid_moe_stress_scenarios` [completed] - Mix debt, document control, immigration status, wage deductions, and benign distractors.
 29. `applicability_judge_seed_tags` [completed] - Create seed tags where content implies sectors missing from metadata.
 30. `financial_obfuscation_dimensions` [completed] - Add dimensions for deductions, kickbacks, debt ledgers, and payroll intermediaries.
+
+Latest continuation, 2026-06-04:
+
+- Completed loop: `australia_new_zealand_singapore_official_source_deepening`.
+- Added 16 official public seed sources:
+  - Australia: AGD modern-slavery offences and freedom-from-slavery guidance; AFP forced-labour/debt-bondage, forced-labour trend, and forced-marriage indicator releases.
+  - New Zealand: Employment NZ migrant exploitation page and worker-protection law update; Immigration NZ overseas-worker rights; MBIE temporary migrant worker exploitation review and reports.
+  - Singapore: MOM kickback parliamentary answer, EA alerts, upfront-fee alert PDF, EFMA false-declaration/kickback enforcement release; SPF scam-syndicate and money-mule enforcement context.
+- Regenerated deterministic no-network artifacts with the larger frontier caps: 8,700 deep dorks, 2,850 second-wave queries, 240 spider prompt candidates, 240 multi-turn conversations, 360 hybrid scenarios, 120 long-context prompts, 180 refusal/detection prompts, and 180 applicability seed tags.
+- Coverage moved to Australia 25, New Zealand 10, Singapore 13; signals strengthened for fee overcharging, document control, immigration-status control, contract deception, wage theft, referral, forced labour, and debt bondage.
+- Focused test added: `test_australia_new_zealand_singapore_frontier_sources_are_deepened`.
+- Privacy posture remains public URL metadata only; no private case files, private filenames, raw private text, or contact details were ingested.
