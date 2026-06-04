@@ -27,6 +27,10 @@ _ROOT = pathlib.Path(__file__).resolve().parents[1]
 _BENCH = _ROOT / "configs" / "duecare" / "benchmarks"
 _CKPT = _ROOT / os.environ.get("LIFT_REPORT_CKPT", "reports/harness_lift_500_opus.jsonl")
 _OUT = _ROOT / os.environ.get("LIFT_REPORT_OUT", "reports/harness_lift_report.html")
+# The grader varies by run (Opus 4.8 subagent for the 500-set, gpt-oss:120b for
+# the scalable 1000-set). Never hardcode it in the header -- mislabeling the
+# judge in a reviewer-facing artifact is a "real, not faked" violation.
+_JUDGE = os.environ.get("LIFT_REPORT_JUDGE", "Opus 4.8")
 
 # Civic-tech warm-paper palette (60_notebook_presentation.md).
 _PAPER, _PAPER2, _INK, _INK3, _LINE = "#F7F6F1", "#EFEDE4", "#0E1116", "#5B5F68", "#DDD8C9"
@@ -136,7 +140,7 @@ def build() -> pathlib.Path:
     out = [f"<!doctype html><html><head><meta charset='utf-8'>"
            f"<title>DueCare Harness-Lift Report</title><style>{css}</style></head><body>"]
     out.append("<h1>DueCare &mdash; Harness-Lift Report</h1>")
-    out.append(f"<p class='sub'>Baseline vs DueCare-harnessed, graded by Opus&nbsp;4.8 across "
+    out.append(f"<p class='sub'>Baseline vs DueCare-harnessed, graded by {esc(_JUDGE)} across "
                f"{len({c['dim'] for c in cells})} dimensions &middot; {len(cells):,} graded cells "
                f"&middot; {len(prompts)} prompts in corpus. Lift = harnessed &minus; baseline (0&ndash;10).</p>")
 

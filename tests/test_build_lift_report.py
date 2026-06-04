@@ -47,3 +47,23 @@ def test_report_renders_lift_table_and_egregious_example(tmp_path, monkeypatch):
     assert "Yes you can deduct it." in htmltext               # egregious baseline shown
     assert "That is debt bondage" in htmltext                 # harnessed counterpart shown
     assert "BASELINE" in htmltext and "HARNESSED" in htmltext
+
+
+def test_report_header_reflects_configured_judge(tmp_path, monkeypatch):
+    ckpt = tmp_path / "ck.jsonl"
+    out = tmp_path / "report.html"
+    bench = tmp_path / "bench"
+    bench.mkdir()
+    monkeypatch.setattr(rep, "_CKPT", ckpt)
+    monkeypatch.setattr(rep, "_OUT", out)
+    monkeypatch.setattr(rep, "_BENCH", bench)
+    monkeypatch.setattr(rep, "_ROOT", tmp_path)
+    monkeypatch.setattr(rep, "_JUDGE", "gpt-oss:120b")        # grader varies by run
+    ckpt.write_text(json.dumps(
+        {"prompt_id": "p1", "model": "gemma", "arm": "baseline",
+         "dim": "scheme_detection.x", "score": 3.0}), encoding="utf-8")
+    (bench / "harness_lift_prompts_500.json").write_text(
+        json.dumps({"prompts": [{"id": "p1", "text": "q"}]}), encoding="utf-8")
+    htmltext = rep.build().read_text(encoding="utf-8")
+    assert "graded by gpt-oss:120b" in htmltext
+    assert "Opus" not in htmltext                              # no stale hardcoded grader
