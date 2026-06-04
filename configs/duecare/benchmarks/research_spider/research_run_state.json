@@ -7,26 +7,26 @@
     "crawler_provider_registry": 5,
     "decomposition_followup_queries": 520,
     "decomposition_mixed_conversations": 240,
-    "dimension_candidates": 189,
-    "domain_crawl_policy": 99,
+    "dimension_candidates": 197,
+    "domain_crawl_policy": 100,
     "extractor_provider_registry": 9,
     "hybrid_scenario_prompts": 360,
     "implemented_extractor_wrappers": 5,
     "implemented_search_provider_wrappers": 3,
-    "knowledge_objects": 269,
+    "knowledge_objects": 285,
     "long_context_stress_prompts": 120,
     "prompt_candidates": 240,
     "refusal_detection_prompts": 180,
     "rejected_or_deferred_sources": 19,
     "search_provider_registry": 6,
-    "sitemap_discovery_dorks": 396,
-    "sitemap_probe_queue": 297,
-    "source_archive_manifest": 269,
-    "source_candidates": 269,
+    "sitemap_discovery_dorks": 400,
+    "sitemap_probe_queue": 300,
+    "source_archive_manifest": 285,
+    "source_candidates": 285,
     "source_decompositions": 260,
-    "source_domain_frontier": 99,
-    "source_fetch_manifest": 269,
-    "source_profiles": 269,
+    "source_domain_frontier": 100,
+    "source_fetch_manifest": 285,
+    "source_profiles": 285,
     "tool_profiles": 23,
     "verified_knowledge_objects": 160
   },
@@ -44,10 +44,11 @@
     "asean_gulf_official_corridor_sources_seeded",
     "fatf_payment_instrument_typologies_seeded",
     "gulf_sponsorship_mobility_deepening_seeded",
-    "south_asia_source_country_grievance_cases_seeded"
+    "south_asia_source_country_grievance_cases_seeded",
+    "australia_new_zealand_singapore_official_source_deepening"
   ],
-  "current_loop": "tool_discovery_matrix_v1",
-  "generated_at": "2026-05-31T00:00:00Z",
+  "current_loop": "australia_new_zealand_singapore_official_source_deepening_v1",
+  "generated_at": "2026-06-04T00:00:00Z",
   "implemented_extractor_wrappers": [
     "stdlib_html",
     "trafilatura_optional",
@@ -271,7 +272,7 @@
       "kind": "source",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 21,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
@@ -280,7 +281,7 @@
       "kind": "source",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 22,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
@@ -289,7 +290,7 @@
       "kind": "source",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 23,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {

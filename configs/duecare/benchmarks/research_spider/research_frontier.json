@@ -210,7 +210,7 @@
       "kind": "source",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 21,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
@@ -219,7 +219,7 @@
       "kind": "source",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 22,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
@@ -228,7 +228,7 @@
       "kind": "source",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 23,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
@@ -296,7 +296,7 @@
     }
   ],
   "frontier_source": "tool_survey_and_existing_public_research_spider",
-  "generated_at": "2026-05-31T00:00:00Z",
+  "generated_at": "2026-06-04T00:00:00Z",
   "schema_version": "public_research_frontier.v1",
   "tool_decision_counts": {
     "adopt_deterministic_core": 1,
