@@ -17,6 +17,7 @@ EXPECTED_ROUTES: set[tuple[str, str]] = {
     ("/api/experiment-contract", "GET"),
     ("/api/audit/workbench-inventory", "GET"),
     ("/static/chat.html", "GET"),
+    ("/static/manifest.webmanifest", "GET"),
     ("/api/dc-logs", "GET"),
     ("/api/dc-logs/stats", "GET"),
     ("/api/dc-logs/clear", "POST"),
@@ -102,6 +103,8 @@ EXPECTED_ROUTES: set[tuple[str, str]] = {
     ("/api/templates/dry-run-fill", "POST"),
     ("/api/templates/fill", "POST"),
     ("/api/templates/fill-batch", "POST"),
+    ("/api/templates/recommend", "POST"),
+    ("/api/templates/sample-bundle/{template_id}", "GET"),
     # search harness (Phase 11)
     ("/api/search/server", "POST"),
     ("/api/search/client", "POST"),

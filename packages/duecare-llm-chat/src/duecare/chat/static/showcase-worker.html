@@ -4,6 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Individual Worker | DueCare Workbench</title>
+  <!-- Installable worker companion (PWA): add-to-home-screen + offline shell. -->
+  <meta name="theme-color" content="#0E1116">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="DueCare">
+  <link rel="manifest" href="/static/manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="/static/icons/duecare-worker.svg">
+  <link rel="apple-touch-icon" href="/static/icons/duecare-worker.svg">
   <link rel="stylesheet" href="/static/_chrome.css">
   <link rel="stylesheet" href="/static/showcase.css">
   <script src="/static/_nav.js" defer></script>
@@ -28,7 +35,10 @@
   <div class="cta-row">
     <a class="cta cta-primary" href="/static/chat.html?audience=worker">Open Chat</a>
     <a class="cta cta-ghost" href="/static/hotlines.html">Find my hotline</a>
+    <button type="button" id="dcInstallBtn" class="cta cta-ghost" hidden>Install app</button>
   </div>
+  <p class="install-hint" id="dcInstallHint"
+     style="margin:10px 0 0;color:#5B5F68;font-size:0.9rem" hidden></p>
 
   <section class="section">
     <h2>Try checking a sample message</h2>
@@ -76,5 +86,48 @@
     </div>
   </section>
 </main>
+<script>
+(function () {
+  "use strict";
+  var btn = document.getElementById("dcInstallBtn");
+  function setHint(t) {
+    var h = document.getElementById("dcInstallHint");
+    if (h) { h.textContent = t; h.hidden = false; }
+  }
+  // Service worker = offline shell + installability. https/localhost only;
+  // a harmless no-op where unsupported. Progressive enhancement, never blocks.
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("/static/sw.js", { scope: "/static/" })
+        .then(function () {
+          setHint("Saved for offline use — hotlines and the rule-book check keep working without a connection.");
+        })
+        .catch(function () { /* offline-first is optional; ignore */ });
+    });
+  }
+  // Custom install affordance (Chrome / Edge / Android beforeinstallprompt).
+  var deferred = null;
+  window.addEventListener("beforeinstallprompt", function (e) {
+    e.preventDefault();
+    deferred = e;
+    if (btn) { btn.hidden = false; }
+  });
+  if (btn) {
+    btn.addEventListener("click", function () {
+      if (!deferred) { return; }
+      deferred.prompt();
+      deferred.userChoice.then(function (choice) {
+        if (choice && choice.outcome === "accepted") { setHint("Installing DueCare to your home screen…"); }
+        btn.hidden = true;
+        deferred = null;
+      });
+    });
+  }
+  window.addEventListener("appinstalled", function () {
+    if (btn) { btn.hidden = true; }
+    setHint("Installed. Open DueCare from your home screen — it works offline.");
+  });
+})();
+</script>
 </body>
 </html>

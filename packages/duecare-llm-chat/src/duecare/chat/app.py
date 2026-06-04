@@ -2468,6 +2468,20 @@ def create_app(
         return HTMLResponse("<h1>Chat surface unavailable</h1>",
                             status_code=503)
 
+    @app.get("/static/manifest.webmanifest")
+    def pwa_manifest() -> Any:
+        """Serve the worker PWA manifest with the correct media type.
+
+        StaticFiles guesses application/octet-stream for the ``.webmanifest``
+        extension, which some browsers reject; the install prompt needs
+        application/manifest+json. Registered before the mount so it wins."""
+        mf = static_dir / "manifest.webmanifest"
+        if mf.exists():
+            return Response(mf.read_text(encoding="utf-8"),
+                            media_type="application/manifest+json")
+        return Response("{}", media_type="application/manifest+json",
+                        status_code=404)
+
     if static_dir.exists():
         app.mount("/static", StaticFiles(directory=str(static_dir)),
                   name="static")

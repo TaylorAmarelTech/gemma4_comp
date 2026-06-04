@@ -1,0 +1,37 @@
+{
+  "name": "DueCare — Worker Safety Companion",
+  "short_name": "DueCare",
+  "description": "Plain-language answers about migrant-worker fees, contracts, passports, and rights. Runs against the kernel serving this URL; messages stay local unless you explicitly anonymize and share.",
+  "id": "/static/showcase-worker.html",
+  "start_url": "/static/showcase-worker.html",
+  "scope": "/static/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F7F6F1",
+  "theme_color": "#0E1116",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["education", "utilities", "social"],
+  "icons": [
+    {
+      "src": "/static/icons/duecare-worker.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Find my hotline",
+      "short_name": "Hotlines",
+      "description": "Click-to-call NGO and embassy contacts for your corridor and language.",
+      "url": "/static/hotlines.html"
+    },
+    {
+      "name": "Anonymize a message",
+      "short_name": "Anonymize",
+      "description": "Preview what gets sent and what stays local before sharing a case.",
+      "url": "/static/anonymization-preview.html"
+    }
+  ]
+}

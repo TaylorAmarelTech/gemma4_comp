@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="DueCare worker safety">
+  <!-- Full-bleed civic-teal field keeps the icon maskable-safe (the mark sits
+       inside the centre 80% safe zone). Palette per 60_notebook_presentation.md. -->
+  <rect width="512" height="512" rx="104" fill="#2b7a78"/>
+  <!-- Protective shield in warm paper -->
+  <path d="M256 92 L394 144 V270 C394 356 332 414 256 438 C180 414 118 356 118 270 V144 Z"
+        fill="#F7F6F1"/>
+  <!-- Verified check -->
+  <path d="M194 262 l46 46 l86 -108" fill="none" stroke="#2b7a78"
+        stroke-width="36" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
