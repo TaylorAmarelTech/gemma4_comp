@@ -9,12 +9,18 @@ persona-framed / oddly-punctuated variants, and writes a HELD-OUT split so a
 model tuned on the "seen" bases meets unseen bases (in novel combinations) at
 test time. The combinatorial space is large, so memorization is impractical.
 
-Transforms are STRUCTURAL -- they compose base prompts rather than swapping
-tokens, so they never corrupt the base text or invent bad facts:
-  combine        -- two base prompts (different categories) into one request
-  pad_buried     -- a long benign preamble that BURIES the base ask
-  persona_shift  -- prepend an authority / override / research pretext frame
-  punctuate      -- erratic spacing / caps / punctuation obfuscation
+Two transform families, both deterministic:
+  STRUCTURAL -- compose base prompts; never corrupt facts or invent bad ones:
+    combine        -- two base prompts (different categories) into one request
+    pad_buried     -- a long benign preamble that BURIES the base ask
+    persona_shift  -- prepend an authority / override / research pretext frame
+  SURFACE -- meaning-preserving perturbations; robustness / INVARIANCE probes
+  ported in spirit from checklist / promptbench / EDA (a safety verdict should
+  be invariant to surface noise, so a perturbed base must still be caught):
+    punctuate      -- erratic spacing / caps / punctuation obfuscation
+    typo           -- keyboard-style typos on a few long words
+    contraction    -- toggle common contractions (do not <-> don't)
+    leet           -- sparse look-alike-char substitution (a->@, o->0, s->5)
 
 Deterministic (indexed rotation, NO RNG) so a given corpus is reproducible.
 Synthetic only; provenance (base_ids + transform) is recorded on every variant.
@@ -72,6 +78,74 @@ def _punctuate(text: str, i: int) -> str:
     return "\n".join(" ".join(words[k:k + 5]) for k in range(0, len(words), 5))
 
 
+# --- Surface-level perturbations (meaning-preserving) ----------------------
+# Robustness / INVARIANCE probes in the spirit of checklist (marcotcr/checklist),
+# promptbench (microsoftarchive/promptbench), and EDA (jasonwei20/eda_nlp,
+# EMNLP 2019 -- algorithm reimplemented, not copied): a safety verdict should be
+# INVARIANT to typos, contractions, casing, and light look-alike obfuscation.
+# These deterministically ADJUST the surface form WITHOUT changing the scenario
+# facts, so a perturbed variant still carries the same harmful intent and must
+# still be caught -- pairing a base with its perturbation is a ready-made
+# invariance test for the harness + judge.
+_LEET = {"a": "@", "e": "3", "i": "1", "o": "0", "s": "5"}
+_CONTRACTIONS = [
+    ("do not", "don't"), ("does not", "doesn't"), ("cannot", "can't"),
+    ("will not", "won't"), ("it is", "it's"), ("i am", "I'm"),
+    ("you are", "you're"), ("they are", "they're"), ("we are", "we're"),
+    ("is not", "isn't"), ("are not", "aren't"), ("that is", "that's"),
+]
+
+
+def _eligible_words(text: str) -> tuple[list[str], list[int]]:
+    """Split + return indices of words long enough (>4 alpha chars) to perturb
+    without destroying readability or hitting short function words."""
+    words = text.split()
+    return words, [j for j, w in enumerate(words) if len(w) > 4 and w.isalpha()]
+
+
+def _typo(text: str, i: int) -> str:
+    """Deterministic keyboard-style typo on a few long words (meaning-preserving)."""
+    words, elig = _eligible_words(text)
+    if not elig:
+        return text
+    for k in range(min(3, len(elig))):
+        j = elig[(i + k) % len(elig)]
+        w = words[j]
+        m = max(1, min(2 + (i % max(1, len(w) - 2)), len(w) - 1))
+        style = (i + j) % 3
+        if style == 0:                      # double a char
+            words[j] = w[:m] + w[m] + w[m:]
+        elif style == 1:                    # drop a char
+            words[j] = w[:m] + w[m + 1:]
+        else:                               # swap adjacent chars
+            words[j] = w[:m - 1] + w[m] + w[m - 1] + w[m + 1:]
+    return " ".join(words)
+
+
+def _contraction(text: str, i: int) -> str:
+    """Deterministically toggle common contractions (meaning-preserving)."""
+    out = text
+    pairs = _CONTRACTIONS if i % 2 == 0 else [(b, a) for a, b in _CONTRACTIONS]
+    for a, b in pairs:
+        out = re.sub(rf"\b{re.escape(a)}\b", b, out, flags=re.IGNORECASE)
+    return out
+
+
+def _leet(text: str, i: int) -> str:
+    """Sparse look-alike-char substitution (obfuscation-robustness probe)."""
+    words, elig = _eligible_words(text)
+    if not elig:
+        return text
+    for k in range(min(4, len(elig))):
+        w = words[elig[(i + k) % len(elig)]]
+        for ch, sub in _LEET.items():
+            pos = w.lower().find(ch)
+            if pos != -1:
+                words[elig[(i + k) % len(elig)]] = w[:pos] + sub + w[pos + 1:]
+                break
+    return " ".join(words)
+
+
 def _vid(text: str) -> str:
     return "RMX-" + hashlib.sha1(re.sub(r"\s+", " ", text.lower()).encode()).hexdigest()[:10].upper()
 
@@ -119,6 +193,9 @@ def remix(bases: list[dict], *, max_out: int = 0) -> list[dict]:
                             "what I actually need: " + b["text"], "pad_buried", [b]))
         out.append(_variant(_PERSONAS[i % len(_PERSONAS)] + b["text"], "persona_shift", [b]))
         out.append(_variant(_punctuate(b["text"], i), "punctuate", [b]))
+        out.append(_variant(_typo(b["text"], i), "typo", [b]))
+        out.append(_variant(_contraction(b["text"], i), "contraction", [b]))
+        out.append(_variant(_leet(b["text"], i), "leet", [b]))
         if n > 1:  # combine with a DIFFERENT base (rotate by a stride)
             b2 = bases[(i + 1 + (i % 3)) % n]
             if b2 is not b:

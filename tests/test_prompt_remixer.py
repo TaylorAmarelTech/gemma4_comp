@@ -21,7 +21,8 @@ def _bases(n):
 def test_remix_records_provenance_and_all_transforms():
     out = rx.remix(_bases(6))
     transforms = {v["transform"] for v in out}
-    assert {"pad_buried", "persona_shift", "punctuate", "combine"} <= transforms
+    assert {"pad_buried", "persona_shift", "punctuate", "combine",
+            "typo", "contraction", "leet"} <= transforms
     for v in out:
         assert v["id"].startswith("RMX-")
         assert v["base_ids"]                      # provenance recorded
@@ -49,3 +50,15 @@ def test_heldout_split_is_disjoint():
 def test_punctuate_changes_text():
     base = "this is a normal sentence about wages and fees."
     assert any(rx._punctuate(base, i) != base for i in range(4))
+
+
+def test_surface_transforms_meaning_preserving_and_deterministic():
+    base = "the recruitment agency will not return the worker passport without a fee"
+    nwords = len(base.split())
+    t = rx._typo(base, 3)
+    assert t != base and len(t.split()) == nwords          # perturbs chars, not word count
+    assert rx._typo(base, 3) == t                          # deterministic
+    assert rx._leet(base, 1) != base and rx._leet(base, 1) == rx._leet(base, 1)
+    assert rx._contraction("the agency will not return it", 0) == "the agency won't return it"
+    # short / empty text never crashes (no eligible words -> unchanged)
+    assert rx._typo("hi", 0) == "hi" and rx._leet("", 0) == ""
