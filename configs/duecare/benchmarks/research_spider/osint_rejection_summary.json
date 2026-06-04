@@ -1,0 +1,18 @@
+{
+  "privacy": {
+    "people_email_or_contact_harvesting_allowed": false,
+    "private_case_terms_allowed": false,
+    "raw_private_cases_ingested": false,
+    "remote_private_queries_allowed": false,
+    "stealth_evasion_or_proxy_rotation_allowed": false,
+    "subdomain_or_credential_harvesting_allowed": false
+  },
+  "rejected_operational_tools": 4,
+  "schema_version": "public_osint_rejection_summary.v1",
+  "tool_ids": [
+    "metagoofil",
+    "pagodo",
+    "photon",
+    "theharvester"
+  ]
+}

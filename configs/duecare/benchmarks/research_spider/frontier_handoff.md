@@ -41,6 +41,7 @@ Counts:
 - Long-context stress prompts: 120
 - Refusal/detection prompts: 180
 - Applicability seed tags: 180
+- OSINT rejection ledger entries: 4
 - Prompt candidates already in spider pack: 240
 
 Next 30 branches:
@@ -54,7 +55,7 @@ Next 30 branches:
 7. `evaluate_advertools_sitemap_crawl` [completed] - Test sitemap-first expansion for official public domains.
 8. `evaluate_scrapy_polite_crawler` [queued] - Prototype a small Scrapy spider only if sitemap/manual discovery stalls.
 9. `defer_playwright_allowlist_policy` [completed] - Write allowlist policy before any JavaScript browser fetches.
-10. `reject_osint_operationalization` [queued] - Keep pagodo, Photon, theHarvester, and Metagoofil out of provider registries.
+10. `reject_osint_operationalization` [completed] - Keep pagodo, Photon, theHarvester, and Metagoofil out of provider registries.
 11. `philippines_court_illegal_recruitment_cases` [completed] - Search public Philippine court/prosecution sources for illegal recruitment and debt bondage.
 12. `hong_kong_fdh_agency_fee_cases` [completed] - Search Hong Kong public sources for FDH agency overcharge, loan, passport, and rest-day indicators.
 13. `china_court_new_trafficking_forms` [completed] - Branch from China court summaries into fraud, trafficking, and coded-language public cases.
@@ -96,4 +97,12 @@ Latest continuation, 2026-06-04:
 - The allowlist explicitly forbids stealth, proxy rotation, CAPTCHA bypass, fingerprint evasion, credentialed login, form submission, file upload, persistent browser contexts, storage-state reuse, and unreviewed downloads.
 - Regenerated `domain_crawl_policy.jsonl` so deny-path rules also include sign-in/admin/private/mailto/tel patterns.
 - Focused test added: `test_browser_fetch_allowlist_is_deferred_and_rejects_unsafe_browser_patterns`.
-- Next useful tool branches remain `evaluate_scrapy_polite_crawler` only if sitemap/manual discovery stalls, then `reject_osint_operationalization` to pin operational rejection of pagodo, Photon, theHarvester, and Metagoofil.
+- Next useful tool branch remains `evaluate_scrapy_polite_crawler` only if sitemap/manual discovery stalls; otherwise continue with public source-profile, prompt, dimension, and conversation frontier gaps.
+
+Latest continuation, 2026-06-04:
+
+- Completed loop: `osint_operational_rejection_ledger_seeded`.
+- Added deterministic no-network `rejected_operational_tools.jsonl` with 4 rows for metagoofil, pagodo, Photon, and theHarvester.
+- Added `osint_rejection_summary.json` so future tool runs can prove those tools remain design references only.
+- Each row blocks network execution, adapters, provider-registry inclusion, private case ingestion, people/email/contact harvesting, subdomain or credential harvesting, stealth/evasion/proxy rotation, and remote private queries.
+- Allowed lessons are limited to safe design cautions such as query metadata, URL denylisting, provider-boundary documentation, and metadata-stripping checks.

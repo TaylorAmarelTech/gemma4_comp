@@ -16,6 +16,8 @@
     "implemented_search_provider_wrappers": 3,
     "knowledge_objects": 285,
     "long_context_stress_prompts": 120,
+    "osint_rejection_ledger": 4,
+    "osint_rejection_summary": 1,
     "prompt_candidates": 240,
     "refusal_detection_prompts": 180,
     "rejected_or_deferred_sources": 19,
@@ -47,9 +49,10 @@
     "gulf_sponsorship_mobility_deepening_seeded",
     "south_asia_source_country_grievance_cases_seeded",
     "australia_new_zealand_singapore_official_source_deepening",
-    "playwright_browser_allowlist_policy_seeded"
+    "playwright_browser_allowlist_policy_seeded",
+    "osint_operational_rejection_ledger_seeded"
   ],
-  "current_loop": "playwright_browser_allowlist_policy_v1",
+  "current_loop": "osint_operational_rejection_ledger_v1",
   "generated_at": "2026-06-04T00:00:00Z",
   "implemented_extractor_wrappers": [
     "stdlib_html",
@@ -175,7 +178,7 @@
       "kind": "tool",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 10,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {
