@@ -8856,6 +8856,86 @@ GREP_RULES = [
                        "a coercive means exists, consent is legally irrelevant, and an "
                        "exploitative norm is not a defence -- flag it, don't normalise.",
     },
+
+    # ====================================================================
+    # CATEGORY JJJJ: FINANCIAL OBFUSCATION + CONTRACT SUBSTITUTION + EXIT
+    # CONTROL (2026-06-04) -- co-occurrence detectors matching the new
+    # financial-obfuscation / recruitment-fraud RAG grounding.
+    # ====================================================================
+    {
+        'rule': 'money_mule_third_party_routing',
+        'patterns': ['\\b(salary|wage|fund|payment|advance|loan|fee)\\b',
+                     '\\b(mule|third[- ]party|intermediary|proxy|nominee)\\s+(account|wallet|card)\\b'],
+        'all_required': True,
+        'severity': 'high',
+        'citation': 'FATF Recommendations (money-mule typology); ILO C029 Sec. 2',
+        'indicator': 'Worker funds routed through a mule / third-party account is a FATF laundering typology that obscures an illegal worker-charge or debt-bondage flow.',
+    },
+    {
+        'rule': 'circular_rotating_debt',
+        'patterns': ['\\b(debt|loan|balance|repay\\w*)\\b',
+                     '\\b(circular|rotat\\w+|recycl\\w+|back[- ]and[- ]forth|between (?:the )?(?:entit|compan)\\w+)\\b'],
+        'all_required': True,
+        'severity': 'high',
+        'citation': 'ILO C029 + P029 (2014); ILO Indicator 4 (debt bondage); FATF',
+        'indicator': 'Circular / rotating debt between affiliated entities is used to keep a worker perpetually indebted and obscure the true creditor.',
+    },
+    {
+        'rule': 'crypto_usdt_salary_advance',
+        'patterns': ['\\b(crypto|usdt|tether|stablecoin|bitcoin|btc|token|wallet)\\b',
+                     '\\b(salary|wage|advance|loan|deduct\\w*)\\b'],
+        'all_required': True,
+        'severity': 'high',
+        'citation': 'ILO C029; ILO C095 Art. 8; FATF virtual-asset guidance',
+        'indicator': 'A crypto / USDT salary-advance loan repaid via deductions is debt bondage with a laundering layer; virtual assets do not legalise the worker-charge.',
+    },
+    {
+        'rule': 'trade_invoice_fee_disguise',
+        'patterns': ['\\b(invoice|trade|goods|services rendered|consulting)\\b',
+                     '\\b(recruit\\w*|placement|worker|migrant)\\b',
+                     '\\b(fee|charge|deduct\\w*|payment)\\b'],
+        'all_required': True,
+        'severity': 'medium',
+        'citation': 'FATF trade-based money-laundering typology; ILO C181 Art. 7',
+        'indicator': 'A worker placement charge disguised as an invoice / trade / consulting payment is trade-based laundering of an illegal fee.',
+    },
+    {
+        'rule': 'contract_substitution_on_arrival',
+        'patterns': ['\\b(signed|agreed|origin|pre-?departure|home country)\\b',
+                     '\\b(on arrival|destination|after arriv\\w+|once (?:they|she|he) arriv\\w+)\\b',
+                     '\\b(new contract|different terms|lower (?:wage|salary|pay)|substitut\\w+|replace\\w* (?:the )?contract)\\b'],
+        'all_required': True,
+        'severity': 'high',
+        'citation': 'ILO Indicator 2 (deception); Palermo Art. 3 (means); IRIS Standard; Dhaka Principles 2',
+        'indicator': 'Swapping the origin-signed contract for worse terms on arrival is the ILO deception indicator and a Palermo trafficking means; the arrival signature is obtained under duress.',
+    },
+    {
+        'rule': 'exit_permit_noc_control',
+        'patterns': ["\\b(exit permit|no[- ]objection|noc|sponsor(?:'?s)? (?:approval|permission)|release letter)\\b",
+                     '\\b(leave|quit|resign|transfer|return home|go home|change (?:employer|job))\\b'],
+        'all_required': True,
+        'severity': 'high',
+        'citation': 'ILO Indicator 3 (restriction of movement); kafala reform instruments; ILO C029',
+        'indicator': 'Requiring sponsor exit-permit / NOC to leave, quit, transfer, or return home is restriction of movement (ILO forced-labour indicator 3).',
+    },
+    {
+        'rule': 'recruitment_debt_post_arrival_inflation',
+        'patterns': ['\\b(debt|loan|balance|amount owed)\\b',
+                     '\\b(increas\\w+|inflat\\w+|added|grew|more than (?:agreed|expected)|kept rising|never (?:goes |went )?down)\\b'],
+        'all_required': True,
+        'severity': 'high',
+        'citation': 'ILO Indicator 4 (debt bondage); ILO C029 Sec. 2',
+        'indicator': 'A recruitment debt that inflates after arrival (added charges, rising balance) is the classic debt-bondage trap that keeps the worker from leaving.',
+    },
+    {
+        'rule': 'wage_withhold_until_repaid_lockin',
+        'patterns': ['\\b(deduct\\w*|withhold\\w*|garnish\\w*)\\b',
+                     '\\b(until (?:the )?(?:loan|debt|fee|bond) (?:is )?(?:repaid|cleared|paid|settled)|until fully repaid)\\b'],
+        'all_required': True,
+        'severity': 'critical',
+        'citation': 'ILO C095 (Protection of Wages) Art. 8; ILO C029 + P029; ILO Indicator 8 (withholding of wages)',
+        'indicator': 'Withholding / deducting wages until a recruiter-arranged loan or bond is repaid combines wage-withholding (indicator 8) with debt bondage (indicator 4).',
+    },
 ]
 
 
