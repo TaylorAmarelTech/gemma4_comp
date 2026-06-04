@@ -2819,6 +2819,11 @@ def select_relevant_templates_for_bundle(
 # Registry
 # ---------------------------------------------------------------------------
 
+_TEMPLATE_FEE_REFUND_LOAN_VOID_BODY = 'RECRUITMENT FEE REFUND + DEBT-BONDAGE LOAN VOID DEMAND\nMigrant Worker -- Recruitment Agency / Employer / Linked Lender\nFiling date: {{filed_date}}\n\nTO:    {{respondent_name}} (recruitment agency / employer / lender)\n       {{respondent_address}}\nCC:    {{labour_authority}}\n       {{embassy_polo}}\n       International Labour Organization (ILO) Hotline for Forced Labour\n\nRE:    DEMAND to (1) REFUND the unlawful recruitment / placement fee,\n       (2) declare VOID the linked salary-advance loan as debt bondage,\n       and (3) CEASE all wage deductions -- {{worker_name}}\n       ({{worker_nationality}}), {{origin_country}} to {{destination_country}}.\n\n1. FACTS. The worker was charged {{fee_amount}}, labelled a\n   "{{fee_label}}", as a condition of placement, and bound to a linked\n   salary-advance loan of {{loan_amount}} repaid via monthly deductions\n   of {{deduction_amount}} from wages earned in {{destination_country}}.\n\n2. THE CHARGE IS UNLAWFUL REGARDLESS OF ITS LABEL. Under ILO C181 Art. 7\n   the employer -- not the worker -- bears recruitment costs. Relabelling\n   a placement fee as a "{{fee_label}}" does not change its substance\n   ({{corridor_statute}}). The worker-funded loan plus wage deduction is\n   the textbook ILO debt-bondage pattern (ILO C029 + P029; ILO Forced\n   Labour Indicator 4; ILO C095 Art. 8 on permissible wage deductions).\n\n3. CONSENT IS IRRELEVANT. A signature obtained as a condition of work\n   does not cure a coercive means (Palermo Protocol Art. 3(b)).\n\n4. DEMAND. Within {{response_days}} days: refund {{fee_amount}} in full;\n   declare the {{loan_amount}} loan void and cease all deductions; return\n   any documents held; and confirm in writing. Failing this, the matter\n   will be referred to {{labour_authority}} and {{embassy_polo}}.\n\nSigned, {{filer_name}} ({{filer_role}})\nOn behalf of {{worker_name}} (anonymized identifier).'
+
+_TEMPLATE_CONTRACT_SUBSTITUTION_COMPLAINT_BODY = 'CONTRACT SUBSTITUTION COMPLAINT\nMigrant Worker -- Origin-Signed Contract vs Arrival Substitution\nFiling date: {{filed_date}}\n\nTO:    {{labour_tribunal}} (destination-country labour authority / tribunal)\nCC:    {{embassy_polo}}\n       {{recruitment_agency}} (origin recruitment agency)\n\nRE:    Complaint of unlawful CONTRACT SUBSTITUTION affecting\n       {{worker_name}} ({{worker_nationality}}), deployed\n       {{origin_country}} to {{destination_country}}.\n\n1. THE ORIGIN CONTRACT. On {{signing_date}} the worker signed, at origin,\n   an employment contract providing {{origin_signed_terms}} (monthly wage\n   {{origin_signed_wage}}).\n\n2. THE ARRIVAL SUBSTITUTION. On arrival in {{destination_country}} on\n   {{arrival_date}}, the employer {{respondent_name}} presented a\n   different contract providing only {{arrival_substituted_wage}} and\n   {{arrival_worse_terms}}, and {{document_control}}.\n\n3. LEGAL CHARACTER. Substituting the origin-signed contract for worse\n   terms on arrival is the ILO deception indicator (Indicator 2) and a\n   Palermo Protocol Art. 3 trafficking "means". The origin-signed contract\n   is the enforceable benchmark (IRIS Standard; Dhaka Principles for\n   Migration with Dignity, Principle 2). A signature obtained on arrival\n   under duress does not cure the substitution.\n\n4. RELIEF SOUGHT. Enforcement of the origin-signed terms; payment of the\n   wage differential; return of any retained documents; and inspection of\n   {{respondent_name}} under {{destination_statute}}.\n\nFiled by {{filer_name}} ({{filer_role}}) on behalf of {{worker_name}}.'
+
+
 TEMPLATES_REGISTRY: dict[str, TemplateSpec] = {
     "hk_ld_fdh_complaint": TemplateSpec(
         id="hk_ld_fdh_complaint",
@@ -4277,6 +4282,64 @@ TEMPLATES_REGISTRY: dict[str, TemplateSpec] = {
             _f("evidence_list", "Evidence available", False, "intelligence.evidence_edges"),
             _f("relief_requested", "Relief requested", True),
         ),
+    ),
+    "recruitment_fee_refund_and_loan_void_demand": TemplateSpec(
+        id="recruitment_fee_refund_and_loan_void_demand",
+        title="Recruitment Fee Refund + Debt-Bondage Loan Void Demand",
+        jurisdiction="Cross-border",
+        audience="Recruitment agency / employer / linked lender",
+        summary="Pre-filled demand to refund an unlawful recruitment fee (whatever its label), void the linked salary-advance loan as debt bondage, and cease wage deductions. Cites ILO C181 Art. 7, C029/P029, C095, and Palermo Art. 3(b).",
+        body=_TEMPLATE_FEE_REFUND_LOAN_VOID_BODY,
+        fields=(
+            _f('filed_date', 'Filed date', True),
+            _f('respondent_name', 'Respondent name', True, 'intelligence.employers[0]'),
+            _f('respondent_address', 'Respondent address', False),
+            _f('labour_authority', 'Labour authority', True),
+            _f('embassy_polo', 'Embassy polo', True),
+            _f('worker_name', 'Worker name', True, 'people[0].label'),
+            _f('worker_nationality', 'Worker nationality', True, 'people[0].nationality'),
+            _f('origin_country', 'Origin country', True),
+            _f('destination_country', 'Destination country', True),
+            _f('fee_amount', 'Fee amount', True),
+            _f('fee_label', 'Fee label', True),
+            _f('loan_amount', 'Loan amount', True),
+            _f('deduction_amount', 'Deduction amount', False),
+            _f('corridor_statute', 'Corridor statute', True),
+            _f('response_days', 'Response days', False),
+            _f('filer_name', 'Filer name', True),
+            _f('filer_role', 'Filer role', False),
+        ),
+        relevance_indicators=("debt_bondage", "withholding_of_wages", "deception"),
+    ),
+    "contract_substitution_complaint": TemplateSpec(
+        id="contract_substitution_complaint",
+        title="Contract Substitution Complaint (origin-signed vs arrival)",
+        jurisdiction="Cross-border",
+        audience="Destination-country labour authority / tribunal",
+        summary="Complaint that the destination employer substituted the origin-signed contract for worse terms on arrival -- the ILO deception indicator and a Palermo Art. 3 means. Seeks enforcement of the origin terms + the wage differential.",
+        body=_TEMPLATE_CONTRACT_SUBSTITUTION_COMPLAINT_BODY,
+        fields=(
+            _f('filed_date', 'Filed date', True),
+            _f('labour_tribunal', 'Labour tribunal', True),
+            _f('embassy_polo', 'Embassy polo', True),
+            _f('recruitment_agency', 'Recruitment agency', False, 'intelligence.agencies[0]'),
+            _f('worker_name', 'Worker name', True, 'people[0].label'),
+            _f('worker_nationality', 'Worker nationality', True, 'people[0].nationality'),
+            _f('origin_country', 'Origin country', True),
+            _f('destination_country', 'Destination country', True),
+            _f('signing_date', 'Signing date', True),
+            _f('origin_signed_terms', 'Origin signed terms', False),
+            _f('origin_signed_wage', 'Origin signed wage', True),
+            _f('arrival_date', 'Arrival date', True),
+            _f('respondent_name', 'Respondent name', True, 'intelligence.employers[0]'),
+            _f('arrival_substituted_wage', 'Arrival substituted wage', True),
+            _f('arrival_worse_terms', 'Arrival worse terms', False),
+            _f('document_control', 'Document control', False),
+            _f('destination_statute', 'Destination statute', True),
+            _f('filer_name', 'Filer name', True),
+            _f('filer_role', 'Filer role', False),
+        ),
+        relevance_indicators=("deception", "contract_substitution", "abuse_of_vulnerability"),
     ),
 }
 
