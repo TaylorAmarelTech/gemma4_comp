@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="/static/_chrome.css" />
   <style>
     :root {
-      --accent: var(--ember);
       --highlight: oklch(0.65 0.10 80);
     }
     * { box-sizing: border-box; }
@@ -30,12 +29,6 @@
                 box-shadow: 0 0 0 4px oklch(0.85 0.05 195 / 0.3); }
     .toolbar { margin-top: 12px; display: flex; gap: 8px; align-items: center;
                 flex-wrap: wrap; }
-    button { padding: 9px 16px; font-size: 14px; border: 1px solid var(--ink);
-              background: var(--ink); color: var(--paper); border-radius: 6px; cursor: pointer;
-              font-weight: 500; font-family: var(--sans); }
-    button:hover { background: #1a1d24; }
-    button.secondary { background: var(--paper); color: var(--ink); border-color: var(--line); font-weight: 500; }
-    button.secondary:hover { background: var(--paper-2); border-color: var(--ink-3); }
     .hint { font-size: 12px; color: var(--ink-4); }
     .stats { display: flex; gap: 24px; flex-wrap: wrap; padding: 14px 18px;
               background: var(--paper-2); border: 1px solid var(--line-soft); border-radius: 8px;
@@ -63,12 +56,10 @@
     .clean { color: oklch(0.32 0.10 155); padding: 30px 14px; text-align: center; font-weight: 600; }
     a.back { color: var(--ink-3); font-size: 12px; text-decoration: none; font-family: var(--mono); }
     a.back:hover { color: var(--accent-ink); }
-    .preset { padding: 6px 12px; font-size: 12px; border: 1px solid var(--line);
-               background: var(--paper); color: var(--ink-2); border-radius: 999px; cursor: pointer; }
-    .preset:hover { border-color: var(--ink-3); background: var(--paper-2); }
     @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
   </style>
   <script src="/static/_nav.js" defer></script>
+  <script src="/static/_activity_log.js" defer></script>
 </head>
 <body data-nav="layers">
   <header>
@@ -77,21 +68,33 @@
     <div class="sub">Paste any text. See which of the <span data-brand-count="n_grep_rules">current</span> rules fire - no LLM call required.</div>
   </header>
   <div class="container">
+    <div class="dc-trust-row" style="margin-bottom:16px;">
+      <span class="dc-trust-pill">
+        <span class="dot"></span>
+        Local only
+      </span>
+      <span class="dc-trust-text">
+        Pasted text is sent only to the local kernel at
+        <code>POST /api/grep/test</code> — no LLM call, no external API,
+        no hub upload. The kernel holds no persistent copy of what you paste.
+        You can safely test sensitive text in this tool.
+      </span>
+    </div>
     <div class="grid">
       <div class="pane">
         <h2>1. Paste text to test</h2>
         <textarea id="input" placeholder="Paste a recruitment ad, contract clause, WhatsApp message, intake form…">Manila agency took PHP 50,000 for training and documentation. Employer in Hong Kong holds her passport for safekeeping. She has no day off and works 14-hour days. The lender deducts HKD 1,400 from her salary monthly.</textarea>
         <div class="toolbar">
-          <button onclick="runTest()">▶ Run GREP</button>
-          <button class="secondary" onclick="clearText()">Clear</button>
+          <button class="dc-btn dc-btn-primary" onclick="runTest()">▶ Run GREP</button>
+          <button class="dc-btn dc-btn-secondary" onclick="clearText()">Clear</button>
           <span class="hint">Up to 50,000 chars per request.</span>
         </div>
         <div style="margin-top:12px; display:flex; gap:6px; flex-wrap:wrap;">
           <span class="hint" style="width:100%;">Quick presets:</span>
-          <span class="preset" onclick="loadPreset('debt_bondage')">Debt bondage scenario</span>
-          <span class="preset" onclick="loadPreset('jailbreak')">Jailbreak attempt</span>
-          <span class="preset" onclick="loadPreset('benign')">Benign text</span>
-          <span class="preset" onclick="loadPreset('compound_5')">5-indicator compound</span>
+          <button type="button" class="dc-toolbar-button" onclick="loadPreset('debt_bondage')">Debt bondage scenario</button>
+          <button type="button" class="dc-toolbar-button" onclick="loadPreset('jailbreak')">Jailbreak attempt</button>
+          <button type="button" class="dc-toolbar-button" onclick="loadPreset('benign')">Benign text</button>
+          <button type="button" class="dc-toolbar-button" onclick="loadPreset('compound_5')">5-indicator compound</button>
         </div>
       </div>
       <div class="pane">
@@ -106,6 +109,11 @@
         <div id="hits">
           <div class="empty">Click <strong>▶ Run GREP</strong> to see which rules match.</div>
         </div>
+      </div>
+    </div>
+    <div style="margin-top:16px;">
+      <div id="grep-log" class="dc-activity-log" data-toolbar="copy-json">
+        <div class="dc-log-idle">Waiting for first test run…</div>
       </div>
     </div>
   </div>
@@ -128,11 +136,27 @@
       return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
         ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
+    const VALID_SEV = new Set(['critical', 'high', 'medium', 'low']);
+    // Wire the activity log once _activity_log.js is ready (deferred).
+    let log = {info:()=>{},ok:()=>{},warn:()=>{},err:()=>{},step:()=>{}};
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.dcActivityLog) {
+        log = window.dcActivityLog.attach('#grep-log', {
+          idlePlaceholder: 'Waiting for first test run…',
+          toolbar: 'copy-json',
+        });
+      }
+    });
     async function runTest() {
       const text = document.getElementById('input').value;
-      if (!text.trim()) return;
+      if (!text.trim()) {
+        log.warn('No text entered — paste text above first');
+        return;
+      }
       const hitsDiv = document.getElementById('hits');
       hitsDiv.innerHTML = '<div class="empty">Running…</div>';
+      log.step('POST /api/grep/test', text.length + ' chars');
+      const t0 = Date.now();
       try {
         const r = await fetch('/api/grep/test', {
           method: 'POST',
@@ -148,13 +172,16 @@
         document.getElementById('s-med').textContent = sev.medium || 0;
         document.getElementById('s-lat').textContent = (d.elapsed_ms || 0) + 'ms';
         if (!d.wired) {
+          log.err('GREP layer not wired', 'Set grep_call=... in create_app()');
           hitsDiv.innerHTML = '<div class="empty" style="color:oklch(0.40 0.13 45);">GREP layer is not enabled in this kernel. Set grep_call=... when calling create_app().</div>';
           return;
         }
         if (!d.hits || d.hits.length === 0) {
+          log.ok('no rules fired — text is clean', (Date.now() - t0) + 'ms');
           hitsDiv.innerHTML = '<div class="clean">✓ No GREP rules fired — text is clean against the trafficking-pattern KB.</div>';
           return;
         }
+        log.ok('grep fired', d.n_rules_fired + ' rules in ' + (d.elapsed_ms ?? (Date.now() - t0)) + 'ms');
         const sevOrder = {critical: 0, high: 1, medium: 2, low: 3};
         const sorted = [...d.hits].sort((a, b) =>
           (sevOrder[a.severity] || 99) - (sevOrder[b.severity] || 99));
@@ -162,7 +189,7 @@
           <div class="hit">
             <div class="head">
               <span class="name">${escapeHtml(h.rule)}</span>
-              <span class="severity ${escapeHtml(h.severity)}">${escapeHtml(h.severity)}</span>
+              <span class="severity ${VALID_SEV.has(h.severity) ? h.severity : 'low'}">${escapeHtml(h.severity)}</span>
             </div>
             <div class="citation">${escapeHtml(h.citation || '')}</div>
             <div class="indicator">${escapeHtml(h.indicator || '')}</div>
@@ -170,6 +197,7 @@
           </div>
         `).join('');
       } catch (e) {
+        log.err('fetch failed', e.message);
         hitsDiv.innerHTML = `<div class="empty" style="color:oklch(0.40 0.13 45);">Error: ${escapeHtml(e.message)}</div>`;
       }
     }

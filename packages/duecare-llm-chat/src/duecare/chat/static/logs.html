@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/static/_chrome.css">
   <link rel="stylesheet" href="/static/showcase.css">
   <script src="/static/_nav.js" defer></script>
+  <script src="/static/_activity_log.js" defer></script>
   <style>
     .logs-controls {
       display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
@@ -30,17 +31,6 @@
       box-shadow: 0 0 0 4px oklch(0.85 0.05 195 / 0.3);
     }
     .logs-controls .grow { flex: 1 1 auto; }
-    .logs-controls button {
-      padding: 6px 12px; font-size: 12px; font-weight: 500;
-      border: 1px solid var(--line); border-radius: 6px;
-      background: var(--paper); color: var(--ink-2); cursor: pointer;
-      font-family: var(--sans);
-    }
-    .logs-controls button:hover { background: var(--paper-2); border-color: var(--ink-3); }
-    .logs-controls button.danger:hover {
-      background: var(--ember-soft); color: oklch(0.40 0.13 45);
-      border-color: oklch(0.78 0.06 45);
-    }
     .logs-controls .toggle {
       font-family: var(--mono); font-size: 11px; color: var(--ink-3);
       display: inline-flex; align-items: center; gap: 6px;
@@ -121,6 +111,15 @@
     File: <code class="path" id="log-path">/kaggle/working/duecare-logs.jsonl</code>.
   </p>
 
+  <div class="wb-trust" style="margin-bottom:16px;">
+    Log events are read locally from
+    <code style="font-family:var(--mono); font-size:12px;">/kaggle/working/duecare-logs.jsonl</code>
+    on this kernel's disk. No event data leaves the kernel.
+    Events may include partial query text from harness calls; this file is
+    never uploaded to the public hub. <strong>"Clear all logs"</strong> permanently
+    deletes all in-memory and on-disk events for this session.
+  </div>
+
   <div class="stats-row" id="stats-row">
     <span class="stat-pill" id="stat-total">Loading…</span>
   </div>
@@ -162,8 +161,13 @@
       <input type="checkbox" id="f-poll" checked>
       Auto-refresh (2s)
     </label>
-    <button onclick="refresh()">Refresh now</button>
-    <button class="danger" onclick="clearLogs()">Clear</button>
+    <button class="wb-btn-secondary" onclick="refresh()">Refresh now</button>
+    <button class="wb-btn-destructive" onclick="clearLogs()">Clear all logs</button>
+  </div>
+
+  <div id="dc-log" class="dc-activity-log" style="margin-bottom:16px;"
+       data-toolbar="copy-json">
+    <div class="dc-log-idle">Waiting for API calls…</div>
   </div>
 
   <div class="logs-table-wrap">
@@ -188,6 +192,10 @@
   </div>
 </main>
 <script>
+  const log = (window.dcActivityLog && window.dcActivityLog.attach)
+    ? window.dcActivityLog.attach('#dc-log', {idlePlaceholder: 'Waiting for API calls…'})
+    : {info:function(){}, ok:function(){}, warn:function(){}, err:function(){}, step:function(){}};
+
   function escapeHtml(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
       ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -212,6 +220,7 @@
     if (k) params.set('kind', k);
     const ly = document.getElementById('f-layer').value;
     if (ly) params.set('layer', ly);
+    log.step('Fetching /api/dc-logs');
     try {
       const [logsR, statsR] = await Promise.all([
         fetch('/api/dc-logs?' + params, {cache: 'no-store'}),
@@ -219,10 +228,11 @@
       ]);
       const logs = await logsR.json();
       const stats = await statsR.json();
+      log.ok('/api/dc-logs fetched', 'tail=' + document.getElementById('f-tail').value);
 
-      const sParts = [`<span class="stat-pill" id="stat-total">${stats.total} events</span>`];
+      const sParts = [`<span class="stat-pill" id="stat-total">${escapeHtml(String(stats.total ?? 0))} events</span>`];
       for (const [lvl, n] of Object.entries(stats.by_level || {})) {
-        sParts.push(`<span class="stat-pill lvl-${escapeHtml(lvl)}">${escapeHtml(lvl)} ${n}</span>`);
+        sParts.push(`<span class="stat-pill lvl-${escapeHtml(lvl)}">${escapeHtml(lvl)} ${escapeHtml(String(n))}</span>`);
       }
       sParts.push(`<span class="stat-pill">kernel: ${escapeHtml(stats.kernel || '?')}</span>`);
       document.getElementById('stats-row').innerHTML = sParts.join('');
@@ -248,6 +258,7 @@
         </tr>
       `).join('');
     } catch (err) {
+      log.err('fetch failed', String(err && err.message || err));
       const tbody = document.getElementById('rows');
       tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state" style="color: oklch(0.40 0.13 45);">
         <h3>Could not fetch logs</h3>
@@ -257,10 +268,14 @@
   }
   async function clearLogs() {
     if (!window.confirm('Clear all in-memory + on-disk dc_log events?')) return;
+    log.step('POST /api/dc-logs/clear');
     try {
       await fetch('/api/dc-logs/clear', {method: 'POST'});
+      log.ok('Log cleared');
       refresh();
-    } catch (_) {}
+    } catch (err) {
+      log.err('clear failed', String(err && err.message || err));
+    }
   }
   for (const id of ['f-tail', 'f-level', 'f-kind', 'f-layer']) {
     document.getElementById(id).addEventListener('change', refresh);

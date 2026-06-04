@@ -37,13 +37,6 @@
     .badge.intl_org   { background: oklch(0.96 0.03 80); color: oklch(0.40 0.10 80); border: 1px solid oklch(0.85 0.06 80); }
     .country { font-size: 12.5px; color: var(--ink-3); }
     .actions { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
-    .btn { padding: 8px 14px; font-size: 13px; border: 1px solid var(--ink);
-            background: var(--ink); color: var(--paper); border-radius: 6px;
-            text-decoration: none; font-weight: 500; display: inline-flex;
-            gap: 6px; align-items: center; font-family: var(--sans); }
-    .btn:hover { background: #1a1d24; color: var(--paper); }
-    .btn.secondary { background: var(--paper); color: var(--ink); border-color: var(--line); font-weight: 500; }
-    .btn.secondary:hover { background: var(--paper-2); border-color: var(--ink-3); }
     .meta { margin-top: 12px; display: flex; gap: 18px; flex-wrap: wrap;
              font-size: 12px; color: var(--ink-3); font-family: var(--mono); }
     .meta .key { font-weight: 500; color: var(--ink-2); margin-right: 4px;
@@ -59,15 +52,11 @@
     .empty { padding: 40px 18px; text-align: center; color: var(--ink-3); font-style: italic; }
     a.back { color: var(--ink-3); font-size: 12px; text-decoration: none; font-family: var(--mono); }
     a.back:hover { color: var(--accent-ink); }
-    .safety-banner { padding: 14px 16px; background: var(--ember-soft);
-                      border: 1px dashed oklch(0.78 0.06 45); border-radius: 8px;
-                      font-size: 13px; color: oklch(0.32 0.10 45); margin-bottom: 16px;
-                      line-height: 1.6; }
-    .safety-banner strong { color: oklch(0.30 0.13 45); }
     .verified { display: inline-flex; align-items: center; gap: 4px; font-size: 11px;
                  color: oklch(0.32 0.10 155); font-family: var(--mono); }
   </style>
   <script src="/static/_nav.js" defer></script>
+  <script src="/static/_activity_log.js" defer></script>
 </head>
 <body data-nav="hotlines">
   <header>
@@ -81,8 +70,11 @@
     <select id="f-corridor"><option value="">All corridors</option></select>
     <select id="f-language"><option value="">Any language</option></select>
   </div>
+  <div id="hotlines-log" class="dc-activity-log" style="margin: 0 24px;">
+    <div class="dc-log-idle">Waiting for contacts data…</div>
+  </div>
   <div class="container">
-    <div class="safety-banner">
+    <div class="wb-trust">
       <strong>Important:</strong> The DueCare harness <strong>never auto-sends</strong>
       reports on a user's behalf. Click-to-call (<code>tel:</code>) and click-to-email
       (<code>mailto:</code>) links open your device's phone app or mail client with
@@ -103,12 +95,22 @@
         ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
     async function load() {
+      const log = window.dcActivityLog
+        ? window.dcActivityLog.attach('#hotlines-log', {idlePlaceholder: 'Waiting for contacts data…'})
+        : {step:()=>{}, ok:()=>{}, info:()=>{}, warn:()=>{}, err:()=>{}};
+      log.step('GET /api/contacts');
       try {
         const r = await fetch('/api/contacts', {cache: 'no-store'});
-        if (!r.ok) throw new Error('HTTP ' + r.status);
+        if (!r.ok) {
+          log.err('HTTP ' + r.status, 'contacts endpoint returned error');
+          document.getElementById('cards').innerHTML =
+            '<div class="empty" style="color:oklch(0.40 0.13 45);">Could not load contacts: HTTP ' + escapeHtml(String(r.status)) + '</div>';
+          return;
+        }
         const d = await r.json();
         entries = d.entries || [];
         categories = d.categories || {};
+        log.ok('contacts loaded', entries.length + ' entries');
         document.getElementById('stats').textContent =
           `${entries.length} contacts (${d.pack_type || d.schema}@${d.version}, last updated ${d.last_updated})`;
         // Populate filter dropdowns from data
@@ -131,8 +133,9 @@
           [...allLangs].sort().map(l =>
             `<option value="${escapeHtml(l)}">${escapeHtml(l)}</option>`).join('');
       } catch (e) {
+        log.err('fetch failed', escapeHtml(e.message));
         document.getElementById('cards').innerHTML =
-          `<div class="empty" style="color:oklch(0.40 0.13 45);">Could not load contacts: ${escapeHtml(e.message)}</div>`;
+          '<div class="empty" style="color:oklch(0.40 0.13 45);">Could not load contacts: ' + escapeHtml(e.message) + '</div>';
         return;
       }
       document.getElementById('search').addEventListener('input', e => { filt.q = e.target.value; render(); });
@@ -160,11 +163,11 @@
       cardsDiv.innerHTML = visible.map(e => {
         const phones = [e.phone, e.phone_alt].filter(Boolean);
         const phoneBtns = phones.map(p =>
-          `<a class="btn" href="tel:${encodeURIComponent(p.replace(/[^+\d]/g, ''))}">Call ${escapeHtml(p)}</a>`).join('');
-        const emailBtn = e.email ? `<a class="btn secondary" href="mailto:${encodeURIComponent(e.email)}?subject=Migrant-worker%20complaint%20referral">Email ${escapeHtml(e.email)}</a>` : '';
-        const formBtn = e.web_form_url ? `<a class="btn secondary" href="${escapeHtml(e.web_form_url)}" target="_blank">Open form</a>` : '';
-        const webBtn  = e.web_url ? `<a class="btn secondary" href="${escapeHtml(e.web_url)}" target="_blank">Website</a>` : '';
-        const smsBtn  = e.sms ? `<a class="btn secondary" href="sms:${encodeURIComponent(e.sms)}">SMS</a>` : '';
+          `<a class="wb-btn-primary" href="tel:${encodeURIComponent(p.replace(/[^+\d]/g, ''))}">Call ${escapeHtml(p)}</a>`).join('');
+        const emailBtn = e.email ? `<a class="wb-btn-secondary" href="mailto:${encodeURIComponent(e.email)}?subject=Migrant-worker%20complaint%20referral">Email ${escapeHtml(e.email)}</a>` : '';
+        const formBtn = e.web_form_url ? `<a class="wb-btn-secondary" href="${escapeHtml(e.web_form_url)}" target="_blank">Open form</a>` : '';
+        const webBtn  = e.web_url ? `<a class="wb-btn-secondary" href="${escapeHtml(e.web_url)}" target="_blank">Website</a>` : '';
+        const smsBtn  = e.sms ? `<a class="wb-btn-secondary" href="sms:${encodeURIComponent(e.sms)}">SMS</a>` : '';
         const socialEntries = Object.entries(e.social || {});
         const socialBtns = socialEntries.map(([platform, handle]) =>
           `<span class="chip">${escapeHtml(platform)}: ${escapeHtml(handle)}</span>`).join('');

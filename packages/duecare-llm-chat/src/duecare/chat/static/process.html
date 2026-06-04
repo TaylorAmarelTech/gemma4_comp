@@ -13,20 +13,9 @@
     .wb-page { max-width: 1120px; margin: 0 auto; padding: 24px 22px 80px; }
     .wb-h1 { font-size: 26px; font-weight: 600; margin: 6px 0 6px; }
     .wb-lede { font-size: 13.5px; line-height: 1.6; color: #2A2D34; margin: 0 0 22px; }
-    .wb-card { background: #FFF; border: 1px solid #DDD8C9; border-radius: 12px; padding: 18px 20px; margin-bottom: 14px; }
     .wb-card h2 { font-size: 16px; font-weight: 600; margin: 0 0 8px; }
-    .wb-pill { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #2A2D34;
-               background: #EFEDE4; border-radius: 4px; padding: 2px 7px; margin: 0 6px 4px 0;
-               max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
-    .wb-btn-primary { background: oklch(0.52 0.08 195); color: #F7F6F1; border: 0; padding: 9px 18px;
-                       border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
-    .wb-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
-    .wb-btn-secondary { background: #EFEDE4; color: #0E1116; border: 1px solid #DDD8C9; padding: 8px 14px;
-                         border-radius: 8px; font-size: 12.5px; cursor: pointer; text-decoration: none; display: inline-block; }
-    .wb-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
-    .wb-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .wb-pill { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
     @media (max-width: 760px) { .wb-grid-2 { grid-template-columns: 1fr; } }
-    .wb-muted { color: #5B5F68; font-size: 11.5px; }
     .wb-status-pill { background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155);
                        padding: 6px 12px; border-radius: 999px; font-size: 11px; }
     .wb-pipeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
@@ -286,6 +275,13 @@
       </div>
     </section>
 
+    <div class="wb-card" id="wb-activity-card" style="margin-top:14px; margin-bottom:14px;">
+      <h2>Activity log <span class="wb-muted" style="font-weight: normal;">every API call and response is transparent</span></h2>
+      <div id="wb-log" class="dc-activity-log" role="log" aria-label="Activity log" aria-live="polite" data-toolbar="copy-json">
+        <div class="wb-muted">No activity yet. Click <i>Start processing</i> to begin.</div>
+      </div>
+    </div>
+
     <div class="wb-workflow" aria-label="Bulk file review workflow">
       <details class="wb-workflow-step" id="wb-step-upload" open>
         <summary>
@@ -493,7 +489,7 @@
                 harness returns.
               </div>
               <div class="wb-progress-actions">
-                <button class="wb-btn-destructive" id="wb-process-cancel-btn" type="button" onclick="wbCancelProcessJob()" disabled title="Stop polling the running upload job and let the kernel finish in the background. Will not undo work already done.">Abandon polling</button>
+                <button class="wb-btn-destructive" id="wb-process-cancel-btn" type="button" onclick="wbCancelProcessJob()" disabled title="Stop polling the running upload job and let the kernel finish in the background. Will not undo work already done." style="margin-left: auto;">Abandon polling</button>
                 <button class="wb-btn-secondary" id="wb-process-deterministic-retry-btn" type="button" onclick="wbRetryDeterministicProcess()" disabled>Retry deterministic</button>
               </div>
               <div class="wb-progress-substeps" id="wb-process-substeps" aria-label="Processing stages"></div>
@@ -614,11 +610,14 @@
             </div>
           </div>
           <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-            <button class="wb-btn-secondary" id="wb-gemma-edge-btn" type="button" onclick="wbRunGemmaEdgePass()">
+            <button class="wb-btn-secondary" id="wb-gemma-edge-btn" type="button"
+                    onclick="wbRunGemmaEdgePass()" disabled
+                    title="Process a bundle and confirm Step 3 first">
               Re-run Gemma 4 edge pass
             </button>
             <button class="wb-btn-destructive" id="wb-gemma-edge-cancel-btn" type="button" onclick="wbCancelEdgePass()" hidden
-                    title="Cancel the running Gemma 4 edge pass. Already-proposed edges from this run are discarded; the deterministic edges in the table above remain.">
+                    title="Cancel the running Gemma 4 edge pass. Already-proposed edges from this run are discarded; the deterministic edges in the table above remain."
+                    style="margin-left: auto;">
               Cancel edge pass
             </button>
             <span class="dc-gemma-mark is-optional" id="wb-gemma-edge-mark">Gemma 4 edge pass — runs during upload by default; this button re-runs it</span>
@@ -710,9 +709,9 @@
         missing evidence, media queues, and folder-derived links.
       </p>
       <div class="wb-row" style="gap:6px;">
-        <button class="wb-btn-primary" type="button" onclick="pgUseQuestion('Which individuals have the strongest cases to move forward first, and what row IDs support that ranking?')">Strongest cases</button>
-        <button class="wb-btn-primary" type="button" onclick="pgUseQuestion('Which entities or folders are associated with the highest overcharging amounts? Group by recruiter, agency, employer, or source folder when available.')">Overcharging entities</button>
-        <button class="wb-btn-primary" type="button" onclick="pgUseQuestion('What missing evidence would strengthen this case before escalation?')">Missing evidence</button>
+        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which individuals have the strongest cases to move forward first, and what row IDs support that ranking?')">Strongest cases</button>
+        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('Which entities or folders are associated with the highest overcharging amounts? Group by recruiter, agency, employer, or source folder when available.')">Overcharging entities</button>
+        <button class="wb-btn-secondary" type="button" onclick="pgUseQuestion('What missing evidence would strengthen this case before escalation?')">Missing evidence</button>
       </div>
       <details style="margin-top:6px;">
         <summary style="cursor:pointer; font-size:12px; color:#5B5F68;">More example questions</summary>
@@ -1040,7 +1039,11 @@
             <div class="wb-action-card">
               <h3>Download processed bundle</h3>
               <p>Use this for appendix notebooks, offline review, reproducibility, and comparing future model or harness runs.</p>
-              <button class="wb-btn-secondary" onclick="wbDownloadBundle()">Download JSON</button>
+              <button class="wb-btn-primary wb-step-cta" id="wb-download-bundle-btn"
+                      onclick="wbDownloadBundle()" disabled
+                      title="Confirm Step 3 before downloading">
+                Download processed bundle
+              </button>
             </div>
             <div class="wb-action-card">
               <h3>Promote to knowledge extraction</h3>
@@ -1057,13 +1060,6 @@
           </div>
         </div>
       </details>
-    </div>
-
-    <div class="wb-card" id="wb-activity-card" style="margin-top:14px;">
-      <h2>Activity log <span class="wb-muted" style="font-weight: normal;">every API call and response is transparent</span></h2>
-      <div id="wb-log" class="dc-activity-log" role="log" aria-label="Activity log" aria-live="polite" data-toolbar="copy-json">
-        <div class="wb-muted">No activity yet. Click <i>Start processing</i> to begin.</div>
-      </div>
     </div>
 
   </main>
@@ -1385,6 +1381,8 @@
               sample.name + ' | ' + blob.size + ' bytes');
       } catch (e) {
         statusEl.textContent = 'Failed: ' + e;
+        const hint = document.getElementById('wb-process-hint');
+        if (hint) hint.textContent = 'Sample fetch failed. Drop a file manually or try again.';
       }
     }
         // Shared activity-log primitive (window.dcActivityLog). The
@@ -1591,6 +1589,10 @@
       if (btn) btn.disabled = true;
       const status = document.getElementById('wb-review-status');
       if (status) status.textContent = 'Process a bundle first.';
+      const dlBtn = document.getElementById('wb-download-bundle-btn');
+      if (dlBtn) { dlBtn.disabled = true; dlBtn.title = 'Confirm Step 3 before downloading'; }
+      const edgeBtn = document.getElementById('wb-gemma-edge-btn');
+      if (edgeBtn) { edgeBtn.disabled = true; edgeBtn.title = 'Process a bundle and confirm Step 3 first'; }
     }
     function wbUpdateReviewReady() {
       const status = document.getElementById('wb-review-status');
@@ -1606,7 +1608,7 @@
       if (status) {
         status.textContent = checked
           ? checked + ' of ' + checks.length + ' review checks marked. Confirm when ready.'
-          : 'Review the extracted intelligence, then confirm when ready.';
+          : '0 of ' + checks.length + ' checks marked — confirm any time; checks are optional but recommended.';
       }
     }
     function wbAttachReviewMetadata() {
@@ -2031,6 +2033,10 @@
         notes ? 'Confirmed with reviewer notes.' : 'Confirmed. Graph chat and export actions are ready.';
       document.getElementById('pg-ask-btn').disabled = false;
       document.getElementById('pg-status').textContent = 'Ready. Choose an example question or write your own.';
+      const dlBtn = document.getElementById('wb-download-bundle-btn');
+      if (dlBtn) { dlBtn.disabled = false; dlBtn.title = 'Download the reviewed bundle as JSON'; }
+      const edgeBtn = document.getElementById('wb-gemma-edge-btn');
+      if (edgeBtn) { edgeBtn.disabled = false; edgeBtn.title = 'Re-run the Gemma 4 typed-edge synthesis on the current graph'; }
       wbLog('ok', 'Review gate marked complete', notes ? notes.slice(0, 180) : 'no notes; no processing or model call was started');
       wbSetWorkflow(3);
     }
@@ -3296,9 +3302,11 @@
       if (wbIntelligenceConfirmed) return true;
       if (event) event.preventDefault();
       wbSetWorkflow(2);
+      const reviewGate = document.getElementById('wb-step-intelligence');
+      if (reviewGate) { reviewGate.open = true; reviewGate.scrollIntoView({behavior: 'smooth', block: 'start'}); }
       document.getElementById('wb-review-status').textContent =
-        'Confirm extracted intelligence before moving to ' + target + '.';
-      wbLog('warn', 'Navigation blocked until review confirmation', target);
+        'Confirm Step 3 before moving to ' + target + '.';
+      wbLog('warn', 'Navigation blocked — confirm Step 3 first', target);
       return false;
     }
     const dz = document.getElementById('wb-dropzone');

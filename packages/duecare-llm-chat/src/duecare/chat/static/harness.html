@@ -6,6 +6,7 @@
   <title>Harness Workbench - DueCare</title>
   <link rel="stylesheet" href="/static/_chrome.css">
   <script src="/static/_nav.js" defer></script>
+  <script src="/static/_activity_log.js" defer></script>
   <style>
     .page { max-width: 1120px; margin: 24px auto 60px; padding: 0 18px; color: var(--ink); font-family: Inter, system-ui, sans-serif; line-height: 1.55; }
     .hero { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 14px; }
@@ -28,14 +29,12 @@
       min-width: 260px; padding: 8px 10px; border: 1px solid var(--line);
       border-radius: 7px; background: var(--paper); color: var(--ink); font-size: 13px;
     }
-    .btn {
-      display: inline-flex; align-items: center; justify-content: center;
-      min-height: 34px; padding: 7px 12px; border-radius: 7px;
-      border: 1px solid var(--line); background: var(--paper); color: var(--ink);
-      text-decoration: none; cursor: pointer; font-size: 12.5px; font-weight: 600;
+    a.dc-primary-button[aria-disabled="true"],
+    a[aria-disabled="true"] {
+      opacity: 0.45;
+      cursor: not-allowed;
+      pointer-events: none;
     }
-    .btn.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-    .btn:hover { border-color: var(--accent); }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(255px, 1fr)); gap: 12px; }
     .card {
       background: var(--paper); border: 1px solid var(--line); border-radius: 8px;
@@ -112,6 +111,17 @@
 </head>
 <body data-nav="harness">
   <main class="page">
+    <div class="dc-trust-row" style="margin-bottom:14px;" role="note">
+      <span class="dc-trust-pill">
+        <span class="dot"></span>Local kernel only
+      </span>
+      <span class="dc-trust-text">
+        This page reads harness contracts (<code>/api/harnesses</code>) and model
+        state (<code>/api/model-info</code>) from the local kernel only.
+        No worker data, uploads, or external calls are made.
+      </span>
+    </div>
+
     <section class="hero">
       <div class="panel">
         <h1>Harness Workbench</h1>
@@ -121,10 +131,10 @@
         </p>
         <div class="toolbar">
           <select id="harness-select" aria-label="Select harness"></select>
-          <a class="btn primary" id="open-test-page" href="/static/chat.html">Open test page</a>
-          <a class="btn" id="open-compare-page" href="/static/compare.html">Open comparison</a>
-          <a class="btn" href="/static/search-safety.html">Search Safety</a>
-          <button class="btn" type="button" onclick="refreshHarnesses()">Refresh contracts</button>
+          <a class="dc-primary-button" id="open-test-page" href="/static/chat.html">Open test page</a>
+          <a class="dc-secondary-button" id="open-compare-page" href="/static/compare.html">Open comparison</a>
+          <a class="dc-secondary-button" href="/static/search-safety.html">Search Safety</a>
+          <button class="dc-secondary-button" type="button" id="refresh-btn" onclick="refreshHarnesses()">Refresh contracts</button>
         </div>
         <div class="muted">
           Rule of thumb: <b>Gemma harness</b> means the surface calls Gemma 4 directly.
@@ -139,6 +149,8 @@
         <div class="status-row"><span class="label">Secondary</span><span class="mono">-</span></div>
       </div>
     </section>
+
+    <div id="harness-error" style="margin-bottom:10px;" hidden></div>
 
     <section class="panel">
       <h2>Primary Safety Surfaces</h2>
@@ -179,11 +191,34 @@
         <div class="flow-list" id="prompt-list"></div>
       </div>
     </section>
+
+    <section class="panel" style="margin-top:14px;" id="harness-log-card">
+      <h2 style="font-size:14px; margin:0 0 8px; font-weight:600;">
+        Activity Log
+        <span style="color:var(--ink-3); font-size:12px; font-weight:400;">
+          — API calls for this page
+        </span>
+      </h2>
+      <div class="dc-activity-log" id="harness-log">
+        <div class="dc-log-idle">Waiting for contracts refresh...</div>
+      </div>
+    </section>
   </main>
 
   <script>
     let harnesses = [];
     let selectedName = "chat";
+    let log = null;
+
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.dcActivityLog) {
+        log = window.dcActivityLog.attach('#harness-log',
+          {idlePlaceholder: 'Waiting for contracts refresh...'});
+      }
+    });
+    function _log(level, msg, detail) {
+      if (log && log[level]) log[level](msg, detail);
+    }
 
     function esc(s) {
       return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
@@ -260,7 +295,25 @@
       if (select.value !== selectedName) select.value = selectedName;
       document.getElementById("detail-title").textContent = h.label || h.name;
       document.getElementById("detail-summary").textContent = h.summary || "";
-      document.getElementById("open-test-page").href = firstPage(h);
+      const testPage = (h.test_pages || [])[0] || null;
+      const testBtn = document.getElementById("open-test-page");
+      if (testPage) {
+        testBtn.href = testPage.href;
+        testBtn.removeAttribute("aria-disabled");
+        testBtn.style.pointerEvents = '';
+        testBtn.style.opacity = '';
+        testBtn.onclick = null;
+        testBtn.textContent = "Open " + (h.label || h.name) + " page";
+        testBtn.title = "Open the test page for " + (h.label || h.name);
+      } else {
+        testBtn.href = "#";
+        testBtn.setAttribute("aria-disabled", "true");
+        testBtn.style.pointerEvents = 'none';
+        testBtn.style.opacity = '0.45';
+        testBtn.onclick = function(e) { e.preventDefault(); };
+        testBtn.textContent = "No test page";
+        testBtn.title = "No dedicated test page for this harness — use Chat or Compare to interact with it";
+      }
       document.getElementById("open-compare-page").href = h.name === "chat" ? "/static/compare.html" : "/static/compare.html?harness=" + encodeURIComponent(h.name);
 
       const rows = [
@@ -292,7 +345,7 @@
         </div>
       `).join("");
       document.getElementById("page-list").innerHTML = (h.test_pages || []).map(p =>
-        `<a class="btn" href="${esc(p.href)}">${esc(p.label)}</a>`
+        `<a class="dc-secondary-button" href="${esc(p.href)}">${esc(p.label)}</a>`
       ).join("");
       document.getElementById("workflow-list").innerHTML = workflow.length
         ? workflow.map((item, idx) => `
@@ -375,22 +428,50 @@
       renderDetail();
     }
     async function refreshHarnesses() {
+      const errEl = document.getElementById("harness-error");
+      if (errEl) { errEl.hidden = true; errEl.innerHTML = ''; }
+      _log('step', 'GET /api/harnesses');
+      _log('step', 'GET /api/model-info');
       const [hRes, mRes] = await Promise.all([
         fetch("/api/harnesses", {cache: "no-store"}),
         fetch("/api/model-info", {cache: "no-store"}).catch(() => null),
       ]);
+      if (!hRes.ok) {
+        _log('err', 'GET /api/harnesses ' + hRes.status);
+      }
       const data = await hRes.json();
       const model = mRes && mRes.ok ? await mRes.json() : {};
+      _log('ok', 'contracts loaded',
+        (data.n_harnesses || (data.harnesses || []).length) + ' surfaces');
+      if (model && (model.loaded || model.name)) {
+        _log('info', 'model-info', model.display || model.name || 'loaded');
+      }
       harnesses = data.harnesses || [];
       if (!harnesses.find(h => h.name === selectedName)) selectedName = (harnesses[0] || {}).name || "chat";
       renderStatus(data, model);
       renderSelect();
       renderGrids();
       renderDetail();
+      const refreshBtn = document.getElementById("refresh-btn");
+      if (refreshBtn) {
+        const prev = refreshBtn.textContent;
+        refreshBtn.textContent = "Refreshed";
+        setTimeout(() => { refreshBtn.textContent = prev; }, 1800);
+      }
     }
     refreshHarnesses().catch(err => {
-      document.getElementById("primary-grid").innerHTML =
-        `<div class="panel">Could not load /api/harnesses: ${esc(err.message)}</div>`;
+      _log('err', '/api/harnesses failed', err.message);
+      const errEl = document.getElementById("harness-error");
+      if (errEl) {
+        errEl.innerHTML = '';
+        const banner = document.createElement('div');
+        banner.className = 'dc-error-banner';
+        banner.textContent = 'Could not load harness contracts: ' + err.message;
+        errEl.appendChild(banner);
+        errEl.hidden = false;
+      }
+      document.getElementById("primary-grid").innerHTML = '';
+      document.getElementById("secondary-grid").innerHTML = '';
     });
   </script>
 </body>

@@ -54,6 +54,11 @@
     a.back { color: var(--ink-3); font-size: 12px; text-decoration: none; font-family: var(--mono); }
     a.back:hover { color: var(--accent-ink); }
     .err { color: oklch(0.40 0.13 45); padding: 14px; }
+    #hot-only.active {
+      background: rgba(251, 191, 36, 0.18);
+      border-color: var(--highlight);
+      color: var(--ink);
+    }
 
     /* Category histogram */
     .histogram { padding: 14px 24px; background: var(--paper-2);
@@ -72,8 +77,9 @@
     .bar .bar-count { font-size: 10.5px; color: var(--ink); font-weight: 600; font-family: var(--mono); }
   </style>
   <script src="/static/_nav.js" defer></script>
+  <script src="/static/_activity_log.js" defer></script>
 </head>
-<body data-nav="layers">
+<body data-nav="grep-rules">
   <header>
     
     <h1>GREP rules</h1>
@@ -87,17 +93,29 @@
         <option value="medium">medium</option>
         <option value="low">low</option>
       </select>
-      <button id="hot-only" onclick="toggleHotOnly()" title="Only show rules that fired in this session"
-              style="padding:6px 12px; font-size:12px; border:1px solid var(--border); background:var(--bg); color:var(--ink); border-radius:4px; cursor:pointer;">
+      <button id="hot-only" type="button" onclick="toggleHotOnly()"
+              aria-pressed="false"
+              title="Only show rules that fired in this session"
+              class="dc-toolbar-button">
         🔥 Fired only
       </button>
-      <a href="/static/grep-tester.html" target="_blank"
-         style="padding:7px 14px; font-size:13px; border:1px solid var(--ink); background:var(--ink); color:var(--paper); border-radius:6px; text-decoration:none; font-weight:500; font-family:var(--sans);">
+      <a href="/static/grep-tester.html" target="_blank" rel="noopener noreferrer"
+         class="dc-primary-button" style="text-decoration:none;">
         ▶ Live tester
       </a>
     </div>
   </header>
   <div class="histogram" id="histogram" title="Click a category to filter"></div>
+  <!-- Trust disclosure (Rule 7) -->
+  <div class="wb-trust" style="margin:10px 24px 0;">
+    GREP rule catalog is read from the local kernel.
+    Fire counts show how many times each rule matched text in the current session.
+    No data leaves the kernel.
+  </div>
+  <!-- Activity Log (Rule 1) -->
+  <div id="grep-log" class="dc-activity-log" style="margin:8px 24px 4px;">
+    <div class="dc-log-idle">Waiting for catalog load…</div>
+  </div>
   <div class="container">
     <table id="t">
       <thead>
@@ -116,6 +134,7 @@
   <script>
     let rows = [], filt = {q: "", severity: "", hotOnly: false, category: ""}, expandedRule = null;
     let sortKey = "fire_count", sortDir = -1;  // hottest first by default
+    let log = null;
     function escapeHtml(s) {
       return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
         ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -148,37 +167,50 @@
       render();
     }
     async function load() {
+      // Attach log on first call (deferred script may not be ready at parse time)
+      if (!log && window.dcActivityLog) {
+        log = window.dcActivityLog.attach('#grep-log',
+          {idlePlaceholder: 'Waiting for catalog load…'});
+      }
       try {
+        log && log.step('GET /api/harness-catalog/grep');
         const r = await fetch("/api/harness-catalog/grep", {cache: "no-store"});
         if (!r.ok) throw new Error("HTTP " + r.status);
         const d = await r.json();
         rows = d.items || [];
-        const fired = rows.filter(r => (r.fire_count || 0) > 0).length;
+        const fired = rows.filter(row => (row.fire_count || 0) > 0).length;
         document.getElementById("stats").textContent =
           `${rows.length} rules · ${fired} fired this session`;
+        log && log.ok(`catalog loaded — ${rows.length} rules, ${fired} fired`);
         renderHistogram();
       } catch (e) {
+        document.getElementById("stats").textContent = "Error loading catalog";
         document.getElementById("tbody").innerHTML =
           `<tr><td colspan="6" class="err">${escapeHtml(e.message)}</td></tr>`;
+        log && log.err('catalog load failed', e.message);
         return;
       }
-      document.getElementById("search").addEventListener("input", e => { filt.q = e.target.value; render(); });
-      document.getElementById("severity").addEventListener("change", e => { filt.severity = e.target.value; render(); });
-      document.querySelectorAll("th[data-key]").forEach(th => {
-        th.addEventListener("click", () => {
-          const k = th.dataset.key;
-          if (sortKey === k) sortDir *= -1;
-          else { sortKey = k; sortDir = (k === "fire_count" ? -1 : 1); }
-          render();
+      // Wire filter listeners once — guard prevents duplicate attachment on re-polls
+      if (!document.getElementById("search")._wired) {
+        document.getElementById("search")._wired = true;
+        document.getElementById("search").addEventListener("input", e => { filt.q = e.target.value; render(); });
+        document.getElementById("severity").addEventListener("change", e => { filt.severity = e.target.value; render(); });
+        document.querySelectorAll("th[data-key]").forEach(th => {
+          th.addEventListener("click", () => {
+            const k = th.dataset.key;
+            if (sortKey === k) sortDir *= -1;
+            else { sortKey = k; sortDir = (k === "fire_count" ? -1 : 1); }
+            render();
+          });
         });
-      });
+      }
       render();
     }
     function toggleHotOnly() {
       filt.hotOnly = !filt.hotOnly;
       const btn = document.getElementById("hot-only");
-      btn.style.background = filt.hotOnly ? "rgba(251,191,36,0.18)" : "var(--bg)";
-      btn.style.borderColor = filt.hotOnly ? "var(--highlight)" : "var(--border)";
+      btn.classList.toggle("active", filt.hotOnly);
+      btn.setAttribute("aria-pressed", String(filt.hotOnly));
       render();
     }
     function toggleRow(rule) {

@@ -298,7 +298,7 @@ def test_knowledge_page_uses_guided_auto_suggestion_flow(client):
     assert "function kxPollDraftJob" in text
     assert "Knowledge draft job accepted" in text
     assert "/api/knowledge/draft-envelope/cancel/" in text
-    assert "Abandon draft polling" in text
+    assert "Stop waiting for draft" in text  # plain-language relabel of the cancel affordance
     assert "Draft deterministic only" in text
     assert "Deterministic hints draft fast envelopes" in text
     assert "function kxOpenPackImport" in text
@@ -639,7 +639,7 @@ def test_sync_page_uses_guided_pack_flow(client):
     assert "function syncSetStep" in text
     assert "/static/_workflow.js" in text
     assert "syncGetWorkflowStepper" in text
-    assert "function wbGetLog" in text
+    assert "window.dcActivityLog" in text  # shared log primitive (rule 70), not a bespoke wbGetLog
 
 
 def test_import_page_uses_guided_local_import_flow(client):

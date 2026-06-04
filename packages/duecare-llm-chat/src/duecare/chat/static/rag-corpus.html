@@ -77,6 +77,7 @@
     @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
   </style>
   <script src="/static/_nav.js" defer></script>
+  <script src="/static/_activity_log.js" defer></script>
 </head>
 <body data-nav="layers">
   <header>
@@ -84,10 +85,26 @@
     <h1>RAG corpus</h1>
     <div class="sub" id="stats">Loading…</div>
     <input id="search" type="text" placeholder="Search id / title / source / snippet…" />
-    <a href="/static/rag-graph.html" class="back" target="_blank" style="color:var(--accent-ink);">↗ View as graph</a>
+    <a href="/static/rag-graph.html" class="wb-btn-secondary" target="_blank" rel="noopener">↗ View as graph</a>
   </header>
   <div class="chips" id="chips"></div>
+  <div class="wb-trust" style="padding:8px 24px; font-size:12px;">
+    This page reads the local RAG corpus index from
+    <code>/api/harness-catalog/rag</code> (no user input is sent, nothing
+    leaves the kernel). The list refreshes every 8 seconds to show which
+    documents were retrieved during the most recent chat turn.
+  </div>
   <div class="recent-banner" id="recent-banner"></div>
+  <div class="recent-hint" id="recent-hint" style="padding:8px 24px; font-size:12px; color:var(--ink-4); border-bottom:1px solid var(--line-soft); display:none;">
+    No recent retrieval recorded yet — run a query in
+    <a href="/static/chat.html" style="color:var(--accent-ink);">Chat</a>
+    or
+    <a href="/static/compare.html" style="color:var(--accent-ink);">Compare</a>
+    to see which documents the RAG layer pulled.
+  </div>
+  <div id="rag-log" class="dc-activity-log" style="margin:0 24px 8px; font-size:11px;">
+    <div class="dc-log-idle">Waiting for corpus load…</div>
+  </div>
   <div class="container">
     <div class="grid">
       <div class="list" id="list"></div>
@@ -99,28 +116,72 @@
   <script>
     let rows = [], filt = "", activeGroup = "", activeId = null;
     let recentQuery = null;
+    let log = null;
+    document.addEventListener("DOMContentLoaded", function () {
+      log = window.dcActivityLog
+        ? window.dcActivityLog.attach("#rag-log", {
+            idlePlaceholder: "Waiting for corpus load…"
+          })
+        : null;
+    });
     function escapeHtml(s) {
       return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
         ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
     async function load() {
+      if (log) log.step("GET /api/harness-catalog/rag");
       try {
         const r = await fetch("/api/harness-catalog/rag", {cache: "no-store"});
         if (!r.ok) throw new Error("HTTP " + r.status);
         const d = await r.json();
         rows = d.items || [];
         recentQuery = d.recent_query || null;
-        document.getElementById("stats").textContent = `${d.n_items || rows.length} documents`;
+        const n = d.n_items || rows.length;
+        if (log) log.ok(
+          "corpus loaded — " + n + " docs",
+          recentQuery ? 'last query: "' + recentQuery + '"' : "no recent query"
+        );
+        document.getElementById("stats").textContent = `${n} documents`;
         const banner = document.getElementById("recent-banner");
+        const hint = document.getElementById("recent-hint");
+        let showBanner = false;
         if (recentQuery) {
           const recentIds = rows.filter(x => x.recently_retrieved).map(x => x.id);
           if (recentIds.length) {
-            banner.innerHTML = `<strong>Last retrieval:</strong> ${recentIds.length} document(s) pulled for the most recent chat turn — query: <em>${escapeHtml(recentQuery)}</em>. <a href="#" onclick="filterRecent(); return false;" style="color:#fbbf24;">Show only those →</a>`;
+            showBanner = true;
+            // Build banner with DOM methods — no innerHTML on server-derived content.
+            banner.textContent = "";
+            const strong = document.createElement("strong");
+            strong.textContent = "Last retrieval:";
+            banner.appendChild(strong);
+            const txt = document.createTextNode(
+              " " + recentIds.length + " document(s) pulled for the most recent chat turn — query: "
+            );
+            banner.appendChild(txt);
+            const em = document.createElement("em");
+            em.textContent = recentQuery;
+            banner.appendChild(em);
+            banner.appendChild(document.createTextNode(". "));
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "wb-btn-secondary";
+            btn.style.cssText = "margin-left:6px; padding:2px 8px; font-size:12px;";
+            btn.textContent = "Show only those →";
+            btn.addEventListener("click", filterRecent);
+            banner.appendChild(btn);
             banner.classList.add("show");
           }
         }
+        if (hint) hint.style.display = showBanner ? "none" : "block";
+        if (!showBanner) banner.classList.remove("show");
       } catch (e) {
-        document.getElementById("list").innerHTML = `<div class="err">${escapeHtml(e.message)}</div>`;
+        if (log) log.err("corpus load failed", e.message);
+        const listEl = document.getElementById("list");
+        listEl.textContent = "";
+        const errDiv = document.createElement("div");
+        errDiv.className = "err";
+        errDiv.textContent = e.message;
+        listEl.appendChild(errDiv);
         return;
       }
       // Build jurisdiction chips from the data
@@ -202,8 +263,9 @@
             </li>`).join("")}
           </ul>
         </div>` : "";
+      // audit-allow:innerHTML-safe -- doc.group_color is a hex value from the controlled
+      // server corpus; all other interpolated values are passed through escapeHtml() before use.
       document.getElementById("detail").innerHTML = `
-        // audit-allow:innerHTML-safe -- doc.group_color is hex from controlled corpus; all other interps already escaped
         <div class="id-tag">${escapeHtml(doc.id)}</div>
         <h2>${escapeHtml(doc.title)}</h2>
         <div class="source-tag">${escapeHtml(doc.source)}</div>

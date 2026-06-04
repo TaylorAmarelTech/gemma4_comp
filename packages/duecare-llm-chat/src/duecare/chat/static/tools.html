@@ -7,8 +7,7 @@
   <link rel="stylesheet" href="/static/_chrome.css" />
   <style>
     * { box-sizing: border-box; }
-    header { padding: 14px 24px; background: var(--paper); border-bottom: 1px solid var(--line-soft);
-              display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    header { padding: 14px 24px; background: var(--paper); border-bottom: 1px solid var(--line-soft); }
     header h1 { margin: 0; font-size: 16px; color: var(--ink); font-weight: 600; letter-spacing: -0.01em; }
     .sub { font-size: 13px; color: var(--ink-3); flex: 1; }
     .container { padding: 32px; max-width: 1200px; margin: 0 auto; }
@@ -37,20 +36,37 @@
     a.back:hover { color: var(--accent-ink); }
     .err { color: oklch(0.40 0.13 45); padding: 14px; }
   </style>
+  <script src="/static/_activity_log.js" defer></script>
   <script src="/static/_nav.js" defer></script>
 </head>
-<body data-nav="layers">
+<body data-nav="harness">
   <header>
     
     <h1>Tools layer</h1>
     <div class="sub" id="stats">Loading…</div>
   </header>
+  <!-- rule 7 (trust boundary): read-only — fetches GET /api/harness-catalog/tools from the local kernel only; no user data sent, nothing written. -->
+  <div class="wb-trust" style="margin: 12px 32px 0; max-width: 1200px;">
+    <b>Read-only catalog.</b> This page fetches the list of function-calling
+    tools and backing knowledge tables from the local kernel only.
+    No user data is sent and nothing is written.
+  </div>
+  <div class="dc-activity-log" id="tools-log" style="margin: 12px 32px 0; max-width: 1200px;">
+    <div class="dc-log-idle">Waiting for tools catalog…</div>
+  </div>
   <div class="container" id="root">Loading…</div>
   <script>
     function escapeHtml(s) {
       return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
         ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
+    /**
+     * Serialize an API value to an HTML string.
+     * IMPORTANT: returns raw HTML including wrapper tags.
+     * All string/number/boolean leaf values are passed through escapeHtml().
+     * Callers must assign the result only via innerHTML, never via textContent.
+     * Do NOT add branches that embed server-supplied data without escapeHtml().
+     */
     function jsonValue(v, depth = 0) {
       if (v == null) return '<span class="empty">—</span>';
       if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") {
@@ -97,13 +113,20 @@
         </table>
       </section>`;
     }
+    const log = window.dcActivityLog
+      ? window.dcActivityLog.attach('#tools-log', {idlePlaceholder: 'Waiting for tools catalog…'})
+      : null;
+
     async function load() {
+      log && log.step('GET /api/harness-catalog/tools');
       let d;
       try {
         const r = await fetch("/api/harness-catalog/tools", {cache: "no-store"});
         if (!r.ok) throw new Error("HTTP " + r.status);
         d = await r.json();
+        log && log.ok('catalog loaded', `${(d.items || []).length} tools`);
       } catch (e) {
+        log && log.err(e.message);
         document.getElementById("root").innerHTML =
           `<div class="err">${escapeHtml(e.message)}</div>`;
         return;
@@ -116,7 +139,7 @@
           ${tools.map(t => `
             <div class="tool">
               <div class="name">${escapeHtml(t.name)}</div>
-              <div class="desc">${escapeHtml(t.description) || '<em>no docstring</em>'}</div>
+              <div class="desc">${escapeHtml(t.description || '') || '&lt;no docstring&gt;'}</div>
             </div>
           `).join("") || '<div class="empty">No tools wired.</div>'}
         </section>

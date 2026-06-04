@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Models | DueCare Workbench</title>
   <link rel="stylesheet" href="/static/_chrome.css">
-  <link rel="stylesheet" href="/static/showcase.css">
   <script src="/static/_nav.js" defer></script>
   <script src="/static/_activity_log.js" defer></script>
   <style>
@@ -88,7 +87,15 @@
 </head>
 <body data-nav="models">
 <main class="showcase">
-  <div class="wb-trust" style="background: oklch(0.92 0.06 155); color: oklch(0.32 0.07 155); padding: 8px 14px; border-radius: 8px; font-size: 12.5px; margin: 0 0 14px;"><b>Trust boundary:</b> Model loads happen locally on this kernel's GPU. Weights are pulled from Hugging Face or attached Kaggle datasets; no inference traffic leaves the kernel after load. Default load mode is single-model. Swap behaviour is set on <a href="/static/settings.html">Settings</a>.</div>
+  <div class="dc-trust-row" style="margin: 0 0 14px;">
+    <span class="dc-trust-pill"><span class="dot"></span>LOCAL ONLY</span>
+    <span class="dc-trust-text">
+      Model loads happen locally on this kernel's GPU. Weights are pulled from Hugging Face
+      or attached Kaggle datasets; no inference traffic leaves the kernel after load.
+      Default load mode is single-model. Swap behaviour is set on
+      <a href="/static/settings.html">Settings</a>.
+    </span>
+  </div>
   <div class="crumbs">Workbench tool | System and observability</div>
   <h1>Models</h1>
   <p class="lede">
@@ -222,14 +229,17 @@
       const badges = v.badges.map(b => `<span class="badge ${b}">${b}</span>`).join("");
       const stateBadge = isLoaded ? `<span class="badge loaded">loaded</span>` :
                         (isLoading ? `<span class="badge">loading...</span>` : "");
+      const disabledTip = isLoaded
+        ? "Already loaded - select a different variant to swap"
+        : (isLoading ? "Loading in progress - wait for completion before switching" : "");
+      const tipAttr = disabledTip ? ` data-tip="${escapeHtml(disabledTip)}"` : "";
       return `<div class="model-card ${cls}">
         <div class="name">${escapeHtml(v.name)}</div>
         <div class="id">${escapeHtml(v.hf)}</div>
         <div class="meta">${escapeHtml(v.hw)}</div>
         <div class="badges">${stateBadge}${badges}</div>
         <div style="margin-top:12px;">
-          <button class="cta cta-${isLoaded ? "ghost" : "primary"}"
-                  style="padding:6px 12px; font-size:12.5px;"
+          <button class="wb-btn-${isLoaded ? "secondary" : "primary"}"${tipAttr}
                   ${isLoaded || isLoading ? "disabled" : ""}
                   onclick="loadModel('${escapeHtml(v.key)}')">
             ${isLoaded ? "Loaded" : (isLoading ? "Loading..." : "Load")}
@@ -258,21 +268,47 @@
   }
 
   async function loadModel(variant) {
-    if (!window.confirm(`Load ${variant}? GPU loads are not cancellable; the universal model service will show progress.`)) return;
+    const log = window.dcWbPageLog;
+    // No window.confirm - the model service handles single-model swap and shows progress
+    if (log) log.step("Requesting model load", "variant=" + variant);
     modelSetStep(1);
     if (window.dcWbModelService && window.dcWbModelService.loadVariant) {
       await window.dcWbModelService.loadVariant(variant, {open: true});
+      if (log) log.ok("Load delegated to universal model service", variant);
     } else if (window.dcWbLoadModelVariant) {
       await window.dcWbLoadModelVariant(variant, {open: true});
+      if (log) log.ok("Load delegated via legacy dcWbLoadModelVariant", variant);
     } else {
-      alert("Universal model service is still initializing. Click the top Model control and retry.");
+      if (log) log.warn(
+        "Model service not ready - retry in ~1s",
+        "universal model service (_nav.js) has not wired yet; wait and retry or click the top Model button"
+      );
     }
     refreshStatus(); refreshLogs();
   }
 
+  // Wire the page activity log (rule 70 §1)
+  (function () {
+    function initLog() {
+      if (!window.dcActivityLog) return;
+      window.dcWbPageLog = window.dcActivityLog.attach("#page-activity-log", {
+        idlePlaceholder: "No activity yet. Load a model to populate.",
+      });
+      window.dcWbPageLog.info("Models page loaded");
+    }
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initLog);
+    } else {
+      initLog();
+    }
+  })();
+
   refreshStatus(); refreshLogs();
-  setInterval(refreshStatus, 4000);
-  setInterval(refreshLogs,   2000);
+  setInterval(function () {
+    if (window.dcWbModelService) window.dcWbModelService.refresh();
+    else refreshStatus();
+    refreshLogs();
+  }, 6000);
 </script>
 </body>
 </html>

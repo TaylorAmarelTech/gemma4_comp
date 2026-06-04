@@ -26,12 +26,7 @@
     .toolbar input:focus, .toolbar select:focus { outline: 0; border-color: var(--accent);
       box-shadow: 0 0 0 4px oklch(0.85 0.05 195 / 0.3); }
     .toolbar input { min-width: 220px; }
-    .toolbar button {
-      padding: 7px 14px; font-size: 13px; border: 1px solid var(--line);
-      background: var(--paper); color: var(--ink-2); border-radius: 6px; cursor: pointer;
-      font-family: var(--sans);
-    }
-    .toolbar button:hover { background: var(--paper-2); border-color: var(--ink-3); color: var(--ink); }
+    /* toolbar buttons use shared .dc-toolbar-button from _chrome.css */
     main { flex: 1; display: grid; grid-template-columns: 1.6fr 1fr; gap: 0; min-height: 0; }
     #svgwrap {
       background: var(--paper-2); border-right: 1px solid var(--line);
@@ -66,6 +61,7 @@
              background: var(--paper-2); }
   </style>
   <script src="/static/_nav.js" defer></script>
+  <script src="/static/_activity_log.js" defer></script>
 </head>
 <body data-nav="layers">
   <header>
@@ -73,6 +69,7 @@
       <h1>Citation graph</h1>
       <div class="subtitle">Force-directed view of the curated corpus + citation graph.
         <span id="meta"></span>
+        &#183; <a href="/static/harness.html" style="color:var(--accent-ink);">&#8592; Harnesses</a>
       </div>
     </div>
     <div class="toolbar">
@@ -80,14 +77,26 @@
       <select id="group-filter">
         <option value="">All jurisdictions</option>
       </select>
-      <button onclick="rgZoom(1.25)" title="Zoom in">+</button>
-      <button onclick="rgZoom(0.8)" title="Zoom out">−</button>
-      <button onclick="rgResetZoom()">Reset</button>
-      <button onclick="rgSettle()">Re-settle</button>
-      <button onclick="rgExportSvg()">⬇ SVG</button>
+      <button class="dc-toolbar-button" onclick="rgZoom(1.25)" title="Zoom in">+</button>
+      <button class="dc-toolbar-button" onclick="rgZoom(0.8)" title="Zoom out">−</button>
+      <button class="dc-toolbar-button" onclick="rgResetZoom()">Reset</button>
+      <button class="dc-toolbar-button" onclick="rgSettle()">Re-settle</button>
+      <button class="dc-toolbar-button" onclick="rgExportSvg()">&#8595; SVG</button>
     </div>
   </header>
   <div class="legend" id="legend"></div>
+  <div class="wb-trust" style="padding:8px 24px; font-size:12px; color:var(--ink-3);
+       background:var(--paper-2); border-bottom:1px solid var(--line-soft);">
+    Graph data is fetched from the local kernel at <code>/api/rag/graph</code> and
+    rendered entirely in-browser. Nothing leaves this kernel. The "&#8595; SVG" button
+    writes only a layout snapshot to your local disk — no corpus text is embedded
+    in the export.
+  </div>
+  <div class="dc-activity-log" id="rag-log"
+       style="font-size:11.5px; border-top:1px solid var(--line-soft);
+              padding:8px 24px; background:var(--ink);">
+    <div class="dc-log-idle">Waiting for corpus fetch&#8230;</div>
+  </div>
   <main>
     <div id="svgwrap"></div>
     <div id="detail">
@@ -111,12 +120,21 @@
     }
 
     async function load() {
+      const log = window.dcActivityLog
+        ? window.dcActivityLog.attach('#rag-log', {idlePlaceholder: 'Waiting for corpus fetch…'})
+        : {step:()=>{}, ok:()=>{}, err:()=>{}, info:()=>{}};
       const wrap = document.getElementById('svgwrap');
+      log.step('GET /api/rag/graph');
+      const t0 = performance.now();
       try {
         const r = await fetch('/api/rag/graph', {cache: 'no-store'});
         if (!r.ok) throw new Error('HTTP ' + r.status);
         G = await r.json();
+        const ms = (performance.now() - t0).toFixed(0);
+        log.ok('corpus loaded (' + ms + ' ms)',
+               (G.meta ? G.meta.n_nodes + ' nodes \xb7 ' + G.meta.n_edges + ' edges' : ''));
       } catch (e) {
+        log.err('corpus fetch failed', String(e.message || e));
         wrap.innerHTML = `<div class="err">Could not load corpus graph: ${escapeHtml(String(e.message || e))}</div>`;
         return;
       }
@@ -359,7 +377,18 @@
     function rgSettle() { if (!sim) return; for (let i = 0; i < 250; i++) tick(); draw(); }
     function rgExportSvg() {
       const svg = document.getElementById('svg');
-      if (!svg) return;
+      if (!svg) {
+        if (window.dcActivityLog) {
+          const log = window.dcActivityLog.attach('#rag-log');
+          log.warn('SVG export skipped', 'no graph loaded yet');
+        }
+        return;
+      }
+      if (window.dcActivityLog) {
+        const log = window.dcActivityLog.attach('#rag-log');
+        log.info('SVG export',
+          'duecare-rag-graph-' + new Date().toISOString().slice(0, 10) + '.svg');
+      }
       const clone = svg.cloneNode(true);
       clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
       const cs = getComputedStyle(document.body);
