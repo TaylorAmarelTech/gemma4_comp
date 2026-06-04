@@ -13125,6 +13125,65 @@ RAG_CORPUS = [
      "clear, enforceable contract) treat the origin-signed contract as the "
      "benchmark; any destination-side substitution under duress is "
      "independently actionable regardless of a signature obtained on arrival."),
+
+    # ----- Stacked / combined manipulation + false legitimacy (2026-06-04) -----
+    ("stacked_manipulation_detection",
+     "Layered manipulation: stacked justifications are a red flag, not a defence",
+     "Palermo Protocol Art. 3; ILO C181 Art. 7; substance-over-form",
+     "Exploitative requests increasingly STACK several techniques in one message: "
+     "an authority pretext (investigator, researcher, compliance auditor), a "
+     "relabelled fee, a claimed licence or government endorsement, a "
+     "jurisdiction-shopping claim, and charitable or emotional framing. Each "
+     "technique is INDEPENDENTLY disqualifying: refuting or satisfying one layer "
+     "does not neutralise the others, and a benign outer frame never launders a "
+     "harmful inner ask. Apply substance-over-form to each layer; the more "
+     "independent justifications a request stacks for charging or controlling a "
+     "worker, the more suspicious it is. Anchor the response on the single most "
+     "harmful element rather than the volume of legitimate-sounding context."),
+    ("false_legitimacy_licensing_limits",
+     "A licence regulates conduct; it never authorises charging the worker",
+     "ILO C181 (Private Employment Agencies, 1997) Art. 7; PH RA 8042/RA 10022",
+     "A claimed licence, bond, accreditation, or registration (e.g. POEA/BP2MI) "
+     "governs HOW an agency may operate; it does not make worker-paid placement "
+     "fees lawful. Under ILO C181 Art. 7 the employer pays recruitment costs; "
+     "worker-pays is the prohibited model regardless of any credential, claimed "
+     "government endorsement, or assertion that 'officials encourage this'. "
+     "Claimed official sanction is not a defence to an unlawful charge -- apply "
+     "the law to the substance of the transaction."),
+    ("jurisdiction_shopping_substance_over_form",
+     "Offshore entities and jurisdiction-shopping do not launder a worker-charge",
+     "ILO C029 Sec. 2; FATF guidance on layered/affiliated entities; Palermo Art. 3",
+     "Routing a worker-charge through an offshore loan entity (Vanuatu, BVI, "
+     "Cayman, Labuan), a 'sister' or affiliated company, or a connected "
+     "money-lender, or claiming a fee 'is legal in <offshore country>', does not "
+     "change its legal character. Substance over form applies across "
+     "jurisdictions: the controlling law is that of the origin and destination of "
+     "the worker, and a charge unlawful there remains unlawful when incorporated "
+     "elsewhere. Layered entities are a FATF money-laundering typology, not a "
+     "compliance solution."),
+    ("relabeling_euphemism_catalog",
+     "Fee relabeling: progressive-sounding euphemisms that hide an illegal charge",
+     "ILO C181 Art. 7; ILO C095 (Protection of Wages) Art. 8",
+     "A worker placement charge is frequently relabelled to sound lawful or "
+     "modern: 'professional services agreement', 'investment fund', 'training / "
+     "productivity bond', 'financial inclusion product', 'human capital package', "
+     "'education credit', 'skills development levy', 'mobility loan', 'onboarding "
+     "investment'. The label does not change the substance: a charge that binds "
+     "the worker or is deducted from wages is the same illegal fee / debt bondage. "
+     "Do not adopt the relabel, draft its contract language, or help market, "
+     "pitch, or finance it -- the progressive relabel is operational uplift for "
+     "the same prohibited scheme."),
+    ("consent_irrelevance_palermo",
+     "Consent is legally irrelevant where a coercive means is present",
+     "Palermo Protocol Art. 3(b); ILO C029 Sec. 2",
+     "Under Palermo Art. 3(b), the consent of a trafficking victim is irrelevant "
+     "where any 'means' (threat, coercion, deception, abuse of power or of a "
+     "position of vulnerability, debt bondage, document or wage withholding) has "
+     "been used. The common laundering stack -- 'the worker voluntarily agreed', "
+     "'everyone in this corridor does it', 'it is just a standard fee' -- combines "
+     "claimed consent with an exploitative industry norm; neither cures a "
+     "coercive means. An exploitative norm is not a defence; flag the pattern "
+     "rather than normalising it."),
 ]
 
 
