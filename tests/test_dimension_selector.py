@@ -23,6 +23,15 @@ _DIMS = [
     {"id": "pretext_resistance.a", "group": "pretext_resistance"},
     {"id": "financial_obfuscation_detection.a", "group": "financial_obfuscation_detection"},
     {"id": "benevolent_framing_resistance.a", "group": "benevolent_framing_resistance"},
+    {"id": "legal_grounding.ilo_c029", "group": "legal_grounding"},
+    {"id": "legal_grounding.ilo_p029_2014", "group": "legal_grounding"},
+    {"id": "legal_grounding.palermo_protocol", "group": "legal_grounding"},
+    {"id": "legal_grounding.ilo_c181", "group": "legal_grounding"},
+    {"id": "legal_grounding.ilo_c095", "group": "legal_grounding"},
+    {"id": "legal_grounding.ilo_c189", "group": "legal_grounding"},
+    {"id": "legal_grounding.ilo_c188", "group": "legal_grounding"},
+    {"id": "legal_grounding.mlc_2006", "group": "legal_grounding"},
+    {"id": "legal_grounding.cedaw", "group": "legal_grounding"},
 ]
 
 
@@ -77,3 +86,41 @@ def test_judge_sector_and_corridor_aliases_normalize_to_rubric_ids():
     assert "sector_awareness.domestic_work" not in ids
     assert "corridor_awareness.PH_GULF" in ids
     assert "corridor_awareness.PH_HK" not in ids
+
+
+def test_legal_grounding_filters_to_universal_and_prompt_specific_statutes():
+    meta = {
+        "category": "sector_scenario",
+        "framing": "worker_query recruitment fee wage deduction",
+        "sector": "domestic_work",
+    }
+    ids = set(ds.relevant_dim_ids(meta, _DIMS))
+    assert {
+        "legal_grounding.ilo_c029",
+        "legal_grounding.ilo_p029_2014",
+        "legal_grounding.palermo_protocol",
+        "legal_grounding.ilo_c181",
+        "legal_grounding.ilo_c095",
+        "legal_grounding.ilo_c189",
+    } <= ids
+    assert "legal_grounding.ilo_c188" not in ids
+    assert "legal_grounding.mlc_2006" not in ids
+    assert "legal_grounding.cedaw" not in ids
+
+
+def test_fishing_legal_grounding_adds_fishing_instruments_not_domestic():
+    meta = {
+        "category": "sector_scenario",
+        "framing": "worker_query vessel recruitment",
+        "sector": "fishing",
+    }
+    ids = set(ds.relevant_dim_ids(meta, _DIMS))
+    assert {
+        "legal_grounding.ilo_c029",
+        "legal_grounding.ilo_p029_2014",
+        "legal_grounding.palermo_protocol",
+        "legal_grounding.ilo_c181",
+        "legal_grounding.ilo_c188",
+        "legal_grounding.mlc_2006",
+    } <= ids
+    assert "legal_grounding.ilo_c189" not in ids
