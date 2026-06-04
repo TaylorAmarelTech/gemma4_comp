@@ -20,12 +20,13 @@ import collections
 import glob
 import html
 import json
+import os
 import pathlib
 
 _ROOT = pathlib.Path(__file__).resolve().parents[1]
 _BENCH = _ROOT / "configs" / "duecare" / "benchmarks"
-_CKPT = _ROOT / "reports" / "harness_lift_500_opus.jsonl"
-_OUT = _ROOT / "reports" / "harness_lift_report.html"
+_CKPT = _ROOT / os.environ.get("LIFT_REPORT_CKPT", "reports/harness_lift_500_opus.jsonl")
+_OUT = _ROOT / os.environ.get("LIFT_REPORT_OUT", "reports/harness_lift_report.html")
 
 # Civic-tech warm-paper palette (60_notebook_presentation.md).
 _PAPER, _PAPER2, _INK, _INK3, _LINE = "#F7F6F1", "#EFEDE4", "#0E1116", "#5B5F68", "#DDD8C9"
