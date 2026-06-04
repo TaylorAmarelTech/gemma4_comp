@@ -102,7 +102,7 @@
       "kind": "tool",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 9,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {

@@ -50,7 +50,7 @@ Deferred until a concrete need or review exists:
 - `ddgs`: Prefer official APIs or manual queues until reliability is proven.
 - `crawlee_python`: Overlap with simpler crawler options; evaluate after a concrete need appears.
 - `crawl4ai`: Prototype only after simpler HTML extraction cannot handle target public sources.
-- `playwright_python`: Use only for public pages that cannot be handled by HTTP extraction.
+- `playwright_python`: Use only for public pages that cannot be handled by HTTP extraction, and only after a matching `browser_fetch_allowlist.jsonl` row passes manual, robots, same-domain, and privacy gates.
 - `pymupdf`: License review required before dependency adoption.
 - `markitdown`: Adopt only with local-only conversion settings and fixture tests.
 - `unstructured`: Large dependency surface; use only if lighter extractors fail.
@@ -68,4 +68,4 @@ Next safe adapter order:
 2. Add a Brave Search API wrapper only behind an environment-key gate.
 3. Add trafilatura/pdfplumber/pypdf extractors behind local fixture tests.
 4. Add Scrapy or advertools only after a source-family needs real crawling.
-5. Keep browser automation and heavy document ETL deferred until needed.
+5. Keep browser automation and heavy document ETL deferred until needed; browser automation must start from `browser_fetch_allowlist.jsonl`, not an open-ended URL queue.

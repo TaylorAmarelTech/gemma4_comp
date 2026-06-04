@@ -1,4 +1,5 @@
 {
+  "browser_fetch_allowlist": 100,
   "domain_crawl_policy": 100,
   "domains": 100,
   "privacy": {

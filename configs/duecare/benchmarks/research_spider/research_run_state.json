@@ -9,6 +9,7 @@
     "decomposition_mixed_conversations": 240,
     "dimension_candidates": 197,
     "domain_crawl_policy": 100,
+    "browser_fetch_allowlist": 100,
     "extractor_provider_registry": 9,
     "hybrid_scenario_prompts": 360,
     "implemented_extractor_wrappers": 5,
@@ -45,9 +46,10 @@
     "fatf_payment_instrument_typologies_seeded",
     "gulf_sponsorship_mobility_deepening_seeded",
     "south_asia_source_country_grievance_cases_seeded",
-    "australia_new_zealand_singapore_official_source_deepening"
+    "australia_new_zealand_singapore_official_source_deepening",
+    "playwright_browser_allowlist_policy_seeded"
   ],
-  "current_loop": "australia_new_zealand_singapore_official_source_deepening_v1",
+  "current_loop": "playwright_browser_allowlist_policy_v1",
   "generated_at": "2026-06-04T00:00:00Z",
   "implemented_extractor_wrappers": [
     "stdlib_html",
@@ -164,7 +166,7 @@
       "kind": "tool",
       "privacy_boundary": "public_sources_or_synthetic_fixtures_only",
       "rank": 9,
-      "status": "queued",
+      "status": "completed",
       "tool_fit_context": {}
     },
     {

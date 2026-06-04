@@ -21,6 +21,7 @@ DEFAULT_OUT_DIR = REPO_ROOT / "configs" / "duecare" / "benchmarks" / "research_s
 PROBE_SCHEMA_VERSION = "public_sitemap_probe_queue.v1"
 POLICY_SCHEMA_VERSION = "public_domain_crawl_policy.v1"
 DORK_SCHEMA_VERSION = "public_sitemap_discovery_dork.v1"
+BROWSER_ALLOWLIST_SCHEMA_VERSION = "public_browser_fetch_allowlist.v1"
 SUMMARY_SCHEMA_VERSION = "public_sitemap_frontier_summary.v1"
 
 SIGNAL_KEYWORDS = {
@@ -51,12 +52,50 @@ DEFAULT_PATH_HINTS = (
 DENY_PATH_HINTS = (
     "/login",
     "/signin",
+    "/sign-in",
     "/account",
     "/wp-admin",
+    "/admin",
+    "/private",
     "/cart",
     "/checkout",
     "/subscribe",
     "/newsletter",
+    "mailto:",
+    "tel:",
+)
+
+BROWSER_DENIED_WHEN = (
+    "robots_disallow",
+    "login_or_credential_required",
+    "captcha_or_bot_check",
+    "form_submission_required",
+    "file_upload_required",
+    "private_case_terms_or_identifiers",
+    "person_email_contact_or_subdomain_harvesting",
+    "proxy_rotation_or_stealth_requested",
+)
+
+BROWSER_ALLOWED_WHEN = (
+    "http_extraction_failed_or_page_requires_javascript_rendered_text",
+    "manual_reviewer_approved_javascript_need",
+    "robots_txt_allows_path",
+    "same_public_domain_as_source_frontier",
+    "url_matches_allow_path_keywords",
+    "no_login_no_session_no_captcha_no_form_submit",
+)
+
+FORBIDDEN_BROWSER_FEATURES = (
+    "stealth",
+    "proxy_rotation",
+    "captcha_bypass",
+    "fingerprint_evasion",
+    "credentialed_login",
+    "form_submission",
+    "file_upload",
+    "persistent_context",
+    "storage_state_reuse",
+    "download_without_manual_review",
 )
 
 
@@ -198,6 +237,70 @@ def domain_policy_rows(domain_rows: list[dict]) -> list[dict]:
     return policies
 
 
+def browser_fetch_allowlist_rows(domain_rows: list[dict]) -> list[dict]:
+    """Prepare an explicit allowlist before any JavaScript browser fetch exists."""
+
+    rows = []
+    for row in sorted(domain_rows, key=lambda item: (-crawl_priority(item), item["domain"])):
+        rows.append(
+            {
+                "schema_version": BROWSER_ALLOWLIST_SCHEMA_VERSION,
+                "domain": row["domain"],
+                "priority": crawl_priority(row),
+                "status": "deferred_policy_only_no_browser_fetch",
+                "browser_tool": "playwright_python",
+                "source_count": row.get("source_count", 0),
+                "jurisdictions": row.get("jurisdictions", []),
+                "source_families": row.get("source_families", []),
+                "top_signals": row.get("top_signals", []),
+                "candidate_base_url": _base_url(row),
+                "eligible_input_artifacts": [
+                    "source_domain_frontier.jsonl",
+                    "sitemap_probe_queue.jsonl",
+                    "domain_crawl_policy.jsonl",
+                    "source_fetch_manifest.jsonl",
+                ],
+                "allow_path_keywords": signal_keywords(row.get("top_signals", [])),
+                "deny_path_keywords": list(DENY_PATH_HINTS),
+                "allowed_when": list(BROWSER_ALLOWED_WHEN),
+                "denied_when": list(BROWSER_DENIED_WHEN),
+                "forbidden_browser_features": list(FORBIDDEN_BROWSER_FEATURES),
+                "network_policy": {
+                    "network_fetch_default": False,
+                    "manual_review_before_fetch": True,
+                    "requires_http_extraction_attempt_first": True,
+                    "requires_robots_check": True,
+                    "respect_rate_limits": True,
+                    "polite_delay_seconds": row.get("queue_policy", {}).get("polite_delay_seconds", 3),
+                    "max_pages_after_manual_review": 20,
+                },
+                "browser_state_policy": {
+                    "ephemeral_context_only": True,
+                    "persistent_context_allowed": False,
+                    "storage_state_saved": False,
+                    "cookies_saved": False,
+                    "downloads_allowed": False,
+                    "screenshots_allowed_after_redaction_review": False,
+                },
+                "allowed_outputs": [
+                    "rendered_text_excerpt_after_redaction",
+                    "source_metadata",
+                    "same_domain_link_candidates",
+                    "extraction_failure_reason",
+                ],
+                "privacy": {
+                    "public_domain_only": True,
+                    "raw_private_cases_ingested": False,
+                    "private_case_terms_allowed": False,
+                    "private_case_paths_allowed": False,
+                    "people_or_contact_harvesting_allowed": False,
+                    "publish_redacted_extract_only": True,
+                },
+            }
+        )
+    return rows
+
+
 def sitemap_discovery_dorks(domain_rows: list[dict]) -> list[dict]:
     rows: list[dict] = []
     templates = (
@@ -229,10 +332,12 @@ def run_pipeline(out_dir: Path = DEFAULT_OUT_DIR) -> dict:
     domain_rows = load_jsonl(out_dir / "source_domain_frontier.jsonl")
     probes = probe_queue_rows(domain_rows)
     policies = domain_policy_rows(domain_rows)
+    browser_allowlist = browser_fetch_allowlist_rows(domain_rows)
     dorks = sitemap_discovery_dorks(domain_rows)
 
     write_jsonl(out_dir / "sitemap_probe_queue.jsonl", probes)
     write_jsonl(out_dir / "domain_crawl_policy.jsonl", policies)
+    write_jsonl(out_dir / "browser_fetch_allowlist.jsonl", browser_allowlist)
     write_jsonl(out_dir / "sitemap_discovery_dorks.jsonl", dorks)
 
     summary = {
@@ -240,6 +345,7 @@ def run_pipeline(out_dir: Path = DEFAULT_OUT_DIR) -> dict:
         "domains": len(domain_rows),
         "sitemap_probe_queue": len(probes),
         "domain_crawl_policy": len(policies),
+        "browser_fetch_allowlist": len(browser_allowlist),
         "sitemap_discovery_dorks": len(dorks),
         "probe_types": dict(collections.Counter(row["probe_type"] for row in probes)),
         "privacy": {
@@ -270,6 +376,7 @@ def main(argv: list[str] | None = None) -> int:
         "public-sitemap-frontier: "
         f"domains={summary['domains']} "
         f"probes={summary['sitemap_probe_queue']} "
+        f"browser_allowlist={summary['browser_fetch_allowlist']} "
         f"dorks={summary['sitemap_discovery_dorks']}"
     )
     return 0

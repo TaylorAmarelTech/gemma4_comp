@@ -26,6 +26,7 @@ Counts:
 - Source archive manifest entries: 285
 - Sitemap probe queue entries: 300
 - Domain crawl policy entries: 100
+- Browser fetch allowlist entries: 100
 - Sitemap discovery dorks: 400
 - Branching research queue leads: 1000
 - Knowledge objects already in spider pack: 285
@@ -52,7 +53,7 @@ Next 30 branches:
 6. `prototype_warcio_manifest_archiving` [completed] - Capture public-source fetch manifests and WARC metadata after redaction gates.
 7. `evaluate_advertools_sitemap_crawl` [completed] - Test sitemap-first expansion for official public domains.
 8. `evaluate_scrapy_polite_crawler` [queued] - Prototype a small Scrapy spider only if sitemap/manual discovery stalls.
-9. `defer_playwright_allowlist_policy` [queued] - Write allowlist policy before any JavaScript browser fetches.
+9. `defer_playwright_allowlist_policy` [completed] - Write allowlist policy before any JavaScript browser fetches.
 10. `reject_osint_operationalization` [queued] - Keep pagodo, Photon, theHarvester, and Metagoofil out of provider registries.
 11. `philippines_court_illegal_recruitment_cases` [completed] - Search public Philippine court/prosecution sources for illegal recruitment and debt bondage.
 12. `hong_kong_fdh_agency_fee_cases` [completed] - Search Hong Kong public sources for FDH agency overcharge, loan, passport, and rest-day indicators.
@@ -86,3 +87,13 @@ Latest continuation, 2026-06-04:
 - Coverage moved to Australia 25, New Zealand 10, Singapore 13; signals strengthened for fee overcharging, document control, immigration-status control, contract deception, wage theft, referral, forced labour, and debt bondage.
 - Focused test added: `test_australia_new_zealand_singapore_frontier_sources_are_deepened`.
 - Privacy posture remains public URL metadata only; no private case files, private filenames, raw private text, or contact details were ingested.
+
+Latest continuation, 2026-06-04:
+
+- Completed loop: `playwright_browser_allowlist_policy_seeded`.
+- Added deterministic no-network `browser_fetch_allowlist.jsonl` with 100 rows, one per public source-domain frontier entry.
+- Each row keeps Playwright/browser use deferred by default and requires manual review, prior HTTP extraction attempt, robots allowance, same public domain, allow-path signal match, no login/session/CAPTCHA/form-submit path, and no private case terms.
+- The allowlist explicitly forbids stealth, proxy rotation, CAPTCHA bypass, fingerprint evasion, credentialed login, form submission, file upload, persistent browser contexts, storage-state reuse, and unreviewed downloads.
+- Regenerated `domain_crawl_policy.jsonl` so deny-path rules also include sign-in/admin/private/mailto/tel patterns.
+- Focused test added: `test_browser_fetch_allowlist_is_deferred_and_rejects_unsafe_browser_patterns`.
+- Next useful tool branches remain `evaluate_scrapy_polite_crawler` only if sitemap/manual discovery stalls, then `reject_osint_operationalization` to pin operational rejection of pagodo, Photon, theHarvester, and Metagoofil.
