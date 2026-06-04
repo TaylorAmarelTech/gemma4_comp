@@ -96,6 +96,16 @@
           <div class="stat-value" id="stat-hub-submits-count">--</div>
           <div class="stat-sub" id="stat-hub-submits-last">last submit: never</div>
         </div>
+        <div class="stat-card">
+          <div class="stat-label">Knowledge drafts (this device)</div>
+          <div class="stat-value" id="stat-drafts-count">--</div>
+          <div class="stat-sub" id="stat-drafts-last">last draft: never</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Anonymized hub sends (this device)</div>
+          <div class="stat-value" id="stat-submissions-count">--</div>
+          <div class="stat-sub" id="stat-submissions-last">last send: never</div>
+        </div>
         <div class="stat-card" style="border-color: oklch(0.78 0.06 195); background: oklch(0.97 0.025 195);">
           <div class="stat-label" style="color: oklch(0.32 0.10 195);">Gemma 4 calls (session)</div>
           <div class="stat-value" id="stat-gemma-calls" style="color: oklch(0.32 0.10 195);">--</div>
@@ -240,10 +250,16 @@
         const importsLastAt = localStorage.getItem('duecare:imports-last-at') || '';
         const hubSubmitsCount = parseInt(localStorage.getItem('duecare:hub-submits-count') || '0', 10);
         const hubSubmitsLastAt = localStorage.getItem('duecare:hub-submits-last-at') || '';
-        return {syncsCount, syncsLastAt, importsCount, importsLastAt, hubSubmitsCount, hubSubmitsLastAt};
+        const draftsCount = parseInt(localStorage.getItem('duecare:drafts-count') || '0', 10);
+        const draftsLastAt = localStorage.getItem('duecare:drafts-last-at') || '';
+        const submissionsCount = parseInt(localStorage.getItem('duecare:submissions-count') || '0', 10);
+        const submissionsLastAt = localStorage.getItem('duecare:submissions-last-at') || '';
+        return {syncsCount, syncsLastAt, importsCount, importsLastAt, hubSubmitsCount, hubSubmitsLastAt,
+                draftsCount, draftsLastAt, submissionsCount, submissionsLastAt};
       } catch (e) {
         return {syncsCount: 0, syncsLastAt: '', importsCount: 0, importsLastAt: '',
-                hubSubmitsCount: 0, hubSubmitsLastAt: ''};
+                hubSubmitsCount: 0, hubSubmitsLastAt: '',
+                draftsCount: 0, draftsLastAt: '', submissionsCount: 0, submissionsLastAt: ''};
       }
     }
 
@@ -391,6 +407,14 @@
       const hubLast = document.getElementById('stat-hub-submits-last');
       if (hubLast) hubLast.textContent =
         'last submit: ' + (c.hubSubmitsLastAt || 'never');
+      const draftsEl = document.getElementById('stat-drafts-count');
+      if (draftsEl) draftsEl.textContent = c.draftsCount;
+      const draftsLast = document.getElementById('stat-drafts-last');
+      if (draftsLast) draftsLast.textContent = 'last draft: ' + (c.draftsLastAt || 'never');
+      const subsEl = document.getElementById('stat-submissions-count');
+      if (subsEl) subsEl.textContent = c.submissionsCount;
+      const subsLast = document.getElementById('stat-submissions-last');
+      if (subsLast) subsLast.textContent = 'last send: ' + (c.submissionsLastAt || 'never');
 
       // Gemma 4 session-tally cards. Pulls from the dcGemmaStats global
       // when available (set by _nav.js after chrome injection), otherwise
