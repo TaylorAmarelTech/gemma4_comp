@@ -1481,6 +1481,11 @@ main > .dc-wb-auto-log-card {
   margin: 0 0 14px;
 }
 
+/* Model layer: make the primary "Load selected" action accent-colored so it
+   reads as the next step, distinct from the neutral "Refresh" beside it (in
+   normal mode they were visually identical). Disabled state stays muted. */
+#dc-wb-model-load:not(:disabled) { background: var(--accent); color: var(--paper); }
+
 /* Step CTA -- canonical "advance to the next step" button.
 
    Every workbench page (chat / process / knowledge / share /
