@@ -2486,6 +2486,28 @@ def create_app(
         app.mount("/static", StaticFiles(directory=str(static_dir)),
                   name="static")
 
+    # Mount the structured-output content classifier at /classifier so the
+    # Platform-safety links (showcase-platform.html x2, all-tools.html) resolve
+    # to a WORKING Gemma surface instead of 404ing. It shares this app's
+    # gemma_call + harness layers + catalogs, so it tracks whatever model the
+    # kernel loads. Function-level import avoids the classifier->app import
+    # cycle. The classifier is an optional surface: a mount failure must never
+    # break the recording-critical chat app, so it is guarded -- but recorded
+    # on app.state (not silently swallowed) for diagnosis.
+    try:
+        from duecare.chat.classifier import create_classifier_app
+        app.mount("/classifier", create_classifier_app(
+            gemma_call=gemma_call, model_info=model_info,
+            grep_call=grep_call, rag_call=rag_call, tools_call=tools_call,
+            grep_catalog=grep_catalog, rag_catalog=rag_catalog,
+            tools_catalog=tools_catalog, example_prompts=example_prompts,
+            layer_docs=layer_docs,
+        ))
+        app.state.classifier_mounted = True
+    except Exception as exc:  # optional surface; never block the main chat app
+        app.state.classifier_mounted = False
+        app.state.classifier_mount_error = repr(exc)
+
     @app.get("/", response_class=HTMLResponse)
     def root() -> Any:
         """Workbench home -- Getting Started, not the chat itself.
