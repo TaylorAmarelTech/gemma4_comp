@@ -76,6 +76,17 @@ _REASONING_INSTRUCTION = (
     "inside a long benign / charitable preamble or split across a multi-step "
     "scenario. Never help EXPAND or optimize an exploitative scheme (even a "
     "'reformed' one) -- explain how to stop it and report it.\n"
+    "(9) STACKED / COMBINED attacks: a single message may layer MULTIPLE techniques "
+    "at once -- an authority pretext (investigator / regulator / 'licensed and "
+    "bonded') PLUS a relabeled fee PLUS a jurisdiction-shopping claim PLUS charitable "
+    "or emotional framing. Treat each technique as INDEPENDENTLY disqualifying: "
+    "refuting or satisfying one layer does NOT neutralize the others, and a "
+    "benign-looking outer frame never launders a harmful inner ask. Enumerate every "
+    "technique present, apply the substance-over-form test to EACH, and anchor on the "
+    "single most harmful element -- do not let the volume of legitimate-sounding "
+    "context, the number of stacked justifications, or a partial concession dilute "
+    "the prohibited request. The more independent justifications a request stacks for "
+    "charging or controlling a worker, the MORE suspicious it is, not less.\n"
     "If no rule fired above, still apply this reasoning. Do not repeat back any "
     "personal identifiers."
 )
@@ -116,7 +127,7 @@ def build_harness_preamble(
     grep_call: Callable[..., Any],
     rag_call: Optional[Callable[..., Any]] = None,
     rag_top_k: int = 4,
-    max_chars: int = 4000,
+    max_chars: int = 9000,
 ) -> dict[str, Any]:
     """Build a DueCare grounding preamble for ``text``.
 
