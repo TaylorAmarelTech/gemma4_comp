@@ -1,7 +1,7 @@
 {
-  "browser_fetch_allowlist": 100,
-  "domain_crawl_policy": 100,
-  "domains": 100,
+  "browser_fetch_allowlist": 103,
+  "domain_crawl_policy": 103,
+  "domains": 103,
   "privacy": {
     "manual_review_before_fetch": true,
     "network_fetch_default": false,
@@ -9,10 +9,10 @@
     "raw_private_cases_ingested": false
   },
   "probe_types": {
-    "robots_txt": 100,
-    "sitemap": 200
+    "robots_txt": 103,
+    "sitemap": 206
   },
   "schema_version": "public_sitemap_frontier_summary.v1",
-  "sitemap_discovery_dorks": 400,
-  "sitemap_probe_queue": 300
+  "sitemap_discovery_dorks": 412,
+  "sitemap_probe_queue": 309
 }

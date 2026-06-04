@@ -345,6 +345,49 @@ def test_australia_new_zealand_singapore_frontier_sources_are_deepened():
         assert term in dork_text
 
 
+def test_netherlands_malaysia_qatar_sparse_families_are_deepened():
+    candidates = spider.seed_source_candidates()
+    source_text = "\n".join(
+        " ".join([row["url"], row["title"], row["snippet"], *row["signals"]])
+        for row in candidates
+    )
+    family_counts = {}
+    for row in candidates:
+        family_counts[row["source_family"]] = family_counts.get(row["source_family"], 0) + 1
+    signals = {signal for row in candidates for signal in row["signals"]}
+    dork_text = "\n".join(q["query"] for q in spider.build_deep_dorks(max_per_family=420))
+
+    assert spider.profile_for_url("https://www.government.nl/themes/international-cooperation/human-trafficking")["id"] == "netherlands_gov_justice"
+    assert spider.profile_for_url("https://acms.adlsa.gov.qa/en/faq")["id"] == "qatar_labour_anti_trafficking"
+    assert family_counts["netherlands_gov_justice"] >= 5
+    assert family_counts["malaysia_labour_homeaffairs"] >= 8
+    assert family_counts["qatar_labour_anti_trafficking"] >= 7
+    for needle in [
+        "combating-human-trafficking",
+        "Assessing%2BForced%2BLabour%2BRisks%2Bin%2BDutch%2BImports",
+        "jaarverslag-2025-een-kwart-eeuw-strijd-tegen-mensenhandel",
+        "penggajian-pekerja-asing",
+        "soalan-lazim-instrumen-pembayaran-gaji",
+        "perumahan-penginapan-dan-kemudahan-pekerja",
+        "Anti-Trafficking%20in%20Persons%20and%20Anti-Smuggling%20of%20Migrants%20Act%202007.pdf",
+        "acms.adlsa.gov.qa/en/faq",
+        "Law%20No.%20%2814%29%20of%202004%20Promulgating%20the%20Labour%20Law.pdf",
+        "Law%20No.%20%2815%29%20of%202017%20on%20Domestic%20Workers.pdf",
+        "Council%20of%20Ministers%E2%80%99%20Resolution%20No.%20%2836%29%20of%202006",
+    ]:
+        assert needle in source_text
+    assert {
+        "accommodation_control",
+        "fee_overcharging",
+        "payment_instrument_control",
+        "source_country_recruitment_grievance",
+        "supply_chain",
+        "worker_voice_grievance",
+    } <= signals
+    assert "site:government.nl" in dork_text
+    assert "site:acms.adlsa.gov.qa" in dork_text
+
+
 def test_public_court_case_frontier_sources_are_seeded():
     source_text = json.dumps(spider.DEFAULT_SEED_SOURCES)
 
