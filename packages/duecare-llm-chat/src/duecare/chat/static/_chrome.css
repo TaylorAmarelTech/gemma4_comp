@@ -1421,6 +1421,66 @@ main > .dc-wb-auto-log-card {
   padding: 1px 5px; border-radius: 3px;
 }
 
+/* Shared workbench button + trust primitives -- single source of truth.
+
+   These were historically duplicated in per-page <style> blocks, so pages that
+   lacked a local copy (e.g. index.html) rendered .wb-btn-primary UNSTYLED and
+   the .wb-step-cta modifier below had no base button to sit on. Defining the
+   bases here makes button styling consistent across every page (rule 70). A
+   page-local <style> still loads after this file, so any page keeping its own
+   copy is unaffected; pages without one finally pick up the shared look. */
+.wb-btn-primary {
+  padding: 8px 16px;
+  background: var(--accent, oklch(0.52 0.08 195));
+  color: #FFF;
+  border: 0;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: var(--sans, inherit);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+.wb-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.wb-btn-secondary {
+  padding: 7px 13px;
+  background: #FFF;
+  color: var(--ink, #0E1116);
+  border: 1px solid var(--line, #DDD8C9);
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-family: var(--sans, inherit);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+.wb-btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+/* Low-emphasis utility toggle (was hand-rolled inline on several pages, e.g.
+   index.html's "Enable local" / "Disable all"). */
+.wb-btn-ghost {
+  background: transparent;
+  border: 1px solid var(--line, #DDD8C9);
+  color: var(--ink-3, #5B5F68);
+  padding: 3px 10px;
+  border-radius: 5px;
+  font-size: 10.5px;
+  font-weight: 500;
+  font-family: var(--sans, inherit);
+  cursor: pointer;
+  transition: border-color 120ms, color 120ms;
+}
+.wb-btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+/* Trust-boundary disclosure band (rule 7) -- muted civic-green. */
+.wb-trust {
+  background: oklch(0.92 0.06 155);
+  color: oklch(0.32 0.07 155);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  margin: 0 0 14px;
+}
+
 /* Step CTA -- canonical "advance to the next step" button.
 
    Every workbench page (chat / process / knowledge / share /
