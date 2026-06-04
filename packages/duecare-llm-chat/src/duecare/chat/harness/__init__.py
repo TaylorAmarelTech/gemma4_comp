@@ -14005,6 +14005,51 @@ FEE_CAMOUFLAGE_DICT = {
 }
 
 NGO_INTAKE = {
+    # Additional corridors (2026-06-04). Convention: real public org names +
+    # real official URLs where stable; phone (and uncertain URLs) deferred to
+    # "verify via contacts pack" so no volatile/wrong number is hardcoded (rule 80).
+    ("bd", "my"): [
+        {"name": "BMET (Bureau of Manpower, Employment and Training, Bangladesh)",
+          "phone": "verify via contacts pack", "url": "https://www.bmet.gov.bd/"},
+        {"name": "Tenaganita (Malaysia)",
+          "phone": "verify via contacts pack", "url": "https://www.tenaganita.net/"},
+        {"name": "North South Initiative (Malaysia)",
+          "phone": "verify via contacts pack", "url": "verify via contacts pack"},
+    ],
+    ("lk", "gulf"): [
+        {"name": "Sri Lanka Bureau of Foreign Employment (SLBFE)",
+          "phone": "verify via contacts pack", "url": "https://www.slbfe.lk/"},
+        {"name": "Caritas Sri Lanka (SEDEC)",
+          "phone": "verify via contacts pack", "url": "verify via contacts pack"},
+    ],
+    ("kh", "th"): [
+        {"name": "Cambodia National Committee for Counter Trafficking (NCCT)",
+          "phone": "verify via contacts pack", "url": "verify via contacts pack"},
+        {"name": "Legal Support for Children and Women (LSCW, Cambodia)",
+          "phone": "verify via contacts pack", "url": "verify via contacts pack"},
+        {"name": "Labour Protection Network (LPN, Thailand)",
+          "phone": "verify via contacts pack", "url": "verify via contacts pack"},
+    ],
+    ("ph", "sa"): [
+        {"name": "Blas F. Ople Policy Center and Training Institute (PH)",
+          "phone": "verify via contacts pack", "url": "verify via contacts pack"},
+        {"name": "Migrante International",
+          "phone": "verify via contacts pack", "url": "verify via contacts pack"},
+        {"name": "Philippine Migrant Workers Office (MWO/POLO) Riyadh",
+          "phone": "verify via contacts pack", "url": "verify via contacts pack"},
+    ],
+    ("in", "gulf"): [
+        {"name": "Migrant Forum in Asia (MFA)",
+          "phone": "verify via contacts pack", "url": "https://mfasia.org/"},
+        {"name": "India eMigrate / MADAD grievance portal (MEA)",
+          "phone": "verify via contacts pack", "url": "https://emigrate.gov.in/"},
+    ],
+    ("mm", "th"): [
+        {"name": "MAP Foundation (Thailand)",
+          "phone": "verify via contacts pack", "url": "https://www.mapfoundationcm.org/"},
+        {"name": "Foundation for Education and Development (FED, Thailand)",
+          "phone": "verify via contacts pack", "url": "verify via contacts pack"},
+    ],
     ("ph", "hk"): [
         {"name": "POEA Anti-Illegal Recruitment Branch (PH)",
           "phone": "verify via contacts pack", "url": "https://www.poea.gov.ph/cmplaints/"},
