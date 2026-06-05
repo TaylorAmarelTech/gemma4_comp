@@ -3866,7 +3866,7 @@ def create_app(
         """Return a JSON catalog of what each harness layer exposes.
 
         Layers: 'grep' (live regex rules), 'rag' (live corpus),
-                'tools' (5 lookups + their backing tables),
+                'tools' (12 deterministic tools + their backing tables),
                 'online' (search providers), 'persona' (persona library),
                 'import' (local imported evidence metadata).
 
