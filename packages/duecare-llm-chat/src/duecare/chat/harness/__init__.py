@@ -15025,6 +15025,188 @@ def _tool_list_ilo_conventions(args: dict, table=None) -> dict:
     return {"n": len(out), "conventions": out}
 
 
+# --- Coded-language / euphemism decoder -------------------------------------
+# Maps well-documented recruitment / control euphemisms to their plain meaning
+# + the ILO forced-labour indicator they signal. Pairs with the
+# coded_language_decoding rubric group. Grounded in the ILO 11 indicators and
+# the ILO/IOM Employer-Pays recruitment-fee framework; invents no facts.
+_EUPHEMISM_MAP: dict[str, tuple[str, str, str]] = {
+    # phrase substring : (plain meaning, ILO indicator / instrument, severity)
+    "training fee": ("an upfront charge the worker repays from wages -- a debt that binds them to the job", "debt bondage; abuse of vulnerability", "high"),
+    "training bond": ("a penalty the worker forfeits if they leave early -- restricts free termination", "debt bondage; restriction of movement", "high"),
+    "placement fee": ("a recruitment fee charged to the worker -- workers must pay ZERO (ILO Employer Pays Principle, C181 Art 7)", "ILO C181 Art 7; recruitment-fee violation", "high"),
+    "processing fee": ("a recruitment cost shifted onto the worker -- it should be borne by the employer", "ILO C181 Art 7; recruitment-fee violation", "high"),
+    "service charge": ("a relabelled recruitment fee charged to the worker", "ILO C181 Art 7; recruitment-fee violation", "medium"),
+    "safekeeping": ("the employer/agency holding the worker's passport or ID -- document confiscation", "retention of identity documents", "high"),
+    "hold your passport": ("passport confiscation -- a primary forced-labour indicator", "retention of identity documents; restriction of movement", "critical"),
+    "keep your documents": ("identity-document retention by the employer", "retention of identity documents", "high"),
+    "accommodation deduction": ("a wage deduction for housing that can push pay below the agreed/legal amount", "withholding of wages; debt bondage", "medium"),
+    "salary advance": ("a loan against future wages that creates a binding debt", "debt bondage", "high"),
+    "cash advance": ("a debt instrument repaid from wages -- a common bondage mechanism", "debt bondage", "high"),
+    "performance bond": ("a deposit the worker forfeits on leaving -- binds them to the employer", "debt bondage; restriction of movement", "high"),
+    "security deposit": ("money held to deter the worker from leaving", "debt bondage; restriction of movement", "medium"),
+    "guarantee deposit": ("a forfeitable deposit that restricts free termination", "debt bondage", "medium"),
+    "agency loan": ("a debt owed to the recruiter, repaid from wages", "debt bondage", "high"),
+    "free visa": ("an irregular no-real-sponsor status that strips legal protection and raises vulnerability", "abuse of vulnerability", "high"),
+    "exit permit": ("employer control over whether the worker may leave the country (kafala)", "restriction of movement", "high"),
+    "no objection certificate": ("an employer veto over the worker changing jobs or leaving", "restriction of movement", "high"),
+    "live-in requirement": ("mandatory residence at the workplace, enabling round-the-clock control", "restriction of movement; excessive overtime", "medium"),
+    "rest day buy-out": ("paying cash to cancel the weekly rest day -- denial of mandated rest (ILO C189 Art 10)", "ILO C189 Art 10; excessive overtime", "medium"),
+    "absconding": ("framing a worker who leaves as a criminal to deter escape", "restriction of movement; intimidation", "high"),
+    "runaway": ("criminalising a worker who flees abuse", "restriction of movement; intimidation", "medium"),
+    "like family": ("affective framing used to extract unpaid labour and deny rest/overtime rights", "excessive overtime; abuse of vulnerability", "low"),
+    "updated contract": ("a substituted contract with worse terms than the one signed at home", "deception; contract substitution", "high"),
+    "local contract": ("contract substitution on arrival -- different terms than originally agreed", "deception; contract substitution", "high"),
+}
+
+
+def _tool_decode_euphemism(args: dict) -> dict:
+    """Decode coded recruitment / control language into its plain meaning + the
+    ILO forced-labour indicator it signals. Pairs with the
+    coded_language_decoding rubric group. Returns only documented euphemisms;
+    invents nothing."""
+    text = str(args.get("text", "") or args.get("message", "")).lower()
+    if not text.strip():
+        return {"found": False, "note": "text required"}
+    hits = []
+    for phrase, (meaning, indicator, severity) in _EUPHEMISM_MAP.items():
+        if phrase in text:
+            hits.append({"phrase": phrase, "plain_meaning": meaning,
+                         "ilo_indicator": indicator, "severity": severity})
+    return {"found": bool(hits), "n": len(hits), "decoded": hits[:12]}
+
+
+# --- Emergency triage --------------------------------------------------------
+# Immediate-danger signal tokens by type. Pairs with the
+# emergency_response_soundness rubric group. The action ladder is SAFETY-FIRST:
+# it never instructs risky confrontation or unplanned flight (the
+# no_risky_instruction facet) and defers the hotline number to
+# lookup_ngo_intake (rule 80: no volatile numbers hardcoded).
+_EMERGENCY_SIGNALS: dict[str, tuple[str, ...]] = {
+    "confinement": ("locked in", "can't leave", "cannot leave", "not allowed out",
+                    "not allowed to leave", "confined", "trapped", "doors are locked",
+                    "won't let me leave", "won't let me go", "held against"),
+    "document_control": ("passport taken", "took my passport", "have my passport",
+                         "have my documents", "id confiscated", "confiscated my",
+                         "holding my passport", "keep my passport"),
+    "violence_threat": ("threatened", "beaten", "beat me", "hit me", "hurt me",
+                        "abused me", "threatened to", "they hurt"),
+    "deprivation": ("no food", "not fed", "no water", "abandoned",
+                    "haven't been paid", "not been paid", "unpaid for months", "no medicine"),
+}
+
+
+def _tool_assess_emergency(args: dict) -> dict:
+    """Triage a worker message for immediate-danger signals and return a
+    SAFETY-FIRST action ladder. Pairs with emergency_response_soundness. Never
+    instructs confrontation or unplanned flight; defers the hotline number to
+    lookup_ngo_intake."""
+    text = str(args.get("text", "") or args.get("message", "")).lower()
+    if not text.strip():
+        return {"found": False, "note": "text required"}
+    fired = {kind: [t for t in toks if t in text] for kind, toks in _EMERGENCY_SIGNALS.items()}
+    fired = {k: v for k, v in fired.items() if v}
+    if not fired:
+        return {"found": False, "danger_level": "none"}
+    has_conf = "confinement" in fired
+    has_viol = "violence_threat" in fired
+    has_doc = "document_control" in fired
+    if has_viol and has_conf:
+        level = "imminent"
+    elif has_viol or has_conf:
+        level = "high"
+    else:
+        level = "elevated"
+    ladder = [
+        "If you are in immediate physical danger and can do so safely, contact local emergency services.",
+        "Do not confront the employer or attempt a sudden escape if that would raise your risk -- plan a safe moment.",
+        "Quietly preserve evidence (photos of conditions, copies of documents, chat logs) where the employer cannot see.",
+        "Contact a trafficking hotline or trusted NGO for the corridor -- they can arrange safe shelter and legal help.",
+        "If your passport is held you still have rights; a hotline or your embassy can help recover documents and status.",
+    ]
+    return {"found": True, "danger_level": level, "signals": fired,
+            "immediate_actions": ladder,
+            "hotline_pointer": "call lookup_ngo_intake with the worker's corridor for the current verified hotline",
+            "safety_note": "advice is non-confrontational by design; never instruct a worker to confront or flee in a way that raises risk"}
+
+
+# --- Digital-recruitment scam detector --------------------------------------
+# Markers of online / social-media recruitment fraud + scam-compound
+# trafficking. Pairs with the digital_recruitment_awareness rubric group.
+_SCAM_MARKERS: dict[str, tuple[str, ...]] = {
+    "unverified_social_media_offer": ("facebook job", "tiktok job", "telegram job",
+        "whatsapp offer", "job on facebook", "messaged me on", "dm'd me a job",
+        "online job ad", "saw an ad online", "instagram job"),
+    "scam_compound": ("scam compound", "kk park", "forced to scam", "cyber scam",
+        "pig butchering", "online scam center", "scam centre", "scam farm",
+        "made me scam", "fraud compound"),
+    "deepfake_impersonation": ("deepfake", "ai video", "fake video call",
+        "verification video", "face swap", "ai-generated recruiter"),
+    "money_mule_crypto": ("usdt", "paid in crypto", "crypto salary", "money mule",
+        "transfer money for", "receive packages", "move money for", "withdraw for us", "tether"),
+    "too_good_to_be_true": ("no experience needed", "no skills needed",
+        "guaranteed high salary", "easy money", "high pay no experience"),
+}
+
+_SCAM_ADVICE: dict[str, str] = {
+    "unverified_social_media_offer": "Verify the employer against the official labour-ministry / POEA-type registry before responding; legitimate jobs are not closed by DM.",
+    "scam_compound": "This matches scam-compound trafficking (e.g. Myanmar/Cambodia/Laos). Do not travel; contact a trafficking hotline and your embassy immediately.",
+    "deepfake_impersonation": "Video and ID can be AI-faked; verify the company through an independent official channel, not links the recruiter sends.",
+    "money_mule_crypto": "Never receive or move money/crypto for an 'employer' -- this is money-mule recruitment and is a crime you can be charged for.",
+    "too_good_to_be_true": "Pay far above market for unskilled work is the classic fraud lure; verify independently and never pay an upfront fee.",
+}
+
+
+def _tool_check_scam_pattern(args: dict) -> dict:
+    """Detect digital-recruitment fraud + scam-compound markers in a message.
+    Pairs with digital_recruitment_awareness. Returns the markers found, the
+    scam type(s), and verification advice."""
+    text = str(args.get("text", "") or args.get("message", "")).lower()
+    if not text.strip():
+        return {"found": False, "note": "text required"}
+    found = {}
+    for kind, toks in _SCAM_MARKERS.items():
+        hit = [t for t in toks if t in text]
+        if hit:
+            found[kind] = {"matched": hit, "advice": _SCAM_ADVICE.get(kind, "")}
+    return {"found": bool(found), "n": len(found), "scam_types": list(found),
+            "detail": found,
+            "universal_rule": "Never pay an upfront fee and never transfer money/crypto for a recruiter (ILO Employer Pays Principle)."}
+
+
+# --- Evidence-preservation guidance -----------------------------------------
+# Concrete, safe, generic evidence checklist for a worker building a complaint
+# or case. Pairs with the evidence_specificity rubric group.
+_EVIDENCE_ITEMS: tuple[tuple[str, str], ...] = (
+    ("employment contract", "Keep the original AND any earlier/home-country version -- a difference proves contract substitution."),
+    ("recruitment receipts", "Any proof of fees paid (receipts, transfers, loan papers) -- establishes a recruitment-fee / debt-bondage claim."),
+    ("identity documents", "Copies/photos of your passport, visa, and ID -- even if the originals are held by the employer."),
+    ("pay records", "Pay slips, bank entries, or a dated note of each (non-)payment -- establishes withheld or under-paid wages."),
+    ("messages", "Screenshots of WhatsApp/SMS/chat with the recruiter or employer, with sender name and date/time visible."),
+    ("conditions", "Dated photos/video of living and working conditions (locks, accommodation, an hours board)."),
+    ("people", "Names, roles, and contact details of the recruiter, agency, sponsor, and employer."),
+    ("timeline", "A dated log of key events: arrival, document taken, last payment, threats, hours worked."),
+)
+
+
+def _tool_list_evidence_to_preserve(args: dict) -> dict:
+    """Return a concrete, safe evidence checklist + preservation method +
+    chain-of-custody note for a worker documenting abuse. Pairs with
+    evidence_specificity. Generic and safety-aware."""
+    items = [{"item": name, "why": why} for name, why in _EVIDENCE_ITEMS]
+    return {
+        "found": True,
+        "evidence": items,
+        "preservation_method": [
+            "Screenshot the full screen so the date/time and sender are captured, not just the text.",
+            "Back up to a personal cloud account or send to a trusted person OUTSIDE the employer's control.",
+            "Keep copies in more than one place; never store the only copy on a device the employer can access.",
+        ],
+        "chain_of_custody": "For each item note who/what/when; keep originals where it is safe to do so. A dated written log strengthens a later complaint or court case.",
+        "safety_first": "Only collect evidence when you can do so without raising suspicion or risk; your safety comes before documentation.",
+    }
+
+
 _TOOL_DISPATCH = {
     "lookup_corridor_fee_cap": _tool_lookup_corridor_fee_cap,
     "lookup_fee_camouflage": _tool_lookup_fee_camouflage,
@@ -15034,6 +15216,10 @@ _TOOL_DISPATCH = {
     "check_grep_indicators": _tool_check_grep_indicators,
     "search_grounding": _tool_search_grounding,
     "list_ilo_conventions": _tool_list_ilo_conventions,
+    "decode_euphemism": _tool_decode_euphemism,
+    "assess_emergency": _tool_assess_emergency,
+    "check_scam_pattern": _tool_check_scam_pattern,
+    "list_evidence_to_preserve": _tool_list_evidence_to_preserve,
 }
 
 
@@ -15173,6 +15359,24 @@ def _heuristic_tool_calls(text: str,
                 "args":   args_conv,
                 "result": _tool_lookup_ilo_convention(args_conv),
             })
+    # Behavior-pairing tools (2026-06-04): each fires only when its trigger is
+    # present, giving concrete tool support for the matching rubric group
+    # (coded_language_decoding / emergency_response_soundness /
+    # digital_recruitment_awareness / evidence_specificity) without over-firing.
+    euph = _tool_decode_euphemism({"text": text})
+    if euph.get("found"):
+        calls.append({"name": "decode_euphemism", "args": {"text": "(user message)"}, "result": euph})
+    emerg = _tool_assess_emergency({"text": text})
+    if emerg.get("found"):
+        calls.append({"name": "assess_emergency", "args": {"text": "(user message)"}, "result": emerg})
+    scam = _tool_check_scam_pattern({"text": text})
+    if scam.get("found"):
+        calls.append({"name": "check_scam_pattern", "args": {"text": "(user message)"}, "result": scam})
+    if emerg.get("found") or any(
+        w in lower for w in ("evidence", "prove", "report", "complaint",
+                             "document the", "case against", "build a case")):
+        calls.append({"name": "list_evidence_to_preserve", "args": {},
+                      "result": _tool_list_evidence_to_preserve({})})
     return calls
 
 
