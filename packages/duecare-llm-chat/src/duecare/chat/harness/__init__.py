@@ -13658,6 +13658,41 @@ def _rag_call(text: str, top_k: int = 5, extra_docs=None) -> dict:
 # 3. TOOLS (4 lookups + heuristic dispatcher)
 # ===========================================================================
 CORRIDOR_FEE_CAPS = {
+    ("philippines", "saudi arabia", "domestic"): {
+        "statute": "POEA/DMW zero-placement-fee policy for household service workers",
+        "max_fee_worker": "0", "currency": "PHP", "url": "verify via knowledge pack",
+        "note": "Zero placement fee for Filipino domestic workers; employer pays recruitment costs.",
+    },
+    ("philippines", "qatar", "domestic"): {
+        "statute": "POEA/DMW zero-placement-fee policy for household service workers",
+        "max_fee_worker": "0", "currency": "PHP", "url": "verify via knowledge pack",
+        "note": "Zero placement fee; employer-pays.",
+    },
+    ("philippines", "taiwan", "domestic"): {
+        "statute": "POEA/DMW + Taiwan direct-hire / zero-placement-fee policy",
+        "max_fee_worker": "0", "currency": "PHP", "url": "verify via knowledge pack",
+        "note": "Domestic-worker placement fee prohibited; employer-pays.",
+    },
+    ("nepal", "malaysia", "general"): {
+        "statute": "Nepal Free Visa Free Ticket (FVFT) policy 2015; Foreign Employment Act 2007",
+        "max_fee_worker": "0", "currency": "NPR", "url": "verify via knowledge pack",
+        "note": "Under FVFT the employer pays the visa + air ticket; worker fee is zero/low for covered corridors.",
+    },
+    ("nepal", "qatar", "general"): {
+        "statute": "Nepal Free Visa Free Ticket (FVFT) policy 2015; Foreign Employment Act 2007",
+        "max_fee_worker": "0", "currency": "NPR", "url": "verify via knowledge pack",
+        "note": "FVFT corridor: employer pays visa + ticket.",
+    },
+    ("indonesia", "saudi arabia", "domestic"): {
+        "statute": "Indonesia zero-cost placement (Permenaker / BP2MI) for domestic workers",
+        "max_fee_worker": "0", "currency": "IDR", "url": "verify via knowledge pack",
+        "note": "Zero-cost placement policy for Indonesian domestic workers; employer-pays.",
+    },
+    ("kenya", "saudi arabia", "domestic"): {
+        "statute": "Kenya NEA employer-pays policy for domestic workers (bilateral labour agreement)",
+        "max_fee_worker": "0", "currency": "KES", "url": "verify via knowledge pack",
+        "note": "Employer-pays model for Kenyan domestic workers to the Gulf.",
+    },
     ("philippines", "hong kong", "domestic"): {
         "statute": "POEA MC 14-2017",
         "max_fee_worker": "0",
@@ -14477,6 +14512,10 @@ def _tool_lookup_ngo_intake(args: dict, table=None) -> dict:
 # tool. Each entry: convention number → (year, short title, key articles,
 # focus, ratification note).
 ILO_CONVENTIONS = {
+    "105": (1957, "Abolition of Forced Labour Convention",
+              ["Art. 1 (suppress forced labour as: political coercion/education, economic development, labour discipline, punishment for strikes, or racial/social/national/religious discrimination)"],
+              "Fundamental Convention; companion to C029; prohibits forced labour for the five specified purposes.",
+              "Widely ratified (175+ States)"),
     "029": (1930, "Forced Labour Convention",
               ["Art. 1 (suppress forced labour)",
                "Art. 2 (definition: 'all work or service exacted under "
