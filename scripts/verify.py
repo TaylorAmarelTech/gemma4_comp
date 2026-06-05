@@ -52,8 +52,10 @@ CHECKS: tuple[Check, ...] = (
           "doc fraud / sales tactics / recovery suppression / digital)"),
     Check("RAG corpus",        "duecare.chat.harness", "RAG_CORPUS",        33,
           "documents (ILO conventions, statutes, NGO briefs)"),
-    Check("Tools",             "duecare.chat.harness", "_TOOL_DISPATCH",     5,
-          "lookup functions (corridor / fee / indicator / NGO / ILO Convention)"),
+    Check("Tools",             "duecare.chat.harness", "_TOOL_DISPATCH",    12,
+          "deterministic tools: corridor / fee / indicator / NGO / ILO Convention "
+          "lookups + GREP-check / grounding-search / convention-list + euphemism-decode "
+          "/ emergency-triage / scam-detect / evidence-preserve"),
     Check("Example prompts",   "duecare.chat.harness", "EXAMPLE_PROMPTS",  407,
           "prompts in the bundled examples library"),
     Check("5-tier rubrics",    "duecare.chat.harness", "RUBRICS_5TIER",    200,
