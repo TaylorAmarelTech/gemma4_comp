@@ -41,6 +41,11 @@
     .chip.active { font-weight: 600; background: var(--ink); color: var(--paper); border-color: var(--ink); }
     .chip .n { color: var(--ink-4); font-size: 11px; }
     .chip.active .n { color: var(--paper-3); }
+    .lawview { display: flex; gap: 4px; margin-bottom: 14px; }
+    .lvbtn { padding: 6px 14px; font-size: 12.5px; font-weight: 600; border: 1px solid var(--line);
+             background: var(--paper); color: var(--ink-3); border-radius: 7px; cursor: pointer; font-family: var(--sans); }
+    .lvbtn:hover { border-color: var(--ink-3); color: var(--ink); }
+    .lvbtn.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
     .grid { display: grid; grid-template-columns: 1fr 1.35fr; gap: 16px; }
     .list { background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
             overflow-y: auto; max-height: calc(100vh - 300px); }
@@ -62,6 +67,19 @@
                       border: 1px solid var(--accent); border-radius: 7px; background: var(--accent-soft);
                       color: var(--accent-ink); font-size: 12.5px; text-decoration: none; font-weight: 600; }
     .detail .srcbtn:hover { background: oklch(0.88 0.05 195); }
+    .mapbox { background: #EFEDE4; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    #worldmap { width: 100%; height: auto; display: block; }
+    #worldmap path { transition: stroke-width 90ms; }
+    .maplegend { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin-bottom: 10px;
+                 font-size: 12px; color: var(--ink-2); }
+    .maplegend i.sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px;
+                      vertical-align: -1px; margin-right: 5px; }
+    .maplegend i.cov { background: oklch(0.62 0.10 165); }
+    .maplegend i.non { background: #D9D5C7; }
+    .maplegend .maphint { color: var(--ink-4); }
+    .maptip { position: fixed; z-index: 60; pointer-events: none; background: var(--ink); color: var(--paper);
+              font-size: 12px; padding: 6px 10px; border-radius: 6px; max-width: 240px; line-height: 1.4;
+              box-shadow: 0 4px 14px rgba(0,0,0,0.25); }
     .placeholder { color: var(--ink-3); font-style: italic; padding: 14px; }
     .err { color: oklch(0.40 0.13 45); padding: 14px; }
     @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
@@ -78,9 +96,10 @@
   </header>
   <div class="wb-trust" style="padding:8px 24px; font-size:12px;">
     Read-only showcase. Reads the local grounding index from
-    <code>/api/harness-catalog/rag</code> and the tool registry from
-    <code>/api/harness-catalog/tools</code> — no user input is sent and nothing leaves the kernel.
-    Source links open the original public document in a new tab.
+    <code>/api/harness-catalog/rag</code>, the tool registry from
+    <code>/api/harness-catalog/tools</code>, and a public-domain world map from
+    <code>/static/world-countries.geo.json</code> — no user input is sent and nothing
+    leaves the kernel. Source links open the original public document in a new tab.
   </div>
   <div id="atlas-log" class="dc-activity-log" style="margin:8px 24px; font-size:11px;">
     <div class="dc-log-idle">Waiting for corpus load…</div>
@@ -92,17 +111,36 @@
       <button class="tab" data-tab="sources" type="button">Verified sources <span class="n" id="t-sources"></span></button>
       <button class="tab" data-tab="cases" type="button">Landmark case law <span class="n" id="t-cases"></span></button>
     </div>
+    <div class="lawview" id="lawview" hidden>
+      <button class="lvbtn active" data-view="list" type="button">List</button>
+      <button class="lvbtn" data-view="map" type="button">World map</button>
+    </div>
     <div class="chips" id="chips"></div>
-    <div class="grid">
+    <div class="grid" id="grid">
       <div class="list" id="list"><div class="placeholder">Loading…</div></div>
       <div class="detail" id="detail"><div class="placeholder">Select an entry to read the full grounding document.</div></div>
     </div>
+    <div id="mapwrap" hidden>
+      <div class="maplegend">
+        <span><i class="sw cov"></i> Dedicated DueCare law coverage (<b id="map-covered">…</b> countries)</span>
+        <span><i class="sw non"></i> Not yet covered</span>
+        <span class="maphint">Hover a country for detail · click a shaded country to see its documents</span>
+      </div>
+      <div class="mapbox">
+        <svg id="worldmap" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet"
+             role="img" aria-label="World map shaded by DueCare legal coverage"></svg>
+      </div>
+    </div>
   </div>
+  <div class="maptip" id="maptip" hidden></div>
   <script>
-    // All rendering uses createElement + textContent (never raw HTML strings)
-    // so corpus text can never be interpreted as markup. URLs are
+    // All rendering uses createElement(NS) + textContent (never raw HTML strings)
+    // so corpus + map text can never be interpreted as markup. URLs are
     // http(s)-validated before becoming an href.
+    const SVGNS = "http://www.w3.org/2000/svg";
+    const MW = 1000, MH = 500;
     let rows = [], tools = 0, activeTab = "law", activeChip = "", filt = "", activeId = null, log = null;
+    let lawView = "list", geo = null, coverCache = null;
 
     document.addEventListener("DOMContentLoaded", function () {
       log = window.dcActivityLog
@@ -125,6 +163,11 @@
         if (c == null) return;
         n.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
       });
+      return n;
+    }
+    function svgEl(tag, attrs) {
+      const n = document.createElementNS(SVGNS, tag);
+      if (attrs) Object.keys(attrs).forEach(function (k) { if (attrs[k] != null) n.setAttribute(k, attrs[k]); });
       return n;
     }
     function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
@@ -150,6 +193,7 @@
            .replace(/_(criminal|foreign_labor|labor|wage|law)\b.*$/, "");
       return s;
     }
+    function normName(s) { return String(s || "").toLowerCase().replace(/[^a-z]/g, ""); }
 
     const LAW_CHIPS = [
       {key: "", label: "All"},
@@ -182,14 +226,21 @@
       renderTabCounts();
       renderChips();
       render();
+      applyView();
       document.getElementById("search").addEventListener("input", e => { filt = e.target.value; render(); });
       document.querySelectorAll(".tab").forEach(b =>
         b.addEventListener("click", () => {
-          activeTab = b.dataset.tab; activeChip = ""; filt = "";
+          activeTab = b.dataset.tab; activeChip = ""; filt = ""; lawView = "list";
           document.getElementById("search").value = "";
           document.querySelectorAll(".tab").forEach(x => x.classList.toggle("active", x === b));
-          renderChips(); render();
+          setLvActive("list");
+          renderChips(); render(); applyView();
         }));
+      document.querySelectorAll(".lvbtn").forEach(b =>
+        b.addEventListener("click", () => { lawView = b.dataset.view; setLvActive(lawView); applyView(); }));
+    }
+    function setLvActive(view) {
+      document.querySelectorAll(".lvbtn").forEach(x => x.classList.toggle("active", x.dataset.view === view));
     }
 
     function lawRows()    { return rows.filter(r => lawKind(r.id)); }
@@ -222,6 +273,7 @@
     function renderChips() {
       const host = document.getElementById("chips");
       clear(host);
+      document.getElementById("lawview").hidden = activeTab !== "law";
       if (activeTab !== "law") return;
       const lr = lawRows();
       const counts = {};
@@ -234,6 +286,132 @@
         }, [c.label + " ", el("span", {class: "n", text: "(" + n + ")"})]));
       });
     }
+
+    // ---- view switching: list grid vs world map (law tab only) ----
+    function applyView() {
+      const onMap = activeTab === "law" && lawView === "map";
+      document.getElementById("grid").hidden = onMap;
+      document.getElementById("chips").hidden = onMap;        // chips filter the list, not the map
+      document.getElementById("mapwrap").hidden = !onMap;
+      if (onMap) renderMapView();
+    }
+
+    async function loadGeo() {
+      if (geo) return geo;
+      if (log) log.step("GET /static/world-countries.geo.json");
+      const r = await fetch("/static/world-countries.geo.json", {cache: "force-cache"});
+      if (!r.ok) throw new Error("map HTTP " + r.status);
+      geo = await r.json();
+      if (log) log.ok("world map loaded", (geo.features || []).length + " countries");
+      return geo;
+    }
+
+    // Map a corpus law doc to an ISO3 code present in the GeoJSON.
+    function computeCoverage() {
+      if (coverCache) return coverCache;
+      const nameToIso = {};
+      (geo.features || []).forEach(f => {
+        const nm = f.properties && f.properties.name;
+        if (nm && f.id) nameToIso[normName(nm)] = f.id;
+      });
+      // alias: corpus-slug-normalized -> the GeoJSON name (normalized) it should match
+      const ALIAS = {
+        czechia: "czechrepublic", cotedivoire: "ivorycoast", eswatini: "swaziland",
+        drcongo: "democraticrepublicofthecongo", congorepublic: "republicofthecongo",
+        timorleste: "easttimor", northmacedonia: "macedonia", serbia: "republicofserbia",
+        tanzania: "unitedrepublicoftanzania", bahamas: "thebahamas",
+        uae: "unitedarabemirates", trinidadtobago: "trinidadandtobago",
+      };
+      const set = new Set(), byIso = {};
+      lawRows().forEach(r => {
+        let iso = null;
+        if (r.id.indexOf("statelaw_") === 0 || /tvpa|federal_state|us_foreign_labor/.test(r.id)) {
+          iso = "USA";
+        } else {
+          const slug = normName(jurSlug(r.id));
+          iso = nameToIso[slug] || (ALIAS[slug] && nameToIso[ALIAS[slug]]) || null;
+          if (!iso) {  // guarded prefix fallback (key is a prefix of a longer slug, e.g. mexico_northern_triangle_us)
+            for (const k in nameToIso) {
+              if (k.length >= 5 && slug.indexOf(k) === 0) { iso = nameToIso[k]; break; }
+            }
+          }
+        }
+        if (iso) { set.add(iso); (byIso[iso] = byIso[iso] || []).push(r); }
+      });
+      coverCache = {set: set, byIso: byIso};
+      return coverCache;
+    }
+
+    function proj(lon, lat) { return [(lon + 180) * (MW / 360), (90 - lat) * (MH / 180)]; }
+    function ringPath(ring) {
+      let d = "";
+      for (let i = 0; i < ring.length; i++) {
+        const p = proj(ring[i][0], ring[i][1]);
+        d += (i ? "L" : "M") + p[0].toFixed(1) + "," + p[1].toFixed(1);
+      }
+      return d + "Z";
+    }
+    function featurePath(geom) {
+      let d = "";
+      if (!geom) return d;
+      if (geom.type === "Polygon") geom.coordinates.forEach(r => { d += ringPath(r); });
+      else if (geom.type === "MultiPolygon") geom.coordinates.forEach(p => p.forEach(r => { d += ringPath(r); }));
+      return d;
+    }
+
+    async function renderMapView() {
+      const svg = document.getElementById("worldmap");
+      try { await loadGeo(); }
+      catch (e) {
+        clear(svg);
+        svg.appendChild(svgEl("text", {x: 20, y: 40, fill: "#0E1116", "font-size": "16"}));
+        svg.lastChild.textContent = "Map unavailable: " + e.message;
+        return;
+      }
+      const cov = computeCoverage();
+      clear(svg);
+      svg.appendChild(svgEl("rect", {x: 0, y: 0, width: MW, height: MH, fill: "#EFEDE4"}));
+      let covered = 0;
+      (geo.features || []).forEach(f => {
+        if (!f.geometry || f.id === "ATA") return;
+        const isCov = cov.set.has(f.id);
+        if (isCov) covered++;
+        const p = svgEl("path", {
+          d: featurePath(f.geometry),
+          fill: isCov ? "oklch(0.62 0.10 165)" : "#D9D5C7",
+          stroke: "#F7F6F1", "stroke-width": "0.4", "fill-rule": "evenodd",
+        });
+        const name = (f.properties && f.properties.name) || f.id;
+        const docs = cov.byIso[f.id] || [];
+        p.style.cursor = isCov ? "pointer" : "default";
+        p.addEventListener("mouseenter", () => p.setAttribute("stroke-width", "1.2"));
+        p.addEventListener("mousemove", ev => showTip(ev, name, isCov, docs.length));
+        p.addEventListener("mouseleave", () => { p.setAttribute("stroke-width", "0.4"); hideTip(); });
+        if (isCov) p.addEventListener("click", () => {
+          hideTip();
+          lawView = "list"; setLvActive("list");
+          filt = name; document.getElementById("search").value = name;
+          applyView(); render();
+        });
+        svg.appendChild(p);
+      });
+      document.getElementById("map-covered").textContent = String(covered);
+    }
+    function showTip(ev, name, isCov, n) {
+      const tip = document.getElementById("maptip");
+      tip.hidden = false;
+      tip.textContent = "";
+      tip.appendChild(el("b", {text: name}));
+      tip.appendChild(document.createTextNode(
+        isCov ? "  ·  " + n + " DueCare law document" + (n === 1 ? "" : "s") : "  ·  not yet covered"));
+      const pad = 14;
+      let x = ev.clientX + pad, y = ev.clientY + pad;
+      if (x + tip.offsetWidth > window.innerWidth) x = ev.clientX - tip.offsetWidth - pad;
+      if (y + tip.offsetHeight > window.innerHeight) y = ev.clientY - tip.offsetHeight - pad;
+      tip.style.left = x + "px";
+      tip.style.top = y + "px";
+    }
+    function hideTip() { document.getElementById("maptip").hidden = true; }
 
     function activeRows() {
       let base = activeTab === "law" ? lawRows() : activeTab === "sources" ? sourceRows() : caseRows();
