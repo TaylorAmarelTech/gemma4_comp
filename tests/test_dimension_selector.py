@@ -124,3 +124,18 @@ def test_fishing_legal_grounding_adds_fishing_instruments_not_domestic():
         "legal_grounding.mlc_2006",
     } <= ids
     assert "legal_grounding.ilo_c189" not in ids
+
+
+def test_2026_06_dimension_groups_select_correctly():
+    dims = [{"id": g + ".a", "group": g} for g in
+            ("coded_language_decoding", "digital_recruitment_awareness",
+             "emergency_response_soundness", "evidence_specificity", "response_quality")]
+    plain = set(ds.relevant_dim_ids({"category": "rights_query"}, dims))
+    assert "coded_language_decoding.a" in plain               # CORE: always on
+    assert "digital_recruitment_awareness.a" not in plain     # conditional, no trigger
+    dig = set(ds.relevant_dim_ids({"category": "scam_compound", "framing": "social_media"}, dims))
+    assert "digital_recruitment_awareness.a" in dig           # fires on scam / social_media
+    emg = set(ds.relevant_dim_ids({"category": "sector_scenario", "framing": "locked in and threatened"}, dims))
+    assert "emergency_response_soundness.a" in emg            # fires on locked / threatened
+    worker = set(ds.relevant_dim_ids({"category": "sector_scenario", "sector": "domestic_work"}, dims))
+    assert "evidence_specificity.a" in worker                # WORKER-scenario group
