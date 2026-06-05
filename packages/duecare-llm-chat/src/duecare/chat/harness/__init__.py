@@ -16434,6 +16434,58 @@ def _tool_list_evidence_to_preserve(args: dict) -> dict:
     }
 
 
+# --- ILO recruitment-cost classifier ----------------------------------------
+# Operationalizes the ILO Definition of Recruitment Fees and Related Costs (2019,
+# wcms_536755), confirmed by web fetch 2026-06-05. Para 9 enumerates recruitment-
+# fee types; para 12 enumerates seven related-cost categories. Default rule (para
+# 17 + ILO C181 Art 7): NONE may be charged to or recovered from the worker
+# (Employer Pays Principle). Para 11 allows a narrow exception only if in the
+# worker's interest, limited to specified categories, and disclosed before the job
+# is accepted.
+_ILO_RELATED_COST_CATEGORIES: dict[str, tuple[str, ...]] = {
+    "medical": ("medical exam", "medical test", "health check", "vaccination", "x-ray", "fit to work", "fitness certificate"),
+    "insurance": ("insurance premium", "welfare fund", "life cover", "medical insurance"),
+    "skills_qualification_test": ("skills test", "trade test", "language test", "qualification test", "credentialing", "licensing exam"),
+    "training_orientation": ("training fee", "orientation fee", "pre-departure orientation", "induction fee", "onboarding fee", "training bond"),
+    "equipment": ("uniform fee", "safety gear", "tools deposit", "equipment fee", "ppe charge"),
+    "travel_lodging": ("airfare", "plane ticket", "flight cost", "travel cost", "transport fee", "relocation cost", "repatriation cost"),
+    "administrative": ("visa fee", "passport fee", "work permit fee", "residence permit fee", "background check", "police clearance", "exit clearance", "contract attestation", "processing fee", "placement fee"),
+}
+_ILO_FEE_TYPES: tuple[str, ...] = (
+    "recruitment fee", "placement fee", "service charge", "agency commission",
+    "broker fee", "agent fee", "referral fee",
+)
+
+
+def _tool_classify_recruitment_cost(args: dict) -> dict:
+    """Classify a charge against the ILO Definition of Recruitment Fees and Related
+    Costs (2019): 4 fee types (para 9) + 7 related-cost categories (para 12).
+    Default verdict: the worker pays ZERO (Employer Pays Principle, ILO C181 Art 7);
+    only the narrow para-11 exception applies. Grounds a fee answer in the exact ILO
+    categories rather than guesswork."""
+    text = str(args.get("text", "") or args.get("message", "")).lower()
+    if not text.strip():
+        return {"found": False, "note": "text required"}
+    fee_hits = [f for f in _ILO_FEE_TYPES if f in text]
+    cost_hits = {cat: [t for t in toks if t in text] for cat, toks in _ILO_RELATED_COST_CATEGORIES.items()}
+    cost_hits = {k: v for k, v in cost_hits.items() if v}
+    found = bool(fee_hits or cost_hits)
+    return {
+        "found": found,
+        "recruitment_fee_types_matched": fee_hits,
+        "related_cost_categories_matched": list(cost_hits),
+        "detail": cost_hits,
+        "verdict": ("These are recruitment fees / related costs under the ILO Definition (2019); "
+                    "the worker must pay ZERO -- they are the employer's cost (Employer Pays "
+                    "Principle; ILO C181 (1997) Art. 7; ILO Definition paras 9, 12, 17)."
+                    if found else "No ILO-listed recruitment fee or related cost detected in the text."),
+        "exception_note": ("Para 11 permits a narrow exception ONLY if the cost is genuinely in the "
+                           "worker's interest, limited to specified categories, and disclosed in writing "
+                           "before the job is accepted; otherwise it is prohibited."),
+        "source": "ILO Definition of Recruitment Fees and Related Costs (2019), wcms_536755",
+    }
+
+
 _TOOL_DISPATCH = {
     "lookup_corridor_fee_cap": _tool_lookup_corridor_fee_cap,
     "lookup_fee_camouflage": _tool_lookup_fee_camouflage,
@@ -16447,6 +16499,7 @@ _TOOL_DISPATCH = {
     "assess_emergency": _tool_assess_emergency,
     "check_scam_pattern": _tool_check_scam_pattern,
     "list_evidence_to_preserve": _tool_list_evidence_to_preserve,
+    "classify_recruitment_cost": _tool_classify_recruitment_cost,
 }
 
 
@@ -16604,6 +16657,9 @@ def _heuristic_tool_calls(text: str,
                              "document the", "case against", "build a case")):
         calls.append({"name": "list_evidence_to_preserve", "args": {},
                       "result": _tool_list_evidence_to_preserve({})})
+    rc = _tool_classify_recruitment_cost({"text": text})
+    if rc.get("found"):
+        calls.append({"name": "classify_recruitment_cost", "args": {"text": "(user message)"}, "result": rc})
     return calls
 
 
