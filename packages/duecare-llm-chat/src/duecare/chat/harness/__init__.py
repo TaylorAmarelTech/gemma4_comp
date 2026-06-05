@@ -1738,6 +1738,49 @@ GREP_RULES = [
                        "to victim-of-trafficking protection track.",
     },
     {
+        # Worker-side counterpart to money_mule_recruitment_pattern: that rule
+        # (all_required) catches the recruiter's AD; this one (any-pattern)
+        # catches a worker DESCRIBING their own situation, where the lure
+        # phrase ("easy money / keep N%") is absent. Each pattern requires a
+        # money noun so it does not fire on "receive the email and forward it".
+        "rule": "money_mule_account_misuse_worker_report",
+        "patterns": [
+            r"\bmoney\s+mule\b",
+            r"\bmule\s+(?:account|herder)\b",
+            r"\breceiv\w+\s+(?:money|funds|payments?|cash|transfers?)\b"
+            r"[^.?!]{0,40}\b(?:forward|send|transfer|pass|move|wire|hand)\b",
+            r"\b(?:they|he|she|employer|boss|company|agent|recruiter)\s+"
+            r"(?:asked|told|made|want\w*|need\w*)\s+me\s+to\s+"
+            r"(?:receive|collect|move|transfer|forward|send|withdraw)\s+"
+            r"(?:money|funds|payments?|cash)\b",
+            r"\b(?:use|using|lend|lent|lending|open\w*|register\w*)\s+"
+            r"(?:my|your|a|another|his|her)\s+(?:bank\s+|personal\s+)?account\s+"
+            r"(?:for|to|on\s+behalf|so\s+(?:they|he|she))\b",
+            r"\b(?:my|the|your)\s+(?:bank\s+|personal\s+)?account\s+"
+            r"(?:is\s+|gets?\s+|being\s+)?used\s+to\s+"
+            r"(?:receive|collect|hold|move|forward|launder)\s+"
+            r"(?:money|funds|payments?|cash)\b",
+            r"\breceiv\w+\s+packages?\b[^.?!]{0,30}"
+            r"\b(?:reship|re-ship|forward|send|post|mail)\b",
+            r"\bwithdraw\s+(?:the\s+)?(?:cash|money|funds)\s+"
+            r"(?:for\s+(?:them|him|her|the\s+(?:company|boss|employer))|"
+            r"and\s+(?:give|hand))\b",
+        ],
+        "all_required": False,
+        "severity": "high",
+        "citation": "FATF 'Money Mules' Typology (2021); FATF Rec. 16 "
+                      "(wire transfers); Palermo Protocol Art. 3(a) (deception "
+                      "as a trafficking means); ILO C029 (forced labour where "
+                      "the work is coerced)",
+        "indicator": "A worker reporting that they receive/forward money, lend "
+                       "a bank account, or reship packages for an 'employer' is "
+                       "a money-mule pattern. They are BOTH a money-laundering-"
+                       "law target AND a likely deception/trafficking victim -- "
+                       "treat as victim-protection first, route to the "
+                       "destination Financial Intelligence Unit (FIU), and warn "
+                       "that moving the funds is itself a chargeable offence.",
+    },
+    {
         "rule": "structured_deposits_smurfing",
         "patterns": [r"\b(?:deposit|cash|payment)s?\s+(?:of|under|"
                        r"below|less\s+than)\s+(?:USD|EUR|\$|€)\s*"
