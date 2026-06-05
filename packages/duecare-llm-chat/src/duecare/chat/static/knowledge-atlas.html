@@ -80,6 +80,15 @@
     .maptip { position: fixed; z-index: 60; pointer-events: none; background: var(--ink); color: var(--paper);
               font-size: 12px; padding: 6px 10px; border-radius: 6px; max-width: 240px; line-height: 1.4;
               box-shadow: 0 4px 14px rgba(0,0,0,0.25); }
+    .regionbars { margin-top: 16px; display: grid; gap: 8px; max-width: 580px; }
+    .regionbars h3 { margin: 0 0 2px; font-size: 11px; color: var(--ink-3); text-transform: uppercase;
+                     letter-spacing: 0.08em; font-family: var(--mono); font-weight: 600; }
+    .regionbar { display: grid; grid-template-columns: 92px 1fr 56px; align-items: center; gap: 10px; font-size: 12px; }
+    .regionbar .rname { color: var(--ink-2); font-weight: 600; }
+    .regionbar .rtrack { height: 10px; background: #E4E1D7; border-radius: 6px; overflow: hidden; }
+    .regionbar .rfill { height: 100%; background: oklch(0.62 0.10 165); border-radius: 6px; }
+    .regionbar .rpct { color: var(--ink-3); font-variant-numeric: tabular-nums; text-align: right;
+                       font-family: var(--mono); font-size: 11px; }
     .placeholder { color: var(--ink-3); font-style: italic; padding: 14px; }
     .err { color: oklch(0.40 0.13 45); padding: 14px; }
     @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
@@ -130,6 +139,7 @@
         <svg id="worldmap" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet"
              role="img" aria-label="World map shaded by DueCare legal coverage"></svg>
       </div>
+      <div class="regionbars" id="regionbars" aria-label="Coverage by region"></div>
     </div>
   </div>
   <div class="maptip" id="maptip" hidden></div>
@@ -342,6 +352,49 @@
       return coverCache;
     }
 
+    // ---- region binning (centroid + overrides; self-contained, no extra data) ----
+    const OCEANIA = new Set(["AUS", "NZL", "PNG", "FJI", "NCL", "SLB", "VUT", "WSM", "TON", "KIR", "FSM", "MHL", "PLW", "TUV", "NRU"]);
+    const ASIA_FIX = new Set(["SAU", "YEM", "OMN", "QAT", "KWT", "BHR", "IRQ", "JOR", "ISR", "LBN", "SYR", "PSE", "ARE"]);
+    const EUROPE_FIX = new Set(["CYP", "MLT"]);
+    const REGION_SKIP = new Set(["ATA", "ATF", "GRL", "BMU", "PRI", "GUF", "FLK", "ESH"]);
+    const REGION_ORDER = ["Africa", "Asia", "Europe", "Americas", "Oceania"];
+    function centroidOf(geom) {
+      let minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9;
+      (function walk(c) {
+        if (typeof c[0] === "number") {
+          if (c[0] < minx) minx = c[0]; if (c[0] > maxx) maxx = c[0];
+          if (c[1] < miny) miny = c[1]; if (c[1] > maxy) maxy = c[1];
+        } else { c.forEach(walk); }
+      })(geom.coordinates);
+      return [(minx + maxx) / 2, (miny + maxy) / 2];
+    }
+    function regionOf(iso, geom) {
+      if (!/^[A-Z]{3}$/.test(iso || "") || REGION_SKIP.has(iso)) return null;
+      if (ASIA_FIX.has(iso) || iso === "RUS") return "Asia";
+      if (EUROPE_FIX.has(iso)) return "Europe";
+      if (OCEANIA.has(iso)) return "Oceania";
+      const c = centroidOf(geom), lon = c[0], lat = c[1];
+      if (lon < -25) return "Americas";
+      if (lat >= 36 && lon >= -25 && lon <= 50) return "Europe";
+      if (lon >= -20 && lon <= 52 && lat >= -40 && lat <= 38) return "Africa";
+      return "Asia";
+    }
+    function renderRegionBars(tot, cov) {
+      const host = document.getElementById("regionbars");
+      clear(host);
+      host.appendChild(el("h3", {text: "Coverage by region"}));
+      REGION_ORDER.forEach(function (r) {
+        const t = tot[r] || 0, c = cov[r] || 0;
+        if (!t) return;
+        const pct = Math.round(100 * c / t);
+        host.appendChild(el("div", {class: "regionbar"}, [
+          el("span", {class: "rname", text: r}),
+          el("div", {class: "rtrack"}, [el("div", {class: "rfill", style: "width:" + pct + "%"})]),
+          el("span", {class: "rpct", text: c + "/" + t}),
+        ]));
+      });
+    }
+
     function proj(lon, lat) { return [(lon + 180) * (MW / 360), (90 - lat) * (MH / 180)]; }
     function ringPath(ring) {
       let d = "";
@@ -364,18 +417,22 @@
       try { await loadGeo(); }
       catch (e) {
         clear(svg);
-        svg.appendChild(svgEl("text", {x: 20, y: 40, fill: "#0E1116", "font-size": "16"}));
-        svg.lastChild.textContent = "Map unavailable: " + e.message;
+        const t = svgEl("text", {x: 20, y: 40, fill: "#0E1116", "font-size": "16"});
+        t.textContent = "Map unavailable: " + e.message;
+        svg.appendChild(t);
         return;
       }
       const cov = computeCoverage();
       clear(svg);
       svg.appendChild(svgEl("rect", {x: 0, y: 0, width: MW, height: MH, fill: "#EFEDE4"}));
       let covered = 0;
+      const rTot = {}, rCov = {};
       (geo.features || []).forEach(f => {
         if (!f.geometry || f.id === "ATA") return;
         const isCov = cov.set.has(f.id);
         if (isCov) covered++;
+        const rg = regionOf(f.id, f.geometry);
+        if (rg) { rTot[rg] = (rTot[rg] || 0) + 1; if (isCov) rCov[rg] = (rCov[rg] || 0) + 1; }
         const p = svgEl("path", {
           d: featurePath(f.geometry),
           fill: isCov ? "oklch(0.62 0.10 165)" : "#D9D5C7",
@@ -396,6 +453,7 @@
         svg.appendChild(p);
       });
       document.getElementById("map-covered").textContent = String(covered);
+      renderRegionBars(rTot, rCov);
     }
     function showTip(ev, name, isCov, n) {
       const tip = document.getElementById("maptip");
