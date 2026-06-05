@@ -14822,12 +14822,62 @@ def _tool_lookup_ilo_convention(args: dict, table=None) -> dict:
              "available": sorted(table.keys())}
 
 
+def _tool_check_grep_indicators(args: dict) -> dict:
+    """Run the GREP indicator rules over a text snippet and return which fired
+    (rule id, severity, citation, indicator). Lets a response DETECT
+    trafficking / forced-labour patterns in worker text instead of guessing."""
+    text = str(args.get("text", "") or args.get("message", ""))
+    if not text.strip():
+        return {"found": False, "note": "text required"}
+    out = _grep_call(text)
+    hits = out.get("hits", []) if isinstance(out, dict) else []
+    return {"found": bool(hits), "n": len(hits),
+            "indicators": [{"rule": h.get("rule"), "severity": h.get("severity"),
+                            "citation": h.get("citation"), "indicator": h.get("indicator")}
+                           for h in hits[:15]]}
+
+
+def _tool_search_grounding(args: dict) -> dict:
+    """Retrieve the most relevant public grounding documents (RAG corpus:
+    conventions, case law, corridor + fee law, schemes, indicators) for a
+    query via BM25. Use to ground a fee / law / scheme answer in cited sources
+    rather than memory."""
+    q = str(args.get("query", "") or args.get("text", ""))
+    if not q.strip():
+        return {"found": False, "note": "query required"}
+    k = max(1, min(int(args.get("top_k", 4) or 4), 8))
+    out = _rag_call(q, top_k=k)
+    docs = out.get("docs", []) if isinstance(out, dict) else []
+    return {"found": bool(docs), "n": len(docs),
+            "docs": [{"id": d.get("id"), "title": d.get("title"),
+                      "citation": d.get("source"),
+                      "snippet": str(d.get("snippet") or "")[:400]} for d in docs]}
+
+
+def _tool_list_ilo_conventions(args: dict, table=None) -> dict:
+    """List the ILO Conventions in the knowledge base, optionally filtered by a
+    topic substring (matched against title + focus). Use to surface the
+    applicable instruments for a scenario."""
+    table = table if table is not None else ILO_CONVENTIONS
+    topic = str(args.get("topic", "")).strip().lower()
+    out = []
+    for num in sorted(table):
+        year, title, _articles, focus, _ratif = table[num]
+        if topic and topic not in (str(title) + " " + str(focus)).lower():
+            continue
+        out.append({"number": f"C{num}", "year": year, "title": title})
+    return {"n": len(out), "conventions": out}
+
+
 _TOOL_DISPATCH = {
     "lookup_corridor_fee_cap": _tool_lookup_corridor_fee_cap,
     "lookup_fee_camouflage": _tool_lookup_fee_camouflage,
     "lookup_ilo_indicator": _tool_lookup_ilo_indicator,
     "lookup_ngo_intake": _tool_lookup_ngo_intake,
     "lookup_ilo_convention": _tool_lookup_ilo_convention,
+    "check_grep_indicators": _tool_check_grep_indicators,
+    "search_grounding": _tool_search_grounding,
+    "list_ilo_conventions": _tool_list_ilo_conventions,
 }
 
 
