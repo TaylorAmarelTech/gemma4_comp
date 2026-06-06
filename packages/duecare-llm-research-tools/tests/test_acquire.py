@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from duecare.research_tools.acquire import acquire, extract_main_text, scrub_text
 from duecare.research_tools.monitor import FetchResult
+from duecare.research_tools.store import AcquisitionStore
 
 # Synthetic public-law-style pages (no real PII). Long enough to chunk.
 _BODY1 = (
@@ -72,3 +73,16 @@ def test_acquire_drops_too_short():
     r = acquire([{"id": "t", "url": "u"}], fetch=_fetch({"u": "<p>tiny</p>"}), min_doc_chars=200)
     assert r.n_chunks_kept == 0
     assert any(d.get("_dup_reason") == "too_short" for d in r.dropped)
+
+
+def test_acquire_with_store_persists_and_dedups():
+    cands = [{"id": "d1", "url": "u1"}]
+    fetch = _fetch({"u1": _BODY1})
+    with AcquisitionStore(":memory:") as store:
+        r1 = acquire(cands, fetch=fetch, store=store, min_doc_chars=100)
+        assert r1.n_chunks_kept >= 1
+        assert store.count() == r1.n_chunks_kept          # chunks persisted to the store
+        # re-acquiring the same source -> store dedups every chunk, nothing kept
+        r2 = acquire(cands, fetch=fetch, store=store, min_doc_chars=100)
+        assert r2.n_chunks_kept == 0
+        assert all(d.get("_dup_reason") in ("exact", "near") for d in r2.dropped)

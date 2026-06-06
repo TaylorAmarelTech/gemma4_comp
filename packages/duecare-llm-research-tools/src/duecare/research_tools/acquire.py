@@ -30,6 +30,7 @@ from .docfetch import fetch_document
 from .graph import build_graph
 from .monitor import FetchResult
 from .monitor import scrub as _scrub_contacts
+from .store import AcquisitionStore
 
 # Public pages can legitimately name public officials / orgs / public-record
 # cases (rule 10 permits those); what we defensively strip even from public docs
@@ -117,6 +118,7 @@ def acquire(
     fetch: Callable[[str], FetchResult] = fetch_document,
     existing_keys: set[str] | None = None,
     existing_sigs: list[int] | None = None,
+    store: AcquisitionStore | None = None,
     target_chars: int = 900,
     overlap_chars: int = 150,
     max_dist: int = 3,
@@ -156,20 +158,28 @@ def acquire(
         kept_any = False
         for ch in chunks:
             key = content_key(ch.text)
-            if key in seen_keys:
-                dropped.append({"id": ch.id, "url": url, "_dup_reason": "exact"})
-                continue
             sig = simhash64(ch.text)
-            if len(sig_index) and sig_index.query_near(sig, max_dist=max_dist):
-                dropped.append({"id": ch.id, "url": url, "_dup_reason": "near"})
-                continue
-            seen_keys.add(key)
-            sig_index.add(sig)
-            kept.append(AcquiredChunk(
+            ac = AcquiredChunk(
                 id=ch.id, doc_id=ch.doc_id, ordinal=ch.ordinal, text=ch.text,
                 url=url, title=c.get("title"), source_tier=c.get("source_tier"),
                 jurisdictions=c.get("jurisdictions") or [], signals=c.get("signals") or [],
-                content_key=key, simhash=sig, n_chars=ch.n_chars))
+                content_key=key, simhash=sig, n_chars=ch.n_chars)
+            if store is not None:
+                # persistent, scalable dedup against the whole corpus (O(bucket))
+                verdict = store.add_chunk(ac.model_dump(), max_dist=max_dist)
+                if verdict != "kept":
+                    dropped.append({"id": ch.id, "url": url, "_dup_reason": verdict})
+                    continue
+            else:
+                if key in seen_keys:
+                    dropped.append({"id": ch.id, "url": url, "_dup_reason": "exact"})
+                    continue
+                if len(sig_index) and sig_index.query_near(sig, max_dist=max_dist):
+                    dropped.append({"id": ch.id, "url": url, "_dup_reason": "near"})
+                    continue
+                seen_keys.add(key)
+                sig_index.add(sig)
+            kept.append(ac)
             kept_any = True
         if kept_any:
             doc_texts[doc_id] = text
