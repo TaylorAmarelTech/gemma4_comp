@@ -64,6 +64,21 @@ def hamming(a: int, b: int) -> int:
     return bin(a ^ b).count("1")
 
 
+def band_keys(sig: int, *, bands: int = 4) -> list[tuple[int, int]]:
+    """LSH ``(band_index, band_value)`` keys for a 64-bit signature. Two sigs
+    within Hamming distance d share >=1 key when ``bands > d`` (pigeonhole), so a
+    bucket on these keys gives exact near-dup lookup for ``max_dist < bands``.
+    Shared by the in-memory ``SimHashIndex`` and the persisted store index."""
+    bands = max(2, bands)
+    width = 64 // bands
+    keys: list[tuple[int, int]] = []
+    for b in range(bands):
+        shift = b * width
+        w = width if b < bands - 1 else 64 - shift  # last band takes the remainder
+        keys.append((b, (sig >> shift) & ((1 << w) - 1)))
+    return keys
+
+
 def is_near_dup(sig: int, existing_sigs: Iterable[int], *, max_dist: int = 3) -> bool:
     """True if ``sig`` is within ``max_dist`` bits of any existing signature.
     O(N) linear scan -- fine for small sets; use ``SimHashIndex`` at scale."""
@@ -91,12 +106,7 @@ class SimHashIndex:
             self.add(s)
 
     def _band_keys(self, sig: int) -> list[tuple[int, int]]:
-        keys = []
-        for b in range(self.bands):
-            shift = b * self.width
-            w = self.width if b < self.bands - 1 else 64 - shift  # last band takes the remainder
-            keys.append((b, (sig >> shift) & ((1 << w) - 1)))
-        return keys
+        return band_keys(sig, bands=self.bands)
 
     def add(self, sig: int) -> None:
         for k in self._band_keys(sig):
