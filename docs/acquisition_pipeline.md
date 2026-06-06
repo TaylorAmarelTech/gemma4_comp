@@ -48,7 +48,25 @@ export PYTHONPATH=$(ls -d packages/*/src | tr '\n' ';')
 
 ```bash
 HARVEST_TOTAL=4000 HARVEST_PER_SEED=60 "$py" scripts/harvest_sitemaps.py
-# -> reports/acquisition/harvested_candidates.jsonl
+# -> reports/acquisition/harvested_candidates.jsonl  (small / JSONL)
+```
+
+**1b. Million-scale frontier** (deep, resumable, streaming walk into a SQLite
+queue — for hundreds-of-thousands to millions of URLs):
+
+```bash
+HARVEST_DB=reports/acquisition/frontier.db HARVEST_MAX=2000000 \
+HARVEST_MAX_FETCHES=50000 HARVEST_DEPTH=8 "$py" scripts/harvest_frontier.py
+# -> frontier.db table `frontier` (status='pending'); resumable via the sitemaps ledger
+```
+
+Then acquire drains the frontier instead of a jsonl:
+
+```bash
+ACQ_FRONTIER_DB=reports/acquisition/frontier.db ACQ_OUT=reports/acquisition \
+"$py" scripts/run_acquisition.py
+# pulls pending -> acquires -> marks 'acquired' (resume-safe). Politeness rate-
+# limits real fetches, so a huge frontier drains incrementally over many runs.
 ```
 
 **2. Acquire** (fetch → stage chunks + graph). Resumable; skips URLs already in
