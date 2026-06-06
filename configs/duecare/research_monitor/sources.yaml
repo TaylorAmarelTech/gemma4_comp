@@ -1,0 +1,90 @@
+# Public Information Research Monitor -- source registry (Component 5 MVP).
+# PUBLIC pages only. The monitor fetches each, hashes the content, and PROPOSES
+# curator-review items when a page changes or 404s. It NEVER mutates production
+# packs. Seed URLs may drift; a 404 is itself a useful "unreachable" finding for
+# review. Add sources by jurisdiction/corridor over time (watchlists are a
+# production deliverable). kinds: law | agency | complaint_form | contact |
+# guidance | scam_watch.
+sources:
+  - id: ilo_forced_labour_topic
+    url: https://www.ilo.org/topics/forced-labour-modern-slavery-and-trafficking-persons
+    kind: guidance
+    label: ILO forced labour, modern slavery & trafficking
+  - id: ilo_normlex_c189
+    url: https://normlex.ilo.org/dyn/normlex/en/f?p=NORMLEXPUB:12100:0::NO::P12100_ILO_CODE:C189
+    kind: law
+    label: ILO C189 Domestic Workers Convention
+  - id: ilo_normlex_c029
+    url: https://normlex.ilo.org/dyn/normlex/en/f?p=NORMLEXPUB:12100:0::NO::P12100_ILO_CODE:C029
+    kind: law
+    label: ILO C029 Forced Labour Convention
+  - id: us_tip_report
+    url: https://www.state.gov/trafficking-in-persons-report/
+    kind: agency
+    label: US State Dept Trafficking in Persons Report
+    jurisdiction: US
+  - id: unodc_human_trafficking
+    url: https://www.unodc.org/unodc/en/human-trafficking/index.html
+    kind: guidance
+    label: UNODC Human Trafficking
+  - id: iom_protection
+    url: https://www.iom.int/migrant-protection-and-assistance
+    kind: guidance
+    label: IOM Migrant Protection and Assistance
+  - id: fatf_methods_trends
+    url: https://www.fatf-gafi.org/en/topics/Methodsandtrends.html
+    kind: guidance
+    label: FATF methods & trends (illicit finance)
+  - id: ph_dmw
+    url: https://www.dmw.gov.ph/
+    kind: agency
+    label: Philippines Dept of Migrant Workers (ex-POEA)
+    jurisdiction: PH
+  - id: nepal_dofe
+    url: https://dofe.gov.np/
+    kind: agency
+    label: Nepal Dept of Foreign Employment
+    jurisdiction: NP
+  - id: indonesia_bp2mi
+    url: https://bp2mi.go.id/
+    kind: agency
+    label: Indonesia BP2MI (migrant worker protection)
+    jurisdiction: ID
+  - id: hk_labour_fdh
+    url: https://www.labour.gov.hk/eng/news/mwposp.htm
+    kind: agency
+    label: Hong Kong Labour Dept -- foreign domestic helpers
+    jurisdiction: HK
+    corridor: PH-HK
+  - id: uk_glaa
+    url: https://www.gla.gov.uk/
+    kind: agency
+    label: UK Gangmasters & Labour Abuse Authority
+    jurisdiction: UK
+  - id: uk_modern_slavery_helpline
+    url: https://www.modernslaveryhelpline.org/
+    kind: contact
+    label: UK Modern Slavery Helpline
+    jurisdiction: UK
+  - id: polaris_hotline
+    url: https://humantraffickinghotline.org/
+    kind: contact
+    label: US National Human Trafficking Hotline (Polaris)
+    jurisdiction: US
+  - id: coe_greta
+    url: https://www.coe.int/en/web/anti-human-trafficking/greta
+    kind: guidance
+    label: Council of Europe GRETA
+  - id: ilo_qatar
+    url: https://www.ilo.org/projects-and-partnerships/projects/ilo-project-office-state-qatar
+    kind: guidance
+    label: ILO Qatar labour reform
+    jurisdiction: QA
+  - id: migrant_rights_gulf
+    url: https://www.migrant-rights.org/
+    kind: scam_watch
+    label: Migrant-Rights.org (Gulf migrant worker news)
+  - id: verite_fair_hiring
+    url: https://verite.org/
+    kind: guidance
+    label: Verite (fair hiring & forced labour)
