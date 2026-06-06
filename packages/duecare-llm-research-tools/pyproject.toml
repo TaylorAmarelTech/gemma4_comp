@@ -16,6 +16,10 @@ dependencies = [
 
 [project.optional-dependencies]
 http = ["httpx>=0.25.0"]
+# Bot-grade fetch for the Public Information Research Monitor: curl_cffi
+# impersonates a real browser TLS/JA3 fingerprint so government/NGO WAFs do not
+# 403 a stdlib request. Optional -- the monitor falls back to stdlib urllib.
+fetch = ["curl_cffi>=0.7.0"]
 
 [project.urls]
 Homepage = "https://github.com/TaylorAmarelTech/gemma4_comp"
