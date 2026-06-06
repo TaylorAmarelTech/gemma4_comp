@@ -27,10 +27,14 @@ def test_offtopic_is_low():
     assert not r["entities"] and not r["families"]
 
 
-def test_source_signal_lifts_generic_text_to_medium():
+def test_source_signal_scores_but_does_not_gate():
+    # a generic page from a trafficking-adjacent domain must earn promotion on its
+    # own text: an inherited source tag raises the score but NOT the tier.
     generic = "This page describes administrative procedures and office hours."
     assert relevance(generic)["tier"] == "low"
-    assert relevance(generic, signals=["debt_bondage"])["tier"] == "medium"
+    tagged = relevance(generic, signals=["debt_bondage"])
+    assert tagged["tier"] == "low"                  # still gated out
+    assert tagged["signal_tags"] == ["debt_bondage"] and tagged["score"] >= 1
 
 
 def test_passes_threshold():

@@ -53,8 +53,12 @@ TIER_RANK = {"low": 0, "medium": 1, "high": 2}
 def relevance(text: str, *, signals: list[str] | None = None) -> dict:
     """Score one chunk. Returns ``{tier, score, entities, families, signal_tags}``.
     high  = an entity + >=2 lexicon families, or >=3 families (strong agreement)
-    medium= any single domain signal (entity / family / source tag)
-    low   = no domain signal at all (off-topic -> gated out by default)."""
+    medium= IN-TEXT domain evidence (>=1 entity or lexicon family)
+    low   = no in-text domain evidence (off-topic -> gated out by default).
+
+    Source signal tags only contribute to ``score`` (ranking within a tier), never
+    to the tier itself -- a generic page from a trafficking-adjacent domain must
+    earn promotion on its own text, not on an inherited tag."""
     t = text or ""
     ents = sorted(extract_entities(t))
     fams = sorted(fam for fam, pats in _COMPILED.items() if any(p.search(t) for p in pats))
@@ -62,7 +66,7 @@ def relevance(text: str, *, signals: list[str] | None = None) -> dict:
     score = 2 * len(ents) + 2 * len(fams) + len(sig)
     if (ents and len(fams) >= 2) or len(fams) >= 3:
         tier = "high"
-    elif ents or fams or sig:
+    elif ents or fams:
         tier = "medium"
     else:
         tier = "low"
