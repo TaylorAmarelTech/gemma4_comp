@@ -25,7 +25,7 @@ from typing import Callable
 from pydantic import BaseModel
 
 from .chunker import chunk_document
-from .dedup import content_key, is_near_dup, simhash64
+from .dedup import SimHashIndex, content_key, simhash64
 from .graph import build_graph
 from .monitor import FetchResult, default_fetch
 from .monitor import scrub as _scrub_contacts
@@ -127,7 +127,7 @@ def acquire(
     corpus) and within the batch. Returns staged chunks + doc graph + manifest;
     writes nothing (the runner persists the staging artifact)."""
     seen_keys: set[str] = set(existing_keys or set())
-    sigs: list[int] = list(existing_sigs or [])
+    sig_index = SimHashIndex(existing_sigs or [], bands=max(4, max_dist + 1))
     kept: list[AcquiredChunk] = []
     dropped: list[dict] = []
     unreachable: list[dict] = []
@@ -159,11 +159,11 @@ def acquire(
                 dropped.append({"id": ch.id, "url": url, "_dup_reason": "exact"})
                 continue
             sig = simhash64(ch.text)
-            if sigs and is_near_dup(sig, sigs, max_dist=max_dist):
+            if len(sig_index) and sig_index.query_near(sig, max_dist=max_dist):
                 dropped.append({"id": ch.id, "url": url, "_dup_reason": "near"})
                 continue
             seen_keys.add(key)
-            sigs.append(sig)
+            sig_index.add(sig)
             kept.append(AcquiredChunk(
                 id=ch.id, doc_id=ch.doc_id, ordinal=ch.ordinal, text=ch.text,
                 url=url, title=c.get("title"), source_tier=c.get("source_tier"),

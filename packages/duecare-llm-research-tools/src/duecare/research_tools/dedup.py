@@ -65,8 +65,58 @@ def hamming(a: int, b: int) -> int:
 
 
 def is_near_dup(sig: int, existing_sigs: Iterable[int], *, max_dist: int = 3) -> bool:
-    """True if ``sig`` is within ``max_dist`` bits of any existing signature."""
+    """True if ``sig`` is within ``max_dist`` bits of any existing signature.
+    O(N) linear scan -- fine for small sets; use ``SimHashIndex`` at scale."""
     return any(hamming(sig, e) <= max_dist for e in existing_sigs)
+
+
+class SimHashIndex:
+    """Banded LSH over 64-bit SimHashes for fast near-dup queries at scale.
+
+    By the pigeonhole principle, two signatures within Hamming distance ``d``
+    must agree exactly on at least one of ``B`` equal bands whenever ``B > d``.
+    So we bucket each signature by ``(band_index, band_value)`` and, on query,
+    only Hamming-check signatures sharing a band -- turning the O(N) linear scan
+    into O(bucket size). EXACT (no false negatives) as long as ``bands > max_dist``
+    on every query; the default 4 bands covers the default ``max_dist <= 3``.
+    Deterministic; no RNG.
+    """
+
+    def __init__(self, sigs: Iterable[int] = (), *, bands: int = 4) -> None:
+        self.bands = max(2, bands)
+        self.width = 64 // self.bands
+        self._buckets: dict[tuple[int, int], list[int]] = {}
+        self._n = 0
+        for s in sigs:
+            self.add(s)
+
+    def _band_keys(self, sig: int) -> list[tuple[int, int]]:
+        keys = []
+        for b in range(self.bands):
+            shift = b * self.width
+            w = self.width if b < self.bands - 1 else 64 - shift  # last band takes the remainder
+            keys.append((b, (sig >> shift) & ((1 << w) - 1)))
+        return keys
+
+    def add(self, sig: int) -> None:
+        for k in self._band_keys(sig):
+            self._buckets.setdefault(k, []).append(sig)
+        self._n += 1
+
+    def query_near(self, sig: int, *, max_dist: int = 3) -> bool:
+        """True if any indexed signature is within ``max_dist`` bits of ``sig``."""
+        checked: set[int] = set()
+        for k in self._band_keys(sig):
+            for cand in self._buckets.get(k, ()):
+                if cand in checked:
+                    continue
+                checked.add(cand)
+                if hamming(sig, cand) <= max_dist:
+                    return True
+        return False
+
+    def __len__(self) -> int:
+        return self._n
 
 
 def dedup_new(
