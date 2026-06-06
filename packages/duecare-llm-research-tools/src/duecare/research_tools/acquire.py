@@ -26,8 +26,9 @@ from pydantic import BaseModel
 
 from .chunker import chunk_document
 from .dedup import SimHashIndex, content_key, simhash64
+from .docfetch import fetch_document
 from .graph import build_graph
-from .monitor import FetchResult, default_fetch
+from .monitor import FetchResult
 from .monitor import scrub as _scrub_contacts
 
 # Public pages can legitimately name public officials / orgs / public-record
@@ -113,7 +114,7 @@ class AcquisitionResult(BaseModel):
 def acquire(
     candidates: list[dict],
     *,
-    fetch: Callable[[str], FetchResult] = default_fetch,
+    fetch: Callable[[str], FetchResult] = fetch_document,
     existing_keys: set[str] | None = None,
     existing_sigs: list[int] | None = None,
     target_chars: int = 900,
