@@ -75,3 +75,26 @@ def test_edges_and_stats():
         s.add_edges([{"source": "d1", "target": "ilo_c189", "relation": "mentions", "weight": 1}])
         st = s.stats()
         assert st["chunks"] == 1 and st["edges"] == 1 and st["docs"] == 1
+
+
+def test_frontier_queue():
+    with AcquisitionStore(":memory:") as s:
+        added = s.add_frontier_bulk([
+            {"url": "https://e.org/a", "host": "e.org", "source_tier": "gov"},
+            {"url": "https://e.org/b", "host": "e.org"},
+            {"url": "https://e.org/a"},  # dup -> ignored
+        ])
+        assert added == 2 and s.frontier_count() == 2
+        assert s.frontier_count(status="pending") == 2
+        pend = list(s.iter_frontier(status="pending"))
+        assert {p["url"] for p in pend} == {"https://e.org/a", "https://e.org/b"}
+        s.mark_frontier("https://e.org/a", "acquired")
+        assert s.frontier_count(status="pending") == 1
+        assert s.add_frontier("https://e.org/b") is False  # already present
+
+
+def test_sitemap_ledger():
+    with AcquisitionStore(":memory:") as s:
+        assert not s.sitemap_seen("https://e.org/sitemap.xml")
+        s.mark_sitemap("https://e.org/sitemap.xml")
+        assert s.sitemap_seen("https://e.org/sitemap.xml")

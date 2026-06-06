@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 from duecare.research_tools.monitor import FetchResult
-from duecare.research_tools.sitemap import harvest, is_sitemap_url, parse_locs, robots_sitemaps
+from duecare.research_tools.sitemap import (
+    harvest, is_sitemap_url, parse_locs, robots_sitemaps, walk_sitemaps,
+)
 
 ROBOTS = "User-agent: *\nDisallow: /private\nSitemap: https://ex.org/sitemap_index.xml\n"
 INDEX = ("<?xml version='1.0'?><sitemapindex><sitemap><loc>https://ex.org/sm1.xml</loc>"
@@ -62,3 +64,19 @@ def test_max_depth_blocks_recursion():
     # depth 0 fetches the index (a sitemap), but children are at depth 1 > max_depth=0
     docs, _ = harvest(["https://ex.org/sitemap_index.xml"], fetch=_fetch, max_depth=0)
     assert docs == []
+
+
+def test_walk_sitemaps_streams_and_resumes():
+    # streaming sink instead of accumulation
+    got = []
+    stats = walk_sitemaps(["https://ex.org/sitemap_index.xml"], on_doc=got.append, fetch=_fetch)
+    assert set(got) == {"https://ex.org/doc/a", "https://ex.org/doc/b", "https://ex.org/report/c.pdf"}
+    assert stats["docs"] == 3
+
+    # resume: pretend sm1 was already walked -> its docs are skipped
+    walked = {"https://ex.org/sm1.xml"}
+    got2 = []
+    walk_sitemaps(["https://ex.org/sitemap_index.xml"], on_doc=got2.append, fetch=_fetch,
+                  is_sitemap_seen=lambda u: u in walked, on_sitemap=walked.add)
+    assert "https://ex.org/doc/a" not in got2          # sm1 skipped
+    assert "https://ex.org/report/c.pdf" in got2       # sm2 still walked

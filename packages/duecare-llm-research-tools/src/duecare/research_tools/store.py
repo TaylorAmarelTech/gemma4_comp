@@ -36,6 +36,11 @@ CREATE TABLE IF NOT EXISTS bands(band_idx INTEGER, band_val INTEGER, simhash TEX
 CREATE INDEX IF NOT EXISTS ix_bands ON bands(band_idx, band_val);
 CREATE TABLE IF NOT EXISTS urls(url TEXT PRIMARY KEY, status TEXT, status_code INTEGER, ts TEXT);
 CREATE TABLE IF NOT EXISTS edges(source TEXT, target TEXT, relation TEXT, weight INTEGER);
+CREATE TABLE IF NOT EXISTS frontier(
+  url TEXT PRIMARY KEY, host TEXT, source_tier TEXT, jurisdiction TEXT,
+  signals TEXT, discovered_from TEXT, status TEXT DEFAULT 'pending', ts TEXT);
+CREATE INDEX IF NOT EXISTS ix_frontier_status ON frontier(status);
+CREATE TABLE IF NOT EXISTS sitemaps(url TEXT PRIMARY KEY, ts TEXT);
 """
 
 
@@ -115,6 +120,51 @@ class AcquisitionStore:
         self._conn.execute(
             "INSERT OR REPLACE INTO urls(url, status, status_code, ts) VALUES(?,?,?,?)",
             (url, status, status_code, ts))
+
+    # -- frontier (URL queue for large crawls) -------------------------------
+    def add_frontier_bulk(self, rows: list[dict]) -> int:
+        """Insert many discovered URLs at once (INSERT OR IGNORE dedups by url).
+        Returns the number of NEW rows added (via total_changes -> O(1), no COUNT
+        scan). Built for million-scale harvests."""
+        before = self._conn.total_changes
+        self._conn.executemany(
+            "INSERT OR IGNORE INTO frontier(url, host, source_tier, jurisdiction, "
+            "signals, discovered_from, status, ts) VALUES(?,?,?,?,?,?, 'pending', ?)",
+            [(r.get("url"), r.get("host"), r.get("source_tier"), r.get("jurisdiction"),
+              json.dumps(r.get("signals") or []), r.get("discovered_from"), r.get("ts", ""))
+             for r in rows if r.get("url")])
+        return self._conn.total_changes - before
+
+    def add_frontier(self, url: str, **meta) -> bool:
+        return self.add_frontier_bulk([{"url": url, **meta}]) > 0
+
+    def frontier_count(self, status: str | None = None) -> int:
+        if status is None:
+            return int(self._conn.execute("SELECT COUNT(*) FROM frontier").fetchone()[0])
+        return int(self._conn.execute(
+            "SELECT COUNT(*) FROM frontier WHERE status=?", (status,)).fetchone()[0])
+
+    def iter_frontier(self, *, status: str = "pending", limit: int | None = None) -> Iterator[dict]:
+        sql = "SELECT * FROM frontier WHERE status=? ORDER BY rowid"
+        params: tuple = (status,)
+        if limit:
+            sql += " LIMIT ?"
+            params = (status, limit)
+        for row in self._conn.execute(sql, params):
+            d = dict(row)
+            d["signals"] = json.loads(d.get("signals") or "[]")
+            d["jurisdictions"] = [d["jurisdiction"]] if d.get("jurisdiction") else []
+            yield d
+
+    def mark_frontier(self, url: str, status: str) -> None:
+        self._conn.execute("UPDATE frontier SET status=? WHERE url=?", (status, url))
+
+    def sitemap_seen(self, url: str) -> bool:
+        return self._conn.execute(
+            "SELECT 1 FROM sitemaps WHERE url=? LIMIT 1", (url,)).fetchone() is not None
+
+    def mark_sitemap(self, url: str, ts: str = "") -> None:
+        self._conn.execute("INSERT OR IGNORE INTO sitemaps(url, ts) VALUES(?,?)", (url, ts))
 
     # -- write ---------------------------------------------------------------
     def add_chunk(self, chunk: dict, *, max_dist: int = 3) -> str:
