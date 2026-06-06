@@ -75,7 +75,8 @@ def main() -> None:
         return
 
     created_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    envelopes = build_envelopes(staged, graph, created_at=created_at)
+    max_per_doc = int(os.environ.get("PROMOTE_MAX_PER_DOC", "120")) or None
+    envelopes = build_envelopes(staged, graph, created_at=created_at, max_per_doc=max_per_doc)
     entries = bundle_entries(envelopes)
 
     # reviewable jsonl
@@ -98,6 +99,7 @@ def main() -> None:
     summary = {
         "created_at": created_at,
         "staged_chunks": len(staged),
+        "max_per_doc": max_per_doc,
         "envelopes_total": len(envelopes),
         "by_type": by_type,
         "bundle_zip": str(zip_path),
