@@ -34,6 +34,8 @@ from duecare.research_tools.acquire import acquire  # noqa: E402
 from duecare.research_tools.dedup import content_key, simhash64  # noqa: E402
 from duecare.research_tools.docfetch import fetch_document  # noqa: E402
 from duecare.research_tools.graph import build_graph  # noqa: E402
+from duecare.research_tools.monitor import default_fetch  # noqa: E402
+from duecare.research_tools.politeness import PoliteFetcher, RateLimiter, RobotsCache  # noqa: E402
 from duecare.research_tools.store import AcquisitionStore  # noqa: E402
 
 CAND = Path(os.environ.get(
@@ -43,6 +45,8 @@ OUT = Path(os.environ.get("ACQ_OUT", ROOT / "reports/acquisition"))
 LIMIT = int(os.environ.get("ACQ_LIMIT", "0"))
 BATCH = int(os.environ.get("ACQ_BATCH", "20"))
 TIMEOUT = float(os.environ.get("ACQ_TIMEOUT", "25"))
+MIN_INTERVAL = float(os.environ.get("ACQ_MIN_INTERVAL", "1.0"))  # per-host seconds
+RESPECT_ROBOTS = os.environ.get("ACQ_RESPECT_ROBOTS", "1") not in ("0", "false", "")
 
 
 def _utf8() -> None:
@@ -111,8 +115,15 @@ def main() -> None:
         store.close()
         return
 
-    def fetch(url: str):
-        return fetch_document(url, timeout=TIMEOUT)
+    # Polite fetch: per-host robots Disallow + rate limit, wrapping the
+    # PDF-aware document fetch. Good citizenship + avoids being blocked at scale.
+    robots = RobotsCache(
+        lambda u: (default_fetch(u, timeout=10).text or "")) if RESPECT_ROBOTS else None
+    limiter = RateLimiter(MIN_INTERVAL) if MIN_INTERVAL > 0 else None
+    fetch = PoliteFetcher(
+        lambda url: fetch_document(url, timeout=TIMEOUT), robots=robots, limiter=limiter)
+    print(f"[acquire] politeness: robots={'on' if robots else 'off'} "
+          f"min_interval={MIN_INTERVAL}s/host", flush=True)
 
     tot_kept = tot_drop = tot_unreach = 0
     t0 = time.time()
