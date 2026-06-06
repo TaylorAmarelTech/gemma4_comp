@@ -21,6 +21,7 @@ import json
 import os
 import sys
 from pathlib import Path
+from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
 for _p in sorted((ROOT / "packages").glob("*/src")):
@@ -39,13 +40,27 @@ TIMEOUT = float(os.environ.get("HARVEST_TIMEOUT", "20"))
 
 _DENY = ("/tag/", "/tags/", "/category/", "/categories/", "/author/", "/wp-json",
          "/feed", "/comments", "/login", "/search", "/privacy", "/cookie", "/terms",
-         "/sitemap", "/rss", "/contact", "javascript:", "mailto:", ".css", ".js",
-         ".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico", ".woff", ".zip", ".mp4", ".mp3")
+         "/sitemap", "/rss", "/contact", "error-40", "/404", "/403", "javascript:",
+         "mailto:", ".css", ".js", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico",
+         ".woff", ".zip", ".mp4", ".mp3")
+
+
+# 2-letter locale roots (e.g. /es, /fr) are homepages, not documents.
+_LOCALE = {"es", "fr", "it", "tr", "ar", "zh", "ru", "de", "pt", "en", "ja", "ko",
+           "id", "th", "vi", "hi", "fa", "ur", "my", "km", "ne", "tl", "bn", "pl", "nl"}
 
 
 def _keep(u: str) -> bool:
     ul = (u or "").lower()
-    return ul.startswith("http") and not any(d in ul for d in _DENY)
+    if not ul.startswith("http") or any(d in ul for d in _DENY):
+        return False
+    path = urlparse(u).path.strip("/")
+    if not path:                               # bare domain / homepage
+        return False
+    segs = path.split("/")
+    if segs[0] in _LOCALE:    # locale root or translated page (/es, /fr/...) -> keep English canonical
+        return False
+    return True
 
 
 def _load_jsonl(p: Path) -> list[dict]:
