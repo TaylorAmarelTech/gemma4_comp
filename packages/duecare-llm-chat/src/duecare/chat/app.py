@@ -3876,7 +3876,7 @@ def create_app(
         directly so the static catalog pages always have something to
         render.
         """
-        valid_layers = ("grep", "rag", "tools", "online", "persona", "import")
+        valid_layers = ("grep", "rag", "multidomain", "tools", "online", "persona", "import")
         if layer not in valid_layers:
             raise HTTPException(404, f"unknown layer {layer}")
         catalog = getattr(app.state, f"{layer}_catalog", None)
@@ -3888,6 +3888,14 @@ def create_app(
             CORRIDOR_FEE_CAPS, FEE_CAMOUFLAGE_DICT,
             ILO_INDICATORS, NGO_INTAKE, ILO_CONVENTIONS,
         )
+
+        if layer == "multidomain":
+            # Separate multi-domain integrity corpus, kept out of the trafficking
+            # RAG_CORPUS so the human-exploitation prompts/retrieval stay focused.
+            from .harness import _build_multidomain_catalog
+            items = _build_multidomain_catalog()
+            return {"layer": "multidomain", "wired": True,
+                     "n_items": len(items), "items": items}
 
         if layer == "grep":
             fire_counts = getattr(app.state, "grep_fire_counts", {}) or {}
