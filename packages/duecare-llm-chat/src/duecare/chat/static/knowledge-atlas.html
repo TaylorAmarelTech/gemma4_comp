@@ -91,6 +91,22 @@
                        font-family: var(--mono); font-size: 11px; }
     .placeholder { color: var(--ink-3); font-style: italic; padding: 14px; }
     .err { color: oklch(0.40 0.13 45); padding: 14px; }
+    .vgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(228px, 1fr)); gap: 12px; }
+    .vcard { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 15px 16px;
+             cursor: pointer; position: relative; overflow: hidden; }
+    .vcard:hover { border-color: var(--accent); background: var(--paper-2); }
+    .vcard.ref { border-left: 3px solid oklch(0.58 0.14 45); }
+    .vcard .vlabel { font-size: 13.5px; font-weight: 600; color: var(--ink); line-height: 1.3; min-height: 35px; }
+    .vcard .vmeta { margin-top: 4px; display: flex; align-items: baseline; gap: 7px; }
+    .vcard .vn { font-size: 23px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; line-height: 1; }
+    .vcard .vdocs { font-size: 11px; color: var(--ink-3); }
+    .vcard .vsdg { display: inline-block; margin-top: 9px; font-size: 10.5px; font-family: var(--mono);
+                   color: var(--accent-ink); background: var(--accent-soft); padding: 2px 8px; border-radius: 999px; }
+    .vcard.ref .vsdg { color: oklch(0.40 0.13 45); background: oklch(0.94 0.04 45); }
+    .vback { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 12px; padding: 6px 13px;
+             border: 1px solid var(--line); background: var(--paper); color: var(--ink-2); border-radius: 7px;
+             cursor: pointer; font-size: 12.5px; font-weight: 600; font-family: var(--sans); }
+    .vback:hover { border-color: var(--ink-3); color: var(--ink); }
     @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
   </style>
   <script src="/static/_nav.js" defer></script>
@@ -119,12 +135,14 @@
       <button class="tab active" data-tab="law" type="button">Global law <span class="n" id="t-law"></span></button>
       <button class="tab" data-tab="sources" type="button">Verified sources <span class="n" id="t-sources"></span></button>
       <button class="tab" data-tab="cases" type="button">Landmark case law <span class="n" id="t-cases"></span></button>
+      <button class="tab" data-tab="verticals" type="button">Integrity verticals <span class="n" id="t-verticals"></span></button>
     </div>
     <div class="lawview" id="lawview" hidden>
       <button class="lvbtn active" data-view="list" type="button">List</button>
       <button class="lvbtn" data-view="map" type="button">World map</button>
     </div>
     <div class="chips" id="chips"></div>
+    <button class="vback" id="vback" type="button" hidden>&#8592; All verticals</button>
     <div class="grid" id="grid">
       <div class="list" id="list"><div class="placeholder">Loading…</div></div>
       <div class="detail" id="detail"><div class="placeholder">Select an entry to read the full grounding document.</div></div>
@@ -141,6 +159,9 @@
       </div>
       <div class="regionbars" id="regionbars" aria-label="Coverage by region"></div>
     </div>
+    <div id="vwrap" hidden>
+      <div class="vgrid" id="vgrid"></div>
+    </div>
   </div>
   <div class="maptip" id="maptip" hidden></div>
   <script>
@@ -151,6 +172,58 @@
     const MW = 1000, MH = 500;
     let rows = [], tools = 0, activeTab = "law", activeChip = "", filt = "", activeId = null, log = null;
     let lawView = "list", geo = null, coverCache = null;
+    let activeVertical = null;  // null = card grid; "ref" or a prefix string = drilled into a vertical's docs
+    // The id-prefix <domain>_<topic> IS the vertical index (see docs/domain_pack_framework.md).
+    // Labels/SDGs are stable; per-vertical COUNTS are computed live from the corpus, never hardcoded.
+    // The anti-trafficking reference pack is every doc that matches NONE of these prefixes.
+    const VERTICALS = [
+      {p:"fincrime_",    label:"Financial crime & illicit finance",      sdg:"SDG 16"},
+      {p:"corruption_",  label:"Anti-corruption & public integrity",     sdg:"SDG 16"},
+      {p:"envcrime_",    label:"Environmental crime",                    sdg:"SDG 14/15"},
+      {p:"fraud_",       label:"Online & consumer fraud",                sdg:"SDG 16"},
+      {p:"labour_",      label:"Decent work & labour rights",            sdg:"SDG 8"},
+      {p:"tax_",         label:"Tax evasion & illicit flows",            sdg:"SDG 16/17"},
+      {p:"health_",      label:"Healthcare fraud & patient safety",      sdg:"SDG 3"},
+      {p:"counterfeit_", label:"Counterfeiting & IP crime",              sdg:"SDG 9/12"},
+      {p:"election_",    label:"Electoral & information integrity",      sdg:"SDG 16"},
+      {p:"cyber_",       label:"Cybercrime & online safety",            sdg:"SDG 16"},
+      {p:"food_",        label:"Food safety & agricultural integrity",   sdg:"SDG 2/3"},
+      {p:"arms_",        label:"Arms control & strategic-trade",         sdg:"SDG 16"},
+      {p:"heritage_",    label:"Cultural-property trafficking",          sdg:"SDG 11"},
+      {p:"drug_",        label:"Drug control & precursor diversion",     sdg:"SDG 3"},
+      {p:"cft_",         label:"Counter-terrorist financing",           sdg:"SDG 16"},
+      {p:"carbon_",      label:"Carbon-market & ESG integrity",          sdg:"SDG 13"},
+      {p:"marriage_",    label:"Forced & child marriage",               sdg:"SDG 5"},
+      {p:"sport_",       label:"Sports integrity & match-fixing",        sdg:"SDG 16"},
+      {p:"insurance_",   label:"Insurance & occupational fraud",         sdg:"SDG 16"},
+      {p:"maritime_",    label:"Maritime & fisheries crime",             sdg:"SDG 14"},
+      {p:"mining_",      label:"Illegal mining & extractives",           sdg:"SDG 12/15"},
+      {p:"land_",        label:"Housing & land-rights abuse",            sdg:"SDG 11"},
+      {p:"education_",   label:"Education & qualification fraud",         sdg:"SDG 4"},
+      {p:"eldercare_",   label:"Disability & elder-care abuse",          sdg:"SDG 10"},
+      {p:"water_",       label:"Water & sanitation integrity",           sdg:"SDG 6"},
+      {p:"aid_",         label:"Humanitarian-aid diversion",            sdg:"SDG 16/2"},
+      {p:"identity_",    label:"Digital identity & deepfake fraud",      sdg:"SDG 16"},
+      {p:"sci_",         label:"Scientific & research integrity",        sdg:"SDG 9"},
+      {p:"energy_",      label:"Energy & utility fraud",                 sdg:"SDG 7"},
+      {p:"customs_",     label:"Transport, customs & trade integrity",   sdg:"SDG 8/16"},
+      {p:"benefits_",    label:"Social-protection & benefits integrity", sdg:"SDG 1"},
+      {p:"telecom_",     label:"Telecom & subscription fraud",           sdg:"SDG 9"},
+      {p:"gambling_",    label:"Gambling & lottery integrity",           sdg:"SDG 16"},
+      {p:"realestate_",  label:"Real-estate & construction integrity",   sdg:"SDG 11"},
+      {p:"agri_",        label:"Agricultural subsidy & land-use fraud",  sdg:"SDG 2"},
+      {p:"procurement_", label:"Public-procurement & infrastructure",    sdg:"SDG 9/16"},
+      {p:"transport_",   label:"Transport safety & emissions integrity", sdg:"SDG 3/11"},
+    ];
+    function verticalIndexOf(id) {
+      for (let i = 0; i < VERTICALS.length; i++) if (id.indexOf(VERTICALS[i].p) === 0) return i;
+      return -1;  // -1 = anti-trafficking reference pack
+    }
+    function verticalCounts() {
+      const c = new Array(VERTICALS.length).fill(0); let ref = 0;
+      rows.forEach(r => { const i = verticalIndexOf(r.id); if (i < 0) ref++; else c[i]++; });
+      return {c: c, ref: ref};
+    }
 
     document.addEventListener("DOMContentLoaded", function () {
       log = window.dcActivityLog
@@ -240,7 +313,7 @@
       document.getElementById("search").addEventListener("input", e => { filt = e.target.value; render(); });
       document.querySelectorAll(".tab").forEach(b =>
         b.addEventListener("click", () => {
-          activeTab = b.dataset.tab; activeChip = ""; filt = ""; lawView = "list";
+          activeTab = b.dataset.tab; activeChip = ""; filt = ""; lawView = "list"; activeVertical = null;
           document.getElementById("search").value = "";
           document.querySelectorAll(".tab").forEach(x => x.classList.toggle("active", x === b));
           setLvActive("list");
@@ -248,6 +321,10 @@
         }));
       document.querySelectorAll(".lvbtn").forEach(b =>
         b.addEventListener("click", () => { lawView = b.dataset.view; setLvActive(lawView); applyView(); }));
+      document.getElementById("vback").addEventListener("click", () => {
+        activeVertical = null; filt = ""; document.getElementById("search").value = "";
+        applyView(); render();
+      });
     }
     function setLvActive(view) {
       document.querySelectorAll(".lvbtn").forEach(x => x.classList.toggle("active", x.dataset.view === view));
@@ -279,6 +356,8 @@
       document.getElementById("t-law").textContent = "(" + lawRows().length + ")";
       document.getElementById("t-sources").textContent = "(" + sourceRows().length + ")";
       document.getElementById("t-cases").textContent = "(" + caseRows().length + ")";
+      const cc = verticalCounts();
+      document.getElementById("t-verticals").textContent = "(" + (cc.c.filter(x => x > 0).length + 1) + ")";
     }
     function renderChips() {
       const host = document.getElementById("chips");
@@ -297,13 +376,42 @@
       });
     }
 
-    // ---- view switching: list grid vs world map (law tab only) ----
+    function renderVerticals() {
+      const host = document.getElementById("vgrid");
+      clear(host);
+      const cc = verticalCounts();
+      host.appendChild(el("div", {class: "vcard ref", onclick: () => openVertical("ref")}, [
+        el("div", {class: "vlabel", text: "Anti-trafficking & exploitation (reference)"}),
+        el("div", {class: "vmeta"}, [el("span", {class: "vn", text: String(cc.ref)}),
+                                     el("span", {class: "vdocs", text: "docs"})]),
+        el("span", {class: "vsdg", text: "SDG 8 · 5 · 10 · deep reference"}),
+      ]));
+      VERTICALS.map((v, i) => ({v: v, n: cc.c[i]})).filter(x => x.n > 0)
+        .sort((a, b) => b.n - a.n)
+        .forEach(x => host.appendChild(el("div", {class: "vcard", onclick: () => openVertical(x.v.p)}, [
+          el("div", {class: "vlabel", text: x.v.label}),
+          el("div", {class: "vmeta"}, [el("span", {class: "vn", text: String(x.n)}),
+                                       el("span", {class: "vdocs", text: "docs"})]),
+          el("span", {class: "vsdg", text: x.v.sdg}),
+        ])));
+    }
+    function openVertical(p) {
+      activeVertical = p; filt = ""; document.getElementById("search").value = "";
+      applyView(); render();
+    }
+
+    // ---- view switching: list grid / world map (law) / vertical cards ----
     function applyView() {
       const onMap = activeTab === "law" && lawView === "map";
-      document.getElementById("grid").hidden = onMap;
-      document.getElementById("chips").hidden = onMap;        // chips filter the list, not the map
+      const onVertCards = activeTab === "verticals" && !activeVertical;
+      const onVertList = activeTab === "verticals" && !!activeVertical;
+      document.getElementById("grid").hidden = onMap || onVertCards;
+      document.getElementById("chips").hidden = onMap || activeTab === "verticals";
       document.getElementById("mapwrap").hidden = !onMap;
+      document.getElementById("vwrap").hidden = !onVertCards;
+      document.getElementById("vback").hidden = !onVertList;
       if (onMap) renderMapView();
+      if (onVertCards) renderVerticals();
     }
 
     async function loadGeo() {
@@ -472,14 +580,27 @@
     function hideTip() { document.getElementById("maptip").hidden = true; }
 
     function activeRows() {
-      let base = activeTab === "law" ? lawRows() : activeTab === "sources" ? sourceRows() : caseRows();
-      if (activeTab === "law" && activeChip) base = base.filter(r => lawKind(r.id) === activeChip);
+      let base;
+      if (activeTab === "verticals") {
+        if (!activeVertical) return [];
+        base = activeVertical === "ref"
+          ? rows.filter(r => verticalIndexOf(r.id) === -1)
+          : rows.filter(r => r.id.indexOf(activeVertical) === 0);
+      } else {
+        base = activeTab === "law" ? lawRows() : activeTab === "sources" ? sourceRows() : caseRows();
+        if (activeTab === "law" && activeChip) base = base.filter(r => lawKind(r.id) === activeChip);
+      }
       const q = filt.toLowerCase().trim();
       if (!q) return base;
       return base.filter(r => (r.id + " " + r.title + " " + r.source + " " + r.snippet).toLowerCase().includes(q));
     }
 
     function render() {
+      if (activeTab === "verticals" && !activeVertical) {
+        document.getElementById("sub").textContent =
+          "Browse the grounding corpus by integrity vertical — click a card to read its documents";
+        return;
+      }
       const vis = activeRows();
       const host = document.getElementById("list");
       clear(host);
