@@ -25,9 +25,11 @@ Modules live in `duecare-llm-research-tools`; runners in `scripts/`.
 | Stage | Module | Runner |
 |---|---|---|
 | Frontier expansion | `sitemap.py` | `scripts/harvest_sitemaps.py` |
+| Crawl politeness (robots + rate limit) | `politeness.py` | — |
 | Fetch + PDF/HTML extract | `docfetch.py` | — |
 | Chunk | `chunker.py` | — |
 | Dedup (exact + LSH SimHash) | `dedup.py` | — |
+| Persistent store (dedup index + FTS5 + crawl ledger + graph) | `store.py` | — |
 | Entity/co-mention graph | `graph.py` | — |
 | Orchestrate + stage | `acquire.py` | `scripts/run_acquisition.py` |
 | Promote to bundle | `promote.py` | `scripts/promote_acquisition.py` |
@@ -85,7 +87,35 @@ workbench Sync/Knowledge page (`/api/knowledge/import`). Entries are
 | `ACQ_LIMIT` | 0 (all) | max new candidates this run |
 | `ACQ_BATCH` | 20 | candidates per progress tick |
 | `ACQ_TIMEOUT` | 25 | per-fetch seconds |
+| `ACQ_MIN_INTERVAL` | 1.0 | per-host seconds between requests (politeness) |
+| `ACQ_RESPECT_ROBOTS` | 1 | honor robots.txt `Disallow` (0 to disable) |
 | `PROMOTE_MAX_PER_DOC` | 120 | cap chunks per source page |
+
+## Storage & scaling
+
+`run_acquisition` opens a SQLite store at `ACQ_OUT/corpus.db` (stdlib, WAL) as
+the **system of record**: chunks, a persisted **SimHash band index** (near-dup
+dedup stays O(bucket) — never re-reads the whole corpus), a crawl ledger
+(resume), the doc graph, and an **FTS5** full-text index. On first creation it
+seeds the dedup baseline from the live RAG corpus and reconciles any prior
+`staged_chunks.jsonl` (no re-fetch). JSONL remains the git-reviewable export +
+import-bundle format.
+
+The store backend is swappable: for the **multi-writer server deployment**
+(NGO-network / government), point it at Postgres via
+`duecare-llm-evidence-db[postgres]` — same method surface, no caller change.
+SQLite is the right default for a single-box, single-curator corpus up to
+~millions of rows.
+
+Query the staged corpus (FTS5):
+
+```python
+from duecare.research_tools.store import AcquisitionStore
+with AcquisitionStore("reports/acquisition/corpus.db") as s:
+    print(s.stats())
+    for hit in s.search("passport retention", limit=10):
+        print(hit["chunk_id"], hit["snippet"])
+```
 
 ## Safety invariants
 
