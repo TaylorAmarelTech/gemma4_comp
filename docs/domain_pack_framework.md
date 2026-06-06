@@ -1,9 +1,12 @@
 # DueCare as a domain-general integrity framework
 
 > Status: live (2026-06-05). The anti-trafficking corpus is the reference
-> implementation; forty-six further verticals (enumerated in the Current
+> implementation; fifty-one further verticals (enumerated in the Current
 > verticals table below) are seeded as proof the same architecture generalizes
-> across UN SDGs 1-17. Extends the `duecare-llm-domains`
+> across UN SDGs 1-17. **The multi-domain verticals are kept in a SEPARATE
+> corpus (`MULTIDOMAIN_CORPUS`), physically apart from the trafficking
+> `RAG_CORPUS`,** so the human-exploitation prompts and retrieval never commingle
+> with off-domain content. Extends the `duecare-llm-domains`
 > package (`duecare.domains.*`) and the provider-neutral `HarnessSpec`
 > (see `.claude/rules/81_canonical_runtime.md`).
 
@@ -28,7 +31,7 @@ source-cited content through the identical pipeline.
 | # | Component | What it is | Corpus id-prefix(es) — trafficking reference |
 |---|---|---|---|
 | 1 | **Detection rules** | Deterministic pattern matchers (regex / GREP) over input text | `GREP_RULES` (categories A-JJJJ) |
-| 2 | **Grounding corpus** | BM25-retrievable authority documents | `RAG_CORPUS` |
+| 2 | **Grounding corpus** | BM25-retrievable authority documents | `RAG_CORPUS` (trafficking) + `MULTIDOMAIN_CORPUS` (verticals, kept separate) |
 | 3 | **Tools** | Deterministic lookups / classifiers the model can call | `_TOOL_DISPATCH` (13 tools) |
 | 4 | **Rubric dimensions** | What a judge scores a response on | `harness_lift_dimensions.json` (176 dims / 29 groups) |
 | 5 | **Personas** | Reviewer / audience lenses | `harness/_personas.json` |
@@ -49,9 +52,11 @@ body)` tuple was required to go multi-domain.
    put the **fetched source URL in the citation** — "real, not faked."
 2. **Same component template.** Each agent fills slots 6-8 (instruments,
    schemes/red-flags, remedies) for the new domain.
-3. **Deterministic merge.** `reports/_scratch/merge_rag.py` dedups against
-   existing ids, ASCII-normalises, generalises any hardcoded contact number
-   (rule 80), PII-scans, and inserts `(id, title, citation, body)` tuples.
+3. **Deterministic merge.** `reports/_scratch/merge_rag.py` (DEST=multidomain)
+   dedups against BOTH corpora, ASCII-normalises, generalises any hardcoded
+   contact number (rule 80), PII-scans, and inserts `(id, title, citation, body)`
+   tuples into the SEPARATE `MULTIDOMAIN_CORPUS` (the trafficking `RAG_CORPUS` is
+   never touched).
 4. **Verify + gate.** `scripts/verify.py` floors, the harness test suite, and a
    BM25 retrieval smoke confirm the new pack loads and retrieves.
 5. **(Optional) detection + tools + dimensions** for the vertical reuse slots
@@ -62,11 +67,23 @@ baseline vs harnessed, score against the vertical's rubric, measure the lift.
 
 ## Current verticals
 
-Forty-seven verticals are live in `RAG_CORPUS` (total 1399 grounding docs as of
-2026-06-05). One is the deep reference implementation; forty-six are seeded
-proof the template generalizes. They are browsable as a live card grid in the
-Knowledge Atlas "Integrity verticals" tab (`static/knowledge-atlas.html`) —
-counts read from the corpus, never hardcoded.
+Fifty-two verticals are live as of 2026-06-05, across **two separate corpora**:
+
+- **`RAG_CORPUS`** (~846 docs) — the anti-trafficking reference pack. This is the
+  ONLY corpus the recording-critical kernels (01/02/A-00) retrieve from and the
+  one the human-exploitation benchmark prompts are graded against.
+- **`MULTIDOMAIN_CORPUS`** (~610 docs across 51 verticals) — the seeded
+  multi-domain integrity layer, in `harness/_multidomain_corpus.py`, exposed at
+  `/api/harness-catalog/multidomain`. Kept physically apart so it never dilutes
+  trafficking retrieval or the benchmark.
+
+A handful of trafficking-nexus docs that share a vertical id-prefix but are
+*primarily* anti-trafficking (e.g. `mining_asm_west_africa_debt_bondage`,
+`cyber_scam_compound_forced_criminality`, `gig_platform_misclassification_trafficking`)
+deliberately stay in `RAG_CORPUS`. Both corpora are browsable in the Knowledge
+Atlas "Integrity verticals" tab — the reference card reads `RAG_CORPUS`, the
+vertical cards read `/api/harness-catalog/multidomain`; counts are read live,
+never hardcoded.
 
 | Vertical | SDG | Status | Seed content |
 |---|---|---|---|
@@ -117,6 +134,11 @@ counts read from the corpus, never hardcoded.
 | **Biosecurity & dual-use research oversight** | 3 | Seeded (12) | Biological Weapons Convention, DURC/P3CO oversight, WHO biosafety manual, Federal Select Agent Program, Australia Group, IGSC DNA-synthesis screening, IHR, ISO 35001 (`biosec_*`) |
 | **Nuclear & radiological safeguards** | 16 | Seeded (12) | NPT, IAEA safeguards + Additional Protocol, CPPNM physical protection, IAEA ITDB trafficking, NSG export controls, source security, CTBT monitoring, proliferation finance (`nuclear_*`) |
 | **Migrant-smuggling & border integrity** | 16 | Seeded (12) | UN Smuggling Protocol, smuggling-vs-trafficking distinction, document/visa fraud, border corruption, non-refoulement, SOLAS search-and-rescue, FATF smuggling finance (`border_*`) |
+| **Chemical-weapons & CWC compliance** | 16 | Seeded (12) | CWC + OPCW, Schedules 1/2/3, verification & challenge inspections, IIT attribution, riot-control boundary, Australia Group, UNSCR 1540, Article XII enforcement (`chem_*`) |
+| **Carbon-border & trade-climate measures** | 13 | Seeded (12) | EU CBAM Reg 2023/956, embedded-emissions MRV, carbon-leakage/WTO, circumvention recognition, declarant obligations, ETS interaction, equity concerns (`cbam_*`) |
+| **Platform & content-moderation accountability** | 16 | Seeded (12) | EU DSA systemic-risk/VLOP duties, transparency + statements of reasons, trusted flaggers, TCO Regulation, CSAM duties, age verification, recommender transparency, audits (`contentmod_*`) |
+| **Disaster & emergency-management integrity** | 11, 13 | Seeded (12) | Sendai Framework, relief/benefit fraud, post-disaster procurement, early-warning integrity, building-resilience, ghost claims, price-gouging, donation scams (`disaster_*`) |
+| **Gig-economy & platform-work classification** | 8 | Seeded (12) | worker misclassification, EU Platform Work Directive, ABC test/AB5, algorithmic management, wage/benefit denial, bogus self-employment, UK Uber ruling (`gig_*`) |
 
 Several verticals are deliberately *adjacent* to trafficking — illicit finance,
 corruption, IUU-fishing forced labour, scam-compound coercion, organ trafficking,
@@ -141,13 +163,12 @@ content.
 
 ## Extending further
 
-Candidate next verticals (each is the same eight slots): **carbon-border
-adjustment & trade-climate measures** (CBAM - SDG 13), **digital-platform &
-content-moderation accountability** (DSA - SDG 16), **chemical-weapons & CWC
-compliance** (OPCW - SDG 16), **disaster & emergency-management integrity** (SDG
-11/13), and **gig-economy & platform-work classification** (SDG 8). The
-eight-slot template absorbs each the same way; the ceiling is research time, not
-architecture.
+Candidate next verticals (each is the same eight slots): **forestry &
+timber-legality** (EUDR/FLEGT - SDG 15), **marine pollution & shipping
+emissions** (MARPOL/IMO - SDG 14), **chemical & industrial process safety**
+(Seveso - SDG 12), **public-health & vaccine integrity** (SDG 3), and
+**water-utility resilience & infrastructure** (SDG 6/9). The eight-slot template
+absorbs each the same way; the ceiling is research time, not architecture.
 
 See also: `docs/harness_ecosystem.md`, `docs/harness_standard_contract.md`,
 `.claude/rules/81_canonical_runtime.md`,

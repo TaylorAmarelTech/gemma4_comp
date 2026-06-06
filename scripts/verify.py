@@ -51,7 +51,12 @@ CHECKS: tuple[Check, ...] = (
           "kafala extended / sectors / fin flows / employer abuse / "
           "doc fraud / sales tactics / recovery suppression / digital)"),
     Check("RAG corpus",        "duecare.chat.harness", "RAG_CORPUS",        33,
-          "documents (ILO conventions, statutes, NGO briefs)"),
+          "trafficking grounding docs (ILO conventions, statutes, NGO briefs); the "
+          "multi-domain verticals are kept SEPARATE in MULTIDOMAIN_CORPUS"),
+    Check("Multi-domain corpus", "duecare.chat.harness._multidomain_corpus", "MULTIDOMAIN_CORPUS", 500,
+          "separate integrity-vertical grounding docs (financial crime, corruption, "
+          "environmental crime ... 51 verticals) kept out of the trafficking corpus "
+          "so the human-exploitation prompts/retrieval stay focused"),
     Check("Tools",             "duecare.chat.harness", "_TOOL_DISPATCH",    13,
           "deterministic tools: corridor / fee / indicator / NGO / ILO Convention "
           "lookups + GREP-check / grounding-search / convention-list + euphemism-decode "

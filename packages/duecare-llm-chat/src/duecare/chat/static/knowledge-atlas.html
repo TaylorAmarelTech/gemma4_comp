@@ -172,6 +172,7 @@
     const MW = 1000, MH = 500;
     let rows = [], tools = 0, activeTab = "law", activeChip = "", filt = "", activeId = null, log = null;
     let lawView = "list", geo = null, coverCache = null;
+    let mdRows = [];  // SEPARATE multi-domain corpus (kept out of the trafficking RAG_CORPUS)
     let activeVertical = null;  // null = card grid; "ref" or a prefix string = drilled into a vertical's docs
     // The id-prefix <domain>_<topic> IS the vertical index (see docs/domain_pack_framework.md).
     // Labels/SDGs are stable; per-vertical COUNTS are computed live from the corpus, never hardcoded.
@@ -223,15 +224,22 @@
       {p:"biosec_",      label:"Biosecurity & dual-use research",          sdg:"SDG 3"},
       {p:"nuclear_",     label:"Nuclear & radiological safeguards",        sdg:"SDG 16"},
       {p:"border_",      label:"Migrant-smuggling & border integrity",     sdg:"SDG 16"},
+      {p:"chem_",        label:"Chemical-weapons & CWC compliance",        sdg:"SDG 16"},
+      {p:"cbam_",        label:"Carbon-border & trade-climate measures",    sdg:"SDG 13"},
+      {p:"contentmod_",  label:"Platform & content-moderation accountability", sdg:"SDG 16"},
+      {p:"disaster_",    label:"Disaster & emergency-management integrity", sdg:"SDG 11/13"},
+      {p:"gig_",         label:"Gig-economy & platform-work classification", sdg:"SDG 8"},
     ];
     function verticalIndexOf(id) {
       for (let i = 0; i < VERTICALS.length; i++) if (id.indexOf(VERTICALS[i].p) === 0) return i;
       return -1;  // -1 = anti-trafficking reference pack
     }
     function verticalCounts() {
-      const c = new Array(VERTICALS.length).fill(0); let ref = 0;
-      rows.forEach(r => { const i = verticalIndexOf(r.id); if (i < 0) ref++; else c[i]++; });
-      return {c: c, ref: ref};
+      // verticals come from the SEPARATE multi-domain corpus; the reference card
+      // is the trafficking corpus (rows), kept deliberately apart.
+      const c = new Array(VERTICALS.length).fill(0);
+      mdRows.forEach(r => { const i = verticalIndexOf(r.id); if (i >= 0) c[i]++; });
+      return {c: c, ref: rows.length};
     }
 
     document.addEventListener("DOMContentLoaded", function () {
@@ -314,6 +322,12 @@
         const r = await fetch("/api/harness-catalog/tools", {cache: "no-store"});
         if (r.ok) { const d = await r.json(); tools = d.n_items || (d.items || []).length; }
       } catch (_) { /* tools count is a nicety */ }
+      try {
+        if (log) log.step("GET /api/harness-catalog/multidomain");
+        const r = await fetch("/api/harness-catalog/multidomain", {cache: "no-store"});
+        if (r.ok) { const d = await r.json(); mdRows = d.items || [];
+          if (log) log.ok("multi-domain corpus loaded - " + mdRows.length + " docs (separate)"); }
+      } catch (_) { /* multi-domain is a separate, optional layer */ }
       renderStats();
       renderTabCounts();
       renderChips();
@@ -346,7 +360,7 @@
     function renderStats() {
       const jur = new Set(lawRows().map(r => jurSlug(r.id)).filter(Boolean));
       const cards = [
-        {cls: "", n: rows.length, lbl: "grounding documents (BM25-retrievable)"},
+        {cls: "", n: rows.length + mdRows.length, lbl: "grounding docs (" + rows.length + " trafficking + " + mdRows.length + " multi-domain)"},
         {cls: "law", n: jur.size, lbl: "jurisdictions with dedicated law"},
         {cls: "src", n: sourceRows().length, lbl: "docs with a verified source URL"},
         {cls: "kase", n: caseRows().length, lbl: "landmark cases"},
@@ -593,8 +607,8 @@
       if (activeTab === "verticals") {
         if (!activeVertical) return [];
         base = activeVertical === "ref"
-          ? rows.filter(r => verticalIndexOf(r.id) === -1)
-          : rows.filter(r => r.id.indexOf(activeVertical) === 0);
+          ? rows                                          // trafficking reference pack
+          : mdRows.filter(r => r.id.indexOf(activeVertical) === 0);  // separate multi-domain corpus
       } else {
         base = activeTab === "law" ? lawRows() : activeTab === "sources" ? sourceRows() : caseRows();
         if (activeTab === "law" && activeChip) base = base.filter(r => lawKind(r.id) === activeChip);
@@ -632,7 +646,7 @@
 
     function select(id) {
       activeId = id;
-      const doc = rows.find(r => r.id === id);
+      const doc = rows.find(r => r.id === id) || mdRows.find(r => r.id === id);
       if (!doc) return;
       const url = firstUrl(doc.source);
       const host = document.getElementById("detail");
