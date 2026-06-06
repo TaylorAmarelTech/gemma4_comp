@@ -1,13 +1,14 @@
 # DueCare as a domain-general integrity framework
 
 > Status: live (2026-06-05). The anti-trafficking corpus is the reference
-> implementation; fourteen further verticals (financial crime, anti-corruption,
+> implementation; eighteen further verticals (financial crime, anti-corruption,
 > environmental crime, online/consumer fraud, decent-work/labour rights, tax
 > evasion, healthcare fraud, counterfeiting/IP crime, electoral & information
 > integrity, cybercrime & online safety, food safety & agricultural integrity,
 > arms control & strategic-trade, cultural-property trafficking, drug control &
-> precursor diversion) are seeded as proof the same architecture generalizes.
-> Extends the `duecare-llm-domains`
+> precursor diversion, counter-terrorist financing, carbon-market & ESG
+> integrity, forced & child marriage, sports integrity) are seeded as proof the
+> same architecture generalizes. Extends the `duecare-llm-domains`
 > package (`duecare.domains.*`) and the provider-neutral `HarnessSpec`
 > (see `.claude/rules/81_canonical_runtime.md`).
 
@@ -66,8 +67,8 @@ baseline vs harnessed, score against the vertical's rubric, measure the lift.
 
 ## Current verticals
 
-Fifteen verticals are live in `RAG_CORPUS` (total 1003 grounding docs as of
-2026-06-05). One is the deep reference implementation; fourteen are seeded proof
+Nineteen verticals are live in `RAG_CORPUS` (total 1051 grounding docs as of
+2026-06-05). One is the deep reference implementation; eighteen are seeded proof
 the template generalizes.
 
 | Vertical | SDG | Status | Seed content |
@@ -87,6 +88,10 @@ the template generalizes.
 | **Arms control & strategic-trade** | 16 | Seeded (12) | UN ATT, Wassenaar, EU dual-use 2021/821, US EAR/ITAR, UN embargoes, end-user red flags, SALW/Firearms Protocol, brokering, sanctions evasion, proliferation financing (`arms_*`) |
 | **Cultural-property & antiquities trafficking** | 11.4, 16 | Seeded (12) | 1970 UNESCO, 1995 UNIDROIT, 1954 Hague, provenance red flags, conflict-antiquities (UN 2199), ICOM Red Lists, looting recognition, due diligence, repatriation (`heritage_*`) |
 | **Drug control & precursor diversion** | 3 | Seeded (12) | UN 1961/1971/1988 conventions, INCB precursors (Tables I/II, PEN), NPS, financial red flags, precursor-diversion recognition, forced-labour nexus, harm reduction, opioid crisis (`drug_*`) |
+| **Counter-terrorist financing & NPO abuse** | 16 | Seeded (12) | FATF Rec 5/6/8, UN 1267/1989/2253 + 1373, 1999 TF Convention, hawala/MVTS, NPO-abuse red flags, TF typologies, sanctions screening, crowdfunding/FTF recognition (`cft_*`) |
+| **Carbon-market, climate & ESG integrity** | 13 | Seeded (12) | ICVCM Core Carbon Principles, EU Green Claims, CSRD/ESRS, carbon-credit fraud red flags, EU ETS VAT-fraud lessons, Paris Art 6, SEC/TCFD, SFDR fund labels, REDD+, MRV (`carbon_*`) |
+| **Forced & child marriage / harmful practices** | 5 | Seeded (12) | CEDAW Art 16, CRC minimum age, 1956 Supplementary Slavery + Palermo nexus, forced-marriage red flags, FGM law, dowry abuse, UK FMPO, bride trafficking, Istanbul Convention (`marriage_*`) |
+| **Sports integrity / match-fixing** | 16 | Seeded (12) | CoE Macolin Convention, match-fixing/betting-anomaly red flags, WADA Code, governance corruption, ML-through-sport, athlete-trafficking nexus, courtsiding, national platforms (`sport_*`) |
 
 Several verticals are deliberately *adjacent* to trafficking — illicit finance,
 corruption, IUU-fishing forced labour, scam-compound coercion, organ trafficking,
@@ -111,13 +116,14 @@ content.
 
 ## Extending further
 
-Candidate next verticals (each is the same eight slots): **counter-terrorist
-financing & NPO abuse** (FATF Rec 5-8 - SDG 16), **carbon-market / climate &
-ESG integrity** (greenwashing, voluntary carbon market - SDG 13), **sports
-integrity / match-fixing** (Macolin Convention - SDG 16), **forced & child
-marriage** (CEDAW - SDG 5), and **insurance & occupational fraud**. Each is
-stood up by the same research -> merge -> verify pipeline; none requires a code
-change to the harness - only new domain-prefixed knowledge.
+Candidate next verticals (each is the same eight slots): **insurance &
+occupational fraud**, **maritime & fisheries crime** (flag-of-convenience, at-sea
+transshipment - SDG 14), **illegal mining & extractives integrity** (SDG 12/15),
+**housing & land-rights abuse** (forced eviction, land grabbing - SDG 11),
+**education & qualification fraud** (diploma mills, credential fraud), and
+**disability & elder-care abuse** (SDG 10). Each is stood up by the same
+research -> merge -> verify pipeline; none requires a code change to the harness -
+only new domain-prefixed knowledge.
 
 See also: `docs/harness_ecosystem.md`, `docs/harness_standard_contract.md`,
 `.claude/rules/81_canonical_runtime.md`,
