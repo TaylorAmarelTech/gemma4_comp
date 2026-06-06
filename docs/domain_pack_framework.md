@@ -1,7 +1,7 @@
 # DueCare as a domain-general integrity framework
 
 > Status: live (2026-06-05). The anti-trafficking corpus is the reference
-> implementation; forty-two further verticals (enumerated in the Current
+> implementation; forty-six further verticals (enumerated in the Current
 > verticals table below) are seeded as proof the same architecture generalizes
 > across UN SDGs 1-17. Extends the `duecare-llm-domains`
 > package (`duecare.domains.*`) and the provider-neutral `HarnessSpec`
@@ -62,15 +62,15 @@ baseline vs harnessed, score against the vertical's rubric, measure the lift.
 
 ## Current verticals
 
-Forty-three verticals are live in `RAG_CORPUS` (total 1339 grounding docs as of
-2026-06-05). One is the deep reference implementation; forty-two are seeded
+Forty-seven verticals are live in `RAG_CORPUS` (total 1399 grounding docs as of
+2026-06-05). One is the deep reference implementation; forty-six are seeded
 proof the template generalizes. They are browsable as a live card grid in the
 Knowledge Atlas "Integrity verticals" tab (`static/knowledge-atlas.html`) —
 counts read from the corpus, never hardcoded.
 
 | Vertical | SDG | Status | Seed content |
 |---|---|---|---|
-| **Anti-trafficking / anti-exploitation** | 8, 5, 10 | Reference implementation | ~800 docs across all 8 components; 362 GREP; 13 tools; 176 dims |
+| **Anti-trafficking / anti-exploitation** | 8, 5, 10 | Reference implementation | ~850 docs across all 8 components, incl. a forced-criminality / coerced-muling / deception-recruitment sub-pack (`forcedcrime_*`: county lines, coerced drug couriers, coerced money mules, the non-punishment principle, victim-vs-offender indicators); 362 GREP; 13 tools; 176 dims |
 | **Financial crime / illicit finance** | 16 | Seeded (12) | FATF 40 + risk-based approach, 6AMLD, BSA/FinCEN/AML Act 2020, TBML, virtual-asset red flags, PEPs, StAR asset recovery, FATF human-trafficking financial typology (`fincrime_*`) |
 | **Anti-corruption / public integrity** | 16 | Seeded (10) | UNCAC, OECD Anti-Bribery, FCPA, UK Bribery Act s.7, procurement red-flags, beneficial ownership, whistleblower protection, TI CPI, corruption-trafficking nexus (`corruption_*`) |
 | **Environmental crime** | 14, 15 | Seeded (12) | CITES, Basel Convention, EUDR, Lacey Act, EU IUU + FAO PSMA, FATF environmental-ML, wildlife/timber/e-waste red flags, IUU-forced-labour nexus (`envcrime_*`) |
@@ -113,6 +113,10 @@ counts read from the corpus, never hardcoded.
 | **Charity & non-profit governance integrity** | 16 | Seeded (12) | Fake-charity recognition, private inurement/self-dealing, IRS Form 990, UK Charity Commission, donor fraud, disaster-scam, grant fraud, civil-society protection (`charity_*`) |
 | **Media & advertising integrity** | 16 | Seeded (12) | IAB/MRC ad fraud, domain spoofing, FTC endorsement/native disclosure, fake-review rule, deceptive advertising, MFA sites, dark patterns/click-to-cancel, political-ad transparency (`media_*`) |
 | **AI governance & algorithmic accountability** | 16 | Seeded (12) | EU AI Act, NIST AI RMF, OECD/UNESCO AI principles, algorithmic-bias recognition, GDPR Art 22, NYC LL144 automated hiring, deepfake disclosure, model cards, CoE AI Convention (`aigov_*`) |
+| **Space & satellite governance** | 9, 16 | Seeded (12) | Outer Space Treaty, COPUOS/IADC debris mitigation, ITU spectrum/orbital slots, dual-use export, Liability/Registration Conventions, Artemis Accords, GNSS spoofing (`space_*`) |
+| **Biosecurity & dual-use research oversight** | 3 | Seeded (12) | Biological Weapons Convention, DURC/P3CO oversight, WHO biosafety manual, Federal Select Agent Program, Australia Group, IGSC DNA-synthesis screening, IHR, ISO 35001 (`biosec_*`) |
+| **Nuclear & radiological safeguards** | 16 | Seeded (12) | NPT, IAEA safeguards + Additional Protocol, CPPNM physical protection, IAEA ITDB trafficking, NSG export controls, source security, CTBT monitoring, proliferation finance (`nuclear_*`) |
+| **Migrant-smuggling & border integrity** | 16 | Seeded (12) | UN Smuggling Protocol, smuggling-vs-trafficking distinction, document/visa fraud, border corruption, non-refoulement, SOLAS search-and-rescue, FATF smuggling finance (`border_*`) |
 
 Several verticals are deliberately *adjacent* to trafficking — illicit finance,
 corruption, IUU-fishing forced labour, scam-compound coercion, organ trafficking,
@@ -137,12 +141,13 @@ content.
 
 ## Extending further
 
-Candidate next verticals (each is the same eight slots): **water-utility &
-infrastructure resilience**, **space & satellite governance**, **biosecurity &
-dual-use research oversight** (SDG 3), **carbon-border adjustment & trade-climate
-measures** (CBAM - SDG 13), and **digital-platform & content-moderation
-accountability** (DSA - SDG 16). The eight-slot template absorbs each the same
-way; the ceiling is research time, not architecture.
+Candidate next verticals (each is the same eight slots): **carbon-border
+adjustment & trade-climate measures** (CBAM - SDG 13), **digital-platform &
+content-moderation accountability** (DSA - SDG 16), **chemical-weapons & CWC
+compliance** (OPCW - SDG 16), **disaster & emergency-management integrity** (SDG
+11/13), and **gig-economy & platform-work classification** (SDG 8). The
+eight-slot template absorbs each the same way; the ceiling is research time, not
+architecture.
 
 See also: `docs/harness_ecosystem.md`, `docs/harness_standard_contract.md`,
 `.claude/rules/81_canonical_runtime.md`,
