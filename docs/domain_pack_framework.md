@@ -1,16 +1,18 @@
 # DueCare as a domain-general integrity framework
 
 > Status: live (2026-06-05). The anti-trafficking corpus is the reference
-> implementation; twenty-two further verticals (financial crime, anti-corruption,
-> environmental crime, online/consumer fraud, decent-work/labour rights, tax
-> evasion, healthcare fraud, counterfeiting/IP crime, electoral & information
-> integrity, cybercrime & online safety, food safety & agricultural integrity,
-> arms control & strategic-trade, cultural-property trafficking, drug control &
-> precursor diversion, counter-terrorist financing, carbon-market & ESG
+> implementation; twenty-seven further verticals (financial crime, anti-
+> corruption, environmental crime, online/consumer fraud, decent-work/labour
+> rights, tax evasion, healthcare fraud, counterfeiting/IP crime, electoral &
+> information integrity, cybercrime & online safety, food safety & agricultural
+> integrity, arms control & strategic-trade, cultural-property trafficking, drug
+> control & precursor diversion, counter-terrorist financing, carbon-market & ESG
 > integrity, forced & child marriage, sports integrity, insurance & occupational
 > fraud, maritime & fisheries crime, illegal mining & extractives, housing &
-> land-rights) are seeded as proof the same architecture generalizes. Extends the
-> `duecare-llm-domains`
+> land-rights, education & qualification fraud, disability & elder-care abuse,
+> water & sanitation integrity, humanitarian-aid diversion, digital identity &
+> deepfake fraud) are seeded as proof the same architecture generalizes. Extends
+> the `duecare-llm-domains`
 > package (`duecare.domains.*`) and the provider-neutral `HarnessSpec`
 > (see `.claude/rules/81_canonical_runtime.md`).
 
@@ -69,8 +71,8 @@ baseline vs harnessed, score against the vertical's rubric, measure the lift.
 
 ## Current verticals
 
-Twenty-three verticals are live in `RAG_CORPUS` (total 1099 grounding docs as of
-2026-06-05). One is the deep reference implementation; twenty-two are seeded
+Twenty-eight verticals are live in `RAG_CORPUS` (total 1159 grounding docs as of
+2026-06-05). One is the deep reference implementation; twenty-seven are seeded
 proof the template generalizes.
 
 | Vertical | SDG | Status | Seed content |
@@ -98,6 +100,11 @@ proof the template generalizes.
 | **Maritime & fisheries crime** | 14 | Seeded (12) | UNCLOS flag-state, flags-of-convenience, IUU fishing, at-sea transshipment, AIS "going dark", ILO C188 forced-labour-at-sea, STS sanctions evasion, vessel-identity fraud, PSC (`maritime_*`) |
 | **Illegal mining & extractives integrity** | 12, 15 | Seeded (12) | OECD 3TG Due Diligence, EU Conflict Minerals Reg, Dodd-Frank 1502, EITI, ASM, Minamata mercury, Kimberley diamonds, forced/child-labour nexus, sand mining (`mining_*`) |
 | **Housing & land-rights abuse** | 11 | Seeded (12) | CESCR GC7 forced evictions, land grabbing, FAO VGGT, FPIC/UNDRIP, tenure/title fraud, predatory housing, World Bank ESS5, climate displacement, restitution (`land_*`) |
+| **Education & qualification fraud** | 4 | Seeded (12) | CHEA diploma/accreditation mills, credential/transcript forgery, QAA contract cheating, exam fraud, student-visa fraud, COPE paper mills, predatory journals, Title IV aid fraud, ENIC-NARIC verification (`education_*`) |
+| **Disability & elder-care abuse** | 10 | Seeded (12) | UN CRPD, WHO elder-abuse, financial exploitation, guardianship abuse, nursing-home neglect (Elder Justice Act), APS mandatory reporting, capacity/supported decision-making (`eldercare_*`) |
+| **Water & sanitation integrity** | 6 | Seeded (12) | UN Res 64/292 + CESCR GC15 right to water, WIN sector corruption, abstraction theft, illegal discharge, ghost infrastructure, meter-tampering, AWS stewardship (`water_*`) |
+| **Humanitarian-aid diversion & integrity** | 16, 2 | Seeded (12) | IASC PSEA, ghost beneficiaries, procurement fraud, food-aid diversion, cash-transfer fraud, armed-group extortion, CHS accountability, donor clawback/debarment (`aid_*`) |
+| **Digital identity & deepfake fraud** | 16 | Seeded (12) | NIST SP 800-63 KYC, synthetic-identity fraud, deepfake/voice-clone recognition, account-opening fraud, document forgery, biometric spoofing, SIM-swap, World Bank ID4D (`identity_*`) |
 
 Several verticals are deliberately *adjacent* to trafficking — illicit finance,
 corruption, IUU-fishing forced labour, scam-compound coercion, organ trafficking,
@@ -122,13 +129,13 @@ content.
 
 ## Extending further
 
-Candidate next verticals (each is the same eight slots): **education &
-qualification fraud** (diploma mills, credential fraud - SDG 4), **disability &
-elder-care abuse** (SDG 10), **water & sanitation integrity** (utility corruption
-- SDG 6), **humanitarian-aid diversion** (SDG 16/2), **pharmaceutical R&D &
-research integrity** (SDG 3), and **digital identity & deepfake-enabled fraud**.
-Each is stood up by the same research -> merge -> verify pipeline; none requires
-a code change to the harness - only new domain-prefixed knowledge.
+Candidate next verticals (each is the same eight slots): **scientific & research
+integrity** (data fabrication, peer-review fraud - SDG 9), **energy & utility
+fraud** (subsidy diversion, grid theft - SDG 7), **transport & customs integrity**
+(smuggling, transit fraud), **social-protection & benefits fraud** (SDG 1),
+**telecom & subscription fraud**, and **gambling & lottery integrity**. Each is
+stood up by the same research -> merge -> verify pipeline; none requires a code
+change to the harness - only new domain-prefixed knowledge.
 
 See also: `docs/harness_ecosystem.md`, `docs/harness_standard_contract.md`,
 `.claude/rules/81_canonical_runtime.md`,
