@@ -1,7 +1,7 @@
 # DueCare as a domain-general integrity framework
 
 > Status: live (2026-06-05). The anti-trafficking corpus is the reference
-> implementation; thirty-two further verticals (enumerated in the Current
+> implementation; thirty-seven further verticals (enumerated in the Current
 > verticals table below) are seeded as proof the same architecture generalizes
 > across UN SDGs 1-17. Extends the `duecare-llm-domains`
 > package (`duecare.domains.*`) and the provider-neutral `HarnessSpec`
@@ -62,9 +62,11 @@ baseline vs harnessed, score against the vertical's rubric, measure the lift.
 
 ## Current verticals
 
-Thirty-three verticals are live in `RAG_CORPUS` (total 1219 grounding docs as of
-2026-06-05). One is the deep reference implementation; thirty-two are seeded
-proof the template generalizes.
+Thirty-eight verticals are live in `RAG_CORPUS` (total 1279 grounding docs as of
+2026-06-05). One is the deep reference implementation; thirty-seven are seeded
+proof the template generalizes. They are browsable as a live card grid in the
+Knowledge Atlas "Integrity verticals" tab (`static/knowledge-atlas.html`) —
+counts read from the corpus, never hardcoded.
 
 | Vertical | SDG | Status | Seed content |
 |---|---|---|---|
@@ -101,6 +103,11 @@ proof the template generalizes.
 | **Transport, customs & trade integrity** | 8, 16 | Seeded (12) | WCO SAFE/Revised Kyoto/AEO, WTO Valuation & TFA, undervaluation, rules-of-origin & HS-misclassification fraud, transit/duty evasion, FTZ diversion (`customs_*`) |
 | **Social-protection & benefits integrity** | 1 | Seeded (12) | ILO Floors R202, ISSA error/evasion/fraud, GAO improper payments, identity/ghost-pension fraud, wrongful denial (rights side), registry integrity, appeal/due process (`benefits_*`) |
 | **Telecom & subscription fraud** | 9 | Seeded (12) | IRSF, SIM-box/interconnect bypass, Wangiri, PBX toll fraud, STIR/SHAKEN robocall, premium-rate scams, mobile-money fraud, GSMA/CFCA standards (`telecom_*`) |
+| **Gambling & lottery integrity** | 16 | Seeded (12) | FATF casino AML, ML recognition (chip-dumping), illegal/unlicensed gambling, lottery fraud, problem-gambling (NCPG), UK LCCP safer duties, match-fixing betting, RNG integrity (`gambling_*`) |
+| **Real-estate & construction integrity** | 11 | Seeded (12) | FATF/FinCEN real-estate ML, beneficial-ownership opacity, title/deed fraud, permit corruption, construction bid-rigging, CoST transparency, building-safety fraud, appraisal fraud (`realestate_*`) |
+| **Agricultural subsidy & land-use fraud** | 2 | Seeded (12) | EU CAP/OLAF fraud, phantom-land claims, US crop-insurance fraud, input-subsidy diversion, organic-cert fraud, deforestation-linked subsidy, export-refund fraud (`agri_*`) |
+| **Public-procurement & infrastructure integrity** | 9, 16 | Seeded (12) | OECD procurement integrity + bid-rigging guidelines, UNCITRAL Model Law, UNCAC Art 9, cover-bidding/collusion, ghost suppliers, change-order abuse, Open Contracting, World Bank debarment (`procurement_*`) |
+| **Transport safety & emissions integrity** | 3, 11 | Seeded (12) | EPA defeat-device (Dieselgate), odometer fraud, falsified maintenance/airworthiness, unapproved parts, FMCSA hours-of-service, recall concealment, VIN cloning (`transport_*`) |
 
 Several verticals are deliberately *adjacent* to trafficking — illicit finance,
 corruption, IUU-fishing forced labour, scam-compound coercion, organ trafficking,
@@ -125,14 +132,13 @@ content.
 
 ## Extending further
 
-Candidate next verticals (each is the same eight slots): **gambling & lottery
-integrity** (match-fixing-adjacent, AML - SDG 16), **real-estate & construction
-integrity** (title fraud, building-permit corruption - SDG 11), **agricultural
-subsidy & land-use fraud** (SDG 2), **fisheries-subsidy & blue-economy integrity**
-(WTO Fisheries Subsidies Agreement - SDG 14), and **public-procurement &
-infrastructure integrity** (collusion, bid-rigging - SDG 9). Each is stood up by
-the same research -> merge -> verify pipeline; none requires a code change to the
-harness - only new domain-prefixed knowledge.
+Candidate next verticals (each is the same eight slots): **fisheries-subsidy &
+blue-economy integrity** (WTO Fisheries Subsidies Agreement - SDG 14),
+**pharmaceutical & medical-device integrity** (off-label marketing, DSCSA - SDG 3),
+**charity & non-profit governance** (beyond CFT - SDG 16), **media & advertising
+integrity** (ad fraud, undisclosed sponsorship), and **AI-governance & algorithmic
+accountability** (SDG 16). The eight-slot template absorbs each the same way; the
+ceiling is research time, not architecture.
 
 See also: `docs/harness_ecosystem.md`, `docs/harness_standard_contract.md`,
 `.claude/rules/81_canonical_runtime.md`,
