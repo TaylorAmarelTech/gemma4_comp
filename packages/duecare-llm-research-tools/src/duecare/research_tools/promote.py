@@ -101,9 +101,23 @@ def citation_edges(graph: dict, doc_to_env_id: dict[str, str], *, created_at: st
     return out
 
 
-def build_envelopes(staged_chunks: list[dict], graph: dict, *, created_at: str) -> list[dict]:
+def cap_per_doc(staged_chunks: list[dict], max_per_doc: int | None) -> list[dict]:
+    """Keep at most ``max_per_doc`` chunks per doc (the lowest-ordinal ones, i.e.
+    the substantive head), so one sprawling source page can't flood the corpus.
+    ``None`` keeps everything. Deterministic; preserves input order."""
+    if not max_per_doc or max_per_doc <= 0:
+        return list(staged_chunks)
+    return [c for c in staged_chunks if int(c.get("ordinal", 0)) < max_per_doc]
+
+
+def build_envelopes(
+    staged_chunks: list[dict], graph: dict, *, created_at: str,
+    max_per_doc: int | None = None,
+) -> list[dict]:
     """All envelopes for a staged batch: a ``rag_doc`` per chunk + ``citation_edge``
-    per doc co-mention. Deterministic given ``created_at``."""
+    per doc co-mention. ``max_per_doc`` caps chunks per source (corpus balance).
+    Deterministic given ``created_at``."""
+    staged_chunks = cap_per_doc(staged_chunks, max_per_doc)
     rag = [chunk_to_rag_doc(c, created_at=created_at) for c in staged_chunks]
     # first chunk (ordinal 0) of each doc is its representative for edges
     doc_to_env: dict[str, str] = {}

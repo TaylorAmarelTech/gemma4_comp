@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 
 from duecare.research_tools.promote import (
-    build_envelopes, bundle_entries, chunk_envelope_id, chunk_to_rag_doc, sanitize_id,
+    build_envelopes, bundle_entries, cap_per_doc, chunk_envelope_id, chunk_to_rag_doc, sanitize_id,
 )
 
 TS = "2026-06-06T00:00:00Z"
@@ -61,3 +61,13 @@ def test_deterministic():
     a = build_envelopes([C1, C2], GRAPH, created_at=TS)
     b = build_envelopes([C1, C2], GRAPH, created_at=TS)
     assert a == b
+
+
+def test_cap_per_doc_trims_sprawling_source():
+    big = [{"doc_id": "D", "ordinal": i, "text": f"t{i}", "url": "u"} for i in range(10)]
+    capped = cap_per_doc(big, 3)
+    assert [c["ordinal"] for c in capped] == [0, 1, 2]   # keeps the head
+    assert cap_per_doc(big, None) == big                  # None keeps all
+    # build_envelopes honors the cap
+    envs = build_envelopes(big, {"edges": []}, created_at=TS, max_per_doc=3)
+    assert len([e for e in envs if e["knowledge_object_type"] == "rag_doc"]) == 3
