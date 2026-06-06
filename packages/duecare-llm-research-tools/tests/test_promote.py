@@ -68,6 +68,19 @@ def test_cap_per_doc_trims_sprawling_source():
     capped = cap_per_doc(big, 3)
     assert [c["ordinal"] for c in capped] == [0, 1, 2]   # keeps the head
     assert cap_per_doc(big, None) == big                  # None keeps all
-    # build_envelopes honors the cap
-    envs = build_envelopes(big, {"edges": []}, created_at=TS, max_per_doc=3)
+    # build_envelopes honors the cap (min_tier='low' isolates the cap from the gate)
+    envs = build_envelopes(big, {"edges": []}, created_at=TS, max_per_doc=3, min_tier="low")
     assert len([e for e in envs if e["knowledge_object_type"] == "rag_doc"]) == 3
+
+
+def test_relevance_gate_excludes_offtopic():
+    on = {"doc_id": "d1", "ordinal": 0, "url": "u",
+          "text": "ILO C189 domestic worker recruitment fees and passport retention; debt bondage."}
+    off = {"doc_id": "d2", "ordinal": 0, "url": "u2",
+           "text": "Carbon border adjustment certificates for embedded emissions under the trading scheme."}
+    envs = build_envelopes([on, off], {"edges": []}, created_at=TS, min_tier="medium")
+    rag = [e for e in envs if e["knowledge_object_type"] == "rag_doc"]
+    assert len(rag) == 1                                   # off-topic chunk gated out
+    assert rag[0]["id"] == chunk_envelope_id(on)
+    assert any(t.startswith("relevance-") for t in rag[0]["tags"])
+    assert rag[0]["provenance"]["relevance"]["tier"] in ("medium", "high")

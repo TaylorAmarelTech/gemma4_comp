@@ -76,7 +76,9 @@ def main() -> None:
 
     created_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     max_per_doc = int(os.environ.get("PROMOTE_MAX_PER_DOC", "120")) or None
-    envelopes = build_envelopes(staged, graph, created_at=created_at, max_per_doc=max_per_doc)
+    min_tier = os.environ.get("PROMOTE_MIN_TIER", "medium")  # relevance floor
+    envelopes = build_envelopes(staged, graph, created_at=created_at,
+                                max_per_doc=max_per_doc, min_tier=min_tier)
     entries = bundle_entries(envelopes)
 
     # reviewable jsonl
@@ -93,15 +95,21 @@ def main() -> None:
             _zip_write(zf, path, raw)
 
     by_type: dict[str, int] = {}
+    by_tier: dict[str, int] = {}
     for env in envelopes:
         t = env["knowledge_object_type"]
         by_type[t] = by_type.get(t, 0) + 1
+        if t == "rag_doc":
+            tier = (env.get("provenance", {}).get("relevance") or {}).get("tier", "?")
+            by_tier[tier] = by_tier.get(tier, 0) + 1
     summary = {
         "created_at": created_at,
         "staged_chunks": len(staged),
         "max_per_doc": max_per_doc,
+        "min_tier": min_tier,
         "envelopes_total": len(envelopes),
         "by_type": by_type,
+        "rag_doc_by_tier": by_tier,
         "bundle_zip": str(zip_path),
         "bundle_bytes": zip_path.stat().st_size,
         "envelopes_jsonl": str(env_path),

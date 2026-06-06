@@ -20,6 +20,8 @@ from __future__ import annotations
 import json
 import re
 
+from .relevance import TIER_RANK, relevance
+
 _ID_SAFE = re.compile(r"[^a-z0-9]+")
 _VERIFY_NOTE = ("Acquired automatically from a public source by the DueCare "
                 "acquisition pipeline. Review and verify against the cited source "
@@ -38,12 +40,15 @@ def chunk_envelope_id(chunk: dict) -> str:
     return f"acq-{doc}-c{int(chunk.get('ordinal', 0)):03d}"
 
 
-def chunk_to_rag_doc(chunk: dict, *, created_at: str) -> dict:
-    """One staged chunk -> a ``rag_doc`` knowledge envelope."""
+def chunk_to_rag_doc(chunk: dict, *, created_at: str, rel: dict | None = None) -> dict:
+    """One staged chunk -> a ``rag_doc`` knowledge envelope. ``rel`` (relevance
+    score dict) is recorded in provenance + a ``relevance-<tier>`` tag."""
     base = chunk.get("title") or chunk.get("doc_id") or "Acquired document"
     title = f"{base} (part {int(chunk.get('ordinal', 0)) + 1})"
     jur = (chunk.get("jurisdictions") or [None])[0]
     tags = ["acquired"]
+    if rel:
+        tags.append(f"relevance-{rel['tier']}")
     if chunk.get("source_tier"):
         tags.append(sanitize_id(chunk["source_tier"]))
     tags.extend(sanitize_id(s) for s in (chunk.get("signals") or [])[:4])
@@ -57,6 +62,7 @@ def chunk_to_rag_doc(chunk: dict, *, created_at: str) -> dict:
             "created_by": "scripts/promote_acquisition.py",
             "created_at": created_at,
             "source_url": chunk.get("url"),
+            "relevance": rel or {},
             "notes": "Automated acquisition; review before production use.",
         },
         "content": {
@@ -112,16 +118,25 @@ def cap_per_doc(staged_chunks: list[dict], max_per_doc: int | None) -> list[dict
 
 def build_envelopes(
     staged_chunks: list[dict], graph: dict, *, created_at: str,
-    max_per_doc: int | None = None,
+    max_per_doc: int | None = None, min_tier: str = "medium",
 ) -> list[dict]:
-    """All envelopes for a staged batch: a ``rag_doc`` per chunk + ``citation_edge``
-    per doc co-mention. ``max_per_doc`` caps chunks per source (corpus balance).
-    Deterministic given ``created_at``."""
+    """All envelopes for a staged batch: a ``rag_doc`` per chunk that passes the
+    trafficking-relevance gate (``min_tier``) + ``citation_edge`` per doc
+    co-mention. ``max_per_doc`` caps chunks per source (corpus balance). The gate
+    keeps broad harvested gov pages from diluting the corpus. Deterministic."""
     staged_chunks = cap_per_doc(staged_chunks, max_per_doc)
-    rag = [chunk_to_rag_doc(c, created_at=created_at) for c in staged_chunks]
-    # first chunk (ordinal 0) of each doc is its representative for edges
-    doc_to_env: dict[str, str] = {}
+    floor = TIER_RANK.get(min_tier, 1)
+    rag: list[dict] = []
+    kept: list[dict] = []
     for c in staged_chunks:
+        rel = relevance(c.get("text", ""), signals=c.get("signals"))
+        if TIER_RANK[rel["tier"]] < floor:
+            continue  # off-topic / below the relevance floor -> not promoted
+        rag.append(chunk_to_rag_doc(c, created_at=created_at, rel=rel))
+        kept.append(c)
+    # first chunk (ordinal 0) of each KEPT doc is its representative for edges
+    doc_to_env: dict[str, str] = {}
+    for c in kept:
         if int(c.get("ordinal", 0)) == 0:
             doc_to_env[str(c.get("doc_id"))] = chunk_envelope_id(c)
     edges = citation_edges(graph, doc_to_env, created_at=created_at)
