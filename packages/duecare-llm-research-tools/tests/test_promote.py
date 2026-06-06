@@ -1,0 +1,63 @@
+"""Tests for promoting staged chunks into importable knowledge envelopes."""
+from __future__ import annotations
+
+import json
+
+from duecare.research_tools.promote import (
+    build_envelopes, bundle_entries, chunk_envelope_id, chunk_to_rag_doc, sanitize_id,
+)
+
+TS = "2026-06-06T00:00:00Z"
+
+# Two staged docs (each one chunk, ordinal 0) that co-mention in the graph.
+C1 = {"doc_id": "SRC-CAND-AA#x", "ordinal": 0, "title": "DW rights",
+      "text": "C189 domestic worker keeps passport on the PH-HK corridor.",
+      "url": "https://example.org/a", "source_tier": "official_government",
+      "jurisdictions": ["Philippines"], "signals": ["debt_bondage", "forced_labor"]}
+C2 = {"doc_id": "SRC-CAND-BB", "ordinal": 0, "title": "Fees rule",
+      "text": "On PH-HK fees are unlawful under C189.", "url": "https://example.org/b"}
+GRAPH = {"nodes": ["SRC-CAND-AA#x", "SRC-CAND-BB"],
+         "edges": [{"source": "SRC-CAND-AA#x", "target": "SRC-CAND-BB",
+                    "relation": "co_mentions", "weight": 2}]}
+
+
+def test_sanitize_id_is_filename_safe():
+    assert sanitize_id("SRC-CAND-AA#x") == "src-cand-aa-x"
+    assert "#" not in chunk_envelope_id(C1) and "/" not in chunk_envelope_id(C1)
+
+
+def test_chunk_to_rag_doc_shape():
+    env = chunk_to_rag_doc(C1, created_at=TS)
+    assert env["knowledge_object_type"] == "rag_doc"
+    assert env["id"] == chunk_envelope_id(C1)
+    assert env["content"]["text"] == C1["text"]
+    assert env["content"]["citation"] == C1["url"]
+    assert env["provenance"]["created_at"] == TS
+    assert "acquired" in env["tags"] and "official-government" in env["tags"]
+
+
+def test_build_envelopes_counts_and_edge():
+    envs = build_envelopes([C1, C2], GRAPH, created_at=TS)
+    rag = [e for e in envs if e["knowledge_object_type"] == "rag_doc"]
+    edges = [e for e in envs if e["knowledge_object_type"] == "citation_edge"]
+    assert len(rag) == 2
+    assert len(edges) == 1
+    assert edges[0]["content"]["from_doc_id"] == chunk_envelope_id(C1)
+    assert edges[0]["content"]["to_doc_id"] == chunk_envelope_id(C2)
+    assert edges[0]["content"]["weight"] == 2
+
+
+def test_bundle_entries_paths_match_importer_contract():
+    envs = build_envelopes([C1, C2], GRAPH, created_at=TS)
+    entries = bundle_entries(envs)
+    for path, raw in entries:
+        env = json.loads(raw)
+        # importer requires <type>/<id>.json with stem == id
+        assert path == f"{env['knowledge_object_type']}/{env['id']}.json"
+    assert entries == sorted(entries, key=lambda t: t[0])  # deterministic order
+
+
+def test_deterministic():
+    a = build_envelopes([C1, C2], GRAPH, created_at=TS)
+    b = build_envelopes([C1, C2], GRAPH, created_at=TS)
+    assert a == b
