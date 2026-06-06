@@ -32,8 +32,8 @@ for _p in sorted((ROOT / "packages").glob("*/src")):
 
 from duecare.research_tools.acquire import acquire  # noqa: E402
 from duecare.research_tools.dedup import content_key, simhash64  # noqa: E402
+from duecare.research_tools.docfetch import fetch_document  # noqa: E402
 from duecare.research_tools.graph import build_graph  # noqa: E402
-from duecare.research_tools.monitor import default_fetch  # noqa: E402
 
 CAND = Path(os.environ.get(
     "ACQ_CANDIDATES",
@@ -99,7 +99,7 @@ def main() -> None:
         return
 
     def fetch(url: str):
-        return default_fetch(url, timeout=TIMEOUT)
+        return fetch_document(url, timeout=TIMEOUT)
 
     tot_kept = tot_drop = tot_unreach = 0
     t0 = time.time()
