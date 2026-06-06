@@ -21,12 +21,21 @@ Two transform families, both deterministic:
     typo           -- keyboard-style typos on a few long words
     contraction    -- toggle common contractions (do not <-> don't)
     leet           -- sparse look-alike-char substitution (a->@, o->0, s->5)
+    synonym        -- WordNet adjective/adverb synonym swap (the EDA "SR" op).
+                      Library-backed via the optional `wn` lib (MIT), with a
+                      curated stdlib fallback; adj/adv only + safety-stoplisted
+                      so a swap never changes safety-relevant content.
+
+Optional (synonym transform): `pip install wn` then
+`python -c "import wn; wn.download('oewn:2024')"` for live WordNet synonyms;
+without it the remixer still runs and uses the curated fallback map.
 
 Deterministic (indexed rotation, NO RNG) so a given corpus is reproducible.
 Synthetic only; provenance (base_ids + transform) is recorded on every variant.
 """
 from __future__ import annotations
 
+import functools
 import hashlib
 import json
 import pathlib
@@ -143,6 +152,90 @@ def _leet(text: str, i: int) -> str:
             if pos != -1:
                 words[elig[(i + k) % len(elig)]] = w[:pos] + sub + w[pos + 1:]
                 break
+    return " ".join(words)
+
+
+# --- Synonym / thesaurus swap (meaning-preserving INVARIANCE probe) ---------
+# Library-backed when available: the `wn` WordNet library (MIT) supplies
+# adjective/adverb synonyms (satellite-aware: pos a/s/r). The dependency is
+# OPTIONAL and generation-time only -- if `wn` or its lexicon is absent the
+# remixer falls back to a small curated map so it STILL runs stdlib-only and
+# deterministic (its core design property; `wn` never enters the deployed
+# harness). We swap ONLY adjectives/adverbs and NEVER a safety-critical term
+# (stoplist), so a swap perturbs surface wording without touching the
+# safety-relevant content -- a safety verdict must be invariant to it.
+_SYN_STOP = frozenset((
+    "passport", "visa", "permit", "contract", "fee", "fees", "salary", "salaries",
+    "wage", "wages", "debt", "debts", "bond", "bonds", "loan", "loans", "deduction",
+    "deductions", "recruiter", "recruiters", "agency", "agencies", "agent", "agents",
+    "broker", "brokers", "employer", "employers", "worker", "workers", "trafficking",
+    "bondage", "ilo", "hotline", "police", "embassy", "ngo", "victim", "victims",
+    "minor", "minors", "child", "children", "passport", "illegal", "unlawful",
+))
+# Curated, safety-checked adjective/adverb synonyms used when `wn` is unavailable.
+_SYN_FALLBACK = {
+    "careful": "cautious", "urgent": "pressing", "quickly": "rapidly",
+    "monthly": "every month", "worried": "anxious", "difficult": "hard",
+    "important": "crucial", "afraid": "frightened", "angry": "furious",
+    "confused": "puzzled", "exhausted": "drained", "suspicious": "dubious",
+    "desperate": "frantic", "honest": "truthful", "expensive": "costly",
+    "recently": "lately", "immediately": "at once", "frequently": "often",
+    "secretly": "covertly", "reluctant": "hesitant", "unfair": "unjust",
+    "scared": "fearful", "trapped": "cornered", "constantly": "continually",
+    "suddenly": "abruptly", "nervous": "uneasy", "ashamed": "embarrassed",
+}
+try:  # optional, generation-time only -- never a runtime/deployment dependency
+    import wn as _wnlib  # type: ignore
+    _wn_lex = _wnlib.lexicons()
+    _WN = _wnlib.Wordnet(_wn_lex[0].id) if _wn_lex else None
+except Exception:  # noqa: BLE001 -- wn or its lexicon absent; use the fallback map
+    _WN = None
+
+
+@functools.lru_cache(maxsize=8192)
+def _syns_for(word: str) -> tuple[str, ...]:
+    """Adjective/adverb synonyms for ``word`` (lowercased): `wn` when present
+    (satellite-aware), else the curated fallback. Empty for nouns/verbs without
+    an adj/adv sense, and for any safety-stoplisted term."""
+    if word in _SYN_STOP or len(word) < 5:
+        return ()
+    if _WN is not None:
+        out: set[str] = set()
+        try:
+            for pos in ("a", "s", "r"):  # adjective, adjective-satellite, adverb
+                for ss in _WN.synsets(word, pos=pos):
+                    for lm in ss.lemmas():
+                        lo = lm.lower()
+                        if lo != word and lo.isalpha() and lo not in _SYN_STOP:
+                            out.add(lo)
+        except Exception:  # noqa: BLE001
+            out = set()
+        if out:
+            return tuple(sorted(out))  # deterministic order
+    fb = _SYN_FALLBACK.get(word)
+    return (fb,) if fb else ()
+
+
+def _synonym(text: str, i: int) -> str:
+    """Swap up to 3 adjective/adverb words for WordNet (or fallback) synonyms.
+    Deterministic indexed selection; preserves leading capitalization."""
+    words, elig = _eligible_words(text)
+    if not elig:
+        return text
+    swapped = 0
+    for k in range(len(elig)):
+        if swapped >= 3:
+            break
+        idx = elig[(i + k) % len(elig)]
+        w = words[idx]
+        syns = _syns_for(w.lower())
+        if not syns:
+            continue
+        repl = syns[(i + k) % len(syns)]
+        if w[:1].isupper():
+            repl = repl[:1].upper() + repl[1:]
+        words[idx] = repl
+        swapped += 1
     return " ".join(words)
 
 
@@ -301,6 +394,9 @@ def remix(bases: list[dict], *, max_out: int = 0) -> list[dict]:
         out.append(_variant(_typo(b["text"], i), "typo", [b]))
         out.append(_variant(_contraction(b["text"], i), "contraction", [b]))
         out.append(_variant(_leet(b["text"], i), "leet", [b]))
+        sv = _synonym(b["text"], i)
+        if sv != b["text"]:  # adj/adv synonym swap (skip if nothing eligible)
+            out.append(_variant(sv, "synonym", [b]))
         if n > 1:  # combine with a DIFFERENT base (rotate by a stride)
             b2 = bases[(i + 1 + (i % 3)) % n]
             if b2 is not b:
