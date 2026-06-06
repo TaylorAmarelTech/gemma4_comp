@@ -1,10 +1,13 @@
 # DueCare as a domain-general integrity framework
 
 > Status: live (2026-06-05). The anti-trafficking corpus is the reference
-> implementation; eight further verticals (financial crime, anti-corruption,
+> implementation; fourteen further verticals (financial crime, anti-corruption,
 > environmental crime, online/consumer fraud, decent-work/labour rights, tax
-> evasion, healthcare fraud, counterfeiting/IP crime) are seeded as proof the
-> same architecture generalizes. Extends the `duecare-llm-domains`
+> evasion, healthcare fraud, counterfeiting/IP crime, electoral & information
+> integrity, cybercrime & online safety, food safety & agricultural integrity,
+> arms control & strategic-trade, cultural-property trafficking, drug control &
+> precursor diversion) are seeded as proof the same architecture generalizes.
+> Extends the `duecare-llm-domains`
 > package (`duecare.domains.*`) and the provider-neutral `HarnessSpec`
 > (see `.claude/rules/81_canonical_runtime.md`).
 
@@ -63,8 +66,8 @@ baseline vs harnessed, score against the vertical's rubric, measure the lift.
 
 ## Current verticals
 
-Nine verticals are live in `RAG_CORPUS` (total 931 grounding docs as of
-2026-06-05). One is the deep reference implementation; eight are seeded proof
+Fifteen verticals are live in `RAG_CORPUS` (total 1003 grounding docs as of
+2026-06-05). One is the deep reference implementation; fourteen are seeded proof
 the template generalizes.
 
 | Vertical | SDG | Status | Seed content |
@@ -78,15 +81,23 @@ the template generalizes.
 | **Tax evasion / illicit financial flows** | 16, 17 | Seeded (12) | OECD CRS, FATCA, BEPS Pillar Two, EU DAC6, trade-misinvoicing IFF, shell-company opacity, VAT carousel, transfer pricing, FATF predicate offence (`tax_*`) |
 | **Healthcare fraud & patient safety** | 3 | Seeded (12) | False Claims Act, Anti-Kickback, Stark Law, billing red flags, WHO falsified medicines, EU FMD, organ trafficking, clinical-trial integrity, HIPAA (`health_*`) |
 | **Counterfeiting / IP crime** | 9, 12 | Seeded (12) | WTO TRIPS, WCO customs, US 18 USC 2320, EU Reg 608/2013, product-safety harm, INFORM Act, organized-crime nexus, GI fraud, remedy (`counterfeit_*`) |
+| **Electoral & information integrity** | 16 | Seeded (12) | ICCPR Art 25, Venice Commission Code, OSCE/ODIHR observation, International IDEA, campaign finance, voter-suppression/disinformation/deepfake/foreign-interference recognition, EU DSA, ballot integrity (`election_*`) |
+| **Cybercrime & online safety** | 16 | Seeded (12) | Budapest Convention, US CFAA, EU NIS2, GDPR breach, ransomware, EU DSA, UK Online Safety Act, online child-exploitation recognition + 18 USC 2258A mandatory reporting, BEC/ATO, critical infrastructure (`cyber_*`) |
+| **Food safety & agricultural integrity** | 2, 3 | Seeded (12) | Codex Alimentarius, US FSMA, EU Reg 178/2002 + RASFF, EMA/food-fraud red flags, HACCP, origin/species substitution, allergen mislabeling, horsemeat lessons, certification fraud (`food_*`) |
+| **Arms control & strategic-trade** | 16 | Seeded (12) | UN ATT, Wassenaar, EU dual-use 2021/821, US EAR/ITAR, UN embargoes, end-user red flags, SALW/Firearms Protocol, brokering, sanctions evasion, proliferation financing (`arms_*`) |
+| **Cultural-property & antiquities trafficking** | 11.4, 16 | Seeded (12) | 1970 UNESCO, 1995 UNIDROIT, 1954 Hague, provenance red flags, conflict-antiquities (UN 2199), ICOM Red Lists, looting recognition, due diligence, repatriation (`heritage_*`) |
+| **Drug control & precursor diversion** | 3 | Seeded (12) | UN 1961/1971/1988 conventions, INCB precursors (Tables I/II, PEN), NPS, financial red flags, precursor-diversion recognition, forced-labour nexus, harm reduction, opioid crisis (`drug_*`) |
 
 Several verticals are deliberately *adjacent* to trafficking — illicit finance,
 corruption, IUU-fishing forced labour, scam-compound coercion, organ trafficking,
-and counterfeit-production forced labour are all how exploitation is paid for,
-enabled, or co-located — so each new pack also enriches the trafficking pack with
-an explicit nexus doc (e.g. `envcrime_iuu_forced_labour_nexus`,
+counterfeit-production forced labour, coerced drug-cultivation, and conflict-
+antiquities financing are all how exploitation is paid for, enabled, or co-
+located — so each adjacent pack also enriches the trafficking pack with an
+explicit nexus doc (e.g. `envcrime_iuu_forced_labour_nexus`,
 `fraud_scam_compound_labour_nexus`, `health_organ_trafficking`,
-`counterfeit_organized_crime_nexus`). The rubric's named cross-domain proof
-trio — trafficking + tax_evasion + financial_crime — is now fully present.
+`counterfeit_organized_crime_nexus`, `drug_forced_labour_nexus`,
+`heritage_conflict_antiquities`). The rubric's named cross-domain proof
+trio — trafficking + tax_evasion + financial_crime — is fully present.
 
 ## Why this matters for the rubric
 
@@ -100,12 +111,13 @@ content.
 
 ## Extending further
 
-Candidate next verticals (each is the same eight slots): **electoral &
-information integrity** (SDG 16), **arms-control & export compliance** (SDG 16),
-**cybercrime & online safety** (Budapest Convention - SDG 16), **food safety &
-agricultural integrity** (SDG 2), and **carbon-market / climate integrity**
-(SDG 13). Each is stood up by the same research -> merge -> verify pipeline; none
-requires a code change to the harness - only new domain-prefixed knowledge.
+Candidate next verticals (each is the same eight slots): **counter-terrorist
+financing & NPO abuse** (FATF Rec 5-8 - SDG 16), **carbon-market / climate &
+ESG integrity** (greenwashing, voluntary carbon market - SDG 13), **sports
+integrity / match-fixing** (Macolin Convention - SDG 16), **forced & child
+marriage** (CEDAW - SDG 5), and **insurance & occupational fraud**. Each is
+stood up by the same research -> merge -> verify pipeline; none requires a code
+change to the harness - only new domain-prefixed knowledge.
 
 See also: `docs/harness_ecosystem.md`, `docs/harness_standard_contract.md`,
 `.claude/rules/81_canonical_runtime.md`,
