@@ -10,12 +10,18 @@ from duecare.research_tools.promote import (
 TS = "2026-06-06T00:00:00Z"
 
 # Two staged docs (each one chunk, ordinal 0) that co-mention in the graph.
+# Real prose so they clear both the relevance and meaningfulness gates.
 C1 = {"doc_id": "SRC-CAND-AA#x", "ordinal": 0, "title": "DW rights",
-      "text": "C189 domestic worker keeps passport on the PH-HK corridor.",
+      "text": ("Under ILO C189 the domestic worker on the PH-HK corridor keeps custody of her "
+               "passport at all times during employment, and the employer bears the full cost of "
+               "recruitment and deployment so that no recruitment fee is charged to the worker."),
       "url": "https://example.org/a", "source_tier": "official_government",
       "jurisdictions": ["Philippines"], "signals": ["debt_bondage", "forced_labor"]}
 C2 = {"doc_id": "SRC-CAND-BB", "ordinal": 0, "title": "Fees rule",
-      "text": "On PH-HK fees are unlawful under C189.", "url": "https://example.org/b"}
+      "text": ("On the PH-HK corridor recruitment fees charged to the worker are unlawful under "
+               "ILO C189, and any amount collected must be refunded in full because charging the "
+               "worker creates a debt that can be used to coerce continued labour."),
+      "url": "https://example.org/b"}
 GRAPH = {"nodes": ["SRC-CAND-AA#x", "SRC-CAND-BB"],
          "edges": [{"source": "SRC-CAND-AA#x", "target": "SRC-CAND-BB",
                     "relation": "co_mentions", "weight": 2}]}
@@ -68,8 +74,9 @@ def test_cap_per_doc_trims_sprawling_source():
     capped = cap_per_doc(big, 3)
     assert [c["ordinal"] for c in capped] == [0, 1, 2]   # keeps the head
     assert cap_per_doc(big, None) == big                  # None keeps all
-    # build_envelopes honors the cap (min_tier='low' isolates the cap from the gate)
-    envs = build_envelopes(big, {"edges": []}, created_at=TS, max_per_doc=3, min_tier="low")
+    # build_envelopes honors the cap ('low' floors isolate the cap from the gates)
+    envs = build_envelopes(big, {"edges": []}, created_at=TS, max_per_doc=3,
+                           min_tier="low", min_meaning="low")
     assert len([e for e in envs if e["knowledge_object_type"] == "rag_doc"]) == 3
 
 
@@ -78,9 +85,25 @@ def test_relevance_gate_excludes_offtopic():
           "text": "ILO C189 domestic worker recruitment fees and passport retention; debt bondage."}
     off = {"doc_id": "d2", "ordinal": 0, "url": "u2",
            "text": "Carbon border adjustment certificates for embedded emissions under the trading scheme."}
-    envs = build_envelopes([on, off], {"edges": []}, created_at=TS, min_tier="medium")
+    envs = build_envelopes([on, off], {"edges": []}, created_at=TS,
+                           min_tier="medium", min_meaning="low")
     rag = [e for e in envs if e["knowledge_object_type"] == "rag_doc"]
     assert len(rag) == 1                                   # off-topic chunk gated out
     assert rag[0]["id"] == chunk_envelope_id(on)
     assert any(t.startswith("relevance-") for t in rag[0]["tags"])
     assert rag[0]["provenance"]["relevance"]["tier"] in ("medium", "high")
+
+
+def test_meaningfulness_gate_excludes_boilerplate():
+    # both are on-topic, but the second is a short nav fragment with no substance
+    rich = {"doc_id": "d1", "ordinal": 0, "url": "u",
+            "text": ("Recruitment fees charged to a migrant domestic worker are unlawful; the "
+                     "employer bears the full cost of deployment and the worker keeps her passport, "
+                     "so that no debt is created that could be used to coerce continued labour.")}
+    boiler = {"doc_id": "d2", "ordinal": 0, "url": "u2",
+              "text": "Recruitment fees. Migrant worker. Passport. Visa. Home. Contact."}
+    envs = build_envelopes([rich, boiler], {"edges": []}, created_at=TS,
+                           min_tier="medium", min_meaning="medium")
+    rag = [e for e in envs if e["knowledge_object_type"] == "rag_doc"]
+    assert len(rag) == 1 and rag[0]["id"] == chunk_envelope_id(rich)
+    assert any(t.startswith("meaningful-") for t in rag[0]["tags"])
