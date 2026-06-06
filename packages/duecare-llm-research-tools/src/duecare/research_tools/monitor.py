@@ -169,10 +169,18 @@ def build_report(findings: list[ChangeFinding], proposals: list[ProposedUpdate])
         findings=findings, proposals=proposals)
 
 
-# A browser-compatible UA + Accept headers: many government/NGO sites 403 or 302
-# a non-browser agent even for fully PUBLIC pages. We identify ourselves in the
-# UA suffix and read public info only (no auth, no private data). robots.txt-aware
-# politeness + rate limiting are production deliverables.
+# Optional bot-grade fetch backend. Government/NGO WAFs (Cloudflare/Akamai) drop a
+# stdlib-urllib request by its TLS/JA3 fingerprint -- a UA string alone does NOT
+# fix it (that is why the first run's 403s persisted). `curl_cffi` impersonates a
+# real Chrome TLS fingerprint and defeats it (survey:
+# reports/_scratch/build_operate_tooling_survey.md). OPTIONAL: stdlib urllib stays
+# the zero-dep fallback so the monitor still runs without curl_cffi installed.
+try:
+    from curl_cffi import requests as _curl_requests  # type: ignore
+    _HAVE_CURL = True
+except Exception:  # noqa: BLE001
+    _HAVE_CURL = False
+
 _BROWSER_HEADERS = {
     "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                    "(KHTML, like Gecko) Chrome/124.0 Safari/537.36 DuecareResearchMonitor/0.1"),
@@ -181,10 +189,20 @@ _BROWSER_HEADERS = {
 }
 
 
-def default_fetch(url: str, *, timeout: float = 25.0, _redirects: int = 4) -> FetchResult:
-    """Stdlib fetch of a PUBLIC url with a browser-compatible UA, explicit
-    redirect following, and one retry on timeout. Injected mock in tests;
-    never raises (network errors become an 'unreachable' finding)."""
+def _curl_fetch(url: str, timeout: float) -> FetchResult:
+    """curl_cffi fetch with a real Chrome TLS fingerprint (defeats WAF 403s)."""
+    try:
+        r = _curl_requests.get(url, impersonate="chrome", timeout=timeout, allow_redirects=True)
+        ok = 200 <= int(r.status_code) < 300
+        return FetchResult(ok=ok, status=int(r.status_code),
+                           text=(r.text or "")[:2_000_000] if ok else "",
+                           error=None if ok else f"HTTP {r.status_code}")
+    except Exception as e:  # noqa: BLE001 -- transport failure: signal fallback
+        return FetchResult(ok=False, status=0, error=f"{type(e).__name__}: {str(e)[:120]}")
+
+
+def _urllib_fetch(url: str, timeout: float, _redirects: int = 4) -> FetchResult:
+    """Stdlib fallback: browser UA + explicit redirect follow + one retry."""
     req = urllib.request.Request(url, headers=dict(_BROWSER_HEADERS))
     for attempt in (1, 2):  # one retry for slow government sites
         try:
@@ -194,8 +212,7 @@ def default_fetch(url: str, *, timeout: float = 25.0, _redirects: int = 4) -> Fe
         except urllib.error.HTTPError as e:
             loc = e.headers.get("Location") if e.headers else None
             if e.code in (301, 302, 303, 307, 308) and loc and _redirects > 0:
-                return default_fetch(urllib.parse.urljoin(url, loc),
-                                     timeout=timeout, _redirects=_redirects - 1)
+                return _urllib_fetch(urllib.parse.urljoin(url, loc), timeout, _redirects - 1)
             return FetchResult(ok=False, status=int(e.code), error=f"HTTP {e.code}")
         except (TimeoutError, urllib.error.URLError) as e:
             if attempt == 1:
@@ -204,6 +221,18 @@ def default_fetch(url: str, *, timeout: float = 25.0, _redirects: int = 4) -> Fe
         except Exception as e:  # noqa: BLE001 -- report, never crash the run
             return FetchResult(ok=False, status=0, error=f"{type(e).__name__}: {str(e)[:120]}")
     return FetchResult(ok=False, status=0, error="retry exhausted")
+
+
+def default_fetch(url: str, *, timeout: float = 25.0) -> FetchResult:
+    """Fetch a PUBLIC url. Prefers curl_cffi (browser TLS fingerprint, defeats WAF
+    403s) when installed; falls back to stdlib urllib on a transport failure. A
+    real HTTP status from curl (403/404/200) is trusted as a true finding.
+    Injected mock in tests; never raises."""
+    if _HAVE_CURL:
+        res = _curl_fetch(url, timeout)
+        if res.ok or res.status:  # got a real HTTP status -> trust it
+            return res
+    return _urllib_fetch(url, timeout)
 
 
 def load_sources(path: Path) -> list[MonitorSource]:
