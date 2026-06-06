@@ -47,6 +47,8 @@ BATCH = int(os.environ.get("ACQ_BATCH", "20"))
 TIMEOUT = float(os.environ.get("ACQ_TIMEOUT", "25"))
 MIN_INTERVAL = float(os.environ.get("ACQ_MIN_INTERVAL", "1.0"))  # per-host seconds
 RESPECT_ROBOTS = os.environ.get("ACQ_RESPECT_ROBOTS", "1") not in ("0", "false", "")
+FRONTIER_DB = os.environ.get("ACQ_FRONTIER_DB", "")          # drain harvested frontier if set
+FRONTIER_LIMIT = int(os.environ.get("ACQ_FRONTIER_LIMIT", "0"))  # cap pending pulled per run
 
 
 def _utf8() -> None:
@@ -75,7 +77,13 @@ def load_jsonl(p: Path) -> list[dict]:
 def main() -> None:
     _utf8()
     OUT.mkdir(parents=True, exist_ok=True)
-    cands = load_jsonl(CAND)
+    # Candidates come from the harvested frontier db (drain pending) or a jsonl.
+    fstore = AcquisitionStore(FRONTIER_DB) if FRONTIER_DB else None
+    if fstore is not None:
+        cands = [dict(c) for c in fstore.iter_frontier(status="pending", limit=FRONTIER_LIMIT or None)]
+        print(f"[acquire] draining frontier {FRONTIER_DB}: {len(cands)} pending", flush=True)
+    else:
+        cands = load_jsonl(CAND)
 
     # Dedup baseline from the live corpus (URL + exact-text + near-dup signals).
     # Persistent store = dedup index + crawl ledger + corpus (system of record).
@@ -113,6 +121,8 @@ def main() -> None:
     if not todo:
         print("[acquire] nothing to do (all candidates already processed).", flush=True)
         store.close()
+        if fstore is not None:
+            fstore.close()
         return
 
     # Polite fetch: per-host robots Disallow + rate limit, wrapping the
@@ -148,6 +158,10 @@ def main() -> None:
                 store.mark_url(c["url"],
                                status=("unreachable" if c["url"] in unreached else "fetched"))
             store.commit()
+            if fstore is not None:
+                for c in batch:
+                    fstore.mark_frontier(c["url"], "acquired")
+                fstore.commit()
             tot_kept += r.n_chunks_kept
             tot_drop += r.n_chunks_dropped
             tot_unreach += r.n_unreachable
@@ -177,6 +191,8 @@ def main() -> None:
     }
     (OUT / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     store.close()
+    if fstore is not None:
+        fstore.close()
     print("[acquire] DONE " + json.dumps(manifest), flush=True)
 
 
