@@ -286,14 +286,29 @@ Let trusted stakeholders share privacy-preserving safety knowledge without shari
 
 ## 7. Component 5 — Public Information Research Monitor
 
-> **Status (2026-06-06): MVP DELIVERED.** `duecare.research_tools.monitor`
-> (propose-only change detector) + `configs/duecare/research_monitor/sources.yaml`
-> (18-source seed) + `tests/test_monitor.py` (9 passed). `research-monitor check`
-> CLI emits `proposed_updates.json` for curator review and NEVER mutates packs.
-> First real run baselined 9/18 sources and flagged 9 unreachable for review.
-> Next (production): browser-grade fetch (UA/redirect/retry for bot-blocked
-> agency sites), scheduled worker, review dashboard, diff summaries,
-> jurisdiction/corridor watchlists, contact-freshness over `_contacts.json`.
+> **Status (2026-06-06): MVP DELIVERED + acquisition pipeline DELIVERED.**
+>
+> *Change detection:* `duecare.research_tools.monitor` (propose-only) +
+> `configs/duecare/research_monitor/sources.yaml` (18-source seed) +
+> `tests/test_monitor.py`. `research-monitor check` emits `proposed_updates.json`
+> and NEVER mutates packs. Fetch is now browser-grade: curl_cffi Chrome TLS
+> impersonation (defeats WAF 403s) + urllib fallback + charset detection (no
+> mojibake).
+>
+> *Acquisition pipeline (the 10k-doc program):* a full fetch → extract
+> (trafilatura) → chunk (`chunker.py`) → dedup (`dedup.py`, exact + banded-LSH
+> SimHash) → PII-scrub → graph (`graph.py`) → stage chain (`acquire.py` +
+> `scripts/run_acquisition.py`), plus frontier expansion via a sitemap/robots
+> harvester (`sitemap.py` + `scripts/harvest_sitemaps.py`) and promotion to an
+> importable knowledge bundle (`promote.py` + `scripts/promote_acquisition.py`).
+> Run 1 over the 308-URL spider frontier: 206 reachable docs → 26,608 staged
+> chunks → 6,683 balanced `rag_doc` envelopes (per-doc cap), 0 PII leaks.
+> All propose-only (stages under `reports/acquisition/`, imported via
+> `/api/knowledge/import` after review). 55 research-tools unit tests.
+>
+> Next (production): curator import of the bundle into the live corpus; PDF
+> extraction (bytes-fetch + pypdf); relevance scoring of harvested URLs;
+> scheduled worker; review dashboard; jurisdiction/corridor watchlists.
 
 ### Purpose
 
