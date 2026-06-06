@@ -205,6 +205,14 @@ def run(
 
 
 def main() -> None:
+    # Windows consoles default to cp1252 and crash a long run on any log line
+    # with a unicode char (grader dim names / messages use arrows like "->").
+    # Force UTF-8 so a real run never dies on a print. (PYTHONUTF8=1 also works.)
+    for _stream in (sys.stdout, sys.stderr):
+        try:
+            _stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
+        except Exception:  # noqa: BLE001
+            pass
     bench = _ROOT / "configs" / "duecare" / "benchmarks"
     prompts_file = os.environ.get("LIFT_PROMPTS_FILE", "harness_lift_prompts_100.json")
     prompts = json.loads(
