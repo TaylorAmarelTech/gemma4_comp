@@ -1,8 +1,10 @@
 # DueCare as a domain-general integrity framework
 
 > Status: live (2026-06-05). The anti-trafficking corpus is the reference
-> implementation; financial-crime and anti-corruption verticals are seeded as
-> proof the same architecture generalizes. Extends the `duecare-llm-domains`
+> implementation; eight further verticals (financial crime, anti-corruption,
+> environmental crime, online/consumer fraud, decent-work/labour rights, tax
+> evasion, healthcare fraud, counterfeiting/IP crime) are seeded as proof the
+> same architecture generalizes. Extends the `duecare-llm-domains`
 > package (`duecare.domains.*`) and the provider-neutral `HarnessSpec`
 > (see `.claude/rules/81_canonical_runtime.md`).
 
@@ -61,17 +63,30 @@ baseline vs harnessed, score against the vertical's rubric, measure the lift.
 
 ## Current verticals
 
+Nine verticals are live in `RAG_CORPUS` (total 931 grounding docs as of
+2026-06-05). One is the deep reference implementation; eight are seeded proof
+the template generalizes.
+
 | Vertical | SDG | Status | Seed content |
 |---|---|---|---|
 | **Anti-trafficking / anti-exploitation** | 8, 5, 10 | Reference implementation | ~800 docs across all 8 components; 362 GREP; 13 tools; 176 dims |
-| **Financial crime / illicit finance** | 16 | Seeded | FATF 40 + risk-based approach, 6AMLD, BSA/FinCEN/AML Act 2020, TBML, virtual-asset red flags, PEPs, StAR asset recovery, FATF human-trafficking financial typology (`fincrime_*`) |
-| **Anti-corruption / public integrity** | 16 | Seeded | UNCAC, OECD Anti-Bribery, FCPA, UK Bribery Act s.7, procurement red-flags, beneficial ownership, whistleblower protection, TI CPI, corruption-trafficking nexus (`corruption_*`) |
+| **Financial crime / illicit finance** | 16 | Seeded (12) | FATF 40 + risk-based approach, 6AMLD, BSA/FinCEN/AML Act 2020, TBML, virtual-asset red flags, PEPs, StAR asset recovery, FATF human-trafficking financial typology (`fincrime_*`) |
+| **Anti-corruption / public integrity** | 16 | Seeded (10) | UNCAC, OECD Anti-Bribery, FCPA, UK Bribery Act s.7, procurement red-flags, beneficial ownership, whistleblower protection, TI CPI, corruption-trafficking nexus (`corruption_*`) |
+| **Environmental crime** | 14, 15 | Seeded (12) | CITES, Basel Convention, EUDR, Lacey Act, EU IUU + FAO PSMA, FATF environmental-ML, wildlife/timber/e-waste red flags, IUU-forced-labour nexus (`envcrime_*`) |
+| **Online & consumer fraud** | 16 | Seeded (12) | Pig-butchering, scam-compound labour nexus, BEC, advance-fee, crypto-investment, money-mule, FTC Act s.5, EU UCPD, elder exploitation, victim remedy (`fraud_*`) |
+| **Decent work / labour rights** | 8 | Seeded (12) | ILO C087/C098/C155/C095/C131, working time, child labour, US FLSA, OSHA, EU Working Time Directive, LkSG/CSDDD, UK MSA s.54 (`labour_*`) |
+| **Tax evasion / illicit financial flows** | 16, 17 | Seeded (12) | OECD CRS, FATCA, BEPS Pillar Two, EU DAC6, trade-misinvoicing IFF, shell-company opacity, VAT carousel, transfer pricing, FATF predicate offence (`tax_*`) |
+| **Healthcare fraud & patient safety** | 3 | Seeded (12) | False Claims Act, Anti-Kickback, Stark Law, billing red flags, WHO falsified medicines, EU FMD, organ trafficking, clinical-trial integrity, HIPAA (`health_*`) |
+| **Counterfeiting / IP crime** | 9, 12 | Seeded (12) | WTO TRIPS, WCO customs, US 18 USC 2320, EU Reg 608/2013, product-safety harm, INFORM Act, organized-crime nexus, GI fraud, remedy (`counterfeit_*`) |
 
-The two new verticals are deliberately *adjacent* — illicit finance and
-corruption are how trafficking is paid for and enabled — so the cross-domain
-proof is also a substantive enrichment of the trafficking pack (the
-`fincrime_*` FATF human-trafficking-financial-flows typology and the
-`corruption_*` corruption-trafficking-nexus docs bridge the domains).
+Several verticals are deliberately *adjacent* to trafficking — illicit finance,
+corruption, IUU-fishing forced labour, scam-compound coercion, organ trafficking,
+and counterfeit-production forced labour are all how exploitation is paid for,
+enabled, or co-located — so each new pack also enriches the trafficking pack with
+an explicit nexus doc (e.g. `envcrime_iuu_forced_labour_nexus`,
+`fraud_scam_compound_labour_nexus`, `health_organ_trafficking`,
+`counterfeit_organized_crime_nexus`). The rubric's named cross-domain proof
+trio — trafficking + tax_evasion + financial_crime — is now fully present.
 
 ## Why this matters for the rubric
 
@@ -85,13 +100,12 @@ content.
 
 ## Extending further
 
-Candidate next verticals (each is the same eight slots): **labour rights /
-decent work** (wage theft, OSH, freedom of association - SDG 8), **environmental
-crime** (illegal logging/fishing/wildlife - SDG 14/15), **consumer & online
-fraud** (scams, mis-selling), **healthcare fraud & patient safety** (SDG 3),
-**electoral & information integrity** (SDG 16). Each is stood up by the same
-research -> merge -> verify pipeline; none requires a code change to the harness -
-only new domain-prefixed knowledge.
+Candidate next verticals (each is the same eight slots): **electoral &
+information integrity** (SDG 16), **arms-control & export compliance** (SDG 16),
+**cybercrime & online safety** (Budapest Convention - SDG 16), **food safety &
+agricultural integrity** (SDG 2), and **carbon-market / climate integrity**
+(SDG 13). Each is stood up by the same research -> merge -> verify pipeline; none
+requires a code change to the harness - only new domain-prefixed knowledge.
 
 See also: `docs/harness_ecosystem.md`, `docs/harness_standard_contract.md`,
 `.claude/rules/81_canonical_runtime.md`,
