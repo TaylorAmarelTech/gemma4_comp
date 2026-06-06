@@ -286,6 +286,15 @@ Let trusted stakeholders share privacy-preserving safety knowledge without shari
 
 ## 7. Component 5 — Public Information Research Monitor
 
+> **Status (2026-06-06): MVP DELIVERED.** `duecare.research_tools.monitor`
+> (propose-only change detector) + `configs/duecare/research_monitor/sources.yaml`
+> (18-source seed) + `tests/test_monitor.py` (9 passed). `research-monitor check`
+> CLI emits `proposed_updates.json` for curator review and NEVER mutates packs.
+> First real run baselined 9/18 sources and flagged 9 unreachable for review.
+> Next (production): browser-grade fetch (UA/redirect/retry for bot-blocked
+> agency sites), scheduled worker, review dashboard, diff summaries,
+> jurisdiction/corridor watchlists, contact-freshness over `_contacts.json`.
+
 ### Purpose
 
 Continuously track public changes in laws, regulations, agency pages, complaint forms, hotline/contact pages, scam patterns, and NGO guidance, then propose update packs for human review. Internally this component can still use the `sentinel` package/module name, but public docs should describe it as the Public Information Research Monitor.
