@@ -1,18 +1,9 @@
 # DueCare as a domain-general integrity framework
 
 > Status: live (2026-06-05). The anti-trafficking corpus is the reference
-> implementation; twenty-seven further verticals (financial crime, anti-
-> corruption, environmental crime, online/consumer fraud, decent-work/labour
-> rights, tax evasion, healthcare fraud, counterfeiting/IP crime, electoral &
-> information integrity, cybercrime & online safety, food safety & agricultural
-> integrity, arms control & strategic-trade, cultural-property trafficking, drug
-> control & precursor diversion, counter-terrorist financing, carbon-market & ESG
-> integrity, forced & child marriage, sports integrity, insurance & occupational
-> fraud, maritime & fisheries crime, illegal mining & extractives, housing &
-> land-rights, education & qualification fraud, disability & elder-care abuse,
-> water & sanitation integrity, humanitarian-aid diversion, digital identity &
-> deepfake fraud) are seeded as proof the same architecture generalizes. Extends
-> the `duecare-llm-domains`
+> implementation; thirty-two further verticals (enumerated in the Current
+> verticals table below) are seeded as proof the same architecture generalizes
+> across UN SDGs 1-17. Extends the `duecare-llm-domains`
 > package (`duecare.domains.*`) and the provider-neutral `HarnessSpec`
 > (see `.claude/rules/81_canonical_runtime.md`).
 
@@ -71,8 +62,8 @@ baseline vs harnessed, score against the vertical's rubric, measure the lift.
 
 ## Current verticals
 
-Twenty-eight verticals are live in `RAG_CORPUS` (total 1159 grounding docs as of
-2026-06-05). One is the deep reference implementation; twenty-seven are seeded
+Thirty-three verticals are live in `RAG_CORPUS` (total 1219 grounding docs as of
+2026-06-05). One is the deep reference implementation; thirty-two are seeded
 proof the template generalizes.
 
 | Vertical | SDG | Status | Seed content |
@@ -105,6 +96,11 @@ proof the template generalizes.
 | **Water & sanitation integrity** | 6 | Seeded (12) | UN Res 64/292 + CESCR GC15 right to water, WIN sector corruption, abstraction theft, illegal discharge, ghost infrastructure, meter-tampering, AWS stewardship (`water_*`) |
 | **Humanitarian-aid diversion & integrity** | 16, 2 | Seeded (12) | IASC PSEA, ghost beneficiaries, procurement fraud, food-aid diversion, cash-transfer fraud, armed-group extortion, CHS accountability, donor clawback/debarment (`aid_*`) |
 | **Digital identity & deepfake fraud** | 16 | Seeded (12) | NIST SP 800-63 KYC, synthetic-identity fraud, deepfake/voice-clone recognition, account-opening fraud, document forgery, biometric spoofing, SIM-swap, World Bank ID4D (`identity_*`) |
+| **Scientific & research integrity** | 9 | Seeded (12) | US ORI 42 CFR 93 (FFP), Singapore Statement, peer-review fraud, image manipulation, data fabrication, authorship abuse, ICMJE trial registration, retractions, predatory citation (`sci_*`) |
+| **Energy & utility fraud** | 7 | Seeded (12) | electricity theft/non-technical losses, meter tampering, fuel adulteration/smuggling, subsidy diversion, renewable-subsidy fraud, FERC market manipulation, EITI (`energy_*`) |
+| **Transport, customs & trade integrity** | 8, 16 | Seeded (12) | WCO SAFE/Revised Kyoto/AEO, WTO Valuation & TFA, undervaluation, rules-of-origin & HS-misclassification fraud, transit/duty evasion, FTZ diversion (`customs_*`) |
+| **Social-protection & benefits integrity** | 1 | Seeded (12) | ILO Floors R202, ISSA error/evasion/fraud, GAO improper payments, identity/ghost-pension fraud, wrongful denial (rights side), registry integrity, appeal/due process (`benefits_*`) |
+| **Telecom & subscription fraud** | 9 | Seeded (12) | IRSF, SIM-box/interconnect bypass, Wangiri, PBX toll fraud, STIR/SHAKEN robocall, premium-rate scams, mobile-money fraud, GSMA/CFCA standards (`telecom_*`) |
 
 Several verticals are deliberately *adjacent* to trafficking — illicit finance,
 corruption, IUU-fishing forced labour, scam-compound coercion, organ trafficking,
@@ -129,13 +125,14 @@ content.
 
 ## Extending further
 
-Candidate next verticals (each is the same eight slots): **scientific & research
-integrity** (data fabrication, peer-review fraud - SDG 9), **energy & utility
-fraud** (subsidy diversion, grid theft - SDG 7), **transport & customs integrity**
-(smuggling, transit fraud), **social-protection & benefits fraud** (SDG 1),
-**telecom & subscription fraud**, and **gambling & lottery integrity**. Each is
-stood up by the same research -> merge -> verify pipeline; none requires a code
-change to the harness - only new domain-prefixed knowledge.
+Candidate next verticals (each is the same eight slots): **gambling & lottery
+integrity** (match-fixing-adjacent, AML - SDG 16), **real-estate & construction
+integrity** (title fraud, building-permit corruption - SDG 11), **agricultural
+subsidy & land-use fraud** (SDG 2), **fisheries-subsidy & blue-economy integrity**
+(WTO Fisheries Subsidies Agreement - SDG 14), and **public-procurement &
+infrastructure integrity** (collusion, bid-rigging - SDG 9). Each is stood up by
+the same research -> merge -> verify pipeline; none requires a code change to the
+harness - only new domain-prefixed knowledge.
 
 See also: `docs/harness_ecosystem.md`, `docs/harness_standard_contract.md`,
 `.claude/rules/81_canonical_runtime.md`,
