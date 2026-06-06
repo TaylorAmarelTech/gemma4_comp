@@ -188,6 +188,29 @@ _BROWSER_HEADERS = {
     "Accept-Language": "en-US,en;q=0.9",
 }
 
+# Charset detection avoids mojibake (smart quotes / dashes becoming U+FFFD) when a
+# server mislabels or omits its charset. Optional -- stdlib utf-8/replace is the
+# zero-dep fallback so the monitor still runs without charset_normalizer.
+try:
+    from charset_normalizer import from_bytes as _cn_from_bytes  # type: ignore
+    _HAVE_CN = True
+except Exception:  # noqa: BLE001
+    _HAVE_CN = False
+
+
+def _decode_bytes(content: bytes) -> str:
+    """Decode HTTP body bytes to text, detecting the charset when possible."""
+    if not content:
+        return ""
+    if _HAVE_CN:
+        try:
+            best = _cn_from_bytes(content).best()
+            if best is not None:
+                return str(best)
+        except Exception:  # noqa: BLE001 -- fall back, never crash a fetch
+            pass
+    return content.decode("utf-8", "replace")
+
 
 def _curl_fetch(url: str, timeout: float) -> FetchResult:
     """curl_cffi fetch with a real Chrome TLS fingerprint (defeats WAF 403s)."""
@@ -195,7 +218,7 @@ def _curl_fetch(url: str, timeout: float) -> FetchResult:
         r = _curl_requests.get(url, impersonate="chrome", timeout=timeout, allow_redirects=True)
         ok = 200 <= int(r.status_code) < 300
         return FetchResult(ok=ok, status=int(r.status_code),
-                           text=(r.text or "")[:2_000_000] if ok else "",
+                           text=_decode_bytes(r.content)[:2_000_000] if ok else "",
                            error=None if ok else f"HTTP {r.status_code}")
     except Exception as e:  # noqa: BLE001 -- transport failure: signal fallback
         return FetchResult(ok=False, status=0, error=f"{type(e).__name__}: {str(e)[:120]}")
@@ -207,7 +230,7 @@ def _urllib_fetch(url: str, timeout: float, _redirects: int = 4) -> FetchResult:
     for attempt in (1, 2):  # one retry for slow government sites
         try:
             with urllib.request.urlopen(req, timeout=timeout) as r:  # noqa: S310 -- public URLs only
-                text = r.read(2_000_000).decode("utf-8", "replace")  # 2 MB cap
+                text = _decode_bytes(r.read(2_000_000))  # 2 MB cap, charset-detected
                 return FetchResult(ok=True, status=getattr(r, "status", 200), text=text)
         except urllib.error.HTTPError as e:
             loc = e.headers.get("Location") if e.headers else None
