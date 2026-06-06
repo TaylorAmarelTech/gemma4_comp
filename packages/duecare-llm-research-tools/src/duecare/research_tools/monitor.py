@@ -31,6 +31,7 @@ import json
 import re
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from collections import Counter
 from pathlib import Path
@@ -168,18 +169,41 @@ def build_report(findings: list[ChangeFinding], proposals: list[ProposedUpdate])
         findings=findings, proposals=proposals)
 
 
-def default_fetch(url: str, *, timeout: float = 20.0) -> FetchResult:
-    """Stdlib fetch of a PUBLIC url (injected mock in tests). Never raises."""
-    req = urllib.request.Request(
-        url, headers={"User-Agent": "DuecareResearchMonitor/0.1 (+public-info)"})
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as r:  # noqa: S310 -- public URLs only
-            text = r.read(2_000_000).decode("utf-8", "replace")  # 2 MB cap
-            return FetchResult(ok=True, status=getattr(r, "status", 200), text=text)
-    except urllib.error.HTTPError as e:
-        return FetchResult(ok=False, status=int(e.code), error=f"HTTP {e.code}")
-    except Exception as e:  # noqa: BLE001 -- DNS/timeout/etc.: report, never crash the run
-        return FetchResult(ok=False, status=0, error=f"{type(e).__name__}: {str(e)[:120]}")
+# A browser-compatible UA + Accept headers: many government/NGO sites 403 or 302
+# a non-browser agent even for fully PUBLIC pages. We identify ourselves in the
+# UA suffix and read public info only (no auth, no private data). robots.txt-aware
+# politeness + rate limiting are production deliverables.
+_BROWSER_HEADERS = {
+    "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                   "(KHTML, like Gecko) Chrome/124.0 Safari/537.36 DuecareResearchMonitor/0.1"),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+}
+
+
+def default_fetch(url: str, *, timeout: float = 25.0, _redirects: int = 4) -> FetchResult:
+    """Stdlib fetch of a PUBLIC url with a browser-compatible UA, explicit
+    redirect following, and one retry on timeout. Injected mock in tests;
+    never raises (network errors become an 'unreachable' finding)."""
+    req = urllib.request.Request(url, headers=dict(_BROWSER_HEADERS))
+    for attempt in (1, 2):  # one retry for slow government sites
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:  # noqa: S310 -- public URLs only
+                text = r.read(2_000_000).decode("utf-8", "replace")  # 2 MB cap
+                return FetchResult(ok=True, status=getattr(r, "status", 200), text=text)
+        except urllib.error.HTTPError as e:
+            loc = e.headers.get("Location") if e.headers else None
+            if e.code in (301, 302, 303, 307, 308) and loc and _redirects > 0:
+                return default_fetch(urllib.parse.urljoin(url, loc),
+                                     timeout=timeout, _redirects=_redirects - 1)
+            return FetchResult(ok=False, status=int(e.code), error=f"HTTP {e.code}")
+        except (TimeoutError, urllib.error.URLError) as e:
+            if attempt == 1:
+                continue  # retry once
+            return FetchResult(ok=False, status=0, error=f"{type(e).__name__}: {str(e)[:120]}")
+        except Exception as e:  # noqa: BLE001 -- report, never crash the run
+            return FetchResult(ok=False, status=0, error=f"{type(e).__name__}: {str(e)[:120]}")
+    return FetchResult(ok=False, status=0, error="retry exhausted")
 
 
 def load_sources(path: Path) -> list[MonitorSource]:
