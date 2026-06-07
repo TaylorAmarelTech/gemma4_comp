@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import re
 
+from .ambiguity import domain_sense
 from .graph import extract_entities
 
 # Curated lexicon -- one entry per concept FAMILY (distinct families that hit are
@@ -93,3 +94,39 @@ def relevance(text: str, *, signals: list[str] | None = None) -> dict:
 def passes(text: str, *, signals: list[str] | None = None, min_tier: str = "medium") -> bool:
     """True if a chunk's relevance tier is at least ``min_tier``."""
     return TIER_RANK[relevance(text, signals=signals)["tier"]] >= TIER_RANK.get(min_tier, 1)
+
+
+def relevance_with_domain_sense(
+    text: str, *, signals: list[str] | None = None, demote_collisions: bool = True,
+) -> dict:
+    """``relevance()`` augmented with cross-domain word-sense disambiguation.
+
+    A keyword-relevance gate is blind to MEANING: a finance page about "10-year
+    bond yields" matches the debt-*bondage* corpus on the bare word "bond". This
+    wrapper adds the ``ambiguity.domain_sense`` verdict and:
+
+    * attaches ``domain_sense`` (the full declared-loss report) for the curator;
+    * sets ``review_flag`` when an ambiguous keyword resolves to a competing domain;
+    * nudges ``score`` down by the number of off-domain senses so wrong-sense
+      chunks sort below clean ones within a tier;
+    * DEMOTES to ``low`` (gated out) only the conservative case: a borderline
+      ``medium`` chunk with no hard entity whose domain hook is purely an
+      off-domain collision word -- e.g. "freedom of movement of capital ... bond
+      market" falsely hitting the movement family. Strong chunks (entity + families)
+      are never demoted on a sense signal alone.
+
+    ``relevance()`` itself is unchanged; callers opt in to sense-awareness."""
+    base = relevance(text, signals=signals)
+    sense = domain_sense(text)
+    out = dict(base)
+    out["domain_sense"] = sense
+    out["review_flag"] = bool(sense["collision"])
+    out["score"] = base["score"] - sense["n_offdomain"]
+    demoted = bool(
+        demote_collisions and sense["collision"]
+        and base["tier"] == "medium" and not base["entities"]
+    )
+    if demoted:
+        out["tier"] = "low"
+    out["demoted_for_collision"] = demoted
+    return out
