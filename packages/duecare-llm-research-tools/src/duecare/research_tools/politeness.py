@@ -8,6 +8,7 @@ crawls thousands of pages avoids being blocked. ``PoliteFetcher`` wraps any
 """
 from __future__ import annotations
 
+import threading
 import time
 import urllib.parse
 from typing import Callable
@@ -29,20 +30,23 @@ class RobotsCache:
         self._fetch = fetch_robots
         self._ua = user_agent
         self._cache: dict[str, RobotFileParser] = {}
+        self._lock = threading.Lock()
 
     def _parser_for(self, url: str) -> RobotFileParser:
         parts = urllib.parse.urlparse(url)
         host = parts.netloc.lower()
-        if host in self._cache:
-            return self._cache[host]
-        rp = RobotFileParser()
+        with self._lock:
+            cached = self._cache.get(host)
+        if cached is not None:
+            return cached
+        rp = RobotFileParser()                       # fetch OUTSIDE the lock
         try:
             txt = self._fetch(f"{parts.scheme or 'https'}://{host}/robots.txt")
             rp.parse((txt or "").splitlines())
         except Exception:  # noqa: BLE001 -- no robots -> allow all
             rp.parse([])
-        self._cache[host] = rp
-        return rp
+        with self._lock:
+            return self._cache.setdefault(host, rp)   # last-writer-wins (rare double-fetch)
 
     def allowed(self, url: str) -> bool:
         try:
@@ -62,20 +66,25 @@ class RateLimiter:
         self._clock = clock
         self._sleep = sleep
         self._last: dict[str, float] = {}
+        self._lock = threading.Lock()
 
     def wait(self, url: str) -> float:
         """Sleep just long enough that this host isn't hit faster than
-        ``min_interval``. Returns the slept seconds (0 if no wait)."""
+        ``min_interval``. Returns the slept seconds (0 if no wait). Thread-safe:
+        the per-host slot is reserved under a lock, then the sleep happens OUTSIDE
+        the lock so other hosts proceed concurrently."""
         host = host_of(url)
-        slept = 0.0
-        last = self._last.get(host)
-        now = self._clock()
-        if last is not None and self.min_interval > 0:
-            delta = now - last
-            if delta < self.min_interval:
-                slept = self.min_interval - delta
-                self._sleep(slept)
-        self._last[host] = self._clock()
+        with self._lock:
+            now = self._clock()
+            last = self._last.get(host)
+            slept = 0.0
+            if last is not None and self.min_interval > 0:
+                delta = now - last
+                if delta < self.min_interval:
+                    slept = self.min_interval - delta
+            self._last[host] = self._clock() + slept   # reserve incl. the upcoming sleep
+        if slept > 0:
+            self._sleep(slept)
         return slept
 
 
