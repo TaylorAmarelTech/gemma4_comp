@@ -26,6 +26,7 @@ from pydantic import BaseModel
 
 from .chunker import chunk_document
 from .dedup import SimHashIndex, content_key, simhash64
+from .defang import defang_text
 from .docfetch import fetch_document
 from .graph import build_graph
 from .monitor import FetchResult
@@ -151,7 +152,8 @@ def acquire(
                 continue
             raw = res.text
         n_fetched += 1
-        text = scrub_text(extract_main_text(raw, url))
+        # extract -> DEFANG (strip injection/evasion vectors from untrusted text) -> PII-scrub
+        text = scrub_text(defang_text(extract_main_text(raw, url)))
         if len(text) < min_doc_chars:
             dropped.append({"url": url, "_dup_reason": "too_short", "n_chars": len(text)})
             continue
