@@ -139,14 +139,19 @@ def acquire(
 
     for c in candidates:
         url = c.get("url")
-        if not url:
+        provided = c.get("text")
+        if provided is None and not url:
             continue
-        res = fetch(url)
-        if not res.ok:
-            unreachable.append({"url": url, "status": res.status, "error": res.error})
-            continue
+        if provided is not None:
+            raw = provided          # API/connector source: text already supplied, skip fetch
+        else:
+            res = fetch(url)
+            if not res.ok:
+                unreachable.append({"url": url, "status": res.status, "error": res.error})
+                continue
+            raw = res.text
         n_fetched += 1
-        text = scrub_text(extract_main_text(res.text, url))
+        text = scrub_text(extract_main_text(raw, url))
         if len(text) < min_doc_chars:
             dropped.append({"url": url, "_dup_reason": "too_short", "n_chars": len(text)})
             continue
