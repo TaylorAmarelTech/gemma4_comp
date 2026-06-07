@@ -333,6 +333,14 @@ The analysis is load-bearing, not decorative — it shipped as code:
   rewards interpreting an ambiguous term in the trafficking/labour sense, penalizes
   equivocation into finance/everyday/technical senses. Applies only when the prompt
   contains a collision term.
+- **Inference-time detection (live harness).** Five `equivocation_*` GREP rules in
+  the chat harness fire at inference time on the cross-domain analogy-laundering
+  move — "it's basically a financial instrument," "a broker takes commission
+  everywhere," "like sponsoring an event," "safekeeping like a vault/cargo hold,"
+  "just standard business practice." Each is `all_required` (control term + the
+  analogy phrase) for precision, ILO-cited, and visible in the kernels' GREP layer
+  (Kernel 01/02/A-00) — so the ambiguity defense is surfaced in the live product,
+  not only at acquisition/grading time.
 - **Prompts / testing.** `configs/duecare/domains/trafficking/ambiguity_probes.jsonl`
   — 10 probes targeting each collision term, including adversarial-equivocation
   recruiter framings and victim-voice phrasings, with worst/best anchors.
