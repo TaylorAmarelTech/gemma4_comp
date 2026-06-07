@@ -179,3 +179,33 @@ def synthesize(chunks: list[dict], *, known_fee_labels: set[str] | None = None,
         "envelopes_generated": len(envelopes),
     }
     return {"report": report, "envelopes": envelopes}
+
+
+def velocity(report: dict, prior_state: dict | None, *, run_at: str) -> tuple[dict, dict]:
+    """Trend = velocity. Compare the current report to accumulated prior state and
+    return ``(delta, new_state)`` where ``delta`` lists what is NEW this run
+    (emerging trend categories + first-seen fee euphemisms) -- the signal worth
+    surfacing. ``new_state`` carries first-seen timestamps + latest counts forward
+    so the next run computes its own delta."""
+    prior = prior_state or {}
+    prior_cats = prior.get("categories", {})
+    prior_euph = prior.get("euphemisms", {})
+    cur_cats = report.get("trend_categories", {})
+    cur_euph = dict(report.get("novel_fee_euphemisms", []))
+
+    delta = {
+        "new_categories": [c for c in cur_cats if c not in prior_cats],
+        "new_euphemisms": [lab for lab in cur_euph if lab not in prior_euph],
+    }
+    cats = {k: dict(v) for k, v in prior_cats.items()}
+    for c, d in cur_cats.items():
+        e = cats.setdefault(c, {"first_seen": run_at})
+        e["last_count"] = d.get("chunks", 0)
+        e["last_seen"] = run_at
+    euph = {k: dict(v) for k, v in prior_euph.items()}
+    for lab, cnt in cur_euph.items():
+        e = euph.setdefault(lab, {"first_seen": run_at})
+        e["count"] = cnt
+        e["last_seen"] = run_at
+    new_state = {"categories": cats, "euphemisms": euph, "last_run": run_at}
+    return delta, new_state

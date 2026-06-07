@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 for _p in sorted((ROOT / "packages").glob("*/src")):
     sys.path.insert(0, str(_p))
 
-from duecare.research_tools.synthesize import synthesize  # noqa: E402
+from duecare.research_tools.synthesize import synthesize, velocity  # noqa: E402
 
 OUT = Path(os.environ.get("ACQ_OUT", ROOT / "reports/acquisition"))
 
@@ -65,6 +65,18 @@ def main() -> None:
     created_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     out = synthesize(chunks, known_fee_labels=known, created_at=created_at)
 
+    # velocity: what is NEW since the last run (emerging signal worth surfacing)
+    state_path = OUT / "trend_state.json"
+    prior = None
+    if state_path.exists():
+        try:
+            prior = json.loads(state_path.read_text(encoding="utf-8"))
+        except Exception:
+            prior = None
+    delta, new_state = velocity(out["report"], prior, run_at=created_at)
+    state_path.write_text(json.dumps(new_state, indent=2), encoding="utf-8")
+    out["report"]["velocity"] = delta
+
     (OUT / "trend_report.json").write_text(json.dumps(out["report"], indent=2), encoding="utf-8")
     with open(OUT / "synthesis_envelopes.jsonl", "w", encoding="utf-8") as f:
         for env in out["envelopes"]:
@@ -77,6 +89,9 @@ def main() -> None:
         print(f"          {cat:20s} {d['chunks']:5d} / {d['sources']:4d}  e.g. {d['example'][:70]!r}", flush=True)
     print(f"[synth] novel fee euphemisms (top): "
           f"{[l for l, _ in rep['novel_fee_euphemisms'][:15]]}", flush=True)
+    vel = rep.get("velocity", {})
+    print(f"[synth] velocity (NEW since last run): categories={vel.get('new_categories', [])} "
+          f"euphemisms={vel.get('new_euphemisms', [])[:10]}", flush=True)
     print(f"[synth] DONE generated {rep['envelopes_generated']} candidate envelopes "
           f"({rep['grep_rules_generated']} grep_rule + {rep['fee_labels_generated']} context_snippet) "
           f"-> {OUT / 'synthesis_envelopes.jsonl'}", flush=True)

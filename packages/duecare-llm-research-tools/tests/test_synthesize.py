@@ -2,8 +2,24 @@
 from __future__ import annotations
 
 from duecare.research_tools.synthesize import (
-    mine_fee_euphemisms, synthesize, trend_signals,
+    mine_fee_euphemisms, synthesize, trend_signals, velocity,
 )
+
+
+def test_velocity_reports_new_signals():
+    report = {"trend_categories": {"scam_compound": {"chunks": 5}},
+              "novel_fee_euphemisms": [["training bond", 3]]}
+    delta, state = velocity(report, None, run_at="2026-06-07T00:00:00Z")
+    assert delta["new_categories"] == ["scam_compound"]
+    assert delta["new_euphemisms"] == ["training bond"]
+    # re-run with the same report + carried state -> nothing new
+    delta2, state2 = velocity(report, state, run_at="2026-06-07T01:00:00Z")
+    assert delta2["new_categories"] == [] and delta2["new_euphemisms"] == []
+    # a brand-new euphemism appears -> surfaced as emerging
+    report3 = {"trend_categories": {"scam_compound": {"chunks": 6}},
+               "novel_fee_euphemisms": [["training bond", 4], ["loyalty deduction", 2]]}
+    delta3, _ = velocity(report3, state2, run_at="2026-06-07T02:00:00Z")
+    assert delta3["new_euphemisms"] == ["loyalty deduction"]
 
 
 def test_trend_signals_detects_categories():
