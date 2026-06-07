@@ -174,7 +174,7 @@ def acquire(
                 if key in seen_keys:
                     dropped.append({"id": ch.id, "url": url, "_dup_reason": "exact"})
                     continue
-                if len(sig_index) and sig_index.query_near(sig, max_dist=max_dist):
+                if sig_index.query_near(sig, max_dist=max_dist):  # empty index -> False
                     dropped.append({"id": ch.id, "url": url, "_dup_reason": "near"})
                     continue
                 seen_keys.add(key)

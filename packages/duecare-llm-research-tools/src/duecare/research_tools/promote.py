@@ -132,11 +132,11 @@ def build_envelopes(
     (``min_meaning``) + ``citation_edge`` per doc co-mention. ``max_per_doc`` caps
     chunks per source. The gates keep broad/boilerplate harvested gov pages from
     diluting the corpus. Deterministic."""
-    staged_chunks = cap_per_doc(staged_chunks, max_per_doc)
     rfloor = TIER_RANK.get(min_tier, 1)
     mfloor = TIER_RANK.get(min_meaning, 1)
-    rag: list[dict] = []
-    kept: list[dict] = []
+    # Gate FIRST, then cap -- so a substantive chunk isn't dropped because lower-
+    # ordinal boilerplate (which fails the gates anyway) filled the cap.
+    passed: list[tuple] = []
     for c in staged_chunks:
         text = c.get("text", "")
         rel = relevance(text, signals=c.get("signals"))
@@ -145,6 +145,17 @@ def build_envelopes(
         mean = meaningfulness(text)
         if TIER_RANK[mean["tier"]] < mfloor:
             continue  # boilerplate / no substance -> not promoted
+        passed.append((c, rel, mean))
+    # cap: keep at most max_per_doc PASSING chunks per source (ordinal order)
+    rag: list[dict] = []
+    kept: list[dict] = []
+    seen_per_doc: dict[str, int] = {}
+    for c, rel, mean in passed:
+        if max_per_doc and max_per_doc > 0:
+            d = str(c.get("doc_id"))
+            if seen_per_doc.get(d, 0) >= max_per_doc:
+                continue
+            seen_per_doc[d] = seen_per_doc.get(d, 0) + 1
         rag.append(chunk_to_rag_doc(c, created_at=created_at, rel=rel, meaning=mean))
         kept.append(c)
     # first chunk (ordinal 0) of each KEPT doc is its representative for edges

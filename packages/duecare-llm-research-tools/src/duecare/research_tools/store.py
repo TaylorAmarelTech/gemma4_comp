@@ -17,11 +17,20 @@ exceed SQLite's signed-64 INTEGER range.
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 from pathlib import Path
 from typing import Iterator
 
 from .dedup import band_keys, hamming
+
+_FTS_TOKEN = re.compile(r"\w+", re.UNICODE)
+
+
+def _fts_query(q: str) -> str:
+    """Make an FTS5-safe MATCH string: quote each token so FTS5 operator chars in
+    user/URL text (``"`` ``*`` ``-`` ``(`` ``OR``) can't crash the parser."""
+    return " ".join(f'"{t}"' for t in _FTS_TOKEN.findall(q or ""))
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS meta(key TEXT PRIMARY KEY, value TEXT);
@@ -219,9 +228,15 @@ class AcquisitionStore:
         """Full-text search over staged chunks (FTS5); [] if FTS unavailable."""
         if not self.has_fts:
             return []
-        rows = self._conn.execute(
-            "SELECT chunk_id, title, snippet(chunks_fts, 2, '[', ']', '...', 12) AS snippet "
-            "FROM chunks_fts WHERE chunks_fts MATCH ? LIMIT ?", (query, limit)).fetchall()
+        match = _fts_query(query)
+        if not match:
+            return []
+        try:
+            rows = self._conn.execute(
+                "SELECT chunk_id, title, snippet(chunks_fts, 2, '[', ']', '...', 12) AS snippet "
+                "FROM chunks_fts WHERE chunks_fts MATCH ? LIMIT ?", (match, limit)).fetchall()
+        except sqlite3.OperationalError:   # malformed FTS expression -> no hits, never crash
+            return []
         return [dict(r) for r in rows]
 
     def stats(self) -> dict:
