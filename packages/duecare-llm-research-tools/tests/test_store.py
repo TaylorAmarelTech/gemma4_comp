@@ -98,3 +98,17 @@ def test_sitemap_ledger():
         assert not s.sitemap_seen("https://e.org/sitemap.xml")
         s.mark_sitemap("https://e.org/sitemap.xml")
         assert s.sitemap_seen("https://e.org/sitemap.xml")
+
+
+def test_frontier_diverse_ordering():
+    with AcquisitionStore(":memory:") as s:
+        s.add_frontier_bulk([
+            {"url": "https://a.org/1", "host": "a.org"},
+            {"url": "https://a.org/2", "host": "a.org"},
+            {"url": "https://a.org/3", "host": "a.org"},
+            {"url": "https://b.org/1", "host": "b.org"}])
+        diverse = [r["url"] for r in s.iter_frontier(diverse=True)]
+        # round-robin: b.org's single URL surfaces early, not after all of a.org
+        assert diverse.index("https://b.org/1") < diverse.index("https://a.org/2")
+        rowid = [r["url"] for r in s.iter_frontier()]
+        assert rowid[-1] == "https://b.org/1"        # insertion order buries it last

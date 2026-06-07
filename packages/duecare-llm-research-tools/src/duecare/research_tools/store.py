@@ -153,14 +153,25 @@ class AcquisitionStore:
         return int(self._conn.execute(
             "SELECT COUNT(*) FROM frontier WHERE status=?", (status,)).fetchone()[0])
 
-    def iter_frontier(self, *, status: str = "pending", limit: int | None = None) -> Iterator[dict]:
-        sql = "SELECT * FROM frontier WHERE status=? ORDER BY rowid"
+    def iter_frontier(self, *, status: str = "pending", limit: int | None = None,
+                      diverse: bool = False) -> Iterator[dict]:
+        """Iterate frontier rows. ``diverse=True`` interleaves hosts round-robin
+        (1st URL of every host, then 2nd, ...) so a bounded drain spans many
+        DOMAINS instead of exhausting one covered domain's backlog first -- the
+        fix for the all-dedup drain. Otherwise rowid (insertion) order."""
+        if diverse:
+            sql = ("SELECT * FROM (SELECT *, ROW_NUMBER() OVER "
+                   "(PARTITION BY host ORDER BY rowid) AS _rn FROM frontier WHERE status=?) "
+                   "ORDER BY _rn, host")
+        else:
+            sql = "SELECT * FROM frontier WHERE status=? ORDER BY rowid"
         params: tuple = (status,)
         if limit:
             sql += " LIMIT ?"
             params = (status, limit)
         for row in self._conn.execute(sql, params):
             d = dict(row)
+            d.pop("_rn", None)
             d["signals"] = json.loads(d.get("signals") or "[]")
             d["jurisdictions"] = [d["jurisdiction"]] if d.get("jurisdiction") else []
             yield d
