@@ -50,6 +50,7 @@ MIN_INTERVAL = float(os.environ.get("ACQ_MIN_INTERVAL", "1.0"))  # per-host seco
 RESPECT_ROBOTS = os.environ.get("ACQ_RESPECT_ROBOTS", "1") not in ("0", "false", "")
 FRONTIER_DB = os.environ.get("ACQ_FRONTIER_DB", "")          # drain harvested frontier if set
 FRONTIER_LIMIT = int(os.environ.get("ACQ_FRONTIER_LIMIT", "0"))  # cap pending pulled per run
+FRONTIER_DIVERSE = os.environ.get("ACQ_FRONTIER_DIVERSE", "1") not in ("0", "false", "")  # round-robin hosts
 WORKERS = int(os.environ.get("ACQ_WORKERS", "8"))            # concurrent fetches per batch (1=sequential)
 
 
@@ -82,8 +83,10 @@ def main() -> None:
     # Candidates come from the harvested frontier db (drain pending) or a jsonl.
     fstore = AcquisitionStore(FRONTIER_DB) if FRONTIER_DB else None
     if fstore is not None:
-        cands = [dict(c) for c in fstore.iter_frontier(status="pending", limit=FRONTIER_LIMIT or None)]
-        print(f"[acquire] draining frontier {FRONTIER_DB}: {len(cands)} pending", flush=True)
+        cands = [dict(c) for c in fstore.iter_frontier(
+            status="pending", limit=FRONTIER_LIMIT or None, diverse=FRONTIER_DIVERSE)]
+        print(f"[acquire] draining frontier {FRONTIER_DB}: {len(cands)} pending "
+              f"(diverse={FRONTIER_DIVERSE})", flush=True)
     else:
         cands = load_jsonl(CAND)
 
