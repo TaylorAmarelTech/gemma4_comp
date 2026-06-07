@@ -2,7 +2,9 @@
 bottleneck: meaning collapsed into ambiguous tokens) and its relevance gate."""
 from __future__ import annotations
 
-from duecare.research_tools.ambiguity import domain_sense, is_offdomain
+from duecare.research_tools.ambiguity import (
+    EXTENDED_COLLISION_TERMS, domain_sense, is_offdomain,
+)
 from duecare.research_tools.relevance import relevance_with_domain_sense
 
 
@@ -72,6 +74,37 @@ def test_gate_flags_and_demotes_offdomain_family_false_positive():
     out = relevance_with_domain_sense(text)
     assert out["review_flag"] is True
     assert out["demoted_for_collision"] is True and out["tier"] == "low"
+
+
+# --- parametrized engine: the same resolver generalizes to other domains ---------
+
+def test_extended_lexicon_resolves_financial_crime_sense():
+    r = domain_sense("Money laundering through offshore shell companies was flagged by the AML unit.",
+                     lexicon=EXTENDED_COLLISION_TERMS)
+    assert _term(r, "laundering")["dominant"] == "target"
+    assert _term(r, "shell")["dominant"] == "target"
+    assert r["collision"] is False and r["net"] >= 2
+
+
+def test_extended_lexicon_flags_household_laundry_collision():
+    r = domain_sense("She spent the afternoon doing the laundering of the household linen and washing clothes.",
+                     lexicon=EXTENDED_COLLISION_TERMS)
+    assert _term(r, "laundering")["offdomain_label"] == "household"
+    assert r["collision"] is True
+
+
+def test_lexicons_are_isolated():
+    # 'laundering' is not a trafficking collision term -> default lexicon ignores it
+    assert domain_sense("money laundering and shell companies")["terms"] == []
+    # 'bond' is not in the financial lexicon -> EXTENDED ignores it
+    assert domain_sense("treasury bond yields", lexicon=EXTENDED_COLLISION_TERMS)["terms"] == []
+
+
+def test_is_offdomain_accepts_custom_lexicon():
+    assert is_offdomain("laundering the household linen and washing the clothes",
+                        lexicon=EXTENDED_COLLISION_TERMS) is True
+    assert is_offdomain("laundering illicit proceeds via an offshore shell company",
+                        lexicon=EXTENDED_COLLISION_TERMS) is False
 
 
 def test_gate_keeps_genuine_trafficking_chunk_and_does_not_flag():
