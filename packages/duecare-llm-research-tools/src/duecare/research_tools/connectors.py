@@ -15,21 +15,47 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import threading
 import time
 import urllib.parse
 from typing import Callable
 
 from .monitor import default_fetch
 
+# Per-source courtesy throttle. GDELT throttles repeat / datacenter callers (HTTP
+# 429); its DOC API asks for a few seconds between calls. _throttle enforces a
+# minimum interval per key across the process (thread-safe + slot-reserved), so
+# paginated or scheduled pulls space themselves instead of getting rate-limited.
+GDELT_MIN_INTERVAL = float(os.environ.get("GDELT_MIN_INTERVAL", "5.0"))
+_LAST_CALL: dict[str, float] = {}
+_THROTTLE_LOCK = threading.Lock()
+
+
+def _throttle(key: str, min_interval: float) -> float:
+    """Sleep so calls keyed by ``key`` are >= ``min_interval`` seconds apart.
+    Returns the slept seconds."""
+    if min_interval <= 0:
+        return 0.0
+    with _THROTTLE_LOCK:
+        now = time.monotonic()
+        last = _LAST_CALL.get(key, 0.0)
+        wait = max(0.0, min_interval - (now - last))
+        _LAST_CALL[key] = now + wait          # reserve the slot
+    if wait > 0:
+        time.sleep(wait)
+    return wait
+
 
 def _h(s: str) -> str:
     return hashlib.sha1((s or "").encode("utf-8")).hexdigest()[:12].upper()
 
 
-def default_fetch_json(url: str, *, timeout: float = 25.0, retries: int = 2) -> dict:
-    """GET ``url`` and parse JSON (bot-grade fetch) with backoff on rate-limit
-    (429/503 -- GDELT throttles repeat callers). ``{}`` on any other failure, so a
-    dead/changed endpoint degrades gracefully to zero candidates."""
+def default_fetch_json(url: str, *, timeout: float = 25.0, retries: int = 3,
+                       backoff_base: float = 5.0) -> dict:
+    """GET ``url`` and parse JSON (bot-grade fetch) with escalating backoff on
+    rate-limit (429/503 -- GDELT throttles repeat callers). ``{}`` on any other
+    failure, so a dead/changed endpoint degrades gracefully to zero candidates."""
     for attempt in range(retries + 1):
         res = default_fetch(url, timeout=timeout)
         if res.ok:
@@ -38,7 +64,7 @@ def default_fetch_json(url: str, *, timeout: float = 25.0, retries: int = 2) -> 
             except Exception:  # noqa: BLE001 -- non-JSON / truncated
                 return {}
         if res.status in (429, 503) and attempt < retries:
-            time.sleep(2.0 * (attempt + 1))
+            time.sleep(min(30.0, backoff_base * (attempt + 1)))   # 5s, 10s, 15s
             continue
         return {}
     return {}
@@ -59,6 +85,7 @@ def gdelt_candidates(query: str = DEFAULT_QUERY, *,
            + urllib.parse.quote(query)
            + f"&mode=artlist&format=json&maxrecords={int(max_records)}"
            + f"&timespan={int(timespan_days)}d&sort=datedesc")
+    _throttle("gdelt", GDELT_MIN_INTERVAL)   # courtesy spacing between GDELT calls
     data = fetch_json(url) or {}
     out: list[dict] = []
     seen: set[str] = set()
