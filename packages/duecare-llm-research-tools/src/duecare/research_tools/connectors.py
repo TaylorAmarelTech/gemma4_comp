@@ -16,6 +16,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import threading
 import time
 import urllib.parse
@@ -75,28 +76,41 @@ DEFAULT_QUERY = ('"human trafficking" OR "forced labour" OR "forced labor" OR '
                  '"migrant worker" OR "debt bondage" OR "recruitment fee"')
 
 
-def gdelt_candidates(query: str = DEFAULT_QUERY, *,
+def gdelt_candidates(query: str | list[str] = DEFAULT_QUERY, *,
                      fetch_json: Callable[[str], dict] = default_fetch_json,
                      timespan_days: int = 30, max_records: int = 75,
                      signals: list[str] | None = None) -> list[dict]:
     """GDELT DOC 2.0 article search -> url+title candidates (acquire fetches them).
-    No key. Best emerging-trend signal (global news, 65 languages)."""
-    url = ("https://api.gdeltproject.org/api/v2/doc/doc?query="
-           + urllib.parse.quote(query)
-           + f"&mode=artlist&format=json&maxrecords={int(max_records)}"
-           + f"&timespan={int(timespan_days)}d&sort=datedesc")
-    _throttle("gdelt", GDELT_MIN_INTERVAL)   # courtesy spacing between GDELT calls
-    data = fetch_json(url) or {}
+    No key. Best emerging-trend signal (global news, 65 languages).
+
+    GDELT prefers SIMPLE queries and throttles hard, so an ``OR`` query is split
+    into single phrases and issued as separate calls spaced ``GDELT_MIN_INTERVAL``
+    apart (the proper-rate-limit-spacing design), then merged + deduped."""
+    if isinstance(query, str):
+        phrases = [p.strip().strip('"') for p in re.split(r"\bOR\b", query) if p.strip()]
+    else:
+        phrases = [str(p).strip().strip('"') for p in query if str(p).strip()]
+    phrases = phrases or [DEFAULT_QUERY]
+    per = max(10, int(max_records) // len(phrases))
+
     out: list[dict] = []
     seen: set[str] = set()
-    for a in data.get("articles", []):
-        u = a.get("url")
-        if not u or u in seen:
-            continue
-        seen.add(u)
-        out.append({"id": "GDELT-" + _h(u), "url": u, "title": a.get("title"),
-                    "source_tier": "news", "signals": list(signals or []),
-                    "language": a.get("language"), "published": a.get("seendate")})
+    for ph in phrases:
+        q = f'"{ph}"' if " " in ph else ph
+        url = ("https://api.gdeltproject.org/api/v2/doc/doc?query="
+               + urllib.parse.quote(q)
+               + f"&mode=artlist&format=json&maxrecords={per}"
+               + f"&timespan={int(timespan_days)}d&sort=datedesc")
+        _throttle("gdelt", GDELT_MIN_INTERVAL)   # courtesy spacing between GDELT calls
+        data = fetch_json(url) or {}
+        for a in data.get("articles", []):
+            u = a.get("url")
+            if not u or u in seen:
+                continue
+            seen.add(u)
+            out.append({"id": "GDELT-" + _h(u), "url": u, "title": a.get("title"),
+                        "source_tier": "news", "signals": list(signals or []),
+                        "language": a.get("language"), "published": a.get("seendate")})
     return out
 
 
