@@ -34,8 +34,9 @@ from duecare.research_tools.acquire import acquire  # noqa: E402
 from duecare.research_tools.dedup import content_key, simhash64  # noqa: E402
 from duecare.research_tools.docfetch import fetch_document  # noqa: E402
 from duecare.research_tools.graph import build_graph  # noqa: E402
-from duecare.research_tools.monitor import default_fetch  # noqa: E402
+from duecare.research_tools.monitor import FetchResult, default_fetch  # noqa: E402
 from duecare.research_tools.politeness import PoliteFetcher, RateLimiter, RobotsCache  # noqa: E402
+from duecare.research_tools.pool import fetch_many  # noqa: E402
 from duecare.research_tools.store import AcquisitionStore  # noqa: E402
 
 CAND = Path(os.environ.get(
@@ -49,6 +50,7 @@ MIN_INTERVAL = float(os.environ.get("ACQ_MIN_INTERVAL", "1.0"))  # per-host seco
 RESPECT_ROBOTS = os.environ.get("ACQ_RESPECT_ROBOTS", "1") not in ("0", "false", "")
 FRONTIER_DB = os.environ.get("ACQ_FRONTIER_DB", "")          # drain harvested frontier if set
 FRONTIER_LIMIT = int(os.environ.get("ACQ_FRONTIER_LIMIT", "0"))  # cap pending pulled per run
+WORKERS = int(os.environ.get("ACQ_WORKERS", "8"))            # concurrent fetches per batch (1=sequential)
 
 
 def _utf8() -> None:
@@ -133,7 +135,7 @@ def main() -> None:
     fetch = PoliteFetcher(
         lambda url: fetch_document(url, timeout=TIMEOUT), robots=robots, limiter=limiter)
     print(f"[acquire] politeness: robots={'on' if robots else 'off'} "
-          f"min_interval={MIN_INTERVAL}s/host", flush=True)
+          f"min_interval={MIN_INTERVAL}s/host | workers={WORKERS}", flush=True)
 
     tot_kept = tot_drop = tot_unreach = 0
     t0 = time.time()
@@ -143,7 +145,17 @@ def main() -> None:
             open(OUT / "dropped.jsonl", "a", encoding="utf-8") as df:
         for bi in range(n_batches):
             batch = todo[bi * BATCH:(bi + 1) * BATCH]
-            r = acquire(batch, fetch=fetch, store=store)  # store-backed scalable dedup
+            if WORKERS > 1:
+                # Scrapy-style: fetch the batch's URLs concurrently (per-host
+                # politeness preserved by the thread-safe limiter), then acquire
+                # reads the results as a cache -> serial extract/chunk/store.
+                cache = fetch_many([c["url"] for c in batch], fetch, max_workers=WORKERS)
+
+                def batch_fetch(u, _c=cache):
+                    return _c.get(u, FetchResult(ok=False, status=0, error="not-fetched"))
+            else:
+                batch_fetch = fetch
+            r = acquire(batch, fetch=batch_fetch, store=store)  # store-backed scalable dedup
             for ch in r.kept:
                 sf.write(json.dumps(ch.model_dump(), ensure_ascii=False) + "\n")
             for d in r.dropped:
