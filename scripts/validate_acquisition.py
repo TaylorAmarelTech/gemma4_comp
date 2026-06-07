@@ -27,7 +27,8 @@ for _p in sorted((ROOT / "packages").glob("*/src")):
     sys.path.insert(0, str(_p))
 
 from duecare.research_tools.validate import (  # noqa: E402
-    cosine, query_utility, summarize_retrieval, summarize_semantic,
+    cosine, query_lift, query_utility, summarize_lift, summarize_retrieval,
+    summarize_semantic,
 )
 
 OUT = Path(os.environ.get("ACQ_OUT", ROOT / "reports/acquisition"))
@@ -87,13 +88,18 @@ def load_acquired() -> list[dict]:
     return docs
 
 
-def keyword_validation(queries: list[str], acquired: list[dict]) -> dict:
+def retrieval_and_lift(queries: list[str], acquired: list[dict]) -> tuple[dict, dict]:
+    """One pass over the REAL kernel BM25: baseline (corpus only) vs enriched
+    (corpus + acquired). Derives keyword utility (from enriched) AND grounding
+    lift (baseline vs enriched)."""
     from duecare.chat.harness import _rag_call  # noqa: E402 -- real kernel retrieval
-    per = []
+    util_per, lift_per = [], []
     for q in queries:
-        res = _rag_call(q, top_k=K, extra_docs=acquired)
-        per.append(query_utility(res.get("docs", []), k=K))
-    return summarize_retrieval(per, n_acquired=len(acquired))
+        base = _rag_call(q, top_k=K).get("docs", [])
+        enr = _rag_call(q, top_k=K, extra_docs=acquired).get("docs", [])
+        util_per.append(query_utility(enr, k=K))
+        lift_per.append(query_lift(base, enr))
+    return summarize_retrieval(util_per, n_acquired=len(acquired)), summarize_lift(lift_per)
 
 
 def get_embedder():
@@ -126,8 +132,9 @@ def main() -> None:
 
     report: dict = {"queries": len(queries), "acquired_docs": len(acquired), "k": K}
     t0 = time.time()
-    report["keyword"] = keyword_validation(queries, acquired)
+    report["keyword"], report["lift"] = retrieval_and_lift(queries, acquired)
     print("[validate] keyword: " + json.dumps(report["keyword"]), flush=True)
+    print("[validate] lift:    " + json.dumps(report["lift"]), flush=True)
 
     embed, backend = get_embedder()
     if embed and os.environ.get("VALIDATE_SEMANTIC", "1") not in ("0", "false", ""):

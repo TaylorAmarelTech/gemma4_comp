@@ -123,3 +123,33 @@ def summarize_semantic(best_sims: list[float], *, threshold: float = 0.35) -> di
         "pct_queries_semantic_match": round(100 * matched / n, 1),
         "mean_best_similarity": round(sum(best_sims) / n, 3),
     }
+
+
+# --- grounding lift (baseline corpus vs enriched corpus) --------------------
+def query_lift(baseline_docs: list[dict], enriched_docs: list[dict]) -> dict:
+    """Grounding lift for one query: the best (top-1) BM25 score the model gets
+    from the existing corpus vs from corpus+acquired. Better grounding -> better
+    responses. ``new_top1_acquired`` = an acquired doc became the single best match."""
+    b = float(baseline_docs[0].get("score", 0.0)) if baseline_docs else 0.0
+    e = float(enriched_docs[0].get("score", 0.0)) if enriched_docs else 0.0
+    return {"baseline_top1": b, "enriched_top1": e, "lift": e - b,
+            "new_top1_acquired": bool(enriched_docs and enriched_docs[0].get("is_custom"))}
+
+
+def summarize_lift(per_query: list[dict]) -> dict:
+    """Aggregate grounding lift. ``mean_grounding_lift`` is how much stronger the
+    best grounding gets when acquired docs are available; ``pct_queries_improved``
+    is how often adding them raised the top-1 grounding score at all."""
+    n = len(per_query) or 1
+    base = sum(r["baseline_top1"] for r in per_query)
+    lift = sum(r["lift"] for r in per_query)
+    return {
+        "queries": len(per_query),
+        "mean_baseline_top1": round(base / n, 3),
+        "mean_enriched_top1": round(sum(r["enriched_top1"] for r in per_query) / n, 3),
+        "mean_grounding_lift": round(lift / n, 3),
+        "relative_lift_pct": round(100 * lift / base, 1) if base > 0 else 0.0,
+        "pct_queries_improved": round(100 * sum(1 for r in per_query if r["lift"] > 1e-9) / n, 1),
+        "pct_queries_new_top1_acquired": round(
+            100 * sum(1 for r in per_query if r["new_top1_acquired"]) / n, 1),
+    }
