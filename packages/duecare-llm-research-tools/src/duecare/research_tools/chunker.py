@@ -42,23 +42,35 @@ def _paragraphs(text: str) -> list[tuple[str, int, int]]:
     return [(m.group().strip(), m.start(), m.end()) for m in _PARA.finditer(text) if m.group().strip()]
 
 
+def _sentence_spans(para: str) -> list[tuple[str, int]]:
+    """(sentence_incl_trailing_ws, offset_in_para) with EXACT offsets -- so packed
+    chunk offsets stay traceable to the source (no split-and-recount drift)."""
+    spans: list[tuple[str, int]] = []
+    prev = 0
+    for m in re.finditer(r"[.!?]+(?:\s+|$)", para):
+        spans.append((para[prev:m.end()], prev))
+        prev = m.end()
+    if prev < len(para):
+        spans.append((para[prev:], prev))
+    return spans
+
+
 def _split_long_paragraph(para: str, start: int, target: int) -> list[tuple[str, int, int]]:
-    """Sentence-pack an over-long paragraph into <= target spans (offsets relative
-    to ``start`` in the source)."""
+    """Sentence-pack an over-long paragraph into <= target spans with REAL source
+    offsets (``start`` is the paragraph's offset in the source text)."""
     spans: list[tuple[str, int, int]] = []
-    cur, cur_start, pos = "", start, start
-    for s in _SENT.split(para):
-        if not s:
-            continue
-        if cur and len(cur) + 1 + len(s) > target:
-            spans.append((cur, cur_start, cur_start + len(cur)))
-            cur, cur_start = s, pos
+    cur, cur_off = "", None
+    for sent, off in _sentence_spans(para):
+        if cur and len(cur) + len(sent) > target:
+            spans.append((cur.strip(), start + cur_off, start + cur_off + len(cur)))
+            cur, cur_off = sent, off
         else:
-            cur = (cur + " " + s) if cur else s
-        pos += len(s) + 1
-    if cur:
-        spans.append((cur, cur_start, cur_start + len(cur)))
-    return spans or [(para, start, start + len(para))]
+            if not cur:
+                cur_off = off
+            cur += sent
+    if cur.strip():
+        spans.append((cur.strip(), start + cur_off, start + cur_off + len(cur)))
+    return spans or [(para.strip(), start, start + len(para))]
 
 
 def chunk_document(

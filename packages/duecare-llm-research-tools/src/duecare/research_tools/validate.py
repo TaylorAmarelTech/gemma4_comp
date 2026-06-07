@@ -17,9 +17,21 @@ from __future__ import annotations
 import re
 
 _WORD = re.compile(r"[^\W\d_]+", re.UNICODE)   # alphabetic word runs
-_SENTSPLIT = re.compile(r"[.!?]+(?:\s|$)")
+# split on .!? AND ; and newlines -- statute/treaty text uses semicolons and
+# enumerated clauses, which the old .!?-only split under-counted (inflating
+# avg_sentence_words past the cap and wrongly scoring legal prose 'low').
+_SENTSPLIT = re.compile(r"[.!?;]+(?:\s|$)|\n+")
 
 _MEANING_MIN_WORDS = 30
+
+
+def _nonlatin_dominant(text: str) -> bool:
+    """True if >30% of letters are beyond Latin Extended (CJK/Arabic/Thai/etc.) --
+    the Latin-prose ttr/alpha heuristics don't apply there, so we relax them."""
+    letters = [c for c in text if c.isalpha()]
+    if not letters:
+        return False
+    return sum(1 for c in letters if ord(c) > 0x2FF) > 0.30 * len(letters)
 
 
 def meaningfulness(text: str) -> dict:
@@ -40,11 +52,14 @@ def meaningfulness(text: str) -> dict:
     avg_sentence_words = n / n_sents
     alpha_ratio = sum(len(w) for w in words) / max(1, len(t))  # letters / chars
 
+    nonlatin = _nonlatin_dominant(t)
     score = 0.0
-    score += 1.0 if n >= 60 else 0.5                 # enough material
-    score += 1.0 if 0.30 <= ttr <= 0.90 else 0.0     # not stuffed, not all-distinct (link list)
-    score += 1.0 if 6 <= avg_sentence_words <= 55 else 0.0   # real sentences, not fragments
-    score += 1.0 if alpha_ratio >= 0.55 else 0.0     # prose, not symbol/number soup
+    score += 1.0 if n >= 60 else 0.5                  # enough material
+    # treaty/convention text is formulaic (low ttr) yet substantive -> floor 0.25;
+    # non-Latin scripts bypass the Latin-prose ttr/alpha heuristics entirely.
+    score += 1.0 if (nonlatin or 0.25 <= ttr <= 0.92) else 0.0
+    score += 1.0 if 5 <= avg_sentence_words <= 60 else 0.0   # real sentences, not fragments
+    score += 1.0 if (nonlatin or alpha_ratio >= 0.55) else 0.0
     tier = "high" if score >= 3.5 else "medium" if score >= 2.0 else "low"
     return {"tier": tier, "score": round(score, 1), "n_words": n,
             "ttr": round(ttr, 2), "avg_sentence_words": round(avg_sentence_words, 1),

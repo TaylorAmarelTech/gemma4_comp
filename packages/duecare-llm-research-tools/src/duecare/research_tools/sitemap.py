@@ -99,11 +99,11 @@ def walk_sitemaps(
             continue
         res = fetch(u)
         fetched += 1
-        if on_sitemap is not None:
-            on_sitemap(u)
         if not res.ok:
             errors += 1
-            continue
+            continue   # do NOT mark seen -> a 429/503 sitemap is retried on resume
+        if on_sitemap is not None:
+            on_sitemap(u)
         if u.lower().rstrip("/").endswith("robots.txt"):
             for sm in robots_sitemaps(res.text):
                 if sm not in seen:
