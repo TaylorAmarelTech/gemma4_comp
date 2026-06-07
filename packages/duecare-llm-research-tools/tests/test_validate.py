@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 from duecare.research_tools.validate import (
-    cosine, meaningful_enough, meaningfulness, query_utility,
-    summarize_retrieval, summarize_semantic,
+    cosine, meaningful_enough, meaningfulness, query_lift, query_utility,
+    summarize_lift, summarize_retrieval, summarize_semantic,
 )
 
 PROSE = ("Under the convention a domestic worker keeps custody of her passport at all "
@@ -73,3 +73,18 @@ def test_summarize_semantic():
     s = summarize_semantic([0.5, 0.2, 0.4], threshold=0.35)
     assert s["pct_queries_semantic_match"] == round(100 * 2 / 3, 1)
     assert s["mean_best_similarity"] == round((0.5 + 0.2 + 0.4) / 3, 3)
+
+
+def test_grounding_lift():
+    base = [{"id": "c1", "score": 2.0, "is_custom": False}]
+    enr = [{"id": "a1", "score": 3.5, "is_custom": True},
+           {"id": "c1", "score": 2.0, "is_custom": False}]
+    q = query_lift(base, enr)
+    assert q["baseline_top1"] == 2.0 and q["enriched_top1"] == 3.5
+    assert round(q["lift"], 1) == 1.5 and q["new_top1_acquired"] is True
+    # a second query with no improvement
+    q2 = {"baseline_top1": 1.0, "enriched_top1": 1.0, "lift": 0.0, "new_top1_acquired": False}
+    s = summarize_lift([q, q2])
+    assert s["pct_queries_improved"] == 50.0
+    assert s["pct_queries_new_top1_acquired"] == 50.0
+    assert s["mean_grounding_lift"] == round((1.5 + 0.0) / 2, 3)
