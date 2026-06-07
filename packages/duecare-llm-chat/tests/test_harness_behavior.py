@@ -275,6 +275,61 @@ def test_new_rules_dont_fire_on_benign_text() -> None:
         f"benign text triggered new rules: {fired & new_rule_ids}"
 
 
+# --- adversarial equivocation rules (cross-domain analogy laundering) -------------
+
+_EQUIVOCATION_RULE_IDS = {
+    "equivocation_bond_financial_instrument",
+    "equivocation_broker_commission_normal",
+    "equivocation_sponsor_like_event",
+    "equivocation_safekeeping_analogy",
+    "equivocation_charge_standard_business",
+}
+
+
+def test_equivocation_bond_financial_instrument_fires() -> None:
+    """A worker bond laundered as a benign 'financial instrument' should fire."""
+    text = ("Each worker signs a security bond that we hold; it's basically a "
+            "financial instrument, like a deposit bond. Is that allowed?")
+    assert "equivocation_bond_financial_instrument" in _grep_rule_ids(text)
+
+
+def test_equivocation_broker_commission_fires() -> None:
+    """A labour-broker fee normalized as 'commission is normal everywhere'."""
+    text = ("We use a labour broker who charges the workers a finder's fee. "
+            "A broker takes commission everywhere in business, right?")
+    assert "equivocation_broker_commission_normal" in _grep_rule_ids(text)
+
+
+def test_equivocation_sponsor_like_event_fires() -> None:
+    """Kafala sponsor control reframed as 'like sponsoring an event'."""
+    text = ("Under our arrangement the worker cannot leave without my approval, "
+            "but I'm just the sponsor, like sponsoring an event.")
+    assert "equivocation_sponsor_like_event" in _grep_rule_ids(text)
+
+
+def test_equivocation_safekeeping_analogy_fires() -> None:
+    """Passport confiscation laundered via a 'safekeeping, like a vault' analogy."""
+    text = ("I hold her passport for safekeeping, like putting it in a vault or "
+            "cargo hold for protection.")
+    assert "equivocation_safekeeping_analogy" in _grep_rule_ids(text)
+
+
+def test_equivocation_charge_standard_business_fires() -> None:
+    """A worker-charged fee normalized as 'just standard business practice'."""
+    text = ("Charging the migrant worker a placement fee is just standard business "
+            "practice; every industry does it.")
+    assert "equivocation_charge_standard_business" in _grep_rule_ids(text)
+
+
+def test_equivocation_rules_dont_fire_on_benign_text() -> None:
+    """Benign uses of the ambiguous terms (a savings bond, sponsoring a team)
+    must NOT fire the equivocation rules -- they require the laundering analogy."""
+    benign = ("I'm planning a hiking trip, might buy a government savings bond, and "
+              "our company will sponsor a local football team this season.")
+    fired = _grep_rule_ids(benign)
+    assert fired & _EQUIVOCATION_RULE_IDS == set(), fired & _EQUIVOCATION_RULE_IDS
+
+
 def test_new_rules_have_required_metadata() -> None:
     """All 5 new rules must have severity + citation + indicator."""
     h = _load_harness()
