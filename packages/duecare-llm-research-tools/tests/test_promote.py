@@ -94,6 +94,33 @@ def test_relevance_gate_excludes_offtopic():
     assert rag[0]["provenance"]["relevance"]["tier"] in ("medium", "high")
 
 
+def test_domain_sense_collision_is_promoted_but_flagged_for_review():
+    # on-topic enough to pass the relevance gate ("freedom of movement", "exit permit"
+    # hit the restricted_movement family) BUT the ambiguous word "bond" resolves to
+    # finance -- a cross-domain false positive that must be routed to manual review,
+    # not silently staged.
+    collide = {"doc_id": "dC", "ordinal": 0, "url": "u",
+               "text": ("Freedom of movement of capital is essential to the bond market. "
+                        "Investors weigh the issuer's coupon and yield before they buy. "
+                        "The exit permit for funds is a purely financial concept here.")}
+    envs = build_envelopes([collide], {"edges": []}, created_at=TS,
+                           min_tier="medium", min_meaning="low")
+    rag = [e for e in envs if e["knowledge_object_type"] == "rag_doc"]
+    assert len(rag) == 1                                   # promoted (not dropped)
+    tags = rag[0]["tags"]
+    assert "needs-review" in tags and "sense-collision" in tags
+    assert "offdomain-finance" in tags
+    assert rag[0]["provenance"]["domain_sense"]["collision"] is True
+
+
+def test_clean_chunk_is_not_flagged_for_sense_review():
+    envs = build_envelopes([C1, C2], GRAPH, created_at=TS)
+    rag = [e for e in envs if e["knowledge_object_type"] == "rag_doc"]
+    for e in rag:
+        assert "needs-review" not in e["tags"] and "sense-collision" not in e["tags"]
+        assert e["provenance"]["domain_sense"]["collision"] is False
+
+
 def test_meaningfulness_gate_excludes_boilerplate():
     # both are on-topic, but the second is a short nav fragment with no substance
     rich = {"doc_id": "d1", "ordinal": 0, "url": "u",

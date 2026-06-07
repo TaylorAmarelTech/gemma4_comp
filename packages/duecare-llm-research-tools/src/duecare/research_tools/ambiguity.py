@@ -93,6 +93,7 @@ COLLISION_TERMS: dict[str, dict] = {
     },
     "traffick": {
         "sense": "human_trafficking",
+        "prefix": True,    # match trafficking / trafficked / traffickers
         "target": ["human", "person", "forced", "labour", "labor", "sexual",
                    "exploit", "victim", "smuggl", "migrant", "modern slavery"],
         "off": {
@@ -121,8 +122,26 @@ COLLISION_TERMS: dict[str, dict] = {
     },
 }
 
-_TERM_RE = {t: re.compile(r"\b" + re.escape(t) + (r"\w*\b" if t == "traffick" else r"\b"), re.I)
-            for t in COLLISION_TERMS}
+def _compile_terms(lexicon: dict[str, dict]) -> dict[str, "re.Pattern[str]"]:
+    """Whole-word matcher per term; ``spec['prefix']`` allows a ``\\w*`` suffix
+    (e.g. ``traffick`` -> trafficking/trafficked)."""
+    return {
+        term: re.compile(r"\b" + re.escape(term) + (r"\w*\b" if spec.get("prefix") else r"\b"), re.I)
+        for term, spec in lexicon.items()
+    }
+
+
+# Compiled-term cache keyed by lexicon identity. Lexicons MUST be stable module
+# constants (COLLISION_TERMS, EXTENDED_COLLISION_TERMS, or a caller's own constant).
+_TERM_RE_CACHE: dict[int, dict] = {}
+
+
+def _terms_for(lexicon: dict[str, dict]) -> dict[str, "re.Pattern[str]"]:
+    cached = _TERM_RE_CACHE.get(id(lexicon))
+    if cached is None:
+        cached = _compile_terms(lexicon)
+        _TERM_RE_CACHE[id(lexicon)] = cached
+    return cached
 
 
 def _count_anchors(low: str, anchors: list[str]) -> int:
@@ -131,8 +150,12 @@ def _count_anchors(low: str, anchors: list[str]) -> int:
     return sum(1 for a in anchors if a in low)
 
 
-def domain_sense(text: str) -> dict:
+def domain_sense(text: str, *, lexicon: dict[str, dict] = COLLISION_TERMS) -> dict:
     """Resolve the active sense of each ambiguous term present in ``text``.
+
+    ``lexicon`` defaults to the trafficking ``COLLISION_TERMS``; pass
+    ``EXTENDED_COLLISION_TERMS`` (or any same-shaped constant) to reuse the engine
+    for another integrity domain without touching the trafficking lexicon.
 
     Returns a declared-loss report::
 
@@ -150,13 +173,14 @@ def domain_sense(text: str) -> dict:
     a likely false-positive ingest into the trafficking corpus."""
     t = text or ""
     low = t.lower()
+    term_re = _terms_for(lexicon)
     terms: list[dict] = []
     n_target = n_off = n_unresolved = 0
     offdomain_labels: set[str] = set()
     collision = False
 
-    for term, spec in COLLISION_TERMS.items():
-        if not _TERM_RE[term].search(t):
+    for term, spec in lexicon.items():
+        if not term_re[term].search(t):
             continue
         target_hits = _count_anchors(low, spec["target"])
         best_label, best_off = None, 0
@@ -195,7 +219,63 @@ def domain_sense(text: str) -> dict:
     }
 
 
-def is_offdomain(text: str) -> bool:
+def is_offdomain(text: str, *, lexicon: dict[str, dict] = COLLISION_TERMS) -> bool:
     """True when the text uses an ambiguous domain keyword purely in a competing
     domain's sense -- a likely cross-domain false-positive for the corpus."""
-    return domain_sense(text)["collision"]
+    return domain_sense(text, lexicon=lexicon)["collision"]
+
+
+# Cross-domain proof: the SAME engine generalizes to other integrity verticals
+# (financial, environmental, health/aid, governance). Kept SEPARATE from the
+# trafficking COLLISION_TERMS -- this is a disambiguation lexicon for the
+# multi-domain framework, not trafficking-corpus content. Opt in via
+# ``domain_sense(text, lexicon=EXTENDED_COLLISION_TERMS)``.
+EXTENDED_COLLISION_TERMS: dict[str, dict] = {
+    "laundering": {
+        "sense": "money_laundering",
+        "target": ["money", "proceeds", "illicit", "shell", "placement", "layering",
+                   "fatf", "aml", "cash", "funds", "offshore"],
+        "off": {
+            "household": ["clothes", "laundry", "detergent", "washing", "linen", "dry clean"],
+        },
+    },
+    "dumping": {
+        "sense": "illegal_dumping",
+        "target": ["waste", "toxic", "hazardous", "pollut", "river", "landfill",
+                   "effluent", "chemical", "illegally"],
+        "off": {
+            "trade": ["anti-dumping", "tariff", "below cost", "export price", "wto", "duty"],
+            "computing": ["core dump", "memory dump", "data dump", "database", "stack trace"],
+        },
+    },
+    "diversion": {
+        "sense": "resource_diversion",
+        "target": ["drug", "medicine", "opioid", "controlled substance", "aid", "funds",
+                   "stockpile", "pilfer", "embezzle", "humanitarian"],
+        "off": {
+            "transport": ["traffic", "route", "detour", "road", "flight"],
+            "water": ["irrigation", "canal", "reservoir", "dam", "flow of water"],
+            "leisure": ["amusement", "entertainment", "pastime", "fun"],
+        },
+    },
+    "capture": {
+        "sense": "regulatory_capture",
+        "target": ["regulator", "regulatory", "agency", "lobby", "revolving door",
+                   "vested interest", "influence over", "industry"],
+        "off": {
+            "imaging": ["photo", "screenshot", "image", "camera", "video", "frame"],
+            "climate": ["carbon", "co2", "sequestration", "emissions", "storage"],
+            "data": ["data capture", "form field", "input field", "keystroke"],
+        },
+    },
+    "shell": {
+        "sense": "shell_company",
+        "target": ["company", "corporation", "entity", "offshore", "beneficial owner",
+                   "nominee", "front", "incorporat", "registered"],
+        "off": {
+            "computing": ["unix", "bash", "command", "terminal", "script", "ssh"],
+            "military": ["artillery", "mortar", "ammunition", "round", "fired"],
+            "nature": ["sea", "beach", "mollusk", "turtle", "snail"],
+        },
+    },
+}

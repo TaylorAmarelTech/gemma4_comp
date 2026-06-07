@@ -20,6 +20,7 @@ from __future__ import annotations
 import json
 import re
 
+from .ambiguity import domain_sense
 from .relevance import TIER_RANK, relevance
 from .validate import meaningfulness
 
@@ -42,10 +43,16 @@ def chunk_envelope_id(chunk: dict) -> str:
 
 
 def chunk_to_rag_doc(chunk: dict, *, created_at: str, rel: dict | None = None,
-                     meaning: dict | None = None) -> dict:
-    """One staged chunk -> a ``rag_doc`` knowledge envelope. ``rel`` (relevance)
-    and ``meaning`` (meaningfulness) score dicts are recorded in provenance +
-    ``relevance-<tier>`` / ``meaningful-<tier>`` tags."""
+                     meaning: dict | None = None, sense: dict | None = None) -> dict:
+    """One staged chunk -> a ``rag_doc`` knowledge envelope. ``rel`` (relevance),
+    ``meaning`` (meaningfulness), and ``sense`` (domain word-sense) score dicts are
+    recorded in provenance + ``relevance-<tier>`` / ``meaningful-<tier>`` tags.
+
+    When ``sense`` reports a cross-domain ``collision`` (an ambiguous keyword used
+    in a competing domain's meaning, e.g. a finance "bond" page), the envelope is
+    still emitted but tagged ``needs-review`` + ``sense-collision`` +
+    ``offdomain-<label>`` so a curator routes it to manual review rather than the
+    pipeline silently staging or silently dropping it."""
     base = chunk.get("title") or chunk.get("doc_id") or "Acquired document"
     title = f"{base} (part {int(chunk.get('ordinal', 0)) + 1})"
     jur = (chunk.get("jurisdictions") or [None])[0]
@@ -57,6 +64,17 @@ def chunk_to_rag_doc(chunk: dict, *, created_at: str, rel: dict | None = None,
     if chunk.get("source_tier"):
         tags.append(sanitize_id(chunk["source_tier"]))
     tags.extend(sanitize_id(s) for s in (chunk.get("signals") or [])[:4])
+    sense_summary: dict = {}
+    if sense:
+        sense_summary = {
+            "collision": bool(sense.get("collision")),
+            "net": sense.get("net", 0),
+            "offdomain_labels": sense.get("offdomain_labels", []),
+        }
+        if sense.get("collision"):
+            tags.append("needs-review")
+            tags.append("sense-collision")
+            tags.extend(f"offdomain-{sanitize_id(l)}" for l in sense.get("offdomain_labels", [])[:2])
     return {
         "schema_version": "1.0",
         "knowledge_object_type": "rag_doc",
@@ -69,6 +87,7 @@ def chunk_to_rag_doc(chunk: dict, *, created_at: str, rel: dict | None = None,
             "source_url": chunk.get("url"),
             "relevance": rel or {},
             "meaningfulness": meaning or {},
+            "domain_sense": sense_summary,
             "notes": "Automated acquisition; review before production use.",
         },
         "content": {
@@ -145,18 +164,19 @@ def build_envelopes(
         mean = meaningfulness(text)
         if TIER_RANK[mean["tier"]] < mfloor:
             continue  # boilerplate / no substance -> not promoted
-        passed.append((c, rel, mean))
+        sense = domain_sense(text)  # word-sense check: flag on-topic-but-wrong-domain
+        passed.append((c, rel, mean, sense))
     # cap: keep at most max_per_doc PASSING chunks per source (ordinal order)
     rag: list[dict] = []
     kept: list[dict] = []
     seen_per_doc: dict[str, int] = {}
-    for c, rel, mean in passed:
+    for c, rel, mean, sense in passed:
         if max_per_doc and max_per_doc > 0:
             d = str(c.get("doc_id"))
             if seen_per_doc.get(d, 0) >= max_per_doc:
                 continue
             seen_per_doc[d] = seen_per_doc.get(d, 0) + 1
-        rag.append(chunk_to_rag_doc(c, created_at=created_at, rel=rel, meaning=mean))
+        rag.append(chunk_to_rag_doc(c, created_at=created_at, rel=rel, meaning=mean, sense=sense))
         kept.append(c)
     # first chunk (ordinal 0) of each KEPT doc is its representative for edges
     doc_to_env: dict[str, str] = {}

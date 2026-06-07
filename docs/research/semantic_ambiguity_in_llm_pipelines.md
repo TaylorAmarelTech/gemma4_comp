@@ -336,9 +336,25 @@ The analysis is load-bearing, not decorative — it shipped as code:
 - **Prompts / testing.** `configs/duecare/domains/trafficking/ambiguity_probes.jsonl`
   — 10 probes targeting each collision term, including adversarial-equivocation
   recruiter framings and victim-voice phrasings, with worst/best anchors.
-- **Tests.** `tests/test_ambiguity.py` (10) covers target/off-domain/unresolved
-  resolution and the gate's flag+demote behavior; the rubric addition is validated
-  green against the 156-test harness-behavior suite.
+- **Generalization (cross-domain proof).** `domain_sense(text, lexicon=…)` is
+  parametrized; `EXTENDED_COLLISION_TERMS` ships a second lexicon for other
+  integrity verticals (money *laundering* vs laundry; illegal *dumping* vs
+  anti-dumping/data-dump; resource *diversion*; regulatory *capture* vs photo/
+  carbon; *shell* company vs unix/artillery). Kept **separate** from the
+  trafficking lexicon — a disambiguation lexicon for the multi-domain framework,
+  not corpus content — so the two corpora never commingle.
+- **Promote routing (no silent staging).** `promote.build_envelopes` now runs the
+  sense check at the gate: a chunk that passes relevance but whose ambiguous keyword
+  resolves off-domain is **promoted-but-flagged** (`needs-review` + `sense-collision`
+  + `offdomain-<label>` tags, plus a `provenance.domain_sense` summary), so a curator
+  reviews it instead of the pipeline silently staging — or silently dropping — it.
+- **Tests.** `tests/test_ambiguity.py` (14) covers target/off-domain/unresolved
+  resolution, the parametrized lexicon, and the gate's flag+demote behavior;
+  `tests/test_promote.py` covers the promote review-flag routing; and a
+  harness-behavior test asserts the `domain_sense_resolution` dimension scores the
+  target-sense answer above the equivocation **end-to-end** (an offline,
+  deterministic sense-resolution measurement). All green: research-tools 132,
+  harness-behavior suite incl. the new dimension test.
 
 This makes DueCare, as far as the §I literature shows, an early concrete
 implementation of an **ambiguity-aware safety pipeline**: deterministic domain-sense
