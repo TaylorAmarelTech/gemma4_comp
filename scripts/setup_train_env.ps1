@@ -127,6 +127,7 @@ $activate = Join-Path $EnvDir "env.ps1"
 # dot-source to use the training env:  . `"$activate`"
 `$env:HF_HOME = '$HfHome'
 `$env:TRANSFORMERS_NO_ADVISORY_WARNINGS = '1'
+`$env:PYTHONUTF8 = '1'   # Windows: trl/transformers read UTF-8 files; avoids cp1252 'charmap' import crash
 Set-Alias trainpy '$VenvPy'
 Write-Host '[train-env] HF_HOME=' `$env:HF_HOME '| python: $VenvPy'
 "@ | Set-Content -Encoding UTF8 $activate
