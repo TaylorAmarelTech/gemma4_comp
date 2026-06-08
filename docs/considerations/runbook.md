@@ -35,7 +35,7 @@ kubectl -n duecare logs -l app.kubernetes.io/component=chat --tail=200 --previou
 1. **OOMKilled** — model load + KV cache exceeded the memory limit.
    Check: `kubectl describe pod ... | grep -A2 "Last State"`.
    Mitigation: raise `chat.resources.limits.memory` in
-   `values.yaml`; use a smaller model (`gemma3:1b` or `gemma4:e2b`
+   `values.yaml`; use a smaller model (`gemma4:e2b` or `gemma4:e2b`
    instead of `gemma4:e4b`).
 2. **Image pull failure** — registry rate-limit or auth issue.
    Mitigation: temporarily scale to 0 and back, or pin to a
@@ -124,7 +124,7 @@ histogram_quantile(0.95,
 
 - If GPU-backed: confirm the node selector + GPU device plugin are
   scheduling pods to GPU nodes.
-- If CPU: drop to `gemma4:e2b` or `gemma3:1b`.
+- If CPU: drop to `gemma4:e2b` or `gemma4:e2b`.
 - Long-term: add a per-tenant token bucket so one tenant can't
   exhaust the inference pool.
 

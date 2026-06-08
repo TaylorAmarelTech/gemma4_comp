@@ -516,7 +516,6 @@ def detect_environment() -> Env:
         f"/kaggle/input/models/**/{variant}/*",
         f"/kaggle/input/**/{variant}/*",
         "/kaggle/input/**/gemma-4*/*",
-        "/kaggle/input/**/gemma-3-4b*/*",
         # Kaggle commonly mounts attached Models at these paths too:
         f"/kaggle/input/{variant}/*",
         f"/kaggle/input/gemma-4/transformers/{variant}/*",

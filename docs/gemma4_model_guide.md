@@ -12,9 +12,9 @@
 | Evaluating Duecare on a laptop | `gemma4:e2b` (default) |
 | NGO Mac mini with 16 GB RAM | `gemma4:e2b` |
 | NGO Mac mini with 32 GB RAM, ≥ 5 caseworkers | `gemma4:e4b` |
-| Cloud Run / Render free tier | `gemma3:1b` (fastest cold start) |
+| Cloud Run / Render free tier | `gemma4:e2b-int4` (fastest cold start) |
 | GPU pod (T4 / L4 / A10) for production | `gemma4:e4b` |
-| Old phone (4 GB RAM) | `gemma3:1b` |
+| Old phone (4 GB RAM) | `gemma4:e2b-int4` |
 | Modern Android (8 GB+ RAM) | `gemma4:e2b` (the v0.9 default) |
 | Workstation with H100 / A100 | `gemma4:31b` |
 
@@ -27,8 +27,6 @@
 | `gemma4:e4b` | 4 B | INT8 | 3.5 GB | 16 GB | 0.25 | 8-16 s (CPU) / 1-2 s (T4) | Apache 2.0 |
 | `gemma4:e4b-int4` | 4 B | INT4 | 2.0 GB | 8 GB | 0.4 | 6-12 s (CPU) / 0.7-1.5 s (T4) | Apache 2.0 |
 | `gemma4:31b` | 31 B | Q4_0 | 18 GB | 32 GB | n/a (GPU only) | 1-3 s (A100) | Apache 2.0 |
-| `gemma3:1b` | 1 B | INT4 | 600 MB | 4 GB | 1.2 | 1-3 s (CPU) | Apache 2.0 |
-| `gemma2:2b` | 2 B | INT4 | 1.4 GB | 4 GB | 0.5 | 4-8 s (CPU) | Gemma TOU (gated) |
 
 > Numbers measured with `tests/load/k6_chat.js` against Ollama
 > on the same host. Real RPS depends on your prompt + max-tokens
@@ -41,12 +39,12 @@
 | Ollama (CPU) | all of the above |
 | Ollama (NVIDIA GPU) | all of the above |
 | Ollama (Apple Silicon Metal) | all of the above |
-| MediaPipe LiteRT-LM (Android) | `gemma4:e2b-int4`, `gemma4:e2b` (INT8), `gemma4:e4b-int4`, `gemma4:e4b` (INT8), `gemma3:1b`, `gemma2:2b` |
+| MediaPipe LiteRT-LM (Android) | `gemma4:e2b-int4`, `gemma4:e2b` (INT8), `gemma4:e4b-int4`, `gemma4:e4b` (INT8) |
 | llama.cpp / GGUF | `gemma4:e2b`, `gemma4:e4b`, `gemma4:31b` (Q4_0/Q8_0/F16) |
 | HuggingFace Transformers | all (some need PEFT / transformers HEAD) |
 | HuggingFace Inference Endpoint | `gemma4:e2b`, `gemma4:e4b` (paid endpoints) |
 
-The Android app's [`ModelManager`](https://github.com/TaylorAmarelTech/duecare-journey-android/blob/main/app/src/main/java/com/duecare/journey/inference/ModelManager.kt) ships all six MediaPipe variants
+The Android app's [`ModelManager`](https://github.com/TaylorAmarelTech/duecare-journey-android/blob/main/app/src/main/java/com/duecare/journey/inference/ModelManager.kt) ships all four MediaPipe Gemma 4 variants
 selectable from Settings, each with multiple mirror-fallback URLs.
 
 ## When Gemma 4 features become load-bearing
@@ -58,8 +56,8 @@ Gemma 4 has three features the harness leans on:
    uses Gemma 4's function-calling protocol to dispatch among the
    GREP / RAG / Tools / Persona layers. Earlier Gemma generations
    couldn't reliably emit valid JSON tool-call payloads at this
-   scale; v0.6+ assumes Gemma 4. To use Gemma 2 / 3 instead, the
-   coordinator falls back to a regex-based "tool intent" parser
+   scale; v0.6+ assumes Gemma 4. On an earlier-generation fallback,
+   the coordinator drops to a regex-based "tool intent" parser
    with measurably lower precision.
 
 2. **Multimodal input.** The `Scout` agent reads contract / receipt
@@ -73,7 +71,8 @@ Gemma 4 has three features the harness leans on:
    forced ad-hoc summarization that lost evidence.
 
 For these reasons the **default everywhere is now Gemma 4 E2B** —
-Gemma 2 / 3 are kept as fallback paths but lose features.
+earlier Gemma generations are kept only as documented fallbacks and
+lose these features.
 
 ## Picking a variant in practice
 

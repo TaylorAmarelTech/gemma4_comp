@@ -218,8 +218,6 @@ CANDIDATES = [
     'huihui-ai/gemma-4-A4B-it-abliterated',
     'AEON-7/Gemma-4-A4B-it-Uncensored',
     'mlabonne/Gemma-4-E4B-it-abliterated',
-    'mlabonne/gemma-3-4b-it-abliterated',
-    'huihui-ai/gemma-3-4b-it-abliterated',
 ]
 
 try:

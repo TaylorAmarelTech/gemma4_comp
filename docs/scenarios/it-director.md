@@ -167,7 +167,7 @@ IT director:
 |---|---|---|---|
 | Worker says chat is slow | Weekly during cold-starts | Low | First request after pod start takes ~30s; subsequent requests ~5s. Set HPA `minReplicas: 2` to keep one warm. |
 | Disk fills up | Monthly without cleanup | Medium | Backups + log rotation cron. Audit log default 90-day retention. |
-| Ollama OOM-killed | When you under-sized RAM | Medium | Use `gemma4:e2b` or `gemma3:1b` instead of `gemma4:e4b`; bump RAM. |
+| Ollama OOM-killed | When you under-sized RAM | Medium | Use `gemma4:e2b` or `gemma4:e2b-int4` instead of `gemma4:e4b`; bump RAM. |
 | Image pull fails | When GHCR has an outage | Low | Pin to a SHA digest in your Helm values; the image you already pulled keeps working. |
 | Network policy blocks Ollama | After a Helm upgrade | Low | `kubectl describe networkpolicy` will show what's blocked; the chart's network policy is documented in `infra/helm/duecare/templates/networkpolicy.yaml`. |
 | Worker can't login | After OIDC config drift | Medium | oauth2-proxy logs; check OIDC provider's app config. Same as any OIDC-protected app you run today. |

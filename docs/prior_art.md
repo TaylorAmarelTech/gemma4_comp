@@ -130,9 +130,9 @@ with **(cite)** are close enough that we should reference them in the writeup;
   Most-trafficked Kaggle dataset for the topic; classification notebooks
   exist but no LLM-evaluation work. **Duecare differs:** generative
   evaluation + domain RAG.
-- **litert-community/Gemma3-1B-IT** —
-  https://huggingface.co/litert-community/Gemma3-1B-IT. Reference Gemma
-  in LiteRT format (the format Duecare ships). **(build-on)**
+- **litert-community/gemma-4-E2B-it-litert-lm** —
+  https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm. Reference
+  Gemma 4 E2B in LiteRT-LM format (the on-device format Duecare ships). **(build-on)**
 - No HuggingFace Space found combining ILO citation + migrant-worker Q&A.
   Closest is general-purpose legal-Q&A spaces using Llama variants. Open
   niche to claim.
