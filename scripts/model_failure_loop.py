@@ -91,6 +91,28 @@ PROVIDERS: dict[str, dict] = {
     },
 }
 
+# Extend with the free-provider registry ("the plate"). The two hardcoded entries
+# above WIN on merge (ollama = the proven roster; openrouter = the frontier roster for
+# the funded run); the registry ADDS the free providers (groq, cerebras, gemini,
+# mistral, zhipu, deepseek, dashscope, ovhcloud, ...). Optional import -- if it fails,
+# the two built-ins still work.
+try:
+    if str(SCRIPTS) not in sys.path:
+        sys.path.insert(0, str(SCRIPTS))
+    from llm_providers import loop_configs as _free_loop_configs  # noqa: E402
+    PROVIDERS = {**_free_loop_configs(), **PROVIDERS}
+except Exception:  # noqa: BLE001 -- registry optional
+    pass
+
+# auto-resolution priority: try fast/known free providers first, then the rest.
+_AUTO_PRIORITY = ("groq", "cerebras", "gemini", "mistral", "nvidia", "ollama",
+                  "deepseek", "zhipu", "huggingface", "openrouter")
+
+
+def _auto_order() -> list[str]:
+    head = [k for k in _AUTO_PRIORITY if k in PROVIDERS]
+    return head + [k for k in PROVIDERS if k not in head]
+
 
 def _load_jsonl(path: Path) -> list[dict]:
     if not path.exists():
@@ -141,9 +163,13 @@ def probe_provider(name: str) -> tuple[bool, str]:
 
 
 def resolve_provider(requested: str) -> tuple[str, str]:
-    """auto -> prefer openrouter (frontier) if live, else ollama. Returns
-    (provider_name, detail) or raises SystemExit if none live."""
-    order = ["openrouter", "ollama"] if requested == "auto" else [requested]
+    """auto -> probe the priority list, use the first live provider. An explicit
+    name is validated against the registry. Returns (provider_name, detail) or
+    raises SystemExit if none live."""
+    if requested != "auto" and requested not in PROVIDERS:
+        raise SystemExit(f"ERROR: unknown provider '{requested}'. Known: auto, "
+                         + ", ".join(sorted(PROVIDERS)))
+    order = _auto_order() if requested == "auto" else [requested]
     last = ""
     for name in order:
         live, detail = probe_provider(name)
@@ -225,7 +251,8 @@ def write_checkpoint(path: Path, state: dict) -> None:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--provider", choices=["auto", "ollama", "openrouter"], default="auto")
+    ap.add_argument("--provider", default="auto",
+                    help="auto | " + " | ".join(sorted(PROVIDERS)))
     ap.add_argument("--run-tag", default="v1", help="suffix for result/checkpoint files")
     ap.add_argument("--out-dir", default=str(OUTDIR))
     ap.add_argument("--report-out", default="docs/research/model_failure_on_human_exploitation.md")
