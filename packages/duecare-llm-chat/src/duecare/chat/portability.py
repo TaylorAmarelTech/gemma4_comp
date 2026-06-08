@@ -68,7 +68,7 @@ MODEL_VARIANT_PROFILES: tuple[dict[str, Any], ...] = (
         "id": "e2b-it",
         "label": "Gemma 4 E2B-it",
         "hf_id": "unsloth/gemma-4-E2B-it",
-        "google_hf_id": "google/gemma-4-2b-it",
+        "google_hf_id": "google/gemma-4-E2B-it",
         "runtime_size_b": 2.0,
         "runtime_size_gb": 2.0,
         "hardware": "single T4",

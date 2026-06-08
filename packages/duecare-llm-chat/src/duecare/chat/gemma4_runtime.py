@@ -9,7 +9,7 @@ from typing import Any, Callable
 
 
 DEFAULT_SMALL_VARIANT = "e2b-it"
-DEFAULT_SMALL_MODEL_REF = "google/gemma-4-2b-it"
+DEFAULT_SMALL_MODEL_REF = "google/gemma-4-E2B-it"
 DEFAULT_MAX_SEQ_LENGTH = 4096
 
 

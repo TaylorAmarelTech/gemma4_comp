@@ -145,7 +145,7 @@ TRAINING_PROFILES: tuple[dict[str, Any], ...] = (
     {
         "id": "tiny_lora_smoke",
         "label": "Tiny LoRA smoke run",
-        "base_model_ref": "google/gemma-4-2b-it",
+        "base_model_ref": "google/gemma-4-E2B-it",
         "adapter_name": "duecare-a00-smoke-e2b-lora",
         "method": "sft",
         "execute": False,

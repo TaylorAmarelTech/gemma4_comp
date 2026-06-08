@@ -41,7 +41,7 @@ DEFAULT_MODEL_COSTS_PER_1K: dict[str, dict[str, float]] = {
     # cost recovery rather than market rate
     "gemma4:e2b":          {"in": 0.0,    "out": 0.0},
     "gemma4:e4b":          {"in": 0.0,    "out": 0.0},
-    "gemma3:1b":           {"in": 0.0,    "out": 0.0},
+    "gemma4:e4b":           {"in": 0.0,    "out": 0.0},
     "gemma2:2b":           {"in": 0.0,    "out": 0.0},
     # Hosted endpoints — published rates (USD per 1k tokens)
     "gemini-2.5-pro":      {"in": 0.00125, "out": 0.005},

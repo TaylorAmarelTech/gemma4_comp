@@ -170,7 +170,7 @@ def _call_openrouter(prompt: str, temperature: float) -> tuple[str, str] | None:
         return None
     url = 'https://openrouter.ai/api/v1/chat/completions'
     body = json.dumps({
-        'model': 'google/gemma-3-27b-it',
+        'model': 'google/gemma-4-E2B-it',
         'max_tokens': 384,
         'temperature': temperature,
         'messages': [{'role': 'user', 'content': prompt}],
@@ -182,7 +182,7 @@ def _call_openrouter(prompt: str, temperature: float) -> tuple[str, str] | None:
     })
     with urllib.request.urlopen(req, timeout=40) as response:
         payload = json.loads(response.read())
-    return 'openrouter/google/gemma-3-27b-it', payload['choices'][0]['message']['content']
+    return 'openrouter/google/gemma-4-E2B-it', payload['choices'][0]['message']['content']
 
 
 def _call_ollama_cloud(prompt: str, temperature: float) -> tuple[str, str] | None:
@@ -191,7 +191,7 @@ def _call_ollama_cloud(prompt: str, temperature: float) -> tuple[str, str] | Non
         return None
     url = 'https://ollama.com/api/chat'
     body = json.dumps({
-        'model': 'gemma3:e4b-instruct',
+        'model': 'gemma4:e4b',
         'stream': False,
         'options': {'temperature': temperature, 'num_predict': 384},
         'messages': [{'role': 'user', 'content': prompt}],
@@ -202,14 +202,14 @@ def _call_ollama_cloud(prompt: str, temperature: float) -> tuple[str, str] | Non
     })
     with urllib.request.urlopen(req, timeout=40) as response:
         payload = json.loads(response.read())
-    return 'ollama-cloud/gemma3:e4b-instruct', payload['message']['content']
+    return 'ollama-cloud/gemma4:e4b', payload['message']['content']
 
 
 def _call_gemini(prompt: str, temperature: float) -> tuple[str, str] | None:
     key = os.environ.get('GEMINI_API_KEY') or os.environ.get('GOOGLE_API_KEY')
     if not key:
         return None
-    model = 'gemma-3-27b-it'
+    model = 'gemma-4-E2B-it'
     url = f'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}'
     body = json.dumps({
         'contents': [{'role': 'user', 'parts': [{'text': prompt}]}],

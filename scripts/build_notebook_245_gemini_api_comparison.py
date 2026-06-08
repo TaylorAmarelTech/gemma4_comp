@@ -169,13 +169,13 @@ ENDPOINT_CONFIG = [
     },
     {
         'id': 'openrouter',
-        'label': 'OpenRouter (google/gemma-3-27b-it)',
+        'label': 'OpenRouter (google/gemma-4-E2B-it)',
         'env_keys': ('OPENROUTER_API_KEY',),
         'call': 'openrouter',
     },
     {
         'id': 'ollama_cloud',
-        'label': 'Ollama Cloud (gemma3:e4b-instruct)',
+        'label': 'Ollama Cloud (gemma4:e4b)',
         'env_keys': ('OLLAMA_API_KEY',),
         'call': 'ollama_cloud',
     },
@@ -193,7 +193,7 @@ def _get_key(env_keys):
 def _call_openrouter(key, prompt):
     url = 'https://openrouter.ai/api/v1/chat/completions'
     body = json.dumps({
-        'model': 'google/gemma-3-27b-it',
+        'model': 'google/gemma-4-E2B-it',
         'max_tokens': 512,
         'temperature': 0.0,
         'messages': [{'role': 'user', 'content': prompt}],
@@ -211,7 +211,7 @@ def _call_openrouter(key, prompt):
 def _call_ollama_cloud(key, prompt):
     url = 'https://ollama.com/api/chat'
     body = json.dumps({
-        'model': 'gemma3:e4b-instruct',
+        'model': 'gemma4:e4b',
         'stream': False,
         'options': {'temperature': 0.0, 'num_predict': 512},
         'messages': [{'role': 'user', 'content': prompt}],
@@ -226,7 +226,7 @@ def _call_ollama_cloud(key, prompt):
 
 
 def _call_gemini(key, prompt):
-    model = 'gemma-3-27b-it'
+    model = 'gemma-4-E2B-it'
     url = f'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}'
     body = json.dumps({
         'contents': [{'role': 'user', 'parts': [{'text': prompt}]}],

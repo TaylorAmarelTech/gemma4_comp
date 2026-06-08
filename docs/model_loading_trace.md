@@ -23,7 +23,7 @@ Generation uses the Gemma 4 defaults from the Unsloth notebook: `temperature=1.0
 
 ## Standard Model References
 
-- `google/gemma-4-2b-it` and `e2b-it` resolve to `unsloth/gemma-4-E2B-it` unless a matching Kaggle-attached model folder is mounted.
+- `google/gemma-4-E2B-it` and `e2b-it` resolve to `unsloth/gemma-4-E2B-it` unless a matching Kaggle-attached model folder is mounted.
 - `google/gemma-4-4b-it` and `e4b-it` resolve to `unsloth/gemma-4-E4B-it`.
 - `google/gemma-4-26b-a4b-it` and `26b-a4b-it` resolve to `unsloth/gemma-4-26B-A4B-it`.
 - `google/gemma-4-31b-it` and `31b-it` resolve to `unsloth/gemma-4-31B-it`.
