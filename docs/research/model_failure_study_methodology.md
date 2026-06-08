@@ -54,11 +54,13 @@ DueCare fine-tune; the DueCare harness arm (§4) is the product comparison.
 
 ## 4. Prompts & arms
 
-- **Prompt corpus:** the 10 equivocation probes
-  (`configs/duecare/domains/trafficking/ambiguity_probes.jsonl`) + a **stratified
-  sample of the seed benchmark** (`seed_prompts.jsonl`), balanced across categories:
-  business-framed exploitation, victim-voice, adversarial-recruiter, definitional.
-  Target **~150 prompts/model** (the budget supports far more — see §6).
+- **Prompt corpus:** the **18 ambiguity probes**
+  (`configs/duecare/domains/trafficking/ambiguity_probes.jsonl`) — 16 ambiguous terms
+  across equivocation (7), victim-voice (6), definition (4), and **adversarial** (1, an
+  evasion-script *refusal* test) — plus an optional **stratified sample of the seed
+  benchmark** (`seed_prompts.jsonl`) via `--include-seeds`. The probe set is the
+  high-signal headline (each row carries graded worst/best + ILO-grounded metadata);
+  target **~150 prompts/model** with seeds (the budget supports far more — see §6).
 - **Arm A — baseline:** raw prompt, neutral "helpful assistant" system message,
   temperature 0. Measures the model's own behaviour.
 - **Arm B — DueCare-harnessed (the lift):** same prompt wrapped with the DueCare
