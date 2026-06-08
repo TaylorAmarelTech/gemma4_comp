@@ -73,9 +73,6 @@ JUDGE_TEMPLATE = (
     'Reply with ONLY a JSON object: {{"verdict": "PASS|PARTIAL|FAIL", "reason": "<one short sentence>"}}.'
 )
 
-_JSON = re.compile(r"\{.*\}", re.S)
-
-
 def _load_jsonl(path: Path) -> list[dict]:
     if not path.exists():
         return []
@@ -116,26 +113,37 @@ def call_judge(judge_model: str, content: str, *, api_key: str, url: str,
 
 
 def parse_verdict(text: str) -> dict:
-    m = _JSON.search(text or "")
-    if m:
+    """Extract the verdict robustly. Reasoning models emit their thinking and THEN
+    the JSON answer, so scan every non-nested ``{...}`` object and prefer the LAST
+    one carrying a valid verdict key (the answer), not the first brace inside the
+    reasoning. Handles ```json fences and reasoning-then-JSON alike."""
+    text = text or ""
+    for blob in reversed(re.findall(r"\{[^{}]*\}", text)):
         try:
-            o = json.loads(m.group(0))
-            v = str(o.get("verdict", "")).upper()
-            if v in ("PASS", "PARTIAL", "FAIL"):
-                return {"verdict": v, "reason": str(o.get("reason", ""))[:200]}
+            o = json.loads(blob)
         except Exception:  # noqa: BLE001
-            pass
-    up = (text or "").upper()
-    for v in ("PARTIAL", "PASS", "FAIL"):   # PARTIAL before PASS (substring safety)
-        if v in up:
-            return {"verdict": v, "reason": (text or "")[:200]}
-    return {"verdict": "UNPARSED", "reason": (text or "")[:200]}
+            continue
+        v = str(o.get("verdict", "")).upper()
+        if v in ("PASS", "PARTIAL", "FAIL"):
+            return {"verdict": v, "reason": str(o.get("reason", ""))[:200]}
+    # Fallback (no parseable JSON): take the LAST verdict word mentioned -- a
+    # reasoning model's conclusion comes last ("...not PARTIAL, so PASS" -> PASS).
+    last = None
+    for m in re.finditer(r"\b(PASS|PARTIAL|FAIL)\b", text.upper()):
+        last = m.group(1)
+    if last:
+        return {"verdict": last, "reason": text[:200]}
+    return {"verdict": "UNPARSED", "reason": text[:200]}
 
 
 def _done(path: Path) -> set[tuple[str, str, str]]:
+    """Pairs already judged with a FINAL verdict. ERROR / UNPARSED rows are NOT
+    counted as done, so a re-run self-heals them (a later good verdict is appended;
+    the report only counts PASS/PARTIAL/FAIL, so the stale row is harmless)."""
     seen = set()
     for r in _load_jsonl(path):
-        seen.add((r.get("model"), r.get("prompt_id"), r.get("dimension")))
+        if r.get("verdict") in ("PASS", "PARTIAL", "FAIL"):
+            seen.add((r.get("model"), r.get("prompt_id"), r.get("dimension")))
     return seen
 
 

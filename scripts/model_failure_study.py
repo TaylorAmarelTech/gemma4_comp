@@ -119,7 +119,7 @@ def call_chat(model: str, prompt: str, *, api_key: str, max_tokens: int,
         return {"ok": False, "text": "", "usage": {}, "error": f"{type(e).__name__}: {e}"}
 
 
-def _done_pairs(path: Path) -> set[tuple[str, str]]:
+def _done_pairs(path: Path, *, only_ok: bool = False) -> set[tuple[str, str]]:
     if not path.exists():
         return set()
     seen = set()
@@ -129,6 +129,8 @@ def _done_pairs(path: Path) -> set[tuple[str, str]]:
             continue
         try:
             r = json.loads(line)
+            if only_ok and not r.get("ok"):
+                continue  # a failed row is not "done" -> --retry-errors re-attempts it
             seen.add((r["model"], r["prompt_id"]))
         except Exception:  # noqa: BLE001
             pass
@@ -166,6 +168,8 @@ def main() -> int:
                     help="OpenAI-compatible chat endpoint (e.g. https://ollama.com/v1/chat/completions)")
     ap.add_argument("--key-env", default="OPENROUTER_API_KEY",
                     help="env var holding the bearer key for --base-url")
+    ap.add_argument("--retry-errors", action="store_true",
+                    help="re-attempt (model, prompt) pairs whose prior row failed (ok=False)")
     args = ap.parse_args()
 
     api_key = os.environ.get(args.key_env)
@@ -184,7 +188,7 @@ def main() -> int:
     prompts = load_prompts(include_seeds=args.include_seeds, limit=args.limit)
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    done = _done_pairs(out_path)
+    done = _done_pairs(out_path, only_ok=args.retry_errors)
 
     tasks = [(model, p) for model in models for p in prompts if (model, p["id"]) not in done]
     print(f"models={len(models)} prompts={len(prompts)} -> {len(tasks)} calls "
