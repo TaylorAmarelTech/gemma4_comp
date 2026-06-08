@@ -139,9 +139,9 @@ For each prompt + response pair, we compute:
 
 ### 1.9 Open questions
 
-- Do we also baseline Gemma 3 (E2B and E4B) to show the jump from
+- Do we also baseline an earlier Gemma generation to show the jump from
   generation to generation? **Leaning no** — out of scope for the
-  hackathon's theme.
+  hackathon's theme (the submission is Gemma 4 E2B/E4B only).
 - Which PII-labeled corpus do we use for the anonymization test? **Leaning
   a custom 200-document corpus** derived from public court filings with
   Presidio-generated ground truth and manual spot-checking.

@@ -54,7 +54,7 @@ there — there's exactly one canonical image.
 
 **Default model:** `gemma4:e2b` (Apache 2.0, ~1.5 GB INT8). Override
 via `DUECARE_OLLAMA_MODEL=gemma4:e4b` in `.env` for higher quality,
-or `gemma3:1b` for faster cold starts.
+or `gemma4:e2b-int4` for faster cold starts.
 
 ## Surface 2 — development compose (hot reload)
 

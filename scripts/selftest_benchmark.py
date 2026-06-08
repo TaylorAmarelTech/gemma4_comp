@@ -41,7 +41,7 @@ Usage
     python scripts/selftest_benchmark.py --judge mock
     ANTHROPIC_API_KEY=sk-... python scripts/selftest_benchmark.py --judge anthropic
     OLLAMA_HOST=http://localhost:11434 python scripts/selftest_benchmark.py \\
-        --judge ollama --ollama-model gemma3:4b
+        --judge ollama --ollama-model gemma4:e4b
 """
 
 from __future__ import annotations
@@ -551,7 +551,7 @@ def main(argv: list[str] | None = None) -> int:
         help=(
             "Model name for the chosen provider. Defaults: anthropic="
             "claude-opus-4-5; openai=gpt-4o-mini; gemini=gemini-2.5-flash; "
-            "ollama=gemma3:4b."
+            "ollama=gemma4:e4b."
         ),
     )
     parser.add_argument(
@@ -575,7 +575,7 @@ def main(argv: list[str] | None = None) -> int:
         "anthropic": "claude-opus-4-5",
         "openai": "gpt-4o-mini",
         "gemini": "gemini-2.5-flash",
-        "ollama": "gemma3:4b",
+        "ollama": "gemma4:e4b",
         "mock": "mock",
     }
     model = args.model or default_models[args.judge]

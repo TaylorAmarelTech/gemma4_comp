@@ -191,7 +191,7 @@ python scripts/selftest_benchmark.py --judge mock                # offline smoke
 ANTHROPIC_API_KEY=sk-... python scripts/selftest_benchmark.py --judge anthropic
 GEMINI_API_KEY=... python scripts/selftest_benchmark.py --judge gemini
 OLLAMA_HOST=http://localhost:11434 python scripts/selftest_benchmark.py \
-    --judge ollama --model gemma3:4b
+    --judge ollama --model gemma4:e4b
 ```
 
 The script runs 3 hand-written golden responses (best / harmful / thin)

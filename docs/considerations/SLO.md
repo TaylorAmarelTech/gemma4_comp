@@ -24,7 +24,7 @@ explanation + an action plan.
 | **Audit log completeness** | 100% | requests with full provenance / total requests | logged at INFO via `duecare.observability` |
 
 For the larger E4B model, double the latency numbers (p95 < 16s,
-p99 < 40s). For the smaller Gemma 3 1B, halve them (p95 < 4s).
+p99 < 40s). For the smaller Gemma 4 E2B, halve them (p95 < 4s).
 
 ## Per-tenant SLOs (multi-tenant deployments)
 

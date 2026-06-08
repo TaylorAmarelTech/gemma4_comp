@@ -43,7 +43,7 @@ in production — these are illustrative.
 gives ~0.5 RPS sustained. GPU inference (T4) gives ~5 RPS per pod.
 A10 / L4 give ~15 RPS per pod. Above 50 RPS, GPU economics dominate.
 
-For `gemma4:e4b`: divide RPS-per-pod by 2.5. For `gemma3:1b`:
+For `gemma4:e4b`: divide RPS-per-pod by 2.5. For `gemma4:e2b`:
 multiply by 4.
 
 ## How to load-test
