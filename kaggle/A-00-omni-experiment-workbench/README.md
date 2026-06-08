@@ -116,7 +116,7 @@ variant for a quick demo:
 1. Run A-00 on Kaggle with GPU and internet enabled.
 2. Open the UI and keep `dry_run` if you only want artifact validation, or load
    the smallest selected Gemma 4 model. The training panel defaults to
-   `google/gemma-4-2b-it`; adjust the exact Hugging Face/Unsloth model path
+   `google/gemma-4-E2B-it`; adjust the exact Hugging Face/Unsloth model path
    to match the Kaggle image before executing.
 3. If you already have an artifact, use `Already have a file?` first. A-00 can
    inspect synthetic training bundles, prompt sets, prompt-response exports,
