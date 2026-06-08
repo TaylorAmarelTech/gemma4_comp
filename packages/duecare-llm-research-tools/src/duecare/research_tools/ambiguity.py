@@ -120,6 +120,77 @@ COLLISION_TERMS: dict[str, dict] = {
             "aviation": ["flight", "airline", "terminal", "domestic route"],
         },
     },
+    "contract": {
+        "sense": "contract_substitution",
+        "prefix": True,    # contract / contracts / contracting
+        "target": ["substitut", "signed back home", "on arrival", "lower pay",
+                   "original terms", "different contract", "updated contract",
+                   "deceiv", "worker", "migrant", "recruit"],
+        "off": {
+            "commercial_legal": ["breach of contract", "contract law", "vendor",
+                                 "procurement", "smart contract", "service agreement",
+                                 "terms and conditions"],
+            "construction": ["contractor", "subcontract", "tender", "bid for", "build"],
+        },
+    },
+    "advance": {
+        "sense": "wage_advance_debt",
+        "prefix": True,    # advance / advances / advanced / advancing
+        "target": ["repay", "deduct", "salary", "wage", "recruit", "travel", "fees",
+                   "bonded", "worker", "migrant", "until it"],
+        "off": {
+            "finance": ["cash advance", "credit card", "advance payment", "invoice",
+                        "down payment"],
+            "movement": ["advance party", "advance guard", "advancing", "troops",
+                         "move forward"],
+            "progress": ["technological advance", "scientific advance", "advancement",
+                         "breakthrough"],
+        },
+    },
+    "deduction": {
+        "sense": "wage_deduction_abuse",
+        "prefix": True,    # deduction / deductions
+        "target": ["wage", "salary", "housing", "food", "uniform", "below minimum",
+                   "accommodation", "in-kind", "worker", "recruit", "deduct from"],
+        "off": {
+            "tax": ["tax deduction", "deductible", "taxable", "write-off", "itemiz", "irs"],
+            "logic": ["deductive", "inference", "syllogism", "premise", "conclusion"],
+        },
+    },
+    "processing": {
+        "sense": "recruitment_fee",
+        "target": ["fee", "documentation fee", "worker", "recruit", "placement",
+                   "charged to", "applicant", "deduct", "migrant", "visa"],
+        "off": {
+            "computing": ["cpu", "data processing", "processor", "batch", "gpu", "pipeline"],
+            "food": ["food processing", "meat", "factory", "raw material", "manufactur"],
+        },
+    },
+    "voluntar": {
+        "sense": "coerced_consent",
+        "prefix": True,    # voluntar -> voluntary / voluntarily (stem; the two diverge at -y/-ily)
+        "target": ["passport", "deduct", "surrender", "coerc", "vulnerab", "consent",
+                   "no coercion", "agreed to", "worker", "document", "handed"],
+        "off": {
+            "civic": ["volunteer", "charity", "nonprofit", "community service",
+                      "unpaid volunteer"],
+            "corporate": ["voluntary disclosure", "voluntary liquidation",
+                          "voluntary redundancy"],
+        },
+    },
+    "clearance": {
+        "sense": "coerced_waiver",
+        "prefix": True,    # clearance / clearances
+        "target": ["final pay", "release my", "no complaints", "withhold", "sign",
+                   "replacement", "wages", "salary", "owed", "waiver", "worker"],
+        "off": {
+            "security": ["security clearance", "classified", "vetting",
+                         "background check", "top secret"],
+            "retail": ["clearance sale", "markdown", "discount", "stock clearance",
+                       "inventory"],
+            "customs": ["customs clearance", "shipment", "import", "border", "cargo"],
+        },
+    },
 }
 
 def _compile_terms(lexicon: dict[str, dict]) -> dict[str, "re.Pattern[str]"]:
