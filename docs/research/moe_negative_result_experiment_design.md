@@ -124,3 +124,33 @@ of the stronger argument until the experiment delivers.
 If P1 shows **no** OOD degradation and **no** routing drift, we DO NOT publish a
 negative result — we report "naive SFT was fine here" and pivot the paper to the
 harness-lift spine. The experiment must be able to fail.
+
+## 11. Status & deferral (2026-06-08)
+
+**Built + proven on the local RTX 4060 (8 GB):** the full system is *executable*, not
+hypothetical — env builder (torch 2.12+cu126), `scripts/train_qlora_moe.py` (3-step
+4-bit QLoRA smoke OK on a real MoE), `scripts/analyze_routing.py` (router
+utilization/entropy/drift, math verified: entropy ≈ ln(n_experts), 0 drift on identical
+weights). Commits 3c4e05b4 / 32ef8158 / bcb4e77a.
+
+**Deferred to a more powerful system** (Taylor's call, 2026-06-08): the actual multi-arm
+RUN. Why a bigger box (rented A100 / multi-GPU / Kaggle) over the 8 GB laptop:
+- Headline **Gemma 4 26B-A4B** (true MoE) needs ~14–15 GB 4-bit — does not fit 8 GB.
+- Breadth MoEs (Mixtral-8x7B, Qwen3-MoE, DeepSeek-MoE) need ~24–48 GB.
+- Full-parameter (non-QLoRA) arms to study routing drift without the LoRA confound,
+  and faster iteration across 5 arms × held-out + OOD eval.
+
+**Resume checklist on the bigger box** (usually Linux → simpler than the Windows path;
+the `PYTHONUTF8=1` quirk is moot there):
+1. venv + `pip install torch` (matching CUDA) `transformers>=5 peft trl accelerate
+   bitsandbytes datasets`; point `HF_HOME` at a fast non-ephemeral disk.
+2. Data: `scripts/extract_benchmark_prompts.py` → `scripts/prepare_training_data.py`
+   → `data/training/train.jsonl` (sanitized, synthetic only).
+3. `analyze_routing.py snapshot` (base) → `train_qlora_moe.py` per arm
+   (naive / router-aware / dense) → `analyze_routing.py snapshot` (after) → `diff`.
+4. Eval every arm via `scripts/model_failure_loop.py` (calibration / FP-FN / OOD).
+5. Model escalation: OLMoE-1B-7B (sanity, also fits the laptop) → Mixtral/Qwen-MoE
+   (breadth) → Gemma 4 26B-A4B (headline).
+
+The local 8 GB path stays valid for **OLMoE-1B-7B + OLMo-dense** as a first data point
+/ CI smoke; the bigger box is for the headline models + the full sweep.
