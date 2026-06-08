@@ -5,23 +5,32 @@
 > discussion on Gemma-4 fine-tuning fragility and (b) connect it to DueCare's
 > harness-over-fine-tune thesis and the [learning-methods research](model_failure_study_methodology.md).
 
-## 0. The correction that has to lead: Gemma 4 is NOT a classic MoE
+## 0. The correction that has to lead: Gemma 4 E2B/E4B are dense+PLE — NOT a classic MoE, and NOT Gemma 3n
 
-Google's **Gemma 3n** (the "E2B / E4B effective-parameter" models this project calls
-"Gemma 4") is **MatFormer (nested/elastic "Matryoshka" transformer) + Per-Layer
-Embeddings (PLE) + selective parameter activation** — confirmed from Google's
-official Gemma 3n docs and the MatFormer paper (Devvrit et al., *MatFormer: Nested
-Transformer for Elastic Inference*, arXiv:2310.07707 ✅). **There is no per-token
-gating network routing tokens to specialized expert FFNs.** E2B (~1.91B effective)
-is a nested submodel *inside* E4B; the mechanism is nested-submodel selection +
-offloaded PLE caching, not token-to-expert routing.
+Two **distinct** Google models share the confusing "E2B / E4B effective-parameter"
+naming — that shared naming is the single source of recurring "Gemma 3" mix-ups:
 
-**Why this matters:** the entire MoE routing-attack literature below targets a
-*token-to-expert gate*. Gemma 3n has no such gate, so those attacks apply to it
-**by analogy, not directly.** Any claim that DeepSeek-style router-hijack transfers
-to Gemma 4 as a demonstrated fact would be wrong. The *high-level* lesson ("safety
-behaviour can concentrate in a sub-component that conditional computation can
-bypass") may transfer conceptually; the specific exploits do not.
+- **Gemma 4** (released **April 2026**; family E2B, E4B, 12B, **26B-A4B [true MoE]**,
+  31B [dense]). The on-device **Gemma 4 E2B/E4B this project uses are DENSE models
+  with Per-Layer Embeddings (PLE)** — per the official `google/gemma-4-E2B-it` card
+  (~5.1B total / ~2.3B effective; "E" = *effective* params; PLE gives each decoder
+  layer its own small embedding). **No per-token gating network, no expert FFN
+  routing.** Real artifacts: `google/gemma-4-E2B-it`,
+  `litert-community/gemma-4-E2B-it-litert-lm`, `unsloth/gemma-4-E2B-it`.
+- **Gemma 3n** (released June 2025) is a **SEPARATE** model that *also* ships E2B/E4B,
+  built on **MatFormer (nested/elastic) + PLE** (MatFormer paper: Devvrit et al.,
+  arXiv:2310.07707 ✅). It is **not** what this project uses. *(An earlier draft of
+  this doc wrongly equated the project's Gemma 4 with Gemma 3n — corrected here. The
+  two are easy to conflate because Google reused the E2B/E4B + PLE naming.)*
+
+**Why the MoE routing-attack literature below still only applies by analogy:** the
+on-device Gemma 4 E2B/E4B are **dense + PLE**, with no token→expert gate, so
+DeepSeek/Mixtral-style router-hijack/expert-silencing exploits do **not** transfer
+to them as demonstrated facts. (Note: Gemma 4 *does* have a true-MoE **26B-A4B**
+variant; a deployment that used THAT would be in scope of the routing-attack
+literature directly. The on-device E2B/E4B are not.) The *high-level* lesson —
+"safety behaviour can concentrate in a sub-component that conditional computation
+can bypass" — may transfer conceptually; the specific exploits do not.
 
 ## 1. Are sparse / MoE models fragile to fine-tune? Yes — recipe-dependent
 
@@ -89,8 +98,10 @@ adversary can try to steer inputs onto weaker routes. The literature is now expl
 So: uneven SFT impact on routers/experts (the observed fragility) can create
 **pockets that are easier to trigger** — the safety drift and the attack surface are
 two views of the same routing non-uniformity. **Caveat for Gemma:** all of the above
-assume a token-to-expert router. Gemma 3n's MatFormer has none, so treat
-routing-hijack on Gemma 4 as an **open analogy**, not a demonstrated result.
+assume a token-to-expert router. The project's on-device **Gemma 4 E2B/E4B are dense
++ PLE with no such router**, so treat routing-hijack on them as an **open analogy**,
+not a demonstrated result. (Gemma 4's separate **26B-A4B** variant *is* a true MoE
+and would be in scope.)
 
 ## 3. Why this is a DueCare argument, not a detour
 
@@ -126,8 +137,10 @@ flag as synthesis.)
 
 ## 4. Bottom line
 
-- Gemma 4 = MatFormer + PLE, **not classic MoE**; the routing-attack papers apply by
-  analogy only.
+- The on-device Gemma 4 E2B/E4B = **dense + Per-Layer Embeddings, not classic MoE**
+  (and not Gemma 3n — that separate June-2025 model is the MatFormer one that shares
+  the E2B/E4B name); the routing-attack papers apply to E2B/E4B by analogy only.
+  (Gemma 4's 26B-A4B variant is a true MoE.)
 - Sparse/MoE/nested models are **higher-variance to fine-tune**, not unusable; the
   fix is an architecture-aware recipe (selective tuning, frozen/low-LR router,
   regularization, routing-aware evals).
