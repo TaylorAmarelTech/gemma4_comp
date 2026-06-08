@@ -163,7 +163,7 @@ import urllib.request
 ENDPOINT_CONFIG = [
     {
         'id': 'gemini',
-        'label': 'Google AI Studio (Gemma 3 27B IT)',
+        'label': 'Google AI Studio (Gemma 4 E2B IT)',
         'env_keys': ('GEMINI_API_KEY', 'GOOGLE_API_KEY'),
         'call': 'gemini',
     },

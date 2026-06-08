@@ -97,7 +97,7 @@ DueCare is an on-device LLM safety system built on Gemma 4 and named for the com
 
 ### Why a probe list and not a single id
 
-Community uncensored weights churn. Repos are renamed, pulled for policy violations, or replaced with a newer iteration; a hard-coded id fails silently if the maintainer moves the checkpoint. The probe list below is ordered by closeness to Gemma 4 E4B with a stock-size fallback to Gemma 3 4B when E4B-class uncensored variants are not yet available on HF at notebook runtime. Each candidate is tried in order and the first one that loads wins.
+Community uncensored weights churn. Repos are renamed, pulled for policy violations, or replaced with a newer iteration; a hard-coded id fails silently if the maintainer moves the checkpoint. The probe list below is ordered by closeness to Gemma 4 E4B. Each candidate is tried in order and the first one that loads wins.
 
 ### NVFP4 caveat
 
@@ -126,9 +126,6 @@ PROBE = '''CANDIDATES = [
     'huihui-ai/gemma-4-A4B-it-abliterated',
     'AEON-7/Gemma-4-A4B-it-Uncensored',        # NVFP4 variants deliberately excluded
     'mlabonne/Gemma-4-E4B-it-abliterated',
-    # Gemma 3 fallback (clearly labeled in meta).
-    'mlabonne/gemma-3-4b-it-abliterated',
-    'huihui-ai/gemma-3-4b-it-abliterated',
 ]
 
 # Pull the HF_TOKEN secret if one is set.
