@@ -33,7 +33,7 @@
 param(
   [switch]$Regenerate,
   [string]$PythonVersion = "3.11",
-  [ValidateSet("cu124", "cu121", "cpu")][string]$Cuda = "cu124",
+  [ValidateSet("cu126", "cu124", "cu121", "cpu")][string]$Cuda = "cu126",
   [switch]$Verify
 )
 
@@ -113,8 +113,8 @@ if ($Cuda -eq "cpu") {
   Invoke-Native $UvExe @("pip", "install", "--python", $VenvPy, "torch") "torch (cpu)"
 } else {
   $idx = "https://download.pytorch.org/whl/$Cuda"
-  Info "installing torch from $idx (heavy ~2.5 GB)..."
-  Invoke-Native $UvExe @("pip", "install", "--python", $VenvPy, "torch", "--index-url", $idx) "torch ($Cuda)"
+  Info "installing torch>=2.7 from $idx (heavy ~2.5 GB; >=2.7 needed for transformers 5.x fp8 dtypes)..."
+  Invoke-Native $UvExe @("pip", "install", "--python", $VenvPy, "torch>=2.7", "--index-url", $idx) "torch ($Cuda)"
 }
 Info "installing training stack (transformers/peft/trl/accelerate/bitsandbytes/datasets)..."
 Invoke-Native $UvExe @("pip", "install", "--python", $VenvPy,
