@@ -101,38 +101,55 @@ independent judge on key dimensions + the harnessed arm = a publishable report f
 
 ## 7. Run plan (turnkey)
 
+**One command — the goal-guided loop.** `scripts/model_failure_loop.py` orchestrates
+all stages (preflight → generate → validate → judge → validate → report) as a bounded,
+self-healing loop with a checkpoint after every stage. It auto-resolves the provider
+(`auto` → OpenRouter if its key is live, else Ollama-cloud), so moving to the funded
+frontier roster is a single flag — nothing else changes.
+
 ```bash
 set -a; . ./.env; set +a
-PY="$LOCALAPPDATA/gemma4-testenv/venv/Scripts/python.exe"
-export PYTHONPATH=$(ls -d packages/*/src | tr '\n' ';')
+PY="$LOCALAPPDATA/gemma4-testenv/venv/Scripts/python.exe"   # recovery venv (DueCare grader)
 
-# (a) OPEN roster — works today (Ollama-cloud)
-"$PY" scripts/model_failure_study.py \
-  --base-url https://ollama.com/v1/chat/completions --key-env OLLAMA_API_KEY \
-  --workers 8 --max-tokens 800 --include-seeds --limit 160 \
-  --models "deepseek-v3.2,deepseek-v4-flash,qwen3-next:80b,glm-4.6,glm-5,kimi-k2.5,minimax-m2,mistral-large-3:675b,nemotron-3-super,cogito-2.1:671b,gemini-3-flash-preview,gemma4:31b" \
-  --out reports/model_failure_study/open.jsonl
+# (0) Validate the WHOLE pipeline with ZERO spend (preflight + provider probe + counts):
+"$PY" scripts/model_failure_loop.py --provider auto --dry-run
 
-# (b) CLOSED frontier — after a funded OPENROUTER_API_KEY is in .env
-"$PY" scripts/model_failure_study.py \
-  --base-url https://openrouter.ai/api/v1/chat/completions --key-env OPENROUTER_API_KEY \
-  --workers 8 --max-tokens 800 --include-seeds --limit 160 \
-  --models "openai/gpt-4o,openai/gpt-4.1,anthropic/claude-3.7-sonnet,anthropic/claude-3.5-sonnet,google/gemini-2.5-pro,openai/gpt-4o-mini,anthropic/claude-3.5-haiku" \
-  --out reports/model_failure_study/closed.jsonl
+# (1) Prove the machine end-to-end on the FREE Ollama-cloud roster -- judge an existing
+#     response set + render the two-layer report; no funded key required:
+"$PY" scripts/model_failure_loop.py --provider ollama --run-tag v1 \
+  --skip-generation --responses reports/model_failure_study/study_v1.jsonl \
+  --judge-model gemma4:31b --workers 8
 
-# (c) Independent LLM judge (one dimension per call) over both result sets
-"$PY" scripts/model_failure_judge.py \
-  --in reports/model_failure_study/open.jsonl reports/model_failure_study/closed.jsonl \
-  --base-url https://openrouter.ai/api/v1/chat/completions --key-env OPENROUTER_API_KEY \
-  --judge-model anthropic/claude-3.7-sonnet \
-  --out reports/model_failure_study/judge.jsonl
-
-# (d) Aggregate + render
-"$PY" scripts/model_failure_report.py \
-  --in reports/model_failure_study/open.jsonl reports/model_failure_study/closed.jsonl \
-  --judge reports/model_failure_study/judge.jsonl \
-  --out docs/research/model_failure_on_human_exploitation.md
+# (2) Full FRONTIER run once OPENROUTER_API_KEY is funded -- SAME command, one flag:
+"$PY" scripts/model_failure_loop.py --provider openrouter --run-tag frontier \
+  --include-seeds --limit 160 --gen-quota 160 --judge-model anthropic/claude-3.7-sonnet
 ```
+
+The loop writes `reports/model_failure_study/loop_state_<tag>.json` after each stage and
+re-renders the report every round, so a **mid-investigation inspection always has a
+current artifact**. Goals: every model ≥ `--gen-quota` responses; every
+(response × dimension) carries a FINAL verdict (ERROR/UNPARSED are auto-retried the next
+round); the report renders. It stops when goals are met or a round makes no progress.
+
+### Under the hood (the loop shells out to these three; run them directly if you prefer)
+
+```bash
+# (a) generate            (b) judge, ONE dimension/call        (c) aggregate + render
+"$PY" scripts/model_failure_study.py  --base-url <url> --key-env <KEY> --models "..." --out <results.jsonl> [--retry-errors]
+"$PY" scripts/model_failure_judge.py  --base-url <url> --key-env <KEY> --judge-model <M> --in <results.jsonl> --out <judge.jsonl>
+"$PY" scripts/model_failure_report.py --in <results.jsonl> --judge <judge.jsonl> --out docs/research/model_failure_on_human_exploitation.md
+```
+
+Endpoints: Ollama-cloud `https://ollama.com/v1/chat/completions` (`OLLAMA_API_KEY`,
+free today); OpenRouter `https://openrouter.ai/api/v1/chat/completions`
+(`OPENROUTER_API_KEY`, the funded frontier path).
+
+**Judge-model reliability (Ollama-cloud):** only models that return the verdict in the
+OpenAI `content` field work as judges — `deepseek-v3.2` (cross-family, the default) and
+`gemma4:31b` (fast, content-direct) do; `qwen3-next:80b` / `glm-4.6` /
+`gemini-3-flash-preview` leave `content` empty (text in `reasoning`) and are poor
+judges. The OpenRouter frontier judge (`anthropic/claude-3.7-sonnet`) is the
+scientifically preferred cross-family judge for the funded run.
 
 ## 8. Reproducibility & integrity
 
