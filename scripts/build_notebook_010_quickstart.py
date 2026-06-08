@@ -387,9 +387,9 @@ The scripted model in Step 5 exists so the install path and protocol plumbing ar
 
 Cascade order, first success wins:
 
-1. `OPENROUTER_API_KEY` with `google/gemma-3-27b-it` (proxy routes to Gemma 4 once live).
-2. `OLLAMA_API_KEY` with Ollama Cloud running `gemma3:e4b-instruct`.
-3. `GEMINI_API_KEY` with Google AI Studio running `gemma-3-27b-it`.
+1. `OPENROUTER_API_KEY` with `google/gemma-4-E2B-it`.
+2. `OLLAMA_API_KEY` with Ollama Cloud running `gemma4:e4b`.
+3. `GEMINI_API_KEY` with Google AI Studio running `gemma-4-E2B-it`.
 
 If none of those credentials are attached to the kernel, the cell prints a clear "no live Gemma endpoint available" banner and keeps the scripted response so the scorer in Step 7 still runs. Add a Kaggle secret for any one of the three API keys to switch on the live call."""
 
@@ -405,7 +405,7 @@ def _try_openrouter():
         return None
     url = 'https://openrouter.ai/api/v1/chat/completions'
     body = json.dumps({
-        'model': 'google/gemma-3-27b-it',
+        'model': 'google/gemma-4-E2B-it',
         'max_tokens': 256,
         'temperature': 0.0,
         'messages': [{'role': 'user', 'content': demo_prompt[0].content}],
@@ -417,7 +417,7 @@ def _try_openrouter():
     })
     with urllib.request.urlopen(req, timeout=30) as response:
         payload = json.loads(response.read())
-    return 'openrouter/google/gemma-3-27b-it', payload['choices'][0]['message']['content']
+    return 'openrouter/google/gemma-4-E2B-it', payload['choices'][0]['message']['content']
 
 
 def _try_ollama_cloud():
@@ -426,7 +426,7 @@ def _try_ollama_cloud():
         return None
     url = 'https://ollama.com/api/chat'
     body = json.dumps({
-        'model': 'gemma3:e4b-instruct',
+        'model': 'gemma4:e4b',
         'stream': False,
         'options': {'temperature': 0.0, 'num_predict': 256},
         'messages': [{'role': 'user', 'content': demo_prompt[0].content}],
@@ -437,14 +437,14 @@ def _try_ollama_cloud():
     })
     with urllib.request.urlopen(req, timeout=30) as response:
         payload = json.loads(response.read())
-    return 'ollama-cloud/gemma3:e4b-instruct', payload['message']['content']
+    return 'ollama-cloud/gemma4:e4b', payload['message']['content']
 
 
 def _try_gemini():
     key = os.environ.get('GEMINI_API_KEY') or os.environ.get('GOOGLE_API_KEY')
     if not key:
         return None
-    model = 'gemma-3-27b-it'
+    model = 'gemma-4-E2B-it'
     url = f'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}'
     body = json.dumps({
         'contents': [{'role': 'user', 'parts': [{'text': demo_prompt[0].content}]}],

@@ -85,7 +85,7 @@ BUILTIN_VARIANTS: tuple[VariantSpec, ...] = (
     VariantSpec(
         id="e2b-it",
         display="Gemma 4 E2B-it",
-        hf_id="google/gemma-4-2b-it",
+        hf_id="google/gemma-4-E2B-it",
         size_gb=2.0,
         fits="single T4",
         category="on-device",

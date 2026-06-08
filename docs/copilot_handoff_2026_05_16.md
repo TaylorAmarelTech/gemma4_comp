@@ -202,7 +202,7 @@ Plus, for harness families beyond the registered:
 `PipelineRequest` defaults in `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py:1085`:
 
 - `preset_id = "synthetic_train_benchmark_cycle"`
-- `model_a_ref = A00_SMALL_MODEL_REF` (`google/gemma-4-2b-it`)
+- `model_a_ref = A00_SMALL_MODEL_REF` (`google/gemma-4-E2B-it`)
 - `judge_model_source = "hf"` / `judge_model_ref = ""` /
   `judge_model_adapter_ref = ""` (judge defaults to local Gemma reuse)
 - `harness_profile = "chat_no_online"` (Persona + GREP + RAG + tools, no internet)

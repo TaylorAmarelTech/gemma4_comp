@@ -61,7 +61,7 @@ except Exception:                                # pragma: no cover
 # AI Index estimates.
 ENERGY_WH_PER_1K_TOKENS: dict[str, float] = {
     # Local / Ollama (CPU + iGPU + small NPU)
-    "gemma3:1b":           0.05,
+    "gemma4:e4b":           0.05,
     "gemma4:e2b":          0.10,
     "gemma4:e4b":          0.20,
     "gemma2:2b":           0.10,

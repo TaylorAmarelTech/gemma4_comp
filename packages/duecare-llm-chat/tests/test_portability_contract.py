@@ -123,8 +123,8 @@ def test_portability_model_and_sample_helpers_are_canonical():
     assert models["e4b-it"]["google_hf_id"] == "google/gemma-4-4b-it"
     assert ui_models["e4b-it"]["display"] == "Gemma 4 E4B-it"
     assert ui_models["cloud-gemini"]["category"] == "cloud"
-    assert variant_from_ref("google/gemma-4-2b-it") == "e2b-it"
-    resolved, variant, source = resolve_model_ref("hf", "google/gemma-4-2b-it")
+    assert variant_from_ref("google/gemma-4-E2B-it") == "e2b-it"
+    resolved, variant, source = resolve_model_ref("hf", "google/gemma-4-E2B-it")
     assert resolved == "unsloth/gemma-4-E2B-it"
     assert variant == "e2b-it"
     assert source == "hf"
@@ -207,7 +207,7 @@ def test_experiment_contract_helpers_are_canonical():
     assert synthetic["rubric_polisher_24"]["harness_profile"] == "chat_no_online"
 
     training = training_profile_map()
-    assert training["tiny_lora_smoke"]["base_model_ref"] == "google/gemma-4-2b-it"
+    assert training["tiny_lora_smoke"]["base_model_ref"] == "google/gemma-4-E2B-it"
     assert training["a07_t4_standard_sft"]["max_examples"] == 200
 
     limits = upload_limit_map()

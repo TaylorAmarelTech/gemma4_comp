@@ -220,7 +220,7 @@ def _call_openrouter_remote(prompt, max_tokens, temperature):
     if not key:
         return None
     body = json.dumps({
-        'model': 'google/gemma-3-27b-it',
+        'model': 'google/gemma-4-E2B-it',
         'max_tokens': max_tokens,
         'temperature': temperature,
         'messages': [{'role': 'user', 'content': prompt}],
@@ -232,7 +232,7 @@ def _call_openrouter_remote(prompt, max_tokens, temperature):
                  'HTTP-Referer': 'https://kaggle.com/taylorsamarel'},
     )
     with urllib.request.urlopen(req, timeout=40) as r:
-        return ('openrouter/google/gemma-3-27b-it', json.loads(r.read())['choices'][0]['message']['content'])
+        return ('openrouter/google/gemma-4-E2B-it', json.loads(r.read())['choices'][0]['message']['content'])
 
 
 def _call_ollama_remote(prompt, max_tokens, temperature):
@@ -240,7 +240,7 @@ def _call_ollama_remote(prompt, max_tokens, temperature):
     if not key:
         return None
     body = json.dumps({
-        'model': 'gemma3:e4b-instruct', 'stream': False,
+        'model': 'gemma4:e4b', 'stream': False,
         'options': {'temperature': temperature, 'num_predict': max_tokens},
         'messages': [{'role': 'user', 'content': prompt}],
     }).encode('utf-8')
@@ -249,14 +249,14 @@ def _call_ollama_remote(prompt, max_tokens, temperature):
         headers={'Authorization': f'Bearer {key}', 'Content-Type': 'application/json'},
     )
     with urllib.request.urlopen(req, timeout=40) as r:
-        return ('ollama-cloud/gemma3:e4b-instruct', json.loads(r.read())['message']['content'])
+        return ('ollama-cloud/gemma4:e4b', json.loads(r.read())['message']['content'])
 
 
 def _call_gemini_remote(prompt, max_tokens, temperature):
     key = os.environ.get('GEMINI_API_KEY') or os.environ.get('GOOGLE_API_KEY')
     if not key:
         return None
-    model = 'gemma-3-27b-it'
+    model = 'gemma-4-E2B-it'
     body = json.dumps({
         'contents': [{'role': 'user', 'parts': [{'text': prompt}]}],
         'generationConfig': {'temperature': temperature, 'maxOutputTokens': max_tokens},
