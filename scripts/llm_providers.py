@@ -28,6 +28,9 @@ import sys
 import urllib.error
 import urllib.request
 from dataclasses import dataclass, field
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
 
 # tier: "free"  = permanent free tier (no card)        "anon" = no key needed
 #       "trial" = one-off free credits / time-limited   (still worth using once)
@@ -235,16 +238,41 @@ def _cmd_list(args) -> int:
     return 0
 
 
+def _env_file_keys() -> set[str]:
+    """Names of keys already assigned a NON-empty value in repo .env (so the
+    template can skip them -- appending `KEY=` empty would clobber a live key when
+    .env is sourced top-to-bottom). Reads names only; never reads/echoes values."""
+    have: set[str] = set()
+    env_path = REPO / ".env"
+    if env_path.exists():
+        for line in env_path.read_text(encoding="utf-8", errors="replace").splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            k, _, v = line.partition("=")
+            if v.strip():
+                have.add(k.strip())
+    return have
+
+
 def _cmd_env_template(args) -> int:
-    print("# --- Free LLM API keys (add the ones you want to .env) ---")
+    have = _env_file_keys() | {k for k in os.environ if (os.environ.get(k) or "").strip()}
+    print("# --- Free LLM API keys (append to .env with '>> .env', then fill values) ---")
     print("# Anonymous providers need NO key: " +
           ", ".join(p.key for p in REGISTRY if p.tier == "anon" and not p.key_env))
-    seen = set()
+    seen: set[str] = set()
+    emitted = 0
     for p in REGISTRY:
         if not p.key_env or p.key_env in seen:
             continue
         seen.add(p.key_env)
+        if p.key_env in have and not args.all:
+            print(f"# {p.key_env} already set -- skipping ({p.name})")
+            continue
         print(f"{p.key_env}=        # {p.name} ({p.tier}) -> {p.signup}")
+        emitted += 1
+    if not emitted and not args.all:
+        print("# (every known provider key is already set -- nothing to add)")
     return 0
 
 
@@ -272,7 +300,9 @@ def main() -> int:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     pl = sub.add_parser("list"); pl.add_argument("--tier", choices=["free", "anon", "trial", "all"])
-    sub.add_parser("env-template")
+    pe = sub.add_parser("env-template")
+    pe.add_argument("--all", action="store_true",
+                    help="emit every key (default: skip keys already set in .env, so '>> .env' is safe)")
     pp = sub.add_parser("probe")
     pp.add_argument("--only", default=None, help="comma-separated provider keys")
     pp.add_argument("--tier", choices=["free", "anon", "trial", "all"])

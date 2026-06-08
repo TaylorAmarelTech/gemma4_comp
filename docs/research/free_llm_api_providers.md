@@ -78,10 +78,13 @@ standouts** for genuinely-free, no-card access. Trial-credit providers (`xai` $2
 
 ## Setup (3 steps)
 
-1. **Generate the key block** and paste it into `.env` (repo root, gitignored):
+1. **Generate the key block** and append it to `.env` (repo root, gitignored):
    ```bash
    python scripts/llm_providers.py env-template >> .env   # then fill in the values
    ```
+   This is safe to append: `env-template` **skips keys already set in `.env`** (it
+   only emits the missing ones), so it never clobbers a live key. Use `--all` to dump
+   every key for reference.
    `.env` (excerpt):
    ```dotenv
    GROQ_API_KEY=gsk_...
