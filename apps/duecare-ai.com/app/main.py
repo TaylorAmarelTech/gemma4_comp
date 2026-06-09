@@ -849,7 +849,13 @@ def _knowledge_packs() -> list[KnowledgePackSummary]:
             kind="rag_docs",
             title="Global migrant-worker protection RAG pack",
             version="0.14.x",
-            description="Public ILO, Palermo, corridor, and pattern-brief context for grounded Gemma 4 answers.",
+            description=(
+                "Public ILO, Palermo, corridor, and pattern-brief context for "
+                "grounded Gemma 4 answers: 846 trafficking-domain documents, plus "
+                "a separate 610-document corpus spanning 51 integrity verticals "
+                "(corruption, financial crime, elder care, and more) that proves "
+                "the architecture generalizes beyond one domain."
+            ),
             status="live",
             update_channel="Public-source proposals then curator review",
         ),
@@ -858,7 +864,12 @@ def _knowledge_packs() -> list[KnowledgePackSummary]:
             kind="grep_rules",
             title="Exploitation and jailbreak detection rules",
             version="0.14.x",
-            description="Deterministic indicators for fees, document retention, debt pressure, evasion, and jailbreak attempts.",
+            description=(
+                "417 deterministic rules across 96 families: relabeled fees, "
+                "document retention, debt pressure, sham employment status, "
+                "euphemism laundering, equivocation, and jailbreak attempts. "
+                "Every rule carries a citation and trigger examples."
+            ),
             status="live",
             update_channel="Partner PR or public-source proposal",
         ),
@@ -867,7 +878,12 @@ def _knowledge_packs() -> list[KnowledgePackSummary]:
             kind="contacts",
             title="Verified public contacts and complaint channels",
             version="0.14.x",
-            description="Regulators, NGOs, consulates, hotlines, and complaint mechanisms. Draft-only use.",
+            description=(
+                "36 NGO intake bundles, 38 corridor fee-cap entries, and 16 ILO "
+                "convention references covering regulators, consulates, hotlines, "
+                "and complaint mechanisms. Draft-only use; volatile numbers live "
+                "here, never in model weights."
+            ),
             status="live",
             update_channel="Human verification plus freshness checks",
         ),
