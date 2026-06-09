@@ -1,10 +1,10 @@
 {
   "counts": {
-    "dimension_candidates": 199,
-    "knowledge_objects": 296,
+    "dimension_candidates": 201,
+    "knowledge_objects": 308,
     "sectors_covered": 10,
     "signals_covered": 19,
-    "source_profiles": 296
+    "source_profiles": 308
   },
   "coverage": {
     "by_jurisdiction": {
@@ -17,19 +17,19 @@
       "China": 5,
       "European Union": 11,
       "Hong Kong SAR, China": 18,
-      "India": 4,
+      "India": 8,
       "Kuwait": 6,
       "Malaysia": 8,
-      "Nepal": 5,
+      "Nepal": 7,
       "Netherlands": 5,
       "New Zealand": 10,
       "Oman": 6,
-      "Pakistan": 4,
+      "Pakistan": 9,
       "Philippines": 27,
       "Qatar": 7,
       "Saudi Arabia": 7,
       "Singapore": 13,
-      "Sri Lanka": 5,
+      "Sri Lanka": 6,
       "Thailand": 6,
       "United Arab Emirates": 4,
       "United Kingdom": 15,
@@ -48,7 +48,7 @@
       "logistics": 5,
       "platform_work": 19,
       "scam_compound": 40,
-      "unspecified_sector": 199
+      "unspecified_sector": 211
     },
     "by_signal": {
       "accommodation_control": 7,
@@ -58,20 +58,20 @@
       "fee_overcharging": 12,
       "financial_obfuscation": 26,
       "forced_criminality": 22,
-      "forced_labor": 154,
+      "forced_labor": 155,
       "illegal_recruitment": 9,
       "immigration_status_control": 20,
       "law_enforcement": 59,
       "online_bait": 17,
       "payment_instrument_control": 6,
-      "referral": 39,
+      "referral": 40,
       "relationship_lure": 3,
       "role_shifting_complicity": 5,
-      "source_country_recruitment_grievance": 4,
+      "source_country_recruitment_grievance": 8,
       "sponsorship_mobility_control": 13,
       "supply_chain": 12,
       "surveillance_isolation": 11,
-      "wage_theft": 12,
+      "wage_theft": 13,
       "worker_voice_grievance": 8
     },
     "by_source_family": {
@@ -85,20 +85,20 @@
       "eu_interpol_law_enforcement": 11,
       "financial_intelligence": 14,
       "hong_kong_gov": 18,
-      "india_bonded_labour_migration": 4,
+      "india_bonded_labour_migration": 8,
       "intergovernmental": 36,
       "iom": 25,
       "malaysia_labour_homeaffairs": 8,
-      "nepal_foreign_employment": 5,
+      "nepal_foreign_employment": 7,
       "netherlands_gov_justice": 5,
       "new_zealand_immigration_employment": 10,
-      "pakistan_overseas_employment": 4,
+      "pakistan_overseas_employment": 9,
       "philippines_gov": 13,
       "qatar_labour_anti_trafficking": 7,
       "regional_research_programs": 2,
       "saudi_labour_human_rights": 7,
       "singapore_mom_police": 13,
-      "sri_lanka_foreign_employment": 5,
+      "sri_lanka_foreign_employment": 6,
       "supply_chain_due_diligence": 5,
       "thailand_labor_justice": 6,
       "uae_mohre_domestic_work": 4,
@@ -204,6 +204,7 @@
         "intergovernmental",
         "official_financial_intelligence_or_typology",
         "official_government",
+        "official_government_or_court",
         "official_government_or_law_enforcement",
         "official_government_or_prosecution_guidance",
         "official_government_or_rapporteur",
@@ -310,9 +311,7 @@
       "Use aggregate private pattern IDs only when mixing private-derived patterns."
     ],
     "sparse_sectors": [],
-    "sparse_signals": [
-      "source_country_recruitment_grievance"
-    ]
+    "sparse_signals": []
   },
   "privacy": {
     "private_pattern_aggregates_only": true,

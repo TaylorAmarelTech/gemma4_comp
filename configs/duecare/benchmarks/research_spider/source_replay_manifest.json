@@ -1,13 +1,13 @@
 {
   "archive_manifest": "source_archive_manifest.jsonl",
   "counts": {
-    "archive_entries": 296,
+    "archive_entries": 308,
     "content_kinds": {
-      "html": 235,
-      "pdf": 56,
-      "plain_or_unknown": 5
+      "html": 241,
+      "pdf": 61,
+      "plain_or_unknown": 6
     },
-    "domains": 103,
+    "domains": 107,
     "source_families": {
       "australia_homeaffairs_agd_afp": 11,
       "bahrain_kuwait_oman_gulf_mobility": 6,
@@ -19,20 +19,20 @@
       "eu_interpol_law_enforcement": 11,
       "financial_intelligence": 14,
       "hong_kong_gov": 18,
-      "india_bonded_labour_migration": 4,
+      "india_bonded_labour_migration": 8,
       "intergovernmental": 36,
       "iom": 25,
       "malaysia_labour_homeaffairs": 8,
-      "nepal_foreign_employment": 5,
+      "nepal_foreign_employment": 7,
       "netherlands_gov_justice": 5,
       "new_zealand_immigration_employment": 10,
-      "pakistan_overseas_employment": 4,
+      "pakistan_overseas_employment": 9,
       "philippines_gov": 13,
       "qatar_labour_anti_trafficking": 7,
       "regional_research_programs": 2,
       "saudi_labour_human_rights": 7,
       "singapore_mom_police": 13,
-      "sri_lanka_foreign_employment": 5,
+      "sri_lanka_foreign_employment": 6,
       "supply_chain_due_diligence": 5,
       "thailand_labor_justice": 6,
       "uae_mohre_domestic_work": 4,
