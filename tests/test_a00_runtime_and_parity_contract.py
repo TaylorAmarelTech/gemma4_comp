@@ -95,7 +95,7 @@ def test_a00_pipeline_request_defaults_match_proof_contract() -> None:
     missing = [token for token in expected_defaults if token not in body]
     assert not missing, f"PipelineRequest defaults drifted: missing {missing}"
     # The small-model default ref must resolve to the proof-path Gemma.
-    assert 'A00_SMALL_MODEL_REF = os.environ.get("DUECARE_A00_SMALL_MODEL_REF", "google/gemma-4-2b-it")' in text
+    assert 'A00_SMALL_MODEL_REF = os.environ.get("DUECARE_A00_SMALL_MODEL_REF", "google/gemma-4-E2B-it")' in text
 
 
 def test_a00_benchmark_response_budget_has_headroom() -> None:
@@ -367,19 +367,41 @@ def test_a00_external_judge_factories_preserve_provider_routing_contract() -> No
         "def _is_ollama_judge_source(source: str) -> bool:",
         "def _is_ollama_cloud_source(source: str) -> bool:",
         "def _is_anthropic_judge_source(source: str) -> bool:",
+        "def _norm_model_source(source: str) -> str:",
+        "def _openai_compatible_source_id(source: str) -> str:",
+        "def _is_openrouter_judge_source(source: str) -> bool:",
+        "def _is_openai_compatible_judge_source(source: str) -> bool:",
+        "def _is_rapidapi_chat_judge_source(source: str) -> bool:",
+        "def _is_rapidapi_text_judge_source(source: str) -> bool:",
         "def _is_external_judge_source(source: str) -> bool:",
         "def _ollama_model_call_factory(",
         "def _anthropic_model_call_factory(",
+        "def _openai_compatible_model_call_factory(",
+        "def _rapidapi_chat_model_call_factory(",
+        "def _rapidapi_text_model_call_factory(",
         "def _configure_ollama_judge_for_pipeline(",
         "def _configure_anthropic_judge_for_pipeline(",
+        "def _configure_openai_compatible_judge_for_pipeline(",
+        "def _configure_rapidapi_chat_judge_for_pipeline(",
+        "def _configure_rapidapi_text_judge_for_pipeline(",
         "def _configure_external_judge_for_pipeline(",
     ):
         assert marker in text, marker
     assert "Ollama Cloud judge requires Kaggle Secret or environment variable OLLAMA_API_KEY" in text
     assert "Anthropic judge requires Kaggle Secret or environment variable ANTHROPIC_API_KEY" in text
+    assert "RapidAPI chat judge requires Kaggle Secret or environment variable RAPIDAPI_KEY" in text
+    assert "RapidAPI text judge requires Kaggle Secret or environment variable RAPIDAPI_KEY" in text
+    assert '"label": "OpenRouter"' in text
+    assert '"key_names": ["OPENROUTER_API_KEY", "DUECARE_OPENROUTER_API_KEY", "OPENROUTER_TOKEN"]' in text
+    assert 'f"{provider_label} judge requires Kaggle Secret or environment variable {key_names[0]}.' in text
     assert "Final grading sends benchmark prompts, model responses, and harness traces to Ollama." in text
     assert "Final grading sends benchmark prompts, model responses, and harness traces to Anthropic." in text
+    assert "Final grading sends benchmark prompts, model responses, and harness traces to RapidAPI." in text
+    assert 'privacy_note = f"Final grading sends benchmark prompts, model responses, and harness traces to {provider_label}."' in text
     assert "if _is_anthropic_judge_source(req.judge_model_source):" in text
+    assert "if _is_rapidapi_chat_judge_source(req.judge_model_source):" in text
+    assert "if _is_rapidapi_text_judge_source(req.judge_model_source):" in text
+    assert "if _is_openai_compatible_judge_source(req.judge_model_source):" in text
     assert "_configure_external_judge_for_pipeline(job_id, req)" in text
 
 
@@ -389,7 +411,9 @@ def test_a00_external_judge_keeps_local_default_runnable_without_credentials() -
     empty."""
     text = _a00_text()
     assert 'judge_model_source: str = "hf"' in text
-    assert 'return _is_ollama_judge_source(source) or _is_anthropic_judge_source(source)' in text
+    assert "or _is_openai_compatible_judge_source(source)" in text
+    assert "or _is_rapidapi_chat_judge_source(source)" in text
+    assert "or _is_rapidapi_text_judge_source(source)" in text
     assert 'STATE["judge_model_call"] = ' in text
 
 
@@ -655,6 +679,193 @@ def test_a00_pipeline_supports_anthropic_external_judge() -> None:
     assert "External Anthropic Claude judge used only for final combined grading" in text
     assert '"anthropic_ready": bool(anthropic_key)' in text
     assert '<option value="anthropic">anthropic</option>' in text
+
+
+def test_a00_pipeline_supports_openrouter_openai_compatible_external_judge() -> None:
+    """OpenRouter and generic OpenAI-compatible endpoints can be used as
+    final judges for robust report generation without changing the local
+    Gemma generation or fine-tuning path."""
+    text = _a00_text()
+    assert 'A00_OPENROUTER_JUDGE_MODEL_REF = os.environ.get(' in text
+    assert '"https://openrouter.ai/api/v1"' in text
+    assert '"meta-llama/llama-3.3-70b-instruct:free"' in text
+    assert "OpenRouter OpenAI-compatible judge" in text
+    assert '"source": "openrouter"' in text
+    assert "OpenAI-compatible judge (BYO endpoint)" in text
+    assert '"source": "openai_compatible"' in text
+    assert "OPENROUTER_API_KEY" in text
+    assert "OPENAI_COMPATIBLE_BASE_URL" in text
+    assert "def _is_openrouter_judge_source(source: str) -> bool:" in text
+    assert "def _is_openai_compatible_judge_source(source: str) -> bool:" in text
+    assert "def _openai_compatible_chat_endpoint(source: str) -> str:" in text
+    assert "class _OpenAICompatibleJudgeBackend:" in text
+    assert "def _openai_compatible_model_call_factory(" in text
+    assert '"Authorization"] = f"Bearer {self.api_key}"' in text
+    assert '"response_format"] = {"type": "json_object"}' in text
+    assert "_record_external_judge_response(source, model_ref, endpoint, response)" in text
+    assert "def _configure_openai_compatible_judge_for_pipeline(job_id: str, req: PipelineRequest) -> dict[str, Any]:" in text
+    assert "STATE[\"judge_model_call\"] = _openai_compatible_model_call_factory(" in text
+    assert "if _is_openai_compatible_judge_source(req.judge_model_source):" in text
+    assert '"18. Configuring {provider_label} judge for final evaluation"' in text
+    assert "External {provider_label} judge used only for final combined grading" in text
+    assert '"openrouter_ready": bool(openrouter_key)' in text
+    assert '"openai_compatible_ready": bool(openai_compatible_key or openai_compatible_base)' in text
+    assert '<option value="openrouter">openrouter</option>' in text
+    assert '<option value="openai_compatible">openai_compatible</option>' in text
+
+
+def test_a00_pipeline_supports_named_openai_compatible_free_judges() -> None:
+    """The A-00 benchmark surface should expose tested free/low-cost
+    OpenAI-compatible providers as named sources instead of requiring
+    users to hand-edit generic endpoint settings."""
+    text = _a00_text()
+    for marker in (
+        "A00_GITHUB_MODELS_JUDGE_MODEL_REF",
+        '"https://models.github.ai/inference"',
+        "GitHub Models judge",
+        '"source": "github_models"',
+        "GITHUB_MODELS_TOKEN",
+        '"github_models_ready": bool(github_models_key)',
+        '<option value="github_models">github_models</option>',
+        "headers[\"Accept\"] = \"application/vnd.github+json\"",
+        "A00_GROQ_JUDGE_MODEL_REF",
+        '"https://api.groq.com/openai/v1"',
+        "Groq judge",
+        '"source": "groq"',
+        "GROQ_API_KEY",
+        '"groq_ready": bool(groq_key)',
+        '<option value="groq">groq</option>',
+        "A00_CEREBRAS_JUDGE_MODEL_REF",
+        '"https://api.cerebras.ai/v1"',
+        "Cerebras judge",
+        '"source": "cerebras"',
+        "CEREBRAS_API_KEY",
+        '"cerebras_ready": bool(cerebras_key)',
+        '<option value="cerebras">cerebras</option>',
+        'payload["max_completion_tokens"] = max_tokens',
+        "A00_HUGGINGFACE_JUDGE_MODEL_REF",
+        '"https://router.huggingface.co/v1"',
+        "Hugging Face Router judge",
+        '"source": "huggingface"',
+        "HF_TOKEN",
+        '"huggingface_ready": bool(huggingface_key)',
+        '<option value="huggingface">huggingface</option>',
+        "A00_OPENCODE_ZEN_JUDGE_MODEL_REF",
+        '"https://opencode.ai/zen/v1"',
+        "OpenCode Zen judge",
+        '"source": "opencode_zen"',
+        "OPENCODE_API_KEY",
+        '"opencode_zen_ready": bool(opencode_zen_key)',
+        '<option value="opencode_zen">opencode_zen</option>',
+        "A00_UPSTAGE_JUDGE_MODEL_REF",
+        '"https://api.upstage.ai/v1"',
+        "Upstage judge",
+        '"source": "upstage"',
+        "UPSTAGE_API_KEY",
+        '"upstage_ready": bool(upstage_key)',
+        '<option value="upstage">upstage</option>',
+        "A00_SAMBANOVA_JUDGE_MODEL_REF",
+        '"https://api.sambanova.ai/v1"',
+        "SambaNova judge",
+        '"source": "sambanova"',
+        "SAMBANOVA_API_KEY",
+        '"sambanova_ready": bool(sambanova_key)',
+        '<option value="sambanova">sambanova</option>',
+        "A00_NVIDIA_JUDGE_MODEL_REF",
+        '"https://integrate.api.nvidia.com/v1"',
+        "NVIDIA NIM judge",
+        '"source": "nvidia"',
+        "NVIDIA_API_KEY",
+        '"nvidia_ready": bool(nvidia_key)',
+        '<option value="nvidia">nvidia</option>',
+        "A00_LLM7_JUDGE_MODEL_REF",
+        '"https://api.llm7.io/v1"',
+        "LLM7 judge",
+        '"source": "llm7"',
+        "LLM7_API_KEY",
+        '"llm7_ready": bool(llm7_key)',
+        '<option value="llm7">llm7</option>',
+        "github_models_key = _secret_value",
+        "nvidia_key = _secret_value",
+        '"loader": f"{source}.chat_completions"',
+        "readyJudgeSources = [",
+    ):
+        assert marker in text, marker
+
+
+def test_a00_pipeline_supports_rapidapi_chat_external_judge() -> None:
+    """RapidAPI /chat/completions endpoints use an OpenAI-like body but
+    RapidAPI host/key headers, so A-00 keeps a dedicated source."""
+    text = _a00_text()
+    for marker in (
+        "A00_RAPIDAPI_CHAT_JUDGE_MODEL_REF",
+        "A00_RAPIDAPI_CHAT_URL",
+        "A00_RAPIDAPI_CHAT_HOST",
+        "A00_RAPIDAPI_CHAT_ENDPOINT_PRESETS",
+        '"https://gemma-4-26b-by-google.p.rapidapi.com/chat/completions"',
+        '"https://cheap-claude-opus-4-5.p.rapidapi.com/v1/chat/completions"',
+        "Transport-sensitive in Python",
+        "Observed 401/account-side failure",
+        "RapidAPI chat-completions judge",
+        '"source": "rapidapi_chat"',
+        "RAPIDAPI_CHAT_KEY",
+        "def _is_rapidapi_chat_judge_source(source: str) -> bool:",
+        "class _RapidAPIChatJudgeBackend:",
+        '"x-rapidapi-host": self.host',
+        '"x-rapidapi-key": self.api_key',
+        '"messages": messages',
+        "reasoning_content",
+        '"stream": False',
+        "RAPIDAPI_CHAT_TEMPERATURE",
+        "RAPIDAPI_CHAT_ALLOW_ZERO_TEMPERATURE",
+        "RAPIDAPI_CHAT_REASONING_EFFORT",
+        "RAPIDAPI_CHAT_SEND_MODEL",
+        "def _rapidapi_chat_model_call_factory(",
+        "def _rapidapi_endpoint_preset(",
+        "preset = _rapidapi_endpoint_preset(A00_RAPIDAPI_CHAT_ENDPOINT_PRESETS, model_ref)",
+        "def _configure_rapidapi_chat_judge_for_pipeline(job_id: str, req: PipelineRequest) -> dict[str, Any]:",
+        "STATE[\"judge_model_call\"] = _rapidapi_chat_model_call_factory(",
+        "if _is_rapidapi_chat_judge_source(req.judge_model_source):",
+        '"rapidapi_chat_ready": bool(rapidapi_chat_key)',
+        '<option value="rapidapi_chat">rapidapi_chat</option>',
+        '["rapidapi_chat", modelPresets.rapidapi_chat_ready]',
+    ):
+        assert marker in text, marker
+
+
+def test_a00_pipeline_supports_rapidapi_text_external_judge() -> None:
+    """RapidAPI prompt/system text-generation endpoints are not
+    OpenAI-compatible, so the benchmark keeps a separate adapter and
+    never stores the user's key in the notebook."""
+    text = _a00_text()
+    for marker in (
+        "A00_RAPIDAPI_TEXT_JUDGE_MODEL_REF",
+        "A00_RAPIDAPI_TEXT_URL",
+        "A00_RAPIDAPI_TEXT_HOST",
+        "A00_RAPIDAPI_TEXT_ENDPOINT_PRESETS",
+        "claude-opus-4-7-ai-code-generator-by-anthropic-coding.p.rapidapi.com",
+        "claude-opus-4-6-anthropic-ai-code-generator.p.rapidapi.com",
+        "claude-sonnet-4-6-ai-text-generator-for-coding-agents.p.rapidapi.com",
+        "claude-opus-4-6-api-best-ai-code-generator-for-agents.p.rapidapi.com",
+        "Basic-plan quotas may throttle later runs",
+        "RapidAPI text-generation judge",
+        '"source": "rapidapi_text"',
+        "RAPIDAPI_KEY",
+        "X_RAPIDAPI_KEY",
+        "def _rapidapi_text_payload_from_messages(",
+        "def _rapidapi_extract_text(data: Any) -> str:",
+        "class _RapidAPITextJudgeBackend:",
+        '"x-rapidapi-host": self.host',
+        '"x-rapidapi-key": self.api_key',
+        "def _rapidapi_text_model_call_factory(",
+        "preset = _rapidapi_endpoint_preset(A00_RAPIDAPI_TEXT_ENDPOINT_PRESETS, model_ref)",
+        "def _configure_rapidapi_text_judge_for_pipeline(job_id: str, req: PipelineRequest) -> dict[str, Any]:",
+        "STATE[\"judge_model_call\"] = _rapidapi_text_model_call_factory(",
+        "if _is_rapidapi_text_judge_source(req.judge_model_source):",
+        '"rapidapi_text_ready": bool(rapidapi_text_key)',
+        '<option value="rapidapi_text">rapidapi_text</option>',
+    ):
+        assert marker in text, marker
 
 
 def test_a00_judging_phase_emits_per_response_progress() -> None:
