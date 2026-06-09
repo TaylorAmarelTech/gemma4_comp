@@ -49,6 +49,26 @@
   ],
   "static_pages": [
     {
+      "route": "/static/knowledge-atlas.html",
+      "file": "knowledge-atlas.html",
+      "purpose": "browsable atlas of every knowledge surface: GREP rules, RAG corpus, integrity verticals, packs",
+      "controls": [
+        "surface tabs",
+        "search filter",
+        "category drill-down"
+      ],
+      "outputs": [
+        "surface counts",
+        "rule and document cards",
+        "integrity verticals catalog"
+      ],
+      "audit": [
+        "counts match verify_knowledge_surfaces",
+        "tabs load without model",
+        "no stale counts"
+      ]
+    },
+    {
       "route": "/",
       "file": "getting-started.html",
       "purpose": "home and orientation",

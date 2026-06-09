@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import io
 import json
 import shutil
@@ -7,6 +8,11 @@ import zipfile
 from pathlib import Path
 
 from fastapi.testclient import TestClient
+
+# With pypdf installed contract_excerpt.pdf parses as text and stops counting
+# as a media asset, so only receipt_photo.jpeg remains; without pypdf the PDF
+# is an OCR work item too.
+_HAS_PYPDF = importlib.util.find_spec("pypdf") is not None
 
 
 SAMPLES = (
@@ -174,7 +180,7 @@ def test_knowledge_source_examples_parse_for_drafting():
     assert response.status_code == 200, response.text
     body = response.json()
     assert body["n_rows_total"] >= 6
-    assert body["n_media_assets"] >= 2
+    assert body["n_media_assets"] >= (1 if _HAS_PYPDF else 2)
     assert "Knowledge source upload" in body["raw_text"]
     assert "retaliation" in body["raw_text"].lower()
     assert "salary deduction" in body["raw_text"].lower()

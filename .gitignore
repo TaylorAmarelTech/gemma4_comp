@@ -181,3 +181,20 @@ tmp_wheel_install/
 # kaggle_benchmarks generates one .task.json per @kbench.task at import
 # time. Local-run side effect; do not track.
 *.task.json
+
+# Session-generated research/eval artifacts (regeneratable; keep out of
+# commits per CLAUDE.md "keep generated report files out of commits").
+reports/_scratch/
+reports/acq_store_smoke/
+reports/acquisition/
+reports/acquisition_smoke/
+reports/adapters/
+reports/free_api_prompt_eval/
+reports/frontier_smoke/
+reports/frontier_smoke3/
+reports/model_failure_study/
+reports/openrouter_eval_plan/
+reports/ui_audit/
+reports/opus_batches/
+reports/opus_scorecards/
+data/synthetic_multimodal/

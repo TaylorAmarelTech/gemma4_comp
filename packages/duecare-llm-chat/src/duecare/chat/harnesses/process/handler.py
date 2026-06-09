@@ -569,6 +569,41 @@ def _file_kind(row_id: str, text: str) -> str:
     return "other"
 
 
+def _representative_edge_sample(edges: list[dict], cap: int) -> list[dict]:
+    """Cap the edge payload while keeping every top-level source folder represented.
+
+    A plain ``edges[:cap]`` biases the sample toward whichever folder the
+    archive lists first; round-robin across folders keeps the case-graph
+    panel representative of the whole upload.
+    """
+    if len(edges) <= cap:
+        return edges
+    buckets: dict[str, list[dict]] = {}
+    order: list[str] = []
+    for edge in edges:
+        path = str(edge.get("source_path") or edge.get("row_id") or "")
+        top = path.replace("\\", "/").split("/", 1)[0] if path else ""
+        if top not in buckets:
+            buckets[top] = []
+            order.append(top)
+        buckets[top].append(edge)
+    sample: list[dict] = []
+    rank = 0
+    while len(sample) < cap:
+        progressed = False
+        for top in order:
+            bucket = buckets[top]
+            if rank < len(bucket):
+                sample.append(bucket[rank])
+                progressed = True
+                if len(sample) >= cap:
+                    break
+        if not progressed:
+            break
+        rank += 1
+    return sample
+
+
 def _ext(name: str) -> str:
     dot = "." + (name.rsplit(".", 1)[-1].lower() if "." in name else "")
     return dot if dot != "." else ""
@@ -2020,7 +2055,7 @@ def _build_intelligence(
         "typed_edge_counts": _typed_edge_counts(typed_edges),
         "timeline": timeline[:40],
         "locations": [{"name": k, "count": v} for k, v in sorted(locations.items(), key=lambda kv: (-kv[1], kv[0]))[:20]],
-        "evidence_edges": evidence_edges[:80],
+        "evidence_edges": _representative_edge_sample(evidence_edges, 80),
         "typed_edges": typed_edges[:240],
         "rag_candidates": rag_candidates,
         "gemma_edge_pass": {
