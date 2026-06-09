@@ -77,6 +77,116 @@ A00_OLLAMA_JUDGE_MODEL_REF = os.environ.get("DUECARE_A00_OLLAMA_JUDGE_MODEL_REF"
 A00_OLLAMA_CLOUD_HOST = os.environ.get("DUECARE_A00_OLLAMA_CLOUD_HOST", "https://ollama.com")
 A00_ANTHROPIC_JUDGE_MODEL_REF = os.environ.get("DUECARE_A00_ANTHROPIC_JUDGE_MODEL_REF", "claude-opus-4-7")
 A00_ANTHROPIC_API_URL = os.environ.get("DUECARE_A00_ANTHROPIC_API_URL", "https://api.anthropic.com/v1/messages")
+A00_OPENROUTER_JUDGE_MODEL_REF = os.environ.get(
+    "DUECARE_A00_OPENROUTER_JUDGE_MODEL_REF",
+    "meta-llama/llama-3.3-70b-instruct:free",
+)
+A00_OPENROUTER_API_BASE = os.environ.get("DUECARE_A00_OPENROUTER_API_BASE", "https://openrouter.ai/api/v1")
+A00_OPENAI_COMPATIBLE_JUDGE_MODEL_REF = os.environ.get(
+    "DUECARE_A00_OPENAI_COMPATIBLE_JUDGE_MODEL_REF",
+    A00_OPENROUTER_JUDGE_MODEL_REF,
+)
+A00_OPENAI_COMPATIBLE_API_BASE = os.environ.get(
+    "DUECARE_A00_OPENAI_COMPATIBLE_API_BASE",
+    A00_OPENROUTER_API_BASE,
+)
+A00_GITHUB_MODELS_JUDGE_MODEL_REF = os.environ.get("DUECARE_A00_GITHUB_MODELS_JUDGE_MODEL_REF", "openai/gpt-4.1-mini")
+A00_GITHUB_MODELS_API_BASE = os.environ.get("DUECARE_A00_GITHUB_MODELS_API_BASE", "https://models.github.ai/inference")
+A00_GROQ_JUDGE_MODEL_REF = os.environ.get("DUECARE_A00_GROQ_JUDGE_MODEL_REF", "llama-3.3-70b-versatile")
+A00_GROQ_API_BASE = os.environ.get("DUECARE_A00_GROQ_API_BASE", "https://api.groq.com/openai/v1")
+A00_CEREBRAS_JUDGE_MODEL_REF = os.environ.get("DUECARE_A00_CEREBRAS_JUDGE_MODEL_REF", "gpt-oss-120b")
+A00_CEREBRAS_API_BASE = os.environ.get("DUECARE_A00_CEREBRAS_API_BASE", "https://api.cerebras.ai/v1")
+A00_HUGGINGFACE_JUDGE_MODEL_REF = os.environ.get(
+    "DUECARE_A00_HUGGINGFACE_JUDGE_MODEL_REF",
+    "moonshotai/Kimi-K2-Instruct-0905",
+)
+A00_HUGGINGFACE_API_BASE = os.environ.get("DUECARE_A00_HUGGINGFACE_API_BASE", "https://router.huggingface.co/v1")
+A00_OPENCODE_ZEN_JUDGE_MODEL_REF = os.environ.get(
+    "DUECARE_A00_OPENCODE_ZEN_JUDGE_MODEL_REF",
+    "deepseek-v4-flash-free",
+)
+A00_OPENCODE_ZEN_API_BASE = os.environ.get("DUECARE_A00_OPENCODE_ZEN_API_BASE", "https://opencode.ai/zen/v1")
+A00_UPSTAGE_JUDGE_MODEL_REF = os.environ.get("DUECARE_A00_UPSTAGE_JUDGE_MODEL_REF", "solar-pro3")
+A00_UPSTAGE_API_BASE = os.environ.get("DUECARE_A00_UPSTAGE_API_BASE", "https://api.upstage.ai/v1")
+A00_SAMBANOVA_JUDGE_MODEL_REF = os.environ.get("DUECARE_A00_SAMBANOVA_JUDGE_MODEL_REF", "DeepSeek-V3.1")
+A00_SAMBANOVA_API_BASE = os.environ.get("DUECARE_A00_SAMBANOVA_API_BASE", "https://api.sambanova.ai/v1")
+A00_NVIDIA_JUDGE_MODEL_REF = os.environ.get(
+    "DUECARE_A00_NVIDIA_JUDGE_MODEL_REF",
+    "nvidia/llama-3.3-nemotron-super-49b-v1",
+)
+A00_NVIDIA_API_BASE = os.environ.get("DUECARE_A00_NVIDIA_API_BASE", "https://integrate.api.nvidia.com/v1")
+A00_LLM7_JUDGE_MODEL_REF = os.environ.get("DUECARE_A00_LLM7_JUDGE_MODEL_REF", "default")
+A00_LLM7_API_BASE = os.environ.get("DUECARE_A00_LLM7_API_BASE", "https://api.llm7.io/v1")
+A00_RAPIDAPI_CHAT_JUDGE_MODEL_REF = os.environ.get(
+    "DUECARE_A00_RAPIDAPI_CHAT_JUDGE_MODEL_REF",
+    "rapidapi/gemma-4-26b",
+)
+A00_RAPIDAPI_CHAT_URL = os.environ.get(
+    "DUECARE_A00_RAPIDAPI_CHAT_URL",
+    "https://gemma-4-26b-by-google.p.rapidapi.com/chat/completions",
+)
+A00_RAPIDAPI_CHAT_HOST = os.environ.get(
+    "DUECARE_A00_RAPIDAPI_CHAT_HOST",
+    "gemma-4-26b-by-google.p.rapidapi.com",
+)
+A00_RAPIDAPI_TEXT_JUDGE_MODEL_REF = os.environ.get(
+    "DUECARE_A00_RAPIDAPI_TEXT_JUDGE_MODEL_REF",
+    "rapidapi/claude-opus-4-7-text",
+)
+A00_RAPIDAPI_TEXT_URL = os.environ.get(
+    "DUECARE_A00_RAPIDAPI_TEXT_URL",
+    "https://claude-opus-4-7-anthropic-ai-code-generator.p.rapidapi.com/api/generate/text",
+)
+A00_RAPIDAPI_TEXT_HOST = os.environ.get(
+    "DUECARE_A00_RAPIDAPI_TEXT_HOST",
+    "claude-opus-4-7-anthropic-ai-code-generator.p.rapidapi.com",
+)
+A00_RAPIDAPI_CHAT_ENDPOINT_PRESETS = {
+    A00_RAPIDAPI_CHAT_JUDGE_MODEL_REF: {
+        "label": "RapidAPI chat-completions judge (Gemma 4 26B)",
+        "url": A00_RAPIDAPI_CHAT_URL,
+        "host": A00_RAPIDAPI_CHAT_HOST,
+        "notes": "Transport-sensitive in Python; prefer rapidapi_text for judging unless a live smoke succeeds.",
+    },
+    "rapidapi/claude-opus-4.5-cheap": {
+        "label": "RapidAPI chat-completions judge (Claude Opus 4.5 cheap)",
+        "url": "https://cheap-claude-opus-4-5.p.rapidapi.com/v1/chat/completions",
+        "host": "cheap-claude-opus-4-5.p.rapidapi.com",
+        "notes": "Observed 401/account-side failure in smoke; keep selectable only for future plan/quota changes.",
+    },
+}
+A00_RAPIDAPI_TEXT_ENDPOINT_PRESETS = {
+    A00_RAPIDAPI_TEXT_JUDGE_MODEL_REF: {
+        "label": "RapidAPI text-generation judge (Claude Opus 4.7 primary)",
+        "url": A00_RAPIDAPI_TEXT_URL,
+        "host": A00_RAPIDAPI_TEXT_HOST,
+        "notes": "Direct smoke returned content; Basic-plan quotas may throttle later runs.",
+    },
+    "rapidapi/claude-opus-4.7-anthropic-coding": {
+        "label": "RapidAPI text-generation judge (Claude Opus 4.7 coding)",
+        "url": "https://claude-opus-4-7-ai-code-generator-by-anthropic-coding.p.rapidapi.com/api/generate/text",
+        "host": "claude-opus-4-7-ai-code-generator-by-anthropic-coding.p.rapidapi.com",
+        "notes": "Direct smoke returned content; Basic-plan quotas may throttle later runs.",
+    },
+    "rapidapi/claude-opus-4.6-primary": {
+        "label": "RapidAPI text-generation judge (Claude Opus 4.6 primary)",
+        "url": "https://claude-opus-4-6-anthropic-ai-code-generator.p.rapidapi.com/api/generate/text",
+        "host": "claude-opus-4-6-anthropic-ai-code-generator.p.rapidapi.com",
+        "notes": "Direct smoke returned content; Basic-plan quotas may throttle later runs.",
+    },
+    "rapidapi/claude-sonnet-4.6-coding-agents": {
+        "label": "RapidAPI text-generation judge (Claude Sonnet 4.6 agents)",
+        "url": "https://claude-sonnet-4-6-ai-text-generator-for-coding-agents.p.rapidapi.com/api/generate/text",
+        "host": "claude-sonnet-4-6-ai-text-generator-for-coding-agents.p.rapidapi.com",
+        "notes": "Direct smoke returned content; Basic-plan quotas may throttle later runs.",
+    },
+    "rapidapi/claude-opus-4.6-agent-generator": {
+        "label": "RapidAPI text-generation judge (Claude Opus 4.6 agents)",
+        "url": "https://claude-opus-4-6-api-best-ai-code-generator-for-agents.p.rapidapi.com/api/generate/text",
+        "host": "claude-opus-4-6-api-best-ai-code-generator-for-agents.p.rapidapi.com",
+        "notes": "Direct smoke returned content; Basic-plan quotas may throttle later runs.",
+    },
+}
 DUECARE_PACKAGES = [
     "duecare-llm-core",
     "duecare-llm-models",
@@ -584,6 +694,96 @@ except Exception:
 
 JUDGE_MODEL_PRESETS = [
     *MODEL_PRESETS,
+    {
+        "label": "OpenRouter OpenAI-compatible judge",
+        "ref": A00_OPENROUTER_JUDGE_MODEL_REF,
+        "source": "openrouter",
+        "notes": "External judge via https://openrouter.ai/api/v1/chat/completions; requires OPENROUTER_API_KEY.",
+    },
+    {
+        "label": "GitHub Models judge",
+        "ref": A00_GITHUB_MODELS_JUDGE_MODEL_REF,
+        "source": "github_models",
+        "notes": "External OpenAI-compatible judge via https://models.github.ai/inference/chat/completions; requires GITHUB_MODELS_TOKEN or GITHUB_TOKEN.",
+    },
+    {
+        "label": "Groq judge",
+        "ref": A00_GROQ_JUDGE_MODEL_REF,
+        "source": "groq",
+        "notes": "External OpenAI-compatible judge via https://api.groq.com/openai/v1/chat/completions; requires GROQ_API_KEY.",
+    },
+    {
+        "label": "Cerebras judge",
+        "ref": A00_CEREBRAS_JUDGE_MODEL_REF,
+        "source": "cerebras",
+        "notes": "External OpenAI-compatible judge via https://api.cerebras.ai/v1/chat/completions; requires CEREBRAS_API_KEY.",
+    },
+    {
+        "label": "Hugging Face Router judge",
+        "ref": A00_HUGGINGFACE_JUDGE_MODEL_REF,
+        "source": "huggingface",
+        "notes": "External OpenAI-compatible judge via https://router.huggingface.co/v1/chat/completions; requires HF_TOKEN or HUGGINGFACE_API_KEY.",
+    },
+    {
+        "label": "OpenCode Zen judge",
+        "ref": A00_OPENCODE_ZEN_JUDGE_MODEL_REF,
+        "source": "opencode_zen",
+        "notes": "External OpenAI-compatible judge via https://opencode.ai/zen/v1/chat/completions; requires OPENCODE_API_KEY.",
+    },
+    {
+        "label": "Upstage judge",
+        "ref": A00_UPSTAGE_JUDGE_MODEL_REF,
+        "source": "upstage",
+        "notes": "External OpenAI-compatible judge via https://api.upstage.ai/v1/chat/completions; requires UPSTAGE_API_KEY.",
+    },
+    {
+        "label": "SambaNova judge",
+        "ref": A00_SAMBANOVA_JUDGE_MODEL_REF,
+        "source": "sambanova",
+        "notes": "External OpenAI-compatible judge via https://api.sambanova.ai/v1/chat/completions; requires SAMBANOVA_API_KEY.",
+    },
+    {
+        "label": "NVIDIA NIM judge",
+        "ref": A00_NVIDIA_JUDGE_MODEL_REF,
+        "source": "nvidia",
+        "notes": "External OpenAI-compatible judge via https://integrate.api.nvidia.com/v1/chat/completions; requires NVIDIA_API_KEY.",
+    },
+    {
+        "label": "LLM7 judge",
+        "ref": A00_LLM7_JUDGE_MODEL_REF,
+        "source": "llm7",
+        "notes": "External OpenAI-compatible judge via https://api.llm7.io/v1/chat/completions; requires LLM7_API_KEY.",
+    },
+    *[
+        {
+            "label": str(preset["label"]),
+            "ref": ref,
+            "source": "rapidapi_chat",
+            "notes": (
+                f"External judge via {preset['url']}; requires RAPIDAPI_KEY or X_RAPIDAPI_KEY. "
+                f"{preset.get('notes', '')}"
+            ).strip(),
+        }
+        for ref, preset in A00_RAPIDAPI_CHAT_ENDPOINT_PRESETS.items()
+    ],
+    {
+        "label": "OpenAI-compatible judge (BYO endpoint)",
+        "ref": A00_OPENAI_COMPATIBLE_JUDGE_MODEL_REF,
+        "source": "openai_compatible",
+        "notes": "External judge via OPENAI_COMPATIBLE_BASE_URL + /chat/completions; set OPENAI_COMPATIBLE_API_KEY when required by the provider.",
+    },
+    *[
+        {
+            "label": str(preset["label"]),
+            "ref": ref,
+            "source": "rapidapi_text",
+            "notes": (
+                f"External judge via {preset['url']}; requires RAPIDAPI_KEY or X_RAPIDAPI_KEY. "
+                f"{preset.get('notes', '')}"
+            ).strip(),
+        }
+        for ref, preset in A00_RAPIDAPI_TEXT_ENDPOINT_PRESETS.items()
+    ],
     {
         "label": "Ollama Cloud gpt-oss 20B judge",
         "ref": "gpt-oss:20b",
@@ -2411,8 +2611,80 @@ def _is_anthropic_judge_source(source: str) -> bool:
     return (source or "").strip().lower().replace("-", "_") in {"anthropic", "claude", "claude_api"}
 
 
+def _norm_model_source(source: str) -> str:
+    return (source or "").strip().lower().replace("-", "_")
+
+
+def _openai_compatible_source_id(source: str) -> str:
+    aliases = {
+        "openrouter": "openrouter",
+        "open_router": "openrouter",
+        "github": "github_models",
+        "github_models": "github_models",
+        "github_models_api": "github_models",
+        "groq": "groq",
+        "groq_cloud": "groq",
+        "cerebras": "cerebras",
+        "cerebras_cloud": "cerebras",
+        "huggingface": "huggingface",
+        "hugging_face": "huggingface",
+        "hf_router": "huggingface",
+        "huggingface_router": "huggingface",
+        "opencode": "opencode_zen",
+        "opencode_zen": "opencode_zen",
+        "zen": "opencode_zen",
+        "upstage": "upstage",
+        "upstage_solar": "upstage",
+        "sambanova": "sambanova",
+        "samba_nova": "sambanova",
+        "nvidia": "nvidia",
+        "nvidia_nim": "nvidia",
+        "nim": "nvidia",
+        "build_nvidia": "nvidia",
+        "llm7": "llm7",
+        "openai_compatible": "openai_compatible",
+        "openai_compat": "openai_compatible",
+        "openai_chat": "openai_compatible",
+        "chat_completions": "openai_compatible",
+    }
+    return aliases.get(_norm_model_source(source), "")
+
+
+def _is_openrouter_judge_source(source: str) -> bool:
+    return _openai_compatible_source_id(source) == "openrouter"
+
+
+def _is_openai_compatible_judge_source(source: str) -> bool:
+    return bool(_openai_compatible_source_id(source))
+
+
+def _is_rapidapi_chat_judge_source(source: str) -> bool:
+    return (source or "").strip().lower().replace("-", "_") in {
+        "rapidapi_chat",
+        "rapidapi_chat_completions",
+        "rapidapi_openai",
+        "rapidapi_gemma",
+        "rapidapi_gemma4",
+    }
+
+
+def _is_rapidapi_text_judge_source(source: str) -> bool:
+    return (source or "").strip().lower().replace("-", "_") in {
+        "rapidapi",
+        "rapidapi_text",
+        "rapidapi_generate_text",
+        "rapidapi_claude",
+    }
+
+
 def _is_external_judge_source(source: str) -> bool:
-    return _is_ollama_judge_source(source) or _is_anthropic_judge_source(source)
+    return (
+        _is_ollama_judge_source(source)
+        or _is_anthropic_judge_source(source)
+        or _is_openai_compatible_judge_source(source)
+        or _is_rapidapi_chat_judge_source(source)
+        or _is_rapidapi_text_judge_source(source)
+    )
 
 
 def _ollama_api_endpoint(source: str) -> str:
@@ -2422,6 +2694,72 @@ def _ollama_api_endpoint(source: str) -> str:
         base = os.environ.get("OLLAMA_HOST", "http://localhost:11434").strip() or "http://localhost:11434"
     base = base.rstrip("/")
     return f"{base}/chat" if base.endswith("/api") else f"{base}/api/chat"
+
+
+def _openai_compatible_chat_endpoint(source: str) -> str:
+    source_id = _openai_compatible_source_id(source) or "openai_compatible"
+    if source_id == "openrouter":
+        base = (
+            os.environ.get("OPENROUTER_API_BASE")
+            or os.environ.get("OPENROUTER_BASE_URL")
+            or A00_OPENROUTER_API_BASE
+        )
+    elif source_id == "github_models":
+        base = (
+            os.environ.get("GITHUB_MODELS_API_BASE")
+            or os.environ.get("GITHUB_MODELS_BASE_URL")
+            or A00_GITHUB_MODELS_API_BASE
+        )
+    elif source_id == "groq":
+        base = os.environ.get("GROQ_API_BASE") or os.environ.get("GROQ_BASE_URL") or A00_GROQ_API_BASE
+    elif source_id == "cerebras":
+        base = (
+            os.environ.get("CEREBRAS_API_BASE")
+            or os.environ.get("CEREBRAS_BASE_URL")
+            or A00_CEREBRAS_API_BASE
+        )
+    elif source_id == "huggingface":
+        base = (
+            os.environ.get("HF_INFERENCE_API_BASE")
+            or os.environ.get("HUGGINGFACE_API_BASE")
+            or os.environ.get("HUGGINGFACE_BASE_URL")
+            or A00_HUGGINGFACE_API_BASE
+        )
+    elif source_id == "opencode_zen":
+        base = (
+            os.environ.get("OPENCODE_ZEN_API_BASE")
+            or os.environ.get("OPENCODE_API_BASE")
+            or A00_OPENCODE_ZEN_API_BASE
+        )
+    elif source_id == "upstage":
+        base = os.environ.get("UPSTAGE_API_BASE") or os.environ.get("UPSTAGE_BASE_URL") or A00_UPSTAGE_API_BASE
+    elif source_id == "sambanova":
+        base = (
+            os.environ.get("SAMBANOVA_API_BASE")
+            or os.environ.get("SAMBANOVA_BASE_URL")
+            or A00_SAMBANOVA_API_BASE
+        )
+    elif source_id == "nvidia":
+        base = (
+            os.environ.get("NVIDIA_API_BASE")
+            or os.environ.get("NVIDIA_NIM_API_BASE")
+            or os.environ.get("NVAPI_BASE_URL")
+            or A00_NVIDIA_API_BASE
+        )
+    elif source_id == "llm7":
+        base = os.environ.get("LLM7_API_BASE") or os.environ.get("LLM7_BASE_URL") or A00_LLM7_API_BASE
+    else:
+        base = (
+            os.environ.get("OPENAI_COMPATIBLE_BASE_URL")
+            or os.environ.get("OPENAI_COMPATIBLE_API_BASE")
+            or A00_OPENAI_COMPATIBLE_API_BASE
+        )
+    base = str(base or "").strip().rstrip("/")
+    if not base:
+        raise RuntimeError("OpenAI-compatible judge requires a configured chat-completions API base URL.")
+    if base.endswith("/chat/completions"):
+        return base
+    return f"{base}/chat/completions"
 
 
 def _record_external_judge_response(provider: str, model_ref: str, endpoint: str, response: Any) -> None:
@@ -2642,6 +2980,401 @@ def _anthropic_model_call_factory(*, source: str, model_ref: str, endpoint: str,
     return call
 
 
+class _OpenAICompatibleJudgeBackend:
+    """Tiny OpenAI-compatible chat adapter for OpenRouter and free endpoints."""
+
+    provider = "openai_compatible"
+
+    def __init__(self, *, source: str, model_ref: str, endpoint: str, api_key: str, timeout: float) -> None:
+        self.source = source
+        self.model_ref = model_ref
+        self.endpoint = endpoint
+        self.api_key = api_key
+        self.timeout = timeout
+        self.id = source
+        self.provider = source
+
+    def chat(
+        self,
+        messages: list[dict[str, Any]],
+        tools: Any = None,
+        images: Any = None,
+        max_tokens: int = 1024,
+        temperature: float = 0.0,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        if requests is None:
+            raise RuntimeError("requests is required for OpenAI-compatible judging")
+        headers = {"Content-Type": "application/json"}
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
+        if self.source == "openrouter":
+            referer = os.environ.get("OPENROUTER_HTTP_REFERER", "").strip()
+            title = os.environ.get("OPENROUTER_X_TITLE", "DueCare A-00 Evaluation").strip()
+            if referer:
+                headers["HTTP-Referer"] = referer
+            if title:
+                headers["X-Title"] = title
+        elif self.source == "github_models":
+            headers["Accept"] = "application/vnd.github+json"
+            headers["X-GitHub-Api-Version"] = os.environ.get("GITHUB_API_VERSION", "2022-11-28")
+        payload: dict[str, Any] = {
+            "model": self.model_ref,
+            "messages": messages,
+            "temperature": temperature,
+        }
+        if self.source == "cerebras":
+            payload["max_completion_tokens"] = max_tokens
+        else:
+            payload["max_tokens"] = max_tokens
+        if kwargs.get("top_p") is not None:
+            payload["top_p"] = kwargs["top_p"]
+        if kwargs.get("response_format") == "json":
+            payload["response_format"] = {"type": "json_object"}
+        elif isinstance(kwargs.get("response_format"), dict):
+            payload["response_format"] = kwargs["response_format"]
+        t0 = time.perf_counter()
+        resp = requests.post(self.endpoint, headers=headers, json=payload, timeout=self.timeout)
+        elapsed = time.perf_counter() - t0
+        if resp.status_code >= 400:
+            raise RuntimeError(f"OpenAI-compatible judge HTTP {resp.status_code}: {resp.text[:500]}")
+        data = resp.json()
+        choices = data.get("choices") if isinstance(data, dict) else []
+        first = choices[0] if isinstance(choices, list) and choices else {}
+        message = first.get("message") if isinstance(first, dict) else {}
+        content = ""
+        if isinstance(message, dict):
+            content = str(message.get("content") or "")
+        if not content and isinstance(first, dict):
+            content = str(first.get("text") or "")
+        if not content:
+            raise RuntimeError(f"OpenAI-compatible judge returned no content: {str(data)[:500]}")
+        usage = data.get("usage", {}) if isinstance(data, dict) else {}
+        finish_reason = first.get("finish_reason", "") if isinstance(first, dict) else ""
+        return {
+            "text": content,
+            "model": self.model_ref,
+            "provider": self.source,
+            "usage": dict(usage) if isinstance(usage, dict) else {},
+            "finish_reason": finish_reason,
+            "latency_ms": int(elapsed * 1000),
+            "raw": data,
+        }
+
+
+class _RapidAPIChatJudgeBackend:
+    """Chat-completions adapter for RapidAPI endpoints using x-rapidapi-key auth."""
+
+    provider = "rapidapi_chat"
+
+    def __init__(self, *, model_ref: str, endpoint: str, host: str, api_key: str, timeout: float) -> None:
+        self.model_ref = model_ref
+        self.endpoint = endpoint
+        self.host = host
+        self.api_key = api_key
+        self.timeout = timeout
+        self.id = "rapidapi_chat"
+
+    def chat(
+        self,
+        messages: list[dict[str, Any]],
+        tools: Any = None,
+        images: Any = None,
+        max_tokens: int = 1024,
+        temperature: float = 0.0,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        if requests is None:
+            raise RuntimeError("requests is required for RapidAPI chat judging")
+        rapidapi_temperature = float(os.environ.get("RAPIDAPI_CHAT_TEMPERATURE", str(temperature)))
+        allow_zero_temperature = os.environ.get("RAPIDAPI_CHAT_ALLOW_ZERO_TEMPERATURE", "").strip().lower()
+        if rapidapi_temperature <= 0 and allow_zero_temperature not in {"1", "true", "yes", "on"}:
+            rapidapi_temperature = 0.1
+        headers = {
+            "Content-Type": "application/json",
+            "x-rapidapi-host": self.host,
+            "x-rapidapi-key": self.api_key,
+        }
+        payload: dict[str, Any] = {
+            "messages": messages,
+            "temperature": rapidapi_temperature,
+            "max_tokens": max_tokens,
+            "stream": False,
+        }
+        reasoning_effort = str(os.environ.get("RAPIDAPI_CHAT_REASONING_EFFORT", "low") or "").strip()
+        if reasoning_effort:
+            payload["reasoning_effort"] = reasoning_effort
+        if os.environ.get("RAPIDAPI_CHAT_SEND_MODEL", "").strip().lower() in {"1", "true", "yes", "on"}:
+            payload["model"] = self.model_ref
+        if kwargs.get("top_p") is not None:
+            payload["top_p"] = kwargs["top_p"]
+        if kwargs.get("response_format") == "json":
+            payload["response_format"] = {"type": "json_object"}
+        elif isinstance(kwargs.get("response_format"), dict):
+            payload["response_format"] = kwargs["response_format"]
+        t0 = time.perf_counter()
+        resp = requests.post(self.endpoint, headers=headers, json=payload, timeout=self.timeout)
+        elapsed = time.perf_counter() - t0
+        if resp.status_code >= 400:
+            raise RuntimeError(f"RapidAPI chat judge HTTP {resp.status_code}: {resp.text[:500]}")
+        data = resp.json()
+        choices = data.get("choices") if isinstance(data, dict) else []
+        first = choices[0] if isinstance(choices, list) and choices else {}
+        message = first.get("message") if isinstance(first, dict) else {}
+        content = ""
+        if isinstance(message, dict):
+            content = str(message.get("content") or "")
+            if not content:
+                content = str(message.get("reasoning_content") or message.get("reasoning") or "")
+        if not content and isinstance(first, dict):
+            content = str(first.get("text") or "")
+        if not content:
+            content = _rapidapi_extract_text(data)
+        if not content:
+            raise RuntimeError(f"RapidAPI chat judge returned no content: {str(data)[:500]}")
+        usage = data.get("usage", {}) if isinstance(data, dict) else {}
+        finish_reason = first.get("finish_reason", "") if isinstance(first, dict) else ""
+        return {
+            "text": content,
+            "model": self.model_ref,
+            "provider": "rapidapi_chat",
+            "usage": dict(usage) if isinstance(usage, dict) else {},
+            "finish_reason": finish_reason,
+            "latency_ms": int(elapsed * 1000),
+            "raw": data,
+        }
+
+
+def _rapidapi_text_payload_from_messages(
+    messages: list[dict[str, Any]],
+    *,
+    response_format: str = "",
+) -> dict[str, str]:
+    system_parts: list[str] = []
+    prompt_parts: list[str] = []
+    for item in messages:
+        role = str(item.get("role") or "user").strip().lower()
+        content = item.get("content", "")
+        if not isinstance(content, str):
+            content = str(content)
+        content = content.strip()
+        if not content:
+            continue
+        if role == "system":
+            system_parts.append(content)
+        else:
+            prompt_parts.append(f"{role}: {content}")
+    system_text = "\n\n".join(system_parts).strip() or "You are a careful evaluation assistant."
+    if response_format == "json":
+        system_text = f"{system_text}\n\nReturn only valid JSON. Do not wrap it in Markdown."
+    prompt_text = "\n\n".join(prompt_parts).strip()
+    if not prompt_text:
+        prompt_text = "\n\n".join(system_parts).strip() or "Evaluate the provided response."
+    return {
+        "prompt": prompt_text,
+        "system": system_text,
+        "outputType": "text",
+    }
+
+
+def _rapidapi_extract_text(data: Any) -> str:
+    if isinstance(data, str):
+        return data.strip()
+    if isinstance(data, list):
+        for item in data:
+            text = _rapidapi_extract_text(item)
+            if text:
+                return text
+        return ""
+    if not isinstance(data, dict):
+        return ""
+    for key in (
+        "text",
+        "content",
+        "output",
+        "result",
+        "response",
+        "generated_text",
+        "generatedText",
+        "completion",
+        "message",
+    ):
+        value = data.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+        if isinstance(value, (dict, list)):
+            text = _rapidapi_extract_text(value)
+            if text:
+                return text
+    choices = data.get("choices")
+    if isinstance(choices, list):
+        for choice in choices:
+            text = _rapidapi_extract_text(choice)
+            if text:
+                return text
+    nested = data.get("data")
+    if isinstance(nested, (dict, list, str)):
+        return _rapidapi_extract_text(nested)
+    return ""
+
+
+class _RapidAPITextJudgeBackend:
+    """Adapter for RapidAPI text-generation endpoints with prompt/system bodies."""
+
+    provider = "rapidapi_text"
+
+    def __init__(self, *, model_ref: str, endpoint: str, host: str, api_key: str, timeout: float) -> None:
+        self.model_ref = model_ref
+        self.endpoint = endpoint
+        self.host = host
+        self.api_key = api_key
+        self.timeout = timeout
+        self.id = "rapidapi_text"
+
+    def chat(
+        self,
+        messages: list[dict[str, Any]],
+        tools: Any = None,
+        images: Any = None,
+        max_tokens: int = 1024,
+        temperature: float = 0.0,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        if requests is None:
+            raise RuntimeError("requests is required for RapidAPI judging")
+        headers = {
+            "Content-Type": "application/json",
+            "x-rapidapi-host": self.host,
+            "x-rapidapi-key": self.api_key,
+        }
+        payload = _rapidapi_text_payload_from_messages(
+            messages,
+            response_format=str(kwargs.get("response_format") or ""),
+        )
+        t0 = time.perf_counter()
+        resp = requests.post(self.endpoint, headers=headers, json=payload, timeout=self.timeout)
+        elapsed = time.perf_counter() - t0
+        if resp.status_code >= 400:
+            raise RuntimeError(f"RapidAPI text judge HTTP {resp.status_code}: {resp.text[:500]}")
+        try:
+            data: Any = resp.json()
+        except Exception:
+            data = resp.text
+        content = _rapidapi_extract_text(data)
+        if not content:
+            raise RuntimeError(f"RapidAPI text judge returned no content: {str(data)[:500]}")
+        return {
+            "text": content,
+            "model": self.model_ref,
+            "provider": "rapidapi_text",
+            "usage": {},
+            "finish_reason": "",
+            "latency_ms": int(elapsed * 1000),
+            "raw": data,
+        }
+
+
+def _openai_compatible_model_call_factory(*, source: str, model_ref: str, endpoint: str, api_key: str) -> Any:
+    timeout = float(os.environ.get("DUECARE_A00_OPENAI_COMPATIBLE_TIMEOUT_SEC", "240"))
+    backend = _OpenAICompatibleJudgeBackend(
+        source=source,
+        model_ref=model_ref,
+        endpoint=endpoint,
+        api_key=api_key,
+        timeout=timeout,
+    )
+
+    def call(prompt: str) -> str:
+        response = call_model_backend(
+            backend,
+            prompt,
+            max_tokens=A00_COMBINED_JUDGE_MAX_NEW_TOKENS,
+            temperature=0.0,
+            response_format="json",
+        )
+        _record_external_judge_response(source, model_ref, endpoint, response)
+        dc_log(
+            "a00.openai_compatible_judge.call",
+            f"model={model_ref}",
+            source=source,
+            endpoint=endpoint,
+            seconds=round((response.latency_ms or 0) / 1000, 3),
+            prompt_tokens=(response.usage or {}).get("prompt_tokens"),
+            output_tokens=(response.usage or {}).get("completion_tokens"),
+            total_tokens=(response.usage or {}).get("total_tokens"),
+        )
+        return response.text
+
+    return call
+
+
+def _rapidapi_chat_model_call_factory(*, model_ref: str, endpoint: str, host: str, api_key: str) -> Any:
+    timeout = float(os.environ.get("DUECARE_A00_RAPIDAPI_CHAT_TIMEOUT_SEC", "240"))
+    backend = _RapidAPIChatJudgeBackend(
+        model_ref=model_ref,
+        endpoint=endpoint,
+        host=host,
+        api_key=api_key,
+        timeout=timeout,
+    )
+
+    def call(prompt: str) -> str:
+        response = call_model_backend(
+            backend,
+            prompt,
+            max_tokens=A00_COMBINED_JUDGE_MAX_NEW_TOKENS,
+            temperature=0.0,
+            response_format="json",
+        )
+        _record_external_judge_response("rapidapi_chat", model_ref, endpoint, response)
+        dc_log(
+            "a00.rapidapi_chat_judge.call",
+            f"model={model_ref}",
+            source="rapidapi_chat",
+            endpoint=endpoint,
+            host=host,
+            seconds=round((response.latency_ms or 0) / 1000, 3),
+            prompt_tokens=(response.usage or {}).get("prompt_tokens"),
+            output_tokens=(response.usage or {}).get("completion_tokens"),
+            total_tokens=(response.usage or {}).get("total_tokens"),
+        )
+        return response.text
+
+    return call
+
+
+def _rapidapi_text_model_call_factory(*, model_ref: str, endpoint: str, host: str, api_key: str) -> Any:
+    timeout = float(os.environ.get("DUECARE_A00_RAPIDAPI_TEXT_TIMEOUT_SEC", "240"))
+    backend = _RapidAPITextJudgeBackend(
+        model_ref=model_ref,
+        endpoint=endpoint,
+        host=host,
+        api_key=api_key,
+        timeout=timeout,
+    )
+
+    def call(prompt: str) -> str:
+        response = call_model_backend(
+            backend,
+            prompt,
+            max_tokens=A00_COMBINED_JUDGE_MAX_NEW_TOKENS,
+            temperature=0.0,
+            response_format="json",
+        )
+        _record_external_judge_response("rapidapi_text", model_ref, endpoint, response)
+        dc_log(
+            "a00.rapidapi_text_judge.call",
+            f"model={model_ref}",
+            source="rapidapi_text",
+            endpoint=endpoint,
+            host=host,
+            seconds=round((response.latency_ms or 0) / 1000, 3),
+        )
+        return response.text
+
+    return call
+
+
 def _configure_ollama_judge_for_pipeline(job_id: str, req: PipelineRequest) -> dict[str, Any]:
     source = req.judge_model_source or "ollama_cloud"
     model_ref = (req.judge_model_ref or os.environ.get("OLLAMA_MODEL") or A00_OLLAMA_JUDGE_MODEL_REF).strip()
@@ -2737,9 +3470,295 @@ def _configure_anthropic_judge_for_pipeline(job_id: str, req: PipelineRequest) -
     return info
 
 
+def _configure_openai_compatible_judge_for_pipeline(job_id: str, req: PipelineRequest) -> dict[str, Any]:
+    source = _openai_compatible_source_id(req.judge_model_source) or "openai_compatible"
+    provider_configs = {
+        "openrouter": {
+            "label": "OpenRouter",
+            "default_ref": A00_OPENROUTER_JUDGE_MODEL_REF,
+            "model_env_names": ["OPENROUTER_MODEL"],
+            "key_names": ["OPENROUTER_API_KEY", "DUECARE_OPENROUTER_API_KEY", "OPENROUTER_TOKEN"],
+            "requires_key": True,
+        },
+        "github_models": {
+            "label": "GitHub Models",
+            "default_ref": A00_GITHUB_MODELS_JUDGE_MODEL_REF,
+            "model_env_names": ["GITHUB_MODELS_MODEL", "GITHUB_MODEL"],
+            "key_names": ["GITHUB_MODELS_TOKEN", "GITHUB_TOKEN", "GH_TOKEN"],
+            "requires_key": True,
+        },
+        "groq": {
+            "label": "Groq",
+            "default_ref": A00_GROQ_JUDGE_MODEL_REF,
+            "model_env_names": ["GROQ_MODEL"],
+            "key_names": ["GROQ_API_KEY", "DUECARE_GROQ_API_KEY"],
+            "requires_key": True,
+        },
+        "cerebras": {
+            "label": "Cerebras",
+            "default_ref": A00_CEREBRAS_JUDGE_MODEL_REF,
+            "model_env_names": ["CEREBRAS_MODEL"],
+            "key_names": ["CEREBRAS_API_KEY", "DUECARE_CEREBRAS_API_KEY"],
+            "requires_key": True,
+        },
+        "huggingface": {
+            "label": "Hugging Face",
+            "default_ref": A00_HUGGINGFACE_JUDGE_MODEL_REF,
+            "model_env_names": ["HUGGINGFACE_MODEL", "HF_MODEL"],
+            "key_names": ["HF_TOKEN", "HUGGINGFACE_API_KEY", "HUGGINGFACEHUB_API_TOKEN"],
+            "requires_key": True,
+        },
+        "opencode_zen": {
+            "label": "OpenCode Zen",
+            "default_ref": A00_OPENCODE_ZEN_JUDGE_MODEL_REF,
+            "model_env_names": ["OPENCODE_ZEN_MODEL", "OPENCODE_MODEL"],
+            "key_names": ["OPENCODE_API_KEY", "OPENCODE_ZEN_API_KEY"],
+            "requires_key": True,
+        },
+        "upstage": {
+            "label": "Upstage",
+            "default_ref": A00_UPSTAGE_JUDGE_MODEL_REF,
+            "model_env_names": ["UPSTAGE_MODEL"],
+            "key_names": ["UPSTAGE_API_KEY", "DUECARE_UPSTAGE_API_KEY"],
+            "requires_key": True,
+        },
+        "sambanova": {
+            "label": "SambaNova",
+            "default_ref": A00_SAMBANOVA_JUDGE_MODEL_REF,
+            "model_env_names": ["SAMBANOVA_MODEL"],
+            "key_names": ["SAMBANOVA_API_KEY", "DUECARE_SAMBANOVA_API_KEY"],
+            "requires_key": True,
+        },
+        "nvidia": {
+            "label": "NVIDIA NIM",
+            "default_ref": A00_NVIDIA_JUDGE_MODEL_REF,
+            "model_env_names": ["NVIDIA_MODEL", "NVIDIA_NIM_MODEL"],
+            "key_names": ["NVIDIA_API_KEY", "NVIDIA_NIM_API_KEY", "NVAPI_KEY", "DUECARE_NVIDIA_API_KEY"],
+            "requires_key": True,
+        },
+        "llm7": {
+            "label": "LLM7",
+            "default_ref": A00_LLM7_JUDGE_MODEL_REF,
+            "model_env_names": ["LLM7_MODEL"],
+            "key_names": ["LLM7_API_KEY", "DUECARE_LLM7_API_KEY"],
+            "requires_key": True,
+        },
+        "openai_compatible": {
+            "label": "OpenAI-compatible",
+            "default_ref": A00_OPENAI_COMPATIBLE_JUDGE_MODEL_REF,
+            "model_env_names": ["OPENAI_COMPATIBLE_MODEL"],
+            "key_names": ["OPENAI_COMPATIBLE_API_KEY", "DUECARE_OPENAI_COMPATIBLE_API_KEY", "OPENAI_API_KEY"],
+            "requires_key": False,
+        },
+    }
+    config = provider_configs.get(source, provider_configs["openai_compatible"])
+    configured_model_ref = ""
+    for env_name in config["model_env_names"]:
+        configured_model_ref = str(os.environ.get(env_name) or "").strip()
+        if configured_model_ref:
+            break
+    model_ref = (req.judge_model_ref or configured_model_ref or config["default_ref"]).strip()
+    endpoint = _openai_compatible_chat_endpoint(source)
+    key_names = list(config["key_names"])
+    api_key = _secret_value(key_names)
+    provider_label = str(config["label"])
+    if config["requires_key"] and not api_key:
+        raise RuntimeError(
+            f"{provider_label} judge requires Kaggle Secret or environment variable {key_names[0]}. "
+            f"Use a local Gemma judge or set {key_names[0]} before running the pipeline."
+        )
+    privacy_note = f"Final grading sends benchmark prompts, model responses, and harness traces to {provider_label}."
+    info = {
+        "loaded": True,
+        "source": source,
+        "model_ref": model_ref,
+        "resolved_model_ref": model_ref,
+        "variant": model_ref,
+        "adapter_ref": "",
+        "quantization": "external",
+        "loaded_at": _utc(),
+        "device": "external_api",
+        "device_map": "external",
+        "loader": f"{source}.chat_completions",
+        "endpoint": endpoint,
+        "api_key_configured": bool(api_key),
+        "notes": (
+            f"External {provider_label} judge used only for final combined grading. "
+            f"Prompts, responses, and harness traces are sent to the configured {provider_label} API."
+        ),
+    }
+    STATE["judge_model_call"] = _openai_compatible_model_call_factory(
+        source=source,
+        model_ref=model_ref,
+        endpoint=endpoint,
+        api_key=api_key,
+    )
+    STATE["judge_model_info"] = info
+    _append_job_step(
+        job_id,
+        f"18. Configuring {provider_label} judge for final evaluation",
+        "running",
+        {
+            **info,
+            "privacy_note": privacy_note,
+        },
+    )
+    return info
+
+
+def _rapidapi_endpoint_preset(
+    presets: dict[str, dict[str, str]],
+    model_ref: str,
+) -> dict[str, str]:
+    ref = str(model_ref or "").strip()
+    if ref in presets:
+        return presets[ref]
+    ref_norm = ref.lower()
+    for candidate_ref, preset in presets.items():
+        if candidate_ref.lower() == ref_norm:
+            return preset
+    return {}
+
+
+def _configure_rapidapi_chat_judge_for_pipeline(job_id: str, req: PipelineRequest) -> dict[str, Any]:
+    model_ref = (req.judge_model_ref or os.environ.get("RAPIDAPI_CHAT_MODEL") or A00_RAPIDAPI_CHAT_JUDGE_MODEL_REF).strip()
+    preset = _rapidapi_endpoint_preset(A00_RAPIDAPI_CHAT_ENDPOINT_PRESETS, model_ref)
+    endpoint = (
+        os.environ.get("RAPIDAPI_CHAT_URL")
+        or os.environ.get("RAPIDAPI_CHAT_COMPLETIONS_URL")
+        or preset.get("url")
+        or A00_RAPIDAPI_CHAT_URL
+    ).strip()
+    host = (
+        os.environ.get("RAPIDAPI_CHAT_HOST")
+        or os.environ.get("RAPIDAPI_HOST")
+        or preset.get("host")
+        or A00_RAPIDAPI_CHAT_HOST
+    ).strip()
+    api_key = _secret_value([
+        "RAPIDAPI_KEY",
+        "X_RAPIDAPI_KEY",
+        "DUECARE_RAPIDAPI_KEY",
+        "RAPIDAPI_CHAT_KEY",
+    ])
+    if not api_key:
+        raise RuntimeError(
+            "RapidAPI chat judge requires Kaggle Secret or environment variable RAPIDAPI_KEY. "
+            "Use a local Gemma judge or set RAPIDAPI_KEY before running the pipeline."
+        )
+    info = {
+        "loaded": True,
+        "source": "rapidapi_chat",
+        "model_ref": model_ref,
+        "resolved_model_ref": model_ref,
+        "variant": model_ref,
+        "adapter_ref": "",
+        "quantization": "external",
+        "loaded_at": _utc(),
+        "device": "external_api",
+        "device_map": "external",
+        "loader": "rapidapi.chat_completions",
+        "endpoint": endpoint,
+        "host": host,
+        "api_key_configured": bool(api_key),
+        "notes": (
+            "External RapidAPI chat-completions judge used only for final combined grading. "
+            "Prompts, responses, and harness traces are sent to the configured RapidAPI endpoint."
+        ),
+    }
+    STATE["judge_model_call"] = _rapidapi_chat_model_call_factory(
+        model_ref=model_ref,
+        endpoint=endpoint,
+        host=host,
+        api_key=api_key,
+    )
+    STATE["judge_model_info"] = info
+    _append_job_step(
+        job_id,
+        "18. Configuring RapidAPI chat judge for final evaluation",
+        "running",
+        {
+            **info,
+            "privacy_note": "Final grading sends benchmark prompts, model responses, and harness traces to RapidAPI.",
+        },
+    )
+    return info
+
+
+def _configure_rapidapi_text_judge_for_pipeline(job_id: str, req: PipelineRequest) -> dict[str, Any]:
+    model_ref = (req.judge_model_ref or os.environ.get("RAPIDAPI_TEXT_MODEL") or A00_RAPIDAPI_TEXT_JUDGE_MODEL_REF).strip()
+    preset = _rapidapi_endpoint_preset(A00_RAPIDAPI_TEXT_ENDPOINT_PRESETS, model_ref)
+    endpoint = (
+        os.environ.get("RAPIDAPI_TEXT_URL")
+        or os.environ.get("RAPIDAPI_GENERATE_TEXT_URL")
+        or preset.get("url")
+        or A00_RAPIDAPI_TEXT_URL
+    ).strip()
+    host = (
+        os.environ.get("RAPIDAPI_HOST")
+        or os.environ.get("RAPIDAPI_TEXT_HOST")
+        or preset.get("host")
+        or A00_RAPIDAPI_TEXT_HOST
+    ).strip()
+    api_key = _secret_value([
+        "RAPIDAPI_KEY",
+        "X_RAPIDAPI_KEY",
+        "DUECARE_RAPIDAPI_KEY",
+        "RAPIDAPI_TEXT_KEY",
+    ])
+    if not api_key:
+        raise RuntimeError(
+            "RapidAPI text judge requires Kaggle Secret or environment variable RAPIDAPI_KEY. "
+            "Use a local Gemma judge or set RAPIDAPI_KEY before running the pipeline."
+        )
+    info = {
+        "loaded": True,
+        "source": "rapidapi_text",
+        "model_ref": model_ref,
+        "resolved_model_ref": model_ref,
+        "variant": model_ref,
+        "adapter_ref": "",
+        "quantization": "external",
+        "loaded_at": _utc(),
+        "device": "external_api",
+        "device_map": "external",
+        "loader": "rapidapi.generate_text",
+        "endpoint": endpoint,
+        "host": host,
+        "api_key_configured": bool(api_key),
+        "notes": (
+            "External RapidAPI text-generation judge used only for final combined grading. "
+            "Prompts, responses, and harness traces are sent to the configured RapidAPI endpoint."
+        ),
+    }
+    STATE["judge_model_call"] = _rapidapi_text_model_call_factory(
+        model_ref=model_ref,
+        endpoint=endpoint,
+        host=host,
+        api_key=api_key,
+    )
+    STATE["judge_model_info"] = info
+    _append_job_step(
+        job_id,
+        "18. Configuring RapidAPI text judge for final evaluation",
+        "running",
+        {
+            **info,
+            "privacy_note": "Final grading sends benchmark prompts, model responses, and harness traces to RapidAPI.",
+        },
+    )
+    return info
+
+
 def _configure_external_judge_for_pipeline(job_id: str, req: PipelineRequest) -> dict[str, Any]:
     if _is_anthropic_judge_source(req.judge_model_source):
         return _configure_anthropic_judge_for_pipeline(job_id, req)
+    if _is_rapidapi_chat_judge_source(req.judge_model_source):
+        return _configure_rapidapi_chat_judge_for_pipeline(job_id, req)
+    if _is_rapidapi_text_judge_source(req.judge_model_source):
+        return _configure_rapidapi_text_judge_for_pipeline(job_id, req)
+    if _is_openai_compatible_judge_source(req.judge_model_source):
+        return _configure_openai_compatible_judge_for_pipeline(job_id, req)
     return _configure_ollama_judge_for_pipeline(job_id, req)
 
 
@@ -6416,12 +7435,69 @@ async def api_intake_upload(file: UploadFile = File(...)) -> Any:
 def api_model_presets() -> Any:
     ollama_key = _secret_value(["OLLAMA_API_KEY", "DUECARE_OLLAMA_API_KEY", "OLLAMA_TOKEN"])
     anthropic_key = _secret_value(["ANTHROPIC_API_KEY", "DUECARE_ANTHROPIC_API_KEY", "CLAUDE_API_KEY"])
-    if anthropic_key:
+    openrouter_key = _secret_value(["OPENROUTER_API_KEY", "DUECARE_OPENROUTER_API_KEY", "OPENROUTER_TOKEN"])
+    github_models_key = _secret_value(["GITHUB_MODELS_TOKEN", "GITHUB_TOKEN", "GH_TOKEN"])
+    groq_key = _secret_value(["GROQ_API_KEY", "DUECARE_GROQ_API_KEY"])
+    cerebras_key = _secret_value(["CEREBRAS_API_KEY", "DUECARE_CEREBRAS_API_KEY"])
+    huggingface_key = _secret_value(["HF_TOKEN", "HUGGINGFACE_API_KEY", "HUGGINGFACEHUB_API_TOKEN"])
+    opencode_zen_key = _secret_value(["OPENCODE_API_KEY", "OPENCODE_ZEN_API_KEY"])
+    upstage_key = _secret_value(["UPSTAGE_API_KEY", "DUECARE_UPSTAGE_API_KEY"])
+    sambanova_key = _secret_value(["SAMBANOVA_API_KEY", "DUECARE_SAMBANOVA_API_KEY"])
+    nvidia_key = _secret_value(["NVIDIA_API_KEY", "NVIDIA_NIM_API_KEY", "NVAPI_KEY", "DUECARE_NVIDIA_API_KEY"])
+    llm7_key = _secret_value(["LLM7_API_KEY", "DUECARE_LLM7_API_KEY"])
+    openai_compatible_key = _secret_value(["OPENAI_COMPATIBLE_API_KEY", "DUECARE_OPENAI_COMPATIBLE_API_KEY", "OPENAI_API_KEY"])
+    rapidapi_chat_key = _secret_value(["RAPIDAPI_KEY", "X_RAPIDAPI_KEY", "DUECARE_RAPIDAPI_KEY", "RAPIDAPI_CHAT_KEY"])
+    rapidapi_text_key = _secret_value(["RAPIDAPI_KEY", "X_RAPIDAPI_KEY", "DUECARE_RAPIDAPI_KEY", "RAPIDAPI_TEXT_KEY"])
+    openai_compatible_base = (
+        os.environ.get("OPENAI_COMPATIBLE_BASE_URL")
+        or os.environ.get("OPENAI_COMPATIBLE_API_BASE")
+        or ""
+    ).strip()
+    if openrouter_key:
+        default_judge_ref = A00_OPENROUTER_JUDGE_MODEL_REF
+        default_judge_source = "openrouter"
+    elif github_models_key:
+        default_judge_ref = A00_GITHUB_MODELS_JUDGE_MODEL_REF
+        default_judge_source = "github_models"
+    elif nvidia_key:
+        default_judge_ref = A00_NVIDIA_JUDGE_MODEL_REF
+        default_judge_source = "nvidia"
+    elif huggingface_key:
+        default_judge_ref = A00_HUGGINGFACE_JUDGE_MODEL_REF
+        default_judge_source = "huggingface"
+    elif groq_key:
+        default_judge_ref = A00_GROQ_JUDGE_MODEL_REF
+        default_judge_source = "groq"
+    elif sambanova_key:
+        default_judge_ref = A00_SAMBANOVA_JUDGE_MODEL_REF
+        default_judge_source = "sambanova"
+    elif upstage_key:
+        default_judge_ref = A00_UPSTAGE_JUDGE_MODEL_REF
+        default_judge_source = "upstage"
+    elif llm7_key:
+        default_judge_ref = A00_LLM7_JUDGE_MODEL_REF
+        default_judge_source = "llm7"
+    elif cerebras_key:
+        default_judge_ref = A00_CEREBRAS_JUDGE_MODEL_REF
+        default_judge_source = "cerebras"
+    elif opencode_zen_key:
+        default_judge_ref = A00_OPENCODE_ZEN_JUDGE_MODEL_REF
+        default_judge_source = "opencode_zen"
+    elif rapidapi_text_key:
+        default_judge_ref = A00_RAPIDAPI_TEXT_JUDGE_MODEL_REF
+        default_judge_source = "rapidapi_text"
+    elif rapidapi_chat_key:
+        default_judge_ref = A00_RAPIDAPI_CHAT_JUDGE_MODEL_REF
+        default_judge_source = "rapidapi_chat"
+    elif anthropic_key:
         default_judge_ref = A00_ANTHROPIC_JUDGE_MODEL_REF
         default_judge_source = "anthropic"
     elif ollama_key:
         default_judge_ref = A00_OLLAMA_JUDGE_MODEL_REF
         default_judge_source = "ollama_cloud"
+    elif openai_compatible_base:
+        default_judge_ref = A00_OPENAI_COMPATIBLE_JUDGE_MODEL_REF
+        default_judge_source = "openai_compatible"
     else:
         default_judge_ref = A00_SMALL_MODEL_REF
         default_judge_source = "hf"
@@ -6430,6 +7506,19 @@ def api_model_presets() -> Any:
         "judge_presets": JUDGE_MODEL_PRESETS,
         "ollama_cloud_ready": bool(ollama_key),
         "anthropic_ready": bool(anthropic_key),
+        "openrouter_ready": bool(openrouter_key),
+        "github_models_ready": bool(github_models_key),
+        "groq_ready": bool(groq_key),
+        "cerebras_ready": bool(cerebras_key),
+        "huggingface_ready": bool(huggingface_key),
+        "opencode_zen_ready": bool(opencode_zen_key),
+        "upstage_ready": bool(upstage_key),
+        "sambanova_ready": bool(sambanova_key),
+        "nvidia_ready": bool(nvidia_key),
+        "llm7_ready": bool(llm7_key),
+        "openai_compatible_ready": bool(openai_compatible_key or openai_compatible_base),
+        "rapidapi_chat_ready": bool(rapidapi_chat_key),
+        "rapidapi_text_ready": bool(rapidapi_text_key),
         "default_judge_ref": default_judge_ref,
         "default_judge_source": default_judge_source,
     }
@@ -7065,7 +8154,7 @@ __A00_SHUTDOWN_CONTROL__
     </div>
     <label>Resume training checkpoint <input id="pipeline-resume-checkpoint" placeholder="/kaggle/working/a00_training/.../checkpoint-40"></label>
     <div class="row compact-row">
-      <label>Judge model source <select id="pipeline-judge-source"><option value="hf">hf</option><option value="kaggle_path">kaggle_path</option><option value="local_path">local_path</option><option value="anthropic">anthropic</option><option value="ollama_cloud">ollama_cloud</option><option value="ollama">ollama</option></select></label>
+      <label>Judge model source <select id="pipeline-judge-source"><option value="hf">hf</option><option value="kaggle_path">kaggle_path</option><option value="local_path">local_path</option><option value="openrouter">openrouter</option><option value="github_models">github_models</option><option value="nvidia">nvidia</option><option value="huggingface">huggingface</option><option value="groq">groq</option><option value="sambanova">sambanova</option><option value="upstage">upstage</option><option value="llm7">llm7</option><option value="cerebras">cerebras</option><option value="opencode_zen">opencode_zen</option><option value="openai_compatible">openai_compatible</option><option value="rapidapi_chat">rapidapi_chat</option><option value="rapidapi_text">rapidapi_text</option><option value="anthropic">anthropic</option><option value="ollama_cloud">ollama_cloud</option><option value="ollama">ollama</option></select></label>
       <label>Judge model ref/path <input id="pipeline-judge-ref" value="__A00_SMALL_MODEL_REF__"></label>
       <label>Judge adapter path <input id="pipeline-judge-adapter" placeholder="leave empty for normal judge model"></label>
     </div>
@@ -7614,7 +8703,23 @@ async function loadOptions() {
   if ($("pipeline-resume-checkpoint")) $("pipeline-resume-checkpoint").value = "";
   if ($("pipeline-save-steps")) $("pipeline-save-steps").value = 10;
   if ($("train-save-steps")) $("train-save-steps").value = 10;
-  if ($("pipeline-judge-source")) $("pipeline-judge-source").value = modelPresets.default_judge_source || (modelPresets.ollama_cloud_ready ? "ollama_cloud" : "hf");
+  const readyJudgeSources = [
+    ["openrouter", modelPresets.openrouter_ready],
+    ["github_models", modelPresets.github_models_ready],
+    ["nvidia", modelPresets.nvidia_ready],
+    ["huggingface", modelPresets.huggingface_ready],
+    ["groq", modelPresets.groq_ready],
+    ["sambanova", modelPresets.sambanova_ready],
+    ["upstage", modelPresets.upstage_ready],
+    ["llm7", modelPresets.llm7_ready],
+    ["cerebras", modelPresets.cerebras_ready],
+    ["opencode_zen", modelPresets.opencode_zen_ready],
+    ["rapidapi_text", modelPresets.rapidapi_text_ready],
+    ["rapidapi_chat", modelPresets.rapidapi_chat_ready],
+    ["ollama_cloud", modelPresets.ollama_cloud_ready],
+  ];
+  const readyJudge = readyJudgeSources.find(([source, ready]) => ready);
+  if ($("pipeline-judge-source")) $("pipeline-judge-source").value = modelPresets.default_judge_source || (readyJudge ? readyJudge[0] : "hf");
   if ($("pipeline-judge-ref")) $("pipeline-judge-ref").value = modelPresets.default_judge_ref || "__A00_SMALL_MODEL_REF__";
   if ($("pipeline-judge-adapter")) $("pipeline-judge-adapter").value = "";
   refreshStatus();
