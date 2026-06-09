@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/static/_chrome.css">
   <script src="/static/_nav.js" defer></script>
   <script src="/static/_activity_log.js" defer></script>
+  <script src="/static/_envelope_card.js" defer></script>
   <script src="/static/_workflow.js" defer></script>
   <style>
     .wb-page { max-width: 1120px; margin: 24px auto 60px; padding: 0 18px;
@@ -812,73 +813,30 @@
 
     function searchRenderDraftCard(entry, idx) {
       const env = entry.envelope || {};
-      const ext = env.extensions || {};
       const draftsList = document.getElementById('drafts-list');
       draftsList.className = '';
-      const card = document.createElement('div');
-      card.className = 'wb-draft-card';
-      const h = document.createElement('div');
-      h.style.cssText = 'font-size: 13px; font-weight: 600;';
-      h.textContent = '[' + (idx + 1) + '] ' + (entry.title || entry.url || env.id || 'draft');
-      card.appendChild(h);
-      const meta = document.createElement('div');
-      meta.className = 'wb-muted';
-      meta.textContent = (env.knowledge_object_type || 'knowledge_object') + ' | ' + (entry.url || '');
-      card.appendChild(meta);
-      // Provenance badge row: source (Gemma 4 / Deterministic) +
-      // noise-scrub + standardized-shape pills. Mirrors the badges on
-      // knowledge.html so reviewers see the same signals regardless of
-      // which page produced the envelope.
-      const provRow = document.createElement('div');
-      provRow.style.cssText = 'display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 4px;';
-      const usedGemma = ext.gemma_drafted === true
-        && ext.model_call_available === true
-        && !ext.fallback && !ext.gemma_error;
-      const srcSpan = document.createElement('span');
-      srcSpan.className = 'dc-gemma-mark ' + (usedGemma ? 'is-done' : 'is-optional');
-      srcSpan.title = usedGemma
-        ? 'Gemma 4 refined this draft (server confirmed model_call_available + no fallback + no error).'
-        : 'Server returned the deterministic template for this draft.';
-      srcSpan.textContent = usedGemma ? 'Gemma 4 refined' : 'Deterministic';
-      provRow.appendChild(srcSpan);
-      if (ext.noise_scrubbed_before_gemma === true) {
-        const scrubSpan = document.createElement('span');
-        scrubSpan.className = 'dc-gemma-mark is-done';
-        scrubSpan.title = 'Source text was scrubbed of kernel run IDs, /kaggle/working/... paths, ZIP/JSONL filenames, and synthetic case folder names before this draft was generated.';
-        scrubSpan.textContent = 'Noise scrubbed';
-        provRow.appendChild(scrubSpan);
-      }
-      if (ext.standardized_shape === true) {
-        const stdSpan = document.createElement('span');
-        stdSpan.className = 'dc-gemma-mark is-done';
-        stdSpan.title = 'Envelope content was normalized to the canonical fact schema: same field names, field order, ILO indicator vocabulary, corridor format across every page.';
-        stdSpan.textContent = 'Standard shape';
-        provRow.appendChild(stdSpan);
-      }
-      card.appendChild(provRow);
-      const row = document.createElement('div');
-      row.className = 'wb-row';
-      row.style.cssText = 'gap:8px; margin:8px 0;';
-      const save = document.createElement('button');
-      save.className = 'wb-btn-primary';
-      save.style.fontSize = '12px';
-      save.style.padding = '6px 12px';
-      save.type = 'button';
-      save.textContent = 'Save this draft';
-      save.addEventListener('click', () => searchSaveOneDraft(idx));
-      row.appendChild(save);
-      const polish = document.createElement('button');
-      polish.className = 'wb-btn-secondary';
-      polish.type = 'button';
-      polish.id = 'search-polish-btn-' + idx;
-      polish.title = 'Two Gemma 4 passes: first critiques vague or missing fields, second rewrites the draft and re-runs standardization.';
-      polish.textContent = 'Polish further (Gemma 4)';
-      polish.addEventListener('click', () => searchPolishDraft(idx));
-      row.appendChild(polish);
-      card.appendChild(row);
-      const pre = document.createElement('pre');
-      pre.textContent = JSON.stringify(env, null, 2);
-      card.appendChild(pre);
+      // Shared renderer (_envelope_card.js): identical provenance badges,
+      // integrity-hash pill, and JSON body as knowledge.html, so reviewers
+      // see the same signals regardless of which page produced the envelope.
+      const card = window.dcEnvelopeCard.render(env, {
+        className: 'wb-draft-card',
+        title: '[' + (idx + 1) + '] ' + (entry.title || entry.url || env.id || 'draft'),
+        subtitle: (env.knowledge_object_type || 'knowledge_object') + ' | ' + (entry.url || ''),
+        actions: [
+          {
+            label: 'Save this draft',
+            primary: true,
+            style: 'font-size:12px; padding:6px 12px;',
+            onClick: () => searchSaveOneDraft(idx),
+          },
+          {
+            label: 'Polish further (Gemma 4)',
+            id: 'search-polish-btn-' + idx,
+            title: 'Two Gemma 4 passes: first critiques vague or missing fields, second rewrites the draft and re-runs standardization.',
+            onClick: () => searchPolishDraft(idx),
+          },
+        ],
+      });
       draftsList.appendChild(card);
       searchRefreshSaveButtons();
     }

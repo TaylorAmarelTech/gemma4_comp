@@ -1,0 +1,650 @@
+{
+  "$id": "https://duecare-ai.com/static/envelope_schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "audit_template"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "label",
+              "version"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "citation_edge"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "from_statute",
+              "to_statute",
+              "relation"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "classifier_rule"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "label",
+              "model_uri",
+              "input_format"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "context_snippet"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "text"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "corridor_profile"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "corridor",
+              "label"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "entity_signal"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "entity_name",
+              "entity_type"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "envelope_schema"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "label",
+              "version"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "evaluation_dimension"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "id",
+              "name",
+              "description"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "evaluation_metric"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "label",
+              "metric"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "evaluation_prompt"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "dimension_id",
+              "question"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "evaluation_weighting"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "use_case",
+              "dimension_id",
+              "weight"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "extracted_fact"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "fact_type"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "fact_template"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "fields"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "glob_rule"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "pattern"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "grep_rule"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "pattern"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "heuristic_rule"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "predicate_py"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "modus_operandi"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "pattern_name"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "ngo_directory"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "name",
+              "jurisdiction"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "persona_block"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "label",
+              "text"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "prompt_template"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "text"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "rag_doc"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "title",
+              "text"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "reasoning_step"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "instruction"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "rubric_dimension"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "question"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "submission_schema"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "label",
+              "version"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "tool_chain"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "label",
+              "steps"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "tool_definition"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "name",
+              "schema"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "tool_example"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "tool_name",
+              "args",
+              "result"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_object_type": {
+            "const": "upload_schema"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "label",
+              "format"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "description": "Versioned envelope for anonymized, shareable knowledge objects. Wrapper fields are fixed; content keys are type-specific. provenance.content_sha256 is sha256 over sorted-key compact JSON of `content` and lets any recipient verify integrity.",
+  "properties": {
+    "content": {
+      "type": "object"
+    },
+    "extensions": {
+      "type": "object"
+    },
+    "id": {
+      "pattern": "^[a-z0-9][a-z0-9\\-_]*$",
+      "type": "string"
+    },
+    "knowledge_object_type": {
+      "enum": [
+        "audit_template",
+        "citation_edge",
+        "classifier_rule",
+        "context_snippet",
+        "corridor_profile",
+        "entity_signal",
+        "envelope_schema",
+        "evaluation_dimension",
+        "evaluation_metric",
+        "evaluation_prompt",
+        "evaluation_weighting",
+        "extracted_fact",
+        "fact_template",
+        "glob_rule",
+        "grep_rule",
+        "heuristic_rule",
+        "modus_operandi",
+        "ngo_directory",
+        "persona_block",
+        "prompt_template",
+        "rag_doc",
+        "reasoning_step",
+        "rubric_dimension",
+        "submission_schema",
+        "tool_chain",
+        "tool_definition",
+        "tool_example",
+        "upload_schema"
+      ]
+    },
+    "provenance": {
+      "properties": {
+        "content_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "created_by": {
+          "description": "Originating node id (DUECARE_NODE_ID).",
+          "type": "string"
+        },
+        "served_at": {
+          "type": "string"
+        },
+        "vetted": {
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "tags": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "version": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "knowledge_object_type",
+    "id",
+    "content"
+  ],
+  "title": "DueCare KnowledgeObject envelope",
+  "type": "object",
+  "x-branches": {
+    "audit_template": "output_knowledge",
+    "citation_edge": "grounding_knowledge",
+    "classifier_rule": "matching_knowledge",
+    "context_snippet": "reasoning_knowledge",
+    "corridor_profile": "grounding_knowledge",
+    "entity_signal": "input_knowledge",
+    "envelope_schema": "output_knowledge",
+    "evaluation_dimension": "evaluation_knowledge",
+    "evaluation_metric": "evaluation_knowledge",
+    "evaluation_prompt": "evaluation_knowledge",
+    "evaluation_weighting": "evaluation_knowledge",
+    "extracted_fact": "input_knowledge",
+    "fact_template": "input_knowledge",
+    "glob_rule": "matching_knowledge",
+    "grep_rule": "matching_knowledge",
+    "heuristic_rule": "matching_knowledge",
+    "modus_operandi": "reasoning_knowledge",
+    "ngo_directory": "grounding_knowledge",
+    "persona_block": "reasoning_knowledge",
+    "prompt_template": "input_knowledge",
+    "rag_doc": "grounding_knowledge",
+    "reasoning_step": "reasoning_knowledge",
+    "rubric_dimension": "reasoning_knowledge",
+    "submission_schema": "output_knowledge",
+    "tool_chain": "tool_knowledge",
+    "tool_definition": "tool_knowledge",
+    "tool_example": "tool_knowledge",
+    "upload_schema": "input_knowledge"
+  }
+}

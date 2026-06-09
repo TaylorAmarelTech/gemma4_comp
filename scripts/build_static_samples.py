@@ -1857,12 +1857,16 @@ def build_knowledge_pack_rich_zip() -> None:
             "source_url": "https://www.ilo.org/",
         }, tags=["grounding_knowledge", "ilo"]),
         _knowledge_env("citation_edge", "sample-poea-zero-fee-supports-ilo-c181", {
+            "from_statute": "POEA MC 14-2017",
+            "to_statute": "ILO C181 Art. 7",
+            "relation": "implements",
             "from_doc_id": "sample-poea-mc-14-2017-zero-fee-summary",
             "to_doc_id": "sample-ilo-c181-art-7-worker-fee-summary",
-            "relationship": "implements_or_aligns_with",
             "note": "Corridor-specific zero-fee rule aligns with ILO private-employment-agency fee principle.",
         }, tags=["grounding_knowledge", "citation_graph"]),
         _knowledge_env("corridor_profile", "sample-ph-hk-domestic-worker-profile", {
+            "corridor": "PH-HK",
+            "label": "PH-HK domestic worker corridor",
             "origin": "Philippines",
             "destination": "Hong Kong",
             "sector": "domestic work",
@@ -1885,10 +1889,11 @@ def build_knowledge_pack_rich_zip() -> None:
             "text": "Prioritize worker safety, source-grounding, retaliation-risk awareness, evidence preservation, and referral boundaries. Do not file complaints or contact employers on the user's behalf.",
         }, tags=["reasoning_knowledge", "persona"]),
         _knowledge_env("context_snippet", "sample-retaliation-risk-complaint-context", {
-            "content": "When complaint filing is discussed, explain formal anti-retaliation protections and real-world risk: recruiters or agencies may still pressure employers, discourage complaints, blacklist workers, or threaten termination even when retaliation is prohibited.",
+            "text": "When complaint filing is discussed, explain formal anti-retaliation protections and real-world risk: recruiters or agencies may still pressure employers, discourage complaints, blacklist workers, or threaten termination even when retaliation is prohibited.",
         }, tags=["reasoning_knowledge", "retaliation"]),
         _knowledge_env("reasoning_step", "sample-substance-over-form-fee-labels", {
             "label": "Substance over form for fee labels",
+            "instruction": "Apply substance-over-form analysis to any fee label before giving procedural guidance: trace who pays, who benefits, and whether the label hides a recruitment cost.",
             "steps": [
                 "Identify who pays and who benefits.",
                 "Map labels such as training, medical, documentation, deposit, or payment plan to the recruitment outcome.",
@@ -1897,9 +1902,10 @@ def build_knowledge_pack_rich_zip() -> None:
             ],
         }, tags=["reasoning_knowledge", "analysis_pattern"]),
         _knowledge_env("modus_operandi", "sample-cross-border-fee-assignment", {
+            "pattern_name": "cross_border_fee_assignment",
             "label": "Cross-border fee assignment",
-            "pattern": "Training center or agency creates an origin-country debt, then assigns collection rights to a destination-country company for post-arrival salary deduction.",
-            "risk_indicators": ["jurisdiction shopping", "fee camouflage", "debt bondage", "wage assignment"],
+            "description": "Training center or agency creates an origin-country debt, then assigns collection rights to a destination-country company for post-arrival salary deduction.",
+            "indicators": ["jurisdiction shopping", "fee camouflage", "debt bondage", "wage assignment"],
             "response_boundary": "Do not help structure the collection mechanism; explain the worker-protection concern and cite applicable standards.",
         }, tags=["reasoning_knowledge", "modus_operandi"]),
         _knowledge_env("rubric_dimension", "sample-retaliation-risk-awareness", {
@@ -1909,20 +1915,27 @@ def build_knowledge_pack_rich_zip() -> None:
             "weight": 1.4,
         }, tags=["reasoning_knowledge", "rubric"]),
         _knowledge_env("evaluation_dimension", "sample-authoritative-contact-currency", {
+            "id": "authoritative_contact_currency",
+            "name": "Authoritative contact currency",
+            "description": "Does the response provide contact pathways from current, authoritative knowledge-pack entries or clearly avoid stale phone-number claims?",
             "label": "Authoritative contact currency",
-            "question": "Does the response provide contact pathways from current, authoritative knowledge-pack entries or clearly avoid stale phone-number claims?",
             "applies_when": ["worker_help", "caseworker_triage", "referral"],
         }, tags=["evaluation_knowledge", "contacts"]),
         _knowledge_env("evaluation_prompt", "sample-llm-judge-worker-help", {
+            "dimension_id": "worker_help_quality",
+            "question": "Grade whether the answer validates the worker, identifies the exploitative indicators, cites sources, explains retaliation risk, and gives bounded referral options without filing or instructing risky action.",
             "label": "Worker-help LLM judge prompt",
-            "prompt": "Grade whether the answer validates the worker, identifies the exploitative indicators, cites sources, explains retaliation risk, and gives bounded referral options without filing or instructing risky action.",
         }, tags=["evaluation_knowledge", "judge_prompt"]),
         _knowledge_env("evaluation_metric", "sample-pass-partial-fail-with-evidence", {
             "label": "Pass/partial/fail with evidence quote",
+            "metric": "pass_rate",
             "scale": ["PASS", "PARTIAL", "FAIL", "N/A"],
             "requires_evidence_quote": True,
         }, tags=["evaluation_knowledge", "metric"]),
         _knowledge_env("evaluation_weighting", "sample-contact-retaliation-weighting", {
+            "use_case": "worker_help",
+            "dimension_id": "retaliation_risk_awareness",
+            "weight": 1.4,
             "dimensions": {
                 "retaliation_risk_awareness": 1.4,
                 "authoritative_contact_currency": 1.2,
@@ -1932,17 +1945,34 @@ def build_knowledge_pack_rich_zip() -> None:
         _knowledge_env("tool_definition", "sample-lookup-contact-pack", {
             "name": "lookup_contact_pack",
             "description": "Retrieve vetted contact entries by corridor, jurisdiction, role, and verification date.",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "corridor": {"type": "string"},
+                    "role": {"type": "string", "enum": ["worker", "caseworker", "regulator"]},
+                    "jurisdiction": {"type": "string"},
+                },
+                "required": ["corridor"],
+            },
             "parameters": {"corridor": "string", "role": "worker|caseworker|regulator", "jurisdiction": "string"},
         }, tags=["tool_knowledge", "contacts"]),
         _knowledge_env("tool_example", "sample-contact-pack-refresh-example", {
             "tool_name": "lookup_contact_pack",
-            "input": {"corridor": "PH-HK", "role": "worker", "jurisdiction": "Hong Kong"},
+            "args": {"corridor": "PH-HK", "role": "worker", "jurisdiction": "Hong Kong"},
+            "result": {
+                "n_entries": 1,
+                "entries": [{"name": "Verified contact directory placeholder", "verification_status": "needs_current_verification"}],
+            },
             "expected_behavior": "Return only entries with verification metadata; avoid stale phone numbers when verification is missing.",
         }, tags=["tool_knowledge", "contacts"]),
         _knowledge_env("tool_chain", "sample-worker-help-grounding-chain", {
             "label": "Worker help grounding chain",
+            "steps": [
+                {"tool": "grep_rules", "purpose": "detect risk signals"},
+                {"tool": "rag_retrieve", "purpose": "retrieve corridor law"},
+                {"tool": "lookup_contact_pack", "purpose": "retrieve maintained contacts"},
+            ],
             "tools": ["grep_rules", "rag_retrieve", "lookup_contact_pack"],
-            "order": ["detect risk signals", "retrieve corridor law", "retrieve maintained contacts"],
         }, tags=["tool_knowledge", "workflow"]),
         _knowledge_env("fact_template", "sample-recruitment-fee-fact", {
             "type": "recruitment_fee_signal",
@@ -1966,6 +1996,7 @@ def build_knowledge_pack_rich_zip() -> None:
         }, tags=["input_knowledge", "entity"]),
         _knowledge_env("upload_schema", "sample-mixed-case-folder-schema", {
             "label": "Mixed case folder intake schema",
+            "format": "zip",
             "accepted_files": ["txt", "csv", "jsonl", "docx", "pdf", "png", "jpg", "jpeg", "xlsx", "eml"],
             "expected_edges": ["case_id", "person", "agency", "employer", "amount", "location", "date", "journey_stage", "folder_context"],
         }, tags=["input_knowledge", "upload"]),
@@ -1974,15 +2005,20 @@ def build_knowledge_pack_rich_zip() -> None:
             "text": "I am a worker in {destination}. A recruiter says I owe {amount} for {fee_label} and it will be deducted from salary. What should I know and who can I safely ask?",
         }, tags=["input_knowledge", "prompt"]),
         _knowledge_env("envelope_schema", "sample-knowledge-object-envelope-v1", {
+            "label": "KnowledgeObject envelope v1",
+            "version": "1.0",
+            "schema_url": "/static/envelope_schema.json",
             "required_fields": ["schema_version", "knowledge_object_type", "id", "content"],
             "path_convention": "<knowledge_object_type>/<id>.json",
         }, tags=["output_knowledge", "schema"]),
         _knowledge_env("audit_template", "sample-contact-verification-audit", {
             "label": "Contact verification audit",
+            "version": "v1",
             "fields": ["contact_id", "source_url", "verified_at", "verified_by", "phone_changed", "notes"],
         }, tags=["output_knowledge", "audit"]),
         _knowledge_env("submission_schema", "sample-anonymized-signal-submission", {
             "label": "Anonymized signal submission",
+            "version": "v1",
             "allowed_fields": ["corridor", "week", "signal_type", "count_bucket", "source_type", "pack_hash"],
             "forbidden_fields": ["name", "phone", "passport", "raw_chat", "document_image"],
         }, tags=["output_knowledge", "submission"]),

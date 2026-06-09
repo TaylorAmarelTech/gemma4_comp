@@ -6262,22 +6262,8 @@ def create_app(
         return root
 
     def _ko_validate(env: dict) -> tuple[bool, str]:
-        import re as _re
-        if not isinstance(env, dict):
-            return False, "envelope must be a JSON object"
-        if env.get("schema_version") != "1.0":
-            return False, 'schema_version must be "1.0"'
-        ko_type = env.get("knowledge_object_type")
-        if ko_type not in KO_TYPES:
-            return False, f"knowledge_object_type must be one of {sorted(KO_TYPES)}"
-        ko_id = env.get("id")
-        if not isinstance(ko_id, str) or not ko_id.strip():
-            return False, "`id` must be a non-empty string"
-        if not _re.match(r"^[a-z0-9][a-z0-9\-_]*$", ko_id):
-            return False, "`id` must be kebab-case (lowercase + digits + hyphen/underscore)"
-        if not isinstance(env.get("content"), dict):
-            return False, "`content` must be a JSON object"
-        return True, ""
+        from .knowledge_taxonomy import validate_envelope
+        return validate_envelope(env, known_types=KO_TYPES, catalog=KO_TYPE_CATALOG)
 
     @app.post("/api/knowledge/promote")
     async def api_knowledge_promote(request: Request) -> Any:
@@ -6296,9 +6282,8 @@ def create_app(
         if not ok:
             raise HTTPException(400, err)
 
-        prov = env.setdefault("provenance", {})
-        prov.setdefault("created_at", _dt.now(_UTC).strftime("%Y-%m-%dT%H-%M-%SZ"))
-        prov.setdefault("created_by", "kernel-01")
+        from .knowledge_taxonomy import stamp_provenance
+        stamp_provenance(env, created_at=_dt.now(_UTC).strftime("%Y-%m-%dT%H-%M-%SZ"))
         env.setdefault("version", "v1")
         env.setdefault("tags", [])
         env.setdefault("extensions", {})
@@ -6456,6 +6441,16 @@ def create_app(
             "extra": sorted(t for t in KO_TYPE_CATALOG if t not in KO_TYPES),
             "types": rows,
         })
+
+    @app.get("/api/knowledge/schema")
+    async def api_knowledge_schema() -> Any:
+        """Machine-enforceable JSON Schema (draft 2020-12) for the v1.0
+        envelope wrapper, generated live from KO_TYPE_CATALOG. The same
+        artifact is committed at /static/envelope_schema.json and served
+        by the public hub, so every node validates the same contract.
+        """
+        from .knowledge_taxonomy import build_envelope_json_schema
+        return JSONResponse(build_envelope_json_schema(KO_TYPE_CATALOG, KO_BRANCHES))
 
     @app.get("/api/knowledge/export")
     async def api_knowledge_export() -> Any:
