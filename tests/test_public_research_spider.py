@@ -38,6 +38,7 @@ def test_build_queries_covers_requested_public_source_families():
     assert "site:hrsd.gov.sa" in text or "site:my.gov.sa" in text
     assert "site:lmra.gov.bh" in text or "site:fm.gov.om" in text
     assert "site:labour.gov.in" in text or "site:nhrc.nic.in" in text
+    assert "site:mea.gov.in" in text or "site:madad.gov.in" in text
     assert "site:bmet.gov.bd" in text or "site:probashi.gov.bd" in text
     assert "site:dofe.gov.np" in text or "site:nhrcnepal.org" in text
     assert "site:slbfe.lk" in text
@@ -263,24 +264,48 @@ def test_south_asia_source_country_recruitment_grievance_sources_are_seeded():
         " ".join([row["url"], row["title"], row["snippet"], *row["signals"]])
         for row in candidates
     )
+    family_counts = {}
+    for row in candidates:
+        family_counts[row["source_family"]] = family_counts.get(row["source_family"], 0) + 1
     dork_text = "\n".join(q["query"] for q in spider.build_deep_dorks(max_per_family=360))
     signals = {signal for row in candidates for signal in row["signals"]}
 
     assert spider.profile_for_url("https://nhrc.nic.in/media/press-release/example")["id"] == "india_bonded_labour_migration"
+    assert spider.profile_for_url("https://www.mea.gov.in/issues-of-intending-emigrants.htm")["id"] == "india_bonded_labour_migration"
+    assert spider.profile_for_url("https://www.madad.gov.in/AppConsular/")["id"] == "india_bonded_labour_migration"
     assert spider.profile_for_url("https://bmet.gov.bd/pages/forms/example")["id"] == "bangladesh_overseas_employment"
     assert spider.profile_for_url("https://lawcommission.gov.np/content/example")["id"] == "nepal_foreign_employment"
+    assert spider.profile_for_url("https://dofe.gov.np/Recruting-Agences.aspx")["id"] == "nepal_foreign_employment"
     assert spider.profile_for_url("https://www.slbfe.lk/law-enforcement/")["id"] == "sri_lanka_foreign_employment"
+    assert spider.profile_for_url("https://www.slbfe.lk/citizen-charter-of-the-slbfe/")["id"] == "sri_lanka_foreign_employment"
     assert spider.profile_for_url("https://beoe.gov.pk/illegal-recruitment")["id"] == "pakistan_overseas_employment"
+    assert spider.profile_for_url("https://beoe.gov.pk/faqs?s=3")["id"] == "pakistan_overseas_employment"
+    assert family_counts["india_bonded_labour_migration"] >= 8
+    assert family_counts["nepal_foreign_employment"] >= 7
+    assert family_counts["sri_lanka_foreign_employment"] >= 6
+    assert family_counts["pakistan_overseas_employment"] >= 9
     for needle in [
         "labour-migration-south-asia",
+        "issues-of-intending-emigrants",
+        "AppConsular",
+        "Redressal_Grivences.pdf",
+        "annual-report-2014-15.pdf",
         "Migration_Trafficking_in_Nepal.pdf",
         "Research_Report_on_the_Situation_of_The_Rights_of_MW.pdf",
+        "Recruting-Agences.aspx",
+        "moless.gov.np",
         "complaint-form-against-recruiting-agent",
         "foreign-employment-scam-using-social-media-platforms",
         "special-announcement-beware-of-fraudulent-korean-e-8-visa-employment-schemes",
+        "citizen-charter-of-the-slbfe",
         "illegal-recruitment",
         "1532935755_919.pdf",
         "67b34630de511_584.pdf",
+        "faqs?s=3",
+        "procedure-for-overseas-employment.pdf",
+        "Emigration_Rules_1979_Updated_2023.pdf",
+        "SRO10582023.pdf",
+        "NjYyYzIwYzktOWRhNi00NzVmLWFjOTEtZDkyZDk1OTY3Nzhl",
     ]:
         assert needle in source_text
     assert {"source_country_recruitment_grievance", "illegal_recruitment", "debt_bondage"} <= signals

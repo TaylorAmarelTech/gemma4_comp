@@ -20,17 +20,17 @@ Counts:
 - Implemented search provider wrappers: 3
 - Implemented extractor wrappers: 5
 - Rejected operational tools: 4
-- Source candidates already in spider pack: 296
-- Source fetch manifest entries: 296
-- Source domain frontier entries: 103
-- Source archive manifest entries: 296
-- Sitemap probe queue entries: 309
-- Domain crawl policy entries: 103
-- Browser fetch allowlist entries: 103
-- Sitemap discovery dorks: 412
+- Source candidates already in spider pack: 308
+- Source fetch manifest entries: 308
+- Source domain frontier entries: 107
+- Source archive manifest entries: 308
+- Sitemap probe queue entries: 321
+- Domain crawl policy entries: 107
+- Browser fetch allowlist entries: 107
+- Sitemap discovery dorks: 428
 - Branching research queue leads: 1000
-- Knowledge objects already in spider pack: 296
-- Dimension candidates already in spider pack: 199
+- Knowledge objects already in spider pack: 308
+- Dimension candidates already in spider pack: 201
 - Corroboration links: 240
 - Verified-for-benchmark knowledge objects: 160
 - Source decompositions: 260
@@ -42,6 +42,7 @@ Counts:
 - Refusal/detection prompts: 180
 - Applicability seed tags: 180
 - OSINT rejection ledger entries: 4
+- Rejected/deferred source branches: 32
 - Prompt candidates already in spider pack: 240
 
 Next 30 branches:
@@ -117,3 +118,16 @@ Latest continuation, 2026-06-04:
 - Regenerated deterministic no-network artifacts: 296 source candidates/profiles/knowledge objects, 199 dimensions, 2,960 second-wave queries, 296 source fetch/archive entries, 103 source-domain frontier entries, 309 sitemap probes, 103 domain policies, 103 browser allowlist rows, 412 sitemap dorks, and 1,000 branching queue leads.
 - Coverage moved to Malaysia 8, Netherlands 5, and Qatar 7. Added regression test: `test_netherlands_malaysia_qatar_sparse_families_are_deepened`.
 - Privacy posture remains public URL metadata plus paraphrased snippets only; no private case files, private filenames, raw private text, contact details, document numbers, or API keys were ingested.
+
+Latest continuation, 2026-06-04:
+
+- Completed loop: `south_asia_grievance_systems_deepened`.
+- Added 12 public official grievance, enforcement, and legal-framework seeds across India, Nepal, Sri Lanka, and Pakistan:
+  - India: MEA intending-emigrant FAQ, MADAD grievance portal, MADAD grievance-redressal guidance PDF, and MEA annual-report material on overseas-worker complaints and recruiting-agent enforcement.
+  - Nepal: DOFE licensed recruitment-agency registry and MoLESS service portal links including FEIMS and Shramadhan grievance-management pathways.
+  - Sri Lanka: SLBFE citizen charter describing complaint registration, embassy notification, licensed-agency involvement, inquiries, evidence documents, suspension, and blacklist recommendations.
+  - Pakistan: BE&OE FAQ, overseas-employment procedure PDF, updated Emigration Rules, complaint-process SRO, and overseas-ministry complaint-resolution page.
+- Regenerated deterministic no-network artifacts: 308 source candidates/profiles/knowledge objects, 201 dimensions, 3,080 second-wave queries, 308 source fetch/archive entries, 107 source-domain frontier/policy/browser-allowlist entries, 321 sitemap probes, 428 sitemap dorks, and 1,000 branching queue leads.
+- Coverage moved source-country recruitment grievance from 4 to 8 public profiles; sparse signals are now empty, with India 8, Nepal 7, Sri Lanka 6, and Pakistan 9.
+- Added a privacy rejection branch for `https://beoe.gov.pk/complaint` because the public complaint listing appears to expose individual complainant names or case rows. Future runs should use safer BE&OE FAQ, legal-framework, procedure, and ministry complaint-resolution sources instead.
+- Privacy posture remains public URL metadata plus paraphrased snippets only; no private case files, private filenames, raw private text, contact details, document numbers, public complaint rows, or API keys were ingested.

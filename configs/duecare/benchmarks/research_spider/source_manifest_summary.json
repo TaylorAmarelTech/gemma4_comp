@@ -1,8 +1,8 @@
 {
   "content_kinds": {
-    "html": 235,
-    "pdf": 56,
-    "plain_or_unknown": 5
+    "html": 241,
+    "pdf": 61,
+    "plain_or_unknown": 6
   },
   "privacy": {
     "manual_review_before_fetch": true,
@@ -10,6 +10,6 @@
     "raw_private_cases_ingested": false
   },
   "schema_version": "public_source_manifest_summary.v1",
-  "source_domain_frontier": 103,
-  "source_fetch_manifest": 296
+  "source_domain_frontier": 107,
+  "source_fetch_manifest": 308
 }

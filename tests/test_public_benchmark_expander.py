@@ -248,3 +248,15 @@ def test_pipeline_writes_expansion_artifacts(tmp_path):
     combined = "\n".join(path.read_text(encoding="utf-8") for path in out_dir.iterdir())
     assert '"raw_private_cases_ingested": true' not in combined
     assert "Worker A" in combined
+
+
+def test_manual_privacy_rejection_keeps_public_complaint_rows_out_of_sources():
+    rows = expander.rejected_source_rows([], [], {"gaps": {}})
+    row = next(item for item in rows if item["id"] == "REJECT-MANUAL-BEOE-COMPLAINT-LIST")
+
+    assert row["url"] == "https://beoe.gov.pk/complaint"
+    assert row["decision"] == "reject_for_privacy"
+    assert "individual_complainant_names_or_case_rows" in " ".join(row["reasons"])
+    assert "Do not fetch" in row["retry_strategy"]
+    assert row["privacy"]["people_or_contact_harvesting_allowed"] is False
+    assert row["privacy"]["raw_private_cases_ingested"] is False

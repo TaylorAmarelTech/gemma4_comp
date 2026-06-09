@@ -295,8 +295,8 @@ DOMAIN_TIERS: tuple[dict, ...] = (
     },
     {
         "id": "india_bonded_labour_migration",
-        "domains": ("labour.gov.in", "nhrc.nic.in", "sci.gov.in", "api.sci.gov.in", "emigrate.gov.in"),
-        "site_filters": ("site:labour.gov.in", "site:nhrc.nic.in", "site:sci.gov.in", "site:api.sci.gov.in", "site:emigrate.gov.in"),
+        "domains": ("labour.gov.in", "nhrc.nic.in", "sci.gov.in", "api.sci.gov.in", "emigrate.gov.in", "mea.gov.in", "madad.gov.in"),
+        "site_filters": ("site:labour.gov.in", "site:nhrc.nic.in", "site:sci.gov.in", "site:api.sci.gov.in", "site:emigrate.gov.in", "site:mea.gov.in", "site:madad.gov.in"),
         "tier": "official_government_or_court",
         "base_score": 46,
         "jurisdictions": ("India",),
@@ -2810,6 +2810,30 @@ DEFAULT_SEED_SOURCES: tuple[dict, ...] = (
         "seed_family": "india_bonded_labour_migration",
     },
     {
+        "url": "https://www.mea.gov.in/issues-of-intending-emigrants.htm",
+        "title": "India MEA FAQ on intending emigrants and recruiting-agent complaints",
+        "snippet": "Official MEA FAQ explaining that complaints against recruiting agents can be lodged through eMigrate or sent to the Protector General of Emigrants, and warning that unregistered agents lack grievance-redressal avenues.",
+        "seed_family": "india_bonded_labour_migration",
+    },
+    {
+        "url": "https://www.madad.gov.in/AppConsular/",
+        "title": "India MADAD consular grievance portal",
+        "snippet": "Official Ministry of External Affairs consular grievance system for Indian missions and posts abroad, relevant to migrant-worker complaint routing, grievance tracking, and safe escalation when destination-country problems arise.",
+        "seed_family": "india_bonded_labour_migration",
+    },
+    {
+        "url": "https://madad.gov.in/AppConsular/images/Redressal_Grivences.pdf",
+        "title": "India MADAD grievance-redressal public guidance PDF",
+        "snippet": "Official MADAD guidance PDF describing overseas grievance redressal, mission/post routing, and transfer of overseas-employment issues to the Protector General of Emigrants or related public authorities.",
+        "seed_family": "india_bonded_labour_migration",
+    },
+    {
+        "url": "https://www.mea.gov.in/images/pdf/annual-report-2014-15.pdf",
+        "title": "India MEA annual report section on overseas-worker complaints and RA enforcement",
+        "snippet": "Official MEA annual report discussing complaints about overseas worker exploitation, delayed wages, contract changes, workers left without jobs, recruiting-agent accountability, registration suspension, and bank-guarantee remedies.",
+        "seed_family": "india_bonded_labour_migration",
+    },
+    {
         "url": "https://bmet.gov.bd/pages/forms/complaint-form-against-recruiting-agent-1d1b39-6922da18933eb65569e0272f",
         "title": "Bangladesh BMET complaint form against recruiting agents",
         "snippet": "Official BMET form page for complaints against recruiting agents, supporting source-country evidence preservation for recruitment fees, agency misconduct, job substitution, and overseas-employment grievance intake.",
@@ -2864,6 +2888,18 @@ DEFAULT_SEED_SOURCES: tuple[dict, ...] = (
         "seed_family": "nepal_foreign_employment",
     },
     {
+        "url": "https://dofe.gov.np/Recruting-Agences.aspx",
+        "title": "Nepal DOFE licensed recruitment-agency registry",
+        "snippet": "Official Department of Foreign Employment registry for licensed recruitment agencies, supporting source-country checks of agency status, licence validity, complaint routing, and recruitment-abuse evidence preservation.",
+        "seed_family": "nepal_foreign_employment",
+    },
+    {
+        "url": "https://www.moless.gov.np/",
+        "title": "Nepal labour ministry foreign-employment service and grievance portal links",
+        "snippet": "Official labour-ministry page linking foreign-employment systems, FEIMS, the Shramadhan grievance-management portal, and labour-migration service channels relevant to complaint intake and agency oversight.",
+        "seed_family": "nepal_foreign_employment",
+    },
+    {
         "url": "https://www.slbfe.lk/slbfe-news/special-announcement-beware-of-fraudulent-korean-e-8-visa-employment-schemes/",
         "title": "Sri Lanka SLBFE warning on fraudulent Korean E-8 visa employment schemes",
         "snippet": "Official SLBFE warning on fake visa employment schemes, illegal collection of money, unapproved agencies or intermediaries, overseas-employment fraud, and public reporting.",
@@ -2894,6 +2930,12 @@ DEFAULT_SEED_SOURCES: tuple[dict, ...] = (
         "seed_family": "sri_lanka_foreign_employment",
     },
     {
+        "url": "https://www.slbfe.lk/citizen-charter-of-the-slbfe/",
+        "title": "Sri Lanka SLBFE citizen charter for complaint workflow and agency sanctions",
+        "snippet": "Official citizen charter describing complaint registration, embassy notification, licensed-agency involvement, inquiries, evidence documents, and suspension or blacklist recommendations when agencies do not resolve complaints.",
+        "seed_family": "sri_lanka_foreign_employment",
+    },
+    {
         "url": "https://beoe.gov.pk/illegal-recruitment",
         "title": "Pakistan Bureau of Emigration illegal-recruitment instructions",
         "snippet": "Official Pakistan BE&OE guidance warning against unlicensed agencies, missing job orders, unauthorized representatives, excessive placement fees, unofficial payments, training-center promises, and tourist-visa recruitment.",
@@ -2915,6 +2957,36 @@ DEFAULT_SEED_SOURCES: tuple[dict, ...] = (
         "url": "https://ophrd.gov.pk/Detail/NjVjNmU1ZjktNjc4Yy00MzI3LTkxODItOTNiNmVhMDAxMzQw",
         "title": "Pakistan overseas ministry Qatar employment FAQ",
         "snippet": "Official overseas ministry FAQ on Qatar employment, recruitment fees, employer change, documented demand approvals, worker awareness, authorized overseas employment promoters, and free-visa risk.",
+        "seed_family": "pakistan_overseas_employment",
+    },
+    {
+        "url": "https://beoe.gov.pk/faqs?s=3",
+        "title": "Pakistan BE&OE FAQ on complaints against fake recruiting agents",
+        "snippet": "Official BE&OE FAQ instructing workers to provide case details and supporting documents for fake-recruiting-agent complaints, with referral to public enforcement channels under the Emigration Rules.",
+        "seed_family": "pakistan_overseas_employment",
+    },
+    {
+        "url": "https://beoe.gov.pk/files/legal-framework/procedure-for-overseas-employment.pdf",
+        "title": "Pakistan BE&OE procedure for overseas employment PDF",
+        "snippet": "Official BE&OE procedure PDF for overseas employment, recruitment-demand processing, overseas employment promoter duties, complaint handling, employer comments, and documentation needed to assess recruitment abuse.",
+        "seed_family": "pakistan_overseas_employment",
+    },
+    {
+        "url": "https://beoe.gov.pk/files/legal-framework/Emigration_Rules_1979_Updated_2023.pdf",
+        "title": "Pakistan updated Emigration Rules 1979 public PDF",
+        "snippet": "Official updated Emigration Rules PDF covering overseas employment promoters, registered demand processing, employer and promoter duties, complaint procedures, enforcement, and recruitment-agency accountability.",
+        "seed_family": "pakistan_overseas_employment",
+    },
+    {
+        "url": "https://beoe.gov.pk/files/legal-framework/SRO10582023.pdf",
+        "title": "Pakistan emigration rules amendment on overseas-employment complaints",
+        "snippet": "Official Gazette/SRO PDF referencing time limits and process controls for complaints against overseas employment promoters, useful for source-country complaint-timing and remedy-pathway prompts.",
+        "seed_family": "pakistan_overseas_employment",
+    },
+    {
+        "url": "https://ophrd.gov.pk/Detail/NjYyYzIwYzktOWRhNi00NzVmLWFjOTEtZDkyZDk1OTY3Nzhl",
+        "title": "Pakistan overseas ministry complaint resolution system",
+        "snippet": "Official overseas-ministry complaint-resolution page describing ministry-level complaint lodging channels and escalation to overseas-employment institutions, without using individual complaint records.",
         "seed_family": "pakistan_overseas_employment",
     },
 )

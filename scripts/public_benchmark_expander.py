@@ -61,6 +61,22 @@ TARGET_SECTORS = {
     "scam_compound": re.compile(r"\b(scam|fraud|cyber|telecom|crypto|compound|customer support)\b", re.I),
 }
 
+MANUAL_REJECTED_SOURCE_BRANCHES = (
+    {
+        "id": "REJECT-MANUAL-BEOE-COMPLAINT-LIST",
+        "url": "https://beoe.gov.pk/complaint",
+        "decision": "reject_for_privacy",
+        "reasons": [
+            "public_complaint_listing_appears_to_expose_individual_complainant_names_or_case_rows",
+            "not_needed_when_safer_faq_legal_framework_and_ministry_complaint_pages_cover_the_public_workflow",
+        ],
+        "retry_strategy": (
+            "Do not fetch, profile, quote, or use complaint-row content. Use privacy-safe BE&OE FAQ, "
+            "legal-framework, procedure, and ministry complaint-resolution pages instead."
+        ),
+    },
+)
+
 
 def stable_hash(value: str, *, n: int = 12) -> str:
     return hashlib.sha256(value.encode("utf-8", errors="replace")).hexdigest()[:n]
@@ -878,6 +894,22 @@ def applicability_seed_rows(profiles: list[dict], *, limit: int = 180) -> list[d
 
 def rejected_source_rows(profiles: list[dict], manifest: list[dict], coverage: dict) -> list[dict]:
     rows: list[dict] = []
+    for branch in MANUAL_REJECTED_SOURCE_BRANCHES:
+        rows.append(
+            {
+                "schema_version": f"{SCHEMA_PREFIX}.rejected_or_deferred_source_branch.v1",
+                "id": branch["id"],
+                "url": branch["url"],
+                "decision": branch["decision"],
+                "reasons": branch["reasons"],
+                "retry_strategy": branch["retry_strategy"],
+                "privacy": {
+                    "raw_private_cases_ingested": False,
+                    "public_url_metadata_only": True,
+                    "people_or_contact_harvesting_allowed": False,
+                },
+            }
+        )
     by_candidate = {row.get("source_candidate_id"): row for row in manifest}
     for profile in profiles:
         reasons = []
