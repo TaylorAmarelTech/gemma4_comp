@@ -724,6 +724,179 @@ def test_iqama_renewal_fee_shifted_fires() -> None:
     assert "iqama_renewal_fee_shifted_to_worker" in _grep_rule_ids(text)
 
 
+_SHAM_STATUS_CASES = {
+    "sham_status_salon_free_training_does_clients": (
+        "She says I'm just training but I do all the walk-ins.",
+    ),
+    "sham_status_kitchen_stage_trial_unpaid": (
+        "Been doing stages all week for free in their kitchen.",
+    ),
+    "sham_status_care_livein_companion_not_worker": (
+        "I'm a live-in companion so it's not really a job.",
+    ),
+    "sham_status_farm_just_a_helper": (
+        "I'm just a helper on the farm so I'm not on the books.",
+    ),
+    "sham_status_construction_self_employed_we_control": (
+        "They put me on CIS as self-employed but the gaffer controls everything.",
+    ),
+    "sham_status_intern_doing_the_whole_job": (
+        "I'm an intern but I run the whole department on my own.",
+    ),
+    "sham_status_apprentice_forever": (
+        "I've been an apprentice for 6 years on the same pay.",
+    ),
+    "sham_status_not_really_staff_no_contract": (
+        "Boss says I'm not really staff so no holiday pay.",
+    ),
+    "sham_status_paid_in_tips_only_not_employee": (
+        "They say my wage is just tips and I'm not on payroll.",
+    ),
+    "sham_status_register_a_company_to_get_paid": (
+        "You have to set up an ABN before we can pay you.",
+    ),
+    "sham_status_work_for_exposure_portfolio": (
+        "Do it for exposure, there is no budget to pay you.",
+    ),
+    "sham_status_family_business_no_wage": (
+        "I work full time at my uncle's restaurant but family don't get paid.",
+    ),
+    "sham_status_commission_only_no_base": (
+        "It's commission only, no base wage and I can't make minimum.",
+    ),
+    "sham_status_helper_for_food_and_board": (
+        "I'm just a helper, I work for food and board no money.",
+    ),
+    "sham_status_observership_shadowing_does_real_work": (
+        "Supposed to be shadowing but I run the ward on my own unpaid.",
+    ),
+    "sham_status_youre_a_partner_not_employee": (
+        "He says we're partners not staff so there is no wage.",
+    ),
+    "sham_status_volunteer_to_get_your_papers": (
+        "Volunteer for free until I sort your visa.",
+    ),
+    "sham_status_faith_family_ministry_unpaid_work": (
+        "The pastor says this is ministry work and our church family, so I work full-time in the kitchen unpaid.",
+    ),
+    "sham_status_student_practicum_productive_work": (
+        "My clinical rotation is unpaid and I cover staff shifts on the ward full-time.",
+    ),
+    "sham_status_au_pair_cultural_exchange_full_job": (
+        "The host family says I am an au pair and part of the family, just pocket money, but I do all the childcare and cleaning full-time.",
+    ),
+    "sham_status_cooperative_member_no_wage": (
+        "The co-op says I am a member-owner not an employee, so no wage even though I work full-time in the kitchen.",
+    ),
+    "sham_status_housemate_lodger_chores_fulltime": (
+        "It is a room for help arrangement: I get a free room, no pay, and do childcare and cleaning every day.",
+    ),
+    "sham_status_tithe_obedience_wage_control": (
+        "The pastor says obedience means my wages are withheld as a tithe until I submit.",
+    ),
+}
+
+
+def test_sham_status_rules_fire_on_status_laundering_examples() -> None:
+    for rule_id, examples in _SHAM_STATUS_CASES.items():
+        for text in examples:
+            assert rule_id in _grep_rule_ids(text), (rule_id, text)
+
+
+def test_sham_status_rules_do_not_fire_on_benign_status_examples() -> None:
+    benign = (
+        "I just finished my paid training course at college today.",
+        "The kitchen staff are great and I love working here on payroll.",
+        "I am a live-in companion and I get a fair wage and two days off a week.",
+        "I am self-employed and I set my own hours and choose my own jobs.",
+        "I did a paid internship and they paid me properly every month.",
+        "I volunteered at the food bank on the weekend for fun.",
+        "The apprenticeship is two years and then I qualify on full pay.",
+        "I attend Bible study at church on Wednesday and volunteer on Sunday by choice.",
+        "Our church family hosts a free community meal once a month with volunteer cooks.",
+        "My cousin helps at the family shop on school holidays and gets paid hourly.",
+        "My clinical rotation is supervised, pays a stipend, and students do not replace staff.",
+        "My host family cultural exchange includes language classes and optional weekend activities.",
+        "The co-op members all receive payslips and hourly wages for kitchen shifts.",
+        "My housemate and I share ordinary chores and neither of us works for the other.",
+        "I choose to tithe from my wages after I am paid; no one withholds or controls my salary.",
+    )
+    candidate_ids = set(_SHAM_STATUS_CASES)
+    for text in benign:
+        overlap = _grep_rule_ids(text) & candidate_ids
+        assert overlap == set(), (text, overlap)
+
+
+def test_sham_status_training_exchange_coop_and_lodging_versus_cases() -> None:
+    harmful = {
+        "sham_status_student_practicum_productive_work": (
+            "This unpaid practicum is for course credit but I run the whole office and cover staff shifts."
+        ),
+        "sham_status_au_pair_cultural_exchange_full_job": (
+            "They call it cultural exchange and say I am part of the family, but I do all childcare and laundry every day for pocket money."
+        ),
+        "sham_status_cooperative_member_no_wage": (
+            "The cooperative says workers are member-owners, so no payslip or wage while we work full-time in production."
+        ),
+        "sham_status_housemate_lodger_chores_fulltime": (
+            "I am a lodger in a room for help setup: no salary, but I clean, cook, and do eldercare every day."
+        ),
+        "sham_status_tithe_obedience_wage_control": (
+            "The ministry says stewardship requires my salary to be paid to the church as an offering until I obey."
+        ),
+    }
+    for rule_id, text in harmful.items():
+        assert rule_id in _grep_rule_ids(text), (rule_id, text)
+
+    benign = (
+        "A student observes a practicum for one afternoon and receives supervision without replacing staff.",
+        "An au pair on a lawful exchange has limited hours, days off, and clear pay terms.",
+        "The cooperative has written member rights, elected control, and pays worker-members hourly wages.",
+        "A housemate does ordinary shared chores and pays normal rent under a tenancy agreement.",
+        "The church member voluntarily makes an offering after receiving her full wages.",
+    )
+    candidate_ids = set(harmful)
+    for text in benign:
+        overlap = _grep_rule_ids(text) & candidate_ids
+        assert overlap == set(), (text, overlap)
+
+
+def test_sham_status_family_faith_versus_cases_are_substance_over_form() -> None:
+    harmful = {
+        "sham_status_family_business_no_wage": (
+            "It is a family business so no real wage even though I work full time at the restaurant."
+        ),
+        "sham_status_faith_family_ministry_unpaid_work": (
+            "The elder says I am serving the Lord, not an employee, but I clean the church school every day unpaid."
+        ),
+        "sham_status_youre_a_partner_not_employee": (
+            "He says we are partners not staff so there is no wage or payslip."
+        ),
+    }
+    for rule_id, text in harmful.items():
+        assert rule_id in _grep_rule_ids(text), (rule_id, text)
+
+    benign = (
+        "My family owns a cafe and I am a regular employee with payslips and hourly wages.",
+        "I volunteer at Bible camp one weekend each summer and no one controls my housing or papers.",
+        "We are business partners with written profit shares and no wage relationship.",
+    )
+    candidate_ids = set(harmful)
+    for text in benign:
+        overlap = _grep_rule_ids(text) & candidate_ids
+        assert overlap == set(), (text, overlap)
+
+
+def test_sham_status_rules_have_required_metadata() -> None:
+    h = _load_harness()
+    matched = [r for r in h.GREP_RULES if r["rule"] in set(_SHAM_STATUS_CASES)]
+    assert len(matched) == len(_SHAM_STATUS_CASES)
+    for rule in matched:
+        assert rule.get("severity") in ("critical", "high", "medium", "low")
+        assert rule.get("citation"), f"{rule['rule']} missing citation"
+        assert rule.get("indicator"), f"{rule['rule']} missing indicator"
+
+
 # =============================================================================
 # Universal grader v3 — multi-signal scoring beyond keyword matching.
 # Tests the four upgrades: expanded citation corpus, section verification,
