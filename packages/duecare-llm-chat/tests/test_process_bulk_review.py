@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import io
 import threading
 import time
@@ -7,6 +8,11 @@ import zipfile
 from pathlib import Path
 
 from fastapi.testclient import TestClient
+
+# The media-rich sample carries 6 image-only PDFs plus 13 text PDFs. With
+# pypdf installed the 13 extract and classify by content; without it all 19
+# fall back to scanned_pdf OCR work items, so the floors differ per env.
+_HAS_PYPDF = importlib.util.find_spec("pypdf") is not None
 
 
 def test_case_files_sample_has_ph_hk_bulk_review_depth():
@@ -578,10 +584,10 @@ def test_process_batch_returns_intelligence_for_media_rich_sample():
     assert body["summary"]["truncated"] is False
     assert intel["n_documents"] >= 110
     assert intel["document_type_counts"]["media_image"] >= 30
-    assert intel["document_type_counts"]["scanned_pdf"] >= 12
+    assert intel["document_type_counts"]["scanned_pdf"] >= (6 if _HAS_PYPDF else 12)
     assert intel["document_type_counts"]["payment_history"] >= 6
     assert intel["document_type_counts"]["chat_messages"] >= 6
-    assert intel["processing_plan"]["n_media_assets"] >= 50
+    assert intel["processing_plan"]["n_media_assets"] >= (40 if _HAS_PYPDF else 50)
     assert intel["n_typed_edges"] >= intel["n_evidence_edges"]
     assert "media_requires_gemma_vision" in {c["edge_type"] for c in intel["typed_edge_counts"]}
     assert any(c["knowledge_object_type"] in {"modus_operandi", "fact_template"} for c in intel["rag_candidates"])
@@ -628,7 +634,7 @@ def test_process_batch_async_job_returns_media_rich_result():
     assert body["job_id"] == job_id
     assert body["config"]["processing_mode"] == "async_job"
     assert body["summary"]["n_people_detected"] >= 6
-    assert body["intelligence"]["processing_plan"]["n_media_assets"] >= 50
+    assert body["intelligence"]["processing_plan"]["n_media_assets"] >= (40 if _HAS_PYPDF else 50)
 
 
 def test_process_batch_async_job_can_be_abandoned():
