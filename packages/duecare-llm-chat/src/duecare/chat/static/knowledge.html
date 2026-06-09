@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/static/_chrome.css">
   <script src="/static/_nav.js" defer></script>
   <script src="/static/_activity_log.js" defer></script>
+  <script src="/static/_envelope_card.js" defer></script>
   <script src="/static/_workflow.js" defer></script>
   <style>
     body { font-family: 'Inter', sans-serif; background: #F7F6F1; color: #0E1116; margin: 0; padding: 0; }
@@ -1058,44 +1059,30 @@
                 scrubbedEnvs.length + ' of ' + kxDrafts.length + ' draft(s) so the saved knowledge facts read as anonymized prose, not as build-log fragments.');
             }
           }
-          resultEl.innerHTML = kxDrafts.map((env, idx) => {
-            const envExt = (env && env.extensions) || {};
-            const envError = envExt.gemma_error ? String(envExt.gemma_error).slice(0, 280) : '';
-            const envUsedGemma = envExt.model_call_requested === true
-              && envExt.model_call_available === true
-              && !envExt.gemma_error
-              && !envExt.fallback;
-            const sourceBadge = envError
-              ? '<span class="dc-gemma-mark is-unavailable" title="Gemma 4 was attempted but errored; the deterministic template is shown instead.">Deterministic (Gemma 4 errored)</span>'
-              : envUsedGemma
-                ? '<span class="dc-gemma-mark is-done" title="Gemma 4 actually refined this draft (server confirmed model_call_available + no fallback + no error).">Gemma 4 refined</span>'
-                : '<span class="dc-gemma-mark is-optional" title="Server returned the deterministic template for this draft.">Deterministic</span>';
-            const scrubBadge = envExt.noise_scrubbed_before_gemma === true
-              ? ' <span class="dc-gemma-mark is-done" title="The source text was scrubbed of kernel run IDs, /kaggle/working/... paths, ZIP/JSONL filenames, and synthetic case folder names before this draft was generated, so the saved fact reads as anonymized prose instead of build-log fragments.">Noise scrubbed</span>'
-              : '';
-            const errorBanner = envError
-              ? '<div style="margin: 8px 0; padding: 9px 12px; background: oklch(0.97 0.025 25); border: 1px solid oklch(0.78 0.10 45); border-left: 4px solid oklch(0.55 0.18 25); border-radius: 6px; font-size: 12px; line-height: 1.5; color: oklch(0.32 0.10 25);">'
-                + '<b style="display:block; margin-bottom:3px;">Gemma 4 did not refine this envelope.</b>'
-                + 'Reason: ' + escapeHtml(envError)
-                + (envError.toLowerCase().indexOf('cuda out of memory') >= 0 || envError.toLowerCase().indexOf('oom') >= 0
-                    ? '<div style="margin-top:6px; opacity:0.85;">Recovery: load a smaller Gemma 4 variant (E4B / E2B) via the Model picker, OR Shutdown + reload the kernel to clear GPU state. The deterministic template below is still usable for promotion.</div>'
-                    : '<div style="margin-top:6px; opacity:0.85;">The deterministic template below is still usable for promotion; check the activity log for kernel state.</div>')
-                + '</div>'
-              : '';
-            return '<section class="wb-card" style="background:#FAF9F4; margin:8px 0; padding:12px;">' +
-              '<div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; align-items:center;">' +
-              '<div><b>' + escapeHtml(env.knowledge_object_type || 'knowledge_object') + '</b> ' +
-              '<span class="wb-muted">' + escapeHtml(env.id || '') + '</span> ' + sourceBadge + scrubBadge + '</div>' +
-              '<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">' +
-              '<span class="wb-muted" id="kx-promote-status-' + idx + '">Not promoted</span>' +
-              '<button class="wb-btn-secondary" id="kx-polish-btn-' + idx + '" type="button" onclick="kxPolishDraft(' + idx + ')" title="Two Gemma 4 passes: first lists what is vague/operational/missing-indicator, second rewrites the draft applying every fix. Re-runs the standardize step so field ordering + indicator vocabulary stay canonical.">Polish further (Gemma 4)</button>' +
-              '<button class="wb-btn-primary" id="kx-promote-btn-' + idx + '" type="button" onclick="kxPromoteDraft(' + idx + ')">Promote draft</button>' +
-              '</div>' +
-              '</div>' +
-              errorBanner +
-              '<pre style="background:#FFF; border:1px solid #DDD8C9; padding:10px; border-radius:6px; font-size:11.5px; overflow:auto; max-height:240px;">' +
-              escapeHtml(JSON.stringify(env, null, 2)) + '</pre></section>';
-          }).join('');
+          // Shared renderer (_envelope_card.js): identical provenance
+          // badges, integrity-hash pill, error banner, and JSON body as
+          // search.html and any future federation surface.
+          resultEl.textContent = '';
+          kxDrafts.forEach((env, idx) => {
+            resultEl.appendChild(window.dcEnvelopeCard.render(env, {
+              statusId: 'kx-promote-status-' + idx,
+              statusText: 'Not promoted',
+              actions: [
+                {
+                  label: 'Polish further (Gemma 4)',
+                  id: 'kx-polish-btn-' + idx,
+                  title: 'Two Gemma 4 passes: first lists what is vague/operational/missing-indicator, second rewrites the draft applying every fix. Re-runs the standardize step so field ordering + indicator vocabulary stay canonical.',
+                  onClick: function () { kxPolishDraft(idx); },
+                },
+                {
+                  label: 'Promote draft',
+                  id: 'kx-promote-btn-' + idx,
+                  primary: true,
+                  onClick: function () { kxPromoteDraft(idx); },
+                },
+              ],
+            }));
+          });
           void kxRunAutoPolishQueue(kxDrafts.length);
         }catch(e){
           statusEl.textContent="Extract failed: "+String(e).slice(0,200);

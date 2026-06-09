@@ -227,6 +227,7 @@ class KnowledgeSubmissionReceipt(BaseModel):
     n_accepted: int
     n_rejected_schema: int
     n_rejected_pii: int
+    n_duplicates: int = 0
     sha256_blob: str
     status: str = "proposed"
     audit_path: str
@@ -882,6 +883,54 @@ def _knowledge_packs() -> list[KnowledgePackSummary]:
     ]
 
 
+_ENVELOPE_CONTRACT_CACHE: tuple[frozenset[str], dict[str, list[str]]] | None = None
+
+
+def _envelope_contract() -> tuple[frozenset[str], dict[str, list[str]]]:
+    """Load (known types, required content keys) from the committed schema.
+
+    The hub container does not install the duecare packages, so the
+    generated ``static/envelope_schema.json`` is its single source for the
+    KnowledgeObject contract (kept in sync by
+    ``scripts/build_envelope_schema.py`` + ``tests/test_envelope_schema_sync.py``).
+    """
+    global _ENVELOPE_CONTRACT_CACHE
+    if _ENVELOPE_CONTRACT_CACHE is not None:
+        return _ENVELOPE_CONTRACT_CACHE
+    types: set[str] = set()
+    required: dict[str, list[str]] = {}
+    try:
+        schema = json.loads(
+            (APP_DIR / "static" / "envelope_schema.json").read_text(encoding="utf-8")
+        )
+        types = set(schema.get("properties", {}).get("knowledge_object_type", {}).get("enum") or [])
+        for clause in schema.get("allOf") or []:
+            ko_type = (
+                clause.get("if", {}).get("properties", {})
+                .get("knowledge_object_type", {}).get("const")
+            )
+            keys = (
+                clause.get("then", {}).get("properties", {})
+                .get("content", {}).get("required") or []
+            )
+            if ko_type:
+                required[str(ko_type)] = [str(k) for k in keys]
+    except Exception:
+        # Fail open to the historical hub set: the submit endpoint must not
+        # 500 because a schema file is missing in a stale deployment.
+        types = {
+            "grep_rule", "glob_rule", "classifier_rule", "heuristic_rule",
+            "rag_doc", "citation_edge", "corridor_profile", "ngo_directory",
+            "persona_block", "context_snippet", "reasoning_step", "rubric_dimension",
+            "tool_definition", "tool_example", "tool_chain",
+            "fact_template", "upload_schema", "prompt_template",
+            "envelope_schema", "audit_template", "submission_schema",
+        }
+        required = {}
+    _ENVELOPE_CONTRACT_CACHE = (frozenset(types), required)
+    return _ENVELOPE_CONTRACT_CACHE
+
+
 def _object_parameters(properties: dict[str, object], required: list[str] | None = None) -> dict[str, object]:
     """Return a JSON-schema object parameter block for a tool definition."""
     return {
@@ -1193,7 +1242,7 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         recipient can distinguish. All entries are pre-anonymized at
         ingest; the hub stores no raw worker identifiers.
         """
-        import io as _io, zipfile as _zipfile, json as _json
+        import hashlib as _hashlib, io as _io, zipfile as _zipfile, json as _json
         from datetime import UTC as _UTC, datetime as _dt
         packs = _knowledge_packs()
         if vetted:
@@ -1201,6 +1250,12 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         buf = _io.BytesIO()
         with _zipfile.ZipFile(buf, "w", _zipfile.ZIP_DEFLATED) as zf:
             for p in packs:
+                content = {
+                    "title": p.title,
+                    "kind": p.kind,
+                    "description": p.description,
+                    "update_channel": p.update_channel,
+                }
                 envelope = {
                     "schema_version": "1.0",
                     "knowledge_object_type": "knowledge_pack_summary",
@@ -1211,13 +1266,15 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
                         "served_at": _dt.now(_UTC).strftime("%Y-%m-%dT%H-%M-%SZ"),
                         "vetted": p.status == "live",
                         "status": p.status,
+                        # Tamper-detection handle: sha256 over sorted-key
+                        # compact JSON of `content` (same recipe as the
+                        # kernel's knowledge_taxonomy.content_sha256).
+                        "content_sha256": _hashlib.sha256(
+                            _json.dumps(content, ensure_ascii=False, sort_keys=True,
+                                          separators=(",", ":")).encode("utf-8")
+                        ).hexdigest(),
                     },
-                    "content": {
-                        "title": p.title,
-                        "kind": p.kind,
-                        "description": p.description,
-                        "update_channel": p.update_channel,
-                    },
+                    "content": content,
                     "tags": [],
                     "extensions": {},
                 }
@@ -1415,15 +1472,9 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         run_id = body.submission_id or f"hub_submit_{ts}"
         items = body.items or []
 
-        KO_TYPES_HUB = {
-            "grep_rule", "glob_rule", "classifier_rule", "heuristic_rule",
-            "rag_doc", "citation_edge", "corridor_profile", "ngo_directory",
-            "persona_block", "context_snippet", "reasoning_step", "rubric_dimension",
-            "tool_definition", "tool_example", "tool_chain",
-            "fact_template", "upload_schema", "prompt_template",
-            "envelope_schema", "audit_template", "submission_schema",
-            "knowledge_pack_summary",
-        }
+        schema_types, required_keys = _envelope_contract()
+        # knowledge_pack_summary is hub-only metadata, not a kernel leaf type.
+        KO_TYPES_HUB = set(schema_types) | {"knowledge_pack_summary"}
 
         PII_PATTERNS = [
             ("EMAIL",  _re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")),
@@ -1441,6 +1492,21 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         accepted: list[dict] = []
         rejected_schema: list[dict] = []
         rejected_pii: list[dict] = []
+        duplicates: list[dict] = []
+
+        # Idempotency: a resubmission of identical content is acknowledged,
+        # not re-queued for curation.
+        state = _state(request)
+        seen: set[tuple[str, str, str]] = set()
+        prior_path = state.store.root / "knowledge_submissions.jsonl"
+        if prior_path.exists():
+            for line in prior_path.read_text(encoding="utf-8").splitlines():
+                try:
+                    prior = _json.loads(line)
+                except Exception:
+                    continue
+                for a in prior.get("accepted") or []:
+                    seen.add((str(a.get("type")), str(a.get("id")), str(a.get("content_sha256"))))
 
         for i, item in enumerate(items):
             if not isinstance(item, dict):
@@ -1461,18 +1527,33 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
             if not isinstance(content, dict):
                 rejected_schema.append({"i": i, "reason": "content must be a JSON object"})
                 continue
+            missing = [k for k in required_keys.get(ko_type, []) if k not in content]
+            if missing:
+                rejected_schema.append({
+                    "i": i,
+                    "id": ko_id,
+                    "reason": (
+                        f"content for `{ko_type}` is missing required key(s): "
+                        f"{', '.join(missing)} (see /static/envelope_schema.json)"
+                    ),
+                })
+                continue
             blob = _json.dumps(content, ensure_ascii=False)
             hit = _contains_pii(blob)
             if hit:
                 rejected_pii.append({"i": i, "id": ko_id, "label": hit})
                 continue
+            chash = _hashlib.sha256(blob.encode()).hexdigest()
+            if (str(ko_type), str(ko_id), chash) in seen:
+                duplicates.append({"i": i, "id": ko_id})
+                continue
+            seen.add((str(ko_type), str(ko_id), chash))
             accepted.append({
                 "type": ko_type,
                 "id": ko_id,
-                "content_sha256": _hashlib.sha256(blob.encode()).hexdigest(),
+                "content_sha256": chash,
             })
 
-        state = _state(request)
         audit_dir = state.store.root
         try:
             audit_dir.mkdir(parents=True, exist_ok=True)
@@ -1494,10 +1575,12 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
             "n_accepted": len(accepted),
             "n_rejected_schema": len(rejected_schema),
             "n_rejected_pii": len(rejected_pii),
+            "n_duplicates": len(duplicates),
             "sha256_blob": sha,
             "accepted": accepted,
             "rejected_schema": rejected_schema,
             "rejected_pii": rejected_pii,
+            "duplicates": duplicates,
             "client_ts": body.ts,
         }
         try:
@@ -1516,6 +1599,11 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
                 f" {len(rejected_pii)} item(s) rejected at the Stage 03 PII "
                 "hard gate -- re-anonymize and resubmit."
             )
+        if duplicates:
+            note += (
+                f" {len(duplicates)} item(s) were exact duplicates of prior "
+                "accepted submissions and were acknowledged without re-queueing."
+            )
 
         return KnowledgeSubmissionReceipt(
             ok=True,
@@ -1524,6 +1612,7 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
             n_accepted=len(accepted),
             n_rejected_schema=len(rejected_schema),
             n_rejected_pii=len(rejected_pii),
+            n_duplicates=len(duplicates),
             sha256_blob=sha,
             status="proposed",
             audit_path=str(audit_path),
