@@ -140,7 +140,11 @@
 </head>
 <body data-nav="grade">
 <main class="showcase">
-  <div class="wb-trust" style="margin: 0 0 14px;"><b>Trust boundary:</b> Grading runs against the loaded Gemma 4 in this kernel (deep / combined modes) or via deterministic rules (universal). No prompt, response, or rubric leaves the kernel. Graded transcripts are appended to the per-task training-log JSONL.</div>
+  <div class="dc-trust-row" role="note" aria-label="Trust boundary" style="margin: 0 0 14px;">
+    <span class="dc-trust-pill"><span class="dot"></span>LOCAL</span>
+    <span class="dc-trust-pill"><span class="dot"></span>ON-KERNEL GRADING</span>
+    <span class="dc-trust-text">Grading runs against the loaded Gemma 4 in this kernel (deep / combined modes) or via deterministic rules (universal). No prompt, response, or rubric leaves the kernel. Graded transcripts are appended to the per-task training-log JSONL.</span>
+  </div>
   <div class="crumbs">Workbench tool | Chat &amp; classification</div>
   <h1>Grade a response</h1>
   <p class="lede">

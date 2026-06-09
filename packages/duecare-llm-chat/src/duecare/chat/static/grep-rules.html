@@ -107,10 +107,12 @@
   </header>
   <div class="histogram" id="histogram" title="Click a category to filter"></div>
   <!-- Trust disclosure (Rule 7) -->
-  <div class="wb-trust" style="margin:10px 24px 0;">
-    GREP rule catalog is read from the local kernel.
+  <div class="dc-trust-row" role="note" aria-label="Trust boundary" style="margin:10px 24px 0;">
+    <span class="dc-trust-pill"><span class="dot"></span>LOCAL</span>
+    <span class="dc-trust-pill"><span class="dot"></span>READ-ONLY</span>
+    <span class="dc-trust-text">GREP rule catalog is read from the local kernel.
     Fire counts show how many times each rule matched text in the current session.
-    No data leaves the kernel.
+    No data leaves the kernel.</span>
   </div>
   <!-- Activity Log (Rule 1) -->
   <div id="grep-log" class="dc-activity-log" style="margin:8px 24px 4px;">

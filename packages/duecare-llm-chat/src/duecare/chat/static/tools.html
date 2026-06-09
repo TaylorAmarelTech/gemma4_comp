@@ -46,10 +46,12 @@
     <div class="sub" id="stats">Loading…</div>
   </header>
   <!-- rule 7 (trust boundary): read-only — fetches GET /api/harness-catalog/tools from the local kernel only; no user data sent, nothing written. -->
-  <div class="wb-trust" style="margin: 12px 32px 0; max-width: 1200px;">
-    <b>Read-only catalog.</b> This page fetches the list of function-calling
+  <div class="dc-trust-row" role="note" aria-label="Trust boundary" style="margin: 12px 32px 0; max-width: 1200px;">
+    <span class="dc-trust-pill"><span class="dot"></span>LOCAL</span>
+    <span class="dc-trust-pill"><span class="dot"></span>READ-ONLY</span>
+    <span class="dc-trust-text">This page fetches the list of function-calling
     tools and backing knowledge tables from the local kernel only.
-    No user data is sent and nothing is written.
+    No user data is sent and nothing is written.</span>
   </div>
   <div class="dc-activity-log" id="tools-log" style="margin: 12px 32px 0; max-width: 1200px;">
     <div class="dc-log-idle">Waiting for tools catalog…</div>

@@ -111,13 +111,15 @@
     File: <code class="path" id="log-path">/kaggle/working/duecare-logs.jsonl</code>.
   </p>
 
-  <div class="wb-trust" style="margin-bottom:16px;">
-    Log events are read locally from
+  <div class="dc-trust-row" role="note" aria-label="Trust boundary" style="margin-bottom:16px;">
+    <span class="dc-trust-pill"><span class="dot"></span>LOCAL</span>
+    <span class="dc-trust-pill"><span class="dot"></span>NEVER UPLOADED</span>
+    <span class="dc-trust-text">Log events are read locally from
     <code style="font-family:var(--mono); font-size:12px;">/kaggle/working/duecare-logs.jsonl</code>
     on this kernel's disk. No event data leaves the kernel.
     Events may include partial query text from harness calls; this file is
     never uploaded to the public hub. <strong>"Clear all logs"</strong> permanently
-    deletes all in-memory and on-disk events for this session.
+    deletes all in-memory and on-disk events for this session.</span>
   </div>
 
   <div class="stats-row" id="stats-row">

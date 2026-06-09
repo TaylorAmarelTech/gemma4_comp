@@ -46,15 +46,17 @@
       each run.
     </p>
 
-    <p class="wb-trust">
-      Health checks query local kernel endpoints only
+    <div class="dc-trust-row" role="note" aria-label="Trust boundary" style="margin-bottom:14px;">
+      <span class="dc-trust-pill"><span class="dot"></span>LOCAL</span>
+      <span class="dc-trust-pill"><span class="dot"></span>SYNTHETIC SAMPLES</span>
+      <span class="dc-trust-text">Health checks query local kernel endpoints only
       (<code>/api/version</code>, <code>/api/model-info</code>,
       <code>/api/audit/workbench-inventory</code>, etc.).
       No user data is sent off-device. External links (Live Demo, Evaluation)
       open corresponding Kaggle notebooks in a new tab and are read-only
       navigation targets. Sample artifact downloads are synthetic
-      composite data only — no real case files or PII.
-    </p>
+      composite data only — no real case files or PII.</span>
+    </div>
 
     <section class="panel">
       <h2>Before Recording</h2>

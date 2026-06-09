@@ -119,12 +119,14 @@
     <input id="search" type="text" placeholder="Search the active view…" />
     <a href="/static/rag-corpus.html" class="wb-btn-secondary">Raw index &#8599;</a>
   </header>
-  <div class="wb-trust" style="padding:8px 24px; font-size:12px;">
-    Read-only showcase. Reads the local grounding index from
+  <div class="dc-trust-row" role="note" aria-label="Trust boundary" style="margin:8px 24px 0;">
+    <span class="dc-trust-pill"><span class="dot"></span>LOCAL</span>
+    <span class="dc-trust-pill"><span class="dot"></span>READ-ONLY</span>
+    <span class="dc-trust-text">Read-only showcase. Reads the local grounding index from
     <code>/api/harness-catalog/rag</code>, the tool registry from
     <code>/api/harness-catalog/tools</code>, and a public-domain world map from
     <code>/static/world-countries.geo.json</code> — no user input is sent and nothing
-    leaves the kernel. Source links open the original public document in a new tab.
+    leaves the kernel. Source links open the original public document in a new tab.</span>
   </div>
   <div id="atlas-log" class="dc-activity-log" style="margin:8px 24px; font-size:11px;">
     <div class="dc-log-idle">Waiting for corpus load…</div>

@@ -52,13 +52,15 @@
     <div class="sub" id="stats">Loading…</div>
   </header>
   <div class="container">
-    <div class="note" style="margin-bottom: 18px;" role="note" aria-label="Trust boundary">
-      <strong>Trust boundary:</strong> This status page reads provider
+    <div class="dc-trust-row" role="note" aria-label="Trust boundary" style="margin-bottom: 18px;">
+      <span class="dc-trust-pill"><span class="dot"></span>LOCAL</span>
+      <span class="dc-trust-pill"><span class="dot"></span>CHAT-ONLY EGRESS</span>
+      <span class="dc-trust-text">This status page reads provider
       configuration from the local kernel only (<code>/api/harness-catalog/online</code>).
       No case data or search queries are sent to external services by this page.
       Brave Search and DuckDuckGo are only contacted during an active chat session
       when the Online toggle is ON in the chat harness. To override the active
-      provider, set <code>BRAVE_API_KEY</code> in the kernel environment.
+      provider, set <code>BRAVE_API_KEY</code> in the kernel environment.</span>
     </div>
     <section>
       <h2>Live web-search providers</h2>

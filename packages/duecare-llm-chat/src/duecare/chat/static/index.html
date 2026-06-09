@@ -652,7 +652,11 @@ header.bar .badge.loaded .dot {
         New here? Visit <a href="/static/getting-started.html" style="color:var(--accent); font-size:12px; text-decoration:underline;">Getting Started</a> in the top bar
         for what each layer does and how to read a grade.
       </p>
-      <div class="wb-trust"><b>Trust boundary:</b> Your prompts go to the Gemma 4 loaded in this kernel. Local safety layers (GREP / RAG / tools / imports) run inside the kernel. Official Sources and Online are explicit opt-in network layers and stay off by default. Anonymization can be toggled in the composer for sensitive snippets.</div>
+      <div class="dc-trust-row" role="note" aria-label="Trust boundary">
+        <span class="dc-trust-pill"><span class="dot"></span>LOCAL</span>
+        <span class="dc-trust-pill"><span class="dot"></span>OPT-IN NETWORK</span>
+        <span class="dc-trust-text">Your prompts go to the Gemma 4 loaded in this kernel. Local safety layers (GREP / RAG / tools / imports) run inside the kernel. Official Sources and Online are explicit opt-in network layers and stay off by default. Anonymization can be toggled in the composer for sensitive snippets.</span>
+      </div>
       <div id="kx-state-row"
            style="font-size:11.5px; color:var(--muted); margin-top:8px;
                   padding:10px 14px; background:rgba(76,122,138,0.06);

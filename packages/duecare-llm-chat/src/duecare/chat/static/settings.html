@@ -95,7 +95,11 @@
 </head>
 <body data-nav="settings">
 <main class="dc-chrome-container" style="max-width: 900px;">
-  <div class="wb-trust"><b>Trust boundary:</b> All settings on this page are stored in <code>localStorage</code> on your device or in the kernel's in-memory config (retrieval / online-search). BYOK API keys are only used at request time and are never written to disk inside the kernel. To opt out of online search, leave the API key fields blank and set the backend to <code>ddg</code> (no key required).</div>
+  <div class="dc-trust-row" role="note" aria-label="Trust boundary" style="margin-bottom:14px;">
+    <span class="dc-trust-pill"><span class="dot"></span>LOCAL</span>
+    <span class="dc-trust-pill"><span class="dot"></span>DEVICE-SCOPED</span>
+    <span class="dc-trust-text">All settings on this page are stored in <code>localStorage</code> on your device or in the kernel's in-memory config (retrieval / online-search). BYOK API keys are only used at request time and are never written to disk inside the kernel. To opt out of online search, leave the API key fields blank and set the backend to <code>ddg</code> (no key required).</span>
+  </div>
   <div class="crumbs">Workbench tool | System &amp; observability</div>
   <h1>Settings</h1>
   <p class="lede">

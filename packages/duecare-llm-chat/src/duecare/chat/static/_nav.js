@@ -21,6 +21,7 @@
         const navAliases = {
             layers: 'harness',
             tools: 'harness',
+            'grep-rules': 'harness',
             hotlines: 'share',
             anonymize: 'share',
             import: 'process',
