@@ -42,11 +42,17 @@
     @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
   </style>
   <script src="/static/_nav.js" defer></script>
+  <script src="/static/_activity_log.js" defer></script>
 </head>
 <body data-nav="layers">
   <header>
-    
+
     <h1>Persona library</h1>
+    <div class="dc-trust-row" role="note" aria-label="Trust boundary" style="margin:8px 0 0;">
+      <span class="dc-trust-pill"><span class="dot"></span>LOCAL</span>
+      <span class="dc-trust-pill"><span class="dot"></span>READ-ONLY</span>
+      <span class="dc-trust-text">Personas are read from the local kernel catalog (<code>/api/harness-catalog/personas</code>). Nothing typed in the search box is sent anywhere; nothing leaves the kernel.</span>
+    </div>
     <div class="sub" id="stats">Loading…</div>
     <input id="search" type="text" placeholder="Search persona…" />
   </header>

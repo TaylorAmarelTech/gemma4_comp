@@ -44,12 +44,10 @@
 <body data-nav="sync">
   <main class="wb-page">
     <h1 class="wb-h1">Sync Knowledge Packs</h1>
-    <div class="wb-trust">
-      <b>Trust boundary:</b> This tab makes an outbound HTTPS GET to the
-      DueCare hub at <code>duecare-ai.com</code> (the legacy
-      <code>gemma4-comp.onrender.com</code> host still resolves to the same
-      service). Only public, pre-anonymized knowledge object envelopes are
-      downloaded. Nothing on this kernel is sent to the hub by Sync.
+    <div class="dc-trust-row" role="note" aria-label="Trust boundary" style="margin-bottom:14px;">
+      <span class="dc-trust-pill"><span class="dot"></span>NETWORK</span>
+      <span class="dc-trust-pill"><span class="dot"></span>PULL-ONLY</span>
+      <span class="dc-trust-text">This tab makes an outbound HTTPS GET to a registered peer hub (default <code>duecare-ai.com</code>; the legacy <code>gemma4-comp.onrender.com</code> host still resolves to the same service — see <code>/api/network/peers</code>). Only public, pre-anonymized knowledge object envelopes are downloaded. Nothing on this kernel is sent to the hub by Sync.</span>
     </div>
     <p class="wb-lede">
       One click to fetch the latest vetted (and optionally unvetted)
