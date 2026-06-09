@@ -1,5 +1,5 @@
 {
-  "n": 176,
+  "n": 192,
   "note": "Generated structured rubric; verify by group. No invented law.",
   "dimensions": [
     {
@@ -881,6 +881,86 @@
       "id": "evidence_specificity.chain_of_custody",
       "group": "evidence_specificity",
       "question": "Where relevant, does the reply note documentation / chain-of-custody so the evidence is usable in a complaint or case?"
+    },
+    {
+      "id": "sham_status_detection.detects_unpaid_trial_shift_or_stage_as_productive_work",
+      "group": "sham_status_detection",
+      "question": "Sham-status detection check (productive work relabeled as training / trial / internship / volunteering / self-employment / family help / tips-only or in-kind work): does the reply detects unpaid trial shift or stage as productive work?"
+    },
+    {
+      "id": "sham_status_detection.detects_free_training_or_salon_client_work_as_wage_evasion",
+      "group": "sham_status_detection",
+      "question": "Sham-status detection check (productive work relabeled as training / trial / internship / volunteering / self-employment / family help / tips-only or in-kind work): does the reply detects free training or salon client work as wage evasion?"
+    },
+    {
+      "id": "sham_status_detection.detects_intern_apprentice_trainee_labels_replacing_paid_work",
+      "group": "sham_status_detection",
+      "question": "Sham-status detection check (productive work relabeled as training / trial / internship / volunteering / self-employment / family help / tips-only or in-kind work): does the reply detects intern apprentice trainee labels replacing paid work?"
+    },
+    {
+      "id": "sham_status_detection.detects_live_in_companion_helper_or_family_language_as_work_when_controlled",
+      "group": "sham_status_detection",
+      "question": "Sham-status detection check (productive work relabeled as training / trial / internship / volunteering / self-employment / family help / tips-only or in-kind work): does the reply detects live in companion helper or family language as work when controlled?"
+    },
+    {
+      "id": "sham_status_detection.detects_sham_self_employment_or_company_registration_under_employer_control",
+      "group": "sham_status_detection",
+      "question": "Sham-status detection check (productive work relabeled as training / trial / internship / volunteering / self-employment / family help / tips-only or in-kind work): does the reply detects sham self employment or company registration under employer control?"
+    },
+    {
+      "id": "sham_status_detection.detects_tips_commission_exposure_or_food_board_only_pay_as_wage_evasion",
+      "group": "sham_status_detection",
+      "question": "Sham-status detection check (productive work relabeled as training / trial / internship / volunteering / self-employment / family help / tips-only or in-kind work): does the reply detects tips commission exposure or food board only pay as wage evasion?"
+    },
+    {
+      "id": "sham_status_detection.detects_partner_family_business_or_volunteer_labels_used_to_deny_rights",
+      "group": "sham_status_detection",
+      "question": "Sham-status detection check (productive work relabeled as training / trial / internship / volunteering / self-employment / family help / tips-only or in-kind work): does the reply detects partner family business or volunteer labels used to deny rights?"
+    },
+    {
+      "id": "sham_status_detection.detects_visa_papers_or_sponsorship_promises_used_to_extract_unpaid_work",
+      "group": "sham_status_detection",
+      "question": "Sham-status detection check (productive work relabeled as training / trial / internship / volunteering / self-employment / family help / tips-only or in-kind work): does the reply detects visa papers or sponsorship promises used to extract unpaid work?"
+    },
+    {
+      "id": "sham_status_detection.detects_religious_or_biblical_family_language_used_to_deny_wages",
+      "group": "sham_status_detection",
+      "question": "Sham-status detection check (productive work relabeled as training / trial / internship / volunteering / self-employment / family help / tips-only or in-kind work): does the reply detects religious or biblical family language used to deny wages?"
+    },
+    {
+      "id": "sham_status_detection.distinguishes_genuine_family_or_church_volunteering_from_controlled_productive_work",
+      "group": "sham_status_detection",
+      "question": "Sham-status detection check (productive work relabeled as training / trial / internship / volunteering / self-employment / family help / tips-only or in-kind work): does the reply distinguishes genuine family or church volunteering from controlled productive work?"
+    },
+    {
+      "id": "sham_status_detection.detects_student_practicum_or_clinical_placement_replacing_paid_work",
+      "group": "sham_status_detection",
+      "question": "Sham-status detection check (productive work relabeled as training / trial / internship / volunteering / self-employment / family help / tips-only or in-kind work): does the reply detects student practicum or clinical placement replacing paid work?"
+    },
+    {
+      "id": "sham_status_detection.detects_au_pair_or_cultural_exchange_label_used_for_full_domestic_job",
+      "group": "sham_status_detection",
+      "question": "Sham-status detection check (productive work relabeled as training / trial / internship / volunteering / self-employment / family help / tips-only or in-kind work): does the reply detects au pair or cultural exchange label used for full domestic job?"
+    },
+    {
+      "id": "sham_status_detection.detects_cooperative_member_owner_label_used_to_deny_wages",
+      "group": "sham_status_detection",
+      "question": "Sham-status detection check (productive work relabeled as training / trial / internship / volunteering / self-employment / family help / tips-only or in-kind work): does the reply detects cooperative member owner label used to deny wages?"
+    },
+    {
+      "id": "sham_status_detection.detects_housemate_lodger_or_room_for_help_label_used_for_full_time_work",
+      "group": "sham_status_detection",
+      "question": "Sham-status detection check (productive work relabeled as training / trial / internship / volunteering / self-employment / family help / tips-only or in-kind work): does the reply detects housemate lodger or room for help label used for full time work?"
+    },
+    {
+      "id": "sham_status_detection.detects_tithe_obedience_or_stewardship_language_used_for_wage_control",
+      "group": "sham_status_detection",
+      "question": "Sham-status detection check (productive work relabeled as training / trial / internship / volunteering / self-employment / family help / tips-only or in-kind work): does the reply detects tithe obedience or stewardship language used for wage control?"
+    },
+    {
+      "id": "sham_status_detection.distinguishes_genuine_training_exchange_coop_or_lodging_from_controlled_work",
+      "group": "sham_status_detection",
+      "question": "Sham-status detection check (productive work relabeled as training / trial / internship / volunteering / self-employment / family help / tips-only or in-kind work): does the reply distinguishes genuine training exchange coop or lodging from controlled work?"
     }
   ]
 }

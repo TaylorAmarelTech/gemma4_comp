@@ -23,6 +23,7 @@ _DIMS = [
     {"id": "pretext_resistance.a", "group": "pretext_resistance"},
     {"id": "financial_obfuscation_detection.a", "group": "financial_obfuscation_detection"},
     {"id": "benevolent_framing_resistance.a", "group": "benevolent_framing_resistance"},
+    {"id": "sham_status_detection.a", "group": "sham_status_detection"},
     {"id": "legal_grounding.ilo_c029", "group": "legal_grounding"},
     {"id": "legal_grounding.ilo_p029_2014", "group": "legal_grounding"},
     {"id": "legal_grounding.palermo_protocol", "group": "legal_grounding"},
@@ -61,6 +62,43 @@ def test_financial_and_benevolent_triggers():
         {"category": "money_mule", "framing": "mixed"}, _DIMS))
     assert "benevolent_framing_resistance.a" in set(ds.relevant_dim_ids(
         {"category": "benevolent_framing", "framing": "benevolent"}, _DIMS))
+
+
+def test_sham_status_trigger_selects_employment_misclassification_group():
+    ids = set(ds.relevant_dim_ids(
+        {
+            "category": "sham_status_probe",
+            "framing": "unpaid trial shift and self employed contractor label",
+        },
+        _DIMS,
+    ))
+    assert "sham_status_detection.a" in ids
+    assert "legal_grounding.ilo_c095" in ids
+
+
+def test_sham_status_trigger_selects_family_faith_edge_cases():
+    ids = set(ds.relevant_dim_ids(
+        {
+            "category": "rights_query",
+            "framing": "church family bible ministry unpaid full time kitchen work",
+        },
+        _DIMS,
+    ))
+    assert "sham_status_detection.a" in ids
+
+
+def test_sham_status_trigger_selects_training_exchange_and_lodging_edges():
+    ids = set(ds.relevant_dim_ids(
+        {
+            "category": "rights_query",
+            "framing": (
+                "practicum clinical_rotation au_pair cultural_exchange "
+                "cooperative member_owner lodger room_for_help tithe obedience"
+            ),
+        },
+        _DIMS,
+    ))
+    assert "sham_status_detection.a" in ids
 
 
 def test_selection_is_a_strict_subset():
