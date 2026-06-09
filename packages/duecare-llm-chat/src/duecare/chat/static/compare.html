@@ -117,6 +117,80 @@
       control to load or switch the active model for all workbench pages.
     </p>
 
+    <div class="wb-card" id="lift-evidence-card">
+      <h2>Measured harness lift</h2>
+      <p class="wb-muted" style="margin:0 0 10px;">
+        Benchmarked evidence that the A/B difference on this page matters: each prompt is
+        answered with and without the harness, both answers are scored by an independent
+        judge against the 192-dimension rubric, and the per-prompt paired delta is analyzed
+        with win rates, Cohen's d, and a bootstrap confidence interval. Full methodology and
+        examples: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/harness_lift_report.md">harness_lift_report.md</a>.
+        Regenerate locally with <code>python scripts/build_lift_report.py --all</code>.
+      </p>
+      <div id="lift-evidence-body" class="wb-muted">Loading lift evidence&hellip;</div>
+    </div>
+    <script>
+    (function () {
+      var body = document.getElementById('lift-evidence-body');
+      function td(tr, text, opts) {
+        var cell = document.createElement(opts && opts.head ? 'th' : 'td');
+        cell.textContent = text;
+        if (opts && opts.num) cell.style.cssText = 'text-align:right;font-variant-numeric:tabular-nums;';
+        if (opts && opts.strong) cell.style.fontWeight = '600';
+        cell.style.padding = '6px 10px';
+        cell.style.borderBottom = '1px solid var(--line, #DDD8C9)';
+        tr.appendChild(cell);
+        return cell;
+      }
+      fetch('/static/lift_evidence.json')
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (data) {
+          if (!data || !data.headline) { body.textContent = 'Lift evidence file not present in this build.'; return; }
+          body.textContent = '';
+          var head = document.createElement('p');
+          head.style.margin = '0 0 8px';
+          var h = data.headline;
+          head.appendChild(document.createTextNode('Headline: '));
+          var b = document.createElement('b');
+          b.textContent = h.model + ' ' + (h.lift >= 0 ? '+' : '') + h.lift.toFixed(2) + ' / 10';
+          head.appendChild(b);
+          head.appendChild(document.createTextNode(
+            ' mean paired lift across ' + h.n_prompts + ' prompts (95% CI [' +
+            h.ci95[0].toFixed(2) + ', ' + h.ci95[1].toFixed(2) + '], win rate ' +
+            (h.win_rate * 100).toFixed(1) + "%, Cohen's d " + h.cohens_d.toFixed(2) +
+            '). Judge: ' + h.judge + '.'));
+          body.appendChild(head);
+          var table = document.createElement('table');
+          table.style.cssText = 'border-collapse:collapse;width:100%;font-size:13px;';
+          var hr = document.createElement('tr');
+          ['Run', 'Judge', 'Model', 'Lift', '95% CI', 'Win rate', "Cohen's d", 'Prompts'].forEach(function (t) { td(hr, t, {head: true}); });
+          table.appendChild(hr);
+          (data.runs || []).forEach(function (run) {
+            (run.models || []).forEach(function (m) {
+              var tr = document.createElement('tr');
+              td(tr, run.label);
+              td(tr, run.judge);
+              td(tr, m.model);
+              td(tr, (m.lift >= 0 ? '+' : '') + m.lift.toFixed(2), {num: true, strong: true});
+              td(tr, '[' + m.ci95_low.toFixed(2) + ', ' + m.ci95_high.toFixed(2) + ']', {num: true});
+              td(tr, (m.win_rate * 100).toFixed(1) + '%', {num: true});
+              td(tr, m.cohens_d.toFixed(2), {num: true});
+              td(tr, String(m.n_prompts_paired), {num: true});
+              table.appendChild(tr);
+            });
+          });
+          body.appendChild(table);
+          var prov = document.createElement('p');
+          prov.className = 'wb-muted';
+          prov.style.cssText = 'margin:8px 0 0;font-size:12px;';
+          prov.textContent = 'Generated ' + data.generated_at + ' at git ' + data.git_sha +
+            ' from local judge checkpoints; numbers are reproducible from (git sha, checkpoint).';
+          body.appendChild(prov);
+        })
+        .catch(function () { body.textContent = 'Lift evidence file not present in this build.'; });
+    })();
+    </script>
+
     <div class="wb-card">
       <h2>Downloadable prompt and evaluation pack</h2>
       <p class="wb-muted" style="margin:0 0 10px;">
