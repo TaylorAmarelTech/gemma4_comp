@@ -46,6 +46,17 @@
 <p class="hp-note">Fine-tuning helped response shape and refusal style; the harness supplied the facts, citations, tools, data-minimization checks, and forced-labor indicators. This is a smoke run, not a final benchmark. Report, CSV, JSON, and manifest bundle exported to <code>/kaggle/working</code> by the <a href="https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation" rel="noopener">A-00 Fine-tuning &amp; Evaluation notebook</a>.</p>
 </div></section>
 
+<section class="hp-section" data-screen-label="Eval &middot; Harness-lift benchmark"><div class="wrap">
+<div class="head"><div><span class="ix">00b &middot; Large-N benchmark</span><h2>Measured lift, paired per prompt, independently judged.</h2></div><p class="summary">Beyond the smoke run: each benchmark prompt is answered by the same model with and without the harness, both answers are scored by an <b>independent LLM judge</b> against the per-prompt-applicable subset of a 192-dimension rubric, and the per-prompt paired delta is analyzed with win rates, Cohen's d, and a seeded 10,000-resample bootstrap CI. Corpus drawn from 74,640 labeled seed prompts.</p></div>
+<div class="ev-metrics" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
+<div class="m"><div class="lbl">Mean paired lift (gemma4:31b)</div><div class="val">+1.73 / 10</div><div class="sub">95% CI [+1.57, +1.89] &middot; 911 prompts &middot; judge: gpt-oss:120b</div></div>
+<div class="m"><div class="lbl">Win rate</div><div class="val">73.3%</div><div class="sub">668 wins / 210 losses / 33 ties at &plusmn;0.1</div></div>
+<div class="m"><div class="lbl">Effect size</div><div class="val">d = 0.69</div><div class="sub">paired Cohen's d, medium-to-large</div></div>
+<div class="m"><div class="lbl">Frontier-judged cross-check</div><div class="val">+2.18</div><div class="sub">gemma4:31b, Claude Opus 4.8 judge, n=28; gpt-oss:20b +1.49; even Opus itself +0.27</div></div>
+</div>
+<p class="hp-note">Where the harness helps most (per dimension group): manipulation resistance +6.1, financial-obfuscation detection +4.0, modus-operandi awareness +3.8, explanatory refusal +3.2. Full methodology, grader cross-check, and worst-baseline examples: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/harness_lift_report.md" rel="noopener">harness_lift_report.md</a> (regenerate with <code>python scripts/build_lift_report.py --all</code>; raw stats served at <a href="/static/lift_evidence.json">/static/lift_evidence.json</a>). Numbers generated 2026-06-09 at git <code>1465d927</code> from local judge checkpoints.</p>
+</div></section>
+
 <section class="hp-section" data-screen-label="Eval &middot; Cycle"><div class="wrap">
 <div class="head"><div><span class="ix">01 &middot; Lifecycle</span><h2>Six stages, one direction.</h2></div><p class="summary">Nothing skips a stage. A failed stage either bounces back to revision or rejects the candidate.</p></div>
 <div class="ev-cycle">
@@ -95,7 +106,7 @@
 </div></section>
 
 <section class="hp-section" data-screen-label="Eval &middot; Retraining"><div class="wrap">
-<div class="head"><div><span class="ix">04 &middot; Retraining policy</span><h2>What we retrain. What we don&rsquo;t. When.</h2></div><p class="summary">DueCare does not retrain Gemma 4 base weights. We train two named LoRA adapters on top &mdash; <b>SafetyJudge</b> (anti-exploitation reasoning, trained by <a href="/kernels">A-07 bench-and-tune</a> via Unsloth SFT + DPO) and <b>PrivacyRedactor</b> (PII anonymization for the local-intake path, trained by <a href="/kernels">A-12 pii-fine-tune-eval</a>). Both train on curated public, synthetic, composite, or anonymized data. Never on raw worker chats or raw case content.</p></div>
+<div class="head"><div><span class="ix">04 &middot; Retraining policy</span><h2>What we retrain. What we don&rsquo;t. When.</h2></div><p class="summary">DueCare does not retrain Gemma 4 base weights. We train two named LoRA adapters on top &mdash; <b>SafetyJudge</b> (anti-exploitation reasoning, Unsloth SFT + DPO) and <b>PrivacyRedactor</b> (PII anonymization for the local-intake path). Both pipelines now run inside the <a href="/kernels">A-00 Fine-tuning &amp; Evaluation workbench</a> (their historical homes were the archived A-07 and A-12 appendix notebooks). Both train on curated public, synthetic, composite, or anonymized data. Never on raw worker chats or raw case content.</p></div>
 <table class="std">
 <thead><tr><th>Layer</th><th>Retrained?</th><th>Cadence</th><th>Training data</th></tr></thead>
 <tbody>

@@ -49,9 +49,13 @@ import lift_stats  # noqa: E402
 _BENCH = _ROOT / "configs" / "duecare" / "benchmarks"
 _OUT_HTML = _ROOT / os.environ.get("LIFT_REPORT_OUT", "reports/harness_lift_report.html")
 _OUT_MD = _ROOT / "docs" / "research" / "harness_lift_report.md"
-_OUT_JSON = (
+_OUT_JSON_TARGETS = (
     _ROOT / "packages" / "duecare-llm-chat" / "src" / "duecare" / "chat"
-    / "static" / "lift_evidence.json"
+    / "static" / "lift_evidence.json",
+    # The public hub serves the same artifact at /static/lift_evidence.json
+    # (linked from the /evaluation page), so the site and the kernels always
+    # showcase identical, provenance-stamped numbers.
+    _ROOT / "apps" / "duecare-ai.com" / "app" / "static" / "lift_evidence.json",
 )
 
 # Judge identity is per-checkpoint. LIFT_REPORT_CKPT narrows to a single run
@@ -515,11 +519,11 @@ def main(argv: list[str] | None = None) -> None:
         print(f"[lift-report] wrote {_OUT_MD} ({_OUT_MD.stat().st_size:,} bytes)")
 
     if args.json or args.all:
-        _OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
-        _OUT_JSON.write_text(
-            json.dumps(_build_static_json(runs), indent=2) + "\n", encoding="utf-8"
-        )
-        print(f"[lift-report] wrote {_OUT_JSON} ({_OUT_JSON.stat().st_size:,} bytes)")
+        payload = json.dumps(_build_static_json(runs), indent=2) + "\n"
+        for target in _OUT_JSON_TARGETS:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(payload, encoding="utf-8")
+            print(f"[lift-report] wrote {target} ({target.stat().st_size:,} bytes)")
 
 
 if __name__ == "__main__":
