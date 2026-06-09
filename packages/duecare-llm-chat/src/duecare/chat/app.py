@@ -6580,19 +6580,36 @@ def create_app(
         return JSONResponse(env)
 
 
+    @app.get("/api/network/peers")
+    async def api_network_peers() -> Any:
+        """Federation discovery: this node's id, its registered peers, and
+        the sync/push/integrity contract. The same registry is the outbound
+        allowlist for /api/knowledge/sync and /api/submit/knowledge, so
+        DUECARE_PEERS extends every flow at once.
+        """
+        from .federation import network_manifest
+        return JSONResponse(network_manifest())
+
     @app.post("/api/knowledge/sync")
     async def api_knowledge_sync(request: Request) -> Any:
         """Pull the latest vetted (+ optionally unvetted) knowledge from
-        https://duecare-ai.com/api/hub/knowledge/download, unpack into
+        a registered peer hub (default https://duecare-ai.com), unpack into
         the local /kaggle/working/knowledge/ tree, refresh runtime
         matching extras so the harness picks up new rules immediately.
         """
         import io as _io, zipfile as _zipfile, json as _json
+        from .federation import is_peer_url_allowed
         try:
             body = await request.json()
         except Exception:
             body = {}
         target_url = body.get("target_url") or "https://duecare-ai.com/api/hub/knowledge/download"
+        # The kernel tunnel is unauthenticated: any visitor-influenced
+        # outbound URL must clear the peer registry or sync becomes an
+        # SSRF proxy (same gate the submit endpoint applies).
+        ok_url, why = is_peer_url_allowed(target_url)
+        if not ok_url:
+            raise HTTPException(400, f"target_url rejected: {why}")
         include_unvetted = bool(body.get("include_unvetted", False))
         full_url = target_url + ("?vetted=false" if include_unvetted else "?vetted=true")
 

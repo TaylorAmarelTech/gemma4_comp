@@ -45,6 +45,9 @@ def _audit_dir() -> _Path:
 # could otherwise POST {"target_url": "http://169.254.169.254/..."}
 # and have the kernel make an outbound request to internal metadata
 # endpoints or any host reachable from the runtime.
+# _HUB_ALLOWLIST_HOSTS is the built-in baseline; the LIVE check goes
+# through duecare.chat.federation (same registry as /api/knowledge/sync
+# and /api/network/peers), which adds DUECARE_PEERS entries on top.
 _HUB_ALLOWLIST_HOSTS = frozenset({
     "gemma4-comp.onrender.com",
     "duecare-ai.com",
@@ -56,9 +59,17 @@ def _is_hub_url_allowed(target_url: str) -> tuple[bool, str]:
     """Validate that ``target_url`` is one of the approved DueCare
     submit endpoints. Returns (ok, reason). Blocks:
       * non-https schemes (including file://, ftp://, javascript:, etc.)
-      * any host outside _HUB_ALLOWLIST_HOSTS
+      * any host outside the federation peer registry (which always
+        includes _HUB_ALLOWLIST_HOSTS, plus DUECARE_PEERS additions)
       * userinfo (e.g., https://attacker.example.com@allowed.com)
     """
+    try:
+        from ...federation import is_peer_url_allowed
+        return is_peer_url_allowed(target_url)
+    except Exception:
+        pass
+    # Fallback to the built-in baseline if the federation module is
+    # unavailable (older partial installs); never fail open.
     if not target_url:
         return False, "empty target_url"
     try:
@@ -82,9 +93,10 @@ def _is_hub_url_allowed(target_url: str) -> tuple[bool, str]:
 
 
 def _post_payload(target_url: str, payload: dict, sha: str) -> tuple[int | None, str | None, str | None, bool]:
+    from ...knowledge_taxonomy import node_id as _node_id
     headers = {
         "Content-Type": "application/json",
-        "X-DueCare-Source": "kernel-01",
+        "X-DueCare-Source": _node_id(),
         "X-DueCare-SHA256": sha,
     }
     # SSRF gate -- refuse out-of-allowlist URLs before opening a socket.
