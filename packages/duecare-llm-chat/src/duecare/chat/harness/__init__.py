@@ -12947,6 +12947,82 @@ def _bm25_score(query_toks, doc_toks, doc_len, k1=1.5, b=0.75) -> Any:
     return score
 
 
+# --- Multidomain retrieval (separate index; never commingled) --------------
+# The 51-vertical integrity corpus is retrievable on request, but through
+# its OWN BM25 statistics: scores, document frequencies, and result sets
+# never mix with the trafficking RAG_CORPUS index above.
+_MD_STATS: dict | None = None
+
+
+def _multidomain_stats() -> dict:
+    """Lazy parallel BM25 index over MULTIDOMAIN_CORPUS (built on first use
+    so kernels that never touch the verticals pay no import cost)."""
+    global _MD_STATS
+    if _MD_STATS is None:
+        from ._multidomain_corpus import MULTIDOMAIN_CORPUS
+        tokens = [(d[0], _bm25_tokenize(d[1] + " " + d[3])) for d in MULTIDOMAIN_CORPUS]
+        lens = [len(t) for _, t in tokens]
+        freq: Counter = Counter()
+        for _, toks in tokens:
+            for t in set(toks):
+                freq[t] += 1
+        _MD_STATS = {
+            "corpus": MULTIDOMAIN_CORPUS,
+            "tokens": tokens,
+            "lens": lens,
+            "avg": sum(lens) / max(1, len(lens)),
+            "freq": freq,
+            "n": len(tokens),
+        }
+    return _MD_STATS
+
+
+def _bm25_score_against(stats: dict, query_toks, doc_toks, doc_len, k1=1.5, b=0.75) -> float:
+    """BM25 with corpus statistics passed in (multidomain index)."""
+    score = 0.0
+    doc_tf = Counter(doc_toks)
+    for qt in query_toks:
+        df = stats["freq"].get(qt, 0)
+        if df == 0:
+            continue
+        idf = math.log(1 + (stats["n"] - df + 0.5) / (df + 0.5))
+        tf = doc_tf.get(qt, 0)
+        norm = tf * (k1 + 1) / (tf + k1 * (1 - b + b * doc_len / stats["avg"]))
+        score += idf * norm
+    return score
+
+
+def multidomain_rag_call(text: str, top_k: int = 5) -> dict:
+    """BM25 retrieval over the 51-vertical integrity corpus.
+
+    Opt-in and parallel to ``_rag_call``: a deployment targeting elder-care
+    fraud, procurement integrity, or any other vertical retrieves here while
+    the trafficking index stays untouched. Same scoring recipe, separate
+    statistics. Each hit carries ``domain`` (the ``<domain>_<topic>`` id
+    prefix) so callers can filter to one vertical.
+    """
+    t0 = time.time()
+    query_toks = _bm25_tokenize(text or "")
+    stats = _multidomain_stats()
+    scored = []
+    if query_toks:
+        for i, (_doc_id, doc_toks) in enumerate(stats["tokens"]):
+            s = _bm25_score_against(stats, query_toks, doc_toks, stats["lens"][i])
+            if s > 0:
+                scored.append((s, i))
+        scored.sort(reverse=True)
+    docs = []
+    for s, i in scored[:top_k]:
+        d = stats["corpus"][i]
+        docs.append({
+            "id": d[0], "title": d[1], "source": d[2], "snippet": d[3],
+            "score": round(float(s), 3), "corpus": "multidomain",
+            "domain": str(d[0]).split("_", 1)[0],
+        })
+    return {"docs": docs, "n_corpus": stats["n"],
+            "elapsed_ms": int((time.time() - t0) * 1000)}
+
+
 # Citation graph (v0.6.0). Hand-curated edges between RAG corpus docs
 # encoding amend-supersede / mirrors / complementary-framework
 # relationships. After retrieval, related docs surface as "see also"

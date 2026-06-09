@@ -3861,6 +3861,20 @@ def create_app(
         out["tools"] = len(_TOOL_DISPATCH)
         return out
 
+    @app.get("/api/multidomain/rag")
+    def api_multidomain_rag(q: str, top_k: int = 5) -> Any:
+        """Opt-in BM25 retrieval over the 51-vertical integrity corpus.
+
+        Parallel to the trafficking RAG layer with its OWN index -- scores
+        and result sets never commingle with the human-exploitation corpus.
+        This is the retrieval proof that the harness substrate generalizes
+        to other industries (elder care, procurement, financial crime, ...):
+        point a domain deployment here instead of the trafficking layer.
+        """
+        from .harness import multidomain_rag_call
+        top_k = max(1, min(int(top_k), 20))
+        return JSONResponse(multidomain_rag_call(q or "", top_k=top_k))
+
     @app.get("/api/harness-catalog/{layer}")
     def api_harness_catalog(layer: str) -> Any:
         """Return a JSON catalog of what each harness layer exposes.
