@@ -45,6 +45,22 @@ try:  # single source of truth for the per-call wall-clock cap (chat + grade)
 except Exception:  # pragma: no cover - defensive
     MAX_INFERENCE_SECONDS = 45 * 60
 
+# Grade-stream wall-clock cap. A full deep/combined grade is MANY sequential
+# judge calls (one per applicable rubric dimension), and each individual call
+# is already bounded by the per-call inference timeout above. The *whole-grade*
+# cap therefore only existed as a hung-worker backstop, but in practice it
+# truncated legitimate long grades (e.g. a 75-dimension 31B grade on 2x T4 at
+# ~75 s/dim runs well past 45 min) into "partial" results. Default is now
+# UNLIMITED (0 = no whole-grade cap); the 5 s SSE keepalive keeps the tunnel
+# alive across long grades. Operators who still want a backstop can set
+# DUECARE_MAX_GRADE_SECONDS to a positive number of seconds.
+try:
+    MAX_GRADE_SECONDS = int(os.environ.get("DUECARE_MAX_GRADE_SECONDS", "0"))
+except Exception:  # pragma: no cover - defensive
+    MAX_GRADE_SECONDS = 0
+if MAX_GRADE_SECONDS < 0:
+    MAX_GRADE_SECONDS = 0
+
 
 # ---- Resumable grading session cache ------------------------------------
 # Per-dimension LLM-judge responses are memoized here so a grade whose SSE
@@ -4596,19 +4612,19 @@ def create_app(
                 except queue.Empty:
                     await asyncio.sleep(0.25)
                     now = time.time()
-                    if now - t_start >= MAX_INFERENCE_SECONDS:
-                        # Hard per-call wall-clock cap (single source of
-                        # truth: inference_queue.MAX_INFERENCE_SECONDS). A
-                        # 21-dim 31B grade can run long, but a hung judge
-                        # must not stream keepalives forever. Emit a
-                        # structured timeout so the client's recovery path
-                        # records an unsuccessful grade and preserves any
-                        # partial dimensions instead of waiting unbounded.
+                    # Whole-grade wall-clock cap. UNLIMITED by default
+                    # (MAX_GRADE_SECONDS == 0): a full multi-dimension grade is
+                    # many sequential judge calls, each already individually
+                    # bounded by the per-call inference timeout, so the grade as
+                    # a whole is no longer truncated at 45 minutes. Operators can
+                    # opt back into a backstop via DUECARE_MAX_GRADE_SECONDS.
+                    if MAX_GRADE_SECONDS and now - t_start >= MAX_GRADE_SECONDS:
                         timeout_evt = {
                             "type":      "error",
                             "error": (
-                                f"grading exceeded the "
-                                f"{MAX_INFERENCE_SECONDS // 60}-minute cap"
+                                f"grading exceeded the operator-configured "
+                                f"{MAX_GRADE_SECONDS // 60}-minute cap "
+                                f"(DUECARE_MAX_GRADE_SECONDS)"
                             ),
                             "reason":    "grade_timeout",
                             "code":      504,
