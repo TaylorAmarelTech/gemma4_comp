@@ -4609,8 +4609,11 @@ def register_routes(app: Any) -> None:
         jobs, lock = _process_jobs()
         with lock:
             job = jobs.setdefault(job_id, {"job_id": job_id, "events": []})
+            # One clock read per update so event["ts"] == job["updated_at"]
+            # within an update, matching the extraction/anonymization handlers
+            # (was a second _dt.now() on the normal path → event/job ts skew).
+            now = _dt.now(_UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
             if job.get("status") in {"abandoned", "cancelled"} and fields.get("status") not in {"abandoned", "cancelled"}:
-                now = _dt.now(_UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
                 incoming_status = str(fields.get("status") or "running")
                 if incoming_status == "complete":
                     job["late_status"] = "complete"
@@ -4640,7 +4643,7 @@ def register_routes(app: Any) -> None:
                 job["updated_at"] = now
                 return
             event = {
-                "ts": _dt.now(_UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "ts": now,
                 "status": fields.get("status", job.get("status", "running")),
                 "phase": fields.get("phase", job.get("phase", "")),
                 "pct": fields.get("pct", job.get("pct", 0)),
