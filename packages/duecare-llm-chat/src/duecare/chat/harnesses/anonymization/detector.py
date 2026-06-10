@@ -34,6 +34,17 @@ PII_PATTERNS: list[tuple[str, re.Pattern]] = [
     ("ID", re.compile(
         r"\b(?:[A-Z]{1,3}-?\d{6,}|[A-Z]\d{7,8}[A-Z]|[A-Z]-\d{6,8}-\d|\d{16})\b"
     )),
+    # Nepal citizenship number: province-district-ward-sequence, all-numeric
+    # hyphen groups (e.g. 12-03-75-12345). Structurally specific -> low FP.
+    ("ID_NP", re.compile(r"\b\d{2}-\d{2}-\d{2}-\d{4,6}\b")),
+    # Bangladesh NID: 17-digit old format, or keyword-guarded 10-digit new
+    # format (the keyword guard avoids redacting 10-digit Gulf phone numbers,
+    # which the PHONE pattern already covers).
+    ("ID_BD", re.compile(
+        r"(?:(?:NID|national\s+id(?:entification)?)\s*(?:no\.?|number|#)?\s*[:\-]?\s*\d{10})"
+        r"|\b\d{17}\b",
+        re.IGNORECASE,
+    )),
     ("PERSON", re.compile(
         r"\b(?:Ms\.|Mr\.|Mrs\.|Dr\.)\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b"
     )),

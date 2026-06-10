@@ -28,8 +28,6 @@ spec = HarnessSpec(
         {"method": "POST", "path": "/api/knowledge/draft-envelope", "summary": "Draft a knowledge-object envelope"},
         {"method": "POST", "path": "/api/knowledge/from-edge", "summary": "Draft a knowledge-object envelope from a Process typed edge"},
         {"method": "POST", "path": "/api/knowledge/polish-envelope", "summary": "Two-pass Gemma critique + rewrite of a draft envelope"},
-        {"method": "POST", "path": "/api/knowledge/promote", "summary": "Promote reviewed draft to local knowledge store"},
-        {"method": "POST", "path": "/api/knowledge/import", "summary": "Import knowledge files ZIP"},
     ),
     examples=(
         "Turn a new fee-cap citation into a rag_doc or context_snippet envelope.",
