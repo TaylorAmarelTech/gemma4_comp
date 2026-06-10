@@ -1729,6 +1729,19 @@ main > .dc-wb-auto-log-card {
 .wb-next-card .wb-btn-secondary { margin-top: auto; align-self: flex-start; }
 
 /* =============================================================
+   Canonical fallbacks for utility classes that several workbench
+   pages reference but only some defined locally. Token-based so a
+   palette change flows everywhere; pages with a local override keep
+   it (cascade order), so this is purely additive and fixes pages
+   that previously rendered these classes unstyled (e.g. status.html
+   .wb-muted inheriting body ink instead of the muted tone).
+   ============================================================= */
+.wb-card h2 { font-size: 15px; font-weight: 600; margin: 0 0 10px; color: var(--ink); letter-spacing: 0; }
+.wb-muted { color: var(--ink-3); font-size: 12px; line-height: 1.5; }
+.wb-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.wb-lede { font-size: 13.5px; color: var(--ink-2); margin: 0 0 18px; line-height: 1.6; }
+
+/* =============================================================
    [data-tip] — declarative hover tooltip.
 
    Lightweight, on-brand alternative to native title="..."
