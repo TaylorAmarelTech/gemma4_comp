@@ -1306,7 +1306,7 @@
           if (btn) { btn.disabled = false; btn.textContent = 'Try again'; }
         }
       }
-      function escapeHtml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+      function escapeHtml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
 
       function kxOpenPackImport(){
         document.getElementById('kx-pack-import-input').click();
