@@ -307,6 +307,10 @@
             return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c];
         });
     }
+    // Publish the canonical 5-char HTML escaper so pages can drop their own
+    // per-file copies (some of which omitted the apostrophe) and converge on
+    // one implementation. Use window.escText(...) in new code.
+    window.escText = escText;
 
     function renderSelectedModelDetail() {
         const host = document.getElementById('dc-wb-model-detail');
@@ -1303,16 +1307,27 @@
         const btn = document.getElementById('dc-wb-nav-toggle');
         const links = document.getElementById('dc-wb-nav-links');
         if (!btn || !links) return;
+        // a11y: when the mobile nav panel collapses, also close any open
+        // <details> dropdown groups inside it — otherwise a `<details open>`
+        // sits CSS-hidden but still reported as expanded in the a11y tree
+        // (WCAG 4.1.2 visual/AT state mismatch).
+        function collapseOpenGroups() {
+            links.querySelectorAll('.dc-wb-nav-group[open]').forEach(function (g) {
+                g.removeAttribute('open');
+            });
+        }
         btn.addEventListener('click', function () {
             const open = !document.body.classList.contains('dc-wb-nav-open');
             document.body.classList.toggle('dc-wb-nav-open', open);
             btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            if (!open) collapseOpenGroups();
         });
         links.addEventListener('click', function (event) {
             const target = event.target;
             if (target && target.tagName === 'A') {
                 document.body.classList.remove('dc-wb-nav-open');
                 btn.setAttribute('aria-expanded', 'false');
+                collapseOpenGroups();
             }
         });
     }

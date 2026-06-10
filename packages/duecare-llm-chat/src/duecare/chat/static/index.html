@@ -1443,9 +1443,6 @@ function enableLocalHarnessWhenReady(attempt) {
         if (empty) empty.style.display = 'none';
       }
     }
-    if (audience && window.localStorage) {
-      try { window.localStorage.setItem('dc_audience_hint', audience); } catch (_) {}
-    }
     if (example) {
       window.setTimeout(function () {
         try {
