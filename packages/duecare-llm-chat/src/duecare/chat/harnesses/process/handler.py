@@ -253,6 +253,54 @@ def _stage_upload(filename: str, contents: bytes, run_id: str) -> dict:
     return out
 
 
+def _persist_bundle(bundle: dict, run_id: str) -> dict:
+    """Write the computed bundle JSON next to the staged raw upload so
+    graph-chat / graph-extract survive a kernel restart (Kaggle T4 OOM →
+    auto-restart wipes the in-memory app.state.last_process_bundle). The
+    raw bytes were already staged by _stage_upload; this saves the
+    processed result so it does not have to be rebuilt from scratch.
+    """
+    root = _process_staging_root()
+    out: dict = {"saved": False, "path": None}
+    if root is None:
+        return out
+    try:
+        run_dir = root / run_id
+        run_dir.mkdir(parents=True, exist_ok=True)
+        path = run_dir / "bundle.json"
+        path.write_text(
+            _json.dumps(bundle, ensure_ascii=False, default=str),
+            encoding="utf-8",
+        )
+        out.update({"saved": True, "path": str(path)})
+    except Exception as exc:
+        out["error"] = f"{type(exc).__name__}: {exc}"[:240]
+    return out
+
+
+def _recover_last_bundle() -> dict | None:
+    """Best-effort: reload the most recent persisted bundle.json after a
+    restart so graph-chat / graph-extract degrade to 'works' instead of
+    'no bundle uploaded yet'."""
+    root = _process_staging_root()
+    if root is None or not root.exists():
+        return None
+    try:
+        candidates = sorted(
+            root.glob("*/bundle.json"),
+            key=lambda p: p.stat().st_mtime,
+            reverse=True,
+        )
+    except Exception:
+        return None
+    for candidate in candidates[:1]:
+        try:
+            return _json.loads(candidate.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+    return None
+
+
 def _process_mode(mode_id: str | None = None) -> dict[str, Any]:
     mode = _PROCESS_REVIEW_MODES.get(str(mode_id or "").strip()) or _PROCESS_REVIEW_MODES["standard_review"]
     return dict(mode)
@@ -979,6 +1027,31 @@ def _edge_id(*parts: Any) -> str:
     return _hashlib.sha1(raw.encode("utf-8", errors="ignore")).hexdigest()[:14]
 
 
+# Deterministic edge-confidence policy. Values reflect extractable certainty:
+# file-structure / explicit media routing is near-certain (the ZIP IS the
+# provenance); regex/keyword extraction is moderate; inferred or model-rollup
+# signals are lower. Centralized here so calibration is one edit, not a hunt
+# across ~12 scattered literals, and so the values can be tuned against
+# harness-lift results. Changing a value here changes every matching edge.
+_EDGE_CONFIDENCE: dict[str, float] = {
+    "media_requires_ocr": 0.98,
+    "media_requires_gemma_vision": 0.92,
+    "filed_under": 0.82,
+    "rule_hit_high_critical": 0.86,
+    "rule_hit_low_medium": 0.76,
+    "dated_evidence": 0.76,
+    "located_at": 0.74,
+    "journey_stage_observation": 0.72,
+    "fee_amount_attributed": 0.78,
+    "fee_amount_observed": 0.70,
+    "keyword_signal": 0.68,
+    "hierarchical_node_default": 0.55,
+    "hierarchical_case_rollup": 0.60,
+    "hierarchical_cross_case_rollup": 0.58,
+    "media_contextual_cap": 0.50,
+}
+
+
 def _chunk_id(row: dict) -> str:
     parent = str(row.get("parent_doc") or row.get("row_id") or "row")
     page = row.get("page_index")
@@ -1183,7 +1256,6 @@ def _build_graph_view(
     journey_points: list[dict],
     risk_signal_counts: dict[str, int],
     folder_counts: dict[str, int],
-    evidence_edges: list[dict],
 ) -> dict:
     """Compact graph contract for the Bulk File Review UI and exports.
 
@@ -1470,7 +1542,7 @@ def _build_intelligence(
                 case_id=case_id,
                 label="queued for local OCR/layout extraction",
                 extractors=["zip_inventory", "media_detector"],
-                confidence=0.98,
+                confidence=_EDGE_CONFIDENCE["media_requires_ocr"],
                 text=text,
                 modalities=["file_structure", row.get("media_type") or "media"],
                 media_type=row.get("media_type"),
@@ -1483,7 +1555,7 @@ def _build_intelligence(
                 case_id=case_id,
                 label="queued for Gemma 4 local multimodal extraction",
                 extractors=["zip_inventory", "media_detector", "gemma4_prompt_contract"],
-                confidence=0.92,
+                confidence=_EDGE_CONFIDENCE["media_requires_gemma_vision"],
                 text=text,
                 modalities=["file_structure", row.get("media_type") or "media"],
                 media_type=row.get("media_type"),
@@ -1509,7 +1581,7 @@ def _build_intelligence(
                     case_id=case_id,
                     label=loc_norm,
                     extractors=["location_regex", "row_chunk_linking"],
-                    confidence=0.74,
+                    confidence=_EDGE_CONFIDENCE["located_at"],
                     text=text,
                 ))
 
@@ -1526,7 +1598,7 @@ def _build_intelligence(
                 case_id=case_id,
                 label=date,
                 extractors=["date_regex", "row_chunk_linking"],
-                confidence=0.76,
+                confidence=_EDGE_CONFIDENCE["dated_evidence"],
                 text=text,
             ))
 
@@ -1554,7 +1626,7 @@ def _build_intelligence(
                 case_id=case_id,
                 label=amt,
                 extractors=["amount_regex", "row_chunk_linking", "entity_regex"],
-                confidence=0.78 if actor else 0.7,
+                confidence=_EDGE_CONFIDENCE["fee_amount_attributed"] if actor else _EDGE_CONFIDENCE["fee_amount_observed"],
                 text=text,
                 amount=money,
                 document_type=kind,
@@ -1594,12 +1666,34 @@ def _build_intelligence(
                 case_id=case_id,
                 label=label,
                 extractors=["grep_rule", "row_chunk_linking"],
-                confidence=0.86 if severity in {"critical", "high"} else 0.76,
+                confidence=_EDGE_CONFIDENCE["rule_hit_high_critical"] if severity in {"critical", "high"} else _EDGE_CONFIDENCE["rule_hit_low_medium"],
                 text=text,
                 severity=severity,
                 rule_id=rid,
                 document_type=kind,
             ))
+            # Deterministic fee-camouflage rules (Category B: relabeled
+            # placement/training/medical/repayment costs) also emit an explicit
+            # fee_camouflage_evidence edge, not just a generic rule_hit, so the
+            # graph-chat "fee camouflage" branch and _build_rag_candidates find
+            # the named edge type on a no-model run instead of always deferring
+            # to the optional Gemma edge pass. Purely additive — the rule_hit
+            # edge above is kept.
+            if str(rid).startswith("fee_camouflage"):
+                typed_edges.append(_typed_edge(
+                    edge_type="fee_camouflage_evidence",
+                    source_node=_node_id("case", case_id),
+                    target_node=_node_id("rule", rid),
+                    row=row,
+                    case_id=case_id,
+                    label=label,
+                    extractors=["grep_rule", "fee_camouflage_detector", "row_chunk_linking"],
+                    confidence=_EDGE_CONFIDENCE["rule_hit_high_critical"] if severity in {"critical", "high"} else _EDGE_CONFIDENCE["rule_hit_low_medium"],
+                    text=text,
+                    severity=severity,
+                    rule_id=rid,
+                    document_type=kind,
+                ))
 
         keyword_risk = (
             ("passport", "passport retention"),
@@ -1670,7 +1764,7 @@ def _build_intelligence(
                     case_id=case_id,
                     label=label,
                     extractors=["keyword_signal", "row_chunk_linking"],
-                    confidence=0.68,
+                    confidence=_EDGE_CONFIDENCE["keyword_signal"],
                     text=text,
                     document_type=kind,
                 ))
@@ -1697,7 +1791,7 @@ def _build_intelligence(
                 case_id=case_id,
                 label=str(folder_context),
                 extractors=["zip_inventory", "folder_path_context"],
-                confidence=0.82,
+                confidence=_EDGE_CONFIDENCE["filed_under"],
                 text=text,
                 modalities=["file_structure"],
                 source_path=row.get("source_path") or row_id,
@@ -1713,7 +1807,7 @@ def _build_intelligence(
                 case_id=case_id,
                 label=stage.replace("_", " "),
                 extractors=["document_classifier", "journey_stage_heuristic"],
-                confidence=0.72,
+                confidence=_EDGE_CONFIDENCE["journey_stage_observation"],
                 text=text,
                 document_type=kind,
             ))
@@ -1814,7 +1908,6 @@ def _build_intelligence(
         journey_points=journey_points,
         risk_signal_counts=cleaned_signal_counts,
         folder_counts=folder_counts,
-        evidence_edges=evidence_edges,
     )
 
     processing_plan = {
@@ -3494,9 +3587,9 @@ def _normalize_hierarchical_model_node(raw: Any, item: dict[str, Any]) -> dict[s
     node_type = str(raw.get("node_type") or raw.get("type") or _slug_id(str(item.get("level") or "item"))).strip()
     node_id = str(raw.get("node_id") or _node_id(node_type, label)).strip()
     try:
-        confidence = round(max(0.0, min(1.0, float(raw.get("confidence") or 0.55))), 2)
+        confidence = round(max(0.0, min(1.0, float(raw.get("confidence") or _EDGE_CONFIDENCE["hierarchical_node_default"]))), 2)
     except Exception:
-        confidence = 0.55
+        confidence = _EDGE_CONFIDENCE["hierarchical_node_default"]
     return {
         "schema_version": "duecare.process.hierarchical_node.v1",
         "node_id": node_id,
@@ -3602,7 +3695,7 @@ def _nodes_from_hierarchical_edges(edges: list[dict[str, Any]]) -> list[dict[str
                 "chunk_id": edge.get("chunk_id") or "",
                 "row_id": edge.get("row_id") or "",
                 "quote": edge.get("quote") or ((edge.get("evidence") or {}).get("quote") if isinstance(edge.get("evidence"), dict) else ""),
-                "confidence": edge.get("confidence", 0.55),
+                "confidence": edge.get("confidence", _EDGE_CONFIDENCE["hierarchical_node_default"]),
                 "review_status": "needs_review",
                 "local_only": True,
                 "extractors": ["gemma4_hierarchical_item_pass"],
@@ -3642,7 +3735,7 @@ def _build_hierarchical_rollup_edges(model_edges: list[dict[str, Any]]) -> list[
                 "source_edge_ids": edge_ids[:40],
             },
             "source_edge_ids": edge_ids[:40],
-            "confidence": 0.6,
+            "confidence": _EDGE_CONFIDENCE["hierarchical_case_rollup"],
             "review_status": "needs_review",
             "local_only": True,
             "extractors": ["deterministic_rollup_from_gemma4_hierarchical_item_pass"],
@@ -3671,7 +3764,7 @@ def _build_hierarchical_rollup_edges(model_edges: list[dict[str, Any]]) -> list[
                 "source_edge_ids": edge_ids[:40],
             },
             "source_edge_ids": edge_ids[:40],
-            "confidence": 0.58,
+            "confidence": _EDGE_CONFIDENCE["hierarchical_cross_case_rollup"],
             "review_status": "needs_review",
             "local_only": True,
             "extractors": ["deterministic_rollup_from_gemma4_hierarchical_item_pass"],
@@ -4374,7 +4467,7 @@ def _gemma_media_contextual_pass(
         # Force confidence cap because we have not seen the bytes yet.
         for edge in normalized:
             try:
-                edge["confidence"] = min(float(edge.get("confidence") or 0.4), 0.5)
+                edge["confidence"] = min(float(edge.get("confidence") or 0.4), _EDGE_CONFIDENCE["media_contextual_cap"])
             except Exception:
                 edge["confidence"] = 0.4
             edge.setdefault("extractors", []).append("gemma4_contextual_media")
@@ -4702,6 +4795,26 @@ def register_routes(app: Any) -> None:
         n_gemma_calls_attempted += int((hierarchical_graph_out.get("budget") or {}).get("calls_used") or 0)
         intelligence["hierarchical_gemma_graph"] = hierarchical_graph_out
 
+        # Fold the hierarchical pass's model edges + deterministic rollup
+        # edges into typed_edges so graph-chat (_graph_chat_deterministic_answer
+        # reads intelligence["typed_edges"]) and build_context_block can see
+        # them. Without this, the whole hierarchical Gemma pass — including the
+        # cross-case pattern rollups that pattern-grouping questions most need —
+        # is computed but invisible to interrogation. Mirrors the media-pass
+        # merge below. Only fires after a real Gemma run (empty otherwise), so
+        # the deterministic test path is unchanged.
+        _hier_edges = list(hierarchical_graph_out.get("model_edges") or [])[:160]
+        _rollup_edges = list(hierarchical_graph_out.get("rollup_edges") or [])[:80]
+        if _hier_edges or _rollup_edges:
+            _existing_typed = intelligence.get("typed_edges") or []
+            _existing_typed.extend(_hier_edges)
+            _existing_typed.extend(_rollup_edges)
+            intelligence["typed_edges"] = _existing_typed
+            intelligence["n_typed_edges"] = len(_existing_typed)
+            intelligence["n_typed_edges_from_hierarchical"] = (
+                len(_hier_edges) + len(_rollup_edges)
+            )
+
         # Contextual media pass — run Gemma 4 over queued media assets
         # within the remaining budget so they no longer all show as
         # "deferred". Predicts entities/edges from file path + folder +
@@ -4892,6 +5005,8 @@ def register_routes(app: Any) -> None:
                 "downloaded from Step 5."
             ),
         )
+        _bundle_persist = _persist_bundle(bundle, run_id)
+        bundle.setdefault("staging", {})["bundle_json_path"] = _bundle_persist.get("path")
         app.state.last_process_bundle = bundle
         mark("caching", 92, "Caching local graph for graph chat and export.")
         try:
@@ -5144,6 +5259,12 @@ def register_routes(app: Any) -> None:
         """Run the local graph-edge extraction pass and update bundle state."""
         bundle = getattr(app.state, "last_process_bundle", None)
         if bundle is None:
+            # Restart recovery: the in-memory bundle is gone (kernel OOM /
+            # restart) but the processed bundle.json may still be on disk.
+            bundle = _recover_last_bundle()
+            if bundle is not None:
+                app.state.last_process_bundle = bundle
+        if bundle is None:
             if progress:
                 progress(
                     phase="no_bundle",
@@ -5378,6 +5499,11 @@ def register_routes(app: Any) -> None:
             raise HTTPException(400, "question is required")
 
         bundle = getattr(app.state, "last_process_bundle", None)
+        if bundle is None:
+            # Restart recovery before declaring no-bundle (see _recover_last_bundle).
+            bundle = _recover_last_bundle()
+            if bundle is not None:
+                app.state.last_process_bundle = bundle
         gc = getattr(app.state, "gemma_call", None)
 
         if bundle is None:
