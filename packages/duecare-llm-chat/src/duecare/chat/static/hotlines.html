@@ -94,6 +94,13 @@
       return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
         ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
+    // HTML-entity encoding does NOT neutralize a javascript: URL (the scheme has
+    // no HTML-special chars), so href targets from server data must pass a
+    // scheme allowlist before escaping. tel:/mailto:/sms: use their own
+    // encodeURIComponent path and are not routed through this.
+    function safeHref(u) {
+      return /^https?:\/\//i.test(String(u || "")) ? String(u) : "#";
+    }
     async function load() {
       const log = window.dcActivityLog
         ? window.dcActivityLog.attach('#hotlines-log', {idlePlaceholder: 'Waiting for contacts data…'})
@@ -165,8 +172,8 @@
         const phoneBtns = phones.map(p =>
           `<a class="wb-btn-primary" href="tel:${encodeURIComponent(p.replace(/[^+\d]/g, ''))}">Call ${escapeHtml(p)}</a>`).join('');
         const emailBtn = e.email ? `<a class="wb-btn-secondary" href="mailto:${encodeURIComponent(e.email)}?subject=Migrant-worker%20complaint%20referral">Email ${escapeHtml(e.email)}</a>` : '';
-        const formBtn = e.web_form_url ? `<a class="wb-btn-secondary" href="${escapeHtml(e.web_form_url)}" target="_blank">Open form</a>` : '';
-        const webBtn  = e.web_url ? `<a class="wb-btn-secondary" href="${escapeHtml(e.web_url)}" target="_blank">Website</a>` : '';
+        const formBtn = e.web_form_url ? `<a class="wb-btn-secondary" href="${escapeHtml(safeHref(e.web_form_url))}" target="_blank" rel="noopener">Open form</a>` : '';
+        const webBtn  = e.web_url ? `<a class="wb-btn-secondary" href="${escapeHtml(safeHref(e.web_url))}" target="_blank" rel="noopener">Website</a>` : '';
         const smsBtn  = e.sms ? `<a class="wb-btn-secondary" href="sms:${encodeURIComponent(e.sms)}">SMS</a>` : '';
         const socialEntries = Object.entries(e.social || {});
         const socialBtns = socialEntries.map(([platform, handle]) =>

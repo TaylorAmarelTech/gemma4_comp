@@ -224,6 +224,12 @@
       return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
         ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
+    // Allow same-origin relative paths (/static/...) and http(s); block any
+    // other scheme (javascript:, data:) before it reaches an href.
+    function safeHref(u) {
+      u = String(u == null ? "" : u);
+      return (/^\//.test(u) || /^https?:\/\//i.test(u)) ? u : "#";
+    }
     function kindLabel(kind) {
       if (kind === "gemma_harness") return "Gemma harness";
       if (kind === "safety_gate") return "Safety gate";
@@ -345,7 +351,7 @@
         </div>
       `).join("");
       document.getElementById("page-list").innerHTML = (h.test_pages || []).map(p =>
-        `<a class="dc-secondary-button" href="${esc(p.href)}">${esc(p.label)}</a>`
+        `<a class="dc-secondary-button" href="${esc(safeHref(p.href))}">${esc(p.label)}</a>`
       ).join("");
       document.getElementById("workflow-list").innerHTML = workflow.length
         ? workflow.map((item, idx) => `

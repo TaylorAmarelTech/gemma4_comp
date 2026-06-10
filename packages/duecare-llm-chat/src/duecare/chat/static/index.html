@@ -3228,7 +3228,7 @@ function _renderLayerBody(layer, t) {
       const resultsHtml = accepted.length ? accepted.map((r, i) => `
         <div style="margin-top:6px; padding:6px 8px; background:var(--bg); border-radius:4px;">
           <div style="font-weight:600; font-size:11.5px; color:#2563eb;">[${i + 1}] ${escapeHtml(r.title || '(untitled)')}</div>
-          ${r.url ? `<a href="${escapeHtml(r.url)}" target="_blank" rel="noopener" style="color:#1d4ed8; font-size:10.5px; word-break:break-all;">${escapeHtml(r.url)}</a>` : ''}
+          ${r.url ? `<a href="${escapeHtml(safeHref(r.url))}" target="_blank" rel="noopener" style="color:#1d4ed8; font-size:10.5px; word-break:break-all;">${escapeHtml(r.url)}</a>` : ''}
           ${(r.content || r.snippet) ? `<div style="color:var(--ink-2); font-size:11px; margin-top:3px;">${escapeHtml(r.content || r.snippet)}</div>` : ''}
         </div>`).join('') : `<div style="margin-top:6px; color:var(--muted); font-size:11px; font-style:italic;">No allowlisted result accepted${c.error ? ': ' + escapeHtml(c.error) : ''}</div>`;
       return `
@@ -3320,7 +3320,7 @@ function _renderLayerBody(layer, t) {
       return `
       <div style="margin-bottom:10px; padding:8px 10px; background:var(--bg); border-radius:6px;">
         <div style="font-weight:600; font-size:12px; color:#fbbf24;">[${escapeHtml(String(r.rank || '?'))}] ${escapeHtml(r.title || '(untitled)')}</div>
-        ${r.url ? `<a href="${escapeHtml(r.url)}" target="_blank" rel="noopener" style="color:#7d5a14; font-size:11px; text-decoration:underline; word-break:break-all;">${escapeHtml(r.url)}</a>` : ''}
+        ${r.url ? `<a href="${escapeHtml(safeHref(r.url))}" target="_blank" rel="noopener" style="color:#7d5a14; font-size:11px; text-decoration:underline; word-break:break-all;">${escapeHtml(r.url)}</a>` : ''}
         ${blurb ? `<div style="color:var(--ink-2); font-size:11.5px; margin-top:4px; line-height:1.5;">${escapeHtml(blurb)}</div>` : ''}
         ${pageSection}
       </div>`;
@@ -4395,7 +4395,7 @@ async function _runOnlineSearchTest() {
     out.innerHTML = header + data.results.map(rs =>
       `<div style="margin-bottom:10px; padding:6px 8px; border-left:2px solid #f59e0b; background:rgba(245,158,11,0.04);">
         <div style="color:var(--ink);"><strong>[${rs.rank || '?'}] ${escapeHtml(rs.title || '?')}</strong>${rs.age ? ` <span style="color:var(--muted); font-size:10.5px;">· ${escapeHtml(rs.age)}</span>` : ''}</div>
-        <a href="${escapeHtml(rs.url || '#')}" target="_blank" rel="noopener" style="color:#fbbf24; font-size:11px; word-break:break-all;">${escapeHtml((rs.url || '').slice(0, 110))}</a>
+        <a href="${escapeHtml(safeHref(rs.url))}" target="_blank" rel="noopener" style="color:#fbbf24; font-size:11px; word-break:break-all;">${escapeHtml((rs.url || '').slice(0, 110))}</a>
         <div style="color:var(--muted); font-size:11.5px; margin-top:4px; line-height:1.5;">${escapeHtml((rs.snippet || '').slice(0, 320))}</div>
       </div>`).join('');
     _renderOnlineBackendPanel();
@@ -5574,7 +5574,7 @@ function renderHarnessTrace(trace) {
         '</ul>';
     } else if (k === 'online' && t.results && t.results.length) {
       detail = '<ul style="margin:6px 0 0 18px; padding:0;">' +
-        t.results.map(r => `<li><b>[${r.rank||'?'}] ${escapeHtml(r.title||'?')}</b><br><a href="${escapeHtml(r.url||'#')}" target="_blank" rel="noopener" style="color:#f59e0b; font-size:11.5px;">${escapeHtml((r.url||'').slice(0,80))}</a><br><span style="color:var(--ink-2); font-size:12px;">${escapeHtml((r.snippet||'').slice(0,200))}</span></li>`).join('') +
+        t.results.map(r => `<li><b>[${r.rank||'?'}] ${escapeHtml(r.title||'?')}</b><br><a href="${escapeHtml(safeHref(r.url))}" target="_blank" rel="noopener" style="color:#f59e0b; font-size:11.5px;">${escapeHtml((r.url||'').slice(0,80))}</a><br><span style="color:var(--ink-2); font-size:12px;">${escapeHtml((r.snippet||'').slice(0,200))}</span></li>`).join('') +
         '</ul>';
     }
     blocks.push(
@@ -5589,6 +5589,13 @@ function renderHarnessTrace(trace) {
 
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// Scheme allowlist for href targets that come from server data (online-search
+// result URLs). escapeHtml alone does NOT stop a javascript: URL — that scheme
+// contains no HTML-special characters — so URLs are gated to http(s) first.
+function safeHref(u) {
+  return /^https?:\/\//i.test(String(u || "")) ? String(u) : "#";
 }
 
 // Map a server error response to a short, user-facing message. The full
