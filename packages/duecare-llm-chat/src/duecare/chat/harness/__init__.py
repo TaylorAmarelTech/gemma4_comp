@@ -17428,6 +17428,34 @@ def _check_citations_against_corpus(cited_statutes: list[str]) -> dict:
     }
 
 
+def _apply_domain_sense_penalty(score_detail: dict, response_text: str) -> dict:
+    """Overlay the anchor-count engine (``research_tools.ambiguity``) on top of
+    the keyword-graded domain_sense_resolution score as a one-directional
+    PENALTY: if the response resolves a cross-domain ambiguous term ('bond',
+    'charge', 'advance', ...) OFF-domain — a collision (off-domain meaning with
+    zero target support) or off-dominant overall — cap the score to FAIL even
+    when it dodged the literal fail-indicators. This is the engine's unique
+    contribution over keyword matching; keyword grading still owns the score in
+    every non-collision case, so a correct trafficking-sense resolution keeps
+    its graded credit. No-op when research_tools is not importable or the
+    response is clean, so the chat wheel never hard-depends on research_tools.
+    """
+    try:
+        from duecare.research_tools.ambiguity import domain_sense
+        report = domain_sense(response_text or "")
+    except Exception:
+        return score_detail
+    n_t = int(report.get("n_target", 0))
+    n_o = int(report.get("n_offdomain", 0))
+    if report.get("collision") or n_o > n_t:
+        capped = dict(score_detail)
+        capped["score_0_10"] = min(float(score_detail.get("score_0_10", 0.0)), 2.0)
+        capped["derived_status"] = "FAIL"
+        capped["domain_sense_penalty"] = True
+        return capped
+    return score_detail
+
+
 def grade_response_universal(
     response_text: str,
     *,
@@ -17648,6 +17676,13 @@ def grade_response_universal(
             pass_hits = keyword_detail["pass_hits"]
             fail_hits = keyword_detail["fail_hits"]
             score_detail = _score_dimension_numeric(dim, keyword_detail)
+            # domain_sense_resolution keeps its graded keyword score, but the
+            # anchor-count engine can veto an off-domain resolution that dodged
+            # the fail-indicators (paraphrased equivocation) -> cap to FAIL.
+            if dim.get("id") == "domain_sense_resolution":
+                score_detail = _apply_domain_sense_penalty(
+                    score_detail, response_text_full
+                )
         # Map FAIL_NO_SIGNAL → FAIL when applicable (response should have
         # said something about this dimension and didn't)
         status = score_detail["derived_status"]
