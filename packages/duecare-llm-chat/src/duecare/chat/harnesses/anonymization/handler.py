@@ -98,6 +98,61 @@ def _is_hub_url_allowed(target_url: str) -> tuple[bool, str]:
     return True, ""
 
 
+# Process-internal bookkeeping fields that embed the original upload folder
+# structure (worker-named dirs on real intake) and that the hub never needs.
+# Stripped from every item's content before submission.
+_INTERNAL_FIELDS = frozenset({
+    "source_path", "source_paths", "row_id", "row_ids", "folders",
+    "folder_context", "aggregation_keys", "source_node", "target_node",
+    "parent_doc", "run_id",
+})
+
+
+def _strip_internal_fields(item: Any) -> Any:
+    """Recursively drop process-internal bookkeeping keys from an item.
+
+    Operates on the whole item (and its nested ``content``) so the folder
+    structure of the original upload -- which would carry worker-named
+    directories on real intake -- never leaves the kernel.
+    """
+    if isinstance(item, dict):
+        return {
+            k: _strip_internal_fields(v)
+            for k, v in item.items()
+            if k not in _INTERNAL_FIELDS
+        }
+    if isinstance(item, list):
+        return [_strip_internal_fields(v) for v in item]
+    return item
+
+
+def _count_residual_pii(items: list) -> int:
+    """Count items whose serialized content still trips the PII detector.
+
+    Defense in depth: items should already be anonymized, so a non-zero
+    count means the UI flow was bypassed. Logged into the audit (non-
+    blocking); the hub re-gates server-side regardless.
+    """
+    try:
+        from .detector import PII_PATTERNS
+    except Exception:
+        return 0
+    # AMOUNT is excluded: monetary amounts are legitimate investigative
+    # signal in a knowledge object (corridor fee-cap evidence), not a
+    # person identifier. The flag should mean "a person identifier may have
+    # leaked", so it counts only the identifying categories.
+    person_patterns = [(lbl, pat) for lbl, pat in PII_PATTERNS if lbl != "AMOUNT"]
+    flagged = 0
+    for it in items:
+        try:
+            blob = _json.dumps(it, ensure_ascii=False, default=str)
+        except Exception:
+            continue
+        if any(pat.search(blob) for _label, pat in person_patterns):
+            flagged += 1
+    return flagged
+
+
 def _post_payload(target_url: str, payload: dict, sha: str) -> tuple[int | None, str | None, str | None, bool]:
     from ...knowledge_taxonomy import node_id as _node_id
     headers = {
@@ -559,6 +614,21 @@ def register_routes(app: Any) -> None:
         if not isinstance(items, list):
             raise HTTPException(400, "`knowledge` must be a list")
 
+        # Outbound hardening before anything leaves the kernel:
+        #  (1) strip process-internal bookkeeping the hub never needs. These
+        #      fields (source_path, row_id, aggregation_keys, source/target
+        #      node ids, folders) embed the ORIGINAL upload folder structure,
+        #      which on real intake would carry worker-named directories
+        #      (e.g. a "<case-id>_<name>/" folder). The hub PII regex does not
+        #      catch directory-name identifiers, so we remove them here.
+        #  (2) defense-in-depth PII re-scan: even though items should already
+        #      be anonymized, re-run the canonical detector and count any
+        #      residual hits into the audit so a bypass of the UI flow is
+        #      visible. Non-blocking by default (matches the existing
+        #      queued/transmitted audit pattern); the hub re-gates regardless.
+        items = [_strip_internal_fields(it) for it in items]
+        pii_flagged = _count_residual_pii(items)
+
         ts = _dt.now(_UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
         run_id = f"01_submit_{ts}"
         payload = {"submission_id": run_id, "ts": ts, "items": items}
@@ -581,6 +651,7 @@ def register_routes(app: Any) -> None:
             "transmitted": transmitted,
             "remote_status": remote_status,
             "remote_error": remote_error,
+            "pii_flagged": pii_flagged,
         }
         try:
             with open(audit_path, "a", encoding="utf-8") as f:
