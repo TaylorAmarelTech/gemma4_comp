@@ -19925,7 +19925,14 @@ __all__ = [
     "EXAMPLE_PROMPTS", "CLASSIFIER_EXAMPLES",
     "LAYER_DOCS",
     "RUBRICS_5TIER", "RUBRICS_REQUIRED",
+    "RUBRIC_UNIVERSAL", "INTENT_DIMENSION_AFFINITY",
     "_grep_call", "_rag_call", "_tools_call",
+    # Production grading surface (what real callers import — A-00, K04,
+    # scripts, tests). Previously omitted from __all__ despite being the
+    # primary API; the legacy grade_response/5tier path is the mode=prompt_id
+    # path with no production UI caller (kept for scripted/API use).
+    "grade_response_universal", "grade_response_combined",
+    "grade_response_via_evaluator", "evaluate_lift",
     "grade_response", "grade_response_5tier", "grade_response_required",
     "default_harness",
 ]
