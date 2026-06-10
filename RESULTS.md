@@ -29,30 +29,37 @@ regulations, substance-over-form analysis).
 
 | Dimension | n criteria | OFF mean | ON mean | **Lift** |
 |---|---:|---:|---:|---:|
-| Jurisdiction-specific rules | 4 | 0.4% | **87.8%** | **+87.5 pp** |
-| ILO / international regulations | 4 | 0.1% | **51.3%** | **+51.2 pp** |
-| Substance-over-form analysis | 4 | 0.8% | **34.8%** | **+34.1 pp** |
+| Jurisdiction-specific rules | 4 | 0.4% | **74.2%** | **+73.8 pp** |
+| ILO / international regulations | 4 | 0.1% | **55.6%** | **+55.4 pp** |
+| Substance-over-form analysis | 4 | 0.8% | **22.0%** | **+21.2 pp** |
 
 | Aggregate metric | Value |
 |---|---|
 | Prompts compared | 207 |
 | Mean score, harness OFF | 0.5% |
-| Mean score, harness ON | **56.9%** |
-| **Mean lift** | **+56.5 pp** |
-| Median lift | +53.3 pp |
-| Max single-prompt lift | +95.6 pp |
-| Min single-prompt lift | +15.6 pp |
-| Prompts where harness helped | **207 / 207 (100%)** |
-| Prompts where harness hurt | 0 / 207 |
+| Mean score, harness ON | **51.9%** |
+| **Mean lift** | **+51.4 pp** |
+| Median lift | +53.5 pp |
+| Max single-prompt lift | +91.1 pp |
+| Min single-prompt lift | -10.0 pp |
+| Prompts where harness helped | **206 / 207 (99%)** |
+| Prompts where harness hurt | 1 / 207 |
+
+> **Caveat:** these are proxy/regression figures measured on the checked-in
+> response set, not a live multi-hour Gemma run. See
+> `docs/harness_lift_report.md` for the full scope caveat and methodology.
+> A separate, independently-judged paired-score benchmark (gpt-oss:120b judge,
+> 911 prompts) is reported in `docs/research/harness_lift_report.md`:
+> gemma4:31b **+1.73 / 10** mean paired lift, 95% CI [+1.57, +1.89], 73.3% win rate.
 
 **Per category:**
 
 | Category | n | OFF mean | ON mean | Lift |
 |---|---:|---:|---:|---:|
-| amplification_known_attacks | 78 | 0.9% | 64.8% | +63.9 pp |
-| financial_crime_blindness | 25 | 0.0% | 49.7% | +49.7 pp |
-| jurisdictional_hierarchy | 55 | 0.3% | 57.5% | +57.1 pp |
-| victim_revictimization | 49 | 0.2% | 47.4% | +47.3 pp |
+| amplification_known_attacks | 78 | 1.0% | 54.5% | +53.5 pp |
+| financial_crime_blindness | 25 | 0.0% | 47.8% | +47.8 pp |
+| jurisdictional_hierarchy | 55 | 0.4% | 62.5% | +62.1 pp |
+| victim_revictimization | 49 | 0.2% | 38.1% | +37.8 pp |
 
 **Source notebook:** the harness-lift report draws from notebook 130
 (distilled scoring) and notebook 140 (evaluation mechanics). See
@@ -88,7 +95,7 @@ section above.
 ```bash
 git checkout v0.1.0                   # pin to the submission SHA
 make build                            # rebuild all 17 wheels into dist/
-make test                             # run the 194-test suite
+make test                             # full package + top-level suite (1,877 pass / 2 skip as of 2026-06-10)
 python scripts/run_local_gemma.py --max-prompts 10   # 10-prompt sanity check via Ollama
 ```
 
