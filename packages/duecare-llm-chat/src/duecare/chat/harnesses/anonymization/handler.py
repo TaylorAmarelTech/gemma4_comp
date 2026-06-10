@@ -29,15 +29,19 @@ _DEFAULT_HUB_SUBMIT_URL = "https://duecare-ai.com/api/submit/knowledge"
 
 
 def _audit_dir() -> _Path:
-    audit_dir = _Path("/kaggle/working/audit")
-    try:
-        audit_dir.mkdir(parents=True, exist_ok=True)
-        return audit_dir
-    except Exception:
-        pass
-    fallback = _Path(".") / ".duecare-audit"
-    fallback.mkdir(parents=True, exist_ok=True)
-    return fallback
+    # Never raise from here: this is on the critical path of the
+    # trust-boundary /api/submit/knowledge endpoint, and the caller's write
+    # is already wrapped in its own try/except fallback. An unguarded
+    # fallback.mkdir() would 500 the whole submit on a read-only cwd.
+    for candidate in (_Path("/kaggle/working/audit"), _Path(".") / ".duecare-audit"):
+        try:
+            candidate.mkdir(parents=True, exist_ok=True)
+            return candidate
+        except Exception:
+            continue
+    # Both unwritable: return the fallback path anyway; the caller's write
+    # try/except records the failure rather than crashing the endpoint.
+    return _Path(".") / ".duecare-audit"
 
 
 # Hub allowlist: prevents the submit endpoint from being used as an

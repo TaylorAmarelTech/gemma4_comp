@@ -338,6 +338,20 @@ _LONG_PROSE_FIELDS: frozenset[str] = frozenset({
 })
 
 
+def _scrub_nested(value):
+    """Recursively apply clean_for_knowledge_fact to every string leaf inside
+    lists and dicts so structured fields (citation_ids, entity_names, etc.)
+    satisfy the same noise-scrub contract as plain string fields. Non-string
+    scalars pass through unchanged."""
+    if isinstance(value, str):
+        return clean_for_knowledge_fact(value)
+    if isinstance(value, list):
+        return [_scrub_nested(item) for item in value]
+    if isinstance(value, dict):
+        return {k: _scrub_nested(v) for k, v in value.items()}
+    return value
+
+
 def standardize_fact_envelope(
     content: dict | None,
     target_type: str,
@@ -416,9 +430,13 @@ def standardize_fact_envelope(
             # or RUN_ID.
             out[k] = clean_for_knowledge_fact(v)
         else:
-            # Pass through structured values (dicts, ints, lists of
-            # dicts) as-is.
-            out[k] = v
+            # Recursively scrub strings nested inside lists/dicts (e.g.
+            # citation_ids, related_fact_types, entity_names dicts) so the
+            # "every string value is scrubbed" contract holds for structured
+            # fields too — a /kaggle/working/... path or RUN_ID buried one
+            # level down must not bypass the noise scrub. Ints/floats/bools
+            # pass through unchanged.
+            out[k] = _scrub_nested(v)
 
     # Re-order keys: canonical first (in STANDARD_FACT_KEY_ORDER), then
     # unknown keys in their original order.

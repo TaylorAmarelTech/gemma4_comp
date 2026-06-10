@@ -709,6 +709,33 @@ def _decode_documentish_text(name: str, data: bytes) -> str:
         return _rtf_to_text(text)
     if ext in {".html", ".htm"}:
         return _markup_to_text(text)
+    if ext == ".eml":
+        # Parse MIME so raw headers (Received:/DKIM-Signature:), boundary
+        # markers, and base64 attachment bodies do NOT flow into GREP scoring
+        # and entity extraction as if they were prose. Keep only the text/plain
+        # and text/html bodies; skip every other MIME part. stdlib only,
+        # imported lazily so the module header is unchanged.
+        try:
+            import email.parser as _email_parser
+
+            msg = _email_parser.BytesParser().parsebytes(data)
+            parts: list[str] = []
+            for part in msg.walk():
+                ctype = part.get_content_type()
+                payload = part.get_payload(decode=True)
+                if payload is None:
+                    continue
+                charset = part.get_content_charset("utf-8") or "utf-8"
+                decoded = payload.decode(charset, errors="replace")
+                if ctype == "text/plain":
+                    parts.append(decoded)
+                elif ctype == "text/html":
+                    parts.append(_markup_to_text(decoded))
+            if parts:
+                return "\n\n".join(parts)
+        except Exception:
+            # Fall back to the raw decode rather than dropping the file.
+            pass
     return text
 
 
@@ -2360,7 +2387,21 @@ def _parse_upload(filename: str, contents: bytes) -> list[dict]:
                     continue
                 try:
                     txt = _decode_documentish_text(name, data)
-                except Exception:
+                except Exception as _decode_exc:
+                    # Do NOT silently drop a text member whose decode failed
+                    # (UTF-16, Windows-1252, malformed EML): surface it as a
+                    # parse_error work-item so the row count and graph reflect
+                    # it, mirroring the _media_row fallback every other branch
+                    # uses. A silently-vanished case file is worse than a flag.
+                    rows.append({
+                        **_media_row(name, data, filename),
+                        "processing_level": "parse_error",
+                        "needs_ocr": False,
+                        "text": (
+                            f"[text decode failed: {type(_decode_exc).__name__}]\n"
+                            f"file: {name}\nstatus: parse_error_queued_for_manual_review"
+                        ),
+                    })
                     continue
                 rows.extend(_chunk_text_rows(name, txt, filename))
     elif fname_l.endswith(".jsonl"):
@@ -2378,6 +2419,12 @@ def _parse_upload(filename: str, contents: bytes) -> list[dict]:
                 "row_id": row_id,
                 "text": txt,
                 "source": filename,
+                # Match the _chunk_text_rows shape so JSONL rows group under the
+                # file (not each as its own synthetic "line_N" document) in
+                # _build_intelligence, keeping the row schema consistent.
+                "parent_doc": filename,
+                "chunk_index": i,
+                "processing_level": "document",
                 **_path_metadata(row_id),
             })
     elif fname_l.endswith(".csv"):
@@ -2402,6 +2449,10 @@ def _parse_upload(filename: str, contents: bytes) -> list[dict]:
                 "row_id": row_id,
                 "text": txt,
                 "source": filename,
+                # Consistent row shape with _chunk_text_rows (see JSONL branch).
+                "parent_doc": filename,
+                "chunk_index": i,
+                "processing_level": "document",
                 **_path_metadata(row_id),
             })
     else:
@@ -2447,6 +2498,7 @@ def _score_rows(rows: list[dict], grep_call: Any) -> tuple[list[dict], dict, dic
     for row in rows:
         text = row["text"] or ""
         grep_hits: list[dict] = []
+        grep_error: str | None = None
         if grep_call is not None:
             try:
                 try:
@@ -2463,8 +2515,11 @@ def _score_rows(rows: list[dict], grep_call: Any) -> tuple[list[dict], dict, dic
                         "match": (h.get("match_text") or h.get("match") or "")[:120],
                     })
                     agg_grep[rid] = agg_grep.get(rid, 0) + 1
-            except Exception:
-                pass
+            except Exception as _grep_exc:
+                # A GREP failure on a specific chunk must NOT silently produce a
+                # zero-risk row — for a trafficking document that is a safety
+                # gap. Flag it on the row and count it for the summary.
+                grep_error = f"{type(_grep_exc).__name__}: {_grep_exc}"[:200]
 
         entities: dict[str, list[str]] = {}
         for ent_label, pat in ENTITY_PATTERNS.items():
@@ -2500,6 +2555,7 @@ def _score_rows(rows: list[dict], grep_call: Any) -> tuple[list[dict], dict, dic
             "char_count": len(text),
             "grep_hits": grep_hits,
             "entities": entities,
+            "grep_error": grep_error,
         })
 
     return results, agg_grep, agg_entity, agg_statute
