@@ -1397,6 +1397,7 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         except Exception as e:
             raise HTTPException(500, f"decision log write failed: {e}")
         promoted = False
+        published_pack = None
         if body.decision == "accept":
             vpath = root / "vetted_items.jsonl"
             try:
@@ -1409,12 +1410,48 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
                 promoted = True
             except Exception:
                 pass
+            # Complete the distribution pipeline: write the accepted item body
+            # (retained at submit in proposed_items/) into PACKS_DIR as a vetted
+            # pack and hot-reload the registry, so /api/hub/sync actually serves
+            # it. Without this, an accept was a no-op from the syncing kernel's
+            # perspective. Best-effort: a missing proposed_items file (older
+            # submission) leaves vetted_items.jsonl as the only record.
+            try:
+                proposed = root / "proposed_items" / f"{submission_id}.json"
+                if proposed.exists():
+                    bundle = _json.loads(proposed.read_text(encoding="utf-8"))
+                    bodies = bundle.get("items") or []
+                    if 0 <= item_index < len(bodies):
+                        item_body = bodies[item_index]
+                        pack_id = str(item_body.get("id") or submission_id)
+                        version = ts.replace(":", "-")
+                        pack_payload = {
+                            "@type": item_body.get("knowledge_object_type", "ContextPack"),
+                            "id": pack_id,
+                            "version": version,
+                            "status": "vetted",
+                            "provenance": {
+                                "vetted_at": ts,
+                                "submission_id": submission_id,
+                                "curator_key_sha256_prefix": key_hash,
+                            },
+                            "content": item_body,
+                        }
+                        pack_file = pack_registry.PACKS_DIR / f"{pack_id}__{version}.json"
+                        pack_file.parent.mkdir(parents=True, exist_ok=True)
+                        pack_file.write_text(_json.dumps(pack_payload, indent=2), encoding="utf-8")
+                        pack_registry.reload()
+                        published_pack = f"{pack_id}__{version}"
+            except Exception:
+                pass
         return CuratorDecisionReceipt(
             ok=True, submission_id=submission_id, item_index=item_index,
             decision=body.decision, promoted_to_vetted=promoted,
             audit_path=str(dpath),
             note=(
-                "Promoted to vetted." if promoted else
+                (f"Promoted to vetted and published pack {published_pack}; "
+                 "now served by /api/hub/sync." if published_pack
+                 else "Promoted to vetted.") if promoted else
                 f"Decision recorded: {body.decision}."
             ),
         )
@@ -1506,6 +1543,7 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
             return None
 
         accepted: list[dict] = []
+        accepted_bodies: list[dict] = []
         rejected_schema: list[dict] = []
         rejected_pii: list[dict] = []
         duplicates: list[dict] = []
@@ -1569,6 +1607,25 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
                 "id": ko_id,
                 "content_sha256": chash,
             })
+            accepted_bodies.append(item)
+
+        # Retain the accepted item BODIES (already client-anonymized AND past
+        # the hub PII gate above — these are non-PII knowledge objects, not raw
+        # worker content) in a separate proposed_items store so a curator
+        # `accept` can promote them into a distributable pack. The audit log
+        # (knowledge_submissions.jsonl) stays hash-only; full content lives
+        # only here, keyed by submission, until a human vets it.
+        if accepted_bodies:
+            try:
+                proposed_dir = state.store.root / "proposed_items"
+                proposed_dir.mkdir(parents=True, exist_ok=True)
+                (proposed_dir / f"{run_id}.json").write_text(
+                    _json.dumps({"submission_id": run_id, "ts": ts, "items": accepted_bodies},
+                                ensure_ascii=False),
+                    encoding="utf-8",
+                )
+            except Exception:
+                pass
 
         audit_dir = state.store.root
         try:
