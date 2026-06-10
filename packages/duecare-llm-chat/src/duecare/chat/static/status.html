@@ -286,7 +286,7 @@
       if (!out) {
         const el = document.getElementById('stat-ko-total');
         el.textContent = '!';
-        el.style.color = 'oklch(0.58 0.14 45)';
+        el.style.color = 'var(--warn, oklch(0.65 0.10 80))';
         el.title = 'Query failed — see activity log below';
         return;
       }
@@ -329,7 +329,7 @@
           const backendsEl = document.getElementById('stat-backends');
           if (backendsEl) {
             backendsEl.textContent = '!';
-            backendsEl.style.color = 'oklch(0.58 0.14 45)';
+            backendsEl.style.color = 'var(--warn, oklch(0.65 0.10 80))';
             backendsEl.title = 'Query failed — see activity log below';
           }
           return;
@@ -361,7 +361,7 @@
         const backendsEl = document.getElementById('stat-backends');
         if (backendsEl) {
           backendsEl.textContent = '!';
-          backendsEl.style.color = 'oklch(0.58 0.14 45)';
+          backendsEl.style.color = 'var(--warn, oklch(0.65 0.10 80))';
           backendsEl.title = 'Query failed — see activity log below';
         }
       }

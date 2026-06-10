@@ -1702,6 +1702,33 @@ main > .dc-wb-auto-log-card {
 }
 
 /* =============================================================
+   Shared "Next steps" block — every workflow page ends with one
+   so a reviewer always knows where to go next, in the same place
+   and the same styling. Extracted from process.html's Step 5
+   action grid; one primary card (recommended destination) plus
+   one or two secondaries. Render it unconditionally before
+   </main>, NOT gated behind a step completing.
+   ============================================================= */
+.wb-next-steps { margin-top: 16px; }
+.wb-next-steps-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--ink-3); margin: 0 0 12px;
+}
+.wb-next-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+.wb-next-card {
+  background: var(--paper-2); border: 1px solid var(--line);
+  border-radius: 10px; padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.wb-next-card strong { font-size: 13.5px; color: var(--ink); }
+.wb-next-card p { color: var(--ink-3); font-size: 12px; line-height: 1.45; margin: 0 0 8px; }
+.wb-next-card .wb-btn-primary,
+.wb-next-card .wb-btn-secondary { margin-top: auto; align-self: flex-start; }
+
+/* =============================================================
    [data-tip] — declarative hover tooltip.
 
    Lightweight, on-brand alternative to native title="..."

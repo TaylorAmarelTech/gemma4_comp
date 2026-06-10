@@ -1,7 +1,7 @@
 {
   "schema_version": "duecare.lift_evidence.v1",
-  "generated_at": "2026-06-09T22:51:49+00:00",
-  "git_sha": "1465d927",
+  "generated_at": "2026-06-09T23:39:48+00:00",
+  "git_sha": "3fdbc255",
   "headline": {
     "model": "gemma4:31b",
     "lift": 1.73,

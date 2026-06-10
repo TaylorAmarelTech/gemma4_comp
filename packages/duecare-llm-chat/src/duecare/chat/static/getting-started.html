@@ -115,7 +115,7 @@
         .atlas-tile .bar { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%;
                            background: oklch(0.52 0.08 195); opacity: 0.55; }
         .atlas-tile.law .bar  { background: oklch(0.55 0.10 155); }
-        .atlas-tile.cas .bar  { background: oklch(0.58 0.14 45); }
+        .atlas-tile.cas .bar  { background: var(--accent, oklch(0.52 0.08 195)); }
         .atlas-tile.tool .bar { background: oklch(0.65 0.10 80); }
       </style>
       <h2>Knowledge Atlas</h2>
@@ -862,6 +862,27 @@
         <div class="dc-log-idle">Probing kernel state...</div>
       </div>
     </div>
+
+    <div class="wb-card wb-next-steps">
+      <div class="wb-next-steps-title">Where to start</div>
+      <div class="wb-next-grid">
+        <div class="wb-next-card">
+          <strong>Talk to the harness</strong>
+          <p>Send a real prompt and watch the GREP, RAG, tools, and persona layers fire in the trace.</p>
+          <a class="wb-btn-primary" href="/static/chat.html">Open Chat</a>
+        </div>
+        <div class="wb-next-card">
+          <strong>See the lift, side by side</strong>
+          <p>Run one prompt through stock Gemma 4 and the full harness, then grade both.</p>
+          <a class="wb-btn-secondary" href="/static/compare.html">Open Compare</a>
+        </div>
+        <div class="wb-next-card">
+          <strong>Process case files</strong>
+          <p>Upload a ZIP of mixed documents and extract a structured, anonymized case graph.</p>
+          <a class="wb-btn-secondary" href="/static/process.html">Open Bulk File Review</a>
+        </div>
+      </div>
+    </div>
   </main>
 
   <script>
@@ -878,8 +899,6 @@
         const r = await fetch('/api/harness/inventory');
         if (r.ok) {
           const d = await r.json();
-          _set('hero-grep', d.grep_rules || '?');
-          _set('hero-rag', d.rag_docs || '?');
           _set('tax-builtin', (d.grep_rules || 0) + ' GREP + ' + (d.rag_docs || 0) + ' RAG built-in');
           log && log.ok('inventory OK', 'GREP=' + d.grep_rules + ' RAG=' + d.rag_docs);
         } else {
