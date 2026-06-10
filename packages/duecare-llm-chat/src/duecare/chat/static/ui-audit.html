@@ -65,6 +65,8 @@
 
   <script>
     const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    // Allow same-origin relative paths (/static/...) and http(s); block other schemes before href.
+    const safeHref = (u) => { u = String(u == null ? '' : u); return (/^\//.test(u) || /^https?:\/\//i.test(u)) ? u : '#'; };
     const pills = (items) => (items || []).map(x => '<span class="pill">' + esc(x) + '</span>').join('');
 
     let log;
@@ -100,7 +102,7 @@
         '</tbody></table>';
       document.getElementById('pages').innerHTML =
         '<table><thead><tr><th>Route</th><th>Purpose</th><th>Controls</th><th>Outputs</th><th>Audit Focus</th></tr></thead><tbody>' +
-        (data.static_pages || []).map(p => '<tr><td><a href="' + esc(p.route) + '">' + esc(p.route) + '</a><br><code>' + esc(p.file) + '</code></td><td>' + esc(p.purpose) + '</td><td>' + pills(p.controls) + '</td><td>' + pills(p.outputs) + '</td><td>' + pills(p.audit) + '</td></tr>').join('') +
+        (data.static_pages || []).map(p => '<tr><td><a href="' + esc(safeHref(p.route)) + '">' + esc(p.route) + '</a><br><code>' + esc(p.file) + '</code></td><td>' + esc(p.purpose) + '</td><td>' + pills(p.controls) + '</td><td>' + pills(p.outputs) + '</td><td>' + pills(p.audit) + '</td></tr>').join('') +
         '</tbody></table>';
       document.getElementById('backlog').innerHTML =
         '<table><thead><tr><th>Priority</th><th>Item</th><th>Owner</th></tr></thead><tbody>' +
