@@ -1,28 +1,29 @@
 ﻿# Knowledge surface verification
 
-Snapshot of DueCare harness knowledge-layer state as of 2026-05-22.
+Snapshot of DueCare harness knowledge-layer state as of 2026-06-10.
 Re-runnable via `python scripts/verify_knowledge_surfaces.py`.
 
 ## Counts
 
 | Surface | Count |
 | --- | --- |
-| `GREP_RULES` | 318 (categories A through GGGG, including SCREENING + AAA-III + JJJ-OOO + PPP-YYY + ZZZ-GGGG) |
-| `RAG_CORPUS` | 235 (incl. 6 landmark case-law + 3 national anti-trafficking units + research / faith / sex-worker-rights bodies + US HSI / CBP CEE / UK IASC / GRETA / 3 UN SR mandates / MPI / Asia Foundation / Amnesty / BHRRC / Solidaridad cluster / ECPAT / HRW + IMO/ITF + ICAT + AU/Ouagadougou + ASEAN ACTIP detail + Lanzarote + GCM + UFLPA) |
-| `CORRIDOR_FEE_CAPS` | 31 |
-| `FEE_CAMOUFLAGE_DICT` | 45 |
-| `NGO_INTAKE` | 30 |
-| `ILO_CONVENTIONS` | 15 |
+| `GREP_RULES` | 417 (categories A through GGGG + HHHH + IIII + MMMM, including SCREENING + AAA-III + JJJ-OOO + PPP-YYY + ZZZ-GGGG) |
+| `RAG_CORPUS` | 846 (incl. 6 landmark case-law + 3 national anti-trafficking units + research / faith / sex-worker-rights bodies + US HSI / CBP CEE / UK IASC / GRETA / 3 UN SR mandates / MPI / Asia Foundation / Amnesty / BHRRC / Solidaridad cluster / ECPAT / HRW + IMO/ITF + ICAT + AU/Ouagadougou + ASEAN ACTIP detail + Lanzarote + GCM + UFLPA + C189/C188/MLC 2006/Palermo Art 3/P029 sector-convention docs) |
+| `MULTIDOMAIN_CORPUS` (`harness/_multidomain_corpus.py`) | 610 (51 integrity verticals across UN SDGs 1-17; opt-in BM25 at `GET /api/multidomain/rag` and `/api/harness-catalog/multidomain`; deliberately kept separate from the trafficking `RAG_CORPUS` so anti-trafficking prompts and retrieval never commingle with off-domain content) |
+| `CORRIDOR_FEE_CAPS` | 38 |
+| `FEE_CAMOUFLAGE_DICT` | 57 |
+| `NGO_INTAKE` | 36 |
+| `ILO_CONVENTIONS` | 16 |
 | `ILO_INDICATORS` | 11 |
-| `TEMPLATES_REGISTRY` | 34 |
-| Personas (`_personas.json`) | 22 |
+| `TEMPLATES_REGISTRY` | 36 |
+| Personas (`_personas.json`) | 37 |
 
 ## What is in each surface
 
-### `GREP_RULES` (300 detection patterns)
+### `GREP_RULES` (417 detection patterns)
 
 Multi-category pattern detection across the recruitment + deployment
-+ exploitation lifecycle, organised A through OOO:
++ exploitation lifecycle, organised A through OOO + HHHH + IIII + MMMM:
 
 | Cluster | Categories | Theme |
 | --- | --- | --- |
@@ -57,6 +58,9 @@ Multi-category pattern detection across the recruitment + deployment
 | Diplomatic household | MMM | A-3/G-5, UK ODWPH |
 | Faith-worker | NNN | R-1 + UK Tier 2 Minister of Religion |
 | Extractive mining | OOO | Artisanal + small-scale gold/3TG/cobalt/mica |
+| Sector conventions + cross-corridor | HHHH | ILO C189 domestic-work confinement/rest, C188 fishing vessel, MLC 2006 seafarer fees/abandonment, contract substitution, passport "safekeeping" euphemism, Palermo act+means |
+| Stacked manipulation + false legitimacy | IIII | Combined/layered manipulation patterns + false-legitimacy framing |
+| Sham status / misclassification | MMMM | Sham employment-status / employment-misclassification (unpaid "training", "self-employed" with employer control, intern-doing-full-job, au-pair-as-full-domestic, tithe/obedience wage control), citing ILO C095 / R198 |
 
 ### `RAG_CORPUS` (227 knowledge documents)
 
