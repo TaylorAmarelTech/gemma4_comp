@@ -49,14 +49,19 @@
     var existing = document.getElementById('dc-cmdk-overlay');
     if (existing) {
       existing.classList.remove('dc-show');
+      var prev = existing._prevFocus;
       setTimeout(function () { existing.remove(); }, 140);
+      // a11y: return focus to whatever opened the switcher.
+      if (prev && typeof prev.focus === 'function') prev.focus();
       return;
     }
     var overlay = document.createElement('div');
     overlay.id = 'dc-cmdk-overlay';
     overlay.className = 'dc-cmdk-overlay dc-show';
     overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-label', 'Tab switcher');
+    overlay._prevFocus = document.activeElement;
 
     var panel = document.createElement('div');
     panel.className = 'dc-cmdk-panel';
@@ -67,6 +72,9 @@
     input.setAttribute('aria-label', 'Tab search');
     var list = document.createElement('ul');
     list.className = 'dc-cmdk-list';
+    // a11y: option elements must be owned by a listbox.
+    list.setAttribute('role', 'listbox');
+    list.setAttribute('aria-label', 'Pages');
 
     var links = Array.prototype.slice.call(
       document.querySelectorAll('.dc-wb-nav-links a[data-nav-key]')
@@ -89,6 +97,7 @@
         var li = document.createElement('li');
         li.className = 'dc-cmdk-item' + (i === 0 ? ' dc-cmdk-active' : '');
         li.setAttribute('role', 'option');
+        li.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
         var label = document.createElement('span');
         label.textContent = a.textContent.trim();
         var key = document.createElement('span');
@@ -118,9 +127,11 @@
         var next = e.key === 'ArrowDown'
           ? Math.min(idx + 1, items.length - 1)
           : Math.max(idx - 1, 0);
-        if (cur) cur.classList.remove('dc-cmdk-active');
-        if (items[next]) items[next].classList.add('dc-cmdk-active');
+        if (cur) { cur.classList.remove('dc-cmdk-active'); cur.setAttribute('aria-selected', 'false'); }
+        if (items[next]) { items[next].classList.add('dc-cmdk-active'); items[next].setAttribute('aria-selected', 'true'); }
       }
+      // a11y: trap Tab inside the dialog (only the input is tabbable).
+      if (e.key === 'Tab') { e.preventDefault(); input.focus(); }
     });
     panel.appendChild(input);
     panel.appendChild(list);

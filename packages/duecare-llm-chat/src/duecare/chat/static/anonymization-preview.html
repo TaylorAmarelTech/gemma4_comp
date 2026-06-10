@@ -404,7 +404,7 @@
       const tags = Object.entries(findings)
         .map(([k, n]) => `<span class="ap-pii-tag">${escapeHtml(k)} &times; ${n}</span>`)
         .join("");
-      document.getElementById("redacted").innerHTML = escapeHtml(out);
+      document.getElementById("redacted").textContent = out;
       document.getElementById("redactedNote").innerHTML = tags
         ? `Local regex pass redacted: ${tags}`
         : "Local regex pass found no obvious PII patterns. The server will re-check anyway.";
