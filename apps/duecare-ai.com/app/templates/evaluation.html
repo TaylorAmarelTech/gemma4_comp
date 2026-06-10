@@ -3,8 +3,8 @@
 <title>Evaluation &amp; retraining &middot; DueCare AI</title>
 <link rel="stylesheet" href="/static/styles.css" /><link rel="stylesheet" href="/static/hub-pages.css" />
 <style>
-.ev-cycle { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0; margin: 30px 0 8px; counter-reset: ec; }
-@media (max-width: 920px) { .ev-cycle { grid-template-columns: repeat(2, 1fr); } }
+.ev-cycle { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; margin: 30px 0 8px; counter-reset: ec; }
+@media (max-width: 560px) { .ev-cycle { grid-template-columns: repeat(2, 1fr); } }
 .ev-cycle .step { counter-increment: ec; padding: 22px 18px; border: 1px solid var(--line); border-right: none; background: var(--paper); }
 .ev-cycle .step:last-child { border-right: 1px solid var(--line); }
 .ev-cycle .step::before { content: "0" counter(ec); font-family: var(--mono); font-size: 12px; color: var(--accent-ink); letter-spacing: 0.04em; display: block; margin-bottom: 10px; }
@@ -27,13 +27,13 @@
 .ev-eval-row .reg { background: oklch(0.94 0.04 60); color: oklch(0.40 0.06 60); }
 </style>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
-</head><body>{% set active_nav = "docs" %}
+</head><body>{% set active_nav = "evaluation" %}
 {% include "_nav.html" %}
 <section class="hp-hero" data-screen-label="Docs &middot; Eval"><div class="wrap">
 <div class="crumbs"><a href="/">Home</a><span class="sep">/</span><a href="/docs">Docs</a><span class="sep">/</span><span>Evaluation &amp; retraining</span></div>
 <span class="kicker">Release gate and training spine</span>
 <h1>Evaluation, retraining, and the pipeline that decides what ships.</h1>
-<p class="lede">DueCare ships nothing without an evaluation pass. Every pack release runs a regression suite. Every adapter retrain runs a comparison set against the previous adapter. The A07 Kaggle notebook turns Persona + GREP + RAG + Tools traces into SFT data and DPO preference pairs, then re-benchmarks before any model artifact is published.</p></div></section>
+<p class="lede">DueCare ships nothing without an evaluation pass. Every pack release runs a regression suite. Every adapter retrain runs a comparison set against the previous adapter. The A-07 Kaggle notebook turns Persona + GREP + RAG + Tools traces into SFT data and DPO preference pairs, then re-benchmarks before any model artifact is published.</p></div></section>
 
 <section class="hp-section" data-screen-label="Eval &middot; Harness lift"><div class="wrap">
 <div class="head"><div><span class="ix">00 &middot; Headline number</span><h2>The harness adds the lift. Fine-tuning needs it.</h2></div><p class="summary">Smoke matrix recorded 2026-05-18 on the <code>e2b-full-train-eval</code> Kaggle notebook with combined rule + LLM judge. The harness alone added <b>+6.1pp</b> over stock Gemma 4. Fine-tuned + harness added <b>+14.8pp</b> over fine-tuning alone and <b>+11.7pp</b> over stock.</p></div>
@@ -47,7 +47,7 @@
 </div></section>
 
 <section class="hp-section" data-screen-label="Eval &middot; Harness-lift benchmark"><div class="wrap">
-<div class="head"><div><span class="ix">00b &middot; Large-N benchmark</span><h2>Measured lift, paired per prompt, independently judged.</h2></div><p class="summary">Beyond the smoke run: each benchmark prompt is answered by the same model with and without the harness, both answers are scored by an <b>independent LLM judge</b> against the per-prompt-applicable subset of a 192-dimension rubric, and the per-prompt paired delta is analyzed with win rates, Cohen's d, and a seeded 10,000-resample bootstrap CI. Corpus drawn from 74,640 labeled seed prompts.</p></div>
+<div class="head"><div><span class="ix">01 &middot; Large-N benchmark</span><h2>Measured lift, paired per prompt, independently judged.</h2></div><p class="summary">Beyond the smoke run: each benchmark prompt is answered by the same model with and without the harness, both answers are scored by an <b>independent LLM judge</b> against the per-prompt-applicable subset of a 192-dimension rubric, and the per-prompt paired delta is analyzed with win rates, Cohen's d, and a seeded 10,000-resample bootstrap CI. Corpus drawn from 74,640 labeled seed prompts.</p></div>
 <div class="ev-metrics" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
 <div class="m"><div class="lbl">Mean paired lift (gemma4:31b)</div><div class="val">+1.73 / 10</div><div class="sub">95% CI [+1.57, +1.89] &middot; 911 prompts &middot; judge: gpt-oss:120b</div></div>
 <div class="m"><div class="lbl">Win rate</div><div class="val">73.3%</div><div class="sub">668 wins / 210 losses / 33 ties at &plusmn;0.1</div></div>
@@ -58,7 +58,7 @@
 </div></section>
 
 <section class="hp-section" data-screen-label="Eval &middot; Cycle"><div class="wrap">
-<div class="head"><div><span class="ix">01 &middot; Lifecycle</span><h2>Six stages, one direction.</h2></div><p class="summary">Nothing skips a stage. A failed stage either bounces back to revision or rejects the candidate.</p></div>
+<div class="head"><div><span class="ix">02 &middot; Lifecycle</span><h2>Six stages, one direction.</h2></div><p class="summary">Nothing skips a stage. A failed stage either bounces back to revision or rejects the candidate.</p></div>
 <div class="ev-cycle">
 <div class="step"><h4>Collect</h4><p>Pull public-source updates from the research monitor. Pull reviewed partner submissions. Pull evaluation-pack proposals from researchers.</p></div>
 <div class="step"><h4>Curate</h4><p>Curators review proposals, attach citations, and shape pack-diffs or new evaluation cases.</p></div>
@@ -70,7 +70,7 @@
 </div></section>
 
 <section class="hp-section" data-screen-label="Eval &middot; Latest run"><div class="wrap">
-<div class="head"><div><span class="ix">02 &middot; Latest evaluation run</span><h2>Pack: <code>npl-qat-construction@1.4.0-rc1</code></h2></div><p class="summary">Compared against last vetted release <code>1.3.0</code>. Run on Gemma 4 base + corridor adapter <code>npl-qat-cons.lora@0.7.1</code>.</p></div>
+<div class="head"><div><span class="ix">03 &middot; Latest evaluation run</span><h2>Pack: <code>npl-qat-construction@1.4.0-rc1</code></h2></div><p class="summary">Compared against last vetted release <code>1.3.0</code>. Run on Gemma 4 base + corridor adapter <code>npl-qat-cons.lora@0.7.1</code>.</p></div>
 <div class="ev-metrics">
 <div class="m"><div class="lbl">Citation accuracy</div><div class="val">98.2%</div><div class="sub">+1.4pp vs 1.3.0</div></div>
 <div class="m"><div class="lbl">Refusal correctness</div><div class="val">99.1%</div><div class="sub">flat vs 1.3.0</div></div>
@@ -94,7 +94,7 @@
 </div></section>
 
 <section class="hp-section" data-screen-label="Eval &middot; Suites"><div class="wrap">
-<div class="head"><div><span class="ix">03 &middot; The evaluation suites</span><h2>Six categories. All public.</h2></div><p class="summary">Every case is a pack-versioned JSON object with a fixed input, an expected behaviour, and a citation rule. Researchers can pull and run the same suite locally.</p></div>
+<div class="head"><div><span class="ix">04 &middot; The evaluation suites</span><h2>Six categories. All public.</h2></div><p class="summary">Every case is a pack-versioned JSON object with a fixed input, an expected behaviour, and a citation rule. Researchers can pull and run the same suite locally.</p></div>
 <div class="hp-grid-3">
 <article class="hp-card"><span class="role">Suite 01</span><h3>Citation</h3><p>Does the harness anchor every claim to the correct pack citation? Does it refuse when no citation exists?</p></article>
 <article class="hp-card"><span class="role">Suite 02</span><h3>Detection</h3><p>Does the harness correctly identify patterns it should: fee requests, passport handling, identity mismatch?</p></article>
@@ -106,7 +106,7 @@
 </div></section>
 
 <section class="hp-section" data-screen-label="Eval &middot; Retraining"><div class="wrap">
-<div class="head"><div><span class="ix">04 &middot; Retraining policy</span><h2>What we retrain. What we don&rsquo;t. When.</h2></div><p class="summary">DueCare does not retrain Gemma 4 base weights. We train two named LoRA adapters on top &mdash; <b>SafetyJudge</b> (anti-exploitation reasoning, Unsloth SFT + DPO) and <b>PrivacyRedactor</b> (PII anonymization for the local-intake path). Both pipelines now run inside the <a href="/kernels">A-00 Fine-tuning &amp; Evaluation workbench</a> (their historical homes were the archived A-07 and A-12 appendix notebooks). Both train on curated public, synthetic, composite, or anonymized data. Never on raw worker chats or raw case content.</p></div>
+<div class="head"><div><span class="ix">05 &middot; Retraining policy</span><h2>What we retrain. What we don&rsquo;t. When.</h2></div><p class="summary">DueCare does not retrain Gemma 4 base weights. We train two named LoRA adapters on top &mdash; <b>SafetyJudge</b> (anti-exploitation reasoning, Unsloth SFT + DPO) and <b>PrivacyRedactor</b> (PII anonymization for the local-intake path). Both pipelines now run inside the <a href="/kernels">A-00 Fine-tuning &amp; Evaluation workbench</a> (their historical homes were the archived A-07 and A-12 appendix notebooks). Both train on curated public, synthetic, composite, or anonymized data. Never on raw worker chats or raw case content.</p></div>
 <table class="std">
 <thead><tr><th>Layer</th><th>Retrained?</th><th>Cadence</th><th>Training data</th></tr></thead>
 <tbody>
@@ -121,7 +121,7 @@
 </div></section>
 
 <section class="hp-section" data-screen-label="Eval &middot; Training data"><div class="wrap">
-<div class="head"><div><span class="ix">05 &middot; Training data ladder</span><h2>How harness behavior becomes model behavior.</h2></div><p class="summary">RAG, GREP, tools, and persona responses are useful training signals only after they become approved examples. The public claim is SFT + preference optimization, not a hidden RL loop.</p></div>
+<div class="head"><div><span class="ix">06 &middot; Training data ladder</span><h2>How harness behavior becomes model behavior.</h2></div><p class="summary">RAG, GREP, tools, and persona responses are useful training signals only after they become approved examples. The public claim is SFT + preference optimization, not a hidden RL loop.</p></div>
 <div class="hp-grid-3">
 <article class="hp-card"><span class="role">SFT</span><h3>Harness-distilled targets</h3><p>Run an approved prompt through Persona + GREP + RAG + Tools. Store the bare prompt as the user turn and the cited harness answer as the assistant target.</p></article>
 <article class="hp-card"><span class="role">DPO</span><h3>Chosen vs. rejected pairs</h3><p>Use the harness-on answer as <code>chosen</code> and the raw Gemma answer as <code>rejected</code>. This is the first preference-training path before any PPO/GRPO-style RL is added.</p></article>
@@ -131,7 +131,7 @@
 
 <section class="hp-section" data-screen-label="Eval &middot; Reproduce"><div class="wrap">
 <div class="hp-callout">
-<div><span class="ix">06 &middot; Reproduce a release</span><h2>Same weights. Same packs. Same evaluation suite.</h2><p>Pull the vetted pack, pull the matching adapter, run the evaluation suite locally, or rerun A07 on Kaggle with the same git SHA and dataset version. Mismatches against the published numbers are bug reports.</p></div>
+<div><span class="ix">07 &middot; Reproduce a release</span><h2>Same weights. Same packs. Same evaluation suite.</h2><p>Pull the vetted pack, pull the matching adapter, run the evaluation suite locally, or rerun A-07 on Kaggle with the same git SHA and dataset version. Mismatches against the published numbers are bug reports.</p></div>
 <a href="/harness" class="btn primary">See the harness &rarr;</a>
 </div></div></section>
 {% include "_footer.html" %}

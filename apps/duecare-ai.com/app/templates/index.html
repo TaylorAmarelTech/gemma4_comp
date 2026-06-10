@@ -324,8 +324,8 @@
   .comp-card .pill { display: none; }
 
   /* Verify cards */
-  .verify-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
-  @media (max-width: 920px) { .verify-grid { grid-template-columns: repeat(2, 1fr); } }
+  .verify-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+  @media (max-width: 560px) { .verify-grid { grid-template-columns: repeat(2, 1fr); } }
   .verify-card {
     border: 1px solid var(--line); border-radius: 10px;
     padding: 20px;

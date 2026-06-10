@@ -34,8 +34,8 @@
 .ms-do h4, .ms-dont h4 { font-size: 16px; margin: 0; letter-spacing: -0.01em; }
 .ms-do p, .ms-dont p { margin-top: 8px; font-size: 14.5px; line-height: 1.55; color: var(--ink-2); }
 .ms-do .tag, .ms-dont .tag { font-family: var(--mono); font-size: 10px; letter-spacing: 0.10em; color: var(--ink-3); text-transform: uppercase; }
-.ms-pillars { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-top: 36px; }
-@media (max-width: 920px) { .ms-pillars { grid-template-columns: repeat(2, 1fr); } }
+.ms-pillars { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-top: 36px; }
+@media (max-width: 560px) { .ms-pillars { grid-template-columns: repeat(2, 1fr); } }
 .ms-pillars article { border: 1px solid var(--line); border-radius: 10px; padding: 22px; background: var(--paper); display: flex; flex-direction: column; gap: 10px; min-height: 200px; }
 .ms-pillars .num { font-family: var(--mono); font-size: 22px; color: var(--accent-ink); letter-spacing: -0.02em; }
 .ms-pillars h4 { font-size: 16px; margin: 0; letter-spacing: -0.01em; line-height: 1.2; }
