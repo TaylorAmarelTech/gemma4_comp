@@ -668,7 +668,14 @@ def _build_draft_response(app: Any, body: dict[str, Any]) -> dict[str, Any]:
                 "n_suggestions": len(envelopes),
                 "suggested_types": [e.get("knowledge_object_type") for e in envelopes],
             },
-            anonymize=not anonymize,
+            # The input_payload logs the ORIGINAL raw_text (not the
+            # pre-anonymized text_to_send), so the training-log scrub must
+            # ALWAYS run -- it is the last-line PII defense and must never
+            # be disabled by the request's anonymize hint. (Prior code used
+            # `not anonymize`, which switched the scrub OFF precisely when
+            # the caller had asked to anonymize, writing raw text to the
+            # fine-tuning JSONL.)
+            anonymize=True,
         )
     except Exception:
         pass
