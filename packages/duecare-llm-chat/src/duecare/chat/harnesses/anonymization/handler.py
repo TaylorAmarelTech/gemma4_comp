@@ -65,9 +65,15 @@ def _is_hub_url_allowed(target_url: str) -> tuple[bool, str]:
     """
     try:
         from ...federation import is_peer_url_allowed
-        return is_peer_url_allowed(target_url)
-    except Exception:
+    except ImportError:
+        # Federation module genuinely absent (older partial install) ->
+        # fall through to the built-in baseline below. A logic error INSIDE
+        # is_peer_url_allowed must NOT be swallowed: it would silently
+        # narrow this endpoint's allowlist below /api/knowledge/sync's,
+        # giving the two outbound paths divergent effective allowlists.
         pass
+    else:
+        return is_peer_url_allowed(target_url)
     # Fallback to the built-in baseline if the federation module is
     # unavailable (older partial installs); never fail open.
     if not target_url:

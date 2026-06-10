@@ -50,21 +50,38 @@ def _to_text(payload: Any) -> str:
 
 
 def _anonymize(text: str) -> str:
-    """Light PII redaction. Kept in sync with anonymization/detector.py."""
-    import re
+    """Light PII redaction over the canonical detector patterns.
 
-    patterns = [
-        (re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b"), "<EMAIL>"),
-        (re.compile(r"\+?\d[\d\-\s]{7,}\d"), "<PHONE>"),
-        (re.compile(r"\b[A-Z]{1,3}-?\d{6,}\b"), "<ID>"),
-        (re.compile(
-            r"\b(?:Ms\.|Mr\.|Mrs\.|Dr\.)\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b"
-        ), "<PERSON>"),
-    ]
-    out = text
-    for pat, placeholder in patterns:
-        out = pat.sub(placeholder, out)
-    return out
+    The training JSONL is the highest-consequence place for a PII leak --
+    it doubles as the fine-tuning corpus. So this reuses the SAME pattern
+    catalog as the anonymization harness (``anonymization/detector.py``)
+    rather than maintaining a second, weaker regex set that can silently
+    drift. The catalog covers EMAIL/PHONE/AMOUNT/DOB/ID (incl. PH passport,
+    OFW e-card, 16-digit KTP)/PERSON. Falls back to a minimal inline set
+    only if the detector module is unavailable (partial install).
+    """
+    try:
+        from .anonymization.detector import PII_PATTERNS as _CANON
+
+        out = text
+        for label, pat in _CANON:
+            out = pat.sub(f"<{label}>", out)
+        return out
+    except Exception:
+        import re
+
+        fallback = [
+            (re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b"), "<EMAIL>"),
+            (re.compile(r"\+?\d[\d\-\s]{7,}\d"), "<PHONE>"),
+            (re.compile(r"\b[A-Z]{1,3}-?\d{6,}\b"), "<ID>"),
+            (re.compile(
+                r"\b(?:Ms\.|Mr\.|Mrs\.|Dr\.)\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b"
+            ), "<PERSON>"),
+        ]
+        out = text
+        for pat, placeholder in fallback:
+            out = pat.sub(placeholder, out)
+        return out
 
 
 def log_interaction(
