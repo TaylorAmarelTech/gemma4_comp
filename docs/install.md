@@ -24,6 +24,11 @@ One command to get going for your flow. Each pulls only what that flow needs;
 the meta package `duecare-llm` pulls the full runtime + harness + CLI. All keep
 raw case material local — only reviewed artifacts are ever exported.
 
+> **Fastest path after install:** `duecare quickstart --role ngo` runs
+> init + component check + sample data and prints the exact next command for
+> your flow (`--role ngo|worker|researcher|developer`). One command from a bare
+> install to a working node with something to show.
+
 | Flow | Install | Run | What you get |
 |---|---|---|---|
 | **Just try it** (laptop) | `pip install duecare-llm` | `duecare chat` | Local chat playground at `http://localhost:8080` over Ollama Gemma 4 E2B/E4B |
