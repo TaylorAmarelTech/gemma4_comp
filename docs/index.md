@@ -65,7 +65,7 @@ the same Gemma 4-centered safety stack.
 | **I am an NGO, caseworker, regulator, or legal-aid reviewer** | Turn messages, documents, and public rules into grounded drafts, referrals, complaint materials, and corridor updates. | [Caseworker workflow](scenarios/caseworker_workflow.md), [NGO office deployment](scenarios/ngo-office-deployment.md), and [Regulator pattern analysis](scenarios/regulator-pattern-analysis.md). |
 | **I am a migrant worker or prospective worker** | Understand suspicious offers, contracts, recruiter messages, fee demands, document retention, threats, and next steps privately. | [Worker self-help](scenarios/worker-self-help.md) and the [DueCare Journey Android releases](https://github.com/TaylorAmarelTech/duecare-journey-android/releases). |
 | **I am a researcher, evaluator, or auditor** | Reproduce model behavior, compare safety interventions, inspect pack hashes, and audit every claim from source artifacts. | [Researcher analysis](scenarios/researcher-analysis.md), [Reproducibility](reproducibility.md), and [A-00 proof path](FOR_PEER_REVIEW.md#a-00-proof-path). |
-| **I am sharing anonymized knowledge** | Convert reviewed local evidence into sanitized fact objects that improve shared packs without centralizing raw worker case data. | [Anonymization policy](anonymization_policy.md), [Submission labeling policy](submission_labeling_policy.md), and the workbench Anonymization & Sharing page. |
+| **I am sharing anonymized knowledge** | Convert reviewed local evidence into sanitized fact objects that improve shared packs without centralizing raw worker case data. | [Anonymization policy](anonymization_policy.md), [Submission labeling policy](submission_labeling_policy.md), the workbench Anonymization & Sharing page, and the [civil-society outreach loop](https://duecare-ai.com/outreach) (contribute by replying to an email). |
 | **I am a developer or integration partner** | Embed DueCare into moderation tools, NGO systems, mobile clients, dashboards, or custom workflows. | [Install guide](install.md), [Embedding guide](embedding_guide.md), [OpenAPI spec](openapi.yaml), and [Client connect](https://duecare-ai.com/client-connect). |
 
 ## Deployment And Use Cases
@@ -94,6 +94,15 @@ without becoming one raw case-data warehouse.
 | **Hub intake** | duecare-ai.com public hub | Review queue entry, validation result, and submission receipt. | Server-side PII checks reject raw private case content. |
 | **Curation** | Curator and civil-society review | Vetted pack update, contact metadata update, benchmark row, or rejected proposal. | Human review is required before shared knowledge becomes reusable. |
 | **Reuse** | Local nodes pulling updated packs | Better rules, citations, examples, and evaluation artifacts in future local deployments. | Shared intelligence returns as versioned packs, not as exposed case narratives. |
+
+**Active outreach.** The hub does not only wait for submissions — it runs a
+[civil-society outreach loop](https://duecare-ai.com/outreach): it detects which
+knowledge needs field verification (a corridor fee cap, an emerging payment
+rail, a statute change), emails a specific question to the opted-in experts best
+placed to answer, vets each reply through the same PII gate, and folds the
+observations back into *prioritized context* and *candidate grading dimensions*.
+Civil society contributes by replying to one email — never by learning a new
+login. Raw addresses are never stored; only a sha256 hash plus topics persist.
 
 Read the focused [Information Sharing Architecture](information_sharing_architecture.md)
 page for the object types, trust boundary, and hub/local responsibilities.
