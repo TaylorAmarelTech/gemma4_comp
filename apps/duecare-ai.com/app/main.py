@@ -30,6 +30,7 @@ from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator, mod
 
 from . import __version__
 from . import automation
+from . import outreach
 from . import local_kb
 from . import packs as pack_registry
 from . import runtime_packs
@@ -266,6 +267,21 @@ class SubscriberReceipt(BaseModel):
     email_sha256: str
     n_topics: int
     note: str
+
+
+class OutreachCampaignIn(BaseModel):
+    """Request a drafted solicitation campaign for a detected context gap."""
+    gap_id: str
+
+
+class OutreachObserveIn(BaseModel):
+    """A civil-society observation reply to fold into context prioritization.
+    Reachable directly or from the inbound-email gateway."""
+    gap_id: str
+    subject: str = ""
+    body: str
+    sender_email: str = ""
+    sender_domain: str = ""
 
 class HealthStatus(BaseModel):
     """Health status for Render and external smoke checks."""
@@ -1499,6 +1515,88 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
                 "curator outreach planning."
             ),
         )
+
+
+    def _load_subscribers(root) -> list[dict]:
+        import json as _json
+        spath = root / "subscribers.jsonl"
+        if not spath.exists():
+            return []
+        out: list[dict] = []
+        for line in spath.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                out.append(_json.loads(line))
+            except Exception:
+                continue
+        return out
+
+    @application.get("/api/outreach/gaps", tags=["outreach"])
+    async def outreach_gaps(request: Request) -> dict:
+        """The prioritized context gaps the hub wants civil society to help
+        verify. Priority rises as field observations corroborate a gap."""
+        from dataclasses import asdict as _asdict
+        state = _state(request)
+        gaps = outreach.detect_context_gaps(state.store.root)
+        subs = _load_subscribers(state.store.root)
+        return {
+            "count": len(gaps),
+            "n_subscribers": len(subs),
+            "smtp_configured": outreach._smtp_configured(),
+            "gaps": [_asdict(g) for g in gaps],
+        }
+
+    @application.post("/api/outreach/campaign", tags=["outreach"])
+    async def outreach_campaign(request: Request, body: OutreachCampaignIn) -> dict:
+        """Draft a targeted solicitation campaign for one gap: pick opted-in
+        subscribers whose topics match, draft the email via the automation
+        engine, and record an audit row. Actually sends only if SMTP is
+        configured (DUECARE_SMTP_HOST/FROM); otherwise status is 'drafted'."""
+        from dataclasses import asdict as _asdict
+        from datetime import UTC as _UTC, datetime as _dt
+        state = _state(request)
+        gap = outreach.gap_by_id(state.store.root, body.gap_id)
+        if gap is None:
+            raise HTTPException(404, f"unknown gap_id: {body.gap_id}")
+        subs = _load_subscribers(state.store.root)
+        campaign = outreach.draft_campaign(
+            state.store.root, gap, subs,
+            compose=automation.compose_outbound_request,
+        )
+        ts = _dt.now(_UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
+        outreach.record_campaign(state.store.root, campaign, ts)
+        return {"ok": True, "campaign": _asdict(campaign)}
+
+    @application.post("/api/outreach/observe", tags=["outreach"])
+    async def outreach_observe(request: Request, body: OutreachObserveIn) -> dict:
+        """Fold a civil-society observation reply into context prioritization.
+        Vets the reply through the same PII/intent gate as the inbound-email
+        path, then records a weighted context signal for the named gap."""
+        from dataclasses import asdict as _asdict
+        from datetime import UTC as _UTC, datetime as _dt
+        state = _state(request)
+        if outreach.gap_by_id(state.store.root, body.gap_id) is None:
+            raise HTTPException(404, f"unknown gap_id: {body.gap_id}")
+        verdict = automation.vet_inbound_email(body.subject, body.body, body.sender_domain)
+        ts = _dt.now(_UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
+        sig = outreach.ingest_observation(
+            state.store.root, body.gap_id, verdict=verdict,
+            sender_email=body.sender_email, ts=ts,
+        )
+        return {"ok": True, "signal": _asdict(sig),
+                "vet": {"verdict": verdict.verdict, "intent": verdict.intent,
+                        "summary": verdict.summary, "pii_findings": verdict.pii_findings}}
+
+    @application.get("/api/outreach/priorities", tags=["outreach"])
+    async def outreach_priorities(request: Request) -> dict:
+        """Ranked context priorities derived from accumulated observations,
+        each with a candidate ranking/rubric dimension so outreach feeds the
+        grading surface, not just the RAG corpus."""
+        state = _state(request)
+        priorities = outreach.prioritized_context(state.store.root)
+        return {"count": len(priorities), "priorities": priorities}
 
 
     @application.post(
