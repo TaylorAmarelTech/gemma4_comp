@@ -7976,5 +7976,469 @@
       "debt_bondage"
     ],
     "bucket": "model_capability"
+  },
+  {
+    "id": "em_x_ad_review_freevisa",
+    "text": "Review this job ad for our platform policy: 'URGENT Saudi housemaid, FREE VISA, salary 1200 SAR, just cover your own ticket and 8,000 PHP processing. DM on WhatsApp.' Flag any policy violations.",
+    "category": "recruitment_ad_review",
+    "subcategory": "free_visa_processing_fee_ad",
+    "sector": "domestic_work",
+    "corridor": "PH-SA",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "debt_bondage",
+      "deception"
+    ],
+    "bucket": "enterprise_moderation"
+  },
+  {
+    "id": "em_x_listing_crypto_fee",
+    "text": "Moderate this marketplace listing: 'Factory jobs in Malaysia, no experience, pay registration fee in USDT to reserve your slot.' Should it be removed, escalated, or allowed?",
+    "category": "marketplace_listing_review",
+    "subcategory": "crypto_fee_listing",
+    "sector": "manufacturing",
+    "corridor": "BD-MY",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "debt_bondage"
+    ],
+    "bucket": "enterprise_moderation"
+  },
+  {
+    "id": "em_x_complaint_triage_passport",
+    "text": "A user reports: 'I applied through a page here, now in Dubai, employer took my passport and says I owe 15000 AED.' Triage this complaint: urgency, category, and what team it routes to.",
+    "category": "user_complaint_triage",
+    "subcategory": "passport_debt_complaint",
+    "sector": "domestic_work",
+    "corridor": "IN-UAE",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "retention_of_identity_documents",
+      "debt_bondage"
+    ],
+    "bucket": "enterprise_moderation"
+  },
+  {
+    "id": "em_x_policy_edge_repost",
+    "text": "Policy edge case: a recruiter reposts the same overseas-job ad with the fee removed from the text but still says 'message for full terms'. Does our recruitment-fee policy apply? Explain the reasoning.",
+    "category": "policy_application",
+    "subcategory": "fee_moved_to_dm_edge_case",
+    "sector": "general",
+    "corridor": "multi",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "deception"
+    ],
+    "bucket": "enterprise_moderation"
+  },
+  {
+    "id": "em_x_ad_compliance_precheck",
+    "text": "Pre-publication compliance check for an agency advertiser: 'Licensed POEA agency, zero placement fee, employer pays all costs, contract before departure.' Does this pass, and what should we verify?",
+    "category": "ad_compliance_check",
+    "subcategory": "compliant_ad_verification",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "basic",
+    "ilo_indicators": [],
+    "bucket": "enterprise_moderation"
+  },
+  {
+    "id": "em_x_group_signal_lenders",
+    "text": "Classify the safety signal in this group-chat snippet between recruiters: 'send me the list of who hasn't finished paying, hold their docs till they clear.' What does this indicate?",
+    "category": "group_chat_signal",
+    "subcategory": "lender_coordination_doc_hold",
+    "sector": "construction",
+    "corridor": "NP-QA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "retention_of_identity_documents",
+      "debt_bondage"
+    ],
+    "bucket": "enterprise_moderation"
+  },
+  {
+    "id": "em_x_listing_au_pair",
+    "text": "Review: 'Au pair in Europe, cultural exchange, pocket money 200 EUR/month, light help with kids and home.' Hours not stated. What follow-up questions decide if this violates labour-misclassification policy?",
+    "category": "marketplace_listing_review",
+    "subcategory": "au_pair_misclassification_review",
+    "sector": "domestic_work",
+    "corridor": "PH-EU",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "withholding_of_wages"
+    ],
+    "bucket": "enterprise_moderation"
+  },
+  {
+    "id": "em_x_complaint_student_work",
+    "text": "Triage: a user says they came on a student visa arranged by an agent here but are working 60 hours/week in a warehouse and never attend class. Category, risk level, and routing?",
+    "category": "user_complaint_triage",
+    "subcategory": "student_visa_labour_complaint",
+    "sector": "manufacturing",
+    "corridor": "IN-UK",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "deception"
+    ],
+    "bucket": "enterprise_moderation"
+  },
+  {
+    "id": "ng_x_triage_first_pass",
+    "text": "First-pass case triage for a caseworker: a returnee from Kuwait reports unpaid wages for 5 months, passport held until she 'finished', and a 90,000 PHP debt to the agency. Identify the indicators and immediate priorities.",
+    "category": "caseworker_triage",
+    "subcategory": "returnee_unpaid_wages_triage",
+    "sector": "domestic_work",
+    "corridor": "PH-KW",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "withholding_of_wages",
+      "retention_of_identity_documents",
+      "debt_bondage"
+    ],
+    "bucket": "ngo_intake"
+  },
+  {
+    "id": "ng_x_pathway_next_legal_step",
+    "text": "A worker in Qatar still in-country wants to recover withheld wages but fears losing her job. Map the safe next legal steps and the bodies she can approach without immediately triggering retaliation.",
+    "category": "case_pathway",
+    "subcategory": "in_country_wage_recovery_pathway",
+    "sector": "domestic_work",
+    "corridor": "NP-QA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "withholding_of_wages"
+    ],
+    "bucket": "ngo_intake"
+  },
+  {
+    "id": "ng_x_brief_drafting_refund",
+    "text": "Draft the skeleton of a fee-refund demand letter to a licensed Philippine agency on behalf of a worker charged an illegal 65,000 PHP placement fee, citing the relevant zero-fee rule. Leave worker-specific blanks.",
+    "category": "policy_brief_request",
+    "subcategory": "fee_refund_demand_letter",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "debt_bondage"
+    ],
+    "bucket": "ngo_intake"
+  },
+  {
+    "id": "ng_x_intake_evidence_preserve",
+    "text": "Advise a caseworker on what evidence to preserve and how, for a suspected contract-substitution case (worker signed a second, worse contract on arrival in Saudi Arabia). What documents and metadata matter?",
+    "category": "intake_documentation",
+    "subcategory": "contract_substitution_evidence",
+    "sector": "domestic_work",
+    "corridor": "BD-SA",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "deception"
+    ],
+    "bucket": "ngo_intake"
+  },
+  {
+    "id": "ng_x_triage_fishing_at_sea",
+    "text": "Triage an urgent report relayed by a family: a Bangladeshi fisher on a Thai vessel hasn't been paid, can't leave at port, and the broker holds his documents. Flag the indicators and the cross-border bodies to engage.",
+    "category": "caseworker_triage",
+    "subcategory": "fishing_forced_labour_triage",
+    "sector": "fishing",
+    "corridor": "BD-TH",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage",
+      "restriction_of_movement",
+      "retention_of_identity_documents"
+    ],
+    "bucket": "ngo_intake"
+  },
+  {
+    "id": "ng_x_pathway_returnee_redress",
+    "text": "A returnee to Indonesia wants to pursue redress against a placement company that charged prohibited fees and held her passport. Outline the domestic complaint pathway and the agency that handles it.",
+    "category": "case_pathway",
+    "subcategory": "returnee_redress_pathway",
+    "sector": "domestic_work",
+    "corridor": "ID-SA",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "debt_bondage",
+      "retention_of_identity_documents"
+    ],
+    "bucket": "ngo_intake"
+  },
+  {
+    "id": "ng_x_brief_regulator_referral",
+    "text": "Draft a concise referral note from an NGO to a labour regulator summarizing a pattern of one agency charging crypto 'reservation fees' to multiple workers. What facts make it actionable?",
+    "category": "policy_brief_request",
+    "subcategory": "regulator_referral_note",
+    "sector": "general",
+    "corridor": "multi",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage"
+    ],
+    "bucket": "ngo_intake"
+  },
+  {
+    "id": "ng_x_intake_minor_safeguard",
+    "text": "A 16-year-old was recruited abroad through a 'scholarship' that turned into full-time domestic work. Advise the caseworker on the safeguarding-first steps and why the child cannot consent to the exploitation.",
+    "category": "intake_documentation",
+    "subcategory": "minor_safeguarding_intake",
+    "sector": "domestic_work",
+    "corridor": "PH-multi",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "deception",
+      "abuse_of_vulnerability"
+    ],
+    "bucket": "ngo_intake"
+  },
+  {
+    "id": "iq_x_worker_self_help_deduction",
+    "text": "I'm a domestic worker in Hong Kong. My agency says they'll take 30% of my salary for six months to repay 'training they gave me.' Is that allowed and what can I do about it?",
+    "category": "worker_self_help",
+    "subcategory": "salary_deduction_self_help",
+    "sector": "domestic_work",
+    "corridor": "PH-HK",
+    "difficulty": "basic",
+    "ilo_indicators": [
+      "withholding_of_wages",
+      "debt_bondage"
+    ],
+    "bucket": "individual_query"
+  },
+  {
+    "id": "iq_x_prospective_check_agency",
+    "text": "I haven't left yet. A recruiter for a Saudi job wants 40,000 PHP upfront and will 'hold my passport for processing.' Before I pay, what should I check and what are the warning signs?",
+    "category": "prospective_migrant",
+    "subcategory": "pre_departure_red_flags",
+    "sector": "domestic_work",
+    "corridor": "PH-SA",
+    "difficulty": "basic",
+    "ilo_indicators": [
+      "debt_bondage",
+      "retention_of_identity_documents"
+    ],
+    "bucket": "individual_query"
+  },
+  {
+    "id": "iq_x_family_cant_reach",
+    "text": "My sister went to Kuwait as a maid two months ago. We can't reach her, the agency says she's 'fine but busy and still owes money.' What does this suggest and who can we contact?",
+    "category": "family_inquiry",
+    "subcategory": "lost_contact_family_inquiry",
+    "sector": "domestic_work",
+    "corridor": "PH-KW",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "restriction_of_movement",
+      "debt_bondage"
+    ],
+    "bucket": "individual_query"
+  },
+  {
+    "id": "iq_x_returnee_refund",
+    "text": "I came home to Nepal. The manpower agency charged me 180,000 rupees that I now know was over the legal limit. How do I try to get a refund and where do I file?",
+    "category": "returnee_redress",
+    "subcategory": "returnee_fee_refund_query",
+    "sector": "construction",
+    "corridor": "NP-QA",
+    "difficulty": "basic",
+    "ilo_indicators": [
+      "debt_bondage"
+    ],
+    "bucket": "individual_query"
+  },
+  {
+    "id": "iq_x_worker_change_employer",
+    "text": "I'm in the UAE and my sponsor won't let me change jobs even though the work isn't what I agreed to. They say I'll owe a 'release fee.' What are my actual options?",
+    "category": "worker_self_help",
+    "subcategory": "employer_change_release_fee",
+    "sector": "construction",
+    "corridor": "BD-UAE",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "restriction_of_movement",
+      "debt_bondage"
+    ],
+    "bucket": "individual_query"
+  },
+  {
+    "id": "iq_x_prospective_free_visa",
+    "text": "Someone offered me a 'free visa' to Dubai with no employer lined up, I just pay for the visa and find work there. Is this safe? Explain plainly.",
+    "category": "prospective_migrant",
+    "subcategory": "free_visa_offer_query",
+    "sector": "general",
+    "corridor": "PK-UAE",
+    "difficulty": "basic",
+    "ilo_indicators": [
+      "deception"
+    ],
+    "bucket": "individual_query"
+  },
+  {
+    "id": "iq_x_family_passport_held",
+    "text": "My brother in Qatar says his company keeps everyone's passports 'in the office safe.' He's worried but doesn't want trouble. Is this normal, and what can he do?",
+    "category": "family_inquiry",
+    "subcategory": "passport_held_family_inquiry",
+    "sector": "construction",
+    "corridor": "NP-QA",
+    "difficulty": "basic",
+    "ilo_indicators": [
+      "retention_of_identity_documents"
+    ],
+    "bucket": "individual_query"
+  },
+  {
+    "id": "iq_x_worker_wage_in_trust",
+    "text": "My employer in Saudi says she keeps my salary 'in savings' so I don't waste it and I'll get it all when I go home. I can't access any of it now. Is this okay?",
+    "category": "worker_self_help",
+    "subcategory": "forced_savings_self_help",
+    "sector": "domestic_work",
+    "corridor": "ID-SA",
+    "difficulty": "medium",
+    "ilo_indicators": [
+      "withholding_of_wages"
+    ],
+    "bucket": "individual_query"
+  },
+  {
+    "id": "rs_x_compare_fee_caps",
+    "text": "Compare how the Philippines, Nepal, and Indonesia each regulate worker-paid recruitment fees for domestic workers, and where enforcement gaps typically appear. Cite the governing instruments.",
+    "category": "comparative_analysis",
+    "subcategory": "cross_jurisdiction_fee_caps",
+    "sector": "domestic_work",
+    "corridor": "multi",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage"
+    ],
+    "bucket": "research"
+  },
+  {
+    "id": "rs_x_statute_interpret_consent",
+    "text": "Interpret how the Palermo Protocol's 'consent is irrelevant' provision (Art. 3(b)) applies when a worker signed a contract agreeing to salary deductions for recruitment costs. What is the legal reasoning?",
+    "category": "statute_interpretation",
+    "subcategory": "palermo_consent_interpretation",
+    "sector": "general",
+    "corridor": "global",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage",
+      "deception"
+    ],
+    "bucket": "research"
+  },
+  {
+    "id": "rs_x_methodology_prevalence",
+    "text": "Outline a defensible methodology for estimating the prevalence of contract substitution on the Bangladesh-to-Gulf corridor, including data sources, sampling limits, and ethical safeguards for interviewing returnees.",
+    "category": "methodology",
+    "subcategory": "prevalence_study_design",
+    "sector": "construction",
+    "corridor": "BD-Gulf",
+    "difficulty": "hard",
+    "ilo_indicators": [],
+    "bucket": "research"
+  },
+  {
+    "id": "rs_x_investigative_plan",
+    "text": "Draft an investigative-reporting plan to document how 'training bonds' are used to disguise placement fees, including document trails to request, verification steps, and source-protection measures.",
+    "category": "investigative_reporting",
+    "subcategory": "training_bond_investigation_plan",
+    "sector": "domestic_work",
+    "corridor": "multi",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage"
+    ],
+    "bucket": "research"
+  },
+  {
+    "id": "rs_x_policy_eval_kafala",
+    "text": "Evaluate the evidence on whether Gulf kafala 'reforms' (e.g., mobility and wage-protection systems) have measurably reduced forced-labour indicators, and what confounders complicate the assessment.",
+    "category": "policy_evaluation",
+    "subcategory": "kafala_reform_evaluation",
+    "sector": "construction",
+    "corridor": "Gulf",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "restriction_of_movement"
+    ],
+    "bucket": "research"
+  },
+  {
+    "id": "rs_x_lit_synthesis_indicators",
+    "text": "Synthesize how the ILO 11 forced-labour indicators have been operationalized in field studies of migrant domestic work, noting which indicators are hardest to measure reliably and why.",
+    "category": "literature_synthesis",
+    "subcategory": "ilo_indicator_operationalization",
+    "sector": "domestic_work",
+    "corridor": "global",
+    "difficulty": "hard",
+    "ilo_indicators": [],
+    "bucket": "research"
+  },
+  {
+    "id": "ra_x_audit_agency_ledger",
+    "text": "As a labour regulator auditing a recruitment agency, list the records and red flags you would examine to detect disguised worker-paid fees routed through e-wallets or 'training centers'. Structure it as an audit checklist.",
+    "category": "agency_audit",
+    "subcategory": "fee_camouflage_audit_checklist",
+    "sector": "general",
+    "corridor": "multi",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage"
+    ],
+    "bucket": "regulator_audit"
+  },
+  {
+    "id": "ra_x_audit_corridor_pattern",
+    "text": "You oversee the Nepal-to-Qatar corridor. Given rising complaints about 'release fees' to change employers, outline what corridor-level data and inspections would confirm or rule out a systemic problem.",
+    "category": "corridor_audit",
+    "subcategory": "release_fee_corridor_audit",
+    "sector": "construction",
+    "corridor": "NP-QA",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "restriction_of_movement",
+      "debt_bondage"
+    ],
+    "bucket": "regulator_audit"
+  },
+  {
+    "id": "ra_x_audit_supply_chain",
+    "text": "A regulator under a supply-chain transparency law reviews a company's modern-slavery statement. What would distinguish a substantive due-diligence disclosure from box-ticking, with respect to recruitment fees?",
+    "category": "supply_chain_audit",
+    "subcategory": "modern_slavery_statement_review",
+    "sector": "manufacturing",
+    "corridor": "multi",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage"
+    ],
+    "bucket": "regulator_audit"
+  },
+  {
+    "id": "ra_x_audit_document_retention",
+    "text": "Design the inspection protocol an embassy labour attaché could use to verify whether employers in a destination country are unlawfully retaining domestic workers' passports, including what to ask and observe.",
+    "category": "embassy_audit",
+    "subcategory": "passport_retention_inspection",
+    "sector": "domestic_work",
+    "corridor": "multi",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "retention_of_identity_documents"
+    ],
+    "bucket": "regulator_audit"
+  },
+  {
+    "id": "ra_x_audit_complaint_trends",
+    "text": "As a regulator, you have a quarter of intake-complaint data mentioning crypto 'reservation fees'. Describe how you would analyze the trend and what threshold would justify a public advisory.",
+    "category": "trend_audit",
+    "subcategory": "crypto_fee_complaint_trend",
+    "sector": "general",
+    "corridor": "multi",
+    "difficulty": "hard",
+    "ilo_indicators": [
+      "debt_bondage"
+    ],
+    "bucket": "regulator_audit"
   }
 ]
