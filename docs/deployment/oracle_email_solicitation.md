@@ -29,7 +29,7 @@ their inbox.
 
 ```
 ┌────────────────────────────────────────────────────────────────┐
-│ DueCare knowledge layer (300 GREP, 227 RAG, 31 corridor caps)  │
+│ DueCare knowledge layer (439 GREP, 859 RAG, 38 corridor caps)  │
 │                                                                │
 │ Gap detector: identifies knowledge that needs verification     │
 │  - corridor cap last verified > 6 months ago                   │
