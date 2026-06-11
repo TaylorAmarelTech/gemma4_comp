@@ -7,8 +7,8 @@ Re-runnable via `python scripts/verify_knowledge_surfaces.py`.
 
 | Surface | Count |
 | --- | --- |
-| `GREP_RULES` | 417 (categories A through GGGG + HHHH + IIII + MMMM, including SCREENING + AAA-III + JJJ-OOO + PPP-YYY + ZZZ-GGGG) |
-| `RAG_CORPUS` | 846 (incl. 6 landmark case-law + 3 national anti-trafficking units + research / faith / sex-worker-rights bodies + US HSI / CBP CEE / UK IASC / GRETA / 3 UN SR mandates / MPI / Asia Foundation / Amnesty / BHRRC / Solidaridad cluster / ECPAT / HRW + IMO/ITF + ICAT + AU/Ouagadougou + ASEAN ACTIP detail + Lanzarote + GCM + UFLPA + C189/C188/MLC 2006/Palermo Art 3/P029 sector-convention docs) |
+| `GREP_RULES` | 439 (categories A through GGGG + HHHH + IIII + MMMM + NNNN, including SCREENING + AAA-III + JJJ-OOO + PPP-YYY + ZZZ-GGGG) |
+| `RAG_CORPUS` | 859 (incl. 6 landmark case-law + 3 national anti-trafficking units + research / faith / sex-worker-rights bodies + US HSI / CBP CEE / UK IASC / GRETA / 3 UN SR mandates / MPI / Asia Foundation / Amnesty / BHRRC / Solidaridad cluster / ECPAT / HRW + IMO/ITF + ICAT + AU/Ouagadougou + ASEAN ACTIP detail + Lanzarote + GCM + UFLPA + C189/C188/MLC 2006/Palermo Art 3/P029 sector-convention docs + migrant-worker conventions ILO C097/C143/ICRMW + IRIS + BD/ID/LK/IN origin-state laws + Kuwait DW law + US TVPA + AU/CA supply-chain acts + CoE Warsaw) |
 | `MULTIDOMAIN_CORPUS` (`harness/_multidomain_corpus.py`) | 610 (51 integrity verticals across UN SDGs 1-17; opt-in BM25 at `GET /api/multidomain/rag` and `/api/harness-catalog/multidomain`; deliberately kept separate from the trafficking `RAG_CORPUS` so anti-trafficking prompts and retrieval never commingle with off-domain content) |
 | `CORRIDOR_FEE_CAPS` | 38 |
 | `FEE_CAMOUFLAGE_DICT` | 57 |
@@ -20,10 +20,10 @@ Re-runnable via `python scripts/verify_knowledge_surfaces.py`.
 
 ## What is in each surface
 
-### `GREP_RULES` (417 detection patterns)
+### `GREP_RULES` (439 detection patterns)
 
 Multi-category pattern detection across the recruitment + deployment
-+ exploitation lifecycle, organised A through OOO + HHHH + IIII + MMMM:
++ exploitation lifecycle, organised A through OOO + HHHH + IIII + MMMM + NNNN:
 
 | Cluster | Categories | Theme |
 | --- | --- | --- |
@@ -61,8 +61,9 @@ Multi-category pattern detection across the recruitment + deployment
 | Sector conventions + cross-corridor | HHHH | ILO C189 domestic-work confinement/rest, C188 fishing vessel, MLC 2006 seafarer fees/abandonment, contract substitution, passport "safekeeping" euphemism, Palermo act+means |
 | Stacked manipulation + false legitimacy | IIII | Combined/layered manipulation patterns + false-legitimacy framing |
 | Sham status / misclassification | MMMM | Sham employment-status / employment-misclassification (unpaid "training", "self-employed" with employer control, intern-doing-full-job, au-pair-as-full-domestic, tithe/obedience wage control), citing ILO C095 / R198 |
+| Digital recruitment + payment rails + corridor depth | NNNN | App/platform recruitment, crypto + e-wallet fee rails, Gulf "free visa" scam, student-visa labour, document-confiscation euphemisms, kafala mobility, exit/release fees, + Ethiopia/East-Africa/South-Asia corridors; citing ILO C181 Art. 7 + Fair Recruitment 2016 + ICRMW Art. 21 |
 
-### `RAG_CORPUS` (227 knowledge documents)
+### `RAG_CORPUS` (859 knowledge documents)
 
 ILO conventions, UN instruments, regional anti-trafficking treaties,
 destination-country statutes, origin-country statutes, bilateral
