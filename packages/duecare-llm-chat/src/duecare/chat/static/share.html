@@ -8,6 +8,7 @@
   <script src="/static/_nav.js" defer></script>
   <script src="/static/_activity_log.js" defer></script>
   <script src="/static/_workflow.js" defer></script>
+  <script src="/static/_knowledge_flow.js" defer></script>
   <style>
     body { font-family: 'Inter', sans-serif; background: #F7F6F1; color: #0E1116; margin: 0; padding: 0; }
     .wb-page { max-width: 1120px; margin: 0 auto; padding: 24px 22px 80px; }
@@ -68,6 +69,8 @@
       <span class="dc-trust-pill"><span class="dot"></span>HUB SUBMIT IS REMOTE</span>
       <span class="dc-trust-text">Steps 1&ndash;3 stay in the kernel. Step 4 performs a real HTTPS POST; audit log at <code>/kaggle/working/audit/submit_log.jsonl</code> records every click and sha256.</span>
     </div>
+
+    <div class="dc-kflow" data-active="submit"></div>
 
     <p class="wb-lede">
       Upload a source bundle, candidate finding export, or existing knowledge

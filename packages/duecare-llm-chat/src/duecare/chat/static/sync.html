@@ -8,6 +8,7 @@
   <script src="/static/_nav.js" defer></script>
   <script src="/static/_activity_log.js" defer></script>
   <script src="/static/_workflow.js" defer></script>
+  <script src="/static/_knowledge_flow.js" defer></script>
   <style>
     body { font-family: 'Inter', sans-serif; background: #F7F6F1; color: #0E1116; margin: 0; padding: 0; }
     .wb-page { max-width: 1080px; margin: 0 auto; padding: 24px 22px 80px; }
@@ -49,6 +50,9 @@
       <span class="dc-trust-pill"><span class="dot"></span>PULL-ONLY</span>
       <span class="dc-trust-text">This tab makes an outbound HTTPS GET to a registered peer hub (default <code>duecare-ai.com</code>; the legacy <code>gemma4-comp.onrender.com</code> host still resolves to the same service — see <code>/api/network/peers</code>). Only public, pre-anonymized knowledge object envelopes are downloaded. Nothing on this kernel is sent to the hub by Sync.</span>
     </div>
+
+    <div class="dc-kflow" data-active="retrieve"></div>
+
     <p class="wb-lede">
       One click to fetch the latest vetted (and optionally unvetted)
       knowledge from <a href="https://duecare-ai.com/hub#hub-vetting" target="_blank">the live hub</a>,
