@@ -61,6 +61,62 @@ def cmd_init(ctx, db, out) -> None:
     click.echo(f"    duecare serve --port 8080 --tunnel cloudflared")
 
 
+@cli.command("quickstart")
+@click.option("--role", type=click.Choice(["ngo", "worker", "researcher", "developer"]),
+                default="ngo", help="Tailor the next-step hints to your flow.")
+@click.option("--db", default="duecare.duckdb", type=click.Path(),
+                help="Where to create the evidence DB.")
+@click.option("--out", default="./multimodal_v1_output",
+                help="Pipeline output directory.")
+@click.option("--no-demo", is_flag=True, help="Skip loading the sample corpus.")
+@click.pass_context
+def cmd_quickstart(ctx, role, db, out, no_demo) -> None:
+    """One command to a working DueCare node: init + doctor + sample data + next steps.
+
+    The fastest path for a non-technical operator (e.g. an NGO caseworker): it
+    bootstraps the DB and output dir, checks every component, loads a synthetic
+    sample corpus so the UI has something to show, and prints the exact command
+    to start the server for your flow. All processing stays local.
+    """
+    click.secho("DueCare quickstart", fg="cyan", bold=True)
+    ctx.obj["db"] = db
+    click.secho("\n  Step 1/3  bootstrap project", fg="cyan")
+    ctx.invoke(cmd_init, db=db, out=out)
+    click.secho("\n  Step 2/3  diagnose components", fg="cyan")
+    ctx.invoke(cmd_doctor)
+    if no_demo:
+        click.secho("\n  Step 3/3  sample data skipped (--no-demo)", fg="cyan")
+    else:
+        click.secho("\n  Step 3/3  load sample data", fg="cyan")
+        try:
+            ctx.invoke(cmd_demo_init, out=out)
+        except Exception as e:
+            click.secho(f"    sample data skipped ({type(e).__name__}: {e})", fg="yellow")
+
+    steps = {
+        "ngo": [
+            "duecare serve --port 8080            # open the workbench at http://localhost:8080",
+            "  then: Bulk File Review -> Knowledge Extraction -> Anonymization & Sharing",
+        ],
+        "worker": [
+            'duecare worker "<paste a suspicious recruiter message>"   # private, local check',
+            "  or run the DueCare Journey mobile app for fully on-device answers",
+        ],
+        "researcher": [
+            "duecare serve --port 8080            # Search Safety + Sync + model compare",
+            "  then pull reviewed packs and export aggregate signals with provenance",
+        ],
+        "developer": [
+            "duecare serve --port 8080            # the FastAPI app",
+            "  inspect GET /api/portability for the universal model/harness contract",
+        ],
+    }
+    click.secho("\n  Ready. Next steps for your flow:", fg="green", bold=True)
+    for line in steps.get(role, steps["ngo"]):
+        click.echo(f"    {line}")
+    click.echo("\n  All processing stays local; only reviewed, anonymized artifacts are ever exported.")
+
+
 @cli.command("doctor")
 @click.pass_context
 def cmd_doctor(ctx) -> None:
