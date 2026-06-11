@@ -266,25 +266,49 @@ function packQuery() {
   return params.toString();
 }
 
-async function loadPacks() {
+let _prevPackCount = null;
+async function loadPacks(opts) {
+  opts = opts || {};
   const results = document.getElementById('pack-results');
   const summary = document.getElementById('pack-results-summary');
-  results.innerHTML = '<p class="muted">Loading packs from the live registry...</p>';
+  // Only flash "Loading..." on a manual load / filter change, not on the
+  // silent background refresh, so the list updates without flicker.
+  if (!opts.silent) {
+    results.innerHTML = '<p class="muted">Loading packs from the live registry...</p>';
+  }
   const query = packQuery();
-  const response = await fetch(`/api/hub/packs${query ? `?${query}` : ''}`);
-  if (!response.ok) {
-    results.innerHTML = `<p class="muted">Pack registry returned HTTP ${response.status}.</p>`;
-    summary.innerHTML = '<b style="color:var(--ink);font-weight:600;">Registry unavailable</b>';
+  let payload;
+  try {
+    const response = await fetch(`/api/hub/packs${query ? `?${query}` : ''}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    payload = await response.json();
+  } catch (err) {
+    if (!opts.silent) {
+      results.innerHTML = `<p class="muted">Pack registry unavailable (${err.message}).</p>`;
+      summary.innerHTML = '<b style="color:var(--ink);font-weight:600;">Registry unavailable</b>';
+    }
     return;
   }
-  const payload = await response.json();
   renderFilterOptions('filter-kind', 'kind', payload.available_kinds || []);
   renderFilterOptions('filter-corridor', 'corridor', payload.available_corridors || []);
   renderFilterOptions('filter-jurisdiction', 'jurisdiction', payload.available_jurisdictions || []);
   renderFilterOptions('filter-tag', 'tag', payload.available_tags || []);
   syncCheckboxGroup('status');
   const packs = payload.packs || [];
-  summary.innerHTML = `<b style="color:var(--ink);font-weight:600;">${packs.length} pack${packs.length === 1 ? '' : 's'}</b> · filtered from live API`;
+  // Live-state indicator: timestamp + a "new since last check" badge when the
+  // registry grows (e.g., a curator just vetted a submitted pack). This is the
+  // auto-update that reflects freshly shared packs without a manual reload.
+  const now = new Date();
+  const stamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  let newBadge = '';
+  if (_prevPackCount !== null && packs.length > _prevPackCount) {
+    const delta = packs.length - _prevPackCount;
+    newBadge = ` · <span style="color:var(--accent-ink,#0f766e);font-weight:600;">+${delta} new</span>`;
+  }
+  _prevPackCount = packs.length;
+  summary.innerHTML = `<b style="color:var(--ink);font-weight:600;">${packs.length} pack${packs.length === 1 ? '' : 's'}</b>`
+    + ` · filtered from live API${newBadge}`
+    + ` · <span class="muted">updated ${stamp} · auto-refreshes every 20s</span>`;
   results.innerHTML = packs.length
     ? packs.map(renderPackCard).join('')
     : '<p class="muted">No packs match these filters. Clear filters or choose a broader corridor.</p>';
@@ -309,6 +333,17 @@ document.getElementById('clear-pack-filters').addEventListener('click', () => {
 });
 
 loadPacks();
+
+// Auto-update: poll the live registry so newly vetted/shared packs appear
+// without a manual reload. Silent (no loading flicker) and paused while the
+// tab is hidden to avoid pointless background fetches. The summary line shows
+// the last-updated time + a "+N new" badge when the pack count grows.
+setInterval(function () {
+  if (!document.hidden) loadPacks({ silent: true });
+}, 20000);
+document.addEventListener('visibilitychange', function () {
+  if (!document.hidden) loadPacks({ silent: true });
+});
 </script>
 
 
