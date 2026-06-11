@@ -18,6 +18,28 @@ only export reviewed artifacts.
 | Developer / integration partner | Install `duecare-llm-chat`, run the app, and inspect `/api/portability`. | Run pytest collection plus the focused tests for changed routes or pages. |
 | Benchmark user | Use optional `kaggle/03-universal-llm-benchmark` or `kaggle/04-kaggle-community-benchmark`. | Record model, harness profile, dataset version, grader version, and git SHA. |
 
+## Copy-paste quickstart by flow
+
+One command to get going for your flow. Each pulls only what that flow needs;
+the meta package `duecare-llm` pulls the full runtime + harness + CLI. All keep
+raw case material local — only reviewed artifacts are ever exported.
+
+| Flow | Install | Run | What you get |
+|---|---|---|---|
+| **Just try it** (laptop) | `pip install duecare-llm` | `duecare chat` | Local chat playground at `http://localhost:8080` over Ollama Gemma 4 E2B/E4B |
+| **NGO caseworker** | `pip install duecare-llm` | `python -m duecare.chat.run_server` | Full workbench: Bulk File Review, Knowledge Extraction, Templates, Anonymization & Sharing — all PII local |
+| **NGO network / curator** | `pip install duecare-llm` + run the hub: `cd apps/duecare-ai.com && uvicorn app.main:create_app --factory` | `/curator` to vet, `/knowledge-packs` to publish | The shared hub: submit → curate → publish → sync loop (see the diagram on Share/Sync) |
+| **Researcher** | `pip install duecare-llm-core duecare-llm-chat duecare-llm-research-tools` | `duecare chat` then Search Safety + Sync | Import reviewed packs, run safe search, export aggregate signals with provenance |
+| **Developer / integration** | `pip install duecare-llm-chat` | `python -m duecare.chat.run_server` then `GET /api/portability` | The FastAPI app + the universal model/harness contract to embed |
+| **Benchmark** | `pip install duecare-llm-benchmark duecare-llm-chat` | see `kaggle/03-*` / `kaggle/04-*` | Endpoint comparison + Kaggle Community Benchmark scoring |
+| **Fine-tune (Unsloth)** | `pip install "duecare-llm-models[unsloth]" duecare-llm-training` | A-00 omni-experiment workbench | SFT/DPO on a T4×2; adapter export to GGUF/LiteRT |
+| **No Python on host** | `git clone …/gemma4_comp && cd gemma4_comp` | `docker compose up` | Chat (8080) + classifier (8081) + Ollama (11434), zero host deps |
+| **Kaggle judge** | _none_ — open the published kernel | Run `kaggle/01-duecare-exploration-workbench` | The judge-facing workbench; no install |
+
+> Pin a release for reproducibility: `pip install duecare-llm==0.1.0`. Kernels
+> install from GitHub source at `DUECARE_COMMIT_SHA` (default `master`); set it
+> to an immutable SHA for a frozen run. Full per-path detail follows below.
+
 ## Path 1: One-line install (fastest, ~60 seconds)
 
 Linux / macOS / WSL:
