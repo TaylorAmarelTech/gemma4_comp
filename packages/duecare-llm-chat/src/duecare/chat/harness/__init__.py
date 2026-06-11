@@ -8943,7 +8943,7 @@ GREP_RULES = [
         'indicator': 'A worker placement charge disguised as an invoice / trade / consulting payment is trade-based laundering of an illegal fee.',
     },
     {
-        'rule': 'contract_substitution_on_arrival',
+        'rule': 'contract_substitution_origin_to_destination',
         'patterns': ['\\b(signed|agreed|origin|pre-?departure|home country)\\b',
                      '\\b(on arrival|destination|after arriv\\w+|once (?:they|she|he) arriv\\w+)\\b',
                      '\\b(new contract|different terms|lower (?:wage|salary|pay)|substitut\\w+|replace\\w* (?:the )?contract)\\b'],
