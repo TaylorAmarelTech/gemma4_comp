@@ -17,7 +17,7 @@ When you run `duecare workbench`, the UI opens at
 | **Chat** | Conversational triage. Paste a worker message, ask the persona to assess. | First contact with a new case |
 | **Process** | Bulk file review. Drop in a ZIP of WhatsApp exports, a folder of contract PDFs, or a CSV of intake records. | Reviewing a case file or batch of intake forms |
 | **Extraction** | Pull structured facts (corridor, fee amounts, statute violations, ILO indicators) out of unstructured text. | Building the case-fact card |
-| **Templates** | 34 pre-filled complaint and narrative templates. Gemma 4 fills the case-specific blanks. | Drafting any formal complaint or referral |
+| **Templates** | 36 pre-filled complaint and narrative templates. Gemma 4 fills the case-specific blanks. | Drafting any formal complaint or referral |
 | **Knowledge** | Lookup: corridor fee cap, NGO contact, ILO convention, statute reference. | Quick fact-check during a call |
 | **Status** | What the workbench knows right now. Activity log, last sync, last fine-tune. | Daily check-in / troubleshooting |
 

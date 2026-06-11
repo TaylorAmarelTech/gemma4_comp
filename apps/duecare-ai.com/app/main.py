@@ -90,6 +90,7 @@ PAGE_ROUTES: dict[str, str] = {
     "/login": "login.html",
     "/mission": "mission.html",
     "/newsletter": "newsletter.html",
+    "/outreach": "outreach.html",
     "/local-kb": "local-kb.html",
     "/server-automation": "server-automation.html",
     "/packages": "packages.html",

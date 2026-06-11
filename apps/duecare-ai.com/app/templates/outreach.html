@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Civil-society outreach &middot; DueCare AI</title>
+<link rel="stylesheet" href="/static/styles.css" />
+<link rel="stylesheet" href="/static/hub-pages.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+<style>
+  .or-flow { display:flex; gap:6px; flex-wrap:wrap; align-items:stretch; margin:8px 0 18px; }
+  .or-node { flex:1 1 150px; min-width:140px; background:var(--paper,#F7F6F1); border:1px solid var(--line,#DDD8C9);
+             border-radius:10px; padding:11px 13px; display:flex; flex-direction:column; gap:3px; }
+  .or-node .n { font-family:var(--mono,monospace); font-size:10px; font-weight:700; color:var(--ink-3,#5B5F68); }
+  .or-node .t { font-size:13.5px; font-weight:700; color:var(--ink,#0E1116); }
+  .or-node .d { font-size:11px; color:var(--ink-3,#5B5F68); line-height:1.4; }
+  .or-arrow { align-self:center; color:var(--ink-4,#8A8E97); font-size:16px; }
+  @media(max-width:760px){ .or-arrow{ display:none; } }
+  .or-gap { border:1px solid var(--line,#DDD8C9); border-radius:10px; padding:12px 14px; margin-bottom:10px; background:#FFF; }
+  .or-gap .head { display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap; }
+  .or-gap .topic { font-weight:700; font-size:14px; color:var(--ink,#0E1116); }
+  .or-gap .pri { font-family:var(--mono,monospace); font-size:11px; color:var(--accent-ink,#0f766e); }
+  .or-gap .ask { font-size:12.5px; color:var(--ink-2,#2A2D34); line-height:1.5; margin:6px 0 8px; }
+  .or-gap .meta { font-size:11px; color:var(--ink-3,#5B5F68); font-family:var(--mono,monospace); }
+  .or-draft { margin-top:8px; background:var(--paper-2,#EFEDE4); border:1px solid var(--line,#DDD8C9);
+              border-radius:8px; padding:10px 12px; font-size:12px; white-space:pre-wrap; display:none; }
+  .or-pri { border-bottom:1px dotted var(--line,#DDD8C9); padding:7px 0; font-size:12.5px; }
+  .or-dim { font-family:var(--mono,monospace); font-size:10.5px; color:var(--accent-ink,#0f766e); }
+  .or-form input, .or-form select { padding:7px 10px; border:1px solid var(--line,#DDD8C9); border-radius:6px; font-size:13px; }
+</style>
+</head>
+<body>
+
+{% set active_nav = "hub" %}
+{% include "_nav.html" %}
+
+<main class="hp-main">
+  <header class="hp-hero">
+    <div class="hp-kicker">Civil-society outreach</div>
+    <h1>The hub asks the people who already know.</h1>
+    <p class="hp-lede">
+      Civil society won't learn another login. So the hub inverts the model: it
+      detects where its knowledge needs verifying, emails a specific question to
+      the experts best placed to answer (caseworkers, lawyers, hotline
+      volunteers), and folds their replies back into prioritized context and new
+      grading dimensions. This page shows that loop running live.
+    </p>
+  </header>
+
+  <section class="hp-section">
+    <div class="hp-ix">01</div>
+    <h2>The loop</h2>
+    <div class="or-flow">
+      <div class="or-node"><span class="n">1</span><span class="t">Collect</span><span class="d">Experts opt in by email; only sha256 + topics persist.</span></div>
+      <span class="or-arrow">&rarr;</span>
+      <div class="or-node"><span class="n">2</span><span class="t">Detect gaps</span><span class="d">Knowledge that needs field verification, prioritized.</span></div>
+      <span class="or-arrow">&rarr;</span>
+      <div class="or-node"><span class="n">3</span><span class="t">Solicit</span><span class="d">A targeted question drafted + sent to matching contacts.</span></div>
+      <span class="or-arrow">&rarr;</span>
+      <div class="or-node"><span class="n">4</span><span class="t">Observe</span><span class="d">Replies vetted (PII + intent), turned into context signals.</span></div>
+      <span class="or-arrow">&rarr;</span>
+      <div class="or-node"><span class="n">5</span><span class="t">Prioritize</span><span class="d">Corroborated gaps rank up + propose new rubric dimensions.</span></div>
+    </div>
+    <p class="hp-note" id="or-status">Loading live outreach state&hellip;</p>
+  </section>
+
+  <section class="hp-section">
+    <div class="hp-ix">02</div>
+    <h2>Context gaps the hub wants verified</h2>
+    <p class="hp-note">Each is a concrete, field-answerable question. Priority rises as observations corroborate it. <b>Draft campaign</b> previews the solicitation email and the matching opted-in contacts (it only sends when SMTP is configured on the deployment).</p>
+    <div id="or-gaps"><p class="hp-note">Loading gaps&hellip;</p></div>
+  </section>
+
+  <section class="hp-section">
+    <div class="hp-ix">03</div>
+    <h2>Prioritized context from observations</h2>
+    <p class="hp-note">Ranked by how strongly civil-society replies corroborate each gap. Each carries a <b>candidate grading dimension</b>, so outreach feeds the evaluation rubric, not just the document corpus.</p>
+    <div id="or-priorities"><p class="hp-note">No observations yet. As replies arrive, prioritized context appears here.</p></div>
+  </section>
+
+  <section class="hp-section">
+    <div class="hp-ix">04</div>
+    <h2>Join the expert list</h2>
+    <p class="hp-note">Opt in to receive occasional, specific knowledge questions. Your raw email is never stored on the hub &mdash; only a sha256 hash + your topics, for curator outreach planning. Unsubscribe any time.</p>
+    <div class="or-form" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:6px;">
+      <input type="email" id="or-email" placeholder="[email protected]" style="flex:1 1 240px;" />
+      <input type="text" id="or-topics" placeholder="topics, e.g. PH-HK, fee_cap, fishing" style="flex:1 1 240px;" />
+      <input type="text" id="or-role" placeholder="role (caseworker, lawyer, journalist)" style="flex:1 1 200px;" />
+      <button class="hp-btn" id="or-subscribe">Opt in</button>
+      <span class="hp-note" id="or-sub-status"></span>
+    </div>
+  </section>
+</main>
+
+{% include "_footer.html" %}
+
+<script>
+(function () {
+  "use strict";
+  function el(tag, cls, text){ var e=document.createElement(tag); if(cls)e.className=cls; if(text!=null)e.textContent=text; return e; }
+
+  async function loadGaps(){
+    var host=document.getElementById('or-gaps');
+    var status=document.getElementById('or-status');
+    var r, data;
+    try { r=await fetch('/api/outreach/gaps',{cache:'no-store'}); data=await r.json(); }
+    catch(e){ host.textContent='Outreach API unavailable.'; return; }
+    status.textContent = data.count+' context gaps · '+data.n_subscribers+' opted-in contact'+(data.n_subscribers===1?'':'s')+
+      ' · email sending '+(data.smtp_configured?'configured':'not configured (campaigns draft-only)');
+    host.textContent='';
+    (data.gaps||[]).forEach(function(g){
+      var card=el('div','or-gap');
+      var head=el('div','head');
+      head.appendChild(el('span','topic', g.topic));
+      head.appendChild(el('span','pri', 'priority '+g.priority));
+      card.appendChild(head);
+      card.appendChild(el('div','ask', g.ask));
+      card.appendChild(el('div','meta', g.corridor+' · '+g.kind+' · observations: '+g.signal_count+' (confirmed '+g.confirm_count+')'));
+      var btn=el('button','hp-btn-ghost','Draft campaign');
+      var draft=el('div','or-draft');
+      btn.addEventListener('click', async function(){
+        btn.disabled=true; btn.textContent='Drafting…';
+        try{
+          var cr=await fetch('/api/outreach/campaign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gap_id:g.id})});
+          var cd=await cr.json();
+          var c=cd.campaign||{};
+          draft.textContent='To: '+c.n_recipients+' matching contact(s)  ·  status: '+c.send_status+'  ·  drafted by: '+c.model+
+            '\n\nSubject: '+c.subject+'\n\n'+c.body;
+          draft.style.display='block';
+        }catch(e){ draft.textContent='Draft failed: '+e; draft.style.display='block'; }
+        btn.disabled=false; btn.textContent='Draft campaign';
+      });
+      card.appendChild(btn);
+      card.appendChild(draft);
+      host.appendChild(card);
+    });
+  }
+
+  async function loadPriorities(){
+    var host=document.getElementById('or-priorities');
+    var r, data;
+    try { r=await fetch('/api/outreach/priorities',{cache:'no-store'}); data=await r.json(); }
+    catch(e){ return; }
+    if(!data.priorities || !data.priorities.length) return;
+    host.textContent='';
+    data.priorities.forEach(function(p){
+      var row=el('div','or-pri');
+      row.appendChild(el('b', null, p.topic));
+      row.appendChild(document.createTextNode('  ·  score '+p.score+'  ·  '+p.n_observations+' observation'+(p.n_observations===1?'':'s')+'  ·  '));
+      row.appendChild(el('span','or-dim', 'candidate dimension: '+p.candidate_dimension));
+      if(p.sample_facts && p.sample_facts.length){
+        var f=el('div',null); f.style.cssText='font-size:11px;color:var(--ink-3,#5B5F68);margin-top:2px;';
+        f.textContent='field notes: '+p.sample_facts.slice(0,2).join(' · ');
+        row.appendChild(f);
+      }
+      host.appendChild(row);
+    });
+  }
+
+  document.getElementById('or-subscribe').addEventListener('click', async function(){
+    var st=document.getElementById('or-sub-status');
+    var email=document.getElementById('or-email').value.trim();
+    var topics=document.getElementById('or-topics').value.split(',').map(function(s){return s.trim();}).filter(Boolean);
+    var role=document.getElementById('or-role').value.trim();
+    if(email.indexOf('@')<0){ st.textContent='Enter a valid email.'; return; }
+    st.textContent='Opting in…';
+    try{
+      var r=await fetch('/api/newsletter/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({email:email,topics:topics,role:role,consent_to_outreach:true})});
+      if(r.ok){ st.textContent='Opted in. The hub will email occasional, specific questions on your topics.'; loadGaps(); }
+      else { st.textContent='Subscribe failed (HTTP '+r.status+').'; }
+    }catch(e){ st.textContent='Subscribe failed: '+e; }
+  });
+
+  loadGaps();
+  loadPriorities();
+})();
+</script>
+</body>
+</html>
