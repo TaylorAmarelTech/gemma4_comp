@@ -132,7 +132,7 @@ Honest about what could go wrong:
 | Alternative | Why it isn't enough |
 |-------------|---------------------|
 | Use a frontier-API model (GPT-4 / Claude / Gemini Ultra) for the specialist tier | Cost: too expensive at platform escalation volume. Data residency: content has to leave your perimeter. Auditability: you don't see the rubric the model used. |
-| Fine-tune your in-house model on trafficking data | You don't have 74,640 corridor-specific seed prompts, 300 GREP rules with verified citations, 227 RAG documents with statute provenance. Building that ground truth is the actual hard part. |
+| Fine-tune your in-house model on trafficking data | You don't have 74,640 corridor-specific seed prompts, 439 GREP rules with verified citations, 859 RAG documents with statute provenance. Building that ground truth is the actual hard part. |
 | Just keep tuning the primary classifier | The primary classifier is optimised for the global firehose. Corridor-specific specialised rubrics dilute its precision on the bulk traffic |
 | Wait for a regulator to mandate it | If you wait, the regulator chooses the spec and you implement to their standard. Pre-empting is cheaper |
 
@@ -189,8 +189,8 @@ historical escalations."
 
 **"We already do this internally."**
 > Maybe. But do you have 300 deterministic GREP rules tied to ILO
-> convention articles + 227 RAG documents with verbatim statute
-> text + 31 corridor fee-cap entries + 30 NGO contact bundles? The
+> convention articles + 859 RAG documents with verbatim statute
+> text + 38 corridor fee-cap entries + 36 NGO contact bundles? The
 > infrastructure isn't the hard part. The ground truth is. Want to
 > compare on a corridor where you suspect your current performance
 > is weakest?

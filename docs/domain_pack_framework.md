@@ -69,7 +69,7 @@ baseline vs harnessed, score against the vertical's rubric, measure the lift.
 
 Fifty-two verticals are live as of 2026-06-05, across **two separate corpora**:
 
-- **`RAG_CORPUS`** (~846 docs) — the anti-trafficking reference pack. This is the
+- **`RAG_CORPUS`** (859 docs) — the anti-trafficking reference pack. This is the
   ONLY corpus the recording-critical kernels (01/02/A-00) retrieve from and the
   one the human-exploitation benchmark prompts are graded against.
 - **`MULTIDOMAIN_CORPUS`** (~610 docs across 51 verticals) — the seeded

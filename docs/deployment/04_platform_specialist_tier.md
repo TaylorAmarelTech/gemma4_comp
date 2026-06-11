@@ -140,12 +140,12 @@ simultaneously true. Gemma 4 E4B is uniquely positioned because:
 
 The DueCare knowledge layer that ships with the specialist tier:
 
-- 300 GREP detection rules organised across 31 categories
+- 439 GREP detection rules organised across 31 categories
   (recruitment-fee camouflage, debt bondage, document retention,
   contract substitution, kafala, threats, supply-chain, gig-platform,
   seasonal-visa, refugee, AI-deepfake, child-trafficking, organ-
   trafficking, sham-marriage, sham-asylum, port + offshore, etc.)
-- 227 RAG documents covering ILO conventions (15), Palermo
+- 859 RAG documents covering ILO conventions (15), Palermo
   Protocol, regional treaties (EU 2011/36, ASEAN ACTIP, SAARC, Bali
   Process), 26 destination + origin-country statutes, 15 public-
   record case studies, 6 landmark court cases (ECtHR Siliadin /
@@ -153,11 +153,11 @@ The DueCare knowledge layer that ships with the specialist tier:
   Hadijatou Mani), national LE units, UN Special Rapporteur
   mandates, GRETA + IASC oversight bodies, research institutes
   (MPI, Amnesty, BHRRC, ECPAT, HRW)
-- 34 complaint and narrative templates
-- 22 audience-aware personas (worker, NGO, regulator, clinician,
+- 36 complaint and narrative templates
+- 37 audience-aware personas (worker, NGO, regulator, clinician,
   survivor advocate, FIU officer, engineer, etc.)
-- 31 corridor fee-cap entries
-- 30 NGO contact bundles
+- 38 corridor fee-cap entries
+- 36 NGO contact bundles
 - Versioned and verifiable via `verify_knowledge_surfaces.py`
 
 Every specialist-tier output cites the knowledge object behind each
