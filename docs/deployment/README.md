@@ -23,7 +23,7 @@ audience description matches yours and skip to the linked brief.
 - **Gemma 4 E2B or E4B** as the inference model. E2B (~2B effective)
   fits 16 GB consumer hardware; E4B (~4B effective) needs ~24 GB or
   a small GPU but produces stronger results on hard scenarios.
-- **The DueCare knowledge layer** — 439 GREP rules, 859 RAG documents
+- **The DueCare knowledge layer** — 451 GREP rules, 859 RAG documents
   (+ a separate 610-doc multidomain corpus), 36 templates, 37 personas,
   38 corridor fee caps, 36 NGO contact bundles, 16 ILO conventions,
   74,640 trafficking seed prompts. (Counts verified via

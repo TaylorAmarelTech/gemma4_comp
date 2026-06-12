@@ -20,7 +20,7 @@ A local AI workbench that helps your caseworkers:
 - Anonymise sensitive case data before any external sharing
 
 It runs on a single laptop. No cloud account, no API keys, no
-egress to a third-party model. The 439 GREP rules and 859 RAG
+egress to a third-party model. The 451 GREP rules and 859 RAG
 documents are bundled with the install.
 
 ## What you provide

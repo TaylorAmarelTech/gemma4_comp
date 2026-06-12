@@ -140,7 +140,7 @@ simultaneously true. Gemma 4 E4B is uniquely positioned because:
 
 The DueCare knowledge layer that ships with the specialist tier:
 
-- 439 GREP detection rules organised across 31 categories
+- 451 GREP detection rules organised across 31 categories
   (recruitment-fee camouflage, debt bondage, document retention,
   contract substitution, kafala, threats, supply-chain, gig-platform,
   seasonal-visa, refugee, AI-deepfake, child-trafficking, organ-

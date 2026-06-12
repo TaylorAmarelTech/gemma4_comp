@@ -95,7 +95,7 @@ RAG citations.
 - Do not show real workers' names, real phone numbers, or real
   case identifiers. All examples must pass the safety-gate check.
 - Do not promise on-screen claims you cannot back up. Every number
-  in the demo (439 GREP rules, 859 RAG documents, ILO C181, POEA
+  in the demo (451 GREP rules, 859 RAG documents, ILO C181, POEA
   MC 14-2017) is verifiable; keep it that way.
 
 ## Hackathon-video-specific notes
