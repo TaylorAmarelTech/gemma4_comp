@@ -273,6 +273,44 @@ def search_dossiers(query: str, dossiers: list[dict], *, risk: str = "",
     return out
 
 
+def discover_candidates(query: str, *, max_results: int = 10, searcher=None) -> dict:
+    """Find candidate recruitment pages to investigate (the 'searching' step).
+
+    Uses the keyless DuckDuckGo WebSearchTool from duecare-llm-research-tools
+    (PII-filtered before the query leaves the machine). Returns candidate URLs
+    for the operator to REVIEW and then scrape with --url -- it never
+    auto-fetches them. ``searcher`` is injectable for offline tests.
+    """
+    if searcher is None:
+        for _src in (_ROOT / "packages").glob("*/src"):
+            if str(_src) not in sys.path:
+                sys.path.insert(0, str(_src))
+        try:
+            from duecare.research_tools.web_tools import WebSearchTool
+            searcher = WebSearchTool(max_results=max_results)
+        except Exception as exc:  # noqa: BLE001 -- discovery is optional
+            return {"query": query, "ok": False,
+                    "error": f"web search unavailable: {type(exc).__name__}: {exc}"[:200],
+                    "candidates": []}
+    try:
+        res = searcher.search(query, max_results=max_results)
+    except Exception as exc:  # noqa: BLE001
+        return {"query": query, "ok": False,
+                "error": f"{type(exc).__name__}: {exc}"[:200], "candidates": []}
+    ok = bool(getattr(res, "success", True))
+    items = getattr(res, "items", None) or (res.get("items") if isinstance(res, dict) else [])
+    candidates = [{"title": it.get("title", ""), "url": it.get("url", ""),
+                   "snippet": it.get("snippet", "")}
+                  for it in items if it.get("url")]
+    return {
+        "query": query, "ok": ok,
+        "error": getattr(res, "error", "") or "",
+        "candidates": candidates,
+        "note": ("Candidate URLs to REVIEW then scrape with --url; not "
+                 "auto-fetched. Verify relevance + robots before fetching."),
+    }
+
+
 def _read_text_file(p: Path) -> str:
     raw = p.read_text(encoding="utf-8", errors="replace")
     return _strip_html(raw) if p.suffix.lower() in {".html", ".htm"} else raw
@@ -311,10 +349,17 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--url", action="append")
     ap.add_argument("--registry", default="", help="licensed-agency registry to verify against")
     ap.add_argument("--search", help="search over an existing dossier file (with --from)")
+    ap.add_argument("--discover", help="find candidate pages to investigate via keyless "
+                                       "web search (returns URLs to review, never auto-fetches)")
     ap.add_argument("--from", dest="from_file", help="dossier JSON to --search")
     ap.add_argument("--risk", default="", help="filter --search by risk tier (high/medium/low)")
     ap.add_argument("--out", default=str(_ROOT / "reports" / "agency_dossier"))
     args = ap.parse_args(argv)
+
+    if args.discover is not None:
+        out = discover_candidates(args.discover)
+        print(json.dumps(out, indent=2, ensure_ascii=False))
+        return 0 if out["ok"] else 2
 
     if args.search is not None:
         if not args.from_file:

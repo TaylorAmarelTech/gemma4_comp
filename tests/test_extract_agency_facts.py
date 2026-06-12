@@ -103,6 +103,38 @@ def test_search_dossiers_query_and_risk_filter():
     assert [d["id"] for d in low] == ["ok"]
 
 
+class _FakeResult:
+    success = True
+    error = ""
+    items = [
+        {"title": "Sunrise Overseas Manpower", "url": "https://example.org/a",
+         "snippet": "licensed agency"},
+        {"title": "no url here", "url": "", "snippet": "skip me"},
+    ]
+
+
+class _FakeSearcher:
+    def search(self, query, max_results=10):
+        return _FakeResult()
+
+
+def test_discover_candidates_with_injected_searcher():
+    out = EXF.discover_candidates("PH recruitment agency Hong Kong",
+                                  searcher=_FakeSearcher())
+    assert out["ok"] is True
+    # the item without a URL is dropped
+    assert [c["url"] for c in out["candidates"]] == ["https://example.org/a"]
+    assert "REVIEW" in out["note"]
+
+
+def test_discover_candidates_handles_search_failure():
+    class _Boom:
+        def search(self, query, max_results=10):
+            raise ConnectionError("ddg unreachable")
+    out = EXF.discover_candidates("x", searcher=_Boom())
+    assert out["ok"] is False and "ConnectionError" in out["error"]
+
+
 def test_cli_build_then_search(tmp_path):
     out = tmp_path / "dossiers"
     rc = EXF.main(["--text", AD, "--registry", REGISTRY, "--out", str(out)])
