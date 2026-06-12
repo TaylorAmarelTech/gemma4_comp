@@ -13,10 +13,40 @@
 
 | Field | Value |
 |---|---|
-| **Submission tag** | `v0.1.0` (bumped on submission day, on or before 2026-05-18) |
-| **Submission SHA** | set at tag time — verify with `git rev-parse v0.1.0` |
+| **Submission snapshot** | commit `d3ab6588` — the last commit of the 2026-05-18 submission window. No release tag was cut; verify with `git log --until=2026-05-19 -1 --format="%h %ad %s" --date=short` |
+| **Headline-number pin** | the A-00 smoke matrix below is pinned by its Kaggle run id (`e2b-full-train-eval`) and the kernel's exported artifact bundle, not by a git SHA |
 | **Submission date** | on or before 2026-05-18 |
 | **Wheels built** | `dist/duecare_llm_*-0.1.0-py3-none-any.whl` (17 wheels — full inventory in `docs/current_kaggle_notebook_state.md`) |
+
+## Headline metrics — A-00 four-arm smoke matrix (2026-05-18)
+
+These are the four numbers quoted in the video voiceover, the writeup's
+evaluation section, and the README headline. It is a smoke run, not a
+final benchmark — exactly as the writeup labels it.
+
+| Arm | Score |
+|---|---:|
+| Stock Gemma 4 2B | 29.5% |
+| Stock + chat-offline harness | **35.6%** |
+| Fine-tuned | 26.4% |
+| Fine-tuned + harness | **41.2%** |
+
+Deltas: harness **+6.1 pp** over stock; fine-tuned + harness **+14.8 pp**
+over fine-tuning alone and **+11.7 pp** over stock. Fine-tuning alone
+dipped below stock because the small 2B fine-tune traded factual recall
+for refusal shape — the expected pattern, and exactly the gap the
+harness closes.
+
+| Provenance field | Value |
+|---|---|
+| Kernel | **DueCare Fine-tuning and Evaluation** (`kaggle/A-00-omni-experiment-workbench/kernel.py`) |
+| Run id | `e2b-full-train-eval` (2026-05-18) |
+| Model | Gemma 4 E2B — the run id's `e2b`; the video shorthand is "stock Gemma 4" |
+| Judge | combined rule + LLM judging (same primitives as Kernel 01: `grade_response_combined` / `grade_response_universal`) |
+| Artifacts | A-00 report, CSV, JSON, and manifest bundle exported under `/kaggle/working` |
+
+Guard: `tests/test_doc_count_drift.py` asserts these four arm scores stay
+identical between this file and `docs/writeup_draft.md`.
 
 ## Headline metrics — harness lift (the central claim)
 
@@ -67,33 +97,37 @@ regulations, substance-over-form analysis).
 appendix (GREP-only / RAG-only / Both), refusal-rate appendix, and
 per-prompt top/bottom-25 tables.
 
-## Headline metrics — fine-tune lift (Phase 3)
+## Fine-tune lift
 
-The fine-tune track (Unsloth SFT + DPO via notebook A2 / `bench-and-tune`)
-is end-to-end runnable. Final numbers + HF Hub revisions land at the
-moment a successful T4×2 run completes on Kaggle. Until then:
+The measured fine-tune result is the A-00 four-arm smoke matrix at the
+top of this file (fine-tuned + harness 41.2% vs stock 29.5%). The
+training path is Unsloth LoRA SFT inside the A-00 kernel
+(`_create_training_job` → `FastModel.get_peft_model` → `SFTTrainer`).
 
 | Metric | Number | Status |
 |---|---|---|
-| Stock Gemma 4 E4B refusal rate on harmful prompts | pending T4×2 run | scheduled — script ready in `kaggle/bench-and-tune/kernel.py` |
-| SFT refusal rate uplift vs stock | pending T4×2 run | scheduled — Unsloth LoRA on harness-distilled pairs |
-| DPO refusal rate uplift vs SFT | pending T4×2 run | scheduled — chosen / rejected pairs from grading rubric |
-| Gemma 4 E4B vs GPT-OSS-20B on smoke_25 | pending notebook 210 push | notebook built |
-| Gemma 4 E4B vs Mistral 8x22B on smoke_25 | pending notebook 230 push | notebook built |
-| Cross-domain proof (trafficking + tax_evasion + financial_crime) | pending notebook 200 push | notebook built |
-| End-to-end safety-harness latency (E4B, T4 ×2) | pending live-demo run | notebook built |
+| Four-arm smoke matrix (stock / +harness / fine-tuned / fine-tuned+harness) | 29.5% / 35.6% / 26.4% / 41.2% | measured 2026-05-18, run `e2b-full-train-eval` |
 | Audit trail completeness | 100% by construction (every decision logged via `duecare.observability`) | implementation-verified, end-to-end test pending |
 
-When the fine-tune runs land, this section will gain the same
-`(notebook, dataset version, HF revision)` columns as the harness-lift
-section above.
+### Future work (not yet measured)
+
+These do NOT appear in the writeup or video; they are listed so the
+boundary between measured and planned stays explicit:
+
+- Head-to-head smoke comparisons vs GPT-OSS-20B and Mistral-class models
+  (`kaggle/03-universal-llm-benchmark` accepts any OpenAI-compatible
+  endpoints for this).
+- Cross-domain proof (trafficking + tax_evasion + financial_crime) in one run.
+- End-to-end safety-harness latency on T4 ×2.
+- DiffusionGemma fast-tier throughput for the triage harness
+  (`docs/diffusiongemma_fast_tier.md`).
 
 ## How to reproduce
 
 ### From the GitHub repo
 
 ```bash
-git checkout v0.1.0                   # pin to the submission SHA
+git checkout d3ab6588                 # last submission-window commit (2026-05-18); HEAD also works
 make build                            # rebuild all 17 wheels into dist/
 make test                             # full package + top-level suite (1,877 pass / 2 skip as of 2026-06-10)
 python scripts/run_local_gemma.py --max-prompts 10   # 10-prompt sanity check via Ollama
@@ -102,8 +136,8 @@ python scripts/run_local_gemma.py --max-prompts 10   # 10-prompt sanity check vi
 ### From a Kaggle notebook
 
 1. Open the relevant notebook from the table above.
-2. Open the **Save Versions** dropdown → confirm the version pinned to
-   `v0.1.0` is the one that produced the headline number.
+2. Open the **Save Versions** dropdown → pick the version saved on or
+   before 2026-05-18 (the run that produced the headline number).
 3. Click **Run All**. Numbers appear in the same cells linked from the
    writeup.
 
@@ -112,8 +146,7 @@ python scripts/run_local_gemma.py --max-prompts 10   # 10-prompt sanity check vi
 ```python
 from unsloth import FastModel
 model, tokenizer = FastModel.from_pretrained(
-    "taylorscottamarel/Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0",
-    revision="main",  # or pin to the SHA listed in the table
+    "TaylorScottAmarel/duecare-gemma-4-e4b-safetyjudge",  # the published repo id
     max_seq_length=4096,
 )
 ```
@@ -124,12 +157,12 @@ model, tokenizer = FastModel.from_pretrained(
   prompts produces fresh numbers — those don't go in this table because
   they aren't reproducible. The live-demo Kaggle URL is itself the
   reproducibility artifact for those.
-- **Numbers from the 77-notebook research pipeline that aren't headline.**
-  Each notebook prints its own per-run summary; they're tracked but not
-  in this top-level table.
-- **Skunkworks (jailbreak) numbers.** Those live in
-  [`skunkworks/`](./skunkworks/) and are explicitly outside the safety-
-  harness story.
+- **Numbers from archived research notebooks.** Pre-submission research
+  surfaces print their own per-run summaries; they are historical, not
+  headline material.
+- **Red-team (jailbreak) numbers.** Those live in archived research
+  folders outside the public tree and are explicitly outside the
+  safety-harness story.
 
 ## When this file changes
 

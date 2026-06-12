@@ -53,3 +53,38 @@ def test_grep_section_heading_count_matches() -> None:
     assert int(m.group(1)) == len(GREP_RULES), (
         f"GREP_RULES section heading says {m.group(1)} but live is {len(GREP_RULES)}."
     )
+
+
+_ROOT = pathlib.Path(__file__).resolve().parents[1]
+_RESULTS = _ROOT / "RESULTS.md"
+_WRITEUP = _ROOT / "docs" / "writeup_draft.md"
+
+# The four A-00 smoke-matrix arm scores read aloud in the video and quoted in
+# the writeup + README headline. RESULTS.md is the provenance file README
+# points judges at, so it must carry every headline number.
+SMOKE_MATRIX_SCORES = ("29.5", "35.6", "26.4", "41.2")
+
+
+def test_results_md_carries_the_headline_smoke_matrix() -> None:
+    results = _RESULTS.read_text(encoding="utf-8")
+    writeup = _WRITEUP.read_text(encoding="utf-8")
+    for score in SMOKE_MATRIX_SCORES:
+        assert f"{score}%" in writeup, (
+            f"docs/writeup_draft.md lost headline arm score {score}% — if the "
+            f"headline changed on purpose, update SMOKE_MATRIX_SCORES too."
+        )
+        assert f"{score}%" in results, (
+            f"RESULTS.md is missing headline arm score {score}% quoted in the "
+            f"writeup/video. The provenance file must carry every headline number."
+        )
+
+
+def test_results_md_reproduce_path_has_no_phantom_git_tag() -> None:
+    """RESULTS.md once told judges to `git checkout v0.1.0` — a tag that was
+    never cut, so the documented reproduce path errored on its first command.
+    Keep the reproduce path runnable."""
+    text = _RESULTS.read_text(encoding="utf-8")
+    assert "git checkout v0.1.0" not in text
+    assert "git rev-parse v0.1.0" not in text
+    # the phantom HF repo id (real one is duecare-gemma-4-e4b-safetyjudge)
+    assert "Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0" not in text
