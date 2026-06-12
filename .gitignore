@@ -110,6 +110,7 @@ reports/**/*.json
 reports/**/*.py
 reports/recruitment_scan/
 reports/agency_scan/
+reports/agency_dossier/
 mlruns/
 wandb/
 
