@@ -78,7 +78,7 @@ def test_prioritized_context_ranks_and_proposes_dimension():
     for _ in range(3):
         outreach.ingest_observation(
             d, "fee_cap_ph_hk",
-            verdict=_FakeVerdict("needs_curator_review", "new_info", extracted_facts=["f"]),
+            verdict=_FakeVerdict("needs_curator_review", "new_information", extracted_facts=["f"]),
             sender_email="a" + AT + "b.org", ts="2026-06-10T00-00-00Z")
     outreach.ingest_observation(
         d, "pattern_free_visa",
@@ -131,3 +131,98 @@ def test_endpoint_loop(client):
     pr = p.json()["priorities"]
     assert pr and pr[0]["gap_id"] == "fee_cap_ph_hk"
     assert pr[0]["candidate_dimension"] == "fee_cap_ph_hk_currency"
+
+
+# ------------------- vocabulary + honesty regression guards ------------------
+
+def test_intent_weights_align_with_automation_vocabulary():
+    """outreach.py deliberately does not import automation, so this test is
+    the coupling: every weight key must be a real automation.Intent token
+    (the 'new_info' era silently zeroed 4 of 7 real intents), and every
+    informative intent must outweigh the 'unclear' fallback."""
+    import typing
+
+    from app import automation
+
+    intents = set(typing.get_args(automation.Intent))
+    assert set(outreach._INTENT_WEIGHTS) <= intents, (
+        "outreach._INTENT_WEIGHTS contains tokens automation never emits"
+    )
+    assert outreach._CONFIRMING_INTENTS <= intents
+    for intent in intents - {"off_topic", "unclear"}:
+        assert outreach._INTENT_WEIGHTS.get(intent, 0.0) > 0.3, (
+            f"informative intent {intent!r} falls to the 'unclear' fallback"
+        )
+
+
+def test_real_inbound_verdict_confirms_and_weights():
+    """A REAL automation.InboundVerdict (not the test fake) must confirm a
+    gap and carry the designed weight, so the vocabulary cannot drift."""
+    from app import automation
+
+    d = pathlib.Path(tempfile.mkdtemp())
+    v = automation.InboundVerdict(
+        verdict="accept", intent="new_information", summary="s",
+        extracted_facts=["fact one", "fact two"], pii_findings=[])
+    sig = outreach.ingest_observation(
+        d, "statute_new_regulations", verdict=v,
+        sender_email="l" + AT + "aw.org", ts="2026-06-11T00-00-00Z")
+    assert sig.weight > 1.0  # base 1.2 + fact bonus, not the 0.3 fallback
+    gap = outreach.gap_by_id(d, "statute_new_regulations")
+    assert gap.confirm_count == 1
+
+
+def test_reject_with_facts_carries_zero_weight_and_never_surfaces():
+    d = pathlib.Path(tempfile.mkdtemp())
+    bad = _FakeVerdict("reject", "verification",
+                       extracted_facts=["a", "b", "c", "d"])
+    sig = outreach.ingest_observation(
+        d, "fee_cap_ph_hk", verdict=bad,
+        sender_email="x" + AT + "y.org", ts="2026-06-11T00-00-00Z")
+    assert sig.weight == 0.0  # the fact bonus must not resurrect a reject
+    ok = _FakeVerdict("needs_curator_review", "verification",
+                      extracted_facts=["legit fact"])
+    outreach.ingest_observation(
+        d, "fee_cap_ph_hk", verdict=ok,
+        sender_email="c" + AT + "d.org", ts="2026-06-11T00-01-00Z")
+    pri = outreach.prioritized_context(d)
+    row = next(p for p in pri if p["gap_id"] == "fee_cap_ph_hk")
+    assert row["n_observations"] == 1  # the reject contributes nothing
+    assert row["sample_facts"] == ["legit fact"]  # rejected facts never go public
+
+
+def test_match_recipients_handles_the_forms_own_placeholder_examples():
+    """The /outreach opt-in form suggests 'topics, e.g. PH-HK, fee_cap,
+    fishing' — every suggested example must actually match its gap."""
+    d = pathlib.Path(tempfile.mkdtemp())
+    gaps = {g.id: g for g in outreach.detect_context_gaps(d)}
+
+    def matches(topics, gap_id):
+        subs = [{"topics": topics, "role": "", "consent_to_outreach": True}]
+        return len(outreach._match_recipients(gaps[gap_id], subs)) == 1
+
+    assert matches(["PH-HK"], "fee_cap_ph_hk")
+    assert matches(["NP-QA"], "fee_cap_np_qa")
+    assert matches(["fishing"], "sector_fishing")
+    assert matches(["fee_cap"], "fee_cap_ph_hk")
+    # discrimination: an unrelated topic must NOT match (the blank-profile
+    # fallback would hide over-matching, so this guards the matcher itself)
+    assert not matches(["parking"], "fee_cap_ph_hk")
+
+
+def test_campaign_send_status_always_drafted_even_with_smtp_env(monkeypatch):
+    """send_status='queued' was a real-not-faked violation: no send
+    implementation exists and the hub stores no raw addresses. The status
+    must stay 'drafted' regardless of SMTP env vars."""
+    monkeypatch.setenv("DUECARE_SMTP_HOST", "smtp.example.org")
+    monkeypatch.setenv("DUECARE_SMTP_FROM", "hub" + AT + "example.org")
+    d = pathlib.Path(tempfile.mkdtemp())
+    gap = outreach.gap_by_id(d, "fee_cap_ph_hk")
+
+    class _Draft:
+        subject = "s"
+        body = "b"
+        model = "template-fallback"
+
+    campaign = outreach.draft_campaign(d, gap, [], compose=lambda *a: _Draft())
+    assert campaign.send_status == "drafted"

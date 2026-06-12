@@ -1479,9 +1479,9 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         tags=["automation"],
     )
     async def newsletter_subscribe(request: Request, body: SubscriberIn) -> SubscriberReceipt:
-        """OpenClaw-style subscriber intake. Raw email is queued for the
-        third-party provider; only sha256 + topics + organization persist
-        on the hub per the privacy invariant.
+        """OpenClaw-style subscriber intake. The raw email is hashed
+        (sha256) and discarded in this handler; only the hash + topics +
+        organization persist on the hub per the privacy invariant.
         """
         import json as _json, hashlib as _hashlib, uuid as _uuid
         from datetime import UTC as _UTC, datetime as _dt
@@ -1553,8 +1553,9 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
     async def outreach_campaign(request: Request, body: OutreachCampaignIn) -> dict:
         """Draft a targeted solicitation campaign for one gap: pick opted-in
         subscribers whose topics match, draft the email via the automation
-        engine, and record an audit row. Actually sends only if SMTP is
-        configured (DUECARE_SMTP_HOST/FROM); otherwise status is 'drafted'."""
+        engine, and record an audit row. Campaigns are draft-only — the hub
+        stores no raw addresses; a curator exports the draft to their own
+        mailer."""
         from dataclasses import asdict as _asdict
         from datetime import UTC as _UTC, datetime as _dt
         state = _state(request)

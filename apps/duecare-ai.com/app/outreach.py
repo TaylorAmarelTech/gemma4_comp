@@ -13,13 +13,14 @@ Design goals:
   * Stdlib-only + the existing ``automation`` module; file-based stores under
     the hub data dir. No queue, no Celery (hackathon scope; in-line like the
     rest of the hub).
-  * Honest about sending: actual SMTP send is gated behind configured creds
-    (``DUECARE_SMTP_HOST`` etc.). With no creds a campaign is "drafted, ready
-    to send" — never a fake "sent". Collection (subscribe) and intake (inbound
+  * Honest about sending: campaigns are DRAFT-ONLY. The hub never holds raw
+    recipient addresses (subscribe persists sha256 + topics + org only), so
+    there is nothing to send to from here by construction — a curator exports
+    the draft to their own mailer. Collection (subscribe) and intake (inbound
     webhook) work regardless.
-  * Privacy: recipient emails are matched/stored by sha256; raw addresses are
-    only used transiently to send. Observation replies pass the same PII gate
-    as the website form before becoming context signals.
+  * Privacy: subscriber emails are stored as sha256 only. Observation replies
+    pass the same PII gate as the website form before becoming context
+    signals, and rejected replies never surface facts publicly.
 """
 from __future__ import annotations
 
@@ -98,6 +99,25 @@ def _sha256(text: str) -> str:
     return hashlib.sha256((text or "").strip().lower().encode("utf-8")).hexdigest()
 
 
+# Canonical intent vocabulary — MUST stay aligned with automation.Intent
+# (this module deliberately does not import automation; the alignment is
+# asserted by tests/test_outreach.py against typing.get_args(Intent)).
+# Informative intents confirm a gap; weights scale the context signal.
+_CONFIRMING_INTENTS = frozenset({
+    "verification", "new_information", "rule_proposal",
+    "contact_update", "regulatory_change",
+})
+_INTENT_WEIGHTS: dict[str, float] = {
+    "verification": 1.0,
+    "new_information": 1.2,
+    "rule_proposal": 1.1,
+    "contact_update": 1.0,
+    "regulatory_change": 1.1,
+    "off_topic": 0.0,
+    "unclear": 0.3,
+}
+
+
 def _signals_path(data_dir: Path) -> Path:
     return Path(data_dir) / "outreach_signals.jsonl"
 
@@ -146,7 +166,7 @@ def detect_context_gaps(data_dir: Path) -> list[ContextGap]:
             continue
         agg = by_gap.setdefault(gid, {"n": 0, "confirm": 0})
         agg["n"] += 1
-        if s.get("intent") in {"verification", "new_info"} and s.get("verdict") != "reject":
+        if s.get("intent") in _CONFIRMING_INTENTS and s.get("verdict") != "reject":
             agg["confirm"] += 1
 
     gaps: list[ContextGap] = []
@@ -186,7 +206,9 @@ class Campaign:
     audience: str
     n_recipients: int
     recipient_topics: list[str]
-    send_status: str         # "drafted" (no SMTP) | "queued" (SMTP configured)
+    send_status: str         # always "drafted" — the hub stores no raw
+                             # addresses; a curator exports the draft to
+                             # their own mailer
     model: str
     ts: str = ""
 
@@ -195,24 +217,49 @@ def _smtp_configured() -> bool:
     return bool(os.environ.get("DUECARE_SMTP_HOST") and os.environ.get("DUECARE_SMTP_FROM"))
 
 
+def _norm(text: str) -> str:
+    """Normalize for matching: lowercase, hyphens/underscores to spaces.
+
+    Applied to BOTH sides so 'PH-HK' (the exact example the /outreach
+    opt-in form suggests) matches a gap whose corridor normalizes to
+    'ph hk'."""
+    return (text or "").lower().replace("-", " ").replace("_", " ")
+
+
+# Generic structure words excluded from gap-word matching so e.g. a
+# subscriber interested in 'pattern' does not match every pattern gap.
+_GAP_WORD_STOP = frozenset({"sector", "pattern", "currency", "reality"})
+
+
 def _match_recipients(gap: ContextGap, subscribers: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Pick opted-in subscribers whose topics/role plausibly match the gap.
 
-    Matching is deliberately loose (topic keyword overlap OR a general-interest
-    subscriber) so a thin contact list still reaches someone; the curator
-    reviews before any real send.
+    Matching is deliberately loose (corridor/kind token overlap, significant
+    gap words like 'fishing', OR a blank/general-interest profile) so a thin
+    contact list still reaches someone; the curator reviews every draft.
     """
-    corridor_tok = gap.corridor.lower().replace("-", " ")
-    kind_tok = gap.kind.replace("_", " ")
+    corridor_tok = _norm(gap.corridor)
+    kind_tok = _norm(gap.kind)
+    kind_head = gap.kind.split("_")[0]
+    gap_words = {
+        w for w in (_norm(gap.id) + " " + _norm(gap.topic)).split()
+        if len(w) >= 4 and w not in _GAP_WORD_STOP
+    }
     out: list[dict[str, Any]] = []
     for s in subscribers:
         if not s.get("consent_to_outreach", True):
             continue
-        topics = " ".join(str(t) for t in (s.get("topics") or [])).lower()
-        role = str(s.get("role") or "").lower()
-        hay = topics + " " + role
-        if (not topics and not role) or corridor_tok in hay or kind_tok in hay \
-                or gap.kind.split("_")[0] in hay or "all" in topics or "general" in topics:
+        topics_raw = " ".join(str(t) for t in (s.get("topics") or []))
+        role_raw = str(s.get("role") or "")
+        hay = _norm(topics_raw + " " + role_raw)
+        hay_words = set(hay.split())
+        if ((not topics_raw and not role_raw)
+                or corridor_tok in hay
+                or kind_tok in hay
+                or kind_head in hay
+                or (gap_words & hay_words)
+                or "all" in hay_words
+                or "general" in hay_words):
             out.append(s)
     return out
 
@@ -233,7 +280,12 @@ def draft_campaign(data_dir: Path, gap: ContextGap, subscribers: list[dict[str, 
         audience=gap.audience,
         n_recipients=len(recipients),
         recipient_topics=sorted({t for s in recipients for t in (s.get("topics") or [])})[:12],
-        send_status="queued" if _smtp_configured() else "drafted",
+        # Always "drafted": the hub stores subscriber emails as sha256 only,
+        # so there is no address to send to from here by construction. A
+        # curator exports the draft to their own mailer. (The old behaviour
+        # claimed "queued" when DUECARE_SMTP was set, but no send
+        # implementation existed — a real-not-faked violation.)
+        send_status="drafted",
         model=getattr(draft, "model", "template-fallback"),
     )
     return campaign
@@ -263,15 +315,15 @@ def ingest_observation(data_dir: Path, gap_id: str, *, verdict, sender_email: st
                        ts: str) -> ContextSignal:
     """Turn a vetted inbound reply (``automation.vet_inbound_email`` result)
     into a context signal and persist it. Weight reflects intent + how much
-    structured fact came back; rejects carry ~zero weight but are still logged.
+    structured fact came back; rejects carry ZERO weight (including the fact
+    bonus — a gate-rejected reply must not pump public priorities) but are
+    still logged server-side.
     """
     intent = getattr(verdict, "intent", "unclear")
     v = getattr(verdict, "verdict", "needs_curator_review")
     facts = list(getattr(verdict, "extracted_facts", []) or [])[:8]
-    base = {"verification": 1.0, "new_info": 1.2, "off_topic": 0.0, "unclear": 0.3}.get(intent, 0.3)
-    if v == "reject":
-        base = 0.0
-    weight = round(base + min(0.6, 0.15 * len(facts)), 3)
+    base = _INTENT_WEIGHTS.get(intent, 0.3)
+    weight = 0.0 if v == "reject" else round(base + min(0.6, 0.15 * len(facts)), 3)
     sig = ContextSignal(
         gap_id=gap_id, intent=intent, verdict=v, weight=weight, facts=facts,
         sender_sha256=_sha256(sender_email), ts=ts,
@@ -293,7 +345,10 @@ def prioritized_context(data_dir: Path) -> list[dict[str, Any]]:
     scores: dict[str, dict[str, Any]] = {}
     for s in signals:
         gid = str(s.get("gap_id") or "")
-        if gid not in gaps:
+        # Skip gate-rejected signals entirely: with weight 0 they cannot
+        # score, but without this filter their extracted "facts" would still
+        # leak into the public sample_facts below.
+        if gid not in gaps or s.get("verdict") == "reject":
             continue
         entry = scores.setdefault(gid, {"score": 0.0, "n": 0, "facts": []})
         entry["score"] += float(s.get("weight") or 0.0)

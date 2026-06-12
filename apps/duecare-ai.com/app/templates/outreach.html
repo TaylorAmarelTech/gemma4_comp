@@ -55,7 +55,7 @@
       <span class="or-arrow">&rarr;</span>
       <div class="or-node"><span class="n">2</span><span class="t">Detect gaps</span><span class="d">Knowledge that needs field verification, prioritized.</span></div>
       <span class="or-arrow">&rarr;</span>
-      <div class="or-node"><span class="n">3</span><span class="t">Solicit</span><span class="d">A targeted question drafted + sent to matching contacts.</span></div>
+      <div class="or-node"><span class="n">3</span><span class="t">Solicit</span><span class="d">A targeted question drafted for matching contacts; a curator dispatches it.</span></div>
       <span class="or-arrow">&rarr;</span>
       <div class="or-node"><span class="n">4</span><span class="t">Observe</span><span class="d">Replies vetted (PII + intent), turned into context signals.</span></div>
       <span class="or-arrow">&rarr;</span>
@@ -106,7 +106,7 @@
     try { r=await fetch('/api/outreach/gaps',{cache:'no-store'}); data=await r.json(); }
     catch(e){ host.textContent='Outreach API unavailable.'; return; }
     status.textContent = data.count+' context gaps · '+data.n_subscribers+' opted-in contact'+(data.n_subscribers===1?'':'s')+
-      ' · email sending '+(data.smtp_configured?'configured':'not configured (campaigns draft-only)');
+      ' · campaigns are draft-only (a curator dispatches via their own mailer; the hub stores no raw addresses)';
     host.textContent='';
     (data.gaps||[]).forEach(function(g){
       var card=el('div','or-gap');
