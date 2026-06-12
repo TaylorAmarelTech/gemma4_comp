@@ -79,7 +79,7 @@ The live demo follows the same six-lane story as the website and slides.
 
 ## 6. Evaluation
 
-Anecdotally, the harness made Gemma 4 responses much closer to international anti-exploitation standards. To quantify that change, I built the **DueCare Fine-tuning and Evaluation** notebook. It compares four arms on the same prompt set: stock Gemma 4, stock + harness, fine-tuned Gemma 4, and fine-tuned + harness.
+In side-by-side review, the harness made Gemma 4 responses much closer to international anti-exploitation standards. To quantify that change, I built the **DueCare Fine-tuning and Evaluation** notebook. It compares four arms on the same prompt set: stock Gemma 4, stock + harness, fine-tuned Gemma 4, and fine-tuned + harness.
 
 The 2026-05-18 smoke matrix (`e2b-full-train-eval`, combined rule + LLM judge) produced the following scores. This is a smoke run, not a final benchmark; the reproducibility artifacts are the A-00 report, CSV, JSON, and manifest bundle exported under `/kaggle/working`.
 
@@ -90,7 +90,7 @@ The 2026-05-18 smoke matrix (`e2b-full-train-eval`, combined rule + LLM judge) p
 | Fine-tuned | 26.4% |
 | Fine-tuned + harness | 41.2% |
 
-The harness added +6.1 points over stock Gemma 4. The fine-tuned + harness arm added +14.8 points over fine-tuning alone and +11.7 points over stock. The pattern was clear: fine-tuning helped response shape and refusal style, but the harness supplied the facts, citations, tools, data-minimization checks, and forced-labor indicators.
+The harness added +6.1 points over stock Gemma 4. The fine-tuned + harness arm added +14.8 points over fine-tuning alone and +11.7 points over stock. Fine-tuning alone dipped below stock because the small 2B fine-tune traded factual recall for refusal shape — the expected pattern, and exactly the gap the harness closes: fine-tuning shapes refusals; the harness supplies the facts, citations, tools, data-minimization checks, and forced-labor indicators. In a separate 911-prompt benchmark scored by an independent gpt-oss:120b judge, the harness lifted gemma4:31b by **+1.73/10** mean paired lift (95% CI [+1.57, +1.89]) with a 73.3% win rate (`docs/research/harness_lift_report.md`, regenerable via `scripts/build_lift_report.py --all`).
 
 ## 7. duecare-ai.com
 

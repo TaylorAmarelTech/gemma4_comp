@@ -11,10 +11,12 @@
 > **Headline result (2026-05-18 smoke matrix):** Stock Gemma 4 2B **29.5%** ·
 > Stock + chat-offline harness **35.6%** (+6.1pp) · Fine-tuned **26.4%** ·
 > Fine-tuned + harness **41.2%** (+14.8pp over fine-tuning alone, +11.7pp over stock).
-> The harness supplies the facts, citations, tools, data-minimization checks,
-> and forced-labor indicators that fine-tuning alone cannot. This is a
-> dated smoke-matrix result, not a field-deployment, production-traffic, or
-> weeks-long local Gemma reliability claim.
+> Separately, an independent gpt-oss:120b judge over 911 prompts scored the
+> harness at **+1.73/10** mean paired lift on gemma4:31b (95% CI [+1.57, +1.89],
+> 73.3% win rate). The harness supplies the facts, citations, tools,
+> data-minimization checks, and forced-labor indicators that fine-tuning alone
+> cannot. These are dated benchmark results, not field-deployment,
+> production-traffic, or weeks-long local Gemma reliability claims.
 >
 > **DueCare is Gemma 4-powered safety infrastructure for migrant-worker
 > protection.** It does three things: **prevents exploitation before it
