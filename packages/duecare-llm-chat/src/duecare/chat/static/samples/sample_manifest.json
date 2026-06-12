@@ -124,6 +124,22 @@
       "expects_manifest_or_metadata": true
     },
     {
+      "name": "triage_batch_sample.json",
+      "path": "samples/triage_batch_sample.json",
+      "role": "triage_batch",
+      "used_by": ["triage.html"],
+      "artifact_kind": "triage_batch",
+      "label": "Platform Triage synthetic ad batch",
+      "primary_for": ["triage"],
+      "also_used_by": ["tests", "video_demo"],
+      "expected_inputs": ["json"],
+      "expected_outputs": ["routing_statuses", "per_stage_timings", "escalation_list"],
+      "demo_story": "Eight synthetic job ads (two GREP-hot, three subtle-risk, three benign) for the GREP -> fast model -> deep escalation waterfall demo.",
+      "privacy_note": "Synthetic ads only. Invented amounts and contacts; no real names or PII.",
+      "expects_readme": false,
+      "expects_manifest_or_metadata": true
+    },
+    {
       "name": "prompt_eval_training_seed_sample.zip",
       "artifact_kind": "prompt_eval_training_seed",
       "label": "Prompt, grading, and synthetic tuning seed",

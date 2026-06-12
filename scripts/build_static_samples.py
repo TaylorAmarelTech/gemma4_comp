@@ -2503,6 +2503,92 @@ def build_prompt_eval_training_seed_zip() -> None:
     print(f"wrote {out}  ({out.stat().st_size:,} bytes)")
 
 
+TRIAGE_BATCH_SAMPLE = {
+    "schema_version": "duecare.triage.batch.v1",
+    "note": (
+        "Synthetic job ads / recruiter messages for the Platform Triage "
+        "waterfall demo (GREP -> fast model -> deep escalation). All content "
+        "is composite/synthetic; amounts and contacts are invented. Two ads "
+        "carry GREP-hot patterns, three carry subtler risk signals the fast "
+        "model should catch, three are benign."
+    ),
+    "items": [
+        {
+            "id": "ad-fee-upfront",
+            "text": (
+                "URGENT! Factory workers needed in Dubai. Salary AED 2,500/month. "
+                "Pay placement fee of PHP 120,000 before deployment. Passport "
+                "submission required to our office for processing."
+            ),
+        },
+        {
+            "id": "ad-free-visa",
+            "text": (
+                "FREE VISA FREE TICKET to the Gulf! No employer interview needed, "
+                "work flexible once you arrive. You only pay after you get there. "
+                "Limited slots, contact via WhatsApp now."
+            ),
+        },
+        {
+            "id": "ad-subtle-debt",
+            "text": (
+                "No salary for the first 6 months - this covers your travel and "
+                "accommodation investment. After that, earn big! Live-in position, "
+                "day off negotiable after probation."
+            ),
+        },
+        {
+            "id": "ad-crypto-fee",
+            "text": (
+                "Processing handled through USDT transfer to our agent wallet - "
+                "faster than banks, no paper trail needed. Reserve your slot today."
+            ),
+        },
+        {
+            "id": "ad-doc-keep",
+            "text": (
+                "Company keeps your documents safe during the contract period for "
+                "your own protection. Contract renewal guaranteed if performance "
+                "is good."
+            ),
+        },
+        {
+            "id": "ad-benign-cafe",
+            "text": (
+                "Hiring baristas for our Quezon City branch. PHP 610/day plus SSS, "
+                "PhilHealth, and Pag-IBIG. Walk-in interviews Monday to Friday."
+            ),
+        },
+        {
+            "id": "ad-benign-ethical",
+            "text": (
+                "Registered nursing recruitment for UK NHS trusts under the "
+                "ethical recruitment code. No placement fees charged to "
+                "applicants; the employer covers visa and flights."
+            ),
+        },
+        {
+            "id": "ad-benign-market",
+            "text": (
+                "Weekend market stall assistant needed, Saturday and Sunday "
+                "mornings, paid daily, no experience required."
+            ),
+        },
+    ],
+}
+
+
+def build_triage_batch_sample() -> None:
+    """Judge-safe batch for /static/triage.html (rule 70 #4: every page that
+    accepts input ships a one-click sample)."""
+    out = OUT / "triage_batch_sample.json"
+    out.write_text(
+        json.dumps(TRIAGE_BATCH_SAMPLE, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    print(f"wrote {out}  ({out.stat().st_size:,} bytes)")
+
+
 def main() -> None:
     build_case_files_zip()
     build_streamlined_case_files_zip()
@@ -2514,6 +2600,7 @@ def main() -> None:
     build_template_bundle_sample()
     build_search_intake_sample_zip()
     build_prompt_eval_training_seed_zip()
+    build_triage_batch_sample()
     print(f"\nAll samples in {OUT}")
 
 

@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Platform Triage · DueCare</title>
+  <link rel="stylesheet" href="/static/_chrome.css" />
+  <style>
+    * { box-sizing: border-box; }
+    html, body { min-height: 100vh; }
+    header { padding: 14px 24px; background: var(--paper); border-bottom: 1px solid var(--line-soft);
+              display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    header h1 { margin: 0; font-size: 16px; color: var(--ink); font-weight: 600; letter-spacing: -0.01em; }
+    .sub { font-size: 13px; color: var(--ink-3); flex: 1; }
+    .container { padding: 24px 32px; max-width: 1240px; margin: 0 auto; }
+    /* waterfall stage strip */
+    .waterfall { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 10px;
+                  align-items: stretch; margin-bottom: 16px; }
+    .stage { background: var(--paper); border: 1px solid var(--line); border-radius: 10px;
+              padding: 14px 16px; }
+    .stage .t { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase;
+                 letter-spacing: 0.08em; color: var(--ink-3); }
+    .stage .big { font-size: 15px; font-weight: 600; color: var(--ink); margin-top: 3px; }
+    .stage .d { font-size: 12px; color: var(--ink-3); margin-top: 4px; line-height: 1.45; }
+    .stage .wired { font-family: var(--mono); font-size: 11px; margin-top: 6px; }
+    .wired.on  { color: oklch(0.40 0.10 155); }
+    .wired.off { color: var(--ink-4); }
+    .flow-arrow { align-self: center; color: var(--ink-4); font-size: 18px; }
+    .grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 16px; }
+    .pane { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 22px; }
+    .pane h2 { margin: 0 0 12px; font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+                text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; }
+    textarea { width: 100%; min-height: 260px; padding: 12px; font-family: var(--mono);
+                font-size: 12.5px; line-height: 1.7; border: 1px solid var(--line);
+                background: var(--paper); color: var(--ink); border-radius: 8px; resize: vertical; }
+    textarea:focus { outline: 0; border-color: var(--accent);
+                box-shadow: 0 0 0 4px oklch(0.85 0.05 195 / 0.3); }
+    .toolbar { margin-top: 12px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .hint { font-size: 12px; color: var(--ink-4); }
+    .opts { margin-top: 12px; display: flex; gap: 18px; align-items: center; flex-wrap: wrap;
+             font-size: 13px; color: var(--ink-2); }
+    .opts label { display: flex; align-items: center; gap: 6px; }
+    .opts input[type="number"] { width: 64px; padding: 4px 6px; border: 1px solid var(--line);
+             border-radius: 6px; font-family: var(--mono); background: var(--paper); color: var(--ink); }
+    .stats { display: flex; gap: 20px; flex-wrap: wrap; padding: 14px 18px; background: var(--paper-2);
+              border: 1px solid var(--line-soft); border-radius: 8px; margin-bottom: 14px; font-size: 13px; }
+    .stat .label { color: var(--ink-3); font-size: 10.5px; text-transform: uppercase;
+                    letter-spacing: 0.08em; font-family: var(--mono); }
+    .stat .value { font-weight: 600; color: var(--ink); font-size: 20px; }
+    .row { padding: 13px 0; border-bottom: 1px solid var(--line-soft); }
+    .row:last-child { border-bottom: 0; }
+    .row .head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .row .iid { font-family: var(--mono); font-weight: 600; color: var(--ink); font-size: 12.5px; }
+    .pill { display: inline-block; padding: 3px 9px; border-radius: 4px; font-size: 10.5px;
+             font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; font-family: var(--mono); }
+    .pill.flagged          { background: var(--ember-soft); color: oklch(0.40 0.13 45); border: 1px solid oklch(0.85 0.06 45); }
+    .pill.review           { background: oklch(0.96 0.03 80); color: oklch(0.40 0.10 80); border: 1px solid oklch(0.85 0.06 80); }
+    .pill.cleared          { background: oklch(0.95 0.04 155); color: oklch(0.32 0.10 155); border: 1px solid oklch(0.85 0.06 155); }
+    .pill.passed_grep_only { background: var(--paper-2); color: var(--ink-3); border: 1px solid var(--line); }
+    .row .by { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+    .row .text { font-size: 12.5px; color: var(--ink-2); margin-top: 5px; line-height: 1.5; }
+    .row .tiers { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); margin-top: 5px;
+                   line-height: 1.7; }
+    .row details { margin-top: 6px; }
+    .row details summary { cursor: pointer; font-size: 12px; color: var(--accent-ink); }
+    .row .deep-text { white-space: pre-wrap; font-size: 12.5px; color: var(--ink-2);
+                       background: var(--paper-2); border: 1px solid var(--line-soft);
+                       border-radius: 8px; padding: 10px 12px; margin-top: 6px; line-height: 1.55; }
+    .empty { color: var(--ink-3); padding: 30px 14px; text-align: center; font-style: italic; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; }
+                                 .waterfall { grid-template-columns: 1fr; }
+                                 .flow-arrow { transform: rotate(90deg); justify-self: center; } }
+  </style>
+  <script src="/static/_nav.js" defer></script>
+  <script src="/static/_activity_log.js" defer></script>
+</head>
+<body data-nav="triage">
+  <header>
+    <h1>Platform Triage</h1>
+    <div class="sub">Screen a batch of job ads or recruiter messages through the waterfall:
+      deterministic GREP rules, a fast-model verdict, deep grounded Gemma 4 only for the
+      risky few. The platform-safety lane, live.</div>
+  </header>
+  <div class="container">
+    <div class="wb-trust" style="margin-bottom:16px;">
+      <strong>Trust boundary:</strong> pasted items go only to this kernel's
+      <code>POST /api/triage/screen</code>. The GREP and deep tiers always run locally;
+      the fast tier runs on the loaded local Gemma unless the operator has pointed
+      <code>DUECARE_FAST_MODEL_BASE_URL</code> at an endpoint they control (a
+      DiffusionGemma-class model served via vLLM — see the tier card below for what is
+      active right now). Responses and the training log carry counts and sha256 hashes
+      only; raw item text is never echoed back or persisted. Fast-tier verdicts only
+      route items — they are never user-facing answers.
+    </div>
+
+    <div class="waterfall">
+      <div class="stage">
+        <div class="t">Stage 1 · deterministic</div>
+        <div class="big">GREP rules</div>
+        <div class="d">Known exploitation patterns flag instantly — no model time spent.</div>
+        <div class="wired off" id="st-grep">checking…</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="stage">
+        <div class="t">Stage 2 · fast model</div>
+        <div class="big">Flag / clear verdict</div>
+        <div class="d">One quick JSON verdict per item. Built for DiffusionGemma-class
+          parallel decode (up to 4x faster); routes only, never answers.</div>
+        <div class="wired off" id="st-fast">checking…</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="stage">
+        <div class="t">Stage 3 · escalated only</div>
+        <div class="big">Deep grounded analysis</div>
+        <div class="d">Full GREP/RAG/tools-grounded Gemma 4 review of flagged and
+          review items.</div>
+        <div class="wired off" id="st-deep">checking…</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="pane">
+        <h2>1. Items to screen (one per line)</h2>
+        <textarea id="input" placeholder="Paste job ads or recruiter messages, one per line…"></textarea>
+        <div class="toolbar">
+          <button class="dc-btn dc-btn-primary" onclick="runScreen()">▶ Screen batch</button>
+          <button class="dc-btn dc-btn-secondary" onclick="useSample()">Use sample batch</button>
+          <a class="dc-btn dc-btn-secondary" href="/static/samples/triage_batch_sample.json" download>Download sample</a>
+          <span class="hint">Up to 200 items, 20k chars each.</span>
+        </div>
+        <div class="opts">
+          <label><input type="checkbox" id="opt-fast" checked /> Use fast model</label>
+          <label id="deep-label" title="Requires a loaded local Gemma model">
+            <input type="checkbox" id="opt-deep" disabled /> Deep-analyze escalated items</label>
+          <label>Clear threshold
+            <input type="number" id="opt-threshold" min="0" max="1" step="0.05" value="0.7" /></label>
+        </div>
+      </div>
+      <div class="pane">
+        <h2>2. Routing results</h2>
+        <div class="stats">
+          <div class="stat"><div class="label">Flagged</div><div class="value" id="s-flagged" style="color:oklch(0.40 0.13 45);">—</div></div>
+          <div class="stat"><div class="label">Review</div><div class="value" id="s-review" style="color:oklch(0.40 0.10 80);">—</div></div>
+          <div class="stat"><div class="label">Cleared</div><div class="value" id="s-cleared" style="color:oklch(0.32 0.10 155);">—</div></div>
+          <div class="stat"><div class="label">Grep-only pass</div><div class="value" id="s-greponly" style="color:var(--ink-3);">—</div></div>
+          <div class="stat"><div class="label">Escalated</div><div class="value" id="s-escalated">—</div></div>
+          <div class="stat"><div class="label">Fast tier</div><div class="value" id="s-rate" style="font-size:14px; line-height:1.5;">—</div></div>
+        </div>
+        <div id="rows"><div class="empty">Click <strong>▶ Screen batch</strong> (or load the sample) to route items through the waterfall.</div></div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <div id="triage-log" class="dc-activity-log" data-toolbar="copy-json">
+        <div class="dc-log-idle">Waiting for the first screening run…</div>
+      </div>
+    </div>
+
+    <!-- This page mutates no global kernel knowledge state (screening is
+         stateless apart from the server-side hash-only training log), so no
+         Status-page counter is bumped (rule 70 #3 n/a). -->
+    <div class="wb-card wb-next-steps" style="margin-top:18px;">
+      <div class="wb-next-steps-title">After screening a batch</div>
+      <div class="wb-next-grid">
+        <div class="wb-next-card">
+          <strong>Inspect the deterministic tier</strong>
+          <p>Paste one flagged item into the live GREP tester to see exactly which rules fired and why.</p>
+          <a class="wb-btn-primary" href="/static/grep-tester.html">Open GREP tester</a>
+        </div>
+        <div class="wb-next-card">
+          <strong>Deep-dive an escalated item</strong>
+          <p>Run it through Harness Comparison to see the full grounded analysis next to the baseline.</p>
+          <a class="wb-btn-secondary" href="/static/compare.html">Harness Comparison</a>
+        </div>
+        <div class="wb-next-card">
+          <strong>Read the contract</strong>
+          <p>The triage harness spec — tiers, verification rules, and the DiffusionGemma fast-tier seat.</p>
+          <a class="wb-btn-secondary" href="/static/harness.html">Harness contracts</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function escapeHtml(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+        ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    const VALID_STATUS = new Set(['flagged', 'review', 'cleared', 'passed_grep_only']);
+    let log = {info:()=>{},ok:()=>{},warn:()=>{},err:()=>{},step:()=>{}};
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.dcActivityLog) {
+        log = window.dcActivityLog.attach('#triage-log', {
+          idlePlaceholder: 'Waiting for the first screening run…',
+          toolbar: 'copy-json',
+        });
+      }
+      refreshTiers();
+    });
+
+    async function refreshTiers() {
+      try {
+        const r = await fetch('/api/triage/status');
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const d = await r.json();
+        const grepEl = document.getElementById('st-grep');
+        grepEl.textContent = d.grep_wired ? '● wired' : '○ not wired in this kernel';
+        grepEl.className = 'wired ' + (d.grep_wired ? 'on' : 'off');
+        const fastEl = document.getElementById('st-fast');
+        const fm = d.fast_model || {};
+        if (fm.configured) {
+          fastEl.textContent = '● ' + (fm.label || 'configured') + ' (' + (fm.source || '') + ')';
+          fastEl.className = 'wired on';
+        } else {
+          fastEl.textContent = '○ not configured — set DUECARE_FAST_MODEL_BASE_URL or load a model';
+          fastEl.className = 'wired off';
+        }
+        const deepEl = document.getElementById('st-deep');
+        deepEl.textContent = d.deep_model_available ? '● local Gemma loaded' : '○ load a model to enable';
+        deepEl.className = 'wired ' + (d.deep_model_available ? 'on' : 'off');
+        document.getElementById('opt-deep').disabled = !d.deep_model_available;
+        log.info('tier status refreshed',
+          'grep=' + d.grep_wired + ' fast=' + (fm.source || 'none') + ' deep=' + d.deep_model_available);
+      } catch (e) {
+        log.err('GET /api/triage/status failed', e.message);
+      }
+    }
+
+    async function useSample() {
+      log.step('loading sample batch', '/static/samples/triage_batch_sample.json');
+      try {
+        const r = await fetch('/static/samples/triage_batch_sample.json');
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const d = await r.json();
+        const lines = (d.items || []).map(it => String(it.text || '').replace(/\s*\n\s*/g, ' '));
+        document.getElementById('input').value = lines.join('\n');
+        log.ok('sample loaded', lines.length + ' synthetic items');
+      } catch (e) {
+        log.err('sample load failed', e.message);
+      }
+    }
+
+    function statusPill(status) {
+      const cls = VALID_STATUS.has(status) ? status : 'review';
+      return '<span class="pill ' + cls + '">' + escapeHtml(status) + '</span>';
+    }
+
+    async function runScreen() {
+      const raw = document.getElementById('input').value;
+      const lines = raw.split('\n').map(s => s.trim()).filter(Boolean);
+      if (!lines.length) { log.warn('no items — paste ads above or load the sample'); return; }
+      if (lines.length > 200) { log.warn('too many items', lines.length + ' > 200 cap'); return; }
+      const rowsDiv = document.getElementById('rows');
+      rowsDiv.innerHTML = '<div class="empty">Screening ' + lines.length + ' item(s)…</div>';
+      const body = {
+        items: lines,
+        use_fast_model: document.getElementById('opt-fast').checked,
+        run_deep: document.getElementById('opt-deep').checked && !document.getElementById('opt-deep').disabled,
+        clear_threshold: parseFloat(document.getElementById('opt-threshold').value) || 0.7,
+      };
+      log.step('POST /api/triage/screen', lines.length + ' items, fast=' + body.use_fast_model + ', deep=' + body.run_deep);
+      try {
+        const r = await fetch('/api/triage/screen', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(body),
+        });
+        if (!r.ok) {
+          const errText = await r.text();
+          throw new Error('HTTP ' + r.status + ' ' + errText.slice(0, 200));
+        }
+        const d = await r.json();
+        const s = d.summary || {};
+        document.getElementById('s-flagged').textContent = s.n_flagged;
+        document.getElementById('s-review').textContent = s.n_review;
+        document.getElementById('s-cleared').textContent = s.n_cleared;
+        document.getElementById('s-greponly').textContent = s.n_passed_grep_only;
+        document.getElementById('s-escalated').textContent = s.n_escalated;
+        const fm = s.fast_model || {};
+        const t = s.timings_ms || {};
+        const rate = fm.measured_items_per_min
+          ? fm.measured_items_per_min + ' items/min measured'
+          : (fm.configured ? 'no rate yet' : 'not configured');
+        document.getElementById('s-rate').textContent = rate;
+        log.ok('screened ' + s.n_items + ' items',
+          'grep ' + (t.grep || 0) + 'ms · fast ' + (t.fast_model || 0) + 'ms · deep ' + (t.deep || 0) + 'ms · total ' + (t.total || 0) + 'ms');
+        if (s.n_escalated > 0) {
+          log.info(s.n_escalated + ' item(s) escalated for deep review',
+            'the deep tier / a human reviewer sees only these');
+        }
+        const order = {flagged: 0, review: 1, passed_grep_only: 2, cleared: 3};
+        const rows = [...(d.items || [])].sort((a, b) =>
+          (order[a.status] ?? 9) - (order[b.status] ?? 9));
+        rowsDiv.innerHTML = rows.map(it => {
+          const original = lines[it.index] || '';
+          const grep = it.grep || {};
+          const fast = it.fast || {};
+          let fastLine;
+          if (fast.skipped) {
+            fastLine = 'fast: skipped — ' + escapeHtml(fast.skipped);
+          } else if (fast.error) {
+            fastLine = 'fast: error — ' + escapeHtml(fast.error);
+          } else if (fast.parse_error) {
+            fastLine = 'fast: unparseable verdict → review — ' + escapeHtml(fast.parse_error);
+          } else if (fast.verdict) {
+            fastLine = 'fast: ' + escapeHtml(fast.verdict)
+              + ' (conf ' + escapeHtml(String(fast.confidence ?? '—')) + ')'
+              + (fast.category ? ' · ' + escapeHtml(fast.category) : '')
+              + (fast.reason ? ' · ' + escapeHtml(fast.reason) : '')
+              + ' · ' + Number(fast.latency_ms || 0) + 'ms';
+          } else {
+            fastLine = 'fast: —';
+          }
+          const grepLine = 'grep: ' + (grep.fired
+            ? Number(grep.n_hits || 0) + ' hit(s), max ' + escapeHtml(grep.max_severity || '') + ' · ' + escapeHtml((grep.rule_ids || []).join(', '))
+            : 'no hits');
+          const deepBlock = it.deep && it.deep.analysis
+            ? '<details><summary>Deep grounded analysis (' + Number(it.deep.latency_ms || 0) + 'ms)</summary>'
+              + '<div class="deep-text">' + escapeHtml(it.deep.analysis) + '</div></details>'
+            : (it.deep && it.deep.error
+              ? '<div class="tiers">deep: error — ' + escapeHtml(it.deep.error) + '</div>' : '');
+          return '<div class="row">'
+            + '<div class="head"><span class="iid">' + escapeHtml(it.id) + '</span>'
+            + statusPill(it.status)
+            + (it.flagged_by ? '<span class="by">by ' + escapeHtml(it.flagged_by) + '</span>' : '')
+            + (it.escalate ? '<span class="by">→ escalated</span>' : '')
+            + '</div>'
+            + '<div class="text">' + escapeHtml(original) + '</div>'
+            + '<div class="tiers">' + grepLine + '<br/>' + fastLine + '</div>'
+            + deepBlock
+            + '</div>';
+        }).join('');
+      } catch (e) {
+        log.err('screen failed', e.message);
+        rowsDiv.innerHTML = '<div class="empty" style="color:oklch(0.40 0.13 45);">Error: ' + escapeHtml(e.message) + '</div>';
+      }
+    }
+
+    document.getElementById('input').addEventListener('keydown', e => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') runScreen();
+    });
+  </script>
+</body>
+</html>
