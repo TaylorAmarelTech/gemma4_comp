@@ -58,7 +58,7 @@ citable facts) while adding hallucination risk.
 
 **Verdict:** a LoRA can be memory, but DueCare's facts must not live there.
 They already live in the right place — `RAG_CORPUS` (859 docs), `GREP_RULES`
-(439), `CORRIDOR_FEE_CAPS`, tools, and curator-vetted synced packs — all of
+(451), `CORRIDOR_FEE_CAPS`, tools, and curator-vetted synced packs — all of
 which are updatable, diffable, and citable.
 
 ## 2. Is fine-tuning *memory* an option? (and which memory)

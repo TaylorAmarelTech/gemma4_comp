@@ -9636,6 +9636,107 @@ GREP_RULES = [
         'citation': 'ILO C181 Art. 7; origin-state zero-placement-fee rules',
         'indicator': 'Mandatory pre-deployment "training center" payments tied to securing a job slot are frequently disguised placement fees prohibited under C181.',
     },
+    # ====================================================================
+    # CATEGORY OOOO: COERCIVE DEBT-COLLECTION + DEBT-LAUNDERING (2026-06-12)
+    # Predatory-lending / debt-bondage cluster distilled from real
+    # migrant-domestic-worker case patterns (coercive collection, doxxing,
+    # payment-rail structuring, shell-company rotation, licence pass-through).
+    # Each rule grounds in an internationally-recognized instrument.
+    # ====================================================================
+    {
+        'rule': 'passport_as_loan_collateral',
+        'patterns': [r"\b(?:passport|id|identity\s+document|hkid|photos?|personal\s+photographs?)\b",
+                     r"\b(?:as\s+(?:collateral|security|guarantee)|held?\s+(?:as|for)\s+(?:collateral|security|guarantee|safekeeping)|surrender\s+your\s+passport|leave\s+your\s+passport\s+with\s+us)\b"],
+        'all_required': True, 'severity': 'critical',
+        'citation': 'ICRMW (1990) Art. 21 (no confiscation/destruction of identity documents); ILO C189 Art. 9 (domestic workers keep their documents); ILO forced-labour indicator: retention of identity documents',
+        'indicator': 'Holding a passport/ID specifically as LOAN security is a severe debt-bondage mechanism. ICRMW Art. 21 prohibits document confiscation outright; the loan-collateral framing converts document retention into a coercion lever regardless of any "consent".',
+    },
+    {
+        'rule': 'fake_savings_deposit_scheme',
+        'patterns': [r"\b(?:compulsory\s+savings|savings\s+(?:account|bank|deposit)|security\s+deposit|deposit[- ]taking|deposit\s+card|vip\s+card|guarantee\s+deposit|goodwill\s+deposit|safe[- ]?keeping\s+fund)\b",
+                     r"\b(?:withheld|held\s+as\s+security|refunded\s+on\s+completion|not\s+credited|never\s+returned|deduct(?:ed)?|compulsory|required)\b"],
+        'all_required': True, 'severity': 'high',
+        'citation': 'ILO C095 (Protection of Wages, 1949) Art. 8-9 (limits on deductions; no deductions to obtain/retain employment); Supplementary Convention on the Abolition of Slavery (1956) Art. 1(a) (debt bondage); ILO forced-labour indicator: debt bondage',
+        'indicator': 'Compulsory "savings"/security deposits withheld from migrant-worker wages by an unlicensed taker — never credited or returned at payoff — are disguised wage deductions and a debt-bondage device. ILO C095 limits permissible deductions; the 1956 Supplementary Convention defines debt bondage as services pledged as security for a debt whose value is not applied to liquidate it.',
+    },
+    {
+        'rule': 'arbitrary_debt_balance_inflation',
+        'patterns': [r"\b(?:raise|increase[ds]?|inflate[ds]?|recalculat(?:e|ed|ion))\b.{0,30}\b(?:balance|amount\s+due|debt|loan)\b",
+                     r"\b(?:default\s+penalty|penalty\s+interest|late\s+penalty|no\s+receipt|every\s*day|new\s+amount\s+due|administration\s+adjustment|compounding)\b"],
+        'all_required': True, 'severity': 'high',
+        'citation': 'Supplementary Convention on the Abolition of Slavery (1956) Art. 1(a) (debt of undefined length/nature); ILO forced-labour indicator: debt bondage; ILO C095 Art. 8',
+        'indicator': 'An open-ended balance that climbs through arbitrary penalties with no fixed schedule or receipts is the 1956 Supplementary Convention\'s debt bondage: a debt whose length and nature are "not respectively limited and defined". The worker can never repay by design.',
+    },
+    {
+        'rule': 'guarantor_reference_debt_coercion',
+        'patterns': [r"\b(?:guarantor|co[- ]?borrower|your\s+reference|reference\s+is\s+liable|stand[- ]?in\s+payer)\b",
+                     r"\b(?:must\s+pay|liable|sign\s+an?\s+undertaking|pay\s+(?:someone|her|his|their|your\s+friend)['’]?s?\s+(?:loan|debt)|shared\s+responsibility)\b"],
+        'all_required': True, 'severity': 'high',
+        'citation': 'ILO forced-labour indicator: intimidation and threats; Palermo Protocol Art. 3(a) (coercion / abuse of position of vulnerability); ILO C029',
+        'indicator': 'Coercing a reference, co-borrower, or guarantor to pay another worker\'s debt — or extracting a forced "undertaking" — extends the debt-bondage coercion to third parties and is a recognised forced-labour intimidation tactic.',
+    },
+    {
+        'rule': 'third_party_collection_harassment',
+        'patterns': [r"\b(?:call|contact|visit|inform|tell|report\s+to)\b.{0,40}\b(?:your\s+employer|your\s+sponsor|your\s+family|barangay|your\s+neighbou?rs?|your\s+reference|the\s+household|your\s+residence)\b",
+                     r"\b(?:debt|loan|repay(?:ment)?|owe|balance|collect(?:ion)?)\b"],
+        'all_required': True, 'severity': 'high',
+        'citation': 'ILO forced-labour indicator: intimidation and threats; Palermo Protocol Art. 3(a); ICRMW Art. 14 (privacy)',
+        'indicator': 'Contacting or threatening a worker\'s employer, family, references, or neighbours to coerce repayment is third-party harassment — an intimidation tactic under the ILO forced-labour indicators and a privacy violation under ICRMW Art. 14.',
+    },
+    {
+        'rule': 'public_doxxing_debt_shaming',
+        'patterns': [r"\b(?:wanted|public\s+notice|community\s+alert|borrower\s+watch\s*list|posted\s+(?:her|his|their|your)?\s*id|shared\s+(?:her|his|their|your)?\s*photo|name\s+and\s+shame)\b",
+                     r"\b(?:borrow(?:er|ed)?|debt|loan|owe|did\s+not\s+repay|ofw|pathetic|next\s+victim)\b"],
+        'all_required': True, 'severity': 'critical',
+        'citation': 'ICRMW Art. 14 (protection of privacy); Palermo Protocol Art. 6 (protection of victim privacy/identity); ILO forced-labour indicator: intimidation and threats',
+        'indicator': 'Publishing a worker\'s ID, photo, or "WANTED"-style shaming post to coerce debt payment is public doxxing — a privacy violation under ICRMW Art. 14 and Palermo Art. 6 and a coercive forced-labour tactic.',
+    },
+    {
+        'rule': 'fabricated_criminal_accusation_lever',
+        'patterns': [r"\b(?:estafa|bigamy|bank\s+fraud|fraud\s+(?:case|investigation)|criminal\s+(?:case|complaint)|she\s+will\s+be\s+arrested|jailed|pending\s+legal\s+case)\b",
+                     r"\b(?:debt|loan|owe|repay|borrow|balance|unless\s+you\s+pay|if\s+you\s+do\s+not\s+pay)\b"],
+        'all_required': True, 'severity': 'high',
+        'citation': 'ILO forced-labour indicator: intimidation and threats; Palermo Protocol Art. 3(a) (coercion); ICRMW Art. 16-18 (liberty/due process)',
+        'indicator': 'Fabricated criminal accusations (estafa, "bank fraud", bigamy) wielded as a coercion lever for debt repayment are a documented forced-labour intimidation tactic, exploiting a migrant worker\'s fear of detention and deportation.',
+    },
+    {
+        'rule': 'threat_immigration_blacklisting',
+        'patterns': [r"\b(?:blacklist(?:ing|ed)?|deport\s+you|cannot\s+come\s+back|never\s+work\s+(?:here\s+)?again|flag\s+on\s+your\s+(?:work\s+)?permit|adverse\s+record)\b",
+                     r"\b(?:immigration|labou?r\s+(?:authority|office|department)|poea|work\s+permit|visa|the\s+authorities)\b"],
+        'all_required': True, 'severity': 'high',
+        'citation': 'ILO forced-labour indicator: threats of denunciation to the authorities; ICRMW Art. 22 (protection against arbitrary/collective expulsion); ILO C029',
+        'indicator': 'Threatening immigration or labour-authority blacklisting — "you will never work again", "we will report you" — is the ILO forced-labour indicator "threats of denunciation to the authorities", weaponising a migrant\'s precarious status to compel payment or silence.',
+    },
+    {
+        'rule': 'repayment_channel_structuring',
+        'patterns': [r"\b(?:7[- ]?eleven|7/11|familymart|convenience[- ]store|alipay|wechat\s+pay|tng\s+e[- ]?wallet|gcash|fps\s+id|faster\s+payment\s+system|qr\s+code|barcode)\b",
+                     r"\b(?:pay|repay(?:ment)?|collect(?:ion)?|top[- ]?up|loan|installment|instalment|settle)\b"],
+        'all_required': True, 'severity': 'medium',
+        'citation': 'FATF Recommendation 10 (customer due diligence) + Recommendation 32 (cash couriers / cross-border value transfer); FATF guidance on money-laundering through new payment methods',
+        'indicator': 'Routing loan repayments through rotating retail QR codes, convenience-store barcodes, and e-wallet / fast-payment IDs is a structuring pattern that evades banking controls and obscures the lender — a money-laundering typology flagged under FATF Recommendations 10 and 32.',
+    },
+    {
+        'rule': 'proceeds_cross_border_layering',
+        'patterns': [r"\b(?:remit(?:ted)?|transfer(?:red)?|move[ds]?|repatriat(?:e|ed)|funnel(?:led)?)\b.{0,40}\b(?:overseas\s+account|offshore|holding\s+company|foreign\s+(?:branch|account)|central\s+settlement|regional\s+treasury)\b",
+                     r"\b(?:loan|debt|repay(?:ment)?|collection|proceeds|fees?)\b"],
+        'all_required': True, 'severity': 'high',
+        'citation': 'FATF Recommendations (money-laundering layering of proceeds); FATF Recommendation 32 (cross-border value transfer); ILO 2022 Global Estimates of Modern Slavery (proceeds movement)',
+        'indicator': 'Remitting debt-collection proceeds to a foreign holding-company or offshore account layers the money and severs it from the coerced worker — a money-laundering pattern that, when the underlying debt is bonded labour, marks the proceeds as trafficking-tainted under FATF standards.',
+    },
+    {
+        'rule': 'shell_company_collector_rotation',
+        'patterns': [r"\b(?:debt\s+(?:assigned|management)|collection\s+by|appoint(?:ed)?\s+(?:outside\s+)?(?:collector|servicer)|consultant\s+(?:company|limited|ltd)|credit\s+management\s+company|re[- ]?registered|new\s+(?:corporate\s+name|company\s+same\s+scheme)|restructured\s+entity)\b"],
+        'min_capture_value': 0, 'severity': 'high',
+        'citation': 'FATF Recommendation 24 (transparency / beneficial ownership of legal persons); ILO C181 Art. 3 (regulation of private employment agencies)',
+        'indicator': 'Dissolving and re-registering a collection or recruitment entity after enforcement — or assigning the debt to a fresh "consultant"/credit-management company — is shell-company rotation to continue an exploitative scheme while defeating beneficial-ownership tracing (FATF Rec. 24).',
+    },
+    {
+        'rule': 'licensed_agency_chop_passthrough',
+        'patterns': [r"\b(?:facilitation\s+fee|company\s+chop|use\s+of\s+(?:the\s+)?licen[cs]e|licen[cs]e\s+(?:number\s+)?(?:borrowed|on\s+request|shared)|stamp\s+of\s+a\s+licensed|on\s+behalf\s+of\s+the\s+licensed|under\s+our\s+licen[cs]e|accredited\s+affiliate)\b"],
+        'min_capture_value': 0, 'severity': 'high',
+        'citation': 'ILO C181 Art. 3 (private employment agencies operate only under a licence/authorisation regime); ILO General Principles and Operational Guidelines for Fair Recruitment (2016)',
+        'indicator': 'Borrowing a licensed agency\'s stamp, licence number, or "chop" to legitimise an otherwise-unlicensed recruiter — a "facilitation fee" pass-through — defeats the C181 Art. 3 licensing regime and is a hallmark of unregulated recruitment fronts.',
+    },
 ]
 
 

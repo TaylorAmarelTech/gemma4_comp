@@ -34,7 +34,7 @@ or template improvements, fully anonymised at source.
 ┌─────────────────────────────────────────────────────────────────┐
 │  duecare-knowledge-pack-<region>  (Kaggle Dataset / git repo)   │
 │  - versioned (semantic version + commit SHA)                    │
-│  - 439 GREP rules, 859 RAG docs, 34+ templates, etc.          │
+│  - 451 GREP rules, 859 RAG docs, 34+ templates, etc.          │
 │  - every member NGO syncs weekly                                │
 └─────────────────────────────────────────────────────────────────┘
        ↓                                          ↓
@@ -114,7 +114,7 @@ Envelope types:
    `duecare-knowledge-pack-la-strada-eu`.
 3. **Seed with the bundled knowledge layer.** Run
    `duecare knowledge export --bundle-baseline` to produce the
-   initial pack from the current 439 GREP rules + 859 RAG documents
+   initial pack from the current 451 GREP rules + 859 RAG documents
    + 36 templates + 37 personas + 38 corridor fee caps + 30 NGO
    contacts + 16 ILO conventions.
 4. **Establish the curator review queue.** Either a Notion board,

@@ -17,7 +17,7 @@ that DueCare returns in your jurisdiction has been verified by your
 staff lawyer against the authoritative register.
 
 Inputs:
-- Bundled knowledge pack (439 GREP rules + 859 RAG documents + 15
+- Bundled knowledge pack (451 GREP rules + 859 RAG documents + 15
   ILO conventions + 36 templates)
 - Your agency's statute register (whatever the official source is —
   national legal database, regulator publications site, etc.)
