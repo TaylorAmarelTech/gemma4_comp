@@ -6182,6 +6182,16 @@ def create_app(
     from .harnesses import search_safety as _search_safety_harness
     _search_safety_harness.register_routes(app)
 
+    # ====================================================================
+    # triage harness (2026-06-11): platform-scale waterfall screening.
+    # GREP rules -> fast-model verdict (DiffusionGemma-class endpoint via
+    # DUECARE_FAST_MODEL_BASE_URL, or the loaded in-process Gemma) -> deep
+    # grounded analysis only for escalated items. Owns
+    # POST /api/triage/screen and GET /api/triage/status.
+    # ====================================================================
+    from .harnesses import triage as _triage_harness
+    _triage_harness.register_routes(app)
+
 
     # ====================================================================
     # Phase 15 (2026-05-12): standardized KnowledgeObject endpoints.

@@ -87,6 +87,11 @@ def test_harness_capabilities_are_valid(harness):
         "verify_search_results",
         "score_source_quality",
         "detect_deanonymization_risk",
+        # triage harness (waterfall screening)
+        "waterfall_screen",
+        "fast_tier_endpoint",
+        "honest_degradation",
+        "measured_throughput",
     }
     for cap in cap_names:
         assert cap in valid, (
