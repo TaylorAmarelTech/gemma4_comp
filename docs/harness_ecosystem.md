@@ -74,6 +74,7 @@ These are the modules exposed through `duecare.chat.harnesses`.
 | `anonymization` | PII and confidential-data gate before sharing or submission. | Optional second review over already-redacted text. | Implemented. |
 | `search_safety` | Convert raw search intent into redacted or generalized search phrases before third-party search. | Optional rephrase over already-redacted query. | Implemented as a gate. |
 | `post_search_verification` | Verify search result candidates for source quality, relevance, contradictions, and deanonymization risk before prompt injection. | Optional local review over sanitized snippets; deterministic gate first. | Implemented as a gate. |
+| `triage` | Platform-scale waterfall screening: GREP rules, then a fast-model flag/clear verdict (DiffusionGemma-class endpoint via `DUECARE_FAST_MODEL_BASE_URL` or the loaded local Gemma), then deep grounded analysis only for escalated items. | Optional at both tiers; degrades honestly to `passed_grep_only` with no model. The fast tier routes, it never answers. | Implemented. |
 | `search` | Run a selected search backend after query sanitization and return result cards. | Downstream only; search itself is not a model call. | Implemented utility. |
 | `import_corpus` | Store local uploaded evidence and snippets for later use by chat, process, and extraction. | No model call; supplies context to other harnesses. | Implemented utility. |
 
