@@ -494,6 +494,32 @@
       ]
     },
     {
+      "route": "/static/triage.html",
+      "file": "triage.html",
+      "purpose": "platform triage waterfall (GREP -> fast model -> deep escalation)",
+      "controls": [
+        "batch textarea (one item per line)",
+        "use/download sample batch",
+        "fast-model toggle",
+        "deep-escalation toggle",
+        "clear-threshold input",
+        "screen batch"
+      ],
+      "outputs": [
+        "tier wiring cards",
+        "status counts (flagged/review/cleared/grep-only)",
+        "per-item routing rows with grep + fast verdicts",
+        "expandable deep analyses",
+        "per-stage timings + measured items/min",
+        "activity log"
+      ],
+      "audit": [
+        "honest degradation copy (passed_grep_only, never cleared)",
+        "sample round-trip",
+        "escaped rendering of pasted items"
+      ]
+    },
+    {
       "route": "/static/grep-rules.html",
       "file": "grep-rules.html",
       "purpose": "GREP catalog",
