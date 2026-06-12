@@ -266,7 +266,9 @@ function packQuery() {
   return params.toString();
 }
 
-let _prevPackCount = null;
+// Previous result count PER QUERY: the "+N new" badge must mean "the
+// registry grew under the same filters", never "you changed filters".
+let _prevCounts = {};
 async function loadPacks(opts) {
   opts = opts || {};
   const results = document.getElementById('pack-results');
@@ -295,17 +297,21 @@ async function loadPacks(opts) {
   renderFilterOptions('filter-tag', 'tag', payload.available_tags || []);
   syncCheckboxGroup('status');
   const packs = payload.packs || [];
-  // Live-state indicator: timestamp + a "new since last check" badge when the
-  // registry grows (e.g., a curator just vetted a submitted pack). This is the
-  // auto-update that reflects freshly shared packs without a manual reload.
+  // Live-state indicator: timestamp + a "new since last check" badge ONLY
+  // when the registry grows under the SAME query on a silent auto-refresh
+  // (e.g., a curator just vetted a submitted pack). Manual filter changes
+  // legitimately change the count and must never claim "+N new".
   const now = new Date();
   const stamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   let newBadge = '';
-  if (_prevPackCount !== null && packs.length > _prevPackCount) {
-    const delta = packs.length - _prevPackCount;
+  const prevCount = _prevCounts[query];
+  if (opts.silent && prevCount !== undefined && packs.length > prevCount) {
+    const delta = packs.length - prevCount;
     newBadge = ` · <span style="color:var(--accent-ink,#0f766e);font-weight:600;">+${delta} new</span>`;
   }
-  _prevPackCount = packs.length;
+  // Baseline updates on EVERY successful load (manual included) so the first
+  // silent poll after a filter change compares against a fresh baseline.
+  _prevCounts[query] = packs.length;
   summary.innerHTML = `<b style="color:var(--ink);font-weight:600;">${packs.length} pack${packs.length === 1 ? '' : 's'}</b>`
     + ` · filtered from live API${newBadge}`
     + ` · <span class="muted">updated ${stamp} · auto-refreshes every 20s</span>`;
