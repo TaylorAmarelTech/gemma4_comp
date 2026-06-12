@@ -191,6 +191,14 @@ async function refreshStats() {
   } catch (_) {}
 }
 
+// Escape everything that round-trips through the ingest form: a stored
+// source_filename / corridor like <img onerror=...> must render as text,
+// never execute, when the case list re-renders.
+function escLk(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
 async function refreshCases() {
   const root = document.getElementById('cases');
   try {
@@ -204,11 +212,11 @@ async function refreshCases() {
     }
     const rows = d.cases.map(c => `
       <div class="row">
-        <code>${c.case_id}</code>
-        <span>${c.source_filename || ''}</span>
-        <span>${c.corridor ? '<span class="lk-pill">' + c.corridor + '</span>' : '&mdash;'}</span>
-        <span>${c.status}</span>
-        <span>${(c.ingested_at || '').replace('T', ' ').slice(0, 19)}</span>
+        <code>${escLk(c.case_id)}</code>
+        <span>${escLk(c.source_filename || '')}</span>
+        <span>${c.corridor ? '<span class="lk-pill">' + escLk(c.corridor) + '</span>' : '&mdash;'}</span>
+        <span>${escLk(c.status)}</span>
+        <span>${escLk((c.ingested_at || '').replace('T', ' ').slice(0, 19))}</span>
       </div>
     `).join('');
     root.innerHTML = header + rows;
