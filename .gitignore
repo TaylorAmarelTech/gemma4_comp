@@ -108,6 +108,8 @@ reports/*.responses.jsonl
 reports/**/*.jsonl
 reports/**/*.json
 reports/**/*.py
+reports/recruitment_scan/
+reports/agency_scan/
 mlruns/
 wandb/
 

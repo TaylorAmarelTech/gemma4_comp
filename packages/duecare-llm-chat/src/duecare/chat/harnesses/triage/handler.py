@@ -247,8 +247,14 @@ def screen_items(
                 out = grep_call(text) or {}
                 hits = out.get("hits") or []
                 severities = [str(h.get("severity") or "medium").lower() for h in hits]
+                # Accept every rule-id key shape: test fakes use "rule_id"/"id";
+                # the real default_harness grep_call uses "rule". Without the
+                # "rule" fallback the live triage page shows fired rules with
+                # blank ids.
                 rule_ids = [
-                    rid for rid in (h.get("rule_id") or h.get("id") for h in hits) if rid
+                    rid for rid in
+                    (h.get("rule_id") or h.get("id") or h.get("rule") for h in hits)
+                    if rid
                 ][:10]
                 row["grep"] = {
                     "fired": bool(hits),
