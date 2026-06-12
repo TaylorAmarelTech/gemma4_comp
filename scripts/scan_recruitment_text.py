@@ -149,8 +149,92 @@ def gather_items(args: argparse.Namespace) -> list[dict]:
     return cleaned
 
 
-def scan(items: list[dict]) -> dict:
-    """Run items through the GREP suspicious-language tier (no model)."""
+def _agency_check(items: list[dict], result: dict, registry_path: str) -> None:
+    """Cross-check any agency name an item names against the licensed registry.
+
+    A recruiter not on the official licensed list — or one that is
+    EXPIRED/CANCELLED/DELISTED — is a strong legitimacy red flag that
+    complements the GREP `licensed_agency_chop_passthrough` rule. Best-effort:
+    a registry that won't load just skips the check.
+    """
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "dc_agency_registry", str(_ROOT / "scripts" / "agency_registry.py"))
+    mod = importlib.util.module_from_spec(spec)
+    # Register before exec: agency_registry defines a frozen dataclass whose
+    # KW_ONLY check reads sys.modules.get(cls.__module__).
+    sys.modules[spec.name] = mod
+    spec.loader.exec_module(mod)
+    try:
+        registry = mod.load_registry(registry_path)
+    except Exception as exc:  # noqa: BLE001 -- missing registry just skips
+        for row in result["items"]:
+            row["agency_check"] = {"skipped": f"registry not loaded: {exc}"[:160]}
+        return
+    # Two-pronged name harvest:
+    #  (1) DIRECT registry match -- if a known agency's distinctive name
+    #      appears in the text, verify it (catches a CANCELLED/DELISTED agency
+    #      still advertising, the highest-value case).
+    #  (2) REGEX harvest -- capitalized multi-word names ending in a recruiter
+    #      suffix, to catch UNKNOWN agencies (not_found) that aren't in the
+    #      registry, especially when a licence number is claimed.
+    name_re = re.compile(
+        r"\b([A-Z][A-Za-z&.\-]+(?:\s+[A-Z][A-Za-z&.\-]+){0,4}\s+"
+        r"(?:Agency|Agencies|Manpower|Recruitment|Placement|Services|Solutions|"
+        r"Workforce|Crewing|Enterprises|Corporation|Consultancy|Inc\.?|Corp\.?|Co\.?))\b")
+    lic_re = re.compile(r"\b((?:POEA|DMW|DOH)[-\s]?[A-Z0-9\-]{3,})\b", re.I)
+
+    def _norm(s: str) -> str:
+        return mod.normalize_name(s)
+
+    for row, item in zip(result["items"], items):
+        text = item["text"]
+        norm_text = " " + re.sub(r"\s+", " ", _norm(text)) + " "
+        lic_m = lic_re.search(text)
+        lic = lic_m.group(1) if lic_m else ""
+        candidates: list[str] = []
+        # (1) direct registry-name presence (use the agency's full name so the
+        # verifier matches exactly; require its leading 2 tokens to be present)
+        for p in registry:
+            toks = p.norm_name.split()
+            lead = " ".join(toks[:2]) if len(toks) >= 2 else (toks[0] if toks else "")
+            if lead and len(lead) >= 6 and f" {lead} " in norm_text:
+                candidates.append(p.name)
+        # (2) regex harvest
+        candidates.extend(name_re.findall(text))
+        checks = []
+        seen_raw: set[str] = set()
+        seen_resolved: set[str] = set()
+        for nm in candidates:
+            key = _norm(nm)
+            if not key or key in seen_raw:
+                continue
+            seen_raw.add(key)
+            v = mod.verify_agency(nm, registry, claimed_license=lic)
+            # dedupe distinct raw strings that resolve to the same registry
+            # agency (e.g. "Join Easternwind..." vs "Easternwind...")
+            resolved = v.matched_name or key
+            if resolved in seen_resolved:
+                continue
+            seen_resolved.add(resolved)
+            checks.append({"name": nm, "status": v.status,
+                           "license_status": v.license_status,
+                           "advisory": v.advisory})
+            # escalate a clean GREP pass when a named agency is bogus/red
+            if v.status in {"not_found", "licensed_red"} and row["status"] in {
+                    "passed_grep_only", "cleared"}:
+                row["status"] = "review"
+                row["flagged_by"] = "agency_not_verified"
+        row["agency_check"] = checks or {"note": "no agency name detected"}
+
+
+def scan(items: list[dict], registry_path: str = "") -> dict:
+    """Run items through the GREP suspicious-language tier (no model).
+
+    When ``registry_path`` is set, also cross-check named agencies against the
+    licensed-agency registry (legitimacy anti-signal).
+    """
     harness = default_harness()
     grep_call = harness.get("grep_call")
     result = screen_items(items, grep_call=grep_call, fast_call=None)
@@ -170,6 +254,8 @@ def scan(items: list[dict]) -> dict:
         ]
         # preview only (the report is for a human reviewer, not a store)
         row["text_preview"] = item["text"][:280]
+    if registry_path:
+        _agency_check(items, result, registry_path)
     return result
 
 
@@ -216,6 +302,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--url", action="append",
                     help="opt-in: fetch + screen a URL (repeatable, robots-respecting, "
                          f"capped at {MAX_URLS})")
+    ap.add_argument("--registry", default="",
+                    help="optional: licensed-agency registry JSON/CSV to cross-check named "
+                         "agencies against (e.g. data/agency_registry/sample_licensed_agencies.json)")
     ap.add_argument("--out", default=str(_ROOT / "reports" / "recruitment_scan"),
                     help="report output directory (propose-only; default reports/recruitment_scan/)")
     ap.add_argument("--stamp", default="", help="report filename stamp (default: content hash)")
@@ -230,7 +319,7 @@ def main(argv: list[str] | None = None) -> int:
         print("no screenable items gathered.", file=sys.stderr)
         return 1
 
-    result = scan(items)
+    result = scan(items, registry_path=args.registry)
     # deterministic stamp from content so repeat runs are stable + idempotent
     stamp = args.stamp or hashlib.sha256(
         "".join(sorted(i["id"] for i in items)).encode("utf-8")

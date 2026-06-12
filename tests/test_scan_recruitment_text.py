@@ -116,3 +116,44 @@ def test_main_runs_end_to_end_with_text(tmp_path):
     assert rc == 0
     assert (tmp_path / "scan_e2e.json").exists()
     assert (tmp_path / "scan_e2e.md").exists()
+
+
+_REGISTRY = str(_ROOT / "data" / "agency_registry" / "sample_licensed_agencies.json")
+
+
+def test_registry_crosscheck_flags_cancelled_agency():
+    """A clean-language ad naming a CANCELLED agency is escalated to review by
+    the licensed-registry cross-check (legitimacy anti-signal)."""
+    result = SCAN.scan(
+        [{"id": "ad", "text": "Join Easternwind Workforce Solutions for jobs in Lebanon. "
+                              "Easy application, friendly staff."}],
+        registry_path=_REGISTRY,
+    )
+    row = result["items"][0]
+    assert row["status"] == "review"
+    assert row["flagged_by"] == "agency_not_verified"
+    checks = row["agency_check"]
+    assert isinstance(checks, list) and checks[0]["status"] == "licensed_red"
+
+
+def test_registry_crosscheck_passes_valid_agency():
+    result = SCAN.scan(
+        [{"id": "ad", "text": "Apply at Sunrise Overseas Manpower Services, Inc., "
+                              "a licensed agency hiring for Hong Kong."}],
+        registry_path=_REGISTRY,
+    )
+    row = result["items"][0]
+    # benign + a valid licensed agency -> not escalated
+    assert row["status"] == "passed_grep_only"
+    assert row["agency_check"][0]["status"] == "licensed_valid"
+
+
+def test_registry_crosscheck_unknown_agency_with_license_is_review():
+    result = SCAN.scan(
+        [{"id": "ad", "text": "Phantom Star Recruitment Agency, POEA-9999, hiring now, "
+                              "great pay, apply today."}],
+        registry_path=_REGISTRY,
+    )
+    row = result["items"][0]
+    assert row["status"] == "review"
+    assert any(c["status"] == "not_found" for c in row["agency_check"])
