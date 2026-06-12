@@ -1,4 +1,4 @@
-﻿# For Hackathon Judges - Verify DueCare in 5 minutes
+# For Hackathon Judges - Verify DueCare in 5 minutes
 
 > **Canonical reviewer entry doc:** [`FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md).
 > This page is the hackathon-specific quick path. The peer-review doc is
@@ -8,8 +8,8 @@
 > focuses on the 5-minute hackathon-rubric verification flow.
 
 > The DueCare submission for the Gemma 4 Good Hackathon
-> (2026-04-02 â†’ 2026-05-18). This doc exists so you don't have to
-> spelunk the repo to verify any claim â€” every claim below points to
+> (2026-04-02 → 2026-05-18). This doc exists so you don't have to
+> spelunk the repo to verify any claim — every claim below points to
 > a specific file, kernel, or live URL.
 
 > **In a hurry?** Run `kaggle/02-live-demo/kernel.py`, open `/start`,
@@ -33,9 +33,10 @@ anonymized signal intake. Code for the hub is in
 via the repo-root `render.yaml`.
 
 The harness wraps Gemma 4 with retrieval (BM25 + optional hybrid
-dense-retrieval), structural document chunking, 165+ hand-curated
-trafficking-pattern rules, a 55+ document RAG corpus + citation
-graph, and a multi-mode grading stack â€” turning stock Gemma into a
+dense-retrieval), structural document chunking, 439 hand-curated
+trafficking-pattern rules, an 859-document RAG corpus + citation
+graph (counts regenerable via `python scripts/verify_knowledge_surfaces.py`),
+and a multi-mode grading stack — turning stock Gemma into a
 domain-specialised LLM safety judge for migrant-worker trafficking
 scenarios. The six canonical lanes are **(1) Platform safety,
 (2) NGO & regulator, (3) Individual worker / mobile, (4) Researcher,
@@ -49,28 +50,29 @@ and a sibling DueCare Journey Android APK proving the LiteRT/offline
 edge path.
 
 **Notebook status note:** the current judge-facing Kaggle path is the
-active kernel set in `kaggle/_INDEX.md`: exploration workbench, live demo, and A-00 proof path.
-DueCare Fine-tuning and Evaluation is archived proof material. Retired
-notebook-era surfaces are historical.
+active kernel set in `kaggle/_INDEX.md`: exploration workbench, live demo,
+and **DueCare Fine-tuning and Evaluation** (the A-00 quantitative proof
+kernel, `taylorsamarel/duecare-fine-tuning-and-evaluation`). Retired
+notebook-era appendix surfaces are historical.
 
 ## Where to verify each claim
 
 | Claim | Verify at |
 |---|---|
 | **Multi-dimension universal rubric** | `packages/duecare-llm-chat/src/duecare/chat/harness/_rubric_universal.json` |
-| **165+ GREP rules across active categories** (crypto / scam-compound / gig-economy / BNPL / Ukrainian + Afghan corridors / Pacific RSE-PALM / sub-Saharan / EU posted workers / climate-displaced / intra-community / domestic-to-sex-work transition / cross-platform signals) | `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py` (`GREP_RULES = [...]`) |
+| **439 GREP rules across active categories** (crypto / scam-compound / gig-economy / BNPL / Ukrainian + Afghan corridors / Pacific RSE-PALM / sub-Saharan / EU posted workers / climate-displaced / intra-community / domestic-to-sex-work transition / cross-platform signals) | `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py` (`GREP_RULES = [...]`) |
 | **Large example prompt library across audience buckets** (model_capability / enterprise_moderation / ngo_intake / individual_query / research / image_prompts / data_intelligence / regulator_audit) | `packages/duecare-llm-chat/src/duecare/chat/harness/_examples.json` |
 | **Bundled CC0 synthetic-evidence images + structured-post JSONs** with watermarks + sidecar JSONs + cross-platform-signal links | `packages/duecare-llm-chat/src/duecare/chat/static/synthetic/` + `static/synthetic/posts/` |
-| **55+ document curated RAG corpus** (ILO C29/C95/C97/C143/C181/C188/C189/C190/P029, fair-recruitment guidance, POEA/BP2MI/Nepal/HK/SG/UAE statutes, WHO Global Code, EU 2024 ATD amendment, ASEAN ACTIP, CoE 197, CEDAW GR 38, UNCRC, UNODC/IOM/FATF typologies, Pacific Climate Mobility, Bali Process) | `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py` (`RAG_CORPUS = [...]`) |
+| **859-document curated RAG corpus** (ILO C29/C95/C97/C143/C181/C188/C189/C190/P029, fair-recruitment guidance, POEA/BP2MI/Nepal/HK/SG/UAE statutes, WHO Global Code, EU 2024 ATD amendment, ASEAN ACTIP, CoE 197, CEDAW GR 38, UNCRC, UNODC/IOM/FATF typologies, Pacific Climate Mobility, Bali Process) | `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py` (`RAG_CORPUS = [...]`) |
 | **Citation graph** for 1-hop graph expansion at retrieval time | `packages/duecare-llm-chat/src/duecare/chat/harness/_citations.json` |
 | **Adversarial validation suite across multiple attack families** including new structured-data-attack / image-injection / regulator-impersonation / multilingual-jailbreak | `scripts/adversarial_validate.py` + `reports/adversarial_*.md` (run output) |
 | **`evaluator_call` hook for separating LLM-judge model from chat model** (v0.13.0; abliterated / frontier / larger-Gemma patterns supported, Kaggle-default in-process self-grade due to VRAM) | `packages/duecare-llm-chat/src/duecare/chat/app.py:_evaluator_model_call` |
-| **Hybrid retrieval** â€” BM25 + optional dense + RRF fusion, with reranker hook | `app.py:_hybrid_fuse_with_dense` + `kernel_helpers/embedding.py` |
-| **Path tracing** â€” every retrieval-pipeline stage logged | `app.py:_path_trace_record` + chat UI's "RETRIEVAL PATH TRACE" card |
-| **A/B Compare tab** â€” same prompt, two harness configurations, side-by-side grades | `kaggle/01-duecare-exploration-workbench/kernel.py` live; UI button next to "About" |
-| **License + attribution** â€” every bundled asset, every model, every third-party reference | `LICENSES.md` |
-| **Public hub** â€” knowledge-pack registry + anonymized signal intake + public-source proposal intake | [duecare-ai.com](https://duecare-ai.com) (code at [`apps/duecare-ai.com/`](../apps/duecare-ai.com/), deployed via repo-root `render.yaml`) |
-| **Hub API surface** â€” `GET /api/hub/knowledge-packs`, `POST /api/hub/signals`, `POST /api/hub/opencrawl/updates`, `GET /api/hub/trends`, `GET /api/hub/status`, `GET /api/health` | [duecare-ai.com/docs](https://duecare-ai.com/docs) (FastAPI auto-generated OpenAPI) |
+| **Hybrid retrieval** — BM25 + optional dense + RRF fusion, with reranker hook | `app.py:_hybrid_fuse_with_dense` + `kernel_helpers/embedding.py` |
+| **Path tracing** — every retrieval-pipeline stage logged | `app.py:_path_trace_record` + chat UI's "RETRIEVAL PATH TRACE" card |
+| **A/B Compare tab** — same prompt, two harness configurations, side-by-side grades | `kaggle/01-duecare-exploration-workbench/kernel.py` live; UI button next to "About" |
+| **License + attribution** — every bundled asset, every model, every third-party reference | `LICENSES.md` |
+| **Public hub** — knowledge-pack registry + anonymized signal intake + public-source proposal intake | [duecare-ai.com](https://duecare-ai.com) (code at [`apps/duecare-ai.com/`](../apps/duecare-ai.com/), deployed via repo-root `render.yaml`) |
+| **Hub API surface** — `GET /api/hub/knowledge-packs`, `POST /api/hub/signals`, `POST /api/hub/opencrawl/updates`, `GET /api/hub/trends`, `GET /api/hub/status`, `GET /api/health` | [duecare-ai.com/docs](https://duecare-ai.com/docs) (FastAPI auto-generated OpenAPI) |
 | **Recording-grade deck and demo routes** | `kaggle/02-live-demo/kernel.py` prints a `*.trycloudflare.com` tunnel; open `/start`, `/slides`, and `/wb-static/process.html` |
 | **Video script and recording path** | `docs/video_script.md` plus `/slides/setup` or `scripts/prebake_slide_cached_io.py` for the cached worker-question row |
 | **Fine-tuned adapter evidence** | exported by the A-00 pipeline when training is enabled; see `/kaggle/working` report and manifest |
@@ -88,9 +90,9 @@ maps each requirement to a concrete surface below.
 
 | Track | Why this submission qualifies | Anchored to |
 |---|---|---|
-| **Impact Track â†’ Safety & Trust** | Core concept is LLM safety for the most vulnerable migrant-worker populations. The harness directly targets known trafficking-detection failure modes. | The 50-prompt adversarial suite + the harness-on-vs-harness-off A/B comparison. |
-| **Special Tech â†’ Unsloth** | Fine-tune is via Unsloth + LoRA on Gemma 4. A-00 preserves the training config, checkpoints, adapter path, and comparison report. | `kaggle/A-00-omni-experiment-workbench/kernel.py` + exported A-00 report bundle |
-| **Special Tech â†’ LiteRT** | The sibling Android app bundles harness metadata and uses the LiteRT path for the worker-facing offline surface. | `C:/Users/amare/OneDrive/Documents/duecare-journey-android` + GitHub Actions APK artifact |
+| **Impact Track → Safety & Trust** | Core concept is LLM safety for the most vulnerable migrant-worker populations. The harness directly targets known trafficking-detection failure modes. | The 50-prompt adversarial suite + the harness-on-vs-harness-off A/B comparison. |
+| **Special Tech → Unsloth** | Fine-tune is via Unsloth + LoRA on Gemma 4. A-00 preserves the training config, checkpoints, adapter path, and comparison report. | `kaggle/A-00-omni-experiment-workbench/kernel.py` + exported A-00 report bundle |
+| **Special Tech → LiteRT** | The sibling Android app bundles harness metadata and uses the LiteRT path for the worker-facing offline surface. | [github.com/TaylorAmarelTech/duecare-journey-android](https://github.com/TaylorAmarelTech/duecare-journey-android) (+ `/releases` for the APK artifact built by GitHub Actions) |
 | **Main Track** | Pursued in parallel; depends on overall execution + video. | All of the above bundled. |
 
 ## Five-minute walkthrough
@@ -123,7 +125,7 @@ writeup's live-demo, local-processing, and evaluation claims.
 The chat package's "LLM-Based" and "Combined" grading modes (G-Eval /
 MT-Bench / Auto-J style) ask a model one yes/no question per rubric
 dimension. **In this Kaggle deployment**, that is the SAME Gemma
-instance loaded for chat â€” an on-device self-grade. The deployment
+instance loaded for chat — an on-device self-grade. The deployment
 constraint that forces this choice is real and worth naming
 explicitly:
 
@@ -131,7 +133,7 @@ explicitly:
 > model (Gemma 4 E2B / E4B / 26B-A4B / 31B variants) saturates VRAM
 > at load time. Holding a SECOND model in memory for grading
 > (abliterated variant, frontier-via-API stub, larger Gemma) would
-> require unloading the chat model mid-session â€” slow, breaks user
+> require unloading the chat model mid-session — slow, breaks user
 > state, and undermines the live-demo flow that judges click through.
 > For the hackathon Kaggle deployment we therefore run in-process
 > self-grade by necessity, not by design preference.
@@ -142,21 +144,21 @@ parameter on `create_app`, v0.14.2+). The hook is documented
 architecture for **production deployments outside the Kaggle memory
 constraint** where you have headroom for two model loads or a network
 call to a separate judge process. Three production patterns the hook
-supports â€” commentary only on this submission since none of them run
+supports — commentary only on this submission since none of them run
 in the Kaggle session:
 
-1. **Frontier judge** (GPT-4 / Claude 3.5 / Gemini 1.5 Pro) â€” gold-
+1. **Frontier judge** (GPT-4 / Claude 3.5 / Gemini 1.5 Pro) — gold-
    standard accuracy via API. The chat model stays on-device for the
    privacy-preserving Individual worker use case; the judge runs separately,
    the G-Eval / MT-Bench / Auto-J methodology. Network requirement
    means it doesn't fit the on-device-only Kaggle exercise.
 2. **Abliterated Gemma** (e.g. `dealignai/Gemma-4-31B-JANG_4M-CRACK`)
-   â€” engages with adversarial responses the safety-tuned chat model
+   — engages with adversarial responses the safety-tuned chat model
    would refuse to grade. Materially better for adversarial-suite
    scoring at production scale where you have VRAM headroom for two
    model loads.
 3. **Larger Gemma** (e.g. Gemma 4 31B-it grading while chat runs E2B)
-   â€” better grading without giving up the chat-side speed. Same
+   — better grading without giving up the chat-side speed. Same
    VRAM-headroom precondition.
 
 The Kaggle-deployed kernel ships with `evaluator_call=None` (the
@@ -169,7 +171,7 @@ deployment with VRAM headroom), one line in `kernel.py`:
 app = create_app(
     gemma_call=loaded.backend,             # E4B for chat
     evaluator_call=heavier_loaded.backend, # 31B-abliterated for grading
-    # NOT advisable on Kaggle â€” would OOM the session.
+    # NOT advisable on Kaggle — would OOM the session.
     ...,
 )
 ```
@@ -182,8 +184,8 @@ app = create_app(
   phone-number prefixes. See `LICENSES.md` for the synthetic-
   disclaimer.
 - It does not claim to detect every trafficking pattern in the world.
-   165+ GREP rules + 55+ RAG docs + 46 citation edges cover the major
-  documented vectors well, but new patterns appear weekly â€” the
+   439 GREP rules + 859 RAG docs + 46 citation edges cover the major
+  documented vectors well, but new patterns appear weekly — the
   curator-block JSON pattern lets stakeholders contribute updates
   without a code change.
 - It does not replace human caseworkers. The harness's design
@@ -192,10 +194,10 @@ app = create_app(
 
 ## Reading order if you have 30 minutes
 
-1. `docs/writeup_draft.md` â€” the 1,500-word submission writeup
-2. `LICENSES.md` â€” full attribution + license declarations
-3. `docs/USER_TODO.md` â€” author's submission-day checklist
-4. `reports/adversarial_<latest>.md` â€” the empirical evidence
+1. `docs/writeup_draft.md` — the 1,500-word submission writeup
+2. `LICENSES.md` — full attribution + license declarations
+3. `docs/USER_TODO.md` — author's submission-day checklist
+4. `reports/adversarial_<latest>.md` — the empirical evidence
 5. The current Cloudflare URL printed by `kaggle/02-live-demo/kernel.py`
 
 ## Reading order if you have 5 minutes

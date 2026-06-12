@@ -88,3 +88,51 @@ def test_results_md_reproduce_path_has_no_phantom_git_tag() -> None:
     assert "git rev-parse v0.1.0" not in text
     # the phantom HF repo id (real one is duecare-gemma-4-e4b-safetyjudge)
     assert "Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0" not in text
+
+
+# Judge-facing markdown must never carry double-encoded UTF-8 (mojibake).
+# README once rendered its headline result as 'Stock Gemma 4 2B 29.5% Â·' on
+# GitHub — a cp1252 round-trip in some tool re-corrupts these silently, so
+# the guard fails loud. Scoped to the five judge-facing files on purpose.
+_JUDGE_FACING_DOCS = (
+    "README.md",
+    "docs/FOR_KAGGLE_JUDGES.md",
+    "docs/FOR_PEER_REVIEW.md",
+    "docs/writeup_draft.md",
+    "RESULTS.md",
+)
+_MOJIBAKE_MARKERS = ("â€", "Â·", "â†", "ðŸ")
+
+
+@pytest.mark.parametrize("rel", _JUDGE_FACING_DOCS)
+def test_judge_facing_docs_have_no_mojibake(rel: str) -> None:
+    text = (_ROOT / rel).read_text(encoding="utf-8")
+    for marker in _MOJIBAKE_MARKERS:
+        assert marker not in text, (
+            f"{rel} contains double-encoded UTF-8 marker {marker!r}. Re-run a "
+            f"byte-level repair (BOM-strip + sloppy-cp1252 re-encode, gate on "
+            f"strict UTF-8 decode) and find which tool wrote cp1252."
+        )
+
+
+def test_judges_doc_counts_match_live_surfaces() -> None:
+    """docs/FOR_KAGGLE_JUDGES.md quotes the GREP/RAG counts in three
+    phrasings; each must equal the live surface (the 165+/55+ era understated
+    the writeup's 439/859 by 2.7-15x, which read as inflation)."""
+    text = (_ROOT / "docs" / "FOR_KAGGLE_JUDGES.md").read_text(encoding="utf-8")
+    grep_counts = re.findall(
+        r"(\d[\d,]*)\s+(?:hand-curated trafficking-pattern rules|GREP rules)", text)
+    assert grep_counts, "no GREP-rule count phrase found in FOR_KAGGLE_JUDGES.md"
+    for found in grep_counts:
+        assert int(found.replace(",", "")) == len(GREP_RULES), (
+            f"FOR_KAGGLE_JUDGES.md says {found} GREP rules but the live "
+            f"surface has {len(GREP_RULES)}."
+        )
+    rag_counts = re.findall(
+        r"(\d[\d,]*)(?:-document (?:curated )?RAG corpus|\s+RAG docs)", text)
+    assert rag_counts, "no RAG count phrase found in FOR_KAGGLE_JUDGES.md"
+    for found in rag_counts:
+        assert int(found.replace(",", "")) == len(RAG_CORPUS), (
+            f"FOR_KAGGLE_JUDGES.md says {found} RAG documents but the live "
+            f"surface has {len(RAG_CORPUS)}."
+        )

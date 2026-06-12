@@ -1,36 +1,36 @@
-﻿# Compatibility matrix
+# Compatibility matrix
 
 ## Python
 
 | Version | Supported | Notes |
 |---|---|---|
-| 3.11 | âœ“ Tested | Floor for the project |
-| 3.12 | âœ“ Tested | Recommended |
-| 3.13 | âš  Mostly works | Some pip vendoring quirks; install via uv recommended |
-| 3.14 | âš  Source-build only | Pip build toolchain has known issues; use editable install |
-| 3.10 and below | âœ— | Pydantic v2 + match statements require 3.11 |
+| 3.11 | ✓ Tested | Floor for the project |
+| 3.12 | ✓ Tested | Recommended |
+| 3.13 | ⚠ Mostly works | Some pip vendoring quirks; install via uv recommended |
+| 3.14 | ⚠ Source-build only | Pip build toolchain has known issues; use editable install |
+| 3.10 and below | ✗ | Pydantic v2 + match statements require 3.11 |
 
 ## Operating systems
 
 | OS | Chat playground | Classifier | Docker | Helm |
 |---|---|---|---|---|
-| Linux (any modern distro, glibc 2.31+) | âœ“ | âœ“ | âœ“ | âœ“ |
-| macOS (Intel) | âœ“ | âœ“ | âœ“ | âœ“ |
-| macOS (Apple Silicon, M1+) | âœ“ | âœ“ | âœ“ | âœ“ |
-| Windows 10 / 11 | âœ“ | âœ“ | âœ“ (via Docker Desktop) | âœ“ (via WSL2) |
-| WSL2 | âœ“ | âœ“ | âœ“ | âœ“ |
-| ChromeOS (Crostini) | âœ“ | âœ“ | partial | n/a |
-| Android | n/a | n/a | n/a | n/a â€” see `duecare-journey-android` for the on-device app |
-| iOS | n/a | n/a | n/a | n/a â€” Kotlin Multiplatform port roadmap'd post-hackathon |
+| Linux (any modern distro, glibc 2.31+) | ✓ | ✓ | ✓ | ✓ |
+| macOS (Intel) | ✓ | ✓ | ✓ | ✓ |
+| macOS (Apple Silicon, M1+) | ✓ | ✓ | ✓ | ✓ |
+| Windows 10 / 11 | ✓ | ✓ | ✓ (via Docker Desktop) | ✓ (via WSL2) |
+| WSL2 | ✓ | ✓ | ✓ | ✓ |
+| ChromeOS (Crostini) | ✓ | ✓ | partial | n/a |
+| Android | n/a | n/a | n/a | n/a — see `duecare-journey-android` for the on-device app |
+| iOS | n/a | n/a | n/a | n/a — Kotlin Multiplatform port roadmap'd post-hackathon |
 
 ## Hardware architectures
 
 | Architecture | Native install | Docker | Notes |
 |---|---|---|---|
-| x86_64 / amd64 | âœ“ | âœ“ | Most common; CI builds amd64 first |
-| arm64 / aarch64 | âœ“ | âœ“ | Apple Silicon, AWS Graviton, Raspberry Pi 4+, Ampere |
-| armv7 (Raspberry Pi 3 and older) | âš  | âš  | Works for chat playground; Ollama models too big for 1 GB RAM |
-| RISC-V | untested | âœ— | No prebuilt wheels for transitive deps yet |
+| x86_64 / amd64 | ✓ | ✓ | Most common; CI builds amd64 first |
+| arm64 / aarch64 | ✓ | ✓ | Apple Silicon, AWS Graviton, Raspberry Pi 4+, Ampere |
+| armv7 (Raspberry Pi 3 and older) | ⚠ | ⚠ | Works for chat playground; Ollama models too big for 1 GB RAM |
+| RISC-V | untested | ✗ | No prebuilt wheels for transitive deps yet |
 
 ## Gemma model variants
 
@@ -60,12 +60,12 @@ active training proof lives in `kaggle/A-00-omni-experiment-workbench/`.
 
 | Runtime | Supported | Notes |
 |---|---|---|
-| Docker (Compose plugin v2+) | âœ“ | Default; `docker compose up` works |
-| Docker (legacy `docker-compose` python tool) | âš  | Works but unmaintained; switch to plugin |
-| Podman + podman-compose | âœ“ | Drop-in replacement |
-| containerd / nerdctl | âœ“ | The image itself is OCI-compliant |
-| Kubernetes | âœ“ | See Helm chart at `infra/helm/duecare/` |
-| K3s / k3d / kind | âœ“ | Local Kubernetes for testing the Helm chart |
+| Docker (Compose plugin v2+) | ✓ | Default; `docker compose up` works |
+| Docker (legacy `docker-compose` python tool) | ⚠ | Works but unmaintained; switch to plugin |
+| Podman + podman-compose | ✓ | Drop-in replacement |
+| containerd / nerdctl | ✓ | The image itself is OCI-compliant |
+| Kubernetes | ✓ | See Helm chart at `infra/helm/duecare/` |
+| K3s / k3d / kind | ✓ | Local Kubernetes for testing the Helm chart |
 | OpenShift | untested | Helm chart should work; the `securityContext` is permissive enough |
 
 ## GPU / accelerator support
@@ -84,7 +84,7 @@ active training proof lives in `kaggle/A-00-omni-experiment-workbench/`.
 |---|---|---|
 | Chrome / Chromium | 100+ | Reference target |
 | Firefox | 100+ | Tested |
-| Safari (macOS / iOS) | 15+ | Tested; mobile-responsive layout activates â‰¤ 480 px |
+| Safari (macOS / iOS) | 15+ | Tested; mobile-responsive layout activates ≤ 480 px |
 | Edge | 100+ | Same engine as Chrome |
 | Opera | 90+ | Same engine as Chrome |
 | Samsung Internet | 18+ | Tested for the Android web-companion fallback |
@@ -93,10 +93,10 @@ active training proof lives in `kaggle/A-00-omni-experiment-workbench/`.
 
 | Path | Egress required |
 |---|---|
-| Local install (chat playground only) | None at runtime â€” all GREP / RAG / Tools are local code |
-| Local install + Ollama | None at runtime â€” model is local once pulled |
+| Local install (chat playground only) | None at runtime — all GREP / RAG / Tools are local code |
+| Local install + Ollama | None at runtime — model is local once pulled |
 | Docker Compose first run | Pulls Ollama base image + the Gemma model (~1.5-5 GB total) |
-| Kubernetes first run | Same â€” Helm hook job pulls the model |
+| Kubernetes first run | Same — Helm hook job pulls the model |
 | Android on-device app | None at runtime; one-time first-launch model download (~1.5 GB) from HF Hub |
 | Agentic-research notebook (A4) | Per-search egress to Tavily / Brave / Serper / DuckDuckGo / Wikipedia (BYOK; PII-filtered + audit-logged) |
 
