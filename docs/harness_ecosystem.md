@@ -1,4 +1,4 @@
-﻿# DueCare Harness Ecosystem
+# DueCare Harness Ecosystem
 
 DueCare should not be described as one monolithic harness. The codebase has a
 core content-safety harness, but it also has multiple repeatable workflows that
@@ -28,14 +28,14 @@ For project language, use this definition:
 
 Three documents define the DueCare harness system. Read them as a set:
 
-- **`docs/harness_ecosystem.md`** (this file) â€” vocabulary, inventory of
+- **`docs/harness_ecosystem.md`** (this file) — vocabulary, inventory of
   registered harnesses, broader harness families, naming conventions.
   The "what we have" view.
-- [`docs/harness_pattern.md`](harness_pattern.md) â€” required module
+- [`docs/harness_pattern.md`](harness_pattern.md) — required module
   contract (`name`, `applied_layers`, `register_routes`), per-task
   JSONL training-data flow, and the 10-step recipe for adding a new
   registered harness. The "how to build one" view.
-- [`docs/harness_standard_contract.md`](harness_standard_contract.md) â€”
+- [`docs/harness_standard_contract.md`](harness_standard_contract.md) —
   the `HarnessSpec` field shape: `logic_paths`, `knowledge_packs`,
   `logic_packs`, `model_io`, `model_targets`, `input_verification`,
   `output_verification`, `privacy_boundaries`. The "fields each harness

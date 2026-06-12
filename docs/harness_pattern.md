@@ -8,13 +8,13 @@ export logic wrapped around Gemma 4 or a trust boundary for a specific goal.
 
 ## See also (the harness documentation trinity)
 
-- [`docs/harness_ecosystem.md`](harness_ecosystem.md) â€” vocabulary,
+- [`docs/harness_ecosystem.md`](harness_ecosystem.md) — vocabulary,
   registered harness inventory, broader harness families, naming. The
   authoritative inventory.
-- **`docs/harness_pattern.md`** (this file) â€” required module contract,
+- **`docs/harness_pattern.md`** (this file) — required module contract,
   per-task JSONL training-data flow, and the 10-step recipe for adding
   a new registered harness.
-- [`docs/harness_standard_contract.md`](harness_standard_contract.md) â€”
+- [`docs/harness_standard_contract.md`](harness_standard_contract.md) —
   the `HarnessSpec` field shape that every registered harness declares.
 
 This document covers the registered `duecare.chat.harnesses` module contract.
@@ -264,9 +264,9 @@ list, and generate targeted training data for exactly those KO types.
 
 `harnesses/base.py` exports both:
 
-- **`HarnessBase` Protocol** â€” structural typing contract (required for
+- **`HarnessBase` Protocol** — structural typing contract (required for
   every harness, enforced by `test_harness_imports.py`).
-- **`BaseHarness` class** â€” opt-in convenience base for new harnesses
+- **`BaseHarness` class** — opt-in convenience base for new harnesses
   that want shared helpers without writing them by hand.
 
 ```python

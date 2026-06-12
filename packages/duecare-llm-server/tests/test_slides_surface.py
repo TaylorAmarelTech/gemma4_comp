@@ -199,9 +199,9 @@ def test_slides_deck_exposes_new_unique_and_knowledge_pack_slides() -> None:
     assert "data-slide-id=\"knowledge-packs\"" in html, (
         "deck must expose /slides#knowledge-packs anchor for the download slide")
     # Substrate counts on the unique slide
-    assert "165" in html and "55" in html, (
-        "unique slide must display the live GREP/RAG counts (165+ rules, "
-        "55+ RAG entries)")
+    assert "439" in html and "859" in html, (
+        "unique slide must display the live GREP/RAG counts (439+ rules, "
+        "859+ RAG entries)")
     # On-device APK tile
     assert "On-device APK" in html or "on-device APK" in html, (
         "unique slide must include the on-device APK tile")

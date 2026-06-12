@@ -19,7 +19,7 @@ abstract: >-
   judge): Stock Gemma 4 2B 29.5%, Stock + chat-offline harness 35.6%
   (+6.1pp), Fine-tuned 26.4%, Fine-tuned + harness 41.2% (+14.8pp
   over fine-tuning alone, +11.7pp over stock). Bundled coverage:
-  165+ deterministic rules, 55+ curated knowledge documents, 20
+  439 deterministic rules, 859 curated knowledge documents, 20
   migration corridors. Sensitive worker data stays on the worker
   device or trusted NGO hardware; the public hub only receives
   k-anonymous signals after explicit user action.
