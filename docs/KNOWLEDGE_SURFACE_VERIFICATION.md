@@ -94,9 +94,9 @@ Per-corridor NGO + regulator + embassy + POLO contact bundle,
 plus cross-region patterns (`('any', us)`, `('any', uk)`,
 `('any', eu)`, `('survivor', 'global')`).
 
-### `ILO_CONVENTIONS` (15 conventions)
+### `ILO_CONVENTIONS` (16 conventions)
 
-C029, C087, C095, C097, C098, C100, C111, C138, C143, C181,
+C029, C087, C095, C097, C098, C100, C105, C111, C138, C143, C181,
 C182, C188, C189, C190, P029. Each entry has key articles +
 focus + ratification note.
 

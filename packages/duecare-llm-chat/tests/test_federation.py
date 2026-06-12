@@ -58,6 +58,42 @@ def test_network_peers_endpoint(monkeypatch) -> None:
     assert "sync_contract" in body
 
 
+def test_sync_refuses_peer_redirects(monkeypatch) -> None:
+    """The allowlist only validates target_url; following a 3xx would let an
+    allowlisted peer bounce the kernel anywhere (SSRF). The sync fetch must
+    run with follow_redirects=False and report the refusal honestly."""
+    import httpx
+
+    captured: dict = {}
+
+    class _FakeResp:
+        status_code = 302
+        content = b""
+
+    class _FakeClient:
+        def __init__(self, **kwargs):
+            captured.update(kwargs)
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def get(self, url):
+            captured["url"] = url
+            return _FakeResp()
+
+    monkeypatch.setattr(httpx, "Client", _FakeClient)
+    client = TestClient(create_app())
+    r = client.post("/api/knowledge/sync", json={})  # default allowlisted hub URL
+    assert r.status_code == 502
+    assert captured.get("follow_redirects") is False
+    body = r.json()
+    assert body["remote_status"] == 302
+    assert "refuses redirects" in body["note"]
+
+
 def test_sync_rejects_unregistered_target_url() -> None:
     client = TestClient(create_app())
     r = client.post(
