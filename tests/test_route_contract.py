@@ -115,6 +115,9 @@ EXPECTED_ROUTES: set[tuple[str, str]] = {
     # post-search verification harness
     ("/api/search/verify-results", "POST"),
     ("/api/search/verification-info", "GET"),
+    # triage harness (platform-scale waterfall screening, 2026-06-11)
+    ("/api/triage/screen", "POST"),
+    ("/api/triage/status", "GET"),
 }
 
 
