@@ -17,7 +17,9 @@ knowledge sharing.
 
 ## Recording Principles
 
-- Lead with scale and system gaps, not a single worker story.
+- Open with scale and system gaps, then anchor the demos in the named
+  composite (Maria — labeled composite) and close with named NGOs per
+  rule 00 (the rubric's "human story" requirement).
 - Use the same clean slide surface throughout. Do not record helper
   controls, browser DevTools, or model-loader modals unless explaining
   the local runtime.
@@ -97,10 +99,11 @@ if stable. Show plain-language answer, formal protections, practical
 retaliation risk, contacts, and evidence preservation.
 
 Voiceover:
-"For workers, the same stack becomes plain-language guidance:
-what is illegal, what evidence to preserve, where to report safely, and
-what retaliation risk still exists in practice. The Android path keeps
-that help offline with bundled harness metadata."
+"Take Maria — a composite of real Filipino domestic-worker cases. She
+pastes a recruiter message and gets plain language back: the
+fifty-thousand-peso training fee is illegal, what evidence to preserve,
+where to report safely, and what retaliation risk remains in practice.
+The Android path keeps that help offline."
 
 ### 2:15-2:32 - Research and Sharing Demo
 
@@ -115,26 +118,29 @@ objects: a fee paid, a refund pathway, a small-claim outcome, or a new
 agency pattern that improves the next local pack without centralizing
 raw case files."
 
-### 2:32-2:46 - Evidence and Benchmarks
+### 2:32-2:50 - Evidence and Benchmarks
 
-Visual: slide 17. Show the A-00 matrix and avoid hard-to-read detail.
+Visual: slide 17. Show the A-00 matrix; optionally cut to the lift
+evidence on the compare page. Avoid hard-to-read detail.
 
 Voiceover:
-"The A-00 pipeline compares stock Gemma 4, stock plus harness,
-fine-tuned, and fine-tuned plus harness on the same prompts with the
-same combined judge. The current smoke matrix shows stock at 29.5%,
-stock plus harness at 35.6%, fine-tuned at 26.4%, and fine-tuned plus
-harness at 41.2%."
+"Same prompts, same judge: the harness lifts stock Gemma 4 by six
+points, and fine-tuned plus harness scores nearly twelve over stock —
+fine-tuning shapes refusals; the harness supplies the statutes, fee
+caps, and forced-labor indicators. In a separate 911-prompt benchmark,
+an independent judge scored harnessed Gemma 4 31B plus-1.7 out of ten —
+a 73-percent win rate."
 
-### 2:46-2:58 - Close
+### 2:50-3:00 - Close
 
 Visual: slides 20-21. Show GitHub, Kaggle kernels, live demo route,
 and duecare-ai.com.
 
 Voiceover:
-"DueCare drafts; workers, caseworkers, and reviewers decide. Local
-Gemma 4 where sensitive data lives. Shared public knowledge only after
-review and anonymization."
+"DueCare drafts; workers, caseworkers, and reviewers decide — built so
+groups like Polaris, IJM, and POEA-licensed legal aid get statute-grade
+answers on hardware they already own. Local Gemma 4 where sensitive
+data lives."
 
 ## Required On-Screen Proof Points
 
