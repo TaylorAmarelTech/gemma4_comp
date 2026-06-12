@@ -47,6 +47,7 @@ spec = HarnessSpec(
         "with full GREP/RAG/tools grounding, run only on escalated items."
     ),
     test_pages=(
+        {"label": "Platform Triage", "href": "/static/triage.html"},
         {"label": "Harness Workbench", "href": "/static/harness.html"},
     ),
     endpoints=(
