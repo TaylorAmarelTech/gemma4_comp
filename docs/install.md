@@ -24,6 +24,19 @@ One command to get going for your flow. Each pulls only what that flow needs;
 the meta package `duecare-llm` pulls the full runtime + harness + CLI. All keep
 raw case material local — only reviewed artifacts are ever exported.
 
+> **PyPI status (2026-06-11):** the `duecare-llm*` packages are **not yet
+> published to PyPI** (release pending). Until that lands, every
+> `pip install duecare-llm...` row below means "install from source":
+>
+> ```bash
+> git clone https://github.com/TaylorAmarelTech/gemma4_comp
+> cd gemma4_comp && make build          # builds the 17 workspace wheels into dist/
+> pip install dist/*.whl                # or just the wheels your flow needs
+> ```
+>
+> The **Docker** and **Kaggle** rows work as written today with no PyPI
+> dependency.
+
 > **Fastest path after install:** `duecare quickstart --role ngo` runs
 > init + component check + sample data and prints the exact next command for
 > your flow (`--role ngo|worker|researcher|developer`). One command from a bare

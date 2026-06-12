@@ -13,7 +13,7 @@ import re
 
 import pytest
 
-from duecare.chat.harness import GREP_RULES, RAG_CORPUS
+from duecare.chat.harness import GREP_RULES, ILO_CONVENTIONS, RAG_CORPUS
 
 _DOC = (
     pathlib.Path(__file__).resolve().parents[1]
@@ -34,6 +34,7 @@ def _doc_count(label: str) -> int:
     [
         ("GREP_RULES", len(GREP_RULES)),
         ("RAG_CORPUS", len(RAG_CORPUS)),
+        ("ILO_CONVENTIONS", len(ILO_CONVENTIONS)),
     ],
 )
 def test_doc_counts_match_live_surfaces(label: str, live: int) -> None:
@@ -52,6 +53,17 @@ def test_grep_section_heading_count_matches() -> None:
     assert m, "GREP_RULES section heading with a pattern count not found"
     assert int(m.group(1)) == len(GREP_RULES), (
         f"GREP_RULES section heading says {m.group(1)} but live is {len(GREP_RULES)}."
+    )
+
+
+def test_ilo_section_heading_count_matches() -> None:
+    """The `### ILO_CONVENTIONS (NN conventions)` heading drifted to 15 while
+    the counts table said 16 — the doc contradicted itself. Pin both."""
+    text = _DOC.read_text(encoding="utf-8")
+    m = re.search(r"###\s+`ILO_CONVENTIONS`\s+\((\d+)\s+conventions\)", text)
+    assert m, "ILO_CONVENTIONS section heading with a count not found"
+    assert int(m.group(1)) == len(ILO_CONVENTIONS), (
+        f"ILO_CONVENTIONS heading says {m.group(1)} but live is {len(ILO_CONVENTIONS)}."
     )
 
 

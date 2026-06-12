@@ -6653,32 +6653,49 @@ def create_app(
         include_unvetted = bool(body.get("include_unvetted", False))
         full_url = target_url + ("?vetted=false" if include_unvetted else "?vetted=true")
 
-        # Fetch the ZIP from the hub
+        # Fetch the ZIP from the hub. Redirects are REFUSED on both client
+        # paths: the allowlist check above only saw target_url, so following
+        # a 3xx would let an allowlisted peer bounce this kernel to an
+        # arbitrary (e.g. internal) address — the exact SSRF the gate exists
+        # to prevent.
         zip_bytes = None
         remote_status = None
         remote_error = None
         try:
             try:
                 import httpx as _httpx
-                with _httpx.Client(timeout=15.0, follow_redirects=True) as cli:
+                with _httpx.Client(timeout=15.0, follow_redirects=False) as cli:
                     r = cli.get(full_url)
                 remote_status = int(r.status_code)
                 if 200 <= remote_status < 300:
                     zip_bytes = r.content
             except ImportError:
                 import urllib.request as _req
-                with _req.urlopen(full_url, timeout=15.0) as resp:
+
+                class _NoRedirect(_req.HTTPRedirectHandler):
+                    def redirect_request(self, *args, **kwargs):  # noqa: D401
+                        return None  # turn any 3xx into an HTTPError
+
+                opener = _req.build_opener(_NoRedirect)
+                with opener.open(full_url, timeout=15.0) as resp:
                     remote_status = int(resp.getcode())
                     zip_bytes = resp.read()
         except Exception as e:
             remote_error = f"{type(e).__name__}: {e}"
 
         if zip_bytes is None:
+            note = "Could not reach hub knowledge download."
+            if remote_status is not None and 300 <= remote_status < 400:
+                note = (
+                    "Peer responded with a redirect; sync refuses redirects "
+                    "so the peer allowlist cannot be bypassed via 3xx hops. "
+                    "Register the final URL as a peer instead."
+                )
             return JSONResponse({
                 "ok": False,
                 "remote_status": remote_status,
                 "remote_error": remote_error,
-                "note": "Could not reach hub knowledge download.",
+                "note": note,
             }, status_code=502)
 
         # Unpack into the local knowledge dir
