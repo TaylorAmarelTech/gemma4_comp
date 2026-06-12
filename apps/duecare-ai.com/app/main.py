@@ -35,6 +35,7 @@ from . import local_kb
 from . import packs as pack_registry
 from . import runtime_packs
 from .pii import detect_pii, redact_pii
+from .ratelimit import RateLimitMiddleware
 
 SignalSource = Literal[
     "ngo_case_intake",
@@ -1207,6 +1208,13 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
             "testserver",
         ],
     )
+    # Per-IP rate limiting on the public mutation endpoints (subscribe,
+    # outreach observe/campaign, signal intake, opencrawl). Those are
+    # unauthenticated by design, so throttling is the abuse control — it
+    # bounds priority-ranking pumping and store flooding. Configure via
+    # DUECARE_RATE_LIMIT="requests/window_seconds" ("0" disables; default
+    # 30/300). See app/ratelimit.py.
+    application.add_middleware(RateLimitMiddleware)
     application.state.duecare = AppState(started_at=datetime.now(UTC), store=store)
 
     application.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")

@@ -158,6 +158,10 @@ verify-all:  ## Full pre-push gate: audit + messaging + hub tests + harness smok
 	python -m compileall -q apps/duecare-ai.com/app
 	@echo "--- harness smoke ---"
 	python scripts/verify.py
+	@echo "--- knowledge surfaces (counts + smoke render) ---"
+	python scripts/verify_knowledge_surfaces.py
+	@echo "--- real-not-faked doc guards (counts, mojibake, headline matrix, route contract) ---"
+	python -m pytest -q tests/test_doc_count_drift.py tests/test_route_contract.py
 	@echo "--- notebook validator ---"
 	python scripts/validate_notebooks.py
 	@echo "--- workbench UI primitives ---"
