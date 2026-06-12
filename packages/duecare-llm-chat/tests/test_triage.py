@@ -98,6 +98,18 @@ def test_grep_high_severity_flags_without_model_time():
     assert out["summary"]["n_passed_grep_only"] == 1
 
 
+def test_grep_rule_id_accepts_rule_key():
+    """The real default_harness grep_call returns hits keyed by 'rule' (not
+    'rule_id'/'id'). screen_items must surface those rule ids, or the live
+    triage page shows fired rules with blank ids."""
+    def grep_rule_keyed(text: str) -> dict:
+        return {"hits": [{"rule": "fee_camouflage_training", "severity": "high",
+                          "match_excerpt": "training fee"}]}
+
+    out = screen_items([{"text": FEE_AD}], grep_call=grep_rule_keyed, fast_call=None)
+    assert out["items"][0]["grep"]["rule_ids"] == ["fee_camouflage_training"]
+
+
 def test_grep_only_mode_never_says_cleared():
     out = screen_items(
         [{"text": BENIGN_AD}, {"text": VISA_AD}],
