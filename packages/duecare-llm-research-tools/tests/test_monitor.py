@@ -77,6 +77,32 @@ def test_spa_and_gov_portal_chrome_does_not_false_flag():
     assert a == b  # every difference is volatile chrome -> not a real change
 
 
+def test_apex_portal_hidden_state_does_not_false_flag():
+    """Oracle-APEX / Django / Rails portals embed rotating hidden form-state
+    tokens (app_session, p_instance, p_page_submission_id, csrfmiddlewaretoken)
+    that change every fetch. Verified empirically against the ILO NORMLEX
+    legal-text pages, which otherwise false-flagged on every run."""
+    page = (
+        '<script>var app_session="{sess}";</script>'
+        '<form action="wwv_flow.accept?p_context=1000:12100:{sess}">'
+        '<input type="hidden" name="p_instance" value="{inst}" id="pInstance" />'
+        '<input type="hidden" name="p_page_submission_id" value="{tok}" />'
+        '<input type="hidden" name="csrfmiddlewaretoken" value="{csrf}">'
+        '</form>'
+        'ILO Convention No. 29 -- Forced Labour Convention, 1930. Article 1.'
+    )
+    a = content_hash(page.format(sess="7556101071286", inst="17532485136319",
+                                 tok="MjU2MjA1ODkz", csrf="aB3xK9pQ"))
+    b = content_hash(page.format(sess="3079254040966", inst="12198485200859",
+                                 tok="NzYwODI3MTky", csrf="zZ9qW0eR"))
+    assert a == b  # only hidden form-state rotates -> not a real change
+    # but a change to the VISIBLE legal text is still detected
+    c = content_hash(page.format(sess="7556101071286", inst="17532485136319",
+                                 tok="MjU2MjA1ODkz", csrf="aB3xK9pQ")
+                     .replace("Article 1.", "Article 1. [amended]"))
+    assert c != a
+
+
 def test_real_content_change_still_detected_after_tuning():
     """Guard against over-stripping: a genuine content change (a new agency, a
     status flip, new advisory prose) must still produce a different hash."""

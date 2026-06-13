@@ -111,6 +111,18 @@ _VOLATILE_PATTERNS: tuple[re.Pattern[str], ...] = (
     # session ids
     re.compile(r"\b(?:jsessionid|phpsessid|asp\.net_sessionid|sessionid|session_id|sid)"
                r"=[A-Za-z0-9._\-]+", re.I),
+    # Oracle APEX session ids -- a long digit session that rotates per visit,
+    # carried in an app_session JS var and p_context routing. Many government
+    # portals run APEX (e.g. the ILO NORMLEX legal-text database), so static
+    # legal pages otherwise false-flag every fetch.
+    re.compile(r"app[_-]?session\s*[:=]\s*[\"']?\d+[\"']?", re.I),
+    re.compile(r"p_context\s*[:=]\s*[\d:]+", re.I),
+    # Hidden form-state inputs are per-render plumbing, never visible content,
+    # and the dominant per-fetch churn on portal pages: Oracle APEX
+    # (p_instance / p_page_submission_id / p_context / checksums), Django
+    # csrfmiddlewaretoken, Rails authenticity_token, ASP.NET __VIEWSTATE, etc.
+    # Strip the whole <input type="hidden" ...> tag (any attribute order).
+    re.compile(r"<input\b[^>]*\btype\s*=\s*[\"']hidden[\"'][^>]*>", re.I),
     # cache-buster / asset-version query params (?v= ?_= ?ts= ...)
     re.compile(r"[?&](?:v|ver|version|_|t|ts|cb|cache|rev|hash|cachebuster)"
                r"=[A-Za-z0-9._\-]+", re.I),
