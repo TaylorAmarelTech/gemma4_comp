@@ -22,6 +22,13 @@ on:
 permissions:
   contents: read
 
+# Run the bundled JS actions (checkout/setup-python/cache/upload-artifact) on
+# Node 24 now, ahead of GitHub's 2026-06-16 forced migration off Node 20. All
+# four are actions/* at their latest major and are Node-24-compatible, so this
+# is the documented non-breaking opt-in (no version bumps).
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 concurrency:
   group: scheduled-scrape
   cancel-in-progress: false
@@ -41,10 +48,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e packages/duecare-llm-core || true
-          pip install -e packages/duecare-llm-research-tools
+          # pyyaml is REQUIRED to load the YAML source registry (load_sources
+          # falls back to JSON, which a .yaml file is not) -- install it
+          # reliably, not best-effort.
+          pip install -e packages/duecare-llm-research-tools pyyaml
           # advanced web scraping: TLS-impersonation fetch + charset detection.
           # Best-effort -- the monitor runs on stdlib urllib without them.
-          pip install curl_cffi charset_normalizer pyyaml || true
+          pip install curl_cffi charset_normalizer || true
 
       - name: Restore prior monitor state
         uses: actions/cache@v4
