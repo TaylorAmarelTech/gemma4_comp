@@ -45,6 +45,7 @@ import importlib.util
 import json
 import os
 import sys
+import time
 from pathlib import Path
 from typing import Callable, Protocol
 
@@ -72,9 +73,15 @@ TOOLS = [
      "args": {"target": "visible text or CSS selector of the element to click"}},
     {"name": "fill", "description": "Type text into an input identified by selector/placeholder.",
      "args": {"target": "CSS selector or placeholder of the input", "text": "text to type"}},
-    {"name": "extract", "description": "Extract agency records from a captured JSON endpoint. "
-     "Optionally pass field_map mapping the source's raw keys to canonical fields "
-     "(name/status/license_no/address/phones/email).",
+    {"name": "next_page", "description": "Fetch further page(s) of a paginated data endpoint. "
+     "It replays the registry's own API for you (forwarding the page's auth), so use it instead "
+     "of clicking pagination buttons. Pass count to fetch several pages in one call. Keep calling "
+     "until the observation shows pages_fetched == last_page, then extract.",
+     "args": {"count": "how many further pages to fetch this call (default 1; you may pass the "
+              "number still remaining to finish in one call)"}},
+    {"name": "extract", "description": "Extract agency records from the captured JSON endpoint(s). "
+     "Aggregates EVERY page fetched so far. Optionally pass field_map mapping the source's raw keys "
+     "to canonical fields (name/status/license_no/address/phones/email).",
      "args": {"endpoint": "the captured endpoint URL to extract from (or empty for the richest)",
               "field_map": "optional {canonical_field: source_key} mapping"}},
     {"name": "finish", "description": "Stop: the goal is met, or it cannot be met.",
@@ -93,6 +100,7 @@ class BrowserExecutor(Protocol):
     def observe(self) -> Observation: ...
     def click(self, target: str) -> Observation: ...
     def fill(self, target: str, text: str) -> Observation: ...
+    def paginate(self, count: int = 1) -> dict: ...
     def extract(self, endpoint: str = "", field_map: dict | None = None) -> list[dict]: ...
 
 
@@ -130,6 +138,12 @@ def run_agent(goal: str, executor: BrowserExecutor,
                 result = dict(executor.click(str(args.get("target", ""))))
             elif tool == "fill":
                 result = dict(executor.fill(str(args.get("target", "")), str(args.get("text", ""))))
+            elif tool == "next_page":
+                try:
+                    cnt = max(1, int(args.get("count", 1) or 1))
+                except (TypeError, ValueError):
+                    cnt = 1
+                result = dict(executor.paginate(cnt))
             elif tool == "extract":
                 recs = executor.extract(str(args.get("endpoint", "")), args.get("field_map"))
                 records.extend(recs)
@@ -170,13 +184,15 @@ def _model_config(model_name: str = "") -> dict:
 
 
 _SYSTEM = (
-    "You are a careful web-research agent extracting a list of entities (e.g. licensed "
-    "recruitment agencies) from an official public registry. You control a browser ONLY "
-    "through the provided tools. Look at the observation -- especially the captured JSON "
-    "data endpoints -- and choose the single next tool call that makes progress. Prefer "
-    "calling `extract` on a captured data endpoint over clicking through the DOM. When the "
-    "list is fully extracted, call `finish`. Reply with ONE JSON object: "
-    '{"tool": "<name>", "args": {...}}. No prose.')
+    "You are a careful web-research agent extracting a COMPLETE list of entities (e.g. licensed "
+    "recruitment agencies) from an official public registry. You control a browser ONLY through "
+    "the provided tools. Look at the observation -- especially `data_endpoints` and `pagination` "
+    "(pages_fetched / last_page). Choose the single next tool call that makes progress. "
+    "If pagination shows last_page > pages_fetched, the data is multi-page: call `next_page` "
+    "(pass count = the number of pages still remaining to fetch them all in one call) and repeat "
+    "until pages_fetched == last_page. Only THEN call `extract` (it aggregates every fetched "
+    "page), then `finish`. Do not finish before pages_fetched == last_page. Reply with ONE JSON "
+    'object: {"tool": "<name>", "args": {...}}. No prose.')
 
 
 def gemma_model_fn(*, goal, observation, tools, transcript, cfg: dict | None = None,
@@ -258,14 +274,68 @@ def make_playwright_executor(*, headless: bool = True):
             self._ctx = self._browser.new_context(user_agent=bs.USER_AGENT)
             self._page = self._ctx.new_page()
             self._captured: list[dict] = []
+            self._req_headers: dict[str, dict] = {}
             self._page.on("response", self._on_response)
 
         def _on_response(self, resp):
             try:
                 if "json" in (resp.headers or {}).get("content-type", "").lower():
                     self._captured.append({"url": resp.url, "text": resp.text()})
+                    try:
+                        self._req_headers[resp.url] = dict(resp.request.headers)
+                    except Exception:  # noqa: BLE001
+                        pass
             except Exception:  # noqa: BLE001
                 pass
+
+        def _agency_endpoint(self):
+            """The captured paginated data endpoint: (url, last_page, req_headers)."""
+            for c in self._captured:
+                try:
+                    lp = bs._pagination_last_page(json.loads(c["text"]))
+                except Exception:  # noqa: BLE001
+                    lp = None
+                if lp and lp > 1:
+                    return c["url"], lp, self._req_headers.get(c["url"], {})
+            return None
+
+        def _fetched_pages(self, base_url: str) -> set:
+            import re
+            base = base_url.split("?")[0]
+            pages = set()
+            for c in self._captured:
+                if c["url"].split("?")[0] == base:
+                    m = re.search(r"[?&]page=(\d+)", c["url"])
+                    pages.add(int(m.group(1)) if m else 1)
+            return pages
+
+        def paginate(self, count: int = 1) -> dict:
+            ep = self._agency_endpoint()
+            if not ep:
+                return {"error": "no paginated data endpoint detected yet; navigate/observe first"}
+            base_url, last_page, hdrs = ep
+            fwd = {k: v for k, v in hdrs.items()
+                   if k.lower() in ("authorization", "accept", "x-api-key",
+                                    "x-requested-with", "referer", "origin")}
+            fwd.setdefault("accept", "application/json")
+            done = self._fetched_pages(base_url)
+            fetched = 0
+            for n in range(2, last_page + 1):
+                if fetched >= count:
+                    break
+                if n in done:
+                    continue
+                try:
+                    if fetched:
+                        time.sleep(0.3)  # polite pacing across a bulk pagination call
+                    r = self._ctx.request.get(bs._with_page(base_url, n), headers=fwd, timeout=30000)
+                    if not r.ok:
+                        break
+                    self._captured.append({"url": r.url, "text": r.text()})
+                    done.add(n); fetched += 1
+                except Exception:  # noqa: BLE001
+                    break
+            return {"fetched_now": fetched, "pages_fetched": len(done), "last_page": last_page}
 
         def navigate(self, url: str) -> Observation:
             self._page.goto(url, timeout=30000, wait_until="domcontentloaded")
@@ -284,9 +354,14 @@ def make_playwright_executor(*, headless: bool = True):
             except Exception:  # noqa: BLE001
                 els = []
             endpoints = list(dict.fromkeys(c["url"] for c in self._captured))
+            pagination = {}
+            ep = self._agency_endpoint()
+            if ep:
+                base_url, last_page, _ = ep
+                pagination = {"last_page": last_page, "pages_fetched": len(self._fetched_pages(base_url))}
             return Observation(title=self._page.title(), url=self._page.url,
                                elements=[e for e in els if e.get("text")][:30],
-                               data_endpoints=endpoints[-12:])
+                               data_endpoints=endpoints[-12:], pagination=pagination)
 
         def click(self, target: str) -> Observation:
             try:

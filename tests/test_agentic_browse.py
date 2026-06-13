@@ -61,11 +61,58 @@ class FakeExecutor:
         self.calls.append(("fill", target, text))
         return self.observe()
 
+    def paginate(self, count=1):
+        self.calls.append(("paginate", count))
+        return {"fetched_now": 0, "pages_fetched": 1, "last_page": 1}
+
     def extract(self, endpoint="", field_map=None):
         self.calls.append(("extract", endpoint))
         res = bs.CaptureResult(payloads=[c for c in self.captured if not endpoint or endpoint in c["url"]])
         profiles, _ = bs.captures_to_profiles(res, source="agentic-test")
         return profiles
+
+
+class PagedFakeExecutor(FakeExecutor):
+    """A multi-page registry: navigate seeds page 1; paginate fetches the rest;
+    extract aggregates every page. Mirrors the live DMW pagination contract."""
+
+    def __init__(self, pages=3):
+        super().__init__()
+        self.total_pages = pages
+        self.base = ""
+
+    def _page(self, n):
+        return json.dumps({"meta": {"lastPage": self.total_pages, "currentPage": n}, "data": [
+            {"name": f"Agency {n:03d}", "classification": "Private Employment Agency",
+             "license_status": "Valid License", "is_valid": True, "address": f"{n} Main St"},
+        ]})
+
+    def _fetched(self):
+        import re
+        return {int(re.search(r"page=(\d+)", c["url"]).group(1)) for c in self.captured}
+
+    def navigate(self, url):
+        self.base = url.rstrip("/") + "/api/v1/public/licensed-agencies"
+        self.captured = [{"url": self.base + "?page=1", "text": self._page(1)}]
+        return self.observe()
+
+    def observe(self):
+        obs = super().observe()
+        obs["pagination"] = {"last_page": self.total_pages, "pages_fetched": len(self._fetched())}
+        obs["data_endpoints"] = [c["url"] for c in self.captured]
+        return obs
+
+    def paginate(self, count=1):
+        done = self._fetched()
+        fetched = 0
+        for n in range(2, self.total_pages + 1):
+            if fetched >= count:
+                break
+            if n in done:
+                continue
+            self.captured.append({"url": self.base + f"?page={n}", "text": self._page(n)})
+            fetched += 1
+        return {"fetched_now": fetched, "pages_fetched": len(self._fetched()), "last_page": self.total_pages}
 
 
 def _scripted_model(actions):
@@ -89,6 +136,33 @@ def test_agent_navigates_then_extracts_then_finishes():
     assert result["records"][0]["name"] == "Sunrise Overseas Manpower Inc."
     assert result["records"][0]["status"] == "valid"  # DMW transform applied via browser_scrape
     assert [t["tool"] for t in result["transcript"]] == ["observe", "extract", "finish"]
+
+
+def test_agent_paginates_all_pages_then_extracts():
+    """Gemma drives next_page until pages_fetched == last_page, then extract
+    aggregates every page -- the full-dataset path."""
+    ex = PagedFakeExecutor(pages=4)
+    ex.navigate("https://reg.test")
+    model = _scripted_model([
+        {"tool": "next_page", "args": {"count": 1}},   # -> page 2
+        {"tool": "next_page", "args": {"count": 5}},   # -> remaining pages (3,4)
+        {"tool": "extract", "args": {}},
+        {"tool": "finish", "args": {"reason": "all pages fetched"}},
+    ])
+    result = ab.run_agent("get every agency", ex, model, max_steps=10)
+    assert result["stop_reason"] == "finish"
+    assert len(result["records"]) == 4  # one per page, all aggregated
+    assert {r["name"] for r in result["records"]} == {f"Agency {n:03d}" for n in range(1, 5)}
+    # the pagination tool reported full coverage before extract
+    pag_results = [t["result"] for t in result["transcript"] if t["tool"] == "next_page"]
+    assert pag_results[-1]["pages_fetched"] == pag_results[-1]["last_page"] == 4
+
+
+def test_paginate_count_fetches_multiple_pages_in_one_call():
+    ex = PagedFakeExecutor(pages=76)
+    ex.navigate("https://reg.test")
+    res = ex.paginate(75)  # fetch all remaining in one call (the efficient path)
+    assert res == {"fetched_now": 75, "pages_fetched": 76, "last_page": 76}
 
 
 def test_agent_dedups_repeated_extractions():
