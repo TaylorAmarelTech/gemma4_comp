@@ -95,14 +95,54 @@ class MonitorReport(BaseModel):
 
 # --- content hashing (normalize so trivial chrome diffs don't false-flag) ----
 _WS = re.compile(r"\s+")
-# Strip volatile boilerplate (csrf tokens, nonces, cache-busters, ISO timestamps)
-# so a page is not reported "changed" when only per-request chrome changed.
-_VOLATILE = re.compile(
-    r"(csrf[-_]?token=\S+|nonce=\S+|_=\d{10,}|sid=[A-Za-z0-9]+|\b\d{4}-\d{2}-\d{2}T[\d:.+-]+)", re.I)
+# Per-request / per-build chrome stripped before hashing so a page is not
+# reported "changed" when only volatile boilerplate differs. Each pattern
+# targets a clearly-non-content shape (tokens, ids, asset hashes, machine
+# timestamps); real prose/table content is left intact so genuine updates are
+# still detected. Tuned 2026-06-13 to cut SPA / gov-portal false positives
+# (CSP nonces, session ids, Nuxt/Next build hashes, Cloudflare ray ids, UUIDs,
+# framework hydration markers, machine timestamps).
+_VOLATILE_PATTERNS: tuple[re.Pattern[str], ...] = (
+    # CSRF / nonce / auth tokens (quoted or bare) -- the biggest driver on
+    # server-rendered form pages (e.g. a licensed-agency inquiry form).
+    re.compile(r"(?:csrf[-_]?token|csrfmiddlewaretoken|authenticity_token|nonce|"
+               r"_token|request[-_]?id|x[-_]request[-_]id)"
+               r"\s*[=:]\s*[\"']?[A-Za-z0-9_\-./+=]{3,}[\"']?", re.I),
+    # session ids
+    re.compile(r"\b(?:jsessionid|phpsessid|asp\.net_sessionid|sessionid|session_id|sid)"
+               r"=[A-Za-z0-9._\-]+", re.I),
+    # cache-buster / asset-version query params (?v= ?_= ?ts= ...)
+    re.compile(r"[?&](?:v|ver|version|_|t|ts|cb|cache|rev|hash|cachebuster)"
+               r"=[A-Za-z0-9._\-]+", re.I),
+    # SPA build/asset fingerprints (Nuxt /_nuxt, Next /_next, hashed bundles)
+    re.compile(r"/_(?:nuxt|next)/[A-Za-z0-9_\-./]+", re.I),
+    re.compile(r"\b[A-Za-z0-9_]+[.\-][0-9a-f]{8,}"
+               r"\.(?:js|mjs|css|woff2?|png|jpe?g|svg|webp)\b", re.I),
+    re.compile(r"buildid\s*[=:]\s*[\"']?[A-Za-z0-9\-]+[\"']?", re.I),
+    # Cloudflare / WAF challenge + ray ids
+    re.compile(r"(?:cf[-_]?ray|ray\s*id)\s*[=:]\s*[A-Za-z0-9\-]+", re.I),
+    re.compile(r"cf_clearance=[A-Za-z0-9._\-]+", re.I),
+    # UUIDs (build / trace / request ids)
+    re.compile(r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b", re.I),
+    # Vue scoped-css + framework hydration markers
+    re.compile(r"data-v-[0-9a-f]{6,}", re.I),
+    re.compile(r"data-(?:n-head|reactid|react-checksum|hydrate)\s*=\s*[\"'][^\"']*[\"']", re.I),
+    # machine timestamps: ISO datetime (T or space separated), HTTP-date,
+    # relative "x ago". A date-only "as of 2026-06-13" is intentionally NOT
+    # stripped -- that one often signals a real data refresh.
+    re.compile(r"\b\d{4}-\d{2}-\d{2}[ T][\d:]{4,}(?:\.\d+)?(?:[+-]\d{2}:?\d{2}|z)?", re.I),
+    re.compile(r"\b(?:mon|tue|wed|thu|fri|sat|sun),?\s+\d{1,2}\s+"
+               r"(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+\d{4}"
+               r"(?:[\d:\s]*(?:gmt|utc))?", re.I),
+    re.compile(r"\b\d+\s+(?:sec|second|min|minute|hour|hr|day|week|month|year)s?\s+ago\b", re.I),
+)
 
 
 def normalize(text: str) -> str:
-    return _WS.sub(" ", _VOLATILE.sub("", text or "")).strip().lower()
+    out = text or ""
+    for _pat in _VOLATILE_PATTERNS:
+        out = _pat.sub("", out)
+    return _WS.sub(" ", out).strip().lower()
 
 
 def content_hash(text: str) -> str:
