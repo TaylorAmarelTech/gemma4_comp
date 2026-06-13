@@ -1,0 +1,2094 @@
+# Entity-data source catalogue -- REAL public registries, directories, watchlists,
+# and datasets for entities in the international labour-migration world
+# (recruitment/manning agencies, employers, medical clinics, training centres,
+# brokers, lenders, sanctioned entities, regulators, NGOs, hotlines).
+#
+# Provenance: compiled 2026-06-13 by the entity-source-catalog research swarm
+# (8 web agents x corridor/type slice -> URL-verify -> dedup). Each agent
+# WebFetched candidate URLs; url_verified=true means confirmed-reachable that
+# run. This file catalogues SOURCES ONLY -- it contains no entity records and
+# fabricates nothing. The monitor_eligible+official+url_verified subset is
+# folded into research_monitor/sources.yaml for scheduled freshness tracking.
+#
+# Totals: 72 sources | 64 official | tiers free/freemium/manual = 61/6/5
+#
+# Regenerate: re-run the entity-source-catalog workflow (Workflow tool).
+
+sources:
+- id: migrant_rights_org_research_statistics_hub_gulf_
+  name: Migrant-Rights.org research & statistics hub (Gulf/GCC)
+  publisher: Migrant-Rights.org (MRRORS)
+  url: https://www.mrrors.org/
+  entity_types:
+  - ngo
+  - employer
+  jurisdictions:
+  - BH
+  - KW
+  - OM
+  - QA
+  - SA
+  - AE
+  corridors:
+  - IN-QA
+  - NP-QA
+  - BD-SA
+  - PH-AE
+  - LK-KW
+  access_tier: free
+  official: false
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: ongoing (editorial publishing)
+  access_notes: 'Leading independent advocacy/research org on migrant-worker exploitation across the six
+    GCC states (Bahrain, Kuwait, Oman, Qatar, Saudi Arabia, UAE), founded 2007, English + Arabic. Publishes
+    a statistics/research centre and investigative reporting that NAMES specific companies/employers tied
+    to Gulf abuses — a manual reputational/OSINT signal, not a registry. IMPORTANT: the canonical www.migrant-rights.org
+    now 301-redirects to www.mrrors.org (confirmed this session); update any stored URL. mrrors.org direct
+    fetch BLOCKED (403) this session.'
+  robots_or_tos_notes: www.migrant-rights.org returns HTTP 301 -> www.mrrors.org; the new domain returned
+    HTTP 403 Forbidden to automated GET (bot protection). Public to browsers but not automatable for the
+    daily checker as-is. Named-company content is investigative journalism/advocacy — corroborate before
+    acting.
+  slice: civil-society-osint
+  confidence: 0.8
+- id: counter_trafficking_data_collaborative_ctdc_glob
+  name: Counter-Trafficking Data Collaborative (CTDC) — Global Victim & Synthetic Datasets
+  publisher: International Organization for Migration (IOM), with Polaris, A21, RecollectiV, OTSH; Microsoft
+    Research (differential privacy)
+  url: https://www.ctdatacollaborative.org/
+  entity_types:
+  - sanctioned_entity
+  - broker
+  jurisdictions:
+  - GLOBAL
+  corridors: []
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: periodic (dataset refreshes; portal updated with new contributor data)
+  access_notes: 'World''s first global human-trafficking data portal (est. Nov 2017): 200,000+ harmonized
+    victim cases via interactive dashboards/maps, plus a downloadable k-anonymized Global Victim-of-Trafficking
+    dataset and a publicly downloadable Global Synthetic Dataset (with victim AND perpetrator/recruiter
+    attributes — relevant to recruitment-route and trafficker-method analysis). Aggregate/anonymized data,
+    NOT individual named bad-actor records. Confirmed via IOM + UN Migration Network search results; direct
+    fetch BLOCKED (403) this session.'
+  robots_or_tos_notes: Direct WebFetch returned HTTP 403 Forbidden (bot protection). Dataset downloads
+    gated behind a usage agreement on the site. Not suitable for the automated freshness checker; treat
+    as a periodic manual dataset pull. Differential-privacy synthetic dataset is intended for safe public
+    reuse.
+  slice: civil-society-osint
+  confidence: 0.85
+- id: ilo_forced_labour_observatory_flo
+  name: ILO Forced Labour Observatory (FLO)
+  publisher: International Labour Organization (ILO)
+  url: https://webapps.ilo.org/flodashboard/
+  entity_types:
+  - regulator
+  jurisdictions:
+  - GLOBAL
+  corridors: []
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: periodic (compiled, updated by ILO)
+  access_notes: ILO 'global data warehouse on forced labour and trafficking' (launched per ILO Governing
+    Body request). Provides global + country-level legal/institutional frameworks and measures on enforcement,
+    fair recruitment, due diligence, protection, access to justice, and remedies, each linked to its primary
+    source. Regulator/legal-framework reference (not a named-perpetrator list) — high value for grounding
+    corridor-specific law and enforcement context. Cross-referenced by US DOL/ILAB. Direct fetch BLOCKED
+    (403) this session.
+  robots_or_tos_notes: Interactive JS dashboard under webapps.ilo.org returned HTTP 403 Forbidden to automated
+    GET. Not monitor-eligible (single-page app, bot-protected). Compiled from publicly available reputable
+    sources with primary-source links.
+  slice: civil-society-osint
+  confidence: 0.85
+- id: ilostat_international_labour_migration_statistic
+  name: ILOSTAT — International Labour Migration Statistics (ILMS) Database
+  publisher: International Labour Organization (ILO) Department of Statistics
+  url: https://ilostat.ilo.org/topics/labour-migration/
+  entity_types:
+  - regulator
+  jurisdictions:
+  - GLOBAL
+  corridors: []
+  access_tier: free
+  official: true
+  monitor_eligible: true
+  url_verified: false
+  update_frequency: annual / periodic statistical releases
+  access_notes: Authoritative free/open global database of international migrant-worker stocks, nationals
+    abroad, and migration flows, disaggregated by origin/destination country, gender, occupation, and
+    economic activity. Macro labour-migration context for corridor risk modelling (not a bad-actor registry).
+    ILOSTAT explicitly states all tools are free and open access. Confirmed via ILOSTAT + UN Migration
+    Network search results; topic page not fetched this session (url_verified=false).
+  robots_or_tos_notes: ILOSTAT publishes free/open data with documented bulk-download and SDMX API access,
+    which is generally automation-friendly — verify the specific ilostat.ilo.org robots.txt and prefer
+    the official bulk-download/API endpoints over scraping the HTML topic page for the daily checker.
+  slice: civil-society-osint
+  confidence: 0.8
+- id: migrant_worker_allegations_database_tracker
+  name: Migrant Worker Allegations Database (Tracker)
+  publisher: Business & Human Rights Resource Centre (BHRRC)
+  url: https://www.business-humanrights.org/en/from-us/abuse-allegations-migrant-workers/
+  entity_types:
+  - employer
+  - broker
+  - recruitment_agency
+  jurisdictions:
+  - GLOBAL
+  - GCC
+  - EU
+  - US
+  - SEA
+  - AUS
+  corridors: []
+  access_tier: free
+  official: false
+  monitor_eligible: true
+  url_verified: true
+  update_frequency: monthly
+  access_notes: 'Fetched and confirmed this session: a free, no-login searchable tracker of NAMED companies
+    publicly linked to migrant-worker abuse allegations (employment, supply, procurement, sponsorship
+    relationships). Full underlying database records named + unnamed companies, allegations from Jan 2022,
+    updated monthly; 747 cases recorded in 2025. Most common abuse categories: employment-standards violations,
+    denial of freedoms, OHS, unfair recruitment (34%), recruitment-fee charging (27%). Authoritative NGO-maintained
+    signal, not a government registry.'
+  robots_or_tos_notes: Public tracker landing fetched successfully (HTTP 200) without login. Confirm robots.txt
+    scope before scheduling the search/result endpoints; the static tracker landing page resolved fine
+    to automated access. Named-entity data is NGO-curated allegation data — treat as reputational signal,
+    not legal adjudication.
+  slice: civil-society-osint
+  confidence: 0.95
+- id: migration_data_portal_human_trafficking_labour_m
+  name: Migration Data Portal — Human Trafficking & Labour Migration themes
+  publisher: IOM Global Migration Data Analysis Centre (GMDAC)
+  url: https://www.migrationdataportal.org/themes/human-trafficking
+  entity_types:
+  - regulator
+  - ngo
+  jurisdictions:
+  - GLOBAL
+  corridors: []
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: periodic (theme pages updated as indicators refresh)
+  access_notes: 'IOM''s flagship migration-data hub. The human-trafficking and labour-migration theme
+    pages aggregate indicators, source links, and data tools (links out to CTDC, ILMS, UNODC GLOTIP).
+    Source-OF-sources rather than a bad-actor registry: useful for discovering the authoritative datasets
+    and the national statistical bodies feeding them. Confirmed via multiple IOM/UN search results; direct
+    fetch BLOCKED (403) this session.'
+  robots_or_tos_notes: Direct WebFetch returned HTTP 403 Forbidden (bot protection / JS-rendered). Public
+    to browsers; not automatable for the daily checker without permissioned access. Use as a manual discovery
+    surface.
+  slice: civil-society-osint
+  confidence: 0.8
+- id: philippine_department_of_migrant_workers_dmw_poe
+  name: Philippine Department of Migrant Workers (DMW/POEA) — OFW assistance hotline & agency info
+  publisher: Department of Migrant Workers, Republic of the Philippines (formerly POEA)
+  url: https://dmw.gov.ph/
+  entity_types:
+  - regulator
+  - hotline
+  - recruitment_agency
+  jurisdictions:
+  - PH
+  corridors:
+  - PH-SA
+  - PH-AE
+  - PH-HK
+  - PH-KW
+  - PH-QA
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: ongoing (regulator updates)
+  access_notes: 'Philippine government regulator for overseas Filipino workers (DMW absorbed POEA). Operates
+    the 24/7 One Repatriation Center hotline 1348 for OFWs in distress (plus 722-11-44 / 722-11-55) and
+    is the licensing authority for PH recruitment/manning agencies. Primary destination of the legacy
+    poea.gov.ph identity. Confirmed via DMW/POEA + Inquirer search results; site not fetched this session
+    (url_verified=false). NOTE: the separate DMW licensed-agency registry is the authoritative agency-verification
+    surface (see registry slice); this entry is the hotline + regulator anchor.'
+  robots_or_tos_notes: Government site; poea.gov.ph now resolves under the DMW domain. Licensed-agency
+    status lookups are typically behind a search form (may be JS/captcha) — confirm before automating;
+    the hotline numbers and static pages are stable. Honor government-site ToS and rate limits.
+  slice: civil-society-osint
+  confidence: 0.8
+- id: recruitment_advisor_migrant_recruitment_advisor
+  name: Recruitment Advisor (Migrant Recruitment Advisor)
+  publisher: International Trade Union Confederation (ITUC), with ILO / Swiss SDC / European Commission
+    funding
+  url: https://www.recruitmentadvisor.org/
+  entity_types:
+  - recruitment_agency
+  - manning_agency
+  jurisdictions:
+  - PH
+  - ID
+  - NP
+  - LK
+  - BD
+  - KE
+  - GH
+  - NG
+  - UG
+  - ET
+  - HK
+  - BH
+  - JO
+  corridors:
+  - NP-QA
+  - PH-SA
+  - ID-MY
+  - BD-SA
+  - LK-KW
+  access_tier: free
+  official: false
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: continuous (crowd-sourced reviews)
+  access_notes: 'Highest-value worker-review source for this slice: a global peer-to-peer platform where
+    migrant workers REVIEW and RATE named recruitment agencies (10,000+ agencies listed). Country coordination
+    teams in Philippines, Indonesia, Nepal, Sri Lanka, Bangladesh, Kenya, Ghana, Nigeria, Uganda, Ethiopia,
+    Hong Kong, Bahrain, Jordan. Review-submission page at /review-agency. Reviews are crowd-sourced MANUAL
+    signals (worker reputation reports), not authoritative regulator data. Confirmed via ILO + GFMD +
+    ITUC search results; direct fetch BLOCKED (HTTP 403) this session.'
+  robots_or_tos_notes: Direct WebFetch returned HTTP 403 Forbidden (Cloudflare/bot protection). Public
+    to human browsers but blocks automated GET, so NOT eligible for the automated daily freshness checker
+    without an allowlisted/permissioned crawl. Per-agency review pages are likely JS-rendered.
+  slice: civil-society-osint
+  confidence: 0.85
+- id: national_human_trafficking_hotline_referral_dire
+  name: National Human Trafficking Hotline — Referral Directory
+  publisher: U.S. National Human Trafficking Hotline (operated by Compass Connections as of 2025-09-30;
+    formerly Polaris Project)
+  url: https://humantraffickinghotline.org/training-resources/referral-directory
+  entity_types:
+  - ngo
+  - hotline
+  jurisdictions:
+  - US
+  corridors: []
+  access_tier: free
+  official: false
+  monitor_eligible: true
+  url_verified: true
+  update_frequency: ongoing (directory maintained continuously)
+  access_notes: 'Fetched and confirmed this session: a free, browsable searchable directory of anti-trafficking
+    organizations/programs offering emergency, transitional, and long-term victim/survivor services, searchable
+    by US location. The hotline itself: call 888-373-7888, text 233733, or chat. NOTE governance transition
+    — operations moved from Polaris to Compass Connections on 2025-09-30; Polaris still publishes data.
+    A v6 directory instance also exists at serviceproviders.polarisproject.org.'
+  robots_or_tos_notes: Directory landing page resolved HTTP 200 with no login. The interactive directory
+    uses query params (?loc=...); confirm the JSON/search endpoint is not robots-disallowed before automating
+    the result list rather than the landing page.
+  slice: civil-society-osint
+  confidence: 0.9
+- id: dubai_multi_commodities_centre_dmcc_register_of_
+  name: Dubai Multi Commodities Centre (DMCC) — Register of DMCC Entities (public search)
+  publisher: DMCC Authority (Dubai free zone), UAE
+  url: https://landing.dmcc.ae/public-search
+  entity_types:
+  - employer
+  - recruitment_agency
+  jurisdictions:
+  - AE
+  corridors: []
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: true
+  update_frequency: ongoing (free-zone member register)
+  access_notes: 'Fetched and confirmed: official public register of 26,000+ DMCC free-zone member companies
+    (brokers, banks, commodities traders, professional services). Simple/advanced search to verify whether
+    a UAE free-zone entity is a registered/licensed DMCC member — useful because UAE has no single federal
+    company register and free-zone principals are common in Gulf recruitment chains. Covers DMCC only;
+    other UAE free zones (DAFZA, JAFZA, ADGM, DIFC) and mainland (DED) each maintain separate registers.'
+  robots_or_tos_notes: Public free-zone register, no login indicated for search. Page renders search via
+    client-side scripting (results not in initial HTML), so a plain HTML freshness poller is unreliable
+    — monitor_eligible=false. Single free-zone scope; not a national register.
+  slice: corp-registries
+  confidence: 0.85
+- id: european_e_justice_portal_business_registers_bri
+  name: European e-Justice Portal — Business Registers (BRIS) 'Find a company'
+  publisher: European Commission (e-Justice Portal / Business Registers Interconnection System)
+  url: https://e-justice.europa.eu/topics/registers-business-insolvency-land/business-registers-search-company-eu_en
+  entity_types:
+  - employer
+  - recruitment_agency
+  jurisdictions:
+  - EU
+  corridors: []
+  access_tier: free
+  official: true
+  monitor_eligible: true
+  url_verified: true
+  update_frequency: real-time (data pulled live from member-state registers at query time)
+  access_notes: 'Fetched and confirmed: official EU gateway interconnecting the national business registers
+    of all EU member states plus Iceland, Liechtenstein, Norway, and European Companies (SE). Free ''Find
+    a company'' search returns company name, legal form, registered office, member state, registry number,
+    EUID, website, and status in real time. Single entry point to verify an EU/EEA-registered employer
+    or recruitment principal across 30+ national registers. url is the topic/landing page; the live search
+    form is reached from here (''Find a company'').'
+  robots_or_tos_notes: Public EU service, free, no fees for company data; sign-in is optional and not
+    needed to search. Landing/topic page is static HTML and crawlable; the actual search result step is
+    form-driven (GET by company/registration number) so deep automated queries may need parameterized
+    calls.
+  slice: corp-registries
+  confidence: 0.93
+- id: uk_companies_house_find_and_update_company_infor
+  name: UK Companies House — Find and update company information
+  publisher: Companies House (UK Government)
+  url: https://find-and-update.company-information.service.gov.uk
+  entity_types:
+  - employer
+  - recruitment_agency
+  jurisdictions:
+  - GB
+  corridors: []
+  access_tier: free
+  official: true
+  monitor_eligible: true
+  url_verified: true
+  update_frequency: continuous (filings queued during current processing backlog)
+  access_notes: 'Fetched and confirmed: official UK register of 4.8M+ active/dissolved companies. Free
+    search by company name, number, or officer name; no login for basic search. Shows registered office,
+    directors, PSC, filing history. A free REST API also exists at api.company-information.service.gov.uk
+    (requires a free key). Use to verify a UK-based foreign principal/employer or recruitment company.'
+  robots_or_tos_notes: Public GOV.UK service, available 24/7, no captcha or login for basic search. Bulk/automated
+    access intended via the documented API (free key, rate-limited ~600 req/5min) rather than HTML scraping;
+    the HTML search page itself is stable and crawlable.
+  slice: corp-registries
+  confidence: 0.98
+- id: hong_kong_companies_registry_e_services_portal_e
+  name: Hong Kong Companies Registry — e-Services Portal (electronic search / ICRIS successor)
+  publisher: Companies Registry, Government of the Hong Kong SAR
+  url: https://www.e-services.cr.gov.hk
+  entity_types:
+  - employer
+  - recruitment_agency
+  jurisdictions:
+  - HK
+  corridors: []
+  access_tier: freemium
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: continuous (24/7 online search of current register data)
+  access_notes: Info page www.cr.gov.hk/en/electronic/e-servicesportal/e-search.htm fetched and confirmed;
+    the portal itself (e-services.cr.gov.hk, launched 27 Dec 2023, replacing the older ICRIS Cyber Search
+    Centre) was not directly fetched. Public can search company particulars by name, company number, or
+    Business Registration Number (BRN). A free 'quick search' returns basic identity/BRN; the 'Company
+    Particulars Report' (directors, registered office, share capital) requires a registered account and
+    fee (annual ~HK$500 + per-search charges). Use to verify a Hong Kong-incorporated principal/employer.
+  robots_or_tos_notes: Government portal; quick/basic search is free but the full e-search requires a
+    paid account and login, so it is not suitable for unauthenticated automated polling — monitor_eligible=false.
+    Older ICRIS Cyber Search Centre links (icris.cr.gov.hk) are being superseded by e-services.cr.gov.hk.
+  slice: corp-registries
+  confidence: 0.88
+- id: saudi_arabia_ministry_of_commerce_commercial_reg
+  name: Saudi Arabia Ministry of Commerce — Commercial Registration (CR) data query
+  publisher: Ministry of Commerce (MoC) / National Platform (my.gov.sa), Saudi Arabia
+  url: https://my.gov.sa/en/services/18443
+  entity_types:
+  - employer
+  - recruitment_agency
+  jurisdictions:
+  - SA
+  corridors: []
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: continuous (official commercial register)
+  access_notes: WebSearch-confirmed but NOT fetch-verified (my.gov.sa returned HTTP 403 to the fetch —
+    bot-blocked). Official MoC service to query commercial-registration data by establishment name or
+    unified national number after entering a verification (captcha) code; free. Verifies that a Saudi
+    employer is registered with the Ministry of Commerce — relevant for the high-volume Gulf labour-migration
+    corridor. The MoC also exposes the service at mc.gov.sa/en/eservices.
+  robots_or_tos_notes: Government service but gated by a per-query verification/captcha code and bot-protection
+    (fetch got 403), so it is NOT suitable for automated polling — monitor_eligible=false. Note Wathq
+    is the licensed CR API for businesses needing programmatic CR verification.
+  slice: corp-registries
+  confidence: 0.78
+- id: singapore_acra_bizfile_bizfile_entity_search
+  name: Singapore ACRA — BizFile (Bizfile+) entity search
+  publisher: Accounting and Corporate Regulatory Authority (ACRA), Singapore
+  url: https://www.bizfile.gov.sg
+  entity_types:
+  - employer
+  - recruitment_agency
+  jurisdictions:
+  - SG
+  corridors: []
+  access_tier: freemium
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: continuous (official register)
+  access_notes: 'WebSearch-confirmed but NOT fetch-verified: bizfile.gov.sg is a JavaScript SPA and returned
+    only the ''Bizfile'' title on fetch. Official Singapore register. Free directory/UEN search returns
+    entity name, UEN, status, and registered address; detailed directors/shareholders/filings require
+    a paid Business Profile purchase. Use to verify a Singapore-registered employer or manning/recruitment
+    principal via its UEN.'
+  robots_or_tos_notes: Government portal; basic entity search is free with no login, but the site is JS-rendered
+    (entity-search behind the SPA), so a plain HTML freshness checker cannot reliably poll it — monitor_eligible=false.
+    Detailed records are paywalled per-profile.
+  slice: corp-registries
+  confidence: 0.9
+- id: gleif_global_lei_index_lei_search
+  name: GLEIF — Global LEI Index / LEI Search
+  publisher: Global Legal Entity Identifier Foundation (GLEIF)
+  url: https://search.gleif.org/
+  entity_types:
+  - employer
+  - regulator
+  - sanctioned_entity
+  jurisdictions:
+  - XX
+  corridors: []
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: true
+  update_frequency: daily (Golden Copy concatenated/delta files published daily)
+  access_notes: Confirmed via gleif.org/en/lei-data/global-lei-index (the search.gleif.org SPA itself
+    is JS-rendered so returned thin HTML). Free, no-registration lookup of LEI records on 2.5M+ legal
+    entities across 200+ jurisdictions; includes legal name, address, registration authority, and parent/ownership
+    relationships. Cross-references an employer's LEI to its national registration authority and corporate
+    group. Best consumed via the open API (api.gleif.org/api/v1) or daily Golden Copy bulk files, not
+    HTML scraping.
+  robots_or_tos_notes: Open data under CC0; full data pool free without login. HTML search UI is a JavaScript
+    SPA (poor for a simple HTML freshness checker) — marked monitor_eligible=false; the documented REST
+    API / daily bulk download is the intended automated path.
+  slice: corp-registries
+  confidence: 0.97
+- id: opencorporates_open_database_of_companies_regist
+  name: OpenCorporates — open database of companies / registers list
+  publisher: OpenCorporates Ltd
+  url: https://opencorporates.com/companies
+  entity_types:
+  - employer
+  - recruitment_agency
+  jurisdictions:
+  - XX
+  corridors: []
+  access_tier: freemium
+  official: false
+  monitor_eligible: false
+  url_verified: true
+  update_frequency: varies by source registry (aggregated from 140+ national registries)
+  access_notes: 'Fetched /registers and confirmed: largest open aggregator, ~235M companies across 145+
+    jurisdictions, sourced from official national business registries and presented in standardized form.
+    Single cross-jurisdiction search is its key value for verifying a foreign principal when the home-country
+    registry is hard to query directly. Basic web search is free; structured/bulk access requires an API
+    key (paid/commercial tiers; limited free academic/journalist access). url points to the company search;
+    per-jurisdiction register coverage and openness scores are at /registers.'
+  robots_or_tos_notes: Commercial aggregator, not an official source. Programmatic/bulk use is governed
+    by their API terms and requires an API token — do NOT scrape the HTML at scale. Marked monitor_eligible=false
+    because automated freshness checks belong on the licensed API, not the site.
+  slice: corp-registries
+  confidence: 0.95
+- id: opensanctions_sanctioned_entities_watchlist_data
+  name: OpenSanctions — sanctioned entities / watchlist dataset
+  publisher: OpenSanctions (Friedrich Lindenberg / OpenSanctions e.V.)
+  url: https://www.opensanctions.org/datasets/default/
+  entity_types:
+  - sanctioned_entity
+  - employer
+  jurisdictions:
+  - XX
+  corridors: []
+  access_tier: freemium
+  official: false
+  monitor_eligible: true
+  url_verified: false
+  update_frequency: daily
+  access_notes: 'Cross-reference companion to corporate-registry verification: consolidates global sanctions
+    lists, PEPs, and crime/watchlist entities (incl. an OpenCorporates-linked dataset) so a verified employer/principal
+    can be screened against sanctions and adverse-entity lists. NOT fetch-verified this session (surfaced
+    via the OpenCorporates search). Bulk data and a match API are available; non-commercial use is free,
+    commercial use is licensed.'
+  robots_or_tos_notes: Open dataset (free for non-commercial / journalism / NGO; commercial licensing
+    required). Static dataset/download pages are stable and crawlable, and daily bulk files support automated
+    freshness checks — monitor_eligible=true for the dataset pages (use the bulk files / API rather than
+    scraping entity pages). Verify the exact dataset slug before wiring a monitor.
+  slice: corp-registries
+  confidence: 0.8
+- id: hong_kong_employment_agencies_portal_points_to_n
+  name: Hong Kong Employment Agencies Portal — Points-to-Note / Conviction & Demerit Records ('Looking
+    for a licensed EA')
+  publisher: Labour Department, Government of the Hong Kong SAR
+  url: https://www.eaa.labour.gov.hk/en/looking.html
+  entity_types:
+  - recruitment_agency
+  - regulator
+  jurisdictions:
+  - Hong Kong
+  corridors:
+  - ID-HK
+  - PH-HK
+  - LK-HK
+  access_tier: free
+  official: true
+  monitor_eligible: true
+  url_verified: false
+  update_frequency: updated as enforcement actions occur
+  access_notes: Not directly fetched this session (companion page to the verified search.php under the
+    same confirmed portal). This is the guidance/landing surface that links the EA conviction records
+    and licence-refusal/revocation notices the Labour Department publishes. Included as the HK enforcement/violation
+    complement to the licence register. The 10%-of-first-month-wage commission cap and prohibition on
+    overcharging job-seekers are stated on this portal.
+  robots_or_tos_notes: Static government HTML page on the same eaa.labour.gov.hk host as the verified
+    search page; no login/captcha expected. Treat url_verified=false pending a direct fetch of the linked
+    conviction-record PDFs/pages.
+  slice: eastasia-dest
+  confidence: 0.8
+- id: hong_kong_labour_department_employment_agencies_
+  name: Hong Kong Labour Department Employment Agencies Portal — Search Licensed Employment Agency
+  publisher: Labour Department, Government of the Hong Kong SAR
+  url: https://www.eaa.labour.gov.hk/en/search.php
+  entity_types:
+  - recruitment_agency
+  - regulator
+  jurisdictions:
+  - Hong Kong
+  corridors:
+  - ID-HK
+  - PH-HK
+  - LK-HK
+  - TH-HK
+  access_tier: free
+  official: true
+  monitor_eligible: true
+  url_verified: true
+  update_frequency: continuous (live licence register)
+  access_notes: Fetched and confirmed this session. Public search engine for all employment agencies holding
+    a valid HK licence. Searchable by agency name (EN/ZH), address, telephone, placement type (foreign
+    domestic helpers, imported workers, etc.), region and district. A-Z alphabetical browse available.
+    No login or captcha for the public search; a separate e-EAS login exists only for EA operators.
+  robots_or_tos_notes: Public government register, no authentication. Results render server-side via PHP
+    (search.php) with a per-district result listing, so an automated checker can poll it. No captcha observed.
+    Confirm robots.txt before scheduling high-frequency hits; throttle politely.
+  slice: eastasia-dest
+  confidence: 0.97
+- id: immigration_services_agency_of_japan_registered_
+  name: Immigration Services Agency of Japan — Registered Support Organization Registry (登録支援機関登録簿, Specified
+    Skilled Worker)
+  publisher: Immigration Services Agency of Japan (出入国在留管理庁), Ministry of Justice
+  url: https://www.moj.go.jp/isa/applications/ssw/nyuukokukanri07_00205.html
+  entity_types:
+  - manning_agency
+  - broker
+  - regulator
+  jurisdictions:
+  - Japan
+  corridors:
+  - VN-JP
+  - PH-JP
+  - ID-JP
+  - MM-JP
+  - NP-JP
+  - LK-JP
+  - BD-JP
+  - TH-JP
+  access_tier: free
+  official: true
+  monitor_eligible: true
+  url_verified: true
+  update_frequency: frequent (registry updated as registrations/deletions occur; verified edition 2026-06-10,
+    11,364 orgs)
+  access_notes: 'Fetched and confirmed this session. Official ISA registry of Registered Support Organizations
+    (登録支援機関) that support Specified Skilled Worker (特定技能) holders. Provides downloadable Excel in Japanese
+    (''登録支援機関登録簿'', ~2.5MB) and English (''List of Registered Support Organization'', ~1.8MB), both dated
+    2026-06-10 with 11,364 entries. Deleted organizations are excluded, so the file reflects currently-active
+    registrants. No login/captcha. (Note: the parallel /isa/policies/ssw/... path returns thin JS-only
+    content; this /isa/applications/ssw/... path served full content.)'
+  robots_or_tos_notes: Public government page with dated downloadable XLSX artifacts — well suited to
+    an automated freshness checker. No login/captcha. Use the /applications/ssw/ URL (verified) rather
+    than the /policies/ssw/ mirror which rendered empty when fetched.
+  slice: eastasia-dest
+  confidence: 0.95
+- id: otit_list_of_foreign_government_accredited_sendi
+  name: OTIT — List of Foreign-Government-Accredited Sending Organizations (送出機関一覧, by country)
+  publisher: Organization for Technical Intern Training (OTIT / 外国人技能実習機構), Japan
+  url: https://www.otit.go.jp/system/sender/list_sender/
+  entity_types:
+  - recruitment_agency
+  - broker
+  - regulator
+  jurisdictions:
+  - Japan
+  - Vietnam
+  - Philippines
+  - Indonesia
+  - Myanmar
+  - Cambodia
+  - Nepal
+  - Sri Lanka
+  - Bangladesh
+  - Thailand
+  corridors:
+  - VN-JP
+  - PH-JP
+  - ID-JP
+  - MM-JP
+  - KH-JP
+  - NP-JP
+  - LK-JP
+  - BD-JP
+  - TH-JP
+  access_tier: free
+  official: true
+  monitor_eligible: true
+  url_verified: true
+  update_frequency: periodic per-country PDF reissue
+  access_notes: Fetched and confirmed this session. Official OTIT country-by-country list of foreign-government-accredited
+    sending organizations (送出機関) feeding the Technical Intern Training Program — the origin-side recruiters/brokers.
+    PDFs for ~17 countries (Vietnam, Cambodia, India, Philippines, Laos, Mongolia, Bangladesh, Sri Lanka,
+    Myanmar, Bhutan, Uzbekistan, Pakistan, Thailand, Indonesia, Nepal, Timor-Leste, Fiji), each with a
+    CURRENT list and a HISTORICAL (previously-accredited / de-listed) list. No login/captcha. Page explicitly
+    notes this list is for TITP only, not the new Skill Development Employmen
+  robots_or_tos_notes: Public government page with static per-country PDF artifacts; pollable. The 'previously
+    accredited' lists are a useful de-listing/penalty signal. No login/captcha; throttle and watch for
+    filename/date changes.
+  slice: eastasia-dest
+  confidence: 0.92
+- id: otit_search_for_licensed_supervising_organizatio
+  name: OTIT — Search for Licensed Supervising Organizations (監理団体の検索 / downloadable approved-kanri-dantai
+    list)
+  publisher: Organization for Technical Intern Training (OTIT / 外国人技能実習機構), Japan
+  url: https://www.otit.go.jp/implementer/basic/search_supervisor/
+  entity_types:
+  - manning_agency
+  - training_center
+  - regulator
+  jurisdictions:
+  - Japan
+  corridors:
+  - VN-JP
+  - PH-JP
+  - ID-JP
+  - MM-JP
+  - KH-JP
+  - NP-JP
+  - LK-JP
+  access_tier: free
+  official: true
+  monitor_eligible: true
+  url_verified: true
+  update_frequency: periodic (list reissued; verified edition dated 2026-05-28)
+  access_notes: Fetched and confirmed this session. Official OTIT directory of licensed supervising organizations
+    (監理団体) for the Technical Intern Training Program. Provides direct PDF + Excel downloads for General
+    (一般監理団体) and Specific (特定監理団体) organizations, plus an English-language name/URL list. Verified edition
+    is dated 令和8年5月28日 (2026-05-28); the page links e.g. /upload/docs/260528_1.pdf and 260528_2.xlsx.
+    No login/captcha.
+  robots_or_tos_notes: Public government page with static, dated PDF/XLSX artifacts at predictable /upload/docs/
+    paths — ideal for an automated freshness checker watching for a new date-stamped file. No login/captcha.
+    Supervising orgs revoked for violations drop off the list; pair with OTIT administrative-action notices
+    for enforcement history.
+  slice: eastasia-dest
+  confidence: 0.95
+- id: singapore_mom_employment_agencies_personnel_dire
+  name: Singapore MOM Employment Agencies & Personnel Directory (EA Directory)
+  publisher: Ministry of Manpower (MOM), Singapore
+  url: https://www.mom.gov.sg/eadirectory
+  entity_types:
+  - recruitment_agency
+  - regulator
+  jurisdictions:
+  - Singapore
+  corridors:
+  - ID-SG
+  - PH-SG
+  - MM-SG
+  - IN-SG
+  - LK-SG
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: true
+  update_frequency: continuous (live licence + demerit register)
+  access_notes: Fetched and confirmed this session. www.mom.gov.sg/eadirectory issues a 302 redirect to
+    https://service2.mom.gov.sg/eadirectory (the live app host). Official MOM directory of licensed EAs
+    and registered EA personnel; exposes each EA's licence status, demerit points, retention/transfer
+    rates, FDW placement volume, years of experience, prior violations, and customer ratings. No login
+    or captcha observed.
+  robots_or_tos_notes: Content is JavaScript/AJAX-rendered ('Content is loading...' via AJAX) and lives
+    behind a host redirect to service2.mom.gov.sg, so a simple static HTTP freshness checker will see
+    an empty shell — marked monitor_eligible=false. A headless-browser or the service2 JSON/AJAX backend
+    would be needed to scrape; respect MOM terms of use and rate limits.
+  slice: eastasia-dest
+  confidence: 0.95
+- id: singapore_mom_employment_agency_licence_gobusine
+  name: Singapore MOM Employment Agency Licence (GoBusiness Licence Directory entry)
+  publisher: GoBusiness / Ministry of Manpower, Government of Singapore
+  url: https://licensing.gobusiness.gov.sg/licence-directory/mom/employment-agency-licence
+  entity_types:
+  - recruitment_agency
+  - regulator
+  jurisdictions:
+  - Singapore
+  corridors: []
+  access_tier: free
+  official: true
+  monitor_eligible: true
+  url_verified: false
+  update_frequency: updated when licensing rules change
+  access_notes: 'Not directly fetched this session (surfaced via MOM/GoBusiness search results). This
+    is the authoritative metadata page for the Singapore Employment Agency Licence: eligibility, fees,
+    conditions, and the application channel. It documents the licensing regime that underpins the EA Directory
+    rather than listing individual agencies. Useful as the regulator/regime reference for Singapore.'
+  robots_or_tos_notes: Static government licensing-directory page on licensing.gobusiness.gov.sg; expected
+    public with no login/captcha. url_verified=false pending a direct fetch.
+  slice: eastasia-dest
+  confidence: 0.75
+- id: taiwan_wda_private_employment_agency_evaluation_
+  name: Taiwan WDA Private Employment Agency Evaluation Results (年度評鑑結果查詢, A/B/C grades)
+  publisher: Workforce Development Agency (WDA), Ministry of Labor, Taiwan (R.O.C.)
+  url: https://emp.wda.gov.tw/
+  entity_types:
+  - recruitment_agency
+  - broker
+  - regulator
+  jurisdictions:
+  - Taiwan
+  corridors:
+  - ID-TW
+  - PH-TW
+  - VN-TW
+  - TH-TW
+  access_tier: free
+  official: true
+  monitor_eligible: true
+  url_verified: false
+  update_frequency: annual (intermediary evaluation cycle since 2004)
+  access_notes: Not directly fetched this session (surfaced as the dedicated annual-evaluation results
+    portal, '113年度評鑑結果查詢'). Publishes the annual A (>=90), B (70-89), C (<70) grades for manpower brokers
+    that the MOL uses to flag underperforming/abusive agencies. Complements the agent.wda.gov.tw register
+    with the quality/penalty signal. Treated as a separate source because it is a distinct host/portal.
+  robots_or_tos_notes: Public government results portal on emp.wda.gov.tw; Traditional-Chinese. Year-keyed
+    result pages should be pollable; no login/captcha expected. url_verified=false pending a direct fetch
+    (results page is year-parameterised).
+  slice: eastasia-dest
+  confidence: 0.78
+- id: taiwan_wda_private_employment_service_institutio
+  name: Taiwan WDA Private Employment Service Institutions Query System (private broker register + 2-year
+    violation records + evaluation grades)
+  publisher: Workforce Development Agency (WDA), Ministry of Labor, Taiwan (R.O.C.)
+  url: https://agent.wda.gov.tw/agentext/
+  entity_types:
+  - recruitment_agency
+  - broker
+  - regulator
+  jurisdictions:
+  - Taiwan
+  corridors:
+  - ID-TW
+  - PH-TW
+  - VN-TW
+  - TH-TW
+  access_tier: free
+  official: true
+  monitor_eligible: true
+  url_verified: true
+  update_frequency: continuous register; evaluation grades published annually (A/B/C)
+  access_notes: 'Fetched and confirmed this session (verified via the QryAgentBrief.jsp brief-listing
+    endpoint, https://agent.wda.gov.tw/agentext/agent/QryAgentBrief.jsp?p=1). The 私立就業服務機構查詢系統 covers
+    four categories: domestic brokers (licensed), foreign brokers, ILLEGAL OPERATORS, and qualified employment-service
+    professionals. Displays 2年內之違規處分資料 (violation/penalty records within 2 years) and links to A/B/C evaluation
+    scores. No login/captcha observed.'
+  robots_or_tos_notes: Public government JSP query system. The QryAgentBrief.jsp brief list is server-rendered
+    and pollable; the map/grade view may require form POSTs. Mostly Traditional-Chinese UI. No captcha
+    seen; throttle and verify robots.txt before scheduled scraping.
+  slice: eastasia-dest
+  confidence: 0.95
+- id: mohre_approved_authorised_service_centres_tadbee
+  name: MoHRE — Approved / Authorised Service Centres (Tadbeer domestic-worker recruitment offices, UAE)
+  publisher: UAE Ministry of Human Resources and Emiratisation (MoHRE)
+  url: https://www.mohre.gov.ae/en/services/approved-services-centers.aspx
+  entity_types:
+  - recruitment_agency
+  - training_center
+  jurisdictions:
+  - AE
+  corridors:
+  - XX-AE
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: periodic (list updated as licences are granted/revoked)
+  access_notes: Real official MoHRE service confirmed across multiple sources (Tadbeer centres / licensed
+    domestic-worker recruitment offices, ~136 centres across the seven emirates with per-emirate breakdown).
+    Direct fetch returned ECONNREFUSED — mohre.gov.ae actively blocks automated/non-browser clients (WAF/geo).
+    Verify the exact live slug in a real browser; the .aspx path is the documented services-centres location.
+  robots_or_tos_notes: Server refuses automated connections (ECONNREFUSED/WAF). Not crawlable without
+    a real browser session; do not hammer. monitor_eligible=false.
+  slice: gulf-dest
+  confidence: 0.78
+- id: mohre_main_portal_company_permit_enquiry_service
+  name: MoHRE — Main Portal & Company/Permit Enquiry Services (UAE)
+  publisher: UAE Ministry of Human Resources and Emiratisation (MoHRE)
+  url: https://www.mohre.gov.ae/en/home.aspx
+  entity_types:
+  - regulator
+  - employer
+  - recruitment_agency
+  jurisdictions:
+  - AE
+  corridors:
+  - XX-AE
+  access_tier: manual
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: continuous
+  access_notes: Official UAE labour regulator. Home/enquiry services let users verify establishment permits
+    and authorised recruitment entities. Direct fetch returned ECONNREFUSED (same WAF block as the service-centres
+    page). Included as the regulator anchor + permit-verification entry point; specific enquiry tools
+    require interactive input.
+  robots_or_tos_notes: Automated access refused (ECONNREFUSED). Browser-only.
+  slice: gulf-dest
+  confidence: 0.72
+- id: bahrain_lmra_approved_labour_registration_centre
+  name: Bahrain LMRA — Approved Labour Registration Centres
+  publisher: Labour Market Regulatory Authority (LMRA), Bahrain
+  url: https://lmra.gov.bh/en/page/show/423
+  entity_types:
+  - recruitment_agency
+  - training_center
+  jurisdictions:
+  - BH
+  corridors:
+  - XX-BH
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: periodic
+  access_notes: Official LMRA page listing approved Labour Registration Centres (flexi/registered-worker
+    permit processing). Surfaced directly in LMRA search results alongside the employment-offices list.
+    Not fetched individually, but same host (lmra.gov.bh) returned 403 to automated clients on the sibling
+    page, so treat as browser-only. Complements the employment-offices list for the Bahrain intake network.
+  robots_or_tos_notes: Same anti-bot 403 behaviour as the LMRA employment-offices page. monitor_eligible=false.
+  slice: gulf-dest
+  confidence: 0.72
+- id: bahrain_lmra_list_of_approved_manpower_employmen
+  name: Bahrain LMRA — List of Approved (Manpower) Employment Offices
+  publisher: Labour Market Regulatory Authority (LMRA), Bahrain
+  url: https://lmra.gov.bh/en/page/show/318
+  entity_types:
+  - recruitment_agency
+  - broker
+  jurisdictions:
+  - BH
+  corridors:
+  - XX-BH
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: periodic (page stamped with last-updated date; recent 04/05/2026)
+  access_notes: Confirmed via search as the official LMRA page listing compliant manpower/employment offices
+    (list noted updated 04/05/2026), with a companion downloadable 'Approved Employment Offices' PDF (lmra.gov.bh/files/cms/shared/file/Approved%20Employment%20OfficesENG.pdf).
+    Direct fetch returned HTTP 403 Forbidden — LMRA blocks non-browser clients. Real and public to humans,
+    but not bot-accessible; verify/download in a browser.
+  robots_or_tos_notes: Returns 403 to automated fetchers (anti-bot). monitor_eligible=false. PDF companion
+    exists but same host likely blocks bots.
+  slice: gulf-dest
+  confidence: 0.8
+- id: public_authority_for_manpower_pam_kuwait_labour_
+  name: Public Authority for Manpower (PAM) — Kuwait Labour/Manpower Portal
+  publisher: Public Authority for Manpower (PAM), Kuwait
+  url: https://www.manpower.gov.kw/
+  entity_types:
+  - recruitment_agency
+  - regulator
+  - employer
+  jurisdictions:
+  - KW
+  corridors:
+  - XX-KW
+  access_tier: manual
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: continuous
+  access_notes: PAM (manpower.gov.kw; e-services at e-portal.manpower.gov.kw) is the government authority
+    that licenses and links all domestic-worker and manpower recruitment offices in Kuwait (registered
+    offices recently ~448–488 per local press). Agency verification is via PAM registration number through
+    PAM's system; there is no confirmed open public HTML directory of offices — verification is account/lookup
+    based. Hotline 103. Did not fetch (no open directory endpoint to confirm).
+  robots_or_tos_notes: Services via e-portal; no confirmed public office directory page. Treat as manual
+    lookup; not crawlable.
+  slice: gulf-dest
+  confidence: 0.68
+- id: oman_ministry_of_labour_manpower_recruitment_off
+  name: Oman Ministry of Labour — Manpower / Recruitment Offices (Government Portal)
+  publisher: Ministry of Labour, Sultanate of Oman (via Oman e-Government Portal)
+  url: https://omanportal.gov.om/wps/wcm/connect/en/site/home/gov/gov1/gov5governmentorganizations/manpower/manpower
+  entity_types:
+  - recruitment_agency
+  - regulator
+  - broker
+  jurisdictions:
+  - OM
+  corridors:
+  - XX-OM
+  access_tier: manual
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: periodic
+  access_notes: Official Oman government entry point for the Ministry of Labour, which licenses and inspects
+    foreign-worker recruitment agencies (Foreign Workers Recruitment Agencies Section; agencies carry
+    MoL licence numbers, e.g. 'license no.343'). No single consolidated public HTML directory of all licensed
+    offices was locatable this session — verification is via the Ministry's e-services/inspection function.
+    An Association of Expatriate Worker Recruitment Offices also exists for self-regulation. Did not fetch
+    the deep portal path (WebSphere portal, JS/session-heavy).
+  robots_or_tos_notes: WebSphere portal (session/JS heavy); no confirmed open directory file. Manual lookup;
+    not crawlable. monitor_eligible=false.
+  slice: gulf-dest
+  confidence: 0.6
+- id: qatar_ministry_of_labour_licensed_recruitment_of
+  name: Qatar Ministry of Labour — Licensed Recruitment Offices
+  publisher: Qatar Ministry of Labour (formerly ADLSA/MADLSA)
+  url: https://www.mol.gov.qa/en/
+  entity_types:
+  - recruitment_agency
+  - broker
+  - regulator
+  jurisdictions:
+  - QA
+  corridors:
+  - XX-QA
+  access_tier: manual
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: periodic (re-published when revised; last noted Dec 2024)
+  access_notes: 'Confirmed via multiple sources (The Peninsula, ILoveQatar): the Ministry of Labour issues
+    and periodically updates an official list of licensed recruitment offices for domestic workers (latest
+    reissue 25 Dec 2024) and warns against unlicensed offices. Direct fetch of mol.gov.qa returned ECONNREFUSED
+    (WAF/geo block). The list is typically published as a downloadable document/announcement rather than
+    a stable HTML directory; locate the current PDF/announcement from the portal in-browser. Hotline 16008;
+    info@adlsa.gov.qa.'
+  robots_or_tos_notes: Server refuses automated connections (ECONNREFUSED). List distributed as periodic
+    document, not a live crawlable page. monitor_eligible=false.
+  slice: gulf-dest
+  confidence: 0.72
+- id: musaned_licensed_recruitment_offices_marketplace
+  name: Musaned — Licensed Recruitment Offices Marketplace (Saudi Arabia)
+  publisher: Saudi Ministry of Human Resources and Social Development (HRSD)
+  url: https://musaned.com.sa/en/marketplace
+  entity_types:
+  - recruitment_agency
+  - broker
+  jurisdictions:
+  - SA
+  corridors:
+  - XX-SA
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: true
+  update_frequency: continuous (live licensing registry)
+  access_notes: 'Fetched and confirmed: official HRSD government domestic-labour platform showing a ''List
+    of licensed recruitment offices and companies'' with name + arrival-city filter + sort. Basic browse
+    is public (Sign In only for transactions). Listings are JavaScript-populated, so a plain HTTP freshness
+    checker sees the shell template, not the office rows — hence monitor_eligible=false without a JS-rendering
+    fetcher.'
+  robots_or_tos_notes: Government portal; office data rendered client-side. No login for browsing. Treat
+    as JS-rendered, rate-limit politely; verify robots.txt before any automated scrape.
+  slice: gulf-dest
+  confidence: 0.9
+- id: qiwa_saudi_labour_establishment_platform
+  name: Qiwa — Saudi Labour/Establishment Platform
+  publisher: Saudi Ministry of Human Resources and Social Development (HRSD)
+  url: https://qiwa.sa/en/services
+  entity_types:
+  - employer
+  - recruitment_agency
+  - regulator
+  jurisdictions:
+  - SA
+  corridors:
+  - XX-SA
+  access_tier: manual
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: continuous
+  access_notes: Search-corroborated as the official HRSD workforce platform (issues work visas, employment
+    contracts, establishment compliance, license renewals; 14.5M+ users). Establishment/license verification
+    services are login-gated (employer/employee accounts) — there is no open public directory page, so
+    it is a manual/lookup source rather than a crawlable registry. Did not fetch a service page (auth
+    wall).
+  robots_or_tos_notes: Authenticated services behind login; not a public directory. Automated access not
+    appropriate.
+  slice: gulf-dest
+  confidence: 0.7
+- id: wafid_gcc_approved_medical_centres_former_gamca_
+  name: Wafid (GCC Approved Medical Centres / former GAMCA) — Official Portal & Medical Centers List
+  publisher: Gulf Health Council (GHC)
+  url: https://wafid.com/
+  entity_types:
+  - medical_clinic
+  jurisdictions:
+  - SA
+  - AE
+  - QA
+  - KW
+  - BH
+  - OM
+  corridors:
+  - XX-SA
+  - XX-AE
+  - XX-QA
+  - XX-KW
+  - XX-BH
+  - XX-OM
+  access_tier: freemium
+  official: true
+  monitor_eligible: false
+  url_verified: true
+  update_frequency: continuous (accreditation status live)
+  access_notes: 'Fetched and confirmed: official Gulf Health Council portal (footer ''© 2026 Gulf Health
+    Council''). It exposes a ''Medical Centers List'' and a centre-accreditation status check covering
+    the pre-departure GCC medical exam network (Saudi Arabia, Kuwait, UAE, Oman, Qatar, Bahrain). Booking
+    has a Login; the centres directory itself is browsable. NOTE: I could not confirm the exact deep-link
+    path to the centres list — tried /medical-centers/, /medical-center-list/, /medical-center-finder/
+    which all 404 to a bot; the list is reachable from the root in-browser. Many wafid* lookalike domains
+    (wafidindia.'
+  robots_or_tos_notes: Root verified; deep centre-list paths 404 to automated fetchers (likely a single-page
+    app / different internal route). Confirm the live list URL in a browser before any automation; do
+    not rely on the lookalike third-party domains.
+  slice: gulf-dest
+  confidence: 0.82
+- id: bmet_technical_training_centres_ttc_network_bang
+  name: BMET Technical Training Centres (TTC) network — Bangladesh
+  publisher: Bureau of Manpower, Employment and Training (BMET), Ministry of Expatriates' Welfare, Bangladesh
+  url: https://www.bmet.gov.bd/
+  entity_types:
+  - training_center
+  - regulator
+  jurisdictions:
+  - Bangladesh
+  corridors:
+  - BD-SA
+  - BD-AE
+  - BD-QA
+  - BD-KW
+  - BD-MY
+  - BD-OM
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: unknown
+  access_notes: NOT verified this session due to a TLS error ('unable to verify the first certificate')
+    on www.bmet.gov.bd and HTTP 403 on a guessed deep path. Public/secondary sources confirm BMET operates
+    104 named Technical Training Centres (TTCs) plus 6 Institutes of Marine Technology delivering migrant-worker
+    skills training; BMET is the official regulator and the authoritative source for the TTC list. The
+    exact public directory URL on bmet.gov.bd needs confirmation once the cert/WAF issue is bypassed.
+  robots_or_tos_notes: Government site presented a TLS certificate-chain problem to the fetcher and a
+    WAF 403 on a deep path; needs a browser with proper CA bundle to verify. monitor_eligible=false until
+    a stable, fetchable named-list URL is confirmed.
+  slice: medical-training
+  confidence: 0.6
+- id: gamca_dhaka_gcc_approved_medical_centres_associa
+  name: GAMCA Dhaka — GCC Approved Medical Centres' Association (Bangladesh) directory
+  publisher: GCC Approved Medical Centres' Association (GAMCA), Dhaka, Bangladesh
+  url: https://gamca-bd.org/index.php?cat_id=9
+  entity_types:
+  - medical_clinic
+  jurisdictions:
+  - Bangladesh
+  corridors:
+  - BD-SA
+  - BD-AE
+  - BD-QA
+  - BD-KW
+  - BD-OM
+  - BD-BH
+  access_tier: free
+  official: false
+  monitor_eligible: true
+  url_verified: true
+  update_frequency: unknown (members added with GCC codes over time)
+  access_notes: 'Fetched and confirmed this session: national association directory of 46 named GAMCA-approved
+    medical/diagnostic centres in Dhaka, each with address, contact, website, and managing director/proprietor
+    name, plus GCC member codes. Complements the global Wafid portal with Bangladesh-specific named centres.
+    official=false (industry association, not a government regulator); cross-check named centres against
+    the official Wafid search for current approval status.'
+  robots_or_tos_notes: Static listing, no login observed. Confirm robots.txt before scheduling. Treat
+    as a secondary/corroborating source to the official Wafid directory.
+  slice: medical-training
+  confidence: 0.82
+- id: wafid_gcc_approved_medical_centres_directory
+  name: Wafid (GCC) Approved Medical Centres Directory
+  publisher: Gulf Health Council (Wafid)
+  url: https://wafid.com/en/medical-center/search/
+  entity_types:
+  - medical_clinic
+  - regulator
+  jurisdictions:
+  - GCC
+  - Saudi Arabia
+  - UAE
+  - Qatar
+  - Kuwait
+  - Oman
+  - Bahrain
+  - India
+  - Bangladesh
+  - Pakistan
+  - Nepal
+  - Sri Lanka
+  - Philippines
+  corridors:
+  - '*-SA'
+  - '*-AE'
+  - '*-QA'
+  - '*-KW'
+  - '*-OM'
+  - '*-BH'
+  access_tier: free
+  official: true
+  monitor_eligible: true
+  url_verified: true
+  update_frequency: unknown (live portal; centres added/removed continuously)
+  access_notes: 'Fetched and confirmed this session: searchable table of 875 named GCC-approved medical
+    centres. Filters by Country (40+), City (100+), and Medical center name. Returns name, country/city,
+    address lines, phone, email, website, rating. No login or captcha to search. This is THE canonical
+    global directory of approved pre-deployment medical clinics for GCC-bound migrant workers (the official
+    replacement for the legacy GAMCA system).'
+  robots_or_tos_notes: Public search with no auth/captcha observed. Server-rendered table (DataTables-style
+    pagination). Verify /robots.txt before scheduling automated polling; keep request rate low and only
+    hit the public search endpoint.
+  slice: medical-training
+  confidence: 0.97
+- id: iom_migration_health_assessment_centres_mhac_dir
+  name: IOM Migration Health Assessment Centres (MHAC) Directory
+  publisher: International Organization for Migration (IOM / UN Migration)
+  url: https://healthcentres.iom.int/migration-health-assessment-centres
+  entity_types:
+  - medical_clinic
+  jurisdictions:
+  - Global
+  corridors:
+  - '*-CA'
+  - '*-AU'
+  - '*-GB'
+  - '*-US'
+  - '*-NZ'
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: unknown
+  access_notes: 'NOT directly verified this session: healthcentres.iom.int returned HTTP 403 (Forbidden)
+    to WebFetch on both the directory path and the homepage, indicating a WAF/bot block rather than a
+    missing page. Search-result metadata and IOM''s own descriptions confirm IOM operates a network of
+    ~75 named Migration Health Assessment Centres plus ~300 partner facilities across 50+ countries, browsable
+    by country on this site. This is the authoritative IGO directory for IOM-run pre-migration/resettlement
+    medicals (distinct from the GCC/Wafid system, which covers Gulf-bound labour migrants).'
+  robots_or_tos_notes: WAF blocks plain automated GET (403). A real browser/User-Agent likely renders
+    it; not eligible for the simple unauthenticated daily checker as-is. Re-verify with a headless browser
+    before relying on it; do not set url_verified=true until a successful fetch.
+  slice: medical-training
+  confidence: 0.7
+- id: nepal_government_approved_medical_institutions_l
+  name: Nepal Government-Approved Medical Institutions List (foreign-employment medicals)
+  publisher: Nepal Health Professional Federation (NHPF) — list per Ministry of Health & Population approval
+  url: https://nepalhpf.org.np/government-approved-medical-list/
+  entity_types:
+  - medical_clinic
+  jurisdictions:
+  - Nepal
+  corridors:
+  - NP-*
+  - NP-MY
+  - NP-SA
+  - NP-QA
+  - NP-AE
+  - NP-KW
+  access_tier: free
+  official: false
+  monitor_eligible: true
+  url_verified: true
+  update_frequency: periodic (renewed against MoHP-approved list; ~194 renewed of ~284 listed)
+  access_notes: 'Fetched and confirmed this session: static HTML table of 284 named government-approved
+    medical institutions (registration number, institution name, address) across Nepal that perform foreign-employment
+    medical checks and issue NHPF hologram-affixed reports. NHPF is the professional federation that affixes
+    the hologram; the underlying approval is from the Ministry of Health & Population. Marked official=false
+    because NHPF is a federation, not the government ministry, though the list is the de-facto public
+    reference.'
+  robots_or_tos_notes: Plain static table, no login/captcha — well suited to automated freshness checks.
+    Confirm site robots.txt. Note a March 2026 policy change broadened eligible institutions to any government-recognized
+    hospital, so the canonical list may shift to a ministry source over time.
+  slice: medical-training
+  confidence: 0.88
+- id: tesda_assessment_certification_registry_of_accre
+  name: TESDA Assessment & Certification — Registry of Accredited Assessment Centers / Assessors / Certified
+    Workers
+  publisher: Technical Education and Skills Development Authority (TESDA), Philippines
+  url: https://www.tesda.gov.ph/About/TESDA/25
+  entity_types:
+  - training_center
+  - regulator
+  jurisdictions:
+  - Philippines
+  corridors:
+  - PH-*
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: true
+  update_frequency: unknown
+  access_notes: 'Fetched and confirmed this session: hub page linking the online-verification registries
+    — Accredited Assessment Centers (/AssessmentCenters), Accredited Assessors (/CA), and Certified Workers
+    (/Rwac/Rwac2017, /rwac). The /AssessmentCenters and /CA landing pages render as stubs/nav shells to
+    WebFetch (content likely loaded client-side), so the live named lists were not directly captured this
+    session. ~2,669 accredited assessment centers are reported to exist in the registry. Use this as the
+    authoritative entry point; the named-center tables appear to require JS rendering.'
+  robots_or_tos_notes: Public, no login. Underlying registry pages appear JS-rendered (DataTables) so
+    a headless browser is likely needed to extract named rows. monitor_eligible=false because the hub
+    URL itself is not the named-list endpoint and the list endpoints did not return content to a plain
+    fetch.
+  slice: medical-training
+  confidence: 0.85
+- id: tesda_registry_of_tvet_institutions_with_registe
+  name: TESDA Registry of TVET Institutions with Registered Programs (TVI search)
+  publisher: Technical Education and Skills Development Authority (TESDA), Philippines
+  url: https://www.tesda.gov.ph/Tvi
+  entity_types:
+  - training_center
+  - regulator
+  jurisdictions:
+  - Philippines
+  corridors:
+  - PH-*
+  access_tier: free
+  official: true
+  monitor_eligible: true
+  url_verified: true
+  update_frequency: unknown (live government verification registry)
+  access_notes: 'Fetched and confirmed this session: official searchable directory to verify TVET institutions
+    (TVIs) with TESDA-registered programs/courses. Filters by Course, School, and Location; returns named
+    training centers with their registered programs. Core registry for accredited Philippine skills-training/assessment
+    providers feeding overseas-worker certification.'
+  robots_or_tos_notes: Public government verification tool, no login. Results render via a search interface
+    (likely server-side, possibly AJAX). Confirm robots.txt/rate limits before automated polling.
+  slice: medical-training
+  confidence: 0.93
+- id: sri_lanka_bureau_of_foreign_employment_slbfe_tra
+  name: Sri Lanka Bureau of Foreign Employment (SLBFE) — Training Division / pre-departure training
+  publisher: Sri Lanka Bureau of Foreign Employment (SLBFE)
+  url: https://www.slbfe.lk/
+  entity_types:
+  - training_center
+  - regulator
+  jurisdictions:
+  - Sri Lanka
+  corridors:
+  - LK-SA
+  - LK-AE
+  - LK-QA
+  - LK-KW
+  - LK-OM
+  - LK-BH
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: unknown
+  access_notes: 'NOT fully verified this session: the SLBFE homepage resolves (seen in search results)
+    but the specific Training Division subpage I attempted (page.php?LID=1&MID=181) returned HTTP 404,
+    so the exact named-training-centre directory URL was not confirmed. SLBFE is the official regulator
+    that runs mandatory pre-departure training and issues the SLBFE training certificate; named centres/programmes
+    exist but the canonical public list URL needs to be re-located (site uses page.php?LID=&MID= IDs that
+    change). Include as the authoritative regulator entry point pending a confirmed directory URL.'
+  robots_or_tos_notes: Government site with ID-based query URLs that are unstable/easily 404. Re-crawl
+    the site nav to find the live Training-centre list page before treating any deep URL as stable. monitor_eligible=false
+    until a stable named-list URL is confirmed.
+  slice: medical-training
+  confidence: 0.6
+- id: dmw_1348_ofw_hotline_main_contact_directory
+  name: DMW 1348 OFW Hotline & main contact directory
+  publisher: Department of Migrant Workers (DMW), Republic of the Philippines
+  url: https://dmw.gov.ph/contact-us
+  entity_types:
+  - hotline
+  - regulator
+  jurisdictions:
+  - PH
+  corridors:
+  - PH-*
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: rarely (stable hotline number)
+  access_notes: DMW's primary 24/7 OFW assistance hotline is 1348 (callable within the Philippines) for
+    reporting illegal recruitment and distress cases; the agency also publishes regional extension-unit
+    numbers (e.g., DMW REU IX 24/7 hotline 0919-067-4047). The contact-us URL is the standard DMW path;
+    not directly fetch-confirmed this session and likely the same JS-shell as other DMW pages, but the
+    1348 hotline number itself is well-established in official DMW/PIA communications.
+  robots_or_tos_notes: Hotline is a phone number, not a scrapable dataset; the contact page is JS-rendered.
+    Use for the stable 1348 number rather than for automated monitoring.
+  slice: ph-origin
+  confidence: 0.8
+- id: dmw_advisories_issuances_illegal_recruiters_blac
+  name: DMW Advisories / Issuances (illegal recruiters, blacklist, cancelled/suspended notices)
+  publisher: Department of Migrant Workers (DMW), Republic of the Philippines
+  url: https://dmw.gov.ph/archives/v1/issuances/advisories
+  entity_types:
+  - sanctioned_entity
+  - recruitment_agency
+  - regulator
+  jurisdictions:
+  - PH
+  corridors:
+  - PH-*
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: as advisories are issued (irregular; multiple per month during enforcement waves)
+  access_notes: Official DMW advisories/issuances archive — the channel where DMW publishes public advisories
+    on online/illegal recruitment, names of blacklisted local and foreign agencies, and suspension/cancellation/closure
+    orders. DMW publicly committed to publishing names of illegal recruiters. URL surfaced and corroborated
+    via search (DMW archive path) but not directly fetch-confirmed this session; likely the same JS-shell
+    behaviour as other DMW pages. A second legacy advisories path also exists at dmw.gov.ph/archives/poea/advisories/advisories.html.
+  robots_or_tos_notes: Expected JS-rendered like the rest of dmw.gov.ph; advisories are also issued as
+    individual PDFs. No login/captcha expected. Verify rendering before automating.
+  slice: ph-origin
+  confidence: 0.7
+- id: dmw_licensed_recruitment_agencies_inquiry_land_b
+  name: DMW Licensed Recruitment Agencies inquiry (land-based)
+  publisher: Department of Migrant Workers (DMW), Republic of the Philippines
+  url: https://dmw.gov.ph/inquiry/licensed-recruitment-agencies
+  entity_types:
+  - recruitment_agency
+  - regulator
+  jurisdictions:
+  - PH
+  corridors:
+  - PH-*
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: true
+  update_frequency: continuous (DMW states ~every 2 hours)
+  access_notes: 'Canonical official DMW search/directory for land-based licensed recruitment (manpower)
+    agencies; returns agency name, classification, license status (Valid/Suspended/Cancelled/Delisted/Expired),
+    status date, expiry, address. DMW states the data updates every ~2 hours. Confirmed live this session
+    but the page is a JavaScript single-page app: a plain HTTP GET returns only a ''Page Loading Error
+    / Loading...'' shell, so the agency table is NOT in the static HTML.'
+  robots_or_tos_notes: JS-rendered SPA — requires a headless browser (or the page's backend JSON/XHR endpoint)
+    to extract listings; a simple fetcher sees only the loading shell. No login or captcha observed. Treat
+    automated scraping cautiously and respect rate limits; the rendered-content requirement makes naive
+    monitoring unreliable.
+  slice: ph-origin
+  confidence: 0.95
+- id: dmw_migrant_workers_office_mwo_polo_directory_ju
+  name: DMW Migrant Workers Office (MWO/POLO) Directory & Jurisdiction
+  publisher: Department of Migrant Workers (DMW), Republic of the Philippines
+  url: https://dmw.gov.ph/archives/v1/resources/dsms/DMW/MWO-Directory-and-Jurisdiction-as-of-09-October-2025.pdf
+  entity_types:
+  - regulator
+  - hotline
+  jurisdictions:
+  - PH
+  - AE
+  - HK
+  - SG
+  - SA
+  - KW
+  - QA
+  - JP
+  - KR
+  - TW
+  - IT
+  - GB
+  corridors:
+  - PH-*
+  access_tier: free
+  official: true
+  monitor_eligible: true
+  url_verified: true
+  update_frequency: periodic reissue (this snapshot 2025-10-09)
+  access_notes: Official DMW-hosted directory PDF of Migrant Workers Offices (formerly POLO — Philippine
+    Overseas Labor Offices) abroad with their host-country jurisdictions and (per the directory) contact
+    details; dated 09 October 2025. Fetched this session — confirmed an 82KB PDF on the official dmw.gov.ph
+    domain (it is a Google-Sheets export, but it is genuinely hosted under dmw.gov.ph/archives, so it
+    is an official DMW publication). MWOs are the DMW's overseas operating arms for OFW assistance.
+  robots_or_tos_notes: Static PDF on the official government domain — downloadable, no login/JS/captcha.
+    Dated filename means the URL rotates on each reissue; a checker should watch the parent directory
+    for the newest dated file.
+  slice: ph-origin
+  confidence: 0.85
+- id: dmw_poea_accredited_medical_facilities_for_overs
+  name: DMW/POEA Accredited Medical Facilities for Overseas Workers & Seafarers (MFOWS list)
+  publisher: Department of Migrant Workers (DMW) / Department of Health (DOH), Republic of the Philippines
+  url: https://dmw.gov.ph/archives/poea/clinic/1.pdf
+  entity_types:
+  - medical_clinic
+  - regulator
+  jurisdictions:
+  - PH
+  corridors:
+  - PH-*
+  access_tier: free
+  official: true
+  monitor_eligible: true
+  url_verified: true
+  update_frequency: periodic reissue (observed snapshots ~2021–2023)
+  access_notes: Official DMW-hosted PDF list of accredited medical clinics/facilities conducting pre-employment/pre-deployment
+    medical exams (PEME) for OFWs and seafarers; columns are Region / Clinic Name / Classification / Province
+    / City / Complete Address. Fetched this session — confirmed a 12-page Excel-exported PDF on the official
+    dmw.gov.ph domain (~167 clinics nationwide per public reporting). Content is image/Flate-compressed
+    so the table text did not extract cleanly, but the file is genuine and downloads from the official
+    domain. MARINA's STCW portal mirrors a parallel MFOWS list (stcw.marina.gov.ph/
+  robots_or_tos_notes: Static PDF on the official government domain — directly downloadable, no login/JS/captcha.
+    Stable path; good for a freshness checker (watch for filename/date changes). Periodically reissued,
+    so the exact PDF path may rotate.
+  slice: ph-origin
+  confidence: 0.85
+- id: dmw_poea_licensed_land_based_recruitment_agencie
+  name: DMW/POEA licensed land-based recruitment agencies (legacy archive entry)
+  publisher: Department of Migrant Workers (DMW) / former Philippine Overseas Employment Administration
+    (POEA)
+  url: https://dmw.gov.ph/archives/agency/landbased.html
+  entity_types:
+  - recruitment_agency
+  - regulator
+  jurisdictions:
+  - PH
+  corridors:
+  - PH-*
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: true
+  update_frequency: unknown (mirrors the live inquiry dataset)
+  access_notes: Legacy POEA land-based agency listing path retained under the DMW archives subtree. Verified
+    live this session but, like the main inquiry page, it now renders the same JS loading shell rather
+    than a static table. Kept as a secondary/back-reference to the canonical inquiry URL above.
+  robots_or_tos_notes: JS-rendered; static fetch returns a loading-error placeholder. No login/captcha
+    seen. Not suitable for naive automated monitoring without a headless renderer.
+  slice: ph-origin
+  confidence: 0.8
+- id: marina_stcw_accredited_medical_facilities_for_se
+  name: MARINA STCW Accredited Medical Facilities for Seafarers (MFOWS)
+  publisher: Maritime Industry Authority (MARINA) STCW Office, Republic of the Philippines
+  url: https://stcw.marina.gov.ph/wp-content/uploads/2016/02/MFOWS-as-of-March-2023-2-1.pdf
+  entity_types:
+  - medical_clinic
+  - regulator
+  jurisdictions:
+  - PH
+  corridors:
+  - PH-MARITIME
+  access_tier: free
+  official: true
+  monitor_eligible: true
+  url_verified: false
+  update_frequency: periodic reissue
+  access_notes: Official MARINA STCW-portal PDF of accredited medical facilities for seafarers (Medical
+    Facilities for Overseas Workers and Seafarers). Surfaced via search on the official marina.gov.ph
+    / stcw.marina.gov.ph domain; not directly fetch-confirmed this session. Complements the DMW MFOWS
+    list for the seabased corridor.
+  robots_or_tos_notes: Static PDF on official MARINA domain — downloadable without login/JS. Dated snapshot
+    (March 2023) in the path, so URL may rotate on reissue; verify before relying on it long-term.
+  slice: ph-origin
+  confidence: 0.6
+- id: owwa_regional_welfare_offices_pdos_peos_provider
+  name: OWWA Regional Welfare Offices & PDOS/PEOS provider accreditation
+  publisher: Overseas Workers Welfare Administration (OWWA), Republic of the Philippines
+  url: https://owwa.gov.ph/
+  entity_types:
+  - training_center
+  - regulator
+  - hotline
+  jurisdictions:
+  - PH
+  corridors:
+  - PH-*
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: unknown
+  access_notes: 'OWWA is the official accreditor of Pre-Departure Orientation Seminar (PDOS) and Pre-Employment
+    Orientation Seminar (PEOS) providers (recruitment/manning agencies, industry associations, NGOs) and
+    runs the welfare/training programs for departing OFWs; its regional welfare offices co-locate with
+    DMW. Listed as the authoritative starting point for PDOS/PEOS training-center accreditation. NOTE:
+    a comprehensive single public list of all accredited PDOS/PEOS providers was NOT found as a downloadable
+    dataset this session — providers are accredited case-by-case and PEOS is largely delivered via the
+    pe'
+  robots_or_tos_notes: Government homepage/portal; no consolidated machine-readable provider list located.
+    Likely JS elements. No login/captcha for public pages. Not a clean monitor target until a specific
+    provider-list URL is identified.
+  slice: ph-origin
+  confidence: 0.55
+- id: tesda_accredited_training_institutions_programs_
+  name: TESDA Accredited Training Institutions / Programs Registry (UTPRAS)
+  publisher: Technical Education and Skills Development Authority (TESDA), Republic of the Philippines
+  url: https://www.tesda.gov.ph/Tvi/Tvprsearch
+  entity_types:
+  - training_center
+  - regulator
+  jurisdictions:
+  - PH
+  corridors:
+  - PH-*
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: continuous (registry updated as institutions are accredited)
+  access_notes: TESDA's UTPRAS (Unified TVET Program Registration and Accreditation System) is the official
+    registry of accredited technical-vocational training institutions and registered programs (e.g., the
+    skills-training centres that certify OFW-bound workers such as caregivers, seafarer support, welders).
+    The Tvprsearch path is TESDA's public program/institution search. Included because pre-deployment
+    skills training is partly delivered by TESDA-accredited centres alongside OWWA PDOS/PEOS. URL pattern
+    not fetch-confirmed this session; verify exact search path on tesda.gov.ph.
+  robots_or_tos_notes: Public government search; likely server-rendered but may use forms/ASP postbacks
+    — verify before automating. No login expected; possible rate limiting. Confirm robots.txt on tesda.gov.ph
+    before any monitoring.
+  slice: ph-origin
+  confidence: 0.5
+- id: eu_consolidated_list_of_persons_groups_and_entit
+  name: EU Consolidated List of Persons, Groups and Entities Subject to EU Financial Sanctions (FSF)
+  publisher: European Commission (DG FISMA) — Financial Sanctions Files, via the EU Open Data Portal
+  url: https://data.europa.eu/data/datasets/consolidated-list-of-persons-groups-and-entities-subject-to-eu-financial-sanctions?locale=en
+  entity_types:
+  - sanctioned_entity
+  jurisdictions:
+  - EU
+  - global
+  corridors: []
+  access_tier: freemium
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: Updated on each EU restrictive-measure regulation (frequent)
+  access_notes: 'Could NOT fully verify this session: the data.europa.eu dataset page is a JS-rendered
+    SPA that returned only its title to the fetcher (no distribution detail), so url_verified=false. Well-documented
+    elsewhere: the EU consolidated financial-sanctions list (asset-freeze targets across all EU sanctions
+    regimes) is published by the Commission''s FSF platform. The bulk data download from the FSF system
+    (webgate.ec.europa.eu/europeaid/fsd/fsf) requires a free ''EU Login'' token appended to the URL; hence
+    access_tier=freemium and monitor_eligible=false (login/token gate). The Open Data Portal record its'
+  robots_or_tos_notes: Open-data licensed, but the machine-readable bulk file historically requires an
+    EU Login crypto-token query param (no human captcha, but a credential/token nonetheless), and the
+    portal page is client-side rendered. A monitor needs the tokenized FSF endpoint or a headless render.
+    OpenSanctions/data-basis mirror the same data if a no-auth feed is required.
+  slice: sanctions-watchlists
+  confidence: 0.78
+- id: eu_sanctions_map_official_consolidated_view_of_e
+  name: EU Sanctions Map (official consolidated view of EU restrictive measures)
+  publisher: European Commission / Council of the EU (operated for the EU)
+  url: https://www.sanctionsmap.eu/
+  entity_types:
+  - sanctioned_entity
+  jurisdictions:
+  - EU
+  - global
+  corridors: []
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: Updated alongside EU legal acts
+  access_notes: Not fetched this session (url_verified=false) — included as the official human-browsable
+    companion to the EU FSF data above, mapping every EU sanctions regime to its legal acts and listed
+    persons/entities. Useful as a corroborating EU source that does not require EU Login for browsing,
+    though its data is delivered via an internal JS API. Verify before relying on for automated extraction.
+  robots_or_tos_notes: Public, no login for the map UI, but fully JS-rendered with a private backing API
+    — naive HTML monitoring will not work; would need the underlying API or a headless browser. Treat
+    the FSF data file as the authoritative machine-readable feed.
+  slice: sanctions-watchlists
+  confidence: 0.7
+- id: cbp_withhold_release_orders_and_findings_forced_
+  name: CBP Withhold Release Orders and Findings (forced-labor import bans)
+  publisher: U.S. Customs and Border Protection (CBP), Forced Labor Division
+  url: https://www.cbp.gov/trade/forced-labor/withhold-release-orders-and-findings
+  entity_types:
+  - sanctioned_entity
+  - employer
+  - manning_agency
+  jurisdictions:
+  - US
+  - global
+  corridors: []
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: Per enforcement action (issued/modified/revoked ad hoc through the year)
+  access_notes: URL not fetched/confirmed this session (cbp.gov is in the same DHS family that 403'd the
+    fetcher), so url_verified=false. The Forced Labor program landing page (https://www.cbp.gov/trade/forced-labor)
+    was returned by search and is authoritative; this WRO/Findings subpage is the standard location for
+    the table of active Withhold Release Orders and Findings naming specific producers/vessels/manufacturers
+    whose goods are detained under 19 U.S.C. 1307. Verify the exact subpath before enabling a monitor.
+  robots_or_tos_notes: Public, no login. Automated access to cbp.gov can be UA-filtered; confirm exact
+    URL and robots before monitoring. Content is a named-entity table (good for entity extraction).
+  slice: sanctions-watchlists
+  confidence: 0.8
+- id: list_of_goods_produced_by_child_labor_or_forced_
+  name: List of Goods Produced by Child Labor or Forced Labor (TVPRA List)
+  publisher: U.S. Department of Labor, Bureau of International Labor Affairs (ILAB)
+  url: https://www.dol.gov/agencies/ilab/reports/child-labor/list-of-goods
+  entity_types:
+  - sanctioned_entity
+  jurisdictions:
+  - US
+  - global
+  corridors: []
+  access_tier: free
+  official: true
+  monitor_eligible: true
+  url_verified: false
+  update_frequency: Roughly biennial (notable editions 2020, 2022, 2024); next expected ~2026
+  access_notes: 'Could NOT fetch this session: dol.gov returned HTTP 403 to the automated fetcher (bot
+    filtering), so url_verified=false. Existence and content are well-corroborated by search results and
+    the Federal Register update notices: the 2024 edition lists 204 goods across 82 countries believed
+    produced by child/forced labor (country+good pairs, not company names). Authoritative HTML+PDF landing
+    page. This is a country/goods watchlist, not an entity registry — entity_types set to sanctioned_entity
+    as the closest enum fit (it flags implicated sectors/origins).'
+  robots_or_tos_notes: Public US-government report, no login/captcha for human browsers, but dol.gov 403s
+    common automated user-agents. A daily monitor likely needs a browser-like user-agent or the stable
+    PDF asset URLs (e.g. /sites/dolgov/files/ilab/.../2024-tvpra-list-of-goods.pdf). Respect robots/UA
+    expectations.
+  slice: sanctions-watchlists
+  confidence: 0.92
+- id: ofac_sdn_list_sdn_advanced_xml_data_gov_catalog_
+  name: OFAC SDN List — sdn_advanced.xml (data.gov catalog mirror)
+  publisher: U.S. Department of the Treasury, Office of Foreign Assets Control (OFAC) / data.gov
+  url: https://catalog.data.gov/dataset/specially-designated-nationals-sdn-and-blocked-persons-list
+  entity_types:
+  - sanctioned_entity
+  - employer
+  jurisdictions:
+  - US
+  - global
+  corridors: []
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: true
+  update_frequency: Stale legacy mirror (catalog metadata dated 2016); use SLS for current
+  access_notes: 'Verified: data.gov dataset record pointing to http://www.treasury.gov/ofac/downloads/sanctions/1.0/sdn_advanced.xml,
+    public access, no login. CAUTION: the catalog record''s ''last updated'' metadata reads 2016 and the
+    legacy treasury.gov download path is a stale mirror — prefer the live Sanctions List Service entry
+    above for current data. Listed here as a documented stdlib-friendly alternative reference, not as
+    the freshness anchor.'
+  robots_or_tos_notes: data.gov is public, crawler-friendly, no login. monitor_eligible=false only because
+    this mirror is stale/superseded, not because of access restrictions.
+  slice: sanctions-watchlists
+  confidence: 0.85
+- id: ofac_specially_designated_nationals_sdn_consolid
+  name: OFAC Specially Designated Nationals (SDN) & Consolidated Sanctions List — Sanctions List Service
+  publisher: U.S. Department of the Treasury, Office of Foreign Assets Control (OFAC)
+  url: https://ofac.treasury.gov/sanctions-list-service
+  entity_types:
+  - sanctioned_entity
+  - employer
+  - broker
+  jurisdictions:
+  - US
+  - global
+  corridors: []
+  access_tier: free
+  official: true
+  monitor_eligible: true
+  url_verified: true
+  update_frequency: Updated on each OFAC sanctions action (often multiple times per week)
+  access_notes: 'Verified live this session: the SLS export endpoint (https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/SDN.XML)
+    302-redirects to a freshly published, dated (2026-06-10) SDN.XML on a US-gov S3 bucket. Canonical
+    machine-readable feed for OFAC sanctions. No login. Includes individuals and entities (companies,
+    vessels) blocked by US sanctions programs; many are front companies/employers/brokers.'
+  robots_or_tos_notes: Public US-government data, no copyright, intended for bulk download. The landing
+    page is HTML; stable export URLs (SDN.XML/CSV, consolidated) issue short-lived signed-S3 redirects,
+    so a monitor must follow the redirect rather than diff the signed URL. No captcha/login.
+  slice: sanctions-watchlists
+  confidence: 0.97
+- id: u_s_state_department_trafficking_in_persons_tip_
+  name: U.S. State Department Trafficking in Persons (TIP) Report — country tier rankings & narratives
+  publisher: U.S. Department of State, Office to Monitor and Combat Trafficking in Persons (J/TIP)
+  url: https://www.state.gov/reports/2025-trafficking-in-persons-report/
+  entity_types:
+  - regulator
+  - sanctioned_entity
+  jurisdictions:
+  - US
+  - global
+  corridors: []
+  access_tier: free
+  official: true
+  monitor_eligible: true
+  url_verified: false
+  update_frequency: Annual (typically mid-year)
+  access_notes: Attempted fetch this session returned garbled/encoded content (the page is heavy/asset-bundled),
+    so url_verified=false, but the URL pattern and existence are confirmed by search results (J/TIP annual
+    report; four-tier system Tier 1 / Tier 2 / Tier 2 Watch List / Tier 3; per-country narratives). This
+    is a government-effort assessment, not an entity registry — it ranks STATES, so entity_types uses
+    'regulator' (national governments as the assessed body) as the closest enum fit; Tier 3 placements
+    can trigger US sanctions. New edition published annually (~June/July); the 2026 RFI is already posted,
+  robots_or_tos_notes: Public US-government report, no login/captcha for humans; state.gov can return
+    bundled/encoded responses to simple fetchers. Monitoring the annual /reports/<year>-... URL pattern
+    (or the J/TIP releases index) is feasible with a browser-like client.
+  slice: sanctions-watchlists
+  confidence: 0.85
+- id: uflpa_entity_list_uyghur_forced_labor_prevention
+  name: UFLPA Entity List (Uyghur Forced Labor Prevention Act consolidated entity list)
+  publisher: U.S. Department of Homeland Security / Forced Labor Enforcement Task Force (FLETF)
+  url: https://www.dhs.gov/uflpa-entity-list
+  entity_types:
+  - sanctioned_entity
+  - employer
+  - manning_agency
+  jurisdictions:
+  - US
+  - CN
+  corridors:
+  - CN-XUAR
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: Periodic FLETF additions (several updates per year)
+  access_notes: 'Could NOT fetch this session: dhs.gov returned HTTP 403 to the automated fetcher, so
+    url_verified=false. Existence well-corroborated: official DHS page is the authoritative home of the
+    UFLPA Entity List (named companies whose goods carry a rebuttable presumption of forced-labor and
+    are barred from US import under 19 U.S.C. 1307; began with ~20 entities June 2022, expanded since).
+    Lists actual company names; also published in Federal Register appendices. Includes recruitment/labor-broker
+    entities that supply XUAR labor.'
+  robots_or_tos_notes: Public, no login/captcha for humans, but dhs.gov 403s automated user-agents — monitor_eligible=false
+    pending a working access method. Federal Register notices (federalregister.gov, which has a clean
+    public API) are a robust monitorable alternative for new additions.
+  slice: sanctions-watchlists
+  confidence: 0.9
+- id: united_nations_security_council_consolidated_san
+  name: United Nations Security Council Consolidated Sanctions List
+  publisher: United Nations Security Council (Secretariat / Sanctions Branch)
+  url: https://scsanctions.un.org/consolidated/
+  entity_types:
+  - sanctioned_entity
+  jurisdictions:
+  - global
+  corridors: []
+  access_tier: free
+  official: true
+  monitor_eligible: true
+  url_verified: true
+  update_frequency: Updated on each Security Council committee action (last update reported 21 May 2026)
+  access_notes: 'Verified live this session: scsanctions.un.org/consolidated/ 302-redirects to a public
+    Azure blob serving the consolidated list (HTML; XML/PDF also offered). Fetched the target and confirmed
+    real entries (e.g. QDi.232 Abdelmalek Droukdel/AQIM; TAi.024; SDi.008 RSF), generated 2026-06-12,
+    ~684 individuals + ~193 entities. No login. The canonical multilateral list aggregating all active
+    UNSC sanctions regimes.'
+  robots_or_tos_notes: Public UN data, no login/captcha. Download links issue short-lived signed-blob
+    redirects (SAS tokens), so a monitor must follow redirects from the stable scsanctions.un.org path
+    and not cache the signed URL. XML feed best for parsing.
+  slice: sanctions-watchlists
+  confidence: 0.96
+- id: world_bank_listing_of_ineligible_debarred_cross_
+  name: World Bank Listing of Ineligible (Debarred & Cross-Debarred) Firms and Individuals
+  publisher: The World Bank Group (Sanctions System / Office of Suspension and Debarment)
+  url: https://www.worldbank.org/en/projects-operations/procurement/debarred-firms
+  entity_types:
+  - sanctioned_entity
+  - employer
+  - broker
+  jurisdictions:
+  - global
+  corridors: []
+  access_tier: free
+  official: true
+  monitor_eligible: true
+  url_verified: true
+  update_frequency: Self-stated 'updates every 3 hours'
+  access_notes: 'Verified live this session: page renders Table 1 (Debarred & Cross-Debarred Firms & Individuals)
+    and Table 2 (Other Sanctions) with real names (e.g. ''TPF GETINSA EUROESTUDIOS S.L.'', ''Engr. Amin
+    Moussalli'') and a name-search box. No login. Covers firms/individuals barred from World Bank-financed
+    contracts for fraud/corruption; includes cross-debarments from ADB, AfDB, EBRD, IDB under the 2010
+    mutual-enforcement agreement.'
+  robots_or_tos_notes: Publicly accessible, no authentication. Page recommends Chrome and uses client-side
+    rendering/search, so a monitor may need a rendered fetch or the underlying data endpoint rather than
+    naive HTML diff. No captcha. Also downloadable as PDF.
+  slice: sanctions-watchlists
+  confidence: 0.96
+- id: bangladesh_oep_raims_recruiting_agents_informati
+  name: Bangladesh OEP RAIMS — Recruiting Agents' Information System (registry backend)
+  publisher: Bureau of Manpower, Employment and Training (BMET) / Overseas Employment Platform (OEP)
+  url: https://raims.oep.gov.bd/agencies
+  entity_types:
+  - recruitment_agency
+  - regulator
+  jurisdictions:
+  - BD
+  corridors:
+  - BD-SA
+  - BD-AE
+  - BD-MY
+  - BD-QA
+  - BD-OM
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: rolling
+  access_notes: RAIMS is the Recruiting Agents' Information System backing the BMET/OEP licensed-agency
+    directory (same registry as oep.gov.bd/agencies, which IS verified above). The raims.oep.gov.bd/agencies
+    endpoint failed this session with a TLS error ('unable to verify the first certificate') — an incomplete
+    certificate chain on that subdomain, not a missing site. Use the verified oep.gov.bd/agencies path
+    as the primary monitor target; included here so the RAIMS slug is recorded honestly as the alternate/backend.
+  robots_or_tos_notes: TLS chain incomplete on this subdomain (cert verification fails for strict clients);
+    a lenient client/browser still loads it. Prefer the www.oep.gov.bd/agencies host for automated checks.
+  slice: south-asia-origin
+  confidence: 0.83
+- id: bangladesh_oep_bmet_licensed_recruiting_agency_d
+  name: Bangladesh OEP — BMET-Licensed Recruiting Agency Directory (Agencies)
+  publisher: Overseas Employment Platform (OEP) / Bureau of Manpower, Employment and Training (BMET),
+    Ministry of Expatriates' Welfare and Overseas Employment
+  url: https://www.oep.gov.bd/agencies
+  entity_types:
+  - recruitment_agency
+  - regulator
+  jurisdictions:
+  - BD
+  corridors:
+  - BD-SA
+  - BD-AE
+  - BD-MY
+  - BD-QA
+  - BD-OM
+  - BD-KW
+  - BD-SG
+  access_tier: free
+  official: true
+  monitor_eligible: true
+  url_verified: true
+  update_frequency: rolling (licence status reflects current registry state)
+  access_notes: 'VERIFIED this session: public server-rendered HTML table of ~2,834 licensed recruiting
+    agents. Columns: SL, License No (RL-prefixed, e.g. RL2058), Agent Name, Address, Office Phone, License
+    Status (Active/Expired/Suspended/Cancelled), License Validity Date. No login required. The License
+    Status column doubles as the de-facto blacklist/suspension signal (Suspended/Cancelled values). Sister
+    path raims.oep.gov.bd/agencies (OEP RAIMS) returned a TLS chain error this session but is the same
+    registry backend.'
+  robots_or_tos_notes: No login or captcha encountered; static table in page source (good for diffing).
+    robots.txt not individually inspected this session — confirm before high-frequency polling; an Admin
+    Login link exists but does not gate the public directory.
+  slice: south-asia-origin
+  confidence: 0.96
+- id: indonesia_bp2mi_kp2mi_siskop2mi_licensed_p3mi_pl
+  name: Indonesia BP2MI/KP2MI SISKOP2MI — Licensed P3MI Placement Company List
+  publisher: Badan Pelindungan Pekerja Migran Indonesia (BP2MI) / Kementerian Pelindungan Pekerja Migran
+    Indonesia (KP2MI)
+  url: https://siskop2mi.bp2mi.go.id/profil/lembaga/list_lembaga/p3mi
+  entity_types:
+  - recruitment_agency
+  - regulator
+  jurisdictions:
+  - ID
+  corridors:
+  - ID-MY
+  - ID-SA
+  - ID-AE
+  - ID-SG
+  - ID-HK
+  - ID-TW
+  - ID-KR
+  access_tier: free
+  official: true
+  monitor_eligible: true
+  url_verified: true
+  update_frequency: rolling (reflects current BP2MI licensing state)
+  access_notes: 'VERIFIED this session: official SISKOP2MI directory of licensed P3MI (Perusahaan Penempatan
+    Pekerja Migran Indonesia) placement companies, operated by BP2MI under KP2MI. List view is public
+    (no login) and server-rendered: A–Z index of company names, each linking to a detail page (e.g. /profil/lembaga/detail/493/p3mi)
+    with fuller licence info. SISKOP2MI root (siskop2mi.bp2mi.go.id) also exposes vacancies (Lowongan),
+    selection results, and service-provider info. ILO/IOM are jointly developing a P3MI accreditation/grading
+    layer on top of this system.'
+  robots_or_tos_notes: Public list, login only required to apply for jobs. List page is static HTML (diff-friendly);
+    detail pages are per-ID. No captcha seen. Confirm robots.txt before crawling all detail pages; the
+    index page alone is light to poll.
+  slice: south-asia-origin
+  confidence: 0.92
+- id: india_mea_recruiting_agents_ras_registry_hub_act
+  name: India MEA — Recruiting Agents (RAs) Registry Hub (active/suspended RA lists)
+  publisher: Ministry of External Affairs (MEA), Government of India — eMigrate / Protector General of
+    Emigrants
+  url: https://www.mea.gov.in/ras
+  entity_types:
+  - recruitment_agency
+  - regulator
+  jurisdictions:
+  - IN
+  corridors:
+  - IN-SA
+  - IN-AE
+  - IN-QA
+  - IN-KW
+  - IN-OM
+  - IN-BH
+  - IN-MY
+  access_tier: free
+  official: true
+  monitor_eligible: true
+  url_verified: true
+  update_frequency: daily (page states the RA list is updated daily)
+  access_notes: 'VERIFIED this session: official MEA Recruiting Agents page under the Emigration Act 1983
+    (registration fee Rs.25,000, bank guarantee Rs.50 lakh). Page states the active-RA list ''is updated
+    on daily basis'' and links out to district/state-wise Active-RA PDFs and suspended-RA listings; discrepancies
+    reportable to helpdesk@emigrate.gov.in. NOTE: a specific dated PDF found in search (Images/attach/03-List-4-2024.pdf)
+    returned 404 this session — those attachment URLs rotate, so anchor on the /ras hub and resolve the
+    current PDF link from it rather than hardcoding a dated file. Registration is proces'
+  robots_or_tos_notes: Public, no login. Authoritative list is distributed as periodically-replaced PDFs
+    (district/state-wise) linked from the hub — monitor by resolving the current PDF link each run; dated
+    attachment paths 404 once rotated.
+  slice: south-asia-origin
+  confidence: 0.9
+- id: sri_lanka_slbfe_valid_suspended_cancelled_licens
+  name: Sri Lanka SLBFE — Valid & Suspended/Cancelled Licensed Foreign Employment Agencies (searchable
+    DB)
+  publisher: Sri Lanka Bureau of Foreign Employment (SLBFE), Ministry of Labour and Foreign Employment
+  url: http://applications.slbfe.lk/feb/la/la_main.asp
+  entity_types:
+  - recruitment_agency
+  - regulator
+  jurisdictions:
+  - LK
+  corridors:
+  - LK-SA
+  - LK-AE
+  - LK-QA
+  - LK-KW
+  - LK-JO
+  - LK-OM
+  - LK-BH
+  access_tier: free
+  official: true
+  monitor_eligible: true
+  url_verified: true
+  update_frequency: regularly (page noted last-updated 2026-06-13 this session)
+  access_notes: 'VERIFIED this session: official SLBFE search application for licensed agencies. Search
+    by Labour Licence Number, name/address (partial match), district dropdown, recruitment-country dropdown
+    (50+ destinations), plus A–Z browse. Critically maintains BOTH a ''Valid Recruitment Agencies'' list
+    AND a ''Temporarily Suspended Agencies / Cancelled Agencies'' list (the blacklist), shown last-updated
+    2026-06-13. Also exposes an agency 1–5 star grading system. Reached via the slbfe.lk ''Licensed Foreign
+    Employment Agencies'' info page (https://www.slbfe.lk/licensed-foreign-employment-agencies-in-sri-lanka/,
+    a'
+  robots_or_tos_notes: Classic ASP application served over HTTP (not HTTPS) on applications.slbfe.lk;
+    results are form/POST-driven, so a monitor may need to submit the search form or hit the pre-rendered
+    A–Z / suspended-list pages. No login/captcha observed. Verify robots before automated polling.
+  slice: south-asia-origin
+  confidence: 0.93
+- id: nepal_dofe_licensed_recruitment_manpower_agency_
+  name: Nepal DoFE — Licensed Recruitment/Manpower Agency List & Blacklist Notices
+  publisher: Department of Foreign Employment (DoFE), Ministry of Labour, Employment and Social Security,
+    Government of Nepal
+  url: https://foreignemployment.gov.np/
+  entity_types:
+  - recruitment_agency
+  - regulator
+  jurisdictions:
+  - NP
+  corridors:
+  - NP-SA
+  - NP-AE
+  - NP-QA
+  - NP-KW
+  - NP-MY
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: irregular (notices posted as issued; licence list updated on registration changes)
+  access_notes: DoFE is the Nepal regulator licensing manpower/recruitment agencies and publishing blacklist/suspension
+    notices (e.g., reported halt of 584 manpower companies; company blacklisting for Saudi exploitation).
+    Both foreignemployment.gov.np and dofe.gov.np refused connection (ECONNREFUSED) from this fetch environment
+    this session — likely geo/firewall restriction rather than the site being down; multiple legal-services
+    and news sources confirm the portal is live and hosts the licensed-agency search plus 'kalo suchi'
+    (blacklist) notices. Could not confirm a single stable deep-link to a machine-reada
+  robots_or_tos_notes: Government portal; could not retrieve robots.txt this session due to connection
+    block. Blacklist/notice content is often posted as Nepali-language PDF/scan attachments, not a structured
+    table. Treat automated polling as unconfirmed until the host is reachable and robots are checked.
+  slice: south-asia-origin
+  confidence: 0.78
+- id: pakistan_be_oe_licensed_overseas_employment_prom
+  name: Pakistan BE&OE — Licensed Overseas Employment Promoters (OEP) List
+  publisher: Bureau of Emigration and Overseas Employment (BE&OE), Ministry of Overseas Pakistanis and
+    Human Resource Development
+  url: https://beoe.gov.pk/oeps
+  entity_types:
+  - recruitment_agency
+  - regulator
+  jurisdictions:
+  - PK
+  corridors:
+  - PK-SA
+  - PK-AE
+  - PK-QA
+  - PK-OM
+  - PK-KW
+  - PK-BH
+  - PK-MY
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: rolling (active-licence record maintained by BE&OE)
+  access_notes: BE&OE is the Pakistan regulator of OEPs (recruitment agencies) under the Emigration Ordinance
+    1979, maintaining a searchable 'List of OEPs' with active licences (search by name or licence number).
+    Every page I tried under beoe.gov.pk (/, /oeps, /list-of-oeps) returned HTTP 403 to the WebFetch crawler
+    this session — the site is live for normal browsers (corroborated by Wikipedia and multiple manpower-agency
+    how-to-verify guides) but blocks automated fetchers via WAF. Exact deep-link path to the list is therefore
+    unconfirmed; /oeps is the most likely path and should be resolved from the live nav
+  robots_or_tos_notes: Server returns 403 Forbidden to non-browser user agents (WAF/bot protection) —
+    treat as effectively disallowing the simple automated checker. Honor the block; do not spoof to bypass.
+  slice: south-asia-origin
+  confidence: 0.82
+- id: vietnam_dolab_licensed_overseas_labour_service_e
+  name: Vietnam DOLAB — Licensed Overseas Labour Service Enterprises (Guest-Worker Dispatch Licences)
+  publisher: Department of Overseas Labour (DOLAB / Cục Quản lý lao động ngoài nước), Ministry of Home
+    Affairs (formerly MoLISA)
+  url: http://www.dolab.gov.vn/
+  entity_types:
+  - recruitment_agency
+  - regulator
+  jurisdictions:
+  - VN
+  corridors:
+  - VN-JP
+  - VN-TW
+  - VN-KR
+  - VN-SA
+  - VN-AE
+  - VN-MY
+  access_tier: free
+  official: true
+  monitor_eligible: false
+  url_verified: false
+  update_frequency: irregular (licence list updated as grants/revocations occur)
+  access_notes: DOLAB is the Vietnam regulator licensing service enterprises that dispatch workers abroad
+    under Law 69/2020/QH14; it publicly announces the list of licensed enterprises ('danh sách doanh nghiệp
+    có giấy phép') on its portal. dolab.gov.vn refused connection (ECONNREFUSED) from this environment
+    this session — consistent with geo/firewall blocking rather than downtime; authoritative Vietnamese
+    legal portals (thuvienphapluat.vn) and law firms confirm the licensed-enterprise list is published
+    there. A separate DOLAB-JICA vacancy app (vieclamngoainuoc.dolab.gov.vn) lists approved postings from
+    licens
+  robots_or_tos_notes: Host unreachable from this environment; robots not inspected. Content is Vietnamese-language
+    and historically published as page listings / attachments. Confirm reachability, language handling,
+    and robots before automated polling.
+  slice: south-asia-origin
+  confidence: 0.8
