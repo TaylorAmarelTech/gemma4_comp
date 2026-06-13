@@ -55,6 +55,40 @@ def test_volatile_boilerplate_does_not_false_flag():
     assert a == b  # only per-request chrome differs -> not a real change
 
 
+def test_spa_and_gov_portal_chrome_does_not_false_flag():
+    """The 2026-06-13 normalizer tuning: SPA / gov-portal per-request chrome
+    (CSP nonce, session id, Nuxt build hash, CF ray id, UUID, hydration marker,
+    HTTP-date, relative time) must not register as a content change."""
+    page = (
+        'Licensed agencies list. <script nonce="{nonce}"></script>'
+        ' <a href="/_nuxt/{asset}.js">app</a> JSESSIONID={sess}'
+        ' cf-ray: {ray} buildId="{build}"'
+        ' data-v-{scoped} <time>{httpdate}</time> updated {rel} ago.'
+        ' Agency: Sunrise Overseas Manpower (POEA-1001) -- VALID.'
+    )
+    a = content_hash(page.format(
+        nonce="aB3xK9pQ", asset="lKhMb37E", sess="A1B2C3D4E5",
+        ray="8abc1234def-LAX", build="b513d05a-de85-4a25-9e78-0762f4ea982d",
+        scoped="1a2b3c", httpdate="Fri, 13 Jun 2026 03:08:29 GMT", rel="2 hours"))
+    b = content_hash(page.format(
+        nonce="zZ9qW0eR", asset="9XyZ12Ab", sess="Z9Y8X7W6V5",
+        ray="9def5678abc-SIN", build="ffffffff-1111-2222-3333-444444444444",
+        scoped="9f8e7d", httpdate="Sat, 14 Jun 2026 11:59:01 GMT", rel="5 minutes"))
+    assert a == b  # every difference is volatile chrome -> not a real change
+
+
+def test_real_content_change_still_detected_after_tuning():
+    """Guard against over-stripping: a genuine content change (a new agency, a
+    status flip, new advisory prose) must still produce a different hash."""
+    base = "Licensed agencies: Sunrise Overseas Manpower (POEA-1001) -- VALID."
+    # a real status change
+    assert content_hash(base) != content_hash(base.replace("VALID", "CANCELLED"))
+    # a new agency added
+    assert content_hash(base) != content_hash(base + " Pacific Bridge (POEA-1002) -- VALID.")
+    # a date-only "as of" change is a real refresh signal -> NOT stripped
+    assert content_hash("status as of 2026-05-01") != content_hash("status as of 2026-06-13")
+
+
 def test_scrub_redacts_pii():
     s = scrub("call 415-555-0199 or write me@example.com today")
     assert "415-555-0199" not in s and "me@example.com" not in s and "[redacted]" in s
