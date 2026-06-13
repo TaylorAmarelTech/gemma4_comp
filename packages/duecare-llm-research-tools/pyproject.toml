@@ -23,6 +23,12 @@ http = ["httpx>=0.25.0"]
 # impersonates a real browser TLS/JA3 fingerprint so government/NGO WAFs do not
 # 403 a stdlib request. Optional -- the monitor falls back to stdlib urllib.
 fetch = ["curl_cffi>=0.7.0"]
+# Headless-browser scraping for JS-walled registries (scripts/browser_scrape.py):
+# DMW's licensed-agency inquiry is a Nuxt SPA whose list arrives via XHR, so a
+# real browser is needed to render + intercept it. Optional -- only live runs
+# need it; the connector's parsing core is tested without a browser.
+# After install, run: python -m playwright install chromium
+browser = ["playwright>=1.40"]
 
 [project.urls]
 Homepage = "https://github.com/TaylorAmarelTech/gemma4_comp"

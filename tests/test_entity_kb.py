@@ -259,3 +259,19 @@ def test_ingest_stamps_jurisdiction_and_type_from_scraper_export(tmp_path):
     assert sunrise.jurisdiction == "PH"   # stamped (region 'NCR' did NOT leak in)
     gulf = recs["Gulf Star Recruitment"]
     assert gulf.jurisdiction == "AE"      # record's own jurisdiction wins over the stamp
+
+
+def test_ingest_source_tier_stamp_marks_official_registry(tmp_path):
+    """A government registry pull must be stampable as 'official' so it wins
+    merges over lower-tier community field reports."""
+    export = tmp_path / "dmw.json"
+    export.write_text(json.dumps({"records": [
+        {"name": "Sunrise Overseas Manpower Inc.", "status": "valid", "region": "NCR"},
+    ]}), encoding="utf-8")
+    staged = tmp_path / "out.jsonl"
+    empty = tmp_path / "empty.jsonl"  # isolate from the default sample store
+    rc = ekb.main(["--store", str(empty), "--ingest", str(export), "--as", "recruitment_agency",
+                   "--jurisdiction", "PH", "--source-tier", "official", "--out", str(staged)])
+    assert rc == 0
+    recs = ekb.load_entities(staged)
+    assert len(recs) == 1 and recs[0].source_tier == "official"
