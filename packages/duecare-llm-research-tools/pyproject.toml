@@ -12,6 +12,9 @@ requires-python = ">=3.11"
 authors = [{name = "Taylor Amarel"}]
 dependencies = [
     "pydantic>=2.9.0",
+    # The research monitor's source registry is YAML; load_sources() needs a
+    # real YAML parser (its json fallback cannot parse a .yaml file).
+    "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]
