@@ -67,7 +67,9 @@ class FakeExecutor:
 
     def extract(self, endpoint="", field_map=None):
         self.calls.append(("extract", endpoint))
-        res = bs.CaptureResult(payloads=[c for c in self.captured if not endpoint or endpoint in c["url"]])
+        base = endpoint.split("?")[0] if endpoint else ""
+        payloads = [c for c in self.captured if not base or base in c["url"].split("?")[0]]
+        res = bs.CaptureResult(payloads=payloads)
         profiles, _ = bs.captures_to_profiles(res, source="agentic-test")
         return profiles
 
@@ -163,6 +165,17 @@ def test_paginate_count_fetches_multiple_pages_in_one_call():
     ex.navigate("https://reg.test")
     res = ex.paginate(75)  # fetch all remaining in one call (the efficient path)
     assert res == {"fetched_now": 75, "pages_fetched": 76, "last_page": 76}
+
+
+def test_extract_with_page_param_endpoint_aggregates_all_pages():
+    """Regression for the live 550-vs-3790 bug: when the model passes an endpoint
+    that still carries ?page=1, extract must match by BASE path and aggregate
+    EVERY captured page -- not the substring-colliding subset (page 1, 10, 11, 12)."""
+    ex = PagedFakeExecutor(pages=12)
+    ex.navigate("https://reg.test")
+    ex.paginate(11)  # fetch pages 2..12
+    recs = ex.extract(endpoint=ex.base + "?page=1")  # the exact form Gemma emitted
+    assert len(recs) == 12  # all pages, not 4
 
 
 def test_agent_dedups_repeated_extractions():
