@@ -387,7 +387,11 @@ def make_playwright_executor(*, headless: bool = True):
             return self.observe()
 
         def extract(self, endpoint: str = "", field_map: dict | None = None) -> list[dict]:
-            payloads = [c for c in self._captured if (not endpoint or endpoint in c["url"])]
+            # match against the QUERY-STRIPPED url, so passing "...?page=1" still
+            # aggregates EVERY captured page (substring on the path, never on the
+            # page number -- which otherwise lets "page=1" collide with 10-19).
+            base = endpoint.split("?")[0] if endpoint else ""
+            payloads = [c for c in self._captured if (not base or base in c["url"].split("?")[0])]
             res = bs.CaptureResult(payloads=payloads or self._captured)
             profiles, _ = bs.captures_to_profiles(res, source="agentic")
             return profiles
