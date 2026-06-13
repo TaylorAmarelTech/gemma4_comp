@@ -40,6 +40,29 @@ sources:
     kind: agency
     label: Philippines Dept of Migrant Workers (ex-POEA)
     jurisdiction: PH
+  # --- Recruitment-agency LICENSING registries (the agency-verification feed) ---
+  # Official, public agency-status pages. The monitor watches them for change so
+  # the scheduled run surfaces new licences / delistings / advisories for review.
+  - id: ph_dmw_licensed_agencies
+    url: https://dmw.gov.ph/inquiry/licensed-recruitment-agencies
+    kind: agency
+    label: PH DMW -- Licensed Recruitment Agencies inquiry
+    jurisdiction: PH
+  - id: hk_eaa_licensed
+    url: https://www.eaa.labour.gov.hk/
+    kind: agency
+    label: HK Employment Agencies Administration (licensed EA register)
+    jurisdiction: HK
+  - id: sg_mom_ea_directory
+    url: https://www.mom.gov.sg/eservices/services/employment-agency-directory
+    kind: agency
+    label: Singapore MOM -- Employment Agency directory
+    jurisdiction: SG
+  - id: ph_dmw_advisories
+    url: https://dmw.gov.ph/advisory
+    kind: scam_watch
+    label: PH DMW -- public advisories (illegal recruiters / scams)
+    jurisdiction: PH
   - id: nepal_dofe
     url: https://dofe.gov.np/
     kind: agency
