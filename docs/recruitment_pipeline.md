@@ -47,15 +47,27 @@ python scripts/extract_agency_facts.py --search "" --risk high \
 
 ## Plugging in real data (operator-side)
 
-- **Licensed registry.** Download an official export from the regulator's
-  inquiry page — e.g. the Philippine DMW *Licensed Recruitment Agencies*
-  inquiry (`https://dmw.gov.ph/inquiry/licensed-recruitment-agencies`) — and
-  normalize it into the registry schema with
-  `python scripts/agency_registry.py --ingest <export.json>`. The staged file
-  lands in gitignored `reports/agency_registry/`; the committed default is a
-  clearly-labelled **synthetic** sample. The DMW page is a Nuxt SPA that ships
-  a public client API key; this tool embeds **no** key and does **not**
-  mass-scrape the government API.
+- **Licensed registry — scraping official sources.**
+  `scripts/scrape_agency_sources.py` is the source-connector layer: it parses
+  a regulator's published agency *list* — an HTML table, a JSON list endpoint,
+  or a CSV export — into the registry schema (name, licence, status, address,
+  phones, job markets) with a heuristic column→field mapper.
+  ```bash
+  # offline: a saved regulator page / export
+  python scripts/scrape_agency_sources.py --from-html licensed_agencies.html
+  python scripts/scrape_agency_sources.py --from-json export.json --list-path data.records
+  python scripts/scrape_agency_sources.py --from-csv agencies.csv
+  # live (operator-configured, env-keyed; nothing embedded)
+  DMW_LIST_URL=... DMW_API_KEY=... python scripts/scrape_agency_sources.py --source dmw_api
+  ```
+  It stages to gitignored `reports/agency_registry/`; review, then promote with
+  `python scripts/agency_registry.py --ingest <scraped.json> --out data/agency_registry/<name>.json`.
+  The committed default registry is a clearly-labelled **synthetic** sample
+  (`sample_licensed_agencies.json`) and there is a synthetic regulator-list
+  HTML fixture (`sample_regulator_list.html`). The DMW inquiry page
+  (`https://dmw.gov.ph/inquiry/licensed-recruitment-agencies`) is a Nuxt SPA
+  that ships a public client API key; this tool embeds **no** key, reads the
+  endpoint + key from env, and does **not** mass-scrape the government API.
 - **Discovery.** `--discover` uses keyless DuckDuckGo and returns URLs to
   review; the operator decides what to fetch. Live fetch (`--url`) honours
   robots.txt and is capped.
