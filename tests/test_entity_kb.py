@@ -8,6 +8,7 @@ dataclass requires the module be registered in ``sys.modules`` before exec.
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -230,3 +231,31 @@ def test_ingest_is_propose_only_and_merges(tmp_path):
     assert sunrise and "+63-917-555-1234" in sunrise[0].phones
     # default store on disk is unchanged (propose-only)
     assert store_before.exists()
+
+
+def test_ingest_stamps_jurisdiction_and_type_from_scraper_export(tmp_path):
+    """Bridge from the scrapers: a scrape_agency_sources export is a
+    {"records": [AgencyProfile...]} envelope whose records carry a sub-region,
+    not a country. --as + --jurisdiction must stamp type and origin, and the
+    record's own value must still win when present."""
+    export = tmp_path / "scraped.json"
+    export.write_text(json.dumps({
+        "_synthetic": True, "source": "html:dmw_list.html", "n_records": 2,
+        "records": [
+            {"name": "Sunrise Overseas Manpower Inc.", "license_no": "POEA-1001",
+             "status": "valid", "region": "NCR", "phones": ["+63-2-5550-1001"],
+             "official_source": "https://example.test/dmw"},
+            {"name": "Gulf Star Recruitment", "license_no": "POEA-2002",
+             "status": "cancelled", "jurisdiction": "AE"},  # own value must win
+        ],
+    }), encoding="utf-8")
+    staged = tmp_path / "out.jsonl"
+    rc = ekb.main(["--ingest", str(export), "--as", "recruitment_agency",
+                   "--jurisdiction", "PH", "--out", str(staged)])
+    assert rc == 0
+    recs = {r.name: r for r in ekb.load_entities(staged)}
+    sunrise = recs["Sunrise Overseas Manpower Inc."]
+    assert sunrise.entity_type == "recruitment_agency"
+    assert sunrise.jurisdiction == "PH"   # stamped (region 'NCR' did NOT leak in)
+    gulf = recs["Gulf Star Recruitment"]
+    assert gulf.jurisdiction == "AE"      # record's own jurisdiction wins over the stamp

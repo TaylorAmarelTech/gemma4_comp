@@ -24,7 +24,13 @@ Usage:
     python scripts/entity_kb.py --stats
     python scripts/entity_kb.py --query --type medical_clinic --jurisdiction PH
     python scripts/entity_kb.py --query --name "sunrise" --status cancelled
-    python scripts/entity_kb.py --ingest reports/agency_registry/scraped.json --as recruitment_agency
+
+    # ingest a scraper export (propose-only). The scrapers emit {"records": [...]}
+    # of AgencyProfile dicts; --as sets the type and --jurisdiction/--corridor/
+    # --sector stamp the origin a regulator export leaves implicit:
+    python scripts/scrape_agency_sources.py --from-html dmw_list.html      # -> reports/agency_registry/scraped.json
+    python scripts/entity_kb.py --ingest reports/agency_registry/scraped.json \
+        --as recruitment_agency --jurisdiction PH --out reports/entity_kb/ph_agencies.jsonl
 """
 from __future__ import annotations
 
@@ -265,6 +271,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--sector", default="")
     ap.add_argument("--ingest", help="merge records from a scraper JSON/JSONL into the store (propose-only)")
     ap.add_argument("--as", dest="as_type", default="", help="default entity_type for --ingest records")
+    ap.add_argument("--corridor", default="", help="stamp corridor on --ingest records lacking one (e.g. PH-SA)")
     ap.add_argument("--out", default="", help="where --ingest writes (default: propose-only staging)")
     args = ap.parse_args(argv)
 
@@ -273,7 +280,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.ingest:
         raw = json.loads(Path(args.ingest).read_text(encoding="utf-8"))
         items = raw.get("records", raw) if isinstance(raw, dict) else raw
-        new = [record_from_dict(d, default_type=args.as_type) for d in items]
+        # Origin stamps: scraper exports (e.g. a PH DMW list) carry a sub-region,
+        # not a country, and no entity_type. With --query these flags filter; with
+        # --ingest they LABEL the source (each record's own value still wins).
+        stamps = {k: v for k, v in (("jurisdiction", args.jurisdiction),
+                                    ("sector", args.sector), ("corridor", args.corridor)) if v}
+        new = [record_from_dict({**stamps, **d}, default_type=args.as_type) for d in items]
         merged = merge_entities([*records, *new])
         out = Path(args.out) if args.out else (_ROOT / "reports" / "entity_kb" / "staged.jsonl")
         save_entities(out, merged)
