@@ -111,3 +111,94 @@ sources:
     url: https://verite.org/
     kind: guidance
     label: Verite (fair hiring & forced labour)
+
+  # --- Entity-data registries folded from entity_sources.yaml (2026-06-13 swarm,
+  #     monitor_eligible + official + url_verified subset). Freshness-tracked only. ---
+  - id: ent_bangladesh_oep_bmet_licensed_recruiting_
+    url: https://www.oep.gov.bd/agencies
+    kind: agency
+    label: Bangladesh OEP — BMET-Licensed Recruiting Agency Directory (Agencies)
+    jurisdiction: BD
+  - id: ent_european_e_justice_portal_business_regis
+    url: https://e-justice.europa.eu/topics/registers-business-insolvency-land/business-registers-search-company-eu_en
+    kind: agency
+    label: European e-Justice Portal — Business Registers (BRIS) 'Find a company'
+    jurisdiction: EU
+  - id: ent_uk_companies_house_find_and_update_compa
+    url: https://find-and-update.company-information.service.gov.uk
+    kind: agency
+    label: UK Companies House — Find and update company information
+    jurisdiction: GB
+  - id: ent_wafid_gcc_approved_medical_centres_direc
+    url: https://wafid.com/en/medical-center/search/
+    kind: agency
+    label: Wafid (GCC) Approved Medical Centres Directory
+    jurisdiction: GCC
+  - id: ent_hong_kong_labour_department_employment_a
+    url: https://www.eaa.labour.gov.hk/en/search.php
+    kind: agency
+    label: Hong Kong Labour Department Employment Agencies Portal — Search Licensed Employm
+    jurisdiction: Hong Kong
+  - id: ent_indonesia_bp2mi_kp2mi_siskop2mi_licensed
+    url: https://siskop2mi.bp2mi.go.id/profil/lembaga/list_lembaga/p3mi
+    kind: agency
+    label: Indonesia BP2MI/KP2MI SISKOP2MI — Licensed P3MI Placement Company List
+    jurisdiction: ID
+  - id: ent_india_mea_recruiting_agents_ras_registry
+    url: https://www.mea.gov.in/ras
+    kind: agency
+    label: India MEA — Recruiting Agents (RAs) Registry Hub (active/suspended RA lists)
+    jurisdiction: IN
+  - id: ent_otit_search_for_licensed_supervising_org
+    url: https://www.otit.go.jp/implementer/basic/search_supervisor/
+    kind: agency
+    label: OTIT — Search for Licensed Supervising Organizations (監理団体の検索 / downloadable app
+    jurisdiction: Japan
+  - id: ent_otit_list_of_foreign_government_accredit
+    url: https://www.otit.go.jp/system/sender/list_sender/
+    kind: agency
+    label: OTIT — List of Foreign-Government-Accredited Sending Organizations (送出機関一覧, by c
+    jurisdiction: Japan
+  - id: ent_immigration_services_agency_of_japan_reg
+    url: https://www.moj.go.jp/isa/applications/ssw/nyuukokukanri07_00205.html
+    kind: agency
+    label: Immigration Services Agency of Japan — Registered Support Organization Registry 
+    jurisdiction: Japan
+  - id: ent_sri_lanka_slbfe_valid_suspended_cancelle
+    url: http://applications.slbfe.lk/feb/la/la_main.asp
+    kind: agency
+    label: Sri Lanka SLBFE — Valid & Suspended/Cancelled Licensed Foreign Employment Agenci
+    jurisdiction: LK
+  - id: ent_dmw_poea_accredited_medical_facilities_f
+    url: https://dmw.gov.ph/archives/poea/clinic/1.pdf
+    kind: agency
+    label: DMW/POEA Accredited Medical Facilities for Overseas Workers & Seafarers (MFOWS l
+    jurisdiction: PH
+  - id: ent_dmw_migrant_workers_office_mwo_polo_dire
+    url: https://dmw.gov.ph/archives/v1/resources/dsms/DMW/MWO-Directory-and-Jurisdiction-as-of-09-October-2025.pdf
+    kind: agency
+    label: DMW Migrant Workers Office (MWO/POLO) Directory & Jurisdiction
+    jurisdiction: PH
+  - id: ent_tesda_registry_of_tvet_institutions_with
+    url: https://www.tesda.gov.ph/Tvi
+    kind: agency
+    label: TESDA Registry of TVET Institutions with Registered Programs (TVI search)
+    jurisdiction: Philippines
+  - id: ent_taiwan_wda_private_employment_service_in
+    url: https://agent.wda.gov.tw/agentext/
+    kind: agency
+    label: Taiwan WDA Private Employment Service Institutions Query System (private broker 
+    jurisdiction: Taiwan
+  - id: ent_ofac_specially_designated_nationals_sdn_
+    url: https://ofac.treasury.gov/sanctions-list-service
+    kind: agency
+    label: OFAC Specially Designated Nationals (SDN) & Consolidated Sanctions List — Sancti
+    jurisdiction: US
+  - id: ent_world_bank_listing_of_ineligible_debarre
+    url: https://www.worldbank.org/en/projects-operations/procurement/debarred-firms
+    kind: agency
+    label: World Bank Listing of Ineligible (Debarred & Cross-Debarred) Firms and Individua
+  - id: ent_united_nations_security_council_consolid
+    url: https://scsanctions.un.org/consolidated/
+    kind: agency
+    label: United Nations Security Council Consolidated Sanctions List
