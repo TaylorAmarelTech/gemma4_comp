@@ -105,9 +105,15 @@ def test_resolve_registry_proven_presets():
 
 
 def test_resolve_registry_catalogued_source_by_id():
-    srcs = {"ofac_sdn": "https://ofac.example/sdn", "wafid": "https://wafid.example/centres"}
-    assert cas.resolve_registry("ofac_sdn", sources=srcs)["url"] == "https://ofac.example/sdn"
+    # a catalogued id that is NOT a proven registry resolves to its source URL
+    srcs = {"sg_mom_directory": "https://mom.example/ea", "wafid": "https://wafid.example/centres"}
+    assert cas.resolve_registry("sg_mom_directory", sources=srcs)["url"] == "https://mom.example/ea"
     assert cas.resolve_registry("not_a_registry", sources=srcs) == {}
+
+
+def test_resolve_registry_proven_beats_catalogued():
+    # a proven registry wins even if the same id is in the catalogued sources
+    assert cas.resolve_registry("ofac_sdn", sources={"ofac_sdn": "https://x"}).get("preset") == "ofac_sdn"
 
 
 def test_acq_deterministic_dispatches_registry_resolver(monkeypatch):

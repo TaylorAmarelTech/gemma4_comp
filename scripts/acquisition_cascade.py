@@ -207,14 +207,41 @@ def _resolve_hk_eaa(target: dict) -> dict:
         return _err(1, "deterministic", exc)
 
 
+def _resolve_ofac_sdn(target: dict) -> dict:
+    """OFAC SDN sanctioned entities (keyless CSV)."""
+    try:
+        ss = _sibling("sanctions_sources")
+        recs = ss.fetch_ofac_sdn()
+        return {"tier": 1, "name": "deterministic", "records": recs, "n": len(recs),
+                "confidence": 0.95 if recs else 0.0, "cost": "none",
+                "discovered_urls": [ss.OFAC_SDN_CSV], "note": "OFAC SDN csv", "error": ""}
+    except Exception as exc:  # noqa: BLE001
+        return _err(1, "deterministic", exc)
+
+
+def _resolve_worldbank_debarred(target: dict) -> dict:
+    """World Bank debarred firms (browser-captured keyless JSON)."""
+    try:
+        ss = _sibling("sanctions_sources")
+        recs = ss.fetch_worldbank_debarred()
+        return {"tier": 1, "name": "deterministic", "records": recs, "n": len(recs),
+                "confidence": 0.95 if recs else 0.0, "cost": "none",
+                "discovered_urls": [ss.WORLDBANK_DEBARRED_PAGE], "note": "WB SANCTIONED_FIRM", "error": ""}
+    except Exception as exc:  # noqa: BLE001
+        return _err(1, "deterministic", exc)
+
+
 # registries with a SPECIAL deterministic resolver (not a plain browser_scrape preset)
-REGISTRY_RESOLVERS = {"hk_eaa": _resolve_hk_eaa}
+REGISTRY_RESOLVERS = {"hk_eaa": _resolve_hk_eaa, "ofac_sdn": _resolve_ofac_sdn,
+                      "worldbank_debarred": _resolve_worldbank_debarred}
 
 # proven deterministic registries addressable by --registry (dmw_lra is a
-# browser_scrape preset; hk_eaa has a resolver above).
+# browser_scrape preset; the rest have resolvers above).
 PROVEN_REGISTRIES = {
     "dmw_lra": {"preset": "dmw_lra", "name": "PH DMW -- licensed recruitment agencies (master-api)"},
     "hk_eaa": {"preset": "hk_eaa", "name": "HK EAA -- licensed employment agencies (result.php)"},
+    "ofac_sdn": {"preset": "ofac_sdn", "name": "US OFAC SDN -- sanctioned entities (CSV)"},
+    "worldbank_debarred": {"preset": "worldbank_debarred", "name": "World Bank -- debarred firms (JSON)"},
 }
 
 _CATALOG = _ROOT / "configs" / "duecare" / "research_monitor" / "entity_sources.yaml"
