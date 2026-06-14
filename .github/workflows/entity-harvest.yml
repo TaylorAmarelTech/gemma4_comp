@@ -1,0 +1,107 @@
+name: entity-harvest
+
+# Routine entity-intelligence harvest. Runs scripts/harvest.py on a schedule to
+# scrape/spider/search every source and rebuild the combined entity knowledge
+# base + adverse-media screen -- PROPOSE-ONLY. Nothing is committed to the
+# knowledge layer; the combined store + manifest are uploaded as artifacts for a
+# human to review and promote. Runs weekly forever (and on demand).
+#
+# Collectors (each fault-isolated -- one failing never aborts the run):
+#   dmw_agencies  -- live DMW licensed-agency pull (headless browser)
+#   dmw_issuances -- DMW advisory feed (keyless API)
+#   kaggle        -- the operator's published agency + job-order datasets
+#   staged        -- fold in prior runs' proposals
+#
+# Secrets (optional -- collectors degrade gracefully without them):
+#   KAGGLE_USERNAME / KAGGLE_KEY  -> enables the kaggle collector
+#   OLLAMA_HOST / OLLAMA_API_KEY  -> enables Gemma adverse-match verification
+
+on:
+  schedule:
+    - cron: "23 5 * * 1"   # weekly, Monday 05:23 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # Run the bundled actions/* JS actions on Node 24 ahead of the forced migration.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+concurrency:
+  group: entity-harvest
+  cancel-in-progress: false
+
+jobs:
+  harvest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install harvester deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e packages/duecare-llm-core || true
+          # headless-browser collector
+          pip install playwright || true
+          python -m playwright install --with-deps chromium || true
+          # kaggle dataset collector (read-only)
+          pip install kaggle || true
+
+      - name: Download Kaggle datasets (no-op without creds)
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+        run: |
+          # Secrets cannot gate a step via `if:` (they are masked there), so this
+          # step always runs and degrades gracefully: without creds the kaggle CLI
+          # errors, `|| true` swallows it, and the kaggle collector records "no CSVs".
+          if [ -n "$KAGGLE_USERNAME" ]; then
+            mkdir -p reports/kaggle_datasets/agency-db reports/kaggle_datasets/job-orders
+            kaggle datasets download -d taylorsamarel/philippines-employment-agency-database \
+              -p reports/kaggle_datasets/agency-db --unzip || true
+            kaggle datasets download -d taylorsamarel/philippines-employment-agency-job-order-database \
+              -p reports/kaggle_datasets/job-orders --unzip || true
+          else
+            echo "no KAGGLE_USERNAME secret -> kaggle collector will record 'no CSVs present'"
+          fi
+
+      - name: Run propose-only harvest
+        id: run
+        env:
+          DUECARE_MODEL_BASE_URL: ${{ secrets.OLLAMA_HOST }}
+          DUECARE_MODEL_API_KEY: ${{ secrets.OLLAMA_API_KEY }}
+        run: |
+          mkdir -p reports/entity_kb reports/harvest
+          python scripts/harvest.py --all --screen \
+            --at "$(date -u +%Y-%m-%dT%H:%M)" \
+            | tee reports/harvest/run.log
+
+      - name: Write job summary
+        if: always()
+        run: |
+          {
+            echo "## Entity harvest — propose-only"
+            echo ""
+            echo '```'
+            cat reports/harvest/run.log 2>/dev/null || echo "(no run log)"
+            echo '```'
+            echo ""
+            echo "Combined store + manifest are artifacts only — nothing was promoted to the knowledge layer."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload combined entity KB + manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: entity-harvest-${{ github.run_id }}
+          path: |
+            reports/entity_kb/combined.jsonl
+            reports/harvest/
+          retention-days: 30
+          if-no-files-found: warn
