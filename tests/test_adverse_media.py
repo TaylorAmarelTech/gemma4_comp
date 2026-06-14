@@ -126,6 +126,45 @@ def test_screen_entity_survives_fetch_error():
     assert rep["risk"] in ("no_signal", "low")  # errors degrade gracefully, no crash
 
 
+# ---- bulk corpus screen ---------------------------------------------------
+
+def test_corpus_screen_matches_distinctive_name_no_generic_fp():
+    rows = [
+        {"name": "Goldfield Mariners Manpower Inc", "status": "delisted"},
+        {"name": "ABC International Manpower Services", "status": "cancelled"},  # distinctive only "abc" (too short)
+        {"name": "Manpower Recruitment Agency Inc", "status": "valid"},          # all-generic -> skipped
+    ]
+    articles = [
+        {"title": "DMW charges Goldfield Mariners over illegal recruitment scam",
+         "url": "u1", "domain": "inquirer.net"},
+        {"title": "Weather update for Manila", "url": "u2", "domain": "x.test"},
+    ]
+    res = am.corpus_screen(rows, fetch=None, articles=articles)
+    names = {m["name"] for m in res["matches"]}
+    assert "Goldfield Mariners Manpower Inc" in names         # distinctive phrase matched
+    assert "ABC International Manpower Services" not in names  # single short token -> no FP
+    assert "Manpower Recruitment Agency Inc" not in names     # all-generic -> skipped
+    m = next(m for m in res["matches"] if m["name"].startswith("Goldfield"))
+    assert "illegal_recruitment" in m["allegation_categories"]
+    assert m["registry_status"] == "delisted" and m["article_url"] == "u1"
+    assert res["n_names"] == 3 and res["n_articles"] == 2 and res["n_matches"] == 1
+
+
+def test_gdelt_corpus_pulls_and_dedups():
+    def fetch(url):  # every query returns an overlapping article -> dedup by url
+        return json.dumps({"articles": [
+            {"title": "shared", "url": "https://same", "domain": "d"},
+            {"title": "uniq", "url": f"https://{len(url)}", "domain": "d"}]})
+    arts = am._gdelt_corpus(fetch, queries=("q1", "q2", "q3"), pace=0)
+    urls = {a["url"] for a in arts}
+    assert "https://same" in urls and len(arts) == len(urls)  # no dup urls
+
+
+def test_distinctive_tokens_drops_generic_industry_words():
+    assert am._distinctive_tokens("Goldfield Mariners Manpower Inc") == ["goldfield", "mariners"]
+    assert am._distinctive_tokens("International Manpower Recruitment Agency Inc") == []
+
+
 # ---- optional Gemma refinement --------------------------------------------
 
 def test_gemma_classifier_refines_adversity():

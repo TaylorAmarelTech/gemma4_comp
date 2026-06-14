@@ -205,6 +205,83 @@ def score_risk(hits: list[AdverseHit]) -> dict:
             "n_sanctions": len(sanctions), "categories": cats}
 
 
+# --- bulk corpus screen: ONE adverse-news pull, match thousands of names locally --
+
+# A handful of PH-focused adverse-news queries (keyword, not theme codes -- reliable).
+# GDELT can't survive thousands of per-entity queries (429 + near-zero signal for
+# small agency names), so we pull the adverse corpus once and match names offline.
+_CORPUS_QUERIES = (
+    '"illegal recruitment" (Philippines OR POEA OR DMW OR OFW)',
+    '("recruitment agency" OR "manpower agency" OR recruiter) (Philippines OR OFW) '
+    '(trafficking OR "illegal recruit" OR estafa OR convicted OR charged OR scam OR raided)',
+    '(OFW OR "migrant worker" OR "domestic worker") Philippines '
+    '(trafficking OR "forced labor" OR "forced labour" OR "wage theft" OR repatriat OR rescued)',
+    '"human trafficking" Philippines (recruiter OR agency OR convicted OR sentenced)',
+)
+# generic words dropped before matching a name in article text (avoid false hits)
+_GENERIC_TOKENS = {
+    "inc", "corp", "corporation", "co", "company", "ltd", "limited", "incorporated",
+    "international", "intl", "manpower", "recruitment", "placement", "agency", "agencies",
+    "services", "service", "overseas", "global", "and", "the", "of", "resources", "human",
+    "enterprises", "enterprise", "solutions", "management", "consultancy", "consultants",
+    "phils", "philippines", "corp.", "ventures", "group", "worldwide", "general",
+}
+
+
+def _distinctive_tokens(name: str) -> list[str]:
+    toks = re.sub(r"[^a-z0-9 ]", " ", (name or "").lower()).split()
+    return [t for t in toks if t not in _GENERIC_TOKENS and len(t) >= 3]
+
+
+def _gdelt_corpus(fetch, *, queries=_CORPUS_QUERIES, max_per: int = 75,
+                  timespan: str = "12m", pace: float = 6.0) -> list[dict]:
+    """Pull + dedup adverse articles from a few GDELT queries (rate-safe)."""
+    arts: dict[str, dict] = {}
+    for i, q in enumerate(queries):
+        if i and pace:
+            time.sleep(pace)
+        params = {"query": q, "mode": "artlist", "maxrecords": str(max_per),
+                  "timespan": timespan, "format": "json", "sort": "datedesc"}
+        url = f"{GDELT_DOC}?{urllib.parse.urlencode(params)}"
+        try:
+            data = json.loads(fetch(url))
+        except Exception:  # noqa: BLE001
+            continue
+        for a in (data.get("articles") or []):
+            if a.get("url"):
+                arts[a["url"]] = a
+    return list(arts.values())
+
+
+def corpus_screen(rows: list[dict], fetch, *, timespan: str = "12m", articles=None) -> dict:
+    """Match every entity name against a pulled adverse-news corpus. A match is a
+    POSSIBLE lead (the distinctive part of the name appears in an adverse article
+    title) -- for human review, not a finding. `articles` injectable for tests."""
+    arts = articles if articles is not None else _gdelt_corpus(fetch, timespan=timespan)
+    blobs = [(a, (a.get("title", "") + " " + a.get("domain", "")).lower()) for a in arts]
+    matches = []
+    for r in rows:
+        name = r.get("name", "")
+        dist = _distinctive_tokens(name)
+        # require a MULTI-WORD distinctive phrase. A single token -- even a long one
+        # like "manila"/"maritime"/"system" -- collides with unrelated articles and
+        # produces false positives, so single-token names are not screenable here.
+        if len(dist) < 2:
+            continue
+        phrase = " ".join(dist[:3])
+        for a, blob in blobs:
+            if phrase in blob:
+                cats = classify_adverse(a.get("title", ""))
+                matches.append({"name": name, "registry_status": r.get("status", ""),
+                                "jurisdiction": r.get("jurisdiction", ""),
+                                "matched_phrase": phrase, "article_title": a.get("title", ""),
+                                "article_url": a.get("url", ""), "article_domain": a.get("domain", ""),
+                                "allegation_categories": list(cats)})
+                break
+    return {"n_names": len(rows), "n_articles": len(arts), "n_matches": len(matches),
+            "matches": matches}
+
+
 def screen_entity(name: str, *, country: str = "", fetch=None, classify=None,
                   sources=("gdelt", "opensanctions"), max_news: int = 40,
                   timespan: str = "24m", pace: float = 0.0, screened_at: str = "") -> dict:
@@ -274,9 +351,13 @@ def main(argv: list[str] | None = None) -> int:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--name", help="entity name to screen")
     ap.add_argument("--country", default="")
-    ap.add_argument("--screen-kb", help="entity_kb JSONL store to screen (bounded by --limit)")
-    ap.add_argument("--limit", type=int, default=5, help="max entities to screen from --screen-kb")
-    ap.add_argument("--timespan", default="24m", help="GDELT lookback (e.g. 24m, 6m, 1y)")
+    ap.add_argument("--screen-kb", help="entity_kb JSONL store to screen")
+    ap.add_argument("--corpus", action="store_true",
+                    help="BULK mode: pull one adverse-news corpus, match ALL names locally "
+                         "(rate-safe; the only viable way to screen thousands via keyless GDELT)")
+    ap.add_argument("--limit", type=int, default=5, help="per-entity mode: max entities this run (0 = all)")
+    ap.add_argument("--pace", type=float, default=5.0, help="per-entity mode: seconds between entities")
+    ap.add_argument("--timespan", default="24m", help="GDELT lookback (e.g. 24m, 12m, 1y)")
     ap.add_argument("--sources", default="gdelt,opensanctions")
     ap.add_argument("--out", default="")
     args = ap.parse_args(argv)
@@ -286,26 +367,57 @@ def main(argv: list[str] | None = None) -> int:
     if args.screen_kb:
         rows = [json.loads(ln) for ln in Path(args.screen_kb).read_text(encoding="utf-8").splitlines()
                 if ln.strip() and not ln.startswith("#")]
-        rows = rows[:args.limit]
-        reports = []
-        for idx, r in enumerate(rows):
-            name = r.get("name", "")
-            if not name:
-                continue
-            if idx:
-                time.sleep(5.0)  # GDELT throttles hard -- pace entity screens
-            print(f"screening: {name}", file=sys.stderr)
-            rep = screen_entity(name, country=r.get("jurisdiction", ""), sources=sources,
-                                timespan=args.timespan, pace=1.0)
-            reports.append(rep)
-            print(f"  -> risk={rep['risk']} adverse_news={rep['n_adverse']} "
-                  f"sanctions={rep['n_sanctions']} {rep['categories']}", file=sys.stderr)
-        out = Path(args.out) if args.out else (_ROOT / "reports" / "adverse_media" / "kb_screen.json")
+        # prioritise regulator-flagged statuses first (most likely adverse)
+        _PRI = {"delisted": 0, "watchlisted": 0, "cancelled": 1, "banned": 1, "suspended": 2,
+                "denied_renewal": 3, "ceased_operations": 4, "expired": 5, "inactive": 6}
+        rows.sort(key=lambda r: _PRI.get(r.get("status", ""), 9))
+
+        if args.corpus:
+            # BULK: one adverse-news corpus, match ALL names locally (rate-safe)
+            res = corpus_screen(rows, _http_get, timespan=args.timespan)
+            out = Path(args.out) if args.out else (_ROOT / "reports" / "adverse_media" / "kb_corpus_screen.json")
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_text(json.dumps({"_synthetic": False, **res}, indent=2, ensure_ascii=False),
+                           encoding="utf-8")
+            print(f"corpus screen: matched {res['n_names']} names against {res['n_articles']} "
+                  f"adverse articles -> {res['n_matches']} possible lead(s)", file=sys.stderr)
+            for m in res["matches"][:25]:
+                print(f"  LEAD {m['name'][:40]} (reg:{m['registry_status']}) ~ "
+                      f"{m['article_title'][:70]}", file=sys.stderr)
+            print(f"-> {out}", file=sys.stderr)
+            return 0
+
+        # per-entity mode (prioritized, resumable JSONL) -- only viable for a small
+        # bounded slice given GDELT's throttle; --corpus is the way to do thousands.
+        out = Path(args.out) if args.out else (_ROOT / "reports" / "adverse_media" / "kb_screen.jsonl")
         out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(json.dumps({"_synthetic": False, "n_screened": len(reports),
-                                   "reports": reports}, indent=2, ensure_ascii=False), encoding="utf-8")
-        flagged = [r for r in reports if r["risk"] in ("high", "elevated")]
-        print(f"\nscreened {len(reports)}; flagged {len(flagged)} -> {out}", file=sys.stderr)
+        screened = set()
+        if out.exists():
+            for ln in out.read_text(encoding="utf-8").splitlines():
+                try:
+                    screened.add(json.loads(ln)["entity"])
+                except Exception:  # noqa: BLE001
+                    pass
+        todo = [r for r in rows if r.get("name") and r["name"] not in screened]
+        if args.limit:
+            todo = todo[:args.limit]
+        print(f"{len(rows)} rows; {len(screened)} already screened; screening {len(todo)} now "
+              f"(resumable)...", file=sys.stderr)
+        flagged = 0
+        with out.open("a", encoding="utf-8") as f:
+            for idx, r in enumerate(todo):
+                if idx:
+                    time.sleep(args.pace)
+                rep = screen_entity(r["name"], country=r.get("jurisdiction", ""), sources=sources,
+                                    timespan=args.timespan)
+                rep["registry_status"] = r.get("status", "")
+                f.write(json.dumps(rep, ensure_ascii=False) + "\n")
+                f.flush()
+                if rep["risk"] in ("high", "elevated"):
+                    flagged += 1
+                    print(f"  FLAG[{rep['risk']}] {r['name'][:42]} {rep['categories']} "
+                          f"(reg:{r.get('status')})", file=sys.stderr)
+        print(f"\nscreened {len(todo)} this run; {flagged} flagged -> {out}", file=sys.stderr)
         return 0
 
     if not args.name:
