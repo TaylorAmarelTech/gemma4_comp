@@ -199,6 +199,20 @@ def test_build_corpus_merges_sources_dedup():
     assert urls == {"https://shared", "https://gd2"}  # shared url deduped, googlenews wins
 
 
+def test_googlenews_entity_requires_name_in_title():
+    def fetch(url):
+        return ('<rss><channel>'
+                '<item><title>DMW cancels license of Goldfield Mariners for exploitation - GMA</title>'
+                '<link>https://g/a1</link><source url="https://gma.test">GMA</source></item>'
+                '<item><title>Unrelated maritime news</title><link>https://g/a2</link></item>'
+                '</channel></rss>')
+    hits = am._googlenews_entity("Goldfield Mariners Manpower Inc", fetch)
+    assert len(hits) == 1  # only the title containing the distinctive phrase
+    assert hits[0].source == "googlenews" and hits[0].adverse  # "cancels license ... exploitation"
+    # too-generic name (no 2-token distinctive phrase) -> not queried
+    assert am._googlenews_entity("Manpower Services Inc", fetch) == []
+
+
 def test_verify_matches_uses_model_to_filter_precision():
     matches = [
         {"name": "Goldfield Mariners", "article_title": "DMW charges Goldfield Mariners over scam"},

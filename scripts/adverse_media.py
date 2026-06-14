@@ -291,6 +291,38 @@ def _googlenews_corpus(fetch, *, queries=_GNEWS_QUERIES, pace: float = 0.5) -> l
     return list(arts.values())
 
 
+def _googlenews_entity(name: str, fetch, *, max_items: int = 12) -> list[AdverseHit]:
+    """Per-entity Google News: query the QUOTED name + adverse terms, keep only
+    results whose title actually contains the name's distinctive phrase. Because
+    we query the exact name, a hit genuinely refers to the entity (high precision)
+    -- unlike a shared-corpus match. Google News (unlike GDELT) tolerates this."""
+    dist = _distinctive_tokens(name)
+    if len(dist) < 2:  # too generic to query precisely -> skip (avoids noise)
+        return []
+    phrase = " ".join(dist[:3])
+    q = (f'"{name}" (illegal OR DMW OR POEA OR trafficking OR charged OR convicted OR '
+         f'suspended OR cancelled OR scam OR raided OR estafa OR blacklisted)')
+    url = GOOGLE_NEWS_RSS + "?" + urllib.parse.urlencode(
+        {"q": q, "hl": "en-PH", "gl": "PH", "ceid": "PH:en"})
+    try:
+        root = ET.fromstring(fetch(url))
+    except Exception:  # noqa: BLE001
+        return []
+    hits = []
+    for it in root.findall(".//item")[:max_items]:
+        title = (it.findtext("title") or "").strip()
+        if phrase not in title.lower():  # require the distinctive name in the title
+            continue
+        cats = classify_adverse(title)
+        src = it.find("source")
+        hits.append(AdverseHit(source="googlenews", kind="news", title=title,
+                               url=(it.findtext("link") or "").strip(),
+                               date=(it.findtext("pubDate") or "").strip()[:16],
+                               domain=(src.get("url", "") if src is not None else ""),
+                               categories=cats, adverse=bool(cats)))
+    return hits
+
+
 def _build_corpus(fetch, *, sources=("googlenews", "gdelt"), timespan: str = "12m",
                   pace=None) -> list[dict]:
     """Merge an adverse-news corpus from multiple keyless sources, dedup by URL.
@@ -427,6 +459,12 @@ def screen_entity(name: str, *, country: str = "", fetch=None, classify=None,
     report dict. `fetch` and `classify` are injectable for tests."""
     fetch = fetch or _http_get
     hits: list[AdverseHit] = []
+    if "googlenews" in sources:
+        try:
+            hits += _googlenews_entity(name, fetch)
+        except Exception as exc:  # noqa: BLE001
+            hits.append(AdverseHit(source="googlenews", kind="news",
+                                   title=f"[googlenews error: {type(exc).__name__}]"))
     if "gdelt" in sources:
         try:
             hits += _gdelt_search(name, fetch, max_news=max_news, timespan=timespan)
