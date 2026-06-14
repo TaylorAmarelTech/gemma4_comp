@@ -51,7 +51,12 @@ ENTITY_TYPES = (
     "medical_clinic",       # pre-deployment / GAMCA medical facility
     "training_center",      # TESDA-style skills / orientation center
     "broker",               # sub-agent / illegal recruiter / fixer
-    "lender",               # salary-loan / placement-fee financier
+    "lender",               # money lender / salary-loan / placement-fee financier
+    "financial_services",   # licensed financial-services / fintech company
+    "remittance",           # licensed remittance / money-transfer operator
+    "hotel",                # licensed hotel / hospitality (labour-intensive sector)
+    "company",              # general licensed company / corporate-registry entity
+    "security_services",    # licensed security / manpower-services company
     "sanctioned_entity",    # debarred / blacklisted / watch-listed
     "regulator",            # govt labour / migration authority
     "ngo",                  # civil-society support org
@@ -100,6 +105,18 @@ def normalize_type(raw: str) -> str:
         return t
     if t in {"agent", "subagent", "sub_agent", "fixer"}:
         return "broker"
+    if t in {"money_lender", "moneylender", "loan_company", "lending_company"}:
+        return "lender"
+    if t in {"remittance_company", "money_transfer", "money_transfer_operator", "mto", "money_changer"}:
+        return "remittance"
+    if t in {"financial_services_company", "fintech", "finance_company", "bank", "financial"}:
+        return "financial_services"
+    if t in {"company_registry", "corporate", "corporation", "business", "business_registry"}:
+        return "company"
+    if t in {"hospitality", "guesthouse", "hostel"}:
+        return "hotel"
+    if t in {"security_company", "security", "manpower_services"}:
+        return "security_services"
     return t
 
 

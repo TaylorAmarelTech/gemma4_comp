@@ -55,6 +55,21 @@ def test_normalize_type_maps_broker_aliases():
     assert ekb.normalize_type("sub agent") == "broker"
 
 
+def test_entity_types_cover_licensed_industries():
+    for t in ("medical_clinic", "training_center", "lender", "financial_services",
+              "remittance", "hotel", "company", "security_services"):
+        assert t in ekb.ENTITY_TYPES
+
+
+def test_normalize_type_industry_aliases():
+    assert ekb.normalize_type("money lender") == "lender"
+    assert ekb.normalize_type("Remittance Company") == "remittance"
+    assert ekb.normalize_type("fintech") == "financial_services"
+    assert ekb.normalize_type("company registry") == "company"
+    assert ekb.normalize_type("hospitality") == "hotel"
+    assert ekb.normalize_type("security company") == "security_services"
+
+
 # --- record_from_dict ------------------------------------------------------
 
 def test_record_from_dict_accepts_alternate_keys():
