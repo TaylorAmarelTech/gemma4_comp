@@ -110,6 +110,18 @@ def collect_hk_eaa() -> dict:
         return {"name": name, "n_records": 0, "records": [], "note": "", "error": f"{type(exc).__name__}: {exc}"[:200]}
 
 
+def collect_hk_money_lenders() -> dict:
+    """HK Companies Registry licensed money lenders (deterministic PDF, no model)."""
+    name = "hk_money_lenders"
+    try:
+        hk = _sibling("hk_money_lenders")
+        recs = hk.records_to_entities(hk.collect())
+        return {"name": name, "n_records": len(recs), "records": recs,
+                "note": f"{len(recs)} HK money lenders (CR PDF)", "error": ""}
+    except Exception as exc:  # noqa: BLE001
+        return {"name": name, "n_records": 0, "records": [], "note": "", "error": f"{type(exc).__name__}: {exc}"[:200]}
+
+
 def collect_kaggle() -> dict:
     """Ingest already-downloaded Kaggle agency + job-order CSVs (if present)."""
     name = "kaggle"
@@ -154,6 +166,7 @@ BUILTIN_COLLECTORS = {
     "dmw_agencies": collect_dmw_agencies,
     "dmw_issuances": collect_dmw_issuances,
     "hk_eaa": collect_hk_eaa,
+    "hk_money_lenders": collect_hk_money_lenders,
     "kaggle": collect_kaggle,
     "staged": collect_staged,
 }
