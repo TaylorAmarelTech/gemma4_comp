@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import urllib.error
 import urllib.parse
@@ -36,6 +37,7 @@ _ROOT = Path(__file__).resolve().parents[1]
 USER_AGENT = "duecare-archive/1.0 (+defensive anti-trafficking provenance)"
 WAYBACK_SAVE = "https://web.archive.org/save/"
 WAYBACK_AVAILABLE = "https://archive.org/wayback/available"
+ARCHIVE_TODAY_SUBMIT = "https://archive.ph/submit/"
 
 
 def _http(url: str, *, timeout: float = 45.0, want_headers: bool = False):
@@ -75,6 +77,95 @@ def latest(url: str, *, fetch=None) -> dict:
     except Exception as exc:  # noqa: BLE001
         return {"url": url, "snapshot_url": "", "timestamp": "", "available": False,
                 "status": f"error_{type(exc).__name__}"}
+
+
+def archive_today(url: str, *, fetch=None) -> dict:
+    """Submit `url` to archive.today (archive.ph) -- a second, independent archive
+    that captures a full-page snapshot (survives even if Wayback is blocked)."""
+    sub = ARCHIVE_TODAY_SUBMIT + "?" + urllib.parse.urlencode({"url": url})
+    fetch = fetch or (lambda u: _http(u, want_headers=True, timeout=25.0))
+    try:
+        res = fetch(sub)
+        body, headers, final = res if isinstance(res, tuple) else (res, {}, "")
+        loc = headers.get("Location") or headers.get("Refresh") or ""
+        snap = ""
+        if "archive." in loc:
+            snap = loc.split("url=")[-1] if "url=" in loc else loc
+        elif final and "archive." in final and "/submit" not in final:
+            snap = final
+        else:
+            m = re.search(r"https?://archive\.(?:ph|today|li|is|md)/\w+", body or "")
+            snap = m.group(0) if m else ""
+        return {"archiver": "archive_today", "url": url, "snapshot_url": snap,
+                "status": "saved" if snap else "submitted"}
+    except urllib.error.HTTPError as exc:
+        return {"archiver": "archive_today", "url": url, "snapshot_url": "", "status": f"http_{exc.code}"}
+    except Exception as exc:  # noqa: BLE001
+        return {"archiver": "archive_today", "url": url, "snapshot_url": "", "status": f"error_{type(exc).__name__}"}
+
+
+def archive_one(url: str, archiver: str = "wayback", *, fetch=None) -> dict:
+    """Archive one url with the named service. Returns a result dict (never raises)."""
+    if archiver in ("wayback", "web.archive.org", "archive.org"):
+        r = save(url, fetch=fetch)
+        r["archiver"] = "wayback"
+        return r
+    if archiver in ("archive_today", "archive.today", "archive.ph"):
+        return archive_today(url, fetch=fetch)
+    return {"archiver": archiver, "url": url, "snapshot_url": "", "status": "unknown_archiver"}
+
+
+class ArchivingFetcher:
+    """Wrap a base fetch so EVERY distinct outbound URL is also submitted to web
+    archives (Wayback + archive.today) -- a complete, citable provenance trail of
+    everything the system touched. Robust by design:
+      * dedupes per run (a URL is archived once, however many times it's fetched);
+      * SWALLOWS archive failures -- archival never breaks the scrape;
+      * DEFERS archiving to flush() by default, so live requests are not slowed
+        (set inline=True to archive as you go).
+    `archive_fn(url, archiver)` is injectable for tests."""
+
+    def __init__(self, base_fetch, *, archivers=("wayback",), inline: bool = False,
+                 archive_fn=None, log_path: Path | None = None):
+        self._base = base_fetch
+        self.archivers = tuple(archivers)
+        self.inline = inline
+        self._archive = archive_fn or archive_one
+        self.log_path = log_path
+        self.urls: list[str] = []
+        self._seen: set[str] = set()
+        self.results: list[dict] = []
+
+    def __call__(self, url: str):
+        content = self._base(url)
+        if url not in self._seen:
+            self._seen.add(url)
+            self.urls.append(url)
+            if self.inline:
+                self._archive_url(url)
+        return content
+
+    def _archive_url(self, url: str) -> None:
+        for arch in self.archivers:
+            try:
+                self.results.append(self._archive(url, arch))
+            except Exception as exc:  # noqa: BLE001 -- never let archival break a scrape
+                self.results.append({"archiver": arch, "url": url, "snapshot_url": "",
+                                     "status": f"error_{type(exc).__name__}"})
+
+    def flush(self, *, archived_at: str = "") -> list[dict]:
+        """Archive any not-yet-archived URLs and append the propose-only log."""
+        if not self.inline:
+            for url in self.urls:
+                self._archive_url(url)
+        for r in self.results:
+            r.setdefault("at", archived_at)
+        log = Path(self.log_path) if self.log_path else (_ROOT / "reports" / "harvest" / "outbound_archive.jsonl")
+        log.parent.mkdir(parents=True, exist_ok=True)
+        with log.open("a", encoding="utf-8") as f:
+            for r in self.results:
+                f.write(json.dumps(r, ensure_ascii=False) + "\n")
+        return self.results
 
 
 def archive_sources(urls: list[str], *, fetch=None, log_path: Path | None = None,
