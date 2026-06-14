@@ -106,10 +106,14 @@ def run_cascade(target: dict, acquirers, *, escalate: bool = True, min_records: 
 def acq_deterministic(target: dict) -> dict:
     """Tier 1: deterministic scrape (browser_scrape preset/generic). No tokens."""
     try:
+        preset = target.get("preset", "")
+        # a registry with a special deterministic resolver (e.g. hk_eaa result.php)
+        if preset in REGISTRY_RESOLVERS:
+            return REGISTRY_RESOLVERS[preset](target)
         bs = _sibling("browser_scrape")
         url = target.get("url", "")
-        if target.get("preset") in bs.PRESETS:
-            cfg = bs.PRESETS[target["preset"]]
+        if preset in bs.PRESETS:
+            cfg = bs.PRESETS[preset]
         elif url:
             cfg = bs.BrowserCapture(url=url, label="cascade", max_pages=int(target.get("max_pages", 2)))
         else:
@@ -187,6 +191,58 @@ def acq_vision(target: dict) -> dict:
         return _err(4, "vision", exc)
 
 
+# ---- registry presets (proven deterministic routes win at tier 1, free) ----
+
+def _resolve_hk_eaa(target: dict) -> dict:
+    """HK EAA via the deterministic result.php path (cookie bypass + token POST)."""
+    try:
+        hk = _sibling("hk_eaa_collector")
+        res = hk._playwright_collect_live(max_pages=int(target.get("max_pages", 400)))
+        recs = hk.records_to_entities(res.get("records", []))
+        return {"tier": 1, "name": "deterministic", "records": recs, "n": len(recs),
+                "confidence": 0.95 if recs else 0.0, "cost": "none",
+                "discovered_urls": ["https://www.eaa.labour.gov.hk/en/result.php"],
+                "note": f"hk_eaa result.php {res.get('pages')}pg", "error": ""}
+    except Exception as exc:  # noqa: BLE001
+        return _err(1, "deterministic", exc)
+
+
+# registries with a SPECIAL deterministic resolver (not a plain browser_scrape preset)
+REGISTRY_RESOLVERS = {"hk_eaa": _resolve_hk_eaa}
+
+# proven deterministic registries addressable by --registry (dmw_lra is a
+# browser_scrape preset; hk_eaa has a resolver above).
+PROVEN_REGISTRIES = {
+    "dmw_lra": {"preset": "dmw_lra", "name": "PH DMW -- licensed recruitment agencies (master-api)"},
+    "hk_eaa": {"preset": "hk_eaa", "name": "HK EAA -- licensed employment agencies (result.php)"},
+}
+
+_CATALOG = _ROOT / "configs" / "duecare" / "research_monitor" / "entity_sources.yaml"
+
+
+def load_known_sources(path=_CATALOG) -> dict:
+    """id -> url for every catalogued registry (incl. the sweep-discovered
+    endpoints), so the cascade can target any of them by id."""
+    try:
+        import yaml
+        data = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+        return {str(s.get("id")): str(s.get("url")) for s in (data.get("sources") or [])
+                if s.get("id") and s.get("url")}
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def resolve_registry(key: str, *, sources=None) -> dict:
+    """Resolve a registry key to a target spec: a proven preset, else a catalogued
+    source URL (which runs the generic ladder), else {}."""
+    if key in PROVEN_REGISTRIES:
+        return dict(PROVEN_REGISTRIES[key])
+    srcs = sources if sources is not None else load_known_sources()
+    if key in srcs:
+        return {"url": srcs[key], "name": key}
+    return {}
+
+
 # acquirers in escalation order; slice by --max-tier
 LADDER = [acq_deterministic, acq_llm_assisted, acq_agentic, acq_vision]
 
@@ -202,6 +258,8 @@ def main(argv: list[str] | None = None) -> int:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--url", help="target URL to acquire records from")
     ap.add_argument("--preset", default="", help="a browser_scrape preset (e.g. dmw_lra)")
+    ap.add_argument("--registry", default="", help="a registry key (proven preset or catalogued id)")
+    ap.add_argument("--list-registries", action="store_true", help="list addressable registries + exit")
     ap.add_argument("--fields", default="name,license_no,status,address,phone,email")
     ap.add_argument("--goal", default="extract the list of records on this page")
     ap.add_argument("--max-tier", type=int, default=4, help="highest layer to escalate to (1-4)")
@@ -211,9 +269,27 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", default="")
     args = ap.parse_args(argv)
 
-    if not args.url and not args.preset:
-        ap.error("provide --url or --preset")
-    target = {"url": args.url or "", "preset": args.preset,
+    known = load_known_sources()
+    if args.list_registries:
+        print("PROVEN deterministic registries (win at tier 1, free):", file=sys.stderr)
+        for k, v in PROVEN_REGISTRIES.items():
+            print(f"  {k:<16} {v['name']}", file=sys.stderr)
+        print(f"\nCatalogued sources addressable by --registry <id> ({len(known)}):", file=sys.stderr)
+        for k in sorted(known):
+            print(f"  {k}", file=sys.stderr)
+        return 0
+
+    url, preset = args.url or "", args.preset
+    if args.registry:
+        spec = resolve_registry(args.registry, sources=known)
+        if not spec:
+            print(f"unknown registry {args.registry!r}; --list-registries to see options", file=sys.stderr)
+            return 2
+        preset = spec.get("preset", preset)
+        url = spec.get("url", url)
+    if not url and not preset:
+        ap.error("provide --url, --preset, or --registry")
+    target = {"url": url, "preset": preset,
               "fields": [f.strip() for f in args.fields.split(",") if f.strip()], "goal": args.goal}
 
     acquirers = [a for i, a in enumerate(LADDER) if i + 1 <= args.max_tier]
