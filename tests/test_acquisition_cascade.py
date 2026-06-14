@@ -90,3 +90,37 @@ def test_cascade_archival_never_breaks_acquisition():
 
 def test_ladder_is_cheap_to_powerful():
     assert [a.__name__ for a in cas.LADDER] == ["acq_deterministic", "acq_llm_assisted", "acq_agentic", "acq_vision"]
+
+
+# ---- registry presets -----------------------------------------------------
+
+def test_proven_registries_and_resolvers_registered():
+    assert set(cas.PROVEN_REGISTRIES) >= {"dmw_lra", "hk_eaa"}
+    assert "hk_eaa" in cas.REGISTRY_RESOLVERS   # HK EAA has a special deterministic resolver
+
+
+def test_resolve_registry_proven_presets():
+    assert cas.resolve_registry("dmw_lra")["preset"] == "dmw_lra"
+    assert cas.resolve_registry("hk_eaa")["preset"] == "hk_eaa"
+
+
+def test_resolve_registry_catalogued_source_by_id():
+    srcs = {"ofac_sdn": "https://ofac.example/sdn", "wafid": "https://wafid.example/centres"}
+    assert cas.resolve_registry("ofac_sdn", sources=srcs)["url"] == "https://ofac.example/sdn"
+    assert cas.resolve_registry("not_a_registry", sources=srcs) == {}
+
+
+def test_acq_deterministic_dispatches_registry_resolver(monkeypatch):
+    monkeypatch.setitem(cas.REGISTRY_RESOLVERS, "hk_eaa",
+                        lambda t: {"tier": 1, "name": "deterministic", "records": [{"name": "ADECCO"}],
+                                   "n": 1, "confidence": 0.95, "cost": "none",
+                                   "discovered_urls": ["u"], "note": "", "error": ""})
+    r = cas.acq_deterministic({"preset": "hk_eaa"})
+    assert r["records"] == [{"name": "ADECCO"}] and r["tier"] == 1 and r["cost"] == "none"
+
+
+def test_load_known_sources_reads_catalog():
+    # the real catalogue should yield the catalogued source ids (incl. sweep endpoints)
+    known = cas.load_known_sources()
+    assert isinstance(known, dict) and len(known) > 10
+    assert all(v.startswith("http") for v in known.values())
