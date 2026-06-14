@@ -87,6 +87,18 @@ def collect_dmw_issuances() -> dict:
         return {"name": name, "n_records": 0, "records": [], "note": "", "error": f"{type(exc).__name__}: {exc}"[:200]}
 
 
+def collect_hk_eaa() -> dict:
+    """HK EAA licensed-agency list (Labour Dept PDF baseline -- reliable bulk)."""
+    name = "hk_eaa"
+    try:
+        hk = _sibling("hk_eaa_collector")
+        recs = hk.records_to_entities(hk.parse_pdf_list(hk.pdf_text(hk._download_pdf())))
+        return {"name": name, "n_records": len(recs), "records": recs,
+                "note": f"{len(recs)} HK agencies (PDF)", "error": ""}
+    except Exception as exc:  # noqa: BLE001
+        return {"name": name, "n_records": 0, "records": [], "note": "", "error": f"{type(exc).__name__}: {exc}"[:200]}
+
+
 def collect_kaggle() -> dict:
     """Ingest already-downloaded Kaggle agency + job-order CSVs (if present)."""
     name = "kaggle"
@@ -130,6 +142,7 @@ def collect_staged() -> dict:
 BUILTIN_COLLECTORS = {
     "dmw_agencies": collect_dmw_agencies,
     "dmw_issuances": collect_dmw_issuances,
+    "hk_eaa": collect_hk_eaa,
     "kaggle": collect_kaggle,
     "staged": collect_staged,
 }

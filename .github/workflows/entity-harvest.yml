@@ -50,8 +50,8 @@ jobs:
           # headless-browser collector
           pip install playwright || true
           python -m playwright install --with-deps chromium || true
-          # kaggle dataset collector (read-only)
-          pip install kaggle || true
+          # kaggle dataset collector (read-only) + HK EAA PDF parser
+          pip install kaggle pypdf || true
 
       - name: Download Kaggle datasets (no-op without creds)
         env:
