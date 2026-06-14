@@ -244,19 +244,30 @@ PROVEN_REGISTRIES = {
     "worldbank_debarred": {"preset": "worldbank_debarred", "name": "World Bank -- debarred firms (JSON)"},
 }
 
-_CATALOG = _ROOT / "configs" / "duecare" / "research_monitor" / "entity_sources.yaml"
+_CATALOGS = (
+    _ROOT / "configs" / "duecare" / "research_monitor" / "entity_sources.yaml",
+    _ROOT / "configs" / "duecare" / "research_monitor" / "licensed_entity_sources.yaml",
+)
 
 
-def load_known_sources(path=_CATALOG) -> dict:
-    """id -> url for every catalogued registry (incl. the sweep-discovered
-    endpoints), so the cascade can target any of them by id."""
+def load_known_sources(paths=_CATALOGS) -> dict:
+    """id -> url for every catalogued registry across BOTH catalogues (the
+    trafficking-corridor sources + the country x industry licensed-entity matrix),
+    so the cascade can target any of them by id."""
+    out: dict = {}
     try:
         import yaml
-        data = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
-        return {str(s.get("id")): str(s.get("url")) for s in (data.get("sources") or [])
-                if s.get("id") and s.get("url")}
     except Exception:  # noqa: BLE001
-        return {}
+        return out
+    for p in ([paths] if isinstance(paths, (str, Path)) else paths):
+        try:
+            data = yaml.safe_load(Path(p).read_text(encoding="utf-8"))
+            for s in (data.get("sources") or []):
+                if s.get("id") and s.get("url"):
+                    out[str(s["id"])] = str(s["url"])
+        except Exception:  # noqa: BLE001
+            continue
+    return out
 
 
 def resolve_registry(key: str, *, sources=None) -> dict:
