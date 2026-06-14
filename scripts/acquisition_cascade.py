@@ -1,0 +1,243 @@
+#!/usr/bin/env python3
+"""Multi-layer acquisition cascade -- escalate from cheap to powerful, archive all.
+
+"Can we have multiple layers of agents -- research agents, LLM-driven browsers,
+deterministic/LLM-assisted scrapers?" Yes: this is the orchestrator that runs
+them as an ESCALATING WATERFALL. It tries the cheapest, most-deterministic layer
+first and only escalates to a more powerful (and token-hungry) one when the
+cheaper layer fails -- the same triage pattern the project uses elsewhere
+(GREP -> fast model -> deep).
+
+Layers (cheap -> powerful), each a pluggable acquirer:
+  tier 0  RESEARCH       -- OpenClaw/Hermes + the research monitor: discover WHERE
+                            the data lives (source/endpoint) for an unknown target
+  tier 1  DETERMINISTIC  -- browser_scrape (JSON API / table / preset), hk_eaa,
+                            scrape_agency_sources: free, reliable, NO tokens
+  tier 2  LLM_ASSISTED   -- llm_scrape (rules -> LLM gap-fill): a few tokens
+  tier 3  AGENTIC        -- agentic_browse (Gemma drives the browser): more tokens
+  tier 4  VISION         -- llm_scrape screenshot -> Gemma 4 vision: opaque DOMs
+
+Robustness + PROVENANCE: every outbound URL the cascade touches (the target plus
+any endpoints an acquirer discovers) is submitted to web archives (Wayback +
+archive.today) via archive_source -- a complete, citable trail. Archival is
+best-effort and NEVER breaks acquisition.
+
+Design: acquirers and the archive function are injectable, so the escalation
+logic, fault isolation, cost accounting, and the archive sweep are tested
+offline with fakes -- no browser, no model, no network. Propose-only.
+
+Usage:
+    python scripts/acquisition_cascade.py --url https://reg.gov/agencies \
+        --fields name,license_no,status --max-tier 3
+"""
+from __future__ import annotations
+
+import argparse
+import importlib.util
+import json
+import re
+import sys
+from pathlib import Path
+
+_ROOT = Path(__file__).resolve().parents[1]
+
+
+def _sibling(name: str):
+    spec = importlib.util.spec_from_file_location(
+        f"dc_{name}_for_cascade", str(_ROOT / "scripts" / f"{name}.py"))
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _err(tier, name, exc):
+    return {"tier": tier, "name": name, "records": [], "n": 0, "confidence": 0.0,
+            "cost": "n/a", "discovered_urls": [], "note": "", "error": f"{type(exc).__name__}: {exc}"[:180]}
+
+
+# ---- the cascade core (tested) --------------------------------------------
+
+def run_cascade(target: dict, acquirers, *, escalate: bool = True, min_records: int = 1,
+                archive_fn=None, archived_at: str = "") -> dict:
+    """Run `acquirers` (ordered cheap->powerful) over `target`. Escalate: stop at
+    the first layer that yields >= min_records. Then archive every URL touched.
+
+    Each acquirer is `callable(target) -> {tier,name,records,n,confidence,cost,
+    discovered_urls,note,error}` and must not raise (guarded here regardless).
+    `archive_fn(url) -> result` is injectable; archival is best-effort."""
+    url = target.get("url", "")
+    archived_urls: list[str] = [url] if url else []
+    seen_urls = set(archived_urls)
+    attempts, won, records = [], None, []
+
+    for acq in acquirers:
+        try:
+            r = acq(target)
+        except Exception as exc:  # noqa: BLE001 -- belt-and-braces
+            r = _err("?", getattr(acq, "__name__", "acquirer"), exc)
+        for u in (r.get("discovered_urls") or []):
+            if u and u not in seen_urls:
+                seen_urls.add(u)
+                archived_urls.append(u)
+        attempts.append({k: r.get(k) for k in ("tier", "name", "n", "confidence", "cost", "note", "error")})
+        if r.get("records"):
+            if not records:
+                records, won = r["records"], r
+            if escalate and len(r["records"]) >= min_records:
+                break
+
+    archived = []
+    if archive_fn:
+        for u in archived_urls:
+            try:
+                archived.append(archive_fn(u))
+            except Exception as exc:  # noqa: BLE001 -- archival never breaks acquisition
+                archived.append({"url": u, "status": f"error_{type(exc).__name__}"})
+
+    return {"target": target.get("name") or url, "won_by": won["name"] if won else None,
+            "tier": won.get("tier") if won else None, "n_records": len(records),
+            "records": records, "attempts": attempts,
+            "archived_urls": archived_urls, "archived": archived, "archived_at": archived_at}
+
+
+# ---- built-in acquirers (thin real adapters; cheap -> powerful) ------------
+
+def acq_deterministic(target: dict) -> dict:
+    """Tier 1: deterministic scrape (browser_scrape preset/generic). No tokens."""
+    try:
+        bs = _sibling("browser_scrape")
+        url = target.get("url", "")
+        if target.get("preset") in bs.PRESETS:
+            cfg = bs.PRESETS[target["preset"]]
+        elif url:
+            cfg = bs.BrowserCapture(url=url, label="cascade", max_pages=int(target.get("max_pages", 2)))
+        else:
+            return {"tier": 1, "name": "deterministic", "records": [], "n": 0, "confidence": 0.0,
+                    "cost": "none", "discovered_urls": [], "note": "no url/preset", "error": ""}
+        result = bs.render_and_capture(cfg)
+        profiles, endpoint = bs.captures_to_profiles(result, source="cascade")
+        return {"tier": 1, "name": "deterministic", "records": profiles, "n": len(profiles),
+                "confidence": 0.9 if profiles else 0.0, "cost": "none",
+                "discovered_urls": ([url] + list(result.discovered_endpoints[:6])),
+                "note": f"endpoint {endpoint}" if endpoint else "rendered", "error": ""}
+    except Exception as exc:  # noqa: BLE001
+        return _err(1, "deterministic", exc)
+
+
+def acq_llm_assisted(target: dict) -> dict:
+    """Tier 2: llm_scrape (deterministic rules -> LLM gap-fill). Few tokens."""
+    try:
+        ls = _sibling("llm_scrape")
+        url = target.get("url", "")
+        fields = target.get("fields") or ["name", "license_no", "status", "address", "phone", "email"]
+        mf = ls.text_model_fn()
+        res = ls.scrape_page(url, fields, model_fn=mf, tier="auto")
+        rec = res.get("extracted") or {}
+        records = [rec] if any(rec.values()) else []
+        return {"tier": 2, "name": "llm_assisted", "records": records, "n": len(records),
+                "confidence": 0.7 if records else 0.0,
+                "cost": "tokens" if res.get("tokens_used") else "none",
+                "discovered_urls": [url], "note": f"det={res.get('n_deterministic')}", "error": ""}
+    except Exception as exc:  # noqa: BLE001
+        return _err(2, "llm_assisted", exc)
+
+
+def acq_agentic(target: dict) -> dict:
+    """Tier 3: agentic_browse -- Gemma drives the browser. More tokens."""
+    try:
+        ab = _sibling("agentic_browse")
+        url, goal = target.get("url", ""), target.get("goal", "extract the list of records on this page")
+        cfg = ab._model_config()
+        if not cfg["base_url"]:
+            return {"tier": 3, "name": "agentic", "records": [], "n": 0, "confidence": 0.0,
+                    "cost": "tokens", "discovered_urls": [url], "note": "no model endpoint", "error": ""}
+        executor = ab.make_playwright_executor()
+        try:
+            executor.navigate(url)
+            result = ab.run_agent(goal, executor, lambda **kw: ab.gemma_model_fn(cfg=cfg, **kw),
+                                  max_steps=int(target.get("max_steps", 8)))
+        finally:
+            getattr(executor, "close", lambda: None)()
+        recs = result.get("records", [])
+        return {"tier": 3, "name": "agentic", "records": recs, "n": len(recs),
+                "confidence": 0.6 if recs else 0.0, "cost": "tokens",
+                "discovered_urls": [url], "note": result.get("stop_reason", ""), "error": ""}
+    except Exception as exc:  # noqa: BLE001
+        return _err(3, "agentic", exc)
+
+
+def acq_vision(target: dict) -> dict:
+    """Tier 4: llm_scrape vision -- screenshot -> Gemma 4 vision. Opaque DOMs."""
+    try:
+        ls = _sibling("llm_scrape")
+        url = target.get("url", "")
+        fields = target.get("fields") or ["name", "license_no", "status", "address"]
+        vf = ls.vision_model_fn()
+        if vf is None:
+            return {"tier": 4, "name": "vision", "records": [], "n": 0, "confidence": 0.0,
+                    "cost": "vision-tokens", "discovered_urls": [url], "note": "no model", "error": ""}
+        res = ls.scrape_page(url, fields, vision_model_fn=vf, want_screenshot=True, tier="deterministic")
+        rec = res.get("vision_extracted") or {}
+        records = [rec] if any(rec.values()) else []
+        return {"tier": 4, "name": "vision", "records": records, "n": len(records),
+                "confidence": 0.5 if records else 0.0, "cost": "vision-tokens",
+                "discovered_urls": [url], "note": "screenshot read", "error": ""}
+    except Exception as exc:  # noqa: BLE001
+        return _err(4, "vision", exc)
+
+
+# acquirers in escalation order; slice by --max-tier
+LADDER = [acq_deterministic, acq_llm_assisted, acq_agentic, acq_vision]
+
+
+# ---- CLI -------------------------------------------------------------------
+
+def _slug(s: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "_", (s or "").lower()).strip("_")[:50] or "target"
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--url", help="target URL to acquire records from")
+    ap.add_argument("--preset", default="", help="a browser_scrape preset (e.g. dmw_lra)")
+    ap.add_argument("--fields", default="name,license_no,status,address,phone,email")
+    ap.add_argument("--goal", default="extract the list of records on this page")
+    ap.add_argument("--max-tier", type=int, default=4, help="highest layer to escalate to (1-4)")
+    ap.add_argument("--no-escalate", action="store_true", help="run every layer (do not stop at first success)")
+    ap.add_argument("--no-archive", action="store_true", help="skip archiving outbound URLs")
+    ap.add_argument("--archives", default="wayback,archive_today")
+    ap.add_argument("--out", default="")
+    args = ap.parse_args(argv)
+
+    if not args.url and not args.preset:
+        ap.error("provide --url or --preset")
+    target = {"url": args.url or "", "preset": args.preset,
+              "fields": [f.strip() for f in args.fields.split(",") if f.strip()], "goal": args.goal}
+
+    acquirers = [a for i, a in enumerate(LADDER) if i + 1 <= args.max_tier]
+
+    archive_fn = None
+    if not args.no_archive:
+        ar = _sibling("archive_source")
+        archs = tuple(s.strip() for s in args.archives.split(",") if s.strip())
+        archive_fn = lambda u: {a: ar.archive_one(u, a) for a in archs}
+
+    print(f"cascade over {len(acquirers)} layer(s) (max-tier {args.max_tier}); "
+          f"archive={not args.no_archive}", file=sys.stderr)
+    res = run_cascade(target, acquirers, escalate=not args.no_escalate, archive_fn=archive_fn)
+
+    out = Path(args.out) if args.out else (_ROOT / "reports" / "acquisition" / f"cascade_{_slug(args.url or args.preset)}.json")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps({"_synthetic": False, **res}, indent=2, ensure_ascii=False), encoding="utf-8")
+    for a in res["attempts"]:
+        flag = f"ERROR {a['error']}" if a["error"] else f"{a['n']} records (cost={a['cost']})"
+        print(f"  [tier {a['tier']}: {a['name']:<14}] {flag}", file=sys.stderr)
+    print(f"\nWON BY: {res['won_by']} (tier {res['tier']}) -> {res['n_records']} records", file=sys.stderr)
+    print(f"archived {len(res['archived_urls'])} outbound URL(s) -> {out}", file=sys.stderr)
+    return 0 if res["n_records"] else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

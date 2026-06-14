@@ -59,6 +59,52 @@ def test_latest_handles_no_snapshot():
     assert r["available"] is False and r["snapshot_url"] == ""
 
 
+def test_archive_today_extracts_snapshot_from_body():
+    r = ar.archive_today("https://x", fetch=lambda u: ("<a href='https://archive.ph/abc12'>ok</a>", {}, ""))
+    assert r["archiver"] == "archive_today" and "archive.ph/abc12" in r["snapshot_url"]
+
+
+def test_archive_one_dispatches_by_name():
+    assert ar.archive_one("u", "archive_today", fetch=lambda x: ("", {}, ""))["archiver"] == "archive_today"
+    way = ar.archive_one("u", "wayback", fetch=lambda x: ("", {"Content-Location": "/web/1/u"}, ""))
+    assert way["archiver"] == "wayback"
+    assert ar.archive_one("u", "bogus")["status"] == "unknown_archiver"
+
+
+def test_archiving_fetcher_dedupes_and_defers(tmp_path):
+    log = tmp_path / "out.jsonl"
+    fetcher = ar.ArchivingFetcher(
+        lambda u: f"content of {u}",
+        archive_fn=lambda url, arch: {"archiver": arch, "url": url, "snapshot_url": f"snap/{url}", "status": "saved"},
+        log_path=log)
+    assert fetcher("https://a") == "content of https://a"
+    assert fetcher("https://a") == "content of https://a"   # fetched twice
+    assert fetcher("https://b") == "content of https://b"
+    assert fetcher.results == []                             # deferred: nothing archived yet
+    res = fetcher.flush()
+    assert {r["url"] for r in res} == {"https://a", "https://b"}   # 'a' archived ONCE (deduped)
+    lines = [json.loads(ln) for ln in log.read_text(encoding="utf-8").splitlines()]
+    assert len(lines) == 2
+
+
+def test_archiving_fetcher_inline_archives_immediately(tmp_path):
+    fetcher = ar.ArchivingFetcher(
+        lambda u: "x", inline=True,
+        archive_fn=lambda url, arch: {"archiver": arch, "url": url, "snapshot_url": "s", "status": "saved"},
+        log_path=tmp_path / "o.jsonl")
+    fetcher("https://a")
+    assert len(fetcher.results) == 1                          # archived as fetched
+
+
+def test_archiving_fetcher_swallows_archive_errors(tmp_path):
+    def boom(url, arch):
+        raise RuntimeError("archive service down")
+    fetcher = ar.ArchivingFetcher(lambda u: "scraped", archive_fn=boom, log_path=tmp_path / "o.jsonl")
+    assert fetcher("https://a") == "scraped"                  # scrape unaffected by archive failure
+    res = fetcher.flush()
+    assert res[0]["status"].startswith("error_")
+
+
 def test_archive_sources_writes_propose_only_log(tmp_path):
     log = tmp_path / "archive_log.jsonl"
     def fetch(url):
