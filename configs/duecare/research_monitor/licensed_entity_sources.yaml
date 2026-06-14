@@ -1,0 +1,2891 @@
+# Licensed-entity source catalogue -- official registers of LICENSED ENTITIES by
+# COUNTRY x INDUSTRY (recruitment/manning agencies, medical clinics, training centres,
+# money lenders, financial-services cos, remittance/MTO, hotels, company registries,
+# security services). The mission: every licensed entity, every migration country.
+#
+# Provenance: 2026-06-13 country-industry-registries research swarm (20 country agents,
+# WebFetch-verified, deduped). SOURCES ONLY -- no entity records, nothing fabricated.
+# has_data_endpoint: true = exposes a downloadable list / JSON-CSV feed (scrapable);
+# url_verified: true = a swarm agent fetched it this run. Addressable in the
+# acquisition cascade via --registry <id>. Regenerate by re-running the workflow.
+#
+# 176 sources | 174 official | 52 with data endpoint | 102 verified | 20 countries
+
+sources:
+- id: ae_company_regist_uae_national_economic_register
+  name: UAE National Economic Register (NER) — federal company/licence registry
+  publisher: UAE Ministry of Economy
+  url: https://www.growth.gov.ae/G2C/
+  country: AE
+  industry: company_registry
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: The NER is the federal Ministry of Economy database consolidating ALL UAE commercial licences
+    across mainland + every free zone (active, expired, cancelled). Public, no login/payment. Search by
+    company name, licence number, or economic activity; returns legal name, licence status, activity type,
+    and issuing authority. Fetcher hit a TLS cert-chain error (unable to verify first certificate) so
+    not c
+  confidence: 0.8
+- id: ae_company_regist_u_ae_official_uae_business_lic
+  name: u.ae — official UAE business-licence verification hub
+  publisher: UAE Government (Telecommunications and Digital Government Regulatory Authority / u.ae portal)
+  url: https://u.ae/en/information-and-services/business/important-digital-services/inquire-about-licences-names-and-activities
+  country: AE
+  industry: company_registry
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'Official UAE-government index page that links the federal NER plus each emirate''s DED licence-inquiry
+    portal (Dubai DET / Invest in Dubai, Abu Dhabi ADDED/TAMM, Sharjah SEDD, etc.) — useful as the authoritative
+    jump-table to every emirate company register. Returned ECONNREFUSED to the fetcher (bot/geofence).
+    Listed as a secondary company-registry navigation source; the per-emirate DED portals are '
+  confidence: 0.6
+- id: ae_financial_serv_cbuae_all_licensed_financial_i
+  name: CBUAE — All Licensed Financial Institutions (banks, finance/lending companies, exchange houses)
+  publisher: Central Bank of the United Arab Emirates (CBUAE)
+  url: https://rulebook.centralbank.ae/en/rulebook/all-licensed-financial-institutions
+  country: AE
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: CBUAE is the federal regulator/registrar for banks, finance companies (the licensed-lending category
+    — the UAE has no separate 'moneylender' licence; consumer/retail lending is done by CBUAE-licensed
+    Finance Companies and banks), exchange houses, and money-transfer providers. The Rulebook 'All Licensed
+    Financial Institutions' index is the canonical list but returned HTTP 403 to the fetcher (bot pr
+  confidence: 0.8
+- id: ae_financial_serv_securities_commodities_authori
+  name: Securities & Commodities Authority — Licensed Companies (Open Data)
+  publisher: Securities and Commodities Authority (SCA)
+  url: https://www.sca.gov.ae/en/open-data/licensed-companies.aspx
+  country: AE
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: VERIFIED this session. Official SCA Open Data register of entities licensed/authorised for capital-market
+    financial activities (brokers, fund managers, financial advisers/consultants incl. Category-5 promotion
+    firms). Page provides an 'Export To Excel' button (downloadable structured list = data endpoint) plus
+    search and filter-by-activity. beta.sca.gov.ae 301-redirects here. This is the federal m
+  confidence: 0.9
+- id: ae_hotel_dubai_det_hotel_establishment_
+  name: Dubai DET — hotel establishment classification & licensing system
+  publisher: Dubai Department of Economy and Tourism (DET / formerly DTCM)
+  url: https://classification.dubaitourism.ae/
+  country: AE
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Dubai DET licenses & classifies all hotel establishments (hotels, resorts, hotel apartments,
+    guest houses) under Decree 17/2013; 570+ establishments registered on the e-classification system.
+    classification.dubaitourism.ae is the official operator portal (returned 403 to the fetcher = bot
+    protection, not verified this session). The portal itself is operator-login; the public-facing classified-hote
+  confidence: 0.74
+- id: ae_manning_agency_tadbeer_domestic_worker_servic
+  name: Tadbeer domestic worker service centres (official programme)
+  publisher: MOHRE (Tadbeer programme)
+  url: https://www.tadbeer.ae/
+  country: AE
+  industry: manning_agency
+  entity_type: manning_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Official MOHRE-operated Tadbeer programme front-end for the regulated domestic-worker (manning/household-labour)
+    channel. Listed separately from the general recruitment-office register because Tadbeer is a distinct
+    MOHRE-licensed category with its own service centres. URL not fetched this session; treat tadbeer.ae
+    as the official entry and tadbeer.center as an unofficial mirror directory. No confi
+  confidence: 0.6
+- id: ae_medical_clinic_dha_sheryan_health_facility_pr
+  name: DHA Sheryan health facility & professional licensing (Dubai)
+  publisher: Dubai Health Authority (DHA)
+  url: https://services.dha.gov.ae/sheryan/wps/portal/home
+  country: AE
+  industry: medical_clinic
+  entity_type: medical_clinic
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Sheryan is DHA's official online licensing system for Dubai health facilities (clinics, hospitals,
+    pharmacies) and professionals (licensed 321 facilities + 3,958 professionals in 2020). It has a public
+    'verify a professional/facility' lookup but is primarily an operator portal; no open bulk list confirmed.
+    Not fetched this session. Abu Dhabi equivalent is DOH 'Weqaya'/health-facility licensing; Du
+  confidence: 0.7
+- id: ae_medical_clinic_wafid_gulf_health_council_appr
+  name: Wafid (Gulf Health Council) approved medical centres list
+  publisher: Gulf Health Council (GCC Health Council) — Wafid platform
+  url: https://wafid.com/medical-center/
+  country: AE
+  industry: medical_clinic
+  entity_type: medical_clinic
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'wafid.com VERIFIED this session as the official Gulf Health Council portal (2026 GHC copyright).
+    It exposes a ''Medical Centers List'' directory of GCC-approved pre-employment/migrant-health examination
+    centres filterable by country (incl. UAE) and city, plus a medical-status search keyed on passport/Wafid
+    slip — effectively a queryable data feed (filtered XHR listing). NOTE: the exact list path var'
+  confidence: 0.82
+- id: ae_money_lender_cbuae_licensed_money_lenders_f
+  name: CBUAE — licensed money lenders / finance (lending) companies
+  publisher: Central Bank of the UAE (CBUAE)
+  url: https://rulebook.centralbank.ae/en/rulebook/finance-companies-regulation
+  country: AE
+  industry: money_lender
+  entity_type: lender
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: In the UAE, regulated consumer/commercial lending is the CBUAE 'Finance Company' licence (not
+    a standalone moneylender registry). This Finance Companies Regulation page is the regulatory anchor;
+    the actual roster of licensed finance companies sits under the CBUAE 'All Licensed Financial Institutions'
+    index (separate row). 403 to fetcher this session; verify via the CBUAE site directly. Distinct fr
+  confidence: 0.66
+- id: ae_recruitment_ag_mohre_tadbeer_licensed_domesti
+  name: MOHRE / Tadbeer licensed domestic-worker recruitment offices
+  publisher: Ministry of Human Resources and Emiratisation (MOHRE)
+  url: https://www.mohre.gov.ae/en/our-services/recruitment-agencies.aspx
+  country: AE
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: MOHRE is the federal regulator that licenses recruitment/manpower offices (granted to UAE nationals
+    only) and Tadbeer domestic-worker service centres (311 licensed offices nationally as of 2026; ~136
+    Tadbeer centres). The .aspx services page returned HTTP 403 to the fetcher (Akamai/bot protection)
+    so not verified this session. Public verification of a specific office is via MOHRE app/u.ae; no open
+  confidence: 0.78
+- id: ae_remittance_cbuae_licensed_exchange_houses
+  name: CBUAE — licensed exchange houses (remittance / money transfer)
+  publisher: Central Bank of the UAE (CBUAE)
+  url: https://rulebook.centralbank.ae/en/entiresection/101
+  country: AE
+  industry: remittance
+  entity_type: remittance
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Exchange houses (Al Ansari, Al Fardan, LuLu, Al Rostamani, Sharaf, Wall Street, Al Ahalia, etc.)
+    handle >80% of UAE personal remittances and are CBUAE-licensed under the Exchange Business Regulation;
+    this Rulebook 'Exchange Houses' section (entiresection/101) is the official regulatory surface. The
+    definitive roster is on the CBUAE corporate site (centralbank.ae) supervised-entities list; Rulebook
+  confidence: 0.72
+- id: bd_company_regist_rjsc_online_name_clearance_com
+  name: RJSC Online Name Clearance / Company Search (e-services)
+  publisher: Registrar of Joint Stock Companies and Firms (RJSC), Ministry of Commerce
+  url: https://app.roc.gov.bd/psp/nc_search
+  country: BD
+  industry: company_registry
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'Official national corporate/company registry name-search e-service (the BD company registry
+    is RJSC under Ministry of Commerce; main site rjsc.gov.bd, e-services on app.roc.gov.bd). Could NOT
+    verify this exact URL this session: WebFetch failed with ''unable to verify the first certificate''
+    (TLS chain issue for automated clients; loads in a browser). Provides per-entity name lookup; basic
+    name/regis'
+  confidence: 0.8
+- id: bd_financial_serv_bangladesh_bank_licensed_money
+  name: Bangladesh Bank - Licensed Money Changers / Authorised Dealers
+  publisher: Bangladesh Bank (central bank) - Foreign Exchange Policy Department
+  url: https://www.bb.org.bd/en/index.php/financialactivity/paysystems
+  country: BD
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'Bangladesh Bank is the licensing authority for money changers (~235 legal money changers per
+    its Nov-2022 circular), Authorised Dealer banks, and foreign-exchange/remittance handling. Could NOT
+    verify this session: the entire www.bb.org.bd site sits behind a CAPTCHA/bot-challenge for automated
+    fetchers (WebFetch returned the security-challenge page on every bb.org.bd URL tried). Lists are publishe'
+  confidence: 0.7
+- id: bd_financial_serv_idra_registered_insurance_comp
+  name: IDRA Registered Insurance Companies (Life & Non-Life Insurers)
+  publisher: Insurance Development and Regulatory Authority (IDRA), Bangladesh
+  url: https://idra.org.bd/
+  country: BD
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'IDRA is the sole statutory regulator of the BD insurance sector (since 2010) and registers/licenses
+    all insurers, reinsurers and intermediaries (~81 companies: 2 state-owned + private life & non-life).
+    Could NOT verify this session: the specific insurer-list deep link (idra.org.bd/site/page/499bb39f...)
+    returned HTTP 404 (page likely moved); homepage idra.org.bd is the official authority site. Ins'
+  confidence: 0.75
+- id: bd_financial_serv_mra_mfi_dbms_national_microfin
+  name: MRA MFI-DBMS (National Microfinance Database)
+  publisher: Microcredit Regulatory Authority (MRA), Bangladesh
+  url: https://ndb.mra.gov.bd/mfi-dbms/
+  country: BD
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: freemium
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Official national-level database covering the entire BD microfinance sector (branch/outlet-level
+    data). Verified live as the MRA DBMS landing page. Public can view summary info; full extraction/'various
+    information' export is for registered stakeholder/peer orgs (login-gated) per the page. Complements
+    the flat licensed-MFI list (ndb.mra.gov.bd/mfilist.html) with branch-level granularity. Listed se
+  confidence: 0.8
+- id: bd_hotel_bangladesh_tourism_board_regis
+  name: Bangladesh Tourism Board - Registered Tour Operator List
+  publisher: Bangladesh Tourism Board (BTB), Ministry of Civil Aviation and Tourism
+  url: https://btbregistration.gov.bd/tour-operator-list
+  country: BD
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'Official BTB registration portal that publishes the list of government-registered tour operators
+    (and is the licensing system for tour operators & hotels under the Tourism Protection Act / BTB registration
+    rules). Could NOT verify this session: btbregistration.gov.bd returned HTTP 403 Forbidden to WebFetch
+    (bot-blocked; user-agent gating - opens in a browser). Dedicated ''tour-operator-list'' page e'
+  confidence: 0.72
+- id: bd_manning_agency_boesl_bangladesh_overseas_empl
+  name: BOESL - Bangladesh Overseas Employment & Services Ltd
+  publisher: BOESL (state-owned), Ministry of Expatriates' Welfare and Overseas Employment
+  url: https://boesl.portal.gov.bd/
+  country: BD
+  industry: manning_agency
+  entity_type: manning_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: BOESL is the single STATE-OWNED overseas recruitment agency (est. 1984) under MoEWOE - a reference
+    'known-good' manning entity rather than a multi-entity register. Not fetched/verified this session
+    (listed from search results on the official boesl.portal.gov.bd .gov.bd domain; the portal publishes
+    annual reports + job circulars, no scrapable entity feed). Useful as an allow-list anchor (a legitima
+  confidence: 0.6
+- id: bd_money_lender_mra_list_of_licensed_and_cance
+  name: MRA List of Licensed (and Cancelled) Microfinance Institutions
+  publisher: Microcredit Regulatory Authority (MRA), Bangladesh
+  url: https://ndb.mra.gov.bd/mfilist.html
+  country: BD
+  industry: money_lender
+  entity_type: lender
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Official statutory register of licensed MFIs (microcredit lenders) under the MRA Act 2006 -
+    a license is mandatory to run microfinance in BD. Verified live: table columns = institution name
+    (EN+BN), address, license number, issue date, status; explicitly lists Licensed AND Cancelled institutions.
+    Data loads via backend (''Loading data, please wait...'') => has an underlying data endpoint to scrape; '
+  confidence: 0.95
+- id: bd_recruitment_ag_oep_raims_recruiting_agency_li
+  name: OEP / RAIMS Recruiting Agency List (Agent List)
+  publisher: Bureau of Manpower, Employment and Training (BMET), Ministry of Expatriates' Welfare and
+    Overseas Employment
+  url: https://www.oep.gov.bd/agencies
+  country: BD
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Authoritative register of licensed overseas recruiting agencies (manpower export). Verified
+    live this session: ''Total Agent: 2834'', sortable table with License No (e.g. RL2058), agency name,
+    address, phone, status (Active/Expired/Suspended/Cancelled), validity dates. Table is rendered dynamically
+    (''Loading data, please wait...'') => backed by an XHR/JSON feed under www.oep.gov.bd (high-value
+    for sc'
+  confidence: 0.97
+- id: bd_remittance_bangladesh_bank_mobile_financi
+  name: Bangladesh Bank - Mobile Financial Services (MFS) Providers & Data
+  publisher: Bangladesh Bank (central bank) - Payment Systems Department
+  url: https://www.bb.org.bd/en/index.php/financialactivity/mfsdata
+  country: BD
+  industry: remittance
+  entity_type: remittance
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'Official central-bank page for licensed/authorised Mobile Financial Services providers (bKash,
+    Nagad, Rocket, etc.) and MFS statistics; MFS providers operate under named bank licenses and handle
+    domestic person-to-person and inward-remittance disbursement. Could NOT verify this session: bb.org.bd
+    is CAPTCHA/bot-walled to WebFetch (returned the security-challenge page). Authorised-PSP/PSO and MFS
+    l'
+  confidence: 0.7
+- id: bd_training_cente_bmet_oep_training_institutions
+  name: BMET / OEP Training Institutions (TTCs, IMTs, DEMOs) - OEP-LMS
+  publisher: Bureau of Manpower, Employment and Training (BMET), Ministry of Expatriates' Welfare
+  url: https://training.oep.gov.bd/
+  country: BD
+  industry: training_center
+  entity_type: training_center
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'Official BMET Learning Management System / centralized training portal for government Technical
+    Training Centres (TTCs, ~104 nationally), Institutes of Marine Technology (IMTs, 6), and DEMOs that
+    run pre-departure orientation (PDO/PDOS) & skills training for migrant workers. Could NOT verify this
+    session: training.oep.gov.bd failed automated TLS verification (''unable to verify the first certificat'
+  confidence: 0.62
+- id: bh_company_regist_sijilat_commercial_registratio
+  name: Sijilat Commercial Registration - Public Search
+  publisher: Ministry of Industry & Commerce (MOIC) - Sijilat
+  url: https://www.sijilat.bh/public-search-cr/search-cr-2.aspx
+  country: BH
+  industry: company_registry
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Official Bahrain corporate registry. Sijilat portal verified live; public commercial-registration
+    search confirmed at the /public-search-cr/ path (no login). Returns CR number, company name, activities,
+    owners, status, type, address, authorized persons. Search-form / per-record lookup (ASP.NET) - no
+    bulk CSV/JSON feed, so query by CR/name or enumerate. Root: sijilat.bh; regulator landing moic.gov.'
+  confidence: 0.83
+- id: bh_financial_serv_cbb_licensing_directory_banks_
+  name: CBB Licensing Directory - Banks & Financial-Services Licensees (CBB Register)
+  publisher: Central Bank of Bahrain (CBB)
+  url: https://www.cbb.gov.bh/licensing-directory/
+  country: BH
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Consolidated CBB Register of all ~400+ licensed financial institutions (conventional/Islamic
+    banks, investment firms, insurance, ancillary service providers). Searchable by name + Category/Subcategory
+    filters; sections include CBB Register, Permitted Activities, Approved Persons, Controllers. Export
+    to PDF/CSV/print -> directly scrapable. Single authoritative directory for every CBB-regulated cate
+  confidence: 0.92
+- id: bh_hotel_btea_ministry_of_tourism_hotel
+  name: BTEA / Ministry of Tourism - Hotel Classification (Inspection) e-Services
+  publisher: Bahrain Tourism & Exhibitions Authority (BTEA) / Ministry of Tourism
+  url: https://portal.btea.bh/HCSys
+  country: BH
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: BTEA is the regulator that licenses/classifies hotels and hotel apartments. The e-services portal
+    (portal.btea.bh) verified live and exposes the Inspection/Classification system at /HCSys plus re-classification
+    (/eServices/Index/14). These are administrative tools for registered properties; NO public downloadable
+    register of licensed hotels was found - data would need an access request (licensing@
+  confidence: 0.6
+- id: bh_manning_agency_lmra_list_of_manpower_agencies
+  name: LMRA List of Manpower Agencies (Supplying Domestic Employees)
+  publisher: Labour Market Regulatory Authority (LMRA)
+  url: https://lmra.gov.bh/en/page/show/338
+  country: BH
+  industry: manning_agency
+  entity_type: manning_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Official LMRA register of agencies licensed to supply domestic employees (distinct from general
+    employment offices at /318). HTML list on the LMRA site. WebFetch 403 (bot-block) so not session-verified;
+    URL corroborated by multiple sources. Same regulator/site as the recruitment row; separate list for
+    the domestic-worker corridor most relevant to trafficking risk.
+  confidence: 0.88
+- id: bh_medical_clinic_nhra_list_of_licensed_health_f
+  name: NHRA List of Licensed Health Facilities (Health Facilities Regulation + Open Data 'Licensed Facilities')
+  publisher: National Health Regulatory Authority (NHRA)
+  url: https://www.nhra.bh/Departments/HFR/
+  country: BH
+  industry: medical_clinic
+  entity_type: medical_clinic
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: NHRA is the regulator licensing private hospitals, medical centres and clinics (incl. facilities
+    used for expat/pre-deployment medical fitness). This Health-Facilities-Regulation page carries a 'List
+    of Licensed Facilities' menu link and an OPEN DATA 'Licensed Facilities' entry. Lists are published
+    as downloadable PDFs per facility type, e.g. nhra.bh/Departments/HCF/MediaHandler/...Lists/...pdf
+    (a
+  confidence: 0.85
+- id: bh_recruitment_ag_lmra_list_of_manpower_employme
+  name: LMRA List of (Manpower) Employment Offices
+  publisher: Labour Market Regulatory Authority (LMRA)
+  url: https://lmra.gov.bh/en/page/show/318
+  country: BH
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Official LMRA register of licensed manpower employment offices (recruit/place expatriate workers).
+    Page is a public list/table on the LMRA site. WebFetch returned HTTP 403 (LMRA blocks automated user-agents)
+    so not session-verified, but the URL is confirmed across LMRA's own service pages, GDN News, and Wikipedia.
+    Pair with the LMRA licensing page lmra.gov.bh/en/page/show/529. Scrape via a real br
+  confidence: 0.9
+- id: bh_training_cente_bqa_reviewed_vocational_traini
+  name: BQA Reviewed Vocational / Training Institutes Reports
+  publisher: Education & Training Quality Authority (BQA)
+  url: https://www.bqa.gov.bh/en/institutions-performance/vocational-institutes-reports/
+  country: BH
+  industry: training_center
+  entity_type: training_center
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'BQA (the national quality regulator) publishes the official list of reviewed vocational/training
+    institutes with grades and downloadable review reports. Closest official register of training/skills/PDOS-type
+    centres. Note: private training institutes are LICENSED by the Ministry of Education (Higher Education
+    Council) via service psID=1175 on bahrain.bh; BQA REVIEWS them. HTML list of institutes +'
+  confidence: 0.72
+- id: gb_company_regist_companies_house_company_regist
+  name: Companies House — company register search + Free Company Data Product + Public Data API
+  publisher: Companies House
+  url: https://find-and-update.company-information.service.gov.uk/
+  country: GB
+  industry: company_registry
+  entity_type: company
+  access_tier: freemium
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Authoritative GB corporate registry. Free search UI at the listed URL; bulk Free Company Data
+    Product (ZIP of CSV, ~470MB single file or 7 split files, refreshed within 5 working days of month-end
+    — verified snapshot dated 2026-06-01) at https://download.companieshouse.gov.uk/en_output.html; and
+    a free-key REST Public Data API (companies, officers, PSCs, filings) at https://developer-specs.company
+  confidence: 0.98
+- id: gb_financial_serv_fca_financial_services_registe
+  name: FCA Financial Services Register (authorised firms incl. consumer-credit lenders, payment & e-money
+    institutions, money remitters)
+  publisher: Financial Conduct Authority (FCA)
+  url: https://register.fca.org.uk/s/
+  country: GB
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: freemium
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Single official register for FCA/PRA-authorised firms and individuals; filter by permission to
+    isolate consumer-credit lenders (money lenders), Authorised/Registered Payment Institutions, Electronic
+    Money Institutions, and cryptoasset firms. The public search page is a Salesforce SPA (fetched this
+    session but returned a CSS-error shell — host resolves, content is JS-rendered). Machine access via
+    t
+  confidence: 0.9
+- id: gb_hotel_food_hygiene_rating_scheme_ope
+  name: Food Hygiene Rating Scheme open data + API (food premises incl. hotels/hospitality)
+  publisher: Food Standards Agency (FSA)
+  url: https://ratings.food.gov.uk/open-data
+  country: GB
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Not a hotel licensing register (GB has no national hotel licence), but the nearest official UK-wide
+    premises register covering 'restaurants, pubs, cafes, takeaways, hotels and other places consumers
+    eat' plus supermarkets/food shops. Per-local-authority XML files (updated daily), a complete-record
+    CSV, and a free no-registration JSON/XML API. Covers England, Scotland, Wales, NI. Geocoded (lat/long
+  confidence: 0.9
+- id: gb_manning_agency_glaa_public_register_of_licenc
+  name: GLAA Public Register of Licence Holders (gangmasters / labour providers)
+  publisher: Gangmasters and Labour Abuse Authority (GLAA)
+  url: https://www.gov.uk/government/publications/how-to-check-if-a-labour-provider-has-a-gangmasters-licence
+  country: GB
+  industry: manning_agency
+  entity_type: manning_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'GLAA licenses labour providers in agriculture, horticulture, shellfish gathering and associated
+    processing/packaging (high-risk-for-exploitation sectors). The searchable public register lives at
+    https://glass.gla.gov.uk/public/s/ (Salesforce-hosted; threw an unverified-TLS-cert error to WebFetch
+    this session, so I verified the canonical GOV.UK entry point instead, which 301-redirects from the
+    old '
+  confidence: 0.9
+- id: gb_medical_clinic_care_quality_commission_cqc_ca
+  name: Care Quality Commission (CQC) care directory + provider/location API
+  publisher: Care Quality Commission (CQC)
+  url: https://www.cqc.org.uk/about-us/transparency/using-cqc-data
+  country: GB
+  industry: medical_clinic
+  entity_type: medical_clinic
+  access_tier: freemium
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Complete register of every CQC-regulated health/social-care location in England — hospitals,
+    clinics, GPs, dentists, home-care agencies, care homes (covers migrant-health / medical providers
+    and the care-sector employers that are a major migrant-worker corridor). Downloadable 'CQC care directory'
+    CSV (updated weekly) plus a daily-updated API at https://api-portal.service.cqc.org.uk (free key/regis
+  confidence: 0.95
+- id: gb_recruitment_ag_eas_fair_work_agency_list_of_p
+  name: EAS / Fair Work Agency list of people prohibited from running an employment agency or business
+  publisher: Fair Work Agency (formerly Employment Agency Standards Inspectorate), Department for Business
+    and Trade
+  url: https://www.gov.uk/government/publications/list-of-people-banned-from-running-an-employment-agency-or-business/employment-agency-standards-inspectorates-eas-people-prohibited-from-running-an-employment-agency-or-business
+  country: GB
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: GB recruitment is licence-free (EAS regulates agencies but does not license/list them), so the
+    official negative-list is the published register of individuals banned (under s.3A Employment Agencies
+    Act 1973) from running an agency. Verified resolving with named prohibited persons + ban date ranges.
+    Use as a screening blacklist. Inline HTML table, no API.
+  confidence: 0.92
+- id: gb_recruitment_ag_register_of_licensed_sponsors_
+  name: 'Register of Licensed Sponsors: Workers (visa sponsorship licences)'
+  publisher: UK Visas and Immigration / Home Office
+  url: https://www.gov.uk/government/publications/register-of-licensed-sponsors-workers
+  country: GB
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Downloadable CSV (~10.5MB, last updated 2026-06-12 when fetched) of every organisation licensed
+    to sponsor Worker and Temporary Worker visas, with sponsorship route/tier and rating (A/B). 60,000+
+    rows; updated roughly daily/monthly. Highest-value entity feed for cross-checking which employers
+    can legally recruit migrant workers. Raw flat file, no built-in search — filter the spreadsheet. Direct
+    as
+  confidence: 0.97
+- id: gb_remittance_hmrc_supervised_business_regis
+  name: HMRC Supervised Business Register (AML) — money service businesses, money transmitters, currency
+    exchange, TCSPs, high-value dealers
+  publisher: HM Revenue & Customs (HMRC)
+  url: https://www.gov.uk/guidance/money-laundering-regulations-money-service-business-registration
+  country: GB
+  industry: remittance
+  entity_type: remittance
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'For money-service / money-transfer (remittance, hawala, currency exchange) businesses NOT FCA-supervised,
+    HMRC is the AML supervisor and publishes a Supervised Business Register usable for customer due diligence
+    (fields per business: registration number, business name, trading name, postcode prefix, supervision
+    start date, registered sectors). The guidance page I verified does NOT directly link th'
+  confidence: 0.72
+- id: gb_security_servi_sia_register_of_approved_contr
+  name: SIA Register of Approved Contractors (ACS) — approved private-security companies
+  publisher: Security Industry Authority (SIA), Home Office
+  url: https://www.sia.homeoffice.gov.uk/Pages/acs-roac.aspx
+  country: GB
+  industry: security_services
+  entity_type: security_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'Company-level counterpart to the individual SIA register: the Roll of Approved Contractors lists
+    security FIRMS accredited under the voluntary Approved Contractor Scheme (guarding, door supervision,
+    key-holding, CVIT, CCTV, close protection). Public on the SIA site (commonly cited at sia.homeoffice.gov.uk/roac).
+    NOT fetched this session (url_verified=false) — the exact current path should be recon'
+  confidence: 0.6
+- id: gb_security_servi_sia_register_of_licence_holder
+  name: SIA Register of Licence Holders (private security operatives — door supervision, security guarding,
+    close protection, CCTV)
+  publisher: Security Industry Authority (SIA), Home Office
+  url: https://services.sia.homeoffice.gov.uk/PublicRegister
+  country: GB
+  industry: security_services
+  entity_type: security_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Mandatory public register of individuals holding an SIA licence to do licensable security work
+    — searchable by name, DOB, role, sector or licence number. Verified resolving (this is the licence-HOLDER
+    register; the ApprovedContractorsList path I tried returned the licence-holder search). Search-form
+    only, no bulk download. Security/CCTV/door-supervision is a recognised labour-exploitation sector, '
+  confidence: 0.85
+- id: gb_training_cente_register_of_training_skills_pr
+  name: Register of training/skills providers (Apprenticeship Provider and Assessment Register / RoATP)
+  publisher: Department for Education (DfE) / Education and Skills Funding Agency
+  url: https://www.gov.uk/guidance/apprenticeship-providers-and-assessment-register-roatp
+  country: GB
+  industry: training_center
+  entity_type: training_center
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: GB has no migrant pre-departure-orientation (PDOS) centre licence; the nearest official register
+    of approved training/skills providers is RoATP (organisations approved to deliver government-funded
+    apprenticeships/training). NOT fetched this session (url_verified=false) — confirm the live register
+    URL and whether a CSV download is offered before relying on it. Included as the closest official train
+  confidence: 0.55
+- id: hk_company_regist_integrated_companies_registry_
+  name: Integrated Companies Registry Information System (ICRIS) e-Services Portal — Company Search
+  publisher: Companies Registry, HKSAR Government
+  url: https://www.e-services.cr.gov.hk
+  country: HK
+  industry: company_registry
+  entity_type: company
+  access_tier: freemium
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Official HK corporate registry (revamped ICRIS, launched 2023-12-27). Free basic company name/number
+    search (name, incorporation date, status, UBI) via Cyber Search Centre; paid document copies/search
+    reports behind login. JS-loaded SPA (showed 'Loading...' shell on fetch) but confirmed as the CR portal.
+    No open bulk download/API; per-company lookup only. Same portal also hosts the money-lender re
+  confidence: 0.9
+- id: hk_financial_serv_sfc_public_register_of_license
+  name: SFC Public Register of Licensed Persons and Registered Institutions
+  publisher: Securities and Futures Commission (SFC) of Hong Kong
+  url: https://apps.sfc.hk/publicregWeb/searchByName?locale=en
+  country: HK
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Official public register of all SFC-licensed corporations and individuals (and registered institutions)
+    under the SFO since 2003, plus AMLO licensees since 2023. Three search endpoints: by name/CE number
+    (searchByName), by licence type (searchByRa), by business activity for corporations (searchByBa).
+    Updated daily. No official bulk download/API advertised (SFC monthly change files are PDF only); t'
+  confidence: 0.95
+- id: hk_hotel_office_of_the_licensing_author
+  name: Office of the Licensing Authority — Hotels/Guesthouses Search + data.gov.hk dataset
+  publisher: Home Affairs Department (Office of the Licensing Authority), HKSAR Government
+  url: https://data.gov.hk/en-data/dataset/hk-had-json1-licensed-hotels-and-guesthouses
+  country: HK
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Official list of licensed hotels and guesthouses under the Hotel and Guesthouse Accommodation
+    Ordinance. data.gov.hk dataset exposes a direct CSV (https://www.hadla.gov.hk/psi/licensed-hotels-and-guesthouses/licensed_hotels_and_guesthouses.csv,
+    EN/TC) plus an API (CSDI geoportal datasetId had_rcd_1639475170528_37262), updated monthly — high-value
+    structured feed. Interactive search also at https:/
+  confidence: 0.97
+- id: hk_medical_clinic_medical_council_of_hong_kong_l
+  name: Medical Council of Hong Kong — List of Registered Medical Practitioners (General & Specialist
+    Register)
+  publisher: The Medical Council of Hong Kong
+  url: https://www.mchk.org.hk/english/list_register/index.html
+  country: HK
+  industry: medical_clinic
+  entity_type: medical_clinic
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: HK has NO dedicated register of 'accredited migrant-health/pre-deployment clinics' — FDH medical
+    exams may be done by any registered doctor, so the underlying licensing register is the Medical Council's
+    statutory list of registered practitioners. Searchable directory (doctor_list.php) + Council-approved
+    doctors directories. This is the closest official licensing register for the medical-clinic ind
+  confidence: 0.78
+- id: hk_money_lender_companies_registry_search_on_l
+  name: Companies Registry — Search on Licensed Money Lenders (Register of Money Lenders)
+  publisher: Registrar of Money Lenders / Companies Registry, HKSAR Government
+  url: https://www.cr.gov.hk/en/services/money-lenders/search/licensee-search.htm
+  country: HK
+  industry: money_lender
+  entity_type: lender
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Official register of licensed money lenders under the Money Lenders Ordinance (licensing authorities:
+    Registrar of Money Lenders + Commissioner of Police). Live search moved to the e-Services Portal (www.e-services.cr.gov.hk)
+    after the 2023-12-27 ICRIS revamp. Crucially, free downloadable PDF lists are published: existing
+    licensees (alphabetical), by licence number, pending applications, expired l'
+  confidence: 0.96
+- id: hk_other_travel_industry_authority_regi
+  name: Travel Industry Authority — Register of Travel Agent Licences
+  publisher: Travel Industry Authority (TIA), HKSAR Government
+  url: https://www.tia.org.hk/en/travel-agents.html
+  country: HK
+  industry: other
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Official statutory register of licensed travel agents (TIA, est. 2020 under the Travel Industry
+    Ordinance; took over from the former Travel Agents Registry/TIC). Queryable register with per-agent
+    detail pages (pattern: /en/travel-agent-details.html?id=NNNNNN), enabling enumeration/scrape. No advertised
+    CSV/JSON. Industry tagged ''other'' (travel/tourism licensing) — relevant to tour-operator and cro'
+  confidence: 0.85
+- id: hk_recruitment_ag_employment_agencies_portal_sea
+  name: Employment Agencies Portal — Search for a licensed employment agency
+  publisher: Labour Department (Employment Agencies Administration), HKSAR Government
+  url: https://www.eaa.labour.gov.hk/en/search.php
+  country: HK
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Official register of all licensed employment agencies (covers foreign domestic helper, local
+    helper, and imported-worker placement — the manning/recruitment surface in HK). Interactive search
+    (English/Chinese name, address, district, placement type) plus A-Z browse. Also surfaces 'EAs convicted
+    of overcharging/unlicensed operation' and revoked/warned lists — high value for trafficking risk.
+    No CSV
+  confidence: 0.97
+- id: hk_remittance_money_service_operators_licens
+  name: Money Service Operators Licensing System — Search Licensee Register
+  publisher: Customs and Excise Department (Commissioner of Customs and Excise), HKSAR Government
+  url: https://eservices.customs.gov.hk/MSOS/wsrh/001s1
+  country: HK
+  industry: remittance
+  entity_type: remittance
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Official register of licensed Money Service Operators (remittance + currency exchange) under
+    the AMLO. Searchable by name (EN/ZH), licence number, address, area/district, and A-Z/ALL. Register
+    showed a live ''as at 14/06/2026'' timestamp when fetched. No advertised CSV/JSON export, but ''ALL''
+    browse returns the full licensee list which can be paged/scraped. Directly relevant to laundering
+    / fee-rail '
+  confidence: 0.96
+- id: hk_security_servi_security_and_guarding_services
+  name: Security and Guarding Services Industry Authority — List of Licensed Security Companies
+  publisher: Security and Guarding Services Industry Authority (SGSIA) / Security Bureau, HKSAR Government
+  url: https://data.gov.hk/en-data/dataset/hk-sb-sb_sgsia-sb-sgsia-sec-com-list
+  country: HK
+  industry: security_services
+  entity_type: security_services
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Official list of companies holding a valid licence to provide security services under Cap.460.
+    data.gov.hk dataset provides direct CSVs (EN https://www.sb.gov.hk/datagovhk/sgsia/data_en.csv, plus
+    TC/SC) and an API, updated monthly — clean structured feed for scraping. HTML list also at https://www.sb.gov.hk/eng/links/sgsia/list.htm.
+    Security/guarding firms are a relevant labour-exploitation vertic
+  confidence: 0.96
+- id: id_company_regist_ditjen_ahu_online_pencarian_pr
+  name: Ditjen AHU Online — Pencarian Profil Perseroan Terbatas (national company / corporate registry)
+  publisher: Direktorat Jenderal Administrasi Hukum Umum (AHU), Kementerian Hukum (ex-Kemenkumham)
+  url: https://ahu.go.id/pencarian/profil-pt
+  country: ID
+  industry: company_registry
+  entity_type: company
+  access_tier: paid
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Official national corporate registry search for limited-liability companies (PT) under Law 40/2007.
+    Search-form only (by name), no bulk download or open data feed; a full company profile costs ~Rp50,000
+    via voucher. Sibling search paths exist for yayasan (foundations), perkumpulan (associations), fidusia
+    (collateral) and perseroan perorangan (sole-proprietor PT). Best ground-truth for verifying an
+  confidence: 0.9
+- id: id_financial_serv_ojk_direktori_lembaga_pembiaya
+  name: OJK — Direktori Lembaga Pembiayaan (licensed financing / multifinance companies)
+  publisher: Otoritas Jasa Keuangan (OJK)
+  url: https://ojk.go.id/waspada-investasi/id/berita/Pages/Lembaga-Pembiayaan-Berizin-di-OJK.aspx
+  country: ID
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Official OJK list of licensed financing companies (perusahaan pembiayaan / multifinance). Downloadable
+    Excel 'DIREKTORI JARINGAN KANTOR LEMBAGA PEMBIAYAAN FEBRUARI 2024.XLSX' with company + branch/office
+    network. The broader OJK IKNB directory hub (ojk.go.id/id/kanal/iknb/data-dan-statistik/direktori)
+    also hosts insurance, venture-capital, and other licensed financial-services registers.
+  confidence: 0.85
+- id: id_hotel_kemenparekraf_sisupar_usaha_pa
+  name: 'Kemenparekraf SISUPAR — Usaha Pariwisata Tersertifikasi: Hotel Bintang (certified star-rated
+    hotels)'
+  publisher: Kementerian Pariwisata / Kemenparekraf (Sistem Informasi Sertifikasi Usaha Pariwisata)
+  url: https://sisupar.kemenparekraf.go.id/usaha-tersertifikasi/hotel-bintang
+  country: ID
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Official Kemenparekraf register of certified tourism businesses, with a dedicated star-rated-hotel
+    (hotel bintang) listing; certification issued by KAN-accredited LSU Pariwisata and integrated with
+    OSS/TDUP. Host returned ECONNREFUSED this session (likely transient/bot block) so not fetch-verified;
+    the parent SISUPAR portal (sisupar.kemenparekraf.go.id) and its /daftar-lsup and /usaha-tersertifika
+  confidence: 0.7
+- id: id_medical_clinic_bp2mi_sarana_kesehatan_sarkes_
+  name: BP2MI Sarana Kesehatan (Sarkes) — appointed migrant-worker pre-deployment medical facilities
+  publisher: Badan Pelindungan Pekerja Migran Indonesia (BP2MI / KP2MI), facilities appointed by Kemenkes
+  url: https://www.bp2mi.go.id/sarkes/indeks
+  country: ID
+  industry: medical_clinic
+  entity_type: medical_clinic
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: National index of hospitals/main clinics appointed by the Minister of Health to perform 'fit-to-work'
+    medical exams for prospective migrant workers (~213 per SISKOP2MI count). National index host had
+    a TLS cert error this session; VERIFIED the equivalent provincial register at https://sumbar.bp2mi.go.id/pelayanan/sarkes
+    which shows an on-page table of facility names + address + phone (e.g. Semen P
+  confidence: 0.8
+- id: id_money_lender_ojk_direktori_layanan_pendanaa
+  name: OJK — Direktori Layanan Pendanaan Bersama (LPBBTI) — licensed fintech P2P lending companies
+  publisher: Otoritas Jasa Keuangan (OJK)
+  url: https://ojk.go.id/id/kanal/iknb/data-dan-statistik/direktori/fintech/default.aspx
+  country: ID
+  industry: money_lender
+  entity_type: lender
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Official, regularly-updated directory of OJK-licensed peer-to-peer lending operators (LPBBTI
+    / 'pinjol'), ~96-101 licensed. Page lists date-stamped directory editions (most recent 2 Apr 2026);
+    each edition is a downloadable attachment (PDF/Excel). The most relevant online-lending register for
+    trafficking debt-bondage screening.
+  confidence: 0.9
+- id: id_money_lender_ojk_direktori_perusahaan_perga
+  name: OJK — Direktori Perusahaan Pergadaian (licensed pawnshop / money-lending companies)
+  publisher: Otoritas Jasa Keuangan (OJK)
+  url: https://ojk.go.id/id/kanal/iknb/data-dan-statistik/direktori/lembaga-keuangan-khusus/Pages/Direktori-Perusahaan-Pergadaian-Januari-2025.aspx
+  country: ID
+  industry: money_lender
+  entity_type: lender
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Official OJK directory of licensed pergadaian (pawnshop / collateral-lending) companies — 194
+    licensed as of 31 Jan 2025 (later reports ~214). Downloadable PDF 'Direktori Perusahaan Pergadaian
+    - Januari 2025.pdf'. Sits under the 'lembaga-keuangan-khusus' channel; new dated editions are published
+    periodically (swap the date in the URL).
+  confidence: 0.9
+- id: id_recruitment_ag_sisko_p2mi_daftar_p3mi_license
+  name: SISKO-P2MI — Daftar P3MI (licensed Indonesian migrant-worker placement / recruitment companies)
+  publisher: Badan Pelindungan Pekerja Migran Indonesia (BP2MI / now KP2MI)
+  url: https://siskop2mi.bp2mi.go.id/profil/lembaga/list_lembaga/p3mi
+  country: ID
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: National register of licensed P3MI (recruitment/manning agencies holding SIP3MI). ~400+ companies
+    listed A-Z, each linking to a detail page at /profil/lembaga/detail/{id}/p3mi. No JSON/CSV/download
+    — HTML link list only, must scrape. Same SISKOP2MI portal also exposes Sarana Kesehatan (213), Dinas
+    Provinsi (35), Dinas Kab/Kota (511) categories.
+  confidence: 0.95
+- id: id_remittance_bank_indonesia_informasi_periz
+  name: Bank Indonesia — Informasi Perizinan Sistem Pembayaran (licensed payment, fund-transfer/remittance
+    & money-changer operators)
+  publisher: Bank Indonesia
+  url: https://www.bi.go.id/id/layanan/informasi-perizinan/sistem-pembayaran/default.aspx
+  country: ID
+  industry: remittance
+  entity_type: remittance
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'BI''s licensing portal exposing searchable databases of licensed payment-system operators: Penyedia
+    Jasa Pembayaran (PJP, 3 license categories — includes fund-transfer/remittance) and KUPVA Bukan Bank
+    (money changers / valas), filterable by status (active vs Izin Dicabut/revoked). On-page filterable
+    tables, no obvious bulk download. NOTE: the older per-category ''penyelenggara-berizin/Contents/defau'
+  confidence: 0.85
+- id: id_security_servi_bujp_badan_usaha_jasa_pengaman
+  name: BUJP — Badan Usaha Jasa Pengamanan (licensed private security-services companies)
+  publisher: Korps Binmas / Baharkam, Polri (via Binmas Online System, integrated with OSS)
+  url: https://bujp.polri.go.id/
+  country: ID
+  industry: security_services
+  entity_type: security_services
+  access_tier: manual
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: BUJP are Polri-licensed private security firms (guard supply, training, cash-in-transit, consulting).
+    Licensing runs through the Binmas Online System (BOS), integrated with OSS. A public registry is referenced
+    at bujp.polri.go.id but was NOT fetched-verified this session and may be login-gated rather than an
+    open list — treat the URL as unconfirmed. The verifiable ground truth for any specific BUJ
+  confidence: 0.55
+- id: id_training_cente_bnsp_direktori_lembaga_sertifi
+  name: BNSP — Direktori Lembaga Sertifikasi Profesi (licensed certification / skills-training bodies)
+  publisher: Badan Nasional Sertifikasi Profesi (BNSP)
+  url: https://www.bnsp.go.id/lsp
+  country: ID
+  industry: training_center
+  entity_type: training_center
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'Official register of BNSP-licensed Lembaga Sertifikasi Profesi (LSP) — the bodies that certify
+    worker competency and run training/testing (relevant to pre-deployment skills certification). Search
+    reports ~2,300+ LSP in the system. Both www.bnsp.go.id/lsp and betav2.bnsp.go.id/lsp failed this session
+    (TLS cert-altname / ECONNREFUSED, likely bot block) so URL not fetched-verified. Note: PDOS/pre-dep'
+  confidence: 0.75
+- id: in_company_regist_mca21_view_company_llp_master_
+  name: MCA21 — View Company / LLP Master Data (corporate registry)
+  publisher: Ministry of Corporate Affairs, Government of India
+  url: https://www.mca.gov.in/mca/html/mcav2_en/home/mcaservice/masterdata/aboutmasterdata/aboutmasterdata.html
+  country: IN
+  industry: company_registry
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'Official Indian corporate registry. Free, login-free ''View Company/LLP Master Data'' lookup
+    (search by name / CIN / LLPIN) returns incorporation date, registered office, status, directors, charges.
+    The live V3 lookup endpoints (mca.gov.in/content/mca/global/en/mca/master-data/...) returned HTTP
+    403 to automated fetches this session (bot-gated) — so url_verified=false; the lookup is per-company
+    (no '
+  confidence: 0.7
+- id: in_financial_serv_rbi_list_of_full_fledged_money
+  name: RBI — List of Full Fledged Money Changers (FFMCs) by centre
+  publisher: Reserve Bank of India, Foreign Exchange Department
+  url: https://rbi.org.in/scripts/FFMCList.aspx
+  country: IN
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Verified official RBI register of licensed Full Fledged Money Changers (forex/money-changing
+    licensees), organised as per-city downloadable PDFs for 17 RBI-office regions (Mumbai, Delhi, Bangalore,
+    Hyderabad, Chennai, Kolkata, Ahmedabad, Bhopal, Bhubaneswar, Chandigarh, Guwahati, Jaipur, Jammu,
+    Kanpur, Kochi, Panaji, Patna, Vijayawada). PDFs hosted on rbidocs.rbi.org.in. NOTE: under FEMA (Authoris'
+  confidence: 0.95
+- id: in_financial_serv_rbi_list_of_nbfcs_and_arcs_reg
+  name: RBI — List of NBFCs and ARCs registered with the Reserve Bank
+  publisher: Reserve Bank of India, Department of Regulation
+  url: https://rbi.org.in/Scripts/BS_NBFCList.aspx
+  country: IN
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Verified official RBI page. Provides full downloadable registers in BOTH Excel and PDF: ''List
+    of NBFCs and ARCs registered with the RBI'' and a companion ''CoR cancelled'' list. Excel = high-value
+    structured feed (name, RoC, region, CoR no.). Covers all licensed non-banking financial companies
+    (incl. ICC/loan, MFI, IFC, P2P, AA, CIC, Factor). Discrepancies: nbfclistdor@rbi.org.in. Page last
+    updated 1'
+  confidence: 0.97
+- id: in_hotel_ministry_of_tourism_nidhi_nati
+  name: Ministry of Tourism — NIDHI (National Integrated Database of Hospitality Industry) portal
+  publisher: Ministry of Tourism, Government of India (HRACC)
+  url: https://nidhi.tourism.gov.in
+  country: IN
+  industry: hotel
+  entity_type: hotel
+  access_tier: manual
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Verified official MoT portal and the system of record for star-classified hotels (HRACC committee,
+    One-Star to Five-Star Deluxe + Heritage). HOWEVER: no public-facing hotel directory/search on the
+    homepage — registered-unit data sits behind Unit/Officer logins, and the portal states the Voluntary
+    Project-Approval scheme was DISCONTINUED 16-03-2026 (no fresh applications). So this is a real licensi'
+  confidence: 0.82
+- id: in_medical_clinic_wafid_gulf_health_council_accr
+  name: Wafid (Gulf Health Council) — accredited Medical Centers List
+  publisher: Gulf Health Council (GAMCA / Wafid)
+  url: https://wafid.com/medical-center-list/
+  country: IN
+  industry: medical_clinic
+  entity_type: medical_clinic
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: false
+  notes: wafid.com root verified this session as the official GHC portal (footer '2026 Gulf Health Council');
+    it exposes a 'Medical Centers List' and a centre-accreditation/status checker covering India cities
+    (Delhi, Mumbai, Chennai, Cochin, Hyderabad, Bangalore, Kolkata, etc.) for GCC pre-deployment migrant
+    medical exams. The exact /medical-center-list/ slug was not individually fetched (root + nav confi
+  confidence: 0.8
+- id: in_recruitment_ag_mea_recruiting_agents_ras_land
+  name: MEA Recruiting Agents (RAs) landing / status-check page
+  publisher: Ministry of External Affairs, Government of India
+  url: https://www.mea.gov.in/ras
+  country: IN
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Official RA programme page: registration guidelines, renewal forms, service-charge rules, and
+    the link to the current Active-RA-List PDF (updated regularly). Use as the stable entry point to discover
+    the latest dated RA-list PDF (the direct PDF URLs 404 once superseded — e.g. the 2024 list now 404s).'
+  confidence: 0.95
+- id: in_recruitment_ag_mea_emigrate_list_of_active_re
+  name: MEA eMigrate — List of Active Recruiting Agents (RAs), state/district-wise
+  publisher: Ministry of External Affairs, Protector General of Emigrants (eMigrate)
+  url: https://www.mea.gov.in/images/pdf/03-Active-RA-List-21-04-2026.pdf
+  country: IN
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Official downloadable PDF (2.5MB, dated 21-04-2026) listing every active RA with RAID (eMigrate
+    system id), RA name, authorised signatory, state, district, RC number, contact details, status, website.
+    This is the canonical licensed overseas-recruitment-agent register. The PDF filename carries a date
+    that rotates on each refresh — scrape the link from the landing page https://www.mea.gov.in/ras (ve
+  confidence: 0.97
+- id: in_remittance_rbi_money_transfer_service_sch
+  name: 'RBI — Money Transfer Service Scheme (MTSS): Overseas Principals & Indian Agents'
+  publisher: Reserve Bank of India, Foreign Exchange Department
+  url: https://www.rbi.org.in/commonman/english/scripts/Notification.aspx?Id=855
+  country: IN
+  industry: remittance
+  entity_type: remittance
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: MTSS is the RBI scheme governing inbound personal remittance; licensed Indian Agents must be
+    AD-I/AD-II/FFMC/Dept of Posts/Scheduled Banks (so the FFMC + NBFC + AD registers above are the practical
+    entity lists). RBI publishes the list of approved Overseas Principals and Indian Agents as PDF annexes
+    to the MTSS Master Circular/Directions rather than a standalone searchable register — this Master-C
+  confidence: 0.6
+- id: in_training_cente_mea_pre_departure_orientation_
+  name: MEA Pre-Departure Orientation Training (PDOT) centres
+  publisher: Ministry of External Affairs / NSDC (Pravasi Kaushal Vikas Yojana)
+  url: http://www.pdot.mea.gov.in/pdotcenters/offlinecenters
+  country: IN
+  industry: training_center
+  entity_type: training_center
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Official MEA PDOT portal listing the ~58 registered pre-departure orientation training centres
+    (mandatory 8-hour orientation for emigrants) across India in partnership with state govts/NSDC. Connection
+    REFUSED over http this session (ECONNREFUSED) — site is up intermittently; retry with https://www.pdot.mea.gov.in/
+    and the /pdotcenters/offlinecenters path. Centre list is rendered HTML (name + loca
+  confidence: 0.78
+- id: jp_company_regist_national_tax_agency_corporate_
+  name: National Tax Agency Corporate Number Publication Site (法人番号公表サイト, NTA-CNPS)
+  publisher: National Tax Agency (NTA / 国税庁)
+  url: https://www.houjin-bangou.nta.go.jp/en/
+  country: JP
+  industry: company_registry
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Official national corporate registry surface: 13-digit Corporate Numbers (法人番号) with trade name,
+    registered address, type, and change history for all registered corporations. Search by name/address/number
+    + bulk multi-number lookup. NTA also publishes downloadable bulk CSV files (whole-country + diff files)
+    and a Web-API for the dataset (the /en/webapi/ subpath 404''d this session, but bulk CSV + A'
+  confidence: 0.95
+- id: jp_financial_serv_list_of_licensed_registered_fi
+  name: List of Licensed (Registered) Financial Institutions (English)
+  publisher: Financial Services Agency (FSA / 金融庁)
+  url: https://www.fsa.go.jp/en/regulated/licensed/index.html
+  country: JP
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Official FSA English index of regulated entities: banks (city/regional/shinkin/holding), financial
+    instruments business operators (brokers/investment), insurance companies (life/non-life/holding),
+    funds transfer service providers, trust companies, nonbanks, FMIs. Most categories offer BOTH PDF
+    and Excel downloads = scrapable structured lists. Insurance + securities + banking covered here.'
+  confidence: 0.97
+- id: jp_medical_clinic_medical_information_net_navii_
+  name: Medical Information Net 'Navii' (医療情報ネット ナビイ) - nationwide medical institution search
+  publisher: Ministry of Health, Labour and Welfare (MHLW / 厚生労働省)
+  url: https://www.iryou.teikyouseido.mhlw.go.jp/znk-web/juminkanja/S2300/initialize
+  country: JP
+  industry: medical_clinic
+  entity_type: medical_clinic
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Official MHLW national database of licensed medical institutions (hospitals, clinics, dental
+    clinics, maternity homes, pharmacies) built from the mandatory 医療機能情報提供制度 reporting. Multilingual
+    (EN/zh/ko). Per-prefecture entry e.g. ?pref=13 (Tokyo). Interactive search form, no public bulk export
+    from this UI. Note: Japan has no separate ''accredited migrant pre-deployment clinic'' register (no
+    GAMCA-st'
+  confidence: 0.9
+- id: jp_money_lender_registered_moneylender_informa
+  name: Registered Moneylender Information Search Service (登録貸金業者情報検索サービス)
+  publisher: Financial Services Agency (FSA / 金融庁)
+  url: https://clearing.fsa.go.jp/kashikin/index.php
+  country: JP
+  industry: money_lender
+  entity_type: lender
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Official FSA search for registered moneylenders (貸金業者) under the Money Lending Business Act.
+    Search by registration number (第号), business name, prefecture, representative, or phone. Search form
+    only here; landing/explainer page is https://www.fsa.go.jp/ordinary/kensaku/ . A downloadable Excel
+    of all 貸金業者 is also published on the FSA menkyo list (see financial_services row).
+  confidence: 0.97
+- id: jp_recruitment_ag_jinzai_service_comprehensive_s
+  name: Jinzai Service Comprehensive Site (Human Resources Service Portal) - Employment Placement Agency
+    search
+  publisher: Employment Security Bureau, Ministry of Health, Labour and Welfare (MHLW / 厚生労働省職業安定局)
+  url: https://jinzai.hellowork.mhlw.go.jp/JinzaiWeb/GICB101010.do?action=initDisp&screenId=GICB101010
+  country: JP
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Official national register of licensed fee-charging/free employment placement agencies (有料・無料職業紹介事業者)
+    under the Employment Security Act. Web search form (search 職業紹介事業所) returns per-office detail incl.
+    license number 13-ユ-XXXXXX, address, fees, and placement performance. No CSV/Excel bulk export observed;
+    results are HTML detail pages (action=detail&detkey_Detail=...). Same portal also covers work
+  confidence: 0.97
+- id: jp_remittance_list_of_businesses_holding_fsa
+  name: List of Businesses Holding FSA Licenses/Permits/Registrations (免許・許可・登録等を受けている事業者一覧)
+  publisher: Financial Services Agency (FSA / 金融庁)
+  url: https://www.fsa.go.jp/menkyo/menkyo.html
+  country: JP
+  industry: remittance
+  entity_type: remittance
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Official FSA Japanese consolidated directory with downloadable PDF + Excel lists per category,
+    including 資金移動業者 (funds transfer / remittance operators, Type I/II/III under the Payment Services
+    Act) — the JP register for money-transfer operators. Same page also publishes Excel lists for 貸金業者
+    (moneylenders), 金融商品取引業者, 前払式支払手段発行者 (prepaid), and 暗号資産交換業者 (crypto exchanges). High-value bulk-download
+    hu
+  confidence: 0.96
+- id: kr_company_regist_dart_data_analysis_retrieval_a
+  name: DART - Data Analysis, Retrieval and Transfer System (electronic corporate disclosure)
+  publisher: Financial Supervisory Service (FSS)
+  url: https://englishdart.fss.or.kr/dsab007/main.do
+  country: KR
+  industry: company_registry
+  entity_type: company
+  access_tier: freemium
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Official corporate-filings repository (English interface verified this session at englishdart.fss.or.kr).
+    Company search + XBRL financials, no login for viewing/download. Open DART exposes a full Open API
+    (engopendart.fss.or.kr; free API key) - JSON/XML programmatic access to disclosures and company metadata
+    (high-value for scraping). Note: DART covers disclosure-obligated (mostly listed) firms; t'
+  confidence: 0.95
+- id: kr_financial_serv_fss_fine_institutional_financi
+  name: FSS FINE - Institutional Financial Company Inquiry (제도권 금융회사 조회)
+  publisher: Financial Supervisory Service (FSS) / Financial Services Commission (FSC)
+  url: https://fine.fss.or.kr/fine/fncco/systemFncCo/list.do?menuNo=900038
+  country: KR
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: FSS official 'FINE' financial consumer portal. Search/verify licensed financial companies (banks,
+    savings banks, insurers, capital/credit-finance, securities). Verified FINE portal this session via
+    FSS homepage + portal index; the deep list.do path is session/menuNo-bound and may 302 to the portal
+    root (https://fine.fss.or.kr/) - enter via the portal and pick '제도권 금융회사 조회'. Search form only (no
+    pu
+  confidence: 0.9
+- id: kr_hotel_korea_tourism_data_lab_tourism
+  name: Korea Tourism Data Lab - Tourism Business Licensing Status (관광사업체 인허가 현황)
+  publisher: Korea Tourism Organization (KTO / VisitKorea), sourced from MOIS local administrative permit
+    data
+  url: https://datalab.visitkorea.or.kr/datalab/portal/bzm/getBzmanApprvForm.do
+  country: KR
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Official KTO register of tourism businesses under the Tourism Promotion Act (excl. casinos):
+    operating + open/close status incl. tourist hotels and accommodation. Verified this session - page
+    offers EXCEL and CSV download (high-value). Monthly refresh (6th) from MOIS licensing data. Complementary
+    tab ''숙박업종별 세부현황'' breaks out accommodation types.'
+  confidence: 0.9
+- id: kr_hotel_data_go_kr_lodging_accommodati
+  name: data.go.kr - Lodging/Accommodation Business permits (행정안전부_문화_숙박업 / LOCALDATA 숙박업)
+  publisher: Ministry of the Interior and Safety (MOIS), LOCALDATA local-permit open data
+  url: https://www.data.go.kr/data/15044968/fileData.do
+  country: KR
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Official downloadable national CSV of licensed lodging businesses (tourist/general hotels, 여관/여인숙,
+    guesthouses, etc.). Verified this session: ~55,998 rows, columns include licensing date, operational
+    status, business name, address; daily (D-2) updates; unrestricted use. Direct file: https://file.localdata.go.kr/file/lodgings/info
+    . Source-of-record for hospitality at street-address granularity (be'
+  confidence: 0.92
+- id: kr_manning_agency_employment_permit_system_eps_h
+  name: Employment Permit System (EPS) - HRD Korea foreign-worker recruitment portal
+  publisher: Human Resources Development Service of Korea (HRD Korea) / Ministry of Employment and Labor
+  url: https://www.eps.go.kr/eo/langMain.eo?langType=en
+  country: KR
+  industry: manning_agency
+  entity_type: manning_agency
+  access_tier: manual
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'Official government EPS portal (HRD Korea) governing MOU-based migrant-worker recruitment from
+    16 sending countries - the legitimate alternative to private brokers (private recruiting is largely
+    barred for EPS, so the ''licensed agency'' is each country''s designated public dispatch body named
+    in the MOU). Confirmed as the EPS portal via search + the .eo pages, but every .eo/eps.hrdkorea.or.kr
+    fetch '
+  confidence: 0.6
+- id: kr_medical_clinic_data_go_kr_hira_hospital_infor
+  name: data.go.kr - HIRA Hospital Information Service open API (건강보험심사평가원_병원정보서비스)
+  publisher: Health Insurance Review and Assessment Service (HIRA), Korea public data portal
+  url: https://www.data.go.kr/data/15001698/openapi.do
+  country: KR
+  industry: medical_clinic
+  entity_type: medical_clinic
+  access_tier: api
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Official open API listing all HIRA-registered medical institutions (hospitals + clinics) nationwide;
+    institutions report under National Health Insurance Act Art.43. Verified this session: REST/XML, free
+    key via data.go.kr (10,000 req/day dev tier), real-time. Companion ''의료기관별상세정보서비스'' (data 15001699)
+    adds facility/department/equipment detail. Covers all licensed clinics, not only migrant-health-acc'
+  confidence: 0.92
+- id: kr_money_lender_fss_fine_registered_money_lend
+  name: FSS FINE - Registered Money Lender Integrated Inquiry (등록대부업체 통합조회)
+  publisher: Financial Supervisory Service (FSS), via local-government/FSS registration under the Lending
+    Business Act
+  url: http://fines.fss.or.kr/fines/plis/moneyLenderSearch/MoneyLenderSearch.getMoneyLenderList.do
+  country: KR
+  industry: money_lender
+  entity_type: lender
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Official unified register of licensed/registered money lenders (대부업체) under the Act on Registration
+    of Money Lending Business. Reachable from the FINE portal menu '대부업체 조회' (FINE portal itself verified
+    this session). Money lenders register with metropolitan/provincial governments; FSS aggregates the
+    national lookup. Search form, Korean UI; no documented bulk feed. URL path reported by the portal
+    b
+  confidence: 0.82
+- id: kr_recruitment_ag_data_go_kr_domestic_paid_emplo
+  name: data.go.kr - Domestic Paid Employment Agencies status (고용노동부_국내 유료직업소개사업소 현황)
+  publisher: Ministry of Employment and Labor (MOEL)
+  url: https://www.data.go.kr/data/15068777/fileData.do
+  country: KR
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: false
+  notes: Official MOEL list of licensed domestic paid employment/job-placement agencies (유료직업소개소) registered
+    with local governments under Employment Service Act Art.19 - the core 'private recruiter' register
+    for labor-trafficking screening. Downloadable file dataset on data.go.kr (found via search this session;
+    dataset page not individually fetched). See also MOIS LOCALDATA equivalent (data 15045101) and t
+  confidence: 0.85
+- id: kr_remittance_fss_fine_small_sum_overseas_re
+  name: FSS FINE - Small-sum Overseas Remittance Operator Inquiry (소액해외송금업자 조회)
+  publisher: Financial Supervisory Service (FSS) / Financial Services Commission (FSC)
+  url: https://fine.fss.or.kr/fine/fncco/smlamtLnd/list.do?menuNo=900041
+  country: KR
+  industry: remittance
+  entity_type: remittance
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'Official directory of registered small-sum overseas remittance businesses (소액해외송금업자) supervised
+    by the FSS Governor under the Foreign Exchange Transactions Act/Regulations. Reachable from FINE portal
+    menu ''소액해외송금업 조회'' (FINE portal verified this session). High-value for trafficking work: covers non-bank
+    money-transfer operators. Search form, Korean UI; path reported by portal, endpoint not directly'
+  confidence: 0.82
+- id: kw_company_regist_kuwait_business_center_kbc_com
+  name: Kuwait Business Center (KBC) - Commercial Registration / Company Licensing
+  publisher: Ministry of Commerce and Industry (MOCI), Kuwait
+  url: https://www.moci.gov.kw/en/e-service/kuwait-business-center/
+  country: KW
+  industry: company_registry
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'VERIFIED this session (HTTP 200). Official MOCI portal for incorporating companies and issuing
+    commercial licences electronically (LLC, one-person, partnership, holding, for/not-for-profit). Live
+    service host: e-kbc.moci.gov.kw. This landing page describes establishment/licensing flows and does
+    NOT itself expose a public company-search/verification lookup or bulk data feed; company-detail lookup
+    i'
+  confidence: 0.7
+- id: kw_financial_serv_capital_markets_authority_list
+  name: Capital Markets Authority - List of Licensed Companies (securities firms)
+  publisher: Capital Markets Authority (CMA), Kuwait
+  url: https://www.cma.gov.kw/en/web/cma/licensed-companies
+  country: KW
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: CMA publishes a 'List Of Licensed Companies' for securities activities (brokerage, asset/investment-fund
+    management, securities custody, advisory). Confirmed to exist via repeated CMA search hits, but the
+    CMA site actively refused all programmatic WebFetch attempts this session (ECONNREFUSED on every cma.gov.kw
+    path), so URL/path not session-verified - the exact slug may differ (Liferay 'web/cma/.
+  confidence: 0.6
+- id: kw_financial_serv_capital_markets_authority_unli
+  name: Capital Markets Authority - Unlicensed Companies / Entities (warning blocklist)
+  publisher: Capital Markets Authority (CMA), Kuwait
+  url: https://www.cma.gov.kw/en/web/cma/unlicensed-companies
+  country: KW
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'High-value DEFENSIVE blocklist: CMA''s periodically-updated list of local & Gulf companies/entities
+    NOT licensed to practise securities activities in Kuwait (investment-scam / unauthorised-broker warnings),
+    plus a companion ''withdrawn-license'' / restricted-persons list. Names entities. Same caveat as the
+    licensed list: cma.gov.kw refused WebFetch this session (ECONNREFUSED), so not session-verified'
+  confidence: 0.6
+- id: kw_financial_serv_central_bank_of_kuwait_credit_
+  name: Central Bank of Kuwait - Credit Information Companies
+  publisher: Central Bank of Kuwait (CBK)
+  url: https://www.cbk.gov.kw/en/supervision/regulated-entities/credit-information-companies
+  country: KW
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'VERIFIED this session (HTTP 200). CBK register of licensed credit-information (credit-bureau)
+    companies. Currently lists one entity by name with full contact details: Kuwait Credit Information
+    Network Company (Ci-Net). HTML table, no downloadable feed. Useful as a CBK-supervised-entity cross-reference.'
+  confidence: 0.9
+- id: kw_financial_serv_central_bank_of_kuwait_finance
+  name: Central Bank of Kuwait - Finance Companies (conventional & Islamic)
+  publisher: Central Bank of Kuwait (CBK)
+  url: https://www.cbk.gov.kw/en/supervision/regulated-entities/finance-companies
+  country: KW
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: VERIFIED this session (HTTP 200). CBK overview/register hub for licensed finance companies, split
+    into Conventional and Islamic categories (consumer/installment finance - the regulated 'money lender'-adjacent
+    non-bank lenders in Kuwait; Kuwait has no separate consumer money-lender licensor outside CBK). Individual
+    company names live on the Conventional/Islamic child pages reachable from here. No d
+  confidence: 0.85
+- id: kw_financial_serv_central_bank_of_kuwait_local_b
+  name: Central Bank of Kuwait - Local Banks (conventional & Islamic)
+  publisher: Central Bank of Kuwait (CBK)
+  url: https://www.cbk.gov.kw/en/supervision/regulated-entities
+  country: KW
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: CBK 'regulated entities' hub is the official index of licensed banks (local conventional + Islamic
+    + foreign-bank branches), exchange, finance and credit-info companies. The sibling exchange/finance/credit-info
+    child pages were verified HTTP 200 this session, so the hub structure is confirmed, but the exact
+    local-banks child-page slug returned 404 on the guesses tried (try /local-banks-units or na
+  confidence: 0.7
+- id: kw_hotel_kuwait_government_online_hotel
+  name: Kuwait Government Online - Hotel & Apartment Classification (licensing procedure)
+  publisher: Kuwait Government Online (e.gov.kw) / Kuwait Municipality (hotel classification authority)
+  url: https://e.gov.kw/sites/kgoenglish/Pages/Services/MEDIA/RatingHotelsApartments.aspx
+  country: KW
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Official government page describing the procedure to request hotel/furnished-apartment classification
+    (star rating) in Kuwait; hotel commercial licences are issued/regulated by Kuwait Municipality and
+    classification administered via this Kuwait Government Online service. This is the licensing/classification
+    procedure surface, NOT a published searchable list of all licensed/classified hotels (no op
+  confidence: 0.45
+- id: kw_medical_clinic_gamca_wafid_gcc_approved_pre_d
+  name: GAMCA / Wafid - GCC-Approved Pre-Deployment Medical Centres (Kuwait recognition)
+  publisher: GCC Approved Medical Centers Association (GAMCA) / Wafid (GCC Health Council platform)
+  url: https://wafid.com/medical-status/
+  country: KW
+  industry: medical_clinic
+  entity_type: medical_clinic
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Pre-employment/migrant medical fitness for Kuwait work visas is run through GCC-approved medical
+    centres recognised by the Kuwait embassy via GAMCA/Wafid. The approved-centre list is generated per
+    origin country at registration time (wafid.com / gamca.org) rather than published as one open file.
+    Not a Kuwait-government register per se (GCC Health Council body), but it is the official accreditation
+  confidence: 0.5
+- id: kw_recruitment_ag_public_authority_for_manpower_
+  name: Public Authority for Manpower (PAM) - Licensed Recruitment / Domestic Labour Offices
+  publisher: Public Authority for Manpower (PAM), Kuwait
+  url: https://www.manpower.gov.kw/
+  country: KW
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: PAM is the regulator for all manpower-supply, recruitment and domestic-labour recruitment offices
+    in Kuwait (488 registered domestic-labour offices reported May 2025; licences issued/renewed/cancelled
+    monthly). Agencies must hold a valid PAM licence + commercial licence. The public portal (manpower.gov.kw)
+    exposes e-services/inquiry but no confirmed open downloadable master list of licensed agenci
+  confidence: 0.6
+- id: kw_remittance_central_bank_of_kuwait_regulat
+  name: Central Bank of Kuwait - Regulated Exchange Companies (remittance / money transfer)
+  publisher: Central Bank of Kuwait (CBK)
+  url: https://www.cbk.gov.kw/en/supervision/regulated-entities/exchange-companies
+  country: KW
+  industry: remittance
+  entity_type: remittance
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: VERIFIED this session (HTTP 200). CBK's official register of licensed exchange/money-changer
+    companies (remittance/money-transfer operators) in Kuwait, listed by name in an on-page HTML table
+    with addresses/P.O. boxes (e.g. Zajil Exchange, Al Nada International Exchange, Kuwait India International
+    Exchange). ~32 exchange companies are CBK-supervised. No CSV/JSON/XHR feed or downloadable file -
+    scr
+  confidence: 0.95
+- id: lk_company_regist_eroc_department_of_the_registr
+  name: eROC -- Department of the Registrar of Companies online registry & name search
+  publisher: Department of the Registrar of Companies (DRC), Sri Lanka
+  url: https://eroc.drc.gov.lk/
+  country: LK
+  industry: company_registry
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Official single-window company registry for Sri Lanka (sole regulator/database for all registered
+    companies under the Companies Act). Public company NAME + REGISTRATION-NUMBER search available WITHOUT
+    login ('Begins with' / 'Contains' modes; returns registration number column). The portal is a JavaScript
+    SPA ('Please wait...' shell on raw fetch) -> render with a headless browser or hit the backing
+  confidence: 0.9
+- id: lk_financial_serv_cbsl_authorized_financial_inst
+  name: 'CBSL Authorized Financial Institutions (hub: 7 register sub-pages)'
+  publisher: Central Bank of Sri Lanka (CBSL)
+  url: https://www.cbsl.gov.lk/en/authorized-financial-institutions
+  country: LK
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Master hub linking 7 official institution registers, each on its own sub-page: Licensed Commercial
+    Banks (/en/authorized-financial-institutions/licensed-commercial-banks), Licensed Specialised Banks
+    (/licensed-specialised-banks), Licensed Finance Companies (/licensed-finance-companies), Registered
+    Finance Leasing Establishments, Authorised Primary Dealers, Authorized Money Broking Companies, and
+    L'
+  confidence: 0.95
+- id: lk_financial_serv_dfe_companies_permitted_to_eng
+  name: DFE Companies Permitted to Engage in Money Changing Business (Authorized Money Changers)
+  publisher: Department of Foreign Exchange (DFE), Central Bank of Sri Lanka
+  url: https://www.dfe.lk/web/index.php?option=com_content&view=article&id=82&Itemid=513&lang=en
+  country: LK
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Official authorized-money-changer (AMC) register. HTML tables embedded in-page across categories:
+    Licensed Commercial & Specialised Banks (branches authorized for money changing), Licensed Finance
+    Companies (approved branches), Limited Companies permitted to Buy/Sell/Exchange (e.g. Thomas Cook
+    Lanka, Ravi Forexae), Limited Companies permitted Buy & Exchange only, and Hotels permitted Buy only.
+    Inc'
+  confidence: 0.93
+- id: lk_hotel_sri_lanka_tourism_official_acc
+  name: Sri Lanka Tourism official accommodation directory (SLTDA-registered hotels & guest houses)
+  publisher: Sri Lanka Tourism Development Authority (SLTDA) / Sri Lanka Tourism Promotion Bureau
+  url: https://www.srilanka.travel/accommodation
+  country: LK
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Official, database-backed directory of SLTDA-registered tourist accommodation (operated by SLTPB,
+    developed by SLTDA). Search by name/place; filter by type (Star Class Hotels classified & unclassified,
+    Boutique Hotels/Villas, Heritage, Guest Houses, Home Stays, Camping, Eco-lodges) and district; interactive
+    map; 'Newly Registered Hotels & Other Accommodation' view; link to 'complete registered acc
+  confidence: 0.88
+- id: lk_money_lender_cbsl_licensed_finance_companie
+  name: CBSL Licensed Finance Companies register
+  publisher: Central Bank of Sri Lanka (CBSL)
+  url: https://www.cbsl.gov.lk/en/authorized-financial-institutions/licensed-finance-companies
+  country: LK
+  industry: money_lender
+  entity_type: lender
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Dedicated sub-page of the CBSL hub (verified above) listing Licensed Finance Companies (LFCs)
+    under the Finance Business Act -- the LK regulatory equivalent of licensed consumer/finance lenders
+    (Sri Lanka has no separate standalone 'money lender' register; deposit-taking lending is the LFC regime).
+    Sub-page existence confirmed via the verified hub page, but this specific URL was not directly fetch
+  confidence: 0.85
+- id: lk_recruitment_ag_slbfe_licensed_foreign_employm
+  name: SLBFE Licensed Foreign Employment Agencies search & downloadable register
+  publisher: Sri Lanka Bureau of Foreign Employment (SLBFE)
+  url: https://applications.slbfe.lk/feb/la/la_main.asp
+  country: LK
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Official register of licensed foreign-employment (recruitment) agencies. Search by license number,
+    agency name (any part), address, district (26-option dropdown), and country of recruitment (40+ destinations);
+    A-Z alphabetical directory; 1-5 star agency ratings. Crucially exposes DOWNLOADABLE lists: ''List
+    of Valid Recruitment Agencies as at <date>'' and ''List of Temporarily Suspended / Cancelled Ag'
+  confidence: 0.97
+- id: lk_remittance_cbsl_remitting_agents_ras_othe
+  name: CBSL Remitting Agents (RAs) & Other Remitting Channels (ORCs) tied to Licensed Banks
+  publisher: Central Bank of Sri Lanka (CBSL)
+  url: https://www.cbsl.gov.lk/en/remittance-partners
+  country: LK
+  industry: remittance
+  entity_type: remittance
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Official CBSL list of remitting agents and remittance channels directly tied to Sri Lankan licensed
+    banks, organized by country/region (100+ countries). Includes MTOs/exchange houses/digital platforms
+    (Western Union, MoneyGram, Wise, Remitly, plus local exchange houses). NOTE the CBSL disclaimer: these
+    tied-up RAs/ORCs are NOT themselves CBSL-registered/regulated -- the list is for expatriate awar'
+  confidence: 0.9
+- id: lk_training_cente_slbfe_pre_departure_training_c
+  name: SLBFE pre-departure training centres (network of ~29 centres)
+  publisher: Sri Lanka Bureau of Foreign Employment (SLBFE)
+  url: https://www.slbfe.lk/
+  country: LK
+  industry: training_center
+  entity_type: training_center
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'SLBFE operates the official pre-departure orientation (PDOS) training-centre network -- ~29
+    centres providing 15-day (Middle East) / 25-day (non-Middle East) training for first-time domestic
+    migrant workers. A clean standalone PUBLIC LIST URL for the training centres was NOT confirmed this
+    session: the candidate page http://www.slbfe.lk/page.php?LID=1&MID=59 returned HTTP 404, so url_verified=fals'
+  confidence: 0.45
+- id: my_company_regist_ssm_e_info_companies_commissio
+  name: SSM e-Info - Companies Commission of Malaysia company & business registry search
+  publisher: Suruhanjaya Syarikat Malaysia (SSM) / Companies Commission of Malaysia
+  url: https://www.ssm-einfo.my/
+  country: MY
+  industry: company_registry
+  entity_type: company
+  access_tier: freemium
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Official SSM corporate/business information portal. Free e-Search verifies entity name, registration
+    number (old + new 12-digit BRN) and status without login; full company profiles (directors, shareholders,
+    charges, financials, ROC profiles, business profiles for sole-props/partnerships) are paid and require
+    sign-in. Search by company/business/LLP/audit-firm name or reg no. Verified loading this s
+  confidence: 0.96
+- id: my_hotel_motac_check_registered_hotel_t
+  name: MOTAC Check - Registered Hotel / Tourist Accommodation Premises verification
+  publisher: Ministry of Tourism, Arts and Culture Malaysia (MOTAC)
+  url: https://www.motac.gov.my/en/check/
+  country: MY
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Official MOTAC verification hub under the Tourism Industry Act 1992. The /en/check/ landing
+    page (verified loading) lists check categories including Registered Hotel, Rated Hotel, Green Hotel,
+    Licensed Travel Agency (TOBTAB), Licensed Tourist Guide, Rated Spa/Foot-Massage, MM2H companies, plus
+    watchlists (entities violating the Act, revoked tourist-guide licences). Search-form results, not
+    a bulk '
+  confidence: 0.93
+- id: my_medical_clinic_fomema_panel_clinic_gp_laborat
+  name: FOMEMA panel clinic / GP / laboratory locator (foreign worker medical examination)
+  publisher: FOMEMA Sdn Bhd (operating on behalf of the Ministry of Health Malaysia)
+  url: https://www.fomema2u.com.my/employer-agency/find-your-nearest-clinic/
+  country: MY
+  industry: medical_clinic
+  entity_type: medical_clinic
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: FOMEMA is the government-appointed concessionaire operating the mandatory Foreign Workers Medical
+    Examination System for the Ministry of Health (Peninsular Malaysia + Labuan); network of ~3,100 panel
+    clinics and ~140 laboratories. This locator (verified loading) finds the nearest registered panel
+    clinic; a separate panel-agency finder exists at /employer-agency/find-your-agency/. Location dropdown
+  confidence: 0.8
+- id: my_money_lender_kpkt_emaps_ideal_licensed_mone
+  name: KPKT eMAPS / iDEAL - Licensed Money Lenders & Pawnbrokers verification (Pemberi Pinjam Wang)
+  publisher: Kementerian Perumahan dan Kerajaan Tempatan (KPKT) - Bahagian Kawalan Kredit Komuniti
+  url: https://emaps.kpkt.gov.my/emaps/emaps/info/info_ppw.cfm
+  country: MY
+  industry: money_lender
+  entity_type: lender
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Official KPKT system (eMAPS = Electronic Money Lender and Pawn Broker System) for licensed money
+    lenders under the Moneylenders Act 1951 and pawnbrokers under the Pawnbrokers Act 1972. Page confirmed
+    loading (Community Credit Control Division). Public verification of a specific licence is via the
+    iDEAL 'Semakan' page (https://ideal.kpkt.gov.my/permohonan/semakan, also fetched/verified - searches
+    b
+  confidence: 0.92
+- id: my_recruitment_ag_jtksm_list_of_private_employme
+  name: JTKSM List of Private Employment Agencies (Senarai Agensi Pekerjaan Swasta)
+  publisher: Jabatan Tenaga Kerja Semenanjung Malaysia (JTKSM), Ministry of Human Resources
+  url: https://jtksm.mohr.gov.my/en/services/private-employment-agencies/list-private-employment-agencies
+  country: MY
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Official register of licensed Private Employment Agencies under the Private Employment Agencies
+    Act 1981 (Act 246). Shows agency name, company reg no, JTKSM licence no, licence category (A/B/C),
+    validity dates, contact, address, and active vs cancelled/suspended status. Search/filter form only
+    (by name, licence no, type, state) - no downloadable PDF/Excel/CSV; data must be scraped via the paginate
+  confidence: 0.97
+- id: my_remittance_bank_negara_malaysia_money_ser
+  name: Bank Negara Malaysia - Money Services Business (MSB) operators list (remittance / money transfer)
+  publisher: Bank Negara Malaysia (Central Bank of Malaysia)
+  url: https://www.bnm.gov.my/index.php?ch=fs&pg=fs_msb_money_srv_bus&ac=124
+  country: MY
+  industry: remittance
+  entity_type: remittance
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: false
+  notes: 'Official BNM list of licensed Money Services Business operators under the Money Services Business
+    Act 2011 - covers remittance/money transfer, money changing, and wholesale currency, plus approved
+    MSB agents. BNM publishes downloadable PDFs e.g. ''1b_total_licensees_by_type_of_business_remittance.pdf''
+    under /documents/20124/... (high-value scrapable list). url_verified=false: BNM site returned HTTP'
+  confidence: 0.9
+- id: my_security_servi_moha_kdn_list_of_licensed_priv
+  name: MOHA/KDN List of Licensed Private Security & Investigation Agencies (Agensi Persendirian)
+  publisher: Kementerian Dalam Negeri (KDN) / Ministry of Home Affairs Malaysia
+  url: https://moha.gov.my/index.php/en/maklumat-perkhidmatan/agensi-persendirian-update
+  country: MY
+  industry: security_services
+  entity_type: security_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'Official MOHA/KDN information for private security and investigation agencies licensed under
+    the Private Agencies Act 1971 (Akta Agensi Persendirian 1971). MOHA maintains the list of licensed
+    companies; verification is by cross-checking a company''s KDN licence number. url_verified=false:
+    moha.gov.my returned a TLS ''unable to verify first certificate'' error on WebFetch this session (cert
+    chain issu'
+  confidence: 0.8
+- id: my_training_cente_hrd_corp_registered_training_p
+  name: HRD Corp Registered Training Providers directory
+  publisher: Human Resource Development Corporation (HRD Corp / PSMB), Ministry of Human Resources
+  url: https://hrdcorp.gov.my/training-providers/
+  country: MY
+  industry: training_center
+  entity_type: training_center
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'Official HRD Corp directory of registered/approved training providers under the Pembangunan
+    Sumber Manusia Berhad Act 2001 (~1,300 active providers). Searchable provider directory on the portal.
+    url_verified=false: hrdcorp.gov.my returned HTTP 403 (bot/Cloudflare block) on WebFetch this session,
+    but the URL is corroborated across multiple search results. Note: skills-training/PDOS accreditation
+    is'
+  confidence: 0.82
+- id: np_company_regist_office_of_the_company_registra
+  name: Office of the Company Registrar — Company Search (CAMIS)
+  publisher: Office of the Company Registrar (OCR), Ministry of Industry, Commerce and Supplies
+  url: https://application.ocr.gov.np/faces/CompanyDetails.jsp
+  country: NP
+  industry: company_registry
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: OCR is the statutory central company registry (Companies Act 2006). Public free search by company
+    name or registration number via the CAMIS app at application.ocr.gov.np (form page CompanyDetails.jsp);
+    admin/registration portal at camis.ocr.gov.np; info site www.ocr.gov.np. Could NOT verify-fetch due
+    to an incomplete TLS certificate chain (typical of NP gov hosts) — browser may show a warning. Sea
+  confidence: 0.75
+- id: np_financial_serv_nrb_list_of_banks_and_financia
+  name: NRB — List of Banks and Financial Institutions Licensed by Nepal Rastra Bank (Class A/B/C/D)
+  publisher: Nepal Rastra Bank (Bank & Financial Institution Regulation Dept.)
+  url: https://www.nrb.org.np/bfr/bfis-list-in-english-mid-june-2023/
+  country: NP
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Central bank's authoritative roster of licensed commercial banks (A), development banks (B),
+    finance companies (C) and microfinance (D) — ~107 BFIs. Fetched page serves a downloadable XLSX-origin
+    PDF (Excel 2019, author 'NRB') of the full list = scrapeable structured file. NRB periodically reissues
+    a dated version; check nrb.org.np for the newest mid-month file.
+  confidence: 0.9
+- id: np_financial_serv_sebon_licensed_merchant_banker
+  name: SEBON — Licensed Merchant Bankers (securities-market intermediaries)
+  publisher: Securities Board of Nepal (SEBON)
+  url: https://sebon.gov.np/intermediaries/merchnat-bankers
+  country: NP
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Official securities regulator. Paginated list of licensed merchant bankers (e.g., Aakash Capital
+    — Licence 41) with address, contact, services, licence no; ~32 firms. Page has an 'Export To Excel'
+    button = direct data export. Companion lists at /intermediaries/stock-brokers (~90 brokers), mutual
+    funds, depository participants, credit-rating agencies — same site, same export pattern.
+  confidence: 0.9
+- id: np_hotel_hotel_association_of_nepal_cla
+  name: Hotel Association of Nepal — Classified (star) hotel & tourist-standard listings
+  publisher: Hotel Association of Nepal (HAN); classification by Dept. of Tourism / Nepal Tourism Board
+  url: https://www.hotelassociationnepal.org.np/hotels
+  country: NP
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: false
+  has_data_endpoint: false
+  url_verified: false
+  notes: Star classification of hotels is granted by the Dept. of Tourism / Nepal Tourism Board under
+    the Hotel/Lodge/Restaurant Regulation 2054, but DoT/NTB does not publish a clean public classified-hotel
+    register online (NTB trade site is a news/contacts portal). The browsable directory of star + tourist-standard
+    hotels is maintained by HAN, an industry association (official=false). Categorised by 5/4/3
+  confidence: 0.55
+- id: np_medical_clinic_nepal_hpf_government_approved_
+  name: Nepal HPF — Government-Approved Medical Centres for Foreign Employment
+  publisher: Ministry of Health and Population (approving authority); list hosted by Nepal Health Professional
+    Federation
+  url: https://nepalhpf.org.np/government-approved-medical-list/
+  country: NP
+  industry: medical_clinic
+  entity_type: medical_clinic
+  access_tier: free
+  official: false
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Centres are approved by Nepal''s Ministry of Health & Population for pre-deployment migrant-health
+    checks; the consolidated list (~284 institutes: serial / registration no / name / address) is displayed
+    in a table here by the HPF (an association, not the regulator — hence official=false). Page has a
+    ''Downloads'' nav that may hold a file. The MoHP itself is the authoritative source but does not expos'
+  confidence: 0.78
+- id: np_money_lender_nrb_licensed_bfis_also_covers_
+  name: NRB — Licensed BFIs (also covers licensed money-lending finance companies)
+  publisher: Nepal Rastra Bank
+  url: https://www.nrb.org.np/
+  country: NP
+  industry: money_lender
+  entity_type: lender
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Nepal has no standalone consumer 'moneylender' licensing register distinct from NRB; regulated
+    lending is done by NRB-licensed Class C finance companies and Class D microfinance institutions, which
+    appear in the BFI list (see financial_services row). Informal moneylenders (sahu/meter-byaj) are unlicensed
+    and not registered. NRB home verified; the substantive list is the BFI file above. Included to
+  confidence: 0.55
+- id: np_recruitment_ag_dofe_foreign_job_portal_recrui
+  name: DoFE Foreign Job Portal — Recruitment Agency search (licensed manpower agencies)
+  publisher: Department of Foreign Employment (DoFE), Ministry of Labour, Employment and Social Security
+  url: https://foreignjob.dofe.gov.np/Home/RecruitmentAgency
+  country: NP
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Official DoFE FEIMS foreign-job portal. Table of recruitment (manpower) agencies with Permission
+    No / Name / Status plus a name search box and Proprietor Information lookup. This is the live agency
+    register; renders agencies server-side (search form, no obvious JSON/CSV export). A separate 'RA Approved
+    List' is also published at feims.dofe.gov.np. Use this to verify a manpower licence number.
+  confidence: 0.9
+- id: np_remittance_nrb_licensed_entities_for_fore
+  name: NRB — Licensed Entities for Foreign Exchange / Remittance Transactions
+  publisher: Nepal Rastra Bank (Foreign Exchange Management Dept.)
+  url: https://www.nrb.org.np/contents/uploads/2024/09/FX-Licensed-Entities_2081-Ashad-End-15-Jul-2024-1.pdf
+  country: NP
+  industry: remittance
+  entity_type: remittance
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Official NRB PDF (1.8MB, resolved/downloaded this session) enumerating entities licensed for
+    FX business — remittance companies / money-transfer operators and money changers — as at Ashad-end
+    2081 (15 Jul 2024). Downloadable structured list (scrapeable). This is the regulator's remittance/money-transfer
+    register; ~26 licensed remittance companies reported elsewhere. Re-issued periodically under /c
+  confidence: 0.85
+- id: np_training_cente_ctevt_list_of_affiliated_const
+  name: CTEVT — List of Affiliated / Constituent Technical & Vocational Institutes
+  publisher: Council for Technical Education and Vocational Training (CTEVT)
+  url: https://www.ctevt.org.np/list-of-contituent-institutes
+  country: NP
+  industry: training_center
+  entity_type: training_center
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: CTEVT is the national apex body that accredits technical/vocational (incl. skills & PDOT-relevant)
+    training institutes. ctevt.org.np home verified as official this session; the affiliated/constituent-institutes
+    list lives at this path (not directly fetched). CTEVT also runs a 'Training Information Portal'. Pre-Departure
+    Orientation Training (PDOT) itself is run/regulated by DoFE + the Foreign Empl
+  confidence: 0.72
+- id: ph_company_regist_sec_express_system_company_doc
+  name: SEC Express System — Company Document Search & Verification
+  publisher: Securities and Exchange Commission (SEC) / PTI-Teleserv
+  url: https://secexpress.ph/
+  country: PH
+  industry: company_registry
+  entity_type: company
+  access_tier: freemium
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'VERIFIED this session: official SEC online document-ordering system operated by PTI/Teleserv.
+    Search the SEC registry by registered name or registration number to confirm a company exists, then
+    order Articles of Incorporation, GIS, financial statements, etc. (paid for the documents). Search/verify
+    is free; documents are paid. Secondary corporate-registry confirmation surface alongside eSPARC.'
+  confidence: 0.8
+- id: ph_company_regist_sec_esparc_company_name_search
+  name: SEC eSPARC — Company Name Search / Corporate Registry
+  publisher: Securities and Exchange Commission (SEC)
+  url: https://esparc.sec.gov.ph/application
+  country: PH
+  industry: company_registry
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'VERIFIED this session: SEC''s Electronic Simplified Processing of Application for Registration
+    of Company portal; includes a public company-name search (no login) returning name/registration no./type/status.
+    Primary corporate registry for all SEC-registered domestic, foreign, and partnership entities. Search-form
+    access; no documented bulk JSON/CSV feed (SEC dev portal exposes a CompanyInformationL'
+  confidence: 0.85
+- id: ph_financial_serv_bsp_list_of_electronic_money_i
+  name: BSP List of Electronic Money Issuers (EMIs)
+  publisher: Bangko Sentral ng Pilipinas (BSP)
+  url: https://www.bsp.gov.ph/Lists/Directories/Attachments/7/emi.pdf
+  country: PH
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'VERIFIED this session (downloaded from official bsp.gov.ph directory path): BSP-supervised Electronic
+    Money Issuers list, search result cited ''as of 31 May 2026'' (current). Same Lists/Directories/Attachments
+    downloadable-file pattern. Covers e-money/e-wallet licensees relevant to wage/fee-rail tracing. The
+    Directories landing page (SitePages) is JS-rendered; the attachment PDFs are the stable dire'
+  confidence: 0.9
+- id: ph_financial_serv_bsp_list_of_operators_of_payme
+  name: BSP List of Operators of Payment System (OPS)
+  publisher: Bangko Sentral ng Pilipinas (BSP)
+  url: https://www.bsp.gov.ph/PaymentAndSettlement/COR.pdf
+  country: PH
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'VERIFIED this session: official BSP downloadable PDF (Excel-exported, 12 pages, created 2026-06-08
+    — current) listing registered Operators of Payment Systems (banks, e-wallets, payment processors).
+    Directly downloadable from bsp.gov.ph — high-value bulk source.'
+  confidence: 0.95
+- id: ph_hotel_dot_list_of_accredited_tourism
+  name: DOT List of Accredited Tourism Establishments (Accommodation/Hotels)
+  publisher: Department of Tourism (DOT)
+  url: http://accreditationonline.tourism.gov.ph/Pages/Portal/PortalListEstablishments.aspx
+  country: PH
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'Official DOT public ''List of Accredited Establishments'' portal (accommodation: hotels, resorts,
+    apartment hotels, Mabuhay accommodations, plus travel/tour, transport, MICE, wellness). Connection
+    refused to non-browser fetch (gov firewall blocks non-browser agents) — confirmed via search result
+    title from tourism.gov.ph domain; loads in a browser. Newer portal at accreditation.tourism.gov.ph/login '
+  confidence: 0.75
+- id: ph_medical_clinic_doh_accredited_medical_clinics
+  name: DOH-Accredited Medical Clinics for OFWs and Seafarers (POEA/DMW list)
+  publisher: Department of Health (DOH) / Department of Migrant Workers (DMW)
+  url: https://dmw.gov.ph/archives/poea/clinic/dohclinics.html
+  country: PH
+  industry: medical_clinic
+  entity_type: medical_clinic
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'VERIFIED this session: official DMW/POEA page hosting the DOH-accredited pre-deployment medical
+    clinic list as a downloadable PDF (~652 KB) plus PNG images. These are the DOH AO 85-A accredited
+    clinics/hospitals that conduct OFW/seafarer medical exams. GAMCA (GCC-Approved Medical Centers) is
+    a separate Gulf-mandated overlay. DOH HFSRB licenses the facilities.'
+  confidence: 0.92
+- id: ph_money_lender_sec_list_of_registered_lending
+  name: SEC List of Registered Lending & Financing Companies (and Online Lending Platforms)
+  publisher: Securities and Exchange Commission (SEC)
+  url: https://www.sec.gov.ph/lending-companies-and-financing-companies-2/lending-companies-and-financing-companies/
+  country: PH
+  industry: money_lender
+  entity_type: lender
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: false
+  notes: 'Official SEC hub publishing downloadable PDF/Excel lists of lending companies and financing
+    companies holding a Certificate of Authority (RA 9474 / RA 8556), plus a list of recorded Online Lending
+    Platforms (OLPs) and revoked/with-cease-and-desist lists. Returned HTTP 403 to non-browser fetch (Cloudflare/WAF);
+    resolves in a browser. High-value: published as bulk downloadable files.'
+  confidence: 0.85
+- id: ph_recruitment_ag_dmw_formerly_poea_licensed_rec
+  name: DMW (formerly POEA) Licensed Recruitment Agencies
+  publisher: Department of Migrant Workers (DMW)
+  url: https://dmw.gov.ph/licensed-recruitment-agencies
+  country: PH
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: false
+  notes: Official DMW (ex-POEA) register of licensed land-based/sea-based recruitment agencies, including
+    cancelled/suspended/banned. Page is a JS SPA that errored under non-browser fetch (loads in a real
+    browser). DMW also publishes downloadable PDF agency lists (e.g. via MWO sites and DMW advisories).
+    Third-party mirror workabroad.ph/validate-license queries the same DMW status DB. Manning agencies
+    (sea-
+  confidence: 0.9
+- id: ph_remittance_bsp_list_of_money_service_busi
+  name: BSP List of Money Service Businesses / Remittance and Transfer Companies (RTC)
+  publisher: Bangko Sentral ng Pilipinas (BSP)
+  url: https://www.bsp.gov.ph/Lists/Directories/Attachments/16/MSB.pdf
+  country: PH
+  industry: remittance
+  entity_type: remittance
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'VERIFIED this session (downloaded, lists real company names): official BSP downloadable PDF
+    of licensed Money Service Businesses / Remittance and Transfer Companies (with VC exchange services).
+    The bsp.gov.ph/Lists/Directories/Attachments/<n>/ path is a structured directory of BSP-supervised-institution
+    lists (banks, MSBs, EMIs, pawnshops) all published as downloadable files — the canonical scrape'
+  confidence: 0.93
+- id: ph_security_servi_pnp_sosia_list_of_licensed_pri
+  name: PNP-SOSIA List of Licensed Private Security Agencies
+  publisher: Philippine National Police - Supervisory Office for Security and Investigation Agencies (PNP-SOSIA),
+    Civil Security Group
+  url: https://www.foi.gov.ph/agencies/pnp/pnp-sosia-list-of-active-security-operators/
+  country: PH
+  industry: security_services
+  entity_type: security_services
+  access_tier: manual
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: PNP-SOSIA (Civil Security Group) is the regulator licensing private security/investigation agencies.
+    No always-on public register is exposed online; the list of active security operators is obtainable
+    via FOI request (FOI page returned 403 to non-browser fetch but is the documented access path). sosia.pnp.gov.ph
+    / PNP-CSG is the issuing authority. Treat as manual/FOI access, not a live scrape targ
+  confidence: 0.62
+- id: ph_training_cente_dmw_tesda_owwa_pdos_peos_accre
+  name: DMW / TESDA / OWWA PDOS & PEOS Accredited Providers (PEOS Online)
+  publisher: Department of Migrant Workers (DMW) / OWWA / TESDA
+  url: https://peos.dmw.gov.ph/index_peos.php
+  country: PH
+  industry: training_center
+  entity_type: training_center
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Official DMW Pre-Employment Orientation Seminar (PEOS) portal; PDOS is delivered by DMW/OWWA
+    or accredited recruitment agencies. No single clean public CSV of accredited PDOS/PEOS training centers
+    was found exposed; the accredited-agency overlap with the recruitment register is the practical list.
+    TESDA-registered skills training centers are a separate register (TESDA TMIS / tesda.gov.ph). Not
+    fet
+  confidence: 0.6
+- id: pk_company_regist_list_of_registered_companies_e
+  name: List of Registered Companies — eServices / eZfile company search
+  publisher: Securities & Exchange Commission of Pakistan (SECP)
+  url: https://www.secp.gov.pk/list-of-registered-companies/
+  country: PK
+  industry: company_registry
+  entity_type: company
+  access_tier: freemium
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'VERIFIED this session (HTTP 200). Central corporate registry under Companies Act 2017 (all private/public/SMC/Section-42/foreign-branch
+    companies). Public search via the eServices/LEAP ''eZfile'' portal (leap.secp.gov.pk) — basic profile
+    (name, CUIN, type, status) free; certified extracts PKR 200–3,000. Search form, not a bulk download/JSON
+    feed. Also useful: Secured Transactions Registry public sea'
+  confidence: 0.9
+- id: pk_financial_serv_list_of_licensed_nbfcs_non_ban
+  name: List of Licensed NBFCs / Non-Banking Finance Companies (and Securities & Futures Advisers)
+  publisher: Securities & Exchange Commission of Pakistan (SECP)
+  url: https://www.secp.gov.pk/document/list-of-licensed-entities-as-of-may-30-2023-nbfcs-2/
+  country: PK
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: VERIFIED this session (HTTP 200). Official SECP page with a downloadable PDF ('List-of-Licensed-Entities-as-of-May-30-2023.pdf',
+    ~445KB) covering Investment Finance Services, Leasing, Modarabas, Non-Banking Microfinance, Asset
+    Management, Investment Advisory, REIT/PE-VC/Pension fund mgmt. Periodic snapshot — newer dated versions
+    appear under secp.gov.pk/document/list-of-licensed-entities-...; chec
+  confidence: 0.92
+- id: pk_hotel_departments_of_tourist_service
+  name: Departments of Tourist Services (DTS) — registered/licensed hotels & restaurants (Punjab)
+  publisher: Department of Tourist Services, Government of the Punjab (under Pakistan Hotels & Restaurants
+    Act 1976)
+  url: https://dts.punjab.gov.pk/
+  country: PK
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'Official provincial regulator that registers/licenses hotels, restaurants, travel agents, tour
+    operators and guides under the Pakistan Hotels & Restaurants Act 1976. WebFetch hit ECONNREFUSED this
+    session (site intermittently down / blocks fetch), so not marked verified. Hospitality licensing is
+    devolved to provinces — parallel bodies: KP Culture & Tourism Authority (kptourism.com), Sindh & Baloch'
+  confidence: 0.72
+- id: pk_medical_clinic_wafid_gcc_approved_medical_cen
+  name: Wafid — GCC Approved Medical Centers (Gulf Health Council) appointment/center finder
+  publisher: Gulf Health Council (GCC) — Wafid (successor to GAMCA)
+  url: https://wafid.com/en/book-appointment/
+  country: PK
+  industry: medical_clinic
+  entity_type: medical_clinic
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'VERIFIED this session (HTTP 200). Authoritative source for GCC-accredited pre-deployment migrant-health
+    centres in Pakistan: data-driven dropdown lists approved medical centers by country (Pakistan) + city.
+    This is a Gulf-side regulator (not the Pakistani govt) but is the de facto accredited-clinic register
+    for outbound GCC workers; GAMCA was the prior brand. Dropdown is XHR/data-feed-backed (scra'
+  confidence: 0.85
+- id: pk_money_lender_non_banking_microfinance_compa
+  name: Non-Banking Microfinance Companies (NBMFC) — licensed lenders (covered within SECP NBFC list)
+  publisher: Securities & Exchange Commission of Pakistan (SECP)
+  url: https://www.secp.gov.pk/licensing/nbfcs/investment-finance-services/
+  country: PK
+  industry: money_lender
+  entity_type: lender
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Modern licensed consumer/micro lending (incl. digital lending apps) is regulated by SECP as Non-Banking
+    Microfinance Companies under the NBFC regime — the licensed-lender list is the same SECP 'List of
+    Licensed Entities (NBFCs)' PDF above. This URL is the licensing-category description page (not fetched
+    this session). The colonial-era Money-Lenders Ordinance 1960 (provincial, District Collector-is
+  confidence: 0.7
+- id: pk_recruitment_ag_list_of_overseas_employment_pr
+  name: List of Overseas Employment Promoters (OEPs)
+  publisher: Bureau of Emigration & Overseas Employment (BE&OE), Ministry of Overseas Pakistanis & HRD
+  url: https://beoe.gov.pk/list-of-oeps
+  country: PK
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: THE official register of licensed overseas employment promoters (~5,000+ licences). Browsable
+    list on the BE&OE site. WebFetch returned HTTP 403 (Cloudflare/bot block) on both /list-of-oeps and
+    / this session, so not marked verified, but URL is well-documented across sources. Open in a real
+    browser/headless session with proper UA. No JSON/CSV feed exposed; HTML table only. BE&OE is the manning/rec
+  confidence: 0.9
+- id: pk_remittance_list_of_exchange_companies_a_b
+  name: List of Exchange Companies (A & B category money changers / remittance)
+  publisher: State Bank of Pakistan (SBP) — Exchange Policy Department
+  url: https://www.sbp.org.pk/epd/List_Ex_Companies.pdf
+  country: PK
+  industry: remittance
+  entity_type: remittance
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'VERIFIED this session (HTTP 200, ~434KB PDF served). Official SBP directory of licensed Exchange
+    Companies — A-category (can send/receive foreign remittances) and B-category (money changers only).
+    Downloadable PDF = scrapable. Companion files: epd/list-b.pdf and epd/pdf/NetworkExchangeCompaniesSector.pdf
+    (branch/outlet network). SBP is the licensing regulator for forex/remittance operators.'
+  confidence: 0.93
+- id: pk_security_servi_license_for_private_security_c
+  name: License for Private Security Company — ICT Administration (Islamabad)
+  publisher: Islamabad Capital Territory (ICT) Administration / Ministry of Interior (Private Security
+    Companies (Regulation & Control) Ordinance 2002)
+  url: https://ictadministration.gov.pk/license-for-private-security-company/
+  country: PK
+  industry: security_services
+  entity_type: security_services
+  access_tier: manual
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Official ICT page for private-security-company licensing (SECP incorporation -> MoI NOC -> provincial/ICT
+    Home Dept licence under the 2002 Ordinance). WebFetch returned ECONNREFUSED twice this session, so
+    unverified. There is NO consolidated public list of licensed PSCs online — licences are issued and
+    held per-province by the Home Department / Chief Commissioner ICT; obtaining the roster typicall
+  confidence: 0.6
+- id: qa_company_regist_qatar_business_map_portal_comm
+  name: Qatar Business Map portal (commercial registration verification)
+  publisher: Ministry of Commerce and Industry (MoCI), State of Qatar
+  url: https://businessmap.moci.gov.qa/
+  country: QA
+  industry: company_registry
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Official mainland company/commercial-registry surface. MoCI's Commercial Registration & Licenses
+    Dept manages the Commercial Registry + Trade Agents Register; the public Business Map portal exposes
+    registered commercial establishments by region/activity and lets you verify the validity/authenticity
+    of a commercial record + licence via the Single Window QR code. URL confirmed by MoCI's own news pag
+  confidence: 0.72
+- id: qa_company_regist_qatar_financial_centre_qfc_pub
+  name: Qatar Financial Centre (QFC) Public Register of licensed companies
+  publisher: QFC Authority - Companies Registration Office (CRO)
+  url: https://eservices.qfc.qa/qfcpublicregister/publicregister.aspx
+  country: QA
+  industry: company_registry
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Official corporate register for all entities licensed/incorporated inside the QFC (distinct from
+    the mainland MoCI commercial registry). Searchable by company name, QFC number, status, and permitted
+    activities; shows EN/AR names, business address, directors, senior executive function holders, plus
+    registers of auditors, insolvency practitioners, trusts, deregistrations and disciplinary actions.
+    Pa
+  confidence: 0.95
+- id: qa_financial_serv_qfcra_public_register_search_a
+  name: QFCRA Public Register - Search All Firms
+  publisher: Qatar Financial Centre Regulatory Authority (QFCRA)
+  url: https://www.qfcra.com/public_registers/search-all-firms/
+  country: QA
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Broadest QFCRA view: ~250+ firms ever authorised/registered with QFCRA, including ''No longer
+    authorised'' and previous names - useful for historical entity intelligence and tracking de-licensed
+    firms. Filter by status/sector/date; sortable table, no bulk download.'
+  confidence: 0.95
+- id: qa_financial_serv_qfcra_public_register_search_a_2
+  name: QFCRA Public Register - Search Authorised Firms
+  publisher: Qatar Financial Centre Regulatory Authority (QFCRA)
+  url: https://www.qfcra.com/public_registers/search-authorised-firms/
+  country: QA
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Official register of financial firms authorised by the QFCRA (banks, insurers, asset managers,
+    advisors operating inside the Qatar Financial Centre). Interactive search form + sortable table (firm
+    name, QFC number, status, date authorised). ~80+ authorised firms. No CSV/JSON download exposed; scrape
+    via the rendered table. Sister views: search-all-firms (~250+ incl. closed) and current insurance
+    f'
+  confidence: 0.97
+- id: qa_hotel_qatar_tourism_hotel_establishm
+  name: Qatar Tourism - hotel establishment licensing & classification (tourism licence register)
+  publisher: Qatar Tourism (Visit Qatar), State of Qatar
+  url: https://www.qatartourism.com/en/licensing-e-services/e-services/hotel-establishments/license-services
+  country: QA
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Qatar Tourism is the statutory licensing + star-classification authority for all hotels/accommodation
+    under Law 6/2012. This e-services page covers issue/amend/renew/cancel tourism licences and references
+    the published Grading & Classification Manual; applications run through eservices.visitqatar.qa. NOTE:
+    it is the licensing surface, not a public downloadable directory of licensed hotels - no ope'
+  confidence: 0.8
+- id: qa_medical_clinic_ministry_of_public_health_lice
+  name: Ministry of Public Health - licensed Health Facilities register
+  publisher: Ministry of Public Health (MOPH) - Health Facilities Licensing & Accreditation / Dept. of
+    Healthcare Professions, Qatar
+  url: https://www.moph.gov.qa/english/OurServices/eservices/Pages/Health-Facilities.aspx
+  country: QA
+  industry: medical_clinic
+  entity_type: medical_clinic
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Official MOPH e-service listing medical institutes/health facilities (clinics, hospitals, polyclinics)
+    currently licensed in Qatar; MOPH's Health Facilities Licensing & Accreditation division and the Dept.
+    of Healthcare Professions (DHP) are the regulators (DHP/QCHP also licenses practitioners, Prometric-examined).
+    Page exists and is the authoritative register, but the fetch tool hit a CAPTCHA/ant
+  confidence: 0.78
+- id: qa_money_lender_qatar_central_bank_licensed_fi
+  name: Qatar Central Bank - Licensed financial institutions / consumer-finance & money-lending oversight
+  publisher: Qatar Central Bank (QCB)
+  url: http://www.qcb.gov.qa/English/SupervisionApproach/LicensingAndRegistration/Pages/Licensing.aspx
+  country: QA
+  industry: money_lender
+  entity_type: lender
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'Qatar has no standalone ''money lender'' licence: lawful interest-bearing lending is restricted
+    to QCB-licensed banks and finance/investment companies (QCB Law 13/2012; retail-lending directive
+    caps ceilings/tenor/rate). The list of licensed lenders is therefore the QCB banks + finance-companies
+    directories under this Licensing/Registration section. Not verified this session (qcb.gov.qa TLS cert
+    cou'
+  confidence: 0.6
+- id: qa_other_qfcra_public_register_search_d
+  name: QFCRA Public Register - Search DNFBP Firms
+  publisher: Qatar Financial Centre Regulatory Authority (QFCRA)
+  url: https://www.qfcra.com/public_registers/search-dnfbp-firms/
+  country: QA
+  industry: other
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Official register of Designated Non-Financial Businesses and Professions (DNFBPs) supervised
+    by QFCRA for AML/CFT - law firms, accounting/audit firms, corporate-service providers, family offices
+    (e.g. KPMG, PwC, EY, White & Case, DLA Piper, Equiom, TMF). High-value for trafficking/laundering
+    intelligence (gatekeeper professions). Search form by QFC No / firm name; no download.
+  confidence: 0.93
+- id: qa_recruitment_ag_ministry_of_labour_list_of_lic
+  name: Ministry of Labour list of licensed recruitment offices (domestic worker recruitment)
+  publisher: Ministry of Labour (MOL), State of Qatar (formerly ADLSA)
+  url: https://www.mol.gov.qa/en/
+  country: QA
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: manual
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Qatar's MOL is the licensing regulator for domestic-worker recruitment offices and periodically
+    issues an updated list of licensed recruitment offices (latest widely reported 25 Dec 2024). The list
+    is published via MOL channels (website / official social @MOLQTR) rather than a persistent searchable
+    register; press coverage (Peninsula, ILoveQatar) links to a downloadable list snapshot. mol.gov.qa
+    h
+  confidence: 0.6
+- id: qa_remittance_qatar_central_bank_licensing_r
+  name: Qatar Central Bank - Licensing & Registration (exchange houses / finance & investment companies
+    directories)
+  publisher: Qatar Central Bank (QCB)
+  url: http://www.qcb.gov.qa/English/SupervisionApproach/LicensingAndRegistration/Pages/Registration.aspx
+  country: QA
+  industry: remittance
+  entity_type: remittance
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: QCB is the licensing regulator for banks, exchange houses (money remittance/FX), and finance
+    & investment companies in mainland Qatar; its Licensing & Registration section publishes the Exchange
+    Houses Directory and the Investment & Financing Companies Directory. Could NOT verify this session
+    - qcb.gov.qa presents an invalid/unverifiable TLS certificate to the fetch tool ('unable to verify
+    the fir
+  confidence: 0.7
+- id: qa_security_servi_ministry_of_interior_private_s
+  name: Ministry of Interior - Private Security Services licensing (approved security companies)
+  publisher: Ministry of Interior (MOI) - Private Security Services Section, State of Qatar
+  url: https://portal.moi.gov.qa/wps/portal/MOIInternet/departmentcommittees/easecurity
+  country: QA
+  industry: security_services
+  entity_type: security_services
+  access_tier: manual
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: MOI's Private Security Services Section (Law 19/2009 + Minister of Interior Decree 16/2009) issues
+    licences/approvals for private security & guarding companies and approved CCTV/surveillance installers,
+    and inspects them. MOI periodically publishes lists of government-approved security/surveillance companies
+    (e.g. Peninsula, Apr 2026). No persistent public searchable register confirmed; approval s
+  confidence: 0.55
+- id: sa_company_regist_ministry_of_commerce_commercia
+  name: Ministry of Commerce — Commercial Registration Data Inquiry
+  publisher: Ministry of Commerce (MOC / MC)
+  url: https://mc.gov.sa/en/eservices/Pages/ServiceDetails.aspx?sID=91
+  country: SA
+  industry: company_registry
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Official MOC service to view commercial registry (CR) data; search by establishment name OR unified
+    national number (CR number), then verification code. Free, immediate, also on Tawakkalna app (launched
+    2020-11-10). Lookup-by-key only (no bulk list/CSV; one record at a time, CAPTCHA-style code). The
+    National Portal mirror at https://my.gov.sa/en/services/18443 is the same service but 403'd the fet
+  confidence: 0.85
+- id: sa_financial_serv_sama_licensed_payment_service_
+  name: SAMA — Licensed Payment Service Providers (fintech / e-money / transfer companies)
+  publisher: Saudi Central Bank (SAMA)
+  url: https://www.sama.gov.sa/en-US/payment/pages/licensed_payment_service_providers_companies.aspx
+  country: SA
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'Official SAMA list of licensed Payment Service Providers / fintechs (e-wallets, e-money, payment/transfer).
+    Distinct from money-exchangers; relevant for digital remittance and fee-rail screening. Page returned
+    the SAMA SharePoint server error to the fetcher this session (url_verified=false). SAMA also publishes
+    a Regulatory Sandbox / permitted-fintech list; cross-referenced in search. Verify from '
+  confidence: 0.68
+- id: sa_hotel_ministry_of_tourism_hotel_tour
+  name: Ministry of Tourism — Hotel & Tourism Accommodation Licensing/Classification
+  publisher: Ministry of Tourism (MT)
+  url: https://mt.gov.sa/policies-regulations/licenses/tourism-accommodation-activity-types
+  country: SA
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Ministry of Tourism is the licensor/classifier of hospitality facilities (hotels, serviced apartments,
+    camps, lodges, holiday homes; hotels star-classified). This is the official licensing/classification
+    page; mt.gov.sa returned 403 to the fetcher this session (bot-block), so url_verified=false though
+    the domain is official (confirmed via search + MT-hosted regulation PDFs on cdn.mt.gov.sa). A sep
+  confidence: 0.6
+- id: sa_medical_clinic_wafid_gamca_approved_medical_c
+  name: Wafid (GAMCA) Approved Medical Centers — Search List
+  publisher: Gulf Health Council (Wafid program)
+  url: https://wafid.com/en/medical-center/search/
+  country: SA
+  industry: medical_clinic
+  entity_type: medical_clinic
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'OFFICIAL GCC-wide register of accredited pre-deployment/migrant-health medical centres (replaced
+    GAMCA in 2023). Verified live: searchable, sortable DataTables grid ''1 to 10 of 875 entries'', filter
+    by country (30+), city (100+), and centre name; rows include address, contact, website, rating. Backed
+    by a server-side paginated data endpoint (DataTables AJAX) — high value for scraping the per-countr'
+  confidence: 0.95
+- id: sa_money_lender_sama_licensed_finance_companie
+  name: SAMA — Licensed Finance Companies (incl. consumer/micro finance, i.e. licensed lenders)
+  publisher: Saudi Central Bank (SAMA)
+  url: https://www.sama.gov.sa/en-US/LicenseEntities/Pages/LicensedBanks.aspx
+  country: SA
+  industry: money_lender
+  entity_type: lender
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: In Saudi Arabia there is no separate 'money lender' licensor — consumer-finance / microfinance
+    / leasing lenders are licensed as Finance Companies under SAMA (Finance Companies Control Law). This
+    Licensed-Entities directory page is the entry point to the Finance Companies list. Page erred to the
+    fetcher this session (same SAMA SharePoint migration issue), so url_verified=false; SAMA regulator
+    role
+  confidence: 0.7
+- id: sa_recruitment_ag_musaned_marketplace_licensed_r
+  name: Musaned Marketplace — Licensed Recruitment Offices & Companies
+  publisher: Ministry of Human Resources and Social Development (Musaned platform)
+  url: https://musaned.com.sa/en/marketplace
+  country: SA
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Official Saudi platform for domestic-worker recruitment. Public 'List of licensed recruitment
+    offices and companies' with dropdown filters (recruitment office, arrival city) and sort. Listing
+    rows render client-side (XHR/JSON behind the page) rather than as a static list; scrape via the underlying
+    API or paginate the marketplace. Confirmed official this session (links to MHRSD / Ministry of Interi
+  confidence: 0.9
+- id: sa_remittance_sama_money_exchangers_money_tr
+  name: SAMA — Money Exchangers / Money Transfer Licensed Companies
+  publisher: Saudi Central Bank (SAMA)
+  url: https://www.sama.gov.sa/en-US/Money_Exchangers/Pages/Licensed-Money-Exchangers-Centers.aspx
+  country: SA
+  industry: remittance
+  entity_type: remittance
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: SAMA is the sole regulator of money-exchange and remittance (money-transfer) businesses (Category
+    A centres issue/accept remittances). This is the canonical 'Licensed Money Exchangers Centers' page,
+    BUT every www.sama.gov.sa/*.aspx page returned a SharePoint server error to the fetcher this session
+    (site mid-migration / anti-bot) — could not verify the live list. Regulator role confirmed via the
+    S
+  confidence: 0.7
+- id: sg_company_regist_acra_bizfile_entity_search
+  name: ACRA BizFile — Entity Search
+  publisher: Accounting and Corporate Regulatory Authority (ACRA)
+  url: https://www.bizfile.gov.sg/
+  country: SG
+  industry: company_registry
+  entity_type: company
+  access_tier: freemium
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: National corporate registry. BizFile (relaunched Dec 2024, replacing BizFile+) offers free 'Entity
+    Search' by name / UEN / SSIC activity code returning name, UEN, status, entity type; full Business
+    Profiles (officers, shareholders, address history) are paid. URL is the live homepage; could not render
+    content this session (heavy Oracle WebCenter JS SPA returns only a shell to the fetcher and the de
+  confidence: 0.9
+- id: sg_financial_serv_mas_financial_institutions_dir
+  name: MAS Financial Institutions Directory (FID) — full
+  publisher: Monetary Authority of Singapore (MAS)
+  url: https://eservices.mas.gov.sg/fid/institution
+  country: SG
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Single authoritative register of every MAS-regulated financial institution and the regulated
+    activities it is authorised for. Five sector facets: Banking (195), Capital Markets (1,907), Financial
+    Advisory (642), Insurance (387), Payments (505). Has a ''Print/Download List'' export and query-string
+    sector/licence-type filters (e.g. ?sector=Payments, ?category=Capital+Markets+Services+Licensee).
+    Backe'
+  confidence: 0.97
+- id: sg_hotel_hotels_licensing_board_license
+  name: Hotels Licensing Board — Licensed Hotels list
+  publisher: Hotels Licensing Board (HLB), secretariat Singapore Tourism Board (STB)
+  url: https://www.hlb.gov.sg/resources/licensed-hotels
+  country: SG
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'HLB is the statutory licensing body for hotels (any premises of 4+ rooms providing accommodation
+    needs an HLB hotel licence). This Resources page hosts the official ''Licensed Hotels'' list (dated,
+    e.g. updated 05 May 2026) delivered via the shortlink go.gov.sg/hlb-licensedhotels/ — the file download
+    itself returned HTTP 403 to the automated fetcher (likely a downloadable XLS/PDF behind a redirect; '
+  confidence: 0.92
+- id: sg_money_lender_registry_of_moneylenders_list_
+  name: Registry of Moneylenders — List of Licensed Moneylenders
+  publisher: Ministry of Law (MinLaw), Registry of Moneylenders
+  url: https://rom.mlaw.gov.sg/information-for-borrowers/list-of-licensed-moneylenders-in-singapore/
+  country: SG
+  industry: money_lender
+  entity_type: lender
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Official, complete register of licensed moneylenders, refreshed monthly. Published as a dated
+    downloadable PDF (e.g. 'List_of_Licensed_Moneylenders_as_at_1_June_2026.pdf') containing business
+    name, address, contact and licence number. PDF is a stable single-file download (parse to structured
+    rows). Only entities on this list may legally lend; page also warns licensed lenders may not solicit
+    via SM
+  confidence: 0.98
+- id: sg_recruitment_ag_mom_employment_agencies_ea_dir
+  name: MOM Employment Agencies (EA) Directory
+  publisher: Ministry of Manpower (MOM)
+  url: https://service2.mom.gov.sg/eadirectory/
+  country: SG
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Official searchable directory of MOM-licensed employment/recruitment agencies (the licence covers
+    placement of migrant/foreign domestic workers). Shows EA name, licence number/status, demerit points,
+    FDW placement/retention/transfer rates, and reviews. JS/Ajax-rendered SPA (page loads content dynamically)
+    — no plain JSON/CSV export found; scrape via the per-agency detail pages or the underlying XH
+  confidence: 0.97
+- id: sg_security_servi_gobusiness_licensing_public_li
+  name: GoBusiness Licensing — public licence search (Singapore Police Force / PLRD)
+  publisher: GoBusiness Licensing (whole-of-government) / Singapore Police Force — Police Licensing &
+    Regulatory Department (PLRD)
+  url: https://licence1.business.gov.sg/feportal/web/frontier/info-search
+  country: SG
+  industry: security_services
+  entity_type: security_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Security agencies are licensed by SPF/PLRD under the Private Security Industry Act, but SPF publishes
+    no standalone public directory — the GoBusiness Licensing portal provides the whole-of-government
+    'search through the list of licensed entities from participating Government Agencies' facility that
+    covers SPF security-agency licences (and other regulators). Returned HTTP 403 to the automated fetch
+  confidence: 0.78
+- id: sg_training_cente_mom_settling_in_programme_sip_
+  name: MOM Settling-In Programme (SIP) registration portal
+  publisher: Ministry of Manpower (MOM) / Migrant Workers' Centre (MWC)
+  url: https://sip.mwc.org.sg/
+  country: SG
+  industry: training_center
+  entity_type: training_center
+  access_tier: manual
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Mandatory 1-day Settling-In Programme (orientation on rights/laws) that first-time migrant domestic
+    and other migrant workers must attend within 7 days of arrival; employers/EAs register workers here
+    (course fee S$76.40 incl GST). MOM does not publish a separate public 'accredited SIP training-centre
+    register' — the programme is delivered through this MWC-run portal plus MOM-approved course provid
+  confidence: 0.6
+- id: tw_company_regist_business_registration_company_
+  name: Business Registration / Company Public Information Search (商工登記公示資料查詢 / findbiz)
+  publisher: Department of Commerce, Ministry of Economic Affairs (經濟部商業發展署)
+  url: https://findbiz.nat.gov.tw/fts/query/QueryBar/queryInit.do
+  country: TW
+  industry: company_registry
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Canonical national company/business registry search run by MOEA; the legacy GCIS path serv.gcis.nat.gov.tw/pub/cmpy/cmpyInfoListAction.do
+    issues a 302 to this findbiz host (redirect confirmed this session). Search by company name, unified
+    business number (統一編號), or responsible person. Deep query pages return HTTP 403 to automated fetchers
+    (anti-bot) — hence url_verified=false; browser/session acce
+  confidence: 0.9
+- id: tw_financial_serv_financial_institutions_directo
+  name: Financial Institutions Directory – Banking Bureau (licensed banks & financial institutions)
+  publisher: Banking Bureau, Financial Supervisory Commission (金管會銀行局)
+  url: https://www.banking.gov.tw/en/home.jsp?id=24&parentpath=0,5&mcustomize=FscSearch_BankType.jsp&type=1
+  country: TW
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: FSC Banking Bureau searchable directory of licensed financial institutions (domestic banks, foreign
+    banks, credit cooperatives, etc.) with institution code, official name, phone, website. Paginated
+    search interface (no CSV/API export); filter by institution type via the type= parameter.
+  confidence: 0.93
+- id: tw_hotel_taiwan_stay_legal_accommodatio
+  name: Taiwan Stay – Legal Accommodation List (licensed tourist hotels, general hotels, homestays/民宿)
+  publisher: Tourism Administration, Ministry of Transportation and Communications (交通部觀光署)
+  url: https://taiwanstay.net.tw/legal-hotel-list
+  country: TW
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Official Tourism Administration portal listing legally registered accommodations, each carrying
+    a Legal Accommodation Certification Mark + certificate number. Filter by city/area and accommodation
+    kind (holu_hotel_kind=2 for homestays). Map and list search; no public bulk download/API surfaced.
+    Operated for the Tourism Administration by a contractor.
+  confidence: 0.9
+- id: tw_manning_agency_approved_list_of_overseas_manp
+  name: Approved List of Overseas Manpower Intermediary Companies (accredited foreign recruitment agencies)
+  publisher: Workforce Development Agency, Ministry of Labor (勞動部勞動力發展署)
+  url: https://data.gov.tw/en/datasets/6683
+  country: TW
+  industry: manning_agency
+  entity_type: manning_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Open-data dataset of overseas (origin-country) manpower intermediaries recognized by Taiwan''s
+    MOL to recruit migrant workers. Fields: nationality, org number, English name, phone, address, recognition
+    dates. Downloadable CSV/JSON/XML + WebService API; updated annually. Highest-value scraping target
+    for the recruitment side.'
+  confidence: 0.97
+- id: tw_medical_clinic_designated_domestic_hospitals_
+  name: Designated Domestic Hospitals for Foreigner / Migrant-Worker Health Examination (外國人健檢指定醫院名單國內)
+  publisher: Centers for Disease Control, Ministry of Health and Welfare (衛生福利部疾病管制署)
+  url: https://www.cdc.gov.tw/Category/Page/nU7y97g0GqJbB3kn5B-nPg
+  country: TW
+  industry: medical_clinic
+  entity_type: medical_clinic
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Official list of ~73 designated in-Taiwan hospitals authorized to perform statutory health examinations
+    for foreigners/migrant workers. Interactive table: hospital code, name (linked site), county/city,
+    designation expiry date. View-only HTML table (only ODT application forms are downloadable) — scrape
+    the table rows. EN landing: cdc.gov.tw/En/Category/ListPage/C4w0xUaCBCKzdd6BxDGWcA.'
+  confidence: 0.95
+- id: tw_recruitment_ag_private_employment_service_ins
+  name: Private Employment Service Institution Query System (私立就業服務機構查詢系統) – domestic broker search +
+    A/B/C evaluation + violation records
+  publisher: Workforce Development Agency, Ministry of Labor (勞動部勞動力發展署)
+  url: https://agent.wda.gov.tw/agentext/agent/QryAgent.jsp
+  country: TW
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Official searchable register of licensed private employment-service institutions (labor brokers).
+    Search by name/registration number/region/category (household vs business). Companion paths on same
+    host: foreign-broker search, and QryIllagentBrief.jsp for illegal-operator violation records. Annual
+    A/B/C quality-evaluation grades are published via WDA. Search form, no bulk feed here (see dataset
+    66'
+  confidence: 0.95
+- id: tw_recruitment_ag_roster_of_licensed_private_emp
+  name: Roster of licensed private employment service institutions placing domestic workers (open data)
+  publisher: Workforce Development Agency, Ministry of Labor (勞動部勞動力發展署)
+  url: https://data.gov.tw/dataset/6618
+  country: TW
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Downloadable roster of county/city-licensed private employment-service institutions (domestic
+    placement). CSV/JSON/XML + WebService API, full-file and monthly snapshots; includes license, address,
+    phone, business scope, employee counts. Bulk-scrapeable complement to the agent.wda.gov.tw search
+    form.
+  confidence: 0.95
+- id: tw_remittance_specialized_electronic_payment
+  name: Specialized Electronic Payment Institutions / foreign-worker cross-border remittance providers
+  publisher: Financial Supervisory Commission (金融監督管理委員會)
+  url: https://www.fsc.gov.tw/userfiles/file/11005_Electronic%20Payment%20Institutions%20Business.pdf
+  country: TW
+  industry: remittance
+  entity_type: remittance
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'FSC regulates electronic payment institutions; as of mid-2025 ~9 specialized e-payment institutions
+    + ~20 concurrent (banks + Chunghwa Post). A small set of entities are separately licensed for foreign-worker
+    cross-border remittance (4 as of 2024). FSC publishes the roster via PDF/news releases rather than
+    a stable JSON/CSV register; the linked PDF fetched as binary (could not parse this session) '
+  confidence: 0.7
+- id: vn_company_regist_national_business_registration
+  name: National Business Registration Portal — public enterprise lookup (name / tax code / registration
+    number)
+  publisher: Business Registration Authority (Cục Quản lý đăng ký kinh doanh) — Ministry of Planning and
+    Investment (now Ministry of Finance per 2025 merger)
+  url: https://dangkykinhdoanh.gov.vn/en/Pages/default.aspx
+  country: VN
+  industry: company_registry
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'Authoritative national company registry; free public search returns name, registration number,
+    head-office address, business lines, legal representative, legal status. On-screen search form (no
+    bulk CSV/JSON; paid bundles exist for full filings). Companion lookup host: https://dichvuthongtin.dkkd.gov.vn/.
+    NOT fetch-verified this session: HTTPS cert chain failed verification from this client (''unab'
+  confidence: 0.85
+- id: vn_financial_serv_state_securities_commission_li
+  name: State Securities Commission — lists of licensed securities companies, fund-management companies
+    & public companies
+  publisher: State Securities Commission of Vietnam (SSC / Uỷ ban Chứng khoán Nhà nước) — Ministry of
+    Finance
+  url: http://ssc.gov.vn/webcenter/portal/ssc/pages_otherpages/search
+  country: VN
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: VERIFIED live this session (resolved with 302 HTTPS->HTTP redirect; site is up — it loops only
+    because the fetcher force-upgrades back to HTTPS). Official regulator of securities firms; publishes
+    'Danh sách công ty chứng khoán' (securities companies), fund-management companies, and annual public-company
+    lists as bulletin pages + downloadable docs, e.g. dDocName=APPSSCGOVVN1620142747. Oracle WebCen
+  confidence: 0.82
+- id: vn_hotel_viet_nam_national_authority_of
+  name: Viet Nam National Authority of Tourism — classified (star-rated) hotels / accommodation establishments
+  publisher: Viet Nam National Authority of Tourism (Cục Du lịch Quốc gia Việt Nam) — Ministry of Culture,
+    Sports and Tourism
+  url: https://vietnamtourism.gov.vn/en
+  country: VN
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: VERIFIED reachable this session (official English site loaded). VNAT is the authority that recognises/ranks
+    star-rated hotels (1-5 star) under the Tourism Law; 5-star and some 4-star classifications are decided
+    centrally and published as decision lists/news, lower stars by provincial tourism departments. No
+    single consolidated machine-readable national hotel register found — recognitions appear as
+  confidence: 0.55
+- id: vn_medical_clinic_list_of_medical_facilities_qua
+  name: List of medical facilities qualified for migrant/foreigner work-permit & overseas-employment health
+    examination
+  publisher: Medical Services Administration (Cục Quản lý Khám, chữa bệnh / KCB) — Ministry of Health
+    (Bộ Y tế)
+  url: https://kcb.vn/
+  country: VN
+  industry: medical_clinic
+  entity_type: medical_clinic
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'MoH/KCB designates hospitals & clinics allowed to perform health exams for work permits / overseas
+    labour (basis: Official Letter 143/KCB-PHCN&GD 2015 + Circular 14/2013/TT-BYT). The approved-facility
+    list is published as official letters/attachments (PDF/Word), updated periodically — NOT a structured
+    feed. URL is the KCB authority homepage (not fetch-verified this session); exact list page change'
+  confidence: 0.6
+- id: vn_money_lender_sbv_directory_of_licensed_fina
+  name: SBV directory of licensed Finance Companies (non-bank credit institutions / consumer lenders)
+  publisher: State Bank of Vietnam (SBV / Ngân hàng Nhà nước)
+  url: https://sbv.gov.vn/en/finance-companies
+  country: VN
+  industry: money_lender
+  entity_type: lender
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'VERIFIED this session: live HTML table ''FINANCE COMPANIES (By March 30, 2025)'' — 16 licensed
+    institutions with license number, charter capital, address, website, hotline (e.g. FE Credit, Home
+    Credit, HD Saison). Closest official analogue to ''licensed money lenders'' (Vietnam licenses consumer-finance
+    cos, not retail moneylenders, under SBV; pawnshops are local-conditional-business, no central regis'
+  confidence: 0.9
+- id: vn_recruitment_ag_dolab_list_of_licensed_oversea
+  name: DOLAB list of licensed overseas-labour (recruitment/manning) enterprises — Danh sách doanh nghiệp
+    XKLĐ
+  publisher: Department of Overseas Labour (Cục Quản lý lao động ngoài nước, DOLAB) — Ministry of Labour,
+    Invalids and Social Affairs (MOLISA)
+  url: http://www.dolab.gov.vn/New/Default.aspx
+  country: VN
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'Canonical official register of companies licensed to send Vietnamese workers abroad (~500 enterprises).
+    Menu ''Doanh nghiệp XKLĐ'' -> submenu ''Danh sách Doanh nghiệp XKLĐ'' (also lists revoked/suspended/expired-licence
+    firms), split North/Central/South. Web list (ASP.NET), no CSV/JSON. NOT fetch-verified this session:
+    site refused connection (ECONNREFUSED) / VN-gov TLS issues from US; officiality cor'
+  confidence: 0.86
+- id: vn_security_servi_security_services_business_lic
+  name: Security-services business licence holders (private guarding companies)
+  publisher: Ministry of Public Security (Bộ Công an) — provincial Police (PC06/PA); national public-service
+    portal
+  url: https://e-services.mps.gov.vn/bocongan/bothutuc/tthc?matt=35697
+  country: VN
+  industry: security_services
+  entity_type: security_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Private security/guarding firms (kinh doanh dịch vụ bảo vệ) require a 'Giấy chứng nhận đủ điều
+    kiện về ANTT' issued by police (Decree 96/2016). The MPS e-services portal lists the procedure (matt=35697)
+    but there is NO public consolidated national register of licensed security companies — issuance/holding
+    is at provincial police level and generally not published as an open list. Included for compl
+  confidence: 0.45
