@@ -71,6 +71,14 @@ jobs:
             echo "no KAGGLE_USERNAME secret -> kaggle collector will record 'no CSVs present'"
           fi
 
+      - name: Archive sources to Wayback (provenance)
+        if: always()
+        run: |
+          # snapshot the live registries so every harvest's source is a citable,
+          # immutable copy (real-not-faked) -- adopted from the advanced DMW kernel.
+          mkdir -p reports/harvest
+          python scripts/archive_source.py --defaults --at "$(date -u +%Y-%m-%dT%H:%M)" || true
+
       - name: Run propose-only harvest
         id: run
         env:

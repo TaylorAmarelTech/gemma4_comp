@@ -21,6 +21,19 @@ Other notable kernels in the sweep: `taylorsamarel/flight-apis`,
 kernels), plus many BeautifulSoup/requests tutorials (IMDb, Amazon, weather,
 Fortune 500, Twitter, Google Scholar).
 
+## Advanced systems read (operator-pointed)
+
+| Kernel | Stack | What it teaches |
+|---|---|---|
+| `migrantworkerdatahub/hong-kong-employment-agencies` (147 KB) | selenium + `WebDriverWait`/`expected_conditions` + ChromeDriverManager headless + bs4 + **SQLite**, `contextmanager`, retry on `TimeoutException`/`WebDriverException`, pagination | Production-grade JS scraping: REAL waits (not `sleep`), driver lifecycle via context manager, SQLite persistence, pagination + retry. Scrapes `eaa.labour.gov.hk/en` (the HK EAA the sweep flagged `no_data`). |
+| `migrantworkerdatahub/scrape-dmw-for-ph-employment-agencies-uploadcare` (5.8 KB) | `requests` + bs4 + **pyuploadcare** + **Wayback** | A plain-`requests` JSON pull from `apps.dmw.gov.ph/laapi/la` (no browser!) + POST to `apps.dmw.gov.ph/wcms/api/licensed-agencies`, **archived to `web.archive.org/save/`** for provenance, then uploaded via Uploadcare. |
+
+Verified 2026-06-13: `apps.dmw.gov.ph/laapi/la` now **404s** — DMW migrated to the
+token-gated `master-api.dmw.gov.ph/api/v1/public/licensed-agencies` (the endpoint
+the browser connector discovers). The old plain-GET route is gone; the browser
+path matches current reality. The **Wayback archival** technique is exactly why
+that matters: a snapshot survives the migration.
+
 ## Techniques distilled
 
 1. **Run a real browser on Kaggle.** `apt-get install -y chromium-driver`
@@ -48,3 +61,15 @@ Browser-on-Kaggle note for a kernel deployment: the `xvfb` + `apt-get` recipe
 from `dierickx3` / `cristaliss` is the bootstrap to run `llm_scrape.py` inside a
 Kaggle notebook (where system Edge is absent) — install chromium + `playwright
 install chromium`, no display needed in headless mode.
+
+From the two advanced kernels:
+- **Wayback archival -> `scripts/archive_source.py`** (`save`/`latest` over the
+  keyless Wayback APIs; wired into the weekly `entity-harvest` cron as a
+  provenance step). Every harvest now snapshots the live registries so a captured
+  number stays citable after the page changes — and survives endpoint migrations
+  like the `apps.dmw.gov.ph/laapi/la` -> `master-api.dmw.gov.ph` move.
+- **Robust waits + pagination + retry** (HK EAA kernel): the pattern for the
+  next HK-EAA collector — `WebDriverWait`/`expected_conditions` (Playwright's
+  `wait_for_selector`/`networkidle` equivalents, already used in browser_scrape),
+  driver lifecycle via context manager, retry on transient nav errors, and
+  paginate-to-last-page (browser_scrape already API-replays pagination).
