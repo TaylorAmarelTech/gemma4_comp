@@ -95,6 +95,156 @@ def clean_html(html: str, *, max_chars: int = 12000) -> str:
     return text[:max_chars]
 
 
+# ---- deterministic extraction (rules; NO tokens) --------------------------
+
+# Field -> label synonyms used to match <dl>/<table>/meta/JSON-LD keys.
+_FIELD_SYNONYMS = {
+    "name": ("name", "agency", "agency name", "company", "company name", "entity", "legal name", "title"),
+    "license_no": ("license", "licence", "license no", "licence no", "license number", "poea",
+                   "accreditation", "accreditation no", "permit no", "registration no", "reg no", "control no"),
+    "status": ("status", "license status", "licence status", "validity", "standing", "state"),
+    "address": ("address", "office address", "registered address", "location", "principal office"),
+    "phone": ("phone", "telephone", "tel", "contact", "contact no", "contact number", "mobile", "landline"),
+    "email": ("email", "e-mail", "e mail", "mail"),
+    "website": ("website", "url", "web", "site", "homepage", "web site"),
+    "representative": ("representative", "rep", "owner", "proprietor", "president", "contact person", "officer"),
+    "classification": ("classification", "type", "category", "sector"),
+    "expiry": ("expiry", "expiration", "valid until", "expiration date", "expires"),
+}
+_EMAIL_RE = re.compile(r"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}")
+_PHONE_RE = re.compile(r"(?:\+?\d[\d\-\s().]{6,}\d)")
+
+
+class _PairExtractor(HTMLParser):
+    """Capture label->value structure deterministically: <dl> dt/dd, two-cell
+    <table> rows, <meta>, and <script type=application/ld+json> blocks."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.pairs: list[tuple[str, str]] = []
+        self.meta: dict[str, str] = {}
+        self.jsonld: list[str] = []
+        self._mode: str | None = None
+        self._buf: list[str] = []
+        self._last_dt: str | None = None
+        self._row: list[str] = []
+        self._in_jsonld = False
+
+    def handle_starttag(self, tag, attrs):
+        a = dict(attrs)
+        if tag == "script" and a.get("type", "").lower() == "application/ld+json":
+            self._in_jsonld, self._buf = True, []
+        elif tag == "meta":
+            key = a.get("property") or a.get("name")
+            if key and a.get("content"):
+                self.meta.setdefault(key.lower(), a["content"])
+        elif tag in ("dt", "dd", "th", "td"):
+            self._mode, self._buf = tag, []
+        elif tag == "tr":
+            self._row = []
+
+    def handle_endtag(self, tag):
+        if tag == "script" and self._in_jsonld:
+            self.jsonld.append("".join(self._buf))
+            self._in_jsonld, self._buf = False, []
+        elif tag in ("dt", "dd", "th", "td"):
+            text = re.sub(r"\s+", " ", "".join(self._buf)).strip()
+            if tag == "dt":
+                self._last_dt = text
+            elif tag == "dd" and self._last_dt:
+                self.pairs.append((self._last_dt, text)); self._last_dt = None
+            elif tag in ("th", "td"):
+                self._row.append(text)
+            self._mode, self._buf = None, []
+        elif tag == "tr":
+            if len(self._row) == 2 and self._row[0]:  # label | value row
+                self.pairs.append((self._row[0], self._row[1]))
+            self._row = []
+
+    def handle_data(self, data):
+        if self._in_jsonld or self._mode:
+            self._buf.append(data)
+
+
+def _flatten_jsonld(blocks: list[str]) -> dict:
+    flat: dict[str, str] = {}
+    for raw in blocks:
+        try:
+            data = json.loads(raw)
+        except Exception:  # noqa: BLE001
+            continue
+        for obj in (data if isinstance(data, list) else [data]):
+            if not isinstance(obj, dict):
+                continue
+            for k, v in obj.items():
+                if isinstance(v, (str, int, float)):
+                    flat.setdefault(k.lower(), str(v))
+                elif isinstance(v, dict):  # nested, e.g. address/contactPoint
+                    for k2, v2 in v.items():
+                        if isinstance(v2, (str, int, float)):
+                            flat.setdefault(k2.lower(), str(v2))
+    return flat
+
+
+def deterministic_extract(html: str, fields: list[str]) -> dict:
+    """Rule-based extraction (NO model, NO tokens): JSON-LD > meta > dl/table
+    label:value > typed regex (email/phone) > 'Label: value' text. Returns
+    {extracted, methods, missing, found}."""
+    p = _PairExtractor()
+    try:
+        p.feed(html or "")
+    except Exception:  # noqa: BLE001
+        pass
+    labelmap: dict[str, str] = {}
+    for lab, val in p.pairs:
+        if lab and val:
+            labelmap.setdefault(lab.strip().lower().rstrip(":").strip(), val.strip())
+    for k, v in p.meta.items():
+        labelmap.setdefault(k, v)
+    jsonld = _flatten_jsonld(p.jsonld)
+    text = clean_html(html, max_chars=20000)
+
+    extracted, methods = {}, {}
+    for f in fields:
+        syns = _FIELD_SYNONYMS.get(f, (f.replace("_", " "),))
+        val = method = None
+        # 1) JSON-LD (most authoritative)
+        for s in syns:
+            sk = s.replace(" ", "")
+            for k, v in jsonld.items():
+                if sk and sk in k.replace(" ", "").replace("_", ""):
+                    val, method = v, "json-ld"; break
+            if val:
+                break
+        # 2) dl/table/meta label map (longest-synonym first for specificity)
+        if not val:
+            for s in sorted(syns, key=len, reverse=True):
+                for k, v in labelmap.items():
+                    if s in k:
+                        val, method = v, "label"; break
+                if val:
+                    break
+        # 3) typed pattern
+        if not val and f in ("email", "e_mail"):
+            m = _EMAIL_RE.search(text)
+            if m:
+                val, method = m.group(0), "regex"
+        if not val and f in ("phone", "telephone", "contact", "contact_no", "mobile"):
+            m = _PHONE_RE.search(text)
+            if m:
+                val, method = m.group(0).strip(), "regex"
+        # 4) "Label: value" in visible text
+        if not val:
+            for s in sorted(syns, key=len, reverse=True):
+                m = re.search(rf"\b{re.escape(s)}\s*[:\-]\s*([^\n|]{{2,80}})", text, re.I)
+                if m:
+                    val, method = m.group(1).strip(), "labeled-text"; break
+        if val:
+            extracted[f], methods[f] = val, method
+    missing = [f for f in fields if f not in extracted]
+    return {"extracted": extracted, "methods": methods, "missing": missing, "found": list(extracted)}
+
+
 # ---- JSON parsing from a model reply --------------------------------------
 
 def _parse_json(text: str) -> dict:
@@ -218,18 +368,49 @@ def _playwright_render_page(url: str, *, screenshot: bool = True, nav_timeout_s:
 
 
 def scrape_page(url: str, fields: list[str], *, renderer=None, model_fn=None,
-                vision_model_fn=None, want_screenshot: bool = False) -> dict:
-    """Render `url`, clean its HTML, and extract `fields` with the LLM (text) and
-    optionally vision. renderer/model callables injectable for tests."""
+                vision_model_fn=None, want_screenshot: bool = False, tier: str = "auto") -> dict:
+    """Render `url` then extract `fields` in a robustness waterfall:
+      tier 1 DETERMINISTIC -- rule-based HTML parse (NO tokens), always run;
+      tier 2 LLM           -- only for fields the rules missed (tier 'auto') or
+                              all fields (tier 'llm'); costs tokens;
+      tier 3 VISION        -- screenshot -> multimodal model for anything still
+                              missing (skipped when tier='deterministic').
+    `tier`: 'deterministic' (free, rules only) | 'auto' (rules + LLM gap-fill) |
+    'llm' (rules + LLM all). renderer/model callables injectable for tests."""
     render = renderer or (lambda u: _playwright_render_page(u, screenshot=want_screenshot))
     page = render(url)
-    content = clean_html(page.get("html", "")) or page.get("text", "")
-    result = {"url": page.get("url", url), "title": page.get("title", ""),
-              "fields": fields, "n_content_chars": len(content)}
-    if model_fn is not None:
-        result["extracted"] = llm_extract(content, fields, model_fn)
-    if vision_model_fn is not None and page.get("screenshot_b64"):
-        result["vision_extracted"] = vision_extract(page["screenshot_b64"], fields, vision_model_fn)
+    html = page.get("html", "")
+    content = clean_html(html) or page.get("text", "")
+    result = {"url": page.get("url", url), "title": page.get("title", ""), "fields": fields,
+              "tier": tier, "n_content_chars": len(content)}
+
+    det = deterministic_extract(html, fields)
+    result["deterministic"] = det["extracted"]
+    result["methods"] = det["methods"]
+    merged = dict(det["extracted"])
+    used_llm = False
+
+    if model_fn is not None and tier in ("auto", "llm"):
+        targets = det["missing"] if tier == "auto" else fields
+        if targets:
+            llm = llm_extract(content, targets, model_fn)
+            used_llm = True
+            result["llm_extracted"] = {k: v for k, v in llm.items() if v not in (None, "")}
+            for k in targets:
+                if merged.get(k) in (None, "") and llm.get(k) not in (None, ""):
+                    merged[k] = llm[k]
+
+    if vision_model_fn is not None and tier != "deterministic" and page.get("screenshot_b64"):
+        vis = vision_extract(page["screenshot_b64"], fields, vision_model_fn)
+        used_llm = True
+        result["vision_extracted"] = vis
+        for k in fields:
+            if merged.get(k) in (None, "") and vis.get(k) not in (None, ""):
+                merged[k] = vis[k]
+
+    result["extracted"] = merged
+    result["tokens_used"] = used_llm
+    result["n_deterministic"] = len(det["extracted"])
     result["_screenshot_b64"] = page.get("screenshot_b64", "")
     return result
 
@@ -246,20 +427,23 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--url", required=True)
     ap.add_argument("--fields", default="name,license_no,status,address,phone,email",
                     help="comma-separated fields to extract")
+    ap.add_argument("--tier", default="auto", choices=["deterministic", "auto", "llm"],
+                    help="deterministic=rules only (no tokens); auto=rules+LLM gap-fill; llm=rules+LLM all")
     ap.add_argument("--screenshot", action="store_true", help="also capture + vision-extract")
     ap.add_argument("--out", default="")
     args = ap.parse_args(argv)
 
     fields = [f.strip() for f in args.fields.split(",") if f.strip()]
-    mf = text_model_fn()
-    vf = vision_model_fn() if args.screenshot else None
-    if mf is None:
+    # the deterministic tier needs no model; only build the endpoint for auto/llm
+    mf = text_model_fn() if args.tier in ("auto", "llm") else None
+    vf = vision_model_fn() if (args.screenshot and args.tier != "deterministic") else None
+    if mf is None and args.tier in ("auto", "llm"):
         print("no model endpoint (set OLLAMA_HOST/_API_KEY or DUECARE_MODEL_BASE_URL); "
-              "rendering + cleaning only.", file=sys.stderr)
+              "falling back to deterministic rules only.", file=sys.stderr)
 
     try:
         res = scrape_page(args.url, fields, model_fn=mf, vision_model_fn=vf,
-                          want_screenshot=args.screenshot)
+                          want_screenshot=args.screenshot, tier=args.tier)
     except ImportError as exc:
         print(str(exc), file=sys.stderr)
         return 2
@@ -274,9 +458,14 @@ def main(argv: list[str] | None = None) -> int:
     out = Path(args.out) if args.out else (out_dir / f"{_slug(args.url)}.json")
     out.write_text(json.dumps({"_synthetic": False, **res}, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"title: {res.get('title','')[:70]}", file=sys.stderr)
-    print(f"text extract: {res.get('extracted')}", file=sys.stderr)
+    print(f"tier={res.get('tier')} tokens_used={res.get('tokens_used')} "
+          f"deterministic={res.get('n_deterministic')}/{len(fields)} fields", file=sys.stderr)
+    print(f"  deterministic ({res.get('methods')}): {res.get('deterministic')}", file=sys.stderr)
+    if "llm_extracted" in res:
+        print(f"  llm gap-fill: {res.get('llm_extracted')}", file=sys.stderr)
     if "vision_extracted" in res:
-        print(f"vision extract: {res.get('vision_extracted')}", file=sys.stderr)
+        print(f"  vision: {res.get('vision_extracted')}", file=sys.stderr)
+    print(f"MERGED: {res.get('extracted')}", file=sys.stderr)
     print(f"-> {out}", file=sys.stderr)
     return 0
 
