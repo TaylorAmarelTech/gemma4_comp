@@ -165,6 +165,62 @@ def test_distinctive_tokens_drops_generic_industry_words():
     assert am._distinctive_tokens("International Manpower Recruitment Agency Inc") == []
 
 
+def test_googlenews_corpus_parses_rss_and_dedups():
+    xml = ('<rss><channel>'
+           '<item><title>DMW shuts Goldfield Mariners - Inquirer</title>'
+           '<link>https://g/x1</link><pubDate>Mon, 09 Jun 2026 10:00:00 GMT</pubDate>'
+           '<source url="https://inquirer.net">Inquirer</source></item>'
+           '<item><title>Weather update</title><link>https://g/x2</link>'
+           '<pubDate>Tue, 10 Jun 2026 09:00:00 GMT</pubDate></item>'
+           '</channel></rss>')
+    arts = am._googlenews_corpus(lambda url: xml, queries=("q1", "q2"), pace=0)  # dedup across queries
+    urls = {a["url"] for a in arts}
+    assert urls == {"https://g/x1", "https://g/x2"}
+    a1 = next(a for a in arts if a["url"] == "https://g/x1")
+    assert "Goldfield Mariners" in a1["title"] and a1["domain"] == "https://inquirer.net"
+
+
+def test_name_in_article_word_boundary_and_stoplist():
+    assert am._name_in_article(["goldfield", "mariners"], "dmw shuts goldfield mariners agency")
+    assert am._name_in_article(["sunrisex"], "sunrisex agency raided")          # specific single brand
+    assert not am._name_in_article(["nation"], "an international firm")          # word boundary: nation != interNATIONal
+    assert not am._name_in_article(["manila"], "manila airport arrest")         # common token rejected
+    assert not am._name_in_article(["abc"], "abc corp news")                    # too short
+
+
+def test_build_corpus_merges_sources_dedup():
+    gn = '<rss><channel><item><title>t</title><link>https://shared</link></item></channel></rss>'
+    gd = json.dumps({"articles": [{"title": "g", "url": "https://shared", "domain": "d"},
+                                  {"title": "g2", "url": "https://gd2", "domain": "d"}]})
+    def fetch(url):
+        return gn if "news.google.com" in url else gd
+    arts = am._build_corpus(fetch, sources=("googlenews", "gdelt"), pace=0)
+    urls = {a["url"] for a in arts}
+    assert urls == {"https://shared", "https://gd2"}  # shared url deduped, googlenews wins
+
+
+def test_verify_matches_uses_model_to_filter_precision():
+    matches = [
+        {"name": "Goldfield Mariners", "article_title": "DMW charges Goldfield Mariners over scam"},
+        {"name": "Saudi Placement", "article_title": "PH lifts deployment ban to Saudi Arabia"},
+    ]
+    # model says yes to the real one, no to the place-name collision
+    def model_fn(prompt):
+        return ('{"about_entity": true, "why": "named"}' if "Goldfield" in prompt
+                else '{"about_entity": false, "why": "just the country Saudi"}')
+    out = am.verify_matches(matches, model_fn)
+    by_name = {m["name"]: m for m in out}
+    assert by_name["Goldfield Mariners"]["verified"] is True
+    assert by_name["Saudi Placement"]["verified"] is False
+
+
+def test_verify_matches_survives_model_error():
+    def boom(prompt):
+        raise RuntimeError("model down")
+    out = am.verify_matches([{"name": "X", "article_title": "t"}], boom)
+    assert out[0]["verified"] is None and "verify_error" in out[0]["verify_why"]
+
+
 # ---- optional Gemma refinement --------------------------------------------
 
 def test_gemma_classifier_refines_adversity():
