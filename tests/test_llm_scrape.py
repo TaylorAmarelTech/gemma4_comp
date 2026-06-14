@@ -87,5 +87,57 @@ def test_scrape_page_orchestrates_render_clean_extract():
 def test_scrape_page_without_models_just_renders():
     res = ls.scrape_page("https://x.test", ["name"],
                          renderer=lambda u: {"url": u, "title": "T", "html": _HTML})
-    assert "extracted" not in res and "vision_extracted" not in res
-    assert res["n_content_chars"] > 0  # still cleaned the html
+    # deterministic tier always runs (no model needed); LLM/vision skipped
+    assert "llm_extracted" not in res and "vision_extracted" not in res
+    assert res["tokens_used"] is False and res["n_content_chars"] > 0
+
+
+# ---- deterministic tier (rules, no tokens) --------------------------------
+
+_STRUCTURED = ('<html><head>'
+               '<script type="application/ld+json">{"@type":"Organization",'
+               '"name":"Goldfield Mariners Inc","email":"info@goldfield.test",'
+               '"url":"https://goldfield.test"}</script>'
+               '<meta property="og:title" content="Goldfield Mariners"></head><body>'
+               '<dl><dt>License No</dt><dd>POEA-1001</dd><dt>Status</dt><dd>Valid License</dd></dl>'
+               '<table><tr><td>Telephone</td><td>(02) 5550-1234</td></tr>'
+               '<tr><td>Office Address</td><td>12 Mabini St, Manila</td></tr></table>'
+               '</body></html>')
+
+
+def test_deterministic_extract_uses_rules_jsonld_dl_table():
+    det = ls.deterministic_extract(_STRUCTURED, ["name", "license_no", "status", "phone", "address", "email"])
+    e, m = det["extracted"], det["methods"]
+    assert e["name"] == "Goldfield Mariners Inc" and m["name"] == "json-ld"
+    assert e["license_no"] == "POEA-1001" and m["license_no"] == "label"      # <dl>
+    assert e["status"] == "Valid License"
+    assert "5550-1234" in e["phone"] and "Mabini" in e["address"]             # <table>
+    assert e["email"] == "info@goldfield.test"                                # json-ld
+    assert det["missing"] == []
+
+
+def test_scrape_page_tier_deterministic_spends_no_tokens():
+    called = []
+    def model_fn(p):
+        called.append(p)
+        return "{}"
+    res = ls.scrape_page("https://x/agency", ["name", "license_no", "status"],
+                         renderer=lambda u: {"url": u, "title": "T", "html": _STRUCTURED},
+                         model_fn=model_fn, tier="deterministic")
+    assert res["tokens_used"] is False and called == []        # model NEVER called
+    assert res["extracted"]["license_no"] == "POEA-1001"        # rules did the work
+
+
+def test_scrape_page_auto_only_calls_llm_for_missing_fields():
+    seen = {}
+    def model_fn(prompt):
+        seen["prompt"] = prompt
+        return '{"sector":"Manning Agency"}'
+    res = ls.scrape_page("https://x/agency", ["license_no", "status", "sector"],
+                         renderer=lambda u: {"url": u, "title": "T", "html": _STRUCTURED},
+                         model_fn=model_fn, tier="auto")
+    assert res["tokens_used"] is True
+    assert res["extracted"]["license_no"] == "POEA-1001"       # deterministic
+    assert res["extracted"]["sector"] == "Manning Agency"      # LLM gap-fill
+    # the LLM was asked ONLY for the missing field, not the ones rules already found
+    assert "as a JSON object: sector." in seen["prompt"]
