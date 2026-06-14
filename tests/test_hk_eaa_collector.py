@@ -108,6 +108,45 @@ def test_collect_hk_eaa_live_accepts_gates_and_paginates():
     assert page.clicks                              # gate accept clicks happened
 
 
+# ---- result.php deterministic path ----------------------------------------
+
+def _result_block(name, district, address, aid):
+    return (f'<div class="result"> <h3 class="en-name">{name}</h3> '
+            f'<p><strong>District:</strong></p> <p>{district}</p> '
+            f'<p><strong>Address:</strong></p> <p>{address}</p> '
+            f'<p class="right"><a href="record.html?agency_id={aid}" role="button">View Details</a></p> </div>')
+
+
+def test_parse_result_php_extracts_name_district_address_id():
+    html = ("<div class='wrap'>" +
+            _result_block("ADECCO Personnel Limited", "Wan Chai District",
+                          "Flat 1101, K. Wah Centre, North Point, Hong Kong", "TTV6M1k9") +
+            _result_block("South China Manpower Co", "Kwun Tong District",
+                          "Room 02, How Ming Street, Kowloon", "TzVEM0k9") + "</div>")
+    recs = hk.parse_result_php(html)
+    assert len(recs) == 2
+    a = recs[0]
+    assert a["name"] == "ADECCO Personnel Limited" and a["district"] == "Wan Chai District"
+    assert "K. Wah Centre" in a["address"] and a["license_no"] == "TTV6M1k9"
+    assert a["jurisdiction"] == "HK" and a["status"] == "valid" and a["source_tier"] == "official"
+
+
+def test_collect_resultphp_paginates_until_empty():
+    page1 = _result_block("Agency A Ltd", "Central", "1 Queen's Road", "AA1") + \
+            _result_block("Agency B Ltd", "Mong Kok", "2 Nathan Road", "BB2")
+    page2 = _result_block("Agency C Ltd", "Sha Tin", "3 New Town Plaza", "CC3")
+    posts = []
+    def request_post(url, form):
+        posts.append(form)
+        return {"1": page1, "2": page2}.get(form["page-no"], "<html>no results</html>")
+    res = hk.collect_hk_eaa_resultphp(request_post=request_post, get_token=lambda: "tok123",
+                                      max_pages=10, sleep=_NOSLEEP)
+    names = {r["name"] for r in res["records"]}
+    assert names == {"Agency A Ltd", "Agency B Ltd", "Agency C Ltd"}
+    assert res["pages"] == 2                         # stopped at empty page 3
+    assert all(p["token"] == "tok123" for p in posts)  # CSRF token sent each page
+
+
 # ---- PDF baseline parser --------------------------------------------------
 
 def test_parse_pdf_list_real_format():

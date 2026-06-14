@@ -88,13 +88,24 @@ def collect_dmw_issuances() -> dict:
 
 
 def collect_hk_eaa() -> dict:
-    """HK EAA licensed-agency list (Labour Dept PDF baseline -- reliable bulk)."""
+    """HK EAA licensed-agency list: live result.php (current data) with a PDF
+    baseline fallback. Both degrade gracefully."""
     name = "hk_eaa"
+    hk = None
     try:
         hk = _sibling("hk_eaa_collector")
+        res = hk._playwright_collect_live(max_pages=400)  # current data, needs a browser
+        if res.get("records"):
+            recs = hk.records_to_entities(res["records"])
+            return {"name": name, "n_records": len(recs), "records": recs,
+                    "note": f"{len(recs)} HK agencies (live result.php, {res['pages']}pg)", "error": ""}
+    except Exception:  # noqa: BLE001 -- fall through to the PDF baseline
+        pass
+    try:
+        hk = hk or _sibling("hk_eaa_collector")
         recs = hk.records_to_entities(hk.parse_pdf_list(hk.pdf_text(hk._download_pdf())))
         return {"name": name, "n_records": len(recs), "records": recs,
-                "note": f"{len(recs)} HK agencies (PDF)", "error": ""}
+                "note": f"{len(recs)} HK agencies (PDF baseline)", "error": ""}
     except Exception as exc:  # noqa: BLE001
         return {"name": name, "n_records": 0, "records": [], "note": "", "error": f"{type(exc).__name__}: {exc}"[:200]}
 

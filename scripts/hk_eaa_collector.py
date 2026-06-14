@@ -146,6 +146,109 @@ def collect_hk_eaa_live(page, *, max_pages: int = 50, sleep=None) -> dict:
     return {"records": records, "pages": pages, "log": rw.log}
 
 
+# ---- result.php path (deterministic: cookie bypass + token + POST) ---------
+# The gates are just two cookies (disclaimer=accepted, statement=accepted -- read
+# from the SPA's own accepted-*-search.js). With them set, search.php yields a
+# CSRF token; POSTing it to result.php returns the agency list as <div class=
+# "result"> blocks. Far more robust than driving the flaky click flow.
+
+GATE_COOKIES = ("disclaimer", "statement")
+_RESULT_BLOCK = re.compile(r'<div class="result">(.*?)</div>', re.S)
+_TAG = re.compile(r"<[^>]+>")
+
+
+def extract_token(html: str) -> str:
+    """Pull the CSRF token out of search.php (attribute-order independent)."""
+    m = (re.search(r'<input[^>]*\bname=["\']token["\'][^>]*\bvalue=["\']([A-Za-z0-9]+)["\']', html or "")
+         or re.search(r'<input[^>]*\bvalue=["\']([A-Za-z0-9]+)["\'][^>]*\bname=["\']token["\']', html or ""))
+    return m.group(1) if m else ""
+
+
+def _detag(s: str) -> str:
+    return re.sub(r"\s+", " ", _TAG.sub("", s or "")).strip()
+
+
+def parse_result_php(html: str) -> list[dict]:
+    """Parse result.php HTML (<div class='result'> blocks) into agency records."""
+    recs = []
+    for block in _RESULT_BLOCK.findall(html or ""):
+        nm = re.search(r"<h3[^>]*>(.*?)</h3>", block, re.S)
+        name = _detag(nm.group(1)) if nm else ""
+        if not name:
+            continue
+        dist = re.search(r"District:\s*</strong>\s*</p>\s*<p>(.*?)</p>", block, re.S)
+        addr = re.search(r"Address:\s*</strong>\s*</p>\s*<p>(.*?)</p>", block, re.S)
+        aid = re.search(r"agency_id=([A-Za-z0-9]+)", block)
+        district = _detag(dist.group(1)) if dist else ""
+        address = _detag(addr.group(1)) if addr else ""
+        recs.append({"name": name, "address": address or district, "district": district,
+                     "status": "valid", "jurisdiction": "HK",
+                     "license_no": aid.group(1) if aid else "",
+                     "source": "HK EAA register (result.php)", "source_tier": "official"})
+    return recs
+
+
+def collect_hk_eaa_resultphp(*, request_post, get_token, max_pages: int = 300,
+                             row_per_page: int = 50, sort_by: str = "EN_NAME_ASC",
+                             sleep=None) -> dict:
+    """Paginate result.php deterministically. `request_post(url, form)->html` and
+    `get_token()->str` are injectable for tests."""
+    _sleep = sleep or time.sleep
+    token = get_token()
+    records, seen, pages = [], set(), 0
+    for n in range(1, max_pages + 1):
+        html = request_post("https://www.eaa.labour.gov.hk/en/result.php",
+                            {"token": token, "row-per-page": str(row_per_page),
+                             "sort-by": sort_by, "page-no": str(n)})
+        fresh = [r for r in parse_result_php(html) if r["name"] not in seen]
+        if not fresh:
+            break  # no new agencies -> reached the end
+        for r in fresh:
+            seen.add(r["name"])
+        records.extend(fresh)
+        pages = n
+        if n >= 1:
+            _sleep(0.4)
+    return {"records": records, "pages": pages}
+
+
+def _playwright_collect_live(*, max_pages: int = 300, row_per_page: int = 50) -> dict:
+    """Live result.php collection: launch browser, set gate cookies, get token,
+    paginate. Uses RobustWaits for the token-page load."""
+    bs = _sibling("browser_scrape")
+    from playwright.sync_api import sync_playwright
+    with sync_playwright() as pw:
+        browser = bs._launch_browser(pw)
+        ctx = browser.new_context(user_agent=USER_AGENT)
+        ctx.add_cookies([{"name": n, "value": "accepted",
+                          "domain": "www.eaa.labour.gov.hk", "path": "/"} for n in GATE_COOKIES])
+        page = ctx.new_page()
+        rw = RobustWaits(page)
+        rw.goto(f"{EAA_BASE}/search.php")
+        try:
+            page.wait_for_load_state("networkidle", timeout=12000)
+        except Exception:  # noqa: BLE001
+            pass
+        token = extract_token(rw.content())
+
+        def post(url, form):
+            for attempt in range(3):
+                try:
+                    r = ctx.request.post(url, form=form, timeout=20000)
+                    if r.ok:
+                        return r.text()
+                except Exception:  # noqa: BLE001
+                    pass
+                time.sleep(1.0 * (attempt + 1))
+            return ""
+
+        res = collect_hk_eaa_resultphp(request_post=post, get_token=lambda: token,
+                                       max_pages=max_pages, row_per_page=row_per_page)
+        res["token_ok"] = bool(token)
+        browser.close()
+    return res
+
+
 # ---- PDF baseline parser (reliable bulk) ----------------------------------
 
 _PDF_LINE = re.compile(r"^(.*\S)\s{2,}([A-Za-z'.\-/() ]+,\s*(?:Hong Kong|Kowloon|New Territories))\s*$")
@@ -229,16 +332,10 @@ def main(argv: list[str] | None = None) -> int:
             print(f"PDF route failed: {type(exc).__name__}: {exc}", file=sys.stderr)
     elif args.live:
         try:
-            from playwright.sync_api import sync_playwright
-            bs = _sibling("browser_scrape")
-            with sync_playwright() as pw:
-                browser = bs._launch_browser(pw)
-                page = browser.new_context(user_agent=USER_AGENT).new_page()
-                res = collect_hk_eaa_live(page, max_pages=args.max_pages)
-                browser.close()
+            res = _playwright_collect_live(max_pages=args.max_pages)
             records = res["records"]
-            note = f"LIVE: {len(records)} agencies over {res['pages']} page(s)"
-            print("robust-waits log tail:", res["log"][-6:], file=sys.stderr)
+            note = (f"LIVE (result.php): {len(records)} agencies over {res['pages']} page(s)"
+                    + ("" if res.get("token_ok") else " [no token -- gates may have changed]"))
         except ImportError:
             print("Playwright required for --live. Use --pdf-url for the reliable baseline.", file=sys.stderr)
             return 2
