@@ -3464,7 +3464,7 @@ orgs:
     +82-2-3785-3635, southkorea@owwa.gov.ph; ATN: mwokorea.atn@gmail.com, hotline 010-2179-5536. Sun-Thu
     9:30-16:30. URL confirmed live.'
   confidence: 0.93
-- id: ph_govt_labour_philippine_migrant_workers_off
+- id: ph_govt_labour_philippine_migrant_workers_off_2
   name: Philippine Migrant Workers Office (MWO) - Tokyo, Japan (formerly POLO)
   org_type: govt_labour_attache
   country: PH
@@ -3964,8 +3964,8 @@ orgs:
   services: 24-hour helpline in ~10 languages; employment-dispute assistance; humanitarian aid; legal
     services (Migrant Workers' Law Centre with free legal representation from Q1 2025); Settling-In Programme
     for newly arrived workers; recreational facilities; mental-health referrals; chatbot support
-  languages: 'English plus approximately 10 languages native to migrant worker communities (including
-    Bengali, Tamil, Hindi, Burmese, '
+  languages: English plus approximately 10 languages native to migrant worker communities (including Bengali,
+    Tamil, Hindi, Burmese,
   scope: national
   url_verified: true
   notes: 'Help Centre: 579 Serangoon Road, Singapore 218193 (Tue-Fri 9am-7pm, Sat-Sun 11am-3pm, closed

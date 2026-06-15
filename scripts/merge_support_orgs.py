@@ -170,6 +170,7 @@ def merge(existing: Iterable[dict[str, Any]],
         added += 1
 
     merged.sort(key=lambda r: (r["country"], r["org_type"], r["name"].lower()))
+    _mes.ensure_unique_ids(merged)
     return {"orgs": merged, "added": added, "skipped": skipped,
             "dropped": dropped, "before": before, "after": len(merged)}
 

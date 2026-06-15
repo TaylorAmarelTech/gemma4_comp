@@ -554,7 +554,7 @@ sources:
     transferred, and extinguished via inscription in this registry after approval by the Consejo Federal
     Pesquero. Application via TAD (Trmites a Distancia). No confirmed public searchable database of registered
     vessels/operators; procedures documented at tramites.magyp.gob.ar. Contact: Paseo Coln 982, Buenos
-    Aires; 0800 333 MAGYP. Relevant for identifying licensed fishing vessel operators employing '
+    Aires; 0800 333 MAGYP. Relevant for identifying licensed fishing vessel operators employing'
   confidence: 0.78
 - id: ar_fishing_seafoo_registro_nacional_de_buques_rn
   name: Registro Nacional de Buques (RNB) - Prefectura Naval Argentina
@@ -1726,12 +1726,12 @@ sources:
   official: true
   has_data_endpoint: true
   url_verified: true
-  notes: 'The authoritative national registry of ALL health establishments in Brazil - public and private
+  notes: The authoritative national registry of ALL health establishments in Brazil - public and private
     - including medical clinics, hospitals, outpatient clinics (ambulatrios), nursing homes/long-term
     care facilities for the elderly (ILPIs - Instituies de Longa Permanncia para Idosos), geriatric residences,
     and occupational health centres. Registration is mandatory under Ordinance GM/MS 3.276/2021. Public
     search (no login) at https://cnes.datasus.gov.br/pages/consultas.jsp - searchable by name, CNPJ, CNES
-    number, city. Bulk download at https://cnes.saude.gov.br/pages/downloads/arquivosBaseDados.jsp. '
+    number, city. Bulk download at https://cnes.saude.gov.br/pages/downloads/arquivosBaseDados.jsp.
   confidence: 0.97
 - id: br_recruitment_ag_sirett_sistema_de_registro_de
   name: SIRETT - Sistema de Registro de Empresas de Trabalho Temporrio
@@ -1796,12 +1796,12 @@ sources:
   official: true
   has_data_endpoint: false
   url_verified: false
-  notes: 'The national registry of all accredited vocational and technical education institutions (centros
+  notes: The national registry of all accredited vocational and technical education institutions (centros
     de formao profissional) in Brazil, established by MEC in 2009. All public and private institutions
     offering medium-level technical courses must register in SISTEC regardless of administrative category
     (federal, state, municipal, private). Public search for courses and teaching units at the listed URL
     - returned HTTP 403 during direct fetch but confirmed public-facing by multiple official MEC and state
-    education portal references. Covers SENAI, SENAC, SENAR, SENAT, federal technical institutes, and '
+    education portal references. Covers SENAI, SENAC, SENAR, SENAT, federal technical institutes, and
   confidence: 0.8
 - id: ca_agriculture_bc_licensed_farm_labour_contra
   name: BC Licensed Farm Labour Contractors
@@ -2273,12 +2273,12 @@ sources:
   official: true
   has_data_endpoint: true
   url_verified: true
-  notes: 'Publicly downloadable Excel-derived PDF register of all mining and quarry rights holders in
-    DRC, published monthly by CAMI (established under Dcret n 17/005 of 3 April 2017, supervised by Ministry
+  notes: Publicly downloadable Excel-derived PDF register of all mining and quarry rights holders in DRC,
+    published monthly by CAMI (established under Dcret n 17/005 of 3 April 2017, supervised by Ministry
     of Mines). File dated 31 July 2025, 51 pages, author Junior Kaba. Lists mining right holders with
     permit type, grant and expiration dates, and status (active/expired/forfeited). Older PDF registers
     also available at cami.cd for 2023, 2021, 2020, 2018. Interactive map portal at drclicences.cami.cd.
-    Used to verify company claims in artisanal and industrial mining, highly relevant to labour-trafficking '
+    Used to verify company claims in artisanal and industrial mining, highly relevant to labour-trafficking
   confidence: 0.93
 - id: cd_recruitment_ag_onem_office_national_de_l_empl
   name: ONEM - Office National de l'Emploi (Private Placement Services Registry)
@@ -2351,7 +2351,7 @@ sources:
     cooperatives), up from 92 the prior year. Historical lists published as PDFs (e.g., LISTE EXPORTATEURS
     AGRS 2017-2018 previously hosted at pwic.gouv.ci - URL now 404/redirects to gucecotedivoire.ci with
     same 404). Website conseilcafecacao.ci had SSL certificate issue on direct fetch. Existence of list
-    is '
+    is'
   confidence: 0.75
 - id: ci_company_regist_idu_identifiant_unique_des_ent
   name: IDU - Identifiant Unique des Entreprises (CEPICI)
@@ -2917,13 +2917,13 @@ sources:
   official: true
   has_data_endpoint: false
   url_verified: false
-  notes: 'MINTOUL (Ministry of Tourism and Leisure) is the statutory body responsible for classifying
-    and authorising tourist accommodation in Cameroon (tourist hotels, hotel residences, and tourist relays).
+  notes: MINTOUL (Ministry of Tourism and Leisure) is the statutory body responsible for classifying and
+    authorising tourist accommodation in Cameroon (tourist hotels, hotel residences, and tourist relays).
     A 2020 Carte Htelire (hotel map) is published on the MINTOUL website with regional breakdowns. As
     of 2024, Cameroon had 1,450 classified establishments and approximately 35,000 rooms. The URL for
     the 2020 document is referenced on mintoul.gov.cm but direct fetch of the site returned ECONNREFUSED;
     the URL is substantiated by multiple secondary sources including Investir au Cameroun. A forms page
-    for '
+    for
   confidence: 0.72
 - id: cm_money_lender_licensed_microfinance_institut
   name: Licensed Microfinance Institutions (MFIs) in Cameroon - DGTCFM
@@ -4111,7 +4111,7 @@ sources:
     list of authorized exporters downloadable as PDF: https://www.agrocalidad.gob.ec/wp-content/uploads/2020/10/Lista-oficial-de-exportadores-de-banano-y-otras-musaceas-registradas-y-autorizadas.pdf.
     Plantation inscription manual at agricultura.gob.ec (Executive Decree 231 of Nov 2025 set deadline
     to Dec 2026 for all plantations to register). Public data portal at guia.agrocalidad.gob.ec/agrodb/aplicaciones/publico/.
-    Ecuador is world''s largest banana exporter; 275,000 workers in the sector - high-risk for '
+    Ecuador is world''s largest banana exporter; 275,000 workers in the sector - high-risk for'
   confidence: 0.88
 - id: ec_care_home_registro_y_autorizacin_de_cent
   name: Registro y Autorizacin de Centros Gerontolgicos (Adultos Mayores) - MIES / Ministerio de Desarrollo
@@ -4125,12 +4125,12 @@ sources:
   official: true
   has_data_endpoint: false
   url_verified: true
-  notes: 'MIES / Ministerio de Desarrollo Humano requires all public and private gerontological service
+  notes: MIES / Ministerio de Desarrollo Humano requires all public and private gerontological service
     providers (residential centres, day-care centres, home-care, temporary shelter) to register and obtain
     operating authorization under Ministerial Agreements 051 and 094. Registration portal referenced at
-    desarrollohumano.gob.ec under ''Registro Nacional de Servicios de Atencin''. Admission procedures
-    for residential (gob.ec/mies/tramites/admision-ingreso-persona-adulta-mayor-centros-gerontologicos-residenciales)
-    and day-care centres are published. No publicly searchable catastro of authorized facilities '
+    desarrollohumano.gob.ec under 'Registro Nacional de Servicios de Atencin'. Admission procedures for
+    residential (gob.ec/mies/tramites/admision-ingreso-persona-adulta-mayor-centros-gerontologicos-residenciales)
+    and day-care centres are published. No publicly searchable catastro of authorized facilities
   confidence: 0.72
 - id: ec_company_regist_registro_de_compaas_portal_de
   name: Registro de Compaas - Portal de Informacin de la Superintendencia de Compaas, Valores y Seguros
@@ -4340,12 +4340,12 @@ sources:
   official: true
   has_data_endpoint: true
   url_verified: false
-  notes: 'Official registry of authorized private security and surveillance companies in Ecuador, administered
+  notes: Official registry of authorized private security and surveillance companies in Ecuador, administered
     by the Ministry of Interior (previously Ministry of Government). Citizen consultation portal allows
     searching by RUC or company name; returns company name, province, city, and current permit dates.
     As of recent data, ~503 companies hold current permits out of ~784 registered. PDF list of companies
     also published at ministeriodelinterior.gob.ec/wp-content/uploads/downloads/2024/12/Companias-de-Vigilancia-y-Seguridad-Privada.pdf
-    (458 KB, confirmed to resolve). Citizen portal URL from third-party '
+    (458 KB, confirmed to resolve). Citizen portal URL from third-party
   confidence: 0.9
 - id: eg_care_home_ministry_of_social_solidarity
   name: Ministry of Social Solidarity - Licensed Social Care Institutions (Care Homes / Elderly Homes
@@ -4515,7 +4515,7 @@ sources:
     bureaus ( ) and their branch addresses, hosted on cbe.org.eg. A companion PDF at cbe.org.eg/-/media/.../other-entities-licensed-to-deal-in-foreign-currency.pdf
     lists other entities (e.g., airport duty-free shops) licensed to deal in foreign currency since 2002.
     Both PDFs are referenced by Google search results indexing the cbe.org.eg domain directly. A parallel
-    Arabic-language PDF at cbe.org.eg/-/media/.../financial-stability/arabic/h - -.pdf also exists. CBE
+    Arabic-language PDF at cbe.org.eg/-/media/.../financial-stability/arabic/h - .pdf also exists. CBE
     updated the licensing and regulatory
   confidence: 0.72
 - id: es_agriculture_regoe_registro_general_de_oper
@@ -4849,6 +4849,23 @@ sources:
     institutions with name, phone, email, license number, and establishment date. No bulk download or
     search filter; HTML only.'
   confidence: 0.97
+- id: et_financial_serv_national_bank_of_ethiopia_lice_2
+  name: National Bank of Ethiopia - Licensed Payment Instrument Issuers and System Operators
+  publisher: National Bank of Ethiopia (NBE)
+  url: https://nbe.gov.et/payment-instrument-issuers-system-operators/
+  country: ET
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Official registry of licensed mobile money providers and payment system operators. Lists 7 Payment
+    Instrument Issuers (Telebirr, Kacha, M-PESA Ethiopia, Yaya, Vitabirr, ToloPay) and 20+ Payment System
+    Operators (Ethswitch, Premier Switch, Chapa, Santim Pay, Addis Pay, PawaPay, etc.). Each entry includes
+    service type, license date, license number, and operational status (Commercialized or Pilot). Static
+    HTML, no download. Confirmed loaded and verified.
+  confidence: 0.96
 - id: et_fishing_seafoo_ethiopian_maritime_authority_r
   name: Ethiopian Maritime Authority - Registered Vessels Database
   publisher: Ethiopian Maritime Authority (EMA)
@@ -5614,12 +5631,12 @@ sources:
   official: true
   has_data_endpoint: true
   url_verified: false
-  notes: 'Official INGUAT registry of hotels, motels, pensions, and other lodging establishments classified
+  notes: Official INGUAT registry of hotels, motels, pensions, and other lodging establishments classified
     and authorized under Acuerdo Gubernativo 1144-83. Only establishments registered and classified by
-    INGUAT may legally use denominations like ''Hotel'' or ''Motel''. Downloadable PDF list of accommodation
+    INGUAT may legally use denominations like 'Hotel' or 'Motel'. Downloadable PDF list of accommodation
     establishments at registro.inguat.gob.gt/download/listado-establecimientos-de-hospedaje-pdf/. Also
-    publishes ''Gua de Hoteles Aptos a la Actividad Turstica'' at registro.inguat.gob.gt/guia-hoteles-aptos/.
-    Main registry portal is registro.inguat.gob.gt. URL confirmed via search results; direct page load '
+    publishes 'Gua de Hoteles Aptos a la Actividad Turstica' at registro.inguat.gob.gt/guia-hoteles-aptos/.
+    Main registry portal is registro.inguat.gob.gt. URL confirmed via search results; direct page load
   confidence: 0.9
 - id: gt_manufacturing_actividad_exportadora_y_de_maq
   name: Actividad Exportadora y de Maquila - Registro MINECO (Decreto 29-89)
@@ -6002,6 +6019,23 @@ sources:
     corporations, and partnerships. Registration mandatory under Art. 384-389 of the Commercial Code.
     Contact: registromercantil@ccit.hn, +504 2232-4200 ext. 732.'
   confidence: 0.9
+- id: hn_company_regist_registro_mercantil_cmara_de_co_2
+  name: Registro Mercantil - Cmara de Comercio e Industrias de Corts (San Pedro Sula)
+  publisher: Cmara de Comercio e Industrias de Corts (CCIC)
+  url: https://ccichonduras.org/registro-mercantil/
+  country: HN
+  industry: company_registry
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Statutory commercial registry for Corts department (San Pedro Sula). Electronic document consultation
+    available at www.ccichonduras.org; image consultation via sure.sinap.hn/imagenes/consInscripcionPub.jsp.
+    Covers company status, legal/economic information, and document tracking. Honduras''s Registro Mercantil
+    is decentralised: each Cmara de Comercio administers its own department-level registry. Contact: +504
+    2561-6100.'
+  confidence: 0.88
 - id: hn_construction_registro_de_proveedores_y_cont
   name: Registro de Proveedores y Contratistas del Estado - ONCAE
   publisher: Oficina Normativa de Contratacin y Adquisiciones del Estado (ONCAE)
@@ -6036,7 +6070,7 @@ sources:
     societies (see separate entry); (4) loss adjusters and insurance auxiliaries; (5) insurance/surety
     policy models; (6) actuaries; (7) asset valuators; (8) external auditors. Supervised institutions
     (banks, finance companies, cooperativas, etc.) are separately tracked by CNBS. Non-bank lenders must
-    register with URMOPRELAFT at https://urmoprelaft.cnbs.gob.hn/. Portal confirmed live; individual registries '
+    register with URMOPRELAFT at https://urmoprelaft.cnbs.gob.hn/. Portal confirmed live; individual registries'
   confidence: 0.9
 - id: hn_fishing_seafoo_registro_nacional_de_pesca_y_a
   name: Registro Nacional de Pesca y Acuicultura (RNPA) - DIGEPESCA
@@ -8488,7 +8522,7 @@ sources:
     by Ministry of Labor/CECA), construction licence (id/303, issued by Ministry of Construction), education
     licence (id/457, Ministry of Education), private medical activity licences (id/1478, 1526), fishing
     ticket / (id/395, Ministry of Natural Resources). Each licence page describes legal basis, required
-    documents, fees, and issuing authority, but does not list current licence holders - for that, users '
+    documents, fees, and issuing authority, but does not list current licence holders - for that, users'
   confidence: 0.92
 - id: kg_recruitment_ag_list_of_licensed_private_emplo
   name: List of Licensed Private Employment Agencies ( )
@@ -9281,12 +9315,12 @@ sources:
   official: true
   has_data_endpoint: false
   url_verified: true
-  notes: 'Publicly searchable registry of accredited Technical and Vocational Education and Training (TVET)
+  notes: Publicly searchable registry of accredited Technical and Vocational Education and Training (TVET)
     colleges and institutions in Kazakhstan, maintained by the NKCA (an accreditation body recognized
-    under Kazakhstan''s Ministry of Education framework). Registry displays organization name, legal status,
+    under Kazakhstan's Ministry of Education framework). Registry displays organization name, legal status,
     contact details (address, phone, email, website), accreditation validity period, and links to the
     official accreditation council decision documents and external evaluation reports. Filterable by accreditation
-    type (institutional/programme) and institution type. Over 280 colleges listed (28+ pages). '
+    type (institutional/programme) and institution type. Over 280 colleges listed (28+ pages).
   confidence: 0.88
 - id: lb_care_home_lebanon_ministry_of_public_hea
   name: Lebanon Ministry of Public Health - List of Elderly Centers
@@ -11176,12 +11210,12 @@ sources:
   official: true
   has_data_endpoint: false
   url_verified: false
-  notes: 'Construction contractors and civil engineering consultants operating in Mozambique must obtain
+  notes: Construction contractors and civil engineering consultants operating in Mozambique must obtain
     a licence (alvar) from the Comisso de Licenciamento de Empreiteiros e de Consultores de Construo Civil,
     under MOPHRH. Applications are submitted to the Minister of Public Works or the Provincial Governor.
     Requirements are set out in Ministerial Diploma No. 76/2015 of 22 May (licensing of consultants) and
     the Regulamento para Licenciamento de Empreiteiros. The MOPHRH website (mophrh.gov.mz) was unreachable
-    during direct verification (connection refused). No publicly accessible online list of licensed '
+    during direct verification (connection refused). No publicly accessible online list of licensed
   confidence: 0.55
 - id: mz_financial_serv_banco_de_moambique_register_of
   name: Banco de Moambique - Register of Licensed Credit Institutions and Financial Companies (ICSF)
@@ -11288,12 +11322,12 @@ sources:
   official: true
   has_data_endpoint: false
   url_verified: true
-  notes: 'Banco de Moambique licenses and supervises foreign exchange houses (casas de cmbio) and payment
+  notes: Banco de Moambique licenses and supervises foreign exchange houses (casas de cmbio) and payment
     service providers (empresas prestadoras de servios de pagamentos) under Law 20/2020 and Decree 56/2004.
     The licensing requirements PDF for exchange houses is publicly available (/media/fxnesxy0/licenciamento-de-casa-de-cmbios.pdf).
     A separate PDF covers payment service provider licensing (/media/g13mwypr/licenciamento-de-empresas-prestadoras-de-servios-de-pagamentos.pdf).
     However, no consolidated downloadable list of currently licensed exchange houses or remittance operators
-    was found on the site - '
+    was found on the site -
   confidence: 0.78
 - id: mz_training_cente_anep_national_authority_for_pr
   name: 'ANEP - National Authority for Professional Education: Accredited TVET Training Centres'
@@ -11706,12 +11740,12 @@ sources:
   official: true
   has_data_endpoint: false
   url_verified: false
-  notes: 'Under Ministerial Agreement JCHG-004-04-07 (April 2007), any natural or legal person establishing
+  notes: Under Ministerial Agreement JCHG-004-04-07 (April 2007), any natural or legal person establishing
     a private employment agency in Nicaragua must register with MITRAB, which supervises and regulates
     them. Covers domestic placement agencies as well as any agency intermediating workers for employment
     abroad. MITRAB authorizes work contracts for Nicaraguans migrating temporarily for work abroad (contracts
     must be MITRAB-certified). The MITRAB website (mitrab.gob.ni) was not reachable during verification
-    (ECONNREFUSED). No confirmed public searchable list of registered agencies was found online; as '
+    (ECONNREFUSED). No confirmed public searchable list of registered agencies was found online; as
   confidence: 0.6
 - id: ni_remittance_lista_de_proveedores_autorizad
   name: Lista de Proveedores Autorizados de Remesas y Cambio de Monedas - Banco Central de Nicaragua
@@ -14120,12 +14154,12 @@ sources:
   official: true
   has_data_endpoint: true
   url_verified: true
-  notes: 'The ORG, a division of RDB, is Rwanda''s sole business registry. All companies, individual enterprises,
+  notes: The ORG, a division of RDB, is Rwanda's sole business registry. All companies, individual enterprises,
     trusts, partnerships, and beneficial owners must register here. Registration is 100% online and free.
     A public enterprise search tool allows lookup by company name, returning registration number, registration
     date, and address. Search historically accessible at org.rdb.rw/inf/Public/Products/EntSearch.aspx;
     current portal also at urs.rdb.rw. The org.rdb.rw homepage resolved and confirmed the six registration
-    categories and the online portals. Covers all industry sectors including recruitment '
+    categories and the online portals. Covers all industry sectors including recruitment
   confidence: 0.95
 - id: rw_construction_rppa_categorization_lists_cons
   name: RPPA Categorization Lists - Construction Companies and Consulting Firms
@@ -14505,12 +14539,12 @@ sources:
   official: true
   has_data_endpoint: false
   url_verified: true
-  notes: 'The Microfinance Unit (mfu.gov.sd) is the CBOS body supervising all licensed MFIs in Sudan.
-    The homepage links to an ''Operating institutions'' section listing MFIs licensed to provide microfinance
+  notes: The Microfinance Unit (mfu.gov.sd) is the CBOS body supervising all licensed MFIs in Sudan. The
+    homepage links to an 'Operating institutions' section listing MFIs licensed to provide microfinance
     services, with filtering by ownership (private/government) and deposit-acceptance status. Confirmed
     names include Erada, Rural Development Company, AL-Galia MFI, Jaguar MFI, Almithal MFI, and Social
-    Development Foundation for the Pensioners. A navigation item ''MFIs Addresses'' links to branch locations.
-    No bulk download or API found. The CBOS Microfinance Unit reports approximately 45 licensed MFIs as '
+    Development Foundation for the Pensioners. A navigation item 'MFIs Addresses' links to branch locations.
+    No bulk download or API found. The CBOS Microfinance Unit reports approximately 45 licensed MFIs as
   confidence: 0.85
 - id: sd_remittance_authorized_exchange_bureaus_ce
   name: Authorized Exchange Bureaus - Central Bank of Sudan
@@ -14915,12 +14949,12 @@ sources:
   official: true
   has_data_endpoint: true
   url_verified: true
-  notes: 'Master index of all licensed financial institutions supervised by El Salvador''s SSF. Covers
-    18 categories including private banks (https://ssf.gob.sv/bancos/), state banks, foreign bank branches,
+  notes: Master index of all licensed financial institutions supervised by El Salvador's SSF. Covers 18
+    categories including private banks (https://ssf.gob.sv/bancos/), state banks, foreign bank branches,
     cooperative banks (https://ssf.gob.sv/bancos-cooperativos/), savings and credit societies (https://ssf.gob.sv/entidades-supervisadas/sociedades-de-ahorro-y-credito/),
     electronic money providers, insurance companies, payment system administrators, securities market
     entities, pension entities, and currency exchange houses. Each category links to a dedicated page
-    listing named entities. Page fetched and '
+    listing named entities. Page fetched and
   confidence: 0.97
 - id: sv_fishing_seafoo_administracin_pesquera_y_acuco
   name: Administracin Pesquera y Acucola - CENDEPESCA / MAG
@@ -14952,12 +14986,12 @@ sources:
   official: true
   has_data_endpoint: true
   url_verified: true
-  notes: 'National Tourism Registry established under the Tourism Law (Dec 2005), administered by CORSATUR.
+  notes: National Tourism Registry established under the Tourism Law (Dec 2005), administered by CORSATUR.
     Covers lodging, food service, recreation, information, and transport tourism businesses. As of March
     2026 over 1,000 registered businesses, with 700+ maintaining current registration (updated every 2
     years). Public-facing directory is accessible at https://elsalvador.travel/services/lodging/ (confirmed
     resolves) and broader tourism catalog at https://elsalvador.travel. No bulk CSV/API download identified;
-    browsable web directory. CORSATUR page https://corsatur.gob.sv/registro-nacional-de-turismo/ '
+    browsable web directory. CORSATUR page https://corsatur.gob.sv/registro-nacional-de-turismo/
   confidence: 0.92
 - id: sv_manning_agency_registro_martimo_salvadoreo_re
   name: Registro Martimo Salvadoreo (REMS) - Autoridad Martima Portuaria (AMP)
@@ -15404,12 +15438,12 @@ sources:
   official: true
   has_data_endpoint: false
   url_verified: false
-  notes: 'KS is Turkey''s electronic registry of all natural persons and legal entities engaged in farming
+  notes: KS is Turkey's electronic registry of all natural persons and legal entities engaged in farming
     activities, administered through TARBL (Tarm Bilgi Sistemi) at hbs.tarbil.gov.tr. Farmers must register
     their agricultural land (as owner or tenant) to receive support payments and permits. Public certificate
     query is available via e-Devlet (turkiye.gov.tr) but requires authenticated login (TR ID + e-signature
     or mobile). Not a fully open public list of agricultural operators; the registry is individual-query
-    rather than bulk-downloadable. Relevant to plantation/agriculture labour-supply screening. '
+    rather than bulk-downloadable. Relevant to plantation/agriculture labour-supply screening.
   confidence: 0.7
 - id: tr_care_home_aile_ve_sosyal_hizmetler_bakan
   name: Aile ve Sosyal Hizmetler Bakanl - l Mdrlkleri zel Huzurevi Listeleri (Provincial Private Care
@@ -15480,13 +15514,13 @@ sources:
   official: true
   has_data_endpoint: true
   url_verified: false
-  notes: 'BDDK is the statutory regulator for all banks and non-bank financial institutions in Turkey.
+  notes: BDDK is the statutory regulator for all banks and non-bank financial institutions in Turkey.
     The Kurulu Listesi (institution list) page at /Kurulus/Liste/100 covers deposit banks, participation
     banks, development and investment banks, leasing companies, factoring companies, consumer finance
     companies, financial holding companies, asset management companies and credit rating institutions.
     As of early 2024, 68 banks were licensed. URL confirmed via search result snippet showing the exact
     path, but direct fetch returned SSL certificate error; confidence reduced accordingly. Non-bank data
-    also at '
+    also at
   confidence: 0.78
 - id: tr_financial_serv_tcmb_elektronik_para_kurulular
   name: TCMB Elektronik Para Kurulular Listesi (Licensed Electronic Money Institutions)
@@ -16517,7 +16551,7 @@ sources:
     through the unified ID portal (YIDXP) but the service itself is free and processes automatically.
     Each entity record contains legal name, KTUT/OKPO number, INN (TIN), and registration details. The
     URL /en/service/121/56 returned 404 at fetch time; use /uz/service/662 instead. Not an open-browse
-    database: '
+    database:'
   confidence: 0.82
 - id: uz_construction_construction_contractors_regis
   name: Construction Contractors Registry (Rural Infrastructure Development Project)
@@ -16531,12 +16565,12 @@ sources:
   official: false
   has_data_endpoint: false
   url_verified: true
-  notes: 'Publicly accessible list of approximately 200+ construction contractors vetted for a World Bank/AIIB-funded
+  notes: Publicly accessible list of approximately 200+ construction contractors vetted for a World Bank/AIIB-funded
     rural infrastructure programme operating in 306 remote villages across Andijan, Ferghana, Namangan,
     Jizzakh, and Syrdarya regions. Maintained by the PIU under the Ministry of Economy and Finance. Entries
     are alphabetical with director names and individual profile links. This is NOT the national comprehensive
     licensed-contractors register from the Ministry of Construction - no such open national registry was
-    found to exist publicly. The Ministry of Construction (mc.uz, now redirecting to '
+    found to exist publicly. The Ministry of Construction (mc.uz, now redirecting to
   confidence: 0.62
 - id: uz_financial_serv_register_of_professional_secur
   name: Register of Professional Securities Market Participants and Insurance Operators
@@ -16554,7 +16588,7 @@ sources:
     of professional securities market participants; (2) Register of state registration of securities issues;
     (3) Rating/register of 36 licensed insurance companies and 12 insurance brokers; (4) Electronic registries
     of crypto-asset licences and mining permissions. The /pages/rating-of-insurers path exists in navigation
-    but the direct URL returned errors at fetch time - navigate from napp.uz main '
+    but the direct URL returned errors at fetch time - navigate from napp.uz main'
   confidence: 0.78
 - id: uz_financial_serv_registry_of_commercial_banks_h
   name: Registry of Commercial Banks (Head Offices)
@@ -16870,12 +16904,12 @@ sources:
   official: true
   has_data_endpoint: false
   url_verified: true
-  notes: 'INCES is Venezuela''s national vocational and technical training body, operating 147 state-run
+  notes: INCES is Venezuela's national vocational and technical training body, operating 147 state-run
     training centres offering 300+ study programmes. All formal TVET provision is channelled through INCES.
     A training catalogue exists at catalogo-formacion.inces.gob.ve organised by industry sector (agriculture,
     banking, construction, telecommunications, etc.) but does not list approved private training centres.
     No public searchable registry of licensed private training centres was found. Enrolment portal at
-    hacer.inces.gob.ve. Private institutions seeking INCES recognition must register with INCES but '
+    hacer.inces.gob.ve. Private institutions seeking INCES recognition must register with INCES but
   confidence: 0.7
 - id: vn_company_regist_national_business_registration
   name: National Business Registration Portal - public enterprise lookup (name / tax code / registration
@@ -17335,12 +17369,12 @@ sources:
   official: true
   has_data_endpoint: false
   url_verified: true
-  notes: 'The HPA is the statutory body under the Health Professions Act (Chapter 27:19) mandated to maintain
+  notes: The HPA is the statutory body under the Health Professions Act (Chapter 27:19) mandated to maintain
     a register of all health institutions in Zimbabwe (public and private clinics, hospitals, specialist
-    centres, nursing homes, and allied facilities). The HPA website confirmed a publicly searchable ''REGISTERED
-    FACILITIES'' section at hpa.co.zw/facilities.php (the sub-page returned 404 at the time of check but
+    centres, nursing homes, and allied facilities). The HPA website confirmed a publicly searchable 'REGISTERED
+    FACILITIES' section at hpa.co.zw/facilities.php (the sub-page returned 404 at the time of check but
     the parent site confirmed the facility search database exists). Searchable by speciality and geographic
-    location. Any member of the public is entitled to inspect the register free of charge. '
+    location. Any member of the public is entitled to inspect the register free of charge.
   confidence: 0.85
 - id: zw_money_lender_reserve_bank_of_zimbabwe_regis
   name: Reserve Bank of Zimbabwe - Registered Microfinance Institutions

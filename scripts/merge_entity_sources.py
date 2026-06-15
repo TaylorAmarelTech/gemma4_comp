@@ -216,6 +216,37 @@ def _coerce_incoming(payload: Any) -> list[dict[str, Any]]:
 # Merge
 # ---------------------------------------------------------------------------
 
+def _dedup_key(rec: dict[str, Any]) -> tuple:
+    """A content key for dedup: (country, industry, long name slug).
+
+    Deliberately NOT the catalogue id -- the id is a *truncated* slug, so keying
+    dedup on it would silently drop two distinct registries whose names happen to
+    share a prefix. A 50-char slug is long enough to keep real registries apart.
+    """
+    return (rec["country"], rec["industry"], _slug(rec["name"], 50))
+
+
+def ensure_unique_ids(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Guarantee every record has a unique ``id`` by suffixing collisions.
+
+    The id is a truncated name slug, so two distinct rows whose names diverge
+    only past the truncation can mint the same id even though dedup (which uses a
+    longer key) correctly keeps them apart. This appends ``_2``, ``_3``, ... to
+    the later collider so ids stay addressable. Mutates in place and returns it.
+    """
+    used: set[str] = set()
+    for r in records:
+        cid = r["id"]
+        if cid in used:
+            i = 2
+            while f"{cid}_{i}" in used:
+                i += 1
+            cid = f"{cid}_{i}"
+            r["id"] = cid
+        used.add(cid)
+    return records
+
+
 def merge(existing: Iterable[dict[str, Any]],
           incoming: Iterable[dict[str, Any]]) -> dict[str, Any]:
     """Fold ``incoming`` registries into ``existing``, deduped and sorted.
@@ -229,7 +260,7 @@ def merge(existing: Iterable[dict[str, Any]],
     """
     merged: list[dict[str, Any]] = []
     seen_urls: set[str] = set()
-    seen_ids: set[str] = set()
+    seen_keys: set[tuple] = set()
 
     for raw in existing:
         rec = normalize_record(raw)
@@ -237,7 +268,7 @@ def merge(existing: Iterable[dict[str, Any]],
             continue
         merged.append(rec)
         seen_urls.add(_norm_url(rec["url"]))
-        seen_ids.add(rec["id"])
+        seen_keys.add(_dedup_key(rec))
 
     before = len(merged)
     added = skipped = dropped = 0
@@ -246,15 +277,16 @@ def merge(existing: Iterable[dict[str, Any]],
         if rec is None:
             dropped += 1
             continue
-        if _norm_url(rec["url"]) in seen_urls or rec["id"] in seen_ids:
+        if _norm_url(rec["url"]) in seen_urls or _dedup_key(rec) in seen_keys:
             skipped += 1
             continue
         merged.append(rec)
         seen_urls.add(_norm_url(rec["url"]))
-        seen_ids.add(rec["id"])
+        seen_keys.add(_dedup_key(rec))
         added += 1
 
     merged.sort(key=lambda r: (r["country"], r["industry"], r["name"].lower()))
+    ensure_unique_ids(merged)
     return {"sources": merged, "added": added, "skipped": skipped,
             "dropped": dropped, "before": before, "after": len(merged)}
 

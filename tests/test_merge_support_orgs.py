@@ -88,6 +88,16 @@ def test_merge_is_idempotent():
     assert twice["added"] == 0 and twice["after"] == once["after"]
 
 
+def test_merge_unique_ids_when_names_share_id_prefix():
+    # distinct orgs (different URLs) whose names share the first 30 chars but
+    # diverge later -> kept apart by the longer dedup key, ids made unique.
+    a = _raw(name="Migrant Workers Welfare Society Northern Branch", url="https://n.org")
+    b = _raw(name="Migrant Workers Welfare Society Southern Branch", url="https://s.org")
+    res = mso.merge([], [a, b])
+    assert res["after"] == 2
+    assert len({o["id"] for o in res["orgs"]}) == 2
+
+
 def test_coverage_counts_contactability():
     orgs = mso.merge([], [
         _raw(country="PH", contact_phone="1348"),
