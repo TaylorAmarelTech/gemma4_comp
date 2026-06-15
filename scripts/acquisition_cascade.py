@@ -243,10 +243,23 @@ def _resolve_hk_money_lenders(target: dict) -> dict:
         return _err(1, "deterministic", exc)
 
 
+def _resolve_bd_oep(target: dict) -> dict:
+    """BD OEP/BMET licensed overseas recruiting agencies (deterministic HTML table)."""
+    try:
+        bd = _sibling("bd_oep_agencies")
+        recs = bd.records_to_entities(bd.collect())
+        return {"tier": 1, "name": "deterministic", "records": recs, "n": len(recs),
+                "confidence": 0.95 if recs else 0.0, "cost": "none",
+                "discovered_urls": [bd.OEP_URL], "note": "BD OEP recruiting agencies", "error": ""}
+    except Exception as exc:  # noqa: BLE001
+        return _err(1, "deterministic", exc)
+
+
 # registries with a SPECIAL deterministic resolver (not a plain browser_scrape preset)
 REGISTRY_RESOLVERS = {"hk_eaa": _resolve_hk_eaa, "ofac_sdn": _resolve_ofac_sdn,
                       "worldbank_debarred": _resolve_worldbank_debarred,
-                      "hk_money_lenders": _resolve_hk_money_lenders}
+                      "hk_money_lenders": _resolve_hk_money_lenders,
+                      "bd_oep": _resolve_bd_oep}
 
 # proven deterministic registries addressable by --registry (dmw_lra is a
 # browser_scrape preset; the rest have resolvers above).
@@ -254,6 +267,7 @@ PROVEN_REGISTRIES = {
     "dmw_lra": {"preset": "dmw_lra", "name": "PH DMW -- licensed recruitment agencies (master-api)"},
     "hk_eaa": {"preset": "hk_eaa", "name": "HK EAA -- licensed employment agencies (result.php)"},
     "hk_money_lenders": {"preset": "hk_money_lenders", "name": "HK CR -- licensed money lenders (PDF)"},
+    "bd_oep": {"preset": "bd_oep", "name": "BD OEP/BMET -- licensed recruiting agencies (HTML)"},
     "ofac_sdn": {"preset": "ofac_sdn", "name": "US OFAC SDN -- sanctioned entities (CSV)"},
     "worldbank_debarred": {"preset": "worldbank_debarred", "name": "World Bank -- debarred firms (JSON)"},
 }
