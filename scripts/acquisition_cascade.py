@@ -267,11 +267,36 @@ def _resolve_bd_mra(target: dict) -> dict:
         return _err(1, "deterministic", exc)
 
 
+def _resolve_cn_mara(target: dict) -> dict:
+    """CN MARA distant-water-fishing enterprise compliance (deterministic HTML)."""
+    try:
+        cn = _sibling("cn_mara_dwf")
+        recs = cn.records_to_entities(cn.collect())
+        return {"tier": 1, "name": "deterministic", "records": recs, "n": len(recs),
+                "confidence": 0.95 if recs else 0.0, "cost": "none",
+                "discovered_urls": [cn.MARA_URL], "note": "CN MARA DWF compliance", "error": ""}
+    except Exception as exc:  # noqa: BLE001
+        return _err(1, "deterministic", exc)
+
+
+def _resolve_au_afma(target: dict) -> dict:
+    """AU AFMA commercial-fishery concession holders (deterministic XLSX sweep)."""
+    try:
+        au = _sibling("au_afma_concessions")
+        recs = au.records_to_entities(au.collect())
+        return {"tier": 1, "name": "deterministic", "records": recs, "n": len(recs),
+                "confidence": 0.95 if recs else 0.0, "cost": "none",
+                "discovered_urls": [au.AFMA_PAGE], "note": "AU AFMA concession holders", "error": ""}
+    except Exception as exc:  # noqa: BLE001
+        return _err(1, "deterministic", exc)
+
+
 # registries with a SPECIAL deterministic resolver (not a plain browser_scrape preset)
 REGISTRY_RESOLVERS = {"hk_eaa": _resolve_hk_eaa, "ofac_sdn": _resolve_ofac_sdn,
                       "worldbank_debarred": _resolve_worldbank_debarred,
                       "hk_money_lenders": _resolve_hk_money_lenders,
-                      "bd_oep": _resolve_bd_oep, "bd_mra": _resolve_bd_mra}
+                      "bd_oep": _resolve_bd_oep, "bd_mra": _resolve_bd_mra,
+                      "cn_mara": _resolve_cn_mara, "au_afma": _resolve_au_afma}
 
 # proven deterministic registries addressable by --registry (dmw_lra is a
 # browser_scrape preset; the rest have resolvers above).
@@ -281,6 +306,8 @@ PROVEN_REGISTRIES = {
     "hk_money_lenders": {"preset": "hk_money_lenders", "name": "HK CR -- licensed money lenders (PDF)"},
     "bd_oep": {"preset": "bd_oep", "name": "BD OEP/BMET -- licensed recruiting agencies (HTML)"},
     "bd_mra": {"preset": "bd_mra", "name": "BD MRA -- licensed microfinance institutions (JSON)"},
+    "cn_mara": {"preset": "cn_mara", "name": "CN MARA -- distant-water-fishing compliance (HTML)"},
+    "au_afma": {"preset": "au_afma", "name": "AU AFMA -- fishery concession holders (XLSX)"},
     "ofac_sdn": {"preset": "ofac_sdn", "name": "US OFAC SDN -- sanctioned entities (CSV)"},
     "worldbank_debarred": {"preset": "worldbank_debarred", "name": "World Bank -- debarred firms (JSON)"},
 }
