@@ -146,6 +146,30 @@ def collect_bd_mra() -> dict:
         return {"name": name, "n_records": 0, "records": [], "note": "", "error": f"{type(exc).__name__}: {exc}"[:200]}
 
 
+def collect_cn_mara() -> dict:
+    """CN MARA distant-water-fishing enterprise compliance (deterministic HTML)."""
+    name = "cn_mara"
+    try:
+        cn = _sibling("cn_mara_dwf")
+        recs = cn.records_to_entities(cn.collect())
+        return {"name": name, "n_records": len(recs), "records": recs,
+                "note": f"{len(recs)} CN distant-water-fishing enterprises (MARA)", "error": ""}
+    except Exception as exc:  # noqa: BLE001
+        return {"name": name, "n_records": 0, "records": [], "note": "", "error": f"{type(exc).__name__}: {exc}"[:200]}
+
+
+def collect_au_afma() -> dict:
+    """AU AFMA commercial-fishery concession holders (deterministic XLSX sweep)."""
+    name = "au_afma"
+    try:
+        au = _sibling("au_afma_concessions")
+        recs = au.records_to_entities(au.collect())
+        return {"name": name, "n_records": len(recs), "records": recs,
+                "note": f"{len(recs)} AU fishery concession-holder rows (AFMA)", "error": ""}
+    except Exception as exc:  # noqa: BLE001
+        return {"name": name, "n_records": 0, "records": [], "note": "", "error": f"{type(exc).__name__}: {exc}"[:200]}
+
+
 def collect_kaggle() -> dict:
     """Ingest already-downloaded Kaggle agency + job-order CSVs (if present)."""
     name = "kaggle"
@@ -193,6 +217,8 @@ BUILTIN_COLLECTORS = {
     "hk_money_lenders": collect_hk_money_lenders,
     "bd_oep": collect_bd_oep,
     "bd_mra": collect_bd_mra,
+    "cn_mara": collect_cn_mara,
+    "au_afma": collect_au_afma,
     "kaggle": collect_kaggle,
     "staged": collect_staged,
 }
