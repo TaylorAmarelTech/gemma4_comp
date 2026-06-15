@@ -20,6 +20,24 @@ sources:
     Listed as a secondary company-registry navigation source; the per-emirate DED portals are
   confidence: 0.6
 - id: ae_company_regist_uae_national_economic_register
+  name: UAE National Economic Register (NER)
+  publisher: Ministry of Economy, United Arab Emirates
+  url: https://u.ae/en/information-and-services/business/important-digital-services/national-economic-register
+  country: AE
+  industry: company_registry
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Federal platform covering 1.5 million+ active/cancelled licences across all UAE emirates (mainland
+    and free zones). Searchable by trade name, licence number, or economic activity (including ISIC4 codes
+    for security guard services, facility management, cleaning). No login required. Returns licence status,
+    legal form, issuing authority, activity type, and registration dates. Access portal redirected to
+    https://growth.gov.ae/g2c/ which returned SSL error on fetch; existence and features confirmed via
+    multiple official UAE government and Ministry of Economy references. Not a sector-specific securi
+  confidence: 0.82
+- id: ae_company_regist_uae_national_economic_register_2
   name: UAE National Economic Register (NER) - federal company/licence registry
   publisher: UAE Ministry of Economy
   url: https://www.growth.gov.ae/G2C/
@@ -72,6 +90,24 @@ sources:
     page returned ECONNREFUSED during direct fetch but is well-documented in official UAE government sources
     and press releases. Licensed under Administrative Resolution No. 3 of 2024.
   confidence: 0.87
+- id: ae_domestic_worke_uae_tadbeer_mohre_licensed_dom
+  name: UAE - Tadbeer / MOHRE Licensed Domestic Worker Service Centres
+  publisher: Ministry of Human Resources and Emiratisation (MoHRE), UAE
+  url: https://u.ae/en/information-and-services/jobs/mohre-service-centres/tad-beer-service-centres
+  country: AE
+  industry: domestic_worker
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Official UAE Government portal page describing Tadbeer service centres - MoHRE's licensed network
+    (approximately 136 centres as of 2026) for recruiting and employing domestic workers. Direct fetch
+    failed (ECONNREFUSED) but URL confirmed via UAE government official portal (u.ae). A previous MOHRE
+    asset page at mohre.gov.ae/assets/22b2d62f/domestic-workers-services-centers-30-05en.aspx also listed
+    approved centres by emirate (also unreachable on fetch attempt). Each MOHRE-approved centre is individually
+    listed at mohre.gov.ae/en/services/approved-services-centers-new1/. No bulk download confirme
+  confidence: 0.82
 - id: ae_financial_serv_cbuae_all_licensed_financial_i
   name: CBUAE - All Licensed Financial Institutions (banks, finance/lending companies, exchange houses)
   publisher: Central Bank of the United Arab Emirates (CBUAE)
@@ -233,6 +269,24 @@ sources:
     this Rulebook 'Exchange Houses' section (entiresection/101) is the official regulatory surface. The
     definitive roster is on the CBUAE corporate site (centralbank.ae) supervised-entities list; Rulebook
   confidence: 0.72
+- id: ae_security_servi_sira_security_industry_regulat
+  name: SIRA - Security Industry Regulatory Agency (Dubai)
+  publisher: Security Industry Regulatory Agency (SIRA), Government of Dubai
+  url: https://www.sira.gov.ae/en/about-us/about-sira
+  country: AE
+  industry: security_services
+  entity_type: security_services
+  access_tier: freemium
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Regulates private security companies and personnel in Dubai only (not other emirates). Established
+    2016 under HH Sheikh Mohammed bin Rashid Al Maktoum. Issues company licences (security firm licence)
+    and individual licences (Security Manager, security officer). E-services portal at https://portal.sira.gov.ae/web
+    - registration/login required to access services. No confirmed public list of licensed companies without
+    login. Contact: info@sira.gov.ae, Tel: +971 4 2612221. For Abu Dhabi, the Auxiliary Security Services
+    Department (ASSD) of UAE MOI is the equivalent authority; for Northern Emirates'
+  confidence: 0.88
 - id: ao_company_regist_directrio_das_sociedades_e_emp
   name: Directrio das Sociedades e Empresas (DSE)
   publisher: Ministrio da Justia e dos Direitos Humanos (MINJUSDH)
@@ -701,6 +755,24 @@ sources:
     March 2026 quarterly report was released 22 May 2026. Note: the public dataset contains aggregate
     statistics (number and type of approved employers by industry/state) rather than a named list of'
   confidence: 0.8
+- id: au_agriculture_palm_scheme_approved_employers
+  name: PALM Scheme Approved Employers (palmscheme.gov.au)
+  publisher: Department of Employment and Workplace Relations (DEWR), Australia
+  url: https://www.palmscheme.gov.au/current-employers
+  country: AU
+  industry: agriculture
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'Official Australian Government page listing current PALM (Pacific Australia Labour Mobility)
+    scheme approved employers. Agriculture sector employers (horticulture, harvesting, pruning, packing)
+    can operate nationwide; other sectors must be in regional/rural locations. Scheme jointly administered
+    by DEWR and DFAT. URL confirmed via search but the page timed out on direct fetch. No bulk download
+    found; page appears to present an employer directory. Support line: 1800 51 51 31 or palm@dewr.gov.au.
+    Approved Employer Guidelines v2.1 effective 27 March 2026 at https://www.palmscheme.gov.au/resources'
+  confidence: 0.82
 - id: au_care_home_aged_care_quality_and_safety_c
   name: Aged Care Quality and Safety Commission - Provider Register
   publisher: Aged Care Quality and Safety Commission (ACQSC)
@@ -1144,6 +1216,41 @@ sources:
     (listed from search results on the official boesl.portal.gov.bd .gov.bd domain; the portal publishes
     annual reports + job circulars, no scrapable entity feed). Useful as an allow-list anchor (a legitima
   confidence: 0.6
+- id: bd_manufacturing_bepza_industrial_directory_chi
+  name: BEPZA Industrial Directory - Chittagong EPZ
+  publisher: Bangladesh Export Processing Zones Authority (BEPZA)
+  url: https://www.bepza.gov.bd/
+  country: BD
+  industry: manufacturing
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: BEPZA operates 8 Export Processing Zones (EPZs) in Bangladesh. An older factory directory for
+    Chittagong EPZ was previously at /files/DirectoryFile/file_1609991393.pdf (returned 404 at time of
+    access). The main site confirms EPZ operations but does not currently expose a public tenant/factory
+    list online; only aggregate stats (358 plots, 61 investors in Economic Zone). For factory-level data
+    in EPZs, DIFE database.dife.gov.bd is more reliable. Confidence is lower due to absence of a confirmed
+    live factory list URL.
+  confidence: 0.6
+- id: bd_manufacturing_bgapmea_member_directory_garme
+  name: BGAPMEA Member Directory (Garment Accessories & Packaging)
+  publisher: Bangladesh Garments Accessories & Packaging Manufacturers & Exporters Association (BGAPMEA)
+  url: https://www.bgapmea.org/index.php/member
+  country: BD
+  industry: manufacturing
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Publicly searchable directory of 1,243 Bangladesh garment accessories and packaging manufacturers.
+    Shows company name (linked), membership number, and factory address. Searchable by company name, membership
+    number, owner name, and location. Represents upstream supply chain for RMG sector (labels, hangers,
+    poly bags, cartons, printing). Alphabetically sortable. No bulk download. BGAPMEA represents ~2,100
+    members total; active list shows 1,243.
+  confidence: 0.92
 - id: bd_manufacturing_bgmea_general_member_list_bang
   name: BGMEA General Member List (Bangladesh Garment Manufacturers and Exporters Association)
   publisher: Bangladesh Garment Manufacturers and Exporters Association (BGMEA)
@@ -1199,6 +1306,57 @@ sources:
     by RSC in Bangladesh. No bulk download confirmed; individual factory pages available. Page fetched
     and confirmed.
   confidence: 0.9
+- id: bd_manufacturing_international_accord_banglades
+  name: International Accord Bangladesh Factory Database
+  publisher: International Accord for Health and Safety in the Textile and Garment Industry (Accord Secretariat
+    / RMG Sustainability Council)
+  url: https://internationalaccord.org/bangladesh-factories/
+  country: BD
+  industry: manufacturing
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Public searchable listing of over 1,680 Bangladesh garment factories covered under the Bangladesh
+    Safety Agreement. Shows factory name, CAP (Corrective Action Plan) status, remediation progress rate
+    (%), worker count, and safety training status. Individual CAP PDFs and initial inspection reports
+    downloadable per factory. Monthly factory disclosure reports in PDF available at internationalaccord.org/factory-disclosure-bangladesh/
+    (published monthly through April 2026). Quarterly aggregate remediation reports also published.
+  confidence: 0.97
+- id: bd_manufacturing_international_accord_banglades_2
+  name: International Accord Bangladesh Factory Disclosure Reports
+  publisher: International Accord Secretariat
+  url: https://internationalaccord.org/factory-disclosure-bangladesh/
+  country: BD
+  industry: manufacturing
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Monthly PDF disclosure lists of all factories supplying Accord signatory brands in Bangladesh.
+    Archive runs from 2023 through April 2026. Each PDF lists factory names and is freely downloadable
+    without login.
+  confidence: 0.96
+- id: bd_manufacturing_rmg_sustainability_council_fac
+  name: RMG Sustainability Council Factory List
+  publisher: RMG Sustainability Council (RSC), Bangladesh - tripartite body (BGMEA/BKMEA, brands, IndustriALL/UNI
+    Global Union)
+  url: https://rsc-bd.org/factories/
+  country: BD
+  industry: manufacturing
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: RSC (successor to the Accord) covers 1,900+ Bangladesh RMG factories under the Bangladesh Safety
+    Agreement. Website at rsc-bd.org/factories/ categorises factories as Completed, Independent, and Ineligible;
+    rsc-bd.org/factories-handed-over/ lists factories handed to the government. Certificate confirmed
+    via HTTPS error on direct fetch but domain resolves per search results and linked from internationalaccord.org.
+    Quarterly aggregate safety reports published in PDF.
+  confidence: 0.82
 - id: bd_money_lender_mra_list_of_licensed_and_cance
   name: MRA List of Licensed (and Cancelled) Microfinance Institutions
   publisher: Microcredit Regulatory Authority (MRA), Bangladesh
@@ -1416,6 +1574,24 @@ sources:
     - no free unauthenticated public search endpoint confirmed. Governed by the Companies Act (Cap. 249).
     Contact: info.rocbn@mofe.gov.bn.'
   confidence: 0.9
+- id: bn_construction_registered_companies_and_profe
+  name: Registered Companies and Professionals - Ministry of Development
+  publisher: Ministry of Development (Kementerian Pembangunan), Brunei Darussalam
+  url: https://www.mod.gov.bn/profesional-berdaftar/
+  country: BN
+  industry: construction
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Searchable online registry of companies and professionals registered with the Brunei Ministry
+    of Development. Categories include: builders (pembina), contractors (kontraktor), architects, professional
+    engineers, quantity surveyors, housing developers, construction material importers, suppliers, and
+    labour suppliers. Also lists suspended companies. Downloadable PDFs also published periodically (e.g.,
+    https://www.mod.gov.bn/Shared%20Documents/Sijil%20Pendaftaran%20Kontraktor%20dan%20Pembekal/Pendaftaran%20Kontraktor%20Mei%202018.pdf).
+    The Authority for Building Control and Construction Industry '
+  confidence: 0.9
 - id: bn_financial_serv_bdcb_list_of_licensees_banks_f
   name: BDCB List of Licensees - Banks, Finance Companies, Money Changers, Remitters, Pawnbrokers, Capital
     Market, Insurance, Takaful
@@ -1435,6 +1611,24 @@ sources:
     licensee type via dropdown. No bulk CSV/PDF download confirmed; individual records show contact details,
     principals, and operational status. URL confirmed live and publicly accessible without login.'
   confidence: 0.97
+- id: bn_hotel_list_of_registered_tourist_acc
+  name: List of Registered Tourist Accommodation Premises
+  publisher: Tourism Development Department (Unit Perlesenan dan Peguatkuasaan Pelancongan), Ministry
+    of Primary Resources and Tourism, Brunei Darussalam
+  url: https://www.tourism.gov.bn/SiteCollectionDocuments/List%20of%20Premises%202024%20september.pdf
+  country: BN
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Official PDF directory of all registered tourist accommodation premises (hotels, guesthouses,
+    lodges) in Brunei. Published by the Tourism Licensing and Enforcement Unit under MPRT. Version confirmed
+    dated 11 September 2024. Includes premises name, address, contact number, and email. Landing page:
+    https://www.tourism.gov.bn/SitePages/Brunei%20Tourism%20Board.aspx. Also linked from Brunei Tourism
+    official site at https://www.bruneitourism.com/tourist-accommodation-premises/.'
+  confidence: 0.97
 - id: bn_hotel_tourism_development_department
   name: Tourism Development Department - List of Registered Tourist Accommodation Premises
   publisher: Tourism Development Department (Unit Perlesenan dan Peguatkuasaan Pelancongan), Ministry
@@ -1453,6 +1647,24 @@ sources:
     (September 2024 edition, confirmed accessible). Fields: premises name, address, contact number, email.
     Also browsable via the eMIPR portal and Brunei Tourism public site (bruneitourism.com/tourist-accommodation-premises/).'
   confidence: 0.93
+- id: bn_manning_agency_list_of_authorized_agents_mari
+  name: List of Authorized Agents - Maritime and Port Authority of Brunei Darussalam
+  publisher: Maritime and Port Authority of Brunei Darussalam (MPABD)
+  url: https://mpabd.gov.bn/wp-content/uploads/2022/05/AUTHORISED-AGENTS.pdf
+  country: BN
+  industry: manning_agency
+  entity_type: manning_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Official MPABD PDF listing categories of authorized maritime service agents: Authorized Shipping
+    Agents (ASA), Authorized Freight/Cargo Agents (AFARM), Authorized Vessel/Terminal Management (ASVM/ATSM).
+    Published May 2022. MPABD mandate includes licensing of merchant shipping, vessel manning standards,
+    and safety at sea under the MPABD Act Chapter 222. Note: this covers ship/cargo agents, not traditional
+    seafarer manning/crewing agencies; no dedicated public list of crewing agencies was found. A ''Registered
+    Agents'' section also exists at mpabd.gov.bn/licensed-agents-private-jetties/. Contact: '
+  confidence: 0.75
 - id: bn_manning_agency_maritime_and_port_authority_of
   name: Maritime and Port Authority of Brunei Darussalam (MPABD) - Authorised Shipping and Manning Agents
   publisher: Maritime and Port Authority of Brunei Darussalam (MPABD), Ministry of Transport
@@ -1471,6 +1683,43 @@ sources:
     Agents & Private Jetties'' and ''Registered Agents'' pages, but the specific sub-pages returned 404
     during verification. Main site (mpabd.gov.bn) confirmed live. Application guide PDF confirmed at mpabd.gov.b'
   confidence: 0.65
+- id: bn_manufacturing_halal_certified_food_premises
+  name: Halal Certified Food Premises List - Ministry of Religious Affairs
+  publisher: Halal Food Control Division (Bahagian Kawalan Makanan Halal), Brunei Islamic Religious Council
+    (MUIB) / Ministry of Religious Affairs (MoRA)
+  url: https://www.mora.gov.bn/bkmh/index.html
+  country: BN
+  industry: manufacturing
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Official halal certification portal of the Ministry of Religious Affairs (Kementerian Hal Ehwal
+    Ugama). Lists halal-certified food premises (Tempat Makan Halal) and certified slaughterhouses (Pusat
+    Penyembelihan). Covers food manufacturers, processors, and food service outlets in Brunei holding
+    a Halal Certificate or Halal Permit under the Halal Certificate and Halal Label Order 2005. Complete
+    list also available via the Halal Food Control Division''s Instagram account. Contact: bkmh@mora.gov.bn
+    or WhatsApp 710-3111. Relevant for screening food manufacturing and processing companies for complia'
+  confidence: 0.8
+- id: bn_medical_clinic_list_of_registered_medical_pra
+  name: List of Registered Medical Practitioners and Dentists - Brunei Medical Board Gazette
+  publisher: Brunei Medical Board, Ministry of Health, Brunei Darussalam
+  url: https://moh.gov.bn/about-us/professional-board/
+  country: BN
+  industry: medical_clinic
+  entity_type: medical_clinic
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Monthly gazette PDFs listing all registered medical practitioners and dentists holding valid
+    Annual Practising Certificates, including their affiliated facilities (government hospitals, health
+    centres, private clinics). Most recent confirmed PDF: https://moh.gov.bn/wp-content/uploads/2025/07/list-of-registered-practitioners-2025-01-July-2025-edited.pdf
+    (July 2025). Earlier editions available under https://www.moh.gov.bn/Shared%20Documents/Brunei%20mEDICAL%20bOARD/.
+    This is the closest Brunei has to a licensed-clinic registry; private clinics are identifiable from
+    practitioners'' listed workplac'
+  confidence: 0.9
 - id: bn_medical_clinic_ministry_of_health_foreign_wor
   name: Ministry of Health - Foreign Worker Health Screening (FWHS) Programme & Approved Overseas Healthcare
     Facilities
@@ -1821,6 +2070,41 @@ sources:
     PDF links. No bulk download. Licence required under the BC Employment Standards Act. Highly relevant
     for SAWP/TFWP agriculture screening.'
   confidence: 0.97
+- id: ca_agriculture_tfwp_non_compliant_employers_l
+  name: TFWP Non-Compliant Employers List
+  publisher: Immigration, Refugees and Citizenship Canada (IRCC)
+  url: https://www.canada.ca/en/immigration-refugees-citizenship/services/work-canada/employers-non-compliant.html
+  country: CA
+  industry: agriculture
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Publicly searchable page listing employers found non-compliant with TFWP and International Mobility
+    Program (IMP) conditions, including those in the agricultural stream. Employers on this list are ineligible
+    to hire temporary foreign workers. As of late 2024, 376 employers were ineligible due to unpaid Administrative
+    Monetary Penalties, and 42 held active program bans ranging from 1-10 years. The list is searchable
+    by name but is not available as a bulk download.
+  confidence: 0.88
+- id: ca_agriculture_tfwp_positive_lmia_employers_l
+  name: TFWP Positive LMIA Employers List (Open Government Portal)
+  publisher: Employment and Social Development Canada (ESDC)
+  url: https://open.canada.ca/data/en/dataset/90fed587-1364-4f33-a9ee-208181dc0b97
+  country: CA
+  industry: agriculture
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Quarterly XLSX releases listing employers issued a positive Labour Market Impact Assessment
+    (LMIA) under the Temporary Foreign Worker Program, including the Seasonal Agricultural Worker Program
+    (SAWP) stream covering Caribbean and Mexican workers. Organised by program stream, NOC 2021 occupation
+    and business location. Most recent release: Q3 2025 (Jul-Sep 2025), published January 2026. CAUTION:
+    excludes employers whose business name is or includes a personal name, so the list is incomplete.
+    Contact: NA-TFWP-PTET@hrsdc-rhdcc.gc.ca.'
+  confidence: 0.9
 - id: ca_care_home_bc_residential_care_programs_m
   name: BC Residential Care Programs Map - Open Data
   publisher: Government of British Columbia, Ministry of Health
@@ -4573,6 +4857,24 @@ sources:
     vegetables, potatoes, forestry). Public search at the verified URL with filters for geographic location,
     registration number, operator name, plant category, and operator class. Highly
   confidence: 0.97
+- id: es_agriculture_spain_gecco_gestin_colectiva_d
+  name: Spain GECCO - Gestin Colectiva de Contrataciones en Origen (Ministry of Inclusion)
+  publisher: Ministerio de Inclusin, Seguridad Social y Migraciones (Spain)
+  url: https://www.inclusion.gob.es/en/web/migraciones/contrataciones-en-origen1
+  country: ES
+  industry: agriculture
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'The Ministry of Inclusion administers Spain''s GECCO (Gestin Colectiva de Contrataciones en
+    Origen) programme, the main legal pathway for Spanish agricultural employers to recruit seasonal workers
+    at origin (primarily Morocco, Colombia, Honduras). 25,767 workers entered under GECCO in 2025 across
+    21 provinces, 81% from Morocco. The 2026 framework is Order ISM/1547/2025 (BOE-A-2025-27014), in force
+    1 Jan-31 Dec 2026. This page offers downloadable application templates (Annexes) for employers, but
+    there is no public employer registry/list. Application procedure: https://sede.administracionespubli'
+  confidence: 0.85
 - id: es_care_home_regcess_registro_general_de_ce
   name: REGCESS - Registro General de Centros, Servicios y Establecimientos Sanitarios (Ministerio de
     Sanidad)
@@ -4902,6 +5204,24 @@ sources:
     host a searchable or downloadable hotel database - ratings are published via press release and media;
     the website offers only downloadable policy documents and news. No machine-readable endpoint confirmed.
   confidence: 0.75
+- id: et_manufacturing_ethiopia_ipdc_industrial_parks
+  name: Ethiopia IPDC Industrial Parks - Hawassa & Bole Lemi Park Pages
+  publisher: Industrial Parks Development Corporation (IPDC), Federal Government of Ethiopia
+  url: https://www.ipdc.gov.et/service/parks/9/
+  country: ET
+  industry: manufacturing
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: IPDC is the Ethiopian government body managing 11 Special Economic Zones and 3 industrial parks.
+    Hawassa Industrial Park (park 9) opened 2016, 52 factory sheds, 46 rented to investors from USA, India,
+    China, Sri Lanka, France, Belgium, Indonesia, South Africa, and Ethiopia. Bole Lemi at /service/parks/6/
+    is the first EPZ (est. 2014), 20 sheds, investors from India, China, South Korea. Website shows aggregate
+    statistics but does NOT publish a named tenant list. About 18 global + 6 local apparel/textile companies
+    operate in Hawassa per news sources but no official downloadable list exists. Fetch
+  confidence: 0.62
 - id: et_medical_clinic_ethiopian_ministry_of_health_m
   name: Ethiopian Ministry of Health - Master Facility Registry (MFR)
   publisher: Federal Ministry of Health of Ethiopia
@@ -4971,6 +5291,208 @@ sources:
     Shows certificate number, issue date, validity period, institution name, program name, and accreditation
     status. 44 registered institutions and 13 accredited programs displayed at time of verification. No
     bulk download. The main ETA site (neta.gov.et) states an updated list is released annually. Page c
+  confidence: 0.92
+- id: fj_company_regist_fiji_bureau_of_statistics_busi
+  name: Fiji Bureau of Statistics - Business Register
+  publisher: Fiji Bureau of Statistics (FBS)
+  url: https://www.statsfiji.gov.fj/business-register/
+  country: FJ
+  industry: company_registry
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Comprehensive list of businesses and entities in Fiji engaged in the production of goods and
+    services. Downloadable PDF releases available: BR_2024_Release (388 KB, added August 2025) at https://www.statsfiji.gov.fj/download/444/business-register/5185/br_2024_release-2.pdf;
+    also BR_2023_Release and BR_2022_Release. The PDF content is a statistical summary by sector and region
+    rather than a named-entity directory. Covers all industries including construction, manufacturing,
+    agriculture, hospitality. Publisher is the Fiji Bureau of Statistics.'
+  confidence: 0.85
+- id: fj_company_regist_registrar_of_companies_roc_fij
+  name: Registrar of Companies (ROC) - Fiji Company and Business Name Registry
+  publisher: Registrar of Companies, Ministry of Justice, Fiji
+  url: https://roc.digital.gov.fj/RocEServices/LocalCompanyMenu
+  country: FJ
+  industry: company_registry
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'The Registrar of Companies (ROC) is Fiji''s statutory company and business name registry under
+    the Companies Act 2015, operating at roc.digital.gov.fj. A free company name search is available via
+    the Digital Fiji platform. The ROC also maintains registers for credit unions and moneylenders. Full
+    entity records require account creation (ROC Pass). The registry covers local companies, foreign companies,
+    business names, and other entities; more than 10,000 records maintained. Physical office: Level 1,
+    Suvavou House, Victoria Parade, Suva. Accessible entry point also at https://www.justice.gov.fj/c'
+  confidence: 0.9
+- id: fj_financial_serv_reserve_bank_of_fiji_licensed
+  name: Reserve Bank of Fiji - Licensed Financial Institutions (Banks, Credit Institutions, FX Dealers,
+    Money Changers, Payment Service Providers)
+  publisher: Reserve Bank of Fiji (RBF)
+  url: https://www.rbf.gov.fj/core-functions/financial-stability/licensing/
+  country: FJ
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Publicly accessible page listing all RBF-licensed entities by category: 6 commercial banks (ANZ,
+    Bank of Baroda, BSP, Bred Bank, HFC, Westpac), 3 credit institutions, 8 restricted FX dealers and
+    money changers (City Forex, Exchange & Finance, Fexco, Lotus, MH Money Express, Real Forex, GCC Exchange,
+    Vision Fintech), and 5 payment service providers (Vodafone/Digital Financial Services, Digicel, Sole
+    Limited, Dynamic Payment, Abacus Fintech). Data is presented as an HTML table on the public web page
+    with no separate download endpoint. Also covers insurance, capital markets, and credit reporting '
+  confidence: 0.97
+- id: fj_fishing_seafoo_ffa_vessel_register_pacific_is
+  name: FFA Vessel Register - Pacific Islands Forum Fisheries Agency
+  publisher: Pacific Islands Forum Fisheries Agency (FFA)
+  url: https://vessel-register.ffa.int/
+  country: FJ
+  industry: fishing_seafood
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Publicly searchable register of fishing vessels licensed to operate in FFA member waters (including
+    Fiji EEZ). Filter by flag state ''Fiji'' to see Fiji-flagged vessels. Displays vessel name, IMO number,
+    IRCS, MMSI, WCPFC ID, flag state, vessel type, registration period, and current status (Good Standing
+    / Active / Deregistered / Expired). A CSV download of the current good standing list is available
+    directly on the page (confirmed as of 2026-06-15). Published by FFA under a mandate from Forum Fisheries
+    Committee. Fiji''s Ministry of Fisheries issues the underlying national fishing licences; the '
+  confidence: 0.96
+- id: fj_hotel_hotels_licensing_board_license
+  name: Hotels Licensing Board - Licensed Hotels, Resorts and Lodging Houses
+  publisher: Hotels Licensing Board, Office of the Attorney-General, Fiji
+  url: https://ag.gov.fj/hotel-licensing/
+  country: FJ
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'The Hotels Licensing Board was established under the Hotels and Guest Houses Act 1973 (amended
+    2021) and is the statutory authority issuing hotel licenses in Fiji. The ag.gov.fj/hotel-licensing/
+    page describes the licensing regime (licenses up to 5 years) but does not publish a public list of
+    licensed establishments online. A statutory register exists under section 9 of the Act. The Fiji Bureau
+    of Statistics publishes quarterly surveys of licensed hotels, resorts and lodging houses with PDF
+    downloads at statsfiji.gov.fj/category/tourism-and-migration-statistics/hotels-tourist-accommodation/
+    - '
+  confidence: 0.78
+- id: fj_manning_agency_maritime_safety_authority_of_f
+  name: Maritime Safety Authority of Fiji (MSAF) - Seafarer Registration and Manning Oversight
+  publisher: Maritime Safety Authority of Fiji (MSAF)
+  url: https://www.msaf.com.fj/services/seafarers-manning/
+  country: FJ
+  industry: manning_agency
+  entity_type: manning_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: MSAF is Fiji's statutory Ships and Seafarers Registrar under the Maritime Safety Authority of
+    Fiji Act 2009, responsible for registration of all Fiji seafarers (including those on fishing vessels)
+    and oversight of seafarer employment. MN 08/2025 required all Fiji-registered seafarers to update
+    records with MSAF including employer/company name, vessel type, and rank. The seafarers-manning page
+    provides downloadable application forms (Seamen Employment Record Book, Certificates of Competency,
+    Safe Manning, Dispensation). No public register of approved manning agencies was found - MSAF does
+    not a
+  confidence: 0.7
+- id: fj_medical_clinic_maritime_safety_authority_of_f
+  name: Maritime Safety Authority of Fiji (MSAF) - Approved Medical Practitioners for Seafarer Examinations
+  publisher: Maritime Safety Authority of Fiji (MSAF)
+  url: https://www.msaf.com.fj/medical-practitioners/
+  country: FJ
+  industry: medical_clinic
+  entity_type: medical_clinic
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Publicly accessible HTML page listing MSAF-approved medical practitioners and optometrists authorised
+    to conduct seafarer medical examinations. Practitioners listed by region (Suva, Nadi, Lautoka, Ba,
+    Tavua, Rakiraki, Labasa, Savusavu) with clinic names and contact details. A supporting PDF 'Approved
+    List for Medical Practitioner and Optometrist' (Revision 5) was previously available at https://www.msaf.com.fj/wp-content/uploads/2021/05/Approved-list-for-Medical-Practitioner-and-Optometrist-2019-1.pdf
+    but the live HTML page is the current reference. Authorised under STCW/Maritime Transport Dec
+  confidence: 0.93
+- id: fj_money_lender_ministry_of_justice_moneylende
+  name: Ministry of Justice - Moneylenders Listing
+  publisher: Ministry of Justice, Fiji (Registrar of Companies Office)
+  url: https://www.justice.gov.fj/wp-content/uploads/2024/07/Moneylenders-Listing.xlsx
+  country: FJ
+  industry: money_lender
+  entity_type: lender
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Direct XLSX download (316 KB) confirmed resolving from justice.gov.fj as of research date. Maintained
+    by the Registrar of Companies Office under the Moneylenders Act [Cap 234]. The Registrar of Companies
+    is the statutory registrar for moneylenders in Fiji; licenses are annual and granted only to Fiji
+    residents. File contains multiple worksheets. An earlier version was dated 6 August 2021; the July
+    2024 upload is the current release. Also accessible from the Registrar of Companies page at https://www.justice.gov.fj/registrar-of-companies-office/
+  confidence: 0.92
+- id: fj_recruitment_ag_ministry_of_employment_product
+  name: Ministry of Employment, Productivity and Industrial Relations - Authorised Overseas Employment
+    Agencies
+  publisher: Ministry of Employment, Productivity and Industrial Relations, Fiji
+  url: https://www.employment.gov.fj/
+  country: FJ
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'The Ministry authorises overseas employment recruitment agencies under the Employment Relations
+    (Employment Agencies) Regulations 2008. Authorisation is granted for one year. As of news reports
+    (2022), five authorised agencies were: Viti Roofing and Construction PTE Limited, PacLeader Pacific
+    PTE Limited, Alpha Pacific Navigation PTE Limited, Pacific Employment Agency PTE Limited, and Blue
+    Harbour Recruitment PTE Limited. The ministry makes public announcements when agencies are authorised
+    or deauthorised (e.g. FBC News reported Vinaka Employment losing authorisation). No standalone public
+    web'
+  confidence: 0.65
+- id: fj_security_servi_security_industry_licensing_an
+  name: Security Industry Licensing and Registration Board - Licensed Security Companies
+  publisher: Security Industry Licensing and Registration Board, Ministry of Home Affairs and Immigration,
+    Fiji
+  url: https://www.defence.gov.fj/licenses-forms/
+  country: FJ
+  industry: security_services
+  entity_type: security_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'The Security Industry Act 2010 established the Security Industry Licensing and Registration
+    Board, which issues Master Licenses (up to 3 years) to security companies and is required to maintain
+    a register of licence holders. All employers of security officers must hold or use a holder of a Master
+    License. Board contact: +679 3211613 / 3211621, mcakau@govnet.gov.fj; located at First and Second
+    Floor, New Wing Government Building, 26 Gladstone Road, Suva. No public web-facing list of licensed
+    security companies was confirmed online. The defence.gov.fj/licenses-forms/ page was not reachable
+    durin'
+  confidence: 0.55
+- id: fj_training_cente_higher_education_commission_fi
+  name: Higher Education Commission Fiji (HEC) - Register of Higher Education Institutions and TVET Providers
+  publisher: Higher Education Commission Fiji (HEC)
+  url: https://hec.org.fj/registered-heis/
+  country: FJ
+  industry: training_center
+  entity_type: training_center
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Publicly accessible HTML list of approximately 50 institutions registered under section 18 of
+    the Higher Education Act 2008. Includes universities, vocational training centres, aviation schools,
+    hospitality/nursing/agricultural training institutes, and theological colleges. A second publicly
+    accessible institutional directory is at https://nic.hec.org.fj/hei/list (National Information Centre
+    sub-portal, also confirmed accessible without login). No bulk CSV/PDF download of the full list is
+    offered. HEC office: Level 1, Red Cross Building, Suva.'
   confidence: 0.92
 - id: gb_agriculture_uk_fair_work_agency_public_reg
   name: UK Fair Work Agency - Public Register of Licensed Labour Providers (Gangmasters Register)
@@ -5074,6 +5596,23 @@ sources:
     - verified snapshot dated 2026-06-01) at https://download.companieshouse.gov.uk/en_output.html; and
     a free-key REST Public Data API (companies, officers, PSCs, filings) at https://developer-specs.company
   confidence: 0.98
+- id: gb_domestic_worke_scotland_care_inspectorate_car
+  name: Scotland Care Inspectorate - Care Service Register
+  publisher: Care Inspectorate, Scotland
+  url: https://www.careinspectorate.scot/find-care/search-for-care/care-services
+  country: GB
+  industry: domestic_worker
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: The Care Inspectorate (Scotland) registers and inspects over 14,000 care services including home
+    care (domiciliary) agencies. The register is searchable by name, location, and service type at careinspectorate.scot.
+    Direct fetch returned 403 but the URL is confirmed as the official register search endpoint via mygov.scot
+    and Care Information Scotland references. Registration required under the Public Services Reform (Scotland)
+    Act 2010. Also see https://www.careinspectorate.com as the secondary domain.
+  confidence: 0.88
 - id: gb_financial_serv_fca_financial_services_registe
   name: FCA Financial Services Register (authorised firms incl. consumer-credit lenders, payment & e-money
     institutions, money remitters)
@@ -5210,6 +5749,24 @@ sources:
     start date, registered sectors). The guidance page I verified does NOT directly link th'
   confidence: 0.72
 - id: gb_security_servi_sia_register_of_approved_contr
+  name: SIA Register of Approved Contractors (ACS)
+  publisher: Security Industry Authority (SIA), UK Home Office
+  url: https://www.services.sia.homeoffice.gov.uk/Pages/acs-roac.aspx
+  country: GB
+  industry: security_services
+  entity_type: security_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Voluntary Approved Contractor Scheme (ACS) for UK private security businesses. Publicly searchable
+    by company name, region, and approved activity (Security Guarding, Door Supervision, Close Protection,
+    CCTV, Cash & Valuables in Transit, Key Holding). No bulk download confirmed. Established under the
+    Private Security Industry Act 2001. Search returns company name, ACS reference, approved activities,
+    and region. Separate Register of Licence Holders (individuals) at https://rolh.services.sia.homeoffice.gov.uk/
+    covers licensed security officers. ACS is the business-level register most relevant to '
+  confidence: 0.92
+- id: gb_security_servi_sia_register_of_approved_contr_2
   name: SIA Register of Approved Contractors (ACS) - approved private-security companies
   publisher: Security Industry Authority (SIA), Home Office
   url: https://www.sia.homeoffice.gov.uk/Pages/acs-roac.aspx
@@ -5242,6 +5799,23 @@ sources:
     register; the ApprovedContractorsList path I tried returned the licence-holder search). Search-form
     only, no bulk download. Security/CCTV/door-supervision is a recognised labour-exploitation sector,
   confidence: 0.85
+- id: gb_security_servi_sia_register_of_licence_holder_2
+  name: SIA Register of Licence Holders (ROLH)
+  publisher: Security Industry Authority (SIA), UK Home Office
+  url: https://rolh.services.sia.homeoffice.gov.uk/
+  country: GB
+  industry: security_services
+  entity_type: security_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Statutory public register of individual SIA licence holders under s.12 of the Private Security
+    Industry Act 2001. Searchable by licence number or name. Covers Door Supervision, Security Guarding,
+    CCTV (Public Space Surveillance), Close Protection, Cash & Valuables in Transit, Vehicle Immobiliser.
+    Relevant for identifying individual workers supplied by security or facility-management labour contractors.
+    Data also published on data.gov.uk: https://ckan.publishing.service.gov.uk/dataset/activity/register-of-licence-holders-issued-by-the-sia'
+  confidence: 0.95
 - id: gb_training_cente_register_of_training_skills_pr
   name: Register of training/skills providers (Apprenticeship Provider and Assessment Register / RoATP)
   publisher: Department for Education (DfE) / Education and Skills Funding Agency
@@ -5530,6 +6104,133 @@ sources:
     UNEVOC, MoE Ghana references, and search results. Also see gtvets.gov.gh/accredited-programme/ (Ghana
     TVET Service) for accredited programmes. Relevant for screening skills-training agencies used to p
   confidence: 0.7
+- id: gr_company_regist_general_commercial_registry_ge
+  name: General Commercial Registry (GEMI) - Public Search
+  publisher: Central Union of Chambers of Greece (under Ministry of Development)
+  url: https://publicity.businessportal.gr/
+  country: GR
+  industry: company_registry
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Greece's unified mandatory commercial registry covering all registered legal entities (SAs, LLCs,
+    partnerships, sole traders, foreign branches). Public search by company name, tax ID (AFM), or GEMI
+    registration number at this URL. Also accessible via businessportal.gr/en. REST API available at publicity.businessportal.gr/api
+    (no auth required for basic queries). Operated by the Central Union of Chambers of Greece (KEEE) under
+    Ministry of Development, established by Law 3419/2005 and reformed by Law 4919/2022. Covers all industries
+    including recruitment agencies, security firms, construction co
+  confidence: 0.98
+- id: gr_construction_registry_of_public_works_and_p
+  name: '- Registry of Public Works and Private Projects Contractors (/)'
+  publisher: General Secretariat of Infrastructure, Ministry of Infrastructure and Transport ( )
+  url: https://mhte.ggde.gr/company-registry/requests-search/MH_E_E_D_E
+  country: GR
+  industry: construction
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: The Integrated Information System (OPS MH.T.E.) at mhte.ggde.gr hosts the Registry of Public
+    Works Contractors ( - , classified 1st-7th class) and the Registry of Private-Project Design Companies
+    (). Portal also at mhte-portal.ggde.gr for user guidance. Replaces the older MEEP system. Companies
+    must register to bid on Greek public works contracts. The URL for searching entries is well-attested
+    (appears in Greek government sources and contractor industry sites) but returned a minimal response
+    on direct fetch. Login with Taxisnet credentials required for company self-management; public search
+    ca
+  confidence: 0.72
+- id: gr_financial_serv_bank_of_greece_supervised_fina
+  name: Bank of Greece - Supervised Financial Institutions List
+  publisher: Bank of Greece ( )
+  url: https://www.bankofgreece.gr/en/main-tasks/supervision/supervised-institutions
+  country: GR
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'The Bank of Greece publishes lists of all supervised institutions on this page, including: credit
+    institutions, payment institutions (licensed under Law 4537/2018 transposing PSD2), electronic money
+    institutions, bureaux de change (licensed under Law 2515/1997, minimum capital 200k, must operate
+    as SAs), credit companies, financial leasing companies, factoring companies, and microfinance institutions.
+    This is the primary national registry for remittance and money-transfer operators, as payment institutions
+    providing money remittance require BoG authorisation. URL is well-attested by multiple i'
+  confidence: 0.82
+- id: gr_financial_serv_hellenic_capital_market_commis
+  name: Hellenic Capital Market Commission - Licensed Investment Services Firms (AEPEY List)
+  publisher: Hellenic Capital Market Commission (HCMC / )
+  url: http://www.hcmc.gr/en/web/portal/orgcmc/cataepey
+  country: GR
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: HCMC is Greece's national securities regulator. This page lists all Investment Services Firms
+    (AEPEY - ) licensed under Law 3606/2007 (MiFID transposition). Also see tied-agents register at hcmc.gr/en/web/portal/metroo-syndedemenon-antiprosopon-a.e.p.e.y.
+    and investment firms page at hcmc.gr/en_US/web/portal/parohoiepey. URL connection-refused on direct
+    fetch but is the authoritative HCMC URL referenced consistently in HCMC's own navigation and by multiple
+    legal sources. Relevant to DueCare as migrant workers are sometimes targeted by unlicensed investment-product
+    sellers.
+  confidence: 0.73
+- id: gr_hotel_hellenic_chamber_of_hotels_hot
+  name: Hellenic Chamber of Hotels - Hotel and Camping Registry
+  publisher: Hellenic Chamber of Hotels ( / )
+  url: https://www.grhotels.gr/en/tourist-guide/search-hotels-and-camping/
+  country: GR
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: The Hellenic Chamber of Hotels (established 1935) is a Legal Entity of Public Law; by law ALL
+    licensed hotels and camping sites in Greece must be members (~10,000 members). The Tourist Guide at
+    this URL is therefore the de-facto official registry of all licensed hospitality establishments in
+    Greece. Search by name or location; filter by class/stars. No bulk download identified but search
+    is open to the public without login. Also accessible from gov.gr as an official body. Relevant for
+    screening hotel employers of migrant workers in tourism-heavy areas such as the Aegean islands.
+  confidence: 0.95
+- id: gr_manning_agency_nepa_registry_maritime_leisure
+  name: NEPA Registry - Maritime Leisure-Craft Companies
+  publisher: Ministry of Maritime Affairs and Insular Policy ( )
+  url: https://nepa.gov.gr/
+  country: GR
+  industry: manning_agency
+  entity_type: manning_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Official government registry (gov.gr domain) of all (NEPA) - companies operating professional
+    and charter leisure/tourist vessels in Greek waters. Operational since July 2022. Public search available
+    without login via ' ....' (public information section). Open data also available on Greece's national
+    open data portal at data.gov.gr/data-service/nepa (Creative Commons Attribution 4.0 licence). Relevant
+    for screening fishing/seafood and hospitality vessel operators that employ migrant workers in Greek
+    waters.
+  confidence: 0.93
+- id: gr_recruitment_ag_dypa_ministry_of_labour_privat
+  name: DYPA / Ministry of Labour - Private Employment Agencies Register
+  publisher: Ministry of Labour and Social Affairs ( ) / DYPA
+  url: https://ypergasias.gov.gr/en/labour-relations/individual-employment-relations/
+  country: GR
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: login
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Private employment agencies (IGEE - ) and Temporary Employment Enterprises (EPA - , regulated
+    by Law 4052/2012 transposing Directive 2008/104/EC) require authorisation from the Ministry of Labour's
+    Directorate of Individual Employment Regulations. EPA registration operates under a 'tacit approval'
+    system (if no prohibition issued within 3 months of complete submission, the EPA may operate). The
+    trade federation ENIDEA (enidea.gr) represents licensed firms. No centrally-published searchable public
+    online list of licensed agencies was confirmed; the Ministry website at ypergasias.gov.gr is the l
+  confidence: 0.52
 - id: gt_agriculture_visar_lista_de_establecimiento
   name: VISAR - Lista de Establecimientos Autorizados Productos Vegetales
   publisher: Viceministerio de Sanidad Agropecuaria y Regulaciones (VISAR), MAGA
@@ -6424,6 +7125,24 @@ sources:
     typically free. URL returned 403 on fetch but confirmed in multiple search results with exact metadata.
     A 2024 edition is also listed at https://www.bps.go.id/id/publication/2025/08/29/c470efbd1999'
   confidence: 0.88
+- id: id_agriculture_indonesia_bp2mi_kp2mi_active_p
+  name: Indonesia BP2MI/KP2MI Active P3MI List (Perusahaan Penempatan Pekerja Migran Indonesia)
+  publisher: Badan Pelindungan Pekerja Migran Indonesia (BP2MI) / Kementerian Pelindungan Pekerja Migran
+    Indonesia (KP2MI)
+  url: https://bp2mi.go.id/lembaga-detail/daftar-perusahaan-penempatan-pekerja-migran-indonesia-p3mi-aktif-per-4-juni-2024
+  country: ID
+  industry: agriculture
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: false
+  notes: 'Official list of active Indonesian Migrant Worker Placement Companies (P3MI) licensed by BP2MI
+    (now operating under the new Ministry KP2MI) to deploy workers overseas, including plantation and
+    agriculture sectors. Most recent published snapshot: June 2024. The agency is developing a formal
+    accreditation system in partnership with ILO and IOM. The bp2mi.go.id URL returned ECONNREFUSED on
+    direct fetch; url_verified=false. Main agency portal: https://kp2mi.go.id.'
+  confidence: 0.72
 - id: id_company_regist_ditjen_ahu_online_pencarian_pr
   name: Ditjen AHU Online - Pencarian Profil Perseroan Terbatas (national company / corporate registry)
   publisher: Direktorat Jenderal Administrasi Hukum Umum (AHU), Kementerian Hukum (ex-Kemenkumham)
@@ -6528,6 +7247,39 @@ sources:
     agencies. BP2MI's mandate covers land-based overseas workers; overlap with sea-based fishers is partial.
     No bulk download confirmed.
   confidence: 0.55
+- id: id_manufacturing_better_work_indonesia_particip
+  name: Better Work Indonesia Participating Factory List
+  publisher: Better Work Indonesia (ILO / IFC joint programme)
+  url: https://betterwork.org/participating-factories-and-manufacturers-in-indonesia/
+  country: ID
+  industry: manufacturing
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Public list of approximately 250 garment factories participating in Better Work Indonesia, grouped
+    by region: Greater Jakarta (~25), West Java (~75), Central Java-Yogyakarta (~150). Factory names only;
+    no addresses. Programme established 2011, covers nearly 400,000 workers. Compliance data accessible
+    via portal.betterwork.org/Transparency/Indonesia (currently showing ''no items to display'' - portal
+    under migration).'
+  confidence: 0.91
+- id: id_manufacturing_indonesia_api_asosiasi_perteks
+  name: Indonesia API (Asosiasi Pertekstilan Indonesia) Member Directory
+  publisher: Asosiasi Pertekstilan Indonesia (API) - Indonesian Textile Association
+  url: https://indonesiantextile.org/en/directory
+  country: ID
+  industry: manufacturing
+  entity_type: company
+  access_tier: free
+  official: false
+  has_data_endpoint: false
+  url_verified: true
+  notes: Public online directory of Indonesian textile and garment companies published by API, the national
+    textile trade association. Filterable by business type (batik, dyeing, garment, knitting, weaving,
+    etc.) and by region. Shows company names with links to profiles. No bulk download. Self-regulatory
+    industry body, not a government registry. Covers full textile vertical from fiber to garment.
+  confidence: 0.82
 - id: id_medical_clinic_bp2mi_sarana_kesehatan_sarkes_
   name: BP2MI Sarana Kesehatan (Sarkes) - appointed migrant-worker pre-deployment medical facilities
   publisher: Badan Pelindungan Pekerja Migran Indonesia (BP2MI / KP2MI), facilities appointed by Kemenkes
@@ -6576,6 +7328,24 @@ sources:
     - Januari 2025.pdf'. Sits under the 'lembaga-keuangan-khusus' channel; new dated editions are published
     periodically (swap the date in the URL).
   confidence: 0.9
+- id: id_recruitment_ag_indonesia_bp2mi_siskop2mi_lice
+  name: Indonesia BP2MI - SISKOP2MI Licensed P3MI Agency List
+  publisher: BP2MI - Badan Pelaksana Penempatan Pekerja Migran Indonesia (Indonesian Migrant Worker Placement
+    Authority)
+  url: https://siskop2mi.bp2mi.go.id//profil/lembaga/list_lembaga/p3mi
+  country: ID
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Official government directory of licensed Indonesian overseas worker placement companies (P3MI
+    - Perusahaan Penempatan Pekerja Migran Indonesia). Hundreds of agencies listed alphabetically. Browseable
+    by letter and district/city. No bulk CSV/PDF download confirmed; interactive directory only. Agency
+    details include registration numbers. Main BP2MI portal at bp2mi.go.id also references the list. Ministry
+    renamed to KP2MI in 2025; site remains at bp2mi.go.id domain.
+  confidence: 0.92
 - id: id_recruitment_ag_indonesia_sipermit_p3mi_licens
   name: Indonesia SIPERMIT - P3MI Licensed Placement Companies (Indonesia-Malaysia corridor)
   publisher: Indonesian Mission in Malaysia / Ministry of Manpower (Kemenaker), Republic of Indonesia
@@ -6716,6 +7486,24 @@ sources:
     per 2026 launch), but existence and statutory basis are confirmed via gov.ie press release (gov.ie/en/department-of-housing-local-government-and-heritage/press-releases/legislation-requ
   confidence: 0.8
 - id: ie_financial_serv_central_bank_of_ireland_regist
+  name: Central Bank of Ireland - Register of Authorised Firms (Firm Search)
+  publisher: Central Bank of Ireland
+  url: https://registers.centralbank.ie/FirmSearchPage.aspx
+  country: IE
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Searchable public portal covering all financial service providers regulated by the Central Bank:
+    credit institutions, investment firms, insurance intermediaries, payment institutions, e-money institutions,
+    debt management firms, credit unions, crypto-asset service providers, and more. Verified live: page
+    states ''This page allows you to search all Central Bank of Ireland registers for a particular financial
+    service provider.'' Downloadable PDF registers for individual categories are at https://registers.centralbank.ie/DownloadsPage.aspx.
+    Relevant categories for migrant-worker screening include m'
+  confidence: 0.98
+- id: ie_financial_serv_central_bank_of_ireland_regist_2
   name: Central Bank of Ireland Registers (Financial Service Providers)
   publisher: Central Bank of Ireland
   url: https://registers.centralbank.ie/
@@ -6785,6 +7573,42 @@ sources:
     Also covers guesthouses, B&Bs, hostels, self-catering, and caravan parks in separate sector PDFs on
     the same page.
   confidence: 0.95
+- id: ie_hotel_filte_ireland_national_quality
+  name: Filte Ireland National Quality Assurance Framework - Register of Accommodation
+  publisher: Filte Ireland (National Tourism Development Authority)
+  url: https://www.failteireland.ie/registration-and-grading.aspx
+  country: IE
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Under the Tourist Traffic Acts 1939-2016, hotels and tourist accommodation must be registered
+    with Filte Ireland. The register is published as downloadable PDFs by accommodation category (hotels,
+    guesthouses, B&Bs, self-catering, etc.) from the registration-and-grading page. A machine-readable
+    CSV export is also available via the open-data API at https://failteireland.azure-api.net/opendata-api/v2/accommodation/csv
+    (confirmed via data.gov.ie dataset record last updated March 2024, licensed CC-BY 4.0). Fetch of the
+    register page itself timed out but the registration-and-grading root page fetche
+  confidence: 0.92
+- id: ie_manufacturing_primark_global_sourcing_map_fa
+  name: Primark Global Sourcing Map & Factory List
+  publisher: Primark (Associated British Foods plc)
+  url: https://globalsourcingmap.primark.com/
+  country: IE
+  industry: manufacturing
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Interactive map and downloadable factory list of Primark's supplier production sites representing
+    ~95% of Primark products. Updated annually. Shows site address, number of workers, and gender split.
+    Over 1,071 factories across 31 countries including 550 in China, 173 in India, 89 in Bangladesh, 78
+    in Turkey. Downloadable full factory list PDF linked from the map page. November 2025 edition archived
+    at wikirate-production-storage.fra1.cdn.digitaloceanspaces.com/files/22877332/52684378.pdf. Factory
+    must have been an established supplier for at least one year to appear.
+  confidence: 0.93
 - id: ie_money_lender_register_of_high_cost_credit_p
   name: Register of High Cost Credit Providers (Moneylenders)
   publisher: Central Bank of Ireland
@@ -6800,6 +7624,23 @@ sources:
     Credit Act 1995 and 2020 Regulations. Confirmed fetched; contains hyperlinked entries to terms and
     conditions of each listed provider. The term ''high cost credit provider'' replaced ''moneylender''
     in November 2022. Broader financial register hub: registers.centralbank.ie.'
+  confidence: 0.97
+- id: ie_recruitment_ag_list_of_licensed_employment_ag
+  name: List of Licensed Employment Agencies (WRC)
+  publisher: Workplace Relations Commission (WRC), Department of Enterprise, Trade and Employment
+  url: https://www.workplacerelations.ie/en/publications_forms/current_employment_agency_list.pdf
+  country: IE
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Definitive list of all employment agencies licensed under the Employment Agency Act 1971. Updated
+    monthly; as of 01/06/2026. Direct PDF download at the URL above. Search results confirmed the URL
+    title 'List of licensed Employment Agencies as at 01/06/26'. Covers both domestic and overseas-placement
+    recruitment agencies. The WRC's licensing section at O'Brien Road, Carlow administers renewals. Domestic-worker
+    placement agencies using the employment-agency model appear on this list.
   confidence: 0.97
 - id: ie_recruitment_ag_register_of_licensed_employmen
   name: Register of Licensed Employment Agencies (Workplace Relations Commission)
@@ -6869,6 +7710,24 @@ sources:
     a loading-state on fetch (JavaScript-rendered), so url_verified set to false; existence confirmed
     in
   confidence: 0.88
+- id: ie_training_cente_qqi_irish_register_of_qualific
+  name: QQI Irish Register of Qualifications - Provider Search
+  publisher: Quality and Qualifications Ireland (QQI)
+  url: https://www.qqi.ie/what-we-do/the-qualifications-system/irish-register-of-qualifications
+  country: IE
+  industry: training_center
+  entity_type: training_center
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Quality and Qualifications Ireland (QQI) is the statutory body that quality-assures further and
+    higher education providers and awards. The Irish Register of Qualifications lists all quality-assured
+    providers and their programmes. A provider search tool exists at https://qsearch.qqi.ie/WebPart/Search?searchtype=providers
+    - fetched but returned 'no requested data' (may be a rendering issue with the JS-heavy interface).
+    The infographics/data portal at https://infographics.qqi.ie/Provider lists providers. Covers ETBs,
+    private training colleges, English-language schools. Relevant for screening frau
+  confidence: 0.72
 - id: il_care_home_ministry_of_health_nursing_hom
   name: Ministry of Health - Nursing Home Finder (Licensed Geriatric Institutions Database)
   publisher: Ministry of Health of Israel
@@ -6924,6 +7783,24 @@ sources:
     links into the contractors registrar system (results in Hebrew only). The Ministry of Construction
     website is moch.gov.il. Israel opened the register to foreign contractors in 2023. Th
   confidence: 0.82
+- id: il_domestic_worke_israel_piba_licensed_caregiver
+  name: Israel - PIBA Licensed Caregiver Placement Bureaus
+  publisher: Population and Immigration Authority (PIBA), State of Israel
+  url: https://www.gov.il/en/service/foreign_workers_data_files
+  country: IL
+  industry: domestic_worker
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: All foreign caregivers in Israel must be placed through a licensed Placement Bureau holding a
+    licence from PIBA. The official foreign workers data files page at gov.il references downloadable
+    agency data but returned 403 on direct fetch. The authoritative description of the licensing system
+    is in the 2026 PIBA Foreign Workers' Rights Booklet (gov.il/BlobFolder/policy/bileteral-forms-foreign-workers/he/foreign_workers_rights_booklets_en.pdf).
+    Contact details for licensed agencies are also referenced at neeman.org.il. Direct registry list URL
+    not confirmed accessible; confidence reduced accordin
+  confidence: 0.62
 - id: il_financial_serv_bank_of_israel_list_of_supervi
   name: Bank of Israel - List of Supervised Banking Corporations and Merchant Acquirers
   publisher: Bank of Israel, Banking Supervision Department
@@ -7137,6 +8014,41 @@ sources:
     out of 891 total issued. Data fields expected: company name, RPSL number, status (valid/invalid/suspended).
     The blacklist of defaulter RPSL/shipping companies is also published.'
   confidence: 0.72
+- id: in_manufacturing_india_aepc_apparel_exporter_me
+  name: India AEPC Apparel Exporter Member Directory
+  publisher: Apparel Export Promotion Council (AEPC), Ministry of Textiles, Government of India
+  url: https://www.aepcindia.com/members/
+  country: IN
+  industry: manufacturing
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: AEPC is the apex body for India's apparel exporters under the Ministry of Textiles. Online directory
+    (Apparel E-Marketplace) at aepcindia.com/members/ allows overseas buyers to search Indian apparel
+    exporters by name, location, and product. Membership grew from 35 (1985) to 8,883 (2023-24). Registration-cum-Membership
+    Certificate (RCMC) is mandatory for textile exporters. Direct URL returned timeout; existence confirmed
+    via search results and AEPC's own About page.
+  confidence: 0.72
+- id: in_manufacturing_india_special_economic_zones_o
+  name: India Special Economic Zones Operational SEZ List
+  publisher: Department of Commerce, Ministry of Commerce & Industry, Government of India
+  url: https://www.sezindia.nic.in/
+  country: IN
+  industry: manufacturing
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: false
+  notes: Government portal for India's Special Economic Zones listing all notified and operational SEZs,
+    including apparel/textile sector zones. Operational SEZ PDF list previously at sezindia.nic.in/upload/uploadfiles/files/Operational-SEZs-list.pdf
+    (connection refused on direct access). Zone-level list at /cms/list-on-notified-sezs.php includes
+    SEZ name, developer, location, and sector focus (apparel/textiles are among the sectors). Does NOT
+    list individual factory tenants. Relevant for identifying which zones host garment manufacturing clusters
+    (SEEPZ Mumbai, NSEZ Noida, Madras EPZ). Confidence lowe
+  confidence: 0.7
 - id: in_medical_clinic_wafid_gulf_health_council_accr
   name: Wafid (Gulf Health Council) - accredited Medical Centers List
   publisher: Gulf Health Council (GAMCA / Wafid)
@@ -7200,6 +8112,24 @@ sources:
     entity lists). RBI publishes the list of approved Overseas Principals and Indian Agents as PDF annexes
     to the MTSS Master Circular/Directions rather than a standalone searchable register - this Master-C
   confidence: 0.6
+- id: in_security_servi_india_psara_private_security_a
+  name: India PSARA - Private Security Agency Licensing Portal
+  publisher: Ministry of Home Affairs, Government of India (state Controlling Authorities)
+  url: https://services.india.gov.in/service/detail/portal-for-psara
+  country: IN
+  industry: security_services
+  entity_type: security_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'Private Security Agencies (Regulation) Act, 2005 (PSARA). Over 23,000 registered agencies as
+    of 2024. Licensing is state-level (each state Controlling Authority issues licences); psara.gov.in
+    is the central portal but returned 404 on direct fetch. State/UT-wise aggregate counts are on India''s
+    open data portal: https://www.data.gov.in/resource/stateut-wise-numbers-private-security-agencies-country-2812022
+    (2022 data, downloadable). Individual state portals exist (e.g., West Bengal: https://home.wb.gov.in/psa).
+    No single national downloadable list of named agencies confirmed. The data.gov.in cou'
+  confidence: 0.7
 - id: in_training_cente_mea_pre_departure_orientation_
   name: MEA Pre-Departure Orientation Training (PDOT) centres
   publisher: Ministry of External Affairs / NSDC (Pravasi Kaushal Vikas Yojana)
@@ -7216,6 +8146,168 @@ sources:
     REFUSED over http this session (ECONNREFUSED) - site is up intermittently; retry with https://www.pdot.mea.gov.in/
     and the /pdotcenters/offlinecenters path. Centre list is rendered HTML (name + loca
   confidence: 0.78
+- id: iq_company_regist_iraq_company_registration_depa
+  name: Iraq Company Registration Department - Public Company Search
+  publisher: Ministry of Trade, Republic of Iraq - General Directorate of Company Registration ( )
+  url: https://tasjeel.mot.gov.iq/sh2/national_page
+  country: IQ
+  industry: company_registry
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Publicly accessible search interface (no login required) for all companies registered with Iraq's
+    Ministry of Trade. Searchable by company name (full or partial, without the word 'company'), file
+    number, certificate number, or personal name. Covers limited liability companies, foreign companies,
+    public companies, commercial agencies, and archived companies. Companion portal business.mot.gov.iq
+    confirmed active for registration submissions. Foreign-company search at tasjeel.mot.gov.iq/sh2/forign_page.
+    A monthly bulletin of new registrations is published at tasjeel.mot.gov.iq/newtasjeel/nashra-D
+  confidence: 0.97
+- id: iq_construction_iraq_ministry_of_planning_cont
+  name: Iraq Ministry of Planning - Contractor Registration and Classification System
+  publisher: Ministry of Planning, Republic of Iraq - General Government Contracts Department ( - )
+  url: https://mop.gov.iq/en/general-government-contracts-department
+  country: IQ
+  industry: construction
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: The Ministry of Planning is the federal authority responsible for registering and classifying
+    contracting companies and contractors under Instructions No. 1 of 2015. The General Government Contracts
+    Department maintains the classification committee (sessions classify new companies and renew existing
+    registrations), the contractor blacklist (companies with contractual violations), and 18 standard
+    bidding documents. A dedicated classification sub-system was referenced at contclass.mop.gov.iq but
+    that sub-domain was unreachable at time of verification (connection refused); the main ministry porta
+  confidence: 0.78
+- id: iq_financial_serv_central_bank_of_iraq_licensed
+  name: Central Bank of Iraq - Licensed Electronic Payment Service Providers
+  publisher: Central Bank of Iraq ( )
+  url: https://cbi.iq/page/94
+  country: IQ
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Lists institutions approved by the CBI to provide electronic collection and payment services
+    in Iraq. Three sub-categories verified on page: (1) banks licensed for QR-code collection (2 institutions);
+    (2) electronic collection companies and payment gateways (8 companies, including mobile-wallet providers);
+    (3) banks and companies licensed for electronic collection and POS terminal deployment (17 entities).
+    Each entry shows company name, license type (e.g. issuer-processor-collector), responsible persons,
+    phone, and email. Governed by the Electronic Payment Services Law 2024 and prior CBI instr'
+  confidence: 0.95
+- id: iq_financial_serv_central_bank_of_iraq_licensed_2
+  name: Central Bank of Iraq - Licensed Government Banks Registry
+  publisher: Central Bank of Iraq ( )
+  url: https://cbi.iq/page/23
+  country: IQ
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Lists all 8 state-owned banks (Al-Rafidain, Al-Rasheed, Industrial Bank, Agricultural Cooperative
+    Bank, Real Estate Bank, Iraqi Trade Bank, Al-Nahrain Islamic Bank, Nishtiman Bank). Each entry includes
+    address, phone, general manager, paid capital, and license date. Related pages: cbi.iq/page/24 (24
+    private commercial banks), cbi.iq/page/113 (31 local Islamic banks), cbi.iq/page/114 (foreign commercial
+    and Islamic bank branches), cbi.iq/page/118 (foreign representative offices). All pages confirmed
+    live. Some banks are flagged '' '' (prohibited from dollar transactions) indicating ongoing regula'
+  confidence: 0.97
+- id: iq_financial_serv_iraq_securities_commission_lic
+  name: Iraq Securities Commission - Licensed Brokerage Firms Registry
+  publisher: Iraq Securities Commission ( )
+  url: https://www.isc.gov.iq/en/pages/24
+  country: IQ
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Confirmed live table of 43 licensed securities brokerage firms supervised by the Iraq Securities
+    Commission (established under Law No. 74 of 2004). Each entry includes: company name, address (Baghdad,
+    Babylon, or Kurdistan regions), authorized capital in Iraqi Dinar, phone numbers, email, website if
+    applicable, managing director name, and establishment date. Oldest firms established in the 1990s;
+    capital ranges from 70 million IQD to 10.25 billion IQD. ISC also maintains a registry of listed companies
+    at isc.gov.iq/en/companies/. Relevant for financial-services intermediaries that may facilita'
+  confidence: 0.95
+- id: iq_recruitment_ag_iraq_ministry_of_labour_and_so
+  name: 'Iraq Ministry of Labour and Social Affairs - Mihan Platform: Private Sector Companies Directory'
+  publisher: Ministry of Labour and Social Affairs, Republic of Iraq ( )
+  url: https://lvtd.gov.iq/mihan/users/companiesList
+  country: IQ
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Publicly accessible directory of private-sector companies registered with Iraq's Ministry of
+    Labour on the Mihan () employment platform. Shows 1,176 companies as of the time of verification;
+    searchable by company name and governorate (all 16 Iraqi provinces). Companies must hold a Ministry-issued
+    Employment License to legally recruit or sponsor local or foreign workers under Iraqi Labour Law.
+    This is the most accessible public-facing registry for labour-supply, manpower, and recruitment firms
+    operating in Iraq, though it is an employment-services registration rather than a standalone 'recruitm
+  confidence: 0.88
+- id: iq_remittance_central_bank_of_iraq_licensed
+  name: Central Bank of Iraq - Licensed Exchange Companies (Non-Banking Financial Institutions)
+  publisher: Central Bank of Iraq ( )
+  url: https://cbi.iq/page/25
+  country: IQ
+  industry: remittance
+  entity_type: remittance
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'The CBI''s non-banking financial institutions page. Provides a downloadable Excel file of all
+    licensed exchange companies ( ) in categories A (private joint-stock, larger operations) and B (LLC,
+    smaller), plus category C intermediary companies. File confirmed downloaded and readable: cbi.iq/static/uploads/up/file-176423345220463.xlsx
+    - contains 1,634 unique string entries across three worksheets, listing named exchange companies with
+    classification. Also covers electronic payment companies (linked from cbi.iq/page/94: 27+ entities
+    across 3 sub-categories with license type, responsible person, a'
+  confidence: 0.97
+- id: iq_training_cente_iraq_ministry_of_labour_and_so
+  name: 'Iraq Ministry of Labour and Social Affairs - Mihan Platform: Vocational Training Centres Directory'
+  publisher: Ministry of Labour and Social Affairs, Republic of Iraq ( )
+  url: https://lvtd.gov.iq/mihan/users/vtcsList
+  country: IQ
+  industry: training_center
+  entity_type: training_center
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Publicly accessible directory of vocational training centres ( ) registered with Iraq's Ministry
+    of Labour on the Mihan platform. Shows 40 registered centres as of verification; searchable by centre
+    name. Each profile displays centre name, training focus (educational, vocational, entrepreneurial),
+    and contact email; location details vary by centre. The Ministry of Labour jointly administers TVET
+    with the Ministry of Education under the Technical and Vocational Qualifications Framework (TVQF)
+    approved by the Council of Ministers. Training courses browsable at lvtd.gov.iq/mihan/Training/Training
+  confidence: 0.88
+- id: it_agriculture_italy_decreto_flussi_ali_porta
+  name: Italy Decreto Flussi - ALI Portal (Sportello Unico Immigrazione employer applications)
+  publisher: Ministero dell'Interno - Dipartimento per le Libert Civili e l'Immigrazione
+  url: https://portaleservizi.dlci.interno.gov.it/AliSportello/ali/home.htm
+  country: IT
+  industry: agriculture
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'The ALI (Applicazione Lavoratori Immigrati) portal is the official Italian government system
+    through which employers submit nulla osta (work authorisation) requests for non-EU seasonal agricultural
+    workers under the annual Decreto Flussi. In 2026, 88,000 seasonal slots were allocated (40,075 specifically
+    for agriculture), with ''click day'' opening 12 January 2026. This is an application intake portal,
+    not a public employer list-individual employer records are not public. Decree flussi information:
+    http://www.libertaciviliimmigrazione.dlci.interno.gov.it/it/decreto-flussi. Portal URL reported in'
+  confidence: 0.75
 - id: it_agriculture_rlaq_rete_del_lavoro_agricolo
   name: RLAQ - Rete del Lavoro Agricolo di Qualit (Quality Agricultural Labour Network Registry)
   publisher: INPS - Istituto Nazionale della Previdenza Sociale (Italian National Social Security Institute)
@@ -8246,6 +9338,24 @@ sources:
     (300 KB, ~18 pages, alphabetical, with contact details). September 2025 edition: https://www.centralbank.go.ke/wp-content/uploads/2025/09/Directory-of-Digital-Credit-Providers-September-2-2025.pdf.
     As of mid-2025, 227 licensed DCPs. Licensed under the Central Bank of Kenya (Amendment) Act 2021.'
   confidence: 0.95
+- id: ke_recruitment_ag_kenya_national_employment_auth
+  name: Kenya National Employment Authority - Licensed Recruitment Agency Verify Tool
+  publisher: State Department for Diaspora Affairs / National Employment Authority (NEA), Kenya
+  url: https://diaspora.go.ke/verify
+  country: KE
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Official Kenyan government verification portal for overseas recruitment agencies licensed by
+    the National Employment Authority (NEA) under the Ministry of Labour and Social Protection. Searchable
+    by agency name, NEA registration number, or email; displays licence status (Valid/Suspended/Expired),
+    service types, and contact details. At time of fetch the live table showed '0 licensed agencies' -
+    likely a data-refresh lag rather than an empty registry, as multiple agencies are known to hold NEA
+    licences. No bulk download confirmed.
+  confidence: 0.85
 - id: ke_recruitment_ag_nea_register_of_accredited_pri
   name: NEA Register of Accredited Private Employment Agencies (NEAIMS)
   publisher: National Employment Authority (NEA), Ministry of Labour and Social Protection
@@ -8689,6 +9799,24 @@ sources:
     names. BFC is not a government registry but operates under a mandate from the Cambodian government
     (MLVT par
   confidence: 0.82
+- id: kh_manufacturing_better_factories_cambodia_tran
+  name: Better Factories Cambodia Transparency Database
+  publisher: Better Factories Cambodia (ILO / IFC joint programme)
+  url: https://transparency.betterfactories.org/en
+  country: KH
+  industry: manufacturing
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Online transparency portal publishing factory-level compliance assessment results for Cambodia's
+    export garment sector. Shows factory names, non-compliance findings on critical issues (OSH, forced
+    labour, child labour, freedom of association, discrimination, wages). Critical issues list at /en/critical-issues/factory;
+    low-compliance list at /en/low-compliance/factory. Only factories with 2+ assessments are publicly
+    reported. Covers approximately 78% of garment factories licensed to export. URL returned minimal content
+    on direct fetch but resolves per search results; treat url_verified=false.
+  confidence: 0.87
 - id: kh_money_lender_nbc_list_of_microfinance_depos
   name: NBC List of Microfinance Deposit-Taking Institutions (MDIs)
   publisher: National Bank of Cambodia (NBC)
@@ -9322,6 +10450,153 @@ sources:
     official accreditation council decision documents and external evaluation reports. Filterable by accreditation
     type (institutional/programme) and institution type. Over 280 colleges listed (28+ pages).
   confidence: 0.88
+- id: la_company_regist_national_enterprise_database_n
+  name: National Enterprise Database (NED) - Enterprise Registration Search
+  publisher: Department of Enterprise Registration and Management (DERM), Ministry of Industry and Commerce
+    (MOIC), Lao PDR
+  url: http://www.ned.moic.gov.la/index.php/en/
+  country: LA
+  industry: company_registry
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: The NED is the official national company/enterprise registration database for all sectors in
+    Laos, maintained by MOIC-DERM. A public-facing search interface ('Search the Register', 'Data Mapping',
+    'National Statistics') is described on the site. However, the web-service API for bulk data integration
+    is restricted to Lao government entities under MOU. The site was unreachable via direct fetch during
+    research (connection refused), so url_verified=false. Also accessible under legacy URL http://erm.gov.la/index.php/en/.
+    The Business Operating Licenses inventory at http://bned.moic.gov.la/en is a s
+  confidence: 0.72
+- id: la_financial_serv_bank_of_the_lao_pdr_licensed_c
+  name: Bank of the Lao PDR - Licensed Commercial Banks and Financial Institutions List
+  publisher: Bank of the Lao PDR (BOL)
+  url: https://www.bol.gov.la/en/comercial_bank
+  country: LA
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'The BOL publishes a ''Banks in Laos'' page listing all licensed commercial banks, specialized
+    banks, and non-bank financial institutions under its supervision. As of 2025 the sector includes 35
+    banks (1 state-owned, 1 specialized, 5 joint state-commercial, 7 domestic private, 9 foreign subsidiaries,
+    12 foreign branches). The page was confirmed to exist via Google search snippets (title: ''Banks in
+    Laos'' at bol.gov.la/en/comercial_bank) but could not be fetched directly due to an invalid SSL certificate.
+    url_verified=false.'
+  confidence: 0.75
+- id: la_money_lender_bank_of_the_lao_pdr_microfinan
+  name: Bank of the Lao PDR - Microfinance Institutions (Licensed MFIs)
+  publisher: Bank of the Lao PDR (BOL), Financial Institution Supervision Department
+  url: https://www.bol.gov.la/en/co-microfinance-head
+  country: LA
+  industry: money_lender
+  entity_type: lender
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'The BOL is the sole licensing authority for three categories of microfinance institutions: Deposit-Taking
+    MFIs (DTMFIs), Non-Deposit-Taking MFIs (NDTMFIs), and Savings & Credit Unions (SCUs) under Decree
+    No. 184/G (20 June 2022). Over 120 MFIs were licensed by end-2017; the current figure is higher. A
+    microfinance section exists at bol.gov.la/en/co-microfinance-head but was unreachable via direct fetch
+    (SSL error); url_verified=false. Cross-reference: the private industry body Lao Microfinance Association
+    (laomfa.org/microfinance-association-members-list/) publishes a members list of ~85+ BOL-'
+  confidence: 0.68
+- id: la_money_lender_lao_microfinance_association_m
+  name: Lao Microfinance Association - Member Institutions Directory
+  publisher: Lao Microfinance Association (LMFA), a private industry association whose members are licensed
+    by the Bank of Lao PDR
+  url: https://laomfa.org/microfinance-association-members-list/
+  country: LA
+  industry: money_lender
+  entity_type: lender
+  access_tier: free
+  official: false
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Confirmed accessible via WebFetch. Lists approximately 85+ microfinance institutions categorised
+    by licence type: DTMFI (Deposit-Taking), NDTMFI (Non-Deposit-Taking), and SCU (Savings & Credit Union).
+    Each entry includes institution name, province, telephone, email and social media. LMFA is a private
+    voluntary association (licensed by Ministry of Home Affairs, not a regulator), but all listed members
+    hold BOL licences. Not a complete official registry - some BOL-licensed MFIs may not be LMFA members.'
+  confidence: 0.8
+- id: la_recruitment_ag_lao_employment_business_associ
+  name: Lao Employment Business Association (LEBA) - Member Recruitment Agency Directory
+  publisher: Lao Employment Business Association (LEBA), a non-profit under MOLSW supervision
+  url: https://leba.la/
+  country: LA
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: false
+  has_data_endpoint: false
+  url_verified: false
+  notes: LEBA is the first industry association of private employment/overseas recruitment agencies in
+    Laos, officially launched 28 June 2024. It operates under MOLSW supervision and its formation regulation
+    was adopted January 2024. The website (leba.la) has an organisation/members section but returned HTTP
+    403 during both fetch attempts; url_verified=false. Not a government regulator - membership is voluntary
+    - but all members should hold MOLSW overseas employment licences. Included because it may provide
+    the most accessible roster of named licensed agencies once the site is accessible.
+  confidence: 0.5
+- id: la_recruitment_ag_ministry_of_labour_and_social
+  name: Ministry of Labour and Social Welfare - Overseas Employment Service Enterprise Licences
+  publisher: Skills Development and Employment Department (SDED), Ministry of Labour and Social Welfare
+    (MOLSW), Lao PDR
+  url: https://molsw.gov.la/
+  country: LA
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: MOLSW (through SDED) is the licensing authority for Overseas Employment Service Enterprises under
+    Decree No. 245/PM (2020) and Ministerial Agreement No. 1050 (2022), now being revised to align with
+    the Employment Law (2023). As of July 2023, 48 agencies were licensed to send Lao workers abroad;
+    by Q3 2025 the figure was 43 (ILO TRIANGLE in ASEAN Quarterly Briefing Notes). The MOLSW website (molsw.gov.la)
+    is the official home of this licensing regime but was connection-refused during research; url_verified=false.
+    No public downloadable list of named licensees was found. The Lao Employment Busin
+  confidence: 0.62
+- id: la_remittance_bank_of_the_lao_pdr_licensed_p
+  name: Bank of the Lao PDR - Licensed Payment Service Providers
+  publisher: Bank of the Lao PDR (BOL), Payment System Management Department
+  url: https://www.bol.gov.la/en/Licensed_payment_Service
+  country: LA
+  industry: remittance
+  entity_type: remittance
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: The BOL publishes a 'Licensed Payment Service Providers' page (and a companion 'Licensed_payment_Service_H'
+    page) listing entities authorised to provide domestic and cross-border payment/remittance services
+    under BOL Decision No. 511/BOL (19 June 2025) which replaced Decision No. 1058/BOL (2016). Known licensed
+    operators include BCEL, M-Money, LaoVietBank, BIC Bank Laos and others. Page confirmed in Google search
+    index but unreachable via direct fetch due to SSL certificate issue; url_verified=false.
+  confidence: 0.7
+- id: la_training_cente_ministry_of_education_and_spor
+  name: Ministry of Education and Sports / Ministry of Labour and Social Welfare - TVET Institution List
+    (via sea-vet.net)
+  publisher: Ministry of Education and Sports (MoES) and Ministry of Labour and Social Welfare (MOLSW),
+    Lao PDR; aggregated by UNESCO-UNEVOC via SEA-VET network
+  url: https://sea-vet.net/lao-pdr
+  country: LA
+  industry: training_center
+  entity_type: training_center
+  access_tier: free
+  official: false
+  has_data_endpoint: false
+  url_verified: false
+  notes: Laos has approximately 23 public and 65 private TVET institutions. Short-term skills training
+    (<12 months) is regulated by MOLSW; longer TVET programmes (>12 months) by MoES under the TVET Law
+    (2013). No unified public accreditation register with a searchable URL was found on official Lao government
+    websites. The SEA-VET portal (sea-vet.net/lao-pdr) aggregates TVET system data for Lao PDR and is
+    a UNESCO-supported reference, but is not itself the official national registry. The DCT Hub maintained
+    by Lao National Chamber of Commerce (dct.lncci.la/en/business/dct-hub/tvet-institutions/) returned
+  confidence: 0.35
 - id: lb_care_home_lebanon_ministry_of_public_hea
   name: Lebanon Ministry of Public Health - List of Elderly Centers
   publisher: Ministry of Public Health (MoPH), Republic of Lebanon
@@ -9566,6 +10841,24 @@ sources:
     A-Z alphabetical directory; 1-5 star agency ratings. Crucially exposes DOWNLOADABLE lists: ''List
     of Valid Recruitment Agencies as at <date>'' and ''List of Temporarily Suspended / Cancelled Ag'
   confidence: 0.97
+- id: lk_recruitment_ag_sri_lanka_bureau_of_foreign_em
+  name: Sri Lanka Bureau of Foreign Employment - Licensed Recruitment Agencies
+  publisher: Sri Lanka Bureau of Foreign Employment (SLBFE)
+  url: https://applications.slbfe.lk/feb/la/la_main.asp?&LID=1
+  country: LK
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Full searchable database of SLBFE-licensed foreign employment agencies. Search by licence number,
+    agency name, address, district, or destination country (including Saudi Arabia, UAE, Kuwait, Israel,
+    etc.). Downloadable lists: ''List of Valid Recruitment Agencies as at [date]'' and ''List of Temporarily
+    Suspended / Cancelled Agencies'' both available as downloads at time of fetch (15-Jun-2026). Also
+    shows star ratings (1-5) from Excellence Awards. Informational gateway at slbfe.lk/licensed-recruitment-agencies-in-sri-lanka/
+    links here.'
+  confidence: 0.98
 - id: lk_remittance_cbsl_remitting_agents_ras_othe
   name: CBSL Remitting Agents (RAs) & Other Remitting Channels (ORCs) tied to Licensed Banks
   publisher: Central Bank of Sri Lanka (CBSL)
@@ -10142,6 +11435,155 @@ sources:
     CBM has revoked and reinstated licences (e.g. 9 dealers revoked March 2024), so the list is updated
     regularly. Page c'
   confidence: 0.98
+- id: mn_company_regist_general_authority_for_state_re
+  name: General Authority for State Registration (GASR) - Legal Entity Registry
+  publisher: General Authority for State Registration of Mongolia ( ), under Ministry of Justice and Home
+    Affairs
+  url: https://burtgel.gov.mn
+  country: MN
+  industry: company_registry
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: National registry of all legal entities registered in Mongolia - over 250,000 entities including
+    LLCs, JSCs, partnerships, branches of foreign companies, and non-profits. Search is primarily in Mongolian
+    Cyrillic; partial English UI at eng.burtgel.gov.mn (TLS cert issues on that subdomain). No bulk download
+    API documented; individual company lookups are free. English info page at https://www.gov.mn/en/organization/burtgel.
+    This is the baseline cross-sector registry covering all industries including construction, manufacturing,
+    agriculture, security services, and domestic-worker placement where
+  confidence: 0.95
+- id: mn_construction_ministry_of_urban_development
+  name: Ministry of Urban Development, Construction and Housing - Construction Special Permit Holders
+    Lists
+  publisher: Ministry of Urban Development, Construction and Housing of Mongolia ( , , - MCUD)
+  url: https://mcud.gov.mn/as/tz
+  country: MN
+  industry: construction
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Ministry page listing downloadable registers of entities holding special permits for: construction
+    work ( ), building design ( ), urban planning documentation, construction materials manufacturing,
+    and geodesy services. Lists updated periodically - most recent version confirmed as of 30 January
+    2026. Files are static downloads (PDF/Excel) rather than a live search interface. Centralized electronic
+    permit portal also at https://license.mcis.gov.mn/ (SSL issue prevented direct verification). Ministry
+    website: https://mcud.gov.mn/?locale=en.'
+  confidence: 0.9
+- id: mn_fishing_seafoo_mongolia_maritime_administrati
+  name: Mongolia Maritime Administration - Ship Registration Verification
+  publisher: Mongolia Maritime Administration ( - MMA), under Ministry of Roads and Transport Development
+  url: https://www.monmarad.gov.mn/en/ship-registration-monitoring
+  country: MN
+  industry: fishing_seafood
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Mongolia operates a landlocked open ship registry with approximately 4,700 registered vessels
+    (commercial, cargo, and fishing types). Public ship registration verification tool at https://shipregistry.monmarad.gov.mn/verify
+    (SSL issue prevented direct fetch but referenced on the MMA homepage). Mongolian Maritime Database
+    with vessel search/filtering at https://www.lrit.monmarad.mn/ (login status unclear). MMA homepage
+    confirmed accessible at https://monmarad.gov.mn/en/. Mongolia is ILO-convention signatory and the
+    registry operates from Ulaanbaatar. Note: Mongolia has minimal domestic fishing '
+  confidence: 0.82
+- id: mn_money_lender_financial_regulatory_commissio
+  name: Financial Regulatory Commission (FRC) - Licensed Non-Bank Financial Institutions, Insurance and
+    Securities Registry
+  publisher: Financial Regulatory Commission of Mongolia ( - FRC)
+  url: https://www.frc.mn
+  country: MN
+  industry: money_lender
+  entity_type: lender
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: false
+  notes: The FRC is Mongolia's statutory regulator for non-bank financial institutions (NBFIs), insurance
+    companies and intermediaries, securities firms, and savings and credit cooperatives. As of Q1 2025,
+    575 licensed NBFIs operate in Mongolia. The FRC publishes quarterly Financial Market Reviews at frc.mn/resources
+    (e.g. https://www.frc.mn/resources/Image/Document/202506/ftMDd/Financial-Market-Review-First-Quarter-of-2025.pdf)
+    listing counts of licensed entities by category. Electronic licensing portal at https://license.frc.mn/home.
+    FRC brochure at https://www.frc.mn/resource/frc/Document/2020/06/23
+  confidence: 0.88
+- id: mn_other_mineral_resources_and_petroleu
+  name: Mineral Resources and Petroleum Authority of Mongolia (MRPAM) - Mining License Holders Registry
+  publisher: Mineral Resources and Petroleum Authority of Mongolia ( - MRPAM)
+  url: https://mrpam.gov.mn/page/55
+  country: MN
+  industry: other
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Public registry of special permit holders for mineral exploration and extraction ( ). Downloadable
+    Excel files for 2022, 2023, and 2024 are available. As of April 2026, 2,823 active permits covering
+    3.3 million hectares. Canonical resolved URL: https://mrpam.gov.mn/page/tusgai-zuvshuurul-ezemshigch.
+    Interactive cadastre at https://cmcs.mrpam.gov.mn/cmcs. Geology and mining information system at https://gmis.mrpam.gov.mn/.
+    Open data via https://opendata.gov.mn. Relevant for DueCare screening because Mongolia''s large mining
+    sector employs domestic and migrant labour under conditions of known exp'
+  confidence: 0.97
+- id: mn_recruitment_ag_ministry_of_family_labour_and
+  name: Ministry of Family, Labour and Social Protection (MLSP) - Licensed Overseas Employment Placement
+    Agencies
+  publisher: Ministry of Family, Labour and Social Protection of Mongolia (, - MLSP)
+  url: https://mlsp.gov.mn/content/detail/1055
+  country: MN
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: The MLSP issues special permits ( ) to private agencies authorized to place Mongolian workers
+    abroad, regulated under the Labour Migration Law (effective July 2022, replacing the 2001 law). The
+    page at mlsp.gov.mn/content/detail/1055 describes overseas employment programmes and links to a downloadable
+    PDF of organizations authorized to arrange placements, primarily for Japan's skilled trainee programme.
+    As of May 2021, 74 agencies were listed; a PDF was downloadable at https://mlsp.gov.mn/uploads/files/zuuchlakh_erhtei_org_2021_05.pdf
+    (PDF binary confirmed downloaded, content extraction failed
+  confidence: 0.78
+- id: mn_remittance_bank_of_mongolia_licensed_paym
+  name: Bank of Mongolia - Licensed Payment Service Providers Registry
+  publisher: Bank of Mongolia ()
+  url: https://www.mongolbank.mn/en/p/1305
+  country: MN
+  industry: remittance
+  entity_type: remittance
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Official list of entities licensed under the Law on National Payment System, covering card-issuing/acquiring
+    banks and non-banks, e-money issuers, settlement agents, and electronic funds transfer operators -
+    which includes remittance/money-transfer service providers such as Send MN NBFI LLC, Mobifinance NBFI
+    LLC, and SuperUp Wallet LLC. Downloadable PDF updated periodically; most recent confirmed update dated
+    22 April 2026 at https://www.mongolbank.mn/file/1212c814fc3f8b03f5b4f46787adf73d/files/licenseLastUpdate20260422.pdf.
+    Page also reachable via the Bank of Mongolia licensing portal at http
+  confidence: 0.97
+- id: mn_training_cente_ministry_of_family_labour_and
+  name: Ministry of Family, Labour and Social Protection (MLSP) - Licensed Vocational Education and Training
+    (TVET) Institutions
+  publisher: Ministry of Family, Labour and Social Protection of Mongolia (MLSP)
+  url: https://mlsp.gov.mn/content/detail/1060
+  country: MN
+  industry: training_center
+  entity_type: training_center
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'The MLSP is the licensing authority for vocational education and training (TVET) institutions
+    in Mongolia under the Law on Vocational Education and Training. Page at mlsp.gov.mn/content/detail/1060
+    confirms the MLSP grants special permits to TVET providers. License fees: 160,000-400,000 MNT for
+    new licenses; renewals due by 31 March annually. No publicly accessible downloadable list of licensed
+    institutions was found on the MLSP site. Accreditation of HE and TVET institutions is separately conducted
+    by the Mongolian National Council for Education Accreditation (MNCEA) at http://mncea.edu.mn (p'
+  confidence: 0.72
 - id: mt_care_home_older_persons_standards_author
   name: Older Persons Standards Authority (OPSA) - Register of Licensed Service Providers
   publisher: Older Persons Standards Authority (OPSA)
@@ -10886,6 +12328,24 @@ sources:
     status and sector. The registry operates as a public catalogue intended to let travellers verify legitimate
     providers. Registration is free for providers; the portal is free for public consu
   confidence: 0.85
+- id: mx_manufacturing_mexico_inegi_immex_programme_s
+  name: Mexico INEGI IMMEX Programme Statistical Database
+  publisher: Instituto Nacional de Estadstica y Geografa (INEGI), Mexico
+  url: https://en.www.inegi.org.mx/programas/immex/
+  country: MX
+  industry: manufacturing
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'INEGI publishes aggregate monthly statistics on Mexico''s IMMEX (Manufacturing, Maquila and
+    Export Services) programme covering ~6,313 authorised companies. Data available from July 2007. Provides
+    employment, output, and trade statistics but NOT a company-level directory with names and addresses.
+    The Secretara de Economa (economia.gob.mx) is the body that issues IMMEX authorisations; company-level
+    lists of suspended/cancelled IMMEX holders are published in the Diario Oficial de la Federacin (DOF)
+    but not as a clean downloadable registry. Note: as of December 2024, apparel (HS Chapters 61-63) wa'
+  confidence: 0.68
 - id: mx_medical_clinic_catlogo_clues_clave_nica_de_es
   name: Catlogo CLUES - Clave nica de Establecimientos de Salud (DGIS / Secretara de Salud)
   publisher: Direccin General de Informacin en Salud (DGIS), Secretara de Salud
@@ -11145,6 +12605,41 @@ sources:
     MSB agents. BNM publishes downloadable PDFs e.g. ''1b_total_licensees_by_type_of_business_remittance.pdf''
     under /documents/20124/... (high-value scrapable list). url_verified=false: BNM site returned HTTP'
   confidence: 0.9
+- id: my_security_servi_esims_senarai_syarikat_kawalan
+  name: eSIMS - Senarai Syarikat Kawalan Keselamatan (Registered Security Companies)
+  publisher: Ministry of Home Affairs Malaysia (Kementerian Dalam Negeri / KDN)
+  url: https://esims.moha.gov.my/opendata/
+  country: MY
+  industry: security_services
+  entity_type: security_services
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: false
+  notes: 'Sistem Pengurusan Industri Keselamatan (eSIMS). Official title: ''Senarai Syarikat Kawalan Keselamatan
+    berdaftar di bawah Akta Agensi Persendirian 1971'' (List of Security Service Companies Registered
+    under the Private Agency Act 1971). The /opendata/ path is listed as the open data endpoint in official
+    MOH communications; SSL certificate issues prevented direct fetch. Searchable company status check
+    also at https://esims.moha.gov.my/semakan/main/pengawal. Contact: unitagensi@moha.gov.my, Tel: 03-8886
+    8571. Data mirrored on Malaysian open data aggregators by region and licence type.'
+  confidence: 0.78
+- id: my_security_servi_malaysia_esims_semakan_pengawa
+  name: Malaysia eSIMS - Semakan Pengawal Keselamatan (Security Guard Checker)
+  publisher: Ministry of Home Affairs Malaysia (KDN / MOHA)
+  url: https://esims.moha.gov.my/semakan/main/pengawal
+  country: MY
+  industry: security_services
+  entity_type: security_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'Individual security guard licence verification portal within eSIMS. Allows public check of registered
+    security personnel. SSL certificate issues prevented direct fetch but URL confirmed via official MOHA
+    references and Facebook posts from PIKM (industry association). Companion to the company opendata
+    list at esims.moha.gov.my/opendata/. Both operated by Unit Regulatori Syarikat Keselamatan, MOHA.
+    Contact: 03-8886 8571.'
+  confidence: 0.65
 - id: my_security_servi_moha_kdn_list_of_licensed_priv
   name: MOHA/KDN List of Licensed Private Security & Investigation Agencies (Agensi Persendirian)
   publisher: Kementerian Dalam Negeri (KDN) / Ministry of Home Affairs Malaysia
@@ -11802,6 +13297,23 @@ sources:
     companies. Page fetched and confirmed: register confirmed publicly searchable online; no bulk download
     ment'
   confidence: 0.88
+- id: np_agriculture_nepal_dofe_licensed_manpower_a
+  name: Nepal DOFE Licensed Manpower Agencies - Recognised Destinations
+  publisher: Department of Foreign Employment (DOFE), Nepal
+  url: https://dofe.gov.np/recognized.aspx
+  country: NP
+  industry: agriculture
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: false
+  notes: 'The Department of Foreign Employment (DOFE) under Nepal''s Ministry of Labour, Employment and
+    Social Security publishes a list of recognised destination countries and maintains downloadable records
+    of licensed manpower agencies, including those placing workers in Gulf/Asian agriculture and horticulture
+    sectors. Downloads section: https://www.dofe.gov.np/new/download. The page returned ECONNREFUSED on
+    direct fetch; url_verified=false. Agency list typically available in PDF format on the DOFE site.'
+  confidence: 0.68
 - id: np_company_regist_office_of_the_company_registra
   name: Office of the Company Registrar - Company Search (CAMIS)
   publisher: Office of the Company Registrar (OCR), Ministry of Industry, Commerce and Supplies
@@ -12724,6 +14236,207 @@ sources:
     Note: page showed ''No se encontraron acreditaciones vigentes'' under default filters - filters must
     be'
   confidence: 0.87
+- id: pg_agriculture_coffee_industry_corporation_li
+  name: Coffee Industry Corporation - Licensed Exporters Directory
+  publisher: Coffee Industry Corporation (CIC), Papua New Guinea
+  url: https://www.cic.org.pg/coffee-exporters/
+  country: PG
+  industry: agriculture
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'The CIC, established under the Coffee Industry Corporation Act 1991, licenses coffee dealers
+    (manufacturers, exporters, processors, permit-to-build) operating in PNG. The public web page displays
+    a ''Licensed Exporters Director for 2024 Calendar Year'' listing 27 licensed exporters with full details:
+    factory/company name, address, manager name and contact (phone, mobile, email), licence status (Current
+    or New), district, and province. Web-based table; no CSV/PDF download confirmed. CIC also licenses
+    wet and dry processors whose details may be available on request. Relevant for screening plantati'
+  confidence: 0.97
+- id: pg_company_regist_ipa_business_entities_registry
+  name: IPA Business Entities Registry (Companies Office)
+  publisher: Investment Promotion Authority (IPA) of Papua New Guinea
+  url: https://www.ipa.gov.pg/corp/search.aspx
+  country: PG
+  industry: company_registry
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Statutory national registry for all companies, incorporated associations, business groups, and
+    business names under the Companies Act 1997 and Business Names Act. Free public search by entity name
+    or registration number at /corp/search.aspx (Business Entity Search) and /corp/namesearch.aspx (Name
+    Availability Search). A free account unlocks detailed filing history and document downloads. Relevant
+    for screening any registered business in PNG across all sectors. Search directly at the URL above
+    or via the portal at ipa.gov.pg.
+  confidence: 0.99
+- id: pg_construction_png_forest_authority_logging_c
+  name: PNG Forest Authority - Logging Concession Permits
+  publisher: Papua New Guinea Forest Authority (PNGFA)
+  url: https://www.pngfa.gov.pg/
+  country: PG
+  industry: construction
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'The PNGFA, under the Forestry Act 1991, issues timber permits (35-year exclusive rights), Forest
+    Management Agreements (FMAs, 50 years), Forest Clearing Authorities (FCAs), and Local Forest Area
+    licences to logging operators. As of 2019: 128 approved timber projects, 115 operational. As of 2024:
+    65 of 67 active FCAs held by Malaysian-linked companies. A moratorium on new FCAs was declared in
+    2023. No publicly downloadable concession register was found; the PNGFA website was largely inaccessible
+    (returning minimal content or coming-soon pages during research). For active concession data contact'
+  confidence: 0.61
+- id: pg_financial_serv_bank_of_png_licensed_entities
+  name: Bank of PNG Licensed Entities Register
+  publisher: Bank of Papua New Guinea (BPNG)
+  url: https://www.bankpng.gov.pg/regulation-and-supervision/licensed-entities
+  country: PG
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'The Bank of PNG publishes an updated list (as at 31 October 2025) of all entities licensed under
+    the Central Banking Act 2000, Banks & Financial Institutions Act 2000, Savings and Loan Societies
+    Act 2015, Superannuation (General Provisions) Act 2000, Life Insurance Act 2000, and National Payments
+    Act 2013. Categories confirmed in search-result snippets include: licensed banks (BSP, Kina Bank,
+    ANZ, Westpac), licensed financial institutions/microfinance (Nationwide Microbank, Women''s Micro
+    Bank, Kada Poroman, etc.), savings and loan societies, superannuation funds, life insurance companies,
+    and '
+  confidence: 0.93
+- id: pg_financial_serv_securities_commission_of_png_l
+  name: Securities Commission of PNG - Licensed & Approved Capital Market Participants
+  publisher: Securities Commission of Papua New Guinea (SCPNG)
+  url: https://www.scpng.gov.pg/license/
+  country: PG
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Public web register maintained by the SCPNG under the Capital Market Act 2015. Lists entities
+    licensed in six categories: Dealing in Securities (15 firms), Fund Management (22 firms), Advising
+    on Corporate Finance (17 firms), Investment Advice (18 firms), Financial Planning (8 firms), Trustee
+    Services (12 firms). Also lists Approved Capital Market Institutions (investment schemes, stock exchanges,
+    central depository). Notable licensees include Kina Securities Ltd, JMP Securities Ltd, Kina Wealth
+    Management. Web-based listing only; no bulk download confirmed. Contact: ask@scpng.gov.pg. Relevant'
+  confidence: 0.97
+- id: pg_fishing_seafoo_national_fisheries_authority_v
+  name: National Fisheries Authority - Vessel License List (FIMS)
+  publisher: National Fisheries Authority (NFA), Papua New Guinea
+  url: https://www.fisheries.gov.pg/nfa-licensing-information
+  country: PG
+  industry: fishing_seafood
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: The NFA, established under the Fisheries Management Act 1998, licenses all commercial fishing
+    vessels and operators in PNG's EEZ. The licensing page links to a downloadable PDF 'Vessel License
+    List' (most recent static PDF dated 24 April 2017 at https://www.fisheries.gov.pg/_files/ugd/2c6676_5a467dc952424854b6a6589ffdaef169.pdf)
+    and an electronic licensing portal FIMS (Fisheries Information Management System) at https://nfa.fimsportal.com/
+    for current licensing data. Since June 2023 NFA shares vessel monitoring data via Global Fishing Watch
+    (approx. 50 purse seine vessels). Covers bilateral an
+  confidence: 0.92
+- id: pg_hotel_png_tourism_promotion_authorit
+  name: PNG Tourism Promotion Authority - Accommodation Accreditation Scheme
+  publisher: Papua New Guinea Tourism Promotion Authority (PNGTPA)
+  url: https://papuanewguinea.travel/accommodation-accreditation-scheme/
+  country: PG
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'The PNGTPA, a statutory body under the Tourism Promotion Act 1993, administers a voluntary Accommodation
+    Accreditation Scheme covering hotels, self-catering, guesthouses, backpackers, traditional, and trekker
+    accommodation. Accreditation requires annual TPA inspection and compliance with the PNG Tourism Industry
+    Code of Practice. No public searchable directory of accredited operators was found on the website
+    as at research date; the scheme is voluntary and the list of current participants is not published
+    online. For the list of accredited operators contact TPA directly. Note: this is a qualit'
+  confidence: 0.7
+- id: pg_manning_agency_national_maritime_safety_autho
+  name: National Maritime Safety Authority - Ship Register
+  publisher: National Maritime Safety Authority (NMSA), Papua New Guinea
+  url: https://www.nmsa.gov.pg/shipping/ship-registration/
+  country: PG
+  industry: manning_agency
+  entity_type: manning_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'NMSA, established by the NMSA Act 2003, maintains the PNG Ship Register for all vessels 10 m
+    and above operating on the PNG coast. Issues Minimum Safe Manning Documents and Crewman''s Employment
+    Record Books (CERBs) to seafarers. The ship registration page was reported as ''under maintenance''
+    at time of research. No separate public register of licensed manning agents was found on the NMSA
+    website; manning oversight is handled through vessel certification rather than a separate agent registry.
+    For verified ship-register data contact NMSA at Level 3 Defence Haus, Port Moresby (+675 70053054).
+    The '
+  confidence: 0.72
+- id: pg_recruitment_ag_department_of_labour_industria
+  name: Department of Labour & Industrial Relations - Employment Agent Licensing
+  publisher: Department of Labour & Industrial Relations (DLIR), Papua New Guinea
+  url: https://www.labour.gov.pg/policy-employment-international-labour/national-employment/
+  country: PG
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'The Employment Agents Licensing and Monitoring Unit (EALMU) within DLIR issues and regulates
+    all commercial employment agent licences under the Employment Act 1978. Covers in-country placements,
+    labour hire, overseas labour export, and recruitment of non-citizens. Licensing fee scale: K500-K11,400
+    for new applications. Licensed agents must submit monthly returns. No publicly downloadable list of
+    licensed agents was found on the website; the Gazette Notice listing licensed agents is available
+    on request from the National Employment Services Division (Ground Floor, Gaukara Rumana, Wardstrip
+    Road'
+  confidence: 0.82
+- id: pg_remittance_bank_of_png_aml_ctf_registered
+  name: Bank of PNG AML/CTF Registered Financial Institutions
+  publisher: Bank of Papua New Guinea - Financial Analysis and Supervision Unit (FASU)
+  url: https://www.bankpng.gov.pg/amlctf/registered-financial-institutions
+  country: PG
+  industry: remittance
+  entity_type: remittance
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'Separate from the prudential register, FASU publishes a list of reporting entities registered
+    under the Anti-Money Laundering and Counter Terrorist Financing Act 2015. As at March 2026 the list
+    contained 100 registered financial institutions. Includes remittance operators, money changers, and
+    foreign-exchange dealers alongside banks and microfinance. Covers the institutions legally required
+    to file suspicious-transaction and threshold-transaction reports. Licensed remittance operators confirmed
+    in search snippets: Digicel (PNG) Financial Services Ltd (inward only), MH Money Express (PNG) Ltd, '
+  confidence: 0.88
+- id: pg_security_servi_security_industries_authority
+  name: Security Industries Authority - Register of Licensed Security Companies
+  publisher: Security Industries Authority (SIA), Papua New Guinea
+  url: https://sia.gov.pg/security-companies-information/
+  country: PG
+  industry: security_services
+  entity_type: security_services
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'The SIA, established under the Security (Protection) Industries Act 2004, publishes annual PDF
+    lists of all licensed private security companies in PNG. As of December 2023: 569 licensed companies,
+    30,126 permitted guards. Downloadable annual PDFs available directly: 2024 list at https://sia.gov.pg/wp-content/uploads/2024/09/2024-REGISTERED-SECURITY-COMPANIES.pdf;
+    2023 at https://sia.gov.pg/wp-content/uploads/2024/07/2023-Registered-Companies.pdf; earlier years
+    (2015-2022) also available in the /wp-content/uploads/2024/07/ directory. PDFs are organised by region
+    (NCD/Southern, Highlands, Momase'
+  confidence: 0.98
 - id: ph_company_regist_sec_esparc_company_name_search
   name: SEC eSPARC - Company Name Search / Corporate Registry
   publisher: Securities and Exchange Commission (SEC)
@@ -12920,6 +14633,25 @@ sources:
     The bsp.gov.ph/Lists/Directories/Attachments/<n>/ path is a structured directory of BSP-supervised-institution
     lists (banks, MSBs, EMIs, pawnshops) all published as downloadable files - the canonical scrape'
   confidence: 0.93
+- id: ph_security_servi_pnp_sosia_active_security_oper
+  name: PNP SOSIA - Active Security Operators (Philippines)
+  publisher: Supervisory Office for Security and Investigation Agencies (SOSIA), Philippine National Police
+    Civil Security Group
+  url: https://sosia.pnp.gov.ph/
+  country: PH
+  industry: security_services
+  entity_type: security_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: SOSIA is the single regulator for all private security, detective, and protective service providers
+    in the Philippines. A list of 'Active Security Operators' broken down by city, province, and contact
+    details was confirmed via an FOI request (published February 2026 on foi.gov.ph at https://www.foi.gov.ph/agencies/pnp/pnp-sosia-list-of-active-security-operators/).
+    Online licensing portal at https://sosia-online.pnp.gov.ph/ (LESP - Licence to Exercise Security Profession).
+    SOSIA website returned 403 on direct fetch. The FOI-disclosed list and the LESP system are the primary
+    public access channe
+  confidence: 0.72
 - id: ph_security_servi_pnp_sosia_list_of_licensed_pri
   name: PNP-SOSIA List of Licensed Private Security Agencies
   publisher: Philippine National Police - Supervisory Office for Security and Investigation Agencies (PNP-SOSIA),
@@ -13003,6 +14735,24 @@ sources:
     session (site intermittently down / blocks fetch), so not marked verified. Hospitality licensing is
     devolved to provinces - parallel bodies: KP Culture & Tourism Authority (kptourism.com), Sindh & Baloch'
   confidence: 0.72
+- id: pk_manufacturing_international_accord_pakistan
+  name: International Accord Pakistan Factory Disclosure Reports
+  publisher: International Accord Secretariat
+  url: https://internationalaccord.org/factory-disclosure-pakistan/
+  country: PK
+  industry: manufacturing
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Monthly PDF disclosure lists of all factories supplying Accord signatory brands in Pakistan.
+    As of March 2025 covers approximately 571 factories with ~652,836 workers. Example: December 2024
+    list at /wp-content/uploads/2024/12/241211-list-Public-disclosure-report-Pakistan-December-2024.pdf.
+    Searchable factory list with CAP status at internationalaccord.org/pakistan-factories/ - shows factory
+    name, CAP status (on track/behind schedule), worker count, and remediation progress %. Factory search
+    tool under development.'
+  confidence: 0.95
 - id: pk_manufacturing_pakistan_epza_investors_direct
   name: Pakistan EPZA Investors Directory (Karachi EPZ)
   publisher: Export Processing Zones Authority (EPZA), Ministry of Industries and Production, Pakistan
@@ -13614,6 +15364,24 @@ sources:
     Committee reachable at info.avl@ashghal.gov.qa. No public bulk download of prequalified contractor
     list confirmed.
   confidence: 0.88
+- id: qa_domestic_worke_qatar_ministry_of_labour_licen
+  name: Qatar Ministry of Labour - Licensed Recruitment Offices List
+  publisher: Ministry of Labour, State of Qatar
+  url: https://www.mol.gov.qa/en/ministry/Pages/About-the-Ministry.aspx
+  country: QA
+  industry: domestic_worker
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: false
+  notes: Qatar Ministry of Labour issues updated lists of licensed domestic worker recruitment offices.
+    The December 2024 edition was announced via official Ministry channels and a full PDF was published
+    and linked from The Peninsula Qatar (thepeninsulaqatar.com/pdf/20241225_1735115223-299.pdf - binary-only
+    fetch). The mol.gov.qa portal returned ECONNREFUSED on direct fetch but is the confirmed official
+    ministry domain. List is periodically reissued; check mol.gov.qa or Ministry social media for current
+    edition. Ministry advises public to use only duly-licensed offices.
+  confidence: 0.78
 - id: qa_financial_serv_qfcra_public_register_search_a
   name: QFCRA Public Register - Search All Firms
   publisher: Qatar Financial Centre Regulatory Authority (QFCRA)
@@ -14457,6 +16225,24 @@ sources:
     (site mid-migration / anti-bot) - could not verify the live list. Regulator role confirmed via the
     S
   confidence: 0.7
+- id: sa_security_servi_hcis_sais_list_of_registered_p
+  name: HCIS / SAIS - List of Registered Private Civil Security Guard Companies
+  publisher: Higher Commission for Industrial Security (HCIS / now Supreme Authority for Industrial Security,
+    SAIS), Saudi Arabia
+  url: https://hcis.gov.sa/lists/sgl
+  country: SA
+  industry: security_services
+  entity_type: security_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: 'Official title (Arabic): '' ''. Published by the national regulatory authority for industrial
+    security under the Ministry of Interior. All employees must be Saudi nationals. Server was unreachable
+    (ECONNREFUSED) during direct fetch attempts; URL confirmed by official Saudi government search results
+    referencing hcis.gov.sa. Services page at https://hcis.gov.sa/services/contents/sgl and e-services
+    at https://eservices.sais.gov.sa. Contact: info@hcis.gov.sa, Tel: 920033887.'
+  confidence: 0.7
 - id: sd_company_regist_commercial_companies_register
   name: Commercial Companies Register - Ministry of Justice (Commercial Registrar's Department)
   publisher: Ministry of Justice of Sudan, Commercial Registrar's Department
@@ -14563,6 +16349,24 @@ sources:
     Sudan are legally prohibited from taking deposits; they handle currency exchange and remittances only.
     Licensed under the Regulation governing the Business of Foreign Exchange Bureaus.
   confidence: 0.92
+- id: se_manufacturing_h_m_group_supplier_list
+  name: H&M Group Supplier List
+  publisher: H&M Group (Hennes & Mauritz AB)
+  url: https://hmgroup.com/sustainability/leading-the-change/transparency/supply-chain/
+  country: SE
+  industry: manufacturing
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Publicly downloadable Excel spreadsheet of H&M Group''s manufacturing and processing supplier
+    factories, updated quarterly. Covers Tier 1 and Tier 2 fabric suppliers accounting for 99% of products
+    sold. Fields: factory name, address, country, product type, number of workers, % female workers, trade
+    union presence, length of business relationship. As of May 2026 at /wp-content/uploads/spur/HM-Group-Supplier-List-May-2026.xlsx
+    (note: direct URL returned 404 at time of test - check /wp-content/uploads/spur/ for current filename).
+    Signatory of the Transparency Pledge. Covers 5,000+ companies across'
+  confidence: 0.91
 - id: sg_care_home_agency_for_integrated_care_fin
   name: Agency for Integrated Care - Find a Nursing Home
   publisher: Agency for Integrated Care (AIC), Singapore Ministry of Health
@@ -14611,6 +16415,40 @@ sources:
     civil engineering, M&E, and specialty workheads. Updated 2026-01-12. Open Data Licence (personal and
     commercial use). Also browsable at https://www.bca.gov.sg/BCADirectory/Search.'
   confidence: 0.99
+- id: sg_facility_manag_bca_facilities_management_fm_r
+  name: BCA Facilities Management (FM) Registry
+  publisher: Building and Construction Authority (BCA), Singapore
+  url: https://www.bca.gov.sg/eBACS/bca_directory
+  country: SG
+  industry: facility_management
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Established 1 January 2024. Registry of firms eligible for public-sector FM contracts in Singapore.
+    Four workheads: FM01 Integrated Facilities Management, FM02 Housekeeping/Cleansing/Desilting, FM03
+    Landscaping, FM04 Pest Control. Publicly searchable by workhead type at https://www.bca.gov.sg/eBACS/BCA_DIRECTORY/Filter/FilterWorkHeadType?contractorType=fm-registry.
+    No bulk download endpoint found; individual firm records are browsable without login. Also covers
+    licensed builders and registered contractors on same portal.'
+  confidence: 0.95
+- id: sg_facility_manag_nea_cleaning_business_licence
+  name: NEA Cleaning Business Licence Register
+  publisher: National Environment Agency (NEA), Singapore
+  url: https://www.nea.gov.sg/our-services/public-cleanliness/cleaning-industry/cleaning-business-licence
+  country: SG
+  industry: facility_management
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Mandatory licence under the Environmental Public Health Act (EPHA). NEA publishes periodic PDF
+    lists of all licensees; most recent confirmed: https://www.nea.gov.sg/docs/default-source/our-services/public-cleanliness/cleaning-business-licensing/list-of-cbl-with-eas-(1-apr-2024).pdf
+    (fields: business name, UEN, licence class, Clean Mark Award status). Public enquiry tool at https://licence1.business.gov.sg/feportal/web/frontier/nea-licence-enquiry.
+    Two licence classes: Class I (offices, hospitals, malls, residential) and Class II (food establishments).
+    Data also mirrored on data.gov.sg: https:/'
+  confidence: 0.97
 - id: sg_facility_manag_singapore_bca_facilities_manag
   name: Singapore BCA Facilities Management (FM) Registry
   publisher: Building and Construction Authority (BCA), Singapore
@@ -14710,6 +16548,24 @@ sources:
     'search through the list of licensed entities from participating Government Agencies' facility that
     covers SPF security-agency licences (and other regulators). Returned HTTP 403 to the automated fetch
   confidence: 0.78
+- id: sg_security_servi_spf_security_agencies_competen
+  name: SPF Security Agencies Competency Evaluation (SACE) Results
+  publisher: Singapore Police Force (SPF), Police Licensing & Regulatory Department
+  url: https://www.police.gov.sg/e-Services/Police-Licences/Security-Agencies-Competency-Evaluation
+  country: SG
+  industry: security_services
+  entity_type: security_services
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: false
+  notes: 'SPF publishes periodic SACE cycle result PDFs listing all evaluated security agencies by name
+    and competency pass/fail status, under the Private Security Industry Act 2007. Most recent confirmed:
+    Cycle 3 results PDF at https://www.police.gov.sg/-/media/SPF/Files/E-services/SACE/SACE-Results/SACE-Cycle-3-Results-as-of-27-Aug-2024.pdf
+    (confirmed downloadable 342KB PDF). This is the closest public list of licensed Singapore security
+    agencies; a comprehensive live register of all licensees is not publicly exposed - licensees verify
+    status via GoBusiness Dashboard. Main page returned 404 on direct '
+  confidence: 0.82
 - id: sg_training_cente_mom_settling_in_programme_sip_
   name: MOM Settling-In Programme (SIP) registration portal
   publisher: Ministry of Manpower (MOM) / Migrant Workers' Centre (MWC)
@@ -15503,6 +17359,44 @@ sources:
     firms with inadequate technical/financial capacity. Nine certificate groups (A-I) based on work experience
     thresholds. Applications processed at provincial CSB directorates. Direct fetch fail
   confidence: 0.65
+- id: tr_construction_yambs_construction_contractor
+  name: YAMBS - Construction Contractor License Query (Mteahhit Bilgileri Sorgulama)
+  publisher: evre, ehircilik ve klim Deiiklii Bakanl - Ministry of Environment, Urbanization and Climate
+    Change
+  url: https://www.turkiye.gov.tr/csb-muteahhit-bilgileri-sorgulama
+  country: TR
+  industry: construction
+  entity_type: company
+  access_tier: login
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Official lookup for construction contractor authorization certificates (yap mteahhidi yetki
+    belgesi) via Turkey''s e-Government (e-Devlet) portal. Provides authorization certificate group, certificate
+    number, active/passive/prohibition status. Search is by tax number, T.C. ID, name, company name, or
+    province. Requires e-Devlet authentication (e-Government password, mobile or electronic signature,
+    or internet banking). The underlying system is YAMBS (Yap Mteahhitleri Bilgi Sistemi). Ministry''s
+    Mesleki Hizmetler Genel Mdrl at meslekihizmetler.csb.gov.tr is the issuing authority. Page verified
+    as '
+  confidence: 0.9
+- id: tr_financial_serv_bddk_institution_registry_kuru
+  name: BDDK Institution Registry (Kurulu Listesi)
+  publisher: Bankaclk Dzenleme ve Denetleme Kurumu (BDDK) - Banking Regulation and Supervision Agency
+  url: https://www.bddk.org.tr/Kurulus/Liste/90
+  country: TR
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: false
+  notes: 'BDDK is the statutory regulator for banks, financial leasing, factoring, finance companies,
+    asset management, and financial holding companies. The Kurulu Listesi page (Liste/90) lists approximately
+    68 authorized institutions with names and website links. URL could not be fetched due to an SSL certificate
+    verification error from the fetch tool, but the page is widely cited in official and legal sources
+    and confirmed by the BDDK Wikipedia entry and multiple legal directories. The BDDK FinTurk data system
+    at bddk.org.tr/BultenFinturk provides additional downloadable statistics. Direct URL: https:'
+  confidence: 0.82
 - id: tr_financial_serv_bddk_kurulu_listesi_banks_and
   name: BDDK Kurulu Listesi (Banks and Non-Bank Financial Institutions)
   publisher: Bankaclk Dzenleme ve Denetleme Kurumu (BDDK - Banking Regulation and Supervision Agency)
@@ -15540,6 +17434,25 @@ sources:
     for. TCMB sole licensing authority since January 2020. Relevant to migrant worker fee-rail screening:
     e-money platforms are common channels for fee deductions.'
   confidence: 0.95
+- id: tr_fishing_seafoo_balk_gemisi_listesi_ministry_o
+  name: Balk Gemisi Listesi - Ministry of Agriculture Fisheries Vessel List
+  publisher: Tarm ve Orman Bakanl, Balklk ve Su rnleri Genel Mdrl (BSGM) - General Directorate of Fisheries
+    and Aquaculture
+  url: https://www.tarimorman.gov.tr/BSGM
+  country: TR
+  industry: fishing_seafood
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: BSGM (under the Ministry of Agriculture and Forestry) is the statutory authority for commercial
+    fishing vessel licensing (ruhsat tezkeresi) in Turkey. A PDF vessel list was found at tarimorman.gov.tr/BSGM/Lists/Duyuru/Attachments/110/Balk
+    Gemisi Listesi.pdf (binary confirmed as a 203KB Turkish-language PDF, content decompression not available
+    via fetch tool). Fishing vessel license information is also individually queryable via e-Devlet at
+    turkiye.gov.tr/gtvh-gemi-ruhsat-bilgileri-sorgulama (login required, operated by Ministry of Agriculture).
+    Commercial fishing licenses are renewed every two
+  confidence: 0.75
 - id: tr_hotel_kltr_ve_turizm_bakanl_belgeli
   name: Kltr ve Turizm Bakanl Belgeli Tesis Sorgulama (Ministry-Certified Tourism Establishments Search)
   publisher: T.C. Kltr ve Turizm Bakanl (Ministry of Culture and Tourism) - Yatrm ve letmeler Genel Mdrl
@@ -15560,6 +17473,79 @@ sources:
     also confirmed. Ministry notes that records may lag for facilities with incomplete processes. No bulk
     downlo'
   confidence: 0.92
+- id: tr_hotel_ministry_of_culture_and_touris
+  name: Ministry of Culture and Tourism - Certified Accommodation Facilities Search
+  publisher: T.C. Kltr ve Turizm Bakanl - Ministry of Culture and Tourism
+  url: https://www.ktb.gov.tr/genel/searchhotelgenel.aspx?lang=tr
+  country: TR
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: Official searchable registry of all Ministry-certified (Bakanlk Belgeli) tourism accommodation
+    facilities in Turkey. Search filters include facility name, certificate number, certificate type and
+    status, facility classification/type, and province/district. Results are updated at intervals; ministry
+    advises contacting istatistik@ktb.gov.tr for legal verification. A separate page for safe-tourism
+    certified facilities exists at tga.gov.tr. Statistics with downloadable XLSX/RAR archives (1990-2017)
+    are available at yigm.ktb.gov.tr/TR-9860/turizm-belgeli-tesisler.html. The certificate type paramete
+  confidence: 0.92
+- id: tr_manufacturing_sanayi_sicil_lonca_industrial
+  name: Sanayi Sicil / Lonca - Industrial Firm Registry
+  publisher: Sanayi ve Teknoloji Bakanl - Ministry of Industry and Technology
+  url: http://www.lonca.gov.tr/
+  country: TR
+  industry: manufacturing
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: false
+  notes: 'Turkey''s Sanayi Sicil (Industrial Registry) is mandatory for all manufacturing enterprises
+    under Law No. 6948. Firms receive a Sanayi Sicil Belgesi and must file annual operational reports.
+    The Ministry operates ''Lonca'', an industrial web portal built on the Sanayi Sicil Bilgi Sistemi
+    database (sanayisicil.sanayi.gov.tr), which provides public search access to registered manufacturing
+    firms and their products without login. Confirmed by TBTAK MAM and Ministry announcements as a public
+    portal reaching ~200,000 visitors. Both lonca.gov.tr and sanayisicil.sanayi.gov.tr returned connection
+    errors '
+  confidence: 0.72
+- id: tr_medical_clinic_hssgm_authorized_seafarer_medi
+  name: HSSGM Authorized Seafarer Medical Examination Centers
+  publisher: Trkiye Hudut ve Sahiller Salk Genel Mdrl (HSSGM) - General Directorate of Health for Borders
+    and Coasts, Ministry of Health
+  url: https://www.hssgm.gov.tr/GemiadamiMerkezleri
+  country: TR
+  industry: medical_clinic
+  entity_type: medical_clinic
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Official list of centers authorized to conduct medical examinations of seafarers (gemi adam salk
+    muayenesi) and issue Seafarer Health Examination Certificates. Page verified as resolving and containing
+    approximately 30 active centers across Turkish coastal cities and airports, plus a list of licensed
+    physicians and two deactivated centers. Each entry includes facility name, phone, full address, and
+    email. Content is in Turkish and English. A companion page for online report verification exists at
+    hssgm.gov.tr/onlineislemler/GemiAdamiRaporuSorgula.aspx. No bulk download link found on the page i
+  confidence: 0.92
+- id: tr_recruitment_ag_kur_private_employment_offices
+  name: KUR Private Employment Offices Registry (zel stihdam Brolar)
+  publisher: Trkiye Kurumu (KUR) - Turkish Employment Agency, Ministry of Labour and Social Security
+  url: https://www.iskur.gov.tr/ozel-istihdam-burolari/
+  country: TR
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'KUR is the sole authority for licensing private employment agencies (zel istihdam brosu) in
+    Turkey under Regulation published in Official Gazette No. 29854 (11 Oct 2016). The main page at iskur.gov.tr/ozel-istihdam-burolari/
+    links to two public reports: active/closed office list at esube.iskur.gov.tr/Istihdam/Reports/OzelIstihdamBurolari/RaporIstOibBuroPublic.aspx
+    and the temporary-work-permission holder list at esube.iskur.gov.tr/Istihdam/Reports/OzelIstihdamBurolari/RaporIstOibGiiYetkilisi.aspx.
+    The report pages themselves redirect to the KUR portal login before displaying data, so bulk down'
+  confidence: 0.85
 - id: tr_recruitment_ag_kur_zel_stihdam_brolar_kamuoyu
   name: KUR zel stihdam Brolar Kamuoyu Raporu (Private Employment Agencies Public Report)
   publisher: Trkiye Kurumu (KUR) - Turkish Employment Agency, Ministry of Labour and Social Security
@@ -15995,6 +17981,189 @@ sources:
     could be loaded; the URL is the official registry page but could not be fully fetched. A complementary
     student verification portal exists at verification.nactvet.go.tz. Historical stocktake (1999): 47'
   confidence: 0.7
+- id: ua_company_regist_unified_state_register_of_lega
+  name: Unified State Register of Legal Entities, Individual Entrepreneurs and Public Organisations (EDR
+    / USR)
+  publisher: Ministry of Justice of Ukraine
+  url: https://usr.minjust.gov.ua/content/free-search
+  country: UA
+  industry: company_registry
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: false
+  notes: Ukraine's master company register (EDRPOU system) covering all legal entity types. Free public
+    keyword and EDRPOU-code search at usr.minjust.gov.ua/content/free-search; bulk open-data download
+    resumed January 2026 after a December 2024 cyberattack disruption. Data includes registered name,
+    legal form, address, founders, directors, beneficial owners, activity codes, and status. Managed by
+    State Enterprise Information Resource Centre (irc.gov.ua) as technical administrator. Connection refused
+    during verification attempts - likely a wartime intermittent availability issue; confirmed operational
+    b
+  confidence: 0.92
+- id: ua_construction_register_of_construction_activ
+  name: Register of Construction Activity - Licensees ( - )
+  publisher: State Inspection of Architecture and Urban Planning of Ukraine (DIAM) / Ministry of Digital
+    Transformation
+  url: https://e-construction.gov.ua/organizations/org_type=14
+  country: UA
+  industry: construction
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Portal of the Unified State Electronic System in the Field of Construction (), co-developed by
+    the Ministry for Communities and Territories and the Ministry of Digital Transformation. The section
+    at /organizations/org_type=14 listed 62,221 records of legal entities and individual entrepreneurs
+    licensed for construction activities as of verification date. Data includes EDRPOU code and number
+    of certified persons. Searchable by company identifier via the portal's search at /search_in_registers.
+    No bulk-download link observed during fetch. Also includes historical DABI/DIAM permit documents.
+  confidence: 0.9
+- id: ua_financial_serv_nbu_comprehensive_information
+  name: NBU Comprehensive Information System (KIS) - State Register of Non-Bank Financial Institutions
+  publisher: National Bank of Ukraine (NBU)
+  url: https://kis.bank.gov.ua/
+  country: UA
+  industry: financial_services
+  entity_type: financial_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: Following the January 2024 expiry of the old NSSMC-maintained State Register of Financial Institutions,
+    the NBU (which took over supervision of non-bank financial services from July 2020) launched the Comprehensive
+    Information System ( ) at kis.bank.gov.ua. It covers insurance companies, leasing companies, factoring
+    companies, credit unions, pawnshops, financial companies, and other non-bank financial institutions.
+    Public search is available; authorised-user features require login. Regulated under the new Law of
+    Ukraine on Financial Services and Financial Companies (in force January 2024). Dir
+  confidence: 0.8
+- id: ua_hotel_registry_of_hotel_classificati
+  name: Registry of Hotel Classification Certificates ( )
+  publisher: State Agency for Tourism Development of Ukraine (DART) / Ministry of Economy of Ukraine
+  url: https://www.tourism.gov.ua/categorization
+  country: UA
+  industry: hotel
+  entity_type: hotel
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: true
+  notes: 'Ukraine maintains an official Register of Certificates for Hotel Category Establishment ( ''
+    ), covering star-rated hotels and other accommodation facilities certified under 4269. The registry
+    is administered by DART under the Ministry of Development of Communities and Territories. A downloadable
+    version (file format unspecified in the document) was published on me.gov.ua (last ME page update
+    was December 2019, suggesting the live register may now reside with DART). An open-data dataset also
+    exists at data.gov.ua (dataset ID: ff8f65a4-676e-44c8-8f5e-d3553e2a009f). tourism.gov.ua categorization '
+  confidence: 0.72
+- id: ua_manning_agency_unified_state_register_of_seaf
+  name: Unified State Register of Seafarers' Documents of Ukraine ( )
+  publisher: Inspectorate for the Training and Certification of Seafarers (ITCS) - Ministry of Infrastructure
+    of Ukraine
+  url: https://itcs.net.ua/en/services/
+  country: UA
+  industry: manning_agency
+  entity_type: manning_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: The ITCS (Insp ) maintains the Unified State Register of Seafarers' Documents, recording over
+    700,000 seafarers' credentials and 1.9 million NTC certificates issued since 1998. The register is
+    used to verify validity of Ukrainian seafarers' certificates of competency (STCW). Crewing/manning
+    agencies in Ukraine are licensed as overseas employment mediators under the same Ministry of Economy
+    licensing regime as other recruitment agencies (not a separate manning-specific register). This ITCS
+    register covers seafarer credentials - not a list of manning agencies per se - but is the closest
+    official
+  confidence: 0.77
+- id: ua_recruitment_ag_list_of_business_entities_lice
+  name: List of Business Entities Licensed for Employment Mediation Abroad ( ' - )
+  publisher: Ministry of Economy, Environment and Agriculture of Ukraine
+  url: https://me.gov.ua/Documents/List?lang=uk-UA&id=b6a32291-6f2a-4684-a4ba-8e807759ccfc&tag=InformatsiiaDliaZdobuvachivTaLitsenziativ
+  country: UA
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: false
+  notes: 'Official list of companies licensed to provide overseas employment mediation services, maintained
+    under Cabinet Resolution No. 1118 of 27 October 2023. Most recent edition dated 17 March 2026 was
+    found indexed in search results at me.gov.ua. An older dataset with the same scope also exists on
+    the open data portal at data.gov.ua (dataset ID: 578a1007-f7d8-484d-91d8-81d2db3107bd). Note: in April
+    2024 all prior indefinite-term licenses issued under the old law expired and were replaced by a new
+    declarative regime under the 2023 CMU resolution - the list reflects entities operating under the
+    new r'
+  confidence: 0.8
+- id: ua_recruitment_ag_open_data_portal_dataset_list
+  name: Open Data Portal Dataset - List of Licensed Employment Mediation Agencies ( )
+  publisher: Ministry of Economy of Ukraine via data.gov.ua
+  url: https://data.gov.ua/dataset/578a1007-f7d8-484d-91d8-81d2db3107bd
+  country: UA
+  industry: recruitment_agency
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: false
+  notes: Machine-readable open-data version of the overseas employment mediation licensee list, published
+    by the Ministry of Economy on Ukraine's national open data portal. Dataset includes company name,
+    EDRPOU code, address, scope of activity, licence number, validity dates, destination countries, and
+    branch details. data.gov.ua returned 403 during fetch; dataset URL confirmed by Google index and multiple
+    third-party references. Complements the me.gov.ua document pages listed separately.
+  confidence: 0.82
+- id: ua_remittance_nbu_register_of_payment_system
+  name: NBU Register of Payment Systems and Payment Infrastructure ( )
+  publisher: National Bank of Ukraine (NBU)
+  url: https://bank.gov.ua/en/payments/payment-systems
+  country: UA
+  industry: remittance
+  entity_type: remittance
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: false
+  notes: The NBU maintains a Register of Payment Infrastructure covering registered payment systems, participants,
+    and technological operators of payment services, including money-transfer operators. Payment service
+    providers (including non-bank remittance operators) are entered into this register upon authorisation
+    under the Law of Ukraine on Payment Services. A public Payment Systems Search interface is available
+    at bank.gov.ua/en/payments/payment-systems. Governed by NBU Board Resolution No. 208 (26 September
+    2022). bank.gov.ua returned 403 on direct fetch, consistent with firewall on supervision pa
+  confidence: 0.78
+- id: ua_security_servi_security_activity_licensing_re
+  name: Security Activity Licensing Registry ( )
+  publisher: Ministry of Internal Affairs of Ukraine (MVS)
+  url: https://mvs.gov.ua/licenzuvannia-ta-provedennia-zaxodiv-derzavnogo-nagliadu-kontroliu/licenzuvannia/licenziinii-rejestr-oxoronna-diialnist
+  country: UA
+  industry: security_services
+  entity_type: security_services
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Official MVS list of business entities licensed to conduct security ( ) activities, perpetual
+    licenses. The page loaded and confirmed the registry exists, noting system functionality was being
+    expanded as of verification date - full searchability not yet implemented. A companion page listing
+    entities operating on the basis of submitted declarations (rather than full licenses) is at /licenzuvannia.../perelik-subjektiv-gospodariuvannia-iaki-nabuli-pravo-na-provadzennya-oxoronnoyi-diialnosti-na-pidstavi-podanoyi-nimi-deklaraciyi.
+    MVS announced public open access to this registry in September 2025
+  confidence: 0.82
+- id: ua_training_cente_unified_state_electronic_datab
+  name: Unified State Electronic Database on Education () - Registry of Educational Institutions
+  publisher: Ministry of Education and Science of Ukraine
+  url: https://info.edbo.gov.ua/
+  country: UA
+  industry: training_center
+  entity_type: training_center
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: ( ) is Ukraine's official unified register of educational institutions across all levels, including
+    professional-technical (vocational) training centres ( (-) ). The public portal at info.edbo.gov.ua
+    provides the ' , searchable by institution name or type. Covers licensed vocational training centres
+    relevant to skills and TVET sector. Page confirmed loading and content during fetch. Login at edbo.gov.ua
+    is required for some administrative functions; basic public search is free.
+  confidence: 0.88
 - id: ug_agriculture_uganda_coffee_development_auth
   name: Uganda Coffee Development Authority (UCDA) - Coffee and Cocoa Directory
   publisher: Uganda Coffee Development Authority (UCDA), Ministry of Agriculture Animal Industry and Fisheries
@@ -16354,6 +18523,24 @@ sources:
     safety rating, inspection summaries, crash data. Bulk open data (Company Census File) downloadable
     from DOT Open Data Portal - contains all 4M+ FMCSA-registered carriers with entity identifying data'
   confidence: 0.93
+- id: us_domestic_worke_us_department_of_state_bridgeu
+  name: US Department of State BridgeUSA - J-1 Au Pair Designated Sponsor List
+  publisher: Bureau of Educational and Cultural Affairs, US Department of State
+  url: https://j1visa.state.gov/participants/how-to-apply/sponsor-search/?program=Au+Pair
+  country: US
+  industry: domestic_worker
+  entity_type: recruitment_agency
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: Official US government searchable database of all Department of State-designated sponsors for
+    J-1 Exchange Visitor programs, including Au Pair. Only State-designated sponsors may legally place
+    au pairs in the US under the J-1 Au Pair Program. Filter by program category 'Au Pair' to list all
+    designated au pair agencies (approximately 15 active sponsors including AuPairCare, Cultural Care,
+    Go Au Pair, etc.). Interactive table with addresses, phone numbers, and websites; no bulk CSV download
+    confirmed. See also j1visa.state.gov/sponsors/sponsor-by-country/ for country-level view.
+  confidence: 0.93
 - id: us_financial_serv_finra_brokercheck
   name: FINRA BrokerCheck
   publisher: Financial Industry Regulatory Authority (FINRA)
@@ -16444,6 +18631,75 @@ sources:
     hull number. Returns vessel name, official number, HIN, flag, dimensions, tonnage, service information,
     and current Certificate of Documentation details. Data updated nightly. Note: personal'
   confidence: 0.92
+- id: us_manufacturing_nike_manufacturing_map
+  name: Nike Manufacturing Map
+  publisher: NIKE, Inc.
+  url: https://manufacturingmap.nikeinc.com/
+  country: US
+  industry: manufacturing
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: false
+  notes: Interactive publicly accessible map of Nike's independent manufacturing factories and material
+    suppliers worldwide. First published 2005, updated monthly. Users can filter by country, brand, product
+    type, and facility type, and export filtered data. For finished goods facilities includes worker demographics.
+    Confirmed by Nike's own sustainability reporting and search results; direct fetch returned only page
+    title without data content. PDF export option at /maps/export_pdf.
+  confidence: 0.83
+- id: us_manufacturing_open_supply_hub_os_hub_factory
+  name: Open Supply Hub (OS Hub) Factory Database
+  publisher: Open Supply Hub (non-profit; ILO and IFC are data contributors)
+  url: https://opensupplyhub.org/
+  country: US
+  industry: manufacturing
+  entity_type: company
+  access_tier: freemium
+  official: false
+  has_data_endpoint: true
+  url_verified: false
+  notes: 'Global open-access database of garment and consumer goods manufacturing facilities worldwide,
+    formerly the Open Apparel Registry (OAR). Free public search by facility name, OS ID, country, sector,
+    and contributor (brand, union, NGO). Data contributed by 540+ organisations including H&M, Patagonia,
+    Better Work, and BGMEA (MoU signed). Free account holders can download up to 5,000 records; bulk/API
+    access is paid (from $225/month) with discounts for civil society organisations. Database covers 90,000+
+    facilities. Official API docs: github.com/opensupplyhub/open-supply-hub-api-examples. Not a gov'
+  confidence: 0.88
+- id: us_manufacturing_patagonia_finished_goods_suppl
+  name: Patagonia Finished Goods Supplier List
+  publisher: Patagonia, Inc.
+  url: https://www.patagonia.com/factories-farms-material-suppliers/
+  country: US
+  industry: manufacturing
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: true
+  url_verified: false
+  notes: Patagonia publishes a downloadable Excel supplier list of finished goods factories and material
+    suppliers. May 2025 edition was at /on/demandware.static/-/Library-Sites-PatagoniaShared/default/dw3b79e230/PDF-US/Patagonia-Finished-Goods-Supplier-List-May%202025.xlsx
+    (returned maintenance page at time of access; main page also returned maintenance page). URL pattern
+    verified via search results and Scribd. List includes factory names, addresses, countries, and products.
+    Covers factories in Vietnam, India, China, Sri Lanka, and others.
+  confidence: 0.75
+- id: us_manufacturing_wrap_certified_facility_search
+  name: WRAP Certified Facility Search
+  publisher: Worldwide Responsible Accredited Production (WRAP) - independent non-profit
+  url: https://wrapcompliance.org/en/certification/facility-monitor-list/
+  country: US
+  industry: manufacturing
+  entity_type: company
+  access_tier: free
+  official: false
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Public searchable Power BI dashboard of WRAP-certified apparel, footwear, and sewn-products
+    facilities worldwide. ''Thousands'' of certified facilities. Buyers can verify certification and find
+    manufacturers. Bangladesh has 414 certified companies, Pakistan 218, India is top-3. Dashboard embed:
+    app.powerbi.com/view?r=eyJrIjoiZjVhZjJiY2UtODY3Mi00N2ZlLTg1OGYtMGE3MWMxNDk4ZDAxIiwidCI6IjZiY2NiNTZkLWI1YTQtNDkzOC05MGRhLTNhNDE4ZjA0MDJjYyIsImMiOjF9.
+    No downloadable list. WRAP is an independent standard body, not a government registry.'
+  confidence: 0.88
 - id: us_money_lender_nmls_consumer_access_money_tra
   name: NMLS Consumer Access (Money Transmitters & Lenders)
   publisher: Conference of State Bank Supervisors (CSBS) / State Regulatory Registry LLC, on behalf of
@@ -16963,6 +19219,24 @@ sources:
     centrally and published as decision lists/news, lower stars by provincial tourism departments. No
     single consolidated machine-readable national hotel register found - recognitions appear as
   confidence: 0.55
+- id: vn_manufacturing_better_work_transparency_porta
+  name: Better Work Transparency Portal - Vietnam Factory List
+  publisher: Better Work Vietnam (ILO / IFC joint programme)
+  url: https://betterwork.org/vietnam/participating-factories-and-manufacturers-in-viet-nam/
+  country: VN
+  industry: manufacturing
+  entity_type: company
+  access_tier: free
+  official: true
+  has_data_endpoint: false
+  url_verified: true
+  notes: 'Public list of approximately 600+ garment and footwear factories participating in Better Work
+    Vietnam, organised by province (North and South). Shows factory names only; no addresses or contact
+    details. Compliance data for assessed factories at portal.betterwork.org/transparency (countries:
+    Vietnam, Indonesia, Haiti, Nicaragua; Jordan paused June 2025). Note: Indonesia tab currently shows
+    ''no items to display'' - compliance data may be migrating to an upgraded portal per Better Work''s
+    statement.'
+  confidence: 0.91
 - id: vn_medical_clinic_list_of_medical_facilities_qua
   name: List of medical facilities qualified for migrant/foreigner work-permit & overseas-employment health
     examination
