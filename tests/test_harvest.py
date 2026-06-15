@@ -73,7 +73,7 @@ def test_collector_returning_error_dict_is_recorded(tmp_path):
 
 def test_builtin_collectors_registered_and_filesystem_ones_are_fault_tolerant():
     assert set(hv.BUILTIN_COLLECTORS) == {"dmw_agencies", "dmw_issuances", "hk_eaa",
-                                          "hk_money_lenders", "bd_oep", "kaggle", "staged"}
+                                          "hk_money_lenders", "bd_oep", "bd_mra", "kaggle", "staged"}
     # the filesystem-only built-ins must return a result dict and never raise
     # (network/browser ones are not invoked here to keep the test offline+fast)
     for name in ("kaggle", "staged"):

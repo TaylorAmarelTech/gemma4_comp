@@ -134,6 +134,18 @@ def collect_bd_oep() -> dict:
         return {"name": name, "n_records": 0, "records": [], "note": "", "error": f"{type(exc).__name__}: {exc}"[:200]}
 
 
+def collect_bd_mra() -> dict:
+    """BD MRA licensed microfinance institutions (deterministic JSON)."""
+    name = "bd_mra"
+    try:
+        bd = _sibling("bd_mra_mfi")
+        recs = bd.records_to_entities(bd.collect())
+        return {"name": name, "n_records": len(recs), "records": recs,
+                "note": f"{len(recs)} BD microfinance institutions (MRA)", "error": ""}
+    except Exception as exc:  # noqa: BLE001
+        return {"name": name, "n_records": 0, "records": [], "note": "", "error": f"{type(exc).__name__}: {exc}"[:200]}
+
+
 def collect_kaggle() -> dict:
     """Ingest already-downloaded Kaggle agency + job-order CSVs (if present)."""
     name = "kaggle"
@@ -180,6 +192,7 @@ BUILTIN_COLLECTORS = {
     "hk_eaa": collect_hk_eaa,
     "hk_money_lenders": collect_hk_money_lenders,
     "bd_oep": collect_bd_oep,
+    "bd_mra": collect_bd_mra,
     "kaggle": collect_kaggle,
     "staged": collect_staged,
 }
