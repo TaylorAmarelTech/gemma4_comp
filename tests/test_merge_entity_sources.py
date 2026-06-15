@@ -137,6 +137,24 @@ def test_merge_repairs_existing_mojibake_in_place():
     assert res["sources"][0]["name"] == "Register - federal"
 
 
+def test_merge_keeps_distinct_sources_that_share_an_id_prefix():
+    # two real, distinct registries whose names share the first 30 chars (so they
+    # mint the same truncated id) must BOTH survive -- dedup keys on content, the
+    # id collision is resolved by suffixing, not by dropping a source.
+    a = _raw(name="National Recruitment Agency Registry Alpha Division", url="https://a.gov")
+    b = _raw(name="National Recruitment Agency Registry Beta Division", url="https://b.gov")
+    res = mes.merge([], [a, b])
+    assert res["after"] == 2 and res["added"] == 2
+    ids = [s["id"] for s in res["sources"]]
+    assert len(set(ids)) == 2  # unique ids despite the shared prefix
+
+
+def test_ensure_unique_ids_suffixes_collisions():
+    recs = [{"id": "x"}, {"id": "x"}, {"id": "x"}, {"id": "y"}]
+    mes.ensure_unique_ids(recs)
+    assert [r["id"] for r in recs] == ["x", "x_2", "x_3", "y"]
+
+
 # ---- coverage + coerce ----------------------------------------------------
 
 def test_coverage_counts_countries_industries_and_flags():
