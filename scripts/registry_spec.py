@@ -136,12 +136,43 @@ def _default_fetch(url: str, binary: bool):
     return raw if binary else raw.decode("utf-8", "ignore")
 
 
+def _paginate(spec: dict, fetch, binary: bool) -> list[dict]:
+    """Offset-paginate a JSON API. ``paginate`` block:
+
+        {size_param: limit, offset_param: offset, size: 5000, max_records: 60000}
+
+    Works for CKAN (``limit``/``offset``) and Socrata (``$limit``/``$offset``).
+    Stops when a page returns fewer than ``size`` records or ``max_records`` is hit.
+    """
+    pg = spec["paginate"]
+    size = int(pg.get("size", 1000))
+    sp, op = pg.get("size_param", "limit"), pg.get("offset_param", "offset")
+    max_records = int(pg.get("max_records", 100_000))
+    base = spec["url"]
+    sep = "&" if "?" in base else "?"
+    out: list[dict] = []
+    off = 0
+    while off < max_records:
+        url = f"{base}{sep}{sp}={size}&{op}={off}"
+        recs = parse_spec(spec, fetch(url, binary))
+        if not recs:
+            break
+        out.extend(recs)
+        if len(recs) < size:
+            break
+        off += size
+    return out
+
+
 def resolve(spec: dict, *, fetch=None) -> list[dict]:
     """Fetch + parse + stamp a spec into entity dicts. ``fetch(url, binary)`` injectable."""
     fetch = fetch or _default_fetch
     binary = spec.get("format") in _BYTE_FORMATS
-    content = fetch(spec["url"], binary)
-    return to_entities(parse_spec(spec, content), spec)
+    if spec.get("paginate"):
+        records = _paginate(spec, fetch, binary)
+    else:
+        records = parse_spec(spec, fetch(spec["url"], binary))
+    return to_entities(records, spec)
 
 
 def resolve_id(spec_id: str, *, fetch=None, specs: dict | None = None) -> list[dict]:
