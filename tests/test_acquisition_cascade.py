@@ -125,6 +125,12 @@ def test_acq_deterministic_dispatches_registry_resolver(monkeypatch):
     assert r["records"] == [{"name": "ADECCO"}] and r["tier"] == 1 and r["cost"] == "none"
 
 
+def test_config_specs_are_registered_as_registries():
+    # every registry_specs.yaml id is addressable via --registry through the cascade
+    assert "bd_oep_cfg" in cas.PROVEN_REGISTRIES and "bd_oep_cfg" in cas.REGISTRY_RESOLVERS
+    assert cas.resolve_registry("cn_mara_cfg").get("preset") == "cn_mara_cfg"
+
+
 def test_load_known_sources_reads_catalog():
     # the real catalogue should yield the catalogued source ids (incl. sweep endpoints)
     known = cas.load_known_sources()
