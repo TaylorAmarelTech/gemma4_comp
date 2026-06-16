@@ -1,0 +1,55 @@
+catalog: registry_specs
+purpose: >-
+  Config-driven deterministic registry resolvers. Each spec names a URL, a
+  format, and a field map; scripts/registry_spec.py fetches + parses it into
+  canonical entity records via scripts/registry_parsers.py -- no per-source
+  Python. This is how the long tail of the ~357 verified data-endpoints in
+  licensed_entity_sources.yaml gets onboarded (as config rows, not code).
+  The first three specs REPRODUCE the hand-written bd_oep / bd_mra / cn_mara
+  resolvers and must hit the same live counts (2,834 / 904 / 167) -- that is the
+  engine's validation. SOURCES ONLY, propose-only.
+
+specs:
+  # --- reproductions of the hand-written resolvers (engine validation) -------
+  - id: bd_oep_cfg
+    url: https://www.oep.gov.bd/agencies
+    format: html_table
+    entity_type: recruitment_agency
+    jurisdiction: BD
+    fields:
+      name: "Agent Name"
+      license_no: "License No"
+      address: "Address"
+      status: "License Status"
+      license_validity: "License Validity"
+    row_filter: {field: license_no, pattern: '^RL'}
+    note_fields: [license_validity]
+    source: "BD OEP/BMET licensed recruiting-agency register"
+
+  - id: bd_mra_cfg
+    url: https://ndb.mra.gov.bd/mra_web/everify/mfi-list
+    format: json
+    entity_type: lender
+    jurisdiction: BD
+    default_status: licensed
+    fields:
+      name: full_name_of_org
+      license_no: license_no
+      address: address_of_org
+      license_issue_date: license_issue_date
+    note_fields: [license_issue_date]
+    source: "BD MRA licensed microfinance institutions (e-verify)"
+
+  - id: cn_mara_cfg
+    url: https://www.moa.gov.cn/govpublic/YYJ/202504/t20250417_6473317.htm
+    format: html_table
+    entity_type: company
+    jurisdiction: CN
+    default_status: licensed
+    fields:
+      rank: 0
+      name: 1
+      score: 2
+    row_filter: {field: rank, pattern: '^\d+$'}
+    note_fields: [score, rank]
+    source: "CN MARA distant-water-fishing enterprise compliance assessment"
