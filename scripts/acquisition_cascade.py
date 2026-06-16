@@ -312,6 +312,32 @@ PROVEN_REGISTRIES = {
     "worldbank_debarred": {"preset": "worldbank_debarred", "name": "World Bank -- debarred firms (JSON)"},
 }
 
+
+def _make_spec_resolver(spec_id: str, url: str):
+    """A tier-1 resolver that runs a config-driven registry_spec by id."""
+    def _resolve(target: dict) -> dict:
+        try:
+            rs = _sibling("registry_spec")
+            recs = rs.resolve_id(spec_id)
+            return {"tier": 1, "name": "deterministic", "records": recs, "n": len(recs),
+                    "confidence": 0.9 if recs else 0.0, "cost": "none",
+                    "discovered_urls": [url], "note": f"spec {spec_id}", "error": ""}
+        except Exception as exc:  # noqa: BLE001
+            return _err(1, "deterministic", exc)
+    return _resolve
+
+
+# every spec in registry_specs.yaml becomes an addressable --registry id (guarded:
+# a missing/broken spec catalogue must never break the rest of the cascade).
+try:
+    for _sid, _spec in _sibling("registry_spec").load_specs().items():
+        if _sid not in REGISTRY_RESOLVERS:
+            REGISTRY_RESOLVERS[_sid] = _make_spec_resolver(_sid, _spec.get("url", ""))
+            PROVEN_REGISTRIES[_sid] = {"preset": _sid,
+                                       "name": _spec.get("source", _sid) + " (config spec)"}
+except Exception:  # noqa: BLE001
+    pass
+
 _CATALOGS = (
     _ROOT / "configs" / "duecare" / "research_monitor" / "entity_sources.yaml",
     _ROOT / "configs" / "duecare" / "research_monitor" / "licensed_entity_sources.yaml",
