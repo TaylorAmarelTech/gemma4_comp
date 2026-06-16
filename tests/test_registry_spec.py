@@ -93,6 +93,23 @@ def test_resolve_pipes_fetch_through_to_entities():
     assert ents[0]["name"] == "Alpha MFI" and ents[0]["entity_type"] == "lender"
 
 
+def test_resolve_paginates_offset_style():
+    spec = {"url": "https://x/api?resource_id=r", "format": "json", "entity_type": "company",
+            "fields": {"name": "n"}, "list_path": "result.records",
+            "paginate": {"size_param": "limit", "offset_param": "offset", "size": 2, "max_records": 10}}
+    pages = {0: '{"result":{"records":[{"n":"A"},{"n":"B"}]}}',
+             2: '{"result":{"records":[{"n":"C"}]}}'}      # partial page -> stop
+    urls = []
+
+    def fetch(url, binary):
+        urls.append(url)
+        off = int(url.split("offset=")[1])
+        return pages.get(off, '{"result":{"records":[]}}')
+    ents = rs.resolve(spec, fetch=fetch)
+    assert [e["name"] for e in ents] == ["A", "B", "C"]
+    assert "limit=2&offset=0" in urls[0] and "offset=2" in urls[1]
+
+
 def test_resolve_requests_binary_for_xlsx():
     spec = {"url": "https://x.xlsx", "format": "xlsx", "entity_type": "company",
             "fields": {"name": "Name"}}

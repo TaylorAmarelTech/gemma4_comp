@@ -53,3 +53,49 @@ specs:
     row_filter: {field: rank, pattern: '^\d+$'}
     note_fields: [score, rank]
     source: "CN MARA distant-water-fishing enterprise compliance assessment"
+
+  # --- new endpoints onboarded as config (no new Python) ---------------------
+  - id: au_vic_building
+    url: https://vicopendatavba.blob.core.windows.net/vicopendata/BPR.csv
+    format: csv
+    entity_type: company
+    jurisdiction: AU
+    fields:
+      name: "Account Name"
+      license_no: "Accreditation ID"
+      status: "Accreditation Status"
+      type: "Type"
+      license_expiry: "Expires"
+    note_fields: [type, license_expiry]
+    source: "Victorian Building Practitioner Register (BPC), Building Act 1993 (Vic)"
+
+  - id: sg_bca_contractors
+    url: https://data.gov.sg/api/action/datastore_search?resource_id=d_dcda79be4aded5f9e769b8e23ff69b47
+    format: json
+    list_path: result.records
+    entity_type: company
+    jurisdiction: SG
+    default_status: registered
+    fields:
+      name: company_name
+      license_no: uen_no
+      workhead: workhead
+      grade: grade
+      license_expiry: expiry_date
+    note_fields: [workhead, grade, license_expiry]
+    paginate: {size_param: limit, offset_param: offset, size: 5000, max_records: 30000}
+    source: "Singapore BCA Contractors Registration System (data.gov.sg)"
+
+  - id: co_ica_bpa
+    url: https://www.datos.gov.co/resource/wusb-7b8z.json
+    format: json
+    entity_type: company
+    jurisdiction: CO
+    fields:
+      name: nombre_predio
+      status: vigencia
+      municipio: municipio
+      departamento: departamento
+    note_fields: [municipio, departamento]
+    paginate: {size_param: "$limit", offset_param: "$offset", size: 5000, max_records: 60000}
+    source: "ICA Colombia - certified Good Agricultural Practices properties (BPA), datos.gov.co"
