@@ -110,6 +110,71 @@ def test_resolve_paginates_offset_style():
     assert "limit=2&offset=0" in urls[0] and "offset=2" in urls[1]
 
 
+# ---- link discovery -------------------------------------------------------
+
+def test_discover_url_picks_latest_dated_link():
+    page = ('<a href="https://x/data_2026-01-01.csv">old</a>'
+            '<a href="https://x/data_2026-06-15.csv">new</a>')
+    url = rs.discover_url({"page": "https://site/reg", "link_pattern": r"\.csv", "pick": "latest"},
+                          fetch=lambda u, b: page)
+    assert url == "https://x/data_2026-06-15.csv"
+
+
+def test_discover_url_absolutizes_relative_href():
+    page = '<a href="/media/abc/list-15.06.2026.xlsx">x</a>'
+    url = rs.discover_url({"page": "https://amsa.gov.au/ships", "link_pattern": r"\.xlsx"},
+                          fetch=lambda u, b: page)
+    assert url == "https://amsa.gov.au/media/abc/list-15.06.2026.xlsx"
+
+
+def test_discover_url_ckan_resources():
+    pkg = ('{"result":{"resources":['
+           '{"url":"https://o/positive_en.csv","name":"positive en","format":"CSV"},'
+           '{"url":"https://o/positive_fr.csv","name":"positive fr","format":"CSV"}]}}')
+    url = rs.discover_url({"page": "https://ckan/api", "format": "ckan",
+                          "link_pattern": "positive_en"}, fetch=lambda u, b: pkg)
+    assert url == "https://o/positive_en.csv"
+
+
+def test_discover_url_raises_when_no_match():
+    try:
+        rs.discover_url({"page": "p", "link_pattern": r"\.csv"}, fetch=lambda u, b: "<html>no links</html>")
+        assert False
+    except ValueError:
+        pass
+
+
+def test_date_key_parses_formats():
+    assert rs._date_key("x_2026-06-15.csv") == (2026, 6, 15)
+    assert rs._date_key("list-15.06.2026.xlsx") == (2026, 6, 15)
+    assert rs._date_key("nope.csv") == (0, 0, 0)
+
+
+def test_resolve_with_discover_then_fetches_data():
+    spec = {"format": "csv", "entity_type": "company", "jurisdiction": "GB",
+            "fields": {"name": "Name"},
+            "discover": {"page": "https://gov.uk/reg", "link_pattern": r"\.csv", "pick": "latest"}}
+
+    def fetch(url, binary):
+        if url == "https://gov.uk/reg":
+            return ('<a href="https://x/data_2026-01-01.csv">old</a>'
+                    '<a href="https://x/data_2026-06-15.csv">new</a>')
+        if url == "https://x/data_2026-06-15.csv":
+            return "Name\nAcme Sample Ltd\n"
+        return ""
+    ents = rs.resolve(spec, fetch=fetch)
+    assert [e["name"] for e in ents] == ["Acme Sample Ltd"]   # discovered latest, then parsed
+
+
+def test_validate_spec_accepts_discover_without_url():
+    spec = {"id": "x", "format": "csv", "entity_type": "company", "fields": {"name": "N"},
+            "discover": {"page": "https://p", "link_pattern": r"\.csv"}}
+    assert rs.validate_spec(spec) == []
+    # but a spec with neither url nor discover.page is invalid
+    assert any("url or discover" in p for p in rs.validate_spec(
+        {"id": "x", "format": "csv", "entity_type": "company", "fields": {"name": "N"}}))
+
+
 def test_resolve_requests_binary_for_xlsx():
     spec = {"url": "https://x.xlsx", "format": "xlsx", "entity_type": "company",
             "fields": {"name": "Name"}}
@@ -135,7 +200,7 @@ def test_shipped_specs_load_and_validate():
 
 
 def test_validate_spec_catches_problems():
-    assert "missing url" in rs.validate_spec({"id": "x", "format": "json", "entity_type": "c",
-                                              "fields": {"name": "n"}})
+    assert any("url" in p for p in rs.validate_spec({"id": "x", "format": "json", "entity_type": "c",
+                                                     "fields": {"name": "n"}}))
     assert any("format" in p for p in rs.validate_spec(
         {"id": "x", "url": "u", "format": "toml", "entity_type": "c", "fields": {"n": 1}}))

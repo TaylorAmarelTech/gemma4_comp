@@ -100,6 +100,26 @@ specs:
     paginate: {size_param: "$limit", offset_param: "$offset", size: 5000, max_records: 60000}
     source: "ICA Colombia - certified Good Agricultural Practices properties (BPA), datos.gov.co"
 
+  # uses link-discovery: the data CSV URL is date-stamped, so point at the stable
+  # landing page and pick the latest matching CSV.
+  - id: gb_licensed_sponsors
+    discover:
+      page: https://www.gov.uk/government/publications/register-of-licensed-sponsors-workers
+      link_pattern: 'Worker.*\.csv'
+      pick: latest
+    format: csv
+    entity_type: company
+    jurisdiction: GB
+    default_status: licensed
+    fields:
+      name: "Organisation Name"
+      address: "Town/City"
+      county: "County"
+      type: "Type & Rating"
+      route: "Route"
+    note_fields: [type, route]
+    source: "UK Register of Licensed Sponsors: Workers (Home Office)"
+
   - id: tw_mol_manpower
     url: https://apiservice.mol.gov.tw/OdService/download/A17000000J-020002-LkO
     format: json
