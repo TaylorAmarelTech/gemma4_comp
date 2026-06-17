@@ -99,3 +99,18 @@ specs:
     note_fields: [municipio, departamento]
     paginate: {size_param: "$limit", offset_param: "$offset", size: 5000, max_records: 60000}
     source: "ICA Colombia - certified Good Agricultural Practices properties (BPA), datos.gov.co"
+
+  - id: tw_mol_manpower
+    url: https://apiservice.mol.gov.tw/OdService/download/A17000000J-020002-LkO
+    format: json
+    entity_type: manning_agency
+    jurisdiction: TW
+    default_status: approved
+    fields:
+      name: "英文名稱"
+      license_no: "機構編號"
+      address: "地址"
+      nationality: "國籍"
+      approval_expiry: "本國認可有效屆滿日"
+    note_fields: [nationality, approval_expiry]
+    source: "Taiwan MOL approved overseas manpower intermediaries (data.gov.tw 6683)"
