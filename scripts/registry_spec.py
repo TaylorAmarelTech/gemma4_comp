@@ -36,9 +36,11 @@ import importlib.util
 import io
 import json
 import sys
+import re
 import urllib.request
 from pathlib import Path
 from typing import Any
+from urllib.parse import urljoin
 
 _ROOT = Path(__file__).resolve().parents[1]
 _SPECS = _ROOT / "configs" / "duecare" / "research_monitor" / "registry_specs.yaml"
@@ -129,6 +131,55 @@ def to_entities(records: list[dict], spec: dict) -> list[dict]:
     return out
 
 
+_DATE_RES = (
+    (re.compile(r"(20\d{2})[-_/.](\d{1,2})[-_/.](\d{1,2})"), (1, 2, 3)),   # YYYY-MM-DD
+    (re.compile(r"(\d{1,2})[-_/.](\d{1,2})[-_/.](20\d{2})"), (3, 2, 1)),   # DD.MM.YYYY
+    (re.compile(r"(20\d{2})(\d{2})(\d{2})"), (1, 2, 3)),                   # YYYYMMDD
+)
+
+
+def _date_key(url: str) -> tuple[int, int, int]:
+    """Best-effort (y, m, d) date pulled from a URL, for picking the latest file."""
+    for rx, (yi, mi, di) in _DATE_RES:
+        m = rx.search(url)
+        if m:
+            return (int(m.group(yi)), int(m.group(mi)), int(m.group(di)))
+    return (0, 0, 0)
+
+
+def discover_url(disc: dict, *, fetch) -> str:
+    """Resolve a dynamic data URL by scraping a landing page.
+
+    ``disc`` = {page, link_pattern, pick: latest|first|last, format: html|ckan}.
+    Fetches the page, collects links matching ``link_pattern`` (HTML hrefs/URLs,
+    or a CKAN package_show's resource URLs), and returns one -- the latest by a
+    date embedded in the URL (default), or the first/last match. Lets a spec point
+    at a stable landing page when the data file URL is date-stamped or multi-file.
+    """
+    page = disc["page"]
+    content = fetch(page, False)
+    pat = re.compile(disc.get("link_pattern", r"\.csv"), re.I)
+    if disc.get("format") in ("ckan", "json"):
+        data = json.loads(content) if isinstance(content, (str, bytes)) else content
+        resources = []
+        if isinstance(data, dict):
+            resources = (data.get("result", {}) or {}).get("resources") or data.get("resources") or []
+        cands = [r.get("url", "") for r in resources
+                 if isinstance(r, dict) and pat.search(r.get("url", "") + " " + r.get("name", ""))]
+    else:
+        raw = re.findall(r'href="([^"]+)"', content) + re.findall(r'https?://[^\s"\'<>]+', content)
+        cands = [urljoin(page, u) for u in raw if pat.search(u)]
+    cands = [c for c in dict.fromkeys(cands) if c]
+    if not cands:
+        raise ValueError(f"discover: no link matching {disc.get('link_pattern')!r} on {page}")
+    pick = disc.get("pick", "latest")
+    if pick == "first":
+        return cands[0]
+    if pick == "last":
+        return cands[-1]
+    return max(cands, key=_date_key)
+
+
 def _default_fetch(url: str, binary: bool):
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "*/*"})
     with urllib.request.urlopen(req, timeout=90) as r:  # noqa: S310
@@ -167,6 +218,8 @@ def _paginate(spec: dict, fetch, binary: bool) -> list[dict]:
 def resolve(spec: dict, *, fetch=None) -> list[dict]:
     """Fetch + parse + stamp a spec into entity dicts. ``fetch(url, binary)`` injectable."""
     fetch = fetch or _default_fetch
+    if spec.get("discover"):
+        spec = {**spec, "url": discover_url(spec["discover"], fetch=fetch)}
     binary = spec.get("format") in _BYTE_FORMATS
     if spec.get("paginate"):
         records = _paginate(spec, fetch, binary)
@@ -184,9 +237,11 @@ def resolve_id(spec_id: str, *, fetch=None, specs: dict | None = None) -> list[d
 def validate_spec(spec: dict) -> list[str]:
     """Return a list of problems with a spec ([] = valid)."""
     problems = []
-    for req in ("id", "url", "format", "entity_type"):
+    for req in ("id", "format", "entity_type"):
         if not spec.get(req):
             problems.append(f"missing {req}")
+    if not spec.get("url") and not (spec.get("discover") or {}).get("page"):
+        problems.append("missing url or discover.page")
     if spec.get("format") not in (_TEXT_FORMATS | _BYTE_FORMATS):
         problems.append(f"bad format {spec.get('format')!r}")
     if spec.get("format") == "pdf":
