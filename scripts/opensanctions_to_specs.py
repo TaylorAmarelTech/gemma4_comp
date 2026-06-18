@@ -77,24 +77,40 @@ def to_draft_spec(rec: dict) -> dict | None:
     }
 
 
-def drafts(sources: list[dict], *, existing_ids: set[str], categories: set[str] | None = None) -> list[dict]:
-    """Build deduped draft specs, skipping ids already live and unsupported formats."""
+def drafts(sources: list[dict], *, existing_ids: set[str], existing_urls: set[str] = frozenset(),
+           categories: set[str] | None = None) -> list[dict]:
+    """Build deduped draft specs, skipping unsupported formats and anything already live.
+
+    A draft is dropped if its id OR its url is already onboarded -- the url check means a
+    promoted endpoint leaves the queue even when its spec id was renamed on promotion.
+    """
     out: dict[str, dict] = {}
     for rec in sources:
         if categories and rec.get("category") not in categories:
             continue
         spec = to_draft_spec(rec)
-        if spec and spec["id"] not in existing_ids and spec["id"] not in out:
-            out[spec["id"]] = spec
+        if not spec or spec["id"] in existing_ids or spec["id"] in out or spec["url"] in existing_urls:
+            continue
+        out[spec["id"]] = spec
     return sorted(out.values(), key=lambda s: s["id"])
+
+
+def _live_specs(path: Path) -> list[dict]:
+    if not path.exists():
+        return []
+    data = _yaml().safe_load(path.read_text(encoding="utf-8")) or {}
+    return [s for s in data.get("specs", []) if isinstance(s, dict)]
 
 
 def live_spec_ids(path: Path) -> set[str]:
     """Ids already onboarded in registry_specs.yaml (so drafts don't duplicate them)."""
-    if not path.exists():
-        return set()
-    data = _yaml().safe_load(path.read_text(encoding="utf-8")) or {}
-    return {str(s.get("id")) for s in data.get("specs", []) if isinstance(s, dict)}
+    return {str(s.get("id")) for s in _live_specs(path)}
+
+
+def live_spec_urls(path: Path) -> set[str]:
+    """Urls already onboarded -- drops a promoted endpoint from the queue even if its
+    spec id was renamed during promotion."""
+    return {str(s.get("url")) for s in _live_specs(path) if s.get("url")}
 
 
 def summarize(specs: list[dict]) -> dict:
@@ -134,7 +150,9 @@ def main(argv: list[str] | None = None) -> int:
         ap.error(f"harvest not found: {hp}\n  run scripts/harvest_opensanctions_sources.py first")
     sources = (_yaml().safe_load(hp.read_text(encoding="utf-8")) or {}).get("sources", [])
     cats = {c.strip() for c in args.category.split(",")} if args.category else None
-    specs = drafts(sources, existing_ids=live_spec_ids(Path(args.specs)), categories=cats)
+    live = Path(args.specs)
+    specs = drafts(sources, existing_ids=live_spec_ids(live), existing_urls=live_spec_urls(live),
+                   categories=cats)
     summary = summarize(specs)
 
     print(f"{summary['drafts']} draft specs (need field-map verification before use)", file=sys.stderr)

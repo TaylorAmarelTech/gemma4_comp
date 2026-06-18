@@ -245,3 +245,90 @@ specs:
       end_date: Prazo_final_penalidade
     note_fields: [penalty, masked_id, years, start_date, end_date]
     source: "BR BCB Gepad -- persons disqualified from senior roles in the financial system (Banco Central do Brasil)"
+
+  # --- batch 2: promoted from the OpenSanctions draft work-queue (verified live) ---
+  - id: tw_strategic_trade_entities
+    url: https://publicinfo.trade.gov.tw/icp/Download.action?file=ZgPKOWuRLCD%2B8S4%2FZhAeuw%3D%3D
+    format: csv
+    entity_type: entity
+    jurisdiction: TW
+    default_status: restricted
+    fields:
+      name: "名稱name"
+      alias: "別名alias"
+      country: "國家代碼country code"
+      address: "地址address"
+    note_fields: [alias, country, address]
+    source: "TW MOEA strategic high-tech-commodity entity list (publicinfo.trade.gov.tw; official)"
+
+  - id: afdb_debarred
+    url: https://www.afdb.org/en/projects-operations/debarment-and-sanctions-procedures
+    format: html_table
+    entity_type: company
+    jurisdiction: ZZ
+    default_status: debarred
+    fields:
+      name: Name
+      type: Type
+      nationality: Nationality
+      basis: Basis
+    note_fields: [type, nationality, basis]
+    source: "African Development Bank debarred entities (afdb.org; official MDB cross-debarment)"
+
+  - id: no_nbim_exclusions
+    url: https://www.nbim.no/en/responsible-investment/exclusion-of-companies/
+    format: html_table
+    entity_type: company
+    jurisdiction: NO
+    default_status: excluded
+    fields:
+      name: Company
+      category: Category
+      criterion: Criterion
+      decision: Decision
+    note_fields: [category, criterion, decision]
+    source: "Norges Bank Investment Management (Norwegian sovereign fund) exclusion list (nbim.no; official)"
+
+  - id: us_dod_chinese_military
+    url: https://docs.google.com/spreadsheets/d/e/2PACX-1vRlrR4f46lTXiAuIijw-0XcW1IXSlWv-duNEc8ha23SpRjGrP_RqJUjnAFv07VDvih025FS0gTdQZbh/pub?gid=0&single=true&output=csv
+    format: csv
+    entity_type: company
+    jurisdiction: US
+    default_status: listed
+    fields:
+      name: Name
+      alias: Alias
+      note: Note
+      start_date: "Start date"
+      end_date: "End date"
+    note_fields: [alias, note, start_date, end_date]
+    source: "US DoD Section 1260H Chinese military companies list (via OpenSanctions-crawled published Google Sheet)"
+
+  - id: us_special_legislative_excl
+    url: https://docs.google.com/spreadsheets/d/e/2PACX-1vSVatiUNMn-TatTYOQhYOPbEBRBwmoBG6LtaJklPPzLju1x-qrJxxBlsDwuis3IyKz77dHp3xvvnMRb/pub?gid=0&single=true&output=csv
+    format: csv
+    entity_type: entity
+    jurisdiction: US
+    default_status: excluded
+    fields:
+      name: name
+      aliases: aliases
+      program: program
+      authority: authority
+      reason: reason
+    note_fields: [aliases, program, authority, reason]
+    source: "US special legislative / statutory exclusions (Huawei, etc.; via OpenSanctions-crawled published Google Sheet)"
+
+  - id: ohchr_settlement_companies
+    url: https://docs.google.com/spreadsheets/d/e/2PACX-1vT17qv7NxgWJnqmJJiGTncmAQeWI2QKW9Z92CZOXxWJi071xJr5V8CxtnB3AxgFkFZLCg2eGgBizxXs/pub?output=csv
+    format: csv
+    entity_type: company
+    jurisdiction: ZZ
+    default_status: listed
+    fields:
+      name: "Business enterprise"
+      prev_name: "Previous name"
+      state: "State concerned"
+      notes: "Notes"
+    note_fields: [prev_name, state, notes]
+    source: "UN OHCHR database of business enterprises involved in settlement activity (via OpenSanctions-crawled published Google Sheet)"
