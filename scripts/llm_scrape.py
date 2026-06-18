@@ -368,7 +368,8 @@ def _playwright_render_page(url: str, *, screenshot: bool = True, nav_timeout_s:
 
 
 def scrape_page(url: str, fields: list[str], *, renderer=None, model_fn=None,
-                vision_model_fn=None, want_screenshot: bool = False, tier: str = "auto") -> dict:
+                vision_model_fn=None, want_screenshot: bool = False, tier: str = "auto",
+                enhance_image: bool = False) -> dict:
     """Render `url` then extract `fields` in a robustness waterfall:
       tier 1 DETERMINISTIC -- rule-based HTML parse (NO tokens), always run;
       tier 2 LLM           -- only for fields the rules missed (tier 'auto') or
@@ -401,7 +402,19 @@ def scrape_page(url: str, fields: list[str], *, renderer=None, model_fn=None,
                     merged[k] = llm[k]
 
     if vision_model_fn is not None and tier != "deterministic" and page.get("screenshot_b64"):
-        vis = vision_extract(page["screenshot_b64"], fields, vision_model_fn)
+        shot = page["screenshot_b64"]
+        if enhance_image:  # quality-gated pre-OCR enhancement; best-effort, never fatal
+            try:
+                import sys as _sys
+                from pathlib import Path as _Path
+                _d = str(_Path(__file__).resolve().parent)
+                if _d not in _sys.path:
+                    _sys.path.insert(0, _d)
+                from image_enhance import enhance_b64
+                shot, result["vision_enhanced_ops"] = enhance_b64(shot)
+            except Exception as exc:  # noqa: BLE001 - enhancement must not break vision
+                result["vision_enhanced_ops"] = [f"enhance-skipped:{type(exc).__name__}"]
+        vis = vision_extract(shot, fields, vision_model_fn)
         used_llm = True
         result["vision_extracted"] = vis
         for k in fields:

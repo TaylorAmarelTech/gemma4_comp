@@ -169,3 +169,33 @@ queries → score vs these constraints → ranked ADOPT/CONSIDER/AVOID with bloc
 flags) driven by the **`tooling-scout` agent** (`.claude/agents/tooling-scout.md`,
 invoke via the Agent tool) which gh+web-verifies the top picks and cross-checks this
 doc so it never re-pitches what we already adopted.
+
+## 5 — Pre-OCR image enhancement (built, ported from OpenSearch-VL)
+
+`shawn0728/OpenSearch-VL` (222★, Apache-2.0, active — a Qwen3-VL multimodal
+deep-search agent recipe) is **AVOID as a stack** for us: Qwen3-VL-centric (we're
+Gemma 4), and its Megatron/verl/sglang training needs multi-GPU on 8–32B —
+impossible on the box, violates "no large model downloads". But its **tool
+environment** is a clean **PORT**: the agent recovers from imperfect inputs with
+`crop` / `perspective_correct` / `super_resolution` / `sharpen` *before* reading
+them. We had the opposite gap — the process/extraction harness queued blurry, skewed
+document photos straight to Gemma-4 vision.
+
+**Built — `scripts/image_enhance.py`** (+16 tests): deterministic, CPU-only,
+quality-gated enhancement on the OpenCV camelot already pulls in (no new dep, no
+model). `quality_report()` measures blur (variance of Laplacian), skew, resolution,
+contrast; `enhance_for_ocr()` applies only what's needed — `deskew` /
+`denoise+sharpen` / `clahe` (contrast) / Lanczos `upscale` — plus `crop` and 4-point
+`perspective_correct`. Every op returns a new array (immutability) and degrades to a
+logged no-op if cv2 is absent. `enhance_b64()` sits exactly at the
+`llm_scrape.vision_extract` base64 boundary and is wired in as an **opt-in**
+`scrape_page(..., enhance_image=True)` step that records `vision_enhanced_ops` and
+can never break the vision path. Live proof on a degraded synthetic scan: skew
+−7.2°→0.1°, 460×300→1533×1000, contrast 4.3→13.3. This also enriches the Gemma-4
+multimodal + function-calling story: the agent gains `crop`/`enhance` tools to
+recover a bad input before answering.
+
+NOTE for a future training pass: OpenSearch-VL's **fatal-aware GRPO** (mask tokens
+after a fatal tool failure instead of penalizing the whole rollout) is a good idea
+for our agentic trajectory curation; its open SearchVL-SFT-36k / RL-8k datasets
+(Apache-2.0) are reference tool-use data, though general-VQA not trafficking.
