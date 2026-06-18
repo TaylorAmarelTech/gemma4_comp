@@ -263,10 +263,14 @@ def _with_page(url: str, n: int) -> str:
     return f"{url}{sep}page={n}"
 
 
-def _launch_browser(pw):
-    """Launch the first Chromium that starts; raise if none do."""
+def _launch_browser(pw, *, headless: bool = True):
+    """Launch the first Chromium that starts; raise if none do.
+
+    ``headless=False`` launches a real visible browser -- far likelier to clear a
+    Cloudflare managed challenge than a headless one (the agentic fetch tier)."""
     errors = []
     for strat in _LAUNCH_STRATEGIES:
+        strat = {**strat, "headless": headless}
         try:
             return pw.chromium.launch(**strat)
         except Exception as exc:  # noqa: BLE001
@@ -277,28 +281,47 @@ def _launch_browser(pw):
         "(or ensure system Edge/Chrome is present).")
 
 
+def _stealth_sync_playwright():
+    """Prefer patchright (a drop-in Playwright fork that patches the Runtime.enable
+    CDP leak -- the top 2026 bot-detection signal) when installed; else Playwright.
+
+    patchright is API-compatible, so the rest of the browser code is unchanged; it
+    just lowers the automation fingerprint so a managed challenge can auto-pass.
+    """
+    try:
+        from patchright.sync_api import sync_playwright
+    except ImportError:
+        from playwright.sync_api import sync_playwright
+    return sync_playwright
+
+
 def browser_fetch(url: str, *, warmup_url: str | None = None, binary: bool = False,
-                  nav_timeout_s: float = 45.0) -> "str | bytes":
+                  nav_timeout_s: float = 45.0, headed: bool = False,
+                  challenge_wait_s: float = 4.0) -> "str | bytes":
     """Fetch a URL through a real browser (Edge/Playwright), to pass JS-challenge
     WAFs (Cloudflare) that 403 plain urllib/curl_cffi.
 
     If ``warmup_url`` is given, the browser navigates there first so the WAF's
     challenge-clearance cookie is set in the context before the data URL is
-    fetched via ``ctx.request.get`` (which reuses those cookies). Returns text or
-    bytes. Raises if no browser launches or the fetch is not OK.
+    fetched via ``ctx.request.get`` (which reuses those cookies). ``headed=True``
+    launches a real visible browser and waits ``challenge_wait_s`` for the
+    challenge to auto-clear -- the agentic tier, far likelier to pass Cloudflare.
+    Returns text or bytes. Raises if no browser launches or the fetch is not OK.
     """
-    from playwright.sync_api import sync_playwright
+    sync_playwright = _stealth_sync_playwright()
     to = int(nav_timeout_s * 1000)
     with sync_playwright() as pw:
-        browser = _launch_browser(pw)
+        browser = _launch_browser(pw, headless=not headed)
         try:
-            ctx = browser.new_context(user_agent=USER_AGENT)
+            # in headed/agentic mode, present the real browser identity (max stealth
+            # to pass a managed challenge); in the polite tiers keep the bot UA.
+            ctx = browser.new_context() if headed else browser.new_context(user_agent=USER_AGENT)
             page = ctx.new_page()
             if warmup_url:
                 try:
                     page.goto(warmup_url, timeout=to, wait_until="domcontentloaded")
                     page.wait_for_load_state("networkidle", timeout=to)
-                    page.wait_for_timeout(4000)   # let a JS-challenge auto-clear
+                    page.wait_for_timeout(int(challenge_wait_s * 1000))  # let a JS-challenge clear
                 except Exception:  # noqa: BLE001 -- warmup is best-effort
                     pass
             # 1) reuse the (now challenge-cleared) context cookies for an API fetch

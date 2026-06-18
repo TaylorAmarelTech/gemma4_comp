@@ -255,21 +255,29 @@ def _paginate(spec: dict, fetch, binary: bool) -> list[dict]:
     return out
 
 
-def _browser_fetch(url: str, binary: bool, warmup: str | None):
+def _browser_fetch(url: str, binary: bool, warmup: str | None, headed: bool = False):
     spec = importlib.util.spec_from_file_location(
         "dc_browser_scrape_for_spec", str(_ROOT / "scripts" / "browser_scrape.py"))
     bs = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = bs
     spec.loader.exec_module(bs)
-    return bs.browser_fetch(url, warmup_url=warmup, binary=binary)
+    return bs.browser_fetch(url, warmup_url=warmup, binary=binary, headed=headed,
+                            challenge_wait_s=10.0 if headed else 4.0)
 
 
 def _spec_fetch(spec: dict):
-    """Pick the default fetcher for a spec: a real browser when ``fetch_via:
-    browser`` (for JS-challenge-WAF registers), else urllib+curl_cffi."""
-    if spec.get("fetch_via") == "browser":
+    """Pick the default fetcher for a spec by ``fetch_via``:
+
+    * ``browser``  -> headless Playwright/Edge (JS-rendered SPAs, header WAFs)
+    * ``agentic``  -> HEADED real browser with a longer challenge wait (the
+      interactive tier, far likelier to clear a Cloudflare managed challenge)
+    * (omitted)    -> urllib, auto-falling back to curl_cffi
+    """
+    via = spec.get("fetch_via")
+    if via in ("browser", "agentic"):
         warm = spec.get("warmup_url") or (spec.get("discover") or {}).get("page")
-        return lambda url, binary: _browser_fetch(url, binary, warm)
+        headed = via == "agentic"
+        return lambda url, binary: _browser_fetch(url, binary, warm, headed=headed)
     return _default_fetch
 
 
