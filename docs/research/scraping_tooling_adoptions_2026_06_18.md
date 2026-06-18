@@ -157,6 +157,28 @@ python scripts/harvest_opensanctions_sources.py --clone ../opensanctions \
     --out reports/opensanctions_sources/proposed_sources.yaml   # propose-only
 ```
 
+**Onboarded as runnable specs (verified live).** The harvest gives `data.url` +
+`format` but not the field map (that's in OpenSanctions' `crawler.py`, not the
+metadata), so onboarding is: harvest → fetch the endpoint → author the field map
+against the *real* response → test it resolves. Three onboarded into
+`registry_specs.yaml` so far, each proven against the live API:
+
+| spec id | entities | what |
+|---|---|---|
+| `ph_gppb_blacklist` | 112 | PH suppliers debarred from govt procurement (GPPB CBR JSON) |
+| `si_kpk_business_restrictions` | 7,927 | SI businesses barred from public-sector contracting (KPK JSON) |
+| `br_bcb_disqualified` | 426 | BR persons disqualified from senior financial roles (BCB Gepad OData) |
+
+All auto-wire into the acquisition cascade (`--registry <id>`). The remaining
+endpoints are scaffolded as a verification work-queue by
+**`scripts/opensanctions_to_specs.py`** (+7 tests): it fills url/format/entity_type/
+jurisdiction from the harvest and leaves `fields:` an explicit `TODO` +
+`_needs_verification: true` (never a fabricated map), writing propose-only
+`reports/opensanctions_sources/draft_specs.yaml`. Current queue: **341 structured
+endpoints** (153 html_table, 87 json, 61 csv, 27 xlsx, 13 pdf_table); the 31
+registry/debarment/regulatory ones are the highest-value next promotions. Promote one
+by fetching it, mapping the keys, and moving the block into `registry_specs.yaml`.
+
 Adjacent, not yet built: **GLEIF LEI Golden Copy** (CC0 bulk; canonical entity-id to
 join registries on) and **nomenklatura / followthemoney** (MIT; entity dedup +
 screening data model) — both clean adoptions for the screening side.
