@@ -248,3 +248,47 @@ def parse_pdf_lines(text: str, row_regex: str, groups: dict[str, int]) -> list[d
             continue
         out.append({fld: (m.group(g) or "").strip() for fld, g in groups.items()})
     return out
+
+
+# ---------------------------------------------------------------------------
+# PDF TABLE extraction (camelot) -- unlocks the ~116 tabular-PDF endpoints
+# ---------------------------------------------------------------------------
+
+def read_pdf_tables(data: bytes, *, flavor: str = "lattice", pages: str = "all") -> list[list[list[str]]]:
+    """Extract tables from PDF bytes via camelot -> a list of tables, each a list
+    of row-lists of strings. Requires the optional ``camelot-py`` extra.
+
+    ``flavor`` is ``lattice`` (ruled tables -- most government register PDFs) or
+    ``stream`` (whitespace-aligned). Scanned/image PDFs have no text layer and
+    yield nothing here -- route those to the OCR/vision tier instead.
+    """
+    import os
+    import tempfile
+    import camelot
+    fd, path = tempfile.mkstemp(suffix=".pdf")
+    try:
+        with os.fdopen(fd, "wb") as f:
+            f.write(data)
+        tables = camelot.read_pdf(path, flavor=flavor, pages=pages)
+        return [[[str(c).strip() for c in row] for row in t.df.values.tolist()] for t in tables]
+    finally:
+        os.unlink(path)
+
+
+def pdf_tables_to_records(tables: list[list[list[str]]], fields: dict, *,
+                          row_filter: dict | None = None, name_field: str = "name") -> list[dict]:
+    """Map camelot-extracted tables to canonical records.
+
+    Each table is parsed independently (its own header detected), so a header
+    repeated on every page does not leak into the data. Pure -- tested offline.
+    """
+    recs: list[dict] = []
+    for rows in tables:
+        recs.extend(parse_table(rows, fields, row_filter=row_filter, name_field=name_field))
+    return recs
+
+
+def parse_pdf_table(data: bytes, fields: dict, *, flavor: str = "lattice",
+                    pages: str = "all", **kw) -> list[dict]:
+    """Extract tabular PDF bytes into canonical records (camelot + parse_table)."""
+    return pdf_tables_to_records(read_pdf_tables(data, flavor=flavor, pages=pages), fields, **kw)
