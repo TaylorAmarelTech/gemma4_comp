@@ -200,11 +200,31 @@ def discover_url(disc: dict, *, fetch) -> str:
     return max(pairs, key=lambda p: _date_key(p[1]))[0]
 
 
-def _default_fetch(url: str, binary: bool):
+def _urllib_fetch(url: str, binary: bool):
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "*/*"})
     with urllib.request.urlopen(req, timeout=90) as r:  # noqa: S310
         raw = r.read(16_000_000)
     return raw if binary else raw.decode("utf-8", "ignore")
+
+
+def _curl_fetch(url: str, binary: bool):
+    """TLS-impersonation fetch (curl_cffi) for WAF-protected gov portals.
+
+    Many open-data sites (e.g. tourism.gov.mv) 403 a plain urllib request but
+    serve a browser TLS fingerprint fine. Requires the optional curl_cffi extra.
+    """
+    from curl_cffi import requests as _creq
+    r = _creq.get(url, impersonate="chrome", timeout=90)
+    r.raise_for_status()
+    return r.content if binary else r.text
+
+
+def _default_fetch(url: str, binary: bool):
+    """Fetch via urllib, falling back to curl_cffi (browser TLS) on any failure."""
+    try:
+        return _urllib_fetch(url, binary)
+    except Exception:  # noqa: BLE001 -- retry blocked/transient errors with impersonation
+        return _curl_fetch(url, binary)
 
 
 def _paginate(spec: dict, fetch, binary: bool) -> list[dict]:
