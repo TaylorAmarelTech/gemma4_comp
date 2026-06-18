@@ -185,6 +185,17 @@ def _boom(url, binary):
     raise OSError("blocked")
 
 
+def test_spec_fetch_routes_browser_specs(monkeypatch):
+    monkeypatch.setattr(rs, "_browser_fetch", lambda url, binary, warm: f"BROWSER:{warm}:{url}")
+    f = rs._spec_fetch({"fetch_via": "browser", "warmup_url": "https://w"})
+    assert f("https://d", False) == "BROWSER:https://w:https://d"
+    # a discover.page is used as the warmup when no explicit warmup_url
+    g = rs._spec_fetch({"fetch_via": "browser", "discover": {"page": "https://p"}})
+    assert g("https://d", False) == "BROWSER:https://p:https://d"
+    # non-browser specs fall through to the default urllib+curl fetcher
+    assert rs._spec_fetch({"format": "csv"}) is rs._default_fetch
+
+
 def test_default_fetch_uses_urllib_when_it_works(monkeypatch):
     monkeypatch.setattr(rs, "_urllib_fetch", lambda u, b: "VIA_URLLIB")
     monkeypatch.setattr(rs, "_curl_fetch", lambda u, b: "VIA_CURL")

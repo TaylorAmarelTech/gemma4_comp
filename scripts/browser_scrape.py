@@ -277,6 +277,44 @@ def _launch_browser(pw):
         "(or ensure system Edge/Chrome is present).")
 
 
+def browser_fetch(url: str, *, warmup_url: str | None = None, binary: bool = False,
+                  nav_timeout_s: float = 45.0) -> "str | bytes":
+    """Fetch a URL through a real browser (Edge/Playwright), to pass JS-challenge
+    WAFs (Cloudflare) that 403 plain urllib/curl_cffi.
+
+    If ``warmup_url`` is given, the browser navigates there first so the WAF's
+    challenge-clearance cookie is set in the context before the data URL is
+    fetched via ``ctx.request.get`` (which reuses those cookies). Returns text or
+    bytes. Raises if no browser launches or the fetch is not OK.
+    """
+    from playwright.sync_api import sync_playwright
+    to = int(nav_timeout_s * 1000)
+    with sync_playwright() as pw:
+        browser = _launch_browser(pw)
+        try:
+            ctx = browser.new_context(user_agent=USER_AGENT)
+            page = ctx.new_page()
+            if warmup_url:
+                try:
+                    page.goto(warmup_url, timeout=to, wait_until="domcontentloaded")
+                    page.wait_for_load_state("networkidle", timeout=to)
+                    page.wait_for_timeout(4000)   # let a JS-challenge auto-clear
+                except Exception:  # noqa: BLE001 -- warmup is best-effort
+                    pass
+            # 1) reuse the (now challenge-cleared) context cookies for an API fetch
+            r = ctx.request.get(url, timeout=to)
+            if r.ok:
+                return r.body() if binary else r.text()
+            # 2) fallback: navigate the page straight to the data URL and read the body
+            resp = page.goto(url, timeout=to, wait_until="domcontentloaded")
+            if resp and resp.ok:
+                return resp.body() if binary else resp.text()
+            raise RuntimeError(
+                f"browser_fetch HTTP {r.status}/{resp.status if resp else '?'} for {url}")
+        finally:
+            browser.close()
+
+
 def _playwright_render(cfg: BrowserCapture) -> CaptureResult:
     """Drive headless Chromium, capture every JSON response, paginate politely."""
     try:
