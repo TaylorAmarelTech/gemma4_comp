@@ -69,6 +69,18 @@ def test_parse_table_skips_blank_name():
     assert [r["name"] for r in rp.parse_table(rows, {"name": "Name", "x": "X"})] == ["Real"]
 
 
+def test_parse_table_ignores_descriptive_title_row():
+    # a title row whose prose merely CONTAINS a field word (Employer/Stream/...) must
+    # not be picked as the header -- exact cell matches win (the real header is row 2)
+    rows = [["Employers issued a positive LMIA by Stream and Occupation"],
+            [""],
+            ["Province/Territory", "Stream", "Employer", "Address", "Occupation"],
+            ["Newfoundland", "High Wage", "Sample Health Authority", "St Johns", "Nurse"]]
+    recs = rp.parse_table(rows, {"name": "Employer", "stream": "Stream", "address": "Address",
+                                 "province": "Province/Territory", "occupation": "Occupation"})
+    assert len(recs) == 1 and recs[0]["name"] == "Sample Health Authority"
+
+
 # ---- html / csv / xlsx ----------------------------------------------------
 
 def test_parse_html_table():

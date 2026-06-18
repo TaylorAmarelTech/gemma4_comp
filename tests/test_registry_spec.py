@@ -150,6 +150,21 @@ def test_date_key_parses_formats():
     assert rs._date_key("nope.csv") == (0, 0, 0)
 
 
+def test_date_key_quarter_token():
+    assert rs._date_key("tfwp_2020q3_positive_en.csv") == (2020, 9, 0)
+    assert rs._date_key("2020q3") > rs._date_key("2020q1") > rs._date_key("2019q4")
+
+
+def test_discover_ckan_picks_latest_quarter_by_name_not_upload_time():
+    # all resources share a last_modified; the period lives in the URL/name -> quarter wins
+    pkg = ('{"result":{"resources":['
+           '{"url":"https://o/tfwp_2019q4_positive_en.csv","name":"2019Q4","last_modified":"2022-02-10"},'
+           '{"url":"https://o/tfwp_2020q3_positive_en.csv","name":"2020Q3","last_modified":"2022-02-10"}]}}')
+    url = rs.discover_url({"page": "p", "format": "ckan", "link_pattern": r"positive_en\.csv"},
+                         fetch=lambda u, b: pkg)
+    assert url.endswith("tfwp_2020q3_positive_en.csv")
+
+
 def test_resolve_with_discover_then_fetches_data():
     spec = {"format": "csv", "entity_type": "company", "jurisdiction": "GB",
             "fields": {"name": "Name"},
