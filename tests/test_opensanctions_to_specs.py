@@ -71,6 +71,13 @@ def test_drafts_dedups_skips_existing_and_filters_category():
     assert ots.drafts(recs, existing_ids=already, categories={"registry"}) == []  # skipped as live
 
 
+def test_drafts_excludes_by_url_even_when_id_was_renamed():
+    rec = _rec(name="A Register", data_url="https://x/a.json", data_format="JSON")
+    # promoted under a different id, but same url -> must drop out of the queue
+    assert ots.drafts([rec], existing_ids=set(), existing_urls={"https://x/a.json"}) == []
+    assert len(ots.drafts([rec], existing_ids=set(), existing_urls={"https://other"})) == 1
+
+
 def test_summarize_counts():
     out = ots.drafts([_rec(data_url="https://x/a.json", data_format="JSON"),
                       _rec(name="B Register", data_url="https://x/b.csv", data_format="CSV")],

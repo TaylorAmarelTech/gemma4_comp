@@ -160,24 +160,36 @@ python scripts/harvest_opensanctions_sources.py --clone ../opensanctions \
 **Onboarded as runnable specs (verified live).** The harvest gives `data.url` +
 `format` but not the field map (that's in OpenSanctions' `crawler.py`, not the
 metadata), so onboarding is: harvest → fetch the endpoint → author the field map
-against the *real* response → test it resolves. Three onboarded into
-`registry_specs.yaml` so far, each proven against the live API:
+against the *real* response → test it resolves. **9 onboarded** into
+`registry_specs.yaml` (= **22,729 entities**), each proven against the live source:
 
 | spec id | entities | what |
 |---|---|---|
-| `ph_gppb_blacklist` | 112 | PH suppliers debarred from govt procurement (GPPB CBR JSON) |
+| `tw_strategic_trade_entities` | 11,655 | TW MOEA strategic high-tech-commodity entity list (official CSV) |
 | `si_kpk_business_restrictions` | 7,927 | SI businesses barred from public-sector contracting (KPK JSON) |
+| `afdb_debarred` | 1,334 | African Development Bank debarred entities (official HTML table) |
+| `us_special_legislative_excl` | 515 | US statutory exclusions — Huawei etc. (crawled Google Sheet CSV) |
 | `br_bcb_disqualified` | 426 | BR persons disqualified from senior financial roles (BCB Gepad OData) |
+| `us_dod_chinese_military` | 397 | US DoD §1260H Chinese military companies (crawled Google Sheet CSV) |
+| `no_nbim_exclusions` | 205 | Norwegian sovereign-fund (NBIM) exclusion list (official HTML table) |
+| `ohchr_settlement_companies` | 158 | UN OHCHR settlement-linked business enterprises (crawled Google Sheet CSV) |
+| `ph_gppb_blacklist` | 112 | PH suppliers debarred from govt procurement (GPPB CBR JSON) |
 
-All auto-wire into the acquisition cascade (`--registry <id>`). The remaining
-endpoints are scaffolded as a verification work-queue by
-**`scripts/opensanctions_to_specs.py`** (+7 tests): it fills url/format/entity_type/
-jurisdiction from the harvest and leaves `fields:` an explicit `TODO` +
-`_needs_verification: true` (never a fabricated map), writing propose-only
-`reports/opensanctions_sources/draft_specs.yaml`. Current queue: **341 structured
-endpoints** (153 html_table, 87 json, 61 csv, 27 xlsx, 13 pdf_table); the 31
-registry/debarment/regulatory ones are the highest-value next promotions. Promote one
-by fetching it, mapping the keys, and moving the block into `registry_specs.yaml`.
+All auto-wire into the acquisition cascade (`--registry <id>`; 29 registries total).
+Provenance is honest per spec: official-portal (TW/AfDB/NBIM/PH/SI/BR) vs.
+OpenSanctions-crawled published Google Sheet (US/OHCHR). The remaining endpoints are
+scaffolded as a verification work-queue by **`scripts/opensanctions_to_specs.py`**
+(+8 tests; excludes already-promoted endpoints by url so the queue shrinks as we go):
+it fills url/format/entity_type/jurisdiction from the harvest and leaves `fields:` an
+explicit `TODO` + `_needs_verification: true` (never a fabricated map), writing
+propose-only `reports/opensanctions_sources/draft_specs.yaml`. Queue after batch 2:
+**332 structured endpoints** (151 html_table, 84 json, 57 csv, 27 xlsx, 13 pdf_table);
+**22** registry/debarment/regulatory remain. Probed-but-skipped (no fabrication): AU
+ABF / GB PSC bulk / CA / SHU / GE / TJ / FinCEN / DC (JS-rendered or narrative, no
+parseable table), GB-disq / GB-FCA / SEC / WorldBank / IADB / Kosovo / EBRD (401/403/
+406/500), FR AMF (entity in free text), CY / US-SAM (two-step download), ADB / SK
+(empty / needs OData pagination). Promote a draft by fetching it, mapping the keys,
+and moving the block into `registry_specs.yaml`.
 
 Adjacent, not yet built: **GLEIF LEI Golden Copy** (CC0 bulk; canonical entity-id to
 join registries on) and **nomenklatura / followthemoney** (MIT; entity dedup +
