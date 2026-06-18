@@ -332,3 +332,23 @@ specs:
       notes: "Notes"
     note_fields: [prev_name, state, notes]
     source: "UN OHCHR database of business enterprises involved in settlement activity (via OpenSanctions-crawled published Google Sheet)"
+
+  # --- batch 3: corridor / modern-slavery registries (research agents, verified) ---
+  - id: gb_modern_slavery_statements
+    url: https://downloads.modern-slavery-statement-registry.service.gov.uk/publicdownloads/StatementSummaries2024.csv
+    format: csv
+    entity_type: company
+    jurisdiction: GB
+    default_status: published_statement
+    fields:
+      name: OrganisationName
+      address: Address
+      company_no: CompanyNumber
+      sector: SectorType
+      parent: ParentName
+      turnover: Turnover
+      ilo_indicators: ILOIndicatorsInStatement
+    note_fields: [company_no, sector, parent, turnover, ilo_indicators]
+    # NB: group-submission rows carry a company NUMBER in OrganisationName with the
+    # named group in ParentName (a source quirk) -- both are kept. Year-templated URL.
+    source: "UK Modern Slavery Statement Registry (Home Office, s.54 transparency statements; OGL v3; carries disclosed modern-slavery risks + ILO indicators)"
