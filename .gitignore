@@ -111,6 +111,8 @@ reports/**/*.py
 reports/recruitment_scan/
 reports/agency_scan/
 reports/agency_dossier/
+reports/opensanctions_sources/
+reports/entity_kb/
 mlruns/
 wandb/
 

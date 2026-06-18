@@ -122,3 +122,50 @@ residential proxy or Tor can be slotted in without code changes.
 Operating principle unchanged: escalate only as far as the source forces, prefer
 deterministic tiers, request official access before fighting IPs, and **never
 fabricate a blocked fetch** — log it, drop a tier, or leave it pending.
+
+## 4 — Company-registry / source-list goldmine: OpenSanctions (built)
+
+The highest-leverage find from the company-registry research pass is not a library
+but a **curated source list**. `opensanctions/opensanctions` (MIT *code/metadata*;
+the consolidated *data* is CC-BY-NC) maintains ~445 per-registry crawler definitions
+under `datasets/<cc>/<name>/<name>.yml` across 97 country dirs. Each YAML names a
+real official SOURCE — landing `url`, `data.url` + `data.format` endpoint,
+`publisher` (with an `official` flag + country), update frequency, and classifying
+`tags` (`list.sanction` / `list.pep` / `list.debarment` / `reg.warn` / …). That is a
+ready-made directory of government registries and screening lists we can fold into
+our own catalog.
+
+**Built — `scripts/harvest_opensanctions_sources.py`** (+10 tests on verbatim
+GPPB/GovHK fixtures): reads the metadata YAMLs from a local clone, classifies each
+(registry / debarment / sanctions / pep / regulatory / other), maps it to our
+catalog-source shape, and writes a **propose-only** staging file under
+`reports/opensanctions_sources/` (gitignored). It **never** downloads the CC-BY-NC
+entity data — only the source pointers (MIT metadata) — and never touches the live
+catalog; merge is the separate explicit `merge_entity_sources.py` step.
+
+Live result against the real clone (2026-06-18): **400 source pointers, 371 with a
+usable data endpoint, 347 official** — 49 direct registries/debarment/regulatory
+(e.g. *AU Sanctions on Sponsors of Skilled Foreign Worker Visas*, *Brazil CEIS
+disreputable/suspended companies*, *Cyprus company registry*, *Czech Business
+Register*) plus 199 PEP/sanctions screening lists that feed `entity_screen.py` /
+`adverse_media.py`. Run:
+
+```bash
+gh repo clone opensanctions/opensanctions ../opensanctions      # ~445 YAMLs
+python scripts/harvest_opensanctions_sources.py --clone ../opensanctions --stats
+python scripts/harvest_opensanctions_sources.py --clone ../opensanctions \
+    --out reports/opensanctions_sources/proposed_sources.yaml   # propose-only
+```
+
+Adjacent, not yet built: **GLEIF LEI Golden Copy** (CC0 bulk; canonical entity-id to
+join registries on) and **nomenklatura / followthemoney** (MIT; entity dedup +
+screening data model) — both clean adoptions for the screening side.
+
+## Reusable capability — the tooling scout (built)
+
+So the next "find proven tools/repos for X" pass is a repeatable command, not a
+bespoke research run: **`scripts/tooling_scout.py`** (`gh search` across many
+queries → score vs these constraints → ranked ADOPT/CONSIDER/AVOID with blocker
+flags) driven by the **`tooling-scout` agent** (`.claude/agents/tooling-scout.md`,
+invoke via the Agent tool) which gh+web-verifies the top picks and cross-checks this
+doc so it never re-pitches what we already adopted.
