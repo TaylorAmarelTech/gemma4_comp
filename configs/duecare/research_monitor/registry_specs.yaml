@@ -159,6 +159,21 @@ specs:
     note_fields: [province, stream, occupation]
     source: "Canada TFWP - employers issued a positive LMIA (Open Government)"
 
+  # hospitality (a migrant-labour sector) from a government data portal (data.gov.hk)
+  - id: hk_licensed_hotels_guesthouses
+    url: https://www.hadla.gov.hk/psi/licensed-hotels-and-guesthouses/licensed_hotels_and_guesthouses.csv
+    format: csv
+    entity_type: hotel
+    jurisdiction: HK
+    default_status: licensed
+    fields:
+      name: "Premises Name"
+      license_no: "Licence No."
+      address: "Premises Address"
+      phone: "Premises Phone No."
+    note_fields: [phone]
+    source: "HK Office of the Licensing Authority - Licensed Hotels and Guesthouses (data.gov.hk)"
+
   - id: tw_mol_manpower
     url: https://apiservice.mol.gov.tw/OdService/download/A17000000J-020002-LkO
     format: json
