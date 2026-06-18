@@ -6,9 +6,12 @@ verdict logic (SANCTIONED / FLAGGED / LICENSED / NOT_FOUND).
 """
 from __future__ import annotations
 
+import difflib
 import importlib.util
 import sys
 from pathlib import Path
+
+import pytest
 
 _ROOT = Path(__file__).resolve().parents[1]
 
@@ -33,6 +36,20 @@ _RECS = [
     {"name": "Pacific Star Manpower", "entity_type": "recruitment_agency",
      "jurisdiction": "AE", "status": "Active", "source": "UAE register"},
 ]
+
+
+# ---- sequence ratio (RapidFuzz optional, difflib fallback) ----------------
+
+def test_seq_ratio_word_order_invariant_with_rapidfuzz():
+    pytest.importorskip("rapidfuzz")
+    # token_sort_ratio sorts tokens first -> reordering the same words scores ~1.0
+    assert es._seq_ratio("sunrise overseas manpower", "manpower overseas sunrise") > 0.95
+
+
+def test_seq_ratio_falls_back_to_difflib(monkeypatch):
+    monkeypatch.setattr(es, "_rf_fuzz", None)
+    assert es._seq_ratio("alpha beta", "alpha beta") == 1.0
+    assert es._seq_ratio("alpha", "alphb") == difflib.SequenceMatcher(None, "alpha", "alphb").ratio()
 
 
 # ---- match_score ----------------------------------------------------------

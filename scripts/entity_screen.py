@@ -33,6 +33,11 @@ import re
 import sys
 from pathlib import Path
 
+try:  # optional: C-fast, word-order/transliteration-robust name matching
+    from rapidfuzz import fuzz as _rf_fuzz
+except ModuleNotFoundError:  # pragma: no cover - stdlib difflib is the fallback
+    _rf_fuzz = None
+
 _ROOT = Path(__file__).resolve().parents[1]
 
 #: legal-form suffixes stripped before matching (do not distinguish two firms)
@@ -70,18 +75,31 @@ def _tokens(name: str) -> tuple[set[str], set[str]]:
     return set(toks), content
 
 
+def _seq_ratio(a: str, b: str) -> float:
+    """Sequence similarity in [0,1].
+
+    Uses RapidFuzz ``token_sort_ratio`` when the (optional) wheel is installed --
+    it sorts tokens first, so it is word-order invariant ("Sunrise Overseas" ==
+    "Overseas Sunrise") and far faster (C-backed); falls back to the stdlib
+    ``difflib`` ratio so the pure-stdlib path keeps working unchanged.
+    """
+    if _rf_fuzz is not None:
+        return _rf_fuzz.token_sort_ratio(a, b) / 100.0
+    return difflib.SequenceMatcher(None, a, b).ratio()
+
+
 def match_score(query: str, candidate: str) -> float:
     """Similarity in [0,1]: content-token Jaccard blended with a sequence ratio.
 
     The content Jaccard drives precision (it ignores legal forms + industry-generic
-    words, so only the *distinctive* tokens count); the difflib ratio rescues
+    words, so only the *distinctive* tokens count); the sequence ratio rescues
     spelling/transliteration variants and names that are all-generic.
     """
     q_all, q_con = _tokens(query)
     c_all, c_con = _tokens(candidate)
     if not q_all or not c_all:
         return 0.0
-    seq = difflib.SequenceMatcher(None, _norm(query), _norm(candidate)).ratio()
+    seq = _seq_ratio(_norm(query), _norm(candidate))
     pool_q, pool_c = (q_con or q_all), (c_con or c_all)
     jacc = len(pool_q & pool_c) / len(pool_q | pool_c) if (pool_q | pool_c) else 0.0
     return round(0.6 * jacc + 0.4 * seq, 4)
