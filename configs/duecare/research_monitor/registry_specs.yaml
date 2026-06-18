@@ -188,3 +188,60 @@ specs:
       approval_expiry: "本國認可有效屆滿日"
     note_fields: [nationality, approval_expiry]
     source: "Taiwan MOL approved overseas manpower intermediaries (data.gov.tw 6683)"
+
+  # --- OpenSanctions-sourced endpoints (harvested then verified live) ---------
+  # Source pointers came from opensanctions/opensanctions dataset metadata
+  # (scripts/harvest_opensanctions_sources.py); each field map below was authored
+  # against the LIVE endpoint response, not the metadata. See docs §5.
+  - id: ph_gppb_blacklist
+    url: https://onlineblacklistingportal.gppb.gov.ph/obp-backend/cbr/cbr_public/
+    format: json
+    entity_type: company
+    jurisdiction: PH
+    default_status: debarred
+    fields:
+      name: blacklisted_entity
+      license_no: philgeps_reg_no
+      address: address
+      officer: managing_officer
+      offenses: offenses
+      sanction: saction_imposed          # NB: the API key is spelled this way
+      blacklisted_by: procuring_entity
+      start_date: start_date
+      end_date: end_date
+    note_fields: [officer, offenses, sanction, blacklisted_by, start_date, end_date]
+    source: "PH GPPB Consolidated Blacklisting Report -- suppliers debarred from government procurement (RA 9184/12009)"
+
+  - id: si_kpk_business_restrictions
+    url: https://registri.kpk-rs.si/registri/omejitve_poslovanja/seznam/omejitve.json
+    format: json
+    entity_type: company
+    jurisdiction: SI
+    default_status: restricted
+    fields:
+      name: ps_naziv                      # ps_* = the restricted business subject
+      license_no: ps_maticna
+      tax_no: ps_davcna
+      address: ps_naslov
+      restricted_by: organ
+      restriction_start: datum_od
+      restriction_end: datum_do
+    note_fields: [tax_no, restricted_by, restriction_start, restriction_end]
+    source: "SI KPK omejitve poslovanja -- businesses barred from public-sector contracting (Commission for the Prevention of Corruption)"
+
+  - id: br_bcb_disqualified
+    url: https://olinda.bcb.gov.br/olinda/servico/Gepad_QuadrosGeraisInternet/versao/v1/odata/QuadroGeralInabilitados
+    format: json
+    list_path: value                      # OData wraps records under "value"
+    entity_type: individual
+    jurisdiction: BR
+    default_status: disqualified
+    fields:
+      name: Nome
+      penalty: Penalidade
+      masked_id: CPF                       # source already masks it (***.954.368-**)
+      years: Prazo_em_anos
+      start_date: Inicio_do_cumprimento
+      end_date: Prazo_final_penalidade
+    note_fields: [penalty, masked_id, years, start_date, end_date]
+    source: "BR BCB Gepad -- persons disqualified from senior roles in the financial system (Banco Central do Brasil)"
