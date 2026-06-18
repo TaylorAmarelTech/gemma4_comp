@@ -48,7 +48,7 @@ USER_AGENT = ("Mozilla/5.0 (compatible; duecare-recruitment-screen/1.0; "
               "+defensive anti-trafficking review; respects robots.txt)")
 
 _TEXT_FORMATS = {"html_table", "csv", "json"}
-_BYTE_FORMATS = {"xlsx", "pdf"}
+_BYTE_FORMATS = {"xlsx", "pdf", "pdf_table"}
 
 
 def _rp():
@@ -99,6 +99,9 @@ def parse_spec(spec: dict, content: Any) -> list[dict]:
     if fmt == "pdf":
         text = _pdf_text(content) if isinstance(content, (bytes, bytearray)) else content
         return rp.parse_pdf_lines(text, spec["row_regex"], spec["groups"])
+    if fmt == "pdf_table":
+        return rp.parse_pdf_table(content, fields, flavor=spec.get("pdf_flavor", "lattice"),
+                                  pages=spec.get("pdf_pages", "all"), **kw)
     raise ValueError(f"unknown format: {fmt!r}")
 
 

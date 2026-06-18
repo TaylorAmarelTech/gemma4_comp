@@ -124,6 +124,19 @@ def test_parse_json_skips_nameless():
 
 # ---- pdf ------------------------------------------------------------------
 
+def test_pdf_tables_to_records_parses_each_table_independently():
+    # camelot returns one table per page; a header repeated on each page must NOT
+    # leak into the data (each table is header-detected on its own)
+    tables = [
+        [["Licence No", "Name", "Status"], ["RL01", "Alpha Agency", "Active"]],
+        [["Licence No", "Name", "Status"], ["RL02", "Beta Agency", "Cancelled"]],
+    ]
+    recs = rp.pdf_tables_to_records(tables, {"name": "Name", "license_no": "Licence No",
+                                            "status": "Status"})
+    assert [r["name"] for r in recs] == ["Alpha Agency", "Beta Agency"]
+    assert recs[1]["status"] == "Cancelled" and recs[1]["license_no"] == "RL02"
+
+
 def test_parse_pdf_lines_by_regex_groups():
     text = "6323 56/2026 Sample Credit Ltd 8-Nov-26\nheader line ignored\n5762 1340/2025 Other Co 8-Sep-26"
     recs = rp.parse_pdf_lines(text, r"^(\d{3,5})\s+(\d+/\d{4})\s+(.+?)\s+(\d{1,2}-\w{3}-\d{2})$",
