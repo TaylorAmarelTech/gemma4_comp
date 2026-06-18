@@ -255,9 +255,27 @@ def _paginate(spec: dict, fetch, binary: bool) -> list[dict]:
     return out
 
 
+def _browser_fetch(url: str, binary: bool, warmup: str | None):
+    spec = importlib.util.spec_from_file_location(
+        "dc_browser_scrape_for_spec", str(_ROOT / "scripts" / "browser_scrape.py"))
+    bs = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = bs
+    spec.loader.exec_module(bs)
+    return bs.browser_fetch(url, warmup_url=warmup, binary=binary)
+
+
+def _spec_fetch(spec: dict):
+    """Pick the default fetcher for a spec: a real browser when ``fetch_via:
+    browser`` (for JS-challenge-WAF registers), else urllib+curl_cffi."""
+    if spec.get("fetch_via") == "browser":
+        warm = spec.get("warmup_url") or (spec.get("discover") or {}).get("page")
+        return lambda url, binary: _browser_fetch(url, binary, warm)
+    return _default_fetch
+
+
 def resolve(spec: dict, *, fetch=None) -> list[dict]:
     """Fetch + parse + stamp a spec into entity dicts. ``fetch(url, binary)`` injectable."""
-    fetch = fetch or _default_fetch
+    fetch = fetch or _spec_fetch(spec)
     if spec.get("discover"):
         spec = {**spec, "url": discover_url(spec["discover"], fetch=fetch)}
     binary = spec.get("format") in _BYTE_FORMATS
