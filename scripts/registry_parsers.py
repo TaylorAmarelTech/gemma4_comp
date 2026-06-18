@@ -182,7 +182,7 @@ def parse_html_table(html: str, fields: dict, **kw) -> list[dict]:
 
 
 def parse_csv(text: str, fields: dict, **kw) -> list[dict]:
-    rows = [list(r) for r in _csv.reader(io.StringIO(text or ""))]
+    rows = [list(r) for r in _csv.reader(io.StringIO((text or "").lstrip("﻿")))]
     return parse_table(rows, fields, **kw)
 
 
