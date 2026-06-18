@@ -120,6 +120,45 @@ specs:
     note_fields: [type, route]
     source: "UK Register of Licensed Sponsors: Workers (Home Office)"
 
+  # link-discovery (html): the registered-ships XLSX URL is date-stamped.
+  - id: au_amsa_ships
+    discover:
+      page: https://www.amsa.gov.au/vessels-operators/ship-registration/list-registered-ships
+      link_pattern: 'list-of-registered-ships.*\.xlsx'
+      pick: latest
+    format: xlsx
+    entity_type: vessel
+    jurisdiction: AU
+    fields:
+      name: "Ship name"
+      license_no: "Official number"
+      status: "Status"
+      type: "Type"
+      home_port: "Home port"
+      year: "Year of completion"
+    note_fields: [type, home_port, year]
+    source: "AMSA Australian Register of Ships (General + International Shipping Registers)"
+
+  # link-discovery (ckan): pick the latest quarterly positive-LMIA CSV by period.
+  - id: ca_tfwp_positive_lmia
+    discover:
+      page: https://open.canada.ca/data/api/3/action/package_show?id=90fed587-1364-4f33-a9ee-208181dc0b97
+      format: ckan
+      link_pattern: 'positive_en\.csv'
+      pick: latest
+    format: csv
+    entity_type: employer
+    jurisdiction: CA
+    default_status: positive_lmia
+    fields:
+      name: "Employer"
+      address: "Address"
+      province: "Province/Territory"
+      stream: "Stream"
+      occupation: "Occupation"
+    note_fields: [province, stream, occupation]
+    source: "Canada TFWP - employers issued a positive LMIA (Open Government)"
+
   - id: tw_mol_manpower
     url: https://apiservice.mol.gov.tw/OdService/download/A17000000J-020002-LkO
     format: json

@@ -127,11 +127,23 @@ def parse_table(rows: list[list[str]], fields: dict, *,
     else:
         srcs = [str(v).lower() for v in fields.values() if not isinstance(v, int)]
         need = max(1, (len(srcs) + 1) // 2)
+
+        def _exact(low):
+            return sum(1 for s in srcs if s in low)
+
+        def _sub(low):
+            return sum(1 for s in srcs if any(s == c or (s in c and c) for c in low))
+
+        # prefer EXACT cell matches (a header row), so a descriptive title row whose
+        # prose merely contains a field word as a substring is not mistaken for the
+        # header; fall back to substring matching only if no exact header is found.
         h = -1
-        for i, r in enumerate(rows[:12]):
-            low = [c.strip().lower() for c in r]
-            if sum(1 for s in srcs if any(s == c or (s in c and c) for c in low)) >= need:
-                h = i
+        for scorer in (_exact, _sub):
+            for i, r in enumerate(rows[:12]):
+                if scorer([c.strip().lower() for c in r]) >= need:
+                    h = i
+                    break
+            if h >= 0:
                 break
         if h < 0:
             return []

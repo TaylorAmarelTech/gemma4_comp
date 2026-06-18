@@ -138,12 +138,23 @@ _DATE_RES = (
 )
 
 
-def _date_key(url: str) -> tuple[int, int, int]:
-    """Best-effort (y, m, d) date pulled from a URL, for picking the latest file."""
+_QUARTER_RE = re.compile(r"(20\d{2})[qQ]([1-4])")
+
+
+def _date_key(text: str) -> tuple[int, int, int]:
+    """Best-effort (y, m, d) date pulled from a string, for picking the latest file.
+
+    Recognises full dates (YYYY-MM-DD / DD.MM.YYYY / YYYYMMDD) and, failing that, a
+    ``YYYYqN`` quarter token (mapped to ~the quarter's last month) so quarterly
+    datasets like CA TFWP sort newest-first.
+    """
     for rx, (yi, mi, di) in _DATE_RES:
-        m = rx.search(url)
+        m = rx.search(text)
         if m:
             return (int(m.group(yi)), int(m.group(mi)), int(m.group(di)))
+    mq = _QUARTER_RE.search(text)
+    if mq:
+        return (int(mq.group(1)), int(mq.group(2)) * 3, 0)
     return (0, 0, 0)
 
 
@@ -159,25 +170,34 @@ def discover_url(disc: dict, *, fetch) -> str:
     page = disc["page"]
     content = fetch(page, False)
     pat = re.compile(disc.get("link_pattern", r"\.csv"), re.I)
+    pairs: list[tuple[str, str]] = []   # (url, date-source string = url + name)
     if disc.get("format") in ("ckan", "json"):
         data = json.loads(content) if isinstance(content, (str, bytes)) else content
         resources = []
         if isinstance(data, dict):
             resources = (data.get("result", {}) or {}).get("resources") or data.get("resources") or []
-        cands = [r.get("url", "") for r in resources
-                 if isinstance(r, dict) and pat.search(r.get("url", "") + " " + r.get("name", ""))]
+        for r in resources:
+            if not isinstance(r, dict):
+                continue
+            u, nm = r.get("url", ""), r.get("name", "")
+            if u and pat.search(f"{u} {nm}"):
+                pairs.append((u, f"{u} {nm}"))
     else:
         raw = re.findall(r'href="([^"]+)"', content) + re.findall(r'https?://[^\s"\'<>]+', content)
-        cands = [urljoin(page, u) for u in raw if pat.search(u)]
-    cands = [c for c in dict.fromkeys(cands) if c]
-    if not cands:
+        for u in raw:
+            if pat.search(u):
+                au = urljoin(page, u)
+                pairs.append((au, au))
+    seen: set[str] = set()
+    pairs = [(u, d) for u, d in pairs if u and not (u in seen or seen.add(u))]
+    if not pairs:
         raise ValueError(f"discover: no link matching {disc.get('link_pattern')!r} on {page}")
     pick = disc.get("pick", "latest")
     if pick == "first":
-        return cands[0]
+        return pairs[0][0]
     if pick == "last":
-        return cands[-1]
-    return max(cands, key=_date_key)
+        return pairs[-1][0]
+    return max(pairs, key=lambda p: _date_key(p[1]))[0]
 
 
 def _default_fetch(url: str, binary: bool):
