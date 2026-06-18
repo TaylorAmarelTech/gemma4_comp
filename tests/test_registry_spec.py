@@ -181,6 +181,22 @@ def test_resolve_with_discover_then_fetches_data():
     assert [e["name"] for e in ents] == ["Acme Sample Ltd"]   # discovered latest, then parsed
 
 
+def _boom(url, binary):
+    raise OSError("blocked")
+
+
+def test_default_fetch_uses_urllib_when_it_works(monkeypatch):
+    monkeypatch.setattr(rs, "_urllib_fetch", lambda u, b: "VIA_URLLIB")
+    monkeypatch.setattr(rs, "_curl_fetch", lambda u, b: "VIA_CURL")
+    assert rs._default_fetch("https://x", False) == "VIA_URLLIB"
+
+
+def test_default_fetch_falls_back_to_curl_on_failure(monkeypatch):
+    monkeypatch.setattr(rs, "_urllib_fetch", _boom)
+    monkeypatch.setattr(rs, "_curl_fetch", lambda u, b: "VIA_CURL")
+    assert rs._default_fetch("https://x", False) == "VIA_CURL"   # urllib blocked -> curl_cffi
+
+
 def test_validate_spec_accepts_discover_without_url():
     spec = {"id": "x", "format": "csv", "entity_type": "company", "fields": {"name": "N"},
             "discover": {"page": "https://p", "link_pattern": r"\.csv"}}
