@@ -10,6 +10,8 @@ import importlib.util
 import sys
 from pathlib import Path
 
+import pytest
+
 _ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -82,6 +84,29 @@ def test_scrape_page_orchestrates_render_clean_extract():
     assert res["extracted"]["name"] == "Sunrise Overseas Manpower Inc."
     assert res["vision_extracted"]["status"] == "Valid (vision)"  # screenshot path used
     assert res["n_content_chars"] > 0 and text_calls  # html was cleaned + sent
+
+
+def test_scrape_page_enhance_image_runs_before_vision():
+    cv2 = pytest.importorskip("cv2")
+    import base64
+    import numpy as np
+    small = (((np.indices((60, 80)).sum(0) // 10) % 2) * 255).astype("uint8")  # tiny => upscale
+    png = cv2.imencode(".png", cv2.cvtColor(small, cv2.COLOR_GRAY2BGR))[1].tobytes()
+    shot = base64.b64encode(png).decode()
+    seen = {}
+    def vmodel(prompt, image_b64):
+        seen["img"] = image_b64
+        return '{"name":"X"}'
+    render = lambda u: {"url": u, "title": "T", "html": _HTML, "screenshot_b64": shot}
+
+    on = ls.scrape_page("https://x/agency", ["name"], renderer=render,
+                        vision_model_fn=vmodel, enhance_image=True)
+    assert any("upscale" in o for o in on["vision_enhanced_ops"])         # gated op fired
+    enh = cv2.imdecode(np.frombuffer(base64.b64decode(seen["img"]), np.uint8), cv2.IMREAD_COLOR)
+    assert min(enh.shape[:2]) >= 1000                                    # vision got the enhanced image
+
+    off = ls.scrape_page("https://x/agency", ["name"], renderer=render, vision_model_fn=vmodel)
+    assert "vision_enhanced_ops" not in off and seen["img"] == shot      # default: raw screenshot
 
 
 def test_scrape_page_without_models_just_renders():
