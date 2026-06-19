@@ -199,8 +199,8 @@ def _fuzzy_edges(records: list[dict], *, threshold: float, max_block: int = 4000
             ji = (records[i].get("jurisdiction") or "").upper()
             for j in idxs[p + 1:]:
                 jj = (records[j].get("jurisdiction") or "").upper()
-                if ji and jj and ji != jj:
-                    continue
+                if not (ji and jj and ji == jj):   # require a shared, non-blank jurisdiction
+                    continue                        # (generic names collide across blank ones)
                 if fuzz.token_sort_ratio(cores[i], cores[j]) >= cutoff:
                     yield i, j
 
@@ -235,7 +235,7 @@ def cluster_entities(records: list[dict], *, threshold: float = 0.9) -> list[dic
     union_by(lambda r: (_juris(r), extract_identifier(r))
              if len(extract_identifier(r)) >= _MIN_ID_FOR_UNION else None)
     union_by(lambda r: (_juris(r), "name:" + _core_name(r.get("name", "")))
-             if _core_name(r.get("name", "")) else None)
+             if (_juris(r) and _core_name(r.get("name", ""))) else None)  # name union needs a juris
     for a, b in _fuzzy_edges(records, threshold=threshold):
         uf.union(a, b)
 
