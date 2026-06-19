@@ -67,7 +67,7 @@ Predicate vocab: `parent_of`, `owns_or_controls`, `officer_of`, `registered_at`,
 | Source | Endpoint | Edge | License | Status |
 |---|---|---|---|---|
 | **OpenOwnership BODS** o-o-c | bulk JSONL (`oo-bodsdata.s3…`) | **owns_or_controls** (owner→company, % share) | CC-BY-4.0 *(prior pass said CC0 — verify)* | **BUILT ✓** `openownership_bods.parse_bods_edges` (`--edges`) |
-| **GLEIF Level-2 RR** | `leidata-preview.gleif.org/api/v2/golden-copies/publishes/rr/latest.json` (or concat-file zip) | **parent_of** (`IS_(ULTIMATELY_)CONSOLIDATED_BY`) | **CC0** | **build next** — the edge file for `gleif_lei.py`, same LEI keyspace |
+| **GLEIF Level-2 RR** | API `api.gleif.org/api/v1/lei-records/{lei}/{direct,ultimate}-parent-relationship` | **parent_of** (`IS_(ULTIMATELY_)CONSOLIDATED_BY`) | **CC0** | **BUILT ✓** `scripts/gleif_rr.py` (by `--lei`/`--country`; same LEI keyspace as `gleif_lei.py`) |
 | **US OFLC** H-2A/H-2B disclosure | `dol.gov/agencies/eta/foreign-labor/performance` | **agency_recruits_for** (employer↔agent) | US public domain | build next — US analogue of DMW job-orders |
 | **ICIJ Offshore Leaks** | `offshoreleaks-data.icij.org/offshoreleaks/csv/full-oldb.LATEST.zip` | **officer_of / intermediary_of / registered_at** | ODbL + CC-BY-SA (cite, share-alike) | node+edge CSVs; confirm edge cols on fetch |
 | **OpenSanctions** (FtM) | `opensanctions.org/datasets/` `statements.csv` | owns/directorship (reified) | CC-BY-**NC** | consolidated but NC-only free |
@@ -80,7 +80,7 @@ existed; this un-skips the `ownershipOrControlStatement` records.
 
 ## Top "onboard next" (cleanest machine-readable)
 
-1. **GLEIF Level-2 RR** (CC0, parent_of edges; trivially joins our GLEIF entities).
+1. ~~GLEIF Level-2 RR~~ **— BUILT** (`scripts/gleif_rr.py`, CC0 parent_of edges on the LEI keyspace).
 2. **UN/LOCODE** (PDDL CSV) + **World Port Index** (public-domain CSV/GeoJSON) — port layer.
 3. **AU CASA aircraft** (CSV) + **UK FCDO Sanctions** (OGL CSV, ships) + **Combined IUU
    List** (XLSX) — clean asset registries, `csv`/`xlsx` resolver specs.
