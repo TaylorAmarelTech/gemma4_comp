@@ -30,7 +30,8 @@ def _rec(lei="254900N2EEPSHPNU0H50", name="Sailwind Trading FZE"):
                    "otherNames": [{"name": "Sailwind", "language": "en"}],
                    "legalAddress": {"addressLines": ["Unit 3303", "DMCC Business Centre"],
                                     "city": "Dubai", "country": "AE", "postalCode": "00000"},
-                   "jurisdiction": "AE", "legalForm": {"id": "8888"}, "status": "ACTIVE"},
+                   "jurisdiction": "AE", "legalForm": {"id": "8888"}, "status": "ACTIVE",
+                   "registeredAs": "DMCC-12345"},
         "registration": {"status": "ISSUED"}}}
 
 
@@ -47,6 +48,7 @@ def test_parse_lei_record_maps_fields():
     assert e["status"] == "ISSUED"                       # registration status
     assert "Dubai" in e["address"] and "AE" in e["address"]
     assert e["aliases"] == ["Sailwind"]
+    assert e["registered_as"] == "DMCC-12345"            # local reg number = the LEI join key
 
 
 def test_parse_lei_record_skips_nameless():
