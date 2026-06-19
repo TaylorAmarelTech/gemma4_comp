@@ -352,3 +352,37 @@ specs:
     # NB: group-submission rows carry a company NUMBER in OrganisationName with the
     # named group in ParentName (a source quirk) -- both are kept. Year-templated URL.
     source: "UK Modern Slavery Statement Registry (Home Office, s.54 transparency statements; OGL v3; carries disclosed modern-slavery risks + ILO indicators)"
+
+  # --- batch 4: OpenSanctions forced-labour DATA datasets (CC-BY-NC; underlying US-gov
+  # lists are public domain; our use is non-commercial). These consume the OpenSanctions
+  # targets.simple.csv export -- a documented exception to the metadata-only rule. Same
+  # opensanctions_to_specs onboarding flow; field map verified against the live CSV.
+  - id: us_cbp_forced_labor
+    url: https://data.opensanctions.org/datasets/latest/us_cbp_forced_labor/targets.simple.csv
+    format: csv
+    entity_type: company
+    jurisdiction: US
+    default_status: forced_labor_wro
+    fields:
+      name: name
+      aliases: aliases
+      country: countries
+      sanction_date: sanctions
+      os_id: id
+    note_fields: [aliases, country, sanction_date, os_id]
+    source: "US CBP Withhold Release Orders & Findings -- forced-labour import bans (via OpenSanctions us_cbp_forced_labor; data CC-BY-NC, underlying CBP list US public domain)"
+
+  - id: us_dhs_uflpa
+    url: https://data.opensanctions.org/datasets/latest/us_dhs_uflpa/targets.simple.csv
+    format: csv
+    entity_type: company
+    jurisdiction: US
+    default_status: uflpa_listed
+    fields:
+      name: name
+      aliases: aliases
+      country: countries
+      listing: sanctions
+      os_id: id
+    note_fields: [aliases, country, listing, os_id]
+    source: "US DHS UFLPA Entity List -- Uyghur Forced Labor Prevention Act (via OpenSanctions us_dhs_uflpa; data CC-BY-NC, underlying DHS list US public domain)"

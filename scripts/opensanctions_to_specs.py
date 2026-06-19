@@ -14,6 +14,14 @@ It is PROPOSE-ONLY: writes to reports/ (gitignored), skips ids already present i
 live registry_specs.yaml, and never fabricates a field map. Drafts are a verification
 WORK-QUEUE, not onboarded specs.
 
+Two onboarding paths from OpenSanctions:
+  1. METADATA source-pointers (this tool) -- MIT metadata -> draft specs for the
+     PRIMARY government endpoint; license-clean, the default.
+  2. DATA datasets -- a few high-value OpenSanctions DATA exports are onboarded directly
+     as VERIFIED specs that pull ``targets.simple.csv`` (CC-BY-NC; underlying gov list
+     public domain; non-commercial use). Currently: ``us_cbp_forced_labor`` (CBP WRO &
+     Findings, 59) and ``us_dhs_uflpa`` (UFLPA Entity List, 144) in registry_specs.yaml.
+
 Usage:
     python scripts/opensanctions_to_specs.py --stats
     python scripts/opensanctions_to_specs.py --category registry,debarment,regulatory \
