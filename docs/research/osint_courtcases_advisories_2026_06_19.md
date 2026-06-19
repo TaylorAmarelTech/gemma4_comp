@@ -81,9 +81,12 @@ API). EOIR/TRAC skipped (no company names + PII / paywall).
 - **Built:** `scripts/domain_intel.py` (whoisit+dnspython → domain entity/infra edges).
 - **Built:** `scripts/doj_press.py` — DOJ press releases → offense-tagged prosecution docs
   (live-proven on real forced-labour cases: Onetaste/Daedone, multi-state racketeering, etc.).
-- **Mine-next (cleanest, public-domain, no key):** **DOL WHD API** (employer enforcement table),
-  **OpenSanctions CBP/UFLPA** (fold into `opensanctions_to_specs.py`), then Gemma entity
-  extraction over the DOJ docs (defendant↔company↔office edges).
+- **Built:** `scripts/dol_whd.py` — DOL WHD enforcement (dataset 10362, `api.dol.gov/v4/get/WHD/
+  enforcement/json`, **free X-API-KEY**) → employer-violation entities surfacing H-2A/H-2B/H-1B/
+  **MSPA**/SRAW + child-labour violation counts. Parser verified on the dataset's keyless preview
+  (real rows: Central Avenue Bakery $12,136 back-wages, etc.); only the live pull needs the key.
+- **Mine-next:** **OpenSanctions CBP/UFLPA** (fold into `opensanctions_to_specs.py`), then Gemma
+  entity extraction over the DOJ docs (defendant↔company↔office edges).
 - **GREP-next (indicator PDFs):** ILO 11-indicator + Fair-Recruitment, FinCEN FIN-2020-A008,
   Polaris Typology, FATF 2018 — each yields 10–40 deduped candidate rules citing the source.
 - **adverse_media-next:** Phishing.Database (MIT) as a keyless scam-domain feed.
