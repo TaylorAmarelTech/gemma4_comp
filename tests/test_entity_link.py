@@ -91,3 +91,35 @@ def test_link_to_gleif_links_matching_companies():
     # the shared-identifier ACME rows must link to their LEI; the Brandnew rows must not
     assert by_name.get("ACME TRADING 0 INC") == "LEI0"
     assert not any(d["registry_name"].startswith("Brandnew") for d in links)
+
+
+# ---- clustering -----------------------------------------------------------
+
+def test_assemble_clusters_groups_and_flags_cross_source():
+    pd = pytest.importorskip("pandas")
+    records = [{"name": "Huawei Technologies", "source": "dod", "lei": ""},
+               {"name": "Huawei Technologies Co", "source": "special", "lei": "L9"},
+               {"name": "Unique Co", "source": "afdb", "lei": ""}]
+    cdf = pd.DataFrame([{"unique_id": "e-0", "cluster_id": "c1"},
+                        {"unique_id": "e-1", "cluster_id": "c1"},
+                        {"unique_id": "e-2", "cluster_id": "c2"}])
+    clusters = el.assemble_clusters(cdf, records)
+    assert clusters[0]["n_sources"] == 2 and clusters[0]["sources"] == ["dod", "special"]
+    assert clusters[0]["lei"] == "L9" and clusters[0]["size"] == 2     # LEI propagated in-cluster
+    cross = el.cross_source_clusters(clusters)
+    assert len(cross) == 1 and cross[0]["cluster_id"] == "c1"
+
+
+def test_cluster_entities_collapses_cross_source_duplicates():
+    pytest.importorskip("rapidfuzz")
+    names = ["Globex Manufacturing", "Initech Solutions", "Umbrella Logistics",
+             "Soylent Foods", "Hooli Robotics"]                        # distinct, not index-suffixed
+    recs = [{"name": f"{n} Ltd", "jurisdiction": "PH", "company_no": f"CN10{i:02d}", "source": "a"}
+            for i, n in enumerate(names)]
+    recs += [{"name": f"{n.upper()} INC", "jurisdiction": "PH", "company_no": f"CN10{i:02d}", "source": "b"}
+             for i, n in enumerate(names)]                             # same company_no, other source
+    recs += [{"name": f"Zeta {n} Holdings", "jurisdiction": "PH", "company_no": f"DX20{i:02d}", "source": "a"}
+             for i, n in enumerate(names)]                             # unrelated singletons
+    clusters = el.cluster_entities(recs, threshold=0.8)
+    cross = el.cross_source_clusters(clusters)
+    assert len(cross) >= 4 and all(c["n_sources"] == 2 for c in cross)  # each name's a~b pair merged
