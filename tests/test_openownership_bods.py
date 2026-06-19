@@ -83,3 +83,44 @@ def test_iter_statements_handles_array_and_ndjson():
     assert len(list(b.iter_statements(arr))) == 2
     assert len(list(b.iter_statements(ndjson))) == 2
     assert list(b.iter_statements("  ")) == []
+
+
+# ---- relationship edges ---------------------------------------------------
+
+REL_V04_SHARE = {"recordType": "relationship", "recordId": "r2",
+                 "recordDetails": {"subject": "comp1", "interestedParty": "person1",
+                                   "interests": [{"type": "shareholding",
+                                                  "beneficialOwnershipOrControl": True,
+                                                  "share": {"exact": 75}}]}}
+OOC_V02 = {"statementType": "ownershipOrControlStatement", "statementID": "ooc1",
+           "subject": {"describedByEntityStatement": "e-comp"},
+           "interestedParty": {"describedByPersonStatement": "p-owner"},
+           "interests": [{"type": "shareholding", "share": {"minimum": 25, "maximum": 50}}]}
+
+
+def test_parse_bods_edge_v04_owner_to_company_with_share():
+    e = b.parse_bods_edge(REL_V04_SHARE)
+    assert e["subject_id"] == "person1" and e["object_id"] == "comp1"  # owner -> owned company
+    assert e["predicate"] == "owns_or_controls"
+    assert e["weight"] == 0.875 and e["qualifier"]["share"] == 75      # 0.5 + 75/200
+
+
+def test_parse_bods_edge_v04_no_share_defaults():
+    assert b.parse_bods_edge(REL_V04)["weight"] == 0.6                 # empty interests -> default
+    assert b.parse_bods_edge(REL_V04)["subject_id"] == "10478c6cf6de"
+
+
+def test_parse_bods_edge_v02_ownership_or_control():
+    e = b.parse_bods_edge(OOC_V02)
+    assert e["subject_id"] == "p-owner" and e["object_id"] == "e-comp"
+    assert e["qualifier"]["share"] == 50                              # max(minimum, maximum)
+
+
+def test_parse_bods_edge_skips_entity_and_person():
+    assert b.parse_bods_edge(ENTITY_V04) is None
+    assert b.parse_bods_edge(PERSON_V04) is None
+
+
+def test_parse_bods_edges_filters_to_relationships():
+    edges = b.parse_bods_edges([ENTITY_V04, PERSON_V04, REL_V04])
+    assert len(edges) == 1 and edges[0]["object_id"] == "c359f58d2977"
