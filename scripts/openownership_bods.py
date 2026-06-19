@@ -133,6 +133,73 @@ def parse_bods(statements) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
+# Relationship edges (the ownership/control graph)
+# ---------------------------------------------------------------------------
+
+def _ref(v) -> str:
+    """A subject / interestedParty reference -> a record/statement id (handles 0.2 + 0.4)."""
+    if isinstance(v, str):
+        return v
+    if isinstance(v, dict):
+        for k in ("recordId", "describedByEntityStatement", "describedByPersonStatement",
+                  "entityStatement", "personStatement"):
+            if v.get(k):
+                return str(v[k])
+    return ""
+
+
+def _interest_weight(interests) -> tuple[float, float | None, str]:
+    """Edge confidence from the BODS interests[] (share % and/or beneficial-ownership flag)."""
+    share: float | None = None
+    typ = ""
+    boc = False
+    for it in interests or []:
+        if not isinstance(it, dict):
+            continue
+        typ = typ or str(it.get("type") or "")
+        boc = boc or bool(it.get("beneficialOwnershipOrControl"))
+        sh = it.get("share") if isinstance(it.get("share"), dict) else {}
+        val = sh.get("exact", sh.get("maximum", sh.get("minimum")))
+        if isinstance(val, (int, float)):
+            share = val if share is None else max(share, val)
+    if share is not None:                       # 25% stake -> 0.625, 100% -> 1.0
+        return round(min(1.0, 0.5 + share / 200.0), 3), share, typ
+    return (0.9 if boc else 0.6), share, typ
+
+
+def parse_bods_edge(stmt: dict) -> dict | None:
+    """Map a BODS ownership/control relationship to an edge dict, else None.
+
+    Edge direction: ``subject_id`` (the interested party / owner) --owns_or_controls-->
+    ``object_id`` (the owned company). Ids are the BODS record/statement references, which
+    point at the entity/person records :func:`parse_bods` emits.
+    """
+    if not isinstance(stmt, dict):
+        return None
+    if stmt.get("recordType"):                  # BODS 0.4
+        if stmt["recordType"] != "relationship":
+            return None
+        rd = stmt.get("recordDetails") or {}
+        subj, party, interests = rd.get("subject"), rd.get("interestedParty"), rd.get("interests")
+    else:                                        # BODS 0.2
+        if stmt.get("statementType") != "ownershipOrControlStatement":
+            return None
+        subj, party, interests = stmt.get("subject"), stmt.get("interestedParty"), stmt.get("interests")
+    owned, owner = _ref(subj), _ref(party)
+    if not owned or not owner:
+        return None
+    weight, share, typ = _interest_weight(interests)
+    return {"subject_id": owner, "predicate": "owns_or_controls", "object_id": owned,
+            "source": "OpenOwnership BODS", "weight": weight,
+            "qualifier": {"share": share, "interest_type": typ}}
+
+
+def parse_bods_edges(statements) -> list[dict]:
+    """Map a stream of BODS statements to ownership/control edges (skips non-relationships)."""
+    return [e for e in (parse_bods_edge(s) for s in statements) if e]
+
+
+# ---------------------------------------------------------------------------
 # Loading (JSON array or newline-delimited JSON; file or URL)
 # ---------------------------------------------------------------------------
 
@@ -168,20 +235,30 @@ def main(argv: list[str] | None = None) -> int:
     src = ap.add_mutually_exclusive_group(required=True)
     src.add_argument("--file", help="local BODS file (JSON array or newline-delimited)")
     src.add_argument("--url", help="BODS data URL")
+    ap.add_argument("--edges", action="store_true",
+                    help="emit ownership/control RELATIONSHIP edges instead of entities")
     ap.add_argument("--out", help="propose-only JSONL output path (under reports/)")
     args = ap.parse_args(argv)
 
-    ents = parse_bods(iter_statements(load_text(file=args.file, url=args.url)))
-    by_type = Counter(e["entity_type"] for e in ents)
-    print(f"BODS: {len(ents)} entities ({dict(by_type)})", file=sys.stderr)
+    statements = list(iter_statements(load_text(file=args.file, url=args.url)))
+    if args.edges:
+        rows = parse_bods_edges(statements)
+        print(f"BODS: {len(rows)} ownership/control edges", file=sys.stderr)
+        preview = [f"  {e['subject_id']} --{e['predicate']}(w={e['weight']})--> {e['object_id']}"
+                   for e in rows[:10]]
+    else:
+        rows = parse_bods(statements)
+        print(f"BODS: {len(rows)} entities ({dict(Counter(e['entity_type'] for e in rows))})",
+              file=sys.stderr)
+        preview = [f"  [{e['entity_type']:8}] {e['name'][:46]}  {e.get('license_no', '')}"
+                   for e in rows[:10]]
     if args.out:
         out = Path(args.out)
         out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text("\n".join(json.dumps(e, ensure_ascii=False) for e in ents), encoding="utf-8")
+        out.write_text("\n".join(json.dumps(e, ensure_ascii=False) for e in rows), encoding="utf-8")
         print(f"wrote {out} -- PROPOSE-ONLY")
     else:
-        for e in ents[:10]:
-            print(f"  [{e['entity_type']:8}] {e['name'][:46]}  {e.get('license_no','')}")
+        print("\n".join(preview))
     return 0
 
 
