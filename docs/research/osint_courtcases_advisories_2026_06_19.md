@@ -39,7 +39,7 @@ court records are allowed *with a case number*.
 
 | Source | Endpoint | Format | License | Mine |
 |---|---|---|---|---|
-| **DOJ press releases** | `justice.gov/api/v1/press_releases.json` (HQ + 93 USAOs) | **JSON API**, no key | US public domain | **FIRST** — named convictions + MO + statute + district |
+| **DOJ press releases** | `justice.gov/api/v1/press_releases.json` (HQ + 93 USAOs) | **JSON API**, no key | US public domain | **BUILT ✓** `scripts/doj_press.py` (`--title`/`--match`, offense-tagged docs) |
 | **CourtListener bulk** | `com-courtlistener-storage.s3…/bulk-data/` (opinions/dockets/**parties**) | bulk CSV (S3, no auth) | public-domain mark | **FIRST** (REST v4 is 5 req/min — lookups only) |
 | **DOL WHD enforcement** | `apiprod.dol.gov/v4/` (Compliance Action) | **JSON API**, free key | US public domain | **best labour entities** — employer + back-wage $ + NAICS + H-2A/B |
 | **CTDC synthetic** | `ctdatacollaborative.org/global-victim-perpetrator-synthetic-dataset` | CSV | IOM ToU (attribute) | recruiter/broker role, control means, corridor — **no PII gate (synthetic)** |
@@ -79,9 +79,11 @@ API). EOIR/TRAC skipped (no company names + PII / paywall).
 ## 5 — Built this session + onboard-next
 
 - **Built:** `scripts/domain_intel.py` (whoisit+dnspython → domain entity/infra edges).
-- **Mine-next (cleanest, public-domain, no key):** **DOJ press-releases JSON API** (named
-  prosecutions → defendant↔company↔statute edges), **DOL WHD API** (employer enforcement table),
-  **OpenSanctions CBP/UFLPA** (fold into `opensanctions_to_specs.py`).
+- **Built:** `scripts/doj_press.py` — DOJ press releases → offense-tagged prosecution docs
+  (live-proven on real forced-labour cases: Onetaste/Daedone, multi-state racketeering, etc.).
+- **Mine-next (cleanest, public-domain, no key):** **DOL WHD API** (employer enforcement table),
+  **OpenSanctions CBP/UFLPA** (fold into `opensanctions_to_specs.py`), then Gemma entity
+  extraction over the DOJ docs (defendant↔company↔office edges).
 - **GREP-next (indicator PDFs):** ILO 11-indicator + Fair-Recruitment, FinCEN FIN-2020-A008,
   Polaris Typology, FATF 2018 — each yields 10–40 deduped candidate rules citing the source.
 - **adverse_media-next:** Phishing.Database (MIT) as a keyless scam-domain feed.
