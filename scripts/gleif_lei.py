@@ -61,6 +61,7 @@ def parse_lei_record(rec: dict) -> dict | None:
         "status": (attrs.get("registration") or {}).get("status", ""),
         "legal_form": (ent.get("legalForm") or {}).get("id", ""),
         "entity_status": ent.get("status", ""),
+        "registered_as": (ent.get("registeredAs") or "").strip(),  # local reg number (join key)
         "address": _address(addr),
         "aliases": other,
         "source": "GLEIF LEI (api.gleif.org, CC0)",

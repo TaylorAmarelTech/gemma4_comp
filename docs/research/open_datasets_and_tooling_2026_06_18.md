@@ -17,7 +17,7 @@ model downloads**, fragile Windows box + system Edge. Output stays **propose-onl
 | Tool | slug | ★ | licence | verdict | integration point |
 |---|---|---|---|---|---|
 | **RapidFuzz** | rapidfuzz/RapidFuzz | 3962 | MIT | **ADOPTED ✓** | `entity_screen._seq_ratio` — word-order-invariant `token_sort_ratio`, prebuilt Windows wheels; guarded import w/ difflib fallback (done this session) |
-| **splink** | moj-analytical-services/splink | 2211 | MIT | **ADOPT** | probabilistic record-linkage (DuckDB, no server) → propose-only candidate-merge tier in `entity_kb.py` for transliteration variants across registries |
+| **splink** | moj-analytical-services/splink | 2211 | MIT | **ADOPTED ✓** | probabilistic record-linkage (DuckDB, no server) → `scripts/entity_link.py` joins registry entities to GLEIF on the canonical **LEI** (block on reg-number + name-token/jurisdiction; compare name JaroWinkler + identifier/jurisdiction exact). Real-data proof: 243 GLEIF GB × 30 perturbed registry rows → 96.7% linked, **100% correct LEI** |
 | **followthemoney** | opensanctions/followthemoney | 73 | MIT | **ADOPT** | the FtM entity schema — normalise `entity_kb` output into the OpenSanctions/Aleph shape; unlocks offline screening |
 | **nomenklatura** | opensanctions/nomenklatura | 246 | MIT | **ADOPT** | `xref`/dedup against locally-downloaded FtM sanctions data → offline screening in `entity_screen` (keeps case queries on-prem) |
 | **frictionless-py** | frictionlessdata/frictionless-py | 826 | MIT | **ADOPT** | a `format: datapackage` resolver path + `validate()` row-schema gate before KB ingest (catches gov-CSV column drift) |
