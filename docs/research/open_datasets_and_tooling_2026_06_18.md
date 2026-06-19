@@ -45,9 +45,9 @@ clean JSON/CSV/API (resolver-ready) · ⚠️ = needs a thin connector · ❌ = 
 
 | # | Dataset | Endpoint | Entities | Licence | Fit |
 |---|---|---|---|---|---|
-| 1 | **GLEIF LEI Golden Copy** | `goldencopy.gleif.org/api/v2/golden-copies/publishes/lei2/latest.csv` | ~2.5M legal entities + **parent/child ownership** (RR) | **CC0** | ✅ the global entity backbone + canonical join-key |
+| 1 | **GLEIF LEI** ✓ built | `api.gleif.org/api/v1/lei-records` (by-country/name, paginated) — `scripts/gleif_lei.py` | ~2.5M legal entities + ownership | **CC0** | ✅ the global entity backbone + canonical join-key |
 | 2 | **Global Fishing Watch — Vessel Identity** | `gateway.api.globalfishingwatch.org` (v3 vessels) | fishing vessels: IMO/MMSI, flag, **owner+operator** | CC-BY-NC-SA (free token) | ✅ key — **forced-labour-at-sea** |
-| 3 | **OpenOwnership BODS** | `oo-bodsdata.s3.amazonaws.com/data/<dataset>/...` | beneficial owners ↔ companies (UK PSC, ROE, GLEIF-BODS) | **CC0** | ✅ Parquet/CSV/JSON bulk |
+| 3 | **OpenOwnership BODS** ✓ built | `oo-bodsdata.s3.amazonaws.com/data/<dataset>/...` — parser `scripts/openownership_bods.py` (BODS 0.4+0.2) | beneficial owners ↔ companies (UK PSC, ROE, GLEIF-BODS) | **CC0** | ✅ JSON/ndjson bulk |
 | 4 | **OpenSanctions Consolidated** | `data.opensanctions.org/datasets/latest/sanctions/targets.simple.csv` | OFAC+EU+UN+80 sources (persons/cos/**vessels**) | **CC-BY-NC** ⚠ | ✅ but NC-data boundary (we currently port *metadata* only) |
 | 5 | **SEC `sec_quarterly_financials`** (BigQuery) | `bigquery-public-data.sec_quarterly_financials` | public companies: name, CIK, **SIC industry**, address | public domain | ⚠️ BigQuery |
 | 6 | **Patents `patents.publications`** (BigQuery) | `patents-public-data.patents.publications` | harmonised corporate **assignees + country** (~98M) | mixed/public | ⚠️ BigQuery |
@@ -107,11 +107,16 @@ commercial registration, Gulf DW lookups (Musaned/Tadbeer/PAM/ADLSA — verify-o
 ## 5 — Onboarded this session + next actions
 
 - **Onboarded:** `gb_modern_slavery_statements` (11,718 UK orgs, OGL) — cascade now 30
-  registries. **RapidFuzz** adopted into `entity_screen`.
-- **Highest-leverage next:** GLEIF (CC0) + OpenOwnership BODS (CC0) as bulk connectors;
-  BGMEA / SLBFE / SEC-EDGAR / BP2MI as `html_table`/`json` specs (clean, no key);
-  `followthemoney` as the canonical entity schema; PORT the PAI OSINT 300-source catalog
-  into `entity_sources.yaml`.
+  registries. **RapidFuzz** adopted into `entity_screen`. **GLEIF** (`scripts/gleif_lei.py`,
+  LEI Records API, CC0 — parameterised by country/name; live-pulled real NP entities) and
+  **OpenOwnership BODS** (`scripts/openownership_bods.py`, BODS 0.4+0.2 — parses any bulk
+  slice; verified on the data-standard example) connectors built. Both are *parameterised*
+  (by-country / by-file), so they live as standalone connectors, not zero-arg `--registry`
+  cascade entries.
+- **Highest-leverage next:** BGMEA / SLBFE / SEC-EDGAR / BP2MI as `html_table`/`json`
+  specs (clean, no key); `followthemoney` as the canonical entity schema; PORT the PAI
+  OSINT 300-source catalog into `entity_sources.yaml`; join the new registries on the
+  GLEIF LEI as the canonical id.
 - **Licence ledger:** CC0 (GLEIF, OpenOwnership), public-domain (SEC/FEC/UK-OGL) are the
   cleanest; CC-BY-NC (OpenSanctions, GFW) fine for the non-commercial NGO framing but
   flagged; share-alike (ICIJ, OSM, OpenSupplyHub) inherits on redistribution.
