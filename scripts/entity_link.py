@@ -36,7 +36,8 @@ _GENERIC = {"the", "ltd", "limited", "inc", "incorporated", "llc", "plc", "co", 
 
 
 def _norm(name: str) -> str:
-    return _WORD.sub(" ", str(name).lower()).strip()
+    no_paren = re.sub(r"\(.*?\)", " ", str(name))      # drop "(Huawei)" / "(aka ...)" noise
+    return re.sub(r"\s+", " ", _WORD.sub(" ", no_paren.lower())).strip()
 
 
 def _first_token(norm_name: str) -> str:
@@ -44,6 +45,20 @@ def _first_token(norm_name: str) -> str:
         if tok not in _GENERIC and len(tok) > 1:
             return tok
     return norm_name.split()[0] if norm_name.split() else ""
+
+
+_CORE_STOP = _GENERIC | {"holding", "holdings", "investment", "investments", "international",
+                         "services", "service", "enterprise", "enterprises", "and", "of", "de"}
+
+
+def _core_name(name: str) -> str:
+    """Normalized name with legal-form / generic words removed -- the distinctive core.
+
+    "Huawei Technologies Co., Ltd." and "Huawei Technologies Company" both reduce to
+    "huawei technologies", so a token_sort_ratio on cores separates true name variants
+    from merely-similar different companies ("China Aerospace ... Industry" vs "Technology").
+    """
+    return " ".join(t for t in _norm(name).split() if t not in _CORE_STOP)
 
 
 def _norm_id(v) -> str:
@@ -68,8 +83,9 @@ def to_rows(records: list[dict], source: str) -> list[dict]:
         nm = _norm(r.get("name", ""))
         rows.append({"unique_id": f"{source}-{i}", "name": nm,
                      "name_first_token": _first_token(nm),
-                     "jurisdiction": (r.get("jurisdiction") or "").upper(),
-                     "identifier": extract_identifier(r)})
+                     "jurisdiction": (r.get("jurisdiction") or "").upper() or None,
+                     # NULL (not "") so blank ids don't all block/match together
+                     "identifier": extract_identifier(r) or None})
     return rows
 
 
@@ -108,6 +124,125 @@ def summarize(linkages: list[dict], n_registry: int) -> dict:
     return {"registry": n_registry, "linked": len(linkages),
             "link_rate": round(len(linkages) / n_registry, 3) if n_registry else 0.0,
             "via_identifier": sum(1 for d in linkages if d["via"] == "identifier")}
+
+
+# ---------------------------------------------------------------------------
+# Cross-source clustering (dedupe many registries at once)
+# ---------------------------------------------------------------------------
+
+_MIN_ID_FOR_UNION = 4   # only treat a reg number this long+ as a deterministic same-entity key
+
+
+def _assemble(groups) -> list[dict]:
+    """``{key: [records]}`` -> cluster dicts (sources, propagated LEI), cross-source first."""
+    clusters = []
+    for key, members in groups.items():
+        sources = sorted({m.get("source", "") for m in members if m.get("source")})
+        leis = sorted({m["lei"] for m in members if m.get("lei")})
+        clusters.append({"cluster_id": str(key), "size": len(members),
+                         "sources": sources, "n_sources": len(sources),
+                         "lei": leis[0] if leis else "",
+                         "names": sorted({m.get("name", "") for m in members})})
+    return sorted(clusters, key=lambda c: (-c["n_sources"], -c["size"]))
+
+
+def assemble_clusters(cluster_df, records: list[dict]) -> list[dict]:
+    """splink cluster output (``unique_id`` ``e-<i>`` + ``cluster_id``) -> cluster dicts."""
+    from collections import defaultdict
+    groups: dict = defaultdict(list)
+    for row in cluster_df.to_dict("records"):
+        groups[row["cluster_id"]].append(records[int(str(row["unique_id"]).rsplit("-", 1)[1])])
+    return _assemble(groups)
+
+
+def cross_source_clusters(clusters: list[dict]) -> list[dict]:
+    """Clusters whose members come from >=2 distinct registries (the dedup signal)."""
+    return [c for c in clusters if c["n_sources"] >= 2]
+
+
+class _UnionFind:
+    def __init__(self, n: int):
+        self.p = list(range(n))
+
+    def find(self, x: int) -> int:
+        while self.p[x] != x:
+            self.p[x] = self.p[self.p[x]]
+            x = self.p[x]
+        return x
+
+    def union(self, a: int, b: int) -> None:
+        self.p[self.find(a)] = self.find(b)
+
+
+def _fuzzy_edges(records: list[dict], *, threshold: float, max_block: int = 4000):
+    """Yield (i, j) pairs whose stripped core names match (RapidFuzz token_sort_ratio).
+
+    Blocks by core first-token (so it is near-linear, not all-pairs), skips cross-
+    jurisdiction pairs, and skips pathologically large blocks (e.g. every "china ..."
+    name) where name-only matching is unreliable. No-op if RapidFuzz is absent.
+    """
+    try:
+        from rapidfuzz import fuzz
+    except ModuleNotFoundError:  # pragma: no cover - rapidfuzz is installed
+        return
+    from collections import defaultdict
+    cores = {i: _core_name(r.get("name", "")) for i, r in enumerate(records)}
+    blocks: dict = defaultdict(list)
+    for i, c in cores.items():
+        if c:
+            blocks[c.split()[0]].append(i)
+    cutoff = threshold * 100
+    for idxs in blocks.values():
+        if len(idxs) > max_block:
+            continue
+        for p, i in enumerate(idxs):
+            ji = (records[i].get("jurisdiction") or "").upper()
+            for j in idxs[p + 1:]:
+                jj = (records[j].get("jurisdiction") or "").upper()
+                if ji and jj and ji != jj:
+                    continue
+                if fuzz.token_sort_ratio(cores[i], cores[j]) >= cutoff:
+                    yield i, j
+
+
+def cluster_entities(records: list[dict], *, threshold: float = 0.9) -> list[dict]:
+    """Cluster pooled records into same-entity groups across registries.
+
+    Three union passes, all high-precision: (1) same (jurisdiction, distinctive reg
+    number); (2) same (jurisdiction, exact stripped core name); (3) RapidFuzz
+    token_sort_ratio on core names within a first-token block. splink is deliberately
+    NOT used here: on homogeneous registry names (many "China .../Beijing ..." entities)
+    its EM model can't discriminate -- even identical strings scored ~0.12 -- so it would
+    only add noise. splink stays in :func:`link_to_gleif`, where a shared identifier
+    anchors the match. The reliable cross-registry key remains the GLEIF LEI.
+    """
+    from collections import defaultdict
+    uf = _UnionFind(len(records))
+
+    def union_by(keyfn) -> None:
+        groups: dict = defaultdict(list)
+        for i, r in enumerate(records):
+            k = keyfn(r)
+            if k:
+                groups[k].append(i)
+        for members in groups.values():
+            for j in members[1:]:
+                uf.union(members[0], j)
+
+    def _juris(r):
+        return (r.get("jurisdiction") or "").upper()
+
+    union_by(lambda r: (_juris(r), extract_identifier(r))
+             if len(extract_identifier(r)) >= _MIN_ID_FOR_UNION else None)
+    union_by(lambda r: (_juris(r), "name:" + _core_name(r.get("name", "")))
+             if _core_name(r.get("name", "")) else None)
+    for a, b in _fuzzy_edges(records, threshold=threshold):
+        uf.union(a, b)
+
+    comps: dict = defaultdict(list)
+    for i in range(len(records)):
+        comps[uf.find(i)].append(records[i])
+    return _assemble(comps)
 
 
 def link_to_gleif(gleif_records: list[dict], registry_records: list[dict], *,
