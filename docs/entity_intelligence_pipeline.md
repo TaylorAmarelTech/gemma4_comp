@@ -114,11 +114,18 @@ A source-agnostic edge shape every connector writes into (propose-only, dedup on
 ```
 
 Predicate vocabulary: `parent_of`, `owns_or_controls`, `registers` / `registrar_of` /
-`hosted_on` / `mail_via` (domain), `agency_recruits_for`, `officer_of`, `operates_port`,
-`port_visited_by`. Built edge sources: **GLEIF Level-2 RR** (`parent_of`, CC0),
+`hosted_on` / `mail_via` (domain), `same_as` (cluster), `agency_recruits_for`, `officer_of`,
+`operates_port`, `port_visited_by`. Built edge sources: **GLEIF Level-2 RR** (`parent_of`, CC0),
 **OpenOwnership BODS** (`owns_or_controls` with % share, CC0), **domain_intel** (registrant /
 infra). Build-next: US OFLC H-2A/H-2B (`agency_recruits_for`), ICIJ Offshore Leaks
 (`officer_of`).
+
+`scripts/entity_edges.py` is the **unifier**: it collects every staged connector edge
+(`reports/entity_kb/*.jsonl`), synthesises registry `registers` edges from entity records and
+`same_as` edges from `entity_link` clusters, dedups on the triple (higher weight wins, sources
+unioned), and writes one `edges.jsonl` + a by-predicate/by-source `edges_manifest.json`. The
+weekly `entity-harvest` workflow runs it after the harvest so the unified graph ships as a
+propose-only artifact. `python scripts/entity_edges.py --from-reports reports/entity_kb`.
 
 ## Screening + linkage
 

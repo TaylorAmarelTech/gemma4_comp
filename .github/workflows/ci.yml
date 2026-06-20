@@ -286,7 +286,7 @@ jobs:
             tests/test_acquisition_cascade.py tests/test_cluster_registries.py \
             tests/test_doj_press.py tests/test_dol_whd.py tests/test_domain_intel.py \
             tests/test_entity_kb.py tests/test_entity_link.py tests/test_entity_screen.py \
-            tests/test_entity_count_drift.py tests/test_ftm_schema.py \
+            tests/test_entity_count_drift.py tests/test_entity_edges.py tests/test_ftm_schema.py \
             tests/test_gleif_lei.py tests/test_gleif_rr.py \
             tests/test_harvest_opensanctions_sources.py tests/test_image_enhance.py \
             tests/test_ingest_kaggle_agencies.py tests/test_openownership_bods.py \
