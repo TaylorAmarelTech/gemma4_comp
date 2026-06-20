@@ -175,6 +175,7 @@ nav:
       - Why networked Gemma sharing matters: gemma_networked_knowledge_sharing.md
       - Copy-ready Kaggle post: kaggle_post_networked_knowledge_sharing.md
       - Architecture: information_sharing_architecture.md
+      - Autonomous improvement loop: autonomous_improvement_loop.md
       - Anonymization policy: anonymization_policy.md
       - Submission labeling policy: submission_labeling_policy.md
       - Knowledge object taxonomy: adr/007-knowledge-object-taxonomy.md
