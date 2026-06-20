@@ -186,4 +186,5 @@ nav:
       - OpenAPI spec: openapi.yaml
       - Threat model: considerations/THREAT_MODEL.md
       - Source verification (entity intelligence): entity_intelligence_pipeline.md
+      - Platform Triage (screenshots): media/triage/README.md
       - FAQ: FAQ.md
