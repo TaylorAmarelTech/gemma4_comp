@@ -14,6 +14,7 @@
 | **RAG corpus** | 50+ docs (ILO conventions, statutes, NGO briefs) — adding new statutes, refreshing amended ones, BM25 reindex | [`rag_corpus.md`](rag_corpus.md) |
 | **Tool functions** | 5 function-calling lookups (corridor fee cap, fee camouflage, ILO indicator, NGO intake, ILO Convention) | [`tool_functions.md`](tool_functions.md) |
 | **Online search** | Provider chain (DuckDuckGo / Brave / Tavily / Wikipedia / arbitrary URL) + BYOK config | [`online_search.md`](online_search.md) |
+| **Data sources & registries** | Official entity registers (recruiters, sanctions, beneficial ownership) + support orgs — onboard as config (a YAML registry spec) or a resolver; propose-only, separate from the safety layer | [`entity_sources.md`](entity_sources.md) |
 | **Curator-JSON blocks** | 12 versioned JSON files for stakeholder PRs | [`../contributing_curator_blocks.md`](../contributing_curator_blocks.md) |
 | **Domain packs** (whole new domains) | YAML + JSONL configs for medical / financial / etc. | [`../EXTENDING.md`](../EXTENDING.md) |
 
