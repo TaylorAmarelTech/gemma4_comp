@@ -9,18 +9,15 @@ it never produces user-facing answers.
 """
 from __future__ import annotations
 
-from .handler import register_routes
+from .handler import harness, register_routes
 from ..base import HarnessLogicPath, HarnessModelTarget, HarnessPackContract, HarnessSpec
 
-name = "triage"
-applied_layers: tuple[str, ...] = ("grep",)
-consumes: tuple[str, ...] = (
-    "grep_rule",          # deterministic first tier
-    "prompt_template",    # screen-verdict + deep-review prompts
-)
-emits: tuple[str, ...] = (
-    "audit_template",     # per-batch screening audit row (counts + hashes)
-)
+# The harness primitive attributes live ONCE on the BaseHarness subclass
+# (handler.TriageHarness) and are re-exported here for the registry + the spec.
+name = harness.name
+applied_layers = harness.applied_layers
+consumes = harness.consumes
+emits = harness.emits
 capabilities = {
     "batch_screen": "GREP rules -> one loaded-Gemma flag/clear verdict -> optional deeper grounded pass on flagged items.",
     "one_model": "Uses only the already-loaded Gemma (the chat page's model) -- no second model, no endpoint, no model switch.",
