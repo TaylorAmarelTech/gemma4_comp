@@ -37,8 +37,14 @@ RESULTS = _ROOT / "reports" / "frontier_report" / "results.jsonl"
 REPORT = _ROOT / "docs" / "research" / "frontier_harness_report.md"
 
 # Frontier candidates on Ollama-cloud (judge family excluded so judging stays independent).
-DEFAULT_MODELS = ["glm-5.2", "kimi-k2.7-code", "deepseek-v3.2", "qwen3-coder:480b", "gemma4:31b"]
+# General/chat models only -- code-specialised models (e.g. kimi-k2.7-code) emit raw reasoning
+# traces instead of answers on these prompts, so they are not valid candidates here.
+DEFAULT_MODELS = ["glm-5.2", "deepseek-v3.2", "qwen3-coder:480b", "qwen3.5:397b", "gemma4:31b"]
 DEFAULT_JUDGE = "gpt-oss:120b"
+# Reasoning models think before answering; with a long harnessed preamble a small budget
+# truncates the ANSWER (a real-not-faked trap that looks like "the harness hurt"). Give both
+# arms ample room so the comparison is apples-to-apples.
+DEFAULT_MAX_TOKENS = 3500
 _OPENROUTER_BASE = "https://openrouter.ai/api/v1/chat/completions"
 
 
@@ -294,12 +300,17 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--judge", default=DEFAULT_JUDGE)
     ap.add_argument("--prompts", type=int, default=0, help="limit #prompts (0 = all)")
     ap.add_argument("--pace", type=float, default=2.0)
+    ap.add_argument("--max-tokens", type=int, default=DEFAULT_MAX_TOKENS,
+                    help="generation budget per call (high enough that reasoning models finish)")
     ap.add_argument("--report-only", action="store_true", help="just re-render from saved results")
     args = ap.parse_args(argv)
 
     if not args.report_only:
         os.environ.setdefault("GEMINI_API_KEY", "unused")   # report uses an Ollama judge
         os.environ["JUDGE_MODEL"] = args.judge
+        # set BEFORE run() imports run_harness_lift_live (it reads these at import time)
+        os.environ["LIFT_MAX_TOKENS"] = str(args.max_tokens)
+        os.environ["LIFT_REASONING_FLOOR"] = str(args.max_tokens)
         run([m.strip() for m in args.models.split(",") if m.strip()],
             n_prompts=args.prompts, pace=args.pace)
 
