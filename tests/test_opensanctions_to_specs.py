@@ -93,3 +93,23 @@ def test_emit_yaml_labels_drafts_not_runnable():
     parsed = yaml.safe_load(text)
     assert parsed["catalog"] == "opensanctions_draft_specs"
     assert "NOT runnable" in parsed["purpose"]
+
+
+def test_data_dataset_specs_surfaces_onboarded_cbp_uflpa(tmp_path):
+    import yaml
+    specs = {"specs": [
+        {"id": "us_cbp_forced_labor", "url": "https://x/cbp.csv", "format": "csv"},
+        {"id": "us_dhs_uflpa", "url": "https://x/uflpa.csv", "format": "csv"},
+        {"id": "some_other_registry", "url": "https://x/other.csv", "format": "csv"}]}
+    p = tmp_path / "registry_specs.yaml"
+    p.write_text(yaml.safe_dump(specs), encoding="utf-8")
+    got = {s["id"] for s in ots.data_dataset_specs(p)}
+    assert got == {"us_cbp_forced_labor", "us_dhs_uflpa"}        # only the data-datasets
+    assert set(ots.DATA_DATASET_SPEC_IDS) == {"us_cbp_forced_labor", "us_dhs_uflpa"}
+
+
+def test_data_dataset_specs_match_the_real_registry_specs():
+    # real-not-faked: the constant must reflect what is actually onboarded in the repo
+    real = _ROOT / "configs" / "duecare" / "research_monitor" / "registry_specs.yaml"
+    ids = {s["id"] for s in ots.data_dataset_specs(real)}
+    assert ids == {"us_cbp_forced_labor", "us_dhs_uflpa"}

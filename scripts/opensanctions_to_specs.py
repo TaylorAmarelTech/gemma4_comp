@@ -121,6 +121,21 @@ def live_spec_urls(path: Path) -> set[str]:
     return {str(s.get("url")) for s in _live_specs(path) if s.get("url")}
 
 
+#: OpenSanctions DATA datasets onboarded directly as verified specs (path 2 -- they pull
+#: the CC-BY-NC targets.simple.csv export, not the MIT metadata source-pointer). These are
+#: NOT in the draft queue; they live in registry_specs.yaml as runnable specs.
+DATA_DATASET_SPEC_IDS = ("us_cbp_forced_labor", "us_dhs_uflpa")
+
+
+def data_dataset_specs(path: Path) -> list[dict]:
+    """The onboarded OpenSanctions DATA-dataset specs, read from registry_specs.yaml.
+
+    Single source of truth -- this reflects what is actually in the live specs file, so the
+    tool reports the CBP / UFLPA onboarding rather than hardcoding a duplicate copy.
+    """
+    return [s for s in _live_specs(path) if str(s.get("id")) in DATA_DATASET_SPEC_IDS]
+
+
 def summarize(specs: list[dict]) -> dict:
     return {
         "drafts": len(specs),
@@ -163,8 +178,12 @@ def main(argv: list[str] | None = None) -> int:
                    categories=cats)
     summary = summarize(specs)
 
+    onboarded = data_dataset_specs(live)
     print(f"{summary['drafts']} draft specs (need field-map verification before use)", file=sys.stderr)
     print("  by format:", summary["by_format"], "| by type:", summary["by_type"], file=sys.stderr)
+    if onboarded:
+        print(f"  OpenSanctions data-datasets already onboarded as verified specs: "
+              f"{', '.join(s['id'] for s in onboarded)}", file=sys.stderr)
     if args.stats:
         return 0
 
