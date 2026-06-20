@@ -5,11 +5,14 @@ ads / recruiter messages cheaply, then spend deep-model time only on the
 risky few. The waterfall:
 
     GREP rules         deterministic, microseconds, catches known patterns
-      -> fast model    one quick flag/clear verdict per item. Designed for a
+      -> fast model    OPT-IN. One quick flag/clear verdict per item. Designed for a
                        DiffusionGemma-class endpoint (parallel-block diffusion
                        decode, up to 4x faster than autoregressive Gemma 4) or
-                       any OpenAI-compatible model the operator configures.
-      -> deep model    full harnessed analysis ONLY for escalated items.
+                       any OpenAI-compatible model the operator configures. Off by
+                       default because it can require a SEPARATE model/endpoint.
+      -> deep model    full harnessed analysis of escalated items, on the
+                       already-loaded Gemma. This is the default model tier (no
+                       model switch); the fast tier only accelerates high volume.
 
 The fast tier ROUTES, it never answers: a "clear" verdict means "no signal
 worth deep review", not "safe". Without any model configured the result is
@@ -370,7 +373,10 @@ def register_routes(app: Any) -> None:
                 raise HTTPException(400, f"items[{i}] exceeds {MAX_ITEM_CHARS} chars")
             items.append({"id": raw.get("id"), "text": raw["text"]})
 
-        use_fast = body.get("use_fast_model", True) is not False
+        # Fast tier is OPT-IN: it can point at a separate DiffusionGemma endpoint
+        # (DUECARE_FAST_MODEL_BASE_URL), so it must never run by default -- the default
+        # path is GREP + the already-loaded Gemma (deep), no model switch required.
+        use_fast = bool(body.get("use_fast_model", False))
         run_deep = bool(body.get("run_deep", False))
         try:
             clear_threshold = max(0.0, min(1.0, float(
