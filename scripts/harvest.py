@@ -170,6 +170,44 @@ def collect_au_afma() -> dict:
         return {"name": name, "n_records": 0, "records": [], "note": "", "error": f"{type(exc).__name__}: {exc}"[:200]}
 
 
+# registries the cascade resolver map shares with a dedicated collector above --
+# skip them here so a full --all harvest never runs the same registry twice.
+_CASCADE_DEDICATED = ("hk_eaa", "hk_money_lenders", "bd_oep", "bd_mra", "cn_mara", "au_afma")
+
+
+def collect_cascade(*, resolvers=None, skip: tuple[str, ...] = _CASCADE_DEDICATED) -> dict:
+    """Run every deterministic registry resolver in the acquisition cascade that has no
+    dedicated collector above -- ofac_sdn, worldbank_debarred, gleif_lei, openownership_bods
+    plus the config-spec registries in registry_specs.yaml. Each resolver is tier-1, already
+    normalises to entity records, and guards itself; one failing only records its error -- so
+    this single collector widens the weekly harvest from the legacy hand-written collectors to
+    the whole 34-registry surface. `resolvers` is injectable for offline tests."""
+    name = "cascade"
+    try:
+        if resolvers is None:
+            resolvers = _sibling("acquisition_cascade").REGISTRY_RESOLVERS
+        skip_set = set(skip)
+        ids = [r for r in sorted(resolvers) if r not in skip_set]
+        recs, per = [], []
+        for rid in ids:
+            try:
+                r = resolvers[rid]({}) or {}     # default bounded slice (gleif/bods self-bound)
+                rrecs = [d for d in (r.get("records") or []) if isinstance(d, dict) and d.get("name")]
+                for d in rrecs:
+                    d.setdefault("source", f"cascade:{rid}")
+                    d.setdefault("source_tier", "official")
+                per.append({"registry": rid, "n": len(rrecs), "error": str(r.get("error") or "")[:160]})
+                recs.extend(rrecs)
+            except Exception as exc:  # noqa: BLE001 -- one bad resolver never aborts the rest
+                per.append({"registry": rid, "n": 0, "error": f"{type(exc).__name__}: {exc}"[:160]})
+        n_ok = sum(1 for p in per if not p["error"])
+        return {"name": name, "n_records": len(recs), "records": recs,
+                "note": f"{n_ok}/{len(ids)} registries ok, {len(recs)} entities",
+                "error": "", "per_registry": per}
+    except Exception as exc:  # noqa: BLE001
+        return {"name": name, "n_records": 0, "records": [], "note": "", "error": f"{type(exc).__name__}: {exc}"[:200]}
+
+
 def collect_kaggle() -> dict:
     """Ingest already-downloaded Kaggle agency + job-order CSVs (if present)."""
     name = "kaggle"
@@ -219,6 +257,7 @@ BUILTIN_COLLECTORS = {
     "bd_mra": collect_bd_mra,
     "cn_mara": collect_cn_mara,
     "au_afma": collect_au_afma,
+    "cascade": collect_cascade,
     "kaggle": collect_kaggle,
     "staged": collect_staged,
 }

@@ -74,9 +74,36 @@ def test_collector_returning_error_dict_is_recorded(tmp_path):
 def test_builtin_collectors_registered_and_filesystem_ones_are_fault_tolerant():
     assert set(hv.BUILTIN_COLLECTORS) == {"dmw_agencies", "dmw_issuances", "hk_eaa",
                                           "hk_money_lenders", "bd_oep", "bd_mra", "cn_mara",
-                                          "au_afma", "kaggle", "staged"}
+                                          "au_afma", "cascade", "kaggle", "staged"}
     # the filesystem-only built-ins must return a result dict and never raise
     # (network/browser ones are not invoked here to keep the test offline+fast)
     for name in ("kaggle", "staged"):
         r = hv.BUILTIN_COLLECTORS[name]()
         assert set(r) >= {"name", "n_records", "records", "error"} and r["name"] == name
+
+
+def test_collect_cascade_runs_resolvers_skips_dedicated_and_isolates_failures():
+    # inject fake resolvers so the cascade collector is tested with no network
+    def ok(_t):
+        return {"records": [{"name": "Zenith Manning Corp", "entity_type": "recruitment_agency"}], "error": ""}
+
+    def empty(_t):
+        return {"records": [], "error": ""}
+
+    def boom(_t):
+        raise RuntimeError("registry down")
+
+    def dedicated(_t):  # must be skipped -- hk_eaa has a dedicated collector
+        return {"records": [{"name": "Should Not Appear", "entity_type": "company"}]}
+
+    resolvers = {"ofac_sdn": ok, "ph_poea_spec": empty, "flaky_reg": boom, "hk_eaa": dedicated}
+    r = hv.collect_cascade(resolvers=resolvers)
+
+    assert r["name"] == "cascade" and r["error"] == ""
+    regs = {p["registry"] for p in r["per_registry"]}
+    assert regs == {"ofac_sdn", "ph_poea_spec", "flaky_reg"}      # hk_eaa skipped (dedicated)
+    assert r["n_records"] == 1                                     # only `ok` produced a named record
+    assert r["records"][0]["source"] == "cascade:ofac_sdn"        # provenance tagged
+    by = {p["registry"]: p for p in r["per_registry"]}
+    assert "RuntimeError" in by["flaky_reg"]["error"]             # fault isolated, harvest continues
+    assert by["ofac_sdn"]["n"] == 1 and by["ph_poea_spec"]["n"] == 0
