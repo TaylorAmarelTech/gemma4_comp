@@ -71,3 +71,24 @@ def test_fetch_paginates_and_caps():
         return {"data": [dict(REC, case_id=off + i) for i in range(50)]} if off < 200 else {"data": []}
     ents = dol.fetch_enforcement(api_key="x", max_records=120, page_size=50, fetch=fetch)
     assert len(ents) == 120                                          # 50+50+20, capped
+
+
+def test_load_dotenv_sets_missing_without_override(tmp_path, monkeypatch):
+    env = tmp_path / ".env"
+    env.write_text('DOL_API_KEY=abc123\n# comment\nKEEP_ME="quoted"\nALREADY=fromfile\n',
+                   encoding="utf-8")
+    monkeypatch.delenv("DOL_API_KEY", raising=False)
+    monkeypatch.setenv("ALREADY", "preset")
+    loaded = dol.load_dotenv(env)
+    import os
+    assert os.environ["DOL_API_KEY"] == "abc123" and os.environ["KEEP_ME"] == "quoted"
+    assert os.environ["ALREADY"] == "preset"                        # existing env not overridden
+    assert "DOL_API_KEY" in loaded and "ALREADY" not in loaded      # only newly-set names returned
+
+
+def test_fetch_preview_parses_keyless_metadata_rows():
+    import json
+    meta = {"dataset": {"id": 10362, "dataset_preview": json.dumps({"data": [REC, MIGRANT]})}}
+    ents = dol.fetch_preview(fetch=lambda url: json.dumps(meta))
+    assert [e["name"] for e in ents] == ["Reliant Energy", "Sunrise Farms LLC"]
+    assert ents[1]["migrant_visa_violations"] == {"h2a": 8, "mspa": 3}  # parsed via parse_record
