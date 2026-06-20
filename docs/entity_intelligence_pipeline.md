@@ -37,7 +37,7 @@ Two hard invariants:
 ```
  discover sources ──▶ resolve (fetch+parse) ──▶ normalize ──▶ link (LEI) ──▶ screen ──▶ propose
    catalogs            acquisition cascade        entity_kb     entity_link   entity_    reports/
-   (1,111 + 532)       (32 registries)                          + cluster      screen
+   (1,111 + 532)       (34 registries)                          + cluster      screen
 ```
 
 ## Connectors (built this session)
@@ -65,12 +65,14 @@ Plus the prior-session substrate: `entity_kb.py` (11-type entity KB, tier-merge 
 `agentic_browse.py` (Gemma-4 function-calling browser agent), `acquisition_cascade.py`,
 `registry_spec.py` + `registry_parsers.py` (the config-driven resolver), `harvest.py`.
 
-## The acquisition cascade — 32 addressable registries
+## The acquisition cascade — 34 addressable registries
 
-`scripts/acquisition_cascade.py` resolves each registry by id (`--registry <id>`): **9
-deterministic code resolvers** + **23 config specs** in
+`scripts/acquisition_cascade.py` resolves each registry by id (`--registry <id>`): **11
+deterministic resolvers/presets** + **23 config specs** in
 `configs/duecare/research_monitor/registry_specs.yaml`. A new registry is usually a YAML
-block, not Python. Verified per-registry counts (live, this session):
+block, not Python. **GLEIF** (`--registry gleif_lei`) and **OpenOwnership BODS**
+(`--registry openownership_bods`) are also addressable as bounded slices via `--arg`
+(e.g. `--arg country=AE --arg limit=300`). Verified per-registry counts (live, this session):
 
 **Recruitment / labour (corridor):** PH DMW licensed agencies 3,788 · BD OEP/BMET 2,834 ·
 BD MRA microfinance 904 · TW MOL manpower 3,377 · GB licensed sponsors 141,980 ·

@@ -31,8 +31,8 @@ constraints; closest file wins.
   `configs/duecare/research_monitor/`: 12 offline-tested connectors (GLEIF LEI/RR,
   OpenOwnership BODS, OpenSanctions harvest, DOJ press / DOL WHD, domain RDAP/DNS
   OSINT, splink linkage + clustering, tooling-scout, image-enhance) feed a
-  32-registry acquisition cascade (23 config specs in `registry_specs.yaml` + 9
-  deterministic resolvers) plus a 1,111-source licensed-entity catalog and 532
+  34-registry acquisition cascade (23 config specs in `registry_specs.yaml` + 11
+  deterministic resolvers/presets, incl. GLEIF + OpenOwnership BODS) plus a 1,111-source licensed-entity catalog and 532
   migrant-support orgs. All stages stage to gitignored `reports/`; it is separate
   from the live model/harness and the GREP/RAG knowledge layer. Do not wire it into
   worker-facing surfaces without curator review. Map:
