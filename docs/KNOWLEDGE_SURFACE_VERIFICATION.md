@@ -3,6 +3,13 @@
 Snapshot of DueCare harness knowledge-layer state as of 2026-06-10.
 Re-runnable via `python scripts/verify_knowledge_surfaces.py`.
 
+> Scope: this snapshot covers the **trafficking knowledge layer** (GREP / RAG / templates /
+> personas / ILO conventions, etc.). The separate propose-only **entity-intelligence layer**
+> (official-registry verification, the 1,111-source catalogue, 532 support organisations) is
+> documented with its own counts in
+> [`entity_intelligence_pipeline.md`](entity_intelligence_pipeline.md); it does not change
+> the surfaces below.
+
 ## Counts
 
 | Surface | Count |

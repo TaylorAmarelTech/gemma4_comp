@@ -121,6 +121,7 @@ For copy-ready Kaggle discussion copy with a title and opening paragraph, use
 | **Local anonymization module** | Converts reviewed sensitive material into redacted fact objects or aggregate signals before sharing. |
 | **Central knowledge server** | Hosts public docs, APIs, vetted pack metadata, anonymized aggregate signals, and review queues. |
 | **Quality and training layer** | Reproducible evaluation, A-00 proof runs, benchmark artifacts, and optional Gemma 4 adaptation. |
+| **Entity-intelligence pipeline** | Propose-only verification of recruiters, employers, and their owners against 32 official government registries; feeds curator-reviewed pack updates. See [Entity-intelligence pipeline](entity_intelligence_pipeline.md). |
 
 ## Run Or Verify
 

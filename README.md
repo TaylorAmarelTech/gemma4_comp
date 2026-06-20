@@ -60,6 +60,9 @@
 > detection rules, hundreds of RAG knowledge documents, complaint and
 > narrative templates, review personas, fee-camouflage labels, corridor
 > fee-cap entries, NGO contact bundles, and ILO convention coverage.
+> A separate propose-only entity-intelligence layer verifies recruiters and
+> employers against 32 official government registries, backed by a 1,111-source
+> catalogue and 532 migrant-support organisations.
 > Reproducible CLI and notebook surfaces. On your laptop or in your
 > pocket.** Re-run current counts via `python scripts/verify_knowledge_surfaces.py`
 > (pure stdlib, no pip) before copying an exact figure into public copy.
@@ -169,6 +172,18 @@ Each harness self-describes via uniform exports: `name`, `applied_layers`,
 The harness boundary is also the **per-task fine-tuning export boundary**:
 every Gemma-bearing handler emits one JSONL row per call to
 `/kaggle/working/training/<harness>.jsonl`, ready for Unsloth LoRA ingestion.
+
+### Research data acquisition layer (entity intelligence)
+
+Alongside the harnesses runs a propose-only **entity-intelligence pipeline** that
+verifies recruiters, employers, and the companies behind them against **32 official
+government registries** — 12 offline-tested connectors (GLEIF corporate identity +
+ownership, OpenOwnership beneficial ownership, OpenSanctions, DOJ prosecutions, DOL
+labour enforcement, domain OSINT, splink LEI linkage + cross-registry clustering)
+feeding a **1,111-source** licensed-entity catalogue and **532** migrant-support
+organisations. Everything stages to gitignored `reports/` for curator review; it is
+separate from the live model and the GREP/RAG knowledge layer. **Map:**
+[docs/entity_intelligence_pipeline.md](docs/entity_intelligence_pipeline.md).
 
 **Full architecture spec:** [docs/harness_pattern.md](docs/harness_pattern.md).
 **Migration note for returning contributors:** [docs/MIGRATION_HARNESS_PATTERN.md](docs/MIGRATION_HARNESS_PATTERN.md).

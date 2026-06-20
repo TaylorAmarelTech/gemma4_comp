@@ -250,3 +250,11 @@ judges can verify shape without waiting on weights.
 
 - `../01-duecare-exploration-workbench/`: the broad reviewer workbench.
 - `../02-live-demo/`: the focused live demo + recording-grade pitch deck.
+
+## Related research tooling
+
+- [`docs/entity_intelligence_pipeline.md`](../../docs/entity_intelligence_pipeline.md):
+  propose-only entity-intelligence tooling (12 connectors feeding a 32-registry cascade)
+  that verifies recruiters, employers, and their owners against official government
+  registries. Separate from this proof path and the live model; documented for operators
+  and curator-reviewed before any worker-facing use.
