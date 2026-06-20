@@ -81,9 +81,9 @@
         rows, not bespoke code.</p>
     </div>
     <div class="sv-stats">
-      <div class="sv-stat"><div class="v">34</div><div class="l">Official registries</div><div class="s">23 config specs + 11 deterministic resolvers</div></div>
-      <div class="sv-stat"><div class="v">1,111</div><div class="l">Catalogued sources</div><div class="s">95 countries · 18 industries</div></div>
-      <div class="sv-stat"><div class="v">532</div><div class="l">Support organisations</div><div class="s">helplines · shelters · legal aid · unions</div></div>
+      <div class="sv-stat"><div class="v" data-count="registries">34</div><div class="l">Official registries</div><div class="s" data-count-detail="cascade">23 config specs + 11 deterministic resolvers</div></div>
+      <div class="sv-stat"><div class="v" data-count="licensed_sources">1,111</div><div class="l">Catalogued sources</div><div class="s">95 countries · 18 industries</div></div>
+      <div class="sv-stat"><div class="v" data-count="support_orgs">532</div><div class="l">Support organisations</div><div class="s">helplines · shelters · legal aid · unions</div></div>
       <div class="sv-stat"><div class="v">37,566</div><div class="l">Entities clustered</div><div class="s">→ 27,810 deduped across sources</div></div>
     </div>
   </div>
@@ -202,5 +202,24 @@
 </section>
 
 {% include "_footer.html" %}
+<script>
+// Progressive enhancement: refresh the stat cards from the generated source of truth
+// (scripts/entity_counts.py --write). The literals above are the no-JS / fetch-fail fallback,
+// and tests/test_entity_count_drift.py keeps both in lockstep -- so a stale number can't ship.
+(function () {
+  fetch('/static/entity_counts.json').then(function (r) { return r.ok ? r.json() : null; }).then(function (c) {
+    if (!c) return;
+    var fmt = function (n) { return Number(n).toLocaleString('en-US'); };
+    document.querySelectorAll('[data-count]').forEach(function (el) {
+      var k = el.getAttribute('data-count');
+      if (c[k] != null) el.textContent = fmt(c[k]);
+    });
+    var d = document.querySelector('[data-count-detail="cascade"]');
+    if (d && c.config_specs != null && c.deterministic_resolvers != null) {
+      d.textContent = c.config_specs + ' config specs + ' + c.deterministic_resolvers + ' deterministic resolvers';
+    }
+  }).catch(function () {});
+})();
+</script>
 </body>
 </html>

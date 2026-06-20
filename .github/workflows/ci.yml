@@ -260,6 +260,48 @@ jobs:
       - name: Adversarial validation
         run: uv run --no-sync python scripts/adversarial_validation.py --all --stress 2
 
+  entity-pipeline:
+    name: entity-intelligence suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      # The entity-intelligence connectors live under scripts/ and gate their heavy deps
+      # behind pytest.importorskip (rapidfuzz / splink / cv2 / pandas / numpy). The main `test`
+      # job installs only pyyaml, so these 19 suites SKIP there. This job installs the real deps
+      # so they actually RUN -- 207 tests across registry parsing, GLEIF/RR linkage, FtM
+      # normalisation, entity screening, clustering, and the entity-count drift guard.
+      - name: Install entity-pipeline deps
+        run: pip install pytest pyyaml rapidfuzz splink opencv-python-headless pandas numpy
+
+      - name: Run entity-intelligence test suite
+        run: |
+          python -m pytest -q --no-header \
+            tests/test_acquisition_cascade.py tests/test_cluster_registries.py \
+            tests/test_doj_press.py tests/test_dol_whd.py tests/test_domain_intel.py \
+            tests/test_entity_kb.py tests/test_entity_link.py tests/test_entity_screen.py \
+            tests/test_entity_count_drift.py tests/test_ftm_schema.py \
+            tests/test_gleif_lei.py tests/test_gleif_rr.py \
+            tests/test_harvest_opensanctions_sources.py tests/test_image_enhance.py \
+            tests/test_ingest_kaggle_agencies.py tests/test_openownership_bods.py \
+            tests/test_opensanctions_to_specs.py tests/test_registry_parsers.py \
+            tests/test_registry_spec.py tests/test_tooling_scout.py
+
+      # Belt-and-suspenders for the count source of truth: regenerate the published JSON and
+      # fail if it drifts from configs/cascade (test_entity_count_drift covers value equality;
+      # this also catches a forgotten `--write` and any byte-level format drift).
+      - name: Verify entity_counts.json is current
+        run: |
+          python scripts/entity_counts.py --write
+          git diff --exit-code apps/duecare-ai.com/app/static/entity_counts.json \
+            || (echo "::error::entity_counts.json is stale -- run: python scripts/entity_counts.py --write" && exit 1)
+
   build-wheels:
     name: build 17 wheels
     runs-on: ubuntu-latest
