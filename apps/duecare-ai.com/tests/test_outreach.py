@@ -226,3 +226,58 @@ def test_campaign_send_status_always_drafted_even_with_smtp_env(monkeypatch):
 
     campaign = outreach.draft_campaign(d, gap, [], compose=lambda *a: _Draft())
     assert campaign.send_status == "drafted"
+
+
+# ------------------ LLM outreach-drafts -> PROPOSED context gaps -------------
+
+_DRAFTS = [
+    {"topic": "Student-visa labour in JP",
+     "question": "Are student-visa holders in Japan being pushed into excessive overtime by recruiters?",
+     "target_role": "migrant-worker advocate"},
+    {"topic": "Crypto fee rails in BD-MY",
+     "question": "Are Bangladesh to Malaysia recruiters collecting fees via USDT or bKash?",
+     "target_role": "hotline volunteer"},
+]
+
+
+def test_proposed_gap_spec_from_draft_marks_proposed():
+    spec = outreach.proposed_gap_spec_from_draft(_DRAFTS[0], model="glm-5.2")
+    assert spec["proposed"] is True and spec["kind"] == "proposed"
+    assert spec["id"].startswith("proposed_")
+    assert spec["ask"] == _DRAFTS[0]["question"]
+    assert spec["audience"] == "migrant-worker advocate"
+    assert spec["base_priority"] < 0.5             # never displaces the curated seeds
+
+
+def test_ingest_proposed_gaps_persists_dedups_and_surfaces():
+    d = pathlib.Path(tempfile.mkdtemp())
+    added = outreach.ingest_proposed_gaps(d, _DRAFTS, model="glm-5.2", ts="2026-06-20T00-00-00Z")
+    assert len(added) == 2
+    # re-ingesting the same drafts adds nothing (dedup by id)
+    assert outreach.ingest_proposed_gaps(d, _DRAFTS, model="glm-5.2", ts="2026-06-20T00-01-00Z") == []
+    gaps = outreach.detect_context_gaps(d)
+    by_id = {g.id: g for g in gaps}
+    assert len(gaps) >= 10                          # 8 seeds + 2 proposed
+    assert by_id[added[0]["id"]].proposed is True
+    assert gaps[0].proposed is False                # a curated seed still ranks first
+    # textless drafts are skipped
+    assert outreach.ingest_proposed_gaps(d, [{"topic": "x"}, {"question": "  "}],
+                                         model="m", ts="2026-06-20T00-02-00Z") == []
+
+
+def test_endpoint_propose_gaps_then_draftable(client):
+    r = client.post("/api/outreach/propose-gaps", json={"drafts": _DRAFTS, "model": "glm-5.2"})
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["ok"] and body["n_proposed"] == 2
+    pid = body["proposed_gaps"][0]["id"]
+
+    # it now appears in the gaps list, flagged proposed
+    g = client.get("/api/outreach/gaps").json()
+    match = [x for x in g["gaps"] if x["id"] == pid]
+    assert match and match[0]["proposed"] is True
+
+    # and a curator can draft a (still draft-only) campaign for it
+    camp = client.post("/api/outreach/campaign", json={"gap_id": pid})
+    assert camp.status_code == 200
+    assert camp.json()["campaign"]["send_status"] == "drafted"
