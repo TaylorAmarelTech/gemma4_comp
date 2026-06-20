@@ -111,6 +111,24 @@ For a shorter public explanation, read
 For copy-ready Kaggle discussion copy with a title and opening paragraph, use
 [Copy-ready Kaggle Post: DueCare Networked Knowledge Sharing](kaggle_post_networked_knowledge_sharing.md).
 
+## Source verification
+
+Recruitment-fraud drafts are only as trustworthy as the entities behind them, so
+DueCare grounds them in real public records. The **entity-intelligence pipeline**
+verifies recruiters, employers, and their beneficial owners against **34 official
+government registries** — licensed-recruiter lists, fishing-vessel and money-lender
+registers, sanctions and debarment lists, and GLEIF / OpenOwnership corporate
+ownership — drawn from a **1,111-source** catalogue spanning 95 countries and 18
+industries, alongside **532** migrant worker-support organisations (helplines,
+shelters, legal aid, unions) for referral. It is **propose-only**: resolved records
+are staged for curator review, never auto-merged, and kept strictly separate from
+the trafficking knowledge layer.
+
+Judges can browse the live registry map, licence ledger, and connector status at
+[duecare-ai.com/source-verification](https://duecare-ai.com/source-verification);
+the full per-source map and connector reference live in the
+[Entity-intelligence pipeline](entity_intelligence_pipeline.md) doc.
+
 ## Core Components
 
 | Component | Purpose |
@@ -121,7 +139,7 @@ For copy-ready Kaggle discussion copy with a title and opening paragraph, use
 | **Local anonymization module** | Converts reviewed sensitive material into redacted fact objects or aggregate signals before sharing. |
 | **Central knowledge server** | Hosts public docs, APIs, vetted pack metadata, anonymized aggregate signals, and review queues. |
 | **Quality and training layer** | Reproducible evaluation, A-00 proof runs, benchmark artifacts, and optional Gemma 4 adaptation. |
-| **Entity-intelligence pipeline** | Propose-only verification of recruiters, employers, and their owners against 34 official government registries; feeds curator-reviewed pack updates. See [Entity-intelligence pipeline](entity_intelligence_pipeline.md). |
+| **Entity-intelligence pipeline** | Propose-only verification of recruiters, employers, and their owners against 34 official government registries; feeds curator-reviewed pack updates. See [Entity-intelligence pipeline](entity_intelligence_pipeline.md) and the live [source-verification page](https://duecare-ai.com/source-verification). |
 
 ## Run Or Verify
 

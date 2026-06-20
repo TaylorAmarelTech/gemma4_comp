@@ -185,4 +185,5 @@ nav:
       - Harness lift report: harness_lift_report.md
       - OpenAPI spec: openapi.yaml
       - Threat model: considerations/THREAT_MODEL.md
+      - Source verification (entity intelligence): entity_intelligence_pipeline.md
       - FAQ: FAQ.md
