@@ -3,6 +3,10 @@
 > How to grow the RAG corpus from public sources toward the 10k-doc goal.
 > The pipeline is **propose-only**: it stages candidates for review and never
 > mutates the live corpus. A human/curator imports the reviewed bundle.
+>
+> **See also:** [`entity_intelligence_pipeline.md`](entity_intelligence_pipeline.md) — the
+> sibling entity / registry / graph layer (recruiter & employer verification against 32
+> official government registries) that complements this RAG-corpus growth pipeline.
 
 ## What it does
 

@@ -27,6 +27,16 @@ constraints; closest file wins.
 - The workspace contains 17 `duecare-llm*` package directories. Run pytest
   collection before changing published test claims; do not claim a full test
   pass unless the full suite actually ran.
+- A propose-only **entity-intelligence pipeline** lives in `scripts/` +
+  `configs/duecare/research_monitor/`: 12 offline-tested connectors (GLEIF LEI/RR,
+  OpenOwnership BODS, OpenSanctions harvest, DOJ press / DOL WHD, domain RDAP/DNS
+  OSINT, splink linkage + clustering, tooling-scout, image-enhance) feed a
+  32-registry acquisition cascade (23 config specs in `registry_specs.yaml` + 9
+  deterministic resolvers) plus a 1,111-source licensed-entity catalog and 532
+  migrant-support orgs. All stages stage to gitignored `reports/`; it is separate
+  from the live model/harness and the GREP/RAG knowledge layer. Do not wire it into
+  worker-facing surfaces without curator review. Map:
+  [`docs/entity_intelligence_pipeline.md`](docs/entity_intelligence_pipeline.md).
 - Public files should have an obvious reason to exist. If you add a new
   top-level directory, Kaggle kernel, package surface, or long-lived document,
   update the relevant purpose map (`README.md`, `kaggle/_INDEX.md`,

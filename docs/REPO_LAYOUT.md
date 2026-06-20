@@ -1,6 +1,6 @@
 ﻿# Repository Layout
 
-Current as of 2026-05-25.
+Current as of 2026-06-19.
 
 | Path | Purpose | Status |
 |---|---|---|
@@ -16,6 +16,8 @@ Current as of 2026-05-25.
 | [`kaggle/04-kaggle-community-benchmark/`](../kaggle/04-kaggle-community-benchmark/) | Optional Kaggle Community Benchmark surface using `kaggle_benchmarks` and Kaggle model proxy calls. | Optional |
 | [`kaggle/_archive/notebooks/`](../kaggle/_archive/notebooks/) | Retired A-series, video-pitch, and task-notebook-era surfaces. | Historical |
 | [`docs/`](../docs/) | Current docs plus archived historical docs. Main reviewer entry: [`FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md). | Live |
+| [`docs/entity_intelligence_pipeline.md`](entity_intelligence_pipeline.md) | Canonical map of the propose-only entity-intelligence pipeline: 12 connectors in `scripts/`, the 32-registry cascade in `configs/duecare/research_monitor/`, the 1,111-source + 532-org catalogs, the relationship-edge schema, and the licence ledger. | Live |
+| [`scripts/`](../scripts/) + [`configs/duecare/research_monitor/`](../configs/duecare/research_monitor/) | Operator research tooling: entity connectors, the config-driven registry resolvers (`registry_specs.yaml`), and the licensed-entity / support-org catalogs. Propose-only (stages to gitignored `reports/`). | Live |
 | [`docs/_archive/`](../docs/_archive/) | Historical docs retained for provenance. | Historical |
 | [`tests/`](../tests/) | Cross-package contract and documentation tests. | Live |
 
@@ -28,6 +30,7 @@ Current as of 2026-05-25.
 - Active Kaggle inventory: [`docs/current_kaggle_notebook_state.md`](current_kaggle_notebook_state.md)
 - Model loading: [`docs/model_loading_trace.md`](model_loading_trace.md)
 - Harness inventory: [`docs/harness_ecosystem.md`](harness_ecosystem.md)
+- Entity-intelligence pipeline: [`docs/entity_intelligence_pipeline.md`](entity_intelligence_pipeline.md)
 - Root file policy: [`ROOT_FILES.md`](../ROOT_FILES.md)
 - File purpose policy: [`docs/FILE_PURPOSE_GUIDE.md`](FILE_PURPOSE_GUIDE.md)
 - Kaggle Community Benchmark notes: [`docs/KAGGLE_COMMUNITY_BENCHMARK.md`](KAGGLE_COMMUNITY_BENCHMARK.md)
