@@ -159,6 +159,11 @@ dict (`{"id", "schema", "properties": {prop: [values]}}`) loadable straight into
   serialiser is **pure-Python** (property names verified against the upstream schema YAMLs);
   `to_ftm(record, validate=True)` routes through the library when it *is* installed (same
   shape either way). Live-proven on real GLEIF + DOL WHD pulls.
+- **`--ftm` is first-class on the entity connectors**: `gleif_lei`, `openownership_bods`
+  (entities mode), `dol_whd`, and the whole `acquisition_cascade` (`--registry <id> --ftm`,
+  covering every registry resolver) emit FtM `EntityProxy` JSONL directly instead of native
+  records — no separate conversion step. They share `ftm_schema.emit_records(rows, ftm=...)`.
+  Post-hoc conversion of any staged JSONL still works: `ftm_schema.py --in <file> --out <ftm>`.
 
 ## Tooling adopted (permissive, Windows-clean, no Node / no AGPL / no model downloads)
 

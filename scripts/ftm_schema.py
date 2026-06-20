@@ -168,6 +168,14 @@ def convert(records, *, validate: bool = False) -> list[dict]:
     return [to_ftm(r, validate=validate) for r in records if r.get("name")]
 
 
+def emit_records(records, *, ftm: bool = False, validate: bool = False) -> list[dict]:
+    """The connector ``--ftm`` helper: FtM EntityProxies when ``ftm`` else the records as-is.
+
+    Lets every entity connector add a ``--ftm`` flag with one shared call instead of
+    re-implementing conversion -- ``rows = emit_records(rows, ftm=args.ftm)`` before writing."""
+    return convert(records, validate=validate) if ftm else list(records)
+
+
 def _read_jsonl(path: str):
     for line in Path(path).read_text(encoding="utf-8").splitlines():
         line = line.strip()

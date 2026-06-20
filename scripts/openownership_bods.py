@@ -229,6 +229,18 @@ def load_text(*, file: str | None = None, url: str | None = None, fetch=None) ->
     raise ValueError("give file= or url=")
 
 
+def _ftm_rows(records, ftm: bool):
+    """Convert records to FtM EntityProxies when ``ftm`` via the sibling serialiser (lazy import)."""
+    if not ftm:
+        return records
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "ftm_schema", str(Path(__file__).resolve().parent / "ftm_schema.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.emit_records(records, ftm=True)
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -237,8 +249,13 @@ def main(argv: list[str] | None = None) -> int:
     src.add_argument("--url", help="BODS data URL")
     ap.add_argument("--edges", action="store_true",
                     help="emit ownership/control RELATIONSHIP edges instead of entities")
+    ap.add_argument("--ftm", action="store_true",
+                    help="emit FollowTheMoney EntityProxy JSONL instead of native entities "
+                         "(entities mode only; ignored with --edges)")
     ap.add_argument("--out", help="propose-only JSONL output path (under reports/)")
     args = ap.parse_args(argv)
+    if args.ftm and args.edges:
+        print("--ftm applies to entities; ignoring it with --edges", file=sys.stderr)
 
     statements = list(iter_statements(load_text(file=args.file, url=args.url)))
     if args.edges:
@@ -252,11 +269,13 @@ def main(argv: list[str] | None = None) -> int:
               file=sys.stderr)
         preview = [f"  [{e['entity_type']:8}] {e['name'][:46]}  {e.get('license_no', '')}"
                    for e in rows[:10]]
+        rows = _ftm_rows(rows, args.ftm)
     if args.out:
         out = Path(args.out)
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text("\n".join(json.dumps(e, ensure_ascii=False) for e in rows), encoding="utf-8")
-        print(f"wrote {out} -- PROPOSE-ONLY")
+        print(f"wrote {out} -- PROPOSE-ONLY"
+              + (" (FtM EntityProxy JSONL)" if args.ftm and not args.edges else ""))
     else:
         print("\n".join(preview))
     return 0
