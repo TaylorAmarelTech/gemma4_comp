@@ -134,6 +134,25 @@ infra). Build-next: US OFLC H-2A/H-2B (`agency_recruits_for`), ICIJ Offshore Lea
 The **GLEIF LEI** is the reliable cross-jurisdiction key: link each list to GLEIF, then
 cluster by LEI.
 
+## Canonical schema — FollowTheMoney (FtM)
+
+`scripts/ftm_schema.py` normalises every connector record into the **FtM** entity model
+(`alephdata/followthemoney`, MIT) — the same schema OpenSanctions, Aleph, and nomenklatura
+speak — so the KB is interoperable with that ecosystem. Output is an FtM `EntityProxy`
+dict (`{"id", "schema", "properties": {prop: [values]}}`) loadable straight into Aleph.
+
+- `entity_type` → FtM schema: `company`/`employer`/`lender` → **Company**, `individual` →
+  **Person**, agencies/clinics/NGOs → **Organization**, `regulator` → **PublicBody**,
+  `sanctioned_entity` → **LegalEntity**, `vessel` → **Vessel**.
+- fields → real FtM properties: `name`/`alias`/`country`(ISO-2)/`address`/`publisher` (Thing);
+  `leiCode`/`licenseNumber`/`registrationNumber`/`taxNumber`/`jurisdiction`/`status`/`sector`
+  (LegalEntity); plus `topics` (`sanction`/`debarment`/`export.control`). The **LEI** is the
+  canonical id when present (`lei-<LEI>`), else a deterministic content hash.
+- The FtM **library** pulls in PyICU, which can't build on this Windows box, so the
+  serialiser is **pure-Python** (property names verified against the upstream schema YAMLs);
+  `to_ftm(record, validate=True)` routes through the library when it *is* installed (same
+  shape either way). Live-proven on real GLEIF + DOL WHD pulls.
+
 ## Tooling adopted (permissive, Windows-clean, no Node / no AGPL / no model downloads)
 
 `rapidfuzz` (MIT, name matching) · `splink` + `duckdb` (MIT, record linkage) · `whoisit`
