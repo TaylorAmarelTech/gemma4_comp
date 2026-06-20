@@ -244,7 +244,16 @@ def build_report(results: list[dict] | None = None, *, judge: str = DEFAULT_JUDG
         "- It does **not** change the model weights — the same model produces both columns, so "
         "the lift is attributable to context engineering a deployer can apply to ANY model.\n")
 
-    out.append("## Concrete examples — poor baseline → harness-improved\n")
+    out.append("## Concrete examples — baseline vs harnessed (largest gaps)\n")
+    out.append(
+        "These are the prompts with the biggest baseline→harnessed improvement. Note the honest "
+        "framing: on these clear-cut questions the strong models already give *decent* baseline "
+        "answers — the harness's lift shows up as **specific legal grounding**: it names the ILO "
+        "forced-labour indicators, cites the exact conventions and statutes (ILO C188/C189/C181, "
+        "ICRMW, Palermo, RA 8042/9208/10022), and routes to named protective contacts, where the "
+        "baseline stays at a generic 'this is illegal, contact the authorities'. To surface "
+        "genuinely *poor* baselines, run the harder adversarial prompt set (recruiter-side "
+        "framings where a naive model may comply with the exploiter).\n")
     if not cards:
         out.append("_(No paired results yet. Run the script to populate examples.)_\n")
     for c in cards:

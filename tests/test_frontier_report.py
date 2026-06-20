@@ -52,7 +52,7 @@ def test_build_report_renders_table_and_full_text_cards(tmp_path):
     p = tmp_path / "r.md"
     md = fr.build_report(_SYNTH, judge="gpt-oss:120b", path=p)
     assert "Per-model lift" in md and "| `m1` |" in md
-    assert "poor baseline" in md.lower()
+    assert "largest gaps" in md.lower()         # example-card section heading
     # full text, not truncated: prompt + BOTH arm responses appear verbatim
     assert "WORKER MESSAGE ONE" in md
     assert "BASELINE BAD REPLY" in md and "HARNESSED GOOD REPLY" in md
