@@ -93,15 +93,32 @@ def _post(url: str, body: dict, headers: dict) -> dict:
     raise last  # pragma: no cover
 
 
+# Reasoning models (glm-*, gpt-oss, kimi, deepseek-v*, qwen3) spend output tokens on a hidden
+# thinking pass; with a low budget the thinking eats it all and `content` comes back EMPTY (so
+# you'd score the raw thinking, or "(empty)"). Give them a higher floor so the ANSWER survives.
+# This is what makes glm-5.2 / kimi-k2.7-code usable as generators via LIFT_MODELS.
+_REASONING_HINTS = ("glm-", "gpt-oss", "kimi", "deepseek-v", "qwen3", "o1-", "o3-")
+_REASONING_FLOOR = int(os.environ.get("LIFT_REASONING_FLOOR", "1500"))
+
+
+def _is_reasoning_model(model: str) -> bool:
+    m = model.lower()
+    return any(h in m for h in _REASONING_HINTS)
+
+
+def _tokens_for(model: str) -> int:
+    return max(MAX_TOKENS, _REASONING_FLOOR) if _is_reasoning_model(model) else MAX_TOKENS
+
+
 def call_ollama(model: str, prompt: str) -> str:
     # Ollama Cloud is a SaaS (ollama.com), OpenAI-compatible endpoint. Reasoning
     # models (e.g. gpt-oss) may put the answer in `content`, or leave `content`
     # empty and emit `reasoning`/`reasoning_content`; fall back so we never score
-    # an empty string as a 0.
+    # an empty string as a 0, and give them enough tokens (`_tokens_for`) to answer.
     out = _post(
         "https://ollama.com/v1/chat/completions",
         {"model": model, "messages": [{"role": "user", "content": prompt}],
-         "stream": False, "temperature": 0.0, "max_tokens": MAX_TOKENS},
+         "stream": False, "temperature": 0.0, "max_tokens": _tokens_for(model)},
         {"Authorization": f"Bearer {OLLAMA_KEY}"},
     )
     msg = out["choices"][0]["message"]
