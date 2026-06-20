@@ -49,6 +49,37 @@ KNOWN_PREDICATES = {
     "same_as": "subject and object are the same real-world entity -- entity_link cluster",
 }
 
+#: predicate -> the connector that emits it (for the public source-verification graph view)
+_PREDICATE_SOURCE = {
+    "parent_of": "gleif_rr · GLEIF Level-2 RR",
+    "owns_or_controls": "openownership_bods · BODS",
+    "registers": "registry listings · domain_intel (RDAP)",
+    "registrar_of": "domain_intel · RDAP",
+    "admin_of": "domain_intel · RDAP",
+    "tech_of": "domain_intel · RDAP",
+    "hosted_on": "domain_intel · DNS",
+    "mail_via": "domain_intel · DNS",
+    "same_as": "entity_link · clustering",
+}
+
+#: a SYNTHETIC, composite illustrative sub-graph (no real PII) for the public page -- a
+#: beneficial owner behind a holding behind a recruiter that a labour registry lists, deduped
+#: across two sources. Run through the real build_graph/build_manifest so the page shows the
+#: actual code path, not a hand-drawn picture.
+_EXAMPLE_EDGES = [
+    {"subject_id": "A. Beneficial-Owner", "predicate": "owns_or_controls",
+     "object_id": "Sailwind Holdings FZE", "source": "OpenOwnership BODS", "weight": 0.75,
+     "qualifier": {"share": 60}},
+    {"subject_id": "Sailwind Holdings FZE", "predicate": "parent_of",
+     "object_id": "Sunrise Overseas Recruitment", "source": "GLEIF Level-2 RR (CC0)",
+     "weight": 0.9, "qualifier": {"rel_type": "ultimate"}},
+    {"subject_id": "PH DMW", "predicate": "registers", "object_id": "Sunrise Overseas Recruitment",
+     "source": "PH DMW", "weight": 0.6, "qualifier": {"kind": "registry_listing", "jurisdiction": "PH"}},
+    {"subject_id": "Sunrise Overseas Recruitment", "predicate": "same_as",
+     "object_id": "Sunrise Overseas Rec. Agency", "source": "entity_link cluster", "weight": 0.95,
+     "qualifier": {"n_sources": 2}},
+]
+
 #: files in the reports dir that are NOT edge/entity inputs to re-fold
 _EXCLUDE = ("combined.jsonl", "edges.jsonl", "_combined_in.jsonl")
 
@@ -171,6 +202,22 @@ def build_manifest(edges) -> dict:
             "unknown_predicates": sorted(p for p in preds if p not in KNOWN_PREDICATES)}
 
 
+def graph_schema(example_edges=None) -> dict:
+    """Public, render-safe summary of the unified graph for the source-verification page.
+
+    Returns the predicate vocabulary (each predicate + what it means + which connector emits it,
+    from KNOWN_PREDICATES so the page can't drift from the code) plus a SYNTHETIC illustrative
+    sub-graph run through the real :func:`build_graph` / :func:`build_manifest`. Composite names
+    only -- real resolved edges stay propose-only and never reach the public page."""
+    ex = build_graph(example_edges if example_edges is not None else _EXAMPLE_EDGES, [])
+    man = build_manifest(ex)
+    predicates = [{"predicate": p, "description": KNOWN_PREDICATES[p],
+                   "emitted_by": _PREDICATE_SOURCE.get(p, "")} for p in KNOWN_PREDICATES]
+    return {"_synthetic": True, "predicates": predicates,
+            "example": {"edges": ex, "n_nodes": man["n_nodes"], "n_edges": man["n_edges"],
+                        "by_predicate": man["by_predicate"]}}
+
+
 def load_edge_files(reports_dir, *, exclude=_EXCLUDE) -> tuple[list[dict], list[dict]]:
     """Read every ``*.jsonl`` under ``reports_dir`` -> ``(edges, entity_records)``.
 
@@ -244,7 +291,18 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--entities", default="",
                     help="extra entity-records JSONL (e.g. the harvest's combined.jsonl) to feed "
                          "registers synthesis -- load_edge_files excludes combined.jsonl by default")
+    ap.add_argument("--schema-out", default="",
+                    help="instead of unifying, write the public graph schema (predicate vocabulary "
+                         "+ illustrative example) JSON to PATH -- e.g. the source-verification page's "
+                         "apps/duecare-ai.com/app/static/entity_graph.json")
     args = ap.parse_args(argv)
+
+    if args.schema_out:
+        sp = Path(args.schema_out)
+        sp.parent.mkdir(parents=True, exist_ok=True)
+        sp.write_text(json.dumps(graph_schema(), indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        print(f"wrote graph schema ({len(KNOWN_PREDICATES)} predicates) -> {sp}", file=sys.stderr)
+        return 0
 
     src_dir = Path(args.from_reports)
     out_path = Path(args.out) if args.out else src_dir / "edges.jsonl"

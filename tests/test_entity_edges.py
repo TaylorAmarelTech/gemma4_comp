@@ -148,6 +148,30 @@ def test_load_entity_records_reads_combined_style_file(tmp_path):
     assert ee.load_entity_records(tmp_path / "missing.jsonl") == []
 
 
+def test_graph_schema_covers_all_known_predicates():
+    s = ee.graph_schema()
+    assert s["_synthetic"] is True
+    assert {p["predicate"] for p in s["predicates"]} == set(ee.KNOWN_PREDICATES)
+    assert all(p["description"] and p["emitted_by"] for p in s["predicates"])  # legend complete
+    assert s["example"]["edges"] and s["example"]["by_predicate"]              # illustrative graph non-empty
+    assert s["example"]["n_nodes"] == len(ee.node_set(s["example"]["edges"]))
+
+
+def test_committed_graph_json_and_page_stay_in_sync_with_known_predicates():
+    # the generated app JSON must match the code...
+    j = json.loads((_ROOT / "apps" / "duecare-ai.com" / "app" / "static" / "entity_graph.json")
+                   .read_text(encoding="utf-8"))
+    preds = set(ee.KNOWN_PREDICATES)
+    assert {p["predicate"] for p in j["predicates"]} == preds, (
+        "stale -- regenerate: python scripts/entity_edges.py --schema-out "
+        "apps/duecare-ai.com/app/static/entity_graph.json")
+    # ...and the source-verification page must list every predicate (the no-JS fallback rows)
+    page = (_ROOT / "apps" / "duecare-ai.com" / "app" / "templates" / "source-verification.html"
+            ).read_text(encoding="utf-8")
+    missing = [p for p in preds if f">{p}<" not in page]
+    assert not missing, f"source-verification.html missing predicate fallback rows for {missing}"
+
+
 def test_build_graph_end_to_end_and_write(tmp_path):
     staged = [PARENT, OWNS]
     ents = [{"name": "Sunrise Overseas Recruitment", "entity_type": "recruitment_agency",

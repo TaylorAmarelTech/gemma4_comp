@@ -1,0 +1,103 @@
+{
+  "_synthetic": true,
+  "predicates": [
+    {
+      "predicate": "parent_of",
+      "description": "subject (parent) controls object (subsidiary) -- GLEIF Level-2 RR",
+      "emitted_by": "gleif_rr · GLEIF Level-2 RR"
+    },
+    {
+      "predicate": "owns_or_controls",
+      "description": "subject (owner / interested party) owns or controls object -- BODS",
+      "emitted_by": "openownership_bods · BODS"
+    },
+    {
+      "predicate": "registers",
+      "description": "subject (registry / authority / registrant) lists or registers object",
+      "emitted_by": "registry listings · domain_intel (RDAP)"
+    },
+    {
+      "predicate": "registrar_of",
+      "description": "subject (registrar) registered object (domain) -- RDAP",
+      "emitted_by": "domain_intel · RDAP"
+    },
+    {
+      "predicate": "admin_of",
+      "description": "subject is the administrative contact for object (domain) -- RDAP",
+      "emitted_by": "domain_intel · RDAP"
+    },
+    {
+      "predicate": "tech_of",
+      "description": "subject is the technical contact for object (domain) -- RDAP",
+      "emitted_by": "domain_intel · RDAP"
+    },
+    {
+      "predicate": "hosted_on",
+      "description": "subject (domain) is served by object (nameserver) -- DNS",
+      "emitted_by": "domain_intel · DNS"
+    },
+    {
+      "predicate": "mail_via",
+      "description": "subject (domain) routes mail through object (MX host) -- DNS",
+      "emitted_by": "domain_intel · DNS"
+    },
+    {
+      "predicate": "same_as",
+      "description": "subject and object are the same real-world entity -- entity_link cluster",
+      "emitted_by": "entity_link · clustering"
+    }
+  ],
+  "example": {
+    "edges": [
+      {
+        "subject_id": "A. Beneficial-Owner",
+        "predicate": "owns_or_controls",
+        "object_id": "Sailwind Holdings FZE",
+        "source": "OpenOwnership BODS",
+        "weight": 0.75,
+        "qualifier": {
+          "share": 60
+        }
+      },
+      {
+        "subject_id": "Sailwind Holdings FZE",
+        "predicate": "parent_of",
+        "object_id": "Sunrise Overseas Recruitment",
+        "source": "GLEIF Level-2 RR (CC0)",
+        "weight": 0.9,
+        "qualifier": {
+          "rel_type": "ultimate"
+        }
+      },
+      {
+        "subject_id": "PH DMW",
+        "predicate": "registers",
+        "object_id": "Sunrise Overseas Recruitment",
+        "source": "PH DMW",
+        "weight": 0.6,
+        "qualifier": {
+          "kind": "registry_listing",
+          "jurisdiction": "PH"
+        }
+      },
+      {
+        "subject_id": "Sunrise Overseas Recruitment",
+        "predicate": "same_as",
+        "object_id": "Sunrise Overseas Rec. Agency",
+        "source": "entity_link cluster",
+        "weight": 0.95,
+        "qualifier": {
+          "n_sources": 2
+        }
+      }
+    ],
+    "n_nodes": 5,
+    "n_edges": 4,
+    "by_predicate": {
+      "owns_or_controls": 1,
+      "parent_of": 1,
+      "registers": 1,
+      "same_as": 1
+    }
+  }
+}
