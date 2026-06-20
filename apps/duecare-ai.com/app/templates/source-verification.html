@@ -201,6 +201,54 @@
   </div>
 </section>
 
+<section data-screen-label="Source verification · Graph">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="label">05 · Relationship graph</span>
+        <h2 style="margin-top: 12px;">Entities, linked across sources.</h2>
+      </div>
+      <p class="meta">Every connector writes into one canonical edge — subject, predicate, object,
+        source, weight — so ownership, control, registration, and same-entity links from different
+        registries form a single propose-only graph
+        (<span class="mono" style="font-size: 12px;">scripts/entity_edges.py</span>).</p>
+    </div>
+    <div class="src-table">
+      <table class="std">
+        <thead><tr><th>Edge type</th><th>What it links</th><th>Emitted by</th></tr></thead>
+        <tbody id="sv-graph-predicates">
+          <tr><td><span class="mono" style="font-size:12px;">parent_of</span></td><td>parent company → subsidiary</td><td>gleif_rr · GLEIF Level-2 RR</td></tr>
+          <tr><td><span class="mono" style="font-size:12px;">owns_or_controls</span></td><td>beneficial owner → company</td><td>openownership_bods · BODS</td></tr>
+          <tr><td><span class="mono" style="font-size:12px;">registers</span></td><td>registry / authority → listed entity</td><td>registry listings · domain_intel</td></tr>
+          <tr><td><span class="mono" style="font-size:12px;">registrar_of</span></td><td>registrar → domain</td><td>domain_intel · RDAP</td></tr>
+          <tr><td><span class="mono" style="font-size:12px;">admin_of</span></td><td>admin contact → domain</td><td>domain_intel · RDAP</td></tr>
+          <tr><td><span class="mono" style="font-size:12px;">tech_of</span></td><td>tech contact → domain</td><td>domain_intel · RDAP</td></tr>
+          <tr><td><span class="mono" style="font-size:12px;">hosted_on</span></td><td>domain → nameserver</td><td>domain_intel · DNS</td></tr>
+          <tr><td><span class="mono" style="font-size:12px;">mail_via</span></td><td>domain → MX host</td><td>domain_intel · DNS</td></tr>
+          <tr><td><span class="mono" style="font-size:12px;">same_as</span></td><td>entity ↔ same entity (deduped)</td><td>entity_link · clustering</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3 style="font-size: 15px; margin: 22px 0 4px;">Illustrative sub-graph</h3>
+    <div class="src-table">
+      <table class="std">
+        <thead><tr><th>Subject</th><th>Edge</th><th>Object</th><th>Source</th></tr></thead>
+        <tbody id="sv-graph-example">
+          <tr><td>A. Beneficial-Owner</td><td><span class="mono" style="font-size:12px;">owns_or_controls</span></td><td>Sailwind Holdings FZE</td><td class="url">OpenOwnership BODS</td></tr>
+          <tr><td>Sailwind Holdings FZE</td><td><span class="mono" style="font-size:12px;">parent_of</span></td><td>Sunrise Overseas Recruitment</td><td class="url">GLEIF Level-2 RR (CC0)</td></tr>
+          <tr><td>PH DMW</td><td><span class="mono" style="font-size:12px;">registers</span></td><td>Sunrise Overseas Recruitment</td><td class="url">PH DMW</td></tr>
+          <tr><td>Sunrise Overseas Recruitment</td><td><span class="mono" style="font-size:12px;">same_as</span></td><td>Sunrise Overseas Rec. Agency</td><td class="url">entity_link cluster</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top: 14px; font-size: 13px; color: var(--ink-3);">
+      Illustrative composite example. Real resolved edges stay <b>propose-only</b> — staged for
+      human review, never auto-merged — and the unifier dedups on the triple (higher weight wins,
+      sources unioned) into one <span class="mono" style="font-size: 12px;">edges.jsonl</span> + manifest.
+    </p>
+  </div>
+</section>
+
 {% include "_footer.html" %}
 <script>
 // Progressive enhancement: refresh the stat cards from the generated source of truth
@@ -217,6 +265,45 @@
     var d = document.querySelector('[data-count-detail="cascade"]');
     if (d && c.config_specs != null && c.deterministic_resolvers != null) {
       d.textContent = c.config_specs + ' config specs + ' + c.deterministic_resolvers + ' deterministic resolvers';
+    }
+  }).catch(function () {});
+})();
+
+// Relationship graph: rebuild the predicate legend + illustrative sub-graph from the generated
+// schema (scripts/entity_edges.py --schema-out app/static/entity_graph.json). The static table
+// rows above are the no-JS / fetch-fail fallback; tests/test_entity_edges.py keeps the page's
+// predicate set in lockstep with entity_edges.KNOWN_PREDICATES.
+(function () {
+  function cell(t) { var td = document.createElement('td'); td.textContent = (t == null ? '' : String(t)); return td; }
+  function monoCell(t) {
+    var td = document.createElement('td'), s = document.createElement('span');
+    s.className = 'mono'; s.style.fontSize = '12px'; s.textContent = (t == null ? '' : String(t));
+    td.appendChild(s); return td;
+  }
+  fetch('/static/entity_graph.json').then(function (r) { return r.ok ? r.json() : null; }).then(function (g) {
+    if (!g) return;
+    var legend = document.getElementById('sv-graph-predicates');
+    if (legend && g.predicates && g.predicates.length) {
+      legend.innerHTML = '';
+      g.predicates.forEach(function (p) {
+        var tr = document.createElement('tr');
+        tr.appendChild(monoCell(p.predicate));
+        tr.appendChild(cell(p.description));
+        tr.appendChild(cell(p.emitted_by));
+        legend.appendChild(tr);
+      });
+    }
+    var ex = document.getElementById('sv-graph-example');
+    if (ex && g.example && g.example.edges && g.example.edges.length) {
+      ex.innerHTML = '';
+      g.example.edges.forEach(function (e) {
+        var tr = document.createElement('tr');
+        tr.appendChild(cell(e.subject_id));
+        tr.appendChild(monoCell(e.predicate));
+        tr.appendChild(cell(e.object_id));
+        var s = cell(e.source); s.className = 'url'; tr.appendChild(s);
+        ex.appendChild(tr);
+      });
     }
   }).catch(function () {});
 })();
