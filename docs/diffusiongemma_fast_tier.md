@@ -1,9 +1,15 @@
 # DiffusionGemma as DueCare's fast screening tier
 
-> Status: integration design + the parts that are live today. Written
-> 2026-06-11, the day after Google released DiffusionGemma. Everything in
-> the "Live today" table is wired and tested; everything in "Pending GPU
-> verification" is explicitly NOT claimed as working.
+> **SUPERSEDED (2026-06-19).** The Platform Triage harness was simplified to run on
+> the ONE already-loaded Gemma (the chat page's model) — no separate fast model, no
+> external endpoint, no model switch. The `DUECARE_FAST_MODEL_BASE_URL` /
+> DiffusionGemma fast-tier integration described below was **removed** from the
+> triage handler, UI, and spec. This document is retained for the DiffusionGemma
+> research/analysis only; the "Live today" wiring claims no longer apply. Current
+> design: `packages/duecare-llm-chat/src/duecare/chat/harnesses/triage/`.
+>
+> Original status (historical): integration design + the parts that were live then.
+> Written 2026-06-11, the day after Google released DiffusionGemma.
 
 ## What DiffusionGemma is
 

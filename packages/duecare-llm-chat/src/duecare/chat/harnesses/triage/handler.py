@@ -1,39 +1,25 @@
-"""Triage harness handler — waterfall screening for platform-scale content.
+"""Triage harness handler — batch safety screening on ONE loaded Gemma.
 
-Deployment mode 1 (platform safety) needs to screen large volumes of job
-ads / recruiter messages cheaply, then spend deep-model time only on the
-risky few. The waterfall:
+Platform safety (deployment mode 1) needs to screen batches of job ads /
+recruiter messages. Two stages, one model — the same loaded Gemma the chat
+page uses, so there is no second model, no endpoint, and no model switch:
 
-    GREP rules         deterministic, microseconds, catches known patterns
-      -> fast model    OPT-IN. One quick flag/clear verdict per item. Designed for a
-                       DiffusionGemma-class endpoint (parallel-block diffusion
-                       decode, up to 4x faster than autoregressive Gemma 4) or
-                       any OpenAI-compatible model the operator configures. Off by
-                       default because it can require a SEPARATE model/endpoint.
-      -> deep model    full harnessed analysis of escalated items, on the
-                       already-loaded Gemma. This is the default model tier (no
-                       model switch); the fast tier only accelerates high volume.
+    GREP rules    deterministic, microseconds, catches known patterns
+      -> Gemma    one flag/clear verdict (+ reason) per item the GREP rules
+                  did not already high-severity flag. Optionally, a deeper
+                  GREP/RAG/tools-grounded pass on the flagged items (same model).
 
-The fast tier ROUTES, it never answers: a "clear" verdict means "no signal
-worth deep review", not "safe". Without any model configured the result is
-``passed_grep_only`` — explicitly not "cleared" — so a reviewer can always
-tell whether a model actually looked at an item.
-
-Fast-tier backend resolution order:
-  1. ``DUECARE_FAST_MODEL_BASE_URL`` (+ ``DUECARE_FAST_MODEL_ID``,
-     optional ``DUECARE_FAST_MODEL_API_KEY``) — an OpenAI-compatible
-     endpoint, e.g. ``vllm serve google/diffusiongemma-26B-A4B-it``.
-  2. The in-process loaded Gemma model (``app.state.gemma_call``).
-  3. None — GREP-only honest mode.
+The model verdict ROUTES, it never answers: a "clear" verdict means "no signal
+worth deeper review", not "safe". With no model loaded the result is
+``passed_grep_only`` — explicitly not "cleared" — so a reviewer can always tell
+whether the model actually looked at an item.
 """
 from __future__ import annotations
 
 import hashlib
 import json
-import os
 import re
 import time
-import urllib.request
 from collections.abc import Callable
 from typing import Any
 
@@ -42,18 +28,17 @@ from fastapi.responses import JSONResponse
 
 MAX_ITEMS = 200
 MAX_ITEM_CHARS = 20_000
-FAST_MAX_TOKENS = 160
+SCREEN_MAX_TOKENS = 160
 DEEP_MAX_TOKENS = 768
-DEFAULT_FAST_MODEL_ID = "google/diffusiongemma-26B-A4B-it"
 DEFAULT_CLEAR_THRESHOLD = 0.7
 
 _HIGH_SEVERITIES = frozenset({"high", "critical"})
 _SEVERITY_ORDER = ("critical", "high", "medium", "low")
 
 POLICY = (
-    "The fast tier only routes; it never produces user-facing answers. "
-    "Items with status 'flagged' or 'review' must go to the deep model and/or "
-    "human review. 'passed_grep_only' means no model looked at the item."
+    "The model verdict only routes; it never produces user-facing answers. "
+    "Items with status 'flagged' or 'review' go to deeper analysis and/or human "
+    "review. 'passed_grep_only' means no model looked at the item."
 )
 
 _SCREEN_PROMPT = (
@@ -91,17 +76,17 @@ def _max_severity(severities: list[str]) -> str:
     return severities[0] if severities else ""
 
 
-def _parse_fast_verdict(raw: str) -> dict[str, Any]:
-    """Parse the fast model's JSON verdict; degrade to 'review' on any failure.
+def _parse_verdict(raw: str) -> dict[str, Any]:
+    """Parse the model's JSON verdict; degrade to 'review' on any failure.
 
-    A malformed fast-model reply must never silently clear an item, so every
-    parse failure becomes verdict='review' with the error recorded.
+    A malformed reply must never silently clear an item, so every parse failure
+    becomes verdict='review' with the error recorded.
     """
     cleaned = re.sub(r"```(?:json)?", "", str(raw or "")).strip()
     match = re.search(r"\{.*\}", cleaned, re.DOTALL)
     if not match:
         return {"verdict": "review",
-                "parse_error": f"no JSON object in fast-model reply: {cleaned[:120]!r}"}
+                "parse_error": f"no JSON object in model reply: {cleaned[:120]!r}"}
     try:
         data = json.loads(match.group(0))
     except Exception as exc:  # noqa: BLE001 — any parse failure routes to review
@@ -121,73 +106,30 @@ def _parse_fast_verdict(raw: str) -> dict[str, Any]:
     }
 
 
-def _openai_compat_caller(
-    base_url: str,
-    model_id: str,
-    *,
-    api_key: str = "",
-    timeout: float = 60.0,
-) -> Callable[[str], str]:
-    """Return a prompt->text callable for an OpenAI-compatible endpoint.
+def resolve_screen_model(app: Any) -> tuple[Callable[[str], str] | None, str, str]:
+    """Resolve the screening model: the ONE already-loaded in-process Gemma -- the same model
+    the chat page uses. No second model, no endpoint, no model switch.
 
-    Plain urllib (no new dependencies) against POST {base}/chat/completions —
-    the shape vLLM, Ollama, SGLang, and llama.cpp servers all expose.
+    Returns ``(caller, label, source)`` where source is ``gemma4_runtime`` or ``not_configured``.
     """
-    base = base_url.rstrip("/")
+    gemma = getattr(app.state, "gemma_call", None) if app is not None else None
+    if gemma is None:
+        return None, "", "not_configured"
+    from ..model_interface import call_model_backend
 
     def call(prompt: str) -> str:
-        body = json.dumps({
-            "model": model_id,
-            "messages": [{"role": "user", "content": prompt}],
-            "stream": False,
-            "temperature": 0.0,
-            "max_tokens": FAST_MAX_TOKENS,
-        }).encode("utf-8")
-        headers = {"Content-Type": "application/json"}
-        if api_key:
-            headers["Authorization"] = f"Bearer {api_key}"
-        req = urllib.request.Request(f"{base}/chat/completions", data=body, headers=headers)
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            out = json.loads(resp.read().decode("utf-8", "replace"))
-        message = (out.get("choices") or [{}])[0].get("message") or {}
-        return str(message.get("content") or "")
+        return call_model_backend(
+            gemma, prompt, max_new_tokens=SCREEN_MAX_TOKENS, temperature=0.0,
+        ).text
 
-    return call
-
-
-def resolve_fast_backend(app: Any) -> tuple[Callable[[str], str] | None, str, str]:
-    """Resolve the fast-tier backend.
-
-    Returns ``(caller, label, source)`` where source is one of
-    ``openai_compatible_endpoint`` / ``gemma4_runtime`` / ``not_configured``.
-    """
-    base = os.environ.get("DUECARE_FAST_MODEL_BASE_URL", "").strip()
-    if base:
-        model_id = os.environ.get("DUECARE_FAST_MODEL_ID", "").strip() or DEFAULT_FAST_MODEL_ID
-        api_key = os.environ.get("DUECARE_FAST_MODEL_API_KEY", "")
-        return (
-            _openai_compat_caller(base, model_id, api_key=api_key),
-            model_id,
-            "openai_compatible_endpoint",
-        )
-    gemma = getattr(app.state, "gemma_call", None) if app is not None else None
-    if gemma is not None:
-        from ..model_interface import call_model_backend
-
-        def call(prompt: str) -> str:
-            return call_model_backend(
-                gemma, prompt, max_new_tokens=FAST_MAX_TOKENS, temperature=0.0,
-            ).text
-
-        return call, "in-process Gemma (loaded model)", "gemma4_runtime"
-    return None, "", "not_configured"
+    return call, "loaded Gemma (in-process)", "gemma4_runtime"
 
 
 def _deep_caller(app: Any) -> Callable[[str], str] | None:
-    """Deep tier = the loaded Gemma model WITH the full grounding layers.
+    """Deeper pass = the SAME loaded Gemma with the full grounding layers.
 
     Escalated items get the harnessed treatment: GREP + RAG + tools grounding
-    composed into the prompt, exactly like the chat harness comparison arm.
+    composed into the prompt, exactly like the chat page — one model, no switch.
     """
     gemma = getattr(app.state, "gemma_call", None) if app is not None else None
     if gemma is None:
@@ -213,13 +155,13 @@ def screen_items(
     items: list[dict[str, Any]],
     *,
     grep_call: Callable[..., dict[str, Any]] | None = None,
-    fast_call: Callable[[str], str] | None = None,
+    model_call: Callable[[str], str] | None = None,
     deep_call: Callable[[str], str] | None = None,
-    fast_label: str = "",
+    model_label: str = "",
     clear_threshold: float = DEFAULT_CLEAR_THRESHOLD,
     run_deep: bool = False,
 ) -> dict[str, Any]:
-    """Run the GREP -> fast model -> deep escalation waterfall over items.
+    """Run the GREP -> Gemma verdict (-> optional deeper pass) screen over items.
 
     Pure function: all backends are injected callables so tests can use fakes
     and the route handler can wire real ones. Items are ``{"id": ..., "text": str}``.
@@ -227,8 +169,8 @@ def screen_items(
     never echoed back — items carry ``text_sha256`` for correlation.
     """
     t_start = time.time()
-    grep_ms = fast_ms = deep_ms = 0.0
-    n_fast_calls = 0
+    grep_ms = model_ms = deep_ms = 0.0
+    n_model_calls = 0
     rows: list[dict[str, Any]] = []
 
     for idx, item in enumerate(items):
@@ -238,7 +180,7 @@ def screen_items(
             "id": str(item.get("id") or f"item_{idx}"),
             "text_sha256": _sha256(text),
             "grep": {"fired": False, "n_hits": 0, "rule_ids": [], "max_severity": ""},
-            "fast": None,
+            "screen": None,
             "deep": None,
         }
 
@@ -271,35 +213,35 @@ def screen_items(
             grep_ms += (time.time() - t0) * 1000
         grep_soft_signal = bool(row["grep"].get("fired")) and not grep_flagged
 
-        # ── Stage 2: fast-model verdict (skipped when GREP already caught it) ──
+        # ── Stage 2: Gemma verdict (skipped when GREP already high-flagged it) ──
         if grep_flagged:
             row["status"], row["flagged_by"] = "flagged", "grep"
-            row["fast"] = {"skipped": "grep already flagged (high severity)"}
-        elif fast_call is not None:
+            row["screen"] = {"skipped": "grep already flagged (high severity)"}
+        elif model_call is not None:
             t0 = time.time()
-            n_fast_calls += 1
+            n_model_calls += 1
             try:
-                raw = fast_call(_SCREEN_PROMPT + text)
-                verdict = _parse_fast_verdict(raw)
+                raw = model_call(_SCREEN_PROMPT + text)
+                verdict = _parse_verdict(raw)
             except Exception as exc:  # noqa: BLE001 — backend failure routes to review
                 verdict = {"verdict": "review",
                            "error": f"{type(exc).__name__}: {exc}"[:200]}
             latency = (time.time() - t0) * 1000
-            fast_ms += latency
+            model_ms += latency
             verdict["latency_ms"] = round(latency)
-            row["fast"] = verdict
+            row["screen"] = verdict
             v = verdict.get("verdict")
             confidence = float(verdict.get("confidence") or 0.0)
             if v == "flag":
                 row["status"] = "flagged"
-                row["flagged_by"] = "grep+fast_model" if grep_soft_signal else "fast_model"
+                row["flagged_by"] = "grep+model" if grep_soft_signal else "model"
             elif v == "clear" and confidence >= clear_threshold and not grep_soft_signal:
                 row["status"], row["flagged_by"] = "cleared", ""
             else:
                 row["status"] = "review"
                 row["flagged_by"] = "grep_soft_signal" if grep_soft_signal else "low_confidence"
         else:
-            row["fast"] = {"skipped": "no fast model configured"}
+            row["screen"] = {"skipped": "no model loaded"}
             if grep_soft_signal:
                 row["status"], row["flagged_by"] = "review", "grep_soft_signal"
             else:
@@ -307,7 +249,7 @@ def screen_items(
 
         row["escalate"] = row["status"] in ("flagged", "review")
 
-        # ── Stage 3: deep analysis of escalated items (opt-in) ────────
+        # ── Stage 3: deeper grounded pass on escalated items (opt-in) ──
         if run_deep and row["escalate"] and deep_call is not None:
             t0 = time.time()
             try:
@@ -330,21 +272,21 @@ def screen_items(
         "n_cleared": by_status("cleared"),
         "n_passed_grep_only": by_status("passed_grep_only"),
         "n_escalated": sum(1 for r in rows if r["escalate"]),
-        "fast_model": {
-            "configured": fast_call is not None,
-            "label": fast_label,
-            "n_calls": n_fast_calls,
+        "model": {
+            "available": model_call is not None,
+            "label": model_label,
+            "n_calls": n_model_calls,
         },
         "timings_ms": {
             "grep": round(grep_ms),
-            "fast_model": round(fast_ms),
+            "model": round(model_ms),
             "deep": round(deep_ms),
             "total": round((time.time() - t_start) * 1000),
         },
     }
-    if n_fast_calls and fast_ms > 0:
-        summary["fast_model"]["measured_items_per_min"] = round(
-            n_fast_calls / (fast_ms / 1000.0) * 60.0, 1)
+    if n_model_calls and model_ms > 0:
+        summary["model"]["measured_items_per_min"] = round(
+            n_model_calls / (model_ms / 1000.0) * 60.0, 1)
     return {"summary": summary, "items": rows, "policy": POLICY}
 
 
@@ -373,10 +315,9 @@ def register_routes(app: Any) -> None:
                 raise HTTPException(400, f"items[{i}] exceeds {MAX_ITEM_CHARS} chars")
             items.append({"id": raw.get("id"), "text": raw["text"]})
 
-        # Fast tier is OPT-IN: it can point at a separate DiffusionGemma endpoint
-        # (DUECARE_FAST_MODEL_BASE_URL), so it must never run by default -- the default
-        # path is GREP + the already-loaded Gemma (deep), no model switch required.
-        use_fast = bool(body.get("use_fast_model", False))
+        # One model: the already-loaded Gemma screens every item by default (no switch).
+        # `use_model: false` forces GREP-only; `run_deep` adds the grounded pass on flagged items.
+        use_model = body.get("use_model", True) is not False
         run_deep = bool(body.get("run_deep", False))
         try:
             clear_threshold = max(0.0, min(1.0, float(
@@ -385,22 +326,22 @@ def register_routes(app: Any) -> None:
             raise HTTPException(400, "clear_threshold must be a number in [0, 1]")
 
         grep_call = getattr(app.state, "grep_call", None)
-        fast_call: Callable[[str], str] | None = None
-        fast_label, fast_source = "", "disabled"
-        if use_fast:
-            fast_call, fast_label, fast_source = resolve_fast_backend(app)
+        model_call: Callable[[str], str] | None = None
+        model_label, model_source = "", "off"
+        if use_model:
+            model_call, model_label, model_source = resolve_screen_model(app)
         deep_call = _deep_caller(app) if run_deep else None
 
         out = screen_items(
             items,
             grep_call=grep_call,
-            fast_call=fast_call,
+            model_call=model_call,
             deep_call=deep_call,
-            fast_label=fast_label,
+            model_label=model_label,
             clear_threshold=clear_threshold,
             run_deep=run_deep,
         )
-        out["summary"]["fast_model"]["source"] = fast_source
+        out["summary"]["model"]["source"] = model_source
 
         try:
             from .._training_log import log_interaction
@@ -417,7 +358,7 @@ def register_routes(app: Any) -> None:
                 },
                 applied_layers={
                     "grep": grep_call is not None,
-                    "fast_model": fast_source,
+                    "model": model_source,
                     "deep": run_deep and deep_call is not None,
                 },
                 trace={"timings_ms": out["summary"]["timings_ms"]},
@@ -429,37 +370,27 @@ def register_routes(app: Any) -> None:
 
     @app.get("/api/triage/status")
     def api_triage_status() -> Any:
-        fast_call, fast_label, fast_source = resolve_fast_backend(app)
+        model_call, model_label, model_source = resolve_screen_model(app)
         return {
             "harness": "triage",
             "purpose": (
-                "Waterfall screening for platform-scale content: GREP rules -> "
-                "fast model verdict -> deep-model escalation."
+                "Batch safety screening: GREP rules -> one loaded Gemma verdict "
+                "-> optional deeper grounded pass on flagged items."
             ),
             "grep_wired": getattr(app.state, "grep_call", None) is not None,
-            "fast_model": {
-                "configured": fast_call is not None,
-                "label": fast_label,
-                "source": fast_source,
-                "env": {
-                    "DUECARE_FAST_MODEL_BASE_URL": (
-                        "OpenAI-compatible base URL, e.g. http://localhost:8000/v1 "
-                        "from: vllm serve " + DEFAULT_FAST_MODEL_ID
-                    ),
-                    "DUECARE_FAST_MODEL_ID": f"model id (default {DEFAULT_FAST_MODEL_ID})",
-                    "DUECARE_FAST_MODEL_API_KEY": "optional bearer token",
-                },
+            "model": {
+                "available": model_call is not None,
+                "label": model_label,
+                "source": model_source,
             },
-            "deep_model_available": getattr(app.state, "gemma_call", None) is not None,
             "statuses": ["flagged", "review", "cleared", "passed_grep_only"],
             "policy": POLICY,
         }
 
 
 __all__ = [
-    "DEFAULT_FAST_MODEL_ID",
     "POLICY",
     "register_routes",
-    "resolve_fast_backend",
+    "resolve_screen_model",
     "screen_items",
 ]

@@ -6183,10 +6183,9 @@ def create_app(
     _search_safety_harness.register_routes(app)
 
     # ====================================================================
-    # triage harness (2026-06-11): platform-scale waterfall screening.
-    # GREP rules -> fast-model verdict (DiffusionGemma-class endpoint via
-    # DUECARE_FAST_MODEL_BASE_URL, or the loaded in-process Gemma) -> deep
-    # grounded analysis only for escalated items. Owns
+    # triage harness: batch safety screening on ONE loaded Gemma.
+    # GREP rules -> one loaded-Gemma flag/clear verdict -> optional deeper
+    # grounded pass on flagged items (the same loaded model, no switch). Owns
     # POST /api/triage/screen and GET /api/triage/status.
     # ====================================================================
     from .harnesses import triage as _triage_harness
