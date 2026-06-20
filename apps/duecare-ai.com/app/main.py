@@ -1635,6 +1635,27 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         return {"ok": True, "n_proposed": len(added), "proposed_gaps": added,
                 "note": "proposed gaps are human-reviewable; campaigns remain draft-only."}
 
+    @application.get("/api/outreach/experts/{gap_id}", tags=["outreach"])
+    async def outreach_experts(request: Request, gap_id: str) -> dict:
+        """Scan the vetted support-org directory for experts best placed to answer a gap.
+
+        Returns a ranked shortlist of PUBLIC organisations (NGO hotlines, unions, shelters,
+        IOM/ILO desks) with their public contact -- so a curator has someone to reach out to
+        for a gap, rather than only waiting for inbound subscribers. Suggestion only: a human
+        does the actual outreach."""
+        from app import experts
+        state = _state(request)
+        gap = outreach.gap_by_id(state.store.root, gap_id)
+        if gap is None:
+            raise HTTPException(404, f"unknown gap_id: {gap_id}")
+        matches = experts.match_experts(gap)
+        return {
+            "gap_id": gap_id, "topic": gap.topic, "corridor": gap.corridor,
+            "n_directory": len(experts.load_orgs()),
+            "n_matches": len(matches), "experts": matches,
+            "note": "public support orgs suggested for outreach; a human reaches out.",
+        }
+
 
     @application.post(
         "/api/submit/knowledge",
