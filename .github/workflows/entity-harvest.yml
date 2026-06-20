@@ -99,6 +99,17 @@ jobs:
             --at "$(date -u +%Y-%m-%dT%H:%M)" \
             | tee reports/harvest/run.log
 
+      - name: Unify entity graph edges
+        if: always()
+        run: |
+          # Collect every staged connector edge (gleif_rr parent_of, BODS owns_or_controls,
+          # domain_intel RDAP/DNS) + synthesise registry "registers" edges from the harvest's
+          # combined entities -> one propose-only edges.jsonl + manifest. Fault-tolerant.
+          python scripts/entity_edges.py \
+            --from-reports reports/entity_kb \
+            --entities reports/entity_kb/combined.jsonl 2>&1 \
+            | tee -a reports/harvest/run.log || true
+
       - name: Write job summary
         if: always()
         run: |
@@ -119,6 +130,8 @@ jobs:
           name: entity-harvest-${{ github.run_id }}
           path: |
             reports/entity_kb/combined.jsonl
+            reports/entity_kb/edges.jsonl
+            reports/entity_kb/edges_manifest.json
             reports/harvest/
           retention-days: 30
           if-no-files-found: warn
