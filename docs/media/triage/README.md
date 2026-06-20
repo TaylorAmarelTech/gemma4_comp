@@ -4,11 +4,17 @@ UI render screenshots of the Platform Triage page
 (`/static/triage.html` in `duecare-llm-chat`), captured 2026-06-20 with Playwright
 driving system Edge, after the one-model simplification (commit `ddad750d`).
 
-| Breakpoint | File |
-|---|---|
-| Desktop (1440, with a screened batch) | [`triage-desktop-1440.png`](triage-desktop-1440.png) |
-| Tablet (768) | [`triage-tablet-768.png`](triage-tablet-768.png) |
-| Mobile (375) | [`triage-mobile-375.png`](triage-mobile-375.png) |
+## Desktop (1440) — with a screened batch
+
+![Platform Triage page rendered at 1440px, showing a screened sample batch](triage-desktop-1440.png)
+
+## Tablet (768)
+
+![Platform Triage page rendered at 768px](triage-tablet-768.png)
+
+## Mobile (375)
+
+![Platform Triage page rendered at 375px, single column with a collapsed nav](triage-mobile-375.png)
 
 What they show: the simplified two-stage design — **Stage 1 GREP rules → Stage 2 the one
 loaded Gemma 4** (no separate fast model, no endpoint, no model switch), the trust boundary,
