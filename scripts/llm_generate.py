@@ -213,6 +213,10 @@ def main(argv: list[str] | None = None) -> int:
                     help="(knowledge-proposals only) also submit to the hub curator REVIEW queue "
                          "as status=proposed; requires DUECARE_HUB_URL. Still human-gated: a "
                          "curator must accept + source-verify before anything is vetted.")
+    ap.add_argument("--submit-to-oracle", action="store_true",
+                    help="(outreach-drafts only) add the drafts to the hub email oracle as "
+                         "PROPOSED context gaps; requires DUECARE_HUB_URL. Sending stays "
+                         "draft-only + human-gated -- the LLM only proposes which questions to ask.")
     args = ap.parse_args(argv)
 
     items = _TASKS[args.task](args.n, model=args.model, seed=args.seed)
@@ -228,7 +232,33 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.submit_to_curator and items:
         _submit_to_curator(items, model=args.model, task=args.task)
+    if args.submit_to_oracle and items:
+        _submit_to_oracle(items, model=args.model, task=args.task)
     return 0 if items else 1
+
+
+def _submit_to_oracle(items: list[dict], *, model: str, task: str) -> None:
+    """Opt-in: add generated outreach drafts to the hub email oracle as PROPOSED gaps.
+
+    Sending stays draft-only + human-gated on the hub (no raw addresses are stored); this only
+    proposes WHICH questions to solicit on.
+    """
+    if task != "outreach-drafts":
+        print(f"--submit-to-oracle only applies to outreach-drafts (task={task}); skipped.",
+              file=sys.stderr)
+        return
+    hub = os.environ.get("DUECARE_HUB_URL", "").strip()
+    if not hub:
+        print("--submit-to-oracle set but DUECARE_HUB_URL is empty; staged only (not submitted).",
+              file=sys.stderr)
+        return
+    url = hub.rstrip("/") + "/api/outreach/propose-gaps"
+    body = json.dumps({"drafts": items, "model": model}).encode("utf-8")
+    req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=60) as r:
+        receipt = json.loads(r.read().decode("utf-8", "replace"))
+    print(f"email oracle <- {hub}: n_proposed={receipt.get('n_proposed')} "
+          f"(proposed gaps, draft-only + human-gated)", file=sys.stderr)
 
 
 def _submit_to_curator(items: list[dict], *, model: str, task: str) -> None:

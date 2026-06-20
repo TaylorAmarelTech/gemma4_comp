@@ -27,6 +27,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Any, Optional
@@ -53,6 +54,7 @@ class ContextGap:
     signal_count: int = 0
     confirm_count: int = 0
     priority: float = 0.0
+    proposed: bool = False   # True for LLM-drafted gaps (vs the curated seed backbone)
 
 
 _SEED_GAPS: list[dict[str, Any]] = [
@@ -126,6 +128,10 @@ def _campaigns_path(data_dir: Path) -> Path:
     return Path(data_dir) / "outreach_campaigns.jsonl"
 
 
+def _proposed_gaps_path(data_dir: Path) -> Path:
+    return Path(data_dir) / "outreach_proposed_gaps.jsonl"
+
+
 def _read_jsonl(path: Path) -> list[dict[str, Any]]:
     if not path.exists():
         return []
@@ -151,12 +157,69 @@ def _append_jsonl(path: Path, record: dict[str, Any]) -> None:
 # Gap detection (seed + dynamic re-ranking by accumulated response signals).
 # --------------------------------------------------------------------------
 
+def _gap_slug(text: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "_", (text or "").lower()).strip("_")[:48] or "gap"
+
+
+def proposed_gap_spec_from_draft(item: dict[str, Any], *, model: str) -> dict[str, Any]:
+    """An LLM outreach draft ``{topic, question, target_role}`` -> a PROPOSED gap spec.
+
+    Proposed gaps extend the curated seed backbone: low base priority, ``kind="proposed"``,
+    and a ``proposed`` flag the UI can badge. Sending stays draft-only / human-gated exactly
+    as for seed gaps -- this only adds MORE questions a curator can choose to solicit on.
+    """
+    topic = str(item.get("topic") or "").strip()
+    ask = str(item.get("question") or "").strip()
+    audience = str(item.get("target_role") or "civil-society experts").strip()
+    return {
+        "id": "proposed_" + _gap_slug(topic or ask),
+        "topic": topic or (ask[:60] or "Proposed context gap"),
+        "corridor": str(item.get("corridor") or "multi"),
+        "audience": audience,
+        "ask": ask,
+        "kind": "proposed",
+        "base_priority": 0.4,   # below the curated seeds (0.5-0.7); never displaces them
+        "proposed": True,
+        "model": model,
+    }
+
+
+def _load_proposed_gaps(data_dir: Path) -> list[dict[str, Any]]:
+    return _read_jsonl(_proposed_gaps_path(data_dir))
+
+
+def ingest_proposed_gaps(data_dir: Path, drafts: list[dict[str, Any]], *, model: str,
+                         ts: str) -> list[dict[str, Any]]:
+    """Persist LLM outreach drafts as PROPOSED gaps (deduped by id). Returns the new specs.
+
+    The drafts become solicitable gaps in ``detect_context_gaps``; a curator still reviews
+    every drafted campaign and does the actual sending (the hub stores no raw addresses, so
+    nothing is auto-sent by construction). The LLM only PROPOSES which questions to ask.
+    """
+    seen = {str(g.get("id")) for g in _load_proposed_gaps(data_dir)}
+    added: list[dict[str, Any]] = []
+    for it in drafts:
+        if not isinstance(it, dict) or not str(it.get("question") or "").strip():
+            continue
+        spec = proposed_gap_spec_from_draft(it, model=model)
+        if spec["id"] in seen:
+            continue
+        seen.add(spec["id"])
+        _append_jsonl(_proposed_gaps_path(data_dir), {**spec, "ts": ts})
+        added.append(spec)
+    return added
+
+
 def detect_context_gaps(data_dir: Path) -> list[ContextGap]:
     """Return the prioritized context gaps to solicit on.
 
     Priority = seed weight, boosted by how many civil-society observations
     have already confirmed/touched the gap (more field corroboration -> more
     worth deepening into curated context + candidate rubric dimensions).
+
+    The curated ``_SEED_GAPS`` are the stable backbone; LLM-proposed gaps
+    (human-reviewable, lower base priority) extend the list without displacing
+    them, and never overwrite a seed id.
     """
     signals = _read_jsonl(_signals_path(data_dir))
     by_gap: dict[str, dict[str, int]] = {}
@@ -170,13 +233,19 @@ def detect_context_gaps(data_dir: Path) -> list[ContextGap]:
             agg["confirm"] += 1
 
     gaps: list[ContextGap] = []
-    for spec in _SEED_GAPS:
-        agg = by_gap.get(spec["id"], {"n": 0, "confirm": 0})
+    seen_ids: set[str] = set()
+    for spec in [*_SEED_GAPS, *_load_proposed_gaps(data_dir)]:
+        gid = str(spec.get("id") or "")
+        if not gid or gid in seen_ids:
+            continue
+        seen_ids.add(gid)
+        agg = by_gap.get(gid, {"n": 0, "confirm": 0})
         g = ContextGap(
-            id=spec["id"], topic=spec["topic"], corridor=spec["corridor"],
+            id=gid, topic=spec["topic"], corridor=spec["corridor"],
             audience=spec["audience"], ask=spec["ask"], kind=spec["kind"],
             base_priority=float(spec["base_priority"]),
             signal_count=agg["n"], confirm_count=agg["confirm"],
+            proposed=bool(spec.get("proposed", False)),
         )
         # Boost: each confirming observation adds 0.05, capped at +0.3.
         g.priority = round(min(1.0, g.base_priority + min(0.3, 0.05 * g.confirm_count)), 3)

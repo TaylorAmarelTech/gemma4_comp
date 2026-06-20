@@ -286,6 +286,16 @@ class OutreachObserveIn(BaseModel):
     sender_email: str = ""
     sender_domain: str = ""
 
+
+class OutreachProposeGapsIn(BaseModel):
+    """LLM-drafted outreach questions to add as PROPOSED context gaps (human-reviewable).
+
+    Each draft is ``{topic, question, target_role}`` (the shape produced by
+    ``scripts/llm_generate.py --task outreach-drafts``). The hub converts them to proposed
+    gaps a curator can choose to draft a (still draft-only, human-sent) campaign for."""
+    drafts: list[dict] = Field(default_factory=list, max_length=50)
+    model: str = "llm"
+
 class HealthStatus(BaseModel):
     """Health status for Render and external smoke checks."""
 
@@ -1608,6 +1618,22 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         state = _state(request)
         priorities = outreach.prioritized_context(state.store.root)
         return {"count": len(priorities), "priorities": priorities}
+
+    @application.post("/api/outreach/propose-gaps", tags=["outreach"])
+    async def outreach_propose_gaps(request: Request, body: OutreachProposeGapsIn) -> dict:
+        """Add LLM-drafted outreach questions as PROPOSED context gaps (human-reviewable).
+
+        The drafts come from `scripts/llm_generate.py --task outreach-drafts`. They become
+        solicitable gaps a curator can choose to draft a campaign for; sending stays
+        draft-only and human-gated (the hub stores no raw addresses), so nothing is
+        auto-sent. The LLM only proposes WHICH questions to ask."""
+        from datetime import UTC as _UTC, datetime as _dt
+        state = _state(request)
+        ts = _dt.now(_UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
+        added = outreach.ingest_proposed_gaps(
+            state.store.root, body.drafts, model=body.model, ts=ts)
+        return {"ok": True, "n_proposed": len(added), "proposed_gaps": added,
+                "note": "proposed gaps are human-reviewable; campaigns remain draft-only."}
 
 
     @application.post(
