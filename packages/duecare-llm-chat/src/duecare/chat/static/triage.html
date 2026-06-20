@@ -78,8 +78,9 @@
   <header>
     <h1>Platform Triage</h1>
     <div class="sub">Screen a batch of job ads or recruiter messages through the waterfall:
-      deterministic GREP rules, a fast-model verdict, deep grounded Gemma 4 only for the
-      risky few. The platform-safety lane, live.</div>
+      deterministic GREP rules flag known patterns, then the already-loaded Gemma 4
+      deep-analyzes the flagged few. An optional fast pre-screen model can add a quick
+      verdict on every item. The platform-safety lane, live.</div>
   </header>
   <div class="container">
     <div class="wb-trust" style="margin-bottom:16px;">
@@ -102,18 +103,19 @@
       </div>
       <div class="flow-arrow">→</div>
       <div class="stage">
-        <div class="t">Stage 2 · fast model</div>
+        <div class="t">Stage 2 · fast model (optional)</div>
         <div class="big">Flag / clear verdict</div>
-        <div class="d">One quick JSON verdict per item. Built for DiffusionGemma-class
-          parallel decode (up to 4x faster); routes only, never answers.</div>
+        <div class="d">Opt-in quick JSON verdict per item. Built for DiffusionGemma-class
+          parallel decode (up to 4x faster); may use a separate endpoint, so it is off by
+          default. Routes only, never answers.</div>
         <div class="wired off" id="st-fast">checking…</div>
       </div>
       <div class="flow-arrow">→</div>
       <div class="stage">
-        <div class="t">Stage 3 · escalated only</div>
+        <div class="t">Stage 3 · default model tier</div>
         <div class="big">Deep grounded analysis</div>
-        <div class="d">Full GREP/RAG/tools-grounded Gemma 4 review of flagged and
-          review items.</div>
+        <div class="d">The already-loaded Gemma 4, GREP/RAG/tools-grounded, reviews the
+          flagged and review items. No model switch.</div>
         <div class="wired off" id="st-deep">checking…</div>
       </div>
     </div>
@@ -129,9 +131,10 @@
           <span class="hint">Up to 200 items, 20k chars each.</span>
         </div>
         <div class="opts">
-          <label><input type="checkbox" id="opt-fast" checked /> Use fast model</label>
-          <label id="deep-label" title="Requires a loaded local Gemma model">
-            <input type="checkbox" id="opt-deep" disabled /> Deep-analyze escalated items</label>
+          <label title="Optional accelerator. May call a SEPARATE DiffusionGemma endpoint if the operator set DUECARE_FAST_MODEL_BASE_URL; otherwise reuses the loaded Gemma. Off by default so the default run never needs a model switch.">
+            <input type="checkbox" id="opt-fast" /> Use fast pre-screen model (optional)</label>
+          <label id="deep-label" title="Runs the already-loaded local Gemma on flagged items — no separate model">
+            <input type="checkbox" id="opt-deep" disabled checked /> Deep-analyze flagged items (loaded Gemma)</label>
           <label>Clear threshold
             <input type="number" id="opt-threshold" min="0" max="1" step="0.05" value="0.7" /></label>
         </div>

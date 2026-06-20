@@ -257,16 +257,23 @@ def test_screen_endpoint_grep_only(client, monkeypatch):
     app.state.grep_call = _grep_fee_high
     app.state.gemma_call = None
     try:
+        # default: the fast tier is OFF (it can need a separate model/endpoint), so a plain
+        # request never invokes a fast model -- GREP only, no model switch.
         r = client.post("/api/triage/screen", json={"items": [
             {"id": "x1", "text": FEE_AD},
             {"id": "x2", "text": BENIGN_AD},
         ]})
         assert r.status_code == 200
         body = r.json()
-        assert body["summary"]["fast_model"]["source"] == "not_configured"
+        assert body["summary"]["fast_model"]["source"] == "disabled"
+        assert body["summary"]["fast_model"]["n_calls"] == 0  # fast model never called by default
         assert body["items"][0]["status"] == "flagged"
         assert body["items"][1]["status"] == "passed_grep_only"
         assert FEE_AD not in r.text  # raw text never echoed
+        # opting in with no backend available is honest: source "not_configured", not a crash
+        r2 = client.post("/api/triage/screen", json={
+            "items": [{"id": "x1", "text": FEE_AD}], "use_fast_model": True})
+        assert r2.json()["summary"]["fast_model"]["source"] == "not_configured"
     finally:
         app.state.gemma_call = saved
 
@@ -282,7 +289,9 @@ def test_screen_endpoint_uses_loaded_gemma_as_fast_tier(client, monkeypatch):
     app.state.grep_call = None
     app.state.gemma_call = fake_gemma
     try:
-        r = client.post("/api/triage/screen", json={"items": [SUBTLE_AD]})
+        # opt into the fast tier; with no separate endpoint it falls back to the loaded Gemma
+        # (gemma4_runtime) -- no model switch -- not a separate DiffusionGemma endpoint.
+        r = client.post("/api/triage/screen", json={"items": [SUBTLE_AD], "use_fast_model": True})
         assert r.status_code == 200
         body = r.json()
         assert body["summary"]["fast_model"]["source"] == "gemma4_runtime"
