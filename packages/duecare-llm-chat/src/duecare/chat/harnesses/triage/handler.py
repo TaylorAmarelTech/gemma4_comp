@@ -26,6 +26,8 @@ from typing import Any
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 
+from ..base import BaseHarness
+
 MAX_ITEMS = 200
 MAX_ITEM_CHARS = 20_000
 SCREEN_MAX_TOKENS = 160
@@ -63,6 +65,21 @@ _DEEP_PROMPT = (
     "with a recommended action: block / warn / monitor / clear, with one "
     "sentence of reasoning."
 )
+
+
+class TriageHarness(BaseHarness):
+    """The triage harness, extending the thin BaseHarness for its shared helpers
+    (``emit_training_row`` / ``compose``). Single source of truth for the harness
+    primitive attributes; ``__init__.py`` re-exports them + the spec."""
+
+    name = "triage"
+    applied_layers = ("grep",)
+    consumes = ("grep_rule", "prompt_template")
+    emits = ("audit_template",)
+
+
+#: the singleton the routes log through (and __init__.py re-exports)
+harness = TriageHarness()
 
 
 def _sha256(text: str) -> str:
@@ -343,29 +360,24 @@ def register_routes(app: Any) -> None:
         )
         out["summary"]["model"]["source"] = model_source
 
-        try:
-            from .._training_log import log_interaction
-            log_interaction(
-                "triage",
-                input_payload={
-                    "n_items": len(items),
-                    "text_sha256s": [r["text_sha256"] for r in out["items"][:10]],
-                },
-                output_payload={
-                    key: out["summary"][key]
-                    for key in ("n_items", "n_flagged", "n_review", "n_cleared",
-                                "n_passed_grep_only", "n_escalated")
-                },
-                applied_layers={
-                    "grep": grep_call is not None,
-                    "model": model_source,
-                    "deep": run_deep and deep_call is not None,
-                },
-                trace={"timings_ms": out["summary"]["timings_ms"]},
-                extra={},
-            )
-        except Exception:  # noqa: BLE001 — logging must never break the route
-            pass
+        harness.emit_training_row(
+            input_payload={
+                "n_items": len(items),
+                "text_sha256s": [r["text_sha256"] for r in out["items"][:10]],
+            },
+            output_payload={
+                key: out["summary"][key]
+                for key in ("n_items", "n_flagged", "n_review", "n_cleared",
+                            "n_passed_grep_only", "n_escalated")
+            },
+            applied_layers={
+                "grep": grep_call is not None,
+                "model": model_source,
+                "deep": run_deep and deep_call is not None,
+            },
+            trace={"timings_ms": out["summary"]["timings_ms"]},
+            extra={},
+        )
         return JSONResponse(out)
 
     @app.get("/api/triage/status")
@@ -390,6 +402,8 @@ def register_routes(app: Any) -> None:
 
 __all__ = [
     "POLICY",
+    "TriageHarness",
+    "harness",
     "register_routes",
     "resolve_screen_model",
     "screen_items",
