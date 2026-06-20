@@ -205,6 +205,21 @@ python -m pytest packages -v
 python -m uvicorn src.demo.app:app --port 8080
 ```
 
+## Code navigation
+
+When you touch a file, three complementary layers tell you what else to look at:
+
+- **Structural (deterministic).** The CodeGraph index (`.codegraph/`, tree-sitter over
+  ~1,200 files / ~32k edges) gives callers, callees, blast radius, and trace via the
+  CodeGraph MCP (`codegraph_callers` / `_callees` / `_impact` / `_trace` / `_context`).
+  Each module also ships a generated `HIERARCHY.md` (parent / siblings / children /
+  dependencies / dependents).
+- **Keyword.** `ripgrep` + the CodeGraph FTS5 full-text index.
+- **Similarity (lexical-semantic).** `python scripts/code_neighbors.py <file>` ranks the
+  files most similar to the one you're editing (TF-IDF cosine — no model download) and
+  lists its imports + who imports / sibling-loads it. This is the one layer CodeGraph does
+  not provide; a true-embedding mode is the documented upgrade path.
+
 ## Project conventions
 
 - **Python 3.11+** (3.12 is the primary target)
