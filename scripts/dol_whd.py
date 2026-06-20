@@ -100,23 +100,80 @@ def fetch_enforcement(*, api_key: str, max_records: int = 500, page_size: int = 
     return out
 
 
+def load_dotenv(path: Path | None = None) -> list[str]:
+    """Populate os.environ from the repo-root .env (KEY=VALUE lines), without overriding
+    already-set vars. Returns the key NAMES loaded (for logging; never the secret values).
+    """
+    path = path or (Path(__file__).resolve().parents[1] / ".env")
+    loaded: list[str] = []
+    if not path.exists():
+        return loaded
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, v = line.split("=", 1)
+        k, v = k.strip(), v.strip().strip('"').strip("'")
+        if k and k not in os.environ:
+            os.environ[k] = v
+            loaded.append(k)
+    return loaded
+
+
+# Keyless metadata endpoint: dataset 10362's own preview rows are real, current WHD
+# records the v4 API exposes WITHOUT a key (a bounded sample of the full dataset).
+_META_URL = "https://apiprod.dol.gov/v4/datasets/10362"
+
+
+def _impersonate_get(url: str) -> str:
+    """GET with TLS impersonation (curl_cffi) if present -- the DOL API gateway 403s plain
+    clients -- else fall back to urllib."""
+    try:
+        from curl_cffi import requests as creq
+        return creq.get(url, impersonate="chrome", timeout=40).text
+    except ModuleNotFoundError:
+        req = urllib.request.Request(url, headers={"User-Agent": _UA, "Accept": "application/json"})
+        with urllib.request.urlopen(req, timeout=40) as r:  # noqa: S310 - https gov API
+            return r.read().decode("utf-8", "replace")
+
+
+def fetch_preview(*, fetch=None) -> list[dict]:
+    """Keyless live pull: parse the real WHD records the v4 metadata endpoint exposes in
+    ``dataset_preview`` (no API key needed). ``fetch(url) -> text`` is injectable for tests."""
+    meta = json.loads((fetch or _impersonate_get)(_META_URL))
+    prev = (meta.get("dataset") or {}).get("dataset_preview")
+    if isinstance(prev, str):
+        prev = json.loads(prev)
+    rows = prev.get("data", []) if isinstance(prev, dict) else (prev or [])
+    return [parse_record(r) for r in rows]
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--limit", type=int, default=500, help="max records (default 500)")
     ap.add_argument("--migrant-only", action="store_true",
                     help="keep only employers with H-2A/H-2B/H-1B/MSPA/SRAW violations")
-    ap.add_argument("--api-key", help="DOL API key (else $DOL_API_KEY)")
+    ap.add_argument("--api-key", help="DOL API key (else $DOL_API_KEY, incl. from .env)")
+    ap.add_argument("--preview", action="store_true",
+                    help="keyless live pull of the real records the metadata endpoint exposes")
     ap.add_argument("--out", help="propose-only JSONL (under reports/)")
     args = ap.parse_args(argv)
 
+    load_dotenv()  # wire DOL_API_KEY (and any other) from the repo-root .env
     key = args.api_key or os.environ.get("DOL_API_KEY")
-    if not key:
-        ap.error("DOL WHD data needs a free API key: register at https://dataportal.dol.gov "
-                 "and set DOL_API_KEY (or pass --api-key). The schema/parser are verified; "
-                 "only the live pull needs the key.")
 
-    ents = fetch_enforcement(api_key=key, max_records=args.limit)
+    if args.preview:
+        ents = fetch_preview()
+        print(f"DOL WHD (keyless preview): {len(ents)} live records", file=sys.stderr)
+    else:
+        if not key:
+            ap.error("DOL WHD full data needs a free API key: register at "
+                     "https://dataportal.dol.gov and set DOL_API_KEY in .env (or pass "
+                     "--api-key). No DOL_API_KEY found in the environment or .env. "
+                     "Run with --preview for a keyless live sample, or add the key for the "
+                     "full FY2005-> pull.")
+        ents = fetch_enforcement(api_key=key, max_records=args.limit)
     if args.migrant_only:
         ents = [e for e in ents if e["migrant_visa_violations"]]
     n_mig = sum(1 for e in ents if e["migrant_visa_violations"])
