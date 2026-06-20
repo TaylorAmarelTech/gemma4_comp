@@ -136,28 +136,24 @@ def register_routes(app) -> None:
         blocked = False
         reason = None
 
-        try:
-            from .._training_log import log_interaction
-            log_interaction(
-                "search_safety",
-                input_payload={
-                    "query_sha256": _sha16(raw),
-                    "mode": req.mode,
-                    "length": len(raw),
-                },
-                output_payload={
-                    "sanitized_sha256": _sha16(sanitized),
-                    "redactions_count": len(redactions),
-                    "blocked": blocked,
-                },
-                applied_layers={
-                    "regex": {"fired": bool(redactions), "n_hits": len(redactions)},
-                    "gemma_rephrase": rephrase_trace,
-                },
-                trace={"redaction_kinds": sorted({r["kind"] for r in redactions})},
-            )
-        except Exception:
-            pass
+        from . import harness
+        harness.emit_training_row(
+            input_payload={
+                "query_sha256": _sha16(raw),
+                "mode": req.mode,
+                "length": len(raw),
+            },
+            output_payload={
+                "sanitized_sha256": _sha16(sanitized),
+                "redactions_count": len(redactions),
+                "blocked": blocked,
+            },
+            applied_layers={
+                "regex": {"fired": bool(redactions), "n_hits": len(redactions)},
+                "gemma_rephrase": rephrase_trace,
+            },
+            trace={"redaction_kinds": sorted({r["kind"] for r in redactions})},
+        )
 
         return {
             "sanitized": sanitized,

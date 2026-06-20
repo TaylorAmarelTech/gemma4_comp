@@ -4,6 +4,7 @@ from __future__ import annotations
 from .handler import register_routes
 from .knowledge import CONSUMES as consumes, EMITS as emits
 from ..base import HarnessLogicPath, HarnessModelTarget, HarnessPackContract, HarnessSpec
+from ..base import BaseHarness
 
 name = "extraction"
 applied_layers: tuple[str, ...] = ("grep", "rag")
@@ -118,5 +119,19 @@ spec = HarnessSpec(
     output_verification=("KnowledgeObject schema validation", "review_required before promotion", "volatile facts marked for verification"),
     privacy_boundaries=("drafting stays local", "submission should pass anonymization before hub sharing"),
 )
+
+
+class ExtractionHarness(BaseHarness):
+    """Extends the thin BaseHarness for its shared helpers (emit_training_row / compose).
+    Single source of the harness primitive is the module attrs above; the `harness`
+    singleton carries them for handlers + the registry."""
+
+    name = name
+    applied_layers = applied_layers
+    consumes = consumes
+    emits = emits
+
+
+harness = ExtractionHarness()
 
 __all__ = ["name", "applied_layers", "capabilities", "consumes", "emits", "register_routes", "spec"]

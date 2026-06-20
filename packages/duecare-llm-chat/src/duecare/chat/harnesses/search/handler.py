@@ -99,24 +99,20 @@ def _do_search(app: Any, body: dict, kind: str) -> dict:
     out["verification_status"] = "candidate_unverified"
     out["next_step"] = "POST /api/search/verify-results before injecting results into chat, extraction, or knowledge packs."
 
-    try:
-        from .._training_log import log_interaction
-        log_interaction(
-            "search",
-            input_payload={"query": query, "kind": kind, "top_n": top_n,
-                           "preferred_backend": preferred},
-            output_payload={
-                "backend": backend.name,
-                "n_results": len(out.get("results") or []),
-                "elapsed_ms": out.get("elapsed_ms"),
-                "titles": [r.get("title", "") for r in out.get("results") or []],
-            },
-            applied_layers={},
-            trace={"source": out.get("source")},
-            extra={"kind": kind},
-        )
-    except Exception:
-        pass
+    from . import harness
+    harness.emit_training_row(
+        input_payload={"query": query, "kind": kind, "top_n": top_n,
+                       "preferred_backend": preferred},
+        output_payload={
+            "backend": backend.name,
+            "n_results": len(out.get("results") or []),
+            "elapsed_ms": out.get("elapsed_ms"),
+            "titles": [r.get("title", "") for r in out.get("results") or []],
+        },
+        applied_layers={},
+        trace={"source": out.get("source")},
+        extra={"kind": kind},
+    )
     return _with_replay(out)
 
 

@@ -162,22 +162,18 @@ def register_routes(app: Any) -> None:
         if not isinstance(results, list):
             raise HTTPException(400, "results must be a list")
         out = verify_search_results(query, [r for r in results if isinstance(r, dict)])
-        try:
-            from .._training_log import log_interaction
-            log_interaction(
-                "post_search_verification",
-                input_payload={"query_sha256": out.get("query_sha256", ""), "n_results": len(results)},
-                output_payload={
-                    "n_accepted": out["n_accepted"],
-                    "n_review": out["n_review"],
-                    "n_blocked": out["n_blocked"],
-                },
-                applied_layers={},
-                trace={"policy": out["policy"]},
-                extra={},
-            )
-        except Exception:
-            pass
+        from . import harness
+        harness.emit_training_row(
+            input_payload={"query_sha256": out.get("query_sha256", ""), "n_results": len(results)},
+            output_payload={
+                "n_accepted": out["n_accepted"],
+                "n_review": out["n_review"],
+                "n_blocked": out["n_blocked"],
+            },
+            applied_layers={},
+            trace={"policy": out["policy"]},
+            extra={},
+        )
         return JSONResponse(out)
 
     @app.get("/api/search/verification-info")

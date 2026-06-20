@@ -4,6 +4,7 @@ from __future__ import annotations
 from .handler import register_routes
 from .knowledge import CONSUMES as consumes, EMITS as emits
 from ..base import HarnessLogicPath, HarnessModelTarget, HarnessPackContract, HarnessSpec
+from ..base import BaseHarness
 
 name = "anonymization"
 applied_layers: tuple[str, ...] = ()  # regex-only by design
@@ -116,5 +117,19 @@ spec = HarnessSpec(
     output_verification=("no direct identifiers in sanitized payload", "hashes recorded instead of raw values"),
     privacy_boundaries=("raw content must not leave the local runtime", "Gemma review sees redacted text only"),
 )
+
+
+class AnonymizationHarness(BaseHarness):
+    """Extends the thin BaseHarness for its shared helpers (emit_training_row / compose).
+    Single source of the harness primitive is the module attrs above; the `harness`
+    singleton carries them for handlers + the registry."""
+
+    name = name
+    applied_layers = applied_layers
+    consumes = consumes
+    emits = emits
+
+
+harness = AnonymizationHarness()
 
 __all__ = ["name", "applied_layers", "capabilities", "consumes", "emits", "register_routes", "spec"]

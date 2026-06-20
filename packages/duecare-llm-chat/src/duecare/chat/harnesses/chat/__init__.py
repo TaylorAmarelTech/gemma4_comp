@@ -5,6 +5,7 @@ from .handler import register_routes
 from .send import serve_chat_send
 from .knowledge import CONSUMES as consumes, EMITS as emits
 from ..base import HarnessLogicPath, HarnessModelTarget, HarnessPackContract, HarnessSpec
+from ..base import BaseHarness
 
 name = "chat"
 applied_layers: tuple[str, ...] = (
@@ -128,6 +129,20 @@ spec = HarnessSpec(
     output_verification=("trace emitted for every active layer", "optional rule-based, LLM-based, or combined grading"),
     privacy_boundaries=("raw prompts stay local to the runtime", "official-source and online layers must be explicitly enabled and should be paired with search_safety"),
 )
+
+
+class ChatHarness(BaseHarness):
+    """Extends the thin BaseHarness for its shared helpers (emit_training_row / compose).
+    Single source of the harness primitive is the module attrs above; the `harness`
+    singleton carries them for handlers + the registry."""
+
+    name = name
+    applied_layers = applied_layers
+    consumes = consumes
+    emits = emits
+
+
+harness = ChatHarness()
 
 __all__ = ["name", "applied_layers", "capabilities", "consumes", "emits",
            "register_routes", "serve_chat_send", "spec"]
