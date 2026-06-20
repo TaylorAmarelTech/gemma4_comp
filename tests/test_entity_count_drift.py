@@ -52,6 +52,7 @@ _EXPECT = {
     "docs/entity_intelligence_complete_reference.md": [
         f"{_R} addressable registries", _L, _O],
     "README.md": [f"{_R} official government registries", f"{_L}-source"],
+    "docs/index.md": [f"{_R} official government registries", f"{_L}-source", _O],
     "CLAUDE.md": [f"{_R}-registry acquisition cascade", f"{_L}-source"],
     "AGENTS.md": [f"{_R}-registry", f"{_L}-source"],
 }
