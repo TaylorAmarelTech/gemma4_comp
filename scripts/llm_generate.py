@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 import urllib.request
@@ -44,7 +45,6 @@ def _load_key() -> str:
         for ln in env.read_text(encoding="utf-8").splitlines():
             if ln.startswith("OLLAMA_API_KEY=") and not ln.lstrip().startswith("#"):
                 return ln.split("=", 1)[1].strip()
-    import os
     key = os.environ.get("OLLAMA_API_KEY", "")
     if not key:
         raise RuntimeError("no OLLAMA_API_KEY in .env or environment")
@@ -209,6 +209,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--model", default=DEFAULT_MODEL, help="ollama-cloud model id")
     ap.add_argument("--seed", default="", help="seed prompt (used by prompt-mutations)")
     ap.add_argument("--out", default="", help="proposal filename (under reports/llm_proposals/)")
+    ap.add_argument("--submit-to-curator", action="store_true",
+                    help="(knowledge-proposals only) also submit to the hub curator REVIEW queue "
+                         "as status=proposed; requires DUECARE_HUB_URL. Still human-gated: a "
+                         "curator must accept + source-verify before anything is vetted.")
     args = ap.parse_args(argv)
 
     items = _TASKS[args.task](args.n, model=args.model, seed=args.seed)
@@ -221,7 +225,34 @@ def main(argv: list[str] | None = None) -> int:
                  or it.get("target_role") or it.get("label") or "")
         body = it.get("text") or it.get("variant") or it.get("observation") or it.get("question") or ""
         print(f"  [{i}] {label}: {str(body)[:120]}", file=sys.stderr)
+
+    if args.submit_to_curator and items:
+        _submit_to_curator(items, model=args.model, task=args.task)
     return 0 if items else 1
+
+
+def _submit_to_curator(items: list[dict], *, model: str, task: str) -> None:
+    """Opt-in: push generated proposals into the hub curator REVIEW queue (still human-gated)."""
+    if task != "knowledge-proposals":
+        print(f"--submit-to-curator only applies to knowledge-proposals (task={task}); skipped.",
+              file=sys.stderr)
+        return
+    hub = os.environ.get("DUECARE_HUB_URL", "").strip()
+    if not hub:
+        print("--submit-to-curator set but DUECARE_HUB_URL is empty; staged only (not submitted).",
+              file=sys.stderr)
+        return
+    import importlib.util as _il
+    spec = _il.spec_from_file_location("curator_submit", Path(__file__).with_name("curator_submit.py"))
+    cs = _il.module_from_spec(spec)
+    spec.loader.exec_module(cs)
+    sub = cs.build_submission(
+        items, model=model,
+        created_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        submission_id="llm_curator_" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"))
+    receipt = cs.submit_to_curator(sub, hub_url=hub)
+    print(f"curator queue <- {hub}: status={receipt.get('status')} "
+          f"accepted={receipt.get('n_accepted')} (PENDING review, not vetted)", file=sys.stderr)
 
 
 if __name__ == "__main__":
