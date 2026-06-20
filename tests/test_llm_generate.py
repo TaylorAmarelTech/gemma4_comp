@@ -63,6 +63,43 @@ def test_generate_returns_empty_on_unparseable_output():
     assert llm.generate_triage_test_cases(3, caller=lambda p, **kw: "sorry, no json") == []
 
 
+def test_prompt_mutations_inject_seed_and_stamp_it():
+    def fake(prompt, **kw):
+        assert "my custom seed" in prompt                # the seed reaches the prompt
+        return '{"variants": [{"variant": "kindly waive the fee?", "technique": "politeness"}]}'
+
+    out = llm.generate_prompt_mutations(1, caller=fake, seed="my custom seed")
+    assert len(out) == 1 and out[0]["technique"] == "politeness"
+    assert out[0]["seed"] == "my custom seed"            # stamped onto each variant
+
+
+def test_knowledge_proposals_are_marked_unverified():
+    def fake(prompt, **kw):
+        return ('{"proposals": [{"observation": "some corridors cap recruitment fees",'
+                '"claim_to_verify": "the exact cap", "source_type_to_check": "ministry circular"}]}')
+
+    out = llm.generate_knowledge_proposals(1, caller=fake)
+    assert len(out) == 1
+    # the real-not-faked guardrail: a generated "fact" is never trusted, it is flagged for review
+    assert out[0]["confidence"] == "unverified" and out[0]["_needs_source_verification"] is True
+
+
+def test_outreach_drafts_parse():
+    def fake(prompt, **kw):
+        return ('{"drafts": [{"topic": "fees", "question": "What is the current cap?",'
+                '"target_role": "NGO caseworker"}]}')
+
+    out = llm.generate_outreach_drafts(1, caller=fake)
+    assert len(out) == 1 and out[0]["question"] == "What is the current cap?"
+
+
+def test_all_four_tasks_are_registered_and_callable():
+    assert set(llm._TASKS) == {"triage-tests", "prompt-mutations",
+                               "knowledge-proposals", "outreach-drafts"}
+    for fn in llm._TASKS.values():
+        assert callable(fn)
+
+
 def test_stage_proposal_is_propose_only(tmp_path, monkeypatch):
     monkeypatch.setattr(llm, "PROPOSALS_DIR", tmp_path)
     items = [{"text": "synthetic ad", "hidden_signal": "passport retention"}]
