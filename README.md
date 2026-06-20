@@ -61,7 +61,7 @@
 > narrative templates, review personas, fee-camouflage labels, corridor
 > fee-cap entries, NGO contact bundles, and ILO convention coverage.
 > A separate propose-only entity-intelligence layer verifies recruiters and
-> employers against 32 official government registries, backed by a 1,111-source
+> employers against 34 official government registries, backed by a 1,111-source
 > catalogue and 532 migrant-support organisations.
 > Reproducible CLI and notebook surfaces. On your laptop or in your
 > pocket.** Re-run current counts via `python scripts/verify_knowledge_surfaces.py`
@@ -176,7 +176,7 @@ every Gemma-bearing handler emits one JSONL row per call to
 ### Research data acquisition layer (entity intelligence)
 
 Alongside the harnesses runs a propose-only **entity-intelligence pipeline** that
-verifies recruiters, employers, and the companies behind them against **32 official
+verifies recruiters, employers, and the companies behind them against **34 official
 government registries** — 12 offline-tested connectors (GLEIF corporate identity +
 ownership, OpenOwnership beneficial ownership, OpenSanctions, DOJ prosecutions, DOL
 labour enforcement, domain OSINT, splink LEI linkage + cross-registry clustering)
