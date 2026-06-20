@@ -118,6 +118,18 @@ def fetch_lei_records(*, country: str | None = None, name: str | None = None,
     return out
 
 
+def _ftm_rows(records, ftm: bool):
+    """Convert records to FtM EntityProxies when ``ftm`` via the sibling serialiser (lazy import)."""
+    if not ftm:
+        return records
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "ftm_schema", str(Path(__file__).resolve().parent / "ftm_schema.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.emit_records(records, ftm=True)
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -126,6 +138,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--status", help="registration status (e.g. ISSUED, LAPSED)")
     ap.add_argument("--limit", type=int, default=200, help="max records (default 200)")
     ap.add_argument("--out", help="propose-only JSONL output path (under reports/)")
+    ap.add_argument("--ftm", action="store_true",
+                    help="emit FollowTheMoney EntityProxy JSONL instead of native records")
     args = ap.parse_args(argv)
     if not (args.country or args.name):
         ap.error("give at least --country or --name (the API is too large to pull whole)")
@@ -137,8 +151,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.out:
         out = Path(args.out)
         out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text("\n".join(json.dumps(e, ensure_ascii=False) for e in ents), encoding="utf-8")
-        print(f"wrote {out} -- PROPOSE-ONLY")
+        rows = _ftm_rows(ents, args.ftm)
+        out.write_text("\n".join(json.dumps(e, ensure_ascii=False) for e in rows), encoding="utf-8")
+        print(f"wrote {out} -- PROPOSE-ONLY" + (" (FtM EntityProxy JSONL)" if args.ftm else ""))
     else:
         for e in ents[:10]:
             print(f"  {e['lei']}  {e['name'][:48]}  [{e['jurisdiction']}] {e['status']}")

@@ -443,6 +443,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--no-archive", action="store_true", help="skip archiving outbound URLs")
     ap.add_argument("--archives", default="wayback,archive_today")
     ap.add_argument("--out", default="")
+    ap.add_argument("--ftm", action="store_true",
+                    help="write the won records as FollowTheMoney EntityProxy JSONL "
+                         "(instead of the full cascade-result JSON)")
     args = ap.parse_args(argv)
 
     known = load_known_sources()
@@ -488,7 +491,11 @@ def main(argv: list[str] | None = None) -> int:
 
     out = Path(args.out) if args.out else (_ROOT / "reports" / "acquisition" / f"cascade_{_slug(args.url or args.preset)}.json")
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps({"_synthetic": False, **res}, indent=2, ensure_ascii=False), encoding="utf-8")
+    if args.ftm:
+        ents = _sibling("ftm_schema").emit_records(res.get("records") or [], ftm=True)
+        out.write_text("\n".join(json.dumps(e, ensure_ascii=False) for e in ents), encoding="utf-8")
+    else:
+        out.write_text(json.dumps({"_synthetic": False, **res}, indent=2, ensure_ascii=False), encoding="utf-8")
     for a in res["attempts"]:
         flag = f"ERROR {a['error']}" if a["error"] else f"{a['n']} records (cost={a['cost']})"
         print(f"  [tier {a['tier']}: {a['name']:<14}] {flag}", file=sys.stderr)

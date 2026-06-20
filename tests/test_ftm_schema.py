@@ -102,6 +102,15 @@ def test_convert_skips_nameless_and_counts_schemas():
     assert len(ents) == 2 and {e["schema"] for e in ents} == {"Company", "Person"}
 
 
+def test_emit_records_toggles_native_vs_ftm():
+    # the connector --ftm helper: passthrough when off, FtM EntityProxies when on
+    assert ftm.emit_records([GLEIF, AGENCY], ftm=False) == [GLEIF, AGENCY]   # unchanged
+    out = ftm.emit_records([GLEIF, AGENCY], ftm=True)
+    assert {e["schema"] for e in out} == {"Company", "Organization"}
+    assert out[0]["id"] == "lei-254900N2EEPSHPNU0H50"                        # converted
+    assert ftm.emit_records([{"entity_type": "company"}], ftm=True) == []    # nameless dropped
+
+
 def test_validate_falls_back_to_pure_when_library_absent():
     # validate=True must not raise even though followthemoney/PyICU won't import here
     e = ftm.to_ftm(GLEIF, validate=True)
