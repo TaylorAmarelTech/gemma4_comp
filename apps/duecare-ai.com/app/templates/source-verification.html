@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Source verification · DueCare AI</title>
+<link rel="stylesheet" href="/static/styles.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+<style>
+.page-intro { padding: 72px 0 32px; border-top: 0; }
+.page-intro h1 { font-size: clamp(36px, 4.4vw, 56px); margin-top: 16px; max-width: 20ch; }
+.page-intro .lede { margin-top: 24px; }
+
+/* Headline stat row */
+.sv-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+@media (max-width: 760px) { .sv-stats { grid-template-columns: 1fr 1fr; } }
+.sv-stat { border: 1px solid var(--line); border-radius: 10px; padding: 18px; background: var(--paper); }
+.sv-stat .v { font-size: 30px; font-weight: 600; letter-spacing: -0.01em; }
+.sv-stat .l { font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
+.sv-stat .s { font-size: 12px; color: var(--ink-3); margin-top: 6px; }
+
+/* Lifecycle (shared shape with /intelligence) */
+.life { border: 1px solid var(--line); border-radius: 16px; padding: 32px; background: var(--paper); }
+.life-row { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr; gap: 12px; align-items: stretch; }
+@media (max-width: 920px) { .life-row { grid-template-columns: 1fr; } }
+.life-cell { border: 1px solid var(--line); border-radius: 10px; padding: 18px; background: var(--paper); display: flex; flex-direction: column; gap: 6px; }
+.life-cell.public { border-color: oklch(0.78 0.06 195); background: oklch(0.97 0.015 195); }
+.life-cell.signed { border-color: var(--ink); }
+.life-cell .num { font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+.life-cell h4 { font-size: 15px; }
+.life-cell .desc { font-size: 12.5px; color: var(--ink-3); }
+.life-cell .what { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+.life-arrow { display: grid; place-items: center; font-family: var(--mono); font-size: 10px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; width: 64px; }
+.life-arrow .line { width: 100%; height: 1px; background: var(--ink-3); position: relative; margin: 8px 0; }
+.life-arrow .line::after { content: ""; position: absolute; right: -1px; top: -3px; border-left: 6px solid var(--ink-3); border-top: 3px solid transparent; border-bottom: 3px solid transparent; }
+@media (max-width: 920px) { .life-arrow { width: 100%; height: 40px; } }
+
+/* Registry coverage grid (shared shape with /intelligence pack-grid) */
+.reg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+@media (max-width: 920px) { .reg-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) { .reg-grid { grid-template-columns: 1fr; } }
+.reg-card { border: 1px solid var(--line); border-radius: 10px; padding: 16px; background: var(--paper); display: flex; flex-direction: column; gap: 6px; }
+.reg-card .id { font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+.reg-card h4 { font-size: 15px; }
+.reg-card .desc { font-size: 12.5px; color: var(--ink-3); }
+.reg-card .meta { margin-top: auto; padding-top: 8px; border-top: 1px dashed var(--line); font-family: var(--mono); font-size: 11px; color: var(--ink-2); display: flex; justify-content: space-between; }
+
+/* Source registry table */
+.src-table { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--paper); }
+.src-table td.url { font-family: var(--mono); font-size: 12px; color: var(--ink-3); }
+</style>
+</head>
+<body>
+
+{% set active_nav = "hub" %}
+{% include "_nav.html" %}
+
+<section class="page-intro first" data-screen-label="Source verification · Intro">
+  <div class="wrap">
+    <span class="kicker">Entity intelligence &amp; official-source verification</span>
+    <h1>Is this recruiter licensed? Is this employer flagged?</h1>
+    <p class="lede">DueCare checks recruitment agencies, employers, and the companies behind
+      them against <strong>official government registries</strong> — licensed-agency registers,
+      debarment lists, and forced-labour registries. This is <em>research tooling</em>: it
+      produces <strong>proposed</strong> findings for curator review, the same one-way
+      <em>public source → vetted pack</em> lifecycle as our context packs. It is not a live
+      worker-facing lookup, and no worker case is ever an input.</p>
+  </div>
+</section>
+
+<!-- Coverage stats -->
+<section data-screen-label="Source verification · Coverage">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="label">01 · Coverage</span>
+        <h2 style="margin-top: 12px;">Official registries, four continents.</h2>
+      </div>
+      <p class="meta">Every count is reproducible from the registry it cites — real, not
+        estimated. Coverage grows by curator-reviewed proposal; new registries are config
+        rows, not bespoke code.</p>
+    </div>
+    <div class="sv-stats">
+      <div class="sv-stat"><div class="v">32</div><div class="l">Official registries</div><div class="s">23 config specs + 9 deterministic resolvers</div></div>
+      <div class="sv-stat"><div class="v">1,111</div><div class="l">Catalogued sources</div><div class="s">95 countries · 18 industries</div></div>
+      <div class="sv-stat"><div class="v">532</div><div class="l">Support organisations</div><div class="s">helplines · shelters · legal aid · unions</div></div>
+      <div class="sv-stat"><div class="v">37,566</div><div class="l">Entities clustered</div><div class="s">→ 27,810 deduped across sources</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section data-screen-label="Source verification · Lifecycle">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="label">02 · How it works</span>
+        <h2 style="margin-top: 12px;">Official registry → resolve → link → proposed finding.</h2>
+      </div>
+      <p class="meta">Field maps are authored against the live registry response — never
+        guessed. A source that blocks or returns nothing parseable is skipped and logged,
+        never fabricated.</p>
+    </div>
+    <div class="life">
+      <div class="life-row">
+        <div class="life-cell public">
+          <span class="pill live"><span class="dot"></span>Public source</span>
+          <span class="num">step · 01</span>
+          <h4>Official registry</h4>
+          <p class="desc">A government licensed-agency register, debarment list, or forced-labour registry.</p>
+          <div class="what">e.g. US CBP WRO · UK Modern Slavery</div>
+        </div>
+        <div class="life-arrow"><span>→</span><div class="line"></div><span>resolve</span></div>
+        <div class="life-cell">
+          <span class="pill proto"><span class="dot"></span>Deterministic</span>
+          <span class="num">step · 02</span>
+          <h4>Resolve &amp; normalise</h4>
+          <p class="desc">Config-driven resolver fetches + parses the source into canonical entity records.</p>
+          <div class="what">registry_spec · csv/json/html/pdf</div>
+        </div>
+        <div class="life-arrow"><span>→</span><div class="line"></div><span>link</span></div>
+        <div class="life-cell">
+          <span class="pill proto"><span class="dot"></span>Linkage</span>
+          <span class="num">step · 03</span>
+          <h4>Link on the LEI</h4>
+          <p class="desc">Probabilistic record-linkage joins the same company across registries on the GLEIF Legal Entity Identifier.</p>
+          <div class="what">splink · GLEIF LEI · ownership edges</div>
+        </div>
+        <div class="life-arrow"><span>→</span><div class="line"></div><span>review</span></div>
+        <div class="life-cell signed">
+          <span class="pill"><span class="dot"></span>Human gate</span>
+          <span class="num">step · 04</span>
+          <h4>Proposed finding</h4>
+          <p class="desc">A curator reviews matches and sources before anything reaches a worker-facing surface.</p>
+          <div class="what">propose-only · curator review</div>
+        </div>
+      </div>
+      <p style="margin-top: 24px; font-family: var(--mono); font-size: 12px; color: var(--ink-3);">
+        ▸ Findings stage to a review queue, never the live model or a worker's screen directly.
+        The lifecycle is one-way: <em>public registry → reviewed finding</em>.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Registry coverage -->
+<section data-screen-label="Source verification · Registries">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="label">03 · Registries</span>
+        <h2 style="margin-top: 12px;">A sample of what's covered.</h2>
+      </div>
+      <p class="meta">Forced-labour and debarment registries plus corridor licensed-agency
+        registers and global corporate ownership. Counts are the live entity totals.</p>
+    </div>
+    <div class="reg-grid">
+      <div class="reg-card"><span class="id">US CBP · WRO</span><h4>Withhold Release Orders</h4><p class="desc">Forced-labour import bans &amp; findings.</p><div class="meta"><span>forced labour</span><span>59</span></div></div>
+      <div class="reg-card"><span class="id">US DHS · UFLPA</span><h4>UFLPA Entity List</h4><p class="desc">Uyghur Forced Labor Prevention Act designations.</p><div class="meta"><span>forced labour</span><span>144</span></div></div>
+      <div class="reg-card"><span class="id">UK · Home Office</span><h4>Modern Slavery Registry</h4><p class="desc">s.54 transparency statements w/ disclosed risks + ILO indicators.</p><div class="meta"><span>transparency</span><span>11,718</span></div></div>
+      <div class="reg-card"><span class="id">PH · DMW</span><h4>Licensed recruitment agencies</h4><p class="desc">Philippine licensed overseas-employment agencies + status.</p><div class="meta"><span>recruitment</span><span>3,788</span></div></div>
+      <div class="reg-card"><span class="id">BD · OEP / BMET</span><h4>Licensed recruiting agencies</h4><p class="desc">Bangladesh licensed overseas-employment recruiters.</p><div class="meta"><span>recruitment</span><span>2,834</span></div></div>
+      <div class="reg-card"><span class="id">World Bank</span><h4>Debarred firms</h4><p class="desc">Cross-debarred suppliers (MDB sanction).</p><div class="meta"><span>debarment</span><span>1,241</span></div></div>
+      <div class="reg-card"><span class="id">AfDB</span><h4>Debarred entities</h4><p class="desc">African Development Bank debarments.</p><div class="meta"><span>debarment</span><span>1,334</span></div></div>
+      <div class="reg-card"><span class="id">GLEIF</span><h4>Legal Entity Identifiers</h4><p class="desc">CC0 global corporate identity + parent/child ownership — the cross-registry join key.</p><div class="meta"><span>ownership</span><span>global</span></div></div>
+      <div class="reg-card"><span class="id">+ 24 more</span><h4>Corridor &amp; corporate registries</h4><p class="desc">TW, SI, BR, CO, SG, HK, AU, CA, NO, OHCHR, US DoD &amp; OFAC, and more.</p><div class="meta"><span>32 total</span><span>full map →</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Source registry table -->
+<section data-screen-label="Source verification · Sources">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="label">04 · Provenance</span>
+        <h2 style="margin-top: 12px;">Every entity traces to an official source.</h2>
+      </div>
+      <p class="meta">Licensing is explicit per source. We consume only public / open-licensed
+        data, respect each site's terms, and embed no secrets.</p>
+    </div>
+    <div class="src-table">
+      <table class="std">
+        <thead>
+          <tr><th>Source</th><th>Publisher</th><th>Type</th><th>Licence</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="mono" style="font-size: 12px;">us_cbp_forced_labor</span></td><td>US Customs &amp; Border Protection</td><td>Forced-labour bans</td><td class="url">US public domain</td><td><span class="pill live"><span class="dot"></span>Resolved</span></td></tr>
+          <tr><td><span class="mono" style="font-size: 12px;">us_dhs_uflpa</span></td><td>US Dept. of Homeland Security</td><td>Entity list</td><td class="url">US public domain</td><td><span class="pill live"><span class="dot"></span>Resolved</span></td></tr>
+          <tr><td><span class="mono" style="font-size: 12px;">gb_modern_slavery</span></td><td>UK Home Office</td><td>Transparency registry</td><td class="url">OGL v3</td><td><span class="pill live"><span class="dot"></span>Resolved</span></td></tr>
+          <tr><td><span class="mono" style="font-size: 12px;">gleif_lei + rr</span></td><td>GLEIF</td><td>Corporate ownership</td><td class="url">CC0</td><td><span class="pill live"><span class="dot"></span>Resolved</span></td></tr>
+          <tr><td><span class="mono" style="font-size: 12px;">openownership_bods</span></td><td>OpenOwnership</td><td>Beneficial ownership</td><td class="url">CC0</td><td><span class="pill live"><span class="dot"></span>Resolved</span></td></tr>
+          <tr><td><span class="mono" style="font-size: 12px;">doj_press · dol_whd</span></td><td>US DOJ · DOL</td><td>Prosecutions · labour enforcement</td><td class="url">US public domain</td><td><span class="pill proto"><span class="dot"></span>Feed</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top: 18px; font-size: 13px; color: var(--ink-3);">
+      The full connector + registry map, with per-source counts and the licence ledger, lives
+      in the repository at <span class="mono" style="font-size: 12px;">docs/entity_intelligence_pipeline.md</span>.
+    </p>
+  </div>
+</section>
+
+{% include "_footer.html" %}
+</body>
+</html>

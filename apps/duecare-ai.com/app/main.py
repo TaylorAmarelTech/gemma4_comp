@@ -103,6 +103,7 @@ PAGE_ROUTES: dict[str, str] = {
     # /sentinel is owned by the auth-gated handler in create_app
     # (Phase 12) — see sentinel_admin_page below. Do not add it here.
     "/setup": "setup.html",
+    "/source-verification": "source-verification.html",
     "/stats": "stats.html",
     "/submissions": "submissions.html",
     "/submit-information": "submit-information.html",
