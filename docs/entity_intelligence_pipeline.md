@@ -67,8 +67,8 @@ Plus the prior-session substrate: `entity_kb.py` (11-type entity KB, tier-merge 
 
 ## The acquisition cascade — 34 addressable registries
 
-`scripts/acquisition_cascade.py` resolves each registry by id (`--registry <id>`): **11
-deterministic resolvers/presets** + **23 config specs** in
+`scripts/acquisition_cascade.py` resolves each registry by id (`--registry <id>`):
+**11 deterministic resolvers/presets** + **23 config specs** in
 `configs/duecare/research_monitor/registry_specs.yaml`. A new registry is usually a YAML
 block, not Python. **GLEIF** (`--registry gleif_lei`) and **OpenOwnership BODS**
 (`--registry openownership_bods`) are also addressable as bounded slices via `--arg`

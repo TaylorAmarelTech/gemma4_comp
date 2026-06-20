@@ -1,0 +1,9 @@
+{
+  "registries": 34,
+  "config_specs": 23,
+  "deterministic_resolvers": 11,
+  "licensed_sources": 1111,
+  "support_orgs": 532,
+  "monitored_sources": 72,
+  "connectors": 12
+}
