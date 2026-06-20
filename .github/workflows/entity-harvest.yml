@@ -7,10 +7,16 @@ name: entity-harvest
 # human to review and promote. Runs weekly forever (and on demand).
 #
 # Collectors (each fault-isolated -- one failing never aborts the run):
-#   dmw_agencies  -- live DMW licensed-agency pull (headless browser)
-#   dmw_issuances -- DMW advisory feed (keyless API)
-#   kaggle        -- the operator's published agency + job-order datasets
-#   staged        -- fold in prior runs' proposals
+#   dmw_agencies   -- live DMW licensed-agency pull (headless browser)
+#   dmw_issuances  -- DMW advisory feed (keyless API)
+#   hk_eaa         -- HK licensed employment agencies (live result.php + PDF baseline)
+#   hk_money_lenders / bd_oep / bd_mra / cn_mara / au_afma -- deterministic registry collectors
+#   cascade        -- every other acquisition-cascade registry resolver (ofac_sdn,
+#                     worldbank_debarred, gleif_lei, openownership_bods + the config-spec
+#                     registries in registry_specs.yaml) -- widens the harvest to the full
+#                     34-registry surface; each resolver is tier-1 + self-guarding
+#   kaggle         -- the operator's published agency + job-order datasets
+#   staged         -- fold in prior runs' proposals
 #
 # Secrets (optional -- collectors degrade gracefully without them):
 #   KAGGLE_USERNAME / KAGGLE_KEY  -> enables the kaggle collector
@@ -50,8 +56,11 @@ jobs:
           # headless-browser collector
           pip install playwright || true
           python -m playwright install --with-deps chromium || true
-          # kaggle dataset collector (read-only) + HK EAA PDF parser
+          # kaggle dataset collector (read-only) + HK EAA / money-lender PDF parser
           pip install kaggle pypdf || true
+          # cascade registry resolvers: TLS-impersonation fetch (urllib fallback otherwise,
+          # but curl_cffi clears the WAF 403s several official registries return) + YAML specs
+          pip install curl_cffi pyyaml || true
 
       - name: Download Kaggle datasets (no-op without creds)
         env:
