@@ -136,3 +136,36 @@ def test_load_known_sources_reads_catalog():
     known = cas.load_known_sources()
     assert isinstance(known, dict) and len(known) > 10
     assert all(v.startswith("http") for v in known.values())
+
+
+# ---- GLEIF + OpenOwnership BODS onboarded as cascade registries ------------
+
+def test_gleif_and_bods_registered_in_cascade():
+    for rid in ("gleif_lei", "openownership_bods"):
+        assert rid in cas.REGISTRY_RESOLVERS and rid in cas.PROVEN_REGISTRIES
+        assert cas.resolve_registry(rid)["preset"] == rid
+
+
+def test_resolve_gleif_lei_bounded_via_arg(monkeypatch):
+    import types
+    fake = types.SimpleNamespace(
+        _BASE="https://api.gleif.example",
+        fetch_lei_records=lambda *, country, name, limit: [{"name": f"{country} Co {i}"}
+                                                           for i in range(min(limit, 3))])
+    monkeypatch.setattr(cas, "_sibling", lambda n: fake)
+    r = cas._resolve_gleif_lei({"country": "AE", "limit": "2"})    # --arg country=AE limit=2
+    assert r["n"] == 2 and r["records"][0]["name"].startswith("AE")
+    assert "country=AE" in r["note"] and r["tier"] == 1
+
+
+def test_resolve_bods_defaults_to_cc0_sample(monkeypatch):
+    import json as _json
+    import types
+    fake = types.SimpleNamespace(
+        load_text=lambda *, url: '[{"recordType":"entity","recordDetails":{"name":"X Ltd"}}]',
+        iter_statements=lambda text: _json.loads(text),
+        parse_bods=lambda stmts: [{"name": "X Ltd", "entity_type": "company"}])
+    monkeypatch.setattr(cas, "_sibling", lambda n: fake)
+    r = cas._resolve_openownership_bods({})                        # no --arg -> default sample
+    assert r["n"] == 1 and r["records"][0]["name"] == "X Ltd"
+    assert "data-standard" in r["note"]

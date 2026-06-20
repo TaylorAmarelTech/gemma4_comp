@@ -291,12 +291,52 @@ def _resolve_au_afma(target: dict) -> dict:
         return _err(1, "deterministic", exc)
 
 
+def _resolve_gleif_lei(target: dict) -> dict:
+    """GLEIF LEI legal entities (CC0). The corpus is ~2.5M, so a cascade pull takes a
+    bounded slice -- pass ``--arg country=AE``, ``--arg limit=300``, ``--arg name_filter=...``;
+    defaults to a Nepal (origin-corridor) sample at limit 200."""
+    try:
+        gl = _sibling("gleif_lei")
+        country = target.get("country") or "NP"
+        name = target.get("name_filter")
+        limit = int(target.get("limit", 200))
+        recs = gl.fetch_lei_records(country=country, name=name, limit=limit)
+        note = f"GLEIF LEI country={country} limit={limit}" + (f" name={name}" if name else "")
+        return {"tier": 1, "name": "deterministic", "records": recs, "n": len(recs),
+                "confidence": 0.9 if recs else 0.0, "cost": "none",
+                "discovered_urls": [gl._BASE], "note": note, "error": ""}
+    except Exception as exc:  # noqa: BLE001
+        return _err(1, "deterministic", exc)
+
+
+_BODS_DEFAULT_URL = ("https://raw.githubusercontent.com/openownership/data-standard/"
+                     "main/examples/bods-package.json")
+
+
+def _resolve_openownership_bods(target: dict) -> dict:
+    """OpenOwnership BODS beneficial-ownership entities (CC0). The full register is bulk
+    (~GB); a cascade pull takes whatever BODS slice it is pointed at -- pass
+    ``--arg bods_url=<https json/jsonl>`` (or use ``openownership_bods.py --file`` for a
+    local bulk file). Defaults to the CC0 data-standard example package."""
+    try:
+        bods = _sibling("openownership_bods")
+        url = target.get("bods_url") or _BODS_DEFAULT_URL
+        recs = bods.parse_bods(bods.iter_statements(bods.load_text(url=url)))
+        return {"tier": 1, "name": "deterministic", "records": recs, "n": len(recs),
+                "confidence": 0.9 if recs else 0.0, "cost": "none",
+                "discovered_urls": [url], "note": f"OpenOwnership BODS {url}", "error": ""}
+    except Exception as exc:  # noqa: BLE001
+        return _err(1, "deterministic", exc)
+
+
 # registries with a SPECIAL deterministic resolver (not a plain browser_scrape preset)
 REGISTRY_RESOLVERS = {"hk_eaa": _resolve_hk_eaa, "ofac_sdn": _resolve_ofac_sdn,
                       "worldbank_debarred": _resolve_worldbank_debarred,
                       "hk_money_lenders": _resolve_hk_money_lenders,
                       "bd_oep": _resolve_bd_oep, "bd_mra": _resolve_bd_mra,
-                      "cn_mara": _resolve_cn_mara, "au_afma": _resolve_au_afma}
+                      "cn_mara": _resolve_cn_mara, "au_afma": _resolve_au_afma,
+                      "gleif_lei": _resolve_gleif_lei,
+                      "openownership_bods": _resolve_openownership_bods}
 
 # proven deterministic registries addressable by --registry (dmw_lra is a
 # browser_scrape preset; the rest have resolvers above).
@@ -310,6 +350,8 @@ PROVEN_REGISTRIES = {
     "au_afma": {"preset": "au_afma", "name": "AU AFMA -- fishery concession holders (XLSX)"},
     "ofac_sdn": {"preset": "ofac_sdn", "name": "US OFAC SDN -- sanctioned entities (CSV)"},
     "worldbank_debarred": {"preset": "worldbank_debarred", "name": "World Bank -- debarred firms (JSON)"},
+    "gleif_lei": {"preset": "gleif_lei", "name": "GLEIF -- LEI legal entities + ownership (CC0; bounded slice via --arg country=/limit=)"},
+    "openownership_bods": {"preset": "openownership_bods", "name": "OpenOwnership BODS -- beneficial owners (CC0; --arg bods_url=, else CC0 sample)"},
 }
 
 
@@ -392,6 +434,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--preset", default="", help="a browser_scrape preset (e.g. dmw_lra)")
     ap.add_argument("--registry", default="", help="a registry key (proven preset or catalogued id)")
     ap.add_argument("--list-registries", action="store_true", help="list addressable registries + exit")
+    ap.add_argument("--arg", action="append", default=[],
+                    help="KEY=VALUE resolver param (repeatable), e.g. country=NP limit=300 for gleif_lei")
     ap.add_argument("--fields", default="name,license_no,status,address,phone,email")
     ap.add_argument("--goal", default="extract the list of records on this page")
     ap.add_argument("--max-tier", type=int, default=4, help="highest layer to escalate to (1-4)")
@@ -421,8 +465,14 @@ def main(argv: list[str] | None = None) -> int:
         url = spec.get("url", url)
     if not url and not preset:
         ap.error("provide --url, --preset, or --registry")
+    extra = {}
+    for _kv in args.arg:
+        if "=" in _kv:
+            _k, _v = _kv.split("=", 1)
+            extra[_k.strip()] = _v.strip()
     target = {"url": url, "preset": preset,
-              "fields": [f.strip() for f in args.fields.split(",") if f.strip()], "goal": args.goal}
+              "fields": [f.strip() for f in args.fields.split(",") if f.strip()],
+              "goal": args.goal, **extra}
 
     acquirers = [a for i, a in enumerate(LADDER) if i + 1 <= args.max_tier]
 
