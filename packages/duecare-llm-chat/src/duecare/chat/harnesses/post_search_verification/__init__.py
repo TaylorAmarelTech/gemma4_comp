@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from .handler import register_routes
 from ..base import HarnessLogicPath, HarnessModelTarget, HarnessPackContract, HarnessSpec
+from ..base import BaseHarness
 
 name = "post_search_verification"
 applied_layers: tuple[str, ...] = ()
@@ -161,5 +162,19 @@ spec = HarnessSpec(
     output_verification=("accepted/review/blocked status", "source metadata preserved", "blocked results excluded from prompt injection"),
     privacy_boundaries=("external search output is untrusted", "raw prompt stays local", "external reviewers receive sanitized snippets only"),
 )
+
+
+class PostSearchVerificationHarness(BaseHarness):
+    """Extends the thin BaseHarness for its shared helpers (emit_training_row / compose).
+    Single source of the harness primitive is the module attrs above; the `harness`
+    singleton carries them for handlers + the registry."""
+
+    name = name
+    applied_layers = applied_layers
+    consumes = consumes
+    emits = emits
+
+
+harness = PostSearchVerificationHarness()
 
 __all__ = ["name", "applied_layers", "consumes", "emits", "capabilities", "register_routes", "spec"]

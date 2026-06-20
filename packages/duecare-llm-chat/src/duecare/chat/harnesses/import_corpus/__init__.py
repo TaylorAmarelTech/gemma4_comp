@@ -4,6 +4,7 @@ from __future__ import annotations
 from .handler import register_routes
 from .knowledge import CONSUMES as consumes, EMITS as emits
 from ..base import HarnessLogicPath, HarnessModelTarget, HarnessPackContract, HarnessSpec
+from ..base import BaseHarness
 
 name = "import_corpus"
 applied_layers: tuple[str, ...] = ()
@@ -97,5 +98,19 @@ spec = HarnessSpec(
     output_verification=("stable doc IDs", "delete/list/read contract", "context exposed only when selected"),
     privacy_boundaries=("imports remain local", "downstream sharing should pass through anonymization"),
 )
+
+
+class ImportCorpusHarness(BaseHarness):
+    """Extends the thin BaseHarness for its shared helpers (emit_training_row / compose).
+    Single source of the harness primitive is the module attrs above; the `harness`
+    singleton carries them for handlers + the registry."""
+
+    name = name
+    applied_layers = applied_layers
+    consumes = consumes
+    emits = emits
+
+
+harness = ImportCorpusHarness()
 
 __all__ = ["name", "applied_layers", "capabilities", "consumes", "emits", "register_routes", "spec"]

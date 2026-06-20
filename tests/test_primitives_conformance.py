@@ -85,6 +85,19 @@ def test_primary_secondary_membership_matches_spec_tier():
         assert m.spec.tier == "secondary", m.name
 
 
+def test_every_harness_adopts_baseharness():
+    """Every harness exposes a `harness` singleton extending the thin BaseHarness, with
+    attributes consistent with the module (the BaseHarness rollout is enforced here)."""
+    from duecare.chat.harnesses.base import BaseHarness
+    for m in _harnesses():
+        h = getattr(m, "harness", None)
+        assert isinstance(h, BaseHarness), f"{m.name}: missing a BaseHarness `harness` instance"
+        assert h.name == m.name, m.name
+        assert tuple(h.applied_layers) == tuple(m.applied_layers), m.name
+        assert tuple(h.consumes) == tuple(m.consumes), m.name
+        assert tuple(h.emits) == tuple(m.emits), m.name
+
+
 # ---------------------------------------------------------------------------
 # Primitive 2 -- the sub-primitives carried inside every spec
 # ---------------------------------------------------------------------------

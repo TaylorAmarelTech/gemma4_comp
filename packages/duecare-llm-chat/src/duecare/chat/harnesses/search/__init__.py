@@ -4,6 +4,7 @@ from __future__ import annotations
 from .handler import register_routes
 from .knowledge import CONSUMES as consumes, EMITS as emits
 from ..base import HarnessLogicPath, HarnessModelTarget, HarnessPackContract, HarnessSpec
+from ..base import BaseHarness
 
 name = "search"
 applied_layers: tuple[str, ...] = ()  # search IS the layer; doesn't compose others
@@ -97,5 +98,19 @@ spec = HarnessSpec(
     output_verification=("source URL/title/snippet preserved", "results are candidates, not verified facts"),
     privacy_boundaries=("third-party backend receives only sanitized query", "raw prompt should not be submitted here"),
 )
+
+
+class SearchHarness(BaseHarness):
+    """Extends the thin BaseHarness for its shared helpers (emit_training_row / compose).
+    Single source of the harness primitive is the module attrs above; the `harness`
+    singleton carries them for handlers + the registry."""
+
+    name = name
+    applied_layers = applied_layers
+    consumes = consumes
+    emits = emits
+
+
+harness = SearchHarness()
 
 __all__ = ["name", "applied_layers", "capabilities", "consumes", "emits", "register_routes", "spec"]

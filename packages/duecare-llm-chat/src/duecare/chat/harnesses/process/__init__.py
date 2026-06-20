@@ -4,6 +4,7 @@ from __future__ import annotations
 from .handler import register_routes
 from .knowledge import CONSUMES as consumes, EMITS as emits
 from ..base import HarnessLogicPath, HarnessModelTarget, HarnessPackContract, HarnessSpec
+from ..base import BaseHarness
 
 name = "process"
 applied_layers: tuple[str, ...] = ("grep", "rag", "tools")
@@ -137,5 +138,19 @@ spec = HarnessSpec(
     output_verification=("typed edge schema", "row/page/chunk grounding", "review_status for model-proposed facts"),
     privacy_boundaries=("case files remain local", "raw bundles are not submitted to the public hub"),
 )
+
+
+class ProcessHarness(BaseHarness):
+    """Extends the thin BaseHarness for its shared helpers (emit_training_row / compose).
+    Single source of the harness primitive is the module attrs above; the `harness`
+    singleton carries them for handlers + the registry."""
+
+    name = name
+    applied_layers = applied_layers
+    consumes = consumes
+    emits = emits
+
+
+harness = ProcessHarness()
 
 __all__ = ["name", "applied_layers", "capabilities", "consumes", "emits", "register_routes", "spec"]

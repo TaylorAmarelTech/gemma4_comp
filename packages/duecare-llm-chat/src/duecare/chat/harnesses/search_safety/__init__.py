@@ -24,6 +24,7 @@ from __future__ import annotations
 
 from .handler import register_routes
 from ..base import HarnessLogicPath, HarnessModelTarget, HarnessPackContract, HarnessSpec
+from ..base import BaseHarness
 
 name = "search_safety"
 applied_layers: tuple[str, ...] = ()  # this IS a layer, not a consumer of layers
@@ -154,6 +155,20 @@ spec = HarnessSpec(
     output_verification=("sanitized query contains no direct identifiers", "unsafe queries can be blocked"),
     privacy_boundaries=("external search sees only sanitized query", "raw search intent stays local"),
 )
+
+
+class SearchSafetyHarness(BaseHarness):
+    """Extends the thin BaseHarness for its shared helpers (emit_training_row / compose).
+    Single source of the harness primitive is the module attrs above; the `harness`
+    singleton carries them for handlers + the registry."""
+
+    name = name
+    applied_layers = applied_layers
+    consumes = consumes
+    emits = emits
+
+
+harness = SearchSafetyHarness()
 
 __all__ = [
     "name", "applied_layers", "consumes", "emits", "capabilities",
