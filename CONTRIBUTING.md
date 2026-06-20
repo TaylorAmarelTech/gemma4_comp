@@ -24,7 +24,7 @@ allowlists, dimension multipliers, evaluator questions, etc. — live in
 single-file PRs. See:
 
 - **[`docs/contributing_curator_blocks.md`](./docs/contributing_curator_blocks.md)** — single-page guide with file-by-file conventions, required provenance fields, and a step-by-step PR workflow
-- **[`docs/maintenance/`](./docs/maintenance/)** — per-component edit guides (personas, GREP rules, RAG corpus, tool functions, online search)
+- **[`docs/maintenance/`](./docs/maintenance/)** — per-component edit guides (personas, GREP rules, RAG corpus, tool functions, online search, [data sources & registries](./docs/maintenance/entity_sources.md))
 - **`scripts/validate_curator_blocks.py`** — schema + cross-reference validator. Run before PR: `python scripts/validate_curator_blocks.py`
 
 CI runs the validator on every PR (see `.github/workflows/ci.yml`).
@@ -38,6 +38,18 @@ Zero code required. Create `configs/duecare/domains/your_domain/`
 with six YAML/JSONL files (card, taxonomy, rubric, pii_spec,
 seed_prompts, evidence). 30 minutes for a minimal pack. Full recipe in
 [`docs/EXTENDING.md#add-a-new-safety-domain`](./docs/EXTENDING.md#add-a-new-safety-domain).
+
+### "I want to add a new data source or registry (open knowledge & entity verification)"
+
+Mostly zero code. DueCare's **propose-only** entity-verification layer checks the
+recruiters, employers, and owners behind a case against official public records. A
+**server-rendered table, JSON API, or downloadable CSV/XLSX/PDF** is onboarded as a
+single YAML block in `configs/duecare/research_monitor/registry_specs.yaml` — no
+per-source Python — and is then addressable via
+`python scripts/acquisition_cascade.py --registry <id>`. Full recipe (the three
+contribution levels, the spec shape, the propose-only boundary, FollowTheMoney /
+open-knowledge interop, and the verification commands) in
+[`docs/maintenance/entity_sources.md`](./docs/maintenance/entity_sources.md).
 
 ### "I want to plug in a new model"
 
