@@ -85,17 +85,20 @@ def _key(r: dict) -> str:
 
 def run_panel(results: list[dict], judges: list[str], *, sample: int = 0,
               caller: Callable[..., str] | None = None, pace: float = 1.0,
-              exclude_self_family: bool = True) -> list[dict]:
+              exclude_self_family: bool = True, ckpt: Path | None = None) -> list[dict]:
     """Re-judge each stored response with every judge (resumable). Returns the panel rows.
 
     ``exclude_self_family`` (default True) enforces judge independence: a judge never scores a
     response from its own model family (e.g. ``glm-5.2`` never judges a ``glm-*`` candidate), so a
     diverse panel can include frontier models that are also candidates without self-enhancement bias.
+    ``ckpt`` overrides the checkpoint path so a separate response set (e.g. the 5-model perdim run)
+    gets its own panel file instead of colliding with the frontier panel.
     """
     import time
+    cp = ckpt or PANEL_CKPT
     rows = results[:sample] if sample else results
-    PANEL_CKPT.parent.mkdir(parents=True, exist_ok=True)
-    done = {(p["key"], p["judge"]) for p in load_results(PANEL_CKPT)}
+    cp.parent.mkdir(parents=True, exist_ok=True)
+    done = {(p["key"], p["judge"]) for p in load_results(cp)}
     for r in rows:
         for j in judges:
             if exclude_self_family and model_family(j) == model_family(r.get("model", "")):
@@ -108,12 +111,12 @@ def run_panel(results: list[dict], judges: list[str], *, sample: int = 0,
             except Exception as e:  # noqa: BLE001
                 print(f"  judge {j} {_key(r)} ERROR {str(e)[:70]}", file=sys.stderr)
                 continue
-            with open(PANEL_CKPT, "a", encoding="utf-8") as f:
+            with open(cp, "a", encoding="utf-8") as f:
                 f.write(json.dumps({"key": _key(r), "model": r["model"], "arm": r["arm"],
                                     "prompt_id": r["prompt_id"], "judge": j, "score": s}) + "\n")
             if caller is None:
                 time.sleep(pace)
-    return load_results(PANEL_CKPT)
+    return load_results(cp)
 
 
 def krippendorff_alpha(ratings_by_item: dict) -> float | None:
@@ -242,17 +245,20 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--judges", default=",".join(DEFAULT_JUDGES))
     ap.add_argument("--sample", type=int, default=0, help="limit #responses (0 = all)")
     ap.add_argument("--out", default=str(DEFAULT_OUT))
+    ap.add_argument("--ckpt", default=str(PANEL_CKPT),
+                    help="panel checkpoint (override for a separate response set, e.g. perdim)")
     ap.add_argument("--report-only", action="store_true")
     args = ap.parse_args(argv)
     judges = [j.strip() for j in args.judges.split(",") if j.strip()]
+    ckpt = Path(args.ckpt)
 
     if not args.report_only:
         results = load_results(Path(args.results))
         if not results:
             print(f"no stored responses in {args.results}", file=sys.stderr)
             return 1
-        run_panel(results, judges, sample=args.sample)
-    agg = aggregate(load_results(PANEL_CKPT), judges)
+        run_panel(results, judges, sample=args.sample, ckpt=ckpt)
+    agg = aggregate(load_results(ckpt), judges)
     build_report(agg, judges, out_path=Path(args.out))
     print(f"report -> {Path(args.out).name} | agreement ±{agg['mean_response_agreement_stdev']} "
           f"over {agg['n_responses']} responses", file=sys.stderr)
