@@ -1,8 +1,8 @@
 # Applicability verification + multi-pass judging
 
-Per-dimension grading raises two questions this audit answers on the live rubric: are the grader's **applicability** decisions (which dimensions it excludes as NOT_APPLICABLE per prompt) correct, and are an LLM judge's per-dimension calls **stable across passes**? An independent judge (`gpt-oss:120b`, outside the candidate families) re-decides applicability for a stratified sample of (prompt, dimension) pairs, **5 passes** each.
+Per-dimension grading raises two questions this audit answers on the live rubric: are the grader's **applicability** decisions (which dimensions it excludes as NOT_APPLICABLE per prompt) correct, and are an LLM judge's per-dimension calls **stable across passes**? An independent judge (`gpt-oss:120b`, outside the candidate families) re-decides applicability for a stratified sample of (prompt, dimension) pairs, **3 passes** each.
 
-> Over **800 (prompt × dimension) pairs**, the deterministic grader and the LLM judge agree on applicability **68%** of the time (**Cohen's κ = 0.36**, fair). The judge's 5 passes are unanimous on **86%** of pairs — so single-pass applicability calls are mostly stable, and the deterministic gate agrees with an independent model **more than chance but with meaningful disagreement** — applicability is genuinely judgment-dependent, not mechanical, which is itself a useful finding about the rigid grader.
+> Over **800 (prompt × dimension) pairs**, the deterministic grader and the LLM judge agree on applicability **68%** of the time (**Cohen's κ = 0.36**, fair). The judge's 3 passes are unanimous on **86%** of pairs — so single-pass applicability calls are mostly stable, and the deterministic gate agrees with an independent model **more than chance but with meaningful disagreement** — applicability is genuinely judgment-dependent, not mechanical, which is itself a useful finding about the rigid grader.
 
 ## Agreement by side
 
