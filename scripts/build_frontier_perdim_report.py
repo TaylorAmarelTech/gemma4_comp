@@ -73,6 +73,18 @@ def per_dimension_lift(cells: list[dict]) -> dict[str, tuple[float, float, float
     return out
 
 
+def per_dimension_deltas(cells: list[dict]) -> dict[str, list[float]]:
+    """{dim: [harnessed-baseline per (model, prompt) pair]} -- the inputs to a per-dim paired test."""
+    by: dict[tuple, dict[str, float]] = collections.defaultdict(dict)
+    for c in cells:
+        by[(c["dim"], c["model"], c["prompt_id"])][c["arm"]] = float(c["score"])
+    out: dict[str, list[float]] = collections.defaultdict(list)
+    for (dim, _m, _p), arms in by.items():
+        if "baseline" in arms and "harnessed" in arms:
+            out[dim].append(arms["harnessed"] - arms["baseline"])
+    return out
+
+
 def _model_rows(pairs: dict[str, list]) -> tuple[list[dict], list[float]]:
     rows: list[dict] = []
     pooled: list[float] = []
@@ -191,6 +203,31 @@ def build_report(cells: list[dict], *, judge_note: str, out_path: Path) -> str:
         o.append("|---|---:|---:|---:|---:|")
         for dim, (bm, hm, lift, n) in regressed:
             o.append(f"| `{dim}` | {bm:.2f} | {hm:.2f} | {lift:+.2f} | {n} |")
+        o.append("")
+
+    # multiple-comparison-corrected significance across all dimensions (FDR)
+    deltas = per_dimension_deltas(cells)
+    tests = {d: lift_stats.paired_test(ds) for d, ds in deltas.items() if len(ds) >= 10}
+    bh = lift_stats.benjamini_hochberg({d: t["p"] for d, t in tests.items()})
+    n_up = sum(1 for d, r in bh.items() if r["significant"] and tests[d]["mean"] > 0)
+    n_down = sum(1 for d, r in bh.items() if r["significant"] and tests[d]["mean"] < 0)
+    o.append("## Statistical significance (Benjamini–Hochberg FDR-corrected)\n")
+    o.append(
+        f"A paired test on each of {len(tests)} dimensions (≥10 paired observations each) is many "
+        "simultaneous hypotheses, which inflates false positives. We correct the whole family with "
+        "**Benjamini–Hochberg (FDR)**; a dimension is significant only if its adjusted **q ≤ 0.05**.\n")
+    o.append(
+        f"> **After FDR correction, the harness significantly improves {n_up} dimensions and "
+        f"significantly regresses {n_down}** (of {len(tests)} tested) — stricter than the raw "
+        "improve/regress counts above, and the count that survives multiple comparisons.\n")
+    sig = sorted(((d, tests[d]["mean"], bh[d]["q"], tests[d]["n"]) for d in bh
+                  if bh[d]["significant"] and tests[d]["mean"] > 0), key=lambda x: -x[1])[:12]
+    if sig:
+        o.append("| Dimension (FDR-significant improvement) | Mean Δ | q | n |")
+        o.append("|---|---:|---:|---:|")
+        for d, mean, q, n in sig:
+            qs = "<0.001" if q < 0.001 else f"{q:.3g}"   # q is never exactly 0
+            o.append(f"| `{d}` | {mean:+.2f} | {qs} | {n} |")
         o.append("")
 
     o.append("## Methodology\n")

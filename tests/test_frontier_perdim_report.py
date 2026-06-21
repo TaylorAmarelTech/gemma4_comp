@@ -58,6 +58,25 @@ def test_build_report_states_counts_and_shows_regressions(tmp_path):
     assert "honest tradeoffs" in md.lower()
 
 
+def test_per_dimension_deltas_pairs_harnessed_minus_baseline():
+    cells = []
+    for pid in ("p1", "p2"):
+        cells += [{"model": "m", "prompt_id": pid, "arm": "baseline", "dim": "A", "score": 4.0},
+                  {"model": "m", "prompt_id": pid, "arm": "harnessed", "dim": "A", "score": 6.0}]
+    assert b.per_dimension_deltas(cells)["A"] == [2.0, 2.0]
+
+
+def test_paired_test_and_benjamini_hochberg():
+    import lift_stats as ls                              # scripts/ is on sys.path via the builder load
+    sig = ls.paired_test([2.0, 1.0, 3.0] * 10)           # mean 2 with real variance, n=30
+    assert sig["p"] < 0.05 and sig["mean"] > 0
+    null = ls.paired_test([0.2, -0.2, 0.1, -0.1] * 8)    # mean ~ 0
+    assert null["p"] > 0.05
+    bh = ls.benjamini_hochberg({"a": 0.0001, "b": 0.6, "c": 0.03})
+    assert bh["a"]["significant"] is True and bh["b"]["significant"] is False
+    assert bh["a"]["q"] <= bh["c"]["q"] <= bh["b"]["q"]   # BH q-values are monotone in p
+
+
 def test_load_cells_skips_safety_judge_rows_and_nulls(tmp_path):
     p = tmp_path / "c.jsonl"
     p.write_text("\n".join([
