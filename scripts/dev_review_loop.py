@@ -55,7 +55,7 @@ PERSONAS: dict[str, dict] = {
         "lens": "a CTO. Assess architecture, correctness, tech debt, test coverage, scalability, "
                 "and the biggest engineering risk. What would not survive real load or audit?"},
     "cfo": {
-        "model": "kimi-k2.6",
+        "model": "kimi-k2.7-code",   # the only reachable Kimi 2.7 tag; needs the high token budget
         "lens": "a CFO. Assess cost structure, unit economics (per-NGO, per-inference), runway, "
                 "and sustainability. What is the cheapest path to durable value?"},
     "coo": {
@@ -104,7 +104,8 @@ def review(persona_key: str, digest: str, *, model: str | None = None,
         "for NGOs and regulators) from your lens. Be specific and critical; cite the digest.\n\n"
         f"PROJECT DIGEST:\n{digest}\n\n{_SCHEMA_HINT}")
     call = caller or (lambda p, **kw: ollama_chat(p, **kw))
-    text = call(prompt, model=model, max_tokens=2200)
+    # high budget so reasoning models (Kimi/GLM) finish the answer after their thinking pass
+    text = call(prompt, model=model, max_tokens=3500)
     data = extract_json(text) or {}
     if not isinstance(data, dict):
         data = {}
@@ -130,7 +131,7 @@ def cross_review(reviewer_key: str, target: dict, *, caller: Callable[..., str] 
         "did they MISS? "
         'Reply ONLY compact JSON: {"agree": ["..."], "dispute": ["..."], "missed": ["..."]}')
     call = caller or (lambda p, **kw: ollama_chat(p, **kw))
-    data = extract_json(call(prompt, model=spec["model"], max_tokens=1800)) or {}
+    data = extract_json(call(prompt, model=spec["model"], max_tokens=3000)) or {}
     if not isinstance(data, dict):
         data = {}
     return {"reviewer": reviewer_key, "target": target["persona"],
