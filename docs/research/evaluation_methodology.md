@@ -58,6 +58,26 @@ cross-check, reported **as relative** and with the controls below.
    rubric" artifact would not. This is acknowledged, not resolved (see Limitations).
 5. **Ceiling effects.** Strong models already satisfy easy dimensions, so a naive all-dimension mean
    is uninformative; we report **per-dimension** lift and improve/neutral/regress counts instead.
+6. **"Any preamble helps" confound** (would *any* official-sounding safety reminder produce the lift?).
+   *Controlled.* A **negative-control placebo arm** prepends generic "read carefully, be thorough, be
+   ethical" boilerplate that is **length-matched per prompt** to the real grounding but carries zero
+   domain knowledge. The diagnostic contrast is **harnessed − placebo**: the lift that remains after
+   subtracting the generic-preamble effect, attributable to the harness's knowledge (fired rules +
+   citations + ILO-reasoning) because that is the only thing the harnessed arm has that the placebo
+   does not. → `negative_control.md`.
+7. **Context leakage in the LLM judge** (the judge favouring an arm for reasons other than answer
+   quality). *Guarded.* Each judge call sees **only** the original prompt + one response — never the
+   arm label, never the grounding preamble (grading the harness's own injected citations would be
+   circular), never the other arm's response; calls are stateless (no cross-response accumulation).
+   Verified at the data level (**0 preamble leaks** across stored harnessed rows — the harnessed arm's
+   `prompt_text` is the original worker message) and locked at the code level by
+   `tests/test_context_hygiene.py`.
+8. **Non-answers scored as bad answers** (a refusal or a format failure is not a low-quality answer).
+   *Separated.* Format failures (empty / reasoning-trace / too-short) are flagged and **excluded** from
+   quality scoring; **refusals are reported separately, not excluded** — refusing a recruiter-side
+   exploitation request is the *desired* behaviour (rewarded by the grader's harm-enablement /
+   grounded-refusal dimensions), and the per-dimension grader already scores good-vs-bad refusal per
+   prompt. → `refusal_analysis.md`.
 
 ## 5. Limitations (honest — these bound the claims)
 
