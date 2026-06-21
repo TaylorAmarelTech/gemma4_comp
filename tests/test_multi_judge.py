@@ -79,3 +79,26 @@ def test_run_panel_resumable_offline(tmp_path, monkeypatch):
     # re-run is a no-op (already done -> resumable)
     assert len(mj.run_panel(results, ["j1"], caller=lambda p, **k: '{"score": 9}')) == 2
     assert {p["score"] for p in mj.load_results(tmp_path / "p.jsonl")} == {6.0}   # not re-judged
+
+
+def test_model_family_groups_variants():
+    assert mj.model_family("glm-5.2") == "glm"
+    assert mj.model_family("qwen3.5:397b") == mj.model_family("qwen3-coder:480b") == "qwen"
+    assert mj.model_family("gpt-oss:120b") == "gpt-oss"          # gpt-oss is its own family
+    assert mj.model_family("kimi-k2.7-code") == "kimi"
+
+
+def test_run_panel_excludes_self_family(tmp_path, monkeypatch):
+    monkeypatch.setattr(mj, "PANEL_CKPT", tmp_path / "p.jsonl")
+    # a glm candidate must NOT be scored by the glm judge, but IS scored by gpt-oss + qwen
+    results = [{"model": "glm-5.2", "prompt_id": "p1", "arm": "baseline", "prompt_text": "q", "response": "a"}]
+    panel = mj.run_panel(results, ["glm-5.2", "gpt-oss:120b", "qwen3.5:397b"],
+                         caller=lambda p, **k: '{"score": 7}')
+    judges = {p["judge"] for p in panel}
+    assert "glm-5.2" not in judges                                # never grades its own family
+    assert judges == {"gpt-oss:120b", "qwen3.5:397b"}
+    # opting out restores the naive behaviour
+    monkeypatch.setattr(mj, "PANEL_CKPT", tmp_path / "p2.jsonl")
+    panel2 = mj.run_panel(results, ["glm-5.2"], caller=lambda p, **k: '{"score": 7}',
+                          exclude_self_family=False)
+    assert len(panel2) == 1 and panel2[0]["judge"] == "glm-5.2"
