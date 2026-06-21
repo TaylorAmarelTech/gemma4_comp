@@ -653,6 +653,12 @@ Do not let the agency convince you that you have no choice. Retaining your passp
 - Open models run on Ollama-cloud; closed frontier (GPT/Claude/Gemini) run via OpenRouter when a key is configured.
 - This measures **recognition + response quality**, not real-world deployment outcomes.
 
+## How to read these scores (determinism)
+
+The judge runs at **temperature 0**, so it is quasi-deterministic but not bit-exact — an LLM judge can vary slightly run to run, converging but not identical. The comparison is robust anyway because the design is **paired**: the baseline and harnessed replies to the same prompt are scored by the SAME judge under the SAME rubric, so any systematic judge bias (anchoring, scale compression, house style) **cancels in the lift** (harnessed − baseline). So read the **delta and the ranking** as the signal, and treat the absolute 0–10 as **ordinal / relative, not a calibrated absolute score**.
+
+For a fully **deterministic, reproducible** measure (same input → same output, no LLM judge), see the per-dimension report (`frontier_perdim_report.md`) and the failure analysis (`frontier_failure_report.md`) — both grade with DueCare's rule-based `grade_response_universal`. That is the gradeable headline; this LLM-judged view is the holistic companion. A stronger version of *this* report would average **2–3 independent judges** (e.g. GLM + Kimi + Gemini) and report their agreement, plus re-judge each reply a few times to publish the score's variance — removing single-judge idiosyncrasy. With multiple judges, rank- or z-normalising per judge before averaging removes each judge's scale; with one judge, the paired delta already does that.
+
 ## Why this matters after the competition
 
 Even the strongest models leave trafficking-safety quality on the table out of the box. DueCare is a thin, model-agnostic harness any NGO, platform, or regulator can put in front of the model they already use — and the lift is measurable. If you work in anti-trafficking, labour migration, or platform safety and want to pressure-test this on your own cases, please reach out.
