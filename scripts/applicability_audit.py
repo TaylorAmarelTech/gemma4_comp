@@ -175,12 +175,19 @@ def build_report(rows: list[dict], *, judge_model: str, passes: int, out_path: p
         "prompt) correct, and are an LLM judge's per-dimension calls **stable across passes**? An "
         f"independent judge (`{judge_model}`, outside the candidate families) re-decides applicability "
         f"for a stratified sample of (prompt, dimension) pairs, **{passes} passes** each.\n")
+    strong = a["kappa"] >= 0.6
+    gate_clause = (
+        "the cheap deterministic gate substantially matches an independent model's judgment"
+        if strong else
+        "the deterministic gate agrees with an independent model **more than chance but with "
+        "meaningful disagreement** — applicability is genuinely judgment-dependent, not mechanical, "
+        "which is itself a useful finding about the rigid grader")
     o.append(
         f"> Over **{a['n']} (prompt × dimension) pairs**, the deterministic grader and the LLM judge "
         f"agree on applicability **{a['raw_agreement']*100:.0f}%** of the time (**Cohen's κ = "
         f"{a['kappa']:.2f}**, {_kappa_label(a['kappa'])}). The judge's {passes} passes are unanimous "
         f"on **{a['multipass_unanimity']*100:.0f}%** of pairs — so single-pass applicability calls are "
-        "mostly stable, and the cheap deterministic gate matches the expensive model's judgment.\n")
+        f"mostly stable, and {gate_clause}.\n")
     o.append("## Agreement by side\n")
     o.append("| Grader said | n | Judge agreed | rate |")
     o.append("|---|---:|---:|---:|")
