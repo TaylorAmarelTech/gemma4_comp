@@ -33,7 +33,11 @@ sys.path.insert(0, str(_ROOT / "scripts"))
 from build_frontier_perdim_report import load_cells  # noqa: E402  (reuse the cell loader)
 
 DEFAULT_CKPT = _ROOT / "reports" / "frontier_perdim" / "perdim.jsonl"
-DEFAULT_CORPUS = _ROOT / "configs" / "duecare" / "benchmarks" / "harness_lift_prompts_500.json"
+# the checkpoint may pool prompts from more than one corpus file; load metadata from all of them
+DEFAULT_CORPORA = [
+    _ROOT / "configs" / "duecare" / "benchmarks" / "harness_lift_prompts_500.json",
+    _ROOT / "configs" / "duecare" / "benchmarks" / "harness_lift_prompts_1000.json",
+]
 DEFAULT_OUT = _ROOT / "docs" / "research" / "frontier_failure_report.md"
 
 FAIL = 5.0   # a dimension scoring below the 0-10 midpoint is a FAILURE to adequately address it
@@ -82,12 +86,18 @@ THEMES: dict[str, list[str]] = {
 _DIM_THEME = {dim: theme for theme, dims in THEMES.items() for dim in dims}
 
 
-def load_prompt_meta(path: Path) -> dict[str, dict]:
-    if not Path(path).exists():
-        return {}
-    prompts = json.loads(Path(path).read_text(encoding="utf-8")).get("prompts", [])
-    return {str(p.get("id")): {"category": p.get("category", "unknown"),
-                               "difficulty": p.get("difficulty", "unknown")} for p in prompts}
+def load_prompt_meta(paths) -> dict[str, dict]:
+    """Merge {id -> category/difficulty} from one or several corpus files (ids are disjoint)."""
+    if isinstance(paths, (str, Path)):
+        paths = [paths]
+    out: dict[str, dict] = {}
+    for path in paths:
+        if not Path(path).exists():
+            continue
+        for p in json.loads(Path(path).read_text(encoding="utf-8")).get("prompts", []):
+            out[str(p.get("id"))] = {"category": p.get("category", "unknown"),
+                                     "difficulty": p.get("difficulty", "unknown")}
+    return out
 
 
 def _fail_rate(scores: list[float]) -> float:
@@ -234,7 +244,7 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--ckpt", default=str(DEFAULT_CKPT))
-    ap.add_argument("--corpus", default=str(DEFAULT_CORPUS))
+    ap.add_argument("--corpus", nargs="*", default=[str(p) for p in DEFAULT_CORPORA])
     ap.add_argument("--out", default=str(DEFAULT_OUT))
     args = ap.parse_args(argv)
 
@@ -242,7 +252,7 @@ def main(argv: list[str] | None = None) -> int:
     if not cells:
         print(f"no per-dimension cells in {args.ckpt}", file=sys.stderr)
         return 1
-    meta = load_prompt_meta(Path(args.corpus))
+    meta = load_prompt_meta([Path(p) for p in args.corpus])
     build_report(cells, meta, out_path=Path(args.out))
     print(f"report -> {Path(args.out).relative_to(_ROOT)} "
           f"({len(cells)} cells, {len({c['prompt_id'] for c in cells})} prompts)", file=sys.stderr)
