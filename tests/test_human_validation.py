@@ -22,10 +22,12 @@ hv = _load("build_human_validation_sample", _ROOT / "scripts" / "build_human_val
 
 
 def _responses():
+    # response text deliberately avoids the words "baseline"/"harnessed" so the blinding test
+    # checks the EXPORT, not the synthetic content
     out = []
     for pid in ("p1", "p2", "p3", "p4"):
-        for arm in ("baseline", "harnessed"):
-            out.append({"prompt_id": pid, "model": "m", "arm": arm, "response": f"reply {pid} {arm}"})
+        for n, arm in enumerate(("baseline", "harnessed")):
+            out.append({"prompt_id": pid, "model": "m", "arm": arm, "response": f"AI reply for {pid} v{n}"})
     return out
 
 
