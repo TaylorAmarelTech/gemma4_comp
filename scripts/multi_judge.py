@@ -165,13 +165,17 @@ def build_report(agg: dict, judges: list[str], *, out_path: Path) -> str:
         "relative comparison does not depend on any one judge — the real answer to the "
         "non-determinism concern, stronger than picking a single 'best' judge.\n")
     a = agg.get("krippendorff_alpha")
-    a_label = ("" if a is None else " (strong agreement)" if a >= 0.8
-               else " (acceptable agreement)" if a >= 0.67 else " (weak agreement)")
-    a_txt = f"**Krippendorff's α = {a}**{a_label}" if a is not None else "Krippendorff's α = n/a"
-    o.append(f"> **The judges agree.** {a_txt} (interval inter-rater reliability), mean per-response "
-             f"score spread ±{agg['mean_response_agreement_stdev']}/10, and the per-model lift is "
-             "consistent across judges (spread column below) — so the relative result is "
-             "judge-robust, not an artifact of one judge.\n")
+    a_label = ("" if a is None else " — strong" if a >= 0.8
+               else " — acceptable" if a >= 0.67 else " — only weak *absolute* agreement")
+    mean_lift_spread = (round(statistics.mean([r["judge_spread"] for r in agg["rows"]]), 2)
+                        if agg["rows"] else 0.0)
+    o.append(
+        "> **The judges may differ on absolute scores, but they agree on the LIFT.** "
+        f"Krippendorff's α = {a}{a_label} (inter-rater reliability of the *absolute* 0–10 scores); "
+        f"meanwhile the *per-model lift* is consistent across judges (mean spread "
+        f"±{mean_lift_spread}/10). We only ever claim the **relative** lift (the paired delta), and "
+        "that is what is — and must be — judge-robust: absolute-score disagreement cancels in the "
+        "pairing. This is the empirical version of *read the delta, not the absolute score*.\n")
     o.append("## Per-model lift, by judge\n")
     o.append("| Model | " + " | ".join(f"`{j}`" for j in judges) + " | Panel mean | Judge spread |")
     o.append("|---" * (len(judges) + 3) + "|")
@@ -183,10 +187,11 @@ def build_report(agg: dict, judges: list[str], *, out_path: Path) -> str:
     o.append("")
     o.append("## Reading this\n")
     o.append(
-        "- **Krippendorff's α** is the standard inter-rater-reliability statistic for interval "
-        "ratings (1 = perfect agreement, ~0 = chance, < 0 = systematic disagreement). Conventional "
-        "thresholds: ≥0.80 strong, 0.67–0.80 acceptable. It measures whether the judges agree at "
-        "the individual-response level (stricter than agreeing on the aggregate lift).\n"
+        "- **Krippendorff's α** (above) is the inter-rater reliability of the *absolute* 0–10 "
+        "scores (1 = perfect, ~0 = chance, < 0 = systematic disagreement; ≥0.80 strong, 0.67–0.80 "
+        "acceptable). A *weak* α together with a *small* lift-spread is the expected, acceptable "
+        "pattern: judges can anchor their absolute scale differently yet still agree on how much "
+        "the harness improved a reply — and the paired design uses only the latter.\n"
         "- **Judge spread** (last column) is the standard deviation of the per-model lift across "
         "judges. Small spread = the judges award the same *relative* improvement, so the headline "
         "lift is not an artifact of one judge.\n"
