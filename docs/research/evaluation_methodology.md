@@ -60,9 +60,13 @@ dimensions than it regresses, but the mean washes out); see `comparative_results
 2. **Judge non-determinism.** Temp 0 is quasi-deterministic, not exact. Mitigations: the
    **deterministic grader is the headline**; the LLM-judge is read **relatively** (paired delta);
    and a **multi-judge panel** measures inter-judge agreement on the lift. → `frontier_panel_judges.md`.
-3. **Self-enhancement / non-independence.** A judge must not grade its own family. The panel judges
-   (`gpt-oss:120b`, `gpt-oss:20b`, `kimi-k2.7-code`) are all **outside** the glm/deepseek/qwen/gemma
-   candidate families.
+3. **Self-enhancement / non-independence.** A judge must not grade its own family. We use a **diverse
+   panel of large frontier judges** — `gpt-oss:120b`, `glm-5.2`, `qwen3.5:397b`, `kimi-k2.7-code`,
+   `deepseek-v3.2` — and preserve independence by **self-family exclusion**: a judge never scores a
+   response from its own family (e.g. GLM never judges a GLM candidate; `multi_judge.model_family` +
+   `run_panel(exclude_self_family=True)`). This lets strong models that are *also* candidates serve as
+   judges for the *other* candidates without self-enhancement bias, rather than restricting the panel
+   to a fixed non-candidate trio.
 4. **Construct validity / rubric circularity.** The harness injects "name indicators, cite ILO
    conventions, give contacts," and the rubric rewards those — a real circularity. Our defense: the
    dimensions are grounded in external frameworks (ILO forced-labour indicators, ILO C029/C181/C188/
