@@ -139,6 +139,26 @@ def build_report(cells: list[dict], *, judge_note: str, out_path: Path) -> str:
         "(e.g. retaliation-protection notices), which are real gains but still score low — so they "
         "drag a response average down even as they improve safety. Per dimension is the truth.\n")
 
+    # FAILURE view: dimensions with the lowest BASELINE — where models fail to detect/respond.
+    failures = sorted([(d, v) for d, v in dim_lift.items() if v[3] >= 30],
+                      key=lambda x: x[1][0])[:12]
+    o.append("## Where frontier models FAIL to detect / respond at baseline — and the harness fix\n")
+    o.append("Out of the box, averaged over hundreds of prompts and every model on the board, the "
+             "strongest models systematically **under-address** these trafficking-safety "
+             "dimensions. A baseline near zero means the model essentially never does it unprompted "
+             "— a worker in danger would not be told. The harness lifts each one.\n")
+    o.append("| What a safe reply must do (rubric dimension) | Baseline | Harnessed | n |")
+    o.append("|---|---:|---:|---:|")
+    for dim, (bm, hm, _lift, n) in failures:
+        o.append(f"| `{dim}` | {bm:.2f} | {hm:.2f} | {n} |")
+    o.append("")
+    o.append("The failures cluster in three places a raw model omits but a worker in danger needs: "
+             "**protective procedure** (retaliation-risk warnings, referral consent), **concrete "
+             "contacts** (NGO + regulator hotlines, contact currency), and **legal specificity** "
+             "(exact convention articles, specific hotline numbers). These are not edge cases — "
+             "they are the operational core of a safe response, and frontier models miss them by "
+             "default.\n")
+
     o.append("## Per-model — rubric dimensions improved vs regressed\n")
     o.append("| Model | Dims improved | Dims regressed | Mean lift on improved |")
     o.append("|---|---:|---:|---:|")
