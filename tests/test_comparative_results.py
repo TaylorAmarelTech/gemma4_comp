@@ -54,12 +54,19 @@ def test_dim_improve_regress_is_ceiling_robust():
     assert round(ir["model_a"]["mean_lift_improved"], 2) == 3.0
 
 
-def test_report_ranks_models_and_shows_both_views(tmp_path):
-    md = cr.build_report(_cells(), out_path=tmp_path / "r.md")
+def test_deterministic_mode_is_conservative_with_ceiling_framing(tmp_path):
+    md = cr.build_report(_cells(), out_path=tmp_path / "r.md", mode="deterministic")
     assert "Comparative results" in md
-    # bigger-lift model ranks first
-    assert md.index("model_a") < md.index("model_b")
-    # both the all-dim-mean view AND the ceiling-robust dim-count view are present
-    for col in ("Baseline", "Harnessed", "All-dim lift", "95% CI", "Dims ↑ / ↓"):
+    assert md.index("model_a") < md.index("model_b")               # bigger lift ranks first
+    for col in ("Baseline", "Harnessed", "Lift", "95% CI", "Dims ↑ / ↓"):
         assert col in md
-    assert "ceiling effect" in md.lower()       # the honest framing is not optional
+    assert "ceiling effect" in md.lower()                          # honest conservative framing
+    assert "conservative" in md.lower() or "cross-check" in md.lower()
+
+
+def test_llm_judge_mode_is_primary_and_not_ceiling_framed(tmp_path):
+    md = cr.build_report(_cells(), out_path=tmp_path / "r.md", mode="llm_judge")
+    assert "LLM-judge" in md and "primary" in md.lower()
+    assert "holistically" in md.lower()                            # the non-rigid framing
+    assert md.index("model_a") < md.index("model_b")
+    assert "Cohen's d" in md and "Win %" in md
