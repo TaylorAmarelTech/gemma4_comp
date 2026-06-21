@@ -35,7 +35,10 @@ _ROOT = Path(__file__).resolve().parents[1]
 PROPOSALS_DIR = _ROOT / "reports" / "llm_proposals"
 OLLAMA_CLOUD_BASE = "https://ollama.com/v1"   # NOT OLLAMA_HOST (that's the down local daemon)
 DEFAULT_MODEL = "glm-5.2"
-DEFAULT_MAX_TOKENS = 2000   # high enough that a reasoning model still emits an answer
+# Generous default: a reasoning model spends a big chunk of the budget THINKING, so a small cap
+# starves the answer -- and document-length output (edits, rewrites, long drafts) needs room.
+# Override per environment with DUECARE_MAX_TOKENS.
+DEFAULT_MAX_TOKENS = int(os.environ.get("DUECARE_MAX_TOKENS", "8000"))
 
 
 def _load_key() -> str:

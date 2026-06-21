@@ -29,7 +29,9 @@ from typing import Callable
 _ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_ROOT / "scripts"))
 
-from llm_generate import extract_json, ollama_chat, stage_proposal  # noqa: E402  (engine reuse)
+from llm_generate import (  # noqa: E402  (engine reuse)
+    DEFAULT_MAX_TOKENS, extract_json, ollama_chat, stage_proposal,
+)
 
 REVIEW_DIR = _ROOT / "reports" / "dev_review"
 
@@ -104,8 +106,9 @@ def review(persona_key: str, digest: str, *, model: str | None = None,
         "for NGOs and regulators) from your lens. Be specific and critical; cite the digest.\n\n"
         f"PROJECT DIGEST:\n{digest}\n\n{_SCHEMA_HINT}")
     call = caller or (lambda p, **kw: ollama_chat(p, **kw))
-    # high budget so reasoning models (Kimi/GLM) finish the answer after their thinking pass
-    text = call(prompt, model=model, max_tokens=3500)
+    # generous budget so reasoning models (Kimi/GLM) finish after thinking, and so a reviewer can
+    # return document-length edits/rewrites (DUECARE_MAX_TOKENS, default 8000)
+    text = call(prompt, model=model, max_tokens=DEFAULT_MAX_TOKENS)
     data = extract_json(text) or {}
     if not isinstance(data, dict):
         data = {}
@@ -131,7 +134,7 @@ def cross_review(reviewer_key: str, target: dict, *, caller: Callable[..., str] 
         "did they MISS? "
         'Reply ONLY compact JSON: {"agree": ["..."], "dispute": ["..."], "missed": ["..."]}')
     call = caller or (lambda p, **kw: ollama_chat(p, **kw))
-    data = extract_json(call(prompt, model=spec["model"], max_tokens=3000)) or {}
+    data = extract_json(call(prompt, model=spec["model"], max_tokens=DEFAULT_MAX_TOKENS)) or {}
     if not isinstance(data, dict):
         data = {}
     return {"reviewer": reviewer_key, "target": target["persona"],
