@@ -133,3 +133,43 @@ def model_stats(
         })
     out.sort(key=lambda r: r["lift"], reverse=True)
     return out
+
+
+def normal_sf(z: float) -> float:
+    """One-sided upper-tail P(Z > z) for a standard normal (stdlib, via erfc)."""
+    return 0.5 * math.erfc(z / math.sqrt(2))
+
+
+def paired_test(deltas: list[float]) -> dict[str, Any]:
+    """One-sample test on paired deltas: large-n normal (Wald) approximation to the paired t-test.
+
+    With hundreds of deltas the t-distribution is ~normal, so the z-approximation is accurate
+    (an exact t needs scipy, which is not installed). Returns mean, n, z, and a TWO-SIDED p.
+    """
+    n = len(deltas)
+    if n < 2:
+        return {"mean": (deltas[0] if deltas else 0.0), "n": n, "z": 0.0, "p": 1.0}
+    m = sum(deltas) / n
+    var = sum((d - m) ** 2 for d in deltas) / (n - 1)
+    se = math.sqrt(var / n)
+    z = m / se if se > 1e-12 else 0.0
+    return {"mean": round(m, 4), "n": n, "z": round(z, 3), "p": min(1.0, 2.0 * normal_sf(abs(z)))}
+
+
+def benjamini_hochberg(pvalues: dict[str, float], *, alpha: float = 0.05) -> dict[str, dict[str, Any]]:
+    """Benjamini-Hochberg FDR correction over a family of tests.
+
+    ``pvalues`` maps a key (e.g. a dimension) to its raw p-value. Returns
+    ``{key: {p, q, significant}}`` where ``q`` is the BH-adjusted p-value and ``significant`` is
+    ``q <= alpha`` -- controlling the expected false-discovery rate at ``alpha`` across the family.
+    """
+    items = sorted(pvalues.items(), key=lambda kv: kv[1])
+    m = len(items)
+    out: dict[str, dict[str, Any]] = {}
+    prev = 1.0
+    for i in range(m - 1, -1, -1):          # largest p -> smallest, enforcing monotone q
+        key, p = items[i]
+        q = min(prev, p * m / (i + 1))
+        out[key] = {"p": round(p, 4), "q": round(q, 4), "significant": q <= alpha}
+        prev = q
+    return out
