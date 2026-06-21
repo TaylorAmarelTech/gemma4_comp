@@ -28,6 +28,19 @@ The headline metric is the **deterministic** grader: it needs no model at judgin
 reproducible, and is not subject to LLM-judge pathologies. The LLM-judge view is a holistic
 cross-check, reported **as relative** and with the controls below.
 
+**The two graders are not interchangeable — and we say so.** On the high-variance 1000-prompt
+gemma4:31b run, the deterministic grader and the LLM judge **agree on direction** (both find a
+positive average lift: deterministic **+0.18**, judge **+1.73**) and trend together in aggregate (the
+top deterministic-lift bin gets the highest judge-lift), but their **per-prompt correlation is weak**
+(Pearson r ≈ 0.18). The deterministic grader is a strict surface-pattern/citation matcher with a
+small dynamic range on strong models, so it reports a **small, conservative** lift; the LLM judge
+weighs safety holistically, so it reports a **larger** one. Consequences, stated plainly: the large
+single-number lift (e.g. **+1.73**) is the **LLM-judge** view; the deterministic grader is a
+conservative reproducible floor plus the per-dimension diagnostic; and neither is treated as a proxy
+for the other. Full analysis: `convergent_validity.md`. On already-strong frontier models the
+deterministic all-dimension *mean* is near-flat (a ceiling effect — the harness improves far more
+dimensions than it regresses, but the mean washes out); see `comparative_results.md`.
+
 ## 3. Statistical methods
 
 - **Paired per-prompt deltas**; mean lift over prompts.
