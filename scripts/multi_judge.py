@@ -93,8 +93,34 @@ def run_panel(results: list[dict], judges: list[str], *, sample: int = 0,
     return load_results(PANEL_CKPT)
 
 
+def krippendorff_alpha(ratings_by_item: dict) -> float | None:
+    """Krippendorff's alpha for INTERVAL data (squared-difference metric) -- the standard
+    inter-rater-reliability statistic.
+
+    ``ratings_by_item`` maps each item to the list of scores it received. alpha = 1 - Do/De, where
+    Do is the observed within-item disagreement and De the disagreement expected by chance. alpha
+    handles missing ratings (items rated by different numbers of judges). 1.0 = perfect agreement,
+    ~0 = chance, < 0 = systematic disagreement. Conventional thresholds: >=0.80 strong,
+    0.67-0.80 acceptable, < 0.67 weak.
+    """
+    units = [list(v) for v in ratings_by_item.values() if len(v) >= 2]
+    if not units:
+        return None
+    n = sum(len(v) for v in units)                    # pairable values
+    num_o = 0.0
+    for v in units:
+        m = len(v)
+        num_o += sum((v[i] - v[j]) ** 2 for i in range(m) for j in range(m) if i != j) / (m - 1)
+    d_o = num_o / n
+    allv = [x for v in units for x in v]
+    mean = sum(allv) / n
+    ss = sum((x - mean) ** 2 for x in allv)
+    d_e = (2 * n * ss) / (n * (n - 1)) if n > 1 else 0.0   # mean squared diff over all pairs
+    return round(1 - d_o / d_e, 3) if d_e > 1e-12 else None
+
+
 def aggregate(panel: list[dict], judges: list[str]) -> dict:
-    """Per-model lift PER judge + the panel mean + inter-judge agreement (stdev across judges)."""
+    """Per-model lift PER judge + the panel mean + inter-judge agreement (stdev + Krippendorff α)."""
     by_resp: dict[str, dict[str, float]] = {}
     meta: dict[str, dict] = {}
     for p in panel:
@@ -122,8 +148,10 @@ def aggregate(panel: list[dict], judges: list[str]) -> dict:
                          "panel_lift": round(sum(vals) / len(vals), 2),
                          "judge_spread": round(statistics.pstdev(vals), 2) if len(vals) > 1 else 0.0})
     rows.sort(key=lambda x: -x["panel_lift"])
+    alpha = krippendorff_alpha({k: list(s.values()) for k, s in by_resp.items()})
     return {"rows": rows,
             "mean_response_agreement_stdev": round(statistics.mean(spreads), 2) if spreads else 0.0,
+            "krippendorff_alpha": alpha,
             "n_responses": len(by_resp)}
 
 
@@ -136,9 +164,14 @@ def build_report(agg: dict, judges: list[str], *, out_path: Path) -> str:
         "judges and asks: do they agree on the **lift** (harnessed − baseline)? If they do, the "
         "relative comparison does not depend on any one judge — the real answer to the "
         "non-determinism concern, stronger than picking a single 'best' judge.\n")
-    o.append(f"> **Judges agree closely: mean per-response score spread across judges is "
-             f"±{agg['mean_response_agreement_stdev']}/10**, and the per-model lift is consistent "
-             f"across judges (spread column below). The relative result is judge-robust.\n")
+    a = agg.get("krippendorff_alpha")
+    a_label = ("" if a is None else " (strong agreement)" if a >= 0.8
+               else " (acceptable agreement)" if a >= 0.67 else " (weak agreement)")
+    a_txt = f"**Krippendorff's α = {a}**{a_label}" if a is not None else "Krippendorff's α = n/a"
+    o.append(f"> **The judges agree.** {a_txt} (interval inter-rater reliability), mean per-response "
+             f"score spread ±{agg['mean_response_agreement_stdev']}/10, and the per-model lift is "
+             "consistent across judges (spread column below) — so the relative result is "
+             "judge-robust, not an artifact of one judge.\n")
     o.append("## Per-model lift, by judge\n")
     o.append("| Model | " + " | ".join(f"`{j}`" for j in judges) + " | Panel mean | Judge spread |")
     o.append("|---" * (len(judges) + 3) + "|")
@@ -150,6 +183,10 @@ def build_report(agg: dict, judges: list[str], *, out_path: Path) -> str:
     o.append("")
     o.append("## Reading this\n")
     o.append(
+        "- **Krippendorff's α** is the standard inter-rater-reliability statistic for interval "
+        "ratings (1 = perfect agreement, ~0 = chance, < 0 = systematic disagreement). Conventional "
+        "thresholds: ≥0.80 strong, 0.67–0.80 acceptable. It measures whether the judges agree at "
+        "the individual-response level (stricter than agreeing on the aggregate lift).\n"
         "- **Judge spread** (last column) is the standard deviation of the per-model lift across "
         "judges. Small spread = the judges award the same *relative* improvement, so the headline "
         "lift is not an artifact of one judge.\n"
