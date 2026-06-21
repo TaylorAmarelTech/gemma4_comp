@@ -170,7 +170,9 @@ def aggregate(panel: list[dict], judges: list[str]) -> dict:
                 judge_lifts[j] = round(sum(deltas) / len(deltas), 2)
         if judge_lifts:
             vals = list(judge_lifts.values())
-            rows.append({"model": m, "judge_lifts": judge_lifts,
+            paired = {pid for byp in byj.values() for pid, arms in byp.items()
+                      if "harnessed" in arms and "baseline" in arms}
+            rows.append({"model": m, "judge_lifts": judge_lifts, "n_prompts": len(paired),
                          "panel_lift": round(sum(vals) / len(vals), 2),
                          "judge_spread": round(statistics.pstdev(vals), 2) if len(vals) > 1 else 0.0})
     rows.sort(key=lambda x: -x["panel_lift"])
@@ -203,14 +205,22 @@ def build_report(agg: dict, judges: list[str], *, out_path: Path) -> str:
         "that is what is — and must be — judge-robust: absolute-score disagreement cancels in the "
         "pairing. This is the empirical version of *read the delta, not the absolute score*.\n")
     o.append("## Per-model lift, by judge\n")
-    o.append("| Model | " + " | ".join(f"`{j}`" for j in judges) + " | Panel mean | Judge spread |")
-    o.append("|---" * (len(judges) + 3) + "|")
+    o.append("| Model | n | " + " | ".join(f"`{j}`" for j in judges) + " | Panel mean | Judge spread |")
+    o.append("|---" * (len(judges) + 4) + "|")
     for r in agg["rows"]:
         cells = " | ".join(
             (f"{r['judge_lifts'][j]:+}" if isinstance(r["judge_lifts"].get(j), (int, float)) else "—")
             for j in judges)
-        o.append(f"| `{r['model']}` | {cells} | **{r['panel_lift']:+}** | ±{r['judge_spread']} |")
+        o.append(f"| `{r['model']}` | {r.get('n_prompts', '?')} | {cells} | "
+                 f"**{r['panel_lift']:+}** | ±{r['judge_spread']} |")
     o.append("")
+    o.append(
+        "A &mdash; is a **self-family exclusion**: a judge never scores a response from its own model "
+        "family (so GLM doesn't judge `glm-5.2`, etc.). **n** is the prompts per model with both arms "
+        "scored &mdash; modest here (this is a balanced sample on the harder perdim subset, where "
+        "baselines are weak so the *absolute* lift runs large). This panel's job is to show the lift "
+        "is **judge-robust**, not to pin its magnitude; the larger-N magnitude estimates are the "
+        "single-judge reports (`harness_lift_report.md`, `comparative_results_llm_judge.md`).\n")
     o.append("## Reading this\n")
     o.append(
         "- **Krippendorff's α** (above) is the inter-rater reliability of the *absolute* 0–10 "
