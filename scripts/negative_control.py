@@ -233,14 +233,20 @@ def build_report(stats: dict, *, lengths: dict, out_path: pathlib.Path) -> str:
         "knowledge** — no GREP citations, no RAG excerpts, no ILO indicators, no statutes, just "
         "generic 'read carefully, be thorough, be ethical' boilerplate. Same models, same "
         "deterministic grader, same prompts.\n")
+    pmb = ov["placebo_minus_baseline"]["mean"]
+    placebo_dir = ("nudged the score up slightly" if pmb > 0.05 else
+                   "slightly *lowered* the score" if pmb < -0.05 else
+                   "left the score essentially unchanged")
     o.append(
         f"> On **{ov.get('n', 0)} (prompt × model) pairs** the means were "
         f"**baseline {ov.get('mean_baseline')} → placebo {ov.get('mean_placebo')} → harnessed "
-        f"{ov.get('mean_harnessed')}** (0–10). The placebo moved the score a little (the 'any "
-        f"preamble' effect), but the real grounding moved it **{ov['harnessed_minus_placebo']['mean']:+.2f} "
+        f"{ov.get('mean_harnessed')}** (0–10). The generic placebo {placebo_dir} ({pmb:+.2f}, the "
+        f"'any preamble' effect), but the real grounding scored **{ov['harnessed_minus_placebo']['mean']:+.2f} "
         f"beyond the placebo** (paired z={ov['harnessed_minus_placebo']['z']:.2f}, "
-        f"p={_fmt_p(ov['harnessed_minus_placebo']['p'])}) — so the lift is driven by the harness's "
-        "knowledge, not by the mere presence of a preamble.\n")
+        f"p={_fmt_p(ov['harnessed_minus_placebo']['p'])}) — so what lift the rigid grader does register "
+        "is driven by the harness's knowledge, not the mere presence of a preamble. (These are the "
+        "ceiling-bound *deterministic* scores; the holistic LLM-judge lift is larger — see "
+        "`comparative_results_llm_judge.md`.)\n")
 
     o.append("## Length match (so this is a fair control)\n")
     if lengths.get("real_mean"):
@@ -282,9 +288,10 @@ def build_report(stats: dict, *, lengths: dict, out_path: pathlib.Path) -> str:
     o.append("")
     o.append("## Reading this\n")
     o.append(
-        "- **placebo − baseline** is the effect of prepending *any* careful-thinking preamble. A "
-        "small positive value here is expected and honest — generic 'think carefully' prompting "
-        "does help a little.\n"
+        "- **placebo − baseline** is the effect of prepending *any* careful-thinking preamble. It is "
+        "usually small — near zero, or even slightly negative on the rigid deterministic grader, "
+        "where generic boilerplate can dilute the surface-pattern matches the grader rewards. Either "
+        "way it is the honest baseline against which the harness's knowledge is measured.\n"
         "- **harnessed − placebo** is the headline: the lift that remains *after* subtracting the "
         "generic-preamble effect. It is attributable to the DueCare knowledge (fired indicator "
         "rules + retrieved citations + the ILO-reasoning instruction), because that is the only "
