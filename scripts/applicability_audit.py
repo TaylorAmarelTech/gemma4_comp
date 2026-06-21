@@ -287,7 +287,9 @@ def main(argv: list[str] | None = None) -> int:
         print("no audit rows yet -- run without --report-only first", file=sys.stderr)
         return 1
     rows = [json.loads(ln) for ln in ckpt.read_text(encoding="utf-8").splitlines() if ln.strip()]
-    build_report(rows, judge_model=judge_model, passes=passes, out_path=pathlib.Path(args.out))
+    # the stored votes are authoritative for the pass count -- never trust the env at report time
+    actual_passes = max((len(r.get("votes", [])) for r in rows), default=passes)
+    build_report(rows, judge_model=judge_model, passes=actual_passes, out_path=pathlib.Path(args.out))
     a = aggregate(rows)
     print(f"report -> {pathlib.Path(args.out).name} | n={a['n']} | agreement "
           f"{a['raw_agreement']*100:.0f}% | kappa {a['kappa']:.2f} | unanimity "
