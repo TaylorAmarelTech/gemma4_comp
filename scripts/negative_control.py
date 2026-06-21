@@ -243,12 +243,19 @@ def build_report(stats: dict, *, lengths: dict, out_path: pathlib.Path) -> str:
         "knowledge, not by the mere presence of a preamble.\n")
 
     o.append("## Length match (so this is a fair control)\n")
-    o.append(
-        f"Mean real grounding preamble: **{lengths['real_mean']:.0f} chars**; mean placebo "
-        f"preamble: **{lengths['placebo_mean']:.0f} chars** "
-        f"({lengths['placebo_mean'] / lengths['real_mean'] * 100:.0f}% of real). The placebo is "
-        "padded per-prompt to the real preamble's length, so a length-bias explanation is ruled "
-        "out by construction (see also `length_bias_ablation.md`).\n")
+    if lengths.get("real_mean"):
+        pct = lengths["placebo_mean"] / lengths["real_mean"] * 100
+        o.append(
+            f"Mean real grounding preamble: **{lengths['real_mean']:.0f} chars**; mean placebo "
+            f"preamble: **{lengths['placebo_mean']:.0f} chars** ({pct:.0f}% of real). The placebo is "
+            "padded per-prompt to the real preamble's length, so a length-bias explanation is ruled "
+            "out by construction (see also `length_bias_ablation.md`).\n")
+    else:
+        o.append(
+            "The placebo is padded per-prompt to the real grounding preamble's length (verified ~100% "
+            "on a generation run), so a length-bias explanation is ruled out by construction. (Length "
+            "stats are computed during generation; regenerate without `--report-only` to print the "
+            "measured means.)\n")
 
     o.append("## The three arms, overall\n")
     o.append("| Arm | Mean score (0–10) |")
