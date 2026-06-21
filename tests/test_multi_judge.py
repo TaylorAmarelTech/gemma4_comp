@@ -53,6 +53,23 @@ def test_build_report_states_robustness(tmp_path):
     assert "`j1`" in md and "Judge spread" in md
 
 
+def test_krippendorff_alpha_interval():
+    # perfect agreement: every item rated identically -> alpha = 1
+    perfect = {"i1": [8, 8], "i2": [3, 3], "i3": [6, 6], "i4": [9, 9]}
+    assert mj.krippendorff_alpha(perfect) == 1.0
+    # systematic disagreement: judges flip on every item -> alpha negative
+    disagree = {"i1": [10, 0], "i2": [0, 10], "i3": [10, 0], "i4": [0, 10]}
+    a = mj.krippendorff_alpha(disagree)
+    assert a is not None and a < 0
+    # single-rating items contribute nothing
+    assert mj.krippendorff_alpha({"i1": [5]}) is None
+
+
+def test_aggregate_reports_alpha():
+    agg = mj.aggregate(_panel(), ["j1", "j2"])
+    assert "krippendorff_alpha" in agg and agg["krippendorff_alpha"] >= 0.8   # the two judges agree
+
+
 def test_run_panel_resumable_offline(tmp_path, monkeypatch):
     monkeypatch.setattr(mj, "PANEL_CKPT", tmp_path / "p.jsonl")
     results = [{"model": "A", "prompt_id": "p1", "arm": "baseline", "prompt_text": "q", "response": "a"},
