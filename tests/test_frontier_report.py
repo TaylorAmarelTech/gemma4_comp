@@ -65,3 +65,16 @@ def test_model_routing_ollama_vs_openrouter():
     assert fr._is_openrouter("openrouter:anthropic/claude-3.7-sonnet")
     assert not fr._is_openrouter("glm-5.2")
     assert not fr._is_openrouter("ollama:gemma4:31b")   # explicit ollama: prefix stays Ollama
+
+
+def test_hard_prompt_set_is_disguised_exploitation():
+    ids = {p["id"] for p in fr._HARD_PROMPTS}
+    assert {"disguised_free_visa", "consent_salary_deduction", "fee_relabel_compliance"} <= ids
+    assert all(p["text"] and len(p["text"]) > 40 for p in fr._HARD_PROMPTS)
+
+
+def test_adversarial_report_uses_poor_baseline_framing(tmp_path):
+    md = fr.build_report(_SYNTH, judge="gpt-oss:120b", path=tmp_path / "adv.md", adversarial=True)
+    assert "adversarial set" in md.lower()
+    assert "face value" in md.lower()           # the disguised-framing explanation
+    assert "poor responses" in md.lower()       # these ARE the poor baselines
