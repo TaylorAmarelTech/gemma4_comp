@@ -128,6 +128,26 @@ def deterministic_prefilter(responses: dict, *, grade: Callable[[str, str], floa
     return cands[:top_k]
 
 
+def length_prefilter(responses: dict, *, top_k: int) -> list[dict]:
+    """Cheap, CPU-free candidate selection: the longest (most substantive) baseline replies.
+
+    The deterministic grader is CPU-bound and can be too slow when the machine is busy; the LLM
+    egregiousness judge is the real ranker anyway, so when grading is the bottleneck we skip it and
+    send the most substantive baseline replies (a confident, detailed reply is more likely to be
+    actively harmful than a short one) straight to the judge.
+    """
+    cands: list[dict] = []
+    for (pid, model, arm), info in responses.items():
+        if arm != "baseline" or len(info["response"]) < SUBSTANTIVE_CHARS:
+            continue
+        harn = responses.get((pid, model, "harnessed"), {}).get("response", "")
+        cands.append({"prompt_id": pid, "model": model, "prompt_text": info["prompt_text"],
+                      "response": info["response"], "harnessed": harn,
+                      "safety_score": None, "det_egregiousness": None})
+    cands.sort(key=lambda c: -len(c["response"]))
+    return cands[:top_k]
+
+
 def _default_safety(prompt: str, response: str) -> float:
     from duecare.chat.harness import grade_response_universal
     g = grade_response_universal(response, prompt_text=prompt)
@@ -238,6 +258,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--ckpt", default=str(DEFAULT_CKPT))
     ap.add_argument("--out", default=str(DEFAULT_OUT))
     ap.add_argument("--prefilter-only", action="store_true", help="stage 1 only (no Ollama)")
+    ap.add_argument("--no-prefilter", action="store_true",
+                    help="skip the CPU-bound deterministic grade; select longest baseline replies "
+                         "and send straight to the LLM judge (use when grading is the bottleneck)")
     args = ap.parse_args(argv)
 
     responses = load_responses([pathlib.Path(p) for p in args.responses])
@@ -246,9 +269,14 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     top_k = int(os.environ.get("ER_TOPK", "60"))
     top_n = int(os.environ.get("ER_TOPN", "25"))
-    candidates = deterministic_prefilter(responses, grade=_default_safety, top_k=top_k)
-    print(f"[egregious-ranker] {len(responses)} responses -> {len(candidates)} candidates "
-          f"(substantive baseline, low safety)", flush=True)
+    if args.no_prefilter:
+        candidates = length_prefilter(responses, top_k=top_k)
+        print(f"[egregious-ranker] {len(responses)} responses -> {len(candidates)} candidates "
+              f"(longest substantive baseline; deterministic grade skipped)", flush=True)
+    else:
+        candidates = deterministic_prefilter(responses, grade=_default_safety, top_k=top_k)
+        print(f"[egregious-ranker] {len(responses)} responses -> {len(candidates)} candidates "
+              f"(substantive baseline, low safety)", flush=True)
 
     if args.prefilter_only:
         build_report(candidates, judged=False, top_n=top_n, judge_model="", out_path=pathlib.Path(args.out))

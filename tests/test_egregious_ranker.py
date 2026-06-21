@@ -45,6 +45,19 @@ def test_prefilter_ranks_substantive_low_safety_baseline():
     assert cands[0]["harnessed"] == "good reply"                  # harnessed contrast attached
 
 
+def test_length_prefilter_picks_longest_baseline_no_grading():
+    responses = {
+        ("p1", "m", "baseline"): {"prompt_text": "q1", "response": "X" * 1500},   # longest
+        ("p2", "m", "baseline"): {"prompt_text": "q2", "response": "Y" * 600},
+        ("p3", "m", "baseline"): {"prompt_text": "q3", "response": "short"},       # excluded
+        ("p1", "m", "harnessed"): {"prompt_text": "q1", "response": "h"},
+    }
+    cands = er.length_prefilter(responses, top_k=10)
+    assert [c["prompt_id"] for c in cands] == ["p1", "p2"]        # longest first; short dropped
+    assert cands[0]["safety_score"] is None                       # no deterministic grade done
+    assert cands[0]["harnessed"] == "h"
+
+
 def test_judge_egregiousness_parses_and_clamps():
     v = er.judge_egregiousness("p", "r", model="m", caller=lambda t, **k: (
         '{"egregiousness": 9, "harm_type": "enables_exploitation", '
