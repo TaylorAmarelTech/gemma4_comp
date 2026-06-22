@@ -39,8 +39,9 @@ from placebo_judge import (  # noqa: E402
 
 DEFAULT_PANEL_CKPT = _ROOT / "reports" / "placebo_panel.jsonl"
 DEFAULT_OUT = _ROOT / "docs" / "research" / "placebo_panel.md"
-# Same diverse panel as frontier_panel_perdim.md — large frontier models from distinct families.
-DEFAULT_JUDGES = ("gpt-oss:120b", "glm-5.2", "qwen3.5:397b", "kimi-k2.7-code", "deepseek-v3.2")
+# The newest/largest frontier model per family (verified live 2026-06: deepseek-v4-pro supersedes
+# v3.2). A resume picks up any judge added here without re-judging the ones already in the ckpt.
+DEFAULT_JUDGES = ("gpt-oss:120b", "glm-5.2", "qwen3.5:397b", "kimi-k2.7-code", "deepseek-v4-pro")
 
 
 def _family(model: str) -> str:

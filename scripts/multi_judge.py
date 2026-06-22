@@ -30,12 +30,17 @@ from llm_generate import extract_json, ollama_chat  # noqa: E402  (reasoning-awa
 DEFAULT_RESULTS = _ROOT / "reports" / "frontier_report" / "results.jsonl"
 PANEL_CKPT = _ROOT / "reports" / "multi_judge" / "panel.jsonl"
 DEFAULT_OUT = _ROOT / "docs" / "research" / "frontier_panel_judges.md"
-# A DIVERSE panel of large frontier judges -- gpt-oss, GLM, Qwen, Kimi, DeepSeek. Several of these
-# (GLM, Qwen, DeepSeek) are ALSO candidate models, so independence is preserved by SELF-FAMILY
-# EXCLUSION: a judge never scores a response from its own family (run_panel skips it). That way each
-# candidate is still judged only by models from OTHER families, while the panel uses the strongest
-# frontier judges available rather than a fixed non-candidate trio.
-DEFAULT_JUDGES = ["gpt-oss:120b", "glm-5.2", "qwen3.5:397b", "kimi-k2.7-code", "deepseek-v3.2"]
+# A BROAD panel of large frontier judges across families -- gpt-oss (2 sizes), GLM, Qwen (2),
+# Kimi, DeepSeek (2). Per the design choice to use *all available large models as judges*, the
+# default run does NOT exclude same-family judge-candidate pairs (pass --no-self-family to restore
+# exclusion). Same-family pairs are a minority and the report proves the result survives dropping
+# them (the cross-family-only panel mean); the per-judge columns make any single judge's or
+# family's influence visible. The paired (lift) design also cancels each judge's absolute scale.
+# Verified live (2026-06): newest/largest available per family. DeepSeek v4-pro/flash supersede
+# v3.2/v3.1:671b; glm-5.3/qwen3-max/gpt-oss:480b/kimi-k3 do not exist (404). Refresh by probing
+# `ollama_chat("OK", model=...)` -- the cloud /v1/models listing is empty.
+DEFAULT_JUDGES = ["gpt-oss:120b", "gpt-oss:20b", "glm-5.2", "qwen3.5:397b", "qwen3-coder:480b",
+                  "kimi-k2.7-code", "deepseek-v4-pro", "deepseek-v4-flash"]
 
 # Map a model name to its provider/architecture FAMILY so a judge never grades its own family.
 _FAMILIES = ("gpt-oss", "glm", "qwen", "kimi", "deepseek", "gemma", "llama", "mistral", "opus",
@@ -161,6 +166,7 @@ def aggregate(panel: list[dict], judges: list[str]) -> dict:
         for j, sc in scores.items():
             per_model.setdefault(m, {}).setdefault(j, {}).setdefault(pid, {})[arm] = sc
     rows = []
+    any_same_family = False
     for m, byj in sorted(per_model.items()):
         judge_lifts = {}
         for j in judges:
@@ -170,17 +176,30 @@ def aggregate(panel: list[dict], judges: list[str]) -> dict:
                 judge_lifts[j] = round(sum(deltas) / len(deltas), 2)
         if judge_lifts:
             vals = list(judge_lifts.values())
+            # cross-family robustness: the panel mean using ONLY judges of a different family than
+            # the candidate, so a reviewer can confirm same-family judges aren't carrying the result
+            xfam = [lift for j, lift in judge_lifts.items() if model_family(j) != model_family(m)]
+            if len(xfam) != len(judge_lifts):
+                any_same_family = True
             paired = {pid for byp in byj.values() for pid, arms in byp.items()
                       if "harnessed" in arms and "baseline" in arms}
             rows.append({"model": m, "judge_lifts": judge_lifts, "n_prompts": len(paired),
                          "panel_lift": round(sum(vals) / len(vals), 2),
+                         "panel_lift_xfam": round(sum(xfam) / len(xfam), 2) if xfam else None,
+                         "n_xfam_judges": len(xfam),
                          "judge_spread": round(statistics.pstdev(vals), 2) if len(vals) > 1 else 0.0})
     rows.sort(key=lambda x: -x["panel_lift"])
     alpha = krippendorff_alpha({k: list(s.values()) for k, s in by_resp.items()})
+    # overall robustness: mean per-model lift with all judges vs cross-family-only judges
+    all_means = [r["panel_lift"] for r in rows]
+    xfam_means = [r["panel_lift_xfam"] for r in rows if r["panel_lift_xfam"] is not None]
     return {"rows": rows,
             "mean_response_agreement_stdev": round(statistics.mean(spreads), 2) if spreads else 0.0,
             "krippendorff_alpha": alpha,
-            "n_responses": len(by_resp)}
+            "n_responses": len(by_resp),
+            "has_same_family": any_same_family,
+            "panel_mean_all": round(statistics.mean(all_means), 2) if all_means else 0.0,
+            "panel_mean_xfam": round(statistics.mean(xfam_means), 2) if xfam_means else None}
 
 
 def build_report(agg: dict, judges: list[str], *, out_path: Path) -> str:
@@ -214,13 +233,25 @@ def build_report(agg: dict, judges: list[str], *, out_path: Path) -> str:
         o.append(f"| `{r['model']}` | {r.get('n_prompts', '?')} | {cells} | "
                  f"**{r['panel_lift']:+}** | ±{r['judge_spread']} |")
     o.append("")
-    o.append(
-        "A &mdash; is a **self-family exclusion**: a judge never scores a response from its own model "
-        "family (so GLM doesn't judge `glm-5.2`, etc.). **n** is the prompts per model with both arms "
-        "scored &mdash; modest here (this is a balanced sample on the harder perdim subset, where "
-        "baselines are weak so the *absolute* lift runs large). This panel's job is to show the lift "
-        "is **judge-robust**, not to pin its magnitude; the larger-N magnitude estimates are the "
-        "single-judge reports (`harness_lift_report.md`, `comparative_results_llm_judge.md`).\n")
+    if agg.get("has_same_family"):
+        xfam_txt = (f" Dropping every same-family judge–candidate pair, the panel mean lift is "
+                    f"**{agg['panel_mean_xfam']:+}/10** vs **{agg['panel_mean_all']:+}/10** with all "
+                    f"judges — the result does not depend on same-family judges."
+                    if agg.get("panel_mean_xfam") is not None else "")
+        o.append(
+            "This panel uses **all available large models as judges** and, by design, **includes "
+            "same-family judge–candidate pairs** (e.g. `glm-5.2` judging a `glm-*` candidate)." + xfam_txt
+            + " **n** is the prompts per model with both arms scored; the per-judge columns make any "
+            "single judge's or family's influence visible. The panel's job is to show the lift is "
+            "**judge-robust**, not to pin its magnitude (the larger-N magnitude is in the single-judge "
+            "reports `harness_lift_report.md`, `comparative_results_llm_judge.md`).\n")
+    else:
+        o.append(
+            "A &mdash; is a **self-family exclusion**: a judge never scores a response from its own "
+            "model family (so GLM doesn't judge `glm-5.2`, etc.). **n** is the prompts per model with "
+            "both arms scored. This panel's job is to show the lift is **judge-robust**, not to pin "
+            "its magnitude; the larger-N magnitude estimates are the single-judge reports "
+            "(`harness_lift_report.md`, `comparative_results_llm_judge.md`).\n")
     o.append("## Reading this\n")
     o.append(
         "- **Krippendorff's α** (above) is the inter-rater reliability of the *absolute* 0–10 "
@@ -237,11 +268,17 @@ def build_report(agg: dict, judges: list[str], *, out_path: Path) -> str:
         "(isolated context), but for this relative comparison the independent Ollama panel is "
         "sufficient and zero main-context. The deterministic per-dimension report is the "
         "judge-free, fully reproducible *floor*; the LLM judge is the primary holistic view.\n"
-        f"- **Judges**: {', '.join('`' + j + '`' for j in judges)} — a diverse panel of large "
-        "frontier models (gpt-oss, GLM, Qwen, Kimi, DeepSeek). Independence is preserved by "
-        "**self-family exclusion**: a judge never scores its own family (e.g. GLM never judges a "
-        "GLM candidate), so GLM / Qwen / DeepSeek can serve as judges for the *other* candidates "
-        f"while no model grades itself. Panel over {agg['n_responses']} stored responses.\n")
+        f"- **Judges**: {', '.join('`' + j + '`' for j in judges)} — a broad panel of the newest, "
+        "largest frontier models across families (gpt-oss, GLM, Qwen, Kimi, DeepSeek). "
+        + ("Per the design choice to use *all available large models as judges*, same-family "
+           "judge–candidate pairs are **included**; the cross-family-only panel mean (above) plus the "
+           "per-judge columns confirm no single family drives the result, and the paired (lift) design "
+           "cancels each judge's absolute scale."
+           if agg.get("has_same_family") else
+           "Independence is preserved by **self-family exclusion**: a judge never scores its own "
+           "family (e.g. GLM never judges a GLM candidate), so each candidate is judged only by "
+           "models from other families.")
+        + f" Panel over {agg['n_responses']} stored responses.\n")
     md = "\n".join(o) + "\n"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(md, encoding="utf-8")
@@ -258,6 +295,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--ckpt", default=str(PANEL_CKPT),
                     help="panel checkpoint (override for a separate response set, e.g. perdim)")
     ap.add_argument("--report-only", action="store_true")
+    ap.add_argument("--no-self-family", action="store_true",
+                    help="restore self-family exclusion (default: include ALL large models as judges)")
     args = ap.parse_args(argv)
     judges = [j.strip() for j in args.judges.split(",") if j.strip()]
     ckpt = Path(args.ckpt)
@@ -267,7 +306,8 @@ def main(argv: list[str] | None = None) -> int:
         if not results:
             print(f"no stored responses in {args.results}", file=sys.stderr)
             return 1
-        run_panel(results, judges, sample=args.sample, ckpt=ckpt)
+        run_panel(results, judges, sample=args.sample, ckpt=ckpt,
+                  exclude_self_family=args.no_self_family)
     agg = aggregate(load_results(ckpt), judges)
     build_report(agg, judges, out_path=Path(args.out))
     print(f"report -> {Path(args.out).name} | agreement ±{agg['mean_response_agreement_stdev']} "
