@@ -95,7 +95,7 @@
 <p class="cap" style="margin:0">Length explains <b>+0.63</b>; the harness explains <b>+1.12</b> holding length constant (t = 4.6). Not verbosity. &rarr; <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/length_bias_ablation.md" rel="noopener">length_bias_ablation.md</a></p></div>
 <div class="hs-panel"><h3>It&rsquo;s not &ldquo;any preamble helps&rdquo;</h3><p class="cap">A negative-control <b>placebo</b> arm prepends generic &ldquo;read carefully, be thorough&rdquo; boilerplate, length-matched per prompt, with zero domain knowledge.</p>
 <div class="hs-chart" data-chart="placebo" style="margin:6px 0 0"></div>
-<p class="cap" style="margin:8px 0 0">On the rigid grader the placebo slightly <i>lowered</i> the score; the real grounding scored <b>+0.08 beyond the placebo</b>, but that is <b>marginal and not significant</b> (p = 0.064, n=362). On this ceiling-bound deterministic grader the placebo test is inconclusive — the conclusive placebo test belongs on the LLM judge (pending), not the deterministic floor. We report it honestly rather than overclaim. &rarr; <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/negative_control.md" rel="noopener">negative_control.md</a></p></div>
+<p class="cap" style="margin:8px 0 0">On the <b>LLM judge</b> (the metric the +1.73 comes from), a generic preamble adds <b>+1.16</b> — but the harness&rsquo;s grounding adds <b>+3.34 beyond the placebo</b> (z = 9.60, <b>p &lt; 0.001</b>, n = 74). The lift is the <b>knowledge, not the preamble</b>. Bars are 0&ndash;10 judge scores on the harder adversarial subset, so the absolute height sits above the headline; the <i>staircase</i> &mdash; the contrast &mdash; is the point. (The ceiling-bound deterministic grader can&rsquo;t separate the arms: only +0.08, p = 0.064.) &rarr; <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/placebo_judge.md" rel="noopener">placebo_judge.md</a></p></div>
 </div>
 <ul class="checks">
 <li><b>Diverse frontier judge panel</b><span>gpt-oss, GLM, Qwen, Kimi, DeepSeek &mdash; with self-family exclusion: a judge never scores its own model family. The lift is consistent across judges.</span></li>
@@ -159,9 +159,9 @@
     {"label": "harness", "value": 1.12, "color": "oklch(0.55 0.10 155)"}
   ],
   "placebo": [
-    {"label": "baseline", "value": 5.80, "cls": "muted"},
-    {"label": "placebo", "value": 5.69, "cls": "warn"},
-    {"label": "harnessed", "value": 5.78, "cls": "good"}
+    {"label": "baseline", "value": 5.08, "cls": "muted"},
+    {"label": "placebo", "value": 6.24, "cls": "warn"},
+    {"label": "harnessed", "value": 9.58, "cls": "good"}
   ],
   "dims": [
     {"label": "multi-jurisdiction", "value": 2.25, "cls": "good"},
