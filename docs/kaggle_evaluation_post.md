@@ -3,7 +3,7 @@
 
 # Can a prompt-time "harness" make any LLM safer at spotting labour trafficking? We tried hard to prove it can't.
 
-**TL;DR.** DueCare wraps any LLM in a prompt-time safety harness — fired indicator rules + retrieved legal grounding + an ILO-reasoning instruction — and we measured whether it improves how models handle migrant-worker exploitation. Across 11 frontier models the harness lifts a trafficking-safety score by **+1.09/10** on average; on `gemma4:31b` over **911 prompts** the lift is **+1.73/10** (73% win rate, Cohen's d = 0.69). The interesting part isn't the number — it's how hard we tried to explain it away. Full results + code: **https://github.com/TaylorAmarelTech/gemma4_comp** (`docs/research/`).
+**TL;DR.** DueCare wraps any LLM in a prompt-time safety harness — fired indicator rules + retrieved legal grounding + an ILO-reasoning instruction — and we measured whether it improves how models handle migrant-worker exploitation. Across 11 frontier models the harness lifts a trafficking-safety score by **+1.09/10** on average (a small breadth check, n=4 prompts each); the depth result is **gemma4:31b over 911 prompts at +1.73/10** (73% win rate, Cohen's d = 0.69). The interesting part isn't the number — it's how hard we tried to explain it away. Full results + code: **https://github.com/TaylorAmarelTech/gemma4_comp** (`docs/research/`).
 
 ## The problem
 
@@ -15,16 +15,17 @@ The DueCare harness is **pure prompt augmentation** — no fine-tuning, no SDK l
 
 ## The result
 
-Two graders score every response, deliberately: a **deterministic** rule grader (69 rubric dimensions; free, exactly reproducible) and an **LLM judge** (a strong model reading the whole reply). The LLM judge is the headline because it reads the answer the way a person would. On `gemma4:31b` across 911 prompts: baseline 4.98 → harnessed 6.72, **+1.73/10**, 95% CI [+1.57, +1.89], 73.3% win, d = 0.69. Across 11 models the average lift is **+1.09/10**, and it lifts *every* model tested — including ones already strong.
+Two graders score every response, deliberately: a **deterministic** rule grader (75 rubric dimensions; free, exactly reproducible) and an **LLM judge** (a strong model scoring a 192-dimension rubric, reading the whole reply). The LLM judge is the headline because it reads the answer the way a person would. On `gemma4:31b` across 911 prompts: baseline 4.98 → harnessed 6.72, **+1.73/10**, 95% CI [+1.57, +1.89], 73.3% win, d = 0.69. Across 11 models the average lift is **+1.09/10** — but that is a small-n *breadth* check (n=4 prompts each), not the n=911 depth; read it as "lifts every model tested," not as a precise number.
 
 ## Why you can trust it (the part that matters)
 
 A single lift number is easy to fake, so most of the work was adversarial — trying to explain the lift away:
 
 - **Is it just longer answers?** LLM judges reward length, and the harness lengthens replies. An OLS decomposition: of a +1.75 raw lift, only **+0.63** is attributable to length and **+1.12 to the harness holding length constant** (t = 4.6). Not just verbosity.
-- **Is it "any preamble helps"?** A negative-control **placebo** arm prepends generic "read carefully, be thorough" boilerplate, length-matched per prompt with **zero** domain knowledge. The lift that survives *beyond* the placebo is attributable to the harness's knowledge, not the mere presence of a preamble.
+- **Is it "any preamble helps"?** A negative-control **placebo** arm prepends generic "read carefully, be thorough" boilerplate, length-matched per prompt with **zero** domain knowledge. On the rigid deterministic grader the harness scored +0.08 beyond the placebo — but that is **marginal and not significant** (p=0.064); the grader is too ceiling-bound to separate the arms. *Honest open item:* the conclusive placebo test on the **LLM judge** (where the +1.73 lives) is not yet run — we flag this confound as half-closed, not closed.
+- **Is it circular** (the harness injects "cite ILO," the rubric rewards "cite ILO")? The decisive check: the harness also lifts dimensions it *never* injects — **21/21 incidental dimensions improve** (empathy, plain-language rights, victim-blaming avoidance, even PII minimization), and the egregious cases are real behavioural swings (a harmful contract → a grounded refusal). It changes holistic safety behaviour, not just the tokens it hands over. → `robustness_checks.md`.
 - **Is the judge biased toward its own family?** The panel uses diverse large frontier judges — gpt-oss, GLM, Qwen, Kimi, DeepSeek — with **self-family exclusion**: a judge never scores a response from its own model family. We report inter-judge agreement (Krippendorff's α) and show the *lift* is consistent across judges even when their absolute scales differ.
-- **Are we p-hacking 69 dimensions?** Every per-dimension test is corrected with **Benjamini–Hochberg FDR**. After correction the harness significantly improves **22 dimensions and regresses 6**.
+- **Are we p-hacking the dimensions?** Every per-dimension test is corrected with **Benjamini–Hochberg FDR** (over the 69 of 75 deterministic dimensions with enough data); the harness improves **22 and regresses 6**. We flag these as **exploratory**: the pooled per-dimension p-values treat (prompt×model) pairs as independent, so they're anticonservative (`robustness_checks.md`) — the headline LLM-judge lift and the per-model paired tests are the clean inferential claims.
 - **Context hygiene.** The judge only ever sees the original prompt + one response — never the arm label, never the grounding preamble (which would be circular). Verified with zero leaks in the stored data and locked by a test.
 - **Refusals handled honestly.** A model refusing a recruiter's "help me trap a worker" request is the *desired* behaviour — we report refusals separately rather than scoring them as bad answers, and exclude genuine non-answers (empty / reasoning-trace) from quality scoring.
 
