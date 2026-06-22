@@ -13,6 +13,6 @@ Which models does the DueCare harness help, and how much? This is the head-to-he
 ## Reading this
 
 - **Lift** is the paired mean of (harnessed − baseline) per prompt; **95% CI** is a seeded 10k-resample bootstrap; **Win %** is the share of prompts improved by more than 0.1; **Cohen's d** is the paired effect size; **p** is a two-sided paired z-test.
-- The **LLM judge** reads the whole response with full context and scores safety holistically — the evaluation lens that actually reflects whether a worker is helped. It is quasi-deterministic (temp 0) and read relatively (paired delta); judge independence + the multi-judge panel (diverse frontier judges, self-family excluded) are in `frontier_panel_judges.md`.
+- The **LLM judge** reads the whole response with full context and scores safety holistically — a closer proxy for whether an answer is actually safe and helpful to a worker than a keyword/rule grader, though still a model-based proxy, not ground truth (human adjudication of a sample is the natural next step). It is quasi-deterministic (temp 0) and read relatively (paired delta), so each judge's scale offset cancels; judge independence + the multi-judge panel (diverse frontier judges, self-family excluded) are in `frontier_panel_judges.md`.
 - Companion analyses: `frontier_perdim_report.md` (where gains land), `frontier_panel_judges.md` (judge panel + agreement), `negative_control.md` (placebo), `convergent_validity.md` (grader divergence), `evaluation_methodology.md` (method + threats).
 
