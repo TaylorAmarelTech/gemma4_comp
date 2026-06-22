@@ -35,7 +35,10 @@ from duecare.chat.harness import default_harness  # noqa: E402
 from duecare.chat.harness_lift import build_harness_preamble  # noqa: E402
 
 OLLAMA_KEY = os.environ["OLLAMA_API_KEY"]
-GEMINI_KEY = os.environ["GEMINI_API_KEY"]
+# Optional: only required when a gemini-* model is actually called. Reading it eagerly with []
+# crashed Ollama-only runs (e.g. gemma4:31b) that never touch Gemini -- so read it defensively
+# and fail fast inside call_gemini instead.
+GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "")
 JUDGE_MODEL = os.environ.get("JUDGE_MODEL", "gemini-3-pro-preview")
 # 640 was too low: a long DueCare grounding preamble eats the harnessed arm's
 # output budget and truncates the ANSWER, scoring a real improvement as a near
@@ -127,6 +130,9 @@ def call_ollama(model: str, prompt: str) -> str:
 
 
 def call_gemini(model: str, prompt: str) -> str:
+    if not GEMINI_KEY:
+        raise RuntimeError("GEMINI_API_KEY is not set but a gemini-* model was requested; "
+                           "set it or choose an Ollama model.")
     out = _post(
         f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={GEMINI_KEY}",
         {"contents": [{"parts": [{"text": prompt}]}],
