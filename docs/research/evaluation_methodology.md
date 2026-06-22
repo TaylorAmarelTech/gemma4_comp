@@ -131,11 +131,16 @@ dimensions than it regresses, but the mean washes out); see `comparative_results
     since the deployment thesis is on-device local Gemma for NGOs who cannot use frontier APIs; and
     (ii) on strong frontier models the harness shifts rubric/LLM-judge scores upward (real but smaller
     and more contestable). We never merge these into one number. → `egregious_responses.md`.
-11. **The placebo control is on the deterministic grader only.** The negative control's
-    harnessed−placebo on the rigid grader is **marginal and not significant** (+0.08, p=0.064) — the
-    grader is too ceiling-bound to separate the arms. The conclusive "any preamble" test — placebo
-    vs harnessed on the **LLM judge**, where the +1.73 lives — is **not yet run** and is the single
-    highest-value missing experiment. Stated as an open item, not a closed one. → `negative_control.md`.
+11. **"Any preamble helps", on the headline metric — now closed.** The deterministic placebo control
+    was inconclusive (harnessed−placebo +0.08, p=0.064) because the rigid grader is too ceiling-bound
+    to separate the arms. So we ran the conclusive form on the **LLM judge** (where the +1.73 lives):
+    the same judge (`gpt-oss:120b`) scored all three arms — baseline, length-matched placebo, harnessed
+    — on 74 `gemma4:31b` triples. Result: baseline 5.08 → placebo 6.24 → harnessed 9.58. A generic
+    preamble adds **+1.16** (the "any preamble" effect), but the harness's grounding adds **+3.34 beyond
+    the placebo** (paired z=9.60, **p<0.001**). On the metric that carries the result, the lift is the
+    **knowledge, not the preamble** — confound closed. (These are the harder NC/perdim prompts, so the
+    *absolute* lift exceeds the n=911 headline; the result is the contrast, not a competing number.)
+    → `placebo_judge.md`.
 12. **Shared LLM-judge bias.** Self-family exclusion stops a model grading itself, but **all** judges
     are instruction-tuned LLMs that may share a preference for citation-dense, structured, refusal-
     flavoured text — exactly what the harness adds. Inter-judge agreement on the *lift* shows the
