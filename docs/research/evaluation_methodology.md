@@ -141,11 +141,18 @@ dimensions than it regresses, but the mean washes out); see `comparative_results
     **knowledge, not the preamble** — confound closed. (These are the harder NC/perdim prompts, so the
     *absolute* lift exceeds the n=911 headline; the result is the contrast, not a competing number.)
     → `placebo_judge.md`.
-12. **Shared LLM-judge bias.** Self-family exclusion stops a model grading itself, but **all** judges
-    are instruction-tuned LLMs that may share a preference for citation-dense, structured, refusal-
-    flavoured text — exactly what the harness adds. Inter-judge agreement on the *lift* shows the
-    result is not one judge's artifact, but **cannot rule out a bias common to all LLM judges**; only
-    human-expert ratings (§6) can. The panel is also all-open-model (no GPT/Claude/Gemini).
+12. **Shared LLM-judge bias / judge choice.** The panel is the newest, largest open models across
+    five families (gpt-oss, GLM, Qwen, Kimi, DeepSeek; verified live — DeepSeek v4-pro/flash, etc.).
+    Per the design choice to use *all available large models as judges*, same-family judge–candidate
+    pairs are **included**, but a **cross-family-only panel mean** is reported next to the all-judge
+    mean so a reviewer can confirm same-family judges aren't carrying the result, and the per-judge
+    columns expose any single model's or family's influence. Inter-judge agreement on the *lift* (not
+    the absolute score) shows the result is not one judge's artifact. The residual caveat we cannot
+    close with models alone: **all** judges are instruction-tuned LLMs that may share a preference for
+    citation-dense, structured, refusal-flavoured text — exactly what the harness adds; only
+    human-expert ratings (§6) can fully rule that out. The panel is all-open-model (no
+    GPT/Claude/Gemini), so it is at least not anchored to a single frontier lab's preferences.
+    → `frontier_panel_judges.md`, `placebo_panel.md`.
 13. **Response-driven applicability.** Applicability is decided per response, so the richer harnessed
     reply activates ~3–4 more dimensions; averaging each arm over its own set is not a clean paired
     comparison. *Checked:* restricting to the dimensions scored in **both** arms (intersection) the
