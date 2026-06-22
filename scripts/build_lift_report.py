@@ -62,6 +62,14 @@ _OUT_JSON_TARGETS = (
 # (judge from LIFT_REPORT_JUDGE or filename inference).
 _DEFAULT_RUNS = [
     {
+        "ckpt": "reports/harness_lift_2000_judge.jsonl",
+        "judge": "gpt-oss:120b safety judge (independent LLM judge via Ollama)",
+        "label": "Scaled 2,000-prompt run",
+        # only appears once it has real coverage (the run accumulates over time);
+        # a per-run gate so a thin in-progress ckpt does not show a misleading n=1 row.
+        "min_prompts": 200,
+    },
+    {
         "ckpt": "reports/harness_lift_1000_judge.jsonl",
         "judge": "gpt-oss:120b safety judge (independent LLM judge via Ollama)",
         "label": "Primary large-N run",
@@ -138,8 +146,11 @@ def _resolve_runs() -> list[dict]:
         cells = _load_jsonl(path)
         if not cells:
             continue
-        runs.append({**spec, "path": path, "cells": cells,
-                     "stats": lift_stats.model_stats(cells)})
+        stats = lift_stats.model_stats(cells)
+        n_paired = sum(s.get("n_prompts_paired", 0) for s in stats)
+        if n_paired < spec.get("min_prompts", 0):   # in-progress run not yet at coverage
+            continue
+        runs.append({**spec, "path": path, "cells": cells, "stats": stats})
     return runs
 
 
