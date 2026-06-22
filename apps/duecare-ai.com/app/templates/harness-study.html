@@ -75,10 +75,10 @@
 <div class="m"><div class="lbl">Mean paired lift &middot; gemma4:31b</div><div class="val" data-count="1.73" data-prefix="+" data-suffix=" / 10">+1.73 / 10</div><div class="sub">95% CI [+1.57, +1.89] &middot; n=911 &middot; judge gpt-oss:120b</div></div>
 <div class="m"><div class="lbl">Win rate</div><div class="val" data-count="73.3" data-suffix="%">73.3%</div><div class="sub">668 win / 210 loss / 33 tie</div></div>
 <div class="m"><div class="lbl">Effect size</div><div class="val" data-count="0.69" data-prefix="d = ">d = 0.69</div><div class="sub">paired Cohen&rsquo;s d, medium&ndash;large</div></div>
-<div class="m"><div class="lbl">Across 11 models</div><div class="val" data-count="1.09" data-prefix="+" data-suffix=" / 10">+1.09 / 10</div><div class="sub">average lift; lifts every model</div></div>
+<div class="m"><div class="lbl">Across 11 models</div><div class="val" data-count="1.09" data-prefix="+" data-suffix=" / 10">+1.09 / 10</div><div class="sub">average lift, lifts every model &mdash; small-sample breadth (n=4 prompts each), not the n=911 depth</div></div>
 </div>
 <div class="hs-chart" data-chart="permodel"></div>
-<p class="hp-note">LLM-judge lift per model (harnessed &minus; baseline, 0&ndash;10). Even Claude Opus 4.8 &mdash; already near-ceiling &mdash; gains. Source: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/harness_lift_report.md" rel="noopener">harness_lift_report.md</a>.</p>
+<p class="hp-note">LLM-judge lift per model (harnessed &minus; baseline, 0&ndash;10). The bars are from <b>different runs and judges</b> (not one apples-to-apples sweep): gemma4:31b is the n=911 gpt-oss:120b-judged run; gpt-oss:20b (+1.49, n=27) and Claude Opus 4.8 (+0.27, n=24) are Opus-judged; the &ldquo;avg / 11 models&rdquo; is the small n=4 breadth run. Even Opus &mdash; already near-ceiling &mdash; gains. Sources: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/harness_lift_report.md" rel="noopener">harness_lift_report.md</a>.</p>
 </div></section>
 
 <section class="hp-section" data-screen-label="Eval &middot; Two graders"><div class="wrap">
@@ -95,11 +95,11 @@
 <p class="cap" style="margin:0">Length explains <b>+0.63</b>; the harness explains <b>+1.12</b> holding length constant (t = 4.6). Not verbosity. &rarr; <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/length_bias_ablation.md" rel="noopener">length_bias_ablation.md</a></p></div>
 <div class="hs-panel"><h3>It&rsquo;s not &ldquo;any preamble helps&rdquo;</h3><p class="cap">A negative-control <b>placebo</b> arm prepends generic &ldquo;read carefully, be thorough&rdquo; boilerplate, length-matched per prompt, with zero domain knowledge.</p>
 <div class="hs-chart" data-chart="placebo" style="margin:6px 0 0"></div>
-<p class="cap" style="margin:8px 0 0">On the rigid grader, the placebo actually <i>lowered</i> the score; the real grounding scored <b>+0.15 beyond the placebo</b> (p = 0.028). The lift is the knowledge, not the preamble. &rarr; <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/negative_control.md" rel="noopener">negative_control.md</a></p></div>
+<p class="cap" style="margin:8px 0 0">On the rigid grader the placebo slightly <i>lowered</i> the score; the real grounding scored <b>+0.08 beyond the placebo</b>, but that is <b>marginal and not significant</b> (p = 0.064, n=362). On this ceiling-bound deterministic grader the placebo test is inconclusive — the conclusive placebo test belongs on the LLM judge (pending), not the deterministic floor. We report it honestly rather than overclaim. &rarr; <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/negative_control.md" rel="noopener">negative_control.md</a></p></div>
 </div>
 <ul class="checks">
 <li><b>Diverse frontier judge panel</b><span>gpt-oss, GLM, Qwen, Kimi, DeepSeek &mdash; with self-family exclusion: a judge never scores its own model family. The lift is consistent across judges.</span></li>
-<li><b>Multiple-comparison correction</b><span>Benjamini&ndash;Hochberg FDR over 69 dimensions: the harness significantly improves 22 and regresses 6 (q &le; 0.05).</span></li>
+<li><b>Multiple-comparison correction</b><span>Benjamini&ndash;Hochberg FDR over the 69 (of 75) deterministic dimensions with enough data. Note: these pooled per-dimension p-values are <b>exploratory</b> &mdash; they treat (prompt&times;model) pairs as independent, so the &ldquo;22 improve / 6 regress&rdquo; count is anticonservative (<a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/robustness_checks.md" rel="noopener">robustness_checks.md</a>). The headline LLM-judge lift is unaffected.</span></li>
 <li><b>Context-leak hygiene</b><span>The judge sees only the prompt + one reply &mdash; never the arm label, never the grounding preamble. Verified zero leaks; locked by a test.</span></li>
 <li><b>Refusals handled honestly</b><span>Refusing a recruiter&rsquo;s &ldquo;help me trap a worker&rdquo; is the desired behaviour &mdash; reported separately, not scored as a bad answer.</span></li>
 </ul>
@@ -108,7 +108,7 @@
 <section class="hp-section" data-screen-label="Eval &middot; Where"><div class="wrap">
 <div class="head"><div><span class="ix">04 &middot; Where it lands</span><h2>The gains concentrate on the safety-critical dimensions.</h2></div><p class="summary">On already-strong models the all-dimension <i>mean</i> is near-flat (a ceiling effect &mdash; they already pass most of the rubric), but dimension by dimension the harness moves far more up than down, and the gains land where they matter.</p></div>
 <div class="hs-chart" data-chart="dims"></div>
-<p class="hp-note">Largest per-dimension LLM-judge gains (harnessed &minus; baseline). At baseline the models fail 17% of the dimensions they&rsquo;re scored on; with the harness, 12%. &rarr; <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/frontier_perdim_report.md" rel="noopener">frontier_perdim_report.md</a></p>
+<p class="hp-note">Largest per-dimension gains from the <b>deterministic grader</b> (harnessed &minus; baseline; the holistic LLM judge sees larger gains still). At baseline the models fail 17% of the dimensions they&rsquo;re scored on; with the harness, 12%. These pooled per-dimension significances are <b>exploratory</b> (clustered by model — see <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/robustness_checks.md" rel="noopener">robustness_checks.md</a>). &rarr; <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/frontier_perdim_report.md" rel="noopener">frontier_perdim_report.md</a></p>
 </div></section>
 
 <section class="hp-section" data-screen-label="Eval &middot; The evidence"><div class="wrap">
@@ -160,8 +160,8 @@
   ],
   "placebo": [
     {"label": "baseline", "value": 5.80, "cls": "muted"},
-    {"label": "placebo", "value": 5.61, "cls": "warn"},
-    {"label": "harnessed", "value": 5.76, "cls": "good"}
+    {"label": "placebo", "value": 5.69, "cls": "warn"},
+    {"label": "harnessed", "value": 5.78, "cls": "good"}
   ],
   "dims": [
     {"label": "multi-jurisdiction", "value": 2.25, "cls": "good"},
