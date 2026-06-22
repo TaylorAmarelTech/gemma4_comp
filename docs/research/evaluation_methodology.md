@@ -124,8 +124,9 @@ dimensions than it regresses, but the mean washes out); see `comparative_results
    **exploratory**; the defensible inferential claims are the **per-model** paired tests (one delta
    per prompt) and the cluster-robust headline CI. → `robustness_checks.md` §2.
 10. **Egregious failures concentrate in mid-size models (a deployment feature, stated honestly).**
-    All 27 baseline replies scoring ≥7/10 on active harm are `gemma4:31b`; the strong frontier models
-    rarely produced egregious baselines. So two claims are kept **separate**: (i) on a small local
+    All 38 baseline replies scoring ≥7/10 on active harm are `gemma4:31b` (of 57 of its baselines
+    judged); every other model — glm-5.2, qwen3.5:397b, qwen3-coder:480b, deepseek-v3.2 and others —
+    produced **0**. The strong frontier models rarely produced egregious baselines. So two claims are kept **separate**: (i) on a small local
     model the harness prevents concrete, severe harms (strong, behavioural) — which is *the point*,
     since the deployment thesis is on-device local Gemma for NGOs who cannot use frontier APIs; and
     (ii) on strong frontier models the harness shifts rubric/LLM-judge scores upward (real but smaller
