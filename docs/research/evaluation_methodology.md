@@ -21,12 +21,17 @@ grader bias that is constant across arms cancels. We report the delta, not absol
 
 | Grader | What it is | Role | Reproducible? |
 |---|---|---|---|
-| **`grade_response_universal`** | DueCare's rule-based grader, 69 rubric dimensions, one score per applicable dimension | **Primary / headline** | **Yes — deterministic** (same input → same output) |
-| **LLM-judge panel** | Strong models scoring a 0–10 rubric, several independent judges | Secondary holistic companion | No — quasi-deterministic (temp 0) |
+| **LLM judge** | Strong model(s) scoring per dimension against a **192-dimension** rubric (`harness_lift_dimensions.json`); a diverse panel cross-checks robustness | **Headline** (holistic) | No — quasi-deterministic (temp 0); read as a **relative** paired delta |
+| **`grade_response_universal`** | DueCare's rule-based grader, **75 dimensions** (~32 applicable per prompt via applicability gating; 77 cells incl. 2 derived) | **Conservative, reproducible floor** + per-dimension diagnostic | **Yes — deterministic** (same input → same output) |
 
-The headline metric is the **deterministic** grader: it needs no model at judging time, is exactly
-reproducible, and is not subject to LLM-judge pathologies. The LLM-judge view is a holistic
-cross-check, reported **as relative** and with the controls below.
+The **headline lift (+1.73/10) is the LLM judge's** — it reads the whole reply the way a person
+would. The deterministic grader is the **conservative floor**: free, exactly reproducible, immune to
+LLM-judge pathologies, and used for the per-dimension breakdown. We report **both** and treat neither
+as a proxy for the other (see the divergence below). *Dimension-count note, because three numbers
+circulate: the deterministic grader has **75** rubric dimensions (77 cells incl. 2 derived; ~32
+applicable per prompt); the per-dimension **LLM-judge rubric has 192**; the FDR analysis tests the
+**69** deterministic dimensions that reached ≥10 paired observations — a data-driven subset, not the
+rubric size.*
 
 **The two graders are not interchangeable — and we say so.** On the high-variance 1000-prompt
 gemma4:31b run, the deterministic grader and the LLM judge **agree on direction** (both find a
@@ -56,10 +61,13 @@ dimensions than it regresses, but the mean washes out); see `comparative_results
    *Tested.* The judge does reward length (pooled r = 0.56), but an OLS attributes only **+0.63**
    of the raw **+1.75** lift to length and **+1.12 to the harness holding length constant**
    (t = 4.6); the lift also survives **length-matched** bands and is weakly correlated with the
-   per-pair length increase (r = 0.27). → `length_bias_ablation.md`.
+   per-pair length increase (r = 0.27). (The +1.75 is the n=146 ablation subset's mean, not the
+   n=911 headline +1.73.) *Open item:* this controls for length but not citation density — see §5.
+   → `length_bias_ablation.md`.
 2. **Judge non-determinism.** Temp 0 is quasi-deterministic, not exact. Mitigations: the
-   **deterministic grader is the headline**; the LLM-judge is read **relatively** (paired delta);
-   and a **multi-judge panel** measures inter-judge agreement on the lift. → `frontier_panel_judges.md`.
+   LLM-judge is read **relatively** (paired delta); and a **multi-judge panel** measures inter-judge
+   agreement on the lift. → `frontier_panel_perdim.md` (current 5-judge diverse panel;
+   `frontier_panel_judges.md` is the earlier 3-judge run).
 3. **Self-enhancement / non-independence.** A judge must not grade its own family. We use a **diverse
    panel of large frontier judges** — `gpt-oss:120b`, `glm-5.2`, `qwen3.5:397b`, `kimi-k2.7-code`,
    `deepseek-v3.2` — and preserve independence by **self-family exclusion**: a judge never scores a
@@ -67,12 +75,23 @@ dimensions than it regresses, but the mean washes out); see `comparative_results
    `run_panel(exclude_self_family=True)`). This lets strong models that are *also* candidates serve as
    judges for the *other* candidates without self-enhancement bias, rather than restricting the panel
    to a fixed non-candidate trio.
-4. **Construct validity / rubric circularity.** The harness injects "name indicators, cite ILO
-   conventions, give contacts," and the rubric rewards those — a real circularity. Our defense: the
-   dimensions are grounded in external frameworks (ILO forced-labour indicators, ILO C029/C181/C188/
-   C189, the Palermo Protocol, ICRMW, national statutes), not invented to flatter the harness; and
-   the deterministic grader shows the harness **regresses** some dimensions, which a "teach-to-the-
-   rubric" artifact would not. This is acknowledged, not resolved (see Limitations).
+4. **Construct validity / rubric circularity** (the strongest critique). The harness injects "name
+   the indicators, cite the ILO convention, give the hotline," and the deterministic grader
+   **keyword-matches that exact vocabulary** — so a gain on `ilo_indicator_naming` is, mechanically,
+   partly tautological. We do not hand-wave this. *Three lines of defense, the third decisive:*
+   (a) the dimensions are grounded in external frameworks (ILO indicators, C029/C181/C188/C189,
+   Palermo, ICRMW, national statutes), not invented to flatter the harness;
+   (b) the harness **regresses** some dimensions, which a uniform teach-to-the-rubric inflater would
+   not (weak on its own — could be the same instruction crowding out other content);
+   (c) **the harness lifts dimensions it never injects.** Splitting the LLM-judge dimensions into
+   *directly-injected* vs *incidental* (response qualities the preamble never mentions): **21 of 21
+   incidental dimensions improve** (mean **+1.47**) — empathy-without-judgment (+2.18), plain-language
+   rights, safety-first ordering, victim-blaming avoidance, even **PII minimization** (+0.25) — none
+   of which the preamble asks for. The most circularity-resistant evidence is the egregious set: the
+   baseline wrote a fee-concealment contract and the harnessed arm refused (a swing on
+   *harm-enablement*, a behavioural dimension no keyword coaches). The effect is generalized safety
+   behaviour, not echoed tokens. → `robustness_checks.md` §3. (A blind grader without the ILO
+   checklist would close this fully — see §6.)
 5. **Ceiling effects.** Strong models already satisfy easy dimensions, so a naive all-dimension mean
    is uninformative; we report **per-dimension** lift and improve/neutral/regress counts instead.
 6. **"Any preamble helps" confound** (would *any* official-sounding safety reminder produce the lift?).
@@ -95,14 +114,57 @@ dimensions than it regresses, but the mean washes out); see `comparative_results
    exploitation request is the *desired* behaviour (rewarded by the grader's harm-enablement /
    grounded-refusal dimensions), and the per-dimension grader already scores good-vs-bad refusal per
    prompt. → `refusal_analysis.md`.
+9. **Prompt non-independence / clustering.** Prompts are template-generated (ID-prefix families) and
+   each is answered by several models, so they are not i.i.d. draws. *Measured.* For the **headline**
+   single-model 1000-prompt run, the intra-cluster correlation of the lift is ≈0 (ICC 0.004) →
+   design effect **1.06**, so the +1.73 CI is essentially unchanged (±0.17→±0.18). For the **pooled
+   multi-model** deterministic run the design effect is ~**1.6** (clustered by model). Consequence,
+   stated plainly: the **pooled per-dimension FDR counts ("22 improve / 6 regress") and pooled z-tests
+   are anticonservative** (they treat (prompt×model) pairs as independent) and are reported as
+   **exploratory**; the defensible inferential claims are the **per-model** paired tests (one delta
+   per prompt) and the cluster-robust headline CI. → `robustness_checks.md` §2.
+10. **Egregious failures concentrate in mid-size models (a deployment feature, stated honestly).**
+    All 27 baseline replies scoring ≥7/10 on active harm are `gemma4:31b`; the strong frontier models
+    rarely produced egregious baselines. So two claims are kept **separate**: (i) on a small local
+    model the harness prevents concrete, severe harms (strong, behavioural) — which is *the point*,
+    since the deployment thesis is on-device local Gemma for NGOs who cannot use frontier APIs; and
+    (ii) on strong frontier models the harness shifts rubric/LLM-judge scores upward (real but smaller
+    and more contestable). We never merge these into one number. → `egregious_responses.md`.
+11. **The placebo control is on the deterministic grader only.** The negative control's
+    harnessed−placebo on the rigid grader is **marginal and not significant** (+0.08, p=0.064) — the
+    grader is too ceiling-bound to separate the arms. The conclusive "any preamble" test — placebo
+    vs harnessed on the **LLM judge**, where the +1.73 lives — is **not yet run** and is the single
+    highest-value missing experiment. Stated as an open item, not a closed one. → `negative_control.md`.
+12. **Shared LLM-judge bias.** Self-family exclusion stops a model grading itself, but **all** judges
+    are instruction-tuned LLMs that may share a preference for citation-dense, structured, refusal-
+    flavoured text — exactly what the harness adds. Inter-judge agreement on the *lift* shows the
+    result is not one judge's artifact, but **cannot rule out a bias common to all LLM judges**; only
+    human-expert ratings (§6) can. The panel is also all-open-model (no GPT/Claude/Gemini).
+13. **Response-driven applicability.** Applicability is decided per response, so the richer harnessed
+    reply activates ~3–4 more dimensions; averaging each arm over its own set is not a clean paired
+    comparison. *Checked:* restricting to the dimensions scored in **both** arms (intersection) the
+    deterministic lift is **+0.19 vs +0.006** — the confound *under*-credits the harness, it does not
+    manufacture the lift; the LLM-judge headline (one holistic score) is unaffected. → `robustness_checks.md` §1.
+14. **Small samples carry several claims.** The per-model panel is **n=9 prompts/model**; the Opus
+    cross-check is **n=24–28**; the length ablation is **n=146**; the "+1.09 across 11 models" is
+    **n=4 prompts each**. These are directional, not definitive; at those n the paired z-test is mildly
+    anticonservative (a t-reference would widen the small-n p's), the Krippendorff α (0.605) is
+    unstable, and for one model (qwen3.5) the judges disagree on the lift by >3 points — so
+    "judge-robust" holds for 4/5 models, not universally. Treat small-n tables as exploratory and read
+    the n at point of use.
 
 ## 5. Limitations (honest — these bound the claims)
 
 - **Synthetic prompts.** Composite/synthetic scenarios (no real PII). They are grounded in the
   benchmark's exploitation taxonomy but are not a sample of real worker messages; distributional
   validity is assumed, not measured.
-- **Our own rubric.** The 69 dimensions are DueCare's. They are externally grounded but have **not**
-  been validated for inter-annotator agreement by independent experts.
+- **Our own rubric.** The 75 deterministic dimensions (and the 192-dimension LLM-judge rubric) are
+  DueCare's. They are externally grounded but have **not** been validated for inter-annotator
+  agreement by independent experts.
+- **The length ablation controlled for length, not citation density.** The OLS shows the lift is not
+  *length*, but the sharper form of the style critique — "the judge rewards citation-dense / legal-
+  jargon style" — is not the same hypothesis and was not separately partialled out. A
+  citation-density covariate (and scaling the ablation past n=146) is an open item.
 - **No human-expert ground truth yet.** The strongest missing piece. Neither grader has been
   correlated against ratings from anti-trafficking practitioners or labour lawyers. Until that
   exists, "improves safety" means "improves rubric-measured safety," not "improves expert-judged
@@ -130,10 +192,16 @@ re-derivable. The deterministic grader makes the headline bit-for-bit reproducib
 
 ## 8. How to cite a result responsibly
 
-> "On *N* synthetic trafficking-safety prompts graded by DueCare's deterministic 69-dimension
-> rubric, the harness improved *K* of 69 dimensions (and regressed *J*); on an independent
-> LLM-judge panel the paired lift was *L*/10, robust to length (OLS) and to judge choice (panel
-> agreement). Not yet validated against human experts."
+> "On *N* synthetic, composite trafficking-safety prompts, prepending the DueCare grounding preamble
+> raised an independent **LLM-judge** panel's paired score by *L*/10 (length-robust by OLS,
+> judge-robust across a self-family-excluded panel, cluster-robust on the single-model run); the
+> conservative deterministic 75-dimension grader improved *K* of the 69 tested dimensions
+> (exploratory — pooled per-dimension p's are not clustering-corrected). The largest, most concrete
+> gains are on a mid-size local model where baseline replies were sometimes actively harmful. Not
+> validated against human anti-trafficking experts; not measured on real worker messages or
+> deployment outcomes."
 
-State the grader, the paired design, the controls, and the human-validation caveat every time.
-Do not report an LLM-judge absolute score as a calibrated safety measure.
+State the grader, the paired design, the controls, the small-/clustered-n caveats, and the
+human-validation caveat every time. Never report an LLM-judge absolute score as a calibrated safety
+measure, and never merge the "small local model rescued from harm" claim with the "frontier models
+shifted upward" claim into a single number.
