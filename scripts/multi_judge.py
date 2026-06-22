@@ -213,17 +213,24 @@ def build_report(agg: dict, judges: list[str], *, out_path: Path) -> str:
         "relative comparison does not depend on any one judge — the real answer to the "
         "non-determinism concern, stronger than picking a single 'best' judge.\n")
     a = agg.get("krippendorff_alpha")
-    a_label = ("" if a is None else " — strong" if a >= 0.8
-               else " — acceptable" if a >= 0.67 else " — only weak *absolute* agreement")
-    mean_lift_spread = (round(statistics.mean([r["judge_spread"] for r in agg["rows"]]), 2)
-                        if agg["rows"] else 0.0)
+    a_label = ("" if a is None else " (strong)" if a >= 0.8
+               else " (acceptable)" if a >= 0.67 else " (weak — judges anchor their absolute scales differently)")
+    rows = agg["rows"]
+    mean_lift_spread = round(statistics.mean([r["judge_spread"] for r in rows]), 2) if rows else 0.0
+    panel_lifts = [r["panel_lift"] for r in rows]
+    n_pos = sum(1 for x in panel_lifts if x > 0)
+    panel_mean = round(statistics.mean(panel_lifts), 2) if panel_lifts else 0.0
     o.append(
-        "> **The judges may differ on absolute scores, but they agree on the LIFT.** "
-        f"Krippendorff's α = {a}{a_label} (inter-rater reliability of the *absolute* 0–10 scores); "
-        f"meanwhile the *per-model lift* is consistent across judges (mean spread "
-        f"±{mean_lift_spread}/10). We only ever claim the **relative** lift (the paired delta), and "
-        "that is what is — and must be — judge-robust: absolute-score disagreement cancels in the "
-        "pairing. This is the empirical version of *read the delta, not the absolute score*.\n")
+        "> **The judges differ on absolute scores and on exact magnitude, but they agree on the "
+        f"DIRECTION of the lift.** Under this **{len(judges)}-judge** panel, **{n_pos} of {len(rows)} "
+        f"candidate models** show a positive panel-mean lift (panel mean **+{panel_mean}/10**), and the "
+        f"cross-family-only mean (below) confirms same-family judges do not drive it. Krippendorff's "
+        f"α = {a}{a_label}. The per-judge *magnitudes* are noisy at this small n (mean spread "
+        f"±{mean_lift_spread}/10, comparable to the smaller per-model lifts), so from the panel we claim "
+        f"the **sign and rough ordering** of the lift, not its magnitude — the magnitude is the large-N "
+        f"single-judge reports (`harness_lift_report.md`, `comparative_results_llm_judge.md`). The paired "
+        f"design cancels each judge's absolute scale; this is *read the delta's direction, not one "
+        f"judge's number*.\n")
     o.append("## Per-model lift, by judge\n")
     o.append("| Model | n | " + " | ".join(f"`{j}`" for j in judges) + " | Panel mean | Judge spread |")
     o.append("|---" * (len(judges) + 4) + "|")
