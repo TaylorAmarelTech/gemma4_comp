@@ -73,3 +73,30 @@ def test_transforms_are_deterministic():
     a = [fn(_T, 3) for fn in pa.TRANSFORMS.values()]
     b = [fn(_T, 3) for fn in pa.TRANSFORMS.values()]
     assert a == b
+
+
+def test_encoding_transforms_are_reversible():
+    import base64 as _b64
+    import codecs as _codecs
+    b64 = pa.base64_encode(_T, 0)
+    payload = b64.splitlines()[-1]
+    assert _b64.b64decode(payload).decode("utf-8") == _T          # decodes back to the original ask
+    assert "passport" not in b64                                  # opaque to a keyword layer
+    r13 = pa.rot13(_T, 0)
+    assert _codecs.decode(r13.splitlines()[-1], "rot_13") == _T
+    rev = pa.reversed_text(_T, 0)
+    assert rev.splitlines()[-1][::-1] == _T
+
+
+def test_jailbreak_wrappers_keep_indicators_visible():
+    # wrappers attack the MODEL, so the harmful base text (and its keywords) must remain present
+    for name in ("instruction_override", "hypothetical_frame", "inversion_redflags", "output_template"):
+        out = pa.TRANSFORMS[name](_T, 0)
+        assert "passport" in out and "fee" in out                 # GREP would still fire on these
+        assert len(out) > len(_T)                                 # it wraps, not replaces
+
+
+def test_layer_tagging_complete_and_split():
+    assert set(pa._LAYER) == set(pa.TRANSFORMS)                   # every transform is tagged
+    assert sum(v == "grep" for v in pa._LAYER.values()) >= 8      # the obfuscation set
+    assert sum(v == "model" for v in pa._LAYER.values()) >= 3     # the jailbreak wrappers
