@@ -237,16 +237,25 @@ def build_report(stats: dict, *, lengths: dict, out_path: pathlib.Path) -> str:
     placebo_dir = ("nudged the score up slightly" if pmb > 0.05 else
                    "slightly *lowered* the score" if pmb < -0.05 else
                    "left the score essentially unchanged")
+    hp_p = ov["harnessed_minus_placebo"]["p"]
+    sig = ("a significant" if hp_p < 0.05 else
+           "a **marginal, not-quite-significant** (p just above 0.05)" if hp_p < 0.10 else
+           "a **non-significant**")
+    tail = ("so the knowledge effect over a generic preamble is real, if small on this rigid grader"
+            if hp_p < 0.05 else
+            "so on this rigid, ceiling-bound grader the knowledge effect over a generic preamble is "
+            "only suggestive — the grader cannot cleanly separate the arms when every arm sits near "
+            "5.7/10. The *conclusive* placebo test belongs on the holistic LLM judge (which shows the "
+            "+1.73-class lift), not the deterministic floor; this deterministic negative control is "
+            "honestly inconclusive")
     o.append(
         f"> On **{ov.get('n', 0)} (prompt × model) pairs** the means were "
         f"**baseline {ov.get('mean_baseline')} → placebo {ov.get('mean_placebo')} → harnessed "
         f"{ov.get('mean_harnessed')}** (0–10). The generic placebo {placebo_dir} ({pmb:+.2f}, the "
-        f"'any preamble' effect), but the real grounding scored **{ov['harnessed_minus_placebo']['mean']:+.2f} "
-        f"beyond the placebo** (paired z={ov['harnessed_minus_placebo']['z']:.2f}, "
-        f"p={_fmt_p(ov['harnessed_minus_placebo']['p'])}) — so what lift the rigid grader does register "
-        "is driven by the harness's knowledge, not the mere presence of a preamble. (These are the "
-        "ceiling-bound *deterministic* scores; the holistic LLM-judge lift is larger — see "
-        "`comparative_results_llm_judge.md`.)\n")
+        f"'any preamble' effect), and the real grounding scored **{ov['harnessed_minus_placebo']['mean']:+.2f} "
+        f"beyond the placebo** — {sig} difference (paired z={ov['harnessed_minus_placebo']['z']:.2f}, "
+        f"p={_fmt_p(hp_p)}) — {tail}. (These are the ceiling-bound *deterministic* scores; the "
+        "holistic LLM-judge lift is larger — see `comparative_results_llm_judge.md`.)\n")
 
     o.append("## Length match (so this is a fair control)\n")
     if lengths.get("real_mean"):
