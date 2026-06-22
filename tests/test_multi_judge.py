@@ -53,6 +53,34 @@ def test_build_report_states_robustness(tmp_path):
     assert "`j1`" in md and "Judge spread" in md
 
 
+def _same_family_panel():
+    # candidate glm-5.2 judged by a same-family judge (glm-5.2: lift +3) and a cross-family judge
+    # (gpt-oss:120b: lift +5). Cross-family-only lift must use ONLY the gpt-oss judge.
+    rows = []
+    for j, base, harn in (("glm-5.2", 5.0, 8.0), ("gpt-oss:120b", 4.0, 9.0)):
+        for arm, sc in (("baseline", base), ("harnessed", harn)):
+            rows.append({"key": f"glm-5.2|p1|{arm}", "model": "glm-5.2", "arm": arm,
+                         "prompt_id": "p1", "judge": j, "score": sc})
+    return rows
+
+
+def test_aggregate_cross_family_robustness():
+    agg = mj.aggregate(_same_family_panel(), ["glm-5.2", "gpt-oss:120b"])
+    r = agg["rows"][0]
+    assert r["panel_lift"] == 4.0                      # (+3 glm, +5 gpt-oss) / 2
+    assert r["panel_lift_xfam"] == 5.0                 # only the cross-family gpt-oss judge
+    assert r["n_xfam_judges"] == 1
+    assert agg["has_same_family"] is True
+    assert agg["panel_mean_all"] == 4.0 and agg["panel_mean_xfam"] == 5.0
+
+
+def test_build_report_notes_same_family_inclusion(tmp_path):
+    md = mj.build_report(mj.aggregate(_same_family_panel(), ["glm-5.2", "gpt-oss:120b"]),
+                         ["glm-5.2", "gpt-oss:120b"], out_path=tmp_path / "r.md")
+    assert "all available large models as judges" in md
+    assert "cross-family" in md.lower() and "does not depend on same-family" in md
+
+
 def test_krippendorff_alpha_interval():
     # perfect agreement: every item rated identically -> alpha = 1
     perfect = {"i1": [8, 8], "i2": [3, 3], "i3": [6, 6], "i4": [9, 9]}
