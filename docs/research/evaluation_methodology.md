@@ -17,6 +17,22 @@ responses — and where does it fail?
 identically. The unit of effect is the **per-prompt delta** (harnessed − baseline), so any
 grader bias that is constant across arms cancels. We report the delta, not absolute scores.
 
+**Prompt diversity (not a narrow slice).** The benchmark corpus spans **59 distinct attack /
+prompt-type categories**, and the n=911 headline run sampled **55** of them — so the depth result is
+not a subset of attack types. They group into: jailbreaks (pretext / override / combined),
+obfuscation (punctuated, financial, relabeling, repackaging, buried-ask), laundering &
+corporate-structure schemes (multi-entity fee laundering, circular-debt, multi-leg, money-mule,
+offshore-SPV), coercion (document confiscation, family pressure, false hope, forced recruitment),
+social engineering (false legitimacy, benevolent framing, predatory norm,
+authority/destitution/emergency/religious justifications), and multiple personas (exploiter,
+employer, worker, social worker). **~6% are benign control queries** (rights / wage / contract /
+survivor-support questions) so the eval also measures *over-refusal*, not only under-refusal. A
+separate generator (`gen_scheme_prompts.py`) adds seven corridor-templated scheme archetypes
+(fee-splitting, NGO-fee camouflage, offshore-SPV, wage-as-savings, passport control, crypto/e-wallet
+fee rails, free-visa debt) across ten corridors. **Gap, stated plainly:** the harness-lift eval is
+**English-only text** — no multilingual prompts and no multimodal (document-photo / screenshot)
+inputs, although the product harness supports both; closing that is future work (see §5).
+
 ## 2. Two graders, deliberately
 
 | Grader | What it is | Role | Reproducible? |
@@ -171,7 +187,11 @@ dimensions than it regresses, but the mean washes out); see `comparative_results
 - **Synthetic prompts.** Composite/synthetic scenarios (no real PII). They are grounded in the
   benchmark's exploitation taxonomy but are not a sample of real worker messages; distributional
   validity is assumed, not measured.
-- **Our own rubric.** The 75 deterministic dimensions (and the 192-dimension LLM-judge rubric) are
+- **English text only.** The harness-lift eval scores only English-language, text prompts. No
+  multilingual prompts and no multimodal (document-photo, screenshot, contract-scan) inputs are in
+  the scored set, although the product harness accepts both — so cross-lingual and multimodal lift is
+  **unmeasured**. (The corpus is otherwise broad: 59 attack/prompt-type categories, see §1.)
+- **Our own rubric.** The 77 deterministic dimensions (and the 192-dimension LLM-judge rubric) are
   DueCare's. They are externally grounded but have **not** been validated for inter-annotator
   agreement by independent experts.
 - **The length ablation controlled for length, not citation density.** The OLS shows the lift is not
