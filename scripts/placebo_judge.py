@@ -209,7 +209,11 @@ def build_report(agg: dict, *, judge_model: str, out_path: pathlib.Path) -> str:
         "placebo** is the harness's knowledge on top. The baseline + harnessed responses are reused "
         "from the perdim run, the placebo from the negative control, so only the judge pass is new.\n"
         "- Judge is `" + judge_model + "`, outside the candidate families; same holistic rubric as "
-        "the headline panel.\n")
+        "the headline panel.\n"
+        "- **On absolute magnitude:** these are the negative-control prompt subset (the harder, "
+        "adversarial perdim prompts), so the *absolute* lift here runs larger than the n=911 headline "
+        "+1.73 — that is expected and not a competing headline. What this experiment establishes is "
+        "the **contrast** (harnessed − placebo), i.e. that the lift is knowledge, not preamble.\n")
     md = "\n".join(o) + "\n"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(md, encoding="utf-8")
