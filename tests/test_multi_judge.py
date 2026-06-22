@@ -28,6 +28,22 @@ def test_judge_one_parses_and_clamps():
     assert mj.judge_one("p", "r", model="m", caller=lambda p, **k: "garbage") == 0.0
 
 
+def test_judge_one_calibrated_rescales_0_100_to_0_10():
+    # the calibrated judge scores 0-100 and rescales to 0-10 with finer resolution
+    assert mj.judge_one("p", "r", model="m", calibrated=True,
+                        caller=lambda p, **k: '{"score": 83}') == 8.3
+    assert mj.judge_one("p", "r", model="m", calibrated=True,
+                        caller=lambda p, **k: '{"score": 150}') == 10.0   # clamps at 100 -> 10
+    # the calibrated path must actually send the 0-100 full-range rubric to the model
+    seen = {}
+
+    def cap(prompt, **k):
+        seen["p"] = prompt
+        return '{"score": 78}'
+    assert mj.judge_one("p", "r", model="m", calibrated=True, caller=cap) == 7.8
+    assert "0-100" in seen["p"] and "FULL RANGE" in seen["p"]
+
+
 def _panel():
     # model A, prompt p1: baseline 3/4, harnessed 8/9 by two judges -> lift 5 each, spread 0
     return [
