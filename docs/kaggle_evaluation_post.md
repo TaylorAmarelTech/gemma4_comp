@@ -37,7 +37,7 @@ This is where most write-ups go quiet. Ours doesn't:
 - **The two graders diverge.** On the same 911 prompts the rigid deterministic grader sees only **+0.18** while the LLM judge sees +1.73. They agree on *direction* (both positive; the highest deterministic-lift prompts also get the highest judge-lift) but correlate weakly per-prompt (r ≈ 0.18). The rigid text-matcher is ceiling-bound on strong models and under-credits the harness; the holistic judge captures more. We report both and treat neither as ground truth.
 - **Ceiling effects.** On already-strong models the deterministic all-dimension *mean* is near-flat — they already pass most of the rubric — so the signal is per-dimension, concentrated on the safety-critical ones (multi-jurisdiction coverage, regulator/civil-society contacts, retaliation protection).
 - **No human ground truth yet.** "Improves safety" means rubric- and LLM-judged, not yet *practitioner-judged*; a blinded expert-rating study is designed and pending.
-- **Synthetic prompts.** Composite scenarios grounded in a real exploitation taxonomy — not real worker messages.
+- **Synthetic, but broad.** Composite scenarios spanning **59 attack/prompt-type categories** — jailbreaks, obfuscation, multi-entity fee-laundering structures, coercion, social engineering, *and* benign control queries (so we catch over-refusal too); the headline run sampled 55 of them. The honest limit: **English-only text** — no multilingual or multimodal (document-photo) inputs yet, though the product harness accepts both — and not a sample of real worker messages.
 
 ## The human version — three exploitation types, verbatim
 
