@@ -21,16 +21,30 @@ ab = _load("length_bias_ablation", _ROOT / "scripts" / "length_bias_ablation.py"
 
 def _rows():
     # exact linear truth: score = 5 + 0.5*(length/1000) + 2.0*arm  (within-arm length varies so the
-    # OLS can separate the length term from the arm term)
+    # OLS can separate the length term from the arm term). cite_density varies independently so the
+    # citation-density covariate is identifiable.
     lens_b = [1500, 2000, 2500, 1800, 2200, 2600]
     lens_h = [3500, 4000, 4500, 3800, 4200, 4600]
+    cd_b = [0.5, 1.0, 0.7, 1.2, 0.9, 0.6]
+    cd_h = [2.0, 2.5, 2.2, 1.8, 2.4, 2.1]
     out = []
     for i, (lb, lh) in enumerate(zip(lens_b, lens_h)):
         out.append({"model": "m", "prompt_id": f"p{i}", "arm": "baseline",
-                    "score": 5 + 0.5 * lb / 1000, "length": lb})
+                    "score": 5 + 0.5 * lb / 1000, "length": lb, "cite_density": cd_b[i]})
         out.append({"model": "m", "prompt_id": f"p{i}", "arm": "harnessed",
-                    "score": 5 + 0.5 * lh / 1000 + 2.0, "length": lh})
+                    "score": 5 + 0.5 * lh / 1000 + 2.0, "length": lh, "cite_density": cd_h[i]})
     return out
+
+
+def test_citation_density_counts_legal_markers():
+    assert ab._citation_density("ILO C181 and the Palermo Protocol cover forced labour.") > 0
+    assert ab._citation_density("Just pay the fee and don't worry about it.") == 0.0
+
+
+def test_ols_full_recovers_arm_with_citation_held_constant():
+    o = ab.ols_full(_rows())
+    # truth has no citation effect, so the arm coefficient should still recover ~2.0
+    assert abs(o["b_arm"] - 2.0) < 0.1 and o["d_cite"] > 0
 
 
 def test_pearson_known_values():
