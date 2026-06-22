@@ -133,10 +133,13 @@ def build_report(cells: list[dict], *, judge_note: str, out_path: Path) -> str:
     o.append(
         "The quantitative result. Each model answers hundreds of migrant-worker "
         "trafficking-safety prompts in two arms — **baseline** (raw prompt) and **harnessed** "
-        f"(the DueCare GREP/RAG/reasoning layer) — and every reply is scored on **{n_dims} rubric "
-        "dimensions** by DueCare's own deterministic grader (free, reproducible, one score per "
-        "applicable dimension). Because dimensions differ in difficulty and applicability, the "
-        "honest unit is the **per-dimension** lift (same dimension, both arms), not a single mean.\n")
+        f"(the DueCare GREP/RAG/reasoning layer) — and every reply is scored on the applicable subset "
+        f"of DueCare's **75-dimension** deterministic rubric ({n_dims} dimensions appear in this "
+        "prompt set; free, reproducible, one score per applicable dimension). Because dimensions "
+        "differ in difficulty and applicability, the honest unit is the **per-dimension** lift (same "
+        "dimension, both arms), not a single mean. *Note: the pooled per-dimension significances "
+        "below are exploratory — they treat (prompt×model) pairs as independent (clustered); see "
+        "`robustness_checks.md`.*\n")
     o.append(
         f"> **Across {len(models)} models and {n_prompts} prompts, the harness improves "
         f"{len(improved)} of {len(dim_lift)} graded rubric dimensions** (mean {mean_imp:+.2f}/10 "
@@ -219,7 +222,11 @@ def build_report(cells: list[dict], *, judge_note: str, out_path: Path) -> str:
     o.append(
         f"> **After FDR correction, the harness significantly improves {n_up} dimensions and "
         f"significantly regresses {n_down}** (of {len(tests)} tested) — stricter than the raw "
-        "improve/regress counts above, and the count that survives multiple comparisons.\n")
+        "improve/regress counts above. **Read as exploratory:** each dimension's p pools all "
+        "(prompt × model) pairs as if independent, but they are clustered by model (design effect "
+        "~1.6), so the standard errors are understated and this FDR-surviving set is **anticonservative** "
+        "(the true set is somewhat smaller). The clean inferential claims are the per-model paired "
+        "tests and the cluster-robust headline CI — see `robustness_checks.md` §2.\n")
     sig = sorted(((d, tests[d]["mean"], bh[d]["q"], tests[d]["n"]) for d in bh
                   if bh[d]["significant"] and tests[d]["mean"] > 0), key=lambda x: -x[1])[:12]
     if sig:
@@ -236,8 +243,9 @@ def build_report(cells: list[dict], *, judge_note: str, out_path: Path) -> str:
         f"- **Prompts**: {n_prompts} from the public benchmark corpus "
         "(`configs/duecare/benchmarks/harness_lift_prompts_500.json`), composite/synthetic, no "
         "real PII.\n"
-        f"- **Grading**: DueCare's `grade_response_universal` — {n_dims} rubric dimensions, "
-        "deterministic, free, one score per APPLICABLE dimension (NOT_APPLICABLE excluded). This "
+        f"- **Grading**: DueCare's `grade_response_universal` — 75-dimension rubric ({n_dims} appear "
+        "in this prompt set), deterministic, free, one score per APPLICABLE dimension "
+        "(NOT_APPLICABLE excluded). This "
         "honours the per-dimension grading-integrity rule without tens of thousands of external "
         "judge calls.\n"
         f"- **Move threshold**: a dimension counts as improved/regressed only if |lift| > {_MOVE} "
