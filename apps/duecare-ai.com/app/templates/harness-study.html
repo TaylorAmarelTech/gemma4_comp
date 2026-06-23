@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>The harness-lift study &middot; DueCare AI</title>
-<meta name="description" content="An independent, adversarial evaluation of the DueCare safety harness: per-model lift, the controls we ran to break it, and the worst raw-model replies." />
+<meta name="description" content="An adversarial self-evaluation of the DueCare safety harness by its author: per-model lift, the controls we ran to break our own result, and the worst raw-model replies." />
 <link rel="stylesheet" href="/static/styles.css" /><link rel="stylesheet" href="/static/hub-pages.css" />
 <style>
 .hs-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin: 28px 0 6px; }
@@ -83,9 +83,9 @@
 
 <section class="hp-hero" data-screen-label="Eval &middot; Study"><div class="wrap">
 <div class="crumbs"><a href="/">Home</a><span class="sep">/</span><a href="/evaluation">Evaluation</a><span class="sep">/</span><span>Harness-lift study</span></div>
-<span class="kicker">Independent, adversarial evaluation</span>
+<span class="kicker">Adversarial self-evaluation</span>
 <h1>We tried hard to prove our own result is wrong.</h1>
-<p class="lede">The DueCare harness wraps any LLM in fired indicator rules + retrieved legal grounding + an ILO-reasoning instruction. This is the measured effect on trafficking-safety &mdash; and every control we ran to explain it away. The interesting part isn&rsquo;t the number; it&rsquo;s how hard it was to break.</p></div></section>
+<p class="lede">The DueCare harness wraps any LLM in fired indicator rules + retrieved legal grounding + an International Labour Organization (ILO) reasoning instruction. This is the measured effect on trafficking-safety &mdash; and every control we ran to explain it away. The interesting part isn&rsquo;t the number; it&rsquo;s how hard it was to break.</p></div></section>
 
 <section class="hp-section" data-screen-label="Eval &middot; Why now"><div class="wrap">
 <div class="head"><div><span class="ix">Why this matters now</span><h2>When AI output becomes the deployer&rsquo;s own words.</h2></div></div>
@@ -93,19 +93,19 @@
 </div></section>
 
 <section class="hp-section" data-screen-label="Eval &middot; Headline"><div class="wrap">
-<div class="head"><div><span class="ix">01 &middot; Headline</span><h2>The harness lifts every model we tested.</h2></div><p class="summary">Each prompt is answered by the same model with and without the harness; both answers are scored by an <b>independent LLM judge</b>; the per-prompt paired delta is analyzed with win rate, Cohen&rsquo;s d, and a seeded 10,000-resample bootstrap CI.</p></div>
+<div class="head"><div><span class="ix">01 &middot; Headline</span><h2>The harness lifts every model we tested.</h2></div><p class="summary">Each prompt is answered by the same model with and without the harness; both answers are scored by an <b>LLM judge that is a different model from the one being graded</b>; the per-prompt paired delta is analyzed with win rate, Cohen&rsquo;s d, and a seeded 10,000-resample bootstrap CI.</p></div>
 <div class="hs-stats">
-<div class="m"><div class="lbl">Mean paired lift &middot; gemma4:31b</div><div class="val" data-count="1.73" data-prefix="+" data-suffix=" / 10">+1.73 / 10</div><div class="sub">95% CI [+1.57, +1.89] &middot; n=911 &middot; judge gpt-oss:120b</div></div>
+<div class="m"><div class="lbl">Mean paired lift &middot; gemma4:31b</div><div class="val" data-count="1.73" data-prefix="+" data-suffix=" / 10">+1.73 / 10</div><div class="sub">95% CI [+1.57, +1.89] &middot; 911 prompts &middot; judge gpt-oss:120b</div></div>
 <div class="m"><div class="lbl">Win rate</div><div class="val" data-count="73.3" data-suffix="%">73.3%</div><div class="sub">668 win / 210 loss / 33 tie</div></div>
 <div class="m"><div class="lbl">Effect size</div><div class="val" data-count="0.69" data-prefix="d = ">d = 0.69</div><div class="sub">paired Cohen&rsquo;s d, medium&ndash;large</div></div>
-<div class="m"><div class="lbl">Across 11 models</div><div class="val" data-count="1.09" data-prefix="+" data-suffix=" / 10">+1.09 / 10</div><div class="sub">average lift, lifts every model &mdash; small-sample breadth (n=4 prompts each), not the n=911 depth</div></div>
+<div class="m"><div class="lbl">Across 11 models</div><div class="val" data-count="1.09" data-prefix="+" data-suffix=" / 10">+1.09 / 10</div><div class="sub">average lift, lifts every model &mdash; small-sample breadth (4 prompts each), not the 911-prompt depth</div></div>
 </div>
 <div class="hs-chart" data-chart="permodel"></div>
-<p class="hp-note">LLM-judge lift per model (harnessed &minus; baseline, 0&ndash;10). The bars are from <b>different runs and judges</b> (not one apples-to-apples sweep): gemma4:31b is the n=911 gpt-oss:120b-judged run; gpt-oss:20b (+1.49, n=27) and Claude Opus 4.8 (+0.27, n=24) are Opus-judged; the &ldquo;avg / 11 models&rdquo; is the small n=4 breadth run. Even Opus &mdash; already near-ceiling &mdash; gains. Sources: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/harness_lift_report.md" rel="noopener">harness_lift_report.md</a>.</p>
+<p class="hp-note">LLM-judge lift per model (harnessed &minus; baseline, 0&ndash;10). The bars are from <b>different runs and judges</b> (not one apples-to-apples sweep): gemma4:31b is the 911-prompt gpt-oss:120b-judged run; gpt-oss:20b (+1.49, n=27) and Claude Opus 4.8 (+0.27, n=24) are Opus-judged; the &ldquo;avg / 11 models&rdquo; is the small n=4 breadth run. Even Opus &mdash; already near-ceiling &mdash; gains. Sources: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/harness_lift_report.md" rel="noopener">harness_lift_report.md</a>.</p>
 </div></section>
 
 <section class="hp-section" data-screen-label="Eval &middot; Two graders"><div class="wrap">
-<div class="head"><div><span class="ix">02 &middot; How we score</span><h2>A rigid rule-grader sees +0.18. A reading judge sees +1.73.</h2></div><p class="summary">We score every reply two independent ways. They agree on <i>direction</i> (both positive; the highest deterministic-lift prompts also get the highest judge-lift) but the per-prompt correlation is weak (r &asymp; 0.18). The strict text-matcher is ceiling-bound on strong models and under-credits the harness; the holistic judge reads the answer the way a person would. We report both and treat neither as ground truth.</p></div>
+<div class="head"><div><span class="ix">02 &middot; How we score</span><h2>A rigid rule-grader sees +0.18. A reading judge sees +1.73.</h2></div><p class="summary">We score every reply two separate ways. They agree on <i>direction</i> (both positive; the highest deterministic-lift prompts also get the highest judge-lift) but the per-prompt correlation is weak (r &asymp; 0.18). The strict text-matcher is ceiling-bound on strong models and under-credits the harness; the holistic judge reads the answer the way a person would. We report both and treat neither as ground truth.</p></div>
 
 <div class="hs-rubric">
 <div class="rk">Every reply is scored <b>0&ndash;10</b> on the five things a safe answer to a worker must do:</div>
@@ -141,7 +141,7 @@ Not-applicable dimensions are excluded from numerator <i>and</i> denominator. We
 </div>
 <ul class="checks">
 <li><b>Newest, largest judge panel</b><span>The current top model of five families &mdash; gpt-oss, GLM, Qwen, Kimi, and DeepSeek-V4. All large models judge; same-family pairs are included by design, with a cross-family-only mean confirming no single family drives the result. All 11 candidate models show positive lift.</span></li>
-<li><b>Survives obfuscation &amp; jailbreaks</b><span>14 input-attack transforms &mdash; encoding (base64/ROT13), homoglyph, code-switch, jailbreak wrappers. The harness lifts safety on <b>all 14</b> (+4.39 overall), even <b>+4.10 on base64/ROT13</b> where the keyword layer is 0% effective &mdash; so the RAG + reasoning backstop, not the keywords, carries the safety.</span></li>
+<li><b>Survives obfuscation &amp; jailbreaks</b><span>14 input-attack transforms &mdash; encoding (base64/ROT13), homoglyph, code-switch, jailbreak wrappers. The harness lifts safety on <b>all 14</b> (+4.39 overall), even <b>+4.10 on base64/ROT13</b> where the keyword layer is 0% effective &mdash; so the retrieved-grounding + reasoning backstop, not the keywords, carries the safety.</span></li>
 <li><b>Multiple-comparison correction</b><span>Benjamini&ndash;Hochberg FDR over the 69 (of 75) deterministic dimensions with enough data. Note: these pooled per-dimension p-values are <b>exploratory</b> &mdash; they treat (prompt&times;model) pairs as independent, so the &ldquo;22 improve / 6 regress&rdquo; count is anticonservative (<a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/robustness_checks.md" rel="noopener">robustness_checks.md</a>). The headline LLM-judge lift is unaffected.</span></li>
 <li><b>Context-leak hygiene</b><span>The judge sees only the prompt + one reply &mdash; never the arm label, never the grounding preamble. Verified zero leaks; locked by a test.</span></li>
 <li><b>Refusals handled honestly</b><span>Refusing a recruiter&rsquo;s &ldquo;help me trap a worker&rdquo; is the desired behaviour &mdash; reported separately, not scored as a bad answer.</span></li>
