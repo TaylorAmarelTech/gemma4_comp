@@ -23,7 +23,7 @@ def test_clustering_metrics_flags_ceiling_pileup():
     clustered = [10.0] * 8 + [9.0] * 2                 # all at the ceiling, integer
     m = ab.clustering_metrics(clustered)
     assert m["distinct_values"] == 2 and m["pct_ceiling_ge9"] == 100.0 and m["pct_integer"] == 100.0
-    spread = [4.3, 5.1, 6.8, 7.2, 7.9, 8.3, 8.6, 9.1, 3.5, 6.0]   # fine-grained, mostly non-ceiling
+    spread = [4.3, 5.1, 6.8, 7.2, 7.9, 8.3, 8.6, 9.1, 3.5, 6.4]   # fine-grained, no integers, mostly non-ceiling
     s = ab.clustering_metrics(spread)
     assert s["distinct_values"] > m["distinct_values"]            # more resolution
     assert s["pct_ceiling_ge9"] < m["pct_ceiling_ge9"]            # less pile-up
