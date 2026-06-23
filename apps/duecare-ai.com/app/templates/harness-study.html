@@ -87,6 +87,11 @@
 <h1>We tried hard to prove our own result is wrong.</h1>
 <p class="lede">The DueCare harness wraps any LLM in fired indicator rules + retrieved legal grounding + an ILO-reasoning instruction. This is the measured effect on trafficking-safety &mdash; and every control we ran to explain it away. The interesting part isn&rsquo;t the number; it&rsquo;s how hard it was to break.</p></div></section>
 
+<section class="hp-section" data-screen-label="Eval &middot; Why now"><div class="wrap">
+<div class="head"><div><span class="ix">Why this matters now</span><h2>When AI output becomes the deployer&rsquo;s own words.</h2></div></div>
+<p class="summary" style="max-width:none">In May 2026 the Regional Court of Munich held Google directly liable for false statements its <b>AI Overviews</b> generated &mdash; ruling that AI-synthesized output is the provider&rsquo;s <i>own</i> speech, not protected third-party content, and that telling users to &ldquo;double-check&rdquo; is not enough to escape responsibility (Google is appealing). Whatever the appeal decides, the direction is clear: as deployers become answerable for what their models <i>assert</i>, output-safety stops being a nicety and becomes <b>risk mitigation</b>. A prompt-time harness is exactly that &mdash; a measurable, auditable reduction in harmful, ungrounded answers in a high-stakes domain. The egregious gallery below shows the failure mode that now carries exposure (a model drafting a fee-camouflage scheme or a passport-confiscation policy) and the harnessed reply that replaces it with a grounded refusal citing the law. We make <b>no legal claim</b> &mdash; a harness reduces, it does not eliminate &mdash; but &ldquo;we can <i>show</i> our model is measurably less likely to say the harmful thing&rdquo; is a sentence worth being able to say.</p>
+</div></section>
+
 <section class="hp-section" data-screen-label="Eval &middot; Headline"><div class="wrap">
 <div class="head"><div><span class="ix">01 &middot; Headline</span><h2>The harness lifts every model we tested.</h2></div><p class="summary">Each prompt is answered by the same model with and without the harness; both answers are scored by an <b>independent LLM judge</b>; the per-prompt paired delta is analyzed with win rate, Cohen&rsquo;s d, and a seeded 10,000-resample bootstrap CI.</p></div>
 <div class="hs-stats">
