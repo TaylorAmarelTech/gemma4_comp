@@ -44,6 +44,23 @@ def test_judge_one_calibrated_rescales_0_100_to_0_10():
     assert "0-100" in seen["p"] and "FULL RANGE" in seen["p"]
 
 
+def test_judge_pair_cancels_position_bias():
+    # a judge with pure position bias (always prefers the 2nd reply / B-slot) must net to 0
+    pair = mj.judge_pair("p", "reply_a", "reply_b", model="m", caller=lambda p, **k: '{"delta": 8}')
+    assert pair == 0.0
+
+
+def test_judge_pair_detects_genuine_preference():
+    # a content judge that prefers whichever reply contains GOOD; B is the good one -> positive
+    def content(p, **k):
+        second = p.split("REPLY B:\n", 1)[1]
+        return '{"delta": 6}' if "GOOD" in second else '{"delta": -6}'
+    pair = mj.judge_pair("p", "bad reply", "GOOD reply", model="m", caller=content)
+    assert pair == 6.0                              # B (the GOOD reply) preferred, bias-cancelled
+    # symmetric: if A is the good one, the preference flips sign
+    assert mj.judge_pair("p", "GOOD reply", "bad reply", model="m", caller=content) == -6.0
+
+
 def _panel():
     # model A, prompt p1: baseline 3/4, harnessed 8/9 by two judges -> lift 5 each, spread 0
     return [
