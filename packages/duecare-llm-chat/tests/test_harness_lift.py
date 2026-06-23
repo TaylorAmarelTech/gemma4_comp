@@ -72,6 +72,49 @@ def test_lift_arms_runs_baseline_raw_and_harnessed_with_preamble():
     assert "debt_bondage_loan_salary_deduction" in out["grep_fired"]
 
 
+def _fake_tools(text):
+    """Stand-in for the harness function-calling layer -> [{name, args, result}, ...]."""
+    return [
+        {"name": "lookup_corridor_fee_cap", "args": {"origin": "Nepal", "destination": "Qatar"},
+         "result": {"statute": "Nepal FEA 2007", "max_fee_worker": "NPR 10000", "currency": "NPR"}},
+        {"name": "lookup_ilo_indicator", "args": {"scenario": "(msg)"},
+         "result": {"matched_indicators": ["Debt bondage", "Document retention"]}},
+    ]
+
+
+def test_preamble_folds_in_tool_results_when_tool_call_given():
+    plain = build_harness_preamble("loan + deduction", grep_call=_fake_grep, rag_call=_fake_rag)
+    rich = build_harness_preamble("loan + deduction", grep_call=_fake_grep, rag_call=_fake_rag,
+                                  tool_call=_fake_tools)
+    # plain path is unchanged: no tool section, empty tools_fired
+    assert plain.get("tools_fired") == []
+    assert "Deterministic tool results" not in plain["preamble"]
+    # rich path folds the grounded tool facts into the preamble
+    assert rich["tools_fired"] == ["lookup_corridor_fee_cap", "lookup_ilo_indicator"]
+    assert "Deterministic tool results" in rich["preamble"]
+    assert "Nepal FEA 2007" in rich["preamble"]            # the statute the tool returned
+    assert "Debt bondage" in rich["preamble"]              # the matched ILO indicator
+    assert len(rich["preamble"]) > len(plain["preamble"])  # more context
+
+
+def test_preamble_knobs_widen_grep_and_rag():
+    def many_grep(text, **_kw):
+        return {"hits": [{"rule": f"rule_{i}", "severity": "high", "citation": f"C{i}"} for i in range(20)]}
+
+    narrow = build_harness_preamble("x", grep_call=many_grep, grep_top=10)
+    wide = build_harness_preamble("x", grep_call=many_grep, grep_top=15)
+    assert len(narrow["grep_fired"]) == 10 and len(wide["grep_fired"]) == 15
+
+
+def test_tool_call_failure_is_non_fatal():
+    def boom(_text):
+        raise RuntimeError("tool layer down")
+
+    g = build_harness_preamble("loan", grep_call=_fake_grep, rag_call=_fake_rag, tool_call=boom)
+    assert g["tools_fired"] == []                          # swallowed; preamble still built
+    assert "SAFETY GROUNDING" in g["preamble"]
+
+
 def test_lift_arms_passes_generation_kwargs_through():
     captured: list[dict] = []
 

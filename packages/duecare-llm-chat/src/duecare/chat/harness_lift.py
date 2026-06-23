@@ -15,6 +15,7 @@ citations + public RAG excerpts) -- never raw worker PII (10_safety_gate.md).
 """
 from __future__ import annotations
 
+import json
 from typing import Any, Callable, Optional
 
 _PREAMBLE_HEADER = "SAFETY GROUNDING (DueCare harness -- consider before answering):"
@@ -121,32 +122,102 @@ def _rag_docs(
     return [d for d in (docs or []) if isinstance(d, dict)][:top_k]
 
 
+def _tool_calls(tool_call: Optional[Callable[..., Any]], text: str) -> list[dict]:
+    """Run the harness function-calling layer defensively.
+
+    ``tool_call`` is the harness ``tools_call`` (or any callable that, given the user text, returns
+    the deterministic tool results). Accepts either a raw ``[{name, args, result}, ...]`` list or the
+    harness ``{"tool_calls": [...]}`` envelope, and tolerates the messages-list signature.
+    """
+    if tool_call is None:
+        return []
+    try:
+        out = tool_call(text)
+    except TypeError:
+        try:  # harness _tools_call takes a messages list, not raw text
+            out = tool_call([{"role": "user", "content": [{"type": "text", "text": text}]}])
+        except Exception:  # noqa: BLE001
+            return []
+    except Exception:  # noqa: BLE001
+        return []
+    if isinstance(out, dict):
+        out = out.get("tool_calls") or []
+    return [c for c in (out or []) if isinstance(c, dict)]
+
+
+def _salient_fields(result: Any, max_chars: int = 320) -> str:
+    """Flatten a tool ``result`` dict to a compact, readable ``key=value; ...`` string.
+
+    Pulls scalar fields and short lists (the statute, the fee cap, the matched indicators, the NGO
+    hotline, the euphemism decode) so the model sees the concrete grounded facts a tool returned,
+    not a wall of JSON. Falls back to compact JSON for anything unusual. Always bounded.
+    """
+    if not isinstance(result, dict):
+        return str(result)[:max_chars]
+    parts: list[str] = []
+    for k, v in result.items():
+        if k.startswith("_") or v in (None, "", [], {}):
+            continue
+        if isinstance(v, (str, int, float, bool)):
+            parts.append(f"{k}={v}")
+        elif isinstance(v, list):
+            items = []
+            for it in v[:4]:
+                if isinstance(it, str):
+                    items.append(it)
+                elif isinstance(it, dict):
+                    items.append(str(it.get("name") or it.get("indicator") or it.get("label")
+                                     or it.get("citation") or json.dumps(it, separators=(",", ":"))))
+            if items:
+                parts.append(f"{k}=[{'; '.join(items)}]")
+        elif isinstance(v, dict):
+            inner = "; ".join(f"{kk}={vv}" for kk, vv in list(v.items())[:4]
+                              if isinstance(vv, (str, int, float, bool)) and str(vv).strip())
+            if inner:
+                parts.append(f"{k}={{{inner}}}")
+    return ("; ".join(parts) or json.dumps(result, separators=(",", ":")))[:max_chars]
+
+
 def build_harness_preamble(
     text: str,
     *,
     grep_call: Callable[..., Any],
     rag_call: Optional[Callable[..., Any]] = None,
+    tool_call: Optional[Callable[..., Any]] = None,
     rag_top_k: int = 4,
+    rag_snippet_chars: int = 300,
+    grep_top: int = 10,
     max_chars: int = 9000,
 ) -> dict[str, Any]:
     """Build a DueCare grounding preamble for ``text``.
 
-    Runs the GREP indicator rules and (optionally) RAG retrieval and assembles
-    a grounding preamble plus an ILO-reasoning instruction. Pure
-    prompt-augmentation -- no model is called here, so the preamble is safe to
+    Runs the GREP indicator rules, (optionally) RAG retrieval, and (optionally) the deterministic
+    function-calling tool layer, then assembles a grounding preamble plus an ILO-reasoning
+    instruction. Pure prompt-augmentation -- no model is called here, so the preamble is safe to
     prepend to any model's prompt.
 
-    Returns ``{"preamble": str, "grep_fired": [rule_id, ...],
-    "rag_doc_ids": [doc_id, ...]}``.
+    The optional knobs widen the context the harness supplies:
+      * ``tool_call``         -- the harness ``tools_call`` (function-calling layer). When provided,
+        the concrete tool results (corridor fee cap + statute, fee-camouflage decode, matched ILO
+        indicators, NGO/regulator hotlines, recruitment-cost classification, euphemism decode,
+        evidence-to-preserve) are folded into the grounding -- more components, more tools, more
+        grounded facts than GREP+RAG alone.
+      * ``rag_top_k`` / ``rag_snippet_chars`` -- how many citations and how much of each (more
+        context information).
+      * ``grep_top``          -- how many fired indicator rules to list.
+
+    Returns ``{"preamble": str, "grep_fired": [rule_id, ...], "rag_doc_ids": [doc_id, ...],
+    "tools_fired": [tool_name, ...]}``.
     """
     hits = _grep_hits(grep_call, text)
     docs = _rag_docs(rag_call, text, rag_top_k)
+    calls = _tool_calls(tool_call, text)
 
     lines: list[str] = [_PREAMBLE_HEADER]
     grep_fired: list[str] = []
     if hits:
         lines.append("\nIndicator rules that fired (GREP):")
-        for h in hits[:10]:
+        for h in hits[:grep_top]:
             rid = h.get("rule") or h.get("rule_id") or h.get("id") or "rule"
             grep_fired.append(str(rid))
             sev = h.get("severity", "medium")
@@ -164,10 +235,18 @@ def build_harness_preamble(
             did = str(d.get("id") or d.get("doc_id") or "")
             rag_doc_ids.append(did)
             title = d.get("title") or did
-            snippet = str(d.get("snippet") or d.get("body") or "")[:300]
+            snippet = str(d.get("snippet") or d.get("body") or "")[:rag_snippet_chars]
             lines.append(f"- {title}: {snippet}")
 
-    if not hits and not docs:
+    tools_fired: list[str] = []
+    if calls:
+        lines.append("\nDeterministic tool results (DueCare function-calling layer -- grounded facts):")
+        for c in calls[:12]:
+            name = str(c.get("name") or "tool")
+            tools_fired.append(name)
+            lines.append(f"- {name}: {_salient_fields(c.get('result'))}")
+
+    if not hits and not docs and not calls:
         lines.append("\n(No indicator rules or citations fired for this text.)")
     lines.append("\n" + _REASONING_INSTRUCTION)
 
@@ -178,6 +257,7 @@ def build_harness_preamble(
         "preamble": preamble,
         "grep_fired": grep_fired,
         "rag_doc_ids": rag_doc_ids,
+        "tools_fired": tools_fired,
     }
 
 
