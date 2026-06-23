@@ -58,4 +58,5 @@ def test_aggregate_and_report(tmp_path):
     assert agg["calibrated"]["distinct_values"] == 6       # spread out
     md = ab.build_report(agg, judge_model="gpt-oss:120b", out_path=tmp_path / "r.md")
     assert "de-cluster" in md and "distinct values" in md
-    assert "spreads the scores out" in md                  # verdict: calibrated wins here
+    # calibrated here adds resolution AND drops the ceiling -> the strongest verdict
+    assert "better instrument" in md and "adds resolution" in md

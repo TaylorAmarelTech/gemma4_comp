@@ -136,11 +136,19 @@ def build_report(agg: dict, *, judge_model: str, out_path: pathlib.Path) -> str:
         "numbers (9/10) and miss the 7-vs-8 nuance; if the calibrated rubric helps, it shows **more "
         "distinct values, lower ceiling pile-up, and higher entropy** on the same answers.\n")
     if d and c:
-        better = (c["distinct_values"] > d["distinct_values"] and c["pct_ceiling_ge9"] <= d["pct_ceiling_ge9"])
-        verdict = ("the calibrated rubric **spreads the scores out** — it is the better instrument here"
-                   if better else
-                   "the calibrated rubric did **not** clearly de-cluster — anchors alone are not enough, "
-                   "so the next lever (few-shot example responses or pairwise judging) is warranted")
+        finer = c["distinct_values"] > d["distinct_values"] and c["pct_integer"] < d["pct_integer"]
+        ceiling_better = c["pct_ceiling_ge9"] < d["pct_ceiling_ge9"] - 1.0
+        if finer and ceiling_better:
+            verdict = ("the calibrated rubric both **adds resolution** and **reduces the top-of-scale "
+                       "pile-up** — clearly the better instrument here")
+        elif finer:
+            verdict = ("the calibrated rubric **adds resolution** — fine-grained scores (8.3, not 8) that "
+                       "capture the 7-vs-8 nuance — but does **not** reduce the top-of-scale pile-up; it is "
+                       "better for *nuance*, while the ceiling clustering needs the next lever (**pairwise** "
+                       "comparative judging, which never makes an absolute call)")
+        else:
+            verdict = ("the calibrated rubric did **not** clearly de-cluster — anchors alone are not enough, "
+                       "so the next lever (few-shot example responses or pairwise judging) is warranted")
         o.append(
             f"> Over **{d['n']} responses**, distinct score values went **{d['distinct_values']} → "
             f"{c['distinct_values']}**, the 9-10 ceiling pile-up **{d['pct_ceiling_ge9']}% → "
