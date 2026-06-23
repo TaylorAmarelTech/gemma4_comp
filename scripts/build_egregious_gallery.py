@@ -20,6 +20,7 @@ import glob
 import html
 import json
 import pathlib
+import re
 
 _ROOT = pathlib.Path(__file__).resolve().parents[1]
 RANKER = _ROOT / "reports" / "egregious_ranker.jsonl"
@@ -113,8 +114,13 @@ _STYLE = """
 """
 
 
+def _norm(s: str) -> str:
+    """Normalize em/en dashes to hyphens (per the no-em-dash style), preserving everything else."""
+    return re.sub(r"\s*—\s*", " - ", (s or "")).replace("–", "-")
+
+
 def _esc(s: str) -> str:
-    return html.escape(s or "")
+    return html.escape(_norm(s))
 
 
 def render(cases: list[dict], threshold: float) -> str:
@@ -155,16 +161,66 @@ def render(cases: list[dict], threshold: float) -> str:
     return "\n".join(o) + "\n"
 
 
+def _scheme_meta() -> dict[str, dict]:
+    meta: dict[str, dict] = {}
+    try:
+        d = json.loads((_ROOT / "configs" / "duecare" / "benchmarks" / "scheme_prompts.json").read_text(encoding="utf-8"))
+        for p in d.get("prompts", []):
+            meta[str(p["id"])] = {"category": p.get("category", ""), "corridor": p.get("corridor", "")}
+    except Exception:  # noqa: BLE001
+        pass
+    return meta
+
+
+def post_markdown(cases: list[dict], n: int = 3) -> str:
+    """Markdown for the Kaggle post: N distinct-scheme-type cases, full input + full replies, no em dashes."""
+    meta = _scheme_meta()
+
+    def _topic(pt: str) -> str:
+        p = (pt or "").lower()
+        if "passport" in p or "seaman" in p or ("document" in p and any(k in p for k in ("retain", "custody", "safekeep"))):
+            return "passport and document retention"
+        if any(k in p for k in ("foundation", "non-profit", "sister", "ngo")):
+            return "fee camouflage via a non-profit"
+        return "recruitment-fee evasion"
+
+    picked: list[tuple] = []
+    for c in cases[:n]:                       # worst first; duplicate scheme types are fine (include many)
+        m = meta.get(c["prompt_id"])
+        label = m["category"].replace("_", " ") if m else _topic(c["prompt_text"])
+        corr = m.get("corridor", "").replace("->", " to ") if m else ""
+        picked.append((c, label, corr))
+    o: list[str] = []
+    for i, (c, cat, corr) in enumerate(picked, 1):
+        o.append(f"### Example {i}: {cat}" + (f" ({corr})" if corr else "") + "\n")
+        o.append("*The model input, verbatim:*\n")
+        o.append("> " + _norm(c["prompt_text"]).replace("\n", "\n> ") + "\n")
+        o.append(f"*The complete raw reply (`{c['model']}`, verbatim and untruncated):*\n")
+        o.append("```text\n" + _norm(c["baseline"]).strip() + "\n```\n")
+        o.append("*The complete harnessed reply, verbatim and untruncated:*\n")
+        o.append("```text\n" + _norm(c["harnessed"]).strip() + "\n```\n")
+    return "\n".join(o)
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--threshold", type=float, default=7.0)
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--out", default=str(DEFAULT_OUT))
+    ap.add_argument("--post-md", type=int, default=0,
+                    help="emit N-example post markdown to reports/_scratch/post_examples.md instead of the page")
     args = ap.parse_args(argv)
     cases = select_cases(args.threshold, args.limit)
     if not cases:
         print("no egregious cases with full responses found", flush=True)
         return 1
+    if args.post_md:
+        md = post_markdown(cases, args.post_md)
+        outp = _ROOT / "reports" / "_scratch" / "post_examples.md"
+        outp.parent.mkdir(parents=True, exist_ok=True)
+        outp.write_text(md, encoding="utf-8")
+        print(f"wrote {args.post_md}-example post markdown -> {outp}")
+        return 0
     out = pathlib.Path(args.out)
     out.write_text(render(cases, args.threshold), encoding="utf-8")
     print(f"wrote {len(cases)} full before/after cases -> {out}")
