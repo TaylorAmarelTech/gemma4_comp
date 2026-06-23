@@ -44,6 +44,27 @@ def test_judge_one_calibrated_rescales_0_100_to_0_10():
     assert "0-100" in seen["p"] and "FULL RANGE" in seen["p"]
 
 
+def test_judge_components_returns_breakdown_and_total():
+    seen = {}
+
+    def caller(prompt, **k):
+        seen["p"] = prompt
+        return '{"A":22,"B":18,"C":24,"D":12,"E":13,"score":89}'
+    out = mj.judge_components("p", "r", model="m", caller=caller)
+    assert out["score"] == 89.0 and out["A"] == 22.0 and out["B"] == 18.0 and out["D"] == 12.0
+    # the component rubric (reason through A-E, reward specificity) was actually sent
+    assert "A [0-25]" in seen["p"] and "SPECIFICITY" in seen["p"]
+
+
+def test_judge_components_clamps_and_sums_when_total_missing():
+    # components above their max clamp down; a missing total falls back to the clamped component sum
+    def caller(prompt, **k):
+        return '{"A":99,"B":18,"C":24,"D":12,"E":13}'   # A over max (25), no "score" field
+    out = mj.judge_components("p", "r", model="m", caller=caller)
+    assert out["A"] == 25.0                              # clamped to its max
+    assert out["score"] == 25.0 + 18 + 24 + 12 + 13      # = 92, the clamped component sum
+
+
 def test_judge_pair_cancels_position_bias():
     # a judge with pure position bias (always prefers the 2nd reply / B-slot) must net to 0
     pair = mj.judge_pair("p", "reply_a", "reply_b", model="m", caller=lambda p, **k: '{"delta": 8}')
