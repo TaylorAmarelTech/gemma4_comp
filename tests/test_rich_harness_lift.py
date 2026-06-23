@@ -73,6 +73,40 @@ def test_judge_panel_0_100_and_self_family_excluded(tmp_path):
     assert by_arm == {"baseline": 40.0, "harness_core": 70.0, "harness_full": 90.0}
 
 
+def test_pairwise_core_full_signed_preference(tmp_path):
+    results = [
+        {"model": "gemma4:31b", "prompt_id": "P1", "arm": "harness_core", "prompt_text": "q", "response": "CORE reply"},
+        {"model": "gemma4:31b", "prompt_id": "P1", "arm": "harness_full", "prompt_text": "q", "response": "FULL reply"},
+    ]
+
+    def fake_pair_caller(prompt: str, **_kw) -> str:
+        # judge_pair calls both orders; score by which reply sits in the B slot (+ = B safer)
+        b_slot = prompt.rsplit("REPLY B:", 1)[-1]
+        return json.dumps({"delta": 3 if "FULL" in b_slot else -3})   # full consistently safer by +3
+
+    pw_path = tmp_path / "pairwise.jsonl"
+    n = rh.pairwise_core_full(results, ["gpt-oss:120b", "gemma-mini"], pairwise_path=pw_path,
+                              judge_caller=fake_pair_caller, pace=0.0, log=lambda _m: None)
+    rows = [json.loads(x) for x in pw_path.read_text(encoding="utf-8").splitlines()]
+    assert n == 1 and len(rows) == 1                       # 1 prompt x 1 eligible judge (gemma excluded)
+    assert rows[0]["judge"] == "gpt-oss:120b" and rows[0]["delta"] == 3.0   # full preferred, bias-cancelled
+
+
+def test_aggregate_pairwise_win_rate(tmp_path):
+    rows = [
+        {"model": "gemma4:31b", "prompt_id": "P1", "judge": "gpt-oss:120b", "delta": 2.0},
+        {"model": "gemma4:31b", "prompt_id": "P1", "judge": "glm-5.2", "delta": 1.0},
+        {"model": "gemma4:31b", "prompt_id": "P2", "judge": "gpt-oss:120b", "delta": -1.0},
+        {"model": "gemma4:31b", "prompt_id": "P2", "judge": "glm-5.2", "delta": 0.0},
+    ]
+    agg = rh.aggregate_pairwise(rows, ["gpt-oss:120b", "glm-5.2"])
+    r = agg["models"][0]
+    assert r["n_prompts"] == 2
+    assert r["panel_mean_delta"] == 0.5                    # mean(2,1,-1,0)
+    assert r["win_rate_full"] == 50.0                      # P1 mean +1.5 > 0.05; P2 mean -0.5 not
+    assert r["loss_rate_full"] == 50.0
+
+
 def test_aggregate_lift_math(tmp_path):
     panel = []
     for j, base, core, full in [("gpt-oss:120b", 40, 70, 92), ("glm-5.2", 50, 75, 88)]:
