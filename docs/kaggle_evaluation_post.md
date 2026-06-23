@@ -62,6 +62,10 @@ We rank baseline replies with an egregiousness judge (how harmful would a human 
 
 That is the whole thesis: the knowledge to refuse and cite the law was always reachable; the harness makes the model reach for it. The full ranked set — **38 baseline replies scored ≥7/10, all of them the mid-size `gemma4:31b`, none from the strong frontier models** (precisely the on-device deployment case) — is in `egregious_responses.md`, and we keep expanding the adversarial corpus that produces them: a new generator covers seven scheme archetypes (fee-splitting, NGO camouflage, offshore-SPV obfuscation, wage-as-savings, passport control, crypto/e-wallet fee rails, free-visa debt) across ten corridors.
 
+## The bottom line
+
+Across 911 prompts and 55 attack types, a prompt-time harness measurably and repeatedly improves how a model handles labour exploitation: it **lifts every model we tested**, **survives all 14 obfuscation and jailbreak attacks** (even the encoding that blinds its keyword layer), and **wins 100% of head-to-head comparisons** — with the largest effect exactly where it matters most, the small on-device model an NGO can actually run. We tried hard to explain it away — length, "any preamble," circularity, judge bias, obfuscation — and it held. The one claim we are *not* making until it exists is human-expert validation, which is the next step. In a world where a court has just held a provider liable for what its AI *says*, "we can **show** our model is measurably less likely to say the harmful thing" stops being a nicety and becomes the point.
+
 ## Reproducible, not faked
 
 Every number regenerates from the repo with a local grader (free) and Ollama-hosted judges. Reports, scripts, and tests are public:
