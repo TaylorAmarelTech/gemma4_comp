@@ -2,7 +2,9 @@
      (The 1,500-word cap is for the formal Writeup; this is the discussion-thread follow-up.)
      Paste-ready. Repo: https://github.com/TaylorAmarelTech/gemma4_comp -->
 
-# Can a prompt-time "harness" make any LLM safer at spotting labour trafficking? We tried hard to prove it can't.
+# The Need for DueCare + Adversarial Review
+
+*A prompt-time safety harness that makes any LLM better at spotting migrant-worker trafficking — and every control we ran to try to prove our own result wrong.*
 
 **TL;DR.** DueCare wraps any LLM in a prompt-time safety harness — fired indicator rules + retrieved legal grounding + an ILO-reasoning instruction — and we measured whether it improves how models handle migrant-worker exploitation. Across 11 frontier models the harness lifts a trafficking-safety score by **+1.09/10** on average (a small breadth check, n=4 prompts each); the depth result is **gemma4:31b over 911 prompts at +1.73/10** (73% win rate, Cohen's d = 0.69). The interesting part isn't the number — it's how hard we tried to explain it away. Full results + code: **https://github.com/TaylorAmarelTech/gemma4_comp** (`docs/research/`).
 
