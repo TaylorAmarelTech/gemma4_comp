@@ -345,8 +345,9 @@ def build_report(agg: dict, judges: list[str], *, out_path: pathlib.Path,
             f"**{head['panel_arm']['harness_full']}** (harness_full) - a **+{head['lift_full_vs_baseline']} "
             f"point** lift - judged by a {len(judges)}-model panel over {head['n_prompts']} adversarial "
             f"scheme prompts. The original core harness scores {head['panel_arm']['harness_core']} "
-            f"(+{head['lift_core_vs_baseline']}); the extra context, components, and tools add a further "
-            f"**+{head['lift_full_vs_core']}** points on top of the core harness.\n")
+            f"(+{head['lift_core_vs_baseline']}); the extra context, components, and tools change the "
+            f"score by **{head['lift_full_vs_core']:+}** points on top of the already-saturated core "
+            f"harness (see the ceiling note and the ceiling-free pairwise test below).\n")
         # Honest interpretation when full - core is small: it is a ceiling, not a null result.
         core_score = head["panel_arm"]["harness_core"]
         if head["lift_full_vs_core"] < 2.0 and core_score >= 90:
@@ -371,7 +372,7 @@ def build_report(agg: dict, judges: list[str], *, out_path: pathlib.Path,
     for r in models:
         pa = r["panel_arm"]
         o.append(f"| `{r['model']}` | {r['n_prompts']} | {pa['baseline']} | {pa['harness_core']} | "
-                 f"**{pa['harness_full']}** | **+{r['lift_full_vs_baseline']}** | +{r['lift_full_vs_core']} |")
+                 f"**{pa['harness_full']}** | **+{r['lift_full_vs_baseline']}** | {r['lift_full_vs_core']:+} |")
     o.append("")
     o.append("## Per-judge breakdown (0-100 arm means)\n")
     o.append("| Model | Judge | baseline | harness_core | harness_full |")
