@@ -66,6 +66,19 @@
 </table>
 <p class="hp-note">Ranked by the harness <b>lift</b> on the 0-100 component rubric (A identifies the indicator, B cites the specific law, C refuses, D points to concrete resources, E preserves safety and privacy). <b>B</b> and <b>D</b> are shown because they are where the harness most consistently helps - the specific statute and the concrete hotline an unharnessed reply omits. <b>full vs core</b> is the ceiling-free pairwise preference of the full harness (with tools and deeper retrieval) over the core GREP+RAG harness.</p>
 
+<h2 style="margin-top:30px">Validity and limitations (read before citing)</h2>
+<div class="bm-spec">
+<b>What this is, honestly.</b> A reproducible engineering benchmark and a preliminary study, not yet a peer-review-validated measure of real-world trafficking-safety. It measures safety <i>as scored by language-model judges against an author-designed rubric</i>. The strengths are real: a paired design that cancels each judge's absolute scale, a diverse self-family-excluded panel with strong inter-judge agreement, and controls (a knowledge-free length-matched placebo, a negative control, and adversarial input attacks). The challenges a reviewer would raise, stated up front:
+<br><br>
+<b>1. No human-expert ground truth (the main gap).</b> The judges are language models, not anti-trafficking professionals. High inter-judge agreement shows the judges are <i>consistent</i>, not that they are <i>correct</i>. A blinded human-expert validation is the next step and the honest blocker for a peer-reviewed claim.
+<br><b>2. Author conflict and construct validity.</b> The same author wrote the harness, the rubric, and the prompt set. The improvement on dimensions the harness never injects, and the placebo control, mitigate circularity but do not eliminate it; the rubric's five-criterion decomposition is not yet validated against expert consensus.
+<br><b>3. Citation accuracy is not judged.</b> The rubric rewards citing the specific law; the harness verifies statute section numbers deterministically, but the judge scores citation <i>presence</i>, not <i>correctness</i>, so a fluent but mis-cited reply could still score well.
+<br><b>4. Narrow inputs.</b> Prompts are synthetic, English-only, and text-only (no multimodal documents yet), concentrated on recruitment-fee typologies.
+<br><b>5. Thin model coverage and mutable judges.</b> The leaderboard is early, and the judges are cloud endpoints that can change or retire, which erodes long-term reproducibility unless versions are pinned or archived.
+<br><br>
+Full threats-to-validity, the statistics, and the planned human-expert validation: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/evaluation_methodology.md" rel="noopener">evaluation_methodology.md</a> &middot; the method catalog: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/benchmark_methods.md" rel="noopener">benchmark_methods.md</a>.
+</div>
+
 <div class="bm-sub">
 <b>Submit a model.</b> The harness wraps any chat endpoint, so adding a model is one run:
 <pre>python scripts/rich_harness_lift.py --models &lt;your-model&gt; \
