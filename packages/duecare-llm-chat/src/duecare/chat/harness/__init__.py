@@ -15036,7 +15036,58 @@ def _tool_classify_recruitment_cost(args: dict) -> dict:
     }
 
 
+def _tool_recommend_instruments(args: dict) -> dict:
+    """Recommend the SPECIFIC controlling international instruments for a scenario, by sector
+    (maritime / fishing / domestic work) and transaction type (fee / wage deduction / document
+    retention / OSH), so a reply can cite the exact convention and article rather than a vague
+    'this may be illegal'. Deterministic keyword mapping over the real ILO instruments held in this
+    module (C181, C095, C029/P029, C097/C143/ICRMW, MLC 2006, C188, C189, C155/C187); feeds the
+    'cites the specific law' grading criterion. No model call."""
+    text = (args.get("text") or args.get("scenario") or "").lower()
+    rec: list[dict] = []
+
+    def add(instrument: str, why: str) -> None:
+        if not any(r["instrument"] == instrument for r in rec):
+            rec.append({"instrument": instrument, "why": why})
+
+    # Sector-specific controlling instruments
+    if re.search(r"\b(seafarer|maritime|vessel|ship|crew|manning|merchant navy)\b", text):
+        add("ILO MLC, 2006 Std A1.4", "no recruitment or placement fee may be charged to a seafarer")
+        add("ILO MLC, 2006 Reg. 2.5", "repatriation at no cost to the seafarer")
+    if re.search(r"\b(fishing|fisher|trawler|longliner|purse[\s-]?seiner|deckhand)\b", text):
+        add("ILO C188 Art. 22", "the fishing-vessel owner pays the recruitment fee; the fisher shall not be charged")
+        add("ILO MLC, 2006", "broader maritime labour standards for crew")
+    if re.search(r"\b(domestic|housekeep|nanny|caregiver|caretaker|maid|helper|fdw|fdh|household worker)\b", text):
+        add("ILO C189 Art. 9", "domestic worker keeps their own travel and identity documents; free agreement on living in the household")
+        add("ILO C189 Art. 7", "written terms of employment provided to the worker in advance")
+
+    # Transaction-specific instruments
+    if re.search(r"\b(fee|placement|recruit|commission|charge|deduct|salary advance|loan|bond)\b", text):
+        add("ILO C181 Art. 7", "private employment agencies shall not charge any fee directly or indirectly to workers")
+        add("ILO C097 / C143 / ICRMW", "migrant workers receive treatment no less favourable than nationals")
+    if re.search(r"\b(deduct|wage|withhold|salary|advance|loan|debt|repay)\b", text):
+        add("ILO C095 Arts. 8-9", "wage deductions only as authorised by law; no deduction to obtain or retain employment")
+        add("ILO C029 + P029 (2014)", "a debt that binds the worker is forced labour; victims are entitled to remedies")
+    if re.search(r"\b(passport|document|\bid\b|identity|seize|retain|custody|safekeep|confiscat)\b", text):
+        add("ILO Forced Labour Indicator 7 (document retention)", "retention of identity documents is a recognised indicator of forced labour")
+    if re.search(r"\b(unsafe|accommodation|injur|hazard|protective equipment|health and safety|dangerous)\b", text):
+        add("ILO C155 + C187", "occupational safety and health; a safe and healthy working environment is a fundamental right at work (2022)")
+
+    found = bool(rec)
+    return {
+        "found": found,
+        "instruments": rec[:8],
+        "principle": ("The only lawful recruitment model is employer-pays; charging the worker is "
+                      "prohibited regardless of the label, the collecting entity, or the jurisdiction."
+                      if found else ""),
+        "note": ("Cite these specific instruments for BOTH the origin and the destination jurisdiction."
+                 if found else "No sector/transaction instrument matched; apply the general ILO "
+                 "forced-labour indicators."),
+    }
+
+
 _TOOL_DISPATCH = {
+    "recommend_instruments": _tool_recommend_instruments,
     "lookup_corridor_fee_cap": _tool_lookup_corridor_fee_cap,
     "lookup_fee_camouflage": _tool_lookup_fee_camouflage,
     "lookup_ilo_indicator": _tool_lookup_ilo_indicator,
@@ -15210,6 +15261,9 @@ def _heuristic_tool_calls(text: str,
     rc = _tool_classify_recruitment_cost({"text": text})
     if rc.get("found"):
         calls.append({"name": "classify_recruitment_cost", "args": {"text": "(user message)"}, "result": rc})
+    instruments = _tool_recommend_instruments({"text": text})
+    if instruments.get("found"):
+        calls.append({"name": "recommend_instruments", "args": {"text": "(user message)"}, "result": instruments})
     return calls
 
 
@@ -15315,6 +15369,9 @@ def _build_multidomain_catalog() -> list:
 
 def _build_tools_catalog() -> list:
     return [
+        {"name": "recommend_instruments",
+         "description": "Recommend the SPECIFIC controlling ILO instruments for a scenario by sector (maritime/fishing/domestic) and transaction (fee/wage deduction/document retention/OSH), so a reply cites the exact convention and article instead of a vague 'this may be illegal'.",
+         "args": "text: str"},
         {"name": "lookup_corridor_fee_cap",
          "description": "Look up the controlling statute + max permissible fee for a (origin, destination, sector) corridor.",
          "args": "origin: str, destination: str, sector: str = 'any'"},

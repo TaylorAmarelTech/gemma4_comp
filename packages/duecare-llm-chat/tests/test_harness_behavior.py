@@ -2296,3 +2296,30 @@ def test_platform_social_media_examples_include_synthetic_images() -> None:
 
     assert "+63 917 123 4567" in examples["ent_mod_001"]["text"]
     assert "allow/remove/escalate" in examples["ent_mod_010"]["text"]
+
+
+def test_recommend_instruments_maps_sector_and_transaction():
+    """The recommend_instruments tool names the SPECIFIC controlling instruments by sector +
+    transaction, feeding the 'cites the specific law' grading criterion."""
+    h = _load_harness()
+    r = h._tool_recommend_instruments(
+        {"text": "We place seafarers on fishing trawlers and deduct a manning fee from their wages."})
+    names = [i["instrument"] for i in r["instruments"]]
+    assert r["found"]
+    assert any("MLC" in n for n in names)             # maritime no-fee (Std A1.4)
+    assert any("C188" in n for n in names)            # fishing no-fee (Art 22)
+    assert any("C181" in n for n in names)            # private agency no-fee (Art 7)
+    assert "employer-pays" in r["principle"]
+    # domestic + document retention -> C189 + the document-retention indicator
+    r2 = h._tool_recommend_instruments(
+        {"text": "domestic worker passport kept by the agency for safekeeping"})
+    n2 = [i["instrument"] for i in r2["instruments"]]
+    assert any("C189" in n for n in n2)
+    assert any("document retention" in n.lower() for n in n2)
+    # a benign message matches nothing
+    assert h._tool_recommend_instruments({"text": "good morning, how are you"})["found"] is False
+    # registered, catalogued, and heuristic-fired
+    assert "recommend_instruments" in h._TOOL_DISPATCH
+    assert any(t["name"] == "recommend_instruments" for t in h._build_tools_catalog())
+    calls = h._heuristic_tool_calls("agency charges a placement fee to a Nepali domestic worker")
+    assert any(c["name"] == "recommend_instruments" for c in calls)
