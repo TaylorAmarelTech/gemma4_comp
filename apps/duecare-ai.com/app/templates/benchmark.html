@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>DueCare Harness-Lift Benchmark &middot; leaderboard</title>
+<meta name="description" content="An ongoing, versioned benchmark: how much safer the DueCare harness makes each model on migrant-worker trafficking-safety, graded 0-100 by a diverse frontier judge panel. Any model can be added." />
+<link rel="stylesheet" href="/static/styles.css" /><link rel="stylesheet" href="/static/hub-pages.css" />
+<style>
+.bm-spec { border:1px solid var(--line); border-radius:12px; padding:16px 20px; margin:8px 0 26px; background:var(--paper-2); font-size:13.5px; line-height:1.55; color:var(--ink-2); }
+.bm-spec b { color:var(--ink); }
+.bm-table { border-collapse:collapse; width:100%; font-size:13.5px; margin:6px 0 10px; }
+.bm-table th { text-align:right; padding:8px 10px; border-bottom:2px solid var(--line); font-family:var(--mono); font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-3); }
+.bm-table th.l, .bm-table td.l { text-align:left; }
+.bm-table td { text-align:right; padding:8px 10px; border-bottom:1px solid var(--line-soft); }
+.bm-table td.lift { font-weight:700; color:oklch(0.38 0.12 155); }
+.bm-table tr.top td { background:oklch(0.97 0.02 155); }
+.bm-rank { font-family:var(--mono); color:var(--ink-3); }
+.bm-empty { border:1px dashed var(--line); border-radius:12px; padding:22px; text-align:center; color:var(--ink-3); }
+.bm-sub { background:var(--paper-2); border:1px solid var(--line); border-radius:12px; padding:16px 20px; margin-top:18px; }
+.bm-sub pre { background:var(--paper-3); border-radius:8px; padding:12px 14px; overflow:auto; font-family:var(--mono); font-size:12.5px; margin:8px 0 0; }
+</style>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+</head><body>{% set active_nav = "evaluation" %}
+{% include "_nav.html" %}
+
+<section class="hp-hero" data-screen-label="Eval &middot; Benchmark"><div class="wrap">
+<div class="crumbs"><a href="/">Home</a><span class="sep">/</span><a href="/evaluation">Evaluation</a><span class="sep">/</span><span>Benchmark</span></div>
+<span class="kicker">Ongoing benchmark</span>
+{% if leaderboard %}
+<h1>{{ leaderboard.benchmark.name }}</h1>
+<p class="lede">How much safer does the DueCare harness make a model? Each model is answered twice on the same hard prompts, once raw and once wrapped in the harness, and both are scored 0 to 100 by a diverse frontier judge panel. The score is the <b>lift</b> (harnessed minus baseline), so any judge bias cancels. The harness is pure prompt augmentation, so the same benchmark wraps any model. Spec <code>{{ leaderboard.benchmark.id }}</code> v{{ leaderboard.benchmark.version }}.</p>
+{% else %}
+<h1>DueCare Harness-Lift Benchmark</h1>
+<p class="lede">The leaderboard is being generated. Run <code>scripts/benchmark_leaderboard.py</code> to build it.</p>
+{% endif %}
+</div></section>
+
+<section class="hp-section"><div class="wrap">
+{% if leaderboard %}
+<div class="bm-spec">
+<b>The spec (frozen for comparability).</b>
+<b>Prompt set:</b> {{ leaderboard.benchmark.prompt_set }}.
+<b>Protocol:</b> {{ leaderboard.benchmark.protocol }}
+<b>Judges (self-family excluded):</b> {% for j in leaderboard.judges %}<code>{{ j }}</code>{% if not loop.last %}, {% endif %}{% endfor %} &middot; inter-judge Krippendorff alpha = {{ leaderboard.inter_judge_alpha }}.
+<b>Generated:</b> {{ leaderboard.generated }} at git <code>{{ leaderboard.git_sha or 'unknown' }}</code> (every row is reproducible from the spec version and SHA).
+</div>
+
+<h2>Leaderboard</h2>
+<table class="bm-table">
+<thead><tr>
+  <th class="l">#</th><th class="l">Model</th><th>n</th><th>baseline</th><th>harnessed</th><th>lift</th>
+  <th>B: cites law</th><th>D: resources</th><th>full vs core</th></tr></thead>
+<tbody>
+{% for m in leaderboard.models %}
+<tr{% if loop.first %} class="top"{% endif %}>
+  <td class="l bm-rank">{{ m.rank }}</td>
+  <td class="l"><code>{{ m.model }}</code></td>
+  <td>{{ m.n_prompts }}</td>
+  <td>{{ "%.1f"|format(m.baseline) }}</td>
+  <td>{{ "%.1f"|format(m.harnessed) }}</td>
+  <td class="lift">+{{ "%.1f"|format(m.lift) }}</td>
+  <td>+{{ "%.1f"|format(m.components_gain.get('B', 0)) }}</td>
+  <td>+{{ "%.1f"|format(m.components_gain.get('D', 0)) }}</td>
+  <td>{% if m.pairwise_full_vs_core is not none %}{{ "%+.2f"|format(m.pairwise_full_vs_core) }}{% else %}-{% endif %}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+<p class="hp-note">Ranked by the harness <b>lift</b> on the 0-100 component rubric (A identifies the indicator, B cites the specific law, C refuses, D points to concrete resources, E preserves safety and privacy). <b>B</b> and <b>D</b> are shown because they are where the harness most consistently helps - the specific statute and the concrete hotline an unharnessed reply omits. <b>full vs core</b> is the ceiling-free pairwise preference of the full harness (with tools and deeper retrieval) over the core GREP+RAG harness.</p>
+
+<div class="bm-sub">
+<b>Submit a model.</b> The harness wraps any chat endpoint, so adding a model is one run:
+<pre>python scripts/rich_harness_lift.py --models &lt;your-model&gt; \
+    --judges gpt-oss:120b,glm-5.2,deepseek-v4-pro --pairwise
+python scripts/benchmark_leaderboard.py</pre>
+</div>
+
+<p class="hp-note" style="margin-top:18px">Method catalog and why the 0-100 component judge is primary: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/benchmark_methods.md" rel="noopener">benchmark_methods.md</a> &middot; the run behind the headline: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/rich_harness_lift_100.md" rel="noopener">rich_harness_lift_100.md</a> &middot; full methodology: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/evaluation_methodology.md" rel="noopener">evaluation_methodology.md</a> &middot; the study: <a href="/harness-study">harness-lift study</a>.</p>
+{% else %}
+<div class="bm-empty">No leaderboard data yet. Generate it with <code>python scripts/benchmark_leaderboard.py</code> after a harness-lift run.</div>
+{% endif %}
+</div></section>
+
+{% include "_footer.html" %}
+</body></html>
