@@ -4,8 +4,18 @@
 <meta name="description" content="An ongoing, versioned benchmark: how much safer the DueCare harness makes each model on migrant-worker trafficking-safety, graded 0-100 by a diverse frontier judge panel. Any model can be added." />
 <link rel="stylesheet" href="/static/styles.css" /><link rel="stylesheet" href="/static/hub-pages.css" />
 <style>
-.bm-spec { border:1px solid var(--line); border-radius:12px; padding:16px 20px; margin:8px 0 26px; background:var(--paper-2); font-size:13.5px; line-height:1.55; color:var(--ink-2); }
-.bm-spec b { color:var(--ink); }
+.bm-steps { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:10px 0 4px; }
+@media (max-width:760px){ .bm-steps { grid-template-columns:1fr; } }
+.bm-step { border:1px solid var(--line); border-radius:12px; padding:16px 18px; background:var(--paper); }
+.bm-step .n { display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:50%; background:oklch(0.52 0.08 195); color:#fff; font-family:var(--mono); font-weight:700; font-size:13px; margin-bottom:9px; }
+.bm-step b { display:block; margin-bottom:4px; color:var(--ink); font-size:14.5px; }
+.bm-step p { margin:0; font-size:13px; line-height:1.55; color:var(--ink-2); }
+.bm-deflist { border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+.bm-deflist > div { display:grid; grid-template-columns:150px 1fr; gap:14px; padding:11px 18px; border-bottom:1px solid var(--line-soft); font-size:13px; }
+.bm-deflist > div:last-child { border-bottom:none; }
+.bm-deflist .k { font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-3); }
+.bm-deflist .v { color:var(--ink-2); line-height:1.5; }
+@media (max-width:600px){ .bm-deflist > div { grid-template-columns:1fr; gap:2px; } }
 .bm-table { border-collapse:collapse; width:100%; font-size:13.5px; margin:6px 0 10px; }
 .bm-table th { text-align:right; padding:8px 10px; border-bottom:2px solid var(--line); font-family:var(--mono); font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-3); }
 .bm-table th.l, .bm-table td.l { text-align:left; }
@@ -14,8 +24,14 @@
 .bm-table tr.top td { background:oklch(0.97 0.02 155); }
 .bm-rank { font-family:var(--mono); color:var(--ink-3); }
 .bm-empty { border:1px dashed var(--line); border-radius:12px; padding:22px; text-align:center; color:var(--ink-3); }
-.bm-sub { background:var(--paper-2); border:1px solid var(--line); border-radius:12px; padding:16px 20px; margin-top:18px; }
-.bm-sub pre { background:var(--paper-3); border-radius:8px; padding:12px 14px; overflow:auto; font-family:var(--mono); font-size:12.5px; margin:8px 0 0; }
+.bm-card { border:1px solid var(--line); border-radius:12px; padding:16px 20px; margin-top:14px; background:var(--paper-2); font-size:13.5px; line-height:1.55; color:var(--ink-2); }
+.bm-card b { color:var(--ink); }
+.bm-card pre { background:var(--paper-3); border-radius:8px; padding:12px 14px; overflow:auto; font-family:var(--mono); font-size:12.5px; margin:8px 0 0; }
+.bm-lim { counter-reset:lim; list-style:none; padding:0; margin:10px 0 0; }
+.bm-lim li { position:relative; padding:0 0 12px 30px; font-size:13.5px; line-height:1.55; color:var(--ink-2); }
+.bm-lim li:before { counter-increment:lim; content:counter(lim); position:absolute; left:0; top:0; width:21px; height:21px; border-radius:50%; background:oklch(0.65 0.10 80); color:var(--ink); font-family:var(--mono); font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+.bm-lim li b { color:var(--ink); }
+.bm-sectlede { font-size:14px; color:var(--ink-2); line-height:1.6; margin:2px 0 14px; max-width:64ch; }
 </style>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
 </head><body>{% set active_nav = "evaluation" %}
@@ -26,7 +42,7 @@
 <span class="kicker">Ongoing benchmark</span>
 {% if leaderboard %}
 <h1>{{ leaderboard.benchmark.name }}</h1>
-<p class="lede">How much safer does the DueCare harness make a model? Each model is answered twice on the same hard prompts, once raw and once wrapped in the harness, and both are scored 0 to 100 by a diverse frontier judge panel. The score is the <b>lift</b> (harnessed minus baseline), so any judge bias cancels. The harness is pure prompt augmentation, so the same benchmark wraps any model. Spec <code>{{ leaderboard.benchmark.id }}</code> v{{ leaderboard.benchmark.version }}.</p>
+<p class="lede">A safety benchmark that asks an unusual question: not <i>how safe is this model</i>, but <b>how much safer does a thin layer of legal grounding make it?</b> The harness adds text to the prompt and nothing else, so the same benchmark wraps any model. Spec <code>{{ leaderboard.benchmark.id }}</code> v{{ leaderboard.benchmark.version }}.</p>
 {% else %}
 <h1>DueCare Harness-Lift Benchmark</h1>
 <p class="lede">The leaderboard is being generated. Run <code>scripts/benchmark_leaderboard.py</code> to build it.</p>
@@ -35,15 +51,16 @@
 
 <section class="hp-section"><div class="wrap">
 {% if leaderboard %}
-<div class="bm-spec">
-<b>The spec (frozen for comparability).</b>
-<b>Prompt set:</b> {{ leaderboard.benchmark.prompt_set }}.
-<b>Protocol:</b> {{ leaderboard.benchmark.protocol }}
-<b>Judges (self-family excluded):</b> {% for j in leaderboard.judges %}<code>{{ j }}</code>{% if not loop.last %}, {% endif %}{% endfor %} &middot; inter-judge Krippendorff alpha = {{ leaderboard.inter_judge_alpha }}.
-<b>Generated:</b> {{ leaderboard.generated }} at git <code>{{ leaderboard.git_sha or 'unknown' }}</code> (every row is reproducible from the spec version and SHA).
+
+<h2>How it works</h2>
+<div class="bm-steps">
+  <div class="bm-step"><span class="n">1</span><b>Answer twice</b><p>The model answers each hard, disguised prompt <b>raw</b>, then again <b>wrapped in the harness</b>: fired indicator rules, retrieved law, and deterministic tools, added to the prompt. Same model, same question.</p></div>
+  <div class="bm-step"><span class="n">2</span><b>A panel scores 0 to 100</b><p>A diverse panel of frontier judges, each from a different model family and <b>never grading its own</b>, scores both replies on five criteria: name the indicator, cite the specific law, refuse, give concrete resources, protect the worker.</p></div>
+  <div class="bm-step"><span class="n">3</span><b>Report the lift</b><p>The score is <b>harnessed minus baseline</b>. The paired design cancels each judge's own scale, so the lift is what survives judge disagreement. Models are ranked by it.</p></div>
 </div>
 
-<h2>Leaderboard</h2>
+<h2 style="margin-top:32px">Leaderboard</h2>
+<p class="bm-sectlede">Ranked by the safety lift on the 0 to 100 rubric. <b>B</b> and <b>D</b> are shown because they are where the harness most consistently helps: the specific statute and the concrete hotline an unharnessed reply leaves out.</p>
 <table class="bm-table">
 <thead><tr>
   <th class="l">#</th><th class="l">Model</th><th>n</th><th>baseline</th><th>harnessed</th><th>lift</th>
@@ -64,29 +81,36 @@
 {% endfor %}
 </tbody>
 </table>
-<p class="hp-note">Ranked by the harness <b>lift</b> on the 0-100 component rubric (A identifies the indicator, B cites the specific law, C refuses, D points to concrete resources, E preserves safety and privacy). <b>B</b> and <b>D</b> are shown because they are where the harness most consistently helps - the specific statute and the concrete hotline an unharnessed reply omits. <b>full vs core</b> is the ceiling-free pairwise preference of the full harness (with tools and deeper retrieval) over the core GREP+RAG harness.</p>
+<p class="hp-note"><b>baseline</b> and <b>harnessed</b> are the mean 0-100 scores; <b>lift</b> is the difference. <b>full vs core</b> is the ceiling-free pairwise preference of the full harness (with tools and deeper retrieval) over the plain GREP+RAG harness. The five criteria: A identifies the indicator, B cites the specific law, C refuses, D points to concrete resources, E preserves safety and privacy.</p>
 
-<h2 style="margin-top:30px">Validity and limitations (read before citing)</h2>
-<div class="bm-spec">
-<b>What this is, honestly.</b> A reproducible engineering benchmark and a preliminary study, not yet a peer-review-validated measure of real-world trafficking-safety. It measures safety <i>as scored by language-model judges against an author-designed rubric</i>. The strengths are real: a paired design that cancels each judge's absolute scale, a diverse self-family-excluded panel with strong inter-judge agreement, and controls (a knowledge-free length-matched placebo, a negative control, and adversarial input attacks). The challenges a reviewer would raise, stated up front:
-<br><br>
-<b>1. No human-expert ground truth (the main gap).</b> The judges are language models, not anti-trafficking professionals. High inter-judge agreement shows the judges are <i>consistent</i>, not that they are <i>correct</i>. A blinded human-expert validation is the next step and the honest blocker for a peer-reviewed claim.
-<br><b>2. Author conflict and construct validity.</b> The same author wrote the harness, the rubric, and the prompt set. The improvement on dimensions the harness never injects, and the placebo control, mitigate circularity but do not eliminate it; the rubric's five-criterion decomposition is not yet validated against expert consensus.
-<br><b>3. Citation accuracy is not judged.</b> The rubric rewards citing the specific law; the harness verifies statute section numbers deterministically, but the judge scores citation <i>presence</i>, not <i>correctness</i>, so a fluent but mis-cited reply could still score well.
-<br><b>4. Narrow inputs.</b> Prompts are synthetic, English-only, and text-only (no multimodal documents yet), concentrated on recruitment-fee typologies.
-<br><b>5. Thin model coverage and mutable judges.</b> The leaderboard is early, and the judges are cloud endpoints that can change or retire, which erodes long-term reproducibility unless versions are pinned or archived.
-<br><br>
-Full threats-to-validity, the statistics, and the planned human-expert validation: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/evaluation_methodology.md" rel="noopener">evaluation_methodology.md</a> &middot; the method catalog: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/benchmark_methods.md" rel="noopener">benchmark_methods.md</a>.
+<h2 style="margin-top:32px">The spec <span style="font-weight:400;color:var(--ink-3);font-size:15px">(frozen, so scores are comparable across models and over time)</span></h2>
+<div class="bm-deflist">
+  <div><span class="k">Prompt set</span><span class="v">{{ leaderboard.benchmark.prompt_set }}</span></div>
+  <div><span class="k">Protocol</span><span class="v">Paired baseline vs harnessed, both graded identically; the score is the lift, which cancels each judge's absolute scale.</span></div>
+  <div><span class="k">Judges</span><span class="v">{% for j in leaderboard.judges %}<code>{{ j }}</code>{% if not loop.last %}, {% endif %}{% endfor %} - self-family excluded; inter-judge Krippendorff alpha = {{ leaderboard.inter_judge_alpha }}.</span></div>
+  <div><span class="k">Scale</span><span class="v">0 to 100, assembled from five reasoned safety criteria (A to E).</span></div>
+  <div><span class="k">Provenance</span><span class="v">Spec <code>{{ leaderboard.benchmark.id }}</code> v{{ leaderboard.benchmark.version }}, generated {{ leaderboard.generated }} at git <code>{{ leaderboard.git_sha or 'unknown' }}</code>. Every row is reproducible from the spec version and SHA.</span></div>
 </div>
 
-<div class="bm-sub">
-<b>Submit a model.</b> The harness wraps any chat endpoint, so adding a model is one run:
+<h2 style="margin-top:32px">Validity and limitations <span style="font-weight:400;color:var(--ink-3);font-size:15px">(read before citing)</span></h2>
+<p class="bm-sectlede">A reproducible engineering benchmark and a preliminary study, <b>not yet a peer-review-validated measure of real-world trafficking-safety</b>. It measures safety as scored by language-model judges against an author-designed rubric. The strengths are real: a paired design that cancels judge bias, a diverse self-family-excluded panel with strong agreement, and controls (a knowledge-free length-matched placebo, a negative control, and adversarial input attacks). The challenges a reviewer would raise, stated up front:</p>
+<ol class="bm-lim">
+  <li><b>No human-expert ground truth (the main gap).</b> The judges are language models, not anti-trafficking professionals. High agreement shows the judges are <i>consistent</i>, not that they are <i>correct</i>. A blinded human-expert validation is the next step and the honest blocker for a peer-reviewed claim.</li>
+  <li><b>Author conflict and construct validity.</b> The same author wrote the harness, the rubric, and the prompts. The gain on dimensions the harness never injects, plus the placebo control, mitigate circularity but do not eliminate it; the five-criterion rubric is not yet validated against expert consensus.</li>
+  <li><b>Citation accuracy is not judged.</b> The rubric rewards citing the specific law; the judge scores citation <i>presence</i>, not <i>correctness</i>, so a fluent but mis-cited reply could still score well. (A deterministic citation-accuracy check is in progress.)</li>
+  <li><b>Narrow inputs.</b> Prompts are synthetic, English-only, and text-only (no multimodal documents yet), concentrated on recruitment-fee typologies.</li>
+  <li><b>Thin model coverage and mutable judges.</b> The leaderboard is early, and the judges are cloud endpoints that can change or retire, which erodes long-term reproducibility unless versions are pinned or archived.</li>
+</ol>
+<p class="hp-note">Full threats-to-validity, the statistics, and the planned human-expert validation: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/evaluation_methodology.md" rel="noopener">evaluation_methodology.md</a> &middot; the method catalog and why the 0-100 component judge is primary: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/benchmark_methods.md" rel="noopener">benchmark_methods.md</a>.</p>
+
+<div class="bm-card">
+<b>Submit a model.</b> The harness wraps any chat endpoint, so adding a model is one run, then regenerate the board:
 <pre>python scripts/rich_harness_lift.py --models &lt;your-model&gt; \
     --judges gpt-oss:120b,glm-5.2,deepseek-v4-pro --pairwise
 python scripts/benchmark_leaderboard.py</pre>
 </div>
 
-<p class="hp-note" style="margin-top:18px">Method catalog and why the 0-100 component judge is primary: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/benchmark_methods.md" rel="noopener">benchmark_methods.md</a> &middot; the run behind the headline: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/rich_harness_lift_100.md" rel="noopener">rich_harness_lift_100.md</a> &middot; full methodology: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/evaluation_methodology.md" rel="noopener">evaluation_methodology.md</a> &middot; the study: <a href="/harness-study">harness-lift study</a>.</p>
+<p class="hp-note" style="margin-top:18px">The run behind the headline: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/rich_harness_lift_100.md" rel="noopener">rich_harness_lift_100.md</a> &middot; the study with charts and the human evidence: <a href="/harness-study">harness-lift study</a> &middot; the raw failures, shown in full: <a href="/egregious-cases">egregious cases</a>.</p>
 {% else %}
 <div class="bm-empty">No leaderboard data yet. Generate it with <code>python scripts/benchmark_leaderboard.py</code> after a harness-lift run.</div>
 {% endif %}
