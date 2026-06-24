@@ -13248,6 +13248,30 @@ RAG_CORPUS = [
      'Council of Europe Convention on Action against Trafficking in Human Beings (Warsaw, 2005) and GRETA',
      'CETS No. 197 (Warsaw Convention, 2005); monitored by GRETA',
      "The Warsaw Convention is a human-rights-based anti-trafficking treaty covering all forms of exploitation, all victims, and both national and transnational trafficking. It guarantees victims a recovery and reflection period of at least 30 days during which removal cannot be enforced, access to assistance regardless of cooperation with authorities, and a non-punishment principle for offences victims were compelled to commit. Compliance is monitored by the Group of Experts on Action against Trafficking in Human Beings (GRETA), whose country reports are an authoritative source on identification failures, labour-exploitation trends, and remedy gaps across Council of Europe states."),
+    ('ilo_mlc2006_reg14_recruitment',
+     'ILO Maritime Labour Convention (MLC, 2006), Regulation 1.4 / Standard A1.4 (Recruitment and placement)',
+     'ILO MLC, 2006 Reg. 1.4 / Std A1.4',
+     "Under the Maritime Labour Convention, 2006 (the 'fourth pillar' of international maritime law alongside SOLAS, STCW and MARPOL), seafarers must have access to an efficient, adequate and accountable recruitment and placement system free of charge. Standard A1.4 requires that no fees or other charges for recruitment, placement or finding employment be borne directly or indirectly, in whole or in part, by the seafarer, other than the cost of the statutory medical certificate, the national seafarer's book and a passport. A 'training fee', 'processing fee', or salary deduction routed through a manning agency or an affiliated entity to recover placement costs is a prohibited charge by substance over form. The MLC mirrors ILO C181 Art. 7 and applies to crew on commercial vessels; fishers are covered by ILO C188."),
+    ('ilo_mlc2006_reg25_repatriation',
+     'ILO Maritime Labour Convention (MLC, 2006), Regulation 2.5 / Standard A2.5 (Repatriation)',
+     'ILO MLC, 2006 Reg. 2.5 / Std A2.5',
+     "MLC, 2006 Regulation 2.5 entitles seafarers to repatriation at no cost to themselves in the circumstances set out in the Convention (expiry or termination of the employment agreement, illness, injury, shipwreck, insolvency of the shipowner, and others). The shipowner is liable for the cost of repatriation and is prohibited from requiring an advance payment, or recovering the cost from the seafarer's wages or entitlements, except where the seafarer is found in serious default of employment obligations. Withholding repatriation, or making it conditional on repaying a recruitment debt, is an indicator of forced labour (restriction of movement plus debt bondage) under the ILO indicators."),
+    ('ilo_mlc2006_reg21_agreement_health',
+     'ILO Maritime Labour Convention (MLC, 2006), Regulation 2.1 + Title 4 (Employment agreement; health and welfare)',
+     'ILO MLC, 2006 Reg. 2.1; Title 4',
+     "MLC, 2006 Regulation 2.1 requires a clear written seafarers' employment agreement, signed by both the seafarer and the shipowner, that the seafarer can review and seek advice on before signing, with a copy provided to the seafarer. Title 4 guarantees health protection, on-board and onshore medical care, shipowner liability for sickness and injury, and access to welfare facilities and social security protection. Confiscation of a seafarer's identity or travel documents, a contract substituted on arrival, or denial of medical care are recognized exploitation indicators; the MLC's documentary and welfare requirements are the controlling standard for crew, in addition to ILO C189, which covers domestic workers rather than crew."),
+    ('ilo_c155_osh_framework',
+     'ILO Convention 155 (Occupational Safety and Health, 1981)',
+     'ILO C155 Arts. 4, 16, 19',
+     "ILO C155, a fundamental Convention since the 2022 Declaration amendment, establishes the core occupational-safety-and-health framework at national and workplace levels. Article 4 requires a coherent national OSH policy. Article 16 places the duty on employers to ensure, so far as is reasonably practicable, that workplaces, machinery, equipment and processes under their control are safe and without risk to health. Article 19(f) protects a worker who removes himself from a work situation of imminent and serious danger to life or health from undue consequences. Unsafe accommodation, dangerous worksites, denial of protective equipment, and punishment for refusing dangerous work are exploitation indicators grounded in C155."),
+    ('ilo_c187_osh_promotional',
+     'ILO Convention 187 (Promotional Framework for Occupational Safety and Health, 2006)',
+     'ILO C187 Arts. 2, 3, 4',
+     "ILO C187, a fundamental Convention since 2022, is the promotional and integrated companion to C155. Article 2 commits ratifying States to the continuous improvement of OSH to prevent occupational injuries, diseases and deaths. Article 3 requires promotion of a national preventative safety-and-health culture. Article 4 requires the establishment, maintenance and progressive development of a national OSH system comprising laws and regulations, a competent authority, compliance and enforcement mechanisms, and a national OSH programme. C187 supplies the system-level legal basis a regulator or NGO can cite when destination-state enforcement of migrant-worker safety is absent."),
+    ('ilo_osh_fundamental_2022',
+     'A safe and healthy working environment as a fundamental principle and right at work (ILC, 2022)',
+     'ILO Declaration on Fundamental Principles and Rights at Work (1998, amended 2022)',
+     "At its 110th Session in June 2022 the International Labour Conference added 'a safe and healthy working environment' to the ILO Declaration on Fundamental Principles and Rights at Work, making it the fifth category of fundamental principles, alongside freedom of association and the effective recognition of the right to collective bargaining, the elimination of forced or compulsory labour, the abolition of child labour, and the elimination of discrimination in respect of employment and occupation. C155 and C187 were designated the corresponding fundamental Conventions. As a fundamental principle it is binding in principle on all ILO Members from the fact of membership even without ratification, so a migrant worker's right to a safe and healthy working environment can be asserted against any ILO Member State regardless of which OSH conventions it has ratified."),
 ]
 
 
@@ -14646,6 +14670,59 @@ ILO_CONVENTIONS = {
               "60+ ratifying States; entered into force 9 November "
               "2016; ILO has called for universal ratification by "
               "2030"),
+    "155": (1981, "Occupational Safety and Health Convention",
+              ["Art. 4 (formulate, implement and periodically review a "
+                  "coherent national OSH policy)",
+               "Art. 16 (employers must ensure, so far as is reasonably "
+                  "practicable, that workplaces, machinery, equipment and "
+                  "processes are safe and without risk to health)",
+               "Art. 19(f) (a worker who removes himself from a work "
+                  "situation of imminent and serious danger to life or "
+                  "health shall be protected from undue consequences)"],
+              "Fundamental Convention (elevated 2022 together with C187 as "
+              "the right to a safe and healthy working environment); the "
+              "core national + workplace OSH framework. Grounds the health-"
+              "and-safety dimension of exploitation: unsafe accommodation, "
+              "dangerous worksites, denial of protective equipment.",
+              "80+ ratifying States; binding in principle on all ILO "
+              "Members since the 2022 Declaration amendment"),
+    "187": (2006, "Promotional Framework for Occupational Safety and "
+                  "Health Convention",
+              ["Art. 2 (continuous improvement of OSH to prevent "
+                  "occupational injuries, diseases and deaths)",
+               "Art. 3 (promote a national preventative safety and health "
+                  "culture)",
+               "Art. 4 (establish, maintain and progressively develop a "
+                  "national OSH system: laws, an authority, compliance "
+                  "mechanisms, and a national OSH programme)"],
+              "Fundamental Convention (elevated 2022); the integrated, "
+              "promotional companion to C155 -- a national OSH system and "
+              "programme rather than workplace-level duties. Pairs with "
+              "C155 for the fifth category of fundamental principles and "
+              "rights at work.",
+              "60+ ratifying States; binding in principle on all ILO "
+              "Members since 2022"),
+    "mlc2006": (2006, "Maritime Labour Convention (MLC, 2006)",
+              ["Reg. 1.4 / Std A1.4 (recruitment and placement: no fees or "
+                  "other charges for recruitment, placement or finding "
+                  "employment shall be borne directly or indirectly by the "
+                  "seafarer, other than the cost of the statutory medical "
+                  "certificate, the national seafarer's book and a "
+                  "passport)",
+               "Reg. 2.1 (seafarers' employment agreement in writing, "
+                  "signed by the seafarer and the shipowner)",
+               "Reg. 2.5 / Std A2.5 (repatriation at no cost to the "
+                  "seafarer)",
+               "Title 4 (health protection, medical care, welfare and "
+                  "social security protection)"],
+              "The 'fourth pillar' of international maritime law (alongside "
+              "SOLAS, STCW and MARPOL); consolidates 68 earlier maritime "
+              "instruments into a single seafarers' bill of rights. The "
+              "controlling no-fee-to-seafarer and document-protection "
+              "instrument for crew on commercial vessels; complements C188 "
+              "(Work in Fishing) for fishers.",
+              "100+ ratifying States covering 90%+ of world gross tonnage; "
+              "entered into force 20 August 2013"),
 }
 
 

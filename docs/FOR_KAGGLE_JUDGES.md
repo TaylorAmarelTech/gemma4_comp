@@ -34,7 +34,7 @@ via the repo-root `render.yaml`.
 
 The harness wraps Gemma 4 with retrieval (BM25 + optional hybrid
 dense-retrieval), structural document chunking, 451 hand-curated
-trafficking-pattern rules, an 859-document RAG corpus + citation
+trafficking-pattern rules, an 865-document RAG corpus + citation
 graph (counts regenerable via `python scripts/verify_knowledge_surfaces.py`),
 and a multi-mode grading stack — turning stock Gemma into a
 domain-specialised LLM safety judge for migrant-worker trafficking
@@ -63,7 +63,7 @@ notebook-era appendix surfaces are historical.
 | **451 GREP rules across active categories** (crypto / scam-compound / gig-economy / BNPL / Ukrainian + Afghan corridors / Pacific RSE-PALM / sub-Saharan / EU posted workers / climate-displaced / intra-community / domestic-to-sex-work transition / cross-platform signals) | `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py` (`GREP_RULES = [...]`) |
 | **Large example prompt library across audience buckets** (model_capability / enterprise_moderation / ngo_intake / individual_query / research / image_prompts / data_intelligence / regulator_audit) | `packages/duecare-llm-chat/src/duecare/chat/harness/_examples.json` |
 | **Bundled CC0 synthetic-evidence images + structured-post JSONs** with watermarks + sidecar JSONs + cross-platform-signal links | `packages/duecare-llm-chat/src/duecare/chat/static/synthetic/` + `static/synthetic/posts/` |
-| **859-document curated RAG corpus** (ILO C29/C95/C97/C143/C181/C188/C189/C190/P029, fair-recruitment guidance, POEA/BP2MI/Nepal/HK/SG/UAE statutes, WHO Global Code, EU 2024 ATD amendment, ASEAN ACTIP, CoE 197, CEDAW GR 38, UNCRC, UNODC/IOM/FATF typologies, Pacific Climate Mobility, Bali Process) | `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py` (`RAG_CORPUS = [...]`) |
+| **865-document curated RAG corpus** (ILO C29/C95/C97/C143/C181/C188/C189/C190/P029, fair-recruitment guidance, POEA/BP2MI/Nepal/HK/SG/UAE statutes, WHO Global Code, EU 2024 ATD amendment, ASEAN ACTIP, CoE 197, CEDAW GR 38, UNCRC, UNODC/IOM/FATF typologies, Pacific Climate Mobility, Bali Process) | `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py` (`RAG_CORPUS = [...]`) |
 | **Citation graph** for 1-hop graph expansion at retrieval time | `packages/duecare-llm-chat/src/duecare/chat/harness/_citations.json` |
 | **Adversarial validation suite across multiple attack families** including new structured-data-attack / image-injection / regulator-impersonation / multilingual-jailbreak | `scripts/adversarial_validate.py` + `reports/adversarial_*.md` (run output) |
 | **`evaluator_call` hook for separating LLM-judge model from chat model** (v0.13.0; abliterated / frontier / larger-Gemma patterns supported, Kaggle-default in-process self-grade due to VRAM) | `packages/duecare-llm-chat/src/duecare/chat/app.py:_evaluator_model_call` |
@@ -184,7 +184,7 @@ app = create_app(
   phone-number prefixes. See `LICENSES.md` for the synthetic-
   disclaimer.
 - It does not claim to detect every trafficking pattern in the world.
-   451 GREP rules + 859 RAG docs + 46 citation edges cover the major
+   451 GREP rules + 865 RAG docs + 46 citation edges cover the major
   documented vectors well, but new patterns appear weekly — the
   curator-block JSON pattern lets stakeholders contribute updates
   without a code change.
