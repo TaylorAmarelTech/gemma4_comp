@@ -409,6 +409,7 @@ The obvious question is whether that flip is real or cherry-picked, so I ran the
 **Everything is public and reproducible:**
 
 - **Live study page with charts:** https://duecare-ai.com/harness-study
+- **Live benchmark leaderboard (add your model):** https://duecare-ai.com/benchmark
 - **Full case gallery (every reply shown untruncated):** https://duecare-ai.com/egregious-cases
 - **Code and every report:** https://github.com/TaylorAmarelTech/gemma4_comp (`docs/research/`)
 - Start with `benchmark_methods.md` (the catalog of every measurement method and why the component 0-to-100 judge is now primary) and `evaluation_methodology.md` + `scoring_formula.md`, then `rich_harness_lift_100.md` (the 0-to-100 primary result), `harness_lift_report.md`, `placebo_judge.md`, `frontier_panel_judges.md`, `attack_lift_report.md`, `pairwise_lift.md`, and `egregious_responses.md`.
