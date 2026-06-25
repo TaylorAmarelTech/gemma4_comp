@@ -38,7 +38,7 @@ for _src in glob.glob(str(_ROOT / "packages" / "*" / "src")):
     if _src not in sys.path:
         sys.path.insert(0, _src)
 
-from rich_harness_lift import ARMS, COMPONENTS, PANEL, PAIRWISE  # noqa: E402,F401  (frozen surface defs)
+from rich_harness_lift import ARMS, COMPONENTS, PANEL, PAIRWISE, RESULTS  # noqa: E402,F401  (frozen surface defs)
 
 # The frozen benchmark spec. Bump `version` only when the prompt set, rubric, protocol, or judge panel
 # changes -- that is what makes scores comparable across models and over time.
@@ -265,12 +265,36 @@ def model_meta(model_id: str) -> dict[str, str]:
     return {"params": params, "arch": arch}
 
 
+def latency_by_model(results_path: pathlib.Path = RESULTS) -> dict[str, float]:
+    """Median end-to-end generation latency (seconds per response) per model, from the raw response log.
+
+    Each value is the wall-clock around a model call on Ollama cloud (queue + network included), so it
+    is an indicative responsiveness signal, not a controlled throughput benchmark; the median is robust
+    to cloud queue spikes. Models generated before latency capture have no rows and render as '-'."""
+    by: dict[str, list[float]] = {}
+    if not results_path.exists():
+        return {}
+    for line in results_path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            r = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        lat = r.get("latency_s")
+        if isinstance(lat, (int, float)) and lat > 0:
+            by.setdefault(str(r.get("model")), []).append(float(lat))
+    return {m: round(statistics.median(v), 1) for m, v in by.items() if v}
+
+
 def build_leaderboard(panel: list[dict], pairwise: list[dict], *, generated: str, sha: str) -> dict:
     rows = leaderboard_rows(panel, pairwise)
     pstats = paired_stats_by_model(panel)
+    lat = latency_by_model()
     for r in rows:
         r["stats"] = pstats.get(r["model"], {})
         r["meta"] = model_meta(r["model"])
+        r["latency_s"] = lat.get(r["model"])
     judges = sorted({p["judge"] for p in panel})
     return {
         "benchmark": BENCHMARK,

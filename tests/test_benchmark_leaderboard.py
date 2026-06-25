@@ -86,3 +86,17 @@ def test_model_meta_reads_tag_size_and_documented_architecture():
     rows = bl.leaderboard_rows(panel, [])
     lb = bl.build_leaderboard(panel, [], generated="2026-06-23T00:00:00Z", sha="abc1234")
     assert lb["models"][0]["meta"] == {"params": "31B", "arch": "dense"}
+
+
+def test_latency_by_model_medians_from_results_log(tmp_path):
+    import json as _json
+    p = tmp_path / "results.jsonl"
+    rows = [
+        {"model": "m1", "arm": "harness_full", "latency_s": 2.0},
+        {"model": "m1", "arm": "harness_full", "latency_s": 4.0},
+        {"model": "m1", "arm": "harness_full", "latency_s": 6.0},   # median 4.0
+        {"model": "m2", "arm": "baseline"},                          # no latency -> excluded
+        {"model": "m3", "arm": "harness_full", "latency_s": 1.5},
+    ]
+    p.write_text("\n".join(_json.dumps(r) for r in rows) + "\n", encoding="utf-8")
+    assert bl.latency_by_model(p) == {"m1": 4.0, "m3": 1.5}   # m2 omitted (no latency rows)
