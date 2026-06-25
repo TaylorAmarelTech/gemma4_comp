@@ -39,6 +39,9 @@
 .bm-lim li:before { counter-increment:lim; content:counter(lim); position:absolute; left:0; top:0; width:21px; height:21px; border-radius:50%; background:oklch(0.65 0.10 80); color:var(--ink); font-family:var(--mono); font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; }
 .bm-lim li b { color:var(--ink); }
 .bm-sectlede { font-size:14px; color:var(--ink-2); line-height:1.6; margin:2px 0 14px; max-width:64ch; }
+.bm-paper { counter-reset:bmsec; }
+.bm-paper > h2 { counter-increment:bmsec; }
+.bm-paper > h2::before { content:"\00A7" counter(bmsec) ".\00A0\00A0"; color:var(--ink-3); font-weight:600; }
 </style>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
 </head><body>{% set active_nav = "evaluation" %}
@@ -56,7 +59,7 @@
 {% endif %}
 </div></section>
 
-<section class="hp-section"><div class="wrap">
+<section class="hp-section"><div class="wrap bm-paper">
 {% if leaderboard %}
 
 <div class="bm-abstract"><p><span class="lbl">Abstract</span>Frontier language models usually recognize a migrant-worker trafficking scheme when they see one &mdash; yet they often stop short of what actually protects a worker: naming the specific exploitation indicator, citing the controlling statute, refusing to operationalize the scheme, and routing to concrete help. This benchmark measures whether a thin, model-agnostic layer of legal grounding &mdash; fired indicator rules, retrieved law, and deterministic tools, added to the prompt and nothing else &mdash; closes that gap, and by how much. Every model answers each adversarial, disguised prompt twice (raw, then harness-wrapped); a panel of frontier judges, each from a different model family and never grading its own, scores both replies 0&ndash;100 on five reasoned safety criteria. The reported metric is the paired, per-prompt lift, which cancels each judge's absolute scale. Across models the harness yields large, statistically decisive gains &mdash; headline models exceed Cohen's <i>d</i> = 3 at a 100% win rate (p &lt; 0.001) &mdash; that hold across difficulty, recruitment corridors, and scheme typologies, and survive a length-matched placebo (the lift is the injected knowledge, not the preamble: +3.34 beyond placebo, p &lt; 0.001) and a judge-independent citation check (0% hallucinated statutes). We present this as a reproducible engineering benchmark and a preliminary study; the standing limitation is that the judges are language models, not anti-trafficking professionals, so a blinded human-expert validation remains the honest precondition for a peer-reviewed claim.</p></div>
@@ -201,6 +204,17 @@
   <li><b>Model coverage growing; judges are mutable.</b> A multi-model frontier sweep is actively widening the leaderboard, but it is still filling in; and the judges are cloud endpoints that can change or retire, which erodes long-term reproducibility unless versions are pinned or archived.</li>
 </ol>
 <p class="hp-note">Full threats-to-validity, the statistics, and the planned human-expert validation: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/evaluation_methodology.md" rel="noopener">evaluation_methodology.md</a> &middot; the method catalog and why the 0-100 component judge is primary: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/benchmark_methods.md" rel="noopener">benchmark_methods.md</a>.</p>
+
+<h2 style="margin-top:32px">References</h2>
+<ul class="bm-refs">
+<li><b>Negative control (length-matched placebo).</b> Isolates the "any preamble" effect; the harness adds +3.34 beyond placebo on the LLM judge (p&lt;0.001). <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/negative_control.md" rel="noopener">negative_control.md</a></li>
+<li><b>Applicability audit.</b> Independent multi-pass check that the rubric grades the right dimensions per prompt (&kappa;=0.36, n=800). <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/applicability_audit.md" rel="noopener">applicability_audit.md</a></li>
+<li><b>Convergent validity.</b> A deterministic grader and the LLM judge agree on direction (both &gt;0); the weak per-prompt magnitude correlation (r=0.18) is reported honestly. <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/convergent_validity.md" rel="noopener">convergent_validity.md</a></li>
+<li><b>Citation accuracy.</b> Judge-independent statute verification: 0% hallucination, 100% of section numbers within range. <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/citation_accuracy.md" rel="noopener">citation_accuracy.md</a></li>
+<li><b>Evaluation methodology.</b> Full threats-to-validity and the planned blinded human-expert study. <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/evaluation_methodology.md" rel="noopener">evaluation_methodology.md</a></li>
+<li><b>Method catalog.</b> Why the 0&ndash;100 component judge is the primary measure. <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/benchmark_methods.md" rel="noopener">benchmark_methods.md</a></li>
+<li><b>Per-model run record.</b> The full per-arm, per-judge, per-component report behind the headline. <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/rich_harness_lift_100.md" rel="noopener">rich_harness_lift_100.md</a></li>
+</ul>
 
 <div class="bm-card">
 <b>Submit a model.</b> The harness wraps any chat endpoint, so adding a model is one run, then regenerate the board:
