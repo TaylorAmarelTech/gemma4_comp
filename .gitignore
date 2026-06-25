@@ -215,4 +215,6 @@ reports/orchestrator/
 reports/_backups/
 reports/hermes/
 reports/hermes_state.json
+reports/openclaw/
+reports/openclaw_state.json
 data/synthetic_multimodal/
