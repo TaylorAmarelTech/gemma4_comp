@@ -211,4 +211,6 @@ reports/ui_audit/
 reports/opus_batches/
 reports/opus_scorecards/
 reports/autonomous_engine.*
+reports/orchestrator/
+reports/_backups/
 data/synthetic_multimodal/
