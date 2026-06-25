@@ -44,14 +44,14 @@ from rich_harness_lift import ARMS, COMPONENTS, PANEL, PAIRWISE  # noqa: E402,F4
 BENCHMARK = {
     "id": "duecare-harness-lift",
     "name": "DueCare Harness-Lift Benchmark",
-    "version": "1.2",
+    "version": "1.3",
     "scale": "0-100 (component-based LLM-judge panel)",
-    "prompt_set": "scheme_prompts.json v1.2 -- 3,691 synthetic adversarial prompts across 165 typologies "
-                  "at easy/medium/hard/very_hard difficulty: a curated scheme core (recruitment-fee "
-                  "schemes), the harness-lift expansion set (pretext/override jailbreaks, evasion probes, "
-                  "false-legitimacy, worker/employer queries), casefile-derived worker-support scenarios, "
-                  "and a 2,915-prompt stratified draw from the 74,640-prompt trafficking seed registry; "
-                  "built reproducibly by build_benchmark_promptset.py (stratified, seed=13).",
+    "prompt_set": "scheme_prompts.json v1.3 -- 3,703 synthetic adversarial prompts across 167 typologies "
+                  "at easy/medium/hard/very_hard difficulty: a curated scheme core, the harness-lift "
+                  "expansion set (jailbreaks, evasion probes, false-legitimacy, worker/employer queries), "
+                  "casefile-derived worker-support scenarios, a 2,915-prompt stratified draw from the "
+                  "74,640-prompt trafficking seed registry, and Hermes-discovered prompts vetted by the "
+                  "OpenClaw quality gate; built reproducibly by build_benchmark_promptset.py (seed=13).",
     "protocol": "paired baseline vs DueCare-harnessed (pure prompt augmentation: GREP indicator rules "
                 "+ retrieved legal grounding + deterministic tools); both arms graded identically by a "
                 "diverse frontier judge panel with self-family exclusion; the score is the lift "

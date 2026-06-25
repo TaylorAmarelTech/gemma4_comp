@@ -39,6 +39,9 @@ SEED_CORPUS = _ROOT / "configs" / "duecare" / "domains" / "trafficking" / "seed_
 SEED = 13
 # seed-corpus categories that are export/meta artifacts, not gradeable adversarial prompts.
 SEED_EXCLUDE = ("unknown", "database_export", "checkpoint_export", "output_conditioning")
+# Hermes flywheel output (propose-only) + OpenClaw verdicts -- the supervised merge input.
+HERMES_PROPOSALS = _ROOT / "reports" / "hermes" / "proposals.jsonl"
+OPENCLAW_VETTED = _ROOT / "reports" / "openclaw" / "vetted.jsonl"
 
 
 def _text_hash(text: str) -> str:
@@ -67,6 +70,12 @@ def _norm(p: dict[str, Any], source: str) -> dict[str, Any]:
         "difficulty": p.get("difficulty", "hard"),
         "source": source,
     }
+
+
+def _hermes_accepted() -> list[dict[str, Any]]:
+    """OpenClaw-accepted Hermes proposals -- the vetted flywheel output for the supervised merge."""
+    accepted = {r["id"] for r in _load_jsonl(OPENCLAW_VETTED) if r.get("accept") and r.get("id")}
+    return [p for p in _load_jsonl(HERMES_PROPOSALS) if p.get("id") in accepted and p.get("text")]
 
 
 def _stratified(pool: list[dict[str, Any]], source: str, per_category: int,
@@ -108,7 +117,7 @@ def _seed_pool(max_prompt_chars: int) -> list[dict[str, Any]]:
 
 
 def build(*, per_category_expansion: int, per_category_majorcase: int,
-          per_category_seed: int, max_prompt_chars: int) -> dict[str, Any]:
+          per_category_seed: int, per_category_hermes: int, max_prompt_chars: int) -> dict[str, Any]:
     current = json.loads(SCHEME.read_text(encoding="utf-8"))
     prompts = current.get("prompts", current)
     base = [p for p in prompts if p.get("source", "scheme") == "scheme"]  # idempotent base
@@ -121,14 +130,18 @@ def build(*, per_category_expansion: int, per_category_majorcase: int,
                         seen_text, seen_id, rng)
     add_seed = _stratified(_seed_pool(max_prompt_chars), "seed", per_category_seed,
                           seen_text, seen_id, rng)
-    merged = ([_norm(p, "scheme") for p in base] + add_exp + add_mc + add_seed)
+    add_hermes = _stratified(_hermes_accepted(), "hermes", per_category_hermes,
+                            seen_text, seen_id, rng)
+    merged = ([_norm(p, "scheme") for p in base] + add_exp + add_mc + add_seed + add_hermes)
     return {
-        "version": "1.2",
+        "version": "1.3",
         "_build": {"scheme": len(base), "expansion": len(add_exp), "major_case": len(add_mc),
-                   "seed_corpus": len(add_seed), "total": len(merged), "seed": SEED,
+                   "seed_corpus": len(add_seed), "hermes_accepted": len(add_hermes),
+                   "total": len(merged), "seed": SEED,
                    "per_category_expansion": per_category_expansion,
                    "per_category_majorcase": per_category_majorcase,
-                   "per_category_seed": per_category_seed, "max_prompt_chars": max_prompt_chars},
+                   "per_category_seed": per_category_seed,
+                   "per_category_hermes": per_category_hermes, "max_prompt_chars": max_prompt_chars},
         "prompts": merged,
     }
 
@@ -138,19 +151,21 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--per-category-expansion", type=int, default=8)
     ap.add_argument("--per-category-majorcase", type=int, default=45)
     ap.add_argument("--per-category-seed", type=int, default=100)
+    ap.add_argument("--per-category-hermes", type=int, default=100)
     ap.add_argument("--max-prompt-chars", type=int, default=6000)
     ap.add_argument("--out", default=str(SCHEME))
     args = ap.parse_args(argv)
     doc = build(per_category_expansion=args.per_category_expansion,
                 per_category_majorcase=args.per_category_majorcase,
                 per_category_seed=args.per_category_seed,
+                per_category_hermes=args.per_category_hermes,
                 max_prompt_chars=args.max_prompt_chars)
     pathlib.Path(args.out).write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     ps = doc["prompts"]
     b = doc["_build"]
     print(f"wrote {args.out}: {len(ps)} prompts "
           f"(scheme {b['scheme']} + expansion {b['expansion']} + major_case {b['major_case']} "
-          f"+ seed_corpus {b['seed_corpus']})")
+          f"+ seed_corpus {b['seed_corpus']} + hermes {b['hermes_accepted']})")
     print("difficulty:", dict(Counter(p["difficulty"] for p in ps)))
     print("distinct categories:", len({p["category"] for p in ps}))
     print("by source:", dict(Counter(p["source"] for p in ps)))

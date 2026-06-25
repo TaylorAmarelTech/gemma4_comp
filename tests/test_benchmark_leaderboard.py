@@ -63,7 +63,7 @@ def test_pairwise_folded_in_and_only_complete_arms_count():
 def test_build_and_render_carry_spec_provenance_and_lift():
     panel = _panel("m", 40, 90, _CB, _CF)
     lb = bl.build_leaderboard(panel, [], generated="2026-06-23T00:00:00Z", sha="abc1234")
-    assert lb["benchmark"]["id"] == "duecare-harness-lift" and lb["benchmark"]["version"] == "1.2"
+    assert lb["benchmark"]["id"] == "duecare-harness-lift" and lb["benchmark"]["version"] == "1.3"
     assert lb["judges"] == ["j1", "j2"] and lb["git_sha"] == "abc1234" and lb["n_models"] == 1
     md = bl.render_markdown(lb)
     assert "DueCare Harness-Lift Benchmark" in md
