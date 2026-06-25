@@ -112,6 +112,59 @@
 </div>
 <p class="hp-note">Each cell is the mean point gain on that criterion (harnessed minus baseline). Criterion sub-scale maxima: A indicator (25), B law (20), C refuse (25), D resources (15), E safety (15); they sum to the 0&ndash;100 total.</p>
 
+<h2 style="margin-top:32px">Statistical significance <span style="font-weight:400;color:var(--ink-3);font-size:15px">(paired, per prompt)</span></h2>
+<p class="bm-sectlede">The unit of analysis is the prompt: each model answers the same prompt with and without the harness, so each model is its own control and the lift is the per-prompt difference. Below: the mean lift with a seeded bootstrap <b>95% confidence interval</b>, the paired <b>Cohen's d</b> (effect size), the <b>win rate</b> (share of prompts the harness improved), and a two-sided paired-<i>t</i> <b>p-value</b>.</p>
+<div class="bm-tablewrap">
+<table class="bm-table">
+<thead><tr>
+  <th class="l">Model</th><th>n</th><th>lift</th><th>95% CI</th><th>Cohen's d</th><th>win rate</th><th>p</th></tr></thead>
+<tbody>
+{% for m in leaderboard.models %}{% if m.stats and m.stats.n_pairs %}
+<tr{% if loop.first %} class="top"{% endif %}>
+  <td class="l"><code>{{ m.model }}</code></td>
+  <td>{{ m.stats.n_pairs }}</td>
+  <td class="lift">+{{ "%.1f"|format(m.lift) }}</td>
+  <td>[{{ "%+.1f"|format(m.stats.ci95_low) }}, {{ "%+.1f"|format(m.stats.ci95_high) }}]</td>
+  <td>{{ "%.2f"|format(m.stats.cohens_d) }}</td>
+  <td>{{ "%.0f"|format(m.stats.win_rate) }}%</td>
+  <td>{% if m.stats.p_value < 0.001 %}&lt;0.001{% else %}{{ "%.3f"|format(m.stats.p_value) }}{% endif %}</td>
+</tr>
+{% endif %}{% endfor %}
+</tbody>
+</table>
+</div>
+<p class="hp-note">A 95% CI that excludes 0 means the harness reliably helps that model. Cohen's <i>d</i> &gt; 0.8 is a "large" effect by convention; the headline models sit far above it. The placebo and negative controls below guard against the score being an artifact of mere prompt length, and the inter-judge agreement (&alpha; in the spec) guards against judge idiosyncrasy.</p>
+
+<h2 style="margin-top:32px">Construct validity <span style="font-weight:400;color:var(--ink-3);font-size:15px">(does the lift hold across the space, or one slice?)</span></h2>
+<p class="bm-sectlede">A gain that only appears on one typology or corridor would be a narrow trick. Pooled across all models, the lift holds across difficulty levels, recruitment corridors, and scheme typologies &mdash; evidence the mechanism (name the indicator, cite the law, refuse, route to help) generalizes rather than overfitting one slice.</p>
+
+<h3 style="margin:18px 0 6px;font-size:14px;color:var(--ink-2)">By difficulty</h3>
+<div class="bm-tablewrap"><table class="bm-table">
+<thead><tr><th class="l">Difficulty</th><th>obs</th><th>baseline</th><th>harnessed</th><th>lift</th></tr></thead>
+<tbody>
+{% for r in leaderboard.breakdowns.by_difficulty %}
+<tr><td class="l">{{ r.value }}</td><td>{{ r.n_obs }}</td><td>{{ "%.1f"|format(r.baseline) }}</td><td>{{ "%.1f"|format(r.harnessed) }}</td><td class="lift">+{{ "%.1f"|format(r.lift) }}</td></tr>
+{% endfor %}
+</tbody></table></div>
+
+<h3 style="margin:18px 0 6px;font-size:14px;color:var(--ink-2)">By corridor</h3>
+<div class="bm-tablewrap"><table class="bm-table">
+<thead><tr><th class="l">Corridor</th><th>obs</th><th>baseline</th><th>harnessed</th><th>lift</th></tr></thead>
+<tbody>
+{% for r in leaderboard.breakdowns.by_corridor %}
+<tr><td class="l">{{ r.value }}</td><td>{{ r.n_obs }}</td><td>{{ "%.1f"|format(r.baseline) }}</td><td>{{ "%.1f"|format(r.harnessed) }}</td><td class="lift">+{{ "%.1f"|format(r.lift) }}</td></tr>
+{% endfor %}
+</tbody></table></div>
+
+<h3 style="margin:18px 0 6px;font-size:14px;color:var(--ink-2)">By typology <span style="font-weight:400;color:var(--ink-3);font-size:12px">(top 12 by coverage)</span></h3>
+<div class="bm-tablewrap"><table class="bm-table">
+<thead><tr><th class="l">Typology</th><th>obs</th><th>baseline</th><th>harnessed</th><th>lift</th></tr></thead>
+<tbody>
+{% for r in (leaderboard.breakdowns.by_category | sort(attribute='n_obs', reverse=true))[:12] %}
+<tr><td class="l">{{ r.value }}</td><td>{{ r.n_obs }}</td><td>{{ "%.1f"|format(r.baseline) }}</td><td>{{ "%.1f"|format(r.harnessed) }}</td><td class="lift">+{{ "%.1f"|format(r.lift) }}</td></tr>
+{% endfor %}
+</tbody></table></div>
+
 <h2 style="margin-top:32px">The spec <span style="font-weight:400;color:var(--ink-3);font-size:15px">(frozen, so scores are comparable across models and over time)</span></h2>
 <div class="bm-deflist">
   <div><span class="k">Prompt set</span><span class="v">{{ leaderboard.benchmark.prompt_set }}</span></div>

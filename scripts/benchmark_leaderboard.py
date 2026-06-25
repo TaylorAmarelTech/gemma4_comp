@@ -44,10 +44,15 @@ from rich_harness_lift import ARMS, COMPONENTS, PANEL, PAIRWISE  # noqa: E402,F4
 BENCHMARK = {
     "id": "duecare-harness-lift",
     "name": "DueCare Harness-Lift Benchmark",
-    "version": "1.0",
+    "version": "1.1",
     "scale": "0-100 (component-based LLM-judge panel)",
-    "prompt_set": "scheme_prompts.json -- adversarial migrant-worker recruitment-scheme prompts "
-                  "(fee-splitting, wage-deduction, document-retention typologies across corridors)",
+    "prompt_set": "scheme_prompts.json v1.1 -- 776 synthetic adversarial prompts across 77 typologies "
+                  "(recruitment-fee schemes: fee-splitting, crypto/e-wallet rails, free-visa backloaded "
+                  "debt, NGO fee camouflage, offshore SPV, passport control, wage-deduction-as-savings; "
+                  "plus pretext/override jailbreaks, evasion probes, false-legitimacy, worker/employer "
+                  "queries, and casefile-derived worker-support scenarios) at easy/medium/hard "
+                  "difficulty; built by build_benchmark_promptset.py (curated scheme + expansion + "
+                  "major-case, stratified, seed=13).",
     "protocol": "paired baseline vs DueCare-harnessed (pure prompt augmentation: GREP indicator rules "
                 "+ retrieved legal grounding + deterministic tools); both arms graded identically by a "
                 "diverse frontier judge panel with self-family exclusion; the score is the lift "
@@ -156,8 +161,88 @@ def krippendorff_alpha_safe(panel: list[dict]) -> float | None:
     return krippendorff_alpha(by_resp)
 
 
+def _paired_cells(panel: list[dict]) -> list[dict]:
+    """rich-lift panel rows -> lift_stats cells (baseline + harness_full mapped to 'harnessed')."""
+    cells = []
+    for p in panel:
+        arm = p.get("arm")
+        a = "baseline" if arm == "baseline" else "harnessed" if arm == "harness_full" else None
+        if a is None:
+            continue
+        cells.append({"model": p["model"], "prompt_id": p["prompt_id"], "arm": a,
+                      "score": p.get("score_0_100")})
+    return cells
+
+
+def paired_stats_by_model(panel: list[dict]) -> dict[str, dict]:
+    """Per-model paired statistics on the full-harness lift: bootstrap 95% CI, paired Cohen's d,
+    win-rate, and a two-sided paired-t (z-approx) p-value -- the defensibility layer a reviewer needs."""
+    import lift_stats
+    cells = _paired_cells(panel)
+    stats = {s["model"]: s for s in lift_stats.model_stats(cells)}
+    pairs = lift_stats.per_prompt_pairs(cells)
+    out: dict[str, dict] = {}
+    for m, s in stats.items():
+        deltas = [h - b for (_pid, b, h) in pairs.get(m, [])]
+        pt = lift_stats.paired_test(deltas)
+        out[m] = {
+            "n_pairs": s["n_prompts_paired"],
+            "ci95_low": round(s["ci95_low"], 1),
+            "ci95_high": round(s["ci95_high"], 1),
+            "cohens_d": round(s["cohens_d"], 2),
+            "win_rate": round(100 * s["win_rate"], 1),
+            "loss_rate": round(100 * s["loss_rate"], 1),
+            "p_value": pt["p"],
+        }
+    return out
+
+
+def _prompt_meta() -> dict[str, dict]:
+    """prompt_id -> {category, corridor, difficulty} from the frozen scheme prompt set (empty if absent)."""
+    from rich_harness_lift import SCHEME_PROMPTS
+    try:
+        d = json.loads(SCHEME_PROMPTS.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    ps = d.get("prompts", d)
+    return {p["id"]: {"category": p.get("category", "?"), "corridor": p.get("corridor", "?"),
+                      "difficulty": p.get("difficulty", "?")}
+            for p in ps if isinstance(p, dict) and "id" in p}
+
+
+def lift_breakdowns(panel: list[dict]) -> dict[str, list[dict]]:
+    """Pooled baseline/harnessed/lift by prompt category, corridor, and difficulty -- construct-validity
+    evidence that the lift holds across typologies and corridors, not just one slice."""
+    meta = _prompt_meta()
+
+    def agg(field: str) -> list[dict]:
+        acc: dict[str, dict[str, list[float]]] = {}
+        for p in panel:
+            arm = p.get("arm")
+            a = "baseline" if arm == "baseline" else "harnessed" if arm == "harness_full" else None
+            if a is None:
+                continue
+            v = meta.get(str(p.get("prompt_id")), {}).get(field, "?")
+            acc.setdefault(v, {"baseline": [], "harnessed": []})[a].append(float(p["score_0_100"]))
+        out = []
+        for v, arms in acc.items():
+            if arms["baseline"] and arms["harnessed"]:
+                b = statistics.mean(arms["baseline"])
+                h = statistics.mean(arms["harnessed"])
+                out.append({"value": v, "n_obs": len(arms["baseline"]),
+                            "baseline": round(b, 1), "harnessed": round(h, 1), "lift": round(h - b, 1)})
+        out.sort(key=lambda r: -r["lift"])
+        return out
+
+    return {"by_category": agg("category"), "by_corridor": agg("corridor"),
+            "by_difficulty": agg("difficulty")}
+
+
 def build_leaderboard(panel: list[dict], pairwise: list[dict], *, generated: str, sha: str) -> dict:
     rows = leaderboard_rows(panel, pairwise)
+    pstats = paired_stats_by_model(panel)
+    for r in rows:
+        r["stats"] = pstats.get(r["model"], {})
     judges = sorted({p["judge"] for p in panel})
     return {
         "benchmark": BENCHMARK,
@@ -167,6 +252,7 @@ def build_leaderboard(panel: list[dict], pairwise: list[dict], *, generated: str
         "inter_judge_alpha": krippendorff_alpha_safe(panel),
         "n_models": len(rows),
         "models": rows,
+        "breakdowns": lift_breakdowns(panel),
     }
 
 
