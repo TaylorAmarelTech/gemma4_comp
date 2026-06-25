@@ -33,6 +33,9 @@ one-off historical helpers belong under `_archive/`.
 | `.mcp.json.example` | Optional MCP server template. |
 | `.mcp.json` | Empty local MCP config shell; no secrets. |
 | `repomix.config.json` | Context-pack configuration for code review tools. |
+| `.aider.conf.yml` | Ollama-cloud coding-harness config (architect/editor models). See `docs/ollama_coding_harness.md`. |
+| `.aider.model.metadata.json` | Context/cost metadata for the harness models (zero-cost; suppresses Aider billing warnings). |
+| `.aider.model.settings.yml` | Per-model edit-format / repo-map settings for the harness models. |
 
 ## Build, Test, And Deploy Contracts
 
