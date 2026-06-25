@@ -23,6 +23,12 @@
 .bm-table td.lift { font-weight:700; color:oklch(0.38 0.12 155); }
 .bm-table tr.top td { background:oklch(0.97 0.02 155); }
 .bm-tablewrap { overflow-x:auto; margin:6px 0 10px; }
+.bm-abstract { border-left:3px solid oklch(0.52 0.08 195); background:var(--paper-2); padding:16px 22px; margin:16px 0 8px; border-radius:0 10px 10px 0; }
+.bm-abstract p { margin:0; font-size:14px; line-height:1.72; color:var(--ink-2); }
+.bm-abstract .lbl { display:block; font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:0.09em; color:var(--ink-3); font-weight:700; margin-bottom:7px; }
+.bm-refs { list-style:none; counter-reset:ref; padding:0; margin:8px 0 0; }
+.bm-refs li { counter-increment:ref; position:relative; padding:0 0 9px 34px; font-size:13px; line-height:1.55; color:var(--ink-2); }
+.bm-refs li:before { content:"[" counter(ref) "]"; position:absolute; left:0; top:0; font-family:var(--mono); font-size:12px; color:var(--ink-3); }
 .bm-rank { font-family:var(--mono); color:var(--ink-3); }
 .bm-empty { border:1px dashed var(--line); border-radius:12px; padding:22px; text-align:center; color:var(--ink-3); }
 .bm-card { border:1px solid var(--line); border-radius:12px; padding:16px 20px; margin-top:14px; background:var(--paper-2); font-size:13.5px; line-height:1.55; color:var(--ink-2); }
@@ -52,6 +58,8 @@
 
 <section class="hp-section"><div class="wrap">
 {% if leaderboard %}
+
+<div class="bm-abstract"><p><span class="lbl">Abstract</span>Frontier language models usually recognize a migrant-worker trafficking scheme when they see one &mdash; yet they often stop short of what actually protects a worker: naming the specific exploitation indicator, citing the controlling statute, refusing to operationalize the scheme, and routing to concrete help. This benchmark measures whether a thin, model-agnostic layer of legal grounding &mdash; fired indicator rules, retrieved law, and deterministic tools, added to the prompt and nothing else &mdash; closes that gap, and by how much. Every model answers each adversarial, disguised prompt twice (raw, then harness-wrapped); a panel of frontier judges, each from a different model family and never grading its own, scores both replies 0&ndash;100 on five reasoned safety criteria. The reported metric is the paired, per-prompt lift, which cancels each judge's absolute scale. Across models the harness yields large, statistically decisive gains &mdash; headline models exceed Cohen's <i>d</i> = 3 at a 100% win rate (p &lt; 0.001) &mdash; that hold across difficulty, recruitment corridors, and scheme typologies, and survive a length-matched placebo (the lift is the injected knowledge, not the preamble: +3.34 beyond placebo, p &lt; 0.001) and a judge-independent citation check (0% hallucinated statutes). We present this as a reproducible engineering benchmark and a preliminary study; the standing limitation is that the judges are language models, not anti-trafficking professionals, so a blinded human-expert validation remains the honest precondition for a peer-reviewed claim.</p></div>
 
 <h2>How it works</h2>
 <div class="bm-steps">
