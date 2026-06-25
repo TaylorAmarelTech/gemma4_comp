@@ -1,10 +1,10 @@
-# DueCare Harness-Lift Benchmark -- leaderboard (v1.2)
+# DueCare Harness-Lift Benchmark -- leaderboard (v1.3)
 
-> Ranked by the safety **lift** the DueCare harness adds to each model on the 0-100 component rubric. The harness is pure prompt augmentation, so the same benchmark wraps any model; adding a model is one `rich_harness_lift.py --models <model>` run. Generated 2026-06-25T12:21:49-08:00 at git `e636958f`.
+> Ranked by the safety **lift** the DueCare harness adds to each model on the 0-100 component rubric. The harness is pure prompt augmentation, so the same benchmark wraps any model; adding a model is one `rich_harness_lift.py --models <model>` run. Generated 2026-06-25T15:18:30-08:00 at git `fcb19022`.
 
-- **Prompt set:** scheme_prompts.json v1.2 -- 3,691 synthetic adversarial prompts across 165 typologies at easy/medium/hard/very_hard difficulty: a curated scheme core (recruitment-fee schemes), the harness-lift expansion set (pretext/override jailbreaks, evasion probes, false-legitimacy, worker/employer queries), casefile-derived worker-support scenarios, and a 2,915-prompt stratified draw from the 74,640-prompt trafficking seed registry; built reproducibly by build_benchmark_promptset.py (stratified, seed=13).
+- **Prompt set:** scheme_prompts.json v1.3 -- 3,703 synthetic adversarial prompts across 167 typologies at easy/medium/hard/very_hard difficulty: a curated scheme core, the harness-lift expansion set (jailbreaks, evasion probes, false-legitimacy, worker/employer queries), casefile-derived worker-support scenarios, a 2,915-prompt stratified draw from the 74,640-prompt trafficking seed registry, and Hermes-discovered prompts vetted by the OpenClaw quality gate; built reproducibly by build_benchmark_promptset.py (seed=13).
 - **Protocol:** paired baseline vs DueCare-harnessed (pure prompt augmentation: GREP indicator rules + retrieved legal grounding + deterministic tools); both arms graded identically by a diverse frontier judge panel with self-family exclusion; the score is the lift (harnessed minus baseline), which cancels each judge's absolute scale.
-- **Judges (self-family excluded):** `deepseek-v4-pro`, `glm-5.2`, `gpt-oss:120b` &middot; inter-judge Krippendorff alpha = 0.947
+- **Judges (self-family excluded):** `deepseek-v4-pro`, `glm-5.2`, `gpt-oss:120b` &middot; inter-judge Krippendorff alpha = 0.949
 
 ## Leaderboard (harness lift on 0-100)
 
@@ -12,8 +12,9 @@
 |---:|---|---:|---:|---:|---:|---:|---:|---:|
 | 1 | `gpt-oss:120b` | 40 | 25.3 | 81.3 | **+56.0** | +14.6 | +10.7 | +0.23 |
 | 2 | `gemma4:31b` | 100 | 42.3 | 90.6 | **+48.3** | +14.0 | +11.7 | +0.58 |
-| 3 | `glm-5.2` | 40 | 62.9 | 94.7 | **+31.9** | +9.9 | +9.1 | -0.38 |
-| 4 | `gpt-oss:20b` | 3 | 30.8 | 28.3 | **+-2.5** | +0.0 | +0.0 | +0.0 |
+| 3 | `deepseek-v4-pro` | 40 | 60.4 | 95.7 | **+35.3** | +8.2 | +8.4 | -0.18 |
+| 4 | `glm-5.2` | 40 | 62.9 | 94.7 | **+31.9** | +9.9 | +9.1 | -0.38 |
+| 5 | `gpt-oss:20b` | 3 | 30.8 | 28.3 | **+-2.5** | +0.0 | +0.0 | +0.0 |
 
 ## Per-criterion gain (mean points, baseline to harnessed)
 
@@ -21,6 +22,7 @@
 |---|---|---|---|---|---|
 | `gpt-oss:120b` | +18.9 | +14.6 | +0.9 | +10.7 | +11.0 |
 | `gemma4:31b` | +9.6 | +14.0 | +3.0 | +11.7 | +10.2 |
+| `deepseek-v4-pro` | +4.6 | +8.2 | +5.8 | +8.4 | +8.3 |
 | `glm-5.2` | +3.5 | +9.9 | +0.2 | +9.1 | +9.1 |
 | `gpt-oss:20b` | +-0.9 | +0.0 | +0.0 | +0.0 | +-1.7 |
 
@@ -33,5 +35,5 @@ python scripts/rich_harness_lift.py --models <your-model> --judges gpt-oss:120b,
 python scripts/benchmark_leaderboard.py
 ```
 
-The model is any chat endpoint the runner can call. Spec id `duecare-harness-lift` v1.2; method catalog: `benchmark_methods.md`; full methodology: `evaluation_methodology.md`.
+The model is any chat endpoint the runner can call. Spec id `duecare-harness-lift` v1.3; method catalog: `benchmark_methods.md`; full methodology: `evaluation_methodology.md`.
 
