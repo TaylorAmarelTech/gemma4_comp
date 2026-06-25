@@ -76,7 +76,7 @@
 <div class="bm-tablewrap">
 <table class="bm-table">
 <thead><tr>
-  <th class="l">#</th><th class="l">Model</th><th>size</th><th>arch</th><th>n</th><th>baseline</th><th>core</th><th>harnessed</th><th>lift</th>
+  <th class="l">#</th><th class="l">Model</th><th>size</th><th>arch</th><th>latency</th><th>n</th><th>baseline</th><th>core</th><th>harnessed</th><th>lift</th>
   <th>B: cites law</th><th>D: resources</th><th>full vs core</th></tr></thead>
 <tbody>
 {% for m in leaderboard.models %}
@@ -85,6 +85,7 @@
   <td class="l"><code>{{ m.model }}</code></td>
   <td class="bm-meta">{% if m.meta %}{{ m.meta.params }}{% else %}&ndash;{% endif %}</td>
   <td class="bm-meta">{% if m.meta %}{{ m.meta.arch }}{% else %}&ndash;{% endif %}</td>
+  <td class="bm-meta">{% if m.latency_s %}{{ "%.1f"|format(m.latency_s) }}s{% else %}&ndash;{% endif %}</td>
   <td>{{ m.n_prompts }}</td>
   <td>{{ "%.1f"|format(m.baseline) }}</td>
   <td>{% if m.harness_core is not none %}{{ "%.1f"|format(m.harness_core) }}{% else %}&ndash;{% endif %}</td>
@@ -98,7 +99,7 @@
 </tbody>
 </table>
 </div>
-<p class="hp-note"><b>size</b> / <b>arch</b> are the model's parameter count (read from its tag) and published architecture (mixture-of-experts or dense; <b>&ndash;</b> where undisclosed) &mdash; metadata only, never inferred from scores. <b>baseline</b> / <b>core</b> / <b>harnessed</b> are the mean 0-100 scores for the three arms; <b>lift</b> is harnessed minus baseline. <b>full vs core</b> is the ceiling-free pairwise preference of the full harness (tools + deeper retrieval) over the plain GREP+RAG core harness. The five criteria: A identifies the indicator, B cites the specific law, C refuses, D points to concrete resources, E preserves safety and privacy.</p>
+<p class="hp-note"><b>size</b> / <b>arch</b> are the model's parameter count (read from its tag) and published architecture (mixture-of-experts or dense; <b>&ndash;</b> where undisclosed) &mdash; metadata only, never inferred from scores. <b>latency</b> is the median end-to-end response time on Ollama cloud (queue + network included; an indicative responsiveness signal, not a controlled throughput benchmark; <b>&ndash;</b> for models graded before latency capture). <b>baseline</b> / <b>core</b> / <b>harnessed</b> are the mean 0-100 scores for the three arms; <b>lift</b> is harnessed minus baseline. <b>full vs core</b> is the ceiling-free pairwise preference of the full harness (tools + deeper retrieval) over the plain GREP+RAG core harness. The five criteria: A identifies the indicator, B cites the specific law, C refuses, D points to concrete resources, E preserves safety and privacy.</p>
 
 <h2 style="margin-top:32px">Per-criterion lift &mdash; all five dimensions</h2>
 <p class="bm-sectlede">The 0 to 100 score is assembled from five criteria the judge reasons through and scores separately. This is the full per-dimension view the single lift number compresses &mdash; where each model gains the most when wrapped. The grounding most reliably moves <b>B</b> (cite the specific law) and <b>D</b> (concrete resources); <b>C</b> (refuse) is often already strong unharnessed.</p>

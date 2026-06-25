@@ -152,20 +152,25 @@ def generate_responses(prompts: list[dict], models: list[str], *, reuse: dict, r
                     continue
                 reused = reuse.get((model, pid, arm))      # baseline / harness_core reuse
                 resp = reused
+                latency_s = None  # end-to-end generate latency; only for rows we actually generate
                 if resp is None:
                     prompt_in = (text if arm == "baseline"
                                  else core_pre(text) + "\n\n---\n\n" + text if arm == "harness_core"
                                  else full_pre(text) + "\n\n---\n\n" + text)
                     try:
+                        t0 = time.perf_counter()
                         resp = str(generate(model, prompt_in))
+                        latency_s = round(time.perf_counter() - t0, 3)  # excludes the pace sleep below
                     except Exception as exc:  # noqa: BLE001
                         log(f"GEN FAIL {model}|{pid}|{arm}: {type(exc).__name__}: {exc}")
                         continue
                     if pace:
                         time.sleep(pace)
+                row = {"model": model, "prompt_id": pid, "arm": arm, "prompt_text": text, "response": resp}
+                if latency_s is not None:
+                    row["latency_s"] = latency_s
                 with results_path.open("a", encoding="utf-8") as f:
-                    f.write(json.dumps({"model": model, "prompt_id": pid, "arm": arm,
-                                        "prompt_text": text, "response": resp}) + "\n")
+                    f.write(json.dumps(row) + "\n")
                 done.add((model, pid, arm))
                 n_new += 1
                 log(f"GEN {model}|{pid}|{arm}: {len(resp)} chars" + ("" if reused else " (new)"))
