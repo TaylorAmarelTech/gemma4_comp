@@ -210,4 +210,5 @@ reports/openrouter_eval_plan/
 reports/ui_audit/
 reports/opus_batches/
 reports/opus_scorecards/
+reports/autonomous_engine.*
 data/synthetic_multimodal/
