@@ -213,4 +213,6 @@ reports/opus_scorecards/
 reports/autonomous_engine.*
 reports/orchestrator/
 reports/_backups/
+reports/hermes/
+reports/hermes_state.json
 data/synthetic_multimodal/
