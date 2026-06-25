@@ -59,6 +59,14 @@ Thumbs.db
 apps/**/.claude/
 packages/**/.claude/
 
+# Aider coding-harness runtime state. The configs (.aider.conf.yml,
+# .aider.model.metadata.json, .aider.model.settings.yml) ARE committed; the
+# launchers redirect history into .aider/, and Aider writes its repo-map cache
+# to .aider.tags.cache.* — all local-only. See docs/ollama_coding_harness.md.
+.aider/
+.aider.tags.cache.v3/
+.aider.tags.cache.v4/
+
 # Models, weights, checkpoints (too large for git; publish via HF Hub)
 *.bin
 *.safetensors

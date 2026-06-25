@@ -1,0 +1,26 @@
+# DueCare local coding harness — Aider on Ollama cloud (no Claude / no Anthropic).
+#
+#   Architect (plans/reasons): GLM 5.2     -> openai/glm-5.2
+#   Editor    (applies diffs):  Kimi K2.6   -> openai/kimi-k2.6
+#
+# The endpoint + API key are wired by scripts/harness/aider-ollama.{ps1,sh}, which
+# export OPENAI_API_BASE=https://ollama.com/v1 and OPENAI_API_KEY=$OLLAMA_API_KEY.
+# NEVER put secrets in this file — it is committed.
+#
+# Run from the repo root so Aider discovers this file plus the model metadata:
+#   scripts/harness/aider-ollama.sh                 (bash / Git Bash)
+#   .\scripts\harness\aider-ollama.ps1              (PowerShell)
+
+model: openai/glm-5.2
+architect: true
+editor-model: openai/kimi-k2.6
+
+# Behave well inside this repo
+auto-commits: true
+attribute-author: false
+attribute-committer: false
+dark-mode: true
+show-model-warnings: false
+check-update: false
+analytics: false
+gitignore: false   # we manage .gitignore ourselves (see the .aider.* lines there)

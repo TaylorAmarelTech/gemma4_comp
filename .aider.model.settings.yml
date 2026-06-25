@@ -1,0 +1,23 @@
+# Per-model behavior for the Ollama-cloud harness models.
+# Fields are the stable subset of Aider's ModelSettings. Keep this conservative.
+
+- name: openai/glm-5.2
+  edit_format: diff
+  use_repo_map: true
+  use_temperature: true
+  streaming: true
+  examples_as_sys_msg: true
+
+- name: openai/kimi-k2.6
+  edit_format: diff
+  use_repo_map: true
+  use_temperature: true
+  streaming: true
+  examples_as_sys_msg: true
+
+- name: openai/qwen3-coder:480b
+  edit_format: diff
+  use_repo_map: true
+  use_temperature: true
+  streaming: true
+  examples_as_sys_msg: true
