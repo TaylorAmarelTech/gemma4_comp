@@ -96,10 +96,13 @@ def leaderboard_rows(panel: list[dict], pairwise: list[dict]) -> list[dict]:
         cube.setdefault((p["model"], p["judge"], p["prompt_id"]), {})[p["arm"]] = p
     by_model: dict[str, list[tuple[dict, dict]]] = {}
     prompts_by_model: dict[str, set] = {}
+    core_by_model: dict[str, list[float]] = {}
     for (m, _j, pid), arms in cube.items():
         if "baseline" in arms and "harness_full" in arms:
             by_model.setdefault(m, []).append((arms["baseline"], arms["harness_full"]))
             prompts_by_model.setdefault(m, set()).add(pid)
+            if "harness_core" in arms:
+                core_by_model.setdefault(m, []).append(float(arms["harness_core"]["score_0_100"]))
 
     pw_by_model: dict[str, list[float]] = {}
     for r in pairwise:
@@ -109,23 +112,33 @@ def leaderboard_rows(panel: list[dict], pairwise: list[dict]) -> list[dict]:
     for m, pairs in by_model.items():
         base = float(statistics.mean(b["score_0_100"] for b, _f in pairs))
         harn = float(statistics.mean(f["score_0_100"] for _b, f in pairs))
+        core_scores = core_by_model.get(m, [])
+        core = float(statistics.mean(core_scores)) if core_scores else None
         comp_gain: dict[str, float] = {}
+        comp_baseline: dict[str, float] = {}
+        comp_full: dict[str, float] = {}
         for k in _COMP_KEYS:
             bvals = [b.get("components", {}).get(k) for b, _f in pairs]
             fvals = [f.get("components", {}).get(k) for _b, f in pairs]
             bvals = [x for x in bvals if isinstance(x, (int, float))]
             fvals = [x for x in fvals if isinstance(x, (int, float))]
             if bvals and fvals:
-                comp_gain[k] = round(float(statistics.mean(fvals)) - float(statistics.mean(bvals)), 1)
+                comp_baseline[k] = round(float(statistics.mean(bvals)), 1)
+                comp_full[k] = round(float(statistics.mean(fvals)), 1)
+                comp_gain[k] = round(comp_full[k] - comp_baseline[k], 1)
         pw = pw_by_model.get(m, [])
         rows.append({
             "model": m,
             "n_prompts": len(prompts_by_model.get(m, set())),
             "n_observations": len(pairs),
             "baseline": round(base, 1),
+            "harness_core": round(core, 1) if core is not None else None,
             "harnessed": round(harn, 1),
             "lift": round(harn - base, 1),
+            "lift_core": round(core - base, 1) if core is not None else None,
             "components_gain": comp_gain,
+            "components_baseline": comp_baseline,
+            "components_full": comp_full,
             "pairwise_full_vs_core": round(statistics.mean(pw), 2) if pw else None,
         })
     rows.sort(key=lambda r: -r["lift"])
