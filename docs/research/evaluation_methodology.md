@@ -33,6 +33,16 @@ fee rails, free-visa debt) across ten corridors. **Gap, stated plainly:** the ha
 **English-only text** — no multilingual prompts and no multimodal (document-photo / screenshot)
 inputs, although the product harness supports both; closing that is future work (see §5).
 
+**The live benchmark corpus (v1.3).** Beyond the n=911 depth run above, the public multi-model
+leaderboard at `/benchmark` grades a versioned, reproducible set — **3,703 synthetic adversarial
+prompts across 167 typologies**, built by `scripts/build_benchmark_promptset.py` (stratified, seed=13,
+text-deduped) from the scheme core + expansion + major-case sets + a 2,915-prompt draw from the
+74,640-prompt seed registry + **Hermes-discovered, OpenClaw-vetted** prompts. It grows through a
+propose-only **discovery flywheel** (Hermes proposes → OpenClaw vets → supervised merge → engine grades
+→ board publishes), so the corpus widens over time without any un-vetted prompt entering. The board also
+reports per-model metadata (parameter size, MoE/dense architecture, median latency) alongside the lift.
+Full catalog of every prompt set and measurement method: [`benchmark_methods.md`](benchmark_methods.md).
+
 ## 2. Two graders, deliberately
 
 > The methodology matured through several measurement methods. The full catalog - deterministic floor,
@@ -253,7 +263,10 @@ Every number ties to `(git_sha, checkpoint)`. Generation + deterministic grading
 `scripts/harness_lift_local.py`; reports: `build_frontier_perdim_report.py`,
 `build_frontier_failure_report.py`, `frontier_report.py`; ablation: `length_bias_ablation.py`;
 panel: `multi_judge.py`. Checkpoints persist full responses under `reports/`, so any score is
-re-derivable. The deterministic grader makes the headline bit-for-bit reproducible.
+re-derivable. The deterministic grader makes the headline bit-for-bit reproducible. The live benchmark
+prompt set is built reproducibly by `scripts/build_benchmark_promptset.py` (stratified, seed=13) and
+versioned in `configs/duecare/benchmarks/scheme_prompts.json` (currently **v1.3** — 3,703 prompts / 167
+typologies; grown via the Hermes→OpenClaw discovery flywheel).
 
 ## 8. How to cite a result responsibly
 

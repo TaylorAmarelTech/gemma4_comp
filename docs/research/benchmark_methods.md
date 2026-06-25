@@ -94,6 +94,30 @@ many candidate models; and the **placebo** and **negative-control** sets that bo
 is only as good as the prompts it runs on, so the hardest (adversarial, disguised) prompts carry the
 most signal.
 
+**The live benchmark prompt set (v1.3).** The public leaderboard at `/benchmark` grades a single,
+versioned, reproducible set: **3,703 synthetic adversarial prompts across 167 typologies** at
+easy/medium/hard/very_hard difficulty, built by `scripts/build_benchmark_promptset.py` (stratified,
+`seed=13`, text-deduped) from the 210-prompt scheme core, the harness-lift expansion set, casefile-derived
+major-case scenarios, a 2,915-prompt stratified draw from the **74,640-prompt trafficking seed registry**,
+and **Hermes-discovered prompts vetted by the OpenClaw quality gate**. The scheme core is preserved first
+and in order, so adding prompts only *extends* the set and existing graded results stay aligned by
+`prompt_id` (the runner is resumable). `configs/duecare/benchmarks/scheme_prompts.json` is the artifact.
+
+**The discovery flywheel (how the set grows).** New typologies enter through a propose-only loop:
+**Hermes** generates candidate adversarial prompts (rotating typology / corridor / difficulty) →
+**OpenClaw** vets each one (accept/reject with a reason) → a supervised merge folds only the
+*accepted* candidates into the spec → the engine grades them → the board publishes. No prompt reaches
+the benchmark without passing the OpenClaw gate, and the merge is reproducible (re-running pulls only
+newly accepted candidates). Daemons: `scripts/hermes.py`, `scripts/openclaw_daemon.py`; merge:
+`scripts/build_benchmark_promptset.py`.
+
+**Per-model metadata on the leaderboard.** Alongside the lift, the board reports each model's
+**parameter size** (read from the model tag; `-` when the tag carries none), **architecture**
+(mixture-of-experts vs dense, from the model family's published design; `-` when undisclosed), and
+**median end-to-end latency** (wall-clock per response on Ollama cloud, queue + network included — an
+indicative responsiveness signal, not a controlled throughput benchmark). All three are metadata, never
+inferred from scores, so a reader can weigh each model's lift against its scale, architecture, and speed.
+
 ## Reproduce
 
 ```bash
