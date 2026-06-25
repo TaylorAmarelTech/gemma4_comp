@@ -86,7 +86,7 @@
 <span class="kicker">Adversarial self-evaluation</span>
 <h1>We tried hard to prove our own result is wrong.</h1>
 <p class="lede">The DueCare harness wraps any LLM in fired indicator rules + retrieved legal grounding + an International Labour Organization (ILO) reasoning instruction. This is the measured effect on trafficking-safety - and every control we ran to explain it away. The interesting part isn&rsquo;t the number; it&rsquo;s how hard it was to break.</p>
-<p style="font-size:13.5px;color:var(--ink-3);margin:16px 0 0;line-height:1.6;max-width:72ch">This page is the <b>deep, single-model study and the adversarial controls</b> behind the harness (the 0&ndash;10 origin that the current 0&ndash;100 component judge grew out of). For the <b>live, multi-model leaderboard</b> on the calibrated 0&ndash;100 scale &mdash; now <b>3,691 prompts across 165 typologies</b>, with per-model 95% confidence intervals, Cohen&rsquo;s <i>d</i>, and win rates &mdash; see the ongoing benchmark at <a href="/benchmark">/benchmark</a>.</p></div></section>
+<p style="font-size:13.5px;color:var(--ink-3);margin:16px 0 0;line-height:1.6;max-width:72ch">This page is the <b>deep, single-model study and the adversarial controls</b> behind the harness (the 0&ndash;10 origin that the current 0&ndash;100 component judge grew out of). For the <b>live, multi-model leaderboard</b> on the calibrated 0&ndash;100 scale &mdash; now <b>3,703 prompts across 167 typologies</b>, with per-model 95% confidence intervals, Cohen&rsquo;s <i>d</i>, and win rates &mdash; see the ongoing benchmark at <a href="/benchmark">/benchmark</a>.</p></div></section>
 
 <section class="hp-section" data-screen-label="Eval &middot; Why now"><div class="wrap">
 <div class="head"><div><span class="ix">Why this matters now</span><h2>When AI output becomes the deployer&rsquo;s own words.</h2></div></div>
@@ -96,13 +96,22 @@
 <section class="hp-section" data-screen-label="Eval &middot; Headline"><div class="wrap">
 <div class="head"><div><span class="ix">01 &middot; Headline</span><h2>The harness lifts every model we tested.</h2></div><p class="summary">Each prompt is answered by the same model with and without the harness; both answers are scored by an <b>LLM judge that is a different model from the one being graded</b>; the per-prompt paired delta is analyzed with win rate, Cohen&rsquo;s d, and a seeded 10,000-resample bootstrap CI.</p></div>
 <div class="hs-stats">
-<div class="m"><div class="lbl">Mean paired lift &middot; gemma4:31b</div><div class="val" data-count="1.73" data-prefix="+" data-suffix=" / 10">+1.73 / 10</div><div class="sub">95% CI [+1.57, +1.89] &middot; 911 prompts &middot; judge gpt-oss:120b</div></div>
-<div class="m"><div class="lbl">Win rate</div><div class="val" data-count="73.3" data-suffix="%">73.3%</div><div class="sub">668 win / 210 loss / 33 tie</div></div>
-<div class="m"><div class="lbl">Effect size</div><div class="val" data-count="0.69" data-prefix="d = ">d = 0.69</div><div class="sub">paired Cohen&rsquo;s d, medium&ndash;large</div></div>
-<div class="m"><div class="lbl">Across 11 models</div><div class="val" data-count="1.09" data-prefix="+" data-suffix=" / 10">+1.09 / 10</div><div class="sub">average lift, lifts every model - small-sample breadth (4 prompts each), not the 911-prompt depth</div></div>
+{% if study and study.headline %}
+<div class="m"><div class="lbl">Mean lift &middot; {{ study.headline.model }}</div><div class="val" data-count="{{ "%.1f"|format(study.headline.lift) }}" data-prefix="+" data-suffix=" / 100">+{{ "%.1f"|format(study.headline.lift) }} / 100</div><div class="sub">{{ "%.1f"|format(study.headline.baseline) }} &rarr; {{ "%.1f"|format(study.headline.harnessed) }} &middot; component judge &middot; n = {{ study.headline.n_prompts }}</div></div>
+{% if study.headline.stats and study.headline.stats.win_rate is not none %}
+<div class="m"><div class="lbl">Win rate</div><div class="val" data-count="{{ "%.0f"|format(study.headline.stats.win_rate) }}" data-suffix="%">{{ "%.0f"|format(study.headline.stats.win_rate) }}%</div><div class="sub">share of prompts the harness improves &middot; n = {{ study.headline.stats.n_pairs }}</div></div>
+<div class="m"><div class="lbl">Effect size</div><div class="val" data-count="{{ "%.2f"|format(study.headline.stats.cohens_d) }}" data-prefix="d = ">d = {{ "%.2f"|format(study.headline.stats.cohens_d) }}</div><div class="sub">paired Cohen&rsquo;s d on the 0&ndash;100 component judge</div></div>
+{% endif %}
+<div class="m"><div class="lbl">Across {{ study.n_featured }} model{{ "s" if study.n_featured != 1 }}</div><div class="val" data-count="{{ "%.1f"|format(study.avg_lift) }}" data-prefix="+" data-suffix=" / 100">+{{ "%.1f"|format(study.avg_lift) }} / 100</div><div class="sub">average lift on the live board{% if study.all_positive %} &middot; every featured model positive{% endif %}</div></div>
+{% else %}
+<div class="m"><div class="lbl">Mean lift &middot; gemma4:31b</div><div class="val" data-count="48.3" data-prefix="+" data-suffix=" / 100">+48.3 / 100</div><div class="sub">42.3 &rarr; 90.6 &middot; component judge &middot; n = 100</div></div>
+<div class="m"><div class="lbl">Win rate</div><div class="val" data-count="73.3" data-suffix="%">73.3%</div><div class="sub">911-prompt depth run &middot; 0&ndash;10 judge</div></div>
+<div class="m"><div class="lbl">Effect size</div><div class="val" data-count="0.69" data-prefix="d = ">d = 0.69</div><div class="sub">paired Cohen&rsquo;s d &middot; 911-prompt 0&ndash;10 run</div></div>
+<div class="m"><div class="lbl">Across 3 models</div><div class="val" data-count="45.4" data-prefix="+" data-suffix=" / 100">+45.4 / 100</div><div class="sub">average 0&ndash;100 lift &middot; every featured model positive</div></div>
+{% endif %}
 </div>
 <div class="hs-chart" data-chart="permodel"></div>
-<p class="hp-note">LLM-judge lift per model (harnessed &minus; baseline, 0&ndash;10). The bars are from <b>different runs and judges</b> (not one apples-to-apples sweep): gemma4:31b is the 911-prompt gpt-oss:120b-judged run; gpt-oss:20b (+1.49, n=27) and Claude Opus 4.8 (+0.27, n=24) are Opus-judged; the &ldquo;avg / 11 models&rdquo; is the small n=4 breadth run. Even Opus - already near-ceiling - gains. Sources: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/harness_lift_report.md" rel="noopener">harness_lift_report.md</a>.</p>
+<p class="hp-note">{% if study and study.featured %}Per-model harness lift on the <b>0&ndash;100 component judge</b> (harnessed &minus; baseline), from the <b>live benchmark board</b> &mdash; same prompts, the same {{ study.n_judges }}-model judge panel, each model graded on &ge;&thinsp;20 hard adversarial scheme prompts (just-started runs are held back until they reach that bar). The bars update as the board fills.{% else %}LLM-judge lift per model (harnessed &minus; baseline) on the 0&ndash;100 component judge.{% endif %} Live standings + per-model 95% CIs: <a href="/benchmark">/benchmark</a> &middot; method catalog: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/benchmark_methods.md" rel="noopener">benchmark_methods.md</a>.</p>
 </div></section>
 
 <section class="hp-section" data-screen-label="Eval &middot; Two graders"><div class="wrap">
@@ -228,10 +237,15 @@ Not-applicable dimensions are excluded from numerator <i>and</i> denominator. We
 <script type="application/json" id="study-data">
 {
   "permodel": [
-    {"label": "gemma4:31b", "value": 1.73, "cls": "good"},
-    {"label": "gpt-oss:20b", "value": 1.49, "cls": "good"},
-    {"label": "avg / 11 models", "value": 1.09, "cls": "muted"},
-    {"label": "Claude Opus 4.8", "value": 0.27, "cls": "good"}
+{%- if study and study.featured %}
+{%- for m in study.featured %}
+    {"label": {{ m.model|tojson }}, "value": {{ "%.1f"|format(m.lift) }}, "cls": "{{ 'good' if m.lift >= 0 else 'ember' }}"}{{ "," if not loop.last }}
+{%- endfor %}
+{%- else %}
+    {"label": "gpt-oss:120b", "value": 56.0, "cls": "good"},
+    {"label": "gemma4:31b", "value": 48.3, "cls": "good"},
+    {"label": "glm-5.2", "value": 31.9, "cls": "good"}
+{%- endif %}
   ],
   "graders": [
     {"label": "LLM judge (reads it)", "value": 1.73, "cls": "good"},
@@ -259,7 +273,7 @@ Not-applicable dimensions are excluded from numerator <i>and</i> denominator. We
 <script>
 (function () {
   var DATA = JSON.parse(document.getElementById("study-data").textContent);
-  function fmt(v) { return (v > 0 ? "+" : "") + v.toFixed(2); }
+  function fmt(v) { return (v > 0 ? "+" : "") + v.toFixed(Math.abs(v) >= 10 ? 1 : 2); }
   function hbars(el, items, max) {
     el.innerHTML = items.map(function (it) {
       var pct = Math.max(1, Math.min(100, (Math.abs(it.value) / max) * 100));

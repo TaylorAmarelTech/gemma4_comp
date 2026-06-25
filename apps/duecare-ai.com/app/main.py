@@ -1159,6 +1159,33 @@ def _benchmark_page_context() -> dict[str, object]:
         return {"leaderboard": None}
 
 
+def _harness_study_context() -> dict[str, object]:
+    """0-100 board numbers for the /harness-study headline + per-model chart, so the study stays
+    consistent with /benchmark as the live board fills.
+
+    Reuses the committed leaderboard. Only adequately-sampled models (>= ``min_n`` graded prompts)
+    are featured so a just-started run doesn't show a misleading partial bar. ``study`` is None when
+    the board is unavailable, in which case the page renders its static 0-10 origin fallback."""
+    ctx = _benchmark_page_context()
+    lb = ctx.get("leaderboard") or {}
+    min_n = 20  # only feature adequately-sampled models (a just-started run has too few prompts)
+    models = [m for m in (lb.get("models") or []) if (m.get("n_prompts") or 0) >= min_n]
+    if not models:
+        ctx["study"] = None
+        return ctx
+    head = next((m for m in models if m.get("model") == "gemma4:31b"), models[0])
+    ctx["study"] = {
+        "featured": models,
+        "headline": head,
+        "avg_lift": round(sum(m.get("lift", 0.0) for m in models) / len(models), 1),
+        "n_featured": len(models),
+        "all_positive": all(m.get("lift", 0.0) > 0 for m in models),
+        "alpha": lb.get("inter_judge_alpha"),
+        "n_judges": len(lb.get("judges") or []),
+    }
+    return ctx
+
+
 def _stats_page_context(request: Request) -> dict[str, object]:
     """Return live counters plus an explicit beta-data disclosure for /stats."""
     state = _state(request)
@@ -2158,6 +2185,8 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
             context.update(_stats_page_context(request))
         elif template_name == "benchmark.html":
             context.update(_benchmark_page_context())
+        elif template_name == "harness-study.html":
+            context.update(_harness_study_context())
         return templates.TemplateResponse(request, template_name, context)
 
     def _make_route(template_name: str):
