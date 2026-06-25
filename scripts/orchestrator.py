@@ -165,12 +165,13 @@ def research_health() -> dict:
 
 
 def automation_health() -> dict:
-    """OpenClaw automation -- 'configured' iff an automation LLM endpoint/key is present."""
-    configured = any(os.environ.get(k) for k in (
-        "DUECARE_AUTOMATION_OLLAMA_BASE_URL", "DUECARE_AUTOMATION_OPENROUTER_KEY",
-        "DUECARE_AUTOMATION_MISTRAL_KEY", "DUECARE_AUTOMATION_OPENAI_KEY", "OPENCLAW_OLLAMA_BASE_URL"))
-    return {"agent": "automation_openclaw",
-            "status": "configured" if configured else "unconfigured_regex_fallback"}
+    """OpenClaw vetting daemon -- live status + totals from its state file."""
+    st = _read_json(REPORTS / "openclaw_state.json")
+    return {"agent": "automation_openclaw", "alive": bool(st),
+            "status": st.get("status", "not_deployed_yet"),
+            "total_vetted": st.get("total_vetted", 0),
+            "total_accepted": st.get("total_accepted", 0),
+            "last_tick": st.get("last_tick")}
 
 
 def backup() -> dict:
