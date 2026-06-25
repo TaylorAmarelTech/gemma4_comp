@@ -27,6 +27,7 @@ import argparse
 import glob
 import json
 import pathlib
+import re
 import statistics
 import subprocess
 import sys
@@ -237,11 +238,39 @@ def lift_breakdowns(panel: list[dict]) -> dict[str, list[dict]]:
             "by_difficulty": agg("difficulty")}
 
 
+# Architecture from each model family's published design (mixture-of-experts vs dense); "-" when
+# undisclosed (e.g. proprietary previews). Substring (MoE) / prefix (dense) match keeps version tags robust.
+_MOE_FAMILIES = ("gpt-oss", "glm-", "deepseek", "kimi", "qwen3", "minimax")
+_DENSE_FAMILIES = ("gemma", "devstral", "ministral", "nemotron")
+_PARAMS_RE = re.compile(r":(\d+(?:\.\d+)?)\s*([bt])\b")
+
+
+def model_meta(model_id: str) -> dict[str, str]:
+    """Parameter size (read from the model tag) + architecture (documented family) for a model.
+
+    Size comes from the ``:<N>b``/``:<N>t`` suffix in the Ollama tag (e.g. ``gpt-oss:120b`` -> ``120B``)
+    and is ``-`` when the tag carries none. Architecture is the family's published design (MoE/dense),
+    ``-`` when undisclosed. Metadata only -- never inferred from scores -- so a reader can weigh each
+    model's harness lift against its scale and architecture.
+    """
+    low = model_id.lower()
+    m = _PARAMS_RE.search(low)
+    params = f"{m.group(1)}{m.group(2).upper()}" if m else "-"
+    if any(f in low for f in _MOE_FAMILIES):
+        arch = "MoE"
+    elif any(low.startswith(f) for f in _DENSE_FAMILIES):
+        arch = "dense"
+    else:
+        arch = "-"
+    return {"params": params, "arch": arch}
+
+
 def build_leaderboard(panel: list[dict], pairwise: list[dict], *, generated: str, sha: str) -> dict:
     rows = leaderboard_rows(panel, pairwise)
     pstats = paired_stats_by_model(panel)
     for r in rows:
         r["stats"] = pstats.get(r["model"], {})
+        r["meta"] = model_meta(r["model"])
     judges = sorted({p["judge"] for p in panel})
     return {
         "benchmark": BENCHMARK,

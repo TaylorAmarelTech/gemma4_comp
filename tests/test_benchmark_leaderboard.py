@@ -70,3 +70,19 @@ def test_build_and_render_carry_spec_provenance_and_lift():
     assert "Submit a model" in md
     assert "**+50.0**" in md                      # the model's lift appears in the leaderboard row
     assert "abc1234" in md                         # provenance SHA rendered
+
+
+def test_model_meta_reads_tag_size_and_documented_architecture():
+    # size is read from the model tag (factual), never guessed
+    assert bl.model_meta("gpt-oss:120b") == {"params": "120B", "arch": "MoE"}
+    assert bl.model_meta("gemma4:31b") == {"params": "31B", "arch": "dense"}
+    assert bl.model_meta("qwen3-coder:480b")["params"] == "480B"
+    # MoE family whose tag carries no size -> architecture known, size "-"
+    assert bl.model_meta("glm-5.2") == {"params": "-", "arch": "MoE"}
+    # undisclosed architecture (proprietary preview) -> both "-"
+    assert bl.model_meta("gemini-3-flash-preview") == {"params": "-", "arch": "-"}
+    # every leaderboard row carries meta
+    panel = _panel("gemma4:31b", 40, 90, _CB, _CF)
+    rows = bl.leaderboard_rows(panel, [])
+    lb = bl.build_leaderboard(panel, [], generated="2026-06-23T00:00:00Z", sha="abc1234")
+    assert lb["models"][0]["meta"] == {"params": "31B", "arch": "dense"}
