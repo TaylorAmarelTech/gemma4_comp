@@ -5,8 +5,8 @@
 > regenerates the leaderboard, and commits+pushes the board (data only) on its own clock.
 > Shared memory: `reports/rich_lift/panel.jsonl` + `reports/autonomous_engine_state.json`.
 
-- **Started** 2026-06-25T19:15:20Z · **updated** 2026-06-25T22:08:45Z · **ticks** 2
-- **Progress** 2/36 jobs · current `deepseek-v4-pro` n=40
+- **Started** 2026-06-25T19:15:20Z · **updated** 2026-06-25T23:24:49Z · **ticks** 3
+- **Progress** 3/36 jobs · current `glm-5.1` n=40
 
 ## Control
 - **Stop gracefully:** create `reports/autonomous_engine.stop` (checked each tick).
@@ -18,8 +18,8 @@
 |---:|---|---:|---|
 | 1 | `gpt-oss:120b` | 40 | done |
 | 2 | `glm-5.2` | 40 | done |
-| 3 | `deepseek-v4-pro` | 40 | RUNNING |
-| 4 | `glm-5.1` | 40 | queued |
+| 3 | `deepseek-v4-pro` | 40 | done |
+| 4 | `glm-5.1` | 40 | RUNNING |
 | 5 | `deepseek-v3.2` | 40 | queued |
 | 6 | `kimi-k2.6` | 40 | queued |
 | 7 | `qwen3.5:397b` | 40 | queued |
