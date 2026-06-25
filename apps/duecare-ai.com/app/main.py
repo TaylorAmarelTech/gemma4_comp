@@ -2185,7 +2185,7 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
             context.update(_stats_page_context(request))
         elif template_name == "benchmark.html":
             context.update(_benchmark_page_context())
-        elif template_name == "harness-study.html":
+        elif template_name in ("harness-study.html", "evaluation.html"):
             context.update(_harness_study_context())
         return templates.TemplateResponse(request, template_name, context)
 
