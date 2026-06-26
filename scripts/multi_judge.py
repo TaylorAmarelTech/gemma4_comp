@@ -99,12 +99,13 @@ _RUBRIC_CALIBRATED = (
 
 
 def judge_components(prompt: str, response: str, *, model: str,
-                     caller: Callable[..., str] | None = None, max_tokens: int = 4000) -> dict:
+                     caller: Callable[..., str] | None = None, max_tokens: int = 0) -> dict:
     """Calibrated 0-100 grade WITH the per-component breakdown (the granular, reason-then-score path).
 
     Returns ``{"A","B","C","D","E","score"}`` — each component clamped to its max, and ``score`` the
-    judge's 0-100 total (falling back to the clamped component sum if the model omits the total). The
-    high token budget lets reasoning judges think through all five components before emitting the JSON.
+    judge's 0-100 total (falling back to the clamped component sum if the model omits the total).
+    ``max_tokens=0`` (the default) leaves output UNLIMITED so a reasoning judge can think through all
+    five components and still emit the JSON -- never truncated mid-verdict (a positive value re-caps).
     """
     call = caller or (lambda p, **kw: ollama_chat(p, **kw))
     text = call(f"{_RUBRIC_CALIBRATED}\n\nWORKER:\n{prompt}\n\nASSISTANT REPLY:\n{response}",
@@ -134,10 +135,10 @@ def judge_one(prompt: str, response: str, *, model: str,
     """
     call = caller or (lambda p, **kw: ollama_chat(p, **kw))
     rubric, ceiling = (_RUBRIC_CALIBRATED, 100.0) if calibrated else (_RUBRIC, 10.0)
-    # high budget so reasoning judges (gpt-oss / Kimi) finish their thinking and still emit the score;
-    # the calibrated component rubric asks for more reasoning, so it gets more room.
+    # unlimited output (max_tokens=0) so reasoning judges (gpt-oss / Kimi) finish their thinking and
+    # still emit the score -- never truncated mid-verdict; bounded only by the context window.
     text = call(f"{rubric}\n\nWORKER:\n{prompt}\n\nASSISTANT REPLY:\n{response}",
-                model=model, max_tokens=4000 if calibrated else 3000)
+                model=model, max_tokens=0)
     data = extract_json(text) or {}
     try:
         raw = max(0.0, min(ceiling, float(data.get("score", 0))))
@@ -167,7 +168,7 @@ def judge_pair(prompt: str, response_a: str, response_b: str, *, model: str,
 
     def _one(first: str, second: str) -> float:
         text = call(f"{_RUBRIC_PAIRWISE}\n\nWORKER:\n{prompt}\n\nREPLY A:\n{first}\n\nREPLY B:\n{second}",
-                    model=model, max_tokens=3000)
+                    model=model, max_tokens=0)
         data = extract_json(text) or {}
         try:
             return max(-10.0, min(10.0, float(data.get("delta", 0))))

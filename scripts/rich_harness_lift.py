@@ -521,7 +521,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--pace", type=float, default=1.0)
     ap.add_argument("--concurrency", type=int, default=CONCURRENCY_DEFAULT,
                     help="concurrent Ollama calls per phase (raise to use more quota, lower on rate limits)")
-    ap.add_argument("--max-tokens", type=int, default=4000)
+    ap.add_argument("--max-tokens", type=int, default=0,
+                    help="output cap; 0 = UNLIMITED (generate to EOS, bounded only by the context window)")
     ap.add_argument("--report-only", action="store_true")
     ap.add_argument("--skip-judge", action="store_true", help="generate only, judge in a later pass")
     ap.add_argument("--pairwise", action="store_true",
