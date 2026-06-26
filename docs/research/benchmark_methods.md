@@ -95,7 +95,7 @@ is only as good as the prompts it runs on, so the hardest (adversarial, disguise
 most signal.
 
 **The live benchmark prompt set (v1.3).** The public leaderboard at `/benchmark` grades a single,
-versioned, reproducible set: **3,703 synthetic adversarial prompts across 167 typologies** at
+versioned, reproducible set: **3,700+ synthetic adversarial prompts across 170+ typologies (and growing via the flywheel)** at
 easy/medium/hard/very_hard difficulty, built by `scripts/build_benchmark_promptset.py` (stratified,
 `seed=13`, text-deduped) from the 210-prompt scheme core, the harness-lift expansion set, casefile-derived
 major-case scenarios, a 2,915-prompt stratified draw from the **74,640-prompt trafficking seed registry**,

@@ -34,8 +34,8 @@ fee rails, free-visa debt) across ten corridors. **Gap, stated plainly:** the ha
 inputs, although the product harness supports both; closing that is future work (see §5).
 
 **The live benchmark corpus (v1.3).** Beyond the n=911 depth run above, the public multi-model
-leaderboard at `/benchmark` grades a versioned, reproducible set — **3,703 synthetic adversarial
-prompts across 167 typologies**, built by `scripts/build_benchmark_promptset.py` (stratified, seed=13,
+leaderboard at `/benchmark` grades a versioned, reproducible set — **3,700+ synthetic adversarial
+prompts across 170+ typologies (and growing)**, built by `scripts/build_benchmark_promptset.py` (stratified, seed=13,
 text-deduped) from the scheme core + expansion + major-case sets + a 2,915-prompt draw from the
 74,640-prompt seed registry + **Hermes-discovered, OpenClaw-vetted** prompts. It grows through a
 propose-only **discovery flywheel** (Hermes proposes → OpenClaw vets → supervised merge → engine grades
@@ -265,8 +265,7 @@ Every number ties to `(git_sha, checkpoint)`. Generation + deterministic grading
 panel: `multi_judge.py`. Checkpoints persist full responses under `reports/`, so any score is
 re-derivable. The deterministic grader makes the headline bit-for-bit reproducible. The live benchmark
 prompt set is built reproducibly by `scripts/build_benchmark_promptset.py` (stratified, seed=13) and
-versioned in `configs/duecare/benchmarks/scheme_prompts.json` (currently **v1.3** — 3,703 prompts / 167
-typologies; grown via the Hermes→OpenClaw discovery flywheel).
+versioned in `configs/duecare/benchmarks/scheme_prompts.json` (currently **v1.3** — 3,700+ prompts / 170+ typologies, growing via the Hermes→OpenClaw discovery flywheel).
 
 ## 8. How to cite a result responsibly
 
