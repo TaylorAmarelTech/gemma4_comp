@@ -69,8 +69,8 @@ DEFAULT_JUDGES = ["gpt-oss:120b", "glm-5.2", "deepseek-v4-pro"]
 _REUSE_ARM = {"baseline": "baseline", "harnessed": "harness_core"}
 
 
-def load_prompts(n: int) -> list[dict]:
-    d = json.loads(SCHEME_PROMPTS.read_text(encoding="utf-8"))
+def load_prompts(n: int, path: pathlib.Path = SCHEME_PROMPTS) -> list[dict]:
+    d = json.loads(path.read_text(encoding="utf-8"))
     ps = d.get("prompts", d)
     return ps[:n] if n else ps
 
@@ -463,7 +463,10 @@ def main(argv: list[str] | None = None) -> int:
         except Exception:  # noqa: BLE001
             pass
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--n", type=int, default=40, help="number of scheme prompts (0 = all 210)")
+    ap.add_argument("--n", type=int, default=40, help="number of prompts to grade (0 = all in the set)")
+    ap.add_argument("--prompts", default=str(SCHEME_PROMPTS),
+                    help="prompt-set JSON to grade (default: the committed scheme set; point at the full "
+                         "registry set built by build_benchmark_promptset.py --full for an exhaustive sweep)")
     ap.add_argument("--models", default="gemma4:31b")
     ap.add_argument("--judges", default=",".join(DEFAULT_JUDGES))
     ap.add_argument("--reuse", default=str(REUSE_DEFAULT), help="prior scheme-run responses to reuse")
@@ -477,7 +480,7 @@ def main(argv: list[str] | None = None) -> int:
 
     models = [m.strip() for m in args.models.split(",") if m.strip()]
     judges = [j.strip() for j in args.judges.split(",") if j.strip()]
-    prompts = load_prompts(args.n)
+    prompts = load_prompts(args.n, pathlib.Path(args.prompts))
 
     def gen(model: str, prompt_in: str) -> str:
         return ollama_chat(prompt_in, model=model, max_tokens=args.max_tokens)
