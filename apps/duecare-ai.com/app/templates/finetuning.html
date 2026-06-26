@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Fine-tuning methodology &middot; DueCare AI</title>
+<meta name="description" content="How DueCare distils the measured harness lift into a model's weights: gap-driven vetted SFT/DPO data, anti-shortcut organisation, an Unsloth LoRA runner, and a four-arm evaluation that measures whether training internalises the lift and stacks with the harness." />
+<link rel="stylesheet" href="/static/styles.css" /><link rel="stylesheet" href="/static/hub-pages.css" />
+<style>
+.ft-flow { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin:16px 0 6px; }
+@media(max-width:820px){ .ft-flow { grid-template-columns:1fr 1fr; } }
+.ft-stage { border:1px solid var(--line); border-radius:10px; padding:13px 14px; background:var(--paper); }
+.ft-stage .n { font-family:var(--mono); font-size:10.5px; letter-spacing:0.06em; color:oklch(0.52 0.08 195); font-weight:700; text-transform:uppercase; }
+.ft-stage b { display:block; margin:3px 0 4px; color:var(--ink); font-size:13.5px; }
+.ft-stage p { margin:0; color:var(--ink-2); font-size:12.5px; line-height:1.5; }
+.ft-table { border-collapse:collapse; width:100%; font-size:13.5px; margin:8px 0 6px; }
+.ft-table th, .ft-table td { padding:8px 11px; border-bottom:1px solid var(--line-soft); text-align:left; }
+.ft-table th { font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-3); border-bottom:2px solid var(--line); }
+.ft-table td.r, .ft-table th.r { text-align:right; }
+.ft-card { border:1px solid var(--line); border-radius:12px; padding:16px 20px; margin:12px 0 6px; background:var(--paper-2); font-size:13.5px; line-height:1.6; color:var(--ink-2); }
+.ft-card b { color:var(--ink); }
+.ft-list { padding-left:0; list-style:none; margin:10px 0 0; }
+.ft-list li { position:relative; padding:0 0 11px 26px; font-size:13.5px; line-height:1.55; color:var(--ink-2); }
+.ft-list li:before { content:"\2192"; position:absolute; left:0; top:0; color:oklch(0.52 0.08 195); font-weight:700; }
+.ft-list li b { color:var(--ink); }
+.ft-shortcut li:before { content:"\2717"; color:oklch(0.58 0.14 45); }
+.ft-refs { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+.ft-refs a { font-family:var(--mono); font-size:12px; padding:7px 12px; border:1px solid var(--line); border-radius:6px; color:var(--ink-2); text-decoration:none; transition:border-color 150ms,color 150ms; }
+.ft-refs a:hover { border-color:var(--accent); color:var(--accent-ink); }
+.ft-note { font-size:12.5px; color:var(--ink-3); line-height:1.55; margin-top:12px; }
+</style>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+</head><body>{% set active_nav = "evaluation" %}
+{% include "_nav.html" %}
+
+<section class="hp-hero" data-screen-label="Eval &middot; Fine-tuning"><div class="wrap">
+<div class="crumbs"><a href="/">Home</a><span class="sep">/</span><a href="/evaluation">Evaluation</a><span class="sep">/</span><span>Fine-tuning</span></div>
+<span class="kicker">Phase 3 &middot; methodology</span>
+<h1>Distilling the harness into the weights.</h1>
+<p class="lede">The <a href="/benchmark">benchmark</a> proves a thin layer of legal grounding makes any model measurably safer at inference. Fine-tuning asks the next question: can we teach the model to reach for that grounding <i>on its own</i> &mdash; internalising the stable reasoning into the weights, while the harness keeps supplying the volatile facts? This page is how we build, vet, organise, and measure that training &mdash; and how we guard against a model that memorises shortcuts instead of understanding.</p>
+</div></section>
+
+<section class="hp-section"><div class="wrap">
+<div class="head"><div><span class="ix">01 &middot; Why train, not just harness</span><h2>Internalise the stable, tool the volatile.</h2></div><p class="summary">Training and the harness are not rivals; they target different things. The weights should hold the <b>stable</b> substrate (indicator reasoning, grounded-refusal style, evidence-first shape, ILO framing). The harness keeps supplying the <b>volatile</b> facts (current hotlines, fee caps, fresh statutes) so the weights never go stale. We do not assume the two stack &mdash; we measure it, in four arms on the same 0&ndash;100 benchmark.</p></div>
+<table class="ft-table">
+<thead><tr><th>arm</th><th>model</th><th>harness</th><th>what it isolates</th></tr></thead>
+<tbody>
+<tr><td>A</td><td>stock</td><td>off</td><td>the raw baseline</td></tr>
+<tr><td>B</td><td>stock</td><td>on</td><td>the inference-time harness lift (B&minus;A)</td></tr>
+<tr><td>C</td><td>trained</td><td>off</td><td><b>internalisation</b> &mdash; training alone (C&minus;A)</td></tr>
+<tr><td>D</td><td>trained</td><td>on</td><td><b>stacking</b> &mdash; trained + harness together (D vs B, C)</td></tr>
+</tbody></table>
+<p class="ft-note">The headline questions: what <b>fraction</b> of the harness lift (B&minus;A) does training capture on its own (C&minus;A), and does the harness <b>still help</b> a trained model (D&minus;C &gt; 0)?</p>
+</div></section>
+
+<section class="hp-section"><div class="wrap">
+<div class="head"><div><span class="ix">02 &middot; The training data</span><h2>The benchmark&rsquo;s proven lift becomes the training signal.</h2></div><p class="summary">Every benchmark prompt already has a weak baseline reply and a high-scoring harnessed reply. The high-lift pairs are ready-made teaching material &mdash; no separate labelling pass. Nothing trains unvetted.</p></div>
+<div class="ft-flow">
+<div class="ft-stage"><span class="n">Generate</span><b>Distil the lift</b><p>High-lift (baseline &rarr; harnessed) pairs become SFT targets and DPO preferences (chosen = harnessed, rejected = baseline).</p></div>
+<div class="ft-stage"><span class="n">Vet</span><b>Quality + privacy</b><p>Target score &ge; threshold, clear lift, PII / volatile-contact scrub (statute refs kept), citation accuracy, OpenClaw gate.</p></div>
+<div class="ft-stage"><span class="n">Organise</span><b>Anti-shortcut</b><p>Hold out whole typologies, balance, interleave, dedup &mdash; so the data can&rsquo;t be solved by surface shortcuts.</p></div>
+<div class="ft-stage"><span class="n">Train</span><b>Unsloth LoRA</b><p>SFT (response-only) then DPO on a Gemma 4 base; export GGUF / LiteRT for on-device.</p></div>
+<div class="ft-stage"><span class="n">Evaluate</span><b>Four arms</b><p>Score the trained model in arms C/D on the same prompts; promote only what generalises.</p></div>
+</div>
+<p class="ft-note">SFT (instruction &rarr; harnessed reply) teaches the answer shape; DPO (prefer the grounded reply over the plausible-but-wrong baseline) teaches the boundary. Both are derived from the live benchmark, so the training set grows as the benchmark sweep does.</p>
+</div></section>
+
+<section class="hp-section"><div class="wrap">
+<div class="head"><div><span class="ix">03 &middot; Understanding, not shortcuts</span><h2>The failure mode we design against.</h2></div><p class="summary">Distillation can teach a model to <i>parrot</i> &mdash; map a fee-splitting-shaped prompt to &ldquo;I cannot&rdquo; + &ldquo;ILO C181&rdquo; without understanding the indicator. A shortcut wins on the training distribution and collapses on anything new. We name the shortcuts, organise the data against them, and &mdash; the crux &mdash; <b>measure which one we got</b>.</p></div>
+<ul class="ft-list ft-shortcut">
+<li><b>Keyword&rarr;refusal</b> &mdash; trigger words map to a canned refusal regardless of whether the request is actually exploitative.</li>
+<li><b>Over-refusal</b> &mdash; the model refuses a worker asking about their own rights (a benign query).</li>
+<li><b>Citation parroting</b> &mdash; it cites the most frequent statute in training, not the one the scenario calls for.</li>
+<li><b>Obfuscation blindness</b> &mdash; a base64 / homoglyph / code-switched version of the same scheme slips through.</li>
+</ul>
+<div class="ft-card">
+<b>How we measure understanding.</b> The headline anti-shortcut metric is the <b>held-out-typology generalisation gap</b>: whole typologies are withheld from training, and we compare internalisation (C&minus;A) on trained typologies vs unseen ones. A large gap = memorisation; a small gap = understanding. Alongside it: <b>perturbation robustness</b> (does the score survive paraphrase / obfuscation?), <b>counterfactual consistency</b> (does the model correctly flip on minimal pairs?), and an <b>over-refusal rate</b> on benign controls. A variant only counts as understanding if it holds up on held-out typologies <i>and</i> under perturbation <i>and</i> on counterfactuals.
+</div>
+</div></section>
+
+<section class="hp-section"><div class="wrap">
+<div class="head"><div><span class="ix">04 &middot; The training run</span><h2>The canonical Unsloth recipe, reproducibly.</h2></div><p class="summary">A Gemma 4 base, fine-tuned with the same recipe the rest of the project uses, on the vetted data &mdash; reproducible from <code>(git_sha, data_manifest)</code>.</p></div>
+<ul class="ft-list">
+<li><b>Load</b> the base 4-bit with Unsloth <code>FastModel</code>; apply a LoRA adapter (<code>get_peft_model</code>).</li>
+<li><b>SFT</b> with the <code>gemma-4-thinking</code> chat template and <code>train_on_responses_only</code> (the prompt is masked &mdash; the model is graded only on the reply it should learn).</li>
+<li><b>DPO</b> over the chosen/rejected pairs so the model prefers the grounded reply to the plausible shortcut.</li>
+<li><b>Export</b> a q4_k_m GGUF for on-device (llama.cpp / LiteRT) &mdash; the NGO-on-a-laptop deployment.</li>
+</ul>
+<p class="ft-note">The base weights are never overwritten &mdash; the result is a small adapter that ships next to the harness. A CPU-safe validate path checks the data and plan anywhere; the GPU run is one command on Kaggle.</p>
+</div></section>
+
+<section class="hp-section"><div class="wrap">
+<div class="head"><div><span class="ix">05 &middot; The four-arm result</span><h2>Promote what generalises, not what scores.</h2></div><p class="summary">Each trained checkpoint is graded by the same self-family-excluded 0&ndash;100 judge panel as the benchmark, in all four arms, on the same prompts.</p></div>
+<div class="ft-card">
+The selection rule is deliberate: we promote the variant with the <b>smallest held-out generalisation gap and no over-refusal regression</b> &mdash; never the one with the highest training-set score. A checkpoint that aced the training typologies but stumbles on held-out ones has memorised, not learned, and is rejected.
+</div>
+<div class="ft-card" style="background:var(--paper);border-color:oklch(0.65 0.10 80)">
+<b>Honest framing.</b> We do not claim training fully replaces the harness. The harness&rsquo;s retrieval and tools supply facts the weights cannot memorise without going stale, so we expect &mdash; and report &mdash; a residual harness lift on the trained model (arm D &gt; C). And the standing limitation is the same as the benchmark&rsquo;s: the judges are language models, not anti-trafficking professionals. A blinded human-expert validation is the precondition for any peer-reviewed claim.
+</div>
+</div></section>
+
+<section class="hp-section"><div class="wrap">
+<div class="head"><div><span class="ix">06 &middot; Reproduce + read more</span><h2>Every step is committed code.</h2></div></div>
+<div class="ft-refs">
+<a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/phase3_training_framework.md" rel="noopener">phase3_training_framework.md</a>
+<a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/training_for_understanding.md" rel="noopener">training_for_understanding.md</a>
+<a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/scripts/build_lift_training_data.py" rel="noopener">build_lift_training_data.py</a>
+<a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/scripts/organize_training_data.py" rel="noopener">organize_training_data.py</a>
+<a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/scripts/train_lift_distill.py" rel="noopener">train_lift_distill.py</a>
+<a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/scripts/four_arm_eval.py" rel="noopener">four_arm_eval.py</a>
+</div>
+<p class="ft-note">The fine-tune builds on the same evidence base as the <a href="/benchmark">live benchmark</a> and the <a href="/harness-study">harness-lift study</a>; the training data grows as the benchmark sweeps the full ~74,640-prompt registry.</p>
+</div></section>
+
+{% include "_footer.html" %}
+</body></html>

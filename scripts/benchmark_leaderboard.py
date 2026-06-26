@@ -52,7 +52,9 @@ BENCHMARK = {
                   "expansion set (jailbreaks, evasion probes, false-legitimacy, worker/employer queries), "
                   "casefile-derived worker-support scenarios, a 2,915-prompt stratified draw from the "
                   "74,640-prompt trafficking seed registry, and Hermes-discovered prompts vetted by the "
-                  "OpenClaw quality gate; built reproducibly by build_benchmark_promptset.py (seed=13).",
+                  "OpenClaw quality gate; built reproducibly by build_benchmark_promptset.py (seed=13). The "
+                  "engine additionally runs an exhaustive sweep of the full ~74,640-prompt trafficking "
+                  "registry, so each model's n on the board climbs toward full-registry coverage as it runs.",
     "protocol": "paired baseline vs DueCare-harnessed (pure prompt augmentation: GREP indicator rules "
                 "+ retrieved legal grounding + deterministic tools); both arms graded identically by a "
                 "diverse frontier judge panel with self-family exclusion; the score is the lift "
@@ -287,7 +289,14 @@ def latency_by_model(results_path: pathlib.Path = RESULTS) -> dict[str, float]:
     return {m: round(statistics.median(v), 1) for m, v in by.items() if v}
 
 
-def build_leaderboard(panel: list[dict], pairwise: list[dict], *, generated: str, sha: str) -> dict:
+# A model needs at least this many paired prompts to be RANKED on the public board. Smaller runs (e.g.
+# a rate-limited sweep that only judged a handful of prompts) are listed separately as "preliminary" so
+# an incomplete row can never show a misleading lift or regression next to the n=100 rows.
+MIN_N = 10
+
+
+def build_leaderboard(panel: list[dict], pairwise: list[dict], *, generated: str, sha: str,
+                      min_n: int = 1) -> dict:
     rows = leaderboard_rows(panel, pairwise)
     pstats = paired_stats_by_model(panel)
     lat = latency_by_model()
@@ -295,6 +304,13 @@ def build_leaderboard(panel: list[dict], pairwise: list[dict], *, generated: str
         r["stats"] = pstats.get(r["model"], {})
         r["meta"] = model_meta(r["model"])
         r["latency_s"] = lat.get(r["model"])
+    # Rank only models with enough prompts; the rest are preliminary (shown, not ranked).
+    ranked = [r for r in rows if r["n_prompts"] >= min_n]
+    preliminary = [r for r in rows if r["n_prompts"] < min_n]
+    ranked.sort(key=lambda r: -r["lift"])
+    for i, r in enumerate(ranked, 1):
+        r["rank"] = i
+    preliminary.sort(key=lambda r: -r["n_prompts"])
     judges = sorted({p["judge"] for p in panel})
     return {
         "benchmark": BENCHMARK,
@@ -302,8 +318,11 @@ def build_leaderboard(panel: list[dict], pairwise: list[dict], *, generated: str
         "git_sha": sha,
         "judges": judges,
         "inter_judge_alpha": krippendorff_alpha_safe(panel),
-        "n_models": len(rows),
-        "models": rows,
+        "min_n": min_n,
+        "n_models": len(ranked),
+        "models": ranked,
+        "n_preliminary": len(preliminary),
+        "preliminary": preliminary,
         "breakdowns": lift_breakdowns(panel),
     }
 
@@ -332,6 +351,10 @@ def render_markdown(lb: dict) -> str:
                  f"{r['harnessed']:.1f} | **+{r['lift']:.1f}** | +{cg.get('B', 0):.1f} | "
                  f"+{cg.get('D', 0):.1f} | {pw_cell} |")
     o.append("")
+    if lb.get("preliminary"):
+        names = ", ".join(f"`{r['model']}` (n={r['n_prompts']})" for r in lb["preliminary"])
+        o.append(f"*Preliminary (n &lt; {lb.get('min_n', MIN_N)}, not ranked - the run is incomplete and "
+                 f"would be misleading next to the larger runs): {names}. Rerun to add enough prompts.*\n")
     o.append("## Per-criterion gain (mean points, baseline to harnessed)\n")
     o.append("| Model | " + " | ".join(f"{k}. {label} ({mx})" for k, label, mx in COMPONENTS) + " |")
     o.append("|---" * (len(COMPONENTS) + 1) + "|")
@@ -374,7 +397,7 @@ def main(argv: list[str] | None = None) -> int:
         except Exception:  # noqa: BLE001
             generated = "unknown"
 
-    lb = build_leaderboard(panel, pairwise, generated=generated, sha=sha)
+    lb = build_leaderboard(panel, pairwise, generated=generated, sha=sha, min_n=MIN_N)
     md_path, json_path = pathlib.Path(args.md), pathlib.Path(args.json)
     md_path.parent.mkdir(parents=True, exist_ok=True)
     json_path.parent.mkdir(parents=True, exist_ok=True)
