@@ -39,6 +39,7 @@ for _src in glob.glob(str(_ROOT / "packages" / "*" / "src")):
         sys.path.insert(0, _src)
 
 from rich_harness_lift import ARMS, COMPONENTS, PANEL, PAIRWISE, RESULTS  # noqa: E402,F401  (frozen surface defs)
+from _atomic import write_json_atomic, write_text_atomic  # noqa: E402
 
 # The frozen benchmark spec. Bump `version` only when the prompt set, rubric, protocol, or judge panel
 # changes -- that is what makes scores comparable across models and over time.
@@ -402,8 +403,8 @@ def main(argv: list[str] | None = None) -> int:
     md_path, json_path = pathlib.Path(args.md), pathlib.Path(args.json)
     md_path.parent.mkdir(parents=True, exist_ok=True)
     json_path.parent.mkdir(parents=True, exist_ok=True)
-    md_path.write_text(render_markdown(lb), encoding="utf-8")
-    json_path.write_text(json.dumps(lb, indent=2) + "\n", encoding="utf-8")
+    write_text_atomic(md_path, render_markdown(lb))
+    write_json_atomic(json_path, lb)
     print(f"leaderboard -> {md_path.name} + {json_path.name} | {lb['n_models']} models | "
           f"judges={len(lb['judges'])} alpha={lb['inter_judge_alpha']}", flush=True)
     return 0

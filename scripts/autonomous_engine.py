@@ -29,6 +29,8 @@ import sys
 import time
 from datetime import datetime, timezone
 
+from _atomic import write_text_atomic  # noqa: E402  (scripts/ is on sys.path as the run dir)
+
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 REPORTS = ROOT / "reports"
 STATE = REPORTS / "autonomous_engine_state.json"
@@ -145,7 +147,7 @@ def load_state() -> dict:
 def save_state(st: dict) -> None:
     st["updated"] = now()
     REPORTS.mkdir(parents=True, exist_ok=True)
-    STATE.write_text(json.dumps(st, indent=2) + "\n", encoding="utf-8")
+    write_text_atomic(STATE, json.dumps(st, indent=2) + "\n")
 
 
 def _run(cmd: list[str], capture: bool = False) -> subprocess.CompletedProcess:

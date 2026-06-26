@@ -82,3 +82,12 @@ def test_retries_429_then_exhausts(monkeypatch):
     with pytest.raises(urllib.error.HTTPError):
         lg.ollama_chat("q", model="m", max_retries=2)
     assert calls["n"] == 3                                     # initial attempt + 2 retries
+
+
+def test_retry_after_header_is_honoured():
+    class _Exc:
+        def __init__(self, headers):
+            self.headers = headers
+    assert lg._retry_after(_Exc({"Retry-After": "3"})) == 3.0   # delta-seconds parsed
+    assert lg._retry_after(_Exc({})) is None                    # no header -> None (fall back to backoff)
+    assert lg._retry_after(_Exc({"Retry-After": "not-a-date"})) is None  # unparseable -> None
