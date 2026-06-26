@@ -19,6 +19,10 @@ must pass, before inclusion:
                  that scores via "refuse" (C) alone -- "a refusal without details or citations" -- is
                  NOT a good gold target. (Component scores come from panel.jsonl; when a panel record
                  carries no components, this gate is skipped and selection falls back to score+lift.)
+  * lift adds grounding -- the lift must come (partly) from BETTER grounding, not refusal alone:
+                 teacher(A+B+D) - baseline(A+B+D) >= --min-grounding-delta. Drops pairs whose only
+                 improvement was refusing harder (C up, A/B/D flat) -- exactly the "refusal without
+                 added details/citations" a model should not learn (skipped if baseline has no components).
   * answered  -- the teacher reply is a real answer, not a format failure (empty / reasoning-trace /
                  too-short non-answer), via scripts/refusal_detector.py. A context-dependent "refusal"
                  is NOT blanket-dropped here -- the grounding gate already rejects bare refusals while
@@ -66,6 +70,8 @@ BASELINE_ARM = "baseline"
 DEFAULT_TEACHER_ARM = "harness_core"   # cheap offline core captures the lift; avoids volatile facts
 DEFAULT_MIN_GROUNDING = 24.0           # teacher A+B+D (max 60) -- a bare refusal scores ~0 here
 DEFAULT_MIN_CITE = 4.0                 # teacher B (max 20) -- the gold target must cite at least some law
+DEFAULT_MIN_GROUNDING_DELTA = 2.0      # teacher(A+B+D) - baseline(A+B+D) -- the lift must add grounding,
+#                                        not come from refusing harder (C) alone (skipped if no baseline comps)
 
 # Conservative PII / volatile-contact scrub. Targets emails, phone-like sequences, and long digit
 # runs (passport / account / case ids) -- NOT statute refs like "C181" or "RA 8042" (no 7+ digit run).
@@ -146,6 +152,7 @@ def responses(results: list[dict]) -> dict[tuple[str, str, str], dict[str, str]]
 
 def build(*, min_target: float, min_lift: float, teacher_arm: str = DEFAULT_TEACHER_ARM,
           min_grounding: float = DEFAULT_MIN_GROUNDING, min_cite: float = DEFAULT_MIN_CITE,
+          min_grounding_delta: float = DEFAULT_MIN_GROUNDING_DELTA,
           panel_path: pathlib.Path = PANEL, results_path: pathlib.Path = RESULTS) -> dict[str, Any]:
     """Select high-lift (baseline, harnessed) pairs and build vetted SFT + DPO records + a manifest.
 
@@ -164,7 +171,7 @@ def build(*, min_target: float, min_lift: float, teacher_arm: str = DEFAULT_TEAC
     sft: list[dict[str, Any]] = []
     dpo: list[dict[str, Any]] = []
     considered = selected = redactions = 0
-    dropped_format = dropped_grounding = dropped_citation = 0
+    dropped_format = dropped_grounding = dropped_citation = dropped_grounding_delta = 0
     for (model, pid), arms in by_pair.items():
         if BASELINE_ARM not in arms or teacher_arm not in arms:
             continue
@@ -189,6 +196,18 @@ def build(*, min_target: float, min_lift: float, teacher_arm: str = DEFAULT_TEAC
             if grounding < min_grounding or comp.get("B", 0.0) < min_cite:
                 dropped_grounding += 1
                 continue
+        # lift adds grounding: the improvement must include better indicator+law+resources (A+B+D), not
+        # refusal (C) alone -- never teach a pair whose only gain was refusing harder. Skipped if baseline
+        # carries no components (graceful degradation, same as the absolute grounding gate).
+        base_comp = comps.get((model, pid, BASELINE_ARM))
+        grounding_delta: "float | None" = None
+        if comp and base_comp:
+            grounding_delta = round(
+                (comp.get("A", 0.0) + comp.get("B", 0.0) + comp.get("D", 0.0))
+                - (base_comp.get("A", 0.0) + base_comp.get("B", 0.0) + base_comp.get("D", 0.0)), 1)
+            if grounding_delta < min_grounding_delta:
+                dropped_grounding_delta += 1
+                continue
         # citation: never teach a hallucinated statute section / out-of-range ILO convention
         cs = _citation_stats(teach_r["response"])
         if cs["n_section_implausible"] > 0 or cs["n_conventions_implausible"] > 0:
@@ -205,6 +224,8 @@ def build(*, min_target: float, min_lift: float, teacher_arm: str = DEFAULT_TEAC
                 "target_score": teach_s, "lift": lift}
         if comp:
             meta["target_components"] = comp
+        if grounding_delta is not None:
+            meta["grounding_delta"] = grounding_delta
         sft.append({"messages": [{"role": "user", "content": prompt},
                                  {"role": "assistant", "content": chosen}], "_meta": meta})
         dpo.append({"prompt": prompt, "chosen": chosen, "rejected": rejected, "_meta": meta})
@@ -213,14 +234,17 @@ def build(*, min_target: float, min_lift: float, teacher_arm: str = DEFAULT_TEAC
         "source": {"panel": str(panel_path), "results": str(results_path)},
         "arms": {"baseline": BASELINE_ARM, "teacher": teacher_arm},
         "thresholds": {"min_target": min_target, "min_lift": min_lift,
-                       "min_grounding": min_grounding, "min_cite": min_cite},
+                       "min_grounding": min_grounding, "min_cite": min_cite,
+                       "min_grounding_delta": min_grounding_delta},
         "considered_pairs": considered, "selected_pairs": selected,
         "dropped_format_failure": dropped_format,
         "dropped_low_grounding": dropped_grounding,
+        "dropped_low_grounding_delta": dropped_grounding_delta,
         "dropped_bad_citation": dropped_citation,
         "sft_examples": len(sft), "dpo_examples": len(dpo), "pii_redactions": redactions,
         "note": (f"propose-only; teacher={teacher_arm}; gold targets are grounded answers "
-                 f"(A+B+D>={min_grounding:g}, B>={min_cite:g}), never bare refusals; format-failures and "
+                 f"(A+B+D>={min_grounding:g}, B>={min_cite:g}), never bare refusals; the lift must add "
+                 f"grounding (delta A+B+D>={min_grounding_delta:g}, not refusal alone); format-failures and "
                  f"hallucinated citations dropped; conservative regex PII scrub (full anonymizer is a "
                  f"later vetting gate)"),
     }
@@ -242,12 +266,15 @@ def main(argv: list[str] | None = None) -> int:
                     help="min teacher A+B+D component sum -- rejects bare refusals (lift on C alone)")
     ap.add_argument("--min-cite", type=float, default=DEFAULT_MIN_CITE,
                     help="min teacher B (cites-law) component -- the gold target must cite some law")
+    ap.add_argument("--min-grounding-delta", type=float, default=DEFAULT_MIN_GROUNDING_DELTA,
+                    help="min teacher-minus-baseline A+B+D -- the lift must add grounding, not refusal alone")
     ap.add_argument("--out-dir", default=str(OUT_DIR))
     ap.add_argument("--validate", action="store_true",
                     help="run + print the manifest only; write nothing (a CPU-safe dry run)")
     args = ap.parse_args(argv)
     doc = build(min_target=args.min_target, min_lift=args.min_lift, teacher_arm=args.teacher_arm,
-                min_grounding=args.min_grounding, min_cite=args.min_cite)
+                min_grounding=args.min_grounding, min_cite=args.min_cite,
+                min_grounding_delta=args.min_grounding_delta)
     m = doc["manifest"]
     if args.validate:
         print(json.dumps(m, indent=2))
@@ -260,7 +287,8 @@ def main(argv: list[str] | None = None) -> int:
     print(f"[lift-training-data] considered {m['considered_pairs']} pairs -> selected "
           f"{m['selected_pairs']} (teacher={args.teacher_arm}, target>={args.min_target}, "
           f"lift>={args.min_lift}); dropped format={m['dropped_format_failure']} "
-          f"grounding={m['dropped_low_grounding']} citation={m['dropped_bad_citation']}")
+          f"grounding={m['dropped_low_grounding']} delta={m['dropped_low_grounding_delta']} "
+          f"citation={m['dropped_bad_citation']}")
     print(f"[lift-training-data] wrote {m['sft_examples']} SFT + {m['dpo_examples']} DPO to {out} "
           f"({m['pii_redactions']} PII redactions)")
     return 0
