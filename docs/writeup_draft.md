@@ -79,9 +79,11 @@ The live demo follows the same six-lane story as the website and slides.
 
 ## 6. Evaluation
 
-In side-by-side review, the harness made Gemma 4 responses much closer to international anti-exploitation standards. To quantify that change, I built the **DueCare Fine-tuning and Evaluation** notebook. It compares four arms on the same prompt set: stock Gemma 4, stock + harness, fine-tuned Gemma 4, and fine-tuned + harness.
+In side-by-side review the harness made Gemma 4 responses much closer to international anti-exploitation standards. To quantify that, the **DueCare harness-lift benchmark** answers every adversarial prompt twice with the same model — a baseline arm and a harnessed arm — and grades both on a 0–100 component rubric (identifies the indicator / cites the controlling law / refuses without a playbook / gives concrete resources / preserves safety) with a self-family-excluded panel of frontier judges (inter-judge Krippendorff α = 0.927). The score is the paired lift, which cancels each judge's absolute scale.
 
-The 2026-05-18 smoke matrix (`e2b-full-train-eval`, combined rule + LLM judge) produced the following scores. This is a smoke run, not a final benchmark; the reproducibility artifacts are the A-00 report, CSV, JSON, and manifest bundle exported under `/kaggle/working`.
+Across seven model families the harness adds **+15.6 to +42.6 points** (gemma4:31b 46.0→88.6, gpt-oss:120b 39.3→77.9, glm-5.2 58.8→92.4, deepseek-v4-pro 59.4→93.1). Three findings stand out. (1) The harness is an **equalizer**: lift is inversely proportional to baseline and every model converges to ~88–95/100, so a small local model behind the harness reaches roughly the same safety ceiling as a frontier one — Claude Opus, already at 8.17/10, lifts only +0.27 for lack of headroom. (2) The lift **completes a refusal rather than causing one**: gains concentrate in citing the specific law and giving concrete resources, not in refusing — models already refuse, but *a refusal without details or citations scores low*, and the harness supplies the grounding that makes the refusal useful. (3) The cheap **offline core** (fired indicator rules + retrieved law) captures essentially all of the lift, so it runs on-device with no web or API dependency.
+
+A complementary **four-arm** comparison (stock Gemma 4, stock + harness, fine-tuned, fine-tuned + harness) on a 2026-05-18 E2B smoke matrix:
 
 | Arm | Score |
 |---|---:|
@@ -90,7 +92,9 @@ The 2026-05-18 smoke matrix (`e2b-full-train-eval`, combined rule + LLM judge) p
 | Fine-tuned | 26.4% |
 | Fine-tuned + harness | 41.2% |
 
-The harness added +6.1 points over stock Gemma 4. The fine-tuned + harness arm added +14.8 points over fine-tuning alone and +11.7 points over stock. Fine-tuning alone dipped below stock because the small 2B fine-tune traded factual recall for refusal shape — the expected pattern, and exactly the gap the harness closes: fine-tuning shapes refusals; the harness supplies the facts, citations, tools, data-minimization checks, and forced-labor indicators. In a separate 911-prompt benchmark scored by an independent gpt-oss:120b judge, the harness lifted gemma4:31b by **+1.73/10** mean paired lift (95% CI [+1.57, +1.89]) with a 73.3% win rate (`docs/research/harness_lift_report.md`, regenerable via `scripts/build_lift_report.py --all`).
+The harness added +6.1 over stock; fine-tuned + harness added +14.8 over fine-tuning alone. Fine-tuning alone dipped below stock because the small 2B fine-tune traded factual recall for refusal shape — exactly the gap the harness closes (fine-tuning shapes refusals; the harness supplies the facts, citations, tools, and indicators). An earlier 911-prompt run scored by an independent gpt-oss:120b judge agrees in direction: **+1.73/10** mean paired lift (95% CI [+1.57, +1.89], 73.3% win rate).
+
+These are LLM-judge results, not practitioner-validated outcomes — the largest open caveat, and expert validation is the next priority; the full-registry sweep toward all ~74,640 prompts and the hardest prompt tiers are still in progress, so per-model coverage varies. Reproducibility: the A-00 report/CSV/JSON/manifest under `/kaggle/working`; the live board and methodology at `docs/research/benchmark_leaderboard.md` and `benchmark_methods.md`; the 911-prompt study at `docs/research/harness_lift_report.md` (regenerable via `scripts/build_lift_report.py --all`).
 
 ## 7. duecare-ai.com
 
