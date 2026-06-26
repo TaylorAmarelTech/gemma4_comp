@@ -42,6 +42,12 @@ DEFAULT_MODEL = "glm-5.2"
 # starves the answer -- and document-length output (edits, rewrites, long drafts) needs room.
 # Override per environment with DUECARE_MAX_TOKENS.
 DEFAULT_MAX_TOKENS = int(os.environ.get("DUECARE_MAX_TOKENS", "8000"))
+# Context window. Ollama defaults num_ctx to a SMALL value (~4k), which silently TRUNCATES long
+# harnessed prompts + retrieved grounding (and the long responses a judge must read) -- understating
+# the lift and destroying detail. Set it generously so the full prompt + grounding + response fit; the
+# cloud models (glm-5.2, kimi-k2.6, gpt-oss:120b, deepseek-v4-pro) carry large native contexts. 32768
+# comfortably fits the benchmark content; raise via DUECARE_NUM_CTX toward a model's full native window.
+DEFAULT_NUM_CTX = int(os.environ.get("DUECARE_NUM_CTX", "32768"))
 
 
 def _load_key() -> str:
@@ -80,7 +86,7 @@ def _retry_after(exc: "urllib.error.HTTPError") -> "float | None":
 
 def ollama_chat(prompt: str, *, model: str = DEFAULT_MODEL, max_tokens: int = DEFAULT_MAX_TOKENS,
                 temperature: float = 0.6, key: str | None = None, system: str | None = None,
-                timeout: float = 180.0, max_retries: int = 4) -> str:
+                num_ctx: int = DEFAULT_NUM_CTX, timeout: float = 180.0, max_retries: int = 4) -> str:
     """One Ollama-cloud chat completion -> the answer text (content, reasoning fallback).
 
     Retries transient failures (HTTP 429 / 5xx, connection / timeout) with exponential backoff + jitter,
@@ -90,7 +96,10 @@ def ollama_chat(prompt: str, *, model: str = DEFAULT_MODEL, max_tokens: int = DE
     messages = ([{"role": "system", "content": system}] if system else []) + \
                [{"role": "user", "content": prompt}]
     body = json.dumps({"model": model, "messages": messages, "max_tokens": max_tokens,
-                       "temperature": temperature, "stream": False}).encode("utf-8")
+                       "temperature": temperature, "stream": False,
+                       # Ollama-native options: full context window (no silent prompt/grounding
+                       # truncation) + matching output budget. Harmlessly ignored by strict-OpenAI servers.
+                       "options": {"num_ctx": num_ctx, "num_predict": max_tokens}}).encode("utf-8")
     for attempt in range(max_retries + 1):
         req = urllib.request.Request(f"{OLLAMA_CLOUD_BASE}/chat/completions", data=body,
                                      headers={"Authorization": f"Bearer {key}",
