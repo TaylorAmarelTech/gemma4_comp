@@ -42,6 +42,9 @@ SEED_EXCLUDE = ("unknown", "database_export", "checkpoint_export", "output_condi
 # Hermes flywheel output (propose-only) + OpenClaw verdicts -- the supervised merge input.
 HERMES_PROPOSALS = _ROOT / "reports" / "hermes" / "proposals.jsonl"
 OPENCLAW_VETTED = _ROOT / "reports" / "openclaw" / "vetted.jsonl"
+# The FULL prompt set (all gradeable seed prompts, unlimited per category) for the exhaustive
+# registry sweep -- written to a gitignored path so the 64MB+ artifact never bloats git.
+FULL_OUT = _ROOT / "reports" / "benchmark" / "full_promptset.json"
 
 
 def _text_hash(text: str) -> str:
@@ -91,7 +94,7 @@ def _stratified(pool: list[dict[str, Any]], source: str, per_category: int,
         rng.shuffle(ps)
         kept = 0
         for p in ps:
-            if kept >= per_category:
+            if per_category and kept >= per_category:   # per_category <= 0 -> unlimited (full draw)
                 break
             h = _text_hash(p["text"])
             if h in seen_text or p["id"] in seen_id:
@@ -153,14 +156,25 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--per-category-seed", type=int, default=100)
     ap.add_argument("--per-category-hermes", type=int, default=100)
     ap.add_argument("--max-prompt-chars", type=int, default=6000)
-    ap.add_argument("--out", default=str(SCHEME))
+    ap.add_argument("--full", action="store_true",
+                    help="build the FULL prompt set: unlimited per-category draw from every source "
+                         "(all gradeable seed prompts) for the exhaustive registry sweep; defaults "
+                         "--out to a gitignored path")
+    ap.add_argument("--out", default=None)
     args = ap.parse_args(argv)
+    if args.full:
+        for _k in ("per_category_expansion", "per_category_majorcase", "per_category_seed", "per_category_hermes"):
+            setattr(args, _k, 0)   # 0 -> unlimited (full draw)
+    if args.out is None:
+        args.out = str(FULL_OUT if args.full else SCHEME)
     doc = build(per_category_expansion=args.per_category_expansion,
                 per_category_majorcase=args.per_category_majorcase,
                 per_category_seed=args.per_category_seed,
                 per_category_hermes=args.per_category_hermes,
                 max_prompt_chars=args.max_prompt_chars)
-    pathlib.Path(args.out).write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    out_path = pathlib.Path(args.out)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     ps = doc["prompts"]
     b = doc["_build"]
     print(f"wrote {args.out}: {len(ps)} prompts "
