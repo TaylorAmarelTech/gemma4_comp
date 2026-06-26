@@ -38,10 +38,11 @@ _ROOT = Path(__file__).resolve().parents[1]
 PROPOSALS_DIR = _ROOT / "reports" / "llm_proposals"
 OLLAMA_CLOUD_BASE = "https://ollama.com/v1"   # NOT OLLAMA_HOST (that's the down local daemon)
 DEFAULT_MODEL = "glm-5.2"
-# Generous default: a reasoning model spends a big chunk of the budget THINKING, so a small cap
-# starves the answer -- and document-length output (edits, rewrites, long drafts) needs room.
-# Override per environment with DUECARE_MAX_TOKENS.
-DEFAULT_MAX_TOKENS = int(os.environ.get("DUECARE_MAX_TOKENS", "8000"))
+# Output budget. 0 (the default) means UNLIMITED: generate to EOS, bounded only by the context window
+# (num_ctx), so a reasoning model's full chain + a long grounded response are never artificially cut --
+# a small cap starves a THINKING model's answer and truncates document-length output. A positive value
+# re-imposes a hard cap; override with DUECARE_MAX_TOKENS (0 = no limit).
+DEFAULT_MAX_TOKENS = int(os.environ.get("DUECARE_MAX_TOKENS", "0"))
 # Context window. Ollama defaults num_ctx to a SMALL value (~4k), which silently TRUNCATES long
 # harnessed prompts + retrieved grounding (and the long responses a judge must read) -- understating
 # the lift and destroying detail. Set it generously so the full prompt + grounding + response fit; the
@@ -95,11 +96,18 @@ def ollama_chat(prompt: str, *, model: str = DEFAULT_MODEL, max_tokens: int = DE
     key = key or _load_key()
     messages = ([{"role": "system", "content": system}] if system else []) + \
                [{"role": "user", "content": prompt}]
-    body = json.dumps({"model": model, "messages": messages, "max_tokens": max_tokens,
-                       "temperature": temperature, "stream": False,
-                       # Ollama-native options: full context window (no silent prompt/grounding
-                       # truncation) + matching output budget. Harmlessly ignored by strict-OpenAI servers.
-                       "options": {"num_ctx": num_ctx, "num_predict": max_tokens}}).encode("utf-8")
+    payload = {"model": model, "messages": messages, "temperature": temperature, "stream": False}
+    # Ollama-native options: full context window (no silent prompt/grounding truncation). For output,
+    # max_tokens<=0 => UNLIMITED (num_predict=-1: generate to EOS, capped only by num_ctx); a positive
+    # value re-imposes a hard cap. Options are harmlessly ignored by strict-OpenAI servers.
+    opts = {"num_ctx": num_ctx}
+    if max_tokens and max_tokens > 0:
+        payload["max_tokens"] = max_tokens
+        opts["num_predict"] = max_tokens
+    else:
+        opts["num_predict"] = -1
+    payload["options"] = opts
+    body = json.dumps(payload).encode("utf-8")
     for attempt in range(max_retries + 1):
         req = urllib.request.Request(f"{OLLAMA_CLOUD_BASE}/chat/completions", data=body,
                                      headers={"Authorization": f"Bearer {key}",

@@ -179,7 +179,7 @@ def run_job(model: str, n: int, prompts_key: "str | None" = None) -> bool:
     log(f"run_job START model={model} n={n} set={prompts_key or 'curated'}")
     cmd = [sys.executable, str(ROOT / "scripts" / "rich_harness_lift.py"),
            "--n", str(n), "--models", model, "--judges", JUDGES,
-           "--pairwise", "--max-tokens", "8000", "--pace", "0.6"]
+           "--pairwise", "--max-tokens", "0", "--pace", "0.6"]  # 0 = unlimited output (no truncation)
     if prompts_key == "full":
         if not ensure_full_promptset():
             log("full prompt set unavailable -> skipping job")
