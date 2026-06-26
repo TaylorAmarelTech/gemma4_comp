@@ -47,7 +47,8 @@ BENCHMARK = {
     "name": "DueCare Harness-Lift Benchmark",
     "version": "1.3",
     "scale": "0-100 (component-based LLM-judge panel)",
-    "prompt_set": "scheme_prompts.json v1.3 -- 3,703 synthetic adversarial prompts across 167 typologies "
+    "prompt_set": "scheme_prompts.json v1.3 -- 3,700+ synthetic adversarial prompts across 170+ typologies "
+                  "(and growing as the Hermes->OpenClaw flywheel folds in newly vetted prompts) "
                   "at easy/medium/hard/very_hard difficulty: a curated scheme core, the harness-lift "
                   "expansion set (jailbreaks, evasion probes, false-legitimacy, worker/employer queries), "
                   "casefile-derived worker-support scenarios, a 2,915-prompt stratified draw from the "
