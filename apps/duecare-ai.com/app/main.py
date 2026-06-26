@@ -83,6 +83,7 @@ PAGE_ROUTES: dict[str, str] = {
     "/docs": "docs.html",
     "/email-feedback": "email-feedback.html",
     "/evaluation": "evaluation.html",
+    "/finetuning": "finetuning.html",
     "/grep-rules": "grep-rules.html",
     "/harness": "harness.html",
     "/harness-study": "harness-study.html",
