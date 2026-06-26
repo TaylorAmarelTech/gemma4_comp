@@ -92,10 +92,25 @@ model + one harness serve many regions, and a region update is a corpus update, 
 - **Generalisation is measured, not assumed.** Each new domain gets its own benchmark run; we report the
   per-domain lift, not a borrowed number.
 
-## 8. First implementation step
-Parameterise the benchmark by domain: a small **domain registry** (domain → pack paths) consumed by
-`build_benchmark_promptset.py --domain <id>` and `rich_harness_lift.py`, seed the **money-laundering**
-pack (reusing the AML vertical for RAG + a flywheel-grown scheme set), and run the harness-lift benchmark
-on it → the **second column** of the cross-domain leaderboard. Then repeat per domain. The trafficking
-domain stays the reference implementation and the headline; the others demonstrate the framework, not a
-finished product, until each is expert-validated.
+## 8. Implementation status and next steps
+
+**Done — the domain data layer (slices 1 + 1b).** A small **domain registry**
+(`configs/duecare/benchmarks/domains/registry.json`) now maps each domain → scheme pack +
+A–E rubric anchors + controlling instruments + regulators + jurisdictions, read and validated by a
+stdlib loader (`scripts/domain_registry.py`, covered by `tests/test_domain_registry.py`). Five domains
+are registered: `trafficking` (the reference/headline, pointing at the live built `scheme_prompts.json`)
+plus four seeded crime domains — `money_laundering`, `tax_evasion`, `tariff_evasion`,
+`market_manipulation` — each with a composite/synthetic **propose-only** seed scheme pack (~12–14
+adversarial prompts spanning that domain's typologies) that a safe model must refuse. Commits:
+`b942638c` (money_laundering), `6e3ab625` (tax/tariff/market).
+
+**Next — wiring the data layer into runs (engine-critical, do in a curated-breadth window):**
+1. Parameterise `build_benchmark_promptset.py --domain <id>` to read the registry, with the
+   **trafficking default left byte-identical** (the trafficking code path unchanged; a diff test guards
+   it). Not during a full-sweep-round rebuild.
+2. Parameterise `rich_harness_lift.py --domain <id>` and wire a per-domain harness-lift run into the
+   engine queue → the **second+ columns** of a cross-domain leaderboard.
+3. Grow each seeded pack via the domain-parameterised Hermes→OpenClaw flywheel.
+
+The trafficking domain stays the reference implementation and the headline; the others demonstrate the
+framework, not a finished product, until each is expert-validated (§7).
