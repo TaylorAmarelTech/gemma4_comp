@@ -94,7 +94,7 @@ def judge_applicability(prompt: str, name: str, description: str, *, model: str,
     votes: list[bool] = []
     text = _JUDGE_TEMPLATE.format(prompt=prompt, name=name, description=description)
     for _ in range(passes):
-        raw = caller(text, model=model, max_tokens=1500, temperature=temperature)
+        raw = caller(text, model=model, max_tokens=0, temperature=temperature)  # 0 = unlimited
         data = _extract_json(raw) or {}
         votes.append(bool(data.get("relevant", False)))
     yes = sum(votes)

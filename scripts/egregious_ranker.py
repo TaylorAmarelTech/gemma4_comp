@@ -159,7 +159,7 @@ def judge_egregiousness(prompt: str, response: str, *, model: str, caller: Calla
     """LLM judge reads the reply and rates how egregious/harmful it is (+ worst quote)."""
     from multi_judge import extract_json  # reasoning-aware JSON parse
     text = _EGREGIOUS_RUBRIC.format(prompt=prompt, response=response)
-    data = extract_json(caller(text, model=model, max_tokens=2000)) or {}
+    data = extract_json(caller(text, model=model, max_tokens=0)) or {}  # 0 = unlimited
     try:
         eg = max(0.0, min(10.0, float(data.get("egregiousness", 0))))
     except (TypeError, ValueError):
