@@ -119,8 +119,11 @@ this distils the **benchmark's measured harness-lift** into training signal. Pro
 training runner (next step) consumes it.
 
 ## Roadmap (subsequent steps)
-1. **Training runner** — wrap `duecare-llm-training` (Unsloth LoRA SFT then DPO) over the vetted
-   JSONL, on Kaggle GPU; export GGUF + LiteRT for on-device.
+1. **Training runner** — ✅ built: `scripts/train_lift_distill.py` runs the canonical Unsloth recipe
+   (FastModel → get_peft_model → get_chat_template `gemma-4-thinking` → SFTTrainer +
+   `train_on_responses_only`, then a DPO pass) over the vetted SFT/DPO JSONL, with optional GGUF
+   export for on-device. CPU-safe `--validate` (data + plan check) runs anywhere; the GPU train step
+   runs on Kaggle (`--test-run` smoke, or full with `--base-model unsloth/gemma-4-E4B-it`).
 2. **Four-arm evaluator** — extend `rich_harness_lift.py` to grade a trained checkpoint in arms C/D
    next to the stock A/B already on the board.
 3. **Train→eval→select daemon** — a durable loop (sibling to the benchmark engine) that trains,
