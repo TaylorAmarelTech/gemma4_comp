@@ -56,3 +56,31 @@ def test_organize_dedups_identical_text():
     sft = [_sft("p1", "same text"), _sft("p2", "same text")]                  # identical user text
     doc = org.organize(sft, [], pid2cat, heldout_fraction=0.0, cap_per_category=0, seed=17)
     assert len(doc["sft_train"]) + len(doc["sft_heldout"]) == 1               # text-hash dedup
+
+
+def test_near_dedup_conservative_default_but_tunable():
+    """Default dist keeps borderline near-copies (preserve diversity); a looser dist drops them."""
+    import pytest
+    if not org._HAVE_NEAR_DEDUP:
+        pytest.skip("research_tools near-dedup unavailable")
+    base = "I paid a recruitment agency a very large fee for a factory job in another country"
+    para = base + " overseas"        # ~6-bit SimHash distance -- a near-copy, not exact, not <=3
+    distinct = "what are the minimum wage protections for domestic workers leaving this corridor"
+    pid2cat = {"p1": "A", "p2": "A", "p3": "A"}
+    sft = [_sft("p1", base), _sft("p2", para), _sft("p3", distinct)]
+    keep = org.organize(sft, [], pid2cat, heldout_fraction=0.0, cap_per_category=0, near_dup_dist=3)
+    assert len(keep["sft_train"]) == 3                                        # strict default keeps the near-copy
+    assert keep["manifest"]["dedup"]["sft"]["near_dropped"] == 0
+    drop = org.organize(sft, [], pid2cat, heldout_fraction=0.0, cap_per_category=0, near_dup_dist=8)
+    assert len(drop["sft_train"]) == 2                                        # looser dist drops the near-copy
+    assert drop["manifest"]["dedup"]["sft"]["near_dropped"] == 1              # param wires through to dedup_new
+
+
+def test_manifest_records_dedup_block():
+    pid2cat = {"p1": "A", "p2": "A"}
+    sft = [_sft("p1", "same text here"), _sft("p2", "same text here")]        # exact dup
+    doc = org.organize(sft, [], pid2cat, heldout_fraction=0.0, cap_per_category=0)
+    dd = doc["manifest"]["dedup"]
+    assert dd["sft"]["in"] == 2 and dd["sft"]["kept_pre_split"] == 1          # exact dup collapsed, counted
+    assert "method" in dd and dd["sft"]["near_dropped"] == 0
+    assert dd["dpo"]["in"] == 0 and dd["dpo"]["kept_pre_split"] == 0
