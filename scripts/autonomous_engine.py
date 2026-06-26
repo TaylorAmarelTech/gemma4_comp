@@ -49,30 +49,25 @@ COMMIT_PATHS = [
 # (model, target_n[, "full"]) worked top->bottom; n=0 = all prompts in the set. A 3rd "full"
 # element grades the FULL ~76k-prompt registry set instead of the curated set. Resumable:
 # re-running a partly-done job skips graded units. Extend this list to keep the engine busy longer.
-DEFAULT_QUEUE = [
-    # Phase A -- breadth at n=40 (finish the 15-model field)
-    ["gpt-oss:120b", 40], ["glm-5.2", 40], ["deepseek-v4-pro", 40], ["glm-5.1", 40],
-    ["deepseek-v3.2", 40], ["kimi-k2.6", 40], ["qwen3.5:397b", 40], ["minimax-m2.7", 40],
-    ["minimax-m3", 40], ["qwen3-coder:480b", 40], ["mistral-large-3:675b", 40],
-    ["devstral-2:123b", 40], ["nemotron-3-ultra", 40], ["gemini-3-flash-preview", 40],
-    ["gemma3:27b", 40],
-    # Phase B -- depth on headliners across all 776 prompts (full 77-typology coverage)
-    ["gemma4:31b", 0], ["glm-5.2", 0], ["deepseek-v4-pro", 0], ["kimi-k2.6", 0],
-    # Phase C -- widen the field at n=40
-    ["gpt-oss:20b", 40], ["gemma3:12b", 40], ["deepseek-v3.1:671b", 40],
-    ["deepseek-v4-flash", 40], ["devstral-small-2:24b", 40], ["nemotron-3-super", 40],
-    ["qwen3-coder-next", 40], ["glm-5", 40], ["glm-4.7", 40], ["kimi-k2.5", 40],
-    ["minimax-m2.5", 40], ["minimax-m2.1", 40], ["ministral-3:14b", 40],
-    # Phase D -- depth on the rest across all curated prompts
-    ["gpt-oss:120b", 0], ["qwen3.5:397b", 0], ["qwen3-coder:480b", 0], ["minimax-m3", 0],
-]
-# Phase F -- the EXHAUSTIVE full-registry sweep (~76,442 prompts / 169 typologies), interleaved across
-# the flagship models at growing n so coverage of all ~74,640 seed prompts grows on every flagship
-# together (the full set is shuffled, so each prefix is a representative sample). n=0 = the whole
-# registry; this is the multi-week grind that cycles through all 72,000+ prompts.
+# The flagship models swept across the FULL ~76k-prompt registry, at growing depth (n=0 = all 76,442).
 _SWEEP_MODELS = ["gemma4:31b", "gpt-oss:120b", "glm-5.2", "deepseek-v4-pro"]
-_SWEEP_LEVELS = [2000, 5000, 12000, 30000, 0]
-DEFAULT_QUEUE += [[m, n, "full"] for n in _SWEEP_LEVELS for m in _SWEEP_MODELS]
+_SWEEP_LEVELS = [300, 1500, 5000, 15000, 40000, 0]
+# Curated breadth: one n=40 pass to fill the multi-model leaderboard, fed 5 models per round.
+_BREADTH = [
+    "glm-5.1", "deepseek-v3.2", "kimi-k2.6", "qwen3.5:397b", "minimax-m2.7",
+    "minimax-m3", "qwen3-coder:480b", "mistral-large-3:675b", "devstral-2:123b", "nemotron-3-ultra",
+    "gemini-3-flash-preview", "gemma3:27b", "gpt-oss:20b", "gemma3:12b", "deepseek-v3.1:671b",
+    "deepseek-v4-flash", "devstral-small-2:24b", "nemotron-3-super", "qwen3-coder-next", "glm-5",
+    "glm-4.7", "kimi-k2.5", "minimax-m2.5", "minimax-m2.1", "ministral-3:14b",
+]
+# Interleave: each round grows the EXHAUSTIVE full-registry sweep on every flagship (so coverage of
+# all ~74,640 seed prompts climbs from the FIRST tick -- the full set is shuffled, so each prefix is a
+# representative sample) and adds 5 breadth models, so the field still widens to a rich multi-model
+# board. The very first job is a full-sweep job; n=0 in the final round = the whole registry.
+DEFAULT_QUEUE: list[list] = []
+for _i, _lvl in enumerate(_SWEEP_LEVELS):
+    DEFAULT_QUEUE += [[m, _lvl, "full"] for m in _SWEEP_MODELS]
+    DEFAULT_QUEUE += [[m, 40] for m in _BREADTH[_i * 5:(_i + 1) * 5]]
 
 
 def now() -> str:
