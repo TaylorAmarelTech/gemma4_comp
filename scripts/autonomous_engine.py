@@ -36,6 +36,7 @@ LOG = REPORTS / "autonomous_engine.log"
 STOP = REPORTS / "autonomous_engine.stop"
 LOCK = REPORTS / "autonomous_engine.lock"
 PLAN = ROOT / "docs" / "autonomous_loop_plan.md"
+PROMPTS_FULL = REPORTS / "benchmark" / "full_promptset.json"  # gitignored; built by build_benchmark_promptset --full
 
 JUDGES = "gpt-oss:120b,glm-5.2,deepseek-v4-pro"
 COMMIT_PATHS = [
@@ -45,8 +46,9 @@ COMMIT_PATHS = [
     "docs/autonomous_loop_plan.md",
 ]
 
-# (model, target_n) worked top->bottom; n=0 = all 776 prompts. Resumable: re-running a
-# partly-done job skips graded units. Extend this list to keep the engine busy longer.
+# (model, target_n[, "full"]) worked top->bottom; n=0 = all prompts in the set. A 3rd "full"
+# element grades the FULL ~76k-prompt registry set instead of the curated set. Resumable:
+# re-running a partly-done job skips graded units. Extend this list to keep the engine busy longer.
 DEFAULT_QUEUE = [
     # Phase A -- breadth at n=40 (finish the 15-model field)
     ["gpt-oss:120b", 40], ["glm-5.2", 40], ["deepseek-v4-pro", 40], ["glm-5.1", 40],
@@ -61,9 +63,16 @@ DEFAULT_QUEUE = [
     ["deepseek-v4-flash", 40], ["devstral-small-2:24b", 40], ["nemotron-3-super", 40],
     ["qwen3-coder-next", 40], ["glm-5", 40], ["glm-4.7", 40], ["kimi-k2.5", 40],
     ["minimax-m2.5", 40], ["minimax-m2.1", 40], ["ministral-3:14b", 40],
-    # Phase D -- depth on the rest across all 776 prompts
+    # Phase D -- depth on the rest across all curated prompts
     ["gpt-oss:120b", 0], ["qwen3.5:397b", 0], ["qwen3-coder:480b", 0], ["minimax-m3", 0],
 ]
+# Phase F -- the EXHAUSTIVE full-registry sweep (~76,442 prompts / 169 typologies), interleaved across
+# the flagship models at growing n so coverage of all ~74,640 seed prompts grows on every flagship
+# together (the full set is shuffled, so each prefix is a representative sample). n=0 = the whole
+# registry; this is the multi-week grind that cycles through all 72,000+ prompts.
+_SWEEP_MODELS = ["gemma4:31b", "gpt-oss:120b", "glm-5.2", "deepseek-v4-pro"]
+_SWEEP_LEVELS = [2000, 5000, 12000, 30000, 0]
+DEFAULT_QUEUE += [[m, n, "full"] for n in _SWEEP_LEVELS for m in _SWEEP_MODELS]
 
 
 def now() -> str:
@@ -125,6 +134,12 @@ def load_state() -> dict:
             st.setdefault("ticks", 0)
             st.setdefault("done", [])
             st.setdefault("started", now())
+            # merge: append any DEFAULT_QUEUE job not already queued, so new jobs (e.g. the full
+            # sweep) flow into an already-running queue without losing the cursor / done progress.
+            have = {tuple(j) for j in st["queue"]}
+            for j in DEFAULT_QUEUE:
+                if tuple(j) not in have:
+                    st["queue"].append(list(j))
             return st
         except (OSError, json.JSONDecodeError):
             pass
@@ -142,11 +157,31 @@ def _run(cmd: list[str], capture: bool = False) -> subprocess.CompletedProcess:
     return subprocess.run(cmd, cwd=str(ROOT), capture_output=capture, text=True)
 
 
-def run_job(model: str, n: int) -> bool:
-    log(f"run_job START model={model} n={n}")
+def _job(entry) -> tuple[str, int, "str | None"]:
+    """Unpack a queue entry: ``[model, n]`` or ``[model, n, prompts_key]``."""
+    return str(entry[0]), int(entry[1]), (entry[2] if len(entry) > 2 else None)
+
+
+def ensure_full_promptset() -> bool:
+    """Build the gitignored full-registry prompt set if missing. Returns True if it's available."""
+    if PROMPTS_FULL.exists():
+        return True
+    log("full prompt set missing -> building (build_benchmark_promptset.py --full)")
+    r = _run([sys.executable, str(ROOT / "scripts" / "build_benchmark_promptset.py"), "--full"], capture=True)
+    log(f"build full set rc={r.returncode} {(r.stdout or '').strip()[-120:]}")
+    return PROMPTS_FULL.exists()
+
+
+def run_job(model: str, n: int, prompts_key: "str | None" = None) -> bool:
+    log(f"run_job START model={model} n={n} set={prompts_key or 'curated'}")
     cmd = [sys.executable, str(ROOT / "scripts" / "rich_harness_lift.py"),
            "--n", str(n), "--models", model, "--judges", JUDGES,
            "--pairwise", "--max-tokens", "8000", "--pace", "0.6"]
+    if prompts_key == "full":
+        if not ensure_full_promptset():
+            log("full prompt set unavailable -> skipping job")
+            return False
+        cmd += ["--prompts", str(PROMPTS_FULL)]
     rc = _run(cmd).returncode
     log(f"run_job END model={model} rc={rc}")
     return rc == 0
@@ -173,17 +208,21 @@ def publish(tag: str) -> None:
 def update_plan(st: dict, current) -> None:
     cur = st.get("cursor", 0)
     queue = st.get("queue", [])
+    cur_str = "idle/maintenance"
+    if current:
+        m, n, k = _job(current)
+        cur_str = f"`{m}` n={'all' if n == 0 else n}" + (" (full registry)" if k == "full" else "")
     lines = [
         "# Autonomous benchmark engine — plan & live status",
         "",
         "> A durable, self-contained loop (`scripts/autonomous_engine.py`) that runs INDEPENDENTLY",
-        "> of Claude Code. It works a queue of (model, n) benchmark jobs through `rich_harness_lift.py`,",
-        "> regenerates the leaderboard, and commits+pushes the board (data only) on its own clock.",
-        "> Shared memory: `reports/rich_lift/panel.jsonl` + `reports/autonomous_engine_state.json`.",
+        "> of Claude Code. It works a queue of (model, n[, full]) benchmark jobs through",
+        "> `rich_harness_lift.py`, regenerates the leaderboard, and commits+pushes the board (data",
+        "> only) on its own clock. Shared memory: `reports/rich_lift/panel.jsonl` +",
+        "> `reports/autonomous_engine_state.json`. A `full` job grades the whole ~76k-prompt registry.",
         "",
         f"- **Started** {st.get('started')} · **updated** {now()} · **ticks** {st.get('ticks')}",
-        f"- **Progress** {cur}/{len(queue)} jobs · current "
-        + (f"`{current[0]}` n={'all 776' if current[1] == 0 else current[1]}" if current else "idle/maintenance"),
+        f"- **Progress** {cur}/{len(queue)} jobs · current " + cur_str,
         "",
         "## Control",
         "- **Stop gracefully:** create `reports/autonomous_engine.stop` (checked each tick).",
@@ -191,12 +230,13 @@ def update_plan(st: dict, current) -> None:
         "- **Launch:** `scripts/autonomous_engine.ps1` (loads .env, recovery venv, detaches).",
         "",
         "## Job queue",
-        "| # | model | n | status |",
-        "|---:|---|---:|---|",
+        "| # | model | n | set | status |",
+        "|---:|---|---:|---|---|",
     ]
-    for i, (m, n) in enumerate(queue):
+    for i, entry in enumerate(queue):
+        m, n, k = _job(entry)
         status = "done" if i < cur else ("RUNNING" if i == cur else "queued")
-        lines.append(f"| {i + 1} | `{m}` | {'all 776' if n == 0 else n} | {status} |")
+        lines.append(f"| {i + 1} | `{m}` | {'all' if n == 0 else n} | {'full' if k == 'full' else 'curated'} | {status} |")
     lines.append("")
     PLAN.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
@@ -216,17 +256,17 @@ def tick() -> bool:
         publish("maintenance")
         save_state(st)
         return True
-    model, n = queue[cur]
-    update_plan(st, (model, n))
-    ok = run_job(model, n)
+    model, n, key = _job(queue[cur])
+    update_plan(st, queue[cur])
+    ok = run_job(model, n, key)
     regen_board()
     if ok:
-        st["done"].append({"model": model, "n": n, "at": now()})
+        st["done"].append({"model": model, "n": n, "set": key or "curated", "at": now()})
         st["cursor"] = cur + 1
     save_state(st)
-    nxt = None if st["cursor"] >= len(queue) else tuple(queue[st["cursor"]])
+    nxt = None if st["cursor"] >= len(queue) else queue[st["cursor"]]
     update_plan(st, nxt)
-    publish(f"{model} n={n}")
+    publish(f"{model} n={'all' if n == 0 else n}" + (" full" if key == "full" else ""))
     return True
 
 

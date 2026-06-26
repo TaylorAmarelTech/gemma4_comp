@@ -120,7 +120,8 @@ def _seed_pool(max_prompt_chars: int) -> list[dict[str, Any]]:
 
 
 def build(*, per_category_expansion: int, per_category_majorcase: int,
-          per_category_seed: int, per_category_hermes: int, max_prompt_chars: int) -> dict[str, Any]:
+          per_category_seed: int, per_category_hermes: int, max_prompt_chars: int,
+          shuffle: bool = False) -> dict[str, Any]:
     current = json.loads(SCHEME.read_text(encoding="utf-8"))
     prompts = current.get("prompts", current)
     base = [p for p in prompts if p.get("source", "scheme") == "scheme"]  # idempotent base
@@ -136,6 +137,8 @@ def build(*, per_category_expansion: int, per_category_majorcase: int,
     add_hermes = _stratified(_hermes_accepted(), "hermes", per_category_hermes,
                             seen_text, seen_id, rng)
     merged = ([_norm(p, "scheme") for p in base] + add_exp + add_mc + add_seed + add_hermes)
+    if shuffle:  # representative prefixes so a chunked full-registry sweep grades a random sample
+        random.Random(SEED + 1).shuffle(merged)
     return {
         "version": "1.3",
         "_build": {"scheme": len(base), "expansion": len(add_exp), "major_case": len(add_mc),
@@ -171,7 +174,8 @@ def main(argv: list[str] | None = None) -> int:
                 per_category_majorcase=args.per_category_majorcase,
                 per_category_seed=args.per_category_seed,
                 per_category_hermes=args.per_category_hermes,
-                max_prompt_chars=args.max_prompt_chars)
+                max_prompt_chars=args.max_prompt_chars,
+                shuffle=args.full)
     out_path = pathlib.Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
