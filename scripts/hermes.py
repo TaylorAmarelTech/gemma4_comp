@@ -221,7 +221,11 @@ def main() -> int:
         while True:
             if not tick() or args.once:
                 break
-            time.sleep(max(60, args.sleep))
+            # While degraded (e.g. rate-limited 429s from sweep contention), re-probe sooner to
+            # catch a gap in the sweep's Ollama load instead of idling the full interval after a
+            # failed batch. Recovers on its own once the rate budget frees, no manual restart.
+            retry_sleep = 300 if _load_state().get("status") == "degraded" else args.sleep
+            time.sleep(max(60, retry_sleep))
         log("hermes EXIT")
     finally:
         release_lock()
