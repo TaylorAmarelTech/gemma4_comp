@@ -61,6 +61,23 @@ def _load_key() -> str:
 _RETRYABLE_STATUS = {429, 500, 502, 503, 504}
 
 
+def _retry_after(exc: "urllib.error.HTTPError") -> "float | None":
+    """Seconds to wait from a 429/503 Retry-After header (delta-seconds or HTTP-date), if the server sent one."""
+    try:
+        val = (exc.headers.get("Retry-After") or "").strip()
+    except Exception:  # noqa: BLE001
+        return None
+    if not val:
+        return None
+    if val.isdigit():
+        return float(val)
+    try:
+        from email.utils import parsedate_to_datetime
+        return max(0.0, (parsedate_to_datetime(val) - datetime.now(timezone.utc)).total_seconds())
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def ollama_chat(prompt: str, *, model: str = DEFAULT_MODEL, max_tokens: int = DEFAULT_MAX_TOKENS,
                 temperature: float = 0.6, key: str | None = None, system: str | None = None,
                 timeout: float = 180.0, max_retries: int = 4) -> str:
@@ -87,10 +104,14 @@ def ollama_chat(prompt: str, *, model: str = DEFAULT_MODEL, max_tokens: int = DE
         except urllib.error.HTTPError as exc:
             if exc.code not in _RETRYABLE_STATUS or attempt == max_retries:
                 raise
+            wait = _retry_after(exc)                       # honour the server's Retry-After when present
         except OSError:  # URLError (connection), TimeoutError, socket.timeout -- all transient
             if attempt == max_retries:
                 raise
-        time.sleep(min(2 ** attempt, 8) + random.uniform(0.0, 0.5))
+            wait = None
+        if wait is None:
+            wait = 2 ** attempt + random.uniform(0.0, 0.5)    # exponential backoff + jitter
+        time.sleep(min(wait, 30.0))                           # capped so a huge Retry-After can't stall a worker
     raise RuntimeError("unreachable")  # the loop always returns or raises
 
 
