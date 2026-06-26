@@ -53,7 +53,10 @@ COMMIT_PATHS = [
 # re-running a partly-done job skips graded units. Extend this list to keep the engine busy longer.
 # The flagship models swept across the FULL ~76k-prompt registry, at growing depth (n=0 = all 76,442).
 _SWEEP_MODELS = ["gemma4:31b", "gpt-oss:120b", "glm-5.2", "deepseek-v4-pro"]
-_SWEEP_LEVELS = [300, 1500, 5000, 15000, 40000, 0]
+# Coarser, more aggressive climb so large-n coverage lands sooner: after a quick n=1500 round the
+# depth jumps 1500 -> 10000 -> 40000 -> ALL (0 = the whole ~74,640-prompt registry). Grading is
+# resumable, so each rung only grades the prompts the previous rung didn't (no rework).
+_SWEEP_LEVELS = [1500, 10000, 40000, 0]
 # Curated breadth: one n=40 pass to fill the multi-model leaderboard, fed 5 models per round.
 _BREADTH = [
     "glm-5.1", "deepseek-v3.2", "kimi-k2.6", "qwen3.5:397b", "minimax-m2.7",
@@ -67,9 +70,12 @@ _BREADTH = [
 # representative sample) and adds 5 breadth models, so the field still widens to a rich multi-model
 # board. The very first job is a full-sweep job; n=0 in the final round = the whole registry.
 DEFAULT_QUEUE: list[list] = []
+# Spread all breadth models across however many rungs there are (ceil division), so coarsening the
+# level count never silently drops breadth coverage.
+_BREADTH_CHUNK = (len(_BREADTH) + len(_SWEEP_LEVELS) - 1) // len(_SWEEP_LEVELS)
 for _i, _lvl in enumerate(_SWEEP_LEVELS):
     DEFAULT_QUEUE += [[m, _lvl, "full"] for m in _SWEEP_MODELS]
-    DEFAULT_QUEUE += [[m, 40] for m in _BREADTH[_i * 5:(_i + 1) * 5]]
+    DEFAULT_QUEUE += [[m, 40] for m in _BREADTH[_i * _BREADTH_CHUNK:(_i + 1) * _BREADTH_CHUNK]]
 
 
 def now() -> str:
