@@ -40,6 +40,11 @@ LOCK = HERMES / "hermes.lock"
 
 MODEL = os.environ.get("HERMES_MODEL", "glm-5.2")
 BATCH = 6
+# Patient retry budget for proposal generation. The parallel benchmark sweep can saturate the
+# shared Ollama-cloud rate limit for minutes at a time, so Hermes needs more than ollama_chat's
+# default 4 retries (~2 min) to outlast the contention and land its single batch call in a gap
+# between jobs/phases. ~12 retries spans ~4 min of capped backoff. Tunable without a code change.
+_GEN_MAX_RETRIES = int(os.environ.get("DUECARE_HERMES_RETRIES", "12"))
 
 TYPOLOGIES = ["debt_bondage", "passport_confiscation", "contract_substitution", "wage_withholding",
               "recruitment_fee_splitting", "false_visa_sponsorship", "forced_overtime",
@@ -152,7 +157,8 @@ def generate_batch(typology: str, corridor: str, difficulty: str, n: int) -> lis
         f"worker to help). Composite only -- NO real names, agencies, or case numbers. "
         f'Output ONLY a JSON array: [{{"text":"..."}}]. No prose, no code fence.'
     )
-    return _parse_prompts(ollama_chat(prompt, model=MODEL, max_tokens=4000, temperature=0.9))
+    return _parse_prompts(ollama_chat(prompt, model=MODEL, max_tokens=4000, temperature=0.9,
+                                      max_retries=_GEN_MAX_RETRIES))
 
 
 def _norm(text: str, typology: str, corridor: str, difficulty: str) -> dict:
