@@ -108,6 +108,72 @@ def four_arm_table(panel: list[dict], stock_model: str, trained_model: str) -> d
     }
 
 
+def load_heldout_categories(path: pathlib.Path | None = None) -> set[str] | None:
+    """Held-out typologies from organize_training_data.py's manifest (the generalisation split), or None
+    if no manifest exists yet (run scripts/organize_training_data.py first)."""
+    p = path or (_ROOT / "reports" / "training" / "organize_manifest.json")
+    if not p.exists():
+        return None
+    try:
+        cats = json.loads(p.read_text(encoding="utf-8")).get("heldout_categories")
+    except (OSError, json.JSONDecodeError):
+        return None
+    return set(map(str, cats)) if isinstance(cats, list) else None
+
+
+def split_by_typology(rows: list[dict], pid2cat: dict[str, str],
+                      heldout_cats: set[str]) -> dict[str, Any]:
+    """Internalisation (C-A) for trained-on vs held-out typologies, plus the generalisation gap.
+
+    Held-out typologies were never in the training data, so they isolate understanding from memorisation:
+    a SMALL or negative gap means training carried the behaviour to typologies it never saw (understanding);
+    a LARGE positive gap means it only helped the typologies it trained on (memorisation / shortcut).
+    """
+    def _internal(rs: list[dict]) -> dict[str, Any] | None:
+        if not rs:
+            return None
+        a = statistics.mean(r["A"] for r in rs)
+        c = statistics.mean(r["C"] for r in rs)
+        return {"n": len(rs), "C_minus_A": round(c - a, 1),
+                "A_stock_off": round(a, 1), "C_trained_off": round(c, 1)}
+
+    held = [r for r in rows if pid2cat.get(str(r["prompt_id"]), "unknown") in heldout_cats]
+    seen = [r for r in rows if pid2cat.get(str(r["prompt_id"]), "unknown") not in heldout_cats]
+    seen_m, held_m = _internal(seen), _internal(held)
+    gap = (round(seen_m["C_minus_A"] - held_m["C_minus_A"], 1) if seen_m and held_m else None)
+    return {
+        "heldout_categories": sorted(heldout_cats),
+        "trained_typologies": seen_m, "heldout_typologies": held_m,
+        "generalisation_gap": gap,
+        "reading": ("gap = internalisation(trained typologies) - internalisation(held-out typologies); "
+                    "small/negative = training generalises to unseen typologies (understanding), large "
+                    "positive = it only helped the typologies it trained on (memorisation)"),
+    }
+
+
+def _split_section(table: dict[str, Any]) -> str:
+    """Markdown for the held-out-typology generalisation diagnostic, or '' when absent."""
+    sp = table.get("typology_split")
+    if not sp:
+        return ""
+    if sp.get("issue"):
+        return f"\n## Generalisation by typology\n\n_{sp['issue']}_\n"
+    tr, ho, gap = sp["trained_typologies"], sp["heldout_typologies"], sp["generalisation_gap"]
+    held = ", ".join("`" + c + "`" for c in sp["heldout_categories"])
+    lines = ["\n## Generalisation by typology (held-out diagnostic)\n",
+             f"Whole typologies held out of training, then scored: {held}.\n",
+             "| typology set | n | internalisation (C-A) |", "|---|---:|---:|"]
+    if tr:
+        lines.append(f"| trained-on | {tr['n']} | {tr['C_minus_A']:+.1f} |")
+    if ho:
+        lines.append(f"| held-out | {ho['n']} | {ho['C_minus_A']:+.1f} |")
+    if gap is not None:
+        lines.append(f"\n**Generalisation gap = {gap:+.1f}.** " + sp["reading"] + "\n")
+    else:
+        lines.append("\n_(need both trained-on and held-out rows to compute the gap)_\n")
+    return "\n".join(lines)
+
+
 def render_report(table: dict[str, Any], *, generated: str, sha: str) -> str:
     """Markdown four-arm report."""
     if table.get("n", 0) == 0:
@@ -142,6 +208,7 @@ def render_report(table: dict[str, Any], *, generated: str, sha: str) -> str:
         "value on top (the volatile facts it supplies that weights can't memorise). We do not claim the "
         "gap closes -- we report it. Numbers regenerate from `panel.jsonl`; the judge panel is "
         "self-family-excluded.\n"
+        + _split_section(table)
     )
 
 
@@ -222,6 +289,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--max-new-tokens", type=int, default=1024)
     ap.add_argument("--generated", default="", help="ISO timestamp for the report header (optional)")
     ap.add_argument("--sha", default="", help="git sha for the report header (optional)")
+    ap.add_argument("--split-by-typology", action="store_true",
+                    help="add the held-out-typology generalisation gap (internalisation C-A: trained vs held-out)")
     args = ap.parse_args(argv)
 
     if args.run:
@@ -232,6 +301,21 @@ def main(argv: list[str] | None = None) -> int:
     else:
         combined = load_jsonl(BOARD_PANEL) + load_jsonl(FOUR_ARM_PANEL)
         table = four_arm_table(combined, args.stock_model, args.trained_label)
+
+    if args.split_by_typology:
+        heldout = load_heldout_categories()
+        if heldout is None:
+            table["typology_split"] = {"issue": "no reports/training/organize_manifest.json yet -- run "
+                                                "scripts/organize_training_data.py first"}
+        elif table.get("n", 0) == 0:
+            table["typology_split"] = {"issue": "no four-arm rows yet -- run --run after training to "
+                                                "populate the trained arms (C/D)"}
+        else:
+            import sys as _sys
+            _sys.path.insert(0, str(_ROOT / "scripts"))
+            import organize_training_data as _otd  # reuse load_pid2cat (DRY)
+            pid2cat = _otd.load_pid2cat(_otd.FULL_SET, _otd.CURATED_SET)
+            table["typology_split"] = split_by_typology(table["rows"], pid2cat, heldout)
 
     print("[four-arm]", json.dumps({k: v for k, v in table.items() if k != "rows"}, indent=2))
     REPORT.parent.mkdir(parents=True, exist_ok=True)

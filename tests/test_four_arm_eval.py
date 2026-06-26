@@ -72,3 +72,43 @@ def test_stock_prompts_requires_both_arms_and_text():
     board_results = [{"model": "m", "prompt_id": "p1", "arm": "baseline", "prompt_text": "hello", "response": "x"}]
     out = fa._stock_prompts(board_panel, board_results, "m", 0)
     assert out == [{"id": "p1", "text": "hello"}]   # p1 has both arms + text; p2 excluded
+
+
+def test_split_by_typology_computes_generalisation_gap():
+    # trained-on typology: C-A = 20 (training internalised a lot); held-out: C-A = 5 (it barely did)
+    rows = [
+        {"prompt_id": "s1", "A": 40, "B": 90, "C": 60, "D": 92},
+        {"prompt_id": "s2", "A": 50, "B": 88, "C": 70, "D": 90},
+        {"prompt_id": "h1", "A": 45, "B": 90, "C": 50, "D": 91},
+        {"prompt_id": "h2", "A": 55, "B": 92, "C": 60, "D": 93},
+    ]
+    pid2cat = {"s1": "wage_deduction", "s2": "wage_deduction", "h1": "fee_splitting", "h2": "fee_splitting"}
+    sp = fa.split_by_typology(rows, pid2cat, {"fee_splitting"})
+    assert sp["trained_typologies"]["C_minus_A"] == 20.0
+    assert sp["heldout_typologies"]["C_minus_A"] == 5.0
+    assert sp["generalisation_gap"] == 15.0          # big gap = memorisation signal
+    assert sp["heldout_categories"] == ["fee_splitting"]
+
+
+def test_split_by_typology_gap_none_without_both_sides():
+    rows = [{"prompt_id": "s1", "A": 40, "B": 90, "C": 60, "D": 92}]
+    sp = fa.split_by_typology(rows, {"s1": "wage_deduction"}, {"fee_splitting"})
+    assert sp["heldout_typologies"] is None and sp["generalisation_gap"] is None
+
+
+def test_load_heldout_categories(tmp_path):
+    import json
+    m = tmp_path / "organize_manifest.json"
+    m.write_text(json.dumps({"heldout_categories": ["fee_splitting", "wage_deduction"]}), encoding="utf-8")
+    assert fa.load_heldout_categories(m) == {"fee_splitting", "wage_deduction"}
+    assert fa.load_heldout_categories(tmp_path / "absent.json") is None
+
+
+def test_split_section_renders_in_report():
+    t = fa.four_arm_table(_panel(40, 90, 70, 95), "stock", "trained")
+    t["typology_split"] = fa.split_by_typology(
+        [{"prompt_id": "p1", "A": 40, "B": 90, "C": 70, "D": 95},
+         {"prompt_id": "p2", "A": 40, "B": 90, "C": 50, "D": 95}],
+        {"p1": "wage_deduction", "p2": "fee_splitting"}, {"fee_splitting"})
+    md = fa.render_report(t, generated="t", sha="s")
+    assert "Generalisation by typology" in md and "Generalisation gap" in md
