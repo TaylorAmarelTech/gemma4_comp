@@ -35,10 +35,12 @@ from __future__ import annotations
 import argparse
 import glob
 import json
+import os
 import pathlib
 import statistics
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Callable
 
 _ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -65,6 +67,13 @@ REPORT = _ROOT / "docs" / "research" / "rich_harness_lift_100.md"
 
 ARMS = ("baseline", "harness_core", "harness_full")
 DEFAULT_JUDGES = ["gpt-oss:120b", "glm-5.2", "deepseek-v4-pro"]
+# Concurrent Ollama-cloud calls per phase (generation / judging). The cloud serves parallel requests,
+# so this is the main throughput lever -- raise it to use more quota, lower it if you hit rate limits.
+# Tune without a code edit via the DUECARE_CONCURRENCY env var (e.g. in .env); the runner inherits it.
+try:
+    CONCURRENCY_DEFAULT = max(1, int(os.environ.get("DUECARE_CONCURRENCY", "8")))
+except ValueError:
+    CONCURRENCY_DEFAULT = 8
 # Reuse-arm name in the prior scheme run -> our arm name.
 _REUSE_ARM = {"baseline": "baseline", "harnessed": "harness_core"}
 
@@ -137,83 +146,109 @@ def _done_keys(path: pathlib.Path, fields: tuple[str, ...]) -> set[tuple]:
 
 def generate_responses(prompts: list[dict], models: list[str], *, reuse: dict, results_path: pathlib.Path,
                        generate: Callable[[str, str], str], pace: float, max_tokens: int,
-                       log: Callable[[str], None]) -> int:
+                       log: Callable[[str], None], concurrency: int = CONCURRENCY_DEFAULT) -> int:
     """Ensure a response row for every (model, prompt, arm). Reuse baseline/harness_core; generate
-    harness_full (and anything missing from reuse). Resumable. Returns #rows newly written."""
+    harness_full (and anything missing from reuse). Resumable + parallel. Returns #rows newly written.
+
+    The model calls run on a thread pool (``concurrency`` in flight); the main thread is the single
+    writer of ``results_path``, so the JSONL stays uncorrupted under parallelism."""
     core_pre, full_pre = build_preambles()
     done = _done_keys(results_path, ("model", "prompt_id", "arm"))
     results_path.parent.mkdir(parents=True, exist_ok=True)
-    n_new = 0
+    work = []  # (model, pid, arm, text, reused) for every cell not already graded
     for p in prompts:
         pid, text = str(p["id"]), p["text"]
         for model in models:
             for arm in ARMS:
-                if (model, pid, arm) in done:
-                    continue
-                reused = reuse.get((model, pid, arm))      # baseline / harness_core reuse
-                resp = reused
-                latency_s = None  # end-to-end generate latency; only for rows we actually generate
-                if resp is None:
-                    prompt_in = (text if arm == "baseline"
-                                 else core_pre(text) + "\n\n---\n\n" + text if arm == "harness_core"
-                                 else full_pre(text) + "\n\n---\n\n" + text)
-                    try:
-                        t0 = time.perf_counter()
-                        resp = str(generate(model, prompt_in))
-                        latency_s = round(time.perf_counter() - t0, 3)  # excludes the pace sleep below
-                    except Exception as exc:  # noqa: BLE001
-                        log(f"GEN FAIL {model}|{pid}|{arm}: {type(exc).__name__}: {exc}")
-                        continue
-                    if pace:
-                        time.sleep(pace)
-                row = {"model": model, "prompt_id": pid, "arm": arm, "prompt_text": text, "response": resp}
-                if latency_s is not None:
-                    row["latency_s"] = latency_s
-                with results_path.open("a", encoding="utf-8") as f:
-                    f.write(json.dumps(row) + "\n")
-                done.add((model, pid, arm))
-                n_new += 1
-                log(f"GEN {model}|{pid}|{arm}: {len(resp)} chars" + ("" if reused else " (new)"))
+                if (model, pid, arm) not in done:
+                    work.append((model, pid, arm, text, reuse.get((model, pid, arm))))
+    if not work:
+        return 0
+
+    def _one(item):
+        model, pid, arm, text, reused = item
+        if reused is not None:
+            return (model, pid, arm, text, reused, None, True)
+        prompt_in = (text if arm == "baseline"
+                     else core_pre(text) + "\n\n---\n\n" + text if arm == "harness_core"
+                     else full_pre(text) + "\n\n---\n\n" + text)
+        t0 = time.perf_counter()
+        resp = str(generate(model, prompt_in))                  # raises -> caught in the main loop
+        latency_s = round(time.perf_counter() - t0, 3)
+        if pace:
+            time.sleep(pace)
+        return (model, pid, arm, text, resp, latency_s, False)
+
+    n_new = 0
+    with results_path.open("a", encoding="utf-8") as f, ThreadPoolExecutor(max_workers=max(1, concurrency)) as ex:
+        futs = {ex.submit(_one, it): it for it in work}
+        for fut in as_completed(futs):
+            it = futs[fut]
+            try:
+                model, pid, arm, text, resp, latency_s, reused = fut.result()
+            except Exception as exc:  # noqa: BLE001
+                log(f"GEN FAIL {it[0]}|{it[1]}|{it[2]}: {type(exc).__name__}: {exc}")
+                continue
+            row = {"model": model, "prompt_id": pid, "arm": arm, "prompt_text": text, "response": resp}
+            if latency_s is not None:
+                row["latency_s"] = latency_s
+            f.write(json.dumps(row) + "\n")
+            f.flush()
+            n_new += 1
+            log(f"GEN {model}|{pid}|{arm}: {len(resp)} chars" + ("" if reused else " (new)"))
     return n_new
 
 
 def judge_panel(results: list[dict], judges: list[str], *, panel_path: pathlib.Path,
                 judge_caller: Callable[..., str] | None, pace: float,
-                log: Callable[[str], None]) -> int:
-    """0-100 calibrated score for every (response, judge). Self-family excluded. Resumable."""
+                log: Callable[[str], None], concurrency: int = CONCURRENCY_DEFAULT) -> int:
+    """0-100 calibrated score for every (response, judge). Self-family excluded. Resumable + parallel.
+
+    Judge calls run on a thread pool when ``judge_caller`` is None (the default Ollama path); an injected
+    caller may not be thread-safe, so it falls back to a single worker. The main thread is the single
+    writer of ``panel_path``."""
     done = _done_keys(panel_path, ("model", "prompt_id", "arm", "judge"))
     panel_path.parent.mkdir(parents=True, exist_ok=True)
-    n_new = 0
+    work = []  # (r, model, pid, arm, judge) for every cell not done / not self-family
     for r in results:
         model, pid, arm = str(r["model"]), str(r["prompt_id"]), str(r["arm"])
         for j in judges:
-            if model_family(j) == model_family(model):       # judge never grades its own family
-                continue
-            if (model, pid, arm, j) in done:
-                continue
+            if model_family(j) != model_family(model) and (model, pid, arm, j) not in done:
+                work.append((r, model, pid, arm, j))
+    if not work:
+        return 0
+
+    def _one(item):
+        r, _model, _pid, _arm, j = item
+        comps = judge_components(r.get("prompt_text", ""), str(r.get("response", "")),
+                                 model=j, caller=judge_caller)
+        if judge_caller is None and pace:
+            time.sleep(pace)
+        return round(float(comps["score"]), 1), {k: comps[k] for k, _l, _m in COMPONENTS}
+
+    n_new = 0
+    workers = max(1, concurrency) if judge_caller is None else 1
+    with panel_path.open("a", encoding="utf-8") as f, ThreadPoolExecutor(max_workers=workers) as ex:
+        futs = {ex.submit(_one, it): it for it in work}
+        for fut in as_completed(futs):
+            _r, model, pid, arm, j = futs[fut]
             try:
-                # calibrated 0-100 component rubric: total + the 5-criterion breakdown.
-                comps = judge_components(r.get("prompt_text", ""), str(r.get("response", "")),
-                                         model=j, caller=judge_caller)
+                s100, comp = fut.result()
             except Exception as exc:  # noqa: BLE001
                 log(f"JUDGE FAIL {j} {model}|{pid}|{arm}: {type(exc).__name__}: {exc}")
                 continue
-            s100 = round(float(comps["score"]), 1)
-            with panel_path.open("a", encoding="utf-8") as f:
-                f.write(json.dumps({"key": f"{model}|{pid}|{arm}", "model": model, "arm": arm,
-                                    "prompt_id": pid, "judge": j, "score_0_100": s100,
-                                    "components": {k: comps[k] for k, _l, _m in COMPONENTS}}) + "\n")
-            done.add((model, pid, arm, j))
+            f.write(json.dumps({"key": f"{model}|{pid}|{arm}", "model": model, "arm": arm,
+                                "prompt_id": pid, "judge": j, "score_0_100": s100,
+                                "components": comp}) + "\n")
+            f.flush()
             n_new += 1
             log(f"JUDGE {j} {model}|{pid}|{arm}: {s100:.1f}/100")
-            if judge_caller is None and pace:
-                time.sleep(pace)
     return n_new
 
 
 def pairwise_core_full(results: list[dict], judges: list[str], *, pairwise_path: pathlib.Path,
                        judge_caller: Callable[..., str] | None, pace: float,
-                       log: Callable[[str], None]) -> int:
+                       log: Callable[[str], None], concurrency: int = CONCURRENCY_DEFAULT) -> int:
     """Ceiling-free test of harness_full vs harness_core.
 
     When both arms already score ~96/100 the absolute scale has no headroom to show a difference, so a
@@ -226,26 +261,39 @@ def pairwise_core_full(results: list[dict], judges: list[str], *, pairwise_path:
     ptext = {(str(r["model"]), str(r["prompt_id"])): str(r.get("prompt_text", "")) for r in results}
     done = _done_keys(pairwise_path, ("model", "prompt_id", "judge"))
     pairwise_path.parent.mkdir(parents=True, exist_ok=True)
-    n_new = 0
+    work = []  # (model, pid, text, core, full, judge) for every valid pair not done / not self-family
     for (model, pid), text in ptext.items():
         core, full = by.get((model, pid, "harness_core")), by.get((model, pid, "harness_full"))
         if not core or not full:
             continue
         for j in judges:
-            if model_family(j) == model_family(model) or (model, pid, j) in done:
-                continue
+            if model_family(j) != model_family(model) and (model, pid, j) not in done:
+                work.append((model, pid, text, core, full, j))
+    if not work:
+        return 0
+
+    def _one(item):
+        model, pid, text, core, full, j = item
+        delta = judge_pair(text, core, full, model=j, caller=judge_caller)  # + = full safer
+        if judge_caller is None and pace:
+            time.sleep(pace)
+        return delta
+
+    n_new = 0
+    workers = max(1, concurrency) if judge_caller is None else 1
+    with pairwise_path.open("a", encoding="utf-8") as f, ThreadPoolExecutor(max_workers=workers) as ex:
+        futs = {ex.submit(_one, it): it for it in work}
+        for fut in as_completed(futs):
+            model, pid, _text, _core, _full, j = futs[fut]
             try:
-                delta = judge_pair(text, core, full, model=j, caller=judge_caller)  # + = full safer
+                delta = fut.result()
             except Exception as exc:  # noqa: BLE001
                 log(f"PAIR FAIL {j} {model}|{pid}: {type(exc).__name__}: {exc}")
                 continue
-            with pairwise_path.open("a", encoding="utf-8") as f:
-                f.write(json.dumps({"model": model, "prompt_id": pid, "judge": j, "delta": delta}) + "\n")
-            done.add((model, pid, j))
+            f.write(json.dumps({"model": model, "prompt_id": pid, "judge": j, "delta": delta}) + "\n")
+            f.flush()
             n_new += 1
             log(f"PAIR {j} {model}|{pid}: full-vs-core {delta:+.1f}")
-            if judge_caller is None and pace:
-                time.sleep(pace)
     return n_new
 
 
@@ -471,6 +519,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--judges", default=",".join(DEFAULT_JUDGES))
     ap.add_argument("--reuse", default=str(REUSE_DEFAULT), help="prior scheme-run responses to reuse")
     ap.add_argument("--pace", type=float, default=1.0)
+    ap.add_argument("--concurrency", type=int, default=CONCURRENCY_DEFAULT,
+                    help="concurrent Ollama calls per phase (raise to use more quota, lower on rate limits)")
     ap.add_argument("--max-tokens", type=int, default=4000)
     ap.add_argument("--report-only", action="store_true")
     ap.add_argument("--skip-judge", action="store_true", help="generate only, judge in a later pass")
@@ -490,17 +540,18 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[rich-lift] {len(prompts)} prompts x {len(models)} models x {len(ARMS)} arms | "
               f"reuse {len(reuse)} rows | judges={judges}", flush=True)
         n = generate_responses(prompts, models, reuse=reuse, results_path=RESULTS, generate=gen,
-                               pace=args.pace, max_tokens=args.max_tokens,
+                               pace=args.pace, max_tokens=args.max_tokens, concurrency=args.concurrency,
                                log=lambda m: print("  " + m, flush=True))
         print(f"[rich-lift] {n} response rows written this pass", flush=True)
         if not args.skip_judge:
             results = [json.loads(ln) for ln in RESULTS.read_text(encoding="utf-8").splitlines() if ln.strip()]
             nj = judge_panel(results, judges, panel_path=PANEL, judge_caller=None, pace=args.pace,
-                             log=lambda m: print("  " + m, flush=True))
+                             concurrency=args.concurrency, log=lambda m: print("  " + m, flush=True))
             print(f"[rich-lift] {nj} judge cells written this pass", flush=True)
             if args.pairwise:
                 npw = pairwise_core_full(results, judges, pairwise_path=PAIRWISE, judge_caller=None,
-                                         pace=args.pace, log=lambda m: print("  " + m, flush=True))
+                                         pace=args.pace, concurrency=args.concurrency,
+                                         log=lambda m: print("  " + m, flush=True))
                 print(f"[rich-lift] {npw} pairwise cells written this pass", flush=True)
 
     panel = [json.loads(ln) for ln in PANEL.read_text(encoding="utf-8").splitlines() if ln.strip()] \
