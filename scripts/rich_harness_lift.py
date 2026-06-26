@@ -71,9 +71,9 @@ DEFAULT_JUDGES = ["gpt-oss:120b", "glm-5.2", "deepseek-v4-pro"]
 # so this is the main throughput lever -- raise it to use more quota, lower it if you hit rate limits.
 # Tune without a code edit via the DUECARE_CONCURRENCY env var (e.g. in .env); the runner inherits it.
 try:
-    CONCURRENCY_DEFAULT = max(1, int(os.environ.get("DUECARE_CONCURRENCY", "8")))
+    CONCURRENCY_DEFAULT = max(1, int(os.environ.get("DUECARE_CONCURRENCY", "12")))
 except ValueError:
-    CONCURRENCY_DEFAULT = 8
+    CONCURRENCY_DEFAULT = 12
 # Reuse-arm name in the prior scheme run -> our arm name.
 _REUSE_ARM = {"baseline": "baseline", "harnessed": "harness_core"}
 

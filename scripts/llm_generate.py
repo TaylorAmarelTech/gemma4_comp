@@ -24,8 +24,11 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import random
 import re
 import sys
+import time
+import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
@@ -54,23 +57,41 @@ def _load_key() -> str:
     return key
 
 
+# HTTP statuses worth retrying (rate limit + transient server errors); others (401/404/...) raise at once.
+_RETRYABLE_STATUS = {429, 500, 502, 503, 504}
+
+
 def ollama_chat(prompt: str, *, model: str = DEFAULT_MODEL, max_tokens: int = DEFAULT_MAX_TOKENS,
                 temperature: float = 0.6, key: str | None = None, system: str | None = None,
-                timeout: float = 180.0) -> str:
-    """One Ollama-cloud chat completion -> the answer text (content, reasoning fallback)."""
+                timeout: float = 180.0, max_retries: int = 4) -> str:
+    """One Ollama-cloud chat completion -> the answer text (content, reasoning fallback).
+
+    Retries transient failures (HTTP 429 / 5xx, connection / timeout) with exponential backoff + jitter,
+    so high-concurrency callers don't drop cells on cloud throttling; non-transient errors (auth, bad
+    model) raise immediately. After ``max_retries`` the last error propagates to the caller."""
     key = key or _load_key()
     messages = ([{"role": "system", "content": system}] if system else []) + \
                [{"role": "user", "content": prompt}]
     body = json.dumps({"model": model, "messages": messages, "max_tokens": max_tokens,
                        "temperature": temperature, "stream": False}).encode("utf-8")
-    req = urllib.request.Request(f"{OLLAMA_CLOUD_BASE}/chat/completions", data=body,
-                                 headers={"Authorization": f"Bearer {key}",
-                                          "Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        out = json.loads(resp.read().decode("utf-8", "replace"))
-    msg = (out.get("choices") or [{}])[0].get("message") or {}
-    # reasoning-model aware: prefer the answer, fall back to the thinking text if content empty
-    return str(msg.get("content") or "").strip() or str(msg.get("reasoning") or "").strip()
+    for attempt in range(max_retries + 1):
+        req = urllib.request.Request(f"{OLLAMA_CLOUD_BASE}/chat/completions", data=body,
+                                     headers={"Authorization": f"Bearer {key}",
+                                              "Content-Type": "application/json"})
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                out = json.loads(resp.read().decode("utf-8", "replace"))
+            msg = (out.get("choices") or [{}])[0].get("message") or {}
+            # reasoning-model aware: prefer the answer, fall back to the thinking text if content empty
+            return str(msg.get("content") or "").strip() or str(msg.get("reasoning") or "").strip()
+        except urllib.error.HTTPError as exc:
+            if exc.code not in _RETRYABLE_STATUS or attempt == max_retries:
+                raise
+        except OSError:  # URLError (connection), TimeoutError, socket.timeout -- all transient
+            if attempt == max_retries:
+                raise
+        time.sleep(min(2 ** attempt, 8) + random.uniform(0.0, 0.5))
+    raise RuntimeError("unreachable")  # the loop always returns or raises
 
 
 def complete(prompt: str, *, model: str = DEFAULT_MODEL, max_tokens: int = DEFAULT_MAX_TOKENS,
