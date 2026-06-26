@@ -108,7 +108,9 @@ def build_plan(args: argparse.Namespace) -> dict[str, Any]:
                 "max_steps": (20 if args.test_run else args.max_steps),
                 "per_device_batch": args.batch, "grad_accum": args.grad_accum, "lr": args.lr},
         "dpo": {"enabled": (not args.skip_dpo), "file": str(args.dpo), "beta": args.dpo_beta,
-                "max_steps": (10 if args.test_run else args.dpo_max_steps)},
+                "max_steps": (10 if args.test_run else args.dpo_max_steps), "lr": args.dpo_lr,
+                "rpo_alpha": args.rpo_alpha, "max_length": args.max_seq,
+                "max_prompt_length": args.max_seq // 2},
         "output_dir": str(args.out), "gguf": bool(args.gguf), "test_run": bool(args.test_run),
     }
 
@@ -187,12 +189,20 @@ def train(plan: dict[str, Any], sft: list[dict], dpo: list[dict]) -> str:
                          "rejected": str(r["rejected"])}
                         for r in dpo if r.get("prompt") and r.get("chosen") and r.get("rejected")]
             print(f"[train] DPO on {len(dpo_rows)} pairs (beta={d['beta']})", flush=True)
-            dpo_args = DPOConfig(
+            # Set max_length/max_prompt_length explicitly: trl's small default silently truncates the
+            # long grounded `chosen` while the short `rejected` survives -> a pure length-bias confound.
+            # Filter to the params THIS trl version's DPOConfig accepts (these + rpo_alpha vary by version).
+            dpo_cfg_kw = dict(
                 per_device_train_batch_size=s["per_device_batch"], gradient_accumulation_steps=s["grad_accum"],
-                warmup_steps=5, max_steps=d["max_steps"], learning_rate=5e-6, beta=d["beta"],
+                warmup_steps=5, max_steps=d["max_steps"], learning_rate=d["lr"], beta=d["beta"],
                 fp16=not bf16, bf16=bf16, logging_steps=5, save_strategy="no",
                 output_dir=out_dir + "-dpo", optim="adamw_8bit", seed=42, report_to="none",
+                max_length=d["max_length"], max_prompt_length=d["max_prompt_length"],
             )
+            if d.get("rpo_alpha"):
+                dpo_cfg_kw["rpo_alpha"] = d["rpo_alpha"]
+            _dpo_params = set(inspect.signature(DPOConfig.__init__).parameters)
+            dpo_args = DPOConfig(**{k: v for k, v in dpo_cfg_kw.items() if k in _dpo_params})
             dkw = {"model": model, "args": dpo_args, "train_dataset": Dataset.from_list(dpo_rows)}
             dsig = inspect.signature(DPOTrainer.__init__)
             if "tokenizer" in dsig.parameters:
@@ -231,6 +241,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--skip-dpo", action="store_true", help="SFT only (skip the preference pass)")
     ap.add_argument("--dpo-beta", type=float, default=0.1)
     ap.add_argument("--dpo-max-steps", type=int, default=200)
+    ap.add_argument("--dpo-lr", type=float, default=5e-6, help="DPO learning rate (keep < SFT --lr)")
+    ap.add_argument("--rpo-alpha", type=float, default=1.0,
+                    help="RPO regularizer (NLL-on-chosen inside DPO; anti-degeneration). 0 disables")
     ap.add_argument("--gguf", action="store_true", help="also export a q4_k_m GGUF for on-device")
     ap.add_argument("--test-run", action="store_true", help="GPU smoke: ~20 SFT + ~10 DPO steps")
     ap.add_argument("--validate", action="store_true",

@@ -71,9 +71,12 @@ def test_build_plan_test_run_overrides_steps():
         base_model="unsloth/gemma-4-E2B-it", sft=Path("s"), dpo=Path("d"), out=Path("o"),
         max_seq=2048, epochs=2, max_steps=-1, batch=2, grad_accum=4, lr=2e-4,
         lora_r=16, lora_alpha=16, skip_dpo=False, dpo_beta=0.1, dpo_max_steps=200,
-        gguf=False, test_run=True,
+        dpo_lr=5e-6, rpo_alpha=1.0, gguf=False, test_run=True,
     )
     plan = tr.build_plan(ns)
     assert plan["sft"]["max_steps"] == 20 and plan["sft"]["epochs"] == 1   # test-run overrides
     assert plan["dpo"]["enabled"] is True and plan["dpo"]["max_steps"] == 10
     assert plan["base_model"] == "unsloth/gemma-4-E2B-it"
+    # DPO truncation lengths are set (the silent length-bias fix) + the tunable knobs
+    assert plan["dpo"]["lr"] == 5e-6 and plan["dpo"]["rpo_alpha"] == 1.0
+    assert plan["dpo"]["max_length"] == 2048 and plan["dpo"]["max_prompt_length"] == 1024
