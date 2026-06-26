@@ -38,6 +38,13 @@ STOP = ORCH / "orchestrator.stop"
 LOCK = ORCH / "orchestrator.lock"
 BACKUPS = REPORTS / "_backups"
 KEEP_BACKUPS = 24
+# Off-OneDrive durable mirror: OneDrive has corrupted this tree before (it stripped the Python env),
+# and the graded panel is the irreplaceable detail the board + ALL training data derive from. Keep a
+# copy outside the synced tree so a OneDrive corruption of reports/_backups can't destroy it.
+EXTERNAL_BACKUPS = pathlib.Path(
+    os.environ.get("DUECARE_BACKUP_DIR")
+    or (pathlib.Path(os.environ.get("LOCALAPPDATA") or pathlib.Path.home()) / "duecare-backups"))
+KEEP_EXTERNAL = 4
 
 ENGINE_STATE = REPORTS / "autonomous_engine_state.json"
 ENGINE_LOCK = REPORTS / "autonomous_engine.lock"
@@ -51,6 +58,8 @@ BACKUP_TARGETS = [
     "docs/research/benchmark_leaderboard.md",
     "configs/duecare/benchmarks/scheme_prompts.json",
     "reports/autonomous_engine_state.json",
+    "reports/hermes/proposals.jsonl",     # the flywheel's discovered prompts (irreplaceable)
+    "reports/openclaw/vetted.jsonl",       # the flywheel's vetting verdicts (irreplaceable)
 ]
 
 
@@ -174,8 +183,8 @@ def automation_health() -> dict:
             "last_tick": st.get("last_tick")}
 
 
-def backup() -> dict:
-    dest = BACKUPS / _stamp()
+def _snapshot(dest: pathlib.Path) -> int:
+    """Copy every existing BACKUP_TARGET under dest/<rel>, preserving the tree. Returns files copied."""
     n = 0
     for rel in BACKUP_TARGETS:
         src = ROOT / rel
@@ -187,12 +196,33 @@ def backup() -> dict:
                 n += 1
             except OSError:
                 pass
-    if BACKUPS.exists():
-        snaps = sorted(d for d in BACKUPS.iterdir() if d.is_dir())
-        for old in snaps[:-KEEP_BACKUPS]:
+    return n
+
+
+def _rotate(root: pathlib.Path, keep: int) -> None:
+    """Keep only the newest `keep` timestamped snapshot dirs under root (append-only data, so the
+    latest snapshot is always complete -- pruning old ones loses no detail)."""
+    if root.exists():
+        snaps = sorted(d for d in root.iterdir() if d.is_dir())
+        for old in snaps[:-keep]:
             shutil.rmtree(old, ignore_errors=True)
-    return {"dest": (str(dest.relative_to(ROOT)).replace(os.sep, "/") if n else None),
-            "files": n, "at": now()}
+
+
+def backup() -> dict:
+    stamp = _stamp()
+    n = _snapshot(BACKUPS / stamp)
+    _rotate(BACKUPS, KEEP_BACKUPS)
+    # Mirror to the off-OneDrive store so a OneDrive corruption can't take the only copy. Best-effort:
+    # if the external drive/dir is unavailable the in-tree snapshot still stands.
+    ext = None
+    try:
+        if _snapshot(EXTERNAL_BACKUPS / stamp):
+            _rotate(EXTERNAL_BACKUPS, KEEP_EXTERNAL)
+            ext = str(EXTERNAL_BACKUPS / stamp)
+    except OSError:
+        pass
+    return {"dest": (f"reports/_backups/{stamp}" if n else None),
+            "files": n, "external": ext, "at": now()}
 
 
 def write_registry(agents: list[dict], bk: dict) -> None:
