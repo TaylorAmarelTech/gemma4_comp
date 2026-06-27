@@ -61,6 +61,31 @@ the full chain a good safety answer walks — **indicator → statute → action
 deterministically from the project's own vocabulary (the ILO-11 indicators + `citation_accuracy` +
 `refusal_detector`), so the fine-tune learns the whole structure, not a fragment.
 
+### Pre-train quality audit (anti-overfit / anti-shortcut)
+
+The gates above filter *candidates*; one more pass audits the **assembled splits** before the GPU run, so
+the ways a distilled safety judge can go wrong are caught in the data rather than discovered after
+training (`scripts/audit_training_quality.py`, offline + deterministic, writes
+`reports/training/quality_audit.json`):
+
+- **Overfitting → cross-split leakage.** Any held-out prompt with a SimHash near-duplicate (Hamming ≤ 3)
+  in train; a non-zero count means the generalisation diagnostic is measuring memorisation. *Live: 0 / 81
+  held-out, both SFT and DPO.*
+- **False pattern → length shortcut.** DPO `chosen` vs `rejected` length: a large `chosen ≫ rejected`
+  ratio teaches "longer = preferred" instead of "grounded = preferred". *Live: 1.18× (54.5 % of pairs
+  have the longer `chosen`) — essentially no length confound, confirming the `max_length` fix holds.*
+- **Jurisdiction shortcut → corridor concentration.** Per-typology corridor spread, flagging only **dense**
+  typologies (≥ 10 rows) whose rows all sit in a single corridor — sparse and attack-*style* categories
+  can't span corridors meaningfully, so they are reported, not flagged. The universal layer the model must
+  learn is the **ILO-11 indicator**, which the targets carry regardless of corridor; this guards against a
+  corridor silently standing in for an indicator. *Live: 10 dense single-corridor typologies — a short,
+  inspectable coverage list for the discovery flywheel to widen, not a training blocker.*
+- **Fragile-fact memorization.** Gold replies asserting volatile specifics. Phone/hotline numbers are the
+  hard gate (must be ~0 — those belong in tools/RAG, and the privacy scrub should remove them); fee amounts
+  and dates are informational, since a statute's enactment year (e.g. *Palermo Protocol, 2000*) is a
+  **stable** fact, not a fragile one. *Live: 0 phone-like in 2,646 gold replies; the money/date hits are
+  dominated by stable statute years and in-scenario amounts.*
+
 ## 3. Findings from running the pipeline
 
 Distilling the live benchmark panel (≈3,775 candidate pairs):
