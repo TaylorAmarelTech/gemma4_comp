@@ -6,13 +6,18 @@ Chains the offline data-prep this session built, then the GPU train+eval, then r
   1. distill   build_lift_training_data.py   -> sft.jsonl + dpo.jsonl + manifest.json      [offline]
   2. organize  organize_training_data.py     -> {sft,dpo}_{train,heldout} (dedup + holdout) [offline]
   3. reason    build_reasoning_targets.py    -> reasoning_sft.jsonl (chain gate)            [offline]
-  4. train     train_lift_distill.py         -> LoRA adapter                                [GPU]
-  5. evaluate  four_arm_eval.py --run        -> internalisation + generalisation metrics    [GPU]
-  6. register  finetune_registry.py add      -> provenance row (model_id, data sha, eval)   [offline]
+  4. audit     audit_training_quality.py     -> quality_audit.json (overfit/shortcut guards)[offline]
+  5. train     train_lift_distill.py         -> LoRA adapter                                [GPU]
+  6. evaluate  four_arm_eval.py --run        -> internalisation + generalisation metrics    [GPU]
+  7. register  finetune_registry.py add      -> provenance row (model_id, data sha, eval)   [offline]
 
-Without a GPU (the default on this box) it runs the OFFLINE steps (1-3, 6) and SKIPS the GPU steps
-(4-5) with a clear log -- so the training DATA + a provenance row are produced and ready, and the GPU
-steps run unchanged later in Taylor's Kaggle window (--with-gpu). --dry-run plans without executing.
+The audit (step 4) runs BEFORE the GPU train so overfitting / false-pattern / fragile-fact / jurisdiction
+risks are caught in the data, not after training; it fail-fasts only if the splits are missing (rc != 0),
+and otherwise logs its risk flags without blocking (the corridor-coverage flag is informational).
+
+Without a GPU (the default on this box) it runs the OFFLINE steps (1-4, 7) and SKIPS the GPU steps
+(5-6) with a clear log -- so the training DATA + audit + a provenance row are produced and ready, and the
+GPU steps run unchanged later in Taylor's Kaggle window (--with-gpu). --dry-run plans without executing.
 
 Propose-only: each step is itself propose-only (writes to gitignored reports/training/); this only
 sequences them, fail-fast, and writes a run log. No model and no network of its own.
@@ -60,6 +65,7 @@ def plan(*, model_id: str, base: str, with_gpu: bool) -> list[dict[str, Any]]:
         {"name": "distill", "gpu": False, "cmd": [py, str(_SCRIPTS / "build_lift_training_data.py")]},
         {"name": "organize", "gpu": False, "cmd": [py, str(_SCRIPTS / "organize_training_data.py")]},
         {"name": "reason", "gpu": False, "cmd": [py, str(_SCRIPTS / "build_reasoning_targets.py")]},
+        {"name": "audit", "gpu": False, "cmd": [py, str(_SCRIPTS / "audit_training_quality.py")]},
         {"name": "train", "gpu": True, "cmd": [py, str(_SCRIPTS / "train_lift_distill.py"), "--out", adapter]},
         {"name": "evaluate", "gpu": True,
          "cmd": [py, str(_SCRIPTS / "four_arm_eval.py"), "--run", "--adapter", adapter]},
