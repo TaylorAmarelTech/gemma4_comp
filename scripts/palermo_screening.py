@@ -38,6 +38,9 @@ from collections import Counter
 from typing import Any
 
 _ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))   # sibling-script imports
+from citation_accuracy import convention_numbers as _convention_numbers  # noqa: E402
+
 REASONING_SFT = _ROOT / "reports" / "training" / "reasoning_sft.jsonl"
 OUT = _ROOT / "reports" / "training" / "palermo_analysis.json"
 
@@ -89,9 +92,37 @@ SCREENING_SIGNALS: dict[str, tuple[str, ...]] = {
 }
 
 
+# Which ILO instrument(s) govern each screening signal -- for a CITATION-COHERENCE check (does the reply
+# cite a law that actually governs the indicator it named, vs real-but-irrelevant "citation theatre"?).
+# Conservative, standard mappings (refine with domain review); the Palermo Protocol governs trafficking
+# across all of these. C29 Forced Labour (1930) + C105 Abolition of Forced Labour (1957); C181 Private
+# Employment Agencies Art.7 (1997) + C97/C143 Migrant Workers.
+INDICATOR_STATUTE: dict[str, tuple[int, ...]] = {
+    "document_retention": (29, 105), "wage_withholding": (29, 105), "debt_bondage": (29, 105),
+    "movement_restriction": (29, 105), "threats_coercion": (29, 105), "isolation": (29, 105),
+    "excessive_hours": (29, 105),
+    "recruitment_fee": (181, 97, 143), "contract_issues": (181, 97, 143),
+    "deception_about_work": (181, 97, 143),
+}
+
+
 def _present(text: str, groups: dict[str, tuple[str, ...]]) -> list[str]:
     low = text.lower()
     return [name for name, terms in groups.items() if any(t in low for t in terms)]
+
+
+def citation_coherence(text: str) -> dict[str, Any]:
+    """Does the reply cite a law that actually GOVERNS an indicator it named? Catches real-but-irrelevant
+    citations ("citation theatre") that presence-only checks miss. Conservative: flagged incoherent ONLY
+    when the reply cites convention(s) AND names mapped signal(s) but NONE of the cited conventions govern
+    any named signal."""
+    mapped = [s for s in _present(text, SCREENING_SIGNALS) if s in INDICATOR_STATUTE]
+    cited = sorted(set(_convention_numbers(text)))
+    expected = sorted({c for s in mapped for c in INDICATOR_STATUTE[s]})
+    matched = sorted(set(cited) & set(expected))
+    coherent = (not cited) or (not mapped) or bool(matched)
+    return {"mapped_signals": mapped, "cited_conventions": cited, "expected_conventions": expected,
+            "matched": matched, "coherent": coherent}
 
 
 def palermo_analysis(text: str, *, minor: bool = False) -> dict[str, Any]:
@@ -141,9 +172,13 @@ def coverage(texts: list[str]) -> dict[str, Any]:
         if t:
             for s in _present(t, SCREENING_SIGNALS):
                 sig[s] += 1
+    coh = [citation_coherence(t) for t in texts if t]
+    checkable = [c for c in coh if c["mapped_signals"] and c["cited_conventions"]]
+    coherence_rate = round(sum(c["coherent"] for c in checkable) / len(checkable), 3) if checkable else None
     return {"n": n,
             "act_rate": round(a / n, 3), "means_rate": round(m / n, 3), "purpose_rate": round(p / n, 3),
             "triad_complete_rate": round(triad / n, 3),
+            "citation_coherence_rate": coherence_rate, "coherence_checkable": len(checkable),
             "screening_signal_rate": {k: round(v / n, 3) for k, v in sig.most_common()}}
 
 

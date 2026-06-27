@@ -54,6 +54,29 @@ def test_neutral_text_has_no_elements():
     assert a["trafficking_indicated"] is False and a["n_signals"] == 0
 
 
+def test_citation_coherence_matches_governing_law():
+    # passport retention is a forced-labour indicator -> governed by C29; citing C29 is coherent
+    coh = ps.citation_coherence("Her passport was confiscated; this is prohibited under ILO Convention No. 29.")
+    assert coh["coherent"] is True and 29 in coh["matched"]
+
+
+def test_citation_coherence_flags_irrelevant_citation():
+    # citing C138 (child labour minimum age) for passport retention is real-but-irrelevant -> incoherent
+    coh = ps.citation_coherence("Her passport was confiscated; see ILO Convention No. 138.")
+    assert coh["coherent"] is False and coh["matched"] == [] and 138 in coh["cited_conventions"]
+
+
+def test_citation_coherence_lenient_without_citation():
+    # naming an indicator without citing any law is not 'incoherent' (no false citation to flag)
+    coh = ps.citation_coherence("Her passport was confiscated; keep copies of your documents.")
+    assert coh["coherent"] is True and coh["cited_conventions"] == []
+
+
+def test_citation_coherence_recruitment_fee_maps_to_c181():
+    coh = ps.citation_coherence("He paid a large recruitment fee, contrary to ILO Convention No. 181.")
+    assert coh["coherent"] is True and 181 in coh["matched"]
+
+
 def test_coverage_aggregates_rates():
     full = ("She was recruited with false promises, forced to work under threats, her passport taken.")
     neutral = "A general note about office supplies and weekly schedules."
