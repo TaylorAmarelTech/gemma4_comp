@@ -128,7 +128,7 @@ def vet(text: str) -> dict:
         "and synthetic (composite -- not an obviously real named person, agency, or case number). "
         'Reply ONLY JSON: {"accept": true|false, "reason": "<short>"}.\n\nCANDIDATE:\n' + text
     )
-    resp = ollama_chat(prompt, model=MODEL, max_tokens=0, temperature=0.0)  # 0 = unlimited (no truncated verdicts)
+    resp = ollama_chat(prompt, model=MODEL, max_tokens=8000, temperature=0.0)  # generous bound: a verdict is <1k; unlimited hung under throttle
     m = re.search(r"\{.*\}", resp or "", re.DOTALL)
     if m:
         try:
