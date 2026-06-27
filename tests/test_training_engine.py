@@ -21,14 +21,14 @@ te = _load("training_engine", _ROOT / "scripts" / "training_engine.py")
 
 def test_plan_order_is_the_pipeline_dag():
     names = [s["name"] for s in te.plan(model_id="m", base="b", with_gpu=False)]
-    assert names == ["distill", "organize", "reason", "train", "evaluate", "register"]
+    assert names == ["distill", "organize", "reason", "audit", "train", "evaluate", "register"]
 
 
 def test_plan_gpu_gating_offline():
     steps = {s["name"]: s for s in te.plan(model_id="m", base="b", with_gpu=False)}
-    # offline host: data-prep + register run; GPU train/evaluate are skipped (will_run False, with a reason)
+    # offline host: data-prep + audit + register run; GPU train/evaluate are skipped (will_run False, reason)
     assert steps["distill"]["will_run"] and steps["organize"]["will_run"] and steps["reason"]["will_run"]
-    assert steps["register"]["will_run"]
+    assert steps["audit"]["will_run"] and steps["register"]["will_run"]
     assert not steps["train"]["will_run"] and not steps["evaluate"]["will_run"]
     assert steps["train"]["skip_reason"] and "GPU" in steps["train"]["skip_reason"]
 
