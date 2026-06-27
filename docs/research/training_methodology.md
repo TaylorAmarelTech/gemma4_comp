@@ -86,6 +86,27 @@ training (`scripts/audit_training_quality.py`, offline + deterministic, writes
   **stable** fact, not a fragile one. *Live: 0 phone-like in 2,646 gold replies; the money/date hits are
   dominated by stable statute years and in-scenario amounts.*
 
+### The reasoning contract — a way of thinking, enforced
+
+The chain gate above curates training *targets*; `scripts/reasoning_contract.py` turns the same chain into
+an enforceable **contract** — a deterministic spec of the *way of thinking* a Gemma 4 reasoning LoRA should
+internalise (a procedure, not facts), checkable three ways from one definition:
+
+- **as a training filter** — keep only traces that satisfy the contract (strict: all four steps, in order,
+  with a *valid* non-hallucinated citation, and no phone-like fragile fact in the reasoning);
+- **as inference enforcement** — parse the model's thinking trace, verify each step, and emit a **repair
+  directive** naming exactly what to fix when a step is missing or wrong (a verify-and-repair loop);
+- **as a judge-independent eval metric** — the share of replies whose chain of thought satisfies the
+  contract, reported alongside the LLM-panel lift.
+
+Run over the 2,116 gold reasoning traces, **43.1 %** satisfy the strict four-step contract and **90.9 %** the
+relaxed three-step form; step presence is indicator 99.9 % / resources 99.1 % / statute 76.3 % / action
+74.9 %, and every cited statute is valid (0 % hallucinated). So one contract both *defines* the way of
+thinking a reasoning LoRA would be trained on and *measures* that the statute and concrete-action links are
+where the chain still needs reinforcement before a strict-contract fine-tune. This is the principled form of
+"a model as a way of thinking": the LoRA stores the *procedure* (jurisdiction-independent, fragile-fact-free),
+and the contract enforces it at train time, at inference, and in evaluation.
+
 ## 3. Findings from running the pipeline
 
 Distilling the live benchmark panel (≈3,775 candidate pairs):
