@@ -41,6 +41,33 @@ def test_crime_stage_recruitment_detected():
     assert "recruitment" in a["stages"]
 
 
+def test_institutional_review_recognizes_good_response():
+    a = il.institutional_review("The labour inspector treated her with a victim-centered, trauma-informed "
+                               "approach and used the national referral mechanism.")
+    assert "labour_inspector" in a["response_actors"]
+    assert "victim_centered" in a["good_behaviors"] and a["flags_institutional_failure"] is False
+
+
+def test_institutional_review_flags_regulator_corruption():
+    a = il.institutional_review("The police were complicit and turned a blind eye, and the regulator left "
+                               "the agency unlicensed.")
+    assert {"police", "regulator"} <= set(a["response_actors"])
+    assert a["flags_institutional_failure"] is True
+    assert "corruption_complicity" in a["failure_behaviors"] and "non_enforcement" in a["failure_behaviors"]
+
+
+def test_institutional_review_flags_ngo_bad_advice():
+    # the user's key point: NGOs can contribute harm, often unknowingly (bad advice / wrong stance)
+    a = il.institutional_review("A well-intentioned but misguided NGO gave bad advice and the worker was "
+                               "re-traumatized.")
+    assert "ngo" in a["response_actors"] and "bad_advice_wrong_stance" in a["failure_behaviors"]
+
+
+def test_institutional_review_flags_victim_criminalization():
+    a = il.institutional_review("The immigration officer detained the worker and threatened deportation.")
+    assert "immigration" in a["response_actors"] and "victim_criminalization" in a["failure_behaviors"]
+
+
 def test_coverage_aggregates_rates():
     networked = ("The same recruiter placed multiple workers; remittances flowed to a shell company.")
     isolated = "A general note about office supplies and weekly schedules."
@@ -48,3 +75,11 @@ def test_coverage_aggregates_rates():
     assert cov["n"] == 2
     assert cov["considers_network_rate"] == 0.5           # only the first reasons about the network
     assert "financial_flow" in cov["connection_rate"]
+
+
+def test_coverage_includes_institutional_rates():
+    corrupt = "The police were complicit and turned a blind eye to the agency."
+    neutral = "A general note about office supplies."
+    cov = il.coverage([corrupt, neutral])
+    assert cov["reviews_institutions_rate"] == 0.5 and cov["flags_institutional_failure_rate"] == 0.5
+    assert "corruption_complicity" in cov["institutional_failure_rate"]

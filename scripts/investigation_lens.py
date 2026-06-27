@@ -38,16 +38,19 @@ _ROOT = pathlib.Path(__file__).resolve().parents[1]
 REASONING_SFT = _ROOT / "reports" / "training" / "reasoning_sft.jsonl"
 OUT = _ROOT / "reports" / "training" / "investigation_lens.json"
 
-# Who is involved -- the roles an investigator maps in a trafficking operation.
+# PERPETRATOR-side roles -- the operation's actors an investigator maps (with variations).
 ACTOR_ROLES: dict[str, tuple[str, ...]] = {
     "recruiter": ("recruiter", "recruitment agent", "broker", "middleman", "labour agent", "labor agent"),
+    "sub_agent": ("sub-agent", "subagent", "sub-broker", "local agent", "village broker", "intermediary"),
     "employer": ("employer", "the boss", "factory owner", "principal employer", "sponsor", "the company"),
     "transporter": ("transporter", "the driver", "smuggler", "transport operator"),
     "harbourer": ("landlord", "accommodation provider", "the controller", "the keeper", "housed the"),
+    "enforcer": ("enforcer", "the guard", "the minder", "the muscle", "gang member"),
+    "buyer_client": ("the buyer", "the client", "the customer", "purchaser", "the john"),
     "financier": ("financier", "money lender", "moneylender", "the lender", "the creditor",
                   "beneficial owner", "investor"),
-    "facilitator": ("corrupt official", "document forger", "the fixer", "facilitator", "complicit",
-                    "bribed official"),
+    "facilitator": ("document forger", "forged documents", "fake passport", "the fixer", "facilitator",
+                    "enabler"),
 }
 # Organisational + financial structure -- isolated incident vs network ("look at connections").
 CONNECTION_SIGNALS: dict[str, tuple[str, ...]] = {
@@ -75,6 +78,51 @@ CRIME_STAGES: dict[str, tuple[str, ...]] = {
 
 _NETWORK_KEYS = ("multiple_victims", "shared_recruiter", "subcontracting", "corporate_structure")
 
+# RESPONSE-side actors -- the institutions that are SUPPOSED to protect. Do NOT presume they are benign:
+# the analysis must not assume the employer/agency is the only source of harm (Taylor) -- regulators,
+# police, and even NGOs can contribute to harm, knowingly or unknowingly.
+RESPONSE_ACTORS: dict[str, tuple[str, ...]] = {
+    "police": ("police", "law enforcement", "the officers", "constable", "the authorities"),
+    "labour_inspector": ("labour inspector", "labor inspector", "labour inspectorate", "workplace inspection"),
+    "immigration": ("immigration authorities", "immigration officer", "border force", "border agency"),
+    "prosecutor": ("prosecutor", "public prosecutor", "district attorney"),
+    "judiciary": ("the court", "tribunal", "the judge", "magistrate"),
+    "regulator": ("regulator", "licensing authority", "recruitment regulator", "poea", "bp2mi",
+                  "gangmasters", "glaa", "oversight body"),
+    "embassy": ("embassy", "consulate", "consular"),
+    "ngo": ("ngo", "civil society", "support organisation", "support organization", "charity",
+            "the helpline", "the hotline"),
+    "financial_intelligence": ("financial intelligence", "the fiu", "aml unit", "suspicious transaction"),
+    "union": ("trade union", "labour union", "labor union", "workers union", "workers' union"),
+    "social_services": ("social services", "social worker", "victim support", "the shelter"),
+}
+# GOOD responder behaviour -- the protective stance we want.
+RESPONDER_GOOD: dict[str, tuple[str, ...]] = {
+    "victim_centered": ("victim-centered", "victim-centred", "trauma-informed", "non-punishment",
+                        "not prosecuted", "protect the victim", "safety of the victim"),
+    "proactive": ("proactive", "intelligence-led", "opened an investigation", "financial investigation",
+                  "follow the money", "parallel investigation"),
+    "multi_agency": ("multi-agency", "referral mechanism", "national referral", "task force", "inter-agency"),
+    "screening": ("screening", "formally identified", "victim identification", "identified as a victim"),
+}
+# FAILURE / harm from the response side -- knowing OR unknowing. The exploiter is NOT only the employer.
+RESPONDER_FAILURE: dict[str, tuple[str, ...]] = {
+    "corruption_complicity": ("corrupt", "bribed", "complicit", "colluding", "turned a blind eye",
+                              "paid off", "kickback to", "in the pocket of"),
+    "victim_criminalization": ("arrested the victim", "prosecuted the victim", "detained the worker",
+                               "charged the victim", "treated as a criminal", "deported the victim",
+                               "deportation", "punished the victim"),
+    "negligence": ("ignored the", "failed to act", "no investigation", "did not investigate",
+                   "dismissed the complaint", "no action was taken", "inadequate response"),
+    "non_enforcement": ("not enforced", "unlicensed", "regulatory gap", "no oversight", "unregulated",
+                        "regulatory capture", "licence was not checked", "license was not checked"),
+    # The user's key point: NGOs/advisors can give bad advice / take the wrong stance, often UNKNOWINGLY.
+    "bad_advice_wrong_stance": ("bad advice", "wrong stance", "misadvised", "misguided advice",
+                                "inappropriate referral", "well-intentioned but", "unknowingly",
+                                "made it worse", "re-traumatiz", "retraumatiz", "paternalistic",
+                                "dismissed her concerns", "dismissed his concerns", "wrong advice"),
+}
+
 
 def _present(text: str, groups: dict[str, tuple[str, ...]]) -> list[str]:
     low = text.lower()
@@ -92,6 +140,20 @@ def investigation_analysis(text: str) -> dict[str, Any]:
             "considers_network": any(c in connections for c in _NETWORK_KEYS),
             "considers_financial": "financial_flow" in connections,
             "n_actors": len(actors), "n_connections": len(connections), "n_stages": len(stages)}
+
+
+def institutional_review(text: str) -> dict[str, Any]:
+    """Review the RESPONSE side: which protective institutions appear, and are they behaving well or
+    contributing to harm? The exploiter is not presumed to be the employer -- regulators, police, and even
+    NGOs can give bad advice / take the wrong stance / be complicit, knowingly or unknowingly. Surfacing
+    a failure means the reasoning must NOT blindly route the worker there (referral safety)."""
+    actors = _present(text, RESPONSE_ACTORS)
+    good = _present(text, RESPONDER_GOOD)
+    failures = _present(text, RESPONDER_FAILURE)
+    return {"response_actors": actors, "good_behaviors": good, "failure_behaviors": failures,
+            "reviews_institutions": bool(actors or good or failures),
+            "flags_institutional_failure": bool(failures),
+            "n_response_actors": len(actors)}
 
 
 def _assistant_text(row: dict) -> str:
@@ -118,20 +180,30 @@ def coverage(texts: list[str]) -> dict[str, Any]:
     if not n:
         return {"n": 0}
     rows = [investigation_analysis(t) for t in texts if t]
+    inst = [institutional_review(t) for t in texts if t]
     actor_c: Counter = Counter()
     conn_c: Counter = Counter()
     stage_c: Counter = Counter()
+    resp_c: Counter = Counter()
+    fail_c: Counter = Counter()
     for r in rows:
         actor_c.update(r["actors"])
         conn_c.update(r["connections"])
         stage_c.update(r["stages"])
+    for r in inst:
+        resp_c.update(r["response_actors"])
+        fail_c.update(r["failure_behaviors"])
     return {"n": n,
             "considers_actors_rate": round(sum(r["considers_actors"] for r in rows) / n, 3),
             "considers_network_rate": round(sum(r["considers_network"] for r in rows) / n, 3),
             "considers_financial_rate": round(sum(r["considers_financial"] for r in rows) / n, 3),
+            "reviews_institutions_rate": round(sum(r["reviews_institutions"] for r in inst) / n, 3),
+            "flags_institutional_failure_rate": round(sum(r["flags_institutional_failure"] for r in inst) / n, 3),
             "actor_rate": {k: round(v / n, 3) for k, v in actor_c.most_common()},
             "connection_rate": {k: round(v / n, 3) for k, v in conn_c.most_common()},
-            "stage_rate": {k: round(v / n, 3) for k, v in stage_c.most_common()}}
+            "stage_rate": {k: round(v / n, 3) for k, v in stage_c.most_common()},
+            "response_actor_rate": {k: round(v / n, 3) for k, v in resp_c.most_common()},
+            "institutional_failure_rate": {k: round(v / n, 3) for k, v in fail_c.most_common()}}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -155,7 +227,9 @@ def main(argv: list[str] | None = None) -> int:
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(rep, indent=2) + "\n", encoding="utf-8")
     print(f"[investigation] n={rep['n']} actors={rep['considers_actors_rate']} "
-          f"network={rep['considers_network_rate']} financial={rep['considers_financial_rate']} -> {OUT}")
+          f"network={rep['considers_network_rate']} financial={rep['considers_financial_rate']} "
+          f"reviews_institutions={rep['reviews_institutions_rate']} "
+          f"flags_failure={rep['flags_institutional_failure_rate']} -> {OUT}")
     return 0
 
 
