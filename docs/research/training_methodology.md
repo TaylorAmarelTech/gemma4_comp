@@ -107,6 +107,24 @@ where the chain still needs reinforcement before a strict-contract fine-tune. Th
 "a model as a way of thinking": the LoRA stores the *procedure* (jurisdiction-independent, fragile-fact-free),
 and the contract enforces it at train time, at inference, and in evaluation.
 
+**Sharper preference data from the contract.** The contract also generates hard-negative DPO pairs
+(`scripts/build_contract_dpo.py`): `chosen` = a contract-satisfying gold trace, `rejected` = the *same*
+trace with only the statute (or action) sentence deleted — verified gone. The single difference is the link
+the model must not drop, isolating the two weak links into clean minimal pairs (912 eligible gold traces →
+**1,822 hard negatives**: 911 statute, 911 action). The rejected is deletion-only, so no fabricated content
+enters training — a much sharper signal than chosen=harnessed / rejected=baseline.
+
+**Legal-rigour enrichment (Palermo + screening instruments).** The contract's analysis is strengthened
+from "names an indicator" toward what a trained screener performs: the **Palermo Act–Means–Purpose triad**
+(UN Protocol Art. 3 — an *act* by a *means* for an exploitative *purpose*; for minors the means element is
+not required, Art. 3(c)) plus the operational **screening checklist** (IOM / ILO / Vera TVIT / Polaris:
+document retention, free-to-leave, wage withholding, debt, threats, isolation, excessive hours, contract
+substitution, recruitment fees). `scripts/palermo_screening.py` detects these deterministically and
+`verify_reasoning(…, require_triad=True)` makes the triad an enforceable clause. Over the 2,116 gold traces
+the reasoning surfaces the act **96.4 %** and the purpose **96.0 %** of the time but the **means only
+82.3 %** (triad-complete 78.1 %) — the *means* ("how": deception, coercion, abuse of vulnerability) is the
+weak leg, the Palermo analogue of the weak statute/action links and a concrete target for the next data pass.
+
 ## 3. Findings from running the pipeline
 
 Distilling the live benchmark panel (≈3,775 candidate pairs):

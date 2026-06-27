@@ -76,6 +76,24 @@ def test_split_thinking_handles_delimiter_and_plain_text():
     assert same == ("no delimiter here", "no delimiter here")
 
 
+def test_palermo_field_present_and_triad_enforced_only_when_required():
+    v = rc.verify_reasoning(_FULL)
+    assert v.palermo["purpose_present"] is True          # _FULL names the exploitative purpose
+    assert v.palermo["triad_complete"] is False          # but no Palermo 'means' term -> triad incomplete
+    assert v.satisfied is True                            # default contract ignores the triad (additive)
+    vt = rc.verify_reasoning(_FULL, require_triad=True)
+    assert vt.satisfied is False and any("Palermo" in x for x in vt.violations)   # enforced when required
+
+
+def test_full_triad_satisfies_require_triad():
+    full = ("She was recruited through deception with false promises, then forced to work -- passport "
+            "confiscation, an ILO forced labour indicator prohibited under ILO Convention No. 29. "
+            "You should keep copies and do not hand over your documents. "
+            "Contact your embassy and file a complaint with the labour office.")
+    v = rc.verify_reasoning(full, require_triad=True)
+    assert v.palermo["triad_complete"] is True and v.satisfied is True
+
+
 def test_min_steps_relaxation_matches_training_gate():
     # the training gate keeps >=3 links; a 3-link reply (indicator+statute+action, no resources) satisfies
     # the relaxed contract but not the strict 4-step one. Long enough to be a real graded answer.
