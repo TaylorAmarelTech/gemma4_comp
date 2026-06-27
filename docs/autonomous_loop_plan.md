@@ -6,8 +6,8 @@
 > only) on its own clock. Shared memory: `reports/rich_lift/panel.jsonl` +
 > `reports/autonomous_engine_state.json`. A `full` job grades the whole ~76k-prompt registry.
 
-- **Started** 2026-06-26T12:54:42Z · **updated** 2026-06-26T23:34:23Z · **ticks** 2
-- **Progress** 2/41 jobs · current `glm-5.2` n=1500 (full registry)
+- **Started** 2026-06-26T12:54:42Z · **updated** 2026-06-27T02:54:06Z · **ticks** 3
+- **Progress** 3/41 jobs · current `deepseek-v4-pro` n=1500 (full registry)
 
 ## Control
 - **Stop gracefully:** create `reports/autonomous_engine.stop` (checked each tick).
@@ -19,8 +19,8 @@
 |---:|---|---:|---|---|
 | 1 | `gemma4:31b` | 1500 | full | done |
 | 2 | `gpt-oss:120b` | 1500 | full | done |
-| 3 | `glm-5.2` | 1500 | full | RUNNING |
-| 4 | `deepseek-v4-pro` | 1500 | full | queued |
+| 3 | `glm-5.2` | 1500 | full | done |
+| 4 | `deepseek-v4-pro` | 1500 | full | RUNNING |
 | 5 | `glm-5.1` | 40 | curated | queued |
 | 6 | `deepseek-v3.2` | 40 | curated | queued |
 | 7 | `kimi-k2.6` | 40 | curated | queued |
