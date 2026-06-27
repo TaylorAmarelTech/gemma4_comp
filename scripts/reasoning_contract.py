@@ -59,6 +59,7 @@ from build_reasoning_targets import (  # noqa: E402
 )
 from citation_accuracy import citation_stats as _citation_stats  # noqa: E402
 from refusal_detector import classify as _classify, FORMAT_FAILURE  # noqa: E402
+from palermo_screening import palermo_analysis  # noqa: E402  -- Act-Means-Purpose triad + screening signals
 
 REASONING_SFT = _ROOT / "reports" / "training" / "reasoning_sft.jsonl"
 OUT = _ROOT / "reports" / "training" / "reasoning_contract.json"
@@ -124,6 +125,7 @@ class ContractVerdict:
     grounded: bool        # a real graded answer/refusal, not a format failure (empty/trace/too-short)
     fragile_free: bool    # no phone-like in the reasoning
     fragile: dict
+    palermo: dict         # Palermo Act-Means-Purpose triad + screening signals (palermo_screening)
     score: float          # n_steps / 4
     satisfied: bool       # the full contract holds
     violations: list
@@ -139,9 +141,12 @@ _REPAIR = {
 
 
 def verify_reasoning(text: str, *, min_steps: int = 4, require_order: bool = True,
-                     require_citation_valid: bool = True, forbid_phone: bool = True) -> ContractVerdict:
+                     require_citation_valid: bool = True, forbid_phone: bool = True,
+                     require_triad: bool = False) -> ContractVerdict:
     """Verify one reply against the reasoning contract. Strict by default (full 4-step chain, valid
-    citation, ordered, no phone-like fragile fact). The training gate may relax min_steps to 3."""
+    citation, ordered, no phone-like fragile fact). The training gate may relax min_steps to 3.
+    ``require_triad`` (default off, additive) also requires the Palermo Act-Means-Purpose triad to be
+    articulated -- the legal-rigour enrichment seeded by the screening instruments."""
     reasoning, _answer = split_thinking(text)
     links = chain_links(text)                         # presence over the full text
     n = sum(links.values())
@@ -151,6 +156,7 @@ def verify_reasoning(text: str, *, min_steps: int = 4, require_order: bool = Tru
     grounded = reason not in FORMAT_FAILURE
     frag = fragile_in_reasoning(reasoning)            # fragility judged on the REASONING trace
     phone_free = frag["phone"] == 0
+    pal = palermo_analysis(text)                      # Act-Means-Purpose triad + screening signals
 
     violations: list[str] = []
     for step in STEPS:
@@ -164,15 +170,18 @@ def verify_reasoning(text: str, *, min_steps: int = 4, require_order: bool = Tru
         violations.append(f"not a grounded answer ({reason}): give a real graded reply, not an empty/trace stub")
     if forbid_phone and not phone_free:
         violations.append("fragile fact: the reasoning asserts a phone-like number -- defer contacts to tools/RAG")
+    if require_triad and not pal["triad_complete"]:
+        violations.append("Palermo triad incomplete: articulate the act, the means, AND the exploitative purpose")
 
     satisfied = (n >= min_steps and grounded
                  and (order or not require_order)
                  and (cite_ok or not (require_citation_valid and links["statute"]))
-                 and (phone_free or not forbid_phone))
+                 and (phone_free or not forbid_phone)
+                 and (pal["triad_complete"] or not require_triad))
     repair_hint = ("Revise the reasoning to: " + "; ".join(
         v.split(": ", 1)[1] if ": " in v else v for v in violations)) if violations else ""
     return ContractVerdict(steps=links, n_steps=n, order_ok=order, citation_valid=cite_ok,
-                           grounded=grounded, fragile_free=phone_free, fragile=frag,
+                           grounded=grounded, fragile_free=phone_free, fragile=frag, palermo=pal,
                            score=round(n / 4, 3), satisfied=satisfied, violations=violations,
                            repair_hint=repair_hint)
 
