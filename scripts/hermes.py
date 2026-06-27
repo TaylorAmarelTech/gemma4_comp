@@ -157,8 +157,8 @@ def generate_batch(typology: str, corridor: str, difficulty: str, n: int) -> lis
         f"worker to help). Composite only -- NO real names, agencies, or case numbers. "
         f'Output ONLY a JSON array: [{{"text":"..."}}]. No prose, no code fence.'
     )
-    return _parse_prompts(ollama_chat(prompt, model=MODEL, max_tokens=8000, temperature=0.9,  # generous bound:
-                                      max_retries=_GEN_MAX_RETRIES))  # a 6-prompt batch is <2k; unlimited hung under throttle
+    return _parse_prompts(ollama_chat(prompt, model=MODEL, max_tokens=0, temperature=0.9,  # 0 = unlimited
+                                      max_retries=_GEN_MAX_RETRIES))  # keep flywheel PAUSED under engine contention (unlimited hangs on a throttled trickle); run only post-sweep/engine-idle
 
 
 def _norm(text: str, typology: str, corridor: str, difficulty: str) -> dict:
