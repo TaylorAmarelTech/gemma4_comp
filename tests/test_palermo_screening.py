@@ -77,6 +77,15 @@ def test_citation_coherence_recruitment_fee_maps_to_c181():
     assert coh["coherent"] is True and 181 in coh["matched"]
 
 
+def test_citation_coherence_enriched_from_verified_map():
+    # wage withholding is governed by C095 (Protection of Wages) -- added from the verified statute map
+    wages = ps.citation_coherence("There was withholding of wages, contrary to ILO Convention No. 95.")
+    assert wages["coherent"] is True and 95 in wages["matched"]
+    # passport retention is governed by C189 (Domestic Workers, keep-own-documents) -- the biggest sector
+    docs = ps.citation_coherence("Her passport was confiscated, contrary to ILO Convention No. 189.")
+    assert docs["coherent"] is True and 189 in docs["matched"]
+
+
 def test_coverage_aggregates_rates():
     full = ("She was recruited with false promises, forced to work under threats, her passport taken.")
     neutral = "A general note about office supplies and weekly schedules."
