@@ -92,17 +92,21 @@ SCREENING_SIGNALS: dict[str, tuple[str, ...]] = {
 }
 
 
-# Which ILO instrument(s) govern each screening signal -- for a CITATION-COHERENCE check (does the reply
+# Which ILO convention(s) govern each screening signal -- for a CITATION-COHERENCE check (does the reply
 # cite a law that actually governs the indicator it named, vs real-but-irrelevant "citation theatre"?).
-# Conservative, standard mappings (refine with domain review); the Palermo Protocol governs trafficking
-# across all of these. C29 Forced Labour (1930) + C105 Abolition of Forced Labour (1957); C181 Private
-# Employment Agencies Art.7 (1997) + C97/C143 Migrant Workers.
+# Enriched from the multi-agent-VERIFIED indicator->statute->remedy map (docs/research/
+# indicator_statute_remedy_map.md): C029/C105 (forced labour), C095 (protection of wages, Art.8/9/12),
+# C181 Art.7 (recruitment fees), C097/C143 (migrant workers), C189 (domestic workers -- the largest
+# affected group, freedom of movement + keep-own-documents + hours). (ICRMW Art.21, Palermo, P029,
+# Warsaw, EU 2011/36, US TVPA also govern but are not ILO convention numbers, so the convention-number
+# coherence check cannot match them; they are tracked in the map doc, not here.)
 INDICATOR_STATUTE: dict[str, tuple[int, ...]] = {
-    "document_retention": (29, 105), "wage_withholding": (29, 105), "debt_bondage": (29, 105),
-    "movement_restriction": (29, 105), "threats_coercion": (29, 105), "isolation": (29, 105),
-    "excessive_hours": (29, 105),
-    "recruitment_fee": (181, 97, 143), "contract_issues": (181, 97, 143),
-    "deception_about_work": (181, 97, 143),
+    "document_retention": (29, 105, 189), "wage_withholding": (95, 29, 97, 143),
+    "debt_bondage": (29, 105, 181, 95), "movement_restriction": (29, 105, 189),
+    "threats_coercion": (29, 105), "isolation": (29, 105, 189),
+    "excessive_hours": (29, 105, 189, 95),
+    "recruitment_fee": (181, 97, 143), "contract_issues": (181, 97, 143, 189),
+    "deception_about_work": (97, 181, 143, 29),
 }
 
 
