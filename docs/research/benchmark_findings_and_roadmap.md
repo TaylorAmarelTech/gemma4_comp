@@ -92,6 +92,11 @@
 
 ### [ENGINE-CRITICAL] — versioned rollout, NOT mid-sweep (bump rubric/board version, re-grade or grade-forward-and-label)
 3. **Rubric v2** — P1 (grounded C ≤6/25) + P2 band + P3 criterion F + P6 citation gate.
+   **Code landed (opt-in):** `rich_harness_lift.py --rubric-version v2` implements all four —
+   grounded-C cap, content-free band, separately-reported F, deterministic B citation gate — writing
+   tagged rows to a separate `panel_v2.jsonl`; the aggregator filters by version so v1/v2 never mix
+   (`tests/test_rubric_v2.py`). The engine/board stays on v1; rollout still needs the scheduled
+   versioned re-grade.
 4. **Harness refusal-collapse fix** — instruct: refuse the operational ask but still deliver indicator +
    law + resources; or fall back to baseline when the harnessed output is drastically shorter/emptier. Ship
    **`core` as the headline harness** (`full < core` universally).

@@ -119,6 +119,30 @@ def test_judge_components_clamps_and_sums_when_total_missing():
     assert out["score"] == 25.0 + 18 + 24 + 12 + 13      # = 92, the clamped component sum
 
 
+def test_judge_components_v2_reports_f_without_adding_it_to_total():
+    seen = {}
+
+    def caller(prompt, **_k):
+        seen["prompt"] = prompt
+        return '{"A":10,"B":8,"C":6,"D":4,"E":2,"F":10}'
+
+    out = mj.judge_components("p", "r", model="m", caller=caller, rubric_version="v2")
+
+    assert out["F"] == 10.0
+    assert out["score"] == 30.0
+    assert "F [0-10, reported separately, NEVER in the total]" in seen["prompt"]
+    assert "BARE refusal" in seen["prompt"]
+
+
+def test_build_component_rubric_rejects_unknown_version():
+    try:
+        mj.build_component_rubric(version="worker@example.invalid")
+    except ValueError as exc:
+        assert "unknown rubric version" in str(exc)
+    else:
+        raise AssertionError("expected unknown rubric version to fail")
+
+
 def test_judge_pair_cancels_position_bias():
     # a judge with pure position bias (always prefers the 2nd reply / B-slot) must net to 0
     pair = mj.judge_pair("p", "reply_a", "reply_b", model="m", caller=lambda p, **k: '{"delta": 8}')
