@@ -40,6 +40,9 @@
   .pack-row { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 10px; padding: 9px 10px; background: var(--paper-2, #EFEDE4); border: 1px solid var(--line, #DDD8C9); border-radius: 8px; font-size: 12px; line-height: 1.35; }
   .pack-row b { font-family: var(--mono, monospace); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent-ink, #1B4E66); }
   .pack-row span { color: var(--ink-2, #2A2D34); }
+  .setup-trust { margin-top: 14px; padding: 12px 14px; border: 1px solid var(--line, #DDD8C9); border-left: 4px solid var(--accent, #1B4E66); border-radius: 10px; background: #FFF; color: var(--ink-2, #2A2D34); font-size: 12.5px; line-height: 1.5; }
+  .setup-trust b { color: var(--ink, #0E1116); }
+  .setup-trust code { font-family: var(--mono, monospace); font-size: 12px; background: var(--paper-2, #EFEDE4); padding: 1px 5px; border-radius: 4px; }
 </style>
 </head>
 <body>
@@ -90,6 +93,12 @@
         <button type="button" class="secondary" id="clear-btn">Clear stored</button>
       </div>
       <div class="setup-status" id="setup-status">Click Preload recording pack to store all selected examples, or generate one row manually. Everything is stored locally in your browser for the slide deck and replays without GPU latency.</div>
+      <div class="setup-trust" role="note" aria-label="Recording trust boundary">
+        <b>Recording cache boundary.</b> Raw case files stay out of the slide deck.
+        Use synthetic or sanitized prompts here. Cached examples are stored in
+        <code>localStorage</code>; raw worker chats, IDs, contact details, and
+        private documents stay in the local workbench.
+      </div>
     </aside>
 
     <article class="setup-card" aria-label="Preview">

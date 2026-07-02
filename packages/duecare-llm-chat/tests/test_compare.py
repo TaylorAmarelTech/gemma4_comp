@@ -195,6 +195,17 @@ def test_aria_attributes_present(client):
     assert not missing, f"ARIA attributes missing: {missing}"
 
 
+def test_examples_picker_normalizes_indicator_chips_and_search(client):
+    picker = client.get("/static/_examples_picker.js").text
+
+    assert "function _normalizeIndicatorLabel(indicator)" in picker
+    assert "retentionofidentitydocuments: 'passport_retention'" in picker
+    assert "restrictionofmovement: 'movement_restriction'" in picker
+    assert "withholdingofwages: 'withheld_wages'" in picker
+    assert "_exampleIndicatorLabels(ex).join(' ')" in picker
+    assert "_exampleIndicatorLabels(ex).slice(0, 3).forEach(ind =>" in picker
+
+
 def test_max_tokens_default_is_demo_safe(client):
     r = client.get("/static/compare.html")
     assert "Default is <b>4096 tokens</b> for recording-safe local demos" in r.text

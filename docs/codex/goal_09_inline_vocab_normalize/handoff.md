@@ -1,6 +1,6 @@
 # Goal 9 — Inline vocabulary normalization for graph-chat synthesis
 
-> Status: **PENDING**. Created 2026-05-24.
+> Status: **DONE 2026-06-29** in the current working tree. Created 2026-05-24.
 
 ## 1. Goal
 

@@ -1,6 +1,6 @@
 # Goal 7 — Vocabulary discovery script
 
-> Status: **PENDING**. Created 2026-05-24.
+> Status: **DONE 2026-06-29** in the current working tree. Created 2026-05-24.
 
 ## 1. Goal
 
@@ -8,7 +8,7 @@ A read-only stdlib script that walks every saved knowledge envelope and reports 
 
 ## 2. Why it matters
 
-`STANDARD_FACT_INDICATORS` today has 16 entries. Real saved knowledge produces tokens we haven't yet catalogued (especially when Gemma rewrites use slightly different wording). Without visibility, the vocabulary drifts: drafts saved with a non-canonical indicator string become invisible to chart filters and aggregation queries.
+`STANDARD_FACT_INDICATORS` has 17 entries after the audit surfaced `wage_assignment` as a real sample pattern. Real saved knowledge will keep producing tokens we haven't yet catalogued (especially when Gemma rewrites use slightly different wording). Without visibility, the vocabulary drifts: drafts saved with a non-canonical indicator string become invisible to chart filters and aggregation queries.
 
 This script gives the user a signal to either:
 - Add the surfaced token to `STANDARD_FACT_INDICATORS` (after confirming it's a real indicator).
@@ -25,7 +25,7 @@ This script gives the user a signal to either:
 
 - New script `scripts/audit_knowledge_vocabularies.py` that:
   - Walks every saved knowledge envelope under the local store.
-  - Extracts every `content.indicators`, `content.applies_to_indicators`, `content.signal_types`, `content.corridor`, `content.corridors`, `content.applicable_corridors`, `content.journey_stage`, `content.stages` value.
+  - Extracts every `content.indicators`, `content.applies_to_indicators`, `content.risk_indicators`, `content.signal_types`, `content.corridor`, `content.corridors`, `content.applicable_corridors`, `content.journey_stage`, `content.stages` value.
   - Bucketing per token:
     - CANONICAL — appears in `STANDARD_FACT_*`
     - KNOWN_ALIAS — appears in `_*_ALIASES`
@@ -102,7 +102,7 @@ Create scripts/audit_knowledge_vocabularies.py that:
      broken locally).
   2. Walks every saved knowledge envelope under the detected store path.
   3. Extracts every content.indicators, content.applies_to_indicators,
-     content.signal_types, content.corridor, content.corridors,
+     content.risk_indicators, content.signal_types, content.corridor, content.corridors,
      content.applicable_corridors, content.journey_stage, content.stages
      value.
   4. Bucketing per token: CANONICAL / KNOWN_ALIAS / UNKNOWN.

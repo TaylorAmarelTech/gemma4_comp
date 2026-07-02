@@ -1212,6 +1212,7 @@ def _static_checks(root: pathlib.Path) -> list[dict[str, Any]]:
         "declared candidate pattern IDs",
         "unresolved source-gap rows",
         "source admission rules",
+        "readiness_gate_missing=0",
         "international anchors cannot",
         "public complaint lists",
         "source_admission_missing=0",

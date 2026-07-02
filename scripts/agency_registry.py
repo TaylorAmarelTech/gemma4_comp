@@ -37,10 +37,14 @@ import json
 import re
 import sys
 from dataclasses import asdict, dataclass
-from pathlib import Path
+from pathlib import Path, PurePath, PurePosixPath, PureWindowsPath
+from typing import Any
 
 _ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_REGISTRY = _ROOT / "data" / "agency_registry" / "sample_licensed_agencies.json"
+_EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b", re.I)
+_PHONE = re.compile(r"\+?\d[\d\s().\-]{8,}\d")
+_SAFE_RELATIVE_PATH = re.compile(r"^[A-Za-z0-9._/\-]+$")
 
 # Licence-status vocabulary, normalized from the many regulator spellings.
 STATUS_VALID = "valid"
@@ -64,6 +68,38 @@ _SUFFIXES = re.compile(
     r"\b(inc|incorporated|corp|corporation|co|company|ltd|limited|llc|"
     r"intl|international|manpower|services?|agency|agencies|"
     r"recruitment|placement|overseas|enterprises?)\b", re.I)
+
+
+def _contains_sensitive_text(value: str) -> bool:
+    return bool(_EMAIL.search(value) or _PHONE.search(value) or re.search(r"\b\d{9,}\b", value))
+
+
+def _safe_relative_report_path(path: PurePath) -> str:
+    display = path.as_posix()
+    if not display or display.startswith("../") or "/../" in display:
+        return "redacted"
+    if _contains_sensitive_text(display):
+        return "redacted"
+    if not _SAFE_RELATIVE_PATH.fullmatch(display):
+        return "redacted"
+    return display
+
+
+def _display_report_path(raw_path: Any) -> str:
+    """Display a path in CLI logs without leaking local dirs or case-derived names."""
+    if not raw_path:
+        return "n/a"
+    raw = str(raw_path)
+    try:
+        path = Path(raw)
+        if path.is_absolute():
+            try:
+                return _safe_relative_report_path(path.relative_to(_ROOT))
+            except ValueError:
+                return "external"
+        return _safe_relative_report_path(PurePosixPath(PureWindowsPath(raw).as_posix()))
+    except (OSError, RuntimeError, ValueError):
+        return "redacted"
 
 
 def normalize_status(raw: str) -> str:
@@ -224,18 +260,26 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
 
     if args.ingest:
-        profiles = load_registry(args.ingest)
+        try:
+            profiles = load_registry(args.ingest)
+        except FileNotFoundError:
+            print(f"[agency-registry] registry not found: {_display_report_path(args.ingest)}", file=sys.stderr)
+            return 1
         payload = {"_synthetic": False, "n_records": len(profiles),
                    "records": [asdict(p) for p in profiles]}
         out = Path(args.out or (_ROOT / "reports" / "agency_registry" / "staged.json"))
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
-        print(f"normalized {len(profiles)} record(s) -> {out}", file=sys.stderr)
+        print(f"normalized {len(profiles)} record(s) -> {_display_report_path(out)}", file=sys.stderr)
         return 0
 
     if not args.query:
         ap.error("provide --query (to verify) or --ingest (to normalize an export)")
-    registry = load_registry(args.registry)
+    try:
+        registry = load_registry(args.registry)
+    except FileNotFoundError:
+        print(f"[agency-registry] registry not found: {_display_report_path(args.registry)}", file=sys.stderr)
+        return 1
     v = verify_agency(args.query, registry, claimed_license=args.license)
     print(json.dumps(asdict(v), indent=2, ensure_ascii=False))
     return 0

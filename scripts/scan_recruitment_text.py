@@ -237,7 +237,7 @@ def scan(items: list[dict], registry_path: str = "") -> dict:
     """
     harness = default_harness()
     grep_call = harness.get("grep_call")
-    result = screen_items(items, grep_call=grep_call, fast_call=None)
+    result = screen_items(items, grep_call=grep_call, model_call=None)
     # enrich each row with the human-readable rule indicators it hit, pulled
     # from the live rule set so the report explains WHY each item was flagged.
     rules_by_id = {r.get("rule"): r for r in GREP_RULES}

@@ -30,6 +30,9 @@
   .start-footer { margin-top: 28px; display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--ink-3, #5B5F68); }
   .start-footer a { color: var(--accent-ink, #1B4E66); text-decoration: none; }
   .start-footer a:hover { text-decoration: underline; }
+  .start-trust { margin-top: 18px; padding: 14px 16px; border: 1px solid var(--line, #DDD8C9); border-left: 4px solid var(--accent, #1B4E66); border-radius: 12px; background: #FFF; color: var(--ink-2, #2A2D34); font-size: 13px; line-height: 1.5; max-width: 76ch; }
+  .start-trust b { display: block; color: var(--ink, #0E1116); margin-bottom: 4px; }
+  .start-trust code { font-family: var(--mono, monospace); font-size: 12px; background: var(--paper-2, #EFEDE4); padding: 1px 5px; border-radius: 4px; }
 </style>
 </head>
 <body>
@@ -44,6 +47,13 @@
       input/output examples per audience so the deck never waits on
       live inference during a take.
     </p>
+    <div class="start-trust" role="note" aria-label="Recording trust boundary">
+      <b>Recording cache boundary</b>
+      Raw case files stay out of the slide deck. Cached slide rows live in
+      browser <code>localStorage</code>; raw worker chats, IDs, contact details,
+      and private documents stay in the local workbench unless a reviewer
+      explicitly exports a redacted artifact.
+    </div>
   </header>
 
   <section class="start-grid" aria-label="Demo entry points">

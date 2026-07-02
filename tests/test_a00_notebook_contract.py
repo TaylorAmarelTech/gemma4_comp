@@ -47,7 +47,6 @@ def test_a00_has_judge_facing_quick_proof_and_research_flow():
         "evidence-links",
         "Download evidence ZIP",
         "Open HTML report",
-        "preconfig-judge-model",
         "Judge model",
         "Ollama Cloud gpt-oss 20B judge",
         "OLLAMA_API_KEY",
@@ -170,6 +169,19 @@ def test_a00_has_synthetic_polish_and_training_smoke_path():
         "_install_model_training_stack",
     ]:
         assert marker in text
+
+
+def test_a00_preconfigured_page_exposes_only_guided_controls():
+    text = A00.read_text(encoding="utf-8")
+    start = text.split('<div class="panel a00-choice a00-preconfigured preconfig-card"', 1)[1]
+    preconfigured_card = start.split('<div class="panel a00-choice custom-card"', 1)[0]
+
+    assert 'id="preconfig-model"' in preconfigured_card
+    assert 'id="preconfig-limit"' in preconfigured_card
+    assert 'id="preconfig-judge-model"' not in preconfigured_card
+    assert "Judge model" not in preconfigured_card
+    assert 'id="pipeline-judge-source"' in text
+    assert 'id="pipeline-judge-ref"' in text
 
 
 def test_a00_reports_dimension_level_evidence():

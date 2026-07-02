@@ -22,6 +22,9 @@ from datetime import datetime
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+for _src in sorted((REPO_ROOT / "packages").glob("*/src")):
+    if str(_src) not in sys.path:
+        sys.path.insert(0, str(_src))
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -163,8 +163,8 @@ Current evidence from the latest local run:
   `5/34`, and reports zero phase-coverage, legal-anchor-channel, and
   readiness-blocker mismatches.
 - `python scripts\validate_sister_project_planning.py`:
-  `27 checks, 0 findings`, with the direct snapshot reporting
-  `source_admission_missing=0` and
+  `28 checks, 0 findings`, with the direct snapshot reporting
+  `readiness_gate_missing=0`, `source_admission_missing=0`, and
   `privacy_issues=project:0,packs:0,grounding:0`. Any nonzero value in those
   fields is an aggregate-only safety signal to inspect before continuing.
 
@@ -287,6 +287,8 @@ local-law claims need dated source objects, international anchors cannot
 substitute for local law, public complaint lists and private identifiers are
 rejected, informal social-channel notices remain source leads until reviewed,
 and expert review is required before public claims or comparable scoring.
+Readiness gates must also keep explicit aggregate block coverage for public
+claims, training use, comparable scoring, and worker-facing use.
 First-build phases and scheme prompts must carry explicit blocked flags, with
 public scoring, training use, and worker-facing use all set to `false`.
 Scheme prompts must still map to declared candidate pattern IDs and remain

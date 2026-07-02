@@ -1328,8 +1328,8 @@ class PipelineRequest(BaseModel):
     model_b_ref: str = A00_SMALL_MODEL_REF
     model_b_adapter_ref: str = ""
     judge_model_source: str = "hf"
-    # Empty means "reuse model_a_ref". The UI still sends an explicit
-    # selected judge model for clarity, but API callers can omit it.
+    # Empty means "reuse model_a_ref". The preconfigured UI intentionally
+    # omits a separate judge selector; Custom can still send this explicitly.
     judge_model_ref: str = ""
     judge_model_adapter_ref: str = ""
     quantization: str = "4bit"
@@ -7981,9 +7981,7 @@ __A00_SHUTDOWN_CONTROL__
           <dt>Fine-tune path</dt>
           <dd>Small LoRA smoke path using the generated SFT rows, then the same prompts are rerun.</dd>
           <dt>Evaluation</dt>
-          <dd>Combined rule-based score plus LLM judge using the selected normal judge Gemma model. A larger Gemma model or frontier model may produce stronger final grading than the fast smoke-test judge.</dd>
-          <dt>External judge option</dt>
-          <dd>If ANTHROPIC_API_KEY or OLLAMA_API_KEY is available, Claude or Ollama Cloud can grade the final response sets without loading another local judge model.</dd>
+          <dd>Combined rule-based score plus LLM judge using the selected Gemma model. A larger Gemma model or frontier model may produce stronger final grading in Custom.</dd>
           <dt>Report</dt>
           <dd>Four-arm report: base, base+harness, fine-tuned, and fine-tuned+harness.</dd>
           <dt>Runtime budget</dt>
@@ -7993,7 +7991,6 @@ __A00_SHUTDOWN_CONTROL__
       <div class="a00-choice-controls">
         <div class="row compact-row">
           <label>Run/train Gemma model <select id="preconfig-model"></select></label>
-          <label>Judge model <select id="preconfig-judge-model"></select></label>
           <label>Prompt count <input id="preconfig-limit" type="number" min="1" max="50" value="4"></label>
         </div>
         <div class="pipeline-progress" aria-label="Preconfigured pipeline progress"><div id="preconfig-progress"></div></div>
@@ -8677,13 +8674,8 @@ async function loadOptions() {
   const modelPresets = await getJson("/api/a00/model-presets");
   if ($("preconfig-model")) {
     const modelOptions = (modelPresets.presets || []).map(p => `<option value="${p.ref}" data-source="${p.source || "hf"}">${p.label || p.ref}</option>`).join("");
-    const judgeOptions = (modelPresets.judge_presets || modelPresets.presets || []).map(p => `<option value="${p.ref}" data-source="${p.source || "hf"}">${p.label || p.ref}</option>`).join("");
     $("preconfig-model").innerHTML = modelOptions;
     $("preconfig-model").value = "__A00_SMALL_MODEL_REF__";
-    if ($("preconfig-judge-model")) {
-      $("preconfig-judge-model").innerHTML = judgeOptions;
-      $("preconfig-judge-model").value = modelPresets.default_judge_ref || "__A00_SMALL_MODEL_REF__";
-    }
   }
   const bulk = contract.quantitative_run_profiles.bulk_text_25;
   const synth = contract.synthetic_generation_profiles.rubric_polisher_24;
@@ -8767,9 +8759,8 @@ async function runPreconfiguredPipeline() {
   const selected = $("preconfig-model") && $("preconfig-model").selectedOptions ? $("preconfig-model").selectedOptions[0] : null;
   const modelRef = selected ? selected.value : "__A00_SMALL_MODEL_REF__";
   const modelSource = selected ? (selected.getAttribute("data-source") || "hf") : "hf";
-  const judgeSelected = $("preconfig-judge-model") && $("preconfig-judge-model").selectedOptions ? $("preconfig-judge-model").selectedOptions[0] : null;
-  const judgeModelRef = judgeSelected ? judgeSelected.value : modelRef;
-  const judgeModelSource = judgeSelected ? (judgeSelected.getAttribute("data-source") || "hf") : modelSource;
+  const judgeModelRef = modelRef;
+  const judgeModelSource = modelSource;
   $("pipeline-limit").value = limit;
   $("pipeline-synth-count").value = synth;
   $("pipeline-execute").value = execute ? "true" : "false";
@@ -8780,7 +8771,7 @@ async function runPreconfiguredPipeline() {
   $("pipeline-judge-source").value = judgeModelSource;
   $("pipeline-judge-ref").value = judgeModelRef;
   $("pipeline-judge-adapter").value = "";
-  setPreconfiguredProgress(6, "Queueing guided pipeline. Step 1 checks current model state; then A-00 unloads memory if needed, checks disk, loads the selected run/train Gemma model, runs both benchmark arms, fine-tunes, configures the selected judge model or Ollama judge for final combined grading, and saves the report.");
+  setPreconfiguredProgress(6, "Queueing guided pipeline. Step 1 checks current model state; then A-00 unloads memory if needed, checks disk, loads the selected Gemma model, runs both benchmark arms, fine-tunes, reuses the selected Gemma model for final combined grading, and saves the report.");
   const body = {
     preset_id: "synthetic_train_benchmark_cycle",
     model_a_source: modelSource,

@@ -92,9 +92,9 @@ def extract_html(content: bytes) -> tuple[str, str]:
 
 def extract_pdf(content: bytes) -> tuple[str, str]:
     if importlib.util.find_spec("pdfplumber") is not None:
-        import pdfplumber  # type: ignore
-
         try:
+            import pdfplumber  # type: ignore
+
             with pdfplumber.open(io.BytesIO(content)) as pdf:
                 text = "\n".join(page.extract_text() or "" for page in pdf.pages)
             if text.strip():
@@ -102,9 +102,9 @@ def extract_pdf(content: bytes) -> tuple[str, str]:
         except Exception:
             pass
     if importlib.util.find_spec("pypdf") is not None:
-        import pypdf  # type: ignore
-
         try:
+            import pypdf  # type: ignore
+
             reader = pypdf.PdfReader(io.BytesIO(content))
             text = "\n".join(page.extract_text() or "" for page in reader.pages)
             if text.strip():

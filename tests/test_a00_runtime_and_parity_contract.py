@@ -340,12 +340,13 @@ def test_a00_training_saves_and_resumes_checkpoints() -> None:
     assert "resume_from_checkpoint: $(\"train-resume-checkpoint\").value" in text
 
 
-def test_a00_pipeline_supports_separate_judge_model() -> None:
+def test_a00_pipeline_supports_custom_judge_model_without_preconfigured_selector() -> None:
     text = _a00_text()
     assert "def _judge_model_request(req: PipelineRequest) -> ModelLoadRequest:" in text
     assert "req.judge_model_ref or req.model_a_ref" in text
-    assert 'id="preconfig-judge-model"' in text
-    assert "const judgeSelected = $(\"preconfig-judge-model\")" in text
+    assert 'id="preconfig-judge-model"' not in text
+    assert 'const judgeModelRef = modelRef;' in text
+    assert 'const judgeModelSource = modelSource;' in text
     assert "judge_model_ref: judgeModelRef" in text
     assert "judge_model_source: $(\"pipeline-judge-source\").value" in text
     assert '"18. Loading judge Gemma model for final evaluation"' in text
@@ -648,7 +649,8 @@ def test_a00_pipeline_supports_ollama_external_judge() -> None:
     assert '"18. Configuring Ollama judge for final evaluation"' in text
     assert "External Ollama judge used only for final combined grading" in text
     assert '"ollama_cloud_ready": bool(ollama_key)' in text
-    assert "const judgeOptions = (modelPresets.judge_presets || modelPresets.presets || [])" in text
+    assert 'id="pipeline-judge-source"' in text
+    assert 'id="pipeline-judge-ref"' in text
     assert '<option value="ollama_cloud">ollama_cloud</option>' in text
 
 

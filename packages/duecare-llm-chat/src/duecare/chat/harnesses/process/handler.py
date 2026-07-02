@@ -26,6 +26,7 @@ from fastapi.responses import JSONResponse
 from ..._model_output import sanitize_model_output
 from .._replay import demo_replay
 from .._safe_text import fact_excerpt as _fact_excerpt
+from .._safe_text import normalize_inline_vocabulary as _normalize_inline_vocabulary
 from .extractor import ENTITY_PATTERNS
 from .prompts import (
     EDGE_EXTRACTION_POINTED_QUESTIONS,
@@ -5645,7 +5646,7 @@ def register_routes(app: Any) -> None:
                     )
                     raw = sanitize_model_output(raw)
                     if raw and not _looks_like_reasoning_leak(raw):
-                        synthesis_text = raw[:1500]
+                        synthesis_text = _normalize_inline_vocabulary(raw[:1500])
                     synthesis_ms = int((_time.monotonic() - _t0) * 1000)
                 except Exception as exc:
                     synthesis_error = f"{type(exc).__name__}: {str(exc)[:160]}"
@@ -5737,6 +5738,7 @@ def register_routes(app: Any) -> None:
                 (model_out or {}).get("text") or (model_out or {}).get("response") or ""
             )
             response_text = sanitize_model_output(response_text)
+            response_text = _normalize_inline_vocabulary(response_text)
             if _looks_like_reasoning_leak(response_text):
                 fallback = _deterministic_case_brief(bundle, bundle.get("intelligence") or {})
                 return JSONResponse({

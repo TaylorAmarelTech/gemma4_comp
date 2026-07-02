@@ -741,6 +741,40 @@ def test_process_graph_chat_answers_fee_camouflage_and_provider_choice():
     assert "provider_choice_restriction" in answer
 
 
+def test_process_graph_chat_normalizes_inline_vocab_in_model_answer():
+    from duecare.chat.app import create_app
+
+    app = create_app()
+    app.state.last_process_bundle = {
+        "run_id": "process_test",
+        "summary": {
+            "n_rows_processed": 1,
+            "n_grep_rules_fired": 0,
+            "n_evidence_edges": 0,
+        },
+        "results": [{"row_id": "row-1"}],
+        "intelligence": {},
+    }
+    app.state.gemma_call = lambda *_args, **_kwargs: (
+        "row-1 shows FeeBondage in the ph-hk corridor at the Arrival stage."
+    )
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/process/graph-chat",
+        json={"question": "Summarize the graph evidence."},
+    )
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["route"] == "gemma_only"
+    assert body["answer"] == (
+        "row-1 shows fee_bondage in the PH-HK corridor at the "
+        "arrival_and_placement stage."
+    )
+    assert body["cited_rows"] == ["row-1"]
+
+
 def test_process_batch_completion_detail_honestly_reports_queued_media():
     """When the batch worker completes at pct=100 the detail must
     honestly reflect queued OCR/Gemma vision items rather than imply

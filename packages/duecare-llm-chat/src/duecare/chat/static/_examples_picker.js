@@ -141,6 +141,38 @@
     expert: '#ef4444',
   };
 
+  const _indicatorAliases = {
+    feecamouflage: 'fee_camouflage',
+    feebondage: 'fee_bondage',
+    salarydeduction: 'salary_deduction',
+    wageassignment: 'wage_assignment',
+    debtbondage: 'debt_bondage',
+    passport: 'passport_retention',
+    passportretention: 'passport_retention',
+    documentconfiscation: 'passport_retention',
+    retentionofdocuments: 'passport_retention',
+    retentionofidentitydocuments: 'passport_retention',
+    doccontrol: 'document_control',
+    documentcontrol: 'document_control',
+    retaliation: 'retaliation_risk',
+    retaliationrisk: 'retaliation_risk',
+    jurisdictionshopping: 'jurisdiction_shopping',
+    wagetheft: 'wage_theft',
+    deceptiverecruitment: 'deceptive_recruitment',
+    deception: 'deceptive_recruitment',
+    contractsubstitution: 'deceptive_recruitment',
+    movementrestriction: 'movement_restriction',
+    restrictionofmovement: 'movement_restriction',
+    isolation: 'isolation',
+    abuseofvulnerability: 'abuse_of_vulnerability',
+    excessiveovertime: 'excessive_overtime',
+    withheldwages: 'withheld_wages',
+    withholdingofwages: 'withheld_wages',
+    withholdingwages: 'withheld_wages',
+    wagewithholding: 'withheld_wages',
+    casesignal: 'case_signal',
+  };
+
   const _demoImpactOrder = [
     'headline_lift_demo', 'jailbreak_resistance', 'online_search_demo',
     'model_comparison_demo', 'social_engineering',
@@ -218,6 +250,25 @@
     return b;
   }
 
+  function _normalizeIndicatorLabel(indicator) {
+    const raw = String(indicator || '').trim();
+    if (!raw) return '';
+    const key = raw.toLowerCase().replace(/[\s_-]+/g, '').replace(/[^a-z0-9]/g, '');
+    return _indicatorAliases[key] || raw;
+  }
+
+  function _exampleIndicatorLabels(ex) {
+    const seen = {};
+    return (ex.ilo_indicators || [])
+      .map(_normalizeIndicatorLabel)
+      .filter(Boolean)
+      .filter(ind => {
+        if (seen[ind]) return false;
+        seen[ind] = true;
+        return true;
+      });
+  }
+
   function _matches(ex, q) {
     if (!q) return true;
     const hay = [
@@ -225,6 +276,7 @@
       ex.sector, ex.subcategory, ex.difficulty, ex.synthetic_image,
       ex.synthetic_post, ex.image_hint,
       (ex.ilo_indicators || []).join(' '),
+      _exampleIndicatorLabels(ex).join(' '),
     ].join(' ').toLowerCase();
     return hay.indexOf(q) >= 0;
   }
@@ -553,7 +605,7 @@
         'color:var(--muted,#5B5F68); font-family:JetBrains Mono,monospace;',
         part));
     });
-    (ex.ilo_indicators || []).slice(0, 3).forEach(ind => {
+    _exampleIndicatorLabels(ex).slice(0, 3).forEach(ind => {
       meta.appendChild(_mk('span',
         'display:inline-block; padding:1px 6px; border-radius:3px; ' +
         'background:var(--panel2,#EFEDE4); color:var(--muted,#5B5F68);',

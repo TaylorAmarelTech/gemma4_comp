@@ -98,6 +98,7 @@ def test_sister_project_planning_validator_accepts_current_artifacts():
     assert report["summary"]["scheme_prompt_not_ready_count"] == 12
     assert report["summary"]["scheme_prompt_categories_without_source_slots_count"] == 0
     assert report["summary"]["duplicate_id_issue_count"] == 0
+    assert report["summary"]["readiness_gate_missing_block_concept_count"] == 0
     assert report["summary"]["source_admission_missing_concept_count"] == 0
     assert report["summary"]["project_privacy_issue_count"] == 0
     assert report["summary"]["jurisdiction_pack_privacy_issue_count"] == 0
@@ -159,6 +160,41 @@ def test_validator_sanitizes_custom_status_and_gate_values():
     assert "project_readiness_gates_cover_required_gates" in report["summary"]["failed_ids"]
     assert private_status not in rendered
     assert private_gate not in rendered
+
+
+def test_validator_rejects_readiness_gates_missing_worker_use_block_without_copying_values():
+    validator = _load_validator()
+    project, packs, grounding, prompts = _current_artifacts()
+    project = copy.deepcopy(project)
+    custom_block = "internal curator handoff only"
+    for gate in project["readiness_gates"]:
+        if gate["id"] == "expert_review":
+            gate["blocks"] = [
+                block for block in gate["blocks"]
+                if block != "worker-facing use"
+            ]
+            gate["blocks"].append(custom_block)
+
+    report = validator.build_report(
+        project_config=project,
+        jurisdiction_packs=packs,
+        grounding_sources=grounding,
+        scheme_prompts=prompts,
+    )
+    rendered = json.dumps(report, ensure_ascii=False)
+    readiness_check = next(
+        check for check in report["checks"]
+        if check["id"] == "project_readiness_gates_block_public_training_comparable_and_worker_use"
+    )
+
+    assert report["summary"]["ok"] is False
+    assert report["summary"]["readiness_gate_missing_block_concept_count"] == 1
+    assert (
+        "project_readiness_gates_block_public_training_comparable_and_worker_use"
+        in report["summary"]["failed_ids"]
+    )
+    assert readiness_check["actual"] == ["worker_facing_use"]
+    assert custom_block not in rendered
 
 
 def test_validator_rejects_public_scoring_readiness():
@@ -662,6 +698,7 @@ def test_main_accepts_custom_artifact_paths(tmp_path, capsys):
     assert "unresolved_prompts=12" in printed
     assert "missing_source_slots=0" in printed
     assert "missing_scope_jurisdictions=0" in printed
+    assert "readiness_gate_missing=0" in printed
     assert "source_admission_missing=0" in printed
     assert "privacy_issues=project:0,packs:0,grounding:0" in printed
 

@@ -73,7 +73,7 @@ A reviewer triaging one bundle often needs the HK Labour Department complaint, t
 - **Section 2**: `POST /api/templates/fill` request + response unchanged. The new fill-batch is additive.
 - **Section 5**: Don't rename `_tplLog` or `tplLog()` wrapper.
 - **Section 4**: Don't change existing `.tpl-field`, `.tpl-field.prov-*`, `.tpl-gallery` CSS classes.
-- **Section 8**: Don't add new entries to `STANDARD_FACT_INDICATORS`; if templates have `relevance_indicators` that aren't yet canonical, surface them in Goal 7's audit instead of mass-adding here.
+- **Section 8**: Don't add new entries to `STANDARD_FACT_INDICATORS`; if templates use relevance tags that are synonyms for existing tags, normalize them through the safe-text indicator normalizer and cover them with template-selection tests.
 - **Section 9**: `gemma_fill_template` itself is unchanged — the batch helper calls it once per template.
 - The existing `tests/test_runtime_extracts.py::TestGemmaFillTemplate` tests must still pass unchanged.
 
@@ -124,7 +124,7 @@ DO NOT:
   - change the existing /api/templates/fill request or response
   - rename _tplLog or break the existing tplGenerateDraft path
   - add new entries to STANDARD_FACT_INDICATORS
-  - mass-promote relevance_indicators that aren't canonical (defer to Goal 7)
+  - mass-promote relevance_indicators into STANDARD_FACT_INDICATORS instead of using the safe-text indicator normalizer
 
 Create packages/duecare-llm-chat/tests/test_templates_batch_fill.py with
 TestFillBatch covering: test_shared_excerpt_computed_once,

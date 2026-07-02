@@ -101,6 +101,13 @@ def _check_server_recording_pages() -> list[Finding]:
             )
         if 'href="/static/style.css"' not in text:
             findings.append(Finding(page, 1, "missing link to /static/style.css"))
+        for marker in (
+            'aria-label="Recording trust boundary"',
+            "Raw case files stay out of the slide deck",
+            "localStorage",
+        ):
+            if marker not in text:
+                findings.append(Finding(page, 1, f"missing recording trust-boundary marker {marker}"))
 
     start = SERVER_STATIC / "start.html"
     if start.exists():
@@ -154,15 +161,23 @@ def _check_server_recording_pages() -> list[Finding]:
 
 def _check_workbench_primary_pages() -> list[Finding]:
     findings: list[Finding] = []
+    trust_and_log_markers = (
+        "dc-trust-row",
+        "dc-activity-log",
+        'role="log"',
+        'aria-label="Activity log"',
+        'aria-live="polite"',
+        'data-toolbar="copy-json"',
+    )
     primary_pages = {
-        "index.html": ("_chrome.css", "_nav.js", "_activity_log.js"),
-        "compare.html": ("_chrome.css", "_nav.js", "_activity_log.js", "cmp-log"),
-        "process.html": ("_chrome.css", "_nav.js", "_activity_log.js", "wb-log"),
-        "knowledge.html": ("_chrome.css", "_nav.js", "_activity_log.js", "wb-log"),
-        "search.html": ("_chrome.css", "_nav.js", "_activity_log.js", "search-log"),
-        "share.html": ("_chrome.css", "_nav.js", "_activity_log.js", "wb-log"),
-        "templates.html": ("_chrome.css", "_nav.js", "_activity_log.js", "tpl-log"),
-        "status.html": ("_chrome.css", "_nav.js", "_activity_log.js", "status-log"),
+        "index.html": ("_chrome.css", "_nav.js", "_activity_log.js", "chat-activity-log", *trust_and_log_markers),
+        "compare.html": ("_chrome.css", "_nav.js", "_activity_log.js", "cmp-log", *trust_and_log_markers),
+        "process.html": ("_chrome.css", "_nav.js", "_activity_log.js", "wb-log", *trust_and_log_markers),
+        "knowledge.html": ("_chrome.css", "_nav.js", "_activity_log.js", "wb-log", *trust_and_log_markers),
+        "search.html": ("_chrome.css", "_nav.js", "_activity_log.js", "search-log", *trust_and_log_markers),
+        "share.html": ("_chrome.css", "_nav.js", "_activity_log.js", "wb-log", *trust_and_log_markers),
+        "templates.html": ("_chrome.css", "_nav.js", "_activity_log.js", "tpl-log", *trust_and_log_markers),
+        "status.html": ("_chrome.css", "_nav.js", "_activity_log.js", "status-log", *trust_and_log_markers),
     }
     for name, markers in primary_pages.items():
         page = WORKBENCH_STATIC / name

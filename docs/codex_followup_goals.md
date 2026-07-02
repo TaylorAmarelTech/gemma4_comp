@@ -216,7 +216,7 @@ Activity log reports the load.
 
 ## Goal 7 — Vocabulary discovery script
 
-**Why it matters:** STANDARD_FACT_INDICATORS today is 16 tokens. Real saved knowledge will produce indicators we forgot or that arrived from a Gemma rewrite. We need visibility into "which indicators are showing up in saved envelopes that aren't in the canonical list" so we can either add them or fix the upstream rule.
+**Why it matters:** STANDARD_FACT_INDICATORS is intentionally curated. Real saved knowledge will produce indicators we forgot or that arrived from a Gemma rewrite. We need visibility into "which indicators are showing up in saved envelopes that aren't in the canonical list" so we can either add them or fix the upstream rule.
 
 **Files to read first:**
 - `packages/duecare-llm-chat/src/duecare/chat/harnesses/_safe_text.py` — `STANDARD_FACT_INDICATORS`, `STANDARD_FACT_STAGES`
@@ -237,7 +237,7 @@ envelopes live by reading the /api/knowledge/list handler in
 packages/duecare-llm-chat/src/duecare/chat/app.py. Create
 scripts/audit_knowledge_vocabularies.py that walks every saved
 envelope, extracts content.indicators, content.applies_to_indicators,
-content.signal_types, content.corridor, content.corridors,
+content.risk_indicators, content.signal_types, content.corridor, content.corridors,
 content.journey_stage, content.stages, and reports each token in one of
 three buckets: CANONICAL, KNOWN_ALIAS, UNKNOWN. For UNKNOWN, print the
 envelope path + the offending value. Pure-stdlib (no pip install). Read
