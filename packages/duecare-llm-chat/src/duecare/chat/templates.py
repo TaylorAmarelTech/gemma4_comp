@@ -41,8 +41,10 @@ from typing import Any, Callable, Optional
 # /kaggle/working/process-staging/case_files_*.zip can land verbatim
 # in an HK Labour Department complaint draft.
 from .harnesses._safe_text import (
+    STANDARD_FACT_INDICATORS as _STANDARD_FACT_INDICATORS,
     clean_for_knowledge_fact as _clean_for_knowledge_fact,
     fact_excerpt as _fact_excerpt,
+    normalize_fact_indicator as _normalize_fact_indicator,
 )
 
 
@@ -2682,24 +2684,7 @@ class TemplateSpec:
         }
 
 
-_CANONICAL_TEMPLATE_INDICATORS: tuple[str, ...] = (
-    "fee_camouflage",
-    "fee_bondage",
-    "salary_deduction",
-    "debt_bondage",
-    "passport_retention",
-    "document_control",
-    "retaliation_risk",
-    "jurisdiction_shopping",
-    "wage_theft",
-    "deceptive_recruitment",
-    "movement_restriction",
-    "isolation",
-    "abuse_of_vulnerability",
-    "excessive_overtime",
-    "withheld_wages",
-    "case_signal",
-)
+_CANONICAL_TEMPLATE_INDICATORS: tuple[str, ...] = _STANDARD_FACT_INDICATORS
 
 _TEMPLATE_RELEVANCE_DEFAULTS: dict[str, tuple[str, ...]] = {
     "hk_ld_fdh_complaint": (
@@ -2746,9 +2731,7 @@ _TEMPLATE_INDICATOR_KEYWORDS: tuple[tuple[str, tuple[str, ...]], ...] = (
 
 
 def _normalize_template_indicator(value: Any) -> str | None:
-    raw = str(value or "").strip().lower().replace("-", "_").replace(" ", "_")
-    raw = re.sub(r"[^a-z0-9_]+", "", raw)
-    return raw if raw in _CANONICAL_TEMPLATE_INDICATORS else None
+    return _normalize_fact_indicator(str(value or ""))
 
 
 def template_relevance_indicators(template: TemplateSpec) -> tuple[str, ...]:

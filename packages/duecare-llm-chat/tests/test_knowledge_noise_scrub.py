@@ -27,6 +27,8 @@ from duecare.chat.harnesses._safe_text import (
     STANDARD_FACT_STAGES,
     clean_for_knowledge_fact,
     fact_excerpt,
+    normalize_fact_indicator,
+    normalize_inline_vocabulary,
     smart_excerpt,
     standardize_envelope_extensions,
     standardize_fact_envelope,
@@ -290,16 +292,39 @@ class TestStandardizeFactEnvelope:
         assert once == twice
 
     def test_normalizes_indicators_case_and_hyphens(self) -> None:
-        content = {"indicators": ["FeeBondage", "fee-camouflage", "PASSPORT", "unknown_thing"]}
+        content = {"indicators": [
+            "FeeBondage",
+            "fee-camouflage",
+            "PASSPORT",
+            "wage assignment",
+            "deception",
+            "contract substitution",
+            "withholding_of_wages",
+            "restriction_of_movement",
+            "retention_of_identity_documents",
+            "unknown_thing",
+        ]}
         out = standardize_fact_envelope(content, "extracted_fact")
         assert "fee_bondage" in out["indicators"]
         assert "fee_camouflage" in out["indicators"]
         assert "passport_retention" in out["indicators"]
+        assert "wage_assignment" in out["indicators"]
+        assert "deceptive_recruitment" in out["indicators"]
+        assert "withheld_wages" in out["indicators"]
+        assert "movement_restriction" in out["indicators"]
         # Unknown indicator gets dropped
         assert "unknown_thing" not in out["indicators"]
         # All members are canonical
         for ind in out["indicators"]:
             assert ind in STANDARD_FACT_INDICATORS
+
+    def test_public_indicator_normalizer_matches_envelope_aliases(self) -> None:
+        assert normalize_fact_indicator("FeeBondage") == "fee_bondage"
+        assert normalize_fact_indicator("contract substitution") == "deceptive_recruitment"
+        assert normalize_fact_indicator("withholding_wages") == "withheld_wages"
+        assert normalize_fact_indicator("restriction_of_movement") == "movement_restriction"
+        assert normalize_fact_indicator("retention_of_documents") == "passport_retention"
+        assert normalize_fact_indicator("unknown_thing") is None
 
     def test_normalizes_corridor_string(self) -> None:
         for variant in ["ph-hk", "PH-hk", "ph_hk", "PH/HK", " PH-HK ", "ph-HK"]:
@@ -449,3 +474,71 @@ class TestStandardizeEnvelopeExtensions:
         out = standardize_envelope_extensions(None, scrubbed=True)
         assert isinstance(out, dict)
         assert out["noise_scrubbed_before_gemma"] is True
+
+
+class TestNormalizeInlineVocabulary:
+    """Graph-chat synthesis is free prose, not a structured envelope, but
+    reviewer-facing vocabulary should still match canonical envelope keys."""
+
+    def test_rewrites_indicator_alias_with_neighbors(self) -> None:
+        assert (
+            normalize_inline_vocabulary("the FeeBondage indicator")
+            == "the fee_bondage indicator"
+        )
+
+    def test_rewrites_multiple_indicator_aliases(self) -> None:
+        assert (
+            normalize_inline_vocabulary("FeeCamouflage, Wage Assignment, and PassportRetention")
+            == "fee_camouflage, wage_assignment, and passport_retention"
+        )
+
+    def test_rewrites_domain_indicator_aliases(self) -> None:
+        assert (
+            normalize_inline_vocabulary(
+                "contract substitution with withholding of wages and restriction_of_movement"
+            )
+            == "deceptive_recruitment with withheld_wages and movement_restriction"
+        )
+
+    def test_rewrites_corridor_variants(self) -> None:
+        assert normalize_inline_vocabulary("the ph-hk corridor") == "the PH-HK corridor"
+        assert normalize_inline_vocabulary("PH/HK and ID-MY") == "PH-HK and ID-MY"
+
+    def test_rewrites_stage_variants(self) -> None:
+        assert (
+            normalize_inline_vocabulary("at the Arrival stage")
+            == "at the arrival_and_placement stage"
+        )
+        assert (
+            normalize_inline_vocabulary("during placement")
+            == "during arrival_and_placement"
+        )
+
+    def test_rewrites_stage_with_multi_word_neighbors(self) -> None:
+        assert (
+            normalize_inline_vocabulary("Recruit evidence before work")
+            == "recruitment evidence before employment"
+        )
+
+    def test_does_not_rewrite_substring_matches(self) -> None:
+        assert normalize_inline_vocabulary("feebondagereport") == "feebondagereport"
+        assert normalize_inline_vocabulary("prearrivalmemo") == "prearrivalmemo"
+
+    def test_none_and_empty_safe(self) -> None:
+        assert normalize_inline_vocabulary(None) == ""
+        assert normalize_inline_vocabulary("") == ""
+
+    def test_idempotent(self) -> None:
+        text = "FeeBondage in ph-hk during Arrival"
+        once = normalize_inline_vocabulary(text)
+        twice = normalize_inline_vocabulary(once)
+        assert once == twice
+
+    def test_mixed_smoke(self) -> None:
+        assert (
+            normalize_inline_vocabulary(
+                "FeeBondage plus PH/HK at Arrival points to PassportRetention."
+            )
+            == "fee_bondage plus PH-HK at arrival_and_placement points to "
+            "passport_retention."
+        )

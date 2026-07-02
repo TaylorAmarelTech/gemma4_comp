@@ -102,3 +102,38 @@ def test_cli_query(capsys):
     out = json.loads(capsys.readouterr().out)
     assert out["status"] == "licensed_red"
     assert out["license_status"] == "cancelled"
+
+
+def test_ingest_cli_redacts_sensitive_output_path(tmp_path, capsys):
+    raw = tmp_path / "raw_registry.json"
+    raw.write_text(json.dumps({
+        "records": [{
+            "name": "Synthetic Sample Agency",
+            "license_no": "POEA-SAMPLE-2001-LB",
+            "status": "valid",
+            "status_as_of": "2026-06-01",
+            "fetched_at": "2026-06-02",
+        }]
+    }), encoding="utf-8")
+    out_path = tmp_path / "worker@example.com-case-123456789" / "staged.json"
+
+    rc = AR.main(["--ingest", str(raw), "--out", str(out_path)])
+
+    err = capsys.readouterr().err
+    assert rc == 0
+    assert out_path.exists()
+    assert "worker@example.com" not in err
+    assert "case-123456789" not in err
+    assert "-> external" in err
+
+
+def test_missing_registry_cli_redacts_sensitive_path(tmp_path, capsys):
+    missing = tmp_path / "worker@example.com-case-123456789" / "missing.json"
+
+    rc = AR.main(["--query", "Synthetic Agency", "--registry", str(missing)])
+
+    err = capsys.readouterr().err
+    assert rc == 1
+    assert "worker@example.com" not in err
+    assert "case-123456789" not in err
+    assert "[agency-registry] registry not found: external" in err

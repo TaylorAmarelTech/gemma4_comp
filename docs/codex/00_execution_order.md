@@ -4,13 +4,13 @@
 
 ## TL;DR
 
-**Already done from the original reviewer-visible pack:** Goals 1, 2, 3, 4, 5, 6, 8, and 10.
+**Already done from the original reviewer-visible pack:** Goals 1, 2, 3, 4, 5, 6, 7, 8, 9, and 10.
 
-**Remaining original goals:** Goal 9 (inline vocab normalize) and Goal 7 (vocab audit script).
+**Remaining original goals:** None.
 
 **Next pickup for the current Kaggle review:** Goal 12 (Kernel 01 page polish and page-source gate), then Goal 13 (Kernel 02 recording polish).
 
-**No-stop order for remaining original goals:** Goal 1 -> Goal 6 -> Goal 3 -> Goal 4 -> Goal 5 -> Goal 8 -> Goal 2 -> Goal 9 -> Goal 7.
+**No-stop order for remaining original goals:** All original goals are done. Rerun `python scripts/audit_knowledge_vocabularies.py` after future vocabulary changes.
 
 **Next-phase Kaggle surface order:** Goal 12 -> Goal 13 -> Goal 11 -> Goal 14 -> Goal 15. For a few-hour no-stop run, use `docs/codex/goal_commands/06_kaggle_surface_long_run.md`.
 
@@ -28,8 +28,8 @@ The important correction is Goal 5 before Goal 8. Goal 8's own handoff says it d
 | 6 | ~~Goal 5 (Auto-polish queue)~~ | **DONE.** Power-user feature; depends on Goal 1 and reuses the same polish-call pattern. | Medium |
 | 7 | ~~Goal 8 (Inline word diff)~~ | **DONE.** Polish UX refinement; depends on Goals 1 + 5 being in. | Small |
 | 8 | ~~Goal 2 (Multi-template fill)~~ | **DONE.** Larger templates refactor; benefits from Goals 3 + 6 first. | Medium |
-| 9 | Goal 9 (Inline vocab normalize) | Surface polish; can land anytime after the larger reviewer flows. | Small |
-| 10 | Goal 7 (Vocab audit script) | Diagnostic tool; best after vocab-affecting code is stable. | Small |
+| 9 | ~~Goal 9 (Inline vocab normalize)~~ | **DONE.** Surface polish; can land anytime after the larger reviewer flows. | - |
+| 10 | ~~Goal 7 (Vocab audit script)~~ | **DONE.** Diagnostic tool; best after vocab-affecting code is stable. | - |
 
 ## Dependency graph
 
@@ -50,12 +50,12 @@ Goal 10 (E2E tests) - DONE
   |              |
   |              +--> Goal 2 (multi-template fill)
   |
-  +--> Goal 9 (inline vocab normalize)  [standalone]
+  +--> Goal 9 (inline vocab normalize) - DONE
           |
-          +--> Goal 7 (vocab audit script) [diagnostic follow-up]
+          +--> Goal 7 (vocab audit script) - DONE
 ```
 
-Goal 9 does not strictly depend on the feature goals, but it should run before Goal 7 if you want the audit script to inspect the most current normalizer behavior.
+Goal 7 is now available as a read-only diagnostic, so rerun it after any future vocabulary change.
 
 ## Multi-goal session packs
 
@@ -63,14 +63,16 @@ These packs are meant for one long Codex session that continues automatically, n
 
 Every pack must run `python scripts/validate_main_kaggle_kernels.py` before each goal commit. That gate covers the Kaggle root layout, the active `01`, `02`, and `A-00` submission kernels, plus the two optional benchmark kernels; archived appendix notebooks are out of kernel compatibility unless Taylor says otherwise.
 
-- **Full no-stop dispatch**: Goal 1 -> Goal 6 -> Goal 3 -> Goal 4 -> Goal 5 -> Goal 8 -> Goal 2 -> Goal 9 -> Goal 7.
+- **Full no-stop dispatch**: all original items are done; rerun the Goal 7 audit script after future vocabulary changes.
 - **Post-pack Kaggle surface follow-up**: Goal 12 -> Goal 13 -> Goal 11 -> Goal 14 -> Goal 15. This sequence first stabilizes the active `01`/`02` reviewer and recording pages, then takes the larger Bulk File Review hierarchy architecture, then improves the optional benchmark proof surfaces.
 - **Post-pack architecture follow-up**: Goal 11. This remains intentionally outside the original no-stop pack because it is Large: it changes Bulk File Review graph extraction, model-call scheduling, process logs, and process tests.
 - **Reviewer-visible first wave**: Goal 1 -> Goal 6 -> Goal 3 -> Goal 4. Best when preparing a recording or judge walkthrough.
 - **Templates deep pack**: Goal 6 -> Goal 3 -> Goal 2. Run in that sequence because Goal 2's selector benefits from the sample and dry-run preview being stable.
 - **Polish pipeline pack**: Goal 1 -> Goal 5 -> Goal 8. Do not skip Goal 5 before Goal 8.
-- **Vocab and diagnostics pack**: Goal 9 -> Goal 7. Keeps the read-only audit after the inline normalizer.
+- **Vocab and diagnostics pack**: rerun `python scripts/audit_knowledge_vocabularies.py` after future vocabulary changes.
 - **Iterative research frontier pack**: `docs/codex/goal_commands/11_iterative_branching_research_frontier.md`. Run after or alongside the major-case/global research packs when the priority is a 24-72 hour tool-assisted run: search for better spiders/search APIs/extractors first, then continue source-frontier branching, dorks, public knowledge objects, dimensions, prompts, multi-turn conversations, tests, validation, commits, and resumable handoff state.
+- **UI/UX + backend + research quality loop**: `docs/codex/goal_commands/12_ui_ux_backend_research_quality_loop.md`. Use when the priority is workflow-driven implementation quality across workbench actions, backend wiring, research frontier tooling, and harness-lift judging.
+- **Project bible continuation loop**: `docs/codex/goal_commands/13_project_bible_continuation.md`. Use when resuming from the current project bible and paused autonomous-engine state, especially after dense Claude/Codex sessions.
 
 ## Unsafe combinations
 

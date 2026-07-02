@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from duecare.chat import templates as tpl
+from duecare.chat.harnesses._safe_text import STANDARD_FACT_INDICATORS
 from duecare.chat.templates import (
     TEMPLATES_REGISTRY,
     TemplateField,
@@ -13,6 +14,7 @@ from duecare.chat.templates import (
     recommend_templates_for_bundle,
     register_template_routes,
     select_relevant_templates_for_bundle,
+    template_relevance_indicators,
     template_sample_bundle,
 )
 
@@ -111,6 +113,66 @@ class TestFillBatch:
 
         assert [s.id for s in selected] == ["fee_template"]
         assert fee.summary_payload()["relevance_indicators"] == ["fee_bondage"]
+
+    def test_indicator_aliases_survive_template_relevance_normalization(self):
+        alias = _spec(
+            "alias_template",
+            (TemplateField("wages", "Withheld wages"),),
+            relevance_indicators=(
+                "FeeBondage",
+                "withholding_of_wages",
+                "deception",
+                "contract substitution",
+                "wage assignment",
+                "restriction_of_movement",
+                "retention_of_identity_documents",
+            ),
+        )
+        bundle = {
+            "intelligence": {
+                "ilo_indicators": ["withheld_wages", "deceptive_recruitment"],
+            }
+        }
+
+        selected = select_relevant_templates_for_bundle(
+            bundle,
+            templates={alias.id: alias},
+        )
+
+        assert [s.id for s in selected] == ["alias_template"]
+        assert template_relevance_indicators(alias) == (
+            "fee_bondage",
+            "withheld_wages",
+            "deceptive_recruitment",
+            "wage_assignment",
+            "movement_restriction",
+            "passport_retention",
+        )
+        assert alias.summary_payload()["relevance_indicators"] == [
+            "fee_bondage",
+            "withheld_wages",
+            "deceptive_recruitment",
+            "wage_assignment",
+            "movement_restriction",
+            "passport_retention",
+        ]
+
+    def test_template_indicator_vocab_reuses_safe_text_vocab(self):
+        assert tpl._CANONICAL_TEMPLATE_INDICATORS == STANDARD_FACT_INDICATORS
+
+    def test_builtin_explicit_relevance_indicators_do_not_collapse_to_one_tag(self):
+        refund = TEMPLATES_REGISTRY["recruitment_fee_refund_and_loan_void_demand"]
+        substitution = TEMPLATES_REGISTRY["contract_substitution_complaint"]
+
+        assert template_relevance_indicators(refund) == (
+            "debt_bondage",
+            "withheld_wages",
+            "deceptive_recruitment",
+        )
+        assert template_relevance_indicators(substitution) == (
+            "deceptive_recruitment",
+            "abuse_of_vulnerability",
+        )
 
     def test_unknown_template_id_returns_404(self):
         app = FastAPI()

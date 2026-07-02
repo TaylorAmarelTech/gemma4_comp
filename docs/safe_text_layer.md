@@ -41,14 +41,15 @@ Reshapes an envelope's `content` dict so every page sees the same field names, f
 | Helper | What it does |
 |---|---|
 | `standardize_fact_envelope(content, target_type)` | Reorders keys per `STANDARD_FACT_KEY_ORDER`, scrubs every string, normalizes indicators/corridors/stages to canonical vocab |
+| `normalize_fact_indicator(value)` | Maps one indicator alias or canonical value to `STANDARD_FACT_INDICATORS`; used by template relevance matching and envelope standardization |
 | `standardize_envelope_extensions(ext, *, scrubbed, polished_passes)` | Adds the `noise_scrubbed_before_gemma` and `polished_by_gemma` + `polish_passes` provenance flags |
 
 Canonical vocabularies (the source-of-truth tuples in `_safe_text.py`):
 
 - `STANDARD_FACT_KEY_ORDER` — 47 fields in the order they should appear
-- `STANDARD_FACT_INDICATORS` — 16 lower_snake_case ILO indicators (`fee_camouflage`, `fee_bondage`, `passport_retention`, `debt_bondage`, …)
+- `STANDARD_FACT_INDICATORS` — 17 lower_snake_case ILO indicators (`fee_camouflage`, `fee_bondage`, `wage_assignment`, `passport_retention`, `debt_bondage`, …)
 - `STANDARD_FACT_STAGES` — 9 journey stages (`recruitment`, `payment_and_debt`, `arrival_and_placement`, …)
-- Internal alias maps map `FeeBondage`, `fee-bondage`, `feeBondage` → `fee_bondage`; `arrival`, `placement`, `Arrival` → `arrival_and_placement`; `ph-hk`, `PH/HK`, `ph_hk` → `PH-HK`
+- Internal alias maps map `FeeBondage`, `fee-bondage`, `feeBondage` → `fee_bondage`; `deception` / `contract substitution` → `deceptive_recruitment`; `withholding_of_wages` / `withheld wages` → `withheld_wages`; `restriction_of_movement` → `movement_restriction`; `retention_of_identity_documents` → `passport_retention`; `arrival`, `placement`, `Arrival` → `arrival_and_placement`; `ph-hk`, `PH/HK`, `ph_hk` → `PH-HK`
 
 Idempotent. Unknown indicators / stages get dropped (don't pollute the vocabulary). Unknown corridors return empty string. Unknown target_types still get the scrub + reorder.
 

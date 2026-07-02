@@ -116,9 +116,17 @@ reports/*.responses.jsonl
 reports/**/*.jsonl
 reports/**/*.json
 reports/**/*.py
+reports/**/*.csv
+reports/**/*.ipynb
+reports/**/*.png
 reports/recruitment_scan/
 reports/agency_scan/
 reports/agency_dossier/
+reports/benchmark/
+reports/human_validation/
+reports/kaggle_datasets/
+reports/kaggle_kernels/
+reports/llm_scrape/
 reports/opensanctions_sources/
 reports/entity_kb/
 mlruns/
@@ -211,7 +219,9 @@ reports/ui_audit/
 reports/opus_batches/
 reports/opus_scorecards/
 reports/autonomous_engine.*
+reports/training/
 reports/orchestrator/
+.pytest_tmp_source_audit/
 reports/_backups/
 reports/hermes/
 reports/hermes_state.json

@@ -195,7 +195,7 @@ Reviewers click "Use sample" / "Download sample" buttons that hit these paths. *
 These vocabulary tuples are committed to git and saved knowledge envelopes reference them by string match:
 
 - `STANDARD_FACT_KEY_ORDER` (47 fields) â€” in `harnesses/_safe_text.py`
-- `STANDARD_FACT_INDICATORS` (16 ILO indicators) â€” same file
+- `STANDARD_FACT_INDICATORS` (17 ILO indicators) â€” same file
 - `STANDARD_FACT_STAGES` (9 journey stages) â€” same file
 
 Renaming `fee_bondage` to `feeBondage` would break every saved envelope that referenced the old name. Same for stages and key order.

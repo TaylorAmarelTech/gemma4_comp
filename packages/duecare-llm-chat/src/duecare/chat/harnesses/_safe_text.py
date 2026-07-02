@@ -197,6 +197,7 @@ STANDARD_FACT_INDICATORS: tuple[str, ...] = (
     "fee_camouflage",
     "fee_bondage",
     "salary_deduction",
+    "wage_assignment",
     "debt_bondage",
     "passport_retention",
     "document_control",
@@ -235,6 +236,10 @@ _INDICATOR_ALIASES: dict[str, str] = {
     "salarydeduction": "salary_deduction",
     "salary-deduction": "salary_deduction",
     "salary_deduction": "salary_deduction",
+    "wage assignment": "wage_assignment",
+    "wageassignment": "wage_assignment",
+    "wage-assignment": "wage_assignment",
+    "wage_assignment": "wage_assignment",
     "debtbondage": "debt_bondage",
     "debt-bondage": "debt_bondage",
     "debt_bondage": "debt_bondage",
@@ -242,6 +247,15 @@ _INDICATOR_ALIASES: dict[str, str] = {
     "passportretention": "passport_retention",
     "passport-retention": "passport_retention",
     "passport_retention": "passport_retention",
+    "documentconfiscation": "passport_retention",
+    "document-confiscation": "passport_retention",
+    "document_confiscation": "passport_retention",
+    "retentionofdocuments": "passport_retention",
+    "retention-of-documents": "passport_retention",
+    "retention_of_documents": "passport_retention",
+    "retentionofidentitydocuments": "passport_retention",
+    "retention-of-identity-documents": "passport_retention",
+    "retention_of_identity_documents": "passport_retention",
     "doccontrol": "document_control",
     "document-control": "document_control",
     "document_control": "document_control",
@@ -257,9 +271,32 @@ _INDICATOR_ALIASES: dict[str, str] = {
     "deceptiverecruitment": "deceptive_recruitment",
     "deceptive-recruitment": "deceptive_recruitment",
     "deceptive_recruitment": "deceptive_recruitment",
+    "deception": "deceptive_recruitment",
+    "contract substitution": "deceptive_recruitment",
+    "contractsubstitution": "deceptive_recruitment",
+    "contract-substitution": "deceptive_recruitment",
+    "contract_substitution": "deceptive_recruitment",
     "movementrestriction": "movement_restriction",
     "movement-restriction": "movement_restriction",
     "movement_restriction": "movement_restriction",
+    "restrictionofmovement": "movement_restriction",
+    "restriction-of-movement": "movement_restriction",
+    "restriction_of_movement": "movement_restriction",
+    "withheld wages": "withheld_wages",
+    "withheldwages": "withheld_wages",
+    "withheld-wages": "withheld_wages",
+    "withheld_wages": "withheld_wages",
+    "withholding of wages": "withheld_wages",
+    "withholdingofwages": "withheld_wages",
+    "withholding wages": "withheld_wages",
+    "withholdingwages": "withheld_wages",
+    "withholding_wages": "withheld_wages",
+    "withholding-of-wages": "withheld_wages",
+    "withholding_of_wages": "withheld_wages",
+    "wage withholding": "withheld_wages",
+    "wagewithholding": "withheld_wages",
+    "wage-withholding": "withheld_wages",
+    "wage_withholding": "withheld_wages",
 }
 
 
@@ -277,6 +314,15 @@ def _normalize_indicator(value: str) -> str | None:
     if key in STANDARD_FACT_INDICATORS:
         return key
     return None
+
+
+def normalize_fact_indicator(value: str | None) -> str | None:
+    """Public wrapper for canonical indicator normalization.
+
+    Template selection, saved envelopes, and free-prose normalization should
+    all use the same curated indicator vocabulary and aliases.
+    """
+    return _normalize_indicator(str(value or ""))
 
 
 _STAGE_ALIASES: dict[str, str] = {
@@ -320,6 +366,53 @@ def _normalize_corridor(value: str) -> str | None:
     if m:
         return f"{m.group(1)}-{m.group(2)}"
     return None
+
+
+def _inline_token_pattern(token: str) -> _re.Pattern[str]:
+    return _re.compile(
+        r"(?<![A-Za-z0-9_])" + _re.escape(token) + r"(?![A-Za-z0-9_])",
+        _re.I,
+    )
+
+
+def normalize_inline_vocabulary(text: str | None) -> str:
+    """Canonicalize known indicator, corridor, and stage terms inside
+    free prose without changing surrounding words.
+
+    This is intentionally separate from clean_for_knowledge_fact() and
+    standardize_fact_envelope(): graph-chat synthesis is not an envelope,
+    but reviewers should still see the same vocabulary strings that
+    saved envelopes and filters use.
+    """
+    if not text:
+        return ""
+    out = str(text)
+
+    indicator_aliases = sorted(
+        _INDICATOR_ALIASES.items(),
+        key=lambda item: len(item[0]),
+        reverse=True,
+    )
+    for alias, canonical in indicator_aliases:
+        out = _inline_token_pattern(alias).sub(canonical, out)
+
+    stage_aliases = sorted(
+        _STAGE_ALIASES.items(),
+        key=lambda item: len(item[0]),
+        reverse=True,
+    )
+    for alias, canonical in stage_aliases:
+        out = _inline_token_pattern(alias).sub(canonical, out)
+
+    def _corridor_repl(match: _re.Match[str]) -> str:
+        return _normalize_corridor(match.group(0)) or match.group(0)
+
+    return _re.sub(
+        r"(?<![A-Za-z0-9])(?:[A-Z]{2})[-_/](?:[A-Z]{2})(?![A-Za-z0-9])",
+        _corridor_repl,
+        out,
+        flags=_re.I,
+    )
 
 
 # Fields that get scrubbed but not truncated (short labels/titles).

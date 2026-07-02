@@ -185,6 +185,7 @@ def _write_minimal_pickup_tree(
             "declared candidate pattern IDs\n"
             "unresolved source-gap rows\n"
             "source admission rules\n"
+            "readiness_gate_missing=0\n"
             "international anchors cannot substitute\n"
             "public complaint lists\n"
             "source_admission_missing=0\n"
@@ -391,7 +392,8 @@ def test_project_bible_is_linked_from_agent_indexes():
     assert "custom blocker or mismatch labels" in project_bible
     assert "python scripts\\validate_sister_project_planning.py`:" in project_bible
     assert "`38 checks, 0 findings`" in project_bible
-    assert "`27 checks, 0 findings`" in project_bible
+    assert "`28 checks, 0 findings`" in project_bible
+    assert "`readiness_gate_missing=0`" in project_bible
     assert "`source_admission_missing=0`" in project_bible
     assert "`privacy_issues=project:0,packs:0,grounding:0`" in project_bible
     assert "aggregate-only safety signal" in project_bible
@@ -530,7 +532,7 @@ def test_project_bible_pickup_validator_passes_paused_fixture():
     }
     assert report["sister_project_planning"] == {
         "ok": True,
-        "check_count": 27,
+        "check_count": 28,
         "failed_count": 0,
         "failed_ids": [],
         "project_id": "global_protections_regulatory_benchmark",
@@ -547,6 +549,7 @@ def test_project_bible_pickup_validator_passes_paused_fixture():
         "queued_jurisdiction_scope_count": 5,
         "local_source_jurisdictions_without_scope_count": 0,
         "duplicate_id_issue_count": 0,
+        "readiness_gate_missing_block_concept_count": 0,
         "source_admission_missing_concept_count": 0,
         "project_privacy_issue_count": 0,
         "jurisdiction_pack_privacy_issue_count": 0,
@@ -983,7 +986,7 @@ def test_project_bible_pickup_validator_rejects_failed_sister_project_report():
     sister_report = {
         "summary": {
             "ok": False,
-            "check_count": 27,
+            "check_count": 28,
             "failed_count": 1,
             "failed_ids": ["planning_ids_are_unique_within_namespaces"],
             "project_id": "global_protections_regulatory_benchmark",
@@ -1000,6 +1003,7 @@ def test_project_bible_pickup_validator_rejects_failed_sister_project_report():
             "queued_jurisdiction_scope_count": 5,
             "local_source_jurisdictions_without_scope_count": 0,
             "duplicate_id_issue_count": 1,
+            "readiness_gate_missing_block_concept_count": 0,
             "source_admission_missing_concept_count": 0,
             "project_privacy_issue_count": 0,
             "jurisdiction_pack_privacy_issue_count": 0,
