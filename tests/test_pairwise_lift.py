@@ -24,7 +24,14 @@ def test_load_pairs_keeps_only_complete(tmp_path):
     rp = tmp_path / "resp.jsonl"
     rows = [{"prompt_id": "p1", "arm": "baseline", "response": "b1", "prompt_text": "q1"},
             {"prompt_id": "p1", "arm": "harnessed", "response": "h1", "prompt_text": "q1"},
-            {"prompt_id": "p2", "arm": "baseline", "response": "b2", "prompt_text": "q2"}]  # no harnessed
+            {"prompt_id": "p2", "arm": "baseline", "response": "b2", "prompt_text": "q2"},  # no harnessed
+            {"prompt_id": {"private": "worker@example.com"}, "arm": "baseline",
+             "response": "structured prompt id", "prompt_text": "q3"},
+            {"prompt_id": "p3", "arm": ["baseline"], "response": "structured arm", "prompt_text": "q3"},
+            {"prompt_id": "p3", "arm": "baseline",
+             "response": {"private": "worker@example.com"}, "prompt_text": "q3"},
+            {"prompt_id": "p4", "arm": "baseline", "response": "b4", "prompt_text": ["q4"]},
+            {"prompt_id": "p4", "arm": "harnessed", "response": "h4", "prompt_text": ["q4"]}]
     rp.write_text("\n".join(json.dumps(r) for r in rows), encoding="utf-8")
     pairs = pl.load_pairs(rp)
     assert len(pairs) == 1 and pairs[0]["prompt_id"] == "p1"
@@ -46,9 +53,40 @@ def test_run_pairwise_resumes(tmp_path):
     assert calls["n"] == 2                                                  # nothing re-judged
 
 
+def test_run_pairwise_skips_malformed_pairs_and_checkpoint_rows(tmp_path):
+    pairs = [
+        {"prompt_id": "p1", "prompt_text": "q", "baseline": "b", "harnessed": "h"},
+        {"prompt_id": {"private": "worker@example.com"}, "prompt_text": "q", "baseline": "b", "harnessed": "h"},
+        {"prompt_id": "p2", "prompt_text": ["q"], "baseline": "b", "harnessed": "h"},
+    ]
+    ck = tmp_path / "pw.jsonl"
+    ck.write_text(
+        "\n".join([
+            json.dumps({"prompt_id": ["p-bad"], "pairwise_lift": 4.0}),
+            json.dumps({"prompt_id": "p-old", "pairwise_lift": "nan"}),
+            "{not-json",
+        ]) + "\n",
+        encoding="utf-8",
+    )
+    calls = {"n": 0}
+
+    def judge(prompt, a, b, *, model):
+        calls["n"] += 1
+        return 4.0
+
+    rows = pl.run_pairwise(pairs, judge_model="j", judge=judge, ckpt=ck, pace=0)
+
+    assert calls["n"] == 1
+    assert rows == [{"prompt_id": "p1", "pairwise_lift": 4.0}]
+
+
 def test_aggregate_win_rate_and_spread():
     rows = [{"prompt_id": f"p{i}", "pairwise_lift": v}
             for i, v in enumerate([5.0, 3.0, 6.5, -1.0, 0.0, 4.0, 2.5, 7.0])]
+    rows.extend([
+        {"prompt_id": "bad", "pairwise_lift": "nan"},
+        {"prompt_id": "bad2", "pairwise_lift": {"private": "worker@example.com"}},
+    ])
     agg = pl.aggregate(rows)
     assert agg["n"] == 8
     assert agg["win_pct"] == 75.0          # 6 of 8 are > 0.5

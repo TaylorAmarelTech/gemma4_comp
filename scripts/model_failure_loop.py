@@ -45,13 +45,16 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from collections import defaultdict
-from pathlib import Path
+from pathlib import Path, PurePath, PurePosixPath, PureWindowsPath
+from typing import Any
 
 REPO = Path(__file__).resolve().parents[1]
 SCRIPTS = REPO / "scripts"
@@ -60,6 +63,162 @@ SEEDS = REPO / "configs/duecare/domains/trafficking/seed_prompts.jsonl"
 OUTDIR = REPO / "reports/model_failure_study"
 
 JUDGE_DIMS = ["sense_resolution", "legal_grounding", "harm_safety", "actionability"]
+_EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b", re.I)
+_PHONE = re.compile(r"\+?\d[\d\s().\-]{8,}\d")
+_LOCAL_PATH_HINT = re.compile(
+    r"(?:[A-Za-z]:[\\/]|\\\\|(?:^|[\s\"'(:])/(?:Users|home|tmp|var|mnt|private|Volumes)(?:/|$)|~[\\/])",
+    re.I,
+)
+_SAFE_RELATIVE_PATH = re.compile(r"^[A-Za-z0-9._/\-]+$")
+_SAFE_IDENTIFIER = re.compile(r"^[A-Za-z0-9._:/\-]+$")
+_SECRET_FIELD = re.compile(
+    r"(?i)\b(?:api[_-]?key|token|authorization|bearer|secret|password)\b\s*[:=]\s*[^\s,;}\]]+"
+)
+_LONG_TOKEN = re.compile(r"\b[A-Za-z0-9_-]{24,}\b")
+
+
+def _nonempty_string(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    return text or None
+
+
+def _has_sensitive_display_text(text: str) -> bool:
+    return bool(
+        _EMAIL.search(text)
+        or _PHONE.search(text)
+        or _LOCAL_PATH_HINT.search(text)
+        or re.search(r"\b\d{9,}\b", text)
+    )
+
+
+def _safe_relative_report_path(path: PurePath) -> str:
+    display = path.as_posix()
+    if not display or display.startswith("../") or "/../" in display:
+        return "redacted"
+    if _has_sensitive_display_text(display):
+        return "redacted"
+    if not _SAFE_RELATIVE_PATH.fullmatch(display):
+        return "redacted"
+    return display
+
+
+def _display_report_path(raw_path: Any) -> str:
+    if not raw_path:
+        return "n/a"
+    raw = str(raw_path)
+    try:
+        path = Path(raw)
+        if path.is_absolute():
+            try:
+                return _safe_relative_report_path(path.relative_to(REPO))
+            except ValueError:
+                return "external"
+        return _safe_relative_report_path(PurePosixPath(PureWindowsPath(raw).as_posix()))
+    except (OSError, RuntimeError, ValueError):
+        return "redacted"
+
+
+def _display_identifier(value: Any) -> str:
+    text = str(value or "")
+    if _SAFE_IDENTIFIER.fullmatch(text) and not _has_sensitive_display_text(text):
+        return text
+    return "redacted"
+
+
+def _display_url(value: Any) -> str:
+    text = str(value or "")
+    parts = urllib.parse.urlsplit(text)
+    if (
+        parts.scheme in {"https", "http"}
+        and parts.netloc
+        and not parts.username
+        and not parts.password
+        and not parts.query
+        and not parts.fragment
+        and not _has_sensitive_display_text(text)
+    ):
+        return text
+    return _display_identifier(text)
+
+
+def _display_probe_detail(value: Any, *, limit: int = 160) -> str:
+    text = re.sub(r"\s+", " ", str(value or "").strip())
+    text = _SECRET_FIELD.sub("[redacted-secret]", text)
+    text = _EMAIL.sub("[redacted-email]", text)
+    text = _PHONE.sub("[redacted-phone]", text)
+    text = re.sub(
+        r"(?:[A-Za-z]:[\\/][^\s\"'`<>)]*|\\\\[^\s\"'`<>)]*|"
+        r"(?<!\w)/(?:Users|home|tmp|var|mnt|private|Volumes)(?:/[^\s\"'`<>)]*)?|"
+        r"~[\\/][^\s\"'`<>)]*)",
+        "[redacted-path]",
+        text,
+    )
+    text = re.sub(r"\b\d{9,}\b", "[redacted-number]", text)
+    text = _LONG_TOKEN.sub("[redacted-token]", text)
+    return text[:limit] if text else "details unavailable"
+
+
+def _display_argv(argv: list[str]) -> list[str]:
+    display: list[str] = []
+    path_value_flags = {"--in", "--out", "--judge", "--responses", "--report-out", "--out-dir"}
+    identifier_value_flags = {"--models", "--judge-model", "--key-env"}
+    url_value_flags = {"--base-url"}
+    previous = ""
+    for token in argv:
+        if previous in path_value_flags:
+            display.append(_display_report_path(token))
+        elif previous in identifier_value_flags:
+            display.append(",".join(_display_identifier(part.strip()) for part in str(token).split(",")))
+        elif previous in url_value_flags:
+            display.append(_display_url(token))
+        elif _has_sensitive_display_text(str(token)):
+            display.append("redacted")
+        else:
+            display.append(str(token))
+        previous = str(token)
+    return display
+
+
+def _unique_checkpoint_key(key: Any, seen: dict[str, int]) -> str:
+    display = _display_identifier(key)
+    seen[display] = seen.get(display, 0) + 1
+    if seen[display] == 1:
+        return display
+    return f"{display}_{seen[display]}"
+
+
+def _checkpoint_value(key: str, value: Any) -> Any:
+    key_l = key.lower()
+    if isinstance(value, dict):
+        seen: dict[str, int] = {}
+        return {
+            _unique_checkpoint_key(k, seen): _checkpoint_value(str(k), v)
+            for k, v in value.items()
+        }
+    if isinstance(value, list):
+        return [_checkpoint_value(key, item) for item in value]
+    if isinstance(value, tuple):
+        return [_checkpoint_value(key, item) for item in value]
+    if isinstance(value, str):
+        if "url" in key_l:
+            return _display_url(value)
+        if "path" in key_l or key_l in {"report"}:
+            return _display_report_path(value)
+        if key_l in {"provider", "run_tag", "judge_model", "gen_models", "gen_gaps"}:
+            return _display_identifier(value)
+        if _has_sensitive_display_text(value):
+            return "redacted"
+    return value
+
+
+def _checkpoint_state(state: dict) -> dict:
+    seen: dict[str, int] = {}
+    return {
+        _unique_checkpoint_key(key, seen): _checkpoint_value(str(key), value)
+        for key, value in state.items()
+    }
 
 # --- Provider registry ------------------------------------------------------
 # gen_models: roster sent the probes. judge_model: must emit a parseable verdict
@@ -122,10 +281,20 @@ def _load_jsonl(path: Path) -> list[dict]:
         line = line.strip()
         if line:
             try:
-                out.append(json.loads(line))
+                row = json.loads(line)
             except json.JSONDecodeError:
                 pass
+            else:
+                if isinstance(row, dict):
+                    out.append(row)
     return out
+
+
+def _valid_prompt_count(path: Path) -> int:
+    return sum(
+        1 for row in _load_jsonl(path)
+        if _nonempty_string(row.get("id")) and _nonempty_string(row.get("text"))
+    )
 
 
 def _git_sha() -> str:
@@ -142,7 +311,7 @@ def probe_provider(name: str) -> tuple[bool, str]:
     cfg = PROVIDERS[name]
     api_key = os.environ.get(cfg["key_env"])
     if not api_key:
-        return False, f"{cfg['key_env']} not set"
+        return False, f"{_display_identifier(cfg['key_env'])} not set"
     body = json.dumps({
         "model": cfg["probe_model"],
         "messages": [{"role": "user", "content": "reply with the single word OK"}],
@@ -154,12 +323,12 @@ def probe_provider(name: str) -> tuple[bool, str]:
         with urllib.request.urlopen(req, timeout=30) as resp:
             data = json.loads(resp.read().decode("utf-8"))
         if data.get("choices"):
-            return True, f"live ({cfg['probe_model']})"
-        return False, f"no choices in response: {str(data)[:120]}"
+            return True, f"live ({_display_identifier(cfg['probe_model'])})"
+        return False, f"no choices in response: {_display_probe_detail(data, limit=120)}"
     except urllib.error.HTTPError as e:
-        return False, f"HTTP {e.code}: {e.read().decode('utf-8','replace')[:160]}"
+        return False, f"HTTP {e.code}: {_display_probe_detail(e.read().decode('utf-8','replace'))}"
     except Exception as e:  # noqa: BLE001
-        return False, f"{type(e).__name__}: {e}"
+        return False, f"{type(e).__name__}: {_display_probe_detail(e)}"
 
 
 def resolve_provider(requested: str) -> tuple[str, str]:
@@ -173,11 +342,11 @@ def resolve_provider(requested: str) -> tuple[str, str]:
     last = ""
     for name in order:
         live, detail = probe_provider(name)
-        print(f"  probe {name:11s}: {'LIVE' if live else 'dead'} -- {detail}")
+        print(f"  probe {_display_identifier(name):11s}: {'LIVE' if live else 'dead'} -- {detail}")
         if live:
             return name, detail
         last = detail
-    raise SystemExit(f"ERROR: no live provider (last: {last}). "
+    raise SystemExit(f"ERROR: no live provider (last: {_display_probe_detail(last)}). "
                      "Fund/refresh a key in .env, then re-run.")
 
 
@@ -203,7 +372,7 @@ def _child_env() -> dict:
 def run_script(script: str, argv: list[str]) -> int:
     py = _venv_python()
     cmd = [py, str(SCRIPTS / script), *argv]
-    print(f"  $ {script} {' '.join(argv)}")
+    print(f"  $ {script} {' '.join(_display_argv(argv))}")
     proc = subprocess.run(cmd, cwd=REPO, env=_child_env())
     return proc.returncode
 
@@ -212,10 +381,15 @@ def run_script(script: str, argv: list[str]) -> int:
 def count_responses(path: Path) -> dict[str, dict]:
     by: dict[str, dict] = defaultdict(lambda: {"ok": 0, "err": 0})
     for r in _load_jsonl(path):
-        if r.get("ok") and (r.get("response") or "").strip():
-            by[r["model"]]["ok"] += 1
+        model = _nonempty_string(r.get("model"))
+        if not model:
+            continue
+        prompt_id = _nonempty_string(r.get("prompt_id"))
+        response = _nonempty_string(r.get("response"))
+        if r.get("ok") and prompt_id and response:
+            by[model]["ok"] += 1
         else:
-            by[r["model"]]["err"] += 1
+            by[model]["err"] += 1
     return dict(by)
 
 
@@ -226,16 +400,29 @@ def gen_gaps(path: Path, models: list[str], quota: int) -> list[str]:
 
 def judge_coverage(responses_path: Path, judge_path: Path, dims: list[str]) -> dict:
     """How many (ok response x dimension) pairs have a FINAL verdict."""
-    responses = [r for r in _load_jsonl(responses_path)
-                 if r.get("ok") and (r.get("response") or "").strip()]
-    total = len(responses) * len(dims)
+    responses = []
+    for r in _load_jsonl(responses_path):
+        model = _nonempty_string(r.get("model"))
+        prompt_id = _nonempty_string(r.get("prompt_id"))
+        response = _nonempty_string(r.get("response"))
+        if r.get("ok") and model and prompt_id and response:
+            responses.append((model, prompt_id))
+    expected = {(model, prompt_id, dim) for model, prompt_id in responses for dim in dims}
+    total = len(expected)
     done = set()
     errors = 0
     for r in _load_jsonl(judge_path):
+        model = _nonempty_string(r.get("model"))
+        prompt_id = _nonempty_string(r.get("prompt_id"))
+        dimension = _nonempty_string(r.get("dimension"))
+        if not model or not prompt_id or not dimension:
+            continue
         v = r.get("verdict")
+        key = (model, prompt_id, dimension)
         if v in ("PASS", "PARTIAL", "FAIL"):
-            done.add((r.get("model"), r.get("prompt_id"), r.get("dimension")))
-        elif v in ("ERROR", "UNPARSED"):
+            if key in expected:
+                done.add(key)
+        elif v in ("ERROR", "UNPARSED") and key in expected:
             errors += 1
     return {"done": len(done), "total": total, "errors": errors,
             "complete": total > 0 and len(done) >= total,
@@ -243,12 +430,15 @@ def judge_coverage(responses_path: Path, judge_path: Path, dims: list[str]) -> d
 
 
 def write_checkpoint(path: Path, state: dict) -> None:
-    path.write_text(json.dumps(state, indent=2, ensure_ascii=False), encoding="utf-8")
-    print(f"  checkpoint -> {path}")
+    path.write_text(
+        json.dumps(_checkpoint_state(state), indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    print(f"  checkpoint -> {_display_report_path(path)}")
 
 
 # --- Main loop --------------------------------------------------------------
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--provider", default="auto",
@@ -273,7 +463,7 @@ def main() -> int:
                     help="response JSONL to judge (default <out-dir>/study_<tag>.jsonl)")
     ap.add_argument("--dry-run", action="store_true",
                     help="preflight + plan + counts only; no generation/judge API calls")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
 
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -283,15 +473,15 @@ def main() -> int:
     report_out = Path(args.report_out)
     dims = [d.strip() for d in args.judge_dims.split(",") if d.strip() in JUDGE_DIMS]
 
-    n_probes = len(_load_jsonl(PROBES))
-    n_prompts = n_probes + (len(_load_jsonl(SEEDS)) if args.include_seeds else 0)
+    n_probes = _valid_prompt_count(PROBES)
+    n_prompts = n_probes + (_valid_prompt_count(SEEDS) if args.include_seeds else 0)
     if args.limit is not None:
         n_prompts = min(n_prompts, args.limit)
     gen_quota = args.gen_quota if args.gen_quota is not None else n_prompts
 
     print("=" * 72)
     print("MODEL-FAILURE STUDY LOOP")
-    print(f"  git_sha={_git_sha()}  run_tag={args.run_tag}  rounds<= {args.max_rounds}")
+    print(f"  git_sha={_git_sha()}  run_tag={_display_identifier(args.run_tag)}  rounds<= {args.max_rounds}")
     print("-" * 72)
 
     # ---- PREFLIGHT ----
@@ -301,12 +491,13 @@ def main() -> int:
     gen_models = ([m.strip() for m in args.gen_models.split(",") if m.strip()]
                   if args.gen_models else list(cfg["gen_models"]))
     judge_model = args.judge_model or cfg["judge_model"]
-    print(f"  provider={provider}  base_url={cfg['base_url']}")
-    print(f"  gen_models={len(gen_models)}  judge_model={judge_model}")
+    print(f"  provider={_display_identifier(provider)}  base_url={_display_url(cfg['base_url'])}")
+    print(f"  gen_models={len(gen_models)}  judge_model={_display_identifier(judge_model)}")
     print(f"  prompts/model={n_prompts} (probes={n_probes}{' + seeds' if args.include_seeds else ''}"
           f"{f', limit={args.limit}' if args.limit else ''})  gen_quota={gen_quota}")
-    print(f"  responses={responses_path.name}  judge={judge_path.name}  report={report_out}")
-    print(f"  venv_python={_venv_python()}")
+    print(f"  responses={_display_report_path(responses_path)}  judge={_display_report_path(judge_path)}  "
+          f"report={_display_report_path(report_out)}")
+    print(f"  venv_python={_display_report_path(_venv_python())}")
 
     base = {"provider": provider, "base_url": cfg["base_url"], "git_sha": _git_sha(),
             "run_tag": args.run_tag, "gen_models": gen_models, "judge_model": judge_model,
@@ -332,7 +523,7 @@ def main() -> int:
     rnd = 0
     for rnd in range(1, args.max_rounds + 1):
         print("=" * 72)
-        print(f"ROUND {rnd}/{args.max_rounds}  (provider={provider})")
+        print(f"ROUND {rnd}/{args.max_rounds}  (provider={_display_identifier(provider)})")
 
         # STAGE 1: generation (unless skipped) ------------------------------
         if not args.skip_generation:
@@ -360,7 +551,8 @@ def main() -> int:
         n_ok = sum(c["ok"] for c in counts.values())
         print(f"  responses: {n_ok} ok across {len(counts)} models; {len(gaps)} below quota={gen_quota}")
         if gaps:
-            print(f"  below-quota: {', '.join(gaps[:8])}{' ...' if len(gaps) > 8 else ''}")
+            display_gaps = [_display_identifier(gap) for gap in gaps[:8]]
+            print(f"  below-quota: {', '.join(display_gaps)}{' ...' if len(gaps) > 8 else ''}")
         if n_ok == 0:
             print("  FATAL: zero usable responses -- aborting (check provider/models).")
             write_checkpoint(state_path, {**base, "round": rnd, "gen_counts": counts,
@@ -421,12 +613,12 @@ def main() -> int:
     cov = judge_coverage(responses_path, judge_path, dims)
     counts = count_responses(responses_path)
     print("SUMMARY")
-    print(f"  provider={provider}  rounds_run={rnd}  goals_met={goals_met}")
+    print(f"  provider={_display_identifier(provider)}  rounds_run={rnd}  goals_met={goals_met}")
     print(f"  responses: {sum(c['ok'] for c in counts.values())} ok / "
           f"{sum(c['err'] for c in counts.values())} err across {len(counts)} models")
     print(f"  judge: {cov['done']}/{cov['total']} verdicts ({cov['pct']*100:.0f}%), errors={cov['errors']}")
-    print(f"  report: {report_out}")
-    print(f"  checkpoint: {state_path}")
+    print(f"  report: {_display_report_path(report_out)}")
+    print(f"  checkpoint: {_display_report_path(state_path)}")
     return 0 if goals_met else 2
 
 

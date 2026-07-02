@@ -19,14 +19,78 @@ import argparse
 import glob
 import html
 import json
+import math
 import pathlib
 import re
+from typing import Any
 
 _ROOT = pathlib.Path(__file__).resolve().parents[1]
 RANKER = _ROOT / "reports" / "egregious_ranker.jsonl"
 RESP_FILES = [_ROOT / "reports" / "scheme_run.responses.jsonl",
               _ROOT / "reports" / "frontier_perdim" / "perdim.responses.jsonl"]
 DEFAULT_OUT = _ROOT / "apps" / "duecare-ai.com" / "app" / "templates" / "egregious-cases.html"
+_EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b", re.I)
+_PHONE = re.compile(r"\+?\d[\d\s().\-]{8,}\d")
+_LOCAL_PATH_TOKEN = re.compile(
+    r"(?:[A-Za-z]:[\\/][^\s\"'`<>)]*|\\\\[^\s\"'`<>)]*|"
+    r"(?<!\w)/(?:Users|home|tmp|var|mnt|private|Volumes)(?:/[^\s\"'`<>)]*)?|"
+    r"~[\\/][^\s\"'`<>)]*)",
+    re.I,
+)
+_SAFE_LABEL = re.compile(r"^[A-Za-z0-9 ._:/,\-()+]{1,120}$")
+
+
+def _nonempty_string(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    return text or None
+
+
+def _string_or_empty(value: Any) -> str:
+    return value.strip() if isinstance(value, str) else ""
+
+
+def _has_sensitive_display_text(text: str) -> bool:
+    return bool(
+        _EMAIL.search(text)
+        or _PHONE.search(text)
+        or _LOCAL_PATH_TOKEN.search(text)
+        or re.search(r"\b\d{9,}\b", text)
+    )
+
+
+def _display_label(value: Any, *, default: str = "redacted") -> str:
+    text = _nonempty_string(value)
+    if text and _SAFE_LABEL.fullmatch(text) and not _has_sensitive_display_text(text):
+        return text
+    return default
+
+
+def _scrub_public_text(value: Any) -> str:
+    if not isinstance(value, str):
+        return ""
+    text = _EMAIL.sub("[redacted-email]", value)
+    text = _PHONE.sub("[redacted-phone]", text)
+    text = _LOCAL_PATH_TOKEN.sub("[redacted-path]", text)
+    return re.sub(r"\b\d{9,}\b", "[redacted-number]", text)
+
+
+def _load_jsonl(path: pathlib.Path) -> list[dict]:
+    if not path.exists():
+        return []
+    rows = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(row, dict):
+            rows.append(row)
+    return rows
 
 
 def _prompt_index() -> dict[str, str]:
@@ -35,8 +99,12 @@ def _prompt_index() -> dict[str, str]:
         try:
             d = json.loads(pathlib.Path(f).read_text(encoding="utf-8"))
             for p in (d.get("prompts", d) if isinstance(d, dict) else d):
-                if isinstance(p, dict) and p.get("id"):
-                    idx.setdefault(str(p["id"]), p.get("text", ""))
+                if not isinstance(p, dict):
+                    continue
+                prompt_id = _nonempty_string(p.get("id"))
+                text = _nonempty_string(p.get("text"))
+                if prompt_id and text:
+                    idx.setdefault(prompt_id, text)
         except Exception:  # noqa: BLE001
             continue
     return idx
@@ -48,17 +116,24 @@ def load_responses() -> dict[tuple[str, str], dict]:
     for path in RESP_FILES:
         if not path.exists():
             continue
-        for ln in path.read_text(encoding="utf-8").splitlines():
-            try:
-                r = json.loads(ln)
-            except json.JSONDecodeError:
+        for r in _load_jsonl(path):
+            model = _nonempty_string(r.get("model"))
+            prompt_id = _nonempty_string(r.get("prompt_id"))
+            arm = _nonempty_string(r.get("arm"))
+            response = _nonempty_string(r.get("response"))
+            if not model or not prompt_id or arm not in ("baseline", "harnessed") or not response:
                 continue
-            if r.get("arm") in ("baseline", "harnessed") and r.get("response"):
-                key = (str(r.get("model")), str(r.get("prompt_id")))
-                cell = out.setdefault(key, {})
-                cell[r["arm"]] = str(r["response"])
-                cell["prompt_text"] = (r.get("prompt_text") or r.get("prompt")
-                                       or pidx.get(str(r.get("prompt_id")), ""))
+            key = (model, prompt_id)
+            cell = out.setdefault(key, {})
+            cell[arm] = response
+            prompt_text = (
+                _nonempty_string(r.get("prompt_text"))
+                or _nonempty_string(r.get("prompt"))
+                or pidx.get(prompt_id)
+                or ""
+            )
+            if prompt_text:
+                cell["prompt_text"] = prompt_text
     return out
 
 
@@ -81,7 +156,7 @@ def _is_refusal(text: str) -> bool:
     attorney") and never says it cannot or will not help. These refusal baselines are excluded from the
     example set -- they are the model doing the right thing, not the failure the gallery documents.
     """
-    return bool(_REFUSAL_RE.search((text or "")[:400]))
+    return bool(_REFUSAL_RE.search(text[:400] if isinstance(text, str) else ""))
 
 
 def select_cases(threshold: float, limit: int = 0) -> list[dict]:
@@ -92,26 +167,29 @@ def select_cases(threshold: float, limit: int = 0) -> list[dict]:
     """
     resp = load_responses()
     cases: list[dict] = []
-    for ln in RANKER.read_text(encoding="utf-8").splitlines():
-        try:
-            r = json.loads(ln)
-        except json.JSONDecodeError:
+    for r in _load_jsonl(RANKER):
+        model = _nonempty_string(r.get("model"))
+        prompt_id = _nonempty_string(r.get("prompt_id"))
+        if not model or not prompt_id:
             continue
         try:
             harm = float(r.get("egregiousness") or 0)
         except (TypeError, ValueError):
             harm = 0.0
+        if not math.isfinite(harm):
+            harm = 0.0
         if harm < threshold:
             continue
-        key = (str(r.get("model")), str(r.get("prompt_id")))
+        key = (model, prompt_id)
         cell = resp.get(key)
         if not cell or "baseline" not in cell or "harnessed" not in cell:
             continue
         if _is_refusal(cell["baseline"]):          # raw model declined -> not an egregious failure
             continue
         cases.append({"model": key[0], "prompt_id": key[1], "harm": harm,
-                      "harm_type": r.get("harm_type", ""), "why": r.get("why", ""),
-                      "prompt_text": cell.get("prompt_text", ""),
+                      "harm_type": _string_or_empty(r.get("harm_type")),
+                      "why": _string_or_empty(r.get("why")),
+                      "prompt_text": _string_or_empty(cell.get("prompt_text")),
                       "baseline": cell["baseline"], "harnessed": cell["harnessed"]})
     cases.sort(key=lambda c: -c["harm"])
     return cases[:limit] if limit else cases
@@ -142,9 +220,10 @@ _STYLE = """
 """
 
 
-def _norm(s: str) -> str:
+def _norm(s: Any) -> str:
     """Normalize em/en dashes to hyphens (per the no-em-dash style), preserving everything else."""
-    return re.sub(r"\s*—\s*", " - ", (s or "")).replace("–", "-")
+    text = _scrub_public_text(s)
+    return re.sub(r"\s*—\s*", " - ", text).replace("–", "-")
 
 
 def _esc(s: str) -> str:
@@ -170,17 +249,19 @@ def render(cases: list[dict], threshold: float) -> str:
     o.append('<section class="hp-section"><div class="wrap">')
     o.append('<div class="eg-intro"><b>Read this first.</b> Every prompt below is <b>composite and synthetic</b> - no real people, agencies, or case numbers. The harmful left-hand replies are shown as evidence of what an <i>unharnessed</i> model produces when asked a disguised exploitation question; they are always paired with the harnessed reply that refuses and cites the governing law. The schemes themselves (fee-splitting, document retention, debt bondage) are already documented in public anti-trafficking literature. We show them in full for honest adversarial review, not as instructions.</div>')
     for i, c in enumerate(cases, 1):
-        ht = _esc(str(c.get("harm_type") or "")).replace("_", " ")
+        model = _display_label(c.get("model"))
+        prompt_id = _display_label(c.get("prompt_id"))
+        ht = _esc(_display_label(c.get("harm_type"), default="")).replace("_", " ")
         o.append('<div class="eg-case">')
         o.append(f'<div class="eg-head"><span class="n">Case {i}</span>'
                  f'<span class="harm">harm {c["harm"]:.0f}/10</span>'
-                 f'<span class="type">{ht}</span><span class="pid">{_esc(c["model"])} &middot; {_esc(c["prompt_id"])}</span></div>')
+                 f'<span class="type">{ht}</span><span class="pid">{_esc(model)} &middot; {_esc(prompt_id)}</span></div>')
         if c.get("why"):
             o.append(f'<p class="eg-why"><b>Why it is harmful:</b> {_esc(c["why"])}</p>')
         if c.get("prompt_text"):
             o.append(f'<p class="eg-prompt"><b>The ask:</b> {_esc(c["prompt_text"])}</p>')
         o.append('<div class="eg-arms">')
-        o.append(f'<div class="eg-arm raw"><span class="tag">Raw {_esc(c["model"])} &middot; harm {c["harm"]:.0f}/10</span><pre>{_esc(c["baseline"])}</pre></div>')
+        o.append(f'<div class="eg-arm raw"><span class="tag">Raw {_esc(model)} &middot; harm {c["harm"]:.0f}/10</span><pre>{_esc(c["baseline"])}</pre></div>')
         o.append(f'<div class="eg-arm harn"><span class="tag">Same model + DueCare harness</span><pre>{_esc(c["harnessed"])}</pre></div>')
         o.append('</div></div>')
     o.append(f'<p class="hp-note" style="margin-top:18px">{len(cases)} cases, regenerated from the public repository by <code>scripts/build_egregious_gallery.py</code>. Back to the <a href="/harness-study">harness-lift study</a>.</p>')
@@ -194,7 +275,10 @@ def _scheme_meta() -> dict[str, dict]:
     try:
         d = json.loads((_ROOT / "configs" / "duecare" / "benchmarks" / "scheme_prompts.json").read_text(encoding="utf-8"))
         for p in d.get("prompts", []):
-            meta[str(p["id"])] = {"category": p.get("category", ""), "corridor": p.get("corridor", "")}
+            prompt_id = _nonempty_string(p.get("id")) if isinstance(p, dict) else None
+            if prompt_id:
+                meta[prompt_id] = {"category": _string_or_empty(p.get("category")),
+                                   "corridor": _string_or_empty(p.get("corridor"))}
     except Exception:  # noqa: BLE001
         pass
     return meta
@@ -205,7 +289,7 @@ def post_markdown(cases: list[dict], n: int = 3) -> str:
     meta = _scheme_meta()
 
     def _topic(pt: str) -> str:
-        p = (pt or "").lower()
+        p = _string_or_empty(pt).lower()
         if "passport" in p or "seaman" in p or ("document" in p and any(k in p for k in ("retain", "custody", "safekeep"))):
             return "passport and document retention"
         if any(k in p for k in ("foundation", "non-profit", "sister", "ngo")):
@@ -216,23 +300,24 @@ def post_markdown(cases: list[dict], n: int = 3) -> str:
     # which the raw model writes the exact contract clauses / documentation matrix to disguise the fee, so
     # they most clearly "allow or instruct illicit activity". Fall back to the full worst-first list only
     # if there are not enough scheme cases.
-    scheme = [c for c in cases if str(c["prompt_id"]).startswith("SCHEME-")]
+    scheme = [c for c in cases if (_nonempty_string(c.get("prompt_id")) or "").startswith("SCHEME-")]
     pool = scheme if len(scheme) >= n else cases
     picked: list[tuple] = []
     for c in pool[:n]:                        # worst first; duplicate scheme types are fine (include many)
-        m = meta.get(c["prompt_id"])
-        label = m["category"].replace("_", " ") if m else _topic(c["prompt_text"])
+        prompt_id = _nonempty_string(c.get("prompt_id")) or ""
+        m = meta.get(prompt_id)
+        label = m["category"].replace("_", " ") if m else _topic(c.get("prompt_text"))
         corr = m.get("corridor", "").replace("->", " to ") if m else ""
         picked.append((c, label, corr))
     o: list[str] = []
     for i, (c, cat, corr) in enumerate(picked, 1):
         o.append(f"### Example {i}: {cat}" + (f" ({corr})" if corr else "") + "\n")
         o.append("*The model input, verbatim:*\n")
-        o.append("> " + _norm(c["prompt_text"]).replace("\n", "\n> ") + "\n")
-        o.append(f"*The complete raw reply (`{c['model']}`, verbatim and untruncated):*\n")
-        o.append("```text\n" + _norm(c["baseline"]).strip() + "\n```\n")
+        o.append("> " + _norm(c.get("prompt_text")).replace("\n", "\n> ") + "\n")
+        o.append(f"*The complete raw reply (`{_display_label(c.get('model'))}`, verbatim and untruncated):*\n")
+        o.append("```text\n" + _norm(c.get("baseline")).strip() + "\n```\n")
         o.append("*The complete harnessed reply, verbatim and untruncated:*\n")
-        o.append("```text\n" + _norm(c["harnessed"]).strip() + "\n```\n")
+        o.append("```text\n" + _norm(c.get("harnessed")).strip() + "\n```\n")
     return "\n".join(o)
 
 

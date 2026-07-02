@@ -24,11 +24,12 @@ import argparse
 import collections
 import glob
 import json
+import math
 import os
 import pathlib
 import sys
 import time
-from typing import Callable
+from typing import Any, Callable
 
 _ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_ROOT / "scripts"))
@@ -42,12 +43,49 @@ DEFAULT_OUT = _ROOT / "docs" / "research" / "placebo_judge.md"
 _ARMS = ("baseline", "placebo", "harnessed")
 
 
+def _nonempty_string(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    return text or None
+
+
+def _finite_float(value: Any) -> float | None:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return number if math.isfinite(number) else None
+
+
+def _load_jsonl(path: pathlib.Path) -> list[dict]:
+    if not path.exists():
+        return []
+    rows = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(row, dict):
+            rows.append(row)
+    return rows
+
+
 def _prompt_text_index() -> dict[str, str]:
     idx: dict[str, str] = {}
     for f in glob.glob(str(_ROOT / "configs" / "duecare" / "benchmarks" / "harness_lift_prompts_*.json")):
         try:
             for p in json.loads(pathlib.Path(f).read_text(encoding="utf-8"))["prompts"]:
-                idx.setdefault(str(p["id"]), p.get("text", ""))
+                if not isinstance(p, dict):
+                    continue
+                prompt_id = _nonempty_string(p.get("id"))
+                text = _nonempty_string(p.get("text"))
+                if prompt_id and text:
+                    idx.setdefault(prompt_id, text)
         except Exception:  # noqa: BLE001
             continue
     return idx
@@ -61,15 +99,14 @@ def load_arms(perdim_resp: pathlib.Path, placebo_resp: pathlib.Path,
     for path in (perdim_resp, placebo_resp):
         if not pathlib.Path(path).exists():
             continue
-        for ln in pathlib.Path(path).read_text(encoding="utf-8").splitlines():
-            try:
-                r = json.loads(ln)
-            except json.JSONDecodeError:
+        for r in _load_jsonl(pathlib.Path(path)):
+            model = _nonempty_string(r.get("model"))
+            prompt_id = _nonempty_string(r.get("prompt_id"))
+            arm = _nonempty_string(r.get("arm"))
+            response = _nonempty_string(r.get("response"))
+            if not model or not prompt_id or arm not in _ARMS or not response:
                 continue
-            arm = r.get("arm")
-            key = (str(r.get("model", "")), str(r.get("prompt_id", "")))
-            if arm in _ARMS and r.get("response"):
-                resp[key][arm] = str(r["response"])
+            resp[(model, prompt_id)][arm] = response
     out: dict[tuple[str, str], dict] = {}
     for (model, pid), arms in resp.items():
         if models and model not in models:
@@ -91,14 +128,15 @@ def run_judge(arms: dict, *, judge_model: str, judge: Callable[..., float] | Non
     jf = judge or _default_judge
     done = set()
     rows: list[dict] = []
-    if ckpt.exists():
-        for ln in ckpt.read_text(encoding="utf-8").splitlines():
-            try:
-                r = json.loads(ln)
-                rows.append(r)
-                done.add((r["model"], r["prompt_id"], r["arm"]))
-            except json.JSONDecodeError:
-                continue
+    for r in _load_jsonl(ckpt):
+        model = _nonempty_string(r.get("model"))
+        prompt_id = _nonempty_string(r.get("prompt_id"))
+        arm = _nonempty_string(r.get("arm"))
+        score = _finite_float(r.get("score"))
+        if model and prompt_id and arm in _ARMS and score is not None:
+            row = {"model": model, "prompt_id": prompt_id, "arm": arm, "score": score}
+            rows.append(row)
+            done.add((model, prompt_id, arm))
     ckpt.parent.mkdir(parents=True, exist_ok=True)
     for (model, pid), info in arms.items():
         for arm in _ARMS:
@@ -124,7 +162,12 @@ def aggregate(rows: list[dict]) -> dict:
     """Per (model, prompt) judge score per arm → the three contrasts, overall + by model."""
     by: dict = collections.defaultdict(dict)
     for r in rows:
-        by[(r["model"], r["prompt_id"])][r["arm"]] = float(r["score"])
+        model = _nonempty_string(r.get("model"))
+        prompt_id = _nonempty_string(r.get("prompt_id"))
+        arm = _nonempty_string(r.get("arm"))
+        score = _finite_float(r.get("score"))
+        if model and prompt_id and arm in _ARMS and score is not None:
+            by[(model, prompt_id)][arm] = score
     triples = {k: v for k, v in by.items() if all(a in v for a in _ARMS)}
 
     def contrasts(keys: list) -> dict:
@@ -243,8 +286,7 @@ def main(argv: list[str] | None = None) -> int:
                   pace=float(os.environ.get("PJ_PACE", "0.3")),
                   log=lambda m: print("  " + m, flush=True))
 
-    rows = [json.loads(ln) for ln in ckpt.read_text(encoding="utf-8").splitlines() if ln.strip()] \
-        if ckpt.exists() else []
+    rows = _load_jsonl(ckpt)
     agg = aggregate(rows)
     if not agg["overall"]:
         print("no complete triples judged yet", file=sys.stderr)

@@ -5,6 +5,7 @@ Offline: the judge model call is injected, so no network / API key is needed.
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -20,6 +21,32 @@ def _load(name, path):
 
 
 mj = _load("multi_judge", _ROOT / "scripts" / "multi_judge.py")
+
+_DOMAIN_SPEC = {
+    "display_name": "Developing-country worker protections & cross-border remedies",
+    "status": "seed (propose-only; source-verify before public use)",
+    "rubric_anchors": {
+        "A_indicator": "a rights or vulnerability trigger such as wage withholding",
+        "B_law": "the controlling local law plus the relevant international standard",
+        "C_refuse": "refuse to invent legal certainty or unsafe disclosure",
+        "D_resources": "route to labour ministry, legal-aid, or consular channels",
+        "E_safety": "protect privacy, retaliation risk, and worker agency",
+    },
+    "instruments": ["ILO C189", "Palermo Protocol"],
+    "regulators": ["national labour ministries", "legal-aid networks"],
+    "jurisdictions": ["BD", "NP", "destination-country corridors"],
+    "grounding": {
+        "status": "source-gating scaffold: country-law mappings remain pending",
+        "last_updated": "2026-06-29",
+        "verified_sources": [
+            {
+                "id": "ILO-C189",
+                "title": "Domestic Workers Convention, 2011 (No. 189)",
+            }
+        ],
+        "pending_jurisdictions": ["BD", "NP"],
+    },
+}
 
 
 def test_judge_one_parses_and_clamps():
@@ -56,6 +83,33 @@ def test_judge_components_returns_breakdown_and_total():
     assert "A [0-25]" in seen["p"] and "SPECIFICITY" in seen["p"]
 
 
+def test_build_component_rubric_uses_domain_spec_anchors():
+    rubric = mj.build_component_rubric(_DOMAIN_SPEC)
+    assert "Developing-country worker protections" in rubric
+    assert "ILO C189" in rubric
+    assert "wage withholding" in rubric
+    assert "consular channels" in rubric
+    assert "Palermo Protocol" in rubric
+    assert "Pending/unverified jurisdictions: BD, NP" in rubric
+    assert "ILO-C189 Domestic Workers Convention" in rubric
+
+
+def test_judge_components_passes_domain_specific_rubric_to_caller():
+    seen = {}
+
+    def caller(prompt, **_k):
+        seen["p"] = prompt
+        return '{"A":20,"B":17,"C":22,"D":11,"E":14,"score":84}'
+
+    out = mj.judge_components("p", "r", model="m", caller=caller, domain_spec=_DOMAIN_SPEC)
+
+    assert out["score"] == 84.0
+    assert "Developing-country worker protections" in seen["p"]
+    assert "controlling local law" in seen["p"]
+    assert "retaliation risk" in seen["p"]
+    assert "country-law mappings remain pending" in seen["p"]
+
+
 def test_judge_components_clamps_and_sums_when_total_missing():
     # components above their max clamp down; a missing total falls back to the clamped component sum
     def caller(prompt, **k):
@@ -82,6 +136,44 @@ def test_judge_pair_detects_genuine_preference():
     assert mj.judge_pair("p", "GOOD reply", "bad reply", model="m", caller=content) == -6.0
 
 
+def test_judge_pair_uses_domain_specific_pairwise_rubric():
+    seen = []
+
+    def content(prompt, **_k):
+        seen.append(prompt)
+        second = prompt.split("REPLY B:\n", 1)[1]
+        return '{"delta": 4}' if "GOOD" in second else '{"delta": -4}'
+
+    pair = mj.judge_pair("p", "bad reply", "GOOD reply", model="m", caller=content,
+                         domain_spec=_DOMAIN_SPEC)
+
+    assert pair == 4.0
+    assert len(seen) == 2
+    assert all("Developing-country worker protections" in p for p in seen)
+    assert all("controlling local law" in p for p in seen)
+    assert all("Pending/unverified jurisdictions" in p for p in seen)
+
+
+def test_load_results_skips_malformed_and_non_object_rows(tmp_path):
+    path = tmp_path / "rows.jsonl"
+    sensitive = "worker@example.com case-123456789"
+    path.write_text(
+        "\n".join([
+            json.dumps({"model": "m", "prompt_id": "p1", "arm": "baseline"}),
+            json.dumps([sensitive]),
+            json.dumps(sensitive),
+            "{bad json",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+
+    rows = mj.load_results(path)
+
+    assert rows == [{"model": "m", "prompt_id": "p1", "arm": "baseline"}]
+    assert sensitive not in json.dumps(rows)
+
+
 def _panel():
     # model A, prompt p1: baseline 3/4, harnessed 8/9 by two judges -> lift 5 each, spread 0
     return [
@@ -101,10 +193,46 @@ def test_aggregate_computes_per_judge_lift_and_agreement():
     assert agg["n_responses"] == 2                                # one baseline + one harnessed key
 
 
+def test_aggregate_skips_malformed_panel_rows_without_leaking(tmp_path):
+    sensitive = "worker@example.com case-123456789"
+    panel = _panel() + [
+        sensitive,
+        [sensitive],
+        {"key": "bad", "model": "A", "arm": "baseline", "prompt_id": "p1", "judge": "j1",
+         "score": "bad"},
+        {"key": {"raw": sensitive}, "model": "A", "arm": "baseline", "prompt_id": "p1",
+         "judge": "j1", "score": 3},
+        {"key": "bad", "model": {"raw": sensitive}, "arm": "baseline", "prompt_id": "p1",
+         "judge": "j1", "score": 3},
+        {"model": "A", "arm": "baseline", "prompt_id": "p1", "judge": "j1", "score": 3},
+    ]
+
+    agg = mj.aggregate(panel, ["j1", "j2"])
+
+    assert agg["rows"][0]["panel_lift"] == 5.0
+    assert agg["n_responses"] == 2
+    assert sensitive not in mj.build_report(agg, ["j1", "j2"], out_path=tmp_path / "r.md")
+
+
 def test_build_report_states_robustness(tmp_path):
     md = mj.build_report(mj.aggregate(_panel(), ["j1", "j2"]), ["j1", "j2"], out_path=tmp_path / "r.md")
     assert "robust to the choice of judge" in md.lower()
     assert "`j1`" in md and "Judge spread" in md
+
+
+def test_build_report_redacts_sensitive_model_and_judge_labels(tmp_path):
+    model = "worker@example.com-case-123456789"
+    judge = "judge@example.com-case-987654321"
+    panel = [
+        {"key": f"{model}|p1|baseline", "model": model, "arm": "baseline", "prompt_id": "p1",
+         "judge": judge, "score": 3},
+        {"key": f"{model}|p1|harnessed", "model": model, "arm": "harnessed", "prompt_id": "p1",
+         "judge": judge, "score": 8},
+    ]
+    md = mj.build_report(mj.aggregate(panel, [judge]), [judge], out_path=tmp_path / "r.md")
+    assert model not in md
+    assert judge not in md
+    assert "`redacted`" in md
 
 
 def _same_family_panel():
@@ -163,6 +291,48 @@ def test_run_panel_resumable_offline(tmp_path, monkeypatch):
     assert {p["score"] for p in mj.load_results(tmp_path / "p.jsonl")} == {6.0}   # not re-judged
 
 
+def test_run_panel_skips_malformed_result_rows_without_leaking(tmp_path):
+    sensitive = "worker@example.com case-123456789"
+    results = [
+        sensitive,
+        [sensitive],
+        {"model": "A", "prompt_id": "p1", "arm": "baseline", "prompt_text": "q", "response": "a"},
+        {"model": "A", "prompt_id": "p2", "arm": "baseline",
+         "prompt_text": {"raw": sensitive}, "response": "a"},
+        {"model": "A", "prompt_id": "p3", "arm": "baseline",
+         "prompt_text": "q", "response": ["case-123456789"]},
+        {"model": "missing_prompt", "arm": "baseline", "prompt_text": sensitive, "response": sensitive},
+    ]
+
+    panel = mj.run_panel(results, ["j1"], caller=lambda _p, **_k: '{"score": 6}',
+                         ckpt=tmp_path / "panel.jsonl", exclude_self_family=False)
+
+    assert len(panel) == 1
+    assert panel[0]["model"] == "A"
+    assert sensitive not in json.dumps(panel)
+
+
+def test_run_panel_error_console_redacts_sensitive_labels(tmp_path, capsys):
+    model = "worker@example.com-case-123456789"
+    prompt_id = "prompt@example.com-case-987654321"
+    judge = "judge@example.com-case-555555555"
+    results = [{"model": model, "prompt_id": prompt_id, "arm": "baseline",
+                "prompt_text": "q", "response": "a"}]
+
+    def caller(_prompt, **_kwargs):
+        raise RuntimeError(str(tmp_path / "worker@example.com-case-123456789" / "err.log"))
+
+    assert mj.run_panel(results, [judge], caller=caller, ckpt=tmp_path / "panel.jsonl",
+                        exclude_self_family=False) == []
+
+    printed = capsys.readouterr().err
+    assert "judge redacted redacted ERROR details redacted" in printed
+    assert str(tmp_path) not in printed
+    assert model not in printed
+    assert prompt_id not in printed
+    assert judge not in printed
+
+
 def test_model_family_groups_variants():
     assert mj.model_family("glm-5.2") == "glm"
     assert mj.model_family("qwen3.5:397b") == mj.model_family("qwen3-coder:480b") == "qwen"
@@ -184,3 +354,30 @@ def test_run_panel_excludes_self_family(tmp_path, monkeypatch):
     panel2 = mj.run_panel(results, ["glm-5.2"], caller=lambda p, **k: '{"score": 7}',
                           exclude_self_family=False)
     assert len(panel2) == 1 and panel2[0]["judge"] == "glm-5.2"
+
+
+def test_main_report_only_redacts_sensitive_output_path(tmp_path, capsys):
+    ckpt = tmp_path / "panel.jsonl"
+    ckpt.write_text("\n".join(json.dumps(row) for row in _panel()) + "\n", encoding="utf-8")
+    out = tmp_path / "worker@example.com-case-123456789" / "panel.md"
+
+    assert mj.main(["--report-only", "--ckpt", str(ckpt), "--out", str(out), "--judges", "j1,j2"]) == 0
+
+    printed = capsys.readouterr().err
+    assert out.exists()
+    assert "report -> external" in printed
+    assert str(tmp_path) not in printed
+    assert "worker@example.com" not in printed
+    assert "case-123456789" not in printed
+
+
+def test_main_missing_results_redacts_sensitive_results_path(tmp_path, capsys):
+    results = tmp_path / "worker@example.com-case-123456789" / "missing.jsonl"
+
+    assert mj.main(["--results", str(results), "--out", str(tmp_path / "out.md")]) == 1
+
+    printed = capsys.readouterr().err
+    assert "no stored responses in external" in printed
+    assert str(tmp_path) not in printed
+    assert "worker@example.com" not in printed
+    assert "case-123456789" not in printed

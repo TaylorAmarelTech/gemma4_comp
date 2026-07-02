@@ -30,7 +30,14 @@ from pathlib import Path
 _ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_ROOT / "scripts"))
 
-from build_frontier_perdim_report import load_cells  # noqa: E402  (reuse the cell loader)
+from build_frontier_perdim_report import (  # noqa: E402  (reuse helpers)
+    _coerce_cells,
+    _display_model_label,
+    _display_report_label,
+    _display_report_path,
+    _nonempty_string,
+    load_cells,
+)
 
 DEFAULT_CKPT = _ROOT / "reports" / "frontier_perdim" / "perdim.jsonl"
 # the checkpoint may pool prompts from more than one corpus file; load metadata from all of them
@@ -94,9 +101,22 @@ def load_prompt_meta(paths) -> dict[str, dict]:
     for path in paths:
         if not Path(path).exists():
             continue
-        for p in json.loads(Path(path).read_text(encoding="utf-8")).get("prompts", []):
-            out[str(p.get("id"))] = {"category": p.get("category", "unknown"),
-                                     "difficulty": p.get("difficulty", "unknown")}
+        try:
+            data = json.loads(Path(path).read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            continue
+        prompts = data.get("prompts", []) if isinstance(data, dict) else []
+        if not isinstance(prompts, list):
+            continue
+        for p in prompts:
+            if not isinstance(p, dict):
+                continue
+            prompt_id = _nonempty_string(p.get("id"))
+            if not prompt_id:
+                continue
+            category = p.get("category") if isinstance(p.get("category"), str) else "unknown"
+            difficulty = p.get("difficulty") if isinstance(p.get("difficulty"), str) else "unknown"
+            out[prompt_id] = {"category": category, "difficulty": difficulty}
     return out
 
 
@@ -121,6 +141,7 @@ def _split_scores(cells: list[dict], key) -> dict:
 
 
 def build_report(cells: list[dict], meta: dict[str, dict], *, out_path: Path) -> str:
+    cells = _coerce_cells(cells)
     n_prompts = len({c["prompt_id"] for c in cells})
     models = sorted({c["model"] for c in cells})
     n_models = len(models)
@@ -165,7 +186,7 @@ def build_report(cells: list[dict], meta: dict[str, dict], *, out_path: Path) ->
     cat_rows = [(cat, _fail_rate(a["baseline"]), len(a["baseline"]))
                 for cat, a in cat_buckets.items() if cat and len(a["baseline"]) >= 30]
     for cat, b, n in sorted(cat_rows, key=lambda x: -x[1])[:14]:
-        o.append(f"| `{cat}` | {_bar(b)} | {n} |")
+        o.append(f"| `{_display_report_label(cat)}` | {_bar(b)} | {n} |")
     o.append("")
 
     o.append("## Failure rate by difficulty\n")
@@ -177,7 +198,7 @@ def build_report(cells: list[dict], meta: dict[str, dict], *, out_path: Path) ->
     diff_rows = [(d, _fail_rate(a["baseline"]), _fail_rate(a["harnessed"]), len(a["baseline"]))
                  for d, a in diff_buckets.items() if d and a["baseline"]]
     for d, b, h, n in sorted(diff_rows, key=lambda x: order.get(x[0], 9)):
-        o.append(f"| **{d}** | {_bar(b)} | {_bar(h)} | {n} |")
+        o.append(f"| **{_display_report_label(d)}** | {_bar(b)} | {_bar(h)} | {n} |")
     o.append("")
 
     o.append("## The single worst failures (by dimension)\n")
@@ -188,12 +209,12 @@ def build_report(cells: list[dict], meta: dict[str, dict], *, out_path: Path) ->
     dim_rows = [(d, _fail_rate(a["baseline"]), len(a["baseline"]))
                 for d, a in dim_buckets.items() if len(a["baseline"]) >= 30]
     for d, b, n in sorted(dim_rows, key=lambda x: -x[1])[:15]:
-        o.append(f"| `{d}` | {_DIM_THEME.get(d, 'other')} | {_bar(b)} | {n} |")
+        o.append(f"| `{_display_report_label(d)}` | {_DIM_THEME.get(d, 'other')} | {_bar(b)} | {n} |")
     o.append("")
 
     o.append("## Methodology\n")
     o.append(
-        f"- **Models** ({n_models}): {', '.join('`' + m + '`' for m in models)}.\n"
+        f"- **Models** ({n_models}): {', '.join('`' + _display_model_label(m) + '`' for m in models)}.\n"
         f"- **Prompts**: {n_prompts} from `harness_lift_prompts_500.json` (composite/synthetic, no "
         "real PII), tagged by exploitation category + difficulty.\n"
         "- **Grader**: DueCare's `grade_response_universal` — 75 rubric dimensions (the applicable "
@@ -217,7 +238,7 @@ def build_report(cells: list[dict], meta: dict[str, dict], *, out_path: Path) ->
                      f"{dmap['easy']*100:.0f}% vs very_hard {dmap['very_hard']*100:.0f}%)")
     else:
         diff_note = "failure is roughly flat across the difficulty label"
-    cats_txt = ", ".join(f"`{c}` ({b*100:.0f}%)" for c, b, _n in top_cats) or "(n/a)"
+    cats_txt = ", ".join(f"`{_display_report_label(c)}` ({b*100:.0f}%)" for c, b, _n in top_cats) or "(n/a)"
     o.append(
         f"1. **Strong models are not safe by default** — they fail {overall_base*100:.0f}% of "
         "trafficking-safety dimensions at baseline, and the gaps are systematic.\n"
@@ -251,11 +272,11 @@ def main(argv: list[str] | None = None) -> int:
 
     cells = load_cells(Path(args.ckpt))
     if not cells:
-        print(f"no per-dimension cells in {args.ckpt}", file=sys.stderr)
+        print(f"no per-dimension cells in {_display_report_path(args.ckpt)}", file=sys.stderr)
         return 1
     meta = load_prompt_meta([Path(p) for p in args.corpus])
     build_report(cells, meta, out_path=Path(args.out))
-    print(f"report -> {Path(args.out).relative_to(_ROOT)} "
+    print(f"report -> {_display_report_path(args.out)} "
           f"({len(cells)} cells, {len({c['prompt_id'] for c in cells})} prompts)", file=sys.stderr)
     return 0
 

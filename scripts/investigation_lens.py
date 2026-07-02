@@ -31,12 +31,56 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
+import re
 from collections import Counter
 from typing import Any
 
 _ROOT = pathlib.Path(__file__).resolve().parents[1]
 REASONING_SFT = _ROOT / "reports" / "training" / "reasoning_sft.jsonl"
 OUT = _ROOT / "reports" / "training" / "investigation_lens.json"
+_EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b", re.I)
+_PHONE = re.compile(r"\+?\d[\d\s().\-]{8,}\d")
+_LOCAL_PATH_HINT = re.compile(
+    r"(?:[A-Za-z]:[\\/]|\\\\|(?:^|[\s\"'(:])/(?:Users|home|tmp|var|mnt|private|Volumes)(?:/|$)|~[\\/])",
+    re.I,
+)
+_SAFE_RELATIVE_PATH = re.compile(r"^[A-Za-z0-9._/\-]+$")
+
+
+def _has_sensitive_display_text(text: str) -> bool:
+    return bool(
+        _EMAIL.search(text)
+        or _PHONE.search(text)
+        or _LOCAL_PATH_HINT.search(text)
+        or re.search(r"\b\d{9,}\b", text)
+    )
+
+
+def _safe_relative_report_path(path: pathlib.PurePath) -> str:
+    display = path.as_posix()
+    if not display or display.startswith("../") or "/../" in display:
+        return "redacted"
+    if _has_sensitive_display_text(display):
+        return "redacted"
+    if not _SAFE_RELATIVE_PATH.fullmatch(display):
+        return "redacted"
+    return display
+
+
+def _display_report_path(raw_path: Any) -> str:
+    if not raw_path:
+        return "n/a"
+    raw = str(raw_path)
+    try:
+        path = pathlib.Path(raw)
+        if path.is_absolute():
+            try:
+                return _safe_relative_report_path(path.relative_to(_ROOT))
+            except ValueError:
+                return "external"
+        return _safe_relative_report_path(pathlib.PurePosixPath(pathlib.PureWindowsPath(raw).as_posix()))
+    except (OSError, RuntimeError, ValueError):
+        return "redacted"
 
 # PERPETRATOR-side roles -- the operation's actors an investigator maps (with variations).
 ACTOR_ROLES: dict[str, tuple[str, ...]] = {
@@ -125,6 +169,8 @@ RESPONDER_FAILURE: dict[str, tuple[str, ...]] = {
 
 
 def _present(text: str, groups: dict[str, tuple[str, ...]]) -> list[str]:
+    if not isinstance(text, str):
+        return []
     low = text.lower()
     return [name for name, terms in groups.items() if any(t in low for t in terms)]
 
@@ -156,9 +202,21 @@ def institutional_review(text: str) -> dict[str, Any]:
             "n_response_actors": len(actors)}
 
 
-def _assistant_text(row: dict) -> str:
-    return next((str(m.get("content", "")) for m in reversed(row.get("messages") or [])
-                if m.get("role") == "assistant"), "")
+def _assistant_text(row: Any) -> str:
+    if not isinstance(row, dict):
+        return ""
+    messages = row.get("messages")
+    if not isinstance(messages, list):
+        return ""
+    for message in reversed(messages):
+        if not isinstance(message, dict):
+            continue
+        if message.get("role") != "assistant":
+            continue
+        content = message.get("content")
+        if isinstance(content, str):
+            return content
+    return ""
 
 
 def _load_jsonl(path: pathlib.Path) -> list[dict]:
@@ -168,19 +226,22 @@ def _load_jsonl(path: pathlib.Path) -> list[dict]:
     for ln in path.read_text(encoding="utf-8").splitlines():
         if ln.strip():
             try:
-                out.append(json.loads(ln))
+                row = json.loads(ln)
             except json.JSONDecodeError:
                 continue
+            if isinstance(row, dict):
+                out.append(row)
     return out
 
 
 def coverage(texts: list[str]) -> dict[str, Any]:
     """Aggregate: how often the reasoning reasons like an investigator (actors / network / money / stage)."""
-    n = len([t for t in texts if t])
+    valid_texts = [t for t in texts if isinstance(t, str) and t]
+    n = len(valid_texts)
     if not n:
         return {"n": 0}
-    rows = [investigation_analysis(t) for t in texts if t]
-    inst = [institutional_review(t) for t in texts if t]
+    rows = [investigation_analysis(t) for t in valid_texts]
+    inst = [institutional_review(t) for t in valid_texts]
     actor_c: Counter = Counter()
     conn_c: Counter = Counter()
     stage_c: Counter = Counter()
@@ -213,11 +274,14 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
 
     if args.text is not None:
-        print(json.dumps(investigation_analysis(args.text), indent=2, ensure_ascii=False))
+        rep = investigation_analysis(args.text)
+        rep["institutional_review"] = institutional_review(args.text)
+        print(json.dumps(rep, indent=2, ensure_ascii=False))
         return 0
     rows = _load_jsonl(args.sft)
     if not rows:
-        print(f"[investigation] no reasoning set at {args.sft} -- run build_reasoning_targets.py first")
+        print(f"[investigation] no reasoning set at {_display_report_path(args.sft)} "
+              "-- run build_reasoning_targets.py first")
         return 1
     rep = coverage([_assistant_text(r) for r in rows])
     rep["note"] = ("Investigative-lens coverage over the gold reasoning traces: how often the reasoning maps "
@@ -229,7 +293,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"[investigation] n={rep['n']} actors={rep['considers_actors_rate']} "
           f"network={rep['considers_network_rate']} financial={rep['considers_financial_rate']} "
           f"reviews_institutions={rep['reviews_institutions_rate']} "
-          f"flags_failure={rep['flags_institutional_failure_rate']} -> {OUT}")
+          f"flags_failure={rep['flags_institutional_failure_rate']} -> {_display_report_path(OUT)}")
     return 0
 
 

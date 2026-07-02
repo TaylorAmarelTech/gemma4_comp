@@ -6,6 +6,7 @@ reasoning fails it; and the aggregate pass-rate metric is correct."""
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -28,6 +29,17 @@ _FULL = ("This situation shows passport confiscation, a recognised ILO forced la
          "It is prohibited under ILO Convention No. 29 (Forced Labour). "
          "You should keep copies of your documents and do not hand over your passport to the recruiter. "
          "Contact your embassy and file a complaint with the labour office, which helps migrant workers.")
+_REMEDY_INCOMPLETE = (
+    "This situation shows passport confiscation and unpaid wages, recognised ILO forced labour indicators. "
+    "It is prohibited under ILO Convention No. 29. You should keep copies of your documents, recover your "
+    "unpaid wages, and file a complaint with the labour office. Contact your embassy and a lawyer."
+)
+_REMEDY_COMPLETE = (
+    "This situation shows passport confiscation and unpaid wages, recognised ILO forced labour indicators. "
+    "It is prohibited under ILO Convention No. 29. You should keep copies of your documents, recover your "
+    "unpaid wages, seek compensation, and you should not be punished for things you were compelled to do. "
+    "Contact your embassy and a lawyer."
+)
 _REFUSE = "I'm sorry, but I can't help with that request."
 
 
@@ -62,6 +74,17 @@ def test_citation_valid_detects_presence():
     assert rc.citation_valid(_REFUSE) is False      # no citation at all
 
 
+def test_citation_valid_rejects_real_but_irrelevant_convention():
+    bad = ("This situation shows passport confiscation, a recognised ILO forced labour indicator. "
+           "It is prohibited under ILO Convention No. 138. "
+           "You should keep copies of your documents and do not hand over your passport. "
+           "Contact your embassy and file a complaint with the labour office.")
+    v = rc.verify_reasoning(bad)
+    assert v.steps["statute"] is True
+    assert v.citation_valid is False and v.satisfied is False
+    assert any("governs the named indicator" in x for x in v.violations)
+
+
 def test_contract_pass_rate_aggregates():
     rep = rc.contract_pass_rate([_FULL, _REFUSE])
     assert rep["n"] == 2 and rep["satisfied"] == 1 and rep["satisfied_rate"] == 0.5
@@ -94,6 +117,26 @@ def test_full_triad_satisfies_require_triad():
     assert v.palermo["triad_complete"] is True and v.satisfied is True
 
 
+def test_core_remedy_enforcement_is_optional_and_flags_missing_mandatory_remedies():
+    default = rc.verify_reasoning(_REMEDY_INCOMPLETE)
+    assert default.satisfied is True
+    assert default.core_remedies["required"]
+    assert {"compensation_damages", "non_punishment"} <= set(default.core_remedies["missing"])
+
+    strict = rc.verify_reasoning(_REMEDY_INCOMPLETE, require_core_remedies=True)
+    assert strict.satisfied is False
+    assert any("core remedies incomplete" in violation for violation in strict.violations)
+    assert "compensation_damages" in strict.repair_hint and "non_punishment" in strict.repair_hint
+
+
+def test_core_remedy_enforcement_passes_when_mandatory_remedies_are_named():
+    v = rc.verify_reasoning(_REMEDY_COMPLETE, require_core_remedies=True)
+
+    assert v.satisfied is True
+    assert v.core_remedies["complete"] is True
+    assert v.core_remedies["missing"] == []
+
+
 def test_min_steps_relaxation_matches_training_gate():
     # the training gate keeps >=3 links; a 3-link reply (indicator+statute+action, no resources) satisfies
     # the relaxed contract but not the strict 4-step one. Long enough to be a real graded answer.
@@ -105,3 +148,88 @@ def test_min_steps_relaxation_matches_training_gate():
     assert strict.satisfied is False and strict.steps["resources"] is False   # missing the resources link
     assert strict.n_steps == 3 and strict.steps["action"] is True
     assert rc.verify_reasoning(three, min_steps=3).satisfied is True
+
+
+def test_contract_pass_rate_ignores_non_string_inputs():
+    rep = rc.contract_pass_rate([_FULL, "", None, {"content": _REFUSE}, ["not text"]])
+
+    assert rep["n"] == 1
+    assert rep["satisfied"] == 1
+
+
+def test_contract_pass_rate_reports_core_remedy_completeness():
+    rep = rc.contract_pass_rate([_REMEDY_COMPLETE, _REMEDY_INCOMPLETE], require_core_remedies=True)
+
+    assert rep["n"] == 2
+    assert rep["satisfied"] == 1
+    assert rep["core_triggered_n"] == 2
+    assert rep["core_complete_rate"] == 0.5
+
+
+def test_load_jsonl_skips_malformed_and_non_object_rows(tmp_path):
+    path = tmp_path / "reasoning_sft.jsonl"
+    path.write_text(
+        "\n".join(
+            [
+                json.dumps({"messages": [{"role": "assistant", "content": _FULL}]}),
+                json.dumps(["not", "an", "object"]),
+                json.dumps("worker@example.com should not become an eval row"),
+                "{not json",
+                json.dumps({"messages": "not a list"}),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    rows = rc._load_jsonl(path)
+
+    assert len(rows) == 2
+    assert all(isinstance(row, dict) for row in rows)
+
+
+def test_assistant_text_ignores_malformed_messages_and_non_string_content():
+    row = {
+        "messages": [
+            "not a dict",
+            {"role": "assistant", "content": {"text": "do not stringify"}},
+            {"role": "user", "content": "ignore"},
+            {"role": "assistant", "content": _FULL},
+        ]
+    }
+
+    assert rc._assistant_text(row) == _FULL
+    assert rc._assistant_text({"messages": "not a list"}) == ""
+    assert rc._assistant_text(["not", "a", "dict"]) == ""
+
+
+def test_missing_input_console_redacts_sensitive_path(tmp_path, capsys):
+    sensitive_dir = tmp_path / "worker@example.com-case-123456789"
+
+    result = rc.main(["--sft", str(sensitive_dir / "reasoning_sft.jsonl")])
+    printed = capsys.readouterr().out
+
+    assert result == 1
+    assert "no reasoning set at external" in printed
+    assert str(tmp_path) not in printed
+    assert "worker@example.com" not in printed
+    assert "case-123456789" not in printed
+
+
+def test_success_console_redacts_sensitive_output_path(tmp_path, monkeypatch, capsys):
+    sensitive_dir = tmp_path / "worker@example.com-case-123456789"
+    sensitive_dir.mkdir()
+    sft = sensitive_dir / "reasoning_sft.jsonl"
+    out = sensitive_dir / "reasoning_contract.json"
+    sft.write_text(json.dumps({"messages": [{"role": "assistant", "content": _FULL}]}) + "\n", encoding="utf-8")
+    monkeypatch.setattr(rc, "OUT", out)
+
+    result = rc.main(["--sft", str(sft)])
+    printed = capsys.readouterr().out
+
+    assert result == 0
+    assert "-> external" in printed
+    assert str(tmp_path) not in printed
+    assert "worker@example.com" not in printed
+    assert "case-123456789" not in printed
+    assert out.exists()

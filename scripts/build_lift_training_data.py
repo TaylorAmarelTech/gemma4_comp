@@ -28,7 +28,9 @@ must pass, before inclusion:
                  is NOT blanket-dropped here -- the grounding gate already rejects bare refusals while
                  keeping well-grounded ones.
   * citation  -- the teacher cites no hallucinated statute section / out-of-range ILO convention, via
-                 scripts/citation_accuracy.py (never teach a fabricated citation).
+                 scripts/citation_accuracy.py (never teach a fabricated citation), and no real-but-
+                 irrelevant ILO convention for the exploitation signal, via palermo_screening.py
+                 (never teach citation theatre).
   * privacy   -- a conservative PII / volatile-contact scrub (emails, phone-like, long digit runs), so
                  targets teach the response SHAPE, not a specific (volatile) hotline number -- statute
                  refs like "C181" or "RA 8042" are preserved.
@@ -62,6 +64,7 @@ _ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from refusal_detector import classify as _classify, FORMAT_FAILURE  # noqa: E402
 from citation_accuracy import citation_stats as _citation_stats  # noqa: E402
+from palermo_screening import citation_coherence as _citation_coherence  # noqa: E402
 
 PANEL = _ROOT / "reports" / "rich_lift" / "panel.jsonl"
 RESULTS = _ROOT / "reports" / "rich_lift" / "results.jsonl"
@@ -80,6 +83,59 @@ _SCRUB = [
     (re.compile(r"\+?\d[\d\s().\-]{8,}\d"), "[phone]"),
     (re.compile(r"\b\d{6,}\b"), "[id-number]"),
 ]
+_EMAIL = _SCRUB[0][0]
+_PHONE = _SCRUB[1][0]
+_LOCAL_PATH_HINT = re.compile(
+    r"(?:[A-Za-z]:[\\/]|\\\\|(?:^|[\s\"'(:])/(?:Users|home|tmp|var|mnt|private|Volumes)(?:/|$)|~[\\/])",
+    re.I,
+)
+_SAFE_RELATIVE_PATH = re.compile(r"^[A-Za-z0-9._/\-]+$")
+_SAFE_PROMPT_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$")
+
+
+def _has_sensitive_display_text(text: str) -> bool:
+    return bool(
+        _EMAIL.search(text)
+        or _PHONE.search(text)
+        or _LOCAL_PATH_HINT.search(text)
+        or re.search(r"\b\d{9,}\b", text)
+    )
+
+
+def _safe_prompt_id(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    if not text or _has_sensitive_display_text(text):
+        return None
+    return text if _SAFE_PROMPT_ID.fullmatch(text) else None
+
+
+def _safe_relative_report_path(path: pathlib.PurePath) -> str:
+    display = path.as_posix()
+    if not display or display.startswith("../") or "/../" in display:
+        return "redacted"
+    if _has_sensitive_display_text(display):
+        return "redacted"
+    if not _SAFE_RELATIVE_PATH.fullmatch(display):
+        return "redacted"
+    return display
+
+
+def _display_report_path(raw_path: Any) -> str:
+    if not raw_path:
+        return "n/a"
+    raw = str(raw_path)
+    try:
+        path = pathlib.Path(raw)
+        if path.is_absolute():
+            try:
+                return _safe_relative_report_path(path.relative_to(_ROOT))
+            except ValueError:
+                return "external"
+        return _safe_relative_report_path(pathlib.PurePosixPath(pathlib.PureWindowsPath(raw).as_posix()))
+    except (OSError, RuntimeError, ValueError):
+        return "redacted"
 
 
 def _load_jsonl(path: pathlib.Path) -> list[dict[str, Any]]:
@@ -89,9 +145,11 @@ def _load_jsonl(path: pathlib.Path) -> list[dict[str, Any]]:
     for ln in path.read_text(encoding="utf-8").splitlines():
         if ln.strip():
             try:
-                out.append(json.loads(ln))
+                row = json.loads(ln)
             except json.JSONDecodeError:
                 continue
+            if isinstance(row, dict):
+                out.append(row)
     return out
 
 
@@ -108,6 +166,8 @@ def mean_scores(panel: list[dict]) -> dict[tuple[str, str, str], float]:
     """Mean 0-100 score per (model, prompt_id, arm) over the judge panel."""
     by: dict[tuple[str, str, str], list[float]] = defaultdict(list)
     for r in panel:
+        if not isinstance(r, dict):
+            continue
         try:
             by[(str(r["model"]), str(r["prompt_id"]), str(r["arm"]))].append(float(r["score_0_100"]))
         except (KeyError, TypeError, ValueError):
@@ -120,6 +180,8 @@ def mean_components(panel: list[dict]) -> dict[tuple[str, str, str], dict[str, f
     no ``components`` block, so old/component-less panels degrade gracefully)."""
     by: dict[tuple[str, str, str], dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
     for r in panel:
+        if not isinstance(r, dict):
+            continue
         comp = r.get("components")
         if not isinstance(comp, dict):
             continue
@@ -140,25 +202,47 @@ def responses(results: list[dict]) -> dict[tuple[str, str, str], dict[str, str]]
     """{(model, prompt_id, arm): {response, prompt_text}} from the raw response log (last write wins)."""
     out: dict[tuple[str, str, str], dict[str, str]] = {}
     for r in results:
+        if not isinstance(r, dict):
+            continue
         try:
+            response = r.get("response", "")
+            if not isinstance(response, str):
+                continue
+            prompt_text = r.get("prompt_text", "")
+            if not isinstance(prompt_text, str):
+                prompt_text = ""
             out[(str(r["model"]), str(r["prompt_id"]), str(r["arm"]))] = {
-                "response": str(r.get("response", "")),
-                "prompt_text": str(r.get("prompt_text", "")),
+                "response": response,
+                "prompt_text": prompt_text,
             }
         except (KeyError, TypeError):
             continue
     return out
 
 
+def _safe_citation_example(*, model: str, prompt_id: str | None, coherence: dict[str, Any]) -> dict[str, Any]:
+    """Structured citation metadata only; never include raw prompts or responses."""
+    return {
+        "model": model,
+        "prompt_id": prompt_id,
+        "mapped_signals": coherence.get("mapped_signals", []),
+        "cited_conventions": coherence.get("cited_conventions", []),
+        "expected_conventions": coherence.get("expected_conventions", []),
+        "matched": coherence.get("matched", []),
+        "coherent": coherence.get("coherent", False),
+    }
+
+
 def build(*, min_target: float, min_lift: float, teacher_arm: str = DEFAULT_TEACHER_ARM,
           min_grounding: float = DEFAULT_MIN_GROUNDING, min_cite: float = DEFAULT_MIN_CITE,
           min_grounding_delta: float = DEFAULT_MIN_GROUNDING_DELTA,
-          panel_path: pathlib.Path = PANEL, results_path: pathlib.Path = RESULTS) -> dict[str, Any]:
+          panel_path: pathlib.Path = PANEL, results_path: pathlib.Path = RESULTS,
+          require_citation_relevance: bool = True) -> dict[str, Any]:
     """Select high-lift (baseline, harnessed) pairs and build vetted SFT + DPO records + a manifest.
 
     The teacher (gold) arm defaults to ``harness_core``. Beyond score + lift, each pair's teacher reply
     must be a real answer (not a format failure), grounded (A+B+D >= ``min_grounding`` and B >=
-    ``min_cite`` -- never a bare refusal), and free of hallucinated citations.
+    ``min_cite`` -- never a bare refusal), and free of hallucinated or irrelevant citations.
     """
     panel = _load_jsonl(panel_path)
     score = mean_scores(panel)
@@ -172,10 +256,15 @@ def build(*, min_target: float, min_lift: float, teacher_arm: str = DEFAULT_TEAC
     dpo: list[dict[str, Any]] = []
     considered = selected = redactions = 0
     dropped_format = dropped_grounding = dropped_citation = dropped_grounding_delta = 0
+    dropped_irrelevant_citation = 0
+    metadata_sanitized_prompt_ids = 0
+    irrelevant_citation_examples: list[dict[str, Any]] = []
     for (model, pid), arms in by_pair.items():
         if BASELINE_ARM not in arms or teacher_arm not in arms:
             continue
         considered += 1
+        safe_pid = _safe_prompt_id(pid)
+        prompt_id_sanitized = safe_pid != pid
         base_s, teach_s = arms[BASELINE_ARM], arms[teacher_arm]
         lift = round(teach_s - base_s, 1)
         if teach_s < min_target or lift < min_lift:
@@ -213,6 +302,17 @@ def build(*, min_target: float, min_lift: float, teacher_arm: str = DEFAULT_TEAC
         if cs["n_section_implausible"] > 0 or cs["n_conventions_implausible"] > 0:
             dropped_citation += 1
             continue
+        if require_citation_relevance:
+            coherence = _citation_coherence(teach_r["response"])
+            if not coherence["coherent"]:
+                dropped_irrelevant_citation += 1
+                if prompt_id_sanitized:
+                    metadata_sanitized_prompt_ids += 1
+                if len(irrelevant_citation_examples) < 10:
+                    irrelevant_citation_examples.append(
+                        _safe_citation_example(model=model, prompt_id=safe_pid, coherence=coherence)
+                    )
+                continue
         prompt, k1 = scrub(teach_r["prompt_text"] or base_r["prompt_text"])
         chosen, k2 = scrub(teach_r["response"])
         rejected, k3 = scrub(base_r["response"])
@@ -220,7 +320,9 @@ def build(*, min_target: float, min_lift: float, teacher_arm: str = DEFAULT_TEAC
             continue
         redactions += k1 + k2 + k3
         selected += 1
-        meta = {"model": model, "prompt_id": pid, "baseline_score": base_s,
+        if prompt_id_sanitized:
+            metadata_sanitized_prompt_ids += 1
+        meta = {"model": model, "prompt_id": safe_pid, "baseline_score": base_s,
                 "target_score": teach_s, "lift": lift}
         if comp:
             meta["target_components"] = comp
@@ -231,7 +333,7 @@ def build(*, min_target: float, min_lift: float, teacher_arm: str = DEFAULT_TEAC
         dpo.append({"prompt": prompt, "chosen": chosen, "rejected": rejected, "_meta": meta})
 
     manifest = {
-        "source": {"panel": str(panel_path), "results": str(results_path)},
+        "source": {"panel": _display_report_path(panel_path), "results": _display_report_path(results_path)},
         "arms": {"baseline": BASELINE_ARM, "teacher": teacher_arm},
         "thresholds": {"min_target": min_target, "min_lift": min_lift,
                        "min_grounding": min_grounding, "min_cite": min_cite,
@@ -241,12 +343,16 @@ def build(*, min_target: float, min_lift: float, teacher_arm: str = DEFAULT_TEAC
         "dropped_low_grounding": dropped_grounding,
         "dropped_low_grounding_delta": dropped_grounding_delta,
         "dropped_bad_citation": dropped_citation,
+        "require_citation_relevance": require_citation_relevance,
+        "dropped_irrelevant_citation": dropped_irrelevant_citation,
+        "irrelevant_citation_examples": irrelevant_citation_examples,
+        "metadata_sanitized_prompt_ids": metadata_sanitized_prompt_ids,
         "sft_examples": len(sft), "dpo_examples": len(dpo), "pii_redactions": redactions,
         "note": (f"propose-only; teacher={teacher_arm}; gold targets are grounded answers "
                  f"(A+B+D>={min_grounding:g}, B>={min_cite:g}), never bare refusals; the lift must add "
                  f"grounding (delta A+B+D>={min_grounding_delta:g}, not refusal alone); format-failures and "
-                 f"hallucinated citations dropped; conservative regex PII scrub (full anonymizer is a "
-                 f"later vetting gate)"),
+                 f"hallucinated or irrelevant citations dropped; conservative regex PII scrub (full "
+                 f"anonymizer is a later vetting gate)"),
     }
     return {"sft": sft, "dpo": dpo, "manifest": manifest}
 
@@ -268,13 +374,17 @@ def main(argv: list[str] | None = None) -> int:
                     help="min teacher B (cites-law) component -- the gold target must cite some law")
     ap.add_argument("--min-grounding-delta", type=float, default=DEFAULT_MIN_GROUNDING_DELTA,
                     help="min teacher-minus-baseline A+B+D -- the lift must add grounding, not refusal alone")
+    ap.add_argument("--allow-incoherent-citations", action="store_true",
+                    help="legacy mode: keep high-lift rows even when cited ILO conventions do not govern "
+                         "the named exploitation indicator")
     ap.add_argument("--out-dir", default=str(OUT_DIR))
     ap.add_argument("--validate", action="store_true",
                     help="run + print the manifest only; write nothing (a CPU-safe dry run)")
     args = ap.parse_args(argv)
     doc = build(min_target=args.min_target, min_lift=args.min_lift, teacher_arm=args.teacher_arm,
                 min_grounding=args.min_grounding, min_cite=args.min_cite,
-                min_grounding_delta=args.min_grounding_delta)
+                min_grounding_delta=args.min_grounding_delta,
+                require_citation_relevance=not args.allow_incoherent_citations)
     m = doc["manifest"]
     if args.validate:
         print(json.dumps(m, indent=2))
@@ -288,8 +398,9 @@ def main(argv: list[str] | None = None) -> int:
           f"{m['selected_pairs']} (teacher={args.teacher_arm}, target>={args.min_target}, "
           f"lift>={args.min_lift}); dropped format={m['dropped_format_failure']} "
           f"grounding={m['dropped_low_grounding']} delta={m['dropped_low_grounding_delta']} "
-          f"citation={m['dropped_bad_citation']}")
-    print(f"[lift-training-data] wrote {m['sft_examples']} SFT + {m['dpo_examples']} DPO to {out} "
+          f"citation={m['dropped_bad_citation']} irrelevant-citation={m['dropped_irrelevant_citation']}")
+    print(f"[lift-training-data] wrote {m['sft_examples']} SFT + {m['dpo_examples']} DPO to "
+          f"{_display_report_path(out)} "
           f"({m['pii_redactions']} PII redactions)")
     return 0
 

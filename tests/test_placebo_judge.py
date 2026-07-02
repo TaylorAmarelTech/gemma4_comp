@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -25,6 +26,40 @@ def _arms():
             ("m", "p2"): {"prompt_text": "q2", "baseline": "b2", "placebo": "pl2", "harnessed": "h2"}}
 
 
+def test_load_arms_skips_malformed_response_rows(tmp_path, monkeypatch):
+    perdim = tmp_path / "perdim.jsonl"
+    placebo = tmp_path / "placebo.jsonl"
+    perdim.write_text(
+        "\n".join([
+            json.dumps({"model": "m", "prompt_id": "p1", "arm": "baseline", "response": "b1"}),
+            json.dumps({"model": "m", "prompt_id": "p1", "arm": "harnessed", "response": "h1"}),
+            json.dumps({"model": {"private": "worker@example.com"}, "prompt_id": "p2",
+                        "arm": "baseline", "response": "bad-model"}),
+            json.dumps({"model": "m", "prompt_id": ["p2"], "arm": "harnessed", "response": "bad-pid"}),
+            json.dumps({"model": "m", "prompt_id": "p2", "arm": ["baseline"], "response": "bad-arm"}),
+            json.dumps({"model": "m", "prompt_id": "p2", "arm": "baseline",
+                        "response": {"private": "worker@example.com"}}),
+        ]) + "\n",
+        encoding="utf-8",
+    )
+    placebo.write_text(
+        json.dumps({"model": "m", "prompt_id": "p1", "arm": "placebo", "response": "pl1"}) + "\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(pj, "_prompt_text_index", lambda: {"p1": "q1", "p2": "q2"})
+
+    arms = pj.load_arms(perdim, placebo)
+
+    assert arms == {
+        ("m", "p1"): {
+            "prompt_text": "q1",
+            "baseline": "b1",
+            "placebo": "pl1",
+            "harnessed": "h1",
+        }
+    }
+
+
 def test_run_judge_resumable_and_three_arms(tmp_path):
     calls = {"n": 0}
 
@@ -38,6 +73,28 @@ def test_run_judge_resumable_and_three_arms(tmp_path):
     # resume: nothing new judged
     rows2 = pj.run_judge(_arms(), judge_model="j", judge=judge, ckpt=ck, pace=0)
     assert len(rows2) == 6 and calls["n"] == 6
+
+
+def test_run_judge_ignores_malformed_checkpoint_rows(tmp_path):
+    ck = tmp_path / "pj.jsonl"
+    ck.write_text(
+        "\n".join([
+            json.dumps({"model": ["m"], "prompt_id": "p1", "arm": "baseline", "score": 4.0}),
+            json.dumps({"model": "m", "prompt_id": "p1", "arm": "baseline", "score": "nan"}),
+            "{not-json",
+        ]) + "\n",
+        encoding="utf-8",
+    )
+    calls = {"n": 0}
+
+    def judge(prompt, response, *, model):
+        calls["n"] += 1
+        return {"b": 4.0, "p": 5.0, "h": 8.0}[response[0]]
+
+    rows = pj.run_judge({("m", "p1"): _arms()[("m", "p1")]}, judge_model="j", judge=judge, ckpt=ck, pace=0)
+
+    assert calls["n"] == 3
+    assert len(rows) == 3
 
 
 def test_aggregate_contrasts():
@@ -57,7 +114,10 @@ def test_aggregate_contrasts():
 
 def test_aggregate_ignores_incomplete_triples():
     rows = [{"model": "m", "prompt_id": "p1", "arm": "baseline", "score": 4.0},
-            {"model": "m", "prompt_id": "p1", "arm": "placebo", "score": 5.0}]  # missing harnessed
+            {"model": "m", "prompt_id": "p1", "arm": "placebo", "score": 5.0},
+            {"model": {"private": "worker@example.com"}, "prompt_id": "p2", "arm": "baseline", "score": 4.0},
+            {"model": "m", "prompt_id": ["p2"], "arm": "placebo", "score": 5.0},
+            {"model": "m", "prompt_id": "p2", "arm": "harnessed", "score": "nan"}]  # missing valid harnessed
     assert pj.aggregate(rows)["overall"] == {}
 
 

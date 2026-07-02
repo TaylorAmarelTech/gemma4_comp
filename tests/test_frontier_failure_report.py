@@ -5,6 +5,7 @@ Offline: synthetic per-dimension cells + prompt metadata, no network.
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from collections import Counter
 from pathlib import Path
@@ -71,3 +72,82 @@ def test_load_prompt_meta(tmp_path):
     p.write_text('{"prompts": [{"id": "x", "category": "a", "difficulty": "hard"}]}', encoding="utf-8")
     m = fr.load_prompt_meta(p)
     assert m["x"]["category"] == "a" and m["x"]["difficulty"] == "hard"
+
+
+def test_load_prompt_meta_skips_malformed_and_incomplete_entries(tmp_path):
+    good = tmp_path / "good.json"
+    bad = tmp_path / "bad.json"
+    good.write_text(json.dumps({
+        "prompts": [
+            {"id": "x", "category": "a", "difficulty": "hard"},
+            {"category": "missing_id", "difficulty": "easy"},
+            {"id": {"private": "worker@example.com"}, "category": "structured_id", "difficulty": "hard"},
+            {"id": "y", "category": {"private": "worker@example.com"}, "difficulty": ["hard"]},
+            ["not", "an", "object"],
+        ]
+    }), encoding="utf-8")
+    bad.write_text("{not-json", encoding="utf-8")
+
+    m = fr.load_prompt_meta([bad, good])
+
+    assert m == {
+        "x": {"category": "a", "difficulty": "hard"},
+        "y": {"category": "unknown", "difficulty": "unknown"},
+    }
+
+
+def test_build_report_redacts_sensitive_public_labels(tmp_path):
+    model = "worker@example.com-case-123456789"
+    category = "private@example.com-case-987654321"
+    difficulty = "call +1 555 0100"
+    cells = []
+    meta = {}
+    for i in range(15):
+        pid = f"p{i}"
+        meta[pid] = {"category": category, "difficulty": difficulty}
+        for row in _cells():
+            row = dict(row)
+            row["prompt_id"] = pid
+            row["model"] = model
+            cells.append(row)
+
+    md = fr.build_report(cells, meta, out_path=tmp_path / "r.md")
+
+    assert model not in md
+    assert category not in md
+    assert difficulty not in md
+    assert "`redacted`" in md
+
+
+def test_main_success_console_redacts_sensitive_output_path(tmp_path, capsys):
+    ckpt = tmp_path / "perdim.jsonl"
+    ckpt.write_text("\n".join(json.dumps(row) for row in _cells()), encoding="utf-8")
+    corpus = tmp_path / "corpus.json"
+    corpus.write_text(json.dumps({
+        "prompts": [
+            {"id": "p1", "category": "business_framed", "difficulty": "hard"},
+            {"id": "p2", "category": "jurisdictional", "difficulty": "easy"},
+        ]
+    }), encoding="utf-8")
+    out = tmp_path / "worker@example.com-case-123456789" / "frontier_failure.md"
+
+    assert fr.main(["--ckpt", str(ckpt), "--corpus", str(corpus), "--out", str(out)]) == 0
+
+    printed = capsys.readouterr().err
+    assert out.exists()
+    assert "report -> external" in printed
+    assert str(tmp_path) not in printed
+    assert "worker@example.com" not in printed
+    assert "case-123456789" not in printed
+
+
+def test_main_missing_cells_console_redacts_sensitive_checkpoint_path(tmp_path, capsys):
+    ckpt = tmp_path / "worker@example.com-case-123456789" / "missing.jsonl"
+
+    assert fr.main(["--ckpt", str(ckpt), "--out", str(tmp_path / "out.md")]) == 1
+
+    printed = capsys.readouterr().err
+    assert "no per-dimension cells in external" in printed
+    assert str(tmp_path) not in printed
+    assert "worker@example.com" not in printed
+    assert "case-123456789" not in printed

@@ -41,13 +41,57 @@ ARMS = ("baseline", "harness_core", "harness_full")
 
 # Real ILO conventions are numbered C001..C190 (C190 = Violence and Harassment, 2019, is the most
 # recent). A cited number outside this range is a fabrication. MLC 2006 / Palermo are not C-numbered
-# and are handled by the section check / left out of the convention-number bound.
-_CONV_RE = re.compile(r"\bC[\s._-]*0*(\d{1,4})\b|\bConvention\s+(?:No\.?\s*)?0*(\d{1,4})\b", re.I)
+# and are handled by the section check / left out of the convention-number bound. Require the "C" form
+# or an explicit "Convention No." form so treaty years like "Migrant Workers Convention 1990" and
+# "Palermo Convention 2000" are not misread as invented ILO convention numbers.
+_CONV_RE = re.compile(
+    r"\b(?:ILO\s+)?C[\s._-]*0*(\d{1,4})\b"
+    r"|\b(?:ILO\s+)?Convention\s+No\.?\s*0*(\d{1,4})\b",
+    re.I,
+)
 _MAX_REAL_ILO_CONVENTION = 190
+_EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b", re.I)
+_PHONE = re.compile(r"\+?\d[\d\s().\-]{8,}\d")
+_SAFE_RELATIVE_PATH = re.compile(r"^[A-Za-z0-9._/\-]+$")
+
+
+def _contains_sensitive_text(value: str) -> bool:
+    return bool(_EMAIL.search(value) or _PHONE.search(value) or re.search(r"\b\d{9,}\b", value))
+
+
+def _safe_relative_report_path(path: pathlib.PurePath) -> str:
+    display = path.as_posix()
+    if not display or display.startswith("../") or "/../" in display:
+        return "redacted"
+    if _contains_sensitive_text(display):
+        return "redacted"
+    if not _SAFE_RELATIVE_PATH.fullmatch(display):
+        return "redacted"
+    return display
+
+
+def _display_report_path(raw_path: object) -> str:
+    if not raw_path:
+        return "n/a"
+    raw = str(raw_path)
+    try:
+        path = pathlib.Path(raw)
+        if path.is_absolute():
+            try:
+                return _safe_relative_report_path(path.relative_to(_ROOT))
+            except ValueError:
+                return "external"
+        return _safe_relative_report_path(pathlib.PurePosixPath(pathlib.PureWindowsPath(raw).as_posix()))
+    except (OSError, RuntimeError, ValueError):
+        return "redacted"
 
 
 def convention_numbers(text: str) -> list[int]:
-    """Cited ILO convention numbers (deduped). 'ILO C181', 'Convention No. 29' -> [29, 181]."""
+    """Cited ILO convention numbers (deduped). 'ILO C181', 'Convention No. 29' -> [29, 181].
+
+    Non-ILO treaty years are intentionally ignored: "Migrant Workers Convention 1990" and
+    "Palermo Convention 2000" are valid legal references, but they are not ILO C-numbers.
+    """
     nums: set[int] = set()
     for m in _CONV_RE.finditer(text or ""):
         raw = m.group(1) or m.group(2)
@@ -90,19 +134,29 @@ def load_results(path: pathlib.Path) -> list[dict]:
     for ln in path.read_text(encoding="utf-8").splitlines():
         if ln.strip():
             try:
-                rows.append(json.loads(ln))
+                row = json.loads(ln)
             except json.JSONDecodeError:
                 continue
+            if isinstance(row, dict):
+                rows.append(row)
     return rows
+
+
+def _string_field(row: dict, key: str) -> str:
+    value = row.get(key, "")
+    return value if isinstance(value, str) else ""
 
 
 def aggregate(results: list[dict]) -> dict:
     """Per-arm means of the citation stats over all stored responses."""
     by_arm: dict[str, list[dict]] = {a: [] for a in ARMS}
     for r in results:
-        arm = str(r.get("arm"))
-        if arm in by_arm and r.get("response"):
-            by_arm[arm].append(citation_stats(str(r["response"])))
+        if not isinstance(r, dict):
+            continue
+        arm = _string_field(r, "arm")
+        response = _string_field(r, "response")
+        if arm in by_arm and response:
+            by_arm[arm].append(citation_stats(response))
     out: dict[str, dict] = {}
     for arm, stats in by_arm.items():
         if not stats:
@@ -175,8 +229,11 @@ def build_report(agg: dict, *, out_path: pathlib.Path) -> str:
         "- **Coverage, stated honestly.** It checks ILO convention numbers (C001..C190) and statute "
         "*section* numbers against known ranges -- not every named national statute, so a baseline reply "
         "that cites an origin-state statute by name (for example 'Proclamation 923/2016') is not counted "
-        "here, and it checks citation *plausibility*, not *relevance* to the scenario. A named-statute "
-        "registry and a relevance check are future work. Reproduce: `python scripts/citation_accuracy.py`.\n")
+        "here. Non-ILO treaty-year references such as 'Migrant Workers Convention 1990' or 'Palermo "
+        "Convention 2000' are also ignored by the ILO C-number parser rather than treated as fabricated "
+        "ILO C1990/C2000 citations. This check measures citation *plausibility*, not full *relevance* to "
+        "the scenario. A named-statute registry and broader treaty relevance check are future work. "
+        "Reproduce: `python scripts/citation_accuracy.py`.\n")
     md = "\n".join(o) + "\n"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(md, encoding="utf-8")
@@ -190,12 +247,15 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     results = load_results(pathlib.Path(args.results))
     if not results:
-        print(f"no stored responses in {args.results}; run rich_harness_lift.py first", file=sys.stderr)
+        print(
+            f"no stored responses in {_display_report_path(args.results)}; run rich_harness_lift.py first",
+            file=sys.stderr,
+        )
         return 1
     agg = aggregate(results)
     build_report(agg, out_path=pathlib.Path(args.out))
     fa = agg.get("harness_full", {})
-    print(f"citation-accuracy -> {pathlib.Path(args.out).name} | arms={list(agg)} | "
+    print(f"citation-accuracy -> {_display_report_path(args.out)} | arms={list(agg)} | "
           f"harnessed: {fa.get('mean_conventions')} conv / {fa.get('mean_section_refs')} sect, "
           f"in-range {fa.get('section_verified_pct')}%, hallucinated {fa.get('pct_responses_with_a_hallucinated_citation')}%",
           flush=True)

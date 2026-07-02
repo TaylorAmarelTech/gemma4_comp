@@ -54,7 +54,7 @@
 <div class="head"><div><span class="ix">02 &middot; The training data</span><h2>The benchmark&rsquo;s proven lift becomes the training signal.</h2></div><p class="summary">Every benchmark prompt already has a weak baseline reply and a high-scoring harnessed reply. The high-lift pairs are ready-made teaching material &mdash; no separate labelling pass. Nothing trains unvetted.</p></div>
 <div class="ft-flow">
 <div class="ft-stage"><span class="n">Generate</span><b>Distil the lift</b><p>High-lift (baseline &rarr; harnessed) pairs become SFT targets and DPO preferences (chosen = harnessed, rejected = baseline).</p></div>
-<div class="ft-stage"><span class="n">Vet</span><b>Quality + privacy</b><p>Target score &ge; threshold, clear lift, PII / volatile-contact scrub (statute refs kept), citation accuracy, OpenClaw gate.</p></div>
+<div class="ft-stage"><span class="n">Vet</span><b>Quality + privacy</b><p>Target score &ge; threshold, clear lift, PII / volatile-contact scrub (statute refs kept), citation accuracy, quality gate.</p></div>
 <div class="ft-stage"><span class="n">Organise</span><b>Anti-shortcut</b><p>Hold out whole typologies, balance, interleave, dedup &mdash; so the data can&rsquo;t be solved by surface shortcuts.</p></div>
 <div class="ft-stage"><span class="n">Train</span><b>Unsloth LoRA</b><p>SFT (response-only) then DPO on a Gemma 4 base; export GGUF / LiteRT for on-device.</p></div>
 <div class="ft-stage"><span class="n">Evaluate</span><b>Four arms</b><p>Score the trained model in arms C/D on the same prompts; promote only what generalises.</p></div>

@@ -55,7 +55,7 @@ Every candidate example passes, in order:
    target's legal citations are real and relevant; no hallucinated statutes enter the data.
 3. **PII gate** — the anonymiser / `_safe_text` scrub; no raw PII enters training data
    (`10_safety_gate.md`), always-on.
-4. **OpenClaw quality vet** — the same accept/reject LLM gate that vets benchmark prompts, applied
+4. **Automated quality vet** — the same accept/reject LLM gate that vets benchmark prompts, applied
    to `(prompt, target)` pairs.
 5. **Human / community review** — a sampled queue for expert sign-off (subsystem 4), required for
    community-sourced and high-stakes examples.
@@ -69,7 +69,7 @@ generate → vet → format (Unsloth SFT + DPO JSONL, train/val/test, provenance
         → select (promote only checkpoints that raise trained-baseline toward stock-harnessed
                   with no safety regression) → loop
 ```
-This is the **training flywheel**, parallel to the **discovery flywheel** (Hermes → OpenClaw) that
+This is the **training flywheel**, parallel to the **discovery flywheel** (candidate generation → quality vetting) that
 grows the benchmark. Both are resumable, propose-only into gitignored stores, and supervised at the
 merge/promote step.
 
@@ -93,7 +93,7 @@ merge/promote step.
 **Exists:** Unsloth fine-tuning (`duecare-llm-training`, A-00) + the seed-corpus SFT prep
 (`scripts/prepare_training_data.py` — the 204 manually graded worst→best responses), the 0–100
 benchmark + `panel.jsonl`,
-the discovery flywheel (Hermes / OpenClaw), the outreach oracle, the anonymiser, `citation_accuracy`,
+the discovery flywheel, the outreach oracle, the anonymiser, `citation_accuracy`,
 the KnowledgeObject taxonomy + envelopes.
 
 **New in Phase 3:** the **gap-driven training-data builder** (`panel.jsonl` → vetted SFT/DPO), the
@@ -121,9 +121,23 @@ training runner (next step) consumes it.
 ## Roadmap (subsequent steps)
 1. **Training runner** — ✅ built: `scripts/train_lift_distill.py` runs the canonical Unsloth recipe
    (FastModel → get_peft_model → get_chat_template `gemma-4-thinking` → SFTTrainer +
-   `train_on_responses_only`, then a DPO pass) over the vetted SFT/DPO JSONL, with optional GGUF
-   export for on-device. CPU-safe `--validate` (data + plan check) runs anywhere; the GPU train step
-   runs on Kaggle (`--test-run` smoke, or full with `--base-model unsloth/gemma-4-E4B-it`).
+   `train_on_responses_only`, then a DPO pass) over the organized `sft_train.jsonl` / `dpo_train.jsonl`
+   splits, with optional GGUF export for on-device. CPU-safe `--validate` (data + plan check) runs anywhere; the GPU train step
+   runs on Kaggle (`--test-run` smoke, or full with `--base-model unsloth/gemma-4-E4B-it`). The engine can
+   also train the strict-contract repair comparison arm with `--sft-variant reasoning_repaired`, which
+   swaps matching train rows for verified repaired targets without duplicating prompt IDs, or
+   `--sft-variant reasoning_repaired_core` for the core-remedy-enforced repair arm. It also supports the
+   strict DPO comparison arms with `--dpo-variant contract` or `--dpo-variant base_plus_contract`. The mixed DPO arm
+   keeps the base harness preference pairs and adds the contract-ablation hard negatives in a separate
+   manifest-gated file. The registry row records the selected SFT/DPO arms plus the SFT/DPO paths, staged
+   contract-DPO paths, mixed-DPO paths, repaired-variant manifest, and sha256/byte fingerprints for the
+   selected files and manifests in `artifacts`; the ledger rejects malformed structured fingerprint entries,
+   `scripts/finetune_registry.py verify <model_id>` re-checks those hashes against local files, and
+   `scripts/build_model_card.py --require-verified-artifacts` refuses to emit a card when that evidence is
+   stale or missing. `scripts/validate_training_provenance.py --model-id <model_id>` is the one-shot
+   CPU-safe publication gate that runs registry fingerprint verification, verified model-card rendering,
+   and selected SFT/DPO trainer validation together. Valid fingerprints render with repo-relative paths so
+   the public card is traceable without exposing local workstation paths.
 2. **Four-arm evaluator** — extend `rich_harness_lift.py` to grade a trained checkpoint in arms C/D
    next to the stock A/B already on the board.
 3. **Train→eval→select daemon** — a durable loop (sibling to the benchmark engine) that trains,

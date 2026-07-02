@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -43,6 +44,37 @@ def test_pair_means_averages_dims():
     assert cv.pair_means(cells)[("p", "baseline")] == 5.0
 
 
+def test_load_cells_skips_malformed_and_non_object_rows(tmp_path):
+    path = tmp_path / "cells.jsonl"
+    path.write_text(
+        "\n".join([
+            json.dumps({"prompt_id": "p", "arm": "baseline", "score": 4.0}),
+            json.dumps(["worker@example.com", "case-123456789"]),
+            json.dumps("worker@example.com case-123456789"),
+            json.dumps({"prompt_id": "p", "arm": "baseline"}),
+            "{bad json",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+
+    assert cv.load_cells(path) == [{"prompt_id": "p", "arm": "baseline", "score": 4.0}]
+
+
+def test_pair_means_skips_malformed_direct_cells_without_leaking():
+    sensitive = "worker@example.com case-123456789"
+    means = cv.pair_means([
+        {"prompt_id": "p", "arm": "baseline", "score": 4.0},
+        sensitive,
+        [sensitive],
+        {"prompt_id": "p", "arm": "baseline", "score": "bad"},
+        {"prompt_id": "missing_score", "arm": "baseline"},
+    ])
+
+    assert means == {("p", "baseline"): 4.0}
+    assert sensitive not in json.dumps({str(k): v for k, v in means.items()})
+
+
 def test_aligned_lift_pairs_arms():
     detm, judm = _means()
     dl, ll = cv.aligned_lift(detm, judm)
@@ -71,3 +103,36 @@ def test_build_report_is_honest(tmp_path):
     assert "Convergent validity" in md and "Spearman" in md
     # the honest framing -- direction converges, graders are not interchangeable
     assert "direction" in md.lower() and "proxy" in md.lower()
+
+
+def test_build_report_redacts_sensitive_run_label(tmp_path):
+    detm, judm = _means()
+    a = cv.analyze(detm, judm)
+    sensitive = "worker@example.com-case-123456789"
+
+    md = cv.build_report(a, det_label=sensitive, judge_label="judge", out_path=tmp_path / "r.md")
+
+    assert sensitive not in md
+    assert "**redacted**" in md
+
+
+def test_main_redacts_sensitive_output_name_and_run_label(tmp_path, capsys):
+    sensitive = "worker@example.com-case-123456789"
+    det = tmp_path / f"{sensitive}.jsonl"
+    judge = tmp_path / "judge.jsonl"
+    out = tmp_path / f"{sensitive}.md"
+    rows = [
+        {"prompt_id": "p1", "arm": "baseline", "score": 4.0},
+        {"prompt_id": "p1", "arm": "harnessed", "score": 5.0},
+    ]
+    det.write_text("\n".join(json.dumps(r) for r in rows) + "\n", encoding="utf-8")
+    judge.write_text("\n".join(json.dumps(r) for r in rows) + "\n", encoding="utf-8")
+
+    assert cv.main(["--det", str(det), "--judge", str(judge), "--out", str(out)]) == 0
+
+    err = capsys.readouterr().err
+    md = out.read_text(encoding="utf-8")
+    assert "report -> redacted" in err
+    assert sensitive not in err
+    assert sensitive not in md
+    assert "**redacted**" in md

@@ -24,6 +24,7 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
+import re
 import sys
 from collections import Counter, defaultdict
 from typing import Any
@@ -36,6 +37,61 @@ BENIGN = _ROOT / "reports" / "training" / "counterfactual_pairs.jsonl"
 BENIGN_RESULTS = _ROOT / "reports" / "four_arm" / "benign_results.jsonl"
 OUT = _ROOT / "reports" / "four_arm" / "over_refusal.json"
 HELP = "help"   # gold_action for the benign side
+_EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b", re.I)
+_PHONE = re.compile(r"\+?\d[\d\s().\-]{8,}\d")
+_LOCAL_PATH_HINT = re.compile(
+    r"(?:[A-Za-z]:[\\/]|\\\\|(?:^|[\s\"'(:])/(?:Users|home|tmp|var|mnt|private|Volumes)(?:/|$)|~[\\/])",
+    re.I,
+)
+_SAFE_RELATIVE_PATH = re.compile(r"^[A-Za-z0-9._/\-]+$")
+_SAFE_BUCKET_LABEL = re.compile(r"^[A-Za-z0-9._:/\-]+$")
+
+
+def _has_sensitive_display_text(text: str) -> bool:
+    return bool(
+        _EMAIL.search(text)
+        or _PHONE.search(text)
+        or _LOCAL_PATH_HINT.search(text)
+        or re.search(r"\b\d{9,}\b", text)
+    )
+
+
+def _safe_relative_report_path(path: pathlib.PurePath) -> str:
+    display = path.as_posix()
+    if not display or display.startswith("../") or "/../" in display:
+        return "redacted"
+    if _has_sensitive_display_text(display):
+        return "redacted"
+    if not _SAFE_RELATIVE_PATH.fullmatch(display):
+        return "redacted"
+    return display
+
+
+def _display_report_path(raw_path: Any) -> str:
+    if not raw_path:
+        return "n/a"
+    raw = str(raw_path)
+    try:
+        path = pathlib.Path(raw)
+        if path.is_absolute():
+            try:
+                return _safe_relative_report_path(path.relative_to(_ROOT))
+            except ValueError:
+                return "external"
+        return _safe_relative_report_path(pathlib.PurePosixPath(pathlib.PureWindowsPath(raw).as_posix()))
+    except (OSError, RuntimeError, ValueError):
+        return "redacted"
+
+
+def _safe_bucket_label(raw: Any, *, default: str = "unknown") -> str:
+    text = str(raw or "").strip()
+    if not text:
+        return default
+    if _has_sensitive_display_text(text):
+        return "redacted"
+    if not _SAFE_BUCKET_LABEL.fullmatch(text):
+        return "redacted"
+    return text
 
 
 def classify_benign_response(text: str) -> str:
@@ -71,15 +127,20 @@ def _load_jsonl(path: pathlib.Path) -> list[dict]:
     for ln in path.read_text(encoding="utf-8").splitlines():
         if ln.strip():
             try:
-                out.append(json.loads(ln))
+                row = json.loads(ln)
             except json.JSONDecodeError:
                 continue
+            if isinstance(row, dict):
+                out.append(row)
     return out
 
 
 def load_benign_prompts(path: pathlib.Path = BENIGN) -> list[dict]:
     """The benign (gold_action='help') rows from the counterfactual set -- the over-refusal probe."""
-    return [r for r in _load_jsonl(path) if r.get("gold_action") == HELP and r.get("text")]
+    return [
+        r for r in _load_jsonl(path)
+        if r.get("gold_action") == HELP and isinstance(r.get("text"), str) and r["text"].strip()
+    ]
 
 
 def load_benign_responses(path: pathlib.Path = BENIGN_RESULTS) -> dict[str, list[str]]:
@@ -87,8 +148,8 @@ def load_benign_responses(path: pathlib.Path = BENIGN_RESULTS) -> dict[str, list
     by: dict[str, list[str]] = defaultdict(list)
     for r in _load_jsonl(path):
         arm, resp = r.get("arm"), r.get("response")
-        if arm and resp is not None:
-            by[str(arm)].append(str(resp))
+        if arm and isinstance(resp, str):
+            by[_safe_bucket_label(arm)].append(resp)
     return dict(by)
 
 
@@ -100,7 +161,7 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
 
     prompts = load_benign_prompts(args.benign)
-    by_kind = Counter(r.get("kind") for r in prompts)
+    by_kind = Counter(_safe_bucket_label(r.get("kind")) for r in prompts)
     responses = load_benign_responses(args.responses)
     rates = over_refusal_rates(responses) if responses else {}
     report = {"benign_prompts": len(prompts), "by_kind": dict(by_kind),
@@ -108,11 +169,13 @@ def main(argv: list[str] | None = None) -> int:
               "note": ("over-refusal = a benign (gold=help) worker query that the arm REFUSED; lower is "
                        "better. Pair with the trafficking-safety score: high safety AND low over-refusal.")}
     if not prompts:
-        print(f"[over-refusal] no benign prompts at {args.benign} -- run build_counterfactual_pairs.py first")
+        print(f"[over-refusal] no benign prompts at {_display_report_path(args.benign)} "
+              "-- run build_counterfactual_pairs.py first")
         return 1
     if not responses:
         print(f"[over-refusal] {len(prompts)} benign probes ({dict(by_kind)}); no arm responses yet at "
-              f"{args.responses} -- run the benign set through the four arms (GPU window) to score over-refusal")
+              f"{_display_report_path(args.responses)} -- run the benign set through the four arms "
+              "(GPU window) to score over-refusal")
     else:
         for arm, r in sorted(rates.items()):
             print(f"  {arm:16} n={r['n']:4} over_refused={r['over_refused']:4} "
@@ -120,7 +183,7 @@ def main(argv: list[str] | None = None) -> int:
     if not args.validate:
         OUT.parent.mkdir(parents=True, exist_ok=True)
         OUT.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-        print(f"[over-refusal] wrote {OUT}")
+        print(f"[over-refusal] wrote {_display_report_path(OUT)}")
     return 0
 
 
