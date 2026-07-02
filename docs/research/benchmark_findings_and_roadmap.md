@@ -71,8 +71,14 @@
   instruction are **hardcoded to trafficking**. The ML **RAG corpus already exists** (`fincrime_*` in
   `MULTIDOMAIN_CORPUS` + a working `multidomain_rag_call`); ML **GREP + tools + rubric do not**.
 - **The trap:** running with the trafficking harness+rubric on ML prompts → near-zero/invalid lift. Don't.
-- **Plan:** domain-parameterize `build_benchmark_promptset.py --domain` (trafficking **byte-identical**) +
-  `rich_harness_lift.py --domain` + a **per-domain rubric** in `judge_components` (the A–E *schema* is already
+- **Plan:** `build_benchmark_promptset.py --domain` is implemented for registry JSONL seed packs
+  (trafficking default remains unchanged), and `rich_harness_lift.py` now guards non-trafficking
+  promptsets from accidental comparable scoring while passing promptset domain anchors and the optional
+  source-gating manifest summary into diagnostic preambles and judge rubrics. The worker-protections
+  sister seed now has a manifest that marks international anchors as anchors and keeps country-law rows
+  pending, plus a generated grounding queue that turns missing prompt/jurisdiction coverage into
+  source-object TODOs. Next, work that queue and parameterize `rich_harness_lift.py --domain` with a
+  **source-verified per-domain grounding/tool layer** (the A–E *schema* is already
   crime-general; only the prose swaps) + a domain-neutral reasoning instruction. **MVP** = RAG-only;
   **Stronger** = author a ~20–40-rule ML GREP regex pack (the layer the lift leans on). Injection seams
   (`_grep_call(extra_rules=)`, `_rag_call(extra_docs=)`) already exist.

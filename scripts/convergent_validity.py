@@ -31,15 +31,41 @@ import argparse
 import collections
 import json
 import pathlib
+import re
 import sys
-
-import numpy as np
 
 _ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 DEFAULT_DET = _ROOT / "reports" / "harness_lift_1000.jsonl"
 DEFAULT_JUDGE = _ROOT / "reports" / "harness_lift_1000_judge.jsonl"
 DEFAULT_OUT = _ROOT / "docs" / "research" / "convergent_validity.md"
+_EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b", re.I)
+_PHONE = re.compile(r"\+?\d[\d\s().\-]{8,}\d")
+_LOCAL_PATH_HINT = re.compile(
+    r"(?:[A-Za-z]:[\\/]|\\\\|(?:^|[\s\"'(:])/(?:Users|home|tmp|var|mnt|private|Volumes)(?:/|$)|~[\\/])",
+    re.I,
+)
+_SAFE_LABEL = re.compile(r"^[A-Za-z0-9._:/\-]+$")
+
+
+def _has_sensitive_display_text(text: str) -> bool:
+    return bool(
+        _EMAIL.search(text)
+        or _PHONE.search(text)
+        or _LOCAL_PATH_HINT.search(text)
+        or re.search(r"\b\d{9,}\b", text)
+    )
+
+
+def _safe_display_label(raw: object, *, default: str = "unknown") -> str:
+    text = str(raw or "").strip()
+    if not text:
+        return default
+    if _has_sensitive_display_text(text):
+        return "redacted"
+    if not _SAFE_LABEL.fullmatch(text):
+        return "redacted"
+    return text
 
 
 def load_cells(path: pathlib.Path) -> list[dict]:
@@ -47,11 +73,13 @@ def load_cells(path: pathlib.Path) -> list[dict]:
         return []
     out = []
     for ln in pathlib.Path(path).read_text(encoding="utf-8").splitlines():
+        if not ln.strip():
+            continue
         try:
             r = json.loads(ln)
         except json.JSONDecodeError:
             continue
-        if {"prompt_id", "arm", "score"} <= r.keys():
+        if isinstance(r, dict) and {"prompt_id", "arm", "score"} <= r.keys():
             out.append(r)
     return out
 
@@ -60,9 +88,11 @@ def pair_means(cells: list[dict]) -> dict[tuple[str, str], float]:
     """{(prompt_id, arm): mean score over that response's graded dimensions}."""
     acc: dict[tuple[str, str], list[float]] = collections.defaultdict(list)
     for c in cells:
+        if not isinstance(c, dict):
+            continue
         try:
             acc[(str(c["prompt_id"]), str(c["arm"]))].append(float(c["score"]))
-        except (TypeError, ValueError):
+        except (KeyError, TypeError, ValueError):
             continue
     return {k: sum(v) / len(v) for k, v in acc.items() if v}
 
@@ -96,12 +126,18 @@ def _pearson(xs: list[float], ys: list[float]) -> float:
     return cov / (sx * sy) if sx * sy else 0.0
 
 
+def _rank_order(values: list[float]) -> list[float]:
+    """Return stable 0-based ordinal ranks without requiring NumPy."""
+    ranks = [0.0] * len(values)
+    for rank, idx in enumerate(sorted(range(len(values)), key=lambda i: (values[i], i))):
+        ranks[idx] = float(rank)
+    return ranks
+
+
 def _spearman(xs: list[float], ys: list[float]) -> float:
     if len(xs) < 2:
         return 0.0
-    rx = np.argsort(np.argsort(xs)).astype(float)
-    ry = np.argsort(np.argsort(ys)).astype(float)
-    return _pearson(list(rx), list(ry))
+    return _pearson(_rank_order(xs), _rank_order(ys))
 
 
 def sign_agreement(a: list[float], b: list[float], *, eps: float = 0.05) -> float:
@@ -123,8 +159,8 @@ def binned_convergence(det_lift: list[float], llm_lift: list[float], *, bins: in
     """
     if len(det_lift) < bins:
         return []
-    order = np.argsort(det_lift)
-    chunks = np.array_split(order, bins)
+    order = sorted(range(len(det_lift)), key=lambda i: (det_lift[i], i))
+    chunks = [order[i * len(order) // bins:(i + 1) * len(order) // bins] for i in range(bins)]
     out = []
     for i, idx in enumerate(chunks, 1):
         dl = [det_lift[j] for j in idx]
@@ -164,6 +200,8 @@ def _strength(r: float) -> str:
 
 def build_report(analysis: dict, *, det_label: str, judge_label: str, out_path: pathlib.Path) -> str:
     a = analysis
+    det_label = _safe_display_label(det_label)
+    judge_label = _safe_display_label(judge_label)
     o: list[str] = []
     o.append("# Convergent validity — how far do the two graders agree?\n")
     o.append(
@@ -241,7 +279,7 @@ def main(argv: list[str] | None = None) -> int:
     a = analyze(detm, judm)
     build_report(a, det_label=pathlib.Path(args.det).stem, judge_label=pathlib.Path(args.judge).stem,
                  out_path=pathlib.Path(args.out))
-    print(f"report -> {pathlib.Path(args.out).name} | lift r={a['lift_pearson']} "
+    print(f"report -> {_safe_display_label(pathlib.Path(args.out).name)} | lift r={a['lift_pearson']} "
           f"abs r={a['abs_pearson']} | det lift {a['det_lift_mean']:+.2f} judge lift "
           f"{a['llm_lift_mean']:+.2f} | sign-agree {a['sign_agreement']*100:.0f}%", file=sys.stderr)
     return 0

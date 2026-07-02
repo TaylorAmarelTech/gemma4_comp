@@ -38,18 +38,69 @@ def test_render_escapes_html_and_shows_full_text():
     assert "composite and synthetic" in html and 'href="/harness-study"' in html
 
 
+def test_render_redacts_sensitive_labels_and_body_text():
+    sensitive_model = "worker@example.com-case-123456789"
+    cases = [{
+        "model": sensitive_model,
+        "prompt_id": "prompt@example.com-case-987654321",
+        "harm": 9.0,
+        "harm_type": "private@example.com",
+        "why": "call +1 555 0100 from C:\\Users\\Taylor\\case-123456789.txt",
+        "prompt_text": "worker@example.com asked about passport retention",
+        "baseline": "Use token 123456789 and email worker@example.com",
+        "harnessed": "I cannot help with that. Call +1 555 0100.",
+    }]
+
+    html = g.render(cases, 7.0)
+    md = g.post_markdown(cases, 1)
+
+    assert sensitive_model not in html
+    assert "prompt@example.com" not in html
+    assert "worker@example.com" not in html
+    assert "case-123456789" not in html
+    assert "+1 555 0100" not in html
+    assert "`redacted`" in md
+    assert "worker@example.com" not in md
+    assert "123456789" not in md
+
+
+def test_post_markdown_tolerates_malformed_case_values():
+    cases = [{
+        "model": {"private": "worker@example.com"},
+        "prompt_id": ["SCHEME-1"],
+        "prompt_text": None,
+        "baseline": "email worker@example.com and use 123456789",
+    }]
+
+    md = g.post_markdown(cases, 1)
+
+    assert "`redacted`" in md
+    assert "worker@example.com" not in md
+    assert "123456789" not in md
+    assert "```text\n\n```" in md
+
+
 def test_select_cases_filters_threshold_and_requires_both_arms(tmp_path, monkeypatch):
     ranker = tmp_path / "rank.jsonl"
     ranker.write_text("\n".join(json.dumps(r) for r in [
         {"prompt_id": "p1", "model": "m", "egregiousness": "9.0", "harm_type": "x", "why": "bad"},
         {"prompt_id": "p2", "model": "m", "egregiousness": "3.0", "harm_type": "y", "why": "ok"},   # below threshold
         {"prompt_id": "p3", "model": "m", "egregiousness": "8.0", "harm_type": "z", "why": "no-harn"},
+        {"prompt_id": ["p1"], "model": "m", "egregiousness": "10.0", "harm_type": "bad", "why": "bad"},
+        {"prompt_id": "p1", "model": {"private": "worker@example.com"}, "egregiousness": "10.0"},
+        {"prompt_id": "p1", "model": "m", "egregiousness": "nan"},
     ]), encoding="utf-8")
     resp = tmp_path / "resp.jsonl"
     resp.write_text("\n".join(json.dumps(r) for r in [
         {"model": "m", "prompt_id": "p1", "arm": "baseline", "response": "B1", "prompt_text": "q1"},
         {"model": "m", "prompt_id": "p1", "arm": "harnessed", "response": "H1", "prompt_text": "q1"},
         {"model": "m", "prompt_id": "p3", "arm": "baseline", "response": "B3", "prompt_text": "q3"},  # no harnessed
+        {"model": {"private": "worker@example.com"}, "prompt_id": "p1", "arm": "baseline",
+         "response": "structured model", "prompt_text": "q1"},
+        {"model": "m", "prompt_id": ["p1"], "arm": "harnessed", "response": "structured prompt id"},
+        {"model": "m", "prompt_id": "p1", "arm": ["baseline"], "response": "structured arm"},
+        {"model": "m", "prompt_id": "p1", "arm": "baseline",
+         "response": {"private": "worker@example.com"}, "prompt_text": "q1"},
     ]), encoding="utf-8")
     monkeypatch.setattr(g, "RANKER", ranker)
     monkeypatch.setattr(g, "RESP_FILES", [resp])

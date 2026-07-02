@@ -26,8 +26,6 @@ import statistics
 import sys
 from pathlib import Path
 
-import numpy as np
-
 _ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RESULTS = [
     _ROOT / "reports" / "frontier_report" / "results.jsonl",
@@ -42,11 +40,72 @@ _CITE_RE = re.compile(
     r"\bILO\b|\bC0?\d{2,3}\b|convention|protocol|palermo|\barticle\s+\d|statute|\bRA\s?\d|"
     r"section\s+\d|ICRMW|\bTVPA\b|employer[- ]pays|forced labou?r|debt bondage|recruitment fee|"
     r"passport retention|contract substitution|\bC029\b|\bC181\b|\bC189\b", re.I)
+_EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b", re.I)
+_PHONE = re.compile(r"\+?\d[\d\s().\-]{8,}\d")
+_LOCAL_PATH_HINT = re.compile(
+    r"(?:[A-Za-z]:[\\/]|\\\\|(?:^|[\s\"'(:])/(?:Users|home|tmp|var|mnt|private|Volumes)(?:/|$)|~[\\/])",
+    re.I,
+)
+_SAFE_LABEL = re.compile(r"^[A-Za-z0-9._:/\-]+$")
+_ARMS = {"baseline", "harnessed"}
 
 
 def _citation_density(response: str) -> float:
     """Legal/ILO citation markers per 1000 chars -- a proxy for citation-dense style."""
     return len(_CITE_RE.findall(response or "")) / max(1.0, len(response or "") / 1000.0)
+
+
+def _has_sensitive_display_text(text: str) -> bool:
+    return bool(
+        _EMAIL.search(text)
+        or _PHONE.search(text)
+        or _LOCAL_PATH_HINT.search(text)
+        or re.search(r"\b\d{9,}\b", text)
+    )
+
+
+def _safe_display_label(raw: object, *, default: str = "unknown") -> str:
+    text = str(raw or "").strip()
+    if not text:
+        return default
+    if _has_sensitive_display_text(text):
+        return "redacted"
+    if not _SAFE_LABEL.fullmatch(text):
+        return "redacted"
+    return text
+
+
+def _coerce_analysis_row(row: object) -> dict | None:
+    if not isinstance(row, dict):
+        return None
+    try:
+        arm = str(row["arm"])
+        if arm not in _ARMS:
+            return None
+        length = int(row["length"])
+        score = float(row["score"])
+        model = str(row["model"])
+        prompt_id = str(row["prompt_id"])
+    except (KeyError, TypeError, ValueError):
+        return None
+    if length < 0:
+        return None
+    try:
+        cite_density = float(row.get("cite_density", 0.0))
+    except (TypeError, ValueError):
+        cite_density = 0.0
+    return {
+        "model": model,
+        "prompt_id": prompt_id,
+        "arm": arm,
+        "score": score,
+        "length": length,
+        "cite_density": cite_density,
+    }
+
+
+def _valid_rows(rows: list[dict]) -> list[dict]:
+    return [r for r in (_coerce_analysis_row(row) for row in rows) if r is not None]
 
 
 def load(paths: list[Path]) -> list[dict]:
@@ -62,11 +121,24 @@ def load(paths: list[Path]) -> list[dict]:
                 r = json.loads(ln)
             except json.JSONDecodeError:
                 continue
-            if "response" in r and "score" in r and r.get("arm") in {"baseline", "harnessed"}:
-                resp = str(r["response"])
-                rows.append({"model": r["model"], "prompt_id": r["prompt_id"], "arm": r["arm"],
-                             "score": float(r["score"]), "length": len(resp),
-                             "cite_density": _citation_density(resp)})
+            if not isinstance(r, dict):
+                continue
+            resp = r.get("response")
+            if not isinstance(resp, str):
+                continue
+            try:
+                row = _coerce_analysis_row({
+                    "model": r["model"],
+                    "prompt_id": r["prompt_id"],
+                    "arm": r["arm"],
+                    "score": r["score"],
+                    "length": len(resp),
+                    "cite_density": _citation_density(resp),
+                })
+            except KeyError:
+                continue
+            if row is not None:
+                rows.append(row)
     return rows
 
 
@@ -80,16 +152,29 @@ def load_cells(judge_path: Path, responses_path: Path) -> list[dict]:
         for ln in responses_path.read_text(encoding="utf-8").splitlines():
             try:
                 r = json.loads(ln)
-                resp[(str(r["prompt_id"]), str(r["arm"]))] = str(r.get("response", ""))
-            except Exception:  # noqa: BLE001
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(r, dict) or str(r.get("arm")) not in _ARMS:
+                continue
+            response = r.get("response")
+            if not isinstance(response, str):
+                continue
+            try:
+                resp[(str(r["prompt_id"]), str(r["arm"]))] = response
+            except KeyError:
                 continue
     acc: dict = collections.defaultdict(list)
     if judge_path.exists():
         for ln in judge_path.read_text(encoding="utf-8").splitlines():
             try:
                 c = json.loads(ln)
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(c, dict) or str(c.get("arm")) not in _ARMS:
+                continue
+            try:
                 acc[(str(c["model"]), str(c["prompt_id"]), str(c["arm"]))].append(float(c["score"]))
-            except Exception:  # noqa: BLE001
+            except (KeyError, TypeError, ValueError):
                 continue
     rows = []
     for (model, pid, arm), scores in acc.items():
@@ -112,23 +197,67 @@ def _pearson(xs: list[float], ys: list[float]) -> float:
     return cov / (sx * sy) if sx * sy else 0.0
 
 
+def _invert_matrix(matrix: list[list[float]]) -> list[list[float]]:
+    """Invert a small square matrix with partial-pivot Gauss-Jordan elimination."""
+    n = len(matrix)
+    aug = [[float(matrix[r][c]) for c in range(n)] + [1.0 if r == c else 0.0 for c in range(n)]
+           for r in range(n)]
+    for col in range(n):
+        pivot = max(range(col, n), key=lambda r: abs(aug[r][col]))
+        if abs(aug[pivot][col]) < 1e-12:
+            aug[pivot][col] = 1e-12
+        if pivot != col:
+            aug[col], aug[pivot] = aug[pivot], aug[col]
+        scale = aug[col][col]
+        aug[col] = [v / scale for v in aug[col]]
+        for row in range(n):
+            if row == col:
+                continue
+            factor = aug[row][col]
+            if factor:
+                aug[row] = [v - factor * aug[col][i] for i, v in enumerate(aug[row])]
+    return [row[n:] for row in aug]
+
+
+def _ols(columns: list[list[float]], y: list[float]) -> tuple[list[float], list[float], float, float]:
+    """Fit OLS for small dense design matrices without importing NumPy."""
+    if not y or not columns:
+        return [], [], 0.0, 0.0
+    n = len(y)
+    p = len(columns)
+    xtx = [[sum(columns[i][r] * columns[j][r] for r in range(n)) for j in range(p)] for i in range(p)]
+    inv = _invert_matrix(xtx)
+    xty = [sum(columns[i][r] * y[r] for r in range(n)) for i in range(p)]
+    beta = [sum(inv[i][j] * xty[j] for j in range(p)) for i in range(p)]
+    fitted = [sum(beta[i] * columns[i][r] for i in range(p)) for r in range(n)]
+    resid = [y[r] - fitted[r] for r in range(n)]
+    dof = max(1, n - p)
+    sigma2 = sum(e * e for e in resid) / dof
+    se = [(sigma2 * max(0.0, inv[i][i])) ** 0.5 for i in range(p)]
+    mean_y = sum(y) / n
+    ss_tot = sum((v - mean_y) ** 2 for v in y)
+    r2 = 1.0 - sum(e * e for e in resid) / ss_tot if ss_tot else 0.0
+    return beta, se, r2, sigma2
+
+
 def ols_decomposition(rows: list[dict]) -> dict:
     """score ~ 1 + length(/1000 chars) + arm(harnessed=1); split the raw lift into length vs harness."""
+    rows = _valid_rows(rows)
     n = len(rows)
-    y = np.array([r["score"] for r in rows], float)
-    lk = np.array([r["length"] / 1000.0 for r in rows], float)
-    arm = np.array([1.0 if r["arm"] == "harnessed" else 0.0 for r in rows])
-    x = np.column_stack([np.ones(n), lk, arm])
-    beta, *_ = np.linalg.lstsq(x, y, rcond=None)
-    resid = y - x @ beta
-    dof = max(1, n - 3)
-    sigma2 = float(resid @ resid) / dof
-    cov = sigma2 * np.linalg.inv(x.T @ x)
-    se = np.sqrt(np.diag(cov))
-    ss_tot = float((y - y.mean()) @ (y - y.mean()))
-    r2 = 1.0 - float(resid @ resid) / ss_tot if ss_tot else 0.0
     base = [r for r in rows if r["arm"] == "baseline"]
     harn = [r for r in rows if r["arm"] == "harnessed"]
+    if n < 3 or not base or not harn:
+        return {
+            "n": n, "r2": 0.0,
+            "b_len_per1k": 0.0, "t_len": 0.0,
+            "b_arm": 0.0, "se_arm": 0.0, "t_arm": 0.0,
+            "raw_lift": 0.0, "d_len_k": 0.0,
+            "length_attrib": 0.0, "harness_attrib": 0.0,
+        }
+    y = [float(r["score"]) for r in rows]
+    lk = [float(r["length"]) / 1000.0 for r in rows]
+    arm = [1.0 if r["arm"] == "harnessed" else 0.0 for r in rows]
+    beta, se, r2, _sigma2 = _ols([[1.0] * n, lk, arm], y)
     d_len_k = statistics.mean(r["length"] / 1000 for r in harn) - statistics.mean(r["length"] / 1000 for r in base)
     raw_lift = statistics.mean(r["score"] for r in harn) - statistics.mean(r["score"] for r in base)
     return {
@@ -146,19 +275,23 @@ def ols_full(rows: list[dict]) -> dict:
     """score ~ 1 + length(/1k chars) + cite_density + arm. The arm coefficient here is the harness
     effect holding BOTH length AND citation density constant -- the sharper 'rewards citation-heavy
     style' objection, which the length-only OLS does not test."""
+    rows = _valid_rows(rows)
     n = len(rows)
-    y = np.array([r["score"] for r in rows], float)
-    lk = np.array([r["length"] / 1000.0 for r in rows], float)
-    cd = np.array([r["cite_density"] for r in rows], float)
-    arm = np.array([1.0 if r["arm"] == "harnessed" else 0.0 for r in rows])
-    x = np.column_stack([np.ones(n), lk, cd, arm])
-    beta, *_ = np.linalg.lstsq(x, y, rcond=None)
-    resid = y - x @ beta
-    dof = max(1, n - 4)
-    sigma2 = float(resid @ resid) / dof
-    se = np.sqrt(np.diag(sigma2 * np.linalg.inv(x.T @ x)))
     base = [r for r in rows if r["arm"] == "baseline"]
     harn = [r for r in rows if r["arm"] == "harnessed"]
+    if n < 4 or not base or not harn:
+        return {
+            "n": n,
+            "b_len": 0.0,
+            "b_cite": 0.0, "t_cite": 0.0,
+            "b_arm": 0.0, "se_arm": 0.0, "t_arm": 0.0,
+            "d_cite": 0.0,
+        }
+    y = [float(r["score"]) for r in rows]
+    lk = [float(r["length"]) / 1000.0 for r in rows]
+    cd = [float(r["cite_density"]) for r in rows]
+    arm = [1.0 if r["arm"] == "harnessed" else 0.0 for r in rows]
+    beta, se, _r2, _sigma2 = _ols([[1.0] * n, lk, cd, arm], y)
     d_cite = (statistics.mean(r["cite_density"] for r in harn)
               - statistics.mean(r["cite_density"] for r in base)) if base and harn else 0.0
     return {
@@ -173,6 +306,10 @@ def ols_full(rows: list[dict]) -> dict:
 
 def length_matched(rows: list[dict], n_bins: int = 4) -> list[dict]:
     """Within length quantile-bands, mean baseline vs harnessed score (non-parametric length control)."""
+    rows = _valid_rows(rows)
+    if not rows:
+        return []
+    n_bins = max(1, min(n_bins, len(rows)))
     lengths = sorted(r["length"] for r in rows)
     edges = [lengths[min(len(lengths) - 1, int(len(lengths) * k / n_bins))] for k in range(1, n_bins)]
 
@@ -194,6 +331,7 @@ def length_matched(rows: list[dict], n_bins: int = 4) -> list[dict]:
 
 
 def pair_length_score_corr(rows: list[dict]) -> dict:
+    rows = _valid_rows(rows)
     by: dict = {}
     for r in rows:
         by.setdefault((r["model"], r["prompt_id"]), {})[r["arm"]] = r
@@ -206,6 +344,7 @@ def pair_length_score_corr(rows: list[dict]) -> dict:
 
 
 def build_report(rows: list[dict], *, out_path: Path) -> str:
+    rows = _valid_rows(rows)
     r_pooled = _pearson([r["length"] for r in rows], [r["score"] for r in rows])
     ols = ols_decomposition(rows)
     bands = length_matched(rows)
@@ -320,11 +459,12 @@ def main(argv: list[str] | None = None) -> int:
     else:
         rows = load([Path(p) for p in args.results])
         src = f"frontier set, n={len(rows)}"
+    rows = _valid_rows(rows)
     if len(rows) < 4:
         print(f"need >=4 responses, found {len(rows)}", file=sys.stderr)
         return 1
     build_report(rows, out_path=Path(args.out))
-    print(f"report -> {Path(args.out).name} | {src}", file=sys.stderr)
+    print(f"report -> {_safe_display_label(Path(args.out).name)} | {src}", file=sys.stderr)
     return 0
 
 

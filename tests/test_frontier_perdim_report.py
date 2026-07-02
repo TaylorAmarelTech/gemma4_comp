@@ -6,6 +6,7 @@ improve/neutral/regress split, the cell loader's filtering, and the rendered rep
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -83,7 +84,57 @@ def test_load_cells_skips_safety_judge_rows_and_nulls(tmp_path):
         '{"model": "m", "prompt_id": "p", "arm": "baseline", "dim": "A", "score": 4}',
         '{"model": "m", "prompt_id": "p", "arm": "baseline", "dim": "safety", "score": 9}',
         '{"model": "m", "prompt_id": "p", "arm": "baseline", "dim": "A", "score": null}',
+        '{"model": "m", "prompt_id": "p", "arm": "other", "dim": "A", "score": 4}',
+        '{"model": "m", "prompt_id": "p", "arm": "baseline", "dim": "A", "score": "nan"}',
+        '{"prompt_id": "p", "arm": "baseline", "dim": "A", "score": 4}',
+        '{"model": {"private": "worker@example.com"}, "prompt_id": "p", "arm": "baseline", "dim": "A", "score": 4}',
+        '{"model": "m", "prompt_id": ["p"], "arm": "baseline", "dim": "A", "score": 4}',
+        '{"model": "m", "prompt_id": "p", "arm": {"private": "baseline"}, "dim": "A", "score": 4}',
+        '{"model": "m", "prompt_id": "p", "arm": "baseline", "dim": {"private": "worker@example.com"}, "score": 4}',
+        '["not", "an", "object"]',
         "not valid json",
     ]), encoding="utf-8")
     cells = b.load_cells(p)
     assert len(cells) == 1 and cells[0]["dim"] == "A"   # safety row + null score + junk dropped
+
+
+def test_build_report_redacts_sensitive_model_and_dimension_labels(tmp_path):
+    sensitive = "worker@example.com-case-123456789"
+    cells = []
+    for row in _cells():
+        row = dict(row)
+        row["model"] = sensitive
+        row["dim"] = sensitive if row["dim"] == "A" else row["dim"]
+        cells.append(row)
+
+    md = b.build_report(cells, judge_note="x", out_path=tmp_path / "r.md")
+
+    assert sensitive not in md
+    assert "`redacted`" in md
+
+
+def test_main_success_console_redacts_sensitive_output_path(tmp_path, capsys):
+    ckpt = tmp_path / "perdim.jsonl"
+    ckpt.write_text("\n".join(json.dumps(row) for row in _cells()), encoding="utf-8")
+    out = tmp_path / "worker@example.com-case-123456789" / "frontier_perdim.md"
+
+    assert b.main(["--ckpt", str(ckpt), "--out", str(out)]) == 0
+
+    printed = capsys.readouterr().err
+    assert out.exists()
+    assert "report -> external" in printed
+    assert str(tmp_path) not in printed
+    assert "worker@example.com" not in printed
+    assert "case-123456789" not in printed
+
+
+def test_main_missing_cells_console_redacts_sensitive_checkpoint_path(tmp_path, capsys):
+    ckpt = tmp_path / "worker@example.com-case-123456789" / "missing.jsonl"
+
+    assert b.main(["--ckpt", str(ckpt), "--out", str(tmp_path / "out.md")]) == 1
+
+    printed = capsys.readouterr().err
+    assert "no per-dimension cells in external" in printed
+    assert str(tmp_path) not in printed
+    assert "worker@example.com" not in printed
+    assert "case-123456789" not in printed

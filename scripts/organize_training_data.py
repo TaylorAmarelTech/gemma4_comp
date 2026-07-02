@@ -21,6 +21,7 @@ import hashlib
 import json
 import pathlib
 import random
+import re
 import sys
 from collections import defaultdict
 from typing import Any, Callable
@@ -33,6 +34,49 @@ FULL_SET = _ROOT / "reports" / "benchmark" / "full_promptset.json"
 CURATED_SET = _ROOT / "configs" / "duecare" / "benchmarks" / "scheme_prompts.json"
 SEED = 17
 NEAR_DUP_DIST = 3  # 64-bit SimHash Hamming distance counted as a near-duplicate (paraphrase/boilerplate)
+_EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b", re.I)
+_PHONE = re.compile(r"\+?\d[\d\s().\-]{8,}\d")
+_LOCAL_PATH_HINT = re.compile(
+    r"(?:[A-Za-z]:[\\/]|\\\\|(?:^|[\s\"'(:])/(?:Users|home|tmp|var|mnt|private|Volumes)(?:/|$)|~[\\/])",
+    re.I,
+)
+_SAFE_RELATIVE_PATH = re.compile(r"^[A-Za-z0-9._/\-]+$")
+
+
+def _has_sensitive_display_text(text: str) -> bool:
+    return bool(
+        _EMAIL.search(text)
+        or _PHONE.search(text)
+        or _LOCAL_PATH_HINT.search(text)
+        or re.search(r"\b\d{9,}\b", text)
+    )
+
+
+def _safe_relative_report_path(path: pathlib.PurePath) -> str:
+    display = path.as_posix()
+    if not display or display.startswith("../") or "/../" in display:
+        return "redacted"
+    if _has_sensitive_display_text(display):
+        return "redacted"
+    if not _SAFE_RELATIVE_PATH.fullmatch(display):
+        return "redacted"
+    return display
+
+
+def _display_report_path(raw_path: Any) -> str:
+    if not raw_path:
+        return "n/a"
+    raw = str(raw_path)
+    try:
+        path = pathlib.Path(raw)
+        if path.is_absolute():
+            try:
+                return _safe_relative_report_path(path.relative_to(_ROOT))
+            except ValueError:
+                return "external"
+        return _safe_relative_report_path(pathlib.PurePosixPath(pathlib.PureWindowsPath(raw).as_posix()))
+    except (OSError, RuntimeError, ValueError):
+        return "redacted"
 
 # Reuse the deterministic, offline SimHash near-dup from duecare-llm-research-tools (DRY). Bridge the
 # package src onto sys.path so this stays runnable as a standalone script; fall back to exact-only dedup
@@ -55,9 +99,11 @@ def load_jsonl(path: pathlib.Path) -> list[dict[str, Any]]:
     for ln in path.read_text(encoding="utf-8").splitlines():
         if ln.strip():
             try:
-                rows.append(json.loads(ln))
+                row = json.loads(ln)
             except json.JSONDecodeError:
                 continue
+            if isinstance(row, dict):
+                rows.append(row)
     return rows
 
 
@@ -72,24 +118,49 @@ def load_pid2cat(*paths: pathlib.Path) -> dict[str, str]:
             continue
         try:
             doc = json.loads(path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
+        except (OSError, json.JSONDecodeError):
             continue
-        prompts = doc.get("prompts", doc)
-        return {str(p["id"]): str(p.get("category", "unknown")) for p in prompts if p.get("id")}
+        prompts = doc.get("prompts", doc) if isinstance(doc, dict) else doc
+        if not isinstance(prompts, list):
+            continue
+        return {str(p["id"]): str(p.get("category", "unknown"))
+                for p in prompts if isinstance(p, dict) and p.get("id")}
     return {}
 
 
+def _meta_dict(row: dict) -> dict[str, Any]:
+    if not isinstance(row, dict):
+        return {}
+    meta = row.get("_meta") or {}
+    return meta if isinstance(meta, dict) else {}
+
+
 def _cat_of(row: dict, pid2cat: dict[str, str]) -> str:
-    return pid2cat.get(str((row.get("_meta") or {}).get("prompt_id")), "unknown")
+    return pid2cat.get(str(_meta_dict(row).get("prompt_id")), "unknown")
 
 
 def _sft_text(row: dict) -> str:
-    return next((str(m.get("content", "")) for m in (row.get("messages") or [])
-                if m.get("role") == "user"), "")
+    if not isinstance(row, dict):
+        return ""
+    messages = row.get("messages") or []
+    if not isinstance(messages, list):
+        return ""
+    for message in messages:
+        if not isinstance(message, dict):
+            continue
+        if message.get("role") != "user":
+            continue
+        content = message.get("content")
+        if isinstance(content, str):
+            return content
+    return ""
 
 
 def _dpo_text(row: dict) -> str:
-    return str(row.get("prompt", ""))
+    if not isinstance(row, dict):
+        return ""
+    prompt = row.get("prompt", "")
+    return prompt if isinstance(prompt, str) else ""
 
 
 def _dedup(rows: list[dict], textfn: Callable[[dict], str]) -> list[dict]:
@@ -148,6 +219,10 @@ def organize(sft: list[dict], dpo: list[dict], pid2cat: dict[str, str], *,
     """Dedup -> hold out whole typologies -> balance + interleave the train splits. Pure / CPU-safe."""
     rng = random.Random(seed)
     sft_in, dpo_in = len(sft), len(dpo)
+    sft = [row for row in sft if _sft_text(row).strip()]
+    dpo = [row for row in dpo if _dpo_text(row).strip()]
+    sft_malformed = sft_in - len(sft)
+    dpo_malformed = dpo_in - len(dpo)
     sft, sft_near = _dedup_rows(sft, _sft_text, near_dup_dist=near_dup_dist)
     dpo, dpo_near = _dedup_rows(dpo, _dpo_text, near_dup_dist=near_dup_dist)
     cats = sorted({_cat_of(r, pid2cat) for r in (sft + dpo)})
@@ -172,6 +247,7 @@ def organize(sft: list[dict], dpo: list[dict], pid2cat: dict[str, str], *,
         "dedup": {
             "method": (f"exact(sha256)+simhash64 hamming<={near_dup_dist}" if _HAVE_NEAR_DEDUP
                        else "exact only (research_tools unavailable)"),
+            "malformed_or_empty": {"sft_dropped": sft_malformed, "dpo_dropped": dpo_malformed},
             "sft": {"in": sft_in, "kept_pre_split": len(sft), "near_dropped": sft_near},
             "dpo": {"in": dpo_in, "kept_pre_split": len(dpo), "near_dropped": dpo_near},
         },
@@ -222,7 +298,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"[organize] near-dup dropped: SFT {dd['sft']['near_dropped']} / DPO {dd['dpo']['near_dropped']} "
           f"({dd['method']})")
     print(f"[organize] SFT train {m['sft']['train']} / heldout {m['sft']['heldout']} | "
-          f"DPO train {m['dpo']['train']} / heldout {m['dpo']['heldout']} -> {out}")
+          f"DPO train {m['dpo']['train']} / heldout {m['dpo']['heldout']} -> {_display_report_path(out)}")
     return 0
 
 

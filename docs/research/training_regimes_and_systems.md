@@ -83,7 +83,7 @@
 
 ## 4. The training SYSTEM
 
-- **The DAG:** two always-on CPU flywheels — **discover** (Hermes→OpenClaw) and **grade** (engine →
+- **The DAG:** two always-on CPU flywheels — **discover** (candidate generation → quality vetting) and **grade** (engine →
   `rich_harness_lift`) — feed a propose-only **training bridge** (`build_lift_training_data` →
   `organize_training_data` → understanding variants), then a **GPU window** (`train_lift_distill` →
   `four_arm_eval --run`), then the **promote gate**, the **registry**, and **publish**. *Nothing is
@@ -115,8 +115,12 @@
 3. **Over-refusal control: the counterfactual/benign-twin generator** (new `build_counterfactual_pairs.py`) + the over-refusal diagnostic in `four_arm_eval.py` (split under-refusal lift from over-refusal rate, never merged). *The keystone.*
 4. **Union mixer + near-dup dedup + difficulty/framing balance** in `organize_training_data.py`.
 5. **Component-delta gating** in `build_lift_training_data.py` (ΔB+ΔD floor; `ΔC ≤ ΔA+ΔB+ΔD`; inverted-pair guard).
-6. **Reasoning-chain target builder** (new `build_reasoning_targets.py`, V4) + citation-relevance gate.
-7. **`model_registry.py`** (provenance spine) + stamp `four_arm_eval --sha`; add manifests to orchestrator backups.
+6. **Reasoning-chain target builder** (`build_reasoning_targets.py`, V4) + citation-relevance gate +
+   metadata-only repair queue (`build_reasoning_gap_queue.py`) + proposed deterministic repair rows
+   (`build_reasoning_repairs.py`) + non-duplicating repaired SFT comparison arm
+   (`build_reasoning_sft_variant.py`) + corridor expansion curation plan
+   (`build_corridor_expansion_plan.py`).
+7. **`finetune_registry.py` + `validate_training_provenance.py`** (provenance spine) + stamp `four_arm_eval --sha`; add manifests to orchestrator backups.
 8. **`training_engine.py`** (the propose-and-stage sibling daemon) + `training_engine.ps1`.
 9. **`export_ondevice.py`** (merge→GGUF, lift the archived A-14 logic) + `convert_to_litert.py` (E2B INT8); model-card provenance + the HF_TOKEN env fix.
 

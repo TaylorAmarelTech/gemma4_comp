@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -56,3 +57,60 @@ def test_build_emits_three_kinds():
 def test_manifest_counts():
     doc = cf.build([{"id": "b1", "category": "rights_query", "corridor": "", "text": "help?"}])
     assert doc["manifest"]["by_kind"]["benign_control"] == 1 and doc["manifest"]["total"] == 1
+
+
+def test_manifest_tracks_custom_source_path_without_leaking_absolute_path(tmp_path):
+    scheme = tmp_path / "custom_scheme.json"
+
+    doc = cf.build([], source_path=scheme)
+
+    assert doc["manifest"]["source"] == "external"
+    assert str(tmp_path) not in json.dumps(doc["manifest"])
+
+
+def test_validate_console_redacts_sensitive_source_path(tmp_path, capsys):
+    sensitive_dir = tmp_path / "worker@example.com-case-123456789"
+    sensitive_dir.mkdir()
+    scheme = sensitive_dir / "scheme_prompts.json"
+    out = sensitive_dir / "counterfactual_pairs.jsonl"
+    scheme.write_text(json.dumps({"prompts": [
+        {"id": "b1", "category": "rights_query", "corridor": "", "text": "What are my rights?"}
+    ]}), encoding="utf-8")
+
+    result = cf.main(["--scheme", str(scheme), "--out", str(out), "--validate"])
+    printed = capsys.readouterr().out
+
+    assert result == 0
+    assert '"source": "external"' in printed
+    assert str(tmp_path) not in printed
+    assert "worker@example.com" not in printed
+    assert "case-123456789" not in printed
+    assert not out.exists()
+
+
+def test_success_console_redacts_sensitive_output_path(tmp_path, capsys):
+    sensitive_dir = tmp_path / "worker@example.com-case-123456789"
+    sensitive_dir.mkdir()
+    scheme = sensitive_dir / "scheme_prompts.json"
+    out = sensitive_dir / "counterfactual_pairs.jsonl"
+    manifest = sensitive_dir / "counterfactual_manifest.json"
+    scheme.write_text(json.dumps({"prompts": [
+        {"id": "b1", "category": "rights_query", "corridor": "", "text": "What are my rights?"}
+    ]}), encoding="utf-8")
+
+    result = cf.main(["--scheme", str(scheme), "--out", str(out), "--manifest", str(manifest)])
+    printed = capsys.readouterr().out
+    manifest_text = manifest.read_text(encoding="utf-8")
+
+    assert result == 0
+    assert "rows to external" in printed
+    assert "manifest to external" in printed
+    assert str(tmp_path) not in printed
+    assert "worker@example.com" not in printed
+    assert "case-123456789" not in printed
+    assert out.exists()
+    assert manifest.exists()
+    assert '"source": "external"' in manifest_text
+    assert str(tmp_path) not in manifest_text
+    assert "worker@example.com" not in manifest_text
+    assert "case-123456789" not in manifest_text

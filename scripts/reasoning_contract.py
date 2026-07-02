@@ -29,7 +29,8 @@ chain detectors built on migrant_taxonomy ILO indicators + citation_accuracy + r
 enforcements beyond mere presence make it a contract, not a checklist:
 
   * CITATION VALIDITY -- a cited statute must not be hallucinated (citation_stats.n_section_implausible
-    == 0). The model may not invent a section number to satisfy the "statute" step.
+    == 0) AND it must govern the indicator it is paired with. The model may not cite a real-but-irrelevant
+    convention to satisfy the "statute" step.
   * FRAGILE-FACT PROHIBITION -- the reasoning must not assert volatile specifics (phone/hotline numbers
     especially; fee amounts / dates are flagged). Those belong in tools/RAG; forbidding them in the
     reasoning is what keeps the LoRA storing a way of THINKING, not memorised facts.
@@ -59,7 +60,11 @@ from build_reasoning_targets import (  # noqa: E402
 )
 from citation_accuracy import citation_stats as _citation_stats  # noqa: E402
 from refusal_detector import classify as _classify, FORMAT_FAILURE  # noqa: E402
-from palermo_screening import palermo_analysis  # noqa: E402  -- Act-Means-Purpose triad + screening signals
+from palermo_screening import (  # noqa: E402  -- Act-Means-Purpose triad + citation relevance
+    palermo_analysis,
+    citation_coherence as _citation_coherence,
+)
+from remedy_taxonomy import core_remedy_gap as _core_remedy_gap  # noqa: E402
 
 REASONING_SFT = _ROOT / "reports" / "training" / "reasoning_sft.jsonl"
 OUT = _ROOT / "reports" / "training" / "reasoning_contract.json"
@@ -71,14 +76,58 @@ STEPS = ("indicator", "statute", "action", "resources")
 _PHONE = re.compile(r"\+?\d[\d\s().\-]{8,}\d")
 _MONEY = re.compile(r"(?:\$|usd|eur|php|aed|sar)\s?\d[\d,]*", re.I)
 _DATE = re.compile(r"\b(?:20\d{2}|\d{1,2}[/-]\d{1,2}[/-]\d{2,4})\b")
+_EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b", re.I)
+_LOCAL_PATH_HINT = re.compile(
+    r"(?:[A-Za-z]:[\\/]|\\\\|(?:^|[\s\"'(:])/(?:Users|home|tmp|var|mnt|private|Volumes)(?:/|$)|~[\\/])",
+    re.I,
+)
+_SAFE_RELATIVE_PATH = re.compile(r"^[A-Za-z0-9._/\-]+$")
 # Thinking-trace delimiters Gemma-4-thinking / common templates may emit; if none, the whole text is used.
 _THINK_SPLIT = re.compile(r"</think>|<end_of_thinking>|<end_working>|\n\s*(?:final answer|answer)\s*:",
                           re.IGNORECASE)
 
 
+def _has_sensitive_display_text(text: str) -> bool:
+    return bool(
+        _EMAIL.search(text)
+        or _PHONE.search(text)
+        or _LOCAL_PATH_HINT.search(text)
+        or re.search(r"\b\d{9,}\b", text)
+    )
+
+
+def _safe_relative_report_path(path: pathlib.PurePath) -> str:
+    display = path.as_posix()
+    if not display or display.startswith("../") or "/../" in display:
+        return "redacted"
+    if _has_sensitive_display_text(display):
+        return "redacted"
+    if not _SAFE_RELATIVE_PATH.fullmatch(display):
+        return "redacted"
+    return display
+
+
+def _display_report_path(raw_path: Any) -> str:
+    if not raw_path:
+        return "n/a"
+    raw = str(raw_path)
+    try:
+        path = pathlib.Path(raw)
+        if path.is_absolute():
+            try:
+                return _safe_relative_report_path(path.relative_to(_ROOT))
+            except ValueError:
+                return "external"
+        return _safe_relative_report_path(pathlib.PurePosixPath(pathlib.PureWindowsPath(raw).as_posix()))
+    except (OSError, RuntimeError, ValueError):
+        return "redacted"
+
+
 def split_thinking(text: str) -> tuple[str, str]:
     """(reasoning, answer). If a thinking delimiter is present, split on it; otherwise the whole text is
     treated as both (the chain may appear anywhere -- we verify the full text by default)."""
+    if not isinstance(text, str):
+        text = ""
     m = _THINK_SPLIT.search(text or "")
     if not m:
         return text or "", text or ""
@@ -104,14 +153,18 @@ def _order_ok(text: str) -> bool:
 
 
 def citation_valid(text: str) -> bool:
-    """A cited statute exists AND none is hallucinated (no implausible section number)."""
+    """A cited statute exists, none is hallucinated, and it governs any named screening signal."""
+    if not isinstance(text, str):
+        return False
     cs = _citation_stats(text)
     has = cs.get("n_conventions", 0) > 0 or cs.get("n_section_refs", 0) > 0
-    return has and cs.get("n_section_implausible", 0) == 0
+    return has and cs.get("n_section_implausible", 0) == 0 and _citation_coherence(text)["coherent"]
 
 
 def fragile_in_reasoning(text: str) -> dict[str, int]:
     """Counts of volatile specifics in the reasoning (phone is a hard contract fail)."""
+    if not isinstance(text, str):
+        text = ""
     return {"phone": len(_PHONE.findall(text)), "money": len(_MONEY.findall(text)),
             "date": len(_DATE.findall(text))}
 
@@ -126,6 +179,7 @@ class ContractVerdict:
     fragile_free: bool    # no phone-like in the reasoning
     fragile: dict
     palermo: dict         # Palermo Act-Means-Purpose triad + screening signals (palermo_screening)
+    core_remedies: dict   # mandatory money/non-punishment remedies triggered by the advice-completeness playbook
     score: float          # n_steps / 4
     satisfied: bool       # the full contract holds
     violations: list
@@ -142,11 +196,13 @@ _REPAIR = {
 
 def verify_reasoning(text: str, *, min_steps: int = 4, require_order: bool = True,
                      require_citation_valid: bool = True, forbid_phone: bool = True,
-                     require_triad: bool = False) -> ContractVerdict:
+                     require_triad: bool = False, require_core_remedies: bool = False) -> ContractVerdict:
     """Verify one reply against the reasoning contract. Strict by default (full 4-step chain, valid
     citation, ordered, no phone-like fragile fact). The training gate may relax min_steps to 3.
     ``require_triad`` (default off, additive) also requires the Palermo Act-Means-Purpose triad to be
-    articulated -- the legal-rigour enrichment seeded by the screening instruments."""
+    articulated -- the legal-rigour enrichment seeded by the screening instruments.
+    ``require_core_remedies`` (default off, additive) requires the advice-completeness playbook's mandatory
+    money-remedy and non-punishment guarantees whenever triggering harms are present."""
     reasoning, _answer = split_thinking(text)
     links = chain_links(text)                         # presence over the full text
     n = sum(links.values())
@@ -157,13 +213,14 @@ def verify_reasoning(text: str, *, min_steps: int = 4, require_order: bool = Tru
     frag = fragile_in_reasoning(reasoning)            # fragility judged on the REASONING trace
     phone_free = frag["phone"] == 0
     pal = palermo_analysis(text)                      # Act-Means-Purpose triad + screening signals
+    core = _core_remedy_gap(text)
 
     violations: list[str] = []
     for step in STEPS:
         if not links[step]:
             violations.append(f"missing {step}: {_REPAIR[step]}")
     if require_citation_valid and links["statute"] and not cite_ok:
-        violations.append("citation invalid: a cited section is implausible/hallucinated -- cite a real instrument")
+        violations.append("citation invalid: cite a real instrument that governs the named indicator")
     if require_order and not order:
         violations.append("order: reason about the indicator BEFORE the action/resources")
     if not grounded:
@@ -172,27 +229,33 @@ def verify_reasoning(text: str, *, min_steps: int = 4, require_order: bool = Tru
         violations.append("fragile fact: the reasoning asserts a phone-like number -- defer contacts to tools/RAG")
     if require_triad and not pal["triad_complete"]:
         violations.append("Palermo triad incomplete: articulate the act, the means, AND the exploitative purpose")
+    if require_core_remedies and not core["complete"]:
+        missing = ", ".join(core["missing"])
+        violations.append(f"core remedies incomplete: name the mandatory remedy guarantees ({missing})")
 
     satisfied = (n >= min_steps and grounded
                  and (order or not require_order)
                  and (cite_ok or not (require_citation_valid and links["statute"]))
                  and (phone_free or not forbid_phone)
-                 and (pal["triad_complete"] or not require_triad))
+                 and (pal["triad_complete"] or not require_triad)
+                 and (core["complete"] or not require_core_remedies))
     repair_hint = ("Revise the reasoning to: " + "; ".join(
         v.split(": ", 1)[1] if ": " in v else v for v in violations)) if violations else ""
     return ContractVerdict(steps=links, n_steps=n, order_ok=order, citation_valid=cite_ok,
                            grounded=grounded, fragile_free=phone_free, fragile=frag, palermo=pal,
-                           score=round(n / 4, 3), satisfied=satisfied, violations=violations,
+                           core_remedies=core, score=round(n / 4, 3), satisfied=satisfied, violations=violations,
                            repair_hint=repair_hint)
 
 
 def contract_pass_rate(texts: list[str], **kw) -> dict[str, Any]:
     """Aggregate contract satisfaction over many replies -- the judge-independent CoT-quality metric."""
-    verdicts = [verify_reasoning(t, **kw) for t in texts if t]
+    valid_texts = [t for t in texts if isinstance(t, str) and t]
+    verdicts = [verify_reasoning(t, **kw) for t in valid_texts]
     n = len(verdicts)
     if not n:
         return {"n": 0}
     step_present = {s: sum(v.steps[s] for v in verdicts) for s in STEPS}
+    core_triggered = [v for v in verdicts if v.core_remedies["required"]]
     return {"n": n,
             "satisfied": sum(v.satisfied for v in verdicts),
             "satisfied_rate": round(sum(v.satisfied for v in verdicts) / n, 3),
@@ -200,12 +263,28 @@ def contract_pass_rate(texts: list[str], **kw) -> dict[str, Any]:
             "step_presence_rate": {s: round(step_present[s] / n, 3) for s in STEPS},
             "citation_valid_rate": round(sum(v.citation_valid for v in verdicts) / n, 3),
             "order_ok_rate": round(sum(v.order_ok for v in verdicts) / n, 3),
-            "phone_fragile": sum(0 if v.fragile_free else 1 for v in verdicts)}
+            "phone_fragile": sum(0 if v.fragile_free else 1 for v in verdicts),
+            "core_triggered_n": len(core_triggered),
+            "core_complete_rate": round(
+                sum(v.core_remedies["complete"] for v in core_triggered) / len(core_triggered), 3
+            ) if core_triggered else None}
 
 
-def _assistant_text(row: dict) -> str:
-    return next((str(m.get("content", "")) for m in reversed(row.get("messages") or [])
-                if m.get("role") == "assistant"), "")
+def _assistant_text(row: Any) -> str:
+    if not isinstance(row, dict):
+        return ""
+    messages = row.get("messages")
+    if not isinstance(messages, list):
+        return ""
+    for message in reversed(messages):
+        if not isinstance(message, dict):
+            continue
+        if message.get("role") != "assistant":
+            continue
+        content = message.get("content")
+        if isinstance(content, str):
+            return content
+    return ""
 
 
 def _load_jsonl(path: pathlib.Path) -> list[dict]:
@@ -215,9 +294,11 @@ def _load_jsonl(path: pathlib.Path) -> list[dict]:
     for ln in path.read_text(encoding="utf-8").splitlines():
         if ln.strip():
             try:
-                out.append(json.loads(ln))
+                row = json.loads(ln)
             except json.JSONDecodeError:
                 continue
+            if isinstance(row, dict):
+                out.append(row)
     return out
 
 
@@ -226,27 +307,34 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--text", help="verify a single reply and print its verdict + repair hint")
     ap.add_argument("--sft", type=pathlib.Path, default=REASONING_SFT, help="gold reasoning set to score")
     ap.add_argument("--min-steps", type=int, default=4, help="strict contract = 4; training gate uses 3")
+    ap.add_argument("--require-core-remedies", action="store_true",
+                    help="also require mandatory money-remedy and non-punishment guarantees")
     args = ap.parse_args(argv)
 
     if args.text is not None:
-        v = verify_reasoning(args.text, min_steps=args.min_steps)
+        v = verify_reasoning(args.text, min_steps=args.min_steps,
+                             require_core_remedies=args.require_core_remedies)
         print(json.dumps(asdict(v), indent=2, ensure_ascii=False))
         return 0
 
     rows = _load_jsonl(args.sft)
     if not rows:
-        print(f"[reasoning-contract] no reasoning set at {args.sft} -- run build_reasoning_targets.py first")
+        print(f"[reasoning-contract] no reasoning set at {_display_report_path(args.sft)} "
+              "-- run build_reasoning_targets.py first")
         return 1
-    rep = contract_pass_rate([_assistant_text(r) for r in rows], min_steps=args.min_steps)
-    rep["note"] = ("contract = indicator->statute->action->resources, with valid (non-hallucinated) "
-                   "citation, correct order, and no phone-like fragile fact in the reasoning. A "
+    rep = contract_pass_rate([_assistant_text(r) for r in rows], min_steps=args.min_steps,
+                             require_core_remedies=args.require_core_remedies)
+    rep["note"] = ("contract = indicator->statute->action->resources, with valid and indicator-relevant "
+                   "(non-hallucinated) citation, correct order, and no phone-like fragile fact in the reasoning. A "
                    "judge-INDEPENDENT chain-of-thought quality metric; the training filter for a Gemma 4 "
-                   "reasoning LoRA; and the inference-time enforce/repair contract.")
+                   "reasoning LoRA; and the inference-time enforce/repair contract. Optional core-remedy "
+                   "enforcement requires money-remedy and non-punishment guarantees when triggering harms appear.")
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(rep, indent=2) + "\n", encoding="utf-8")
     print(f"[reasoning-contract] n={rep['n']} satisfied={rep['satisfied']} ({rep['satisfied_rate']}) "
           f"mean_score={rep['mean_score']} steps={rep['step_presence_rate']} "
-          f"citation_valid={rep['citation_valid_rate']} -> {OUT}")
+          f"citation_valid={rep['citation_valid_rate']} core_complete={rep['core_complete_rate']} "
+          f"-> {_display_report_path(OUT)}")
     return 0
 
 

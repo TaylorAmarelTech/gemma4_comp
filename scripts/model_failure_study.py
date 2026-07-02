@@ -31,11 +31,13 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from pathlib import Path
+from pathlib import Path, PurePath, PurePosixPath, PureWindowsPath
+from typing import Any
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
@@ -58,27 +60,126 @@ REPO = Path(__file__).resolve().parents[1]
 PROBES = REPO / "configs/duecare/domains/trafficking/ambiguity_probes.jsonl"
 SEEDS = REPO / "configs/duecare/domains/trafficking/seed_prompts.jsonl"
 OUTDIR = REPO / "reports/model_failure_study"
+_EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b", re.I)
+_PHONE = re.compile(r"\+?\d[\d\s().\-]{8,}\d")
+_LOCAL_PATH_HINT = re.compile(
+    r"(?:[A-Za-z]:[\\/]|\\\\|(?:^|[\s\"'(:])/(?:Users|home|tmp|var|mnt|private|Volumes)(?:/|$)|~[\\/])",
+    re.I,
+)
+_SAFE_RELATIVE_PATH = re.compile(r"^[A-Za-z0-9._/\-]+$")
+_SAFE_IDENTIFIER = re.compile(r"^[A-Za-z0-9._:/\-]+$")
+_SAFE_ENV_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+
+
+def _nonempty_string(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    return text or None
+
+
+def _string_or_empty(value: Any) -> str:
+    return value.strip() if isinstance(value, str) else ""
+
+
+def _has_sensitive_display_text(text: str) -> bool:
+    return bool(
+        _EMAIL.search(text)
+        or _PHONE.search(text)
+        or _LOCAL_PATH_HINT.search(text)
+        or re.search(r"\b\d{9,}\b", text)
+    )
+
+
+def _safe_relative_report_path(path: PurePath) -> str:
+    display = path.as_posix()
+    if not display or display.startswith("../") or "/../" in display:
+        return "redacted"
+    if _has_sensitive_display_text(display):
+        return "redacted"
+    if not _SAFE_RELATIVE_PATH.fullmatch(display):
+        return "redacted"
+    return display
+
+
+def _display_report_path(raw_path: Any) -> str:
+    if not raw_path:
+        return "n/a"
+    raw = str(raw_path)
+    try:
+        path = Path(raw)
+        if path.is_absolute():
+            try:
+                return _safe_relative_report_path(path.relative_to(REPO))
+            except ValueError:
+                return "external"
+        return _safe_relative_report_path(PurePosixPath(PureWindowsPath(raw).as_posix()))
+    except (OSError, RuntimeError, ValueError):
+        return "redacted"
+
+
+def _display_identifier(value: Any) -> str:
+    text = str(value or "")
+    if _SAFE_IDENTIFIER.fullmatch(text) and not _has_sensitive_display_text(text):
+        return text
+    return "redacted"
+
+
+def _display_env_name(value: Any) -> str:
+    text = str(value or "")
+    if _SAFE_ENV_NAME.fullmatch(text) and not _has_sensitive_display_text(text):
+        return text
+    return "redacted"
+
+
+def _display_error(value: Any) -> str:
+    text = str(value or "")
+    if _has_sensitive_display_text(text):
+        return "details redacted"
+    return text[:120]
 
 
 def _load_jsonl(path: Path) -> list[dict]:
+    if not path.exists():
+        return []
     rows = []
     for line in path.read_text(encoding="utf-8").splitlines():
         line = line.strip()
-        if line:
-            rows.append(json.loads(line))
+        if not line:
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(row, dict):
+            rows.append(row)
     return rows
 
 
 def load_prompts(*, include_seeds: bool, limit: int | None) -> list[dict]:
     """Probe set: equivocation probes first (the headline test), then optionally a
     sample of the business-framed / victim-voice seed prompts."""
-    out = [{"id": p["id"], "text": p["text"], "category": p.get("category", ""),
-            "ambiguous_term": p.get("metadata", {}).get("ambiguous_term", "")}
-           for p in _load_jsonl(PROBES)]
+    out = []
+    for p in _load_jsonl(PROBES):
+        prompt_id = _nonempty_string(p.get("id"))
+        text = _nonempty_string(p.get("text"))
+        if not prompt_id or not text:
+            continue
+        metadata = p.get("metadata") if isinstance(p.get("metadata"), dict) else {}
+        out.append({
+            "id": prompt_id,
+            "text": text,
+            "category": _string_or_empty(p.get("category")),
+            "ambiguous_term": _string_or_empty(metadata.get("ambiguous_term")),
+        })
     if include_seeds and SEEDS.exists():
         for p in _load_jsonl(SEEDS):
-            out.append({"id": p["id"], "text": p["text"],
-                        "category": p.get("category", ""), "ambiguous_term": ""})
+            prompt_id = _nonempty_string(p.get("id"))
+            text = _nonempty_string(p.get("text"))
+            if not prompt_id or not text:
+                continue
+            out.append({"id": prompt_id, "text": text,
+                        "category": _string_or_empty(p.get("category")), "ambiguous_term": ""})
     if limit is not None:
         out = out[:limit]
     return out
@@ -109,8 +210,9 @@ def call_chat(model: str, prompt: str, *, api_key: str, max_tokens: int,
         msg = data["choices"][0]["message"]
         # some reasoning models leave `content` empty and put the answer in a
         # separate reasoning field — fall back so we never mis-score an empty string
-        text = (msg.get("content") or msg.get("reasoning_content")
-                or msg.get("reasoning") or "")
+        raw_text = (msg.get("content") or msg.get("reasoning_content")
+                    or msg.get("reasoning") or "")
+        text = raw_text if isinstance(raw_text, str) else ""
         return {"ok": True, "text": text, "usage": data.get("usage", {}), "error": None}
     except urllib.error.HTTPError as e:
         detail = e.read().decode("utf-8", "replace")[:300]
@@ -131,7 +233,10 @@ def _done_pairs(path: Path, *, only_ok: bool = False) -> set[tuple[str, str]]:
             r = json.loads(line)
             if only_ok and not r.get("ok"):
                 continue  # a failed row is not "done" -> --retry-errors re-attempts it
-            seen.add((r["model"], r["prompt_id"]))
+            model = _nonempty_string(r.get("model"))
+            prompt_id = _nonempty_string(r.get("prompt_id"))
+            if model and prompt_id:
+                seen.add((model, prompt_id))
         except Exception:  # noqa: BLE001
             pass
     return seen
@@ -154,7 +259,7 @@ def grade(grader, response_text: str, prompt_text: str) -> dict:
     }
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--models", default=",".join(DEFAULT_MODELS),
                     help="comma-separated OpenRouter model slugs")
@@ -170,17 +275,17 @@ def main() -> int:
                     help="env var holding the bearer key for --base-url")
     ap.add_argument("--retry-errors", action="store_true",
                     help="re-attempt (model, prompt) pairs whose prior row failed (ok=False)")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
 
     api_key = os.environ.get(args.key_env)
     if not api_key:
-        print(f"ERROR: {args.key_env} not set (run: set -a; . ./.env; set +a)", file=sys.stderr)
+        print(f"ERROR: {_display_env_name(args.key_env)} not set", file=sys.stderr)
         return 2
 
     try:
         from duecare.chat.harness import grade_response_universal as grader
     except Exception as e:  # noqa: BLE001
-        print(f"ERROR: cannot import DueCare grader ({e}). Run with the recovery venv python.",
+        print(f"ERROR: cannot import DueCare grader ({_display_error(e)}). Run with the recovery venv python.",
               file=sys.stderr)
         return 2
 
@@ -208,31 +313,35 @@ def main() -> int:
             model, p, res = fut.result()
             # an empty/whitespace completion is an API/format artifact (e.g. gpt-oss
             # harmony channels), NOT a model safety failure -- don't grade it as one
-            if res["ok"] and not (res["text"] or "").strip():
-                res = {"ok": False, "text": "", "usage": res.get("usage", {}),
+            text = _nonempty_string(res.get("text"))
+            usage = res.get("usage") if isinstance(res.get("usage"), dict) else {}
+            if res["ok"] and not text:
+                res = {"ok": False, "text": "", "usage": usage,
                        "error": "empty_response"}
             rec: dict = {"model": model, "prompt_id": p["id"], "category": p["category"],
                          "ambiguous_term": p["ambiguous_term"], "ok": res["ok"]}
             if res["ok"]:
-                rec["response"] = res["text"]
-                rec["usage"] = res["usage"]
-                rec["grade"] = grade(grader, res["text"], p["text"])  # serial, main thread
-                spend_tokens["prompt"] += int(res["usage"].get("prompt_tokens", 0) or 0)
-                spend_tokens["completion"] += int(res["usage"].get("completion_tokens", 0) or 0)
+                rec["response"] = text
+                rec["usage"] = usage
+                rec["grade"] = grade(grader, text, p["text"])  # serial, main thread
+                spend_tokens["prompt"] += int(usage.get("prompt_tokens", 0) or 0)
+                spend_tokens["completion"] += int(usage.get("completion_tokens", 0) or 0)
                 dsr = rec["grade"]["domain_sense_resolution"]
-                print(f"  {model:30s} {p['id']:22s} pct={rec['grade']['pct_score']!s:>5} "
+                print(f"  {_display_identifier(model):30s} {_display_identifier(p['id']):22s} "
+                      f"pct={rec['grade']['pct_score']!s:>5} "
                       f"dsr={dsr['status']}")
             else:
                 rec["error"] = res["error"]
                 n_err += 1
-                print(f"  {model:30s} {p['id']:22s} ERROR {str(res['error'])[:55]}")
+                print(f"  {_display_identifier(model):30s} {_display_identifier(p['id']):22s} "
+                      f"ERROR {_display_error(res['error'])}")
             fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
             fh.flush()
             n_called += 1
 
     print(f"\nDONE: {n_called} new calls ({n_err} errors). "
           f"Tokens: prompt={spend_tokens['prompt']:,} completion={spend_tokens['completion']:,}")
-    print(f"Results appended to {out_path}")
+    print(f"Results appended to {_display_report_path(out_path)}")
     print("Next: scripts/model_failure_report.py to aggregate + render the report.")
     return 0
 

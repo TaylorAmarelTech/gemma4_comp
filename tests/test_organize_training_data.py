@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -84,3 +85,93 @@ def test_manifest_records_dedup_block():
     assert dd["sft"]["in"] == 2 and dd["sft"]["kept_pre_split"] == 1          # exact dup collapsed, counted
     assert "method" in dd and dd["sft"]["near_dropped"] == 0
     assert dd["dpo"]["in"] == 0 and dd["dpo"]["kept_pre_split"] == 0
+
+
+def test_load_jsonl_skips_malformed_and_non_object_rows(tmp_path):
+    path = tmp_path / "sft.jsonl"
+    good = _sft("p1", "same text here")
+    malformed_shape = {"messages": "not-a-list", "_meta": "not-a-dict"}
+    path.write_text(
+        "\n".join([
+            "{not-json",
+            json.dumps(["not", "a", "row"]),
+            json.dumps("not a row"),
+            json.dumps(good),
+            json.dumps(malformed_shape),
+        ]) + "\n",
+        encoding="utf-8",
+    )
+
+    rows = org.load_jsonl(path)
+
+    assert rows == [good, malformed_shape]
+    assert org._sft_text(malformed_shape) == ""
+    assert org._cat_of(malformed_shape, {"p1": "A"}) == "unknown"
+
+
+def test_load_pid2cat_skips_malformed_prompt_documents(tmp_path):
+    bad_json = tmp_path / "bad.json"
+    non_list = tmp_path / "non_list.json"
+    good = tmp_path / "good.json"
+    bad_json.write_text("{not-json", encoding="utf-8")
+    non_list.write_text(json.dumps({"prompts": {"id": "not-a-list"}}), encoding="utf-8")
+    good.write_text(json.dumps({
+        "prompts": [
+            ["not", "a", "prompt"],
+            {"category": "missing-id"},
+            {"id": "p1", "category": "A"},
+        ]
+    }), encoding="utf-8")
+
+    assert org.load_pid2cat(bad_json, non_list, good) == {"p1": "A"}
+
+
+def test_organize_drops_malformed_or_empty_training_rows():
+    pid2cat = {"p1": "A"}
+    sft = [
+        ["not", "a", "row"],
+        {"messages": "not-a-list"},
+        {"messages": [{"role": "assistant", "content": "assistant only"}]},
+        {"messages": [{"role": "user", "content": {"text": "worker@example.com raw prompt"}}],
+         "_meta": {"prompt_id": "bad-sft"}},
+        _sft("p1", "valid user text"),
+    ]
+    dpo = [
+        ["not", "a", "row"],
+        {"chosen": "good", "rejected": "bad"},
+        {"prompt": "", "chosen": "good", "rejected": "bad"},
+        {"prompt": {"text": "worker@example.com raw prompt"}, "chosen": "good", "rejected": "bad",
+         "_meta": {"prompt_id": "bad-dpo"}},
+        {"prompt": "valid dpo prompt", "chosen": "good", "rejected": "bad", "_meta": {"prompt_id": "p1"}},
+    ]
+
+    doc = org.organize(sft, dpo, pid2cat, heldout_fraction=0.0, cap_per_category=0)
+    dd = doc["manifest"]["dedup"]
+    doc_json = json.dumps(doc)
+
+    assert dd["malformed_or_empty"] == {"sft_dropped": 4, "dpo_dropped": 4}
+    assert doc["manifest"]["sft"] == {"train": 1, "heldout": 0}
+    assert doc["manifest"]["dpo"] == {"train": 1, "heldout": 0}
+    assert doc["sft_train"][0]["_meta"]["prompt_id"] == "p1"
+    assert doc["dpo_train"][0]["_meta"]["prompt_id"] == "p1"
+    assert "worker@example.com" not in doc_json
+
+
+def test_main_console_redacts_sensitive_output_dir(tmp_path, monkeypatch, capsys):
+    sensitive_dir = tmp_path / "worker@example.com-case-123456789"
+    sensitive_dir.mkdir()
+    sft = sensitive_dir / "sft.jsonl"
+    out_dir = sensitive_dir / "organized"
+    sft.write_text(json.dumps(_sft("p1", "same text here")) + "\n", encoding="utf-8")
+    monkeypatch.setattr(org, "load_pid2cat", lambda *paths: {"p1": "A"})
+
+    result = org.main(["--sft", str(sft), "--dpo", str(sensitive_dir / "dpo.jsonl"),
+                       "--out-dir", str(out_dir)])
+    printed = capsys.readouterr().out
+
+    assert result == 0
+    assert "-> external" in printed
+    assert str(tmp_path) not in printed
+    assert "worker@example.com" not in printed
+    assert "case-123456789" not in printed
+    assert (out_dir / "organize_manifest.json").exists()

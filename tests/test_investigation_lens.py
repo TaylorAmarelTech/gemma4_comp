@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -83,3 +84,84 @@ def test_coverage_includes_institutional_rates():
     cov = il.coverage([corrupt, neutral])
     assert cov["reviews_institutions_rate"] == 0.5 and cov["flags_institutional_failure_rate"] == 0.5
     assert "corruption_complicity" in cov["institutional_failure_rate"]
+
+
+def test_main_text_output_includes_institutional_review(capsys):
+    rc = il.main(["--text", "A well-intentioned NGO gave bad advice and made it worse."])
+    assert rc == 0
+    out = json.loads(capsys.readouterr().out)
+    assert "institutional_review" in out
+    assert "ngo" in out["institutional_review"]["response_actors"]
+    assert "bad_advice_wrong_stance" in out["institutional_review"]["failure_behaviors"]
+
+
+def test_load_jsonl_skips_malformed_and_non_object_rows(tmp_path):
+    path = tmp_path / "reasoning_sft.jsonl"
+    path.write_text(
+        "\n".join(
+            [
+                json.dumps({"messages": [{"role": "assistant", "content": "The recruiter controlled the debt."}]}),
+                json.dumps(["not", "an", "object"]),
+                json.dumps("worker@example.com should not become an eval row"),
+                "{not json",
+                json.dumps({"messages": "not a list"}),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    rows = il._load_jsonl(path)
+
+    assert len(rows) == 2
+    assert all(isinstance(row, dict) for row in rows)
+
+
+def test_assistant_text_ignores_malformed_messages_and_non_string_content():
+    row = {
+        "messages": [
+            "not a dict",
+            {"role": "assistant", "content": {"text": "do not stringify"}},
+            {"role": "user", "content": "ignore"},
+            {"role": "assistant", "content": "The same recruiter used a shell company."},
+        ]
+    }
+
+    assert il._assistant_text(row) == "The same recruiter used a shell company."
+    assert il._assistant_text({"messages": "not a list"}) == ""
+    assert il._assistant_text(["not", "a", "dict"]) == ""
+
+
+def test_missing_input_console_redacts_sensitive_path(tmp_path, capsys):
+    sensitive_dir = tmp_path / "worker@example.com-case-123456789"
+
+    result = il.main(["--sft", str(sensitive_dir / "reasoning_sft.jsonl")])
+    printed = capsys.readouterr().out
+
+    assert result == 1
+    assert "no reasoning set at external" in printed
+    assert str(tmp_path) not in printed
+    assert "worker@example.com" not in printed
+    assert "case-123456789" not in printed
+
+
+def test_success_console_redacts_sensitive_output_path(tmp_path, monkeypatch, capsys):
+    sensitive_dir = tmp_path / "worker@example.com-case-123456789"
+    sensitive_dir.mkdir()
+    sft = sensitive_dir / "reasoning_sft.jsonl"
+    out = sensitive_dir / "investigation_lens.json"
+    sft.write_text(
+        json.dumps({"messages": [{"role": "assistant", "content": "The recruiter controlled the debt."}]}) + "\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(il, "OUT", out)
+
+    result = il.main(["--sft", str(sft)])
+    printed = capsys.readouterr().out
+
+    assert result == 0
+    assert "-> external" in printed
+    assert str(tmp_path) not in printed
+    assert "worker@example.com" not in printed
+    assert "case-123456789" not in printed
+    assert out.exists()

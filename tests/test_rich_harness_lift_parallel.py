@@ -54,7 +54,7 @@ def test_generate_responses_parallel_writes_all_and_resumes(tmp_path, monkeypatc
 
 
 def test_judge_panel_parallel_scores_and_excludes_self_family(tmp_path, monkeypatch):
-    monkeypatch.setattr(rl, "judge_components", lambda prompt, response, model, caller: {
+    monkeypatch.setattr(rl, "judge_components", lambda prompt, response, model, caller, **_kwargs: {
         "score": 88.0, **{k: 1 for k, _l, _m in rl.COMPONENTS}})
     results = [
         {"model": "gemma4:31b", "prompt_id": "p1", "arm": "baseline", "prompt_text": "q", "response": "a"},

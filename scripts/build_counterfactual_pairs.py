@@ -31,11 +31,69 @@ import argparse
 import hashlib
 import json
 import pathlib
+import re
 from typing import Any
 
 _ROOT = pathlib.Path(__file__).resolve().parents[1]
 SCHEME = _ROOT / "configs" / "duecare" / "benchmarks" / "scheme_prompts.json"
 OUT = _ROOT / "reports" / "training" / "counterfactual_pairs.jsonl"
+_EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b", re.I)
+_PHONE = re.compile(r"\+?\d[\d\s().\-]{8,}\d")
+_LOCAL_PATH_HINT = re.compile(
+    r"(?:[A-Za-z]:[\\/]|\\\\|(?:^|[\s\"'(:])/(?:Users|home|tmp|var|mnt|private|Volumes)(?:/|$)|~[\\/])",
+    re.I,
+)
+_SAFE_RELATIVE_PATH = re.compile(r"^[A-Za-z0-9._/\-]+$")
+_PATH_REPORT_KEYS = frozenset({"path", "source", "out", "output_path", "manifest_path"})
+
+
+def _has_sensitive_display_text(text: str) -> bool:
+    return bool(
+        _EMAIL.search(text)
+        or _PHONE.search(text)
+        or _LOCAL_PATH_HINT.search(text)
+        or re.search(r"\b\d{9,}\b", text)
+    )
+
+
+def _safe_relative_report_path(path: pathlib.PurePath) -> str:
+    display = path.as_posix()
+    if not display or display.startswith("../") or "/../" in display:
+        return "redacted"
+    if _has_sensitive_display_text(display):
+        return "redacted"
+    if not _SAFE_RELATIVE_PATH.fullmatch(display):
+        return "redacted"
+    return display
+
+
+def _display_report_path(raw_path: Any) -> str:
+    if not raw_path:
+        return "n/a"
+    raw = str(raw_path)
+    try:
+        path = pathlib.Path(raw)
+        if path.is_absolute():
+            try:
+                return _safe_relative_report_path(path.relative_to(_ROOT))
+            except ValueError:
+                return "external"
+        return _safe_relative_report_path(pathlib.PurePosixPath(pathlib.PureWindowsPath(raw).as_posix()))
+    except (OSError, RuntimeError, ValueError):
+        return "redacted"
+
+
+def _display_manifest(value: Any, *, key: str = "") -> Any:
+    if isinstance(value, dict):
+        return {item_key: _display_manifest(item_value, key=str(item_key))
+                for item_key, item_value in value.items()}
+    if isinstance(value, list):
+        return [_display_manifest(item, key=key) for item in value]
+    if isinstance(value, str) and (key in _PATH_REPORT_KEYS or key.endswith("_path")):
+        return _display_report_path(value)
+    if isinstance(value, str) and _has_sensitive_display_text(value):
+        return "redacted"
+    return value
 
 # A category is a legitimate worker question (gold = help) if its name carries one of these hints.
 BENIGN_HINTS = ("query", "rights", "legal_aid", "repatriation", "survivor_support", "support")
@@ -102,7 +160,7 @@ def _swap_corridor_text(text: str, src: str, dst: str) -> str:
     return out
 
 
-def build(prompts: list[dict[str, Any]]) -> dict[str, Any]:
+def build(prompts: list[dict[str, Any]], *, source_path: pathlib.Path = SCHEME) -> dict[str, Any]:
     """Build benign controls + benign twins + corridor-swap counterfactuals from the scheme prompts."""
     rows: list[dict[str, Any]] = []
     known = sorted(CORRIDOR_STATUTE)
@@ -142,7 +200,7 @@ def build(prompts: list[dict[str, Any]]) -> dict[str, Any]:
     for r in rows:
         counts[r["kind"]] = counts.get(r["kind"], 0) + 1
     manifest = {
-        "source": str(SCHEME), "total": len(rows), "by_kind": counts,
+        "source": _display_report_path(source_path), "total": len(rows), "by_kind": counts,
         "note": ("propose-only anti-shortcut data; benign_control + benign_twin (gold=help) = the "
                  "over-refusal control; counterfactual_swap (gold=refuse, expected_statute) tests citation "
                  "reasoning vs parroting. Corridor->statute mappings are SOURCE-VERIFY-before-public."),
@@ -150,22 +208,32 @@ def build(prompts: list[dict[str, Any]]) -> dict[str, Any]:
     return {"rows": rows, "manifest": manifest}
 
 
+def _default_manifest_path(out_path: pathlib.Path) -> pathlib.Path:
+    return out_path.with_name(f"{out_path.stem}_manifest.json")
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--scheme", type=pathlib.Path, default=SCHEME)
     ap.add_argument("--out", type=pathlib.Path, default=OUT)
+    ap.add_argument("--manifest", type=pathlib.Path, default=None,
+                    help="manifest path; defaults next to --out")
     ap.add_argument("--validate", action="store_true", help="print the manifest only; write nothing")
     args = ap.parse_args(argv)
-    doc = build(load_prompts(args.scheme))
+    doc = build(load_prompts(args.scheme), source_path=args.scheme)
     m = doc["manifest"]
     if args.validate:
-        print(json.dumps(m, indent=2))
+        print(json.dumps(_display_manifest(m), indent=2))
         return 0
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in doc["rows"]),
                         encoding="utf-8")
-    print(f"[counterfactual-pairs] wrote {m['total']} rows to {args.out}: " +
+    manifest_path = args.manifest or _default_manifest_path(args.out)
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_text(json.dumps(m, indent=2) + "\n", encoding="utf-8")
+    print(f"[counterfactual-pairs] wrote {m['total']} rows to {_display_report_path(args.out)}: " +
           ", ".join(f"{k}={v}" for k, v in sorted(m["by_kind"].items())))
+    print(f"[counterfactual-pairs] wrote manifest to {_display_report_path(manifest_path)}")
     return 0
 
 

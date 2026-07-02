@@ -14,20 +14,140 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
+import sys
 from collections import defaultdict
-from pathlib import Path
+from pathlib import Path, PurePath, PurePosixPath, PureWindowsPath
+from typing import Any
 
 RANK = {"PASS": 3, "PARTIAL": 2, "FAIL": 1, "NOT_APPLICABLE": 0, None: 0}
+_ROOT = Path(__file__).resolve().parents[1]
+_EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b", re.I)
+_PHONE = re.compile(r"\+?\d[\d\s().\-]{8,}\d")
+_LOCAL_PATH_HINT = re.compile(
+    r"(?:[A-Za-z]:[\\/]|\\\\|(?:^|[\s\"'(:])/(?:Users|home|tmp|var|mnt|private|Volumes)(?:/|$)|~[\\/])",
+    re.I,
+)
+_SAFE_RELATIVE_PATH = re.compile(r"^[A-Za-z0-9._/\-]+$")
+_SAFE_MODEL_LABEL = re.compile(r"^[A-Za-z0-9._:/\-]+$")
+_SAFE_TABLE_TEXT = re.compile(r"^[A-Za-z0-9 ._:/,\-()+']{1,120}$")
 
 
-def load(path: Path) -> list[dict]:
+def _nonempty_string(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    return text or None
+
+
+def _string_or_empty(value: Any) -> str:
+    return value.strip() if isinstance(value, str) else ""
+
+
+def _has_sensitive_display_text(text: str) -> bool:
+    return bool(
+        _EMAIL.search(text)
+        or _PHONE.search(text)
+        or _LOCAL_PATH_HINT.search(text)
+        or re.search(r"\b\d{9,}\b", text)
+    )
+
+
+def _safe_relative_report_path(path: PurePath) -> str:
+    display = path.as_posix()
+    if not display or display.startswith("../") or "/../" in display:
+        return "redacted"
+    if _has_sensitive_display_text(display):
+        return "redacted"
+    if not _SAFE_RELATIVE_PATH.fullmatch(display):
+        return "redacted"
+    return display
+
+
+def _display_report_path(raw_path: Any) -> str:
+    if not raw_path:
+        return "n/a"
+    raw = str(raw_path)
+    try:
+        path = Path(raw)
+        if path.is_absolute():
+            try:
+                return _safe_relative_report_path(path.relative_to(_ROOT))
+            except ValueError:
+                return "external"
+        return _safe_relative_report_path(PurePosixPath(PureWindowsPath(raw).as_posix()))
+    except (OSError, RuntimeError, ValueError):
+        return "redacted"
+
+
+def _display_model_label(label: Any) -> str:
+    text = str(label or "")
+    if _SAFE_MODEL_LABEL.fullmatch(text) and not _has_sensitive_display_text(text):
+        return text
+    return "redacted"
+
+
+def _display_probe_label(label: Any) -> str:
+    text = str(label or "")
+    if _SAFE_MODEL_LABEL.fullmatch(text) and not _has_sensitive_display_text(text):
+        return text
+    return "redacted"
+
+
+def _display_table_text(value: Any) -> str:
+    if value is None:
+        return "n/a"
+    if not isinstance(value, str):
+        return "redacted"
+    text = re.sub(r"\s+", " ", value.strip())
+    if not text:
+        return "n/a"
+    if _has_sensitive_display_text(text):
+        return "redacted"
+    if "\\" in text or "|" in text or "`" in text:
+        return "redacted"
+    if not _SAFE_TABLE_TEXT.fullmatch(text):
+        return "redacted"
+    return text
+
+
+def _load_jsonl(path: Path) -> list[dict]:
+    if not path.exists():
+        return []
     rows = []
     for line in path.read_text(encoding="utf-8").splitlines():
         line = line.strip()
-        if line:
-            rows.append(json.loads(line))
+        if not line:
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(row, dict):
+            rows.append(row)
+    return rows
+
+
+def load(path: Path) -> list[dict]:
+    rows = _load_jsonl(path)
     # keep only graded rows with a real (non-empty) response
-    return [r for r in rows if r.get("ok") and (r.get("response") or "").strip() and "grade" in r]
+    out = []
+    for r in rows:
+        model = _nonempty_string(r.get("model"))
+        prompt_id = _nonempty_string(r.get("prompt_id"))
+        response = _nonempty_string(r.get("response"))
+        grade = r.get("grade") if isinstance(r.get("grade"), dict) else None
+        dsr = grade.get("domain_sense_resolution") if isinstance(grade, dict) else None
+        if r.get("ok") and model and prompt_id and response and isinstance(dsr, dict):
+            out.append({
+                **r,
+                "model": model,
+                "prompt_id": prompt_id,
+                "ambiguous_term": _string_or_empty(r.get("ambiguous_term")),
+                "response": response,
+                "grade": grade,
+            })
+    return out
 
 
 def _num(x, default=0.0) -> float:
@@ -91,9 +211,13 @@ def judge_table(judge_rows: list[dict]) -> dict:
     is the definitive verdict (the deterministic screen is keyword-noisy)."""
     by = defaultdict(lambda: defaultdict(int))
     for r in judge_rows:
+        model = _nonempty_string(r.get("model"))
+        dimension = _nonempty_string(r.get("dimension"))
+        if not model or not dimension:
+            continue
         v = r.get("verdict")
         if v in ("PASS", "PARTIAL", "FAIL"):
-            by[(r["model"], r["dimension"])][v] += 1
+            by[(model, dimension)][v] += 1
     out = {}
     for (model, dim), c in by.items():
         n = c["PASS"] + c["PARTIAL"] + c["FAIL"]
@@ -160,7 +284,7 @@ def render(rows: list[dict], judge_rows: list[dict] | None = None) -> str:
     L.append("| Model | Did-not-resolve | Endorsed wrong sense | Incomplete | Resolved | Avg overall % |")
     L.append("|---|---|---|---|---|---|")
     for m in pm:
-        L.append(f"| `{m['model']}` | **{_pct(m['equivocation_rate'])}** "
+        L.append(f"| `{_display_model_label(m['model'])}` | **{_pct(m['equivocation_rate'])}** "
                  f"({m['n_equivocated']}/{m['n_applicable']}) | {_pct(m['endorse_rate'])} "
                  f"({m['n_endorsed']}) | {m['n_partial']} | {m['n_resolved']}/{m['n_applicable']} "
                  f"| {_f(m['avg_pct'])} |")
@@ -170,13 +294,14 @@ def render(rows: list[dict], judge_rows: list[dict] | None = None) -> str:
     L.append("| Probe | Ambiguous term | Models equivocated |")
     L.append("|---|---|---|")
     for p in pp:
-        L.append(f"| `{p['prompt_id']}` | {p['term']} | {p['n_equivocated']}/{p['n_models']} "
+        L.append(f"| `{_display_probe_label(p['prompt_id'])}` | {_display_table_text(p['term'])} "
+                 f"| {p['n_equivocated']}/{p['n_models']} "
                  f"({_pct(p['equivocation_rate'])}) |")
     L.append("")
 
     if judge_rows:
         jt = judge_table(judge_rows)
-        jmodel = next((r.get("judge_model") for r in judge_rows if r.get("judge_model")), "?")
+        jmodel = _display_model_label(next((r.get("judge_model") for r in judge_rows if r.get("judge_model")), "?"))
         models = sorted({m for (m, _d) in jt})
         L.append("## Independent LLM-judge verdicts (definitive)")
         L.append("")
@@ -192,7 +317,7 @@ def render(rows: list[dict], judge_rows: list[dict] | None = None) -> str:
             for dim in JUDGE_DIMS:
                 e = jt.get((m, dim))
                 cells.append(f"{_pct(e['pass_rate'])} ({e['PASS']}/{e['n']})" if e else "—")
-            L.append(f"| `{m}` | " + " | ".join(cells) + " |")
+            L.append(f"| `{_display_model_label(m)}` | " + " | ".join(cells) + " |")
         L.append("")
 
     L.append("## Method")
@@ -211,29 +336,30 @@ def render(rows: list[dict], judge_rows: list[dict] | None = None) -> str:
     return "\n".join(L) + "\n"
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--in", dest="inp", nargs="+", required=True, help="study result JSONL(s)")
     ap.add_argument("--judge", default=None, help="optional LLM-judge JSONL")
     ap.add_argument("--out", default="docs/research/model_failure_on_human_exploitation.md")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
     rows = []
     for p in args.inp:
         rows.extend(load(Path(p)))
     if not rows:
-        print("no OK rows in", args.inp)
+        print("no OK rows in " + ", ".join(_display_report_path(p) for p in args.inp), file=sys.stderr)
         return 1
     judge_rows = []
-    if args.judge and Path(args.judge).exists():
-        judge_rows = [json.loads(l) for l in Path(args.judge).read_text(encoding="utf-8").splitlines() if l.strip()]
+    if args.judge:
+        judge_rows = _load_jsonl(Path(args.judge))
     md = render(rows, judge_rows or None)
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(md, encoding="utf-8")
-    print(f"wrote {args.out} ({len(rows)} responses, {len({r['model'] for r in rows})} models)")
+    print(f"wrote {_display_report_path(args.out)} "
+          f"({len(rows)} responses, {len({r['model'] for r in rows})} models)")
     # also echo the per-model table to stdout
     print()
     for m in per_model(rows):
-        print(f"  {m['model']:32s} equivocation={_pct(m['equivocation_rate']):>5}  "
+        print(f"  {_display_model_label(m['model']):32s} equivocation={_pct(m['equivocation_rate']):>5}  "
               f"avg_pct={_f(m['avg_pct']):>5}")
     return 0
 

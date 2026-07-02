@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -41,6 +42,57 @@ def test_citation_density_counts_legal_markers():
     assert ab._citation_density("Just pay the fee and don't worry about it.") == 0.0
 
 
+def test_load_skips_malformed_non_object_and_non_string_response_rows(tmp_path):
+    path = tmp_path / "results.jsonl"
+    sensitive = "worker@example.com case-123456789"
+    rows = [
+        {"model": "m", "prompt_id": "p1", "arm": "baseline", "score": 4.0, "response": "safe reply"},
+        [sensitive],
+        sensitive,
+        {"model": "m", "prompt_id": "p2", "arm": "harnessed", "score": 5.0, "response": [sensitive]},
+        {"model": "m", "prompt_id": "p3", "arm": "other", "score": 5.0, "response": "wrong arm"},
+        "{bad json",
+    ]
+    path.write_text("\n".join(json.dumps(r) if not isinstance(r, str) or r.startswith("worker") else r
+                              for r in rows) + "\n", encoding="utf-8")
+
+    out = ab.load([path])
+
+    assert out == [{"model": "m", "prompt_id": "p1", "arm": "baseline", "score": 4.0,
+                    "length": 10, "cite_density": 0.0}]
+    assert sensitive not in json.dumps(out)
+
+
+def test_load_cells_skips_malformed_and_non_object_rows(tmp_path):
+    responses = tmp_path / "responses.jsonl"
+    judge = tmp_path / "judge.jsonl"
+    sensitive = "worker@example.com case-123456789"
+    responses.write_text(
+        "\n".join(json.dumps(r) for r in [
+            {"prompt_id": "p1", "arm": "baseline", "response": "safe reply"},
+            [sensitive],
+            sensitive,
+            {"prompt_id": "p2", "arm": "harnessed", "response": [sensitive]},
+        ]) + "\n",
+        encoding="utf-8",
+    )
+    judge.write_text(
+        "\n".join(json.dumps(r) for r in [
+            {"model": "m", "prompt_id": "p1", "arm": "baseline", "score": 4.0},
+            [sensitive],
+            sensitive,
+            {"model": "m", "prompt_id": "p2", "arm": "harnessed", "score": "bad"},
+        ]) + "\n",
+        encoding="utf-8",
+    )
+
+    out = ab.load_cells(judge, responses)
+
+    assert out == [{"model": "m", "prompt_id": "p1", "arm": "baseline", "score": 4.0,
+                    "length": 10, "cite_density": 0.0}]
+    assert sensitive not in json.dumps(out)
+
+
 def test_ols_full_recovers_arm_with_citation_held_constant():
     o = ab.ols_full(_rows())
     # truth has no citation effect, so the arm coefficient should still recover ~2.0
@@ -61,6 +113,27 @@ def test_ols_separates_length_from_harness():
     assert abs(o["raw_lift"] - (o["length_attrib"] + o["harness_attrib"])) < 0.05
 
 
+def test_analysis_helpers_skip_malformed_direct_rows_without_leaking():
+    sensitive = "worker@example.com case-123456789"
+    rows = _rows() + [
+        sensitive,
+        [sensitive],
+        {"model": "m", "prompt_id": "p-bad", "arm": "baseline", "score": "bad",
+         "length": 1000, "cite_density": 0.0},
+        {"model": "m", "prompt_id": "p-bad2", "arm": "baseline", "score": 1.0,
+         "length": -10, "cite_density": 0.0},
+    ]
+
+    o = ab.ols_decomposition(rows)
+    pair = ab.pair_length_score_corr(rows)
+    bands = ab.length_matched(rows, n_bins=2)
+
+    assert abs(o["b_arm"] - 2.0) < 0.02
+    assert pair["n_pairs"] == 6
+    assert bands
+    assert sensitive not in json.dumps({"ols": o, "pair": pair, "bands": bands})
+
+
 def test_length_matched_bands_and_pair_corr():
     bands = ab.length_matched(_rows(), n_bins=2)
     assert bands and all("baseline" in b and "harnessed" in b for b in bands)
@@ -73,3 +146,22 @@ def test_build_report_states_decomposition(tmp_path):
     assert "length-bias ablation" in md.lower()
     assert "holding length constant" in md.lower()
     assert "OLS decomposition" in md
+
+
+def test_main_redacts_sensitive_output_name(tmp_path, capsys):
+    sensitive = "worker@example.com-case-123456789"
+    results = tmp_path / "results.jsonl"
+    out = tmp_path / f"{sensitive}.md"
+    rows = [
+        {"model": r["model"], "prompt_id": r["prompt_id"], "arm": r["arm"], "score": r["score"],
+         "response": "x" * r["length"]}
+        for r in _rows()
+    ]
+    results.write_text("\n".join(json.dumps(r) for r in rows) + "\n", encoding="utf-8")
+
+    assert ab.main(["--frontier-only", "--results", str(results), "--out", str(out)]) == 0
+
+    err = capsys.readouterr().err
+    assert "report -> redacted" in err
+    assert sensitive not in err
+    assert out.exists()

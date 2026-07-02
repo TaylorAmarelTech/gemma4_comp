@@ -50,7 +50,7 @@ def test_to_rows_shapes_for_splink():
 
 
 def test_best_lei_matches_picks_best_per_registry_and_thresholds():
-    pd = pytest.importorskip("pandas")
+    pd = pytest.importorskip("pandas", exc_type=ImportError)
     preds = pd.DataFrame([
         {"unique_id_l": "gleif-0", "unique_id_r": "registry-0", "match_probability": 0.97},
         {"unique_id_l": "gleif-1", "unique_id_r": "registry-0", "match_probability": 0.91},  # lower dup
@@ -75,7 +75,7 @@ def test_summarize_counts_link_rate_and_identifier_hits():
 
 def test_link_to_gleif_links_matching_companies():
     pytest.importorskip("splink")
-    pytest.importorskip("pandas")
+    pytest.importorskip("pandas", exc_type=ImportError)
     # five clear matches (shared registered_as/company_no + near-identical name) + noise
     gleif = [{"name": f"Acme Trading {i} Limited", "lei": f"LEI{i}", "jurisdiction": "AE",
               "registered_as": f"R{i}"} for i in range(5)]
@@ -96,7 +96,7 @@ def test_link_to_gleif_links_matching_companies():
 # ---- clustering -----------------------------------------------------------
 
 def test_assemble_clusters_groups_and_flags_cross_source():
-    pd = pytest.importorskip("pandas")
+    pd = pytest.importorskip("pandas", exc_type=ImportError)
     records = [{"name": "Huawei Technologies", "source": "dod", "lei": ""},
                {"name": "Huawei Technologies Co", "source": "special", "lei": "L9"},
                {"name": "Unique Co", "source": "afdb", "lei": ""}]

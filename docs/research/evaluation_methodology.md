@@ -37,8 +37,8 @@ inputs, although the product harness supports both; closing that is future work 
 leaderboard at `/benchmark` grades a versioned, reproducible set — **3,700+ synthetic adversarial
 prompts across 170+ typologies (and growing)**, built by `scripts/build_benchmark_promptset.py` (stratified, seed=13,
 text-deduped) from the scheme core + expansion + major-case sets + a 2,915-prompt draw from the
-74,640-prompt seed registry + **Hermes-discovered, OpenClaw-vetted** prompts. It grows through a
-propose-only **discovery flywheel** (Hermes proposes → OpenClaw vets → supervised merge → engine grades
+74,640-prompt seed registry + automation-discovered, quality-vetted prompts. It grows through a
+propose-only **discovery flywheel** (candidate generation → quality vetting → supervised merge → engine grades
 → board publishes), so the corpus widens over time without any un-vetted prompt entering. The board also
 reports per-model metadata (parameter size, MoE/dense architecture, median latency) alongside the lift.
 Full catalog of every prompt set and measurement method: [`benchmark_methods.md`](benchmark_methods.md).
@@ -240,32 +240,43 @@ what the extra context, components, and tools add beyond GREP + RAG alone. Each 
   *length*, but the sharper form of the style critique — "the judge rewards citation-dense / legal-
   jargon style" — is not the same hypothesis and was not separately partialled out. A
   citation-density covariate (and scaling the ablation past n=146) is an open item.
-- **No human-expert ground truth yet.** The strongest missing piece. Neither grader has been
-  correlated against ratings from anti-trafficking practitioners or labour lawyers. Until that
-  exists, "improves safety" means "improves rubric-measured safety," not "improves expert-judged
-  outcomes." A validation study is planned (§6).
+- **Human-expert ground truth not collected yet.** The export scaffold now exists, but neither grader has
+  been correlated against filled ratings from anti-trafficking practitioners or labour lawyers. Until that
+  correlation exists, "improves safety" means "improves rubric-measured safety," not
+  "improves expert-judged outcomes." See section 6.
 - **Recognition + response quality, not deployment outcomes.** We measure what the model *says*, not
   what happens to a worker. No field/RCT evidence.
 - **Judge coverage.** The LLM-judge panel uses open models on Ollama-cloud; closed frontier judges
   (GPT/Claude/Gemini) are not yet in the panel.
 
-## 6. Planned human-expert validation (the next rigor step)
+## 6. Human-expert validation scaffold
 
-Draw a **stratified sample** across exploitation category × difficulty × arm; have ≥2 domain
-experts independently rate each item on the same rubric; report **grader↔human correlation**
-(Spearman) and **inter-expert agreement** (Krippendorff's α / Cohen's κ). A high correlation
-converts the automated scores from "our rubric's opinion" to "a validated proxy for expert
-judgment" — the single change that most raises the work's standing.
+`scripts/build_human_validation_sample.py --per-stratum 2 --seed 13` now exports a blinded,
+stratified expert-rating package under `reports/human_validation/`: `rating_sheet.md`,
+`ratings_blank.csv`, `key.json`, and `sample_manifest.json`. The current manifest records 364
+items across 182 category/difficulty/arm strata, balanced 182 baseline / 182 harnessed, with
+`safe_for_expert_review=true`; the rater-facing sheet and blank CSV scan clean for obvious email,
+phone, local-path, and long-ID leakage, while the hidden key is metadata-only.
+Run `python scripts/build_human_validation_sample.py --validate` immediately before sending the
+package to reviewers; it recomputes the privacy/key checks and fails closed if the sheet, CSV, key,
+or manifest no longer match.
+
+The study is still not complete: at least two domain experts need to fill the ratings, then run
+`python scripts/build_human_validation_sample.py --correlate <filled-ratings.csv>` to report
+grader-human Spearman correlation and inter-expert agreement. A high correlation would convert the
+automated scores from "our rubric's opinion" to "a validated proxy for expert judgment"; until then,
+the claims stay rubric-measured.
 
 ## 7. Reproducibility
 
 Every number ties to `(git_sha, checkpoint)`. Generation + deterministic grading:
 `scripts/harness_lift_local.py`; reports: `build_frontier_perdim_report.py`,
 `build_frontier_failure_report.py`, `frontier_report.py`; ablation: `length_bias_ablation.py`;
-panel: `multi_judge.py`. Checkpoints persist full responses under `reports/`, so any score is
+panel: `multi_judge.py`; human-validation export/correlation: `build_human_validation_sample.py`.
+Checkpoints persist full responses under `reports/`, so any score is
 re-derivable. The deterministic grader makes the headline bit-for-bit reproducible. The live benchmark
 prompt set is built reproducibly by `scripts/build_benchmark_promptset.py` (stratified, seed=13) and
-versioned in `configs/duecare/benchmarks/scheme_prompts.json` (currently **v1.3** — 3,700+ prompts / 170+ typologies, growing via the Hermes→OpenClaw discovery flywheel).
+versioned in `configs/duecare/benchmarks/scheme_prompts.json` (currently **v1.3** — 3,700+ prompts / 170+ typologies, growing via the DueCare discovery-and-quality flywheel).
 
 ## 8. How to cite a result responsibly
 

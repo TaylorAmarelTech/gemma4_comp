@@ -22,9 +22,12 @@ from __future__ import annotations
 import argparse
 import collections
 import json
+import math
 import os
+import re
 import sys
-from pathlib import Path
+from pathlib import Path, PurePath, PurePosixPath, PureWindowsPath
+from typing import Any
 
 _ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_ROOT / "scripts"))
@@ -33,6 +36,112 @@ import lift_stats  # noqa: E402  (path set above)
 
 DEFAULT_CKPT = _ROOT / "reports" / "frontier_perdim" / "perdim.jsonl"
 DEFAULT_OUT = _ROOT / "docs" / "research" / "frontier_perdim_report.md"
+_EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b", re.I)
+_PHONE = re.compile(r"\+?\d[\d\s().\-]{8,}\d")
+_LOCAL_PATH_HINT = re.compile(
+    r"(?:[A-Za-z]:[\\/]|\\\\|(?:^|[\s\"'(:])/(?:Users|home|tmp|var|mnt|private|Volumes)(?:/|$)|~[\\/])",
+    re.I,
+)
+_SAFE_RELATIVE_PATH = re.compile(r"^[A-Za-z0-9._/\-]+$")
+_SAFE_REPORT_LABEL = re.compile(r"^[A-Za-z0-9 ._:/,&\-()+']{1,120}$")
+_VALID_ARMS = {"baseline", "harnessed"}
+
+
+def _nonempty_string(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    return text or None
+
+
+def _has_sensitive_display_text(text: str) -> bool:
+    return bool(
+        _EMAIL.search(text)
+        or _PHONE.search(text)
+        or _LOCAL_PATH_HINT.search(text)
+        or re.search(r"\b\d{9,}\b", text)
+    )
+
+
+def _safe_relative_report_path(path: PurePath) -> str:
+    display = path.as_posix()
+    if not display or display.startswith("../") or "/../" in display:
+        return "redacted"
+    if _has_sensitive_display_text(display):
+        return "redacted"
+    if not _SAFE_RELATIVE_PATH.fullmatch(display):
+        return "redacted"
+    return display
+
+
+def _display_report_path(raw_path: Any) -> str:
+    if not raw_path:
+        return "n/a"
+    raw = str(raw_path)
+    try:
+        path = Path(raw)
+        if path.is_absolute():
+            try:
+                return _safe_relative_report_path(path.relative_to(_ROOT))
+            except ValueError:
+                return "external"
+        return _safe_relative_report_path(PurePosixPath(PureWindowsPath(raw).as_posix()))
+    except (OSError, RuntimeError, ValueError):
+        return "redacted"
+
+
+def _display_report_label(value: Any, *, default: str = "unknown") -> str:
+    if value is None:
+        return default
+    if not isinstance(value, str):
+        return "redacted"
+    text = re.sub(r"\s+", " ", value.strip())
+    if not text:
+        return default
+    if _has_sensitive_display_text(text):
+        return "redacted"
+    if "\\" in text or "|" in text or "`" in text:
+        return "redacted"
+    if not _SAFE_REPORT_LABEL.fullmatch(text):
+        return "redacted"
+    return text
+
+
+def _display_model_label(value: Any) -> str:
+    return _display_report_label(value, default="unknown")
+
+
+def _coerce_cell(row: Any) -> dict | None:
+    if not isinstance(row, dict):
+        return None
+    model = _nonempty_string(row.get("model"))
+    prompt_id = _nonempty_string(row.get("prompt_id"))
+    arm = _nonempty_string(row.get("arm"))
+    dim = _nonempty_string(row.get("dim"))
+    if dim == "safety":
+        return None
+    if not model or not prompt_id or not arm or not dim or row.get("score") is None:
+        return None
+    if arm not in _VALID_ARMS:
+        return None
+    try:
+        score = float(row["score"])
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(score):
+        return None
+    return {
+        **row,
+        "model": model,
+        "prompt_id": prompt_id,
+        "arm": arm,
+        "dim": dim,
+        "score": score,
+    }
+
+
+def _coerce_cells(cells: list[dict]) -> list[dict]:
+    return [cell for row in cells if (cell := _coerce_cell(row)) is not None]
 
 
 def load_cells(path: Path) -> list[dict]:
@@ -48,15 +157,16 @@ def load_cells(path: Path) -> list[dict]:
             r = json.loads(ln)
         except json.JSONDecodeError:
             continue
-        if r.get("dim") and r.get("dim") != "safety" and r.get("score") is not None:
-            rows.append(r)
+        cell = _coerce_cell(r)
+        if cell is not None:
+            rows.append(cell)
     return rows
 
 
 def per_dimension_lift(cells: list[dict]) -> dict[str, tuple[float, float, float, int]]:
     """{dim: (baseline_mean, harnessed_mean, lift, n_pairs)} pooled across models + prompts."""
     by: dict[tuple, dict[str, float]] = collections.defaultdict(dict)
-    for c in cells:
+    for c in _coerce_cells(cells):
         by[(c["dim"], c["model"], c["prompt_id"])][c["arm"]] = float(c["score"])
     acc: dict[str, dict[str, list]] = collections.defaultdict(lambda: {"b": [], "h": []})
     for (dim, _m, _p), arms in by.items():
@@ -76,7 +186,7 @@ def per_dimension_lift(cells: list[dict]) -> dict[str, tuple[float, float, float
 def per_dimension_deltas(cells: list[dict]) -> dict[str, list[float]]:
     """{dim: [harnessed-baseline per (model, prompt) pair]} -- the inputs to a per-dim paired test."""
     by: dict[tuple, dict[str, float]] = collections.defaultdict(dict)
-    for c in cells:
+    for c in _coerce_cells(cells):
         by[(c["dim"], c["model"], c["prompt_id"])][c["arm"]] = float(c["score"])
     out: dict[str, list[float]] = collections.defaultdict(list)
     for (dim, _m, _p), arms in by.items():
@@ -117,6 +227,7 @@ def _counts(dim_lift: dict) -> tuple[list, list, list]:
 
 
 def build_report(cells: list[dict], *, judge_note: str, out_path: Path) -> str:
+    cells = _coerce_cells(cells)
     n_prompts = len({c["prompt_id"] for c in cells})
     n_dims = len({c["dim"] for c in cells})
     models = sorted({c["model"] for c in cells})
@@ -165,7 +276,7 @@ def build_report(cells: list[dict], *, judge_note: str, out_path: Path) -> str:
     o.append("| What a safe reply must do (rubric dimension) | Baseline | Harnessed | n |")
     o.append("|---|---:|---:|---:|")
     for dim, (bm, hm, _lift, n) in failures:
-        o.append(f"| `{dim}` | {bm:.2f} | {hm:.2f} | {n} |")
+        o.append(f"| `{_display_report_label(dim)}` | {bm:.2f} | {hm:.2f} | {n} |")
     o.append("")
     o.append("The failures cluster in three places a raw model omits but a worker in danger needs: "
              "**protective procedure** (retaliation-risk warnings, referral consent), **concrete "
@@ -184,7 +295,7 @@ def build_report(cells: list[dict], *, judge_note: str, out_path: Path) -> str:
         ml = round(sum(v[2] for _d, v in mi) / len(mi), 2) if mi else 0.0
         mrows.append((m, len(mi), len(mr), ml))
     for m, ni, nr, ml in sorted(mrows, key=lambda x: -x[1]):
-        o.append(f"| `{m}` | {ni} | {nr} | {ml:+.2f} |")
+        o.append(f"| `{_display_model_label(m)}` | {ni} | {nr} | {ml:+.2f} |")
     o.append("")
 
     o.append("## Top dimensions the harness improves\n")
@@ -194,7 +305,7 @@ def build_report(cells: list[dict], *, judge_note: str, out_path: Path) -> str:
     o.append("| Rubric dimension | Baseline | Harnessed | Lift | n |")
     o.append("|---|---:|---:|---:|---:|")
     for dim, (bm, hm, lift, n) in improved[:18]:
-        o.append(f"| `{dim}` | {bm:.2f} | {hm:.2f} | **{lift:+.2f}** | {n} |")
+        o.append(f"| `{_display_report_label(dim)}` | {bm:.2f} | {hm:.2f} | **{lift:+.2f}** | {n} |")
     o.append("")
 
     if regressed:
@@ -205,7 +316,7 @@ def build_report(cells: list[dict], *, judge_note: str, out_path: Path) -> str:
         o.append("| Rubric dimension | Baseline | Harnessed | Lift | n |")
         o.append("|---|---:|---:|---:|---:|")
         for dim, (bm, hm, lift, n) in regressed:
-            o.append(f"| `{dim}` | {bm:.2f} | {hm:.2f} | {lift:+.2f} | {n} |")
+            o.append(f"| `{_display_report_label(dim)}` | {bm:.2f} | {hm:.2f} | {lift:+.2f} | {n} |")
         o.append("")
 
     # multiple-comparison-corrected significance across all dimensions (FDR)
@@ -234,12 +345,12 @@ def build_report(cells: list[dict], *, judge_note: str, out_path: Path) -> str:
         o.append("|---|---:|---:|---:|")
         for d, mean, q, n in sig:
             qs = "<0.001" if q < 0.001 else f"{q:.3g}"   # q is never exactly 0
-            o.append(f"| `{d}` | {mean:+.2f} | {qs} | {n} |")
+            o.append(f"| `{_display_report_label(d)}` | {mean:+.2f} | {qs} | {n} |")
         o.append("")
 
     o.append("## Methodology\n")
     o.append(
-        f"- **Models** ({len(models)}): {', '.join('`' + m + '`' for m in models)}.\n"
+        f"- **Models** ({len(models)}): {', '.join('`' + _display_model_label(m) + '`' for m in models)}.\n"
         f"- **Prompts**: {n_prompts} from the public benchmark corpus "
         "(`configs/duecare/benchmarks/harness_lift_prompts_500.json`), composite/synthetic, no "
         "real PII.\n"
@@ -276,11 +387,11 @@ def main(argv: list[str] | None = None) -> int:
 
     cells = load_cells(Path(args.ckpt))
     if not cells:
-        print(f"no per-dimension cells in {args.ckpt}", file=sys.stderr)
+        print(f"no per-dimension cells in {_display_report_path(args.ckpt)}", file=sys.stderr)
         return 1
     build_report(cells, judge_note=args.judge, out_path=Path(args.out))
     n_pairs = sum(len(v) for v in lift_stats.per_prompt_pairs(cells).values())
-    print(f"report -> {Path(args.out).relative_to(_ROOT)} "
+    print(f"report -> {_display_report_path(args.out)} "
           f"({len(cells)} dim-cells, {n_pairs} paired prompt-responses)", file=sys.stderr)
     return 0
 

@@ -22,7 +22,7 @@ import math
 import pathlib
 import sys
 import time
-from typing import Callable
+from typing import Any, Callable
 
 _ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_ROOT / "scripts"))
@@ -34,32 +34,90 @@ DEFAULT_CKPT = _ROOT / "reports" / "pairwise_lift.jsonl"
 DEFAULT_OUT = _ROOT / "docs" / "research" / "pairwise_lift.md"
 
 
+def _nonempty_string(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    return text or None
+
+
+def _finite_float(value: Any) -> float | None:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return number if math.isfinite(number) else None
+
+
+def _load_jsonl(path: pathlib.Path) -> list[dict]:
+    if not path.exists():
+        return []
+    rows = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(row, dict):
+            rows.append(row)
+    return rows
+
+
 def _prompt_index() -> dict[str, str]:
     idx: dict[str, str] = {}
     for f in glob.glob(str(_ROOT / "configs" / "duecare" / "benchmarks" / "*.json")):
         try:
             d = json.loads(pathlib.Path(f).read_text(encoding="utf-8"))
             for p in (d.get("prompts", d) if isinstance(d, dict) else d):
-                if isinstance(p, dict) and p.get("id"):
-                    idx.setdefault(str(p["id"]), p.get("text", ""))
+                if not isinstance(p, dict):
+                    continue
+                prompt_id = _nonempty_string(p.get("id"))
+                text = _nonempty_string(p.get("text"))
+                if prompt_id and text:
+                    idx.setdefault(prompt_id, text)
         except Exception:  # noqa: BLE001
             continue
     return idx
+
+
+def _coerce_pair(row: Any) -> dict | None:
+    if not isinstance(row, dict):
+        return None
+    prompt_id = _nonempty_string(row.get("prompt_id"))
+    prompt_text = _nonempty_string(row.get("prompt_text"))
+    baseline = _nonempty_string(row.get("baseline"))
+    harnessed = _nonempty_string(row.get("harnessed"))
+    if not prompt_id or not prompt_text or not baseline or not harnessed:
+        return None
+    return {
+        "prompt_id": prompt_id,
+        "prompt_text": prompt_text,
+        "baseline": baseline,
+        "harnessed": harnessed,
+    }
 
 
 def load_pairs(path: pathlib.Path, sample: int = 0) -> list[dict]:
     """{prompt_id, prompt_text, baseline, harnessed} for prompts with BOTH arms stored."""
     idx = _prompt_index()
     by: dict[str, dict] = collections.defaultdict(dict)
-    for ln in pathlib.Path(path).read_text(encoding="utf-8").splitlines():
-        try:
-            r = json.loads(ln)
-        except json.JSONDecodeError:
+    for r in _load_jsonl(pathlib.Path(path)):
+        prompt_id = _nonempty_string(r.get("prompt_id"))
+        arm = _nonempty_string(r.get("arm"))
+        response = _nonempty_string(r.get("response"))
+        if not prompt_id or arm not in ("baseline", "harnessed") or not response:
             continue
-        if r.get("response") and r.get("arm") in ("baseline", "harnessed"):
-            pid = str(r.get("prompt_id"))
-            by[pid][r["arm"]] = str(r["response"])
-            by[pid]["prompt_text"] = r.get("prompt_text") or r.get("prompt") or idx.get(pid, "")
+        by[prompt_id][arm] = response
+        prompt_text = (
+            _nonempty_string(r.get("prompt_text"))
+            or _nonempty_string(r.get("prompt"))
+            or idx.get(prompt_id)
+        )
+        if prompt_text:
+            by[prompt_id]["prompt_text"] = prompt_text
     out = [{"prompt_id": pid, "prompt_text": v.get("prompt_text", ""),
             "baseline": v["baseline"], "harnessed": v["harnessed"]}
            for pid, v in by.items()
@@ -78,15 +136,16 @@ def run_pairwise(pairs: list[dict], *, judge_model: str, judge: Callable[..., fl
     """judge_pair(baseline, harnessed) per prompt -> signed lift (positive = harness safer). Resumable."""
     jf = judge or _default_judge_pair
     done: dict[str, dict] = {}
-    if ckpt.exists():
-        for ln in ckpt.read_text(encoding="utf-8").splitlines():
-            try:
-                r = json.loads(ln)
-                done[r["prompt_id"]] = r
-            except (json.JSONDecodeError, KeyError):
-                continue
+    for r in _load_jsonl(ckpt):
+        prompt_id = _nonempty_string(r.get("prompt_id"))
+        lift = _finite_float(r.get("pairwise_lift"))
+        if prompt_id and lift is not None:
+            done[prompt_id] = {"prompt_id": prompt_id, "pairwise_lift": lift}
     ckpt.parent.mkdir(parents=True, exist_ok=True)
-    for p in pairs:
+    for raw_pair in pairs:
+        p = _coerce_pair(raw_pair)
+        if p is None:
+            continue
         if p["prompt_id"] in done:
             continue
         try:
@@ -106,7 +165,7 @@ def run_pairwise(pairs: list[dict], *, judge_model: str, judge: Callable[..., fl
 
 
 def aggregate(rows: list[dict]) -> dict:
-    lifts = [float(r["pairwise_lift"]) for r in rows]
+    lifts = [lift for r in rows if (lift := _finite_float(r.get("pairwise_lift"))) is not None]
     if not lifts:
         return {}
     st = lift_stats.paired_test(lifts)
@@ -185,8 +244,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[pairwise] {len(pairs)} prompt pairs | judge={args.judge}", flush=True)
         run_pairwise(pairs, judge_model=args.judge, ckpt=ckpt, pace=0.2,
                      log=lambda m: print("  " + m, flush=True))
-    rows = [json.loads(ln) for ln in ckpt.read_text(encoding="utf-8").splitlines() if ln.strip()] \
-        if ckpt.exists() else []
+    rows = _load_jsonl(ckpt)
     agg = aggregate(rows)
     if not agg:
         print("no pairwise judgments yet", file=sys.stderr)
