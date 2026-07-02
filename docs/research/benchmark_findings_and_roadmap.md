@@ -108,6 +108,14 @@
    scheduled versioned re-grade. The baseline-fallback variant and the core-as-headline board change
    remain open.
 5. **Intent-aware benchmark** - split under-refusal lift from over-refusal rate; grow the benign control set.
+   **Code landed (opt-in):** prompts carry an `intent` label; `rich_harness_lift.aggregate` computes the
+   safety lift over **adversarial prompts only** (a benign prompt can never inflate the lift) and emits a
+   separate `over_refusal` block for **benign** prompts. The over-refusal signal is rubric v2's **F
+   channel**: `cost = F(baseline) - F(harnessed)` (positive = the harness lowers engagement on
+   legitimate questions). `--benign-control configs/duecare/benchmarks/benign_control_prompts.json`
+   (16 synthetic worker questions, the P5 scaffold) merges the control set into a run; the report renders
+   the two numbers side by side and states they are never merged (`tests/test_intent_split.py`). Open:
+   grow the benign set to a stratified ~10-15% of the board, and the measurement run itself.
 
 ### Forward
 6. **Cross-domain MVP run** (money-laundering: RAG + a small GREP pack) -> the second leaderboard column.
