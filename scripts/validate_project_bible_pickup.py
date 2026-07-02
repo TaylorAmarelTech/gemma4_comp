@@ -704,6 +704,11 @@ def _sister_project_snapshot(report: dict[str, Any]) -> dict[str, Any]:
             if isinstance(summary.get("duplicate_id_issue_count"), int)
             else None
         ),
+        "readiness_gate_missing_block_concept_count": (
+            summary.get("readiness_gate_missing_block_concept_count")
+            if isinstance(summary.get("readiness_gate_missing_block_concept_count"), int)
+            else None
+        ),
         "source_admission_missing_concept_count": (
             summary.get("source_admission_missing_concept_count")
             if isinstance(summary.get("source_admission_missing_concept_count"), int)
@@ -738,6 +743,9 @@ def _sister_project_checks(report: dict[str, Any]) -> list[dict[str, Any]]:
                 "ok": snapshot.get("ok"),
                 "failed_ids": snapshot.get("failed_ids"),
                 "duplicate_id_issue_count": snapshot.get("duplicate_id_issue_count"),
+                "readiness_gate_missing_block_concept_count": snapshot.get(
+                    "readiness_gate_missing_block_concept_count"
+                ),
                 "source_admission_missing_concept_count": snapshot.get(
                     "source_admission_missing_concept_count"
                 ),
@@ -1454,6 +1462,7 @@ def _print_text_report(report: dict[str, Any]) -> None:
             f"missing_source_slots={sister_project.get('scheme_prompt_categories_without_source_slots_count')} "
             f"missing_scope_jurisdictions={sister_project.get('local_source_jurisdictions_without_scope_count')} "
             f"duplicate_id_issues={sister_project.get('duplicate_id_issue_count')} "
+            f"readiness_gate_missing={sister_project.get('readiness_gate_missing_block_concept_count')} "
             f"source_admission_missing={sister_project.get('source_admission_missing_concept_count')} "
             f"privacy_issues=project:{sister_project.get('project_privacy_issue_count')},"
             f"packs:{sister_project.get('jurisdiction_pack_privacy_issue_count')},"
