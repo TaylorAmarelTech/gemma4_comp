@@ -650,7 +650,7 @@ def test_main_report_only_passes_rubric_version_through(tmp_path, monkeypatch, c
             "components_by_arm": {},
         }
 
-    def fake_report(agg, judges, *, out_path, pairwise_agg=None):
+    def fake_report(agg, judges, *, out_path, pairwise_agg=None, benign_control_path=None):
         seen["report_rubric"] = agg["rubric_version"]
         out_path.write_text("ok", encoding="utf-8")
         return "ok"

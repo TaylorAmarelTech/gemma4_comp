@@ -149,12 +149,26 @@ def test_build_report_renders_over_refusal_section(tmp_path):
     assert "under-refusal" in report
     assert "never merged" in report
     assert "F channel" in report
+    assert (
+        "Reproduce with `python scripts/rich_harness_lift.py --rubric-version v2 "
+        "--benign-control configs/duecare/benchmarks/benign_control_prompts.json`"
+        in report
+    )
+
+    report_custom = rh.build_report(
+        agg,
+        ["j"],
+        out_path=tmp_path / "r_custom.md",
+        benign_control_path="external/custom_benign.json",
+    )
+    assert "--benign-control external/custom_benign.json" in report_custom
 
     # adversarial-only agg omits the section entirely
     agg_adv = rh.aggregate([_panel_row("m", "ADV1", a, s) for a, s in
                             (("baseline", 50.0), ("harness_core", 70.0), ("harness_full", 80.0))], ["j"])
     report_adv = rh.build_report(agg_adv, ["j"], out_path=tmp_path / "r2.md")
     assert "Intent split" not in report_adv
+    assert "--benign-control" not in report_adv
 
 
 # ---- the committed benign control set is well-formed and all-benign ---------------------------------
@@ -163,10 +177,87 @@ def test_committed_benign_control_set_is_valid_and_all_benign():
     path = _ROOT / "configs" / "duecare" / "benchmarks" / "benign_control_prompts.json"
     doc = json.loads(path.read_text(encoding="utf-8"))
     prompts = doc["prompts"]
+    loaded = rh.load_benign_control_prompts(path)
     assert len(prompts) >= 12
+    assert len(loaded) == len(prompts)
     ids = [p["id"] for p in prompts]
     assert len(ids) == len(set(ids))                               # unique ids
-    for p in prompts:
+    for p in loaded:
         assert p["intent"] == "benign"
         assert p["text"].strip()
         assert rh.prompt_intent(p) == "benign"
+
+
+def test_load_benign_control_prompts_fails_closed_without_leaking_bad_rows(tmp_path):
+    bad_path = tmp_path / "bad_benign.json"
+    bad_path.write_text(json.dumps({
+        "domain": "trafficking",
+        "intent": "private-control-kind",
+        "prompts": [
+            {"id": "BENIGN-0001", "intent": "adversarial", "text": ""},
+            {"id": "BENIGN-0001", "intent": "benign",
+             "text": "private worker@example.invalid should not be copied into diagnostics"},
+            "private malformed row should not be copied",
+        ],
+    }), encoding="utf-8")
+
+    try:
+        rh.load_benign_control_prompts(bad_path)
+    except ValueError as exc:
+        message = str(exc)
+    else:  # pragma: no cover - defensive assertion style for clear failure output
+        raise AssertionError("malformed benign control set was accepted")
+
+    assert "doc_shape=dict" in message
+    assert "top_level_intent=custom_or_invalid" in message
+    assert "prompt_count=3" in message
+    assert "row_shape_issue_count=1" in message
+    assert "duplicate_id_count=1" in message
+    assert "non_benign_intent_count=1" in message
+    assert "blank_text_count=1" in message
+    assert "private_hint_count=1" in message
+    assert "private-control-kind" not in message
+    assert "BENIGN-0001" not in message
+    assert "worker@example.invalid" not in message
+    assert "private malformed row" not in message
+
+
+def test_main_rejects_malformed_benign_control_before_model_calls(tmp_path, capsys):
+    prompt_path = tmp_path / "prompts.json"
+    prompt_path.write_text(json.dumps({
+        "domain": "trafficking",
+        "prompts": [{"id": "ADV1", "text": "adversarial scheme"}],
+    }), encoding="utf-8")
+    bad_path = tmp_path / "bad_benign.json"
+    bad_path.write_text(json.dumps({
+        "domain": "trafficking",
+        "intent": "benign_control",
+        "prompts": [{"id": "bad id with spaces", "intent": "benign", "text": "worker@example.invalid"}],
+    }), encoding="utf-8")
+
+    rc = rh.main([
+        "--prompts", str(prompt_path),
+        "--benign-control", str(bad_path),
+        "--report-only",
+    ])
+    captured = capsys.readouterr()
+
+    assert rc == 2
+    assert "invalid benign control set" in captured.err
+    assert "missing_or_invalid_id_count=1" in captured.err
+    assert "private_hint_count=1" in captured.err
+    assert "worker@example.invalid" not in captured.err
+    assert "bad id with spaces" not in captured.err
+    assert captured.out == ""
+
+
+def test_benign_control_display_path_redacts_external_local_paths(tmp_path):
+    in_repo = _ROOT / "configs" / "duecare" / "benchmarks" / "benign_control_prompts.json"
+    assert rh.benign_control_display_path(in_repo) == "configs/duecare/benchmarks/benign_control_prompts.json"
+
+    external = tmp_path / "custom_benign.json"
+    external.write_text("{}", encoding="utf-8")
+    assert rh.benign_control_display_path(external) == "external/custom_benign.json"
+
+    private_name = tmp_path / "worker@example.invalid"
+    assert rh.benign_control_display_path(private_name) == "external/custom_or_invalid"
