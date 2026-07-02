@@ -72,6 +72,12 @@ SOURCE_ADMISSION_RULE_CONCEPTS = {
     "informal_social_channel_handling": ["social-channel"],
     "complaint_path_limits": ["complaint"],
 }
+READINESS_GATE_BLOCK_CONCEPTS = {
+    "public_claims": ["public claims"],
+    "training_use": ["training use"],
+    "comparable_scoring": ["comparable scoring"],
+    "worker_facing_use": ["worker-facing use"],
+}
 _DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 _EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b", re.I)
 _PHONE = re.compile(r"\+?\d[\d\s().\-]{8,}\d")
@@ -285,6 +291,19 @@ def _missing_source_admission_rule_concepts(project: Any) -> list[str]:
     ]
 
 
+def _missing_readiness_gate_block_concepts(project: Any) -> list[str]:
+    gates = project.get("readiness_gates", []) if isinstance(project, dict) else []
+    block_terms: list[str] = []
+    for gate in gates if isinstance(gates, list) else []:
+        if isinstance(gate, dict):
+            block_terms.extend(_string_values(gate.get("blocks", [])))
+    blocks = _lower_join(block_terms)
+    return [
+        concept for concept, accepted_terms in READINESS_GATE_BLOCK_CONCEPTS.items()
+        if not any(term in blocks for term in accepted_terms)
+    ]
+
+
 def _count_rows_with_urls(rows: list[dict[str, Any]]) -> int:
     return sum(1 for row in rows if isinstance(row.get("url"), str) and row["url"].strip())
 
@@ -353,6 +372,13 @@ def _project_checks(project: Any) -> list[dict[str, Any]]:
             "declared_gate_count": len(gate_ids),
             "missing_required_gate_count": len(REQUIRED_REVIEW_GATES - gate_ids),
         },
+    ))
+    missing_readiness_block_concepts = _missing_readiness_gate_block_concepts(project)
+    checks.append(_check(
+        "project_readiness_gates_block_public_training_comparable_and_worker_use",
+        missing_readiness_block_concepts == [],
+        expected=[],
+        actual=missing_readiness_block_concepts,
     ))
 
     missing_rule_terms = _missing_source_admission_rule_concepts(project)
@@ -899,6 +925,7 @@ def build_report(
     pack_privacy_counts = _privacy_issue_counts(packs)
     grounding_privacy_counts = _privacy_issue_counts(grounding_meta)
     missing_source_admission_rule_concepts = _missing_source_admission_rule_concepts(project)
+    missing_readiness_gate_block_concepts = _missing_readiness_gate_block_concepts(project)
     summary = {
         "ok": failed == [],
         "check_count": len(checks),
@@ -965,6 +992,7 @@ def build_report(
             prompt_categories_without_source_slots
         ),
         "duplicate_id_issue_count": len(duplicate_issues),
+        "readiness_gate_missing_block_concept_count": len(missing_readiness_gate_block_concepts),
         "source_admission_missing_concept_count": len(missing_source_admission_rule_concepts),
         "project_privacy_issue_count": _privacy_issue_total(project_privacy_counts),
         "jurisdiction_pack_privacy_issue_count": _privacy_issue_total(pack_privacy_counts),
@@ -995,6 +1023,7 @@ def _print_text_report(report: dict[str, Any]) -> None:
         f"jurisdiction_scopes={summary.get('pilot_jurisdiction_scope_count')} "
         f"queued_scopes={summary.get('queued_jurisdiction_scope_count')} "
         f"missing_scope_jurisdictions={summary.get('local_source_jurisdictions_without_scope_count')} "
+        f"readiness_gate_missing={summary.get('readiness_gate_missing_block_concept_count')} "
         f"source_admission_missing={summary.get('source_admission_missing_concept_count')} "
         f"first_build_phases_blocked={summary.get('first_build_phases_blocked')} "
         f"privacy_issues=project:{summary.get('project_privacy_issue_count')},"
