@@ -6,6 +6,8 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 _ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -55,6 +57,58 @@ _DOMAIN_SPEC = {
         ],
     },
 }
+
+
+def test_load_jsonl_file_skips_malformed_and_non_object_rows(tmp_path):
+    sensitive = "worker@example.com case-123456789"
+    path = tmp_path / "mixed.jsonl"
+    path.write_text(
+        "\n".join([
+            json.dumps({"model": "m", "prompt_id": "p1"}),
+            json.dumps([sensitive]),
+            json.dumps(sensitive),
+            "{bad json",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+
+    rows = rh._load_jsonl_file(path)
+
+    assert rows == [{"model": "m", "prompt_id": "p1"}]
+    assert sensitive not in json.dumps(rows)
+
+
+def test_resume_readers_skip_malformed_and_scope_harness_rows(tmp_path):
+    sensitive = "worker@example.com case-123456789"
+    path = tmp_path / "mixed_resume.jsonl"
+    path.write_text(
+        "\n".join([
+            json.dumps({"model": "m", "prompt_id": "p", "arm": "baseline", "response": "base"}),
+            json.dumps({"model": "m", "prompt_id": "p", "arm": "harnessed", "response": "core"}),
+            json.dumps({"model": "m", "prompt_id": "p", "judge": "j-h2", "delta": 1.0, "harness": "h2"}),
+            json.dumps({"model": "m", "prompt_id": "p", "judge": "j-h1", "delta": 1.0}),
+            json.dumps([sensitive]),
+            json.dumps(sensitive),
+            "{bad json",
+            json.dumps({"model": "m", "prompt_id": "missing-fields"}),
+            json.dumps({"prompt_id": "missing-model", "arm": "baseline", "response": sensitive}),
+            json.dumps({"model": "missing-prompt", "arm": "baseline", "response": sensitive}),
+        ]),
+        encoding="utf-8",
+    )
+
+    assert rh.load_reuse(path) == {
+        ("m", "p", "baseline"): "base",
+        ("m", "p", "harness_core"): "core",
+    }
+    assert rh.load_reuse(path, harness_version="h2") == {("m", "p", "baseline"): "base"}
+    assert rh._done_keys(path, ("model", "prompt_id", "arm")) == {
+        ("m", "p", "baseline"),
+        ("m", "p", "harnessed"),
+    }
+    assert rh._done_keys_for_harness(path, ("model", "prompt_id", "judge"), "h2") == {("m", "p", "j-h2")}
+    assert rh._done_keys_for_harness(path, ("model", "prompt_id", "judge"), "h1") == {("m", "p", "j-h1")}
 
 
 def test_generate_reuses_two_arms_and_generates_only_full(tmp_path):
@@ -234,6 +288,67 @@ def test_judge_panel_v2_tags_rows_and_applies_citation_gate(tmp_path, monkeypatc
     assert rows[0]["citation_gate"]["b_raw"] == 20.0
 
 
+def test_judge_panel_skips_malformed_and_mixed_harness_result_rows(tmp_path, monkeypatch):
+    sensitive = "worker@example.com case-123456789"
+    seen_responses: list[str] = []
+
+    def fake_components(_prompt, response, *, model, caller, domain_spec, rubric_version):
+        seen_responses.append(response)
+        return {"A": 10.0, "B": 10.0, "C": 10.0, "D": 5.0, "E": 5.0, "score": 40.0}
+
+    monkeypatch.setattr(rh, "judge_components", fake_components)
+    results = [
+        sensitive,
+        [sensitive],
+        {"model": "candidate", "prompt_id": "missing-arm", "response": sensitive},
+        {"model": "candidate", "prompt_id": "unknown-arm", "arm": "not_an_arm",
+         "prompt_text": "q", "response": sensitive},
+        {"model": "candidate", "prompt_id": "h2-row", "arm": "baseline", "harness": "h2",
+         "prompt_text": "q", "response": sensitive},
+        {"model": "candidate", "prompt_id": "valid", "arm": "baseline",
+         "prompt_text": "q", "response": "valid h1 response"},
+    ]
+    logs: list[str] = []
+    panel_path = tmp_path / "panel.jsonl"
+
+    n = rh.judge_panel(results, ["judge"], panel_path=panel_path, judge_caller=None,
+                       pace=0.0, log=logs.append)
+
+    rows = [json.loads(line) for line in panel_path.read_text(encoding="utf-8").splitlines()]
+    assert n == 1
+    assert rows[0]["prompt_id"] == "valid"
+    assert seen_responses == ["valid h1 response"]
+    assert sensitive not in panel_path.read_text(encoding="utf-8")
+    assert sensitive not in json.dumps(logs)
+
+
+def test_judge_panel_h2_resume_scope_ignores_untagged_h1_done_rows(tmp_path, monkeypatch):
+    def fake_components(_prompt, _response, *, model, caller, domain_spec, rubric_version):
+        return {"A": 10.0, "B": 10.0, "C": 10.0, "D": 5.0, "E": 5.0, "score": 40.0}
+
+    monkeypatch.setattr(rh, "judge_components", fake_components)
+    panel_path = tmp_path / "panel_h2.jsonl"
+    panel_path.write_text(json.dumps({
+        "key": "candidate|p1|baseline",
+        "model": "candidate",
+        "arm": "baseline",
+        "prompt_id": "p1",
+        "judge": "judge",
+        "score_0_100": 1.0,
+        "components": {},
+    }) + "\n", encoding="utf-8")
+
+    n = rh.judge_panel([{"model": "candidate", "prompt_id": "p1", "arm": "baseline",
+                         "prompt_text": "q", "response": "h2 response"}],
+                       ["judge"], panel_path=panel_path, judge_caller=None, pace=0.0,
+                       log=lambda _m: None, harness_version="h2")
+
+    rows = [json.loads(line) for line in panel_path.read_text(encoding="utf-8").splitlines()]
+    assert n == 1
+    assert rows[0].get("harness") is None
+    assert rows[1]["harness"] == "h2"
+
+
 def test_pairwise_passes_domain_spec_to_judge_pair(tmp_path, monkeypatch):
     seen = {}
 
@@ -299,21 +414,113 @@ def test_pairwise_core_full_signed_preference(tmp_path):
     rows = [json.loads(x) for x in pw_path.read_text(encoding="utf-8").splitlines()]
     assert n == 1 and len(rows) == 1                       # 1 prompt x 1 eligible judge (gemma excluded)
     assert rows[0]["judge"] == "gpt-oss:120b" and rows[0]["delta"] == 3.0   # full preferred, bias-cancelled
+    assert "harness" not in rows[0]                         # h1 rows stay byte-compatible
+
+
+def test_pairwise_core_full_tags_non_default_harness_rows(tmp_path):
+    results = [
+        {"model": "gemma4:31b", "prompt_id": "P1", "arm": "harness_core", "prompt_text": "q",
+         "response": "OLD CORE reply"},
+        {"model": "gemma4:31b", "prompt_id": "P1", "arm": "harness_full", "prompt_text": "q",
+         "response": "OLD FULL reply"},
+        {"model": "gemma4:31b", "prompt_id": "P1", "arm": "harness_core", "prompt_text": "q",
+         "response": "CORE reply", "harness": "h2"},
+        {"model": "gemma4:31b", "prompt_id": "P1", "arm": "harness_full", "prompt_text": "q",
+         "response": "FULL reply", "harness": "h2"},
+    ]
+
+    def fake_pair_caller(prompt: str, **_kw) -> str:
+        b_slot = prompt.rsplit("REPLY B:", 1)[-1]
+        return json.dumps({"delta": 2 if "FULL" in b_slot else -2})
+
+    pw_path = tmp_path / "pairwise_h2.jsonl"
+    pw_path.write_text(json.dumps({
+        "model": "gemma4:31b",
+        "prompt_id": "P1",
+        "judge": "gpt-oss:120b",
+        "delta": -9.0,
+    }) + "\n", encoding="utf-8")
+    n = rh.pairwise_core_full(results, ["gpt-oss:120b"], pairwise_path=pw_path,
+                              judge_caller=fake_pair_caller, pace=0.0, log=lambda _m: None,
+                              harness_version="h2")
+    rows = [json.loads(x) for x in pw_path.read_text(encoding="utf-8").splitlines()]
+    assert n == 1
+    assert rows[0].get("harness") is None
+    assert rows[1]["harness"] == "h2"
+    assert rows[1]["delta"] == 2.0
+    assert rh.pairwise_core_full(results, ["gpt-oss:120b"], pairwise_path=pw_path,
+                                 judge_caller=fake_pair_caller, pace=0.0, log=lambda _m: None,
+                                 harness_version="h2") == 0
+    with pytest.raises(ValueError, match="unknown harness version"):
+        rh.pairwise_core_full(results, ["gpt-oss:120b"], pairwise_path=tmp_path / "bad.jsonl",
+                              judge_caller=fake_pair_caller, pace=0.0, log=lambda _m: None,
+                              harness_version="h9")
+
+
+def test_pairwise_core_full_skips_malformed_rows_and_nonfinite_delta(tmp_path, monkeypatch):
+    sensitive = "worker@example.com case-123456789"
+
+    def fake_pair(text, core, full, *, model, caller, domain_spec):
+        return float("inf") if "bad-delta" in text else 4.0
+
+    monkeypatch.setattr(rh, "judge_pair", fake_pair)
+    results = [
+        sensitive,
+        [sensitive],
+        {"model": "candidate", "prompt_id": "missing-arm", "response": sensitive},
+        {"model": "candidate", "prompt_id": "unknown-arm", "arm": "not_an_arm",
+         "prompt_text": "q", "response": sensitive},
+        {"model": "candidate", "prompt_id": "h2-row", "arm": "harness_core", "harness": "h2",
+         "prompt_text": "q", "response": sensitive},
+        {"model": "candidate", "prompt_id": "ok", "arm": "harness_core", "prompt_text": "ok",
+         "response": "core"},
+        {"model": "candidate", "prompt_id": "ok", "arm": "harness_full", "prompt_text": "ok",
+         "response": "full"},
+        {"model": "candidate", "prompt_id": "bad", "arm": "harness_core", "prompt_text": "bad-delta",
+         "response": "core"},
+        {"model": "candidate", "prompt_id": "bad", "arm": "harness_full", "prompt_text": "bad-delta",
+         "response": "full"},
+    ]
+    logs: list[str] = []
+    pairwise_path = tmp_path / "pairwise.jsonl"
+
+    n = rh.pairwise_core_full(results, ["judge"], pairwise_path=pairwise_path,
+                              judge_caller=None, pace=0.0, log=logs.append)
+
+    rows = [json.loads(line) for line in pairwise_path.read_text(encoding="utf-8").splitlines()]
+    assert n == 1
+    assert rows == [{"model": "candidate", "prompt_id": "ok", "judge": "judge", "delta": 4.0}]
+    assert sensitive not in pairwise_path.read_text(encoding="utf-8")
+    assert sensitive not in json.dumps(logs)
 
 
 def test_aggregate_pairwise_win_rate(tmp_path):
+    sensitive = "worker@example.com case-123456789"
     rows = [
         {"model": "gemma4:31b", "prompt_id": "P1", "judge": "gpt-oss:120b", "delta": 2.0},
         {"model": "gemma4:31b", "prompt_id": "P1", "judge": "glm-5.2", "delta": 1.0},
         {"model": "gemma4:31b", "prompt_id": "P2", "judge": "gpt-oss:120b", "delta": -1.0},
         {"model": "gemma4:31b", "prompt_id": "P2", "judge": "glm-5.2", "delta": 0.0},
+        {"model": "gemma4:31b", "prompt_id": "P1", "judge": "gpt-oss:120b", "delta": 10.0, "harness": "h2"},
+        sensitive,
+        [sensitive],
+        {"model": "gemma4:31b", "prompt_id": "bad", "judge": "glm-5.2", "delta": sensitive},
+        {"model": "gemma4:31b", "prompt_id": "bad2", "delta": 1.0},
+        {"model": "gemma4:31b", "prompt_id": "bad3", "judge": "glm-5.2", "delta": float("inf")},
     ]
     agg = rh.aggregate_pairwise(rows, ["gpt-oss:120b", "glm-5.2"])
+    assert sensitive not in json.dumps(agg)
     r = agg["models"][0]
     assert r["n_prompts"] == 2
     assert r["panel_mean_delta"] == 0.5                    # mean(2,1,-1,0)
     assert r["win_rate_full"] == 50.0                      # P1 mean +1.5 > 0.05; P2 mean -0.5 not
     assert r["loss_rate_full"] == 50.0
+
+    h2 = rh.aggregate_pairwise(rows, ["gpt-oss:120b", "glm-5.2"], harness_version="h2")
+    assert h2["models"][0]["n_prompts"] == 1
+    assert h2["models"][0]["panel_mean_delta"] == 10.0
+    with pytest.raises(ValueError, match="unknown harness version"):
+        rh.aggregate_pairwise(rows, ["gpt-oss:120b"], harness_version="h7")
 
 
 def test_aggregate_lift_math(tmp_path):
@@ -323,7 +530,21 @@ def test_aggregate_lift_math(tmp_path):
             for arm, sc in (("baseline", base), ("harness_core", core), ("harness_full", full)):
                 panel.append({"key": f"gemma4:31b|{pid}|{arm}", "model": "gemma4:31b",
                               "arm": arm, "prompt_id": pid, "judge": j, "score_0_100": sc})
+    sensitive = "worker@example.com case-123456789"
+    panel.extend([
+        sensitive,
+        [sensitive],
+        {"key": "bad-score", "model": "gemma4:31b", "arm": "baseline", "prompt_id": "bad",
+         "judge": "gpt-oss:120b", "score_0_100": sensitive, "components": {"A": 99}},
+        {"key": "missing-judge", "model": "gemma4:31b", "arm": "baseline",
+         "prompt_id": "bad2", "score_0_100": 55},
+        {"key": "unknown-arm", "model": "gemma4:31b", "arm": "not_an_arm",
+         "prompt_id": "bad3", "judge": "gpt-oss:120b", "score_0_100": 55},
+        {"key": "infinite", "model": "gemma4:31b", "arm": "baseline",
+         "prompt_id": "bad4", "judge": "gpt-oss:120b", "score_0_100": float("inf")},
+    ])
     agg = rh.aggregate(panel, ["gpt-oss:120b", "glm-5.2"])
+    assert sensitive not in json.dumps(agg)
     row = agg["models"][0]
     assert row["panel_arm"]["baseline"] == 45.0           # (40+50)/2
     assert row["panel_arm"]["harness_full"] == 90.0        # (92+88)/2
@@ -409,16 +630,19 @@ def test_main_report_only_passes_rubric_version_through(tmp_path, monkeypatch, c
     pairwise_path.write_text("", encoding="utf-8")
     seen = {}
 
-    def fake_paths(domain_id, rubric_version):
+    def fake_paths(domain_id, rubric_version, harness_version):
         seen["path_domain"] = domain_id
         seen["path_rubric"] = rubric_version
+        seen["path_harness"] = harness_version
         return {"results": tmp_path / "results.jsonl", "panel": panel_path,
                 "pairwise": pairwise_path, "report": report_path}
 
-    def fake_aggregate(panel, judges, rubric_version):
+    def fake_aggregate(panel, judges, rubric_version, harness_version):
         seen["aggregate_rubric"] = rubric_version
+        seen["aggregate_harness"] = harness_version
         return {
             "rubric_version": rubric_version,
+            "harness_version": harness_version,
             "models": [],
             "krippendorff_alpha": None,
             "mean_response_agreement_stdev": 0.0,
@@ -446,7 +670,9 @@ def test_main_report_only_passes_rubric_version_through(tmp_path, monkeypatch, c
     assert seen == {
         "path_domain": "trafficking",
         "path_rubric": "v2",
+        "path_harness": "h1",
         "aggregate_rubric": "v2",
+        "aggregate_harness": "h1",
         "report_rubric": "v2",
     }
     assert "n_responses=1" in capsys.readouterr().out
