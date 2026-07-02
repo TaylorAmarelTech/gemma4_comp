@@ -27,10 +27,15 @@ import hashlib
 import json
 import pathlib
 import random
+import re
+import sys
 from collections import Counter
 from typing import Any
 
 _ROOT = pathlib.Path(__file__).resolve().parents[1]
+_SCRIPTS = pathlib.Path(__file__).resolve().parent
+if str(_SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS))
 _BENCH = _ROOT / "configs" / "duecare" / "benchmarks"
 SCHEME = _BENCH / "scheme_prompts.json"
 EXPANSION = _BENCH / "harness_lift_prompts_expansion.jsonl"
@@ -45,6 +50,8 @@ OPENCLAW_VETTED = _ROOT / "reports" / "openclaw" / "vetted.jsonl"
 # The FULL prompt set (all gradeable seed prompts, unlimited per category) for the exhaustive
 # registry sweep -- written to a gitignored path so the 64MB+ artifact never bloats git.
 FULL_OUT = _ROOT / "reports" / "benchmark" / "full_promptset.json"
+DOMAIN_OUT_DIR = _ROOT / "reports" / "benchmark"
+_SAFE_DOMAIN_ID = re.compile(r"^[a-z0-9_:-]{1,80}$")
 
 
 def _text_hash(text: str) -> str:
@@ -73,6 +80,98 @@ def _norm(p: dict[str, Any], source: str) -> dict[str, Any]:
         "difficulty": p.get("difficulty", "hard"),
         "source": source,
     }
+
+
+def _norm_domain_seed(p: dict[str, Any], domain_id: str) -> dict[str, Any]:
+    out = _norm(p, f"domain_seed:{domain_id}")
+    out["domain"] = domain_id
+    if p.get("source"):
+        out["seed_source"] = p.get("source")
+    return out
+
+
+def _domain_report_path(domain_id: str) -> pathlib.Path:
+    if not _SAFE_DOMAIN_ID.fullmatch(domain_id):
+        raise ValueError(f"unsafe domain id for output path: {domain_id!r}")
+    return DOMAIN_OUT_DIR / f"{domain_id}_promptset.json"
+
+
+def build_domain_promptset(domain_id: str, *, max_prompt_chars: int) -> dict[str, Any]:
+    """Build a runnable promptset from a registered JSONL benchmark domain seed pack.
+
+    The trafficking/default promptset has a richer widening path and stays on
+    ``build()``. This helper is the conservative cross-domain MVP: it resolves a
+    registry seed pack, validates the rows, text-dedupes them, and attaches the
+    domain rubric metadata needed by downstream runners.
+    """
+    from domain_grounding import load_domain_grounding
+    from domain_registry import get_domain, resolve_scheme_pack
+
+    spec = get_domain(domain_id)
+    grounding = load_domain_grounding(domain_id)
+    pack_format = spec.get("scheme_pack_format")
+    if pack_format != "jsonl":
+        raise ValueError(
+            f"domain {domain_id!r} uses scheme_pack_format={pack_format!r}; "
+            "only jsonl seed packs are supported by --domain MVP"
+        )
+    pack = resolve_scheme_pack(domain_id)
+    rows = _load_jsonl(pack)
+    prompts: list[dict[str, Any]] = []
+    seen_text: set[str] = set()
+    seen_id: set[str] = set()
+    dropped = Counter()
+    for row in rows:
+        prompt_id = row.get("id")
+        text = row.get("text")
+        if not isinstance(prompt_id, str) or not prompt_id.strip():
+            dropped["missing_id"] += 1
+            continue
+        if not isinstance(text, str) or not text.strip():
+            dropped["missing_text"] += 1
+            continue
+        if 0 < max_prompt_chars < len(text.strip()):
+            dropped["over_max_prompt_chars"] += 1
+            continue
+        h = _text_hash(text)
+        if h in seen_text:
+            dropped["duplicate_text"] += 1
+            continue
+        if prompt_id in seen_id:
+            dropped["duplicate_id"] += 1
+            continue
+        seen_text.add(h)
+        seen_id.add(prompt_id)
+        prompts.append(_norm_domain_seed(row, domain_id))
+    domain_spec = {
+        "display_name": spec.get("display_name"),
+        "status": spec.get("status"),
+        "rag_vertical": spec.get("rag_vertical"),
+        "rubric_anchors": spec.get("rubric_anchors", {}),
+        "instruments": spec.get("instruments", []),
+        "regulators": spec.get("regulators", []),
+        "jurisdictions": spec.get("jurisdictions", []),
+    }
+    if grounding:
+        domain_spec["grounding"] = grounding
+    doc = {
+        "version": "domain-seed-0.1",
+        "domain": domain_id,
+        "_build": {
+            "domain": domain_id,
+            "scheme_pack": str(pack.relative_to(_ROOT)),
+            "scheme_pack_format": pack_format,
+            "seed_rows": len(rows),
+            "kept": len(prompts),
+            "dropped": {k: dropped[k] for k in sorted(dropped)},
+            "max_prompt_chars": max_prompt_chars,
+        },
+        "_domain_spec": domain_spec,
+        "prompts": prompts,
+    }
+    if grounding:
+        doc["_grounding"] = grounding
+    return doc
 
 
 def _hermes_accepted() -> list[dict[str, Any]]:
@@ -164,7 +263,27 @@ def main(argv: list[str] | None = None) -> int:
                          "(all gradeable seed prompts) for the exhaustive registry sweep; defaults "
                          "--out to a gitignored path")
     ap.add_argument("--out", default=None)
+    ap.add_argument("--domain", default="trafficking",
+                    help="registered benchmark domain id; trafficking uses the canonical widened promptset, "
+                         "jsonl seed domains write a separate report promptset")
     args = ap.parse_args(argv)
+    if args.domain != "trafficking":
+        if args.full:
+            ap.error("--full is only supported for the trafficking/default prompt set")
+        if args.out is None:
+            args.out = str(_domain_report_path(args.domain))
+        doc = build_domain_promptset(args.domain, max_prompt_chars=args.max_prompt_chars)
+        out_path = pathlib.Path(args.out)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        ps = doc["prompts"]
+        b = doc["_build"]
+        print(f"wrote {args.out}: {len(ps)} prompts "
+              f"(domain {args.domain}; seed_rows {b['seed_rows']}; dropped {b['dropped']})")
+        print("difficulty:", dict(Counter(p["difficulty"] for p in ps)))
+        print("distinct categories:", len({p["category"] for p in ps}))
+        print("by source:", dict(Counter(p["source"] for p in ps)))
+        return 0
     if args.full:
         for _k in ("per_category_expansion", "per_category_majorcase", "per_category_seed", "per_category_hermes"):
             setattr(args, _k, 0)   # 0 -> unlimited (full draw)

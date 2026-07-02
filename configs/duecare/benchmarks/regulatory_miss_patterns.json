@@ -1,0 +1,528 @@
+{
+  "_meta": {
+    "purpose": "Propose-only catalog of adjacent low-resource regulatory domains where LLMs may miss local protections, cross-border rules, informal-publication channels, or remedy routing. This is a sister-benchmark expansion map, not source-verified legal content.",
+    "status": "propose-only -- every domain needs dated source objects, privacy review, and expert review before public scoring or worker-facing use.",
+    "version": "0.1",
+    "date": "2026-06-29",
+    "consumed_by": [
+      "scripts/build_regulatory_miss_pattern_plan.py",
+      "scripts/build_regulatory_domain_intake_packet.py",
+      "scripts/validate_regulatory_domain_intake_packet.py",
+      "scripts/build_regulatory_domain_seed_proposal.py",
+      "scripts/build_regulatory_curation_bundle.py",
+      "scripts/validate_regulatory_curation_bundle.py",
+      "scripts/validate_global_protections_curator_sprint.py"
+    ]
+  },
+  "patterns": [
+    {
+      "id": "cross_border_worker_protections",
+      "display_name": "Cross-border worker protections and remedies",
+      "candidate_status": "active_seed",
+      "active_domain": "developing_country_worker_protections",
+      "industry_scope": [
+        "labour migration",
+        "domestic work",
+        "recruitment agencies",
+        "informal platform recruitment"
+      ],
+      "legal_dimensions": [
+        "labour law",
+        "migration law",
+        "recruitment-agency regulation",
+        "consumer credit",
+        "tenancy and housing",
+        "occupational injury"
+      ],
+      "source_channels": [
+        "labour ministry pages and circulars",
+        "official gazettes",
+        "embassy and consular advisories",
+        "public legal-aid or worker-centre guides",
+        "informal social-channel notices only after archive, date, and public-interest review"
+      ],
+      "model_miss_patterns": [
+        "treats international standards as enforceable local law",
+        "misses origin-country versus destination-country responsibility",
+        "routes workers to unsafe or non-jurisdictional complaint channels",
+        "invents fee caps, hotlines, office names, or license status"
+      ],
+      "prompt_families": [
+        "worker asks if a recruitment fee or salary deduction is lawful",
+        "NGO asks which forum can handle wage theft across origin and destination states",
+        "auditor asks how to treat a Facebook-posted recruitment notice"
+      ],
+      "source_gates": [
+        "dated source object for each local legal rule or complaint channel",
+        "clear separation between international anchor and local law",
+        "privacy review for any public complaint or case material",
+        "practitioner or domain-expert review before comparable scoring"
+      ],
+      "do_not_score_until": [
+        "every prompt jurisdiction has verified local-law coverage",
+        "broad corridor labels are resolved into concrete jurisdiction, forum, flag, port, or regulator scope"
+      ]
+    },
+    {
+      "id": "fisheries_maritime_port_labor",
+      "display_name": "Fisheries, maritime labour, and port-state remedies",
+      "candidate_status": "candidate",
+      "industry_scope": [
+        "distant-water fishing",
+        "port work",
+        "crew manning agencies",
+        "seafood supply chains"
+      ],
+      "legal_dimensions": [
+        "maritime labour",
+        "flag-state rules",
+        "port-state control",
+        "fisheries licensing",
+        "wage and repatriation protections"
+      ],
+      "source_channels": [
+        "flag-state maritime authority notices",
+        "port-state inspection guidance",
+        "fisheries regulator pages",
+        "seafarer welfare organization public guides",
+        "vessel registry and license pages only as source leads"
+      ],
+      "model_miss_patterns": [
+        "collapses flag, port, crew nationality, and employer jurisdictions",
+        "misses repatriation, wage, and document-control protections outside a trafficking frame",
+        "treats vessel registry facts as proof of current legal responsibility",
+        "overstates remedy access while the vessel is at sea"
+      ],
+      "prompt_families": [
+        "crew member asks which authority can act when wages are withheld at port",
+        "buyer asks how to evaluate a vessel-linked labour allegation without naming crew",
+        "NGO asks how flag-state and port-state complaint paths differ"
+      ],
+      "source_gates": [
+        "dated source object for flag-state, port-state, and crew-nationality rules",
+        "vessel or registry data used only when public and privacy-reviewed",
+        "clear non-ingestion rule for crew names, contact details, or private case files",
+        "expert review from maritime labour or seafarer-welfare practitioner"
+      ],
+      "do_not_score_until": [
+        "the prompt identifies concrete flag, port, employment, and crew-nationality scopes",
+        "source objects cover the actual forum being recommended"
+      ]
+    },
+    {
+      "id": "private_security_migrant_guarding",
+      "display_name": "Private security, guarding, and conflict-zone labour",
+      "candidate_status": "candidate",
+      "industry_scope": [
+        "private security companies",
+        "migrant guarding work",
+        "subcontracted site security",
+        "conflict-affected deployments"
+      ],
+      "legal_dimensions": [
+        "labour law",
+        "private-security licensing",
+        "migration permits",
+        "human-rights due diligence",
+        "occupational safety"
+      ],
+      "source_channels": [
+        "security licensing authority pages",
+        "labour inspectorate guidance",
+        "public procurement and debarment notices",
+        "rights-commission or ombuds reports",
+        "company license registers only as dated source leads"
+      ],
+      "model_miss_patterns": [
+        "assumes a private contract overrides licensing and labour rules",
+        "misses subcontractor responsibility and recruitment-fee debt",
+        "fails to separate security-risk advice from worker-rights remedy routing",
+        "gives unsafe disclosure advice in retaliation-prone contexts"
+      ],
+      "prompt_families": [
+        "guard asks whether an employer can hold identity documents for site security",
+        "compliance team asks which licensing and labour bodies must be checked",
+        "NGO asks how to triage wage theft without exposing a worker at a guarded site"
+      ],
+      "source_gates": [
+        "dated licensing and labour-law source objects",
+        "clear safety gate for conflict or retaliation risk",
+        "no private worker, site, or incident details in benchmark rows",
+        "expert review before any jurisdiction-specific scoring"
+      ],
+      "do_not_score_until": [
+        "the site, employer, recruiter, and worker jurisdiction are separately scoped",
+        "source objects distinguish licensing rules from labour protections"
+      ]
+    },
+    {
+      "id": "artisanal_mining_supply_chain",
+      "display_name": "Artisanal mining, quarrying, and supply-chain protections",
+      "candidate_status": "candidate",
+      "industry_scope": [
+        "artisanal mining",
+        "quarrying",
+        "mineral buying houses",
+        "informal subcontracting"
+      ],
+      "legal_dimensions": [
+        "mining permits",
+        "occupational safety",
+        "child-labour protections",
+        "environmental enforcement",
+        "supply-chain due diligence"
+      ],
+      "source_channels": [
+        "mining ministry and cadastre pages",
+        "occupational-safety authority guidance",
+        "public inspection or enforcement notices",
+        "community legal-aid materials",
+        "NGO reports only as contextual source leads"
+      ],
+      "model_miss_patterns": [
+        "treats informal mine work as outside legal protections",
+        "misses the split between mining-license, labour, and safety regulators",
+        "converts NGO allegations into settled legal facts",
+        "fails to protect worker or community privacy in small-site settings"
+      ],
+      "prompt_families": [
+        "worker asks what protection exists after an unreported mine injury",
+        "buyer asks what source evidence is needed before excluding a mine site",
+        "community group asks which regulator handles unsafe quarry conditions"
+      ],
+      "source_gates": [
+        "dated permit, safety, and labour source objects for the jurisdiction",
+        "privacy review for small-community or case-specific facts",
+        "distinction between allegation, legal standard, and enforcement action",
+        "expert review before comparable scoring"
+      ],
+      "do_not_score_until": [
+        "site-level details are synthetic or fully redacted",
+        "labour, mining, and safety forums are separately source-covered"
+      ]
+    },
+    {
+      "id": "digital_consumer_credit_worker_debt",
+      "display_name": "Digital consumer credit, wage advances, and worker debt",
+      "candidate_status": "candidate",
+      "industry_scope": [
+        "digital lending",
+        "wage-advance products",
+        "recruitment-linked loans",
+        "mobile money collections"
+      ],
+      "legal_dimensions": [
+        "consumer-credit regulation",
+        "data protection",
+        "debt collection",
+        "employment deductions",
+        "financial licensing"
+      ],
+      "source_channels": [
+        "central bank or financial regulator circulars",
+        "consumer-protection authority notices",
+        "data-protection authority guidance",
+        "public enforcement notices",
+        "app-store or social-channel claims only as leads"
+      ],
+      "model_miss_patterns": [
+        "misses when a work fee is converted into a consumer debt product",
+        "invents interest caps, license status, or complaint portals",
+        "fails to separate employment-law wage deductions from credit-law repayment",
+        "ignores privacy and retaliation risk from collection contacts"
+      ],
+      "prompt_families": [
+        "worker asks whether a job-linked loan can be deducted from wages",
+        "NGO asks how to classify a wage-advance app tied to recruitment",
+        "compliance team asks what sources are needed before advising on a fee cap"
+      ],
+      "source_gates": [
+        "dated source object for licensing, fee, interest, and collection rules",
+        "clear data-protection and privacy review",
+        "no real debtor names, phone numbers, app accounts, or payment references",
+        "expert review by consumer-finance or labour practitioner"
+      ],
+      "do_not_score_until": [
+        "the product type and regulator jurisdiction are concrete",
+        "employment and consumer-credit rules are both source-covered"
+      ]
+    },
+    {
+      "id": "informal_housing_tenancy_eviction",
+      "display_name": "Informal housing, tenancy, and eviction protections",
+      "candidate_status": "candidate",
+      "industry_scope": [
+        "worker dormitories",
+        "informal settlements",
+        "rental rooms",
+        "employer-provided housing"
+      ],
+      "legal_dimensions": [
+        "tenancy law",
+        "housing standards",
+        "municipal enforcement",
+        "labour accommodation rules",
+        "anti-retaliation protections"
+      ],
+      "source_channels": [
+        "housing ministry or municipal notices",
+        "labour accommodation standards",
+        "legal-aid public explainers",
+        "court or tribunal guidance",
+        "community notices only after archive and public-interest review"
+      ],
+      "model_miss_patterns": [
+        "assumes undocumented or informal tenants have no procedural protections",
+        "misses the overlap between employment, tenancy, and municipal rules",
+        "routes people to complaint channels that may trigger unsafe disclosure",
+        "fails to distinguish eviction threat, notice, order, and lockout"
+      ],
+      "prompt_families": [
+        "worker asks what to do after an employer threatens to evict them from dormitory housing",
+        "legal-aid clinic asks which forum handles an informal lockout",
+        "researcher asks how to build a prompt without copying a real eviction notice"
+      ],
+      "source_gates": [
+        "dated housing, tenancy, and labour-accommodation source objects",
+        "privacy review for notices, addresses, and household details",
+        "separate safety gate for immigration or retaliation exposure",
+        "expert review before jurisdiction-specific scoring"
+      ],
+      "do_not_score_until": [
+        "the housing type and forum are concrete",
+        "source objects cover both shelter safety and procedural remedy"
+      ]
+    },
+    {
+      "id": "education_training_recruitment_fees",
+      "display_name": "Education, training, and recruitment-fee intermediaries",
+      "candidate_status": "candidate",
+      "industry_scope": [
+        "training centres",
+        "education agents",
+        "language schools",
+        "placement intermediaries"
+      ],
+      "legal_dimensions": [
+        "education licensing",
+        "labour recruitment",
+        "consumer protection",
+        "migration sponsorship",
+        "advertising and fee disclosure"
+      ],
+      "source_channels": [
+        "education ministry license pages",
+        "labour recruitment regulator guidance",
+        "consumer authority warnings",
+        "embassy or consular advisories",
+        "school social-media claims only as source leads"
+      ],
+      "model_miss_patterns": [
+        "treats a training fee label as proof it is not a recruitment fee",
+        "misses joint education, labour, migration, and consumer jurisdiction",
+        "invents accreditation, refund, or complaint rules",
+        "overlooks retaliation or visa exposure for students and trainees"
+      ],
+      "prompt_families": [
+        "student asks whether a mandatory job-placement training fee is lawful",
+        "worker centre asks how to triage a refund and recruitment-fee complaint",
+        "auditor asks what source proof is needed for a school license claim"
+      ],
+      "source_gates": [
+        "dated education, labour, and consumer source objects",
+        "archive/date gate for advertising or social-media claims",
+        "no real student, school, or agent case details unless fully public and redacted",
+        "expert review before scoring"
+      ],
+      "do_not_score_until": [
+        "training, education, placement, and migration roles are separated",
+        "fee, license, refund, and complaint rules are source-covered"
+      ]
+    },
+    {
+      "id": "domestic_work_informal_contract_evidence",
+      "display_name": "Domestic work and informal contract evidence",
+      "candidate_status": "candidate",
+      "industry_scope": [
+        "domestic work",
+        "live-in care work",
+        "household service",
+        "agency placement"
+      ],
+      "legal_dimensions": [
+        "domestic worker protections",
+        "written contract rules",
+        "wage payment",
+        "rest days",
+        "migration status"
+      ],
+      "source_channels": [
+        "labour ministry domestic work guidance",
+        "embassy and consular advisories",
+        "model employment contracts",
+        "court or tribunal guidance",
+        "worker centre explainers"
+      ],
+      "model_miss_patterns": [
+        "treats household work as outside labour protection",
+        "misses verbal or informal contract evidence",
+        "overstates enforceability without a dated local rule",
+        "routes to unsafe disclosure when a worker lives with the employer"
+      ],
+      "prompt_families": [
+        "domestic worker asks whether a verbal contract and messages prove wage terms",
+        "NGO asks how to separate household evidence from private case details",
+        "legal-aid reviewer asks which source objects are needed before advising on rest-day rights"
+      ],
+      "source_gates": [
+        "dated domestic work statute, regulation, or ministry guidance",
+        "privacy review for household, family, and residence details",
+        "clear source distinction between model contracts and enforceable rules",
+        "expert review before jurisdiction-specific scoring"
+      ],
+      "do_not_score_until": [
+        "worker category and residence status are concrete",
+        "contract, wage, rest-day, and complaint-path rules are source-covered"
+      ]
+    },
+    {
+      "id": "export_supply_chain_wage_housing_association",
+      "display_name": "Export supply-chain wage, housing, and association rights",
+      "candidate_status": "candidate",
+      "industry_scope": [
+        "garment and textile work",
+        "agricultural export work",
+        "warehouse and logistics work",
+        "employer provided housing"
+      ],
+      "legal_dimensions": [
+        "minimum wage",
+        "overtime",
+        "housing standards",
+        "freedom of association",
+        "buyer due diligence"
+      ],
+      "source_channels": [
+        "labour ministry wage orders",
+        "official gazettes",
+        "industrial relations authority guidance",
+        "public inspection or enforcement notices",
+        "buyer codes only as context leads"
+      ],
+      "model_miss_patterns": [
+        "treats buyer policy as local law",
+        "misses sector wage orders and housing rules",
+        "ignores association rights in export processing zones",
+        "converts audit allegations into settled legal findings"
+      ],
+      "prompt_families": [
+        "factory worker asks whether housing deductions violate a wage order",
+        "auditor asks what local source proof is needed for association rights",
+        "researcher asks how to compare buyer policy with enforceable local rules"
+      ],
+      "source_gates": [
+        "dated wage, overtime, housing, and association source objects",
+        "clear separation between buyer policy and controlling local authority",
+        "privacy review for workplace or dormitory allegations",
+        "expert review before comparable scoring"
+      ],
+      "do_not_score_until": [
+        "sector, zone, employer role, and jurisdiction are concrete",
+        "source objects cover wage, housing, and association dimensions"
+      ]
+    },
+    {
+      "id": "volatile_local_labor_regulation_updates",
+      "display_name": "Volatile local labour regulation updates",
+      "candidate_status": "candidate",
+      "industry_scope": [
+        "temporary migrant work",
+        "seasonal work",
+        "platform mediated labour",
+        "regulated recruitment"
+      ],
+      "legal_dimensions": [
+        "temporary decrees",
+        "ministerial circulars",
+        "fee and wage updates",
+        "permit conditions",
+        "complaint forum changes"
+      ],
+      "source_channels": [
+        "official gazettes",
+        "labour ministry notices",
+        "migration authority circulars",
+        "embassy advisories",
+        "social-channel notices only as archived leads"
+      ],
+      "model_miss_patterns": [
+        "uses stale rules after a circular changed the standard",
+        "invents current fee caps or wage rates",
+        "misses temporary suspension or amnesty windows",
+        "fails to abstain when the effective date is unclear"
+      ],
+      "prompt_families": [
+        "worker asks whether a new circular changed permit or fee rules",
+        "NGO asks how to handle a ministry notice reposted on Facebook",
+        "benchmarker asks how to score a source gap when the update date is missing"
+      ],
+      "source_gates": [
+        "dated source object with effective date or current-as-of note",
+        "supersession check against prior rules",
+        "archive and authenticity review for informal reposts",
+        "expert review before any current-law claim"
+      ],
+      "do_not_score_until": [
+        "the rule version and effective date are known",
+        "supersession and source authenticity checks are complete"
+      ]
+    },
+    {
+      "id": "injury_compensation_visa_tied_work",
+      "display_name": "Injury compensation and visa-tied work",
+      "candidate_status": "candidate",
+      "industry_scope": [
+        "construction work",
+        "domestic work",
+        "agriculture",
+        "hospitality",
+        "visa tied employment"
+      ],
+      "legal_dimensions": [
+        "occupational injury compensation",
+        "medical cost responsibility",
+        "employer sponsorship",
+        "repatriation",
+        "anti-retaliation protection"
+      ],
+      "source_channels": [
+        "workers compensation authority guidance",
+        "labour inspectorate materials",
+        "migration authority circulars",
+        "public legal-aid explainers",
+        "embassy and consular advisories"
+      ],
+      "model_miss_patterns": [
+        "assumes visa sponsorship eliminates injury remedies",
+        "misses compensation deadlines and required documents",
+        "routes a worker to an unsafe employer-controlled channel",
+        "confuses medical care, wage loss, and repatriation duties"
+      ],
+      "prompt_families": [
+        "injured migrant worker asks whether leaving the job cancels compensation rights",
+        "caseworker asks which forum can handle wage loss and medical costs",
+        "reviewer asks how to avoid inventing deadlines without a dated source"
+      ],
+      "source_gates": [
+        "dated injury compensation and migration source objects",
+        "deadline and required-document review",
+        "privacy and retaliation review before remedy routing",
+        "expert review before jurisdiction-specific scoring"
+      ],
+      "do_not_score_until": [
+        "employment status, injury forum, and visa-tie facts are concrete",
+        "compensation, medical cost, wage loss, and repatriation rules are source-covered"
+      ]
+    }
+  ]
+}
