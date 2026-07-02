@@ -24,8 +24,9 @@ dr = _load("domain_registry", _ROOT / "scripts" / "domain_registry.py")
 
 def test_registry_loads_and_has_expected_domains():
     doc = dr.load_registry()
-    for d in ("trafficking", "money_laundering", "tax_evasion",
-              "tariff_evasion", "market_manipulation"):
+    for d in ("trafficking", "developing_country_worker_protections",
+              "money_laundering", "tax_evasion", "tariff_evasion",
+              "market_manipulation"):
         assert d in doc["domains"], f"missing domain {d}"
 
 
@@ -69,6 +70,46 @@ def test_money_laundering_seed_pack_exists_parses_and_spans_typologies():
         categories.add(obj["category"])
     # the seed should span multiple AML typologies, not collapse to one
     assert len(categories) >= 5, f"expected >= 5 distinct ML typologies, got {sorted(categories)}"
+
+
+def test_developing_country_worker_protections_seed_spans_low_resource_legal_misses():
+    spec = dr.get_domain("developing_country_worker_protections")
+    assert "propose-only" in spec["status"]
+    assert spec["grounding_manifest"].endswith("grounding_sources.json")
+    assert "ILO C189" in spec["instruments"]
+    assert "Palermo Protocol" in spec["instruments"]
+    assert "national labour/migration/consumer/tenancy laws" in spec["instruments"]
+
+    p = dr.resolve_scheme_pack("developing_country_worker_protections")
+    lines = [ln for ln in p.read_text(encoding="utf-8").splitlines() if ln.strip()]
+    assert len(lines) >= 10, "expected a seed of >=10 worker-protection prompts"
+    categories = set()
+    corridors = set()
+    combined_text = []
+    for line in lines:
+        obj = json.loads(line)
+        for key in ("id", "text", "category", "difficulty", "source"):
+            assert key in obj, f"prompt {obj.get('id')!r} missing field {key}"
+        assert obj["source"] == "synthetic_rights_miss_seed"
+        categories.add(obj["category"])
+        corridors.add(obj.get("corridor", ""))
+        combined_text.append(obj["text"].lower())
+    assert len(categories) >= 8, f"expected broad miss coverage, got {sorted(categories)}"
+    assert len(corridors) >= 8, f"expected multiple corridors, got {sorted(corridors)}"
+    joined = "\n".join(combined_text)
+    for needle in ("facebook", "whatsapp", "telegram", "consumer", "tenancy", "injury"):
+        assert needle in joined
+
+
+def test_worker_protections_grounding_manifest_resolves_to_existing_file():
+    p = dr.resolve_grounding_manifest("developing_country_worker_protections")
+    assert p is not None
+    assert p.exists()
+    assert p.name == "grounding_sources.json"
+
+
+def test_domains_without_grounding_manifest_return_none():
+    assert dr.resolve_grounding_manifest("money_laundering") is None
 
 
 def test_all_jsonl_seed_packs_parse_and_span_typologies():

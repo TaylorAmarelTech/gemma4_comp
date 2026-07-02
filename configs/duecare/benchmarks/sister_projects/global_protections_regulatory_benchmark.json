@@ -1,0 +1,166 @@
+{
+  "_meta": {
+    "purpose": "Propose-only sister-project charter for testing model handling of laws, protections, and remedy routing in developing-country and low-documentation regulatory contexts.",
+    "status": "propose-only -- this charter is planning metadata, not source-verified legal content, not worker-facing advice, and not benchmark evidence.",
+    "version": "0.1",
+    "date": "2026-06-29",
+    "consumed_by": [
+      "scripts/build_global_protections_project_plan.py",
+      "scripts/build_global_protections_jurisdiction_pack_matrix.py",
+      "scripts/build_global_protections_source_channel_matrix.py",
+      "scripts/build_global_protections_next_actions.py",
+      "scripts/validate_global_protections_benchmark_blueprint.py",
+      "scripts/validate_global_protections_diagnostic_run_plan.py",
+      "scripts/validate_global_protections_eval_contract.py",
+      "scripts/validate_global_protections_jurisdiction_pack_matrix.py",
+      "scripts/validate_global_protections_judge_calibration_plan.py",
+      "scripts/validate_global_protections_next_actions.py",
+      "scripts/validate_global_protections_project_plan.py",
+      "scripts/validate_global_protections_readiness_bundle.py",
+      "scripts/validate_global_protections_saved_artifacts.py",
+      "scripts/validate_global_protections_source_channel_matrix.py",
+      "scripts/validate_global_protections_source_channel_review_packet.py",
+      "scripts/validate_global_protections_transition_gate.py"
+    ]
+  },
+  "project_id": "global_protections_regulatory_benchmark",
+  "display_name": "Global Protections Regulatory Benchmark",
+  "status": "propose_only",
+  "research_question": "Can models handle local laws, regulations, protections, complaint paths, and source uncertainty in lower-documentation jurisdictions without hallucinating authority, overgeneralizing from better documented regimes, or creating safety risk?",
+  "primary_seed_domains": [
+    "developing_country_worker_protections"
+  ],
+  "candidate_pattern_ids": [
+    "cross_border_worker_protections",
+    "fisheries_maritime_port_labor",
+    "private_security_migrant_guarding",
+    "artisanal_mining_supply_chain",
+    "digital_consumer_credit_worker_debt",
+    "informal_housing_tenancy_eviction",
+    "education_training_recruitment_fees",
+    "domestic_work_informal_contract_evidence",
+    "export_supply_chain_wage_housing_association",
+    "volatile_local_labor_regulation_updates",
+    "injury_compensation_visa_tied_work"
+  ],
+  "target_jurisdiction_families": [
+    "South Asia origin states",
+    "Southeast Asia origin states",
+    "East Africa origin and destination states",
+    "West Africa origin and destination states",
+    "Latin America origin and destination states",
+    "Gulf and other destination corridors only after concrete forum scope",
+    "port, flag, and crew-nationality jurisdictions for maritime work"
+  ],
+  "benchmark_axes": [
+    "jurisdiction selection and cross-border responsibility",
+    "local law versus international anchor discipline",
+    "date and version sensitivity for volatile rules",
+    "informal publication handling for social-channel notices and scanned circulars",
+    "ordinary protection detection beyond trafficking labels",
+    "safe remedy routing with privacy and retaliation caveats",
+    "source abstention when local-law coverage is missing"
+  ],
+  "source_admission_rules": [
+    "Every scored local-law claim needs a dated source object with authority, jurisdiction, publication date or access date, and archive status.",
+    "International instruments may anchor reasoning but cannot substitute for source-verified local law.",
+    "Social-channel notices, scanned circulars, and informal registries are source leads until archived, dated, and public-interest reviewed.",
+    "Public complaint lists, case rows, names, contacts, addresses, and small-community identifiers are rejected unless fully redacted into aggregate patterns.",
+    "Complaint paths and remedy channels must name the concrete forum or regulator scope, not a broad corridor label.",
+    "Expert or practitioner review is required before public claims, training use, or comparable benchmark scoring."
+  ],
+  "scored_capabilities": [
+    "identifies the rights trigger and the vulnerable party",
+    "selects the relevant origin, destination, forum, flag, port, or regulator jurisdiction",
+    "separates verified local law from international anchors and unresolved source gaps",
+    "detects ordinary labour, wage, housing, credit, education, injury, and consumer protections",
+    "routes to plausible remedy channels without exposing private details or retaliation risk",
+    "refuses to invent fee caps, license status, hotline numbers, dates, office names, or legal certainty"
+  ],
+  "readiness_gates": [
+    {
+      "id": "source_object_coverage",
+      "description": "Each prompt jurisdiction and protection category has dated source-object coverage.",
+      "blocks": [
+        "public claims",
+        "training use",
+        "comparable scoring"
+      ]
+    },
+    {
+      "id": "scope_resolution",
+      "description": "Broad corridor, forum, flag, port, and regulator labels are resolved into concrete jurisdictions.",
+      "blocks": [
+        "source promotion",
+        "comparable scoring"
+      ]
+    },
+    {
+      "id": "privacy_review",
+      "description": "Source candidates exclude names, contacts, addresses, private cases, and small-community identifiers.",
+      "blocks": [
+        "manifest promotion",
+        "training use",
+        "public release"
+      ]
+    },
+    {
+      "id": "expert_review",
+      "description": "A practitioner or domain expert reviews local-law mappings and remedy paths.",
+      "blocks": [
+        "public claims",
+        "comparable scoring",
+        "worker-facing use"
+      ]
+    },
+    {
+      "id": "grounding_layer",
+      "description": "The runner has source-verified RAG or tool grounding for the domain.",
+      "blocks": [
+        "comparable scoring",
+        "leaderboard claims"
+      ]
+    }
+  ],
+  "first_build_phases": [
+    {
+      "id": "charter",
+      "description": "Validate and render the sister-project charter as a planning artifact.",
+      "output": "reports/benchmark/global_protections_project_plan.json",
+      "ready_for_public_scoring": false,
+      "ready_for_training_use": false,
+      "ready_for_worker_facing_use": false
+    },
+    {
+      "id": "source_gap_chain",
+      "description": "Use the existing domain curation bundle to expose source gaps for the worker-protections seed.",
+      "output": "reports/benchmark/developing_country_worker_protections_curation_bundle.json",
+      "ready_for_public_scoring": false,
+      "ready_for_training_use": false,
+      "ready_for_worker_facing_use": false
+    },
+    {
+      "id": "regulatory_candidate_chain",
+      "description": "Use the regulatory curation bundle to stage adjacent candidate domains without creating prompts.",
+      "output": "reports/benchmark/regulatory_curation_bundle.json",
+      "ready_for_public_scoring": false,
+      "ready_for_training_use": false,
+      "ready_for_worker_facing_use": false
+    },
+    {
+      "id": "diagnostic_pilot",
+      "description": "Run only isolated diagnostics after source gaps are explicit and unresolved source gaps are scored as abstention discipline.",
+      "output": "reports/rich_lift/domains/developing_country_worker_protections/",
+      "ready_for_public_scoring": false,
+      "ready_for_training_use": false,
+      "ready_for_worker_facing_use": false
+    }
+  ],
+  "non_goals": [
+    "It is not a legal advice product.",
+    "It is not a worker-facing referral system.",
+    "It is not a claim that country-law coverage is complete.",
+    "It is not a prompt-generation shortcut for unverified local rules.",
+    "It is not comparable leaderboard evidence until every readiness gate passes."
+  ]
+}

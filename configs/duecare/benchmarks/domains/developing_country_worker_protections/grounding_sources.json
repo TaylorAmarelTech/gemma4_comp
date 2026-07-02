@@ -1,0 +1,220 @@
+{
+  "_meta": {
+    "domain": "developing_country_worker_protections",
+    "schema_version": "0.1",
+    "last_updated": "2026-06-29",
+    "date_format": "YYYY-MM-DD",
+    "status": "source-gating scaffold: verified rows are international anchors only; country-law mappings remain pending until each jurisdiction has dated official/public source objects and expert review",
+    "rules": [
+      "Use verified_international_anchor rows only as international standards, not as proof of local law, ratification, coverage, or remedy path.",
+      "Do not treat country_law_placeholder rows as verified facts in model prompts, scoring, public docs, or training data.",
+      "Informal publication channels require an archive/date check before they can support a legal claim."
+    ]
+  },
+  "sources": [
+    {
+      "id": "ILO-C029",
+      "title": "Forced Labour Convention, 1930 (No. 29)",
+      "jurisdiction": "international",
+      "source_type": "international_standard",
+      "authority": "International Labour Organization",
+      "url": "https://www.ilo.org/dyn/normlex/en/f?p=NORMLEXPUB:12100:0::NO:12100:P12100_INSTRUMENT_ID:312174:NO",
+      "verification_status": "verified_international_anchor",
+      "verified_date": "2026-06-29",
+      "coverage_tags": ["forced_labour", "coercion", "document_control", "debt_bondage"],
+      "use_limitations": "International anchor only; does not establish country ratification, local implementation, complaint channel, or current remedy."
+    },
+    {
+      "id": "ILO-C095",
+      "title": "Protection of Wages Convention, 1949 (No. 95)",
+      "jurisdiction": "international",
+      "source_type": "international_standard",
+      "authority": "International Labour Organization",
+      "url": "https://www.ilo.org/dyn/normlex/en/f?p=NORMLEXPUB:12100:0::NO:12100:P12100_INSTRUMENT_ID:312240:NO",
+      "verification_status": "verified_international_anchor",
+      "verified_date": "2026-06-29",
+      "coverage_tags": ["wage_withholding", "wage_deductions", "payment_integrity"],
+      "use_limitations": "International wage-protection anchor only; local wage rules, deductions, limitation periods, and enforcement channels require jurisdiction sources."
+    },
+    {
+      "id": "ILO-C181",
+      "title": "Private Employment Agencies Convention, 1997 (No. 181)",
+      "jurisdiction": "international",
+      "source_type": "international_standard",
+      "authority": "International Labour Organization",
+      "url": "https://www.ilo.org/dyn/normlex/en/f?p=NORMLEXPUB:12100:0::NO:12100:P12100_INSTRUMENT_ID:312326:NO",
+      "verification_status": "verified_international_anchor",
+      "verified_date": "2026-06-29",
+      "coverage_tags": ["recruitment_fees", "agency_licensing", "contract_substitution"],
+      "use_limitations": "International recruitment-agency anchor only; do not infer current national fee caps, license status, or complaint office without source objects."
+    },
+    {
+      "id": "ILO-C189",
+      "title": "Domestic Workers Convention, 2011 (No. 189)",
+      "jurisdiction": "international",
+      "source_type": "international_standard",
+      "authority": "International Labour Organization",
+      "url": "https://www.ilo.org/dyn/normlex/en/f?p=NORMLEXPUB:12100:0::NO:12100:P12100_INSTRUMENT_ID:2551460:NO",
+      "verification_status": "verified_international_anchor",
+      "verified_date": "2026-06-29",
+      "coverage_tags": ["domestic_work", "household_work", "movement_restriction", "safe_referral"],
+      "use_limitations": "International domestic-work anchor only; local coverage, immigration risk, and complaint/referral channels must be checked in country sources."
+    },
+    {
+      "id": "LOCAL-BD-RECRUITMENT",
+      "title": "Bangladesh recruitment, migration, wage, and complaint-channel source objects",
+      "jurisdiction": "BD",
+      "source_type": "country_law_placeholder",
+      "authority": "Official labour, migration, recruitment, court, or regulator sources to be curated",
+      "url": "",
+      "verification_status": "needs_source",
+      "verified_date": null,
+      "coverage_tags": ["cross_border_recruitment_law", "recruitment_fees", "contract_substitution"],
+      "use_limitations": "Pending: do not score or generate country-law certainty until dated official or public-interest sources are added."
+    },
+    {
+      "id": "LOCAL-NP-DOMESTIC-WORK",
+      "title": "Nepal origin-country migration/domestic-work guidance and destination coverage source objects",
+      "jurisdiction": "NP",
+      "source_type": "country_law_placeholder",
+      "authority": "Official labour, migration, consular, court, or regulator sources to be curated",
+      "url": "",
+      "verification_status": "needs_source",
+      "verified_date": null,
+      "coverage_tags": ["domestic_work_and_safe_referral", "document_control", "retaliation_risk"],
+      "use_limitations": "Pending: model answers must flag source uncertainty and safety risk rather than assert coverage or referral routes."
+    },
+    {
+      "id": "LOCAL-ID-FISHERIES",
+      "title": "Indonesia fishery, seafarer, recruitment, flag-state, and port-state source objects",
+      "jurisdiction": "ID",
+      "source_type": "country_law_placeholder",
+      "authority": "Official labour, maritime, fisheries, court, port-state, or regulator sources to be curated",
+      "url": "",
+      "verification_status": "needs_source",
+      "verified_date": null,
+      "coverage_tags": ["maritime_fisheries", "withheld_documents", "unpaid_overtime"],
+      "use_limitations": "Pending: do not collapse multi-state maritime responsibility into a single local-law answer."
+    },
+    {
+      "id": "LOCAL-KE-REGISTRY",
+      "title": "Kenya recruitment-license registry and overseas-work complaint-channel source objects",
+      "jurisdiction": "KE",
+      "source_type": "country_law_placeholder",
+      "authority": "Official registry, labour, migration, court, or regulator sources to be curated",
+      "url": "",
+      "verification_status": "needs_source",
+      "verified_date": null,
+      "coverage_tags": ["informal_registry_verification", "agency_licensing", "whatsapp_recruitment"],
+      "use_limitations": "Pending: screenshots or social posts are not enough; require registry lookup date, archive, and official source trail."
+    },
+    {
+      "id": "LOCAL-GH-TRAINING-FEES",
+      "title": "Ghana training-fee, consumer-credit, labour, education, and migration source objects",
+      "jurisdiction": "GH",
+      "source_type": "country_law_placeholder",
+      "authority": "Official education, consumer, labour, migration, court, or regulator sources to be curated",
+      "url": "",
+      "verification_status": "needs_source",
+      "verified_date": null,
+      "coverage_tags": ["education_training_fee_fraud", "consumer_credit", "penalty_clause"],
+      "use_limitations": "Pending: keep labour, education, consumer-credit, and migration issues separate until source verified."
+    },
+    {
+      "id": "LOCAL-KH-WAGE-HOUSING-ASSOCIATION",
+      "title": "Cambodia wage, dormitory, association, and retaliation source objects",
+      "jurisdiction": "KH",
+      "source_type": "country_law_placeholder",
+      "authority": "Official labour, special-economic-zone, union, court, or regulator sources to be curated",
+      "url": "",
+      "verification_status": "needs_source",
+      "verified_date": null,
+      "coverage_tags": ["wage_housing_and_association", "wage_deductions", "housing_charges", "association_rights", "retaliation_risk"],
+      "use_limitations": "Pending: do not infer current wage, housing, association, or retaliation protections from scanned notices or buyer codes without source objects."
+    },
+    {
+      "id": "LOCAL-PH-FEE-WAGE-RECOVERY",
+      "title": "Philippines fee-label, wage recovery, consular, and labour-referral source objects",
+      "jurisdiction": "PH",
+      "source_type": "country_law_placeholder",
+      "authority": "Official labour, migration, consular, court, or regulator sources to be curated",
+      "url": "",
+      "verification_status": "needs_source",
+      "verified_date": null,
+      "coverage_tags": ["fee_label_and_wage_recovery", "recruitment_fees", "wage_recovery", "safe_referral", "retaliation_risk"],
+      "use_limitations": "Pending: fee-label, wage-recovery, and referral claims require dated source objects and destination-scope review."
+    },
+    {
+      "id": "LOCAL-ET-INFORMAL-CONTRACT",
+      "title": "Ethiopia informal-contract evidence, domestic-work, and safe-referral source objects",
+      "jurisdiction": "ET",
+      "source_type": "country_law_placeholder",
+      "authority": "Official labour, migration, consular, court, or regulator sources to be curated",
+      "url": "",
+      "verification_status": "needs_source",
+      "verified_date": null,
+      "coverage_tags": ["informal_contract_evidence", "domestic_work", "household_work", "safe_referral"],
+      "use_limitations": "Pending: informal messages or voice notes can be evidence leads, but local coverage and referral routes require source verification."
+    },
+    {
+      "id": "LOCAL-UG-VOLATILE-REGULATION",
+      "title": "Uganda date-sensitive labour update and complaint-path source objects",
+      "jurisdiction": "UG",
+      "source_type": "country_law_placeholder",
+      "authority": "Official labour, agriculture, court, local-office, or regulator sources to be curated",
+      "url": "",
+      "verification_status": "needs_source",
+      "verified_date": null,
+      "coverage_tags": ["volatile_local_regulation", "overtime_rules", "complaint_channel", "date_sensitive_law"],
+      "use_limitations": "Pending: do not treat social-media updates or office posts as current law until archived, dated, and corroborated."
+    },
+    {
+      "id": "LOCAL-NG-CONSUMER-LENDING-MIGRATION",
+      "title": "Nigeria consumer-lending, recruitment-fraud, privacy, and labour-migration source objects",
+      "jurisdiction": "NG",
+      "source_type": "country_law_placeholder",
+      "authority": "Official consumer-credit, data-protection, labour, migration, police, court, or regulator sources to be curated",
+      "url": "",
+      "verification_status": "needs_source",
+      "verified_date": null,
+      "coverage_tags": ["consumer_lending_migration_debt", "consumer_credit", "recruitment_fraud", "privacy_risk"],
+      "use_limitations": "Pending: keep debt, privacy, criminal complaint, and labour-migration remedies separate until source verified."
+    },
+    {
+      "id": "LOCAL-LK-INJURY-VISA",
+      "title": "Sri Lanka injury compensation, visa exposure, and overseas-worker referral source objects",
+      "jurisdiction": "LK",
+      "source_type": "country_law_placeholder",
+      "authority": "Official labour, migration, consular, compensation, court, or regulator sources to be curated",
+      "url": "",
+      "verification_status": "needs_source",
+      "verified_date": null,
+      "coverage_tags": ["injury_compensation_and_visa", "injury_compensation", "immigration_risk", "safe_referral"],
+      "use_limitations": "Pending: injury, wage replacement, immigration exposure, and referral claims require origin and destination source objects."
+    },
+    {
+      "id": "LOCAL-CO-VE-TENANCY-WORKER-HOUSING",
+      "title": "Colombia and Venezuela migration, wage, tenancy, and worker-housing source objects",
+      "jurisdiction": "CO",
+      "source_type": "country_law_placeholder",
+      "authority": "Official labour, tenancy, migration, court, municipal, or regulator sources to be curated",
+      "url": "",
+      "verification_status": "needs_source",
+      "verified_date": null,
+      "coverage_tags": ["tenancy_eviction_worker_housing", "wage_claim", "housing_eviction", "immigration_status"],
+      "use_limitations": "Pending: do not collapse wage, tenancy, housing, and migration-status protections into one remedy without jurisdiction source objects."
+    },
+    {
+      "id": "INFORMAL-PUBLICATION-PATTERN",
+      "title": "Facebook, WhatsApp, Telegram, scanned notices, and informal registry publication pattern",
+      "jurisdiction": "cross_jurisdiction",
+      "source_type": "publication_pattern",
+      "authority": "Informal public or semi-public channels requiring archive/date verification",
+      "url": "",
+      "verification_status": "unsafe_without_archive",
+      "verified_date": null,
+      "coverage_tags": ["informal_notice", "registry_screenshot", "social_media_guidance"],
+      "use_limitations": "Treat as a verification problem, not as legal authority, unless archived and corroborated by official/public-interest sources."
+    }
+  ]
+}

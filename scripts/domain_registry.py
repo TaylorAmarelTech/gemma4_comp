@@ -93,6 +93,16 @@ def resolve_scheme_pack(domain_id: str, path: pathlib.Path | None = None) -> pat
     return candidate if candidate.is_absolute() else (_ROOT / rel)
 
 
+def resolve_grounding_manifest(domain_id: str, path: pathlib.Path | None = None) -> pathlib.Path | None:
+    """Resolve a domain's optional grounding-manifest path."""
+    spec = get_domain(domain_id, path)
+    rel = spec.get("grounding_manifest")
+    if not rel:
+        return None
+    candidate = pathlib.Path(rel)
+    return candidate if candidate.is_absolute() else (_ROOT / rel)
+
+
 def _main() -> None:
     import argparse
 

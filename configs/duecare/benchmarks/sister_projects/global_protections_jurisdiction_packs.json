@@ -1,0 +1,197 @@
+{
+  "_meta": {
+    "purpose": "Propose-only pilot jurisdiction-pack matrix for the Global Protections Regulatory Benchmark. It chooses concrete curation scopes and domain lenses but contains no source-verified legal claims.",
+    "status": "propose-only -- every pack cell needs dated source objects, privacy review, source-path review, and expert review before prompts, public claims, worker-facing use, or comparable scoring.",
+    "version": "0.1",
+    "date": "2026-06-29",
+    "consumed_by": [
+      "scripts/build_global_protections_jurisdiction_pack_matrix.py",
+      "scripts/validate_global_protections_jurisdiction_pack_matrix.py"
+    ]
+  },
+  "project_id": "global_protections_regulatory_benchmark",
+  "status": "propose_only",
+  "pilot_policy": "Use this matrix only to plan source curation. A jurisdiction pack is not accepted until every required source-object slot has a dated public source, archive status, privacy review, source-path review, and expert review.",
+  "domain_lenses": [
+    {
+      "id": "cross_border_worker_protections",
+      "label": "Cross-border worker protections",
+      "source_object_slots": [
+        "primary_law_or_regulation",
+        "ministry_or_regulator_notice",
+        "complaint_or_remedy_forum_locator",
+        "public_interest_context",
+        "expert_review_note"
+      ],
+      "review_gates": [
+        "source_object_coverage",
+        "scope_resolution",
+        "privacy_review",
+        "expert_review",
+        "grounding_layer"
+      ]
+    },
+    {
+      "id": "digital_consumer_credit_worker_debt",
+      "label": "Digital consumer credit and worker debt",
+      "source_object_slots": [
+        "primary_law_or_regulation",
+        "financial_regulator_notice",
+        "complaint_or_remedy_forum_locator",
+        "public_interest_context",
+        "expert_review_note"
+      ],
+      "review_gates": [
+        "source_object_coverage",
+        "scope_resolution",
+        "privacy_review",
+        "expert_review",
+        "grounding_layer"
+      ]
+    },
+    {
+      "id": "informal_housing_tenancy_eviction",
+      "label": "Informal housing and tenancy protection",
+      "source_object_slots": [
+        "primary_law_or_regulation",
+        "housing_or_local_authority_notice",
+        "complaint_or_remedy_forum_locator",
+        "public_interest_context",
+        "expert_review_note"
+      ],
+      "review_gates": [
+        "source_object_coverage",
+        "scope_resolution",
+        "privacy_review",
+        "expert_review",
+        "grounding_layer"
+      ]
+    }
+  ],
+  "pilot_jurisdiction_scopes": [
+    {
+      "id": "bd_origin_state",
+      "label": "Bangladesh origin-state scope",
+      "iso3166_alpha2": "BD",
+      "jurisdiction_family": "South Asia origin states",
+      "jurisdiction_role": "origin_state",
+      "language_review_required": true,
+      "scope_resolution_required": false
+    },
+    {
+      "id": "np_origin_state",
+      "label": "Nepal origin-state scope",
+      "iso3166_alpha2": "NP",
+      "jurisdiction_family": "South Asia origin states",
+      "jurisdiction_role": "origin_state",
+      "language_review_required": true,
+      "scope_resolution_required": false
+    },
+    {
+      "id": "lk_origin_state",
+      "label": "Sri Lanka origin-state scope",
+      "iso3166_alpha2": "LK",
+      "jurisdiction_family": "South Asia origin states",
+      "jurisdiction_role": "origin_state",
+      "language_review_required": true,
+      "scope_resolution_required": false
+    },
+    {
+      "id": "ph_origin_state",
+      "label": "Philippines origin-state scope",
+      "iso3166_alpha2": "PH",
+      "jurisdiction_family": "Southeast Asia origin states",
+      "jurisdiction_role": "origin_state",
+      "language_review_required": true,
+      "scope_resolution_required": false
+    },
+    {
+      "id": "id_origin_destination",
+      "label": "Indonesia origin and destination scope",
+      "iso3166_alpha2": "ID",
+      "jurisdiction_family": "Southeast Asia origin states",
+      "jurisdiction_role": "origin_and_destination_state",
+      "language_review_required": true,
+      "scope_resolution_required": false
+    },
+    {
+      "id": "ke_origin_destination",
+      "label": "Kenya origin and destination scope",
+      "iso3166_alpha2": "KE",
+      "jurisdiction_family": "East Africa origin and destination states",
+      "jurisdiction_role": "origin_and_destination_state",
+      "language_review_required": true,
+      "scope_resolution_required": false
+    },
+    {
+      "id": "gh_origin_destination",
+      "label": "Ghana origin and destination scope",
+      "iso3166_alpha2": "GH",
+      "jurisdiction_family": "West Africa origin and destination states",
+      "jurisdiction_role": "origin_and_destination_state",
+      "language_review_required": true,
+      "scope_resolution_required": false
+    },
+    {
+      "id": "qa_destination_forum",
+      "label": "Qatar destination-forum scope",
+      "iso3166_alpha2": "QA",
+      "jurisdiction_family": "Gulf and other destination corridors only after concrete forum scope",
+      "jurisdiction_role": "destination_forum",
+      "language_review_required": true,
+      "scope_resolution_required": true
+    }
+  ],
+  "queued_jurisdiction_scopes": [
+    {
+      "id": "kh_domestic_supply_chain",
+      "label": "Cambodia domestic and export-supply-chain scope",
+      "iso3166_alpha2": "KH",
+      "jurisdiction_family": "Southeast Asia origin states",
+      "jurisdiction_role": "domestic_and_export_supply_chain",
+      "language_review_required": true,
+      "scope_resolution_required": true,
+      "queued_reason": "Required by wage, housing, association, and retaliation source-gap prompt category before any scored use."
+    },
+    {
+      "id": "et_origin_domestic_work",
+      "label": "Ethiopia origin-state and domestic-work migration scope",
+      "iso3166_alpha2": "ET",
+      "jurisdiction_family": "East Africa origin and destination states",
+      "jurisdiction_role": "origin_state",
+      "language_review_required": true,
+      "scope_resolution_required": true,
+      "queued_reason": "Required by informal-contract and domestic-work source-gap prompt category before any scored use."
+    },
+    {
+      "id": "ug_origin_agriculture",
+      "label": "Uganda seasonal-agriculture and labour-update scope",
+      "iso3166_alpha2": "UG",
+      "jurisdiction_family": "East Africa origin and destination states",
+      "jurisdiction_role": "origin_and_domestic_sector_scope",
+      "language_review_required": true,
+      "scope_resolution_required": true,
+      "queued_reason": "Required by volatile local regulation source-gap prompt category before any scored use."
+    },
+    {
+      "id": "ng_origin_credit_migration",
+      "label": "Nigeria consumer-credit and overseas-recruitment scope",
+      "iso3166_alpha2": "NG",
+      "jurisdiction_family": "West Africa origin and destination states",
+      "jurisdiction_role": "origin_state",
+      "language_review_required": true,
+      "scope_resolution_required": true,
+      "queued_reason": "Required by consumer-lending and migration-debt source-gap prompt category before any scored use."
+    },
+    {
+      "id": "co_ve_migrant_worker_housing",
+      "label": "Colombia destination and Venezuela-origin migrant-worker housing scope",
+      "iso3166_alpha2": "CO",
+      "jurisdiction_family": "Latin America origin and destination states",
+      "jurisdiction_role": "destination_state_with_origin_status_review",
+      "language_review_required": true,
+      "scope_resolution_required": true,
+      "queued_reason": "Required by tenancy, eviction, wage, and migration-status source-gap prompt category before any scored use."
+    }
+  ]
+}
