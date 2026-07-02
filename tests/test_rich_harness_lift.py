@@ -173,11 +173,24 @@ def test_allowed_non_trafficking_diagnostic_uses_isolated_paths(tmp_path):
     assert rc == 0
 
 
+def test_rubric_v2_uses_isolated_panel_and_report_paths():
+    traffic_paths = rh.run_paths_for_domain("trafficking", rubric_version="v2")
+    domain_paths = rh.run_paths_for_domain("developing_country_worker_protections", rubric_version="v2")
+
+    assert traffic_paths["results"] == rh.RESULTS
+    assert traffic_paths["panel"] != rh.PANEL
+    assert traffic_paths["panel"].name == "panel_v2.jsonl"
+    assert traffic_paths["report"].name == "rich_harness_lift_100_v2.md"
+    assert domain_paths["panel"].name == "panel_v2.jsonl"
+    assert domain_paths["report"].name == "rich_harness_lift_100_v2.md"
+
+
 def test_judge_panel_passes_domain_spec_to_component_judge(tmp_path, monkeypatch):
     seen = {}
 
-    def fake_components(prompt, response, *, model, caller, domain_spec):
+    def fake_components(prompt, response, *, model, caller, domain_spec, rubric_version):
         seen["domain_spec"] = domain_spec
+        seen["rubric_version"] = rubric_version
         return {"score": 81.0, **{k: 1.0 for k, _label, _max_points in rh.COMPONENTS}}
 
     monkeypatch.setattr(rh, "judge_components", fake_components)
@@ -190,6 +203,35 @@ def test_judge_panel_passes_domain_spec_to_component_judge(tmp_path, monkeypatch
 
     assert n == 1
     assert seen["domain_spec"] == spec
+    assert seen["rubric_version"] == "v1"
+
+
+def test_judge_panel_v2_tags_rows_and_applies_citation_gate(tmp_path, monkeypatch):
+    def fake_components(prompt, response, *, model, caller, domain_spec, rubric_version):
+        assert rubric_version == "v2"
+        return {"A": 20.0, "B": 20.0, "C": 20.0, "D": 10.0, "E": 10.0, "F": 7.0, "score": 80.0}
+
+    monkeypatch.setattr(rh, "judge_components", fake_components)
+    results = [{
+        "model": "candidate",
+        "prompt_id": "D1",
+        "arm": "baseline",
+        "prompt_text": "q",
+        "response": "This cites ILO C999 as if it were real.",
+    }]
+
+    panel_path = tmp_path / "panel_v2.jsonl"
+    n = rh.judge_panel(results, ["judge"], panel_path=panel_path, judge_caller=None,
+                       pace=0.0, log=lambda _m: None, rubric_version="v2")
+    rows = [json.loads(line) for line in panel_path.read_text(encoding="utf-8").splitlines()]
+
+    assert n == 1
+    assert rows[0]["rubric"] == "v2"
+    assert rows[0]["components"]["B"] == rh.CITATION_GATE_B_CAP
+    assert rows[0]["components"]["F"] == 7.0
+    assert rows[0]["score_0_100"] == 68.0
+    assert rows[0]["citation_gate"]["fired"] is True
+    assert rows[0]["citation_gate"]["b_raw"] == 20.0
 
 
 def test_pairwise_passes_domain_spec_to_judge_pair(tmp_path, monkeypatch):
@@ -288,3 +330,123 @@ def test_aggregate_lift_math(tmp_path):
     assert row["lift_full_vs_baseline"] == 45.0            # 90 - 45
     assert row["lift_full_vs_core"] == 17.5                # 90 - 72.5
     assert row["n_prompts"] == 2
+
+
+def test_aggregate_v2_filters_rows_and_reports_f_channel():
+    panel = []
+    for rubric, score_offset in [(None, 0), ("v2", 10)]:
+        for arm, sc in (("baseline", 40), ("harness_core", 70), ("harness_full", 90)):
+            row = {
+                "key": f"model|P1|{arm}|{rubric or 'v1'}",
+                "model": "model",
+                "arm": arm,
+                "prompt_id": "P1",
+                "judge": "judge",
+                "score_0_100": sc + score_offset,
+                "components": {"A": 1.0 + score_offset, "B": 2.0, "C": 3.0, "D": 4.0, "E": 5.0},
+            }
+            if rubric:
+                row["rubric"] = rubric
+                row["components"]["F"] = 6.0
+            panel.append(row)
+
+    agg = rh.aggregate(panel, ["judge"], rubric_version="v2")
+
+    assert agg["rubric_version"] == "v2"
+    assert agg["models"][0]["panel_arm"]["baseline"] == 50.0
+    assert agg["components_by_arm"]["baseline"]["F"] == 6.0
+    assert agg["components_by_arm"]["baseline"]["A"] == 11.0
+
+
+def test_build_report_v2_marks_non_comparable_and_lists_f(tmp_path):
+    agg = {
+        "rubric_version": "v2",
+        "models": [{
+            "model": "model",
+            "per_judge": {"judge": {"baseline": 50.0, "harness_core": 70.0, "harness_full": 90.0}},
+            "panel_arm": {"baseline": 50.0, "harness_core": 70.0, "harness_full": 90.0},
+            "n_prompts": 1,
+            "lift_full_vs_baseline": 40.0,
+            "lift_core_vs_baseline": 20.0,
+            "lift_full_vs_core": 20.0,
+        }],
+        "krippendorff_alpha": 1.0,
+        "mean_response_agreement_stdev": 0.0,
+        "n_responses": 3,
+        "components_by_arm": {
+            "baseline": {"A": 1.0, "B": 2.0, "C": 3.0, "D": 4.0, "E": 5.0, "F": 1.0},
+            "harness_core": {"A": 2.0, "B": 3.0, "C": 4.0, "D": 5.0, "E": 6.0, "F": 4.0},
+            "harness_full": {"A": 3.0, "B": 4.0, "C": 5.0, "D": 6.0, "E": 7.0, "F": 8.0},
+        },
+    }
+
+    md = rh.build_report(agg, ["judge"], out_path=tmp_path / "report.md")
+
+    assert "Rubric v2 run (opt-in)" in md
+    assert "NOT comparable with v1" in md
+    assert "F. Appropriate engagement" in md
+    assert "--rubric-version v2" in md
+
+
+def test_main_report_only_passes_rubric_version_through(tmp_path, monkeypatch, capsys):
+    prompt_path = tmp_path / "promptset.json"
+    prompt_path.write_text(json.dumps({
+        "domain": "trafficking",
+        "prompts": [{"id": "P1", "text": "prompt"}],
+    }), encoding="utf-8")
+    panel_path = tmp_path / "panel_v2.jsonl"
+    pairwise_path = tmp_path / "pairwise.jsonl"
+    report_path = tmp_path / "report_v2.md"
+    panel_path.write_text(json.dumps({
+        "key": "model|P1|baseline",
+        "model": "model",
+        "arm": "baseline",
+        "prompt_id": "P1",
+        "judge": "judge",
+        "score_0_100": 50.0,
+        "rubric": "v2",
+    }) + "\n", encoding="utf-8")
+    pairwise_path.write_text("", encoding="utf-8")
+    seen = {}
+
+    def fake_paths(domain_id, rubric_version):
+        seen["path_domain"] = domain_id
+        seen["path_rubric"] = rubric_version
+        return {"results": tmp_path / "results.jsonl", "panel": panel_path,
+                "pairwise": pairwise_path, "report": report_path}
+
+    def fake_aggregate(panel, judges, rubric_version):
+        seen["aggregate_rubric"] = rubric_version
+        return {
+            "rubric_version": rubric_version,
+            "models": [],
+            "krippendorff_alpha": None,
+            "mean_response_agreement_stdev": 0.0,
+            "n_responses": len(panel),
+            "components_by_arm": {},
+        }
+
+    def fake_report(agg, judges, *, out_path, pairwise_agg=None):
+        seen["report_rubric"] = agg["rubric_version"]
+        out_path.write_text("ok", encoding="utf-8")
+        return "ok"
+
+    monkeypatch.setattr(rh, "run_paths_for_domain", fake_paths)
+    monkeypatch.setattr(rh, "aggregate", fake_aggregate)
+    monkeypatch.setattr(rh, "build_report", fake_report)
+
+    rc = rh.main([
+        "--prompts", str(prompt_path),
+        "--report-only",
+        "--rubric-version", "v2",
+        "--judges", "judge",
+    ])
+
+    assert rc == 0
+    assert seen == {
+        "path_domain": "trafficking",
+        "path_rubric": "v2",
+        "aggregate_rubric": "v2",
+        "report_rubric": "v2",
+    }
+    assert "n_responses=1" in capsys.readouterr().out
