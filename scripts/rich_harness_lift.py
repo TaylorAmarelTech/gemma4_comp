@@ -104,6 +104,11 @@ def _require_harness_version(version: str) -> str:
 # F means the arm helped, a low F means it refused; a harness that LOWERS F vs baseline is over-refusing.
 INTENTS = ("adversarial", "benign")
 DEFAULT_INTENT = "adversarial"
+_SAFE_BENIGN_CONTROL_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,80}$")
+_BENIGN_CONTROL_PRIVATE_HINT = re.compile(
+    r"(?i)(?:[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}|(?:file|https?|ftp|s3|mailto):|\\Users\\|/users/|OneDrive/Documents|AppData/Local)"
+)
+_SAFE_EXTERNAL_BENIGN_CONTROL_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,80}$")
 
 
 def prompt_intent(prompt: dict) -> str:
@@ -126,6 +131,7 @@ def display_components(rubric_version: str = DEFAULT_RUBRIC_VERSION) -> tuple:
     return COMPONENTS_V2 if rubric_version == "v2" else COMPONENTS
 
 SCHEME_PROMPTS = _ROOT / "configs" / "duecare" / "benchmarks" / "scheme_prompts.json"
+BENIGN_CONTROL_PROMPTS_REL = "configs/duecare/benchmarks/benign_control_prompts.json"
 REUSE_DEFAULT = _ROOT / "reports" / "scheme_run.responses.jsonl"
 OUT_DIR = _ROOT / "reports" / "rich_lift"
 RESULTS = OUT_DIR / "results.jsonl"
@@ -290,6 +296,119 @@ def _prompts_from_doc(doc: dict | list, n: int) -> list[dict]:
 
 def load_prompts(n: int, path: pathlib.Path = SCHEME_PROMPTS) -> list[dict]:
     return _prompts_from_doc(load_prompt_doc(path), n)
+
+
+def benign_control_prompt_summary(doc: dict | list) -> dict:
+    """Aggregate-only shape/privacy summary for an opt-in benign-control prompt set.
+
+    The runner refuses malformed benign controls instead of silently coercing them into ``intent=benign``.
+    Diagnostics are counts and allowlisted shape labels only so a bad copied file cannot leak prompt text,
+    contact details, or local paths into logs.
+    """
+    summary = {
+        "doc_shape": None,
+        "top_level_intent": None,
+        "prompts_shape": None,
+        "prompt_count": 0,
+        "row_shape_issue_count": 0,
+        "missing_or_invalid_id_count": 0,
+        "duplicate_id_count": 0,
+        "non_benign_intent_count": 0,
+        "blank_text_count": 0,
+        "private_hint_count": 0,
+    }
+    if not isinstance(doc, dict):
+        summary["doc_shape"] = "custom_or_invalid"
+        return summary
+    summary["doc_shape"] = "dict"
+    summary["top_level_intent"] = "benign_control" if doc.get("intent") == "benign_control" else "custom_or_invalid"
+    prompts = doc.get("prompts")
+    if not isinstance(prompts, list):
+        summary["prompts_shape"] = "custom_or_invalid"
+        return summary
+    summary["prompts_shape"] = "list"
+    summary["prompt_count"] = len(prompts)
+    seen_ids: set[str] = set()
+    for row in prompts:
+        if not isinstance(row, dict):
+            summary["row_shape_issue_count"] += 1
+            continue
+        prompt_id = row.get("id")
+        if isinstance(prompt_id, str) and _SAFE_BENIGN_CONTROL_ID.fullmatch(prompt_id.strip()):
+            normalized_id = prompt_id.strip()
+            if normalized_id in seen_ids:
+                summary["duplicate_id_count"] += 1
+            seen_ids.add(normalized_id)
+        else:
+            summary["missing_or_invalid_id_count"] += 1
+        if row.get("intent") != "benign":
+            summary["non_benign_intent_count"] += 1
+        text = row.get("text")
+        if not isinstance(text, str) or not text.strip():
+            summary["blank_text_count"] += 1
+        elif _BENIGN_CONTROL_PRIVATE_HINT.search(text):
+            summary["private_hint_count"] += 1
+    return summary
+
+
+def _benign_control_summary_ok(summary: dict) -> bool:
+    return (
+        summary.get("doc_shape") == "dict"
+        and summary.get("top_level_intent") == "benign_control"
+        and summary.get("prompts_shape") == "list"
+        and isinstance(summary.get("prompt_count"), int)
+        and summary.get("prompt_count") > 0
+        and summary.get("row_shape_issue_count") == 0
+        and summary.get("missing_or_invalid_id_count") == 0
+        and summary.get("duplicate_id_count") == 0
+        and summary.get("non_benign_intent_count") == 0
+        and summary.get("blank_text_count") == 0
+        and summary.get("private_hint_count") == 0
+    )
+
+
+def _format_benign_control_summary(summary: dict) -> str:
+    keys = (
+        "doc_shape",
+        "top_level_intent",
+        "prompts_shape",
+        "prompt_count",
+        "row_shape_issue_count",
+        "missing_or_invalid_id_count",
+        "duplicate_id_count",
+        "non_benign_intent_count",
+        "blank_text_count",
+        "private_hint_count",
+    )
+    return ", ".join(f"{key}={summary.get(key)}" for key in keys)
+
+
+def load_benign_control_prompts(path: pathlib.Path) -> list[dict]:
+    """Load a benign-control prompt set or raise a safe aggregate-only ``ValueError``."""
+    try:
+        doc = load_prompt_doc(path)
+    except json.JSONDecodeError as exc:
+        raise ValueError("json_decode_error") from exc
+    except OSError as exc:
+        raise ValueError("read_error") from exc
+    summary = benign_control_prompt_summary(doc)
+    if not _benign_control_summary_ok(summary):
+        raise ValueError(_format_benign_control_summary(summary))
+    prompts = doc["prompts"]
+    return [{**row, "id": str(row["id"]).strip(), "text": row["text"].strip(), "intent": "benign"}
+            for row in prompts]
+
+
+def benign_control_display_path(path: pathlib.Path) -> str:
+    """Privacy-safe path label for report reproduction commands."""
+    try:
+        rel = path.resolve().relative_to(_ROOT.resolve())
+    except (OSError, ValueError):
+        name = path.name
+        if _SAFE_EXTERNAL_BENIGN_CONTROL_NAME.fullmatch(name) and not _BENIGN_CONTROL_PRIVATE_HINT.search(name):
+            return f"external/{name}"
+        return "external/custom_or_invalid"
+    return rel.as_posix()
 
 
 def non_trafficking_domain_guard_message(domain_id: str) -> str:
@@ -982,7 +1101,8 @@ def _append_over_refusal_section(o: list[str], over_refusal: dict | None) -> Non
 
 
 def build_report(agg: dict, judges: list[str], *, out_path: pathlib.Path,
-                 pairwise_agg: dict | None = None) -> str:
+                 pairwise_agg: dict | None = None,
+                 benign_control_path: str | None = None) -> str:
     o: list[str] = []
     rubric_version = str(agg.get("rubric_version") or "v1")
     if rubric_version not in RUBRIC_VERSIONS:
@@ -1126,6 +1246,8 @@ def build_report(agg: dict, judges: list[str], *, out_path: pathlib.Path,
         reproduce_flags.append("--rubric-version v2")
     if harness_version != "h1":
         reproduce_flags.append(f"--harness-version {harness_version}")
+    if agg.get("over_refusal"):
+        reproduce_flags.append(f"--benign-control {benign_control_path or BENIGN_CONTROL_PROMPTS_REL}")
     reproduce_suffix = " " + " ".join(reproduce_flags) if reproduce_flags else ""
     o.append("## Reading this\n")
     if rubric_version == "v2":
@@ -1204,7 +1326,7 @@ def main(argv: list[str] | None = None) -> int:
                          "the run tagged intent=benign and graded through the same arms; the report then "
                          "splits the under-refusal lift (adversarial) from the over-refusal cost (benign, "
                          "F channel). Use the committed set at "
-                         "configs/duecare/benchmarks/benign_control_prompts.json")
+                         f"{BENIGN_CONTROL_PROMPTS_REL}")
     args = ap.parse_args(argv)
 
     models = [m.strip() for m in args.models.split(",") if m.strip()]
@@ -1235,13 +1357,19 @@ def main(argv: list[str] | None = None) -> int:
     run_paths = run_paths_for_domain(effective_domain, rubric_version=args.rubric_version,
                                      harness_version=args.harness_version)
     prompts = _prompts_from_doc(prompt_doc, args.n)
+    benign_control_report_path: str | None = None
     if args.benign_control:
         benign_path = pathlib.Path(args.benign_control)
         if not benign_path.exists():
             print(f"[rich-lift] benign control set not found: {benign_path}", file=sys.stderr)
             return 2
-        benign = [{**p, "intent": "benign"} for p in _prompts_from_doc(load_prompt_doc(benign_path), 0)]
+        try:
+            benign = load_benign_control_prompts(benign_path)
+        except ValueError as exc:
+            print(f"[rich-lift] invalid benign control set: {exc}", file=sys.stderr)
+            return 2
         prompts = prompts + benign
+        benign_control_report_path = benign_control_display_path(benign_path)
         print(f"[rich-lift] merged {len(benign)} benign control prompts (intent=benign) for the "
               f"over-refusal split", flush=True)
 
@@ -1278,7 +1406,8 @@ def main(argv: list[str] | None = None) -> int:
         agg = aggregate(panel, judges, rubric_version=args.rubric_version,
                         harness_version=args.harness_version)
         pw_agg = aggregate_pairwise(pairwise_rows, judges, harness_version=args.harness_version) if pairwise_rows else None
-        build_report(agg, judges, out_path=run_paths["report"], pairwise_agg=pw_agg)
+        build_report(agg, judges, out_path=run_paths["report"], pairwise_agg=pw_agg,
+                     benign_control_path=benign_control_report_path)
         print(f"[rich-lift] report -> {run_paths['report']} | n_responses={agg['n_responses']} "
               f"alpha={agg['krippendorff_alpha']}"
               + (f" | pairwise full-vs-core {pw_agg['models'][0]['panel_mean_delta']:+}"
