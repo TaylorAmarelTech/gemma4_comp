@@ -100,6 +100,7 @@ def test_sister_project_planning_validator_accepts_current_artifacts():
     assert report["summary"]["duplicate_id_issue_count"] == 0
     assert report["summary"]["readiness_gate_missing_block_concept_count"] == 0
     assert report["summary"]["source_admission_missing_concept_count"] == 0
+    assert report["summary"]["scored_capability_missing_concept_count"] == 0
     assert report["summary"]["project_privacy_issue_count"] == 0
     assert report["summary"]["jurisdiction_pack_privacy_issue_count"] == 0
     assert report["summary"]["grounding_metadata_privacy_issue_count"] == 0
@@ -307,6 +308,36 @@ def test_validator_rejects_weak_source_admission_rules_without_copying_rule_text
     assert removed_rule not in rendered
     assert "International instruments" not in rendered
     assert "Public complaint lists" not in rendered
+
+
+def test_validator_rejects_missing_scored_capability_without_copying_capability_text():
+    validator = _load_validator()
+    project, packs, grounding, prompts = _current_artifacts()
+    project = copy.deepcopy(project)
+    removed_capability = project["scored_capabilities"][-1]
+    project["scored_capabilities"] = project["scored_capabilities"][:-1]
+    project["scored_capabilities"].append(
+        "Internal curator-only capability with private worker@example.invalid"
+    )
+
+    report = validator.build_report(
+        project_config=project,
+        jurisdiction_packs=packs,
+        grounding_sources=grounding,
+        scheme_prompts=prompts,
+    )
+    rendered = json.dumps(report, ensure_ascii=False)
+    capability_check = next(
+        check for check in report["checks"]
+        if check["id"] == "scored_capabilities_cover_regulatory_miss_patterns"
+    )
+
+    assert report["summary"]["ok"] is False
+    assert report["summary"]["scored_capability_missing_concept_count"] == 1
+    assert "scored_capabilities_cover_regulatory_miss_patterns" in report["summary"]["failed_ids"]
+    assert capability_check["actual"] == ["refuses_to_invent_volatile_claims"]
+    assert removed_capability not in rendered
+    assert "worker@example.invalid" not in rendered
 
 
 def test_validator_rejects_private_grounding_metadata_without_copying_values():
@@ -692,7 +723,7 @@ def test_main_accepts_custom_artifact_paths(tmp_path, capsys):
     printed = capsys.readouterr().out
 
     assert rc == 0
-    assert "Sister-project planning validation - 27 checks, 0 findings" in printed
+    assert "Sister-project planning validation - 29 checks, 0 findings" in printed
     assert "prompt_patterns=10" in printed
     assert "undeclared_prompt_patterns=0" in printed
     assert "unresolved_prompts=12" in printed
@@ -700,6 +731,7 @@ def test_main_accepts_custom_artifact_paths(tmp_path, capsys):
     assert "missing_scope_jurisdictions=0" in printed
     assert "readiness_gate_missing=0" in printed
     assert "source_admission_missing=0" in printed
+    assert "scored_capability_missing=0" in printed
     assert "privacy_issues=project:0,packs:0,grounding:0" in printed
 
 
