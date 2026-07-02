@@ -16,6 +16,7 @@
 - Optional benchmark work lives in `kaggle/03-universal-llm-benchmark` for arbitrary endpoint comparisons and `kaggle/04-kaggle-community-benchmark` for Kaggle-native Community Benchmark tasks. Neither replaces the three-kernel recording path.
 - The public story has six setup lanes in this order: Platform safety, NGO & regulator, Individual worker / mobile, Researcher, Anonymized knowledge sharing, Developer / integration partner.
 - The workspace has 17 `duecare-llm*` package directories. As of 2026-05-28 the full suite is **1,493 tests** (run via `pwsh scripts/recover_test_env.ps1 -Full`): **1,490 pass, 3 skip, 0 fail — fully green**. The 15 pre-existing drift failures cataloged in [`docs/handoff_2026_05_27.md`](docs/handoff_2026_05_27.md) (docs, kernel-inventory, ui-audit, community-benchmark, and publish-orchestrator reconciliation) were all resolved 2026-05-27→28, along with the earlier 2 forge e2e and A-00 source-audit fixes. The 3 skips are conditional config-not-populated guards. Do not claim a full pass unless you ran the full suite.
+- **Current validation discipline (2026-07-01):** treat older suite counts in this file as historical. Before making current test or package-collection claims, rerun the relevant AGENTS.md/project-bible commands and report the exact command output from this session, especially `python -m pytest packages --collect-only -q`.
 - **Safe-text layer (2026-05-24):** `packages/duecare-llm-chat/src/duecare/chat/harnesses/_safe_text.py` is the single chokepoint every fact / share / search / template output flows through. Three concentric layers — scrub (kernel paths / RUN_IDs / synthetic case folder names), standardize (canonical 47-field envelope shape + 16 ILO indicators + 9 stages + XX-YY corridors), and the iterative polish endpoint `POST /api/knowledge/polish-envelope` (two Gemma 4 passes: critique then rewrite). UI: "Polish further (Gemma 4)" button in knowledge.html and search.html draft cards; both polish panels use the shared `window.dcDiff` inline word-diff renderer; knowledge.html also has a persisted sequential auto-polish queue for new draft batches; process.html typed edges can draft/polish/promote knowledge facts via `POST /api/knowledge/from-edge`; templates.html has `/static/samples/template_bundle_sample.json` with Download/Use sample buttons, `POST /api/templates/dry-run-fill` for pre-Generate field-source preview, and `POST /api/templates/fill-batch` behind "Fill all relevant" for batch drafting relevant templates from one bundle excerpt. Full reference: [`docs/safe_text_layer.md`](docs/safe_text_layer.md). Follow-up improvements ready to dispatch: [`docs/codex_followup_goals.md`](docs/codex_followup_goals.md).
 - **Bulk File Review graph gap (2026-05-24):** the visible `gemma_case_brief` phase is bundle-level synthesis. Deterministic parsing already creates row/page/chunk/folder-grounded typed edges, and bounded Gemma edge/media passes can add model edges, but the next architectural target is explicit hierarchical Gemma node/edge passes across folder, document, page, chunk, media, person, case, and rollup levels. Track this as [`docs/codex/goal_11_hierarchical_gemma_graph/handoff.md`](docs/codex/goal_11_hierarchical_gemma_graph/handoff.md).
 - **Knowledge surface state (verified via `scripts/verify_knowledge_surfaces.py`):** 451 GREP rules (categories A-NNNN; MMMM 2026-06-08: sham-status / misclassification citing ILO C095/R198; NNNN 2026-06-10: 24 digital-recruitment / crypto+e-wallet fee-rail / Gulf free-visa / student-visa-labour / corridor-depth rules citing ILO C181 Art.7 + Fair Recruitment 2016 + ICRMW Art.21) · 859 RAG documents (trafficking corpus; +13 migrant-worker conventions ILO C097/C143/ICRMW + IRIS + BD/ID/LK/IN origin-state laws + Kuwait DW law + US TVPA + AU/CA supply-chain acts + CoE Warsaw) plus a SEPARATE 610-doc multidomain corpus (51 integrity verticals, opt-in BM25 at `GET /api/multidomain/rag`, never commingled) · 652 example/showcase prompts (`_examples.json`, 8 audience buckets) · 36 complaint / narrative templates · 37 review personas · 57 fee-camouflage labels · 38 corridor fee-cap entries · 36 NGO contact bundles · 16 ILO conventions · 74,640 trafficking seed prompts. See [`docs/KNOWLEDGE_SURFACE_VERIFICATION.md`](docs/KNOWLEDGE_SURFACE_VERIFICATION.md).
@@ -25,6 +26,7 @@
 - Documentation edits should follow `docs/DOCUMENTATION_GUIDE.md`; agent edits should also honor the root `AGENTS.md`.
 - Repo-organization edits should also keep `docs/FILE_PURPOSE_GUIDE.md` and the relevant directory index current.
 - Keep generated report files out of commits unless Taylor explicitly asks to publish them.
+- **Long-loop pickup brief (2026-07-01):** read [`docs/codex/PROJECT_BIBLE.md`](docs/codex/PROJECT_BIBLE.md) before continuing autonomous improvement sessions. Claude Code also auto-loads [`.claude/rules/05_project_bible_pickup.md`](.claude/rules/05_project_bible_pickup.md), which points to the same living handoff and preserves the paused-engine boundary.
 
 ## Three overarching goals (every prompt, every action)
 
@@ -51,6 +53,7 @@ memory level. Current set:
 | # | File | Topic |
 |---|---|---|
 | 00 | [`00_overarching_goals.md`](.claude/rules/00_overarching_goals.md) | Three rubric goals (Impact / Video / Tech) |
+| 05 | [`05_project_bible_pickup.md`](.claude/rules/05_project_bible_pickup.md) | Long-loop pickup pointer to the current project bible |
 | 10 | [`10_safety_gate.md`](.claude/rules/10_safety_gate.md) | No PII in git / logs / artifacts |
 | 20 | [`20_code_style.md`](.claude/rules/20_code_style.md) | Python 3.11+, Pydantic v2, Protocol-based |
 | 30 | [`30_test_before_commit.md`](.claude/rules/30_test_before_commit.md) | `duecare test` before PR |
@@ -67,6 +70,7 @@ Additional root guidance:
 
 - [`AGENTS.md`](AGENTS.md) - cross-agent repo orientation and validation commands.
 - [`docs/DOCUMENTATION_GUIDE.md`](docs/DOCUMENTATION_GUIDE.md) - canonical public facts and documentation claims policy.
+- [`docs/codex/PROJECT_BIBLE.md`](docs/codex/PROJECT_BIBLE.md) - current long-loop pickup brief for Claude Code / Codex continuation work.
 
 Harness contract docs (load with `@docs/...` when relevant):
 
