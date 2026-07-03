@@ -207,6 +207,26 @@ layer's distinct value is the *volatile specifics* a safety rubric does not scor
 needs (the exact fee cap, the current hotline, the specific statute section) — facts the harness
 deliberately routes to tools rather than memorising.
 
+### 5.5 Framing robustness and cross-domain generalization
+
+Two extensions probe whether the effect is a general property of grounding rather than an artifact of
+one prompt style or one domain:
+
+- **Framing robustness.** The board tags each adversarial prompt with a *framing* — operator-voice, or
+  a third-party pretext (journalist, consultant, compliance-trainer, academic, policy-analyst,
+  software-founder, buried-benign) — and reports a **per-framing lift**. This directly measures the
+  worst-case failure the findings surfaced (GREP/retrieval under-firing on disguised, third-party
+  wrappers) rather than averaging it away; a harness that closes the gap fires on every wrapper, not
+  just the naked operator ask. The 1,848-prompt pretext set exists precisely to make this measurable.
+- **A second domain.** The harness mechanism is domain-neutral (injected GREP/RAG/tool callables). We
+  provide a **money-laundering** pack — a 20-rule GREP indicator layer (structuring, shell companies,
+  trade-based invoicing, funnel/mule accounts, crypto mixing, wire stripping, …) with real public AML
+  citations (FATF, US BSA, EU AMLD, UK POCA), 600 adversarial prompts reusing those indicators, and the
+  existing `fincrime_*` RAG vertical — as evidence the same lift machinery ports to financial crime.
+  This is **propose-only**: it is not a scored second leaderboard column until a domain expert validates
+  the legal mappings and source-verified retrieval/tools exist, exactly the discipline the trafficking
+  domain follows.
+
 ## 6. From measurement to improvement
 
 The benchmark is not only an evaluation; it is the supervision signal for a **train→eval→select** loop
