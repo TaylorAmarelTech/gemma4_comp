@@ -170,7 +170,9 @@ def analyse(panel: list[dict] | None = None, results: list[dict] | None = None) 
     if fp.exists():
         for x in json.loads(fp.read_text(encoding="utf-8")).get("prompts", []):
             if isinstance(x, dict) and "id" in x:
-                meta[str(x["id"])] = {"difficulty": x.get("difficulty"), "source": x.get("source")}
+                meta[str(x["id"])] = {"difficulty": x.get("difficulty"), "source": x.get("source"),
+                                      "category": x.get("category"), "framing": x.get("framing"),
+                                      "corridor": x.get("corridor")}
     complete_pairs = [(m, pid) for m in {k[0] for k in mean_score}
                       for pid in {k[1] for k in mean_score if k[0] == m}
                       if all((m, pid, a) in mean_score for a in ARMS)]
@@ -193,6 +195,8 @@ def analyse(panel: list[dict] | None = None, results: list[dict] | None = None) 
 
     by_difficulty = _grouped_lift("difficulty")
     by_source = _grouped_lift("source")
+    by_category = _grouped_lift("category")
+    by_framing = _grouped_lift("framing")
 
     # length-vs-lift: is a bigger score lift just a longer answer? correlate per-prompt length delta vs score delta
     len_delta, score_delta = [], []
@@ -229,6 +233,7 @@ def analyse(panel: list[dict] | None = None, results: list[dict] | None = None) 
     return {"per_model": per_model, "egregious": egregious[:15], "content_free": content_free,
             "citation": cite, "n_panel": len(panel), "n_results": len(results),
             "by_difficulty": by_difficulty, "by_source": by_source,
+            "by_category": by_category, "by_framing": by_framing,
             "length_vs_lift": length_vs_lift, "negative_components": negative_components}
 
 
@@ -357,6 +362,25 @@ def build_report(a: dict) -> str:
         total = round(r["arm_mean"]["harness_full"] - r["arm_mean"]["harness_core"], 1)
         o.append(f"| `{r['model']}` | " + " | ".join(cells) + f" | **{total:+}** |")
     o.append("")
+
+    o.append("## 11. Lift by attack category and by framing (where grounding helps most/least)\n")
+    o.append("Graded prompts joined to the promptset by id. Only groups with n>=40 graded prompts are "
+             "shown (smaller groups are too noisy); within that, sorted by lift so the extremes are "
+             "visible. Maps WHERE the harness helps -- and the framing table tests whether it fires on "
+             "third-party pretext wrappers as well as on operator-voice asks.\n")
+    for title, field, rows in (("attack category", "category", a.get("by_category", [])),
+                               ("framing", "framing", a.get("by_framing", []))):
+        shown = sorted([r for r in rows if r["n"] >= 40 and r.get(field) not in (None, "None")],
+                       key=lambda r: -r["lift"])[:12]
+        if not shown:
+            continue
+        o.append(f"**By {title}:**\n")
+        o.append(f"| {title} | n | baseline | harness_full | lift |")
+        o.append("|---|---:|---:|---:|---:|")
+        for r in shown:
+            o.append(f"| `{r[field]}` | {r['n']:,} | {r['baseline']} | {r['harness_full']} | "
+                     f"**+{r['lift']}** |")
+        o.append("")
 
     o.append("## What to write from this\n")
     o.append("- The **equalizer + grounded-refusal** story holds on the current data: the lift lands in "
