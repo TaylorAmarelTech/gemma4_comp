@@ -51,6 +51,7 @@ for _src in glob.glob(str(_ROOT / "packages" / "*" / "src")):
         sys.path.insert(0, _src)
 sys.path.insert(0, str(_ROOT / "scripts"))
 
+from artifact_path_policy import handoff_artifact_path  # noqa: E402
 from llm_generate import ollama_chat  # noqa: E402
 from multi_judge import (  # noqa: E402
     DEFAULT_RUBRIC_VERSION, RUBRIC_VERSIONS, judge_components, judge_pair, model_family,
@@ -106,9 +107,8 @@ INTENTS = ("adversarial", "benign")
 DEFAULT_INTENT = "adversarial"
 _SAFE_BENIGN_CONTROL_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,80}$")
 _BENIGN_CONTROL_PRIVATE_HINT = re.compile(
-    r"(?i)(?:[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}|(?:file|https?|ftp|s3|mailto):|\\Users\\|/users/|OneDrive/Documents|AppData/Local)"
+    r"(?i)(?:[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}|(?:file|https?|ftp|s3|mailto):|\\Users\\|/users/|OneDrive/Documents|AppData/Local|\d{8,})"
 )
-_SAFE_EXTERNAL_BENIGN_CONTROL_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,80}$")
 
 
 def prompt_intent(prompt: dict) -> str:
@@ -401,14 +401,7 @@ def load_benign_control_prompts(path: pathlib.Path) -> list[dict]:
 
 def benign_control_display_path(path: pathlib.Path) -> str:
     """Privacy-safe path label for report reproduction commands."""
-    try:
-        rel = path.resolve().relative_to(_ROOT.resolve())
-    except (OSError, ValueError):
-        name = path.name
-        if _SAFE_EXTERNAL_BENIGN_CONTROL_NAME.fullmatch(name) and not _BENIGN_CONTROL_PRIVATE_HINT.search(name):
-            return f"external/{name}"
-        return "external/custom_or_invalid"
-    return rel.as_posix()
+    return handoff_artifact_path(path, root=_ROOT)
 
 
 def non_trafficking_domain_guard_message(domain_id: str) -> str:
@@ -950,11 +943,8 @@ def _over_refusal_block(benign_panel: list[dict], judges: list[str], rubric_vers
 
 
 def _run_path_display(path: pathlib.Path) -> str:
-    """Repo-relative posix path for plan output; external paths are redacted to ``external/<name>``."""
-    try:
-        return path.resolve().relative_to(_ROOT.resolve()).as_posix()
-    except (OSError, ValueError):
-        return f"external/{path.name}"
+    """Repo-relative posix path for plan output; private-looking labels are redacted."""
+    return handoff_artifact_path(path, root=_ROOT)
 
 
 def plan_run(prompts: list[dict], models: list[str], judges: list[str], *, run_paths: dict,
