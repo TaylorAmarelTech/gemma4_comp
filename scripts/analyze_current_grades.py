@@ -164,8 +164,72 @@ def analyse(panel: list[dict] | None = None, results: list[dict] | None = None) 
         n = cite[a]["n"] or 1
         cite[a]["hallucinated_pct"] = round(100 * cite[a]["hallucinated"] / n, 1)
 
+    # --- deeper cuts: per-difficulty / per-source lift, length-vs-lift, negative-lift components ---
+    meta: dict[str, dict] = {}
+    fp = _ROOT / "reports" / "benchmark" / "full_promptset.json"
+    if fp.exists():
+        for x in json.loads(fp.read_text(encoding="utf-8")).get("prompts", []):
+            if isinstance(x, dict) and "id" in x:
+                meta[str(x["id"])] = {"difficulty": x.get("difficulty"), "source": x.get("source")}
+    complete_pairs = [(m, pid) for m in {k[0] for k in mean_score}
+                      for pid in {k[1] for k in mean_score if k[0] == m}
+                      if all((m, pid, a) in mean_score for a in ARMS)]
+
+    def _grouped_lift(field: str) -> list[dict]:
+        g: dict[str, dict[str, list[float]]] = collections.defaultdict(
+            lambda: {"base": [], "full": []})
+        for m, pid in complete_pairs:
+            key = str(meta.get(pid, {}).get(field) or "unknown")
+            g[key]["base"].append(mean_score[(m, pid, "baseline")])
+            g[key]["full"].append(mean_score[(m, pid, "harness_full")])
+        rows = []
+        for k, d in g.items():
+            if d["base"]:
+                b, f = statistics.mean(d["base"]), statistics.mean(d["full"])
+                rows.append({field: k, "n": len(d["base"]), "baseline": round(b, 1),
+                             "harness_full": round(f, 1), "lift": round(f - b, 1)})
+        rows.sort(key=lambda r: -r["n"])
+        return rows
+
+    by_difficulty = _grouped_lift("difficulty")
+    by_source = _grouped_lift("source")
+
+    # length-vs-lift: is a bigger score lift just a longer answer? correlate per-prompt length delta vs score delta
+    len_delta, score_delta = [], []
+    for m, pid in complete_pairs:
+        b, f = resp.get((m, pid, "baseline"), ""), resp.get((m, pid, "harness_full"), "")
+        if b and f:
+            len_delta.append(len(f) - len(b))
+            score_delta.append(mean_score[(m, pid, "harness_full")] - mean_score[(m, pid, "baseline")])
+    length_vs_lift = None
+    if len(len_delta) >= 10:
+        try:
+            length_vs_lift = {"pearson_r": round(statistics.correlation(len_delta, score_delta), 3),
+                              "n": len(len_delta),
+                              "mean_len_delta": int(statistics.mean(len_delta)),
+                              "mean_score_delta": round(statistics.mean(score_delta), 1)}
+        except (statistics.StatisticsError, ValueError):
+            length_vs_lift = None
+
+    # negative-lift deep-dive: on prompts where full < baseline, the mean per-component change
+    neg_comp = {c: [] for c in COMPONENTS}
+    neg_n = 0
+    for m, pid in complete_pairs:
+        if mean_score[(m, pid, "harness_full")] < mean_score[(m, pid, "baseline")]:
+            bc, fc = mean_comp.get((m, pid, "baseline"), {}), mean_comp.get((m, pid, "harness_full"), {})
+            if bc and fc:
+                neg_n += 1
+                for c in COMPONENTS:
+                    if c in bc and c in fc:
+                        neg_comp[c].append(fc[c] - bc[c])
+    negative_components = {"n": neg_n,
+                           "component_delta": {c: (round(statistics.mean(v), 1) if v else None)
+                                               for c, v in neg_comp.items()}}
+
     return {"per_model": per_model, "egregious": egregious[:15], "content_free": content_free,
-            "citation": cite, "n_panel": len(panel), "n_results": len(results)}
+            "citation": cite, "n_panel": len(panel), "n_results": len(results),
+            "by_difficulty": by_difficulty, "by_source": by_source,
+            "length_vs_lift": length_vs_lift, "negative_components": negative_components}
 
 
 def build_report(a: dict) -> str:
@@ -231,6 +295,47 @@ def build_report(a: dict) -> str:
         o.append(f"| `{e['model']}` | `{e['prompt_id']}` | {e['baseline']} | {e['harness_full']} | "
                  f"**+{e['lift']}** |")
     o.append("")
+
+    o.append("## 6. Lift by difficulty (what tiers we have actually graded)\n")
+    o.append("Honest coverage note: the current grades are skewed to the tiers the pre-session registry "
+             "held. The very_hard / multipath / pretext tiers were added this session and are NOT yet "
+             "graded -- they enter the pool when the sweep resumes.\n")
+    o.append("| Difficulty | n | baseline | harness_full | lift |")
+    o.append("|---|---:|---:|---:|---:|")
+    for r in a.get("by_difficulty", []):
+        o.append(f"| `{r['difficulty']}` | {r['n']:,} | {r['baseline']} | {r['harness_full']} | "
+                 f"**+{r['lift']}** |")
+    o.append("")
+
+    o.append("## 7. Lift by prompt source\n")
+    o.append("| Source | n | baseline | harness_full | lift |")
+    o.append("|---|---:|---:|---:|---:|")
+    for r in a.get("by_source", []):
+        o.append(f"| `{r['source']}` | {r['n']:,} | {r['baseline']} | {r['harness_full']} | "
+                 f"**+{r['lift']}** |")
+    o.append("")
+
+    lvl = a.get("length_vs_lift")
+    if lvl:
+        o.append("## 8. Is the lift just a longer answer? (length vs lift)\n")
+        o.append(f"Correlation between the per-prompt **response-length delta** (harness_full − baseline "
+                 f"chars) and the **score delta**, over {lvl['n']:,} prompts: **Pearson r = "
+                 f"{lvl['pearson_r']}**. Mean length delta {lvl['mean_len_delta']:+} chars, mean score "
+                 f"delta {lvl['mean_score_delta']:+}. A weak-to-moderate r means the lift is **not** "
+                 "merely verbosity -- the harness adds grounded content the rubric rewards, not just "
+                 "words. (If r were ~1, the score would just be tracking length.)\n")
+
+    nc = a.get("negative_components")
+    if nc and nc.get("n"):
+        o.append("## 9. When the harness HURTS -- what drops (negative-lift deep-dive)\n")
+        o.append(f"On the **{nc['n']}** prompts where harness_full scored *below* baseline, the mean "
+                 "per-component change (negative = the harness lost points on that criterion). This is "
+                 "the failure signature the harness-h2 fix targets:\n")
+        o.append("| A indicator | B cites law | C refuses | D resources | E safety |")
+        o.append("|---:|---:|---:|---:|---:|")
+        cd = nc["component_delta"]
+        o.append("| " + " | ".join(f"{cd.get(c):+}" if cd.get(c) is not None else "-" for c in COMPONENTS) + " |")
+        o.append("")
 
     o.append("## What to write from this\n")
     o.append("- The **equalizer + grounded-refusal** story holds on the current data: the lift lands in "
