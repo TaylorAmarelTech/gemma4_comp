@@ -329,8 +329,11 @@ def build_report(a: dict) -> str:
     if nc and nc.get("n"):
         o.append("## 9. When the harness HURTS -- what drops (negative-lift deep-dive)\n")
         o.append(f"On the **{nc['n']}** prompts where harness_full scored *below* baseline, the mean "
-                 "per-component change (negative = the harness lost points on that criterion). This is "
-                 "the failure signature the harness-h2 fix targets:\n")
+                 "per-component change (negative = the harness lost points on that criterion). A "
+                 "deterministic serving guard over these was MEASURED net-negative and ~65% of the tail is "
+                 "`other` (a full-length, still-cited reply the judge scored lower, not a collapse); the "
+                 "lever that works is serving `core` not `full` -- see "
+                 "`docs/research/harness_guard_analysis.md`:\n")
         o.append("| A indicator | B cites law | C refuses | D resources | E safety |")
         o.append("|---:|---:|---:|---:|---:|")
         cd = nc["component_delta"]
@@ -343,8 +346,10 @@ def build_report(a: dict) -> str:
              "capped (rubric v2).\n"
              "- The **residual-gap** table says where to aim the next harness/training iteration (the "
              "worst criterion per model).\n"
-             "- The **refusal-collapse** and **negative-lift** counts are the honest cost side -- the "
-             "harness-h2 fix targets exactly these.\n"
+             "- The **refusal-collapse** and **negative-lift** counts are the honest cost side. Measured "
+             "(`docs/research/harness_guard_analysis.md`): a baseline-fallback serving guard is "
+             "net-negative, and the lever that works is serving `harness_core` not `harness_full` "
+             "(core 87.1 > full 84.9; full <= core for every model).\n"
              "- The **egregious gallery** gives concrete, id-referenced before/after examples for the "
              "paper and the video, all from already-graded data.\n")
     return "\n".join(o) + "\n"

@@ -14,17 +14,28 @@
 2. **The lift completes a refusal; it does not cause one.** Gains concentrate in **B (cites law)** + **D
    (resources)** + **A (indicator)**, *not* **C (refuse)** - models already refuse. A bare refusal roughly
    equals the baseline; a grounded one (indicator + statute + hotline) is the +40.
-3. **The cheap offline core captures ~all the lift.** `full`-vs-`core` is approximately 0 (often slightly negative). The
-   value runs locally with no web/API.
+3. **The cheap offline core is not just as good as full - it is BETTER.** Measured on the committed
+   grades (`scripts/analyze_harness_guard.py` -> `docs/research/harness_guard_analysis.md`): served mean
+   **core 87.1 vs full 84.9** (+2.2), and `full <= core` for **every** model (gpt-oss -3.6, glm-5.2
+   -1.8, deepseek -1.3, gemma4 -1.0, qwen -0.7). The full harness's online / deep-RAG / tool layer adds
+   noise a strong reply does not need. **Serving `core` is the single measured lever against "the harness
+   hurts"** - and it runs locally with no web/API. **[ENGINE-CRITICAL board change - versioned re-grade.]**
 
 ## The convergent theme: bare refusal is the problem (matches Taylor's note)
 
 *"A refusal without details or citations is not very good"* is a failure across **three layers**:
 
-- **Harness - refusal collapse.** On **~14% of gpt-oss:120b prompts** the harness converts a correct
-  9,559-char legal analysis (baseline) into *"I'm sorry, but I can't help with that."* (harnessed) - a bare
-  refusal that scores C but destroys A/B/D/E (A/B drop -20). The **full harness is worse than core for every
-  model** (-0.8 to -2.7); the board reports `full`, under-reporting the achievable lift. **[ENGINE-CRITICAL]**
+- **Harness - where it hurts, measured honestly (2026-07-03 update).** The earlier "~14% of gpt-oss
+  prompts collapse to a bare refusal" figure was an early small-sample read and did **not** hold as the
+  board grew: on the committed grades only **~1 of 187** negative-lift prompts is a bare-refusal collapse
+  (`scripts/analyze_harness_guard.py`). The real negative-lift tail is **gpt-oss 170/1538 = 11.1%**, and
+  **~65% of it is `other`** - a full-length, still-cited harnessed reply the judge simply scored below a
+  strong baseline's essay (no deterministic loss signature). The **full harness is worse than core for
+  every model**; the board reports `full`, under-reporting the achievable lift. **A deterministic
+  baseline-fallback serving guard was built and MEASURED to be net-negative** (every policy misfires far
+  more than it recovers, because no cheap text test separates a grounded refusal that cites an ILO
+  *convention* from a bare "I can't help"); `harness_guard.DEFAULT_GUARD_POLICY = off`. The lever that
+  works is **serve `core`, not `full`.** **[ENGINE-CRITICAL board change]**
 - **Rubric - bare refusal is rewarded.** Criterion **C (25/100, tied largest)** credits a content-free "no"
   ~20-25 pts with no grounding requirement; a bare refusal scores ~25 only because A/B/D/E starve it.
   **Over-refusal of legitimate questions is unmeasured** (judge is intent-blind; benign control ~1.5%, 0% in
@@ -107,9 +118,16 @@
    contract to both harnessed preambles; h2 writes to its own `results_h2`/`panel_h2*`/`pairwise_h2`
    files with tagged rows and filtered aggregation, and reuses only the `baseline` arm from h1 runs
    (`tests/test_harness_v2.py`). Composes with `--rubric-version v2` (`panel_h2_v2.jsonl`). The
-   engine/board stays on h1; the measurement run (does h2 recover the ~14% collapse?) still needs the
-   scheduled versioned re-grade. The baseline-fallback variant and the core-as-headline board change
-   remain open.
+   engine/board stays on h1; the measurement run (does h2 recover the bare-collapse cases?) still needs
+   the scheduled versioned re-grade.
+   **Baseline-fallback variant - built and MEASURED, result: reject (2026-07-03).**
+   `scripts/harness_guard.py` (deterministic serving guard: `bare_nonanswer` / `citation_regression` /
+   `drastic_shortening` signals, composed by policy) + `scripts/analyze_harness_guard.py` +
+   `tests/test_harness_guard.py`. On the committed grades every fallback policy is **net-negative** (the
+   `min` policy: 512 fires, 54 recoveries +2.2k pts vs 458 misfires -21.1k pts), so
+   `DEFAULT_GUARD_POLICY = off`. Guard rejected; kept for reproducibility + re-measurement on other
+   domains. **The core-as-headline change is validated (core 87.1 > full 84.9) and remains the open
+   ENGINE-CRITICAL board change** - roll out with the versioned re-grade, not mid-sweep.
 5. **Intent-aware benchmark** - split under-refusal lift from over-refusal rate; grow the benign control set.
    **Code landed (opt-in):** prompts carry an `intent` label; `rich_harness_lift.aggregate` computes the
    safety lift over **adversarial prompts only** (a benign prompt can never inflate the lift) and emits a

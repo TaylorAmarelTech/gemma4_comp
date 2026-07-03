@@ -1,0 +1,316 @@
+#!/usr/bin/env python3
+"""Offline: which serving choice removes the negative-lift tail (where the harness HURTS)?
+
+Reads the committed run checkpoints ``reports/rich_lift/{panel,results}.jsonl`` and, over every
+(model, prompt) complete in all three arms, measures -- with NO new model call -- two independent levers
+against "the harness hurts":
+
+  1. WHICH HARNESS TO SERVE. The full harness underperforms the cheap core harness for every model
+     (the online/deep-RAG/tools layer adds noise to a strong reply). Serving ``harness_core`` instead of
+     ``harness_full`` is the larger, generation-time lever. Reported as a served-mean per strategy:
+     ``full`` / ``core`` / ``full+guard`` / ``core+guard``.
+
+  2. THE SERVING GUARD (``harness_guard``): fall back to the baseline reply on a deterministic loss of
+     grounding. Reported as fired / recovery (full<baseline, correctly reverted) / misfire (full>=
+     baseline, reverted where the harness had helped -> lift lost) per policy (``off`` / ``min`` /
+     ``len``). ``len`` includes the length signal only to show its measured net-negative effect.
+
+Also breaks the negative-lift prompts (harness_full < baseline) into deterministic harm modes
+(``bare_nonanswer`` / ``citation_regression`` / ``drastic_shortening`` / ``other``) so the
+un-catchable ``other`` residual -- the honest limit of a text-only guard -- is explicit.
+
+Fully deterministic; no model calls. No prompt or response text is copied -- aggregate counts only.
+
+    python scripts/analyze_harness_guard.py
+    python scripts/analyze_harness_guard.py --out docs/research/harness_guard_analysis.md
+"""
+from __future__ import annotations
+
+import argparse
+import collections
+import json
+import pathlib
+import statistics
+import sys
+
+_ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(_ROOT / "scripts"))
+
+from harness_guard import GUARD_POLICIES, GUARD_SIGNALS, guard_signals  # noqa: E402
+
+PANEL = _ROOT / "reports" / "rich_lift" / "panel.jsonl"
+RESULTS = _ROOT / "reports" / "rich_lift" / "results.jsonl"
+OUT_DEFAULT = _ROOT / "docs" / "research" / "harness_guard_analysis.md"
+ARMS = ("baseline", "harness_core", "harness_full")
+POLICIES = ("off", "min", "len")
+GUARD_MIN = GUARD_POLICIES["min"]
+MIN_PROMPTS = 40
+
+
+def _load(path: pathlib.Path) -> list[dict]:
+    if not path.exists():
+        return []
+    return [json.loads(ln) for ln in path.read_text(encoding="utf-8").splitlines() if ln.strip()]
+
+
+def _mean_scores(panel: list[dict]) -> dict[tuple, float]:
+    scores: dict[tuple, list[float]] = collections.defaultdict(list)
+    for p in panel:
+        try:
+            scores[(str(p["model"]), str(p["prompt_id"]), str(p["arm"]))].append(float(p["score_0_100"]))
+        except (KeyError, TypeError, ValueError):
+            continue
+    return {k: statistics.mean(v) for k, v in scores.items() if v}
+
+
+def _responses(results: list[dict]) -> dict[tuple, str]:
+    return {(str(r["model"]), str(r["prompt_id"]), str(r["arm"])): str(r.get("response", ""))
+            for r in results if all(k in r for k in ("model", "prompt_id", "arm"))}
+
+
+def _first_signal(sig: dict[str, bool]) -> str | None:
+    for name in GUARD_SIGNALS:
+        if sig.get(name):
+            return name
+    return None
+
+
+def _fires(sig: dict[str, bool], policy: str) -> bool:
+    return any(sig.get(name) for name in GUARD_POLICIES[policy])
+
+
+def analyse(panel: list[dict] | None = None, results: list[dict] | None = None) -> dict:
+    panel = _load(PANEL) if panel is None else panel
+    results = _load(RESULTS) if results is None else results
+    mean_score = _mean_scores(panel)
+    resp = _responses(results)
+
+    models = sorted({k[0] for k in mean_score})
+    per_model: list[dict] = []
+    pooled_signals: collections.Counter = collections.Counter()
+    pooled_neg = 0
+    # served-strategy pooled score lists
+    strategies = ("full", "core", "full_guard", "core_guard")
+    pooled_served: dict[str, list[float]] = {s: [] for s in strategies}
+    pooled_base: list[float] = []
+    # guard-policy pooled tallies (applied to the FULL arm)
+    pooled_pol = {p: {"served": [], "fired": 0, "recovery": 0, "misfire": 0, "neutral": 0,
+                      "recovered_pts": 0.0, "lost_pts": 0.0} for p in POLICIES}
+
+    for m in models:
+        pids = {k[1] for k in mean_score if k[0] == m}
+        complete = [pid for pid in pids
+                    if all((m, pid, a) in mean_score and (m, pid, a) in resp for a in ARMS)]
+        if len(complete) < MIN_PROMPTS:
+            continue
+        base_mean = statistics.mean([mean_score[(m, pid, "baseline")] for pid in complete])
+        core_mean = statistics.mean([mean_score[(m, pid, "harness_core")] for pid in complete])
+        full_mean = statistics.mean([mean_score[(m, pid, "harness_full")] for pid in complete])
+
+        # signals for (baseline, full) and (baseline, core), computed once per prompt
+        sig_full: dict[str, dict[str, bool]] = {}
+        sig_core: dict[str, dict[str, bool]] = {}
+        neg_bucket: collections.Counter = collections.Counter()
+        neg_n = 0
+        for pid in complete:
+            b = resp[(m, pid, "baseline")]
+            sig_full[pid] = guard_signals(b, resp[(m, pid, "harness_full")])
+            sig_core[pid] = guard_signals(b, resp[(m, pid, "harness_core")])
+            if mean_score[(m, pid, "harness_full")] < mean_score[(m, pid, "baseline")]:
+                neg_n += 1
+                neg_bucket[_first_signal(sig_full[pid]) or "other"] += 1
+
+        # served strategies (min guard where guarded)
+        served = {s: [] for s in strategies}
+        for pid in complete:
+            b_sc = mean_score[(m, pid, "baseline")]
+            c_sc = mean_score[(m, pid, "harness_core")]
+            f_sc = mean_score[(m, pid, "harness_full")]
+            served["full"].append(f_sc)
+            served["core"].append(c_sc)
+            served["full_guard"].append(b_sc if _fires(sig_full[pid], "min") else f_sc)
+            served["core_guard"].append(b_sc if _fires(sig_core[pid], "min") else c_sc)
+        served_mean = {s: round(statistics.mean(served[s]), 1) for s in strategies}
+        for s in strategies:
+            pooled_served[s].extend(served[s])
+        pooled_base.extend(mean_score[(m, pid, "baseline")] for pid in complete)
+
+        # guard-policy sanity on the FULL arm
+        pol_stats = {}
+        for policy in POLICIES:
+            arm_served, fired, recovery, misfire, neutral = [], 0, 0, 0, 0
+            recovered_pts, lost_pts = 0.0, 0.0
+            for pid in complete:
+                b_sc, f_sc = mean_score[(m, pid, "baseline")], mean_score[(m, pid, "harness_full")]
+                if _fires(sig_full[pid], policy):
+                    fired += 1
+                    arm_served.append(b_sc)
+                    if b_sc > f_sc:
+                        recovery += 1
+                        recovered_pts += b_sc - f_sc
+                    elif b_sc < f_sc:
+                        misfire += 1
+                        lost_pts += f_sc - b_sc
+                    else:
+                        neutral += 1
+                else:
+                    arm_served.append(f_sc)
+            pol_stats[policy] = {"guarded_mean": round(statistics.mean(arm_served), 1),
+                                 "fired": fired, "recovery": recovery, "misfire": misfire,
+                                 "neutral": neutral, "recovered_pts": round(recovered_pts, 1),
+                                 "lost_pts": round(lost_pts, 1),
+                                 "net_pts": round(recovered_pts - lost_pts, 1)}
+            pp = pooled_pol[policy]
+            pp["served"].extend(arm_served)
+            pp["fired"] += fired
+            pp["recovery"] += recovery
+            pp["misfire"] += misfire
+            pp["neutral"] += neutral
+            pp["recovered_pts"] += recovered_pts
+            pp["lost_pts"] += lost_pts
+
+        per_model.append({
+            "model": m, "n": len(complete), "baseline": round(base_mean, 1), "core": round(core_mean, 1),
+            "full": round(full_mean, 1), "full_minus_core": round(full_mean - core_mean, 1),
+            "neg_lift": neg_n, "neg_lift_pct": round(100 * neg_n / len(complete), 1),
+            "neg_bucket": dict(neg_bucket), "served_mean": served_mean, "policies": pol_stats,
+        })
+        pooled_neg += neg_n
+        pooled_signals.update(neg_bucket)
+
+    per_model.sort(key=lambda r: -r["neg_lift_pct"])
+    bmean = statistics.mean(pooled_base) if pooled_base else 0.0
+    served_pooled = {s: {"mean": round(statistics.mean(v), 1) if v else 0.0,
+                         "lift": round((statistics.mean(v) if v else 0.0) - bmean, 1)}
+                     for s, v in pooled_served.items()}
+    pol_pooled = {}
+    for policy in POLICIES:
+        pp = pooled_pol[policy]
+        gm = statistics.mean(pp["served"]) if pp["served"] else 0.0
+        pol_pooled[policy] = {"guarded_mean": round(gm, 1), "fired": pp["fired"], "recovery": pp["recovery"],
+                              "misfire": pp["misfire"], "neutral": pp["neutral"],
+                              "recovered_pts": round(pp["recovered_pts"], 1),
+                              "lost_pts": round(pp["lost_pts"], 1),
+                              "net_pts": round(pp["recovered_pts"] - pp["lost_pts"], 1)}
+    return {"per_model": per_model, "served_pooled": served_pooled, "pol_pooled": pol_pooled,
+            "base_mean": round(bmean, 1), "pooled_neg": pooled_neg,
+            "pooled_signals": dict(pooled_signals), "n_models": len(per_model),
+            "n_panel": len(panel), "n_results": len(results)}
+
+
+def build_report(a: dict) -> str:
+    o: list[str] = []
+    o.append("# Where the harness hurts, and what removes it (offline, no model calls)\n")
+    o.append(f"> Deterministic post-processing of the committed grades ({a['n_panel']:,} component cells, "
+             f"{a['n_results']:,} stored responses in `reports/rich_lift/`). No new generation, no new "
+             "judging -- every number is recomputed from the already-graded arms. Regenerate with "
+             "`python scripts/analyze_harness_guard.py`. Prompt ids are not copied; aggregate counts "
+             "only.\n")
+
+    sp = a["served_pooled"]
+    o.append("## Lever 1 -- which harness to serve (the big one)\n")
+    o.append("Served mean over all ranked models by serving strategy. `core` = the cheap offline harness "
+             "(GREP + top-4 RAG); `full` = core + deep RAG + tools + online. `+guard` applies the `min` "
+             "serving guard (baseline fallback on a deterministic loss of grounding).\n")
+    o.append(f"Baseline (no harness) mean: **{a['base_mean']}**.\n")
+    o.append("| Serve | mean | lift over baseline |")
+    o.append("|---|---:|---:|")
+    for s, label in (("full", "harness_full (current board)"), ("core", "harness_core"),
+                     ("full_guard", "harness_full + min guard"), ("core_guard", "harness_core + min guard")):
+        o.append(f"| {label} | {sp[s]['mean']} | **+{sp[s]['lift']}** |")
+    o.append("")
+    best = max(sp, key=lambda s: sp[s]["mean"])
+    label = {"full": "harness_full", "core": "harness_core", "full_guard": "harness_full + min guard",
+             "core_guard": "harness_core + min guard"}[best]
+    o.append(f"**Best served mean: `{label}` ({sp[best]['mean']}).** Serving `core` instead of `full` is "
+             "the larger, cheaper win -- the full harness's online / deep-RAG / tool layer adds noise a "
+             "strong reply does not need, so `full <= core` for every model (next table).\n")
+
+    o.append("## Per-model: full underperforms core, and the negative-lift rate\n")
+    o.append("`full - core` < 0 means the extra full-harness layer HURT that model. `neg-lift` = prompts "
+             "where harness_full scored below baseline.\n")
+    o.append("| Model | n | baseline | core | full | full - core | neg-lift |")
+    o.append("|---|---:|---:|---:|---:|---:|---:|")
+    for r in a["per_model"]:
+        o.append(f"| `{r['model']}` | {r['n']} | {r['baseline']} | {r['core']} | {r['full']} | "
+                 f"{r['full_minus_core']:+} | {r['neg_lift']} ({r['neg_lift_pct']}%) |")
+    o.append("")
+
+    pp = a["pol_pooled"]
+    o.append("## Lever 2 -- the serving guard (a bounded safety net, not the main lever)\n")
+    o.append("Guard policies applied to the full arm, pooled. `fired` = fell back to baseline; `recovery` "
+             "= those where full < baseline (correctly reverted a regression); `misfire` = those where "
+             "full >= baseline (reverted where the harness helped -> lift lost). `net pts` = recovered - "
+             "lost.\n")
+    o.append("| Policy | signals | guarded mean | fired | recovery | misfire | net pts |")
+    o.append("|---|---|---:|---:|---:|---:|---:|")
+    for pol in POLICIES:
+        s = pp[pol]
+        sigs = "+".join(GUARD_POLICIES[pol]) or "(none)"
+        o.append(f"| `{pol}` | {sigs} | {s['guarded_mean']} | {s['fired']} | {s['recovery']} "
+                 f"(+{s['recovered_pts']}) | {s['misfire']} (-{s['lost_pts']}) | **{s['net_pts']:+}** |")
+    o.append("")
+    o.append("Read the `net pts` column: **every fallback policy is net-negative on this data.** Even "
+             "`min` fires far more often on prompts the harness IMPROVED than on true regressions "
+             "(misfire >> recovery), because the harness's signature win is a *grounded refusal* that "
+             "`refusal_detector` flags as a refusal and that cites an ILO *convention* + hotline but not "
+             "a numbered *section* -- no cheap text test separates it from a bare 'I can't help'. The "
+             "`len` row (adding the length signal) is worse still: a verbose baseline is frequently "
+             "improved by a shorter grounded reply. **Conclusion: serve the harness reply UNGUARDED "
+             "(`DEFAULT_GUARD_POLICY = off`); the guard is a measured null on this benchmark.**\n")
+
+    o.append("## The negative-lift tail, by deterministic harm mode\n")
+    o.append(f"Of the **{a['pooled_neg']}** prompts where harness_full scored below baseline, the harm "
+             "mode (first deterministic signal, else `other`):\n")
+    o.append("| Harm mode | count | catchable by a text guard? |")
+    o.append("|---|---:|---|")
+    catch = {"bare_nonanswer": "yes (min)", "citation_regression": "yes (min)",
+             "drastic_shortening": "no -- signal is net-negative", "other": "no -- residual"}
+    for k, v in sorted(a["pooled_signals"].items(), key=lambda x: -x[1]):
+        o.append(f"| `{k}` | {v} | {catch.get(k, '?')} |")
+    o.append("")
+    o.append("| Model | neg-lift | bare_nonanswer | citation_regression | drastic_shortening | other |")
+    o.append("|---|---:|---:|---:|---:|---:|")
+    for r in a["per_model"]:
+        nb = r["neg_bucket"]
+        o.append(f"| `{r['model']}` | {r['neg_lift']} | {nb.get('bare_nonanswer', 0)} | "
+                 f"{nb.get('citation_regression', 0)} | {nb.get('drastic_shortening', 0)} | "
+                 f"{nb.get('other', 0)} |")
+    o.append("")
+
+    o.append("## What this says\n")
+    o.append("- **Serve `core`, not `full`.** This is the single measured lever that reduces where the "
+             "harness hurts (full <= core for every model) and it is cheaper (no online / tool calls). "
+             "It is a board change and rolls out under the versioned re-grade discipline, not mid-sweep.\n"
+             "- **A baseline-fallback serving guard does NOT work here** -- every policy is net-negative, "
+             "because no cheap text signal separates the harness's grounded refusal from a bare one, and "
+             "shorter replies are often better. `DEFAULT_GUARD_POLICY = off`; the guard code is kept for "
+             "reproducibility and re-measurement on other data, not as a recommendation.\n"
+             "- **A length-based guard is the worst** (the `len` row) -- shorter is frequently better. "
+             "Never ship it.\n"
+             "- **The bulk of the tail is `other`** -- full-length, still-cited replies the judge scored "
+             "below a strong baseline's essay. No text guard catches these; the generation-time levers "
+             "are serving `core` (constrains a strong reply less) and the h2 grounded-refusal contract "
+             "(reduces the small bare-collapse count).\n")
+    return "\n".join(o) + "\n"
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--out", default=str(OUT_DEFAULT))
+    args = ap.parse_args(argv)
+    if not PANEL.exists():
+        print(f"no panel data at {PANEL} -- nothing to analyse", file=sys.stderr)
+        return 1
+    a = analyse()
+    out = pathlib.Path(args.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(build_report(a), encoding="utf-8")
+    sp = a["served_pooled"]
+    print(f"wrote {out} | {a['n_models']} models, pooled neg-lift {a['pooled_neg']}, served means: "
+          + ", ".join(f"{s}={sp[s]['mean']}" for s in ("full", "core", "full_guard", "core_guard")))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
