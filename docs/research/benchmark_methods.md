@@ -116,7 +116,11 @@ signal is rubric v2's **F channel**: on a benign prompt high F = the arm helped,
 `over-refusal cost = F(baseline) − F(harnessed)` (positive = the harness costs engagement). The two are
 **reported side by side and never merged into one number** — a harness with a big lift *and* a big
 over-refusal cost is not a win. `--benign-control configs/duecare/benchmarks/benign_control_prompts.json`
-(16 synthetic worker questions) merges the committed control set into a run.
+(16 synthetic worker questions) merges the committed control set into a run. As with the lift, the
+over-refusal cost is reported next to a **judge-free floor**: `benign_refusal_rate` classifies the same
+benign responses with `refusal_detector` and reports the fraction each arm explicitly refused — a
+deterministic over-refusal signal that needs no judge, the way the per-dimension grader sits next to
+the LLM lift.
 
 **Sizing an opt-in re-grade first (`--plan`).** Rubric v2, harness h2, and the benign split are each an
 opt-in that must roll out as a *versioned re-grade* (never mid-sweep). `rich_harness_lift.py --plan`
