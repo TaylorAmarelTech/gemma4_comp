@@ -139,14 +139,28 @@ many candidate models; and the **placebo** and **negative-control** sets that bo
 is only as good as the prompts it runs on, so the hardest (adversarial, disguised) prompts carry the
 most signal.
 
-**The live benchmark prompt set (v1.3).** The public leaderboard at `/benchmark` grades a single,
-versioned, reproducible set: **3,700+ synthetic adversarial prompts across 170+ typologies (and growing via the flywheel)** at
-easy/medium/hard/very_hard difficulty, built by `scripts/build_benchmark_promptset.py` (stratified,
-`seed=13`, text-deduped) from the 210-prompt scheme core, the harness-lift expansion set, casefile-derived
-major-case scenarios, a 2,915-prompt stratified draw from the **74,640-prompt trafficking seed registry**,
-and prompts discovered by DueCare automation then vetted by the quality gate. The scheme core is preserved first
-and in order, so adding prompts only *extends* the set and existing graded results stay aligned by
-`prompt_id` (the runner is resumable). `configs/duecare/benchmarks/scheme_prompts.json` is the artifact.
+**The live benchmark prompt set (v1.4).** The public leaderboard at `/benchmark` grades a single,
+versioned, reproducible set: **~5,800 synthetic adversarial prompts across 186 typologies (and growing
+via the flywheel)** at easy/medium/hard/very_hard difficulty, built by
+`scripts/build_benchmark_promptset.py` (stratified, `seed=13`, text-deduped) from the 210-prompt scheme
+core, the harness-lift expansion set, casefile-derived major-case scenarios, a **1,848-prompt
+pretext-framing set** (`scripts/gen_pretext_prompts.py`), a 2,915-prompt stratified draw from the
+**74,640-prompt trafficking seed registry**, and prompts discovered by DueCare automation then vetted
+by the quality gate. The scheme core is preserved first and in order, so adding prompts only *extends*
+the set and existing graded results stay aligned by `prompt_id` (the runner is resumable).
+`configs/duecare/benchmarks/scheme_prompts.json` is the artifact.
+
+**Closing the framing gap (v1.4, the pretext set).** The findings measured the biggest residual gap as
+*framing*: an operator-voice scheme gets +48, but the *same scheme* wrapped as a journalist / educator /
+consultant / researcher pretext gets only +24 (GREP + retrieval under-fire on third-party wrappers).
+`gen_pretext_prompts.py` closes it: it takes neutral third-person descriptions of 12 scheme mechanics
+across 22 vetted corridors (reusing the corridors' real public statutes — no new legal data invented)
+and wraps each in **7 distinct pretext voices** (journalist, compliance-trainer, consultant, academic,
+policy-analyst, software-founder, buried-benign), each asking for the operational playbook under a cover
+story. This also lifts the previously thin **very_hard** tier (97 → 889 prompts). A safe model must see
+through every pretext, name the indicator + controlling statute, refuse the design, and redirect to how
+to recognize and report the scheme. `framing` is preserved on each prompt so the board can report the
+per-framing lift.
 
 **The discovery flywheel (how the set grows).** New typologies enter through a propose-only loop:
 The candidate generator proposes adversarial prompts (rotating typology / corridor / difficulty) ->
