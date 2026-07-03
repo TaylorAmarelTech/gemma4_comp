@@ -43,6 +43,9 @@ MAJOR_CASE = _BENCH / "major_case_patterns" / "harness_lift_prompts_major_case.j
 # Pretext-framed adversarial prompts (gen_pretext_prompts.py) -- the third-party-wrapper framing gap
 # the findings measured (operator-voice +48 vs journalist/consultant pretext +24).
 PRETEXT = _BENCH / "pretext_framing_prompts.jsonl"
+# Multipath prompts (gen_multipath_prompts.py) -- 3-stage schemes chained across a corridor; closes the
+# measured multipath coverage gap (findings: multipath 0/10).
+MULTIPATH = _BENCH / "multipath_prompts.jsonl"
 SEED_CORPUS = _ROOT / "configs" / "duecare" / "domains" / "trafficking" / "seed_prompts.jsonl"
 SEED = 13
 # seed-corpus categories that are export/meta artifacts, not gradeable adversarial prompts.
@@ -226,7 +229,8 @@ def _seed_pool(max_prompt_chars: int) -> list[dict[str, Any]]:
 
 def build(*, per_category_expansion: int, per_category_majorcase: int,
           per_category_seed: int, per_category_hermes: int, max_prompt_chars: int,
-          per_category_pretext: int = 0, shuffle: bool = False) -> dict[str, Any]:
+          per_category_pretext: int = 0, per_category_multipath: int = 0,
+          shuffle: bool = False) -> dict[str, Any]:
     current = json.loads(SCHEME.read_text(encoding="utf-8"))
     prompts = current.get("prompts", current)
     base = [p for p in prompts if p.get("source", "scheme") == "scheme"]  # idempotent base
@@ -239,22 +243,26 @@ def build(*, per_category_expansion: int, per_category_majorcase: int,
                         seen_text, seen_id, rng)
     add_pretext = _stratified(_load_jsonl(PRETEXT), "pretext", per_category_pretext,
                               seen_text, seen_id, rng)
+    add_multipath = _stratified(_load_jsonl(MULTIPATH), "multipath", per_category_multipath,
+                                seen_text, seen_id, rng)
     add_seed = _stratified(_seed_pool(max_prompt_chars), "seed", per_category_seed,
                           seen_text, seen_id, rng)
     add_hermes = _stratified(_hermes_accepted(), "hermes", per_category_hermes,
                             seen_text, seen_id, rng)
-    merged = ([_norm(p, "scheme") for p in base] + add_exp + add_mc + add_pretext + add_seed + add_hermes)
+    merged = ([_norm(p, "scheme") for p in base] + add_exp + add_mc + add_pretext + add_multipath
+              + add_seed + add_hermes)
     if shuffle:  # representative prefixes so a chunked full-registry sweep grades a random sample
         random.Random(SEED + 1).shuffle(merged)
     return {
         "version": "1.4",
         "_build": {"scheme": len(base), "expansion": len(add_exp), "major_case": len(add_mc),
-                   "pretext": len(add_pretext), "seed_corpus": len(add_seed),
-                   "hermes_accepted": len(add_hermes),
+                   "pretext": len(add_pretext), "multipath": len(add_multipath),
+                   "seed_corpus": len(add_seed), "hermes_accepted": len(add_hermes),
                    "total": len(merged), "seed": SEED,
                    "per_category_expansion": per_category_expansion,
                    "per_category_majorcase": per_category_majorcase,
                    "per_category_pretext": per_category_pretext,
+                   "per_category_multipath": per_category_multipath,
                    "per_category_seed": per_category_seed,
                    "per_category_hermes": per_category_hermes, "max_prompt_chars": max_prompt_chars},
         "prompts": merged,
@@ -268,6 +276,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--per-category-pretext", type=int, default=0,
                     help="pretext-framed prompts per category (0 = all; 12 categories x 154 = 1848 total). "
                          "These target the measured third-party-wrapper framing gap.")
+    ap.add_argument("--per-category-multipath", type=int, default=0,
+                    help="multipath (3-stage chained) prompts per category (0 = all; 176 total). "
+                         "These close the measured multipath coverage gap.")
     ap.add_argument("--per-category-seed", type=int, default=100)
     ap.add_argument("--per-category-hermes", type=int, default=100)
     ap.add_argument("--max-prompt-chars", type=int, default=6000)
@@ -299,13 +310,14 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.full:
         for _k in ("per_category_expansion", "per_category_majorcase", "per_category_pretext",
-                   "per_category_seed", "per_category_hermes"):
+                   "per_category_multipath", "per_category_seed", "per_category_hermes"):
             setattr(args, _k, 0)   # 0 -> unlimited (full draw)
     if args.out is None:
         args.out = str(FULL_OUT if args.full else SCHEME)
     doc = build(per_category_expansion=args.per_category_expansion,
                 per_category_majorcase=args.per_category_majorcase,
                 per_category_pretext=args.per_category_pretext,
+                per_category_multipath=args.per_category_multipath,
                 per_category_seed=args.per_category_seed,
                 per_category_hermes=args.per_category_hermes,
                 max_prompt_chars=args.max_prompt_chars,
@@ -317,7 +329,8 @@ def main(argv: list[str] | None = None) -> int:
     b = doc["_build"]
     print(f"wrote {args.out}: {len(ps)} prompts "
           f"(scheme {b['scheme']} + expansion {b['expansion']} + major_case {b['major_case']} "
-          f"+ pretext {b['pretext']} + seed_corpus {b['seed_corpus']} + hermes {b['hermes_accepted']})")
+          f"+ pretext {b['pretext']} + multipath {b['multipath']} + seed_corpus {b['seed_corpus']} "
+          f"+ hermes {b['hermes_accepted']})")
     print("difficulty:", dict(Counter(p["difficulty"] for p in ps)))
     print("distinct categories:", len({p["category"] for p in ps}))
     print("by source:", dict(Counter(p["source"] for p in ps)))
