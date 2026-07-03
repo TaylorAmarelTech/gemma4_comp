@@ -52,7 +52,7 @@ for _src in glob.glob(str(_ROOT / "packages" / "*" / "src")):
 sys.path.insert(0, str(_ROOT / "scripts"))
 
 from artifact_path_policy import handoff_artifact_path  # noqa: E402
-from llm_generate import ollama_chat  # noqa: E402
+from llm_generate import ollama_chat, provider_chat  # noqa: E402,F401  (provider-routing caller)
 from multi_judge import (  # noqa: E402
     DEFAULT_RUBRIC_VERSION, RUBRIC_VERSIONS, judge_components, judge_pair, model_family,
     krippendorff_alpha)
@@ -1626,7 +1626,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     def gen(model: str, prompt_in: str) -> str:
-        return ollama_chat(prompt_in, model=model, max_tokens=args.max_tokens)
+        return provider_chat(prompt_in, model=model, max_tokens=args.max_tokens)
 
     if not args.report_only:
         reuse = load_reuse(pathlib.Path(args.reuse), harness_version=args.harness_version)

@@ -26,7 +26,7 @@ from typing import Any, Callable
 _ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_ROOT / "scripts"))
 
-from llm_generate import extract_json, ollama_chat  # noqa: E402  (reasoning-aware caller)
+from llm_generate import extract_json, ollama_chat, provider_chat  # noqa: E402,F401  (provider-routing caller)
 
 DEFAULT_RESULTS = _ROOT / "reports" / "frontier_report" / "results.jsonl"
 PANEL_CKPT = _ROOT / "reports" / "multi_judge" / "panel.jsonl"
@@ -339,7 +339,7 @@ def judge_components(prompt: str, response: str, *, model: str,
     ``max_tokens=0`` (the default) leaves output UNLIMITED so a reasoning judge can think through all
     five components and still emit the JSON -- never truncated mid-verdict (a positive value re-caps).
     """
-    call = caller or (lambda p, **kw: ollama_chat(p, **kw))
+    call = caller or (lambda p, **kw: provider_chat(p, **kw))
     rubric = build_component_rubric(domain_spec, version=rubric_version)
     text = call(f"{rubric}\n\nWORKER:\n{prompt}\n\nASSISTANT REPLY:\n{response}",
                 model=model, max_tokens=max_tokens)
@@ -368,7 +368,7 @@ def judge_one(prompt: str, response: str, *, model: str,
     clustering) and rescales the total back to 0-10, so it stays comparable with the default judge.
     For the per-component breakdown on the 0-100 scale, use ``judge_components``.
     """
-    call = caller or (lambda p, **kw: ollama_chat(p, **kw))
+    call = caller or (lambda p, **kw: provider_chat(p, **kw))
     rubric, ceiling = (build_component_rubric(domain_spec), 100.0) if calibrated else (_RUBRIC, 10.0)
     # unlimited output (max_tokens=0) so reasoning judges (gpt-oss / Kimi) finish their thinking and
     # still emit the score -- never truncated mid-verdict; bounded only by the context window.
@@ -422,7 +422,7 @@ def judge_pair(prompt: str, response_a: str, response_b: str, *, model: str,
     """Signed safety preference for B over A (-10..+10), averaged over BOTH presentation orders to
     cancel position bias. Positive = B (e.g. the harnessed arm) is safer. This is the absolute-scale-
     free way to measure the harness lift: it never asks the judge for a 7-vs-8 absolute call."""
-    call = caller or (lambda p, **kw: ollama_chat(p, **kw))
+    call = caller or (lambda p, **kw: provider_chat(p, **kw))
     rubric = build_pairwise_rubric(domain_spec)
 
     def _one(first: str, second: str) -> float:
