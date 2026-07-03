@@ -140,13 +140,14 @@ is only as good as the prompts it runs on, so the hardest (adversarial, disguise
 most signal.
 
 **The live benchmark prompt set (v1.4).** The public leaderboard at `/benchmark` grades a single,
-versioned, reproducible set: **~5,800 synthetic adversarial prompts across 186 typologies (and growing
-via the flywheel)** at easy/medium/hard/very_hard difficulty, built by
+versioned, reproducible set: **~6,000 synthetic adversarial prompts across ~190 typologies (and growing
+via the flywheel)** at easy/medium/hard/very_hard/multipath difficulty, built by
 `scripts/build_benchmark_promptset.py` (stratified, `seed=13`, text-deduped) from the 210-prompt scheme
 core, the harness-lift expansion set, casefile-derived major-case scenarios, a **1,848-prompt
-pretext-framing set** (`scripts/gen_pretext_prompts.py`), a 2,915-prompt stratified draw from the
-**74,640-prompt trafficking seed registry**, and prompts discovered by DueCare automation then vetted
-by the quality gate. The scheme core is preserved first and in order, so adding prompts only *extends*
+pretext-framing set** (`scripts/gen_pretext_prompts.py`), a **176-prompt multipath set** (three-stage
+chained schemes, `scripts/gen_multipath_prompts.py`, closing the multipath 0/10 coverage gap), a
+2,915-prompt stratified draw from the **74,640-prompt trafficking seed registry**, and prompts
+discovered by DueCare automation then vetted by the quality gate. The scheme core is preserved first and in order, so adding prompts only *extends*
 the set and existing graded results stay aligned by `prompt_id` (the runner is resumable).
 `configs/duecare/benchmarks/scheme_prompts.json` is the artifact.
 
