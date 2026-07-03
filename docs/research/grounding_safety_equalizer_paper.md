@@ -20,8 +20,11 @@ baseline**: every harnessed model converges to **~88–95/100**. A small local m
 harness reaches ≈ the same safety ceiling as a frontier model — *grounding acts as an equalizer*, and
 the on-device thesis for NGO deployment is measured, not asserted. We show the lift completes a refusal
 rather than causing one (gains concentrate in *cites-law* and *concrete-resources*), catalogue the
-harness's own failure modes (a ~14% refusal-collapse rate; a rubric that over-credits a content-free
-"no"; an unmeasured over-refusal cost), and ship versioned, opt-in fixes for each. Finally we describe
+harness's own failure modes — a small negative-lift tail that is mostly a *more*-grounded reply the
+judge scored below a strong baseline (a rubric-preference effect, only ~1 in 187 a true refusal
+collapse); a rubric that over-credits a content-free "no"; an unmeasured over-refusal cost — and ship
+versioned, opt-in fixes for each, finding along the way that a deterministic serving guard is
+net-negative and that the cheaper offline `core` harness beats the full one. Finally we describe
 a train→eval→select distillation method that turns the harness's measured lift into a smaller model's
 learned behaviour, selected on the smallest held-out generalization gap with no over-refusal regression.
 
@@ -179,11 +182,21 @@ are in `evidence_preservation` (+9.0), `stakeholder_awareness` (+8.0), `manipula
 
 Measuring the harness honestly surfaced three problems, each now addressed with a versioned, opt-in fix:
 
-1. **Refusal collapse (harness).** On ~14% of prompts for some models the harness converts a correct
-   grounded analysis (baseline) into a bare "I can't help with that" (harnessed) — a refusal that
-   scores C but destroys A/B/D/E. **Fix (harness h2):** a grounded-response contract instructs the model
-   to refuse the operational ask but still deliver the indicator, the law, and the resources, and never
-   refuse a legitimate worker question.
+1. **Where the harness hurts, measured honestly (harness).** On a small tail the harnessed reply scores
+   *below* the bare baseline — concentrated in the strongest baseline model (gpt-oss, 11.1% of its
+   prompts). Decomposing that tail deterministically corrects an earlier small-sample read of "~14%
+   refusal collapse": only **~1 in 187** is a true bare-refusal collapse; ~34% are cases where the
+   harnessed reply is shorter but not worse; and **~65% is a full-length, *more*-grounded reply — it
+   cites more ILO conventions (+0.19) and more statute sections (+0.22) and refuses ~0% of the time —
+   that the judge nonetheless scored below a strong baseline's essay.** That last bucket is a
+   judge/rubric-preference effect near the quality ceiling, not lost safety value. We built the obvious
+   fix — a deterministic serving guard that reverts to the baseline on a detected regression — and
+   **measured it to be net-negative** (every fallback policy misfires far more than it recovers, because
+   no cheap text test separates the harness's *grounded* refusal, which cites an ILO convention and a
+   hotline, from a bare "I can't help"), so it is disabled by default: an honest negative result. **The
+   fixes that do work:** the harness h2 grounded-response contract (refuse the operational ask but still
+   deliver the indicator, the law, and the resources) reduces the small genuine-collapse count at
+   generation time, and — the larger lever — serving `core` not `full` (§5.4).
 2. **A rubric that rewards a content-free "no" (judge).** Criterion C credited a bare refusal ~20–25
    points with no grounding requirement. **Fix (rubric v2):** a bare refusal caps C at ≤6/25, a
    "content-free" sanity band prevents it floating upward, and a deterministic citation gate caps B when
@@ -199,13 +212,20 @@ Measuring the harness honestly surfaced three problems, each now addressed with 
 Rolling any fix onto the board is a *versioned re-grade* (never mid-sweep); a `--plan` dry run sizes the
 incremental cost offline before any quota is spent.
 
-### 5.4 The cheap offline core captures the lift
+### 5.4 The cheap offline core is *better* than the full harness
 
-`full`-vs-`core` pairwise preference is ≈ 0 across models (often slightly negative): the GREP+RAG core,
-which runs locally with no web or API call, captures essentially all of the measured lift. The tool
-layer's distinct value is the *volatile specifics* a safety rubric does not score but a real worker
-needs (the exact fee cap, the current hotline, the specific statute section) — facts the harness
-deliberately routes to tools rather than memorising.
+Serving `core` — the GREP + top-4 RAG harness that runs locally with no web or API call — is not merely
+as good as the full harness; it **beats** it. On the graded board the served mean is **core 87.1 vs
+full 84.9**, and `full ≤ core` for *every* model. The extra full-harness layer (online retrieval + deep
+RAG + the deterministic tool bundle) *degrades* the scored response: per criterion it lowers **D
+(concrete resources) universally** (−0.5 to −1.2) and, for an already-strong baseline like gpt-oss, also
+**A (indicator, −1.3)** and **B (law, −0.9)** — the extra volume dilutes the focused grounded answer the
+rubric rewards. The tool layer's distinct value is therefore *not* rubric score but the **volatile
+specifics** a real worker needs (the exact fee cap, the current hotline, the specific statute section) —
+facts the harness deliberately routes to tools rather than memorising. The practical consequence for
+on-device deployment is a happy one: the configuration that scores highest is also the cheapest and the
+only one that runs entirely offline. (Making `core` the headline board arm is a versioned re-grade, per
+the discipline in §4; the numbers here are from an offline re-scoring of the committed grades.)
 
 ### 5.5 Framing robustness and cross-domain generalization
 
