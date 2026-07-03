@@ -29,8 +29,10 @@
   prompts collapse to a bare refusal" figure was an early small-sample read and did **not** hold as the
   board grew: on the committed grades only **~1 of 187** negative-lift prompts is a bare-refusal collapse
   (`scripts/analyze_harness_guard.py`). The real negative-lift tail is **gpt-oss 170/1538 = 11.1%**, and
-  **~65% of it is `other`** - a full-length, still-cited harnessed reply the judge simply scored below a
-  strong baseline's essay (no deterministic loss signature). The **full harness is worse than core for
+  **~65% of it is `other`** - the text signature shows those harnessed replies cite MORE conventions
+  (+0.19) and MORE sections (+0.22) and add a refusal ~0% of the time: a full-length, MORE-grounded reply
+  the judge still scored below a strong baseline's essay, i.e. a judge/rubric-preference effect near the
+  quality ceiling, **not** a harness safety failure. The **full harness is worse than core for
   every model**; the board reports `full`, under-reporting the achievable lift. **A deterministic
   baseline-fallback serving guard was built and MEASURED to be net-negative** (every policy misfires far
   more than it recovers, because no cheap text test separates a grounded refusal that cites an ILO
