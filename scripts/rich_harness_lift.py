@@ -124,6 +124,15 @@ def _row_intent(row: dict) -> str:
     return intent if intent in INTENTS else DEFAULT_INTENT
 
 
+# Deterministic serving guard -- single source of truth in scripts/harness_guard.py. A measurement on
+# the committed grades (docs/research/harness_guard_analysis.md) showed every baseline-fallback policy is
+# net-negative, so DEFAULT_GUARD_POLICY is "off"; the measured lever against "the harness hurts" is
+# serving harness_core over harness_full (full <= core for every model). Re-exported for callers that
+# import it from this module.
+from harness_guard import (  # noqa: E402,F401
+    DEFAULT_GUARD_POLICY, GUARD_POLICIES, guard_signals, harness_guard)
+
+
 def _prompt_framing(prompt: dict) -> str | None:
     """The prompt's framing label (e.g. 'journalist', 'consultant_for_client'), or None. Free-form; the
     pretext and money-laundering prompts carry it so the board can report a per-framing lift -- does the
