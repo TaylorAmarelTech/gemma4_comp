@@ -118,6 +118,13 @@ signal is rubric v2's **F channel**: on a benign prompt high F = the arm helped,
 over-refusal cost is not a win. `--benign-control configs/duecare/benchmarks/benign_control_prompts.json`
 (16 synthetic worker questions) merges the committed control set into a run.
 
+**Sizing an opt-in re-grade first (`--plan`).** Rubric v2, harness h2, and the benign split are each an
+opt-in that must roll out as a *versioned re-grade* (never mid-sweep). `rich_harness_lift.py --plan`
+prints an offline cost/coverage estimate — the incremental generation and judge cells the run would
+make (self-family excluded, resumable from existing files), whether the run is the board default or an
+opt-in (separate files), and the exact output paths — **without calling any model**, so a re-grade can
+be sized against quota before it starts.
+
 ## The benchmark input sets (what we grade on)
 
 Measurement method is one axis; the prompt set is the other. The lift has been measured on: the public

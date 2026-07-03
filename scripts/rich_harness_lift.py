@@ -949,6 +949,102 @@ def _over_refusal_block(benign_panel: list[dict], judges: list[str], rubric_vers
             "n_benign_responses": len(benign_panel)}
 
 
+def _run_path_display(path: pathlib.Path) -> str:
+    """Repo-relative posix path for plan output; external paths are redacted to ``external/<name>``."""
+    try:
+        return path.resolve().relative_to(_ROOT.resolve()).as_posix()
+    except (OSError, ValueError):
+        return f"external/{path.name}"
+
+
+def plan_run(prompts: list[dict], models: list[str], judges: list[str], *, run_paths: dict,
+             reuse: dict, rubric_version: str = DEFAULT_RUBRIC_VERSION,
+             harness_version: str = DEFAULT_HARNESS_VERSION, pairwise: bool = False,
+             skip_judge: bool = False) -> dict:
+    """Offline cost/coverage estimate for a run -- NO model is called.
+
+    Counts the INCREMENTAL model calls a run would make (generation cells not already in the results
+    file and not reusable, plus judge/pairwise cells not already in the panel/pairwise files), so the
+    cost of an opt-in versioned re-grade (rubric v2 / harness h2 / a benign-control merge) can be sized
+    before spending any quota. Self-family judge/candidate pairs are excluded, matching the runner."""
+    _require_harness_version(harness_version)
+    if rubric_version not in RUBRIC_VERSIONS:
+        raise ValueError(f"unknown rubric version: {rubric_version!r}")
+    pids = [str(p["id"]) for p in prompts if isinstance(p, dict) and "id" in p]
+    intents = {str(p["id"]): prompt_intent(p) for p in prompts if isinstance(p, dict) and "id" in p}
+    n_benign = sum(1 for v in intents.values() if v == "benign")
+
+    gen_done = _done_keys_for_harness(run_paths["results"], ("model", "prompt_id", "arm"), harness_version)
+    gen_new = gen_reused = gen_done_count = 0
+    for pid in pids:
+        for model in models:
+            for arm in ARMS:
+                if (model, pid, arm) in gen_done:
+                    gen_done_count += 1
+                elif reuse.get((model, pid, arm)) is not None:
+                    gen_reused += 1
+                else:
+                    gen_new += 1
+
+    panel_done = _done_keys_for_harness(run_paths["panel"], ("model", "prompt_id", "arm", "judge"),
+                                        harness_version, rubric_version=rubric_version)
+    judge_new = 0
+    if not skip_judge:
+        for pid in pids:
+            for model in models:
+                for arm in ARMS:
+                    for j in judges:
+                        if model_family(j) != model_family(model) and (model, pid, arm, j) not in panel_done:
+                            judge_new += 1
+
+    pairwise_new = 0
+    if pairwise and not skip_judge:
+        pw_done = _done_keys_for_harness(run_paths["pairwise"], ("model", "prompt_id", "judge"), harness_version)
+        for pid in pids:
+            for model in models:
+                for j in judges:
+                    if model_family(j) != model_family(model) and (model, pid, j) not in pw_done:
+                        pairwise_new += 1
+
+    return {
+        "n_prompts": len(pids), "n_adversarial": len(pids) - n_benign, "n_benign": n_benign,
+        "n_models": len(models), "n_judges": len(judges), "n_arms": len(ARMS),
+        "rubric_version": rubric_version, "harness_version": harness_version,
+        "is_board_default": rubric_version == "v1" and harness_version == "h1",
+        "gen_new_calls": gen_new, "gen_reused": gen_reused, "gen_already_done": gen_done_count,
+        "judge_new_cells": judge_new, "pairwise_new_cells": pairwise_new,
+        "total_new_model_calls": gen_new + judge_new + pairwise_new,
+        "results_path": _run_path_display(run_paths["results"]),
+        "panel_path": _run_path_display(run_paths["panel"]),
+        "report_path": _run_path_display(run_paths["report"]),
+    }
+
+
+def format_plan(plan: dict) -> str:
+    """Human-readable dry-run plan (the offline output of ``--plan``). No model was called."""
+    scope = ("BOARD DEFAULT (v1/h1) -- this run's rows join the live board"
+             if plan["is_board_default"]
+             else f"OPT-IN ({plan['harness_version']}/{plan['rubric_version']}) -- separate files, "
+                  "NEVER mixed into the v1/h1 board")
+    lines = [
+        "# rich_harness_lift run plan (dry run -- NO model was called)",
+        "",
+        f"Scope: {scope}",
+        f"Prompts: {plan['n_prompts']} ({plan['n_adversarial']} adversarial + {plan['n_benign']} benign) "
+        f"x {plan['n_models']} models x {plan['n_arms']} arms; {plan['n_judges']} judges (self-family excluded).",
+        "",
+        "Incremental model calls this run would make:",
+        f"  generation : {plan['gen_new_calls']:>8} new  "
+        f"({plan['gen_reused']} reused, {plan['gen_already_done']} already on disk)",
+        f"  judging    : {plan['judge_new_cells']:>8} new",
+        f"  pairwise   : {plan['pairwise_new_cells']:>8} new",
+        f"  TOTAL      : {plan['total_new_model_calls']:>8} new model calls",
+        "",
+        f"Writes: {plan['results_path']} | {plan['panel_path']} | {plan['report_path']}",
+    ]
+    return "\n".join(lines) + "\n"
+
+
 def aggregate(panel: list[dict], judges: list[str],
               rubric_version: str = DEFAULT_RUBRIC_VERSION,
               harness_version: str = DEFAULT_HARNESS_VERSION) -> dict:
@@ -1327,6 +1423,10 @@ def main(argv: list[str] | None = None) -> int:
                          "splits the under-refusal lift (adversarial) from the over-refusal cost (benign, "
                          "F channel). Use the committed set at "
                          f"{BENIGN_CONTROL_PROMPTS_REL}")
+    ap.add_argument("--plan", action="store_true",
+                    help="dry run: print the offline cost/coverage plan (incremental generation + judge "
+                         "cells, self-family excluded, resumable from existing files) and exit WITHOUT "
+                         "calling any model. Use it to size an opt-in v2/h2/benign-control re-grade first.")
     args = ap.parse_args(argv)
 
     models = [m.strip() for m in args.models.split(",") if m.strip()]
@@ -1372,6 +1472,14 @@ def main(argv: list[str] | None = None) -> int:
         benign_control_report_path = benign_control_display_path(benign_path)
         print(f"[rich-lift] merged {len(benign)} benign control prompts (intent=benign) for the "
               f"over-refusal split", flush=True)
+
+    if args.plan:
+        reuse = load_reuse(pathlib.Path(args.reuse), harness_version=args.harness_version)
+        plan = plan_run(prompts, models, judges, run_paths=run_paths, reuse=reuse,
+                        rubric_version=args.rubric_version, harness_version=args.harness_version,
+                        pairwise=args.pairwise, skip_judge=args.skip_judge)
+        print(format_plan(plan))
+        return 0
 
     def gen(model: str, prompt_in: str) -> str:
         return ollama_chat(prompt_in, model=model, max_tokens=args.max_tokens)
