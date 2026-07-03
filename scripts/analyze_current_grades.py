@@ -340,6 +340,24 @@ def build_report(a: dict) -> str:
         o.append("| " + " | ".join(f"{cd.get(c):+}" if cd.get(c) is not None else "-" for c in COMPONENTS) + " |")
         o.append("")
 
+    o.append("## 10. Why the full harness loses to core (per-component core -> full delta)\n")
+    o.append("`harness_full` scores at or below `harness_core` for every model, so serving `core` is the "
+             "lever against negative lift (see `docs/research/harness_guard_analysis.md`). This shows "
+             "WHICH criterion the extra full-harness layer (online + deep RAG + tools) degrades: a "
+             "negative cell = full scored below core on that criterion.\n")
+    o.append("| Model | A indicator | B cites law | C refuses | D resources | E safety | total core->full |")
+    o.append("|---|---:|---:|---:|---:|---:|---:|")
+    for r in a["per_model"]:
+        cm = r.get("comp_mean", {})
+        core_c, full_c = cm.get("harness_core", {}), cm.get("harness_full", {})
+        cells = []
+        for c in COMPONENTS:
+            cv, fv = core_c.get(c), full_c.get(c)
+            cells.append(f"{round(fv - cv, 2):+}" if (cv is not None and fv is not None) else "-")
+        total = round(r["arm_mean"]["harness_full"] - r["arm_mean"]["harness_core"], 1)
+        o.append(f"| `{r['model']}` | " + " | ".join(cells) + f" | **{total:+}** |")
+    o.append("")
+
     o.append("## What to write from this\n")
     o.append("- The **equalizer + grounded-refusal** story holds on the current data: the lift lands in "
              "the grounded criteria, and the content-free-refusal rate shows *why* a bare 'no' must be "
