@@ -124,6 +124,26 @@ def test_format_plan_states_no_model_was_called_and_scope():
     assert "OPT-IN (h2/v2)" in rh.format_plan(opt_in)
 
 
+def test_format_plan_redacts_private_external_path_names(tmp_path):
+    plan = rh.plan_run(
+        [{"id": "P1", "text": "a"}],
+        ["gemma4:31b"],
+        ["gpt-oss:120b"],
+        run_paths={
+            "results": tmp_path / "worker@example.invalid-results.jsonl",
+            "panel": tmp_path / "panel.jsonl",
+            "pairwise": tmp_path / "pairwise.jsonl",
+            "report": tmp_path / "C-1234567890-report.md",
+        },
+        reuse={},
+    )
+    text = rh.format_plan(plan)
+
+    assert "external/custom_or_invalid" in text
+    assert "worker@example.invalid" not in text
+    assert "C-1234567890" not in text
+
+
 def test_main_plan_calls_no_model_and_writes_nothing(tmp_path, monkeypatch, capsys):
     prompt_path = tmp_path / "promptset.json"
     prompt_path.write_text(json.dumps({"domain": "trafficking",
