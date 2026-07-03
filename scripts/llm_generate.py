@@ -37,6 +37,11 @@ from typing import Any, Callable
 _ROOT = Path(__file__).resolve().parents[1]
 PROPOSALS_DIR = _ROOT / "reports" / "llm_proposals"
 OLLAMA_CLOUD_BASE = "https://ollama.com/v1"   # NOT OLLAMA_HOST (that's the down local daemon)
+# NVIDIA build (integrate.api.nvidia.com) -- an OpenAI-compatible second inference provider. A model
+# string prefixed "nvidia:" (e.g. "nvidia:openai/gpt-oss-120b") routes here via provider_chat(); this
+# is the alternate generation/judge path when Ollama-cloud is rate-limited.
+NVIDIA_CLOUD_BASE = "https://integrate.api.nvidia.com/v1"
+NVIDIA_PREFIX = "nvidia:"
 DEFAULT_MODEL = "glm-5.2"
 # Output budget. 0 (the default) means UNLIMITED: generate to EOS, bounded only by the context window
 # (num_ctx), so a reasoning model's full chain + a long grounded response are never artificially cut --
@@ -130,6 +135,70 @@ def ollama_chat(prompt: str, *, model: str = DEFAULT_MODEL, max_tokens: int = DE
             wait = 2 ** attempt + random.uniform(0.0, 0.5)    # exponential backoff + jitter
         time.sleep(min(wait, 30.0))                           # capped so a huge Retry-After can't stall a worker
     raise RuntimeError("unreachable")  # the loop always returns or raises
+
+
+def _load_nvidia_key() -> str:
+    """NVIDIA_API_KEY from the gitignored repo .env (line-scanned so no other secret is read) or env."""
+    env = _ROOT / ".env"
+    if env.exists():
+        for ln in env.read_text(encoding="utf-8").splitlines():
+            if ln.startswith("NVIDIA_API_KEY=") and not ln.lstrip().startswith("#"):
+                return ln.split("=", 1)[1].strip()
+    key = os.environ.get("NVIDIA_API_KEY", "")
+    if not key:
+        raise RuntimeError("no NVIDIA_API_KEY in .env or environment")
+    return key
+
+
+def nvidia_chat(prompt: str, *, model: str, max_tokens: int = DEFAULT_MAX_TOKENS,
+                temperature: float = 0.6, key: str | None = None, system: str | None = None,
+                timeout: float = 180.0, max_retries: int = 4) -> str:
+    """One NVIDIA-build chat completion -> the answer text. OpenAI-compatible endpoint; strict OpenAI
+    (no Ollama ``options`` block). Same retry/backoff + reasoning-aware extraction as ``ollama_chat``,
+    so it is a drop-in generation/judge caller when Ollama is throttled. ``model`` is the bare NVIDIA id
+    (e.g. ``openai/gpt-oss-120b``); the ``nvidia:`` prefix is stripped by ``provider_chat``."""
+    key = key or _load_nvidia_key()
+    model = model[len(NVIDIA_PREFIX):] if model.startswith(NVIDIA_PREFIX) else model
+    messages = ([{"role": "system", "content": system}] if system else []) + \
+               [{"role": "user", "content": prompt}]
+    payload: dict[str, Any] = {"model": model, "messages": messages, "temperature": temperature,
+                               "stream": False}
+    if max_tokens and max_tokens > 0:
+        payload["max_tokens"] = max_tokens
+    body = json.dumps(payload).encode("utf-8")
+    for attempt in range(max_retries + 1):
+        req = urllib.request.Request(f"{NVIDIA_CLOUD_BASE}/chat/completions", data=body,
+                                     headers={"Authorization": f"Bearer {key}",
+                                              "Content-Type": "application/json"})
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                out = json.loads(resp.read().decode("utf-8", "replace"))
+            msg = (out.get("choices") or [{}])[0].get("message") or {}
+            return str(msg.get("content") or "").strip() or str(msg.get("reasoning_content") or "").strip()
+        except urllib.error.HTTPError as exc:
+            if exc.code not in _RETRYABLE_STATUS or attempt == max_retries:
+                raise
+            wait = _retry_after(exc)
+        except OSError:
+            if attempt == max_retries:
+                raise
+            wait = None
+        if wait is None:
+            wait = 2 ** attempt + random.uniform(0.0, 0.5)
+        time.sleep(min(wait, 30.0))
+    raise RuntimeError("unreachable")
+
+
+def provider_chat(prompt: str, *, model: str, **kwargs: Any) -> str:
+    """Route one chat completion to its provider by model prefix: ``nvidia:<id>`` -> NVIDIA build,
+    everything else -> Ollama-cloud. Lets the benchmark mix providers (e.g. an Ollama candidate judged
+    by an NVIDIA-hosted panel, or the whole run on NVIDIA while Ollama is rate-limited) with no other
+    code change -- callers just pass a provider-prefixed model string. ``num_ctx`` is dropped for the
+    strict-OpenAI NVIDIA path."""
+    if model.startswith(NVIDIA_PREFIX):
+        kwargs.pop("num_ctx", None)   # Ollama-only option; NVIDIA is strict OpenAI
+        return nvidia_chat(prompt, model=model, **kwargs)
+    return ollama_chat(prompt, model=model, **kwargs)
 
 
 def complete(prompt: str, *, model: str = DEFAULT_MODEL, max_tokens: int = DEFAULT_MAX_TOKENS,
