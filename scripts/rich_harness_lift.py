@@ -1035,6 +1035,47 @@ def format_plan(plan: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+def benign_refusal_rate(results: list[dict],
+                        harness_version: str = DEFAULT_HARNESS_VERSION) -> dict | None:
+    """Judge-free over-refusal FLOOR on BENIGN control responses (mirrors "report the deterministic
+    floor next to the judge"). Per (model, arm) the ``refusal_detector`` rate over benign responses:
+    ``refusal_rate`` (an explicit refusal of a legitimate worker question) and ``non_answer_rate``
+    (refusal + empty / reasoning-trace / too-short). A harness that RAISES these vs baseline on benign
+    prompts is over-refusing -- a signal that needs no judge, complementing the F-channel cost. Returns
+    None when there are no benign responses, so an adversarial-only run is unaffected."""
+    _require_harness_version(harness_version)
+    from refusal_detector import classify as _classify  # sibling script; lazy import
+    acc: dict[str, dict[str, dict[str, int]]] = {}
+    for r, model, _pid, arm in _result_rows_for_harness(results, harness_version):
+        if _row_intent(r) != "benign":
+            continue
+        useful, reason = _classify(str(r.get("response", "")))
+        cell = acc.setdefault(model, {}).setdefault(arm, {"n": 0, "refusal": 0, "non_answer": 0})
+        cell["n"] += 1
+        cell["refusal"] += 1 if reason == "refusal" else 0
+        cell["non_answer"] += 0 if useful else 1
+    if not acc:
+        return None
+    models = []
+    for model, arms in sorted(acc.items()):
+        row: dict = {"model": model, "arms": {}}
+        for arm in ARMS:
+            cell = arms.get(arm)
+            if cell and cell["n"]:
+                row["arms"][arm] = {
+                    "n": cell["n"],
+                    "refusal_rate": round(100 * cell["refusal"] / cell["n"], 1),
+                    "non_answer_rate": round(100 * cell["non_answer"] / cell["n"], 1),
+                }
+        base = row["arms"].get("baseline", {}).get("refusal_rate")
+        for arm, key in (("harness_full", "refusal_delta_full"), ("harness_core", "refusal_delta_core")):
+            arm_rate = row["arms"].get(arm, {}).get("refusal_rate")
+            if base is not None and arm_rate is not None:
+                row[key] = round(arm_rate - base, 1)
+        models.append(row)
+    return {"models": models, "harness_version": harness_version}
+
+
 def aggregate(panel: list[dict], judges: list[str],
               rubric_version: str = DEFAULT_RUBRIC_VERSION,
               harness_version: str = DEFAULT_HARNESS_VERSION) -> dict:
@@ -1144,7 +1185,29 @@ def _fmt(value: float | None) -> str:
     return "-" if value is None else f"{value}"
 
 
-def _append_over_refusal_section(o: list[str], over_refusal: dict | None) -> None:
+def _append_deterministic_over_refusal(o: list[str], deterministic: dict | None) -> None:
+    """Render the judge-free over-refusal FLOOR (refusal_detector). No-op when absent."""
+    if not deterministic or not deterministic.get("models"):
+        return
+    o.append(
+        "**Deterministic floor (no judge).** The same benign responses, classified by "
+        "`refusal_detector` -- the fraction each arm explicitly REFUSED (a judge-free floor reported "
+        "next to the F-channel cost, the same way the per-dimension grader sits next to the LLM lift). "
+        "A harness that raises the refusal rate vs baseline on benign prompts is over-refusing.\n")
+    o.append("| Model | refusal% baseline | refusal% core | refusal% full | delta (core) | delta (full) |")
+    o.append("|---|---:|---:|---:|---:|---:|")
+    for r in deterministic["models"]:
+        arms = r.get("arms", {})
+        o.append(
+            f"| `{r['model']}` | {_fmt(arms.get('baseline', {}).get('refusal_rate'))} | "
+            f"{_fmt(arms.get('harness_core', {}).get('refusal_rate'))} | "
+            f"{_fmt(arms.get('harness_full', {}).get('refusal_rate'))} | "
+            f"{_fmt(r.get('refusal_delta_core'))} | **{_fmt(r.get('refusal_delta_full'))}** |")
+    o.append("")
+
+
+def _append_over_refusal_section(o: list[str], over_refusal: dict | None,
+                                 deterministic: dict | None = None) -> None:
     """Render the intent split's over-refusal block (roadmap P4). No-op when there are no benign rows."""
     if not over_refusal or not over_refusal.get("rows"):
         return
@@ -1184,11 +1247,13 @@ def _append_over_refusal_section(o: list[str], over_refusal: dict | None) -> Non
             o.append(f"| `{r['model']}` | {r['n_benign_prompts']} | {_fmt(sa.get('baseline'))} | "
                      f"{_fmt(sa.get('harness_core'))} | {_fmt(sa.get('harness_full'))} |")
         o.append("")
+    _append_deterministic_over_refusal(o, deterministic)
 
 
 def build_report(agg: dict, judges: list[str], *, out_path: pathlib.Path,
                  pairwise_agg: dict | None = None,
-                 benign_control_path: str | None = None) -> str:
+                 benign_control_path: str | None = None,
+                 deterministic_over_refusal: dict | None = None) -> str:
     o: list[str] = []
     rubric_version = str(agg.get("rubric_version") or "v1")
     if rubric_version not in RUBRIC_VERSIONS:
@@ -1262,7 +1327,7 @@ def build_report(agg: dict, judges: list[str], *, out_path: pathlib.Path,
         o.append(f"| `{r['model']}` | {r['n_prompts']} | {pa['baseline']} | {pa['harness_core']} | "
                  f"**{pa['harness_full']}** | **+{r['lift_full_vs_baseline']}** | {r['lift_full_vs_core']:+} |")
     o.append("")
-    _append_over_refusal_section(o, agg.get("over_refusal"))
+    _append_over_refusal_section(o, agg.get("over_refusal"), deterministic_over_refusal)
     o.append("## Per-judge breakdown (0-100 arm means)\n")
     o.append("| Model | Judge | baseline | harness_core | harness_full |")
     o.append("|---|---|---:|---:|---:|")
@@ -1504,8 +1569,11 @@ def main(argv: list[str] | None = None) -> int:
         agg = aggregate(panel, judges, rubric_version=args.rubric_version,
                         harness_version=args.harness_version)
         pw_agg = aggregate_pairwise(pairwise_rows, judges, harness_version=args.harness_version) if pairwise_rows else None
+        det_over_refusal = benign_refusal_rate(_load_jsonl_file(run_paths["results"]),
+                                               harness_version=args.harness_version)
         build_report(agg, judges, out_path=run_paths["report"], pairwise_agg=pw_agg,
-                     benign_control_path=benign_control_report_path)
+                     benign_control_path=benign_control_report_path,
+                     deterministic_over_refusal=det_over_refusal)
         print(f"[rich-lift] report -> {run_paths['report']} | n_responses={agg['n_responses']} "
               f"alpha={agg['krippendorff_alpha']}"
               + (f" | pairwise full-vs-core {pw_agg['models'][0]['panel_mean_delta']:+}"
