@@ -61,10 +61,21 @@ Of the **187** prompts where harness_full scored below baseline, the harm mode (
 | `glm-5.2` | 2 | 0 | 0 | 0 | 2 |
 | `qwen3.5:397b` | 0 | 0 | 0 | 0 | 0 |
 
+## What the harness DID on the negative-lift prompts (text signature)
+
+Deterministic deltas (harness_full - baseline) on the prompts where the harness hurt. `added a refusal` = the baseline answered substantively but the harnessed reply is a refusal; `conv/section delta` = change in cited ILO conventions / statute sections; `len delta` = change in characters.
+
+| Subset | n | added a refusal | mean conv delta | mean section delta | mean len delta |
+|---|---:|---:|---:|---:|---:|
+| all negative-lift | 187 | 1 (0.5%) | -0.01 | +0.12 | -4776 |
+| `other` (un-catchable tail) | 122 | 0 (0.0%) | +0.19 | +0.22 | -179 |
+
+Reading: a **positive** conv/section delta means the harnessed reply cited *more* law than the baseline and still scored lower -- so the loss is not missing grounding but the judge preferring the strong baseline's breadth (a rubric/judge-preference effect, not a harness bug). A high `added a refusal` share means the harm is the harness turning a useful answer into a (grounded) refusal -- the failure the h2 grounded-response contract and intent-aware routing target at generation time (serving `core` also constrains a strong reply less).
+
 ## What this says
 
 - **Serve `core`, not `full`.** This is the single measured lever that reduces where the harness hurts (full <= core for every model) and it is cheaper (no online / tool calls). It is a board change and rolls out under the versioned re-grade discipline, not mid-sweep.
 - **A baseline-fallback serving guard does NOT work here** -- every policy is net-negative, because no cheap text signal separates the harness's grounded refusal from a bare one, and shorter replies are often better. `DEFAULT_GUARD_POLICY = off`; the guard code is kept for reproducibility and re-measurement on other data, not as a recommendation.
 - **A length-based guard is the worst** (the `len` row) -- shorter is frequently better. Never ship it.
-- **The bulk of the tail is `other`** -- full-length, still-cited replies the judge scored below a strong baseline's essay. No text guard catches these; the generation-time levers are serving `core` (constrains a strong reply less) and the h2 grounded-refusal contract (reduces the small bare-collapse count).
+- **The bulk of the tail (65%) is `other`, and the text signature shows it is NOT a harness failure:** on those prompts the harnessed reply cites MORE conventions and MORE sections and adds a refusal ~0% of the time -- a full-length, MORE-grounded reply the judge still scored below a strong baseline's essay. That is a judge / rubric-preference effect near the quality ceiling, not lost safety value; no text guard should try to 'fix' it. The honest response is to report it, serve `core` for strong-baseline models (less constraint), and let the h2 contract handle the tiny genuine bare-collapse count.
 

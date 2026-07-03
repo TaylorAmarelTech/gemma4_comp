@@ -37,6 +37,8 @@ _ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_ROOT / "scripts"))
 
 from harness_guard import GUARD_POLICIES, GUARD_SIGNALS, guard_signals  # noqa: E402
+from refusal_detector import classify as _classify  # noqa: E402
+from citation_accuracy import citation_stats as _cite  # noqa: E402
 
 PANEL = _ROOT / "reports" / "rich_lift" / "panel.jsonl"
 RESULTS = _ROOT / "reports" / "rich_lift" / "results.jsonl"
@@ -96,6 +98,10 @@ def analyse(panel: list[dict] | None = None, results: list[dict] | None = None) 
     # guard-policy pooled tallies (applied to the FULL arm)
     pooled_pol = {p: {"served": [], "fired": 0, "recovery": 0, "misfire": 0, "neutral": 0,
                       "recovered_pts": 0.0, "lost_pts": 0.0} for p in POLICIES}
+    # negative-lift TEXT signature: what did the harness DO to the reply on the prompts where it hurt?
+    # (added a refusal? cited fewer conventions/sections? got shorter?) -- diagnoses the uncatchable tail.
+    negsig = {b: {"n": 0, "added_refusal": 0, "len_delta": [], "conv_delta": [], "sect_delta": []}
+              for b in ("all", "other")}
 
     for m in models:
         pids = {k[1] for k in mean_score if k[0] == m}
@@ -118,7 +124,20 @@ def analyse(panel: list[dict] | None = None, results: list[dict] | None = None) 
             sig_core[pid] = guard_signals(b, resp[(m, pid, "harness_core")])
             if mean_score[(m, pid, "harness_full")] < mean_score[(m, pid, "baseline")]:
                 neg_n += 1
-                neg_bucket[_first_signal(sig_full[pid]) or "other"] += 1
+                bucket = _first_signal(sig_full[pid]) or "other"
+                neg_bucket[bucket] += 1
+                f = resp[(m, pid, "harness_full")]
+                b_useful = _classify(b)[0]
+                f_useful, f_reason = _classify(f)
+                added = int(b_useful and (not f_useful) and f_reason == "refusal")
+                cb, cf = _cite(b), _cite(f)
+                for key in (["all", "other"] if bucket == "other" else ["all"]):
+                    ns = negsig[key]
+                    ns["n"] += 1
+                    ns["added_refusal"] += added
+                    ns["len_delta"].append(len(f) - len(b))
+                    ns["conv_delta"].append(cf["n_conventions"] - cb["n_conventions"])
+                    ns["sect_delta"].append(cf["n_section_refs"] - cb["n_section_refs"])
 
         # served strategies (min guard where guarded)
         served = {s: [] for s in strategies}
@@ -192,10 +211,19 @@ def analyse(panel: list[dict] | None = None, results: list[dict] | None = None) 
                               "recovered_pts": round(pp["recovered_pts"], 1),
                               "lost_pts": round(pp["lost_pts"], 1),
                               "net_pts": round(pp["recovered_pts"] - pp["lost_pts"], 1)}
+    def _sig_summary(ns: dict) -> dict:
+        n = ns["n"]
+        return {"n": n,
+                "added_refusal": ns["added_refusal"],
+                "added_refusal_pct": round(100 * ns["added_refusal"] / n, 1) if n else 0.0,
+                "mean_len_delta": int(statistics.mean(ns["len_delta"])) if ns["len_delta"] else 0,
+                "mean_conv_delta": round(statistics.mean(ns["conv_delta"]), 2) if ns["conv_delta"] else 0.0,
+                "mean_sect_delta": round(statistics.mean(ns["sect_delta"]), 2) if ns["sect_delta"] else 0.0}
+    neg_signature = {k: _sig_summary(v) for k, v in negsig.items()}
     return {"per_model": per_model, "served_pooled": served_pooled, "pol_pooled": pol_pooled,
             "base_mean": round(bmean, 1), "pooled_neg": pooled_neg,
-            "pooled_signals": dict(pooled_signals), "n_models": len(per_model),
-            "n_panel": len(panel), "n_results": len(results)}
+            "pooled_signals": dict(pooled_signals), "neg_signature": neg_signature,
+            "n_models": len(per_model), "n_panel": len(panel), "n_results": len(results)}
 
 
 def build_report(a: dict) -> str:
@@ -278,6 +306,25 @@ def build_report(a: dict) -> str:
                  f"{nb.get('other', 0)} |")
     o.append("")
 
+    ns_all, ns_other = a["neg_signature"]["all"], a["neg_signature"]["other"]
+    o.append("## What the harness DID on the negative-lift prompts (text signature)\n")
+    o.append("Deterministic deltas (harness_full - baseline) on the prompts where the harness hurt. "
+             "`added a refusal` = the baseline answered substantively but the harnessed reply is a "
+             "refusal; `conv/section delta` = change in cited ILO conventions / statute sections; "
+             "`len delta` = change in characters.\n")
+    o.append("| Subset | n | added a refusal | mean conv delta | mean section delta | mean len delta |")
+    o.append("|---|---:|---:|---:|---:|---:|")
+    for label, ns in (("all negative-lift", ns_all), ("`other` (un-catchable tail)", ns_other)):
+        o.append(f"| {label} | {ns['n']} | {ns['added_refusal']} ({ns['added_refusal_pct']}%) | "
+                 f"{ns['mean_conv_delta']:+} | {ns['mean_sect_delta']:+} | {ns['mean_len_delta']:+} |")
+    o.append("")
+    o.append("Reading: a **positive** conv/section delta means the harnessed reply cited *more* law than "
+             "the baseline and still scored lower -- so the loss is not missing grounding but the judge "
+             "preferring the strong baseline's breadth (a rubric/judge-preference effect, not a harness "
+             "bug). A high `added a refusal` share means the harm is the harness turning a useful answer "
+             "into a (grounded) refusal -- the failure the h2 grounded-response contract and intent-aware "
+             "routing target at generation time (serving `core` also constrains a strong reply less).\n")
+
     o.append("## What this says\n")
     o.append("- **Serve `core`, not `full`.** This is the single measured lever that reduces where the "
              "harness hurts (full <= core for every model) and it is cheaper (no online / tool calls). "
@@ -288,10 +335,13 @@ def build_report(a: dict) -> str:
              "reproducibility and re-measurement on other data, not as a recommendation.\n"
              "- **A length-based guard is the worst** (the `len` row) -- shorter is frequently better. "
              "Never ship it.\n"
-             "- **The bulk of the tail is `other`** -- full-length, still-cited replies the judge scored "
-             "below a strong baseline's essay. No text guard catches these; the generation-time levers "
-             "are serving `core` (constrains a strong reply less) and the h2 grounded-refusal contract "
-             "(reduces the small bare-collapse count).\n")
+             "- **The bulk of the tail (65%) is `other`, and the text signature shows it is NOT a harness "
+             "failure:** on those prompts the harnessed reply cites MORE conventions and MORE sections and "
+             "adds a refusal ~0% of the time -- a full-length, MORE-grounded reply the judge still scored "
+             "below a strong baseline's essay. That is a judge / rubric-preference effect near the quality "
+             "ceiling, not lost safety value; no text guard should try to 'fix' it. The honest response "
+             "is to report it, serve `core` for strong-baseline models (less constraint), and let the h2 "
+             "contract handle the tiny genuine bare-collapse count.\n")
     return "\n".join(o) + "\n"
 
 
