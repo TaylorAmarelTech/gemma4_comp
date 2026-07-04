@@ -121,7 +121,12 @@ We treat measurement as a ladder of methods, each a response to a measured limit
   both presentation orders to cancel position bias.
 - **Multi-judge panel (the robustness wrapper).** Every LLM-judge number is re-run across several
   independent frontier judges with **self-family exclusion** (a judge never grades its own model
-  family), reporting inter-judge Krippendorff α. A published result has survived a diverse panel.
+  family), reporting inter-judge Krippendorff α. Measured agreement is high (**α = 0.922** over 11,546
+  cells; `judge_reliability.md`), and — notably — the harnessed arms are graded *more* reliably than the
+  baseline (α 0.91 vs 0.82; per-cell disagreement 2.5 vs 6.2 points), because a grounded, cited reply is
+  less ambiguous to score. Agreement is lowest on criterion C — does it refuse (α 0.738) — the very
+  criterion rubric v2 revises; all three judges sit within ±1 point of the panel consensus (no single
+  inflating judge). A published result has survived this diverse panel.
 - **Controls.** Placebo (knowledge vs generic preamble), negative control, applicability audit,
   convergent validity, length-bias ablation, and lift-under-attack stay attached to any headline.
 
@@ -276,9 +281,14 @@ evidence is stale (`validate_training_provenance.py`).
   floor is the reproducible conservative number, and the multi-judge panel shows judge-robustness, but
   none of these is a real-world outcome. Practitioner (NGO caseworker) validation is the single biggest
   outstanding credibility unlock.
-- **Judge non-determinism.** Judges disagree on absolute scores and exact magnitude; the paired design
-  cancels each judge's scale, and we claim the *sign and rough ordering* of the lift from the panel, the
-  *magnitude* from the large-N single-judge runs.
+- **Judge non-determinism, and agreement ≠ correctness.** Judges disagree on absolute scores and exact
+  magnitude; the paired design cancels each judge's scale, and we claim the *sign and rough ordering* of
+  the lift from the panel, the *magnitude* from the large-N single-judge runs. Inter-judge agreement is
+  in fact high (α = 0.922, §4) — but high agreement is not correctness: three frontier judges can *share*
+  a systematic preference (e.g. for a longer, more-structured reply). That shared preference is the most
+  likely explanation for the negative-lift tail in §5.3, where ~65% of the cases are a *more*-grounded
+  harnessed reply the panel scored below a strong baseline's essay. It is also why the real unlock is
+  practitioner validation, not simply adding more LLM judges.
 - **Propose-only legal mappings.** Every statute/indicator mapping is propose-only until expert
   validated; the prompts reference real public instruments as scenario context, not as model-verified
   claims.
