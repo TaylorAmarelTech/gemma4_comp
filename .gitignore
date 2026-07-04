@@ -119,6 +119,10 @@ reports/**/*.py
 reports/**/*.csv
 reports/**/*.ipynb
 reports/**/*.png
+reports/**/*.db
+reports/**/*.sqlite
+reports/**/*.db-wal
+reports/**/*.db-shm
 reports/recruitment_scan/
 reports/agency_scan/
 reports/agency_dossier/
