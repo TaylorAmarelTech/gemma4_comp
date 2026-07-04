@@ -174,6 +174,30 @@ def audit(conn: sqlite3.Connection) -> dict:
     }
 
 
+def neg_lift_instances(conn: sqlite3.Connection, *, arm: str = "harness_full",
+                       limit: int = 25) -> list[dict]:
+    """The worst negative-lift instances (a harnessed arm scored BELOW baseline), from the DB.
+
+    One indexed SQL query over per-cell mean scores -- the fast, queryable substitute for re-parsing the
+    JSONL. Returns prompt ids + scores only (no text); pull the prompt by id to review it. Useful for
+    "study the negative-lift instances" and for choosing prompts to improve.
+    """
+    sql = """
+        WITH cell AS (
+            SELECT model, prompt_id, arm, avg(score) s, count(DISTINCT judge) nj
+            FROM panel GROUP BY model, prompt_id, arm
+        )
+        SELECT b.model AS model, b.prompt_id AS prompt_id,
+               round(b.s, 1) AS baseline, round(h.s, 1) AS harnessed,
+               round(h.s - b.s, 1) AS lift, h.nj AS judges
+        FROM cell b JOIN cell h ON b.model = h.model AND b.prompt_id = h.prompt_id
+        WHERE b.arm = 'baseline' AND h.arm = ? AND h.s < b.s
+        ORDER BY (h.s - b.s) ASC
+        LIMIT ?
+    """
+    return [dict(r) for r in conn.execute(sql, (arm, limit))]
+
+
 def build_audit_report(a: dict) -> str:
     o: list[str] = []
     o.append("# Benchmark data audit (SQLite index over the run checkpoints)\n")
@@ -220,6 +244,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--db", default=str(DB_DEFAULT))
     ap.add_argument("--out", default=str(AUDIT_OUT))
     ap.add_argument("--audit-only", action="store_true", help="audit an existing db without re-ingesting")
+    ap.add_argument("--neg-lift", type=int, default=0, metavar="N",
+                    help="also print the N worst negative-lift instances (harness_full < baseline)")
     args = ap.parse_args(argv)
     conn = connect(args.db)
     if not args.audit_only:
@@ -237,6 +263,12 @@ def main(argv: list[str] | None = None) -> int:
               + a["component_out_of_range"] + a["empty_responses"] + a["unknown_arm"])
     print(f"audit -> {out} | {a['n_results']:,} responses, {a['n_panel']:,} judge rows, "
           f"{issues} integrity issue(s)")
+    if args.neg_lift:
+        rows = neg_lift_instances(conn, limit=args.neg_lift)
+        print(f"\nWorst {len(rows)} negative-lift instances (harness_full < baseline):")
+        for r in rows:
+            print(f"  {r['lift']:+6.1f}  {r['model']:<16} {r['prompt_id']:<30} "
+                  f"base={r['baseline']} full={r['harnessed']} judges={r['judges']}")
     return 0
 
 
