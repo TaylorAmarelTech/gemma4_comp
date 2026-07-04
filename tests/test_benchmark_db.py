@@ -77,3 +77,17 @@ def test_report_renders():
     conn, _ = _seeded_conn()
     md = bdb.build_audit_report(bdb.audit(conn))
     assert "Integrity checks" in md and "Responses per model" in md
+
+
+def test_neg_lift_instances_ranks_worst_first():
+    conn = bdb.connect(":memory:")
+    panel = []
+    for pid, base, full in [("p_neg", 60, 30), ("p_pos", 40, 90), ("p_worse", 70, 20)]:
+        panel.append(_panel("m", pid, "baseline", "j1", base))
+        panel.append(_panel("m", pid, "harness_full", "j1", full))
+    bdb.ingest(conn, panel=panel, results=[])
+    rows = bdb.neg_lift_instances(conn, limit=10)
+    assert len(rows) == 2                        # only the two negative-lift prompts (p_pos excluded)
+    assert rows[0]["prompt_id"] == "p_worse"     # worst (most negative) first
+    assert rows[0]["lift"] == -50.0
+    assert all(r["lift"] < 0 for r in rows)
