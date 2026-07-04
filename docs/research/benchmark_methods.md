@@ -197,3 +197,32 @@ Reports produced: `rich_harness_lift_100.md` (primary, component 0-100 + pairwis
 `placebo_judge.md` / `placebo_panel.md`, `comparative_results.md`, `convergent_validity.md`,
 `attack_lift_report.md`, `pairwise_lift.md`. Method rigor, statistics, and threats:
 `evaluation_methodology.md`. Score aggregation formulas: `scoring_formula.md`.
+
+## Offline diagnostics on the committed grades (no model calls, no provider)
+
+These run deterministically from the committed run checkpoints (`reports/rich_lift/{panel,results}.jsonl`)
+-- no Ollama, no NVIDIA, no API key -- so they keep producing findings while the generation endpoint is
+rate-limited:
+
+```bash
+# Broad cuts: per-model lift, residual gap, content-free refusal, citation accuracy, lift by
+# difficulty/source/category/framing, length-vs-lift, negative-lift components, core->full per-component delta
+python scripts/analyze_current_grades.py       # -> current_grades_findings.md
+
+# Where the harness HURTS: serving-guard measurement (result: net-negative, disabled by default) + the
+# measured lever "serve core not full" (core 87.1 > full 84.9; full <= core for every model)
+python scripts/analyze_harness_guard.py        # -> harness_guard_analysis.md
+
+# Inter-judge reliability: per-arm / per-criterion Krippendorff alpha + per-judge leniency
+python scripts/analyze_judge_reliability.py    # -> judge_reliability.md
+
+# Judge-independent citation accuracy (hallucinated-statute rate per arm); judge-vs-deterministic convergence
+python scripts/citation_accuracy.py            # -> citation_accuracy.md
+python scripts/convergent_validity.py          # -> convergent_validity.md
+```
+
+Key offline findings (2026-07-03): overall inter-judge **alpha 0.922** (the harnessed arms grade *more*
+reliably than baseline, 0.91 vs 0.82); **serve `core` not `full`** (full underperforms core for every
+model; a deterministic baseline-fallback serving guard measured net-negative, so it is disabled); and
+the negative-lift tail is ~65% a *more*-grounded reply the panel scored below a strong baseline (a
+judge-preference effect near the ceiling, not lost safety value).
