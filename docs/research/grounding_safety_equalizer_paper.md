@@ -23,8 +23,8 @@ rather than causing one (gains concentrate in *cites-law* and *concrete-resource
 harness's own failure modes — a small negative-lift tail that is mostly a *more*-grounded reply the
 judge scored below a strong baseline (a rubric-preference effect, only ~1 in 187 a true refusal
 collapse); a rubric that over-credits a content-free "no"; an unmeasured over-refusal cost — and ship
-versioned, opt-in fixes for each, finding along the way that a deterministic serving guard is
-net-negative and that the cheaper offline `core` harness beats the full one. Finally we describe
+versioned, opt-in fixes for each, finding along the way that a *broad* serving guard is net-negative but
+a *tight* collapse guard is net-positive, and that the cheaper offline `core` harness beats the full one. Finally we describe
 a train→eval→select distillation method that turns the harness's measured lift into a smaller model's
 learned behaviour, selected on the smallest held-out generalization gap with no over-refusal regression.
 
@@ -195,10 +195,12 @@ Measuring the harness honestly surfaced three problems, each now addressed with 
    cites more ILO conventions (+0.19) and more statute sections (+0.22) and refuses ~0% of the time —
    that the judge nonetheless scored below a strong baseline's essay.** That last bucket is a
    judge/rubric-preference effect near the quality ceiling, not lost safety value. We built the obvious
-   fix — a deterministic serving guard that reverts to the baseline on a detected regression — and
-   **measured it to be net-negative** (every fallback policy misfires far more than it recovers, because
-   no cheap text test separates the harness's *grounded* refusal, which cites an ILO convention and a
-   hotline, from a bare "I can't help"), so it is disabled by default: an honest negative result. **The
+   fix — a deterministic serving guard that reverts to the baseline on a detected regression. A *broad*
+   guard is **net-negative** (it reverts the harness's own long *grounded* refusals, which the refusal
+   detector flags), but a *tight* one is **net-positive**: `hard_collapse` (a ≥1,000-char baseline turned
+   into a ≤150-char reply) catches only the catastrophic collapses — a ≤150-char cap physically cannot
+   fire on a grounded refusal — lifting the guarded mean above unguarded (+1,525 points). It is on by
+   default as a cheap serving-time safety net; the broad variants stay off. **The
    fixes that do work:** the harness h2 grounded-response contract (refuse the operational ask but still
    deliver the indicator, the law, and the resources) reduces the small genuine-collapse count at
    generation time, and — the larger lever — serving `core` not `full` (§5.4).
