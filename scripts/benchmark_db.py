@@ -189,8 +189,11 @@ def neg_lift_instances(conn: sqlite3.Connection, *, arm: str = "harness_full",
         )
         SELECT b.model AS model, b.prompt_id AS prompt_id,
                round(b.s, 1) AS baseline, round(h.s, 1) AS harnessed,
-               round(h.s - b.s, 1) AS lift, h.nj AS judges
+               round(h.s - b.s, 1) AS lift, h.nj AS judges,
+               rb.resp_len AS base_len, rh.resp_len AS full_len
         FROM cell b JOIN cell h ON b.model = h.model AND b.prompt_id = h.prompt_id
+        LEFT JOIN results rb ON rb.model = b.model AND rb.prompt_id = b.prompt_id AND rb.arm = 'baseline'
+        LEFT JOIN results rh ON rh.model = h.model AND rh.prompt_id = h.prompt_id AND rh.arm = h.arm
         WHERE b.arm = 'baseline' AND h.arm = ? AND h.s < b.s
         ORDER BY (h.s - b.s) ASC
         LIMIT ?
@@ -266,9 +269,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.neg_lift:
         rows = neg_lift_instances(conn, limit=args.neg_lift)
         print(f"\nWorst {len(rows)} negative-lift instances (harness_full < baseline):")
+        print("  (lengths in chars; COLLAPSE = full arm < 40% of a substantive baseline)")
         for r in rows:
-            print(f"  {r['lift']:+6.1f}  {r['model']:<16} {r['prompt_id']:<30} "
-                  f"base={r['baseline']} full={r['harnessed']} judges={r['judges']}")
+            bl, fl = r.get("base_len"), r.get("full_len")
+            tag = "  <-COLLAPSE" if (bl and fl is not None and bl > 200 and fl < 0.4 * bl) else ""
+            print(f"  {r['lift']:+6.1f}  {r['model']:<14} {r['prompt_id']:<30} "
+                  f"base={r['baseline']}/{bl}c full={r['harnessed']}/{fl}c{tag}")
     return 0
 
 
