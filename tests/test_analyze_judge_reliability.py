@@ -41,6 +41,7 @@ def test_per_arm_and_per_component_keys():
     for arm in a["per_arm"].values():
         assert arm["alpha"] is not None and arm["n"] > 0
     assert set(a["per_component"]) == {"A", "B", "C", "D", "E"}
+    assert "m1" in a["per_model"] and a["per_model"]["m1"]["alpha"] is not None
 
 
 def test_leniency_recovers_the_systematic_offset():

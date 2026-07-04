@@ -92,6 +92,14 @@ def analyse(panel: list[dict] | None = None) -> dict:
                 items[cell] = vals
         per_component[comp] = {"alpha": krippendorff_alpha(items) if items else None, "n": len(items)}
 
+    # per-model inter-judge alpha: is the panel reliable for EACH subject model? (low agreement on a
+    # model means that model's lift number rests on shakier judge consensus)
+    per_model = {}
+    for m in sorted({c[0] for c in all_cells}):
+        alpha, n = _alpha_for([c for c in all_cells if c[0] == m])
+        if n:
+            per_model[m] = {"alpha": alpha, "n": n}
+
     # per-judge leniency: deviation from the per-cell consensus (cells with >=2 judges)
     dev: dict[str, list[float]] = collections.defaultdict(list)
     raw: dict[str, list[float]] = collections.defaultdict(list)
@@ -107,7 +115,7 @@ def analyse(panel: list[dict] | None = None) -> dict:
                  for j in sorted(judges)}
 
     return {"overall_alpha": overall_alpha, "overall_n": overall_n, "per_arm": per_arm,
-            "per_component": per_component, "per_judge": per_judge,
+            "per_component": per_component, "per_model": per_model, "per_judge": per_judge,
             "judges": sorted(judges), "n_panel": len(panel)}
 
 
@@ -140,6 +148,16 @@ def build_report(a: dict) -> str:
     for comp in COMPONENTS:
         s = a["per_component"][comp]
         o.append(f"| {comp} ({COMPONENT_LABEL[comp]}) | {_fmt(s['alpha'])} | {s['n']:,} |")
+    o.append("")
+
+    o.append("## Agreement per subject model (is the lift trustworthy for each model?)\n")
+    o.append("Inter-judge alpha over each subject model's cells. A low value flags a model whose lift "
+             "number rests on weaker judge consensus; rows with very few cells (see `n`) are noisy small "
+             "samples, not a reliability verdict.\n")
+    o.append("| Subject model | alpha | cells |")
+    o.append("|---|---:|---:|")
+    for m, s in sorted(a.get("per_model", {}).items(), key=lambda kv: -(kv[1]["alpha"] or 0)):
+        o.append(f"| `{m}` | {_fmt(s['alpha'])} | {s['n']:,} |")
     o.append("")
 
     o.append("## Per-judge leniency (deviation from the per-cell panel consensus)\n")

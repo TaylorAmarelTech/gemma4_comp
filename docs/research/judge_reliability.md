@@ -22,6 +22,21 @@ Panel judges: `deepseek-v4-pro`, `glm-5.2`, `gpt-oss:120b`. **Overall Krippendor
 | D (resources) | 0.902 | 11,546 |
 | E (safety) | 0.909 | 11,546 |
 
+## Agreement per subject model (is the lift trustworthy for each model?)
+
+Inter-judge alpha over each subject model's cells. A low value flags a model whose lift number rests on weaker judge consensus; rows with very few cells (see `n`) are noisy small samples, not a reliability verdict.
+
+| Subject model | alpha | cells |
+|---|---:|---:|
+| `minimax-m2.7` | 0.964 | 117 |
+| `gpt-oss:120b` | 0.933 | 4,614 |
+| `deepseek-v4-pro` | 0.932 | 547 |
+| `gemma4:31b` | 0.906 | 4,785 |
+| `glm-5.1` | 0.874 | 120 |
+| `glm-5.2` | 0.860 | 1,234 |
+| `qwen3.5:397b` | 0.752 | 120 |
+| `gpt-oss:20b` | -0.144 | 9 |
+
 ## Per-judge leniency (deviation from the per-cell panel consensus)
 
 `leniency` = mean(judge score - panel-cell mean); positive = this judge scores ABOVE the panel (lenient), negative = below (harsh). A paired measure, so it controls for which prompts each judge happened to grade.
