@@ -36,6 +36,7 @@
 ## Reading
 
 - High adversarial coverage + ~0% benign over-fire means the ML layer is ready for a scored run (it fires where it should and stays quiet where it should).
+- **Adversarial coverage is partly circular by construction.** The adversarial prompts were generated from these rules and embed the indicator LABEL text, so a label-matching pattern fires on them almost by definition. 100% here means the pack is internally consistent with its own prompt set -- NOT that it would catch the same schemes phrased freely in the wild (real adversarial language is more varied). The **benign over-fire rate is the more informative number**: the benign set was written independently as legitimate finance questions, so a low over-fire is a genuine specificity signal, not circular.
 - Dead rules are not wrong, just inert on this prompt set -- widen the pattern or add prompts that exercise the indicator before relying on it.
 - Every mapping here stays **propose-only** until an AML expert validates it; this check is a readiness gate, not a correctness claim.
 
