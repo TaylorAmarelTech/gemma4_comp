@@ -25,17 +25,19 @@ policy): ``drastic_shortening`` -- "harnessed much shorter than baseline". A ver
 averages ~9.5k chars) is very often IMPROVED by a shorter, focused, grounded reply, so a length signal
 fires overwhelmingly where the harness HELPED. Length is not a proxy for quality loss.
 
-MEASURED RESULT (docs/research/harness_guard_analysis.md, current grades): **no baseline-fallback guard
-is net-positive.** Even the minimal ``min`` policy fired 512 times but MISFIRED on 458 of them (reverting
-a harnessed reply that had actually scored ABOVE baseline, ~-19k pts) against only 54 true catches. The
-reason is fundamental: the harness's signature win is a *grounded refusal* that ``refusal_detector``
-flags as a "refusal" and that cites an ILO *convention* + hotline but not a numbered *section*, so no
-cheap text test cleanly separates it from a bare "I can't help". And ~65% of the negative-lift tail is
-``other`` (a full-length, still-cited reply the judge simply scored lower) -- uncatchable by any text
-guard. So ``DEFAULT_GUARD_POLICY`` is ``off``: the measured-best serving choice is the harness reply
-UNGUARDED, and the real lever against "the harness hurts" is serving ``harness_core`` instead of
-``harness_full`` (full <= core for every model). The policies below are retained so the negative result
-is reproducible and re-measurable on other data/domains, not because a guard is recommended here.
+MEASURED RESULT (docs/research/harness_guard_analysis.md, current grades): a guard's worth is entirely
+about how tightly it targets the CATASTROPHIC tail. The broad ``min`` policy is net-NEGATIVE: it fired
+512 times but MISFIRED on 458 (reverting a harnessed reply that had actually scored ABOVE baseline,
+~-19k pts) against 54 catches, because the harness's signature win is a *grounded refusal* that
+``refusal_detector`` flags as a "refusal" -- no cheap phrase test separates it from a bare "I can't
+help". BUT the tight ``hard`` policy (``hard_collapse``: a >=1k-char baseline turned into a <=150-char
+reply) is net-POSITIVE (+1,525 pts; guarded mean 85.3 > 84.9 unguarded): its length cap physically
+cannot fire on a grounded refusal (those run to hundreds/thousands of chars), so it catches the ~38-char
+catastrophes (51 big recoveries) with few, small misfires (41, small deltas). So
+``DEFAULT_GUARD_POLICY`` is ``hard`` -- a cheap serving-time safety net for the catastrophic tail. The
+larger lever against "the harness hurts" is still serving ``harness_core`` instead of ``harness_full``
+(full <= core for every model); ``hard`` sits on top. (~65% of the MILDER negative-lift tail is
+``other`` -- a full-length reply the judge scored slightly lower -- which no text guard should touch.)
 
 Pure stdlib plus two sibling detectors (``refusal_detector``, ``citation_accuracy``); safe to import
 anywhere, including the offline analysis path.
@@ -46,7 +48,15 @@ from __future__ import annotations
 MIN_LEN_RATIO = 0.4
 MIN_BASELINE_CHARS = 200
 
-GUARD_SIGNALS = ("bare_nonanswer", "citation_regression", "drastic_shortening")
+# ``hard_collapse``: the catastrophic tail found via the benchmark DB -- a substantive baseline (a long
+# gpt-oss legal analysis, 9k-17k chars scoring 83-96) turned into a ~38-char bare refusal scoring ~17
+# (a -75 drop). The tight length gate catches ONLY these and NEVER a *grounded* refusal, which runs to
+# hundreds/thousands of chars, so a <150-char cap cannot fire on it. That is the separation the broad
+# ``min`` guard lacked (it keyed on the refusal PHRASE, which grounded refusals also carry).
+HARD_COLLAPSE_MAX_CHARS = 150      # the collapsed reply must be this short (a bare refusal is ~38 chars)
+HARD_COLLAPSE_MIN_BASELINE = 1000  # ...and the baseline must have been substantial (so fallback is safe)
+
+GUARD_SIGNALS = ("bare_nonanswer", "citation_regression", "drastic_shortening", "hard_collapse")
 
 # A policy is an ORDERED tuple of signal names; the first that fires attributes the fallback.
 # NB: all non-``off`` policies measured net-NEGATIVE on the current grades (see module docstring); they
@@ -57,12 +67,15 @@ GUARD_POLICIES: dict[str, tuple[str, ...]] = {
     "min": ("bare_nonanswer", "citation_regression"),
     # Adds the length signal -- retained ONLY to demonstrate its (worse) measured net-negative effect.
     "len": ("bare_nonanswer", "citation_regression", "drastic_shortening"),
+    # Catches ONLY the catastrophic ~38-char collapses of a long baseline; designed to avoid the misfires
+    # that sank ``min`` (grounded refusals are long, so the length cap cannot fire on them). Measured.
+    "hard": ("hard_collapse",),
 }
-# ``off`` by measurement (docs/research/harness_guard_analysis.md): on the current grades every fallback
-# policy lost more lift to misfires than it recovered, so the best serving choice is the harness reply
-# UNGUARDED. The real lever against "the harness hurts" is serving ``harness_core`` not ``harness_full``.
-# Re-run scripts/analyze_harness_guard.py if the grades change materially before enabling any policy.
-DEFAULT_GUARD_POLICY = "off"
+# ``hard`` by measurement (docs/research/harness_guard_analysis.md): the tight hard-collapse guard is the
+# one fallback policy that is net-POSITIVE (+1,525 pts; guarded mean 85.3 > 84.9 unguarded). ``min``/``len``
+# are net-negative (they revert grounded refusals). Re-run scripts/analyze_harness_guard.py if the grades
+# change materially. The larger lever against "the harness hurts" remains serving ``harness_core``.
+DEFAULT_GUARD_POLICY = "hard"
 
 
 def _require_policy(policy: str) -> tuple[str, ...]:
@@ -95,9 +108,14 @@ def guard_signals(baseline: str, harnessed: str, *, min_len_ratio: float = MIN_L
     citation_regression = bool(b_useful and b_cites >= 1 and h_cites == 0)
     drastic_shortening = bool(
         b_useful and len(baseline) > min_baseline_chars and len(harnessed) < min_len_ratio * len(baseline))
+    # A hard collapse: a substantial baseline turned into an absurdly short reply -- too short to be
+    # grounded, so (unlike the refusal phrase) this cannot fire on a grounded refusal.
+    hard_collapse = bool(
+        b_useful and len(baseline) >= HARD_COLLAPSE_MIN_BASELINE
+        and len(harnessed) <= HARD_COLLAPSE_MAX_CHARS)
 
     return {"bare_nonanswer": bare_nonanswer, "citation_regression": citation_regression,
-            "drastic_shortening": drastic_shortening}
+            "drastic_shortening": drastic_shortening, "hard_collapse": hard_collapse}
 
 
 def harness_guard(baseline: str, harnessed: str, *, policy: str = DEFAULT_GUARD_POLICY,
