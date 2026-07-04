@@ -33,11 +33,11 @@
   (+0.19) and MORE sections (+0.22) and add a refusal ~0% of the time: a full-length, MORE-grounded reply
   the judge still scored below a strong baseline's essay, i.e. a judge/rubric-preference effect near the
   quality ceiling, **not** a harness safety failure. The **full harness is worse than core for
-  every model**; the board reports `full`, under-reporting the achievable lift. **A deterministic
-  baseline-fallback serving guard was built and MEASURED to be net-negative** (every policy misfires far
-  more than it recovers, because no cheap text test separates a grounded refusal that cites an ILO
-  *convention* from a bare "I can't help"); `harness_guard.DEFAULT_GUARD_POLICY = off`. The lever that
-  works is **serve `core`, not `full`.** **[ENGINE-CRITICAL board change]**
+  every model**; the board reports `full`, under-reporting the achievable lift. A **broad** baseline-fallback
+  serving guard was measured net-negative (it reverts long grounded refusals `refusal_detector` flags),
+  but the **tight `hard_collapse` guard is net-POSITIVE** (+1,525 pts; catches only ~38-char catastrophic
+  collapses -- a <=150-char cap cannot fire on a grounded refusal); `harness_guard.DEFAULT_GUARD_POLICY =
+  hard`. The larger lever is still **serve `core`, not `full`.** **[ENGINE-CRITICAL board change]**
 - **Rubric - bare refusal is rewarded.** Criterion **C (25/100, tied largest)** credits a content-free "no"
   ~20-25 pts with no grounding requirement; a bare refusal scores ~25 only because A/B/D/E starve it.
   **Over-refusal of legitimate questions is unmeasured** (judge is intent-blind; benign control ~1.5%, 0% in
@@ -122,14 +122,15 @@
    (`tests/test_harness_v2.py`). Composes with `--rubric-version v2` (`panel_h2_v2.jsonl`). The
    engine/board stays on h1; the measurement run (does h2 recover the bare-collapse cases?) still needs
    the scheduled versioned re-grade.
-   **Baseline-fallback variant - built and MEASURED, result: reject (2026-07-03).**
-   `scripts/harness_guard.py` (deterministic serving guard: `bare_nonanswer` / `citation_regression` /
-   `drastic_shortening` signals, composed by policy) + `scripts/analyze_harness_guard.py` +
-   `tests/test_harness_guard.py`. On the committed grades every fallback policy is **net-negative** (the
-   `min` policy: 512 fires, 54 recoveries +2.2k pts vs 458 misfires -21.1k pts), so
-   `DEFAULT_GUARD_POLICY = off`. Guard rejected; kept for reproducibility + re-measurement on other
-   domains. **The core-as-headline change is validated (core 87.1 > full 84.9) and remains the open
-   ENGINE-CRITICAL board change** - roll out with the versioned re-grade, not mid-sweep.
+   **Baseline-fallback variant - built + MEASURED; broad reject, tight `hard` guard ACCEPT (2026-07-04).**
+   `scripts/harness_guard.py` + `scripts/analyze_harness_guard.py` + `tests/test_harness_guard.py`. The
+   BROAD policies (`min`/`len`: `bare_nonanswer` / `citation_regression` / `drastic_shortening`) are
+   **net-negative** (`min`: 512 fires, 54 recoveries +2.2k vs 458 misfires -21.1k) -- they revert long
+   grounded refusals. But the tight **`hard_collapse`** signal (baseline >=1000 chars -> harnessed <=150
+   chars) is **net-POSITIVE (+1,525 pts; guarded mean 85.3 > 84.9 unguarded)**: its length cap cannot
+   fire on a grounded refusal, so it catches only the ~38-char catastrophic collapses (found via the
+   benchmark-DB neg-lift view). `DEFAULT_GUARD_POLICY = hard`. **The core-as-headline change is validated
+   (core 87.1 > full 84.9) and remains the open ENGINE-CRITICAL board change** - versioned re-grade.
 5. **Intent-aware benchmark** - split under-refusal lift from over-refusal rate; grow the benign control set.
    **Code landed (opt-in):** prompts carry an `intent` label; `rich_harness_lift.aggregate` computes the
    safety lift over **adversarial prompts only** (a benign prompt can never inflate the lift) and emits a
