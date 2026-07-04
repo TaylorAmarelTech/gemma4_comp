@@ -39,8 +39,9 @@ Guard policies applied to the full arm, pooled. `fired` = fell back to baseline;
 | `off` | (none) | 84.9 | 0 | 0 (+0.0) | 0 (-0.0) | **+0.0** |
 | `min` | bare_nonanswer+citation_regression | 80.0 | 512 | 54 (+2179.8) | 458 (-21117.8) | **-18938.0** |
 | `len` | bare_nonanswer+citation_regression+drastic_shortening | 77.9 | 666 | 65 (+2303.8) | 601 (-29223.3) | **-26919.5** |
+| `hard` | hard_collapse | 85.3 | 92 | 51 (+2142.5) | 41 (-617.5) | **+1525.0** |
 
-Read the `net pts` column: **every fallback policy is net-negative on this data.** Even `min` fires far more often on prompts the harness IMPROVED than on true regressions (misfire >> recovery), because the harness's signature win is a *grounded refusal* that `refusal_detector` flags as a refusal and that cites an ILO *convention* + hotline but not a numbered *section* -- no cheap text test separates it from a bare 'I can't help'. The `len` row (adding the length signal) is worse still: a verbose baseline is frequently improved by a shorter grounded reply. **Conclusion: serve the harness reply UNGUARDED (`DEFAULT_GUARD_POLICY = off`); the guard is a measured null on this benchmark.**
+Read the `net pts` column. The **broad** policies are net-NEGATIVE: `min` fires far more often on prompts the harness IMPROVED than on true regressions (misfire >> recovery), because the harness's signature win is a *grounded refusal* that `refusal_detector` flags as a refusal -- no cheap phrase test separates it from a bare 'I can't help' -- and `len` (adding the length signal) is worse still. But the **tight `hard` policy IS net-positive**: it fires only on the catastrophic collapses (a >=1k-char baseline turned into a <=150-char reply), which its length cap CANNOT confuse with a grounded refusal (those run to hundreds of chars). It catches the ~-75 disasters (big recovery) with few, small misfires -> a guarded mean ABOVE unguarded. **Conclusion: `DEFAULT_GUARD_POLICY = hard`** -- a cheap serving-time safety net for the catastrophic tail, on top of serving `core`.
 
 ## The negative-lift tail, by deterministic harm mode
 
@@ -75,7 +76,6 @@ Reading: a **positive** conv/section delta means the harnessed reply cited *more
 ## What this says
 
 - **Serve `core`, not `full`.** This is the single measured lever that reduces where the harness hurts (full <= core for every model) and it is cheaper (no online / tool calls). It is a board change and rolls out under the versioned re-grade discipline, not mid-sweep.
-- **A baseline-fallback serving guard does NOT work here** -- every policy is net-negative, because no cheap text signal separates the harness's grounded refusal from a bare one, and shorter replies are often better. `DEFAULT_GUARD_POLICY = off`; the guard code is kept for reproducibility and re-measurement on other data, not as a recommendation.
-- **A length-based guard is the worst** (the `len` row) -- shorter is frequently better. Never ship it.
+- **A TIGHT serving guard works; a broad one does not.** The `hard` policy (`DEFAULT_GUARD_POLICY = hard`) fires only on the catastrophic collapses (a substantial baseline turned into a <=150-char reply) and is net-positive -- its length cap cannot fire on a grounded refusal. The broad `min`/`len` policies are net-negative (they revert grounded refusals `refusal_detector` flags), so they are kept only to demonstrate that.
 - **The bulk of the tail (65%) is `other`, and the text signature shows it is NOT a harness failure:** on those prompts the harnessed reply cites MORE conventions and MORE sections and adds a refusal ~0% of the time -- a full-length, MORE-grounded reply the judge still scored below a strong baseline's essay. That is a judge / rubric-preference effect near the quality ceiling, not lost safety value; no text guard should try to 'fix' it. The honest response is to report it, serve `core` for strong-baseline models (less constraint), and let the h2 contract handle the tiny genuine bare-collapse count.
 

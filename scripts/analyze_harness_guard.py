@@ -44,7 +44,7 @@ PANEL = _ROOT / "reports" / "rich_lift" / "panel.jsonl"
 RESULTS = _ROOT / "reports" / "rich_lift" / "results.jsonl"
 OUT_DEFAULT = _ROOT / "docs" / "research" / "harness_guard_analysis.md"
 ARMS = ("baseline", "harness_core", "harness_full")
-POLICIES = ("off", "min", "len")
+POLICIES = ("off", "min", "len", "hard")
 GUARD_MIN = GUARD_POLICIES["min"]
 MIN_PROMPTS = 40
 
@@ -278,14 +278,16 @@ def build_report(a: dict) -> str:
         o.append(f"| `{pol}` | {sigs} | {s['guarded_mean']} | {s['fired']} | {s['recovery']} "
                  f"(+{s['recovered_pts']}) | {s['misfire']} (-{s['lost_pts']}) | **{s['net_pts']:+}** |")
     o.append("")
-    o.append("Read the `net pts` column: **every fallback policy is net-negative on this data.** Even "
-             "`min` fires far more often on prompts the harness IMPROVED than on true regressions "
-             "(misfire >> recovery), because the harness's signature win is a *grounded refusal* that "
-             "`refusal_detector` flags as a refusal and that cites an ILO *convention* + hotline but not "
-             "a numbered *section* -- no cheap text test separates it from a bare 'I can't help'. The "
-             "`len` row (adding the length signal) is worse still: a verbose baseline is frequently "
-             "improved by a shorter grounded reply. **Conclusion: serve the harness reply UNGUARDED "
-             "(`DEFAULT_GUARD_POLICY = off`); the guard is a measured null on this benchmark.**\n")
+    o.append("Read the `net pts` column. The **broad** policies are net-NEGATIVE: `min` fires far more "
+             "often on prompts the harness IMPROVED than on true regressions (misfire >> recovery), "
+             "because the harness's signature win is a *grounded refusal* that `refusal_detector` flags "
+             "as a refusal -- no cheap phrase test separates it from a bare 'I can't help' -- and `len` "
+             "(adding the length signal) is worse still. But the **tight `hard` policy IS net-positive**: "
+             "it fires only on the catastrophic collapses (a >=1k-char baseline turned into a <=150-char "
+             "reply), which its length cap CANNOT confuse with a grounded refusal (those run to hundreds "
+             "of chars). It catches the ~-75 disasters (big recovery) with few, small misfires -> a "
+             "guarded mean ABOVE unguarded. **Conclusion: `DEFAULT_GUARD_POLICY = hard`** -- a cheap "
+             "serving-time safety net for the catastrophic tail, on top of serving `core`.\n")
 
     o.append("## The negative-lift tail, by deterministic harm mode\n")
     o.append(f"Of the **{a['pooled_neg']}** prompts where harness_full scored below baseline, the harm "
@@ -329,12 +331,11 @@ def build_report(a: dict) -> str:
     o.append("- **Serve `core`, not `full`.** This is the single measured lever that reduces where the "
              "harness hurts (full <= core for every model) and it is cheaper (no online / tool calls). "
              "It is a board change and rolls out under the versioned re-grade discipline, not mid-sweep.\n"
-             "- **A baseline-fallback serving guard does NOT work here** -- every policy is net-negative, "
-             "because no cheap text signal separates the harness's grounded refusal from a bare one, and "
-             "shorter replies are often better. `DEFAULT_GUARD_POLICY = off`; the guard code is kept for "
-             "reproducibility and re-measurement on other data, not as a recommendation.\n"
-             "- **A length-based guard is the worst** (the `len` row) -- shorter is frequently better. "
-             "Never ship it.\n"
+             "- **A TIGHT serving guard works; a broad one does not.** The `hard` policy "
+             "(`DEFAULT_GUARD_POLICY = hard`) fires only on the catastrophic collapses (a substantial "
+             "baseline turned into a <=150-char reply) and is net-positive -- its length cap cannot fire "
+             "on a grounded refusal. The broad `min`/`len` policies are net-negative (they revert grounded "
+             "refusals `refusal_detector` flags), so they are kept only to demonstrate that.\n"
              "- **The bulk of the tail (65%) is `other`, and the text signature shows it is NOT a harness "
              "failure:** on those prompts the harnessed reply cites MORE conventions and MORE sections and "
              "adds a refusal ~0% of the time -- a full-length, MORE-grounded reply the judge still scored "

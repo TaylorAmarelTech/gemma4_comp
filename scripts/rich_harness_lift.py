@@ -125,10 +125,10 @@ def _row_intent(row: dict) -> str:
 
 
 # Deterministic serving guard -- single source of truth in scripts/harness_guard.py. A measurement on
-# the committed grades (docs/research/harness_guard_analysis.md) showed every baseline-fallback policy is
-# net-negative, so DEFAULT_GUARD_POLICY is "off"; the measured lever against "the harness hurts" is
-# serving harness_core over harness_full (full <= core for every model). Re-exported for callers that
-# import it from this module.
+# the committed grades (docs/research/harness_guard_analysis.md) found the tight `hard` collapse guard
+# net-POSITIVE (DEFAULT_GUARD_POLICY = "hard") while broad fallback policies are net-negative; the larger
+# lever against "the harness hurts" is serving harness_core over harness_full. Re-exported for callers
+# that import it from this module.
 from harness_guard import (  # noqa: E402,F401
     DEFAULT_GUARD_POLICY, GUARD_POLICIES, guard_signals, harness_guard)
 

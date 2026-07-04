@@ -88,10 +88,26 @@ def test_no_signal_fires_when_baseline_is_not_useful():
     assert not any(sig.values())
 
 
-def test_default_policy_is_off_and_keeps_the_harnessed_reply():
-    assert hg.DEFAULT_GUARD_POLICY == "off"
-    chosen, reason = hg.harness_guard(BASELINE_CITED, BARE_REFUSAL)   # default policy
+def test_default_policy_is_hard():
+    assert hg.DEFAULT_GUARD_POLICY == "hard"
+    # BASELINE_CITED is short (< 1000 chars), so hard_collapse does NOT fire -> the harnessed reply is kept
+    chosen, reason = hg.harness_guard(BASELINE_CITED, BARE_REFUSAL)
     assert chosen == BARE_REFUSAL and reason is None
+
+
+def test_hard_collapse_fires_on_a_long_baseline_collapsed_to_a_short_reply():
+    long_baseline = "This is a substantive grounded legal analysis of the scheme. " * 40  # ~2.4k chars
+    sig = hg.guard_signals(long_baseline, BARE_REFUSAL)
+    assert sig["hard_collapse"] is True
+    chosen, reason = hg.harness_guard(long_baseline, BARE_REFUSAL, policy="hard")
+    assert reason == "hard_collapse" and chosen == long_baseline
+
+
+def test_hard_collapse_cannot_fire_on_a_long_grounded_refusal():
+    long_baseline = "This is a substantive grounded legal analysis of the scheme. " * 40
+    long_grounded_refusal = GROUNDED_REFUSAL_UNRECOGNIZED_CITE * 3   # > 150 chars -> protected by the cap
+    sig = hg.guard_signals(long_baseline, long_grounded_refusal)
+    assert sig["hard_collapse"] is False
 
 
 def test_min_policy_falls_back_and_attributes_the_first_signal():
@@ -142,4 +158,4 @@ def test_report_renders_without_error():
     panel, results = _synthetic()
     md = ah.build_report(ah.analyse(panel=panel, results=results))
     assert "Serve `core`, not `full`" in md
-    assert "DEFAULT_GUARD_POLICY = off" in md
+    assert "DEFAULT_GUARD_POLICY = hard" in md
