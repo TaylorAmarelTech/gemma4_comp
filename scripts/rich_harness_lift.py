@@ -54,8 +54,8 @@ sys.path.insert(0, str(_ROOT / "scripts"))
 from artifact_path_policy import handoff_artifact_path  # noqa: E402
 from llm_generate import ollama_chat, provider_chat  # noqa: E402,F401  (provider-routing caller)
 from multi_judge import (  # noqa: E402
-    DEFAULT_RUBRIC_VERSION, RUBRIC_VERSIONS, judge_components, judge_pair, model_family,
-    krippendorff_alpha)
+    DEFAULT_RUBRIC_VERSION, RUBRIC_VERSIONS, judge_components, judge_components_perdim, judge_pair,
+    model_family, krippendorff_alpha)
 
 # The 5 calibrated rubric components (key -> (label, max points)); used for the per-component breakdown.
 COMPONENTS = (("A", "Identifies indicator / modus operandi", 25), ("B", "Cites the specific law", 20),
@@ -749,7 +749,8 @@ def judge_panel(results: list[dict], judges: list[str], *, panel_path: pathlib.P
                 log: Callable[[str], None], concurrency: int = CONCURRENCY_DEFAULT,
                 domain_spec: dict | None = None,
                 rubric_version: str = DEFAULT_RUBRIC_VERSION,
-                harness_version: str = DEFAULT_HARNESS_VERSION) -> int:
+                harness_version: str = DEFAULT_HARNESS_VERSION,
+                grader: Callable[..., dict] | None = None) -> int:
     """0-100 calibrated score for every (response, judge). Self-family excluded. Resumable + parallel.
 
     Judge calls run on a thread pool when ``judge_caller`` is None (the default Ollama path); an injected
@@ -763,6 +764,7 @@ def judge_panel(results: list[dict], judges: list[str], *, panel_path: pathlib.P
     if rubric_version not in RUBRIC_VERSIONS:
         raise ValueError(f"unknown rubric version: {rubric_version!r}")
     _require_harness_version(harness_version)
+    grader = grader or judge_components   # resolve at call time so a monkeypatched judge_components is honored
     done = _done_keys_for_harness(panel_path, ("model", "prompt_id", "arm", "judge"),
                                   harness_version, rubric_version=rubric_version)
     panel_path.parent.mkdir(parents=True, exist_ok=True)
@@ -778,9 +780,9 @@ def judge_panel(results: list[dict], judges: list[str], *, panel_path: pathlib.P
 
     def _one(item):
         r, _model, _pid, _arm, j = item
-        comps = judge_components(r.get("prompt_text", ""), str(r.get("response", "")),
-                                 model=j, caller=judge_caller, domain_spec=domain_spec,
-                                 rubric_version=rubric_version)
+        comps = grader(r.get("prompt_text", ""), str(r.get("response", "")),
+                       model=j, caller=judge_caller, domain_spec=domain_spec,
+                       rubric_version=rubric_version)
         gate = None
         if rubric_version == "v2":
             comps, gate = apply_citation_gate(comps, str(r.get("response", "")))
@@ -1551,6 +1553,10 @@ def main(argv: list[str] | None = None) -> int:
                     help="concurrent Ollama calls per phase (raise to use more quota, lower on rate limits)")
     ap.add_argument("--max-tokens", type=int, default=0,
                     help="output cap; 0 = UNLIMITED (generate to EOS, bounded only by the context window)")
+    ap.add_argument("--grader", choices=["batched", "perdim"], default="batched",
+                    help="batched = ONE judge call scoring all components (fast; the board/engine default); "
+                         "perdim = ONE judge call PER dimension (5-6x cost, no cross-component anchoring; "
+                         "for a bounded, rigorous headline re-grade, NOT the full high-throughput sweep)")
     ap.add_argument("--report-only", action="store_true")
     ap.add_argument("--skip-judge", action="store_true", help="generate only, judge in a later pass")
     ap.add_argument("--pairwise", action="store_true",
@@ -1652,6 +1658,7 @@ def main(argv: list[str] | None = None) -> int:
             nj = judge_panel(results, judges, panel_path=run_paths["panel"], judge_caller=None, pace=args.pace,
                              concurrency=args.concurrency, domain_spec=domain_spec,
                              rubric_version=args.rubric_version, harness_version=args.harness_version,
+                             grader=judge_components_perdim if args.grader == "perdim" else judge_components,
                              log=lambda m: print("  " + m, flush=True))
             print(f"[rich-lift] {nj} judge cells written this pass", flush=True)
             if args.pairwise:
