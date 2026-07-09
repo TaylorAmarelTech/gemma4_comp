@@ -37,6 +37,14 @@ def test_contract_has_anti_collapse_framing():
     assert "full, grounded answer" in c                   # default is to answer
 
 
+def test_contract_explains_each_source_type():
+    """The contract explains what each labeled block in the preamble IS (indicators/citations/tools)."""
+    c = rh.GROUNDED_REFUSAL_CONTRACT
+    assert "GREP indicator rules are pattern-matched SIGNALS" in c   # signals, not proof
+    assert "RAG grounding citations are retrieved legal excerpts" in c
+    assert "tool results are deterministic grounded facts" in c
+
+
 def test_contract_has_source_weighing_and_resolve_for_worker():
     c = rh.GROUNDED_REFUSAL_CONTRACT
     assert "Weigh ALL" in c
