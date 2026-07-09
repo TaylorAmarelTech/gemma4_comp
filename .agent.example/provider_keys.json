@@ -1,0 +1,10 @@
+{
+  "_comment": "TEMPLATE ONLY -- copy to .agent/provider_keys.json (gitignored) and paste real keys. llm_generate._load_key_pool reads this: each provider maps to an ORDERED list of keys, rotated on 402/403/429/401 so a spent key is skipped and the sweep never stalls on one account. Provider names must match _PROVIDER_REGISTRY: openrouter, groq, cerebras, together, sambanova, featherless, mistral (nvidia uses NVIDIA_API_KEY from .env). Verified live 2026-07-09: nvidia + sambanova + ollama-cloud complete chat; groq/cerebras/together keys 403 on chat (account-level), openrouter 402 no-credit. Env vars <PREFIX>_API_KEY and <PREFIX>_API_KEY_2..N are also read as pool members.",
+  "openrouter": ["sk-or-v1-REPLACE_ME_1", "sk-or-v1-REPLACE_ME_2"],
+  "sambanova": ["REPLACE_ME_SAMBANOVA_KEY"],
+  "groq": ["gsk_REPLACE_ME"],
+  "cerebras": ["csk-REPLACE_ME"],
+  "together": ["tgp_v1_REPLACE_ME"],
+  "featherless": ["rc_REPLACE_ME"],
+  "mistral": ["REPLACE_ME_MISTRAL_KEY"]
+}

@@ -27,6 +27,7 @@ import os
 import random
 import re
 import sys
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -189,15 +190,150 @@ def nvidia_chat(prompt: str, *, model: str, max_tokens: int = DEFAULT_MAX_TOKENS
     raise RuntimeError("unreachable")
 
 
+# ── Multi-provider fan-out ────────────────────────────────────────────────────────────────────────
+# Every provider below exposes an OpenAI-compatible POST /chat/completions, so one caller
+# (``openai_compatible_chat``) serves them all -- the only per-provider differences are the base URL and
+# the key pool. A model string ``"<provider>:<model_id>"`` routes here via ``provider_chat``; the whole
+# point is that when one account's credits reset (Ollama's ~3h/weekly windows), the sweep keeps running
+# on the others instead of stalling. Keys are NEVER embedded -- they come from the process env or a
+# gitignored ``.agent/provider_keys.json``; see ``_load_key_pool``.
+_PROVIDER_REGISTRY: dict[str, dict[str, str]] = {
+    "openrouter":  {"base": "https://openrouter.ai/api/v1",        "env": "OPENROUTER"},
+    "groq":        {"base": "https://api.groq.com/openai/v1",       "env": "GROQ"},
+    "cerebras":    {"base": "https://api.cerebras.ai/v1",           "env": "CEREBRAS"},
+    "together":    {"base": "https://api.together.xyz/v1",          "env": "TOGETHER"},
+    "sambanova":   {"base": "https://api.sambanova.ai/v1",          "env": "SAMBANOVA"},
+    "featherless": {"base": "https://api.featherless.ai/v1",        "env": "FEATHERLESS"},
+    "mistral":     {"base": "https://api.mistral.ai/v1",            "env": "MISTRAL"},
+}
+_AGENT_KEYS_JSON = _ROOT / ".agent" / "provider_keys.json"
+# HTTP statuses that mean "this KEY is spent/blocked, rotate to the next one" (vs _RETRYABLE_STATUS,
+# which means "retry the SAME key after a backoff"). 401=invalid/revoked key, 402=payment/credits,
+# 403=forbidden, 429=rate/quota -- all mean "this key won't work, try the next pool member".
+_KEY_EXHAUSTED_STATUS = {401, 402, 403, 429}
+_key_cursor_lock = threading.Lock()
+_key_cursors: dict[str, int] = {}
+
+
+class AllKeysExhausted(RuntimeError):
+    """Every key in a provider's pool returned an auth/quota/rate error -- the caller should fall back
+    to another provider (or wait for a reset) rather than treat this as a hard failure."""
+
+
+def _load_key_pool(env_prefix: str) -> list[str]:
+    """Ordered, de-duplicated key pool for a provider, gathered from (in priority order): the gitignored
+    ``.agent/provider_keys.json`` (``{"openrouter": ["sk-or-..", ..], ..}``), then the process env /
+    repo ``.env`` scanned for ``<PREFIX>_API_KEY`` and ``<PREFIX>_API_KEY_2..N``. Keys are read only for
+    THIS provider's prefix so no unrelated secret is pulled in. Returns [] if the user has placed none."""
+    keys: list[str] = []
+    prefix = env_prefix.upper()
+    # 1. .agent/provider_keys.json (the pooled store the user maintains; may hold many keys per provider)
+    if _AGENT_KEYS_JSON.exists():
+        try:
+            blob = json.loads(_AGENT_KEYS_JSON.read_text(encoding="utf-8"))
+            for k in (blob.get(env_prefix.lower()) or blob.get(prefix) or []):
+                if isinstance(k, str) and k.strip():
+                    keys.append(k.strip())
+        except (json.JSONDecodeError, OSError):
+            pass
+    # 2. process env + repo .env: <PREFIX>_API_KEY and numbered siblings <PREFIX>_API_KEY_2..
+    env_names = [f"{prefix}_API_KEY"] + [f"{prefix}_API_KEY_{i}" for i in range(2, 40)]
+    env_file = _ROOT / ".env"
+    file_vals: dict[str, str] = {}
+    if env_file.exists():
+        for ln in env_file.read_text(encoding="utf-8").splitlines():
+            ln = ln.strip()
+            if ln.startswith("#") or "=" not in ln:
+                continue
+            name, _, val = ln.partition("=")
+            if name.strip() in env_names and val.strip():
+                file_vals[name.strip()] = val.strip()
+    for name in env_names:
+        for source in (os.environ.get(name, ""), file_vals.get(name, "")):
+            if source and source.strip():
+                keys.append(source.strip())
+    # de-dup preserving order
+    seen: set[str] = set()
+    return [k for k in keys if not (k in seen or seen.add(k))]
+
+
+def _next_key_offset(provider: str, pool_size: int) -> int:
+    """Round-robin start offset so concurrent workers spread load across a provider's key pool instead
+    of all hammering key #1 (thread-safe)."""
+    if pool_size <= 1:
+        return 0
+    with _key_cursor_lock:
+        cur = _key_cursors.get(provider, 0)
+        _key_cursors[provider] = (cur + 1) % pool_size
+        return cur
+
+
+def openai_compatible_chat(prompt: str, *, model: str, base_url: str, keys: list[str],
+                           provider: str = "openai_compatible", max_tokens: int = DEFAULT_MAX_TOKENS,
+                           temperature: float = 0.6, system: str | None = None,
+                           timeout: float = 180.0, max_retries: int = 3) -> str:
+    """One chat completion against any OpenAI-compatible ``base_url``, rotating through a KEY POOL: a
+    key that returns 402/403/429 (spent/blocked) is dropped and the next key tried; transient 5xx /
+    network errors retry the SAME key with backoff. Raises ``AllKeysExhausted`` only when every key is
+    spent, so ``provider_chat`` can fall back to another provider. Reasoning-aware extraction like the
+    other callers. ``keys`` must be non-empty (caller loads the pool)."""
+    if not keys:
+        raise AllKeysExhausted(f"{provider}: no keys in pool (.agent/provider_keys.json or env)")
+    messages = ([{"role": "system", "content": system}] if system else []) + \
+               [{"role": "user", "content": prompt}]
+    payload: dict[str, Any] = {"model": model, "messages": messages, "temperature": temperature,
+                               "stream": False}
+    if max_tokens and max_tokens > 0:
+        payload["max_tokens"] = max_tokens
+    body = json.dumps(payload).encode("utf-8")
+    start = _next_key_offset(provider, len(keys))
+    last_exc: Exception | None = None
+    for i in range(len(keys)):
+        key = keys[(start + i) % len(keys)]
+        for attempt in range(max_retries + 1):
+            req = urllib.request.Request(f"{base_url}/chat/completions", data=body,
+                                         headers={"Authorization": f"Bearer {key}",
+                                                  "Content-Type": "application/json"})
+            try:
+                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                    out = json.loads(resp.read().decode("utf-8", "replace"))
+                msg = (out.get("choices") or [{}])[0].get("message") or {}
+                return (str(msg.get("content") or "").strip()
+                        or str(msg.get("reasoning_content") or msg.get("reasoning") or "").strip())
+            except urllib.error.HTTPError as exc:
+                last_exc = exc
+                if exc.code in _KEY_EXHAUSTED_STATUS:
+                    break                       # this key is spent -> next key (no more retries on it)
+                if exc.code not in _RETRYABLE_STATUS or attempt == max_retries:
+                    raise                       # 400/401/404 etc. are the caller's bug, not a spent key
+                wait = _retry_after(exc)
+            except OSError as exc:              # connection / timeout -> transient, retry same key
+                last_exc = exc
+                if attempt == max_retries:
+                    break
+                wait = None
+            if wait is None:
+                wait = 2 ** attempt + random.uniform(0.0, 0.5)
+            time.sleep(min(wait, 30.0))
+    raise AllKeysExhausted(f"{provider}: all {len(keys)} keys spent/failed (last: {last_exc})")
+
+
 def provider_chat(prompt: str, *, model: str, **kwargs: Any) -> str:
-    """Route one chat completion to its provider by model prefix: ``nvidia:<id>`` -> NVIDIA build,
-    everything else -> Ollama-cloud. Lets the benchmark mix providers (e.g. an Ollama candidate judged
-    by an NVIDIA-hosted panel, or the whole run on NVIDIA while Ollama is rate-limited) with no other
-    code change -- callers just pass a provider-prefixed model string. ``num_ctx`` is dropped for the
-    strict-OpenAI NVIDIA path."""
+    """Route one chat completion to its provider by model prefix:
+    ``nvidia:<id>`` -> NVIDIA build; ``<provider>:<id>`` for any key in ``_PROVIDER_REGISTRY``
+    (openrouter/groq/cerebras/together/sambanova/featherless/mistral) -> that provider's pooled,
+    key-rotating OpenAI-compatible caller; everything else -> Ollama-cloud (the default; unchanged).
+    Lets the benchmark spread calls across many endpoints/keys so a single account's credit reset never
+    stalls the sweep. ``num_ctx`` is an Ollama-only option, dropped for the strict-OpenAI providers."""
+    prefix = model.split(":", 1)[0] if ":" in model else ""
     if model.startswith(NVIDIA_PREFIX):
         kwargs.pop("num_ctx", None)   # Ollama-only option; NVIDIA is strict OpenAI
         return nvidia_chat(prompt, model=model, **kwargs)
+    if prefix in _PROVIDER_REGISTRY:
+        spec = _PROVIDER_REGISTRY[prefix]
+        kwargs.pop("num_ctx", None)   # Ollama-only option; strict-OpenAI providers reject it
+        return openai_compatible_chat(prompt, model=model.split(":", 1)[1], base_url=spec["base"],
+                                      keys=_load_key_pool(spec["env"]), provider=prefix, **kwargs)
     return ollama_chat(prompt, model=model, **kwargs)
 
 
