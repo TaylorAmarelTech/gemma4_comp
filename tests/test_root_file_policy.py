@@ -11,6 +11,7 @@ EXPECTED_ROOT_MARKDOWN = {
     "CODE_OF_CONDUCT.md",
     "CONTRIBUTING.md",
     "LICENSES.md",
+    "Plans.md",
     "PROJECT_BIBLE.md",
     "README.md",
     "RESULTS.md",
