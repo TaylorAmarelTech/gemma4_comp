@@ -340,11 +340,14 @@ def provider_chat(prompt: str, *, model: str, **kwargs: Any) -> str:
 def complete(prompt: str, *, model: str = DEFAULT_MODEL, max_tokens: int = DEFAULT_MAX_TOKENS,
              temperature: float = 0.6, system: str | None = None,
              caller: Callable[..., str] | None = None) -> str:
-    """Model-agnostic completion; ``caller`` is injectable for offline tests."""
+    """Model-agnostic completion; ``caller`` is injectable for offline tests. The default backend is the
+    multi-provider router: a bare ``model`` (e.g. ``glm-5.2``) goes to Ollama-cloud as before, while a
+    ``"<provider>:<id>"`` string (e.g. ``sambanova:DeepSeek-V3.1``, ``nvidia:openai/gpt-oss-120b``) routes
+    to that provider's pooled endpoint -- so generation tooling can run off a different account's quota
+    than the benchmark engine's Ollama, instead of competing for it."""
     if caller is None:
-        key = _load_key()
-        def caller(p, **kw):  # noqa: E306 -- default real backend
-            return ollama_chat(p, key=key, system=system, **kw)
+        def caller(p, **kw):  # noqa: E306 -- default real backend (bare model -> Ollama, prefixed -> fan-out)
+            return provider_chat(p, system=system, **kw)
     return caller(prompt, model=model, max_tokens=max_tokens, temperature=temperature)
 
 
