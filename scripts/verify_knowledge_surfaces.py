@@ -20,9 +20,16 @@ import sys
 
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
-HARNESS_PY = (
-    REPO_ROOT
-    / "packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py"
+HARNESS_DIR = REPO_ROOT / "packages/duecare-llm-chat/src/duecare/chat/harness"
+HARNESS_PY = HARNESS_DIR / "__init__.py"
+# The 2026-07-04 refactor extracted the biggest literals out of the __init__
+# monolith into dedicated modules. Each surface is a top-level literal in
+# exactly one of these files; parse them all and merge (see the counts section).
+HARNESS_SURFACE_MODULES = (
+    HARNESS_PY,
+    HARNESS_DIR / "_grep_rules.py",          # GREP_RULES
+    HARNESS_DIR / "_rag_corpus.py",          # RAG_CORPUS
+    HARNESS_DIR / "_multidomain_corpus.py",  # MULTIDOMAIN_CORPUS
 )
 TEMPLATES_PY = (
     REPO_ROOT / "packages/duecare-llm-chat/src/duecare/chat/templates.py"
@@ -130,7 +137,7 @@ def _smoke_render(body_const_name: str, sample: dict) -> tuple[int, int, list[st
 def main() -> int:  # noqa: PLR0915
     rc = 0
     print("=== Syntax verification ===")
-    for fp in [HARNESS_PY, TEMPLATES_PY, *KAGGLE_KERNELS]:
+    for fp in [*HARNESS_SURFACE_MODULES, TEMPLATES_PY, *KAGGLE_KERNELS]:
         if not fp.exists():
             print(f"  {fp.relative_to(REPO_ROOT)}  MISSING")
             rc |= 1
@@ -163,11 +170,18 @@ def main() -> int:  # noqa: PLR0915
 
     print()
     print("=== Knowledge surface counts ===")
-    harness_tree = ast.parse(HARNESS_PY.read_text(encoding="utf-8"))
-    surfaces = _count_top_level_assigns(harness_tree)
+    # GREP_RULES / RAG_CORPUS / MULTIDOMAIN_CORPUS were extracted from __init__
+    # into their own modules (2026-07-04); the rest still live in __init__.
+    # Parse every surface module and merge so a moved literal is still found.
+    surfaces: dict[str, tuple[str, int]] = {}
+    for fp in HARNESS_SURFACE_MODULES:
+        if not fp.exists():
+            continue
+        surfaces.update(_count_top_level_assigns(ast.parse(fp.read_text(encoding="utf-8"))))
     key_surfaces = [
         "GREP_RULES",
         "RAG_CORPUS",
+        "MULTIDOMAIN_CORPUS",
         "CORRIDOR_FEE_CAPS",
         "FEE_CAMOUFLAGE_DICT",
         "NGO_INTAKE",

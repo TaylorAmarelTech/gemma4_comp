@@ -27,6 +27,9 @@ ENV/
 .env.enterprise
 .env.enterprise.local
 
+# Local key store (consolidated provider keys; never committed)
+.agent/
+
 # Jupyter
 .ipynb_checkpoints/
 *.ipynb_checkpoints
