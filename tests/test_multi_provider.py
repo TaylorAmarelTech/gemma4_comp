@@ -127,6 +127,20 @@ def test_openai_compatible_empty_pool_raises():
         lg.openai_compatible_chat("hi", model="m", base_url="https://x/v1", keys=[], provider="cerebras")
 
 
+def test_complete_defaults_to_provider_router(monkeypatch):
+    """complete()'s default backend is provider_chat, so generation tooling can offload to a prefixed
+    provider (off the engine's Ollama quota) while a bare model still routes to Ollama."""
+    seen = {}
+    monkeypatch.setattr(lg, "provider_chat",
+                        lambda p, *, model, **kw: seen.update(model=model, system=kw.get("system")) or "X")
+    out = lg.complete("hi", model="sambanova:DeepSeek-V3.1", system="S")
+    assert out == "X"
+    assert seen["model"] == "sambanova:DeepSeek-V3.1"    # prefixed model reaches the multi-provider router
+    assert seen["system"] == "S"                          # system prompt threaded through
+    lg.complete("hi", model="glm-5.2")
+    assert seen["model"] == "glm-5.2"                     # bare model also goes through the router (-> Ollama)
+
+
 def test_next_key_offset_round_robins():
     lg._key_cursors.pop("unittest_prov", None)
     offs = [lg._next_key_offset("unittest_prov", 3) for _ in range(4)]
