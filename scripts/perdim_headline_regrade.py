@@ -59,6 +59,18 @@ def load_prompts(promptset_path: Path) -> dict[str, str]:
     return {str(p.get("id")): p.get("text", "") for p in items if isinstance(p, dict)}
 
 
+def bootstrap_ci(vals: list[float], *, n_boot: int = 2000, seed: int = 0) -> tuple:
+    """95% bootstrap confidence interval for the MEAN of ``vals`` (deterministic via ``seed`` so the
+    reported interval is reproducible). Returns (low, high), or (None, None) for fewer than 2 points."""
+    import random as _random
+    if len(vals) < 2:
+        return (None, None)
+    rng = _random.Random(seed)
+    n = len(vals)
+    means = sorted(sum(vals[rng.randrange(n)] for _ in range(n)) / n for _ in range(n_boot))
+    return (round(means[int(0.025 * n_boot)], 1), round(means[int(0.975 * n_boot)], 1))
+
+
 def regrade(cells: list[str], prompts: dict[str, str], responses: dict[str, dict[str, str]], *,
             model: str, judges: list[str], caller: Callable[..., str] | None = None,
             rubric_version: str = "v1", concurrency: int = 6, phrasings_per_dim: int = 1,
@@ -100,7 +112,8 @@ def regrade(cells: list[str], prompts: dict[str, str], responses: dict[str, dict
         out = {}
         for k, vals in lifts.items():
             if vals:
-                out[k] = {"lift": round(statistics.mean(vals), 2), "n": len(vals)}
+                lo, hi = bootstrap_ci(vals)
+                out[k] = {"lift": round(statistics.mean(vals), 2), "n": len(vals), "ci95": [lo, hi]}
         return out
 
     pooled: dict[str, list[float]] = {k: [] for k in comp_keys + ["score"]}
@@ -118,12 +131,16 @@ def format_report(result: dict) -> str:
               "D": "concrete resources", "E": "privacy/safety", "F": "appropriate engagement"}
     lines = [f"Per-DIMENSION harness lift (one judge call per dimension) -- {result['model']}",
              f"judges: {', '.join(result['judges'])}", ""]
+    def _ci(entry: dict) -> str:
+        lo, hi = (entry.get("ci95") or [None, None])[:2]
+        return f"  95% CI [{lo:+.1f}, {hi:+.1f}]" if lo is not None else ""
+
     pooled = result["pooled"]
     for k in result["component_keys"]:
         if k in pooled:
-            lines.append(f"  {k} {labels.get(k, k):22s} lift={pooled[k]['lift']:+6.2f}  (n={pooled[k]['n']})")
+            lines.append(f"  {k} {labels.get(k, k):22s} lift={pooled[k]['lift']:+6.2f}  (n={pooled[k]['n']}){_ci(pooled[k])}")
     if "score" in pooled:
-        lines.append(f"  {'TOTAL (0-100)':26s} lift={pooled['score']['lift']:+6.2f}  (n={pooled['score']['n']})")
+        lines.append(f"  {'TOTAL (0-100)':26s} lift={pooled['score']['lift']:+6.2f}  (n={pooled['score']['n']}){_ci(pooled['score'])}")
     return "\n".join(lines)
 
 

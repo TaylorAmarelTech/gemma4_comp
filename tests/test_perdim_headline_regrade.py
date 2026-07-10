@@ -70,3 +70,21 @@ def test_load_responses_filters_by_model(tmp_path):
     by = pr.load_responses(p, "gemma4:31b")
     assert set(by["P1"]) == {"baseline", "harness_core"}   # only the requested model's arms
     assert by["P1"]["baseline"] == "a"
+
+
+def test_bootstrap_ci_is_deterministic_and_brackets_the_mean():
+    vals = [10.0, 20.0, 15.0, 12.0, 18.0]                   # mean 15.0
+    lo, hi = pr.bootstrap_ci(vals)
+    assert pr.bootstrap_ci(vals) == (lo, hi)               # deterministic (seeded) -> reproducible CI
+    assert lo < 15.0 < hi                                   # the 95% CI brackets the sample mean
+    assert pr.bootstrap_ci([5.0]) == (None, None)          # fewer than 2 points -> no interval
+
+
+def test_regrade_reports_a_ci_per_dimension():
+    prompts = {"P1": "q", "P2": "q2"}
+    responses = {p: {"baseline": "plain", "harness_core": "HARNESSED"} for p in prompts}
+    result = pr.regrade(list(prompts), prompts, responses, model="gemma4:31b",
+                        judges=["nvidia:openai/gpt-oss-120b"], caller=_fake_caller())
+    assert "ci95" in result["pooled"]["A"]                  # every dimension carries a 95% CI
+    lo, hi = result["pooled"]["A"]["ci95"]
+    assert lo is not None and lo <= result["pooled"]["A"]["lift"] <= hi
