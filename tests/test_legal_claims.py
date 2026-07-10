@@ -81,6 +81,20 @@ def test_library_includes_court_precedents_workers_can_search():
         assert by[cid]["authority_class"] == "court_precedent"
 
 
+def test_research_queue_is_well_formed():
+    import json
+    q = json.loads((_ROOT / "configs" / "duecare" / "legal_research_queue.json").read_text(encoding="utf-8"))
+    targets = q["targets"]
+    assert len(targets) >= 8                                    # a real enrichment backlog
+    valid_status = {"queued", "researching", "staged", "promoted"}
+    for t in targets:
+        assert {"id", "jurisdiction", "topic", "priority", "status", "rationale"} <= set(t)
+        assert t["status"] in valid_status                     # only the gated lifecycle states
+        assert t["priority"] in {"high", "medium", "low"}
+    # nothing is auto-promoted: seed queue is all 'queued' (promotion is a human step)
+    assert all(t["status"] == "queued" for t in targets)
+
+
 def test_append_only_principle_supersede_not_delete():
     # Kozminski is retained (not deleted) as historical context and marked superseded_by the TVPA -- the
     # 'build upon, do not replace' principle. It must NOT be presented as current law.
