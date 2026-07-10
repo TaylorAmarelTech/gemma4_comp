@@ -200,6 +200,134 @@
       "priority": "medium",
       "status": "promoted",
       "rationale": "Ethiopia Overseas Employment Proclamation 923/2016 amended 1246/2021 (three regulated channels; model contract; inspectorate). PROMOTED 2026-07-10 (wave 4; guardrails + 3/3 mistral convergence; auto_vetted weight 0.6, human-verify to raise)."
+    },
+    {
+      "id": "icrmw_1990",
+      "jurisdiction": "international",
+      "topic": "UN Convention on Rights of All Migrant Workers 1990 (Part III reaches irregular migrants; low destination uptake)",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "UN Convention on Rights of All Migrant Workers 1990 (Part III reaches irregular migrants; low destination uptake). PROMOTED 2026-07-10 (wave 5 fan-out; guardrails + mistral convergence majority; auto_vetted weight 0.6, human-verify to raise)."
+    },
+    {
+      "id": "ilo_c097_migration_employment_1949",
+      "jurisdiction": "international",
+      "topic": "ILO C97 Migration for Employment (equal treatment for lawfully-present migrants)",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "ILO C97 Migration for Employment (equal treatment for lawfully-present migrants). PROMOTED 2026-07-10 (wave 5 fan-out; guardrails + mistral convergence majority; auto_vetted weight 0.6, human-verify to raise)."
+    },
+    {
+      "id": "ilo_c143_migrant_workers_supplementary_1975",
+      "jurisdiction": "international",
+      "topic": "ILO C143 (basic rights of ALL migrants incl. irregular; anti-trafficking Part I)",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "ILO C143 (basic rights of ALL migrants incl. irregular; anti-trafficking Part I). PROMOTED 2026-07-10 (wave 5 fan-out; guardrails + mistral convergence majority; auto_vetted weight 0.6, human-verify to raise)."
+    },
+    {
+      "id": "ilo_p029_forced_labour_protocol_2014",
+      "jurisdiction": "international",
+      "topic": "ILO Forced Labour Protocol 2014 (non-punishment principle; supplements C29)",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "ILO Forced Labour Protocol 2014 (non-punishment principle; supplements C29). PROMOTED 2026-07-10 (wave 5 fan-out; guardrails + mistral convergence majority; auto_vetted weight 0.6, human-verify to raise)."
+    },
+    {
+      "id": "de_lksg_supply_chain",
+      "jurisdiction": "DE",
+      "topic": "Germany LkSG supply-chain due diligence (under reform toward EU CSDDD)",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "Germany LkSG supply-chain due diligence (under reform toward EU CSDDD). PROMOTED 2026-07-10 (wave 5 fan-out; guardrails + mistral convergence majority; auto_vetted weight 0.6, human-verify to raise)."
+    },
+    {
+      "id": "au_modern_slavery_act_2018",
+      "jurisdiction": "AU",
+      "topic": "Australia Modern Slavery Act 2018 (AUD100M+ reporting; reform pending)",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "Australia Modern Slavery Act 2018 (AUD100M+ reporting; reform pending). PROMOTED 2026-07-10 (wave 5 fan-out; guardrails + mistral convergence majority; auto_vetted weight 0.6, human-verify to raise)."
+    },
+    {
+      "id": "ca_forced_child_labour_supply_chains_s211",
+      "jurisdiction": "CA",
+      "topic": "Canada S-211 forced/child-labour supply-chain reporting (import ban is separate)",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "Canada S-211 forced/child-labour supply-chain reporting (import ban is separate). PROMOTED 2026-07-10 (wave 5 fan-out; guardrails + mistral convergence majority; auto_vetted weight 0.6, human-verify to raise)."
+    },
+    {
+      "id": "no_transparency_act_apenhetsloven",
+      "jurisdiction": "NO",
+      "topic": "Norway Transparency Act (due diligence + public right-to-information)",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "Norway Transparency Act (due diligence + public right-to-information). PROMOTED 2026-07-10 (wave 5 fan-out; guardrails + mistral convergence majority; auto_vetted weight 0.6, human-verify to raise)."
+    },
+    {
+      "id": "jo_domestic_worker_regulation",
+      "jurisdiction": "JO",
+      "topic": "Jordan Reg 90/2009 domestic workers + Better Work garment unified contract",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "Jordan Reg 90/2009 domestic workers + Better Work garment unified contract. PROMOTED 2026-07-10 (wave 5 fan-out; guardrails + mistral convergence majority; auto_vetted weight 0.6, human-verify to raise)."
+    },
+    {
+      "id": "my_migrant_worker_protections",
+      "jurisdiction": "MY",
+      "topic": "Malaysia Employment Act + Passports Act s.12(1)(f) no-passport-retention + Act 446 housing",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "Malaysia Employment Act + Passports Act s.12(1)(f) no-passport-retention + Act 446 housing. PROMOTED 2026-07-10 (wave 5 fan-out; guardrails + mistral convergence majority; auto_vetted weight 0.6, human-verify to raise)."
+    },
+    {
+      "id": "th_foreign_workers_management_ordinance",
+      "jurisdiction": "TH",
+      "topic": "Thailand Royal Ordinance 2017/2018 (document-confiscation offence; zero-fee; fishing)",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "Thailand Royal Ordinance 2017/2018 (document-confiscation offence; zero-fee; fishing). PROMOTED 2026-07-10 (wave 5 fan-out; guardrails + mistral convergence majority; auto_vetted weight 0.6, human-verify to raise)."
+    },
+    {
+      "id": "tw_employment_service_act_broker_fees",
+      "jurisdiction": "TW",
+      "topic": "Taiwan Employment Service Act Art.40 (no recruitment fee; capped monthly service fee)",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "Taiwan Employment Service Act Art.40 (no recruitment fee; capped monthly service fee). PROMOTED 2026-07-10 (wave 5 fan-out; guardrails + mistral convergence majority; auto_vetted weight 0.6, human-verify to raise)."
+    },
+    {
+      "id": "ke_labour_migration_recruitment",
+      "jurisdiction": "KE",
+      "topic": "Kenya LN 110/2016 PEA regs (licensing, bond, one-month fee cap)",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "Kenya LN 110/2016 PEA regs (licensing, bond, one-month fee cap). PROMOTED 2026-07-10 (wave 5 fan-out; guardrails + mistral convergence majority; auto_vetted weight 0.6, human-verify to raise)."
+    },
+    {
+      "id": "ng_tip_labour_recruitment",
+      "jurisdiction": "NG",
+      "topic": "Nigeria TIPPEA 2015 (criminalises forced-labour recruitment; NAPTIP)",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "Nigeria TIPPEA 2015 (criminalises forced-labour recruitment; NAPTIP). PROMOTED 2026-07-10 (wave 5 fan-out; guardrails + mistral convergence majority; auto_vetted weight 0.6, human-verify to raise)."
+    },
+    {
+      "id": "pk_emigration_ordinance",
+      "jurisdiction": "PK",
+      "topic": "Pakistan Emigration Ordinance 1979 (OEP licensing, Protector of Emigrants, fee cap)",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "Pakistan Emigration Ordinance 1979 (OEP licensing, Protector of Emigrants, fee cap). PROMOTED 2026-07-10 (wave 5 fan-out; guardrails + mistral convergence majority; auto_vetted weight 0.6, human-verify to raise)."
+    },
+    {
+      "id": "ug_external_labour_recruitment",
+      "jurisdiction": "UG",
+      "topic": "Uganda SI 47/2021 external recruitment (replaced 2005; licensing, no worker fee)",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "Uganda SI 47/2021 external recruitment (replaced 2005; licensing, no worker fee). PROMOTED 2026-07-10 (wave 5 fan-out; guardrails + mistral convergence majority; auto_vetted weight 0.6, human-verify to raise)."
     }
   ]
 }
