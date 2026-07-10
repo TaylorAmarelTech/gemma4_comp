@@ -1,6 +1,6 @@
 # Where the harness hurts, and what removes it (offline, no model calls)
 
-> Deterministic post-processing of the committed grades (28,114 component cells, 11,546 stored responses in `reports/rich_lift/`). No new generation, no new judging -- every number is recomputed from the already-graded arms. Regenerate with `python scripts/analyze_harness_guard.py`. Prompt ids are not copied; aggregate counts only.
+> Deterministic post-processing of the committed grades (29,400 component cells, 40,814 stored responses in `reports/rich_lift/`). No new generation, no new judging -- every number is recomputed from the already-graded arms. Regenerate with `python scripts/analyze_harness_guard.py`. Prompt ids are not copied; aggregate counts only.
 
 ## Lever 1 -- which harness to serve (the big one)
 
@@ -10,10 +10,10 @@ Baseline (no harness) mean: **47.5**.
 
 | Serve | mean | lift over baseline |
 |---|---:|---:|
-| harness_full (current board) | 84.9 | **+37.5** |
+| harness_full (current board) | 85.0 | **+37.5** |
 | harness_core | 87.1 | **+39.6** |
-| harness_full + min guard | 80.0 | **+32.5** |
-| harness_core + min guard | 80.8 | **+33.3** |
+| harness_full + min guard | 79.8 | **+32.3** |
+| harness_core + min guard | 80.6 | **+33.1** |
 
 **Best served mean: `harness_core` (87.1).** Serving `core` instead of `full` is the larger, cheaper win -- the full harness's online / deep-RAG / tool layer adds noise a strong reply does not need, so `full <= core` for every model (next table).
 
@@ -25,7 +25,7 @@ Baseline (no harness) mean: **47.5**.
 |---|---:|---:|---:|---:|---:|---:|
 | `gpt-oss:120b` | 1538 | 40.5 | 81.6 | 78.0 | -3.6 | 170 (11.1%) |
 | `glm-5.1` | 40 | 70.1 | 92.4 | 93.0 | +0.6 | 1 (2.5%) |
-| `gemma4:31b` | 1595 | 48.9 | 89.4 | 88.5 | -1.0 | 13 (0.8%) |
+| `gemma4:31b` | 1736 | 48.8 | 89.4 | 88.4 | -1.0 | 13 (0.7%) |
 | `deepseek-v4-pro` | 182 | 59.4 | 94.3 | 93.1 | -1.3 | 1 (0.5%) |
 | `glm-5.2` | 410 | 57.7 | 93.8 | 92.0 | -1.8 | 2 (0.5%) |
 | `qwen3.5:397b` | 40 | 79.0 | 95.3 | 94.6 | -0.7 | 0 (0.0%) |
@@ -36,10 +36,10 @@ Guard policies applied to the full arm, pooled. `fired` = fell back to baseline;
 
 | Policy | signals | guarded mean | fired | recovery | misfire | net pts |
 |---|---|---:|---:|---:|---:|---:|
-| `off` | (none) | 84.9 | 0 | 0 (+0.0) | 0 (-0.0) | **+0.0** |
-| `min` | bare_nonanswer+citation_regression | 80.0 | 512 | 54 (+2179.8) | 458 (-21117.8) | **-18938.0** |
-| `len` | bare_nonanswer+citation_regression+drastic_shortening | 77.9 | 666 | 65 (+2303.8) | 601 (-29223.3) | **-26919.5** |
-| `hard` | hard_collapse | 85.3 | 92 | 51 (+2142.5) | 41 (-617.5) | **+1525.0** |
+| `off` | (none) | 85.0 | 0 | 0 (+0.0) | 0 (-0.0) | **+0.0** |
+| `min` | bare_nonanswer+citation_regression | 79.8 | 543 | 54 (+2179.8) | 489 (-22686.8) | **-20507.0** |
+| `len` | bare_nonanswer+citation_regression+drastic_shortening | 77.8 | 697 | 65 (+2303.8) | 632 (-30792.3) | **-28488.5** |
+| `hard` | hard_collapse | 85.4 | 92 | 51 (+2142.5) | 41 (-617.5) | **+1525.0** |
 
 Read the `net pts` column. The **broad** policies are net-NEGATIVE: `min` fires far more often on prompts the harness IMPROVED than on true regressions (misfire >> recovery), because the harness's signature win is a *grounded refusal* that `refusal_detector` flags as a refusal -- no cheap phrase test separates it from a bare 'I can't help' -- and `len` (adding the length signal) is worse still. But the **tight `hard` policy IS net-positive**: it fires only on the catastrophic collapses (a >=1k-char baseline turned into a <=150-char reply), which its length cap CANNOT confuse with a grounded refusal (those run to hundreds of chars). It catches the ~-75 disasters (big recovery) with few, small misfires -> a guarded mean ABOVE unguarded. **Conclusion: `DEFAULT_GUARD_POLICY = hard`** -- a cheap serving-time safety net for the catastrophic tail, on top of serving `core`.
 
