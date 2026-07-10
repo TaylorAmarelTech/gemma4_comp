@@ -112,6 +112,26 @@ tokens. Caveats worth stating: the gap is sample-noisy (an n=5 run gave ≈ +1.6
 unstable though the sign is consistently positive), it is one judge, and the deduction lens is uniformly
 harsh (it keeps penalising the harnessed reply for what is *still* missing), which widens the gap.
 
+The consequence for the *headline* is direct: summing the same n=10 sample's per-dimension lift within each
+framing gives the total lift you would report depending on which lens you grade with (same cells across all
+framings, so this is an apples-to-apples comparison; per-(dim,framing) n varies, so treat it as directional):
+
+| Grading lens | summed total lift (0-100) |
+|---|---:|
+| specificity bank (framings 0-2) | ≈ +33.7 |
+| worker-actionability (framing 3) | +13.8 |
+| faithfulness (framing 4) | +11.4 |
+| deduction (framing 5) | −21.4 |
+
+Two things follow. First, the harness lift is **~3× larger under specificity-anchored grading (~+34) than
+under the worker-actionability and faithfulness lenses (~+12)** — but it stays clearly positive under those
+two lenses, so the effect is real and only its *magnitude* is lens-dependent. Second, the deduction lens is
+a strong negative **outlier** (−21): a top-down "what is still missing" framing penalises the longer, more
+detailed harnessed reply for the larger surface it exposes, which reads as a framing **mis-calibration**
+rather than a real quality drop. It should be recalibrated (or excluded) before it is ever used in a
+headline, and the honest published number should be graded with the non-outlier diverse lenses — a smaller
+(~+12), harder-to-game figure — or reported as the range across lenses shown above.
+
 **Fabrication canary** (`scripts/fabrication_canary.py`) is the controlled version: five composite
 scenarios, each with a grounded reply (a real ILO convention cited correctly) and a "gamed" reply that
 name-drops the same kind of tokens but cites an *invented* statute and gives wrong guidance. A judge that
