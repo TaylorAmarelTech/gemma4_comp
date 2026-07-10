@@ -779,6 +779,91 @@
       "provenance": "auto_vetted_pending_human_verification",
       "supersedes": null,
       "superseded_by": null
+    },
+    {
+      "id": "coe_warsaw_trafficking",
+      "claim_type": "treaty",
+      "text": "The Council of Europe Convention on Action against Trafficking in Human Beings (Warsaw, CETS 197, 2005; in force 2008) is victim-centred: it was the first treaty to codify the NON-PUNISHMENT PRINCIPLE (parties shall provide for the possibility of not imposing penalties on victims for unlawful activities they were compelled to commit), a recovery-and-reflection period during which a presumed victim is not expelled, and a bar on removing a person before the victim-identification process is complete.",
+      "authority": "Council of Europe Convention on Action against Trafficking in Human Beings (CETS No. 197, 2005)",
+      "authority_class": "treaty",
+      "source_url": "https://www.coe.int/en/web/anti-human-trafficking/",
+      "jurisdiction": "Council of Europe",
+      "applies_to": "states parties to the Convention (Council of Europe and some non-member states)",
+      "exceptions": [
+        "binds only states parties; non-punishment is a 'possibility of not imposing penalties' to the extent the person was compelled, implemented via national law",
+        "the reflection period and identification procedures depend on national implementation"
+      ],
+      "binding_status": "binding_where_ratified",
+      "effective_from": "2008-02-01",
+      "as_of": "2026-07-10",
+      "volatility": "low",
+      "recheck_after": "2028-01-01",
+      "recheck_reason": "the Convention text is stable; GRETA monitoring reports and national implementation evolve; verify a state's implementation",
+      "caveats": [
+        "non-punishment is a KEY protection a worker/victim can raise, but it is a 'possibility' shaped by national law, not an automatic immunity",
+        "binds Council of Europe states parties; persuasive elsewhere"
+      ],
+      "verification_weight": 0.6,
+      "provenance": "auto_vetted_pending_human_verification",
+      "supersedes": null,
+      "superseded_by": null
+    },
+    {
+      "id": "lk_slbfe",
+      "claim_type": "rule",
+      "text": "Sri Lanka's Bureau of Foreign Employment Act No. 21 of 1985 (SLBFE) regulates recruitment and requires migrant workers to register through licensed agencies. A 'family background report' (a child-care plan) is a mandatory pre-departure requirement for prospective female domestic workers aged 45 or below (self-declaration if over 45) who have children aged 2-18; SLBFE registration and welfare fees also apply.",
+      "authority": "Sri Lanka Bureau of Foreign Employment Act No. 21 of 1985; SLBFE Cabinet decisions (2007/2013/2016)",
+      "authority_class": "domestic_law",
+      "source_url": "https://www.slbfe.lk/faq/",
+      "jurisdiction": "LK",
+      "applies_to": "Sri Lankan migrant workers registering through the SLBFE; the family-background report targets prospective female domestic workers with children",
+      "exceptions": [
+        "the family-background-report requirement is age-tiered (mandatory report if 45 or below, self-declaration if above 45) and targets female domestic workers with children 2-18",
+        "registration and service-contract fees change (e.g. registration ~Rs 22,027; a ~USD 50 domestic service-contract fee for certain countries)",
+        "the family-background requirement has been criticised as restricting women's freedom of movement"
+      ],
+      "binding_status": "binding_domestic",
+      "effective_from": "1985-01-01",
+      "as_of": "2026-07-10",
+      "volatility": "high",
+      "recheck_after": "2026-10-01",
+      "recheck_reason": "SLBFE fees and the family-background-report policy are revised by Cabinet decisions/circulars; verify current amounts and requirements against the official SLBFE site",
+      "caveats": [
+        "the family-background report is a gender-specific administrative RULE, not a protection per se; note the mobility-restriction critique",
+        "verify current fees/requirements against slbfe.lk"
+      ],
+      "verification_weight": 0.6,
+      "provenance": "auto_vetted_pending_human_verification",
+      "supersedes": null,
+      "superseded_by": null
+    },
+    {
+      "id": "mlc_2006",
+      "claim_type": "treaty",
+      "text": "The ILO Maritime Labour Convention, 2006 (MLC, No. 186; in force 20 August 2013) is the seafarers' 'bill of rights': a written Seafarers' Employment Agreement, minimum age, hours of work and rest, regular wage payment, annual leave, repatriation at the end of the contract (maximum service on board under ~12 months, with the shipowner bearing repatriation costs), on-board medical care, and the use of licensed recruitment and placement services that must NOT charge seafarers any fee for placement (Standard A1.4).",
+      "authority": "ILO Maritime Labour Convention, 2006 (MLC, No. 186)",
+      "authority_class": "treaty",
+      "source_url": "https://www.ilo.org/international-labour-standards/maritime-labour-convention-2006",
+      "jurisdiction": "international",
+      "applies_to": "seafarers on ships flagged to states that have ratified the MLC",
+      "exceptions": [
+        "binds ratifying/flag states; scope depends on vessel type and flag",
+        "the no-fee rule (Standard A1.4) applies to recruitment and placement services; some categories/vessels may be excluded under national implementation"
+      ],
+      "binding_status": "binding_where_ratified",
+      "effective_from": "2013-08-20",
+      "as_of": "2026-07-10",
+      "volatility": "medium",
+      "recheck_after": "2027-06-01",
+      "recheck_reason": "the MLC is periodically amended (2014, 2016, 2018, 2022); verify the current text and whether the vessel's flag state is bound",
+      "caveats": [
+        "MLC is the sector standard for seafarers; forced labour itself is defined by C29",
+        "check the ship's flag-state ratification before asserting it applies"
+      ],
+      "verification_weight": 0.6,
+      "provenance": "auto_vetted_pending_human_verification",
+      "supersedes": null,
+      "superseded_by": null
     }
   ]
 }

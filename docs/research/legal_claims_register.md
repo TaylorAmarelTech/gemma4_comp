@@ -2,18 +2,20 @@
 
 Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 2026-07-10. Claims flagged RECHECK are potentially outdated and must be re-verified against a primary source before a grounded answer relies on them. This is not legal advice.
 
-**30 claims -- 7 flagged for recheck.**
+**33 claims -- 8 flagged for recheck.**
 
 | id | jurisdiction | binding | volatility | as_of | recheck_after | flag |
 |---|---|---|---|---|---|---|
 | `bd_overseas_employment` | BD | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `eu_forced_labour_regulation` | EU | binding_domestic | high | 2026-07-10 | 2026-12-01 | **RECHECK** |
+| `lk_slbfe` | LK | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `np_foreign_employment_fees` | NP | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `ph_placement_fee` | PH | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `sa_kafala_reform_2025` | SA | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `limbu_v_dyson_2024` | UK | binding_where_applicable | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `us_uflpa` | US | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `ae_labour_reforms` | AE | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
+| `coe_warsaw_trafficking` | Council of Europe | binding_where_ratified | low | 2026-07-10 | 2028-01-01 | ok |
 | `rantsev_2010` | Council of Europe (ECtHR) | binding_where_applicable | low | 2026-07-10 | 2028-01-01 | ok |
 | `siliadin_2005` | Council of Europe (ECtHR) | binding_where_applicable | low | 2026-07-10 | 2028-01-01 | ok |
 | `hk_money_lending_cap` | HK | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
@@ -36,6 +38,7 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 | `stat_modern_slavery` | international | estimate | medium | 2026-07-10 | 2027-06-01 | ok |
 | `ilo_c188_fishing` | international | binding_where_ratified | medium | 2026-07-10 | 2027-06-01 | ok |
 | `ilo_fair_recruitment` | international | non_binding_guidance | low | 2026-07-10 | 2028-01-01 | ok |
+| `mlc_2006` | international | binding_where_ratified | medium | 2026-07-10 | 2027-06-01 | ok |
 
 ## Claims
 ### c029_definition  (international, definition)
@@ -337,3 +340,33 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 - **Binding:** binding_domestic | **effective_from:** 2022-06-21 | **as_of:** 2026-07-10 | **volatility:** high
 - **Recheck after 2026-10-01:** the Entity List and Forced Labor Enforcement Task Force strategy are revised regularly; verify the current list and guidance against CBP/DHS
 - **Caveats:** it is a rebuttable IMPORT presumption, not proof any specific worker was trafficked; complements the EU Forced Labour Regulation (import-side, build-upon); do not describe it as a criminal or individual-liability finding
+
+### coe_warsaw_trafficking  (Council of Europe, treaty)
+> The Council of Europe Convention on Action against Trafficking in Human Beings (Warsaw, CETS 197, 2005; in force 2008) is victim-centred: it was the first treaty to codify the NON-PUNISHMENT PRINCIPLE (parties shall provide for the possibility of not imposing penalties on victims for unlawful activities they were compelled to commit), a recovery-and-reflection period during which a presumed victim is not expelled, and a bar on removing a person before the victim-identification process is complete.
+
+- **Authority:** Council of Europe Convention on Action against Trafficking in Human Beings (CETS No. 197, 2005) (treaty) -- <https://www.coe.int/en/web/anti-human-trafficking/>
+- **Applies to:** states parties to the Convention (Council of Europe and some non-member states)
+- **Exceptions:** binds only states parties; non-punishment is a 'possibility of not imposing penalties' to the extent the person was compelled, implemented via national law; the reflection period and identification procedures depend on national implementation
+- **Binding:** binding_where_ratified | **effective_from:** 2008-02-01 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2028-01-01:** the Convention text is stable; GRETA monitoring reports and national implementation evolve; verify a state's implementation
+- **Caveats:** non-punishment is a KEY protection a worker/victim can raise, but it is a 'possibility' shaped by national law, not an automatic immunity; binds Council of Europe states parties; persuasive elsewhere
+
+### lk_slbfe  (LK, rule)
+> Sri Lanka's Bureau of Foreign Employment Act No. 21 of 1985 (SLBFE) regulates recruitment and requires migrant workers to register through licensed agencies. A 'family background report' (a child-care plan) is a mandatory pre-departure requirement for prospective female domestic workers aged 45 or below (self-declaration if over 45) who have children aged 2-18; SLBFE registration and welfare fees also apply.
+
+- **Authority:** Sri Lanka Bureau of Foreign Employment Act No. 21 of 1985; SLBFE Cabinet decisions (2007/2013/2016) (domestic_law) -- <https://www.slbfe.lk/faq/>
+- **Applies to:** Sri Lankan migrant workers registering through the SLBFE; the family-background report targets prospective female domestic workers with children
+- **Exceptions:** the family-background-report requirement is age-tiered (mandatory report if 45 or below, self-declaration if above 45) and targets female domestic workers with children 2-18; registration and service-contract fees change (e.g. registration ~Rs 22,027; a ~USD 50 domestic service-contract fee for certain countries); the family-background requirement has been criticised as restricting women's freedom of movement
+- **Binding:** binding_domestic | **effective_from:** 1985-01-01 | **as_of:** 2026-07-10 | **volatility:** high
+- **Recheck after 2026-10-01:** SLBFE fees and the family-background-report policy are revised by Cabinet decisions/circulars; verify current amounts and requirements against the official SLBFE site
+- **Caveats:** the family-background report is a gender-specific administrative RULE, not a protection per se; note the mobility-restriction critique; verify current fees/requirements against slbfe.lk
+
+### mlc_2006  (international, treaty)
+> The ILO Maritime Labour Convention, 2006 (MLC, No. 186; in force 20 August 2013) is the seafarers' 'bill of rights': a written Seafarers' Employment Agreement, minimum age, hours of work and rest, regular wage payment, annual leave, repatriation at the end of the contract (maximum service on board under ~12 months, with the shipowner bearing repatriation costs), on-board medical care, and the use of licensed recruitment and placement services that must NOT charge seafarers any fee for placement (Standard A1.4).
+
+- **Authority:** ILO Maritime Labour Convention, 2006 (MLC, No. 186) (treaty) -- <https://www.ilo.org/international-labour-standards/maritime-labour-convention-2006>
+- **Applies to:** seafarers on ships flagged to states that have ratified the MLC
+- **Exceptions:** binds ratifying/flag states; scope depends on vessel type and flag; the no-fee rule (Standard A1.4) applies to recruitment and placement services; some categories/vessels may be excluded under national implementation
+- **Binding:** binding_where_ratified | **effective_from:** 2013-08-20 | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-06-01:** the MLC is periodically amended (2014, 2016, 2018, 2022); verify the current text and whether the vessel's flag state is bound
+- **Caveats:** MLC is the sector standard for seafarers; forced labour itself is defined by C29; check the ship's flag-state ratification before asserting it applies
