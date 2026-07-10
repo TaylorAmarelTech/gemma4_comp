@@ -2,7 +2,7 @@
 
 Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 2026-07-10. Claims flagged RECHECK are potentially outdated and must be re-verified against a primary source before a grounded answer relies on them. This is not legal advice.
 
-**33 claims -- 8 flagged for recheck.**
+**33 claims -- 7 flagged for recheck.**
 
 | id | jurisdiction | binding | volatility | as_of | recheck_after | flag |
 |---|---|---|---|---|---|---|
@@ -12,7 +12,6 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 | `np_foreign_employment_fees` | NP | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `ph_placement_fee` | PH | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `sa_kafala_reform_2025` | SA | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
-| `limbu_v_dyson_2024` | UK | binding_where_applicable | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `us_uflpa` | US | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `ae_labour_reforms` | AE | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
 | `coe_warsaw_trafficking` | Council of Europe | binding_where_ratified | low | 2026-07-10 | 2028-01-01 | ok |
@@ -24,9 +23,10 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 | `kw_domestic_worker_law` | KW | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
 | `qa_wage_protection` | QA | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
 | `uk_modern_slavery_act` | UK | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
+| `limbu_v_dyson_2024` | UK | binding_where_applicable | low | 2026-07-10 | 2026-10-01 | ok |
 | `kozminski_1988` | US | historical_superseded_by_statute | low | 2026-07-10 | 2028-01-01 | ok |
 | `us_tvpa_1589` | US | binding_domestic | low | 2026-07-10 | 2028-01-01 | ok |
-| `us_state_trafficking_civil` | US | binding_domestic | low | 2026-07-10 | 2028-01-01 | ok |
+| `us_federal_trafficking_civil_1595` | US | binding_domestic | low | 2026-07-10 | 2028-01-01 | ok |
 | `c029_definition` | international | binding_where_ratified | low | 2026-07-10 | 2028-01-01 | ok |
 | `c029_vs_indicators` | international | non_binding_guidance | medium | 2026-07-10 | 2027-06-01 | ok |
 | `ilo_indicators_2025` | international | non_binding_guidance | medium | 2026-07-10 | 2027-06-01 | ok |
@@ -104,12 +104,12 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 ### ph_placement_fee  (PH, rule)
 > Philippine rules (Department of Migrant Workers, successor to POEA) impose a ZERO placement fee for household service workers / domestic workers deployed abroad, and no placement fee for workers bound for designated 'no-placement-fee' destination countries. Some other land-based categories may historically be charged a placement fee capped around one month's basic salary, but the no-fee list is expanding.
 
-- **Authority:** DMW rules; RA 10361 (Domestic Workers Act / Batas Kasambahay); DMW Advisory No. 24-2024 (administrative_rule) -- <https://dmw.gov.ph/archives/v1/resources/dsms/DMW/ISN-EXT/2024/DMW-ADVISORY-24-2024.pdf>
+- **Authority:** DMW rules under RA 8042 / RA 10022 (Migrant Workers Act) + POEA/DMW Governing Board resolutions (RA 10361 governs domestic workers WITHIN the Philippines, not this overseas rule) (administrative_rule) -- <https://dmw.gov.ph/archives/v1/resources/dsms/DMW/ISN-EXT/2024/DMW-ADVISORY-24-2024.pdf>
 - **Applies to:** Filipino overseas workers by category and destination
 - **Exceptions:** zero fee for domestic/household service workers; zero fee for deployment to a designated no-placement-fee country (e.g. Qatar per Qatar Law 14/2004 Art 33); possible capped placement fee for some other land-based categories
 - **Binding:** binding_domestic | **effective_from:** None | **as_of:** 2026-07-10 | **volatility:** high
 - **Recheck after 2026-10-01:** DMW is a young agency (replaced POEA in 2022) issuing frequent circulars/advisories; the no-placement-fee country list is actively expanding
-- **Caveats:** do NOT state 'Philippine law bans ALL recruitment fees for EVERY OFW'; resolve occupation + destination + fee type + effective date first; PHP 50,000 cannot be judged excessive from the amount alone; a zero-fee category makes any placement fee impermissible, otherwise the cap depends on approved salary and the type of charge
+- **Caveats:** do NOT state 'Philippine law bans ALL recruitment fees for EVERY OFW'; resolve occupation + destination + fee type + effective date first; the overseas HSW zero-fee rule sits under the Migrant Workers Act + DMW board resolutions, NOT RA 10361; the 'no-placement-fee country' designation is a Philippine DMW policy, separate from any destination-country law; verify the specific DMW advisory number and current no-fee-country list against dmw.gov.ph
 
 ### hk_money_lending_cap  (HK, rule)
 > Under Hong Kong's Money Lenders Ordinance (Cap. 163), since 30 December 2022 the statutory interest-rate cap is 48% per year and a loan whose effective rate exceeds 36% per year is presumed to be an extortionate transaction (down from 60% and 48% respectively).
@@ -119,7 +119,7 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 - **Exceptions:** applies only if the loan is governed by HK law; a foreign loan or a later novation is not automatically within Cap. 163
 - **Binding:** binding_domestic | **effective_from:** 2022-12-30 | **as_of:** 2026-07-10 | **volatility:** medium
 - **Recheck after 2027-06-01:** the caps were static 1980-2022 then changed; a future review could move them again
-- **Caveats:** a 68% APR loan is only presumptively extortionate IF Cap. 163 applies; keep the jurisdictional condition explicit; do not label loan-proceeds collection 'money laundering' automatically; that needs the offence elements, a proceeds nexus, jurisdiction, and mental state
+- **Caveats:** a loan above the 48% cap is OUTRIGHT UNLAWFUL; a loan above 36% but at/below 48% is PRESUMED extortionate -- keep the two thresholds distinct; applies only if the loan is governed by HK law; a foreign loan or a later novation is not automatically within Cap. 163; do not label loan-proceeds collection 'money laundering' automatically; that needs the offence elements, a proceeds nexus, jurisdiction, and mental state
 
 ### palermo_elements  (international, definition)
 > Under the UN Palermo Protocol, adult trafficking requires three elements: an ACT (recruitment, transport, transfer, harbouring, receipt), a MEANS (threat, force, coercion, fraud, deception, abuse of power or of a position of vulnerability, payments to a controller), and a PURPOSE of exploitation. For a child, the MEANS element is not required.
@@ -147,7 +147,7 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 - **Authority:** Saudi Ministry of Human Resources and Social Development (as reported) (administrative_rule) -- <https://www.walkfree.org/news/2025/saudi-arabia-ends-the-kafala-system-to-strengthen-worker-rights/>
 - **Applies to:** migrant workers in Saudi Arabia (reported ~13 million)
 - **Exceptions:** domestic workers are often excluded from standard labour-law protections and may not immediately benefit
-- **Binding:** binding_domestic | **effective_from:** 2025-01-01 | **as_of:** 2026-07-10 | **volatility:** high
+- **Binding:** binding_domestic | **effective_from:** 2025-06-01 | **as_of:** 2026-07-10 | **volatility:** high
 - **Recheck after 2026-10-01:** very recent reform; implementation is evolving, prior Gulf reform promises fell short, and domestic-worker coverage is uncertain; verify current status against a primary/official source before relying on it
 - **Caveats:** do NOT state kafala is fully abolished in practice; describe the announced reform + implementation uncertainty + the domestic-worker carve-out; verify against an official Saudi source, not only advocacy/news reporting
 
@@ -291,7 +291,7 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 - **Recheck after 2027-06-01:** implementing regulations and enforcement change; verify current hours/rest/wage-protection provisions against an official Kuwaiti source
 - **Caveats:** the protections are the RULE; enforcement gaps mean workers may not receive them in practice; passport confiscation being an offence is a key point workers can raise
 
-### us_state_trafficking_civil  (US, rule)
+### us_federal_trafficking_civil_1595  (US, rule)
 > 18 U.S.C. sec.1595 (Trafficking Victims Protection Reauthorization Act) gives a trafficking survivor a CIVIL remedy: they may sue in U.S. federal court for compensatory and punitive damages (and attorney's fees) against a direct perpetrator AND third parties who KNOWINGLY BENEFIT, financially or otherwise, from participation in a venture they knew or should have known was trafficking. The limitations period is generally 10 years (tolled for minors or where coercion/trauma prevented filing).
 
 - **Authority:** 18 U.S.C. sec.1595 (TVPRA civil remedy) (domestic_law) -- <https://www.law.cornell.edu/uscode/text/18/1595>
@@ -302,14 +302,14 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 - **Caveats:** complements, does not replace, the criminal us_tvpa_1589 (build-upon); a civil claim still requires proof; it is not an automatic recovery
 
 ### limbu_v_dyson_2024  (UK, precedent)
-> In Limbu & Others v Dyson Technology Ltd [2024] the English Court of Appeal allowed Nepali and Bangladeshi migrant workers to bring forced-labour, debt-bondage and trafficking claims in the English courts over conditions at Malaysian factories in Dyson's supply chain; the UK Supreme Court refused Dyson permission to appeal, and in January 2026 the High Court set a liability trial for April 2027. It confirms that a UK-domiciled company may be sued in England for human-rights abuses in its overseas supply chain.
+> In Limbu & Others v Dyson Technology Ltd [2024] EWCA Civ 1564 the English Court of Appeal allowed Nepali and Bangladeshi migrant workers to bring forced-labour, debt-bondage and trafficking claims in the English courts over conditions at Malaysian factories in Dyson's supply chain, and the UK Supreme Court refused Dyson permission to appeal (1 May 2025). The claims then SETTLED on 26 February 2026 on confidential terms with no admission of liability. The case's lasting legal value is the forum/jurisdiction holding: a UK-domiciled company can be sued in England for human-rights abuses in its overseas supply chain.
 
-- **Authority:** England and Wales Court of Appeal, Limbu & Others v Dyson Technology Ltd [2024] (UK Supreme Court permission to appeal refused) (court_precedent) -- <https://www.business-humanrights.org/en/latest-news/uk-supreme-court-dismisses-dysons-application-to-appeal-over-migrant-workers-lawsuit-allegations-of-force-labour-allowing-the-case-to-proceed/>
+- **Authority:** England and Wales Court of Appeal, Limbu & Others v Dyson Technology Ltd [2024] EWCA Civ 1564 (UK Supreme Court permission to appeal refused 1 May 2025; claims settled 26 Feb 2026) (court_precedent) -- <https://www.business-humanrights.org/en/latest-news/uk-supreme-court-dismisses-dysons-application-to-appeal-over-migrant-workers-lawsuit-allegations-of-force-labour-allowing-the-case-to-proceed/>
 - **Applies to:** the forum/jurisdiction question of whether overseas supply-chain forced-labour claims can be heard against a UK-domiciled parent; persuasive on parent-company duty of care
 - **Exceptions:** this is a JURISDICTION/forum ruling that the claim may PROCEED in England -- NOT a finding that Dyson is liable (a liability trial is set for April 2027); binds English courts; persuasive elsewhere
-- **Binding:** binding_where_applicable | **effective_from:** 2024-12-01 | **as_of:** 2026-07-10 | **volatility:** high
-- **Recheck after 2026-10-01:** the substantive liability trial is scheduled for April 2027 and will change what the case stands for; recheck for the trial outcome and any further appeals
-- **Caveats:** it allows the claim to PROCEED (forum), it is NOT yet a liability finding against Dyson -- do not overstate it; cite it for supply-chain forum/duty-of-care, not for a settled liability outcome
+- **Binding:** binding_where_applicable | **effective_from:** 2024-12-01 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2026-10-01:** settled Feb 2026; monitor for related supply-chain forum cases and appellate treatment of the forum principle
+- **Caveats:** cite it for the supply-chain FORUM/jurisdiction holding, NOT for a liability outcome -- it settled with no admission of liability; the forum principle survives the settlement
 
 ### ilo_c188_fishing  (international, rule)
 > The ILO Work in Fishing Convention No. 188 (2007, in force 16 November 2017) sets minimum standards for fishers on commercial vessels: a written work agreement, minimum hours of rest, adequate accommodation and food, occupational safety and medical care, social security, and regulation of the recruitment process -- helping prevent forced and child labour in fishing, especially for migrant fishers.
@@ -342,7 +342,7 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 - **Caveats:** it is a rebuttable IMPORT presumption, not proof any specific worker was trafficked; complements the EU Forced Labour Regulation (import-side, build-upon); do not describe it as a criminal or individual-liability finding
 
 ### coe_warsaw_trafficking  (Council of Europe, treaty)
-> The Council of Europe Convention on Action against Trafficking in Human Beings (Warsaw, CETS 197, 2005; in force 2008) is victim-centred: it was the first treaty to codify the NON-PUNISHMENT PRINCIPLE (parties shall provide for the possibility of not imposing penalties on victims for unlawful activities they were compelled to commit), a recovery-and-reflection period during which a presumed victim is not expelled, and a bar on removing a person before the victim-identification process is complete.
+> The Council of Europe Convention on Action against Trafficking in Human Beings (Warsaw, CETS 197, 2005; in force 2008) is victim-centred: it was one of the first binding treaties (Article 26) to codify the NON-PUNISHMENT PRINCIPLE (parties shall provide for the possibility of not imposing penalties on victims for unlawful activities they were compelled to commit), a recovery-and-reflection period during which a presumed victim is not expelled, and a bar on removing a person before the victim-identification process is complete.
 
 - **Authority:** Council of Europe Convention on Action against Trafficking in Human Beings (CETS No. 197, 2005) (treaty) -- <https://www.coe.int/en/web/anti-human-trafficking/>
 - **Applies to:** states parties to the Convention (Council of Europe and some non-member states)

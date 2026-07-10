@@ -74,12 +74,12 @@
       "rationale": "Major destination-side framework + supply-chain duty; complements the EU FLR entry. PROMOTED 2026-07-10 (guardrails+convergence; auto_vetted weight 0.6, human-verify to raise)."
     },
     {
-      "id": "us_state_trafficking_civil",
+      "id": "us_federal_trafficking_civil_1595",
       "jurisdiction": "US",
       "topic": "TVPA civil remedy (18 U.S.C. 1595) + state trafficking statutes",
       "priority": "medium",
       "status": "promoted",
-      "rationale": "Adds the civil-remedy path alongside the criminal sec.1589 already in the corpus (build-upon). PROMOTED 2026-07-10 (guardrails+convergence; auto_vetted weight 0.6)."
+      "rationale": "Adds the civil-remedy path alongside the criminal sec.1589 already in the corpus (build-upon). PROMOTED 2026-07-10 (guardrails+convergence; auto_vetted weight 0.6). [id corrected: federal sec.1595, not state]"
     },
     {
       "id": "precedents_2024_2026",
