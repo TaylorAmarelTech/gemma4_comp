@@ -52,7 +52,7 @@ for _src in glob.glob(str(_ROOT / "packages" / "*" / "src")):
 sys.path.insert(0, str(_ROOT / "scripts"))
 
 from artifact_path_policy import handoff_artifact_path  # noqa: E402
-from llm_generate import ollama_chat, provider_chat  # noqa: E402,F401  (provider-routing caller)
+from llm_generate import ollama_chat, provider_chat, resilient_chat  # noqa: E402,F401  (provider-routing caller)
 from multi_judge import (  # noqa: E402
     DEFAULT_RUBRIC_VERSION, RUBRIC_VERSIONS, judge_components, judge_components_perdim, judge_pair,
     model_family, krippendorff_alpha)
@@ -714,16 +714,18 @@ def generate_responses(prompts: list[dict], models: list[str], *, reuse: dict, r
     def _one(item):
         model, pid, arm, text, reused = item
         if reused is not None:
-            return (model, pid, arm, text, reused, None, True)
+            return (model, pid, arm, text, reused, None, True, None)
         prompt_in = (text if arm == "baseline"
                      else core_pre(text) + "\n\n---\n\n" + text if arm == "harness_core"
                      else full_pre(text) + "\n\n---\n\n" + text)
         t0 = time.perf_counter()
-        resp = str(generate(model, prompt_in))                  # raises -> caught in the main loop
+        raw = generate(model, prompt_in)                        # raises -> caught in the main loop
+        # ``generate`` returns str, or (text, meta) under resilient generation (recover + flag a refusal)
+        resp, gmeta = (str(raw[0]), raw[1]) if isinstance(raw, tuple) else (str(raw), None)
         latency_s = round(time.perf_counter() - t0, 3)
         if pace:
             time.sleep(pace)
-        return (model, pid, arm, text, resp, latency_s, False)
+        return (model, pid, arm, text, resp, latency_s, False, gmeta)
 
     n_new = 0
     with results_path.open("a", encoding="utf-8") as f, ThreadPoolExecutor(max_workers=max(1, concurrency)) as ex:
@@ -731,13 +733,17 @@ def generate_responses(prompts: list[dict], models: list[str], *, reuse: dict, r
         for fut in as_completed(futs):
             it = futs[fut]
             try:
-                model, pid, arm, text, resp, latency_s, reused = fut.result()
+                model, pid, arm, text, resp, latency_s, reused, gmeta = fut.result()
             except Exception as exc:  # noqa: BLE001
                 log(f"GEN FAIL {it[0]}|{it[1]}|{it[2]}: {type(exc).__name__}: {exc}")
                 continue
             row = {"model": model, "prompt_id": pid, "arm": arm, "prompt_text": text, "response": resp}
             if latency_s is not None:
                 row["latency_s"] = latency_s
+            if gmeta and gmeta.get("refused_initially"):        # resilient generation: this arm first refused
+                row["refused_initially"] = True                 # (harness-induced refusal = this True on a
+                row["recovered"] = bool(gmeta.get("recovered"))  #  harnessed arm while the baseline was useful)
+                row["gen_attempts"] = gmeta.get("attempts")
             if harness_version != "h1":
                 row["harness"] = harness_version
             if intent_by_pid.get(pid, DEFAULT_INTENT) != DEFAULT_INTENT:
@@ -1560,6 +1566,10 @@ def main(argv: list[str] | None = None) -> int:
                     help="concurrent Ollama calls per phase (raise to use more quota, lower on rate limits)")
     ap.add_argument("--max-tokens", type=int, default=0,
                     help="output cap; 0 = UNLIMITED (generate to EOS, bounded only by the context window)")
+    ap.add_argument("--resilient-generation", action="store_true",
+                    help="recover a subject-model bare-refusal collapse by re-questioning (resilient_chat) "
+                         "and tag the row refused_initially/recovered/gen_attempts -- so a harness-induced "
+                         "refusal is a comparable metric AND a visible flag, not a dropped/zeroed cell")
     ap.add_argument("--grader", choices=["batched", "perdim"], default="batched",
                     help="batched = ONE judge call scoring all components (fast; the board/engine default); "
                          "perdim = ONE judge call PER dimension (5-6x cost, no cross-component anchoring; "
@@ -1647,8 +1657,10 @@ def main(argv: list[str] | None = None) -> int:
         print(format_plan(plan))
         return 0
 
-    def gen(model: str, prompt_in: str) -> str:
-        return provider_chat(prompt_in, model=model, max_tokens=args.max_tokens)
+    def gen(model: str, prompt_in: str):
+        if args.resilient_generation:   # recover a bare-refusal collapse by re-questioning + flag it
+            return resilient_chat(prompt_in, model=model, max_tokens=args.max_tokens)   # (text, meta)
+        return provider_chat(prompt_in, model=model, max_tokens=args.max_tokens)         # text
 
     if not args.report_only:
         reuse = load_reuse(pathlib.Path(args.reuse), harness_version=args.harness_version)

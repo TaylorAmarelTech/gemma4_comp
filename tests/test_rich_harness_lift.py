@@ -135,6 +135,26 @@ def test_generate_reuses_two_arms_and_generates_only_full(tmp_path):
                                  generate=fake_generate, pace=0.0, max_tokens=10, log=lambda _m: None) == 0
 
 
+def test_generate_responses_records_resilient_refusal_flag(tmp_path):
+    """Opt-in resilient generation: ``generate`` may return (text, meta); the row unpacks to the text and
+    records refused_initially/recovered/gen_attempts so a harness-induced refusal is a visible flag."""
+    prompts = [{"id": "P1", "text": "a worker-safety question"}]
+
+    def fake_generate(model, prompt_in):
+        if "---" in prompt_in:                             # a harnessed arm (preamble + --- + text)
+            return ("recovered grounded answer", {"refused_initially": True, "recovered": True, "attempts": 2})
+        return ("clean baseline answer", {"refused_initially": False, "recovered": False, "attempts": 1})
+
+    results_path = tmp_path / "r.jsonl"
+    rh.generate_responses(prompts, ["gemma4:31b"], reuse={}, results_path=results_path,
+                          generate=fake_generate, pace=0.0, max_tokens=10, log=lambda _m: None)
+    rows = {r["arm"]: r for r in (json.loads(x) for x in results_path.read_text(encoding="utf-8").splitlines())}
+    assert rows["harness_core"]["refused_initially"] is True and rows["harness_core"]["recovered"] is True
+    assert rows["harness_core"]["gen_attempts"] == 2
+    assert "refused_initially" not in rows["baseline"]      # a clean (non-refused) arm carries no flag
+    assert rows["baseline"]["response"] == "clean baseline answer"   # the (text, meta) tuple unpacked to text
+
+
 def test_registry_domain_preambles_use_domain_anchors():
     core, full = rh.build_registry_domain_preambles(_DOMAIN_SPEC)
     core_text = core("prompt")
