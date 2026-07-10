@@ -146,3 +146,49 @@ def test_next_key_offset_round_robins():
     offs = [lg._next_key_offset("unittest_prov", 3) for _ in range(4)]
     assert offs == [0, 1, 2, 0]                                  # cycles across the pool
     assert lg._next_key_offset("solo", 1) == 0                   # single key -> always 0
+
+
+# --- resilient_chat: iterative re-questioning on a refusal, recover + flag ---------------------------
+def _useful(text):
+    """test stand-in for refusal_detector.classify: 'REFUSE' -> refusal, else useful."""
+    return (False, "refusal") if text == "REFUSE" else (True, "useful")
+
+
+def test_resilient_chat_recovers_from_refusal(monkeypatch):
+    replies = iter(["REFUSE", "here is the grounded answer"])   # refuse first, answer on retry
+
+    def _pc(prompt, *, model, **kw):
+        return next(replies)
+
+    monkeypatch.setattr(lg, "provider_chat", _pc)
+    text, meta = lg.resilient_chat("q", model="gemma4:31b", is_useful=_useful)
+    assert text == "here is the grounded answer"
+    assert meta["refused_initially"] is True and meta["recovered"] is True
+    assert meta["attempts"] == 2 and meta["final_useful"] is True
+
+
+def test_resilient_chat_no_retry_when_useful(monkeypatch):
+    monkeypatch.setattr(lg, "provider_chat", lambda p, *, model, **kw: "a full grounded answer")
+    text, meta = lg.resilient_chat("q", model="m", is_useful=_useful)
+    assert meta["attempts"] == 1 and meta["refused_initially"] is False and meta["recovered"] is False
+
+
+def test_resilient_chat_flags_persistent_refusal(monkeypatch):
+    monkeypatch.setattr(lg, "provider_chat", lambda p, *, model, **kw: "REFUSE")  # never recovers
+    text, meta = lg.resilient_chat("q", model="m", max_attempts=3, is_useful=_useful)
+    assert meta["attempts"] == 3 and meta["final_useful"] is False and meta["recovered"] is False
+    assert meta["refused_initially"] is True                     # the collapse is FLAGGED, not hidden
+
+
+def test_resilient_chat_retry_pushes_but_keeps_prompt(monkeypatch):
+    seen = []
+
+    def _pc(prompt, *, model, **kw):
+        seen.append(prompt)
+        return "REFUSE" if len(seen) == 1 else "answer"
+
+    monkeypatch.setattr(lg, "provider_chat", _pc)
+    lg.resilient_chat("ORIGINAL QUESTION", model="m", is_useful=_useful)
+    assert seen[0] == "ORIGINAL QUESTION"                        # first attempt is the raw prompt
+    assert seen[1].startswith("ORIGINAL QUESTION")              # retry KEEPS the question (comparable)
+    assert "[RETRY" in seen[1]                                   # ...plus the push past the refusal
