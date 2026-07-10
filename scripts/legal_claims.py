@@ -73,8 +73,15 @@ def due_for_recheck(claims: list[dict], today: date) -> list[dict]:
             reasons.append("high volatility")
         ef = c.get("effective_from")
         try:
-            if c.get("claim_type") == "reform" and ef and date.fromisoformat(ef) <= today:
-                reasons.append(f"reform effective_from {ef} now in the past (update 'forthcoming' framing)")
+            if ef:
+                efd = date.fromisoformat(ef)
+                if efd > today:
+                    # not-yet-in-force for ANY claim_type -- a future effective_from means binding_status may
+                    # overstate current applicability (e.g. a directive whose transposition deadline is future)
+                    reasons.append(f"effective_from {ef} is in the FUTURE -- not yet in force; "
+                                   "binding_status may overstate current applicability")
+                elif c.get("claim_type") == "reform":
+                    reasons.append(f"reform effective_from {ef} now in the past (update 'forthcoming' framing)")
         except (ValueError, TypeError):
             pass
         if reasons:
