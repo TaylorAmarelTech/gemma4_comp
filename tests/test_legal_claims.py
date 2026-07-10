@@ -72,3 +72,19 @@ def test_shipped_library_flags_the_expected_volatile_claims():
     # the young/expanding + brand-new-reform claims must be flagged; a stable definition must not
     assert {"ph_placement_fee", "sa_kafala_reform_2025", "eu_forced_labour_regulation"} <= due
     assert "c029_definition" not in due
+
+
+def test_library_includes_court_precedents_workers_can_search():
+    by = {c["id"]: c for c in lc.load_claims()}
+    for cid in ("rantsev_2010", "siliadin_2005", "kozminski_1988"):
+        assert by[cid]["claim_type"] == "precedent"           # landmark cases are enriched in
+        assert by[cid]["authority_class"] == "court_precedent"
+
+
+def test_append_only_principle_supersede_not_delete():
+    # Kozminski is retained (not deleted) as historical context and marked superseded_by the TVPA -- the
+    # 'build upon, do not replace' principle. It must NOT be presented as current law.
+    koz = {c["id"]: c for c in lc.load_claims()}["kozminski_1988"]
+    assert koz["superseded_by"]                                 # points forward to the current standard
+    assert "do NOT cite Kozminski as the current" in " ".join(koz["caveats"])
+    assert koz["binding_status"] == "historical_superseded_by_statute"

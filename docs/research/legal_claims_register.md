@@ -2,14 +2,17 @@
 
 Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 2026-07-10. Claims flagged RECHECK are potentially outdated and must be re-verified against a primary source before a grounded answer relies on them. This is not legal advice.
 
-**13 claims -- 3 flagged for recheck.**
+**16 claims -- 3 flagged for recheck.**
 
 | id | jurisdiction | binding | volatility | as_of | recheck_after | flag |
 |---|---|---|---|---|---|---|
 | `eu_forced_labour_regulation` | EU | binding_domestic | high | 2026-07-10 | 2026-12-01 | **RECHECK** |
 | `ph_placement_fee` | PH | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `sa_kafala_reform_2025` | SA | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
+| `rantsev_2010` | Council of Europe (ECtHR) | binding_where_applicable | low | 2026-07-10 | 2028-01-01 | ok |
+| `siliadin_2005` | Council of Europe (ECtHR) | binding_where_applicable | low | 2026-07-10 | 2028-01-01 | ok |
 | `hk_money_lending_cap` | HK | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
+| `kozminski_1988` | US | historical_superseded_by_statute | low | 2026-07-10 | 2028-01-01 | ok |
 | `c029_definition` | international | binding_where_ratified | low | 2026-07-10 | 2028-01-01 | ok |
 | `c029_vs_indicators` | international | non_binding_guidance | medium | 2026-07-10 | 2027-06-01 | ok |
 | `ilo_indicators_2025` | international | non_binding_guidance | medium | 2026-07-10 | 2027-06-01 | ok |
@@ -150,3 +153,33 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 - **Binding:** estimate | **effective_from:** 2022-09-01 | **as_of:** 2026-07-10 | **volatility:** medium
 - **Recheck after 2027-06-01:** the next joint global estimate will supersede the 2021 figures; check for a newer edition
 - **Caveats:** keep the 2021 date and the forced-labour vs forced-marriage components explicit; do not present it as a count of trafficking victims
+
+### rantsev_2010  (Council of Europe (ECtHR), precedent)
+> In Rantsev v. Cyprus and Russia (2010) the European Court of Human Rights held that human trafficking falls within the scope of Article 4 of the European Convention on Human Rights, and identified three positive state obligations: (1) put in place a legislative/administrative framework to prohibit and punish trafficking; (2) take operational measures to protect actual or potential victims in certain circumstances; and (3) investigate situations of potential trafficking.
+
+- **Authority:** European Court of Human Rights, Rantsev v. Cyprus and Russia, App. no. 25965/04 (7 Jan 2010) (court_precedent) -- <https://sherloc.unodc.org/cld/case-law-doc/traffickingpersonscrimetype/_irb/2010/rantsev_v._cyprus_and_russia.html>
+- **Applies to:** Council of Europe member states bound by the ECHR; persuasive elsewhere
+- **Exceptions:** binds ECHR states; not directly binding outside the Council of Europe
+- **Binding:** binding_where_applicable | **effective_from:** 2010-01-07 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2028-01-01:** landmark and stable, but later ECtHR judgments refine Article 4 obligations; check for newer Grand Chamber authority
+- **Caveats:** verify the holding against the primary judgment before quoting; do not state it creates obligations for non-ECHR states
+
+### siliadin_2005  (Council of Europe (ECtHR), precedent)
+> In Siliadin v. France (2005) the European Court of Human Rights held that a migrant domestic worker (a minor whose passport was taken and who was made to work unpaid, long hours) was held in 'servitude', and that Article 4 ECHR imposes positive obligations on states to criminalise and effectively punish servitude and forced labour.
+
+- **Authority:** European Court of Human Rights, Siliadin v. France, App. no. 73316/01 (26 Jul 2005) (court_precedent) -- <https://hudoc.echr.coe.int/eng?i=001-69891>
+- **Applies to:** Council of Europe member states; migrant domestic-worker exploitation
+- **Exceptions:** binds ECHR states; persuasive elsewhere
+- **Binding:** binding_where_applicable | **effective_from:** 2005-07-26 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2028-01-01:** foundational Article 4 servitude case; check for refinements in later ECtHR jurisprudence
+- **Caveats:** 'servitude' and 'forced labour' are distinct thresholds under Article 4; verify which was found before quoting
+
+### kozminski_1988  (US, precedent)
+> In United States v. Kozminski, 487 U.S. 931 (1988), the U.S. Supreme Court held that 'involuntary servitude' under 18 U.S.C. sec.241/1584 requires compulsion by physical restraint/injury or by legal coercion, and that purely psychological coercion was insufficient. This narrow reading prompted Congress to enact the broader forced-labour and trafficking definitions of the Trafficking Victims Protection Act (TVPA) 2000.
+
+- **Authority:** U.S. Supreme Court, United States v. Kozminski, 487 U.S. 931 (1988) (court_precedent) -- <https://supreme.justia.com/cases/federal/us/487/931/>
+- **Applies to:** historical interpretation of the pre-TVPA involuntary-servitude statutes
+- **Exceptions:** the TVPA (2000) subsequently broadened the federal forced-labour definition to include serious harm and psychological coercion
+- **Binding:** historical_superseded_by_statute | **effective_from:** 1988-06-29 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2028-01-01:** stable as history; the operative CURRENT federal standard is the TVPA (18 U.S.C. sec.1589), which should be cited for present-day forced-labour analysis
+- **Caveats:** do NOT cite Kozminski as the current federal forced-labour standard; it is retained as context that explains why the TVPA broadened the definition (build-upon-not-replace example)
