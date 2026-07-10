@@ -6,8 +6,11 @@ robust. Migrant workers type on phones, in a second language, under stress: miss
 filler words, and dropped words are the NORMAL input, not the exception.
 
 This measures how the deterministic GREP indicator layer's fire-rate degrades as escalating noise is
-injected into worker prompts (no LLM, no network, no Ollama — cheap and reproducible). Four noise types
-the concern names: keyboard TYPOS, common MISSPELLINGS, EXTRA words (filler), and DROPPED words. The
+injected into worker prompts (no LLM, no network, no Ollama — cheap and reproducible). Nine noise types:
+keyboard TYPOS, common MISSPELLINGS, EXTRA words (filler), DROPPED words (content-word subtraction),
+DROP_STOPWORDS (subtract only stopwords — the clean overfitting test), SPLIT_MERGE (whitespace noise:
+'passport'->'pass port'), CHAR_REPEAT (elongation: 'pleaseee'), PUNCT_INJECT (separator evasion:
+'p.a.s.s.p.o.r.t'), and WORD_SWAP (local reorder). The
 metric is fire RETENTION = rules_fired(noisy) / rules_fired(clean); retention well below 1.0 under mild
 noise means GREP is brittle to that noise and should gain typo/misspelling-tolerant matching (an actionable
 harness improvement, propose-only — this script never edits the harness). Complements
@@ -107,12 +110,85 @@ def insert_filler(text: str, *, rate: float, rng: random.Random) -> str:
 
 
 def delete_words(text: str, *, rate: float, rng: random.Random) -> str:
+    """Word SUBTRACTION: drop content words (>2 chars). Info loss is expected; the question is how fast
+    firing degrades (low retention under mild deletion = low trigger redundancy)."""
     kept = [w for w in text.split() if not (len(w) > 2 and rng.random() < rate)]
     return " ".join(kept) or text
 
 
+_STOPWORDS = {"the", "a", "an", "and", "or", "but", "is", "are", "was", "were", "to", "of", "in", "on",
+              "for", "with", "my", "i", "me", "we", "they", "he", "she", "it", "that", "this", "so", "at",
+              "as", "by", "from", "before", "after", "than", "then", "now", "has", "have", "had", "will"}
+
+
+def drop_stopwords(text: str, *, rate: float, rng: random.Random) -> str:
+    """Subtract ONLY stopwords -- the CLEAN overfitting test. Removing 'the'/'to'/'my' must not change a
+    trafficking indicator; if GREP firing drops, a rule is matching an exact multi-word phrase that
+    includes a stopword (overfit to surface form, not to the indicator)."""
+    kept = [w for w in text.split() if not (w.lower().strip(".,!?;:") in _STOPWORDS and rng.random() < rate)]
+    return " ".join(kept) or text
+
+
+def split_merge(text: str, *, rate: float, rng: random.Random) -> str:
+    """WHITESPACE noise: split some long words with a space ('passport'->'pass port') and merge some
+    adjacent pairs ('recruitment fee'->'recruitmentfee'). Phone autocorrect / OCR do this constantly and
+    it directly breaks token/keyword matching."""
+    words = text.split()
+    out: list[str] = []
+    i = 0
+    while i < len(words):
+        w = words[i]
+        r = rng.random()
+        if r < rate / 2 and len(w) >= 6:                      # split a long word
+            k = rng.randrange(2, len(w) - 1)
+            out.extend([w[:k], w[k:]])
+        elif r < rate and i + 1 < len(words):                 # merge with the next word
+            out.append(w + words[i + 1]); i += 1
+        else:
+            out.append(w)
+        i += 1
+    return " ".join(out)
+
+
+def char_repeat(text: str, *, rate: float, rng: random.Random) -> str:
+    """Character ELONGATION ('pleaseee', 'helppp') -- stressed / emotional phone text."""
+    def rep(w: str) -> str:
+        if len(w) < 3 or rng.random() >= rate:
+            return w
+        i = rng.randrange(len(w))
+        return w[:i + 1] + w[i] * rng.randint(1, 2) + w[i + 1:]
+    return " ".join(rep(w) for w in text.split())
+
+
+def punct_inject(text: str, *, rate: float, rng: random.Random) -> str:
+    """Separator EVASION ('p.a.s.s.p.o.r.t', 'fe-e') -- the technique bad actors use to slip past keyword
+    filters, and that stylised text produces by accident. Splits a selected word with a separator char."""
+    seps = (".", "-", "*", " ")
+    def inj(w: str) -> str:
+        if len(w) < 4 or rng.random() >= rate:
+            return w
+        return rng.choice(seps).join(w)
+    return " ".join(inj(w) for w in text.split())
+
+
+def word_swap(text: str, *, rate: float, rng: random.Random) -> str:
+    """Local word REORDER (swap adjacent pairs) -- ungrammatical second-language / stress ordering. The
+    word SET is preserved, so a bag-of-words rule should be invariant; a phrase rule will miss."""
+    words = text.split()
+    i = 0
+    while i < len(words) - 1:
+        if rng.random() < rate:
+            words[i], words[i + 1] = words[i + 1], words[i]
+            i += 2
+        else:
+            i += 1
+    return " ".join(words)
+
+
 NOISE_FUNCS: dict[str, Callable[..., str]] = {
     "typo": keyboard_typo, "misspell": misspell, "extra_words": insert_filler, "dropped_words": delete_words,
+    "drop_stopwords": drop_stopwords, "split_merge": split_merge, "char_repeat": char_repeat,
+    "punct_inject": punct_inject, "word_swap": word_swap,
 }
 
 
