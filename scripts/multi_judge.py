@@ -530,9 +530,12 @@ def judge_components_perdim(prompt: str, response: str, *, model: str,
             comps[k] = max(0.0, min(float(mx), float(data.get(k, 0))))
         except (TypeError, ValueError):
             comps[k] = 0.0
-    # every call grades ONE component, so the total is always the clamped scored-component sum (never F)
-    score = sum(comps[k] for k in _SCORED_COMPONENT_KEYS if k in comps)
-    comps["score"] = max(0.0, min(100.0, score))
+    # score = clamped sum over the scored components THAT ACTUALLY GRADED. If none did (every sub-call
+    # failed / was skipped), this is a NON-grade, not a 0 -- omit "score" so callers drop the cell rather
+    # than count a phantom 0 that would deflate the lift (a fully-failed judge must not read as "score 0").
+    scored = [comps[k] for k in _SCORED_COMPONENT_KEYS if k in comps]
+    if scored:
+        comps["score"] = max(0.0, min(100.0, sum(scored)))
     comps["_calls"] = calls
     return comps
 
