@@ -66,6 +66,19 @@ def test_reform_becoming_effective_is_flagged():
     assert any("now in the past" in r for r in after)
 
 
+def test_future_effective_claim_is_flagged_not_yet_in_force_for_any_type():
+    # audit A4: a claim with a FUTURE effective_from must be flagged 'not yet in force' regardless of
+    # claim_type (a 'rule' whose transposition/effective date is future should not read as fully binding).
+    claims = [{"id": "future_rule", "claim_type": "rule", "volatility": "low",
+               "recheck_after": "2030-01-01", "effective_from": "2027-12-14"}]
+    reasons = lc.due_for_recheck(claims, date(2026, 7, 10))[0]["_reasons"]
+    assert any("in the FUTURE" in r for r in reasons)
+    # a past effective_from on a plain rule is NOT flagged on that basis
+    past = [{"id": "past_rule", "claim_type": "rule", "volatility": "low",
+             "recheck_after": "2030-01-01", "effective_from": "2020-01-01"}]
+    assert lc.due_for_recheck(past, date(2026, 7, 10)) == []      # nothing to flag
+
+
 def test_shipped_library_flags_the_expected_volatile_claims():
     claims = lc.load_claims()
     due = {c["id"] for c in lc.due_for_recheck(claims, date(2026, 7, 10))}
@@ -98,7 +111,9 @@ def test_auto_vetted_claims_carry_a_reduced_verification_weight():
     # verification_weight BELOW the human-verified core, so trust is explicit and reweightable UP on review.
     claims = lc.load_claims()
     auto = [c for c in claims if c.get("provenance") == "auto_vetted_pending_human_verification"]
-    human_core = [c for c in claims if "provenance" not in c]
+    # human-verified core = weight >= 0.9 (identify by WEIGHT, not by absence of provenance -- every claim now
+    # carries a provenance tag after the A1 audit fix that stamped the 4 precedent claims).
+    human_core = [c for c in claims if c.get("verification_weight", 1.0) >= 0.9]
     assert auto, "expected some auto-vetted claims after batch promotion"
     for c in auto:
         assert c.get("verification_weight", 1.0) < 0.9         # clearly below the human-verified core
