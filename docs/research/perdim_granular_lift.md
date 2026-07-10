@@ -91,6 +91,19 @@ together, and lifts every other scored dimension too, in every independent grade
   reproducible) 95% bootstrap interval over the paired per-prompt deltas, so the sample-size uncertainty
   is quantified rather than asserted. For the mistral family every per-dimension interval excludes zero,
   which is the individual-dimension significance claim above.
+- Semantic-framing / overfitting probe. The three original question framings were all rewordings of the
+  same "reward specificity (exact statute / fee / hotline)" instruction — so averaging them cancels
+  *wording* noise but not the risk that the judge is rewarding the surface tokens the harness happens to
+  inject. The bank now adds three framings that probe the same component through genuinely different
+  lenses: worker-actionability (what a non-lawyer could use), faithfulness/anti-fabrication (penalise
+  invented or wrong specifics even when they look precise), and top-down deduction.
+  `scripts/grading_framing_sensitivity.py` grades each dimension under each framing separately and reports
+  the *specificity-minus-diverse* gap — near zero means the lift survives the lens change; a large positive
+  gap means the specificity framings inflate it. A preliminary n=5 mistral probe found the lift is largely
+  lens-robust on the four adequately-covered dimensions (A/C/D/E gap ≈ +1.6, all still positive under the
+  diverse lenses), i.e. not primarily a surface-token artifact; the law-citation dimension (B) was too
+  sparsely graded at n=5 to read (the judge dropped to 1–2 cells under the diverse framings) and needs a
+  larger run. This is a probe of the overfitting concern, not yet a conclusion.
 
 ## Reproduce
 
