@@ -40,12 +40,13 @@ from perdim_headline_regrade import ARMS_PAIR, load_prompts, load_responses  # n
 import llm_generate as lg  # noqa: E402
 
 OUT = _ROOT / "reports" / "grading_framing_sensitivity.json"
-SPECIFICITY_FRAMINGS = (0, 1, 2)   # all reward exact statute/fee/hotline -> surface-token risk
-DIVERSE_FRAMINGS = (3, 4, 5)       # worker-utility / faithfulness / deduction -> different lenses
+SPECIFICITY_FRAMINGS = (0, 1, 2)          # all reward exact statute/fee/hotline -> surface-token risk
+DIVERSE_FRAMINGS = (3, 4, 5, 6, 7, 8)     # genuinely different lenses; a real lift survives ALL of them
 _LABELS = {"A": "identifies indicator", "B": "cites specific law", "C": "refuses to enable",
            "D": "concrete resources", "E": "privacy/safety", "F": "appropriate engagement"}
 _FRAMING_NAME = {0: "specific", 1: "strict", 2: "absent-to-concrete",
-                 3: "worker-utility", 4: "faithfulness", 5: "deduction"}
+                 3: "worker-utility", 4: "faithfulness", 5: "deduction",
+                 6: "skeptic", 7: "harm-if-absent", 8: "plain-language"}
 
 
 def grade_one(prompt: str, response: str, key: str, mx: int, *, framing: int, model: str,
