@@ -91,19 +91,52 @@ together, and lifts every other scored dimension too, in every independent grade
   reproducible) 95% bootstrap interval over the paired per-prompt deltas, so the sample-size uncertainty
   is quantified rather than asserted. For the mistral family every per-dimension interval excludes zero,
   which is the individual-dimension significance claim above.
-- Semantic-framing / overfitting probe. The three original question framings were all rewordings of the
-  same "reward specificity (exact statute / fee / hotline)" instruction — so averaging them cancels
-  *wording* noise but not the risk that the judge is rewarding the surface tokens the harness happens to
-  inject. The bank now adds three framings that probe the same component through genuinely different
-  lenses: worker-actionability (what a non-lawyer could use), faithfulness/anti-fabrication (penalise
-  invented or wrong specifics even when they look precise), and top-down deduction.
-  `scripts/grading_framing_sensitivity.py` grades each dimension under each framing separately and reports
-  the *specificity-minus-diverse* gap — near zero means the lift survives the lens change; a large positive
-  gap means the specificity framings inflate it. A preliminary n=5 mistral probe found the lift is largely
-  lens-robust on the four adequately-covered dimensions (A/C/D/E gap ≈ +1.6, all still positive under the
-  diverse lenses), i.e. not primarily a surface-token artifact; the law-citation dimension (B) was too
-  sparsely graded at n=5 to read (the judge dropped to 1–2 cells under the diverse framings) and needs a
-  larger run. This is a probe of the overfitting concern, not yet a conclusion.
+- Semantic-framing bank. The three original question framings were all rewordings of the same "reward
+  specificity (exact statute / fee / hotline)" instruction, so averaging them cancels *wording* noise but
+  not the risk that the judge is rewarding surface tokens. The bank now adds three framings that probe the
+  same component through genuinely different lenses: worker-actionability, faithfulness/anti-fabrication
+  (penalise invented or wrong specifics even when they look precise), and top-down deduction. See the two
+  overfitting probes below for what they reveal.
+
+## Does the lift survive the grading lens? (two overfitting probes)
+
+Both probes test whether the measured lift reflects real quality or the judge rewarding the surface tokens
+(exact statute, fee, hotline) the harness injects. Both are small-N, single-judge (mistral), propose-only.
+
+**Framing sensitivity** (`scripts/grading_framing_sensitivity.py`) grades each dimension under all six
+framings separately and reports the *specificity-minus-diverse* gap. A mistral n=10 run found a mean gap
+of **+6.49**: the specificity framings (0-2) show a large per-dimension lift (A/B/D ≈ +8 to +11) while the
+diverse lenses (worker-utility, faithfulness, deduction) show near-zero or negative lift on those same
+dimensions. So a meaningful part of the measured lift is concentrated in the framings that reward exact
+tokens. Caveats worth stating: the gap is sample-noisy (an n=5 run gave ≈ +1.6, so the point value is
+unstable though the sign is consistently positive), it is one judge, and the deduction lens is uniformly
+harsh (it keeps penalising the harnessed reply for what is *still* missing), which widens the gap.
+
+**Fabrication canary** (`scripts/fabrication_canary.py`) is the controlled version: five composite
+scenarios, each with a grounded reply (a real ILO convention cited correctly) and a "gamed" reply that
+name-drops the same kind of tokens but cites an *invented* statute and gives wrong guidance. A judge that
+grades substance scores grounded ≫ gamed.
+
+| Framing | grounded | gamed | fabrication penalty |
+|---|---:|---:|---:|
+| specific | 60.8 | 10.0 | +50.8 |
+| strict | 35.6 | 16.6 | +19.0 |
+| absent-to-concrete | 54.8 | 9.2 | +45.5 |
+| worker-utility | 70.2 | 13.4 | +56.8 |
+| **faithfulness** | 84.2 | **0.0** | **+84.2** |
+| deduction | 79.6 | 6.0 | +73.6 |
+| specificity mean | | | +38.4 |
+| diverse mean | | | +71.5 |
+
+Mistral penalises the fabrication under *every* framing — it is not blindly fooled — but the diverse
+framings punish it about twice as hard (+71.5 vs +38.4), and the faithfulness lens scores the fabricated
+reply 0/100 while the specificity framings still award it ~10 for merely looking specific.
+
+**Read together:** the harness lift is real — every lens ranks a correct grounded reply far above a
+fabricated one, so the harness is injecting genuine, *faithful* specifics — but specificity-anchored
+grading inflates the lift's *magnitude*, because those framings reward token presence even when the token
+is invented. The remedy is the remix itself: grade the headline with the diverse bank (or at least include
+the faithfulness lens), which is materially harder to game and yields a smaller but more honest lift.
 
 ## Reproduce
 
