@@ -136,6 +136,46 @@
       "priority": "high",
       "status": "promoted",
       "rationale": "Codified the non-punishment principle + reflection period. PROMOTED 2026-07-10 (auto_vetted 0.6)."
+    },
+    {
+      "id": "bh_lmra_flexi_permit",
+      "jurisdiction": "BH",
+      "topic": "Bahrain LMRA Flexi-Permit (no-sponsor work; worker bears permit/insurance costs)",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "Bahrain LMRA Flexi-Permit (no-sponsor work; worker bears permit/insurance costs). PROMOTED 2026-07-10 (wave 3; guardrails + 3/3 mistral convergence; auto_vetted weight 0.6, human-verify to raise)."
+    },
+    {
+      "id": "om_labour_law_2023",
+      "jurisdiction": "OM",
+      "topic": "Oman Royal Decree 53/2023 Labour Law (no recruitment fee; passport; written Arabic contract; stay pending claim)",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "Oman Royal Decree 53/2023 Labour Law (no recruitment fee; passport; written Arabic contract; stay pending claim). PROMOTED 2026-07-10 (wave 3; guardrails + 3/3 mistral convergence; auto_vetted weight 0.6, human-verify to raise)."
+    },
+    {
+      "id": "lb_domestic_worker_kafala",
+      "jurisdiction": "LB",
+      "topic": "Lebanon kafala + the SUSPENDED 2020 Standard Unified Contract for migrant domestic workers",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "Lebanon kafala + the SUSPENDED 2020 Standard Unified Contract for migrant domestic workers. PROMOTED 2026-07-10 (wave 3; guardrails + 3/3 mistral convergence; auto_vetted weight 0.6, human-verify to raise)."
+    },
+    {
+      "id": "us_tvpa_1591_sex_trafficking",
+      "jurisdiction": "US",
+      "topic": "US 18 U.S.C. 1591 sex trafficking (force/fraud/coercion, or a minor); complements 1589/1595",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "US 18 U.S.C. 1591 sex trafficking (force/fraud/coercion, or a minor); complements 1589/1595. PROMOTED 2026-07-10 (wave 3; guardrails + 3/3 mistral convergence; auto_vetted weight 0.6, human-verify to raise)."
+    },
+    {
+      "id": "fatf_financial_flows_trafficking",
+      "jurisdiction": "international",
+      "topic": "FATF 'Financial Flows from Human Trafficking' (2018) money-laundering red-flag indicators",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "FATF 'Financial Flows from Human Trafficking' (2018) money-laundering red-flag indicators. PROMOTED 2026-07-10 (wave 3; guardrails + 3/3 mistral convergence; auto_vetted weight 0.6, human-verify to raise)."
     }
   ]
 }

@@ -2,12 +2,14 @@
 
 Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 2026-07-10. Claims flagged RECHECK are potentially outdated and must be re-verified against a primary source before a grounded answer relies on them. This is not legal advice.
 
-**33 claims -- 7 flagged for recheck.**
+**38 claims -- 9 flagged for recheck.**
 
 | id | jurisdiction | binding | volatility | as_of | recheck_after | flag |
 |---|---|---|---|---|---|---|
 | `bd_overseas_employment` | BD | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
+| `bh_lmra_flexi_permit` | BH | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `eu_forced_labour_regulation` | EU | binding_domestic | high | 2026-07-10 | 2026-12-01 | **RECHECK** |
+| `lb_domestic_worker_kafala` | LB | reform_suspended_not_in_force | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `lk_slbfe` | LK | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `np_foreign_employment_fees` | NP | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `ph_placement_fee` | PH | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
@@ -21,12 +23,14 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 | `id_migrant_worker_protection` | ID | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
 | `in_emigration_act` | IN | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
 | `kw_domestic_worker_law` | KW | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
+| `om_labour_law_2023` | OM | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
 | `qa_wage_protection` | QA | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
 | `uk_modern_slavery_act` | UK | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
 | `limbu_v_dyson_2024` | UK | binding_where_applicable | low | 2026-07-10 | 2026-10-01 | ok |
 | `kozminski_1988` | US | historical_superseded_by_statute | low | 2026-07-10 | 2028-01-01 | ok |
 | `us_tvpa_1589` | US | binding_domestic | low | 2026-07-10 | 2028-01-01 | ok |
 | `us_federal_trafficking_civil_1595` | US | binding_domestic | low | 2026-07-10 | 2028-01-01 | ok |
+| `us_tvpa_1591_sex_trafficking` | US | binding_domestic | low | 2026-07-10 | 2027-07-01 | ok |
 | `c029_definition` | international | binding_where_ratified | low | 2026-07-10 | 2028-01-01 | ok |
 | `c029_vs_indicators` | international | non_binding_guidance | medium | 2026-07-10 | 2027-06-01 | ok |
 | `ilo_indicators_2025` | international | non_binding_guidance | medium | 2026-07-10 | 2027-06-01 | ok |
@@ -39,6 +43,7 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 | `ilo_c188_fishing` | international | binding_where_ratified | medium | 2026-07-10 | 2027-06-01 | ok |
 | `ilo_fair_recruitment` | international | non_binding_guidance | low | 2026-07-10 | 2028-01-01 | ok |
 | `mlc_2006` | international | binding_where_ratified | medium | 2026-07-10 | 2027-06-01 | ok |
+| `fatf_financial_flows_trafficking` | international | non_binding_guidance | medium | 2026-07-10 | 2027-01-01 | ok |
 
 ## Claims
 ### c029_definition  (international, definition)
@@ -370,3 +375,53 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 - **Binding:** binding_where_ratified | **effective_from:** 2013-08-20 | **as_of:** 2026-07-10 | **volatility:** medium
 - **Recheck after 2027-06-01:** the MLC is periodically amended (2014, 2016, 2018, 2022); verify the current text and whether the vessel's flag state is bound
 - **Caveats:** MLC is the sector standard for seafarers; forced labour itself is defined by C29; check the ship's flag-state ratification before asserting it applies
+
+### bh_lmra_flexi_permit  (BH, rule)
+> Bahrain's Labour Market Regulatory Authority (LMRA) runs a Flexi-Permit (introduced 2017) that lets eligible migrant workers in an irregular situation live and work without being tied to a single sponsoring employer. The trade-off is that the worker bears the costs -- the LMRA permit fee, healthcare, social insurance, a recurring monthly LMRA fee, and a refundable return-ticket deposit -- so it is a mobility protection rather than a cost-free one. The LMRA also administers the standard employer-sponsored work permits and a Wage Protection System.
+
+- **Authority:** Bahrain Labour Market Regulatory Authority (LMRA); Flexi-Permit scheme (2017) (administrative_rule) -- <https://www.lmra.gov.bh/en/page/show/133>
+- **Applies to:** non-Bahraini workers in Bahrain (destination-side); the Flexi-Permit targets workers not tied to a sponsor
+- **Exceptions:** Flexi-Permit eligibility is limited -- it is not open to every migrant category and domestic workers / some sectors are treated separately; the worker bears the permit, insurance and monthly LMRA fees, so it is not a cost-free protection; fee amounts and eligibility are set by LMRA regulation and are revised periodically
+- **Binding:** binding_domestic | **effective_from:** 2017-07-01 | **as_of:** 2026-07-10 | **volatility:** high
+- **Recheck after 2026-10-01:** LMRA permit fees and Flexi-Permit eligibility are revised periodically; verify current BHD amounts and eligible categories against lmra.gov.bh
+- **Caveats:** present both sides -- the Flexi-Permit removes the single-sponsor tie but shifts permit/insurance costs onto the worker; do not state a fixed BHD fee as fixed; verify the current amount before quoting one
+
+### fatf_financial_flows_trafficking  (international, guidance)
+> The Financial Action Task Force (FATF) report 'Financial Flows from Human Trafficking' (July 2018) sets out money-laundering red-flag indicators to help financial institutions detect proceeds of trafficking -- for example a third party paying continued and excessive travel or accommodation costs (airline or train tickets, hotel rooms) for other people, or funnel-account patterns. It estimated trafficking proceeds in the scale of over USD 150 billion. These are risk indicators for financial-flow detection, not proof that any transaction is criminal.
+
+- **Authority:** Financial Action Task Force (FATF) / APG, 'Financial Flows from Human Trafficking' (2018) (international_guidance) -- <https://www.fatf-gafi.org/en/publications/Methodsandtrends/Human-trafficking.html>
+- **Applies to:** financial institutions and financial intelligence units detecting money-laundering linked to trafficking (a financial-flow lens, not individual worker rights)
+- **Exceptions:** these are risk / red-flag indicators, not evidence that any specific transaction is criminal; FATF typology reports are soft-law guidance, not binding law; the dollar-scale estimates are approximate and dated to 2018
+- **Binding:** non_binding_guidance | **effective_from:** 2018-07-01 | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-01-01:** FATF periodically updates its trafficking / smuggling typologies and red-flag indicators; verify against the latest FATF publication and confirm the current proceeds estimate
+- **Caveats:** red-flag indicators generate false positives; a matched pattern is a reason to review, never proof; cite the 2018 report date for any figure
+
+### lb_domestic_worker_kafala  (LB, rule)
+> Lebanon's migrant domestic workers (estimated around 250,000) are excluded from the Lebanese Labour Code and governed by the kafala (sponsorship) system. A Standard Unified Contract approved in September 2020 -- which would have let workers keep their passports, resign without the employer's consent, and guaranteed a 48-hour week, a weekly rest day, overtime, sick pay, annual leave and the minimum wage -- was suspended by the State Shura Council after recruitment-agency opposition, so those protections are not currently in force.
+
+- **Authority:** Lebanese Ministry of Labour Standard Unified Contract (2020, suspended); kafala sponsorship system (administrative_rule) -- <https://www.hrw.org/news/2020/09/18/lebanon-new-safeguards-migrant-domestic-workers>
+- **Applies to:** migrant domestic workers in Lebanon (a group excluded from the Lebanese Labour Code)
+- **Exceptions:** the 2020 Standard Unified Contract was suspended and is not in force -- do not cite its protections as current Lebanese law; because MDWs are excluded from the Labour Code, general labour protections do not automatically apply to them; reform consultations are ongoing and the legal position may change
+- **Binding:** reform_suspended_not_in_force | **effective_from:** None | **as_of:** 2026-07-10 | **volatility:** high
+- **Recheck after 2026-10-01:** Lebanon is running new consultations on a revised Standard Unified Contract; verify whether any version has entered into force and the current kafala status
+- **Caveats:** frame this as the protection GAP (a suspended reform + Labour-Code exclusion), not as an available protection; the situation is actively changing; re-verify before relying on it
+
+### om_labour_law_2023  (OM, rule)
+> Oman's Labour Law (Royal Decree 53/2023, effective 25 July 2023) makes it unlawful for an employer or recruitment agency to charge the worker recruitment fees or related recruitment costs, requires a written employment contract in Arabic with one copy for each party, bars an employer from keeping a worker's passport or personal documents without the worker's written permission, and lets a migrant worker who has filed a claim to recover unpaid dues remain in Oman until the claim is decided.
+
+- **Authority:** Oman Labour Law, Royal Decree No. 53/2023 (domestic_law) -- <https://decree.om/2023/rd20230053/>
+- **Applies to:** workers in Oman including non-Omani workers (destination-side); some provisions differ for domestic workers
+- **Exceptions:** domestic workers are covered partly under separate rules, so specific protections may differ from the general Labour Law; the no-fee rule binds the employer/agency; a matched indicator is not itself a criminal finding against any individual; implementing regulations and ministerial decisions under the Decree add detail and can change
+- **Binding:** binding_domestic | **effective_from:** 2023-07-25 | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-01-01:** implementing regulations and ministerial decisions under RD 53/2023 continue to be issued; verify domestic-worker coverage and any amendments against decree.om / the Ministry of Labour
+- **Caveats:** a written protection is not proof of compliance; enforcement in practice varies; do not describe a breach as an automatic criminal finding
+
+### us_tvpa_1591_sex_trafficking  (US, rule)
+> Under U.S. federal law, 18 U.S.C. section 1591 makes it an offence to knowingly recruit, entice, harbor, transport, provide, obtain, advertise, maintain, patronize or solicit a person for a commercial sex act where force, threats of force, fraud or coercion will be used, or where the person is under 18. For a victim under 18 the government need not prove force, fraud or coercion. 'Coercion' is defined broadly to include threats of serious harm, abuse of the legal process, and psychological, financial or reputational harm. This complements the forced-labour statute 18 U.S.C. section 1589 already in the corpus (sex-trafficking vs labour-trafficking).
+
+- **Authority:** 18 U.S.C. section 1591 (Trafficking Victims Protection Act, as amended) (domestic_law) -- <https://www.law.cornell.edu/uscode/text/18/1591>
+- **Applies to:** criminal liability under U.S. federal law; distinct from the section 1595 civil remedy and the section 1589 forced-labour offence
+- **Exceptions:** for a victim 18 or older the government must prove force, fraud or coercion; for a minor (under 18) that element is not required; it is a criminal statute -- a matched indicator is not itself proof of the offence, which requires proof to a criminal standard; the section has been amended several times (e.g. 2008 TVPRA, 2015 JVTA, 2018), so verify the current text
+- **Binding:** binding_domestic | **effective_from:** 2000-10-28 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2027-07-01:** 18 U.S.C. 1591 has been amended repeatedly (TVPRA 2008, JVTA 2015, FOSTA 2018); verify the current text and any post-2024 amendments against uscode.house.gov
+- **Caveats:** build-upon: complements sections 1589 (labour) and 1595 (civil remedy) already in the corpus -- do not conflate sex- and labour-trafficking; state the legal standard only, never a finding about a specific person
