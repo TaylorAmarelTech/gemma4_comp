@@ -182,6 +182,56 @@ def test_openai_compatible_rotates_off_spent_key(monkeypatch):
     assert "Bearer spent" in calls and "Bearer good" in calls    # tried spent, rotated to good
 
 
+def test_openai_compatible_retries_429_on_same_single_key(monkeypatch):
+    """A 429 is a RATE LIMIT, not a dead key: with only one key, the caller must back off and retry the
+    SAME key instead of instantly exhausting the pool. This is the fix for the mistral re-grade dropping
+    12/20 cells -- single-key providers were failing every rate-limited call with nowhere to rotate."""
+    seq = iter([_http_error(429), _Resp("RECOVERED")])   # rate-limited once, then succeeds on retry
+
+    def _fake_urlopen(req, timeout=0):
+        x = next(seq)
+        if isinstance(x, Exception):
+            raise x
+        return x
+
+    monkeypatch.setattr(lg.urllib.request, "urlopen", _fake_urlopen)
+    monkeypatch.setattr(lg.time, "sleep", lambda *_a: None)      # no real backoff wait in the test
+    out = lg.openai_compatible_chat("hi", model="m", base_url="https://x/v1",
+                                    keys=["solo"], provider="mistral", max_retries=2)
+    assert out == "RECOVERED"                                    # same key retried past the 429
+
+
+def test_openai_compatible_dead_key_not_retried(monkeypatch):
+    """401 (invalid/revoked) is a DEAD key -> dropped immediately, never retried on the same key."""
+    calls = []
+
+    def _fake_urlopen(req, timeout=0):
+        calls.append(1)
+        raise _http_error(401)
+
+    monkeypatch.setattr(lg.urllib.request, "urlopen", _fake_urlopen)
+    monkeypatch.setattr(lg.time, "sleep", lambda *_a: None)
+    with pytest.raises(lg.AllKeysExhausted):
+        lg.openai_compatible_chat("hi", model="m", base_url="https://x/v1",
+                                  keys=["dead"], provider="openai", max_retries=3)
+    assert len(calls) == 1                                       # dead key tried ONCE, not max_retries times
+
+
+def test_anthropic_retries_429_on_same_single_key(monkeypatch):
+    seq = iter([_http_error(429), _AnthResp("RECOVERED")])
+
+    def _fake_urlopen(req, timeout=0):
+        x = next(seq)
+        if isinstance(x, Exception):
+            raise x
+        return x
+
+    monkeypatch.setattr(lg.urllib.request, "urlopen", _fake_urlopen)
+    monkeypatch.setattr(lg.time, "sleep", lambda *_a: None)
+    out = lg.anthropic_chat("hi", model="claude-3-5-haiku-latest", keys=["solo"], max_retries=2)
+    assert out == "RECOVERED"                                    # anthropic path backs off + retries too
+
+
 def test_openai_compatible_all_keys_spent_raises(monkeypatch):
     def _boom(req, timeout=0):
         raise _http_error(402)

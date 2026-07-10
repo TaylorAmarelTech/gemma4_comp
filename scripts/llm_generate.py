@@ -208,10 +208,13 @@ _PROVIDER_REGISTRY: dict[str, dict[str, str]] = {
     "mistral":     {"base": "https://api.mistral.ai/v1",            "env": "MISTRAL"},
 }
 _AGENT_KEYS_JSON = _ROOT / ".agent" / "provider_keys.json"
-# HTTP statuses that mean "this KEY is spent/blocked, rotate to the next one" (vs _RETRYABLE_STATUS,
-# which means "retry the SAME key after a backoff"). 401=invalid/revoked key, 402=payment/credits,
-# 403=forbidden, 429=rate/quota -- all mean "this key won't work, try the next pool member".
-_KEY_EXHAUSTED_STATUS = {401, 402, 403, 429}
+# HTTP statuses that mean "this KEY is DEAD, rotate to the next one immediately, no retry": 401=invalid/
+# revoked, 402=payment/credits, 403=forbidden. NOTE: 429 (rate limit) is deliberately NOT here -- a 429
+# is transient ("slow down"), so it backs off and retries the SAME key (see the caller), then rotates
+# only after exhausting retries. Lumping 429 with the dead statuses meant a single-key provider (mistral,
+# or openai/anthropic once keyed) failed EVERY call the moment it hit its rate limit, with nowhere to
+# rotate -- the exact failure that dropped 12/20 cells in the first mistral re-grade.
+_KEY_DEAD_STATUS = {401, 402, 403}
 _key_cursor_lock = threading.Lock()
 _key_cursors: dict[str, int] = {}
 
@@ -303,11 +306,16 @@ def openai_compatible_chat(prompt: str, *, model: str, base_url: str, keys: list
                         or str(msg.get("reasoning_content") or msg.get("reasoning") or "").strip())
             except urllib.error.HTTPError as exc:
                 last_exc = exc
-                if exc.code in _KEY_EXHAUSTED_STATUS:
-                    break                       # this key is spent -> next key (no more retries on it)
-                if exc.code not in _RETRYABLE_STATUS or attempt == max_retries:
-                    raise                       # 400/401/404 etc. are the caller's bug, not a spent key
-                wait = _retry_after(exc)
+                if exc.code in _KEY_DEAD_STATUS:
+                    break                       # 401/402/403: key invalid/spent/blocked -> next key
+                if exc.code == 429:             # rate limited: back off + retry SAME key, then next key
+                    if attempt == max_retries:
+                        break                   # this key keeps rate-limiting -> rotate to another
+                    wait = _retry_after(exc)
+                elif exc.code not in _RETRYABLE_STATUS or attempt == max_retries:
+                    raise                       # 400/404 caller bug, or 5xx retries exhausted
+                else:
+                    wait = _retry_after(exc)    # transient 5xx -> retry same key
             except OSError as exc:              # connection / timeout -> transient, retry same key
                 last_exc = exc
                 if attempt == max_retries:
@@ -358,11 +366,16 @@ def anthropic_chat(prompt: str, *, model: str, keys: list[str], max_tokens: int 
                 return "".join(b.get("text", "") for b in blocks if isinstance(b, dict)).strip()
             except urllib.error.HTTPError as exc:
                 last_exc = exc
-                if exc.code in _KEY_EXHAUSTED_STATUS:
-                    break                       # this key is spent -> next key
-                if exc.code not in _RETRYABLE_STATUS or attempt == max_retries:
+                if exc.code in _KEY_DEAD_STATUS:
+                    break                       # 401/402/403: key invalid/spent/blocked -> next key
+                if exc.code == 429:             # rate limited: back off + retry SAME key, then next key
+                    if attempt == max_retries:
+                        break
+                    wait = _retry_after(exc)
+                elif exc.code not in _RETRYABLE_STATUS or attempt == max_retries:
                     raise
-                wait = _retry_after(exc)
+                else:
+                    wait = _retry_after(exc)
             except OSError as exc:
                 last_exc = exc
                 if attempt == max_retries:
