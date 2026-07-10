@@ -34,6 +34,10 @@ def promote(candidates: list[dict], corpus: dict, *, caller=None, today=None) ->
     claims = corpus.setdefault("claims", [])
     report = []
     for cand in candidates:
+        if not isinstance(cand, dict):                      # a malformed file (e.g. a JSON array) is HELD,
+            report.append({"id": None, "action": "held",    # not allowed to crash the whole batch run
+                           "reason": f"candidate is not a JSON object (got {type(cand).__name__})"})
+            continue
         existing = claims                                   # dup-check against the growing corpus
         g_ok, g_issues = guardrail_check(cand, existing)
         if not g_ok:

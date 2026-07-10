@@ -47,7 +47,11 @@ def build_chosen(analysis: dict) -> str:
     the reasoning contract; volatile specifics are deferred to VERIFY, never asserted as fixed facts."""
     inds = ", ".join(analysis["indicators_matched"].keys()) or "possible exploitation indicators"
     statutes = []
+    # applicable_claims is already ranked current+binding+jurisdiction-specific first; skip any claim marked
+    # historical/superseded so the gold answer never trains the model to cite a superseded statute as current.
     for c in analysis["applicable_claims"]:
+        if c.get("status") == "historical":
+            continue
         if "Convention No." in c["text"] or "U.S.C" in c["text"] or "Regulation" in c["text"]:
             exc = (c["exceptions_to_resolve"][0] if c["exceptions_to_resolve"] else "applicability depends on jurisdiction")
             statutes.append(f"the relevant standard here is {c['id']} (verify it applies: {exc})")

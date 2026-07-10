@@ -45,6 +45,24 @@ def test_guardrails_reject_unsourced_exceptionless_overbroad_and_duplicate():
     assert "source_url" in j and "exceptions" in j and "OVERBROAD" in j and "duplicate" in j
 
 
+def test_overbroad_guardrail_closes_the_three_known_evasions():
+    # (a) reversed word order ("illegal ... all cases") -- the old single-direction regex missed this
+    a = _good_candidate(); a["text"] = "Recruitment fees are illegal in all cases, no exceptions."
+    assert st._looks_overbroad(a["text"]) is True
+    # (b) an unrelated hedge word in a DIFFERENT sentence must NOT launder an unscoped absolutist sentence
+    b = ("This convention generally represents international consensus. "
+         "Any recruitment fee is banned for every worker with no exception.")
+    assert st._looks_overbroad(b) is True
+    # (c) the PLURAL "no exceptions"
+    c = _good_candidate(); c["text"] = "The rule applies in every country with no exceptions."
+    assert st._looks_overbroad(c["text"]) is True
+    # a genuinely SCOPED absolute claim is still allowed (the hedge is in the same sentence)
+    ok = "All recruitment fees are prohibited, subject to authorised exceptions under national law."
+    assert st._looks_overbroad(ok) is False
+    # and a plain, non-absolutist claim is not flagged
+    assert st._looks_overbroad("Nepal caps the worker service fee where the employer declines to pay it.") is False
+
+
 def test_convergence_needs_a_majority():
     def caller_accept(p, **kw):
         return '{"accurate": true}' if "ACCURACY" in p else '{"fatal": false}' if "objection" in p else '{"scoped": true}'

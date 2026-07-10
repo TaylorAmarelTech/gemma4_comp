@@ -45,6 +45,18 @@ def test_both_applies_both():
     assert gn.normalize_for_grep("p.a.s.s.p.o.r.t pleaseee", "both") == "passport please"
 
 
+def test_normalisers_never_corrupt_digits():
+    # collapse_repeats must not fold digit runs ('1000'->'10', '999'->'9')
+    assert gn.normalize_for_grep("the fee was 999 dollars in 1000 installments", "collapse_repeats") == \
+        "the fee was 999 dollars in 1000 installments"
+    # strip_separators must keep a separator BETWEEN TWO DIGITS ('3.5'->'35', '1.5%'->'15%' were 10x bugs)
+    assert gn.normalize_for_grep("a fee of 3.5 months salary", "strip_separators") == "a fee of 3.5 months salary"
+    assert gn.normalize_for_grep("an interest rate of 1.5% APR", "strip_separators") == "an interest rate of 1.5% APR"
+    # but the intended letter-side normalisations still happen ('C-181'->'C181', 'p.a.s'->'pas')
+    assert gn.normalize_for_grep("cites C-181 here", "strip_separators") == "cites C181 here"
+    assert gn.normalize_for_grep("p.a.s.s.p.o.r.t and 3.5", "both") == "passport and 3.5"
+
+
 def test_eval_keeps_none_baseline_and_reports_recall_and_precision():
     # a keyword grep for 'passport' -- exact match, so evasion breaks it and normalisation should restore it
     def kw(text):

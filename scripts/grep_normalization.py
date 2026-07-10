@@ -61,18 +61,30 @@ BENIGN_NEAR_MISS = [
 ]
 
 
+def _strip_separator(m: "re.Match") -> str:
+    """Drop a . - * between two word chars, but KEEP it when it sits between two DIGITS -- otherwise the
+    normaliser silently mangles numbers ('3.5'->'35', '1.5%'->'15%', a 10x change in a fee/rate domain)."""
+    s = m.string
+    left = s[m.start() - 1]
+    right = s[m.end()] if m.end() < len(s) else ""
+    if left.isdigit() and right.isdigit():
+        return m.group(0)
+    return ""
+
+
 def normalize_for_grep(text: str, strength: str = "both") -> str:
     """Prototype pre-match normaliser. ``none`` returns the text unchanged (the ORIGINAL method).
-    ``collapse_repeats`` folds runs of 3+ identical chars to one ('pleaseee'->'please'); ``strip_separators``
-    removes . - * sitting BETWEEN two word chars ('p.a.s.s.p.o.r.t'->'passport', 'C-181'->'C181');
-    ``both`` applies both. Whitespace splits and keyboard typos are intentionally NOT handled here."""
+    ``collapse_repeats`` folds runs of 3+ identical LETTERS to one ('pleaseee'->'please'; digit runs like
+    '1000' are left intact); ``strip_separators`` removes . - * sitting BETWEEN two word chars
+    ('p.a.s.s.p.o.r.t'->'passport', 'C-181'->'C181') EXCEPT between two digits ('3.5' stays '3.5'); ``both``
+    applies both. Whitespace splits and keyboard typos are intentionally NOT handled here."""
     if strength == "none":
         return text
     out = text
     if strength in ("collapse_repeats", "both"):
-        out = re.sub(r"(.)\1{2,}", r"\1", out)
+        out = re.sub(r"([^\W\d_])\1{2,}", r"\1", out)          # letters only -- never collapse digit runs
     if strength in ("strip_separators", "both"):
-        out = re.sub(r"(?<=\w)[.\-*](?=\w)", "", out)
+        out = re.sub(r"(?<=\w)[.\-*](?=\w)", _strip_separator, out)
     return out
 
 

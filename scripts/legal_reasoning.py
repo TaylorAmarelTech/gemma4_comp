@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from datetime import date
 from pathlib import Path
@@ -40,27 +41,31 @@ from legal_claims import due_for_recheck, load_claims  # noqa: E402
 
 OUT = _ROOT / "reports" / "legal_reasoning_walkthroughs.json"
 
-# ILO 2025 eleven indicators -> keyword triggers (assessed from the worker's perspective).
+# ILO 2025 eleven indicators -> keyword triggers (assessed from the worker's perspective). A trailing '*'
+# marks a STEM (prefix match: "threat*" -> threat/threats/threatening); everything else is matched as a
+# WHOLE WORD. Whole-word matching is deliberate: plain substring containment silently fired ordinary English
+# ("feel" contains "fee", "however" contains "owe", "white" contains "hit"), which corrupted the downstream
+# gold CoT text -- so keywords carry an explicit stem marker only where suffix matching is actually wanted.
 _INDICATOR_KEYWORDS = {
-    "abuse of vulnerability": ["migrant", "foreign", "undocumented", "irregular", "dependent", "language barrier"],
-    "deception": ["different contract", "switched", "substitut", "promised", "misled", "not what i was told"],
+    "abuse of vulnerability": ["migrant*", "foreign", "undocumented", "irregular", "dependent", "language barrier"],
+    "deception": ["different contract", "switched", "substitut*", "promised", "misled", "not what i was told"],
     "restriction of movement": ["locked", "cannot leave", "can't leave", "confined", "permission to leave", "not allowed to leave"],
     "isolation": ["phone taken", "confiscated our phones", "cannot contact", "no contact", "isolated"],
-    "physical or sexual violence": ["beat", "hit", "assault", "violence"],
-    "intimidation and threats": ["threat", "threaten", "deport", "cancel my visa", "cancel the visa", "report me"],
-    "retention of identity documents": ["passport", "took my passport", "hold my passport", "document", "identity card"],
-    "withholding of wages": ["unpaid", "not paid", "withhold", "wages as security", "salary held", "deduct"],
-    "debt bondage": ["debt", "loan", "repay", "placement fee", "recruitment fee", "owe", "processing fee"],
+    "physical or sexual violence": ["beat*", "hit", "assault*", "violence", "violent"],
+    "intimidation and threats": ["threat*", "deport*", "cancel my visa", "cancel the visa", "report me"],
+    "retention of identity documents": ["passport*", "took my passport", "hold my passport", "document*", "identity card"],
+    "withholding of wages": ["unpaid", "not paid", "withhold*", "wages as security", "salary held", "deduct*"],
+    "debt bondage": ["debt", "loan", "repay*", "placement fee", "recruitment fee", "owe", "processing fee"],
     "abusive working and living conditions": ["squalid", "poor conditions", "housing deducted", "food deducted"],
     "excessive overtime": ["overtime", "18 hours", "eighteen hours", "no rest day", "no day off", "long hours"],
 }
 # Topical rule/precedent claims -> keyword triggers (definitional/international claims always apply).
 _CLAIM_TOPICS = {
-    "c181_recruitment_fees": ["fee", "recruitment", "placement", "charge", "commission", "processing"],
-    "ph_placement_fee": ["fee", "placement", "recruitment", "charge", "processing"],
-    "c095_wage_deductions": ["wage", "salary", "deduct", "withhold", "unpaid", "pay"],
+    "c181_recruitment_fees": ["fee", "fees", "recruit*", "placement", "charg*", "commission", "processing"],
+    "ph_placement_fee": ["fee", "fees", "placement", "recruit*", "charg*", "processing"],
+    "c095_wage_deductions": ["wage*", "salary", "deduct*", "withhold*", "unpaid", "pay"],
     "c189_domestic_workers": ["domestic", "housemaid", "household", "maid", "kasambahay", "live-in"],
-    "hk_money_lending_cap": ["loan", "interest", "apr", "money lender", "repay"],
+    "hk_money_lending_cap": ["loan", "interest", "apr", "money lender", "repay*"],
     "siliadin_2005": ["domestic", "housemaid", "household", "maid", "servitude", "live-in"],
     "rantsev_2010": ["trafficked", "artiste", "cabaret", "brothel", "sexual"],
     "us_tvpa_1589": ["serious harm", "psychological", "coercion", "forced labor", "forced labour"],
@@ -69,11 +74,24 @@ _CLAIM_TOPICS = {
 _ALWAYS = {"c029_definition", "c029_vs_indicators", "ilo_indicators_2025", "palermo_elements"}
 
 
+def _kw_pattern(kw: str) -> str:
+    """Whole-word pattern for a keyword; a trailing '*' means stem/prefix match. `(?<!\\w)`/`(?!\\w)` guard
+    the boundaries so a keyword never fires inside a larger word (the 'feel'->'fee' class of false match)."""
+    if kw.endswith("*"):
+        return r"(?<!\w)" + re.escape(kw[:-1]) + r"\w*"
+    return r"(?<!\w)" + re.escape(kw) + r"(?!\w)"
+
+
+def _hits(keywords: list[str], low: str) -> list[str]:
+    """Keywords whose whole-word / stem pattern matches `low` (already lowercased)."""
+    return [kw for kw in keywords if re.search(_kw_pattern(kw), low)]
+
+
 def match_indicators(facts_text: str) -> dict[str, list[str]]:
     low = facts_text.lower()
     out: dict[str, list[str]] = {}
     for ind, kws in _INDICATOR_KEYWORDS.items():
-        hits = [k for k in kws if k in low]
+        hits = _hits(kws, low)
         if hits:
             out[ind] = hits
     return out
@@ -90,23 +108,43 @@ def _jurisdiction_fits(claim: dict, scenario: dict) -> bool:
     return claim.get("authority_class") == "court_precedent"
 
 
+def _is_historical(claim: dict) -> bool:
+    """A claim that has been explicitly superseded (build-upon: it stays in the corpus for provenance but is
+    no longer the CURRENT standard). Read from superseded_by or a historical/superseded binding_status."""
+    bstatus = str(claim.get("binding_status", "")).lower()
+    return bool(claim.get("superseded_by")) or "historical" in bstatus or "superseded" in bstatus
+
+
 def applicable_claims(scenario: dict, claims: list[dict], today: date) -> list[dict]:
     low = " ".join(scenario.get("facts", [])).lower()
     due = {c["id"] for c in due_for_recheck(claims, today)}
     out = []
     for c in claims:
         cid = c["id"]
-        topical = cid in _ALWAYS or any(k in low for k in _CLAIM_TOPICS.get(cid, []))
+        topical = cid in _ALWAYS or bool(_hits(_CLAIM_TOPICS.get(cid, []), low))
         if not (topical and _jurisdiction_fits(c, scenario)):
             continue
         cj = c.get("jurisdiction", "")
         binds = cj == "international" or cj in {scenario.get("jurisdiction"), scenario.get("destination")}
+        historical = _is_historical(c)
+        superseded_by = c.get("superseded_by")
+        if historical:
+            binding_here = (f"historical -- superseded by {superseded_by}; cite the successor, not this"
+                            if superseded_by else "historical -- superseded; do not cite as current")
+        else:
+            binding_here = "binds/directly relevant" if binds else "persuasive only (different jurisdiction)"
         out.append({
             "id": cid, "text": c.get("text", ""), "jurisdiction": cj,
-            "binding_here": "binds/directly relevant" if binds else "persuasive only (different jurisdiction)",
+            "binding_here": binding_here, "status": "historical" if historical else "current",
+            "superseded_by": superseded_by,
             "exceptions_to_resolve": c.get("exceptions") or [],
             "recheck": (cid in due), "caveats": c.get("caveats") or [],
         })
+    # current, directly-binding, jurisdiction-specific claims first; historical/superseded ones sink to the
+    # bottom so a consumer that takes the first N gets the CURRENT controlling law, never a superseded one.
+    out.sort(key=lambda a: (a["status"] == "historical",
+                            a["binding_here"].startswith("persuasive"),
+                            a["jurisdiction"] == "international"))
     return out
 
 
