@@ -38,8 +38,8 @@
       "jurisdiction": "IN",
       "topic": "Emigration Act 1983 / eMigrate; recruitment agent fee caps",
       "priority": "medium",
-      "status": "queued",
-      "rationale": "India origin corridor; the Emigration Act is under reform (a new Emigration Bill has been discussed)."
+      "status": "promoted",
+      "rationale": "India origin corridor; the Emigration Act is under reform (a new Emigration Bill has been discussed). PROMOTED 2026-07-10 (guardrails+convergence; auto_vetted weight 0.6)."
     },
     {
       "id": "qa_wage_protection",
@@ -54,16 +54,16 @@
       "jurisdiction": "AE",
       "topic": "UAE Federal Decree-Law 33/2021 labour reforms; domestic worker law 9/2022",
       "priority": "medium",
-      "status": "queued",
-      "rationale": "UAE labour law was overhauled recently; domestic-worker coverage is a common gap."
+      "status": "promoted",
+      "rationale": "UAE labour law was overhauled recently; domestic-worker coverage is a common gap. PROMOTED 2026-07-10 (guardrails+convergence; auto_vetted weight 0.6)."
     },
     {
       "id": "kw_domestic_worker_law",
       "jurisdiction": "KW",
       "topic": "Kuwait Law 68/2015 on domestic workers",
       "priority": "medium",
-      "status": "queued",
-      "rationale": "Kuwait domestic-worker law is a key Gulf-corridor protection with specific limits."
+      "status": "promoted",
+      "rationale": "Kuwait domestic-worker law is a key Gulf-corridor protection with specific limits. PROMOTED 2026-07-10 (guardrails+convergence; auto_vetted weight 0.6)."
     },
     {
       "id": "uk_modern_slavery_act",
@@ -78,8 +78,8 @@
       "jurisdiction": "US",
       "topic": "TVPA civil remedy (18 U.S.C. 1595) + state trafficking statutes",
       "priority": "medium",
-      "status": "queued",
-      "rationale": "Adds the civil-remedy path alongside the criminal sec.1589 already in the corpus (build-upon)."
+      "status": "promoted",
+      "rationale": "Adds the civil-remedy path alongside the criminal sec.1589 already in the corpus (build-upon). PROMOTED 2026-07-10 (guardrails+convergence; auto_vetted weight 0.6)."
     },
     {
       "id": "precedents_2024_2026",

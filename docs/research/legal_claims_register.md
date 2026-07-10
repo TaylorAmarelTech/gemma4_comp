@@ -2,7 +2,7 @@
 
 Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 2026-07-10. Claims flagged RECHECK are potentially outdated and must be re-verified against a primary source before a grounded answer relies on them. This is not legal advice.
 
-**22 claims -- 5 flagged for recheck.**
+**26 claims -- 5 flagged for recheck.**
 
 | id | jurisdiction | binding | volatility | as_of | recheck_after | flag |
 |---|---|---|---|---|---|---|
@@ -11,14 +11,18 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 | `np_foreign_employment_fees` | NP | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `ph_placement_fee` | PH | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `sa_kafala_reform_2025` | SA | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
+| `ae_labour_reforms` | AE | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
 | `rantsev_2010` | Council of Europe (ECtHR) | binding_where_applicable | low | 2026-07-10 | 2028-01-01 | ok |
 | `siliadin_2005` | Council of Europe (ECtHR) | binding_where_applicable | low | 2026-07-10 | 2028-01-01 | ok |
 | `hk_money_lending_cap` | HK | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
 | `id_migrant_worker_protection` | ID | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
+| `in_emigration_act` | IN | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
+| `kw_domestic_worker_law` | KW | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
 | `qa_wage_protection` | QA | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
 | `uk_modern_slavery_act` | UK | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
 | `kozminski_1988` | US | historical_superseded_by_statute | low | 2026-07-10 | 2028-01-01 | ok |
 | `us_tvpa_1589` | US | binding_domestic | low | 2026-07-10 | 2028-01-01 | ok |
+| `us_state_trafficking_civil` | US | binding_domestic | low | 2026-07-10 | 2028-01-01 | ok |
 | `c029_definition` | international | binding_where_ratified | low | 2026-07-10 | 2028-01-01 | ok |
 | `c029_vs_indicators` | international | non_binding_guidance | medium | 2026-07-10 | 2027-06-01 | ok |
 | `ilo_indicators_2025` | international | non_binding_guidance | medium | 2026-07-10 | 2027-06-01 | ok |
@@ -249,3 +253,43 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 - **Binding:** binding_domestic | **effective_from:** 2015-10-29 | **as_of:** 2026-07-10 | **volatility:** medium
 - **Recheck after 2027-06-01:** reform of section 54 (mandatory reporting topics, penalties, single reporting deadline) has been proposed; verify whether amendments are in force
 - **Caveats:** s.54 is transparency-only; do not describe it as a due-diligence mandate or an import ban (contrast the EU Forced Labour Regulation); the GBP 36m threshold and reporting requirements may change
+
+### ae_labour_reforms  (AE, rule)
+> The UAE Federal Decree-Law No. 33 of 2021 (labour law, Article 6) prohibits recruitment agencies from charging a worker any placement fee: the employer bears all recruitment, residency-visa, work-permit, Emirates ID, medical and insurance costs, which cannot be passed to the worker. Federal Decree-Law No. 9 of 2022 (Domestic Workers, effective 15 December 2022) likewise prohibits charging domestic workers recruitment fees, with penalties up to AED 1 million and licence suspension.
+
+- **Authority:** UAE Federal Decree-Law No. 33 of 2021 (Art. 6); Federal Decree-Law No. 9 of 2022 (Domestic Workers) (domestic_law) -- <https://uaelegislation.gov.ae/en/legislations/1541/download>
+- **Applies to:** private-sector workers (33/2021) and domestic workers (9/2022) in the UAE
+- **Exceptions:** the general labour law (33/2021) and the domestic-worker law (9/2022) are DISTINCT instruments; domestic workers fall under 9/2022; MoHRE specifies limited cases where a domestic-worker agency must refund fees; verify the current executive regulations
+- **Binding:** binding_domestic | **effective_from:** 2022-02-02 | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-06-01:** UAE labour law and its executive regulations are amended periodically; verify the current MoHRE rules and refund cases
+- **Caveats:** employer-pays is the RULE; origin-country agents still charge workers in practice, so do not assume compliance; which law applies depends on whether the worker is domestic (9/2022) or private-sector (33/2021)
+
+### in_emigration_act  (IN, rule)
+> India's Emigration Act 1983 (with the Emigration (Amendment) Rules 2017) caps a recruiting agent's service charge at a maximum of INR 30,000 per worker, collected only via NEFT/RTGS/digital payment (no cash) with a receipt. That service charge excludes embassy/consular visa fees, pre-employment medical check-up, air tickets to the destination, and pre-deployment board and lodging. ECR-category passport holders bound for notified countries must obtain Emigration Clearance from the Protector of Emigrants via the eMigrate system.
+
+- **Authority:** Emigration Act 1983; Emigration (Amendment) Rules 2017; Ministry of External Affairs (Protector of Emigrants) (domestic_law) -- <https://www.indiacode.nic.in/bitstream/123456789/1779/1/198331.pdf>
+- **Applies to:** Indian emigrant workers recruited through registered recruiting agents
+- **Exceptions:** the INR 30,000 cap covers defined services only and EXCLUDES visa fees, medical, air tickets, and pre-deployment lodging; the ECR emigration-clearance requirement applies only to ECR-category passports and notified destination countries; a new Emigration Bill has been proposed; the 1983 Act may be reformed
+- **Binding:** binding_domestic | **effective_from:** 2017-01-01 | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-06-01:** the service-charge cap and notified-country list are amended by rules, and a new Emigration Bill is pending; verify against the current Emigration Rules / eMigrate
+- **Caveats:** the INR 30,000 cap is the RULE; workers are frequently overcharged in practice; verify the notified-country ECR list and current cap against official MEA/eMigrate sources
+
+### kw_domestic_worker_law  (KW, rule)
+> Kuwait's Law No. 68 of 2015 on domestic workers guarantees a weekly day off, 30 days of annual paid leave, daily rest within a 12-hour working-day framework, and an end-of-service benefit of one month's wage per year of service. It prohibits recruitment agencies and their staff from taking any payment from domestic workers (chargeable as extortion) and makes an employer's confiscation of a domestic worker's passport a legal offence.
+
+- **Authority:** Kuwait Law No. 68 of 2015 Regarding Domestic Workers (domestic_law) -- <https://indembkwt.gov.in/pdf/Domestic%20Labour%20Laws%20of%20Kuwait.pdf>
+- **Applies to:** domestic workers employed in Kuwait
+- **Exceptions:** applies to domestic workers under the sponsorship system; separate rules cover private-sector labour; rights groups note enforcement mechanisms are weaker than the text; verify current implementing decisions
+- **Binding:** binding_domestic | **effective_from:** 2015-07-26 | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-06-01:** implementing regulations and enforcement change; verify current hours/rest/wage-protection provisions against an official Kuwaiti source
+- **Caveats:** the protections are the RULE; enforcement gaps mean workers may not receive them in practice; passport confiscation being an offence is a key point workers can raise
+
+### us_state_trafficking_civil  (US, rule)
+> 18 U.S.C. sec.1595 (Trafficking Victims Protection Reauthorization Act) gives a trafficking survivor a CIVIL remedy: they may sue in U.S. federal court for compensatory and punitive damages (and attorney's fees) against a direct perpetrator AND third parties who KNOWINGLY BENEFIT, financially or otherwise, from participation in a venture they knew or should have known was trafficking. The limitations period is generally 10 years (tolled for minors or where coercion/trauma prevented filing).
+
+- **Authority:** 18 U.S.C. sec.1595 (TVPRA civil remedy) (domestic_law) -- <https://www.law.cornell.edu/uscode/text/18/1595>
+- **Applies to:** survivors of trafficking / forced labour pursuing a civil (not criminal) claim in U.S. federal court
+- **Exceptions:** this is the CIVIL path, distinct from the sec.1589 criminal standard (see us_tvpa_1589); third-party (beneficiary) liability requires a knowing benefit + participation in the venture; applies to conduct after the enactment date (2003-12-19); state trafficking statutes add further civil paths
+- **Binding:** binding_domestic | **effective_from:** 2003-12-19 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2028-01-01:** the statute is stable but case law on third-party beneficiary liability evolves (and the TVPRA is periodically reauthorised); verify current interpretation
+- **Caveats:** complements, does not replace, the criminal us_tvpa_1589 (build-upon); a civil claim still requires proof; it is not an automatic recovery
