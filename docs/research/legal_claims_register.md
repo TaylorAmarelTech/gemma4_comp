@@ -2,13 +2,14 @@
 
 Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 2026-07-10. Claims flagged RECHECK are potentially outdated and must be re-verified against a primary source before a grounded answer relies on them. This is not legal advice.
 
-**38 claims -- 9 flagged for recheck.**
+**41 claims -- 10 flagged for recheck.**
 
 | id | jurisdiction | binding | volatility | as_of | recheck_after | flag |
 |---|---|---|---|---|---|---|
 | `bd_overseas_employment` | BD | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `bh_lmra_flexi_permit` | BH | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `eu_forced_labour_regulation` | EU | binding_domestic | high | 2026-07-10 | 2026-12-01 | **RECHECK** |
+| `eu_anti_trafficking_directive` | EU | binding_eu_directive | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `lb_domestic_worker_kafala` | LB | reform_suspended_not_in_force | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `lk_slbfe` | LK | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `np_foreign_employment_fees` | NP | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
@@ -19,6 +20,7 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 | `coe_warsaw_trafficking` | Council of Europe | binding_where_ratified | low | 2026-07-10 | 2028-01-01 | ok |
 | `rantsev_2010` | Council of Europe (ECtHR) | binding_where_applicable | low | 2026-07-10 | 2028-01-01 | ok |
 | `siliadin_2005` | Council of Europe (ECtHR) | binding_where_applicable | low | 2026-07-10 | 2028-01-01 | ok |
+| `et_overseas_employment` | ET | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
 | `hk_money_lending_cap` | HK | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
 | `id_migrant_worker_protection` | ID | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
 | `in_emigration_act` | IN | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
@@ -31,6 +33,7 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 | `us_tvpa_1589` | US | binding_domestic | low | 2026-07-10 | 2028-01-01 | ok |
 | `us_federal_trafficking_civil_1595` | US | binding_domestic | low | 2026-07-10 | 2028-01-01 | ok |
 | `us_tvpa_1591_sex_trafficking` | US | binding_domestic | low | 2026-07-10 | 2027-07-01 | ok |
+| `vn_guest_worker_law_2020` | VN | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
 | `c029_definition` | international | binding_where_ratified | low | 2026-07-10 | 2028-01-01 | ok |
 | `c029_vs_indicators` | international | non_binding_guidance | medium | 2026-07-10 | 2027-06-01 | ok |
 | `ilo_indicators_2025` | international | non_binding_guidance | medium | 2026-07-10 | 2027-06-01 | ok |
@@ -425,3 +428,33 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 - **Binding:** binding_domestic | **effective_from:** 2000-10-28 | **as_of:** 2026-07-10 | **volatility:** low
 - **Recheck after 2027-07-01:** 18 U.S.C. 1591 has been amended repeatedly (TVPRA 2008, JVTA 2015, FOSTA 2018); verify the current text and any post-2024 amendments against uscode.house.gov
 - **Caveats:** build-upon: complements sections 1589 (labour) and 1595 (civil remedy) already in the corpus -- do not conflate sex- and labour-trafficking; state the legal standard only, never a finding about a specific person
+
+### et_overseas_employment  (ET, rule)
+> Ethiopia's Overseas Employment Proclamation No. 923/2016 (amended by Proclamation No. 1246/2021) channels labour migration through three regulated routes -- public employment services under intergovernmental agreements, licensed private employment agencies (PEAs), and direct employment -- and requires a Ministry-approved model employment contract signed by the employer, the worker and the agency. The 2021 amendment dropped the prior eighth-grade education requirement in favour of a certificate of occupational competence and mandated an inspectorate to monitor recruitment agencies' compliance.
+
+- **Authority:** Ethiopia Overseas Employment Proclamation No. 923/2016, amended by No. 1246/2021 (domestic_law) -- <https://justice.gov.et/en/law/ethiopias-overseas-employment-proclamation/>
+- **Applies to:** Ethiopian workers taking up overseas employment and the licensed PEAs recruiting them (origin-side)
+- **Exceptions:** recruitment is lawful only through the three regulated channels, so unregulated brokering falls outside the Proclamation's protections; the Proclamation regulates the process and licensed PEAs; it is not a guarantee against abuse in practice; bilateral labour agreements with destination states add terms that vary by corridor
+- **Binding:** binding_domestic | **effective_from:** 2021-07-01 | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-01-01:** Ethiopia has periodically revised its overseas-employment framework and its bilateral agreements and destination bans change; verify the current text and any active corridor bans
+- **Caveats:** a regulated channel is not a guarantee of safety; abuses occur within licensed routes too; verify the current model contract and any bilateral agreement or ban for the specific destination
+
+### eu_anti_trafficking_directive  (EU, rule)
+> The EU Anti-Trafficking Directive 2011/36/EU (as amended by Directive (EU) 2024/1712, in force 14 July 2024, transposition deadline 15 July 2026) requires EU Member States to criminalise trafficking in human beings and to protect and assist victims. The 2024 amendment adds forced marriage, illegal adoption and forced surrogacy as forms of exploitation that national law must treat as trafficking, and requires Member States to sanction people who knowingly use services provided by trafficking victims. Aggravated offences carry a maximum penalty of at least ten years.
+
+- **Authority:** Directive 2011/36/EU as amended by Directive (EU) 2024/1712 (European Parliament and Council) (supranational_law) -- <https://eur-lex.europa.eu/eli/dir/2024/1712/oj/eng>
+- **Applies to:** EU Member States (which must transpose it into national criminal law); it sets a floor, not a directly-applicable individual rule
+- **Exceptions:** it binds EU Member States, not third countries; Member States had until 15 July 2026 to transpose it, so national implementation varies and some measures may still be pending; whether a given act is trafficking still depends on each state's national qualification of the new exploitation types
+- **Binding:** binding_eu_directive | **effective_from:** 2024-07-14 | **as_of:** 2026-07-10 | **volatility:** high
+- **Recheck after 2026-10-01:** the 15 July 2026 transposition deadline is at hand; verify each relevant Member State's national implementing law and any further amendments against EUR-Lex
+- **Caveats:** a Directive sets a floor that Member States implement in national law -- check the specific national transposition; do not state it applies directly to individuals before national transposition
+
+### vn_guest_worker_law_2020  (VN, rule)
+> Vietnam's Law 69/2020/QH14 on Contract-Based Vietnamese Overseas Workers (in force 1 January 2022, replacing Law 72/2006) requires licensed service enterprises to recruit workers directly and bars them from collecting recruitment or brokerage fees from the worker -- a shift from the prior regime under which workers to some markets paid large brokerage commissions (for example workers going to Taiwan cumulatively paid tens of millions of USD in commissions in 2019). It is a landmark origin-side no-worker-fee protection.
+
+- **Authority:** Law No. 69/2020/QH14 on Contract-Based Vietnamese Overseas Workers (National Assembly of Viet Nam) (domestic_law) -- <https://wwwex.ilo.org/dyn/migpractice/migmain.showPractice?p_lang=en&p_practice_id=208>
+- **Applies to:** licensed Vietnamese service enterprises dispatching contract-based workers abroad (origin-side)
+- **Exceptions:** the no-fee duty binds licensed service enterprises; workers may still bear certain lawful documented costs depending on the destination market; enforcement against unlicensed brokers varies, and illegal broker fees persist in practice; some destination-market rules set additional specifics
+- **Binding:** binding_domestic | **effective_from:** 2022-01-01 | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-01-01:** implementing decrees and circulars under Law 69/2020 continue to be issued; verify the current fee rules and any amendments against an official Vietnamese source
+- **Caveats:** a legal no-fee rule is not proof any specific worker paid nothing; illegal broker fees persist in practice; verify current implementing decrees before quoting specifics

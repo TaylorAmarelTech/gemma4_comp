@@ -176,6 +176,30 @@
       "priority": "medium",
       "status": "promoted",
       "rationale": "FATF 'Financial Flows from Human Trafficking' (2018) money-laundering red-flag indicators. PROMOTED 2026-07-10 (wave 3; guardrails + 3/3 mistral convergence; auto_vetted weight 0.6, human-verify to raise)."
+    },
+    {
+      "id": "eu_anti_trafficking_directive",
+      "jurisdiction": "EU",
+      "topic": "EU Anti-Trafficking Directive 2011/36/EU as amended by (EU) 2024/1712 (adds forced marriage/adoption/surrogacy; user-sanctions)",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "EU Anti-Trafficking Directive 2011/36/EU as amended by (EU) 2024/1712 (adds forced marriage/adoption/surrogacy; user-sanctions). PROMOTED 2026-07-10 (wave 4; guardrails + 3/3 mistral convergence; auto_vetted weight 0.6, human-verify to raise)."
+    },
+    {
+      "id": "vn_guest_worker_law_2020",
+      "jurisdiction": "VN",
+      "topic": "Vietnam Law 69/2020 on Contract-Based Overseas Workers (no worker recruitment/brokerage fee; in force 2022)",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "Vietnam Law 69/2020 on Contract-Based Overseas Workers (no worker recruitment/brokerage fee; in force 2022). PROMOTED 2026-07-10 (wave 4; guardrails + 3/3 mistral convergence; auto_vetted weight 0.6, human-verify to raise)."
+    },
+    {
+      "id": "et_overseas_employment",
+      "jurisdiction": "ET",
+      "topic": "Ethiopia Overseas Employment Proclamation 923/2016 amended 1246/2021 (three regulated channels; model contract; inspectorate)",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "Ethiopia Overseas Employment Proclamation 923/2016 amended 1246/2021 (three regulated channels; model contract; inspectorate). PROMOTED 2026-07-10 (wave 4; guardrails + 3/3 mistral convergence; auto_vetted weight 0.6, human-verify to raise)."
     }
   ]
 }
