@@ -112,6 +112,30 @@
       "priority": "medium",
       "status": "promoted",
       "rationale": "The 'employer pays' operative detail behind C181 (build-upon). PROMOTED 2026-07-10 (auto_vetted 0.6)."
+    },
+    {
+      "id": "lk_slbfe",
+      "jurisdiction": "LK",
+      "topic": "Sri Lanka SLBFE Act + family background report",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "Origin corridor; SLBFE fees + gendered family-background rule. PROMOTED 2026-07-10 (auto_vetted 0.6)."
+    },
+    {
+      "id": "mlc_2006",
+      "jurisdiction": "international",
+      "topic": "Maritime Labour Convention 2006 (seafarers)",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "Seafarers' rights + no-fee A1.4 + repatriation (fishing/maritime trafficking). PROMOTED 2026-07-10 (auto_vetted 0.6)."
+    },
+    {
+      "id": "coe_warsaw_trafficking",
+      "jurisdiction": "Council of Europe",
+      "topic": "CoE Warsaw Convention 2005 (non-punishment, victim ID)",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "Codified the non-punishment principle + reflection period. PROMOTED 2026-07-10 (auto_vetted 0.6)."
     }
   ]
 }
