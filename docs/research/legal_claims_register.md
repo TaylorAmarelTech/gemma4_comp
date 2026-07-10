@@ -2,12 +2,13 @@
 
 Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 2026-07-10. Claims flagged RECHECK are potentially outdated and must be re-verified against a primary source before a grounded answer relies on them. This is not legal advice.
 
-**41 claims -- 10 flagged for recheck.**
+**57 claims -- 12 flagged for recheck.**
 
 | id | jurisdiction | binding | volatility | as_of | recheck_after | flag |
 |---|---|---|---|---|---|---|
 | `bd_overseas_employment` | BD | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `bh_lmra_flexi_permit` | BH | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
+| `de_lksg_supply_chain` | DE | binding_domestic_under_reform | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `eu_forced_labour_regulation` | EU | binding_domestic | high | 2026-07-10 | 2026-12-01 | **RECHECK** |
 | `eu_anti_trafficking_directive` | EU | binding_eu_directive | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `lb_domestic_worker_kafala` | LB | reform_suspended_not_in_force | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
@@ -15,8 +16,11 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 | `np_foreign_employment_fees` | NP | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `ph_placement_fee` | PH | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `sa_kafala_reform_2025` | SA | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
+| `ug_external_labour_recruitment` | UG | binding_domestic | high | 2026-07-10 | 2027-01-01 | **RECHECK** |
 | `us_uflpa` | US | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `ae_labour_reforms` | AE | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
+| `au_modern_slavery_act_2018` | AU | binding_domestic | medium | 2026-07-10 | 2026-10-01 | ok |
+| `ca_forced_child_labour_supply_chains_s211` | CA | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
 | `coe_warsaw_trafficking` | Council of Europe | binding_where_ratified | low | 2026-07-10 | 2028-01-01 | ok |
 | `rantsev_2010` | Council of Europe (ECtHR) | binding_where_applicable | low | 2026-07-10 | 2028-01-01 | ok |
 | `siliadin_2005` | Council of Europe (ECtHR) | binding_where_applicable | low | 2026-07-10 | 2028-01-01 | ok |
@@ -24,9 +28,17 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 | `hk_money_lending_cap` | HK | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
 | `id_migrant_worker_protection` | ID | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
 | `in_emigration_act` | IN | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
+| `jo_domestic_worker_regulation` | JO | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
+| `ke_labour_migration_recruitment` | KE | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
 | `kw_domestic_worker_law` | KW | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
+| `my_migrant_worker_protections` | MY | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
+| `ng_tip_labour_recruitment` | NG | binding_domestic | low | 2026-07-10 | 2027-07-01 | ok |
+| `no_transparency_act_apenhetsloven` | NO | binding_domestic | low | 2026-07-10 | 2027-01-01 | ok |
 | `om_labour_law_2023` | OM | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
+| `pk_emigration_ordinance` | PK | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
 | `qa_wage_protection` | QA | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
+| `th_foreign_workers_management_ordinance` | TH | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
+| `tw_employment_service_act_broker_fees` | TW | binding_domestic | medium | 2026-07-10 | 2026-10-01 | ok |
 | `uk_modern_slavery_act` | UK | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
 | `limbu_v_dyson_2024` | UK | binding_where_applicable | low | 2026-07-10 | 2026-10-01 | ok |
 | `kozminski_1988` | US | historical_superseded_by_statute | low | 2026-07-10 | 2028-01-01 | ok |
@@ -47,6 +59,10 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 | `ilo_fair_recruitment` | international | non_binding_guidance | low | 2026-07-10 | 2028-01-01 | ok |
 | `mlc_2006` | international | binding_where_ratified | medium | 2026-07-10 | 2027-06-01 | ok |
 | `fatf_financial_flows_trafficking` | international | non_binding_guidance | medium | 2026-07-10 | 2027-01-01 | ok |
+| `icrmw_1990` | international | binding_on_ratifying_states | low | 2026-07-10 | 2027-07-01 | ok |
+| `ilo_c097_migration_employment_1949` | international | binding_on_ratifying_states | low | 2026-07-10 | 2027-07-01 | ok |
+| `ilo_c143_migrant_workers_supplementary_1975` | international | binding_on_ratifying_states | low | 2026-07-10 | 2027-07-01 | ok |
+| `ilo_p029_forced_labour_protocol_2014` | international | binding_on_ratifying_states | low | 2026-07-10 | 2027-07-01 | ok |
 
 ## Claims
 ### c029_definition  (international, definition)
@@ -458,3 +474,163 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 - **Binding:** binding_domestic | **effective_from:** 2022-01-01 | **as_of:** 2026-07-10 | **volatility:** medium
 - **Recheck after 2027-01-01:** implementing decrees and circulars under Law 69/2020 continue to be issued; verify the current fee rules and any amendments against an official Vietnamese source
 - **Caveats:** a legal no-fee rule is not proof any specific worker paid nothing; illegal broker fees persist in practice; verify current implementing decrees before quoting specifics
+
+### au_modern_slavery_act_2018  (AU, rule)
+> Australia's Modern Slavery Act 2018 (Cth) (in force 2019) requires entities based or operating in Australia with annual consolidated revenue of at least AUD 100 million to file an annual Modern Slavery Statement describing modern-slavery risks in their operations and supply chains and the steps taken to address them, against seven mandatory criteria; statements are published on a public government register.
+
+- **Authority:** Australian Government Attorney-General's Department (domestic_law) -- <https://www.ag.gov.au/crime/modern-slavery/modern-slavery-act>
+- **Applies to:** large entities operating in Australia (AUD 100M+ revenue); a reporting duty, not a worker's individual right
+- **Exceptions:** mandatory only above AUD 100M consolidated revenue; smaller entities may report voluntarily; it is a reporting/transparency duty -- not a substantive due-diligence mandate and not an import ban -- and currently carries no financial penalty for non-compliance; the federal Act is separate from state legislation (e.g. the NSW Modern Slavery Act 2018)
+- **Binding:** binding_domestic | **effective_from:** 2019-01-01 | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2026-10-01:** a 2023 statutory review recommended lowering the threshold to AUD 50M and adding due-diligence obligations and civil penalties, and the government agreed to many recommendations in Dec 2024; verify whether penalties/threshold have been legislated
+- **Caveats:** the 'no penalties' position is current but under active reform (a federal Anti-Slavery Commissioner commenced Dec 2024); it is a reporting duty, not an import ban
+
+### ca_forced_child_labour_supply_chains_s211  (CA, rule)
+> Canada's Fighting Against Forced Labour and Child Labour in Supply Chains Act (S.C. 2023, c. 9; Bill S-211; in force 1 January 2024) requires government institutions and in-scope private 'entities' that produce, sell, distribute or import goods in Canada to file an annual report (due 31 May) on steps taken to prevent and reduce the risk of forced or child labour in their operations and supply chains, approved by the governing body and published. An 'entity' meets at least two of: CAD 20M assets, CAD 40M revenue, 250 employees.
+
+- **Authority:** Public Safety Canada; Parliament of Canada (domestic_law) -- <https://www.parl.ca/DocumentViewer/en/44-1/bill/S-211/royal-assent>
+- **Applies to:** government institutions and entities meeting two of three size thresholds; a reporting duty
+- **Exceptions:** only entities meeting at least two of the three size thresholds are in scope; it is a reporting/transparency duty -- it does not itself require due diligence or ceasing conduct -- and creates no private cause of action (enforcement is a ministerial order plus a summary-conviction fine up to CAD 250,000); the import ban on goods made with forced or child labour is a separate mechanism under the amended Customs Tariff (CBSA), not part of S-211
+- **Binding:** binding_domestic | **effective_from:** 2024-01-01 | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-01-01:** Public Safety guidance on the 'entity' scope is updated; watch for a shift toward mandatory due diligence and evolving Customs Tariff import enforcement
+- **Caveats:** do not conflate the S-211 reporting duty with the Customs Tariff import ban -- they are distinct tools; first reports were due 31 May 2024
+
+### de_lksg_supply_chain  (DE, rule)
+> Germany's Supply Chain Due Diligence Act (Lieferkettensorgfaltspflichtengesetz, LkSG; obligations in force 2023) requires in-scope companies to run human-rights and environmental due diligence across their supply chains -- risk analysis, preventive and remedial measures, a complaints procedure and documentation. It applied to firms with 3,000+ employees in Germany from 2023 and 1,000+ from 2024. As of late 2025 the annual BAFA reporting obligation was suspended and a repeal or replacement by a lighter EU-CSDDD transposition was under way.
+
+- **Authority:** Federal Office for Economic Affairs and Export Control (BAFA); German Federal Government (domestic_law) -- <https://www.csr-in-deutschland.de/EN/Legislation/German-Supply-Chain-Act/FAQ/faq.html>
+- **Applies to:** large companies operating in Germany (1,000+ employees since 2024); a corporate due-diligence duty, not a worker's individual right
+- **Exceptions:** applies only above the size threshold (1,000+ employees in Germany); smaller firms are out of scope; it is a best-efforts due-diligence obligation and section 3(3) expressly creates no new civil liability; as of late 2025 the reporting obligation was suspended and repeal / CSDDD-replacement was pending
+- **Binding:** binding_domestic_under_reform | **effective_from:** 2023-01-01 | **as_of:** 2026-07-10 | **volatility:** high
+- **Recheck after 2026-10-01:** a 2025 coalition move sought to repeal/replace the LkSG with a German transposition of the EU CSDDD and the reporting duty was suspended; re-verify what duties remain live and the CSDDD timeline
+- **Caveats:** fast-moving -- do not state the LkSG's reporting duty as currently active without re-checking; the EU CSDDD interaction is the key moving piece
+
+### icrmw_1990  (international, rule)
+> The UN International Convention on the Protection of the Rights of All Migrant Workers and Members of Their Families (ICRMW, 1990; in force 2003) guarantees a baseline of human rights to migrant workers and their families regardless of migration status. Its Part III protections -- including freedom from slavery, servitude and forced labour -- reach even irregular/undocumented migrants, while the fuller Part IV rights (freedom of movement, family reunification, wider labour-market access) apply only to those in a regular, documented situation.
+
+- **Authority:** United Nations General Assembly (Res 45/158); monitored by the UN Committee on Migrant Workers (CMW) (supranational_law) -- <https://www.ohchr.org/en/instruments-mechanisms/instruments/international-convention-protection-rights-all-migrant-workers>
+- **Applies to:** ratifying states (~60, mostly origin countries); it binds only states that have ratified
+- **Exceptions:** binds only the ~60 ratifying states -- no major Western, Gulf or Australian destination state has ratified, so its reach over the largest destination corridors is minimal; the fuller Part IV rights do not extend to migrants in an irregular situation; the exact ratification count drifts as states accede
+- **Binding:** binding_on_ratifying_states | **effective_from:** 2003-07-01 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2027-07-01:** live ratification/accession count drifts; re-verify on OHCHR / the UN Treaty Collection
+- **Caveats:** low destination-state uptake limits practical reach; do not imply it binds a non-ratifying destination country; the Part III vs Part IV distinction matters for irregular migrants
+
+### ilo_c097_migration_employment_1949  (international, rule)
+> ILO Migration for Employment Convention (Revised), 1949 (No. 97) requires each ratifying state to give lawfully-present migrant workers treatment no less favourable than its own nationals in respect of remuneration, trade-union membership, accommodation, social security, employment taxes and access to legal proceedings (Article 6), to provide a free information service to migrants (Article 2), and to act against misleading emigration and immigration propaganda (Article 3).
+
+- **Authority:** International Labour Organization (Convention No. 97); supervised by the ILO Committee of Experts (CEACR) (international_labour_standard) -- <https://normlex.ilo.org/dyn/nrmlx_en/f?p=NORMLEXPUB:12100:0::NO::P12100_ILO_CODE:C097>
+- **Applies to:** ratifying states (~54); the Article 6 equal-treatment guarantee applies only to lawfully-admitted migrants
+- **Exceptions:** binds only the ~54 ratifying states; Article 11 excludes frontier workers, short-term entrants in the liberal professions and artistes, and seamen; the Article 6 equal-treatment guarantee applies only to migrants lawfully admitted or present, not those in an irregular situation
+- **Binding:** binding_on_ratifying_states | **effective_from:** 1952-01-22 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2027-07-01:** ratification count drifts upward; re-verify on ILO NORMLEX
+- **Caveats:** equal-treatment is limited to lawfully-present migrants; complements C143 and C111
+
+### ilo_c143_migrant_workers_supplementary_1975  (international, rule)
+> ILO Migrant Workers (Supplementary Provisions) Convention, 1975 (No. 143) obliges ratifying states to respect the basic human rights of all migrant workers including those in an irregular situation (Article 1), to detect and suppress clandestine movements and act against traffickers and organisers (Part I), to preserve irregular migrants' rights arising from past employment (Article 9), and to pursue a national policy of equality of opportunity for lawfully-resident migrants (Part II).
+
+- **Authority:** International Labour Organization (Convention No. 143); CEACR (international_labour_standard) -- <https://normlex.ilo.org/dyn/nrmlx_en/f?p=NORMLEXPUB:12100:0::NO::P12100_ILO_CODE:C143>
+- **Applies to:** ratifying states (~29, low uptake)
+- **Exceptions:** low uptake -- roughly 29 ratifying states; Article 16 lets a ratifying state exclude either Part I or Part II by declaration; Article 11 excludes frontier workers, short-stay artistes and liberal professions, seamen, trainees, and specific-task entrants
+- **Binding:** binding_on_ratifying_states | **effective_from:** 1978-12-09 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2027-07-01:** exact ratification count (~29) to reconfirm on ILO NORMLEX
+- **Caveats:** first instrument to address irregular migration alongside undocumented migrants' human rights; a ratifying state may have opted out of Part I or Part II
+
+### ilo_p029_forced_labour_protocol_2014  (international, rule)
+> The ILO Protocol of 2014 to the Forced Labour Convention, 1930 (P029) supplements Convention No. 29 by obliging ratifying states to prevent and eliminate forced labour, protect victims and ensure their access to justice and remedies including compensation, through a national policy and plan of action. Article 2 mandates prevention (awareness, protection from abusive or fraudulent recruitment, business due diligence, root causes); Article 3 requires victim identification, release, protection and recovery; Article 4 requires access to remedies and that victims not be punished for unlawful acts they were compelled to commit.
+
+- **Authority:** International Labour Organization (Protocol P029); CEACR (international_labour_standard) -- <https://www.ilo.org/resource/p029-protocol-2014-forced-labour-convention>
+- **Applies to:** ratifying states; it obligates state action, not individuals directly
+- **Exceptions:** binds only ratifying states; it obligates state measures but does not itself criminalise conduct or create an individual complaint mechanism; it updates but does not replace C29 -- C29's lawful exceptions (compulsory military service, normal civic obligations, supervised prison labour, emergencies, minor communal services) remain
+- **Binding:** binding_on_ratifying_states | **effective_from:** 2016-11-09 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2027-07-01:** ratification count grew rapidly; confirm the current total on ILO NORMLEX
+- **Caveats:** build-upon: supplements C29 (already in the corpus) -- cite the non-punishment principle (Art. 4) for compelled unlawful acts; accompanied by the non-binding Recommendation No. 203
+
+### no_transparency_act_apenhetsloven  (NO, rule)
+> Norway's Transparency Act (Aapenhetsloven, LOV-2021-06-18-99; in force 1 July 2022) requires 'larger enterprises' offering goods or services in or from Norway to carry out human-rights and decent-work due diligence in line with the OECD Guidelines, publish an annual account by 30 June, and answer any person's written request about how they address adverse impacts (normally within three weeks). 'Larger enterprises' exceed two of three thresholds: NOK 70M revenue, NOK 35M balance sheet, 50 full-time equivalents.
+
+- **Authority:** Norwegian Consumer Authority (Forbrukertilsynet); the Storting (domestic_law) -- <https://lovdata.no/dokument/NLE/lov/2021-06-18-99>
+- **Applies to:** 'larger enterprises' operating in or from Norway; a due-diligence, disclosure and information-access duty
+- **Exceptions:** only 'larger enterprises' are covered; below-threshold SMEs are out of scope; it is a due-diligence, disclosure and information-access duty -- not an import ban and not a private damages remedy (enforcement is administrative); information requests may be denied on limited grounds (not specific enough, or trade-secret / competitively sensitive)
+- **Binding:** binding_domestic | **effective_from:** 2022-07-01 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2027-01-01:** the NOK thresholds tie to the Accounting Act; watch EEA implementation of the EU CSDDD which may broaden scope
+- **Caveats:** the right-to-information feature is distinctive (any member of the public may ask); Norway is EEA, not EU
+
+### jo_domestic_worker_regulation  (JO, rule)
+> Jordan's Regulation No. 90 of 2009 (Regulation of Domestic Workers, Cooks, Gardeners and the Like), issued under Labour Law No. 8 of 1996, brings migrant domestic workers under a Labour-Law framework: the employer must pay the monthly wage within seven days of entitlement, and the regulation sets working hours, weekly rest and a written contract. In the garment sector, ILO Better Work Jordan brokered a unified employment contract, and withholding a worker's passport is treated as a forced-labour indicator and an offence.
+
+- **Authority:** Government of Jordan / Ministry of Labour (Regulation No. 90/2009 under Labour Law No. 8/1996); ILO Better Work Jordan (domestic_law) -- <https://webapps.ilo.org/dyn/natlex/natlex4.detail?p_lang=en&p_isn=85397>
+- **Applies to:** migrant domestic workers (under a separate regulation) and, for the unified contract, garment-sector migrant workers
+- **Exceptions:** domestic workers are covered by this separate regulation rather than the main Labour Law, so protections such as hours and movement are weaker; the domestic-worker regime conditions the worker's ability to leave the house on employer permission -- a documented freedom-of-movement limit; enforcement is weak -- passport confiscation persists despite illegality
+- **Binding:** binding_domestic | **effective_from:** 2009-10-01 | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-01-01:** the regulation has amendments; verify the current passport-withholding penalty, whether domestic workers remain under a separate regime, and the evolving garment unified contract (Better Work Jordan)
+- **Caveats:** bundles two instruments -- Reg. 90/2009 for domestic workers and the Better Work garment unified contract plus the passport-retention offence; the effective date is from secondary sources
+
+### ke_labour_migration_recruitment  (KE, rule)
+> Kenya's Labour Institutions (Private Employment Agencies) Regulations 2016 (Legal Notice 110/2016), read with the National Employment Authority Act 2016, require private recruitment agencies to be licensed Kenyan-owned companies (minimum KES 5,000,000 share capital) and to post a KES 1,500,000 guarantee earmarked for worker repatriation and unpaid wages on default; for foreign contracts the agency's administrative charge to a jobseeker must not exceed one month's proposed salary.
+
+- **Authority:** National Employment Authority; Ministry of Labour (LN 110/2016 under the Labour Institutions Act 2007) (domestic_law) -- <https://new.kenyalaw.org/akn/ke/act/ln/2016/110/eng@2022-12-31>
+- **Applies to:** licensed Kenyan recruitment agencies placing workers abroad (origin-side)
+- **Exceptions:** binds only licensed/accredited agencies -- a large informal broker and sub-agent network recruiting for Gulf domestic work operates outside the regime; code-of-conduct and fee-cap enforcement is weak; Kenya has repeatedly banned then re-opened Middle East recruitment; overlapping NEA versus Directorate-of-Labour mandates cause inconsistent application
+- **Binding:** binding_domestic | **effective_from:** 2016-06-24 | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-01-01:** confirm the current NEA accreditation rules and admin-fee cap; the status of any Labour Migration Management Bill; and whether Gulf-corridor bans or bilateral agreements are in force
+- **Caveats:** the NEA Act itself does not license agencies -- the operative licensing/bond/fee rules sit in LN 110/2016; informal sub-agents operate outside the regime
+
+### my_migrant_worker_protections  (MY, rule)
+> In Malaysia, the Employment Act 1955 (as amended, in force 2023) extends core protections (wages, hours, rest days, leave) to employees including migrant workers and requires employer approval to hire foreign workers; retaining another person's passport without lawful authority is a criminal offence under the Passports Act 1966 s.12(1)(f) (fine up to RM10,000 and/or up to five years); and the Workers' Minimum Standards of Housing and Amenities Act 1990 requires employers to provide certified minimum-standard accommodation.
+
+- **Authority:** Malaysia Ministry of Human Resources -- Department of Labour; Passports Act 1966; Act 446 (domestic_law) -- <https://ccid.rmp.gov.my/Laws/Passports_Act.pdf>
+- **Applies to:** employees including migrant workers in Malaysia; the passport-retention offence applies generally
+- **Exceptions:** the housing Act 446 applies only to Peninsular Malaysia and Labuan -- Sabah and Sarawak are excluded pending their own laws; domestic servants are excluded from major parts of the Employment Act (hours, rest days, termination protections); passport retention remains widespread in practice -- enforcement is weak and an administrative 'Employer's Undertaking' permits limited safekeeping exceptions
+- **Binding:** binding_domestic | **effective_from:** None | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-01-01:** Employment Act amendments are ongoing; verify current penalty amounts, whether Sabah/Sarawak enacted parallel housing laws, and the current Employer's Undertaking wording
+- **Caveats:** Malaysia has no single 'no passport retention' clause in the Employment Act -- the prohibition rests on Passports Act 1966 s.12(1)(f) plus the administrative Employer's Undertaking; domestic servants are largely excluded
+
+### ng_tip_labour_recruitment  (NG, rule)
+> Nigeria's Trafficking in Persons (Prohibition) Enforcement and Administration Act, 2015 criminalises recruitment for exploitation on the labour-migration side: hiring out or recruiting a person for forced labour within or outside Nigeria is an offence (s.22), as is organising or promoting foreign travel that promotes exploitation (s.18), under the umbrella trafficking offence of recruiting, transporting or harbouring by force, coercion or deception for exploitation (s.13). Enforcement sits with NAPTIP.
+
+- **Authority:** National Agency for the Prohibition of Trafficking in Persons (NAPTIP); TIPPEA 2015 (Act No. 4 of 2015) (domestic_law) -- <https://www.ilo.org/dyn/natlex/natlex4.detail?p_isn=101267>
+- **Applies to:** criminal liability for trafficking/forced-labour recruitment; not an overseas-recruitment licensing regime
+- **Exceptions:** TIPPEA is an anti-trafficking criminal statute, not an overseas-recruitment licensing regime -- lawful recruitment-agency licensing sits separately with Ministry of Labour guidelines; the base trafficking penalty is widely criticised as low, weakening deterrence; enforcement is concentrated in NAPTIP's zonal commands; many exploitative recruiters operate through informal networks
+- **Binding:** binding_domestic | **effective_from:** 2015-03-26 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2027-07-01:** verify exact section numbers and penalty minima against the gazetted text and any post-2015 amendment; check current Ministry of Labour recruitment-agency guidelines
+- **Caveats:** section numbering and penalty minima vary across secondary sources -- the s.13/18/22 hooks here should be confirmed against the gazette; medium source confidence
+
+### pk_emigration_ordinance  (PK, rule)
+> Pakistan's Emigration Ordinance, 1979 (Ordinance XVIII of 1979) with the Emigration Rules 1979 requires that no one recruit Pakistanis for overseas employment without an Overseas Employment Promoter (OEP) licence from the Federal Government, and that emigrants be cleared and registered by a Protector of Emigrants before departure; an OEP may recover only documented actual costs plus a capped service fee, and unlicensed recruitment and overcharging are offences.
+
+- **Authority:** Bureau of Emigration & Overseas Employment (BE&OE); Protector of Emigrants; Ministry of Overseas Pakistanis & Human Resource Development (domestic_law) -- <https://beoe.gov.pk/files/legal-framework/ordinance.pdf>
+- **Applies to:** licensed Overseas Employment Promoters recruiting Pakistanis for overseas work (origin-side)
+- **Exceptions:** the statutory service-fee cap is unrealistically low and routinely violated -- workers pay many times the legal maximum; a large network of unlicensed sub-agents ('beparis') recruits, especially in rural areas, outside the licensing and Protector-of-Emigrants regime; pre-departure clearance is frequently evaded via irregular / visit-visa channels; enforcement is weak
+- **Binding:** binding_domestic | **effective_from:** None | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-01-01:** the OEP service-fee cap, licence fees and per-emigrant levy are revised by BE&OE notification; confirm the current cap and whether the 1979 Ordinance has been replaced by new emigration legislation
+- **Caveats:** the Ordinance is long-standing and stable; the volatile elements are the fee caps and SOPs set by the Rules and notifications; exact fee figures come from a secondary analysis and should be re-verified
+
+### th_foreign_workers_management_ordinance  (TH, rule)
+> Thailand's Royal Ordinance concerning the Management of Foreign Workers' Employment B.E. 2560 (2017), as amended in 2018, makes it a criminal offence to confiscate or withhold a migrant worker's passport, work permit or identity documents (imprisonment up to six months and/or a fine up to THB 100,000), and the 2018 amendment bars charging recruitment or placement fees and costs to migrant workers (the employer or recruiter bears them). Fishing-sector workers are covered through a linked regime tied to the Royal Ordinance on Fisheries B.E. 2558 (2015).
+
+- **Authority:** Government of Thailand; Ministry of Labour, Department of Employment (domestic_law) -- <https://natlex.ilo.org/dyn/natlex2/natlex2/files/download/107728/THA107728%20Eng.pdf>
+- **Applies to:** migrant workers in Thailand; the document-confiscation offence applies generally
+- **Exceptions:** the harsh 2017 original triggered a migrant exodus, forcing suspension of several penalty clauses until 2018; fishing-sector enforcement remains weak -- document retention, wage deductions and debt bondage persist; the zero-fee rule reaches only Thai-side fees -- origin-country recruiter fees and debt still burden workers
+- **Binding:** binding_domestic | **effective_from:** 2017-06-23 | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-01-01:** registration/MOU cycles and cabinet resolutions change often; verify the current fee-prohibition wording, penalty amounts and fishing-sector rules
+- **Caveats:** fishing protections are split across this ordinance, the Fisheries Ordinance 2015 and ministerial regulations -- confirm which instrument carries a given protection; variously translated Royal Ordinance / Decree / Emergency Decree
+
+### tw_employment_service_act_broker_fees  (TW, rule)
+> Taiwan's Employment Service Act, Article 40, bars private employment agencies from excessively charging fees, taking unjust profit or other unfair financial practices; migrant workers are not to be charged recruitment or placement fees (the employer pays those). Agencies may charge workers only a monthly 'service fee', capped by regulation at NT$1,800 per month in year one, NT$1,700 in year two, and NT$1,500 from year three.
+
+- **Authority:** Ministry of Labor, Republic of China (Taiwan); Employment Service Act Article 40 (domestic_law) -- <https://law.moj.gov.tw/ENG/LawClass/LawAll.aspx?pcode=N0090001>
+- **Applies to:** migrant workers recruited through private agencies in Taiwan
+- **Exceptions:** the permitted monthly service fee still shifts broker costs onto workers though the services largely benefit employers -- criticised as debt-inducing; origin-country recruitment fees and loans remain the largest cost and lie outside Taiwan's control; enforcement is uneven -- brokers continue illegal overcharging
+- **Binding:** binding_domestic | **effective_from:** None | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2026-10-01:** Article 40 and the fee-cap schedule are periodically revised (the Act was amended Jan 2025); verify the current NT$ caps
+- **Caveats:** distinguish prohibited recruitment/placement fees (never chargeable to workers) from the permitted, capped monthly service fee; the NT$ caps live in a subsidiary Ministry of Labor regulation, not the Act itself
+
+### ug_external_labour_recruitment  (UG, rule)
+> Uganda regulates external labour recruitment under the Employment (Recruitment of Ugandan Migrant Workers) Regulations 2021 (Statutory Instrument No. 47 of 2021), which replaced the 2005 regulations: a company must hold a licence from the Commissioner, be wholly Ugandan-owned, meet capital and bank-guarantee thresholds (UGX 50M authorised capital plus a UGX 100M guarantee), may place workers only in destinations with protective labour laws or a bilateral agreement, must curtail worker-borne fees and provide pre-departure orientation.
+
+- **Authority:** Commissioner for Labour / External Employment Unit, Ministry of Gender, Labour and Social Development (SI 47/2021) (domestic_law) -- <https://mglsd.go.ug/wp-content/uploads/2023/11/Employment-Recruitment-of-Ugandan-Migrant-Workers-Regulations-2021.pdf>
+- **Applies to:** licensed Ugandan external-recruitment companies (origin-side); the 2021 SI replaced the 2005 SI
+- **Exceptions:** binds only licensed agencies -- extensive illegal / unlicensed recruitment to the Gulf persists, prompting periodic government bans and suspensions; enforcement is weak; destination-country protections and bilateral agreements vary by corridor
+- **Binding:** binding_domestic | **effective_from:** None | **as_of:** 2026-07-10 | **volatility:** high
+- **Recheck after 2027-01-01:** re-verify current capital/guarantee, fee rules, penalties, ownership requirements, and any active destination-country bans or bilateral agreements
+- **Caveats:** the 2005 SI 62 was revoked and replaced by SI 47/2021 -- cite the 2021 regulations for current law; the External Employment Unit is the enforcement body under MGLSD
