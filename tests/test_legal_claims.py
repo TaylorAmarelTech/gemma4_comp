@@ -91,8 +91,9 @@ def test_research_queue_is_well_formed():
         assert {"id", "jurisdiction", "topic", "priority", "status", "rationale"} <= set(t)
         assert t["status"] in valid_status                     # only the gated lifecycle states
         assert t["priority"] in {"high", "medium", "low"}
-    # nothing is auto-promoted: seed queue is all 'queued' (promotion is a human step)
-    assert all(t["status"] == "queued" for t in targets)
+    # the real invariant: NOTHING is auto-promoted (promotion into the corpus is a human, append-only step).
+    # Targets move queued -> researching -> staged over time; only a human sets 'promoted'.
+    assert all(t["status"] != "promoted" for t in targets)
 
 
 def test_append_only_principle_supersede_not_delete():
