@@ -104,6 +104,30 @@ def test_perdim_skips_a_failing_subcall_instead_of_crashing():
     assert calls["n"] == 2                     # C was retried once (2 attempts) before skipping
 
 
+def test_perdim_averages_across_question_framings():
+    """phrasings_per_dim>1 asks each dimension with DISTINCT framings and AVERAGES them, so a score is
+    not an artifact of one prompt wording (Taylor: 'variety of dimension scoring questions')."""
+    def caller(prompt, **_kwargs):
+        key = _COMPONENT_IN_SCHEMA.search(prompt).group(1)
+        val = 20 if "STRICT rubric grader" in prompt else 10   # framing 1 scores 20, framing 0 scores 10
+        return json.dumps({key: val, "reason": "x"})
+
+    comps = mj.judge_components_perdim("q", "r", model="nvidia:openai/gpt-oss-120b",
+                                       caller=caller, phrasings_per_dim=2)
+    assert comps["A"] == 15.0                  # (10 + 20) / 2 -- averaged across the two framings
+    assert comps["_calls"] == 10               # 5 components x 2 framings
+
+
+def test_perdim_single_framing_is_the_default():
+    def caller(prompt, **_kwargs):
+        key = _COMPONENT_IN_SCHEMA.search(prompt).group(1)
+        return json.dumps({key: 12, "reason": "x"})
+
+    comps = mj.judge_components_perdim("q", "r", model="nvidia:openai/gpt-oss-120b", caller=caller)
+    assert comps["_calls"] == 5                 # default phrasings_per_dim=1 -> one call per component
+    assert comps["A"] == 12.0
+
+
 def test_perdim_omits_score_when_every_subcall_fails():
     """If a judge fails EVERY component (e.g. SambaNova can't follow the per-dim rubric), the grade is a
     NON-grade -- 'score' must be OMITTED, not a phantom 0 that would deflate the pooled lift."""

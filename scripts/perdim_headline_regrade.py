@@ -61,7 +61,7 @@ def load_prompts(promptset_path: Path) -> dict[str, str]:
 
 def regrade(cells: list[str], prompts: dict[str, str], responses: dict[str, dict[str, str]], *,
             model: str, judges: list[str], caller: Callable[..., str] | None = None,
-            rubric_version: str = "v1", concurrency: int = 6,
+            rubric_version: str = "v1", concurrency: int = 6, phrasings_per_dim: int = 1,
             log: Callable[[str], None] | None = None) -> dict:
     """Per-dimension re-grade. For each (cell, judge) run judge_components_perdim on both arms; return the
     per-dimension lift (harness_core - baseline) pooled per judge and overall, plus the total. The
@@ -76,10 +76,10 @@ def regrade(cells: list[str], prompts: dict[str, str], responses: dict[str, dict
 
     def _grade_unit(pid: str, j: str):
         arms = responses[pid]
-        b = judge_components_perdim(prompts.get(pid, ""), arms["baseline"], model=j,
-                                    caller=caller, rubric_version=rubric_version)
-        h = judge_components_perdim(prompts.get(pid, ""), arms["harness_core"], model=j,
-                                    caller=caller, rubric_version=rubric_version)
+        b = judge_components_perdim(prompts.get(pid, ""), arms["baseline"], model=j, caller=caller,
+                                    rubric_version=rubric_version, phrasings_per_dim=phrasings_per_dim)
+        h = judge_components_perdim(prompts.get(pid, ""), arms["harness_core"], model=j, caller=caller,
+                                    rubric_version=rubric_version, phrasings_per_dim=phrasings_per_dim)
         return j, {k: float(h[k]) - float(b[k]) for k in comp_keys + ["score"] if k in b and k in h}
 
     done = 0
@@ -136,15 +136,20 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--results", type=Path, default=DEFAULT_RESULTS)
     ap.add_argument("--promptset", type=Path, default=DEFAULT_PROMPTSET)
     ap.add_argument("--concurrency", type=int, default=6, help="concurrent (cell, judge) grade units")
+    ap.add_argument("--phrasings-per-dim", type=int, default=1,
+                    help="ask each dimension with N distinct question framings and AVERAGE (rubric "
+                         "robustness; N x the judge sub-calls). 1 = single framing (default).")
     args = ap.parse_args(argv)
 
     responses = load_responses(args.results, args.model)
     prompts = load_prompts(args.promptset)
     cells = sorted(pid for pid, a in responses.items()
                    if all(x in a for x in ARMS_PAIR) and pid in prompts)[:args.n]
-    print(f"re-grading {len(cells)} {args.model} cells per-dimension via {args.judges} ...", flush=True)
+    print(f"re-grading {len(cells)} {args.model} cells per-dimension via {args.judges} "
+          f"({args.phrasings_per_dim} framing(s)/dim) ...", flush=True)
     result = regrade(cells, prompts, responses, model=args.model, judges=args.judges.split(","),
-                     concurrency=args.concurrency, log=lambda m: print(m, flush=True))
+                     concurrency=args.concurrency, phrasings_per_dim=args.phrasings_per_dim,
+                     log=lambda m: print(m, flush=True))
     result["_synthetic"] = True
     result["_propose_only"] = True
     OUT.write_text(json.dumps(result, indent=2), encoding="utf-8")
