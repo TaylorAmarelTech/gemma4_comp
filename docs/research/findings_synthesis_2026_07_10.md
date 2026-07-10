@@ -77,12 +77,16 @@ owed and is the claim that would most strengthen (or puncture) the "cites the sp
 
 ## 5. The legal-claim layer — what was built to close the gap
 
-A vetted `configs/duecare/legal_claims.json` (33 EvidenceClaim records) as a verification+freshness overlay:
+A vetted `configs/duecare/legal_claims.json` (**57 EvidenceClaim records as of 2026-07-10** — the library grows
+via a gated append-only enrichment loop, so treat every count here as as-of, not fixed; run
+`python scripts/legal_claims.py` for the live count and weight split) as a verification+freshness overlay:
 each claim carries a source URL, jurisdiction, **applicability + exceptions**, binding status, effective/
-verified dates, volatility, and a recheck date. An adversarial web-audit verified it (no fabricated
-citations), corrected the errors it found (a settled case wrongly shown as pending, a wrong reform date, a
-misattributed statute, an over-absolute superlative, a mislabelled federal/state id), and **29 claims are now
-human-verified at verification_weight 0.9**; 4 stay at 0.6 pending volatile-figure confirmation. A
+verified dates, volatility, and a recheck date. An adversarial web-audit verified the original core (no
+fabricated citations), corrected the errors it found (a settled case wrongly shown as pending, a wrong reform
+date, a misattributed statute, an over-absolute superlative, a mislabelled federal/state id). As of this
+writing **29 claims are human-verified at verification_weight 0.9**; the other **28 are auto-vetted at 0.6**
+(guardrails + a multi-prompt convergence vote), pending human verification to raise them — so the
+machine-vetted-only fraction is currently ~49% and a reviewer should read it as provisional, not settled. A
 deterministic `legal_reasoning.py` turns the library into auditable legal walkthroughs (facts -> indicators ->
 applicable law *with exceptions* -> Palermo element analysis -> uncertainty -> **never a criminal finding**),
 and a CoT training generator uses those walkthroughs as reasoning-chain targets, gated by a reasoning

@@ -362,7 +362,8 @@
       ],
       "supersedes": null,
       "superseded_by": null,
-      "verification_weight": 0.9
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10"
     },
     {
       "id": "siliadin_2005",
@@ -387,7 +388,8 @@
       ],
       "supersedes": null,
       "superseded_by": null,
-      "verification_weight": 0.9
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10"
     },
     {
       "id": "kozminski_1988",
@@ -412,7 +414,8 @@
       ],
       "supersedes": null,
       "superseded_by": "us_tvpa_1589",
-      "verification_weight": 0.9
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10"
     },
     {
       "id": "us_tvpa_1589",
@@ -438,7 +441,8 @@
       ],
       "supersedes": "kozminski_1988",
       "superseded_by": null,
-      "verification_weight": 0.9
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10"
     },
     {
       "id": "bd_overseas_employment",

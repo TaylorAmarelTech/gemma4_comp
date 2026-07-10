@@ -62,10 +62,13 @@ gates (**anonymization**, **search-safety**, **post-search verification**).
 | Example/showcase prompts | 652 | `_examples.json` |
 | Seed prompts | 74,640 | `seed_prompts.jsonl` |
 | ILO conventions | 16 | knowledge layer |
-| **Vetted legal-claim library** | **33** (29 human-verified @0.9, 4 auto-vetted @0.6) | `configs/duecare/legal_claims.json` |
+| **Vetted legal-claim library** | **57 as of 2026-07-10** (29 @0.9 human-verified, 28 @0.6 auto-vetted) | `configs/duecare/legal_claims.json` |
 
-The 4 still at 0.6 (pending human verification of volatile figures): `ph_placement_fee`,
-`sa_kafala_reform_2025`, `bd_overseas_employment`, `lk_slbfe`.
+The library **grows via a gated append-only enrichment loop**, so treat this count as as-of, not fixed —
+`python scripts/legal_claims.py` and `docs/research/legal_claims_register.md` are the live source of truth for
+the count and weight split. As of 2026-07-10, **28 of 57 claims (~49%) are auto-vetted @0.6** (guardrails +
+a multi-prompt convergence vote), pending human verification to raise them to 0.9; a reviewer should read
+those as provisional. Do not hand-quote a fixed "N human-verified / M auto-vetted" split — regenerate it.
 
 The legal-claim library is an EvidenceClaim overlay: each claim carries `source_url`, `jurisdiction`,
 `applies_to`, `exceptions`, `binding_status`, `effective_from`, `as_of`, `volatility`, `recheck_after`,
@@ -168,11 +171,15 @@ to pass the contract) and one REJECTED response per wrong-thinking mode:
 | missing resources | structural contract |
 | jurisdiction-blind | structural contract |
 | overconfident / no uncertainty | structural contract |
-| **overbroad-no-exception** (real convention cited WITHOUT its exception) | **semantic faithfulness/exception layer (the one structural gap)** |
+| **overbroad-no-exception** (real convention cited WITHOUT its exception) | **NOT caught at inference — an owed output-faithfulness gate (see below)** |
 
-**Measured finding:** the structural contract catches **7 of 8** modes; the 8th (overbroad-no-exception)
-is exactly the specificity-overfit failure the legal-claims exception layer exists to catch — the two
-layers are complementary and both necessary. This is why we run structural + semantic, not one.
+**Measured finding (with an honesty correction):** the structural contract catches **7 of 8** modes; the 8th
+(overbroad-no-exception) is the specificity-overfit failure. Be precise about what catches it: `_looks_overbroad`
+(`legal_corpus_stage.py`) screens **candidate claims being appended to the corpus**, and a "faithfulness" lens
+exists only as an **LLM-judge framing** — neither is an **output gate on generated answers**. So at inference the
+overbroad mode is currently **unguarded**; the legal-claims exception data makes such a gate *buildable* but it
+is **not yet built**. This is the single most important owed piece (§10.1, §11) — do not describe the semantic
+layer as if it already screens model outputs.
 
 **Strong/emphasised CoT tuning path (owed, gated):** distil contract-satisfying traces into SFT, then DPO
 (chosen = contract-satisfying chain, rejected = each failure mode), enforce the contract at inference via
@@ -226,7 +233,9 @@ All synthetic content is composite/synthetic — **no real PII** (rule 10).
    article") and re-measurement on the corrected (no-longer-overbroad) gold replies.
 5. **Prompt set is heavily templated** — quote effective-N-adjusted CIs; the 1,595-prompt board is not
    itself cluster-corrected.
-6. **4 legal claims remain auto-vetted (0.6)**, not human-verified.
+6. **~49% of legal claims (28 of 57 as of 2026-07-10) are auto-vetted @0.6**, not human-verified — a
+   larger machine-vetted fraction than a fixed "4/33" would suggest; regenerate the split from
+   `legal_claims.py`, never hand-quote it (an adversarial audit caught the docs understating this).
 7. **CoT is gated but not fine-tuned** — needs hidden lineage splits + direct factual grading before a GPU
    run; the overbroad-no-exception mode is not structurally catchable (needs the semantic layer).
 8. **`evaluation.html` "Latest evaluation run" section** presents precise illustrative metrics
