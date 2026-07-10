@@ -104,6 +104,18 @@ def test_perdim_skips_a_failing_subcall_instead_of_crashing():
     assert calls["n"] == 2                     # C was retried once (2 attempts) before skipping
 
 
+def test_perdim_omits_score_when_every_subcall_fails():
+    """If a judge fails EVERY component (e.g. SambaNova can't follow the per-dim rubric), the grade is a
+    NON-grade -- 'score' must be OMITTED, not a phantom 0 that would deflate the pooled lift."""
+    def all_fail(prompt, **_kwargs):
+        raise RuntimeError("this judge cannot grade per-dimension")
+
+    comps = mj.judge_components_perdim("q", "r", model="sambanova:DeepSeek-V3.1", caller=all_fail)
+    assert "score" not in comps                # no phantom 0 -> callers drop the cell, not count it
+    for k in ["A", "B", "C", "D", "E"]:
+        assert k not in comps                  # nothing graded
+
+
 def test_build_component_rubric_single_mirrors_batched_wording():
     # the per-dimension C(v2) prompt carries the SAME grounded-refusal cap as the batched rubric
     c_v2 = mj.build_component_rubric_single("C", version="v2")
