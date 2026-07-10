@@ -2,7 +2,7 @@
 
 Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 2026-07-10. Claims flagged RECHECK are potentially outdated and must be re-verified against a primary source before a grounded answer relies on them. This is not legal advice.
 
-**27 claims -- 6 flagged for recheck.**
+**30 claims -- 7 flagged for recheck.**
 
 | id | jurisdiction | binding | volatility | as_of | recheck_after | flag |
 |---|---|---|---|---|---|---|
@@ -12,6 +12,7 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 | `ph_placement_fee` | PH | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `sa_kafala_reform_2025` | SA | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `limbu_v_dyson_2024` | UK | binding_where_applicable | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
+| `us_uflpa` | US | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `ae_labour_reforms` | AE | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
 | `rantsev_2010` | Council of Europe (ECtHR) | binding_where_applicable | low | 2026-07-10 | 2028-01-01 | ok |
 | `siliadin_2005` | Council of Europe (ECtHR) | binding_where_applicable | low | 2026-07-10 | 2028-01-01 | ok |
@@ -33,6 +34,8 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 | `palermo_elements` | international | binding_where_ratified | low | 2026-07-10 | 2028-01-01 | ok |
 | `stat_migrant_workers` | international | estimate | medium | 2026-07-10 | 2027-01-01 | ok |
 | `stat_modern_slavery` | international | estimate | medium | 2026-07-10 | 2027-06-01 | ok |
+| `ilo_c188_fishing` | international | binding_where_ratified | medium | 2026-07-10 | 2027-06-01 | ok |
+| `ilo_fair_recruitment` | international | non_binding_guidance | low | 2026-07-10 | 2028-01-01 | ok |
 
 ## Claims
 ### c029_definition  (international, definition)
@@ -304,3 +307,33 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 - **Binding:** binding_where_applicable | **effective_from:** 2024-12-01 | **as_of:** 2026-07-10 | **volatility:** high
 - **Recheck after 2026-10-01:** the substantive liability trial is scheduled for April 2027 and will change what the case stands for; recheck for the trial outcome and any further appeals
 - **Caveats:** it allows the claim to PROCEED (forum), it is NOT yet a liability finding against Dyson -- do not overstate it; cite it for supply-chain forum/duty-of-care, not for a settled liability outcome
+
+### ilo_c188_fishing  (international, rule)
+> The ILO Work in Fishing Convention No. 188 (2007, in force 16 November 2017) sets minimum standards for fishers on commercial vessels: a written work agreement, minimum hours of rest, adequate accommodation and food, occupational safety and medical care, social security, and regulation of the recruitment process -- helping prevent forced and child labour in fishing, especially for migrant fishers.
+
+- **Authority:** ILO Work in Fishing Convention No. 188 (2007) (treaty) -- <https://www.ilo.org/resource/ensuring-decent-work-fishers-ilos-work-fishing-convention-2007-n%C2%B0-188>
+- **Applies to:** fishers on commercial fishing vessels in states that have ratified C188 (or under a ratifying flag state)
+- **Exceptions:** binds only ratifying states; scope and vessel coverage depend on national implementation and flag state; some vessel sizes/categories may be excluded under national law
+- **Binding:** binding_where_ratified | **effective_from:** 2017-11-16 | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-06-01:** ratification grows and national implementation varies; verify whether the relevant flag/state is bound and how it is enforced
+- **Caveats:** the 'sent to a fishing boat and never paid' scenario maps here; C188 is the sector standard, but forced labour itself is defined by C29; check the vessel's flag state ratification before asserting it applies
+
+### ilo_fair_recruitment  (international, indicator_guidance)
+> The ILO General Principles and Operational Guidelines for Fair Recruitment, with the Definition of Recruitment Fees and Related Costs (2019), set out the 'employer pays' principle: workers shall not be charged, directly or indirectly, in whole or in part, any recruitment fees or related costs. This is the operative detail that gives content to the ILO Private Employment Agencies Convention No. 181 fee prohibition, and covers all workers (including migrants), all sectors, and recruitment within or across borders whether by employers or intermediaries.
+
+- **Authority:** ILO General Principles and Operational Guidelines for Fair Recruitment; Definition of Recruitment Fees and Related Costs (2019) (ilo_guidance) -- <https://www.ilo.org/publications/general-principles-and-operational-guidelines-fair-recruitment-and>
+- **Applies to:** recruitment of all workers (incl. migrants), all sectors, cross-border and domestic, direct or via intermediaries
+- **Exceptions:** these are non-binding GUIDANCE/principles, not a treaty; they give content to C181 but do not themselves bind states; authorised exceptions under national law and C181 Art.7(2) still apply
+- **Binding:** non_binding_guidance | **effective_from:** 2019-05-22 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2028-01-01:** stable guidance; the ILO occasionally updates the fair-recruitment materials; verify the current edition
+- **Caveats:** build-upon of c181_recruitment_fees: this is the 'employer pays' operative standard, but it is guidance, not binding law; do not present guidance as a binding legal prohibition
+
+### us_uflpa  (US, rule)
+> The U.S. Uyghur Forced Labor Prevention Act (UFLPA, 2021) established, effective 21 June 2022, a REBUTTABLE PRESUMPTION under 19 U.S.C. sec.1307 that any goods mined, produced or manufactured wholly or in part in the Xinjiang Uyghur Autonomous Region (XUAR), or by an entity on the UFLPA Entity List, are made with forced labour and barred from U.S. import -- unless the importer shows by CLEAR AND CONVINCING EVIDENCE, with due-diligence documentation, that they were not.
+
+- **Authority:** Uyghur Forced Labor Prevention Act (2021); 19 U.S.C. sec.1307; U.S. Customs and Border Protection / Forced Labor Enforcement Task Force (domestic_law) -- <https://www.cbp.gov/trade/forced-labor/UFLPA>
+- **Applies to:** importers bringing goods into the United States (a customs/import measure, not individual worker rights)
+- **Exceptions:** the presumption is REBUTTABLE: an importer can overcome it with clear and convincing evidence plus due-diligence records; it is an import/trade ban, distinct from a worker's individual rights or a criminal finding; the UFLPA Entity List and enforcement strategy are updated periodically
+- **Binding:** binding_domestic | **effective_from:** 2022-06-21 | **as_of:** 2026-07-10 | **volatility:** high
+- **Recheck after 2026-10-01:** the Entity List and Forced Labor Enforcement Task Force strategy are revised regularly; verify the current list and guidance against CBP/DHS
+- **Caveats:** it is a rebuttable IMPORT presumption, not proof any specific worker was trafficked; complements the EU Forced Labour Regulation (import-side, build-upon); do not describe it as a criminal or individual-liability finding

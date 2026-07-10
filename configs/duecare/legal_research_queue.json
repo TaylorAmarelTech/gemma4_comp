@@ -88,6 +88,30 @@
       "priority": "high",
       "status": "promoted",
       "rationale": "Taylor: watch for new court precedents, protections, initiatives; keeps the precedent set current. PROMOTED 2026-07-10: Limbu v Dyson [2024] (forum ruling, liability trial 2027)."
+    },
+    {
+      "id": "us_uflpa",
+      "jurisdiction": "US",
+      "topic": "Uyghur Forced Labor Prevention Act import ban (rebuttable presumption)",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "Import-side forced-labour ban; complements EU FLR. PROMOTED 2026-07-10 (guardrails+convergence 3/3; auto_vetted 0.6)."
+    },
+    {
+      "id": "ilo_c188_fishing",
+      "jurisdiction": "international",
+      "topic": "ILO Work in Fishing Convention No. 188 (2007)",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "Fishing-sector forced-labour standard (the 'sent to a fishing boat' scenario). PROMOTED 2026-07-10 (auto_vetted 0.6)."
+    },
+    {
+      "id": "ilo_fair_recruitment",
+      "jurisdiction": "international",
+      "topic": "ILO fair-recruitment principles + definition of recruitment fees (2019)",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "The 'employer pays' operative detail behind C181 (build-upon). PROMOTED 2026-07-10 (auto_vetted 0.6)."
     }
   ]
 }
