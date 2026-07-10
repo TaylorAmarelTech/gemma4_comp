@@ -58,5 +58,29 @@ def test_analyze_flags_volatile_claims_and_never_asserts_a_finding():
 def test_us_scenario_pulls_the_current_tvpa_standard_not_kozminski_as_current():
     claims = lr.load_claims()
     a = lr.analyze(lr.SCENARIOS[3], claims, date(2026, 7, 10))   # US psychological-coercion scenario
-    ids = {c["id"] for c in a["applicable_claims"]}
-    assert "us_tvpa_1589" in ids                                # the current US forced-labour standard is surfaced
+    by_id = {c["id"]: c for c in a["applicable_claims"]}
+    assert "us_tvpa_1589" in by_id                              # the current US forced-labour standard is surfaced
+    assert by_id["us_tvpa_1589"]["status"] == "current"
+    # build-upon/supersede is ENFORCED, not just recorded: if the superseded kozminski case is surfaced at all,
+    # it must be labelled historical (never as an equal current standard), and it must sort AFTER the successor.
+    if "kozminski_1988" in by_id:
+        assert by_id["kozminski_1988"]["status"] == "historical"
+        assert "superseded" in by_id["kozminski_1988"]["binding_here"]
+        order = [c["id"] for c in a["applicable_claims"]]
+        assert order.index("us_tvpa_1589") < order.index("kozminski_1988")
+
+
+def test_keyword_matching_uses_word_boundaries_not_substrings():
+    # substring containment silently fired ordinary English: "feel"->"fee", "however"->"owe", "white"->"hit".
+    # whole-word matching must NOT raise those indicators/claims from innocuous words.
+    assert "debt bondage" not in lr.match_indicators("The schedule is flexible; however, I get one day off.")
+    assert "physical or sexual violence" not in lr.match_indicators("They drive us in a white van every day.")
+    claims = lr.load_claims()
+    sc = {"id": "s", "jurisdiction": "US", "destination": "US",
+          "facts": ["There is no physical restraint but I feel I cannot leave."]}
+    ids = {c["id"] for c in lr.applicable_claims(sc, claims, date(2026, 7, 10))}
+    assert "c181_recruitment_fees" not in ids                   # "feel" must NOT trip the recruitment-fee claim
+    assert "ph_placement_fee" not in ids
+    # the genuine whole-word signals still fire
+    assert "debt bondage" in lr.match_indicators("I owe a large debt and must repay it.")
+    assert "intimidation and threats" in lr.match_indicators("My boss threatens and threatened me repeatedly.")

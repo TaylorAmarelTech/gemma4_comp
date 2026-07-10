@@ -63,3 +63,17 @@ def test_guardrail_failure_is_held():
     bad = _cand(); bad["source_url"] = ""; bad["exceptions"] = []
     out = pr.promote([bad], {"claims": []}, caller=_accept)
     assert out["corpus"]["claims"] == [] and out["report"][0]["action"] == "held"
+
+
+def test_malformed_non_dict_candidate_is_held_not_crashing():
+    # a candidate file that is a JSON array/scalar must be HELD, not crash the whole batch run
+    out = pr.promote([[1, 2, 3], _cand()], {"claims": []}, caller=_accept)
+    actions = {(r.get("id"), r["action"]) for r in out["report"]}
+    assert (None, "held") in actions                           # the malformed one was held
+    assert any(c["id"] == "x_new" for c in out["corpus"]["claims"])   # the good one still appended
+
+
+def test_dedup_tolerates_a_legacy_record_missing_id():
+    # a pre-existing corpus record without "id" must not crash the dup-check (guardrail uses .get)
+    out = pr.promote([_cand()], {"claims": [{"text": "legacy record with no id"}]}, caller=_accept)
+    assert any(c.get("id") == "x_new" for c in out["corpus"]["claims"])   # .get: the legacy record has no id

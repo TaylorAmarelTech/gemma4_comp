@@ -26,12 +26,26 @@ import llm_generate as lg  # noqa: E402
 
 STAGING = _ROOT / "reports" / "legal_corpus_staging.json"
 
-# absolute-claim heuristic: "any/all/every ... prohibit/no exception/illegal" without a genuine scoping
-# hedge. NOTE: bare "exception" is NOT a hedge -- "with no exception" contains it but is the ABSOLUTIST
-# phrasing; the hedge must be real scoping language ("subject to", "authorised exception(s)", ...).
-_OVERBROAD = re.compile(r"\b(any|all|every)\b[^.]{0,60}\b(prohibit|no exception|banned|illegal|never)\b", re.I)
-_HEDGE = re.compile(r"subject to|depends|where ratified|unless|generally|applicab|authorised exception|"
-                    r"per national law|only where|not exceeding", re.I)
+# Absolute-claim heuristic, evaluated PER SENTENCE and ORDER-INDEPENDENTLY: a sentence that pairs an
+# absolute quantifier (any/all/every/no) with an absolute legal verb (prohibited/banned/illegal/unlawful/
+# never / "no exception(s)") is overbroad UNLESS that same sentence carries genuine scoping language. Three
+# evasions the old single-regex version missed are now closed: (a) reversed word order ("illegal in all
+# cases"), (b) an unrelated hedge word elsewhere in the text ("generally" in a different sentence), and
+# (c) the plural "no exceptions". A hedge in a DIFFERENT sentence no longer rescues an absolutist claim.
+_ABS_QUANT = re.compile(r"\b(any|all|every|no)\b", re.I)
+_ABS_VERB = re.compile(r"\b(prohibit(?:s|ed)?|banned|ban|illegal|unlawful|never|no\s+exceptions?)\b", re.I)
+_SCOPING = re.compile(r"subject to|depends on|where ratified|unless|only where|not exceeding|"
+                      r"authoris\w+ exception|per national law|except (?:where|for|in|as)|"
+                      r"in (?:certain|some) (?:cases|jurisdictions)|may (?:be )?permit", re.I)
+
+
+def _looks_overbroad(text: str) -> bool:
+    """True if any single sentence pairs an absolute quantifier with an absolute legal verb and lacks its own
+    scoping language. Sentence-scoped so a hedge elsewhere cannot launder an unscoped absolutist clause."""
+    for sentence in re.split(r"(?<=[.!?])\s+", text):
+        if _ABS_QUANT.search(sentence) and _ABS_VERB.search(sentence) and not _SCOPING.search(sentence):
+            return True
+    return False
 
 _FRAMINGS = (
     'Judge ONLY this legal claim for ACCURACY against its cited source. Reply compact JSON {"accurate": true|false, "why": "<short>"}.',
@@ -43,16 +57,18 @@ _FRAMINGS = (
 def guardrail_check(candidate: dict, existing: list[dict]) -> tuple[bool, list[str]]:
     """Defence-in-depth structural gate (no model): schema, real source, exceptions present, not a
     duplicate (build-upon: a match must propose a supersede, not overwrite), not obviously overbroad."""
+    if not isinstance(candidate, dict):
+        return (False, [f"candidate is not a JSON object (got {type(candidate).__name__})"])
     issues = list(validate_schema([candidate]))
     if not str(candidate.get("source_url", "")).startswith("http"):
         issues.append("no real source_url (primary/official required)")
     if not candidate.get("exceptions"):
         issues.append("no exceptions/applicability recorded (bare absolute claims are rejected)")
-    if candidate.get("id") in {c["id"] for c in existing}:
+    existing_ids = {c.get("id") for c in existing if isinstance(c, dict)}   # .get: tolerate a legacy record w/o id
+    if candidate.get("id") in existing_ids:
         issues.append(f"duplicate id {candidate.get('id')!r} -- build-upon: propose supersede, do not overwrite")
-    text = candidate.get("text", "")
-    if _OVERBROAD.search(text) and not _HEDGE.search(text):
-        issues.append("looks OVERBROAD (absolute claim without a hedge/exception in the text)")
+    if _looks_overbroad(candidate.get("text", "")):
+        issues.append("looks OVERBROAD (an absolute claim without scoping/exception in the same sentence)")
     return (not issues, issues)
 
 
