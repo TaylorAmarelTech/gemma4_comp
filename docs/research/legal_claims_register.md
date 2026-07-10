@@ -2,17 +2,23 @@
 
 Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 2026-07-10. Claims flagged RECHECK are potentially outdated and must be re-verified against a primary source before a grounded answer relies on them. This is not legal advice.
 
-**16 claims -- 3 flagged for recheck.**
+**22 claims -- 5 flagged for recheck.**
 
 | id | jurisdiction | binding | volatility | as_of | recheck_after | flag |
 |---|---|---|---|---|---|---|
+| `bd_overseas_employment` | BD | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `eu_forced_labour_regulation` | EU | binding_domestic | high | 2026-07-10 | 2026-12-01 | **RECHECK** |
+| `np_foreign_employment_fees` | NP | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `ph_placement_fee` | PH | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `sa_kafala_reform_2025` | SA | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `rantsev_2010` | Council of Europe (ECtHR) | binding_where_applicable | low | 2026-07-10 | 2028-01-01 | ok |
 | `siliadin_2005` | Council of Europe (ECtHR) | binding_where_applicable | low | 2026-07-10 | 2028-01-01 | ok |
 | `hk_money_lending_cap` | HK | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
+| `id_migrant_worker_protection` | ID | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
+| `qa_wage_protection` | QA | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
+| `uk_modern_slavery_act` | UK | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
 | `kozminski_1988` | US | historical_superseded_by_statute | low | 2026-07-10 | 2028-01-01 | ok |
+| `us_tvpa_1589` | US | binding_domestic | low | 2026-07-10 | 2028-01-01 | ok |
 | `c029_definition` | international | binding_where_ratified | low | 2026-07-10 | 2028-01-01 | ok |
 | `c029_vs_indicators` | international | non_binding_guidance | medium | 2026-07-10 | 2027-06-01 | ok |
 | `ilo_indicators_2025` | international | non_binding_guidance | medium | 2026-07-10 | 2027-06-01 | ok |
@@ -183,3 +189,63 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 - **Binding:** historical_superseded_by_statute | **effective_from:** 1988-06-29 | **as_of:** 2026-07-10 | **volatility:** low
 - **Recheck after 2028-01-01:** stable as history; the operative CURRENT federal standard is the TVPA (18 U.S.C. sec.1589), which should be cited for present-day forced-labour analysis
 - **Caveats:** do NOT cite Kozminski as the current federal forced-labour standard; it is retained as context that explains why the TVPA broadened the definition (build-upon-not-replace example)
+
+### us_tvpa_1589  (US, rule)
+> The current U.S. federal forced-labour standard, 18 U.S.C. sec.1589 (Trafficking Victims Protection Act), criminalises knowingly obtaining labour or services by any of: force or threat of force; serious harm or threats of serious harm (which expressly includes psychological, financial, or reputational harm sufficient to compel a reasonable person in the same circumstances); abuse or threatened abuse of law or legal process; or a scheme to make the person believe they or another would suffer serious harm or physical restraint. It broadened the narrow physical/legal-coercion reading of Kozminski.
+
+- **Authority:** 18 U.S.C. sec.1589 (Trafficking Victims Protection Act) (domestic_law) -- <https://www.law.cornell.edu/uscode/text/18/1589>
+- **Applies to:** US federal forced-labour prosecutions; the operative current standard
+- **Exceptions:** a criminal charge requires proof of the statutory elements to a criminal standard; this is not an automatic finding
+- **Binding:** binding_domestic | **effective_from:** 2000-10-28 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2028-01-01:** core statute is stable; the TVPA is periodically reauthorised (TVPRA) and case law refines 'serious harm', so check for amendments
+- **Caveats:** cite THIS, not Kozminski, for the current US forced-labour standard; psychological/financial coercion CAN qualify as 'serious harm' here (the key difference from Kozminski)
+
+### bd_overseas_employment  (BD, rule)
+> Bangladesh's Overseas Employment and Migrants Act 2013 governs labour migration, and the Bureau of Manpower, Employment and Training (BMET) sets migration-cost ceilings that vary by destination and worker category (for example a much lower fixed cost for female workers to several Gulf/Asia destinations, and suggested ceilings of roughly Tk 44,000-84,000 for some markets; the government-fixed cost to Saudi Arabia has been about Tk 1.65 lakh).
+
+- **Authority:** Overseas Employment and Migrants Act 2013; Bureau of Manpower, Employment and Training (BMET) (domestic_law) -- <https://webapps.ilo.org/dyn/migpractice/docs/169/Act.pdf>
+- **Applies to:** Bangladeshi migrant workers recruited through licensed agencies, by destination and category
+- **Exceptions:** BMET ceilings vary by destination country and worker category and are periodically revised; the Act's cost controls are weakly enforced in practice: workers report paying far more than the ceiling (BBS survey average ~Tk 478,000; Saudi-bound ~Tk 3.5-4 lakh)
+- **Binding:** binding_domestic | **effective_from:** 2013-01-01 | **as_of:** 2026-07-10 | **volatility:** high
+- **Recheck after 2026-10-01:** BMET migration-cost ceilings and government-fixed costs change; verify the current per-destination ceiling against an official BMET/Probashi source
+- **Caveats:** the BMET ceiling is the RULE; actual costs paid are typically far higher, so do not assume the worker was lawfully charged; verify against an official BMET source, not only news/NGO reporting
+
+### id_migrant_worker_protection  (ID, rule)
+> Indonesia's Law No. 18 of 2017 on the Protection of Indonesian Migrant Workers exempts migrant workers from paying placement fees (Article 30(1)) -- the 'zero-cost placement' policy -- and prohibits charging workers for recruitment services; the guarantee-deposit and placement costs fall on the licensed placement agency (PrEA).
+
+- **Authority:** Law of the Republic of Indonesia No. 18 of 2017, Article 30(1) (domestic_law) -- <https://asean.org/wp-content/uploads/2016/05/Law-of-Indonesia-No-18-of-2017-on-Protection-of-Indonesian-Migrant-Workers.pdf>
+- **Applies to:** Indonesian migrant workers placed abroad
+- **Exceptions:** full zero-cost implementation depends on bilateral 'one-channel' agreements (e.g. with Malaysia) and destination/sector; certain components have been debated and phased; verify which costs are covered for a given corridor
+- **Binding:** binding_domestic | **effective_from:** 2017-11-22 | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-06-01:** the statute is stable but implementing regulations and bilateral one-channel agreements evolve; verify the zero-cost coverage for the specific corridor
+- **Caveats:** zero-cost is the RULE; enforcement and corridor coverage vary, so do not assume the worker paid nothing; verify against the official law / BP2MI implementing regulations
+
+### np_foreign_employment_fees  (NP, rule)
+> Nepal's 'Free Visa, Free Ticket' policy (a 2015 directive under the Foreign Employment Act 2007) requires the foreign employer to bear the visa and air-ticket costs for Nepali migrant workers going to seven destinations (Oman, Bahrain, Saudi Arabia, UAE, Kuwait, Qatar, Malaysia). A Nepali recruitment agency may charge a worker a service fee not exceeding NPR 10,000, and only where the employer refuses to pay those costs.
+
+- **Authority:** Government of Nepal 'Free Visa, Free Ticket' directive (2015) under the Foreign Employment Act 2007; Department of Foreign Employment (administrative_rule) -- <https://www.business-humanrights.org/en/latest-news/nepal-free-visa-free-ticket-policys-promise-of-reducing-recruitment-fee-charging-remains-largely-unfulfilled-says-op-ed/>
+- **Applies to:** Nepali migrant workers recruited for the seven covered destination countries
+- **Exceptions:** a Nepali agency may charge a service fee up to NPR 10,000 where the employer refuses to pay the visa/ticket costs; the covered-destination list can change; in practice the policy is widely under-enforced and workers report paying far more
+- **Binding:** binding_domestic | **effective_from:** 2015-07-01 | **as_of:** 2026-07-10 | **volatility:** high
+- **Recheck after 2026-10-01:** enforcement is weak and amounts/lists change (the Foreign Employment Welfare Fund contribution moved to NPR 1,500 for contracts up to 3 years / NPR 2,500 over 3 years on 2024-07-31); verify the NPR 10,000 cap, destination list, and welfare-fund amounts against an official Department of Foreign Employment source
+- **Caveats:** the NPR 10,000 cap and 7-destination list are the RULE; in PRACTICE workers report paying USD 1,500-2,200, so do not assume the worker was lawfully charged; verify against an official DoFE/Nepal government source, not only NGO/news reporting
+
+### qa_wage_protection  (QA, rule)
+> Qatar's Labour Law No. 14 of 2004 prohibits licensed recruiting entities from collecting recruitment fees, expenses or associated costs from migrant workers (Qatar is a non-placement-fee receiving country): the recruitment agency or employer bears the cost. The same law underpins the Wage Protection System (WPS), which requires wages to be paid via electronic bank transfer as evidence of payment.
+
+- **Authority:** Qatar Labour Law No. 14 of 2004; Wage Protection System (domestic_law) -- <https://natlex.ilo.org/dyn/natlex2/natlex2/files/download/67387/QAT67387%20Eng.pdf>
+- **Applies to:** migrant workers recruited to Qatar under the Labour Law
+- **Exceptions:** domestic workers are covered by a separate instrument (Law No. 15 of 2017), not the Labour Law; the no-fee rule and WPS are under-enforced in parts of the market in practice
+- **Binding:** binding_domestic | **effective_from:** 2005-01-01 | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-06-01:** Gulf labour rules and WPS coverage are periodically reformed; verify current scope + domestic-worker treatment against an official Qatari source
+- **Caveats:** the employer/agency-pays rule is the RULE; workers are still charged in practice via origin-country agents, so do not assume compliance; domestic workers fall under Law 15/2017, not this Labour Law
+
+### uk_modern_slavery_act  (UK, rule)
+> The UK Modern Slavery Act 2015 criminalises slavery, servitude and forced or compulsory labour (section 1) and human trafficking (section 2); section 54 (Transparency in Supply Chains) requires a commercial organisation carrying on business in the UK with total annual turnover of at least GBP 36 million to publish an annual modern-slavery statement approved by the board and signed by a director.
+
+- **Authority:** Modern Slavery Act 2015 (UK), sections 1, 2 and 54 (domestic_law) -- <https://www.legislation.gov.uk/ukpga/2015/30/section/54>
+- **Applies to:** the criminal offences apply in the UK; section 54 applies to in-scope commercial organisations doing business in the UK
+- **Exceptions:** section 54 applies only where total turnover is at least GBP 36 million; section 54 is a transparency/reporting duty, not a mandatory due-diligence or import-ban regime; the criminal offences (s.1-2) are separate
+- **Binding:** binding_domestic | **effective_from:** 2015-10-29 | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-06-01:** reform of section 54 (mandatory reporting topics, penalties, single reporting deadline) has been proposed; verify whether amendments are in force
+- **Caveats:** s.54 is transparency-only; do not describe it as a due-diligence mandate or an import ban (contrast the EU Forced Labour Regulation); the GBP 36m threshold and reporting requirements may change

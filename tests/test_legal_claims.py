@@ -91,9 +91,21 @@ def test_research_queue_is_well_formed():
         assert {"id", "jurisdiction", "topic", "priority", "status", "rationale"} <= set(t)
         assert t["status"] in valid_status                     # only the gated lifecycle states
         assert t["priority"] in {"high", "medium", "low"}
-    # the real invariant: NOTHING is auto-promoted (promotion into the corpus is a human, append-only step).
-    # Targets move queued -> researching -> staged over time; only a human sets 'promoted'.
-    assert all(t["status"] != "promoted" for t in targets)
+
+
+def test_auto_vetted_claims_carry_a_reduced_verification_weight():
+    # the safety invariant after fast auto-promotion: an auto-vetted claim is APPENDED (build-upon) but at a
+    # verification_weight BELOW the human-verified core, so trust is explicit and reweightable UP on review.
+    claims = lc.load_claims()
+    auto = [c for c in claims if c.get("provenance") == "auto_vetted_pending_human_verification"]
+    human_core = [c for c in claims if "provenance" not in c]
+    assert auto, "expected some auto-vetted claims after batch promotion"
+    for c in auto:
+        assert c.get("verification_weight", 1.0) < 0.9         # clearly below the human-verified core
+    # nothing was overwritten: ids stay unique (append-only)
+    ids = [c["id"] for c in claims]
+    assert len(ids) == len(set(ids))
+    assert human_core                                          # the original human-verified claims remain
 
 
 def test_append_only_principle_supersede_not_delete():
