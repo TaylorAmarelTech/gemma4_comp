@@ -33,7 +33,10 @@ STAGING = _ROOT / "reports" / "legal_corpus_staging.json"
 # cases"), (b) an unrelated hedge word elsewhere in the text ("generally" in a different sentence), and
 # (c) the plural "no exceptions". A hedge in a DIFFERENT sentence no longer rescues an absolutist claim.
 _ABS_QUANT = re.compile(r"\b(any|all|every|no)\b", re.I)
-_ABS_VERB = re.compile(r"\b(prohibit(?:s|ed)?|banned|ban|illegal|unlawful|never|no\s+exceptions?)\b", re.I)
+# verbs that assert an absolute legal bar. Inflections matter: 'ban' must also catch 'bans'/'banned', and
+# an adversarial audit showed 'outlaws'/'forbids' slipped an unscoped absolutist claim past the old list.
+_ABS_VERB = re.compile(r"\b(prohibit(?:s|ed)?|ban(?:s|ned)?|outlaw(?:s|ed)?|forbid(?:s|den)?|"
+                       r"illegal|unlawful|never|no\s+exceptions?)\b", re.I)
 _SCOPING = re.compile(r"subject to|depends on|where ratified|unless|only where|not exceeding|"
                       r"authoris\w+ exception|per national law|except (?:where|for|in|as)|"
                       r"in (?:certain|some) (?:cases|jurisdictions)|may (?:be )?permit", re.I)
