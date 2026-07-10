@@ -2,14 +2,14 @@
 
 > Ingests `reports/rich_lift/{panel,results}.jsonl` into `reports/rich_lift/benchmark.db` and audits integrity. Regenerate with `python scripts/benchmark_db.py`. Counts only; no prompt or response text.
 
-**40,814 responses** and **29,393 judge rows** (0.72 judges per response on average -- self-family exclusion keeps this below the 3-judge panel size).
+**40,814 responses** and **31,205 judge rows** (0.76 judges per response on average -- self-family exclusion keeps this below the 3-judge panel size).
 
 ## Integrity checks
 
 - [ok] **Duplicate judge rows (same model/prompt/arm/judge): 0**
 - [ok] **Duplicate responses (same model/prompt/arm): 0**
 - [ok] **Scored cells with no stored response (orphan panel): 0**
-- [!!] **Responses never scored (orphan results): 28,840**
+- [!!] **Responses never scored (orphan results): 28,236**
 - [ok] **Scores out of 0-100 range: 0**
 - [ok] **Components out of their max range: 0**
 - [!!] **Empty responses: 1**
@@ -19,7 +19,7 @@
 
 - Prompts with all 3 arms generated: **13,601**; partial (missing an arm): **7**.
 
-- Judges per graded cell: 1 judge(s): 1, 2 judge(s): 6,527, 3 judge(s): 5,446.
+- Judges per graded cell: 1 judge(s): 2, 2 judge(s): 6,525, 3 judge(s): 6,051.
 
 ## Responses per model
 
@@ -35,5 +35,5 @@
 | `gpt-oss:20b` | 9 |
 
 Per arm: `harness_full` 13,606, `harness_core` 13,606, `baseline` 13,602.  
-Per judge: `deepseek-v4-pro` 11,423, `glm-5.2` 10,620, `gpt-oss:120b` 7,350.
+Per judge: `deepseek-v4-pro` 12,028, `glm-5.2` 11,224, `gpt-oss:120b` 7,953.
 
