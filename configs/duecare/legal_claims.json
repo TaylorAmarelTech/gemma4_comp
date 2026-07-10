@@ -666,6 +666,34 @@
       "provenance": "auto_vetted_pending_human_verification",
       "supersedes": null,
       "superseded_by": null
+    },
+    {
+      "id": "limbu_v_dyson_2024",
+      "claim_type": "precedent",
+      "text": "In Limbu & Others v Dyson Technology Ltd [2024] the English Court of Appeal allowed Nepali and Bangladeshi migrant workers to bring forced-labour, debt-bondage and trafficking claims in the English courts over conditions at Malaysian factories in Dyson's supply chain; the UK Supreme Court refused Dyson permission to appeal, and in January 2026 the High Court set a liability trial for April 2027. It confirms that a UK-domiciled company may be sued in England for human-rights abuses in its overseas supply chain.",
+      "authority": "England and Wales Court of Appeal, Limbu & Others v Dyson Technology Ltd [2024] (UK Supreme Court permission to appeal refused)",
+      "authority_class": "court_precedent",
+      "source_url": "https://www.business-humanrights.org/en/latest-news/uk-supreme-court-dismisses-dysons-application-to-appeal-over-migrant-workers-lawsuit-allegations-of-force-labour-allowing-the-case-to-proceed/",
+      "jurisdiction": "UK",
+      "applies_to": "the forum/jurisdiction question of whether overseas supply-chain forced-labour claims can be heard against a UK-domiciled parent; persuasive on parent-company duty of care",
+      "exceptions": [
+        "this is a JURISDICTION/forum ruling that the claim may PROCEED in England -- NOT a finding that Dyson is liable (a liability trial is set for April 2027)",
+        "binds English courts; persuasive elsewhere"
+      ],
+      "binding_status": "binding_where_applicable",
+      "effective_from": "2024-12-01",
+      "as_of": "2026-07-10",
+      "volatility": "high",
+      "recheck_after": "2026-10-01",
+      "recheck_reason": "the substantive liability trial is scheduled for April 2027 and will change what the case stands for; recheck for the trial outcome and any further appeals",
+      "caveats": [
+        "it allows the claim to PROCEED (forum), it is NOT yet a liability finding against Dyson -- do not overstate it",
+        "cite it for supply-chain forum/duty-of-care, not for a settled liability outcome"
+      ],
+      "supersedes": null,
+      "superseded_by": null,
+      "verification_weight": 0.6,
+      "provenance": "auto_vetted_pending_human_verification"
     }
   ]
 }

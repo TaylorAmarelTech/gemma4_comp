@@ -2,7 +2,7 @@
 
 Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 2026-07-10. Claims flagged RECHECK are potentially outdated and must be re-verified against a primary source before a grounded answer relies on them. This is not legal advice.
 
-**26 claims -- 5 flagged for recheck.**
+**27 claims -- 6 flagged for recheck.**
 
 | id | jurisdiction | binding | volatility | as_of | recheck_after | flag |
 |---|---|---|---|---|---|---|
@@ -11,6 +11,7 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 | `np_foreign_employment_fees` | NP | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `ph_placement_fee` | PH | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `sa_kafala_reform_2025` | SA | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
+| `limbu_v_dyson_2024` | UK | binding_where_applicable | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `ae_labour_reforms` | AE | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
 | `rantsev_2010` | Council of Europe (ECtHR) | binding_where_applicable | low | 2026-07-10 | 2028-01-01 | ok |
 | `siliadin_2005` | Council of Europe (ECtHR) | binding_where_applicable | low | 2026-07-10 | 2028-01-01 | ok |
@@ -293,3 +294,13 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 - **Binding:** binding_domestic | **effective_from:** 2003-12-19 | **as_of:** 2026-07-10 | **volatility:** low
 - **Recheck after 2028-01-01:** the statute is stable but case law on third-party beneficiary liability evolves (and the TVPRA is periodically reauthorised); verify current interpretation
 - **Caveats:** complements, does not replace, the criminal us_tvpa_1589 (build-upon); a civil claim still requires proof; it is not an automatic recovery
+
+### limbu_v_dyson_2024  (UK, precedent)
+> In Limbu & Others v Dyson Technology Ltd [2024] the English Court of Appeal allowed Nepali and Bangladeshi migrant workers to bring forced-labour, debt-bondage and trafficking claims in the English courts over conditions at Malaysian factories in Dyson's supply chain; the UK Supreme Court refused Dyson permission to appeal, and in January 2026 the High Court set a liability trial for April 2027. It confirms that a UK-domiciled company may be sued in England for human-rights abuses in its overseas supply chain.
+
+- **Authority:** England and Wales Court of Appeal, Limbu & Others v Dyson Technology Ltd [2024] (UK Supreme Court permission to appeal refused) (court_precedent) -- <https://www.business-humanrights.org/en/latest-news/uk-supreme-court-dismisses-dysons-application-to-appeal-over-migrant-workers-lawsuit-allegations-of-force-labour-allowing-the-case-to-proceed/>
+- **Applies to:** the forum/jurisdiction question of whether overseas supply-chain forced-labour claims can be heard against a UK-domiciled parent; persuasive on parent-company duty of care
+- **Exceptions:** this is a JURISDICTION/forum ruling that the claim may PROCEED in England -- NOT a finding that Dyson is liable (a liability trial is set for April 2027); binds English courts; persuasive elsewhere
+- **Binding:** binding_where_applicable | **effective_from:** 2024-12-01 | **as_of:** 2026-07-10 | **volatility:** high
+- **Recheck after 2026-10-01:** the substantive liability trial is scheduled for April 2027 and will change what the case stands for; recheck for the trial outcome and any further appeals
+- **Caveats:** it allows the claim to PROCEED (forum), it is NOT yet a liability finding against Dyson -- do not overstate it; cite it for supply-chain forum/duty-of-care, not for a settled liability outcome
