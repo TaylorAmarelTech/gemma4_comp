@@ -25,12 +25,13 @@ mm = _load("build_multilingual_multimodal_prompts",
 def _fake_translator(prompt, *, model="", max_tokens=0, temperature=0.0):
     """Offline stand-in: returns schema-correct JSON, echoing the target language so variants differ."""
     lang = "target"
-    m = re.search(r"produce TWO (.+?) variants", prompt)
+    m = re.search(r"produce THREE (.+?) variants", prompt)
     if m:
         lang = m.group(1).strip()
     return json.dumps({
         "translation": f"{lang}: full translation body",
         "code_switched": f"{lang}/English: code-switched body",
+        "colloquial": f"{lang}: casual slang body",
     })
 
 
@@ -51,10 +52,10 @@ def test_multilingual_variants_schema_and_lineage():
     }]
     items = mm.generate_multilingual_variants(scenarios, model="fake", caller=_fake_translator)
 
-    # Philippines->Saudi Arabia => Tagalog + Arabic; 2 variant kinds each => 4 items
-    assert len(items) == 4
+    # Philippines->Saudi Arabia => Tagalog + Arabic; 3 variant kinds each => 6 items
+    assert len(items) == 6
     assert {it["language"] for it in items} == {"Tagalog", "Arabic"}
-    assert {it["variant_kind"] for it in items} == {"full_translation", "code_switched"}
+    assert {it["variant_kind"] for it in items} == {"full_translation", "code_switched", "colloquial_slang"}
     for it in items:
         # base schema preserved
         for field in ("id", "text", "category", "corridor", "difficulty", "source"):
