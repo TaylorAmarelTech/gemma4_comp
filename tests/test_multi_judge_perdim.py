@@ -82,6 +82,28 @@ def test_build_component_rubric_single_scopes_to_one_component():
     assert len(_COMPONENT_IN_SCHEMA.findall(rubric)) == 1
 
 
+def test_perdim_skips_a_failing_subcall_instead_of_crashing():
+    """A flaky sub-call (transient provider error on ONE component) must not drop the whole per-dim
+    grade -- it retries once, then skips that dimension so the cell still grades the others."""
+    calls = {"n": 0}
+
+    def flaky_caller(prompt, **_kwargs):
+        match = _COMPONENT_IN_SCHEMA.search(prompt)
+        key = match.group(1)
+        if key == "C":                       # component C always errors (both attempts)
+            calls["n"] += 1
+            raise RuntimeError("transient provider error")
+        return json.dumps({key: 10, "reason": "ok"})
+
+    comps = mj.judge_components_perdim("worker q", "a reply", model="nvidia:openai/gpt-oss-120b",
+                                       caller=flaky_caller)
+    assert "C" not in comps                    # the failing dimension is skipped, not scored 0
+    for k in ["A", "B", "D", "E"]:
+        assert comps[k] == 10                  # the other dimensions still graded
+    assert "score" in comps                    # a (partial) total is still assembled, no crash
+    assert calls["n"] == 2                     # C was retried once (2 attempts) before skipping
+
+
 def test_build_component_rubric_single_mirrors_batched_wording():
     # the per-dimension C(v2) prompt carries the SAME grounded-refusal cap as the batched rubric
     c_v2 = mj.build_component_rubric_single("C", version="v2")

@@ -514,9 +514,17 @@ def judge_components_perdim(prompt: str, response: str, *, model: str,
     calls = 0
     for k, mx in components_for_version(rubric_version):
         rubric = build_component_rubric_single(k, domain_spec, version=rubric_version)
-        text = call(f"{rubric}\n\nWORKER:\n{prompt}\n\nASSISTANT REPLY:\n{response}",
-                    model=model, max_tokens=max_tokens)
+        text = None
+        for _attempt in range(2):   # one retry: a flaky sub-call must not drop the whole per-dim grade
+            try:
+                text = call(f"{rubric}\n\nWORKER:\n{prompt}\n\nASSISTANT REPLY:\n{response}",
+                            model=model, max_tokens=max_tokens)
+                break
+            except Exception:  # noqa: BLE001 -- transient sub-call failure; retry once, then skip the dim
+                text = None
         calls += 1
+        if text is None:
+            continue            # SKIP this component (missing key) rather than crash the whole cell
         data = extract_json(text) or {}
         try:
             comps[k] = max(0.0, min(float(mx), float(data.get(k, 0))))
