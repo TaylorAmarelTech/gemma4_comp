@@ -3,7 +3,27 @@
   "_propose_only": true,
   "_note": "Vetted legal-claim library (EvidenceClaim-style). The verification & FRESHNESS overlay that configs/duecare/legal_provisions.yaml (a flat statute DB: id/law/section/penalty) lacks: each claim carries source_url, jurisdiction, applicability, EXCEPTIONS, binding status, effective/verified dates, VOLATILITY, and an explicit recheck flag. A knowledge pack for grounding + for vetting synthetic training data; NOT wired into the live harness. Legal claims MUST pass applicability + temporal-validity + source-authority + exception checks before reaching a user. as_of = when a human/agent last verified; recheck_after = when it must be re-verified. NOTHING here is legal advice or a criminal determination.",
   "_append_only_principle": "BUILD UPON, DO NOT REPLACE. When a claim is corrected or a rule changes, ADD a new claim and mark the old one 'superseded_by' the new id (keep the old record for context and provenance); reweight by verification (as_of / verification_weight), never delete. superseded claims are historical context, not current law. See Kozminski (kozminski_1988) -> TVPA for a worked example.",
-  "schema": ["id", "claim_type", "text", "authority", "authority_class", "source_url", "jurisdiction", "applies_to", "exceptions", "binding_status", "effective_from", "as_of", "volatility", "recheck_after", "recheck_reason", "caveats", "supersedes", "superseded_by", "verification_weight"],
+  "schema": [
+    "id",
+    "claim_type",
+    "text",
+    "authority",
+    "authority_class",
+    "source_url",
+    "jurisdiction",
+    "applies_to",
+    "exceptions",
+    "binding_status",
+    "effective_from",
+    "as_of",
+    "volatility",
+    "recheck_after",
+    "recheck_reason",
+    "caveats",
+    "supersedes",
+    "superseded_by",
+    "verification_weight"
+  ],
   "as_of_global": "2026-07-10",
   "claims": [
     {
@@ -15,14 +35,18 @@
       "source_url": "https://normlex.ilo.org/dyn/nrmlx_en/f?p=NORMLEXPUB:12100:::NO:12100:P12100_ILO_CODE:C029:NO",
       "jurisdiction": "international",
       "applies_to": "states that have ratified C29; gives the internationally accepted definition",
-      "exceptions": ["narrow C29 exclusions (e.g. compulsory military service, normal civic obligations, prison labour under conditions, emergencies)"],
+      "exceptions": [
+        "narrow C29 exclusions (e.g. compulsory military service, normal civic obligations, prison labour under conditions, emergencies)"
+      ],
       "binding_status": "binding_where_ratified",
       "effective_from": "1932-05-01",
       "as_of": "2026-07-10",
       "volatility": "low",
       "recheck_after": "2028-01-01",
       "recheck_reason": "definitional and stable; re-verify only on a new protocol or authoritative reinterpretation",
-      "caveats": ["the DEFINITION is in C29; the operational warning SIGNS are in separate ILO indicator guidance (see c029_vs_indicators)"]
+      "caveats": [
+        "the DEFINITION is in C29; the operational warning SIGNS are in separate ILO indicator guidance (see c029_vs_indicators)"
+      ]
     },
     {
       "id": "c029_vs_indicators",
@@ -40,7 +64,10 @@
       "volatility": "medium",
       "recheck_after": "2027-06-01",
       "recheck_reason": "the indicator guidance was REVISED in 2025 (first major revision since 2012); wording/interpretation may be refined again",
-      "caveats": ["do NOT attribute the indicators to C29 as if the convention text lists them", "the 2025 edition keeps the same 11 indicators but changes their interpretation (victim-perspective; migrant-status vulnerability; ongoing deception)"]
+      "caveats": [
+        "do NOT attribute the indicators to C29 as if the convention text lists them",
+        "the 2025 edition keeps the same 11 indicators but changes their interpretation (victim-perspective; migrant-status vulnerability; ongoing deception)"
+      ]
     },
     {
       "id": "ilo_indicators_2025",
@@ -58,7 +85,9 @@
       "volatility": "medium",
       "recheck_after": "2027-06-01",
       "recheck_reason": "2025 revised edition is current; watch for the next revision and country-specific adaptations",
-      "caveats": ["the 2025 edition emphasises assessing every indicator FROM THE VICTIM'S PERSPECTIVE and treats migrant status / irregular residency as an explicit vulnerability factor"]
+      "caveats": [
+        "the 2025 edition emphasises assessing every indicator FROM THE VICTIM'S PERSPECTIVE and treats migrant status / irregular residency as an explicit vulnerability factor"
+      ]
     },
     {
       "id": "c095_wage_deductions",
@@ -69,14 +98,19 @@
       "source_url": "https://normlex.ilo.org/dyn/nrmlx_en/f?p=NORMLEXPUB:12100:0::NO:12100:P12100_INSTRUMENT_ID:312240:NO",
       "jurisdiction": "international",
       "applies_to": "states that have ratified C95; wage deduction practices",
-      "exceptions": ["deductions authorised by national law, collective agreement, or arbitration award"],
+      "exceptions": [
+        "deductions authorised by national law, collective agreement, or arbitration award"
+      ],
       "binding_status": "binding_where_ratified",
       "effective_from": "1952-09-24",
       "as_of": "2026-07-10",
       "volatility": "low",
       "recheck_after": "2028-01-01",
       "recheck_reason": "convention text stable; the operative detail is national implementing law, which varies and changes",
-      "caveats": ["whether a specific 'security' withholding is unlawful depends on the applicable NATIONAL law, not on C95 alone", "analyse forced-labour indicators (wage withholding) separately from the C95 deduction rule"]
+      "caveats": [
+        "whether a specific 'security' withholding is unlawful depends on the applicable NATIONAL law, not on C95 alone",
+        "analyse forced-labour indicators (wage withholding) separately from the C95 deduction rule"
+      ]
     },
     {
       "id": "c181_recruitment_fees",
@@ -87,14 +121,19 @@
       "source_url": "https://www.ilo.org/resource/other/c181-private-employment-agencies-convention-1997",
       "jurisdiction": "international",
       "applies_to": "private employment agencies in states that ratified C181",
-      "exceptions": ["Art 7(2) authorised exceptions for specified worker categories (e.g. some rules set a lower maximum fee for domestic workers/au pairs, a wage-percentage cap for artists/models/athletes, or fees payable only on successful placement)"],
+      "exceptions": [
+        "Art 7(2) authorised exceptions for specified worker categories (e.g. some rules set a lower maximum fee for domestic workers/au pairs, a wage-percentage cap for artists/models/athletes, or fees payable only on successful placement)"
+      ],
       "binding_status": "binding_where_ratified",
       "effective_from": "2000-05-10",
       "as_of": "2026-07-10",
       "volatility": "medium",
       "recheck_after": "2027-06-01",
       "recheck_reason": "the ILO 'Guide to private employment agencies' was revised (2025) and the ILO fair-recruitment definition of fees/related costs is actively applied; national exception lists change",
-      "caveats": ["do NOT state 'C181 prohibits ANY worker-paid fee' without the Art 7(2) exceptions, the ratification condition, and domestic law", "the ILO general principle is 'employer pays'; the ILO fair-recruitment definition of recruitment fees and related costs (2019) is the operative detail"]
+      "caveats": [
+        "do NOT state 'C181 prohibits ANY worker-paid fee' without the Art 7(2) exceptions, the ratification condition, and domestic law",
+        "the ILO general principle is 'employer pays'; the ILO fair-recruitment definition of recruitment fees and related costs (2019) is the operative detail"
+      ]
     },
     {
       "id": "c189_domestic_workers",
@@ -105,14 +144,18 @@
       "source_url": "https://www.ilo.org/resource/other/c189-domestic-workers-convention-2011",
       "jurisdiction": "international",
       "applies_to": "domestic workers in ratifying states",
-      "exceptions": ["scope and effect depend on national implementing law; not all destination states have ratified"],
+      "exceptions": [
+        "scope and effect depend on national implementing law; not all destination states have ratified"
+      ],
       "binding_status": "binding_where_ratified",
       "effective_from": "2013-09-05",
       "as_of": "2026-07-10",
       "volatility": "medium",
       "recheck_after": "2027-06-01",
       "recheck_reason": "ratification list grows over time; check whether the specific destination state is bound",
-      "caveats": ["many Gulf destination states have NOT ratified C189; do not assume it applies to a given corridor"]
+      "caveats": [
+        "many Gulf destination states have NOT ratified C189; do not assume it applies to a given corridor"
+      ]
     },
     {
       "id": "ph_placement_fee",
@@ -123,14 +166,21 @@
       "source_url": "https://dmw.gov.ph/archives/v1/resources/dsms/DMW/ISN-EXT/2024/DMW-ADVISORY-24-2024.pdf",
       "jurisdiction": "PH",
       "applies_to": "Filipino overseas workers by category and destination",
-      "exceptions": ["zero fee for domestic/household service workers", "zero fee for deployment to a designated no-placement-fee country (e.g. Qatar per Qatar Law 14/2004 Art 33)", "possible capped placement fee for some other land-based categories"],
+      "exceptions": [
+        "zero fee for domestic/household service workers",
+        "zero fee for deployment to a designated no-placement-fee country (e.g. Qatar per Qatar Law 14/2004 Art 33)",
+        "possible capped placement fee for some other land-based categories"
+      ],
       "binding_status": "binding_domestic",
       "effective_from": null,
       "as_of": "2026-07-10",
       "volatility": "high",
       "recheck_after": "2026-10-01",
       "recheck_reason": "DMW is a young agency (replaced POEA in 2022) issuing frequent circulars/advisories; the no-placement-fee country list is actively expanding",
-      "caveats": ["do NOT state 'Philippine law bans ALL recruitment fees for EVERY OFW'; resolve occupation + destination + fee type + effective date first", "PHP 50,000 cannot be judged excessive from the amount alone; a zero-fee category makes any placement fee impermissible, otherwise the cap depends on approved salary and the type of charge"]
+      "caveats": [
+        "do NOT state 'Philippine law bans ALL recruitment fees for EVERY OFW'; resolve occupation + destination + fee type + effective date first",
+        "PHP 50,000 cannot be judged excessive from the amount alone; a zero-fee category makes any placement fee impermissible, otherwise the cap depends on approved salary and the type of charge"
+      ]
     },
     {
       "id": "hk_money_lending_cap",
@@ -141,14 +191,19 @@
       "source_url": "https://www.info.gov.hk/gia/general/202212/29/P2022122800417.htm",
       "jurisdiction": "HK",
       "applies_to": "loans falling within the Hong Kong Money Lenders Ordinance",
-      "exceptions": ["applies only if the loan is governed by HK law; a foreign loan or a later novation is not automatically within Cap. 163"],
+      "exceptions": [
+        "applies only if the loan is governed by HK law; a foreign loan or a later novation is not automatically within Cap. 163"
+      ],
       "binding_status": "binding_domestic",
       "effective_from": "2022-12-30",
       "as_of": "2026-07-10",
       "volatility": "medium",
       "recheck_after": "2027-06-01",
       "recheck_reason": "the caps were static 1980-2022 then changed; a future review could move them again",
-      "caveats": ["a 68% APR loan is only presumptively extortionate IF Cap. 163 applies; keep the jurisdictional condition explicit", "do not label loan-proceeds collection 'money laundering' automatically; that needs the offence elements, a proceeds nexus, jurisdiction, and mental state"]
+      "caveats": [
+        "a 68% APR loan is only presumptively extortionate IF Cap. 163 applies; keep the jurisdictional condition explicit",
+        "do not label loan-proceeds collection 'money laundering' automatically; that needs the offence elements, a proceeds nexus, jurisdiction, and mental state"
+      ]
     },
     {
       "id": "palermo_elements",
@@ -159,14 +214,18 @@
       "source_url": "https://www.unodc.org/e4j/en/tip-and-som/module-13/key-issues/international-legal-frameworks-and-definitions.html",
       "jurisdiction": "international",
       "applies_to": "criminal definition of trafficking; implemented via domestic law",
-      "exceptions": ["the child rule drops the means element"],
+      "exceptions": [
+        "the child rule drops the means element"
+      ],
       "binding_status": "binding_where_ratified",
       "effective_from": "2003-12-25",
       "as_of": "2026-07-10",
       "volatility": "low",
       "recheck_after": "2028-01-01",
       "recheck_reason": "definitional; domestic implementing law varies",
-      "caveats": ["exploitation ALONE is insufficient for adult trafficking; report which of act/means/purpose are supported, missing, or inferred; never assert a criminal finding"]
+      "caveats": [
+        "exploitation ALONE is insufficient for adult trafficking; report which of act/means/purpose are supported, missing, or inferred; never assert a criminal finding"
+      ]
     },
     {
       "id": "eu_forced_labour_regulation",
@@ -184,7 +243,10 @@
       "volatility": "high",
       "recheck_after": "2026-12-01",
       "recheck_reason": "guidelines and databases are being developed before the Dec 2027 application date; do not describe it as currently enforceable",
-      "caveats": ["NOT yet applicable (applies 14 Dec 2027); state it as forthcoming, not in-force enforcement", "a product-market ban, distinct from individual worker rights"]
+      "caveats": [
+        "NOT yet applicable (applies 14 Dec 2027); state it as forthcoming, not in-force enforcement",
+        "a product-market ban, distinct from individual worker rights"
+      ]
     },
     {
       "id": "sa_kafala_reform_2025",
@@ -195,14 +257,19 @@
       "source_url": "https://www.walkfree.org/news/2025/saudi-arabia-ends-the-kafala-system-to-strengthen-worker-rights/",
       "jurisdiction": "SA",
       "applies_to": "migrant workers in Saudi Arabia (reported ~13 million)",
-      "exceptions": ["domestic workers are often excluded from standard labour-law protections and may not immediately benefit"],
+      "exceptions": [
+        "domestic workers are often excluded from standard labour-law protections and may not immediately benefit"
+      ],
       "binding_status": "binding_domestic",
       "effective_from": "2025-01-01",
       "as_of": "2026-07-10",
       "volatility": "high",
       "recheck_after": "2026-10-01",
       "recheck_reason": "very recent reform; implementation is evolving, prior Gulf reform promises fell short, and domestic-worker coverage is uncertain; verify current status against a primary/official source before relying on it",
-      "caveats": ["do NOT state kafala is fully abolished in practice; describe the announced reform + implementation uncertainty + the domestic-worker carve-out", "verify against an official Saudi source, not only advocacy/news reporting"]
+      "caveats": [
+        "do NOT state kafala is fully abolished in practice; describe the announced reform + implementation uncertainty + the domestic-worker carve-out",
+        "verify against an official Saudi source, not only advocacy/news reporting"
+      ]
     },
     {
       "id": "stat_migrant_workers",
@@ -220,7 +287,9 @@
       "volatility": "medium",
       "recheck_after": "2027-01-01",
       "recheck_reason": "ILO updates these estimates periodically; a newer edition may supersede the 2019/2022 figures",
-      "caveats": ["never cite '169 million' without the 2019 year; the 2019 and 2022 figures measure slightly different populations"]
+      "caveats": [
+        "never cite '169 million' without the 2019 year; the 2019 and 2022 figures measure slightly different populations"
+      ]
     },
     {
       "id": "stat_modern_slavery",
@@ -238,7 +307,9 @@
       "volatility": "medium",
       "recheck_after": "2027-06-01",
       "recheck_reason": "the next joint global estimate will supersede the 2021 figures; check for a newer edition",
-      "caveats": ["keep the 2021 date and the forced-labour vs forced-marriage components explicit; do not present it as a count of trafficking victims"]
+      "caveats": [
+        "keep the 2021 date and the forced-labour vs forced-marriage components explicit; do not present it as a count of trafficking victims"
+      ]
     },
     {
       "id": "rantsev_2010",
@@ -249,14 +320,18 @@
       "source_url": "https://sherloc.unodc.org/cld/case-law-doc/traffickingpersonscrimetype/_irb/2010/rantsev_v._cyprus_and_russia.html",
       "jurisdiction": "Council of Europe (ECtHR)",
       "applies_to": "Council of Europe member states bound by the ECHR; persuasive elsewhere",
-      "exceptions": ["binds ECHR states; not directly binding outside the Council of Europe"],
+      "exceptions": [
+        "binds ECHR states; not directly binding outside the Council of Europe"
+      ],
       "binding_status": "binding_where_applicable",
       "effective_from": "2010-01-07",
       "as_of": "2026-07-10",
       "volatility": "low",
       "recheck_after": "2028-01-01",
       "recheck_reason": "landmark and stable, but later ECtHR judgments refine Article 4 obligations; check for newer Grand Chamber authority",
-      "caveats": ["verify the holding against the primary judgment before quoting; do not state it creates obligations for non-ECHR states"],
+      "caveats": [
+        "verify the holding against the primary judgment before quoting; do not state it creates obligations for non-ECHR states"
+      ],
       "supersedes": null,
       "superseded_by": null,
       "verification_weight": 0.9
@@ -270,14 +345,18 @@
       "source_url": "https://hudoc.echr.coe.int/eng?i=001-69891",
       "jurisdiction": "Council of Europe (ECtHR)",
       "applies_to": "Council of Europe member states; migrant domestic-worker exploitation",
-      "exceptions": ["binds ECHR states; persuasive elsewhere"],
+      "exceptions": [
+        "binds ECHR states; persuasive elsewhere"
+      ],
       "binding_status": "binding_where_applicable",
       "effective_from": "2005-07-26",
       "as_of": "2026-07-10",
       "volatility": "low",
       "recheck_after": "2028-01-01",
       "recheck_reason": "foundational Article 4 servitude case; check for refinements in later ECtHR jurisprudence",
-      "caveats": ["'servitude' and 'forced labour' are distinct thresholds under Article 4; verify which was found before quoting"],
+      "caveats": [
+        "'servitude' and 'forced labour' are distinct thresholds under Article 4; verify which was found before quoting"
+      ],
       "supersedes": null,
       "superseded_by": null,
       "verification_weight": 0.9
@@ -291,14 +370,18 @@
       "source_url": "https://supreme.justia.com/cases/federal/us/487/931/",
       "jurisdiction": "US",
       "applies_to": "historical interpretation of the pre-TVPA involuntary-servitude statutes",
-      "exceptions": ["the TVPA (2000) subsequently broadened the federal forced-labour definition to include serious harm and psychological coercion"],
+      "exceptions": [
+        "the TVPA (2000) subsequently broadened the federal forced-labour definition to include serious harm and psychological coercion"
+      ],
       "binding_status": "historical_superseded_by_statute",
       "effective_from": "1988-06-29",
       "as_of": "2026-07-10",
       "volatility": "low",
       "recheck_after": "2028-01-01",
       "recheck_reason": "stable as history; the operative CURRENT federal standard is the TVPA (18 U.S.C. sec.1589), which should be cited for present-day forced-labour analysis",
-      "caveats": ["do NOT cite Kozminski as the current federal forced-labour standard; it is retained as context that explains why the TVPA broadened the definition (build-upon-not-replace example)"],
+      "caveats": [
+        "do NOT cite Kozminski as the current federal forced-labour standard; it is retained as context that explains why the TVPA broadened the definition (build-upon-not-replace example)"
+      ],
       "supersedes": null,
       "superseded_by": "us_tvpa_1589",
       "verification_weight": 0.9
@@ -312,17 +395,163 @@
       "source_url": "https://www.law.cornell.edu/uscode/text/18/1589",
       "jurisdiction": "US",
       "applies_to": "US federal forced-labour prosecutions; the operative current standard",
-      "exceptions": ["a criminal charge requires proof of the statutory elements to a criminal standard; this is not an automatic finding"],
+      "exceptions": [
+        "a criminal charge requires proof of the statutory elements to a criminal standard; this is not an automatic finding"
+      ],
       "binding_status": "binding_domestic",
       "effective_from": "2000-10-28",
       "as_of": "2026-07-10",
       "volatility": "low",
       "recheck_after": "2028-01-01",
       "recheck_reason": "core statute is stable; the TVPA is periodically reauthorised (TVPRA) and case law refines 'serious harm', so check for amendments",
-      "caveats": ["cite THIS, not Kozminski, for the current US forced-labour standard", "psychological/financial coercion CAN qualify as 'serious harm' here (the key difference from Kozminski)"],
+      "caveats": [
+        "cite THIS, not Kozminski, for the current US forced-labour standard",
+        "psychological/financial coercion CAN qualify as 'serious harm' here (the key difference from Kozminski)"
+      ],
       "supersedes": "kozminski_1988",
       "superseded_by": null,
       "verification_weight": 0.9
+    },
+    {
+      "id": "bd_overseas_employment",
+      "claim_type": "rule",
+      "text": "Bangladesh's Overseas Employment and Migrants Act 2013 governs labour migration, and the Bureau of Manpower, Employment and Training (BMET) sets migration-cost ceilings that vary by destination and worker category (for example a much lower fixed cost for female workers to several Gulf/Asia destinations, and suggested ceilings of roughly Tk 44,000-84,000 for some markets; the government-fixed cost to Saudi Arabia has been about Tk 1.65 lakh).",
+      "authority": "Overseas Employment and Migrants Act 2013; Bureau of Manpower, Employment and Training (BMET)",
+      "authority_class": "domestic_law",
+      "source_url": "https://webapps.ilo.org/dyn/migpractice/docs/169/Act.pdf",
+      "jurisdiction": "BD",
+      "applies_to": "Bangladeshi migrant workers recruited through licensed agencies, by destination and category",
+      "exceptions": [
+        "BMET ceilings vary by destination country and worker category and are periodically revised",
+        "the Act's cost controls are weakly enforced in practice: workers report paying far more than the ceiling (BBS survey average ~Tk 478,000; Saudi-bound ~Tk 3.5-4 lakh)"
+      ],
+      "binding_status": "binding_domestic",
+      "effective_from": "2013-01-01",
+      "as_of": "2026-07-10",
+      "volatility": "high",
+      "recheck_after": "2026-10-01",
+      "recheck_reason": "BMET migration-cost ceilings and government-fixed costs change; verify the current per-destination ceiling against an official BMET/Probashi source",
+      "caveats": [
+        "the BMET ceiling is the RULE; actual costs paid are typically far higher, so do not assume the worker was lawfully charged",
+        "verify against an official BMET source, not only news/NGO reporting"
+      ],
+      "verification_weight": 0.6,
+      "provenance": "auto_vetted_pending_human_verification",
+      "supersedes": null,
+      "superseded_by": null
+    },
+    {
+      "id": "id_migrant_worker_protection",
+      "claim_type": "rule",
+      "text": "Indonesia's Law No. 18 of 2017 on the Protection of Indonesian Migrant Workers exempts migrant workers from paying placement fees (Article 30(1)) -- the 'zero-cost placement' policy -- and prohibits charging workers for recruitment services; the guarantee-deposit and placement costs fall on the licensed placement agency (PrEA).",
+      "authority": "Law of the Republic of Indonesia No. 18 of 2017, Article 30(1)",
+      "authority_class": "domestic_law",
+      "source_url": "https://asean.org/wp-content/uploads/2016/05/Law-of-Indonesia-No-18-of-2017-on-Protection-of-Indonesian-Migrant-Workers.pdf",
+      "jurisdiction": "ID",
+      "applies_to": "Indonesian migrant workers placed abroad",
+      "exceptions": [
+        "full zero-cost implementation depends on bilateral 'one-channel' agreements (e.g. with Malaysia) and destination/sector",
+        "certain components have been debated and phased; verify which costs are covered for a given corridor"
+      ],
+      "binding_status": "binding_domestic",
+      "effective_from": "2017-11-22",
+      "as_of": "2026-07-10",
+      "volatility": "medium",
+      "recheck_after": "2027-06-01",
+      "recheck_reason": "the statute is stable but implementing regulations and bilateral one-channel agreements evolve; verify the zero-cost coverage for the specific corridor",
+      "caveats": [
+        "zero-cost is the RULE; enforcement and corridor coverage vary, so do not assume the worker paid nothing",
+        "verify against the official law / BP2MI implementing regulations"
+      ],
+      "verification_weight": 0.6,
+      "provenance": "auto_vetted_pending_human_verification",
+      "supersedes": null,
+      "superseded_by": null
+    },
+    {
+      "id": "np_foreign_employment_fees",
+      "claim_type": "rule",
+      "text": "Nepal's 'Free Visa, Free Ticket' policy (a 2015 directive under the Foreign Employment Act 2007) requires the foreign employer to bear the visa and air-ticket costs for Nepali migrant workers going to seven destinations (Oman, Bahrain, Saudi Arabia, UAE, Kuwait, Qatar, Malaysia). A Nepali recruitment agency may charge a worker a service fee not exceeding NPR 10,000, and only where the employer refuses to pay those costs.",
+      "authority": "Government of Nepal 'Free Visa, Free Ticket' directive (2015) under the Foreign Employment Act 2007; Department of Foreign Employment",
+      "authority_class": "administrative_rule",
+      "source_url": "https://www.business-humanrights.org/en/latest-news/nepal-free-visa-free-ticket-policys-promise-of-reducing-recruitment-fee-charging-remains-largely-unfulfilled-says-op-ed/",
+      "jurisdiction": "NP",
+      "applies_to": "Nepali migrant workers recruited for the seven covered destination countries",
+      "exceptions": [
+        "a Nepali agency may charge a service fee up to NPR 10,000 where the employer refuses to pay the visa/ticket costs",
+        "the covered-destination list can change",
+        "in practice the policy is widely under-enforced and workers report paying far more"
+      ],
+      "binding_status": "binding_domestic",
+      "effective_from": "2015-07-01",
+      "as_of": "2026-07-10",
+      "volatility": "high",
+      "recheck_after": "2026-10-01",
+      "recheck_reason": "enforcement is weak and amounts/lists change (the Foreign Employment Welfare Fund contribution moved to NPR 1,500 for contracts up to 3 years / NPR 2,500 over 3 years on 2024-07-31); verify the NPR 10,000 cap, destination list, and welfare-fund amounts against an official Department of Foreign Employment source",
+      "caveats": [
+        "the NPR 10,000 cap and 7-destination list are the RULE; in PRACTICE workers report paying USD 1,500-2,200, so do not assume the worker was lawfully charged",
+        "verify against an official DoFE/Nepal government source, not only NGO/news reporting"
+      ],
+      "verification_weight": 0.6,
+      "provenance": "auto_vetted_pending_human_verification",
+      "supersedes": null,
+      "superseded_by": null
+    },
+    {
+      "id": "qa_wage_protection",
+      "claim_type": "rule",
+      "text": "Qatar's Labour Law No. 14 of 2004 prohibits licensed recruiting entities from collecting recruitment fees, expenses or associated costs from migrant workers (Qatar is a non-placement-fee receiving country): the recruitment agency or employer bears the cost. The same law underpins the Wage Protection System (WPS), which requires wages to be paid via electronic bank transfer as evidence of payment.",
+      "authority": "Qatar Labour Law No. 14 of 2004; Wage Protection System",
+      "authority_class": "domestic_law",
+      "source_url": "https://natlex.ilo.org/dyn/natlex2/natlex2/files/download/67387/QAT67387%20Eng.pdf",
+      "jurisdiction": "QA",
+      "applies_to": "migrant workers recruited to Qatar under the Labour Law",
+      "exceptions": [
+        "domestic workers are covered by a separate instrument (Law No. 15 of 2017), not the Labour Law",
+        "the no-fee rule and WPS are under-enforced in parts of the market in practice"
+      ],
+      "binding_status": "binding_domestic",
+      "effective_from": "2005-01-01",
+      "as_of": "2026-07-10",
+      "volatility": "medium",
+      "recheck_after": "2027-06-01",
+      "recheck_reason": "Gulf labour rules and WPS coverage are periodically reformed; verify current scope + domestic-worker treatment against an official Qatari source",
+      "caveats": [
+        "the employer/agency-pays rule is the RULE; workers are still charged in practice via origin-country agents, so do not assume compliance",
+        "domestic workers fall under Law 15/2017, not this Labour Law"
+      ],
+      "verification_weight": 0.6,
+      "provenance": "auto_vetted_pending_human_verification",
+      "supersedes": null,
+      "superseded_by": null
+    },
+    {
+      "id": "uk_modern_slavery_act",
+      "claim_type": "rule",
+      "text": "The UK Modern Slavery Act 2015 criminalises slavery, servitude and forced or compulsory labour (section 1) and human trafficking (section 2); section 54 (Transparency in Supply Chains) requires a commercial organisation carrying on business in the UK with total annual turnover of at least GBP 36 million to publish an annual modern-slavery statement approved by the board and signed by a director.",
+      "authority": "Modern Slavery Act 2015 (UK), sections 1, 2 and 54",
+      "authority_class": "domestic_law",
+      "source_url": "https://www.legislation.gov.uk/ukpga/2015/30/section/54",
+      "jurisdiction": "UK",
+      "applies_to": "the criminal offences apply in the UK; section 54 applies to in-scope commercial organisations doing business in the UK",
+      "exceptions": [
+        "section 54 applies only where total turnover is at least GBP 36 million",
+        "section 54 is a transparency/reporting duty, not a mandatory due-diligence or import-ban regime; the criminal offences (s.1-2) are separate"
+      ],
+      "binding_status": "binding_domestic",
+      "effective_from": "2015-10-29",
+      "as_of": "2026-07-10",
+      "volatility": "medium",
+      "recheck_after": "2027-06-01",
+      "recheck_reason": "reform of section 54 (mandatory reporting topics, penalties, single reporting deadline) has been proposed; verify whether amendments are in force",
+      "caveats": [
+        "s.54 is transparency-only; do not describe it as a due-diligence mandate or an import ban (contrast the EU Forced Labour Regulation)",
+        "the GBP 36m threshold and reporting requirements may change"
+      ],
+      "verification_weight": 0.6,
+      "provenance": "auto_vetted_pending_human_verification",
+      "supersedes": null,
+      "superseded_by": null
     }
   ]
 }
