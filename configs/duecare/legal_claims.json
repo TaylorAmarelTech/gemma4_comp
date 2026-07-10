@@ -46,7 +46,9 @@
       "recheck_reason": "definitional and stable; re-verify only on a new protocol or authoritative reinterpretation",
       "caveats": [
         "the DEFINITION is in C29; the operational warning SIGNS are in separate ILO indicator guidance (see c029_vs_indicators)"
-      ]
+      ],
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10"
     },
     {
       "id": "c029_vs_indicators",
@@ -67,7 +69,9 @@
       "caveats": [
         "do NOT attribute the indicators to C29 as if the convention text lists them",
         "the 2025 edition keeps the same 11 indicators but changes their interpretation (victim-perspective; migrant-status vulnerability; ongoing deception)"
-      ]
+      ],
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10"
     },
     {
       "id": "ilo_indicators_2025",
@@ -87,7 +91,9 @@
       "recheck_reason": "2025 revised edition is current; watch for the next revision and country-specific adaptations",
       "caveats": [
         "the 2025 edition emphasises assessing every indicator FROM THE VICTIM'S PERSPECTIVE and treats migrant status / irregular residency as an explicit vulnerability factor"
-      ]
+      ],
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10"
     },
     {
       "id": "c095_wage_deductions",
@@ -110,7 +116,9 @@
       "caveats": [
         "whether a specific 'security' withholding is unlawful depends on the applicable NATIONAL law, not on C95 alone",
         "analyse forced-labour indicators (wage withholding) separately from the C95 deduction rule"
-      ]
+      ],
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10"
     },
     {
       "id": "c181_recruitment_fees",
@@ -133,7 +141,9 @@
       "caveats": [
         "do NOT state 'C181 prohibits ANY worker-paid fee' without the Art 7(2) exceptions, the ratification condition, and domestic law",
         "the ILO general principle is 'employer pays'; the ILO fair-recruitment definition of recruitment fees and related costs (2019) is the operative detail"
-      ]
+      ],
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10"
     },
     {
       "id": "c189_domestic_workers",
@@ -155,13 +165,15 @@
       "recheck_reason": "ratification list grows over time; check whether the specific destination state is bound",
       "caveats": [
         "many Gulf destination states have NOT ratified C189; do not assume it applies to a given corridor"
-      ]
+      ],
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10"
     },
     {
       "id": "ph_placement_fee",
       "claim_type": "rule",
       "text": "Philippine rules (Department of Migrant Workers, successor to POEA) impose a ZERO placement fee for household service workers / domestic workers deployed abroad, and no placement fee for workers bound for designated 'no-placement-fee' destination countries. Some other land-based categories may historically be charged a placement fee capped around one month's basic salary, but the no-fee list is expanding.",
-      "authority": "DMW rules; RA 10361 (Domestic Workers Act / Batas Kasambahay); DMW Advisory No. 24-2024",
+      "authority": "DMW rules under RA 8042 / RA 10022 (Migrant Workers Act) + POEA/DMW Governing Board resolutions (RA 10361 governs domestic workers WITHIN the Philippines, not this overseas rule)",
       "authority_class": "administrative_rule",
       "source_url": "https://dmw.gov.ph/archives/v1/resources/dsms/DMW/ISN-EXT/2024/DMW-ADVISORY-24-2024.pdf",
       "jurisdiction": "PH",
@@ -179,8 +191,11 @@
       "recheck_reason": "DMW is a young agency (replaced POEA in 2022) issuing frequent circulars/advisories; the no-placement-fee country list is actively expanding",
       "caveats": [
         "do NOT state 'Philippine law bans ALL recruitment fees for EVERY OFW'; resolve occupation + destination + fee type + effective date first",
-        "PHP 50,000 cannot be judged excessive from the amount alone; a zero-fee category makes any placement fee impermissible, otherwise the cap depends on approved salary and the type of charge"
-      ]
+        "the overseas HSW zero-fee rule sits under the Migrant Workers Act + DMW board resolutions, NOT RA 10361; the 'no-placement-fee country' designation is a Philippine DMW policy, separate from any destination-country law",
+        "verify the specific DMW advisory number and current no-fee-country list against dmw.gov.ph"
+      ],
+      "verification_weight": 0.6,
+      "provenance": "auto_vetted_pending_human_verification"
     },
     {
       "id": "hk_money_lending_cap",
@@ -201,9 +216,12 @@
       "recheck_after": "2027-06-01",
       "recheck_reason": "the caps were static 1980-2022 then changed; a future review could move them again",
       "caveats": [
-        "a 68% APR loan is only presumptively extortionate IF Cap. 163 applies; keep the jurisdictional condition explicit",
+        "a loan above the 48% cap is OUTRIGHT UNLAWFUL; a loan above 36% but at/below 48% is PRESUMED extortionate -- keep the two thresholds distinct",
+        "applies only if the loan is governed by HK law; a foreign loan or a later novation is not automatically within Cap. 163",
         "do not label loan-proceeds collection 'money laundering' automatically; that needs the offence elements, a proceeds nexus, jurisdiction, and mental state"
-      ]
+      ],
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10"
     },
     {
       "id": "palermo_elements",
@@ -225,7 +243,9 @@
       "recheck_reason": "definitional; domestic implementing law varies",
       "caveats": [
         "exploitation ALONE is insufficient for adult trafficking; report which of act/means/purpose are supported, missing, or inferred; never assert a criminal finding"
-      ]
+      ],
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10"
     },
     {
       "id": "eu_forced_labour_regulation",
@@ -246,7 +266,9 @@
       "caveats": [
         "NOT yet applicable (applies 14 Dec 2027); state it as forthcoming, not in-force enforcement",
         "a product-market ban, distinct from individual worker rights"
-      ]
+      ],
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10"
     },
     {
       "id": "sa_kafala_reform_2025",
@@ -261,7 +283,7 @@
         "domestic workers are often excluded from standard labour-law protections and may not immediately benefit"
       ],
       "binding_status": "binding_domestic",
-      "effective_from": "2025-01-01",
+      "effective_from": "2025-06-01",
       "as_of": "2026-07-10",
       "volatility": "high",
       "recheck_after": "2026-10-01",
@@ -269,7 +291,9 @@
       "caveats": [
         "do NOT state kafala is fully abolished in practice; describe the announced reform + implementation uncertainty + the domestic-worker carve-out",
         "verify against an official Saudi source, not only advocacy/news reporting"
-      ]
+      ],
+      "verification_weight": 0.6,
+      "provenance": "auto_vetted_pending_human_verification"
     },
     {
       "id": "stat_migrant_workers",
@@ -289,7 +313,9 @@
       "recheck_reason": "ILO updates these estimates periodically; a newer edition may supersede the 2019/2022 figures",
       "caveats": [
         "never cite '169 million' without the 2019 year; the 2019 and 2022 figures measure slightly different populations"
-      ]
+      ],
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10"
     },
     {
       "id": "stat_modern_slavery",
@@ -309,7 +335,9 @@
       "recheck_reason": "the next joint global estimate will supersede the 2021 figures; check for a newer edition",
       "caveats": [
         "keep the 2021 date and the forced-labour vs forced-marriage components explicit; do not present it as a count of trafficking victims"
-      ]
+      ],
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10"
     },
     {
       "id": "rantsev_2010",
@@ -463,8 +491,8 @@
         "zero-cost is the RULE; enforcement and corridor coverage vary, so do not assume the worker paid nothing",
         "verify against the official law / BP2MI implementing regulations"
       ],
-      "verification_weight": 0.6,
-      "provenance": "auto_vetted_pending_human_verification",
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10",
       "supersedes": null,
       "superseded_by": null
     },
@@ -492,8 +520,8 @@
         "the NPR 10,000 cap and 7-destination list are the RULE; in PRACTICE workers report paying USD 1,500-2,200, so do not assume the worker was lawfully charged",
         "verify against an official DoFE/Nepal government source, not only NGO/news reporting"
       ],
-      "verification_weight": 0.6,
-      "provenance": "auto_vetted_pending_human_verification",
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10",
       "supersedes": null,
       "superseded_by": null
     },
@@ -520,8 +548,8 @@
         "the employer/agency-pays rule is the RULE; workers are still charged in practice via origin-country agents, so do not assume compliance",
         "domestic workers fall under Law 15/2017, not this Labour Law"
       ],
-      "verification_weight": 0.6,
-      "provenance": "auto_vetted_pending_human_verification",
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10",
       "supersedes": null,
       "superseded_by": null
     },
@@ -548,8 +576,8 @@
         "s.54 is transparency-only; do not describe it as a due-diligence mandate or an import ban (contrast the EU Forced Labour Regulation)",
         "the GBP 36m threshold and reporting requirements may change"
       ],
-      "verification_weight": 0.6,
-      "provenance": "auto_vetted_pending_human_verification",
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10",
       "supersedes": null,
       "superseded_by": null
     },
@@ -576,8 +604,8 @@
         "employer-pays is the RULE; origin-country agents still charge workers in practice, so do not assume compliance",
         "which law applies depends on whether the worker is domestic (9/2022) or private-sector (33/2021)"
       ],
-      "verification_weight": 0.6,
-      "provenance": "auto_vetted_pending_human_verification",
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10",
       "supersedes": null,
       "superseded_by": null
     },
@@ -605,8 +633,8 @@
         "the INR 30,000 cap is the RULE; workers are frequently overcharged in practice",
         "verify the notified-country ECR list and current cap against official MEA/eMigrate sources"
       ],
-      "verification_weight": 0.6,
-      "provenance": "auto_vetted_pending_human_verification",
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10",
       "supersedes": null,
       "superseded_by": null
     },
@@ -633,13 +661,13 @@
         "the protections are the RULE; enforcement gaps mean workers may not receive them in practice",
         "passport confiscation being an offence is a key point workers can raise"
       ],
-      "verification_weight": 0.6,
-      "provenance": "auto_vetted_pending_human_verification",
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10",
       "supersedes": null,
       "superseded_by": null
     },
     {
-      "id": "us_state_trafficking_civil",
+      "id": "us_federal_trafficking_civil_1595",
       "claim_type": "rule",
       "text": "18 U.S.C. sec.1595 (Trafficking Victims Protection Reauthorization Act) gives a trafficking survivor a CIVIL remedy: they may sue in U.S. federal court for compensatory and punitive damages (and attorney's fees) against a direct perpetrator AND third parties who KNOWINGLY BENEFIT, financially or otherwise, from participation in a venture they knew or should have known was trafficking. The limitations period is generally 10 years (tolled for minors or where coercion/trauma prevented filing).",
       "authority": "18 U.S.C. sec.1595 (TVPRA civil remedy)",
@@ -662,16 +690,16 @@
         "complements, does not replace, the criminal us_tvpa_1589 (build-upon)",
         "a civil claim still requires proof; it is not an automatic recovery"
       ],
-      "verification_weight": 0.6,
-      "provenance": "auto_vetted_pending_human_verification",
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10",
       "supersedes": null,
       "superseded_by": null
     },
     {
       "id": "limbu_v_dyson_2024",
       "claim_type": "precedent",
-      "text": "In Limbu & Others v Dyson Technology Ltd [2024] the English Court of Appeal allowed Nepali and Bangladeshi migrant workers to bring forced-labour, debt-bondage and trafficking claims in the English courts over conditions at Malaysian factories in Dyson's supply chain; the UK Supreme Court refused Dyson permission to appeal, and in January 2026 the High Court set a liability trial for April 2027. It confirms that a UK-domiciled company may be sued in England for human-rights abuses in its overseas supply chain.",
-      "authority": "England and Wales Court of Appeal, Limbu & Others v Dyson Technology Ltd [2024] (UK Supreme Court permission to appeal refused)",
+      "text": "In Limbu & Others v Dyson Technology Ltd [2024] EWCA Civ 1564 the English Court of Appeal allowed Nepali and Bangladeshi migrant workers to bring forced-labour, debt-bondage and trafficking claims in the English courts over conditions at Malaysian factories in Dyson's supply chain, and the UK Supreme Court refused Dyson permission to appeal (1 May 2025). The claims then SETTLED on 26 February 2026 on confidential terms with no admission of liability. The case's lasting legal value is the forum/jurisdiction holding: a UK-domiciled company can be sued in England for human-rights abuses in its overseas supply chain.",
+      "authority": "England and Wales Court of Appeal, Limbu & Others v Dyson Technology Ltd [2024] EWCA Civ 1564 (UK Supreme Court permission to appeal refused 1 May 2025; claims settled 26 Feb 2026)",
       "authority_class": "court_precedent",
       "source_url": "https://www.business-humanrights.org/en/latest-news/uk-supreme-court-dismisses-dysons-application-to-appeal-over-migrant-workers-lawsuit-allegations-of-force-labour-allowing-the-case-to-proceed/",
       "jurisdiction": "UK",
@@ -683,17 +711,17 @@
       "binding_status": "binding_where_applicable",
       "effective_from": "2024-12-01",
       "as_of": "2026-07-10",
-      "volatility": "high",
+      "volatility": "low",
       "recheck_after": "2026-10-01",
-      "recheck_reason": "the substantive liability trial is scheduled for April 2027 and will change what the case stands for; recheck for the trial outcome and any further appeals",
+      "recheck_reason": "settled Feb 2026; monitor for related supply-chain forum cases and appellate treatment of the forum principle",
       "caveats": [
-        "it allows the claim to PROCEED (forum), it is NOT yet a liability finding against Dyson -- do not overstate it",
-        "cite it for supply-chain forum/duty-of-care, not for a settled liability outcome"
+        "cite it for the supply-chain FORUM/jurisdiction holding, NOT for a liability outcome -- it settled with no admission of liability",
+        "the forum principle survives the settlement"
       ],
       "supersedes": null,
       "superseded_by": null,
-      "verification_weight": 0.6,
-      "provenance": "auto_vetted_pending_human_verification"
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10"
     },
     {
       "id": "ilo_c188_fishing",
@@ -718,8 +746,8 @@
         "the 'sent to a fishing boat and never paid' scenario maps here; C188 is the sector standard, but forced labour itself is defined by C29",
         "check the vessel's flag state ratification before asserting it applies"
       ],
-      "verification_weight": 0.6,
-      "provenance": "auto_vetted_pending_human_verification",
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10",
       "supersedes": null,
       "superseded_by": null
     },
@@ -746,8 +774,8 @@
         "build-upon of c181_recruitment_fees: this is the 'employer pays' operative standard, but it is guidance, not binding law",
         "do not present guidance as a binding legal prohibition"
       ],
-      "verification_weight": 0.6,
-      "provenance": "auto_vetted_pending_human_verification",
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10",
       "supersedes": null,
       "superseded_by": null
     },
@@ -775,15 +803,15 @@
         "it is a rebuttable IMPORT presumption, not proof any specific worker was trafficked; complements the EU Forced Labour Regulation (import-side, build-upon)",
         "do not describe it as a criminal or individual-liability finding"
       ],
-      "verification_weight": 0.6,
-      "provenance": "auto_vetted_pending_human_verification",
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10",
       "supersedes": null,
       "superseded_by": null
     },
     {
       "id": "coe_warsaw_trafficking",
       "claim_type": "treaty",
-      "text": "The Council of Europe Convention on Action against Trafficking in Human Beings (Warsaw, CETS 197, 2005; in force 2008) is victim-centred: it was the first treaty to codify the NON-PUNISHMENT PRINCIPLE (parties shall provide for the possibility of not imposing penalties on victims for unlawful activities they were compelled to commit), a recovery-and-reflection period during which a presumed victim is not expelled, and a bar on removing a person before the victim-identification process is complete.",
+      "text": "The Council of Europe Convention on Action against Trafficking in Human Beings (Warsaw, CETS 197, 2005; in force 2008) is victim-centred: it was one of the first binding treaties (Article 26) to codify the NON-PUNISHMENT PRINCIPLE (parties shall provide for the possibility of not imposing penalties on victims for unlawful activities they were compelled to commit), a recovery-and-reflection period during which a presumed victim is not expelled, and a bar on removing a person before the victim-identification process is complete.",
       "authority": "Council of Europe Convention on Action against Trafficking in Human Beings (CETS No. 197, 2005)",
       "authority_class": "treaty",
       "source_url": "https://www.coe.int/en/web/anti-human-trafficking/",
@@ -803,8 +831,8 @@
         "non-punishment is a KEY protection a worker/victim can raise, but it is a 'possibility' shaped by national law, not an automatic immunity",
         "binds Council of Europe states parties; persuasive elsewhere"
       ],
-      "verification_weight": 0.6,
-      "provenance": "auto_vetted_pending_human_verification",
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10",
       "supersedes": null,
       "superseded_by": null
     },
@@ -860,8 +888,8 @@
         "MLC is the sector standard for seafarers; forced labour itself is defined by C29",
         "check the ship's flag-state ratification before asserting it applies"
       ],
-      "verification_weight": 0.6,
-      "provenance": "auto_vetted_pending_human_verification",
+      "verification_weight": 0.9,
+      "provenance": "human_verified_2026_07_10",
       "supersedes": null,
       "superseded_by": null
     }
