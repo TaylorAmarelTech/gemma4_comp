@@ -300,7 +300,28 @@
       "recheck_reason": "stable as history; the operative CURRENT federal standard is the TVPA (18 U.S.C. sec.1589), which should be cited for present-day forced-labour analysis",
       "caveats": ["do NOT cite Kozminski as the current federal forced-labour standard; it is retained as context that explains why the TVPA broadened the definition (build-upon-not-replace example)"],
       "supersedes": null,
-      "superseded_by": "us_tvpa_forced_labour (to be added: 18 U.S.C. sec.1589 broader forced-labour definition)",
+      "superseded_by": "us_tvpa_1589",
+      "verification_weight": 0.9
+    },
+    {
+      "id": "us_tvpa_1589",
+      "claim_type": "rule",
+      "text": "The current U.S. federal forced-labour standard, 18 U.S.C. sec.1589 (Trafficking Victims Protection Act), criminalises knowingly obtaining labour or services by any of: force or threat of force; serious harm or threats of serious harm (which expressly includes psychological, financial, or reputational harm sufficient to compel a reasonable person in the same circumstances); abuse or threatened abuse of law or legal process; or a scheme to make the person believe they or another would suffer serious harm or physical restraint. It broadened the narrow physical/legal-coercion reading of Kozminski.",
+      "authority": "18 U.S.C. sec.1589 (Trafficking Victims Protection Act)",
+      "authority_class": "domestic_law",
+      "source_url": "https://www.law.cornell.edu/uscode/text/18/1589",
+      "jurisdiction": "US",
+      "applies_to": "US federal forced-labour prosecutions; the operative current standard",
+      "exceptions": ["a criminal charge requires proof of the statutory elements to a criminal standard; this is not an automatic finding"],
+      "binding_status": "binding_domestic",
+      "effective_from": "2000-10-28",
+      "as_of": "2026-07-10",
+      "volatility": "low",
+      "recheck_after": "2028-01-01",
+      "recheck_reason": "core statute is stable; the TVPA is periodically reauthorised (TVPRA) and case law refines 'serious harm', so check for amendments",
+      "caveats": ["cite THIS, not Kozminski, for the current US forced-labour standard", "psychological/financial coercion CAN qualify as 'serious harm' here (the key difference from Kozminski)"],
+      "supersedes": "kozminski_1988",
+      "superseded_by": null,
       "verification_weight": 0.9
     }
   ]
