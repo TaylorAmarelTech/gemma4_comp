@@ -63,6 +63,16 @@ def test_overbroad_guardrail_closes_the_three_known_evasions():
     assert st._looks_overbroad("Nepal caps the worker service fee where the employer declines to pay it.") is False
 
 
+def test_overbroad_guardrail_catches_verb_inflections_from_adversarial_audit():
+    # an adversarial audit showed these unscoped absolutist claims slipped the old verb list
+    assert st._looks_overbroad("Qatar bans all recruitment fees for every migrant worker.") is True   # bans
+    assert st._looks_overbroad("This law outlaws every recruitment fee.") is True                     # outlaws
+    assert st._looks_overbroad("The rule forbids any fee, with no exceptions.") is True                # forbids
+    assert st._looks_overbroad("The country banned every recruitment fee.") is True                   # banned
+    # still not tripped by a scoped or non-absolutist claim
+    assert st._looks_overbroad("Recruitment fees are banned, subject to authorised national exceptions.") is False
+
+
 def test_convergence_needs_a_majority():
     def caller_accept(p, **kw):
         return '{"accurate": true}' if "ACCURACY" in p else '{"fatal": false}' if "objection" in p else '{"scoped": true}'
