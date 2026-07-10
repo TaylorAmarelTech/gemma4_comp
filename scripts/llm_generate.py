@@ -198,6 +198,7 @@ def nvidia_chat(prompt: str, *, model: str, max_tokens: int = DEFAULT_MAX_TOKENS
 # on the others instead of stalling. Keys are NEVER embedded -- they come from the process env or a
 # gitignored ``.agent/provider_keys.json``; see ``_load_key_pool``.
 _PROVIDER_REGISTRY: dict[str, dict[str, str]] = {
+    "openai":      {"base": "https://api.openai.com/v1",           "env": "OPENAI"},
     "openrouter":  {"base": "https://openrouter.ai/api/v1",        "env": "OPENROUTER"},
     "groq":        {"base": "https://api.groq.com/openai/v1",       "env": "GROQ"},
     "cerebras":    {"base": "https://api.cerebras.ai/v1",           "env": "CEREBRAS"},
@@ -318,17 +319,76 @@ def openai_compatible_chat(prompt: str, *, model: str, base_url: str, keys: list
     raise AllKeysExhausted(f"{provider}: all {len(keys)} keys spent/failed (last: {last_exc})")
 
 
+ANTHROPIC_PREFIX = "anthropic:"
+ANTHROPIC_BASE = "https://api.anthropic.com/v1"
+ANTHROPIC_VERSION = "2023-06-01"
+
+
+def anthropic_chat(prompt: str, *, model: str, keys: list[str], max_tokens: int = DEFAULT_MAX_TOKENS,
+                   temperature: float = 0.6, system: str | None = None, timeout: float = 180.0,
+                   max_retries: int = 3) -> str:
+    """One Anthropic Messages-API completion -> the answer text. Anthropic is NOT OpenAI-compatible (its
+    own ``/v1/messages`` endpoint, ``x-api-key`` header, and ``content:[{text}]`` response), so it gets a
+    dedicated caller rather than ``openai_compatible_chat``. Same key-pool rotation and exhaustion
+    contract: a key that returns 401/402/403/429 is dropped and the next tried; transient 5xx/network
+    errors retry the same key; raises ``AllKeysExhausted`` only when every key is spent, so it drops in as
+    a cross-family judge without stalling the panel. ``model`` is the bare id (e.g. ``claude-3-5-haiku-latest``);
+    the ``anthropic:`` prefix is stripped by ``provider_chat``."""
+    if not keys:
+        raise AllKeysExhausted("anthropic: no keys in pool (.agent/provider_keys.json or env)")
+    model = model[len(ANTHROPIC_PREFIX):] if model.startswith(ANTHROPIC_PREFIX) else model
+    payload: dict[str, Any] = {"model": model, "temperature": temperature,
+                               "max_tokens": max_tokens if max_tokens and max_tokens > 0 else 1024,
+                               "messages": [{"role": "user", "content": prompt}]}
+    if system:
+        payload["system"] = system
+    body = json.dumps(payload).encode("utf-8")
+    start = _next_key_offset("anthropic", len(keys))
+    last_exc: Exception | None = None
+    for i in range(len(keys)):
+        key = keys[(start + i) % len(keys)]
+        for attempt in range(max_retries + 1):
+            req = urllib.request.Request(f"{ANTHROPIC_BASE}/messages", data=body,
+                                         headers={"x-api-key": key, "anthropic-version": ANTHROPIC_VERSION,
+                                                  "Content-Type": "application/json"})
+            try:
+                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                    out = json.loads(resp.read().decode("utf-8", "replace"))
+                blocks = out.get("content") or []
+                return "".join(b.get("text", "") for b in blocks if isinstance(b, dict)).strip()
+            except urllib.error.HTTPError as exc:
+                last_exc = exc
+                if exc.code in _KEY_EXHAUSTED_STATUS:
+                    break                       # this key is spent -> next key
+                if exc.code not in _RETRYABLE_STATUS or attempt == max_retries:
+                    raise
+                wait = _retry_after(exc)
+            except OSError as exc:
+                last_exc = exc
+                if attempt == max_retries:
+                    break
+                wait = None
+            if wait is None:
+                wait = 2 ** attempt + random.uniform(0.0, 0.5)
+            time.sleep(min(wait, 30.0))
+    raise AllKeysExhausted(f"anthropic: all {len(keys)} keys spent/failed (last: {last_exc})")
+
+
 def provider_chat(prompt: str, *, model: str, **kwargs: Any) -> str:
     """Route one chat completion to its provider by model prefix:
-    ``nvidia:<id>`` -> NVIDIA build; ``<provider>:<id>`` for any key in ``_PROVIDER_REGISTRY``
-    (openrouter/groq/cerebras/together/sambanova/featherless/mistral) -> that provider's pooled,
-    key-rotating OpenAI-compatible caller; everything else -> Ollama-cloud (the default; unchanged).
+    ``nvidia:<id>`` -> NVIDIA build; ``anthropic:<id>`` -> Anthropic Messages API; ``<provider>:<id>``
+    for any key in ``_PROVIDER_REGISTRY`` (openai/openrouter/groq/cerebras/together/sambanova/
+    featherless/mistral) -> that provider's pooled, key-rotating OpenAI-compatible caller; everything
+    else -> Ollama-cloud (the default; unchanged).
     Lets the benchmark spread calls across many endpoints/keys so a single account's credit reset never
     stalls the sweep. ``num_ctx`` is an Ollama-only option, dropped for the strict-OpenAI providers."""
     prefix = model.split(":", 1)[0] if ":" in model else ""
     if model.startswith(NVIDIA_PREFIX):
         kwargs.pop("num_ctx", None)   # Ollama-only option; NVIDIA is strict OpenAI
         return nvidia_chat(prompt, model=model, **kwargs)
+    if model.startswith(ANTHROPIC_PREFIX):
+        kwargs.pop("num_ctx", None)   # Ollama-only option; Anthropic Messages API rejects it
+        return anthropic_chat(prompt, model=model, keys=_load_key_pool("ANTHROPIC"), **kwargs)
     if prefix in _PROVIDER_REGISTRY:
         spec = _PROVIDER_REGISTRY[prefix]
         kwargs.pop("num_ctx", None)   # Ollama-only option; strict-OpenAI providers reject it

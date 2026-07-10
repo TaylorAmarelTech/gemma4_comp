@@ -67,6 +67,76 @@ def test_provider_chat_routes_registry_prefix_to_pool(monkeypatch):
     assert seen["keys"] == ["k1", "k2"]
 
 
+def test_provider_chat_routes_openai_prefix_to_real_openai(monkeypatch):
+    """``openai:<id>`` reaches the REAL OpenAI API (api.openai.com) using the OPENAI key pool -- so a key
+    we actually hold becomes a live cross-family judge, not a fall-through to Ollama."""
+    seen = {}
+
+    def _oc(p, *, model, base_url, keys, provider, **kw):
+        seen.update(model=model, base_url=base_url, provider=provider)
+        return "R"
+
+    monkeypatch.setattr(lg, "openai_compatible_chat", _oc)
+    monkeypatch.setattr(lg, "_load_key_pool", lambda env: ["sk-openai"] if env == "OPENAI" else [])
+    assert lg.provider_chat("hi", model="openai:gpt-4o-mini") == "R"
+    assert seen["base_url"] == "https://api.openai.com/v1"        # the real OpenAI endpoint, not Ollama
+    assert seen["model"] == "gpt-4o-mini" and seen["provider"] == "openai"
+
+
+class _AnthResp:
+    """Anthropic Messages API response shape: content is a list of typed blocks, not choices[].message."""
+    def __init__(self, text):
+        self._t = text
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        return False
+
+    def read(self):
+        import json as _j
+        return _j.dumps({"content": [{"type": "text", "text": self._t}]}).encode()
+
+
+def test_provider_chat_routes_anthropic_to_messages_api(monkeypatch):
+    """``anthropic:<id>`` hits the Anthropic Messages API (x-api-key header, /messages) and its
+    content[].text response is flattened -- a third independent judge family we hold a key for."""
+    captured = {}
+
+    def _fake_urlopen(req, timeout=0):
+        captured["url"] = req.full_url
+        captured["x_api_key"] = req.headers.get("X-api-key")     # header names are title-cased by urllib
+        captured["version"] = req.headers.get("Anthropic-version")
+        return _AnthResp("GRADED")
+
+    monkeypatch.setattr(lg.urllib.request, "urlopen", _fake_urlopen)
+    monkeypatch.setattr(lg, "_load_key_pool", lambda env: ["sk-ant"] if env == "ANTHROPIC" else [])
+    out = lg.provider_chat("grade this", model="anthropic:claude-3-5-haiku-latest", num_ctx=32768)
+    assert out == "GRADED"                                        # content[].text flattened to plain text
+    assert captured["url"].endswith("/v1/messages")              # the Messages API, not chat/completions
+    assert captured["x_api_key"] == "sk-ant" and captured["version"] == lg.ANTHROPIC_VERSION
+
+
+def test_anthropic_chat_rotates_off_spent_key(monkeypatch):
+    calls = []
+
+    def _fake_urlopen(req, timeout=0):
+        calls.append(req.headers.get("X-api-key"))
+        if req.headers.get("X-api-key") == "good":
+            return _AnthResp("OK")
+        raise _http_error(429)
+
+    monkeypatch.setattr(lg.urllib.request, "urlopen", _fake_urlopen)
+    out = lg.anthropic_chat("hi", model="claude-3-5-haiku-latest", keys=["spent", "good"], max_retries=0)
+    assert out == "OK" and "spent" in calls and "good" in calls   # spent key dropped, rotated to good
+
+
+def test_anthropic_chat_empty_pool_raises():
+    with pytest.raises(lg.AllKeysExhausted, match="no keys"):
+        lg.anthropic_chat("hi", model="claude-3-5-haiku-latest", keys=[])
+
+
 def test_provider_chat_no_prefix_still_ollama(monkeypatch):
     seen = {}
     monkeypatch.setattr(lg, "ollama_chat", lambda p, *, model, **kw: seen.update(model=model) or "O")
