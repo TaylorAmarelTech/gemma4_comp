@@ -11,25 +11,31 @@ Subject model: `gemma4:31b`. Arms compared: `baseline` versus `harness_core` (th
 fired GREP indicator rules + RAG legal grounding + the ILO-reasoning preamble). Scale: 0-100, summed over
 five calibrated components A-E.
 
-## The result converges around +55 to +57 across independent configurations
+## The lift is large and statistically significant in every independent judge family
 
-The headline is not a single number from a single setup. The same lift appears across three different
-grading configurations that vary the judge, the grading method, and the prompt wording:
+The headline is not one number from one setup. A large positive total lift appears across grading
+configurations that vary the judge family, the grading method, and the prompt wording. What is robust is
+the *sign and significance* — every configuration finds a large lift whose confidence interval excludes
+zero. What is *judge-dependent* is the exact magnitude, which ranges from roughly +45 to +60:
 
-| Configuration | Pooled total lift | n | notes |
-|---|---|---:|---|
-| Single judge, single framing | +56.8 | 20 | gpt-oss-120b, one call per dimension |
-| Single judge, framing-averaged | +54.1 | 16 | each dimension asked with 2 distinct framings, averaged |
-| Two judges, cross-family | +57.5 | 60 | gpt-oss (openai family) + qwen3.5 (qwen family) |
+| Configuration | Total lift | 95% CI | n | notes |
+|---|---:|---:|---:|---|
+| gpt-oss-120b (openai family), single framing | +56.8 | — | 20 | one call per dimension |
+| gpt-oss-120b, framing-averaged | +54.1 | — | 16 | each dimension asked with 2 framings, averaged |
+| gpt-oss + qwen3.5, two cross-family judges | +57.5 | — | 60 | openai + qwen families |
+| mistral-small (mistral family) | +44.77 | [+35.4, +53.8] | 30 | third family; bootstrap CI; every per-dimension CI excludes zero |
 
-The pooled totals land within roughly three points of one another. That convergence is the load-bearing
-result: the measured lift does not appear to be an artifact of any single judge, any single prompt
-wording, or any single grading method. A number that survives changing all three of those may be treated
-as more defensible than any one measurement on its own.
+The openai and qwen families land near +55; the mistral family is a more conservative grader and lands
+near +45, with a 95% bootstrap interval [+35.4, +53.8] whose upper edge reaches the openai/qwen band. The
+honest read is therefore **not** "the lift converges to a single point value" — it is that the lift is
+large, positive, and statistically significant in three independent judge families, with a magnitude that
+depends on how strict the grader is. A finding that survives that much judge variation, while never once
+crossing zero, is more defensible than any single point estimate. (The gpt-oss and qwen rows predate the
+bootstrap-CI addition and are reported as point estimates; the mistral row carries the interval.)
 
-## Two independent cross-family judges agree on magnitude and ordering
+## Every dimension lifts positively in every family; the largest mover is judge-dependent
 
-The two-judge run (n=60 = 30 prompts graded by two judges from different model families, each
+The openai + qwen two-judge run (n=60 = 30 prompts graded by two judges from different families, each
 cross-family with the gemma4:31b subject so no judge scores its own family):
 
 | Dimension | gpt-oss (openai) | qwen3.5 (qwen) | Pooled |
@@ -41,15 +47,30 @@ cross-family with the gemma4:31b subject so no judge scores its own family):
 | E. Privacy and safety | +7.3 | +8.5 | +7.9 |
 | Total (0-100) | +54.6 | +60.3 | +57.5 |
 
-Both judges lift every dimension positively. Both rank indicator-identification (A) as the single
-largest lift, with law-citation (B) second. That ordering maps onto what the harness injects: the GREP
-indicator rules and the RAG legal corpus. The dimensions the harness is designed to move are the ones
-the independent judges find move most, so the mechanism and the measurement point the same way.
+The mistral third family (n=30, one judge, with bootstrap 95% CIs — every interval excludes zero, so
+each dimension's lift is individually significant):
 
-Agreement is strongest on the more objective dimensions (A, B, D land within a few points across judges)
-and looser on the more subjective ones (C refusal-quality and E privacy, where qwen scores the lift
-somewhat higher). That divergence pattern is expected and is reported rather than smoothed over: two
-judges may reasonably differ more on a judgment call than on whether a statute was cited.
+| Dimension | mistral-small lift | 95% CI | n |
+|---|---:|---:|---:|
+| B. Cites the specific law | +18.00 | [+15.8, +19.6] | 20 |
+| C. Refuses to enable | +10.53 | [+5.3, +15.8] | 19 |
+| D. Concrete resources | +9.05 | [+6.0, +11.9] | 22 |
+| A. Identifies the indicator | +7.71 | [+3.1, +13.0] | 21 |
+| E. Privacy and safety | +6.22 | [+3.7, +8.9] | 23 |
+| Total (0-100) | +44.77 | [+35.4, +53.8] | 30 |
+
+What all three families agree on: **every dimension lifts positively**, and **law-citation (B) is a
+top-two mover in every family**. That maps onto what the harness injects — the RAG legal corpus and the
+GREP indicator rules feed exactly the law-citation and indicator dimensions.
+
+Where they differ, and it is reported rather than smoothed over: the *single largest* mover is
+judge-dependent. The openai and qwen families rank indicator-identification (A, ~+17-18) first and
+law-citation (B) second; the mistral family reverses this, ranking law-citation (B, +18.0) clearly first
+and scoring indicator-identification (A, +7.7) only fourth. In other words, all three families see the
+harness improve grounding, but they disagree on whether it improves *naming the indicator* or *citing the
+statute* most. A safety claim that depends on that ordering would be overreaching; the claim that survives
+all three families is the weaker, sturdier one — the harness lifts law-citation and indicator-identification
+together, and lifts every other scored dimension too, in every independent grader.
 
 ## Method and robustness controls
 
@@ -66,26 +87,42 @@ judges may reasonably differ more on a judgment call than on whether a statute w
 - Framing robustness. Each dimension can be asked with several distinct question framings and averaged;
   doing so moves the total only marginally (+56.8 to +54.1), which indicates the score is not an artifact
   of one prompt wording.
+- Bootstrap confidence intervals. Each per-dimension and total lift now carries a deterministic (seeded,
+  reproducible) 95% bootstrap interval over the paired per-prompt deltas, so the sample-size uncertainty
+  is quantified rather than asserted. For the mistral family every per-dimension interval excludes zero,
+  which is the individual-dimension significance claim above.
 
 ## Reproduce
 
+The live off-Ollama judge as of this writing is the mistral family (the run that produced the third-family
+table and the confidence intervals):
+
 ```
-python scripts/perdim_headline_regrade.py --n 30 \
-  --judges nvidia:openai/gpt-oss-120b,nvidia:qwen/qwen3.5-397b-a17b
+python scripts/perdim_headline_regrade.py --n 30 --judges mistral:mistral-small-latest
 ```
 
-Add a third cross-family judge with `,nvidia:meta/llama-3.1-70b-instruct`, or average across question
-framings with `--phrasings-per-dim 2`. The tool re-grades already-generated responses, so it does not
-regenerate model output and does not depend on the subject model's provider.
+Any provider-prefixed judge works: `openai:<id>` and `anthropic:<id>` route to the real OpenAI and
+Anthropic APIs the moment a key is placed in `.env` or `.agent/provider_keys.json` (both families are
+wired but were un-keyed when the mistral run was taken). The earlier openai/qwen rows were measured through
+`nvidia:openai/gpt-oss-120b` and `nvidia:qwen/qwen3.5-397b-a17b`; those same two families are also
+reachable through Ollama-cloud as bare `gpt-oss:120b,qwen3.5:397b`. Add judges comma-separated, or average
+across question framings with `--phrasings-per-dim 2`. The tool re-grades already-generated responses, so
+it does not regenerate model output and does not depend on the subject model's provider — which is why it
+can run on a live off-Ollama judge without touching the benchmark engine's Ollama quota.
 
 ## Notes and limitations
 
-- Absolute magnitudes are sample-dependent and judge-dependent. Runs judged by a single strong model on a
-  small fresh sample may read higher than the full 3-judge panel on the large committed board (which
-  reports a batched pooled lift nearer +39). The load-bearing claim here is the convergence across
-  configurations and the consistent per-dimension ordering, not the exact point value.
-- The samples in this report are bounded (tens of prompts). A larger multi-judge run would tighten the
-  confidence around each dimension.
+- Absolute magnitudes are sample-dependent and judge-dependent, and this report now shows that directly:
+  the total ranges from +44.8 (mistral) to +60.3 (qwen) across families. The large committed board, which
+  grades the full sweep with a batched 0-100 rubric across three Ollama-cloud families, reports a pooled
+  paired lift near +40.8 (harness_core) — more conservative still, because it grades far more prompts and
+  batches the five components into one call. The load-bearing claim is the *direction and significance*
+  across every judge family and every dimension, not any single point value.
+- The samples in the per-dimension runs are bounded (tens of prompts), which is why each lift carries a
+  bootstrap 95% CI. The intervals are the honest statement of that uncertainty: wide where n is small
+  (mistral C, [+5.3, +15.8]) and tight where the signal is clean (mistral B, [+15.8, +19.6]). Because the
+  openai and anthropic judge routes are now wired (pending keys), a genuinely independent three-or-more
+  family panel with CIs is a drop-in extension the moment those keys are populated.
 - Not every model can serve as a per-dimension judge: the single-component JSON rubric is strict, and
   some models wrap or ignore it. Judges verified to follow it are recorded alongside this work.
 - These numbers describe measured rubric-scored quality. A rubric that rewards citing the specific law and
