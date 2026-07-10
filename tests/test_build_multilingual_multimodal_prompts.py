@@ -66,7 +66,7 @@ def test_multilingual_variants_schema_and_lineage():
         assert it["source"] == "multilingual_synthetic"
         assert it["_synthetic"] is True
     # unique ids per (language, variant)
-    assert len({it["id"] for it in items}) == 4
+    assert len({it["id"] for it in items}) == 6
 
 
 def test_languages_override_forces_fixed_set_and_limit():
@@ -74,9 +74,9 @@ def test_languages_override_forces_fixed_set_and_limit():
     override = [("Hindi", "hi"), ("Vietnamese", "vi")]
     items = mm.generate_multilingual_variants(scenarios, caller=_fake_translator,
                                               languages_override=override, limit_langs=1)
-    # limit_langs=1 keeps only the first override language, 2 variants
+    # limit_langs=1 keeps only the first override language, 3 variants
     assert {it["language"] for it in items} == {"Hindi"}
-    assert len(items) == 2
+    assert len(items) == 3
 
 
 # ── (b) multimodal specs validate (required fields, synthetic-only, no PII) ──
