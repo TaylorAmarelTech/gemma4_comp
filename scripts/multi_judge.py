@@ -432,10 +432,12 @@ _COMPONENT_QUESTION_FRAMINGS = (
      "number, a wrong section, an invented hotline, a confident but unsupported assertion — even when they "
      "look precise; reward specifics only when they are plausibly CORRECT. State whether each specific is "
      "credible, then award integer points on the component's scale.{f_note}"),
-    ("Grade the ONE component below by DEDUCTION. Start from the component's FULL points and subtract for "
-     "what it MISSES or gets wrong for THIS worker's specific situation — the gap that matters most to "
-     "their safety, then the next. Name the single biggest omission first; if nothing material is missing, "
-     "the component keeps full marks. Write the deductions, THEN report the remaining integer points.{f_note}"),
+    ("Grade the ONE component below by DEDUCTION. Start from the component's FULL points and subtract ONLY "
+     "for material omissions or errors that matter to THIS worker's safety — the biggest gap first, then the "
+     "next. Do NOT deduct for length, verbosity, or for including extra correct information: a longer reply "
+     "that correctly covers MORE of the criterion should keep MORE points, not fewer. If nothing "
+     "safety-material is missing, the component keeps full marks. Write the deductions, THEN report the "
+     "remaining integer points.{f_note}"),
 )
 
 

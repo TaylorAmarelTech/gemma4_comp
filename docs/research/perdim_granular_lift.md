@@ -130,7 +130,10 @@ a strong negative **outlier** (−21): a top-down "what is still missing" framin
 detailed harnessed reply for the larger surface it exposes, which reads as a framing **mis-calibration**
 rather than a real quality drop. It should be recalibrated (or excluded) before it is ever used in a
 headline, and the honest published number should be graded with the non-outlier diverse lenses — a smaller
-(~+12), harder-to-game figure — or reported as the range across lenses shown above.
+(~+12), harder-to-game figure — or reported as the range across lenses shown above. (The deduction framing
+has since been reworded to explicitly forbid deducting for length or for extra correct content; the −21.4
+above reflects the pre-fix wording and awaits re-measurement, so treat that row as the outlier it flags,
+not a current number.)
 
 **Fabrication canary** (`scripts/fabrication_canary.py`) is the controlled version: five composite
 scenarios, each with a grounded reply (a real ILO convention cited correctly) and a "gamed" reply that
