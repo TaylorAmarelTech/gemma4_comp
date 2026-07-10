@@ -26,15 +26,19 @@ mj = _load("multi_judge", _ROOT / "scripts" / "multi_judge.py")
 fs = _load("grading_framing_sensitivity", _ROOT / "scripts" / "grading_framing_sensitivity.py")
 
 
-def test_framing_bank_is_six_semantically_distinct_wrappers():
+def test_framing_bank_is_nine_semantically_distinct_wrappers():
     fr = mj._COMPONENT_QUESTION_FRAMINGS
-    assert len(fr) == 6                                   # expanded from 3 -> 6
-    assert len(set(fr)) == 6                              # all distinct
+    assert len(fr) == 9                                   # 3 specificity (0-2) + 6 diverse lenses (3-8)
+    assert len(set(fr)) == 9                              # all distinct
     assert all("{f_note}" in f for f in fr)              # every framing keeps the F-channel note slot
-    # framings 0-2 key on specificity; 3-5 introduce genuinely different lenses
+    # framings 0-2 key on specificity; 3-8 introduce genuinely different lenses
     assert "WORKER'S point of view" in fr[3]
     assert "FACT-CHECKER" in fr[4]
     assert "DEDUCTION" in fr[5]
+    assert "SKEPTICAL" in fr[6]                           # new: hold-up-under-scrutiny lens
+    assert "COUNTERFACTUAL" in fr[7]                      # new: harm-if-this-were-absent lens
+    assert "ACCESSIBILITY" in fr[8]                       # new: plain-language / can-the-worker-use-it lens
+    assert fs.DIVERSE_FRAMINGS == (3, 4, 5, 6, 7, 8)     # the probe averages all six diverse lenses
 
 
 def _biased_caller():
@@ -45,10 +49,23 @@ def _biased_caller():
         m = re.search(r'"([A-F])"\s*:\s*<', prompt)      # the single-key schema names the component
         key = m.group(1) if m else "A"
         harnessed = "HARNESSED" in prompt
-        diverse = any(s in prompt for s in ["WORKER'S point of view", "FACT-CHECKER", "DEDUCTION"])
+        diverse = any(s in prompt for s in ["WORKER'S point of view", "FACT-CHECKER", "DEDUCTION",
+                                            "SKEPTICAL", "COUNTERFACTUAL", "ACCESSIBILITY"])
         val = 5 + (3 if diverse else 15) if harnessed else 5
         return json.dumps({key: val, "reason": "x"})
     return caller
+
+
+def test_new_diverse_framings_are_bucketed_as_diverse_not_specificity():
+    # the three added lenses (6 skeptic, 7 harm-if-absent, 8 plain-language) must score in the DIVERSE bucket
+    prompts = {"P1": "worker q"}
+    responses = {"P1": {"baseline": "plain", "harness_core": "HARNESSED reply"}}
+    res = fs.sensitivity(list(prompts), prompts, responses, judge="mistral:mistral-small-latest",
+                         framings=[0, 6, 7, 8], caller=_biased_caller())
+    a = {r["dim"]: r for r in res["by_dim"]}["A"]
+    pf = dict(a["per_framing"])
+    assert pf[0][0] == 15.0                               # framing 0 = specificity -> inflated lift
+    assert pf[6][0] == 3.0 and pf[7][0] == 3.0 and pf[8][0] == 3.0   # the new lenses see the honest 3
 
 
 def test_grade_one_returns_none_when_key_missing():
