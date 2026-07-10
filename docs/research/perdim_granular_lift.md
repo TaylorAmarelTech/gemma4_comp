@@ -155,6 +155,15 @@ Mistral penalises the fabrication under *every* framing — it is not blindly fo
 framings punish it about twice as hard (+71.5 vs +38.4), and the faithfulness lens scores the fabricated
 reply 0/100 while the specificity framings still award it ~10 for merely looking specific.
 
+Caveat added after an external legal-claim audit (2026-07-10): the grounded replies in this canary were
+originally phrased with *overbroad* legal claims (e.g. "C181 Article 7 prohibits worker-paid recruitment
+fees", "C29 treats debt bondage and document retention as coercion") that omit the authorised exceptions,
+ratification dependence, and the fact that debt-bondage / document-retention are *separate indicator
+guidance*, not the C29 definition. They have been revised to precise formulations, so the canary was partly
+measuring "confident-overbroad vs fabricated". The numbers above reflect the pre-revision grounded replies
+and await re-measurement; the precise-but-hedged versions may score lower under the specificity framings,
+which would itself be evidence that legal precision costs specificity-rubric points.
+
 **Read together:** the harness lift is real — every lens ranks a correct grounded reply far above a
 fabricated one, so the harness is injecting genuine, *faithful* specifics — but specificity-anchored
 grading inflates the lift's *magnitude*, because those framings reward token presence even when the token
