@@ -21,6 +21,7 @@ import json
 import statistics
 import sys
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Callable
 
@@ -60,29 +61,40 @@ def load_prompts(promptset_path: Path) -> dict[str, str]:
 
 def regrade(cells: list[str], prompts: dict[str, str], responses: dict[str, dict[str, str]], *,
             model: str, judges: list[str], caller: Callable[..., str] | None = None,
-            rubric_version: str = "v1") -> dict:
-    """Per-dimension re-grade. For each (cell, judge, arm) run judge_components_perdim; return the
-    per-dimension lift (harness_core - baseline) pooled per judge and overall, plus the total."""
+            rubric_version: str = "v1", concurrency: int = 6,
+            log: Callable[[str], None] | None = None) -> dict:
+    """Per-dimension re-grade. For each (cell, judge) run judge_components_perdim on both arms; return the
+    per-dimension lift (harness_core - baseline) pooled per judge and overall, plus the total. The
+    (cell, judge) units run on a thread pool so a publishable-scale N x judges is not sequential."""
     comp_keys = [k for k, _mx in components_for_version(rubric_version)]
     # judge never grades its own family (subject is ``model``)
     judges = [j for j in judges if model_family(j) != model_family(model)]
     per_judge: dict[str, dict[str, list[float]]] = {
         j: {k: [] for k in comp_keys + ["score"]} for j in judges}
-    for pid in cells:
-        arms = responses.get(pid, {})
-        if not all(a in arms for a in ARMS_PAIR):
-            continue
-        for j in judges:
+    units = [(pid, j) for pid in cells
+             if all(a in responses.get(pid, {}) for a in ARMS_PAIR) for j in judges]
+
+    def _grade_unit(pid: str, j: str):
+        arms = responses[pid]
+        b = judge_components_perdim(prompts.get(pid, ""), arms["baseline"], model=j,
+                                    caller=caller, rubric_version=rubric_version)
+        h = judge_components_perdim(prompts.get(pid, ""), arms["harness_core"], model=j,
+                                    caller=caller, rubric_version=rubric_version)
+        return j, {k: float(h[k]) - float(b[k]) for k in comp_keys + ["score"] if k in b and k in h}
+
+    done = 0
+    with ThreadPoolExecutor(max_workers=max(1, concurrency)) as ex:
+        futs = {ex.submit(_grade_unit, pid, j): (pid, j) for (pid, j) in units}
+        for fut in as_completed(futs):
+            done += 1
             try:
-                b = judge_components_perdim(prompts.get(pid, ""), arms["baseline"], model=j,
-                                            caller=caller, rubric_version=rubric_version)
-                h = judge_components_perdim(prompts.get(pid, ""), arms["harness_core"], model=j,
-                                            caller=caller, rubric_version=rubric_version)
-            except Exception:  # noqa: BLE001 -- a judge failure drops the cell, never the run
+                j, deltas = fut.result()
+            except Exception:  # noqa: BLE001 -- a judge failure drops that (cell, judge), never the run
                 continue
-            for k in comp_keys + ["score"]:
-                if k in b and k in h:
-                    per_judge[j][k].append(float(h[k]) - float(b[k]))
+            for k, v in deltas.items():
+                per_judge[j][k].append(v)
+            if log and done % 10 == 0:
+                log(f"  {done}/{len(units)} (cell, judge) units graded")
 
     def summarize(lifts: dict[str, list[float]]) -> dict:
         out = {}
@@ -123,6 +135,7 @@ def main(argv: list[str] | None = None) -> int:
                     help="comma-separated provider-prefixed judges (off Ollama)")
     ap.add_argument("--results", type=Path, default=DEFAULT_RESULTS)
     ap.add_argument("--promptset", type=Path, default=DEFAULT_PROMPTSET)
+    ap.add_argument("--concurrency", type=int, default=6, help="concurrent (cell, judge) grade units")
     args = ap.parse_args(argv)
 
     responses = load_responses(args.results, args.model)
@@ -130,7 +143,8 @@ def main(argv: list[str] | None = None) -> int:
     cells = sorted(pid for pid, a in responses.items()
                    if all(x in a for x in ARMS_PAIR) and pid in prompts)[:args.n]
     print(f"re-grading {len(cells)} {args.model} cells per-dimension via {args.judges} ...", flush=True)
-    result = regrade(cells, prompts, responses, model=args.model, judges=args.judges.split(","))
+    result = regrade(cells, prompts, responses, model=args.model, judges=args.judges.split(","),
+                     concurrency=args.concurrency, log=lambda m: print(m, flush=True))
     result["_synthetic"] = True
     result["_propose_only"] = True
     OUT.write_text(json.dumps(result, indent=2), encoding="utf-8")
