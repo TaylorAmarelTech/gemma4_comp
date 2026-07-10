@@ -39,8 +39,8 @@ Guardrails (defence-in-depth — a candidate must pass ALL):
 Roles of the existing systems (feeders into the SAME gated pipeline, not new ungated committers):
 - **Hermes** (discovery) can be pointed at "under-covered jurisdiction/topic" targets to draft candidate
   claims, exactly as it drafts benchmark prompts today; output stages, never merges.
-- **OpenClaw** (vetting) is the natural home for the convergence + guardrail vet (accept/reject a candidate
-  before it advances), mirroring how it vets prompts.
+- **The vetting daemon** (`openclaw_daemon.py`) is the natural home for the convergence + guardrail vet
+  (accept/reject a candidate before it advances), mirroring how it vets prompts.
 - **The agent loop** (this session's days/weeks loop) does the WebSearch research (the daemons have no
   web), drafts candidates, runs the convergence vet, stages, and asks for the promotion go-ahead.
 - **`configs/duecare/legal_research_queue.json`** is the shared target queue (which jurisdictions/topics to
@@ -88,6 +88,6 @@ Concrete CoT-training plan (append-only, gated; extends the existing pipeline, d
 ## Status
 - Built: the claim library + freshness flagger + the `legal_reasoning.py` CoT scaffold + this design.
 - Seeded: `configs/duecare/legal_research_queue.json` (the enrichment target queue).
-- Next (gated, incremental per loop cycle): stand up the convergence-vet staging step (extend OpenClaw),
+- Next (gated, incremental per loop cycle): stand up the convergence-vet staging step (extend the vetting daemon),
   research queue targets via WebSearch, and stage the CoT-target DPO arm — each behind the human promotion
   gate, append-only.
