@@ -87,6 +87,7 @@ PAGE_ROUTES: dict[str, str] = {
     "/grep-rules": "grep-rules.html",
     "/harness": "harness.html",
     "/harness-study": "harness-study.html",
+    "/study-2026-07": "study-2026-07.html",
     "/egregious-cases": "egregious-cases.html",
     "/hub": "hub.html",
     "/intelligence": "intelligence.html",
