@@ -53,6 +53,15 @@ def validate_schema(claims: list[dict]) -> list[str]:
                 date.fromisoformat(v)
             except (ValueError, TypeError):
                 errors.append(f"{cid}: field '{f}' = {v!r} is not an ISO date (YYYY-MM-DD)")
+    # referential integrity (audit A5): a supersede pointer must name a claim that actually exists, so the
+    # build-upon/supersede chain can never dangle as the corpus grows.
+    ids = {c.get("id") for c in claims}
+    for c in claims:
+        cid = c.get("id", "?")
+        for f in ("superseded_by", "supersedes"):
+            tgt = c.get(f)
+            if tgt and tgt not in ids:
+                errors.append(f"{cid}: {f} points to unknown claim id {tgt!r}")
     return errors
 
 

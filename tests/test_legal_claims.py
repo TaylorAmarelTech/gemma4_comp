@@ -43,6 +43,22 @@ def test_validate_schema_catches_bad_records():
     assert any("volatility" in e for e in errs) and any("recheck_after" in e for e in errs)
 
 
+def test_validate_schema_flags_dangling_supersede_pointer():
+    def _c(cid, **extra):
+        return {"id": cid, "claim_type": "rule", "text": "t", "authority": "a", "source_url": "http://x",
+                "jurisdiction": "j", "binding_status": "b", "as_of": "2026-07-10", "volatility": "low",
+                "recheck_after": "2027-01-01", "recheck_reason": "r", **extra}
+    # a supersede pointer to a real claim is fine
+    assert lc.validate_schema([_c("a", superseded_by="b"), _c("b")]) == []
+    # a pointer to a missing id is flagged (audit A5: no dangling build-upon chain)
+    errs = lc.validate_schema([_c("a", superseded_by="ghost")])
+    assert any("unknown claim id" in e and "ghost" in e for e in errs)
+
+
+def test_shipped_library_has_no_dangling_supersede_pointers():
+    assert lc.validate_schema(lc.load_claims()) == []             # the live 85-claim corpus is referentially clean
+
+
 def test_recheck_flags_high_volatility_and_passed_dates():
     claims = [
         {"id": "stable", "claim_type": "definition", "volatility": "low", "recheck_after": "2030-01-01"},
