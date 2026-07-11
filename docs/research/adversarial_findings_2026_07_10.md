@@ -23,9 +23,12 @@ still owed, ranked by leverage. This is the "where does it break" companion to
 2. **Synonym / paraphrase evasion (CRITICAL).** "travel booklet"≠passport, "cash advance…earn back"≠debt
    collapses the deterministic signal (Palermo flips to False). Fix: synonym table + a paraphrase axis in
    `noise_robustness.py` (which only perturbs characters today).
-3. **Output-faithfulness gate on ACTUAL answers (HIGH).** Controls validate presence/plausibility, never legal
-   correctness; the overbroad-no-exception mode is unguarded at inference. Fix: the output-side analog of
-   `_looks_overbroad`, blinded to arm.
+3. **Output-faithfulness gate on ACTUAL answers (HIGH) — PARTLY ADDRESSED.** Controls validate
+   presence/plausibility, never legal correctness; the overbroad-no-exception mode was unguarded at inference.
+   The output-side analog of `_looks_overbroad` is now built + tested (`scripts/output_faithfulness_gate.py`,
+   propose-only): it flags a generated answer that states an absolute legal rule without its exception and
+   cross-refs the corpus. Remaining: wire it into the live inference path, and run the blinded end-to-end
+   evaluation on real harness outputs.
 4. **Red-team classifier unvalidated & evadable (HIGH).** A fresh-worded 29-word playbook → `unclear` not RED;
    "Sorry, that request cannot be handled here." is not detected as a refusal. Fix: a labelled set with
    precision/recall; an LLM backstop; non-"I" refusal forms.

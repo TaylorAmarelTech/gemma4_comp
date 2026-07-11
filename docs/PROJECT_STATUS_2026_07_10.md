@@ -176,10 +176,13 @@ to pass the contract) and one REJECTED response per wrong-thinking mode:
 **Measured finding (with an honesty correction):** the structural contract catches **7 of 8** modes; the 8th
 (overbroad-no-exception) is the specificity-overfit failure. Be precise about what catches it: `_looks_overbroad`
 (`legal_corpus_stage.py`) screens **candidate claims being appended to the corpus**, and a "faithfulness" lens
-exists only as an **LLM-judge framing** — neither is an **output gate on generated answers**. So at inference the
-overbroad mode is currently **unguarded**; the legal-claims exception data makes such a gate *buildable* but it
-is **not yet built**. This is the single most important owed piece (§10.1, §11) — do not describe the semantic
-layer as if it already screens model outputs.
+exists only as an **LLM-judge framing**. An output-side gate now exists as a **propose-only tool**
+(`scripts/output_faithfulness_gate.py`, tested): it flags a generated answer that states an absolute legal
+rule without surfacing its exception, and cross-refs the corpus so an absolute claim about an
+exception-bearing law is provable. But it is **not yet wired into the live inference path**, and the blinded
+end-to-end evaluation on *real* harness outputs is still owed (§10.1, §11). So the honest status is: the gate
+is **built and tested, not yet enforced at inference** — do not describe the overbroad mode as caught in the
+live path yet.
 
 **Strong/emphasised CoT tuning path (owed, gated):** distil contract-satisfying traces into SFT, then DPO
 (chosen = contract-satisfying chain, rejected = each failure mode), enforce the contract at inference via
