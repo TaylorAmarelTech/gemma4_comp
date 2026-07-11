@@ -38,6 +38,7 @@ _ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_ROOT / "scripts"))
 
 from legal_claims import due_for_recheck, load_claims  # noqa: E402
+import indicator_lexicon as _lex  # noqa: E402  (multilingual + synonym expansion of the indicator terms)
 
 OUT = _ROOT / "reports" / "legal_reasoning_walkthroughs.json"
 
@@ -91,7 +92,10 @@ def match_indicators(facts_text: str) -> dict[str, list[str]]:
     low = facts_text.lower()
     out: dict[str, list[str]] = {}
     for ind, kws in _INDICATOR_KEYWORDS.items():
-        hits = _hits(kws, low)
+        # the base English keywords PLUS the paraphrase-synonym + multilingual-seed expansion (indicator_lexicon)
+        # so a worker who wrote "keeping my travel booklet ... a cash advance i must earn back", or reported in
+        # Tagalog/Indonesian, still fires the indicator instead of matching nothing.
+        hits = _hits(kws + _lex.terms_for(ind), low)
         if hits:
             out[ind] = hits
     return out
