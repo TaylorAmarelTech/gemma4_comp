@@ -328,6 +328,230 @@
       "priority": "high",
       "status": "promoted",
       "rationale": "Uganda SI 47/2021 external recruitment (replaced 2005; licensing, no worker fee). PROMOTED 2026-07-10 (wave 5 fan-out; guardrails + mistral convergence majority; auto_vetted weight 0.6, human-verify to raise)."
+    },
+    {
+      "id": "ilo_c105_abolition_forced_labour_1957",
+      "jurisdiction": "international",
+      "topic": "ILO Abolition of Forced Labour Convention, 1957 (No. 105) obliges each ratifying state to",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "ILO Abolition of Forced Labour Convention, 1957 (No. 105) obliges each ratifying state to. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "ilo_c138_minimum_age_1973",
+      "jurisdiction": "international",
+      "topic": "ILO Minimum Age Convention, 1973 (No. 138) requires each ratifying state to pursue a",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "ILO Minimum Age Convention, 1973 (No. 138) requires each ratifying state to pursue a. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "ilo_c182_worst_forms_child_labour_1999",
+      "jurisdiction": "international",
+      "topic": "ILO Worst Forms of Child Labour Convention, 1999 (No. 182) requires each ratifying member",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "ILO Worst Forms of Child Labour Convention, 1999 (No. 182) requires each ratifying member. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "ilo_c190_violence_harassment_2019",
+      "jurisdiction": "international",
+      "topic": "ILO Violence and Harassment Convention, 2019 (No. 190) recognises the right of everyone to",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "ILO Violence and Harassment Convention, 2019 (No. 190) recognises the right of everyone to. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "opsc_crc_sale_of_children_2000",
+      "jurisdiction": "international",
+      "topic": "The Optional Protocol to the CRC on the sale of children, child prostitution and",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "The Optional Protocol to the CRC on the sale of children, child prostitution and. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "palermo_trafficking_protocol_2000",
+      "jurisdiction": "international",
+      "topic": "The Palermo Trafficking Protocol (Protocol to Prevent, Suppress and Punish Trafficking in Persons, Especially",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "The Palermo Trafficking Protocol (Protocol to Prevent, Suppress and Punish Trafficking in Persons, Especially. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "supplementary_slavery_convention_1956",
+      "jurisdiction": "international",
+      "topic": "The 1956 Supplementary Convention on the Abolition of Slavery obliges each state party to",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "The 1956 Supplementary Convention on the Abolition of Slavery obliges each state party to. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "untoc_2000",
+      "jurisdiction": "international",
+      "topic": "The UN Convention against Transnational Organized Crime (UNTOC / Palermo Convention, 2000) requires states",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "The UN Convention against Transnational Organized Crime (UNTOC / Palermo Convention, 2000) requires states. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "asean_actip_2015",
+      "jurisdiction": "ASEAN",
+      "topic": "The ASEAN Convention Against Trafficking in Persons, Especially Women and Children (ACTIP, 2015) requires",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "The ASEAN Convention Against Trafficking in Persons, Especially Women and Children (ACTIP, 2015) requires. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "eu_employer_sanctions_directive_2009_52_ec",
+      "jurisdiction": "EU",
+      "topic": "The EU Employer Sanctions Directive 2009/52/EC prohibits employing illegally-staying third-country nationals and requires employers",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "The EU Employer Sanctions Directive 2009/52/EC prohibits employing illegally-staying third-country nationals and requires employers. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "eu_seasonal_workers_directive_2014_36_eu",
+      "jurisdiction": "EU",
+      "topic": "The EU Seasonal Workers Directive 2014/36/EU sets admission conditions for non-EU seasonal workers --",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "The EU Seasonal Workers Directive 2014/36/EU sets admission conditions for non-EU seasonal workers --. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "hk_fdh_standard_employment_contract",
+      "jurisdiction": "HK",
+      "topic": "Hong Kong requires every foreign domestic helper to be employed on a mandatory Standard",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "Hong Kong requires every foreign domestic helper to be employed on a mandatory Standard. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "jp_titp_ssw_skill_development",
+      "jurisdiction": "JP",
+      "topic": "Japan's migrant-labour framework is in transition: the Technical Intern Training Program (TITP, 2016) ties",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "Japan's migrant-labour framework is in transition: the Technical Intern Training Program (TITP, 2016) ties. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "kr_employment_permit_system",
+      "jurisdiction": "KR",
+      "topic": "South Korea's Employment Permit System (EPS), under the Act on the Employment of Foreign",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "South Korea's Employment Permit System (EPS), under the Act on the Employment of Foreign. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "saarc_trafficking_women_children_prostitution_2002",
+      "jurisdiction": "SAARC",
+      "topic": "The SAARC Convention on Preventing and Combating Trafficking in Women and Children for Prostitution",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "The SAARC Convention on Preventing and Combating Trafficking in Women and Children for Prostitution. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "sg_employment_foreign_manpower_act",
+      "jurisdiction": "SG",
+      "topic": "Singapore's Employment of Foreign Manpower Act 1990 makes it an offence to employ a",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "Singapore's Employment of Foreign Manpower Act 1990 makes it an offence to employ a. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "coe_convention_trafficking_human_organs",
+      "jurisdiction": "Council of Europe",
+      "topic": "The Council of Europe Convention against Trafficking in Human Organs (CETS No. 216, 2015)",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "The Council of Europe Convention against Trafficking in Human Organs (CETS No. 216, 2015). PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "servile_marriage_cedaw_1956",
+      "jurisdiction": "international",
+      "topic": "Forced/servile marriage is addressed by combining instruments rather than one treaty: the 1956 Supplementary",
+      "priority": "high",
+      "status": "promoted",
+      "rationale": "Forced/servile marriage is addressed by combining instruments rather than one treaty: the 1956 Supplementary. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "us_t_visa_victim_protection",
+      "jurisdiction": "US",
+      "topic": "US T nonimmigrant status (the 'T visa', 8 U.S.C. 1101(a)(15)(T), created by the TVPA",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "US T nonimmigrant status (the 'T visa', 8 U.S.C. 1101(a)(15)(T), created by the TVPA. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "us_tvpra_reauthorizations",
+      "jurisdiction": "US",
+      "topic": "The US Trafficking Victims Protection Act of 2000 (TVPA) established the Protection/Prevention/Prosecution framework --",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "The US Trafficking Victims Protection Act of 2000 (TVPA) established the Protection/Prevention/Prosecution framework --. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "eg_anti_trafficking",
+      "jurisdiction": "EG",
+      "topic": "Egypt's Law No. 64 of 2010 on Combating Human Trafficking criminalises dealing in a",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "Egypt's Law No. 64 of 2010 on Combating Human Trafficking criminalises dealing in a. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "eg_overseas_employment",
+      "jurisdiction": "EG",
+      "topic": "Recruitment of Egyptians for work abroad runs through recruitment offices licensed by the Ministry",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "Recruitment of Egyptians for work abroad runs through recruitment offices licensed by the Ministry. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "gh_human_trafficking_act",
+      "jurisdiction": "GH",
+      "topic": "Ghana's Human Trafficking Act, 2005 (Act 694, as amended by Act 784 of 2009)",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "Ghana's Human Trafficking Act, 2005 (Act 694, as amended by Act 784 of 2009). PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "gh_labour_act",
+      "jurisdiction": "GH",
+      "topic": "Ghana's Labour Act, 2003 (Act 651) allows a private employment agency to recruit Ghanaians",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "Ghana's Labour Act, 2003 (Act 651) allows a private employment agency to recruit Ghanaians. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "kh_sub_decree_190",
+      "jurisdiction": "KH",
+      "topic": "Cambodia's Sub-Decree No. 190 (2011) requires private recruitment agencies sending Cambodian workers abroad to",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "Cambodia's Sub-Decree No. 190 (2011) requires private recruitment agencies sending Cambodian workers abroad to. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "kh_trafficking_law",
+      "jurisdiction": "KH",
+      "topic": "Cambodia's Law on the Suppression of Human Trafficking and Sexual Exploitation (2008) criminalises trafficking",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "Cambodia's Law on the Suppression of Human Trafficking and Sexual Exploitation (2008) criminalises trafficking. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "mm_anti_trafficking",
+      "jurisdiction": "MM",
+      "topic": "Myanmar's Anti-Trafficking in Persons Law (SPDC Law No. 5/2005) criminalises trafficking -- recruitment, transport,",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "Myanmar's Anti-Trafficking in Persons Law (SPDC Law No. 5/2005) criminalises trafficking -- recruitment, transport,. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
+    },
+    {
+      "id": "mm_overseas_employment",
+      "jurisdiction": "MM",
+      "topic": "Myanmar's Law Relating to Overseas Employment (SPDC Law No. 3/99, 1999) allows only agencies",
+      "priority": "medium",
+      "status": "promoted",
+      "rationale": "Myanmar's Law Relating to Overseas Employment (SPDC Law No. 3/99, 1999) allows only agencies. PROMOTED 2026-07-10 (wave 6 fan-out; guardrails + mistral convergence majority; auto_vetted 0.6, human-verify to raise)."
     }
   ]
 }
