@@ -2,7 +2,7 @@
 
 Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 2026-07-10. Claims flagged RECHECK are potentially outdated and must be re-verified against a primary source before a grounded answer relies on them. This is not legal advice.
 
-**57 claims -- 12 flagged for recheck.**
+**85 claims -- 14 flagged for recheck.**
 
 | id | jurisdiction | binding | volatility | as_of | recheck_after | flag |
 |---|---|---|---|---|---|---|
@@ -11,32 +11,49 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 | `de_lksg_supply_chain` | DE | binding_domestic_under_reform | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `eu_forced_labour_regulation` | EU | binding_domestic | high | 2026-07-10 | 2026-12-01 | **RECHECK** |
 | `eu_anti_trafficking_directive` | EU | binding_eu_directive | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
+| `jp_titp_ssw_skill_development` | JP | binding_domestic_under_reform | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `lb_domestic_worker_kafala` | LB | reform_suspended_not_in_force | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `lk_slbfe` | LK | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
+| `mm_overseas_employment` | MM | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `np_foreign_employment_fees` | NP | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `ph_placement_fee` | PH | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `sa_kafala_reform_2025` | SA | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `ug_external_labour_recruitment` | UG | binding_domestic | high | 2026-07-10 | 2027-01-01 | **RECHECK** |
 | `us_uflpa` | US | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `ae_labour_reforms` | AE | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
+| `asean_actip_2015` | ASEAN | binding_on_ratifying_states | low | 2026-07-10 | 2028-01-01 | ok |
 | `au_modern_slavery_act_2018` | AU | binding_domestic | medium | 2026-07-10 | 2026-10-01 | ok |
 | `ca_forced_child_labour_supply_chains_s211` | CA | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
 | `coe_warsaw_trafficking` | Council of Europe | binding_where_ratified | low | 2026-07-10 | 2028-01-01 | ok |
+| `coe_convention_trafficking_human_organs` | Council of Europe | binding_on_ratifying_states | low | 2026-07-10 | 2028-07-01 | ok |
 | `rantsev_2010` | Council of Europe (ECtHR) | binding_where_applicable | low | 2026-07-10 | 2028-01-01 | ok |
 | `siliadin_2005` | Council of Europe (ECtHR) | binding_where_applicable | low | 2026-07-10 | 2028-01-01 | ok |
+| `eg_anti_trafficking` | EG | binding_domestic | low | 2026-07-10 | 2028-01-01 | ok |
+| `eg_overseas_employment` | EG | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
 | `et_overseas_employment` | ET | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
+| `eu_employer_sanctions_directive_2009_52_ec` | EU | binding_eu_directive | low | 2026-07-10 | 2028-01-01 | ok |
+| `eu_seasonal_workers_directive_2014_36_eu` | EU | binding_eu_directive | low | 2026-07-10 | 2028-01-01 | ok |
+| `gh_human_trafficking_act` | GH | binding_domestic | low | 2026-07-10 | 2028-01-01 | ok |
+| `gh_labour_act` | GH | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
 | `hk_money_lending_cap` | HK | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
+| `hk_fdh_standard_employment_contract` | HK | binding_domestic | medium | 2026-07-10 | 2026-10-01 | ok |
 | `id_migrant_worker_protection` | ID | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
 | `in_emigration_act` | IN | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
 | `jo_domestic_worker_regulation` | JO | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
 | `ke_labour_migration_recruitment` | KE | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
+| `kh_sub_decree_190` | KH | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
+| `kh_trafficking_law` | KH | binding_domestic | low | 2026-07-10 | 2028-01-01 | ok |
+| `kr_employment_permit_system` | KR | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
 | `kw_domestic_worker_law` | KW | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
+| `mm_anti_trafficking` | MM | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
 | `my_migrant_worker_protections` | MY | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
 | `ng_tip_labour_recruitment` | NG | binding_domestic | low | 2026-07-10 | 2027-07-01 | ok |
 | `no_transparency_act_apenhetsloven` | NO | binding_domestic | low | 2026-07-10 | 2027-01-01 | ok |
 | `om_labour_law_2023` | OM | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
 | `pk_emigration_ordinance` | PK | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
 | `qa_wage_protection` | QA | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
+| `saarc_trafficking_women_children_prostitution_2002` | SAARC | binding_on_ratifying_states | low | 2026-07-10 | 2028-01-01 | ok |
+| `sg_employment_foreign_manpower_act` | SG | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
 | `th_foreign_workers_management_ordinance` | TH | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
 | `tw_employment_service_act_broker_fees` | TW | binding_domestic | medium | 2026-07-10 | 2026-10-01 | ok |
 | `uk_modern_slavery_act` | UK | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
@@ -45,6 +62,8 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 | `us_tvpa_1589` | US | binding_domestic | low | 2026-07-10 | 2028-01-01 | ok |
 | `us_federal_trafficking_civil_1595` | US | binding_domestic | low | 2026-07-10 | 2028-01-01 | ok |
 | `us_tvpa_1591_sex_trafficking` | US | binding_domestic | low | 2026-07-10 | 2027-07-01 | ok |
+| `us_t_visa_victim_protection` | US | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
+| `us_tvpra_reauthorizations` | US | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
 | `vn_guest_worker_law_2020` | VN | binding_domestic | medium | 2026-07-10 | 2027-01-01 | ok |
 | `c029_definition` | international | binding_where_ratified | low | 2026-07-10 | 2028-01-01 | ok |
 | `c029_vs_indicators` | international | non_binding_guidance | medium | 2026-07-10 | 2027-06-01 | ok |
@@ -63,6 +82,15 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 | `ilo_c097_migration_employment_1949` | international | binding_on_ratifying_states | low | 2026-07-10 | 2027-07-01 | ok |
 | `ilo_c143_migrant_workers_supplementary_1975` | international | binding_on_ratifying_states | low | 2026-07-10 | 2027-07-01 | ok |
 | `ilo_p029_forced_labour_protocol_2014` | international | binding_on_ratifying_states | low | 2026-07-10 | 2027-07-01 | ok |
+| `ilo_c105_abolition_forced_labour_1957` | international | binding_on_ratifying_states | low | 2026-07-10 | 2027-07-01 | ok |
+| `ilo_c138_minimum_age_1973` | international | binding_on_ratifying_states | low | 2026-07-10 | 2028-07-01 | ok |
+| `ilo_c182_worst_forms_child_labour_1999` | international | binding_on_ratifying_states | low | 2026-07-10 | 2028-07-01 | ok |
+| `ilo_c190_violence_harassment_2019` | international | binding_on_ratifying_states | medium | 2026-07-10 | 2026-10-01 | ok |
+| `opsc_crc_sale_of_children_2000` | international | binding_on_ratifying_states | low | 2026-07-10 | 2028-07-01 | ok |
+| `palermo_trafficking_protocol_2000` | international | binding_on_ratifying_states | low | 2026-07-10 | 2028-07-01 | ok |
+| `supplementary_slavery_convention_1956` | international | binding_on_ratifying_states | low | 2026-07-10 | 2028-07-01 | ok |
+| `untoc_2000` | international | binding_on_ratifying_states | low | 2026-07-10 | 2028-07-01 | ok |
+| `servile_marriage_cedaw_1956` | international | binding_on_ratifying_states | low | 2026-07-10 | 2028-07-01 | ok |
 
 ## Claims
 ### c029_definition  (international, definition)
@@ -634,3 +662,283 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 - **Binding:** binding_domestic | **effective_from:** None | **as_of:** 2026-07-10 | **volatility:** high
 - **Recheck after 2027-01-01:** re-verify current capital/guarantee, fee rules, penalties, ownership requirements, and any active destination-country bans or bilateral agreements
 - **Caveats:** the 2005 SI 62 was revoked and replaced by SI 47/2021 -- cite the 2021 regulations for current law; the External Employment Unit is the enforcement body under MGLSD
+
+### ilo_c105_abolition_forced_labour_1957  (international, rule)
+> ILO Abolition of Forced Labour Convention, 1957 (No. 105) obliges each ratifying state to suppress and not make use of forced or compulsory labour in five enumerated cases (Article 1): political coercion or punishment for political views, labour mobilisation for economic development, labour discipline, punishment for participating in strikes, and racial/social/national/religious discrimination. It is one of the eight ILO fundamental Conventions.
+
+- **Authority:** International Labour Organization (Convention No. 105); CEACR (international_labour_standard) -- <https://normlex.ilo.org/dyn/normlex/en/f?p=NORMLEXPUB:12100:0::NO::P12100_ILO_CODE:C105>
+- **Applies to:** ratifying states (~176)
+- **Exceptions:** binds only ratifying states; it creates state obligations, not directly-enforceable individual rights; it supplements C29, targeting only the five specified uses; C29 and its 2014 Protocol carry the general prohibition and its lawful carve-outs; may be denounced after ten years; Malaysia and Singapore ratified then denounced it
+- **Binding:** binding_on_ratifying_states | **effective_from:** 1959-01-17 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2027-07-01:** ratification/denunciation count drifts; re-verify on ILO NORMLEX
+- **Caveats:** a fundamental Convention; build-upon: read with C29 already in the corpus
+
+### ilo_c138_minimum_age_1973  (international, rule)
+> ILO Minimum Age Convention, 1973 (No. 138) requires each ratifying state to pursue a national policy to abolish child labour and to set a minimum working age not below the age of completing compulsory schooling and in any case not below 15 (Article 2), with a minimum of 18 for work likely to harm the health, safety or morals of young persons (Article 3).
+
+- **Authority:** International Labour Organization (Convention No. 138); CEACR (international_labour_standard) -- <https://normlex.ilo.org/dyn/normlex/en/f?p=NORMLEXPUB:12100:0::NO::P12100_ILO_CODE:C138>
+- **Applies to:** ratifying states (~176); each declares its own minimum age at or above the floor
+- **Exceptions:** binds only ratifying states; it creates state obligations, not directly-enforceable individual rights; developing-country flexibility: a state may initially specify 14 (general) and 12 (light work), and lower the hazardous-work age to 16 under strict conditions; carve-outs exist for light work (13-15), certain excluded categories, and permitted artistic performances
+- **Binding:** binding_on_ratifying_states | **effective_from:** 1976-06-19 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2028-07-01:** ratification count and state-specific declared ages; re-verify on ILO NORMLEX
+- **Caveats:** a fundamental Convention; relevant to under-age migrant labour and age-falsification
+
+### ilo_c182_worst_forms_child_labour_1999  (international, rule)
+> ILO Worst Forms of Child Labour Convention, 1999 (No. 182) requires each ratifying member to take immediate measures to eliminate the worst forms of child labour for anyone under 18: slavery and practices similar to slavery (including the sale and trafficking of children, debt bondage and forced recruitment for armed conflict), use of a child for prostitution or pornography, use of a child for illicit activities, and hazardous work (Article 3).
+
+- **Authority:** International Labour Organization (Convention No. 182); CEACR (international_labour_standard) -- <https://normlex.ilo.org/dyn/normlex/en/f?p=NORMLEXPUB:12100:0::NO::P12100_ILO_CODE:C182>
+- **Applies to:** ratifying states (universally ratified, 187 members)
+- **Exceptions:** binds only ratifying states; it creates state obligations, not directly-enforceable individual rights -- though universally ratified; it targets only the WORST forms, not all child labour or a general minimum age; the specific hazardous-work types under Art. 3(d) are set by national law, so that scope varies by country
+- **Binding:** binding_on_ratifying_states | **effective_from:** 2000-11-19 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2028-07-01:** re-verify only on a denunciation or a national hazardous-work-list query
+- **Caveats:** first ILO Convention to reach universal ratification (2020); directly relevant to child trafficking / forced recruitment
+
+### ilo_c190_violence_harassment_2019  (international, rule)
+> ILO Violence and Harassment Convention, 2019 (No. 190) recognises the right of everyone to a world of work free from violence and harassment, including gender-based violence, and defines it as behaviours or threats that aim at, result in, or are likely to result in physical, psychological, sexual or economic harm. Ratifying states must adopt an inclusive, gender-responsive approach of laws, prevention, enforcement, remedies and victim support (Articles 4-10).
+
+- **Authority:** International Labour Organization (Convention No. 190); CEACR (international_labour_standard) -- <https://normlex.ilo.org/dyn/normlex/en/f?p=NORMLEXPUB:12100:0::NO::P12100_ILO_CODE:C190>
+- **Applies to:** ratifying states (~55, actively rising); it frames national law, not individual employers directly
+- **Exceptions:** binds only ratifying states; it creates state obligations, not directly-enforceable individual rights; coverage is anchored to the 'world of work' (including employer-provided accommodation, commuting, work communications); purely private conduct unconnected to work is outside scope; definitional thresholds and concrete measures are implemented via national law, so precise coverage varies
+- **Binding:** binding_on_ratifying_states | **effective_from:** 2021-06-25 | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2026-10-01:** ratification count rising fastest of these; re-verify quarterly on ILO NORMLEX
+- **Caveats:** Article 6 and Recommendation No. 206 specifically flag migrant workers in vulnerable situations
+
+### opsc_crc_sale_of_children_2000  (international, rule)
+> The Optional Protocol to the CRC on the sale of children, child prostitution and child pornography (OPSC, 2000) requires states parties to prohibit and criminalise the sale of children (transfer of a child for remuneration), child prostitution and child sexual abuse material, whether committed domestically or transnationally, individually or on an organised basis, including transfer of a child's organs for profit or for forced labour (Articles 1-3).
+
+- **Authority:** UN General Assembly (Res A/RES/54/263); depositary the UN Secretary-General (supranational_law) -- <https://www.ohchr.org/en/instruments-mechanisms/instruments/optional-protocol-convention-rights-child-sale-children-child>
+- **Applies to:** CRC states that separately ratify it (~178 parties)
+- **Exceptions:** binds only ratifying states; it creates state obligations, not directly-enforceable individual rights; it is 'optional' to the CRC; it requires appropriate penalties but leaves offence-element detail and penalty levels to domestic law; it has no standalone individual-complaints mechanism
+- **Binding:** binding_on_ratifying_states | **effective_from:** 2002-01-18 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2028-07-01:** text permanent; flag the evolved terminology (child sexual exploitation/abuse material) and re-verify party count
+- **Caveats:** reinforced by ILO C182; prefer current CSEA/CSAM wording over the Art. 2 terms
+
+### palermo_trafficking_protocol_2000  (international, rule)
+> The Palermo Trafficking Protocol (Protocol to Prevent, Suppress and Punish Trafficking in Persons, Especially Women and Children, 2000, supplementing UNTOC) sets the first agreed international DEFINITION of trafficking in persons in Article 3 -- recruitment/transport/harbouring of a person by threat, force, coercion, fraud, deception or abuse of a position of vulnerability, for the purpose of exploitation (at a minimum sexual exploitation, forced labour, slavery, servitude or organ removal) -- and Article 5 obliges each state party to criminalise it.
+
+- **Authority:** UN General Assembly (Res 55/25); depositary the UN Secretary-General; supplements UNTOC (supranational_law) -- <https://www.ohchr.org/en/instruments-mechanisms/instruments/protocol-prevent-suppress-and-punish-trafficking-persons>
+- **Applies to:** ratifying states (185 parties)
+- **Exceptions:** binds only ratifying states; it creates state obligations, not directly-enforceable individual rights; for a child under 18 no 'means' element is required, and victim consent is irrelevant once any means is used; the exploitation list is a floor ('at a minimum'); a state cannot join it without joining UNTOC
+- **Binding:** binding_on_ratifying_states | **effective_from:** 2003-12-25 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2028-07-01:** text is permanent; re-verify current party count and any reservations
+- **Caveats:** the anchor definition most others build on; complements palermo_elements already in the corpus
+
+### supplementary_slavery_convention_1956  (international, rule)
+> The 1956 Supplementary Convention on the Abolition of Slavery obliges each state party to bring about the complete abolition of institutions and practices similar to slavery -- expressly debt bondage, serfdom, servile forms of marriage, and the delivery of a child under 18 by a parent or guardian for the exploitation of the child or its labour (Article 1) -- whether or not they fall under the 1926 definition of slavery.
+
+- **Authority:** UN Conference of Plenipotentiaries (ECOSOC Res 608(XXI)); depositary the UN Secretary-General (supranational_law) -- <https://www.ohchr.org/en/instruments-mechanisms/instruments/supplementary-convention-abolition-slavery-slave-trade-and>
+- **Applies to:** ratifying states (~124 parties)
+- **Exceptions:** binds only ratifying states; it creates state obligations, not directly-enforceable individual rights; the Article 1 duty on 'practices similar to slavery' is progressive ('as soon as possible'), not an immediate absolute prohibition; it supplements, not replaces, the 1926 Slavery Convention; it has no monitoring body or complaint mechanism
+- **Binding:** binding_on_ratifying_states | **effective_from:** 1957-04-30 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2028-07-01:** text permanent; re-verify party list and interplay with the Palermo Protocol and ILO forced-labour instruments
+- **Caveats:** defines debt bondage + servile marriage that the Palermo Protocol lists as exploitation
+
+### untoc_2000  (international, rule)
+> The UN Convention against Transnational Organized Crime (UNTOC / Palermo Convention, 2000) requires states parties to criminalise participation in an organised criminal group, money laundering, corruption and obstruction of justice, and to adopt frameworks for extradition, mutual legal assistance and law-enforcement cooperation. It is the parent convention for the Trafficking, Smuggling and Firearms Protocols.
+
+- **Authority:** UN General Assembly (Res 55/25); depositary the UN Secretary-General (supranational_law) -- <https://www.unodc.org/unodc/en/organized-crime/intro/untoc.html>
+- **Applies to:** ratifying states (194 parties)
+- **Exceptions:** binds only ratifying states; it creates state obligations, not directly-enforceable individual rights; a framework convention: offence definitions and penalties are left to domestic law (it applies to 'serious crime' punishable by at least four years); a state party is not bound by any supplementing Protocol unless it separately ratifies it; there is no supranational enforcement
+- **Binding:** binding_on_ratifying_states | **effective_from:** 2003-09-29 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2028-07-01:** re-verify party count and Conference-of-the-Parties developments
+- **Caveats:** the money-laundering + cooperation backbone behind the financial-flows story (pairs with fatf_financial_flows_trafficking)
+
+### asean_actip_2015  (ASEAN, rule)
+> The ASEAN Convention Against Trafficking in Persons, Especially Women and Children (ACTIP, 2015) requires each party to criminalise trafficking under domestic law using the Palermo-Protocol definition, to identify, protect and assist victims, and to apply a non-punishment principle shielding victims from liability for offences directly connected to being trafficked (Article 14(7)); it also mandates prevention, mutual legal assistance and extradition.
+
+- **Authority:** Association of Southeast Asian Nations (ASEAN) (regional_treaty) -- <https://asean.org/asean-convention-against-trafficking-in-persons-especially-women-and-children/>
+- **Applies to:** ratifying ASEAN member states
+- **Exceptions:** binds only ratifying states; it creates state obligations, not directly-enforceable individual rights; not self-executing, with no supranational enforcement court; the non-punishment principle applies only 'subject to domestic laws' and 'in appropriate cases'; despite the title's emphasis on women and children, it covers all trafficked persons
+- **Binding:** binding_on_ratifying_states | **effective_from:** 2017-03-08 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2028-01-01:** ratification/accession status (e.g. a new ASEAN member) and ASEAN implementation work plans
+- **Caveats:** the regional counterpart to the Palermo Protocol for Southeast-Asian corridors
+
+### eu_employer_sanctions_directive_2009_52_ec  (EU, rule)
+> The EU Employer Sanctions Directive 2009/52/EC prohibits employing illegally-staying third-country nationals and requires employers to verify and keep a valid residence permit before hiring. Member states must impose effective financial penalties (a fine per worker plus return costs and back-pay of outstanding wages), and Article 9 requires criminal penalties in aggravating cases including particularly exploitative conditions or employing trafficking victims.
+
+- **Authority:** European Parliament and Council of the European Union (supranational_law) -- <https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32009L0052>
+- **Applies to:** EU member states (transposition deadline 2011); targets employment of illegally-staying third-country nationals
+- **Exceptions:** Denmark and Ireland did not take part and are not bound (the UK is no longer an EU member); as a directive it sets minimum standards only and must be transposed into national law; it targets illegally-staying third-country nationals, not legally-resident TCNs or EU citizens
+- **Binding:** binding_eu_directive | **effective_from:** 2009-07-20 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2028-01-01:** watch for a Commission recast; verify current member-state transposition
+- **Caveats:** directly relevant to labour exploitation of irregular migrants
+
+### eu_seasonal_workers_directive_2014_36_eu  (EU, rule)
+> The EU Seasonal Workers Directive 2014/36/EU sets admission conditions for non-EU seasonal workers -- a work contract or binding job offer stating pay and hours, plus evidence of adequate accommodation -- and grants seasonal workers equal treatment with host-country nationals on terms of employment, with penalties against non-compliant employers, complaint mechanisms and measures to prevent abuse.
+
+- **Authority:** European Parliament and Council of the European Union (supranational_law) -- <https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32014L0036>
+- **Applies to:** EU member states (transposition deadline 2016); non-EU seasonal workers entering for season-linked work
+- **Exceptions:** Denmark and Ireland did not participate and are not bound; equal treatment may be restricted for family, unemployment, tax benefits, education and public housing; it applies only to genuinely temporary, season-linked work, not other migrant-worker categories
+- **Binding:** binding_eu_directive | **effective_from:** 2014-03-29 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2028-01-01:** watch for reform under the EU legal-migration package; verify transposition and carve-outs
+- **Caveats:** a core anti-exploitation instrument for temporary migrant labour
+
+### hk_fdh_standard_employment_contract  (HK, rule)
+> Hong Kong requires every foreign domestic helper to be employed on a mandatory Standard Employment Contract (Form ID 407) -- a two-year, live-in contract guaranteeing a Minimum Allowable Wage (HK$5,100/month for contracts signed on or after 30 September 2025), plus free food or a food allowance, free accommodation, free medical treatment and return passage.
+
+- **Authority:** Immigration Department (Director of Immigration); Labour Department (domestic_law) -- <https://www.immd.gov.hk/eng/services/visas/foreign_domestic_helpers.html>
+- **Applies to:** foreign domestic helpers in Hong Kong (destination-side)
+- **Exceptions:** a mandatory live-in rule (since 2003) with no opt-out -- criticised for enabling excessive hours and abuse behind closed doors; the 'two-week rule': on termination a helper must leave within two weeks, pressuring workers to endure abuse rather than switch employers; FDHs are excluded from the statutory Minimum Wage Ordinance (they get the lower MAW) and are barred from right of abode
+- **Binding:** binding_domestic | **effective_from:** 2003-01-01 | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2026-10-01:** the current Minimum Allowable Wage and minimum food allowance (reviewed yearly), and any change to the live-in or two-week rule
+- **Caveats:** do not state a fixed MAW as fixed; verify the current figure. The live-in + two-week rules are the two most-cited structural drivers of FDH vulnerability
+
+### jp_titp_ssw_skill_development  (JP, rule)
+> Japan's migrant-labour framework is in transition: the Technical Intern Training Program (TITP, 2016) ties trainees to one employer with almost no mobility and is repeatedly flagged as a channel for forced labour/debt bondage; the Specified Skilled Worker status (SSW, in force 2019) is an explicit labour-shortage visa; and a June 2024 reform abolishes TITP, replacing it with an Employment for Skill Development program that for the first time permits changing employer within a sector after one to two years.
+
+- **Authority:** Immigration Services Agency of Japan (Ministry of Justice); MHLW (domestic_law) -- <https://www.moj.go.jp/isa/content/001438365.pdf>
+- **Applies to:** foreign workers in Japan under TITP / SSW / the new program (destination-side)
+- **Exceptions:** TITP is employer-tied with transfers allowed only for 'unavoidable circumstances'; it is widely criticised for forced-labour conditions -- treat any 'TITP protects workers' claim skeptically; the new program's mobility is partial (capped, test-conditioned) and SSW-i still bars family reunification; the reform is in active transition to ~2027; caps, sector lists and the start date are set by later ordinance
+- **Binding:** binding_domestic_under_reform | **effective_from:** 2019-04-01 | **as_of:** 2026-07-10 | **volatility:** high
+- **Recheck after 2026-10-01:** confirm the new program's exact enforcement date, final employer-transfer caps, sector coverage and 2027-2030 transition rules
+- **Caveats:** TITP is being reformed precisely because of its forced-labour reputation; TITP and the new program run in parallel during transition
+
+### kr_employment_permit_system  (KR, rule)
+> South Korea's Employment Permit System (EPS), under the Act on the Employment of Foreign Workers, admits lower-skilled foreign workers (the E-9 visa) only through a government-to-government framework with sending countries; the state runs selection and placement to remove private brokers (no legal recruitment fees to private agents), and EPS workers are covered by the Labor Standards Act and anti-discrimination protection from day one.
+
+- **Authority:** Ministry of Employment and Labor (MOEL); HRD Korea (domestic_law) -- <https://elaw.klri.re.kr/eng_service/lawView.do?hseq=51208&lang=ENG>
+- **Applies to:** lower-skilled foreign workers admitted through EPS (destination-side)
+- **Exceptions:** employer-tied: workers generally cannot freely change employers; transfers are capped and limited to defined grounds; Labor Standards Act Article 63 exempts agriculture/forestry/livestock/fishery from working-hour, recess and holiday rules -- the sectors with most documented abuse; the no-fee design is imperfect: origin-country pre-departure and broker costs still occur
+- **Binding:** binding_domestic | **effective_from:** 2004-08-17 | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-01-01:** annual sector quotas, the current MOU sending-country list, and any change to employer-transfer rules or the Article 63 exemption
+- **Caveats:** cited as a model for cutting recruitment costs, but the employer-tie + Art. 63 exemption are its main forced-labour risk vectors
+
+### saarc_trafficking_women_children_prostitution_2002  (SAARC, rule)
+> The SAARC Convention on Preventing and Combating Trafficking in Women and Children for Prostitution (2002) obliges states parties to make trafficking in women and children for prostitution a criminal offence, and to cooperate on prevention, interdiction, repatriation and rehabilitation, with a Regional Task Force and mutual legal assistance.
+
+- **Authority:** South Asian Association for Regional Cooperation (SAARC) (regional_treaty) -- <https://www.jus.uio.no/english/services/library/treaties/02/2-04/saarc-traff-women-children.html>
+- **Applies to:** ratifying SAARC member states
+- **Exceptions:** its scope is confined to trafficking for PROSTITUTION only -- it does not cover labour/forced-labour trafficking or debt bondage; it protects only women and children; adult men are not covered; binds only ratifying states; it creates state obligations, not directly-enforceable individual rights; its narrow definition is out of step with the broader Palermo Protocol
+- **Binding:** binding_on_ratifying_states | **effective_from:** 2005-11-15 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2028-01-01:** reconfirm the exact entry-into-force day and ratification status; the source is a treaty-library reproduction (secondary)
+- **Caveats:** narrower than the Palermo Protocol -- do not cite it for labour trafficking
+
+### sg_employment_foreign_manpower_act  (SG, rule)
+> Singapore's Employment of Foreign Manpower Act 1990 makes it an offence to employ a foreign worker without a valid work pass and imposes employer duties (pay the declared salary, medical insurance, a security bond, acceptable accommodation, upkeep and repatriation). Work Permit holders may work only for the named employer in the specified occupation, and Ministry of Manpower conditions require employers not to withhold a worker's passport against their will.
+
+- **Authority:** Ministry of Manpower (MOM) (domestic_law) -- <https://sso.agc.gov.sg/Act/EFMA1990>
+- **Applies to:** foreign workers on a work pass in Singapore (destination-side)
+- **Exceptions:** single-employer tie -- no free labour-market mobility; changing employer needs cancellation and a fresh application; extra controls apply to lower-wage Work Permit holders (employer-designated residence; marriage to a citizen/PR needs MOM approval); migrant domestic workers are excluded from the Employment Act's hours/rest-day regime; passport-retention enforcement rests on work-pass-condition breach, not one named EFMA section
+- **Binding:** binding_domestic | **effective_from:** 1990-01-01 | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-01-01:** current Work Permit conditions, levy/quota settings, and the exact legal basis MOM cites for passport retention
+- **Caveats:** the single-employer tie + domestic-worker exclusion are the main forced-labour risk vectors
+
+### coe_convention_trafficking_human_organs  (Council of Europe, rule)
+> The Council of Europe Convention against Trafficking in Human Organs (CETS No. 216, 2015) is the first international treaty targeting organ trafficking. It requires states parties to criminalise the illicit removal of human organs from living or deceased donors performed without free, informed, specific consent or for financial gain, plus related offences (use of illicitly-removed organs, illicit solicitation, undue advantages), and to protect victims and cooperate internationally.
+
+- **Authority:** Council of Europe (Committee of Ministers); the Committee of the Parties (regional_treaty) -- <https://www.coe.int/en/web/conventions/full-list?module=treaty-detail&treatynum=216>
+- **Applies to:** ratifying/acceding states (open worldwide; ~15 parties)
+- **Exceptions:** binds only ratifying states; it creates state obligations, not directly-enforceable individual rights; it is not self-executing against individuals; it targets the organ as the object of the crime; 'trafficking in human beings for the purpose of organ removal' is addressed by the separate 2005 CoE Anti-Trafficking Convention and the Palermo Protocol; certain provisions allow reservations
+- **Binding:** binding_on_ratifying_states | **effective_from:** 2018-03-01 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2028-07-01:** current count of signatures/ratifications/parties
+- **Caveats:** adds the organ-removal exploitation purpose that the Palermo Protocol lists
+
+### servile_marriage_cedaw_1956  (international, rule)
+> Forced/servile marriage is addressed by combining instruments rather than one treaty: the 1956 Supplementary Slavery Convention Article 1(c) treats as a practice similar to slavery a woman given in marriage on payment without a right to refuse, transferable for value, or inheritable on her husband's death; CEDAW Article 16 independently requires that marriage be entered only with free and full consent and that child betrothal/marriage have no legal effect; and the Palermo Protocol lists such practices among trafficking's exploitation purposes.
+
+- **Authority:** UN (1956 Supplementary Slavery Convention Art. 1(c); CEDAW Art. 16, monitored by the CEDAW Committee) (supranational_law) -- <https://www.ohchr.org/en/instruments-mechanisms/instruments/convention-elimination-all-forms-discrimination-against-women>
+- **Applies to:** ratifying states of the respective instruments (a composite framing, not one treaty)
+- **Exceptions:** there is no single universal treaty criminalising 'forced marriage as trafficking' -- the framing is assembled from three instruments; the 1956 duty is progressive, not immediate self-executing criminalisation; CEDAW permits reservations, and many states reserved on Art. 16 on religious/personal-law grounds, limiting uniform effect
+- **Binding:** binding_on_ratifying_states | **effective_from:** None | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2028-07-01:** consider whether to also add CEDAW as a standalone record; re-verify ratification counts and reservations
+- **Caveats:** EU Directive 2024/1712 (already in the corpus) separately adds forced marriage to the EU trafficking definition
+
+### us_t_visa_victim_protection  (US, rule)
+> US T nonimmigrant status (the 'T visa', 8 U.S.C. 1101(a)(15)(T), created by the TVPA 2000) gives a victim of a severe form of trafficking temporary lawful status (initially up to four years) if they are present because of trafficking, complied with reasonable law-enforcement requests (or qualify for an exception), and would suffer extreme hardship if removed; it carries work authorisation, some benefits, derivative status for family, and a path to a green card. 'Continued Presence' is a separate law-enforcement-requested temporary designation.
+
+- **Authority:** US Congress (enacted); DHS / USCIS (adjudicates) (domestic_law) -- <https://www.uscis.gov/humanitarian/victims-of-human-trafficking-t-nonimmigrant-status>
+- **Applies to:** victims of a severe form of trafficking present in the US (victim-protection immigration relief)
+- **Exceptions:** a statutory cap of 5,000 principal T-1 grants per fiscal year (derivatives are exempt); the applicant must have complied with reasonable law-enforcement requests unless under 18 or unable due to trauma, and must be admissible (a waiver exists); Continued Presence can be requested only by federal law enforcement, not the victim; green-card adjustment generally needs three years in T status
+- **Binding:** binding_domestic | **effective_from:** 2000-10-28 | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-01-01:** the 2024 T-classification final rule details, annual cap usage, and adjustment/fee-exemption guidance
+- **Caveats:** distinct from the U visa; Continued Presence is a separate tool
+
+### us_tvpra_reauthorizations  (US, rule)
+> The US Trafficking Victims Protection Act of 2000 (TVPA) established the Protection/Prevention/Prosecution framework -- the T and U visas, federal forced-labour and sex-trafficking crimes, the State Department TIP Office and annual TIP Report -- and successive reauthorizations added a private civil right of action (2003), extraterritorial jurisdiction (2005), fraudulent-foreign-recruitment offences and mandatory child screening (2008), a supply-chain focus (2013), the 'patronizes/solicits/advertises' amendments to 18 U.S.C. 1591 (2015), and diplomatic-household and forced-labour import provisions (2018).
+
+- **Authority:** US Congress (domestic_law) -- <https://www.justice.gov/humantrafficking/key-legislation>
+- **Applies to:** US federal criminal/programmatic trafficking law (the framework behind sections 1589/1591/1595)
+- **Exceptions:** a federal statute -- it binds the US only and creates no international-law obligation on other states; authorizations are time-limited and lapse unless Congress reauthorizes/appropriates; these are chiefly criminal/programmatic statutes; immigration status operates through the separate INA T/U provisions
+- **Binding:** binding_domestic | **effective_from:** 2000-10-28 | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-01-01:** whether a post-2018 reauthorization (a 2022 bill was advancing) was enacted and its public-law number
+- **Caveats:** the umbrella behind us_tvpa_1589/1591/1595 already in the corpus; verify the 2022 reauthorization before asserting it
+
+### eg_anti_trafficking  (EG, rule)
+> Egypt's Law No. 64 of 2010 on Combating Human Trafficking criminalises dealing in a natural person (sale, offer, purchase, transport, harbouring or receipt) by coercion, abduction, fraud, abuse of power or exploitation of vulnerability, for exploitation including forced labour, servitude, sexual exploitation, begging and organ removal; victim consent is irrelevant where a prohibited means is used, and irrelevant entirely for children, with penalties up to life imprisonment.
+
+- **Authority:** Arab Republic of Egypt; National Coordinating Committee (NCCPIM-TIP) (domestic_law) -- <https://www.ilo.org/dyn/natlex/natlex4.detail?p_lang=en&p_isn=89881&p_country=EGY>
+- **Applies to:** criminal trafficking liability in Egypt
+- **Exceptions:** recruitment-licensing for Egyptians working abroad is regulated separately, so recruitment fraud is reached only when it meets the trafficking threshold; enforcement is historically weighted toward sexual exploitation and child begging, with forced-labour and domestic-worker cases under-prosecuted; refugee/migrant vulnerability creates enforcement gaps
+- **Binding:** binding_domestic | **effective_from:** None | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2028-01-01:** confirm the exact 2010 issuance date and whether an amendment exists (one source labelled it '64/2020')
+- **Caveats:** bilingual official text at UNODC SHERLOC; exact date left unstated to avoid fabrication
+
+### eg_overseas_employment  (EG, rule)
+> Recruitment of Egyptians for work abroad runs through recruitment offices licensed by the Ministry of Manpower under the Labour Law, while the Emigration and Sponsoring Egyptians Abroad Law No. 111 of 1983 governs emigration policy, classifies temporary versus permanent migrants, and frames state oversight including model employment contracts under bilateral labour agreements (notably with GCC states).
+
+- **Authority:** Ministry of Emigration (policy); Ministry of Manpower/Labour (licensing) (domestic_law) -- <https://natlex.ilo.org/dyn/natlex2/r/natlex/fe/details?p3_isn=49133>
+- **Applies to:** recruitment of Egyptians for overseas employment (origin-side)
+- **Exceptions:** a split framework -- emigration status sits under Law 111/1983 while recruitment-agency licensing sits under the Labour Law, so no single instrument governs overseas recruitment; much Gulf-bound placement runs through informal brokers and kafala sponsors outside Egyptian licensing; enforcement of fee caps and contract standards on licensed offices is weak
+- **Binding:** binding_domestic | **effective_from:** None | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-01-01:** Egypt reportedly enacted a new Labour Law (No. 14 of 2025) replacing Law 12/2003 -- verify current recruitment-licensing articles and the current emigration-ministry name
+- **Caveats:** a composite oversight record; medium source confidence
+
+### gh_human_trafficking_act  (GH, rule)
+> Ghana's Human Trafficking Act, 2005 (Act 694, as amended by Act 784 of 2009) prohibits and criminalises human trafficking -- recruitment, transport, transfer, harbouring, trading or receipt of a person by threat, force, deception or exploitation of vulnerability, including forced or bonded labour -- with a minimum penalty of five years, and establishes a Human Trafficking Fund and victim-rehabilitation duties.
+
+- **Authority:** Parliament of Ghana; Human Trafficking Secretariat (domestic_law) -- <https://ghalii.org/akn/gh/act/2005/694/eng@2009-07-21>
+- **Applies to:** criminal trafficking liability in Ghana
+- **Exceptions:** the 2005 exploitation/consent definition was amended in 2009 (Act 784) to align with the Palermo Protocol -- cite the amended consolidated text; enforcement yields few convictions relative to prevalence, especially internal trafficking (Lake Volta fishing, domestic servitude); it overlaps with the Children's Act and Labour Act
+- **Binding:** binding_domestic | **effective_from:** 2005-12-05 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2028-01-01:** confirm the latest amendment status and the current Human Trafficking Secretariat mandate
+- **Caveats:** the GhaLII text is the consolidated as-amended version
+
+### gh_labour_act  (GH, rule)
+> Ghana's Labour Act, 2003 (Act 651) allows a private employment agency to recruit Ghanaians for work outside Ghana only if authorised under its licence AND a government-to-government agreement exists with the destination; agencies must file quarterly returns and refund half the fees if no placement is secured within three months, and the Minister must revoke a non-compliant agency's licence.
+
+- **Authority:** Parliament of Ghana; Chief Labour Officer (Labour Department) (domestic_law) -- <https://www.gipc.gov.gh/wp-content/uploads/2023/05/LABOUR-ACT-2003-ACT-651.pdf>
+- **Applies to:** licensed Ghanaian recruitment agencies placing workers abroad (origin-side)
+- **Exceptions:** cross-border recruitment authorisation is conditional on a bilateral government agreement, which for most destinations does not exist -- so much migration proceeds outside the licensed channel; monitoring is weak and unlicensed brokers dominate Gulf-bound recruitment; the Act governs agency conduct, not trafficking offences (those fall under Act 694)
+- **Binding:** binding_domestic | **effective_from:** None | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-01-01:** verify whether Act 651 remains current, confirm the recruitment-provision section numbers, and check the Labour Regulations 2007 (L.I. 1833)
+- **Caveats:** recruitment-agency rules cluster around ss. 7-9; exact numbering to confirm
+
+### kh_sub_decree_190  (KH, rule)
+> Cambodia's Sub-Decree No. 190 (2011) requires private recruitment agencies sending Cambodian workers abroad to hold a Ministry of Labour licence and post a refundable deposit, and makes the agency responsible for the worker from signing the placement contract until return home; implementing Prakas cover fees, pre-departure training and worker protection.
+
+- **Authority:** Royal Government of Cambodia; Ministry of Labour and Vocational Training (domestic_law) -- <https://asean.org/wp-content/uploads/2021/12/4.-Sub-Decree-No.190-on-the-Management-of-the-Sending-of-Cambodian-Workers-Abroad.pdf>
+- **Applies to:** licensed Cambodian recruitment agencies (origin-side)
+- **Exceptions:** a regulation-level sub-decree, not primary legislation -- criticised for failing to adequately protect workers; covers only licensed agencies, leaving informal brokers and irregular migration (especially to Thailand) largely outside; weak enforcement and gaps on domestic workers; recruitment-debt bondage persisted after adoption
+- **Binding:** binding_domestic | **effective_from:** 2011-08-17 | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-01-01:** verify the current deposit amount and fee caps, the implementing Prakas, and whether a primary labour-migration law has superseded the sub-decree
+- **Caveats:** do not state a deposit figure without primary confirmation
+
+### kh_trafficking_law  (KH, rule)
+> Cambodia's Law on the Suppression of Human Trafficking and Sexual Exploitation (2008) criminalises trafficking -- unlawful recruitment, transport, transfer, harbouring or receipt of a person for exploitation -- revised to align with the Palermo Protocol, covering forced labour, debt bondage, slavery and the sale/movement of persons, with graduated penalties.
+
+- **Authority:** Kingdom of Cambodia (Royal Kram NS/RKM/0208/005) (domestic_law) -- <https://www.unodc.org/cld/document/khm/2008/law_on_suppression_of_human_trafficking_and_sexual_exploitation.html>
+- **Applies to:** criminal trafficking liability in Cambodia
+- **Exceptions:** drafting emphasis and early enforcement focused on sexual exploitation, leaving labour-trafficking under-prosecuted; it conflates trafficking with voluntary sex-work provisions, criticised for harming sex workers' rights; enforcement is hampered by corruption and limited capacity
+- **Binding:** binding_domestic | **effective_from:** 2008-02-15 | **as_of:** 2026-07-10 | **volatility:** low
+- **Recheck after 2028-01-01:** verify any amendments or a newer statute and the current national action plan
+- **Caveats:** revised to align with the Palermo Protocol
+
+### mm_anti_trafficking  (MM, rule)
+> Myanmar's Anti-Trafficking in Persons Law (SPDC Law No. 5/2005) criminalises trafficking -- recruitment, transport, sale, harbouring or receipt of a person by coercion, abduction, deception or abuse of power for exploitation including forced labour, servitude and sexual exploitation -- with penalties up to life imprisonment, and establishes a Central Body to coordinate prevention, protection and prosecution.
+
+- **Authority:** State Peace and Development Council; Central Body for the Suppression of Trafficking in Persons (domestic_law) -- <https://sherloc.unodc.org/cld/en/legislation/mmr/the_anti_trafficking_in_persons_law/chapter_i-ix/article_1-33/the_anti_trafficking_in_persons_law.html>
+- **Applies to:** criminal trafficking liability in Myanmar
+- **Exceptions:** its consent/means framing diverges from the Palermo Protocol, and enforcement disproportionately targets sex-trafficking and cross-border cases over internal forced labour; implementation is weak and politicised -- the military itself has been implicated in forced labour and child-soldier recruitment; victim-protection provisions exist on paper but shelter capacity is limited
+- **Binding:** binding_domestic | **effective_from:** 2005-09-13 | **as_of:** 2026-07-10 | **volatility:** medium
+- **Recheck after 2027-01-01:** verify the 2005 law remains in force unamended and confirm current enforcement-body names post-2021
+- **Caveats:** Myanmar is a major source country for trafficking to Thailand, China and Malaysia
+
+### mm_overseas_employment  (MM, rule)
+> Myanmar's Law Relating to Overseas Employment (SPDC Law No. 3/99, 1999) allows only agencies holding a valid Ministry of Labour licence to recruit and deploy Myanmar nationals abroad; licensees must register, post a financial guarantee, file compliance reports, and deploy only to destinations and job categories permitted under the law and bilateral arrangements.
+
+- **Authority:** State Peace and Development Council; Ministry of Labour (domestic_law) -- <https://www.ilo.org/dyn/natlex/natlex4.detail?p_lang=en&p_isn=72869&p_country=MMR>
+- **Applies to:** licensed Myanmar overseas-employment agencies (origin-side)
+- **Exceptions:** binds only licensed agencies -- large informal broker networks along the Thai and Chinese borders operate outside it; enforcement is weak and has degraded since the 2021 coup, with periodic suspensions pushing workers into irregular routes; it governs deployment mechanics, not trafficking offences
+- **Binding:** binding_domestic | **effective_from:** 1999-07-09 | **as_of:** 2026-07-10 | **volatility:** high
+- **Recheck after 2026-10-01:** post-2021 deployment bans/resumptions and MOU changes; confirm penalty amounts against the primary text
+- **Caveats:** medium source confidence on penalty figures
