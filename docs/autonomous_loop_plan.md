@@ -1,4 +1,4 @@
-# Autonomous benchmark engine - plan & paused status
+# Autonomous benchmark engine - plan & live status
 
 > A durable, self-contained loop (`scripts/autonomous_engine.py`) that runs INDEPENDENTLY
 > of Claude Code. It works a queue of (model, n[, full]) benchmark jobs through
@@ -7,9 +7,8 @@
 > `reports/autonomous_engine_state.json`. Latest readiness: `reports/autonomous_engine_preflight.json`.
 > A `full` job grades the whole ~76k-prompt registry.
 
-- **Started** 2026-06-26T12:54:42Z - **updated** 2026-06-30T21:32:26Z - **ticks** 11
-- **Progress** 11/41 jobs complete - paused before `gemma4:31b` n=10000 (full registry)
-- **Pause sentinel:** `reports/autonomous_engine.stop` exists; the engine will not start a new tick until it is removed.
+- **Started** 2026-06-26T12:54:42Z - **updated** 2026-07-12T02:11:23Z - **ticks** 12
+- **Progress** 12/41 jobs - current `gpt-oss:120b` n=10000 (full registry)
 
 ## Control
 - **Stop gracefully:** create `reports/autonomous_engine.stop` (checked each tick).
@@ -21,9 +20,9 @@
 - **Launch:** `scripts/autonomous_engine.ps1 -Run` (loads .env, recovery venv, detaches).
 
 ## Current scope
-- **Active runner:** `rich_harness_lift.py`; candidate-dimension sweep active: `no`.
+- **Active runner:** `rich_harness_lift.py`; board rubric version: `v1`; opt-in rubric versions excluded: `v2`; rubric mixing allowed: `no`; board harness version: `h1`; opt-in harness versions excluded: `h2`; harness mixing allowed: `no`; candidate-dimension sweep active: `no`.
 - **Active job estimate:** 10,000 target prompts; 30,000 response-generation cells; 90,000 component-judge cells; 30,000 pairwise-judge cells.
-- **Candidate dimension sweep estimate:** 201 candidate dimensions; 201 still need curator review; 15,364,842 full-registry prompt-dimension cells if later promoted.
+- **Candidate dimension sweep estimate:** 201 candidate dimensions; 201 still need curator review; 15,822,519 full-registry prompt-dimension cells if later promoted.
 - **Dimension promotion gate:** build `reports/benchmark/research_spider_dimension_candidate_review_packet.json`, fill curator review fields, then validate it before rubric merge.
 - **Dimension review artifacts:** gate `validated_zero_proposals`; accepted proposals 0; ready claims 0.
 - **Mass-grading guard:** candidate-dimension row labels alone are not enough; the review gate must report promotion-ready proposals before any candidate-dimension sweep is ready.
@@ -42,8 +41,8 @@
 | 9 | `minimax-m2.7` | 40 | curated | done |
 | 10 | `minimax-m3` | 40 | curated | done |
 | 11 | `qwen3-coder:480b` | 40 | curated | done |
-| 12 | `gemma4:31b` | 10000 | full | paused |
-| 13 | `gpt-oss:120b` | 10000 | full | queued |
+| 12 | `gemma4:31b` | 10000 | full | done |
+| 13 | `gpt-oss:120b` | 10000 | full | RUNNING |
 | 14 | `glm-5.2` | 10000 | full | queued |
 | 15 | `deepseek-v4-pro` | 10000 | full | queued |
 | 16 | `mistral-large-3:675b` | 40 | curated | queued |
