@@ -22,6 +22,9 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import errno
+import http.client
+import io
 import json
 import os
 import random
@@ -30,6 +33,7 @@ import sys
 import threading
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
@@ -91,6 +95,130 @@ def _retry_after(exc: "urllib.error.HTTPError") -> "float | None":
         return None
 
 
+# ── Keep-alive HTTP connection pool ─────────────────────────────────────────────────────────────────
+# WHY THIS EXISTS. Every LLM call below used to be a bare ``urllib.request.urlopen()``, which opens a
+# NEW TCP+TLS socket per request and closes it. Under ``ThreadPoolExecutor(max_workers=12)`` a full sweep
+# (10k prompts x {baseline, core, full} x 3 judges ~= 100k+ requests) opens ~100k sockets in tight
+# succession; on Windows the closed sockets linger in TIME_WAIT and exhaust the ephemeral-port table, so
+# every subsequent call fails with WinError 10055 / WSAENOBUFS ("the system lacked sufficient buffer space
+# or ... a queue was full") -- and the ``except OSError`` retry just opens ANOTHER fresh socket, compounding
+# it. Reusing keep-alive connections caps live sockets at ~concurrency and removes the churn entirely.
+# Pure stdlib (``http.client``) -- no new dependency (this repo's pip is broken by OneDrive sync). Kill
+# switch: ``DUECARE_HTTP_POOL=0`` restores the old per-call ``urlopen`` path.
+_HTTP_POOL_ENABLED = os.environ.get("DUECARE_HTTP_POOL", "1").strip().lower() not in ("0", "false", "no", "off", "")
+_MAX_IDLE_PER_HOST = max(1, int(os.environ.get("DUECARE_HTTP_POOL_MAX_IDLE", "16")))
+
+
+def _is_socket_exhaustion(exc: BaseException) -> bool:
+    """True for Windows WSAENOBUFS (WinError 10055) / WSAEMFILE or POSIX ENOBUFS/EMFILE/ENFILE -- socket or
+    ephemeral-port exhaustion. Distinct from a plain timeout: retrying immediately on yet another fresh
+    socket makes it worse, so the caller backs off LONGER to let the OS drain TIME_WAIT sockets first."""
+    if getattr(exc, "winerror", None) in (10055, 10024):   # WSAENOBUFS, WSAEMFILE
+        return True
+    err = getattr(exc, "errno", None)
+    names = ("ENOBUFS", "EMFILE", "ENFILE", "WSAENOBUFS", "WSAEMFILE")
+    return err is not None and err in {getattr(errno, n) for n in names if hasattr(errno, n)}
+
+
+class _ConnPool:
+    """Thread-safe pool of reusable keep-alive HTTP(S) connections keyed by ``(scheme, host, port)``.
+
+    A worker ``acquire()``s a connection, issues exactly one request/response, then ``release()``s it back
+    (or ``discard()``s it on any transport error). Idle connections are recycled instead of reopened, so
+    the process holds ~concurrency live sockets rather than one per request."""
+
+    def __init__(self, max_idle_per_host: int = 16) -> None:
+        self._idle: dict[tuple[str, str, int], list[http.client.HTTPConnection]] = {}
+        self._lock = threading.Lock()
+        self._max_idle = max(1, max_idle_per_host)
+
+    @staticmethod
+    def _key(url: str) -> tuple[str, str, int]:
+        p = urllib.parse.urlsplit(url)
+        scheme = p.scheme or "https"
+        return (scheme, p.hostname or "", p.port or (443 if scheme == "https" else 80))
+
+    def acquire(self, url: str, timeout: float, *, force_new: bool = False) -> tuple[http.client.HTTPConnection, bool]:
+        """Return ``(conn, from_pool)``. ``from_pool=True`` flags a recycled connection (which the peer may
+        have silently closed), so the caller can transparently retry once on a fresh one."""
+        scheme, host, port = key = self._key(url)
+        if not force_new:
+            with self._lock:
+                bucket = self._idle.get(key)
+                conn = bucket.pop() if bucket else None
+            if conn is not None:
+                sock = getattr(conn, "sock", None)
+                if sock is not None:
+                    try:
+                        sock.settimeout(timeout)
+                    except OSError:
+                        pass
+                return conn, True
+        if scheme == "https":
+            return http.client.HTTPSConnection(host, port, timeout=timeout), False
+        return http.client.HTTPConnection(host, port, timeout=timeout), False
+
+    def release(self, url: str, conn: http.client.HTTPConnection) -> None:
+        key = self._key(url)
+        with self._lock:
+            bucket = self._idle.setdefault(key, [])
+            if len(bucket) < self._max_idle:
+                bucket.append(conn)
+                return
+        self.discard(conn)
+
+    @staticmethod
+    def discard(conn: http.client.HTTPConnection) -> None:
+        try:
+            conn.close()
+        except Exception:  # noqa: BLE001
+            pass
+
+
+_HTTP_POOL = _ConnPool(_MAX_IDLE_PER_HOST)
+
+
+def _http_post_json(url: str, *, data: bytes, headers: dict[str, str], timeout: float) -> bytes:
+    """POST ``data`` to ``url`` and return the raw response body bytes, reusing a pooled keep-alive
+    connection (the fix for Windows socket exhaustion). Drop-in compatible with the callers below: raises
+    ``urllib.error.HTTPError`` on a non-2xx status (so ``.code`` / ``.headers`` drive the SAME retry logic)
+    and lets transport ``OSError`` / ``URLError`` propagate (so ``except OSError`` still catches it).
+    ``DUECARE_HTTP_POOL=0`` falls back to the legacy per-call ``urlopen``."""
+    if not _HTTP_POOL_ENABLED:
+        req = urllib.request.Request(url, data=data, headers=headers)
+        with urllib.request.urlopen(req, timeout=timeout) as resp:  # raises HTTPError/URLError like before
+            return resp.read()
+    p = urllib.parse.urlsplit(url)
+    path = f"{p.path or '/'}{('?' + p.query) if p.query else ''}"
+    send_headers = dict(headers)
+    send_headers.setdefault("Connection", "keep-alive")
+    # First try a pooled connection; if it was recycled and the peer had silently dropped it, retry ONCE
+    # on a brand-new socket before surfacing the error to the caller's own retry/backoff loop.
+    for force_new in (False, True):
+        conn, from_pool = _HTTP_POOL.acquire(url, timeout, force_new=force_new)
+        try:
+            conn.request("POST", path, body=data, headers=send_headers)
+            resp = conn.getresponse()
+            status = resp.status
+            raw = resp.read()
+            reusable = not resp.will_close
+        except (OSError, http.client.HTTPException) as exc:
+            _HTTP_POOL.discard(conn)
+            if from_pool and not force_new:
+                continue                                  # stale keep-alive -> retry once on a fresh socket
+            if isinstance(exc, OSError):
+                raise                                     # real transport failure -> caller's backoff handles it
+            raise urllib.error.URLError(exc)              # normalize http.client errors into the OSError family
+        if reusable:
+            _HTTP_POOL.release(url, conn)
+        else:
+            _HTTP_POOL.discard(conn)
+        if status >= 400:
+            raise urllib.error.HTTPError(url, status, f"HTTP {status}", resp.headers, io.BytesIO(raw))
+        return raw
+    raise RuntimeError("unreachable")  # the loop always returns or raises
+
+
 def ollama_chat(prompt: str, *, model: str = DEFAULT_MODEL, max_tokens: int = DEFAULT_MAX_TOKENS,
                 temperature: float = 0.6, key: str | None = None, system: str | None = None,
                 num_ctx: int = DEFAULT_NUM_CTX, timeout: float = 180.0, max_retries: int = 4) -> str:
@@ -115,12 +243,11 @@ def ollama_chat(prompt: str, *, model: str = DEFAULT_MODEL, max_tokens: int = DE
     payload["options"] = opts
     body = json.dumps(payload).encode("utf-8")
     for attempt in range(max_retries + 1):
-        req = urllib.request.Request(f"{OLLAMA_CLOUD_BASE}/chat/completions", data=body,
-                                     headers={"Authorization": f"Bearer {key}",
-                                              "Content-Type": "application/json"})
         try:
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                out = json.loads(resp.read().decode("utf-8", "replace"))
+            raw = _http_post_json(f"{OLLAMA_CLOUD_BASE}/chat/completions", data=body,
+                                  headers={"Authorization": f"Bearer {key}",
+                                           "Content-Type": "application/json"}, timeout=timeout)
+            out = json.loads(raw.decode("utf-8", "replace"))
             msg = (out.get("choices") or [{}])[0].get("message") or {}
             # reasoning-model aware: prefer the answer, fall back to the thinking text if content empty
             return str(msg.get("content") or "").strip() or str(msg.get("reasoning") or "").strip()
@@ -128,10 +255,12 @@ def ollama_chat(prompt: str, *, model: str = DEFAULT_MODEL, max_tokens: int = DE
             if exc.code not in _RETRYABLE_STATUS or attempt == max_retries:
                 raise
             wait = _retry_after(exc)                       # honour the server's Retry-After when present
-        except OSError:  # URLError (connection), TimeoutError, socket.timeout -- all transient
+        except OSError as exc:  # URLError (connection), TimeoutError, socket exhaustion -- all transient
             if attempt == max_retries:
                 raise
-            wait = None
+            # Socket / ephemeral-port exhaustion (WSAENOBUFS) needs a LONGER pause than a normal timeout so
+            # the OS can drain TIME_WAIT sockets before we open another; a short backoff just fails again.
+            wait = 15.0 if _is_socket_exhaustion(exc) else None
         if wait is None:
             wait = 2 ** attempt + random.uniform(0.0, 0.5)    # exponential backoff + jitter
         time.sleep(min(wait, 30.0))                           # capped so a huge Retry-After can't stall a worker
@@ -168,22 +297,21 @@ def nvidia_chat(prompt: str, *, model: str, max_tokens: int = DEFAULT_MAX_TOKENS
         payload["max_tokens"] = max_tokens
     body = json.dumps(payload).encode("utf-8")
     for attempt in range(max_retries + 1):
-        req = urllib.request.Request(f"{NVIDIA_CLOUD_BASE}/chat/completions", data=body,
-                                     headers={"Authorization": f"Bearer {key}",
-                                              "Content-Type": "application/json"})
         try:
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                out = json.loads(resp.read().decode("utf-8", "replace"))
+            raw = _http_post_json(f"{NVIDIA_CLOUD_BASE}/chat/completions", data=body,
+                                  headers={"Authorization": f"Bearer {key}",
+                                           "Content-Type": "application/json"}, timeout=timeout)
+            out = json.loads(raw.decode("utf-8", "replace"))
             msg = (out.get("choices") or [{}])[0].get("message") or {}
             return str(msg.get("content") or "").strip() or str(msg.get("reasoning_content") or "").strip()
         except urllib.error.HTTPError as exc:
             if exc.code not in _RETRYABLE_STATUS or attempt == max_retries:
                 raise
             wait = _retry_after(exc)
-        except OSError:
+        except OSError as exc:
             if attempt == max_retries:
                 raise
-            wait = None
+            wait = 15.0 if _is_socket_exhaustion(exc) else None
         if wait is None:
             wait = 2 ** attempt + random.uniform(0.0, 0.5)
         time.sleep(min(wait, 30.0))
@@ -295,12 +423,11 @@ def openai_compatible_chat(prompt: str, *, model: str, base_url: str, keys: list
     for i in range(len(keys)):
         key = keys[(start + i) % len(keys)]
         for attempt in range(max_retries + 1):
-            req = urllib.request.Request(f"{base_url}/chat/completions", data=body,
-                                         headers={"Authorization": f"Bearer {key}",
-                                                  "Content-Type": "application/json"})
             try:
-                with urllib.request.urlopen(req, timeout=timeout) as resp:
-                    out = json.loads(resp.read().decode("utf-8", "replace"))
+                raw = _http_post_json(f"{base_url}/chat/completions", data=body,
+                                      headers={"Authorization": f"Bearer {key}",
+                                               "Content-Type": "application/json"}, timeout=timeout)
+                out = json.loads(raw.decode("utf-8", "replace"))
                 msg = (out.get("choices") or [{}])[0].get("message") or {}
                 return (str(msg.get("content") or "").strip()
                         or str(msg.get("reasoning_content") or msg.get("reasoning") or "").strip())
@@ -316,11 +443,11 @@ def openai_compatible_chat(prompt: str, *, model: str, base_url: str, keys: list
                     raise                       # 400/404 caller bug, or 5xx retries exhausted
                 else:
                     wait = _retry_after(exc)    # transient 5xx -> retry same key
-            except OSError as exc:              # connection / timeout -> transient, retry same key
+            except OSError as exc:              # connection / timeout / socket exhaustion -> retry same key
                 last_exc = exc
                 if attempt == max_retries:
                     break
-                wait = None
+                wait = 15.0 if _is_socket_exhaustion(exc) else None
             if wait is None:
                 wait = 2 ** attempt + random.uniform(0.0, 0.5)
             time.sleep(min(wait, 30.0))
@@ -356,12 +483,11 @@ def anthropic_chat(prompt: str, *, model: str, keys: list[str], max_tokens: int 
     for i in range(len(keys)):
         key = keys[(start + i) % len(keys)]
         for attempt in range(max_retries + 1):
-            req = urllib.request.Request(f"{ANTHROPIC_BASE}/messages", data=body,
-                                         headers={"x-api-key": key, "anthropic-version": ANTHROPIC_VERSION,
-                                                  "Content-Type": "application/json"})
             try:
-                with urllib.request.urlopen(req, timeout=timeout) as resp:
-                    out = json.loads(resp.read().decode("utf-8", "replace"))
+                raw = _http_post_json(f"{ANTHROPIC_BASE}/messages", data=body,
+                                      headers={"x-api-key": key, "anthropic-version": ANTHROPIC_VERSION,
+                                               "Content-Type": "application/json"}, timeout=timeout)
+                out = json.loads(raw.decode("utf-8", "replace"))
                 blocks = out.get("content") or []
                 return "".join(b.get("text", "") for b in blocks if isinstance(b, dict)).strip()
             except urllib.error.HTTPError as exc:
@@ -380,7 +506,7 @@ def anthropic_chat(prompt: str, *, model: str, keys: list[str], max_tokens: int 
                 last_exc = exc
                 if attempt == max_retries:
                     break
-                wait = None
+                wait = 15.0 if _is_socket_exhaustion(exc) else None
             if wait is None:
                 wait = 2 ** attempt + random.uniform(0.0, 0.5)
             time.sleep(min(wait, 30.0))

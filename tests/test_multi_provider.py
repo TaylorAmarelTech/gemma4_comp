@@ -30,6 +30,14 @@ sys.path.insert(0, str(_ROOT / "scripts"))
 lg = _load("llm_generate", _ROOT / "scripts" / "llm_generate.py")
 
 
+@pytest.fixture(autouse=True)
+def _force_urlopen_transport(monkeypatch):
+    # These tests mock ``lg.urllib.request.urlopen`` to drive routing / retry / key-rotation logic, so
+    # force the legacy transport (the ``DUECARE_HTTP_POOL=0`` fallback) and the mock is hit. The pooled
+    # ``http.client`` transport itself is covered in test_http_pool.py.
+    monkeypatch.setattr(lg, "_HTTP_POOL_ENABLED", False)
+
+
 def _http_error(code: int) -> urllib.error.HTTPError:
     return urllib.error.HTTPError("https://x/v1/chat/completions", code, f"HTTP {code}",
                                   {}, io.BytesIO(b"{}"))

@@ -51,6 +51,17 @@ DIM_REVIEW_PACKET = REPORTS / "benchmark" / "research_spider_dimension_candidate
 DIM_REVIEW_VALIDATION = REPORTS / "benchmark" / "research_spider_dimension_candidate_review_validation.json"
 
 JUDGES = "gpt-oss:120b,glm-5.2,deepseek-v4-pro"
+ACTIVE_RICH_HARNESS_RUBRIC_VERSION = "v1"
+EXCLUDED_OPT_IN_RUBRIC_VERSIONS = ["v2"]
+ACTIVE_RICH_HARNESS_HARNESS_VERSION = "h1"
+EXCLUDED_OPT_IN_HARNESS_VERSIONS = ["h2"]
+# A run_job that returns nonzero (crash / resource exhaustion) leaves the cursor unadvanced, so the SAME
+# job re-runs next tick -- right for a transient blip, but a persistently-crashing job would block the
+# whole queue and starve every model behind it (e.g. the 18:23Z socket-exhaustion crash that stalled the
+# gpt-oss:120b full sweep). After this many CONSECUTIVE failures of the current job, skip past it (its
+# incremental panel rows are kept, so nothing is lost) so the loop keeps progressing; a fresh state re-
+# queues it. Transient failures below the threshold still retry the same job next tick.
+MAX_JOB_FAILS = int(os.environ.get("DUECARE_MAX_JOB_FAILS", "3"))
 COMMIT_PATHS = [
     "apps/duecare-ai.com/app/static/benchmark_leaderboard.json",
     "docs/research/benchmark_leaderboard.md",
@@ -431,6 +442,12 @@ def _active_rich_harness_scope(
     return {
         "runner": "rich_harness_lift.py",
         "candidate_dimension_sweep_active": False,
+        "rubric_version": ACTIVE_RICH_HARNESS_RUBRIC_VERSION,
+        "opt_in_rubric_versions_excluded": list(EXCLUDED_OPT_IN_RUBRIC_VERSIONS),
+        "rubric_version_mixing_allowed": False,
+        "harness_version": ACTIVE_RICH_HARNESS_HARNESS_VERSION,
+        "opt_in_harness_versions_excluded": list(EXCLUDED_OPT_IN_HARNESS_VERSIONS),
+        "harness_version_mixing_allowed": False,
         "rubric_shape": "3 response arms x 5 calibrated components x configured judge panel",
         "target_prompt_count": target,
         "response_generation_cells": None if target is None else target * 3,
@@ -1038,7 +1055,9 @@ def run_job(model: str, n: int, prompts_key: "str | None" = None) -> bool:
     log(f"run_job START model={model} n={n} set={prompts_key or 'curated'}")
     cmd = [sys.executable, str(ROOT / "scripts" / "rich_harness_lift.py"),
            "--n", str(n), "--models", model, "--judges", JUDGES,
-           "--pairwise", "--max-tokens", "0", "--pace", "0.6"]  # 0 = unlimited output (no truncation)
+           "--pairwise", "--max-tokens", "0", "--pace", "0.6",
+           "--rubric-version", ACTIVE_RICH_HARNESS_RUBRIC_VERSION,
+           "--harness-version", ACTIVE_RICH_HARNESS_HARNESS_VERSION]  # 0 = unlimited output (no truncation)
     if prompts_key == "full":
         if not ensure_full_promptset():
             log("full prompt set unavailable -> skipping job")
@@ -1183,7 +1202,12 @@ def update_plan(st: dict, current) -> None:
         "- **Launch:** `scripts/autonomous_engine.ps1 -Run` (loads .env, recovery venv, detaches).",
         "",
         "## Current scope",
-        "- **Active runner:** `rich_harness_lift.py`; candidate-dimension sweep active: `no`.",
+        (f"- **Active runner:** `rich_harness_lift.py`; board rubric version: "
+         f"`{ACTIVE_RICH_HARNESS_RUBRIC_VERSION}`; opt-in rubric versions excluded: "
+         f"`{', '.join(EXCLUDED_OPT_IN_RUBRIC_VERSIONS)}`; rubric mixing allowed: `no`; "
+         f"board harness version: `{ACTIVE_RICH_HARNESS_HARNESS_VERSION}`; opt-in harness versions "
+         f"excluded: `{', '.join(EXCLUDED_OPT_IN_HARNESS_VERSIONS)}`; harness mixing allowed: `no`; "
+         "candidate-dimension sweep active: `no`."),
         (f"- **Active job estimate:** {_fmt_count(scope['target_prompt_count'])} target prompts; "
          f"{_fmt_count(scope['response_generation_cells'])} response-generation cells; "
          f"{_fmt_count(scope['max_component_judge_cells'])} component-judge cells; "
@@ -1249,6 +1273,19 @@ def tick() -> bool:
     if ok:
         st["done"].append({"model": model, "n": n, "set": key or "curated", "at": now()})
         st["cursor"] = cur + 1
+        st.pop("job_fails", None)                       # reset the consecutive-failure counter on success
+    else:
+        fails = int(st.get("job_fails", 0)) + 1
+        st["job_fails"] = fails
+        if fails >= MAX_JOB_FAILS:                       # a persistently failing job must not block the queue
+            log(f"job {model} n={n} set={key or 'curated'} failed {fails}x consecutively -> skipping past it "
+                f"(partial panel rows kept); advancing cursor")
+            st.setdefault("skipped", []).append(
+                {"model": model, "n": n, "set": key or "curated", "fails": fails, "at": now()})
+            st["cursor"] = cur + 1
+            st.pop("job_fails", None)
+        else:
+            log(f"job {model} n={n} set={key or 'curated'} failed ({fails}/{MAX_JOB_FAILS}); retry next tick")
     save_state(st)
     next_state = _cursor_state(st, queue)
     next_cursor = next_state.get("value")
