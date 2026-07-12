@@ -40,6 +40,9 @@ class _FakeResp:
 
 def _patch(monkeypatch, urlopen):
     monkeypatch.setattr(lg, "_load_key", lambda: "k")
+    # Exercise the legacy urlopen transport (the DUECARE_HTTP_POOL=0 fallback) so these retry/backoff
+    # assertions keep hitting the mock; the pooled http.client transport is covered in test_http_pool.py.
+    monkeypatch.setattr(lg, "_HTTP_POOL_ENABLED", False)
     monkeypatch.setattr(lg.urllib.request, "urlopen", urlopen)
     monkeypatch.setattr(lg.time, "sleep", lambda _s: None)   # no real backoff sleep in tests
 

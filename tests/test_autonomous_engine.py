@@ -61,6 +61,30 @@ def _write_review_gate_files(tmp_path: Path, *, source_rows: int, ready: int, ac
     return candidates, packet, validation
 
 
+def test_run_job_pins_active_board_rubric_v1(monkeypatch):
+    calls = []
+
+    def fake_run(cmd, capture=False, timeout=None):
+        calls.append(cmd)
+        return _cp(cmd)
+
+    monkeypatch.setattr(ae, "_run", fake_run)
+    monkeypatch.setattr(ae, "log", lambda _msg: None)
+
+    assert ae.run_job("gemma4:31b", 40) is True
+
+    assert len(calls) == 1
+    cmd = calls[0]
+    assert cmd[0] == sys.executable
+    assert cmd[1].endswith("rich_harness_lift.py")
+    assert "--rubric-version" in cmd
+    assert cmd[cmd.index("--rubric-version") + 1] == "v1"
+    assert "--harness-version" in cmd
+    assert cmd[cmd.index("--harness-version") + 1] == "h1"
+    assert "v2" not in cmd
+    assert "h2" not in cmd
+
+
 def test_unexpected_staged_paths_allows_only_board_contract_paths():
     assert ae._unexpected_staged_paths([
         "docs/research/benchmark_leaderboard.md",
@@ -213,7 +237,13 @@ def test_update_plan_writes_ascii_status_doc(tmp_path, monkeypatch):
     assert "`--no-ollama-check` is state-only for preflight diagnostics" in text
     assert "direct Python loop mode" in text
     assert "## Current scope" in text
-    assert "**Active runner:** `rich_harness_lift.py`; candidate-dimension sweep active: `no`." in text
+    assert (
+        "**Active runner:** `rich_harness_lift.py`; board rubric version: `v1`; "
+        "opt-in rubric versions excluded: `v2`; rubric mixing allowed: `no`; "
+        "board harness version: `h1`; opt-in harness versions excluded: `h2`; "
+        "harness mixing allowed: `no`; "
+        "candidate-dimension sweep active: `no`."
+    ) in text
     assert "1 target prompts; 3 response-generation cells; 9 component-judge cells; 3 pairwise-judge cells" in text
     assert "7 candidate dimensions; 7 still need curator review; 350 full-registry prompt-dimension cells" in text
     assert "gate `validated_zero_proposals`; accepted proposals 0; ready claims 0." in text
@@ -351,6 +381,12 @@ def test_main_status_reports_pause_sentinel_without_reading_note(tmp_path, monke
     assert payload["latest_preflight"]["needs_refresh"] is False
     assert "refresh_command" not in payload["latest_preflight"]
     assert payload["active_loop_scope"]["candidate_dimension_sweep_active"] is False
+    assert payload["active_loop_scope"]["rubric_version"] == "v1"
+    assert payload["active_loop_scope"]["opt_in_rubric_versions_excluded"] == ["v2"]
+    assert payload["active_loop_scope"]["rubric_version_mixing_allowed"] is False
+    assert payload["active_loop_scope"]["harness_version"] == "h1"
+    assert payload["active_loop_scope"]["opt_in_harness_versions_excluded"] == ["h2"]
+    assert payload["active_loop_scope"]["harness_version_mixing_allowed"] is False
     assert payload["active_loop_scope"]["target_prompt_count"] == 1
     assert payload["active_loop_scope"]["max_component_judge_cells"] == 9
     assert payload["full_promptset"]["prompt_count"] == 76442
@@ -662,6 +698,65 @@ def test_tick_refuses_invalid_state_cursor_without_running_job(tmp_path, monkeyp
     assert logs == ["invalid engine state cursor (cursor_negative); refusing tick"]
 
 
+def _tick_with_state(monkeypatch, tmp_path, st, *, ok):
+    """Run one tick() against a shared ``st`` with every side-effect helper stubbed and run_job -> ``ok``.
+    tick mutates ``st`` in place and save_state is a no-op, so the caller inspects ``st`` directly."""
+    logs: list[str] = []
+    monkeypatch.setattr(ae, "STOP", tmp_path / "autonomous_engine.stop")   # absent -> not paused
+    monkeypatch.setattr(ae, "load_state", lambda: st)
+    monkeypatch.setattr(ae, "run_job", lambda *_a, **_k: ok)
+    monkeypatch.setattr(ae, "regen_board", lambda: None)
+    monkeypatch.setattr(ae, "publish", lambda *_a, **_k: None)
+    monkeypatch.setattr(ae, "update_plan", lambda *_a, **_k: None)
+    monkeypatch.setattr(ae, "save_state", lambda _st: None)
+    monkeypatch.setattr(ae, "log", logs.append)
+    assert ae.tick() is True
+    return st, logs
+
+
+def test_tick_skips_job_after_max_consecutive_failures(tmp_path, monkeypatch):
+    st = {
+        "cursor": 1,
+        "queue": [["done-model", 40], ["bad-model", 10000, "full"], ["next-model", 40]],
+        "done": [],
+        "job_fails": ae.MAX_JOB_FAILS - 1,           # the next failure trips the skip
+    }
+    st, logs = _tick_with_state(monkeypatch, tmp_path, st, ok=False)
+    assert st["cursor"] == 2                          # advanced PAST the persistently-failing job
+    assert "job_fails" not in st                      # counter reset after the skip
+    assert len(st["skipped"]) == 1
+    skipped = st["skipped"][0]
+    assert (skipped["model"], skipped["n"], skipped["set"], skipped["fails"]) == \
+        ("bad-model", 10000, "full", ae.MAX_JOB_FAILS)
+    assert isinstance(skipped["at"], str) and skipped["at"].endswith("Z")
+    assert any("skipping past it" in m for m in logs)
+
+
+def test_tick_retries_failing_job_below_threshold(tmp_path, monkeypatch):
+    st = {
+        "cursor": 1,
+        "queue": [["done-model", 40], ["bad-model", 10000, "full"], ["next-model", 40]],
+        "done": [],
+    }
+    st, _logs = _tick_with_state(monkeypatch, tmp_path, st, ok=False)
+    assert st["cursor"] == 1                          # unchanged -> same job retries next tick
+    assert st["job_fails"] == 1
+    assert "skipped" not in st
+
+
+def test_tick_resets_fail_counter_on_success(tmp_path, monkeypatch):
+    st = {
+        "cursor": 1,
+        "queue": [["done-model", 40], ["good-model", 40], ["next-model", 40]],
+        "done": [],
+        "job_fails": 2,                               # a prior transient blip
+    }
+    st, _logs = _tick_with_state(monkeypatch, tmp_path, st, ok=True)
+    assert st["cursor"] == 2                          # advanced on success
+    assert "job_fails" not in st                      # counter cleared
+    assert st["done"][-1]["model"] == "good-model"
+
+
 def test_preflight_and_status_block_malformed_state_queue(tmp_path, monkeypatch):
     monkeypatch.setattr(ae, "STOP", tmp_path / "autonomous_engine.stop")
     monkeypatch.setattr(ae, "LOCK", tmp_path / "autonomous_engine.lock")
@@ -859,6 +954,12 @@ def test_preflight_reports_pause_promptset_panel_and_ollama_blockers(tmp_path, m
     assert report["active_loop_scope"] == {
         "runner": "rich_harness_lift.py",
         "candidate_dimension_sweep_active": False,
+        "rubric_version": "v1",
+        "opt_in_rubric_versions_excluded": ["v2"],
+        "rubric_version_mixing_allowed": False,
+        "harness_version": "h1",
+        "opt_in_harness_versions_excluded": ["h2"],
+        "harness_version_mixing_allowed": False,
         "rubric_shape": "3 response arms x 5 calibrated components x configured judge panel",
         "target_prompt_count": 2,
         "response_generation_cells": 6,
