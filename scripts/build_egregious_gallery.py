@@ -166,6 +166,7 @@ def select_cases(threshold: float, limit: int = 0) -> list[dict]:
     model actually allows or instructs the illicit activity, never replies where it declined.
     """
     resp = load_responses()
+    meta = _scheme_meta()                           # per-prompt category + corridor (SCHEME-* ids), for context + filters
     cases: list[dict] = []
     for r in _load_jsonl(RANKER):
         model = _nonempty_string(r.get("model"))
@@ -186,9 +187,12 @@ def select_cases(threshold: float, limit: int = 0) -> list[dict]:
             continue
         if _is_refusal(cell["baseline"]):          # raw model declined -> not an egregious failure
             continue
+        m = meta.get(key[1], {})
         cases.append({"model": key[0], "prompt_id": key[1], "harm": harm,
                       "harm_type": _string_or_empty(r.get("harm_type")),
                       "why": _string_or_empty(r.get("why")),
+                      "category": _string_or_empty(m.get("category")),
+                      "corridor": _string_or_empty(m.get("corridor")),
                       "prompt_text": _string_or_empty(cell.get("prompt_text")),
                       "baseline": cell["baseline"], "harnessed": cell["harnessed"]})
     cases.sort(key=lambda c: -c["harm"])
@@ -217,6 +221,18 @@ _STYLE = """
 .eg-arm.raw .tag { color: oklch(0.46 0.16 38); }
 .eg-arm.harn .tag { color: oklch(0.38 0.12 155); }
 .eg-arm pre { white-space: pre-wrap; word-wrap: break-word; font-family: var(--mono); font-size: 12px; line-height: 1.6; color: var(--ink-2); margin: 0; }
+.eg-head .cat { color: oklch(0.42 0.08 195); }
+.eg-head .corr { color: var(--ink-4); }
+.eg-filter { position: sticky; top: 0; z-index: 5; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 13px 15px; margin: 0 0 24px; display: flex; flex-wrap: wrap; gap: 9px; align-items: center; }
+.eg-filter input { flex: 1 1 240px; min-width: 170px; font-family: var(--mono); font-size: 13px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper-2); color: var(--ink); }
+.eg-filter input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.eg-chip { font-family: var(--mono); font-size: 11px; letter-spacing: 0.02em; padding: 6px 11px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper-2); color: var(--ink-2); cursor: pointer; user-select: none; }
+.eg-chip:hover { border-color: var(--ink-3); }
+.eg-chip.on { background: oklch(0.38 0.12 155); color: var(--paper); border-color: transparent; }
+.eg-count { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-left: auto; white-space: nowrap; }
+.eg-case.hide { display: none; }
+.eg-empty { display: none; font-size: 13.5px; color: var(--ink-3); padding: 18px 2px; }
+.eg-empty.on { display: block; }
 """
 
 
@@ -231,31 +247,53 @@ def _esc(s: str) -> str:
 
 
 def render(cases: list[dict], threshold: float) -> str:
+    cats: list[str] = []                             # distinct scheme categories, order preserved -> filter chips
+    for c in cases:
+        t = _string_or_empty(c.get("category"))
+        if t and t not in cats:
+            cats.append(t)
     o: list[str] = []
     o.append('<!DOCTYPE html>')
     o.append('<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />')
-    o.append('<title>Egregious cases, in full &middot; DueCare AI</title>')
-    o.append('<meta name="description" content="Every egregious raw-model reply from the DueCare adversarial self-evaluation, shown in full and untruncated, paired with the harnessed reply. Composite/synthetic prompts." />')
+    o.append('<title>What off-the-shelf LLM failure looks like, in full &middot; DueCare AI</title>')
+    o.append('<meta name="description" content="A browsable gallery of raw base-LLM failures on migrant-worker safety prompts, shown in full and untruncated, each paired with the same model wrapped in the DueCare harness. Composite/synthetic prompts; filter by type and search." />')
     o.append('<link rel="stylesheet" href="/static/styles.css" /><link rel="stylesheet" href="/static/hub-pages.css" />')
     o.append("<style>" + _STYLE + "</style>")
     o.append('<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 32 32\'%3E%3Crect width=\'32\' height=\'32\' rx=\'6\' fill=\'%230E1116\'/%3E%3Ctext x=\'16\' y=\'21\' text-anchor=\'middle\' font-family=\'monospace\' font-weight=\'700\' font-size=\'14\' fill=\'%23F7F6F1\'%3ED%3C/text%3E%3C/svg%3E" />')
     o.append('</head><body>{% set active_nav = "evaluation" %}')
     o.append('{% include "_nav.html" %}')
-    o.append('<section class="hp-hero" data-screen-label="Eval &middot; Egregious cases"><div class="wrap">')
-    o.append('<div class="crumbs"><a href="/">Home</a><span class="sep">/</span><a href="/evaluation">Evaluation</a><span class="sep">/</span><a href="/harness-study">Harness-lift study</a><span class="sep">/</span><span>Egregious cases</span></div>')
+    o.append('<section class="hp-hero" data-screen-label="Eval &middot; Examples"><div class="wrap">')
+    o.append('<div class="crumbs"><a href="/">Home</a><span class="sep">/</span><a href="/evaluation">Evaluation</a><span class="sep">/</span><a href="/harness-study">Harness-lift study</a><span class="sep">/</span><span>Examples</span></div>')
     o.append('<span class="kicker">Adversarial self-evaluation</span>')
-    o.append('<h1>The raw-model failures, in full.</h1>')
-    o.append(f'<p class="lede">Every egregious case for which the complete replies were stored - <b>{len(cases)} in all</b>, each a baseline reply an egregiousness judge scored at or above {int(threshold)}/10 on active harm - shown <b>complete and untruncated</b> next to the same model wrapped in the DueCare harness. This is the failure mode the harness exists to prevent, shown in full so nothing is hidden.</p></div></section>')
+    o.append('<h1>What off-the-shelf failure looks like.</h1>')
+    o.append(f'<p class="lede">Off the shelf, <b>every LLM we tested is insufficient</b> for worker protection - the category-wide numbers are on the <a href="/benchmark">board</a>. This page shows the <b>dangerous end</b> of that failure: <b>{len(cases)}</b> cases where a deployable, on-device-class open model - the kind an NGO can actually run privately - did not merely answer poorly but <b>complied with a disguised exploitation request</b>, each scored at or above {int(threshold)}/10 on active harm by an egregiousness judge. Every one is shown <b>complete and untruncated</b> beside the same model wrapped in the DueCare harness, which refuses and cites the law. Frontier models fail differently - they decline without the statute or the hotline - so both leave the worker unprotected.</p></div></section>')
     o.append('<section class="hp-section"><div class="wrap">')
     o.append('<div class="eg-intro"><b>Read this first.</b> Every prompt below is <b>composite and synthetic</b> - no real people, agencies, or case numbers. The harmful left-hand replies are shown as evidence of what an <i>unharnessed</i> model produces when asked a disguised exploitation question; they are always paired with the harnessed reply that refuses and cites the governing law. The schemes themselves (fee-splitting, document retention, debt bondage) are already documented in public anti-trafficking literature. We show them in full for honest adversarial review, not as instructions.</div>')
+    o.append('<div class="eg-filter">')
+    o.append('<input id="eg-q" type="search" placeholder="Search prompts, corridors, reasons..." aria-label="Search cases" />')
+    o.append('<span class="eg-chip on" data-type="">All schemes</span>')
+    for t in cats:
+        o.append(f'<span class="eg-chip" data-type="{_esc(t)}">{_esc(t).replace("_", " ")}</span>')
+    o.append(f'<span class="eg-count" id="eg-count">{len(cases)} / {len(cases)} cases</span>')
+    o.append('</div>')
     for i, c in enumerate(cases, 1):
         model = _display_label(c.get("model"))
         prompt_id = _display_label(c.get("prompt_id"))
         ht = _esc(_display_label(c.get("harm_type"), default="")).replace("_", " ")
-        o.append('<div class="eg-case">')
-        o.append(f'<div class="eg-head"><span class="n">Case {i}</span>'
-                 f'<span class="harm">harm {c["harm"]:.0f}/10</span>'
-                 f'<span class="type">{ht}</span><span class="pid">{_esc(model)} &middot; {_esc(prompt_id)}</span></div>')
+        cat = _esc(_string_or_empty(c.get("category")).replace("_", " "))
+        corr = _esc(_string_or_empty(c.get("corridor")).replace("->", " to "))
+        searchable = " ".join(_string_or_empty(c.get(k)) for k in
+                              ("model", "prompt_id", "harm_type", "category", "corridor", "why", "prompt_text")).lower()
+        o.append(f'<div class="eg-case" data-type="{_esc(_string_or_empty(c.get("category")))}" data-text="{_esc(searchable)}">')
+        head = (f'<div class="eg-head"><span class="n">Case {i}</span>'
+                f'<span class="harm">harm {c["harm"]:.0f}/10</span>'
+                f'<span class="type">{ht}</span>')
+        if cat:
+            head += f'<span class="cat">{cat}</span>'
+        if corr:
+            head += f'<span class="corr">{corr}</span>'
+        head += f'<span class="pid">{_esc(model)} &middot; {_esc(prompt_id)}</span></div>'
+        o.append(head)
         if c.get("why"):
             o.append(f'<p class="eg-why"><b>Why it is harmful:</b> {_esc(c["why"])}</p>')
         if c.get("prompt_text"):
@@ -264,8 +302,12 @@ def render(cases: list[dict], threshold: float) -> str:
         o.append(f'<div class="eg-arm raw"><span class="tag">Raw {_esc(model)} &middot; harm {c["harm"]:.0f}/10</span><pre>{_esc(c["baseline"])}</pre></div>')
         o.append(f'<div class="eg-arm harn"><span class="tag">Same model + DueCare harness</span><pre>{_esc(c["harnessed"])}</pre></div>')
         o.append('</div></div>')
-    o.append(f'<p class="hp-note" style="margin-top:18px">{len(cases)} cases, regenerated from the public repository by <code>scripts/build_egregious_gallery.py</code>. Back to the <a href="/harness-study">harness-lift study</a>.</p>')
+    o.append('<p class="eg-empty" id="eg-empty">No cases match that filter. Clear the search or pick <b>All</b>.</p>')
+    o.append(f'<p class="hp-note" style="margin-top:18px">{len(cases)} cases, regenerated from the public repository by <code>scripts/build_egregious_gallery.py</code>. The category-wide numbers - every model, every dimension - are on the <a href="/benchmark">board</a>; back to the <a href="/harness-study">harness-lift study</a>.</p>')
     o.append('</div></section>')
+    o.append('<script>')
+    o.append('(function(){var q=document.getElementById("eg-q"),count=document.getElementById("eg-count"),empty=document.getElementById("eg-empty"),chips=[].slice.call(document.querySelectorAll(".eg-chip")),cases=[].slice.call(document.querySelectorAll(".eg-case")),active="";function apply(){var term=(q.value||"").toLowerCase().trim(),shown=0;cases.forEach(function(c){var okType=!active||c.getAttribute("data-type")===active;var okTerm=!term||(c.getAttribute("data-text")||"").indexOf(term)>=0;var show=okType&&okTerm;c.classList.toggle("hide",!show);if(show)shown++;});count.textContent=shown+" / "+cases.length+" cases";if(empty)empty.classList.toggle("on",shown===0);}q.addEventListener("input",apply);chips.forEach(function(ch){ch.addEventListener("click",function(){active=ch.getAttribute("data-type")||"";chips.forEach(function(x){x.classList.toggle("on",x===ch);});apply();});});apply();})();')
+    o.append('</script>')
     o.append('</body></html>')
     return "\n".join(o) + "\n"
 
