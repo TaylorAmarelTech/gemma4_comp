@@ -1,0 +1,548 @@
+{
+  "chunk_bytes": 41943040,
+  "files": [
+    {
+      "archived_at": "2026-07-13T08:29:19Z",
+      "bytes": 4288,
+      "chunks": [
+        "reports/autonomous_engine_state.json.gz.000"
+      ],
+      "compressed_bytes": 698,
+      "mtime": 1783906502,
+      "path": "reports/autonomous_engine_state.json",
+      "sha256": "ff4ae47e7bb69fb6019073f76b9c49b92219933dda23956f2f1887d344e1c500"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:20Z",
+      "bytes": 35801049,
+      "chunks": [
+        "reports/benchmark/full_promptset.json.gz.000"
+      ],
+      "compressed_bytes": 5384177,
+      "mtime": 1783101534,
+      "path": "reports/benchmark/full_promptset.json",
+      "sha256": "309237586a6a9162690da59100f57647a42c2f4d9f52f460e083cae0fb3573f2"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:20Z",
+      "bytes": 122227,
+      "chunks": [
+        "reports/multi_judge/panel.jsonl.gz.000"
+      ],
+      "compressed_bytes": 3864,
+      "mtime": 1782154083,
+      "path": "reports/multi_judge/panel.jsonl",
+      "sha256": "72d001748210a0fd90000f6a99bf399301257eef65a7ae1fa833275ccaf73334"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:20Z",
+      "bytes": 81715,
+      "chunks": [
+        "reports/multi_judge/perdim_panel.jsonl.gz.000"
+      ],
+      "compressed_bytes": 3074,
+      "mtime": 1782084737,
+      "path": "reports/multi_judge/perdim_panel.jsonl",
+      "sha256": "8feeb4c34607fd1448ee3f6b85f03fefc37cbe024c250053a883ed656de83bf6"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:21Z",
+      "bytes": 23151946,
+      "chunks": [
+        "reports/rich_lift/panel.jsonl.gz.000"
+      ],
+      "compressed_bytes": 1060076,
+      "mtime": 1783741259,
+      "path": "reports/rich_lift/panel.jsonl",
+      "sha256": "6f856e4e96e02656baa48c872699846ec01e3cb0dc7e045415f35b564d580aff"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:21Z",
+      "bytes": 63597,
+      "chunks": [
+        "reports/rich_lift/panel_holistic_v1.jsonl.gz.000"
+      ],
+      "compressed_bytes": 2586,
+      "mtime": 1782232628,
+      "path": "reports/rich_lift/panel_holistic_v1.jsonl",
+      "sha256": "07e2637ecef610f5d9b8a33d89f44b1f22370d302cec7de90fce650e658465e2"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:21Z",
+      "bytes": 7227271,
+      "chunks": [
+        "reports/training/contract_dpo.jsonl.gz.000"
+      ],
+      "compressed_bytes": 747318,
+      "mtime": 1782744450,
+      "path": "reports/training/contract_dpo.jsonl",
+      "sha256": "690043df8dc414f9fdb7d7122dcbefcc30a3203fe50fedfad620bad3a249d268"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:21Z",
+      "bytes": 1027,
+      "chunks": [
+        "reports/training/contract_dpo_manifest.json.gz.000"
+      ],
+      "compressed_bytes": 529,
+      "mtime": 1782744450,
+      "path": "reports/training/contract_dpo_manifest.json",
+      "sha256": "14c8af089dd5970b1605ef4c840f22124f4fa442291367252db147393240e598"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:21Z",
+      "bytes": 29603,
+      "chunks": [
+        "reports/training/corridor_expansion_plan.json.gz.000"
+      ],
+      "compressed_bytes": 1752,
+      "mtime": 1782744476,
+      "path": "reports/training/corridor_expansion_plan.json",
+      "sha256": "d5749c9d59febeffaf3a75b9769e3c5d3a38f72d73743951d4203f563c584a95"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:21Z",
+      "bytes": 1751,
+      "chunks": [
+        "reports/training/corridor_expansion_plan_manifest.json.gz.000"
+      ],
+      "compressed_bytes": 748,
+      "mtime": 1782744476,
+      "path": "reports/training/corridor_expansion_plan_manifest.json",
+      "sha256": "961bdb8d5cc4ac6c553a53b33dcac37a037f6428ef414344574e09760456857d"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:21Z",
+      "bytes": 378706,
+      "chunks": [
+        "reports/training/counterfactual_pairs.jsonl.gz.000"
+      ],
+      "compressed_bytes": 61584,
+      "mtime": 1782704682,
+      "path": "reports/training/counterfactual_pairs.jsonl",
+      "sha256": "6a4ca387d5c814b6ed5876327733aba5f9cf1f053f7ce74b37834e5af2decbaa"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:23Z",
+      "bytes": 30193057,
+      "chunks": [
+        "reports/training/dpo.jsonl.gz.000"
+      ],
+      "compressed_bytes": 9287272,
+      "mtime": 1782744422,
+      "path": "reports/training/dpo.jsonl",
+      "sha256": "ac15470dc26f9a827bf6b1adfce6bac5dcbe6fe1d094ce400bb83853bd4f15c8"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:23Z",
+      "bytes": 677512,
+      "chunks": [
+        "reports/training/dpo_heldout.jsonl.gz.000"
+      ],
+      "compressed_bytes": 193631,
+      "mtime": 1782744425,
+      "path": "reports/training/dpo_heldout.jsonl",
+      "sha256": "8c4833bb9fe04ab8d2f7bebf6f181d5a597e95d7a1c6e94e8567daec9d817c8a"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:23Z",
+      "bytes": 13295385,
+      "chunks": [
+        "reports/training/dpo_train.jsonl.gz.000"
+      ],
+      "compressed_bytes": 4129202,
+      "mtime": 1782744425,
+      "path": "reports/training/dpo_train.jsonl",
+      "sha256": "e17214170390df289d373181119897039beb1e6f43369335eefa1d16353502a8"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:24Z",
+      "bytes": 20726062,
+      "chunks": [
+        "reports/training/dpo_train_plus_contract.jsonl.gz.000"
+      ],
+      "compressed_bytes": 4886318,
+      "mtime": 1782744451,
+      "path": "reports/training/dpo_train_plus_contract.jsonl",
+      "sha256": "3c7df5322bf3fb06944c9b1cefd9976c44349b9d29efc60d82f939982e50547b"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:24Z",
+      "bytes": 2169,
+      "chunks": [
+        "reports/training/dpo_train_plus_contract_manifest.json.gz.000"
+      ],
+      "compressed_bytes": 703,
+      "mtime": 1782744451,
+      "path": "reports/training/dpo_train_plus_contract_manifest.json",
+      "sha256": "91d6ec012d76faf208bdd231715725dffc8edca336a7a7bdf38d77761595472c"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:24Z",
+      "bytes": 1059,
+      "chunks": [
+        "reports/training/exploitation_awareness_manifest.json.gz.000"
+      ],
+      "compressed_bytes": 544,
+      "mtime": 1783738543,
+      "path": "reports/training/exploitation_awareness_manifest.json",
+      "sha256": "ed66daa48e70af4a9ef2c6af625f3ba5c135f53ba6009d1c4b4669110034829e"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:26Z",
+      "bytes": 38111661,
+      "chunks": [
+        "reports/training/exploitation_awareness_set.jsonl.gz.000"
+      ],
+      "compressed_bytes": 11338651,
+      "mtime": 1783738543,
+      "path": "reports/training/exploitation_awareness_set.jsonl",
+      "sha256": "57d1000c577d38878cf027996c7cdf74603f158213022df963de8d3fabac3ebb"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:26Z",
+      "bytes": 66688,
+      "chunks": [
+        "reports/training/finetune_registry.jsonl.gz.000"
+      ],
+      "compressed_bytes": 4143,
+      "mtime": 1782744476,
+      "path": "reports/training/finetune_registry.jsonl",
+      "sha256": "a8908e0d1f825114e283d8f259da73ba92a26cde5711eef4fda9d06ef4c16b93"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:26Z",
+      "bytes": 65783,
+      "chunks": [
+        "reports/training/indicator_statute_remedy.json.gz.000"
+      ],
+      "compressed_bytes": 18665,
+      "mtime": 1782576733,
+      "path": "reports/training/indicator_statute_remedy.json",
+      "sha256": "cc70d8cd0558ba0a9d4b4a0d08a41092c23061008e3462ff2ba25e348152b50c"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:26Z",
+      "bytes": 1561,
+      "chunks": [
+        "reports/training/investigation_lens.json.gz.000"
+      ],
+      "compressed_bytes": 685,
+      "mtime": 1782704675,
+      "path": "reports/training/investigation_lens.json",
+      "sha256": "58efef1c3dac886ff56382d3f8328e12111ffe1e6469bc4bcb8f8443e3ff70dc"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:26Z",
+      "bytes": 67774,
+      "chunks": [
+        "reports/training/legal_cot_dpo.jsonl.gz.000"
+      ],
+      "compressed_bytes": 2927,
+      "mtime": 1783705591,
+      "path": "reports/training/legal_cot_dpo.jsonl",
+      "sha256": "21923ad6ed12da409a76eccff279ac4d4da107d973976da44127af567ef40267"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:26Z",
+      "bytes": 7437,
+      "chunks": [
+        "reports/training/legal_cot_sft.jsonl.gz.000"
+      ],
+      "compressed_bytes": 1668,
+      "mtime": 1783705591,
+      "path": "reports/training/legal_cot_sft.jsonl",
+      "sha256": "311c531e9cfbd8d26101e5598ca034025c4a591596852bd63a01f3316d831cf0"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:26Z",
+      "bytes": 33454,
+      "chunks": [
+        "reports/training/lifecycle_scenarios.jsonl.gz.000"
+      ],
+      "compressed_bytes": 12096,
+      "mtime": 1782576573,
+      "path": "reports/training/lifecycle_scenarios.jsonl",
+      "sha256": "559ea9f911be9d1e7ddb91062aa3508c509b330d4e417161baa1866d77c01912"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:26Z",
+      "bytes": 4945,
+      "chunks": [
+        "reports/training/manifest.json.gz.000"
+      ],
+      "compressed_bytes": 1008,
+      "mtime": 1782744422,
+      "path": "reports/training/manifest.json",
+      "sha256": "47c0b9c8e3e80989c270b776f0b348d154999a559c60b0bca468ac256c1be1c3"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:26Z",
+      "bytes": 956,
+      "chunks": [
+        "reports/training/organize_manifest.json.gz.000"
+      ],
+      "compressed_bytes": 431,
+      "mtime": 1782744425,
+      "path": "reports/training/organize_manifest.json",
+      "sha256": "2a8c5570e65de12cb199e353f8e08c6d2bbf9e50cf84711496e6a581f2b8dadd"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:26Z",
+      "bytes": 818,
+      "chunks": [
+        "reports/training/palermo_analysis.json.gz.000"
+      ],
+      "compressed_bytes": 450,
+      "mtime": 1782743013,
+      "path": "reports/training/palermo_analysis.json",
+      "sha256": "56ba8c07dea01d9d712c5464512f17e017a4c2193994dc66f7b5ea1ad5b1ce02"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:26Z",
+      "bytes": 38196,
+      "chunks": [
+        "reports/training/quality_audit.json.gz.000"
+      ],
+      "compressed_bytes": 2252,
+      "mtime": 1782744475,
+      "path": "reports/training/quality_audit.json",
+      "sha256": "47a34800870a51e4ef4e8d594e2d40fecf602f2d83a0b408840901f5e44c5414"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:26Z",
+      "bytes": 813,
+      "chunks": [
+        "reports/training/reasoning_contract.json.gz.000"
+      ],
+      "compressed_bytes": 462,
+      "mtime": 1782743017,
+      "path": "reports/training/reasoning_contract.json",
+      "sha256": "559d1936c7a1e401e16a6077bd5360351b0fb1e9b97c7ae852c64bea8d66429d"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:26Z",
+      "bytes": 1368640,
+      "chunks": [
+        "reports/training/reasoning_gap_queue.json.gz.000"
+      ],
+      "compressed_bytes": 24309,
+      "mtime": 1782744459,
+      "path": "reports/training/reasoning_gap_queue.json",
+      "sha256": "663249ce6aa627edd1e7148a3bc01276380406429223e5d0864f15d4f3bfffc6"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:26Z",
+      "bytes": 2258552,
+      "chunks": [
+        "reports/training/reasoning_gap_queue_core.json.gz.000"
+      ],
+      "compressed_bytes": 40832,
+      "mtime": 1782742940,
+      "path": "reports/training/reasoning_gap_queue_core.json",
+      "sha256": "b893ec93526e962c1d9da2fb214c1f6c45556f549dd98cb4d4f47fa9ea07c77d"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:26Z",
+      "bytes": 1055,
+      "chunks": [
+        "reports/training/reasoning_manifest.json.gz.000"
+      ],
+      "compressed_bytes": 543,
+      "mtime": 1782744430,
+      "path": "reports/training/reasoning_manifest.json",
+      "sha256": "7c79d5ceffc7d009ea222fc33d37367e62bfceaff4a37c85826656751e3f9d11"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:26Z",
+      "bytes": 1598,
+      "chunks": [
+        "reports/training/reasoning_repair_manifest.json.gz.000"
+      ],
+      "compressed_bytes": 767,
+      "mtime": 1782664280,
+      "path": "reports/training/reasoning_repair_manifest.json",
+      "sha256": "e209b4a59052e200dba164d8191a4a2f2e5612481ae5191235e62fb827c54fda"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:26Z",
+      "bytes": 1513055,
+      "chunks": [
+        "reports/training/reasoning_repaired_core_sft.jsonl.gz.000"
+      ],
+      "compressed_bytes": 340761,
+      "mtime": 1782742953,
+      "path": "reports/training/reasoning_repaired_core_sft.jsonl",
+      "sha256": "062354c1b1479ae6cd681d597d4b847d3b08c50274342f1bb8f4e0f8f0125ee8"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:26Z",
+      "bytes": 1968,
+      "chunks": [
+        "reports/training/reasoning_repaired_core_sft_manifest.json.gz.000"
+      ],
+      "compressed_bytes": 811,
+      "mtime": 1782742953,
+      "path": "reports/training/reasoning_repaired_core_sft_manifest.json",
+      "sha256": "d1334413cd281176d415f3b7768c7337986c28a8bef829923401ef574862bce1"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:26Z",
+      "bytes": 3765711,
+      "chunks": [
+        "reports/training/reasoning_repaired_sft.jsonl.gz.000"
+      ],
+      "compressed_bytes": 947796,
+      "mtime": 1782744465,
+      "path": "reports/training/reasoning_repaired_sft.jsonl",
+      "sha256": "73328ca78ab931aa1e6d944aad64c140605c78e3d18e656c95abfd4fefe1dc12"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:26Z",
+      "bytes": 2182,
+      "chunks": [
+        "reports/training/reasoning_repaired_sft_manifest.json.gz.000"
+      ],
+      "compressed_bytes": 937,
+      "mtime": 1782744465,
+      "path": "reports/training/reasoning_repaired_sft_manifest.json",
+      "sha256": "69de44918c4101a5f1893f16f72265fb58334d4fd3d11608937701c2143315ef"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:27Z",
+      "bytes": 5974247,
+      "chunks": [
+        "reports/training/reasoning_sft.jsonl.gz.000"
+      ],
+      "compressed_bytes": 1693734,
+      "mtime": 1782744430,
+      "path": "reports/training/reasoning_sft.jsonl",
+      "sha256": "267ea5d0ff6500f5dd51e2a0215c60d3550df2771fa8cf08c629ad9eae5e8625"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:27Z",
+      "bytes": 830,
+      "chunks": [
+        "reports/training/remedy_coverage.json.gz.000"
+      ],
+      "compressed_bytes": 466,
+      "mtime": 1782704668,
+      "path": "reports/training/remedy_coverage.json",
+      "sha256": "0807422af426e9b3054053880ccecf6bc56609192067c6d84b2d74ac418e949c"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:27Z",
+      "bytes": 44788,
+      "chunks": [
+        "reports/training/responder_failure_scenarios.jsonl.gz.000"
+      ],
+      "compressed_bytes": 14640,
+      "mtime": 1782568584,
+      "path": "reports/training/responder_failure_scenarios.jsonl",
+      "sha256": "89e8d374661e6003b62bd6f3b8dab9ffe2b8e2ab8b666bba94d172ea4be932ed"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:28Z",
+      "bytes": 17334744,
+      "chunks": [
+        "reports/training/sft.jsonl.gz.000"
+      ],
+      "compressed_bytes": 4891415,
+      "mtime": 1782744422,
+      "path": "reports/training/sft.jsonl",
+      "sha256": "c2b5cb357c13bcfb4396aee1d0d67e3f05233baab3c39497f4b8c1925c1866b3"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:28Z",
+      "bytes": 466347,
+      "chunks": [
+        "reports/training/sft_heldout.jsonl.gz.000"
+      ],
+      "compressed_bytes": 123693,
+      "mtime": 1782744425,
+      "path": "reports/training/sft_heldout.jsonl",
+      "sha256": "f3e1a0973ef32705d76f04084d4c3bf9ff4948329c709a01695742743b051833"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:28Z",
+      "bytes": 7592979,
+      "chunks": [
+        "reports/training/sft_train.jsonl.gz.000"
+      ],
+      "compressed_bytes": 2146434,
+      "mtime": 1782744425,
+      "path": "reports/training/sft_train.jsonl",
+      "sha256": "19407a15a8315fd879a12721c3dec12cd0e3169a212a8fa91883ba43ec8a2444"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:28Z",
+      "bytes": 8146571,
+      "chunks": [
+        "reports/training/sft_train_reasoning_repaired.jsonl.gz.000"
+      ],
+      "compressed_bytes": 2206828,
+      "mtime": 1782744467,
+      "path": "reports/training/sft_train_reasoning_repaired.jsonl",
+      "sha256": "62903d352e20575e11b2362be11cb702f19ed2804e3fd7a510e0432d9a8dde70"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:29Z",
+      "bytes": 7933605,
+      "chunks": [
+        "reports/training/sft_train_reasoning_repaired_core.jsonl.gz.000"
+      ],
+      "compressed_bytes": 2208552,
+      "mtime": 1782742960,
+      "path": "reports/training/sft_train_reasoning_repaired_core.jsonl",
+      "sha256": "39ce291f0ea3060f9c846a89c2a269aaf5d8bc6c34f9ee83d5ede9b3406b4098"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:29Z",
+      "bytes": 2998,
+      "chunks": [
+        "reports/training/sft_train_reasoning_repaired_core_manifest.json.gz.000"
+      ],
+      "compressed_bytes": 975,
+      "mtime": 1782742960,
+      "path": "reports/training/sft_train_reasoning_repaired_core_manifest.json",
+      "sha256": "ee8df6d6cb050e2e687b9076a420f194bdd840226231e9cf060aee517eb7b9ac"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:29Z",
+      "bytes": 3062,
+      "chunks": [
+        "reports/training/sft_train_reasoning_repaired_manifest.json.gz.000"
+      ],
+      "compressed_bytes": 1087,
+      "mtime": 1782744467,
+      "path": "reports/training/sft_train_reasoning_repaired_manifest.json",
+      "sha256": "c436f63d20b693ba7916d50fa106defd342ccbc0e50237d6decfc858b3eed1be"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:29Z",
+      "bytes": 2654,
+      "chunks": [
+        "reports/training/training_engine_plan.json.gz.000"
+      ],
+      "compressed_bytes": 709,
+      "mtime": 1782744476,
+      "path": "reports/training/training_engine_plan.json",
+      "sha256": "a34cbdd28cb8b37383bc3623967481f048cef2f7859462461c9c398193174e81"
+    },
+    {
+      "archived_at": "2026-07-13T08:29:29Z",
+      "bytes": 39032,
+      "chunks": [
+        "reports/training/verified_remedy_fixes.json.gz.000"
+      ],
+      "compressed_bytes": 13343,
+      "mtime": 1782568682,
+      "path": "reports/training/verified_remedy_fixes.json",
+      "sha256": "2ba21070d34d540e9916eb6fd929ce675c2115226273671fccd144a0de2b5426"
+    }
+  ],
+  "generated": "2026-07-13T08:29:29Z",
+  "n_files": 49,
+  "total_compressed_bytes": 51806146,
+  "total_source_bytes": 226613128
+}
