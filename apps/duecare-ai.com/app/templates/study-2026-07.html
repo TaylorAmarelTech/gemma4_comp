@@ -45,12 +45,36 @@
 .hs-table .lift { color: oklch(0.42 0.14 155); font-weight: 600; }
 .hs-table .hurt-hi { color: oklch(0.52 0.14 45); }
 .hs-table caption { caption-side: bottom; text-align: left; font-size: 11.5px; color: var(--ink-3); padding: 12px 16px 2px; line-height: 1.5; }
+.hs-lead { font-size: 15px; line-height: 1.55; color: var(--ink); margin: 0 0 2px; padding-left: 15px; border-left: 3px solid var(--accent); }
+.hs-flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 26px 0 6px; }
+@media (max-width: 780px) { .hs-flow { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 460px) { .hs-flow { grid-template-columns: 1fr; } }
+.hs-step { border: 1px solid var(--line); border-radius: 12px; padding: 18px; background: var(--paper); }
+.hs-step .num { font-family: var(--mono); font-size: 11px; color: var(--paper); background: oklch(0.52 0.08 195); width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; }
+.hs-step h3 { font-size: 15px; margin: 12px 0 6px; letter-spacing: -0.01em; }
+.hs-step p { font-size: 12.5px; color: var(--ink-2); line-height: 1.55; margin: 0; }
+.hs-step .k { font-family: var(--mono); font-size: 10px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-top: 11px; }
+.hs-dumb { margin: 24px 0 4px; }
+.hs-dumb-row { display: grid; grid-template-columns: 158px 1fr; align-items: center; gap: 16px; padding: 11px 0; border-bottom: 1px solid var(--line-soft); }
+.hs-dumb-row:last-child { border-bottom: none; }
+@media (max-width: 560px) { .hs-dumb-row { grid-template-columns: 116px 1fr; gap: 11px; } }
+.hs-dumb-lbl { font-family: var(--mono); font-size: 12.5px; color: var(--ink); line-height: 1.3; }
+.hs-dumb-lbl .n { display: block; font-size: 11px; color: var(--ink-3); margin-top: 3px; font-variant-numeric: tabular-nums; }
+.hs-dumb-track { position: relative; height: 18px; }
+.hs-dumb-track::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: var(--paper-2); border-radius: 2px; }
+.hs-dumb-bar { position: absolute; top: 50%; transform: translateY(-50%); height: 5px; border-radius: 3px; background: oklch(0.80 0.08 155); }
+.hs-dumb-dot { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 13px; height: 13px; border-radius: 50%; box-shadow: 0 0 0 2px var(--paper); }
+.hs-dumb-dot.base { background: oklch(0.58 0.14 45); }
+.hs-dumb-dot.harn { background: oklch(0.50 0.12 155); }
+.hs-dumb-legend { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin: 14px 0 0; display: flex; gap: 20px; flex-wrap: wrap; }
+.hs-dumb-legend .sw { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
 </style>
 </head><body>{% set active_nav = "evaluation" %}
 {% include "_nav.html" %}
 
 <section class="hp-section" data-screen-label="Study &middot; Headline"><div class="wrap">
 <div class="head"><div><span class="ix">July 2026 &middot; Evaluation study</span><h1>Off the shelf, no LLM protected the worker. Harnessed, every one refused &mdash; and cited the law.</h1></div>
+<p class="hs-lead">For a migrant worker checking whether a recruiter&rsquo;s fee or a contract clause is a scam, an LLM&rsquo;s answer is a safety decision. So we measured how safe those answers actually are &mdash; across models, before and after the DueCare harness.</p>
 <p class="summary">On a calibrated 0&ndash;100 trafficking-safety rubric, judged by a cross-family panel of large models, <b>no off-the-shelf model we tested cleared the bar</b>: base scores ran from <b>40 to 59 out of 100</b>. The failure runs on a spectrum &mdash; frontier models tend to decline, but hollowly, without ever naming the indicator, citing the statute, or surfacing the hotline; the smaller, on-device-class open models often go further and comply with the disguised request outright. Either way the worker is left unprotected &mdash; a domain-knowledge gap the whole category shares, not one model&rsquo;s flaw. The DueCare harness closes it on every model it wraps: a <b>+35 to +41</b> point gain. We report the numbers on <code>gemma4:31b</code>, the open model DueCare deploys on-device so an NGO can run it privately on a laptop instead of sending case files to an API &mdash; lifted from <b>48.4</b> to <b>89.1</b> (<b>+40.7</b>) across <b>7,953 paired adversarial prompts</b>, holding on <b>99.8%</b>.</p></div>
 <div class="hs-stats">
 <div class="m"><div class="lbl">Off-the-shelf baselines</div><div class="val">40&ndash;59</div><div class="sub">every base model scored here (of 100) &mdash; none cleared the bar</div></div>
@@ -85,6 +109,18 @@
 <p class="hp-note">The three cases above are verbatim excerpts (dangerous operational text redacted). <b>Browse the full gallery</b> &mdash; 25 cases, complete and untruncated, searchable and filterable by scheme &mdash; at <a href="/egregious-cases">the examples gallery</a>; the raw report is <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/egregious_responses.md" rel="noopener">egregious_responses.md</a>.</p>
 </div></section>
 
+<section class="hp-section" data-screen-label="Study &middot; How it works"><div class="wrap">
+<div class="head"><div><span class="ix">The mechanism</span><h2>Not a cautious tone &mdash; domain knowledge, wired in.</h2></div>
+<p class="summary">The gain is real rather than a personality change: a length-matched placebo preamble produces no lift, so the effect is knowledge, not mood. The harness puts three layers between the worker&rsquo;s question and the model&rsquo;s answer, then checks the result before it is shown.</p></div>
+<div class="hs-flow">
+<div class="hs-step"><span class="num">1</span><h3>Screen</h3><p>Deterministic indicator rules scan the prompt for exploitation patterns &mdash; recruitment-fee shifting, passport &ldquo;safekeeping&rdquo;, coded language for coercion &mdash; before the model runs, so a disguised ask is flagged, not taken at face value.</p><span class="k">indicator rules</span></div>
+<div class="hs-step"><span class="num">2</span><h3>Ground</h3><p>Retrieval pulls the <em>specific</em> governing law and corridor context into the model&rsquo;s working set &mdash; the ILO convention, the origin-state recruitment act, the destination&rsquo;s labour code &mdash; so it can cite the statute, not gesture vaguely at &ldquo;the law&rdquo;.</p><span class="k">retrieval + legal claims</span></div>
+<div class="hs-step"><span class="num">3</span><h3>Constrain</h3><p>The model answers inside a protective contract: name the indicator, cite the law, refuse the operational how-to, surface the concrete hotline, and protect every stakeholder&rsquo;s privacy &mdash; the five things the rubric scores.</p><span class="k">response contract</span></div>
+<div class="hs-step"><span class="num">4</span><h3>Verify</h3><p>Outputs pass a safety check before they reach the screen; anything that still reads as operational uplift is caught at the boundary, and raw case content stays on the worker&rsquo;s device unless they choose to share a sanitised version.</p><span class="k">output gate</span></div>
+</div>
+<p class="hp-note">Every layer is inspectable and versioned: browse the live <a href="/grep-rules">indicator rules</a>, the <a href="/knowledge-packs">knowledge packs</a>, and the <a href="/docs">harness architecture</a>. Because the knowledge is a <em>layer</em>, not baked into the weights, it can be corrected and extended without retraining &mdash; which is what makes it compound (below).</p>
+</div></section>
+
 <section class="hp-section" data-screen-label="Study &middot; Dimensions"><div class="wrap">
 <div class="head"><div><span class="ix">Across every dimension</span><h2>Not one axis &mdash; all five.</h2></div>
 <p class="summary">The 0&ndash;100 rubric scores five components. The harness lifts every one, so the gain is not a single behaviour (refusing) but the whole protective response: it names the indicator, cites the specific law, refuses the operational ask, points to concrete help, and protects privacy and all stakeholders.</p></div>
@@ -101,6 +137,13 @@
 <section class="hp-section" data-screen-label="Study &middot; Across models"><div class="wrap">
 <div class="head"><div><span class="ix">Not one model &mdash; the category</span><h2>The gap is the field, not the model.</h2></div>
 <p class="summary">The failure is not a Gemma quirk. Run the identical paired evaluation on other open and frontier models and the same thing happens. <b>The baseline column is the finding</b>: not one off-the-shelf model &mdash; not the frontier ones &mdash; clears 60/100. Each leaves the worker without the specifics that matter &mdash; the indicator, the statute, the hotline &mdash; and the smaller open models go further and comply outright. The harness lifts every one of them into the 80s&ndash;90s. The last column is the one we watch hardest &mdash; <em>hurts</em>, the count of prompts where the harnessed answer scored <em>below</em> the raw one: a small, deliberately-tracked tail, not a hidden cost.</p></div>
+<div class="hs-dumb">
+<div class="hs-dumb-row"><div class="hs-dumb-lbl">gemma4:31b<span class="n">48.4 &rarr; 89.1</span></div><div class="hs-dumb-track"><div class="hs-dumb-bar" style="left:48.4%;width:40.7%"></div><div class="hs-dumb-dot base" style="left:48.4%"></div><div class="hs-dumb-dot harn" style="left:89.1%"></div></div></div>
+<div class="hs-dumb-row"><div class="hs-dumb-lbl">gpt-oss:120b<span class="n">40.5 &rarr; 81.6</span></div><div class="hs-dumb-track"><div class="hs-dumb-bar" style="left:40.5%;width:41.1%"></div><div class="hs-dumb-dot base" style="left:40.5%"></div><div class="hs-dumb-dot harn" style="left:81.6%"></div></div></div>
+<div class="hs-dumb-row"><div class="hs-dumb-lbl">glm-5.2<span class="n">57.7 &rarr; 93.8</span></div><div class="hs-dumb-track"><div class="hs-dumb-bar" style="left:57.7%;width:36.1%"></div><div class="hs-dumb-dot base" style="left:57.7%"></div><div class="hs-dumb-dot harn" style="left:93.8%"></div></div></div>
+<div class="hs-dumb-row"><div class="hs-dumb-lbl">deepseek-v4-pro<span class="n">59.4 &rarr; 94.3</span></div><div class="hs-dumb-track"><div class="hs-dumb-bar" style="left:59.4%;width:34.9%"></div><div class="hs-dumb-dot base" style="left:59.4%"></div><div class="hs-dumb-dot harn" style="left:94.3%"></div></div></div>
+<div class="hs-dumb-legend"><span><span class="sw" style="background:oklch(0.58 0.14 45)"></span>off the shelf</span><span><span class="sw" style="background:oklch(0.50 0.12 155)"></span>+ DueCare harness</span><span>track = 0&ndash;100 rubric</span></div>
+</div>
 <div class="hs-tablewrap"><table class="hs-table">
 <caption>Mean 0&ndash;100 rubric score per model, over prompts graded on both arms. <b>Lift</b> = harness_core &minus; baseline. <b>Full</b> is the fuller harness &mdash; it scores &le; core on every model, which is why DueCare serves the <em>core</em> harness. <b>Hurts</b> = prompts where harnessed &lt; baseline.</caption>
 <thead><tr><th>Model</th><th>Prompts</th><th>Baseline</th><th>+&nbsp;Harness</th><th>Full</th><th>Lift</th><th>Hurts</th></tr></thead>
@@ -146,7 +189,7 @@
 <section class="hp-section" data-screen-label="Study &middot; Reproduce"><div class="wrap">
 <div class="head"><div><span class="ix">Real, not faked</span><h2>Reproduce every number.</h2></div>
 <p class="summary">Every figure on this page is derivable from the committed benchmark artifacts. The 0&ndash;100 grades are in <code>panel.jsonl</code>; the verbatim model responses are in <code>results.jsonl</code>; the aggregate is the mean over the cross-family judge panel per <code>(prompt_id, arm)</code>, joined and reported by the extraction described above. The public code, the benchmark harness, and this study all live in the repository.</p></div>
-<p class="hp-note"><a href="https://github.com/TaylorAmarelTech/gemma4_comp" rel="noopener">github.com/TaylorAmarelTech/gemma4_comp</a> &middot; the live board at <a href="/benchmark">/benchmark</a> &middot; the author&rsquo;s adversarial self-evaluation at <a href="/harness-study">/harness-study</a>.</p>
+<p class="hp-note">Regenerate every aggregate on this page from the committed panel with <code>python scripts/analyze_full_results.py</code>. <a href="https://github.com/TaylorAmarelTech/gemma4_comp" rel="noopener">github.com/TaylorAmarelTech/gemma4_comp</a> &middot; the live board at <a href="/benchmark">/benchmark</a> &middot; the author&rsquo;s adversarial self-evaluation at <a href="/harness-study">/harness-study</a>.</p>
 </div></section>
 
 <script>
