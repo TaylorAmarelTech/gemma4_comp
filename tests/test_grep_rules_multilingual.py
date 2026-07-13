@@ -37,6 +37,9 @@ _PASSPORT = {
     "Swahili": "Wakala amechukua pasipoti yangu na hairudishwi.",
     "Vietnamese": "Môi giới giữ hộ chiếu của tôi và không trả lại.",
     "Chinese": "招聘机构扣留了我的护照，一直不归还。",
+    "Sinhala": "ඒජන්සිය මගේ ගමන් බලපත්‍රය රඳවා ගත්තා, ආපසු දුන්නේ නැහැ.",
+    "Tamil": "ஏஜென்சி என் கடவுச்சீட்டை வைத்துக்கொண்டது, திருப்பித் தரவில்லை.",
+    "Burmese": "အေဂျင်စီက ကျွန်တော့် နိုင်ငံကူးလက်မှတ်ကို သိမ်းထားပြီး ပြန်မပေးဘူး။",
 }
 
 
@@ -90,7 +93,7 @@ def test_all_multilingual_patterns_are_valid_regex() -> None:
 
 def test_covers_the_top_corridor_languages() -> None:
     codes = {c for c, _ in MULTILINGUAL_LANGUAGES}
-    assert {"tl", "id", "hi", "ne", "bn", "ar", "ur", "am", "sw", "vi", "zh"} <= codes
+    assert {"tl", "id", "hi", "ne", "bn", "ar", "ur", "am", "sw", "vi", "zh", "si", "ta", "my"} <= codes
 
 
 def test_multilingual_layer_is_separate_from_english_catalog() -> None:
