@@ -37,6 +37,10 @@
 <p class="lede">The <a href="/benchmark">benchmark</a> proves a thin layer of legal grounding makes any model measurably safer at inference. Fine-tuning asks the next question: can we teach the model to reach for that grounding <i>on its own</i> &mdash; internalising the stable reasoning into the weights, while the harness keeps supplying the volatile facts? This page is how we build, vet, organise, and measure that training &mdash; and how we guard against a model that memorises shortcuts instead of understanding.</p>
 </div></section>
 
+<section class="hp-section" style="padding-top:0"><div class="wrap">
+<div class="ft-card" style="border-color:oklch(0.65 0.10 80); background:var(--paper)"><b>Status &mdash; the pipeline is built and reproducible; the trained adapter is the next step.</b> The corpus, the vetting and anti-shortcut organisation, and the Unsloth SFT&rarr;DPO runner are all committed public code, and a smoke adapter confirms the pipeline trains end-to-end. The full four-arm run on a Gemma&nbsp;4 base is a single GPU step (one command on Kaggle); the numbers in &sect;05 and the published adapter fill in when it completes. <b>No trained weights are published yet</b> &mdash; this page is the design and the evidence base for the fine-tune, honestly labelled, not a report of a finished model.</div>
+</div></section>
+
 <section class="hp-section"><div class="wrap">
 <div class="head"><div><span class="ix">01 &middot; Why train, not just harness</span><h2>Internalise the stable, tool the volatile.</h2></div><p class="summary">Training and the harness are not rivals; they target different things. The weights should hold the <b>stable</b> substrate (indicator reasoning, grounded-refusal style, evidence-first shape, ILO framing). The harness keeps supplying the <b>volatile</b> facts (current hotlines, fee caps, fresh statutes) so the weights never go stale. We do not assume the two stack &mdash; we measure it, in four arms on the same 0&ndash;100 benchmark.</p></div>
 <table class="ft-table">
@@ -59,7 +63,7 @@
 <div class="ft-stage"><span class="n">Train</span><b>Unsloth LoRA</b><p>SFT (response-only) then DPO on a Gemma 4 base; export GGUF / LiteRT for on-device.</p></div>
 <div class="ft-stage"><span class="n">Evaluate</span><b>Four arms</b><p>Score the trained model in arms C/D on the same prompts; promote only what generalises.</p></div>
 </div>
-<p class="ft-note">SFT (instruction &rarr; harnessed reply) teaches the answer shape; DPO (prefer the grounded reply over the plausible-but-wrong baseline) teaches the boundary. Both are derived from the live benchmark, so the training set grows as the benchmark sweep does.</p>
+<p class="ft-note">SFT (instruction &rarr; harnessed reply) teaches the answer shape; DPO (prefer the grounded reply over the plausible-but-wrong baseline) teaches the boundary. Today the distilled set is <b>2,602</b> SFT targets and <b>2,602</b> DPO preference pairs &mdash; plus hard-negative contract-DPO (581), reasoning-repair (1,316), and counterfactual (568) variants &mdash; distilled from the <b>78,719</b>-prompt graded registry, and it grows as the sweep does. The upstream <b>74,640-prompt</b> adversarial seed corpus is committed in the public repo; the distilled SFT/DPO artifacts are generated offline and publish via Kaggle Datasets.</p>
 </div></section>
 
 <section class="hp-section"><div class="wrap">
@@ -106,7 +110,7 @@ The selection rule is deliberate: we promote the variant with the <b>smallest he
 <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/scripts/train_lift_distill.py" rel="noopener">train_lift_distill.py</a>
 <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/scripts/four_arm_eval.py" rel="noopener">four_arm_eval.py</a>
 </div>
-<p class="ft-note">The fine-tune builds on the same evidence base as the <a href="/benchmark">live benchmark</a> and the <a href="/harness-study">harness-lift study</a>; the training data grows as the benchmark sweeps the full ~74,640-prompt registry.</p>
+<p class="ft-note">The fine-tune builds on the same evidence base as the <a href="/benchmark">live benchmark</a> and the <a href="/harness-study">harness-lift study</a>; the training data grows as the benchmark sweeps the full 78,719-prompt registry.</p>
 </div></section>
 
 {% include "_footer.html" %}

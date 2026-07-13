@@ -68,6 +68,20 @@
 .hs-dumb-dot.harn { background: oklch(0.50 0.12 155); }
 .hs-dumb-legend { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin: 14px 0 0; display: flex; gap: 20px; flex-wrap: wrap; }
 .hs-dumb-legend .sw { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+.hs-live { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 10px; padding: 13px 16px; margin: 14px 0 2px; font-size: 13px; line-height: 1.55; color: var(--ink-2); background: oklch(0.97 0.015 195); }
+.hs-live b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.hs-live .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: oklch(0.55 0.10 155); margin-right: 7px; vertical-align: 1px; }
+.hs-corr { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 6px; }
+.hs-corr-item { display: inline-flex; align-items: center; gap: 9px; border: 1px solid var(--line); border-radius: 999px; padding: 7px 13px; font-family: var(--mono); font-size: 12px; background: var(--paper); }
+.hs-corr-item .c { color: var(--ink-2); }
+.hs-corr-item .lift { color: oklch(0.42 0.14 155); font-weight: 600; font-variant-numeric: tabular-nums; }
+.hs-deploy { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 26px 0 6px; }
+@media (max-width: 780px) { .hs-deploy { grid-template-columns: 1fr; } }
+.hs-dep { border: 1px solid var(--line); border-radius: 12px; padding: 20px; background: var(--paper); }
+.hs-dep .tag { font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: oklch(0.42 0.08 195); }
+.hs-dep h3 { font-size: 16px; margin: 8px 0 8px; letter-spacing: -0.01em; }
+.hs-dep p { font-size: 13px; color: var(--ink-2); line-height: 1.55; margin: 0; }
+.hs-dep .who { font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); display: block; margin-top: 12px; }
 </style>
 </head><body>{% set active_nav = "evaluation" %}
 {% include "_nav.html" %}
@@ -83,6 +97,9 @@
 <div class="m"><div class="lbl">Prompts improved</div><div class="val">99.8%</div><div class="sub">the harness helps almost everywhere</div></div>
 </div>
 <p class="hp-note">This study covers the <b>7,953</b> <code>gemma4:31b</code> prompts graded to date &mdash; <b>10.1%</b> of the 78,719-prompt registry, with the full sweep ongoing; the lift has held steady as coverage has grown. Reproducible from <code>reports/rich_lift/panel.jsonl</code> (scores) joined to <code>reports/rich_lift/results.jsonl</code> (verbatim responses) by <code>(model, prompt_id, arm)</code>. The board is also published at <a href="/benchmark">/benchmark</a> and in <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/rich_harness_lift_100.md" rel="noopener">rich_harness_lift_100.md</a>.</p>
+{% if study %}
+<p class="hs-live"><span class="dot"></span><b>Live board</b>, updated as the sweep grades: <b>{{ study.n_featured }}</b> models graded so far{% if study.all_positive %}, every one positive{% endif %}, judged by a <b>{{ study.n_judges }}</b>-model cross-family panel{% if study.alpha %} (inter-judge agreement &alpha; = <b>{{ '%.2f'|format(study.alpha) }}</b>){% endif %}. The figures in this study are the July&nbsp;2026 snapshot; the current board is at <a href="/benchmark">/benchmark</a>.</p>
+{% endif %}
 </div></section>
 
 <section class="hp-section" data-screen-label="Study &middot; The danger"><div class="wrap">
@@ -157,6 +174,19 @@
 <p class="hp-note">The headline model (<code>gemma4:31b</code>, highlighted) is the one DueCare fine-tunes and deploys; the others are the cross-family judges and baselines, run through the same harness to show the effect generalises. Three more models graded at shallower depth (<code>glm-5.1</code>, <code>qwen3.5:397b</code>, <code>minimax-m2.7</code>, n&nbsp;&approx;&nbsp;40) are also net-positive. The one visible cost &mdash; <code>gpt-oss:120b</code>&rsquo;s 137-prompt hurt tail &mdash; is the essay-to-terse-refusal collapse: a verbose baseline scores well on style and the shorter harnessed refusal is graded lower. A length-collapse guard targets exactly that case.</p>
 </div></section>
 
+{% if leaderboard and leaderboard.breakdowns and leaderboard.breakdowns.by_corridor %}
+<section class="hp-section" data-screen-label="Study &middot; Corridors"><div class="wrap">
+<div class="head"><div><span class="ix">Not one corridor either</span><h2>Every migration corridor, lifted.</h2></div>
+<p class="summary">The benchmark is built corridor by corridor &mdash; the specific origin-to-destination routes where recruitment debt, contract substitution, and passport control actually happen. The harness does not just work on average; it lifts every corridor with enough graded prompts to read, from the Gulf domestic-work routes to the South-East Asian fishing and manufacturing corridors. Each chip is a corridor and its mean rubric gain.</p></div>
+<div class="hs-corr">
+{% for r in (leaderboard.breakdowns.by_corridor | selectattr('value', 'ne', 'various') | selectattr('value', 'ne', '?') | selectattr('value', 'ne', '') | selectattr('n_obs', 'ge', 10) | sort(attribute='n_obs', reverse=true)) %}
+<span class="hs-corr-item"><span class="c">{{ r.value.replace('->', ' → ') }}</span><span class="lift">+{{ '%.0f'|format(r.lift) }}</span></span>
+{% endfor %}
+</div>
+<p class="hp-note">Mean 0&ndash;100 rubric gain per corridor (harnessed &minus; baseline), corridors with at least 10 graded prompts, from the live board. Full per-corridor and per-category breakdowns are at <a href="/benchmark">/benchmark</a>.</p>
+</div></section>
+{% endif %}
+
 <section class="hp-section" data-screen-label="Study &middot; What we do NOT claim"><div class="wrap">
 <div class="head"><div><span class="ix">Honestly scoped</span><h2>What this measures &mdash; and what it doesn&rsquo;t.</h2></div>
 <p class="summary">We publish the direction and the methodology, not a claim we haven&rsquo;t earned. The number above is a real, reproducible <em>rubric-scored quality</em> gain, judged by an LLM panel. It is not a measurement that DueCare detects trafficking in the world.</p></div>
@@ -184,6 +214,17 @@
 <li><b>The benchmark is the flywheel.</b> 78,719 adversarial prompts today, and growing. Every prompt the harness still gets wrong becomes the next indicator rule, the next grounding document, or fine-tuning signal &mdash; the system learns from its own tail, and the evaluation on this page is how we watch that gap close.</li>
 </ul>
 <p class="hp-note">Live surfaces for each: <a href="/grep-rules">indicator rules</a>, <a href="/knowledge-packs">knowledge packs</a>, the <a href="/finetuning">fine-tune pipeline</a>, and the growing board at <a href="/benchmark">/benchmark</a>.</p>
+</div></section>
+
+<section class="hp-section" data-screen-label="Study &middot; Deploy"><div class="wrap">
+<div class="head"><div><span class="ix">Where it runs</span><h2>Three ways to put it in front of a worker.</h2></div>
+<p class="summary">The same harness serves three deployments, chosen by who holds the data. The privacy boundary is the design constraint: raw worker chats, IDs, and documents stay where they are unless the worker chooses to share a sanitised version.</p></div>
+<div class="hs-deploy">
+<div class="hs-dep"><span class="tag">Platform scale</span><h3>Integrity triage</h3><p>A fast keyword filter routes suspect job posts or messages to Gemma&nbsp;4 for analysis, which returns a warning prompt, resource links, or a moderation-queue flag &mdash; the same shape as a suicide-prevention interstitial, for trafficking. Runs at social-media / job-board volume.</p><span class="who">for platforms &amp; job boards</span></div>
+<div class="hs-dep"><span class="tag">On device</span><h3>Worker-side tool</h3><p>A browser extension, chat bot, or mobile app runs Gemma&nbsp;4 <em>entirely on the worker&rsquo;s device</em> via LiteRT. A worker pastes a suspicious contract clause or recruiter message and gets the indicator, the local law, and the hotline &mdash; and the raw text never leaves the phone.</p><span class="who">for workers &amp; their advocates</span></div>
+<div class="hs-dep"><span class="tag">Private instance</span><h3>NGO &amp; regulator dashboard</h3><p>A self-hosted instance for batch review, compliance monitoring, model comparison, and regulatory reporting &mdash; so an agency can run sensitive case files on its own hardware instead of a frontier API, and even fine-tune on its own jurisdiction&rsquo;s rules.</p><span class="who">for agencies &amp; regulators</span></div>
+</div>
+<p class="hp-note">Detail on each: the <a href="/use-cases">use cases</a> and the <a href="/docs">deployment guides</a>; the privacy boundary is documented at <a href="/privacy-boundary">/privacy-boundary</a>.</p>
 </div></section>
 
 <section class="hp-section" data-screen-label="Study &middot; Reproduce"><div class="wrap">
