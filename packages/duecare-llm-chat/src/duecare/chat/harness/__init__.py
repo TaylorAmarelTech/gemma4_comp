@@ -59,6 +59,10 @@ _CLASSIFIER_EXAMPLES_PATH = os.path.join(_HARNESS_DIR,
 # at /api/version, /api/brand, and /api/harness-catalog/grep)
 # ===========================================================================
 from ._grep_rules import GREP_RULES  # noqa: E402,F401  (extracted 451-rule catalog)
+from ._grep_rules_multilingual import (  # noqa: E402,F401  (non-English indicator layer)
+    MULTILINGUAL_GREP_RULES,
+    MULTILINGUAL_LANGUAGES,
+)
 
 
 def _grep_call(text: str, extra_rules=None) -> dict:
@@ -74,7 +78,7 @@ def _grep_call(text: str, extra_rules=None) -> dict:
     if not text or not text.strip():
         return {"hits": [], "elapsed_ms": int((time.time() - t0) * 1000)}
     lower = text.lower()
-    rule_set = list(GREP_RULES) + list(extra_rules or [])
+    rule_set = list(GREP_RULES) + list(MULTILINGUAL_GREP_RULES) + list(extra_rules or [])
     for rule in rule_set:
         patterns = rule.get("patterns") or []
         all_required = rule.get("all_required", False)
@@ -7305,7 +7309,7 @@ def default_harness() -> dict:
 
 
 __all__ = [
-    "GREP_RULES", "RAG_CORPUS",
+    "GREP_RULES", "MULTILINGUAL_GREP_RULES", "MULTILINGUAL_LANGUAGES", "RAG_CORPUS",
     "CORRIDOR_FEE_CAPS", "FEE_CAMOUFLAGE_DICT", "NGO_INTAKE",
     "ILO_INDICATORS", "_TOOL_DISPATCH",
     "EXAMPLE_PROMPTS", "CLASSIFIER_EXAMPLES",
