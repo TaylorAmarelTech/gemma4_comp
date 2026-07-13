@@ -33,6 +33,18 @@
 .lim { list-style: none; padding: 0; margin: 18px 0 0; }
 .lim li { padding: 13px 0; border-bottom: 1px solid var(--line-soft); font-size: 13.5px; line-height: 1.55; }
 .lim li b { color: var(--ink); }
+.hs-tablewrap { overflow-x: auto; margin: 24px 0 6px; border: 1px solid var(--line); border-radius: 12px; -webkit-overflow-scrolling: touch; }
+.hs-table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 660px; }
+.hs-table thead th { text-align: right; font-family: var(--mono); font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-3); padding: 14px 16px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.hs-table thead th:first-child { text-align: left; }
+.hs-table tbody td { padding: 13px 16px; border-bottom: 1px solid var(--line-soft); text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--ink-2); white-space: nowrap; }
+.hs-table tbody td:first-child { text-align: left; color: var(--ink); }
+.hs-table tbody tr:last-child td { border-bottom: none; }
+.hs-table tbody tr.head-model td { background: oklch(0.97 0.02 155); }
+.hs-table .core { color: var(--ink); font-weight: 600; }
+.hs-table .lift { color: oklch(0.42 0.14 155); font-weight: 600; }
+.hs-table .hurt-hi { color: oklch(0.52 0.14 45); }
+.hs-table caption { caption-side: bottom; text-align: left; font-size: 11.5px; color: var(--ink-3); padding: 12px 16px 2px; line-height: 1.5; }
 </style>
 </head><body>{% set active_nav = "evaluation" %}
 {% include "_nav.html" %}
@@ -46,7 +58,7 @@
 <div class="m"><div class="lbl">Prompts improved</div><div class="val">99.8%</div><div class="sub">the harness helps almost everywhere</div></div>
 <div class="m"><div class="lbl">Raw model failing</div><div class="val">48.3%</div><div class="sub">of prompts scored the baseline below 50/100</div></div>
 </div>
-<p class="hp-note">Reproducible from <code>reports/rich_lift/panel.jsonl</code> (scores) joined to <code>reports/rich_lift/results.jsonl</code> (verbatim responses) by <code>(model, prompt_id, arm)</code>. The board is also published at <a href="/benchmark">/benchmark</a> and in <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/rich_harness_lift_100.md" rel="noopener">rich_harness_lift_100.md</a>.</p>
+<p class="hp-note">This study covers the <b>7,953</b> <code>gemma4:31b</code> prompts graded to date &mdash; <b>10.1%</b> of the 78,719-prompt registry, with the full sweep ongoing; the lift has held steady as coverage has grown. Reproducible from <code>reports/rich_lift/panel.jsonl</code> (scores) joined to <code>reports/rich_lift/results.jsonl</code> (verbatim responses) by <code>(model, prompt_id, arm)</code>. The board is also published at <a href="/benchmark">/benchmark</a> and in <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/rich_harness_lift_100.md" rel="noopener">rich_harness_lift_100.md</a>.</p>
 </div></section>
 
 <section class="hp-section" data-screen-label="Study &middot; The danger"><div class="wrap">
@@ -84,6 +96,22 @@
 <div class="bar-row"><div class="bar-label" title="Safety, privacy, all stakeholders">E &middot; Privacy &amp; safety</div><div class="bar-track"><div class="bar-fill" style="--w:87%"></div></div><div class="bar-val">+8.7</div></div>
 </div>
 <p class="hp-note">Per-component mean lift (points on each component&rsquo;s sub-scale), <code>gemma4:31b</code>, harness_core vs baseline, across the paired set.</p>
+</div></section>
+
+<section class="hp-section" data-screen-label="Study &middot; Across models"><div class="wrap">
+<div class="head"><div><span class="ix">Not one model</span><h2>The pattern holds across the field.</h2></div>
+<p class="summary">The lift is not a Gemma quirk. Run the identical paired evaluation on other open and frontier models and the same thing happens: a large rubric-quality gain, concentrated in the same protective behaviours. The last column is the one we watch hardest &mdash; <em>hurts</em>, the number of prompts where the harnessed answer scored <em>below</em> the raw one. It is a small, deliberately-tracked tail, not a hidden cost.</p></div>
+<div class="hs-tablewrap"><table class="hs-table">
+<caption>Mean 0&ndash;100 rubric score per model, over prompts graded on both arms. <b>Lift</b> = harness_core &minus; baseline. <b>Full</b> is the fuller harness &mdash; it scores &le; core on every model, which is why DueCare serves the <em>core</em> harness. <b>Hurts</b> = prompts where harnessed &lt; baseline.</caption>
+<thead><tr><th>Model</th><th>Prompts</th><th>Baseline</th><th>+&nbsp;Harness</th><th>Full</th><th>Lift</th><th>Hurts</th></tr></thead>
+<tbody>
+<tr class="head-model"><td>gemma4:31b</td><td>7,953</td><td>48.4</td><td class="core">89.1</td><td>88.1</td><td class="lift">+40.7</td><td>15</td></tr>
+<tr><td>gpt-oss:120b</td><td>1,538</td><td>40.5</td><td class="core">81.6</td><td>78.0</td><td class="lift">+41.1</td><td class="hurt-hi">137</td></tr>
+<tr><td>glm-5.2</td><td>410</td><td>57.7</td><td class="core">93.8</td><td>92.0</td><td class="lift">+36.1</td><td>0</td></tr>
+<tr><td>deepseek-v4-pro</td><td>182</td><td>59.4</td><td class="core">94.3</td><td>93.1</td><td class="lift">+35.0</td><td>2</td></tr>
+</tbody>
+</table></div>
+<p class="hp-note">The headline model (<code>gemma4:31b</code>, highlighted) is the one DueCare fine-tunes and deploys; the others are the cross-family judges and baselines, run through the same harness to show the effect generalises. Three more models graded at shallower depth (<code>glm-5.1</code>, <code>qwen3.5:397b</code>, <code>minimax-m2.7</code>, n&nbsp;&approx;&nbsp;40) are also net-positive. The one visible cost &mdash; <code>gpt-oss:120b</code>&rsquo;s 137-prompt hurt tail &mdash; is the essay-to-terse-refusal collapse: a verbose baseline scores well on style and the shorter harnessed refusal is graded lower. A length-collapse guard targets exactly that case.</p>
 </div></section>
 
 <section class="hp-section" data-screen-label="Study &middot; What we do NOT claim"><div class="wrap">

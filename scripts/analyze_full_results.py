@@ -123,7 +123,7 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Full-results analysis over the accumulated benchmark panel.")
     ap.add_argument("--panel", type=Path, default=PANEL)
     ap.add_argument("--out", type=Path, default=OUT)
-    ap.add_argument("--registry", type=int, default=74640)
+    ap.add_argument("--registry", type=int, default=78719)  # the full_promptset.json registry the engine grades against
     ap.add_argument("--today", default="2026-07-11")
     args = ap.parse_args(argv)
     agg = aggregate(load_panel(args.panel))
