@@ -773,22 +773,14 @@ def build_release(
         "title": title,
         "id": dataset_id,
         "licenses": [{"name": release_license}],
-        "subtitle": "Manifest-bound SFT and preference data generated through the DueCare evaluation harness",
+        "subtitle": "Manifest-bound SFT and preference data from the DueCare harness",
         "description": (
             "A gated DueCare training release containing lineage-isolated SFT, preference, validation, and "
             "test rows. Every public row carries provenance, license, quality-gate, immutable model revision, "
             "and SHA-256 metadata. Hidden chain-of-thought, private case material, volatile contact details, "
             "and failing candidate rows are excluded. See DATA_CARD.md and release-manifest.json."
         ),
-        "keywords": [
-            "gemma-4",
-            "llm-finetuning",
-            "sft",
-            "preference-optimization",
-            "safety",
-            "synthetic-data",
-            "provenance",
-        ],
+        "keywords": [],
         "collaborators": [],
     }
     _write_json(target / "dataset-metadata.json", dataset_metadata)
@@ -853,6 +845,9 @@ def verify_release_dir(release_dir: Path) -> dict[str, Any]:
         raise ReleaseError("dataset metadata id does not match the release manifest")
     if not metadata.get("licenses"):
         raise ReleaseError("dataset metadata license is missing")
+    subtitle = str(metadata.get("subtitle") or "")
+    if not 20 <= len(subtitle) <= 80:
+        raise ReleaseError("dataset metadata subtitle must be 20-80 characters for Kaggle")
 
     prompt_scope = _verify_prompt_scope(manifest.get("prompt_scope"))
     source_bundle = manifest.get("source_bundle")

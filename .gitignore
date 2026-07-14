@@ -121,6 +121,7 @@ reports/*.jsonl
 reports/*.responses.jsonl
 reports/**/*.jsonl
 reports/**/*.json
+reports/**/*.md
 reports/**/*.py
 reports/**/*.csv
 reports/**/*.ipynb
