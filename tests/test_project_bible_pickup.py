@@ -3943,14 +3943,25 @@ def test_main_root_flag_validates_copied_tree_artifacts(tmp_path, monkeypatch, c
 def test_main_status_json_flag_uses_saved_status_without_live_probe(tmp_path, monkeypatch, capsys):
     validator = _load_pickup_validator()
     status_path = tmp_path / "saved_status.json"
+    global_path = tmp_path / "global_summary.json"
     status_path.write_text(json.dumps(_paused_status_fixture()), encoding="utf-8")
+    global_path.write_text(
+        json.dumps(_valid_global_protections_saved_artifacts_report()["summary"]),
+        encoding="utf-8",
+    )
     monkeypatch.setattr(
         validator.autonomous_engine,
         "status_payload",
         lambda: (_ for _ in ()).throw(AssertionError("live status should not be called")),
     )
 
-    rc = validator.main(["--status-json", str(status_path), "--json"])
+    rc = validator.main([
+        "--status-json",
+        str(status_path),
+        "--global-protections-report-json",
+        str(global_path),
+        "--json",
+    ])
     printed = capsys.readouterr().out
 
     assert rc == 0
