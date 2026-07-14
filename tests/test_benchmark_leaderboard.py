@@ -94,8 +94,8 @@ def test_public_id_guard_accepts_model_tags_and_rejects_sensitive_values():
     assert bl._public_model_id("model-12345678") is None
     assert bl._public_id("model-1234567890") is None
     assert bl._public_id("../case-123456789") is None
-    assert bl._public_id("C:/Users/amare/private-case") is None
-    assert bl._public_id("file:/C:/Users/amare/private-case") is None
+    assert bl._public_id("C:/Users/private/private-case") is None
+    assert bl._public_id("file:/C:/Users/private/private-case") is None
     assert bl._public_id("http:/example.test/private-case") is None
     assert bl._public_id("ftp:/example.test/private-case") is None
     assert bl._public_id("s3:/private-bucket/private-case") is None
@@ -104,7 +104,7 @@ def test_public_id_guard_accepts_model_tags_and_rejects_sensitive_values():
     assert bl._public_label("ftp:/example.test/private-case") == "custom_or_invalid"
     assert bl._public_label("s3:/private-bucket/private-case") == "custom_or_invalid"
     assert bl._public_label("mailto:private-case") == "custom_or_invalid"
-    assert bl._public_generated_label("C:/Users/amare/private-case") == "unknown"
+    assert bl._public_generated_label("C:/Users/private/private-case") == "unknown"
 
 
 def test_pairwise_folded_in_and_only_complete_arms_count():
@@ -467,9 +467,9 @@ def test_lift_breakdowns_ignore_unsafe_public_ids(monkeypatch):
                 "difficulty": bl._public_label("case 123456789012"),
             },
             "p3": {
-                "category": bl._public_label("C:/Users/amare/private-case"),
-                "corridor": bl._public_label("home/amare/private-case"),
-                "difficulty": bl._public_label("file:/C:/Users/amare/private-case"),
+                "category": bl._public_label("C:/Users/private/private-case"),
+                "corridor": bl._public_label("home/private/private-case"),
+                "difficulty": bl._public_label("file:/C:/Users/private/private-case"),
             },
             "p4": {
                 "category": bl._public_label("ftp:/example.test/private-case"),
