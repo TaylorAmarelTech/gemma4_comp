@@ -58,6 +58,10 @@ Durable training helpers in `scripts/` must be discoverable from
 `scripts/ollama_adversarial_flywheel.py` is the local Ollama candidate producer:
 it may generate SFT/DPO candidates and quarantine metadata, but its manifest
 must remain candidate-only until the normal training and publication gates pass.
+`scripts/build_kaggle_proof_training_bundle.py` is the deterministic proof
+bundle producer for the public Kaggle preview dataset; it emits synthetic,
+visible-rationale SFT/preference rows plus held-out splits for the same release
+gate.
 
 ## Canonical Lane Language
 
@@ -93,6 +97,11 @@ is a documentation-only template for a future advanced SFT/preference release.
 It must not contain training rows or an active `dataset-metadata.json` until a
 clean manifest-bound release has passed provenance, licensing, privacy,
 lineage, held-out, and quality gates.
+
+The published proof dataset
+[`taylorsamarel/duecare-proof-finetuning-data`](https://www.kaggle.com/datasets/taylorsamarel/duecare-proof-finetuning-data)
+is separate from that template. It is a preview artifact generated from
+`scripts/build_kaggle_proof_training_bundle.py`, not the full advanced corpus.
 
 Archived reference material:
 

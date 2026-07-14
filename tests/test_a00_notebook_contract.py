@@ -44,6 +44,9 @@ def test_a00_public_version_and_external_import_boundaries_are_documented():
         "version `320178883`",
         "modified 2026-05-17",
         "update has not yet been pushed to the public Kaggle notebook",
+        "taylorsamarel/duecare-proof-finetuning-data",
+        "24 SFT rows, 24 preference rows, 4 validation rows, and 4 test rows",
+        "not the full 78k+ prompt corpus",
         "External importer is intake, not approval",
         "A loose JSONL may be inspected",
         "deliberately authored visible rationales",
@@ -53,7 +56,7 @@ def test_a00_public_version_and_external_import_boundaries_are_documented():
         assert marker in text
 
     metadata = json.loads(A00_METADATA.read_text(encoding="utf-8"))
-    assert metadata["dataset_sources"] == []
+    assert metadata["dataset_sources"] == ["taylorsamarel/duecare-proof-finetuning-data"]
 
 
 def test_training_dataset_surface_is_template_only_and_not_publishable():

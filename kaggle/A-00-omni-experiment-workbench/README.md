@@ -18,8 +18,12 @@ Status reviewed 2026-07-14:
 - This repository is the source of the later July 2026 manifest, lineage,
   privacy, immutable-revision, SFT&rarr;DPO, and completion-proof gates. That
   update has not yet been pushed to the public Kaggle notebook.
-- `kernel-metadata.json` currently keeps `dataset_sources` empty because no
-  eligible complete advanced training dataset has been published or attached.
+- The proof dataset
+  [`taylorsamarel/duecare-proof-finetuning-data`](https://www.kaggle.com/datasets/taylorsamarel/duecare-proof-finetuning-data)
+  is published and attached in `kernel-metadata.json`. It is a guarded preview:
+  24 SFT rows, 24 preference rows, 4 validation rows, and 4 test rows, using
+  synthetic prompts plus deliberately authored visible rationale metadata. It
+  is not the full 78k+ prompt corpus.
 - The tiny adapter path is a plumbing smoke check. No production Gemma adapter
   or merged weights are published.
 
