@@ -1635,28 +1635,44 @@ def test_train_console_output_uses_display_safe_values(tmp_path, monkeypatch, ca
     }.items():
         monkeypatch.setitem(sys.modules, name, module)
 
+    class VerifiedBundle:
+        sft_sha256 = "b" * 64
+        preference_sha256 = "c" * 64
+        sft_rows = (
+            {"messages": [{"role": "user", "content": "q"}, {"role": "assistant", "content": "a"}]},
+        )
+        preference_rows = ()
+
+        @staticmethod
+        def summary():
+            return {
+                "ok": True,
+                "manifest_sha256": "a" * 64,
+                "counts": {"sft": 1, "preference": 0},
+            }
+
+    monkeypatch.setattr(tr, "validate_training_bundle", lambda *args, **kwargs: VerifiedBundle())
+
     plan = {
         "base_model": str(sensitive_dir / "local-base-model"),
         "chat_template": tr.CHAT_TEMPLATE,
         "max_seq_length": 128,
         "lora": {"r": 2, "alpha": 2, "dropout": 0.0},
         "sft": {
+            "file": str(sensitive_dir / "sft.jsonl"),
             "per_device_batch": 1,
             "grad_accum": 1,
             "epochs": 1,
             "max_steps": 1,
             "lr": 1e-4,
         },
-        "dpo": {"enabled": False},
+        "dpo": {"enabled": False, "file": str(sensitive_dir / "dpo.jsonl")},
+        "training_manifest": str(sensitive_dir / "manifest.json"),
         "output_dir": str(sensitive_out),
         "gguf": True,
     }
 
-    returned = tr.train(
-        plan,
-        [{"messages": [{"role": "user", "content": "q"}, {"role": "assistant", "content": "a"}]}],
-        [],
-    )
+    returned = tr.train(plan)
     out = capsys.readouterr().out
 
     assert returned == str(sensitive_out)
@@ -1677,10 +1693,16 @@ def test_remote_training_requires_an_immutable_base_revision() -> None:
                 "base_model": "example/custom-remote-model",
                 "base_model_revision": "",
                 "dpo": {"enabled": False},
-            },
-            [],
-            [],
+            }
         )
+
+
+def test_gpu_training_requires_canonical_bundle_manifest(tmp_path) -> None:
+    local_model = tmp_path / "local-model"
+    local_model.mkdir()
+
+    with pytest.raises(SystemExit, match="canonical --training-manifest is required"):
+        tr.train({"base_model": str(local_model), "base_model_revision": ""})
 
 
 def test_pin_adapter_revision_updates_standard_peft_fields(tmp_path) -> None:

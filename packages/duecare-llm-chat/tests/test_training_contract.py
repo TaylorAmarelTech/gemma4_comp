@@ -99,6 +99,24 @@ def test_training_contract_rejects_exact_eval_leak_and_hidden_thought_markup() -
     assert "hidden_reasoning_absent" in result["blocking_failures"]
 
 
+def test_training_contract_rejects_hidden_thought_outside_the_chosen_answer() -> None:
+    from duecare.chat.training_contract import canonical_sha256, training_row_sha256, validate_training_rows
+
+    row = _accepted_dpo()
+    row["preference_rationale"] = "<|channel|>analysis private scratchpad"
+    row["sha256"] = training_row_sha256(row)
+    result = validate_training_rows(
+        [_accepted_sft()],
+        [row],
+        evaluation_prompt_hashes=[canonical_sha256("Frozen evaluation prompt")],
+        evaluation_lineage_ids=["heldout-lineage"],
+        require_preference=True,
+    )
+
+    assert result["ok"] is False
+    assert "hidden_reasoning_absent" in result["blocking_failures"]
+
+
 def test_training_contract_rejects_unreviewed_or_nontrain_rows() -> None:
     from duecare.chat.training_contract import canonical_sha256, training_row_sha256, validate_training_rows
 

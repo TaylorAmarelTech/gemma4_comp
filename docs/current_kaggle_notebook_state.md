@@ -16,6 +16,12 @@ recording path; A-00 is the quantitative proof and training/evaluation path.
 | `kaggle/02-live-demo/` | Focused live demo for judges and video capture. |
 | `kaggle/A-00-omni-experiment-workbench/` | Quantitative proof path: baseline, harnessed, synthetic-data, fine-tuning, judging, checkpoints, and report artifacts. |
 
+Public-version boundary reviewed 2026-07-14: the A-00 Kaggle URL returns the
+public May 2026 version (script version `320178883`). The July 2026 guarded
+dataset/training source in this repository is not yet deployed there. A-00's
+current repository metadata has `dataset_sources: []`; no public advanced
+training dataset, production Gemma adapter, or merged weights are attached.
+
 Each active folder uses `kernel.py` as source of truth. Do not recreate or
 publish historical `.ipynb` wrappers for these active folders unless Taylor
 explicitly asks.
@@ -42,6 +48,10 @@ artifacts. It is also optional and not part of the primary recording path.
   `04-kaggle-community-benchmark`.
 - `kaggle/kernels/` contains generated/research notebook mirror material used
   by older tooling and tests. It is not the current judge path.
+- [`kaggle/shared-datasets/training-data/`](../kaggle/shared-datasets/training-data/)
+  is a documentation-only template for
+  a future manifest-bound SFT/preference release. It intentionally contains no
+  active `dataset-metadata.json` and no data rows.
 - `_archive/kaggle-notebook-previews-2026-05-11/` contains historical notebook
   wrappers and metadata snapshots.
 

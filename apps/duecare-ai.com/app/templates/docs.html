@@ -136,17 +136,30 @@
       <div class="foot"><span>runs locally</span><span class="open">Open <span class="arrow">→</span></span></div>
     </a>
 
-    <a class="docs-card" href="/evaluation">
+    <a class="docs-card" href="/finetuning">
       <span class="role">Adapters</span>
       <h3>Fine-tuning</h3>
-      <p class="body">Per-corridor LoRA adapters: how they are trained, where they live, how they are pinned to a base model and a pack range.</p>
+      <p class="body">The guarded SFT, preference-optimization, and four-arm evaluation methodology for model-specific LoRA experiments.</p>
       <ul class="preview">
-        <li>LoRA-only. base weights are frozen</li>
-        <li>Trained on public + composite data</li>
-        <li>Quarterly cadence; emergency hotfix path</li>
-        <li>Adapter hash referenced per response</li>
+        <li>Base model + immutable revision</li>
+        <li>SFT then requested DPO stage</li>
+        <li>Held-out lineage checks</li>
+        <li>No production adapter published yet</li>
       </ul>
       <div class="foot"><span>runs locally</span><span class="open">Open <span class="arrow">→</span></span></div>
+    </a>
+
+    <a class="docs-card" href="/training-data-flywheel">
+      <span class="role">Datasets</span>
+      <h3>Training-data flywheel</h3>
+      <p class="body">How comparable harness runs become reviewable SFT and preference candidates for Kaggle and other compatible training systems.</p>
+      <ul class="preview">
+        <li>Final answers + visible rationales</li>
+        <li>Provenance, license, and privacy gates</li>
+        <li>Lineage-safe train and holdout splits</li>
+        <li>Dataset and adapter release ladder</li>
+      </ul>
+      <div class="foot"><span>public contract</span><span class="open">Open <span class="arrow">→</span></span></div>
     </a>
 
     <a class="docs-card" href="/client-connect">

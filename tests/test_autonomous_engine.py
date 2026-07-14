@@ -1712,10 +1712,14 @@ def test_preflight_can_ignore_stop_sentinel_for_wrapper_launch(tmp_path, monkeyp
 
 def test_preflight_reports_ollama_timeout_as_blocker(tmp_path, monkeypatch):
     reports = tmp_path / "reports"
+    candidates, packet, validation = _write_review_gate_files(tmp_path, source_rows=1, ready=0, accepted=0)
     monkeypatch.setattr(ae, "ROOT", tmp_path)
     monkeypatch.setattr(ae, "STOP", reports / "autonomous_engine.stop")
     monkeypatch.setattr(ae, "LOCK", reports / "autonomous_engine.lock")
     monkeypatch.setattr(ae, "PROMPTS_FULL", reports / "benchmark" / "full_promptset.json")
+    monkeypatch.setattr(ae, "DIMENSION_CANDIDATES", candidates)
+    monkeypatch.setattr(ae, "DIM_REVIEW_PACKET", packet)
+    monkeypatch.setattr(ae, "DIM_REVIEW_VALIDATION", validation)
     monkeypatch.setattr(ae, "load_state", lambda: {
         "cursor": 0,
         "queue": [["gemma4:31b", 1000]],
@@ -1764,10 +1768,14 @@ def test_ollama_status_redacts_user_path_and_classifies_log_permission_failure(m
 
 def test_preflight_blocks_missing_full_promptset_without_ollama_check(tmp_path, monkeypatch):
     reports = tmp_path / "reports"
+    candidates, packet, validation = _write_review_gate_files(tmp_path, source_rows=1, ready=0, accepted=0)
     monkeypatch.setattr(ae, "ROOT", tmp_path)
     monkeypatch.setattr(ae, "STOP", reports / "autonomous_engine.stop")
     monkeypatch.setattr(ae, "LOCK", reports / "autonomous_engine.lock")
     monkeypatch.setattr(ae, "PROMPTS_FULL", reports / "benchmark" / "full_promptset.json")
+    monkeypatch.setattr(ae, "DIMENSION_CANDIDATES", candidates)
+    monkeypatch.setattr(ae, "DIM_REVIEW_PACKET", packet)
+    monkeypatch.setattr(ae, "DIM_REVIEW_VALIDATION", validation)
     monkeypatch.setattr(ae, "load_state", lambda: {
         "cursor": 0,
         "queue": [["gemma4:31b", 10000, "full"]],

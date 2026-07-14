@@ -44,7 +44,7 @@ coverage:
 
 Context â€” what commit 76e44a1 changed:
 
-- `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py`
+- `kaggle/A-00-omni-experiment-workbench/kernel.py`
   - `_format_shared_tool_call` was rewritten to dispatch by tool name.
     Each of the five deterministic tools from
     `duecare.chat.harness._heuristic_tool_calls` now has a per-name
@@ -75,7 +75,7 @@ Context â€” what commit 76e44a1 changed:
 Active scope â€” review only these surfaces:
 
 Primary code:
-- `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py`
+- `kaggle/A-00-omni-experiment-workbench/kernel.py`
   - `_format_shared_tool_call` and its five per-tool branches
   - `_build_harness_prompt`'s tools branch and trace assembly
   - `_pack_rules_as_grep_extras`, `_pack_facts_as_rag_extras`

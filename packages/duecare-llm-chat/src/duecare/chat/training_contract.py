@@ -55,7 +55,10 @@ _PHONE = re.compile(
 )
 _PASSPORT = re.compile(r"\b(?:passport|national\s+id|identity\s+card)\s*(?:no\.?|number|#|:)?\s*[A-Z0-9-]{6,16}\b", re.I)
 _HIDDEN_REASONING = re.compile(
-    r"<\|?(?:think|thought)(?:\|>|>)|<\|channel\|>\s*thought|\b(?:hidden|private)\s+chain[- ]of[- ]thought\b",
+    r"<\|?(?:think|thought)(?:\|?>)|"
+    r"<\|?channel\|?>\s*(?:analysis|thought)|"
+    r"\b(?:hidden|private)\s+chain[- ]of[- ]thought\b|"
+    r"\bprivate\s+scratchpad\b",
     re.I,
 )
 _LEGAL_CLAIM = re.compile(
@@ -247,7 +250,11 @@ def validate_training_rows(
             if findings or row.get("pii_checked") is not True:
                 pii_failures += 1
                 codes.append("pii")
-            if _HIDDEN_REASONING.search(answer or ""):
+            # Check the complete row rather than only the chosen/assistant
+            # answer.  Preference rejects and rationale metadata are exported
+            # too, so hidden-thought markup in either location is equally
+            # disqualifying.
+            if any(_HIDDEN_REASONING.search(text) for text in _strings(row)):
                 hidden_reasoning_failures += 1
                 codes.append("hidden_reasoning_markup")
             if _LEGAL_CLAIM.search(answer or "") and not _source_refs(row):

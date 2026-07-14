@@ -13,7 +13,7 @@
   .kr-card .name { font-size: 14.5px; font-weight: 600; line-height: 1.4; }
   .kr-card .lede { font-size: 13px; color: var(--ink-2); line-height: 1.5; flex: 1; }
   .kr-card .links { display: flex; gap: 6px; flex-wrap: wrap; padding-top: 6px; border-top: 1px solid var(--line-soft); }
-  .kr-card a.k-link { background: var(--paper-2); border: 1px solid var(--line); color: var(--ink-2); font-family: var(--mono); font-size: 11px; padding: 4px 8px; border-radius: 6px; text-decoration: none; }
+  .kr-card .k-link { background: var(--paper-2); border: 1px solid var(--line); color: var(--ink-2); font-family: var(--mono); font-size: 11px; padding: 4px 8px; border-radius: 6px; text-decoration: none; }
   .kr-card a.k-link:hover { background: var(--paper-3); border-color: var(--ink-3); }
   .kr-summary { background: var(--paper-2); border: 1px solid var(--line); border-radius: 12px; padding: 18px 22px; margin-top: 18px; }
   .kr-summary h3 { margin: 0 0 8px; font-size: 14px; }
@@ -59,8 +59,9 @@
       <span class="name">DueCare Fine-tuning and Evaluation</span>
       <span class="lede">Benchmark, synthetic-data, optional LoRA training, checkpoint/resume, combined judging, and report/export artifacts.</span>
       <div class="links">
-        <a class="k-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation" target="_blank">Kaggle &rarr;</a>
+        <a class="k-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation" target="_blank" rel="noopener">Kaggle &middot; May 2026 public version &rarr;</a>
         <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-00-omni-experiment-workbench" target="_blank">GitHub</a>
+        <a class="k-link" href="/training-data-flywheel">Training-data flywheel</a>
       </div>
     </div>
   </div>
@@ -73,6 +74,7 @@
     <h3>What should stay true</h3>
     <ul>
       <li><code>01</code>, <code>02</code>, and <code>A-00</code> use the shared Gemma 4 runtime for inference model loads.</li>
+      <li>The public A-00 Kaggle notebook is the May 2026 version; the July guarded dataset/training update remains pending.</li>
       <li>The default offline proof path uses the same chat harness primitives as the exploration workbench comparison page.</li>
       <li>A-00 saves benchmark outputs, training artifacts, checkpoints, activity logs, and final reports under Kaggle working directories.</li>
       <li>Archived appendix kernels should not be revived for the current submission without an explicit new decision.</li>

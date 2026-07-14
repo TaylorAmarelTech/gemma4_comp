@@ -233,7 +233,7 @@ Recommended log shape:
   "tools_called": ["lookup_corridor_fee_cap", "lookup_ngo_intake"],
   "elapsed_ms": 18432,
   "git_sha": "70814c7",
-  "model_revision": "unsloth/gemma-4-E4B-it@main"
+  "model_revision": "unsloth/gemma-4-E4B-it@0d5a7f9ba73eda1616e58344f7025fae44914675"
 }
 ```
 

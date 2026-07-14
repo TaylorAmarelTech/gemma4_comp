@@ -4,7 +4,7 @@
 > **GitHub source repo:** [github.com/TaylorAmarelTech/gemma4_comp](https://github.com/TaylorAmarelTech/gemma4_comp) |
 > **GitHub Pages docs:** [tayloramareltech.github.io/gemma4_comp](https://tayloramareltech.github.io/gemma4_comp/) |
 > **DueCare App on Kaggle:** [kaggle.com/code/taylorsamarel/duecare-app](https://www.kaggle.com/code/taylorsamarel/duecare-app) |
-> **Fine-tuning &amp; Evaluation:** [kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation) |
+> **Fine-tuning &amp; Evaluation:** [public May 2026 Kaggle version](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation); July guarded update pending |
 > **Android APK:** [github.com/TaylorAmarelTech/duecare-journey-android/releases](https://github.com/TaylorAmarelTech/duecare-journey-android/releases) |
 > **License:** MIT
 >
@@ -21,10 +21,15 @@
 > **Current training status (2026-07-14):** the active A-00 workbench and
 > `scripts/training_engine.py` provide a manifest-bound, fail-closed
 > SFT-to-DPO path for official Gemma 4 E2B/E4B revisions and compatible custom
-> models. Candidate training rows must pass privacy, provenance/licensing,
+> models. `scripts/ollama_adversarial_flywheel.py` can use local Ollama models
+> to generate adversarial SFT/DPO candidates and raw-text-free quarantine
+> metadata for that path. Candidate training rows must pass privacy, provenance/licensing,
 > quality, hidden-reasoning, unsafe-advice, immutable-revision, and held-out
 > prompt/lineage contamination gates. The local smoke artifact validates
-> plumbing only; **no production adapter or merged weights are published**.
+> plumbing only. The public A-00 notebook is still the May 2026 version and
+> has no attached advanced training dataset; the July guarded update is
+> pending. **No eligible complete advanced dataset, production adapter, or
+> merged weights are published**.
 > See [Training and fine-tuning](docs/training_and_finetuning.md).
 >
 > **DueCare is Gemma 4-powered safety infrastructure for migrant-worker
@@ -130,7 +135,7 @@ python -c "from duecare.server import create_app; from duecare.server.state impo
 >
 > **Proof and optional benchmark surfaces:**
 >
-> - **DueCare Fine-tuning and Evaluation** — [`duecare-fine-tuning-and-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation) ([active source](./kaggle/A-00-omni-experiment-workbench/)) is the proof path for baseline vs harness vs fine-tuned vs fine-tuned-plus-harness exports, rule and LLM grading, manifest-bound SFT/DPO train/validation/test artifacts, resumable LoRA smoke runs, local research graphs, and HTML/PDF reports. It accepts final answers, citations, visible rationales, and deliberately authored reasoning structures; it rejects hidden chain-of-thought and refuses training until the dataset and held-out-lineage gates are clean.
+> - **DueCare Fine-tuning and Evaluation** — [`duecare-fine-tuning-and-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation) ([active source](./kaggle/A-00-omni-experiment-workbench/)) is the proof path for baseline vs harness vs fine-tuned vs fine-tuned-plus-harness exports, rule and LLM grading, manifest-bound SFT/DPO train/validation/test artifacts, resumable LoRA smoke runs, local research graphs, and HTML/PDF reports. The live Kaggle page is the May 2026 version; the July guarded source update is pending. The current source accepts final answers, citations, visible rationales, and deliberately authored reasoning structures; it rejects hidden chain-of-thought and refuses training until the dataset and held-out-lineage gates are clean.
 > - **DueCare Universal LLM Benchmark** — [`kaggle/03-universal-llm-benchmark`](./kaggle/03-universal-llm-benchmark/) is optional: it tests arbitrary API endpoints against DueCare prompt/rubric/evidence cues and can use Claude Opus as an external judge.
 > - **DueCare Kaggle Community Benchmark** — [`kaggle/04-kaggle-community-benchmark`](./kaggle/04-kaggle-community-benchmark/) is optional: it converts DueCare rows into `kaggle_benchmarks` tasks so Kaggle-hosted model quota and leaderboard artifacts can be used.
 > - Archived A-01 through A-24 plus the former video-pitch kernel remain available as reference material, but they are not part of the active validation or recording path.
@@ -803,7 +808,7 @@ gemma4_comp/
 │   ├── 03-universal-llm-benchmark/ # optional external endpoint benchmark
 │   ├── 04-kaggle-community-benchmark/ # optional Kaggle benchmark surface
 │   ├── _archive/notebooks/        # archived video pitch and A-01 through A-24
-│   ├── shared-datasets/          # cross-notebook: trafficking-prompts, eval-results
+│   ├── shared-datasets/          # prompts, eval metadata, and non-publishable training-data template
 │   ├── kernels/                  # 9 generated/research kernels (separate from submission folders)
 │   └── models/                   # Kaggle Models artifacts
 ├── configs/duecare/              # YAML configuration (models, workflows, domains)

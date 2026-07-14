@@ -136,7 +136,7 @@ review gate.
    experiment controls.
 3. The output demonstrates the safety and grounding loop quickly.
 
-### Archived A-00 Quantitative Proof
+### Active A-00 Quantitative Proof
 
 1. The user selects a model and run size.
 2. A-00 checks loaded model state, memory, and disk conditions.
@@ -212,7 +212,7 @@ Key A-00 runtime knobs:
 2. Runtime APIs and generated reports may show exact current counts.
 3. Kernel 01 and Kernel 02 should share model loading through
    `Gemma4Runtime` for inference.
-4. Archived A-00 should consume shared GREP/RAG/tool/grading primitives rather
+4. Active A-00 should consume shared GREP/RAG/tool/grading primitives rather
    than duplicating them.
 5. External model and judge endpoints should flow through the universal
    model interface where practical.

@@ -13,7 +13,6 @@ from typing import Any
 
 from duecare.chat.training_contract import PREFERENCE_REQUIRED_FIELDS, SFT_REQUIRED_FIELDS
 
-
 BENCHMARK_RESPONSE_MAX_NEW_TOKENS = 1200
 
 GENERATION_DEFAULTS: dict[str, Any] = {
@@ -149,7 +148,7 @@ TRAINING_PROFILES: tuple[dict[str, Any], ...] = (
         "id": "tiny_lora_smoke",
         "label": "Tiny LoRA smoke run",
         "base_model_ref": "google/gemma-4-E2B-it",
-        "base_model_revision": "9dbdf8a839e4e9e0eb56ed80cc8886661d3817cf",
+        "base_model_revision": "4abfca14e6c6bfb5888b80288185b1243fb8d539",
         "adapter_name": "duecare-a00-smoke-e2b-lora",
         "method": "sft_then_dpo",
         "execute": False,
@@ -172,7 +171,7 @@ TRAINING_PROFILES: tuple[dict[str, Any], ...] = (
         "id": "a00_t4_standard_sft",
         "label": "A-00 T4 standard SFT",
         "base_model_ref": "google/gemma-4-E4B-it",
-        "base_model_revision": "a4c2d58be94dda072b918d9db64ee85c8ed34e3f",
+        "base_model_revision": "0d5a7f9ba73eda1616e58344f7025fae44914675",
         "max_examples": 200,
         "num_epochs": 2,
         "learning_rate": 2e-4,

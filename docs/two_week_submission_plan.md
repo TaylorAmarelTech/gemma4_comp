@@ -1,6 +1,6 @@
 ﻿# Final Submission Execution Plan
 
-Current as of 2026-05-17. This document replaces the old 2026-05-02 two-week
+Current as of 2026-07-14. This document replaces the old 2026-05-02 two-week
 appendix-ladder plan. The remaining work is no longer broad notebook publishing;
 it is validating the active kernels and preserving optional evidence from
 the active A-00 pipeline.
@@ -15,7 +15,7 @@ Run and verify:
 
 Everything under `kaggle/_archive/notebooks/` is historical unless explicitly
 revived later, including legacy notebook wrappers and task-notebook snapshots. Root `kaggle/`
-should not contain appendix `A-*` folders, and the only root `04-*` folder
+should not contain appendix `A-*` folders other than active A-00, and the only root `04-*` folder
 should be `04-kaggle-community-benchmark`.
 
 ## Priority Order
@@ -30,7 +30,7 @@ should be `04-kaggle-community-benchmark`.
 6. Download `/kaggle/working` outputs after every meaningful phase.
 7. Submit with the current active Kaggle story, not the archived A-series story.
 
-## Archived A-00 Runtime Strategy
+## Active A-00 Runtime Strategy
 
 Use the preconfigured pipeline for the main proof. Keep options narrow:
 

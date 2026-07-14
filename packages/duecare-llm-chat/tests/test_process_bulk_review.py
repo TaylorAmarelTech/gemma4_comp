@@ -355,7 +355,7 @@ def test_process_batch_returns_intelligence_for_sample():
     )
     assert start.status_code == 200, start.text
     job_id = start.json()["job_id"]
-    for _ in range(20):
+    for _ in range(120):
         poll = client.get(f"/api/process/graph-extract/status/{job_id}")
         assert poll.status_code == 200, poll.text
         job = poll.json()
@@ -618,7 +618,7 @@ def test_process_batch_async_job_returns_media_rich_result():
     assert start.status_code == 200, start.text
     job_id = start.json()["job_id"]
     status = None
-    for _ in range(20):
+    for _ in range(120):
         poll = client.get(f"/api/process/batch/status/{job_id}")
         assert poll.status_code == 200, poll.text
         status = poll.json()

@@ -56,6 +56,7 @@ def test_robots_and_sitemap_are_served(tmp_path) -> None:
     assert "https://duecare-ai.com/" in sitemap.text
     assert "https://duecare-ai.com/docs" in sitemap.text
     assert "https://duecare-ai.com/grep-rules" in sitemap.text
+    assert "https://duecare-ai.com/training-data-flywheel" in sitemap.text
 
 
 def test_public_website_pages_render_design_templates(tmp_path) -> None:
@@ -68,6 +69,7 @@ def test_public_website_pages_render_design_templates(tmp_path) -> None:
         "/tools": "Six tools. All local. All draft-only.",
         "/context": "Knowledge moves. Cases don't.",
         "/use-cases": "Six ways teams put DueCare to work.",
+        "/training-data-flywheel": "Turn measured harness lift into reviewable training data.",
         "/dashboard": "The live hub. Not the model chat UI.",
     }
 
@@ -103,6 +105,48 @@ def test_study_and_finetuning_pages_keep_model_and_deployment_claims_separate(tm
     assert "a full trained adapter remains pending" in finetuning.text
     assert "A local smoke artifact exercises plumbing only" in finetuning.text
     assert "single GPU step" not in finetuning.text
+
+
+def test_training_data_flywheel_states_release_and_reasoning_boundaries(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    response = client.get("/training-data-flywheel")
+
+    assert response.status_code == 200
+    assert "No production adapter or eligible complete advanced training dataset is published yet." in response.text
+    assert "SFT then preference" in response.text
+    assert "private hidden chain-of-thought" in response.text
+    assert "complete final answers, citations, harness traces" in response.text
+    assert "Already have a file?" in response.text
+    assert "A loose file stays inspection-only" in response.text
+    assert "prompt hash and lineage ID" in response.text
+    assert "public Kaggle version predates the July 2026 guarded dataset" in response.text
+    assert "public May 2026 Kaggle notebook" in response.text
+    assert "A-00 has no pinned dataset source" in response.text
+    assert "single-corridor shortcut risk" in response.text
+    assert "Future Kaggle Dataset publication unit" in response.text
+    assert "No dataset version meeting that complete contract has been published yet." in response.text
+    assert "kaggle/A-00-omni-experiment-workbench" in response.text
+    assert "kaggle/shared-datasets/training-data" in response.text
+    assert "docs/training_and_finetuning.md" in response.text
+    assert "A smoke artifact proves plumbing only" in response.text
+    assert "legacy public A-00 notebook are available" in response.text
+    assert "www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation" in response.text
+
+
+def test_training_data_flywheel_is_linked_from_public_training_surfaces(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    for path in ("/", "/docs", "/finetuning", "/kernels", "/use-cases"):
+        response = client.get(path)
+
+        assert response.status_code == 200
+        assert 'href="/training-data-flywheel"' in response.text
+
+    assert 'class="docs-card" href="/finetuning"' in client.get("/docs").text
+    kernels = client.get("/kernels").text
+    assert "May 2026 public version" in kernels
+    assert "July guarded dataset/training update remains pending" in kernels
 
 
 def test_demo_recording_and_admin_pages_render(tmp_path) -> None:

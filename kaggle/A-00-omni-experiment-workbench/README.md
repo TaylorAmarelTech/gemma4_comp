@@ -8,6 +8,26 @@
 <!-- duecare:lane-label -->
 > **Serves lanes:** Researcher; Developer / integration partner; Platform safety; NGO & regulator.
 
+## Public Kaggle version boundary
+
+Status reviewed 2026-07-14:
+
+- The [public Kaggle notebook](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation)
+  is live. Its public page metadata identifies the current copy as script
+  version `320178883`, modified 2026-05-17.
+- This repository is the source of the later July 2026 manifest, lineage,
+  privacy, immutable-revision, SFT&rarr;DPO, and completion-proof gates. That
+  update has not yet been pushed to the public Kaggle notebook.
+- `kernel-metadata.json` currently keeps `dataset_sources` empty because no
+  eligible complete advanced training dataset has been published or attached.
+- The tiny adapter path is a plumbing smoke check. No production Gemma adapter
+  or merged weights are published.
+
+Use the public notebook to inspect the May version and this directory to review
+the pending source update. Do not describe a repository-only gate as already
+deployed on Kaggle until the new version is pushed and verified by a fresh
+public GET.
+
 ## Judge Quick Path
 
 | Section | This notebook |
@@ -108,6 +128,35 @@ same shared contract can be run from the UI or through
    deterministic edges as the baseline. Smaller text models are suitable for
    compact text-edge proposals; multimodal edge extraction requires local
    OCR/layout/ASR plus a model/runtime that can consume the relevant media.
+
+### External importer is intake, not approval
+
+The **Already have a file?** path can inspect a JSON, JSONL, or ZIP produced by
+a prior DueCare run or another controlled system. It recognizes prompt/response
+exports, SFT rows, preference rows, run bundles, and manifests and returns a
+validation preview. A loose JSONL may be inspected, but the training endpoint
+still requires a manifest-bound bundle with matching hashes, exact model
+revision, source and prompt lineages, frozen held-out hashes and lineage IDs,
+allowed-use/license records, privacy clearance, and clean quality gates.
+
+Imported final answers, citations, tool/harness traces, and deliberately
+authored visible rationales may become candidates when their provenance and
+permissions pass. Provider-private or otherwise hidden chain-of-thought is not
+an import target and remains a blocking failure. Importing or attaching a file
+never sets `safe_to_train` on its own.
+
+### Local Ollama candidate generation
+
+Outside Kaggle, `scripts/ollama_adversarial_flywheel.py` can run a local
+Ollama adversarial loop over approved seed prompts. It asks one model to mutate
+the prompt, one model to draft a protective answer, and one model to judge the
+candidate. The output is SFT JSONL, preference JSONL, `quarantine.json`, and a
+manifest that is deliberately `safe_to_train=false`.
+
+Use A-00's importer or a future manifest-bound dataset release to inspect those
+files. A-00 will still require held-out prompt hashes, lineage isolation,
+source/license evidence, privacy clearance, immutable model revision, and clean
+quality gates before creating a GPU training job.
 
 ## Small-Model Fine-Tune Smoke Path
 

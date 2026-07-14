@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import py_compile
 import re
 from pathlib import Path
@@ -7,6 +8,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 A00 = ROOT / "kaggle" / "A-00-omni-experiment-workbench" / "kernel.py"
+A00_README = ROOT / "kaggle" / "A-00-omni-experiment-workbench" / "README.md"
+A00_METADATA = ROOT / "kaggle" / "A-00-omni-experiment-workbench" / "kernel-metadata.json"
+TRAINING_DATA_TEMPLATE = ROOT / "kaggle" / "shared-datasets" / "training-data"
 
 
 def test_a00_compiles():
@@ -32,6 +36,56 @@ def test_a00_training_path_enforces_shared_contract_and_sft_then_dpo():
     assert "training_completion_manifest.json" in text
     assert "hidden model chain-of-thought" in text
     assert "is neither requested nor stored" in text
+
+
+def test_a00_public_version_and_external_import_boundaries_are_documented():
+    text = " ".join(A00_README.read_text(encoding="utf-8").split())
+    for marker in [
+        "version `320178883`",
+        "modified 2026-05-17",
+        "update has not yet been pushed to the public Kaggle notebook",
+        "External importer is intake, not approval",
+        "A loose JSONL may be inspected",
+        "deliberately authored visible rationales",
+        "hidden chain-of-thought is not an import target",
+        "never sets `safe_to_train` on its own",
+    ]:
+        assert marker in text
+
+    metadata = json.loads(A00_METADATA.read_text(encoding="utf-8"))
+    assert metadata["dataset_sources"] == []
+
+
+def test_training_dataset_surface_is_template_only_and_not_publishable():
+    readme = TRAINING_DATA_TEMPLATE / "README.md"
+    metadata_template = TRAINING_DATA_TEMPLATE / "dataset-metadata.template.json"
+    assert readme.is_file()
+    assert metadata_template.is_file()
+    assert not (TRAINING_DATA_TEMPLATE / "dataset-metadata.json").exists()
+
+    payload_files = [
+        path
+        for path in TRAINING_DATA_TEMPLATE.rglob("*")
+        if path.is_file() and path.suffix.lower() in {".jsonl", ".csv", ".parquet", ".arrow"}
+    ]
+    assert payload_files == []
+
+    metadata = json.loads(metadata_template.read_text(encoding="utf-8"))
+    assert metadata["_template_status"] == "documentation-only-not-publishable"
+    assert metadata["id"].startswith("REPLACE_")
+    assert metadata["licenses"][0]["name"].startswith("REPLACE_")
+
+    text = " ".join(readme.read_text(encoding="utf-8").split())
+    for marker in [
+        "documentation-only and not publishable",
+        "intentionally uses `dataset-metadata.template.json`",
+        "instead of Kaggle's active",
+        "External import contract",
+        "deliberately authored model-visible rationales",
+        "hidden chain-of-thought must not be requested",
+        "never sets `safe_to_train` by itself",
+    ]:
+        assert marker in text
 
 
 def test_a00_retains_archived_appendix_workflow_registry():

@@ -123,6 +123,7 @@ PAGE_ROUTES: dict[str, str] = {
     "/submissions": "submissions.html",
     "/submit-information": "submit-information.html",
     "/technical-docs": "technical-docs.html",
+    "/training-data-flywheel": "training-data-flywheel.html",
     "/tools": "tools.html",
     "/tools-registry": "tools-registry.html",
     "/use-cases": "use-cases.html",
