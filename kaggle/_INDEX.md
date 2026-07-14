@@ -14,10 +14,12 @@ and training/evaluation path:
 
 Each active kernel is intended to be copied into Kaggle, run on T4 x2 with Internet enabled, install DueCare from GitHub, write outputs under `/kaggle/working`, launch the local server, and print a public `https://*.trycloudflare.com` URL.
 
-Version boundary reviewed 2026-07-14: the A-00 Kaggle URL is live, but the
-public page is the May 2026 script version. The July guarded source in this
-repository is pending publication. No advanced training dataset or production
-adapter is publicly attached.
+Version boundary reviewed 2026-07-14: the A-00 Kaggle URL is live and the
+July dataset-attached update was pushed as kernel version `14`. The public
+notebook attaches `taylorsamarel/duecare-proof-finetuning-data`; the run still
+needs a terminal Kaggle status plus artifact review before it is cited as a
+completed proof run. No production adapter or full advanced corpus is publicly
+attached.
 
 ## Optional Evaluation Surface
 
@@ -64,7 +66,8 @@ A-00 now opens with two choices:
 The current repository source adds manifest-bound SFT and preference files,
 lineage-safe train/validation/holdout assignments, exact base revisions,
 privacy and licensing fields, requested-DPO enforcement, and completion
-manifests. Those July changes are not yet the public May Kaggle version. The
-external importer can inspect loose artifacts, final answers, citations, and
-deliberately authored visible rationales, but only a fully validated bundle may
-train; private hidden chain-of-thought remains prohibited.
+manifests. Those July changes are now pushed to the public A-00 notebook with
+the proof dataset attached. The external importer can inspect loose artifacts,
+final answers, citations, and deliberately authored visible rationales, but
+only a fully validated bundle may train; private hidden chain-of-thought
+remains prohibited.

@@ -12,9 +12,12 @@ The active Kaggle path is exactly three script-kernel folders:
 | `kaggle/02-live-demo/` | Focused live demo and video narrative path. |
 | `kaggle/A-00-omni-experiment-workbench/` | Quantitative proof path: baseline vs harnessed arms, synthetic data, fine-tune, judging, and report artifacts. |
 
-The public A-00 Kaggle page is the May 2026 version. The July guarded source
-update is pending, `dataset_sources` remains empty, and no eligible complete
-advanced dataset or production adapter is published.
+The public A-00 Kaggle page has the July dataset-attached update pushed as
+kernel version `14`; it attaches
+`taylorsamarel/duecare-proof-finetuning-data`. That dataset is a guarded
+preview, not the full advanced corpus. The Kaggle execution still needs a
+terminal status and artifact review before it is cited as a completed proof
+run, and no production adapter is published.
 
 The retired A-series notebook ladder other than active A-00, task-notebook
 snapshots, and older checklist/status docs are archived under

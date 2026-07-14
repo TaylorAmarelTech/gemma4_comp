@@ -2,8 +2,10 @@
 
 Status: **documentation-only and not publishable**. No training rows, Kaggle
 Dataset, production adapter, or merged weights are present in this directory.
-The public A-00 Kaggle notebook is the May 2026 version; the repository's July
-2026 guarded dataset/training update remains pending.
+The public proof dataset is separate:
+[`taylorsamarel/duecare-proof-finetuning-data`](https://www.kaggle.com/datasets/taylorsamarel/duecare-proof-finetuning-data).
+That preview proves the release contract; this folder remains the template for
+a future full advanced corpus.
 
 This folder documents what a future versioned Kaggle Dataset must contain. It
 intentionally uses `dataset-metadata.template.json` instead of Kaggle's active
@@ -12,8 +14,9 @@ eligible release bundle passes every gate below.
 
 ## Current blockers (reviewed 2026-07-14)
 
-- `kaggle/A-00-omni-experiment-workbench/kernel-metadata.json` has
-  `dataset_sources: []`; no advanced training dataset is attached.
+- `kaggle/A-00-omni-experiment-workbench/kernel-metadata.json` attaches the
+  proof dataset. That preview is intentionally small and does not replace this
+  future full-corpus template.
 - The current local candidate quality audit is not clean and identifies a
   single-corridor shortcut risk.
 - Older candidate rows do not yet carry the complete lineage, source,

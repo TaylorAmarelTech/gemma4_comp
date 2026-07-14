@@ -46,8 +46,8 @@
 </div></section>
 
 <section class="hp-section" style="padding-top:0"><div class="wrap">
-  <div class="tf-status"><b>Current release boundary.</b> The public code, dataset contracts, repository-hosted A-00 source, and a May 2026 public Kaggle notebook are available. The public Kaggle version predates the July 2026 guarded dataset and training updates in this repository; that notebook update is pending. <b>No production adapter or eligible complete advanced training dataset is published yet.</b> Generated candidates remain gated until provenance, licensing, privacy, citation, lineage, held-out, and quality checks all pass. A smoke artifact proves plumbing only; it is not a trained-model result.</div>
-  <div class="tf-status" style="margin-top:12px"><b>Preflight reviewed 2026-07-14.</b> A-00 has no pinned dataset source, and the current candidate quality audit is not clean. The candidate pool includes a single-corridor shortcut risk and legacy rows missing required lineage, license, source, or privacy fields. Those rows must be regenerated or curated into a clean manifest-bound version before either a Kaggle Dataset or a training run can be described as release-ready.</div>
+  <div class="tf-status"><b>Current release boundary.</b> The public code, dataset contracts, A-00 source, public proof dataset, and July dataset-attached Kaggle notebook update are available. The proof dataset has 24 SFT rows, 24 preference rows, 4 validation rows, and 4 test rows with synthetic prompts and visible rationale metadata. <b>No production adapter or full advanced training corpus is published yet.</b> Generated candidates remain gated until provenance, licensing, privacy, citation, lineage, held-out, and quality checks all pass. A smoke artifact proves plumbing only; it is not a trained-model result.</div>
+  <div class="tf-status" style="margin-top:12px"><b>Preflight reviewed 2026-07-14.</b> A-00 now attaches <a href="https://www.kaggle.com/datasets/taylorsamarel/duecare-proof-finetuning-data" target="_blank" rel="noopener">the proof dataset</a>. Kaggle accepted the notebook update as kernel version 14; the run still needs terminal status and artifact review before it is cited as a completed proof run. The older candidate pool still includes a single-corridor shortcut risk and legacy rows missing required lineage, license, source, or privacy fields.</div>
 </div></section>
 
 <section class="hp-section"><div class="wrap">
@@ -113,9 +113,10 @@
     <li>The evaluation holdout is verified by prompt hash and lineage ID before training and again before release.</li>
     <li>Volatile contacts, rules, fee caps, and current operational facts remain in versioned retrieval or tools instead of being baked into weights.</li>
   </ul>
-  <div class="tf-status" style="margin-top:18px"><b>Future Kaggle Dataset publication unit:</b> eligible SFT, preference, and declared comparison JSONL; immutable manifest and checksums; data card; source/license summary; split policy; gate report; and limitations. The notebook must pin that dataset version. Raw cases, credentials, machine-local paths, private hidden reasoning, and the training-excluded evaluation holdout do not belong in the release. <b>No dataset version meeting that complete contract has been published yet.</b></div>
+  <div class="tf-status" style="margin-top:18px"><b>Future Kaggle Dataset publication unit:</b> eligible SFT, preference, and declared comparison JSONL; immutable manifest and checksums; data card; source/license summary; split policy; gate report; and limitations. The notebook must pin that dataset version. Raw cases, credentials, machine-local paths, private hidden reasoning, and the training-excluded evaluation holdout do not belong in the release. <b>No full corpus dataset version meeting that complete contract has been published yet.</b></div>
   <div class="tf-actions">
-    <a href="https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation" target="_blank" rel="noopener">Open the public May 2026 Kaggle notebook &rarr;</a>
+    <a href="https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation" target="_blank" rel="noopener">Open the public Kaggle notebook &rarr;</a>
+    <a href="https://www.kaggle.com/datasets/taylorsamarel/duecare-proof-finetuning-data" target="_blank" rel="noopener">Open the proof dataset &rarr;</a>
     <a href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-00-omni-experiment-workbench" target="_blank" rel="noopener">Inspect the A-00 source &rarr;</a>
     <a href="/kernels">See all active Kaggle surfaces &rarr;</a>
   </div>
@@ -131,7 +132,7 @@
     <li><span><b>Train and evaluate.</b> Complete SFT and the requested preference stage, then run the four arms on untouched held-out lineages.</span></li>
     <li><span><b>Consider an adapter release.</b> Publish weights only if the intended dimensions improve without a citation, privacy, unsafe-assistance, or benign over-refusal regression.</span></li>
   </ol>
-  <div class="tf-status" style="margin-top:18px"><b>Today:</b> the repository implementation and legacy public A-00 notebook are available; the July guarded Kaggle update, eligible complete advanced dataset, production adapter, and merged weights are not. This page documents the path to those releases and will remain explicit about which rung has actually passed.</div>
+  <div class="tf-status" style="margin-top:18px"><b>Today:</b> the repository implementation, public Kaggle notebook update, and proof dataset are available; the full advanced corpus, production adapter, merged weights, and terminal Kaggle proof-run artifacts are not. This page documents the path to those releases and will remain explicit about which rung has actually passed.</div>
 </div></section>
 
 <section class="hp-section"><div class="wrap">

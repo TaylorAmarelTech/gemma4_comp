@@ -12,9 +12,12 @@ Gemma 4 path.
 | `kaggle/02-live-demo/` | Active | Focused live demo and video narrative path. |
 | `kaggle/A-00-omni-experiment-workbench/` | Active | Quantitative proof path: baseline vs harnessed arms, synthetic data, fine-tune, judging, and report artifacts. |
 
-The public A-00 Kaggle page remains the May 2026 version. The July guarded
-source update is pending, no advanced training dataset is attached, and the
-existing adapter artifact is smoke-only.
+The public A-00 Kaggle page has the July dataset-attached update pushed as
+kernel version `14`, with
+`taylorsamarel/duecare-proof-finetuning-data` attached. The run still needs a
+terminal Kaggle status and artifact review before it is cited as a completed
+proof run. The existing adapter artifact is smoke-only, and no production
+adapter or full advanced corpus is published.
 
 Archived A-series notebooks, task-notebook snapshots, and old generated
 mirrors are not the active competition path. Root `kaggle/` should not contain
