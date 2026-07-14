@@ -26,7 +26,7 @@ Review active notebooks and runtime paths only:
 
 - `kaggle/01-duecare-exploration-workbench/kernel.py`
 - `kaggle/02-live-demo/kernel.py`
-- `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py`
+- `kaggle/A-00-omni-experiment-workbench/kernel.py`
 - `packages/duecare-llm-chat/src/duecare/chat/gemma4_runtime.py`
 - `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py`
 - `packages/duecare-llm-chat/src/duecare/chat/harnesses/`
@@ -160,7 +160,7 @@ references.
 - Do not change archived notebooks.
 - Do not remove flexibility or advanced options unless they clearly conflict with the default competition path.
 - If you make code edits, keep them narrowly scoped and list every changed file.
-- Preserve the current competition-ready path: copy/paste the two active Kaggle kernels, run on T4x2, get Cloudflare URL, and treat A-00 proof runs as archived/optional evidence under `/kaggle/working`.
+- Preserve the current competition-ready path: copy/paste the two primary demo kernels, run on T4x2, get a Cloudflare URL, and treat active A-00 as the optional quantitative proof/training path under `/kaggle/working`.
 
 ## Suggested Fast Checks
 

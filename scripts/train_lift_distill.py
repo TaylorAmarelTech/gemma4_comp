@@ -3,11 +3,14 @@
 
 Consumes the organized training splits from organize_training_data.py:
   reports/training/sft_train.jsonl : {"messages": [user, {"role":"assistant", harnessed reply}]}
-  reports/training/dpo_train.jsonl : {"prompt", "chosen": harnessed reply, "rejected": baseline reply}
+  reports/training/dpo_train.jsonl : preference pair with harnessed and baseline replies
 
-The held-out splits stay out of the trainer and are reserved for the generalisation diagnostic.
+The held-out splits stay out of the trainer and are reserved for the generalisation diagnostic.  GPU
+execution additionally requires a manifest-bound A-00 bundle (or verified Kaggle release). The runner
+rechecks artifact hashes, exact held-out hashes/lineages, and the canonical package training
+contract before importing any trainer dependency.
 
-and fine-tunes a Gemma 4 base with the canonical Unsloth recipe (FastModel -> get_peft_model ->
+It fine-tunes a Gemma 4 base with the canonical Unsloth recipe (FastModel -> get_peft_model ->
 get_chat_template "gemma-4-thinking" -> SFTTrainer + train_on_responses_only, then an optional DPO
 pass) so the model internalises the harness's stable behaviours -- arm C of the 4-arm eval in
 docs/phase3_training_framework.md. The recipe mirrors the A-00 kernel's training block.
@@ -18,8 +21,8 @@ machine without them use --validate to check the data + config + plan WITHOUT th
     python scripts/train_lift_distill.py --validate                       # CPU: check data + print plan
     python scripts/train_lift_distill.py --validate --dpo reports/training/contract_dpo.jsonl
     python scripts/train_lift_distill.py --validate --dpo reports/training/dpo_train_plus_contract.jsonl
-    python scripts/train_lift_distill.py --test-run                       # GPU: ~20-step E4B smoke
-    python scripts/train_lift_distill.py --base-model google/gemma-4-E4B-it --epochs 2   # GPU: full
+    python scripts/train_lift_distill.py --test-run --training-manifest /path/to/manifest.json
+    python scripts/train_lift_distill.py --training-manifest /path/to/manifest.json --epochs 2
 
 Prereqs (Kaggle): pip install "unsloth" "unsloth_zoo" trl peft accelerate bitsandbytes
 Design: docs/phase3_training_framework.md  .  Special Technology Track: Unsloth
@@ -42,6 +45,10 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from build_reasoning_targets import _ACTION_TERMS, _has_any, has_statute  # noqa: E402
 from remedy_taxonomy import CORE_BASE_REMEDIES, CORE_TRIGGER_REMEDIES  # noqa: E402
 from reasoning_contract import verify_reasoning  # noqa: E402
+from validate_training_bundle import (  # noqa: E402
+    TrainingBundleError,
+    validate_training_bundle,
+)
 
 SFT_DEFAULT = _ROOT / "reports" / "training" / "sft_train.jsonl"
 DPO_DEFAULT = _ROOT / "reports" / "training" / "dpo_train.jsonl"
@@ -60,7 +67,16 @@ _SAFE_RELATIVE_PATH = re.compile(r"^[A-Za-z0-9._/\-]+$")
 _SAFE_MODEL_REF = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*(/[A-Za-z0-9][A-Za-z0-9._-]*)?$")
 _SAFE_PROMPT_ID = re.compile(r"^[A-Za-z0-9 ._:/#-]{1,180}$")
 _SAFE_MANIFEST_ISSUE_CODE = re.compile(r"^[a-z][a-z0-9_]{0,160}$")
-_PATH_REPORT_KEYS = frozenset({"path", "base_path", "output_path", "file", "sft", "dpo", "output_dir"})
+_PATH_REPORT_KEYS = frozenset({
+    "path",
+    "base_path",
+    "output_path",
+    "file",
+    "sft",
+    "dpo",
+    "output_dir",
+    "training_manifest",
+})
 _VALIDATION_DETAIL_PREFIXES = {
     "SFT variant manifest missing:": "SFT variant manifest missing",
     "SFT variant manifest invalid:": "SFT variant manifest invalid",
@@ -126,7 +142,8 @@ CORE_REMEDY_KEYS = set(CORE_BASE_REMEDIES) | {
     remedy for remedies in CORE_TRIGGER_REMEDIES.values() for remedy in remedies
 }
 DEFAULT_BASE = "google/gemma-4-E4B-it"
-DEFAULT_BASE_REVISION = "a4c2d58be94dda072b918d9db64ee85c8ed34e3f"
+DEFAULT_BASE_REVISION = "0d5a7f9ba73eda1616e58344f7025fae44914675"
+_IMMUTABLE_REVISION = re.compile(r"[0-9a-f]{40,64}")
 CHAT_TEMPLATE = "gemma-4-thinking"
 INSTRUCTION_PART = "<|turn>user\n"
 RESPONSE_PART = "<|turn>model\n"
@@ -1170,6 +1187,7 @@ def build_plan(args: argparse.Namespace) -> dict[str, Any]:
                 "max_steps": (10 if args.test_run else args.dpo_max_steps), "lr": args.dpo_lr,
                 "rpo_alpha": args.rpo_alpha, "max_length": args.max_seq,
                 "max_prompt_length": args.max_seq // 2},
+        "training_manifest": str(getattr(args, "training_manifest", "") or ""),
         "output_dir": str(args.out), "gguf": bool(args.gguf), "test_run": bool(args.test_run),
     }
 
@@ -1228,13 +1246,37 @@ def _package_version(name: str) -> str:
         return f"unavailable:{type(exc).__name__}"
 
 
-def train(plan: dict[str, Any], sft: list[dict], dpo: list[dict]) -> str:
-    """The GPU path: SFT then (optionally) DPO via Unsloth. Heavy deps imported lazily."""
+def train(plan: dict[str, Any]) -> str:
+    """Run SFT/DPO only from rows reloaded by the manifest-bound contract gate."""
     base_revision = str(plan.get("base_model_revision") or "").strip()
-    if not base_revision and not pathlib.Path(str(plan["base_model"])).exists():
+    remote_base = not pathlib.Path(str(plan["base_model"])).exists()
+    if remote_base and _IMMUTABLE_REVISION.fullmatch(base_revision) is None:
         raise SystemExit(
-            "[train] remote base models require --base-revision with an immutable commit SHA"
+            "[train] remote base models require --base-revision with an immutable 40-64 character commit SHA"
         )
+    manifest_value = str(plan.get("training_manifest") or "").strip()
+    if not manifest_value:
+        raise SystemExit(
+            "[train] a canonical --training-manifest is required before GPU training"
+        )
+    try:
+        verified_bundle = validate_training_bundle(
+            pathlib.Path(manifest_value),
+            sft_path=pathlib.Path(str(plan["sft"]["file"])),
+            preference_path=pathlib.Path(str(plan["dpo"]["file"])),
+        )
+    except TrainingBundleError as exc:
+        raise SystemExit(f"[train] training bundle blocked: {exc}") from exc
+    sft = list(verified_bundle.sft_rows)
+    dpo = list(verified_bundle.preference_rows)
+    contract_summary = verified_bundle.summary()
+    print(
+        "[training-contract] verified "
+        f"manifest={contract_summary['manifest_sha256']} "
+        f"sft={contract_summary['counts']['sft']} "
+        f"preference={contract_summary['counts']['preference']}",
+        flush=True,
+    )
     try:
         from unsloth import FastModel
         from unsloth.chat_templates import get_chat_template, train_on_responses_only
@@ -1353,8 +1395,9 @@ def train(plan: dict[str, Any], sft: list[dict], dpo: list[dict]) -> str:
         "base_model": str(plan["base_model"]),
         "base_model_revision": base_revision or "local-model-artifact",
         "executed_stages": executed_stages,
-        "sft_sha256": _plan_file_sha256(plan["sft"]),
-        "dpo_sha256": _plan_file_sha256(plan["dpo"]) if plan["dpo"]["enabled"] else "",
+        "sft_sha256": verified_bundle.sft_sha256,
+        "dpo_sha256": verified_bundle.preference_sha256 if plan["dpo"]["enabled"] else "",
+        "training_bundle": contract_summary,
         "output_dir": _display_report_path(out_dir),
         "library_versions": {
             name: _package_version(name)
@@ -1386,6 +1429,14 @@ def main(argv: list[str] | None = None) -> int:
     )
     ap.add_argument("--sft", type=pathlib.Path, default=SFT_DEFAULT)
     ap.add_argument("--dpo", type=pathlib.Path, default=DPO_DEFAULT)
+    ap.add_argument(
+        "--training-manifest",
+        type=pathlib.Path,
+        help=(
+            "A-00 source-bundle or verified Kaggle release manifest binding the selected SFT, DPO, "
+            "validation, and test artifacts; mandatory for GPU training"
+        ),
+    )
     ap.add_argument("--out", type=pathlib.Path, default=OUT_DEFAULT)
     ap.add_argument("--max-seq", type=int, default=2048)
     ap.add_argument("--epochs", type=int, default=2)
@@ -1422,9 +1473,23 @@ def main(argv: list[str] | None = None) -> int:
         print("[validate] FAILED: " + "; ".join(display_v["issues"]))
         return 1
     if args.validate:
-        print("[validate] OK -- data + plan valid. Run on a GPU (drop --validate) to train.")
+        if args.training_manifest:
+            try:
+                verified = validate_training_bundle(
+                    args.training_manifest,
+                    sft_path=args.sft,
+                    preference_path=args.dpo,
+                )
+            except TrainingBundleError as exc:
+                print(f"[training-contract] BLOCKED: {exc}")
+                return 1
+            print("[training-contract]", json.dumps(verified.summary(), indent=2, sort_keys=True))
+        print(
+            "[validate] OK -- legacy data + plan valid. GPU training additionally requires a passing "
+            "--training-manifest."
+        )
         return 0
-    out = train(plan, sft, dpo)
+    out = train(plan)
     print(f"[train] done -> {_display_report_path(out)}. Next: 4-arm eval (stock vs this adapter, harness off/on).")
     return 0
 

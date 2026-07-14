@@ -1,6 +1,6 @@
 ﻿# DueCare Project Status
 
-Current as of 2026-05-17.
+Current as of 2026-07-14.
 
 ## Active Submission Scope
 
@@ -12,21 +12,25 @@ The active Kaggle path is exactly three script-kernel folders:
 | `kaggle/02-live-demo/` | Focused live demo and video narrative path. |
 | `kaggle/A-00-omni-experiment-workbench/` | Quantitative proof path: baseline vs harnessed arms, synthetic data, fine-tune, judging, and report artifacts. |
 
-The retired A-series notebook ladder, A-00 experiment console, task-notebook
+The public A-00 Kaggle page is the May 2026 version. The July guarded source
+update is pending, `dataset_sources` remains empty, and no eligible complete
+advanced dataset or production adapter is published.
+
+The retired A-series notebook ladder other than active A-00, task-notebook
 snapshots, and older checklist/status docs are archived under
 `docs/_archive/2026-05-16-legacy-notebook-era/` or
 `kaggle/_archive/notebooks/`. Root `kaggle/` should not contain appendix
-`A-*` folders, and the only root `04-*` folder should be
+`A-*` folders other than `A-00-omni-experiment-workbench`, and the only root `04-*` folder should be
 `04-kaggle-community-benchmark`.
 
 ## Current Technical Posture
 
 - Local Gemma inference is standardized through `Gemma4Runtime.load()`.
-- Archived A-00 uses the same offline default harness as the Kernel 01 comparison path:
+- Active A-00 uses the same offline default harness as the Kernel 01 comparison path:
   Persona + GREP + RAG/context + deterministic tools, with internet/import off.
-- Archived A-00 can run local Gemma judging by default and optional external judge paths
+- Active A-00 can run local Gemma judging by default and optional external judge paths
   when credentials are present.
-- Archived A-00 training supports checkpoint/resume, adapter save/load, and final report
+- Active A-00 training supports checkpoint/resume, adapter save/load, and final report
   export.
 - The harness system is documented as an ecosystem rather than a single
   monolithic harness.

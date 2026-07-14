@@ -76,6 +76,27 @@ def test_train_step_uses_organized_train_splits():
     train = next(s for s in te.plan(model_id="m", base="b", with_gpu=True) if s["name"] == "train")
     assert "--sft" in train["cmd"] and train["cmd"][train["cmd"].index("--sft") + 1].endswith("sft_train.jsonl")
     assert "--dpo" in train["cmd"] and train["cmd"][train["cmd"].index("--dpo") + 1].endswith("dpo_train.jsonl")
+    assert "--training-manifest" in train["cmd"]
+    assert train["cmd"][train["cmd"].index("--training-manifest") + 1].endswith("manifest.json")
+
+
+def test_train_and_registry_share_explicit_canonical_bundle_manifest(tmp_path):
+    manifest = tmp_path / "canonical-manifest.json"
+    steps = te.plan(
+        model_id="m",
+        base="b",
+        with_gpu=True,
+        training_manifest=manifest,
+    )
+    by_name = {step["name"]: step for step in steps}
+
+    train = by_name["train"]["cmd"]
+    register = by_name["register"]["cmd"]
+    assert train[train.index("--training-manifest") + 1] == str(manifest)
+    assert register[register.index("--data-manifest") + 1] == str(manifest)
+    artifacts = _artifacts_from_register(by_name["register"])
+    assert artifacts["training_bundle_manifest"] == "external"
+    assert artifacts["artifact_files"]["training_bundle_manifest"]["sha256"] is None
 
 
 def test_train_step_can_select_reasoning_repaired_sft_variant():

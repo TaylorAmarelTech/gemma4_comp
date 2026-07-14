@@ -274,7 +274,7 @@ def test_shared_gemma_runtime_uses_gemma4_message_content_blocks():
     assert '"content"] = [{"type": "text", "text": content}]' in runtime
     assert "tokenizer.apply_chat_template(" in runtime
     assert "FastModel.from_pretrained(" in runtime
-    assert "full_finetuning=False" in runtime
+    assert '"full_finetuning": False' in runtime
     assert "device_map = \"balanced\"" in runtime
     assert "CUDA accelerator is not visible to PyTorch" in runtime
     assert "set Accelerator to GPU T4 x2" in runtime
@@ -282,6 +282,8 @@ def test_shared_gemma_runtime_uses_gemma4_message_content_blocks():
     assert "heartbeat #" in runtime
     assert "top_p=top_p" in runtime
     assert "top_k=top_k" in runtime
+    assert "resolve_model_revision" in runtime
+    assert 'load_kwargs["revision"] = resolved_revision' in runtime
     assert "dealignai/Gemma-4-31B-JANG_4M-CRACK" in runtime
 
 

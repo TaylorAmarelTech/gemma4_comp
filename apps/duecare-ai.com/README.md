@@ -59,6 +59,7 @@ Submission metadata is client-controlled. Anonymous submissions cannot include o
 GET  /                         Public project homepage
 GET  /components                Architecture component map
 GET  /use-cases                 Deployment stories
+GET  /training-data-flywheel    Harness-to-dataset and fine-tuning release path
 GET  /grep-rules                Rule-category explainer
 GET  /tools                     Draft-only tool catalog
 GET  /context                   Context by corridor/jurisdiction

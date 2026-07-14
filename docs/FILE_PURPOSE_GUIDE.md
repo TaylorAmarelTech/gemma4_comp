@@ -53,6 +53,12 @@ historical helpers belong under `_archive/`. Do not add new narrative markdown
 files to the root unless they are a GitHub community-health convention or are
 added to `ROOT_FILES.md` with a durable reason.
 
+Durable training helpers in `scripts/` must be discoverable from
+`docs/training_and_finetuning.md`. For example,
+`scripts/ollama_adversarial_flywheel.py` is the local Ollama candidate producer:
+it may generate SFT/DPO candidates and quarantine metadata, but its manifest
+must remain candidate-only until the normal training and publication gates pass.
+
 ## Canonical Lane Language
 
 Use "six lanes" for the public story, in this exact order:
@@ -80,6 +86,13 @@ Optional benchmark surfaces:
 
 - `kaggle/03-universal-llm-benchmark`
 - `kaggle/04-kaggle-community-benchmark`
+
+Shared dataset surfaces are not additional kernels. In particular,
+[`kaggle/shared-datasets/training-data`](../kaggle/shared-datasets/training-data/)
+is a documentation-only template for a future advanced SFT/preference release.
+It must not contain training rows or an active `dataset-metadata.json` until a
+clean manifest-bound release has passed provenance, licensing, privacy,
+lineage, held-out, and quality gates.
 
 Archived reference material:
 

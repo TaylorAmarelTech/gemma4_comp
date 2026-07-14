@@ -41,7 +41,11 @@ def test_a00_inference_loads_through_shared_gemma4_runtime() -> None:
     """A-00 must declare A00_MODEL_RUNTIME = Gemma4Runtime(...) and route
     every inference load through A00_MODEL_RUNTIME.load(Gemma4LoadSpec(...))."""
     text = _a00_text()
-    assert "from duecare.chat.gemma4_runtime import Gemma4LoadSpec, Gemma4Runtime, resolve_model_ref" in text
+    assert "from duecare.chat.gemma4_runtime import (" in text
+    assert "Gemma4LoadSpec," in text
+    assert "Gemma4Runtime," in text
+    assert "resolve_model_ref," in text
+    assert "resolve_model_revision," in text
     assert "A00_MODEL_RUNTIME = Gemma4Runtime(log=_a00_model_log)" in text
     assert "A00_MODEL_RUNTIME.load(Gemma4LoadSpec(" in text
     assert "A00_MODEL_RUNTIME.unload(reason)" in text
@@ -232,9 +236,21 @@ def test_gemma4_runtime_pins_gemma4_generation_defaults() -> None:
     assert "temperature: float = 1.0," in text
     assert "top_p: float = 0.95," in text
     assert "top_k: int = 64," in text
-    assert "dtype=None," in text
-    assert 'load_in_4bit=spec.quantization.lower() in {"4bit", "nf4"},' in text
-    assert "full_finetuning=False," in text
+    assert '"dtype": None,' in text
+    assert '"load_in_4bit": spec.quantization.lower() in {"4bit", "nf4"},' in text
+    assert '"full_finetuning": False,' in text
+    assert "resolve_model_revision(" in text
+    assert 'load_kwargs["revision"] = resolved_revision' in text
+
+
+def test_a00_records_immutable_model_revision_for_training_rows() -> None:
+    text = _a00_text()
+    assert '"google/gemma-4-E2B-it": "4abfca14e6c6bfb5888b80288185b1243fb8d539"' in text
+    assert '"unsloth/gemma-4-E2B-it": "4abfca14e6c6bfb5888b80288185b1243fb8d539"' in text
+    assert '"google/gemma-4-E4B-it": "0d5a7f9ba73eda1616e58344f7025fae44914675"' in text
+    assert "model_revision = _model_revision_for_load(req.source, model_ref, req.model_revision)" in text
+    assert "revision=model_revision" in text
+    assert '"model_revision": str((STATE.get("model_info") or {}).get("revision") or "runtime-unpinned")' in text
 
 
 def test_a00_pack_rules_and_facts_have_pack_marked_provenance() -> None:

@@ -70,12 +70,19 @@ A00_COMBINED_JUDGE_MAX_NEW_TOKENS = int(os.environ.get("DUECARE_A00_COMBINED_JUD
 
 DUECARE_VERSION = os.environ.get("DUECARE_VERSION", "0.17.0")
 DUECARE_REPO = os.environ.get("DUECARE_REPO", "TaylorAmarelTech/gemma4_comp")
-DUECARE_COMMIT_SHA = os.environ.get("DUECARE_COMMIT_SHA", "master")
+DUECARE_COMMIT_SHA = os.environ.get(
+    "DUECARE_COMMIT_SHA",
+    "6d084f77524909ee19c3f7ab915cc9373baca3a7",
+)
 A00_SMALL_MODEL_REF = os.environ.get("DUECARE_A00_SMALL_MODEL_REF", "google/gemma-4-E2B-it")
 A00_DEFAULT_MODEL_REF = os.environ.get("DUECARE_A00_DEFAULT_MODEL_REF", A00_SMALL_MODEL_REF)
 A00_PINNED_MODEL_REVISIONS = {
-    "google/gemma-4-E2B-it": "9dbdf8a839e4e9e0eb56ed80cc8886661d3817cf",
-    "google/gemma-4-E4B-it": "a4c2d58be94dda072b918d9db64ee85c8ed34e3f",
+    "e2b-it": "4abfca14e6c6bfb5888b80288185b1243fb8d539",
+    "google/gemma-4-E2B-it": "4abfca14e6c6bfb5888b80288185b1243fb8d539",
+    "unsloth/gemma-4-E2B-it": "4abfca14e6c6bfb5888b80288185b1243fb8d539",
+    "e4b-it": "0d5a7f9ba73eda1616e58344f7025fae44914675",
+    "google/gemma-4-E4B-it": "0d5a7f9ba73eda1616e58344f7025fae44914675",
+    "unsloth/gemma-4-E4B-it": "0d5a7f9ba73eda1616e58344f7025fae44914675",
 }
 A00_OLLAMA_JUDGE_MODEL_REF = os.environ.get("DUECARE_A00_OLLAMA_JUDGE_MODEL_REF", "gpt-oss:20b")
 A00_OLLAMA_CLOUD_HOST = os.environ.get("DUECARE_A00_OLLAMA_CLOUD_HOST", "https://ollama.com")
@@ -452,7 +459,12 @@ try:
         training_row_sha256,
         validate_training_rows,
     )
-    from duecare.chat.gemma4_runtime import Gemma4LoadSpec, Gemma4Runtime, resolve_model_ref
+    from duecare.chat.gemma4_runtime import (
+        Gemma4LoadSpec,
+        Gemma4Runtime,
+        resolve_model_ref,
+        resolve_model_revision,
+    )
     from duecare.chat.harness import grade_response_combined, grade_response_universal
     from duecare.chat.harnesses.model_interface import call_model_backend
     from duecare.chat.kernel_shell import build_minimal_shell
@@ -1235,6 +1247,7 @@ PROMPT_SETS = _build_prompt_library()
 class ModelLoadRequest(BaseModel):
     source: str = Field("hf", description="hf, kaggle_path, local_path, github; dry_run is dev-only")
     model_ref: str = A00_SMALL_MODEL_REF
+    model_revision: str = ""
     adapter_ref: str = ""
     quantization: str = "4bit"
     trust_remote_code: bool = True
@@ -1244,6 +1257,7 @@ class ModelLoadRequest(BaseModel):
 class BatchRunRequest(BaseModel):
     model_source: str = "hf"
     model_ref: str = A00_SMALL_MODEL_REF
+    model_revision: str = ""
     model_adapter_ref: str = ""
     quantization: str = "4bit"
     auto_load_model: bool = True
@@ -1281,6 +1295,7 @@ class PackSyncRequest(BaseModel):
 class SyntheticRequest(BaseModel):
     model_source: str = "hf"
     model_ref: str = A00_SMALL_MODEL_REF
+    model_revision: str = ""
     model_adapter_ref: str = ""
     quantization: str = "4bit"
     auto_load_model: bool = True
@@ -1328,6 +1343,7 @@ class QuantitativeProfileRequest(BaseModel):
     run_label: str = ""
     model_source: str = "hf"
     model_ref: str = A00_SMALL_MODEL_REF
+    model_revision: str = ""
     model_adapter_ref: str = ""
     quantization: str = "4bit"
 
@@ -1336,14 +1352,17 @@ class PipelineRequest(BaseModel):
     preset_id: str = "synthetic_train_benchmark_cycle"
     model_a_source: str = "hf"
     model_a_ref: str = A00_SMALL_MODEL_REF
+    model_a_revision: str = ""
     model_a_adapter_ref: str = ""
     model_b_source: str = "hf"
     model_b_ref: str = A00_SMALL_MODEL_REF
+    model_b_revision: str = ""
     model_b_adapter_ref: str = ""
     judge_model_source: str = "hf"
     # Empty means "reuse model_a_ref". The preconfigured UI intentionally
     # omits a separate judge selector; Custom can still send this explicitly.
     judge_model_ref: str = ""
+    judge_model_revision: str = ""
     judge_model_adapter_ref: str = ""
     quantization: str = "4bit"
     prompt_set: str = A00_BULK_COMPARE_DEFAULT["prompt_set"]
@@ -2176,6 +2195,17 @@ def _unload_model_runtime(reason: str = "manual") -> dict[str, Any]:
         return STATE["model_info"]
 
 
+def _model_revision_for_load(source: str, ref: str, explicit_revision: str = "") -> str:
+    resolved_ref, _variant, resolved_source = resolve_model_ref(source or "hf", ref or A00_SMALL_MODEL_REF)
+    if resolved_source != "hf":
+        return (explicit_revision or "").strip().lower()
+    return (
+        resolve_model_revision(ref or A00_SMALL_MODEL_REF, resolved_ref, explicit_revision)
+        or A00_PINNED_MODEL_REVISIONS.get(resolved_ref, "")
+        or A00_PINNED_MODEL_REVISIONS.get(ref or A00_SMALL_MODEL_REF, "")
+    )
+
+
 def _load_model_runtime(req: ModelLoadRequest) -> dict[str, Any]:
     with MODEL_RUNTIME_LOCK:
         if req.source == "dry_run":
@@ -2201,6 +2231,7 @@ def _load_model_runtime(req: ModelLoadRequest) -> dict[str, Any]:
         model_ref = req.model_ref.strip()
         if not model_ref:
             raise HTTPException(400, "model_ref is required")
+        model_revision = _model_revision_for_load(req.source, model_ref, req.model_revision)
 
         try:
             # Inference loads at A00_INFERENCE_MAX_SEQ_LENGTH (default
@@ -2212,6 +2243,7 @@ def _load_model_runtime(req: ModelLoadRequest) -> dict[str, Any]:
             loaded = A00_MODEL_RUNTIME.load(Gemma4LoadSpec(
                 source=req.source,
                 model_ref=model_ref,
+                revision=model_revision,
                 adapter_ref=req.adapter_ref,
                 quantization=req.quantization,
                 trust_remote_code=req.trust_remote_code,
@@ -4133,6 +4165,7 @@ def _run_batch(req: BatchRunRequest) -> dict[str, Any]:
         _ensure_model_loaded_for_run(
             source=req.model_source,
             model_ref=req.model_ref,
+            model_revision=req.model_revision,
             adapter_ref=req.model_adapter_ref,
             quantization=req.quantization,
             label=f"batch {req.run_label or req.harness_profile}",
@@ -4998,6 +5031,7 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
         _ensure_model_loaded_for_run(
             source=req.model_source,
             model_ref=req.model_ref,
+            model_revision=req.model_revision,
             adapter_ref=req.model_adapter_ref,
             quantization=req.quantization,
             label=f"synthetic {req.generator_mode}",
@@ -5067,7 +5101,10 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
             "pii_checked": False,
             "lineage_id": lineage_id,
             "split": split,
-            "license": "project-generated-synthetic",
+            "license": "CC-BY-SA-4.0",
+            "rights_holder": "DueCare project contributors",
+            "allow_training_use": True,
+            "allow_public_redistribution": True,
             "source_refs": source_refs,
             "knowledge_pack_refs": knowledge_pack_refs,
             "prompt_family": str(seed.get("category") or seed.get("lane") or "synthetic_seed"),
@@ -5123,7 +5160,10 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
                 "pii_checked": False,
                 "lineage_id": lineage_id,
                 "split": split,
-                "license": "project-generated-synthetic",
+                "license": "CC-BY-SA-4.0",
+                "rights_holder": "DueCare project contributors",
+                "allow_training_use": True,
+                "allow_public_redistribution": True,
                 "source_refs": source_refs,
                 "knowledge_pack_refs": knowledge_pack_refs,
                 "created_at": created_at,
@@ -5207,6 +5247,26 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
         "rows": quarantine_rows,
         "contains_raw_text": False,
     })
+    prompt_scope_hashes = sorted({
+        training_text_sha256(str(row.get("prompt") or ""))
+        for row in prompt_tests
+        if str(row.get("prompt") or "")
+    })
+    prompt_scope = {
+        "scope_kind": "a00_synthetic_request",
+        "scope_id": req.source_prompt_set,
+        "requested_count": req.count,
+        "prompt_count": len(prompt_tests),
+        "prompt_sha256": _sha256_text("\n".join(prompt_scope_hashes)),
+        "closure_status": "partial",
+        "full_flywheel_closure": False,
+        "closure_evidence_sha256": "",
+        "job_complete": True,
+        "scope_note": (
+            "This bounded A-00 synthetic job completed, but it is not the exact closure of the "
+            "78,719-prompt multi-model grading flywheel."
+        ),
+    }
     source_audit = {
         "schema_version": "1.0",
         "handoff_kind": "duecare.a00.synthetic.source_audit.v1",
@@ -5217,10 +5277,31 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
         "generated_count": len(sft_rows),
         "source_scope": source_scope,
         "row_grounding": source_audit_rows,
+        "prompt_scope": prompt_scope,
+        "clean": False,
+        "risk_flags": [
+            "independent_quality_audit_pending",
+            "curator_publication_approval_pending",
+        ],
+        "quality_audit_sha256": "",
+        "approvals": {
+            "curator_approved": False,
+            "privacy_approved": False,
+            "license_approved": False,
+        },
+        "publication_note": (
+            "Training may proceed only when the bundle contract passes. Public dataset release remains "
+            "blocked until a separate clean quality audit and explicit curator/privacy/license approval "
+            "are bound to this source manifest."
+        ),
     }
     _write_json(source_audit_path, source_audit)
     source_audit_summary = {
         "raw_publication_ingestion_by_default": source_scope["raw_publication_ingestion_by_default"],
+        "clean": source_audit["clean"],
+        "risk_flags": source_audit["risk_flags"],
+        "approvals": source_audit["approvals"],
+        "prompt_scope": prompt_scope,
         "shared_harness_available": source_scope["shared_harness"]["shared_harness_available"],
         "grep_rule_count": source_scope["shared_harness"]["grep_rule_count"],
         "rag_doc_count": source_scope["shared_harness"]["rag_doc_count"],
@@ -5242,10 +5323,11 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
         for item in prompt_set
         if isinstance(item, dict) and item.get("prompt")
     }
-    frozen_prompt_hashes.update(
+    heldout_prompt_hashes = sorted({
         training_text_sha256(str(row["messages"][1]["content"]))
         for row in heldout_sft_rows
-    )
+    })
+    frozen_prompt_hashes.update(heldout_prompt_hashes)
     heldout_lineage_ids = sorted({str(row["lineage_id"]) for row in heldout_sft_rows})
     validation = validate_training_rows(
         sft_rows,
@@ -5266,6 +5348,7 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
         "memory_tool_policy": MEMORY_TOOL_POLICY if req.generator_mode == "rubric_polisher" else None,
         "source_scope": source_scope,
         "source_audit_summary": source_audit_summary,
+        "prompt_scope": prompt_scope,
         "counts": {
             "sft": len(sft_rows),
             "dpo": len(dpo_rows),
@@ -5277,7 +5360,8 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
         },
         "safe_to_train": bool(validation["ok"] and sft_rows),
         "training_validation": validation,
-        "heldout_prompt_sha256": sorted(frozen_prompt_hashes),
+        "heldout_prompt_sha256": heldout_prompt_hashes,
+        "frozen_evaluation_prompt_sha256": sorted(frozen_prompt_hashes),
         "heldout_lineage_ids": heldout_lineage_ids,
         "reasoning_data_policy": (
             "Answer text and deliberately authored structured rationale only; hidden model chain-of-thought "
@@ -6564,8 +6648,11 @@ def _create_training_job(req: TrainRequest) -> dict[str, Any]:
     script_path = TRAIN_DIR / f"{job_id}.py"
     log_path = TRAIN_DIR / f"{job_id}.log"
     base_source = "local_path" if Path(req.base_model_ref).exists() else "hf"
+    resolved_base_model_ref, resolved_variant, resolved_source = resolve_model_ref(base_source, req.base_model_ref)
     pinned_revision = (
-        req.base_model_revision.strip()
+        req.base_model_revision.strip().lower()
+        or _model_revision_for_load(base_source, req.base_model_ref, "")
+        or A00_PINNED_MODEL_REVISIONS.get(resolved_base_model_ref, "")
         or A00_PINNED_MODEL_REVISIONS.get(req.base_model_ref, "")
     )
     if req.execute and base_source == "hf" and not pinned_revision:
@@ -6573,7 +6660,6 @@ def _create_training_job(req: TrainRequest) -> dict[str, Any]:
             422,
             "training is blocked: provide an immutable base_model_revision for this remote model",
         )
-    resolved_base_model_ref, resolved_variant, resolved_source = resolve_model_ref(base_source, req.base_model_ref)
     script_req = TrainRequest(**{
         **req.dict(),
         "base_model_ref": resolved_base_model_ref,
@@ -7016,6 +7102,7 @@ def _run_quantitative_profile(req: QuantitativeProfileRequest) -> dict[str, Any]
         baseline = _run_batch(BatchRunRequest(
             model_source=req.model_source,
             model_ref=req.model_ref,
+            model_revision=req.model_revision,
             model_adapter_ref=req.model_adapter_ref,
             quantization=req.quantization,
             prompt_set=profile["prompt_set"],
@@ -7030,6 +7117,7 @@ def _run_quantitative_profile(req: QuantitativeProfileRequest) -> dict[str, Any]
         treatment = _run_batch(BatchRunRequest(
             model_source=req.model_source,
             model_ref=req.model_ref,
+            model_revision=req.model_revision,
             model_adapter_ref=req.model_adapter_ref,
             quantization=req.quantization,
             prompt_set=profile["prompt_set"],
@@ -7067,6 +7155,7 @@ def _run_quantitative_profile(req: QuantitativeProfileRequest) -> dict[str, Any]
             **synth_profile,
             model_source=req.model_source,
             model_ref=req.model_ref,
+            model_revision=req.model_revision,
             model_adapter_ref=req.model_adapter_ref,
             quantization=req.quantization,
         ))
@@ -7111,10 +7200,17 @@ PIPELINE_PRESETS = {
 }
 
 
-def _model_request(source: str, ref: str, adapter_ref: str, quantization: str) -> ModelLoadRequest:
+def _model_request(
+    source: str,
+    ref: str,
+    adapter_ref: str,
+    quantization: str,
+    model_revision: str = "",
+) -> ModelLoadRequest:
     return ModelLoadRequest(
         source=source or "hf",
         model_ref=ref or A00_SMALL_MODEL_REF,
+        model_revision=model_revision or _model_revision_for_load(source or "hf", ref or A00_SMALL_MODEL_REF, ""),
         adapter_ref=adapter_ref or "",
         quantization=quantization or "4bit",
     )
@@ -7131,10 +7227,11 @@ def _judge_model_request(req: PipelineRequest) -> ModelLoadRequest:
         req.judge_model_ref or req.model_a_ref,
         req.judge_model_adapter_ref or "",
         req.quantization,
+        req.judge_model_revision or req.model_a_revision,
     )
 
 
-def _current_model_matches(source: str, ref: str, adapter_ref: str) -> bool:
+def _current_model_matches(source: str, ref: str, adapter_ref: str, model_revision: str = "") -> bool:
     info = STATE.get("model_info") or {}
     if not info.get("loaded"):
         return False
@@ -7145,22 +7242,33 @@ def _current_model_matches(source: str, ref: str, adapter_ref: str) -> bool:
     }
     requested = str(ref or A00_SMALL_MODEL_REF)
     loaded_adapter = str(info.get("adapter_ref") or "")
-    return requested in loaded_refs and loaded_adapter == str(adapter_ref or "")
+    expected_revision = _model_revision_for_load(source or "hf", requested, model_revision)
+    loaded_revision = str(info.get("revision") or "").strip().lower()
+    revision_matches = not expected_revision or loaded_revision == expected_revision
+    return requested in loaded_refs and loaded_adapter == str(adapter_ref or "") and revision_matches
 
 
 def _ensure_model_loaded_for_run(
     *,
     source: str,
     model_ref: str,
+    model_revision: str = "",
     adapter_ref: str = "",
     quantization: str = "4bit",
     label: str = "run",
 ) -> dict[str, Any]:
     """Load the selected model as part of a run, not as a separate UI step."""
-    if _current_model_matches(source, model_ref, adapter_ref):
+    if _current_model_matches(source, model_ref, adapter_ref, model_revision):
         return STATE.get("model_info", {})
-    dc_log("a00.model.auto_load", f"{label}: {model_ref}", source=source, adapter_ref=adapter_ref)
-    return _load_model_runtime(_model_request(source, model_ref, adapter_ref, quantization))
+    resolved_revision = _model_revision_for_load(source, model_ref, model_revision)
+    dc_log(
+        "a00.model.auto_load",
+        f"{label}: {model_ref}",
+        source=source,
+        adapter_ref=adapter_ref,
+        revision=resolved_revision,
+    )
+    return _load_model_runtime(_model_request(source, model_ref, adapter_ref, quantization, resolved_revision))
 
 
 def _disk_snapshot() -> dict[str, Any]:
@@ -7176,7 +7284,7 @@ def _disk_snapshot() -> dict[str, Any]:
     }
 
 
-def _model_download_detail(source: str, ref: str, quantization: str) -> dict[str, Any]:
+def _model_download_detail(source: str, ref: str, quantization: str, model_revision: str = "") -> dict[str, Any]:
     try:
         resolved_ref, variant, resolved_source = resolve_model_ref(source or "hf", ref or A00_SMALL_MODEL_REF)
     except Exception as exc:  # noqa: BLE001
@@ -7192,6 +7300,7 @@ def _model_download_detail(source: str, ref: str, quantization: str) -> dict[str
         "requested_model": ref or A00_SMALL_MODEL_REF,
         "resolved_source": resolved_source,
         "resolved_model": resolved_ref,
+        "model_revision": _model_revision_for_load(source or "hf", ref or A00_SMALL_MODEL_REF, model_revision),
         "variant": variant,
         "quantization": quantization or "4bit",
         "runtime": "DueCare shared Gemma 4 runtime using Unsloth FastModel",
@@ -7227,7 +7336,12 @@ def _prepare_base_model_for_pipeline(job_id: str, req: PipelineRequest) -> None:
         "running",
         STATE.get("model_info") or {"loaded": False},
     )
-    current_matches = _current_model_matches(req.model_a_source, req.model_a_ref, req.model_a_adapter_ref)
+    current_matches = _current_model_matches(
+        req.model_a_source,
+        req.model_a_ref,
+        req.model_a_adapter_ref,
+        req.model_a_revision,
+    )
     if current_matches:
         _append_job_step(
             job_id,
@@ -7285,15 +7399,26 @@ def _prepare_base_model_for_pipeline(job_id: str, req: PipelineRequest) -> None:
             job_id,
             "5. Downloading selected Gemma model if not already cached",
             "running",
-            _model_download_detail(req.model_a_source, req.model_a_ref, req.quantization),
+            _model_download_detail(req.model_a_source, req.model_a_ref, req.quantization, req.model_a_revision),
         )
         _append_job_step(
             job_id,
             "6. Loading model with the shared Unsloth FastModel runtime",
             "running",
-            {"source": req.model_a_source, "model_ref": req.model_a_ref, "adapter_ref": req.model_a_adapter_ref},
+            {
+                "source": req.model_a_source,
+                "model_ref": req.model_a_ref,
+                "model_revision": _model_revision_for_load(req.model_a_source, req.model_a_ref, req.model_a_revision),
+                "adapter_ref": req.model_a_adapter_ref,
+            },
         )
-        model_info = _load_model_runtime(_model_request(req.model_a_source, req.model_a_ref, req.model_a_adapter_ref, req.quantization))
+        model_info = _load_model_runtime(_model_request(
+            req.model_a_source,
+            req.model_a_ref,
+            req.model_a_adapter_ref,
+            req.quantization,
+            req.model_a_revision,
+        ))
         _append_job_step(job_id, "6. Model loaded with the shared Unsloth FastModel runtime", "running", model_info)
 
     _preflight_loaded_model(job_id)
@@ -7531,15 +7656,26 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
         judge_info: dict[str, Any] = {}
         try:
             if req.preset_id == "compare_two_models":
-                for label, source, ref, adapter in [
-                    ("model_a", req.model_a_source, req.model_a_ref, req.model_a_adapter_ref),
-                    ("model_b", req.model_b_source, req.model_b_ref, req.model_b_adapter_ref),
+                for label, source, ref, revision, adapter in [
+                    ("model_a", req.model_a_source, req.model_a_ref, req.model_a_revision, req.model_a_adapter_ref),
+                    ("model_b", req.model_b_source, req.model_b_ref, req.model_b_revision, req.model_b_adapter_ref),
                 ]:
                     if req.unload_between_steps:
                         _append_job_step(job_id, f"unload before {label}", "running")
                         _unload_model_runtime(f"pipeline {job_id}: before {label}")
-                    _append_job_step(job_id, f"load {label}", "running", {"source": source, "model_ref": ref, "adapter_ref": adapter})
-                    model_info = _load_model_runtime(_model_request(source, ref, adapter, req.quantization))
+                    resolved_revision = _model_revision_for_load(source, ref, revision)
+                    _append_job_step(
+                        job_id,
+                        f"load {label}",
+                        "running",
+                        {
+                            "source": source,
+                            "model_ref": ref,
+                            "model_revision": resolved_revision,
+                            "adapter_ref": adapter,
+                        },
+                    )
+                    model_info = _load_model_runtime(_model_request(source, ref, adapter, req.quantization, resolved_revision))
                     _append_job_step(job_id, f"loaded {label}", "running", model_info)
                     bundle = _run_batch(BatchRunRequest(
                         auto_load_model=False,
@@ -7683,6 +7819,7 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                 train_job = _create_training_job(TrainRequest(
                     data_path=synth["artifacts"]["sft"],
                     base_model_ref=req.model_b_ref or req.model_a_ref,
+                    base_model_revision=req.model_b_revision or req.model_a_revision,
                     adapter_name=f"{_safe_slug(req.run_label or job_id)}-adapter",
                     execute=req.execute_training,
                     max_steps=req.max_steps,
@@ -7722,8 +7859,28 @@ def _run_pipeline_job(job_id: str, req: PipelineRequest) -> None:
                     if req.unload_between_steps:
                         _append_job_step(job_id, "14. Preparing to load fine-tuned model", "running")
                         _unload_model_runtime(f"pipeline {job_id}: before adapter benchmark")
-                    _append_job_step(job_id, "14. Loading fine-tuned model", "running", {"base_model_ref": req.model_b_ref or req.model_a_ref, "adapter_ref": adapter_path})
-                    ft_model_info = _load_model_runtime(_model_request(req.model_b_source or req.model_a_source, req.model_b_ref or req.model_a_ref, str(adapter_path), req.quantization))
+                    ft_revision = req.model_b_revision or req.model_a_revision
+                    _append_job_step(
+                        job_id,
+                        "14. Loading fine-tuned model",
+                        "running",
+                        {
+                            "base_model_ref": req.model_b_ref or req.model_a_ref,
+                            "base_model_revision": _model_revision_for_load(
+                                req.model_b_source or req.model_a_source,
+                                req.model_b_ref or req.model_a_ref,
+                                ft_revision,
+                            ),
+                            "adapter_ref": adapter_path,
+                        },
+                    )
+                    ft_model_info = _load_model_runtime(_model_request(
+                        req.model_b_source or req.model_a_source,
+                        req.model_b_ref or req.model_a_ref,
+                        str(adapter_path),
+                        req.quantization,
+                        ft_revision,
+                    ))
                     _append_job_step(job_id, "14. Fine-tuned model loaded", "running", ft_model_info)
                     _append_job_step(job_id, "15. Sending prompts to fine-tuned Gemma without the DueCare harness", "running", {
                         "prompt_set": req.prompt_set,
@@ -8061,9 +8218,21 @@ def api_model_presets() -> Any:
     else:
         default_judge_ref = A00_SMALL_MODEL_REF
         default_judge_source = "hf"
+    pinned_presets = [
+        {
+            **preset,
+            "revision": _model_revision_for_load(
+                str(preset.get("source") or "hf"),
+                str(preset.get("ref") or A00_SMALL_MODEL_REF),
+                str(preset.get("revision") or ""),
+            ),
+        }
+        for preset in MODEL_PRESETS
+    ]
     return {
-        "presets": MODEL_PRESETS,
+        "presets": pinned_presets,
         "judge_presets": JUDGE_MODEL_PRESETS,
+        "pinned_model_revisions": dict(A00_PINNED_MODEL_REVISIONS),
         "ollama_cloud_ready": bool(ollama_key),
         "anthropic_ready": bool(anthropic_key),
         "openrouter_ready": bool(openrouter_key),
@@ -8607,6 +8776,7 @@ __A00_SHUTDOWN_CONTROL__
         <label>Quantization <select id="quantization"><option>4bit</option><option>8bit</option><option>bf16</option></select></label>
       </div>
       <div class="row compact-row">
+        <label>Model revision <input id="model-revision" placeholder="optional Hub commit; official Gemma presets auto-pin"></label>
         <label>Adapter path <input id="adapter-ref" placeholder="/kaggle/input/my-lora"></label>
         <label>Prompt set <select id="prompt-set"></select></label>
         <label>Prompt count <input id="limit" type="number" min="1" max="500" value="25"></label>
@@ -8709,6 +8879,11 @@ __A00_SHUTDOWN_CONTROL__
       <label>Fine-tune base source <select id="pipeline-b-source"><option value="hf">hf</option><option value="kaggle_path">kaggle_path</option><option value="local_path">local_path</option></select></label>
       <label>Fine-tune base model/path <input id="pipeline-b-ref" value="__A00_SMALL_MODEL_REF__"></label>
       <label>Existing adapter path <input id="pipeline-b-adapter" placeholder="/kaggle/input/adapter-b"></label>
+    </div>
+    <div class="row compact-row">
+      <label>Model A revision <input id="pipeline-a-revision" placeholder="optional Hub commit"></label>
+      <label>Model B revision <input id="pipeline-b-revision" placeholder="optional Hub commit"></label>
+      <label>Judge revision <input id="pipeline-judge-revision" placeholder="optional Hub commit"></label>
     </div>
     <label>Resume training checkpoint <input id="pipeline-resume-checkpoint" placeholder="/kaggle/working/a00_training/.../checkpoint-40"></label>
     <div class="row compact-row">
@@ -9234,7 +9409,7 @@ async function loadOptions() {
   if ($("pipeline-preset")) $("pipeline-preset").innerHTML = Object.entries(presets.presets || {}).map(([id,p]) => `<option value="${id}">${p.label}</option>`).join("");
   const modelPresets = await getJson("/api/a00/model-presets");
   if ($("preconfig-model")) {
-    const modelOptions = (modelPresets.presets || []).map(p => `<option value="${p.ref}" data-source="${p.source || "hf"}">${p.label || p.ref}</option>`).join("");
+    const modelOptions = (modelPresets.presets || []).map(p => `<option value="${p.ref}" data-source="${p.source || "hf"}" data-revision="${p.revision || ""}">${p.label || p.ref}</option>`).join("");
     $("preconfig-model").innerHTML = modelOptions;
     $("preconfig-model").value = "__A00_SMALL_MODEL_REF__";
   }
@@ -9251,6 +9426,10 @@ async function loadOptions() {
   if ($("pipeline-prompt-set")) $("pipeline-prompt-set").value = bulk.prompt_set;
   if ($("pipeline-baseline-harness")) $("pipeline-baseline-harness").value = bulk.baseline_harness;
   if ($("pipeline-harness")) $("pipeline-harness").value = "chat_no_online";
+  if ($("model-revision")) $("model-revision").value = "";
+  if ($("pipeline-a-revision")) $("pipeline-a-revision").value = "";
+  if ($("pipeline-b-revision")) $("pipeline-b-revision").value = "";
+  if ($("pipeline-judge-revision")) $("pipeline-judge-revision").value = "";
   if ($("pipeline-synth-count")) $("pipeline-synth-count").value = 4;
   if ($("pipeline-max-steps")) $("pipeline-max-steps").value = train.max_steps;
   if ($("pipeline-b-ref")) $("pipeline-b-ref").value = train.base_model_ref || "__A00_SMALL_MODEL_REF__";
@@ -9283,13 +9462,16 @@ function useE2BPipelineDefaults(silent=false) {
   $("pipeline-label").value = "e2b-four-arm-smoke";
   $("pipeline-a-source").value = "hf";
   $("pipeline-a-ref").value = "__A00_SMALL_MODEL_REF__";
+  $("pipeline-a-revision").value = "";
   $("pipeline-a-adapter").value = "";
   $("pipeline-b-source").value = "hf";
   $("pipeline-b-ref").value = "__A00_SMALL_MODEL_REF__";
+  $("pipeline-b-revision").value = "";
   $("pipeline-b-adapter").value = "";
   $("pipeline-resume-checkpoint").value = "";
   $("pipeline-judge-source").value = "hf";
   $("pipeline-judge-ref").value = "__A00_SMALL_MODEL_REF__";
+  $("pipeline-judge-revision").value = "";
   $("pipeline-judge-adapter").value = "";
   $("pipeline-limit").value = 4;
   $("pipeline-synth-count").value = 4;
@@ -9321,6 +9503,7 @@ async function runPreconfiguredPipeline() {
   const selected = $("preconfig-model") && $("preconfig-model").selectedOptions ? $("preconfig-model").selectedOptions[0] : null;
   const modelRef = selected ? selected.value : "__A00_SMALL_MODEL_REF__";
   const modelSource = selected ? (selected.getAttribute("data-source") || "hf") : "hf";
+  const modelRevision = selected ? (selected.getAttribute("data-revision") || "") : "";
   const judgeModelRef = modelRef;
   const judgeModelSource = modelSource;
   $("pipeline-limit").value = limit;
@@ -9332,18 +9515,24 @@ async function runPreconfiguredPipeline() {
   $("pipeline-label").value = execute ? "e2b-full-train-eval" : "e2b-training-handoff-eval";
   $("pipeline-judge-source").value = judgeModelSource;
   $("pipeline-judge-ref").value = judgeModelRef;
+  $("pipeline-a-revision").value = modelRevision;
+  $("pipeline-b-revision").value = modelRevision;
+  $("pipeline-judge-revision").value = modelRevision;
   $("pipeline-judge-adapter").value = "";
   setPreconfiguredProgress(6, "Queueing guided pipeline. Step 1 checks current model state; then A-00 unloads memory if needed, checks disk, loads the selected Gemma model, runs both benchmark arms, fine-tunes, reuses the selected Gemma model for final combined grading, and saves the report.");
   const body = {
     preset_id: "synthetic_train_benchmark_cycle",
     model_a_source: modelSource,
     model_a_ref: modelRef,
+    model_a_revision: modelRevision,
     model_a_adapter_ref: "",
     model_b_source: modelSource,
     model_b_ref: modelRef,
+    model_b_revision: modelRevision,
     model_b_adapter_ref: "",
     judge_model_source: judgeModelSource,
     judge_model_ref: judgeModelRef,
+    judge_model_revision: modelRevision,
     judge_model_adapter_ref: "",
     prompt_set: $("pipeline-prompt-set").value || $("prompt-set").value,
     harness_profile: "chat_no_online",
@@ -9380,12 +9569,14 @@ async function runPreconfiguredPipeline() {
 function setAbliterated() {
   $("model-source").value = "hf";
   $("model-ref").value = "mlabonne/Gemma-4-E4B-it-abliterated";
+  $("model-revision").value = "";
   $("run-label").value = "abliterated-adversary";
 }
 function selectedModelPayload() {
   return {
     model_source: $("model-source").value,
     model_ref: $("model-ref").value,
+    model_revision: $("model-revision").value,
     model_adapter_ref: $("adapter-ref").value,
     quantization: $("quantization").value
   };
@@ -9394,6 +9585,7 @@ async function runBatch() {
   const body = {
     model_source: $("model-source").value,
     model_ref: $("model-ref").value,
+    model_revision: $("model-revision").value,
     model_adapter_ref: $("adapter-ref").value,
     quantization: $("quantization").value,
     prompt_set: $("prompt-set").value,
@@ -9446,12 +9638,15 @@ async function runAdvancedPipeline() {
     preset_id: $("pipeline-preset").value,
     model_a_source: $("pipeline-a-source").value,
     model_a_ref: $("pipeline-a-ref").value,
+    model_a_revision: $("pipeline-a-revision").value,
     model_a_adapter_ref: $("pipeline-a-adapter").value,
     model_b_source: $("pipeline-b-source").value,
     model_b_ref: $("pipeline-b-ref").value,
+    model_b_revision: $("pipeline-b-revision").value,
     model_b_adapter_ref: $("pipeline-b-adapter").value,
     judge_model_source: $("pipeline-judge-source").value,
     judge_model_ref: $("pipeline-judge-ref").value,
+    judge_model_revision: $("pipeline-judge-revision").value,
     judge_model_adapter_ref: $("pipeline-judge-adapter").value,
     quantization: $("quantization").value,
     prompt_set: $("pipeline-prompt-set").value,

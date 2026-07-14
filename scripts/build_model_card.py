@@ -147,6 +147,35 @@ def _display_artifact_path(raw_path: Any) -> str:
     raw = str(raw_path)
     try:
         path = pathlib.Path(raw)
+        # A concrete Path supplied by local code is safe to classify using the
+        # host filesystem.  JSON/registry strings need flavour-independent
+        # handling below so Linux and Windows publish the same redaction.
+        if isinstance(raw_path, pathlib.Path):
+            if path.is_absolute():
+                try:
+                    return _safe_relative_artifact_path(path.relative_to(_ROOT))
+                except ValueError:
+                    return "external"
+            return _safe_relative_artifact_path(
+                pathlib.PurePosixPath(pathlib.PureWindowsPath(raw).as_posix())
+            )
+
+        windows_path = pathlib.PureWindowsPath(raw)
+        posix_path = pathlib.PurePosixPath(raw)
+        if windows_path.is_absolute():
+            if path.is_absolute():
+                try:
+                    return _safe_relative_artifact_path(path.relative_to(_ROOT))
+                except ValueError:
+                    pass
+            return "external"
+        if posix_path.is_absolute():
+            if path.is_absolute():
+                try:
+                    return _safe_relative_artifact_path(path.relative_to(_ROOT))
+                except ValueError:
+                    pass
+            return "redacted" if _LOCAL_PATH_HINT.search(raw) else "external"
         if path.is_absolute():
             try:
                 return _safe_relative_artifact_path(path.relative_to(_ROOT))

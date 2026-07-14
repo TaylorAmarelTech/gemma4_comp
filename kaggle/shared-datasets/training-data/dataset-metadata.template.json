@@ -1,0 +1,19 @@
+{
+  "_template_status": "documentation-only-not-publishable",
+  "title": "DueCare Advanced Training Data - REPLACE WITH VERSIONED TITLE",
+  "id": "REPLACE_OWNER/REPLACE_VERSIONED_SLUG",
+  "licenses": [
+    {
+      "name": "REPLACE_AFTER_ROW_LEVEL_LICENSE_AUDIT"
+    }
+  ],
+  "subtitle": "Manifest-bound SFT and preference data that passed DueCare provenance, privacy, lineage, and held-out gates.",
+  "description": "TEMPLATE ONLY. Generate final Kaggle metadata inside a verified release directory after all source, license, privacy, quality, lineage, and redistribution gates pass. Never publish this placeholder file or rename it in place.",
+  "keywords": [
+    "gemma-4",
+    "llm-fine-tuning",
+    "safety",
+    "preference-data",
+    "anti-trafficking"
+  ]
+}

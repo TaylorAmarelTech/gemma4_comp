@@ -167,7 +167,8 @@ Example footnote in a paper:
 > Proxy lift figures (+51.4 pp mean) computed against 200+ prompt
 > proxies using the Duecare safety harness at git SHA `c235e14`,
 > dataset `taylorsamarel/duecare-trafficking-prompts@v3`, model
-> `google/gemma-4-e2b-it@main` as of 2026-05-02. Reproduction
+> `unsloth/gemma-4-E2B-it@4abfca14e6c6bfb5888b80288185b1243fb8d539`.
+> Reproduction
 > instructions: `docs/scenarios/researcher-analysis.md`,
 > "Workflow 1".
 

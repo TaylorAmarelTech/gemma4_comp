@@ -109,12 +109,16 @@ def test_portability_contract_module_evaluates_current_app():
 
 
 def test_portability_model_and_sample_helpers_are_canonical():
-    from duecare.chat.gemma4_runtime import resolve_model_ref, variant_from_ref
+    from duecare.chat.gemma4_runtime import (
+        resolve_model_ref,
+        resolve_model_revision,
+        variant_from_ref,
+    )
     from duecare.chat.portability import (
         model_variant_map,
         model_variant_ui_map,
-        onboarding_path_map,
         notebook_role_map,
+        onboarding_path_map,
         sample_artifact_map,
     )
 
@@ -128,6 +132,22 @@ def test_portability_model_and_sample_helpers_are_canonical():
     assert resolved == "unsloth/gemma-4-E2B-it"
     assert variant == "e2b-it"
     assert source == "hf"
+    assert (
+        resolve_model_revision("google/gemma-4-E2B-it", resolved, "")
+        == "4abfca14e6c6bfb5888b80288185b1243fb8d539"
+    )
+    assert (
+        resolve_model_revision("custom/repo", "custom/repo", "b" * 40)
+        == "b" * 40
+    )
+    custom_resolved, custom_variant, custom_source = resolve_model_ref(
+        "hf",
+        "mlabonne/Gemma-4-E4B-it-abliterated",
+    )
+    assert custom_resolved == "mlabonne/Gemma-4-E4B-it-abliterated"
+    assert custom_variant == "e4b-it"
+    assert custom_source == "hf"
+    assert resolve_model_revision(custom_resolved, custom_resolved, "") == ""
 
     from duecare.chat.runtime_chrome import runtime_model_topbar_html
 
