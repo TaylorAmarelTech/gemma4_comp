@@ -50,6 +50,9 @@ def test_plan_counts_all_cells_new_when_nothing_on_disk(tmp_path):
     assert plan["total_new_model_calls"] == 18
     assert plan["n_prompts"] == 2 and plan["n_adversarial"] == 2 and plan["n_benign"] == 0
     assert plan["is_board_default"] is True
+    assert plan["grader"] == "batched"
+    assert plan["judge_calls_per_cell"] == 1
+    assert plan["judge_new_calls"] == 12
 
 
 def test_plan_credits_reuse_and_on_disk_rows(tmp_path):
@@ -89,6 +92,8 @@ def test_plan_pairwise_and_skip_judge(tmp_path):
     with_pw = rh.plan_run(prompts, ["gemma4:31b"], ["gpt-oss:120b"], run_paths=_paths(tmp_path),
                           reuse={}, pairwise=True)
     assert with_pw["pairwise_new_cells"] == 1              # 1 prompt x 1 model x 1 judge
+    assert with_pw["pairwise_calls_per_cell"] == 2          # both presentation orders
+    assert with_pw["pairwise_new_calls"] == 2
     skip = rh.plan_run(prompts, ["gemma4:31b"], ["gpt-oss:120b"], run_paths=_paths(tmp_path),
                        reuse={}, skip_judge=True)
     assert skip["judge_new_cells"] == 0                    # no judging planned
@@ -101,6 +106,61 @@ def test_plan_rejects_unknown_versions(tmp_path):
     with pytest.raises(ValueError, match="unknown rubric version"):
         rh.plan_run([{"id": "P1", "text": "a"}], ["m"], ["j"], run_paths=_paths(tmp_path),
                     reuse={}, rubric_version="vZ")
+    with pytest.raises(ValueError, match="unknown grader"):
+        rh.plan_run([{"id": "P1", "text": "a"}], ["m"], ["j"], run_paths=_paths(tmp_path),
+                    reuse={}, grader="unknown")
+
+
+def test_plan_counts_underlying_per_dimension_calls_by_rubric(tmp_path):
+    prompts = [{"id": "P1", "text": "a"}]
+    v1 = rh.plan_run(prompts, ["gemma4:31b"], ["gpt-oss:120b"],
+                     run_paths=_paths(tmp_path), reuse={}, grader="perdim")
+    assert v1["judge_new_cells"] == 3
+    assert v1["judge_calls_per_cell"] == 5
+    assert v1["judge_new_calls"] == 15
+    assert v1["total_new_model_calls"] == 18               # 3 generation + 15 judging
+    assert v1["is_board_default"] is False
+
+    v2 = rh.plan_run(prompts, ["gemma4:31b"], ["gpt-oss:120b"],
+                     run_paths=_paths(tmp_path), reuse={}, grader="perdim", rubric_version="v2")
+    assert v2["judge_calls_per_cell"] == 6                  # A-E plus separate F channel
+    assert v2["judge_new_calls"] == 18
+    assert v2["total_new_model_calls"] == 21
+
+
+def test_perdim_resume_ignores_batched_panel_but_shares_generation(tmp_path):
+    prompts = [{"id": "P1", "text": "a"}]
+    shared_results = tmp_path / "results.jsonl"
+    shared_pairwise = tmp_path / "pairwise.jsonl"
+    batched = {
+        "results": shared_results,
+        "panel": tmp_path / "panel.jsonl",
+        "pairwise": shared_pairwise,
+        "report": tmp_path / "report.md",
+    }
+    perdim = {
+        "results": shared_results,
+        "panel": tmp_path / "panel_perdim.jsonl",
+        "pairwise": shared_pairwise,
+        "report": tmp_path / "report_perdim.md",
+    }
+    shared_results.write_text("\n".join(json.dumps({
+        "model": "gemma4:31b", "prompt_id": "P1", "arm": arm, "response": "done",
+    }) for arm in rh.ARMS) + "\n", encoding="utf-8")
+    batched["panel"].write_text("\n".join(json.dumps({
+        "model": "gemma4:31b", "prompt_id": "P1", "arm": arm, "judge": "gpt-oss:120b",
+        "score_0_100": 80,
+    }) for arm in rh.ARMS) + "\n", encoding="utf-8")
+
+    batched_plan = rh.plan_run(prompts, ["gemma4:31b"], ["gpt-oss:120b"],
+                               run_paths=batched, reuse={})
+    perdim_plan = rh.plan_run(prompts, ["gemma4:31b"], ["gpt-oss:120b"],
+                              run_paths=perdim, reuse={}, grader="perdim")
+
+    assert batched_plan["gen_already_done"] == perdim_plan["gen_already_done"] == 3
+    assert batched_plan["judge_new_cells"] == 0
+    assert perdim_plan["judge_new_cells"] == 3
+    assert perdim_plan["judge_new_calls"] == 15
 
 
 def test_format_plan_states_no_model_was_called_and_scope():
@@ -113,6 +173,7 @@ def test_format_plan_states_no_model_was_called_and_scope():
     text = rh.format_plan(plan)
     assert "NO model was called" in text
     assert "BOARD DEFAULT (v1/h1)" in text
+    assert "Grader: batched (1 component judge call per panel cell)" in text
     assert "TOTAL" in text
 
     opt_in = rh.plan_run([{"id": "P1", "text": "a"}], ["gemma4:31b"], ["gpt-oss:120b"],
@@ -121,7 +182,7 @@ def test_format_plan_states_no_model_was_called_and_scope():
                                     "pairwise": Path("reports/rich_lift/pairwise_h2.jsonl"),
                                     "report": Path("docs/research/rich_harness_lift_100_h2_v2.md")},
                          reuse={}, rubric_version="v2", harness_version="h2")
-    assert "OPT-IN (h2/v2)" in rh.format_plan(opt_in)
+    assert "ISOLATED (h2/v2)" in rh.format_plan(opt_in)
 
 
 def test_format_plan_redacts_private_external_path_names(tmp_path):

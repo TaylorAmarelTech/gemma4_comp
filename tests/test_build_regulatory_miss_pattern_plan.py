@@ -89,6 +89,38 @@ def test_plan_rejects_urls_and_sensitive_fields_without_copying_values():
     assert "private-case" not in encoded
 
 
+def test_plan_rejects_8_digit_case_like_values_without_copying_them():
+    config = {
+        "patterns": [
+            _pattern(
+                source_gates=["remove copied case12345678 before domain planning"],
+            )
+        ]
+    }
+
+    doc = plan_builder.build_plan(config)
+    encoded = json.dumps(doc)
+
+    assert doc["manifest"]["safe_for_research_planning"] is False
+    assert doc["manifest"]["issues"]["source_gates_contains_unsafe_text"] == 1
+    assert "case12345678" not in encoded
+
+
+def test_privacy_scan_flags_8_digit_case_like_values_without_copying_them():
+    scan = plan_builder._scan_privacy([
+        {
+            "id": "digital_consumer_credit_worker_debt",
+            "source_gates": ["remove copied case12345678 before domain planning"],
+        }
+    ])
+    encoded = json.dumps(scan)
+
+    assert scan["ok"] is False
+    assert scan["counts"]["long_digit"] == 1
+    assert scan["long_digit_paths"] == ["$[0].source_gates[0]"]
+    assert "case12345678" not in encoded
+
+
 def test_duplicate_ids_are_flagged():
     config = {"patterns": [_pattern(), _pattern()]}
 

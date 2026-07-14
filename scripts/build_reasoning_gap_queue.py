@@ -76,7 +76,7 @@ PII_SCAN_EXEMPT_FIELDS = frozenset({"prompt_id", "original_prompt_id", "base_pro
 VALID_TARGET_LINKS = frozenset(STEPS)
 _EMAIL = re.compile(r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", re.I)
 _PHONE = re.compile(r"\+?\d[\d\s().\-]{8,}\d")
-_LONG_DIGITS = re.compile(r"\b\d{9,}\b")
+_LONG_DIGITS = re.compile(r"(?<!\d)\d{8,}(?!\d)")
 _LOCAL_PATH_HINT = re.compile(
     r"(?:[A-Za-z]:[\\/]|\\\\|(?:^|[\s\"'(:])/(?:Users|home|tmp|var|mnt|private|Volumes)(?:/|$)|~[\\/])",
     re.I,

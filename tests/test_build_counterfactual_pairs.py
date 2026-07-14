@@ -68,6 +68,17 @@ def test_manifest_tracks_custom_source_path_without_leaking_absolute_path(tmp_pa
     assert str(tmp_path) not in json.dumps(doc["manifest"])
 
 
+def test_display_manifest_redacts_8_digit_case_like_values_without_copying_them():
+    manifest = cf._display_manifest({
+        "source": "reports/training/case_12345678/scheme_prompts.json",
+        "note": "remove copied case_12345678 before review",
+    })
+    manifest_json = json.dumps(manifest)
+
+    assert manifest == {"source": "redacted", "note": "redacted"}
+    assert "case_12345678" not in manifest_json
+
+
 def test_validate_console_redacts_sensitive_source_path(tmp_path, capsys):
     sensitive_dir = tmp_path / "worker@example.com-case-123456789"
     sensitive_dir.mkdir()

@@ -42,6 +42,7 @@ import math
 import os
 import re
 import time
+import unicodedata
 from collections import Counter
 from pathlib import Path
 from typing import Any, Callable
@@ -77,7 +78,8 @@ def _grep_call(text: str, extra_rules=None) -> dict:
     hits = []
     if not text or not text.strip():
         return {"hits": [], "elapsed_ms": int((time.time() - t0) * 1000)}
-    lower = text.lower()
+    normalized = unicodedata.normalize("NFC", text)
+    lower = normalized.lower()
     rule_set = list(GREP_RULES) + list(MULTILINGUAL_GREP_RULES) + list(extra_rules or [])
     for rule in rule_set:
         patterns = rule.get("patterns") or []
@@ -108,8 +110,8 @@ def _grep_call(text: str, extra_rules=None) -> dict:
                     pass
             # Capture surrounding context for excerpt
             start = max(0, m.start() - 30)
-            end = min(len(text), m.end() + 30)
-            excerpt = text[start:end].strip().replace("\n", " ")
+            end = min(len(normalized), m.end() + 30)
+            excerpt = normalized[start:end].strip().replace("\n", " ")
             matched_excerpts.append(f"…{excerpt}…")
         if all_required and not all_matched:
             continue
@@ -4554,6 +4556,64 @@ def _normalized_edit_distance(a: str, b: str) -> float:
     return difflib.SequenceMatcher(None, a, b, autojunk=False).ratio()
 
 
+def _levenshtein_candidate_starts(
+    needle: str,
+    haystack: str,
+    *,
+    window_len: int,
+    step: int,
+    threshold: float,
+) -> list[int] | None:
+    """Return scan positions that can satisfy the edit threshold.
+
+    A match within ``k`` Levenshtein edits must preserve at least one of
+    ``k + 1`` exact, non-overlapping needle blocks.  An unchanged block can
+    shift by at most ``k`` characters because of insertions or deletions, so
+    each block occurrence identifies a small, safe range of possible window
+    starts.  Returning ``None`` asks the caller to use the original full scan
+    when this proof does not apply (notably the long-string SequenceMatcher
+    branch in ``_normalized_edit_distance``).
+    """
+    haystack_len = len(haystack)
+    if haystack_len < window_len:
+        return None
+
+    max_len = max(len(needle), window_len)
+    if max_len > 32 or not (0.0 < threshold <= 1.0):
+        return None
+
+    # Use the same floating-point comparison as the final similarity check.
+    # This avoids rounding 0.80's one-edit boundary down for five-char text.
+    max_edits = 0
+    while (
+        max_edits < max_len
+        and 1.0 - ((max_edits + 1) / max_len) >= threshold
+    ):
+        max_edits += 1
+    n_blocks = max_edits + 1
+    if n_blocks > len(needle):
+        return None
+
+    last_start = haystack_len - window_len
+    candidates: set[int] = set()
+    for block_index in range(n_blocks):
+        block_start = (block_index * len(needle)) // n_blocks
+        block_end = ((block_index + 1) * len(needle)) // n_blocks
+        block = needle[block_start:block_end]
+        occurrence = haystack.find(block)
+        while occurrence >= 0:
+            start_min = max(0, occurrence - block_start - max_edits)
+            start_max = min(
+                last_start,
+                occurrence - block_start + max_edits,
+            )
+            if start_min <= start_max:
+                aligned_start = ((start_min + step - 1) // step) * step
+                candidates.update(range(aligned_start, start_max + 1, step))
+            occurrence = haystack.find(block, occurrence + 1)
+    return sorted(candidates)
+
+
 def _fuzzy_substring_match(needle: str, haystack: str,
                               *, threshold: float = 0.80) -> bool:
     """Sliding-window fuzzy match using normalized Levenshtein distance.
@@ -4571,18 +4631,24 @@ def _fuzzy_substring_match(needle: str, haystack: str,
     # individual terms like 'kafala', 'POEA', 'forced labour' where
     # alignment matters. step=n//8 for longer ones to keep it fast.
     step = 1 if n <= 16 else max(1, n // 8)
-    for i in range(0, max(1, len(haystack_low) - n + 1), step):
-        window = haystack_low[i : i + n]
-        sim = _normalized_edit_distance(needle_low, window)
-        if sim >= threshold:
-            return True
-    # Also try slightly-different window sizes (n-1, n+1) to catch
-    # missing/extra characters at the boundary
-    for delta in (-1, 1):
+    # Keep the original n, n-1, n+1 scan order and step alignment.  For
+    # short Levenshtein windows, exact-block anchors safely reduce thousands
+    # of DP calls to the handful of starts that can meet the edit budget.
+    for delta in (0, -1, 1):
         wn = n + delta
         if wn <= 0 or wn > len(haystack_low):
-            continue
-        for i in range(0, max(1, len(haystack_low) - wn + 1), step):
+            if delta != 0:
+                continue
+        starts = _levenshtein_candidate_starts(
+            needle_low,
+            haystack_low,
+            window_len=wn,
+            step=step,
+            threshold=threshold,
+        )
+        if starts is None:
+            starts = range(0, max(1, len(haystack_low) - wn + 1), step)
+        for i in starts:
             window = haystack_low[i : i + wn]
             sim = _normalized_edit_distance(needle_low, window)
             if sim >= threshold:

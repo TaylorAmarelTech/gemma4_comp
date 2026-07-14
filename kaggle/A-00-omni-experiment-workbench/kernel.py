@@ -73,6 +73,10 @@ DUECARE_REPO = os.environ.get("DUECARE_REPO", "TaylorAmarelTech/gemma4_comp")
 DUECARE_COMMIT_SHA = os.environ.get("DUECARE_COMMIT_SHA", "master")
 A00_SMALL_MODEL_REF = os.environ.get("DUECARE_A00_SMALL_MODEL_REF", "google/gemma-4-E2B-it")
 A00_DEFAULT_MODEL_REF = os.environ.get("DUECARE_A00_DEFAULT_MODEL_REF", A00_SMALL_MODEL_REF)
+A00_PINNED_MODEL_REVISIONS = {
+    "google/gemma-4-E2B-it": "9dbdf8a839e4e9e0eb56ed80cc8886661d3817cf",
+    "google/gemma-4-E4B-it": "a4c2d58be94dda072b918d9db64ee85c8ed34e3f",
+}
 A00_OLLAMA_JUDGE_MODEL_REF = os.environ.get("DUECARE_A00_OLLAMA_JUDGE_MODEL_REF", "gpt-oss:20b")
 A00_OLLAMA_CLOUD_HOST = os.environ.get("DUECARE_A00_OLLAMA_CLOUD_HOST", "https://ollama.com")
 A00_ANTHROPIC_JUDGE_MODEL_REF = os.environ.get("DUECARE_A00_ANTHROPIC_JUDGE_MODEL_REF", "claude-opus-4-7")
@@ -441,6 +445,12 @@ try:
         quantitative_run_profile_map,
         synthetic_generation_profile_map,
         training_profile_map,
+    )
+    from duecare.chat.training_contract import (
+        canonical_sha256 as training_text_sha256,
+        pii_findings as training_pii_findings,
+        training_row_sha256,
+        validate_training_rows,
     )
     from duecare.chat.gemma4_runtime import Gemma4LoadSpec, Gemma4Runtime, resolve_model_ref
     from duecare.chat.harness import grade_response_combined, grade_response_universal
@@ -1285,7 +1295,10 @@ class SyntheticRequest(BaseModel):
 
 class TrainRequest(BaseModel):
     data_path: str = ""
+    dpo_path: str = ""
+    manifest_path: str = ""
     base_model_ref: str = A00_TRAINING_DEFAULT["base_model_ref"]
+    base_model_revision: str = ""
     adapter_name: str = A00_TRAINING_DEFAULT["adapter_name"]
     method: str = A00_TRAINING_DEFAULT["method"]
     use_unsloth: bool = True
@@ -4081,8 +4094,9 @@ def _synthetic_activity_detail(manifest: dict[str, Any]) -> dict[str, Any]:
         "source_scope": manifest.get("source_scope", {}),
         "source_audit_summary": manifest.get("source_audit_summary", {}),
         "artifacts": _artifact_links(manifest.get("artifacts", {})),
-        "sample_sft_rows": manifest.get("sample_sft_rows", []),
-        "sample_prompt_tests": manifest.get("sample_prompt_tests", []),
+        "safe_to_train": manifest.get("safe_to_train", False),
+        "training_validation": manifest.get("training_validation", {}),
+        "reasoning_data_policy": manifest.get("reasoning_data_policy", ""),
     }
 
 
@@ -4881,6 +4895,104 @@ details.prompt-card summary {{ cursor: pointer; font-weight: 700; }}
     return STATE["last_report"]
 
 
+def _synthetic_training_split(index: int, count: int) -> str:
+    """Deterministically split one unique lineage group."""
+    if count <= 2:
+        return "train"
+    n_test = max(1, count // 10)
+    n_validation = max(1, count // 10) if count >= 5 else 0
+    if index >= count - n_test:
+        return "test"
+    if n_validation and index >= count - n_test - n_validation:
+        return "validation"
+    return "train"
+
+
+def _training_lineage_id(seed: dict[str, Any]) -> str:
+    return str(seed.get("prompt_id") or training_text_sha256(seed.get("prompt", ""))[:24])
+
+
+def _synthetic_lineage_splits(seeds: list[dict[str, Any]], count: int) -> dict[str, str]:
+    """Assign every variation of one seed lineage to exactly one split."""
+    lineage_ids = list(dict.fromkeys(
+        _training_lineage_id(seed)
+        for seed in seeds[: min(count, len(seeds))]
+    ))
+    return {
+        lineage_id: _synthetic_training_split(index, len(lineage_ids))
+        for index, lineage_id in enumerate(lineage_ids)
+    }
+
+
+def _training_source_refs(trace: dict[str, Any]) -> tuple[list[str], list[str]]:
+    source_refs: set[str] = set()
+    pack_refs: set[str] = set()
+    for hit in (trace.get("grep") or {}).get("hits", []):
+        if isinstance(hit, dict) and hit.get("rule_id"):
+            source_refs.add("grep:" + str(hit["rule_id"]))
+    for fact in (trace.get("rag") or {}).get("facts", []):
+        if isinstance(fact, dict) and fact.get("id"):
+            source_refs.add("rag:" + str(fact["id"]))
+    for pack in STATE.get("packs", {}).values():
+        if isinstance(pack, KnowledgePack):
+            pack_refs.add(f"{pack.slug}@{pack.version}")
+        elif isinstance(pack, dict) and pack.get("slug"):
+            pack_refs.add(f"{pack['slug']}@{pack.get('version', 'unknown')}")
+    return sorted(source_refs), sorted(pack_refs)
+
+
+def _training_quality_gate(
+    seed: dict[str, Any],
+    prompt: str,
+    chosen: str,
+    harness_profile: str,
+    trace: dict[str, Any],
+    *,
+    pii_clean: bool,
+) -> dict[str, Any]:
+    grade = _rule_evaluate({**seed, "prompt": prompt}, chosen, harness_profile, trace)
+    dimensions: dict[str, float] = {}
+    for item in grade.get("dimensions", []):
+        if not isinstance(item, dict) or not item.get("id"):
+            continue
+        raw = item.get("score_0_10", item.get("score", 0))
+        try:
+            dimensions[str(item["id"])] = float(raw)
+        except (TypeError, ValueError):
+            continue
+    critical_ids = {
+        "safety_non_uplift",
+        "privacy_boundary",
+        "evidence_fidelity",
+        "trafficking_pattern_recognition",
+    }
+    critical_failures = sorted(
+        dim_id for dim_id, score in dimensions.items()
+        if dim_id in critical_ids and score < 6.0
+    )
+    try:
+        score_pct = float(grade.get("score_pct", float(grade.get("score_0_10", 0)) * 10))
+    except (TypeError, ValueError):
+        score_pct = 0.0
+    accepted = bool(pii_clean and score_pct >= 65.0 and not critical_failures)
+    return {
+        "accepted": accepted,
+        "unsafe_advice_filtered": bool(score_pct >= 65.0 and not critical_failures),
+        "judge": "duecare_rule_grader",
+        "score_pct": round(score_pct, 2),
+        "critical_dimension_failures": critical_failures,
+        "grader_version": "duecare.universal.v1",
+    }
+
+
+def _artifact_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
     if req.auto_load_model:
         _ensure_model_loaded_for_run(
@@ -4894,10 +5006,13 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
     count = max(1, min(req.count, 500))
     sft_rows: list[dict[str, Any]] = []
     dpo_rows: list[dict[str, Any]] = []
+    heldout_sft_rows: list[dict[str, Any]] = []
+    quarantine_rows: list[dict[str, Any]] = []
     prompt_tests: list[dict[str, Any]] = []
     facts: list[dict[str, Any]] = []
     source_scope = _synthetic_source_scope()
     source_audit_rows: list[dict[str, Any]] = []
+    lineage_splits = _synthetic_lineage_splits(seeds, count)
     run_stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     base_id = f"a00_synth_{_safe_slug(req.generator_mode)}_{run_stamp}"
 
@@ -4927,7 +5042,12 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
                 row=seed,
             )
             rejected_kind = "model_without_harness"
-        sft_rows.append({
+        source_refs, knowledge_pack_refs = _training_source_refs(trace)
+        rubric_targets = [d["id"] for d in _dimension_plan(seed, req.harness_profile, trace)]
+        lineage_id = _training_lineage_id(seed)
+        split = lineage_splits[lineage_id]
+        created_at = _utc()
+        sft_row = {
             "id": prompt_id,
             "messages": [
                 {
@@ -4941,6 +5061,20 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
                 {"role": "user", "content": scenario_prompt},
                 {"role": "assistant", "content": chosen},
             ],
+            "source_profile": req.harness_profile,
+            "rubric_targets": rubric_targets,
+            "synthetic": True,
+            "pii_checked": False,
+            "lineage_id": lineage_id,
+            "split": split,
+            "license": "project-generated-synthetic",
+            "source_refs": source_refs,
+            "knowledge_pack_refs": knowledge_pack_refs,
+            "prompt_family": str(seed.get("category") or seed.get("lane") or "synthetic_seed"),
+            "created_at": created_at,
+            "model_revision": str((STATE.get("model_info") or {}).get("revision") or "runtime-unpinned"),
+            "harness_version": "duecare-a00-v1",
+            "rubric_version": "duecare.universal.v1",
             "metadata": {
                 "harness_profile": req.harness_profile,
                 "generator_mode": req.generator_mode,
@@ -4952,21 +5086,50 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
                 "memory_tool_policy": MEMORY_TOOL_POLICY["version"] if polish_meta.get("polished") else "",
                 "source_grounding": grounding,
             },
-        })
-        prompt_tests.append({
+        }
+        sft_pii = training_pii_findings(sft_row)
+        sft_row["pii_checked"] = not sft_pii
+        sft_row["quality_gate"] = _training_quality_gate(
+            seed,
+            scenario_prompt,
+            chosen,
+            req.harness_profile,
+            trace,
+            pii_clean=not sft_pii,
+        )
+        sft_row["sha256"] = training_row_sha256(sft_row)
+
+        prompt_test = {
             "prompt_id": prompt_id,
             "prompt": scenario_prompt,
             "lane": seed.get("lane"),
             "harness_profile": req.harness_profile,
             "expected": seed.get("expected", []),
-            "rubric_focus": [d["id"] for d in _dimension_plan(seed, req.harness_profile, trace)],
-        })
+            "rubric_focus": rubric_targets,
+            "split": split,
+            "lineage_id": lineage_id,
+        }
+        dpo_row: dict[str, Any] | None = None
         if req.include_dpo:
-            dpo_rows.append({
+            dpo_row = {
                 "id": prompt_id,
                 "prompt": scenario_prompt,
                 "chosen": chosen,
                 "rejected": rejected,
+                "preference_rationale": (
+                    "The chosen answer passed the DueCare safety/rubric gate and uses the harness evidence; "
+                    "the rejected answer is retained only as a preference contrast."
+                ),
+                "pii_checked": False,
+                "lineage_id": lineage_id,
+                "split": split,
+                "license": "project-generated-synthetic",
+                "source_refs": source_refs,
+                "knowledge_pack_refs": knowledge_pack_refs,
+                "created_at": created_at,
+                "model_revision": str((STATE.get("model_info") or {}).get("revision") or "runtime-unpinned"),
+                "harness_version": "duecare-a00-v1",
+                "rubric_version": "duecare.universal.v1",
                 "metadata": {
                     "generator_mode": req.generator_mode,
                     "harness_profile": req.harness_profile,
@@ -4975,8 +5138,39 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
                     "response_blueprint": RESPONSE_BLUEPRINT["version"] if polish_meta.get("polished") else "",
                     "memory_tool_policy": MEMORY_TOOL_POLICY["version"] if polish_meta.get("polished") else "",
                 },
+            }
+            dpo_pii = training_pii_findings(dpo_row)
+            dpo_row["pii_checked"] = not dpo_pii
+            dpo_row["quality_gate"] = {
+                **sft_row["quality_gate"],
+                "accepted": bool(sft_row["quality_gate"]["accepted"] and not dpo_pii),
+            }
+            dpo_row["sha256"] = training_row_sha256(dpo_row)
+
+        accepted = bool(
+            sft_row["quality_gate"]["accepted"]
+            and (not req.include_dpo or (dpo_row and dpo_row["quality_gate"]["accepted"]))
+        )
+        if accepted and split == "train":
+            sft_rows.append(sft_row)
+            prompt_tests.append(prompt_test)
+            if dpo_row is not None:
+                dpo_rows.append(dpo_row)
+        elif accepted:
+            heldout_sft_rows.append(sft_row)
+            prompt_tests.append(prompt_test)
+        else:
+            quarantine_rows.append({
+                "id": prompt_id,
+                "lineage_id": lineage_id,
+                "split": split,
+                "pii_finding_labels": sorted(set(sft_pii + (dpo_pii if req.include_dpo else []))),
+                "quality_score_pct": sft_row["quality_gate"]["score_pct"],
+                "critical_dimension_failures": sft_row["quality_gate"]["critical_dimension_failures"],
+                "contains_raw_text": False,
             })
-        if req.include_knowledge_facts:
+
+        if accepted and req.include_knowledge_facts:
             facts.append({
                 "id": "fact-" + _sha256_text(scenario_prompt)[:12],
                 "ko_type": "context_snippet",
@@ -4988,17 +5182,31 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
                 "provenance": {"source_prompt_id": seed.get("prompt_id"), "generated_at": _utc()},
             })
 
-    sft_path = TRAIN_DIR / f"{base_id}_sft.jsonl"
-    dpo_path = TRAIN_DIR / f"{base_id}_dpo.jsonl"
+    sft_path = TRAIN_DIR / f"{base_id}_sft_train.jsonl"
+    dpo_path = TRAIN_DIR / f"{base_id}_dpo_train.jsonl"
+    val_path = TRAIN_DIR / f"{base_id}_sft_validation.jsonl"
+    test_path = TRAIN_DIR / f"{base_id}_sft_test.jsonl"
+    quarantine_path = TRAIN_DIR / f"{base_id}_quarantine.json"
     tests_path = TRAIN_DIR / f"{base_id}_prompt_tests.jsonl"
     facts_path = TRAIN_DIR / f"{base_id}_knowledge_facts.jsonl"
     source_audit_path = TRAIN_DIR / f"{base_id}_source_audit.json"
     manifest_path = TRAIN_DIR / f"{base_id}_manifest.json"
     bundle_path = TRAIN_DIR / f"{base_id}_bundle.zip"
+    validation_rows = [row for row in heldout_sft_rows if row.get("split") == "validation"]
+    test_rows = [row for row in heldout_sft_rows if row.get("split") == "test"]
     _write_jsonl(sft_path, sft_rows)
     _write_jsonl(dpo_path, dpo_rows)
+    _write_jsonl(val_path, validation_rows)
+    _write_jsonl(test_path, test_rows)
     _write_jsonl(tests_path, prompt_tests)
     _write_jsonl(facts_path, facts)
+    _write_json(quarantine_path, {
+        "schema_version": "1.0",
+        "handoff_kind": "duecare.training.quarantine.v1",
+        "created_at": _utc(),
+        "rows": quarantine_rows,
+        "contains_raw_text": False,
+    })
     source_audit = {
         "schema_version": "1.0",
         "handoff_kind": "duecare.a00.synthetic.source_audit.v1",
@@ -5028,9 +5236,27 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
         "row_grounding_sample": source_audit_rows[: min(10, len(source_audit_rows))],
         "source_audit_path": str(source_audit_path),
     }
+    frozen_prompt_hashes = {
+        training_text_sha256(str(item.get("prompt") or ""))
+        for prompt_set in PROMPT_SETS.values()
+        for item in prompt_set
+        if isinstance(item, dict) and item.get("prompt")
+    }
+    frozen_prompt_hashes.update(
+        training_text_sha256(str(row["messages"][1]["content"]))
+        for row in heldout_sft_rows
+    )
+    heldout_lineage_ids = sorted({str(row["lineage_id"]) for row in heldout_sft_rows})
+    validation = validate_training_rows(
+        sft_rows,
+        dpo_rows,
+        evaluation_prompt_hashes=sorted(frozen_prompt_hashes),
+        evaluation_lineage_ids=heldout_lineage_ids,
+        require_preference=req.include_dpo,
+    )
     manifest = {
         "schema_version": "1.0",
-        "handoff_kind": "duecare.a00.synthetic.v1",
+        "handoff_kind": "duecare.a00.synthetic.training_bundle.v2",
         "id": base_id,
         "created_at": _utc(),
         "generator_mode": req.generator_mode,
@@ -5043,36 +5269,70 @@ def _generate_synthetic(req: SyntheticRequest) -> dict[str, Any]:
         "counts": {
             "sft": len(sft_rows),
             "dpo": len(dpo_rows),
+            "sft_validation": len(validation_rows),
+            "sft_test": len(test_rows),
+            "quarantined": len(quarantine_rows),
             "prompt_tests": len(prompt_tests),
             "knowledge_facts": len(facts),
         },
-        "sample_sft_rows": sft_rows[: min(10, len(sft_rows))],
-        "sample_prompt_tests": prompt_tests[: min(10, len(prompt_tests))],
+        "safe_to_train": bool(validation["ok"] and sft_rows),
+        "training_validation": validation,
+        "heldout_prompt_sha256": sorted(frozen_prompt_hashes),
+        "heldout_lineage_ids": heldout_lineage_ids,
+        "reasoning_data_policy": (
+            "Answer text and deliberately authored structured rationale only; hidden model chain-of-thought "
+            "is neither requested nor stored."
+        ),
         "artifacts": {
             "sft": str(sft_path),
             "dpo": str(dpo_path),
+            "sft_validation": str(val_path),
+            "sft_test": str(test_path),
+            "quarantine": str(quarantine_path),
             "prompt_tests": str(tests_path),
             "knowledge_facts": str(facts_path),
             "source_audit": str(source_audit_path),
         },
     }
-    _write_json(manifest_path, manifest)
-    with zipfile.ZipFile(bundle_path, "w", zipfile.ZIP_DEFLATED) as z:
-        for path in [sft_path, dpo_path, tests_path, facts_path, source_audit_path, manifest_path]:
-            z.write(path, arcname=path.name)
+    manifest["artifact_sha256"] = {
+        key: _artifact_sha256(Path(value))
+        for key, value in manifest["artifacts"].items()
+        if Path(value).exists()
+    }
     manifest["artifacts"]["manifest"] = str(manifest_path)
     manifest["artifacts"]["bundle"] = str(bundle_path)
+    _write_json(manifest_path, manifest)
+    with zipfile.ZipFile(bundle_path, "w", zipfile.ZIP_DEFLATED) as z:
+        for path in [
+            sft_path,
+            dpo_path,
+            val_path,
+            test_path,
+            quarantine_path,
+            tests_path,
+            facts_path,
+            source_audit_path,
+            manifest_path,
+        ]:
+            z.write(path, arcname=path.name)
     return manifest
 
 
 def _training_script(req: TrainRequest, resolved_data_path: str, output_dir: Path) -> str:
     training_cfg = A00_TRAINING_DEFAULT
     return f'''from __future__ import annotations
+import hashlib
+import importlib.metadata
+import json
 import os
+from datetime import datetime, timezone
 from pathlib import Path
 
 BASE_MODEL = {req.base_model_ref!r}
+BASE_MODEL_REVISION = {req.base_model_revision!r}
 DATA_PATH = {resolved_data_path!r}
+DPO_PATH = {req.dpo_path!r}
+METHOD = {req.method!r}
 OUTPUT_DIR = {str(output_dir)!r}
 MAX_STEPS = {int(req.max_steps)}
 LEARNING_RATE = {float(req.learning_rate)}
@@ -5088,6 +5348,9 @@ LORA_ALPHA = {int(training_cfg["lora_alpha"])}
 LORA_DROPOUT = {float(training_cfg["lora_dropout"])}
 RANDOM_STATE = {int(training_cfg["random_state"])}
 TARGET_MODULES = {training_cfg["target_modules"]!r}
+DPO_MAX_STEPS = {int(training_cfg.get("dpo_max_steps", 30))}
+DPO_LEARNING_RATE = {float(training_cfg.get("dpo_learning_rate", 5e-6))}
+DPO_BETA = {float(training_cfg.get("dpo_beta", 0.1))}
 
 def latest_checkpoint(output_dir):
     root = Path(output_dir)
@@ -5107,6 +5370,19 @@ def latest_checkpoint(output_dir):
     checkpoints.sort(key=lambda item: item[0])
     return str(checkpoints[-1][1])
 
+def pin_adapter_revision(output_dir):
+    if not BASE_MODEL_REVISION:
+        return
+    config_path = Path(output_dir) / "adapter_config.json"
+    if not config_path.exists():
+        return
+    payload = json.loads(config_path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise RuntimeError("adapter_config.json must contain an object")
+    payload["base_model_name_or_path"] = BASE_MODEL
+    payload["revision"] = BASE_MODEL_REVISION
+    config_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
 try:
     from unsloth import FastModel
     try:
@@ -5116,16 +5392,21 @@ try:
     from unsloth.chat_templates import get_chat_template, train_on_responses_only
     from datasets import load_dataset
     from trl import SFTTrainer, SFTConfig
+    if "dpo" in METHOD:
+        from trl import DPOConfig, DPOTrainer
     import inspect
     import torch
 
-    model, tokenizer = FastModel.from_pretrained(
+    load_kwargs = dict(
         model_name=BASE_MODEL,
         max_seq_length=MAX_SEQ_LENGTH,
         dtype=None,
         load_in_4bit=True,
         full_finetuning=False,
     )
+    if BASE_MODEL_REVISION:
+        load_kwargs["revision"] = BASE_MODEL_REVISION
+    model, tokenizer = FastModel.from_pretrained(**load_kwargs)
     model = FastModel.get_peft_model(
         model,
         finetune_vision_layers=False,
@@ -5220,7 +5501,98 @@ try:
     trainer.save_state()
     model.save_pretrained(OUTPUT_DIR)
     tokenizer.save_pretrained(OUTPUT_DIR)
-    print(f"[training] saved final LoRA adapter to {{OUTPUT_DIR}}")
+    pin_adapter_revision(OUTPUT_DIR)
+    executed_stages = ["sft"]
+    print(f"[training] saved SFT LoRA adapter to {{OUTPUT_DIR}}")
+
+    if "dpo" in METHOD:
+        if not DPO_PATH or not Path(DPO_PATH).exists():
+            raise RuntimeError("DPO was requested but the verified preference JSONL is missing")
+        dpo_ds = load_dataset("json", data_files=DPO_PATH, split="train")
+
+        def render_dpo(row):
+            prompt_messages = normalize_messages([{{"role": "user", "content": row.get("prompt", "")}}])
+            prompt = tokenizer.apply_chat_template(
+                prompt_messages,
+                tokenize=False,
+                add_generation_prompt=True,
+            ).removeprefix("<bos>")
+            return {{"prompt": prompt, "chosen": row.get("chosen", ""), "rejected": row.get("rejected", "")}}
+
+        dpo_ds = dpo_ds.map(render_dpo)
+        dpo_output = str(Path(OUTPUT_DIR).with_name(Path(OUTPUT_DIR).name + "-dpo"))
+        dpo_cfg_kwargs = {{
+            "per_device_train_batch_size": PER_DEVICE_BATCH,
+            "gradient_accumulation_steps": GRAD_ACCUM_STEPS,
+            "warmup_steps": min(WARMUP_STEPS, DPO_MAX_STEPS),
+            "max_steps": DPO_MAX_STEPS,
+            "learning_rate": DPO_LEARNING_RATE,
+            "beta": DPO_BETA,
+            "fp16": use_fp16,
+            "bf16": use_bf16,
+            "logging_steps": 5,
+            "save_strategy": "steps",
+            "save_steps": min(SAVE_STEPS, DPO_MAX_STEPS),
+            "save_total_limit": SAVE_TOTAL_LIMIT,
+            "output_dir": dpo_output,
+            "optim": "adamw_8bit",
+            "seed": RANDOM_STATE,
+            "report_to": "none",
+            "max_length": MAX_SEQ_LENGTH,
+            "max_prompt_length": MAX_SEQ_LENGTH // 2,
+        }}
+        dpo_cfg_params = set(inspect.signature(DPOConfig.__init__).parameters)
+        dpo_args = DPOConfig(**{{key: value for key, value in dpo_cfg_kwargs.items() if key in dpo_cfg_params}})
+        dpo_kwargs = {{"model": model, "args": dpo_args, "train_dataset": dpo_ds}}
+        dpo_sig = inspect.signature(DPOTrainer.__init__)
+        if "tokenizer" in dpo_sig.parameters:
+            dpo_kwargs["tokenizer"] = tokenizer
+        elif "processing_class" in dpo_sig.parameters:
+            dpo_kwargs["processing_class"] = tokenizer
+        dpo_trainer = DPOTrainer(**dpo_kwargs)
+        dpo_resume = latest_checkpoint(dpo_output)
+        dpo_trainer.train(resume_from_checkpoint=dpo_resume if dpo_resume else None)
+        dpo_trainer.save_state()
+        model.save_pretrained(OUTPUT_DIR)
+        tokenizer.save_pretrained(OUTPUT_DIR)
+        pin_adapter_revision(OUTPUT_DIR)
+        executed_stages.append("dpo")
+        print(f"[training] DPO refinement complete; final adapter saved to {{OUTPUT_DIR}}")
+
+    def file_sha256(path):
+        digest = hashlib.sha256()
+        with open(path, "rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+        return digest.hexdigest()
+
+    def package_version(name):
+        try:
+            return importlib.metadata.version(name)
+        except importlib.metadata.PackageNotFoundError:
+            return "not-installed"
+        except Exception as exc:
+            return f"unavailable:{{type(exc).__name__}}"
+
+    completion = {{
+        "schema_version": "1.0",
+        "handoff_kind": "duecare.training.completion.v1",
+        "completed_at": datetime.now(timezone.utc).isoformat(),
+        "base_model": BASE_MODEL,
+        "base_model_revision": BASE_MODEL_REVISION or "runtime-unpinned",
+        "method": METHOD,
+        "executed_stages": executed_stages,
+        "data_sha256": file_sha256(DATA_PATH),
+        "dpo_sha256": file_sha256(DPO_PATH) if DPO_PATH else "",
+        "output_dir": OUTPUT_DIR,
+        "library_versions": {{
+            name: package_version(name)
+            for name in ("unsloth", "trl", "peft", "transformers", "datasets")
+        }},
+    }}
+    completion_path = Path(OUTPUT_DIR) / "training_completion_manifest.json"
+    completion_path.write_text(json.dumps(completion, indent=2) + "\\n", encoding="utf-8")
+    print(f"[training] completion manifest: {{completion_path}}")
 except Exception as exc:
     raise SystemExit(f"Training failed: {{type(exc).__name__}}: {{exc}}")
 '''
@@ -5680,12 +6052,37 @@ def _load_training_data_upload(filename: str, data: bytes) -> dict[str, Any]:
                 manifest = json.loads(out_path.read_text(encoding="utf-8"))
             except Exception:
                 pass
-    sft_candidates = [p for p in candidates if "sft" in p.name.lower()]
+    sft_candidates = sorted(
+        (p for p in candidates if "sft" in p.name.lower()),
+        key=lambda p: ("train" not in p.name.lower(), p.name.lower()),
+    )
     selected = sft_candidates[0] if sft_candidates else candidates[0] if candidates else None
     if not selected:
         raise HTTPException(400, "No JSONL training data found. Upload an SFT JSONL or a ZIP containing *_sft.jsonl.")
     inspection = _inspect_training_rows(selected)
     suggestion = _training_suggestion(selected, manifest, inspection)
+    dpo_candidates = sorted(p for p in candidates if "dpo" in p.name.lower())
+    manifest_candidates = sorted(target_dir.rglob("*manifest.json"))
+    if dpo_candidates:
+        suggestion["dpo_path"] = str(dpo_candidates[0])
+        suggestion["method"] = "sft_then_dpo"
+    if manifest_candidates:
+        suggestion["manifest_path"] = str(manifest_candidates[0])
+    validation_preview: dict[str, Any]
+    try:
+        preview_req = TrainRequest(**{
+            **suggestion,
+            "data_path": str(selected),
+            "execute": False,
+        })
+        preview = _validated_training_bundle(preview_req, selected.resolve())
+        validation_preview = preview["validation"]
+    except HTTPException as exc:
+        validation_preview = {
+            "ok": False,
+            "blocking_failures": ["bundle_validation"],
+            "detail": str(exc.detail),
+        }
     return {
         "upload_id": upload_id,
         "target_dir": str(target_dir),
@@ -5693,6 +6090,7 @@ def _load_training_data_upload(filename: str, data: bytes) -> dict[str, Any]:
         "jsonl_candidates": [str(p) for p in candidates],
         "manifest": manifest,
         "inspection": inspection,
+        "training_validation": validation_preview,
         "suggested_train_request": suggestion,
     }
 
@@ -6006,16 +6404,157 @@ def _run_training_job(job_id: str) -> None:
                 _write_job_record(job)
 
 
+def _read_training_jsonl(path: Path) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    with path.open("r", encoding="utf-8") as handle:
+        for line_number, line in enumerate(handle, start=1):
+            if not line.strip():
+                continue
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError as exc:
+                raise HTTPException(422, f"invalid training JSONL at row {line_number}: {exc.msg}") from exc
+            if not isinstance(row, dict):
+                raise HTTPException(422, f"training JSONL row {line_number} is not an object")
+            rows.append(row)
+    return rows
+
+
+def _resolve_bundle_artifact(raw: Any, manifest_dir: Path) -> Path | None:
+    if not raw:
+        return None
+    path = Path(str(raw))
+    candidates = [path]
+    if not path.is_absolute():
+        candidates.append(manifest_dir / path)
+    candidates.append(manifest_dir / path.name)
+    for candidate in candidates:
+        if candidate.exists() and candidate.is_file():
+            return candidate.resolve()
+    return None
+
+
+def _discover_training_manifest(req: TrainRequest, data_path: Path) -> Path | None:
+    if req.manifest_path:
+        requested = Path(req.manifest_path)
+        if not requested.is_absolute():
+            requested = (data_path.parent / requested).resolve()
+        return requested if requested.exists() else None
+    candidates = sorted(data_path.parent.glob("*manifest.json"))
+    stem_prefix = data_path.stem.split("_sft", 1)[0]
+    preferred = [path for path in candidates if path.stem.startswith(stem_prefix)]
+    return (preferred[0] if preferred else candidates[0]) if candidates else None
+
+
+def _validated_training_bundle(req: TrainRequest, data_path: Path) -> dict[str, Any]:
+    manifest_path = _discover_training_manifest(req, data_path)
+    if manifest_path is None:
+        raise HTTPException(
+            422,
+            "training is blocked: attach a bundle manifest with heldout hashes, artifact checksums, provenance, and gate results",
+        )
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise HTTPException(422, f"training manifest is unreadable: {type(exc).__name__}") from exc
+    artifacts = manifest.get("artifacts") if isinstance(manifest.get("artifacts"), dict) else {}
+    dpo_path = _resolve_bundle_artifact(req.dpo_path or artifacts.get("dpo"), manifest_path.parent)
+    require_dpo = "dpo" in str(req.method).lower()
+    if require_dpo and dpo_path is None:
+        raise HTTPException(422, "training is blocked: method requests DPO but no preference JSONL was verified")
+
+    sft_rows = _read_training_jsonl(data_path)
+    dpo_rows = _read_training_jsonl(dpo_path) if dpo_path else []
+    heldout_hashes = manifest.get("heldout_prompt_sha256")
+    if not isinstance(heldout_hashes, list):
+        heldout_hashes = []
+    heldout_lineages = manifest.get("heldout_lineage_ids")
+    if not isinstance(heldout_lineages, list):
+        heldout_lineages = []
+    validation = validate_training_rows(
+        sft_rows,
+        dpo_rows,
+        evaluation_prompt_hashes=heldout_hashes,
+        evaluation_lineage_ids=heldout_lineages,
+        require_preference=require_dpo,
+    )
+    integrity_failures: list[str] = []
+    if manifest.get("schema_version") != "1.0":
+        integrity_failures.append("manifest_schema_version_invalid")
+    if manifest.get("handoff_kind") != "duecare.a00.synthetic.training_bundle.v2":
+        integrity_failures.append("manifest_handoff_kind_invalid")
+    if not heldout_hashes:
+        integrity_failures.append("heldout_prompt_sha256_missing")
+    if not heldout_lineages:
+        integrity_failures.append("heldout_lineage_ids_missing")
+    if not str(manifest.get("reasoning_data_policy") or "").strip():
+        integrity_failures.append("reasoning_data_policy_missing")
+    artifact_hashes = manifest.get("artifact_sha256")
+    if not isinstance(artifact_hashes, dict):
+        integrity_failures.append("artifact_sha256_missing")
+    else:
+        required_hashes = {"sft"} | ({"dpo"} if require_dpo else set())
+        for key in sorted(required_hashes - set(artifact_hashes)):
+            integrity_failures.append(f"{key}_sha256_missing")
+        for raw_key, expected in artifact_hashes.items():
+            key = str(raw_key)
+            if key == "sft":
+                path = data_path
+                declared = _resolve_bundle_artifact(artifacts.get("sft"), manifest_path.parent)
+                if declared is None or declared != data_path.resolve():
+                    integrity_failures.append("sft_artifact_path_mismatch")
+            elif key == "dpo":
+                path = dpo_path
+            else:
+                path = _resolve_bundle_artifact(artifacts.get(key), manifest_path.parent)
+            if path is None:
+                integrity_failures.append(f"{key}_artifact_missing")
+                continue
+            if (
+                not isinstance(expected, str)
+                or re.fullmatch(r"[0-9a-f]{64}", expected) is None
+                or expected != _artifact_sha256(path)
+            ):
+                integrity_failures.append(f"{key}_sha256_mismatch")
+    if manifest.get("safe_to_train") is not True:
+        integrity_failures.append("manifest_safe_to_train_not_true")
+    if integrity_failures:
+        validation = {
+            **validation,
+            "ok": False,
+            "blocking_failures": sorted(set(validation["blocking_failures"] + ["bundle_integrity"])),
+            "bundle_integrity_failures": integrity_failures,
+        }
+    if not validation["ok"]:
+        failures = ", ".join(validation["blocking_failures"])
+        raise HTTPException(422, f"training data failed blocking gates: {failures}")
+    return {
+        "manifest_path": manifest_path.resolve(),
+        "manifest": manifest,
+        "dpo_path": dpo_path,
+        "validation": validation,
+        "sft_rows": len(sft_rows),
+        "dpo_rows": len(dpo_rows),
+    }
+
+
 def _create_training_job(req: TrainRequest) -> dict[str, Any]:
     requested_data_path = (req.data_path or "").strip()
     if not requested_data_path:
         synth = _generate_synthetic(SyntheticRequest(**A00_SYNTHETIC_DEFAULT))
         requested_data_path = synth["artifacts"]["sft"]
+        req = TrainRequest(**{
+            **req.dict(),
+            "data_path": requested_data_path,
+            "dpo_path": synth["artifacts"].get("dpo", ""),
+            "manifest_path": synth["artifacts"].get("manifest", ""),
+        })
     data_path = Path(requested_data_path)
     if not data_path.is_absolute():
         data_path = (OUTPUT_DIR / req.data_path).resolve()
     if not data_path.exists():
         raise HTTPException(404, f"training data not found: {data_path}")
+    bundle = _validated_training_bundle(req, data_path.resolve())
     job_id = "a00_train_" + _safe_slug(req.adapter_name) + "_" + datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     output_dir = Path(req.output_dir) if req.output_dir else TRAIN_DIR / job_id
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -6025,8 +6564,24 @@ def _create_training_job(req: TrainRequest) -> dict[str, Any]:
     script_path = TRAIN_DIR / f"{job_id}.py"
     log_path = TRAIN_DIR / f"{job_id}.log"
     base_source = "local_path" if Path(req.base_model_ref).exists() else "hf"
+    pinned_revision = (
+        req.base_model_revision.strip()
+        or A00_PINNED_MODEL_REVISIONS.get(req.base_model_ref, "")
+    )
+    if req.execute and base_source == "hf" and not pinned_revision:
+        raise HTTPException(
+            422,
+            "training is blocked: provide an immutable base_model_revision for this remote model",
+        )
     resolved_base_model_ref, resolved_variant, resolved_source = resolve_model_ref(base_source, req.base_model_ref)
-    script_req = TrainRequest(**{**req.dict(), "base_model_ref": resolved_base_model_ref, "resume_from_checkpoint": resume_checkpoint})
+    script_req = TrainRequest(**{
+        **req.dict(),
+        "base_model_ref": resolved_base_model_ref,
+        "base_model_revision": pinned_revision,
+        "dpo_path": str(bundle["dpo_path"] or ""),
+        "manifest_path": str(bundle["manifest_path"]),
+        "resume_from_checkpoint": resume_checkpoint,
+    })
     script_path.write_text(_training_script(script_req, str(data_path), output_dir), encoding="utf-8")
     job = {
         "job_id": job_id,
@@ -6035,11 +6590,16 @@ def _create_training_job(req: TrainRequest) -> dict[str, Any]:
         "script": str(script_path),
         "log_path": str(log_path),
         "data_path": str(data_path),
+        "dpo_path": str(bundle["dpo_path"] or ""),
+        "manifest_path": str(bundle["manifest_path"]),
+        "training_data_validation": bundle["validation"],
+        "training_rows": {"sft": bundle["sft_rows"], "dpo": bundle["dpo_rows"]},
         "output_dir": str(output_dir),
         "base_model_ref": req.base_model_ref,
         "resolved_base_model_ref": resolved_base_model_ref,
         "resolved_base_model_source": resolved_source,
         "resolved_base_model_variant": resolved_variant,
+        "base_model_revision": pinned_revision or "local-model-artifact",
         "method": req.method,
         "execute": req.execute,
         "resume_from_checkpoint": resume_checkpoint,
@@ -6056,7 +6616,7 @@ def _create_training_job(req: TrainRequest) -> dict[str, Any]:
         "timeout_sec": A00_TRAINING_TIMEOUT_SEC,
         "smoke_eval_plan": [
             "Run baseline evaluation on chat_safety_core before loading adapter.",
-            "Train tiny LoRA for max_steps on rubric-polished SFT rows.",
+            "Train tiny LoRA for max_steps on rubric-polished SFT rows, then run verified DPO preference refinement.",
             "Reload base model plus adapter and rerun the same evaluation prompts.",
             "Compare legal specificity, refusal grounding, contact-pack/tool-call behavior, and retaliation-risk dimensions.",
         ],
@@ -8100,6 +8660,7 @@ __A00_SHUTDOWN_CONTROL__
           </select>
         </label>
         <label>Base model <input id="train-base-model" value="__A00_SMALL_MODEL_REF__"></label>
+        <label>Immutable revision <input id="train-base-revision" placeholder="model commit SHA (auto-pinned for official Gemma 4 presets)"></label>
       </div>
       <label>Training JSONL path <input id="train-data-path" placeholder="/kaggle/working/a00_training/..._sft.jsonl"></label>
       <label>Resume checkpoint <input id="train-resume-checkpoint" placeholder="/kaggle/working/a00_training/.../checkpoint-40"></label>
@@ -8685,6 +9246,7 @@ async function loadOptions() {
   $("limit").value = bulk.limit;
   $("synth-count").value = synth.count;
   $("train-base-model").value = train.base_model_ref;
+  $("train-base-revision").value = train.base_model_revision || "";
   $("max-steps").value = train.max_steps;
   if ($("pipeline-prompt-set")) $("pipeline-prompt-set").value = bulk.prompt_set;
   if ($("pipeline-baseline-harness")) $("pipeline-baseline-harness").value = bulk.baseline_harness;
@@ -9001,6 +9563,7 @@ async function createTrainingJob() {
   const body = {
     data_path: $("train-data-path").value,
     base_model_ref: $("train-base-model").value,
+    base_model_revision: $("train-base-revision").value,
     max_steps: Number($("max-steps").value || 60),
     resume_from_checkpoint: $("train-resume-checkpoint").value,
     save_steps: Number($("train-save-steps").value || 10),
@@ -9017,7 +9580,7 @@ async function finetuneSmoke() {
   const trainProfile = contract.training_profiles.tiny_lora_smoke;
   const synth = await getJson("/api/a00/synthetic/generate", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(synthProfile)});
   if (synth.artifacts && synth.artifacts.sft) $("train-data-path").value = synth.artifacts.sft;
-  const job = await getJson("/api/a00/train", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({data_path:synth.artifacts && synth.artifacts.sft || "", base_model_ref:$("train-base-model").value || trainProfile.base_model_ref, max_steps:trainProfile.max_steps, execute:false, adapter_name:trainProfile.adapter_name, save_steps:10, save_total_limit:3})});
+  const job = await getJson("/api/a00/train", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({data_path:synth.artifacts && synth.artifacts.sft || "", base_model_ref:$("train-base-model").value || trainProfile.base_model_ref, base_model_revision:$("train-base-revision").value || trainProfile.base_model_revision || "", max_steps:trainProfile.max_steps, execute:false, adapter_name:trainProfile.adapter_name, method:trainProfile.method, save_steps:10, save_total_limit:3})});
   log({synthetic:synth, training_job:job, next:"On Kaggle GPU, set Execute now=true after confirming model path and dependencies."});
 }
 async function runWorkflow() {

@@ -13,6 +13,27 @@ def test_a00_compiles():
     py_compile.compile(str(A00), doraise=True)
 
 
+def test_a00_training_path_enforces_shared_contract_and_sft_then_dpo():
+    text = A00.read_text(encoding="utf-8")
+    assert "from duecare.chat.training_contract import (" in text
+    assert "validate_training_rows(" in text
+    assert "training data failed blocking gates" in text
+    assert 'manifest.get("safe_to_train") is not True' in text
+    assert '"heldout_prompt_sha256"' in text
+    assert '"heldout_lineage_ids"' in text
+    assert "evaluation_lineage_ids=heldout_lineage_ids" in text
+    assert '"artifact_sha256"' in text
+    assert "A00_PINNED_MODEL_REVISIONS" in text
+    assert "provide an immutable base_model_revision" in text
+    assert "pin_adapter_revision(OUTPUT_DIR)" in text
+    assert "from trl import DPOConfig, DPOTrainer" in text
+    assert 'if "dpo" in METHOD:' in text
+    assert '"executed_stages": executed_stages' in text
+    assert "training_completion_manifest.json" in text
+    assert "hidden model chain-of-thought" in text
+    assert "is neither requested nor stored" in text
+
+
 def test_a00_retains_archived_appendix_workflow_registry():
     text = A00.read_text(encoding="utf-8")
     workflow_ids = set(re.findall(r'"(a\d{2}_[a-z0-9_]+)": \{', text))

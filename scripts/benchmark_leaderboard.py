@@ -26,12 +26,15 @@ from __future__ import annotations
 import argparse
 import glob
 import json
+import math
 import pathlib
 import re
 import statistics
 import subprocess
 import sys
 from collections import Counter
+from datetime import datetime
+from functools import lru_cache
 
 _ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_ROOT / "scripts"))
@@ -53,10 +56,10 @@ BENCHMARK = {
                   "(and growing as the discovery-to-vetting flywheel folds in newly vetted prompts) "
                   "at easy/medium/hard/very_hard difficulty: a curated scheme core, the harness-lift "
                   "expansion set (jailbreaks, evasion probes, false-legitimacy, worker/employer queries), "
-                  "casefile-derived worker-support scenarios, a 2,915-prompt stratified draw from the "
-                  "74,640-prompt trafficking seed registry, and automation-discovered prompts vetted by the "
+                  "casefile-derived worker-support scenarios, a stratified draw from the generated "
+                  "trafficking seed registry, and automation-discovered prompts vetted by the "
                   "quality gate; built reproducibly by build_benchmark_promptset.py (seed=13). The "
-                  "engine additionally runs an exhaustive sweep of the full ~74,640-prompt trafficking "
+                  "engine additionally runs an exhaustive sweep of the full generated trafficking "
                   "registry, so each model's n on the board climbs toward full-registry coverage as it runs.",
     "protocol": "paired baseline vs DueCare-harnessed (pure prompt augmentation: GREP indicator rules "
                 "+ retrieved legal grounding + deterministic tools); both arms graded identically by a "
@@ -68,6 +71,41 @@ BENCHMARK = {
 DEFAULT_MD = _ROOT / "docs" / "research" / "benchmark_leaderboard.md"
 DEFAULT_JSON = _ROOT / "apps" / "duecare-ai.com" / "app" / "static" / "benchmark_leaderboard.json"
 _COMP_KEYS = [k for k, _l, _m in COMPONENTS]
+BOARD_RUBRIC_VERSION = "v1"
+BOARD_HARNESS_VERSION = "h1"
+BOARD_PROMPT_INTENT = "adversarial"
+_PUBLIC_ID_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:/+-]{0,119}")
+_PUBLIC_LABEL_RE = re.compile(r"[A-Za-z0-9?][A-Za-z0-9 _().>/+-]{0,119}")
+_PATHLIKE_PUBLIC_ID_RE = re.compile(
+    r"(?i)(?:^[a-z]:/|^(?:file|https?|ftp|s3|mailto):/?|(?:^|/)(?:users|home|onedrive|documents|appdata|tmp|temp)(?:/|$))"
+)
+_PUBLIC_DIGIT_TOKEN_RE = re.compile(r"(?<!\d)\d{8}(?!\d)")
+_PUBLIC_RELEASE_DATE_RE = re.compile(r"(?<!\d)(?:19|20)\d{6}(?!\d)")
+_PUBLIC_CASELIKE_DIGITS_RE = re.compile(
+    r"(?i)(?:case|worker|complaint|ticket|intake|file|row|private|local)"
+    r"[A-Za-z0-9 _().:/+-]*\d{8,}"
+    r"|\d{8,}[A-Za-z0-9 _().:/+-]*"
+    r"(?:case|worker|complaint|ticket|intake|file|row|private|local)"
+)
+_PUBLIC_STATS_FIELDS = (
+    "n_pairs",
+    "ci95_low",
+    "ci95_high",
+    "cohens_d",
+    "win_rate",
+    "loss_rate",
+    "p_value",
+)
+_PUBLIC_CONTRACT_METRIC_FIELDS = (
+    "n",
+    "strict_contract_rate",
+    "citation_valid_rate",
+    "palermo_triad_rate",
+    "core_remedy_required_n",
+    "core_remedy_complete_rate",
+    "institutional_review_rate",
+    "institutional_failure_flag_rate",
+)
 
 
 def git_sha() -> str:
@@ -95,16 +133,171 @@ def load_jsonl(path: pathlib.Path) -> list[dict]:
     return rows
 
 
+def _file_cache_key(path: pathlib.Path) -> tuple[str, int, int]:
+    """Cache key for derived result metrics; changes when file size or mtime changes."""
+    path = pathlib.Path(path)
+    try:
+        stat = path.stat()
+    except OSError:
+        return (str(path), -1, -1)
+    return (str(path), stat.st_mtime_ns, stat.st_size)
+
+
 def _score(row: dict, key: str = "score_0_100") -> float | None:
     try:
-        return float(row[key])
-    except (KeyError, TypeError, ValueError):
+        value = row[key]
+    except KeyError:
         return None
+    return _finite_number(value)
+
+
+def _finite_number(value: object) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    numeric = float(value)
+    return numeric if math.isfinite(numeric) else None
 
 
 def _components(row: dict) -> dict:
     value = row.get("components", {})
     return value if isinstance(value, dict) else {}
+
+
+def _is_default_board_row(row: object) -> bool:
+    """True only for rows comparable with the public leaderboard's v1/h1 board surface.
+
+    v1/h1 rows are normally untagged for backward compatibility. Explicit ``"v1"`` / ``"h1"`` tags
+    are accepted, and untagged rows are adversarial prompts for backward compatibility. Opt-in
+    rubric/harness rows (v2/h2 or unknown labels) and benign-control rows are ignored by the board.
+    """
+    if not isinstance(row, dict):
+        return False
+    return (
+        _board_version_tag(row, "rubric", default=BOARD_RUBRIC_VERSION) == BOARD_RUBRIC_VERSION
+        and _board_version_tag(row, "harness", default=BOARD_HARNESS_VERSION) == BOARD_HARNESS_VERSION
+        and _board_intent_tag(row) == BOARD_PROMPT_INTENT
+    )
+
+
+def _board_version_tag(row: dict, key: str, *, default: str) -> str | None:
+    if key not in row:
+        return default
+    value = row.get(key)
+    if value is None:
+        return default
+    if not isinstance(value, str) or not value:
+        return None
+    if value != value.strip():
+        return None
+    return value
+
+
+def _board_intent_tag(row: dict) -> str | None:
+    if "intent" not in row or row.get("intent") is None:
+        return BOARD_PROMPT_INTENT
+    value = row.get("intent")
+    if not isinstance(value, str) or not value:
+        return None
+    if value != value.strip():
+        return None
+    return value if value == BOARD_PROMPT_INTENT else None
+
+
+def _has_private_numeric_token(value: str, *, allow_release_dates: bool = False) -> bool:
+    if re.search(r"\d{9,}", value):
+        return True
+    if _PUBLIC_CASELIKE_DIGITS_RE.search(value):
+        return True
+    if not _PUBLIC_DIGIT_TOKEN_RE.search(value):
+        return False
+    if allow_release_dates:
+        without_release_dates = _PUBLIC_RELEASE_DATE_RE.sub("", value)
+        return _PUBLIC_DIGIT_TOKEN_RE.search(without_release_dates) is not None
+    return True
+
+
+def _public_id(value: object, *, allow_release_dates: bool = False) -> str | None:
+    """Return a public benchmark identifier, or None for values unsafe to surface as artifact keys."""
+    if not isinstance(value, str):
+        return None
+    if value != value.strip():
+        return None
+    if not value or len(value) > 120:
+        return None
+    if any(ch.isspace() or ord(ch) < 32 for ch in value):
+        return None
+    if any(ch in value for ch in ("@", "\\", "<", ">", "|")):
+        return None
+    if ".." in value or "//" in value:
+        return None
+    if _PATHLIKE_PUBLIC_ID_RE.search(value):
+        return None
+    if _has_private_numeric_token(value, allow_release_dates=allow_release_dates):
+        return None
+    return value if _PUBLIC_ID_RE.fullmatch(value) else None
+
+
+def _public_model_id(value: object) -> str | None:
+    """Public model/judge IDs may contain normal 8-digit release dates."""
+    return _public_id(value, allow_release_dates=True)
+
+
+def _public_label(value: object, *, missing: str = "?") -> str:
+    """Safe public grouping label for category/corridor/difficulty breakdowns."""
+    if not isinstance(value, str):
+        return missing
+    label = re.sub(r"\s+", " ", value.strip())
+    if not label:
+        return missing
+    if len(label) > 120 or any(ord(ch) < 32 for ch in label):
+        return "custom_or_invalid"
+    if any(ch in label for ch in ("@", "\\", "<", "|")):
+        return "custom_or_invalid"
+    if "://" in label or ".." in label or "//" in label:
+        return "custom_or_invalid"
+    if _PATHLIKE_PUBLIC_ID_RE.search(label):
+        return "custom_or_invalid"
+    if _has_private_numeric_token(label):
+        return "custom_or_invalid"
+    return label if _PUBLIC_LABEL_RE.fullmatch(label) else "custom_or_invalid"
+
+
+def _is_valid_scored_panel_cell(row: object) -> bool:
+    """Default-board panel cell with the fields needed for public provenance and scoring."""
+    if not _is_default_board_row(row) or not isinstance(row, dict) or _score(row) is None:
+        return False
+    model = _public_model_id(row.get("model"))
+    judge = _public_model_id(row.get("judge"))
+    prompt_id = _public_id(row.get("prompt_id"))
+    try:
+        arm = str(row["arm"])
+    except (KeyError, TypeError):
+        return False
+    return bool(model and judge and prompt_id and arm in ARMS)
+
+
+def _is_valid_pairwise_cell(row: object) -> bool:
+    """Default-board pairwise cell with safe public provenance keys and a finite delta."""
+    if not _is_default_board_row(row) or not isinstance(row, dict):
+        return False
+    if _finite_number(row.get("delta")) is None:
+        return False
+    return bool(
+        _public_model_id(row.get("model"))
+        and _public_model_id(row.get("judge"))
+        and _public_id(row.get("prompt_id"))
+    )
+
+
+def _is_valid_result_metric_row(row: object) -> bool:
+    """Default-board raw result row safe enough to contribute public derived metrics."""
+    if not _is_default_board_row(row) or not isinstance(row, dict):
+        return False
+    try:
+        arm = str(row["arm"])
+    except (KeyError, TypeError):
+        return False
+    return bool(_public_model_id(row.get("model")) and _public_id(row.get("prompt_id")) and arm in ARMS)
 
 
 def leaderboard_rows(panel: list[dict], pairwise: list[dict]) -> list[dict]:
@@ -117,12 +310,15 @@ def leaderboard_rows(panel: list[dict], pairwise: list[dict]) -> list[dict]:
     # (model, judge, prompt) -> {arm: cell}
     cube: dict[tuple, dict[str, dict]] = {}
     for p in panel:
-        if not isinstance(p, dict) or _score(p) is None:
+        if not _is_valid_scored_panel_cell(p):
             continue
-        try:
-            cube.setdefault((p["model"], p["judge"], p["prompt_id"]), {})[p["arm"]] = p
-        except KeyError:
+        model = _public_model_id(p.get("model"))
+        judge = _public_model_id(p.get("judge"))
+        prompt_id = _public_id(p.get("prompt_id"))
+        arm = str(p.get("arm"))
+        if not model or not judge or not prompt_id:
             continue
+        cube.setdefault((model, judge, prompt_id), {})[arm] = p
     by_model: dict[str, list[tuple[dict, dict]]] = {}
     prompts_by_model: dict[str, set] = {}
     core_by_model: dict[str, list[float]] = {}
@@ -137,13 +333,10 @@ def leaderboard_rows(panel: list[dict], pairwise: list[dict]) -> list[dict]:
 
     pw_by_model: dict[str, list[float]] = {}
     for r in pairwise:
-        if not isinstance(r, dict):
+        if not _is_valid_pairwise_cell(r):
             continue
-        try:
-            delta = float(r["delta"])
-            model = str(r["model"])
-        except (KeyError, TypeError, ValueError):
-            continue
+        delta = _finite_number(r.get("delta"))
+        model = _public_model_id(r.get("model"))
         pw_by_model.setdefault(model, []).append(delta)
 
     rows = []
@@ -158,8 +351,8 @@ def leaderboard_rows(panel: list[dict], pairwise: list[dict]) -> list[dict]:
         for k in _COMP_KEYS:
             bvals = [_components(b).get(k) for b, _f in pairs]
             fvals = [_components(f).get(k) for _b, f in pairs]
-            bvals = [x for x in bvals if isinstance(x, (int, float))]
-            fvals = [x for x in fvals if isinstance(x, (int, float))]
+            bvals = [numeric for x in bvals if (numeric := _finite_number(x)) is not None]
+            fvals = [numeric for x in fvals if (numeric := _finite_number(x)) is not None]
             if bvals and fvals:
                 comp_baseline[k] = round(float(statistics.mean(bvals)), 1)
                 comp_full[k] = round(float(statistics.mean(fvals)), 1)
@@ -190,15 +383,17 @@ def krippendorff_alpha_safe(panel: list[dict]) -> float | None:
     from multi_judge import krippendorff_alpha
     by_resp: dict[str, list[float]] = {}
     for p in panel:
-        if not isinstance(p, dict):
+        if not _is_valid_scored_panel_cell(p):
             continue
         score = _score(p)
         if score is None:
             continue
-        try:
-            by_resp.setdefault(f"{p['model']}|{p['prompt_id']}|{p['arm']}", []).append(score)
-        except KeyError:
+        model = _public_model_id(p.get("model"))
+        prompt_id = _public_id(p.get("prompt_id"))
+        arm = str(p.get("arm"))
+        if not model or not prompt_id:
             continue
+        by_resp.setdefault(f"{model}|{prompt_id}|{arm}", []).append(score)
     return krippendorff_alpha(by_resp)
 
 
@@ -206,7 +401,7 @@ def _paired_cells(panel: list[dict]) -> list[dict]:
     """rich-lift panel rows -> lift_stats cells (baseline + harness_full mapped to 'harnessed')."""
     cells = []
     for p in panel:
-        if not isinstance(p, dict):
+        if not _is_valid_scored_panel_cell(p):
             continue
         arm = p.get("arm")
         a = "baseline" if arm == "baseline" else "harnessed" if arm == "harness_full" else None
@@ -215,11 +410,11 @@ def _paired_cells(panel: list[dict]) -> list[dict]:
         score = _score(p)
         if score is None:
             continue
-        try:
-            cells.append({"model": p["model"], "prompt_id": p["prompt_id"], "arm": a,
-                          "score": score})
-        except KeyError:
+        model = _public_model_id(p.get("model"))
+        prompt_id = _public_id(p.get("prompt_id"))
+        if not model or not prompt_id:
             continue
+        cells.append({"model": model, "prompt_id": prompt_id, "arm": a, "score": score})
     return cells
 
 
@@ -259,9 +454,19 @@ def _prompt_meta() -> dict[str, dict]:
         ps = d
     else:
         return {}
-    return {p["id"]: {"category": p.get("category", "?"), "corridor": p.get("corridor", "?"),
-                      "difficulty": p.get("difficulty", "?")}
-            for p in ps if isinstance(p, dict) and "id" in p}
+    out: dict[str, dict] = {}
+    for p in ps:
+        if not isinstance(p, dict):
+            continue
+        prompt_id = _public_id(p.get("id"))
+        if not prompt_id:
+            continue
+        out[prompt_id] = {
+            "category": _public_label(p.get("category")),
+            "corridor": _public_label(p.get("corridor")),
+            "difficulty": _public_label(p.get("difficulty")),
+        }
+    return out
 
 
 def lift_breakdowns(panel: list[dict]) -> dict[str, list[dict]]:
@@ -272,7 +477,7 @@ def lift_breakdowns(panel: list[dict]) -> dict[str, list[dict]]:
     def agg(field: str) -> list[dict]:
         acc: dict[str, dict[str, list[float]]] = {}
         for p in panel:
-            if not isinstance(p, dict):
+            if not _is_valid_scored_panel_cell(p):
                 continue
             arm = p.get("arm")
             a = "baseline" if arm == "baseline" else "harnessed" if arm == "harness_full" else None
@@ -330,6 +535,12 @@ def latency_by_model(results_path: pathlib.Path = RESULTS) -> dict[str, float]:
     Each value is the wall-clock around a model call on Ollama cloud (queue + network included), so it
     is an indicative responsiveness signal, not a controlled throughput benchmark; the median is robust
     to cloud queue spikes. Models generated before latency capture have no rows and render as '-'."""
+    return dict(_latency_by_model_cached(*_file_cache_key(results_path)))
+
+
+@lru_cache(maxsize=8)
+def _latency_by_model_cached(path_text: str, _mtime_ns: int, _size: int) -> dict[str, float]:
+    results_path = pathlib.Path(path_text)
     by: dict[str, list[float]] = {}
     if not results_path.exists():
         return {}
@@ -340,11 +551,13 @@ def latency_by_model(results_path: pathlib.Path = RESULTS) -> dict[str, float]:
             r = json.loads(line)
         except json.JSONDecodeError:
             continue
-        if not isinstance(r, dict):
+        if not _is_valid_result_metric_row(r):
             continue
         lat = r.get("latency_s")
-        if isinstance(lat, (int, float)) and lat > 0:
-            by.setdefault(str(r.get("model")), []).append(float(lat))
+        model = _public_model_id(r.get("model"))
+        numeric_latency = _finite_number(lat)
+        if model and numeric_latency is not None and numeric_latency > 0:
+            by.setdefault(model, []).append(numeric_latency)
     return {m: round(statistics.median(v), 1) for m, v in by.items() if v}
 
 
@@ -353,12 +566,76 @@ def _rate(count: int, total: int) -> float | None:
 
 
 def _pct(value: object) -> str:
-    if not isinstance(value, (int, float)):
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return "-"
+    if not math.isfinite(float(value)):
         return "-"
     return f"{100 * float(value):.0f}%"
 
 
+def _json_strict_value(value: object) -> object:
+    """Recursively replace non-finite floats so the public board is strict JSON, not Python JSON."""
+    if isinstance(value, bool) or value is None or isinstance(value, str):
+        return value
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None
+    if isinstance(value, list):
+        return [_json_strict_value(item) for item in value]
+    if isinstance(value, dict):
+        return {str(k): _json_strict_value(v) for k, v in value.items()}
+    return str(value)
+
+
+def _public_number(value: object) -> int | float | None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    numeric = float(value)
+    if not math.isfinite(numeric):
+        return None
+    return value if isinstance(value, int) else numeric
+
+
+def _public_numeric_block(value: object, fields: tuple[str, ...]) -> dict[str, int | float | None]:
+    if not isinstance(value, dict):
+        return {}
+    return {field: _public_number(value.get(field)) for field in fields if field in value}
+
+
+def _public_generated_label(value: object) -> str:
+    if not isinstance(value, str):
+        return "unknown"
+    label = _public_id(value)
+    if label is None:
+        return "unknown"
+    text = label[:-1] + "+00:00" if label.endswith("Z") else label
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError:
+        return "unknown"
+    return label if parsed.tzinfo is not None else "unknown"
+
+
+def _public_git_sha(value: object) -> str:
+    if not isinstance(value, str):
+        return ""
+    sha = value.strip()
+    if re.fullmatch(r"[0-9a-fA-F]{7,40}", sha):
+        return sha
+    return ""
+
+
 def contract_metrics_by_model(results_path: pathlib.Path = RESULTS) -> dict[str, dict]:
+    """Judge-independent reasoning-contract metrics from raw harness_full responses."""
+    return {
+        model: dict(metrics)
+        for model, metrics in _contract_metrics_by_model_cached(*_file_cache_key(results_path)).items()
+    }
+
+
+@lru_cache(maxsize=8)
+def _contract_metrics_by_model_cached(path_text: str, _mtime_ns: int, _size: int) -> dict[str, dict]:
     """Judge-independent reasoning-contract metrics from raw harness_full responses.
 
     These are deterministic counts over model text, not LLM-judge scores. They attach the Claude workflow
@@ -368,11 +645,12 @@ def contract_metrics_by_model(results_path: pathlib.Path = RESULTS) -> dict[str,
     from reasoning_contract import verify_reasoning  # noqa: PLC0415
     from investigation_lens import institutional_review  # noqa: PLC0415
 
+    results_path = pathlib.Path(path_text)
     counts: dict[str, Counter] = {}
     for row in load_jsonl(results_path):
-        if not isinstance(row, dict) or row.get("arm") != "harness_full":
+        if not _is_valid_result_metric_row(row) or row.get("arm") != "harness_full":
             continue
-        model = str(row.get("model") or "")
+        model = _public_model_id(row.get("model"))
         response = row.get("response")
         if not model or not isinstance(response, str) or not response.strip():
             continue
@@ -412,16 +690,24 @@ MIN_N = 10
 
 
 def build_leaderboard(panel: list[dict], pairwise: list[dict], *, generated: str, sha: str,
-                      min_n: int = 1, contract_metrics: dict[str, dict] | None = None) -> dict:
+                      min_n: int = 1, contract_metrics: dict[str, dict] | None = None,
+                      latency_metrics: dict[str, float] | None = None) -> dict:
+    panel = [p for p in panel if _is_default_board_row(p)]
+    pairwise = [p for p in pairwise if _is_default_board_row(p)]
+    public_generated = _public_generated_label(generated)
+    public_sha = _public_git_sha(sha)
     rows = leaderboard_rows(panel, pairwise)
     pstats = paired_stats_by_model(panel)
-    lat = latency_by_model()
+    lat = latency_metrics if latency_metrics is not None else latency_by_model()
     cm = contract_metrics if contract_metrics is not None else contract_metrics_by_model()
     for r in rows:
-        r["stats"] = pstats.get(r["model"], {})
+        r["stats"] = _public_numeric_block(pstats.get(r["model"], {}), _PUBLIC_STATS_FIELDS)
         r["meta"] = model_meta(r["model"])
-        r["latency_s"] = lat.get(r["model"])
-        r["contract_metrics"] = cm.get(r["model"], {})
+        r["latency_s"] = _public_number(lat.get(r["model"]))
+        r["contract_metrics"] = _public_numeric_block(
+            cm.get(r["model"], {}),
+            _PUBLIC_CONTRACT_METRIC_FIELDS,
+        )
     # Rank only models with enough prompts; the rest are preliminary (shown, not ranked).
     ranked = [r for r in rows if r["n_prompts"] >= min_n]
     preliminary = [r for r in rows if r["n_prompts"] < min_n]
@@ -429,11 +715,12 @@ def build_leaderboard(panel: list[dict], pairwise: list[dict], *, generated: str
     for i, r in enumerate(ranked, 1):
         r["rank"] = i
     preliminary.sort(key=lambda r: -r["n_prompts"])
-    judges = sorted({p["judge"] for p in panel if isinstance(p, dict) and "judge" in p})
-    return {
+    judges = sorted({_public_model_id(p.get("judge")) for p in panel if _is_valid_scored_panel_cell(p)})
+    judges = [j for j in judges if j]
+    board = {
         "benchmark": BENCHMARK,
-        "generated": generated,
-        "git_sha": sha,
+        "generated": public_generated,
+        "git_sha": public_sha,
         "judges": judges,
         "inter_judge_alpha": krippendorff_alpha_safe(panel),
         "min_n": min_n,
@@ -443,6 +730,7 @@ def build_leaderboard(panel: list[dict], pairwise: list[dict], *, generated: str
         "preliminary": preliminary,
         "breakdowns": lift_breakdowns(panel),
     }
+    return _json_strict_value(board)
 
 
 def render_markdown(lb: dict) -> str:

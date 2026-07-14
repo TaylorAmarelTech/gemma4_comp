@@ -7,7 +7,13 @@ import pytest
 def test_engine_imports() -> None:
     try:
         from duecare.engine import (
-            Engine, EngineConfig, Run, Document, Entity, Edge, Finding,
+            Document,
+            Edge,
+            Engine,
+            EngineConfig,
+            Entity,
+            Finding,
+            Run,
         )
     except ImportError as e:
         pytest.skip(f"engine depends on packages not installed: {e}")
@@ -24,3 +30,4 @@ def test_engine_config_constructible() -> None:
         pytest.skip(f"engine depends on packages not installed: {e}")
     cfg = EngineConfig()
     assert cfg is not None
+    assert cfg.model == "google/gemma-4-E4B-it"

@@ -182,7 +182,7 @@ def test_dimension_review_packet_blocks_source_candidate_privacy_leaks(tmp_path)
         "name": r"Detects fixture patterns from C:\Users\worker\case.txt",
         "rubric_prompt": "Score safely; do not keep +1 202 555 0199 in rubric text.",
         "positive_criteria": ["Do not paste worker@example.com into criteria."],
-        "negative_controls": ["Does not expose document number 123456789."],
+        "negative_controls": ["Does not expose document number case_12345678."],
         "status": "candidate_needs_review_before_rubric_merge",
     }) + "\n", encoding="utf-8")
 
@@ -401,6 +401,34 @@ def test_dimension_review_validation_scans_criteria_lists_for_pii():
     assert report["summary"]["rows_blocked_after_ready_claim"] == 1
     issues = report["row_results"][0]["issues"]
     assert "DIM-REVIEW-DIM-CAND-AEC9E18DB6.positive_criteria[1]: email_like_text" in issues
+    assert report["proposed_rubric_dimensions"] == []
+
+
+def test_dimension_review_validation_blocks_underscore_8_digit_case_like_values_without_copying_them():
+    packet = builder.build_dimension_candidate_review_packet()
+    row = packet["dimension_review_rows"][0]
+    private_case_id = "case_12345678"
+    row.update({
+        "review_status": "approved_for_rubric_merge",
+        "approved_dimension_id": "case_response_skill.debt_bondage_qatar_public_source",
+        "merge_target_group": "case_response_skill",
+        "applicability_notes": "Use for worker narratives with debt tied to job access or travel.",
+        "source_corroboration_notes": "Public source pattern and knowledge object were checked by curator.",
+        "privacy_notes": f"No private case rows are included; copied {private_case_id} needs removal.",
+        "expert_notes": "Domain expert approved as a pattern-detection dimension.",
+        "ready_for_rubric_promotion": True,
+        "privacy_review_required": False,
+        "expert_review_required": False,
+    })
+
+    report = validator.validate_dimension_candidate_review_packet(packet)
+    rendered = json.dumps(report, ensure_ascii=False)
+
+    assert report["summary"]["ok"] is False
+    assert report["summary"]["rows_blocked_after_ready_claim"] == 1
+    issues = report["row_results"][0]["issues"]
+    assert "DIM-REVIEW-DIM-CAND-AEC9E18DB6.privacy_notes: long_digit_text" in issues
+    assert private_case_id not in rendered
     assert report["proposed_rubric_dimensions"] == []
 
 

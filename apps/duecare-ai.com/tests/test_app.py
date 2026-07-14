@@ -13,7 +13,8 @@ def test_detect_pii_blocks_obvious_contact_details() -> None:
     assert "identity_document" in detect_pii("Passport A1234567 was retained")
 
 
-def test_health_status_uses_file_storage(tmp_path) -> None:
+def test_health_status_uses_file_storage(monkeypatch, tmp_path) -> None:
+    monkeypatch.delenv("RENDER_GIT_COMMIT", raising=False)
     client = TestClient(create_app(data_dir=tmp_path))
 
     response = client.get("/api/health")
@@ -23,7 +24,23 @@ def test_health_status_uses_file_storage(tmp_path) -> None:
     assert payload["status"] == "ok"
     assert payload["storage"] == "file"
     assert payload["storage_ok"] is True
+    assert payload["git_commit"] is None
     assert (tmp_path / "signals.jsonl").exists()
+
+
+def test_health_status_exposes_only_a_sanitized_render_commit_prefix(monkeypatch, tmp_path) -> None:
+    full_commit = "ABCDEF0123456789ABCDEF0123456789ABCDEF01"
+    monkeypatch.setenv("RENDER_GIT_COMMIT", full_commit)
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    response = client.get("/api/health")
+
+    assert response.status_code == 200
+    assert response.json()["git_commit"] == "abcdef012345"
+    assert full_commit.lower() not in response.text
+
+    monkeypatch.setenv("RENDER_GIT_COMMIT", "../../not-a-commit")
+    assert client.get("/healthz").json()["git_commit"] is None
 
 
 def test_robots_and_sitemap_are_served(tmp_path) -> None:
@@ -59,6 +76,33 @@ def test_public_website_pages_render_design_templates(tmp_path) -> None:
 
         assert response.status_code == 200, f"{path} returned {response.status_code}"
         assert marker in response.text, f"{path} missing marker {marker!r}"
+
+
+def test_study_and_finetuning_pages_keep_model_and_deployment_claims_separate(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    study = client.get("/study-2026-07")
+    finetuning = client.get("/finetuning")
+
+    assert study.status_code == 200
+    assert "workstation/server-class model evaluated locally" in study.text
+    assert "evaluation also does not establish phone deployment" in study.text
+    assert "separately converted and validated smaller Gemma" in study.text
+    assert "four sufficiently sampled models shown in this study" in study.text
+    assert "not a claim that every response refused or cited correctly" in study.text
+    assert "Harnessed, every one refused" not in study.text
+    assert "gitignored <code>panel.jsonl</code>" in study.text
+    assert "not the large raw response and grade files" in study.text
+    assert "committed benchmark artifacts" not in study.text
+    assert "Reproduce every number" not in study.text
+    assert "the open, on-device deployment" not in study.text
+    assert "runs Gemma&nbsp;4 <em>entirely on the worker&rsquo;s device</em>" not in study.text
+    assert "The scored study is English-only" in study.text
+
+    assert finetuning.status_code == 200
+    assert "a full trained adapter remains pending" in finetuning.text
+    assert "A local smoke artifact exercises plumbing only" in finetuning.text
+    assert "single GPU step" not in finetuning.text
 
 
 def test_demo_recording_and_admin_pages_render(tmp_path) -> None:

@@ -66,7 +66,7 @@ Branch:         master
 Root directory: apps/duecare-ai.com
 Dockerfile:     ./Dockerfile
 Health check:   /api/health
-Auto-deploy:    Yes, on push to master
+Auto-deploy:    After GitHub checks pass on master (`autoDeployTrigger: checksPass`)
 Persistent disk:
   Mount path:   /app/.duecare
   Size:         1 GB
@@ -89,19 +89,20 @@ No Stripe, Resend, PostHog, peer federation, or user-auth keys are needed for th
 
 ## First deploy checklist
 
-1. Create or update a Render Web Service from `TaylorAmarelTech/gemma4_comp`.
+1. Create or update the Render Blueprint from the authoritative root `render.yaml` in `TaylorAmarelTech/gemma4_comp`.
 2. Use Docker runtime.
 3. Set branch to `master`.
 4. Set root directory to `apps/duecare-ai.com`.
 5. Set Dockerfile path to `./Dockerfile`.
 6. Add a persistent disk mounted at `/app/.duecare`.
 7. Set health check path to `/api/health`.
-8. Add custom domains:
+8. Confirm auto-deploy waits for passing GitHub checks.
+9. Add custom domains:
    - `duecare-ai.com`
    - `www.duecare-ai.com`
-9. Configure DNS using Render's records.
-10. Confirm TLS certificate issuance.
-11. Smoke-test the public endpoints.
+10. Configure DNS using Render's records.
+11. Confirm TLS certificate issuance.
+12. Smoke-test the public endpoints and confirm `git_commit` matches the deployed revision prefix.
 
 ## Smoke checks
 
@@ -111,7 +112,8 @@ GET https://duecare-ai.com/api/hub/status
 GET https://duecare-ai.com/api/hub/knowledge-packs
 GET https://duecare-ai.com/api/hub/packs
 GET https://duecare-ai.com/api/hub/trends
-GET https://duecare-ai.com/docs
+GET https://duecare-ai.com/docs       # human-readable docs
+GET https://duecare-ai.com/api-docs   # interactive OpenAPI docs
 GET https://duecare-ai.com/admin   # page renders; logs require DUECARE_ADMIN_TOKEN
 ```
 

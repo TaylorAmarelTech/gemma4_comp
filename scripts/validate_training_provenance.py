@@ -685,8 +685,17 @@ def _quality_audit_check(record: dict[str, Any]) -> dict[str, Any]:
         return {"ok": False, "available": True, "path": _report_path(audit_path),
                 "issue": "quality_audit_summary does not match quality_audit artifact",
                 "mismatches": mismatches}
+    safe_summary = {field: expected.get(field) for field in QUALITY_AUDIT_SUMMARY_FIELDS}
+    if expected.get("clean") is not True:
+        return {
+            "ok": False,
+            "available": True,
+            "path": _report_path(audit_path),
+            "issue": "quality_audit is not clean",
+            "summary": safe_summary,
+        }
     return {"ok": True, "available": True, "path": _report_path(audit_path),
-            "summary": {field: expected.get(field) for field in QUALITY_AUDIT_SUMMARY_FIELDS}}
+            "summary": safe_summary}
 
 
 def _file_sha256(path: pathlib.Path | None) -> str | None:

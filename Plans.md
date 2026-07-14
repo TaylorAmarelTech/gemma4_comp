@@ -12,7 +12,7 @@ For current long-running work, read:
 
 Current safe improvement loops:
 
-- Keep handoff docs and validators synchronized with the actual paused engine state
+- Keep handoff docs and validators synchronized with the actual engine state (including paused engine state)
   and validation evidence.
 - Strengthen privacy-safe aggregate validators between generated research
   artifacts and active model, rubric, or leaderboard behavior.

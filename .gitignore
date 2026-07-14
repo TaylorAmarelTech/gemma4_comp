@@ -127,6 +127,10 @@ reports/**/*.ipynb
 reports/**/*.png
 reports/**/*.db
 reports/**/*.sqlite
+reports/**/*.sqlite3
+reports/**/*.sqlite3-journal
+reports/**/*.sqlite3-wal
+reports/**/*.sqlite3-shm
 reports/**/*.db-wal
 reports/**/*.db-shm
 reports/recruitment_scan/

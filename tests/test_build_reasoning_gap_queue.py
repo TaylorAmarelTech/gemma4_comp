@@ -182,6 +182,25 @@ def test_privacy_scan_flags_forbidden_fields_and_pii_like_values():
     assert "$.queue[0].prompt_id" not in scan["phone_like_paths"]
 
 
+def test_privacy_scan_flags_8_digit_case_like_values_without_copying_them():
+    scan = gap._privacy_scan({
+        "queue": [
+            {
+                "prompt_id": "template_20260129_115719_24937",
+                "category": "labor_trafficking",
+                "repair_hint": "remove copied case_12345678 before repair",
+            }
+        ]
+    })
+    encoded = json.dumps(scan)
+
+    assert scan["ok"] is False
+    assert scan["counts"]["long_digit"] == 1
+    assert scan["long_digit_paths"] == ["$.queue[0].repair_hint"]
+    assert "$.queue[0].prompt_id" not in scan["long_digit_paths"]
+    assert "case_12345678" not in encoded
+
+
 def test_privacy_scan_rejects_unexpected_queue_entry_fields_without_copying_values():
     scan = gap._privacy_scan({
         "queue": [

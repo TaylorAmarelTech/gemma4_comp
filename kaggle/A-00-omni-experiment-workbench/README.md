@@ -16,8 +16,8 @@
 | What it does | Loads one selected model per Kaggle run, runs bulk prompt sets through any harness profile, exports results, imports earlier exports, evaluates with rule and LLM judges, generates synthetic SFT/DPO data, launches LoRA fine-tuning when dependencies are available, processes local case/research bundles into graphs, and exposes A-01 through A-24 as workflows. |
 | Demo path | Run all, open the printed Cloudflare URL, load Gemma 4 E2B or a custom model path, run Chat Safety prompts with harness off and on, generate the report, then export the JSON bundle. |
 | Audience | Researcher, developer, platform safety, NGO/regulator. |
-| Inputs | Prompt libraries, previous A-00/A-01/A-02/A-07 exports, knowledge packs, optional custom model directory or Hugging Face model id. |
-| Outputs | `a00_*_results.json`, `a00_*_results.csv`, `a00_*_report.html`, `a00_*_report.md`, `a00_*_sft.jsonl`, `a00_*_dpo.jsonl`, training scripts, and optional LoRA adapter folders. |
+| Inputs | Prompt libraries, prior run exports, vetted knowledge packs, a manifest-bound SFT/DPO bundle, and an optional custom model directory or exact Hugging Face model id/revision. |
+| Outputs | Run/report exports, split SFT and DPO JSONL, row and artifact hashes, a quarantine report, a training-validation manifest, resumable SFT→DPO scripts, completion manifests, and optional LoRA adapter folders. |
 
 ## Why A-00 Exists
 
@@ -79,8 +79,9 @@ same shared contract can be run from the UI or through
 6. **Synthetic data:** Generate prompt-test scenarios, knowledge facts,
    SFT rows, DPO pairs, and adversarial negatives using harnessed or
    abliterated model runs.
-7. **Fine-tuning:** Create and optionally execute an Unsloth or PEFT LoRA
-   training job from exported synthetic data.
+7. **Fine-tuning:** Create and optionally execute a resumable Unsloth LoRA
+   job that runs response-only SFT followed by DPO. A requested DPO stage is
+   never silently skipped.
 8. **Rubric-polished SFT/DPO data:** Use `rubric_polisher` mode to turn
    harness responses into ideal training targets. The generated rows include
    the response blueprint, rubric dimensions, and a memory-versus-tool policy
@@ -124,15 +125,23 @@ variant for a quick demo:
    rerun prompts under a different harness, grade/compare existing responses,
    or load packs for later runs.
 4. In Synthetic Data, use the default `rubric_polisher_24` profile.
-5. In Train Adapter, click `Tiny fine-tune smoke bundle`. This writes a valid
-   SFT JSONL, DPO JSONL, manifest, bundle ZIP, and a contract-derived training
-   script. You can also upload a prior SFT JSONL or synthetic ZIP; A-00 inspects
-   its metadata and fills the training path, base model, and step suggestion.
+5. In Train Adapter, click `Tiny fine-tune smoke bundle`. This writes separate
+   train/validation/test rows, SFT and DPO train files, row SHA-256 values,
+   artifact checksums, a raw-text-free quarantine report, and a bundle
+   manifest. A-00 refuses a lone JSONL: uploaded data must include the
+   manifest, frozen held-out prompt hashes, license/lineage fields, privacy
+   clearance, passing quality gates, and zero train/held-out lineage overlap.
 6. Click `Check training preflight` to verify CUDA and required packages.
-7. Run the baseline eval on the same prompt set, then after verifying paths
+7. Run the baseline eval on the frozen prompt set, then after verifying paths
    switch `Execute now` to `true` for the real Unsloth run on the Kaggle GPU.
    Training runs asynchronously; the UI polls `/api/a00/jobs/{job_id}` and
-   shows the job status, log tail, generated script, data path, and output dir.
+   shows the job status, log tail, generated script, verified SFT/DPO paths,
+   checkpoints, and output dir. The run writes
+   `training_completion_manifest.json` with executed stages, model revision,
+   data hashes, and library versions.
+   The official E2B and E4B presets resolve to immutable Hugging Face commit
+   revisions; a different remote model must provide its own immutable revision
+   before `Execute now=true` is accepted.
 8. Reload the base model plus adapter and rerun the same eval prompts to show
    before/after lift in legal specificity, contact-pack/tool-call behavior,
    refusal grounding, and retaliation-risk dimensions.
@@ -165,8 +174,11 @@ judge model.
 
 Expected artifacts after step 4:
 
-- `a00_synthetic_*_sft.jsonl`
-- `a00_synthetic_*_dpo.jsonl`
+- `a00_synthetic_*_sft_train.jsonl`
+- `a00_synthetic_*_dpo_train.jsonl`
+- `a00_synthetic_*_sft_validation.jsonl`
+- `a00_synthetic_*_sft_test.jsonl`
+- `a00_synthetic_*_quarantine.json`
 - `a00_synthetic_*_manifest.json`
 - `a00_synthetic_*_bundle.zip`
 - `a00_train_*_job.json`
@@ -180,6 +192,22 @@ contacts or fee rules.
 
 Local troubleshooting is useful for JSONL shape, import/export, reports, and
 script generation. Real training should run on Kaggle or another CUDA host.
+
+## Reasoning and answer data policy
+
+A-00 can train on final answers, judge rationales, and deliberately authored
+structured evidence chains such as indicator → source → safe action. It does
+not scrape, infer, or publish private hidden chain-of-thought. Rows containing
+`<think>`/hidden-thought markup are blocked. Open datasets are candidates only:
+their license, provenance, consent basis, lineage split, factual grading, PII
+scan, and held-out exclusion must be represented in the same manifest before
+they can enter a GPU job.
+
+This keeps the model/harness flywheel useful for training-data generation
+without converting production logs or worker case material into automatic
+labels. Hub submissions remain ineligible unless `allow_training_use` was
+explicitly granted and curator, privacy, license, and correctness gates all
+pass.
 
 ## Relationship to the Other Appendix Notebooks
 
@@ -224,9 +252,11 @@ without leaving Kaggle.
 2. **Set the accelerator**: **Accelerator: GPU T4 x2**, **Internet: On**.
 3. **Add the model**: **+ Add Input → Models → `google/gemma-4`**.
    E2B / E4B both work; larger variants improve grading quality.
-4. **Paste `kernel.py`** from this folder into the notebook. The wheels
-   and bootstrap install run inside `kernel.py`; no separate dataset
-   attachment is required for the current rolling-source path.
+4. **Paste `kernel.py`** from this folder into the notebook. For a real
+   fine-tune, attach the versioned training bundle as a Kaggle Dataset (or
+   upload its ZIP in the UI); A-00 verifies its manifest and SHA-256 values
+   before creating a job. Synthetic smoke data can still be generated locally
+   inside the workbench.
 5. **Run All.** The control plane comes up at the printed
    `https://*.trycloudflare.com` URL. Use **Preconfigured Harness,
    Training, and Evaluation** for the fast guided path (defaults: small
@@ -234,9 +264,8 @@ without leaving Kaggle.
    fine-tuned + fine-tuned + harness arms, combined rule + LLM judging).
    **Custom** exposes every knob.
 
-Heuristic-only mode (no model) is supported: the dry-run generator
-still produces the UI flow, artifact contracts, and report skeleton so
-judges can verify shape without waiting on weights.
+Heuristic-only mode (no model) can demonstrate UI and artifact shape, but it
+does not count as approved training data or a completed adapter.
 
 ## Notes
 

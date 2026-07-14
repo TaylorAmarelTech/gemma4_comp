@@ -330,6 +330,32 @@ def test_build_mix_sanitizes_raw_source_manifest_issue_values():
     assert "+1 555 555 0100" not in manifest_json
 
 
+def test_build_mix_sanitizes_8_digit_case_like_manifest_issue_codes():
+    contract_path = Path("contract_dpo.jsonl")
+    source_manifest = _contract_manifest(contract_path)
+    source_manifest["contract_manifest_issues"] = [
+        "contract_dpo_no_pairs",
+        "case_12345678",
+    ]
+
+    doc = mix.build_mix(
+        [_pair("p1", "good", "bad")],
+        [_pair("p2", "complete", "missing", {"source": "contract_ablation", "ablated_link": "statute"})],
+        base_manifest=_base_manifest(),
+        base_path=Path("dpo_train.jsonl"),
+        contract_manifest=source_manifest,
+        contract_path=contract_path,
+    )
+    contract_summary = doc["manifest"]["source_manifests"]["contract_dpo"]
+    manifest_json = json.dumps(doc["manifest"])
+
+    assert contract_summary["contract_manifest_issues"] == [
+        "contract_dpo_no_pairs",
+        "manifest_issue_redacted",
+    ]
+    assert "case_12345678" not in manifest_json
+
+
 def test_build_mix_fails_closed_on_invalid_manifest_link_counts():
     contract_path = Path("contract_dpo.jsonl")
     source_manifest = _contract_manifest(contract_path)

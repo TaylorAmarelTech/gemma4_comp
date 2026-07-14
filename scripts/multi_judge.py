@@ -16,7 +16,9 @@ panel of strong INDEPENDENT models is sufficient -- this report measures whether
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import math
 import re
 import statistics
 import sys
@@ -554,7 +556,9 @@ def judge_components_perdim(prompt: str, response: str, *, model: str,
                             caller: Callable[..., str] | None = None, max_tokens: int = 0,
                             domain_spec: dict[str, Any] | None = None,
                             rubric_version: str = DEFAULT_RUBRIC_VERSION,
-                            phrasings_per_dim: int = 1) -> dict:
+                            phrasings_per_dim: int = 1,
+                            component_cache_get: Callable[[str, int, str], float | None] | None = None,
+                            component_cache_put: Callable[[str, int, str, float], None] | None = None) -> dict:
     """Per-dimension calibrated grade: ONE judge call PER component instead of one call for all.
 
     The exhaustive-grading path — it asks a SEPARATE, dedicated prompt for EACH component (A-E, and F
@@ -567,8 +571,13 @@ def judge_components_perdim(prompt: str, response: str, *, model: str,
     ``judge_components`` uses when a model omits the total. ``max_tokens=0`` (default) leaves each call
     UNLIMITED so a reasoning judge finishes its thinking on that one criterion before emitting JSON.
 
-    Cost: this is 5x (v1) / 6x (v2) the judge calls of the batched ``judge_components`` — reserve it
-    for a rigorous re-grade, not the high-throughput autonomous sweep.
+    Cost: this is 5x (v1) / 6x (v2) the judge calls of the batched ``judge_components``. Invalid or
+    missing dimension outputs remain absent (never phantom zeroes), allowing the resumable harness to
+    reject the incomplete panel cell and try it again on a later pass. ``component_cache_get`` and
+    ``component_cache_put`` provide an optional crash-safe checkpoint for each individual phrasing.
+    The cache key includes a SHA-256 digest of the exact grading request and protocol inputs, so a
+    changed prompt, response, rubric, judge, or output cap cannot reuse a stale score. Cache hits do
+    not increment ``_calls``; valid new scores are checkpointed before the next dimension starts.
     """
     call = caller or (lambda p, **kw: provider_chat(p, **kw))
     _require_rubric_version(rubric_version)
@@ -578,22 +587,48 @@ def judge_components_perdim(prompt: str, response: str, *, model: str,
         vals: list[float] = []
         for ph in range(max(1, phrasings_per_dim)):   # ask this dimension with N distinct framings...
             rubric = build_component_rubric_single(k, domain_spec, version=rubric_version, phrasing=ph)
-            text = None
+            request = f"{rubric}\n\nWORKER:\n{prompt}\n\nASSISTANT REPLY:\n{response}"
+            request_hash = hashlib.sha256(json.dumps(
+                {
+                    "protocol": "duecare.perdim.v1",
+                    "model": model,
+                    "max_tokens": max_tokens,
+                    "request": request,
+                },
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")).hexdigest()
+            cached = component_cache_get(k, ph, request_hash) if component_cache_get else None
+            if cached is not None:
+                try:
+                    cached_value = float(cached)
+                except (TypeError, ValueError):
+                    cached_value = math.nan
+                if math.isfinite(cached_value) and 0.0 <= cached_value <= float(mx):
+                    vals.append(cached_value)
+                    continue
             for _attempt in range(2):   # one retry: a flaky sub-call must not drop the whole per-dim grade
                 try:
-                    text = call(f"{rubric}\n\nWORKER:\n{prompt}\n\nASSISTANT REPLY:\n{response}",
-                                model=model, max_tokens=max_tokens)
-                    break
+                    text = call(request, model=model, max_tokens=max_tokens)
                 except Exception:  # noqa: BLE001 -- transient sub-call failure; retry once, then skip
-                    text = None
-            calls += 1
-            if text is None:
-                continue            # this framing failed; the others still count
-            data = extract_json(text) or {}
-            try:
-                vals.append(max(0.0, min(float(mx), float(data.get(k, 0)))))
-            except (TypeError, ValueError):
-                vals.append(0.0)
+                    calls += 1
+                    continue
+                calls += 1
+                data = extract_json(text)
+                if not isinstance(data, dict) or k not in data:
+                    continue
+                try:
+                    value = float(data[k])
+                except (TypeError, ValueError):
+                    continue
+                if not math.isfinite(value):
+                    continue
+                value = max(0.0, min(float(mx), value))
+                if component_cache_put:
+                    component_cache_put(k, ph, request_hash, value)
+                vals.append(value)
+                break
         if vals:                    # ...and AVERAGE the framings that graded (robust to prompt wording).
             comps[k] = sum(vals) / len(vals)   # no framing graded -> SKIP (missing key), never a phantom 0
     # score = clamped sum over the scored components THAT ACTUALLY GRADED. If none did (every sub-call

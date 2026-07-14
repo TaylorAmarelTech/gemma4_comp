@@ -41,6 +41,7 @@ _SAFE_MODEL_ID = re.compile(r"^[A-Za-z0-9._\-]+$")
 _SAFE_FIELD_KEY = re.compile(r"^[A-Za-z0-9_. \-]{1,80}$")
 _SAFE_HASHLIKE = re.compile(r"^[0-9a-fA-F]{7,128}$")
 _SAFE_CREATED_UTC = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|\+00:00)$")
+_LONG_DIGITS = re.compile(r"(?<!\d)\d{8,}(?!\d)")
 _PATH_KEYS = frozenset({
     "path",
     "manifest_path",
@@ -88,7 +89,7 @@ def _contains_sensitive_text(value: str) -> bool:
     return bool(
         _EMAIL.search(value)
         or _PHONE.search(value)
-        or re.search(r"\b\d{9,}\b", value)
+        or _LONG_DIGITS.search(value)
         or _LOCAL_PATH_HINT.search(value)
         or "\\" in value
     )
@@ -146,7 +147,7 @@ def _display_hashlike(value: Any) -> str:
     text = str(value or "").strip()
     if _SHA256_RE.fullmatch(text):
         return text
-    if re.search(r"\b\d{9,}\b", text):
+    if text.isdigit() and _LONG_DIGITS.search(text):
         return "redacted"
     return text if _SAFE_HASHLIKE.fullmatch(text) else "redacted"
 

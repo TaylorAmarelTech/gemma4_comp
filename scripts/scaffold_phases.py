@@ -336,7 +336,7 @@ COMPARISON_FIELD: list[ComparisonModel] = [
         id="gemma_4_e2b",
         display_name="Gemma 4 E2B (stock)",
         provider="transformers",
-        model_id="google/gemma-4-e2b-it",
+        model_id="google/gemma-4-E2B-it",
         size_b=2.0,
         primary_subject=True,
     ),
@@ -344,7 +344,7 @@ COMPARISON_FIELD: list[ComparisonModel] = [
         id="gemma_4_e4b",
         display_name="Gemma 4 E4B (stock)",
         provider="transformers",
-        model_id="google/gemma-4-e4b-it",
+        model_id="google/gemma-4-E4B-it",
         size_b=4.0,
         primary_subject=True,
     ),
@@ -670,11 +670,11 @@ models:
   - id: gemma_4_e2b
     display_name: "Gemma 4 E2B (stock)"
     provider: transformers
-    model_id: google/gemma-4-e2b-it
+    model_id: google/gemma-4-E2B-it
   - id: gemma_4_e4b
     display_name: "Gemma 4 E4B (stock)"
     provider: transformers
-    model_id: google/gemma-4-e4b-it
+    model_id: google/gemma-4-E4B-it
 
 test_suites:
   - name: public_benchmark_21k
@@ -731,7 +731,7 @@ output:
 
 phase_id: enhancement
 
-base_model: unsloth/gemma-4-e4b-bnb-4bit
+base_model: google/gemma-4-E4B-it
 
 rag:
   enabled: true

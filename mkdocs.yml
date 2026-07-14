@@ -171,6 +171,13 @@ nav:
       - Cloud / hub deployment: cloud_deployment.md
       - Kaggle kernel state: current_kaggle_notebook_state.md
       - Notebook guide: notebook_guide.md
+  - Training And Fine-Tuning:
+      - Overview: training_and_finetuning.md
+      - Phase 3 framework: phase3_training_framework.md
+      - Data strategy: finetuning_data_strategy.md
+      - Methodology: research/training_methodology.md
+      - Training for understanding: research/training_for_understanding.md
+      - Regimes and systems: research/training_regimes_and_systems.md
   - Information Sharing:
       - Why networked Gemma sharing matters: gemma_networked_knowledge_sharing.md
       - Copy-ready Kaggle post: kaggle_post_networked_knowledge_sharing.md

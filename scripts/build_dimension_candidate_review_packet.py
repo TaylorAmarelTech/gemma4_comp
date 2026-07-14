@@ -30,7 +30,7 @@ OUT_DIR = _ROOT / "reports" / "benchmark"
 
 _EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b", re.I)
 _PHONE = re.compile(r"\+?\d[\d\s().\-]{8,}\d")
-_LONG_DIGITS = re.compile(r"\b\d{9,}\b")
+_LONG_DIGITS = re.compile(r"(?<!\d)\d{8,}(?!\d)")
 _LOCAL_PATH_HINT = re.compile(r"(?:[A-Za-z]:[\\/]|\\\\|/(?:Users|home|tmp|var|mnt)(?:/|$)|~[\\/])", re.I)
 _PUBLIC_KNOWLEDGE_ID = re.compile(r"^KNOW-PUBLIC-[A-F0-9]{10}$")
 

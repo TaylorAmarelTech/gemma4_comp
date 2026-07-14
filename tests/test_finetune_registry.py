@@ -79,6 +79,13 @@ def test_make_record_redacts_sensitive_bad_status_error():
     assert "case-123456789" not in message
 
 
+def test_display_helpers_redact_underscore_8_digit_case_like_values_but_keep_mixed_hashes():
+    assert fr._display_model_id("case_12345678") == "redacted"
+    assert fr._display_report_path("reports/training/case_12345678.jsonl") == "redacted"
+    assert fr._display_hashlike("12345678") == "redacted"
+    assert fr._display_hashlike("deadbeef12345678") == "deadbeef12345678"
+
+
 def test_make_record_preserves_valid_artifact_fingerprints():
     sha = "a" * 64
     artifacts = {

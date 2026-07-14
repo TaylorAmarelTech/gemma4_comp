@@ -17,8 +17,10 @@ A fine-tune is only as good as its data. This audits the assembled SFT/DPO split
      belong in tools/RAG. Want ~0 phone-like (the privacy scrub should catch them) + visibility on
      money/date specifics.
 
-Informational + propose-only: reads the splits, writes reports/training/quality_audit.json with metrics
-+ risk flags. Offline/deterministic. Run before `training_engine.py --with-gpu`. Reuses
+Reads the splits and writes reports/training/quality_audit.json with metrics + risk flags.
+Offline/deterministic. By default the CLI remains informational for curation work; pass
+`--require-clean` to return a nonzero status when any risk flag is present. The canonical
+training engine always uses that strict gate before training or registration. Reuses
 research_tools.dedup (SimHash) + the prompt sets for corridor/typology.
 
     python scripts/audit_training_quality.py
@@ -650,7 +652,12 @@ def audit() -> dict[str, Any]:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--stdout", action="store_true", help="print full JSON; else write the report file")
+    ap.add_argument("--stdout", action="store_true", help="also print the full JSON report")
+    ap.add_argument(
+        "--require-clean",
+        action="store_true",
+        help="return nonzero when the audit has any risk flags (required before training/registration)",
+    )
     args = ap.parse_args(argv)
     rep = audit()
     if args.stdout:
@@ -671,6 +678,9 @@ def main(argv: list[str] | None = None) -> int:
         f"[quality-audit] {'CLEAN' if rep['clean'] else 'FLAGS: ' + '; '.join(rep['risk_flags'])} "
         f"-> {_display_report_path(OUT)}"
     )
+    if args.require_clean and not rep["clean"]:
+        print("[quality-audit] BLOCKED: --require-clean was set; resolve all risk flags before training")
+        return 1
     return 0
 
 

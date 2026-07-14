@@ -81,10 +81,11 @@ DEFAULT_MIN_GROUNDING_DELTA = 2.0      # teacher(A+B+D) - baseline(A+B+D) -- the
 _SCRUB = [
     (re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b"), "[email]"),
     (re.compile(r"\+?\d[\d\s().\-]{8,}\d"), "[phone]"),
-    (re.compile(r"\b\d{6,}\b"), "[id-number]"),
+    (re.compile(r"(?<!\d)\d{6,}(?!\d)"), "[id-number]"),
 ]
 _EMAIL = _SCRUB[0][0]
 _PHONE = _SCRUB[1][0]
+_LONG_DIGITS = re.compile(r"(?<!\d)\d{8,}(?!\d)")
 _LOCAL_PATH_HINT = re.compile(
     r"(?:[A-Za-z]:[\\/]|\\\\|(?:^|[\s\"'(:])/(?:Users|home|tmp|var|mnt|private|Volumes)(?:/|$)|~[\\/])",
     re.I,
@@ -98,7 +99,7 @@ def _has_sensitive_display_text(text: str) -> bool:
         _EMAIL.search(text)
         or _PHONE.search(text)
         or _LOCAL_PATH_HINT.search(text)
-        or re.search(r"\b\d{9,}\b", text)
+        or _LONG_DIGITS.search(text)
     )
 
 

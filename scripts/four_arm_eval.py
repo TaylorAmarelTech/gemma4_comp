@@ -45,7 +45,8 @@ FOUR_ARM_RESULTS = OUT_DIR / "results.jsonl"
 REPORT = _ROOT / "docs" / "research" / "four_arm_eval.md"
 ARM_OFF = "baseline"
 ARM_ON = "harness_full"
-DEFAULT_BASE = "unsloth/gemma-4-E2B-it"
+DEFAULT_BASE = "google/gemma-4-E4B-it"
+DEFAULT_BASE_REVISION = "a4c2d58be94dda072b918d9db64ee85c8ed34e3f"
 _EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b", re.I)
 _PHONE = re.compile(r"\+?\d[\d\s().\-]{8,}\d")
 _SAFE_RELATIVE_PATH = re.compile(r"^[A-Za-z0-9._/\-]+$")
@@ -463,8 +464,23 @@ def _stock_prompts(board_panel: list[dict], board_results: list[dict], stock_mod
     return out[:requested] if requested else out
 
 
+def _verify_local_adapter_base(adapter: str, *, base: str, base_revision: str) -> None:
+    """Fail closed unless the local adapter declares the exact training base."""
+    config_path = pathlib.Path(adapter) / "adapter_config.json"
+    try:
+        payload = json.loads(config_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise SystemExit("adapter verification failed: readable adapter_config.json required") from exc
+    if not isinstance(payload, dict):
+        raise SystemExit("adapter verification failed: adapter config must be an object")
+    if payload.get("base_model_name_or_path") != base:
+        raise SystemExit("adapter verification failed: base model does not match the requested evaluation base")
+    if not base_revision or payload.get("revision") != base_revision:
+        raise SystemExit("adapter verification failed: immutable base revision is missing or mismatched")
+
+
 def run(*, adapter: str, base: str, stock_model: str, trained_label: str, n: int,
-        judges: list[str], max_seq: int, max_new_tokens: int) -> dict[str, Any]:
+        judges: list[str], max_seq: int, max_new_tokens: int, base_revision: str = "") -> dict[str, Any]:
     """GPU path: generate the trained model's A/B (=C/D) on the stock prompts, judge, then analyze."""
     import sys as _sys
     _sys.path.insert(0, str(_ROOT / "scripts"))
@@ -480,6 +496,7 @@ def run(*, adapter: str, base: str, stock_model: str, trained_label: str, n: int
         f"[four-arm] {len(prompts)} stock-graded prompts -> generating trained arms with adapter "
         f"{_display_report_path(adapter)}"
     )
+    _verify_local_adapter_base(adapter, base=base, base_revision=base_revision)
 
     try:
         from unsloth import FastModel
@@ -520,6 +537,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--run", action="store_true", help="GPU: generate trained C/D then analyze")
     ap.add_argument("--adapter", default=str(_ROOT / "reports" / "training" / "adapter"))
     ap.add_argument("--base", default=DEFAULT_BASE)
+    ap.add_argument(
+        "--base-revision",
+        default="",
+        help="immutable base commit; the canonical E4B default is pinned automatically",
+    )
     ap.add_argument("--stock-model", default="gemma4:31b")
     ap.add_argument("--trained-label", default="duecare-trained")
     ap.add_argument("--n", type=_nonnegative_int_arg, default=100)
@@ -533,10 +555,14 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
 
     if args.run:
+        base_revision = args.base_revision or (
+            DEFAULT_BASE_REVISION if args.base == DEFAULT_BASE else ""
+        )
         table = run(adapter=args.adapter, base=args.base, stock_model=args.stock_model,
                     trained_label=args.trained_label, n=args.n,
                     judges=[j.strip() for j in args.judges.split(",") if j.strip()],
-                    max_seq=args.max_seq, max_new_tokens=args.max_new_tokens)
+                    max_seq=args.max_seq, max_new_tokens=args.max_new_tokens,
+                    base_revision=base_revision)
     else:
         board_panel = load_jsonl(BOARD_PANEL)
         four_panel = load_jsonl(FOUR_ARM_PANEL)

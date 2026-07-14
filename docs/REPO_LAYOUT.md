@@ -16,6 +16,7 @@ Current as of 2026-06-29.
 | [`kaggle/04-kaggle-community-benchmark/`](../kaggle/04-kaggle-community-benchmark/) | Optional Kaggle Community Benchmark surface using `kaggle_benchmarks` and Kaggle model proxy calls. | Optional |
 | [`kaggle/_archive/notebooks/`](../kaggle/_archive/notebooks/) | Retired A-series, video-pitch, and task-notebook-era surfaces. | Historical |
 | [`docs/`](../docs/) | Current docs plus archived historical docs. Main reviewer entry: [`FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md). | Live |
+| [`docs/training_and_finetuning.md`](training_and_finetuning.md) | Public, executable guide to training-data export, lineage-safe SFT/DPO preparation, immutable Gemma 4 revisions, Kaggle A-00 execution, and four-arm evaluation. | Live |
 | [`docs/research/`](research/) | Public research evidence, methods, and status reports. Key training/eval evidence includes [`training_methodology.md`](research/training_methodology.md), [`training_regimes_and_systems.md`](research/training_regimes_and_systems.md), and [`four_arm_eval.md`](research/four_arm_eval.md), the pending stock/trained x harness-off/on status report. | Live |
 | [`docs/entity_intelligence_pipeline.md`](entity_intelligence_pipeline.md) | Canonical map of the propose-only entity-intelligence pipeline: 12 connectors in `scripts/`, the 32-registry cascade in `configs/duecare/research_monitor/`, the 1,111-source + 532-org catalogs, the relationship-edge schema, and the licence ledger. | Live |
 | [`scripts/`](../scripts/) + [`configs/duecare/research_monitor/`](../configs/duecare/research_monitor/) | Operator research tooling: entity connectors, the config-driven registry resolvers (`registry_specs.yaml`), and the licensed-entity / support-org catalogs. Propose-only (stages to gitignored `reports/`). | Live |
@@ -80,7 +81,7 @@ Current as of 2026-06-29.
 - Regulatory domain intake validation gate: [`scripts/validate_regulatory_domain_intake_packet.py`](../scripts/validate_regulatory_domain_intake_packet.py)
 - Regulatory domain seed proposal builder: [`scripts/build_regulatory_domain_seed_proposal.py`](../scripts/build_regulatory_domain_seed_proposal.py)
 - Regulatory curation bundle builder: [`scripts/build_regulatory_curation_bundle.py`](../scripts/build_regulatory_curation_bundle.py)
-- AI pickup bridge: root [`PROJECT_BIBLE.md`](../PROJECT_BIBLE.md) points Claude Code, Codex, and Fable-style agents to the canonical long-loop brief at [`docs/codex/PROJECT_BIBLE.md`](codex/PROJECT_BIBLE.md).
+- AI pickup bridge: root [`PROJECT_BIBLE.md`](../PROJECT_BIBLE.md) points Claude Code, Codex, and Fable 5-style agents to the canonical long-loop brief at [`docs/codex/PROJECT_BIBLE.md`](codex/PROJECT_BIBLE.md); root [`Plans.md`](../Plans.md) is a compatibility bridge for older Claude Code handoffs that previously asked agents to re-read `Plans.md`.
 - Root file policy: [`ROOT_FILES.md`](../ROOT_FILES.md)
 - File purpose policy: [`docs/FILE_PURPOSE_GUIDE.md`](FILE_PURPOSE_GUIDE.md)
 - Kaggle Community Benchmark notes: [`docs/KAGGLE_COMMUNITY_BENCHMARK.md`](KAGGLE_COMMUNITY_BENCHMARK.md)

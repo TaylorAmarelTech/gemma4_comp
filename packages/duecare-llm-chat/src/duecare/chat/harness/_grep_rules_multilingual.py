@@ -270,12 +270,14 @@ MULTILINGUAL_GREP_RULES = [
         "rule": "multiling_recruitment_fee_charged",
         "patterns": _patterns("fee", "agency"),
         "severity": "high",
-        "citation": "ILO C181 (Private Employment Agencies, 1997) Art. 7 (no direct or indirect fees to "
-                    "workers); ILO General Principles & Operational Guidelines for Fair Recruitment (2016), "
-                    "Principle 7.",
+        "citation": "ILO C181 (Private Employment Agencies, 1997) Art. 7(1) (general prohibition on direct "
+                    "or indirect fees to workers), subject to Art. 7(2) authorised exceptions for specified "
+                    "worker categories; binding effect depends on ratification and domestic implementation. "
+                    "ILO General Principles & Operational Guidelines for Fair Recruitment (2016), Principle 7.",
         "indicator": "Recruitment / placement fees charged to the worker by an agency or agent -- in the "
-                     "worker's own language -- are prohibited under ILO C181 Art. 7 and are the primary "
-                     "entry point to debt bondage.",
+                     "worker's own language -- conflict with C181 Art. 7(1)'s general rule, while Art. 7(2), "
+                     "ratification, and applicable domestic law must be checked before stating a binding "
+                     "prohibition. Such fees are a major entry point to debt bondage.",
     },
     {
         "rule": "multiling_wage_withheld",

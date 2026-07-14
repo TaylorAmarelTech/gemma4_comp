@@ -687,6 +687,8 @@
               <li>Tracks exploitation trends over time. fee inflation, contract substitution, recruiter network shifts</li>
               <li>Measures policy impact: pack-diffs against signal changes after a regulation lands</li>
               <li>Runs the harness + rubric on Gemma 4 for reproducible model evaluations</li>
+              <li>Builds provenance-tracked SFT, DPO, counterfactual, and evaluation bundles from approved examples</li>
+              <li>Exports model-visible evidence traces and concise rationales when intentionally returned; never private or hidden chain-of-thought</li>
               <li>Submits prompts &amp; rubric proposals to the public review queue</li>
               <li>Rejects real PII at the inbound scanner. composite scenarios only</li>
             </ul>
@@ -697,6 +699,8 @@
               <li>Reproducible across labs and time, with stable hashed references</li>
               <li>Anonymized signals + harness enable corridor and policy research without raw case data</li>
               <li>Comparable results as packs, rules, and rubrics evolve</li>
+              <li>Lineage-, typology-, and corridor-aware splits reduce train/evaluation leakage</li>
+              <li>Four-arm gates separate training lift from harness lift before any release</li>
               <li>Removes ambiguity from policy and corridor analysis</li>
               <li>Lowers cost of entry. no expensive infrastructure or data deals</li>
             </ul>
@@ -744,6 +748,7 @@
               <ul>
               <li>Versioned evaluation packs + rubrics</li>
               <li>Public-source corridor packs (scrubbed)</li>
+              <li>Reviewed training rows with source and license metadata</li>
               <li>Submitted proposals → review queue</li>
             </ul>
             </div>
@@ -758,7 +763,7 @@
               <ul>
               <li>Pack hash for reproducibility</li>
               <li>Composite-only eval prompts</li>
-              <li>Runnable on Kaggle / GitHub / local</li>
+              <li><a href="/finetuning">Training and evaluation bundles</a> runnable on Kaggle / GitHub / local</li>
             </ul>
             </div>
           </div>
@@ -908,6 +913,7 @@
               <li>Stable HTTP API for screen / explain / draft / cite endpoints</li>
               <li>Pack catalog you pin per environment</li>
               <li>Streaming responses + per-turn telemetry hooks</li>
+              <li>A-00-compatible dataset manifests and LoRA training handoffs</li>
               <li>Optional bring-your-own model layer (vetted open-weights)</li>
             </ul>
           </div>
@@ -918,6 +924,7 @@
               <li>Keep your existing data model and access controls</li>
               <li>On-prem or private-cloud; no traffic to a vendor SaaS</li>
               <li>Same vetted packs as every other deployment</li>
+              <li>Reuse one dataset and evaluation contract across compatible models; adapters remain base-model-specific</li>
             </ul>
           </div>
         </div>

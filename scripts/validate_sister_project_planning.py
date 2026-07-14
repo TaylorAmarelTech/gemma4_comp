@@ -58,9 +58,11 @@ KNOWN_PROJECT_STATUSES = frozenset({
 })
 KNOWN_PROMPT_ERROR_KINDS = frozenset({
     "FileNotFoundError",
+    "invalid_error_shape",
     "JSONDecodeError",
     "OSError",
     "PermissionError",
+    "prompt_rows_not_list",
     "row_not_object",
 })
 SOURCE_ADMISSION_RULE_CONCEPTS = {
@@ -78,13 +80,26 @@ READINESS_GATE_BLOCK_CONCEPTS = {
     "comparable_scoring": ["comparable scoring"],
     "worker_facing_use": ["worker-facing use"],
 }
+SCORED_CAPABILITY_CONCEPTS = {
+    "jurisdiction_selection": ["jurisdiction"],
+    "local_law_international_anchor_separation": ["local law", "international anchors"],
+    "ordinary_protection_detection": ["ordinary labour", "wage", "consumer protections"],
+    "safe_remedy_privacy_routing": ["remedy", "private details", "retaliation risk"],
+    "refuses_to_invent_volatile_claims": ["refuses to invent", "fee caps", "office names"],
+}
 _DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 _EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b", re.I)
 _PHONE = re.compile(r"\+?\d[\d\s().\-]{8,}\d")
-_URL = re.compile(r"\b(?:https?://|www\.)", re.I)
-_LONG_DIGITS = re.compile(r"\b\d{9,}\b")
+_URL = re.compile(r"\b(?:https?://|https?:/|ftp:/+|s3:/+|file:/+|mailto:|www\.)", re.I)
+_LONG_DIGITS = re.compile(r"(?<!\d)\d{8,}(?!\d)")
 _LOCAL_PATH = re.compile(
-    r"(?:[A-Za-z]:[\\/]|\\\\|/(?:Users|home|tmp|var|mnt|private|Volumes)(?:/|$)|~[\\/])",
+    r"(?:"
+    r"[A-Za-z]:[\\/]"
+    r"|\\\\"
+    r"|/(?:Users|home|tmp|var|mnt|private|Volumes|OneDrive|Documents|AppData)(?:/|$)"
+    r"|(?:^|[\s\\/])(?:OneDrive|Documents|AppData|Local|Temp|tmp)(?:[\\/]|$)"
+    r"|~[\\/]"
+    r")",
     re.I,
 )
 
@@ -143,6 +158,20 @@ def _row_id_values(rows: Any) -> list[str]:
     ]
 
 
+def _row_id_shape_issues(rows: Any, namespace: str) -> list[str]:
+    if not isinstance(rows, list):
+        return [f"{namespace}:rows_not_list"]
+    issues: list[str] = []
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            issues.append(f"{namespace}:{index}:row_not_object")
+            continue
+        row_id = row.get("id")
+        if not isinstance(row_id, str) or not row_id.strip():
+            issues.append(f"{namespace}:{index}:id_not_string")
+    return issues
+
+
 def _string_values(values: Any) -> list[str]:
     if not isinstance(values, list):
         return []
@@ -171,7 +200,11 @@ def _unique_issue_count(values: Any) -> dict[str, int]:
     return {"count": len({str(value) for value in values})}
 
 
-def _safe_prompt_errors(errors: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _safe_prompt_errors(errors: Any) -> list[dict[str, Any]]:
+    if errors is None:
+        return []
+    if not isinstance(errors, list):
+        return [{"line": None, "error": "invalid_error_shape"}]
     safe_errors: list[dict[str, Any]] = []
     for error in errors:
         if not isinstance(error, dict):
@@ -180,7 +213,7 @@ def _safe_prompt_errors(errors: list[dict[str, Any]]) -> list[dict[str, Any]]:
         line = error.get("line")
         error_kind = error.get("error")
         safe_errors.append({
-            "line": line if isinstance(line, int) else None,
+            "line": line if isinstance(line, int) and not isinstance(line, bool) and line > 0 else None,
             "error": (
                 error_kind
                 if isinstance(error_kind, str)
@@ -191,6 +224,13 @@ def _safe_prompt_errors(errors: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return safe_errors
 
 
+def _coerce_prompt_rows(value: Any, errors: Any) -> tuple[list[Any], list[dict[str, Any]]]:
+    safe_errors = _safe_prompt_errors(errors)
+    if isinstance(value, list):
+        return value, safe_errors
+    return [value], [*safe_errors, {"line": None, "error": "prompt_rows_not_list"}]
+
+
 def _known_or_custom(value: Any, known: frozenset[str]) -> str | None:
     if not isinstance(value, str):
         return None
@@ -199,7 +239,7 @@ def _known_or_custom(value: Any, known: frozenset[str]) -> str | None:
     return "custom_or_invalid"
 
 
-def _privacy_issue_counts(value: Any) -> dict[str, int]:
+def _privacy_issue_counts(value: Any, *, count_url_like: bool = True) -> dict[str, int]:
     counts = {
         "email_like": 0,
         "phone_like": 0,
@@ -208,25 +248,30 @@ def _privacy_issue_counts(value: Any) -> dict[str, int]:
         "long_digit_like": 0,
     }
 
+    def scan_text(text: str) -> None:
+        is_iso_date = bool(_DATE.fullmatch(text.strip()))
+        if _EMAIL.search(text):
+            counts["email_like"] += 1
+        if _PHONE.search(text) and not is_iso_date:
+            counts["phone_like"] += 1
+        if count_url_like and _URL.search(text):
+            counts["url_like"] += 1
+        if _LOCAL_PATH.search(text) or "\\" in text:
+            counts["local_path_like"] += 1
+        if _LONG_DIGITS.search(text):
+            counts["long_digit_like"] += 1
+
     def walk(item: Any) -> None:
         if isinstance(item, dict):
-            for child in item.values():
+            for key, child in item.items():
+                if isinstance(key, str):
+                    scan_text(key)
                 walk(child)
         elif isinstance(item, list):
             for child in item:
                 walk(child)
         elif isinstance(item, str):
-            is_iso_date = bool(_DATE.fullmatch(item.strip()))
-            if _EMAIL.search(item):
-                counts["email_like"] += 1
-            if _PHONE.search(item) and not is_iso_date:
-                counts["phone_like"] += 1
-            if _URL.search(item):
-                counts["url_like"] += 1
-            if _LOCAL_PATH.search(item) or "\\" in item:
-                counts["local_path_like"] += 1
-            if _LONG_DIGITS.search(item):
-                counts["long_digit_like"] += 1
+            scan_text(item)
 
     walk(value)
     return counts
@@ -304,17 +349,33 @@ def _missing_readiness_gate_block_concepts(project: Any) -> list[str]:
     ]
 
 
-def _count_rows_with_urls(rows: list[dict[str, Any]]) -> int:
-    return sum(1 for row in rows if isinstance(row.get("url"), str) and row["url"].strip())
+def _missing_scored_capability_concepts(project: Any) -> list[str]:
+    capabilities = _lower_join(project.get("scored_capabilities", []) if isinstance(project, dict) else [])
+    return [
+        concept for concept, accepted_terms in SCORED_CAPABILITY_CONCEPTS.items()
+        if not all(term in capabilities for term in accepted_terms)
+    ]
 
 
-def _source_status_counts(rows: list[dict[str, Any]]) -> dict[str, int]:
+def _count_rows_with_urls(rows: list[Any]) -> int:
+    return sum(
+        1 for row in rows
+        if isinstance(row, dict)
+        and isinstance(row.get("url"), str)
+        and row["url"].strip()
+    )
+
+
+def _source_status_counts(rows: list[Any]) -> dict[str, int]:
     counts: dict[str, int] = {}
     for row in rows:
-        status = row.get("verification_status")
-        if isinstance(status, str):
-            key = status if status in KNOWN_SOURCE_STATUSES else "invalid_or_unknown"
-            counts[key] = counts.get(key, 0) + 1
+        status = row.get("verification_status") if isinstance(row, dict) else None
+        key = (
+            status
+            if isinstance(status, str) and status in KNOWN_SOURCE_STATUSES
+            else "invalid_or_unknown"
+        )
+        counts[key] = counts.get(key, 0) + 1
     return dict(sorted(counts.items()))
 
 
@@ -357,10 +418,9 @@ def _project_checks(project: Any) -> list[dict[str, Any]]:
         },
     ))
 
-    gate_ids = {
-        gate.get("id") for gate in project.get("readiness_gates", [])
-        if isinstance(gate, dict)
-    } if isinstance(project, dict) else set()
+    gate_ids = set(_row_id_values(
+        project.get("readiness_gates", []) if isinstance(project, dict) else []
+    ))
     checks.append(_check(
         "project_readiness_gates_cover_required_gates",
         REQUIRED_REVIEW_GATES <= gate_ids,
@@ -380,6 +440,16 @@ def _project_checks(project: Any) -> list[dict[str, Any]]:
         expected=[],
         actual=missing_readiness_block_concepts,
     ))
+    project_row_id_issues = [
+        *_row_id_shape_issues(project.get("readiness_gates", []) if isinstance(project, dict) else [], "readiness_gates"),
+        *_row_id_shape_issues(project.get("first_build_phases", []) if isinstance(project, dict) else [], "first_build_phases"),
+    ]
+    checks.append(_check(
+        "project_planning_rows_have_string_ids",
+        project_row_id_issues == [],
+        expected=[],
+        actual=_unique_issue_count(project_row_id_issues),
+    ))
 
     missing_rule_terms = _missing_source_admission_rule_concepts(project)
     checks.append(_check(
@@ -387,6 +457,13 @@ def _project_checks(project: Any) -> list[dict[str, Any]]:
         missing_rule_terms == [],
         expected=[],
         actual=missing_rule_terms,
+    ))
+    missing_scored_capability_concepts = _missing_scored_capability_concepts(project)
+    checks.append(_check(
+        "scored_capabilities_cover_regulatory_miss_patterns",
+        missing_scored_capability_concepts == [],
+        expected=[],
+        actual=missing_scored_capability_concepts,
     ))
 
     phases = project.get("first_build_phases", []) if isinstance(project, dict) else []
@@ -443,9 +520,19 @@ def _jurisdiction_pack_checks(packs: Any) -> list[dict[str, Any]]:
         if not isinstance(lens, dict):
             lens_gate_issues.append("lens_not_object")
             continue
-        gates = set(lens.get("review_gates", [])) if isinstance(lens.get("review_gates"), list) else set()
+        review_gates = lens.get("review_gates", [])
+        gate_shape_ok = (
+            isinstance(review_gates, list)
+            and all(isinstance(gate, str) for gate in review_gates)
+        )
+        gates = set(_string_values(review_gates))
         slots = lens.get("source_object_slots")
-        if not REQUIRED_REVIEW_GATES <= gates or not isinstance(slots, list) or not slots:
+        if (
+            not gate_shape_ok
+            or not REQUIRED_REVIEW_GATES <= gates
+            or not isinstance(slots, list)
+            or not slots
+        ):
             lens_gate_issues.append(lens.get("id", "missing_id"))
     checks.append(_check(
         "domain_lenses_require_source_slots_and_review_gates",
@@ -497,6 +584,17 @@ def _jurisdiction_pack_checks(packs: Any) -> list[dict[str, Any]]:
         expected=[],
         actual=_unique_issue_count(queued_scope_issues),
     ))
+    jurisdiction_pack_row_id_issues = [
+        *_row_id_shape_issues(lenses, "domain_lenses"),
+        *_row_id_shape_issues(scopes, "pilot_jurisdiction_scopes"),
+        *_row_id_shape_issues(queued_scopes, "queued_jurisdiction_scopes"),
+    ]
+    checks.append(_check(
+        "jurisdiction_pack_rows_have_string_ids",
+        jurisdiction_pack_row_id_issues == [],
+        expected=[],
+        actual=_unique_issue_count(jurisdiction_pack_row_id_issues),
+    ))
     return checks
 
 
@@ -538,8 +636,64 @@ def _grounding_metadata_privacy_checks(grounding: Any) -> list[dict[str, Any]]:
     ]
 
 
+def _grounding_source_rows_value(grounding: Any) -> Any:
+    if isinstance(grounding, dict):
+        return grounding.get("sources", [])
+    return grounding
+
+
+def _grounding_source_privacy_issue_counts(rows: Any) -> dict[str, int]:
+    if not isinstance(rows, list):
+        return _privacy_issue_counts(rows)
+    scan_rows: list[Any] = []
+    https_url_counts = {
+        "email_like": 0,
+        "phone_like": 0,
+        "url_like": 0,
+        "local_path_like": 0,
+        "long_digit_like": 0,
+    }
+    for row in rows:
+        if isinstance(row, dict):
+            safe_row: dict[str, Any] = {}
+            for key, value in row.items():
+                if key == "url":
+                    if value is None:
+                        continue
+                    if isinstance(value, str) and (value == "" or value.startswith("https://")):
+                        url_text = value[len("https://"):] if value.startswith("https://") else value
+                        url_counts = _privacy_issue_counts(url_text, count_url_like=False)
+                        for count_key, count_value in url_counts.items():
+                            https_url_counts[count_key] += count_value
+                        continue
+                safe_row[key] = value
+            scan_rows.append(safe_row)
+        else:
+            scan_rows.append(row)
+    counts = _privacy_issue_counts(scan_rows)
+    for count_key, count_value in https_url_counts.items():
+        counts[count_key] += count_value
+    return counts
+
+
+def _grounding_source_privacy_checks(grounding: Any) -> list[dict[str, Any]]:
+    rows = _grounding_source_rows_value(grounding)
+    counts = _grounding_source_privacy_issue_counts(rows)
+    return [
+        _check(
+            "grounding_source_rows_contain_no_private_identifiers",
+            _privacy_issue_total(counts) == 0,
+            expected={"grounding_source_privacy_issue_count": 0},
+            actual={
+                "grounding_source_privacy_issue_count": _privacy_issue_total(counts),
+                "grounding_source_issue_counts": counts,
+            },
+        )
+    ]
+
+
 def _grounding_checks(grounding: Any) -> list[dict[str, Any]]:
-    rows = grounding.get("sources", []) if isinstance(grounding, dict) else []
+    rows = _grounding_source_rows_value(grounding)
     checks: list[dict[str, Any]] = []
     status_issues = []
     anchor_issues = []
@@ -561,9 +715,11 @@ def _grounding_checks(grounding: Any) -> list[dict[str, Any]]:
             if not isinstance(url, str) or not url.startswith("https://"):
                 anchor_issues.append(row_id)
             continue
-        if status not in PENDING_SOURCE_STATUSES:
+        if not isinstance(status, str) or status not in PENDING_SOURCE_STATUSES:
             status_issues.append(row_id)
-        if isinstance(url, str) and url.strip():
+        if url is not None and not isinstance(url, str):
+            status_issues.append(row_id)
+        elif isinstance(url, str) and url.strip():
             status_issues.append(row_id)
         if verified_date is not None:
             status_issues.append(row_id)
@@ -579,12 +735,20 @@ def _grounding_checks(grounding: Any) -> list[dict[str, Any]]:
         expected=[],
         actual=_unique_issue_count(anchor_issues),
     ))
+    grounding_source_row_id_issues = _row_id_shape_issues(rows, "grounding_sources")
+    checks.append(_check(
+        "grounding_source_rows_have_string_ids",
+        grounding_source_row_id_issues == [],
+        expected=[],
+        actual=_unique_issue_count(grounding_source_row_id_issues),
+    ))
     return checks
 
 
-def _prompt_checks(prompt_rows: list[dict[str, Any]], prompt_errors: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _prompt_checks(prompt_rows: list[Any], prompt_errors: list[dict[str, Any]]) -> list[dict[str, Any]]:
     checks: list[dict[str, Any]] = []
     safe_prompt_errors = _safe_prompt_errors(prompt_errors)
+    prompt_privacy_counts = _privacy_issue_counts(prompt_rows)
     row_issues = []
     privacy_issues = []
     unresolved_status_issues = []
@@ -594,6 +758,9 @@ def _prompt_checks(prompt_rows: list[dict[str, Any]], prompt_errors: list[dict[s
         "ready_for_worker_facing_use",
     )
     for row in prompt_rows:
+        if not isinstance(row, dict):
+            row_issues.append("row_not_object")
+            continue
         row_id = row.get("id", "missing_id")
         text = row.get("text")
         pattern_ids = row.get("candidate_pattern_ids")
@@ -647,6 +814,15 @@ def _prompt_checks(prompt_rows: list[dict[str, Any]], prompt_errors: list[dict[s
         privacy_issues == [],
         expected=[],
         actual=_unique_issue_count(privacy_issues),
+    ))
+    checks.append(_check(
+        "scheme_prompt_rows_contain_no_private_identifiers",
+        _privacy_issue_total(prompt_privacy_counts) == 0,
+        expected={"scheme_prompt_privacy_issue_count": 0},
+        actual={
+            "scheme_prompt_privacy_issue_count": _privacy_issue_total(prompt_privacy_counts),
+            "scheme_prompt_issue_counts": prompt_privacy_counts,
+        },
     ))
     return checks
 
@@ -781,7 +957,9 @@ def _integrity_checks(
 
     prompt_categories = {
         row.get("category") for row in prompt_rows
-        if isinstance(row.get("category"), str) and row.get("category")
+        if isinstance(row, dict)
+        and isinstance(row.get("category"), str)
+        and row.get("category")
     }
     source_rows = grounding.get("sources", []) if isinstance(grounding, dict) else []
     grounding_tags = _coverage_tags(source_rows)
@@ -799,6 +977,7 @@ def _integrity_checks(
     prompt_candidate_pattern_ids = {
         pattern_id
         for row in prompt_rows
+        if isinstance(row, dict)
         for pattern_id in _string_values(row.get("candidate_pattern_ids", []))
     }
     undeclared_prompt_patterns = sorted(prompt_candidate_pattern_ids - candidate_pattern_ids)
@@ -829,7 +1008,7 @@ def build_report(
     prompts, prompt_errors = (
         _load_jsonl(scheme_prompts_path)
         if scheme_prompts is None
-        else (scheme_prompts, scheme_prompt_errors or [])
+        else _coerce_prompt_rows(scheme_prompts, scheme_prompt_errors)
     )
 
     load_errors = {
@@ -846,6 +1025,7 @@ def build_report(
         *_jurisdiction_pack_checks(packs),
         *_metadata_privacy_checks(project, packs),
         *_grounding_metadata_privacy_checks(grounding),
+        *_grounding_source_privacy_checks(grounding),
         *_grounding_checks(grounding),
         *_prompt_checks(prompts, prompt_errors),
         *_integrity_checks(
@@ -883,11 +1063,14 @@ def build_report(
     project_id = project.get("project_id") if isinstance(project, dict) else None
     prompt_categories = {
         row.get("category") for row in prompts
-        if isinstance(row.get("category"), str) and row.get("category")
+        if isinstance(row, dict)
+        and isinstance(row.get("category"), str)
+        and row.get("category")
     }
     prompt_candidate_pattern_ids = {
         pattern_id
         for row in prompts
+        if isinstance(row, dict)
         for pattern_id in _string_values(row.get("candidate_pattern_ids", []))
     }
     candidate_pattern_ids = set(_string_values(
@@ -898,10 +1081,12 @@ def build_report(
     )
     prompt_unresolved_scope_count = sum(
         1 for row in prompts
+        if isinstance(row, dict)
         if row.get("scope_resolution_status") == "unresolved_source_gap"
     )
     prompt_not_ready_count = sum(
         1 for row in prompts
+        if isinstance(row, dict)
         if row.get("ready_for_public_scoring") is False
         and row.get("ready_for_training_use") is False
         and row.get("ready_for_worker_facing_use") is False
@@ -924,8 +1109,13 @@ def build_report(
     project_privacy_counts = _privacy_issue_counts(project)
     pack_privacy_counts = _privacy_issue_counts(packs)
     grounding_privacy_counts = _privacy_issue_counts(grounding_meta)
+    grounding_source_privacy_counts = _grounding_source_privacy_issue_counts(
+        _grounding_source_rows_value(grounding)
+    )
+    prompt_privacy_counts = _privacy_issue_counts(prompts)
     missing_source_admission_rule_concepts = _missing_source_admission_rule_concepts(project)
     missing_readiness_gate_block_concepts = _missing_readiness_gate_block_concepts(project)
+    missing_scored_capability_concepts = _missing_scored_capability_concepts(project)
     summary = {
         "ok": failed == [],
         "check_count": len(checks),
@@ -994,9 +1184,12 @@ def build_report(
         "duplicate_id_issue_count": len(duplicate_issues),
         "readiness_gate_missing_block_concept_count": len(missing_readiness_gate_block_concepts),
         "source_admission_missing_concept_count": len(missing_source_admission_rule_concepts),
+        "scored_capability_missing_concept_count": len(missing_scored_capability_concepts),
         "project_privacy_issue_count": _privacy_issue_total(project_privacy_counts),
         "jurisdiction_pack_privacy_issue_count": _privacy_issue_total(pack_privacy_counts),
         "grounding_metadata_privacy_issue_count": _privacy_issue_total(grounding_privacy_counts),
+        "grounding_source_privacy_issue_count": _privacy_issue_total(grounding_source_privacy_counts),
+        "scheme_prompt_privacy_issue_count": _privacy_issue_total(prompt_privacy_counts),
     }
     return {
         "summary": summary,
@@ -1025,10 +1218,13 @@ def _print_text_report(report: dict[str, Any]) -> None:
         f"missing_scope_jurisdictions={summary.get('local_source_jurisdictions_without_scope_count')} "
         f"readiness_gate_missing={summary.get('readiness_gate_missing_block_concept_count')} "
         f"source_admission_missing={summary.get('source_admission_missing_concept_count')} "
+        f"scored_capability_missing={summary.get('scored_capability_missing_concept_count')} "
         f"first_build_phases_blocked={summary.get('first_build_phases_blocked')} "
         f"privacy_issues=project:{summary.get('project_privacy_issue_count')},"
         f"packs:{summary.get('jurisdiction_pack_privacy_issue_count')},"
-        f"grounding:{summary.get('grounding_metadata_privacy_issue_count')}"
+        f"grounding:{summary.get('grounding_metadata_privacy_issue_count')},"
+        f"prompts:{summary.get('scheme_prompt_privacy_issue_count')},"
+        f"grounding_sources:{summary.get('grounding_source_privacy_issue_count')}"
     )
     for check in report["checks"]:
         if check.get("ok") is True:

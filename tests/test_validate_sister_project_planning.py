@@ -104,6 +104,8 @@ def test_sister_project_planning_validator_accepts_current_artifacts():
     assert report["summary"]["project_privacy_issue_count"] == 0
     assert report["summary"]["jurisdiction_pack_privacy_issue_count"] == 0
     assert report["summary"]["grounding_metadata_privacy_issue_count"] == 0
+    assert report["summary"]["grounding_source_privacy_issue_count"] == 0
+    assert report["summary"]["scheme_prompt_privacy_issue_count"] == 0
     assert "scheme_prompt_ids" not in report["summary"]
     rendered = json.dumps(report, ensure_ascii=False)
     assert "https://www.ilo.org" not in rendered
@@ -160,6 +162,28 @@ def test_validator_sanitizes_custom_status_and_gate_values():
     assert "project_charter_is_propose_only" in report["summary"]["failed_ids"]
     assert "project_readiness_gates_cover_required_gates" in report["summary"]["failed_ids"]
     assert private_status not in rendered
+    assert private_gate not in rendered
+
+
+def test_validator_rejects_malformed_readiness_gate_id_without_copying_values():
+    validator = _load_validator()
+    project, packs, grounding, prompts = _current_artifacts()
+    project = copy.deepcopy(project)
+    private_gate = "readiness-gate-worker@example.invalid"
+    project["readiness_gates"][0]["id"] = {"private": private_gate}
+
+    report = validator.build_report(
+        project_config=project,
+        jurisdiction_packs=packs,
+        grounding_sources=grounding,
+        scheme_prompts=prompts,
+    )
+    rendered = json.dumps(report, ensure_ascii=False)
+
+    assert report["summary"]["ok"] is False
+    assert report["summary"]["project_privacy_issue_count"] >= 1
+    assert "project_readiness_gates_cover_required_gates" in report["summary"]["failed_ids"]
+    assert "project_and_pack_metadata_contains_no_private_identifiers" in report["summary"]["failed_ids"]
     assert private_gate not in rendered
 
 
@@ -241,18 +265,12 @@ def test_validator_rejects_first_build_phase_training_use():
     assert private_phase_id not in rendered
 
 
-def test_validator_rejects_private_project_and_pack_metadata_without_copying_values():
+def test_validator_rejects_malformed_project_row_ids_without_copying_values():
     validator = _load_validator()
     project, packs, grounding, prompts = _current_artifacts()
     project = copy.deepcopy(project)
-    packs = copy.deepcopy(packs)
-    private_email = "worker@example.invalid"
-    private_path = r"C:\Users\private\case-row.json"
-    private_url = "https://example.invalid/private-pack-source"
-    project["source_admission_rules"].append(
-        f"Use {private_email} and {private_path} for private review."
-    )
-    packs["pilot_policy"] = f"Review {private_url} before any pack use."
+    private_phase_id = "phase-id-worker@example.invalid"
+    project["first_build_phases"][0]["id"] = {"private": private_phase_id}
 
     report = validator.build_report(
         project_config=project,
@@ -263,15 +281,90 @@ def test_validator_rejects_private_project_and_pack_metadata_without_copying_val
     rendered = json.dumps(report, ensure_ascii=False)
 
     assert report["summary"]["ok"] is False
-    assert report["summary"]["project_privacy_issue_count"] >= 2
-    assert report["summary"]["jurisdiction_pack_privacy_issue_count"] >= 1
+    assert report["summary"]["project_privacy_issue_count"] >= 1
+    assert "project_planning_rows_have_string_ids" in report["summary"]["failed_ids"]
+    assert "project_and_pack_metadata_contains_no_private_identifiers" in report["summary"]["failed_ids"]
+    assert private_phase_id not in rendered
+
+
+def test_validator_rejects_private_project_and_pack_metadata_without_copying_values():
+    validator = _load_validator()
+    project, packs, grounding, prompts = _current_artifacts()
+    project = copy.deepcopy(project)
+    packs = copy.deepcopy(packs)
+    private_email = "worker@example.invalid"
+    private_path = r"C:\Users\private\case-row.json"
+    private_relative_path = "OneDrive/Documents/private/case-row.json"
+    private_url = "https://example.invalid/private-pack-source"
+    private_s3_url = "s3:/private-bucket/private-pack-source"
+    project["source_admission_rules"].append(
+        f"Use {private_email} and {private_path} for private review."
+    )
+    project["non_goals"].append(f"Do not publish {private_relative_path}.")
+    packs["pilot_policy"] = f"Review {private_url} before any pack use."
+    packs["review_note"] = f"Copied scratch path {private_s3_url} must stay private."
+
+    report = validator.build_report(
+        project_config=project,
+        jurisdiction_packs=packs,
+        grounding_sources=grounding,
+        scheme_prompts=prompts,
+    )
+    rendered = json.dumps(report, ensure_ascii=False)
+
+    assert report["summary"]["ok"] is False
+    assert report["summary"]["project_privacy_issue_count"] >= 3
+    assert report["summary"]["jurisdiction_pack_privacy_issue_count"] >= 2
     assert (
         "project_and_pack_metadata_contains_no_private_identifiers"
         in report["summary"]["failed_ids"]
     )
     assert private_email not in rendered
     assert private_path not in rendered
+    assert private_relative_path not in rendered
     assert private_url not in rendered
+    assert private_s3_url not in rendered
+
+
+def test_validator_rejects_private_metadata_keys_without_copying_keys():
+    validator = _load_validator()
+    project, packs, grounding, prompts = _current_artifacts()
+    project = copy.deepcopy(project)
+    packs = copy.deepcopy(packs)
+    grounding = copy.deepcopy(grounding)
+    prompts = copy.deepcopy(prompts)
+    private_project_key = "project-key-worker@example.invalid"
+    private_pack_key = "s3:/private-bucket/private-pack-key"
+    private_grounding_key = "mailto:grounding-key@example.invalid"
+    private_prompt_key = "prompt-case-123456789"
+    project[private_project_key] = "private key only"
+    packs[private_pack_key] = "private key only"
+    grounding["_meta"][private_grounding_key] = "private key only"
+    prompts[0][private_prompt_key] = "private key only"
+
+    report = validator.build_report(
+        project_config=project,
+        jurisdiction_packs=packs,
+        grounding_sources=grounding,
+        scheme_prompts=prompts,
+    )
+    rendered = json.dumps(report, ensure_ascii=False)
+
+    assert report["summary"]["ok"] is False
+    assert report["summary"]["project_privacy_issue_count"] >= 1
+    assert report["summary"]["jurisdiction_pack_privacy_issue_count"] >= 1
+    assert report["summary"]["grounding_metadata_privacy_issue_count"] >= 1
+    assert report["summary"]["scheme_prompt_privacy_issue_count"] >= 1
+    assert (
+        "project_and_pack_metadata_contains_no_private_identifiers"
+        in report["summary"]["failed_ids"]
+    )
+    assert "grounding_metadata_contains_no_private_identifiers" in report["summary"]["failed_ids"]
+    assert "scheme_prompt_rows_contain_no_private_identifiers" in report["summary"]["failed_ids"]
+    assert private_project_key not in rendered
+    assert private_pack_key not in rendered
+    assert private_grounding_key not in rendered
+    assert private_prompt_key not in rendered
 
 
 def test_validator_rejects_weak_source_admission_rules_without_copying_rule_text():
@@ -346,7 +439,9 @@ def test_validator_rejects_private_grounding_metadata_without_copying_values():
     grounding = copy.deepcopy(grounding)
     private_email = "grounding-worker@example.invalid"
     private_path = r"C:\Users\private\grounding-meta.json"
+    private_file_url = "file:/C:/Users/private/grounding-meta.json"
     grounding["_meta"]["review_note"] = f"Check {private_email} in {private_path}."
+    grounding["_meta"]["scratch_url"] = private_file_url
 
     report = validator.build_report(
         project_config=project,
@@ -357,10 +452,11 @@ def test_validator_rejects_private_grounding_metadata_without_copying_values():
     rendered = json.dumps(report, ensure_ascii=False)
 
     assert report["summary"]["ok"] is False
-    assert report["summary"]["grounding_metadata_privacy_issue_count"] >= 2
+    assert report["summary"]["grounding_metadata_privacy_issue_count"] >= 3
     assert "grounding_metadata_contains_no_private_identifiers" in report["summary"]["failed_ids"]
     assert private_email not in rendered
     assert private_path not in rendered
+    assert private_file_url not in rendered
 
 
 def test_validator_rejects_promoted_local_law_rows_without_copying_url():
@@ -404,11 +500,137 @@ def test_validator_sanitizes_unknown_source_status_counts():
     assert private_status not in rendered
 
 
+def test_validator_counts_malformed_grounding_source_statuses_without_copying_values():
+    validator = _load_validator()
+    project, packs, grounding, prompts = _current_artifacts()
+    grounding = copy.deepcopy(grounding)
+    private_status = "verified_by_case_worker@example.invalid"
+    private_row_path = r"C:\Users\private\grounding-row.json"
+    grounding["sources"][0]["verification_status"] = {"private": private_status}
+    grounding["sources"][1].pop("verification_status", None)
+    grounding["sources"][2]["verification_status"] = private_status
+    grounding["sources"].append(private_row_path)
+
+    report = validator.build_report(
+        project_config=project,
+        jurisdiction_packs=packs,
+        grounding_sources=grounding,
+        scheme_prompts=prompts,
+    )
+    rendered = json.dumps(report, ensure_ascii=False)
+
+    assert report["summary"]["ok"] is False
+    assert report["summary"]["source_status_counts"]["invalid_or_unknown"] >= 4
+    assert "grounding_sources_keep_local_rows_pending" in report["summary"]["failed_ids"]
+    assert private_status not in rendered
+    assert private_row_path not in rendered
+    assert "grounding-row.json" not in rendered
+
+
+def test_validator_rejects_malformed_grounding_source_ids_without_copying_values():
+    validator = _load_validator()
+    project, packs, grounding, prompts = _current_artifacts()
+    grounding = copy.deepcopy(grounding)
+    private_source_id = "source-id-worker@example.invalid"
+    grounding["sources"][0]["id"] = {"private": private_source_id}
+
+    report = validator.build_report(
+        project_config=project,
+        jurisdiction_packs=packs,
+        grounding_sources=grounding,
+        scheme_prompts=prompts,
+    )
+    rendered = json.dumps(report, ensure_ascii=False)
+
+    assert report["summary"]["ok"] is False
+    assert report["summary"]["grounding_source_privacy_issue_count"] >= 1
+    assert "grounding_source_rows_have_string_ids" in report["summary"]["failed_ids"]
+    assert "grounding_source_rows_contain_no_private_identifiers" in report["summary"]["failed_ids"]
+    assert private_source_id not in rendered
+
+
+def test_validator_rejects_non_list_grounding_source_container_without_copying_values():
+    validator = _load_validator()
+    project, packs, grounding, prompts = _current_artifacts()
+    grounding = copy.deepcopy(grounding)
+    private_source_container = r"C:\Users\private\grounding-sources.json"
+    grounding["sources"] = private_source_container
+
+    report = validator.build_report(
+        project_config=project,
+        jurisdiction_packs=packs,
+        grounding_sources=grounding,
+        scheme_prompts=prompts,
+    )
+    rendered = json.dumps(report, ensure_ascii=False)
+
+    assert report["summary"]["ok"] is False
+    assert report["summary"]["grounding_source_count"] == 0
+    assert report["summary"]["grounding_source_privacy_issue_count"] >= 1
+    assert "grounding_sources_keep_local_rows_pending" in report["summary"]["failed_ids"]
+    assert "grounding_source_rows_have_string_ids" in report["summary"]["failed_ids"]
+    assert "grounding_source_rows_contain_no_private_identifiers" in report["summary"]["failed_ids"]
+    assert private_source_container not in rendered
+    assert "grounding-sources.json" not in rendered
+
+
+def test_validator_rejects_malformed_grounding_source_url_without_copying_values():
+    validator = _load_validator()
+    project, packs, grounding, prompts = _current_artifacts()
+    grounding = copy.deepcopy(grounding)
+    private_source_url = "source-url-worker@example.invalid"
+    grounding["sources"][4]["url"] = {"private": private_source_url}
+
+    report = validator.build_report(
+        project_config=project,
+        jurisdiction_packs=packs,
+        grounding_sources=grounding,
+        scheme_prompts=prompts,
+    )
+    rendered = json.dumps(report, ensure_ascii=False)
+
+    assert report["summary"]["ok"] is False
+    assert report["summary"]["grounding_source_privacy_issue_count"] >= 1
+    assert "grounding_sources_keep_local_rows_pending" in report["summary"]["failed_ids"]
+    assert "grounding_source_rows_contain_no_private_identifiers" in report["summary"]["failed_ids"]
+    assert private_source_url not in rendered
+
+
+def test_validator_rejects_private_details_inside_https_grounding_source_url_without_copying_values():
+    validator = _load_validator()
+    project, packs, grounding, prompts = _current_artifacts()
+    grounding = copy.deepcopy(grounding)
+    private_email = "anchor-worker@example.invalid"
+    private_case_id = "12345678"
+    private_https_url = f"https://example.invalid/source/{private_email}/case/{private_case_id}"
+    grounding["sources"][0]["url"] = private_https_url
+
+    report = validator.build_report(
+        project_config=project,
+        jurisdiction_packs=packs,
+        grounding_sources=grounding,
+        scheme_prompts=prompts,
+    )
+    rendered = json.dumps(report, ensure_ascii=False)
+
+    assert report["summary"]["ok"] is False
+    assert report["summary"]["grounding_source_privacy_issue_count"] >= 2
+    assert "grounding_source_rows_contain_no_private_identifiers" in report["summary"]["failed_ids"]
+    assert "international_anchor_rows_are_dated_https_anchors" not in report["summary"]["failed_ids"]
+    assert private_email not in rendered
+    assert private_case_id not in rendered
+    assert private_https_url not in rendered
+
+
 def test_validator_rejects_scheme_prompt_url_or_email():
     validator = _load_validator()
     project, packs, grounding, prompts = _current_artifacts()
     prompts = copy.deepcopy(prompts)
     prompts[0]["text"] += " See https://example.invalid or worker@example.invalid."
+    prompts[1]["text"] += " Review copied scratch URL ftp://example.invalid/private-source."
+    prompts[2]["review_note"] = "mailto:private-review@example.invalid"
+    prompts[3]["review_note"] = "Copied scratch URL ftp:/example.invalid/private-source."
+    prompts[4]["review_note"] = "Copied object path s3:/private-bucket/private-source."
 
     report = validator.build_report(
         project_config=project,
@@ -418,8 +640,108 @@ def test_validator_rejects_scheme_prompt_url_or_email():
     )
 
     assert report["summary"]["ok"] is False
+    assert report["summary"]["scheme_prompt_privacy_issue_count"] >= 7
     assert "scheme_prompt_text_contains_no_urls_emails_or_phones" in report["summary"]["failed_ids"]
+    assert "scheme_prompt_rows_contain_no_private_identifiers" in report["summary"]["failed_ids"]
     assert "worker@example.invalid" not in json.dumps(report, ensure_ascii=False)
+    assert "ftp://example.invalid" not in json.dumps(report, ensure_ascii=False)
+    assert "ftp:/example.invalid" not in json.dumps(report, ensure_ascii=False)
+    assert "s3:/private-bucket" not in json.dumps(report, ensure_ascii=False)
+    assert "mailto:private-review" not in json.dumps(report, ensure_ascii=False)
+
+
+def test_validator_rejects_private_scheme_prompt_metadata_without_copying_values():
+    validator = _load_validator()
+    project, packs, grounding, prompts = _current_artifacts()
+    prompts = copy.deepcopy(prompts)
+    private_email = "metadata-worker@example.invalid"
+    private_path = r"C:\Users\private\scheme-prompt.jsonl"
+    private_relative_path = "AppData/Local/private/scheme-prompt.jsonl"
+    private_case_id = "case_12345678"
+    prompts[0]["category"] = private_email
+    prompts[1]["source"] = private_path
+    prompts[2]["candidate_pattern_ids"] = [private_case_id]
+    prompts[3]["review_note"] = private_relative_path
+
+    report = validator.build_report(
+        project_config=project,
+        jurisdiction_packs=packs,
+        grounding_sources=grounding,
+        scheme_prompts=prompts,
+    )
+    rendered = json.dumps(report, ensure_ascii=False)
+
+    assert report["summary"]["ok"] is False
+    assert report["summary"]["scheme_prompt_privacy_issue_count"] >= 4
+    assert "scheme_prompt_rows_contain_no_private_identifiers" in report["summary"]["failed_ids"]
+    assert private_email not in rendered
+    assert private_path not in rendered
+    assert private_relative_path not in rendered
+    assert private_case_id not in rendered
+
+
+def test_validator_rejects_malformed_scheme_prompt_rows_without_copying_values():
+    validator = _load_validator()
+    project, packs, grounding, prompts = _current_artifacts()
+    prompts = copy.deepcopy(prompts)
+    private_row_path = r"C:\Users\private\scheme-prompt-row.json"
+    private_nested_value = "malformed-row-worker@example.invalid"
+    prompts.append(private_row_path)
+    prompts.append({
+        "id": {"private": private_nested_value},
+        "source": "synthetic_rights_miss_seed",
+        "category": prompts[0]["category"],
+        "text": "Synthetic composite: malformed row metadata should remain aggregate-only.",
+        "candidate_pattern_ids": prompts[0]["candidate_pattern_ids"],
+        "scope_resolution_status": "unresolved_source_gap",
+        "ready_for_public_scoring": False,
+        "ready_for_training_use": False,
+        "ready_for_worker_facing_use": False,
+    })
+
+    report = validator.build_report(
+        project_config=project,
+        jurisdiction_packs=packs,
+        grounding_sources=grounding,
+        scheme_prompts=prompts,
+    )
+    rendered = json.dumps(report, ensure_ascii=False)
+
+    assert report["summary"]["ok"] is False
+    assert report["summary"]["scheme_prompt_privacy_issue_count"] >= 2
+    assert "scheme_prompts_remain_synthetic_planning_rows" in report["summary"]["failed_ids"]
+    assert "scheme_prompt_rows_contain_no_private_identifiers" in report["summary"]["failed_ids"]
+    assert private_row_path not in rendered
+    assert private_nested_value not in rendered
+    assert "scheme-prompt-row.json" not in rendered
+
+
+def test_validator_rejects_non_list_scheme_prompt_container_without_copying_values():
+    validator = _load_validator()
+    project, packs, grounding, _prompts = _current_artifacts()
+    private_prompt_container = r"C:\Users\private\scheme-prompts.jsonl"
+
+    report = validator.build_report(
+        project_config=project,
+        jurisdiction_packs=packs,
+        grounding_sources=grounding,
+        scheme_prompts=private_prompt_container,
+    )
+    rendered = json.dumps(report, ensure_ascii=False)
+    parse_check = next(
+        check for check in report["checks"]
+        if check["id"] == "scheme_prompt_jsonl_parses"
+    )
+
+    assert report["summary"]["ok"] is False
+    assert report["summary"]["scheme_prompt_count"] == 1
+    assert report["summary"]["scheme_prompt_privacy_issue_count"] >= 1
+    assert "scheme_prompt_jsonl_parses" in report["summary"]["failed_ids"]
+    assert "scheme_prompts_remain_synthetic_planning_rows" in report["summary"]["failed_ids"]
+    assert "scheme_prompt_rows_contain_no_private_identifiers" in report["summary"]["failed_ids"]
+    assert parse_check["actual"] == [{"line": None, "error": "prompt_rows_not_list"}]
+    assert private_prompt_container not in rendered
+    assert "scheme-prompts.jsonl" not in rendered
 
 
 def test_validator_rejects_scheme_prompt_resolved_or_ready_status():
@@ -481,6 +803,53 @@ def test_validator_rejects_missing_jurisdiction_review_gate():
 
     assert report["summary"]["ok"] is False
     assert "domain_lenses_require_source_slots_and_review_gates" in report["summary"]["failed_ids"]
+
+
+def test_validator_rejects_malformed_domain_lens_review_gate_without_copying_values():
+    validator = _load_validator()
+    project, packs, grounding, prompts = _current_artifacts()
+    packs = copy.deepcopy(packs)
+    private_gate = "review-gate-worker@example.invalid"
+    packs["domain_lenses"][0]["review_gates"].append({"private": private_gate})
+
+    report = validator.build_report(
+        project_config=project,
+        jurisdiction_packs=packs,
+        grounding_sources=grounding,
+        scheme_prompts=prompts,
+    )
+    rendered = json.dumps(report, ensure_ascii=False)
+
+    assert report["summary"]["ok"] is False
+    assert report["summary"]["jurisdiction_pack_privacy_issue_count"] >= 1
+    assert "domain_lenses_require_source_slots_and_review_gates" in report["summary"]["failed_ids"]
+    assert "project_and_pack_metadata_contains_no_private_identifiers" in report["summary"]["failed_ids"]
+    assert private_gate not in rendered
+
+
+def test_validator_rejects_malformed_jurisdiction_pack_row_ids_without_copying_values():
+    validator = _load_validator()
+    project, packs, grounding, prompts = _current_artifacts()
+    packs = copy.deepcopy(packs)
+    private_lens_id = "lens-id-worker@example.invalid"
+    private_scope_id = "scope-id-worker@example.invalid"
+    packs["domain_lenses"][0]["id"] = {"private": private_lens_id}
+    packs["queued_jurisdiction_scopes"][0]["id"] = {"private": private_scope_id}
+
+    report = validator.build_report(
+        project_config=project,
+        jurisdiction_packs=packs,
+        grounding_sources=grounding,
+        scheme_prompts=prompts,
+    )
+    rendered = json.dumps(report, ensure_ascii=False)
+
+    assert report["summary"]["ok"] is False
+    assert report["summary"]["jurisdiction_pack_privacy_issue_count"] >= 2
+    assert "jurisdiction_pack_rows_have_string_ids" in report["summary"]["failed_ids"]
+    assert "project_and_pack_metadata_contains_no_private_identifiers" in report["summary"]["failed_ids"]
+    assert private_lens_id not in rendered
+    assert private_scope_id not in rendered
 
 
 def test_validator_rejects_mismatched_project_and_jurisdiction_pack_ids():
@@ -675,6 +1044,9 @@ def test_validator_sanitizes_supplied_prompt_parse_errors():
         scheme_prompts=prompts,
         scheme_prompt_errors=[
             {"line": 7, "error": private_error},
+            {"line": True, "error": "JSONDecodeError"},
+            {"line": 0, "error": "JSONDecodeError"},
+            {"line": -2, "error": "JSONDecodeError"},
             {"line": "8", "error": {"detail": private_path}},
             {"line": 9, "error": "JSONDecodeError"},
             {"line": 10, "error": "private_case_bucket"},
@@ -690,6 +1062,9 @@ def test_validator_sanitizes_supplied_prompt_parse_errors():
     )
     assert parse_check["actual"] == [
         {"line": 7, "error": "invalid_or_unknown"},
+        {"line": None, "error": "JSONDecodeError"},
+        {"line": None, "error": "JSONDecodeError"},
+        {"line": None, "error": "JSONDecodeError"},
         {"line": None, "error": "invalid_or_unknown"},
         {"line": 9, "error": "JSONDecodeError"},
         {"line": 10, "error": "invalid_or_unknown"},
@@ -723,7 +1098,7 @@ def test_main_accepts_custom_artifact_paths(tmp_path, capsys):
     printed = capsys.readouterr().out
 
     assert rc == 0
-    assert "Sister-project planning validation - 29 checks, 0 findings" in printed
+    assert "Sister-project planning validation - 34 checks, 0 findings" in printed
     assert "prompt_patterns=10" in printed
     assert "undeclared_prompt_patterns=0" in printed
     assert "unresolved_prompts=12" in printed
@@ -732,7 +1107,7 @@ def test_main_accepts_custom_artifact_paths(tmp_path, capsys):
     assert "readiness_gate_missing=0" in printed
     assert "source_admission_missing=0" in printed
     assert "scored_capability_missing=0" in printed
-    assert "privacy_issues=project:0,packs:0,grounding:0" in printed
+    assert "privacy_issues=project:0,packs:0,grounding:0,prompts:0,grounding_sources:0" in printed
 
 
 def test_main_redacts_custom_missing_path_from_json_report(tmp_path, capsys):

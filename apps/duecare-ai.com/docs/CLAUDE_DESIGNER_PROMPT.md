@@ -54,7 +54,8 @@ Existing pages/routes:
 - `/tools` — draft-only tool catalog
 - `/context` — context by corridor/jurisdiction
 - `/dashboard` — live operational dashboard and API demo forms
-- `/docs` — FastAPI OpenAPI docs
+- `/docs` — human-readable project documentation
+- `/api-docs` — FastAPI interactive OpenAPI docs
 - `/api/health` — health check
 - `/api/hub/status` — counters/privacy mode
 - `/api/hub/knowledge-packs` — knowledge-pack metadata

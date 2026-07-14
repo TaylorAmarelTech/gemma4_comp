@@ -120,8 +120,18 @@ GEMMA4_FASTMODEL_VARIANTS = [
     "e2b",    "e4b",    "26b-a4b",    "31b",
 ]
 
-# Legacy aliases kept for back-compat with older bootstrap code below
-GEMMA_MODEL = f"google/gemma-4-{GEMMA_MODEL_VARIANT}"
+# Canonical Hugging Face ids for the E-series are case-sensitive. Keep the
+# fallback for larger/base variants while making the default E4B path exact.
+_GEMMA_GOOGLE_REFS = {
+    "e2b-it": "google/gemma-4-E2B-it",
+    "e4b-it": "google/gemma-4-E4B-it",
+    "e2b": "google/gemma-4-E2B",
+    "e4b": "google/gemma-4-E4B",
+}
+GEMMA_MODEL = _GEMMA_GOOGLE_REFS.get(
+    GEMMA_MODEL_VARIANT,
+    f"google/gemma-4-{GEMMA_MODEL_VARIANT}",
+)
 
 # ===== Server / runtime =====================================================
 PORT = 8080
@@ -230,7 +240,7 @@ GGUF_HF_REPO         = ""            # e.g. "taylorscottamarel/duecare-gemma-4-E
 #     taylorscottamarel/duecare-gemma-4-E4B-it-SafetyJudge-DPO-v0.1.0
 #
 # Model card MUST include a "Built with Google's Gemma 4" attribution
-# and link to https://huggingface.co/google/gemma-4-4b-it (or the
+# and link to https://huggingface.co/google/gemma-4-E4B-it (or the
 # variant you fine-tuned). Used under Apache 2.0.
 # ============================================================================
 

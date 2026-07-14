@@ -2,7 +2,7 @@
 
 This document defines the missing public technical documentation page family for duecare-ai.com.
 
-The existing FastAPI OpenAPI route already uses `/docs`, so the public website should use `/technical-docs` or `/implementation` for human-readable technical documentation.
+The public website uses `/docs` for the reader-oriented overview, `/technical-docs` for schemas and implementation contracts, and `/api-docs` for FastAPI's interactive OpenAPI UI.
 
 Recommended route: `/technical-docs`
 
@@ -69,7 +69,7 @@ Lead copy:
 
 Primary CTAs:
 
-- Open API docs — `/docs`
+- Open API docs — `/api-docs`
 - View Knowledge Packs — `/knowledge-packs`
 - Submit safe update — `/submit-information`
 
@@ -154,7 +154,7 @@ Show fields:
 
 ### 5. Hub API quick reference
 
-Link to `/docs` for complete OpenAPI, but show the human-readable map.
+Link to `/api-docs` for interactive OpenAPI, but show the human-readable map.
 
 Existing endpoints:
 
@@ -387,12 +387,12 @@ If navigation space is limited, use this label:
 
 - `Docs`
 
-But link it to `/technical-docs`, not `/docs`, because `/docs` is already OpenAPI.
+Use `/docs` for the reader-oriented index and `/technical-docs` for the implementation-contract page.
 
 Footer should include:
 
 - Technical docs — `/technical-docs`
-- API docs — `/docs`
+- API docs — `/api-docs`
 - Schemas — `/schemas`
 - Governance — `/governance`
 

@@ -1,8 +1,6 @@
 """EngineConfig: maps to the env vars the pipeline script reads."""
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Optional
 from pydantic import BaseModel, Field
 
 
@@ -11,7 +9,7 @@ class EngineConfig(BaseModel):
     or more env vars consumed by `gemma4_docling_gliner_graph_v1.py`."""
 
     # Input / output
-    input_dir: Optional[str] = Field(
+    input_dir: str | None = Field(
         default=None,
         description="Folder of source documents. Maps to MM_IMAGES_DIR. "
                     "If None, the pipeline auto-fetches via Drive + "
@@ -23,7 +21,7 @@ class EngineConfig(BaseModel):
 
     # Model
     model: str = Field(
-        default="google/gemma-4-4b-it",
+        default="google/gemma-4-E4B-it",
         description="HF model id or local path. Maps to MM_MODEL / "
                     "MM_MODEL_PATH.")
     max_new_tokens: int = Field(default=384)
@@ -63,7 +61,7 @@ class EngineConfig(BaseModel):
                     "project root, or absolute).")
 
     # Optional reactive config override path
-    reactive_config_path: Optional[str] = Field(default=None)
+    reactive_config_path: str | None = Field(default=None)
 
     def to_env(self) -> dict:
         """Project this config into the env-var dict the pipeline reads."""

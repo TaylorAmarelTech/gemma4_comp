@@ -67,7 +67,7 @@
   MODEL SELECTOR via GEMMA_MODEL_VARIANT env var or edit default below:
 
       e2b-it             google/gemma-4-E2B-it          single T4
-      e4b-it             google/gemma-4-4b-it          single T4
+      e4b-it             google/gemma-4-E4B-it          single T4
       26b-a4b-it         google/gemma-4-26b-a4b-it     T4 x2 (4-bit)
       31b-it             google/gemma-4-31b-it         T4 x2 (4-bit)
       jailbroken-31b     dealignai/Gemma-4-31B-JANG_4M-CRACK
@@ -166,7 +166,7 @@ OLLAMA_MODEL    = os.environ.get("OLLAMA_MODEL", "gemma2:2b")
 # HuggingFace model id resolution per variant
 _VARIANT_HF_ID = {
     "e2b-it":         "google/gemma-4-E2B-it",
-    "e4b-it":         "google/gemma-4-4b-it",
+    "e4b-it":         "google/gemma-4-E4B-it",
     "26b-a4b-it":     "google/gemma-4-26b-a4b-it",
     "31b-it":         "google/gemma-4-31b-it",
     "jailbroken-31b": "dealignai/Gemma-4-31B-JANG_4M-CRACK",

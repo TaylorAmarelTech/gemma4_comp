@@ -255,6 +255,9 @@ def test_benign_control_display_path_redacts_external_local_paths(tmp_path):
     in_repo = _ROOT / "configs" / "duecare" / "benchmarks" / "benign_control_prompts.json"
     assert rh.benign_control_display_path(in_repo) == "configs/duecare/benchmarks/benign_control_prompts.json"
 
+    private_in_repo = _ROOT / "reports" / "worker@example.invalid-benign.json"
+    assert rh.benign_control_display_path(private_in_repo) == "external/custom_or_invalid"
+
     external = tmp_path / "custom_benign.json"
     external.write_text("{}", encoding="utf-8")
     assert rh.benign_control_display_path(external) == "external/custom_benign.json"
