@@ -184,7 +184,9 @@ offline pass.
 `scripts/validate_domain_curation_bundle.py --domain developing_country_worker_protections` is the
 read-only saved-artifact gate for that bundle. It keeps the handoff compact, rejects raw source or
 prompt dumps, preserves blocked source/manifest/scoring readiness, and checks that recorded artifact
-paths remain repo-relative or `external/<file>` rather than machine-local paths.
+paths remain safe repo-relative labels or privacy-safe external labels rather than machine-local paths.
+Safe external filenames can appear as `external/<name>`; private-looking repo-relative path segments
+and private-looking or malformed external names collapse to `external/custom_or_invalid`.
 
 **Guarded — rich harness runner.** `scripts/rich_harness_lift.py` now detects non-trafficking domain
 promptsets and refuses to score them as comparable lift evidence by default, because source-verified

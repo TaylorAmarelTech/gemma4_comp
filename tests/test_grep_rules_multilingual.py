@@ -7,6 +7,7 @@ All prompts below are composite / synthetic (no real people or case numbers).
 from __future__ import annotations
 
 import re
+import unicodedata
 
 import pytest
 
@@ -57,6 +58,19 @@ def test_other_core_indicators_fire() -> None:
     assert "multiling_movement_restricted" in _rules("لا أستطيع المغادرة من المنزل.")
     # debt bondage (Hindi): "I have to repay a debt to my agent"
     assert "multiling_debt_bondage" in _rules("मुझे मेरे एजेंट को कर्ज़ चुकाना है।")
+
+
+def test_decomposed_unicode_matches_the_same_multilingual_rule() -> None:
+    decomposed = unicodedata.normalize("NFD", _PASSPORT["Vietnamese"])
+    assert "multiling_passport_document_control" in _rules(decomposed)
+
+
+def test_recruitment_fee_rule_preserves_c181_scope_and_exceptions() -> None:
+    rule = next(r for r in MULTILINGUAL_GREP_RULES if r["rule"] == "multiling_recruitment_fee_charged")
+    combined = f"{rule['citation']} {rule['indicator']}"
+    assert "Art. 7(2)" in combined
+    assert "ratification" in combined
+    assert "domestic law" in combined
 
 
 def test_adversarial_euphemism_framing_fires() -> None:

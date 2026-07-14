@@ -63,6 +63,16 @@ DEMO_PRIORITY_EXAMPLES_PATH = APP_DIR / "data" / "demo_priority_examples.json"
 MAX_CLIENT_PAYLOAD_BYTES = 100_000
 MAX_CLIENT_PAYLOAD_DEPTH = 20
 PACK_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9-]{1,78}[a-z0-9]$")
+RENDER_GIT_COMMIT_PATTERN = re.compile(r"^[0-9a-fA-F]{7,64}$")
+
+
+def _render_git_commit_prefix() -> str | None:
+    """Return a display-safe Render commit prefix, or ``None`` off Render."""
+
+    value = os.environ.get("RENDER_GIT_COMMIT", "").strip()
+    if not RENDER_GIT_COMMIT_PATTERN.fullmatch(value):
+        return None
+    return value[:12].lower()
 
 # Every clean URL on the public site maps to a template file in app/templates/.
 # The slug ("/" or "/foo") is the route; the value is the template filename.
@@ -310,6 +320,7 @@ class HealthStatus(BaseModel):
     storage: Literal["file"]
     storage_ok: bool
     data_dir: str
+    git_commit: str | None = None
 
 
 class HubStatus(BaseModel):
@@ -1287,6 +1298,7 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
             storage="file",
             storage_ok=True,
             data_dir=str(state.store.root),
+            git_commit=_render_git_commit_prefix(),
         )
 
     @application.get("/api/demo/priority-examples", tags=["demo"])

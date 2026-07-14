@@ -31,7 +31,7 @@ _SAFE_GROUP = re.compile(r"^[a-z][a-z0-9_]{1,80}$")
 _PUBLIC_KNOWLEDGE_ID = re.compile(r"^KNOW-PUBLIC-[A-F0-9]{10}$")
 _EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b", re.I)
 _PHONE = re.compile(r"\+?\d[\d\s().\-]{8,}\d")
-_LONG_DIGITS = re.compile(r"\b\d{9,}\b")
+_LONG_DIGITS = re.compile(r"(?<!\d)\d{8,}(?!\d)")
 _LOCAL_PATH_HINT = re.compile(r"(?:[A-Za-z]:[\\/]|\\\\|/(?:Users|home|tmp|var|mnt)(?:/|$)|~[\\/])", re.I)
 
 _APPROVED_STATUS = "approved_for_rubric_merge"

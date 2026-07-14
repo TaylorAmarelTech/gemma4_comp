@@ -79,6 +79,23 @@ def test_project_plan_rejects_urls_and_sensitive_fields_without_copying_values()
     assert "private-case" not in rendered
 
 
+def test_project_plan_rejects_8_digit_case_like_values_without_copying_them():
+    config = _default_config()
+    config["source_admission_rules"] = ["Remove copied private case12345678 before planning."]
+
+    doc = builder.build_project_plan(config)
+    rendered = json.dumps(doc, ensure_ascii=False)
+
+    assert doc["summary"]["safe_for_project_planning"] is False
+    assert doc["issues"]["source_admission_rules_contains_unsafe_text"] == 1
+    assert doc["issues"]["privacy_scan_not_ok"] == 1
+    assert doc["privacy_scan"]["counts"]["long_digit"] == 1
+    assert doc["privacy_scan"]["long_digit_paths"] == [
+        "$.source_admission_rules[0]"
+    ]
+    assert "case12345678" not in rendered
+
+
 def test_project_plan_flags_missing_registry_and_catalog_links():
     config = _default_config()
 

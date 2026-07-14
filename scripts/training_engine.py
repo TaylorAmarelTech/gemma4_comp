@@ -17,14 +17,14 @@ Chains the offline data-prep this session built, then the GPU train+eval, then r
 12. evaluate  four_arm_eval.py --run         -> internalisation + generalisation metrics    [GPU]
 13. register  finetune_registry.py add       -> provenance row (model_id, data sha, eval)   [offline]
 
-The audit (step 9) runs BEFORE the GPU train so overfitting / false-pattern / fragile-fact / jurisdiction
-risks are caught in the data, not after training; it fail-fasts only if the splits are missing (rc != 0),
-and otherwise logs + records a metadata-only quality-audit summary without blocking (the corridor-coverage
-flag is informational).
+The audit (step 9) runs with --require-clean BEFORE the GPU train so overfitting / false-pattern /
+fragile-fact / jurisdiction risks are caught in the data, not after training. Any risk flag returns a
+nonzero status and fail-fast prevents training, evaluation, and registration from running.
 
-Without a GPU (the default on this box) it runs the OFFLINE steps (1-10, 13) and SKIPS the GPU steps
-(11-12) with a clear log -- so the training DATA + hard-negative DPO pairs + mixed DPO arm + repair queue + proposed repairs + training variant + audit + corridor curation plan + a provenance row are produced and ready, and the
-GPU steps run unchanged later in Taylor's Kaggle window (--with-gpu). --dry-run plans without executing.
+Without a GPU (the default on this box) it runs the OFFLINE data and audit steps and SKIPS the GPU steps
+(11-12) with a clear log. If the strict audit passes, it also produces the corridor curation plan and
+planned provenance row; otherwise it stops before those downstream steps. The GPU steps run unchanged
+later in Taylor's Kaggle window (--with-gpu). --dry-run plans without executing.
 
 Propose-only: each step is itself propose-only (writes to gitignored reports/training/); this only
 sequences them, fail-fast, and writes a run log. No model and no network of its own.
@@ -69,7 +69,8 @@ QUALITY_AUDIT = TRAIN_DIR / "quality_audit.json"
 CORRIDOR_EXPANSION_PLAN = TRAIN_DIR / "corridor_expansion_plan.json"
 ADAPTER = TRAIN_DIR / "adapter"
 DEFAULT_MODEL_ID = "duecare-gemma-4-e4b-safetyjudge-v0.1.0"
-DEFAULT_BASE = "google/gemma-4-e4b-it"
+DEFAULT_BASE = "google/gemma-4-E4B-it"
+DEFAULT_BASE_REVISION = "a4c2d58be94dda072b918d9db64ee85c8ed34e3f"
 _EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b", re.I)
 _PHONE = re.compile(r"\+?\d[\d\s().\-]{8,}\d")
 _SAFE_RELATIVE_PATH = re.compile(r"^[A-Za-z0-9._/\-]+$")
@@ -282,8 +283,10 @@ def _registry_artifacts(sft_variant: str, dpo_variant: str) -> dict[str, Any]:
 
 
 def _register_cmd(*, py: str, model_id: str, base: str, with_gpu: bool,
-                  sft_variant: str, dpo_variant: str) -> list[str]:
-    registry_artifacts = json.dumps(_registry_artifacts(sft_variant, dpo_variant),
+                  sft_variant: str, dpo_variant: str, base_revision: str = "") -> list[str]:
+    artifacts = _registry_artifacts(sft_variant, dpo_variant)
+    artifacts["base_model_revision"] = base_revision or "unresolved"
+    registry_artifacts = json.dumps(artifacts,
                                     sort_keys=True, separators=(",", ":"))
     return [py, str(_SCRIPTS / "finetune_registry.py"), "add", "--model-id", model_id, "--base", base,
             "--data-manifest", str(MANIFEST), "--status", ("trained" if with_gpu else "planned"),
@@ -297,6 +300,7 @@ def plan(
     with_gpu: bool,
     sft_variant: str = "base",
     dpo_variant: str = "base",
+    base_revision: str = "",
 ) -> list[dict[str, Any]]:
     """The ordered pipeline steps. Pure -- builds the command list and gpu-gating; executes nothing.
     GPU steps (train, evaluate) get will_run=False unless with_gpu, so an offline host still produces
@@ -305,6 +309,9 @@ def plan(
     adapter = str(ADAPTER)
     train_sft = _sft_path(sft_variant)
     train_dpo = _dpo_path(dpo_variant)
+    resolved_base_revision = base_revision.strip()
+    if not resolved_base_revision and base == DEFAULT_BASE:
+        resolved_base_revision = DEFAULT_BASE_REVISION
     repair_mode = _repair_mode_for_sft_variant(sft_variant)
     gap_queue = _gap_queue_path(repair_mode)
     repaired_rows = _repaired_rows_path(repair_mode)
@@ -324,18 +331,25 @@ def plan(
         {"name": "gaps", "gpu": False, "cmd": gap_cmd},
         {"name": "repair", "gpu": False, "cmd": repair_cmd},
         {"name": "variant", "gpu": False, "cmd": variant_cmd},
-        {"name": "audit", "gpu": False, "cmd": [py, str(_SCRIPTS / "audit_training_quality.py")]},
+        {"name": "audit", "gpu": False,
+         "cmd": [py, str(_SCRIPTS / "audit_training_quality.py"), "--require-clean"]},
         {"name": "corridor_plan", "gpu": False, "cmd": [py, str(_SCRIPTS / "build_corridor_expansion_plan.py")]},
         {"name": "train", "gpu": True,
-         "cmd": [py, str(_SCRIPTS / "train_lift_distill.py"), "--sft", str(train_sft),
+         "cmd": [py, str(_SCRIPTS / "train_lift_distill.py"), "--base-model", base,
+                 "--base-revision", resolved_base_revision,
+                 "--sft", str(train_sft),
                  "--dpo", str(train_dpo), "--out", adapter]},
         {"name": "evaluate", "gpu": True,
-         "cmd": [py, str(_SCRIPTS / "four_arm_eval.py"), "--run", "--adapter", adapter]},
+         "cmd": [py, str(_SCRIPTS / "four_arm_eval.py"), "--run", "--base", base,
+                 "--base-revision", resolved_base_revision,
+                 "--adapter", adapter]},
         {"name": "register", "gpu": False,
          "cmd": _register_cmd(py=py, model_id=model_id, base=base, with_gpu=with_gpu,
-                              sft_variant=sft_variant, dpo_variant=dpo_variant),
+                              sft_variant=sft_variant, dpo_variant=dpo_variant,
+                              base_revision=resolved_base_revision),
          "register_context": {"py": py, "model_id": model_id, "base": base, "with_gpu": with_gpu,
-                              "sft_variant": sft_variant, "dpo_variant": dpo_variant}},
+                              "sft_variant": sft_variant, "dpo_variant": dpo_variant,
+                              "base_revision": resolved_base_revision}},
     ]
     for s in steps:
         s["will_run"] = with_gpu or not s["gpu"]
@@ -363,7 +377,7 @@ def run_steps(steps: list[dict], *, dry_run: bool) -> list[dict]:
         print(f"[training-engine] RUN {s['name']}: {' '.join(_display_cmd(s['cmd']))}", flush=True)
         rc = subprocess.run(s["cmd"], cwd=str(_ROOT)).returncode
         result = {"name": s["name"], "status": ("ok" if rc == 0 else "failed"), "rc": rc}
-        if s["name"] == "audit" and rc == 0:
+        if s["name"] == "audit":
             summary = _quality_audit_summary(QUALITY_AUDIT)
             if summary is not None:
                 result["quality_audit"] = summary
@@ -377,7 +391,16 @@ def run_steps(steps: list[dict], *, dry_run: bool) -> list[dict]:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--model-id", default=DEFAULT_MODEL_ID)
-    ap.add_argument("--base", default=DEFAULT_BASE, help="base model ref for the registry record")
+    ap.add_argument(
+        "--base",
+        default=DEFAULT_BASE,
+        help="canonical base model ref used by training, evaluation, and the registry record",
+    )
+    ap.add_argument(
+        "--base-revision",
+        default="",
+        help="immutable base-model commit; the canonical E4B default is pinned automatically",
+    )
     ap.add_argument("--sft-variant", default="base",
                     choices=["base", "reasoning_repaired", "reasoning_repaired_core"],
                     help="SFT arm for GPU training: base uses sft_train.jsonl; reasoning_repaired uses the "
@@ -395,7 +418,7 @@ def main(argv: list[str] | None = None) -> int:
     with_gpu = args.with_gpu and has_gpu
     if args.with_gpu and not has_gpu:
         print("[training-engine] --with-gpu requested but no CUDA GPU detected -> offline steps only")
-    steps = plan(model_id=args.model_id, base=args.base, with_gpu=with_gpu,
+    steps = plan(model_id=args.model_id, base=args.base, base_revision=args.base_revision, with_gpu=with_gpu,
                  sft_variant=args.sft_variant, dpo_variant=args.dpo_variant)
     results = run_steps(steps, dry_run=args.dry_run)
 
@@ -404,6 +427,10 @@ def main(argv: list[str] | None = None) -> int:
         "created_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "gpu_available": has_gpu, "with_gpu": with_gpu, "dry_run": args.dry_run,
         "model_id": _display_model_id(args.model_id),
+        "base_model_revision": (
+            args.base_revision
+            or (DEFAULT_BASE_REVISION if args.base == DEFAULT_BASE else "unresolved")
+        ),
         "sft_variant": args.sft_variant,
         "dpo_variant": args.dpo_variant,
         "reasoning_repair_mode": _repair_mode_for_sft_variant(args.sft_variant),

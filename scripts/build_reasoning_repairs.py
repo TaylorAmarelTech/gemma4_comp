@@ -52,6 +52,12 @@ _SAFE_RELATIVE_PATH = re.compile(r"^[A-Za-z0-9._/\-]+$")
 _SAFE_IDENTIFIER = re.compile(r"^[A-Za-z0-9._:/#-]{1,160}$")
 _SAFE_PROMPT_ID = re.compile(r"^[A-Za-z0-9 ._:/#-]{1,180}$")
 _SAFE_LABEL = re.compile(r"^[A-Za-z0-9 ._:/#-]{1,120}$")
+_LONG_DIGITS = re.compile(r"(?<!\d)\d{8,}(?!\d)")
+_CASE_LIKE_PROMPT_ID = re.compile(
+    r"\b(?:case|claim|complaint|contact|docket|file|passport|person|phone|worker)[ ._:/#-]*\d{8,}\b"
+    r"|\b\d{8,}[ ._:/#-]*(?:case|claim|complaint|contact|docket|file|passport|person|phone|worker)\b",
+    re.I,
+)
 _PATH_REPORT_KEYS = frozenset({"path", "output_path", "manifest_path", "sft", "queue", "out"})
 
 
@@ -67,7 +73,7 @@ def _has_sensitive_display_text(text: str) -> bool:
         _EMAIL.search(text)
         or _PHONE.search(text)
         or _LOCAL_PATH_HINT.search(text)
-        or re.search(r"\b\d{9,}\b", text)
+        or _LONG_DIGITS.search(text)
     )
 
 
@@ -107,6 +113,7 @@ def _safe_prompt_id(value: Any) -> str:
         and _SAFE_PROMPT_ID.fullmatch(text)
         and not _EMAIL.search(text)
         and not _LOCAL_PATH_HINT.search(text)
+        and not _CASE_LIKE_PROMPT_ID.search(text)
     ):
         return text
     return ""
@@ -122,6 +129,7 @@ def _metadata_prompt_id_ok(value: Any) -> bool:
         and _SAFE_PROMPT_ID.fullmatch(text)
         and not _EMAIL.search(text)
         and not _LOCAL_PATH_HINT.search(text)
+        and not _CASE_LIKE_PROMPT_ID.search(text)
     )
 
 

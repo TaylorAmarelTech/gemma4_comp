@@ -54,6 +54,7 @@ _LOCAL_PATH_HINT = re.compile(
 )
 _SAFE_RELATIVE_PATH = re.compile(r"^[A-Za-z0-9._/\-]+$")
 _SAFE_PROMPT_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$")
+_LONG_DIGITS = re.compile(r"(?<!\d)\d{8,}(?!\d)")
 _PATH_REPORT_KEYS = frozenset({"path", "output_path", "manifest_path", "sft", "out"})
 
 
@@ -72,7 +73,7 @@ def _has_sensitive_display_text(text: str) -> bool:
         _EMAIL.search(text)
         or _PHONE.search(text)
         or _LOCAL_PATH_HINT.search(text)
-        or re.search(r"\b\d{9,}\b", text)
+        or _LONG_DIGITS.search(text)
     )
 
 

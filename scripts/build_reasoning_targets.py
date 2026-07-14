@@ -58,6 +58,13 @@ _LOCAL_PATH_HINT = re.compile(
     re.I,
 )
 _SAFE_RELATIVE_PATH = re.compile(r"^[A-Za-z0-9._/\-]+$")
+_SAFE_PROMPT_ID = re.compile(r"^[A-Za-z0-9 ._:/#-]{1,180}$")
+_LONG_DIGITS = re.compile(r"(?<!\d)\d{8,}(?!\d)")
+_CASE_LIKE_PROMPT_ID = re.compile(
+    r"\b(?:case|claim|complaint|contact|docket|file|passport|person|phone|worker)[ ._:/#-]*\d{8,}\b"
+    r"|\b\d{8,}[ ._:/#-]*(?:case|claim|complaint|contact|docket|file|passport|person|phone|worker)\b",
+    re.I,
+)
 _PATH_REPORT_KEYS = frozenset({"path", "output_path", "manifest_path", "sft", "out"})
 
 
@@ -76,8 +83,23 @@ def _has_sensitive_display_text(text: str) -> bool:
         _EMAIL.search(text)
         or _PHONE.search(text)
         or _LOCAL_PATH_HINT.search(text)
-        or re.search(r"\b\d{9,}\b", text)
+        or _LONG_DIGITS.search(text)
     )
+
+
+def _safe_prompt_id(value: Any) -> str:
+    if not isinstance(value, str):
+        return ""
+    text = value.strip()
+    if (
+        text
+        and _SAFE_PROMPT_ID.fullmatch(text)
+        and not _EMAIL.search(text)
+        and not _LOCAL_PATH_HINT.search(text)
+        and not _CASE_LIKE_PROMPT_ID.search(text)
+    ):
+        return text
+    return ""
 
 
 def _safe_relative_report_path(path: pathlib.PurePath) -> str:
@@ -228,7 +250,7 @@ def _meta_dict(row: dict) -> dict[str, Any]:
 def _safe_citation_example(row: dict, coherence: dict[str, Any]) -> dict[str, Any]:
     """Structured citation metadata only; never include the raw assistant text."""
     return {
-        "prompt_id": _meta_dict(row).get("prompt_id"),
+        "prompt_id": _safe_prompt_id(_meta_dict(row).get("prompt_id")),
         "mapped_signals": coherence.get("mapped_signals", []),
         "cited_conventions": coherence.get("cited_conventions", []),
         "expected_conventions": coherence.get("expected_conventions", []),

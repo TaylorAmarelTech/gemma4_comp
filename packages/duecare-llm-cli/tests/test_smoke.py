@@ -63,3 +63,16 @@ def test_quickstart_registered_and_help() -> None:
     assert "init + doctor + sample data" in result.output
     # role choices are surfaced so an operator can tailor the next steps
     assert "ngo" in result.output and "worker" in result.output
+
+
+def test_training_kickoff_uses_canonical_gemma_and_current_handoff_copy() -> None:
+    pytest.importorskip("click")
+    mod = _load_click_main()
+
+    base_model = next(
+        parameter
+        for parameter in mod.cmd_train_kickoff.params
+        if parameter.name == "base_model"
+    )
+    assert base_model.default == "google/gemma-4-E4B-it"
+    assert "Coming Soon" not in (mod.cmd_train.help or "")

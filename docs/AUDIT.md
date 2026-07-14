@@ -144,8 +144,8 @@ Hokage reads `harness.toml` at the repo root for safety policies:
   history-rewriting git, `pip install`, `kaggle kernels push`,
   `huggingface-cli upload`)
 - `[safety.permissions].protectedBranchPush = "ask"` — confirm
-  before direct push to `master` (Render auto-deploys, so
-  Claude Code asks each time)
+  before direct push to `master`; blocking GitHub checks run before Render can
+  deploy that revision, and Claude Code still asks each time
 - `[safety.sandbox.network].deniedDomains` — block cloud-metadata
   exfil endpoints + paste sites
 - `[safety.sandbox.filesystem].denyRead` — `_reference/`,

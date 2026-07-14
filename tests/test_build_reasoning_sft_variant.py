@@ -203,6 +203,35 @@ def test_variant_accepts_generated_prompt_ids_with_spaces():
     assert doc["rows"][0]["_meta"]["reasoning_repair"]["original_prompt_id"] == pid
 
 
+def test_variant_accepts_generated_date_prompt_ids_without_treating_them_as_case_ids():
+    pid = "template_20260129_115719_24937"
+    base = [_row(pid, "old a")]
+    repaired = [_row(pid, "new a", repaired=True)]
+    repaired[0]["_meta"]["reasoning_repair"]["original_prompt_id"] = pid
+
+    doc = variant.build_variant(base, repaired)
+
+    assert [_assistant(r) for r in doc["rows"]] == ["new a"]
+    assert doc["manifest"]["safe_to_train"] is True
+    assert doc["rows"][0]["_meta"]["reasoning_repair"]["original_prompt_id"] == pid
+
+
+def test_variant_rejects_8_digit_case_like_prompt_ids_without_copying_them_to_manifest():
+    pid = "case_12345678"
+    base = [_row(pid, "old a")]
+    repaired = [_row(pid, "new a", repaired=True)]
+    repaired[0]["_meta"]["reasoning_repair"]["original_prompt_id"] = pid
+
+    doc = variant.build_variant(base, repaired)
+    manifest_json = json.dumps(doc["manifest"])
+
+    assert doc["manifest"]["safe_to_train"] is False
+    assert doc["manifest"]["base_missing_prompt_ids"] == 1
+    assert doc["manifest"]["repaired_missing_prompt_ids"] == 1
+    assert doc["manifest"]["replaced_rows"] == 0
+    assert "case_12345678" not in manifest_json
+
+
 def test_variant_rejects_malformed_repaired_metadata_without_crashing_or_leaking():
     base = [_row("a", "old a")]
     repaired = [_row("a", "new a", repaired=True)]

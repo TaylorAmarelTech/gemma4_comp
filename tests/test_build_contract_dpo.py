@@ -159,6 +159,18 @@ def test_build_pairs_sanitizes_sensitive_prompt_ids_without_copying_values():
     assert "private.txt" not in doc_json
 
 
+def test_build_pairs_sanitizes_underscore_8_digit_case_like_prompt_ids():
+    row = _row(_FULL, pid="case_12345678")
+
+    doc = bcd.build_pairs([row], output_path=Path("contract_dpo.jsonl"))
+    doc_json = json.dumps(doc)
+
+    assert doc["manifest"]["safe_to_train"] is True
+    assert doc["manifest"]["metadata_sanitized"] == {"prompt_id": 1}
+    assert {pair["_meta"].get("prompt_id") for pair in doc["pairs"]} == {None}
+    assert "case_12345678" not in doc_json
+
+
 def test_build_pairs_sanitizes_non_code_prompt_ids_without_copying_values():
     row = _row(_FULL, pid="free text worker clue")
 

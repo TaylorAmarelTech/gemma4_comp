@@ -119,40 +119,50 @@ jobs:
         run: python scripts/validate_benchmark.py
 
   validate-public-surface:
-    name: public-surface audit (drift, route 200s, lane order, kaggle lane labels, canonical messaging)
+    name: public website + surface (routes, privacy, messaging)
     runs-on: ubuntu-latest
-    # Non-blocking initially: surface findings as a job summary so we
-    # can iterate on signal/noise. Promote to blocking by removing
-    # `continue-on-error: true` once consistently green for two runs
-    # after the canonical-messaging validator landed.
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
-      - name: Install hub deps (FastAPI + Pydantic) and PyYAML
+          cache-dependency-path: |
+            apps/duecare-ai.com/requirements.txt
+            apps/duecare-ai.com/requirements-dev.txt
+      - name: Install hub and validator dependencies
         run: |
           python -m pip install --no-cache-dir --upgrade pip
-          python -m pip install --no-cache-dir fastapi pydantic httpx jinja2 pyyaml python-multipart
+          python -m pip install --no-cache-dir \
+            -r apps/duecare-ai.com/requirements.txt \
+            -r apps/duecare-ai.com/requirements-dev.txt \
+            pyyaml python-multipart
+      - name: Run public hub route and privacy tests
+        run: |
+          set -o pipefail
+          DUECARE_DATA_DIR="$RUNNER_TEMP/duecare-hub-test" \
+            python -m pytest apps/duecare-ai.com/tests -q | tee /tmp/hub-tests.txt
       - name: Run public-surface audit
-        id: surface_audit
+        if: always()
         run: |
-          set +e
+          set -o pipefail
           python scripts/validate_public_surface.py | tee /tmp/audit.txt
-          echo "exit=$?" >> "$GITHUB_OUTPUT"
       - name: Run canonical-messaging audit
-        id: messaging_audit
+        if: always()
         run: |
-          set +e
+          set -o pipefail
           python scripts/validate_public_messaging.py | tee /tmp/messaging.txt
-          echo "exit=$?" >> "$GITHUB_OUTPUT"
       - name: Job summary
         if: always()
         run: |
           DOC_URL="${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/docs/AUDIT.md"
           {
+            echo "## Public hub tests"
+            echo ""
+            echo '```'
+            cat /tmp/hub-tests.txt 2>/dev/null || echo "(skipped)"
+            echo '```'
+            echo ""
             echo "## Public-surface audit"
             echo ""
             echo '```'
@@ -167,12 +177,6 @@ jobs:
             echo ""
             echo "Convention + allowlist syntax: see [docs/AUDIT.md]($DOC_URL)."
           } >> "$GITHUB_STEP_SUMMARY"
-      - name: Fail step if either audit had findings
-        if: steps.surface_audit.outputs.exit != '0' || steps.messaging_audit.outputs.exit != '0'
-        run: |
-          echo "::warning::public-surface or canonical-messaging audit reported findings — see job summary"
-          # not failing the job (continue-on-error: true on the job)
-          exit 0
 
   harness-smoke:
     name: harness smoke (counts at thresholds)

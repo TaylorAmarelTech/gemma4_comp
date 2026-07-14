@@ -120,7 +120,7 @@ def test_portability_model_and_sample_helpers_are_canonical():
 
     models = model_variant_map()
     ui_models = model_variant_ui_map()
-    assert models["e4b-it"]["google_hf_id"] == "google/gemma-4-4b-it"
+    assert models["e4b-it"]["google_hf_id"] == "google/gemma-4-E4B-it"
     assert ui_models["e4b-it"]["display"] == "Gemma 4 E4B-it"
     assert ui_models["cloud-gemini"]["category"] == "cloud"
     assert variant_from_ref("google/gemma-4-E2B-it") == "e2b-it"
@@ -208,7 +208,7 @@ def test_experiment_contract_helpers_are_canonical():
 
     training = training_profile_map()
     assert training["tiny_lora_smoke"]["base_model_ref"] == "google/gemma-4-E2B-it"
-    assert training["a07_t4_standard_sft"]["max_examples"] == 200
+    assert training["a00_t4_standard_sft"]["max_examples"] == 200
 
     limits = upload_limit_map()
     assert limits["max_zip_bytes"] == 200_000_000
@@ -226,7 +226,7 @@ def test_experiment_contract_helpers_are_canonical():
     assert "sft_jsonl" in payload["training_data_schemas"]
     assert "preference_jsonl" in payload["training_data_schemas"]
     assert {gate["id"] for gate in payload["training_quality_gates"]}.issuperset(
-        {"pii_absent", "heldout_not_train", "citation_grounded"}
+        {"pii_absent", "heldout_not_train", "citation_grounded", "row_integrity", "hidden_reasoning_absent"}
     )
     assert {item["id"] for item in payload["post_training_best_practices"]}.issuperset(
         {"start_with_sft", "prefer_dpo_before_full_rl", "preserve_harness_separation"}

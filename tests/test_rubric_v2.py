@@ -1,8 +1,8 @@
-"""Rubric v2 (versioned, opt-in) — grounded-refusal cap, F channel, deterministic citation gate.
+"""Rubric v2 (versioned, opt-in) - grounded-refusal cap, F channel, deterministic citation gate.
 
 Covers the roadmap refusal-quality proposals (docs/research/benchmark_findings_and_roadmap.md):
 P1 bare-refusal cap on C, P2 content-free sanity band, P3 separately-reported criterion F,
-P6 deterministic citation gate on B — all opt-in behind ``rubric_version="v2"`` while v1 stays
+P6 deterministic citation gate on B - all opt-in behind ``rubric_version="v2"`` while v1 stays
 byte-identical (the board never mixes rubric generations).
 """
 from __future__ import annotations
@@ -191,6 +191,57 @@ def test_judge_panel_rejects_unknown_rubric_version(tmp_path):
     with pytest.raises(ValueError, match="unknown rubric version"):
         rh.judge_panel([], ["judge-x"], panel_path=tmp_path / "p.jsonl", judge_caller=lambda p, **kw: "{}",
                        pace=0, log=lambda m: None, rubric_version="v7")
+
+
+def test_judge_panel_resume_scope_keeps_v1_and_v2_rows_separate(tmp_path):
+    results = [{"model": "candidate-1", "prompt_id": "p1", "arm": "baseline",
+                "prompt_text": "synthetic question", "response": "Report under ILO C181."}]
+
+    def caller(prompt, **kw):
+        if '"F":<0-10>' in prompt:
+            return json.dumps({"A": 10, "B": 10, "C": 10, "D": 5, "E": 5, "F": 4, "score": 40})
+        return json.dumps({"A": 9, "B": 9, "C": 9, "D": 4, "E": 4, "score": 35})
+
+    mixed_v2_path = tmp_path / "mixed_panel_v2.jsonl"
+    mixed_v2_path.write_text(json.dumps({
+        "key": "candidate-1|p1|baseline",
+        "model": "candidate-1",
+        "arm": "baseline",
+        "prompt_id": "p1",
+        "judge": "judge-x",
+        "score_0_100": 1.0,
+        "components": {},
+    }) + "\n", encoding="utf-8")
+
+    n_v2 = rh.judge_panel(results, ["judge-x"], panel_path=mixed_v2_path, judge_caller=caller,
+                          pace=0, log=lambda m: None, rubric_version="v2")
+    rows_v2 = [json.loads(line) for line in mixed_v2_path.read_text(encoding="utf-8").splitlines()]
+    assert n_v2 == 1
+    assert rows_v2[0].get("rubric") is None
+    assert rows_v2[1]["rubric"] == "v2"
+    assert rows_v2[1]["components"]["F"] == 4.0
+    assert rh.judge_panel(results, ["judge-x"], panel_path=mixed_v2_path, judge_caller=caller,
+                          pace=0, log=lambda m: None, rubric_version="v2") == 0
+
+    mixed_v1_path = tmp_path / "mixed_panel_v1.jsonl"
+    mixed_v1_path.write_text(json.dumps({
+        "key": "candidate-1|p1|baseline",
+        "model": "candidate-1",
+        "arm": "baseline",
+        "prompt_id": "p1",
+        "judge": "judge-x",
+        "score_0_100": 40.0,
+        "components": {"F": 4.0},
+        "rubric": "v2",
+    }) + "\n", encoding="utf-8")
+
+    n_v1 = rh.judge_panel(results, ["judge-x"], panel_path=mixed_v1_path, judge_caller=caller,
+                          pace=0, log=lambda m: None)
+    rows_v1 = [json.loads(line) for line in mixed_v1_path.read_text(encoding="utf-8").splitlines()]
+    assert n_v1 == 1
+    assert rows_v1[0]["rubric"] == "v2"
+    assert "rubric" not in rows_v1[1]
+    assert "F" not in rows_v1[1]["components"]
 
 
 # ---- rich_harness_lift: aggregation never blends rubric generations --------------------------------

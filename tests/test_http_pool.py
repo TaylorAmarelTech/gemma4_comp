@@ -54,6 +54,8 @@ class _Handler(http.server.BaseHTTPRequestHandler):
         self.send_response(self.server.status_code)
         if self.server.retry_after is not None:
             self.send_header("Retry-After", str(self.server.retry_after))
+        if self.server.location is not None:
+            self.send_header("Location", self.server.location)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
@@ -75,6 +77,7 @@ class _Server:
         self.httpd.request_count = 0
         self.httpd.status_code = 200
         self.httpd.retry_after = None
+        self.httpd.location = None
         self._t = threading.Thread(target=self.httpd.serve_forever, daemon=True)
         self._t.start()
 
@@ -91,9 +94,11 @@ class _Server:
     def request_count(self) -> int:
         return self.httpd.request_count
 
-    def set_status(self, code: int, retry_after: int | None = None) -> None:
+    def set_status(self, code: int, retry_after: int | None = None,
+                   location: str | None = None) -> None:
         self.httpd.status_code = code
         self.httpd.retry_after = retry_after
+        self.httpd.location = location
 
     def close(self) -> None:
         self.httpd.shutdown()
@@ -114,6 +119,7 @@ def _fresh_pool(monkeypatch):
     # Isolate each test: its own pool + pooling ON (the module default) so conn_count reflects only this test.
     monkeypatch.setattr(lg, "_HTTP_POOL", lg._ConnPool(16))
     monkeypatch.setattr(lg, "_HTTP_POOL_ENABLED", True)
+    monkeypatch.setattr(lg.urllib.request, "getproxies", lambda: {})
 
 
 def _post(url, timeout=5):
@@ -140,6 +146,45 @@ def test_pool_maps_non_2xx_to_httperror_with_retry_after(server):
     assert ei.value.code == 503
     # the Retry-After header must survive the http.client -> HTTPError mapping so the caller can honour it
     assert lg._retry_after(ei.value) == 7.0
+
+
+def test_pool_rejects_redirect_body_instead_of_treating_it_as_json(server):
+    server.set_status(307, location="https://other.invalid/v1/chat/completions")
+    with pytest.raises(urllib.error.HTTPError) as ei:
+        _post(server.url)
+    assert ei.value.code == 307
+    assert ei.value.headers["Location"] == "https://other.invalid/v1/chat/completions"
+
+
+def test_configured_proxy_uses_urlopen_semantics(monkeypatch):
+    seen = {}
+
+    class _Response:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self):
+            return b'{"proxied": true}'
+
+    def fake_urlopen(req, timeout=None):
+        seen["url"] = req.full_url
+        seen["data"] = req.data
+        seen["timeout"] = timeout
+        return _Response()
+
+    monkeypatch.setattr(lg.urllib.request, "getproxies",
+                        lambda: {"https": "http://proxy.invalid:8080"})
+    monkeypatch.setattr(lg.urllib.request, "proxy_bypass", lambda _host: False)
+    monkeypatch.setattr(lg.urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr(lg._HTTP_POOL, "acquire",
+                        lambda *_args, **_kwargs: pytest.fail("direct pool bypassed configured proxy"))
+
+    url = "https://api.example.test/v1/chat/completions"
+    assert _post(url, timeout=17) == b'{"proxied": true}'
+    assert seen == {"url": url, "data": b"{}", "timeout": 17}
 
 
 def test_pool_recovers_from_stale_keepalive(server):

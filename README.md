@@ -18,6 +18,15 @@
 > cannot. These are dated benchmark results, not field-deployment,
 > production-traffic, or weeks-long local Gemma reliability claims.
 >
+> **Current training status (2026-07-14):** the active A-00 workbench and
+> `scripts/training_engine.py` provide a manifest-bound, fail-closed
+> SFT-to-DPO path for official Gemma 4 E2B/E4B revisions and compatible custom
+> models. Candidate training rows must pass privacy, provenance/licensing,
+> quality, hidden-reasoning, unsafe-advice, immutable-revision, and held-out
+> prompt/lineage contamination gates. The local smoke artifact validates
+> plumbing only; **no production adapter or merged weights are published**.
+> See [Training and fine-tuning](docs/training_and_finetuning.md).
+>
 > **DueCare is Gemma 4-powered safety infrastructure for migrant-worker
 > protection.** It does three things: **prevents exploitation before it
 > spreads** through platform and organization moderation; **assists victims
@@ -121,7 +130,7 @@ python -c "from duecare.server import create_app; from duecare.server.state impo
 >
 > **Proof and optional benchmark surfaces:**
 >
-> - **DueCare Fine-tuning and Evaluation** — [`duecare-fine-tuning-and-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation) ([active source](./kaggle/A-00-omni-experiment-workbench/)) is the proof path for baseline vs harness vs fine-tuned vs fine-tuned-plus-harness exports, rule and LLM grading, synthetic SFT/DPO generation, tiny LoRA smoke bundles, local research graphs, and HTML/PDF reports.
+> - **DueCare Fine-tuning and Evaluation** — [`duecare-fine-tuning-and-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation) ([active source](./kaggle/A-00-omni-experiment-workbench/)) is the proof path for baseline vs harness vs fine-tuned vs fine-tuned-plus-harness exports, rule and LLM grading, manifest-bound SFT/DPO train/validation/test artifacts, resumable LoRA smoke runs, local research graphs, and HTML/PDF reports. It accepts final answers, citations, visible rationales, and deliberately authored reasoning structures; it rejects hidden chain-of-thought and refuses training until the dataset and held-out-lineage gates are clean.
 > - **DueCare Universal LLM Benchmark** — [`kaggle/03-universal-llm-benchmark`](./kaggle/03-universal-llm-benchmark/) is optional: it tests arbitrary API endpoints against DueCare prompt/rubric/evidence cues and can use Claude Opus as an external judge.
 > - **DueCare Kaggle Community Benchmark** — [`kaggle/04-kaggle-community-benchmark`](./kaggle/04-kaggle-community-benchmark/) is optional: it converts DueCare rows into `kaggle_benchmarks` tasks so Kaggle-hosted model quota and leaderboard artifacts can be used.
 > - Archived A-01 through A-24 plus the former video-pitch kernel remain available as reference material, but they are not part of the active validation or recording path.
@@ -169,9 +178,13 @@ Each harness self-describes via uniform exports: `name`, `applied_layers`,
 `consumes`, `emits`, `capabilities`, `register_routes(app)`, plus optional
 `tools.py`, `knowledge.py`, `evaluation.py`, `prompts.py`.
 
-The harness boundary is also the **per-task fine-tuning export boundary**:
-every Gemma-bearing handler emits one JSONL row per call to
-`/kaggle/working/training/<harness>.jsonl`, ready for Unsloth LoRA ingestion.
+The harness boundary is also the **per-task candidate-data export boundary**.
+Gemma-bearing handlers can emit one JSONL row per call under
+`/kaggle/working/training/`, but those rows are not automatically ready for a
+trainer. The A-00 handoff and `duecare.chat.training_contract` must attach
+source references, hashes, licensing/provenance, reasoning-policy labels, and
+lineage-isolated splits; a clean quality audit and both held-out prompt-hash and
+lineage-ID checks are required before Unsloth ingestion.
 
 ### Research data acquisition layer (entity intelligence)
 
@@ -243,7 +256,7 @@ public pip entry point for the workflow-oriented stack.
 | `duecare-llm-server` | FastAPI app that hosts the pipeline + audit dashboard (the live demo) | Route + audit-trail tests |
 | `duecare-llm-evidence-db` | Redacted-evidence corpus + audit trail SQLite store | Schema + integrity tests |
 | `duecare-llm-benchmark` | `smoke_25` + `score_row` + `aggregate` scoring helpers (zero deps) | Scoring + aggregation tests |
-| `duecare-llm-training` | Unsloth SFT + DPO scripts, GGUF export | Training-script smoke tests |
+| `duecare-llm-training` | Fail-closed dataset/training plans; execution delegates to the strict engine or active A-00 Kaggle handoff | Training-contract and plan tests |
 | `duecare-llm-research-tools` | Playwright scrapers + document extractors for domain corpora | Scraper + extractor tests |
 | `duecare-llm-nl2sql` | NL → SQL translator for evidence DB queries | NL→SQL roundtrip tests |
 | `duecare-llm-chat` | DueCare reviewer workbench: FastAPI app, shared chrome, static pages, harness contracts, and Gemma 4 runtime hooks | 18 test files: harness contract, route, workbench UI, JSON parser, anonymization, design-tooltip migration, model-output sanitizer, process bulk review, etc. |

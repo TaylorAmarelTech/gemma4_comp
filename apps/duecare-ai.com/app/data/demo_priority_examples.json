@@ -214,7 +214,7 @@
   ],
   "finetuning_best_practices": {
     "sample_data_needed": true,
-    "minimum_demo_dataset": "A small synthetic/composite SFT sample plus DPO pairs is enough for the video, but the real run should use the A07 train/val split and hold out the evaluation prompts.",
+    "minimum_demo_dataset": "A small synthetic/composite SFT sample plus DPO pairs is enough for the video, but a real run should use the A-00 lineage-aware train/validation split and hold out the evaluation prompts.",
     "use_harness_to_generate": "Yes. Treat harness outputs as silver data: record prompt, raw Gemma answer, GREP hits, RAG citations, tool calls, final harness answer, rubric grade, and provenance. Human/curator review or deterministic gates decide which rows become training examples.",
     "do_not_train_on": [
       "raw worker case narratives",

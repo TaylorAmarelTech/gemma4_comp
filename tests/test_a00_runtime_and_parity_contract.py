@@ -271,7 +271,10 @@ def test_a00_activity_logs_full_prompts_responses_and_untruncated_buffer() -> No
     assert '"requested_max_new_tokens": int(requested_max_new_tokens)' in text
     assert '"prompt_response_pairs": pairs' in text
     assert '"model_prompt": model_prompt' in text
-    assert '"sample_sft_rows": sft_rows[: min(10, len(sft_rows))]' in text
+    # Training manifests expose hashes, counts, and metadata-only quarantine
+    # diagnostics; they do not duplicate raw answer rows as samples.
+    assert '"sample_sft_rows"' not in text
+    assert '"contains_raw_text": False' in text
     assert 'el.textContent = `[${stamp}] ${summary}${detail}\\n\\n` + (el.textContent || "");' in text
     assert "slice(0, 18000)" not in text
     assert ".slice(-8).map" not in text
@@ -300,7 +303,8 @@ def test_a00_synthetic_generation_exposes_source_scope_and_audit() -> None:
     assert '"source_audit_summary": source_audit_summary' in text
     assert '"source_scope": _synthetic_source_scope()' in text
     assert '"source_audit": str(source_audit_path)' in text
-    assert "source_audit_path, manifest_path" in text
+    assert "source_audit_path" in text
+    assert "manifest_path" in text
     assert "Raw IOM, UN, court, statute, or PDF corpora influence training only after they are imported" in text
     assert "The schema is flexible enough for full documents, PDF-derived page chunks" in text
 

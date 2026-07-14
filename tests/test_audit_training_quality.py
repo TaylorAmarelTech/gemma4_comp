@@ -437,6 +437,42 @@ def test_fragile_fact_clean_gold_passes_phone_gate():
     assert out["with_phone_like"] == 0 and out["ok_phone"] is True
 
 
+def _cli_report(*, clean: bool) -> dict:
+    return {
+        "inputs": {"sft_train": 1, "sft_heldout": 1, "dpo_train": 1, "dpo_heldout": 1},
+        "overfitting_leakage": {"sft": {"leaked": 0}, "dpo": {"leaked": 0}},
+        "false_pattern_length_bias": {"chosen_over_rejected_ratio": 1.0},
+        "jurisdiction_corridor_diversity": {"n_dense_single_corridor": 0 if clean else 1},
+        "fragile_fact_assertions": {"with_phone_like": 0},
+        "citation_relevance": {"n_incoherent": 0},
+        "risk_flags": [] if clean else ["1 dense single-corridor typologies"],
+        "clean": clean,
+    }
+
+
+@pytest.mark.parametrize(
+    ("argv", "clean", "expected_rc"),
+    [
+        ([], False, 0),
+        (["--require-clean"], False, 1),
+        (["--require-clean"], True, 0),
+    ],
+)
+def test_main_require_clean_controls_dirty_audit_exit(
+    tmp_path, monkeypatch, capsys, argv, clean, expected_rc
+):
+    out = tmp_path / "quality_audit.json"
+    monkeypatch.setattr(atq, "OUT", out)
+    monkeypatch.setattr(atq, "audit", lambda: _cli_report(clean=clean))
+
+    rc = atq.main(argv)
+    captured = capsys.readouterr().out
+
+    assert rc == expected_rc
+    assert json.loads(out.read_text(encoding="utf-8"))["clean"] is clean
+    assert ("BLOCKED: --require-clean" in captured) is (bool(argv) and not clean)
+
+
 def test_citation_relevance_flags_real_but_irrelevant_citation_without_raw_text():
     gold = [
         "Her passport was confiscated, contrary to ILO Convention No. 29.",

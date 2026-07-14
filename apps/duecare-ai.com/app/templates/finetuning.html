@@ -38,7 +38,7 @@
 </div></section>
 
 <section class="hp-section" style="padding-top:0"><div class="wrap">
-<div class="ft-card" style="border-color:oklch(0.65 0.10 80); background:var(--paper)"><b>Status &mdash; the pipeline is built and reproducible; the trained adapter is the next step.</b> The corpus, the vetting and anti-shortcut organisation, and the Unsloth SFT&rarr;DPO runner are all committed public code, and a smoke adapter confirms the pipeline trains end-to-end. The full four-arm run on a Gemma&nbsp;4 base is a single GPU step (one command on Kaggle); the numbers in &sect;05 and the published adapter fill in when it completes. <b>No trained weights are published yet</b> &mdash; this page is the design and the evidence base for the fine-tune, honestly labelled, not a report of a finished model.</div>
+<div class="ft-card" style="border-color:oklch(0.65 0.10 80); background:var(--paper)"><b>Status &mdash; the guarded pipeline is built; a full trained adapter remains pending.</b> The corpus builders, vetting and anti-shortcut organisation, and resumable Unsloth SFT&rarr;DPO runner are committed public code. A local smoke artifact exercises plumbing only; it is not model-quality evidence. A full Kaggle run still requires an approved clean dataset, compatible GPU/runtime, successful SFT and requested DPO stages, and four-arm evaluation before publication. <b>No trained weights are published yet</b> &mdash; this page documents the method and current evidence boundary, not a finished model.</div>
 </div></section>
 
 <section class="hp-section"><div class="wrap">
@@ -55,15 +55,16 @@
 </div></section>
 
 <section class="hp-section"><div class="wrap">
-<div class="head"><div><span class="ix">02 &middot; The training data</span><h2>The benchmark&rsquo;s proven lift becomes the training signal.</h2></div><p class="summary">Every benchmark prompt already has a weak baseline reply and a high-scoring harnessed reply. The high-lift pairs are ready-made teaching material &mdash; no separate labelling pass. Nothing trains unvetted.</p></div>
+<div class="head"><div><span class="ix">02 &middot; The training data</span><h2>The benchmark&rsquo;s proven lift becomes the training signal.</h2></div><p class="summary">Each fully graded benchmark prompt has comparable baseline and harnessed replies. High-lift, gate-passing pairs become candidate teaching material; incomplete or unvetted rows never enter a GPU job.</p></div>
 <div class="ft-flow">
 <div class="ft-stage"><span class="n">Generate</span><b>Distil the lift</b><p>High-lift (baseline &rarr; harnessed) pairs become SFT targets and DPO preferences (chosen = harnessed, rejected = baseline).</p></div>
 <div class="ft-stage"><span class="n">Vet</span><b>Quality + privacy</b><p>Target score &ge; threshold, clear lift, PII / volatile-contact scrub (statute refs kept), citation accuracy, quality gate.</p></div>
 <div class="ft-stage"><span class="n">Organise</span><b>Anti-shortcut</b><p>Hold out whole typologies, balance, interleave, dedup &mdash; so the data can&rsquo;t be solved by surface shortcuts.</p></div>
-<div class="ft-stage"><span class="n">Train</span><b>Unsloth LoRA</b><p>SFT (response-only) then DPO on a Gemma 4 base; export GGUF / LiteRT for on-device.</p></div>
+<div class="ft-stage"><span class="n">Train</span><b>Unsloth LoRA</b><p>SFT (response-only) then DPO on a commit-pinned Gemma 4 base; optionally export GGUF for llama.cpp.</p></div>
 <div class="ft-stage"><span class="n">Evaluate</span><b>Four arms</b><p>Score the trained model in arms C/D on the same prompts; promote only what generalises.</p></div>
 </div>
-<p class="ft-note">SFT (instruction &rarr; harnessed reply) teaches the answer shape; DPO (prefer the grounded reply over the plausible-but-wrong baseline) teaches the boundary. Today the distilled set is <b>2,602</b> SFT targets and <b>2,602</b> DPO preference pairs &mdash; plus hard-negative contract-DPO (581), reasoning-repair (1,316), and counterfactual (568) variants &mdash; distilled from the <b>78,719</b>-prompt graded registry, and it grows as the sweep does. The upstream <b>74,640-prompt</b> adversarial seed corpus is committed in the public repo; the distilled SFT/DPO artifacts are generated offline and publish via Kaggle Datasets.</p>
+<p class="ft-note">SFT (instruction &rarr; harnessed reply) teaches the answer shape; DPO (prefer the grounded reply over the plausible-but-wrong baseline) teaches the boundary. Today the proposed distilled set is <b>2,602</b> SFT targets and <b>2,602</b> DPO preference pairs &mdash; plus hard-negative contract-DPO (581), reasoning-repair (1,316), and counterfactual (568) variants &mdash; built from accumulated outputs inside the <b>78,719</b>-prompt closure scope, and it grows as the sweep does. The upstream <b>74,640-prompt</b> adversarial seed corpus is committed in the public repo; generated SFT/DPO artifacts remain gated, offline handoffs until their quality audit is clean.</p>
+<p class="ft-note"><b>Reasoning-data policy:</b> bundles may include final answers, citations, visible judge rationales, and deliberately authored structures such as indicator &rarr; source &rarr; safe action. They do not request, scrape, or publish a provider&rsquo;s private hidden chain-of-thought; hidden-thought markup is a blocking data-quality failure.</p>
 </div></section>
 
 <section class="hp-section"><div class="wrap">
@@ -85,9 +86,9 @@
 <li><b>Load</b> the base 4-bit with Unsloth <code>FastModel</code>; apply a LoRA adapter (<code>get_peft_model</code>).</li>
 <li><b>SFT</b> with the <code>gemma-4-thinking</code> chat template and <code>train_on_responses_only</code> (the prompt is masked &mdash; the model is graded only on the reply it should learn).</li>
 <li><b>DPO</b> over the chosen/rejected pairs so the model prefers the grounded reply to the plausible shortcut.</li>
-<li><b>Export</b> a q4_k_m GGUF for on-device (llama.cpp / LiteRT) &mdash; the NGO-on-a-laptop deployment.</li>
+<li><b>Export</b> an optional q4_k_m GGUF for llama.cpp. LiteRT deployment is a separate conversion and validation path.</li>
 </ul>
-<p class="ft-note">The base weights are never overwritten &mdash; the result is a small adapter that ships next to the harness. A CPU-safe validate path checks the data and plan anywhere; the GPU run is one command on Kaggle.</p>
+<p class="ft-note">The base weights are never overwritten &mdash; the result is a small adapter beside the harness. The official Gemma 4 E2B/E4B presets use immutable model commits; custom remote models must declare their own revision. A CPU-safe validate path checks the data and plan anywhere; the GPU run is one command on Kaggle.</p>
 </div></section>
 
 <section class="hp-section"><div class="wrap">

@@ -193,9 +193,11 @@ It checks that queue, research-plan, review-packet, validation, and manifest
 proposal counts agree. In the seed state, the bundle should remain consistent
 but not ready for comparable scoring because all 12 prompts are still blocked
 pending verified local-law source rows and scope resolution. Bundle artifact
-paths are handoff metadata only: in-repo reports stay repo-relative, and
-caller-provided output directories are recorded as `external/<file>` rather
-than machine-local absolute paths.
+paths are handoff metadata only: in-repo reports stay safe repo-relative labels, and
+caller-provided output directories are recorded as privacy-safe external labels
+rather than machine-local absolute paths. Safe external filenames can appear as
+`external/<name>`; private-looking repo-relative path segments and private-looking
+or malformed external names collapse to `external/custom_or_invalid`.
 
 Validate a saved domain curation bundle with:
 

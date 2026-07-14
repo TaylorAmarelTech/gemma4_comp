@@ -18,8 +18,8 @@ machine without them use --validate to check the data + config + plan WITHOUT th
     python scripts/train_lift_distill.py --validate                       # CPU: check data + print plan
     python scripts/train_lift_distill.py --validate --dpo reports/training/contract_dpo.jsonl
     python scripts/train_lift_distill.py --validate --dpo reports/training/dpo_train_plus_contract.jsonl
-    python scripts/train_lift_distill.py --test-run                       # GPU: ~20-step smoke (E2B)
-    python scripts/train_lift_distill.py --base-model unsloth/gemma-4-E4B-it --epochs 2   # GPU: full
+    python scripts/train_lift_distill.py --test-run                       # GPU: ~20-step E4B smoke
+    python scripts/train_lift_distill.py --base-model google/gemma-4-E4B-it --epochs 2   # GPU: full
 
 Prereqs (Kaggle): pip install "unsloth" "unsloth_zoo" trl peft accelerate bitsandbytes
 Design: docs/phase3_training_framework.md  .  Special Technology Track: Unsloth
@@ -27,11 +27,14 @@ Design: docs/phase3_training_framework.md  .  Special Technology Track: Unsloth
 from __future__ import annotations
 
 import argparse
+import hashlib
+import importlib.metadata
 import json
 import pathlib
 import re
 import sys
 from collections import Counter
+from datetime import datetime, timezone
 from typing import Any, Callable
 
 _ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -122,7 +125,8 @@ SFT_VARIANT_META_FIELDS = ("name", "base_prompt_id", "source", "replacement")
 CORE_REMEDY_KEYS = set(CORE_BASE_REMEDIES) | {
     remedy for remedies in CORE_TRIGGER_REMEDIES.values() for remedy in remedies
 }
-DEFAULT_BASE = "unsloth/gemma-4-E2B-it"   # T4-friendly proof base; use E4B for the quality run
+DEFAULT_BASE = "google/gemma-4-E4B-it"
+DEFAULT_BASE_REVISION = "a4c2d58be94dda072b918d9db64ee85c8ed34e3f"
 CHAT_TEMPLATE = "gemma-4-thinking"
 INSTRUCTION_PART = "<|turn>user\n"
 RESPONSE_PART = "<|turn>model\n"
@@ -1150,8 +1154,14 @@ def render_dpo(rows: list[dict], format_prompt: Callable[[str], str]) -> list[di
 
 def build_plan(args: argparse.Namespace) -> dict[str, Any]:
     """The training plan (CPU-safe; printed by --validate)."""
+    base_revision = str(getattr(args, "base_revision", "") or "").strip()
+    if not base_revision and args.base_model == DEFAULT_BASE:
+        base_revision = DEFAULT_BASE_REVISION
     return {
-        "base_model": args.base_model, "chat_template": CHAT_TEMPLATE, "max_seq_length": args.max_seq,
+        "base_model": args.base_model,
+        "base_model_revision": base_revision,
+        "chat_template": CHAT_TEMPLATE,
+        "max_seq_length": args.max_seq,
         "lora": {"r": args.lora_r, "alpha": args.lora_alpha, "dropout": 0.0},
         "sft": {"file": str(args.sft), "epochs": (1 if args.test_run else args.epochs),
                 "max_steps": (20 if args.test_run else args.max_steps),
@@ -1164,8 +1174,67 @@ def build_plan(args: argparse.Namespace) -> dict[str, Any]:
     }
 
 
+def _load_dpo_components(*, enabled: bool) -> tuple[Any | None, Any | None]:
+    """Load the requested DPO stage or fail before any GPU training work begins."""
+    if not enabled:
+        return None, None
+    try:
+        from trl import DPOConfig, DPOTrainer
+    except ImportError as exc:
+        raise SystemExit(
+            "[train] DPO was requested but trl DPOConfig/DPOTrainer are unavailable "
+            f"({_display_exception(exc)}). Install a compatible trl version or pass --skip-dpo "
+            "explicitly for SFT-only training."
+        ) from exc
+    return DPOConfig, DPOTrainer
+
+
+def _file_sha256(path: str | pathlib.Path) -> str:
+    digest = hashlib.sha256()
+    with pathlib.Path(path).open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _plan_file_sha256(stage: dict[str, Any]) -> str:
+    raw_path = stage.get("file")
+    if not raw_path or not pathlib.Path(str(raw_path)).is_file():
+        return "unavailable"
+    return _file_sha256(str(raw_path))
+
+
+def _pin_adapter_revision(output_dir: str | pathlib.Path, *, base_model: str, revision: str) -> None:
+    """Persist the immutable base revision in PEFT's standard adapter config."""
+    if not revision:
+        return
+    config_path = pathlib.Path(output_dir) / "adapter_config.json"
+    if not config_path.exists():
+        return
+    payload = json.loads(config_path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError("adapter_config.json must contain an object")
+    payload["base_model_name_or_path"] = base_model
+    payload["revision"] = revision
+    config_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def _package_version(name: str) -> str:
+    try:
+        return importlib.metadata.version(name)
+    except importlib.metadata.PackageNotFoundError:
+        return "not-installed"
+    except Exception as exc:  # noqa: BLE001
+        return f"unavailable:{type(exc).__name__}"
+
+
 def train(plan: dict[str, Any], sft: list[dict], dpo: list[dict]) -> str:
     """The GPU path: SFT then (optionally) DPO via Unsloth. Heavy deps imported lazily."""
+    base_revision = str(plan.get("base_model_revision") or "").strip()
+    if not base_revision and not pathlib.Path(str(plan["base_model"])).exists():
+        raise SystemExit(
+            "[train] remote base models require --base-revision with an immutable commit SHA"
+        )
     try:
         from unsloth import FastModel
         from unsloth.chat_templates import get_chat_template, train_on_responses_only
@@ -1179,14 +1248,19 @@ def train(plan: dict[str, Any], sft: list[dict], dpo: list[dict]) -> str:
             '  pip install "unsloth" "unsloth_zoo" trl peft accelerate bitsandbytes')
     import inspect
 
+    DPOConfig, DPOTrainer = _load_dpo_components(enabled=bool(plan["dpo"]["enabled"]))
+
     out_dir = plan["output_dir"]
     display_out_dir = _display_report_path(out_dir)
     display_gguf_dir = _display_report_path(f"{out_dir}-gguf")
     print(f"[train] loading {_display_model_ref(plan['base_model'])} (4-bit) ...", flush=True)
-    model, tokenizer = FastModel.from_pretrained(
+    load_kwargs = dict(
         model_name=plan["base_model"], max_seq_length=plan["max_seq_length"],
         dtype=None, load_in_4bit=True, full_finetuning=False,
     )
+    if base_revision:
+        load_kwargs["revision"] = base_revision
+    model, tokenizer = FastModel.from_pretrained(**load_kwargs)
     lc = plan["lora"]
     model = FastModel.get_peft_model(
         model, finetune_vision_layers=False, finetune_language_layers=True,
@@ -1221,47 +1295,76 @@ def train(plan: dict[str, Any], sft: list[dict], dpo: list[dict]) -> str:
     trainer.train()
     model.save_pretrained(out_dir)
     tokenizer.save_pretrained(out_dir)
+    _pin_adapter_revision(
+        out_dir,
+        base_model=str(plan["base_model"]),
+        revision=base_revision,
+    )
+    executed_stages = ["sft"]
     print(f"[train] SFT adapter saved to {display_out_dir}", flush=True)
 
     # ---- DPO stage (prefer the harnessed reply over the baseline) ----
     d = plan["dpo"]
     if d["enabled"] and dpo:
-        try:
-            from trl import DPOConfig, DPOTrainer
-        except ImportError:
-            print("[train] trl DPOTrainer unavailable; skipping DPO", flush=True)
-        else:
-            def _fmt_prompt(p: str) -> str:
-                return tokenizer.apply_chat_template(
-                    normalize_messages([{"role": "user", "content": p}]),
-                    tokenize=False, add_generation_prompt=True).removeprefix("<bos>")
+        assert DPOConfig is not None and DPOTrainer is not None
 
-            dpo_rows = render_dpo(dpo, _fmt_prompt)
-            print(f"[train] DPO on {len(dpo_rows)} pairs (beta={d['beta']})", flush=True)
-            # Set max_length/max_prompt_length explicitly: trl's small default silently truncates the
-            # long grounded `chosen` while the short `rejected` survives -> a pure length-bias confound.
-            # Filter to the params THIS trl version's DPOConfig accepts (these + rpo_alpha vary by version).
-            dpo_cfg_kw = dict(
-                per_device_train_batch_size=s["per_device_batch"], gradient_accumulation_steps=s["grad_accum"],
-                warmup_steps=5, max_steps=d["max_steps"], learning_rate=d["lr"], beta=d["beta"],
-                fp16=not bf16, bf16=bf16, logging_steps=5, save_strategy="no",
-                output_dir=out_dir + "-dpo", optim="adamw_8bit", seed=42, report_to="none",
-                max_length=d["max_length"], max_prompt_length=d["max_prompt_length"],
-            )
-            if d.get("rpo_alpha"):
-                dpo_cfg_kw["rpo_alpha"] = d["rpo_alpha"]
-            _dpo_params = set(inspect.signature(DPOConfig.__init__).parameters)
-            dpo_args = DPOConfig(**{k: v for k, v in dpo_cfg_kw.items() if k in _dpo_params})
-            dkw = {"model": model, "args": dpo_args, "train_dataset": Dataset.from_list(dpo_rows)}
-            dsig = inspect.signature(DPOTrainer.__init__)
-            if "tokenizer" in dsig.parameters:
-                dkw["tokenizer"] = tokenizer
-            elif "processing_class" in dsig.parameters:
-                dkw["processing_class"] = tokenizer
-            DPOTrainer(**dkw).train()
-            model.save_pretrained(out_dir)
-            tokenizer.save_pretrained(out_dir)
-            print(f"[train] DPO-refined adapter saved to {display_out_dir}", flush=True)
+        def _fmt_prompt(p: str) -> str:
+            return tokenizer.apply_chat_template(
+                normalize_messages([{"role": "user", "content": p}]),
+                tokenize=False, add_generation_prompt=True).removeprefix("<bos>")
+
+        dpo_rows = render_dpo(dpo, _fmt_prompt)
+        print(f"[train] DPO on {len(dpo_rows)} pairs (beta={d['beta']})", flush=True)
+        # Set max_length/max_prompt_length explicitly: trl's small default silently truncates the
+        # long grounded `chosen` while the short `rejected` survives -> a pure length-bias confound.
+        # Filter to the params THIS trl version's DPOConfig accepts (these + rpo_alpha vary by version).
+        dpo_cfg_kw = dict(
+            per_device_train_batch_size=s["per_device_batch"], gradient_accumulation_steps=s["grad_accum"],
+            warmup_steps=5, max_steps=d["max_steps"], learning_rate=d["lr"], beta=d["beta"],
+            fp16=not bf16, bf16=bf16, logging_steps=5, save_strategy="no",
+            output_dir=out_dir + "-dpo", optim="adamw_8bit", seed=42, report_to="none",
+            max_length=d["max_length"], max_prompt_length=d["max_prompt_length"],
+        )
+        if d.get("rpo_alpha"):
+            dpo_cfg_kw["rpo_alpha"] = d["rpo_alpha"]
+        _dpo_params = set(inspect.signature(DPOConfig.__init__).parameters)
+        dpo_args = DPOConfig(**{k: v for k, v in dpo_cfg_kw.items() if k in _dpo_params})
+        dkw = {"model": model, "args": dpo_args, "train_dataset": Dataset.from_list(dpo_rows)}
+        dsig = inspect.signature(DPOTrainer.__init__)
+        if "tokenizer" in dsig.parameters:
+            dkw["tokenizer"] = tokenizer
+        elif "processing_class" in dsig.parameters:
+            dkw["processing_class"] = tokenizer
+        DPOTrainer(**dkw).train()
+        model.save_pretrained(out_dir)
+        tokenizer.save_pretrained(out_dir)
+        _pin_adapter_revision(
+            out_dir,
+            base_model=str(plan["base_model"]),
+            revision=base_revision,
+        )
+        executed_stages.append("dpo")
+        print(f"[train] DPO-refined adapter saved to {display_out_dir}", flush=True)
+
+    completion = {
+        "schema_version": "1.0",
+        "handoff_kind": "duecare.training.completion.v1",
+        "completed_at": datetime.now(timezone.utc).isoformat(),
+        "base_model": str(plan["base_model"]),
+        "base_model_revision": base_revision or "local-model-artifact",
+        "executed_stages": executed_stages,
+        "sft_sha256": _plan_file_sha256(plan["sft"]),
+        "dpo_sha256": _plan_file_sha256(plan["dpo"]) if plan["dpo"]["enabled"] else "",
+        "output_dir": _display_report_path(out_dir),
+        "library_versions": {
+            name: _package_version(name)
+            for name in ("unsloth", "trl", "peft", "transformers", "datasets")
+        },
+    }
+    completion_path = pathlib.Path(out_dir) / "training_completion_manifest.json"
+    completion_path.parent.mkdir(parents=True, exist_ok=True)
+    completion_path.write_text(json.dumps(completion, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    print(f"[train] completion manifest -> {_display_report_path(completion_path)}", flush=True)
 
     # ---- GGUF export for on-device (LiteRT / llama.cpp) ----
     if plan.get("gguf"):
@@ -1275,7 +1378,12 @@ def train(plan: dict[str, Any], sft: list[dict], dpo: list[dict]) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--base-model", default=DEFAULT_BASE, help="Unsloth Gemma 4 base (E2B for T4, E4B for quality)")
+    ap.add_argument("--base-model", default=DEFAULT_BASE, help="canonical Gemma 4 E4B base model ref")
+    ap.add_argument(
+        "--base-revision",
+        default="",
+        help="immutable model commit; the canonical E4B default is pinned automatically",
+    )
     ap.add_argument("--sft", type=pathlib.Path, default=SFT_DEFAULT)
     ap.add_argument("--dpo", type=pathlib.Path, default=DPO_DEFAULT)
     ap.add_argument("--out", type=pathlib.Path, default=OUT_DEFAULT)

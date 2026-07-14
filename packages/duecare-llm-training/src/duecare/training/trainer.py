@@ -1,13 +1,8 @@
-"""UnslothTrainer: gated kickoff for the actual fine-tune.
+"""Plan-only bridge to DueCare's validated training surfaces.
 
-In dry-run mode (default for now), writes a TrainingPlan manifest the
-existing notebook 530 (`Phase 3 Unsloth Fine-Tune`) consumes. The
-real GPU run lives in that notebook -- we don't duplicate Unsloth
-configuration here.
-
-Setting MM_TRAINING_ENABLED=1 with an attached GPU will eventually
-enable in-process training, gated by an explicit GPU + memory check.
-For 0.1.0 the in-process path raises a clear NotImplementedError.
+Dry-run mode writes a ``TrainingPlan`` manifest. GPU training is owned by the
+strict ``scripts/training_engine.py`` pipeline and the active A-00 Kaggle
+workbench, which enforce dataset, quality, provenance, and held-out gates.
 """
 from __future__ import annotations
 
@@ -17,12 +12,15 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+
+DEFAULT_BASE_MODEL = "google/gemma-4-E4B-it"
+CANONICAL_GPU_COMMAND = "python scripts/training_engine.py --with-gpu"
+ACTIVE_KAGGLE_WORKBENCH = "kaggle/A-00-omni-experiment-workbench"
 
 
 @dataclass
 class TrainingPlan:
-    """Manifest a Phase 3 notebook can pick up."""
+    """Manifest the validated training engine or A-00 workbench can consume."""
     training_run_id: str
     base_model: str
     dataset_train_path: str
@@ -46,13 +44,13 @@ class TrainingPlan:
 
 
 class UnslothTrainer:
-    """Bridge between labeled_examples and the actual Unsloth run.
+    """Bridge between labeled examples and the validated training surfaces.
 
     `kickoff()` writes a TrainingPlan manifest and persists a row in
     the training_runs table. Dry-run mode writes the manifest only
-    (status='dry_run'); enabled mode would normally start the training
-    process but for 0.1.0 raises NotImplementedError pointing the
-    operator at notebook 530.
+    (status='dry_run'). A for-real request is recorded as
+    ``handoff_required`` and fails closed with exact handoff instructions;
+    this package never bypasses the canonical training gates.
     """
 
     def __init__(self, store) -> None:
@@ -62,22 +60,19 @@ class UnslothTrainer:
 
     def kickoff(self,
                   manifest_path: str,
-                  base_model: str = "google/gemma-4-4b-it",
+                  base_model: str = DEFAULT_BASE_MODEL,
                   output_lora_path: str = "./duecare_lora",
-                  config: Optional[dict] = None,
-                  dry_run: Optional[bool] = None,
+                  config: dict | None = None,
+                  dry_run: bool | None = None,
                   notes: str = "") -> TrainingPlan:
-        """Write the TrainingPlan manifest. If MM_TRAINING_ENABLED=1
-        AND a CUDA-capable GPU is detected, attempts an in-process
-        training run (NotImplementedError in 0.1.0 -- hand off to
-        notebook 530)."""
+        """Write a plan and fail closed when a direct GPU run is requested."""
         run_id = f"train_{datetime.now().strftime('%Y%m%d_%H%M%S')}_" \
                   f"{uuid.uuid4().hex[:6]}"
         manifest_path_p = Path(manifest_path)
         if not manifest_path_p.exists():
             raise FileNotFoundError(
-                f"dataset manifest not found: {manifest_path}. "
-                f"Run `duecare train dataset --output ...` first.")
+                "dataset manifest not found. "
+                "Run `duecare train dataset --output ...` first.")
         manifest = json.loads(manifest_path_p.read_text(encoding="utf-8"))
 
         plan = TrainingPlan(
@@ -103,7 +98,7 @@ class UnslothTrainer:
             "training_run_id": run_id,
             "started_at": datetime.now(),
             "completed_at": None,
-            "status": ("dry_run" if dry_run else "pending"),
+            "status": ("dry_run" if dry_run else "handoff_required"),
             "base_model": base_model,
             "n_examples": manifest["n_total"],
             "n_train": manifest["n_train"],
@@ -117,19 +112,15 @@ class UnslothTrainer:
         })
 
         if dry_run:
-            print(f"[trainer] dry-run plan written: {plan_path}")
-            print(f"[trainer] hand off to NB 530 by running:")
-            print(f"[trainer]   notebook 530 with TRAIN_PLAN_JSON="
-                  f"{plan_path}")
+            print("[trainer] dry-run plan written")
+            print(f"[trainer] strict GPU handoff: {CANONICAL_GPU_COMMAND}")
+            print(f"[trainer] Kaggle handoff: {ACTIVE_KAGGLE_WORKBENCH}")
             return plan
 
-        # Enabled path -- not implemented in 0.1.0
         raise NotImplementedError(
-            "In-process Unsloth training is COMING SOON. For now, "
-            f"open notebook 530 (Phase 3 Unsloth Fine-Tune) and pass "
-            f"TRAIN_PLAN_JSON={plan_path} as an env var. The notebook "
-            "will read the plan, load the dataset, and run the LoRA "
-            "fine-tune with the configured base model.")
+            "Direct package training is disabled because it would bypass "
+            "required quality and provenance gates. Run "
+            f"`{CANONICAL_GPU_COMMAND}` or use `{ACTIVE_KAGGLE_WORKBENCH}`.")
 
 
 def _default_lora_config() -> dict:
