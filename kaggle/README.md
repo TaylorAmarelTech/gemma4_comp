@@ -12,11 +12,12 @@ The current submission path uses three script-kernel folders:
 
 Run `01` and `02` by copying `kernel.py` into a Kaggle code cell, enabling Internet and T4 x2 GPU, and running the cell. Those kernels install the DueCare packages from GitHub, stage outputs under `/kaggle/working`, launch the server, and print a `https://*.trycloudflare.com` URL. Use `A-00` when you want the longer proof pipeline and report artifacts rather than the reviewer web UI.
 
-The A-00 Kaggle URL is public, but its current public copy is the May 2026
-version. The July 2026 guarded source in
-`A-00-omni-experiment-workbench/` is pending publication. No public advanced
-training dataset or production Gemma adapter is attached; A-00's current
-`dataset_sources` list remains empty.
+The A-00 Kaggle URL is public. The July 2026 dataset-attached update was
+pushed as Kaggle kernel version `14` on 2026-07-14, with
+`taylorsamarel/duecare-proof-finetuning-data` attached. The live run still
+needs a terminal Kaggle status plus artifact review before it is cited as a
+completed proof run. No production Gemma adapter or full advanced training
+corpus is published.
 
 ## Archived Reference Notebooks
 
@@ -78,6 +79,7 @@ The default A-00 source path is guided, but training remains fail-closed:
 9. Write the completion manifest and final comparison report under
    `/kaggle/working/a00_runs`.
 
-The existing public May 2026 notebook does not yet contain every July gate
-described above. The repository source and its tests are authoritative until a
-new Kaggle version is published and verified.
+The pushed public notebook contains the July gate source and attached proof
+dataset, but the repository source and its tests remain authoritative until
+the Kaggle run reaches a terminal status and its `/kaggle/working` artifacts
+are reviewed.

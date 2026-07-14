@@ -16,15 +16,17 @@ recording path; A-00 is the quantitative proof and training/evaluation path.
 | `kaggle/02-live-demo/` | Focused live demo for judges and video capture. |
 | `kaggle/A-00-omni-experiment-workbench/` | Quantitative proof path: baseline, harnessed, synthetic-data, fine-tuning, judging, checkpoints, and report artifacts. |
 
-Public-version boundary reviewed 2026-07-14: the A-00 Kaggle URL returns the
-public May 2026 version (script version `320178883`). The July 2026 guarded
-dataset/training source in this repository is not yet deployed there. A-00's
-current repository metadata has `dataset_sources: []`; no public advanced
-training dataset, production Gemma adapter, or merged weights are attached.
+Public-version boundary reviewed 2026-07-14: the A-00 Kaggle URL is live and
+the July dataset-attached update was pushed as kernel version `14`. The public
+notebook now attaches
+`taylorsamarel/duecare-proof-finetuning-data`; the run still needs terminal
+Kaggle status plus artifact review before it is cited as a completed proof
+run. No production Gemma adapter, merged weights, or full advanced training
+corpus is attached.
 
-Each active folder uses `kernel.py` as source of truth. Do not recreate or
-publish historical `.ipynb` wrappers for these active folders unless Taylor
-explicitly asks.
+Each active folder uses `kernel.py` as source of truth. The existing A-00
+Kaggle slug is notebook-typed, so publication packages the script source into
+a temporary `.ipynb` wrapper without changing the repository source of truth.
 
 ## Optional Evaluation Kernels
 

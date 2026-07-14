@@ -6,7 +6,7 @@
 |---|---|---|
 | `01-duecare-exploration-workbench` / `duecare-app` | Full workbench and shared primitive source of truth. | Run in Kaggle with Internet and T4 x2. Open the printed Cloudflare URL for `/static/demo-recording.html`, chat, bulk review, knowledge, search, and sharing. |
 | `02-live-demo` / `duecare-live-demo` | Focused judge-facing live demo and slides. | Run after 01 is stable. Open the printed Cloudflare URL for `/start`, `/slides`, `/slides/setup`, and `/api/slides/recording-pack`. |
-| `A-00-omni-experiment-workbench` / `duecare-fine-tuning-and-evaluation` | Quantitative harness, dataset-candidate, guarded training, four-arm evaluation, and report workbench. | The public Kaggle copy is the May 2026 version. Review the July repository source and its gates before a new Kaggle run or update. |
+| `A-00-omni-experiment-workbench` / `duecare-fine-tuning-and-evaluation` | Quantitative harness, dataset-candidate, guarded training, four-arm evaluation, and report workbench. | The July dataset-attached public update is pushed as Kaggle kernel version `14`; wait for terminal run status and artifact review before citing it as a completed proof run. |
 
 ## A-00 Guarded Path
 
@@ -33,11 +33,12 @@ or otherwise hidden chain-of-thought is prohibited.
 
 ## Public Version And Dataset Boundary
 
-- The A-00 Kaggle URL is live, but the public page is the May 2026 script
-  version. The July guarded source update is pending.
-- `A-00-omni-experiment-workbench/kernel-metadata.json` has
-  `dataset_sources: []`. No eligible complete advanced training dataset or
-  production Gemma adapter is published.
+- The A-00 Kaggle URL is live, and the July dataset-attached update is pushed
+  as kernel version `14`.
+- `A-00-omni-experiment-workbench/kernel-metadata.json` attaches
+  `taylorsamarel/duecare-proof-finetuning-data`. That proof dataset is a
+  preview release, not the full advanced corpus. No production Gemma adapter
+  is published.
 - `shared-datasets/training-data/` is documentation-only. It contains a README
   and placeholder metadata template, no active `dataset-metadata.json`, and no
   training rows.

@@ -20,9 +20,12 @@ PEFT LoRA job when a compatible CUDA environment is available.
 
 Status reviewed 2026-07-14:
 
-- A public GET of the A-00 Kaggle URL returned HTTP 200 with page title
-  `Duecare Fine Tuning and Evaluation`; its embedded metadata reported
-  `dateModified=2026-05-17T23:17:31.9566667Z` and script version `320178883`.
+- The A-00 Kaggle notebook
+  [`taylorsamarel/duecare-fine-tuning-and-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation)
+  accepted the July dataset-attached update as kernel version `14` on
+  2026-07-14. Its execution was still running at last verification, so do not
+  cite it as a completed training/evaluation run until Kaggle reaches a
+  terminal status and the output artifacts are inspected.
 - The proof dataset
   [`taylorsamarel/duecare-proof-finetuning-data`](https://www.kaggle.com/datasets/taylorsamarel/duecare-proof-finetuning-data)
   is public and Kaggle reports it ready. It contains 24 SFT rows, 24

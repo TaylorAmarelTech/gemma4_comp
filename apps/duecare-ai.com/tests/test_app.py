@@ -113,25 +113,27 @@ def test_training_data_flywheel_states_release_and_reasoning_boundaries(tmp_path
     response = client.get("/training-data-flywheel")
 
     assert response.status_code == 200
-    assert "No production adapter or eligible complete advanced training dataset is published yet." in response.text
+    assert "No production adapter or full advanced training corpus is published yet." in response.text
     assert "SFT then preference" in response.text
     assert "private hidden chain-of-thought" in response.text
     assert "complete final answers, citations, harness traces" in response.text
     assert "Already have a file?" in response.text
     assert "A loose file stays inspection-only" in response.text
     assert "prompt hash and lineage ID" in response.text
-    assert "public Kaggle version predates the July 2026 guarded dataset" in response.text
-    assert "public May 2026 Kaggle notebook" in response.text
-    assert "A-00 has no pinned dataset source" in response.text
+    assert "The proof dataset has 24 SFT rows, 24 preference rows, 4 validation rows, and 4 test rows" in response.text
+    assert "the proof dataset" in response.text
+    assert "kernel version 14" in response.text
+    assert "terminal status and artifact review" in response.text
     assert "single-corridor shortcut risk" in response.text
     assert "Future Kaggle Dataset publication unit" in response.text
-    assert "No dataset version meeting that complete contract has been published yet." in response.text
+    assert "No full corpus dataset version meeting that complete contract has been published yet." in response.text
     assert "kaggle/A-00-omni-experiment-workbench" in response.text
     assert "kaggle/shared-datasets/training-data" in response.text
     assert "docs/training_and_finetuning.md" in response.text
     assert "A smoke artifact proves plumbing only" in response.text
-    assert "legacy public A-00 notebook are available" in response.text
+    assert "public Kaggle notebook update, and proof dataset are available" in response.text
     assert "www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation" in response.text
+    assert "www.kaggle.com/datasets/taylorsamarel/duecare-proof-finetuning-data" in response.text
 
 
 def test_training_data_flywheel_is_linked_from_public_training_surfaces(tmp_path) -> None:
@@ -145,8 +147,8 @@ def test_training_data_flywheel_is_linked_from_public_training_surfaces(tmp_path
 
     assert 'class="docs-card" href="/finetuning"' in client.get("/docs").text
     kernels = client.get("/kernels").text
-    assert "May 2026 public version" in kernels
-    assert "July guarded dataset/training update remains pending" in kernels
+    assert "July dataset-attached update" in kernels
+    assert "kernel version 14" in kernels
 
 
 def test_demo_recording_and_admin_pages_render(tmp_path) -> None:

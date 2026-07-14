@@ -13,11 +13,12 @@
 Status reviewed 2026-07-14:
 
 - The [public Kaggle notebook](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation)
-  is live. Its public page metadata identifies the current copy as script
-  version `320178883`, modified 2026-05-17.
+  is live. Kaggle accepted the July dataset-attached update as kernel version
+  `14` on 2026-07-14.
 - This repository is the source of the later July 2026 manifest, lineage,
-  privacy, immutable-revision, SFT&rarr;DPO, and completion-proof gates. That
-  update has not yet been pushed to the public Kaggle notebook.
+  privacy, immutable-revision, SFT&rarr;DPO, and completion-proof gates. The
+  notebook update is pushed; treat the live run as incomplete until Kaggle
+  reports a terminal execution status and the run artifacts are inspected.
 - The proof dataset
   [`taylorsamarel/duecare-proof-finetuning-data`](https://www.kaggle.com/datasets/taylorsamarel/duecare-proof-finetuning-data)
   is published and attached in `kernel-metadata.json`. It is a guarded preview:

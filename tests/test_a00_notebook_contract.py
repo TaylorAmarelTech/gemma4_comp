@@ -41,9 +41,9 @@ def test_a00_training_path_enforces_shared_contract_and_sft_then_dpo():
 def test_a00_public_version_and_external_import_boundaries_are_documented():
     text = " ".join(A00_README.read_text(encoding="utf-8").split())
     for marker in [
-        "version `320178883`",
-        "modified 2026-05-17",
-        "update has not yet been pushed to the public Kaggle notebook",
+        "kernel version `14`",
+        "2026-07-14",
+        "reports a terminal execution status",
         "taylorsamarel/duecare-proof-finetuning-data",
         "24 SFT rows, 24 preference rows, 4 validation rows, and 4 test rows",
         "not the full 78k+ prompt corpus",
