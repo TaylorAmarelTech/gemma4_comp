@@ -72,7 +72,7 @@ DUECARE_VERSION = os.environ.get("DUECARE_VERSION", "0.17.0")
 DUECARE_REPO = os.environ.get("DUECARE_REPO", "TaylorAmarelTech/gemma4_comp")
 DUECARE_COMMIT_SHA = os.environ.get(
     "DUECARE_COMMIT_SHA",
-    "b56804906ad45f6def39860b9568b0892f4edbae",
+    "72a604e26bac40cae9ee3c6f12d80eba50a5a2c8",
 )
 A00_SMALL_MODEL_REF = os.environ.get("DUECARE_A00_SMALL_MODEL_REF", "google/gemma-4-E2B-it")
 A00_DEFAULT_MODEL_REF = os.environ.get("DUECARE_A00_DEFAULT_MODEL_REF", A00_SMALL_MODEL_REF)
