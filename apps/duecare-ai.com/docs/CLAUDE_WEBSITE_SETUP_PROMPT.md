@@ -17,7 +17,8 @@ Repository and deployment facts:
 - Render runtime: Docker web service, CPU-only
 - Render health check: /api/health
 - Persistent disk: /app/.duecare, 1 GB
-- Public API docs: /docs
+- Human-readable docs: /docs
+- Interactive OpenAPI docs: /api-docs
 
 Product framing:
 
@@ -88,6 +89,7 @@ Then check:
 - http://127.0.0.1:8000/api/hub/status
 - http://127.0.0.1:8000/api/hub/knowledge-packs
 - http://127.0.0.1:8000/docs
+- http://127.0.0.1:8000/api-docs
 
 If asked about domain setup:
 

@@ -8,6 +8,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 _ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_ROOT / "scripts"))
 
@@ -81,8 +83,94 @@ def test_run_job_pins_active_board_rubric_v1(monkeypatch):
     assert cmd[cmd.index("--rubric-version") + 1] == "v1"
     assert "--harness-version" in cmd
     assert cmd[cmd.index("--harness-version") + 1] == "h1"
+    assert cmd[cmd.index("--grader") + 1] == "batched"
+    assert "--pairwise" in cmd
     assert "v2" not in cmd
     assert "h2" not in cmd
+
+
+def test_run_job_passes_perdim_mode(monkeypatch):
+    calls = []
+    monkeypatch.setattr(ae, "_run", lambda cmd, capture=False, timeout=None: calls.append(cmd) or _cp(cmd))
+    monkeypatch.setattr(ae, "log", lambda _msg: None)
+    monkeypatch.setattr(ae, "ensure_full_promptset", lambda: True)
+
+    assert ae.run_job("gemma4:31b", 0, "full", "perdim") is True
+
+    cmd = calls[0]
+    assert cmd[cmd.index("--grader") + 1] == "perdim"
+    assert cmd[cmd.index("--prompts") + 1] == str(ae.PROMPTS_FULL)
+    assert "--pairwise" not in cmd
+    assert "--require-complete" in cmd
+
+
+def test_run_job_maps_retryable_incomplete_coverage_to_tristate(monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        ae, "_run",
+        lambda cmd, capture=False, timeout=None: calls.append(cmd) or _cp(cmd, returncode=ae.INCOMPLETE_COVERAGE_EXIT),
+    )
+    monkeypatch.setattr(ae, "log", lambda _msg: None)
+    monkeypatch.setattr(ae, "ensure_full_promptset", lambda: True)
+
+    assert ae.run_job("gemma4:31b", 0, "full", "perdim") is None
+    assert "--require-complete" in calls[0]
+
+
+def test_queue_entries_are_backward_compatible_and_perdim_jobs_are_first():
+    assert ae._job(["m", 1]) == ("m", 1, None, "batched")
+    assert ae._job(["m", 2, "full"]) == ("m", 2, "full", "batched")
+    assert ae._job(["m", 0, "full", "perdim"]) == ("m", 0, "full", "perdim")
+    assert ae._queue_state({"queue": [["m", 1], ["m", 0, "full", "perdim"]]})["valid"] is True
+    assert ae._queue_state({"queue": [["m", 0, "full", "unknown"]]}) == {
+        "valid": False, "error": "queue_entry_invalid", "entry_index": 0,
+    }
+    assert ae.DEFAULT_QUEUE[:len(ae._SWEEP_MODELS)] == [
+        [model, 0, "full", "perdim"] for model in ae._SWEEP_MODELS
+    ]
+
+
+def test_prioritize_perdim_full_preserves_completed_prefix_and_other_job_order():
+    first = [ae._SWEEP_MODELS[0], 0, "full", "perdim"]
+    old_a = ["legacy-a", 40]
+    old_b = ["legacy-b", 1500, "full"]
+    remaining_priority = [ae._SWEEP_MODELS[2], 0, "full", "perdim"]
+    st = {"queue": [first, old_a, old_b, remaining_priority], "cursor": 1}
+
+    result = ae.prioritize_perdim_full(st)
+
+    assert st["queue"][:1] == [first]
+    assert st["queue"][1:4] == [
+        [model, 0, "full", "perdim"] for model in ae._SWEEP_MODELS[1:]
+    ]
+    assert st["queue"][4:] == [old_a, old_b]
+    assert st["queue_policy"] == "perdim_full_first_v1"
+    assert result["changed"] is True
+    assert result["current_job"] == [ae._SWEEP_MODELS[1], 0, "full", "perdim"]
+
+
+def test_load_state_merges_perdim_jobs_without_duplicating_explicit_batched_job(tmp_path, monkeypatch):
+    state_path = tmp_path / "state.json"
+    default_queue = [["legacy", 1, "full"], ["flagship", 0, "full", "perdim"]]
+    state_path.write_text(json.dumps({
+        "queue": [["legacy", 1, "full", "batched"]],
+        "cursor": 1,
+        "ticks": 7,
+        "done": [{"model": "legacy"}],
+        "started": "s",
+    }), encoding="utf-8")
+    monkeypatch.setattr(ae, "STATE", state_path)
+    monkeypatch.setattr(ae, "DEFAULT_QUEUE", default_queue)
+
+    state = ae.load_state()
+
+    assert state["cursor"] == 1
+    assert state["ticks"] == 7
+    assert state["done"] == [{"model": "legacy"}]
+    assert state["queue"] == [
+        ["legacy", 1, "full", "batched"],
+        ["flagship", 0, "full", "perdim"],
+    ]
 
 
 def test_unexpected_staged_paths_allows_only_board_contract_paths():
@@ -241,10 +329,14 @@ def test_update_plan_writes_ascii_status_doc(tmp_path, monkeypatch):
         "**Active runner:** `rich_harness_lift.py`; board rubric version: `v1`; "
         "opt-in rubric versions excluded: `v2`; rubric mixing allowed: `no`; "
         "board harness version: `h1`; opt-in harness versions excluded: `h2`; "
-        "harness mixing allowed: `no`; "
+        "harness mixing allowed: `no`; grader: `batched`; "
+        "per-dimension evidence mixed into board: `no`; "
         "candidate-dimension sweep active: `no`."
     ) in text
-    assert "1 target prompts; 3 response-generation cells; 9 component-judge cells; 3 pairwise-judge cells" in text
+    assert (
+        "1 target prompts; 3 response-generation cells; 9 component-judge cells; "
+        "9 underlying component judge calls (1 per panel cell); 3 pairwise-judge cells"
+    ) in text
     assert "7 candidate dimensions; 7 still need curator review; 350 full-registry prompt-dimension cells" in text
     assert "gate `validated_zero_proposals`; accepted proposals 0; ready claims 0." in text
     assert "candidate-dimension row labels alone are not enough" in text
@@ -268,15 +360,19 @@ def test_update_plan_marks_current_job_paused_when_stop_sentinel_exists(tmp_path
         "candidate_needs_review_before_rubric_merge": 2,
     } if field == "status" else {})
 
-    ae.update_plan({"cursor": 1, "queue": [["done", 1], ["m", 10000, "full"]], "started": "s", "ticks": 11},
-                   ["m", 10000, "full"])
+    ae.update_plan({"cursor": 1, "queue": [["done", 1], ["m", 10000, "full", "perdim"]],
+                    "started": "s", "ticks": 11}, ["m", 10000, "full", "perdim"])
 
     text = plan.read_text(encoding="utf-8")
     assert "# Autonomous benchmark engine - plan & paused status" in text
     assert "**Progress** 1/2 jobs complete - paused before `m` n=10000 (full registry)" in text
-    assert "| 1 | `done` | 1 | curated | done |" in text
-    assert "| 2 | `m` | 10000 | full | paused |" in text
-    assert "10,000 target prompts; 30,000 response-generation cells; 90,000 component-judge cells" in text
+    assert "grader=perdim" in text
+    assert "| 1 | `done` | 1 | curated | batched | done |" in text
+    assert "| 2 | `m` | 10000 | full | perdim | paused |" in text
+    assert (
+        "10,000 target prompts; 30,000 response-generation cells; 90,000 component-judge cells; "
+        "450,000 underlying component judge calls (5 per panel cell)"
+    ) in text
     assert "2 candidate dimensions; 2 still need curator review; 40,000 full-registry prompt-dimension cells" in text
     assert "gate `proposals_ready_for_manual_merge`; accepted proposals 1; ready claims 1." in text
     assert "local operator note" not in text
@@ -349,7 +445,9 @@ def test_main_status_reports_pause_sentinel_without_reading_note(tmp_path, monke
     payload = __import__("json").loads(capsys.readouterr().out)
     assert payload["paused"] is True
     assert payload["stop_sentinel"] == "external/autonomous_engine.stop"
-    assert payload["current_job"] == {"index": 1, "model": "m", "n": 1, "set": "full"}
+    assert payload["current_job"] == {
+        "index": 1, "model": "m", "n": 1, "set": "full", "grader": "batched",
+    }
     assert payload["cursor_state"] == {"raw": 0, "value": 0, "valid": True, "error": ""}
     assert payload["queue_state"] == {"valid": True, "error": "", "entry_index": None}
     assert payload["engine_process_alive"] is False
@@ -387,6 +485,9 @@ def test_main_status_reports_pause_sentinel_without_reading_note(tmp_path, monke
     assert payload["active_loop_scope"]["harness_version"] == "h1"
     assert payload["active_loop_scope"]["opt_in_harness_versions_excluded"] == ["h2"]
     assert payload["active_loop_scope"]["harness_version_mixing_allowed"] is False
+    assert payload["active_loop_scope"]["grader"] == "batched"
+    assert payload["active_loop_scope"]["judge_calls_per_panel_cell"] == 1
+    assert payload["active_loop_scope"]["max_component_judge_calls"] == 9
     assert payload["active_loop_scope"]["target_prompt_count"] == 1
     assert payload["active_loop_scope"]["max_component_judge_cells"] == 9
     assert payload["full_promptset"]["prompt_count"] == 76442
@@ -441,7 +542,9 @@ def test_status_marks_latest_preflight_stale_when_current_state_changes(tmp_path
     ]
     assert payload["latest_preflight"]["needs_refresh"] is True
     assert payload["latest_preflight"]["refresh_command"] == "scripts/autonomous_engine.ps1 -Preflight"
-    assert payload["current_job"] == {"index": 2, "model": "new", "n": 2, "set": "full"}
+    assert payload["current_job"] == {
+        "index": 2, "model": "new", "n": 2, "set": "full", "grader": "batched",
+    }
 
 
 def test_status_marks_no_ollama_preflight_as_state_only(tmp_path, monkeypatch):
@@ -653,9 +756,11 @@ def test_preflight_and_status_block_negative_state_cursor(tmp_path, monkeypatch)
 
     assert report["blockers"] == ["state_cursor_invalid"]
     assert report["cursor_state"] == {"raw": -1, "value": None, "valid": False, "error": "cursor_negative"}
-    assert report["current_job"] == {"model": None, "n": None, "set": None}
+    assert report["current_job"] == {"model": None, "n": None, "set": None, "grader": None}
     assert status["cursor_state"] == report["cursor_state"]
-    assert status["current_job"] == {"index": None, "model": None, "n": None, "set": None}
+    assert status["current_job"] == {
+        "index": None, "model": None, "n": None, "set": None, "grader": None,
+    }
 
 
 def test_preflight_blocks_non_integer_state_cursor(tmp_path, monkeypatch):
@@ -678,7 +783,7 @@ def test_preflight_blocks_non_integer_state_cursor(tmp_path, monkeypatch):
 
     assert report["blockers"] == ["state_cursor_invalid"]
     assert report["cursor_state"] == {"raw": "1", "value": None, "valid": False, "error": "cursor_not_integer"}
-    assert report["current_job"] == {"model": None, "n": None, "set": None}
+    assert report["current_job"] == {"model": None, "n": None, "set": None, "grader": None}
 
 
 def test_tick_refuses_invalid_state_cursor_without_running_job(tmp_path, monkeypatch):
@@ -728,6 +833,7 @@ def test_tick_skips_job_after_max_consecutive_failures(tmp_path, monkeypatch):
     skipped = st["skipped"][0]
     assert (skipped["model"], skipped["n"], skipped["set"], skipped["fails"]) == \
         ("bad-model", 10000, "full", ae.MAX_JOB_FAILS)
+    assert skipped["grader"] == "batched"
     assert isinstance(skipped["at"], str) and skipped["at"].endswith("Z")
     assert any("skipping past it" in m for m in logs)
 
@@ -744,6 +850,170 @@ def test_tick_retries_failing_job_below_threshold(tmp_path, monkeypatch):
     assert "skipped" not in st
 
 
+def test_tick_required_full_perdim_job_is_never_skipped_after_hard_failures(tmp_path, monkeypatch):
+    st = {
+        "cursor": 0,
+        "queue": [["gemma4:31b", 0, "full", "perdim"], ["gpt-oss:120b", 0, "full", "perdim"]],
+        "done": [],
+        "job_fails": ae.MAX_JOB_FAILS - 1,
+    }
+    st, logs = _tick_with_state(monkeypatch, tmp_path, st, ok=False)
+    assert st["cursor"] == 0
+    assert st["job_fails"] == ae.MAX_JOB_FAILS
+    assert "skipped" not in st
+    assert any("required jobs are never skipped" in message for message in logs)
+
+
+def test_tick_incomplete_closure_retains_cursor_without_hard_failure_budget(tmp_path, monkeypatch):
+    st = {
+        "cursor": 0,
+        "queue": [["gemma4:31b", 0, "full", "perdim"], ["gpt-oss:120b", 0, "full", "perdim"]],
+        "done": [],
+        "job_fails": 2,
+    }
+    st, logs = _tick_with_state(monkeypatch, tmp_path, st, ok=None)
+    assert st["cursor"] == 0
+    assert st["closure_retries"] == 1
+    assert "job_fails" not in st
+    assert "skipped" not in st
+    assert any("retaining cursor for repair pass 1" in message for message in logs)
+
+
+def test_required_closure_evidence_requires_exact_scope_hash_and_counts(tmp_path, monkeypatch):
+    promptset = tmp_path / "full_promptset.json"
+    promptset.write_text(
+        json.dumps({"prompts": [{"id": "p1"}, {"id": "p2"}]}),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(ae, "PROMPTS_FULL", promptset)
+    model = "gemma4:31b"
+    judges = list(dict.fromkeys(
+        judge.strip() for judge in ae.JUDGES.split(",") if judge.strip()
+    ))
+    eligible_judges = [
+        judge for judge in judges if ae.model_family(judge) != ae.model_family(model)
+    ]
+    response_count = 2 * len(ae.ACTIVE_ARMS)
+    panel_count = response_count * len(eligible_judges)
+    dimension_count = panel_count * ae.ACTIVE_COMPONENT_COUNT
+    closure = {
+        "schema": ae.COVERAGE_SCHEMA,
+        "status": "complete",
+        "phase": "closed",
+        "complete": True,
+        "models": [model],
+        "judges": judges,
+        "prompt_count": 2,
+        "promptset_sha256": _sha(promptset),
+        "rubric_version": ae.ACTIVE_RICH_HARNESS_RUBRIC_VERSION,
+        "harness_version": ae.ACTIVE_RICH_HARNESS_HARNESS_VERSION,
+        "grader": "perdim",
+        "arms": list(ae.ACTIVE_ARMS),
+        "expected": {
+            "response_cells": response_count,
+            "panel_cells": panel_count,
+            "dimension_outputs": dimension_count,
+        },
+        "promptset_stable": True,
+        "promptset_sha256_after": _sha(promptset),
+        "response_cells": {
+            "expected": response_count,
+            "complete": response_count,
+            "missing": 0,
+        },
+        "panel_cells": {
+            "expected": panel_count,
+            "complete": panel_count,
+            "missing": 0,
+        },
+        "dimension_outputs": {
+            "expected": dimension_count,
+            "complete_in_valid_panel_cells": dimension_count,
+            "missing_from_valid_panel_cells": 0,
+            "dimensions_per_panel_cell": ae.ACTIVE_COMPONENT_COUNT,
+        },
+    }
+
+    assert ae._required_closure_evidence(closure, model) == (True, "")
+
+    for field, invalid, expected_issue in (
+        ("models", ["wrong-model"], "model_scope_mismatch"),
+        ("promptset_sha256_after", "0" * 64, "final_promptset_hash_mismatch"),
+        ("prompt_count", 1, "prompt_count_mismatch"),
+        ("phase", "coverage_audit", "phase_mismatch"),
+    ):
+        changed = json.loads(json.dumps(closure))
+        changed[field] = invalid
+        valid, reason = ae._required_closure_evidence(changed, model)
+        assert valid is False
+        assert expected_issue in reason
+
+
+@pytest.mark.parametrize(
+    "closure",
+    [
+        {"status": "missing", "complete": False},
+        {"status": "unreadable", "complete": False, "error": "JSONDecodeError"},
+        {
+            "schema": ae.COVERAGE_SCHEMA,
+            "status": "complete",
+            "phase": "closed",
+            "complete": True,
+            "models": ["wrong-model"],
+        },
+    ],
+    ids=("missing", "unreadable", "wrong-model"),
+)
+def test_tick_success_without_valid_required_closure_retains_cursor(
+        tmp_path, monkeypatch, closure,
+):
+    promptset = tmp_path / "full_promptset.json"
+    promptset.write_text(json.dumps({"prompts": [{"id": "p1"}]}), encoding="utf-8")
+    monkeypatch.setattr(ae, "PROMPTS_FULL", promptset)
+    st = {
+        "cursor": 0,
+        "queue": [["gemma4:31b", 0, "full", "perdim"]],
+        "done": [],
+        "job_fails": 2,
+    }
+    monkeypatch.setattr(ae, "_coverage_manifest_summary", lambda: closure)
+
+    st, logs = _tick_with_state(monkeypatch, tmp_path, st, ok=True)
+
+    assert st["cursor"] == 0
+    assert st["done"] == []
+    assert st["closure_retries"] == 1
+    assert "job_fails" not in st
+    assert "primary_flywheel_complete_at" not in st
+    assert any("without valid exact closure evidence" in message for message in logs)
+
+
+def test_primary_flywheel_requires_exact_closure_evidence_for_all_four_models(monkeypatch):
+    monkeypatch.setattr(
+        ae,
+        "_required_closure_evidence",
+        lambda closure, model: (
+            closure.get("exact") is True and closure.get("models") == [model],
+            "invalid" if closure.get("exact") is not True else "",
+        ),
+    )
+    done = []
+    for model in ae._SWEEP_MODELS:
+        done.append({
+            "model": model,
+            "n": 0,
+            "set": "full",
+            "grader": "perdim",
+            "closure": {"complete": True, "exact": True, "models": [model]},
+        })
+    assert ae._primary_flywheel_complete({"done": done}) is True
+
+    without_last = {"done": done[:-1]}
+    assert ae._primary_flywheel_complete(without_last) is False
+    no_proof = {"done": [{**done[0], "closure": {"complete": True, "exact": False}}, *done[1:]]}
+    assert ae._primary_flywheel_complete(no_proof) is False
+
+
 def test_tick_resets_fail_counter_on_success(tmp_path, monkeypatch):
     st = {
         "cursor": 1,
@@ -755,6 +1025,40 @@ def test_tick_resets_fail_counter_on_success(tmp_path, monkeypatch):
     assert st["cursor"] == 2                          # advanced on success
     assert "job_fails" not in st                      # counter cleared
     assert st["done"][-1]["model"] == "good-model"
+    assert st["done"][-1]["grader"] == "batched"
+
+
+def test_tick_records_and_publishes_perdim_mode(tmp_path, monkeypatch):
+    state = {
+        "cursor": 0,
+        "queue": [["flagship", 0, "full", "perdim"]],
+        "done": [],
+    }
+    calls = {"run": [], "publish": []}
+    monkeypatch.setattr(ae, "STOP", tmp_path / "autonomous_engine.stop")
+    monkeypatch.setattr(ae, "load_state", lambda: state)
+    monkeypatch.setattr(ae, "run_job", lambda *args: calls["run"].append(args) or True)
+    monkeypatch.setattr(ae, "regen_board", lambda: None)
+    monkeypatch.setattr(ae, "update_plan", lambda *_args: None)
+    monkeypatch.setattr(ae, "save_state", lambda _state: None)
+    monkeypatch.setattr(ae, "publish", calls["publish"].append)
+    monkeypatch.setattr(ae, "log", lambda _msg: None)
+    closure = {"complete": True, "models": ["flagship"], "status": "complete"}
+    monkeypatch.setattr(ae, "_coverage_manifest_summary", lambda: closure)
+    monkeypatch.setattr(ae, "_required_closure_evidence", lambda proof, model: (True, ""))
+
+    assert ae.tick() is True
+
+    assert calls["run"] == [("flagship", 0, "full", "perdim")]
+    assert state["done"] == [{
+        "model": "flagship",
+        "n": 0,
+        "set": "full",
+        "grader": "perdim",
+        "at": state["done"][0]["at"],
+        "closure": closure,
+    }]
+    assert calls["publish"] == ["flagship n=all full grader=perdim"]
 
 
 def test_preflight_and_status_block_malformed_state_queue(tmp_path, monkeypatch):
@@ -778,9 +1082,11 @@ def test_preflight_and_status_block_malformed_state_queue(tmp_path, monkeypatch)
 
     assert report["blockers"] == ["state_queue_invalid"]
     assert report["queue_state"] == {"valid": False, "error": "queue_entry_invalid", "entry_index": 0}
-    assert report["current_job"] == {"model": None, "n": None, "set": None}
+    assert report["current_job"] == {"model": None, "n": None, "set": None, "grader": None}
     assert status["queue_state"] == report["queue_state"]
-    assert status["current_job"] == {"index": None, "model": None, "n": None, "set": None}
+    assert status["current_job"] == {
+        "index": None, "model": None, "n": None, "set": None, "grader": None,
+    }
 
 
 def test_tick_refuses_malformed_state_queue_without_running_job(tmp_path, monkeypatch):
@@ -948,12 +1254,17 @@ def test_preflight_reports_pause_promptset_panel_and_ollama_blockers(tmp_path, m
     assert report["ignored_blockers"] == []
     assert report["paused"] is True
     assert report["stop_sentinel"] == "reports/autonomous_engine.stop"
-    assert report["current_job"] == {"model": "gemma4:31b", "n": 10000, "set": "full"}
+    assert report["current_job"] == {
+        "model": "gemma4:31b", "n": 10000, "set": "full", "grader": "batched",
+    }
     assert report["full_promptset"]["prompt_count"] == 2
     assert report["full_promptset"]["error"] == ""
     assert report["active_loop_scope"] == {
         "runner": "rich_harness_lift.py",
         "candidate_dimension_sweep_active": False,
+        "grader": "batched",
+        "grader_path_isolated": False,
+        "board_default_evidence": True,
         "rubric_version": "v1",
         "opt_in_rubric_versions_excluded": ["v2"],
         "rubric_version_mixing_allowed": False,
@@ -961,13 +1272,18 @@ def test_preflight_reports_pause_promptset_panel_and_ollama_blockers(tmp_path, m
         "opt_in_harness_versions_excluded": ["h2"],
         "harness_version_mixing_allowed": False,
         "rubric_shape": "3 response arms x 5 calibrated components x configured judge panel",
+        "calibrated_component_count": 5,
+        "judge_calls_per_panel_cell": 1,
         "target_prompt_count": 2,
         "response_generation_cells": 6,
         "max_component_judge_cells": 18,
+        "max_component_judge_calls": 18,
+        "pairwise_enabled": True,
         "max_pairwise_judge_cells": 6,
         "configured_judges": 3,
     }
     assert report["panel"]["rows"] == 2
+    assert report["panel"]["grader"] == "batched"
     assert report["dimension_candidates"]["rows"] == 2
     assert report["dimension_candidates"]["status_counts"] == {
         "candidate_needs_review_before_rubric_merge": 2,
@@ -1005,6 +1321,43 @@ def test_preflight_reports_pause_promptset_panel_and_ollama_blockers(tmp_path, m
     assert report["ollama"]["stderr_tail"] == "Access is denied"
     assert "worker@example.com" not in json.dumps(report)
     assert "raw candidate name" not in json.dumps(report)
+
+
+def test_preflight_uses_isolated_perdim_panel_and_call_counts(tmp_path, monkeypatch):
+    panel_dir = tmp_path / "reports" / "rich_lift"
+    panel_dir.mkdir(parents=True)
+    (panel_dir / "panel.jsonl").write_text('{"batched":1}\n', encoding="utf-8")
+    (panel_dir / "panel_perdim.jsonl").write_text('{"perdim":1}\n{"perdim":2}\n', encoding="utf-8")
+    monkeypatch.setattr(ae, "ROOT", tmp_path)
+    monkeypatch.setattr(ae, "STOP", tmp_path / "reports" / "autonomous_engine.stop")
+    monkeypatch.setattr(ae, "LOCK", tmp_path / "reports" / "autonomous_engine.lock")
+    monkeypatch.setattr(ae, "PROMPTS_FULL", tmp_path / "reports" / "benchmark" / "full_promptset.json")
+    monkeypatch.setattr(ae, "DIMENSION_CANDIDATES", tmp_path / "dimension_candidates.jsonl")
+    monkeypatch.setattr(ae, "_full_prompt_count", lambda: (10, ""))
+    monkeypatch.setattr(ae, "_dimension_review_gate_status", lambda: {
+        "status": "validated_zero_proposals",
+        "active_rubric_promotion_ready": False,
+        "validation": {"summary": {}},
+    })
+    monkeypatch.setattr(ae, "load_state", lambda: {
+        "cursor": 0,
+        "queue": [["flagship", 0, "full", "perdim"]],
+        "done": [],
+    })
+
+    report = ae.preflight_status(check_ollama=False)
+
+    assert report["current_job"]["grader"] == "perdim"
+    assert report["panel"]["path"] == "reports/rich_lift/panel_perdim.jsonl"
+    assert report["panel"]["rows"] == 2
+    assert report["panel"]["grader"] == "perdim"
+    assert report["active_loop_scope"]["candidate_dimension_sweep_active"] is False
+    assert report["active_loop_scope"]["grader_path_isolated"] is True
+    assert report["active_loop_scope"]["board_default_evidence"] is False
+    assert report["active_loop_scope"]["max_component_judge_cells"] == 90
+    assert report["active_loop_scope"]["max_component_judge_calls"] == 450
+    assert report["active_loop_scope"]["pairwise_enabled"] is False
+    assert report["active_loop_scope"]["max_pairwise_judge_cells"] == 0
 
 
 def test_candidate_dimension_mass_grading_readiness_requires_review_gate(tmp_path, monkeypatch):
@@ -1359,10 +1712,14 @@ def test_preflight_can_ignore_stop_sentinel_for_wrapper_launch(tmp_path, monkeyp
 
 def test_preflight_reports_ollama_timeout_as_blocker(tmp_path, monkeypatch):
     reports = tmp_path / "reports"
+    candidates, packet, validation = _write_review_gate_files(tmp_path, source_rows=1, ready=0, accepted=0)
     monkeypatch.setattr(ae, "ROOT", tmp_path)
     monkeypatch.setattr(ae, "STOP", reports / "autonomous_engine.stop")
     monkeypatch.setattr(ae, "LOCK", reports / "autonomous_engine.lock")
     monkeypatch.setattr(ae, "PROMPTS_FULL", reports / "benchmark" / "full_promptset.json")
+    monkeypatch.setattr(ae, "DIMENSION_CANDIDATES", candidates)
+    monkeypatch.setattr(ae, "DIM_REVIEW_PACKET", packet)
+    monkeypatch.setattr(ae, "DIM_REVIEW_VALIDATION", validation)
     monkeypatch.setattr(ae, "load_state", lambda: {
         "cursor": 0,
         "queue": [["gemma4:31b", 1000]],
@@ -1411,10 +1768,14 @@ def test_ollama_status_redacts_user_path_and_classifies_log_permission_failure(m
 
 def test_preflight_blocks_missing_full_promptset_without_ollama_check(tmp_path, monkeypatch):
     reports = tmp_path / "reports"
+    candidates, packet, validation = _write_review_gate_files(tmp_path, source_rows=1, ready=0, accepted=0)
     monkeypatch.setattr(ae, "ROOT", tmp_path)
     monkeypatch.setattr(ae, "STOP", reports / "autonomous_engine.stop")
     monkeypatch.setattr(ae, "LOCK", reports / "autonomous_engine.lock")
     monkeypatch.setattr(ae, "PROMPTS_FULL", reports / "benchmark" / "full_promptset.json")
+    monkeypatch.setattr(ae, "DIMENSION_CANDIDATES", candidates)
+    monkeypatch.setattr(ae, "DIM_REVIEW_PACKET", packet)
+    monkeypatch.setattr(ae, "DIM_REVIEW_VALIDATION", validation)
     monkeypatch.setattr(ae, "load_state", lambda: {
         "cursor": 0,
         "queue": [["gemma4:31b", 10000, "full"]],
@@ -1595,10 +1956,16 @@ def test_powershell_launcher_exposes_skip_startup_preflight():
     assert "[switch]$SkipStartupPreflight" in text
     assert "[switch]$IgnoreStopSentinel" in text
     assert "[switch]$WatchdogRun" in text
+    assert "[switch]$Restart" in text
     assert "--skip-startup-preflight" in text
     assert "--ignore-stop-sentinel" in text
     assert "function Set-EngineExitCode" in text
     assert "function Test-LaunchedAsProcessFile" in text
+    assert "function Get-VerifiedEngineProcess" in text
+    assert "Get-CimInstance -ClassName Win32_Process" in text
+    assert "does not own this repository's autonomous_engine.py" in text
+    assert "& taskkill /PID $enginePid /T /F" in text
+    assert text.index("Get-VerifiedEngineProcess -ProcessId") < text.index("& taskkill /PID")
     assert "[Environment]::GetCommandLineArgs()" in text
     assert "$host.SetShouldExit($Code)" in text
     assert "exit $Code" not in text

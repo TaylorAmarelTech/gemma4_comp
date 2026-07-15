@@ -10,12 +10,12 @@ same code path does real training on Kaggle GPU.
 
 from __future__ import annotations
 
-from pathlib import Path
+from typing import ClassVar
 
-from duecare.core.enums import AgentRole, TaskStatus
-from duecare.core.schemas import AgentContext, AgentOutput, ToolSpec
 from duecare.agents import agent_registry
 from duecare.agents.base import fresh_agent_output, noop_model
+from duecare.core.enums import AgentRole, TaskStatus
+from duecare.core.schemas import AgentContext, AgentOutput, ToolSpec
 
 
 class TrainerAgent:
@@ -23,14 +23,14 @@ class TrainerAgent:
     role = AgentRole.TRAINER
     version = "0.2.0"
     model = noop_model()
-    tools: list[ToolSpec] = []
-    inputs: set[str] = {"train_jsonl", "val_jsonl"}
-    outputs: set[str] = {"lora_adapters", "merged_fp16"}
+    tools: ClassVar[list[ToolSpec]] = []
+    inputs: ClassVar[set[str]] = {"train_jsonl", "val_jsonl"}
+    outputs: ClassVar[set[str]] = {"lora_adapters", "merged_fp16"}
     cost_budget_usd = 50.0
 
     def __init__(
         self,
-        base_model: str = "unsloth/gemma-4-E4B-it-bnb-4bit",
+        base_model: str = "google/gemma-4-E4B-it",
         lora_r: int = 16,
         lora_alpha: int = 32,
         num_train_epochs: int = 2,
@@ -56,10 +56,10 @@ class TrainerAgent:
         caller can mark SKIPPED cleanly.
         """
         try:
-            from datasets import Dataset  # type: ignore
             import torch  # noqa: F401
-            from trl import SFTTrainer  # type: ignore
+            from datasets import Dataset  # type: ignore
             from transformers import TrainingArguments  # type: ignore
+            from trl import SFTTrainer  # type: ignore
             from unsloth import FastLanguageModel  # type: ignore
         except ImportError:
             return (

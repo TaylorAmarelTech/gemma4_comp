@@ -398,6 +398,27 @@ def test_render_card_redacts_unsafe_model_and_base_identifiers():
     assert "case-123456789" not in card
 
 
+def test_render_card_redacts_underscore_8_digit_case_like_values_but_keeps_mixed_hashes():
+    card = bmc.render_card(_rec(
+        model_id="case_12345678",
+        git_sha="deadbeef12345678",
+        data={"manifest_sha256": "deadbeef12345678", "sft_examples": 1, "dpo_examples": 1},
+        artifacts={"artifact_files": {
+            "selected_sft": {
+                "path": "reports/training/case_12345678.jsonl",
+                "sha256": "a" * 64,
+                "bytes": 1,
+            },
+        }},
+    ))
+
+    assert "# redacted" in card
+    assert "| git_sha (code version) | `deadbeef12345678` |" in card
+    assert "| data_manifest_sha256 (dataset version) | `deadbeef12345678` |" in card
+    assert "| `selected_sft` | `redacted` |" in card
+    assert "case_12345678" not in card
+
+
 def test_render_card_redacts_posix_absolute_base_model():
     card = bmc.render_card(_rec(base_model="/home/taylor/local-gemma"))
 

@@ -145,6 +145,7 @@ https://duecare-ai.com/api/health
 https://duecare-ai.com/api/hub/status
 https://duecare-ai.com/api/hub/knowledge-packs
 https://duecare-ai.com/docs
+https://duecare-ai.com/api-docs
 ```
 
 Expected health response fields include:
@@ -152,7 +153,8 @@ Expected health response fields include:
 ```text
 status: ok
 storage: file
-privacy_mode: anonymized_signals_only_no_raw_pii
+storage_ok: true
+git_commit: <optional sanitized commit prefix on Render>
 ```
 
 ## Step 8 — Optional Cloudflare proxy

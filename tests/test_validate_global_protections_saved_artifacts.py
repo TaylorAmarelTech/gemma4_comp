@@ -504,6 +504,38 @@ def test_saved_artifacts_suite_rejects_markdown_leak(tmp_path):
     assert "markdown_disallowed_text" in next_row["markdown_issue_ids"]
 
 
+def test_saved_artifacts_suite_rejects_markdown_private_hints_without_copying_values(tmp_path):
+    _write_component_set(tmp_path)
+    path = tmp_path / "global_protections_next_actions.md"
+    private_email = "worker@example.invalid"
+    private_case_id = "12345678"
+    private_relative_path = "AppData/Local/private-note"
+    private_file_url = "file:/private/scratch-note"
+    path.write_text(
+        path.read_text(encoding="utf-8")
+        + f"\nReview {private_email} case {private_case_id} at {private_relative_path} via {private_file_url}.\n",
+        encoding="utf-8",
+    )
+
+    report = suite.validate_saved_artifacts(component_dir=tmp_path, compare_current_chain=False)
+    rendered_json = json.dumps(report, ensure_ascii=False)
+    rendered_markdown = suite.render_markdown(report)
+
+    assert report["summary"]["valid"] is False
+    assert report["summary"]["unsafe_markdown_ids"] == ["next_actions"]
+    assert "all_markdown_reports_safe" in report["summary"]["suite_failed_check_ids"]
+    next_row = next(row for row in report["artifact_results"] if row["artifact_id"] == "next_actions")
+    assert next_row["markdown_issue_ids"] == ["markdown_private_hint"]
+    assert private_email not in rendered_json
+    assert private_case_id not in rendered_json
+    assert private_relative_path not in rendered_json
+    assert private_file_url not in rendered_json
+    assert private_email not in rendered_markdown
+    assert private_case_id not in rendered_markdown
+    assert private_relative_path not in rendered_markdown
+    assert private_file_url not in rendered_markdown
+
+
 def test_saved_artifacts_suite_rejects_stale_bundle_artifact_path(tmp_path):
     _write_component_set(tmp_path)
     path = tmp_path / "global_protections_curation_bundle.json"

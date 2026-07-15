@@ -44,6 +44,17 @@ def test_plan_order_is_the_pipeline_dag():
     ]
 
 
+def test_plan_requires_clean_audit_and_uses_canonical_e4b_base():
+    assert te.DEFAULT_BASE == "google/gemma-4-E4B-it"
+    assert len(te.DEFAULT_BASE_REVISION) == 40
+    steps = {s["name"]: s for s in te.plan(model_id="m", base=te.DEFAULT_BASE, with_gpu=True)}
+
+    assert "--require-clean" in steps["audit"]["cmd"]
+    assert steps["train"]["cmd"][steps["train"]["cmd"].index("--base-model") + 1] == te.DEFAULT_BASE
+    assert steps["train"]["cmd"][steps["train"]["cmd"].index("--base-revision") + 1] == te.DEFAULT_BASE_REVISION
+    assert steps["evaluate"]["cmd"][steps["evaluate"]["cmd"].index("--base") + 1] == te.DEFAULT_BASE
+
+
 def test_plan_gpu_gating_offline():
     steps = {s["name"]: s for s in te.plan(model_id="m", base="b", with_gpu=False)}
     # offline host: data-prep + audit + register run; GPU train/evaluate are skipped (will_run False, reason)
@@ -65,6 +76,27 @@ def test_train_step_uses_organized_train_splits():
     train = next(s for s in te.plan(model_id="m", base="b", with_gpu=True) if s["name"] == "train")
     assert "--sft" in train["cmd"] and train["cmd"][train["cmd"].index("--sft") + 1].endswith("sft_train.jsonl")
     assert "--dpo" in train["cmd"] and train["cmd"][train["cmd"].index("--dpo") + 1].endswith("dpo_train.jsonl")
+    assert "--training-manifest" in train["cmd"]
+    assert train["cmd"][train["cmd"].index("--training-manifest") + 1].endswith("manifest.json")
+
+
+def test_train_and_registry_share_explicit_canonical_bundle_manifest(tmp_path):
+    manifest = tmp_path / "canonical-manifest.json"
+    steps = te.plan(
+        model_id="m",
+        base="b",
+        with_gpu=True,
+        training_manifest=manifest,
+    )
+    by_name = {step["name"]: step for step in steps}
+
+    train = by_name["train"]["cmd"]
+    register = by_name["register"]["cmd"]
+    assert train[train.index("--training-manifest") + 1] == str(manifest)
+    assert register[register.index("--data-manifest") + 1] == str(manifest)
+    artifacts = _artifacts_from_register(by_name["register"])
+    assert artifacts["training_bundle_manifest"] == "external"
+    assert artifacts["artifact_files"]["training_bundle_manifest"]["sha256"] is None
 
 
 def test_train_step_can_select_reasoning_repaired_sft_variant():
@@ -406,6 +438,33 @@ def test_run_steps_attaches_quality_audit_summary(tmp_path, monkeypatch):
     assert results[0]["status"] == "ok"
     assert results[0]["quality_audit"]["clean"] is True
     assert results[0]["quality_audit"]["corridor_expansion_queue_count"] == 0
+
+
+def test_failed_strict_audit_stops_before_train_and_register(tmp_path, monkeypatch):
+    calls = []
+    audit = tmp_path / "quality_audit.json"
+    audit.write_text(json.dumps({"clean": False, "risk_flags": []}), encoding="utf-8")
+    monkeypatch.setattr(te, "QUALITY_AUDIT", audit)
+
+    class Failed:
+        returncode = 1
+
+    def fake_run(cmd, **kwargs):
+        calls.append(cmd)
+        return Failed()
+
+    monkeypatch.setattr(te.subprocess, "run", fake_run)
+    steps = [
+        {"name": "audit", "will_run": True, "cmd": ["python", "audit", "--require-clean"]},
+        {"name": "train", "will_run": True, "cmd": ["python", "train"]},
+        {"name": "register", "will_run": True, "cmd": ["python", "register"]},
+    ]
+
+    results = te.run_steps(steps, dry_run=False)
+
+    assert calls == [["python", "audit", "--require-clean"]]
+    assert results[0]["name"] == "audit" and results[0]["status"] == "failed" and results[0]["rc"] == 1
+    assert results[0]["quality_audit"]["clean"] is False
 
 
 def test_run_steps_dry_run_executes_nothing():

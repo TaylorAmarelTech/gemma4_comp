@@ -153,6 +153,26 @@ def test_privacy_scan_flags_forbidden_fields_and_pii_without_copying_values():
     assert "private narrative" not in encoded
 
 
+def test_privacy_scan_flags_8_digit_case_like_values_without_copying_them():
+    scan = cep._privacy_scan({
+        "plan": [
+            {
+                "task_id": "safe-task",
+                "category": "labor_trafficking",
+                "target_corridor": "Bangladesh->Malaysia",
+                "scenario_constraints": ["remove copied case_12345678 before curation"],
+            }
+        ],
+        "batches": [],
+    })
+    encoded = json.dumps(scan)
+
+    assert scan["ok"] is False
+    assert scan["counts"]["long_digit"] == 1
+    assert scan["long_digit_paths"] == ["$.plan[0].scenario_constraints[0]"]
+    assert "case_12345678" not in encoded
+
+
 def test_main_writes_plan_and_side_manifest(tmp_path):
     audit = tmp_path / "quality_audit.json"
     out = tmp_path / "corridor_expansion_plan.json"

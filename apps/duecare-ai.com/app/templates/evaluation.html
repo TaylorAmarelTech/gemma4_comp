@@ -33,7 +33,7 @@
 <div class="crumbs"><a href="/">Home</a><span class="sep">/</span><a href="/docs">Docs</a><span class="sep">/</span><span>Evaluation &amp; retraining</span></div>
 <span class="kicker">Release gate and training spine</span>
 <h1>Evaluation, retraining, and the pipeline that decides what ships.</h1>
-<p class="lede">DueCare ships nothing without an evaluation pass. Every pack release runs a regression suite. Every adapter retrain runs a comparison set against the previous adapter. The A-07 Kaggle notebook turns Persona + GREP + RAG + Tools traces into SFT data and DPO preference pairs, then re-benchmarks before any model artifact is published.</p></div></section>
+<p class="lede">DueCare ships nothing without an evaluation pass. Every pack release runs a regression suite. Every adapter retrain runs a comparison set against the previous adapter. The active A-00 Fine-tuning &amp; Evaluation workbench turns approved Persona + GREP + RAG + Tools traces into SFT data and DPO preference pairs, then re-benchmarks before any model artifact is published.</p></div></section>
 
 <section class="hp-section" data-screen-label="Eval &middot; Harness lift"><div class="wrap">
 <div class="head"><div><span class="ix">00 &middot; Headline number</span><h2>The harness adds the lift. Fine-tuning needs it.</h2></div><p class="summary">Smoke matrix recorded 2026-05-18 on the <code>e2b-full-train-eval</code> Kaggle notebook with combined rule + LLM judge. The harness alone added <b>+6.1pp</b> over stock Gemma 4. Fine-tuned + harness added <b>+14.8pp</b> over fine-tuning alone and <b>+11.7pp</b> over stock.</p></div>
@@ -63,7 +63,7 @@
 <div class="m"><div class="lbl">Live leaderboard</div><div class="val">/benchmark</div><div class="sub">current multi-model standings</div></div>
 {% endif %}
 </div>
-<p class="hp-note">The cards above are the <b>component 0&ndash;100 judge</b> &mdash; the current <b>primary</b> measurement, published as a live, versioned <a href="/benchmark">benchmark leaderboard</a> any model can be added to in one run{% if study and study.alpha %} (inter-judge Krippendorff alpha {{ "%.3f"|format(study.alpha) }}){% endif %}. The earlier <b>0&ndash;10 depth run</b> (911 prompts, judge gpt-oss:120b: +1.73, win 73.3%, d&nbsp;0.69) and the adversarial controls we ran to break it are the <a href="/harness-study">visual harness-lift study</a>; where the harness helps most per dimension group: manipulation resistance +6.1, financial-obfuscation detection +4.0, modus-operandi awareness +3.8, explanatory refusal +3.2. Full methodology + grader cross-check: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/harness_lift_report.md" rel="noopener">harness_lift_report.md</a> (regenerate with <code>python scripts/build_lift_report.py --all</code>; raw stats at <a href="/static/lift_evidence.json">/static/lift_evidence.json</a>). The benchmark is sweeping the full ~74,640-prompt trafficking registry, so each model's coverage keeps growing; the next step &mdash; distilling this measured lift into a model's weights &mdash; is the <a href="/finetuning">fine-tuning methodology</a>.</p>
+<p class="hp-note">The cards above are the <b>component 0&ndash;100 judge</b> &mdash; the current <b>primary</b> measurement, published as a live, versioned <a href="/benchmark">benchmark leaderboard</a> any model can be added to in one run{% if study and study.alpha %} (inter-judge Krippendorff alpha {{ "%.3f"|format(study.alpha) }}){% endif %}. The earlier <b>0&ndash;10 depth run</b> (911 prompts, judge gpt-oss:120b: +1.73, win 73.3%, d&nbsp;0.69) and the adversarial controls we ran to break it are the <a href="/harness-study">visual harness-lift study</a>; where the harness helps most per dimension group: manipulation resistance +6.1, financial-obfuscation detection +4.0, modus-operandi awareness +3.8, explanatory refusal +3.2. Full methodology + grader cross-check: <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/harness_lift_report.md" rel="noopener">harness_lift_report.md</a> (regenerate with <code>python scripts/build_lift_report.py --all</code>; raw stats at <a href="/static/lift_evidence.json">/static/lift_evidence.json</a>). The exact-closure benchmark is sweeping all 78,719 frozen prompts, so each model's coverage keeps growing; the next step &mdash; distilling this measured lift into a model's weights &mdash; is the <a href="/finetuning">fine-tuning methodology</a>.</p>
 </div></section>
 
 <section class="hp-section" data-screen-label="Eval &middot; Cycle"><div class="wrap">
@@ -71,7 +71,7 @@
 <div class="ev-cycle">
 <div class="step"><h4>Collect</h4><p>Pull public-source updates from the research monitor. Pull reviewed partner submissions. Pull evaluation-pack proposals from researchers.</p></div>
 <div class="step"><h4>Curate</h4><p>Curators review proposals, attach citations, and shape pack-diffs or new evaluation cases.</p></div>
-<div class="step"><h4>Train</h4><p>Optional: run A07 to train a corridor LoRA adapter with SFT, then DPO over harness-on vs. raw-Gemma answers. Base Gemma 4 weights never change.</p></div>
+<div class="step"><h4>Train</h4><p>Optional: run A-00 to train a corridor LoRA adapter with SFT, then DPO over approved harness-on vs. raw-Gemma answers. The upstream Gemma 4 checkpoint remains unchanged.</p></div>
 <div class="step"><h4>Evaluation</h4><p>Run the regression suite + new cases against the candidate adapter / pack. Compare to last vetted release.</p></div>
 <div class="step"><h4>Approve</h4><p>If evaluation passes, curators approve the pack and / or adapter release. Old approvals remain in the public log.</p></div>
 <div class="step"><h4>Publish</h4><p>Append-only release to the hub. Audit row emitted. Subscribers on the &ldquo;Pack updates&rdquo; topic notified.</p></div>
@@ -115,15 +115,15 @@
 </div></section>
 
 <section class="hp-section" data-screen-label="Eval &middot; Retraining"><div class="wrap">
-<div class="head"><div><span class="ix">05 &middot; Retraining policy</span><h2>What we retrain. What we don&rsquo;t. When.</h2></div><p class="summary">DueCare does not retrain Gemma 4 base weights. We train two named LoRA adapters on top - <b>SafetyJudge</b> (anti-exploitation reasoning, Unsloth SFT + DPO) and <b>PrivacyRedactor</b> (PII anonymization for the local-intake path). Both pipelines now run inside the <a href="/kernels">A-00 Fine-tuning &amp; Evaluation workbench</a> (their historical homes were the archived A-07 and A-12 appendix notebooks). Both train on curated public, synthetic, composite, or anonymized data. Never on raw worker chats or raw case content.</p></div>
+<div class="head"><div><span class="ix">05 &middot; Retraining policy</span><h2>What we can train. What we don&rsquo;t. When.</h2></div><p class="summary">DueCare does not retrain Gemma 4 base weights. The implemented plan stages two named LoRA adapter families on top - <b>SafetyJudge</b> (anti-exploitation reasoning, Unsloth SFT + DPO) and <b>PrivacyRedactor</b> (PII anonymization for the local-intake path). Both pipelines are exposed inside the <a href="/kernels">A-00 Fine-tuning &amp; Evaluation workbench</a> (their historical homes were the archived A-07 and A-12 appendix notebooks). <b>No trained weights are published yet.</b> Any future training uses curated public, synthetic, composite, or approved anonymized data, never raw worker chats or raw case content.</p></div>
 <table class="std">
-<thead><tr><th>Layer</th><th>Retrained?</th><th>Cadence</th><th>Training data</th></tr></thead>
+<thead><tr><th>Layer</th><th>Current status</th><th>Planned cadence</th><th>Training data</th></tr></thead>
 <tbody>
 <tr><td>Gemma 4 base weights</td><td>No</td><td>Track upstream releases</td><td>n/a. we use Google&rsquo;s checkpoint</td></tr>
-<tr><td><b>SafetyJudge</b> adapter (LoRA, A-07)</td><td>Yes</td><td>Quarterly or on material pack change</td><td>A-06 graded prompts + Persona+GREP+RAG+Tools traces - Unsloth SFT then DPO (harness-on chosen, raw rejected)</td></tr>
-<tr><td><b>PrivacyRedactor</b> adapter (LoRA, A-12)</td><td>Yes</td><td>On gold-data refresh from A-10</td><td>A-10 PII synthetic composite intake / redaction pairs; placeholders only, no raw PII</td></tr>
-<tr><td>Translation adapter (per language)</td><td>Yes</td><td>Twice yearly</td><td>Public bilingual corpora; partner-reviewed terminology</td></tr>
-<tr><td>Tool-call adapter</td><td>Rarely</td><td>On registry-schema bump</td><td>Synthetic tool traces; no real call data</td></tr>
+<tr><td><b>SafetyJudge</b> adapter (LoRA, A-00)</td><td>Pipeline surface; no published weights</td><td>Quarterly or on material pack change</td><td>Approved graded prompts + Persona+GREP+RAG+Tools traces - Unsloth SFT then DPO (harness-on chosen, raw rejected)</td></tr>
+<tr><td><b>PrivacyRedactor</b> adapter (LoRA, A-00)</td><td>Pipeline surface; no published weights</td><td>On approved gold-data refresh</td><td>PII synthetic composite intake / redaction pairs; placeholders only, no raw PII</td></tr>
+<tr><td>Translation adapter (per language)</td><td>Roadmap</td><td>Twice yearly after validation</td><td>Public bilingual corpora; partner-reviewed terminology</td></tr>
+<tr><td>Tool-call adapter</td><td>Roadmap</td><td>On registry-schema bump, if needed</td><td>Synthetic tool traces; no real call data</td></tr>
 <tr><td>Knowledge packs (data, not weights)</td><td>Continuously</td><td>As public sources change</td><td>Research monitor + reviewed partner submissions</td></tr>
 <tr><td>Worker-chat content</td><td class="warn"><b>Never</b></td><td class="warn"><b>Never</b></td><td class="warn"><b>Forbidden</b>. Raw chats stay local unless transformed into an approved, anonymized training example.</td></tr>
 </tbody></table>
@@ -134,7 +134,7 @@
 <div class="hp-grid-3">
 <article class="hp-card"><span class="role">SFT</span><h3>Harness-distilled targets</h3><p>Run an approved prompt through Persona + GREP + RAG + Tools. Store the bare prompt as the user turn and the cited harness answer as the assistant target.</p></article>
 <article class="hp-card"><span class="role">DPO</span><h3>Chosen vs. rejected pairs</h3><p>Use the harness-on answer as <code>chosen</code> and the raw Gemma answer as <code>rejected</code>. This is the first preference-training path before any PPO/GRPO-style RL is added.</p></article>
-<article class="hp-card"><span class="role">Gate</span><h3>Only publish if it survives evaluation</h3><p>A07 re-runs stock, SFT, and DPO variants. A11 regenerates harness-lift reports. Any PII leak, citation regression, or unsafe-help increase blocks release.</p></article>
+<article class="hp-card"><span class="role">Gate</span><h3>Only publish if it survives evaluation</h3><p>A-00 re-runs stock, stock + harness, trained, and trained + harness arms. The shared report generator records paired lift. Any PII leak, citation regression, or unsafe-help increase blocks release.</p></article>
 </div>
 </div></section>
 
@@ -152,7 +152,7 @@
 
 <section class="hp-section" data-screen-label="Eval &middot; Reproduce"><div class="wrap">
 <div class="hp-callout">
-<div><span class="ix">08 &middot; Reproduce a release</span><h2>Same weights. Same packs. Same evaluation suite.</h2><p>Pull the vetted pack, pull the matching adapter, run the evaluation suite locally, or rerun A-07 on Kaggle with the same git SHA and dataset version. Mismatches against the published numbers are bug reports.</p></div>
+<div><span class="ix">08 &middot; Reproduce a release</span><h2>Same weights. Same packs. Same evaluation suite.</h2><p>Pull the vetted pack, pull the matching adapter, run the evaluation suite locally, or rerun A-00 on Kaggle with the same git SHA and dataset version. Mismatches against the published numbers are bug reports.</p></div>
 <a href="/harness" class="btn primary">See the harness &rarr;</a>
 </div></div></section>
 {% include "_footer.html" %}

@@ -180,10 +180,12 @@ def test_queue_shape_allows_opaque_numeric_prompt_ids_but_rejects_contact_like_i
     safe = _queue("template_20260129_115719_24937", ["statute"], [29])
     spaced = _queue("corridor_Sri Lanka_Saudi Arabia_35_18825", ["statute"], [29])
     unsafe = _queue("worker@example.com-case-123456789", ["statute"], [29])
+    case_like = _queue("case-12345678", ["statute"], [29])
 
     assert repairs._queue_shape_issues([safe]) == []
     assert repairs._queue_shape_issues([spaced]) == []
     assert "queue[0].prompt_id" in repairs._queue_shape_issues([unsafe])
+    assert "queue[0].prompt_id" in repairs._queue_shape_issues([case_like])
 
 
 def test_repair_ignores_sensitive_queue_prompt_ids_without_leaking():
@@ -213,6 +215,19 @@ def test_repair_sanitizes_sensitive_category_metadata():
     assert doc["rows"][0]["_meta"]["reasoning_repair"]["category"] == "unknown"
     assert "worker@example.com" not in encoded
     assert "case-123456789" not in encoded
+
+
+def test_repair_sanitizes_8_digit_case_like_category_metadata():
+    queue = _queue("p1", ["statute"], [29])
+    queue["category"] = "case_12345678"
+
+    doc = repairs.build_repairs([_row("p1", _NO_STATUTE)], [queue])
+    encoded = json.dumps(doc)
+
+    assert doc["manifest"]["safe_to_train"] is True
+    assert doc["manifest"]["by_category"] == {"unknown": 1}
+    assert doc["rows"][0]["_meta"]["reasoning_repair"]["category"] == "unknown"
+    assert "case_12345678" not in encoded
 
 
 def test_manifest_does_not_copy_raw_training_text():

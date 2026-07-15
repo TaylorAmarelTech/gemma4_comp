@@ -1,7 +1,8 @@
 """Shared quantitative experiment contracts for DueCare notebooks.
 
 These constants keep comparison, synthetic-data, and fine-tune smoke paths
-portable across Kernel 01, A-00, A-07, and the live-demo notebooks. Notebook
+portable across Kernel 01, the active A-00 fine-tuning workbench, and the
+live-demo notebook. Archived A-07 material is provenance, not an active path. Notebook
 code may still provide bootstrapping fallbacks before the wheel is installed,
 but successful runs should read these contracts rather than restating magic
 numbers inline.
@@ -10,6 +11,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from duecare.chat.training_contract import PREFERENCE_REQUIRED_FIELDS, SFT_REQUIRED_FIELDS
 
 BENCHMARK_RESPONSE_MAX_NEW_TOKENS = 1200
 
@@ -146,8 +148,9 @@ TRAINING_PROFILES: tuple[dict[str, Any], ...] = (
         "id": "tiny_lora_smoke",
         "label": "Tiny LoRA smoke run",
         "base_model_ref": "google/gemma-4-E2B-it",
+        "base_model_revision": "4abfca14e6c6bfb5888b80288185b1243fb8d539",
         "adapter_name": "duecare-a00-smoke-e2b-lora",
-        "method": "sft",
+        "method": "sft_then_dpo",
         "execute": False,
         "max_steps": 60,
         "learning_rate": 2e-4,
@@ -160,11 +163,15 @@ TRAINING_PROFILES: tuple[dict[str, Any], ...] = (
         "lora_dropout": 0.0,
         "random_state": 3407,
         "target_modules": ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+        "dpo_max_steps": 30,
+        "dpo_learning_rate": 5e-6,
+        "dpo_beta": 0.1,
     },
     {
-        "id": "a07_t4_standard_sft",
-        "label": "A-07 T4 standard SFT",
-        "base_model_ref": "google/gemma-4-4b-it",
+        "id": "a00_t4_standard_sft",
+        "label": "A-00 T4 standard SFT",
+        "base_model_ref": "google/gemma-4-E4B-it",
+        "base_model_revision": "0d5a7f9ba73eda1616e58344f7025fae44914675",
         "max_examples": 200,
         "num_epochs": 2,
         "learning_rate": 2e-4,
@@ -177,8 +184,8 @@ TRAINING_PROFILES: tuple[dict[str, Any], ...] = (
         "max_seq_length": 4096,
     },
     {
-        "id": "a07_t4_standard_dpo",
-        "label": "A-07 T4 standard DPO",
+        "id": "a00_t4_standard_dpo",
+        "label": "A-00 T4 standard DPO",
         "max_pairs": 100,
         "num_epochs": 1,
         "learning_rate": 5e-6,
@@ -232,7 +239,7 @@ POST_TRAINING_BEST_PRACTICES: tuple[dict[str, Any], ...] = (
             "SFT is simpler to debug than preference optimization and gives a "
             "clear before/after comparison against stock Gemma and stock+harness."
         ),
-        "applies_to": ["tiny_lora_smoke", "a07_t4_standard_sft"],
+        "applies_to": ["tiny_lora_smoke", "a00_t4_standard_sft"],
         "source_refs": ["google_gemma_tuning", "hf_trl_sft", "hf_peft_lora"],
     },
     {
@@ -276,7 +283,7 @@ POST_TRAINING_BEST_PRACTICES: tuple[dict[str, Any], ...] = (
             "especially around fee camouflage, retaliation risk, and jurisdiction "
             "shopping."
         ),
-        "applies_to": ["rubric_polisher_24", "harness_teacher_40", "a07_t4_standard_dpo"],
+        "applies_to": ["rubric_polisher_24", "harness_teacher_40", "a00_t4_standard_dpo"],
         "source_refs": ["instructgpt", "dpo", "constitutional_ai"],
     },
     {
@@ -292,7 +299,7 @@ POST_TRAINING_BEST_PRACTICES: tuple[dict[str, Any], ...] = (
             "reward-model training loop, which is more practical for a Kaggle "
             "smoke path."
         ),
-        "applies_to": ["a07_t4_standard_dpo"],
+        "applies_to": ["a00_t4_standard_dpo"],
         "source_refs": ["dpo", "hf_trl_dpo", "instructgpt"],
     },
     {
@@ -328,14 +335,7 @@ POST_TRAINING_BEST_PRACTICES: tuple[dict[str, Any], ...] = (
 
 TRAINING_DATA_SCHEMAS: dict[str, dict[str, Any]] = {
     "sft_jsonl": {
-        "required_fields": [
-            "id",
-            "messages",
-            "source_profile",
-            "rubric_targets",
-            "synthetic",
-            "pii_checked",
-        ],
+        "required_fields": list(SFT_REQUIRED_FIELDS),
         "message_roles": ["system", "user", "assistant"],
         "recommended_fields": [
             "source_refs",
@@ -346,17 +346,14 @@ TRAINING_DATA_SCHEMAS: dict[str, dict[str, Any]] = {
             "grader_dimensions",
             "created_at",
             "sha256",
+            "structured_rationale",
+            "model_revision",
+            "harness_version",
+            "rubric_version",
         ],
     },
     "preference_jsonl": {
-        "required_fields": [
-            "id",
-            "prompt",
-            "chosen",
-            "rejected",
-            "preference_rationale",
-            "pii_checked",
-        ],
+        "required_fields": list(PREFERENCE_REQUIRED_FIELDS),
         "recommended_fields": [
             "rubric_delta",
             "unsafe_failure_modes",
@@ -410,6 +407,24 @@ TRAINING_QUALITY_GATES: tuple[dict[str, Any], ...] = (
         "label": "Prompt families balanced",
         "blocking": False,
         "check": "Fee camouflage, passport retention, contract substitution, retaliation risk, worker help, and regulator/platform use cases are represented.",
+    },
+    {
+        "id": "row_integrity",
+        "label": "Immutable row hashes",
+        "blocking": True,
+        "check": "Every row's SHA-256 matches its canonical content.",
+    },
+    {
+        "id": "provenance_licensed",
+        "label": "Provenance and license declared",
+        "blocking": True,
+        "check": "Every training row declares a lineage group and license basis.",
+    },
+    {
+        "id": "hidden_reasoning_absent",
+        "label": "No hidden reasoning extraction",
+        "blocking": True,
+        "check": "Only answer text or deliberately authored structured rationale is allowed; hidden-thought markup is rejected.",
     },
 )
 

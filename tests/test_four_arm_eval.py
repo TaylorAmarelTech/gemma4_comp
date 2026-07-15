@@ -27,6 +27,35 @@ def _load(name, path):
 fa = _load("four_arm_eval", _ROOT / "scripts" / "four_arm_eval.py")
 
 
+def test_default_base_matches_the_canonical_training_model() -> None:
+    assert fa.DEFAULT_BASE == "google/gemma-4-E4B-it"
+    assert len(fa.DEFAULT_BASE_REVISION) == 40
+
+
+def test_adapter_base_verification_requires_exact_model_and_revision(tmp_path) -> None:
+    adapter = tmp_path / "adapter"
+    adapter.mkdir()
+    (adapter / "adapter_config.json").write_text(
+        json.dumps({
+            "base_model_name_or_path": fa.DEFAULT_BASE,
+            "revision": fa.DEFAULT_BASE_REVISION,
+        }),
+        encoding="utf-8",
+    )
+
+    fa._verify_local_adapter_base(
+        str(adapter),
+        base=fa.DEFAULT_BASE,
+        base_revision=fa.DEFAULT_BASE_REVISION,
+    )
+    with pytest.raises(SystemExit, match="immutable base revision"):
+        fa._verify_local_adapter_base(
+            str(adapter),
+            base=fa.DEFAULT_BASE,
+            base_revision="different",
+        )
+
+
 def _panel(stock_a, stock_b, trained_c, trained_d, pids=("p1", "p2"),
            stock_model="stock", trained_model="trained"):
     rows = []

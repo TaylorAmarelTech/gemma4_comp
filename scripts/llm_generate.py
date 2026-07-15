@@ -178,13 +178,32 @@ class _ConnPool:
 _HTTP_POOL = _ConnPool(_MAX_IDLE_PER_HOST)
 
 
+def _proxy_required(url: str) -> bool:
+    """Return whether urllib has a configured, non-bypassed proxy for ``url``.
+
+    ``http.client`` does not apply urllib's environment/OS proxy policy. In that case the pooled direct
+    transport would silently route around an operator's proxy, so use ``urlopen`` for that request instead.
+    """
+    parsed = urllib.parse.urlsplit(url)
+    if not parsed.hostname:
+        return False
+    proxies = urllib.request.getproxies()
+    proxy = proxies.get(parsed.scheme.lower()) or proxies.get("all")
+    if not proxy:
+        return False
+    try:
+        return not urllib.request.proxy_bypass(parsed.hostname)
+    except OSError:
+        return True
+
+
 def _http_post_json(url: str, *, data: bytes, headers: dict[str, str], timeout: float) -> bytes:
     """POST ``data`` to ``url`` and return the raw response body bytes, reusing a pooled keep-alive
     connection (the fix for Windows socket exhaustion). Drop-in compatible with the callers below: raises
-    ``urllib.error.HTTPError`` on a non-2xx status (so ``.code`` / ``.headers`` drive the SAME retry logic)
-    and lets transport ``OSError`` / ``URLError`` propagate (so ``except OSError`` still catches it).
-    ``DUECARE_HTTP_POOL=0`` falls back to the legacy per-call ``urlopen``."""
-    if not _HTTP_POOL_ENABLED:
+    ``urllib.error.HTTPError`` on a non-2xx status, including redirects (so a 3xx body is never mistaken
+    for a completion), and lets transport ``OSError`` / ``URLError`` propagate. A configured proxy or
+    ``DUECARE_HTTP_POOL=0`` falls back to ``urlopen``, preserving urllib proxy and redirect semantics."""
+    if not _HTTP_POOL_ENABLED or _proxy_required(url):
         req = urllib.request.Request(url, data=data, headers=headers)
         with urllib.request.urlopen(req, timeout=timeout) as resp:  # raises HTTPError/URLError like before
             return resp.read()
@@ -213,7 +232,7 @@ def _http_post_json(url: str, *, data: bytes, headers: dict[str, str], timeout: 
             _HTTP_POOL.release(url, conn)
         else:
             _HTTP_POOL.discard(conn)
-        if status >= 400:
+        if not 200 <= status < 300:
             raise urllib.error.HTTPError(url, status, f"HTTP {status}", resp.headers, io.BytesIO(raw))
         return raw
     raise RuntimeError("unreachable")  # the loop always returns or raises

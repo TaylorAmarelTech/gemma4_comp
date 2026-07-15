@@ -174,7 +174,7 @@ def test_validate_training_provenance_verifies_quality_audit_summary(tmp_path):
     reg = tmp_path / "registry.jsonl"
     _write_jsonl(sft, _valid_sft())
     _write_jsonl(dpo, _valid_dpo())
-    _write_quality_audit(audit, clean=False, dense=9)
+    _write_quality_audit(audit, clean=True, dense=9)
     summary = vtp._quality_audit_summary_from_file(audit)
     _append_record(reg, model_id="m", sft=sft, dpo=dpo, artifacts={
         "sft_path": str(sft),
@@ -196,6 +196,35 @@ def test_validate_training_provenance_verifies_quality_audit_summary(tmp_path):
     assert report["quality_audit"]["summary"]["corridor_expansion_task_count"] == 45
 
 
+def test_validate_training_provenance_blocks_matching_dirty_quality_audit(tmp_path):
+    sft = tmp_path / "sft_train.jsonl"
+    dpo = tmp_path / "dpo_train.jsonl"
+    audit = tmp_path / "quality_audit.json"
+    reg = tmp_path / "registry.jsonl"
+    _write_jsonl(sft, _valid_sft())
+    _write_jsonl(dpo, _valid_dpo())
+    _write_quality_audit(audit, clean=False, dense=9)
+    summary = vtp._quality_audit_summary_from_file(audit)
+    _append_record(reg, model_id="m", sft=sft, dpo=dpo, artifacts={
+        "sft_path": str(sft),
+        "dpo_path": str(dpo),
+        "quality_audit_path": str(audit),
+        "quality_audit_summary": summary,
+        "artifact_files": {
+            "selected_sft": _fingerprint(sft),
+            "selected_dpo": _fingerprint(dpo),
+            "quality_audit": _fingerprint(audit),
+        },
+    })
+
+    report = vtp.validate_training_provenance(model_id="m", registry=reg)
+
+    assert report["ok"] is False
+    assert report["quality_audit"]["ok"] is False
+    assert report["quality_audit"]["issue"] == "quality_audit is not clean"
+    assert "quality audit: quality_audit is not clean" in report["issues"]
+
+
 def test_validate_training_provenance_verifies_corridor_expansion_plan(tmp_path):
     sft = tmp_path / "sft_train.jsonl"
     dpo = tmp_path / "dpo_train.jsonl"
@@ -205,7 +234,7 @@ def test_validate_training_provenance_verifies_corridor_expansion_plan(tmp_path)
     reg = tmp_path / "registry.jsonl"
     _write_jsonl(sft, _valid_sft())
     _write_jsonl(dpo, _valid_dpo())
-    _write_quality_audit(audit, clean=False, dense=1)
+    _write_quality_audit(audit, clean=True, dense=1)
     _write_corridor_plan(plan, manifest, audit, planned=5)
     summary = vtp._quality_audit_summary_from_file(audit)
     _append_record(reg, model_id="m", sft=sft, dpo=dpo, artifacts={

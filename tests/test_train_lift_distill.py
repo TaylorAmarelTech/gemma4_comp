@@ -12,6 +12,8 @@ import sys
 import types
 from pathlib import Path
 
+import pytest
+
 _ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -136,6 +138,8 @@ def _repaired_sft_row(pid: str = "p1", *, repair_meta: dict | None = None, varia
 def test_defaults_use_train_splits_not_unsplit_sources():
     assert tr.SFT_DEFAULT.name == "sft_train.jsonl"
     assert tr.DPO_DEFAULT.name == "dpo_train.jsonl"
+    assert tr.DEFAULT_BASE == "google/gemma-4-E4B-it"
+    assert len(tr.DEFAULT_BASE_REVISION) == 40
 
 
 def test_normalize_messages_maps_assistant_and_wraps_content():
@@ -1554,6 +1558,7 @@ def test_display_validation_report_redacts_unknown_sensitive_issue():
 def test_train_console_output_uses_display_safe_values(tmp_path, monkeypatch, capsys):
     sensitive_dir = tmp_path / "worker@example.com-case-123456789"
     sensitive_out = sensitive_dir / "adapter"
+    (sensitive_dir / "local-base-model").mkdir(parents=True)
     calls = {"gguf": ""}
 
     class FakeModel:
@@ -1630,28 +1635,44 @@ def test_train_console_output_uses_display_safe_values(tmp_path, monkeypatch, ca
     }.items():
         monkeypatch.setitem(sys.modules, name, module)
 
+    class VerifiedBundle:
+        sft_sha256 = "b" * 64
+        preference_sha256 = "c" * 64
+        sft_rows = (
+            {"messages": [{"role": "user", "content": "q"}, {"role": "assistant", "content": "a"}]},
+        )
+        preference_rows = ()
+
+        @staticmethod
+        def summary():
+            return {
+                "ok": True,
+                "manifest_sha256": "a" * 64,
+                "counts": {"sft": 1, "preference": 0},
+            }
+
+    monkeypatch.setattr(tr, "validate_training_bundle", lambda *args, **kwargs: VerifiedBundle())
+
     plan = {
         "base_model": str(sensitive_dir / "local-base-model"),
         "chat_template": tr.CHAT_TEMPLATE,
         "max_seq_length": 128,
         "lora": {"r": 2, "alpha": 2, "dropout": 0.0},
         "sft": {
+            "file": str(sensitive_dir / "sft.jsonl"),
             "per_device_batch": 1,
             "grad_accum": 1,
             "epochs": 1,
             "max_steps": 1,
             "lr": 1e-4,
         },
-        "dpo": {"enabled": False},
+        "dpo": {"enabled": False, "file": str(sensitive_dir / "dpo.jsonl")},
+        "training_manifest": str(sensitive_dir / "manifest.json"),
         "output_dir": str(sensitive_out),
         "gguf": True,
     }
 
-    returned = tr.train(
-        plan,
-        [{"messages": [{"role": "user", "content": "q"}, {"role": "assistant", "content": "a"}]}],
-        [],
-    )
+    returned = tr.train(plan)
     out = capsys.readouterr().out
 
     assert returned == str(sensitive_out)
@@ -1663,6 +1684,40 @@ def test_train_console_output_uses_display_safe_values(tmp_path, monkeypatch, ca
     assert str(tmp_path) not in out
     assert "worker@example.com" not in out
     assert "case-123456789" not in out
+
+
+def test_remote_training_requires_an_immutable_base_revision() -> None:
+    with pytest.raises(SystemExit, match="remote base models require --base-revision"):
+        tr.train(
+            {
+                "base_model": "example/custom-remote-model",
+                "base_model_revision": "",
+                "dpo": {"enabled": False},
+            }
+        )
+
+
+def test_gpu_training_requires_canonical_bundle_manifest(tmp_path) -> None:
+    local_model = tmp_path / "local-model"
+    local_model.mkdir()
+
+    with pytest.raises(SystemExit, match="canonical --training-manifest is required"):
+        tr.train({"base_model": str(local_model), "base_model_revision": ""})
+
+
+def test_pin_adapter_revision_updates_standard_peft_fields(tmp_path) -> None:
+    config = tmp_path / "adapter_config.json"
+    config.write_text(json.dumps({"peft_type": "LORA"}), encoding="utf-8")
+
+    tr._pin_adapter_revision(
+        tmp_path,
+        base_model=tr.DEFAULT_BASE,
+        revision=tr.DEFAULT_BASE_REVISION,
+    )
+
+    payload = json.loads(config.read_text(encoding="utf-8"))
+    assert payload["base_model_name_or_path"] == tr.DEFAULT_BASE
+    assert payload["revision"] == tr.DEFAULT_BASE_REVISION
 
 
 def test_render_sft_applies_template_and_strips_bos():
@@ -1716,9 +1771,18 @@ def test_render_dpo_skips_non_string_pair_fields_without_leaking_values():
     assert "case-123456789" not in out_json
 
 
+def test_missing_dpo_trainer_is_fatal_unless_dpo_was_explicitly_disabled(monkeypatch):
+    trl_mod = types.ModuleType("trl")
+    monkeypatch.setitem(sys.modules, "trl", trl_mod)
+
+    assert tr._load_dpo_components(enabled=False) == (None, None)
+    with pytest.raises(SystemExit, match=r"DPO was requested.*--skip-dpo explicitly"):
+        tr._load_dpo_components(enabled=True)
+
+
 def test_build_plan_test_run_overrides_steps():
     ns = argparse.Namespace(
-        base_model="unsloth/gemma-4-E2B-it", sft=Path("s"), dpo=Path("d"), out=Path("o"),
+        base_model="google/gemma-4-E4B-it", sft=Path("s"), dpo=Path("d"), out=Path("o"),
         max_seq=2048, epochs=2, max_steps=-1, batch=2, grad_accum=4, lr=2e-4,
         lora_r=16, lora_alpha=16, skip_dpo=False, dpo_beta=0.1, dpo_max_steps=200,
         dpo_lr=5e-6, rpo_alpha=1.0, gguf=False, test_run=True,
@@ -1726,7 +1790,8 @@ def test_build_plan_test_run_overrides_steps():
     plan = tr.build_plan(ns)
     assert plan["sft"]["max_steps"] == 20 and plan["sft"]["epochs"] == 1   # test-run overrides
     assert plan["dpo"]["enabled"] is True and plan["dpo"]["max_steps"] == 10
-    assert plan["base_model"] == "unsloth/gemma-4-E2B-it"
+    assert plan["base_model"] == "google/gemma-4-E4B-it"
+    assert plan["base_model_revision"] == tr.DEFAULT_BASE_REVISION
     # DPO truncation lengths are set (the silent length-bias fix) + the tunable knobs
     assert plan["dpo"]["lr"] == 5e-6 and plan["dpo"]["rpo_alpha"] == 1.0
     assert plan["dpo"]["max_length"] == 2048 and plan["dpo"]["max_prompt_length"] == 1024

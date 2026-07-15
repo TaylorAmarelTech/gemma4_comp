@@ -139,9 +139,9 @@ the kernel.py doesn't need to change.
 
 ## Portability contract for the next notebooks
 
-Kernel 01 is now the reference runtime contract for the focused live
-demo (02). Archived A-00 proof code should keep reusing the same shared
-primitives when it is touched.
+Kernel 01 is now the reference runtime contract for the focused live demo (02)
+and the active A-00 quantitative proof/training source. Both should keep
+reusing the same shared primitives.
 After `create_app(...)`, `kernel.py` verifies the reusable API surface,
 knowledge taxonomy, type catalog, and bundled sample assets are present.
 If a stale wheel is served, the kernel fails early instead of opening a

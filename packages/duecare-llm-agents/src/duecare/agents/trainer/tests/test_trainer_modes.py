@@ -36,7 +36,7 @@ def test_trainer_dry_run_is_skipped() -> None:
 
     # Config was recorded for downstream agents
     config = ctx.lookup("training_config")
-    assert config["base_model"].startswith("unsloth/gemma-4")
+    assert config["base_model"] == "google/gemma-4-E4B-it"
     assert config["n_train"] == 2
 
 

@@ -28,7 +28,8 @@ SCRIPTS_DIR = REPO_ROOT / "scripts"
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
-from kaggle_notebook_utils import discover_kernel_notebooks
+import publish_kaggle as publisher  # noqa: E402
+from kaggle_notebook_utils import discover_kernel_notebooks  # noqa: E402
 
 
 def _published_notebooks():
@@ -40,7 +41,9 @@ def _tracked_kernel_count() -> int:
     return len(_published_notebooks())
 
 
-def _run(*args: str, env_overrides: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
+def _run(
+    *args: str, env_overrides: dict[str, str] | None = None
+) -> subprocess.CompletedProcess[str]:
     import os
 
     env = os.environ.copy()
@@ -65,6 +68,7 @@ class TestCLI:
             "push-notebooks",
             "status-notebooks",
             "publish-dataset",
+            "publish-training-dataset",
             "publish-model",
             "publish-all",
         ):
@@ -89,23 +93,21 @@ class TestDryRun:
                 f"missing kernel {entry.dir_name} in dry-run output"
             )
 
-    def test_publish_dataset_dry_run(self):
-        result = _run("--dry-run", "publish-dataset")
-        assert result.returncode == 0, result.stderr
-        assert "shared-datasets" in result.stdout
-        assert "eval-results" in result.stdout
+    def test_empty_eval_dataset_dry_run_is_blocked(self):
+        result = _run("--dry-run", "publish-dataset", "--operation", "create")
+        assert result.returncode == 2
+        assert "shared-datasets" in result.stderr
+        assert "zero payload files" in result.stderr
 
-    def test_publish_model_dry_run(self):
+    def test_metadata_only_model_dry_run_is_blocked(self):
         result = _run("--dry-run", "publish-model")
-        assert result.returncode == 0, result.stderr
-        assert "models" in result.stdout
-        assert "duecare_safety_harness" in result.stdout
+        assert result.returncode == 2
+        assert "model-instance-metadata.json is required" in result.stderr
 
-    def test_publish_all_dry_run(self):
+    def test_publish_all_is_disabled_even_in_dry_run(self):
         result = _run("--dry-run", "publish-all")
-        # publish-all runs auth-check, which in dry-run returns 0 regardless
-        assert result.returncode == 0, result.stderr
-        assert f"# push-notebooks ({_tracked_kernel_count()} kernels)" in result.stdout
+        assert result.returncode == 2
+        assert "disabled: broad publication" in result.stderr
 
     def test_push_notebooks_dry_run_limit_and_ids(self):
         # 01 and A-00 both match; sorted by dir name 01 comes first, so
@@ -115,6 +117,13 @@ class TestDryRun:
         assert "# push-notebooks (1 kernels)" in result.stdout
         assert "01-duecare-exploration-workbench" in result.stdout
         assert "A-00-omni-experiment-workbench" not in result.stdout
+
+    def test_a00_only_push_remains_available(self):
+        result = _run("--dry-run", "push-notebooks", "--ids", "A-00")
+        assert result.returncode == 0, result.stderr
+        assert "# push-notebooks (1 kernels)" in result.stdout
+        assert "A-00-omni-experiment-workbench" in result.stdout
+        assert "01-duecare-exploration-workbench" not in result.stdout
 
     def test_status_notebooks_without_creds_fails_fast(self, tmp_path: Path):
         result = _run(
@@ -169,3 +178,168 @@ class TestValidation:
         data = json.loads(meta.read_text())
         for field in ("ownerSlug", "title", "slug", "description"):
             assert field in data
+
+    def test_dataset_validator_rejects_metadata_only_directory(self, tmp_path: Path):
+        (tmp_path / "dataset-metadata.json").write_text(
+            json.dumps(
+                {
+                    "id": "owner/release",
+                    "title": "Verified release",
+                    "licenses": [{"name": "CC-BY-SA-4.0"}],
+                }
+            ),
+            encoding="utf-8",
+        )
+        with pytest.raises(ValueError, match="zero payload files"):
+            publisher._validate_dataset_payload(tmp_path)
+
+        (tmp_path / "PLACEHOLDER.txt").write_text("replace me", encoding="utf-8")
+        with pytest.raises(ValueError, match="placeholder name"):
+            publisher._validate_dataset_payload(tmp_path)
+
+    def test_model_validator_requires_completion_and_real_weights(self, tmp_path: Path):
+        (tmp_path / "model-metadata.json").write_text(
+            json.dumps(
+                {
+                    "ownerSlug": "owner",
+                    "title": "DueCare adapter",
+                    "slug": "duecare-adapter",
+                    "description": "Completed DueCare adapter",
+                }
+            ),
+            encoding="utf-8",
+        )
+        with pytest.raises(ValueError, match=r"model-instance-metadata\.json is required"):
+            publisher._validate_model_payload(tmp_path)
+
+        (tmp_path / "model-instance-metadata.json").write_text(
+            json.dumps(
+                {
+                    "owner_slug": "owner",
+                    "model_slug": "duecare-adapter",
+                    "instance_slug": "transformers",
+                    "framework": "transformers",
+                }
+            ),
+            encoding="utf-8",
+        )
+        (tmp_path / "training_completion_manifest.json").write_text(
+            json.dumps(
+                {
+                    "schema_version": "1.0",
+                    "handoff_kind": "duecare.training.completion.v1",
+                    "base_model": "google/gemma-4-e4b-it",
+                    "base_model_revision": "a" * 40,
+                    "completed_at": "2026-07-14T00:00:00+00:00",
+                    "executed_stages": ["sft", "dpo"],
+                }
+            ),
+            encoding="utf-8",
+        )
+        weights = tmp_path / "adapter_model.safetensors"
+        weights.write_bytes(b"not weights")
+        with pytest.raises(ValueError, match="too small to be credible"):
+            publisher._validate_model_payload(tmp_path)
+        weights.write_bytes(b"x" * 2048)
+        report = publisher._validate_model_payload(tmp_path)
+        assert report["weight_files"] == [weights]
+
+
+class TestTrainingDatasetPublication:
+    def _stub_verified_release(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+        monkeypatch.setattr(
+            publisher,
+            "verify_release_dir",
+            lambda path: {"ok": True, "release_id": "release-fixture"},
+        )
+        monkeypatch.setattr(
+            publisher,
+            "_validate_dataset_payload",
+            lambda path: {"metadata": {}, "payload_files": [path / "sft_train.jsonl"]},
+        )
+
+    @pytest.mark.parametrize("public", [False, True])
+    def test_verified_create_defaults_private_and_public_is_explicit(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        tmp_path: Path,
+        public: bool,
+    ):
+        self._stub_verified_release(monkeypatch, tmp_path)
+        seen: list[list[str]] = []
+
+        def fake_run(cmd, *, dry_run, cwd=None):
+            seen.append(cmd)
+            return publisher.RunResult(cmd=cmd, returncode=0, stdout="", stderr="")
+
+        monkeypatch.setattr(publisher, "run", fake_run)
+        rc = publisher.publish_training_dataset(
+            release_dir=tmp_path,
+            dry_run=True,
+            operation="create",
+            public=public,
+        )
+        assert rc == 0
+        assert len(seen) == 1
+        assert ("--public" in seen[0]) is public
+        assert seen[0][-1] == ("--public" if public else str(tmp_path))
+
+    def test_version_note_is_passed_exactly_once(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        tmp_path: Path,
+    ):
+        self._stub_verified_release(monkeypatch, tmp_path)
+        seen: list[list[str]] = []
+
+        def fake_run(cmd, *, dry_run, cwd=None):
+            seen.append(cmd)
+            return publisher.RunResult(cmd=cmd, returncode=0, stdout="", stderr="")
+
+        monkeypatch.setattr(publisher, "run", fake_run)
+        note = "release 2026-07-14; scope=partial; sha=abc123"
+        rc = publisher.publish_training_dataset(
+            release_dir=tmp_path,
+            dry_run=True,
+            operation="version",
+            version_note=note,
+        )
+        assert rc == 0
+        assert seen[0].count(note) == 1
+        assert seen[0][seen[0].index("-m") + 1] == note
+
+    def test_unverified_or_placeholder_release_is_blocked_before_command(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        tmp_path: Path,
+    ):
+        called = False
+
+        def fake_run(cmd, *, dry_run, cwd=None):
+            nonlocal called
+            called = True
+            return publisher.RunResult(cmd=cmd, returncode=0, stdout="", stderr="")
+
+        monkeypatch.setattr(publisher, "run", fake_run)
+        rc = publisher.publish_training_dataset(
+            release_dir=tmp_path,
+            dry_run=True,
+            operation="create",
+        )
+        assert rc == 2
+        assert called is False
+
+    def test_public_flag_is_rejected_for_existing_dataset_version(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        tmp_path: Path,
+    ):
+        self._stub_verified_release(monkeypatch, tmp_path)
+        rc = publisher.publish_training_dataset(
+            release_dir=tmp_path,
+            dry_run=True,
+            operation="version",
+            version_note="exact note",
+            public=True,
+        )
+        assert rc == 2

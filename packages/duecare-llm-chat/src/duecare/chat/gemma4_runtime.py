@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import gc
+import re
 import threading
 import time
 from dataclasses import dataclass, field
@@ -11,12 +12,22 @@ from typing import Any, Callable
 DEFAULT_SMALL_VARIANT = "e2b-it"
 DEFAULT_SMALL_MODEL_REF = "google/gemma-4-E2B-it"
 DEFAULT_MAX_SEQ_LENGTH = 4096
+PINNED_MODEL_REVISIONS = {
+    "e2b-it": "4abfca14e6c6bfb5888b80288185b1243fb8d539",
+    "google/gemma-4-E2B-it": "4abfca14e6c6bfb5888b80288185b1243fb8d539",
+    "unsloth/gemma-4-E2B-it": "4abfca14e6c6bfb5888b80288185b1243fb8d539",
+    "e4b-it": "0d5a7f9ba73eda1616e58344f7025fae44914675",
+    "google/gemma-4-E4B-it": "0d5a7f9ba73eda1616e58344f7025fae44914675",
+    "unsloth/gemma-4-E4B-it": "0d5a7f9ba73eda1616e58344f7025fae44914675",
+}
+_IMMUTABLE_REVISION = re.compile(r"^[0-9a-f]{40}(?:[0-9a-f]{24})?$")
 
 
 @dataclass
 class Gemma4LoadSpec:
     source: str = "hf"
     model_ref: str = DEFAULT_SMALL_MODEL_REF
+    revision: str = ""
     adapter_ref: str = ""
     quantization: str = "4bit"
     trust_remote_code: bool = True
@@ -48,6 +59,15 @@ def variant_from_ref(model_ref: str) -> str:
     return ""
 
 
+def _is_official_gemma4_alias(model_ref: str) -> bool:
+    low = (model_ref or "").strip().lower()
+    return (
+        low in {"e2b-it", "e4b-it", "26b-a4b-it", "31b-it"}
+        or low.startswith("google/gemma-4-")
+        or low.startswith("unsloth/gemma-4-")
+    )
+
+
 def resolve_model_ref(source: str, model_ref: str) -> tuple[str, str, str]:
     source = (source or "hf").strip()
     model_ref = (model_ref or DEFAULT_SMALL_MODEL_REF).strip()
@@ -57,6 +77,9 @@ def resolve_model_ref(source: str, model_ref: str) -> tuple[str, str, str]:
     variant = variant_from_ref(model_ref)
     if not variant:
         return model_ref, "", source
+
+    if "/" in model_ref and not _is_official_gemma4_alias(model_ref):
+        return model_ref, variant, "hf"
 
     for version in ("1", "2", "3"):
         candidate = (
@@ -81,6 +104,25 @@ def resolve_model_ref(source: str, model_ref: str) -> tuple[str, str, str]:
         .replace("31b-it", "31B-it")
     )
     return f"unsloth/gemma-4-{repo_variant}", variant, "hf"
+
+
+def resolve_model_revision(model_ref: str, resolved_model_ref: str = "", revision: str = "") -> str:
+    """Return an immutable Hub revision for a requested/resolved model pair."""
+
+    explicit = (revision or "").strip().lower()
+    if explicit and _IMMUTABLE_REVISION.fullmatch(explicit):
+        return explicit
+    requested = (model_ref or "").strip()
+    resolved = (resolved_model_ref or "").strip()
+    variant = variant_from_ref(requested) or variant_from_ref(resolved)
+    keys = [resolved, requested]
+    if _is_official_gemma4_alias(requested) or _is_official_gemma4_alias(resolved):
+        keys.append(variant)
+    for key in keys:
+        pinned = PINNED_MODEL_REVISIONS.get(key)
+        if pinned:
+            return pinned
+    return ""
 
 
 class Gemma4Runtime:
@@ -155,11 +197,20 @@ class Gemma4Runtime:
         self.unload("loading replacement model")
         self.log("gpu-check", self._gpu_inventory(torch))
         resolved_ref, variant, resolved_source = resolve_model_ref(spec.source, spec.model_ref)
+        resolved_revision = (
+            resolve_model_revision(spec.model_ref, resolved_ref, spec.revision)
+            if resolved_source == "hf"
+            else (spec.revision or "").strip().lower()
+        )
         device_map = "balanced" if variant in {"26b-a4b-it", "31b-it"} and device_count >= 2 else "auto"
 
         self.log("resolve-repo", f"{spec.model_ref} -> {resolved_ref}")
         if resolved_source == "hf":
             self.log("resolve-repo", f"no local Kaggle model attachment found; will download from HF Hub: {resolved_ref}")
+            if resolved_revision:
+                self.log("resolve-revision", f"pinned HF revision: {resolved_revision}")
+            else:
+                self.log("resolve-revision", "no immutable HF revision configured for this model")
         else:
             self.log("resolve-repo", f"using local attached model: {resolved_ref}")
         if variant in {"26b-a4b-it", "31b-it", "jailbroken-31b"}:
@@ -201,15 +252,18 @@ class Gemma4Runtime:
 
         threading.Thread(target=_heartbeat_loop, daemon=True, name="duecare-gemma4-loader-heartbeat").start()
         t0 = time.time()
+        load_kwargs = {
+            "model_name": resolved_ref,
+            "dtype": None,
+            "max_seq_length": int(spec.max_seq_length or DEFAULT_MAX_SEQ_LENGTH),
+            "load_in_4bit": spec.quantization.lower() in {"4bit", "nf4"},
+            "full_finetuning": False,
+            "device_map": device_map,
+        }
+        if resolved_source == "hf" and resolved_revision:
+            load_kwargs["revision"] = resolved_revision
         try:
-            model, tokenizer = FastModel.from_pretrained(
-                model_name=resolved_ref,
-                dtype=None,
-                max_seq_length=int(spec.max_seq_length or DEFAULT_MAX_SEQ_LENGTH),
-                load_in_4bit=spec.quantization.lower() in {"4bit", "nf4"},
-                full_finetuning=False,
-                device_map=device_map,
-            )
+            model, tokenizer = FastModel.from_pretrained(**load_kwargs)
         except Exception as exc:  # noqa: BLE001
             self.log("error", f"FastModel FAILED: {type(exc).__name__}: {str(exc)[:500]}")
             raise
@@ -334,6 +388,8 @@ class Gemma4Runtime:
             "source": resolved_source,
             "model_ref": spec.model_ref,
             "resolved_model_ref": resolved_ref,
+            "revision": resolved_revision,
+            "revision_repo": resolved_ref if resolved_revision else "",
             "variant": variant,
             "adapter_ref": spec.adapter_ref,
             "quantization": spec.quantization,

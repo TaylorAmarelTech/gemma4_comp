@@ -47,8 +47,8 @@ Copy-paste reproduction path so a judge can run this kernel without leaving Kagg
 1. **New Notebook** on Kaggle (`https://www.kaggle.com/code`). Choose **+ New Notebook**.
 2. **Set the accelerator** in the right-hand panel: **Accelerator: GPU T4 x2**, **Internet: On**.
 3. **Add the model** in the right-hand panel: **+ Add Input â†’ Models â†’ `google/gemma-4`**.
-   The default kernel resolves to **`gemma-4-E2B-it`** (E2B). If you have the
-   `gemma-4-4b-it` (E4B) or larger variants attached, the kernel picks them up
+   The default kernel resolves to **`google/gemma-4-E4B-it`** (E4B). If you have
+   E2B or larger variants attached, the kernel can resolve them
    automatically.
 4. **Paste `kernel.py`** from this folder into the notebook (overwrite the default cell).
    The wheels and bootstrap install run inside `kernel.py`; you do **not** need to

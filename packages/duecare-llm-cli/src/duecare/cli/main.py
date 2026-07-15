@@ -586,7 +586,7 @@ def cmd_db_dump(ctx, out) -> None:
 @cli.group("train")
 def cmd_train() -> None:
     """Synthetic-label generation, active-learning review, and the
-    Unsloth fine-tune handoff (dry-run today; full kickoff Coming Soon)."""
+    fail-closed handoff to DueCare's validated training surfaces."""
 
 
 @cmd_train.command("labels")
@@ -705,7 +705,7 @@ def cmd_train_dataset(ctx, output, min_confidence, only_human_reviewed) -> None:
 @cmd_train.command("kickoff")
 @click.option("--manifest", required=True, type=click.Path(exists=True),
                 help="Path to dataset manifest JSON.")
-@click.option("--base-model", default="google/gemma-4-4b-it")
+@click.option("--base-model", default="google/gemma-4-E4B-it")
 @click.option("--output-lora", default="./duecare_lora", type=click.Path())
 @click.option("--dry-run/--for-real", default=None,
                 help="Default: dry-run unless MM_TRAINING_ENABLED=1.")
@@ -729,7 +729,7 @@ def cmd_train_kickoff(ctx, manifest, base_model, output_lora,
         click.echo(f"  base_model:    {plan.base_model}")
         click.echo(f"  output_lora:   {plan.output_lora_path}")
     except NotImplementedError as e:
-        click.secho(f"  Coming Soon: {e}", fg="yellow")
+        click.secho(f"  Training handoff required: {e}", fg="yellow")
     store.close()
 
 

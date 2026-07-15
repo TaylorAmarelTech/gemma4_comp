@@ -621,12 +621,15 @@ def test_build_report_v2_marks_non_comparable_and_lists_f(tmp_path):
         },
     }
 
-    md = rh.build_report(agg, ["judge"], out_path=tmp_path / "report.md")
+    md = rh.build_report(agg, ["judge"], out_path=tmp_path / "report.md", grader="perdim")
 
     assert "Rubric v2 run (opt-in)" in md
     assert "NOT comparable with v1" in md
     assert "F. Appropriate engagement" in md
     assert "--rubric-version v2" in md
+    assert "Per-dimension grader run (isolated from the legacy batched board)" in md
+    assert "6 independent judge calls" in md
+    assert "--grader perdim" in md
 
 
 def test_main_report_only_passes_rubric_version_through(tmp_path, monkeypatch, capsys):
@@ -650,10 +653,11 @@ def test_main_report_only_passes_rubric_version_through(tmp_path, monkeypatch, c
     pairwise_path.write_text("", encoding="utf-8")
     seen = {}
 
-    def fake_paths(domain_id, rubric_version, harness_version):
+    def fake_paths(domain_id, rubric_version, harness_version, grader):
         seen["path_domain"] = domain_id
         seen["path_rubric"] = rubric_version
         seen["path_harness"] = harness_version
+        seen["path_grader"] = grader
         return {"results": tmp_path / "results.jsonl", "panel": panel_path,
                 "pairwise": pairwise_path, "report": report_path}
 
@@ -663,16 +667,17 @@ def test_main_report_only_passes_rubric_version_through(tmp_path, monkeypatch, c
         return {
             "rubric_version": rubric_version,
             "harness_version": harness_version,
-            "models": [],
+            "models": [{"model": "model"}],
             "krippendorff_alpha": None,
             "mean_response_agreement_stdev": 0.0,
-            "n_responses": len(panel),
+            "n_responses": sum(1 for _ in panel),
             "components_by_arm": {},
         }
 
     def fake_report(agg, judges, *, out_path, pairwise_agg=None, benign_control_path=None,
-                    deterministic_over_refusal=None):
+                    deterministic_over_refusal=None, grader="batched"):
         seen["report_rubric"] = agg["rubric_version"]
+        seen["report_grader"] = grader
         out_path.write_text("ok", encoding="utf-8")
         return "ok"
 
@@ -692,8 +697,10 @@ def test_main_report_only_passes_rubric_version_through(tmp_path, monkeypatch, c
         "path_domain": "trafficking",
         "path_rubric": "v2",
         "path_harness": "h1",
+        "path_grader": "perdim",
         "aggregate_rubric": "v2",
         "aggregate_harness": "h1",
         "report_rubric": "v2",
+        "report_grader": "perdim",
     }
     assert "n_responses=1" in capsys.readouterr().out

@@ -10,6 +10,7 @@
 
 .EXAMPLE
   .\scripts\autonomous_engine.ps1 -Run         # start the loop detached (runs now)
+  .\scripts\autonomous_engine.ps1 -Restart     # verified, scoped engine-tree restart; resumes checkpoints
   .\scripts\autonomous_engine.ps1 -Register    # Task Scheduler watchdog every 15 min (survives reboot+death)
   .\scripts\autonomous_engine.ps1 -Status      # print engine state
   .\scripts\autonomous_engine.ps1 -Preflight   # check blockers before removing the pause sentinel
@@ -21,6 +22,7 @@
 #>
 param(
   [switch]$Run,
+  [switch]$Restart,
   [switch]$Once,
   [switch]$Register,
   [switch]$Unregister,
@@ -54,6 +56,46 @@ if (Test-Path $envFile) {
   }
 }
 $env:PYTHONUTF8 = '1'; $env:PYTHONIOENCODING = 'utf-8'
+
+function Get-VerifiedEngineProcess {
+  param([Parameter(Mandatory = $true)][int]$ProcessId)
+  $expectedEngine = [IO.Path]::GetFullPath($engine)
+  $process = Get-CimInstance -ClassName Win32_Process -Filter "ProcessId = $ProcessId" -ErrorAction Stop
+  if (-not $process -or -not $process.ExecutablePath) {
+    throw "cannot verify engine lock PID $ProcessId"
+  }
+  $actualPython = [IO.Path]::GetFullPath([string]$process.ExecutablePath)
+  if ([IO.Path]::GetFileName($actualPython) -notmatch '(?i)^python(?:\d+(?:\.\d+)*)?w?\.exe$') {
+    throw "engine lock PID $ProcessId is not a Python process"
+  }
+  $pythonArg = '(?:"' + [regex]::Escape($actualPython) + '"|' + [regex]::Escape($actualPython) + ')'
+  $engineArg = '(?:"' + [regex]::Escape($expectedEngine) + '"|' + [regex]::Escape($expectedEngine) + ')'
+  if (-not [regex]::IsMatch([string]$process.CommandLine, '(?i)^\s*' + $pythonArg + '\s+' + $engineArg + '(?:\s|$)')) {
+    throw "engine lock PID $ProcessId does not own this repository's autonomous_engine.py"
+  }
+  return $process
+}
+
+if ($Restart) {
+  New-Item -ItemType Directory -Force -Path $reports | Out-Null
+  New-Item -ItemType File -Force -Path $stopFile | Out-Null
+  $lockFile = Join-Path $reports 'autonomous_engine.lock'
+  if (Test-Path $lockFile) {
+    $enginePid = ((Get-Content $lockFile -Raw) -split ',')[0].Trim()
+    if ($enginePid -notmatch '^\d+$') { throw "engine lock has an invalid PID; refusing restart" }
+    try {
+      $null = Get-VerifiedEngineProcess -ProcessId ([int]$enginePid)
+      & taskkill /PID $enginePid /T /F 2>$null | Out-Null
+      if ($LASTEXITCODE -ne 0) { throw "taskkill failed (exit $LASTEXITCODE)" }
+      Write-Host "Stopped verified autonomous engine tree PID $enginePid; JSONL/SQLite checkpoints retained."
+    } catch {
+      $stillAlive = Get-Process -Id ([int]$enginePid) -ErrorAction SilentlyContinue
+      if ($stillAlive) { throw }
+      Write-Host "Engine lock PID $enginePid was already stopped; continuing with checkpointed restart."
+    }
+  }
+  $Run = $true
+}
 
 if ($Stop) {
   New-Item -ItemType Directory -Force -Path $reports | Out-Null
@@ -154,4 +196,4 @@ if ($Run -or $WatchdogRun) {
   Write-Host "  stop:  .\scripts\autonomous_engine.ps1 -Stop"
   return
 }
-Write-Host "usage: autonomous_engine.ps1 -Run | -Once | -Register | -Unregister | -Stop | -Status | -Preflight [-NoOllamaCheck] [-IgnoreStopSentinel] [-SkipStartupPreflight]"
+Write-Host "usage: autonomous_engine.ps1 -Run | -Restart | -Once | -Register | -Unregister | -Stop | -Status | -Preflight [-NoOllamaCheck] [-IgnoreStopSentinel] [-SkipStartupPreflight]"

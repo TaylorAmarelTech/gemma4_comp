@@ -1,6 +1,6 @@
 ﻿# Manual TODO Checklist
 
-Current as of 2026-05-18. This list is intentionally limited to actions that
+Current as of 2026-07-14. This list is intentionally limited to actions that
 cannot be completed by local code edits alone.
 
 ## 1. Final Official Competition Check
@@ -18,7 +18,7 @@ cannot be completed by local code edits alone.
 - If the live form wording differs, update `docs/writeup_draft.md`,
   `docs/video_script.md`, and the submission text before final submission.
 
-## 2. Run The Two Active Kaggle Kernels
+## 2. Run The Two Primary Demo Kernels
 
 Active scope is exactly:
 
@@ -50,7 +50,7 @@ fine-tuned, 41.2% fine-tuned + harness. For archival quality:
 
 - Exploration workbench: model load, chat prompt, harness trace, and harness
   catalog pages.
-- Archived A-00: preconfigured pipeline card, numbered Activity log, training checkpoint
+- Active A-00: preconfigured pipeline card, numbered Activity log, training checkpoint
   panel, judging progress, report/evidence download links.
 - Final report: score chart, latency chart, prompt/response table, and exported
   evidence ZIP contents.

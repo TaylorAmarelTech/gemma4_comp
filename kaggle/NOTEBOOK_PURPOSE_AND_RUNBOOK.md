@@ -6,38 +6,53 @@
 |---|---|---|
 | `01-duecare-exploration-workbench` / `duecare-app` | Full workbench and shared primitive source of truth. | Run in Kaggle with Internet and T4 x2. Open the printed Cloudflare URL for `/static/demo-recording.html`, chat, bulk review, knowledge, search, and sharing. |
 | `02-live-demo` / `duecare-live-demo` | Focused judge-facing live demo and slides. | Run after 01 is stable. Open the printed Cloudflare URL for `/start`, `/slides`, `/slides/setup`, and `/api/slides/recording-pack`. |
+| `A-00-omni-experiment-workbench` / `duecare-fine-tuning-and-evaluation` | Quantitative harness, dataset-candidate, guarded training, four-arm evaluation, and report workbench. | The July dataset-attached public update is pushed as Kaggle kernel version `14`; wait for terminal run status and artifact review before citing it as a completed proof run. |
 
-## Archived A-00 Happy Path
+## A-00 Guarded Path
 
-Use the `Preconfigured Harness, Training, and Evaluation` card:
+Use the `Preconfigured Harness, Training, and Evaluation` card for a small
+smoke run first. A smoke confirms orchestration, not model quality:
 
-1. Set prompt count to 5-10 for a smoke run.
-2. Keep synthetic rows at 10 for a first LoRA pass.
-3. Leave Execute training enabled when Kaggle GPU/dependencies are ready.
-4. Click `Run preconfigured pipeline`.
-5. Watch Activity and Jobs for phase-by-phase progress.
-6. Open the generated report from the job card.
+1. Run the same approved prompts through exact base-model and base+harness
+   arms.
+2. Generate candidate SFT and preference rows from reviewed, comparable
+   outputs.
+3. Require a manifest-bound bundle with artifact hashes, source and prompt
+   lineages, frozen held-out hashes and lineage IDs, licenses/allowed use,
+   privacy clearance, clean quality gates, and an immutable model revision.
+4. Run response-only SFT followed by the requested preference stage. If DPO is
+   requested, missing or failed DPO makes the run incomplete.
+5. Run trained and trained+harness arms on the untouched holdout.
+6. Save the completion manifest and final HTML/Markdown/JSON report.
 
-The pipeline runs:
+The **Already have a file?** importer can inspect JSON, JSONL, or ZIP artifacts
+from another controlled system. Loose rows remain inspection-only until the
+same manifest and gate contract passes. Final answers, citations, traces, and
+deliberately authored visible rationales may be candidates; provider-private
+or otherwise hidden chain-of-thought is prohibited.
 
-1. Base Gemma without harness.
-2. Base Gemma with DueCare harness.
-3. Harnessed Gemma synthetic SFT generation.
-4. LoRA fine-tuning.
-5. Fine-tuned Gemma without harness.
-6. Fine-tuned Gemma with harness.
-7. Normal base Gemma plus rules combined grading.
-8. Final HTML/Markdown/JSON report.
+## Public Version And Dataset Boundary
+
+- The A-00 Kaggle URL is live, and the July dataset-attached update is pushed
+  as kernel version `14`.
+- `A-00-omni-experiment-workbench/kernel-metadata.json` attaches
+  `taylorsamarel/duecare-proof-finetuning-data`. That proof dataset is a
+  preview release, not the full advanced corpus. No production Gemma adapter
+  is published.
+- `shared-datasets/training-data/` is documentation-only. It contains a README
+  and placeholder metadata template, no active `dataset-metadata.json`, and no
+  training rows.
 
 ## Archive
 
-`03-duecare-video-pitch`, A-00, `A-01` through `A-24`, and task-notebook
-snapshots are archived under `kaggle/_archive/notebooks/`. They are retained as
-reference material only.
+`03-duecare-video-pitch`, `A-01` through `A-24`, and task-notebook snapshots
+are archived under `kaggle/_archive/notebooks/`. They are retained as reference
+material only.
 
-Root `kaggle/` should not contain appendix `A-*` folders. The only root
-`04-*` folder should be `04-kaggle-community-benchmark`; other `04-*` notebook
-snapshots belong under `kaggle/_archive/notebooks/`.
+Root `kaggle/` should not contain appendix `A-*` folders other than active
+`A-00-omni-experiment-workbench`. The only root `04-*` folder should be
+`04-kaggle-community-benchmark`; other `04-*` notebook snapshots belong under
+`kaggle/_archive/notebooks/`.
 
 ## Optional Benchmark Kernels
 

@@ -43,6 +43,10 @@ def test_aggregate_computes_lift_and_hurt_tail():
     assert m["full_minus_core"] == -2.0                           # only p1 has full: 88-90
     assert m["components"]["A"] == 9.0                            # 14-5
     assert agg["graded_prompt_ids"] == 2
+    assert agg["paired_prompt_ids"] == 2
+    assert agg["fully_paired_prompt_ids"] == 1
+    assert m["n_full_pair"] == 1 and m["n_core_full_pair"] == 1
+    assert m["core_better"] == 1 and m["full_better"] == 0
 
 
 def test_aggregate_skips_unpaired_and_nonnumeric():
@@ -56,4 +60,52 @@ def test_aggregate_skips_unpaired_and_nonnumeric():
 def test_render_states_coverage_against_registry():
     rows = [_row("p1", "baseline", 40), _row("p1", "harness_core", 90)]
     out = a.render(a.aggregate(rows), registry=74640, today="2026-07-11")
-    assert "of the 74,640-prompt registry" in out and "credit-gated" in out
+    assert "coverage: 0 of the 74,640-prompt registry have all three arms" in out
+    assert "1 have baseline/core pairs" in out
+    assert "credit-gated" in out
+
+
+def test_single_arm_rows_do_not_inflate_paired_coverage():
+    rows = [
+        _row("paired", "baseline", 40),
+        _row("paired", "harness_core", 80),
+        _row("partial", "harness_full", 90),
+    ]
+    agg = a.aggregate(rows)
+    assert agg["graded_prompt_ids"] == 2
+    assert agg["paired_prompt_ids"] == 1
+    assert agg["fully_paired_prompt_ids"] == 0
+
+
+def test_positive_full_minus_core_reports_full_as_winner():
+    rows = [
+        _row("p1", "baseline", 40),
+        _row("p1", "harness_core", 80),
+        _row("p1", "harness_full", 90),
+    ]
+    out = a.render(a.aggregate(rows), registry=100, today="2026-07-11")
+    assert "full - core = +10" in out
+    assert "full outperforms core on average; core >= full does not hold" in out
+    assert "core scores higher on 0, full scores higher on 1" in out
+    assert "core >= full holds" not in out
+
+
+def test_component_lift_uses_only_prompt_pairs_with_both_component_scores():
+    rows = [
+        _row("p1", "baseline", 40, {"A": 5}),
+        _row("p1", "harness_core", 80, {"A": 15}),
+        _row("p2", "baseline", 50, {"A": 100}),
+        _row("p2", "harness_core", 70),
+    ]
+    model = a.aggregate(rows)["per_model"][0]
+    assert model["components"]["A"] == 10.0
+    assert model["component_n"]["A"] == 1
+
+
+def test_no_hurt_does_not_report_a_positive_delta_as_the_worst_hurt():
+    rows = [_row("p1", "baseline", 40), _row("p1", "harness_core", 80)]
+    agg = a.aggregate(rows)
+    assert agg["per_model"][0]["hurt_worst"] is None
+    out = a.render(agg, registry=100, today="2026-07-11")
+    assert "HURTS on 0." in out
+    assert "worst 40" not in out

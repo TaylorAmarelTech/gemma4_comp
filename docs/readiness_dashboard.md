@@ -1,6 +1,6 @@
 # Readiness Dashboard
 
-Current as of 2026-05-17. This replaces the historical 2026-05-02
+Current as of 2026-07-15. This replaces the historical 2026-05-02
 appendix-ladder dashboard; the active submission scope is now the active Kaggle
 Gemma 4 path.
 
@@ -12,9 +12,22 @@ Gemma 4 path.
 | `kaggle/02-live-demo/` | Active | Focused live demo and video narrative path. |
 | `kaggle/A-00-omni-experiment-workbench/` | Active | Quantitative proof path: baseline vs harnessed arms, synthetic data, fine-tune, judging, and report artifacts. |
 
+The public A-00 Kaggle page attaches
+`taylorsamarel/duecare-proof-finetuning-data`, and Kaggle reports that proof
+dataset ready. The notebook run still needs a terminal Kaggle status and
+artifact review before it is cited as a completed proof run. The existing
+adapter artifact is smoke-only, and no production adapter or full advanced
+corpus is published.
+
+The auxiliary interim collection is green for publication mechanics: both
+exact-row dataset views are ready, and the integrity audit, CPU training-plan,
+and four-arm evaluation notebooks reached `COMPLETE` on 2026-07-15. This proves
+manifested data handoff and frozen evaluation planning. It does not prove GPU
+training success or model improvement; no adapter weights are attached.
+
 Archived A-series notebooks, task-notebook snapshots, and old generated
 mirrors are not the active competition path. Root `kaggle/` should not contain
-appendix `A-*` folders, and the only root `04-*` folder should be
+appendix `A-*` folders other than active `A-00-omni-experiment-workbench`, and the only root `04-*` folder should be
 `04-kaggle-community-benchmark`. See [`current_kaggle_notebook_state.md`](current_kaggle_notebook_state.md)
 and [`kaggle/_INDEX.md`](../kaggle/_INDEX.md).
 
@@ -24,14 +37,14 @@ and [`kaggle/_INDEX.md`](../kaggle/_INDEX.md).
 |---|---|
 | Harness contract | Documented in [`harness_ecosystem.md`](harness_ecosystem.md), [`harness_pattern.md`](harness_pattern.md), and [`harness_standard_contract.md`](harness_standard_contract.md). |
 | Model loading | Standardized through [`Gemma4Runtime.load()`](model_loading_trace.md) for inference, with active A-00 training as the only direct FastModel exception. |
-| Archived A-00 default harness | `chat_no_online`: Persona + GREP + RAG/context + deterministic tools, with internet/import off. |
-| Archived A-00 judging | Combined rule + LLM judging with local Gemma by default and optional external judge adapters. |
-| Archived A-00 exports | HTML, Markdown, JSON, CSV, charts, activity/evidence bundles, and report manifest under `/kaggle/working`. |
+| Active A-00 default harness | `chat_no_online`: Persona + GREP + RAG/context + deterministic tools, with internet/import off. |
+| Active A-00 judging | Combined rule + LLM judging with local Gemma by default and optional external judge adapters. |
+| Active A-00 exports | HTML, Markdown, JSON, CSV, charts, activity/evidence bundles, and report manifest under `/kaggle/working`. |
 | Test baseline | Focused contract gates are listed in [`FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md). |
 
 ## Remaining Human Actions
 
-1. Run the two active Kaggle kernels on the intended GPU/runtime shape.
+1. Run the two primary demo kernels on the intended GPU/runtime shape.
 2. Optional only: produce an A-00 evidence run with checkpoint/resume
    enabled if new proof artifacts are needed.
 3. Download `/kaggle/working` artifacts before Kaggle shutdown.
@@ -40,7 +53,7 @@ and [`kaggle/_INDEX.md`](../kaggle/_INDEX.md).
 
 The manual checklist lives in [`USER_TODO.md`](USER_TODO.md).
 
-## Archived A-00 Evidence Run Targets
+## Active A-00 Evidence Run Targets
 
 For a fast proof run, use 4 prompts and training disabled or a very short LoRA
 smoke path. For a writeup-quality run, use the highest prompt count that fits

@@ -139,7 +139,10 @@ keeps prompt generation and comparable scoring blocked, avoids raw payload
 sections, and does not contain source URLs, private case text, or other
 disallowed source fields. Bundle artifact paths are handoff metadata only:
 in-repo reports stay repo-relative, and caller-provided output directories are
-recorded as `external/<file>` rather than machine-local absolute paths.
+recorded as privacy-safe external labels rather than machine-local absolute
+paths. Safe external filenames can appear as `external/<name>`; private-looking
+repo-relative path segments and private-looking or malformed external names
+collapse to `external/custom_or_invalid`.
 
 ## Scoring Rule
 

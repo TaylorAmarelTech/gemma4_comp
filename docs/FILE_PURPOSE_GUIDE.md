@@ -26,7 +26,7 @@ published evidence.
 | Kaggle kernels | `kaggle/_INDEX.md`, `kaggle/README.md`, `kaggle/NOTEBOOK_PURPOSE_AND_RUNBOOK.md` |
 | Public website | `apps/duecare-ai.com/README.md`, page templates, route tests |
 | Python packages | Each package `README.md`, package tests, generated component docs |
-| Agent handoff | `AGENTS.md`, `CLAUDE.md`, `PROJECT_BIBLE.md`, `.claude/rules/` |
+| Agent handoff | `AGENTS.md`, `CLAUDE.md`, `PROJECT_BIBLE.md`, `Plans.md`, `.claude/rules/` |
 | Competition docs | `docs/FOR_KAGGLE_JUDGES.md`, `docs/kaggle_writeup_paste_ready.md`, `docs/kaggle_post_networked_knowledge_sharing.md`, `docs/video_script.md` |
 
 ## Generated Module Metadata
@@ -52,6 +52,27 @@ Do not add one-off scripts to the root. Active helpers belong in `scripts/`;
 historical helpers belong under `_archive/`. Do not add new narrative markdown
 files to the root unless they are a GitHub community-health convention or are
 added to `ROOT_FILES.md` with a durable reason.
+
+Durable training helpers in `scripts/` must be discoverable from
+`docs/training_and_finetuning.md`. For example,
+`scripts/ollama_adversarial_flywheel.py` is the local Ollama candidate producer:
+it may generate SFT/DPO candidates and quarantine metadata, but its manifest
+must remain candidate-only until the normal training and publication gates pass.
+`scripts/build_kaggle_proof_training_bundle.py` is the deterministic proof
+bundle producer for the public Kaggle preview dataset; it emits synthetic,
+visible-rationale SFT/preference rows plus held-out splits for the same release
+gate.
+`scripts/build_multiperspective_training_bundle.py` is the larger deterministic
+case-graph producer. It exposes shared dated synthetic records through single,
+handoff, and multi-actor views across perspectives, journey stages, temporal
+lenses, evidence states, and jurisdiction topologies. It holds out complete
+mechanism families, emits an executable quality audit, and requires a separate
+manifest-bound publication approval before the normal release gate can run.
+`scripts/build_kaggle_interim_collection.py` reverifies the approved proof
+release and builds two exact-row Kaggle dataset views plus CPU integrity,
+training-plan, and four-arm-evaluation notebooks under gitignored `reports/`.
+It does not approve new rows, publish the larger candidate, enable GPU training
+by default, or represent visible rationales as hidden chain-of-thought.
 
 ## Canonical Lane Language
 
@@ -80,6 +101,21 @@ Optional benchmark surfaces:
 
 - `kaggle/03-universal-llm-benchmark`
 - `kaggle/04-kaggle-community-benchmark`
+
+Shared dataset surfaces are not additional kernels. In particular,
+[`kaggle/shared-datasets/training-data`](../kaggle/shared-datasets/training-data/)
+is a documentation-only template for a future advanced SFT/preference release.
+It must not contain training rows or an active `dataset-metadata.json` until a
+clean manifest-bound release has passed provenance, licensing, privacy,
+lineage, held-out, and quality gates.
+
+The published proof dataset
+[`taylorsamarel/duecare-proof-finetuning-data`](https://www.kaggle.com/datasets/taylorsamarel/duecare-proof-finetuning-data)
+is separate from that template. It is a preview artifact generated from
+`scripts/build_kaggle_proof_training_bundle.py`, not the full advanced corpus.
+Its public SFT and preference views and three completed CPU companion notebooks
+are listed in `kaggle/_INDEX.md`; they are auxiliary proof artifacts and do not
+change the three-kernel active submission count.
 
 Archived reference material:
 
