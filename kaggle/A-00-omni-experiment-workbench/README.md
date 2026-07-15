@@ -13,13 +13,14 @@
 Status reviewed 2026-07-15:
 
 - The [public Kaggle notebook](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation)
-  is live with the proof dataset attached. Its latest execution still needs
-  terminal Kaggle status plus artifact review before it is cited as a completed
-  training/evaluation proof.
+  is live with the proof dataset attached. Kaggle kernel version `14` was
+  pushed on 2026-07-14. A live command-line review on 2026-07-15 reports a
+  terminal execution status of `CANCEL_ACKNOWLEDGED`; that canceled run is not
+  a completed training or evaluation proof and does not establish model lift.
 - This repository is the source of the later July 2026 manifest, lineage,
-  privacy, immutable-revision, SFT&rarr;DPO, and completion-proof gates. Treat
-  the live run as incomplete until Kaggle reports a terminal execution status
-  and the run artifacts are inspected.
+  privacy, immutable-revision, SFT&rarr;DPO, and completion-proof gates. A fresh
+  successful Kaggle run and inspected artifacts are still required before
+  claiming that this workbench trained an adapter or demonstrated model lift.
 - The proof dataset
   [`taylorsamarel/duecare-proof-finetuning-data`](https://www.kaggle.com/datasets/taylorsamarel/duecare-proof-finetuning-data)
   is published and attached in `kernel-metadata.json`. It is a guarded preview:
