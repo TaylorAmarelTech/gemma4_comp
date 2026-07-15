@@ -323,7 +323,7 @@ jobs:
 
       - name: Build all 17 packages
         run: |
-          for pkg in packages/duecare-llm-*; do
+          for pkg in packages/duecare-llm packages/duecare-llm-*; do
             echo "::group::Building $pkg"
             python -m build --wheel "$pkg"
             echo "::endgroup::"
@@ -354,7 +354,7 @@ jobs:
 
       - name: Build wheels
         run: |
-          for pkg in packages/duecare-llm-*; do
+          for pkg in packages/duecare-llm packages/duecare-llm-*; do
             python -m build --wheel "$pkg"
           done
 
