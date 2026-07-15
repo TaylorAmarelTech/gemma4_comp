@@ -261,8 +261,10 @@ jobs:
       - name: Run unit + integration suite
         run: uv run --no-sync pytest packages tests -q --no-header
 
-      - name: Adversarial validation
-        run: uv run --no-sync python scripts/adversarial_validation.py --all --stress 2
+      - name: Adversarial source and runtime validation
+        run: >-
+          uv run --no-sync python scripts/adversarial_validation.py
+          --yaml --jsonl --imports --namespace --negative --supervisor --stress 2
 
   entity-pipeline:
     name: entity-intelligence suite
@@ -317,7 +319,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install build
-        run: pip install build
+        run: pip install build pyyaml
 
       - name: Build all 17 packages
         run: |
@@ -326,6 +328,9 @@ jobs:
             python -m build --wheel "$pkg"
             echo "::endgroup::"
           done
+
+      - name: Validate built wheel archives
+        run: python scripts/adversarial_validation.py --wheels
 
       - name: Upload wheels
         uses: actions/upload-artifact@v4
