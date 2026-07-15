@@ -23,6 +23,24 @@ Kaggle status plus artifact review before it is cited as a completed proof
 run. No production Gemma adapter, merged weights, or full advanced training
 corpus is attached.
 
+## Auxiliary Interim Training Proofs
+
+The active judge-facing count remains three. Separately, two exact-row dataset
+views and three CPU companion notebooks are public:
+
+- [visible-reasoning SFT data](https://www.kaggle.com/datasets/taylorsamarel/duecare-visible-reasoning-sft-preview)
+  and [preference pairs](https://www.kaggle.com/datasets/taylorsamarel/duecare-preference-pairs-preview)
+  both report ready;
+- the [integrity audit](https://www.kaggle.com/code/taylorsamarel/duecare-training-data-integrity-audit),
+  [Gemma 4 training starter](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-lora-training-starter),
+  and [four-arm evaluation protocol](https://www.kaggle.com/code/taylorsamarel/duecare-four-arm-fine-tuning-evaluation)
+  all reached `COMPLETE` on 2026-07-15.
+
+The training starter's completed public run is a CPU validation and plan export,
+not a GPU fine-tune. It wrote `training-plan.json`; the evaluation notebook
+wrote `evaluation-plan.json` and `evaluation-prompts.jsonl`. No adapter weights
+or claimed model lift are attached.
+
 Each active folder uses `kernel.py` as source of truth. The existing A-00
 Kaggle slug is notebook-typed, so publication packages the script source into
 a temporary `.ipynb` wrapper without changing the repository source of truth.

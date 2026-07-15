@@ -18,6 +18,25 @@ Kaggle; the live notebook run still needs a terminal Kaggle status plus
 artifact review before it is cited as a completed proof run. No production
 Gemma adapter or full advanced training corpus is published.
 
+## Auxiliary Interim Training Collection
+
+These public artifacts support data inspection and reproducible handoff. They
+do not increase the count of active submission kernels above three:
+
+| Public artifact | Purpose | Verified status on 2026-07-15 |
+|---|---|---|
+| [`duecare-visible-reasoning-sft-preview`](https://www.kaggle.com/datasets/taylorsamarel/duecare-visible-reasoning-sft-preview) | Exact-row SFT view of the approved proof release, with isolated validation and test splits. | Dataset `ready` |
+| [`duecare-preference-pairs-preview`](https://www.kaggle.com/datasets/taylorsamarel/duecare-preference-pairs-preview) | Exact-row chosen/rejected preference view of the same release. | Dataset `ready` |
+| [`duecare-training-data-integrity-audit`](https://www.kaggle.com/code/taylorsamarel/duecare-training-data-integrity-audit) | CPU manifest, file-hash, row-hash, model-revision, and lineage-family audit. | Run `COMPLETE`; inline results |
+| [`duecare-gemma-4-lora-training-starter`](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-lora-training-starter) | CPU-safe release preflight and pinned Gemma 4 SFT&rarr;DPO plan; GPU execution requires a fork and explicit opt-in. | Run `COMPLETE`; `training-plan.json` |
+| [`duecare-four-arm-fine-tuning-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-four-arm-fine-tuning-evaluation) | Freezes stock, stock+harness, adapter, and adapter+harness evaluation inputs and gates. | Run `COMPLETE`; plan and prompt artifacts |
+
+The two dataset views contain no new or modified training rows and are not
+independent experiments. They inherit exact-row redistribution permission from
+the manifest-bound combined proof release. All public reasoning fields are
+deliberately authored visible decision scaffolds; hidden model chain-of-thought
+is excluded.
+
 ## Archived Reference Notebooks
 
 The former `03-duecare-video-pitch` notebook, appendix

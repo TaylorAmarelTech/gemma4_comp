@@ -41,6 +41,23 @@ These directories do not change the active-kernel count:
 | `shared-datasets/eval-results` | Existing | Evaluation-result metadata and reproduction notes. |
 | [`shared-datasets/training-data`](shared-datasets/training-data/) | Documentation template only | Future manifest-bound SFT/preference dataset contract. It intentionally has no active `dataset-metadata.json`, no rows, and no publishable release. |
 
+## Auxiliary Public Training Proofs
+
+These are public companions to A-00, not additional active submission kernels:
+
+| Kaggle slug | Type | Purpose | Status reviewed 2026-07-15 |
+|---|---|---|---|
+| `taylorsamarel/duecare-proof-finetuning-data` | Combined dataset | Approved 24-row SFT + 24-pair preference preview with 4 validation and 4 test rows. | Ready |
+| `taylorsamarel/duecare-visible-reasoning-sft-preview` | Derived dataset | Exact-row SFT and held-out view. | Ready |
+| `taylorsamarel/duecare-preference-pairs-preview` | Derived dataset | Exact-row preference and held-out view. | Ready |
+| `taylorsamarel/duecare-training-data-integrity-audit` | CPU notebook | Re-verifies file/row hashes, model revision, and split-family isolation. | Complete |
+| `taylorsamarel/duecare-gemma-4-lora-training-starter` | CPU notebook with GPU opt-in cell | Writes the pinned SFT&rarr;DPO training plan; default public run does not train. | Complete |
+| `taylorsamarel/duecare-four-arm-fine-tuning-evaluation` | CPU notebook | Freezes the four-arm evaluation plan and held-out prompts. | Complete |
+
+The derived datasets are purpose-specific views of one approved source release,
+not independent experimental evidence. The notebook collection does not include
+adapter weights or a completed baseline-versus-adapter result.
+
 ## Archived Notebooks
 
 The former `03-duecare-video-pitch` notebook, appendix notebooks `A-01`

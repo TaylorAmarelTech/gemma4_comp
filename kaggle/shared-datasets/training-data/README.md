@@ -7,6 +7,19 @@ The public proof dataset is separate:
 That preview proves the release contract; this folder remains the template for
 a future full advanced corpus.
 
+Two public, purpose-specific views of that same approved preview are also
+available: the
+[`visible-reasoning SFT preview`](https://www.kaggle.com/datasets/taylorsamarel/duecare-visible-reasoning-sft-preview)
+and the
+[`preference-pairs preview`](https://www.kaggle.com/datasets/taylorsamarel/duecare-preference-pairs-preview).
+They contain exact copies of already approved rows, bind the source release and
+approval hashes, and must not be counted as independent experiments. Their
+companion [integrity](https://www.kaggle.com/code/taylorsamarel/duecare-training-data-integrity-audit),
+[training-plan](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-lora-training-starter),
+and [evaluation-plan](https://www.kaggle.com/code/taylorsamarel/duecare-four-arm-fine-tuning-evaluation)
+notebooks are auxiliary proof surfaces; the default training-plan run is CPU
+only and publishes no adapter.
+
 This folder documents what a future versioned Kaggle Dataset must contain. It
 intentionally uses `dataset-metadata.template.json` instead of Kaggle's active
 `dataset-metadata.json` filename. Do not rename it or add data here until an

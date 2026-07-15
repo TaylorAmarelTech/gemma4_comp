@@ -18,6 +18,13 @@ preview, not the full advanced corpus, and Kaggle reports it ready. The Kaggle
 execution still needs a terminal status and artifact review before it is cited
 as a completed proof run, and no production adapter is published.
 
+The interim training collection is public: the SFT and preference dataset views
+both report ready, and the integrity, CPU training-plan, and four-arm evaluation
+notebooks all completed on 2026-07-15. These are exact-row companions to the
+small approved proof release. The completed training starter emitted a plan but
+did not execute GPU training, so this does not close the adapter or model-lift
+work.
+
 The retired A-series notebook ladder other than active A-00, task-notebook
 snapshots, and older checklist/status docs are archived under
 `docs/_archive/2026-05-16-legacy-notebook-era/` or
