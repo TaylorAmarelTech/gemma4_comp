@@ -72,7 +72,7 @@ DUECARE_VERSION = os.environ.get("DUECARE_VERSION", "0.17.0")
 DUECARE_REPO = os.environ.get("DUECARE_REPO", "TaylorAmarelTech/gemma4_comp")
 DUECARE_COMMIT_SHA = os.environ.get(
     "DUECARE_COMMIT_SHA",
-    "72a604e26bac40cae9ee3c6f12d80eba50a5a2c8",
+    "702f6aeb69b12654d0d82cfbc5ac7dc8f39543b1",
 )
 A00_DUECARE_SOURCE_ROOT = Path(os.environ.get(
     "DUECARE_SOURCE_ROOT",
