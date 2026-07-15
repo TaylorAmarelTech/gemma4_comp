@@ -17,8 +17,8 @@ import hashlib
 import json
 import re
 from collections import Counter
-from typing import Any, Iterable, Mapping, Sequence
-
+from collections.abc import Iterable, Mapping, Sequence
+from typing import Any
 
 SFT_REQUIRED_FIELDS: tuple[str, ...] = (
     "id",
@@ -53,7 +53,19 @@ _PHONE = re.compile(
     r"(?<!\w)(?:\+\d(?:[\s().-]*\d){7,14}|\d{10,14}|"
     r"(?:\(\d{2,4}\)|\d{2,4})[\s.-]\d{3,4}[\s.-]\d{3,4})(?!\w)"
 )
-_PASSPORT = re.compile(r"\b(?:passport|national\s+id|identity\s+card)\s*(?:no\.?|number|#|:)?\s*[A-Z0-9-]{6,16}\b", re.I)
+_PASSPORT = re.compile(
+    r"\b(?:passport|national\s+id|identity\s+card)\s*"
+    r"(?:"
+    r"(?:no\.?|number|#|:)\s*[A-Z0-9-]{4,20}"
+    r"|"
+    # Without an explicit label, require a mixed letter/digit token.  This
+    # detects plausible identifiers such as AB1234567 without mistaking
+    # ordinary domain language such as 'passport retention' for PII.
+    r"(?=[A-Z0-9-]{6,20}\b)(?=[A-Z0-9-]*[A-Z])(?=[A-Z0-9-]*\d)"
+    r"[A-Z0-9-]{6,20}"
+    r")\b",
+    re.I,
+)
 _HIDDEN_REASONING = re.compile(
     r"<\|?(?:think|thought)(?:\|?>)|"
     r"<\|?channel\|?>\s*(?:analysis|thought)|"
@@ -72,7 +84,9 @@ _UNSAFE_OPERATIONAL = re.compile(
     r"disguise\s+(?:the\s+)?(?:fee|loan)|structure\s+the\s+loan\s+to)\b",
     re.I,
 )
-_UNSAFE_NEGATION = re.compile(r"\b(?:cannot|can't|do\s+not|don't|must\s+not|refuse|unsafe|illegal)\b", re.I)
+_UNSAFE_NEGATION = re.compile(
+    r"\b(?:cannot|can't|do\s+not|don't|must\s+not|refuse|unsafe|illegal)\b", re.I
+)
 
 
 def canonical_sha256(value: Any) -> str:
@@ -208,12 +222,14 @@ def validate_training_rows(
 
     def record(kind: str, index: int, row: Mapping[str, Any], codes: list[str]) -> None:
         if codes and len(issue_samples) < 25:
-            issue_samples.append({
-                "kind": kind,
-                "index": index,
-                "id": str(row.get("id") or "")[:160],
-                "codes": sorted(set(codes)),
-            })
+            issue_samples.append(
+                {
+                    "kind": kind,
+                    "index": index,
+                    "id": str(row.get("id") or "")[:160],
+                    "codes": sorted(set(codes)),
+                }
+            )
 
     for kind, rows, required in (
         ("sft", sft_rows, SFT_REQUIRED_FIELDS),
@@ -234,7 +250,12 @@ def validate_training_rows(
                 prompt = row.get("prompt") if isinstance(row.get("prompt"), str) else ""
                 answer = row.get("chosen") if isinstance(row.get("chosen"), str) else ""
                 rejected = row.get("rejected") if isinstance(row.get("rejected"), str) else ""
-                if not prompt.strip() or not answer.strip() or not rejected.strip() or answer.strip() == rejected.strip():
+                if (
+                    not prompt.strip()
+                    or not answer.strip()
+                    or not rejected.strip()
+                    or answer.strip() == rejected.strip()
+                ):
                     schema_failures += 1
                     codes.append("schema_preference_pair")
 
@@ -273,7 +294,10 @@ def validate_training_rows(
             if not _row_integrity_ok(row):
                 integrity_failures += 1
                 codes.append("sha256")
-            if not str(row.get("license") or "").strip() or not str(row.get("lineage_id") or "").strip():
+            if (
+                not str(row.get("license") or "").strip()
+                or not str(row.get("lineage_id") or "").strip()
+            ):
                 provenance_failures += 1
                 codes.append("provenance")
             record(kind, index, row, codes)
@@ -299,11 +323,25 @@ def validate_training_rows(
     )
     if require_preference and not preference_rows:
         schema_failures += 1
-        issue_samples.append({"kind": "bundle", "index": -1, "id": "", "codes": ["preference_required"]})
+        issue_samples.append(
+            {"kind": "bundle", "index": -1, "id": "", "codes": ["preference_required"]}
+        )
 
     gates = [
-        _gate("json_schema_valid", True, schema_failures == 0, schema_failures, "required fields and row shapes"),
-        _gate("pii_absent", True, pii_failures == 0, pii_failures, "detector clean and pii_checked=true"),
+        _gate(
+            "json_schema_valid",
+            True,
+            schema_failures == 0,
+            schema_failures,
+            "required fields and row shapes",
+        ),
+        _gate(
+            "pii_absent",
+            True,
+            pii_failures == 0,
+            pii_failures,
+            "detector clean and pii_checked=true",
+        ),
         _gate(
             "heldout_not_train",
             True,
@@ -314,10 +352,34 @@ def validate_training_rows(
                 f"frozen_lineages={len(eval_lineages)} lineage_overlap={len(lineage_overlap)}"
             ),
         ),
-        _gate("citation_grounded", True, citation_failures == 0, citation_failures, "legal claims carry source references"),
-        _gate("unsafe_advice_filtered", True, unsafe_failures == 0, unsafe_failures, "accepted quality gate and no operational uplift"),
-        _gate("row_integrity", True, integrity_failures == 0, integrity_failures, "row SHA-256 matches canonical content"),
-        _gate("provenance_licensed", True, provenance_failures == 0, provenance_failures, "license and lineage declared"),
+        _gate(
+            "citation_grounded",
+            True,
+            citation_failures == 0,
+            citation_failures,
+            "legal claims carry source references",
+        ),
+        _gate(
+            "unsafe_advice_filtered",
+            True,
+            unsafe_failures == 0,
+            unsafe_failures,
+            "accepted quality gate and no operational uplift",
+        ),
+        _gate(
+            "row_integrity",
+            True,
+            integrity_failures == 0,
+            integrity_failures,
+            "row SHA-256 matches canonical content",
+        ),
+        _gate(
+            "provenance_licensed",
+            True,
+            provenance_failures == 0,
+            provenance_failures,
+            "license and lineage declared",
+        ),
         _gate(
             "hidden_reasoning_absent",
             True,
@@ -330,9 +392,16 @@ def validate_training_rows(
             False,
             duplicate_prompts == 0,
             duplicate_prompts,
-            "exact prompt duplicates within SFT or preference lanes; aligned cross-lane pairs are allowed",
+            "exact prompt duplicates within SFT or preference lanes; "
+            "aligned cross-lane pairs are allowed",
         ),
-        _gate("lineage_unique", False, duplicate_lineages == 0, duplicate_lineages, "duplicate lineage rows"),
+        _gate(
+            "lineage_unique",
+            False,
+            duplicate_lineages == 0,
+            duplicate_lineages,
+            "duplicate lineage rows",
+        ),
     ]
     blocking_failures = [gate["id"] for gate in gates if gate["blocking"] and not gate["passed"]]
     return {

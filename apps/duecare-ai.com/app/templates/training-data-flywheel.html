@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Training-data flywheel &middot; DueCare AI</title>
-<meta name="description" content="How DueCare turns comparable harness runs into reviewable SFT and preference data, trains model-specific LoRA adapters on Kaggle or compatible systems, and gates every release on provenance, privacy, lineage, and held-out evaluation." />
+<meta name="description" content="How DueCare turns comparable harness runs into reviewable supervised fine-tuning and preference data, publishes manifest-bound Kaggle datasets, and gates every release on provenance, privacy, lineage, and held-out evaluation." />
 <link rel="stylesheet" href="/static/styles.css" /><link rel="stylesheet" href="/static/hub-pages.css" />
 <style>
   .tf-status { border:1px solid oklch(0.65 0.10 80); border-radius:12px; padding:18px 20px; background:var(--paper); color:var(--ink-2); font-size:14px; line-height:1.65; }
@@ -42,12 +42,28 @@
   <div class="crumbs"><a href="/">Home</a><span class="sep">/</span><a href="/docs">Docs</a><span class="sep">/</span><span>Training-data flywheel</span></div>
   <span class="kicker">Follow-up &middot; evidence to training</span>
   <h1>Turn measured harness lift into reviewable training data.</h1>
-  <p class="lede">The evaluation harness can do more than score a model. Comparable stock and harnessed answers, citations, tool traces, and per-dimension grades can become candidate teaching material. DueCare turns that evidence into lineage-safe SFT data first, preference data second, and model-specific LoRA experiments &mdash; without treating generated text as automatically fit to train.</p>
+  <p class="lede">The evaluation harness can do more than score a model. Comparable stock and harnessed answers, citations, tool traces, and per-dimension grades can become candidate teaching material. DueCare turns that evidence into lineage-safe supervised fine-tuning (SFT) data first, Direct Preference Optimization (DPO) data second, and model-specific Low-Rank Adaptation (LoRA) experiments &mdash; without treating generated text as automatically fit to train.</p>
 </div></section>
 
 <section class="hp-section" style="padding-top:0"><div class="wrap">
-  <div class="tf-status"><b>Current release boundary.</b> The public code, dataset contracts, A-00 source, public proof dataset, and July dataset-attached Kaggle notebook update are available. The proof dataset has 24 SFT rows, 24 preference rows, 4 validation rows, and 4 test rows with synthetic prompts and visible rationale metadata. <b>No production adapter or full advanced training corpus is published yet.</b> Generated candidates remain gated until provenance, licensing, privacy, citation, lineage, held-out, and quality checks all pass. A smoke artifact proves plumbing only; it is not a trained-model result.</div>
-  <div class="tf-status" style="margin-top:12px"><b>Preflight reviewed 2026-07-14.</b> A-00 now attaches <a href="https://www.kaggle.com/datasets/taylorsamarel/duecare-proof-finetuning-data" target="_blank" rel="noopener">the proof dataset</a>. Kaggle accepted the notebook update as kernel version 14; the run still needs terminal status and artifact review before it is cited as a completed proof run. The older candidate pool still includes a single-corridor shortcut risk and legacy rows missing required lineage, license, source, or privacy fields.</div>
+  <div class="tf-status"><b>Public release boundary &middot; verified 2026-07-15.</b> Two advanced Kaggle datasets are public with exact approval, privacy, license, checksum, and split-isolation evidence. The measured-response release contains 791 supervised fine-tuning rows, 791 preference pairs, 1,582 reward labels, and raw-text-free audit lanes. The multiperspective release contains 25,600 supervised fine-tuning training rows, 25,600 preference-training rows, and 2,048 rows in each held-out split. <b>No Gemma fine-tuning, graphics-processing-unit run, production adapter, merged weights, or independent model-lift result is claimed.</b></div>
+  <div class="tf-status" style="margin-top:12px"><b>Remote notebook evidence.</b> Nine public Kaggle notebooks load, verify, explain, visualize, and run bounded central-processing-unit diagnostics on the releases. Downloaded Kaggle outputs contain 11 charts and 10 review tables for the response explorer, 15 charts and 7 review tables for the multiperspective explorer, plus loading, quality-dashboard, and small-classifier artifacts. The measured-response labels overlap the source benchmark, so its classifier results are diagnostics rather than independent improvement evidence.</div>
+</div></section>
+
+<section class="hp-section"><div class="wrap">
+  <div class="head"><div><span class="ix">00 &middot; Start here</span><h2>Public data that can be opened, loaded, and checked.</h2></div><p class="summary">The landing route starts with the two versioned datasets, then moves through a loading guide and a cross-dataset quality audit before any training plan.</p></div>
+  <div class="tf-grid">
+    <div class="tf-card"><h3>Measured response corpus</h3><p>Positive supervised targets, same-prompt preference pairs, reward labels, a raw-text-free response inventory, and an explicit quarantine lane. Release-manifest Secure Hash Algorithm 256-bit checksum (SHA-256): <code>56fa69c&hellip;22b74b</code>.</p></div>
+    <div class="tf-card"><h3>Multiperspective synthetic corpus</h3><p>Deterministic fictional scenarios across perspective, journey stage, evidence state, time, and jurisdiction. It contains visible decision scaffolds, not real worker cases or hidden reasoning. Release-manifest SHA-256: <code>ea644df4&hellip;9211d</code>.</p></div>
+    <div class="tf-card"><h3>Loading quickstart</h3><p>Verifies both manifests, explains each file type in plain language, demonstrates standard Python, pandas, Hugging Face Datasets, Kagglehub, and Polars loaders, and saves three reviewer-facing charts.</p></div>
+    <div class="tf-card"><h3>Quality dashboard</h3><p>Checks exact prompt and lineage-family isolation across train, validation, and test splits; profiles text and shard sizes; and writes an audit table, summary, report, and four charts.</p></div>
+  </div>
+  <div class="tf-actions">
+    <a href="https://www.kaggle.com/datasets/taylorsamarel/duecare-measured-response-training-corpus" target="_blank" rel="noopener">Open measured-response data &rarr;</a>
+    <a href="https://www.kaggle.com/datasets/taylorsamarel/duecare-multiperspective-finetuning-corpus" target="_blank" rel="noopener">Open multiperspective data &rarr;</a>
+    <a href="https://www.kaggle.com/code/taylorsamarel/duecare-training-data-loading-quickstart" target="_blank" rel="noopener">Run the loading quickstart &rarr;</a>
+    <a href="https://www.kaggle.com/code/taylorsamarel/duecare-training-data-quality-dashboard" target="_blank" rel="noopener">Open the quality dashboard &rarr;</a>
+  </div>
 </div></section>
 
 <section class="hp-section"><div class="wrap">
@@ -65,10 +81,10 @@
 </div></section>
 
 <section class="hp-section"><div class="wrap">
-  <div class="head"><div><span class="ix">02 &middot; SFT then preference</span><h2>Teach an approved response before optimizing its preference.</h2></div><p class="summary">SFT and preference optimization answer different questions. DueCare records both stages separately so a skipped or failed preference stage cannot be reported as a completed SFT&rarr;DPO run.</p></div>
+  <div class="head"><div><span class="ix">02 &middot; Supervised fine-tuning, then preference</span><h2>Teach an approved response before optimizing its preference.</h2></div><p class="summary">Supervised fine-tuning and preference optimization answer different questions. DueCare records both stages separately so a skipped or failed preference stage cannot be reported as a completed training run.</p></div>
   <div class="tf-grid">
     <div class="tf-card"><h3>Supervised fine-tuning</h3><p>An SFT row maps an approved instruction or chat history to a reviewed final answer. It can include citations and a deliberately authored, model-visible reasoning scaffold. The prompt portion can be masked so the loss trains the reply rather than memorizing the input.</p></div>
-    <div class="tf-card"><h3>Preference optimization</h3><p>A DPO row keeps one prompt with a chosen and rejected answer plus the reason for that preference. The rejected answer must represent a known failure &mdash; such as unsupported advice, missed evidence, or over-refusal &mdash; rather than an arbitrary weak sample.</p></div>
+    <div class="tf-card"><h3>Preference optimization</h3><p>A Direct Preference Optimization (DPO) row keeps one prompt with a chosen and rejected answer plus the reason for that preference. The rejected answer must represent a known failure &mdash; such as unsupported advice, missed evidence, or over-refusal &mdash; rather than an arbitrary weak sample.</p></div>
     <div class="tf-card"><h3>Counterfactuals and hard negatives</h3><p>Minimal-pair facts, controlled contract ablations, and reviewed reasoning repairs test whether the model follows evidence instead of keywords. These variants keep their source lineage and never silently replace the canonical row.</p></div>
     <div class="tf-card tf-boundary"><h3>Chain-of-thought boundary</h3><p>The export may contain complete final answers, citations, harness traces, concise explanations intentionally returned to the user, and visible judge or reviewer rationales. It does <b>not</b> retrieve, scrape, infer, or publish a provider&rsquo;s private hidden chain-of-thought. Hidden-thought markup blocks a row from training.</p></div>
   </div>
@@ -79,12 +95,12 @@
   <div class="tf-table-wrap"><table class="tf-table">
     <thead><tr><th>contract field</th><th>what it records</th><th>why it blocks release when absent</th></tr></thead>
     <tbody>
-      <tr><td>Identity</td><td>Stable row ID, prompt hash, response hash, generator version, artifact hash.</td><td>Prevents silent mutation and makes an exported row reproducible.</td></tr>
+      <tr><td>Identity</td><td>Stable row identifier, prompt hash, response hash, generator version, artifact hash.</td><td>Prevents silent mutation and makes an exported row reproducible.</td></tr>
       <tr><td>Lineage + split</td><td>Prompt lineage, source lineage, typology/corridor groups, train/validation/held-out assignment.</td><td>Prevents the same family or a near duplicate from leaking into evaluation.</td></tr>
-      <tr><td>Model provenance</td><td>Provider, exact base model ID, immutable revision, harness/rubric version, pack versions.</td><td>An adapter and its result are meaningful only against the base revision actually used.</td></tr>
+      <tr><td>Model provenance</td><td>Provider, exact base model identifier, immutable revision, harness/rubric version, pack versions.</td><td>An adapter and its result are meaningful only against the base revision actually used.</td></tr>
       <tr><td>Source + license</td><td>Source references, allowed use, license metadata, curator decision, transformation history.</td><td>Public availability alone does not grant permission to train or redistribute.</td></tr>
       <tr><td>Training content</td><td>Final answer, citations, optional visible rationale, SFT messages or chosen/rejected preference pair.</td><td>Separates reviewable model-visible material from prohibited hidden reasoning.</td></tr>
-      <tr><td>Safety evidence</td><td>PII scan, unsafe-advice check, citation verification, deterministic checks, grades, rejection reasons.</td><td>A high aggregate score cannot override a privacy, evidence, or safety failure.</td></tr>
+      <tr><td>Safety evidence</td><td>Personally identifiable information scan, unsafe-advice check, citation verification, deterministic checks, grades, rejection reasons.</td><td>A high aggregate score cannot override a privacy, evidence, or safety failure.</td></tr>
     </tbody>
   </table></div>
 </div></section>
@@ -94,29 +110,31 @@
   <div class="tf-grid">
     <div class="tf-card"><h3>Harness maintainers</h3><p>Turn recurring, reviewed failures into SFT targets, preference pairs, hard negatives, or counterfactual tests while preserving the original evaluation evidence.</p></div>
     <div class="tf-card"><h3>Dataset curators</h3><p>Review provenance, redistribution rights, citations, privacy findings, and lineage assignments before creating a versioned public training-data candidate.</p></div>
-    <div class="tf-card"><h3>Local Ollama red-team loop</h3><p>Run adversarial rewrite, protective answer generation, and strict judge review against approved seed prompts on a local Ollama host. The output is SFT/DPO candidate JSONL plus raw-text-free quarantine metadata; it remains <code>safe_to_train=false</code> until the full release gates pass.</p></div>
+    <div class="tf-card"><h3>Local Ollama red-team loop</h3><p>Run adversarial rewrite, protective answer generation, and strict judge review against approved seed prompts on a local Ollama host. The output is supervised and preference candidate JavaScript Object Notation Lines plus raw-text-free quarantine metadata; it remains <code>safe_to_train=false</code> until the full release gates pass.</p></div>
     <div class="tf-card"><h3>Model researchers</h3><p>Compare how much harness behavior different compatible base models internalize, then measure whether the harness still adds value after training.</p></div>
     <div class="tf-card"><h3>Independent reviewers</h3><p>Recompute hashes, inspect exclusions, verify untouched held-out lineages, and distinguish a dataset release from a notebook run or adapter release.</p></div>
   </div>
 </div></section>
 
 <section class="hp-section"><div class="wrap">
-  <div class="head"><div><span class="ix">05 &middot; Kaggle and other systems</span><h2>A-00 is the executable handoff, not a shortcut around review.</h2></div><p class="summary">The active notebook can import an approved response bundle, export manifest-bound SFT and DPO JSONL, preflight a compatible CUDA runtime, run resumable LoRA stages, and reload the exact base plus adapter for evaluation.</p></div>
+  <div class="head"><div><span class="ix">05 &middot; Kaggle and other systems</span><h2>A-00 is the executable handoff, not a shortcut around review.</h2></div><p class="summary">The active notebook can import an approved response bundle, export manifest-bound supervised and preference JavaScript Object Notation Lines, preflight a compatible NVIDIA Compute Unified Device Architecture runtime, run resumable Low-Rank Adaptation stages, and reload the exact base plus adapter for evaluation.</p></div>
   <div class="tf-grid">
-    <div class="tf-card"><h3>Gemma 4 on Kaggle</h3><p>Start with a commit-pinned Gemma 4 E2B or E4B preset, verify the dataset manifest and dependencies, run SFT, then run the requested preference stage. Download the adapter, logs, completion manifest, and four-arm results before the session ends. The larger 31B evaluation target is a workstation/server-class path, not a phone deployment claim.</p></div>
-    <div class="tf-card"><h3>Compatible model families</h3><p>The JSONL and manifest contracts can feed controlled Unsloth, TRL, or PEFT environments for another compatible base. Each model and immutable revision receives its own adapter and evaluation; an adapter trained for one base is never presented as portable to another.</p></div>
-    <div class="tf-card"><h3>External importer</h3><p>A-00&rsquo;s <b>Already have a file?</b> path can inspect controlled JSON, JSONL, or ZIP exports and suggest a prompt, grading, comparison, or training workflow. A loose file stays inspection-only: it cannot train until its SFT/DPO artifacts and manifest pass the same hashes, model-revision, provenance, license, privacy, lineage, holdout, and quality gates.</p></div>
+    <div class="tf-card"><h3>Gemma 4 on Kaggle</h3><p>Start with a commit-pinned official Gemma 4 E2B or E4B model-variant preset, verify the dataset manifest and dependencies, run supervised fine-tuning, then run the requested preference stage. Download the adapter, logs, completion manifest, and four-arm results before the session ends. The larger 31-billion-parameter evaluation target is a workstation/server-class path, not a phone deployment claim.</p></div>
+    <div class="tf-card"><h3>Compatible model families</h3><p>The JavaScript Object Notation Lines and manifest contracts can feed controlled Unsloth, Hugging Face Transformer Reinforcement Learning, or Parameter-Efficient Fine-Tuning environments for another compatible base. Each model and immutable revision receives its own adapter and evaluation; an adapter trained for one base is never presented as portable to another.</p></div>
+    <div class="tf-card"><h3>External importer</h3><p>A-00&rsquo;s <b>Already have a file?</b> path can inspect controlled JavaScript Object Notation, JavaScript Object Notation Lines, or compressed archive exports and suggest a prompt, grading, comparison, or training workflow. A loose file stays inspection-only: it cannot train until its supervised/preference artifacts and manifest pass the same hashes, model-revision, provenance, license, privacy, lineage, holdout, and quality gates.</p></div>
   </div>
   <ul class="tf-list">
-    <li>Execution stays disabled until the base revision, data paths, license records, CUDA support, dependencies, and gate results are confirmed.</li>
+    <li>Execution stays disabled until the base revision, data paths, license records, NVIDIA graphics-processing support, dependencies, and gate results are confirmed.</li>
     <li>Requested preference training is a required stage: a missing DPO input or failed stage makes the run incomplete.</li>
-    <li>The evaluation holdout is verified by prompt hash and lineage ID before training and again before release.</li>
+    <li>The evaluation holdout is verified by prompt hash and lineage identifier before training and again before release.</li>
     <li>Volatile contacts, rules, fee caps, and current operational facts remain in versioned retrieval or tools instead of being baked into weights.</li>
   </ul>
-  <div class="tf-status" style="margin-top:18px"><b>Future Kaggle Dataset publication unit:</b> eligible SFT, preference, and declared comparison JSONL; immutable manifest and checksums; data card; source/license summary; split policy; gate report; and limitations. The notebook must pin that dataset version. Raw cases, credentials, machine-local paths, private hidden reasoning, and the training-excluded evaluation holdout do not belong in the release. <b>No full corpus dataset version meeting that complete contract has been published yet.</b></div>
+  <div class="tf-status" style="margin-top:18px"><b>Current Kaggle Dataset publication unit:</b> eligible supervised fine-tuning, preference, reward-label, and declared audit JavaScript Object Notation Lines files; immutable manifest and checksums; Croissant metadata; loading guide; data card; source/license summary; split policy; gate report; and limitations. Raw cases, credentials, machine-local paths, private hidden reasoning, and training-excluded evaluation material do not belong in the release. <b>Both public advanced datasets meet this packaging contract for their stated uses.</b></div>
   <div class="tf-actions">
     <a href="https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation" target="_blank" rel="noopener">Open the public Kaggle notebook &rarr;</a>
     <a href="https://www.kaggle.com/datasets/taylorsamarel/duecare-proof-finetuning-data" target="_blank" rel="noopener">Open the proof dataset &rarr;</a>
+    <a href="https://www.kaggle.com/code/taylorsamarel/duecare-response-dataset-visual-explorer" target="_blank" rel="noopener">Explore measured responses &rarr;</a>
+    <a href="https://www.kaggle.com/code/taylorsamarel/duecare-large-corpus-visual-explorer" target="_blank" rel="noopener">Explore the large corpus &rarr;</a>
     <a href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-00-omni-experiment-workbench" target="_blank" rel="noopener">Inspect the A-00 source &rarr;</a>
     <a href="/kernels">See all active Kaggle surfaces &rarr;</a>
   </div>
@@ -127,23 +145,25 @@
   <ol class="tf-ladder">
     <li><span><b>Complete exact generation and grading coverage.</b> Partial sweeps remain resumable evidence, not a complete training corpus.</span></li>
     <li><span><b>Audit and curate candidate rows.</b> Resolve provenance, redistribution rights, privacy, citations, safety, and incomplete judge coverage.</span></li>
-    <li><span><b>Freeze a manifest-bound dataset version.</b> Publish only rows eligible for the declared use, with hashes, lineage-safe splits, data card, and limitations. The current candidates have not passed this rung.</span></li>
-    <li><span><b>Publish and verify a pinned notebook version.</b> Bind input dataset version, code commit, model revision, dependencies, and output manifest; confirm the public Kaggle URL resolves before linking it.</span></li>
+    <li><span><b>Freeze a manifest-bound dataset version.</b> Publish only rows eligible for the declared use, with hashes, lineage-safe splits, data card, and limitations. Both advanced public datasets passed this rung on 2026-07-15.</span></li>
+    <li><span><b>Publish and verify a pinned notebook version.</b> Bind input dataset version, code commit, model revision, dependencies, and output manifest; confirm the public Kaggle web address resolves before linking it.</span></li>
     <li><span><b>Train and evaluate.</b> Complete SFT and the requested preference stage, then run the four arms on untouched held-out lineages.</span></li>
     <li><span><b>Consider an adapter release.</b> Publish weights only if the intended dimensions improve without a citation, privacy, unsafe-assistance, or benign over-refusal regression.</span></li>
   </ol>
-  <div class="tf-status" style="margin-top:18px"><b>Today:</b> the repository implementation, public Kaggle notebook update, and proof dataset are available; the full advanced corpus, production adapter, merged weights, and terminal Kaggle proof-run artifacts are not. This page documents the path to those releases and will remain explicit about which rung has actually passed.</div>
+  <div class="tf-status" style="margin-top:18px"><b>Today:</b> the repository implementation, two advanced public Kaggle datasets, nine public learning notebooks, and downloaded remote outputs are available. The dataset-publication rung passed. Gemma training, a production adapter, merged weights, and independently demonstrated model lift remain future rungs.</div>
 </div></section>
 
 <section class="hp-section"><div class="wrap">
-  <div class="head"><div><span class="ix">07 &middot; Method and source</span><h2>Review the contracts before running a GPU.</h2></div><p class="summary">The website is an orientation layer. The repository owns the executable gates and the versioned methodology.</p></div>
+  <div class="head"><div><span class="ix">07 &middot; Method and source</span><h2>Review the contracts before running a graphics processing unit.</h2></div><p class="summary">The website is an orientation layer. The repository owns the executable gates and the versioned methodology.</p></div>
   <div class="tf-actions">
     <a href="/finetuning">Fine-tuning methodology &rarr;</a>
     <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/training_and_finetuning.md" target="_blank" rel="noopener">Canonical training guide &rarr;</a>
     <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/scripts/ollama_adversarial_flywheel.py" target="_blank" rel="noopener">Ollama candidate flywheel script &rarr;</a>
-    <a href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/shared-datasets/training-data" target="_blank" rel="noopener">Future dataset contract template &rarr;</a>
+    <a href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/shared-datasets/training-data" target="_blank" rel="noopener">Dataset contract map &rarr;</a>
     <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/phase3_training_framework.md" target="_blank" rel="noopener">Phase 3 framework &rarr;</a>
     <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/training_for_understanding.md" target="_blank" rel="noopener">Training for understanding &rarr;</a>
+    <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/evidence_grounded_synthetic_training_blueprint.md" target="_blank" rel="noopener">Evidence-grounded blueprint &rarr;</a>
+    <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/research/training_dataset_publication_and_safety_practices.md" target="_blank" rel="noopener">Publication and safety practices &rarr;</a>
     <a href="/harness-study">Harness-lift study &rarr;</a>
   </div>
 </div></section>

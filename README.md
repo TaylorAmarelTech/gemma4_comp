@@ -18,21 +18,24 @@
 > cannot. These are dated benchmark results, not field-deployment,
 > production-traffic, or weeks-long local Gemma reliability claims.
 >
-> **Current training status (2026-07-14):** the active A-00 workbench and
-> `scripts/training_engine.py` provide a manifest-bound, fail-closed
-> SFT-to-DPO path for official Gemma 4 E2B/E4B revisions and compatible custom
-> models. `scripts/ollama_adversarial_flywheel.py` can use local Ollama models
-> to generate adversarial SFT/DPO candidates and raw-text-free quarantine
-> metadata for that path. Candidate training rows must pass privacy, provenance/licensing,
-> quality, hidden-reasoning, unsafe-advice, immutable-revision, and held-out
-> prompt/lineage contamination gates. The local smoke artifact validates
-> plumbing only. The public proof dataset
-> [`taylorsamarel/duecare-proof-finetuning-data`](https://www.kaggle.com/datasets/taylorsamarel/duecare-proof-finetuning-data)
-> is published as a guarded preview: 24 SFT rows, 24 preference rows, 4
-> validation rows, and 4 test rows with synthetic prompts and deliberately
-> authored visible rationale metadata. It proves the release contract; it is
-> not the full 78k+ prompt corpus. **No eligible complete advanced corpus,
-> production adapter, or merged weights are published**.
+> **Current training-data status (2026-07-15):** two advanced, manifest-bound
+> Kaggle datasets are now public. The
+> [multiperspective corpus](https://www.kaggle.com/datasets/taylorsamarel/duecare-multiperspective-finetuning-corpus)
+> contains 25,600 supervised fine-tuning training rows, 25,600 preference
+> training rows, and 2,048 rows in each held-out split. The
+> [measured-response corpus](https://www.kaggle.com/datasets/taylorsamarel/duecare-measured-response-training-corpus)
+> contains 791 accepted supervised fine-tuning rows, 791 preference pairs,
+> 1,582 reward labels, and raw-text-free inventory and quarantine lanes. Nine
+> public central-processing-unit notebooks verify, load, explain, visualize,
+> and run bounded diagnostics on the releases. Downloaded Kaggle outputs prove
+> 11 charts plus 10 review tables for the response explorer, 15 charts plus 7
+> review tables for the multiperspective explorer, and additional loading,
+> split-isolation, and small-classifier reports. Supervised fine-tuning means
+> training from inputs paired with reviewed desired answers; preference
+> training learns from preferred and nonpreferred answers. This is a
+> professional Kaggle / Gemma 4 hackathon learning artifact. **No Gemma
+> fine-tuning, graphics-processing-unit run, Low-Rank Adaptation adapter,
+> merged weights, or independent model-lift result is claimed.**
 > See [Training and fine-tuning](docs/training_and_finetuning.md).
 >
 > **DueCare is Gemma 4-powered safety infrastructure for migrant-worker
@@ -811,7 +814,7 @@ gemma4_comp/
 │   ├── 03-universal-llm-benchmark/ # optional external endpoint benchmark
 │   ├── 04-kaggle-community-benchmark/ # optional Kaggle benchmark surface
 │   ├── _archive/notebooks/        # archived video pitch and A-01 through A-24
-│   ├── shared-datasets/          # prompts, eval metadata, and non-publishable training-data template
+│   ├── shared-datasets/          # prompts, evaluation metadata, and training-data contracts
 │   ├── kernels/                  # 9 generated/research kernels (separate from submission folders)
 │   └── models/                   # Kaggle Models artifacts
 ├── configs/duecare/              # YAML configuration (models, workflows, domains)
