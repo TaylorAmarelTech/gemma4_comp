@@ -1,0 +1,22 @@
+schema_version: "1.0"
+reasoning_data_policy: >-
+  Import only published final answers and deliberately public, author-written
+  rationales or structured reasoning. Never request or map provider-private
+  hidden chain-of-thought, scratchpads, analysis channels, or production logs.
+default_output_root: reports/training_candidates
+sources: []
+
+# Source entries are intentionally curator-added rather than pre-approved.
+# Each entry must pin an immutable revision and file SHA-256 and declare:
+#
+# - id, enabled, source_type (huggingface_jsonl, kaggle_dataset_file, local_jsonl)
+# - dataset_id, revision, data_file, expected_sha256
+# - license, terms_url, rights_holder
+# - allow_training_use, allow_public_redistribution
+# - rationale_visibility: explicitly_public
+# - fields: {id, prompt, answer, visible_rationale?, source_refs?, lineage_id?}
+# - max_rows
+#
+# Downloaded rows always remain ignored candidate data. Import never promotes a
+# row into a trainer or public release; the canonical training contract,
+# independent quality audit, and curator/privacy/license approvals still apply.

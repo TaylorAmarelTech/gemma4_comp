@@ -2,12 +2,12 @@
 """DueCare autonomous benchmark engine -- a durable, self-contained loop.
 
 Runs INDEPENDENTLY of Claude Code (which pauses between turns and cannot carry a
-multi-day loop). It owns the benchmark: works a queue of (model, target_n) jobs
+multi-day loop). It owns the benchmark: works a queue of (model, target_n[, set[, grader]]) jobs
 through ``rich_harness_lift.py``, regenerates the leaderboard, and commits+pushes
 the BOARD ONLY (data, never code) so the public benchmark fills in on its own clock.
 
 Durable + resumable + safe:
-  * shared memory = ``reports/rich_lift/panel.jsonl`` (resumable grading) plus
+  * shared memory = grader-isolated ``reports/rich_lift/panel*.jsonl`` (resumable grading) plus
     ``reports/autonomous_engine_state.json`` (queue cursor / done list).
   * single-owner lock (``reports/autonomous_engine.lock``) so it never races itself.
   * graceful stop: create ``reports/autonomous_engine.stop`` (checked each tick).
@@ -36,6 +36,7 @@ from datetime import datetime, timezone
 
 from artifact_path_policy import handoff_artifact_path  # noqa: E402
 from _atomic import write_text_atomic  # noqa: E402  (scripts/ is on sys.path as the run dir)
+from multi_judge import model_family  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 REPORTS = ROOT / "reports"
@@ -57,11 +58,15 @@ ACTIVE_RICH_HARNESS_HARNESS_VERSION = "h1"
 EXCLUDED_OPT_IN_HARNESS_VERSIONS = ["h2"]
 # A run_job that returns nonzero (crash / resource exhaustion) leaves the cursor unadvanced, so the SAME
 # job re-runs next tick -- right for a transient blip, but a persistently-crashing job would block the
-# whole queue and starve every model behind it (e.g. the 18:23Z socket-exhaustion crash that stalled the
-# gpt-oss:120b full sweep). After this many CONSECUTIVE failures of the current job, skip past it (its
-# incremental panel rows are kept, so nothing is lost) so the loop keeps progressing; a fresh state re-
-# queues it. Transient failures below the threshold still retry the same job next tick.
+# whole legacy queue and starve every model behind it (e.g. the 18:23Z socket-exhaustion crash that
+# stalled the gpt-oss:120b batched sweep). After this many CONSECUTIVE failures, bounded legacy jobs
+# skip past it while preserving partial rows. Required n=all/full/perdim closure jobs are explicitly
+# exempt: they retain the cursor indefinitely until exact coverage succeeds.
 MAX_JOB_FAILS = int(os.environ.get("DUECARE_MAX_JOB_FAILS", "3"))
+INCOMPLETE_COVERAGE_EXIT = 3
+COVERAGE_SCHEMA = "duecare.rich-lift-coverage.v1"
+ACTIVE_ARMS = ("baseline", "harness_core", "harness_full")
+ACTIVE_COMPONENT_COUNT = 5
 COMMIT_PATHS = [
     "apps/duecare-ai.com/app/static/benchmark_leaderboard.json",
     "docs/research/benchmark_leaderboard.md",
@@ -70,13 +75,16 @@ COMMIT_PATHS = [
 ]
 COMMIT_PATHS_SET = frozenset(COMMIT_PATHS)
 
-# (model, target_n[, "full"]) worked top->bottom; n=0 = all prompts in the set. A 3rd "full"
-# element grades the FULL ~76k-prompt registry set instead of the curated set. Resumable:
+# (model, target_n[, "full"[, grader]]) worked top->bottom; n=0 = all prompts in the set. A 3rd
+# "full" element grades the full generated registry prompt set instead of the curated set. The optional
+# 4th element selects the isolated grader protocol (legacy 2/3-field entries imply "batched"). Resumable:
 # re-running a partly-done job skips graded units. Extend this list to keep the engine busy longer.
-# The flagship models swept across the FULL ~76k-prompt registry, at growing depth (n=0 = all 76,442).
+# The flagship models are swept across the full registry at growing depth (n=0 = every current prompt).
 _SWEEP_MODELS = ["gemma4:31b", "gpt-oss:120b", "glm-5.2", "deepseek-v4-pro"]
+GRADERS = ("batched", "perdim")
+DEFAULT_GRADER = "batched"
 # Coarser, more aggressive climb so large-n coverage lands sooner: after a quick n=1500 round the
-# depth jumps 1500 -> 10000 -> 40000 -> ALL (0 = the whole ~74,640-prompt registry). Grading is
+# depth jumps 1500 -> 10000 -> 40000 -> ALL (0 = the whole generated registry). Grading is
 # resumable, so each rung only grades the prompts the previous rung didn't (no rework).
 _SWEEP_LEVELS = [1500, 10000, 40000, 0]
 # Curated breadth: one n=40 pass to fill the multi-model leaderboard, fed 5 models per round.
@@ -87,17 +95,20 @@ _BREADTH = [
     "deepseek-v4-flash", "devstral-small-2:24b", "nemotron-3-super", "qwen3-coder-next", "glm-5",
     "glm-4.7", "kimi-k2.5", "minimax-m2.5", "minimax-m2.1", "ministral-3:14b",
 ]
-# Interleave: each round grows the EXHAUSTIVE full-registry sweep on every flagship (so coverage of
-# all ~74,640 seed prompts climbs from the FIRST tick -- the full set is shuffled, so each prefix is a
+# Interleave: each round grows the legacy batched full-registry sweep on every flagship (the full set is
+# shuffled, so each prefix is a
 # representative sample) and adds 5 breadth models, so the field still widens to a rich multi-model
-# board. The very first job is a full-sweep job; n=0 in the final round = the whole registry.
-DEFAULT_QUEUE: list[list] = []
+# board. Rigorous full-registry per-dimension jobs lead fresh queues; legacy batched jobs remain for
+# backward-compatible board evidence and resume identities.
+_PERDIM_FULL_JOBS = [[m, 0, "full", "perdim"] for m in _SWEEP_MODELS]
+DEFAULT_QUEUE: list[list] = [list(j) for j in _PERDIM_FULL_JOBS]
 # Spread all breadth models across however many rungs there are (ceil division), so coarsening the
 # level count never silently drops breadth coverage.
 _BREADTH_CHUNK = (len(_BREADTH) + len(_SWEEP_LEVELS) - 1) // len(_SWEEP_LEVELS)
 for _i, _lvl in enumerate(_SWEEP_LEVELS):
     DEFAULT_QUEUE += [[m, _lvl, "full"] for m in _SWEEP_MODELS]
     DEFAULT_QUEUE += [[m, 40] for m in _BREADTH[_i * _BREADTH_CHUNK:(_i + 1) * _BREADTH_CHUNK]]
+# The fourth field keeps per-dimension evidence in panel_perdim/report_perdim and out of the legacy board.
 
 
 def now() -> str:
@@ -128,25 +139,54 @@ def pid_alive(pid: int) -> bool:
 
 
 def acquire_lock() -> bool:
-    if LOCK.exists():
+    LOCK.parent.mkdir(parents=True, exist_ok=True)
+    for _attempt in range(3):
         try:
-            old = int(LOCK.read_text(encoding="utf-8").split(",")[0])
-        except (OSError, ValueError):
-            old = -1
-        if old > 0 and old != os.getpid() and pid_alive(old):
-            log(f"another engine is running (pid {old}); exiting")
+            fd = os.open(str(LOCK), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        except FileExistsError:
+            try:
+                old = int(LOCK.read_text(encoding="utf-8").split(",")[0])
+            except (OSError, ValueError):
+                old = -1
+            if old < 1:
+                try:
+                    age_s = max(0.0, time.time() - LOCK.stat().st_mtime)
+                except OSError:
+                    age_s = 0.0
+                if age_s < 60.0:
+                    log("engine lock is fresh but not fully readable; treating it as a concurrent acquisition")
+                    return False
+            if old > 0 and old != os.getpid() and pid_alive(old):
+                log(f"another engine is running (pid {old}); exiting")
+                return False
+            log(f"stale lock (pid {old}); taking over")
+            try:
+                LOCK.unlink()
+            except FileNotFoundError:
+                pass
+            except OSError as exc:
+                log(f"unable to remove stale lock: {type(exc).__name__}: {exc}")
+                return False
+            continue
+        except OSError as exc:
+            log(f"unable to create engine lock: {type(exc).__name__}: {exc}")
             return False
-        log(f"stale lock (pid {old}); taking over")
-    REPORTS.mkdir(parents=True, exist_ok=True)
-    LOCK.write_text(f"{os.getpid()},{now()}", encoding="utf-8")
-    return True
+        try:
+            os.write(fd, f"{os.getpid()},{now()}".encode("utf-8"))
+            os.fsync(fd)
+        finally:
+            os.close(fd)
+        return True
+    log("unable to acquire engine lock after concurrent stale-lock recovery")
+    return False
 
 
 def release_lock() -> None:
     try:
-        if LOCK.exists() and LOCK.read_text(encoding="utf-8").startswith(str(os.getpid())):
+        owner = int(LOCK.read_text(encoding="utf-8").split(",")[0]) if LOCK.exists() else -1
+        if owner == os.getpid():
             LOCK.unlink()
-    except OSError:
+    except (OSError, ValueError):
         pass
 
 
@@ -154,6 +194,8 @@ def load_state() -> dict:
     if STATE.exists():
         try:
             st = json.loads(STATE.read_text(encoding="utf-8"))
+            if not isinstance(st, dict):
+                raise ValueError("state root is not an object")
             st.setdefault("queue", [list(j) for j in DEFAULT_QUEUE])
             st.setdefault("cursor", 0)
             st.setdefault("ticks", 0)
@@ -161,13 +203,31 @@ def load_state() -> dict:
             st.setdefault("started", now())
             # merge: append any DEFAULT_QUEUE job not already queued, so new jobs (e.g. the full
             # sweep) flow into an already-running queue without losing the cursor / done progress.
-            have = {tuple(j) for j in st["queue"]}
-            for j in DEFAULT_QUEUE:
-                if tuple(j) not in have:
-                    st["queue"].append(list(j))
+            if isinstance(st["queue"], list):
+                have = set()
+                for j in st["queue"]:
+                    try:
+                        have.add(_job(j))
+                    except (IndexError, TypeError, ValueError):
+                        continue
+                for j in DEFAULT_QUEUE:
+                    identity = _job(j)
+                    if identity not in have:
+                        st["queue"].append(list(j))
+                        have.add(identity)
             return st
-        except (OSError, json.JSONDecodeError):
-            pass
+        except (OSError, json.JSONDecodeError, ValueError) as exc:
+            # Never silently reset a corrupt durable cursor to zero: that can replay months of work or
+            # make the live process disagree with status. Return an explicitly invalid state so status,
+            # preflight, and tick all fail closed while preserving the unreadable artifact for recovery.
+            return {
+                "queue": None,
+                "cursor": None,
+                "ticks": 0,
+                "done": [],
+                "started": None,
+                "state_load_error": f"{type(exc).__name__}: {exc}",
+            }
     return {"queue": [list(j) for j in DEFAULT_QUEUE], "cursor": 0, "ticks": 0,
             "done": [], "started": now()}
 
@@ -176,6 +236,44 @@ def save_state(st: dict) -> None:
     st["updated"] = now()
     REPORTS.mkdir(parents=True, exist_ok=True)
     write_text_atomic(STATE, json.dumps(st, indent=2) + "\n")
+
+
+def prioritize_perdim_full(st: dict) -> dict[str, object]:
+    """Move unfinished exhaustive per-dimension jobs to the current cursor without losing work.
+
+    Completed prefix entries stay byte-for-byte and in order.  Every non-priority remaining entry also
+    keeps its relative order.  This is an explicit state migration so merely importing new queue defaults
+    cannot make a live process report a different current job than the one it actually launched.
+    """
+    queue = _queue_value(st)
+    queue_state = _queue_state(st, queue)
+    cursor_state = _cursor_state(st, queue)
+    if queue_state.get("valid") is not True:
+        raise ValueError(str(queue_state.get("error") or "queue_invalid"))
+    cursor = cursor_state.get("value")
+    if not isinstance(cursor, int):
+        raise ValueError(str(cursor_state.get("error") or "cursor_invalid"))
+
+    prefix = queue[:cursor]
+    completed = {_job(entry) for entry in prefix}
+    priority_identities = {_job(entry) for entry in _PERDIM_FULL_JOBS}
+    promoted = [
+        list(entry) for entry in _PERDIM_FULL_JOBS if _job(entry) not in completed
+    ]
+    retained = [
+        entry for entry in queue[cursor:] if _job(entry) not in priority_identities
+    ]
+    migrated = prefix + promoted + retained
+    changed = migrated != queue
+    st["queue"] = migrated
+    st["queue_policy"] = "perdim_full_first_v1"
+    return {
+        "changed": changed,
+        "cursor": cursor,
+        "promoted": len(promoted),
+        "remaining_jobs": len(migrated) - cursor,
+        "current_job": None if cursor >= len(migrated) else list(migrated[cursor]),
+    }
 
 
 def _run(cmd: list[str], capture: bool = False, timeout: float | None = None) -> subprocess.CompletedProcess:
@@ -191,6 +289,184 @@ def _file_info(path: pathlib.Path) -> dict[str, object]:
         except OSError as exc:
             info["error"] = f"{type(exc).__name__}: {exc}"
     return info
+
+
+def _coverage_manifest_summary(path: pathlib.Path | None = None) -> dict[str, object]:
+    """Aggregate-only active closure evidence; never exposes prompt/response content."""
+    path = path or (ROOT / "reports" / "rich_lift" / "panel_perdim.coverage.json")
+    info = _file_info(path)
+    if not path.exists():
+        return {**info, "status": "missing", "complete": False}
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return {
+            **info,
+            "status": "unreadable",
+            "complete": False,
+            "error": f"{type(exc).__name__}: {exc}",
+        }
+    if not isinstance(doc, dict):
+        return {**info, "status": "invalid", "complete": False}
+    scope = doc.get("scope") if isinstance(doc.get("scope"), dict) else {}
+    expected = doc.get("expected") if isinstance(doc.get("expected"), dict) else {}
+    coverage = doc.get("coverage") if isinstance(doc.get("coverage"), dict) else {}
+    response_cells = coverage.get("response_cells") if isinstance(coverage.get("response_cells"), dict) else {}
+    panel_cells = coverage.get("panel_cells") if isinstance(coverage.get("panel_cells"), dict) else {}
+    dimensions = coverage.get("dimension_outputs") if isinstance(coverage.get("dimension_outputs"), dict) else {}
+    return {
+        **info,
+        "schema": doc.get("schema"),
+        "status": doc.get("status"),
+        "phase": doc.get("phase"),
+        "updated_at": doc.get("updated_at"),
+        "started_at": doc.get("started_at"),
+        "models": scope.get("models"),
+        "judges": scope.get("judges"),
+        "prompt_count": scope.get("prompt_count"),
+        "promptset_sha256": scope.get("promptset_sha256"),
+        "rubric_version": scope.get("rubric_version"),
+        "harness_version": scope.get("harness_version"),
+        "grader": scope.get("grader"),
+        "arms": scope.get("arms"),
+        "expected": expected,
+        "promptset_stable": doc.get("promptset_stable"),
+        "promptset_sha256_after": doc.get("promptset_sha256_after"),
+        "response_cells": response_cells,
+        "panel_cells": panel_cells,
+        "dimension_outputs": dimensions,
+        "progress_estimate": doc.get("progress_estimate") if isinstance(doc.get("progress_estimate"), dict) else {},
+        "phase_counts": doc.get("phase_counts") if isinstance(doc.get("phase_counts"), dict) else {},
+        "complete": bool(doc.get("status") == "complete" and coverage.get("complete") is True),
+    }
+
+
+def _required_closure_evidence(closure: dict[str, object], model: str) -> tuple[bool, str]:
+    """Validate the exact, immutable proof required before a closure job may advance.
+
+    The runner's zero exit is necessary but not sufficient: a stale, unreadable, truncated, or
+    wrong-model manifest must retain the queue cursor so the already-checkpointed job can repair its
+    proof on the next pass.
+    """
+    issues: list[str] = []
+    full_count, full_error = _full_prompt_count()
+    promptset_sha256 = _sha256_file(PROMPTS_FULL)
+    configured_judges = list(dict.fromkeys(
+        judge.strip() for judge in JUDGES.split(",") if judge.strip()
+    ))
+    eligible_judges = [
+        judge for judge in configured_judges
+        if model_family(judge) != model_family(model)
+    ]
+
+    if full_count is None or full_error:
+        issues.append("full_promptset_unreadable")
+    if promptset_sha256 is None:
+        issues.append("full_promptset_hash_unavailable")
+    if closure.get("schema") != COVERAGE_SCHEMA:
+        issues.append("schema_mismatch")
+    if closure.get("complete") is not True or closure.get("status") != "complete":
+        issues.append("not_complete")
+    if closure.get("phase") != "closed":
+        issues.append("phase_mismatch")
+    if closure.get("models") != [model]:
+        issues.append("model_scope_mismatch")
+    if closure.get("judges") != configured_judges:
+        issues.append("judge_scope_mismatch")
+    if closure.get("rubric_version") != ACTIVE_RICH_HARNESS_RUBRIC_VERSION:
+        issues.append("rubric_mismatch")
+    if closure.get("harness_version") != ACTIVE_RICH_HARNESS_HARNESS_VERSION:
+        issues.append("harness_mismatch")
+    if closure.get("grader") != "perdim":
+        issues.append("grader_mismatch")
+    if closure.get("arms") != list(ACTIVE_ARMS):
+        issues.append("arm_scope_mismatch")
+    if closure.get("promptset_stable") is not True:
+        issues.append("promptset_not_stable")
+    if closure.get("promptset_sha256") != promptset_sha256:
+        issues.append("promptset_hash_mismatch")
+    if closure.get("promptset_sha256_after") != promptset_sha256:
+        issues.append("final_promptset_hash_mismatch")
+    if closure.get("prompt_count") != full_count:
+        issues.append("prompt_count_mismatch")
+
+    if full_count is not None:
+        response_expected = full_count * len(ACTIVE_ARMS)
+        panel_expected = response_expected * len(eligible_judges)
+        dimension_expected = panel_expected * ACTIVE_COMPONENT_COUNT
+        expected = closure.get("expected") if isinstance(closure.get("expected"), dict) else {}
+        responses = (
+            closure.get("response_cells")
+            if isinstance(closure.get("response_cells"), dict)
+            else {}
+        )
+        panel = (
+            closure.get("panel_cells")
+            if isinstance(closure.get("panel_cells"), dict)
+            else {}
+        )
+        dimensions = (
+            closure.get("dimension_outputs")
+            if isinstance(closure.get("dimension_outputs"), dict)
+            else {}
+        )
+        if expected != {
+            "response_cells": response_expected,
+            "panel_cells": panel_expected,
+            "dimension_outputs": dimension_expected,
+        }:
+            issues.append("expected_counts_mismatch")
+        if responses != {
+            "expected": response_expected,
+            "complete": response_expected,
+            "missing": 0,
+        }:
+            issues.append("response_coverage_mismatch")
+        if panel != {
+            "expected": panel_expected,
+            "complete": panel_expected,
+            "missing": 0,
+        }:
+            issues.append("panel_coverage_mismatch")
+        if (
+            dimensions.get("expected") != dimension_expected
+            or dimensions.get("complete_in_valid_panel_cells") != dimension_expected
+            or dimensions.get("missing_from_valid_panel_cells") != 0
+            or dimensions.get("dimensions_per_panel_cell") != ACTIVE_COMPONENT_COUNT
+        ):
+            issues.append("dimension_coverage_mismatch")
+
+    return not issues, ",".join(dict.fromkeys(issues))
+
+
+def _completion_required(model: str, n: int, prompts_key: "str | None", grader: str) -> bool:
+    del model
+    return n == 0 and prompts_key == "full" and grader == "perdim"
+
+
+def _primary_flywheel_complete(st: dict) -> bool:
+    required = {_job(entry) for entry in _PERDIM_FULL_JOBS}
+    closed = set()
+    for entry in st.get("done", []):
+        if not isinstance(entry, dict):
+            continue
+        closure = entry.get("closure")
+        if not isinstance(closure, dict):
+            continue
+        try:
+            identity = (
+                str(entry["model"]), int(entry["n"]),
+                "full" if entry.get("set") == "full" else None,
+                str(entry.get("grader") or DEFAULT_GRADER),
+            )
+        except (KeyError, TypeError, ValueError):
+            continue
+        if identity not in required:
+            continue
+        proof_valid, _proof_error = _required_closure_evidence(closure, identity[0])
+        if proof_valid:
+            closed.add(identity)
+    return required <= closed
 
 
 def _sha256_file(path: pathlib.Path) -> str | None:
@@ -435,13 +711,26 @@ def _active_rich_harness_scope(
     current_model: str | None,
     current_n: int | None,
     current_set: str | None,
+    current_grader: str | None,
     full_count: int | None,
 ) -> dict[str, object]:
     target = _prompt_target_count(current_n, current_set, full_count) if current_model else None
-    judge_count = len([j for j in JUDGES.split(",") if j.strip()])
+    configured_judges = [j.strip() for j in JUDGES.split(",") if j.strip()]
+    judge_count = sum(
+        1 for judge in configured_judges
+        if current_model is not None and model_family(judge) != model_family(current_model)
+    )
+    grader = current_grader if current_grader in GRADERS else DEFAULT_GRADER
+    component_count = 5 if ACTIVE_RICH_HARNESS_RUBRIC_VERSION == "v1" else 6
+    panel_cells = None if target is None else target * 3 * judge_count
+    judge_calls_per_panel_cell = component_count if grader == "perdim" else 1
+    pairwise_enabled = grader == "batched" and current_n not in (None, 0)
     return {
         "runner": "rich_harness_lift.py",
         "candidate_dimension_sweep_active": False,
+        "grader": grader,
+        "grader_path_isolated": grader == "perdim",
+        "board_default_evidence": grader == "batched",
         "rubric_version": ACTIVE_RICH_HARNESS_RUBRIC_VERSION,
         "opt_in_rubric_versions_excluded": list(EXCLUDED_OPT_IN_RUBRIC_VERSIONS),
         "rubric_version_mixing_allowed": False,
@@ -449,10 +738,19 @@ def _active_rich_harness_scope(
         "opt_in_harness_versions_excluded": list(EXCLUDED_OPT_IN_HARNESS_VERSIONS),
         "harness_version_mixing_allowed": False,
         "rubric_shape": "3 response arms x 5 calibrated components x configured judge panel",
+        "calibrated_component_count": component_count,
+        "judge_calls_per_panel_cell": judge_calls_per_panel_cell,
         "target_prompt_count": target,
         "response_generation_cells": None if target is None else target * 3,
-        "max_component_judge_cells": None if target is None else target * 3 * judge_count,
-        "max_pairwise_judge_cells": None if target is None else target * judge_count,
+        # Retained for status-schema compatibility: this is the number of completed panel cells.
+        "max_component_judge_cells": panel_cells,
+        "max_component_judge_calls": (
+            None if panel_cells is None else panel_cells * judge_calls_per_panel_cell
+        ),
+        "pairwise_enabled": pairwise_enabled,
+        "max_pairwise_judge_cells": (
+            None if target is None else target * judge_count if pairwise_enabled else 0
+        ),
         "configured_judges": judge_count,
     }
 
@@ -547,11 +845,12 @@ def _queue_state(st: dict, queue: list | None = None) -> dict[str, object]:
         return {"valid": False, "error": "queue_not_list", "entry_index": None}
     queue = raw if queue is None else queue
     for i, entry in enumerate(queue):
-        if not isinstance(entry, list) or len(entry) not in (2, 3):
+        if not isinstance(entry, list) or len(entry) not in (2, 3, 4):
             return {"valid": False, "error": "queue_entry_invalid", "entry_index": i}
         model = entry[0]
         n_raw = entry[1]
         prompts_key = entry[2] if len(entry) > 2 else None
+        grader = entry[3] if len(entry) > 3 else DEFAULT_GRADER
         if not isinstance(model, str) or not model.strip():
             return {"valid": False, "error": "queue_entry_invalid", "entry_index": i}
         if isinstance(n_raw, bool):
@@ -560,7 +859,7 @@ def _queue_state(st: dict, queue: list | None = None) -> dict[str, object]:
             n = int(n_raw)
         except (IndexError, TypeError, ValueError):
             return {"valid": False, "error": "queue_entry_invalid", "entry_index": i}
-        if n < 0 or prompts_key not in (None, "full"):
+        if n < 0 or prompts_key not in (None, "full") or grader not in GRADERS:
             return {"valid": False, "error": "queue_entry_invalid", "entry_index": i}
     return {"valid": True, "error": "", "entry_index": None}
 
@@ -581,17 +880,18 @@ def _current_job_summary(st: dict, cursor_state: dict[str, object] | None = None
     queue = _queue_value(st)
     queue_state = _queue_state(st, queue)
     if queue_state.get("valid") is not True:
-        return {"index": None, "model": None, "n": None, "set": None}
+        return {"index": None, "model": None, "n": None, "set": None, "grader": None}
     cursor_state = _cursor_state(st, queue) if cursor_state is None else cursor_state
     cursor = cursor_state.get("value")
     if cursor_state.get("valid") is not True or not isinstance(cursor, int) or cursor >= len(queue):
-        return {"index": None, "model": None, "n": None, "set": None}
-    model, n, key = _job(queue[cursor])
+        return {"index": None, "model": None, "n": None, "set": None, "grader": None}
+    model, n, key, grader = _job(queue[cursor])
     return {
         "index": cursor + 1,
         "model": model,
         "n": n,
         "set": key or "curated",
+        "grader": grader,
     }
 
 
@@ -690,8 +990,13 @@ def _latest_preflight_summary(
             "model": current_job.get("model"),
             "n": current_job.get("n"),
             "set": current_job.get("set"),
+            "grader": current_job.get("grader") or DEFAULT_GRADER,
         }
-        if doc.get("current_job") != expected_job:
+        saved_job = doc.get("current_job")
+        if isinstance(saved_job, dict):
+            saved_job = dict(saved_job)
+            saved_job.setdefault("grader", DEFAULT_GRADER)
+        if saved_job != expected_job:
             mismatch_reasons.append("current_job_changed")
     if paused is not None and doc.get("paused") != paused:
         mismatch_reasons.append("pause_state_changed")
@@ -719,6 +1024,7 @@ def _status_scope_summary(current_job: dict[str, object]) -> dict[str, object]:
     model = current_job.get("model") if isinstance(current_job.get("model"), str) else None
     n = current_job.get("n") if isinstance(current_job.get("n"), int) else None
     job_set = current_job.get("set") if isinstance(current_job.get("set"), str) else None
+    grader = current_job.get("grader") if isinstance(current_job.get("grader"), str) else DEFAULT_GRADER
     full_count, full_error = _full_prompt_count()
     dimension_rows = _jsonl_line_count(DIMENSION_CANDIDATES)
     dimension_status_counts = _jsonl_field_counts(DIMENSION_CANDIDATES, "status")
@@ -740,6 +1046,7 @@ def _status_scope_summary(current_job: dict[str, object]) -> dict[str, object]:
         current_model=model,
         current_n=n,
         current_set=job_set,
+        current_grader=grader,
         full_count=full_count,
     )
     dimension_sweep = _dimension_sweep_estimate(
@@ -810,6 +1117,7 @@ def status_payload() -> dict[str, object]:
         "lock": lock,
         "last_preflight_report": latest_preflight.get("path", ""),
         "latest_preflight": latest_preflight,
+        "active_coverage": _coverage_manifest_summary(),
         **_status_scope_summary(current_job),
     }
 
@@ -903,13 +1211,18 @@ def preflight_status(*, check_ollama: bool = True, ignore_stop_sentinel: bool = 
         if queue_state.get("valid") is True and isinstance(cursor, int) and cursor < len(queue)
         else None
     )
-    current_model = current_n = current_set = None
+    current_model = current_n = current_set = current_grader = None
     if current is not None:
-        current_model, current_n, current_set = _job(current)
+        current_model, current_n, current_set, current_grader = _job(current)
     full_count, full_error = _full_prompt_count()
     lock = _lock_status()
-    panel = _file_info(ROOT / "reports" / "rich_lift" / "panel.jsonl")
-    panel["rows"] = _jsonl_line_count(ROOT / "reports" / "rich_lift" / "panel.jsonl")
+    panel_path = ROOT / "reports" / "rich_lift" / (
+        "panel_perdim.jsonl" if current_grader == "perdim" else "panel.jsonl"
+    )
+    panel = _file_info(panel_path)
+    panel["rows"] = _jsonl_line_count(panel_path)
+    panel["grader"] = current_grader or DEFAULT_GRADER
+    panel["coverage"] = _coverage_manifest_summary()
     dimension_candidates = _file_info(DIMENSION_CANDIDATES)
     dimension_candidates["rows"] = _jsonl_line_count(DIMENSION_CANDIDATES)
     dimension_candidates["status_counts"] = _jsonl_field_counts(DIMENSION_CANDIDATES, "status")
@@ -985,6 +1298,7 @@ def preflight_status(*, check_ollama: bool = True, ignore_stop_sentinel: bool = 
             "model": current_model,
             "n": current_n,
             "set": (current_set or "curated") if current is not None else None,
+            "grader": current_grader,
         },
         "full_promptset": {
             **_file_info(PROMPTS_FULL),
@@ -995,6 +1309,7 @@ def preflight_status(*, check_ollama: bool = True, ignore_stop_sentinel: bool = 
             current_model=current_model,
             current_n=current_n,
             current_set=current_set,
+            current_grader=current_grader,
             full_count=full_count,
         ),
         "panel": panel,
@@ -1036,9 +1351,14 @@ def startup_preflight_gate(*, check_ollama: bool = True) -> dict[str, object]:
     return report
 
 
-def _job(entry) -> tuple[str, int, "str | None"]:
-    """Unpack a queue entry: ``[model, n]`` or ``[model, n, prompts_key]``."""
-    return str(entry[0]), int(entry[1]), (entry[2] if len(entry) > 2 else None)
+def _job(entry) -> tuple[str, int, "str | None", str]:
+    """Unpack legacy or grader-aware queue entries without changing stored state."""
+    return (
+        str(entry[0]),
+        int(entry[1]),
+        entry[2] if len(entry) > 2 else None,
+        str(entry[3]) if len(entry) > 3 else DEFAULT_GRADER,
+    )
 
 
 def ensure_full_promptset() -> bool:
@@ -1051,20 +1371,39 @@ def ensure_full_promptset() -> bool:
     return PROMPTS_FULL.exists()
 
 
-def run_job(model: str, n: int, prompts_key: "str | None" = None) -> bool:
-    log(f"run_job START model={model} n={n} set={prompts_key or 'curated'}")
+def run_job(model: str, n: int, prompts_key: "str | None" = None,
+            grader: str = DEFAULT_GRADER) -> bool | None:
+    """Run one resumable pass.
+
+    Returns ``True`` only for a completed pass, ``None`` for retryable incomplete coverage, and
+    ``False`` for a hard runner/configuration failure. Exhaustive per-dimension jobs use the distinct
+    incomplete result to retain their queue cursor without consuming the legacy three-strike budget.
+    """
+    if grader not in GRADERS:
+        raise ValueError(f"unknown grader: {grader!r}")
+    log(f"run_job START model={model} n={n} set={prompts_key or 'curated'} grader={grader}")
     cmd = [sys.executable, str(ROOT / "scripts" / "rich_harness_lift.py"),
            "--n", str(n), "--models", model, "--judges", JUDGES,
-           "--pairwise", "--max-tokens", "0", "--pace", "0.6",
+           "--max-tokens", "0", "--pace", "0.6",
+           "--grader", grader,
            "--rubric-version", ACTIVE_RICH_HARNESS_RUBRIC_VERSION,
            "--harness-version", ACTIVE_RICH_HARNESS_HARNESS_VERSION]  # 0 = unlimited output (no truncation)
+    # Pairwise preference is a separate two-response experiment, not an A-E grading dimension.  Keep it
+    # on bounded legacy-board jobs; exhaustive and per-dimension jobs focus resources on complete A-E cells.
+    if grader == "batched" and n != 0:
+        cmd.append("--pairwise")
+    required = _completion_required(model, n, prompts_key, grader)
+    if required:
+        cmd.append("--require-complete")
     if prompts_key == "full":
         if not ensure_full_promptset():
-            log("full prompt set unavailable -> skipping job")
+            log("full prompt set unavailable -> runner failed; cursor remains subject to job policy")
             return False
         cmd += ["--prompts", str(PROMPTS_FULL)]
     rc = _run(cmd).returncode
-    log(f"run_job END model={model} rc={rc}")
+    log(f"run_job END model={model} grader={grader} rc={rc}")
+    if required and rc == INCOMPLETE_COVERAGE_EXIT:
+        return None
     return rc == 0
 
 
@@ -1133,13 +1472,14 @@ def update_plan(st: dict, current) -> None:
     cursor_state = _cursor_state(st, queue)
     cur = cursor_state["value"] if cursor_state.get("valid") is True else 0
     paused = STOP.exists()
-    current_model = current_n = current_set = None
+    current_model = current_n = current_set = current_grader = None
     cur_str = "idle/maintenance"
     if current:
-        current_model, current_n, current_set = _job(current)
+        current_model, current_n, current_set, current_grader = _job(current)
         cur_str = (
             f"`{current_model}` n={'all' if current_n == 0 else current_n}"
             + (" (full registry)" if current_set == "full" else "")
+            + f" grader={current_grader}"
         )
     title_status = "paused" if paused else "live"
     progress = (f"{cur}/{len(queue)} jobs complete - paused before {cur_str}"
@@ -1151,6 +1491,7 @@ def update_plan(st: dict, current) -> None:
         current_model=current_model,
         current_n=current_n,
         current_set=current_set,
+        current_grader=current_grader,
         full_count=full_count,
     )
     dimension_sweep = _dimension_sweep_estimate(
@@ -1171,11 +1512,13 @@ def update_plan(st: dict, current) -> None:
         f"# Autonomous benchmark engine - plan & {title_status} status",
         "",
         "> A durable, self-contained loop (`scripts/autonomous_engine.py`) that runs INDEPENDENTLY",
-        "> of Claude Code. It works a queue of (model, n[, full]) benchmark jobs through",
+        "> of Claude Code. It works a queue of (model, n[, full[, grader]]) benchmark jobs through",
         "> `rich_harness_lift.py`, regenerates the leaderboard, and commits+pushes the board (data",
         "> only) on its own clock. Shared memory: `reports/rich_lift/panel.jsonl` +",
+        "> `reports/rich_lift/panel_perdim.jsonl.components.sqlite3` + exact coverage manifest +",
         "> `reports/autonomous_engine_state.json`. Latest readiness: `reports/autonomous_engine_preflight.json`.",
-        "> A `full` job grades the whole ~76k-prompt registry.",
+        "> A required `full`/`perdim` job grades every prompt in the frozen generated registry and cannot",
+        "> advance or be skipped until every response, panel cell, and A-E output is complete.",
         "",
         f"- **Started** {st.get('started')} - **updated** {now()} - **ticks** {st.get('ticks')}",
         f"- **Progress** {progress}",
@@ -1199,7 +1542,9 @@ def update_plan(st: dict, current) -> None:
         "- **Startup gate:** normal wrapper launches preflight before detach while treating the pause sentinel as an ignored launch blocker; it removes the sentinel only after readiness passes. `-NoOllamaCheck` / `--no-ollama-check` is state-only for preflight diagnostics and is refused for normal startup execution (`-Run`, `-Once`, or direct Python loop mode). The Python engine also preflights before taking the lock or starting a tick. Emergency override is `--skip-startup-preflight`.",
         "- **Watchdog:** `scripts/autonomous_engine.ps1 -Register` installs a pause-preserving Task Scheduler launcher (`-WatchdogRun`) that does not ignore or remove `reports/autonomous_engine.stop`; registration and later watchdog ticks do not resume paused judging.",
         "- **Restart:** explicitly run `scripts/autonomous_engine.ps1 -Run`; the wrapper verifies launch readiness, then removes `reports/autonomous_engine.stop` and resumes from the state file + panel - no rework.",
+        "- **Code reload:** `scripts/autonomous_engine.ps1 -Restart` verifies the lock PID belongs to this repository's engine, stops only that process tree, and relaunches from JSONL/SQLite checkpoints.",
         "- **Launch:** `scripts/autonomous_engine.ps1 -Run` (loads .env, recovery venv, detaches).",
+        "- **Primary-flywheel terminal:** after exact closure for Gemma 4, gpt-oss, GLM, and DeepSeek, the engine writes the pause sentinel and exits before legacy/breadth jobs; an explicit `-Run` opts into those later jobs.",
         "",
         "## Current scope",
         (f"- **Active runner:** `rich_harness_lift.py`; board rubric version: "
@@ -1207,10 +1552,13 @@ def update_plan(st: dict, current) -> None:
          f"`{', '.join(EXCLUDED_OPT_IN_RUBRIC_VERSIONS)}`; rubric mixing allowed: `no`; "
          f"board harness version: `{ACTIVE_RICH_HARNESS_HARNESS_VERSION}`; opt-in harness versions "
          f"excluded: `{', '.join(EXCLUDED_OPT_IN_HARNESS_VERSIONS)}`; harness mixing allowed: `no`; "
+         f"grader: `{scope['grader']}`; per-dimension evidence mixed into board: `no`; "
          "candidate-dimension sweep active: `no`."),
         (f"- **Active job estimate:** {_fmt_count(scope['target_prompt_count'])} target prompts; "
          f"{_fmt_count(scope['response_generation_cells'])} response-generation cells; "
          f"{_fmt_count(scope['max_component_judge_cells'])} component-judge cells; "
+         f"{_fmt_count(scope['max_component_judge_calls'])} underlying component judge calls "
+         f"({scope['judge_calls_per_panel_cell']} per panel cell); "
          f"{_fmt_count(scope['max_pairwise_judge_cells'])} pairwise-judge cells."),
         (f"- **Candidate dimension sweep estimate:** {_fmt_count(dimension_rows)} candidate dimensions; "
          f"{_fmt_count(dimension_sweep['review_needed_count'])} still need curator review; "
@@ -1229,16 +1577,17 @@ def update_plan(st: dict, current) -> None:
         "- **Mass-grading guard:** candidate-dimension row labels alone are not enough; the review gate must report promotion-ready proposals before any candidate-dimension sweep is ready.",
         "",
         "## Job queue",
-        "| # | model | n | set | status |",
-        "|---:|---|---:|---|---|",
+        "| # | model | n | set | grader | status |",
+        "|---:|---|---:|---|---|---|",
     ]
     if queue_state.get("valid") is True:
         for i, entry in enumerate(queue):
-            m, n, k = _job(entry)
+            m, n, k, grader = _job(entry)
             status = "done" if i < cur else ("paused" if paused and i == cur else ("RUNNING" if i == cur else "queued"))
-            lines.append(f"| {i + 1} | `{m}` | {'all' if n == 0 else n} | {'full' if k == 'full' else 'curated'} | {status} |")
+            lines.append(f"| {i + 1} | `{m}` | {'all' if n == 0 else n} | "
+                         f"{'full' if k == 'full' else 'curated'} | {grader} | {status} |")
     else:
-        lines.append("| - | - | - | - | invalid queue state; see status/preflight |")
+        lines.append("| - | - | - | - | - | invalid queue state; see status/preflight |")
     lines.append("")
     PLAN.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
@@ -1260,39 +1609,86 @@ def tick() -> bool:
         return False
     cur = cursor_state["value"]
     if cur >= len(queue):
-        log("queue exhausted -> maintenance regen")
-        regen_board()
-        update_plan(st, None)
-        publish("maintenance")
+        if not st.get("queue_complete_at"):
+            log("queue exhausted -> final maintenance regen and clean terminal exit")
+            regen_board()
+            st["queue_complete_at"] = now()
+            update_plan(st, None)
+            publish("queue complete")
+        else:
+            log("queue already complete -> clean terminal exit")
         save_state(st)
-        return True
-    model, n, key = _job(queue[cur])
+        return False
+    model, n, key, grader = _job(queue[cur])
     update_plan(st, queue[cur])
-    ok = run_job(model, n, key)
+    ok = run_job(model, n, key, grader)
     regen_board()
-    if ok:
-        st["done"].append({"model": model, "n": n, "set": key or "curated", "at": now()})
+    required = _completion_required(model, n, key, grader)
+    closure: dict[str, object] | None = None
+    if ok is True and required:
+        closure = _coverage_manifest_summary()
+        proof_valid, proof_error = _required_closure_evidence(closure, model)
+        if not proof_valid:
+            ok = None
+            log(
+                f"required closure job {model} returned success without valid exact closure evidence "
+                f"({proof_error or 'unknown_error'}) -> retaining cursor"
+            )
+    if ok is True:
+        completed = {"model": model, "n": n, "set": key or "curated",
+                     "grader": grader, "at": now()}
+        if required and closure is not None:
+            completed["closure"] = closure
+        st["done"].append(completed)
         st["cursor"] = cur + 1
         st.pop("job_fails", None)                       # reset the consecutive-failure counter on success
+        st.pop("closure_retries", None)
+    elif ok is None:
+        retries = int(st.get("closure_retries", 0)) + 1
+        st["closure_retries"] = retries
+        st.pop("job_fails", None)
+        log(f"job {model} n={n} set={key or 'curated'} grader={grader} has incomplete exact "
+            f"coverage -> retaining cursor for repair pass {retries}")
     else:
         fails = int(st.get("job_fails", 0)) + 1
         st["job_fails"] = fails
-        if fails >= MAX_JOB_FAILS:                       # a persistently failing job must not block the queue
-            log(f"job {model} n={n} set={key or 'curated'} failed {fails}x consecutively -> skipping past it "
+        if required:
+            # A required closure job can never be silently converted into a skip. Hard failures remain
+            # visible and the watchdog retries the same crash-safe checkpoints on the next tick.
+            log(f"required closure job {model} n={n} set={key or 'curated'} grader={grader} "
+                f"hard-failed {fails}x -> retaining cursor (required jobs are never skipped)")
+        elif fails >= MAX_JOB_FAILS:                     # legacy bounded jobs keep the starvation guard
+            log(f"job {model} n={n} set={key or 'curated'} grader={grader} failed {fails}x "
+                "consecutively -> skipping past it "
                 f"(partial panel rows kept); advancing cursor")
             st.setdefault("skipped", []).append(
-                {"model": model, "n": n, "set": key or "curated", "fails": fails, "at": now()})
+                {"model": model, "n": n, "set": key or "curated", "grader": grader,
+                 "fails": fails, "at": now()})
             st["cursor"] = cur + 1
             st.pop("job_fails", None)
         else:
-            log(f"job {model} n={n} set={key or 'curated'} failed ({fails}/{MAX_JOB_FAILS}); retry next tick")
+            log(f"job {model} n={n} set={key or 'curated'} grader={grader} "
+                f"failed ({fails}/{MAX_JOB_FAILS}); retry next tick")
+    primary_complete = _primary_flywheel_complete(st)
+    terminal_now = primary_complete and not st.get("primary_flywheel_complete_at")
+    if terminal_now:
+        st["primary_flywheel_complete_at"] = now()
+        STOP.parent.mkdir(parents=True, exist_ok=True)
+        write_text_atomic(
+            STOP,
+            "primary full-registry per-dimension flywheel complete; explicit -Run required for "
+            "legacy/breadth queue work\n",
+        )
+        log("PRIMARY FLYWHEEL COMPLETE: Gemma 4, gpt-oss, GLM, and DeepSeek exact closure proven; "
+            "pause sentinel written before legacy/breadth jobs")
     save_state(st)
     next_state = _cursor_state(st, queue)
     next_cursor = next_state.get("value")
     nxt = None if not isinstance(next_cursor, int) or next_cursor >= len(queue) else queue[next_cursor]
     update_plan(st, nxt)
-    publish(f"{model} n={'all' if n == 0 else n}" + (" full" if key == "full" else ""))
-    return True
+    publish(f"{model} n={'all' if n == 0 else n}" + (" full" if key == "full" else "")
+            + f" grader={grader}")
+    return not terminal_now
 
 
 def main() -> int:
@@ -1309,6 +1705,8 @@ def main() -> int:
                     help="emergency override: run without the startup preflight launch gate")
     ap.add_argument("--refresh-plan", action="store_true",
                     help="refresh docs/autonomous_loop_plan.md from state without running a benchmark tick")
+    ap.add_argument("--prioritize-perdim-full", action="store_true",
+                    help="safely migrate unfinished state so exhaustive per-dimension jobs run next")
     args = ap.parse_args()
 
     if args.status:
@@ -1340,6 +1738,24 @@ def main() -> int:
         update_plan(st, current)
         print(f"refreshed {PLAN.relative_to(ROOT)}")
         return 0
+
+    if args.prioritize_perdim_full:
+        if not acquire_lock():
+            print(json.dumps({"changed": False, "error": "engine_is_running"}, sort_keys=True))
+            return 2
+        try:
+            st = load_state()
+            result = prioritize_perdim_full(st)
+            save_state(st)
+            current = result.get("current_job")
+            update_plan(st, current if isinstance(current, list) else None)
+            print(json.dumps(result, indent=2, sort_keys=True))
+            return 0
+        except ValueError as exc:
+            print(json.dumps({"changed": False, "error": str(exc)}, sort_keys=True))
+            return 2
+        finally:
+            release_lock()
 
     if args.no_ollama_check and not args.skip_startup_preflight:
         message = (

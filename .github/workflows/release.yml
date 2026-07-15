@@ -1,11 +1,11 @@
-# Release workflow — fan out across packages/duecare-llm-* on a v* tag
+# Release workflow — fan out across all packages/duecare-llm* members on a v* tag
 # and publish each wheel to PyPI under a single coordinated version.
 #
 # Triggers on tags matching v*.*.* (e.g. v0.1.0, v1.0.0). Skips publish
 # when secrets aren't set (lets the workflow be tested via tag-on-fork
 # without needing PyPI credentials).
 #
-# Required secret: PYPI_API_TOKEN (scope: project-wide, all duecare-llm-*).
+# Required secret: PYPI_API_TOKEN (scope: project-wide, all duecare-llm packages).
 # Set at https://github.com/<owner>/<repo>/settings/secrets/actions
 
 name: Release packages to PyPI
@@ -23,9 +23,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - id: list
-        name: Discover packages/duecare-llm-* members
+        name: Discover all duecare-llm package members
         run: |
-          packages=$(ls -d packages/duecare-llm-* | xargs -n1 basename | jq -R . | jq -s -c .)
+          packages=$(ls -d packages/duecare-llm packages/duecare-llm-* | xargs -n1 basename | jq -R . | jq -s -c .)
           echo "packages=$packages" >> "$GITHUB_OUTPUT"
           echo "Found $(echo "$packages" | jq length) packages"
 

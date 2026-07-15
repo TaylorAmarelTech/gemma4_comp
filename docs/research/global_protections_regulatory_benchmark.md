@@ -422,9 +422,11 @@ current deterministic readiness chain. It also carries and validates the
 matrix-derived legal-claim anchor source-channel IDs so later handoff artifacts
 cannot silently broaden legal-claim support beyond official gazette/law-portal
 and labour/migration-ministry channels. Readiness-bundle artifact paths are
-handoff metadata only: they must stay repo-relative for in-repo generated reports
-or `external/<file>` for caller-provided output directories, never machine-local
-absolute paths.
+handoff metadata only: they must stay safe repo-relative labels for in-repo generated reports
+or privacy-safe external labels for caller-provided output directories, never
+machine-local absolute paths. Safe external filenames can appear as
+`external/<name>`; private-looking repo-relative path segments and private-looking
+or malformed external names collapse to `external/custom_or_invalid`.
 
 ## Next-Actions Backlog
 

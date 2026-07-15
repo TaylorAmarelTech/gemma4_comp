@@ -26,7 +26,7 @@ OUT_DIR = _ROOT / "reports" / "benchmark"
 _SAFE_DOMAIN_ID = re.compile(r"^[a-z0-9_:-]{1,80}$")
 _EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b", re.I)
 _PHONE = re.compile(r"\+?\d[\d\s().\-]{8,}\d")
-_LONG_DIGITS = re.compile(r"\b\d{9,}\b")
+_LONG_DIGITS = re.compile(r"(?<!\d)\d{8,}(?!\d)")
 _LOCAL_PATH_HINT = re.compile(r"(?:[A-Za-z]:[\\/]|\\\\|/(?:Users|home|tmp|var|mnt)(?:/|$)|~[\\/])", re.I)
 
 _SOURCE_INTAKE_FIELDS = [

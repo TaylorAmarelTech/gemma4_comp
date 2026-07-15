@@ -83,6 +83,28 @@ def test_judge_components_returns_breakdown_and_total():
     assert "A [0-25]" in seen["p"] and "SPECIFICITY" in seen["p"]
 
 
+def test_perdim_retries_invalid_dimension_output_without_creating_phantom_zero():
+    calls = []
+
+    def caller(prompt, **_kwargs):
+        key = next(k for k in "ABCDE" if f'"{k}"' in prompt)
+        calls.append(key)
+        if key == "B":
+            return "not-json" if calls.count("B") == 1 else '{"B":17,"reason":"grounded"}'
+        if key == "D":
+            return '{"wrong_key":0}'
+        return '{"' + key + '":1,"reason":"ok"}'
+
+    out = mj.judge_components_perdim("p", "r", model="m", caller=caller)
+
+    assert out["B"] == 17.0
+    assert "D" not in out
+    assert out["score"] == 20.0
+    assert calls.count("B") == 2
+    assert calls.count("D") == 2
+    assert out["_calls"] == 7
+
+
 def test_build_component_rubric_uses_domain_spec_anchors():
     rubric = mj.build_component_rubric(_DOMAIN_SPEC)
     assert "Developing-country worker protections" in rubric

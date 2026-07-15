@@ -30,6 +30,7 @@ one-off historical helpers belong under `_archive/`.
 | `AGENTS.md` | Repository-level AGENTS.md instructions for AI coding tools. |
 | `CLAUDE.md` | Claude Code project context and operating notes. |
 | `PROJECT_BIBLE.md` | Root pointer to the canonical long-loop pickup brief in `docs/codex/PROJECT_BIBLE.md`. |
+| `Plans.md` | Compatibility bridge for older Claude Code handoffs that pointed at `Plans.md`; redirects to the Project Bible and pause-safe improvement loops. |
 | `harness.toml` | Local harness policy source of truth. |
 | `.mcp.json.example` | Optional MCP server template. |
 | `.mcp.json` | Empty local MCP config shell; no secrets. |

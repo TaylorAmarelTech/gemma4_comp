@@ -7,7 +7,9 @@
   "is_private": false,
   "enable_gpu": true,
   "enable_internet": true,
-  "dataset_sources": [],
+  "dataset_sources": [
+    "taylorsamarel/duecare-proof-finetuning-data"
+  ],
   "competition_sources": [],
   "kernel_sources": [],
   "model_sources": [

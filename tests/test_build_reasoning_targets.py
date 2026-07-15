@@ -134,6 +134,21 @@ def test_build_drops_chain_complete_but_irrelevant_citation_by_default():
     assert "text" not in m["incoherent_citation_examples"][0]
 
 
+def test_incoherent_citation_examples_reject_case_like_8_digit_prompt_ids_without_copying_them():
+    doc = br.build([_sft("case_12345678", _INCOHERENT_CITATION)], min_chain=3)
+    manifest_json = json.dumps(doc["manifest"])
+
+    assert doc["manifest"]["incoherent_citation_examples"][0]["prompt_id"] == ""
+    assert "case_12345678" not in manifest_json
+
+
+def test_incoherent_citation_examples_keep_generated_date_prompt_ids():
+    pid = "template_20260129_115719_24937"
+    doc = br.build([_sft(pid, _INCOHERENT_CITATION)], min_chain=3)
+
+    assert doc["manifest"]["incoherent_citation_examples"][0]["prompt_id"] == pid
+
+
 def test_build_can_keep_irrelevant_citation_in_legacy_mode():
     doc = br.build([_sft("bad-cite", _INCOHERENT_CITATION)], min_chain=3,
                    require_citation_relevance=False)

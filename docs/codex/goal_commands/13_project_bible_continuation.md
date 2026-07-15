@@ -1,18 +1,19 @@
 # Goal command 13 - project bible continuation loop
 
-Use this when you want Claude Code, Codex, or a similar coding agent to resume
-from the current project bible and keep improving the repo in coherent,
-validated slices without restarting the paused autonomous judging engine.
+Use this when you want Claude Code, Codex, Fable 5-style agents, or a similar
+coding agent to resume from the current project bible and keep improving the
+repo in coherent, validated slices without restarting the paused autonomous
+judging engine.
 
 ## Copy-paste `/goal`
 
 ```text
-/goal In C:\Users\amare\OneDrive\Documents\gemma4_comp, work on master without switching branches and continue improving the DueCare project from the current project bible. Read, in order: AGENTS.md, CLAUDE.md, .claude/rules/05_project_bible_pickup.md, docs/codex/PROJECT_BIBLE.md, docs/codex/README.md, docs/codex/00_do_not_break.md, docs/codex/00_kernel_compatibility_gate.md, docs/codex/00_execution_order.md, and docs/codex/goal_commands/README.md. Inspect the current worktree and `python scripts\autonomous_engine.py --status` before relying on old session state, and treat `lock.state: "stale"` or `latest_preflight.saved_lock_state.state: "stale"` as handoff/status evidence, not proof of a live judging run. Do not remove reports/autonomous_engine.stop, do not start scripts/autonomous_engine.py in run/once mode, do not call Ollama, and do not promote candidate dimensions unless Taylor explicitly asks in the current session and the normal preflight/review gates pass. Pick the next highest-impact safe improvement from docs/codex/PROJECT_BIBLE.md: harden validators between generated research artifacts and active rubric/model behavior, add aggregate-only diagnostics, keep handoff docs synced with actual runtime evidence, improve offline sister-project/domain benchmark planning, or repair small wiring/doc gaps that are directly supported by tests. Make one coherent slice at a time, add or update deterministic tests, run focused tests plus python scripts\validate_project_bible_pickup.py, python scripts\validate_sister_project_planning.py when the slice touches sister-project/domain planning, python scripts\validate_global_protections_saved_artifacts.py and python -m pytest tests -q -k "global_protections or regulatory_miss_pattern" when the slice touches global-protections or regulatory-miss planning, python scripts\validate_public_surface.py, python -m pytest packages --collect-only -q, python scripts\validate_main_kaggle_kernels.py, and py -3.12 scripts\validate_kaggle_page_sources.py when relevant. Keep private data out of git, stage only scoped files, preserve unrelated dirty worktree changes, and continue to the next safe gap until a genuine blocker appears. Final report must include changed files, validation commands/results, autonomous-engine status, whether Ollama was touched, remaining high-value branches, and any unresolved blocker.
+/goal In the DueCare repository root, continue improving the DueCare project from the current project bible. Read, in order: AGENTS.md, CLAUDE.md, PROJECT_BIBLE.md, .claude/rules/05_project_bible_pickup.md, docs/codex/PROJECT_BIBLE.md, docs/codex/README.md, docs/codex/00_do_not_break.md, docs/codex/00_kernel_compatibility_gate.md, docs/codex/00_execution_order.md, and docs/codex/goal_commands/README.md. Inspect the current worktree and `python scripts\autonomous_engine.py --status` before relying on old session state, and treat `lock.state: "stale"` or `latest_preflight.saved_lock_state.state: "stale"` as handoff/status evidence, not proof of a live judging run. Treat `active_loop_scope.rubric_version` `v1` and `active_loop_scope.harness_version` `h1` as the active board scope; keep opt-in `--rubric-version v2`, `--harness-version h2`, and `--benign-control configs/duecare/benchmarks/benign_control_prompts.json` research rows excluded from the active leaderboard and autonomous loop unless Taylor explicitly asks in the current session and the normal gates pass. Do not remove reports/autonomous_engine.stop, do not start scripts/autonomous_engine.py in run/once mode, do not call Ollama, and do not promote candidate dimensions unless Taylor explicitly asks in the current session and the normal preflight/review gates pass. Pick the next highest-impact safe improvement from docs/codex/PROJECT_BIBLE.md: harden validators between generated research artifacts and active rubric/model behavior, add aggregate-only diagnostics, keep handoff docs synced with actual runtime evidence, improve offline sister-project/domain benchmark planning, or repair small wiring/doc gaps that are directly supported by tests. Make one coherent slice at a time, add or update deterministic tests, run focused tests plus python scripts\validate_project_bible_pickup.py, python -m pytest tests\test_artifact_path_policy.py -q when the slice touches shared handoff artifact paths, python -m pytest tests\test_intent_split.py -q when the slice touches the intent split or benign controls, python -m pytest tests\test_plan.py -q when the slice touches dry-run re-grade planning or rich_harness_lift.py --plan, python scripts\validate_sister_project_planning.py when the slice touches sister-project/domain planning, python scripts\validate_global_protections_saved_artifacts.py, python -m pytest tests\test_validate_global_protections_saved_artifacts.py -q, and python -m pytest tests -q -k "global_protections or regulatory_miss_pattern" when the slice touches global-protections or regulatory-miss planning, python scripts\validate_public_surface.py, python -m pytest packages --collect-only -q, python scripts\validate_main_kaggle_kernels.py, and py -3.12 scripts\validate_kaggle_page_sources.py when relevant. Keep private data out of git, stage only scoped files, preserve unrelated dirty worktree changes, and continue to the next safe gap until a genuine blocker appears. Final report must include changed files, validation commands/results, autonomous-engine status, whether Ollama was touched, remaining high-value branches, and any unresolved blocker.
 ```
 
 ## Default loop order
 
-1. Read the project bible and live engine status.
+1. Read the root project bible bridge, canonical project bible, and live engine status.
    Treat `lock.state: "stale"` or
    `latest_preflight.saved_lock_state.state: "stale"` as handoff/status
    evidence, not proof of a live judging run.
@@ -25,6 +26,18 @@ validated slices without restarting the paused autonomous judging engine.
 ## Hard boundaries
 
 - The project bible is a pickup map, not permission to resume judging.
+- The active board scope is `active_loop_scope.rubric_version` `v1` and
+  `active_loop_scope.harness_version` `h1`; `--rubric-version v2` and
+  `--harness-version h2` stay opt-in research rows outside the active
+  leaderboard and autonomous loop unless Taylor explicitly changes that in the
+  current session and the normal gates pass.
+- Benign controls are also opt-in research evidence:
+  `--benign-control configs/duecare/benchmarks/benign_control_prompts.json`
+  measures a separate over-refusal block and must not be merged into the active
+  v1/h1 lift headline, public leaderboard, or autonomous loop.
+- `rich_harness_lift.py --plan` is an offline dry run for versioned re-grade
+  sizing. It must state `NO model was called`, avoid writing grading artifacts,
+  and stay covered by `python -m pytest tests\test_plan.py -q`.
 - Candidate dimensions remain propose-only until the packet builder, validator,
   and human review path allow promotion.
 - Handoff diagnostics must stay aggregate-only and avoid row text, case text,

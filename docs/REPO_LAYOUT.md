@@ -1,6 +1,6 @@
 ﻿# Repository Layout
 
-Current as of 2026-06-29.
+Current as of 2026-07-15.
 
 | Path | Purpose | Status |
 |---|---|---|
@@ -11,14 +11,16 @@ Current as of 2026-06-29.
 | [`kaggle/`](../kaggle/) | Active Kaggle submission path plus archived notebook-era material. Source of truth: [`kaggle/_INDEX.md`](../kaggle/_INDEX.md). | Live |
 | [`kaggle/01-duecare-exploration-workbench/`](../kaggle/01-duecare-exploration-workbench/) | Broad interactive workbench: chat, harness comparison, search, extraction, traces, and knowledge flows. | Active |
 | [`kaggle/02-live-demo/`](../kaggle/02-live-demo/) | Focused demo/video path. | Active |
-| [`kaggle/A-00-omni-experiment-workbench/`](../kaggle/A-00-omni-experiment-workbench/) | Active quantitative proof path: baseline, harness, synthetic rows, optional LoRA, judging, and report exports. | Active |
+| [`kaggle/A-00-omni-experiment-workbench/`](../kaggle/A-00-omni-experiment-workbench/) | Active quantitative proof source: baseline, harness, candidate rows, guarded SFT&rarr;DPO, judging, and report exports. The public Kaggle copy attaches the proof dataset; execution/artifact review is still pending. | Active source; public update pushed |
+| [`kaggle/shared-datasets/training-data/`](../kaggle/shared-datasets/training-data/) | Documentation-only contract and placeholder metadata for a future full advanced SFT/preference Kaggle Dataset; contains no rows or active `dataset-metadata.json`. The separate combined proof dataset, exact-row SFT/preference views, and CPU companion notebooks are indexed in `kaggle/_INDEX.md`. | Template only; public proofs are separate |
 | [`kaggle/03-universal-llm-benchmark/`](../kaggle/03-universal-llm-benchmark/) | Optional endpoint-comparison kernel for arbitrary API targets, DueCare prompt/rubric cues, and Claude Opus judging. | Optional |
 | [`kaggle/04-kaggle-community-benchmark/`](../kaggle/04-kaggle-community-benchmark/) | Optional Kaggle Community Benchmark surface using `kaggle_benchmarks` and Kaggle model proxy calls. | Optional |
 | [`kaggle/_archive/notebooks/`](../kaggle/_archive/notebooks/) | Retired A-series, video-pitch, and task-notebook-era surfaces. | Historical |
 | [`docs/`](../docs/) | Current docs plus archived historical docs. Main reviewer entry: [`FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md). | Live |
-| [`docs/research/`](research/) | Public research evidence, methods, and status reports. Key training/eval evidence includes [`training_methodology.md`](research/training_methodology.md), [`training_regimes_and_systems.md`](research/training_regimes_and_systems.md), and [`four_arm_eval.md`](research/four_arm_eval.md), the pending stock/trained x harness-off/on status report. | Live |
+| [`docs/training_and_finetuning.md`](training_and_finetuning.md) | Public, executable guide to training-data export, local Ollama candidate generation, lineage-safe SFT/DPO preparation, immutable Gemma 4 revisions, Kaggle A-00 execution, and four-arm evaluation. | Live |
+| [`docs/research/`](research/) | Public research evidence, methods, and status reports. The architecture and publication references are [`evidence_grounded_synthetic_training_blueprint.md`](research/evidence_grounded_synthetic_training_blueprint.md) and [`training_dataset_publication_and_safety_practices.md`](research/training_dataset_publication_and_safety_practices.md); evaluation evidence includes [`training_methodology.md`](research/training_methodology.md), [`training_regimes_and_systems.md`](research/training_regimes_and_systems.md), and [`four_arm_eval.md`](research/four_arm_eval.md), the pending stock/trained by harness-off/on status report. | Live |
 | [`docs/entity_intelligence_pipeline.md`](entity_intelligence_pipeline.md) | Canonical map of the propose-only entity-intelligence pipeline: 12 connectors in `scripts/`, the 32-registry cascade in `configs/duecare/research_monitor/`, the 1,111-source + 532-org catalogs, the relationship-edge schema, and the licence ledger. | Live |
-| [`scripts/`](../scripts/) + [`configs/duecare/research_monitor/`](../configs/duecare/research_monitor/) | Operator research tooling: entity connectors, the config-driven registry resolvers (`registry_specs.yaml`), and the licensed-entity / support-org catalogs. Propose-only (stages to gitignored `reports/`). | Live |
+| [`scripts/`](../scripts/) + [`configs/duecare/research_monitor/`](../configs/duecare/research_monitor/) | Operator research and training tooling: entity connectors, the config-driven registry resolvers (`registry_specs.yaml`), the licensed-entity / support-org catalogs, guarded candidate-data helpers such as `ollama_adversarial_flywheel.py`, and the approved-release companion builder `build_kaggle_interim_collection.py`. Propose-only outputs stage to gitignored `reports/` until release gates pass. | Live |
 | [`configs/duecare/benchmarks/domains/`](../configs/duecare/benchmarks/domains/) | Propose-only cross-domain benchmark registry, synthetic seed packs, and optional grounding manifests, including the developing-country worker-protections sister-benchmark seed. | Live |
 | [`configs/duecare/benchmarks/sister_projects/`](../configs/duecare/benchmarks/sister_projects/) | Propose-only sister-project charters for source-gated benchmark programs that sit above domain seeds and curation chains. | Live |
 | [`docs/_archive/`](../docs/_archive/) | Historical docs retained for provenance. | Historical |
@@ -34,6 +36,8 @@ Current as of 2026-06-29.
 - Model loading: [`docs/model_loading_trace.md`](model_loading_trace.md)
 - Harness inventory: [`docs/harness_ecosystem.md`](harness_ecosystem.md)
 - Entity-intelligence pipeline: [`docs/entity_intelligence_pipeline.md`](entity_intelligence_pipeline.md)
+- Evidence-grounded training blueprint: [`docs/research/evidence_grounded_synthetic_training_blueprint.md`](research/evidence_grounded_synthetic_training_blueprint.md)
+- Training-dataset publication practices: [`docs/research/training_dataset_publication_and_safety_practices.md`](research/training_dataset_publication_and_safety_practices.md)
 - Cross-domain domain registry: [`docs/cross_domain_port.md`](cross_domain_port.md)
 - Developing-country worker protections seed: [`docs/research/developing_country_worker_protections_benchmark.md`](research/developing_country_worker_protections_benchmark.md)
 - Regulatory miss pattern sister-benchmark plan: [`docs/research/regulatory_miss_pattern_benchmark.md`](research/regulatory_miss_pattern_benchmark.md)
@@ -80,7 +84,7 @@ Current as of 2026-06-29.
 - Regulatory domain intake validation gate: [`scripts/validate_regulatory_domain_intake_packet.py`](../scripts/validate_regulatory_domain_intake_packet.py)
 - Regulatory domain seed proposal builder: [`scripts/build_regulatory_domain_seed_proposal.py`](../scripts/build_regulatory_domain_seed_proposal.py)
 - Regulatory curation bundle builder: [`scripts/build_regulatory_curation_bundle.py`](../scripts/build_regulatory_curation_bundle.py)
-- AI pickup bridge: root [`PROJECT_BIBLE.md`](../PROJECT_BIBLE.md) points Claude Code, Codex, and Fable-style agents to the canonical long-loop brief at [`docs/codex/PROJECT_BIBLE.md`](codex/PROJECT_BIBLE.md).
+- AI pickup bridge: root [`PROJECT_BIBLE.md`](../PROJECT_BIBLE.md) points Claude Code, Codex, and Fable 5-style agents to the canonical long-loop brief at [`docs/codex/PROJECT_BIBLE.md`](codex/PROJECT_BIBLE.md); root [`Plans.md`](../Plans.md) is a compatibility bridge for older Claude Code handoffs that previously asked agents to re-read `Plans.md`.
 - Root file policy: [`ROOT_FILES.md`](../ROOT_FILES.md)
 - File purpose policy: [`docs/FILE_PURPOSE_GUIDE.md`](FILE_PURPOSE_GUIDE.md)
 - Kaggle Community Benchmark notes: [`docs/KAGGLE_COMMUNITY_BENCHMARK.md`](KAGGLE_COMMUNITY_BENCHMARK.md)

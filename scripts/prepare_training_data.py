@@ -8,7 +8,7 @@ Strategy:
   1. Use only prompts that have graded_responses (204 prompts, 5 grades each)
   2. Training data = grade 4 (good) + grade 5 (best) responses
   3. Negative examples = grade 1 (worst) responses with "DO NOT" prefix
-  4. Split: 80% train, 10% val, 10% test
+  4. Split prompt-id groups: 80% train, 10% val, 10% test
   5. Augment with the DueCare test generators for diversity
 
 Output:
@@ -29,7 +29,7 @@ import argparse
 import json
 import random
 import sys
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import datetime
 from pathlib import Path
 
@@ -222,13 +222,57 @@ def split_data(
     train_ratio: float = 0.8,
     val_ratio: float = 0.1,
 ) -> tuple[list[TrainingExample], list[TrainingExample], list[TrainingExample]]:
-    """Split into train/val/test."""
-    random.shuffle(examples)
-    n = len(examples)
-    train_end = int(n * train_ratio)
-    val_end = int(n * (train_ratio + val_ratio))
+    """Split prompt-id groups into train/val/test without prompt leakage."""
+    if not 0.0 <= train_ratio <= 1.0:
+        raise ValueError("train_ratio must be between 0 and 1")
+    if not 0.0 <= val_ratio <= 1.0:
+        raise ValueError("val_ratio must be between 0 and 1")
+    if train_ratio + val_ratio > 1.0:
+        raise ValueError("train_ratio + val_ratio must not exceed 1")
 
-    return examples[:train_end], examples[train_end:val_end], examples[val_end:]
+    by_prompt: dict[str, list[TrainingExample]] = defaultdict(list)
+    for example in examples:
+        by_prompt[example.prompt_id].append(example)
+
+    prompt_ids = list(by_prompt)
+    random.shuffle(prompt_ids)
+    train_end = int(len(prompt_ids) * train_ratio)
+    val_end = int(len(prompt_ids) * (train_ratio + val_ratio))
+
+    def _rows(group_ids: list[str]) -> list[TrainingExample]:
+        rows = [example for prompt_id in group_ids for example in by_prompt[prompt_id]]
+        random.shuffle(rows)
+        return rows
+
+    return (
+        _rows(prompt_ids[:train_end]),
+        _rows(prompt_ids[train_end:val_end]),
+        _rows(prompt_ids[val_end:]),
+    )
+
+
+def split_prompt_summary(
+    train: list[TrainingExample],
+    val: list[TrainingExample],
+    test: list[TrainingExample],
+) -> dict[str, object]:
+    """Return metadata-only prompt-group counts and overlap checks."""
+    prompt_ids = {
+        "train": {example.prompt_id for example in train},
+        "val": {example.prompt_id for example in val},
+        "test": {example.prompt_id for example in test},
+    }
+    overlap = {
+        "train_val": len(prompt_ids["train"] & prompt_ids["val"]),
+        "train_test": len(prompt_ids["train"] & prompt_ids["test"]),
+        "val_test": len(prompt_ids["val"] & prompt_ids["test"]),
+    }
+    return {
+        "strategy": "prompt_id_grouped",
+        "prompt_counts": {name: len(ids) for name, ids in prompt_ids.items()},
+        "prompt_overlap_counts": overlap,
+        "clean": not any(overlap.values()),
+    }
 
 
 def assign_split(examples: list[TrainingExample], split_name: str) -> None:
@@ -297,6 +341,9 @@ def main(argv: list[str] | None = None) -> int:
     assign_split(train, "train")
     assign_split(val, "val")
     assign_split(test, "test")
+    split_summary = split_prompt_summary(train, val, test)
+    if not split_summary["clean"]:
+        raise RuntimeError("prompt-id leakage detected across training splits")
     print(f"  Train: {len(train)}, Val: {len(val)}, Test: {len(test)}")
 
     # Write
@@ -331,10 +378,9 @@ def main(argv: list[str] | None = None) -> int:
         seed=args.seed,
     )
     manifest_path = OUTPUT_DIR / "manifest.json"
-    manifest_path.write_text(
-        json.dumps(manifest.model_dump(mode="json"), indent=2),
-        encoding="utf-8",
-    )
+    manifest_payload = manifest.model_dump(mode="json")
+    manifest_payload["split_grouping"] = split_summary
+    manifest_path.write_text(json.dumps(manifest_payload, indent=2), encoding="utf-8")
 
     print(f"\nWritten to {OUTPUT_DIR}/")
     print(f"  train.jsonl: {len(train)} examples")

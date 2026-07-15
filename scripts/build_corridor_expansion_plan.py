@@ -69,7 +69,7 @@ REQUIRED_TASK_FIELDS = frozenset({
 })
 _EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b", re.I)
 _PHONE = re.compile(r"\+?\d[\d\s().\-]{8,}\d")
-_LONG_DIGITS = re.compile(r"\b\d{9,}\b")
+_LONG_DIGITS = re.compile(r"(?<!\d)\d{8,}(?!\d)")
 _LOCAL_PATH_HINT = re.compile(
     r"(?:[A-Za-z]:[\\/]|\\\\|(?:^|[\s\"'(:])/(?:Users|home|tmp|var|mnt|private|Volumes)(?:/|$)|~[\\/])",
     re.I,

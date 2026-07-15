@@ -131,6 +131,21 @@ def test_ready_source_row_with_private_contact_text_is_blocked():
     assert report["candidate_manifest_rows"] == []
 
 
+def test_ready_source_row_with_underscore_8_digit_case_like_text_is_blocked_without_copying_value():
+    packet = _packet()
+    row = packet["source_candidate_intake_rows"][0]
+    _fill_valid_source_row(row)
+    row["privacy_notes"] = "No private rows; remove copied case_12345678 before promotion."
+
+    report = validator.validate_source_review_packet(packet, domain_id="developing_country_worker_protections")
+    result = next(r for r in report["source_row_results"] if r["task_id"] == row["task_id"])
+
+    assert report["summary"]["ok"] is False
+    assert f"{row['task_id']}.privacy_notes: long_digit_text" in result["issues"]
+    assert "case_12345678" not in json.dumps(result["issues"])
+    assert report["candidate_manifest_rows"] == []
+
+
 def test_valid_scope_resolution_row_is_reported_as_queue_update_candidate():
     packet = _packet()
     scope = next(

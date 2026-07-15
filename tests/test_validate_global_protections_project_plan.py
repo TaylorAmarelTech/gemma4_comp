@@ -147,6 +147,19 @@ def test_validator_rejects_privacy_and_raw_text_leak():
     assert "plan_contains_no_disallowed_text" in report["summary"]["failed_check_ids"]
 
 
+def test_validator_rejects_8_digit_case_like_text_without_copying_value():
+    doc = deepcopy(_plan_doc())
+    doc["project"]["research_question"] = "Remove copied private case 12345678 before planning."
+
+    report = validator.validate_project_plan(doc, compare_current_chain=False)
+
+    assert report["summary"]["valid"] is False
+    assert "privacy_scan_ok" in report["summary"]["failed_check_ids"]
+    privacy_check = next(check for check in report["checks"] if check["id"] == "privacy_scan_ok")
+    assert privacy_check["actual"]["fresh_counts"]["long_digit"] >= 1
+    assert "12345678" not in json.dumps(report, ensure_ascii=False)
+
+
 def test_validator_rejects_nonempty_issues_map():
     doc = deepcopy(_plan_doc())
     doc["issues"]["privacy_scan_not_ok"] = 1

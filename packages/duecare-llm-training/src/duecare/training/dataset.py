@@ -7,8 +7,6 @@ import json
 import random
 from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Optional
-
 
 # Each target_kind has its own prompt template that becomes the user
 # turn in the Gemma 4 chat dataset. The label becomes the assistant
@@ -48,10 +46,9 @@ _USER_PROMPT_TEMPLATES = {
 
 
 class UnslothDatasetBuilder:
-    """Read labeled_examples, write a chat-format JSONL Unsloth
-    consumes (matches the format used by the existing NB 530)."""
+    """Write candidate chat JSONL for canonical validation and training."""
 
-    def __init__(self, store, system_prompt: Optional[str] = None) -> None:
+    def __init__(self, store, system_prompt: str | None = None) -> None:
         self.store = store
         self.system_prompt = system_prompt or (
             "You are Duecare, a privacy-preserving migrant-worker "
@@ -73,14 +70,19 @@ class UnslothDatasetBuilder:
           <output_path>.test.jsonl  -- test split
           <output_path>.manifest.json -- counts + class distribution
         """
+        allowed_statuses = (
+            '("human_approved")'
+            if only_human_reviewed
+            else '("auto", "human_approved")'
+        )
         rows = self.store.fetchall(
             "SELECT example_id, target_kind, target_id, input_text, "
             "label, confidence, source_strategy, review_status "
             "FROM labeled_examples "
             "WHERE confidence >= ? "
-            "AND review_status IN "
-            f"({'(\"human_approved\")' if only_human_reviewed else '(\"auto\", \"human_approved\")'})",
-            (min_confidence,))
+            f"AND review_status IN {allowed_statuses}",
+            (min_confidence,),
+        )
         if not rows:
             raise RuntimeError(
                 "no labeled examples meet the criteria. Lower "
@@ -93,7 +95,7 @@ class UnslothDatasetBuilder:
             key = (r["target_kind"], r["label"])
             by_class[key].append(r)
         train, val, test = [], [], []
-        for key, items in by_class.items():
+        for items in by_class.values():
             rng.shuffle(items)
             n = len(items)
             n_train = max(1, int(n * train_frac))

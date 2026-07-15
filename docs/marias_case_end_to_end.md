@@ -285,7 +285,7 @@ Duecare for an independent study. She:
 - Runs Gemma 4 + Duecare against her rubric (lift: +52pp on
   ILO C189 indicator citations specifically)
 - Publishes her paper citing
-  `(git_sha=eece564, dataset_version=v3, model_revision=google/gemma-4-e2b-it@main)`
+  `(git_sha=eece564, dataset_version=v3, model_revision=unsloth/gemma-4-E2B-it@4abfca14e6c6bfb5888b80288185b1243fb8d539)`
 
 Her paper informs the next round of bilateral agreement review
 between the Philippines and Saudi Arabia.

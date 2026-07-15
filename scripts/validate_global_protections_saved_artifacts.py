@@ -23,6 +23,7 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
+import re
 import sys
 from typing import Any, Callable
 
@@ -74,6 +75,9 @@ DISALLOWED_TERMS = [
 LOWER_LEVEL_MARKDOWN_DISALLOWED_TERMS = [
     term for term in DISALLOWED_TERMS if term not in {"candidate_url", "source_url"}
 ]
+PRIVATE_MARKDOWN_HINT_RE = re.compile(
+    r"(?i)(?:[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}|(?:https?|ftp|s3|file|mailto):/?|[A-Z]:[\\/]|\\\\|/(?:users|home|tmp|var|mnt|private|volumes)(?:/|$)|OneDrive/Documents|AppData/Local|\.\./|\d{8,})"
+)
 MAX_MARKDOWN_BYTES = 320_000
 CUSTOM_OR_INVALID = "custom_or_invalid"
 KNOWN_JURISDICTION_SCOPE_IDS = frozenset({
@@ -498,6 +502,8 @@ def _markdown_check(
         issue_ids.append("markdown_disallowed_text")
     if "\\" in raw or "C:/" in raw or "/Users/" in raw or "../" in raw:
         issue_ids.append("markdown_path_leak")
+    if PRIVATE_MARKDOWN_HINT_RE.search(raw):
+        issue_ids.append("markdown_private_hint")
     return {
         "markdown_path": _artifact_path(path),
         "markdown_readable": True,

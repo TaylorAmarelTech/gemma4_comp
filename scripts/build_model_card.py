@@ -72,6 +72,7 @@ _SAFE_METRIC_VALUE = re.compile(r"^[A-Za-z0-9 ._:/%+\-()]+$")
 _SAFE_HASHLIKE = re.compile(r"^[A-Fa-f0-9]{7,128}$")
 _SAFE_SHA256 = re.compile(r"^[A-Fa-f0-9]{64}$")
 _SAFE_CREATED_UTC = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|\+00:00)$")
+_LONG_DIGITS = re.compile(r"(?<!\d)\d{8,}(?!\d)")
 _SAFE_STATUSES = frozenset({"planned", "trained", "evaluated", "exported", "published"})
 _SAFE_ARTIFACT_ISSUES = frozenset({
     "fingerprint_mismatch",
@@ -81,6 +82,10 @@ _SAFE_ARTIFACT_ISSUES = frozenset({
     "unreadable_file",
     "unverifiable_path",
 })
+
+
+def _contains_sensitive_text(text: str) -> bool:
+    return bool(_EMAIL.search(text) or _PHONE.search(text) or _LONG_DIGITS.search(text))
 
 
 def _frontmatter(record: dict) -> str:
@@ -129,7 +134,7 @@ def _safe_relative_artifact_path(path: pathlib.PurePath) -> str:
         return "redacted"
     if _LOCAL_PATH_HINT.search(display):
         return "redacted"
-    if _EMAIL.search(display) or _PHONE.search(display) or re.search(r"\b\d{9,}\b", display):
+    if _contains_sensitive_text(display):
         return "redacted"
     if not _SAFE_RELATIVE_PATH.fullmatch(display):
         return "redacted"
@@ -142,6 +147,35 @@ def _display_artifact_path(raw_path: Any) -> str:
     raw = str(raw_path)
     try:
         path = pathlib.Path(raw)
+        # A concrete Path supplied by local code is safe to classify using the
+        # host filesystem.  JSON/registry strings need flavour-independent
+        # handling below so Linux and Windows publish the same redaction.
+        if isinstance(raw_path, pathlib.Path):
+            if path.is_absolute():
+                try:
+                    return _safe_relative_artifact_path(path.relative_to(_ROOT))
+                except ValueError:
+                    return "external"
+            return _safe_relative_artifact_path(
+                pathlib.PurePosixPath(pathlib.PureWindowsPath(raw).as_posix())
+            )
+
+        windows_path = pathlib.PureWindowsPath(raw)
+        posix_path = pathlib.PurePosixPath(raw)
+        if windows_path.is_absolute():
+            if path.is_absolute():
+                try:
+                    return _safe_relative_artifact_path(path.relative_to(_ROOT))
+                except ValueError:
+                    pass
+            return "external"
+        if posix_path.is_absolute():
+            if path.is_absolute():
+                try:
+                    return _safe_relative_artifact_path(path.relative_to(_ROOT))
+                except ValueError:
+                    pass
+            return "redacted" if _LOCAL_PATH_HINT.search(raw) else "external"
         if path.is_absolute():
             try:
                 return _safe_relative_artifact_path(path.relative_to(_ROOT))
@@ -154,8 +188,7 @@ def _display_artifact_path(raw_path: Any) -> str:
 
 def _display_model_id(model_id: Any) -> str:
     text = str(model_id or "")
-    if (_SAFE_MODEL_ID.fullmatch(text) and not _EMAIL.search(text) and not _PHONE.search(text)
-            and not re.search(r"\b\d{9,}\b", text)):
+    if _SAFE_MODEL_ID.fullmatch(text) and not _contains_sensitive_text(text):
         return text
     return "redacted"
 
@@ -171,7 +204,7 @@ def _display_metric_name(name: Any) -> str | None:
     text = str(name or "").strip()
     if not text or len(text) > 80:
         return None
-    if _EMAIL.search(text) or _PHONE.search(text) or re.search(r"\b\d{9,}\b", text):
+    if _contains_sensitive_text(text):
         return None
     if _LOCAL_PATH_HINT.search(text) or "\\" in text:
         return None
@@ -193,7 +226,7 @@ def _display_metric_value(value: Any) -> str:
         text = value.strip()
         if not text or len(text) > 120:
             return "redacted"
-        if _EMAIL.search(text) or _PHONE.search(text) or re.search(r"\b\d{9,}\b", text):
+        if _contains_sensitive_text(text):
             return "redacted"
         if _LOCAL_PATH_HINT.search(text) or "\\" in text:
             return "redacted"
@@ -214,7 +247,7 @@ def _display_hashlike(value: Any) -> str:
     text = str(value or "").strip()
     if _SAFE_SHA256.fullmatch(text):
         return text
-    if re.search(r"\b\d{9,}\b", text):
+    if text.isdigit() and _LONG_DIGITS.search(text):
         return "redacted"
     return text if _SAFE_HASHLIKE.fullmatch(text) else "redacted"
 
@@ -225,7 +258,7 @@ def _display_sha256(value: Any) -> str:
     text = str(value or "").strip()
     if _SAFE_SHA256.fullmatch(text):
         return text
-    if re.search(r"\b\d{9,}\b", text):
+    if text.isdigit() and _LONG_DIGITS.search(text):
         return "redacted"
     return text if _SAFE_SHA256.fullmatch(text) else "redacted"
 
@@ -324,7 +357,7 @@ def _safe_artifact_scalar(value: Any) -> str:
     text = str(value or "").strip()
     if not text:
         return "n/a"
-    if _EMAIL.search(text) or _PHONE.search(text) or re.search(r"\b\d{9,}\b", text):
+    if _contains_sensitive_text(text):
         return "redacted"
     if _LOCAL_PATH_HINT.search(text) or "\\" in text:
         return "redacted"
@@ -364,7 +397,7 @@ def _safe_risk_flag(value: Any) -> str | None:
     flag = value.strip()
     if not flag or len(flag) > 220:
         return None
-    if _EMAIL.search(flag) or _PHONE.search(flag) or re.search(r"\b\d{9,}\b", flag):
+    if _contains_sensitive_text(flag):
         return None
     return flag if any(pattern.fullmatch(flag) for pattern in _SAFE_RISK_FLAG_PATTERNS) else None
 

@@ -215,12 +215,13 @@ def test_perdim_clamps_each_component_to_its_max():
     assert out["score"] == 25.0 + 18 + 24 + 12 + 13           # = 92 with the clamped A
 
 
-def test_perdim_clamps_negative_and_nonnumeric_to_zero():
+def test_perdim_clamps_negative_but_omits_nonnumeric_dimension():
     caller = _canned_caller({"A": -5, "B": "not-a-number", "C": 24, "D": 12, "E": 13})
     out = mj.judge_components_perdim("p", "r", model="m", caller=caller)
     assert out["A"] == 0.0                                    # negative clamps to 0
-    assert out["B"] == 0.0                                    # unparseable score -> 0
-    assert out["score"] == 0 + 0 + 24 + 12 + 13               # = 49
+    assert "B" not in out                                      # invalid after retry; never a phantom zero
+    assert out["_calls"] == 6                                  # B received its one retry
+    assert out["score"] == 0 + 24 + 12 + 13                   # partial sum; harness rejects this cell
 
 
 def test_perdim_shape_is_drop_in_for_batched():
@@ -260,3 +261,76 @@ def test_perdim_passes_domain_spec_to_every_component_call():
     mj.judge_components_perdim("p", "r", model="m", caller=caller, domain_spec=_DOMAIN_SPEC)
     assert len(seen) == 5
     assert all("Developing-country worker protections" in p for p in seen)
+
+
+def test_perdim_component_cache_reuses_successes_and_calls_only_missing_dimension():
+    slots = {}
+    first_calls = []
+
+    def get(component, phrasing, request_hash):
+        value = slots.get((component, phrasing))
+        return value[1] if value and value[0] == request_hash else None
+
+    def put(component, phrasing, request_hash, value):
+        slots[(component, phrasing)] = (request_hash, value)
+
+    def flaky(prompt, **_kwargs):
+        key = _COMPONENT_IN_SCHEMA.search(prompt).group(1)
+        first_calls.append(key)
+        return "not-json" if key == "D" else json.dumps({key: 10})
+
+    first = mj.judge_components_perdim(
+        "p", "r", model="m", caller=flaky,
+        component_cache_get=get, component_cache_put=put,
+    )
+
+    assert "D" not in first
+    assert set(component for component, _phrasing in slots) == {"A", "B", "C", "E"}
+    assert first_calls.count("D") == 2
+
+    second_calls = []
+
+    def repaired(prompt, **_kwargs):
+        key = _COMPONENT_IN_SCHEMA.search(prompt).group(1)
+        second_calls.append(key)
+        return json.dumps({key: 9})
+
+    second = mj.judge_components_perdim(
+        "p", "r", model="m", caller=repaired,
+        component_cache_get=get, component_cache_put=put,
+    )
+
+    assert second_calls == ["D"]
+    assert second["_calls"] == 1
+    assert set("ABCDE") <= set(second)
+
+
+def test_perdim_component_cache_request_hash_invalidates_changed_response():
+    slots = {}
+
+    def get(component, phrasing, request_hash):
+        value = slots.get((component, phrasing))
+        return value[1] if value and value[0] == request_hash else None
+
+    def put(component, phrasing, request_hash, value):
+        slots[(component, phrasing)] = (request_hash, value)
+
+    calls = []
+
+    def caller(prompt, **_kwargs):
+        key = _COMPONENT_IN_SCHEMA.search(prompt).group(1)
+        calls.append(key)
+        return json.dumps({key: 10})
+
+    mj.judge_components_perdim(
+        "p", "response one", model="m", caller=caller,
+        component_cache_get=get, component_cache_put=put,
+    )
+    calls.clear()
+    changed = mj.judge_components_perdim(
+        "p", "response two", model="m", caller=caller,
+        component_cache_get=get, component_cache_put=put,
+    )
+
+    assert calls == list("ABCDE")
+    assert changed["_calls"] == 5

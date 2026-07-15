@@ -1,6 +1,6 @@
 ﻿# Gemma 4 Feature Showcase
 
-Current as of 2026-05-25. This document now describes the active Kaggle
+Current as of 2026-07-14. This document now describes the active Kaggle
 submission path instead of the retired A-series appendix ladder.
 
 ## Features Demonstrated
@@ -11,10 +11,10 @@ submission path instead of the retired A-series appendix ladder.
 | Shared Unsloth FastModel runtime | `Gemma4Runtime.load()` | Standardizes loading, generation defaults, chat template, quantization, and device mapping. |
 | Harnessed generation | Kernel 01 and active A-00 | Holds the base prompt constant while adding DueCare context, rules, and tools. |
 | Deterministic tool use | Kernel 01 and active A-00 `chat_no_online` | Grounds answers in fee caps, ILO indicators, convention lookups, and NGO-intake style checks. |
-| Synthetic SFT row generation | Archived A-00 | Uses harnessed Gemma outputs to create filtered training rows. |
-| LoRA fine-tuning | Archived A-00 | Demonstrates the Unsloth/PEFT training path and adapter save/load flow. |
-| Combined rule + LLM judging | Archived A-00 | Produces a defensible score using deterministic rules plus a Gemma/frontier-style judge. |
-| Evidence export | Archived A-00 | Saves reports, traces, activity logs, charts, and machine-readable artifacts for the writeup. |
+| Candidate SFT/preference row generation | Active A-00 source | Uses harnessed Gemma outputs to create gated training candidates; no complete advanced dataset is published. |
+| LoRA fine-tuning | Active A-00 source | Demonstrates the guarded Unsloth/PEFT SFT&rarr;DPO path and adapter save/load flow; the existing smoke is not a production adapter. |
+| Combined rule + LLM judging | Active A-00 source | Produces a score using deterministic rules plus a configured Gemma/frontier-style judge. |
+| Evidence export | Active A-00 source | Saves reports, traces, activity logs, charts, and machine-readable artifacts for review. |
 
 ## Runtime Contract
 

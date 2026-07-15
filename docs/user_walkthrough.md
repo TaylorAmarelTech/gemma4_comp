@@ -1,6 +1,6 @@
 ﻿# User Walkthrough
 
-Current as of 2026-05-25. This walkthrough uses the active Kaggle path.
+Current as of 2026-07-14. This walkthrough uses the active Kaggle path.
 Older zero-inference appendix-ladder walkthroughs are historical and archived.
 
 ## Three Time Budgets
@@ -9,7 +9,7 @@ Older zero-inference appendix-ladder walkthroughs are historical and archived.
 |---|---|---|
 | 3 minutes | Kernel 02 live demo | See the focused story and capture video-safe screens. |
 | 15 minutes | Kernel 01 comparison | Verify the default harness behavior and traces. |
-| 60+ minutes | Archived A-00 proof run | Optional: produce quantitative artifacts and a report bundle. |
+| 60+ minutes | Active A-00 proof run | Optional: produce quantitative artifacts and a report bundle. |
 
 ## 3-Minute Path: Kernel 02
 
@@ -35,7 +35,7 @@ Verify:
 - Harness traces show which rules, facts, and tools contributed.
 - Model loading follows the shared Gemma 4 runtime path.
 
-## 60+ Minute Path: Archived A-00
+## 60+ Minute Path: Active A-00
 
 Open `kaggle/A-00-omni-experiment-workbench/` and use the preconfigured
 pipeline.

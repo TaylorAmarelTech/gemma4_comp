@@ -13,8 +13,8 @@ replace, the primary submission path:
 1. `01-duecare-exploration-workbench`
 2. `02-live-demo`
 
-A-00 is archived proof material under `kaggle/_archive/notebooks/`, not part
-of the active recording path.
+A-00 remains the active quantitative proof and guarded training/evaluation
+path. It is not one of the two primary demo-recording kernels.
 
 It also complements `03-universal-llm-benchmark`, which is the BYO-endpoint
 runner for OpenAI-compatible, Anthropic Messages, and raw HTTP targets. Use this

@@ -2,6 +2,8 @@
 
 This root pointer exists so Claude Code, Codex, Fable 5-style agents, and other
 repo-root pickup tools can find the current long-loop handoff quickly.
+Older hidden Claude handoffs may mention `Plans.md`; that file is a
+compatibility bridge back to this pickup path, not a separate planning source.
 
 Canonical pickup file:
 

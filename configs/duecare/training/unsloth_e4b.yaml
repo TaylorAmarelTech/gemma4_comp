@@ -1,3 +1,6 @@
+status: legacy_disabled
+replacement: scripts/training_engine.py
+active_kaggle_workbench: kaggle/A-00-omni-experiment-workbench
 base_model: google/gemma-4-E4B-it
 output_dir: checkpoints/gemma4-e4b-duecare-v1
 lora:
@@ -33,9 +36,11 @@ training:
   eval_strategy: steps
   eval_steps: 50
 dataset:
-  train_file: data/training_expanded/train.jsonl
-  val_file: data/training_expanded/val.jsonl
-  test_file: data/training_expanded/test.jsonl
+  sft_train_file: reports/training/sft_train.jsonl
+  sft_heldout_file: reports/training/sft_heldout.jsonl
+  dpo_train_file: reports/training/dpo_train.jsonl
+  dpo_heldout_file: reports/training/dpo_heldout.jsonl
+  quality_audit: reports/training/quality_audit.json
   format: chat
   template: '<start_of_turn>user
 
@@ -49,9 +54,9 @@ dataset:
   min_grade: 4
   max_examples: 2000
 export:
-  merge_lora: true
+  merge_lora: false
   gguf:
-    enabled: true
+    enabled: false
     quantizations:
     - Q4_K_M
     - Q5_K_M
@@ -61,7 +66,7 @@ export:
     enabled: false
     output_dir: models/litert
   hf_hub:
-    enabled: true
+    enabled: false
     repo_id: TaylorScottAmarel/duecare-gemma-4-e4b-safetyjudge-v1
     private: true
 evaluation:

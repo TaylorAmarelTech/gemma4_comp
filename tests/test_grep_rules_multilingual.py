@@ -7,6 +7,7 @@ All prompts below are composite / synthetic (no real people or case numbers).
 from __future__ import annotations
 
 import re
+import unicodedata
 
 import pytest
 
@@ -37,6 +38,9 @@ _PASSPORT = {
     "Swahili": "Wakala amechukua pasipoti yangu na hairudishwi.",
     "Vietnamese": "Môi giới giữ hộ chiếu của tôi và không trả lại.",
     "Chinese": "招聘机构扣留了我的护照，一直不归还。",
+    "Sinhala": "ඒජන්සිය මගේ ගමන් බලපත්‍රය රඳවා ගත්තා, ආපසු දුන්නේ නැහැ.",
+    "Tamil": "ஏஜென்சி என் கடவுச்சீட்டை வைத்துக்கொண்டது, திருப்பித் தரவில்லை.",
+    "Burmese": "အေဂျင်စီက ကျွန်တော့် နိုင်ငံကူးလက်မှတ်ကို သိမ်းထားပြီး ပြန်မပေးဘူး။",
 }
 
 
@@ -54,6 +58,19 @@ def test_other_core_indicators_fire() -> None:
     assert "multiling_movement_restricted" in _rules("لا أستطيع المغادرة من المنزل.")
     # debt bondage (Hindi): "I have to repay a debt to my agent"
     assert "multiling_debt_bondage" in _rules("मुझे मेरे एजेंट को कर्ज़ चुकाना है।")
+
+
+def test_decomposed_unicode_matches_the_same_multilingual_rule() -> None:
+    decomposed = unicodedata.normalize("NFD", _PASSPORT["Vietnamese"])
+    assert "multiling_passport_document_control" in _rules(decomposed)
+
+
+def test_recruitment_fee_rule_preserves_c181_scope_and_exceptions() -> None:
+    rule = next(r for r in MULTILINGUAL_GREP_RULES if r["rule"] == "multiling_recruitment_fee_charged")
+    combined = f"{rule['citation']} {rule['indicator']}"
+    assert "Art. 7(2)" in combined
+    assert "ratification" in combined
+    assert "domestic law" in combined
 
 
 def test_adversarial_euphemism_framing_fires() -> None:
@@ -90,7 +107,7 @@ def test_all_multilingual_patterns_are_valid_regex() -> None:
 
 def test_covers_the_top_corridor_languages() -> None:
     codes = {c for c, _ in MULTILINGUAL_LANGUAGES}
-    assert {"tl", "id", "hi", "ne", "bn", "ar", "ur", "am", "sw", "vi", "zh"} <= codes
+    assert {"tl", "id", "hi", "ne", "bn", "ar", "ur", "am", "sw", "vi", "zh", "si", "ta", "my"} <= codes
 
 
 def test_multilingual_layer_is_separate_from_english_catalog() -> None:

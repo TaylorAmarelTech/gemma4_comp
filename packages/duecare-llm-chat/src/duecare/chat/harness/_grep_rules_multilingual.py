@@ -159,6 +159,40 @@ _LANGS: dict[str, dict[str, object]] = {
         "unpaid": ["拖欠工资", "没有支付工资", "未支付工资", "不发工资", "工资未付"],
         "restrict": ["不能离开", "不允许外出", "被关起来", "被困", "禁止外出", "不准离开"],
     },
+    "si": {  # Sinhala  (Sri Lanka -> Gulf / Lebanon)
+        "name": "Sinhala",
+        "passport": ["ගමන් බලපත්‍රය", "විදේශ ගමන් බලපත්‍රය", "පාස්පෝට්"],
+        "agency": ["ඒජන්සිය", "ඒජන්ට්", "නියෝජිත", "මැදිහත්කරු"],
+        "fee": ["බඳවා ගැනීමේ ගාස්තුව", "ඒජන්සි ගාස්තුව", "ගාස්තුව"],
+        "debt": ["ණය", "ණයක්"],
+        "wage": ["වැටුප", "පඩිය"],
+        "retain": ["රඳවා ගත්තා", "අත්පත් කර ගත්තා", "ආපසු දුන්නේ නැහැ", "දුන්නේ නැහැ"],
+        "unpaid": ["වැටුප ගෙව්වේ නැහැ", "පඩිය දුන්නේ නැහැ", "ගෙවා නැහැ"],
+        "restrict": ["පිට යන්න බැහැ", "පිටතට යාමට ඉඩ දෙන්නේ නැහැ", "හිර කරලා"],
+    },
+    "ta": {  # Tamil  (India / Sri Lanka -> Gulf).  Tamil is agglutinative, so the passport noun is stored
+        # as a stem (``கடவுச்சீட்``) that prefixes both nominative ``கடவுச்சீட்டு`` and accusative ``கடவுச்சீட்டை``.
+        "name": "Tamil",
+        "passport": ["கடவுச்சீட்", "பாஸ்போர்ட்"],
+        "agency": ["முகவர்", "ஏஜென்சி", "தரகர்"],
+        "fee": ["ஆட்சேர்ப்பு கட்டணம்", "முகவர் கட்டணம்", "கட்டணம்"],
+        "debt": ["கடன்"],
+        "wage": ["சம்பளம்", "ஊதியம்"],
+        "retain": ["வைத்துக்கொண்டார்", "பறிமுதல்", "திருப்பித் தரவில்லை", "எடுத்துக்கொண்டார்"],
+        "unpaid": ["சம்பளம் தரவில்லை", "பணம் தரவில்லை", "கொடுக்கவில்லை"],
+        "restrict": ["வெளியே போக முடியாது", "வெளியே அனுமதிக்கவில்லை", "அடைத்து"],
+    },
+    "my": {  # Burmese  (Myanmar -> Thailand / Malaysia -- Myanmar->Thailand is the highest-volume corridor)
+        "name": "Burmese",
+        "passport": ["နိုင်ငံကူးလက်မှတ်", "ပတ်စ်ပို့"],
+        "agency": ["အေဂျင်စီ", "ပွဲစား", "အလုပ်ရှာဖွေရေး"],
+        "fee": ["ဝန်ဆောင်ခ", "အခကြေးငွေ", "စေ့စပ်ခ"],
+        "debt": ["အကြွေး", "ချေးငွေ"],
+        "wage": ["လုပ်ခ", "လစာ"],
+        "retain": ["သိမ်းထား", "ပြန်မပေး", "သိမ်းယူ", "ယူထား"],
+        "unpaid": ["လစာမပေး", "ပိုက်ဆံမပေး", "မပေးဘူး"],
+        "restrict": ["အပြင်မထွက်ရ", "ထွက်ခွင့်မပြု", "ချုပ်နှောင်"],
+    },
 }
 
 # Document-retention EUPHEMISMS: the exploiter's coded framing ("passport safekeeping policy", "retention
@@ -178,6 +212,9 @@ _RETAIN_EUPHEMISM: dict[str, list[str]] = {
     "ar": ["حفظ الوثائق", "حفظ جواز", "سياسة حفظ", "الاحتفاظ بالوثائق", "حفظ جواز السفر"],
     "am": ["ለደህንነት መጠበቅ", "ሰነድ መጠበቅ"],
     "zh": ["护照保管", "保管护照", "证件保管", "护照保管政策", "统一保管"],
+    "si": ["ආරක්ෂිතව තබා ගැනීම", "ලේඛන ආරක්ෂණය"],
+    "ta": ["பாதுகாப்பாக வைத்திருத்தல்", "ஆவணப் பாதுகாப்பு"],
+    "my": ["လုံခြုံစွာ သိမ်းဆည်း", "စာရွက်စာတမ်း ထိန်းသိမ်း"],
 }
 for _code, _terms in _RETAIN_EUPHEMISM.items():
     if _code in _LANGS:
@@ -233,12 +270,14 @@ MULTILINGUAL_GREP_RULES = [
         "rule": "multiling_recruitment_fee_charged",
         "patterns": _patterns("fee", "agency"),
         "severity": "high",
-        "citation": "ILO C181 (Private Employment Agencies, 1997) Art. 7 (no direct or indirect fees to "
-                    "workers); ILO General Principles & Operational Guidelines for Fair Recruitment (2016), "
-                    "Principle 7.",
+        "citation": "ILO C181 (Private Employment Agencies, 1997) Art. 7(1) (general prohibition on direct "
+                    "or indirect fees to workers), subject to Art. 7(2) authorised exceptions for specified "
+                    "worker categories; binding effect depends on ratification and domestic implementation. "
+                    "ILO General Principles & Operational Guidelines for Fair Recruitment (2016), Principle 7.",
         "indicator": "Recruitment / placement fees charged to the worker by an agency or agent -- in the "
-                     "worker's own language -- are prohibited under ILO C181 Art. 7 and are the primary "
-                     "entry point to debt bondage.",
+                     "worker's own language -- conflict with C181 Art. 7(1)'s general rule, while Art. 7(2), "
+                     "ratification, and applicable domestic law must be checked before stating a binding "
+                     "prohibition. Such fees are a major entry point to debt bondage.",
     },
     {
         "rule": "multiling_wage_withheld",

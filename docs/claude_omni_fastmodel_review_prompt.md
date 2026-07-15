@@ -16,7 +16,7 @@ Scope:
 - `packages/duecare-llm-chat/src/duecare/chat/app.py`
 - `kaggle/01-duecare-exploration-workbench/kernel.py`
 - `kaggle/02-live-demo/kernel.py`
-- `kaggle/_archive/notebooks/A-00-omni-experiment-workbench/kernel.py`
+- `kaggle/A-00-omni-experiment-workbench/kernel.py`
 - Relevant tests under `packages/duecare-llm-chat/tests/` and `tests/`
 
 Questions to answer:

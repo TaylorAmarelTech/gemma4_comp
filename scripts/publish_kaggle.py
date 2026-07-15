@@ -1,19 +1,19 @@
-"""Kaggle publishing orchestrator.
+"""Fail-closed Kaggle publishing orchestrator.
 
-Wraps the `kaggle` CLI so the whole submission surface — notebooks, eval
-datasets, and fine-tuned model artefacts — can be shipped with a single
-command.  Every sub-command is safe to run in --dry-run mode, which
-prints the commands that *would* be executed without touching the
-network.
+Wraps the ``kaggle`` CLI for individually approved notebooks, datasets, and
+model artifacts. Every mutating command validates its local payload before
+checking credentials or touching the network. ``--dry-run`` prints the exact
+command but does not bypass payload validation.
 
 Sub-commands
 ------------
     auth-check         Verify kaggle CLI + credentials are in place.
     push-notebooks     Push every tracked duecare kernel via `kaggle kernels push`.
     status-notebooks   Query kernel status for every pushed notebook.
-    publish-dataset    Create/version the `duecare-eval-results` dataset.
-    publish-model      Create/version the `duecare-safety-harness` model.
-    publish-all        Full submission: notebooks + dataset + model.
+    publish-dataset          Create/version a non-empty evaluation dataset.
+    publish-training-dataset Create/version one verified training release.
+    publish-model            Publish a completed, weight-bearing model bundle.
+    publish-all              Refuse broad publication; select one surface.
 
 Exit codes are 0 on success, non-zero on any failure so the script
 composes well with CI and shell pipelines.
@@ -24,13 +24,15 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shlex
 import subprocess
 import sys
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
 
+from build_kaggle_training_release import ReleaseError, verify_release_dir
 from kaggle_notebook_utils import discover_kernel_notebooks
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -40,6 +42,22 @@ SHARED_DATASETS_DIR = KAGGLE_ROOT / "shared-datasets"
 MODELS_DIR = KAGGLE_ROOT / "models"
 
 KAGGLE_CONFIG_PATH = Path.home() / ".kaggle" / "kaggle.json"
+
+_PLACEHOLDER = re.compile(r"(?i)(?:INSERT_[A-Z0-9_]+_HERE|\bPLACEHOLDER\b|\bTODO\b)")
+_PINNED_REVISION = re.compile(r"^[0-9a-f]{40,64}$")
+_WEIGHT_SUFFIXES = frozenset({".safetensors", ".gguf", ".bin", ".pt", ".pth", ".onnx", ".params"})
+_WEIGHT_NAME = re.compile(r"(?i)(?:adapter|model|pytorch|weight|consolidated)")
+_DATASET_NON_PAYLOAD_NAMES = frozenset(
+    {
+        "dataset-metadata.json",
+        "readme.md",
+        "data_card.md",
+        "license",
+        "license.md",
+        "license.txt",
+        ".gitkeep",
+    }
+)
 
 
 # --------------------------- helpers ---------------------------
@@ -119,14 +137,7 @@ def _kaggle_exe() -> list[str]:
                 / "kaggle.exe"
             )
             candidates.append(
-                Path.home()
-                / "AppData"
-                / "Local"
-                / "Programs"
-                / "Python"
-                / v
-                / "Scripts"
-                / "kaggle"
+                Path.home() / "AppData" / "Local" / "Programs" / "Python" / v / "Scripts" / "kaggle"
             )
     else:
         candidates.extend(
@@ -199,11 +210,11 @@ def auth_check(*, dry_run: bool) -> int:
     # Probe the live API.  `kaggle config view` confirms the token can
     # actually authenticate (which `--version` does not).
     if dry_run:
-        return run(_kaggle_cmd(dry_run=True) + ["--version"], dry_run=True).returncode
-    version = run(_kaggle_cmd(dry_run=False) + ["--version"], dry_run=False)
+        return run([*_kaggle_cmd(dry_run=True), "--version"], dry_run=True).returncode
+    version = run([*_kaggle_cmd(dry_run=False), "--version"], dry_run=False)
     if not version.ok:
         return version.returncode
-    cfg = run(_kaggle_cmd(dry_run=False) + ["config", "view"], dry_run=False)
+    cfg = run([*_kaggle_cmd(dry_run=False), "config", "view"], dry_run=False)
     return 0 if cfg.ok else cfg.returncode
 
 
@@ -237,7 +248,6 @@ def _validate_notebook_dir(d: Path) -> None:
         raise ValueError(f"{meta}: keywords must be a list when present")
     if data.get("is_private") is not False:
         raise ValueError(f"{meta}: is_private must be false before publishing")
-    competition_sources = data.get("competition_sources")
 
 
 def _normalize_notebook_ids(raw_ids: list[str] | None) -> set[str] | None:
@@ -300,7 +310,10 @@ def push_notebooks(
             print(f"  ! validation failed for {d.name}: {e}", file=sys.stderr)
             failures += 1
             continue
-        result = run(_kaggle_cmd(dry_run=dry_run) + ["kernels", "push", "-p", str(d)], dry_run=dry_run)
+        result = run(
+            [*_kaggle_cmd(dry_run=dry_run), "kernels", "push", "-p", str(d)],
+            dry_run=dry_run,
+        )
         if not result.ok:
             failures += 1
     return 0 if failures == 0 else 1
@@ -325,7 +338,10 @@ def status_notebooks(
             failures += 1
             continue
         kernel_id = json.loads(meta_path.read_text())["id"]
-        result = run(_kaggle_cmd(dry_run=dry_run) + ["kernels", "status", kernel_id], dry_run=dry_run)
+        result = run(
+            [*_kaggle_cmd(dry_run=dry_run), "kernels", "status", kernel_id],
+            dry_run=dry_run,
+        )
         if not result.ok:
             failures += 1
     return 0 if failures == 0 else 1
@@ -334,72 +350,269 @@ def status_notebooks(
 # --------------------------- datasets --------------------------
 
 
-def publish_dataset(*, dry_run: bool, dataset_dir: Path | None = None, auth_checked: bool = False) -> int:
-    """Create or version the duecare-eval-results dataset."""
+def _read_json_object(path: Path, *, label: str) -> dict:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError(f"{label} is not readable JSON: {path}") from exc
+    if not isinstance(value, dict):
+        raise ValueError(f"{label} must contain a JSON object: {path}")
+    return value
+
+
+def _validate_dataset_payload(target: Path) -> dict:
+    """Reject missing, placeholder-only, symlinked, or empty dataset bundles."""
+    if not target.exists() or not target.is_dir():
+        raise ValueError(f"dataset dir not found: {target}")
+    if target.is_symlink():
+        raise ValueError(f"dataset dir must not be a symlink: {target}")
+    meta_path = target / "dataset-metadata.json"
+    if not meta_path.is_file() or meta_path.is_symlink():
+        raise ValueError(f"dataset-metadata.json missing or symlinked in {target}")
+    metadata = _read_json_object(meta_path, label="dataset metadata")
+    for field in ("id", "title", "licenses"):
+        if not metadata.get(field):
+            raise ValueError(f"dataset metadata is missing {field!r}: {meta_path}")
+    if not isinstance(metadata["licenses"], list):
+        raise ValueError(f"dataset metadata licenses must be a list: {meta_path}")
+    if _PLACEHOLDER.search(json.dumps(metadata, ensure_ascii=False)):
+        raise ValueError(f"dataset metadata still contains a placeholder: {meta_path}")
+
+    payloads: list[Path] = []
+    for path in target.rglob("*"):
+        if path.is_symlink():
+            raise ValueError(f"dataset payload must not contain symlinks: {path}")
+        if not path.is_file():
+            continue
+        if path.name.lower() in _DATASET_NON_PAYLOAD_NAMES:
+            continue
+        if _PLACEHOLDER.search(path.name):
+            raise ValueError(f"dataset payload still has a placeholder name: {path}")
+        if path.stat().st_size <= 0:
+            raise ValueError(f"dataset payload file is empty: {path}")
+        payloads.append(path)
+    if not payloads:
+        raise ValueError(f"dataset has zero payload files: {target}")
+    return {"metadata": metadata, "payload_files": payloads}
+
+
+def _validate_version_note(version_note: str | None) -> str:
+    if not isinstance(version_note, str) or not version_note.strip():
+        raise ValueError("--version-note is required for a dataset version")
+    if "\x00" in version_note or "\r" in version_note or "\n" in version_note:
+        raise ValueError("--version-note must be one exact, single-line value")
+    return version_note
+
+
+def _publish_dataset_directory(
+    target: Path,
+    *,
+    dry_run: bool,
+    operation: str,
+    version_note: str | None,
+    public: bool,
+) -> int:
+    """Run one deterministic Kaggle dataset operation with no fallback."""
+    if operation == "create":
+        if version_note is not None:
+            print(
+                "  ! Kaggle dataset creation has no version-note argument; "
+                "omit --version-note and use it on later versions",
+                file=sys.stderr,
+            )
+            return 2
+        cmd = [*_kaggle_cmd(dry_run=dry_run), "datasets", "create", "-p", str(target)]
+        if public:
+            cmd.append("--public")
+        print(f"  visibility: {'public' if public else 'private'}")
+    elif operation == "version":
+        if public:
+            print(
+                "  ! --public is only valid for dataset creation; a version keeps "
+                "the existing dataset visibility",
+                file=sys.stderr,
+            )
+            return 2
+        try:
+            note = _validate_version_note(version_note)
+        except ValueError as exc:
+            print(f"  ! {exc}", file=sys.stderr)
+            return 2
+        cmd = [
+            *_kaggle_cmd(dry_run=dry_run),
+            "datasets",
+            "version",
+            "-p",
+            str(target),
+            "-m",
+            note,
+        ]
+        print("  visibility: unchanged")
+    else:
+        print(f"  ! unsupported dataset operation: {operation}", file=sys.stderr)
+        return 2
+    result = run(cmd, dry_run=dry_run)
+    return 0 if result.ok else result.returncode
+
+
+def publish_dataset(
+    *,
+    dry_run: bool,
+    operation: str,
+    version_note: str | None = None,
+    public: bool = False,
+    dataset_dir: Path | None = None,
+    auth_checked: bool = False,
+) -> int:
+    """Create or version one non-empty evaluation dataset."""
+    print("# publish-dataset")
+    target = (dataset_dir or (SHARED_DATASETS_DIR / "eval-results")).resolve()
+    try:
+        report = _validate_dataset_payload(target)
+    except (OSError, ValueError) as exc:
+        print(f"  ! validation failed: {exc}", file=sys.stderr)
+        return 2
+    print(f"  validated payload files: {len(report['payload_files'])}")
     rc = _require_auth(dry_run=dry_run, auth_checked=auth_checked)
     if rc != 0:
         return rc
-    print("# publish-dataset")
-    target = dataset_dir or (SHARED_DATASETS_DIR / "eval-results")
-    if not target.exists():
-        print(f"  ! dataset dir not found: {target}", file=sys.stderr)
-        return 2
-    meta = target / "dataset-metadata.json"
-    if not meta.exists():
-        print(f"  ! dataset-metadata.json missing in {target}", file=sys.stderr)
-        return 2
-
-    # Probe whether the dataset already exists: if it does, use version; else create.
-    # In dry-run mode we can't probe, so we emit both candidates so the operator
-    # can see what *would* happen.
-    version_note = f"duecare eval results refresh"
-    if dry_run:
-        print("  (dry-run) would run one of the following:")
-        run(
-            _kaggle_cmd(dry_run=True) + ["datasets", "create", "-p", str(target)],
-            dry_run=True,
-        )
-        run(
-            _kaggle_cmd(dry_run=True) + ["datasets", "version", "-p", str(target), "-m", version_note],
-            dry_run=True,
-        )
-        return 0
-
-    # Try version first (more common path once the dataset exists).
-    versioned = run(
-        _kaggle_cmd(dry_run=False) + ["datasets", "version", "-p", str(target), "-m", version_note],
-        dry_run=False,
+    return _publish_dataset_directory(
+        target,
+        dry_run=dry_run,
+        operation=operation,
+        version_note=version_note,
+        public=public,
     )
-    if versioned.ok:
-        return 0
-    # Fallback: create for first time.
-    created = run(
-        _kaggle_cmd(dry_run=False) + ["datasets", "create", "-p", str(target)],
-        dry_run=False,
+
+
+def publish_training_dataset(
+    *,
+    release_dir: Path,
+    dry_run: bool,
+    operation: str,
+    version_note: str | None = None,
+    public: bool = False,
+    auth_checked: bool = False,
+) -> int:
+    """Publish only a directory accepted by the canonical training verifier."""
+    print("# publish-training-dataset")
+    try:
+        target = release_dir.resolve(strict=True)
+        report = verify_release_dir(target)
+        payload = _validate_dataset_payload(target)
+    except (OSError, ReleaseError, ValueError) as exc:
+        print(f"  ! verified training release required: {exc}", file=sys.stderr)
+        return 2
+    print(
+        f"  verified release: {report.get('release_id')} "
+        f"({len(payload['payload_files'])} payload files)"
     )
-    return 0 if created.ok else created.returncode
+    rc = _require_auth(dry_run=dry_run, auth_checked=auth_checked)
+    if rc != 0:
+        return rc
+    return _publish_dataset_directory(
+        target,
+        dry_run=dry_run,
+        operation=operation,
+        version_note=version_note,
+        public=public,
+    )
 
 
 # --------------------------- models ----------------------------
 
 
-def publish_model(*, dry_run: bool, model_dir: Path | None = None, auth_checked: bool = False) -> int:
+def _validate_model_payload(target: Path) -> dict:
+    """Require uploadable weights plus Kaggle and DueCare completion metadata."""
+    if not target.exists() or not target.is_dir():
+        raise ValueError(f"model dir not found: {target}")
+    if target.is_symlink():
+        raise ValueError(f"model dir must not be a symlink: {target}")
+
+    required_json = {
+        "model metadata": target / "model-metadata.json",
+        "model-instance metadata": target / "model-instance-metadata.json",
+        "training completion manifest": target / "training_completion_manifest.json",
+    }
+    parsed: dict[str, dict] = {}
+    for label, path in required_json.items():
+        if not path.is_file() or path.is_symlink():
+            raise ValueError(f"{path.name} is required and must not be a symlink")
+        value = _read_json_object(path, label=label)
+        if not value or _PLACEHOLDER.search(json.dumps(value, ensure_ascii=False)):
+            raise ValueError(f"{path.name} is empty or contains a placeholder")
+        parsed[label] = value
+
+    model_meta = parsed["model metadata"]
+    for field in ("ownerSlug", "title", "slug", "description"):
+        if not model_meta.get(field):
+            raise ValueError(f"model-metadata.json is missing {field!r}")
+
+    instance_meta = parsed["model-instance metadata"]
+    instance_fields = {
+        "owner": ("owner_slug", "ownerSlug"),
+        "model": ("model_slug", "modelSlug"),
+        "instance": ("instance_slug", "instanceSlug"),
+        "framework": ("framework",),
+    }
+    for label, aliases in instance_fields.items():
+        if not any(instance_meta.get(alias) for alias in aliases):
+            raise ValueError(f"model-instance-metadata.json is missing {label!r}")
+
+    completion = parsed["training completion manifest"]
+    if completion.get("schema_version") != "1.0":
+        raise ValueError("training completion manifest schema_version must be 1.0")
+    if completion.get("handoff_kind") != "duecare.training.completion.v1":
+        raise ValueError("training completion manifest handoff_kind is invalid")
+    if not completion.get("base_model") or not completion.get("completed_at"):
+        raise ValueError("training completion manifest lacks base_model or completed_at")
+    stages = completion.get("executed_stages")
+    if not isinstance(stages, list) or not stages or not {"sft", "dpo"}.intersection(stages):
+        raise ValueError("training completion manifest has no executed SFT/DPO stage")
+    revision = str(completion.get("base_model_revision") or "")
+    if not _PINNED_REVISION.fullmatch(revision):
+        raise ValueError("training completion manifest base_model_revision is not immutable")
+
+    weight_files: list[Path] = []
+    for path in target.rglob("*"):
+        if path.is_symlink():
+            raise ValueError(f"model payload must not contain symlinks: {path}")
+        if (
+            path.is_file()
+            and path.suffix.lower() in _WEIGHT_SUFFIXES
+            and _WEIGHT_NAME.search(path.name)
+        ):
+            if path.stat().st_size < 1024:
+                raise ValueError(f"model weight artifact is too small to be credible: {path}")
+            weight_files.append(path)
+    if not weight_files:
+        raise ValueError("model payload has no real weight artifacts")
+    return {
+        "model_metadata": model_meta,
+        "instance_metadata": instance_meta,
+        "completion": completion,
+        "weight_files": weight_files,
+    }
+
+
+def publish_model(
+    *, dry_run: bool, model_dir: Path | None = None, auth_checked: bool = False
+) -> int:
+    print("# publish-model")
+    target = (model_dir or (MODELS_DIR / "duecare_safety_harness")).resolve()
+    try:
+        report = _validate_model_payload(target)
+    except (OSError, ValueError) as exc:
+        print(f"  ! validation failed: {exc}", file=sys.stderr)
+        return 2
+    print(f"  validated weight artifacts: {len(report['weight_files'])}")
     rc = _require_auth(dry_run=dry_run, auth_checked=auth_checked)
     if rc != 0:
         return rc
-    print("# publish-model")
-    target = model_dir or (MODELS_DIR / "duecare_safety_harness")
-    if not target.exists():
-        print(f"  ! model dir not found: {target}", file=sys.stderr)
-        return 2
-    meta = target / "model-metadata.json"
-    if not meta.exists():
-        print(f"  ! model-metadata.json missing in {target}", file=sys.stderr)
-        return 2
 
     # First attempt: create the model.  If it already exists, create an instance version.
     create = run(
-        _kaggle_cmd(dry_run=dry_run) + ["models", "create", "-p", str(target)],
+        [*_kaggle_cmd(dry_run=dry_run), "models", "create", "-p", str(target)],
         dry_run=dry_run,
     )
     if create.ok:
@@ -415,14 +628,31 @@ def publish_model(*, dry_run: bool, model_dir: Path | None = None, auth_checked:
         return create.returncode
 
     inst = run(
-        _kaggle_cmd(dry_run=dry_run) + ["models", "instances", "create", "-p", str(target)],
+        [
+            *_kaggle_cmd(dry_run=dry_run),
+            "models",
+            "instances",
+            "create",
+            "-p",
+            str(target),
+        ],
         dry_run=dry_run,
     )
     if inst.ok:
         return 0
 
     version = run(
-        _kaggle_cmd(dry_run=dry_run) + ["models", "instances", "versions", "create", "-p", str(target), "-n", "refresh"],
+        [
+            *_kaggle_cmd(dry_run=dry_run),
+            "models",
+            "instances",
+            "versions",
+            "create",
+            "-p",
+            str(target),
+            "-n",
+            "refresh",
+        ],
         dry_run=dry_run,
     )
     return 0 if version.ok else version.returncode
@@ -433,38 +663,66 @@ def publish_model(*, dry_run: bool, model_dir: Path | None = None, auth_checked:
 
 def publish_all(*, dry_run: bool) -> int:
     print("# publish-all")
-    rc = auth_check(dry_run=dry_run)
-    if rc != 0:
-        return rc
-    rc = push_notebooks(dry_run=dry_run, auth_checked=True)
-    if rc != 0:
-        print("  ! push-notebooks failed, aborting publish-all", file=sys.stderr)
-        return rc
-    rc = publish_dataset(dry_run=dry_run, auth_checked=True)
-    if rc != 0:
-        print("  ! publish-dataset failed, aborting publish-all", file=sys.stderr)
-        return rc
-    rc = publish_model(dry_run=dry_run, auth_checked=True)
-    return rc
+    print(
+        "  ! disabled: broad publication cannot prove that every notebook, "
+        "dataset, and model is independently release-ready. Use one explicit "
+        "sub-command and target at a time.",
+        file=sys.stderr,
+    )
+    return 2
 
 
 # --------------------------- CLI -------------------------------
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument("--dry-run", action="store_true", help="print commands but do not execute")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     sub.add_parser("auth-check")
     push_parser = sub.add_parser("push-notebooks")
-    push_parser.add_argument("--ids", nargs="*", help="Notebook ids, kernel dir names, or full kernel ids to push")
-    push_parser.add_argument("--limit", type=int, help="Push only the first N tracked kernels after filtering")
+    push_parser.add_argument(
+        "--ids", nargs="*", help="Notebook ids, kernel dir names, or full kernel ids to push"
+    )
+    push_parser.add_argument(
+        "--limit", type=int, help="Push only the first N tracked kernels after filtering"
+    )
     status_parser = sub.add_parser("status-notebooks")
-    status_parser.add_argument("--ids", nargs="*", help="Notebook ids, kernel dir names, or full kernel ids to query")
-    status_parser.add_argument("--limit", type=int, help="Check only the first N tracked kernels after filtering")
-    sub.add_parser("publish-dataset")
-    sub.add_parser("publish-model")
+    status_parser.add_argument(
+        "--ids", nargs="*", help="Notebook ids, kernel dir names, or full kernel ids to query"
+    )
+    status_parser.add_argument(
+        "--limit", type=int, help="Check only the first N tracked kernels after filtering"
+    )
+    dataset_parser = sub.add_parser("publish-dataset")
+    dataset_parser.add_argument(
+        "--dataset-dir", type=Path, help="dataset directory (defaults to eval-results)"
+    )
+    dataset_parser.add_argument("--operation", choices=("create", "version"), required=True)
+    dataset_parser.add_argument(
+        "--version-note", help="exact, single-line note required for --operation version"
+    )
+    dataset_parser.add_argument(
+        "--public",
+        action="store_true",
+        help="make a newly created dataset public; create is private by default",
+    )
+    training_parser = sub.add_parser("publish-training-dataset")
+    training_parser.add_argument("--release-dir", type=Path, required=True)
+    training_parser.add_argument("--operation", choices=("create", "version"), required=True)
+    training_parser.add_argument(
+        "--version-note", help="exact, single-line note required for --operation version"
+    )
+    training_parser.add_argument(
+        "--public",
+        action="store_true",
+        help="make a newly created verified release public; create is private by default",
+    )
+    model_parser = sub.add_parser("publish-model")
+    model_parser.add_argument("--model-dir", type=Path, help="completed model-bundle directory")
     sub.add_parser("publish-all")
 
     args = parser.parse_args(argv)
@@ -472,10 +730,27 @@ def main(argv: list[str] | None = None) -> int:
     limit = getattr(args, "limit", None)
     dispatch = {
         "auth-check": lambda: auth_check(dry_run=args.dry_run),
-        "push-notebooks": lambda: push_notebooks(dry_run=args.dry_run, notebook_ids=notebook_ids, limit=limit),
-        "status-notebooks": lambda: status_notebooks(dry_run=args.dry_run, notebook_ids=notebook_ids, limit=limit),
-        "publish-dataset": lambda: publish_dataset(dry_run=args.dry_run),
-        "publish-model": lambda: publish_model(dry_run=args.dry_run),
+        "push-notebooks": lambda: push_notebooks(
+            dry_run=args.dry_run, notebook_ids=notebook_ids, limit=limit
+        ),
+        "status-notebooks": lambda: status_notebooks(
+            dry_run=args.dry_run, notebook_ids=notebook_ids, limit=limit
+        ),
+        "publish-dataset": lambda: publish_dataset(
+            dry_run=args.dry_run,
+            operation=args.operation,
+            version_note=args.version_note,
+            public=args.public,
+            dataset_dir=args.dataset_dir,
+        ),
+        "publish-training-dataset": lambda: publish_training_dataset(
+            release_dir=args.release_dir,
+            dry_run=args.dry_run,
+            operation=args.operation,
+            version_note=args.version_note,
+            public=args.public,
+        ),
+        "publish-model": lambda: publish_model(dry_run=args.dry_run, model_dir=args.model_dir),
         "publish-all": lambda: publish_all(dry_run=args.dry_run),
     }
     return dispatch[args.cmd]()

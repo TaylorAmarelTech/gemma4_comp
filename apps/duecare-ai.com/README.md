@@ -41,7 +41,7 @@ The monorepo root `render.yaml` is the authoritative Render blueprint.
 - Accepts public-source crawler-style update proposals for curator review.
 - Supports an operator-side local knowledge-base API for files that should stay tenant-local.
 - Persists signals and proposals to a Render persistent disk using JSONL files.
-- Exposes public OpenAPI docs at `/docs`.
+- Serves human-readable documentation at `/docs` and interactive OpenAPI docs at `/api-docs`.
 
 ## Sensitive data handling
 
@@ -59,6 +59,7 @@ Submission metadata is client-controlled. Anonymous submissions cannot include o
 GET  /                         Public project homepage
 GET  /components                Architecture component map
 GET  /use-cases                 Deployment stories
+GET  /training-data-flywheel    Harness-to-dataset and fine-tuning release path
 GET  /grep-rules                Rule-category explainer
 GET  /tools                     Draft-only tool catalog
 GET  /context                   Context by corridor/jurisdiction
@@ -77,7 +78,9 @@ GET  /api/local-kb/entries     Operator-side local KB entries
 POST /api/local-kb/entries     Operator-side local KB insert
 DELETE /api/local-kb/entries/{entry_id} Operator-side local KB delete
 GET  /api/admin/logs           Token-gated redacted operational logs
-GET  /docs                     OpenAPI docs
+GET  /docs                     Human-readable project docs
+GET  /api-docs                 Interactive OpenAPI docs
+GET  /openapi.json             OpenAPI schema
 ```
 
 ## Local run
@@ -156,6 +159,7 @@ No API keys are required for the initial public hub.
    - `https://duecare-ai.com/api/hub/status`
    - `https://duecare-ai.com/api/hub/knowledge-packs`
    - `https://duecare-ai.com/docs`
+   - `https://duecare-ai.com/api-docs`
 
 ## Relationship to the Gemma 4 submission
 

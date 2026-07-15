@@ -7,7 +7,8 @@ services:
     region: oregon
     branch: master
     healthCheckPath: /api/health
-    autoDeploy: true
+    # Deploy only revisions that pass the repository's blocking GitHub checks.
+    autoDeployTrigger: checksPass
     envVars:
       - key: DUECARE_ENV
         value: production

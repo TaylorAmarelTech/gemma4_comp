@@ -99,6 +99,22 @@ def test_review_packet_validator_flags_accidental_promotion():
     assert any("candidate_url must start blank" in issue for issue in audit["issues"])
 
 
+def test_review_packet_privacy_scan_blocks_8_digit_case_like_values_without_copying_them():
+    doc = bsrpkt.build_source_review_packet("developing_country_worker_protections")
+    doc["source_candidate_intake_rows"][0]["privacy_notes"] = (
+        "Remove copied private case case_12345678 before review."
+    )
+
+    audit = bsrpkt.validate_review_packet(doc)
+
+    assert audit["ok"] is False
+    assert "review_packet_privacy_scan_not_ok" in audit["issues"]
+    assert audit["privacy_scan"]["counts"]["long_digit"] == 1
+    assert audit["privacy_scan"]["long_digit_paths"] == [
+        "$.source_candidate_intake_rows[0].privacy_notes"
+    ]
+
+
 def test_review_packet_cli_writes_json_and_markdown(tmp_path, capsys):
     out = tmp_path / "review_packet.json"
     md_out = tmp_path / "review_packet.md"
