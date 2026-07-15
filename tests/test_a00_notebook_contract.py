@@ -59,7 +59,7 @@ def test_a00_public_version_and_external_import_boundaries_are_documented():
     assert metadata["dataset_sources"] == ["taylorsamarel/duecare-proof-finetuning-data"]
 
 
-def test_training_dataset_surface_is_template_only_and_not_publishable():
+def test_training_dataset_surface_is_a_schema_map_not_an_upload_directory():
     readme = TRAINING_DATA_TEMPLATE / "README.md"
     metadata_template = TRAINING_DATA_TEMPLATE / "dataset-metadata.template.json"
     assert readme.is_file()
@@ -80,7 +80,10 @@ def test_training_dataset_surface_is_template_only_and_not_publishable():
 
     text = " ".join(readme.read_text(encoding="utf-8").split())
     for marker in [
-        "documentation-only and not publishable",
+        "Status: **documentation and schema map**",
+        "contains no training rows and is not itself a Kaggle upload directory",
+        "taylorsamarel/duecare-measured-response-training-corpus",
+        "taylorsamarel/duecare-multiperspective-finetuning-corpus",
         "intentionally uses `dataset-metadata.template.json`",
         "instead of Kaggle's active",
         "External import contract",

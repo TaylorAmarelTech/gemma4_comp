@@ -250,7 +250,9 @@ def test_a00_records_immutable_model_revision_for_training_rows() -> None:
     assert '"google/gemma-4-E4B-it": "0d5a7f9ba73eda1616e58344f7025fae44914675"' in text
     assert "model_revision = _model_revision_for_load(req.source, model_ref, req.model_revision)" in text
     assert "revision=model_revision" in text
-    assert '"model_revision": str((STATE.get("model_info") or {}).get("revision") or "runtime-unpinned")' in text
+    assert 'model_info = STATE.get("model_info") or {}' in text
+    assert 'model_revision = str(model_info.get("revision") or "runtime-unpinned")' in text
+    assert '"model_revision": model_revision' in text
 
 
 def test_a00_pack_rules_and_facts_have_pack_marked_provenance() -> None:
