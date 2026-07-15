@@ -12,15 +12,17 @@ intentionally uses `dataset-metadata.template.json` instead of Kaggle's active
 `dataset-metadata.json` filename. Do not rename it or add data here until an
 eligible release bundle passes every gate below.
 
-## Current blockers (reviewed 2026-07-14)
+## Current blockers (reviewed 2026-07-15)
 
 - `kaggle/A-00-omni-experiment-workbench/kernel-metadata.json` attaches the
   proof dataset. That preview is intentionally small and does not replace this
   future full-corpus template.
-- The current local candidate quality audit is not clean and identifies a
-  single-corridor shortcut risk.
-- Older candidate rows do not yet carry the complete lineage, source,
-  licensing, privacy, and held-out metadata required by the current contract.
+- The current larger multi-perspective source candidate is locally clean under
+  the v2 quality audit, but it is not a publishable Kaggle Dataset until it has
+  a separate publication approval and release manifest.
+- Older experimental rows outside the v2 candidate bundle remain
+  candidate-only unless regenerated or normalized into the current lineage,
+  source, licensing, privacy, and held-out metadata contract.
 - The existing tiny adapter artifact is a plumbing smoke check, not model
   quality evidence and not a production release.
 

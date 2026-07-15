@@ -16,10 +16,9 @@ recording path; A-00 is the quantitative proof and training/evaluation path.
 | `kaggle/02-live-demo/` | Focused live demo for judges and video capture. |
 | `kaggle/A-00-omni-experiment-workbench/` | Quantitative proof path: baseline, harnessed, synthetic-data, fine-tuning, judging, checkpoints, and report artifacts. |
 
-Public-version boundary reviewed 2026-07-14: the A-00 Kaggle URL is live and
-the July dataset-attached update was pushed as kernel version `14`. The public
-notebook now attaches
-`taylorsamarel/duecare-proof-finetuning-data`; the run still needs terminal
+Public-version boundary reviewed 2026-07-15: the A-00 Kaggle URL is live and
+the public notebook attaches `taylorsamarel/duecare-proof-finetuning-data`.
+The proof dataset is ready on Kaggle; the notebook run still needs terminal
 Kaggle status plus artifact review before it is cited as a completed proof
 run. No production Gemma adapter, merged weights, or full advanced training
 corpus is attached.

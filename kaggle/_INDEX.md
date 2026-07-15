@@ -14,12 +14,11 @@ and training/evaluation path:
 
 Each active kernel is intended to be copied into Kaggle, run on T4 x2 with Internet enabled, install DueCare from GitHub, write outputs under `/kaggle/working`, launch the local server, and print a public `https://*.trycloudflare.com` URL.
 
-Version boundary reviewed 2026-07-14: the A-00 Kaggle URL is live and the
-July dataset-attached update was pushed as kernel version `14`. The public
-notebook attaches `taylorsamarel/duecare-proof-finetuning-data`; the run still
-needs a terminal Kaggle status plus artifact review before it is cited as a
-completed proof run. No production adapter or full advanced corpus is publicly
-attached.
+Version boundary reviewed 2026-07-15: the A-00 Kaggle URL is live and the
+public notebook attaches `taylorsamarel/duecare-proof-finetuning-data`. The
+proof dataset is ready on Kaggle; the run still needs a terminal Kaggle status
+plus artifact review before it is cited as a completed proof run. No
+production adapter or full advanced corpus is publicly attached.
 
 ## Optional Evaluation Surface
 

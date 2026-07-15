@@ -18,26 +18,29 @@ PEFT LoRA job when a compatible CUDA environment is available.
 
 ## Current publication status
 
-Status reviewed 2026-07-14:
+Status reviewed 2026-07-15:
 
 - The A-00 Kaggle notebook
   [`taylorsamarel/duecare-fine-tuning-and-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation)
-  accepted the July dataset-attached update as kernel version `14` on
-  2026-07-14. Its execution was still running at last verification, so do not
-  cite it as a completed training/evaluation run until Kaggle reaches a
-  terminal status and the output artifacts are inspected.
+  is live with the proof dataset attached. The latest execution was still
+  running at last verification, so do not cite it as a completed
+  training/evaluation run until Kaggle reaches a terminal status and the output
+  artifacts are inspected.
 - The proof dataset
   [`taylorsamarel/duecare-proof-finetuning-data`](https://www.kaggle.com/datasets/taylorsamarel/duecare-proof-finetuning-data)
-  is public and Kaggle reports it ready. It contains 24 SFT rows, 24
-  preference rows, 4 validation rows, and 4 test rows with synthetic prompts,
-  source references, row SHA-256 values, immutable model revision metadata,
-  publication approval, and deliberately authored visible rationale metadata.
+  is public and Kaggle reports it ready. Its current proof release contains 24
+  SFT rows, 24 preference rows, 4 validation rows, and 4 test rows with
+  synthetic prompts, source references, row SHA-256 values, immutable model
+  revision metadata, publication approval, and deliberately authored visible
+  rationale metadata.
 - The repository's current A-00 `kernel-metadata.json` attaches that proof
   dataset. The attached preview demonstrates the release contract; it is not
   the full 78k+ prompt corpus.
-- The current local candidate audit is not clean: it includes a
-  single-corridor shortcut risk, and older candidate rows do not yet satisfy
-  all required lineage, source, licensing, and privacy fields.
+- The current larger multi-perspective source candidate is locally clean under
+  the v2 quality audit and contains 2,048 SFT rows, 2,048 preference rows, 256
+  validation rows, and 256 test rows. It is still not a public dataset: it
+  requires separate publication approval and a manifest-bound release build
+  before upload.
 - No production Gemma adapter, merged weights, or eligible complete advanced
   training corpus is published. The tiny smoke path remains plumbing proof.
 
@@ -193,6 +196,65 @@ Unsloth, TRL, or PEFT environment. Trainer-specific formatting should be a
 derived artifact; the canonical source rows and holdout assignments stay
 unchanged.
 
+### Multi-perspective synthetic decision data
+
+[`build_multiperspective_training_bundle.py`](../scripts/build_multiperspective_training_bundle.py)
+is the deterministic generator for reasoning across roles and time. It defines
+a 96,768-row logical space:
+
+```text
+12 mechanisms x 3 jurisdiction topologies x 8 perspectives
+              x 7 journey stages x 4 temporal lenses x 4 evidence states
+              x 3 view modes
+```
+
+The perspectives include a worker, newly arrived worker, third-party observer,
+family member, NGO caseworker, origin-country official, destination regulator,
+and comparative legal scholar. The view modes ask for a bounded single-persona
+decision, a two-persona handoff, or a worker/support/origin/destination synthesis.
+They are views into shared synthetic case graphs, not independent role labels.
+Each graph contains seven dated events, two competing records at every stage,
+actor and jurisdiction boundaries, pre-onset warning states, and later records
+that are hidden when the focal decision could not have known them.
+
+Every row carries a visible decision scaffold: exact synthetic record IDs and
+dates, source/directness tags, authority boundaries, a journey timeline,
+supported/inferred/unknown evidence, alternatives and counterfactuals,
+jurisdiction questions, retrieval boundaries, and a consent-preserving next
+action. Each DPO prompt is the same direct case task as its paired SFT prompt.
+Its rejected completion is a plausible direct answer containing one controlled
+failure such as single-jurisdiction shortcut, static-time collapse, unsupported
+certainty, role overreach, evidence conflation, or action without consent; the
+failure diagnosis remains in metadata rather than leaking into the completion.
+
+The default build is a balanced Kaggle-sized preview: 2,048 SFT and 2,048
+preference rows, plus 256 validation and 256 test rows. The split unit is an
+entire mechanism family: eight mechanisms train, two validate, and two test.
+All jurisdiction, persona, journey, time, evidence, and view derivatives of a
+held-out mechanism stay out of training. The generated quality audit also
+checks exact family isolation, deterministic row gates, PII findings, direct
+SFT/DPO prompt alignment, unique rejects, pairwise length balance, axis
+reflection, and sampled train-to-holdout content similarity. `--full-matrix`
+emits all variants. Countries A, B, and C are placeholders; live rules, fee
+caps, offices, and contacts remain retrieval-time facts.
+
+Generation cannot approve its own publication. Build the candidate, inspect
+`quality_audit.json`, `source_audit.json`, samples, rights, and license, then
+record a separate manifest-bound decision:
+
+```powershell
+python scripts/build_multiperspective_training_bundle.py `
+  --output-dir reports/multiperspective_training/source_bundle_v3
+
+python scripts/build_multiperspective_training_bundle.py `
+  --approve-manifest reports/multiperspective_training/source_bundle_v3/source_manifest.json `
+  --approve-as "repository-owner-reviewed-2026-07-14"
+```
+
+The manifest includes a full-preview SFT-then-DPO suggestion sized to traverse
+the released rows, plus a clearly labeled 60/30-step smoke profile. Both remain
+non-executing until A-00 preflight and an explicit user action.
+
 The implementation follows the current primary training references: Google's
 [Gemma tuning overview](https://ai.google.dev/gemma/docs/tune) and
 [Gemma 4 QLoRA guide](https://ai.google.dev/gemma/docs/core/huggingface_text_finetune_qlora),
@@ -206,6 +268,9 @@ top of those trainer mechanics.
 
 - [`build_lift_training_data.py`](https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/scripts/build_lift_training_data.py)
   selects and gates harness-distilled SFT and DPO candidates.
+- [`build_multiperspective_training_bundle.py`](https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/scripts/build_multiperspective_training_bundle.py)
+  generates lineage-isolated multi-persona, journey-stage, temporal, evidence,
+  and cross-jurisdiction SFT/preference data with visible decision scaffolds.
 - [`organize_training_data.py`](https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/scripts/organize_training_data.py) creates
   leakage-aware splits and the organization manifest.
 - [`build_reasoning_targets.py`](https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/scripts/build_reasoning_targets.py),

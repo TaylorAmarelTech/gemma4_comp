@@ -38,6 +38,10 @@ def test_builds_kaggle_proof_training_release(tmp_path: Path) -> None:
     assert source_manifest["prompt_scope"]["closure_status"] == "partial"
     assert source_manifest["prompt_scope"]["full_flywheel_closure"] is False
     assert source_manifest["training_validation"]["ok"] is True
+    assert source_manifest["artifacts"]["quality_audit"] == "quality_audit.json"
+    quality_audit = json.loads((source_dir / "quality_audit.json").read_text(encoding="utf-8"))
+    assert quality_audit["clean"] is True
+    assert quality_audit["risk_flags"] == []
 
     result = release.build_release(
         source_dir / "source_manifest.json",
@@ -61,4 +65,11 @@ def test_builds_kaggle_proof_training_release(tmp_path: Path) -> None:
     metadata = json.loads((release_dir / "dataset-metadata.json").read_text(encoding="utf-8"))
     assert metadata["id"] == "taylorsamarel/duecare-proof-finetuning-data"
     assert 20 <= len(metadata["subtitle"]) <= 80
+    public_source_audit = json.loads(
+        (release_dir / "source_audit.json").read_text(encoding="utf-8")
+    )
+    assert "approvals" not in public_source_audit
+    assert (release_dir / "quality_audit.json").read_bytes() == (
+        source_dir / "quality_audit.json"
+    ).read_bytes()
     assert release.verify_release_dir(release_dir)["ok"] is True

@@ -202,6 +202,7 @@ def validate_training_rows(
     hidden_reasoning_failures = 0
     provenance_failures = 0
     prompt_hashes: list[str] = []
+    prompt_hashes_by_kind: dict[str, list[str]] = {"sft": [], "preference": []}
     lineage_ids: list[str] = []
     issue_samples: list[dict[str, Any]] = []
 
@@ -238,7 +239,9 @@ def validate_training_rows(
                     codes.append("schema_preference_pair")
 
             if prompt:
-                prompt_hashes.append(canonical_sha256(prompt))
+                prompt_hash = canonical_sha256(prompt)
+                prompt_hashes.append(prompt_hash)
+                prompt_hashes_by_kind[kind].append(prompt_hash)
             lineage = row.get("lineage_id")
             if isinstance(lineage, str) and lineage:
                 lineage_ids.append(lineage)
@@ -277,7 +280,16 @@ def validate_training_rows(
 
     overlap = sorted(set(prompt_hashes) & eval_hashes)
     lineage_overlap = sorted(set(lineage_ids) & eval_lineages)
-    duplicate_prompts = sum(count - 1 for count in Counter(prompt_hashes).values() if count > 1)
+    # An SFT row and its preference pair intentionally use the same user
+    # scenario.  Count duplicates within each training lane; treating the
+    # aligned cross-lane prompt as a duplicate incorrectly penalizes a valid
+    # SFT+DPO corpus.
+    duplicate_prompts = sum(
+        count - 1
+        for hashes in prompt_hashes_by_kind.values()
+        for count in Counter(hashes).values()
+        if count > 1
+    )
     duplicate_lineages = sum(count - 1 for count in Counter(lineage_ids).values() if count > 1)
     heldout_failures = (
         len(overlap)
@@ -313,7 +325,13 @@ def validate_training_rows(
             hidden_reasoning_failures,
             "answer-only or deliberately authored structured rationale; no hidden-thought markup",
         ),
-        _gate("deduplicated", False, duplicate_prompts == 0, duplicate_prompts, "exact prompt duplicates"),
+        _gate(
+            "deduplicated",
+            False,
+            duplicate_prompts == 0,
+            duplicate_prompts,
+            "exact prompt duplicates within SFT or preference lanes; aligned cross-lane pairs are allowed",
+        ),
         _gate("lineage_unique", False, duplicate_lineages == 0, duplicate_lineages, "duplicate lineage rows"),
     ]
     blocking_failures = [gate["id"] for gate in gates if gate["blocking"] and not gate["passed"]]

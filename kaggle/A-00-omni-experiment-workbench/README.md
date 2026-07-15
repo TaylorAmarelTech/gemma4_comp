@@ -10,15 +10,16 @@
 
 ## Public Kaggle version boundary
 
-Status reviewed 2026-07-14:
+Status reviewed 2026-07-15:
 
 - The [public Kaggle notebook](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation)
-  is live. Kaggle accepted the July dataset-attached update as kernel version
-  `14` on 2026-07-14.
+  is live with the proof dataset attached. Its latest execution still needs
+  terminal Kaggle status plus artifact review before it is cited as a completed
+  training/evaluation proof.
 - This repository is the source of the later July 2026 manifest, lineage,
-  privacy, immutable-revision, SFT&rarr;DPO, and completion-proof gates. The
-  notebook update is pushed; treat the live run as incomplete until Kaggle
-  reports a terminal execution status and the run artifacts are inspected.
+  privacy, immutable-revision, SFT&rarr;DPO, and completion-proof gates. Treat
+  the live run as incomplete until Kaggle reports a terminal execution status
+  and the run artifacts are inspected.
 - The proof dataset
   [`taylorsamarel/duecare-proof-finetuning-data`](https://www.kaggle.com/datasets/taylorsamarel/duecare-proof-finetuning-data)
   is published and attached in `kernel-metadata.json`. It is a guarded preview:
@@ -28,8 +29,8 @@ Status reviewed 2026-07-14:
 - The tiny adapter path is a plumbing smoke check. No production Gemma adapter
   or merged weights are published.
 
-Use the public notebook to inspect the May version and this directory to review
-the pending source update. Do not describe a repository-only gate as already
+Use the public notebook to inspect the live Kaggle surface and this directory
+to review the source update. Do not describe a repository-only gate as already
 deployed on Kaggle until the new version is pushed and verified by a fresh
 public GET.
 
