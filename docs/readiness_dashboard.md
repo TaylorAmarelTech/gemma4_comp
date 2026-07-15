@@ -19,6 +19,12 @@ artifact review before it is cited as a completed proof run. The existing
 adapter artifact is smoke-only, and no production adapter or full advanced
 corpus is published.
 
+The auxiliary interim collection is green for publication mechanics: both
+exact-row dataset views are ready, and the integrity audit, CPU training-plan,
+and four-arm evaluation notebooks reached `COMPLETE` on 2026-07-15. This proves
+manifested data handoff and frozen evaluation planning. It does not prove GPU
+training success or model improvement; no adapter weights are attached.
+
 Archived A-series notebooks, task-notebook snapshots, and old generated
 mirrors are not the active competition path. Root `kaggle/` should not contain
 appendix `A-*` folders other than active `A-00-omni-experiment-workbench`, and the only root `04-*` folder should be

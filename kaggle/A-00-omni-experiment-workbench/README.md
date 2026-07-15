@@ -28,6 +28,15 @@ Status reviewed 2026-07-15:
   is not the full 78k+ prompt corpus.
 - The tiny adapter path is a plumbing smoke check. No production Gemma adapter
   or merged weights are published.
+- Public companion artifacts now separate review tasks without changing A-00's
+  role as the full GPU workbench: the
+  [SFT dataset](https://www.kaggle.com/datasets/taylorsamarel/duecare-visible-reasoning-sft-preview),
+  [preference dataset](https://www.kaggle.com/datasets/taylorsamarel/duecare-preference-pairs-preview),
+  [integrity audit](https://www.kaggle.com/code/taylorsamarel/duecare-training-data-integrity-audit),
+  [CPU-published training starter](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-lora-training-starter),
+  and [four-arm evaluation protocol](https://www.kaggle.com/code/taylorsamarel/duecare-four-arm-fine-tuning-evaluation)
+  are live. The three companion notebook runs completed on 2026-07-15, but the
+  training starter intentionally did not execute GPU training.
 
 Use the public notebook to inspect the live Kaggle surface and this directory
 to review the source update. Do not describe a repository-only gate as already

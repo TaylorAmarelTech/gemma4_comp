@@ -68,6 +68,11 @@ handoff, and multi-actor views across perspectives, journey stages, temporal
 lenses, evidence states, and jurisdiction topologies. It holds out complete
 mechanism families, emits an executable quality audit, and requires a separate
 manifest-bound publication approval before the normal release gate can run.
+`scripts/build_kaggle_interim_collection.py` reverifies the approved proof
+release and builds two exact-row Kaggle dataset views plus CPU integrity,
+training-plan, and four-arm-evaluation notebooks under gitignored `reports/`.
+It does not approve new rows, publish the larger candidate, enable GPU training
+by default, or represent visible rationales as hidden chain-of-thought.
 
 ## Canonical Lane Language
 
@@ -108,6 +113,9 @@ The published proof dataset
 [`taylorsamarel/duecare-proof-finetuning-data`](https://www.kaggle.com/datasets/taylorsamarel/duecare-proof-finetuning-data)
 is separate from that template. It is a preview artifact generated from
 `scripts/build_kaggle_proof_training_bundle.py`, not the full advanced corpus.
+Its public SFT and preference views and three completed CPU companion notebooks
+are listed in `kaggle/_INDEX.md`; they are auxiliary proof artifacts and do not
+change the three-kernel active submission count.
 
 Archived reference material:
 
