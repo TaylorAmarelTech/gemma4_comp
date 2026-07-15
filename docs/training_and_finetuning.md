@@ -1,10 +1,37 @@
 # Training data and fine-tuning
 
 DueCare can turn evaluated harness runs into reviewable training data, stage a
-LoRA job, and compare the result against the stock model. The code and notebook
+Low-Rank Adaptation job, and compare the result against the stock model. The code and notebook
 workflow exist today, including a tiny end-to-end smoke path. **No trained
 weights are published yet.** A generated dataset, script, or smoke adapter is
 not a production model release.
+
+## Terms used in this guide
+
+- **Supervised fine-tuning (SFT)** trains a model with inputs paired with
+  desired answers.
+- **Direct Preference Optimization (DPO)** trains from prompts with preferred
+  and nonpreferred responses.
+- **Low-Rank Adaptation (LoRA)** trains small adapter weights while leaving
+  most base-model weights frozen.
+- **Parameter-Efficient Fine-Tuning (PEFT)** is the broader family of methods
+  that update a small part of a model; Low-Rank Adaptation is one example.
+- **JavaScript Object Notation Lines (JSON Lines)** stores one complete JSON
+  object per line in a `.jsonl` file.
+- **Central processing unit (CPU)** and **graphics processing unit (GPU)**
+  identify the compute path used by a notebook.
+- **Compute Unified Device Architecture (CUDA)** is NVIDIA's software platform
+  for graphics-processing-unit computation.
+- **Secure Hash Algorithm 256-bit (SHA-256)** is the checksum used to bind
+  files and manifests.
+- **Comma-separated values (CSV)** and **Portable Network Graphics (PNG)** are
+  table and chart file formats used in notebook outputs.
+
+The architectural boundaries behind these artifacts are defined in the
+[evidence-grounded synthetic-training blueprint](research/evidence_grounded_synthetic_training_blueprint.md).
+Current publication, loading, interoperability, and defensive safety-evaluation
+practices are documented in
+[training-dataset publication and safety-evaluation practices](research/training_dataset_publication_and_safety_practices.md).
 
 The active source is the
 [A-00 Fine-tuning and Evaluation workbench](https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/kaggle/A-00-omni-experiment-workbench/README.md).
@@ -20,46 +47,52 @@ PEFT LoRA job when a compatible CUDA environment is available.
 
 Status reviewed 2026-07-15:
 
-- The A-00 Kaggle notebook
-  [`taylorsamarel/duecare-fine-tuning-and-evaluation`](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation)
-  is live with the proof dataset attached. The latest execution was still
-  running at last verification, so do not cite it as a completed
-  training/evaluation run until Kaggle reaches a terminal status and the output
-  artifacts are inspected.
-- The proof dataset
-  [`taylorsamarel/duecare-proof-finetuning-data`](https://www.kaggle.com/datasets/taylorsamarel/duecare-proof-finetuning-data)
-  is public and Kaggle reports it ready. Its current proof release contains 24
-  SFT rows, 24 preference rows, 4 validation rows, and 4 test rows with
-  synthetic prompts, source references, row SHA-256 values, immutable model
-  revision metadata, publication approval, and deliberately authored visible
-  rationale metadata.
-- Two purpose-specific, exact-row views of that approved proof release are
-  also public and ready:
-  [`duecare-visible-reasoning-sft-preview`](https://www.kaggle.com/datasets/taylorsamarel/duecare-visible-reasoning-sft-preview)
-  contains the 24 SFT rows plus the 4-row validation and 4-row test splits, and
-  [`duecare-preference-pairs-preview`](https://www.kaggle.com/datasets/taylorsamarel/duecare-preference-pairs-preview)
-  contains the 24 chosen/rejected pairs plus the same held-out splits. They are
-  derived views of one release, not independent datasets or additional
-  evidence of model improvement.
-- Three auxiliary CPU notebooks completed on Kaggle on 2026-07-15:
-  the [integrity audit](https://www.kaggle.com/code/taylorsamarel/duecare-training-data-integrity-audit)
-  verifies the lane manifests, row hashes, and family isolation; the
-  [Gemma 4 LoRA starter](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-lora-training-starter)
-  validates the approved combined release and writes `training-plan.json`; and
-  the [four-arm evaluation notebook](https://www.kaggle.com/code/taylorsamarel/duecare-four-arm-fine-tuning-evaluation)
-  writes `evaluation-plan.json` plus frozen `evaluation-prompts.jsonl`.
-  The starter's public run is deliberately CPU-only with GPU training disabled;
-  it does not claim to have produced an adapter.
-- The repository's current A-00 `kernel-metadata.json` attaches that proof
-  dataset. The attached preview demonstrates the release contract; it is not
-  the full 78k+ prompt corpus.
-- The current larger multi-perspective source candidate is locally clean under
-  the v2 quality audit and contains 2,048 SFT rows, 2,048 preference rows, 256
-  validation rows, and 256 test rows. It is still not a public dataset: it
-  requires separate publication approval and a manifest-bound release build
-  before upload.
-- No production Gemma adapter, merged weights, or eligible complete advanced
-  training corpus is published. The tiny smoke path remains plumbing proof.
+- The [DueCare Measured Response Training Corpus](https://www.kaggle.com/datasets/taylorsamarel/duecare-measured-response-training-corpus)
+  is public as Kaggle version 4. It contains 791 accepted supervised
+  fine-tuning rows, 791 same-prompt preference pairs, 1,582 reward-label rows,
+  184,650 raw-text-free inventory rows, and 6,884 raw-text-free quarantine
+  rows. Its release-manifest SHA-256 is
+  `56fa69c19990c524002e4f91b833faef58648a66d87729a8f4c61dd56722b74b`.
+  The package is `safe_to_train=true` and `safe_to_publish=true`; its
+  contamination ledger still prohibits treating results on the source
+  benchmark as independent model-improvement evidence.
+- The [DueCare Multiperspective Fine-Tuning Corpus](https://www.kaggle.com/datasets/taylorsamarel/duecare-multiperspective-finetuning-corpus)
+  is public as Kaggle version 4. It contains 25,600 supervised fine-tuning
+  training rows, 25,600 preference-training rows, 2,048 validation rows, and
+  2,048 test rows. Its release-manifest SHA-256 is
+  `ea644df422d9e8c43003805f49a227d441e3a952d6deb3ea3e6fb3b6b579211d`.
+  The corpus contains deterministic fictional scenarios and visible decision
+  scaffolds; it contains no real worker cases or private hidden reasoning.
+- Nine public, central-processing-unit-safe Kaggle notebooks provide the
+  reviewer path:
+  [response integrity](https://www.kaggle.com/code/taylorsamarel/duecare-response-corpus-integrity),
+  [response training plan](https://www.kaggle.com/code/taylorsamarel/duecare-response-training-plan),
+  [response visual explorer](https://www.kaggle.com/code/taylorsamarel/duecare-response-dataset-visual-explorer),
+  [large-corpus integrity](https://www.kaggle.com/code/taylorsamarel/duecare-large-corpus-integrity-and-exploration),
+  [Gemma 4 plan and smoke preflight](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-large-corpus-plan-and-smoke),
+  [large-corpus visual explorer](https://www.kaggle.com/code/taylorsamarel/duecare-large-corpus-visual-explorer),
+  [loading quickstart](https://www.kaggle.com/code/taylorsamarel/duecare-training-data-loading-quickstart),
+  [response-quality baseline](https://www.kaggle.com/code/taylorsamarel/duecare-response-quality-baseline),
+  and [training-data quality dashboard](https://www.kaggle.com/code/taylorsamarel/duecare-training-data-quality-dashboard).
+- Downloaded Kaggle outputs prove that the response explorer produced 11
+  Portable Network Graphics charts and 10 comma-separated-value review tables;
+  the large explorer produced 15 charts and 7 tables; the quickstart produced
+  3 charts; the response baseline produced 5 charts, metrics, and a report; and
+  the cross-dataset quality dashboard produced 4 charts, a split audit, a
+  strict summary, and a report.
+- The response-quality notebook trained a small term-frequency/
+  inverse-document-frequency plus logistic-regression diagnostic on the
+  central processing unit. Its test balanced accuracy was 1.0 for text
+  features and about 0.533 for the response-length-only comparator. This is a
+  shortcut and data-quality diagnostic on contaminated reward labels, not
+  evidence that Gemma improved.
+- The earlier 24-row public proof datasets and their integrity, training-plan,
+  and four-arm evaluation notebooks remain useful for inspecting the release
+  contract row by row. They are smaller derived views, not independent
+  experiments.
+- No Gemma fine-tuning ran in this publication slice. No graphics processing
+  unit run, Low-Rank Adaptation adapter, merged weights, or independently
+  demonstrated model lift is claimed.
 
 The documentation-only future dataset surface is
 [`kaggle/shared-datasets/training-data/`](../kaggle/shared-datasets/training-data/).
@@ -76,6 +109,32 @@ The two derived dataset views and three companion notebooks are built by
 That builder first reverifies the approved source release, copies training rows
 without modification, binds the source approval and SHA-256 manifest, and
 labels the collection as interim proof rather than full-flywheel closure.
+
+The two larger public releases are reproducible locally with their exact,
+manifest-bound approval files:
+
+```powershell
+python scripts/build_response_preference_bundle.py build `
+  --output-dir reports/response_preference_candidates/measured_response_v2
+
+python scripts/build_response_kaggle_collection.py `
+  --source-manifest reports/response_preference_candidates/measured_response_v2/candidate-manifest.json `
+  --output reports/kaggle_publish/response_training_collection_v6 `
+  --publication-approval reports/response_preference_candidates/measured_response_v2/publication-approval-2026-07-15.json
+
+python scripts/build_large_multiperspective_training_bundle.py `
+  --output-dir reports/multiperspective_training/large_candidate_v1 `
+  --train-rows 25600 --validation-rows 2048 --test-rows 2048
+
+python scripts/build_large_kaggle_training_collection.py `
+  --source-manifest reports/multiperspective_training/large_candidate_v1/candidate-manifest.json `
+  --output-root reports/kaggle_publish/large_training_collection_v4 `
+  --publication-approval reports/multiperspective_training/large_candidate_v1/publication-approval-2026-07-15.json
+```
+
+The builders remain private-first when no exact approval is supplied. Building
+or uploading a dataset still does not train a model; training completion,
+adapter production, and model lift require separate artifacts and evaluation.
 
 ## The full flywheel
 
@@ -317,6 +376,8 @@ top of those trainer mechanics.
 For the deeper design and exact gates, see the
 [Phase 3 training framework](phase3_training_framework.md),
 [fine-tuning data strategy](finetuning_data_strategy.md),
+[evidence-grounded synthetic-training blueprint](research/evidence_grounded_synthetic_training_blueprint.md),
+[training-dataset publication and safety-evaluation practices](research/training_dataset_publication_and_safety_practices.md),
 [training methodology](research/training_methodology.md), and
 [training regimes and systems](research/training_regimes_and_systems.md).
 

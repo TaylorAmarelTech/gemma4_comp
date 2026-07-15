@@ -78,3 +78,8 @@ def test_server_primary_pages_and_safe_status_apis_serve(tmp_path) -> None:
     for route in ["/healthz", "/api/status", "/api/model-info", "/api/settings", "/api/activity"]:
         response = client.get(route)
         assert response.status_code == 200, route
+
+    background = client.get("/background").text
+    assert "Public training-data showcase (verified 2026-07-15)" in background
+    assert "25,600 supervised fine-tuning train rows" in background
+    assert "safe_to_publish=true" in background

@@ -18,7 +18,9 @@ Version boundary reviewed 2026-07-15: the A-00 Kaggle URL is live and the
 public notebook attaches `taylorsamarel/duecare-proof-finetuning-data`. The
 proof dataset is ready on Kaggle; the run still needs a terminal Kaggle status
 plus artifact review before it is cited as a completed proof run. No
-production adapter or full advanced corpus is publicly attached.
+production adapter is attached. Two advanced training-data releases and nine
+companion learning notebooks are public; those artifacts do not by themselves
+prove a trained model or model improvement.
 
 ## Optional Evaluation Surface
 
@@ -39,7 +41,7 @@ These directories do not change the active-kernel count:
 |---|---|---|
 | `shared-datasets/trafficking-prompts` | Existing | Shared prompt/rubric surface. |
 | `shared-datasets/eval-results` | Existing | Evaluation-result metadata and reproduction notes. |
-| [`shared-datasets/training-data`](shared-datasets/training-data/) | Documentation template only | Future manifest-bound SFT/preference dataset contract. It intentionally has no active `dataset-metadata.json`, no rows, and no publishable release. |
+| [`shared-datasets/training-data`](shared-datasets/training-data/) | Documentation and contract map | Explains the manifest-bound supervised fine-tuning, preference, reward-label, loading, and publication contracts. Generated Kaggle payloads remain under gitignored release directories. |
 
 ## Auxiliary Public Training Proofs
 
@@ -47,16 +49,44 @@ These are public companions to A-00, not additional active submission kernels:
 
 | Kaggle slug | Type | Purpose | Status reviewed 2026-07-15 |
 |---|---|---|---|
-| `taylorsamarel/duecare-proof-finetuning-data` | Combined dataset | Approved 24-row SFT + 24-pair preference preview with 4 validation and 4 test rows. | Ready |
-| `taylorsamarel/duecare-visible-reasoning-sft-preview` | Derived dataset | Exact-row SFT and held-out view. | Ready |
+| `taylorsamarel/duecare-proof-finetuning-data` | Combined dataset | Approved 24-row supervised fine-tuning preview plus 24 preference pairs, 4 validation rows, and 4 test rows. | Ready |
+| `taylorsamarel/duecare-visible-reasoning-sft-preview` | Derived dataset | Exact-row supervised fine-tuning and held-out view. | Ready |
 | `taylorsamarel/duecare-preference-pairs-preview` | Derived dataset | Exact-row preference and held-out view. | Ready |
-| `taylorsamarel/duecare-training-data-integrity-audit` | CPU notebook | Re-verifies file/row hashes, model revision, and split-family isolation. | Complete |
-| `taylorsamarel/duecare-gemma-4-lora-training-starter` | CPU notebook with GPU opt-in cell | Writes the pinned SFT&rarr;DPO training plan; default public run does not train. | Complete |
-| `taylorsamarel/duecare-four-arm-fine-tuning-evaluation` | CPU notebook | Freezes the four-arm evaluation plan and held-out prompts. | Complete |
+| `taylorsamarel/duecare-training-data-integrity-audit` | Central-processing-unit notebook | Re-verifies file/row hashes, model revision, and split-family isolation. | Complete |
+| `taylorsamarel/duecare-gemma-4-lora-training-starter` | Central-processing-unit notebook with graphics-processing-unit opt-in cell | Writes the pinned supervised-fine-tuning-to-preference-optimization plan; the default public run does not train. Low-Rank Adaptation means training small adapter weights beside a frozen base model. | Complete |
+| `taylorsamarel/duecare-four-arm-fine-tuning-evaluation` | Central-processing-unit notebook | Freezes the four-arm evaluation plan and held-out prompts. | Complete |
 
 The derived datasets are purpose-specific views of one approved source release,
 not independent experimental evidence. The notebook collection does not include
 adapter weights or a completed baseline-versus-adapter result.
+
+## Public advanced training-data showcase
+
+These packages passed exact manifest-bound publication approval, privacy,
+license, checksum, split-isolation, and local notebook-execution gates before
+Kaggle version 4 was made public on 2026-07-15.
+
+| Kaggle dataset ID | Contents | Verified identity | State |
+|---|---|---|---|
+| [`taylorsamarel/duecare-multiperspective-finetuning-corpus`](https://www.kaggle.com/datasets/taylorsamarel/duecare-multiperspective-finetuning-corpus) | 25,600 supervised fine-tuning train, 25,600 preference train, 2,048 validation, and 2,048 test rows | Candidate `7cc7573e34aa9300`; release-manifest SHA-256 `ea644df422d9e8c43003805f49a227d441e3a952d6deb3ea3e6fb3b6b579211d` | Public Kaggle version 4; downloaded explorer output verifies 15 Portable Network Graphics charts and 7 comma-separated-value tables |
+| [`taylorsamarel/duecare-measured-response-training-corpus`](https://www.kaggle.com/datasets/taylorsamarel/duecare-measured-response-training-corpus) | 791 supervised fine-tuning rows and preference pairs (649/66/76), 1,582 reward rows, and raw-text-free inventory/quarantine | Candidate `7fc563c8d583fd7a`; release-manifest SHA-256 `56fa69c19990c524002e4f91b833faef58648a66d87729a8f4c61dd56722b74b` | Public Kaggle version 4; downloaded explorer output verifies 11 charts and 10 tables; benchmark-contaminated for independent evaluation |
+
+Reviewer notebook route:
+
+1. [Load both datasets](https://www.kaggle.com/code/taylorsamarel/duecare-training-data-loading-quickstart).
+2. [Inspect the cross-dataset quality dashboard](https://www.kaggle.com/code/taylorsamarel/duecare-training-data-quality-dashboard).
+3. Review the measured-response
+   [integrity](https://www.kaggle.com/code/taylorsamarel/duecare-response-corpus-integrity),
+   [training plan](https://www.kaggle.com/code/taylorsamarel/duecare-response-training-plan),
+   [visual explorer](https://www.kaggle.com/code/taylorsamarel/duecare-response-dataset-visual-explorer),
+   and [small central-processing-unit baseline](https://www.kaggle.com/code/taylorsamarel/duecare-response-quality-baseline).
+4. Review the multiperspective
+   [integrity notebook](https://www.kaggle.com/code/taylorsamarel/duecare-large-corpus-integrity-and-exploration),
+   [Gemma plan and smoke preflight](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-large-corpus-plan-and-smoke),
+   and [visual explorer](https://www.kaggle.com/code/taylorsamarel/duecare-large-corpus-visual-explorer).
+
+No Gemma fine-tuning, graphics-processing-unit training, adapter production,
+merged weights, or independent model-lift result is claimed by this release.
 
 ## Archived Notebooks
 

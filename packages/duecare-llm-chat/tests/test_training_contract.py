@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 
-def _accepted_sft(*, prompt: str = "What should a worker do?", answer: str = "Use the cited pack and preserve evidence.") -> dict:
+def _accepted_sft(
+    *,
+    prompt: str = "What should a worker do?",
+    answer: str = "Use the cited pack and preserve evidence.",
+) -> dict:
     from duecare.chat.training_contract import training_row_sha256
 
     row = {
@@ -33,7 +37,9 @@ def _accepted_dpo() -> dict:
         "prompt": "How should this fee be assessed?",
         "chosen": "It may be illegal under the cited pack; preserve evidence.",
         "rejected": "Hide the fee in a different line item.",
-        "preference_rationale": "The chosen answer avoids operational uplift and uses the vetted pack.",
+        "preference_rationale": (
+            "The chosen answer avoids operational uplift and uses the vetted pack."
+        ),
         "pii_checked": True,
         "lineage_id": "lineage-2",
         "split": "train",
@@ -60,7 +66,11 @@ def test_training_contract_accepts_hashed_sft_and_preference_rows() -> None:
 
 
 def test_training_contract_allows_aligned_sft_dpo_prompt_but_flags_same_lane_duplicates() -> None:
-    from duecare.chat.training_contract import canonical_sha256, training_row_sha256, validate_training_rows
+    from duecare.chat.training_contract import (
+        canonical_sha256,
+        training_row_sha256,
+        validate_training_rows,
+    )
 
     sft = _accepted_sft(prompt="Shared direct scenario")
     dpo = _accepted_dpo()
@@ -109,6 +119,14 @@ def test_training_contract_rejects_pii_leakage_and_stale_hash() -> None:
     assert all("worker@example.org" not in str(item) for item in result["issue_samples"])
 
 
+def test_pii_detector_distinguishes_identity_document_topics_from_values() -> None:
+    from duecare.chat.training_contract import pii_findings
+
+    assert pii_findings("Passport retention and identity card confiscation are indicators.") == []
+    assert pii_findings("Record passport AB1234567 in the case file.") == ["identity_document"]
+    assert pii_findings("National ID number 123456 in the case file.") == ["identity_document"]
+
+
 def test_training_contract_requires_real_heldout_evidence() -> None:
     from duecare.chat.training_contract import validate_training_rows
 
@@ -118,7 +136,11 @@ def test_training_contract_requires_real_heldout_evidence() -> None:
 
 
 def test_training_contract_rejects_exact_eval_leak_and_hidden_thought_markup() -> None:
-    from duecare.chat.training_contract import canonical_sha256, training_row_sha256, validate_training_rows
+    from duecare.chat.training_contract import (
+        canonical_sha256,
+        training_row_sha256,
+        validate_training_rows,
+    )
 
     prompt = "Frozen evaluation prompt"
     row = _accepted_sft(prompt=prompt, answer="<think>private steps</think> Final answer.")
@@ -134,7 +156,11 @@ def test_training_contract_rejects_exact_eval_leak_and_hidden_thought_markup() -
 
 
 def test_training_contract_rejects_hidden_thought_outside_the_chosen_answer() -> None:
-    from duecare.chat.training_contract import canonical_sha256, training_row_sha256, validate_training_rows
+    from duecare.chat.training_contract import (
+        canonical_sha256,
+        training_row_sha256,
+        validate_training_rows,
+    )
 
     row = _accepted_dpo()
     row["preference_rationale"] = "<|channel|>analysis private scratchpad"
@@ -152,7 +178,11 @@ def test_training_contract_rejects_hidden_thought_outside_the_chosen_answer() ->
 
 
 def test_training_contract_rejects_unreviewed_or_nontrain_rows() -> None:
-    from duecare.chat.training_contract import canonical_sha256, training_row_sha256, validate_training_rows
+    from duecare.chat.training_contract import (
+        canonical_sha256,
+        training_row_sha256,
+        validate_training_rows,
+    )
 
     row = _accepted_sft()
     row["split"] = "validation"

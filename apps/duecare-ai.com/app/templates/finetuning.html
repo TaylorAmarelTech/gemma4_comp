@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Fine-tuning methodology &middot; DueCare AI</title>
-<meta name="description" content="How DueCare distils the measured harness lift into a model's weights: gap-driven vetted SFT/DPO data, anti-shortcut organisation, an Unsloth LoRA runner, and a four-arm evaluation that measures whether training internalises the lift and stacks with the harness." />
+<meta name="description" content="How DueCare prepares evidence-grounded supervised fine-tuning and preference data, publishes reproducible Kaggle releases, and evaluates whether future model training generalises safely." />
 <link rel="stylesheet" href="/static/styles.css" /><link rel="stylesheet" href="/static/hub-pages.css" />
 <style>
 .ft-flow { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin:16px 0 6px; }
@@ -33,16 +33,16 @@
 <section class="hp-hero" data-screen-label="Eval &middot; Fine-tuning"><div class="wrap">
 <div class="crumbs"><a href="/">Home</a><span class="sep">/</span><a href="/evaluation">Evaluation</a><span class="sep">/</span><span>Fine-tuning</span></div>
 <span class="kicker">Phase 3 &middot; methodology</span>
-<h1>Distilling the harness into the weights.</h1>
-<p class="lede">The <a href="/benchmark">benchmark</a> proves a thin layer of legal grounding makes any model measurably safer at inference. Fine-tuning asks the next question: can we teach the model to reach for that grounding <i>on its own</i> &mdash; internalising the stable reasoning into the weights, while the harness keeps supplying the volatile facts? This page is how we build, vet, organise, and measure that training &mdash; and how we guard against a model that memorises shortcuts instead of understanding.</p>
+<h1>Teaching evidence-grounded behavior without erasing the guardrails.</h1>
+<p class="lede">The <a href="/benchmark">benchmark</a> measures how an inference-time harness changes model responses. Fine-tuning asks a separate question: can a model learn stable evidence, uncertainty, and safe-response patterns while the harness continues supplying volatile facts and hard controls? This page explains how we build, vet, organize, and measure that training &mdash; and how we guard against a model that memorizes shortcuts instead of understanding.</p>
 </div></section>
 
 <section class="hp-section" style="padding-top:0"><div class="wrap">
-<div class="ft-card" style="border-color:oklch(0.65 0.10 80); background:var(--paper)"><b>Status &mdash; the guarded pipeline is built; a full trained adapter remains pending.</b> The corpus builders, vetting and anti-shortcut organisation, and resumable Unsloth SFT&rarr;DPO runner are committed public code. A local smoke artifact exercises plumbing only; it is not model-quality evidence. A full Kaggle run still requires an approved clean dataset, compatible GPU/runtime, successful SFT and requested DPO stages, and four-arm evaluation before publication. <b>No trained weights are published yet</b> &mdash; this page documents the method and current evidence boundary, not a finished model.</div>
+<div class="ft-card" style="border-color:oklch(0.65 0.10 80); background:var(--paper)"><b>Status &mdash; the training-data publication rung passed; a full trained adapter remains pending.</b> The public <a href="https://www.kaggle.com/datasets/taylorsamarel/duecare-measured-response-training-corpus" target="_blank" rel="noopener">measured-response corpus</a> and <a href="https://www.kaggle.com/datasets/taylorsamarel/duecare-multiperspective-finetuning-corpus" target="_blank" rel="noopener">multiperspective corpus</a> are backed by manifests, checksums, approval records, data cards, loading guides, and public notebooks. Supervised fine-tuning (SFT) trains from inputs paired with reviewed desired answers. Direct Preference Optimization (DPO) learns from preferred and nonpreferred answers. Low-Rank Adaptation (LoRA) trains small adapter weights beside a mostly frozen base model. The current public runs use a central processing unit (CPU) for validation and bounded diagnostics; no graphics processing unit (GPU) fine-tuning ran. <b>No Gemma adapter, merged weights, or independent model-lift result is published yet.</b></div>
 </div></section>
 
 <section class="hp-section"><div class="wrap">
-<div class="head"><div><span class="ix">01 &middot; Why train, not just harness</span><h2>Internalise the stable, tool the volatile.</h2></div><p class="summary">Training and the harness are not rivals; they target different things. The weights should hold the <b>stable</b> substrate (indicator reasoning, grounded-refusal style, evidence-first shape, ILO framing). The harness keeps supplying the <b>volatile</b> facts (current hotlines, fee caps, fresh statutes) so the weights never go stale. We do not assume the two stack &mdash; we measure it, in four arms on the same 0&ndash;100 benchmark.</p></div>
+<div class="head"><div><span class="ix">01 &middot; Why train, not just harness</span><h2>Internalise the stable, tool the volatile.</h2></div><p class="summary">Training and the harness are not rivals; they target different things. The weights should hold the <b>stable</b> substrate (indicator reasoning, grounded-refusal style, evidence-first shape, and International Labour Organization framing). The harness keeps supplying the <b>volatile</b> facts (current contacts, fee caps, and statutes) so the weights never go stale. We do not assume the two stack &mdash; we measure it, in four arms on the same 0&ndash;100 benchmark.</p></div>
 <table class="ft-table">
 <thead><tr><th>arm</th><th>model</th><th>harness</th><th>what it isolates</th></tr></thead>
 <tbody>
@@ -55,25 +55,25 @@
 </div></section>
 
 <section class="hp-section"><div class="wrap">
-<div class="head"><div><span class="ix">02 &middot; The training data</span><h2>The benchmark&rsquo;s proven lift becomes the training signal.</h2></div><p class="summary">Each fully graded benchmark prompt has comparable baseline and harnessed replies. High-lift, gate-passing pairs become candidate teaching material; incomplete or unvetted rows never enter a GPU job.</p></div>
+<div class="head"><div><span class="ix">02 &middot; The training data</span><h2>Measured differences and fictional scenarios become bounded teaching material.</h2></div><p class="summary">Each measured-response row retains the prompt, comparable replies, grade evidence, and contamination boundary. The separate multiperspective corpus expands controlled role, time, evidence, and jurisdiction coverage. Incomplete or unvetted rows never enter a training job.</p></div>
 <div class="ft-flow">
 <div class="ft-stage"><span class="n">Generate</span><b>Distil the lift</b><p>High-lift (baseline &rarr; harnessed) pairs become SFT targets and DPO preferences (chosen = harnessed, rejected = baseline).</p></div>
-<div class="ft-stage"><span class="n">Vet</span><b>Quality + privacy</b><p>Target score &ge; threshold, clear lift, PII / volatile-contact scrub (statute refs kept), citation accuracy, quality gate.</p></div>
+<div class="ft-stage"><span class="n">Vet</span><b>Quality + privacy</b><p>Target score &ge; threshold, clear lift, personally identifiable information and volatile-contact scrub, citation accuracy, and hard quality gates.</p></div>
 <div class="ft-stage"><span class="n">Organise</span><b>Anti-shortcut</b><p>Hold out whole typologies, balance, interleave, dedup &mdash; so the data can&rsquo;t be solved by surface shortcuts.</p></div>
-<div class="ft-stage"><span class="n">Train</span><b>Unsloth LoRA</b><p>SFT (response-only) then DPO on a commit-pinned Gemma 4 base; optionally export GGUF for llama.cpp.</p></div>
+<div class="ft-stage"><span class="n">Train</span><b>Unsloth Low-Rank Adaptation</b><p>Response-only supervised fine-tuning, then optional preference optimization on a commit-pinned Gemma 4 base; optionally export the Generative Pre-trained Transformer Generated Unified Format (GGUF) used by llama.cpp.</p></div>
 <div class="ft-stage"><span class="n">Evaluate</span><b>Four arms</b><p>Score the trained model in arms C/D on the same prompts; promote only what generalises.</p></div>
 </div>
-<p class="ft-note">SFT (instruction &rarr; harnessed reply) teaches the answer shape; DPO (prefer the grounded reply over the plausible-but-wrong baseline) teaches the boundary. Today the proposed distilled set is <b>2,602</b> SFT targets and <b>2,602</b> DPO preference pairs &mdash; plus hard-negative contract-DPO (581), reasoning-repair (1,316), and counterfactual (568) variants &mdash; built from accumulated outputs inside the <b>78,719</b>-prompt closure scope, and it grows as the sweep does. The upstream <b>74,640-prompt</b> adversarial seed corpus is committed in the public repo; generated SFT/DPO artifacts remain gated, offline handoffs until their quality audit is clean.</p>
+<p class="ft-note">The public measured-response release contains <b>791</b> supervised fine-tuning targets, <b>791</b> preference pairs, and <b>1,582</b> reward labels. The public multiperspective release contains <b>25,600</b> supervised training rows, <b>25,600</b> preference-training rows, and <b>2,048</b> rows in each held-out split. The measured-response corpus is benchmark-contaminated for independent evaluation; the multiperspective corpus is deterministic synthetic coverage, not real-world effectiveness evidence.</p>
 <p class="ft-note"><b>Reasoning-data policy:</b> bundles may include final answers, citations, visible judge rationales, and deliberately authored structures such as indicator &rarr; source &rarr; safe action. They do not request, scrape, or publish a provider&rsquo;s private hidden chain-of-thought; hidden-thought markup is a blocking data-quality failure.</p>
 </div></section>
 
 <section class="hp-section"><div class="wrap">
-<div class="head"><div><span class="ix">03 &middot; Understanding, not shortcuts</span><h2>The failure mode we design against.</h2></div><p class="summary">Distillation can teach a model to <i>parrot</i> &mdash; map a fee-splitting-shaped prompt to &ldquo;I cannot&rdquo; + &ldquo;ILO C181&rdquo; without understanding the indicator. A shortcut wins on the training distribution and collapses on anything new. We name the shortcuts, organise the data against them, and &mdash; the crux &mdash; <b>measure which one we got</b>.</p></div>
+<div class="head"><div><span class="ix">03 &middot; Understanding, not shortcuts</span><h2>The failure mode we design against.</h2></div><p class="summary">Distillation can teach a model to <i>parrot</i> &mdash; map a fee-splitting-shaped prompt to &ldquo;I cannot&rdquo; plus an International Labour Organization convention reference without understanding the indicator. A shortcut wins on the training distribution and collapses on anything new. We name the shortcuts, organise the data against them, and &mdash; the crux &mdash; <b>measure which one we got</b>.</p></div>
 <ul class="ft-list ft-shortcut">
 <li><b>Keyword&rarr;refusal</b> &mdash; trigger words map to a canned refusal regardless of whether the request is actually exploitative.</li>
 <li><b>Over-refusal</b> &mdash; the model refuses a worker asking about their own rights (a benign query).</li>
 <li><b>Citation parroting</b> &mdash; it cites the most frequent statute in training, not the one the scenario calls for.</li>
-<li><b>Obfuscation blindness</b> &mdash; a base64 / homoglyph / code-switched version of the same scheme slips through.</li>
+<li><b>Obfuscation blindness</b> &mdash; a Base64-encoded, visually confusable, or code-switched version of the same scheme slips through.</li>
 </ul>
 <div class="ft-card">
 <b>How we measure understanding.</b> The headline anti-shortcut metric is the <b>held-out-typology generalisation gap</b>: whole typologies are withheld from training, and we compare internalisation (C&minus;A) on trained typologies vs unseen ones. A large gap = memorisation; a small gap = understanding. Alongside it: <b>perturbation robustness</b> (does the score survive paraphrase / obfuscation?), <b>counterfactual consistency</b> (does the model correctly flip on minimal pairs?), and an <b>over-refusal rate</b> on benign controls. A variant only counts as understanding if it holds up on held-out typologies <i>and</i> under perturbation <i>and</i> on counterfactuals.
@@ -81,14 +81,14 @@
 </div></section>
 
 <section class="hp-section"><div class="wrap">
-<div class="head"><div><span class="ix">04 &middot; The training run</span><h2>The canonical Unsloth recipe, reproducibly.</h2></div><p class="summary">A Gemma 4 base, fine-tuned with the same recipe the rest of the project uses, on the vetted data &mdash; reproducible from <code>(git_sha, data_manifest)</code>.</p></div>
+<div class="head"><div><span class="ix">04 &middot; The training run</span><h2>The canonical Unsloth recipe, reproducibly.</h2></div><p class="summary">A Gemma 4 base, fine-tuned on vetted data with an exact repository commit and data-manifest hash.</p></div>
 <ul class="ft-list">
-<li><b>Load</b> the base 4-bit with Unsloth <code>FastModel</code>; apply a LoRA adapter (<code>get_peft_model</code>).</li>
-<li><b>SFT</b> with the <code>gemma-4-thinking</code> chat template and <code>train_on_responses_only</code> (the prompt is masked &mdash; the model is graded only on the reply it should learn).</li>
-<li><b>DPO</b> over the chosen/rejected pairs so the model prefers the grounded reply to the plausible shortcut.</li>
-<li><b>Export</b> an optional q4_k_m GGUF for llama.cpp. LiteRT deployment is a separate conversion and validation path.</li>
+<li><b>Load</b> the four-bit base with Unsloth <code>FastModel</code>; apply a Low-Rank Adaptation adapter (<code>get_peft_model</code>).</li>
+<li><b>Supervised fine-tune</b> with the <code>gemma-4-thinking</code> chat template and <code>train_on_responses_only</code> so the prompt is masked and the loss trains the reply.</li>
+<li><b>Optimize preferences</b> over chosen/rejected pairs so the model prefers the grounded reply to the plausible shortcut.</li>
+<li><b>Export</b> an optional four-bit Generative Pre-trained Transformer Generated Unified Format file for llama.cpp. LiteRT deployment is a separate conversion and validation path.</li>
 </ul>
-<p class="ft-note">The base weights are never overwritten &mdash; the result is a small adapter beside the harness. The official Gemma 4 E2B/E4B presets use immutable model commits; custom remote models must declare their own revision. A CPU-safe validate path checks the data and plan anywhere; the GPU run is one command on Kaggle.</p>
+<p class="ft-note">The base weights are never overwritten &mdash; the result is a small adapter beside the harness. The official Gemma 4 E2B and E4B model-variant presets use immutable model commits; custom remote models must declare their own revision. A CPU-safe validation path checks the data and plan anywhere; a future GPU run is a separate, explicit Kaggle action.</p>
 </div></section>
 
 <section class="hp-section"><div class="wrap">

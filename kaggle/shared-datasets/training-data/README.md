@@ -1,11 +1,21 @@
-# DueCare advanced training data release template
+# DueCare advanced training-data contract
 
-Status: **documentation-only and not publishable**. No training rows, Kaggle
-Dataset, production adapter, or merged weights are present in this directory.
-The public proof dataset is separate:
+Status: **documentation and schema map**. This repository directory contains
+no training rows and is not itself a Kaggle upload directory. The generated,
+manifest-bound releases are public on Kaggle:
+
+- [DueCare Measured Response Training Corpus](https://www.kaggle.com/datasets/taylorsamarel/duecare-measured-response-training-corpus)
+- [DueCare Multiperspective Fine-Tuning Corpus](https://www.kaggle.com/datasets/taylorsamarel/duecare-multiperspective-finetuning-corpus)
+
+Supervised fine-tuning (SFT) trains on inputs paired with reviewed desired
+answers. Direct Preference Optimization (DPO) trains from a prompt, a
+preferred answer, and a nonpreferred answer. A central processing unit (CPU)
+is used for the public lightweight diagnostics; no graphics processing unit
+(GPU) fine-tuning is claimed in this release.
+
+The smaller public proof dataset remains available separately:
 [`taylorsamarel/duecare-proof-finetuning-data`](https://www.kaggle.com/datasets/taylorsamarel/duecare-proof-finetuning-data).
-That preview proves the release contract; this folder remains the template for
-a future full advanced corpus.
+That preview proves the release contract row by row.
 
 Two public, purpose-specific views of that same approved preview are also
 available: the
@@ -20,37 +30,54 @@ and [evaluation-plan](https://www.kaggle.com/code/taylorsamarel/duecare-four-arm
 notebooks are auxiliary proof surfaces; the default training-plan run is CPU
 only and publishes no adapter.
 
-This folder documents what a future versioned Kaggle Dataset must contain. It
+This folder documents what every versioned Kaggle Dataset must contain. It
 intentionally uses `dataset-metadata.template.json` instead of Kaggle's active
 `dataset-metadata.json` filename. Do not rename it or add data here until an
 eligible release bundle passes every gate below.
 
-## Current blockers (reviewed 2026-07-15)
+## Current public release evidence (reviewed 2026-07-15)
 
-- `kaggle/A-00-omni-experiment-workbench/kernel-metadata.json` attaches the
-  proof dataset. That preview is intentionally small and does not replace this
-  future full-corpus template.
-- The current larger multi-perspective source candidate is locally clean under
-  the v2 quality audit, but it is not a publishable Kaggle Dataset until it has
-  a separate publication approval and release manifest.
+- The multiperspective release contains 25,600 SFT training rows, 25,600
+  preference-training rows, 2,048 validation rows, and 2,048 test rows. Its
+  release-manifest SHA-256 is
+  `ea644df422d9e8c43003805f49a227d441e3a952d6deb3ea3e6fb3b6b579211d`.
+  Downloaded remote output from its visual explorer contains 15 charts, 7
+  review tables, a strict JavaScript Object Notation summary, and a Markdown
+  report.
+- The measured-response release contains 791 SFT rows, 791 preference pairs,
+  1,582 reward-label rows, 184,650 raw-text-free inventory rows, and 6,884
+  raw-text-free quarantine rows. Its release-manifest SHA-256 is
+  `56fa69c19990c524002e4f91b833faef58648a66d87729a8f4c61dd56722b74b`.
+  Downloaded remote visual output contains 11 charts and 10 review tables.
+  The package is public and approved for its stated training uses, but its
+  benchmark contamination ledger prohibits treating results on the source
+  benchmark as independent model-improvement evidence.
+- Nine public notebooks provide loading, integrity, visual exploration,
+  training plans, a bounded CPU baseline, and cross-dataset split auditing.
 - Older experimental rows outside the v2 candidate bundle remain
   candidate-only unless regenerated or normalized into the current lineage,
   source, licensing, privacy, and held-out metadata contract.
 - The existing tiny adapter artifact is a plumbing smoke check, not model
   quality evidence and not a production release.
+- No Gemma training, GPU run, production adapter, merged weights, or
+  independently demonstrated model lift was produced by this publication
+  slice.
 
-## Future release contents
+## Release contents
 
 Only a separately built, manifest-bound release directory may become a Kaggle
 Dataset. Its expected public files are:
 
 | File | Required content |
 |---|---|
-| `sft_train.jsonl` | Approved final answers, citations, optional deliberately authored visible rationales, row hashes, permissions, and lineage IDs. |
-| `preference_train.jsonl` | Prompt, chosen/rejected answers, preference reason, row hashes, permissions, and lineage IDs. |
-| `validation.jsonl` | Validation-only rows whose prompt and source lineages do not occur in training. |
+| `sft-*.jsonl` | Approved final answers, citations, optional deliberately authored visible rationales, row hashes, permissions, and lineage IDs. |
+| `preference-*.jsonl` or `dpo-preference-*.jsonl` | Prompt, chosen/rejected answers, preference reason, row hashes, permissions, and lineage IDs. |
+| `reward-labels-*.jsonl` | Bounded positive and negative quality labels when that lane exists. |
+| validation and test shards | Held-out rows whose prompt and source lineages do not occur in training. |
 | `release-manifest.json` | Artifact hashes, schema/generator versions, exact base-model revision, split policy, frozen holdout identities, gate summaries, and source/license inventory. |
 | `DATA_CARD.md` | Intended use, exclusions, provenance, licenses, privacy method, limitations, known risks, and reproducibility instructions. |
+| `LOADING.md` | Standard local, Kaggle, pandas, Hugging Face Datasets, and Polars loading examples. |
+| `croissant.json` | Machine-readable MLCommons Croissant metadata and payload checksums. |
 | `dataset-metadata.json` | Final Kaggle metadata created only inside the verified release directory, never copied from this template unchanged. |
 
 Evaluation holdout rows are training-excluded. A public release may describe

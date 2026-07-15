@@ -213,9 +213,32 @@ operator guide is `docs/training_and_finetuning.md`.
 - `scripts/finetune_unsloth.py`, the old package trainer, and notebook 530 are
   legacy-disabled or plan-only surfaces. Do not bypass the strict engine or
   A-00 handoff through them.
-- No adapter, merged checkpoint, GGUF, or other trained weights are currently
-  published. Generated candidate datasets remain subject to the clean audit,
-  curator, privacy, provenance, and held-out-contamination gates above.
+- No adapter, merged checkpoint, Generative Pre-trained Transformer Generated
+  Unified Format file, or other trained weights are currently published.
+  Future generated candidates remain subject to the clean audit, curator,
+  privacy, provenance, and held-out-contamination gates above.
+- Public Kaggle training-data publication completed on 2026-07-15 after exact
+  manifest-bound approval. The large multiperspective corpus has 25,600
+  supervised fine-tuning train rows,
+  25,600 preference train rows, and 2,048 rows in each held-out split
+  (`candidate-manifest` SHA-256
+  `7cc7573e34aa9300abf9858fb72e47d23964e4b0bc1cf64535b8b17250230481`).
+  Its public release-manifest SHA-256 is
+  `ea644df422d9e8c43003805f49a227d441e3a952d6deb3ea3e6fb3b6b579211d`.
+  The measured-response corpus has 791 supervised/preference pairs split
+  649/66/76 plus 1,582 reward rows (`candidate-manifest` SHA-256
+  `7fc563c8d583fd7abd5f2baf95fda384069a6f82a61367abd530984eb79a5490`).
+  Its public release-manifest SHA-256 is
+  `56fa69c19990c524002e4f91b833faef58648a66d87729a8f4c61dd56722b74b`.
+  Both Kaggle datasets and nine central-processing-unit notebooks are public;
+  downloaded remote outputs verify the promised charts, tables, summaries,
+  and reports. The dataset IDs are
+  `taylorsamarel/duecare-multiperspective-finetuning-corpus` and
+  `taylorsamarel/duecare-measured-response-training-corpus`; both have
+  `safe_to_publish=true` for their stated releases. No graphics-processing-unit
+  training was performed, and the
+  measured-response contamination ledger prohibits reusing its source
+  benchmark as independent improvement evidence.
 
 ## Current global-protections pickup
 
