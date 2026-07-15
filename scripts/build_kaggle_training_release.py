@@ -19,6 +19,7 @@ import argparse
 import hashlib
 import json
 import re
+import shutil
 import sys
 from collections.abc import Iterable, Mapping, Sequence
 from datetime import UTC, datetime
@@ -61,13 +62,27 @@ PUBLIC_SFT_FIELDS = (
     "synthetic",
     "pii_checked",
     "lineage_id",
+    "lineage_family_id",
+    "case_graph_id",
     "split",
     "license",
     "quality_gate",
     "source_refs",
     "knowledge_pack_refs",
     "prompt_family",
+    "perspective",
+    "journey_stage",
+    "temporal_lens",
+    "evidence_state",
+    "view_mode",
+    "jurisdiction_pattern",
+    "generator_version",
     "created_at",
+    "model_id",
+    "model_role",
+    "target_model",
+    "target_model_id",
+    "target_model_revision",
     "model_revision",
     "harness_version",
     "rubric_version",
@@ -82,14 +97,32 @@ PUBLIC_PREFERENCE_FIELDS = (
     "chosen",
     "rejected",
     "preference_rationale",
+    "source_profile",
+    "rubric_targets",
+    "synthetic",
     "pii_checked",
     "lineage_id",
+    "lineage_family_id",
+    "case_graph_id",
     "split",
     "license",
     "quality_gate",
     "source_refs",
     "knowledge_pack_refs",
+    "prompt_family",
+    "perspective",
+    "journey_stage",
+    "temporal_lens",
+    "evidence_state",
+    "view_mode",
+    "jurisdiction_pattern",
+    "generator_version",
     "created_at",
+    "model_id",
+    "model_role",
+    "target_model",
+    "target_model_id",
+    "target_model_revision",
     "model_revision",
     "harness_version",
     "rubric_version",
@@ -193,7 +226,9 @@ def _strings(value: Any) -> Iterable[str]:
 
 
 def _contains_private_path_or_secret(value: Any) -> bool:
-    return any(_PRIVATE_PATH.search(text) or _SECRET_LITERAL.search(text) for text in _strings(value))
+    return any(
+        _PRIVATE_PATH.search(text) or _SECRET_LITERAL.search(text) for text in _strings(value)
+    )
 
 
 def _contained(path: Path, root: Path) -> bool:
@@ -214,6 +249,8 @@ def _resolve_artifact(manifest_path: Path, raw_value: Any) -> Path:
         candidates.append(base / raw)
     candidates.append(base / raw.name)
     for candidate in candidates:
+        if candidate.is_symlink():
+            raise ReleaseError(f"artifact must not be a symlink: {candidate.name}")
         if not candidate.exists() or not candidate.is_file():
             continue
         try:
@@ -232,6 +269,8 @@ def _verified_approval(
     source_manifest_sha256: str,
     prompt_scope: Mapping[str, Any],
 ) -> dict[str, Any]:
+    if approval_path.is_symlink():
+        raise ReleaseError("publication approval must not be a symlink")
     approval_path = approval_path.resolve(strict=True)
     approval = _read_json(approval_path)
     if approval.get("schema_version") != "1.0":
@@ -255,7 +294,9 @@ def _verified_approval(
         "quality_approved",
         "public_redistribution_approved",
     )
-    if not isinstance(decisions, Mapping) or any(decisions.get(key) is not True for key in required_decisions):
+    if not isinstance(decisions, Mapping) or any(
+        decisions.get(key) is not True for key in required_decisions
+    ):
         raise ReleaseError("publication approval decisions are incomplete")
     if approval.get("allow_training_use") is not True:
         raise ReleaseError("publication approval does not grant training use")
@@ -311,6 +352,77 @@ def _verify_prompt_scope(raw_scope: Any) -> dict[str, Any]:
     return scope
 
 
+def _verified_training_profile(raw_profile: Any) -> dict[str, Any] | None:
+    """Return a bounded, public training suggestion without enabling execution."""
+
+    if raw_profile is None or raw_profile == "":
+        return None
+    if not isinstance(raw_profile, Mapping):
+        raise ReleaseError("training_profile must be an object")
+    allowed = {
+        "id",
+        "scope",
+        "base_model_ref",
+        "base_model_revision",
+        "method",
+        "max_steps",
+        "dpo_max_steps",
+        "effective_batch_size",
+        "target_sft_epochs",
+        "target_dpo_epochs",
+        "include_dpo",
+        "dpo_file",
+        "execute",
+        "smoke_profile",
+    }
+    unknown = set(raw_profile) - allowed
+    if unknown:
+        raise ReleaseError(f"training_profile contains undeclared fields: {sorted(unknown)}")
+    profile = dict(raw_profile)
+    profile_id = str(profile.get("id") or "").strip()
+    scope = str(profile.get("scope") or "").strip()
+    base_model_ref = str(profile.get("base_model_ref") or "").strip()
+    revision = str(profile.get("base_model_revision") or "").strip().lower()
+    method = str(profile.get("method") or "").strip()
+    if not profile_id or not scope or not base_model_ref:
+        raise ReleaseError("training_profile id, scope, and base_model_ref are required")
+    if revision in UNPINNED_REVISIONS or not _HEX40_OR_64.fullmatch(revision):
+        raise ReleaseError("training_profile base_model_revision is not immutable")
+    if method not in {"sft", "sft_then_dpo"}:
+        raise ReleaseError("training_profile method is invalid")
+    for key in ("max_steps", "dpo_max_steps", "effective_batch_size"):
+        value = profile.get(key)
+        if not isinstance(value, int) or isinstance(value, bool) or not 1 <= value <= 1_000_000:
+            raise ReleaseError(f"training_profile {key} is invalid")
+    for key in ("target_sft_epochs", "target_dpo_epochs"):
+        value = profile.get(key)
+        if not isinstance(value, (int, float)) or isinstance(value, bool) or not 0 < value <= 100:
+            raise ReleaseError(f"training_profile {key} is invalid")
+    if profile.get("execute") is not False:
+        raise ReleaseError("training_profile must remain non-executing")
+    include_dpo = profile.get("include_dpo")
+    dpo_file = str(profile.get("dpo_file") or "").strip()
+    if method == "sft_then_dpo":
+        if include_dpo is not True or dpo_file != "preference_train.jsonl":
+            raise ReleaseError("SFT+DPO training_profile must bind preference_train.jsonl")
+    elif include_dpo not in {None, False} or dpo_file:
+        raise ReleaseError("SFT-only training_profile must not request DPO")
+    smoke = profile.get("smoke_profile")
+    if not isinstance(smoke, Mapping):
+        raise ReleaseError("training_profile smoke_profile is required")
+    if set(smoke) != {"id", "max_steps", "dpo_max_steps", "coverage_warning"}:
+        raise ReleaseError("training_profile smoke_profile fields are invalid")
+    if not str(smoke.get("id") or "").strip() or not str(smoke.get("coverage_warning") or "").strip():
+        raise ReleaseError("training_profile smoke_profile is incomplete")
+    for key in ("max_steps", "dpo_max_steps"):
+        value = smoke.get(key)
+        if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
+            raise ReleaseError(f"training_profile smoke_profile {key} is invalid")
+    if _contains_private_path_or_secret(profile) or pii_findings(profile):
+        raise ReleaseError("training_profile contains unsafe metadata")
+    return profile
+
+
 def _prompt_from_sft(row: Mapping[str, Any]) -> str:
     messages = row.get("messages")
     if not isinstance(messages, list):
@@ -348,6 +460,80 @@ def _assert_unique(rows: Sequence[Mapping[str, Any]], field: str, label: str) ->
         raise ReleaseError(f"{label} contains duplicate {field} values")
 
 
+def _lineage_family(row: Mapping[str, Any], label: str) -> str:
+    value = row.get("lineage_family_id")
+    if not isinstance(value, str) or not value.strip():
+        raise ReleaseError(f"{label} contains a missing lineage_family_id")
+    return value.strip()
+
+
+def _lineage_families(rows: Sequence[Mapping[str, Any]], label: str) -> set[str]:
+    return {_lineage_family(row, label) for row in rows}
+
+
+def _assert_train_family_parity(
+    sft_rows: Sequence[Mapping[str, Any]],
+    preference_rows: Sequence[Mapping[str, Any]],
+    *,
+    label_prefix: str = "source",
+) -> None:
+    sft_by_id = {
+        str(row.get("id") or ""): _lineage_family(row, f"{label_prefix} SFT train")
+        for row in sft_rows
+    }
+    preference_by_id = {
+        str(row.get("id") or ""): _lineage_family(row, f"{label_prefix} preference train")
+        for row in preference_rows
+    }
+    if sft_by_id != preference_by_id:
+        raise ReleaseError(
+            f"{label_prefix} SFT and preference lineage families do not match by row id"
+        )
+
+
+def _declared_lineage_families(raw_value: Any) -> set[str]:
+    if (
+        not isinstance(raw_value, Sequence)
+        or isinstance(raw_value, (str, bytes, bytearray))
+        or not raw_value
+    ):
+        raise ReleaseError("heldout_lineage_family_ids is required")
+    values: list[str] = []
+    for value in raw_value:
+        if not isinstance(value, str) or not value.strip():
+            raise ReleaseError("heldout_lineage_family_ids contains a blank value")
+        values.append(value.strip())
+    if len(values) != len(set(values)):
+        raise ReleaseError("heldout_lineage_family_ids contains duplicate values")
+    return set(values)
+
+
+def _verify_lineage_family_splits(
+    sft_rows: Sequence[Mapping[str, Any]],
+    preference_rows: Sequence[Mapping[str, Any]],
+    validation_rows: Sequence[Mapping[str, Any]],
+    test_rows: Sequence[Mapping[str, Any]],
+    *,
+    declared_heldout_families: set[str],
+    label_prefix: str = "source",
+) -> None:
+    _assert_train_family_parity(sft_rows, preference_rows, label_prefix=label_prefix)
+    train_families = _lineage_families(sft_rows, f"{label_prefix} SFT train")
+    validation_families = _lineage_families(validation_rows, f"{label_prefix} SFT validation")
+    test_families = _lineage_families(test_rows, f"{label_prefix} SFT test")
+    actual_heldout_families = validation_families | test_families
+    if declared_heldout_families != actual_heldout_families:
+        raise ReleaseError(
+            f"{label_prefix} declared held-out lineage family ids do not exactly match held-out rows"
+        )
+    if train_families & validation_families:
+        raise ReleaseError(f"{label_prefix} train and validation lineage families overlap")
+    if train_families & test_families:
+        raise ReleaseError(f"{label_prefix} train and test lineage families overlap")
+    if validation_families & test_families:
+        raise ReleaseError(f"{label_prefix} validation and test lineage families overlap")
+
+
 def _assert_rows_public_safe(
     rows: Sequence[Mapping[str, Any]],
     label: str,
@@ -382,13 +568,104 @@ def _assert_rows_public_safe(
             raise ReleaseError(f"{label} contains a row-integrity mismatch")
 
 
+def _expected_model_contract(manifest: Mapping[str, Any]) -> tuple[str, str, str]:
+    model = manifest.get("model")
+    if not isinstance(model, Mapping):
+        raise ReleaseError("source model metadata is missing")
+    model_id = str(model.get("id") or "").strip()
+    revision = str(model.get("revision") or "").strip()
+    role = str(manifest.get("model_role") or "").strip()
+    if not model_id or not revision or not role:
+        raise ReleaseError("source model id, revision, and role are required")
+    if revision in UNPINNED_REVISIONS or not _HEX40_OR_64.fullmatch(revision.lower()):
+        raise ReleaseError("source model revision is not immutable")
+    return model_id, revision, role
+
+
+def _assert_rows_match_model_contract(
+    rows: Sequence[Mapping[str, Any]],
+    label: str,
+    *,
+    model_id: str,
+    revision: str,
+    role: str,
+) -> None:
+    for row in rows:
+        row_model_ids = {
+            value
+            for value in (
+                str(row.get("model_id") or "").strip(),
+                str(row.get("target_model") or "").strip(),
+                str(row.get("target_model_id") or "").strip(),
+            )
+            if value
+        }
+        row_revisions = {
+            value
+            for value in (
+                str(row.get("model_revision") or "").strip(),
+                str(row.get("target_model_revision") or "").strip(),
+            )
+            if value
+        }
+        if row_model_ids != {model_id}:
+            raise ReleaseError(f"{label} target model metadata does not match the source manifest")
+        if row_revisions != {revision}:
+            raise ReleaseError(f"{label} target model revision does not match the source manifest")
+        if str(row.get("model_role") or "").strip() != role:
+            raise ReleaseError(f"{label} model role does not match the source manifest")
+
+
+def _verify_quality_audit_contract(quality_audit: Mapping[str, Any]) -> None:
+    if quality_audit.get("schema_version") != "duecare.synthetic_quality_audit.v2":
+        raise ReleaseError("quality audit schema_version is not the synthetic v2 contract")
+    if quality_audit.get("clean") is not True or list(quality_audit.get("risk_flags") or []):
+        raise ReleaseError("quality audit is not clean")
+    gates = quality_audit.get("gates")
+    if not isinstance(gates, Sequence) or isinstance(gates, (str, bytes, bytearray)):
+        raise ReleaseError("quality audit gates are missing")
+    gate_by_id = {
+        str(gate.get("id") or ""): gate
+        for gate in gates
+        if isinstance(gate, Mapping)
+    }
+    required = {
+        "canonical_training_contract",
+        "selection_contract",
+        "pii_detector_clean",
+        "all_deterministic_row_checks_pass",
+        "dpo_prompt_matches_sft_scenario",
+        "dpo_reject_is_unique_per_row",
+        "dpo_reject_reflects_all_axes",
+        "dpo_pairwise_length_ratio",
+        "dpo_reject_no_repeated_paragraphs",
+        "dpo_reject_single_controlled_failure",
+        "mandatory_semantic_quality_checks_present",
+        "heldout_near_duplicate",
+        "official_source_reference_shape",
+        "target_model_revision_pinned",
+    }
+    missing = sorted(required - set(gate_by_id))
+    if missing:
+        raise ReleaseError(f"quality audit is missing required gates: {missing}")
+    failed = sorted(
+        gate_id for gate_id, gate in gate_by_id.items() if gate.get("passed") is not True
+    )
+    if failed:
+        raise ReleaseError(f"quality audit has failed gates: {failed}")
+
+
 def _grounded_fraction(rows: Sequence[Mapping[str, Any]]) -> float:
     if not rows:
         return 0.0
     grounded = 0
     for row in rows:
         refs = row.get("source_refs") if isinstance(row.get("source_refs"), list) else []
-        packs = row.get("knowledge_pack_refs") if isinstance(row.get("knowledge_pack_refs"), list) else []
+        packs = (
+            row.get("knowledge_pack_refs")
+            if isinstance(row.get("knowledge_pack_refs"), list)
+            else []
+        )
         if any(str(item).strip() for item in [*refs, *packs]):
             grounded += 1
     return grounded / len(rows)
@@ -443,6 +720,8 @@ def inspect_source_bundle(
 ) -> dict[str, Any]:
     """Load and verify one A-00 training bundle without writing output."""
 
+    if manifest_path.is_symlink():
+        raise ReleaseError("source manifest must not be a symlink")
     manifest_path = manifest_path.resolve(strict=True)
     manifest = _read_json(manifest_path)
     manifest_sha256 = _sha256_file(manifest_path)
@@ -455,6 +734,7 @@ def inspect_source_bundle(
     source_validation = manifest.get("training_validation")
     if not isinstance(source_validation, Mapping) or source_validation.get("ok") is not True:
         raise ReleaseError("source training validation is not passing")
+    model_id, model_revision, model_role = _expected_model_contract(manifest)
 
     reason_policy = str(manifest.get("reasoning_data_policy") or "")
     if not reason_policy:
@@ -477,7 +757,15 @@ def inspect_source_bundle(
     artifact_hashes = manifest.get("artifact_sha256")
     if not isinstance(artifacts, Mapping) or not isinstance(artifact_hashes, Mapping):
         raise ReleaseError("source artifact map or checksum map is missing")
-    required = ("sft", "dpo", "sft_validation", "sft_test", "quarantine", "source_audit")
+    required = (
+        "sft",
+        "dpo",
+        "sft_validation",
+        "sft_test",
+        "quarantine",
+        "quality_audit",
+        "source_audit",
+    )
     resolved: dict[str, Path] = {}
     for key in required:
         path = _resolve_artifact(manifest_path, artifacts.get(key))
@@ -514,10 +802,29 @@ def inspect_source_bundle(
         row_license=row_license,
         rights_holder=rights_holder,
     )
-    declared_hashes = {str(value) for value in manifest.get("heldout_prompt_sha256") or [] if str(value)}
-    declared_lineages = {str(value) for value in manifest.get("heldout_lineage_ids") or [] if str(value)}
+    _assert_rows_match_model_contract(
+        sft_rows,
+        "SFT train",
+        model_id=model_id,
+        revision=model_revision,
+        role=model_role,
+    )
+    _assert_rows_match_model_contract(
+        preference_rows,
+        "preference train",
+        model_id=model_id,
+        revision=model_revision,
+        role=model_role,
+    )
+    declared_hashes = {
+        str(value) for value in manifest.get("heldout_prompt_sha256") or [] if str(value)
+    }
+    declared_lineages = {
+        str(value) for value in manifest.get("heldout_lineage_ids") or [] if str(value)
+    }
     if not declared_hashes or not declared_lineages:
         raise ReleaseError("held-out prompt hashes and lineage ids are required")
+    declared_families = _declared_lineage_families(manifest.get("heldout_lineage_family_ids"))
     _verify_heldout_rows(
         validation_rows,
         split="validation",
@@ -534,19 +841,39 @@ def inspect_source_bundle(
         row_license=row_license,
         rights_holder=rights_holder,
     )
+    _assert_rows_match_model_contract(
+        validation_rows,
+        "held-out validation",
+        model_id=model_id,
+        revision=model_revision,
+        role=model_role,
+    )
+    _assert_rows_match_model_contract(
+        test_rows,
+        "held-out test",
+        model_id=model_id,
+        revision=model_revision,
+        role=model_role,
+    )
 
     actual_heldout_hashes = {
-        canonical_sha256(_prompt_from_sft(row))
-        for row in [*validation_rows, *test_rows]
+        canonical_sha256(_prompt_from_sft(row)) for row in [*validation_rows, *test_rows]
     }
     actual_heldout_lineages = {
-        str(row.get("lineage_id") or "")
-        for row in [*validation_rows, *test_rows]
+        str(row.get("lineage_id") or "") for row in [*validation_rows, *test_rows]
     }
     if actual_heldout_hashes != declared_hashes:
         raise ReleaseError("declared held-out prompt hashes do not exactly match held-out rows")
     if actual_heldout_lineages != declared_lineages:
         raise ReleaseError("declared held-out lineage ids do not exactly match held-out rows")
+
+    _verify_lineage_family_splits(
+        sft_rows,
+        preference_rows,
+        validation_rows,
+        test_rows,
+        declared_heldout_families=declared_families,
+    )
 
     train_lineages = {str(row.get("lineage_id") or "") for row in sft_rows}
     if train_lineages & declared_lineages:
@@ -573,7 +900,9 @@ def inspect_source_bundle(
         )
     length_ratio = _preference_length_ratio(preference_rows)
     if length_ratio > 2.0:
-        raise ReleaseError(f"preference chosen/rejected length ratio is too high ({length_ratio:.3f})")
+        raise ReleaseError(
+            f"preference chosen/rejected length ratio is too high ({length_ratio:.3f})"
+        )
 
     quarantine = _read_json(resolved["quarantine"])
     if quarantine.get("contains_raw_text") is not False:
@@ -583,20 +912,19 @@ def inspect_source_bundle(
     source_audit = _read_json(resolved["source_audit"])
     if _contains_private_path_or_secret(source_audit) or pii_findings(source_audit):
         raise ReleaseError("source audit fails privacy scanning")
-    source_approvals = source_audit.get("approvals")
     if source_audit.get("clean") is not True or list(source_audit.get("risk_flags") or []):
         raise ReleaseError("source audit is not clean")
-    if not isinstance(source_approvals, Mapping) or any(
-        source_approvals.get(key) is not True
-        for key in ("curator_approved", "privacy_approved", "license_approved")
-    ):
-        raise ReleaseError("source-audit approvals are incomplete")
     if source_audit.get("prompt_scope") != prompt_scope:
         raise ReleaseError("source-audit prompt scope does not match the source manifest")
-    if source_audit.get("quality_audit_sha256") != (approval.get("quality_audit") or {}).get(
-        "artifact_sha256"
-    ):
-        raise ReleaseError("source audit and approval quality-audit checksums disagree")
+    quality_audit = _read_json(resolved["quality_audit"])
+    if _contains_private_path_or_secret(quality_audit) or pii_findings(quality_audit):
+        raise ReleaseError("quality audit fails privacy scanning")
+    _verify_quality_audit_contract(quality_audit)
+    quality_audit_sha256 = _sha256_file(resolved["quality_audit"])
+    if source_audit.get("quality_audit_sha256") != quality_audit_sha256:
+        raise ReleaseError("source audit is not bound to the quality-audit artifact")
+    if (approval.get("quality_audit") or {}).get("artifact_sha256") != quality_audit_sha256:
+        raise ReleaseError("publication approval is not bound to the quality-audit artifact")
 
     return {
         "manifest": manifest,
@@ -606,11 +934,15 @@ def inspect_source_bundle(
         "approval_path": approval_path.resolve(strict=True),
         "approval_sha256": _sha256_file(approval_path.resolve(strict=True)),
         "prompt_scope": prompt_scope,
+        "heldout_lineage_family_ids": sorted(declared_families),
         "sft_rows": sft_rows,
         "preference_rows": preference_rows,
         "validation_rows": validation_rows,
         "test_rows": test_rows,
         "quarantine": quarantine,
+        "quality_audit": quality_audit,
+        "quality_audit_path": resolved["quality_audit"],
+        "quality_audit_sha256": quality_audit_sha256,
         "source_audit": source_audit,
         "validation": validation,
         "grounded_fraction": grounded_fraction,
@@ -631,6 +963,8 @@ def _file_entry(path: Path, *, rows: int | None = None) -> dict[str, Any]:
 
 
 def _prepare_output_dir(path: Path) -> Path:
+    if path.is_symlink():
+        raise ReleaseError("output path must not be a symlink")
     resolved_parent = path.parent.resolve()
     if path.exists():
         if not path.is_dir():
@@ -669,13 +1003,40 @@ def build_release(
 
     sft_rows = [_normalise_row(row, preference=False) for row in inspected["sft_rows"]]
     preference_rows = [_normalise_row(row, preference=True) for row in inspected["preference_rows"]]
-    validation_rows = [_normalise_row(row, preference=False) for row in inspected["validation_rows"]]
+    validation_rows = [
+        _normalise_row(row, preference=False) for row in inspected["validation_rows"]
+    ]
     test_rows = [_normalise_row(row, preference=False) for row in inspected["test_rows"]]
     manifest = inspected["manifest"]
     approval = inspected["approval"]
     release_license = str(approval["release_license"])
+    training_profile = _verified_training_profile(manifest.get("training_profile"))
+    raw_matrix = manifest.get("matrix_definition")
+    matrix_summary: dict[str, Any] | None = None
+    if isinstance(raw_matrix, Mapping):
+        raw_dimensions = raw_matrix.get("dimensions")
+        dimension_counts = (
+            {
+                str(name): len(values)
+                for name, values in raw_dimensions.items()
+                if isinstance(raw_dimensions, Mapping)
+                and isinstance(values, Sequence)
+                and not isinstance(values, (str, bytes, bytearray))
+            }
+            if isinstance(raw_dimensions, Mapping)
+            else {}
+        )
+        cartesian_rows = raw_matrix.get("cartesian_rows")
+        split_unit = str(raw_matrix.get("split_unit") or "").strip()
+        if isinstance(cartesian_rows, int) and cartesian_rows > 0 and dimension_counts:
+            matrix_summary = {
+                "cartesian_rows": cartesian_rows,
+                "dimension_counts": dict(sorted(dimension_counts.items())),
+                "split_unit": split_unit,
+            }
     declared_hashes = {str(value) for value in manifest["heldout_prompt_sha256"]}
     declared_lineages = {str(value) for value in manifest["heldout_lineage_ids"]}
+    declared_families = set(inspected["heldout_lineage_family_ids"])
     public_validation = validate_training_rows(
         sft_rows,
         preference_rows,
@@ -692,6 +1053,7 @@ def build_release(
         "sft_validation.jsonl": target / "sft_validation.jsonl",
         "sft_test.jsonl": target / "sft_test.jsonl",
         "quarantine_summary.json": target / "quarantine_summary.json",
+        "quality_audit.json": target / "quality_audit.json",
         "source_audit.json": target / "source_audit.json",
         "publication_approval.json": target / "publication_approval.json",
     }
@@ -702,14 +1064,16 @@ def build_release(
         "sft_test.jsonl": _write_jsonl(paths["sft_test.jsonl"], test_rows),
     }
     _write_json(paths["quarantine_summary.json"], inspected["quarantine"])
-    _write_json(paths["source_audit.json"], inspected["source_audit"])
+    shutil.copyfile(inspected["quality_audit_path"], paths["quality_audit.json"])
+    public_source_audit = dict(inspected["source_audit"])
+    public_source_audit.pop("approvals", None)
+    _write_json(paths["source_audit.json"], public_source_audit)
     _write_json(paths["publication_approval.json"], approval)
 
     source_id = str(manifest.get("id") or inspected["manifest_sha256"][:16])
     release_id = f"{_safe_release_slug(source_id)}-{inspected['manifest_sha256'][:12]}"
     file_entries = {
-        name: _file_entry(path, rows=row_counts.get(name))
-        for name, path in paths.items()
+        name: _file_entry(path, rows=row_counts.get(name)) for name, path in paths.items()
     }
     release_manifest: dict[str, Any] = {
         "schema_version": RELEASE_SCHEMA_VERSION,
@@ -725,7 +1089,9 @@ def build_release(
             "handoff_kind": manifest.get("handoff_kind"),
             "manifest_sha256": inspected["manifest_sha256"],
             "model": manifest.get("model"),
+            "model_role": manifest.get("model_role"),
             "generator_mode": manifest.get("generator_mode"),
+            "generator_version": manifest.get("generator_version"),
             "harness_profile": manifest.get("harness_profile"),
         },
         "publication_approval": {
@@ -740,7 +1106,9 @@ def build_release(
         },
         "prompt_scope": inspected["prompt_scope"],
         "release_tier": (
-            "complete-flywheel" if inspected["prompt_scope"]["closure_status"] == "exact" else "preview"
+            "complete-flywheel"
+            if inspected["prompt_scope"]["closure_status"] == "exact"
+            else "preview"
         ),
         "counts": {
             "sft_train": len(sft_rows),
@@ -751,6 +1119,7 @@ def build_release(
         },
         "heldout_prompt_sha256": sorted(declared_hashes),
         "heldout_lineage_ids": sorted(declared_lineages),
+        "heldout_lineage_family_ids": sorted(declared_families),
         "reasoning_data_policy": (
             "Final answers, citations/source references, preference rationales, and deliberately authored "
             "structured rationales only. Private hidden chain-of-thought is neither requested nor published."
@@ -768,12 +1137,21 @@ def build_release(
         "files": file_entries,
         "safe_to_publish": True,
     }
+    if matrix_summary is not None:
+        release_manifest["matrix_summary"] = matrix_summary
+    if training_profile is not None:
+        source_model = manifest.get("model") if isinstance(manifest.get("model"), Mapping) else {}
+        if training_profile["base_model_ref"] != source_model.get("id"):
+            raise ReleaseError("training_profile base model does not match the source model")
+        if training_profile["base_model_revision"] != source_model.get("revision"):
+            raise ReleaseError("training_profile revision does not match the source model")
+        release_manifest["training_profile"] = training_profile
 
     dataset_metadata = {
         "title": title,
         "id": dataset_id,
         "licenses": [{"name": release_license}],
-        "subtitle": "Manifest-bound SFT and preference data from the DueCare harness",
+        "subtitle": "Manifest-bound SFT and preference data from DueCare",
         "description": (
             "A gated DueCare training release containing lineage-isolated SFT, preference, validation, and "
             "test rows. Every public row carries provenance, license, quality-gate, immutable model revision, "
@@ -784,9 +1162,21 @@ def build_release(
         "collaborators": [],
     }
     _write_json(target / "dataset-metadata.json", dataset_metadata)
+    matrix_card = ""
+    if matrix_summary is not None:
+        axes = ", ".join(
+            f"{count} {name.replace('_', ' ')}"
+            for name, count in matrix_summary["dimension_counts"].items()
+        )
+        matrix_card = f"""
+## Synthetic reasoning matrix
+
+The generator defines `{matrix_summary["cartesian_rows"]:,}` possible combinations across {axes}.
+The published files are a balanced preview. Split unit: {matrix_summary["split_unit"]}.
+"""
     data_card = f"""# {title}
 
-Release `{release_id}` is a manifest-bound export of the DueCare harness-to-training-data flywheel.
+Release `{release_id}` is a manifest-bound export of the DueCare training-data pipeline.
 
 ## Contents
 
@@ -794,7 +1184,8 @@ Release `{release_id}` is a manifest-bound export of the DueCare harness-to-trai
 - `{len(preference_rows)}` preference train rows
 - `{len(validation_rows)}` validation rows
 - `{len(test_rows)}` test rows
-- metadata-only quarantine and source-audit artifacts
+- metadata-only quarantine, quality-audit, and source-audit artifacts
+{matrix_card}
 
 ## Training use
 
@@ -830,17 +1221,25 @@ License: {release_license}. Per-row generation provenance is retained in the JSO
 def verify_release_dir(release_dir: Path) -> dict[str, Any]:
     """Verify a built directory immediately before a Kaggle upload."""
 
+    if release_dir.is_symlink():
+        raise ReleaseError("release path must not be a symlink")
     root = release_dir.resolve(strict=True)
     if not root.is_dir():
         raise ReleaseError("release path is not a directory")
-    manifest = _read_json(root / "release-manifest.json")
+    release_manifest_path = root / "release-manifest.json"
+    if release_manifest_path.is_symlink():
+        raise ReleaseError("release manifest must not be a symlink")
+    manifest = _read_json(release_manifest_path)
     if manifest.get("schema_version") != RELEASE_SCHEMA_VERSION:
         raise ReleaseError("release schema_version is invalid")
     if manifest.get("handoff_kind") != RELEASE_HANDOFF_KIND:
         raise ReleaseError("release handoff_kind is invalid")
     if manifest.get("safe_to_publish") is not True or manifest.get("public") is not True:
         raise ReleaseError("release is not marked safe and public")
-    metadata = _read_json(root / "dataset-metadata.json")
+    metadata_path = root / "dataset-metadata.json"
+    if metadata_path.is_symlink():
+        raise ReleaseError("dataset metadata must not be a symlink")
+    metadata = _read_json(metadata_path)
     if metadata.get("id") != manifest.get("dataset_id"):
         raise ReleaseError("dataset metadata id does not match the release manifest")
     if not metadata.get("licenses"):
@@ -856,7 +1255,23 @@ def verify_release_dir(release_dir: Path) -> dict[str, Any]:
     source_manifest_sha = source_bundle.get("manifest_sha256")
     if not isinstance(source_manifest_sha, str) or not _HEX64.fullmatch(source_manifest_sha):
         raise ReleaseError("release source-manifest checksum is missing")
+    source_model = source_bundle.get("model")
+    if not isinstance(source_model, Mapping):
+        raise ReleaseError("release source model is missing")
+    expected_model_id = str(source_model.get("id") or "").strip()
+    expected_model_revision = str(source_model.get("revision") or "").strip()
+    expected_model_role = str(source_bundle.get("model_role") or "").strip()
+    if not expected_model_id or not expected_model_revision or not expected_model_role:
+        raise ReleaseError("release source model contract is incomplete")
+    training_profile = _verified_training_profile(manifest.get("training_profile"))
+    if training_profile is not None:
+        if training_profile["base_model_ref"] != source_model.get("id"):
+            raise ReleaseError("release training_profile base model mismatch")
+        if training_profile["base_model_revision"] != source_model.get("revision"):
+            raise ReleaseError("release training_profile revision mismatch")
     approval_path = root / "publication_approval.json"
+    if approval_path.is_symlink():
+        raise ReleaseError("publication approval must not be a symlink")
     approval = _verified_approval(
         approval_path,
         source_manifest_sha256=source_manifest_sha,
@@ -885,21 +1300,25 @@ def verify_release_dir(release_dir: Path) -> dict[str, Any]:
             raise ReleaseError("release file map contains an unsafe path")
         if not isinstance(details, Mapping):
             raise ReleaseError(f"release file metadata is invalid: {name}")
-        path = (root / name).resolve(strict=True)
+        unresolved_path = root / name
+        if unresolved_path.is_symlink():
+            raise ReleaseError(f"release file must not be a symlink: {name}")
+        path = unresolved_path.resolve(strict=True)
         if not _contained(path, root) or not path.is_file():
             raise ReleaseError(f"release file escapes the release directory: {name}")
-        if path.is_symlink():
-            raise ReleaseError(f"release file must not be a symlink: {name}")
         expected = details.get("sha256")
         if not isinstance(expected, str) or _sha256_file(path) != expected:
             raise ReleaseError(f"release file checksum mismatch: {name}")
         if int(details.get("bytes", -1)) != path.stat().st_size:
             raise ReleaseError(f"release file size mismatch: {name}")
-    actual_names = {path.name for path in root.iterdir() if path.is_file()}
+    release_entries = list(root.iterdir())
+    if any(path.is_symlink() for path in release_entries):
+        raise ReleaseError("release directory must not contain symlinks")
+    actual_names = {path.name for path in release_entries if path.is_file()}
     expected_names = set(declared) | {"release-manifest.json"}
     if actual_names != expected_names:
         raise ReleaseError("release directory contains undeclared or missing files")
-    if any(path.is_dir() for path in root.iterdir()):
+    if any(path.is_dir() for path in release_entries):
         raise ReleaseError("release directory must not contain subdirectories")
     if _contains_private_path_or_secret(manifest) or _contains_private_path_or_secret(metadata):
         raise ReleaseError("release metadata contains a private path or credential signature")
@@ -910,6 +1329,7 @@ def verify_release_dir(release_dir: Path) -> dict[str, Any]:
         "sft_validation.jsonl",
         "sft_test.jsonl",
         "quarantine_summary.json",
+        "quality_audit.json",
         "source_audit.json",
         "publication_approval.json",
         "dataset-metadata.json",
@@ -938,13 +1358,25 @@ def verify_release_dir(release_dir: Path) -> dict[str, Any]:
         )
         if any(set(row) - allowed for row in rows):
             raise ReleaseError(f"{label} contains undeclared public fields")
+        _assert_rows_match_model_contract(
+            rows,
+            label,
+            model_id=expected_model_id,
+            revision=expected_model_revision,
+            role=expected_model_role,
+        )
     _assert_unique(sft_rows, "id", "SFT train")
     _assert_unique(preference_rows, "id", "preference train")
     if {str(row["id"]) for row in sft_rows} != {str(row["id"]) for row in preference_rows}:
         raise ReleaseError("release SFT and preference row ids do not match")
 
-    declared_hashes = {str(value) for value in manifest.get("heldout_prompt_sha256") or [] if str(value)}
-    declared_lineages = {str(value) for value in manifest.get("heldout_lineage_ids") or [] if str(value)}
+    declared_hashes = {
+        str(value) for value in manifest.get("heldout_prompt_sha256") or [] if str(value)
+    }
+    declared_lineages = {
+        str(value) for value in manifest.get("heldout_lineage_ids") or [] if str(value)
+    }
+    declared_families = _declared_lineage_families(manifest.get("heldout_lineage_family_ids"))
     _verify_heldout_rows(
         validation_rows,
         split="validation",
@@ -969,6 +1401,14 @@ def verify_release_dir(release_dir: Path) -> dict[str, Any]:
     }
     if declared_hashes != actual_heldout_hashes or declared_lineages != actual_heldout_lineages:
         raise ReleaseError("release held-out declarations do not exactly match held-out rows")
+    _verify_lineage_family_splits(
+        sft_rows,
+        preference_rows,
+        validation_rows,
+        test_rows,
+        declared_heldout_families=declared_families,
+        label_prefix="release",
+    )
     train_hashes = {canonical_sha256(_prompt_from_sft(row)) for row in sft_rows}
     train_lineages = {str(row.get("lineage_id") or "") for row in sft_rows}
     if train_hashes & declared_hashes or train_lineages & declared_lineages:
@@ -1008,17 +1448,20 @@ def verify_release_dir(release_dir: Path) -> dict[str, Any]:
     source_audit = _read_json(root / "source_audit.json")
     if source_audit.get("clean") is not True or list(source_audit.get("risk_flags") or []):
         raise ReleaseError("release source audit is not clean")
-    source_approvals = source_audit.get("approvals")
-    if not isinstance(source_approvals, Mapping) or any(
-        source_approvals.get(key) is not True
-        for key in ("curator_approved", "privacy_approved", "license_approved")
-    ):
-        raise ReleaseError("release source-audit approvals are incomplete")
     if source_audit.get("prompt_scope") != prompt_scope:
         raise ReleaseError("release source-audit prompt scope does not match")
+    quality_audit = _read_json(root / "quality_audit.json")
+    if _contains_private_path_or_secret(quality_audit) or pii_findings(quality_audit):
+        raise ReleaseError("release quality audit fails privacy scanning")
+    _verify_quality_audit_contract(quality_audit)
+    quality_audit_sha256 = _sha256_file(root / "quality_audit.json")
     quality = approval.get("quality_audit") or {}
-    if source_audit.get("quality_audit_sha256") != quality.get("artifact_sha256"):
-        raise ReleaseError("release source audit and approval quality-audit checksums disagree")
+    if source_audit.get("quality_audit_sha256") != quality_audit_sha256:
+        raise ReleaseError("release source audit is not bound to the quality-audit artifact")
+    if quality.get("artifact_sha256") != quality_audit_sha256:
+        raise ReleaseError(
+            "release publication approval is not bound to the quality-audit artifact"
+        )
     expected_tier = "complete-flywheel" if prompt_scope["closure_status"] == "exact" else "preview"
     if manifest.get("release_tier") != expected_tier:
         raise ReleaseError("release tier does not match prompt closure status")
@@ -1039,7 +1482,9 @@ def _default_output(manifest_path: Path) -> Path:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
-    build = sub.add_parser("build", help="verify one A-00 bundle and create a Kaggle release directory")
+    build = sub.add_parser(
+        "build", help="verify one A-00 bundle and create a Kaggle release directory"
+    )
     build.add_argument("--manifest", type=Path, required=True)
     build.add_argument(
         "--approval",
@@ -1053,7 +1498,9 @@ def build_parser() -> argparse.ArgumentParser:
     build.add_argument("--min-sft-rows", type=int, default=20)
     build.add_argument("--min-preference-rows", type=int, default=20)
     build.add_argument("--min-grounded-fraction", type=float, default=0.8)
-    verify = sub.add_parser("verify", help="re-verify a built release directory without modifying it")
+    verify = sub.add_parser(
+        "verify", help="re-verify a built release directory without modifying it"
+    )
     verify.add_argument("--release-dir", type=Path, required=True)
     return parser
 

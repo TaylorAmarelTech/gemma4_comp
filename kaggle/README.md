@@ -12,12 +12,11 @@ The current submission path uses three script-kernel folders:
 
 Run `01` and `02` by copying `kernel.py` into a Kaggle code cell, enabling Internet and T4 x2 GPU, and running the cell. Those kernels install the DueCare packages from GitHub, stage outputs under `/kaggle/working`, launch the server, and print a `https://*.trycloudflare.com` URL. Use `A-00` when you want the longer proof pipeline and report artifacts rather than the reviewer web UI.
 
-The A-00 Kaggle URL is public. The July 2026 dataset-attached update was
-pushed as Kaggle kernel version `14` on 2026-07-14, with
-`taylorsamarel/duecare-proof-finetuning-data` attached. The live run still
-needs a terminal Kaggle status plus artifact review before it is cited as a
-completed proof run. No production Gemma adapter or full advanced training
-corpus is published.
+The A-00 Kaggle URL is public and attaches
+`taylorsamarel/duecare-proof-finetuning-data`. The proof dataset is ready on
+Kaggle; the live notebook run still needs a terminal Kaggle status plus
+artifact review before it is cited as a completed proof run. No production
+Gemma adapter or full advanced training corpus is published.
 
 ## Archived Reference Notebooks
 
@@ -51,7 +50,7 @@ Kaggle-hosted model quota and produce Community Benchmark task/run artifacts.
 | `shared-datasets/eval-results` | Existing evaluation surface | Metadata and documentation for reproducible evaluation artifacts. |
 | [`shared-datasets/training-data`](shared-datasets/training-data/) | **Template only; not publishable** | Documents the manifest, data card, license, privacy, lineage, holdout, and visible-rationale contract for a future advanced training dataset. It contains no active `dataset-metadata.json` and no rows. |
 
-The training-data template is not an A-00 input today. A future immutable
+The training-data template is not an A-00 input today. A future immutable full
 dataset version may be attached only after the candidate audit is clean, every
 row satisfies the current training contract, the release bundle is verified,
 and the public Kaggle copy is re-downloaded and checksum-checked.

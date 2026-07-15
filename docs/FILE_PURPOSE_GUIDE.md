@@ -62,6 +62,12 @@ must remain candidate-only until the normal training and publication gates pass.
 bundle producer for the public Kaggle preview dataset; it emits synthetic,
 visible-rationale SFT/preference rows plus held-out splits for the same release
 gate.
+`scripts/build_multiperspective_training_bundle.py` is the larger deterministic
+case-graph producer. It exposes shared dated synthetic records through single,
+handoff, and multi-actor views across perspectives, journey stages, temporal
+lenses, evidence states, and jurisdiction topologies. It holds out complete
+mechanism families, emits an executable quality audit, and requires a separate
+manifest-bound publication approval before the normal release gate can run.
 
 ## Canonical Lane Language
 

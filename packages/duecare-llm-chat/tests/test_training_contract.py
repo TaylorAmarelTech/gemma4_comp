@@ -59,6 +59,40 @@ def test_training_contract_accepts_hashed_sft_and_preference_rows() -> None:
     assert result["blocking_failures"] == []
 
 
+def test_training_contract_allows_aligned_sft_dpo_prompt_but_flags_same_lane_duplicates() -> None:
+    from duecare.chat.training_contract import canonical_sha256, training_row_sha256, validate_training_rows
+
+    sft = _accepted_sft(prompt="Shared direct scenario")
+    dpo = _accepted_dpo()
+    dpo["prompt"] = "Shared direct scenario"
+    dpo["sha256"] = training_row_sha256(dpo)
+    aligned = validate_training_rows(
+        [sft],
+        [dpo],
+        evaluation_prompt_hashes=[canonical_sha256("Frozen evaluation prompt")],
+        evaluation_lineage_ids=["heldout-lineage"],
+        require_preference=True,
+    )
+    dedup = next(gate for gate in aligned["gates"] if gate["id"] == "deduplicated")
+    assert dedup["passed"] is True
+    assert dedup["failures"] == 0
+
+    duplicate = _accepted_sft(prompt="Shared direct scenario")
+    duplicate["id"] = "sft-2"
+    duplicate["lineage_id"] = "lineage-3"
+    duplicate["sha256"] = training_row_sha256(duplicate)
+    same_lane = validate_training_rows(
+        [sft, duplicate],
+        [dpo],
+        evaluation_prompt_hashes=[canonical_sha256("Frozen evaluation prompt")],
+        evaluation_lineage_ids=["heldout-lineage"],
+        require_preference=True,
+    )
+    dedup = next(gate for gate in same_lane["gates"] if gate["id"] == "deduplicated")
+    assert dedup["passed"] is False
+    assert dedup["failures"] == 1
+
+
 def test_training_contract_rejects_pii_leakage_and_stale_hash() -> None:
     from duecare.chat.training_contract import canonical_sha256, validate_training_rows
 

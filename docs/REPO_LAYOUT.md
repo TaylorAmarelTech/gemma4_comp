@@ -1,6 +1,6 @@
 ﻿# Repository Layout
 
-Current as of 2026-07-14.
+Current as of 2026-07-15.
 
 | Path | Purpose | Status |
 |---|---|---|
@@ -11,7 +11,7 @@ Current as of 2026-07-14.
 | [`kaggle/`](../kaggle/) | Active Kaggle submission path plus archived notebook-era material. Source of truth: [`kaggle/_INDEX.md`](../kaggle/_INDEX.md). | Live |
 | [`kaggle/01-duecare-exploration-workbench/`](../kaggle/01-duecare-exploration-workbench/) | Broad interactive workbench: chat, harness comparison, search, extraction, traces, and knowledge flows. | Active |
 | [`kaggle/02-live-demo/`](../kaggle/02-live-demo/) | Focused demo/video path. | Active |
-| [`kaggle/A-00-omni-experiment-workbench/`](../kaggle/A-00-omni-experiment-workbench/) | Active quantitative proof source: baseline, harness, candidate rows, guarded SFT&rarr;DPO, judging, and report exports. The public Kaggle copy has the July dataset-attached update pushed as version `14`; execution/artifact review is still pending. | Active source; public update pushed |
+| [`kaggle/A-00-omni-experiment-workbench/`](../kaggle/A-00-omni-experiment-workbench/) | Active quantitative proof source: baseline, harness, candidate rows, guarded SFT&rarr;DPO, judging, and report exports. The public Kaggle copy attaches the proof dataset; execution/artifact review is still pending. | Active source; public update pushed |
 | [`kaggle/shared-datasets/training-data/`](../kaggle/shared-datasets/training-data/) | Documentation-only contract and placeholder metadata for a future full advanced SFT/preference Kaggle Dataset; contains no rows or active `dataset-metadata.json`. The separate proof dataset is published at `taylorsamarel/duecare-proof-finetuning-data`. | Template only; not publishable |
 | [`kaggle/03-universal-llm-benchmark/`](../kaggle/03-universal-llm-benchmark/) | Optional endpoint-comparison kernel for arbitrary API targets, DueCare prompt/rubric cues, and Claude Opus judging. | Optional |
 | [`kaggle/04-kaggle-community-benchmark/`](../kaggle/04-kaggle-community-benchmark/) | Optional Kaggle Community Benchmark surface using `kaggle_benchmarks` and Kaggle model proxy calls. | Optional |
