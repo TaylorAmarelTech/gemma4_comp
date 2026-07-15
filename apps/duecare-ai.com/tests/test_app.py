@@ -103,7 +103,8 @@ def test_study_and_finetuning_pages_keep_model_and_deployment_claims_separate(tm
 
     assert finetuning.status_code == 200
     assert "a full trained adapter remains pending" in finetuning.text
-    assert "A local smoke artifact exercises plumbing only" in finetuning.text
+    assert "No Gemma adapter, merged weights, or independent model-lift result is published yet." in finetuning.text
+    assert "no graphics processing unit (GPU) fine-tuning ran" in finetuning.text
     assert "single GPU step" not in finetuning.text
 
 
@@ -113,27 +114,28 @@ def test_training_data_flywheel_states_release_and_reasoning_boundaries(tmp_path
     response = client.get("/training-data-flywheel")
 
     assert response.status_code == 200
-    assert "No production adapter or full advanced training corpus is published yet." in response.text
-    assert "SFT then preference" in response.text
+    assert "Two advanced Kaggle datasets are public" in response.text
+    assert "Nine public Kaggle notebooks load, verify, explain, visualize" in response.text
+    assert "supervised fine-tuning (SFT) data first" in response.text
     assert "private hidden chain-of-thought" in response.text
     assert "complete final answers, citations, harness traces" in response.text
     assert "Already have a file?" in response.text
     assert "A loose file stays inspection-only" in response.text
-    assert "prompt hash and lineage ID" in response.text
-    assert "The proof dataset has 24 SFT rows, 24 preference rows, 4 validation rows, and 4 test rows" in response.text
+    assert "prompt hash and lineage identifier" in response.text
+    assert "791 supervised fine-tuning rows, 791 preference pairs, 1,582 reward labels" in response.text
+    assert "25,600 supervised fine-tuning training rows, 25,600 preference-training rows" in response.text
     assert "the proof dataset" in response.text
-    assert "kernel version 14" in response.text
-    assert "terminal status and artifact review" in response.text
-    assert "single-corridor shortcut risk" in response.text
-    assert "Future Kaggle Dataset publication unit" in response.text
-    assert "No full corpus dataset version meeting that complete contract has been published yet." in response.text
+    assert "Current Kaggle Dataset publication unit" in response.text
+    assert "Both public advanced datasets meet this packaging contract" in response.text
     assert "kaggle/A-00-omni-experiment-workbench" in response.text
     assert "kaggle/shared-datasets/training-data" in response.text
     assert "docs/training_and_finetuning.md" in response.text
-    assert "A smoke artifact proves plumbing only" in response.text
-    assert "public Kaggle notebook update, and proof dataset are available" in response.text
+    assert "No Gemma fine-tuning, graphics-processing-unit run, production adapter" in response.text
     assert "www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation" in response.text
+    assert "www.kaggle.com/code/taylorsamarel/duecare-training-data-loading-quickstart" in response.text
     assert "www.kaggle.com/datasets/taylorsamarel/duecare-proof-finetuning-data" in response.text
+    assert "www.kaggle.com/datasets/taylorsamarel/duecare-measured-response-training-corpus" in response.text
+    assert "www.kaggle.com/datasets/taylorsamarel/duecare-multiperspective-finetuning-corpus" in response.text
 
 
 def test_training_data_flywheel_is_linked_from_public_training_surfaces(tmp_path) -> None:
@@ -148,7 +150,9 @@ def test_training_data_flywheel_is_linked_from_public_training_surfaces(tmp_path
     assert 'class="docs-card" href="/finetuning"' in client.get("/docs").text
     kernels = client.get("/kernels").text
     assert "July dataset-attached update" in kernels
-    assert "kernel version 14" in kernels
+    assert "two public training datasets and nine public learning notebooks" in kernels
+    assert "Public training-data learning route" in kernels
+    assert "www.kaggle.com/code/taylorsamarel/duecare-training-data-quality-dashboard" in kernels
 
 
 def test_demo_recording_and_admin_pages_render(tmp_path) -> None:
