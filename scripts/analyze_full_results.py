@@ -16,29 +16,82 @@ from __future__ import annotations
 import argparse
 import collections
 import json
+import math
+import random
 import statistics
 from datetime import datetime, timezone
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parent.parent
 PANEL = _ROOT / "reports" / "rich_lift" / "panel.jsonl"
+PROMPTSET = _ROOT / "reports" / "benchmark" / "full_promptset.json"
 OUT = _ROOT / "docs" / "research" / "full_results.md"
 
 
-def aggregate(rows: list[dict]) -> dict:
-    """rows: [{model, arm, prompt_id, score_0_100, components}] -> per-model stats. Pure + testable."""
+def _sign_test_two_sided_p(wins: int, losses: int) -> float | None:
+    """Two-sided sign test over non-tied paired deltas (ties excluded).
+
+    Exact binomial for up to 200 informative pairs; the continuity-corrected
+    normal approximation beyond that. Returns None when every pair ties.
+    """
+    informative = wins + losses
+    if informative == 0:
+        return None
+    if informative <= 200:
+        smaller_tail = sum(math.comb(informative, k) for k in range(min(wins, losses) + 1))
+        return round(min(1.0, 2.0 * smaller_tail / (2.0 ** informative)), 6)
+    z = max(0.0, (abs(wins - losses) - 1)) / math.sqrt(informative)
+    return round(min(1.0, math.erfc(z / math.sqrt(2))), 6)
+
+
+def _wilson_95(successes: int, n: int) -> list[float] | None:
+    """Wilson 95% score interval for a binomial proportion."""
+    if n == 0:
+        return None
+    z = 1.959963984540054
+    phat = successes / n
+    denom = 1 + z * z / n
+    center = (phat + z * z / (2 * n)) / denom
+    margin = z * math.sqrt(phat * (1 - phat) / n + z * z / (4 * n * n)) / denom
+    return [round(max(0.0, center - margin), 4), round(min(1.0, center + margin), 4)]
+
+
+def _bootstrap_ci(deltas: list[float], seed: int = 20260716) -> list[float] | None:
+    """Seeded percentile bootstrap 95% interval for the mean paired delta."""
+    if len(deltas) < 2:
+        return None
+    rng = random.Random(seed)
+    means = sorted(
+        statistics.fmean(rng.choices(deltas, k=len(deltas))) for _ in range(2000)
+    )
+    return [round(means[49], 2), round(means[1949], 2)]
+
+
+def aggregate(rows: list[dict], registry_meta: dict | None = None) -> dict:
+    """rows: [{model, arm, prompt_id, score_0_100, components, judge?}] -> per-model stats.
+
+    Pure + testable. When registry_meta maps prompt_id -> {category, corridor,
+    difficulty} from the real prompt registry, per-model breakdowns are added so
+    lift is reported against the actual benchmark taxonomy instead of only one
+    global mean.
+    """
     sc: dict = collections.defaultdict(list)
     comp: dict = collections.defaultdict(list)
+    judge_sc: dict = collections.defaultdict(list)
     for r in rows:
         m, a, pid = r.get("model"), r.get("arm"), r.get("prompt_id")
         if not (m and a and pid) or not isinstance(r.get("score_0_100"), (int, float)):
             continue
         sc[(m, pid, a)].append(r["score_0_100"])
+        judge = r.get("judge")
+        if judge:
+            judge_sc[(m, pid, a, judge)].append(r["score_0_100"])
         for k, v in (r.get("components") or {}).items():
             if isinstance(v, (int, float)):
                 comp[(m, pid, a, k)].append(v)
     mean = {k: statistics.mean(v) for k, v in sc.items()}
     comp_mean = {k: statistics.mean(v) for k, v in comp.items()}
+    judge_mean = {k: statistics.mean(v) for k, v in judge_sc.items()}
     paired_prompt_ids: set[str] = set()
     fully_paired_prompt_ids: set[str] = set()
     per_model = []
@@ -65,6 +118,66 @@ def aggregate(rows: list[dict]) -> dict:
         hurt_d = [x for x in d if x < 0]
         full_core_d = [f - c for c, f in cf]
         full_core_mean = statistics.mean(full_core_d) if full_core_d else None
+        wins = sum(1 for x in d if x > 0)
+        losses = len(hurt_d)
+        stats_block = {
+            "sign_test_two_sided_p": _sign_test_two_sided_p(wins, losses),
+            "win_rate": round(wins / (wins + losses), 4) if wins + losses else None,
+            "win_rate_wilson_95": _wilson_95(wins, wins + losses),
+            "lift_bootstrap_95": _bootstrap_ci(d),
+            "ties_excluded": sum(1 for x in d if x == 0),
+        }
+        per_judge = []
+        for judge in sorted({k[3] for k in judge_mean if k[0] == mdl}):
+            judge_pids = sorted(
+                p for p in pids
+                if (mdl, p, "baseline", judge) in judge_mean
+                and (mdl, p, "harness_core", judge) in judge_mean
+            )
+            if not judge_pids:
+                continue
+            jd = [
+                judge_mean[(mdl, p, "harness_core", judge)]
+                - judge_mean[(mdl, p, "baseline", judge)]
+                for p in judge_pids
+            ]
+            per_judge.append({
+                "judge": judge,
+                "n_pair": len(jd),
+                "baseline": round(statistics.mean(
+                    judge_mean[(mdl, p, "baseline", judge)] for p in judge_pids
+                ), 1),
+                "core": round(statistics.mean(
+                    judge_mean[(mdl, p, "harness_core", judge)] for p in judge_pids
+                ), 1),
+                "lift": round(statistics.mean(jd), 1),
+                "helps": sum(1 for x in jd if x > 0),
+                "hurts": sum(1 for x in jd if x < 0),
+            })
+        breakdowns = None
+        if registry_meta is not None:
+            breakdowns = {}
+            for dim in ("category", "corridor", "difficulty"):
+                groups: dict = collections.defaultdict(list)
+                for p in sorted(bc_pids):
+                    value = str((registry_meta.get(p) or {}).get(dim) or "unknown")
+                    groups[value].append(
+                        (mean[(mdl, p, "baseline")], mean[(mdl, p, "harness_core")])
+                    )
+                entries = []
+                for value, pairs in groups.items():
+                    group_d = [c - b for b, c in pairs]
+                    entries.append({
+                        "value": value,
+                        "n": len(group_d),
+                        "baseline": round(statistics.mean(b for b, c in pairs), 1),
+                        "core": round(statistics.mean(c for b, c in pairs), 1),
+                        "lift": round(statistics.mean(group_d), 1),
+                        "helps": sum(1 for x in group_d if x > 0),
+                        "hurts": sum(1 for x in group_d if x < 0),
+                    })
+                entries.sort(key=lambda e: -e["n"])
+                breakdowns[dim] = entries
         component_lift = {}
         component_n = {}
         component_keys = {k[3] for k in comp_mean if k[0] == mdl}
@@ -100,6 +213,9 @@ def aggregate(rows: list[dict]) -> dict:
             "hurt_worst": round(min(hurt_d), 1) if hurt_d else None,
             "components": component_lift,
             "component_n": component_n,
+            "statistics": stats_block,
+            "per_judge": per_judge,
+            "breakdowns": breakdowns,
         })
     per_model.sort(key=lambda r: -r["n_pair"])
     return {
@@ -170,6 +286,59 @@ def render(agg: dict, registry: int, today: str) -> str:
               f"{head['n_core_full_pair']:,} core/full pairs, core scores higher on "
               f"{head['core_better']:,}, full scores higher on {head['full_better']:,}, and "
               f"{head['full_core_ties']:,} tie. {_full_core_conclusion(head).capitalize()}."]
+    if head and head.get("statistics"):
+        s = head["statistics"]
+        parts = []
+        if s.get("lift_bootstrap_95"):
+            lo, hi = s["lift_bootstrap_95"]
+            parts.append(f"seeded bootstrap 95% interval for the mean lift [{lo:+}, {hi:+}]")
+        if s.get("sign_test_two_sided_p") is not None:
+            parts.append(f"two-sided sign test p = {s['sign_test_two_sided_p']} "
+                         f"({s['ties_excluded']:,} ties excluded)")
+        if s.get("win_rate") is not None and s.get("win_rate_wilson_95"):
+            wl, wh = s["win_rate_wilson_95"]
+            parts.append(f"win rate {100 * s['win_rate']:.1f}% with Wilson 95% interval "
+                         f"[{100 * wl:.1f}%, {100 * wh:.1f}%]")
+        L += ["", "## Statistical strength (real-prompt panel)", "",
+              f"For `{head['model']}` baseline->core over {head['n_pair']:,} paired registry "
+              "prompts: " + "; ".join(parts)
+              + ". These are inferential statements about the recorded panel, "
+              "not real-world detection claims.", ""]
+    if head and head.get("per_judge"):
+        L += ["## Per-judge robustness", "",
+              "The same paired lift computed independently inside each judge's own "
+              f"verdicts (`{head['model']}`):",
+              "",
+              "| judge | n pairs | baseline | core | lift | helps | hurts |",
+              "|---|---:|---:|---:|---:|---:|---:|"]
+        for j in head["per_judge"]:
+            L.append(f"| `{j['judge']}` | {j['n_pair']:,} | {j['baseline']} | {j['core']} | "
+                     f"{j['lift']:+} | {j['helps']:,} | {j['hurts']:,} |")
+        L.append("")
+    if head and head.get("breakdowns"):
+        sections = (
+            ("category", "## Lift by prompt category", 20),
+            ("corridor", "## Lift by corridor", 15),
+            ("difficulty", "## Lift by difficulty", None),
+        )
+        for dim, title, cap in sections:
+            entries = head["breakdowns"].get(dim) or []
+            if not entries:
+                continue
+            shown = entries[:cap] if cap else entries
+            L += [title, "",
+                  "Registry-taxonomy view of the same paired prompts "
+                  f"(`{head['model']}`, baseline->core):",
+                  "",
+                  f"| {dim} | n | baseline | core | lift | helps | hurts |",
+                  "|---|---:|---:|---:|---:|---:|---:|"]
+            for e in shown:
+                L.append(f"| `{e['value']}` | {e['n']:,} | {e['baseline']} | {e['core']} | "
+                         f"{e['lift']:+} | {e['helps']:,} | {e['hurts']:,} |")
+            if cap and len(entries) > cap:
+                L.append(f"\nThe remaining {len(entries) - cap:,} smaller {dim} groups are in the "
+                         "machine-readable JSON published beside this report; nothing is dropped.")
+            L.append("")
     L += ["Honesty caveats (rubric-scored proxy, deterministic-null-over-placebo, diverse-lens ~+12-14, "
           "English-only) are in `findings_synthesis_2026_07_10.md`; this file is the paired-coverage + "
           "raw-lift view.", ""]
@@ -192,18 +361,44 @@ def load_panel(path: Path) -> list[dict]:
     return rows
 
 
+def load_registry_meta(path: Path) -> dict | None:
+    """prompt_id -> {category, corridor, difficulty} from the real prompt registry."""
+    if not path.exists():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    return {
+        str(p["id"]): {
+            "category": p.get("category"),
+            "corridor": p.get("corridor"),
+            "difficulty": p.get("difficulty"),
+        }
+        for p in data.get("prompts", [])
+        if p.get("id")
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Full-results analysis over the accumulated benchmark panel.")
     ap.add_argument("--panel", type=Path, default=PANEL)
     ap.add_argument("--out", type=Path, default=OUT)
+    ap.add_argument("--promptset", type=Path, default=PROMPTSET)
     ap.add_argument("--registry", type=int, default=78719)  # the full_promptset.json registry the engine grades against
     ap.add_argument("--today", default=datetime.now(timezone.utc).date().isoformat())
     args = ap.parse_args(argv)
-    agg = aggregate(load_panel(args.panel))
+    agg = aggregate(load_panel(args.panel), registry_meta=load_registry_meta(args.promptset))
     if not agg["per_model"]:
         print("no graded rows found in panel")
         return 1
     args.out.write_text(render(agg, args.registry, args.today), encoding="utf-8")
+    json_out = args.out.with_suffix(".json")
+    json_out.write_text(
+        json.dumps({"generated": args.today, "registry": args.registry, **agg},
+                   indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
     head = next((r for r in agg["per_model"] if r["model"] == "gemma4:31b"), agg["per_model"][0])
     print(f"paired {agg['fully_paired_prompt_ids']:,}/{args.registry:,} all-arm prompts "
           f"({agg['paired_prompt_ids']:,} baseline/core; {agg['graded_prompt_ids']:,} any arm); "
