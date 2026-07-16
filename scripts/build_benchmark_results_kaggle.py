@@ -345,21 +345,45 @@ plt.rcParams.update({"figure.figsize": (11, 5.6), "figure.dpi": 115,
                      "axes.facecolor": "#f7faf9", "axes.edgecolor": "#bed2cc",
                      "axes.grid": True, "grid.alpha": 0.2, "font.size": 11})
 
+EXPECTED_DATASET_ID = "taylorsamarel/duecare-harness-benchmark-grades"
+
+def _verify_dataset(base):
+    # Bind to the right dataset even if another DueCare dataset is also attached:
+    # the release manifest must name this dataset id.
+    manifest = base / "release-manifest.json"
+    if manifest.is_file():
+        did = json.loads(manifest.read_text(encoding="utf-8")).get("dataset_id")
+        if did and did != EXPECTED_DATASET_ID:
+            return False
+    return True
+
 def find_dataset():
     bases = []
     if os.environ.get("DUECARE_GRADES_ROOT"):
         bases.append(Path(os.environ["DUECARE_GRADES_ROOT"]))
     bases += list(Path("/kaggle/input").glob("*")) + [Path.cwd()]
+    seen = set()
     for base in bases:
-        if (base / "panel_grades.csv").is_file():
-            return base
-        for hit in base.rglob("panel_grades.csv"):
-            return hit.parent
-    raise FileNotFoundError("Attach the duecare-harness-benchmark-grades dataset")
+        for cand in ([base] + list(base.rglob("panel_grades.csv"))):
+            root = cand if cand.is_dir() else cand.parent
+            if root in seen or not (root / "panel_grades.csv").is_file():
+                continue
+            seen.add(root)
+            if _verify_dataset(root):
+                return root
+    raise FileNotFoundError(f"Attach {EXPECTED_DATASET_ID} (no matching dataset found)")
 
 root = find_dataset()
 grades = pd.read_csv(root / "panel_grades.csv")
 prompts = pd.read_csv(root / "prompt_metadata.csv")
+
+def headline_model():
+    # One canonical head across the notebook: prefer gemma4:31b, else the
+    # most-paired model. (Avoids the lift/agreement cells disagreeing.)
+    if "gemma4:31b" in set(grades["model"]):
+        return "gemma4:31b"
+    return grades["model"].value_counts().index[0]
+
 in_kaggle = bool(os.environ.get("KAGGLE_KERNEL_RUN_TYPE")) or Path("/kaggle/input").exists()
 out_dir = Path(os.environ.get("DUECARE_NOTEBOOK_OUTPUT_DIR", "/kaggle/working" if in_kaggle else Path.cwd()))
 out_dir.mkdir(parents=True, exist_ok=True)
@@ -400,6 +424,8 @@ for model, sub in wide.groupby(level=0):
                  "harness_core": round(paired["harness_core"].mean(), 1),
                  "lift": round(d.mean(), 1),
                  "helps": int((d > 0).sum()), "hurts": int((d < 0).sum())})
+if not rows:
+    raise RuntimeError("no model has >=5 paired baseline/harness_core prompts yet — attach a fuller grades dataset")
 lift = pd.DataFrame(rows).sort_values("n_pairs", ascending=False)
 display(lift)
 
@@ -421,24 +447,29 @@ for the mean lift, an exact two-sided sign test over non-tied pairs, and the win
 rate with a Wilson interval. These are inferential statements about the graded
 panel, not real-world detection claims."""),
         _code("stats", """import math, random, statistics
-head = lift.iloc[0]["model"]
+head = headline_model()
 paired = wide.loc[head].dropna(subset=["baseline", "harness_core"])
 d = list(paired["harness_core"] - paired["baseline"])
 wins = sum(1 for x in d if x > 0); losses = sum(1 for x in d if x < 0)
 rng = random.Random(20260716)
 boot = sorted(statistics.fmean(rng.choices(d, k=len(d))) for _ in range(2000))
 info = wins + losses
-if info <= 200:
+if info == 0:
+    sign_p = None
+elif info <= 200:
     sign_p = round(min(1.0, 2 * sum(math.comb(info, k) for k in range(min(wins, losses) + 1)) / 2**info), 6)
 else:
     sign_p = round(min(1.0, math.erfc(max(0, abs(wins - losses) - 1) / math.sqrt(info) / math.sqrt(2))), 6)
-z = 1.959964; n = wins + losses; phat = wins / n
-wl = (phat + z*z/(2*n) - z*math.sqrt(phat*(1-phat)/n + z*z/(4*n*n))) / (1 + z*z/n)
-wh = (phat + z*z/(2*n) + z*math.sqrt(phat*(1-phat)/n + z*z/(4*n*n))) / (1 + z*z/n)
+sign_disp = "n/a (all tied)" if sign_p is None else ("<1e-300" if sign_p == 0.0 else str(sign_p))
+n = info
+z = 1.959964; phat = (wins / n) if n else float("nan")
+wl = ((phat + z*z/(2*n) - z*math.sqrt(phat*(1-phat)/n + z*z/(4*n*n))) / (1 + z*z/n)) if n else float("nan")
+wh = ((phat + z*z/(2*n) + z*math.sqrt(phat*(1-phat)/n + z*z/(4*n*n))) / (1 + z*z/n)) if n else float("nan")
+win_disp = "n/a" if not n else f"{100*phat:.1f}% (Wilson [{100*wl:.1f}%, {100*wh:.1f}%])"
 display(Markdown(f"**`{head}`** over **{len(d):,} paired prompts**: mean lift **{statistics.fmean(d):+.1f}**, "
                  f"bootstrap 95% [{boot[49]:+.1f}, {boot[1949]:+.1f}], "
-                 f"two-sided sign test p={sign_p} ({wins} wins / {losses} losses), "
-                 f"win rate {100*phat:.1f}% (Wilson [{100*wl:.1f}%, {100*wh:.1f}%])."))"""),
+                 f"two-sided sign test p={sign_disp} ({wins} wins / {losses} losses), "
+                 f"win rate {win_disp}."))"""),
         _md("judge-note", """## 3. Does it hold inside each judge?
 
 If the lift only appeared for one lenient judge it would be fragile. Here the
@@ -502,15 +533,59 @@ disagreed wildly, the harness-lift headline would rest on judge noise. This
 notebook measures how closely the judges track each other on the same responses,
 and how the five A-E rubric components move."""),
         _code("setup", _SETUP),
-        _md("corr-note", """## 1. Pairwise judge agreement on the same responses
+        _md("corr-note", """## 1. Judge agreement on the same responses
 
 For every (model, prompt_id, arm) graded by multiple judges, we compare the
-0-100 scores the judges gave the same response and report their correlation."""),
-        _code("corr", """pivot = grades.pivot_table(index=["model", "prompt_id", "arm"], columns="judge", values="score_0_100")
+0-100 scores the judges gave the same response. Agreement is measured **within
+each arm** -- as ICC(2,1) absolute agreement and Fisher-averaged within-arm
+Pearson r -- because pooling scores across arms inflates the correlation (every
+judge scores baseline low and harnessed high, so the arm gap masquerades as
+agreement). The pooled number is shown only for contrast."""),
+        _code("corr", """import numpy as np
+pivot = grades.pivot_table(index=["model", "prompt_id", "arm"], columns="judge", values="score_0_100")
 judges = list(pivot.columns)
-corr = pivot.corr()
-display(Markdown("Pairwise Pearson correlation of judge scores on the same responses:"))
-display(corr.round(3))
+
+
+def _icc21(mat):
+    # ICC(2,1) absolute agreement, two-way random effects, single rater.
+    m = mat.dropna()
+    n, k = m.shape
+    if n < 2 or k < 2:
+        return float("nan"), int(n)
+    x = m.to_numpy(dtype=float)
+    grand = x.mean()
+    ss_row = k * ((x.mean(axis=1) - grand) ** 2).sum()
+    ss_col = n * ((x.mean(axis=0) - grand) ** 2).sum()
+    ss_err = ((x - grand) ** 2).sum() - ss_row - ss_col
+    msr, msc = ss_row / (n - 1), ss_col / (k - 1)
+    mse = ss_err / ((n - 1) * (k - 1))
+    denom = msr + (k - 1) * mse + k * (msc - mse) / n
+    return (((msr - mse) / denom) if denom else float("nan")), int(n)
+
+
+# Honest agreement is measured WITHIN each arm. Pooling all arms together inflates
+# r because every judge scores baseline low and harnessed high -- that is agreement
+# about the arm, not about the response. Average within-arm r via Fisher z.
+iu = np.triu_indices(len(judges), 1)
+per_arm_r, icc_rows = [], []
+for arm, sub in pivot.groupby(level="arm"):
+    c = sub[judges].corr()
+    if c.notna().to_numpy()[iu].any():
+        per_arm_r.append(c.reindex(index=judges, columns=judges))
+    val, nn = _icc21(sub[judges])
+    icc_rows.append({"arm": arm, "n_complete": nn,
+                     "ICC(2,1)": (round(val, 3) if val == val else None)})
+zmean = np.nanmean(np.stack([np.arctanh(np.clip(c.to_numpy(), -0.999999, 0.999999)) for c in per_arm_r]), axis=0)
+within = pd.DataFrame(np.tanh(zmean), index=judges, columns=judges)
+pooled = pivot.corr()
+display(Markdown("**ICC(2,1) absolute agreement within each arm** (1.0 = identical scores):"))
+display(pd.DataFrame(icc_rows))
+display(Markdown(
+    f"Within-arm mean pairwise r = **{within.to_numpy()[iu].mean():.3f}**; the arm-pooled r "
+    f"(**{pooled.to_numpy()[iu].mean():.3f}**) is higher only because it mixes the arm gap into the "
+    f"correlation. The within-arm number is the honest one."))
+display(within.round(3))
+corr = within
 fig, ax = plt.subplots(figsize=(7.5, 6))
 im = ax.imshow(corr.values, cmap="YlGn", vmin=0, vmax=1)
 ax.set_xticks(range(len(judges)), judges, rotation=20, ha="right")
@@ -518,7 +593,7 @@ ax.set_yticks(range(len(judges)), judges)
 for i in range(len(judges)):
     for j in range(len(judges)):
         ax.text(j, i, f"{corr.values[i, j]:.2f}", ha="center", va="center", fontsize=10)
-ax.set(title="Judge agreement (Pearson r on shared responses)")
+ax.set(title="Judge agreement (within-arm Pearson r, Fisher-averaged)")
 fig.colorbar(im, ax=ax, fraction=0.046)
 fig.tight_layout()
 fig.savefig(out_dir / "judge_agreement.png", bbox_inches="tight")
@@ -528,7 +603,7 @@ plt.show()"""),
 Averaging the A-E component scores by arm shows where the harness changes
 behavior: indicator recognition, legal grounding, refusal, resources, privacy."""),
         _code("components", """comp_names = {"A": "indicator", "B": "legal/ILO", "C": "refusal", "D": "resources", "E": "privacy"}
-head = grades.model.value_counts().index[0]
+head = headline_model()
 sub = grades[grades.model == head]
 means = sub.groupby("arm")[list("ABCDE")].mean()
 means = means.reindex([a for a in ["baseline", "harness_core", "harness_full"] if a in means.index])
@@ -547,8 +622,16 @@ plt.show()
 display(means.round(2))"""),
         _md("close", """## Reading this honestly
 
-High judge agreement means the harness-lift signal is not one judge's quirk.
-It does **not** turn a rubric score into truth about a person: the whole panel is
+Judges agree strongly on baseline responses and only moderately on harnessed
+ones -- richer, longer answers give the panel more to weigh, so per-response
+agreement is lower on the harness arms than on baseline. That does **not** weaken
+the lift headline: the direction is what matters, and it is near-unanimous
+(the companion lift notebook shows the harness winning on ~99.8% of paired
+prompts and the leave-one-judge-out envelope staying above +40). Agreement here
+is a check that the signal is not one judge's quirk -- not a claim that the
+panel is interchangeable.
+
+None of this turns a rubric score into truth about a person: the whole panel is
 a calibrated measurement instrument over synthetic/composite safety prompts, not
 a real-world trafficking finding."""),
     ]
