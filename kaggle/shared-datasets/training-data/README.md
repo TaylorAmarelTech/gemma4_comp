@@ -6,12 +6,17 @@ manifest-bound releases are public on Kaggle:
 
 - [DueCare Measured Response Training Corpus](https://www.kaggle.com/datasets/taylorsamarel/duecare-measured-response-training-corpus)
 - [DueCare Multiperspective Fine-Tuning Corpus](https://www.kaggle.com/datasets/taylorsamarel/duecare-multiperspective-finetuning-corpus)
+- [DueCare Measured Review Curriculum 200K](https://www.kaggle.com/datasets/taylorsamarel/duecare-measured-review-curriculum-200k)
+- [DueCare Gemma 4 Adapter Learning Study](https://www.kaggle.com/datasets/taylorsamarel/duecare-gemma4-adapter-learning-study)
+- [DueCare Grounded Byte Model Learning Study](https://www.kaggle.com/datasets/taylorsamarel/duecare-grounded-byte-model-learning-study)
 
 Supervised fine-tuning (SFT) trains on inputs paired with reviewed desired
 answers. Direct Preference Optimization (DPO) trains from a prompt, a
 preferred answer, and a nonpreferred answer. A central processing unit (CPU)
-is used for the public lightweight diagnostics; no graphics processing unit
-(GPU) fine-tuning is claimed in this release.
+is used for the public lightweight diagnostics. A separate, public Gemma 4
+learning study records two real graphics processing unit (GPU) runs and a
+relative Low-Rank Adaptation adapter; it remains a research artifact rather
+than a production model.
 
 The smaller public proof dataset remains available separately:
 [`taylorsamarel/duecare-proof-finetuning-data`](https://www.kaggle.com/datasets/taylorsamarel/duecare-proof-finetuning-data).
@@ -54,14 +59,50 @@ eligible release bundle passes every gate below.
   benchmark as independent model-improvement evidence.
 - Nine public notebooks provide loading, integrity, visual exploration,
   training plans, a bounded CPU baseline, and cross-dataset split auditing.
+- The measured review curriculum contains 207,680 supervised training rows,
+  207,680 preference-training pairs, 528 validation rows, and 608 test rows.
+  Its release-manifest SHA-256 is
+  `1b062ce12fe43494f7d63659a53017c857e0ac0103759d8f71b3340f63bdc2b7`.
+  Its apparent scale is augmentation scale: descendants preserve parent hashes
+  and are not independent cases.
+- The adapter learning study contains two real Gemma 4 E2B Low-Rank Adaptation
+  runs and the base/trained by harness/no-harness four-arm record. Its current
+  release-manifest SHA-256 is
+  `4c300a3b277009e1488979bb6579859a59f0dbfeecf4c31a0d4251ea837572f4`.
+  Its recorded harmful-request study uses six real benchmark response pairs,
+  one frozen judge, anonymous candidates, and both presentation orders. The
+  harness won 6/6 pairs with mean +9.67/10 and a pair-bootstrap 95% interval
+  of [+9.0, +10.0]. This is a harmful-request-handling result, not a claim that
+  the adapter or harness identifies trafficking victims in real-world data.
+  A separate checksummed receipt carries the 911-pair model-judge harness
+  result (+1.73/10), the 998-pair deterministic cross-check (+0.18/10), and
+  140 adversarial transformations (+4.39/10). Those use synthetic/composite
+  prompts and measure response quality, not real-case detection accuracy.
+  Start with the public
+  [learning curves](https://www.kaggle.com/code/taylorsamarel/duecare-gemma4-learning-curves),
+  [four-arm before/after study](https://www.kaggle.com/code/taylorsamarel/duecare-gemma4-four-arm-before-after),
+  [lineage and receipts](https://www.kaggle.com/code/taylorsamarel/duecare-grounded-lineage-and-training-receipts),
+  [judge audit](https://www.kaggle.com/code/taylorsamarel/duecare-frontier-judge-measurement-audit),
+  [integrated evidence-to-triage system and publication showcase](https://www.kaggle.com/code/taylorsamarel/duecare-training-publication-toolchain),
+  and [Tensor Processing Unit training lab](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-tpu-lora-training-lab).
 - Older experimental rows outside the v2 candidate bundle remain
   candidate-only unless regenerated or normalized into the current lineage,
   source, licensing, privacy, and held-out metadata contract.
-- The existing tiny adapter artifact is a plumbing smoke check, not model
-  quality evidence and not a production release.
-- No Gemma training, GPU run, production adapter, merged weights, or
-  independently demonstrated model lift was produced by this publication
-  slice.
+- The stronger 60-step graphics-processor run trained 817,152 parameters and
+  produced a relative adapter with SHA-256
+  `93fcb82460b8d7ae21737e1cd88fea711cb8c1f3ee5e82d4f313edc54bcc5347`.
+  Its +0.15 structural-score change on eight grounded-remix holdout rows is a
+  narrow learning observation, not independent domain-quality evidence.
+- A central-processing-unit compatibility run also trained two complete
+  byte-level transformers from random weights for two steps per arm. Both
+  NumPy parameter archives passed exact reload verification. Held-out
+  next-byte loss changed from 5.5479 to 5.1164 and from 5.5990 to 4.7361;
+  these are mechanism observations, not useful-language or domain-lift claims.
+  The full models and receipts are public under release-manifest SHA-256
+  `9bc416a67de030243429857fa7af4ee7087bead4c85ef2566a3838f6f95e7d4a`.
+- No merged weights, independently demonstrated victim-identification or
+  field-detection lift, legal-quality result, or production release was
+  produced by this slice.
 
 ## Release contents
 

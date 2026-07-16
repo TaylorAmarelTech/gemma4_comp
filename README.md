@@ -18,24 +18,67 @@
 > cannot. These are dated benchmark results, not field-deployment,
 > production-traffic, or weeks-long local Gemma reliability claims.
 >
-> **Current training-data status (2026-07-15):** two advanced, manifest-bound
-> Kaggle datasets are now public. The
+> **Current training-data and training status (2026-07-15):** five
+> manifest-bound Kaggle learning datasets are public. The
 > [multiperspective corpus](https://www.kaggle.com/datasets/taylorsamarel/duecare-multiperspective-finetuning-corpus)
 > contains 25,600 supervised fine-tuning training rows, 25,600 preference
 > training rows, and 2,048 rows in each held-out split. The
 > [measured-response corpus](https://www.kaggle.com/datasets/taylorsamarel/duecare-measured-response-training-corpus)
 > contains 791 accepted supervised fine-tuning rows, 791 preference pairs,
-> 1,582 reward labels, and raw-text-free inventory and quarantine lanes. Nine
-> public central-processing-unit notebooks verify, load, explain, visualize,
-> and run bounded diagnostics on the releases. Downloaded Kaggle outputs prove
+> 1,582 reward labels, and raw-text-free inventory and quarantine lanes. The
+> [207,680-row grounded-remix curriculum](https://www.kaggle.com/datasets/taylorsamarel/duecare-measured-review-curriculum-200k)
+> has 207,680 supervised rows and 207,680 preference pairs while retaining
+> parent hashes and lineage-family splits. The
+> [Gemma 4 adapter learning study](https://www.kaggle.com/datasets/taylorsamarel/duecare-gemma4-adapter-learning-study)
+> publishes two real graphics-processing-unit runs, relative Low-Rank
+> Adaptation weights, learning curves, before/after generations, a four-arm
+> harness comparison, and frozen frontier-judge audits. On six recorded
+> high-severity harmful-request pairs, the same frozen judge preferred the
+> real DueCare harness response in all six pairs and both presentation orders:
+> mean harness delta +9.67/10, pair-bootstrap 95% interval [+9.0, +10.0], and
+> zero mean order gap. This is evidence of improved harmful-request handling on
+> that recorded benchmark lane, not improved victim identification or field
+> detection. The public
+> [evidence-to-triage system showcase](https://www.kaggle.com/code/taylorsamarel/duecare-training-publication-toolchain)
+> puts the corpus, training, harness, examples, judge results, and claim ladder
+> together. Public notebooks
+> verify, load, explain, visualize, and run bounded diagnostics on the
+> releases. Downloaded Kaggle outputs prove
 > 11 charts plus 10 review tables for the response explorer, 15 charts plus 7
 > review tables for the multiperspective explorer, and additional loading,
 > split-isolation, and small-classifier reports. Supervised fine-tuning means
 > training from inputs paired with reviewed desired answers; preference
 > training learns from preferred and nonpreferred answers. This is a
-> professional Kaggle / Gemma 4 hackathon learning artifact. **No Gemma
-> fine-tuning, graphics-processing-unit run, Low-Rank Adaptation adapter,
-> merged weights, or independent model-lift result is claimed.**
+> professional Kaggle / Gemma 4 hackathon learning artifact. The stronger
+> Gemma 4 E2B run completed 60 optimizer steps and produced a relative adapter;
+> its structural holdout score changed by +0.15 on eight grounded-remix rows.
+> A separate frozen 32-verdict frontier-judge audit of that same adapter did
+> not support a positive training-lift claim, so the adapter is published as a
+> bounded learning artifact rather than an improved model; the +9.67/10 result
+> above measures the deterministic harness, not the trained weights.
+> A separate central-processing-unit fallback initialized two byte-level
+> transformers from random weights, trained both on lineage-separated grounded
+> remixes, saved full reloadable parameter archives, and reduced held-out
+> next-byte loss from 5.5479 to 5.1164 and from 5.5990 to 4.7361. That two-step
+> mechanism run is published in the
+> [Grounded Byte Model Learning Study](https://www.kaggle.com/datasets/taylorsamarel/duecare-grounded-byte-model-learning-study)
+> and is not a useful-language or domain-lift claim.
+> A checksummed system-evidence receipt also reproduces a **+1.73/10**
+> model-judge change over 911 paired synthetic/composite trafficking-safety
+> prompts, a **+0.18/10** deterministic cross-check over 998 pairs, and a
+> **+4.39/10** model-judge change over 140 declared adversarial transforms.
+> The larger live panel read (2026-07-16 snapshot) now covers **7,953 paired
+> real registry prompts** for `gemma4:31b` under a three-judge panel:
+> baseline 48.4 → harnessed 89.1 on the 0-100 component rubric (**+40.7**,
+> seeded bootstrap 95% interval [+40.2, +41.2], win rate 99.8%, and the lift
+> holds within each judge independently). Regenerate the current read with
+> `python scripts/analyze_full_results.py` →
+> [`docs/research/full_results.md`](docs/research/full_results.md).
+> These are benchmark response-quality results, not field-detection metrics.
+> **No merged weights, independently demonstrated victim-identification or
+> real-world field-detection lift,
+> legal-quality result, production-ready model, or field-effectiveness claim
+> is made.**
 > See [Training and fine-tuning](docs/training_and_finetuning.md).
 >
 > **DueCare is Gemma 4-powered safety infrastructure for migrant-worker
@@ -446,6 +489,19 @@ pitch kernel and A-01 through A-24 appendix notebooks are archived under
 |---|---|---|
 | 01 | [`kaggle/01-duecare-exploration-workbench/`](./kaggle/01-duecare-exploration-workbench/) | Core omni workbench with model picker, layer toggles, traces, and A/B comparison |
 | 02 | [`kaggle/02-live-demo/`](./kaggle/02-live-demo/) | Focused screen-recording surface and public-hub demo |
+
+#### Public training-learning route
+
+For the evidence behind the training-data and adapter work, start with the
+[207,680-row curriculum atlas](https://www.kaggle.com/code/taylorsamarel/duecare-200k-curriculum-visual-atlas),
+then read the
+[Gemma 4 optimization curves](https://www.kaggle.com/code/taylorsamarel/duecare-gemma4-learning-curves)
+and the
+[four-arm before/after comparison](https://www.kaggle.com/code/taylorsamarel/duecare-gemma4-four-arm-before-after).
+The latter shows base and trained Gemma, each with and without the deterministic
+harness, plus fictional controlled failure examples. The
+[Tensor Processing Unit training lab](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-tpu-lora-training-lab)
+continues the small real training study on Kaggle's eight-core accelerator.
 
 See [`kaggle/_INDEX.md`](./kaggle/_INDEX.md) for the active folder list and
 archive note.
