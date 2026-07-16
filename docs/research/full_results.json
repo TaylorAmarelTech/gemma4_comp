@@ -1446,6 +1446,11 @@
       "core_better": 4554,
       "full": 88.1,
       "full_better": 3135,
+      "full_core_bootstrap_95": [
+        -1.14,
+        -0.94
+      ],
+      "full_core_ci_excludes_zero": true,
       "full_core_ties": 269,
       "full_core_winner": "core",
       "full_minus_core": -1.04,
@@ -1489,10 +1494,20 @@
         }
       ],
       "statistics": {
+        "leave_one_judge_out_lift": {
+          "drop_deepseek-v4-pro": 40.9,
+          "drop_glm-5.2": 40.4,
+          "drop_gpt-oss:120b": 40.8
+        },
+        "leave_one_judge_out_range": [
+          40.4,
+          40.9
+        ],
         "lift_bootstrap_95": [
           40.2,
           41.22
         ],
+        "normalized_gain_mean": 0.7362,
         "sign_test_two_sided_p": 0.0,
         "ties_excluded": 0,
         "win_rate": 0.9981,
@@ -2160,6 +2175,11 @@
       "core_better": 769,
       "full": 78.0,
       "full_better": 678,
+      "full_core_bootstrap_95": [
+        -5.13,
+        -1.93
+      ],
+      "full_core_ci_excludes_zero": true,
       "full_core_ties": 91,
       "full_core_winner": "core",
       "full_minus_core": -3.58,
@@ -2194,10 +2214,19 @@
         }
       ],
       "statistics": {
+        "leave_one_judge_out_lift": {
+          "drop_deepseek-v4-pro": 41.3,
+          "drop_glm-5.2": 40.8
+        },
+        "leave_one_judge_out_range": [
+          40.8,
+          41.3
+        ],
         "lift_bootstrap_95": [
           39.43,
           42.74
         ],
+        "normalized_gain_mean": 0.5907,
         "sign_test_two_sided_p": 0.0,
         "ties_excluded": 42,
         "win_rate": 0.9084,
@@ -2640,6 +2669,11 @@
       "core_better": 244,
       "full": 92.0,
       "full_better": 152,
+      "full_core_bootstrap_95": [
+        -2.43,
+        -1.22
+      ],
+      "full_core_ci_excludes_zero": true,
       "full_core_ties": 15,
       "full_core_winner": "core",
       "full_minus_core": -1.82,
@@ -2674,10 +2708,19 @@
         }
       ],
       "statistics": {
+        "leave_one_judge_out_lift": {
+          "drop_deepseek-v4-pro": 35.1,
+          "drop_gpt-oss:120b": 37.1
+        },
+        "leave_one_judge_out_range": [
+          35.1,
+          37.1
+        ],
         "lift_bootstrap_95": [
           34.15,
           38.16
         ],
+        "normalized_gain_mean": 0.8275,
         "sign_test_two_sided_p": 0.0,
         "ties_excluded": 0,
         "win_rate": 1.0,
@@ -2994,6 +3037,11 @@
       "core_better": 104,
       "full": 93.1,
       "full_better": 65,
+      "full_core_bootstrap_95": [
+        -2.29,
+        -0.39
+      ],
+      "full_core_ci_excludes_zero": true,
       "full_core_ties": 13,
       "full_core_winner": "core",
       "full_minus_core": -1.27,
@@ -3028,10 +3076,19 @@
         }
       ],
       "statistics": {
+        "leave_one_judge_out_lift": {
+          "drop_glm-5.2": 35.0,
+          "drop_gpt-oss:120b": 35.0
+        },
+        "leave_one_judge_out_range": [
+          35.0,
+          35.0
+        ],
         "lift_bootstrap_95": [
           31.63,
           38.28
         ],
+        "normalized_gain_mean": 0.8093,
         "sign_test_two_sided_p": 0.0,
         "ties_excluded": 1,
         "win_rate": 0.989,
@@ -3186,6 +3243,11 @@
       "core_better": 17,
       "full": 93.0,
       "full_better": 21,
+      "full_core_bootstrap_95": [
+        -0.88,
+        2.1
+      ],
+      "full_core_ci_excludes_zero": false,
       "full_core_ties": 2,
       "full_core_winner": "full",
       "full_minus_core": 0.62,
@@ -3220,10 +3282,19 @@
         }
       ],
       "statistics": {
+        "leave_one_judge_out_lift": {
+          "drop_deepseek-v4-pro": 22.6,
+          "drop_gpt-oss:120b": 22.0
+        },
+        "leave_one_judge_out_range": [
+          22.0,
+          22.6
+        ],
         "lift_bootstrap_95": [
           19.44,
           25.35
         ],
+        "normalized_gain_mean": 0.7201,
         "sign_test_two_sided_p": 0.0,
         "ties_excluded": 0,
         "win_rate": 0.975,
@@ -3378,6 +3449,11 @@
       "core_better": 23,
       "full": 94.6,
       "full_better": 15,
+      "full_core_bootstrap_95": [
+        -1.68,
+        0.34
+      ],
+      "full_core_ci_excludes_zero": false,
       "full_core_ties": 2,
       "full_core_winner": "core",
       "full_minus_core": -0.67,
@@ -3421,10 +3497,20 @@
         }
       ],
       "statistics": {
+        "leave_one_judge_out_lift": {
+          "drop_deepseek-v4-pro": 15.3,
+          "drop_glm-5.2": 17.9,
+          "drop_gpt-oss:120b": 15.4
+        },
+        "leave_one_judge_out_range": [
+          15.3,
+          17.9
+        ],
         "lift_bootstrap_95": [
           14.73,
           17.64
         ],
+        "normalized_gain_mean": 0.762,
         "sign_test_two_sided_p": 0.0,
         "ties_excluded": 0,
         "win_rate": 1.0,
@@ -3579,6 +3665,11 @@
       "core_better": 17,
       "full": 95.2,
       "full_better": 23,
+      "full_core_bootstrap_95": [
+        -0.06,
+        9.97
+      ],
+      "full_core_ci_excludes_zero": false,
       "full_core_ties": 0,
       "full_core_winner": "full",
       "full_minus_core": 4.24,
@@ -3622,10 +3713,20 @@
         }
       ],
       "statistics": {
+        "leave_one_judge_out_lift": {
+          "drop_deepseek-v4-pro": 33.7,
+          "drop_glm-5.2": 34.4,
+          "drop_gpt-oss:120b": 34.3
+        },
+        "leave_one_judge_out_range": [
+          33.7,
+          34.4
+        ],
         "lift_bootstrap_95": [
           24.61,
           43.43
         ],
+        "normalized_gain_mean": 0.7108,
         "sign_test_two_sided_p": 0.0,
         "ties_excluded": 0,
         "win_rate": 0.973,
@@ -3708,6 +3809,11 @@
       "core_better": 1,
       "full": 28.3,
       "full_better": 1,
+      "full_core_bootstrap_95": [
+        -5.0,
+        7.5
+      ],
+      "full_core_ci_excludes_zero": false,
       "full_core_ties": 1,
       "full_core_winner": "full",
       "full_minus_core": 0.83,
@@ -3742,10 +3848,19 @@
         }
       ],
       "statistics": {
+        "leave_one_judge_out_lift": {
+          "drop_deepseek-v4-pro": -5.0,
+          "drop_glm-5.2": -1.7
+        },
+        "leave_one_judge_out_range": [
+          -5.0,
+          -1.7
+        ],
         "lift_bootstrap_95": [
           -7.5,
           0.0
         ],
+        "normalized_gain_mean": -0.0508,
         "sign_test_two_sided_p": 0.5,
         "ties_excluded": 1,
         "win_rate": 0.0,
