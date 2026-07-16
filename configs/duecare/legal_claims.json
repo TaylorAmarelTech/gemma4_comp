@@ -257,12 +257,12 @@
       "jurisdiction": "EU",
       "applies_to": "products on the EU market (EU and non-EU forced labour in the supply chain)",
       "exceptions": [],
-      "binding_status": "binding_domestic",
+      "binding_status": "enacted_not_yet_applicable",
       "effective_from": "2027-12-14",
       "as_of": "2026-07-10",
       "volatility": "high",
       "recheck_after": "2026-12-01",
-      "recheck_reason": "guidelines and databases are being developed before the Dec 2027 application date; do not describe it as currently enforceable",
+      "recheck_reason": "in force as EU law since 13 Dec 2024 but the market-ban obligations become APPLICABLE only on 14 Dec 2027; guidelines and databases are still being developed; do not describe it as currently enforceable",
       "caveats": [
         "NOT yet applicable (applies 14 Dec 2027); state it as forthcoming, not in-force enforcement",
         "a product-market ban, distinct from individual worker rights"
@@ -273,7 +273,7 @@
     {
       "id": "sa_kafala_reform_2025",
       "claim_type": "reform",
-      "text": "Saudi Arabia announced (June 2025) the end of its kafala sponsorship system, moving to formal contracts managed via the Qiwa digital platform, with reforms letting workers change jobs after a contract ends and leave the country after due notice.",
+      "text": "Advocacy reporting (Walk Free, June 2025) described Saudi Arabia as ending its kafala sponsorship system, citing a move to formal contracts on the Qiwa platform and rules letting workers change jobs after a contract ends and leave after due notice. Treat this as a REPORTED, partial reform -- not verified full abolition: the sponsorship structure persists in modified form, domestic workers are largely excluded, and earlier Gulf reform announcements have outrun implementation.",
       "authority": "Saudi Ministry of Human Resources and Social Development (as reported)",
       "authority_class": "administrative_rule",
       "source_url": "https://www.walkfree.org/news/2025/saudi-arabia-ends-the-kafala-system-to-strengthen-worker-rights/",
@@ -282,12 +282,12 @@
       "exceptions": [
         "domestic workers are often excluded from standard labour-law protections and may not immediately benefit"
       ],
-      "binding_status": "binding_domestic",
+      "binding_status": "reported_reform_unverified",
       "effective_from": "2025-06-01",
       "as_of": "2026-07-10",
       "volatility": "high",
       "recheck_after": "2026-10-01",
-      "recheck_reason": "very recent reform; implementation is evolving, prior Gulf reform promises fell short, and domestic-worker coverage is uncertain; verify current status against a primary/official source before relying on it",
+      "recheck_reason": "reported (advocacy-sourced) reform, pending human verification against a primary/official Saudi source; implementation is evolving, prior Gulf reform promises fell short, and domestic-worker coverage is uncertain; do not present as binding until verified",
       "caveats": [
         "do NOT state kafala is fully abolished in practice; describe the announced reform + implementation uncertainty + the domestic-worker carve-out",
         "verify against an official Saudi source, not only advocacy/news reporting"
