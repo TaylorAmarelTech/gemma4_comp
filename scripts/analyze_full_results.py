@@ -1,3 +1,4 @@
+# ruff: noqa: E501  (report-rendering script; long prose f-strings read better on one line)
 """Full-results analysis over the accumulated benchmark panel -- the honest current read of every graded
 prompt, regenerable as the sweep grows toward the 78,719-prompt registry.
 
@@ -126,7 +127,39 @@ def aggregate(rows: list[dict], registry_meta: dict | None = None) -> dict:
             "win_rate_wilson_95": _wilson_95(wins, wins + losses),
             "lift_bootstrap_95": _bootstrap_ci(d),
             "ties_excluded": sum(1 for x in d if x == 0),
+            # Normalized gain controls for the rubric ceiling (prof-stats #3):
+            # a +5 lift off baseline 90 is a bigger fraction of the available
+            # headroom than off baseline 40. Reported alongside the raw lift.
+            "normalized_gain_mean": (
+                round(statistics.mean((c - b) / (100 - b) for b, c in bc if b < 100), 4)
+                if any(b < 100 for b, _ in bc) else None
+            ),
         }
+        # Leave-one-judge-out envelope (prof-stats #2): the judge-averaged
+        # bootstrap cannot see judge variance, so report how far the paired lift
+        # moves when each single judge is dropped -- the honest judge envelope.
+        model_judges = sorted({k[3] for k in judge_mean if k[0] == mdl})
+        lojo: dict[str, float] = {}
+        if len(model_judges) >= 2:
+            for drop in model_judges:
+                keep = [j for j in model_judges if j != drop]
+                deltas = []
+                for p in sorted(bc_pids):
+                    bvals = [judge_mean[(mdl, p, "baseline", j)]
+                             for j in keep if (mdl, p, "baseline", j) in judge_mean]
+                    cvals = [judge_mean[(mdl, p, "harness_core", j)]
+                             for j in keep if (mdl, p, "harness_core", j) in judge_mean]
+                    if bvals and cvals:
+                        deltas.append(statistics.mean(cvals) - statistics.mean(bvals))
+                if deltas:
+                    lojo[f"drop_{drop}"] = round(statistics.mean(deltas), 1)
+        stats_block["leave_one_judge_out_lift"] = lojo
+        stats_block["leave_one_judge_out_range"] = (
+            [min(lojo.values()), max(lojo.values())] if lojo else None
+        )
+        # Paired CI on full - core so "serve core, not full" is a tested claim,
+        # not a bare -1% mean (prof-stats #8).
+        full_core_bootstrap = _bootstrap_ci(full_core_d)
         per_judge = []
         for judge in sorted({k[3] for k in judge_mean if k[0] == mdl}):
             judge_pids = sorted(
@@ -203,6 +236,11 @@ def aggregate(rows: list[dict], registry_meta: dict | None = None) -> dict:
             "lift_core": round(statistics.mean(d), 1),
             "lift_full": round(statistics.mean(f - b for b, f in bf), 1) if bf else None,
             "full_minus_core": round(full_core_mean, 2) if full_core_mean is not None else None,
+            "full_core_bootstrap_95": full_core_bootstrap,
+            "full_core_ci_excludes_zero": (
+                full_core_bootstrap is not None
+                and (full_core_bootstrap[0] > 0 or full_core_bootstrap[1] < 0)
+            ),
             "full_core_winner": ("full" if full_core_mean is not None and full_core_mean > 0
                                  else "core" if full_core_mean is not None and full_core_mean < 0
                                  else "tie" if full_core_mean is not None else None),
@@ -228,18 +266,30 @@ def aggregate(rows: list[dict], registry_meta: dict | None = None) -> dict:
 
 
 def _full_core_conclusion(row: dict) -> str:
-    """Describe the observed full-vs-core direction without assuming which arm won."""
+    """Describe the observed full-vs-core direction without assuming which arm won.
+
+    A directional claim is only made when the paired bootstrap CI excludes zero
+    (prof-stats #8); otherwise the arms are called statistically indistinguishable
+    so a ~1-point mean is never elevated to an operating rule.
+    """
     delta = row.get("full_minus_core")
     winner = row.get("full_core_winner")
     n_pair = row.get("n_core_full_pair", 0)
+    ci = row.get("full_core_bootstrap_95")
+    excludes_zero = bool(row.get("full_core_ci_excludes_zero"))
     if delta is None:
         return "harness_core and harness_full are not yet paired"
+    ci_disp = f", bootstrap 95% [{ci[0]:+}, {ci[1]:+}]" if ci else ""
+    if not excludes_zero:
+        return (f"full - core = {delta:+} across {n_pair:,} pairs{ci_disp} -- the interval "
+                "includes 0, so core and full are statistically indistinguishable here; "
+                "prefer the cheaper core arm at no measured cost")
     if winner == "core" or (winner is None and delta < 0):
-        return (f"full - core = {delta:+} across {n_pair:,} pairs "
-                "(core outperforms full on average -- serve core, not full)")
+        return (f"full - core = {delta:+} across {n_pair:,} pairs{ci_disp} "
+                "(core outperforms full -- serve core, not full)")
     if winner == "full" or (winner is None and delta > 0):
-        return (f"full - core = {delta:+} across {n_pair:,} pairs "
-                "(full outperforms core on average; core >= full does not hold)")
+        return (f"full - core = {delta:+} across {n_pair:,} pairs{ci_disp} "
+                "(full outperforms core; core >= full does not hold)")
     return f"full - core = {delta:+} across {n_pair:,} pairs (core and full tie on average)"
 
 
@@ -292,21 +342,36 @@ def render(agg: dict, registry: int, today: str) -> str:
     if head and head.get("statistics"):
         s = head["statistics"]
         parts = []
+        lojo_range = s.get("leave_one_judge_out_range")
+        if lojo_range:
+            parts.append(f"**leave-one-judge-out lift envelope [{lojo_range[0]:+}, {lojo_range[1]:+}]** "
+                         "(the honest uncertainty: how far the lift moves when any single judge is dropped)")
         if s.get("lift_bootstrap_95"):
             lo, hi = s["lift_bootstrap_95"]
-            parts.append(f"seeded bootstrap 95% interval for the mean lift [{lo:+}, {hi:+}]")
+            parts.append(f"prompt-only bootstrap 95% [{lo:+}, {hi:+}] "
+                         "(judge-averaged, so it does NOT capture judge variance -- the envelope above is wider and more honest)")
+        if s.get("normalized_gain_mean") is not None:
+            parts.append(f"normalized gain {s['normalized_gain_mean']:.2f} of available headroom "
+                         "(controls for the rubric ceiling)")
         if s.get("sign_test_two_sided_p") is not None:
-            parts.append(f"two-sided sign test p = {s['sign_test_two_sided_p']} "
-                         f"({s['ties_excluded']:,} ties excluded)")
+            p = s["sign_test_two_sided_p"]
+            p_disp = "<1e-300 (effectively 0)" if p == 0.0 else str(p)
+            parts.append(f"two-sided sign test p = {p_disp} "
+                         f"({s['ties_excluded']:,} ties excluded; direction only)")
         if s.get("win_rate") is not None and s.get("win_rate_wilson_95"):
             wl, wh = s["win_rate_wilson_95"]
-            parts.append(f"win rate {100 * s['win_rate']:.1f}% with Wilson 95% interval "
-                         f"[{100 * wl:.1f}%, {100 * wh:.1f}%]")
+            parts.append(f"win rate {100 * s['win_rate']:.1f}% (naive Wilson [{100 * wl:.1f}%, {100 * wh:.1f}%]; "
+                         "the same 3 judges recur across prompts, so the true interval is wider)")
         L += ["", "## Statistical strength (real-prompt panel)", "",
               f"For `{head['model']}` baseline->core over {head['n_pair']:,} paired registry "
-              "prompts: " + "; ".join(parts)
-              + ". These are inferential statements about the recorded panel, "
-              "not real-world detection claims.", ""]
+              "prompts: " + "; ".join(parts) + ".", "",
+              "**Two known limits, kept explicit.** (1) The preamble asks the model to name the "
+              "indicator, cite the law, refuse, offer resources, and protect privacy -- the same A-E "
+              "dimensions the judges score -- so part of the raw lift is rubric-instruction-following, "
+              "not domain value; the length-matched *placebo* contrast (a compliant but content-free "
+              "preamble) is the fair baseline and its full-scale run is the next measurement. (2) These "
+              "are inferential statements about the recorded panel under these three judges and this "
+              "rubric, not real-world detection claims.", ""]
     if head and head.get("per_judge"):
         L += ["## Per-judge robustness", "",
               "The same paired lift computed independently inside each judge's own "

@@ -78,16 +78,57 @@ def test_single_arm_rows_do_not_inflate_paired_coverage():
 
 
 def test_positive_full_minus_core_reports_full_as_winner():
-    rows = [
-        _row("p1", "baseline", 40),
-        _row("p1", "harness_core", 80),
-        _row("p1", "harness_full", 90),
-    ]
+    # Enough consistent pairs that the paired bootstrap CI excludes zero.
+    rows = []
+    for i in range(12):
+        rows += [_row(f"p{i}", "baseline", 40), _row(f"p{i}", "harness_core", 80),
+                 _row(f"p{i}", "harness_full", 90)]
     out = a.render(a.aggregate(rows), registry=100, today="2026-07-11")
     assert "full - core = +10" in out
-    assert "full outperforms core on average; core >= full does not hold" in out
-    assert "core scores higher on 0, full scores higher on 1" in out
+    assert "full outperforms core" in out
+    assert "core >= full does not hold" in out
     assert "core >= full holds" not in out
+
+
+def test_full_core_within_noise_is_called_indistinguishable():
+    # A tiny full-core gap with mixed signs must not become "serve core, not full".
+    rows = []
+    for i in range(10):
+        core = 80 + (1 if i % 2 else -1)  # full alternates just above/below core
+        rows += [_row(f"p{i}", "baseline", 40), _row(f"p{i}", "harness_core", 80),
+                 _row(f"p{i}", "harness_full", core)]
+    out = a.render(a.aggregate(rows), registry=100, today="2026-07-11")
+    assert "statistically indistinguishable" in out
+    assert "serve core, not full" not in out
+
+
+def test_sign_test_zero_is_rendered_as_bound_not_literal_zero():
+    rows = []
+    for i in range(400):
+        rows += [_row(f"h{i}", "baseline", 40), _row(f"h{i}", "harness_core", 60)]
+    out = a.render(a.aggregate(rows), registry=1000, today="2026-07-11")
+    assert "p = <1e-300" in out
+    assert "sign test p = 0.0" not in out
+
+
+def test_leave_one_judge_out_envelope_and_normalized_gain():
+    rows = []
+    for i in range(8):
+        pid = f"p{i}"
+        for judge, base, core in (("j1", 40, 90), ("j2", 45, 85), ("j3", 50, 88)):
+            rows += [{**_row(pid, "baseline", base), "judge": judge},
+                     {**_row(pid, "harness_core", core), "judge": judge}]
+    m = a.aggregate(rows)["per_model"][0]
+    s = m["statistics"]
+    lojo = s["leave_one_judge_out_lift"]
+    assert set(lojo) == {"drop_j1", "drop_j2", "drop_j3"}
+    lo, hi = s["leave_one_judge_out_range"]
+    assert lo <= m["lift_core"] <= hi + 1  # envelope brackets the all-judge lift
+    # normalized gain is a fraction of remaining headroom, in (0, 1]
+    assert 0 < s["normalized_gain_mean"] <= 1
+    out = a.render(a.aggregate(rows), registry=100, today="2026-07-11")
+    assert "leave-one-judge-out lift envelope" in out
+    assert "placebo" in out
 
 
 def test_component_lift_uses_only_prompt_pairs_with_both_component_scores():
