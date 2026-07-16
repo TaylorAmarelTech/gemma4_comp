@@ -145,12 +145,7 @@ def build(output_dir: Path, *, force: bool, grep_path: Path = GREP_RULES_PATH) -
     }
     release_bytes = json.dumps(release, ensure_ascii=True, indent=2, sort_keys=True) + "\n"
     _write(dataset / "release-manifest.json", release_bytes)
-    _write_json(dataset / "dataset-metadata.json", {
-        "title": TITLE,
-        "id": DATASET_ID,
-        "isPrivate": False,
-        "licenses": [{"name": "CC-BY-4.0"}],
-    })
+    _write_json(dataset / "dataset-metadata.json", _dataset_metadata(summary, independence))
 
     notebook_dir = output_dir / "notebook"
     notebook_dir.mkdir()
@@ -187,6 +182,63 @@ citations, inferred supervision roles, and correlated-witness family
 assignments) derived from DueCare's open GREP indicator rules. It contains no
 worker data, no personal data, and no case content.
 """
+
+SUBTITLE = "451 trafficking-indicator rules as auditable, correlation-aware RuleCards"
+
+
+def _dataset_metadata(summary: dict[str, Any], independence: dict[str, Any]) -> dict[str, Any]:
+    eff = independence["effective_witnesses_by_rho"]
+    description = (
+        "DueCare's hard-coded trafficking-indicator rules, compiled into auditable "
+        "RuleCards, and the weak-supervision result that follows. Each RuleCard is "
+        "a fallible labeling function carrying its authoritative legal sources, "
+        "antecedent (regex patterns), consequence (severity + indicator reasoning), "
+        "inferred jurisdiction, and -- crucially -- the correlated-witness family it "
+        "belongs to.\n\n"
+        f"The load-bearing result: {independence['total_rules']} rules resolve to "
+        f"{independence['effective_independent_families']} correlated-witness "
+        f"families (the largest holds {independence['largest_family_rule_count']} "
+        "rules). Under the design-effect formula m/(1+(m-1)*rho), the effective "
+        f"independent-witness count is about {eff.get('rho_0.9')} (rho=0.9), "
+        f"{eff.get('rho_0.7')} (rho=0.7), and {eff.get('rho_0.5')} (rho=0.5) -- far "
+        "below the raw rule count. Rules that cite the same legal instrument (e.g. "
+        "153 on the Palermo Protocol) are correlated votes, not independent "
+        "confirmations, so any weak-supervision label model built on them must "
+        "down-weight within-family agreement.\n\n"
+        "The dataset carries rule metadata and public legal citations only -- no "
+        "worker data, no PII, no case content. Each rule is grounds for inquiry, "
+        "not proof, and none are auto-promoted to a runtime invariant. It is "
+        "supervision and measurement evidence, never ground truth about any person."
+    )
+    return {
+        "title": TITLE,
+        "subtitle": SUBTITLE,
+        "id": DATASET_ID,
+        "isPrivate": False,
+        "licenses": [{"name": "CC-BY-4.0"}],
+        "keywords": ["nlp", "text", "classification", "artificial intelligence"],
+        "description": description,
+        "resources": [
+            {"path": "rulecards.csv",
+             "description": f"One row per RuleCard ({summary['total_cards']} trafficking-indicator rules) with its metadata.",
+             "schema": {"fields": [
+                 {"name": "rule_id", "type": "string", "description": "Unique rule identifier (e.g. ilo_indicator_passport_retention)."},
+                 {"name": "category", "type": "string", "description": "Exploitation category the rule belongs to (from the rules-file section headers)."},
+                 {"name": "severity", "type": "string", "description": "critical / high / medium / low / info."},
+                 {"name": "authoritative_sources", "type": "string", "description": "Semicolon-separated legal instruments the citation anchors on (e.g. ILO C189; HK Cap. 57)."},
+                 {"name": "jurisdictions", "type": "string", "description": "Inferred jurisdiction codes (e.g. HK; PH)."},
+                 {"name": "roles", "type": "string", "description": "Inferred supervision roles: labeling_function; feature_extractor."},
+                 {"name": "witness_family", "type": "string", "description": "Correlated-witness family key (shared legal anchor or category)."},
+                 {"name": "candidate_invariant_review", "type": "string", "description": "true if the rule is flagged for human hard-invariant review (critical severity)."},
+             ]}},
+            {"path": "rulecard-deck.json",
+             "description": "The full typed RuleCard deck: one object per rule with antecedent, consequence, sources, roles, calibration gaps, and source-rule SHA-256."},
+            {"path": "rulecard-independence.json",
+             "description": "Correlated-witness families, per-instrument concentration, and effective-independent-witness estimates across rho."},
+            {"path": "rulecard-summary.json",
+             "description": "Aggregate roll-up: severity counts, source coverage, and human-review candidates."},
+        ],
+    }
 
 
 def _dataset_readme(summary: dict[str, Any], independence: dict[str, Any]) -> str:

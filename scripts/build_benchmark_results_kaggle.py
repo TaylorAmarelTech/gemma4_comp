@@ -209,8 +209,7 @@ def _dataset_metadata(rows: list[dict[str, Any]], graded_prompts: int) -> dict[s
         "id": DATASET_ID,
         "isPrivate": False,
         "licenses": [{"name": "CC-BY-4.0"}],
-        "keywords": ["nlp", "large language models", "evaluation", "benchmark",
-                     "safety", "human rights", "text", "classification"],
+        "keywords": ["nlp", "text", "classification", "artificial intelligence"],
         "description": _description(rows, graded_prompts),
         "resources": [
             {"path": "panel_grades.csv",
