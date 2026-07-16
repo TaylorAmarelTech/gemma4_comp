@@ -320,6 +320,11 @@ public pip entry point for the workflow-oriented stack.
 
 ## Quick start
 
+**One command per audience:** `python launch.py` lists launch profiles for NGOs
+(Dockerized, one command), developers (local workbench), researchers (offline
+benchmark), and notebook users (Colab/Kaggle with a public URL). See
+[`docs/QUICK_LAUNCH.md`](docs/QUICK_LAUNCH.md).
+
 ### Install
 
 ```bash
