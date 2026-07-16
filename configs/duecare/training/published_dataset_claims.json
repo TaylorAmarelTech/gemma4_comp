@@ -1,0 +1,59 @@
+{
+  "schema_version": "duecare.published_dataset_claims.v1",
+  "note": "Single source of truth for the public training-dataset claims made in docs/training_and_finetuning.md, README.md, and kaggle/_INDEX.md. Each release_manifest_sha256 is the SHA-256 of that dataset's release-manifest.json. scripts/verify_training_dataset_claims.py re-derives these from the gitignored staged/downloaded artifacts under reports/kaggle_publish/ and fails closed on any mismatch. staged_manifest_globs are hints for the local re-derivation; the datasets themselves are published on Kaggle.",
+  "claims": [
+    {
+      "dataset_id": "taylorsamarel/duecare-multiperspective-finetuning-corpus",
+      "release_manifest_sha256": "ea644df422d9e8c43003805f49a227d441e3a952d6deb3ea3e6fb3b6b579211d",
+      "row_counts": {
+        "supervised_train": 25600,
+        "preference_train": 25600,
+        "supervised_validation": 2048,
+        "supervised_test": 2048
+      },
+      "staged_manifest_globs": [
+        "reports/kaggle_publish/large_training_collection_v4/dataset/release-manifest.json"
+      ]
+    },
+    {
+      "dataset_id": "taylorsamarel/duecare-measured-response-training-corpus",
+      "release_manifest_sha256": "56fa69c19990c524002e4f91b833faef58648a66d87729a8f4c61dd56722b74b",
+      "row_counts": {
+        "supervised_pairs": 791,
+        "reward_rows": 1582
+      },
+      "staged_manifest_globs": [
+        "reports/kaggle_publish/response_training_collection_v6/dataset/release-manifest.json"
+      ]
+    },
+    {
+      "dataset_id": "taylorsamarel/duecare-measured-review-curriculum-200k",
+      "release_manifest_sha256": "1b062ce12fe43494f7d63659a53017c857e0ac0103759d8f71b3340f63bdc2b7",
+      "row_counts": {
+        "supervised_train": 207680,
+        "preference_train": 207680,
+        "supervised_validation": 528,
+        "supervised_test": 608
+      },
+      "staged_manifest_globs": [
+        "reports/kaggle_publish/measured_review_curriculum_200k_v1/dataset/release-manifest.json"
+      ]
+    },
+    {
+      "dataset_id": "taylorsamarel/duecare-gemma4-adapter-learning-study",
+      "release_manifest_sha256": "4c300a3b277009e1488979bb6579859a59f0dbfeecf4c31a0d4251ea837572f4",
+      "staged_manifest_globs": [
+        "reports/kaggle_publish/kaggle_dataset_downloads/gemma4_adapter_learning_study_v4/release-manifest.json",
+        "reports/kaggle_publish/gemma4_adapter_study_collection_v2/dataset/release-manifest.json"
+      ]
+    },
+    {
+      "dataset_id": "taylorsamarel/duecare-grounded-byte-model-learning-study",
+      "release_manifest_sha256": "9bc416a67de030243429857fa7af4ee7087bead4c85ef2566a3838f6f95e7d4a",
+      "staged_manifest_globs": [
+        "reports/kaggle_publish/kaggle_dataset_downloads/grounded_byte_model_learning_study_v2/release-manifest.json",
+        "reports/kaggle_publish/grounded_scratch_model_collection_v1/dataset/release-manifest.json"
+      ]
+    }
+  ]
+}

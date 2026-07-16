@@ -704,6 +704,49 @@ def check_training_model_fallback_registry() -> CheckResult:
     return result
 
 
+def check_published_dataset_claims() -> CheckResult:
+    """Every dataset SHA in the claims registry must appear in the public docs.
+
+    This keeps docs/training_and_finetuning.md and the committed
+    published_dataset_claims.json registry from drifting apart. It does not
+    require the gitignored staged artifacts (use
+    scripts/verify_training_dataset_claims.py for the byte-level re-derivation),
+    so it stays green on a clean checkout while still catching a stale doc SHA.
+    """
+    result = CheckResult(name="published_dataset_claims")
+    registry_path = ROOT / "configs" / "duecare" / "training" / "published_dataset_claims.json"
+    doc_path = ROOT / "docs" / "training_and_finetuning.md"
+    try:
+        registry = json.loads(registry_path.read_text(encoding="utf-8"))
+        docs = doc_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        result.findings.append(
+            Finding(
+                file=registry_path.relative_to(ROOT).as_posix(),
+                line=0,
+                rule="missing_published_dataset_claims",
+                snippet=f"{type(exc).__name__}: {exc}",
+                suggestion="restore the committed published-dataset claims registry",
+            )
+        )
+        return result
+    claims = registry.get("claims") or []
+    for claim in claims:
+        sha = str(claim.get("release_manifest_sha256") or "")
+        if sha and sha not in docs:
+            result.findings.append(
+                Finding(
+                    file=doc_path.relative_to(ROOT).as_posix(),
+                    line=0,
+                    rule="dataset_claim_not_in_docs",
+                    snippet=f"{claim.get('dataset_id')} sha {sha[:16]}… absent from training doc",
+                    suggestion="update the doc SHA or the claims registry so they match",
+                )
+            )
+    result.info.append(f"Cross-checked {len(claims)} published-dataset claim SHAs against the training doc.")
+    return result
+
+
 # --- Reporting ---------------------------------------------------------------
 
 def render_text(checks: list[CheckResult]) -> str:
@@ -778,6 +821,7 @@ def main() -> int:
             "bundle_envelope_manifest_checksums",
             "local_doc_links",
             "training_model_fallback_registry",
+            "published_dataset_claims",
         ],
         help="skip a check (repeatable)",
     )
@@ -793,6 +837,7 @@ def main() -> int:
          check_bundle_envelope_manifest_checksums),
         ("local_doc_links", check_local_doc_links),
         ("training_model_fallback_registry", check_training_model_fallback_registry),
+        ("published_dataset_claims", check_published_dataset_claims),
     ]
     checks = [run() for name, run in runners if name not in args.skip]
 
