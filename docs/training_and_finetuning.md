@@ -50,7 +50,14 @@ PEFT LoRA job when a compatible CUDA environment is available.
 
 ## Current publication status
 
-Status reviewed 2026-07-15:
+Status reviewed 2026-07-15. Every `release-manifest` SHA-256 and per-lane row
+count below is also recorded in the committed registry
+[`configs/duecare/training/published_dataset_claims.json`](../configs/duecare/training/published_dataset_claims.json)
+so the numbers have a single source of truth. When the gitignored staged or
+re-downloaded artifacts are present, `python scripts/verify_training_dataset_claims.py`
+re-derives each SHA-256 from disk and fails closed on any mismatch; a clean
+checkout reports each dataset as `published-only` instead. `scripts/validate_public_surface.py`
+additionally fails if a registry SHA drifts out of this document.
 
 - The [DueCare Measured Response Training Corpus](https://www.kaggle.com/datasets/taylorsamarel/duecare-measured-response-training-corpus)
   is public as Kaggle version 4. It contains 791 accepted supervised
