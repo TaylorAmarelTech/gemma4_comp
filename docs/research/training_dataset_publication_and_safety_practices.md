@@ -53,6 +53,17 @@ The short recommendation is:
 - **Contamination** means that information used to construct or select
   training data also appears in an evaluation set, making that evaluation
   unsuitable as independent evidence of improvement.
+- **Pretraining from random initialization** starts with newly sampled model
+  weights and learns next-token prediction without loading a pretrained
+  checkpoint. It is not fine-tuning.
+- **Continued pretraining** starts from an existing checkpoint and continues
+  next-token training on a new mixture before task-specific post-training.
+- **Post-training** is the broad stage after pretraining that can include
+  supervised fine-tuning, preference optimization, reward modeling, and
+  reinforcement learning.
+- **Model resolution receipt** records every configured model or accelerator
+  route, its preflight or execution result, the selected route, immutable
+  revision information when available, and the reason any route failed.
 
 ## Recommended release architecture
 
@@ -245,6 +256,58 @@ smoke experiment with:
 - a lineage-independent evaluation set;
 - unchanged-base, adapter-only, harness-only, and adapter-plus-harness arms.
 
+## Multi-model and accelerator fallback policy
+
+Do not bury one model identifier in a notebook and call it a pipeline. Every
+training, inference, and judge role should resolve through a versioned policy
+with at least two capability-compatible candidates. An operator override may
+be tried first, but it must not erase the declared fallback list or receipt.
+
+The selection rules differ by task:
+
+- **Training:** try complete model-plus-accelerator combinations in a declared
+  order and retain each failure. Never silently replace a failed model with
+  deterministic text and report that as training.
+- **Comparable evaluation:** preflight several judges, select one, then freeze
+  that exact judge, context, rubric, and decoding contract for the full study.
+  Switching models halfway through destroys comparability.
+- **Interactive inference:** health-check candidates and allow failover, but
+  expose the active route in the response receipt so changes are observable.
+- **Training from random initialization:** run each declared small architecture
+  as its own arm. A larger architecture is not a hidden fallback result for a
+  smaller one.
+
+DueCare enforces the minimum candidate count and receipt rule with
+`scripts/validate_model_fallback_registry.py`. The current registry is
+`configs/duecare/model_fallbacks.json`.
+
+## Fine-tuning versus training from random initialization
+
+Use fine-tuning when the goal is to adapt language behavior with a bounded
+dataset and modest compute. Use random-initialization pretraining only when the
+research question is about architecture, tokenizer, optimizer, scaling, or a
+genuinely new base model. Two hundred thousand examples can support a useful
+post-training curriculum, but row count alone is not a pretraining budget:
+token count, deduplicated source diversity, model size, context length, and
+compute determine whether a new language model learns transferable language.
+
+The public DueCare scratch notebook therefore uses two tiny decoder-only byte
+transformers as mechanism studies. A byte tokenizer removes an external
+tokenizer dependency and makes save/reload transparent, but it is less
+efficient than a trained subword tokenizer for a serious model. Its outputs
+must be described as small next-byte models, not frontier large language
+models.
+
+For a serious Tensor Processing Unit pretraining project, use a maintained
+JAX stack instead of growing the demonstration loop indefinitely. Google's
+[MaxText](https://github.com/AI-Hypercomputer/maxtext) combines JAX, Flax,
+Optax, Grain, and Orbax for scalable pretraining and post-training, including
+Gemma configurations. Use
+[Orbax](https://orbax.readthedocs.io/en/latest/api_reference/checkpoint.v1.html)
+for atomic, resumable parameter and optimizer-state checkpoints. The Kaggle
+scratch notebook still writes a compact NumPy archive and performs an exact
+reload check so the educational artifact is self-contained.
+
 ## Loading and unloading models and adapters
 
 ### Loading datasets
@@ -334,6 +397,11 @@ benchmarks plus domain-specific success, failure, and boundary cases.
 | Hugging Face Datasets | Adopt in loaders and training notebooks | Streaming, split mapping, transformation, and training integration. |
 | Transformer Reinforcement Learning | Adopt for planned training | Supervised fine-tuning, preference optimization, and reward-model schemas. |
 | Parameter-Efficient Fine-Tuning | Adopt for adapters | Low-Rank Adaptation loading, switching, merging, and unloading. |
+| SafeTensors | Adopt for PyTorch model and adapter weights | Non-pickle tensor serialization, explicit metadata, and safer loading. |
+| Orbax | Adopt for serious JAX and TPU checkpoints | Save and restore parameter, optimizer, step, and random state with preemption-aware checkpointing. |
+| MaxText | Preferred serious TPU pretraining reference | Scalable JAX pretraining and post-training; keep the small Kaggle scratch loop educational. |
+| Axolotl | Pilot as a configuration-driven post-training alternative | Gemma 4 support, full tuning, Low-Rank Adaptation, quantized adapters, preference methods, and streaming supervised fine-tuning. |
+| LlamaFactory | Pilot as a second portable post-training route | Alpaca and ShareGPT-style datasets in JSON, JSON Lines, CSV, Parquet, or Arrow with explicit dataset metadata. |
 | DataTrove | Pilot for scale | Filtering, exact and near deduplication, resumable local or cluster pipelines. |
 | Argilla | Pilot for human review | Ranking, correction, disagreement, and adjudication workflows. |
 | Microsoft Presidio | Pilot as a secondary privacy detector | Detect and anonymize common personal-data patterns; never treat it as complete. |
@@ -343,6 +411,7 @@ benchmarks plus domain-specific success, failure, and boundary cases.
 | Weights & Biases or MLflow | Optional | Experiment metrics, configurations, and artifact lineage. Keep a local export so evidence is not vendor-locked. |
 | NVIDIA NeMo Curator | Later, when GPU scale justifies it | High-volume exact, fuzzy, and semantic deduplication. |
 | Distilabel | Pilot only | Synthetic generation and model-feedback pipelines; pin versions and account for its community-maintained status. |
+| Language Model Evaluation Harness | Adopt for isolated general benchmarks | Versioned tasks, integrity checks, adapter-aware evaluation, samples, and machine-readable result exports. |
 
 [DataTrove](https://github.com/huggingface/datatrove) is the strongest immediate
 candidate for scaling filtering and deduplication because it supports local,
@@ -424,25 +493,36 @@ Before a public push:
 
 ## DueCare implementation sequence
 
-### Immediate
+### Completed learning slice
 
-1. Add `LOADING.md` and a plain-language glossary to both Kaggle releases.
-2. Add `croissant.json` with manifest-bound file resources and checksums.
-3. Replace undefined shorthand in public dataset cards, notebook headings, and
-   website pages.
-4. Add a small CPU response-quality baseline notebook that demonstrates data
-   loading, fitting, evaluation, and artifact tracking without claiming Gemma
-   fine-tuning or independent model improvement.
-5. Rebuild and verify public-approved Kaggle packages.
+1. Published manifest-bound data cards, loading guides, safe previews, and
+   Croissant metadata.
+2. Published the 207,680-row grounded-remix curriculum with parent lineage.
+3. Ran two local Gemma 4 Low-Rank Adaptation experiments and published the
+   relative adapters, curves, paired generations, and four-arm study.
+4. Ran one frozen, blinded, both-orders frontier-judge study and kept its
+   verdicts excluded from training.
+5. Published five visual notebooks for curves, four-arm comparison, lineage,
+   judge measurement, and the publication toolchain.
+6. Ran both random-initialization byte-transformer arms through the labeled
+   central-processing-unit fallback, saved complete parameter trees, and
+   verified exact reloads. This established the fallback mechanism, not model
+   usefulness. Published the models, configs, curves, graphics, and receipts
+   as the DueCare Grounded Byte Model Learning Study.
 
-### Next GPU window
+### Current TPU and data-engineering work
 
-1. Run a small Low-Rank Adaptation smoke experiment on a pinned Gemma model.
-2. Save the adapter, tokenizer information, checkpoints, and run manifest.
-3. Compare unchanged base, adapter, harness, and adapter-plus-harness arms.
-4. Use a lineage-independent holdout plus success, failure, boundary, and
-   excessive-refusal tests.
-5. Publish only the evidence actually produced.
+1. Complete the public Gemma adapter Tensor Processing Unit notebook using its
+   ordered model and accelerator fallbacks.
+2. Run the same two random-initialization byte-transformer arms on the public
+   Tensor Processing Unit route and compare them with the completed
+   central-processing-unit fallback receipt.
+3. Pilot DataTrove exact and near-duplicate analysis without replacing parent
+   lineage gates.
+4. Add Parquet mirrors and streaming examples only when their hashes are bound
+   into the same release manifest.
+5. Build an independent, lineage-separated evaluation kernel before making
+   any broader learning claim.
 
 ### Later pilots
 
@@ -463,6 +543,11 @@ Before a public push:
   claims.
 - Do not merge providers, model revisions, rubrics, or endpoint types in one
   comparable result lane.
+- Do not rely on one hard-coded model or accelerator route. Require multiple
+  declared candidates, an operator override, preflight, and a selection
+  receipt; freeze the selected judge during a comparable study.
+- Do not call a tiny random-initialization mechanism run a competitive base
+  language model or treat 200,000 augmented rows as 200,000 independent cases.
 - Do not treat an automated privacy scan as a guarantee.
 - Do not publish an adapter without its base-model dependency, configuration,
   license, run manifest, and evaluation boundary.
