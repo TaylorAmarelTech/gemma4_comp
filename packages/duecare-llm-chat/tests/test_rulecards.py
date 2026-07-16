@@ -92,6 +92,36 @@ def test_independence_report_collapses_correlated_witnesses() -> None:
     assert report["rules_per_authoritative_source"]["palermo_protocol"] == 3
 
 
+def test_effective_witness_count_matches_design_effect_bounds() -> None:
+    from duecare.chat.rulecards import effective_witness_count
+
+    sizes = [3, 1]  # one family of 3 correlated rules, one singleton
+    # rho=0 -> every rule independent -> 4
+    assert effective_witness_count(sizes, 0.0) == 4.0
+    # rho=1 -> each family collapses to one witness -> 2
+    assert effective_witness_count(sizes, 1.0) == 2.0
+    # rho=0.5 -> 3/(1+2*0.5) + 1 = 1.5 + 1 = 2.5
+    assert effective_witness_count(sizes, 0.5) == 2.5
+    # clamps out-of-range rho
+    assert effective_witness_count(sizes, 2.0) == 2.0
+
+
+def test_independence_report_includes_effective_witnesses_by_rho() -> None:
+    from duecare.chat.rulecards import compile_deck, independence_report
+
+    rules = [
+        _rule(rule="a", citation="Palermo Protocol"),
+        _rule(rule="b", citation="Palermo Protocol"),
+        _rule(rule="c", citation="ILO C189"),
+    ]
+    report = independence_report(compile_deck(rules, ["X", "X", "Y"]))
+    eff = report["effective_witnesses_by_rho"]
+    # rho=0.9: 2/(1+1*0.9) + 1 = 1.0526 + 1 ~= 2.05
+    assert eff["rho_0.9"] == 2.05
+    # effective count at any rho sits between family count (2) and total (3)
+    assert all(2.0 <= v <= 3.0 for v in eff.values())
+
+
 def test_uncited_rule_falls_back_to_category_family() -> None:
     from duecare.chat.rulecards import compile_deck, independence_report
 
