@@ -432,6 +432,24 @@ def _privacy_scan(dataset: Path) -> dict[str, Any]:
     return {"clean": not findings, "finding_count": len(findings), "findings": findings}
 
 
+def resolve_run_directories(run_dirs: Sequence[Path]) -> tuple[list[Path], list[str]]:
+    """Split requested run directories into existing runs and skipped names.
+
+    Default invocations may name future runs that have not happened yet; those
+    are skipped with a recorded name instead of failing the whole packaging,
+    while the caller still enforces the minimum completed-run count.
+    """
+    resolved: list[Path] = []
+    skipped: list[str] = []
+    for raw in run_dirs:
+        candidate = raw.resolve()
+        if candidate.is_dir():
+            resolved.append(candidate)
+        else:
+            skipped.append(candidate.name)
+    return resolved, skipped
+
+
 def build_collection(
     run_dirs: Sequence[Path],
     output_root: Path,
@@ -440,8 +458,13 @@ def build_collection(
     regime_matrix: Path = DEFAULT_REGIME_MATRIX,
     force: bool,
 ) -> dict[str, Any]:
-    if len(run_dirs) < 2:
-        raise PackageError("at least two runs are required for a learning study")
+    resolved_runs, skipped_missing_runs = resolve_run_directories(run_dirs)
+    if len(resolved_runs) < 2:
+        raise PackageError(
+            "at least two completed runs are required for a learning study; "
+            f"resolved {len(resolved_runs)} and skipped missing "
+            f"{skipped_missing_runs or ['none']}"
+        )
     output_root = _prepare_output(output_root, force=force)
     dataset = output_root / "dataset"
     dataset.mkdir()
@@ -451,8 +474,7 @@ def build_collection(
     )
     run_records: list[dict[str, Any]] = []
     verified: list[tuple[Path, dict[str, Any], dict[str, Any]]] = []
-    for index, raw in enumerate(run_dirs, 1):
-        run_dir = raw.resolve(strict=True)
+    for index, run_dir in enumerate(resolved_runs, 1):
         manifest, metrics = _verify_run(run_dir)
         label = f"run-{index:02d}"
         _copy_run(run_dir, dataset, label)
@@ -505,7 +527,16 @@ def build_collection(
     evidence_source = evidence_run.resolve(strict=True)
     recorded_safety_judge = _copy_recorded_safety_judge(evidence_source, dataset)
     system_evidence = _copy_system_evidence_receipt(evidence_source, dataset)
-    regime_receipt = _copy_regime_matrix(regime_matrix, dataset)
+    if regime_matrix.resolve().is_dir():
+        regime_receipt = _copy_regime_matrix(regime_matrix, dataset)
+    else:
+        regime_receipt = {
+            "present": False,
+            "note": (
+                "regime-matrix run directory was not present at build time; "
+                "the collection packages completed runs only"
+            ),
+        }
     curriculum_receipt = _copy_curriculum_receipt(
         DEFAULT_CURRICULUM, verified[-1][1], dataset
     )
@@ -894,10 +925,13 @@ repository-code: https://github.com/TaylorAmarelTech/gemma4_comp
         "system_evidence_receipt": system_evidence,
         "source_curriculum_receipt": curriculum_receipt,
         "training_regime_study": {
+            "present": regime_receipt.get("present", True),
             "run_count": regime_receipt.get("run_count"),
             "matched_holdout_groups": regime_receipt.get("matched_holdout_groups"),
             "claim_boundary": regime_receipt.get("claim_boundary"),
+            "note": regime_receipt.get("note"),
         },
+        "skipped_missing_run_directories": skipped_missing_runs,
         "privacy_audit": privacy,
         "claims": {
             "narrow_grounded_remix_format_lift_in_latest_run": bool(
