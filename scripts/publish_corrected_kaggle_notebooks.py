@@ -31,7 +31,7 @@ import shutil
 import subprocess
 import sys
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -66,14 +66,14 @@ def _pre_create_temp_mirror() -> None:
 
 
 def _seconds_to_utc_reset() -> float:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     reset = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
     return (reset - now).total_seconds()
 
 
 def _wait_for_reset(pad_seconds: int = 120) -> None:
     secs = _seconds_to_utc_reset() + pad_seconds
-    reset_at = datetime.now(timezone.utc) + timedelta(seconds=secs)
+    reset_at = datetime.now(UTC) + timedelta(seconds=secs)
     print(f"[wait] sleeping {secs/60:.1f} min until ~{reset_at:%Y-%m-%d %H:%M} UTC (past the daily reset)...", flush=True)
     time.sleep(max(0, secs))
 
@@ -120,7 +120,7 @@ def _live_slugs() -> set[str]:
         proc = subprocess.run([sys.executable, "-m", "kaggle", "kernels", "list", "--user",
                                _kaggle_env()["KAGGLE_USERNAME"], "--page-size", "80"],
                               capture_output=True, text=True, env=_kaggle_env())
-    except Exception:  # noqa: BLE001 - verification is best-effort
+    except Exception:
         return set()
     slugs: set[str] = set()
     for line in _printable(proc.stdout).splitlines():
@@ -137,7 +137,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--dry-run", action="store_true", help="stage but do not call Kaggle")
     args = ap.parse_args(argv)
 
-    print(f"[info] {datetime.now(timezone.utc):%Y-%m-%d %H:%M} UTC | daily reset in {_seconds_to_utc_reset()/3600:.1f} h", flush=True)
+    print(f"[info] {datetime.now(UTC):%Y-%m-%d %H:%M} UTC | daily reset in {_seconds_to_utc_reset()/3600:.1f} h", flush=True)
     if args.rebuild:
         _rebuild()
     if args.wait_for_reset and not args.dry_run:
