@@ -1,4 +1,4 @@
-# ruff: noqa: E501  (report-rendering script; long prose f-strings read better on one line)
+# ruff: noqa: E501, N806  (report-rendering script; long prose f-strings + an `L` lines accumulator)
 """Full-results analysis over the accumulated benchmark panel -- the honest current read of every graded
 prompt, regenerable as the sweep grows toward the 78,719-prompt registry.
 
