@@ -67,7 +67,9 @@ def test_metadata_has_usability_fields_and_column_schema(tmp_path: Path) -> None
                  promptset_path=_promptset(tmp_path))
     meta = json.loads((out / "dataset" / "dataset-metadata.json").read_text(encoding="utf-8"))
     assert meta["subtitle"] and len(meta["description"]) > 200
-    assert len(meta["keywords"]) >= 5
+    # Kaggle caps keywords at 6 and requires a 20-80 char subtitle.
+    assert 3 <= len(meta["keywords"]) <= 6
+    assert 20 <= len(meta["subtitle"]) <= 80
     grades_resource = next(r for r in meta["resources"] if r["path"] == "panel_grades.csv")
     field_names = {f["name"] for f in grades_resource["schema"]["fields"]}
     assert {"model", "arm", "prompt_id", "judge", "score_0_100", "A", "E"} <= field_names
