@@ -34,8 +34,9 @@ GREP_RULES_PATH = (
 )
 DEFAULT_OUTPUT = ROOT / "reports" / "kaggle_publish" / "rulecard_supervision_fabric_v1"
 DATASET_ID = "taylorsamarel/duecare-rulecard-supervision-fabric"
-NOTEBOOK_ID = "taylorsamarel/duecare-rulecard-supervision-fabric"
+NOTEBOOK_ID = "taylorsamarel/duecare-rulecard-witness-atlas"
 TITLE = "DueCare RuleCard Supervision Fabric"
+NOTEBOOK_TITLE = "DueCare RuleCard Witness Atlas"
 MARKER = ".duecare-rulecard-kaggle"
 
 _RC_SPEC = importlib.util.spec_from_file_location(
@@ -147,6 +148,7 @@ def build(output_dir: Path, *, force: bool, grep_path: Path = GREP_RULES_PATH) -
     _write_json(dataset / "dataset-metadata.json", {
         "title": TITLE,
         "id": DATASET_ID,
+        "isPrivate": False,
         "licenses": [{"name": "CC-BY-4.0"}],
     })
 
@@ -155,7 +157,7 @@ def build(output_dir: Path, *, force: bool, grep_path: Path = GREP_RULES_PATH) -
     _write_json(notebook_dir / "notebook.ipynb", _notebook())
     _write_json(notebook_dir / "kernel-metadata.json", {
         "id": NOTEBOOK_ID,
-        "title": TITLE,
+        "title": NOTEBOOK_TITLE,
         "code_file": "notebook.ipynb",
         "language": "python",
         "kernel_type": "notebook",
