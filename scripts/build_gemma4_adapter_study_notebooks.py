@@ -1745,6 +1745,20 @@ identity = pd.DataFrame({
 display(identity)
 if not safety["complete"] or not frontier["complete"]:
     raise AssertionError("A packaged judge study is incomplete")
+
+# Self-check: the prose numbers quoted later in this notebook are re-derived
+# from the packaged receipts here, so a re-run that changes an artifact can
+# never leave a stale hardcoded figure in the narrative below.
+_prose_claims = {
+    "model_judge_lift": (round(system_evidence["large_pairwise_model_judge"]["lift"], 2), 1.73),
+    "deterministic_lift": (round(system_evidence["large_pairwise_deterministic_grader"]["lift"], 2), 0.18),
+    "adversarial_mean": (round(system_evidence["adversarial_robustness"]["overall"]["mean"], 2), 4.39),
+    "recorded_mean_delta": (round(safety["mean_harness_delta"], 2), 9.67),
+}
+_prose_drift = {k: v for k, (v, expected) in _prose_claims.items() if v != expected}
+if _prose_drift:
+    raise AssertionError(f"packaged evidence drifted from the notebook prose: {_prose_drift}")
+display(Markdown("**Prose self-check:** narrative figures match the packaged receipts."))
 ''',
         ),
         _markdown(
