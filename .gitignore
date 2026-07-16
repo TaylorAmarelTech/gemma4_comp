@@ -115,6 +115,7 @@ logs/
 outputs/
 reports/kaggle_publish/
 reports/training_runs/
+reports/rulecards/
 reports/*.html
 reports/*.pdf
 reports/test-run-*.md
