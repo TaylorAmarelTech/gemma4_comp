@@ -57,6 +57,25 @@ sys.modules["duecare_build_rulecards"] = build_rulecards
 _BUILD_SPEC.loader.exec_module(build_rulecards)
 
 
+def _redact_patterns(card: dict[str, Any]) -> dict[str, Any]:
+    """Withhold the exact regex antecedent patterns from a public card.
+
+    The raw patterns are an operational detection map (which phrasings trigger
+    detection). Publishing them could aid evasion -- a dual-use concern the
+    project's safety rules and the finetuning blueprint both flag. The research
+    value (witness families, legal grounding, roles, governance) needs none of
+    the raw regex, so we replace ``patterns`` with a count and keep everything
+    else.
+    """
+    redacted = dict(card)
+    antecedent = dict(redacted.get("antecedent") or {})
+    patterns = antecedent.pop("patterns", None)
+    antecedent["pattern_count"] = len(patterns) if isinstance(patterns, list) else 0
+    antecedent["patterns_redacted"] = True
+    redacted["antecedent"] = antecedent
+    return redacted
+
+
 def _sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
@@ -105,7 +124,7 @@ def build(output_dir: Path, *, force: bool, grep_path: Path = GREP_RULES_PATH) -
     if len(categories) != len(rules):
         categories = ["uncategorized"] * len(rules)
     cards = rulecards.compile_deck(rules, categories)
-    deck = [card.to_dict() for card in cards]
+    deck = [_redact_patterns(card.to_dict()) for card in cards]
     summary = rulecards.deck_summary(cards)
     independence = rulecards.independence_report(cards)
 
@@ -116,6 +135,14 @@ def build(output_dir: Path, *, force: bool, grep_path: Path = GREP_RULES_PATH) -
     _write_json(dataset / "rulecard-deck.json", {
         "schema_version": rulecards.SCHEMA_VERSION,
         "source": "packages/duecare-llm-chat/src/duecare/chat/harness/_grep_rules.py",
+        "patterns_redacted": True,
+        "patterns_redaction_note": (
+            "The exact regex antecedent patterns are withheld from this public "
+            "deck to avoid publishing an operational detection map that could aid "
+            "evasion (a dual-use safeguard). Each card keeps its pattern_count and "
+            "all research metadata: sources, severity, roles, jurisdictions, "
+            "witness family, and indicator reasoning."
+        ),
         "cards": deck,
     })
     _write_json(dataset / "rulecard-independence.json", independence)
@@ -279,6 +306,12 @@ rules are flagged for human review only. This deck is supervision and
 measurement evidence for building correlation-aware weak supervision. It is not
 a trafficking-detection model and must never be treated as ground truth about
 any person.
+
+**Dual-use safeguard:** the exact regex antecedent *patterns* are withheld from
+this public deck (each card keeps a `pattern_count` instead). Publishing the
+operational detection map could help offenders rephrase to evade it, so the
+patterns stay private while all research metadata -- legal sources, severity,
+roles, jurisdictions, witness families, and indicator reasoning -- is public.
 
 Companion code: `duecare.chat.rulecards`, `scripts/build_rulecards.py`.
 Reconciliation with the full best-practice blueprint:
