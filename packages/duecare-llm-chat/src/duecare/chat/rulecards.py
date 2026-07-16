@@ -221,12 +221,39 @@ def compile_deck(
     return cards
 
 
-def independence_report(cards: list[RuleCard]) -> dict[str, Any]:
+def effective_witness_count(family_sizes: list[int], rho: float) -> float:
+    """Design-effect effective independent-witness count over correlated families.
+
+    Applies the blueprint's equal-correlation design effect within each witness
+    family and sums across families (treated as mutually independent):
+
+        m_eff(family) = m / (1 + (m - 1) * rho)
+
+    ``rho`` is the assumed within-family vote correlation in [0, 1]. rho=0 means
+    every rule is an independent witness (sum = total rules); rho=1 means each
+    family collapses to a single witness (sum = family count). Reporting a range
+    of rho is honest because rho is an assumption, not a measured constant.
+    """
+    rho = min(1.0, max(0.0, rho))
+    total = 0.0
+    for size in family_sizes:
+        if size <= 0:
+            continue
+        total += size / (1.0 + (size - 1) * rho)
+    return round(total, 2)
+
+
+def independence_report(
+    cards: list[RuleCard], rho_grid: tuple[float, ...] = (0.5, 0.7, 0.9)
+) -> dict[str, Any]:
     """Measure how many *independent* witness families the deck really has.
 
     The headline is effective_independent_families vs total_rules: a large gap
     means the deck's apparent breadth is concentrated on a few shared legal
     anchors, so downstream weak supervision must down-weight correlated votes.
+    ``effective_witnesses_by_rho`` applies the design-effect formula so the
+    structural family count (the rho=1 bound) is shown alongside softer
+    correlation assumptions.
     """
     total = len(cards)
     by_family: dict[str, list[str]] = defaultdict(list)
@@ -245,6 +272,9 @@ def independence_report(cards: list[RuleCard]) -> dict[str, Any]:
     largest = max(family_sizes) if family_sizes else 0
     top5 = sum(family_sizes[:5])
     concentration = round(top5 / total, 4) if total else 0.0
+    effective_by_rho = {
+        f"rho_{rho}": effective_witness_count(family_sizes, rho) for rho in rho_grid
+    }
     return {
         "schema_version": SCHEMA_VERSION,
         "total_rules": total,
@@ -252,6 +282,13 @@ def independence_report(cards: list[RuleCard]) -> dict[str, Any]:
         "reduction_ratio": round(len(by_family) / total, 4) if total else 0.0,
         "largest_family_rule_count": largest,
         "top5_family_concentration": concentration,
+        "effective_witnesses_by_rho": effective_by_rho,
+        "effective_witnesses_note": (
+            "Design-effect estimate m/(1+(m-1)*rho) per witness family summed across "
+            "families. rho is an assumed within-family vote correlation; the "
+            f"structural family count ({len(by_family)}) is the rho=1 lower bound and "
+            f"the total rule count ({total}) is the rho=0 upper bound."
+        ),
         "families": families,
         "rules_per_authoritative_source": dict(by_source.most_common()),
         "rules_per_category": dict(by_category.most_common()),
