@@ -54,6 +54,84 @@ def _manifest_row_counts(manifest: dict[str, Any]) -> dict[str, int]:
     return {}
 
 
+def _dig(payload: Any, path: list[str]) -> Any:
+    for key in path:
+        if not isinstance(payload, dict) or key not in payload:
+            return None
+        payload = payload[key]
+    return payload
+
+
+def _verify_evidence_claims(
+    dataset_dir: Path, evidence_claims: list[dict[str, Any]]
+) -> tuple[list[dict[str, Any]], list[str]]:
+    """Re-derive each pinned headline number from the staged dataset artifacts.
+
+    These are the notebook-prose numbers most likely to silently drift on a
+    re-run (harness lift, adversarial mean, recorded delta, run metrics), so
+    they are re-read from their source JSON and compared at the stated rounding.
+    """
+    verified: list[dict[str, Any]] = []
+    issues: list[str] = []
+    for claim in evidence_claims:
+        label = str(claim.get("label") or "")
+        source = dataset_dir / str(claim.get("source") or "")
+        path = [str(part) for part in (claim.get("json_path") or [])]
+        expected = claim.get("expected")
+        round_to = int(claim.get("round_to", 2))
+        if not source.is_file():
+            issues.append(f"{label}: source artifact missing ({claim.get('source')})")
+            continue
+        try:
+            payload = json.loads(source.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            issues.append(f"{label}: could not read source ({exc})")
+            continue
+        actual = _dig(payload, path)
+        if not isinstance(actual, (int, float)):
+            issues.append(f"{label}: value at {path} is not numeric ({actual!r})")
+            continue
+        actual_rounded = round(float(actual), round_to) if round_to else round(float(actual))
+        if actual_rounded != expected:
+            issues.append(
+                f"{label}: expected {expected}, staged re-derives {actual_rounded} "
+                f"(raw {actual})"
+            )
+            continue
+        verified.append({"label": label, "value": actual_rounded, "prose": claim.get("prose")})
+    return verified, issues
+
+
+def _live_kaggle_metadata_matches(dataset_id: str) -> dict[str, Any]:
+    """Opt-in, read-only spot-check that the dataset is live on Kaggle.
+
+    Requires the kaggle CLI plus configured credentials. This confirms the
+    dataset id resolves to a public dataset; it does not publish anything.
+    Never called by default — only via --check-live so no unprompted Kaggle
+    call happens.
+    """
+    import subprocess
+
+    try:
+        completed = subprocess.run(
+            ["kaggle", "datasets", "metadata", dataset_id, "--dir", "-"],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+    except FileNotFoundError:
+        return {"checked": False, "reason": "kaggle CLI not installed"}
+    except subprocess.TimeoutExpired:
+        return {"checked": False, "reason": "kaggle metadata lookup timed out"}
+    if completed.returncode != 0:
+        return {
+            "checked": True,
+            "live": False,
+            "reason": (completed.stderr or completed.stdout or "").strip()[:200],
+        }
+    return {"checked": True, "live": True}
+
+
 def verify_claim(claim: dict[str, Any], *, root: Path) -> dict[str, Any]:
     """Re-derive one claim from staged artifacts. Pure aside from reading files."""
     dataset_id = str(claim.get("dataset_id") or "")
@@ -99,6 +177,16 @@ def verify_claim(claim: dict[str, Any], *, root: Path) -> dict[str, Any]:
         result["row_counts_verified"] = {
             key: value for key, value in expected_counts.items() if key in staged_counts
         }
+    evidence_claims = claim.get("evidence_claims")
+    if isinstance(evidence_claims, list) and evidence_claims:
+        verified_evidence, evidence_issues = _verify_evidence_claims(
+            manifest_path.parent, evidence_claims
+        )
+        if evidence_issues:
+            result["status"] = "mismatch"
+            result["issues"].extend(evidence_issues)
+            return result
+        result["evidence_claims_verified"] = verified_evidence
     result["status"] = "verified"
     return result
 
@@ -127,6 +215,16 @@ def parser() -> argparse.ArgumentParser:
     value.add_argument("--registry", type=Path, default=DEFAULT_REGISTRY)
     value.add_argument("--root", type=Path, default=ROOT)
     value.add_argument("--json", action="store_true", help="print the full JSON report")
+    value.add_argument(
+        "--check-live",
+        action="store_true",
+        help=(
+            "additionally spot-check that each dataset id resolves to a live public "
+            "Kaggle dataset via a read-only `kaggle datasets metadata` lookup. "
+            "Requires configured Kaggle credentials; makes no publish call. Off by "
+            "default so no unprompted Kaggle request happens."
+        ),
+    )
     return value
 
 
@@ -134,6 +232,9 @@ def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     registry = json.loads(args.registry.read_text(encoding="utf-8"))
     report = verify_registry(registry, root=args.root)
+    if args.check_live:
+        for row in report["results"]:
+            row["live_kaggle"] = _live_kaggle_metadata_matches(row["dataset_id"])
     if args.json:
         print(json.dumps(report, indent=2, sort_keys=True))
     else:
