@@ -57,6 +57,18 @@ Running the compiler over the real deck:
 - Rules per authoritative instrument: Palermo Protocol **153**, ILO C181 **113**,
   ILO C029 **89**, ILO C189 **59**, ILO C095 **48**.
 
+Under the design-effect formula `m_eff = m / (1 + (m-1)*rho)` applied per witness
+family, the **effective independent-witness count** is about **83 at rho=0.9,
+90 at rho=0.7, and 100 at rho=0.5** — far below the 451 raw rules. The 80-family
+count is the rho=1 (maximally conservative) bound; the total rule count is the
+rho=0 bound.
+
+The compiled deck, independence report, and a visual notebook are published as a
+public Kaggle dataset:
+[`taylorsamarel/duecare-rulecard-supervision-fabric`](https://www.kaggle.com/datasets/taylorsamarel/duecare-rulecard-supervision-fabric)
+(CC-BY-4.0, rule metadata only — no worker data or PII). Regenerate/repackage
+with `python scripts/build_rulecards_kaggle.py`.
+
 This is the blueprint's key insight, now measured from DueCare's own rules: 153
 rules anchored on the Palermo Protocol are **153 correlated votes, not 153
 independent confirmations**. Any weak-supervision label model built on these
