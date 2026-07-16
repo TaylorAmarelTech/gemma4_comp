@@ -1,0 +1,129 @@
+{
+  "schema_version": "duecare.model_fallback_registry.v1",
+  "policies": {
+    "frontier_pairwise_judge": {
+      "selection": "preflight_then_freeze_for_entire_study",
+      "required_capabilities": [
+        "long_context",
+        "structured_json",
+        "pairwise_evaluation"
+      ],
+      "candidates": [
+        {
+          "label": "GLM-5.2 via Ollama Cloud",
+          "route": "glm-5.2:cloud",
+          "provider": "ollama_cloud"
+        },
+        {
+          "label": "Claude Opus 4.8 via Anthropic",
+          "route": "anthropic:claude-opus-4-8",
+          "provider": "anthropic"
+        },
+        {
+          "label": "Claude Opus 4.8 via OpenRouter",
+          "route": "openrouter:anthropic/claude-opus-4.8",
+          "provider": "openrouter"
+        },
+        {
+          "label": "Mistral Large via Mistral API",
+          "route": "mistral:mistral-large-latest",
+          "provider": "mistral"
+        }
+      ]
+    },
+    "kaggle_tpu_adapter_training": {
+      "selection": "operator_paths_then_full_attempts_in_order",
+      "required_capabilities": [
+        "causal_language_modeling",
+        "low_rank_adaptation",
+        "pytorch_xla"
+      ],
+      "allow_operator_paths": true,
+      "accelerator_candidates": [
+        {
+          "label": "PyTorch/XLA single-TPU-device compatibility mode",
+          "strategy": "pjrt_single_device",
+          "tpu_num_devices": 1
+        },
+        {
+          "label": "PyTorch/XLA all-device data parallelism",
+          "strategy": "pjrt_all_devices",
+          "tpu_num_devices": null
+        }
+      ],
+      "candidates": [
+        {
+          "label": "Gemma 4 E2B instruction-tuned",
+          "model_source": "google/gemma-4/Transformers/gemma-4-e2b-it/1",
+          "download_handle": "google/gemma-4/transformers/gemma-4-e2b-it/1"
+        },
+        {
+          "label": "Gemma 3 1B instruction-tuned fallback",
+          "model_source": "google/gemma-3/Transformers/gemma-3-1b-it/1",
+          "download_handle": "google/gemma-3/transformers/gemma-3-1b-it/1"
+        },
+        {
+          "label": "Gemma 2 2B instruction-tuned fallback",
+          "model_source": "google/gemma-2/Transformers/gemma-2-2b-it/2",
+          "download_handle": "google/gemma-2/transformers/gemma-2-2b-it/2"
+        }
+      ]
+    },
+    "local_gpu_adapter_training": {
+      "selection": "operator_overrides_then_full_attempts_in_order",
+      "required_capabilities": [
+        "causal_language_modeling",
+        "low_rank_adaptation",
+        "four_bit_loading"
+      ],
+      "allow_operator_paths": true,
+      "candidates": [
+        {
+          "label": "Gemma 4 E2B Unsloth four-bit",
+          "model_id": "unsloth/gemma-4-e2b-it-unsloth-bnb-4bit"
+        },
+        {
+          "label": "Gemma 4 E2B Google checkpoint",
+          "model_id": "google/gemma-4-E2B-it"
+        },
+        {
+          "label": "Gemma 4 E4B Unsloth four-bit",
+          "model_id": "unsloth/gemma-4-e4b-it-unsloth-bnb-4bit"
+        }
+      ]
+    },
+    "kaggle_tpu_from_scratch_training": {
+      "selection": "run_all_small_architectures_with_independent_receipts",
+      "required_capabilities": [
+        "causal_language_modeling",
+        "byte_level_tokenization",
+        "jax_tpu"
+      ],
+      "accelerator_policy": "reuse_kaggle_tpu_adapter_training.accelerator_candidates",
+      "candidates": [
+        {
+          "label": "DueCare Micro Byte Transformer",
+          "architecture": "decoder_only_transformer",
+          "hidden_size": 64,
+          "layers": 1,
+          "attention_heads": 4,
+          "context_length": 128
+        },
+        {
+          "label": "DueCare Tiny Byte Transformer",
+          "architecture": "decoder_only_transformer",
+          "hidden_size": 128,
+          "layers": 2,
+          "attention_heads": 4,
+          "context_length": 192
+        }
+      ]
+    }
+  },
+  "rules": [
+    "Never switch judge models inside one comparable before-and-after study.",
+    "Record every candidate, preflight result, selected route, and failure reason.",
+    "An operator override may prepend candidates but may not erase the receipt.",
+    "A deterministic fallback must be labeled non-model output and cannot support a training-lift claim."
+  ]
+}

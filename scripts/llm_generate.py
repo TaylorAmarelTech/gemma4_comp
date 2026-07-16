@@ -421,7 +421,7 @@ def _next_key_offset(provider: str, pool_size: int) -> int:
 
 def openai_compatible_chat(prompt: str, *, model: str, base_url: str, keys: list[str],
                            provider: str = "openai_compatible", max_tokens: int = DEFAULT_MAX_TOKENS,
-                           temperature: float = 0.6, system: str | None = None,
+                           temperature: float | None = 0.6, system: str | None = None,
                            timeout: float = 180.0, max_retries: int = 3) -> str:
     """One chat completion against any OpenAI-compatible ``base_url``, rotating through a KEY POOL: a
     key that returns 402/403/429 (spent/blocked) is dropped and the next key tried; transient 5xx /
@@ -432,8 +432,9 @@ def openai_compatible_chat(prompt: str, *, model: str, base_url: str, keys: list
         raise AllKeysExhausted(f"{provider}: no keys in pool (.agent/provider_keys.json or env)")
     messages = ([{"role": "system", "content": system}] if system else []) + \
                [{"role": "user", "content": prompt}]
-    payload: dict[str, Any] = {"model": model, "messages": messages, "temperature": temperature,
-                               "stream": False}
+    payload: dict[str, Any] = {"model": model, "messages": messages, "stream": False}
+    if temperature is not None:
+        payload["temperature"] = temperature
     if max_tokens and max_tokens > 0:
         payload["max_tokens"] = max_tokens
     body = json.dumps(payload).encode("utf-8")
@@ -479,7 +480,7 @@ ANTHROPIC_VERSION = "2023-06-01"
 
 
 def anthropic_chat(prompt: str, *, model: str, keys: list[str], max_tokens: int = DEFAULT_MAX_TOKENS,
-                   temperature: float = 0.6, system: str | None = None, timeout: float = 180.0,
+                   temperature: float | None = None, system: str | None = None, timeout: float = 180.0,
                    max_retries: int = 3) -> str:
     """One Anthropic Messages-API completion -> the answer text. Anthropic is NOT OpenAI-compatible (its
     own ``/v1/messages`` endpoint, ``x-api-key`` header, and ``content:[{text}]`` response), so it gets a
@@ -491,9 +492,14 @@ def anthropic_chat(prompt: str, *, model: str, keys: list[str], max_tokens: int 
     if not keys:
         raise AllKeysExhausted("anthropic: no keys in pool (.agent/provider_keys.json or env)")
     model = model[len(ANTHROPIC_PREFIX):] if model.startswith(ANTHROPIC_PREFIX) else model
-    payload: dict[str, Any] = {"model": model, "temperature": temperature,
+    payload: dict[str, Any] = {"model": model,
                                "max_tokens": max_tokens if max_tokens and max_tokens > 0 else 1024,
                                "messages": [{"role": "user", "content": prompt}]}
+    # Claude Opus 4.7 and newer reject non-default sampling parameters. Omit
+    # temperature by default so pinned frontier judges remain API-compatible;
+    # older callers may still opt in explicitly for models that support it.
+    if temperature is not None:
+        payload["temperature"] = temperature
     if system:
         payload["system"] = system
     body = json.dumps(payload).encode("utf-8")
