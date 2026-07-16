@@ -113,6 +113,8 @@ data/multimodal_test_set/
 *.log
 logs/
 outputs/
+reports/kaggle_publish/
+reports/training_runs/
 reports/*.html
 reports/*.pdf
 reports/test-run-*.md
@@ -243,3 +245,6 @@ reports/hermes_state.json
 reports/openclaw/
 reports/openclaw_state.json
 data/synthetic_multimodal/
+
+# Unsloth generates local compiled CUDA kernels on first training use.
+unsloth_compiled_cache/

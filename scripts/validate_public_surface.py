@@ -675,6 +675,35 @@ def check_local_doc_links() -> CheckResult:
     return result
 
 
+def check_training_model_fallback_registry() -> CheckResult:
+    """Require every governed training or judge role to retain multiple routes."""
+    result = CheckResult(name="training_model_fallback_registry")
+    registry_path = ROOT / "configs" / "duecare" / "model_fallbacks.json"
+    try:
+        from validate_model_fallback_registry import validate_registry
+
+        summary = validate_registry(json.loads(registry_path.read_text(encoding="utf-8")))
+    except Exception as exc:
+        result.findings.append(
+            Finding(
+                file=registry_path.relative_to(ROOT).as_posix(),
+                line=0,
+                rule="invalid_model_fallback_registry",
+                snippet=f"{type(exc).__name__}: {exc}",
+                suggestion=(
+                    "declare at least two capability-compatible candidates per policy "
+                    "and retain the attempt-receipt rule"
+                ),
+            )
+        )
+        return result
+    policy_counts = {
+        name: policy["candidate_count"] for name, policy in summary["policies"].items()
+    }
+    result.info.append(f"Validated governed model candidate counts: {policy_counts}")
+    return result
+
+
 # --- Reporting ---------------------------------------------------------------
 
 def render_text(checks: list[CheckResult]) -> str:
@@ -748,6 +777,7 @@ def main() -> int:
             "bundle_envelope_v1",
             "bundle_envelope_manifest_checksums",
             "local_doc_links",
+            "training_model_fallback_registry",
         ],
         help="skip a check (repeatable)",
     )
@@ -762,6 +792,7 @@ def main() -> int:
         ("bundle_envelope_manifest_checksums",
          check_bundle_envelope_manifest_checksums),
         ("local_doc_links", check_local_doc_links),
+        ("training_model_fallback_registry", check_training_model_fallback_registry),
     ]
     checks = [run() for name, run in runners if name not in args.skip]
 
