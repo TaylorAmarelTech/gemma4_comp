@@ -567,9 +567,11 @@ def _wrap(cells: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def _notebooks() -> list[tuple[str, str, dict[str, Any]]]:
+    # Kaggle derives a kernel's slug from its title; the title must slugify to
+    # exactly the id (lowercase, spaces -> hyphens) or the push fails.
     return [
-        ("duecare-reproduce-harness-lift", "DueCare: Reproduce the Harness-Lift Result", _lift_notebook()),
-        ("duecare-judge-agreement", "DueCare: LLM Judge Agreement", _judge_agreement_notebook()),
+        ("duecare-reproduce-harness-lift", "DueCare Reproduce Harness Lift", _lift_notebook()),
+        ("duecare-judge-agreement", "DueCare Judge Agreement", _judge_agreement_notebook()),
     ]
 
 
