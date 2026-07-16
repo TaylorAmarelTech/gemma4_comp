@@ -93,6 +93,46 @@ def test_registry_ok_is_false_on_any_mismatch(tmp_path: Path) -> None:
     assert report["verified"] == 1 and report["mismatched"] == 1
 
 
+def test_evidence_claims_verify_when_source_numbers_match(tmp_path: Path) -> None:
+    rel = "reports/kaggle_publish/study_v1/dataset/release-manifest.json"
+    sha = _stage_manifest(tmp_path, rel, {"counts": {}})
+    receipt = tmp_path / "reports/kaggle_publish/study_v1/dataset/system-evidence/receipt.json"
+    receipt.parent.mkdir(parents=True, exist_ok=True)
+    receipt.write_text(json.dumps({"judge": {"lift": 1.7329}}), encoding="utf-8")
+    claim = {
+        "dataset_id": "acct/study",
+        "release_manifest_sha256": sha,
+        "staged_manifest_globs": [rel],
+        "evidence_claims": [
+            {"label": "lift", "source": "system-evidence/receipt.json",
+             "json_path": ["judge", "lift"], "expected": 1.73, "round_to": 2},
+        ],
+    }
+    result = MODULE.verify_claim(claim, root=tmp_path)
+    assert result["status"] == "verified"
+    assert result["evidence_claims_verified"][0]["value"] == 1.73
+
+
+def test_evidence_claim_drift_is_a_hard_failure(tmp_path: Path) -> None:
+    rel = "reports/kaggle_publish/study_v1/dataset/release-manifest.json"
+    sha = _stage_manifest(tmp_path, rel, {"counts": {}})
+    receipt = tmp_path / "reports/kaggle_publish/study_v1/dataset/system-evidence/receipt.json"
+    receipt.parent.mkdir(parents=True, exist_ok=True)
+    receipt.write_text(json.dumps({"judge": {"lift": 2.10}}), encoding="utf-8")
+    claim = {
+        "dataset_id": "acct/study",
+        "release_manifest_sha256": sha,
+        "staged_manifest_globs": [rel],
+        "evidence_claims": [
+            {"label": "lift", "source": "system-evidence/receipt.json",
+             "json_path": ["judge", "lift"], "expected": 1.73, "round_to": 2},
+        ],
+    }
+    result = MODULE.verify_claim(claim, root=tmp_path)
+    assert result["status"] == "mismatch"
+    assert any("lift: expected 1.73" in issue for issue in result["issues"])
+
+
 def test_committed_registry_matches_docs_and_staged_when_present() -> None:
     registry = json.loads(MODULE.DEFAULT_REGISTRY.read_text(encoding="utf-8"))
     report = MODULE.verify_registry(registry, root=_ROOT)

@@ -45,6 +45,64 @@
       "staged_manifest_globs": [
         "reports/kaggle_publish/kaggle_dataset_downloads/gemma4_adapter_learning_study_v4/release-manifest.json",
         "reports/kaggle_publish/gemma4_adapter_study_collection_v2/dataset/release-manifest.json"
+      ],
+      "evidence_claims": [
+        {
+          "label": "large_pairwise_model_judge_lift",
+          "source": "system-evidence/system-evidence-receipt.json",
+          "json_path": ["large_pairwise_model_judge", "lift"],
+          "expected": 1.73,
+          "round_to": 2,
+          "prose": "+1.73/10 model-judge lift over 911 paired prompts"
+        },
+        {
+          "label": "large_pairwise_deterministic_lift",
+          "source": "system-evidence/system-evidence-receipt.json",
+          "json_path": ["large_pairwise_deterministic_grader", "lift"],
+          "expected": 0.18,
+          "round_to": 2,
+          "prose": "+0.18/10 deterministic cross-check over 998 pairs"
+        },
+        {
+          "label": "adversarial_robustness_overall_mean",
+          "source": "system-evidence/system-evidence-receipt.json",
+          "json_path": ["adversarial_robustness", "overall", "mean"],
+          "expected": 4.39,
+          "round_to": 2,
+          "prose": "+4.39/10 over 140 adversarial transforms"
+        },
+        {
+          "label": "recorded_harmful_request_mean_delta",
+          "source": "recorded-harmful-request-judge-study/recorded-harmful-request-summary.json",
+          "json_path": ["mean_harness_delta"],
+          "expected": 9.67,
+          "round_to": 2,
+          "prose": "+9.67/10 recorded harmful-request harness delta, 6/6 wins"
+        },
+        {
+          "label": "run_02_optimizer_steps",
+          "source": "runs/run-02/metrics.json",
+          "json_path": ["training", "steps"],
+          "expected": 60,
+          "round_to": 0,
+          "prose": "60 optimizer steps in the stronger E2B LoRA run"
+        },
+        {
+          "label": "run_02_trainable_parameters",
+          "source": "runs/run-02/metrics.json",
+          "json_path": ["training", "trainable_parameters"],
+          "expected": 817152,
+          "round_to": 0,
+          "prose": "817,152 trainable LoRA parameters"
+        },
+        {
+          "label": "run_02_objective_delta",
+          "source": "runs/run-02/metrics.json",
+          "json_path": ["evaluation", "delta", "objective_score"],
+          "expected": 0.15,
+          "round_to": 2,
+          "prose": "+0.15 structural holdout objective delta"
+        }
       ]
     },
     {
