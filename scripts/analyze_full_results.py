@@ -19,7 +19,7 @@ import json
 import math
 import random
 import statistics
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parent.parent
@@ -255,7 +255,10 @@ def render(agg: dict, registry: int, today: str) -> str:
          f"arms ({100*fully_paired/registry:.1f}%)**; {paired:,} have baseline/core pairs, while {graded:,} "
          "have at least one scored arm. The sweep is accumulating; the remaining prompts need the Gemma-4-31b "
          "generation + the configured large-model judge panel on Ollama-cloud, which is credit-gated. These are "
-         "the paired results available so far.", ""]
+         "the paired results available so far.", "",
+         "The underlying grades are public on Kaggle "
+         "([`taylorsamarel/duecare-harness-benchmark-grades`](https://www.kaggle.com/datasets/taylorsamarel/duecare-harness-benchmark-grades); "
+         "scores only, no response text) with two runnable notebooks that reproduce this read.", ""]
     if head:
         full_disp = (f"harness_full {head['full']} ({head['lift_full']:+}); "
                      f"{_full_core_conclusion(head)}"
@@ -386,7 +389,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", type=Path, default=OUT)
     ap.add_argument("--promptset", type=Path, default=PROMPTSET)
     ap.add_argument("--registry", type=int, default=78719)  # the full_promptset.json registry the engine grades against
-    ap.add_argument("--today", default=datetime.now(timezone.utc).date().isoformat())
+    ap.add_argument("--today", default=datetime.now(UTC).date().isoformat())
     args = ap.parse_args(argv)
     agg = aggregate(load_panel(args.panel), registry_meta=load_registry_meta(args.promptset))
     if not agg["per_model"]:
