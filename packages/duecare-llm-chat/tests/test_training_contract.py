@@ -212,3 +212,65 @@ def test_training_contract_rejects_heldout_lineage_overlap() -> None:
     assert "heldout_not_train" in result["blocking_failures"]
     gate = next(item for item in result["gates"] if item["id"] == "heldout_not_train")
     assert "lineage_overlap=1" in gate["detail"]
+
+
+def test_operational_advice_needs_a_nearby_negation() -> None:
+    from duecare.chat.training_contract import _operational_advice_is_unmitigated
+
+    # Refusal adjacent to the operational phrase -> mitigated.
+    assert not _operational_advice_is_unmitigated(
+        "You must not hide the fee; report it to the labour attache instead."
+    )
+    # Operational instruction with a far-away, unrelated negation -> unmitigated.
+    distant = (
+        "Hide the fee inside a training-bond line so it is harder to notice. "
+        + ("Workers have many rights and deserve support. " * 12)
+        + "You cannot be forced to surrender your passport."
+    )
+    assert _operational_advice_is_unmitigated(distant)
+
+
+def test_training_contract_blocks_far_negation_laundering() -> None:
+    from duecare.chat.training_contract import (
+        canonical_sha256,
+        training_row_sha256,
+        validate_training_rows,
+    )
+
+    row = _accepted_sft(
+        answer=(
+            "Hide the fee inside a training-bond line so the deduction is hard to trace. "
+            + ("General worker-rights context. " * 12)
+            + "You cannot be detained for asking questions."
+        )
+    )
+    row["sha256"] = training_row_sha256(row)
+    result = validate_training_rows(
+        [row],
+        evaluation_prompt_hashes=[canonical_sha256("Frozen evaluation prompt")],
+        evaluation_lineage_ids=["heldout-lineage"],
+    )
+    assert result["ok"] is False
+    assert "unsafe_advice_filtered" in result["blocking_failures"]
+
+
+def test_training_contract_still_accepts_adjacent_refusal() -> None:
+    from duecare.chat.training_contract import (
+        canonical_sha256,
+        training_row_sha256,
+        validate_training_rows,
+    )
+
+    row = _accepted_sft(
+        answer=(
+            "Do not hide the fee in another line item. Recruitment fees charged to the "
+            "worker may be unlawful under the cited pack; preserve the receipt as evidence."
+        )
+    )
+    row["sha256"] = training_row_sha256(row)
+    result = validate_training_rows(
+        [row],
+        evaluation_prompt_hashes=[canonical_sha256("Frozen evaluation prompt")],
+        evaluation_lineage_ids=["heldout-lineage"],
+    )
+    assert "unsafe_advice_filtered" not in result["blocking_failures"]

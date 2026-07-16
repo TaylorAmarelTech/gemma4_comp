@@ -1998,17 +1998,16 @@ harness refuses facilitation and redirects toward protective analysis.
             "examples",
             '''example_rows = []
 for row in recorded:
-    bounded = " ".join(row["bounded_rewrite"].split())
     example_rows.append({
         "Fixture": row["fixture_id"],
         "Failure type": row["failure_type"],
         "Severity": row["egregiousness_score"],
         "Recorded unsafe quote": row.get("worst_quote") or "[not supplied]",
-        "DueCare bounded-response excerpt": bounded[:480] + ("…" if len(bounded) > 480 else ""),
+        "DueCare bounded response (full)": " ".join(row["bounded_rewrite"].split()),
         "Training eligible": row["training_eligible"],
     })
 examples = pd.DataFrame(example_rows)
-display(HTML(examples.to_html(index=False, escape=True)))
+display(HTML(examples.to_html(index=False, escape=True).replace("<td>", '<td style="min-width:230px;vertical-align:top;white-space:pre-wrap">')))
 ''',
         ),
         _markdown(

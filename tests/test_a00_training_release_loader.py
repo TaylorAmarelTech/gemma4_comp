@@ -456,8 +456,7 @@ def test_a00_training_zip_allows_the_exact_ten_file_release_surface(tmp_path: Pa
     assert len(result["jsonl_candidates"]) == 4
 
 
-def test_a00_loads_the_canonical_verifier_from_pinned_source(tmp_path: Path) -> None:
-    manifest_path, _, _, _ = _release_fixture(tmp_path)
+def _verifier_namespace(**overrides: Any) -> dict[str, Any]:
     namespace: dict[str, Any] = {
         "Any": Any,
         "Path": Path,
@@ -465,13 +464,53 @@ def test_a00_loads_the_canonical_verifier_from_pinned_source(tmp_path: Path) -> 
         "A00_DUECARE_SOURCE_ROOT": ROOT,
         "DUECARE_COMMIT_SHA": "test-source",
         "_A00_CANONICAL_RELEASE_VERIFIER": None,
+        "_A00_CANONICAL_RELEASE_VERIFIER_SHA256": None,
+        "hashlib": hashlib,
+        "os": __import__("os"),
         "importlib": __import__("importlib"),
         "sys": sys,
     }
-    _load_kernel_functions({"_canonical_release_verifier"}, namespace)
+    namespace.update(overrides)
+    _load_kernel_functions(
+        {"_canonical_release_verifier", "_verifier_module_sha256"}, namespace
+    )
+    return namespace
+
+
+def test_a00_loads_the_canonical_verifier_from_pinned_source(tmp_path: Path) -> None:
+    manifest_path, _, _, _ = _release_fixture(tmp_path)
+    namespace = _verifier_namespace()
 
     verifier = namespace["_canonical_release_verifier"]()
 
+    assert verifier(manifest_path.parent)["ok"] is True
+
+
+def test_a00_records_the_verifier_bytes_for_audit(monkeypatch: Any) -> None:
+    monkeypatch.delenv("DUECARE_A00_EXPECTED_VERIFIER_SHA256", raising=False)
+    namespace = _verifier_namespace()
+    namespace["_canonical_release_verifier"]()
+    verifier_path = ROOT / "scripts" / "build_kaggle_training_release.py"
+    expected = namespace["_verifier_module_sha256"](verifier_path)
+    assert namespace["_A00_CANONICAL_RELEASE_VERIFIER_SHA256"] == expected
+    assert len(expected) == 64
+
+
+def test_a00_verifier_fails_closed_on_expected_hash_mismatch(monkeypatch: Any) -> None:
+    monkeypatch.setenv("DUECARE_A00_EXPECTED_VERIFIER_SHA256", "deadbeef" * 8)
+    namespace = _verifier_namespace()
+    with pytest.raises(RuntimeError, match="does not match the pinned"):
+        namespace["_canonical_release_verifier"]()
+
+
+def test_a00_verifier_accepts_matching_pinned_hash(tmp_path: Path, monkeypatch: Any) -> None:
+    verifier_path = ROOT / "scripts" / "build_kaggle_training_release.py"
+    probe = _verifier_namespace()
+    real_hash = probe["_verifier_module_sha256"](verifier_path)
+    monkeypatch.setenv("DUECARE_A00_EXPECTED_VERIFIER_SHA256", real_hash.upper())
+    manifest_path, _, _, _ = _release_fixture(tmp_path)
+    namespace = _verifier_namespace()
+    verifier = namespace["_canonical_release_verifier"]()
     assert verifier(manifest_path.parent)["ok"] is True
 
 
