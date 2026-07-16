@@ -381,6 +381,18 @@ plt.rcParams.update({"figure.figsize": (11, 5.6), "figure.dpi": 115,
                      "axes.facecolor": "#f7faf9", "axes.edgecolor": "#bed2cc",
                      "axes.grid": True, "grid.alpha": 0.2, "font.size": 11})
 
+EXPECTED_DATASET_ID = "taylorsamarel/duecare-rulecard-supervision-fabric"
+
+def _verify_dataset(root):
+    # Bind to the right dataset even if another DueCare dataset is also attached:
+    # the release manifest must name this dataset id.
+    manifest = root / "release-manifest.json"
+    if manifest.is_file():
+        did = json.loads(manifest.read_text(encoding="utf-8")).get("dataset_id")
+        if did and did != EXPECTED_DATASET_ID:
+            return False
+    return True
+
 def find_dataset():
     candidates = []
     override = os.environ.get("DUECARE_RULECARD_ROOT")
@@ -390,9 +402,9 @@ def find_dataset():
         candidates.extend(p.parent for p in Path("/kaggle/input").rglob("rulecard-independence.json"))
     candidates.extend(p.parent for p in Path.cwd().rglob("rulecard-independence.json"))
     for root in candidates:
-        if (root / "rulecard-independence.json").is_file():
+        if (root / "rulecard-independence.json").is_file() and _verify_dataset(root):
             return root
-    raise FileNotFoundError("Attach the duecare-rulecard-supervision-fabric dataset")
+    raise FileNotFoundError(f"Attach {EXPECTED_DATASET_ID} (no matching dataset found)")
 
 root = find_dataset()
 independence = json.loads((root / "rulecard-independence.json").read_text(encoding="utf-8"))
@@ -479,11 +491,15 @@ The deck spans many exploitation categories. Category breadth is genuine
 coverage, but within a category the rules still share legal anchors, so category
 count is not the same as independent-witness count."""),
         _code("categories", """cats = independence["rules_per_category"]
-top = [(c, n) for c, n in list(cats.items())[:16] if c != "uncategorized"][::-1]
+# Filter 'uncategorized' BEFORE taking the top 16 -- otherwise a real category is
+# silently dropped whenever 'uncategorized' lands inside the top 16.
+named = sorted(((c, n) for c, n in cats.items() if c != "uncategorized"),
+               key=lambda kv: kv[1], reverse=True)[:16]
+top = named[::-1]
 fig, ax = plt.subplots(figsize=(11, 7))
 bars = ax.barh([c for c, _ in top], [n for _, n in top], color=COLORS[3])
 ax.bar_label(bars, padding=3)
-ax.set(title="Rules per category (top 16)", xlabel="rule count")
+ax.set(title=f"Rules per category (top {len(top)} named categories)", xlabel="rule count")
 fig.tight_layout()
 fig.savefig(out_dir / "rules_per_category.png", bbox_inches="tight")
 plt.show()"""),
