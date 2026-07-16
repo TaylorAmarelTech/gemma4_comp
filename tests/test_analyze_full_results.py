@@ -109,3 +109,83 @@ def test_no_hurt_does_not_report_a_positive_delta_as_the_worst_hurt():
     out = a.render(agg, registry=100, today="2026-07-11")
     assert "HURTS on 0." in out
     assert "worst 40" not in out
+
+
+def test_statistics_block_reports_ci_sign_test_and_win_rate():
+    rows = []
+    for i in range(10):
+        rows += [_row(f"h{i}", "baseline", 40), _row(f"h{i}", "harness_core", 60)]
+    for i in range(2):
+        rows += [_row(f"x{i}", "baseline", 60), _row(f"x{i}", "harness_core", 50)]
+    m = a.aggregate(rows)["per_model"][0]
+    stats = m["statistics"]
+    # exact two-sided sign test: 10 wins vs 2 losses over 12 informative pairs
+    assert stats["sign_test_two_sided_p"] == round(2 * (1 + 12 + 66) / 4096, 6)
+    assert stats["win_rate"] == round(10 / 12, 4)
+    low, high = stats["win_rate_wilson_95"]
+    assert 0 < low < 10 / 12 < high < 1
+    lo, hi = stats["lift_bootstrap_95"]
+    assert lo <= m["lift_core"] <= hi
+
+
+def test_sign_test_normal_approximation_matches_direction_at_large_n():
+    p_small = a._sign_test_two_sided_p(30, 10)
+    p_large = a._sign_test_two_sided_p(3000, 1000)
+    assert p_small is not None and p_large is not None
+    assert p_large < p_small < 0.05
+    assert a._sign_test_two_sided_p(0, 0) is None
+
+
+def test_registry_breakdowns_group_by_category_and_corridor():
+    rows = [
+        _row("p1", "baseline", 40), _row("p1", "harness_core", 90),
+        _row("p2", "baseline", 60), _row("p2", "harness_core", 55),
+    ]
+    meta = {
+        "p1": {"category": "labor_trafficking", "corridor": "NP->MY", "difficulty": "hard"},
+        "p2": {"category": "debt_bondage", "corridor": "PH->SA", "difficulty": "medium"},
+    }
+    m = a.aggregate(rows, registry_meta=meta)["per_model"][0]
+    cats = {c["value"]: c for c in m["breakdowns"]["category"]}
+    assert cats["labor_trafficking"]["n"] == 1 and cats["labor_trafficking"]["lift"] == 50.0
+    assert cats["debt_bondage"]["lift"] == -5.0 and cats["debt_bondage"]["hurts"] == 1
+    corridors = {c["value"]: c for c in m["breakdowns"]["corridor"]}
+    assert corridors["NP->MY"]["helps"] == 1
+
+
+def test_breakdowns_absent_without_registry_meta():
+    rows = [_row("p1", "baseline", 40), _row("p1", "harness_core", 90)]
+    m = a.aggregate(rows)["per_model"][0]
+    assert m["breakdowns"] is None
+
+
+def test_per_judge_lift_is_computed_independently():
+    rows = [
+        {**_row("p1", "baseline", 40), "judge": "j1"},
+        {**_row("p1", "harness_core", 90), "judge": "j1"},
+        {**_row("p1", "baseline", 60), "judge": "j2"},
+        {**_row("p1", "harness_core", 65), "judge": "j2"},
+    ]
+    m = a.aggregate(rows)["per_model"][0]
+    per_judge = {j["judge"]: j for j in m["per_judge"]}
+    assert per_judge["j1"]["lift"] == 50.0 and per_judge["j1"]["n_pair"] == 1
+    assert per_judge["j2"]["lift"] == 5.0
+
+
+def test_render_includes_statistics_and_breakdown_sections():
+    rows = [
+        {**_row("p1", "baseline", 40), "judge": "j1"},
+        {**_row("p1", "harness_core", 90), "judge": "j1"},
+        {**_row("p2", "baseline", 60), "judge": "j1"},
+        {**_row("p2", "harness_core", 55), "judge": "j1"},
+    ]
+    meta = {
+        "p1": {"category": "labor_trafficking", "corridor": "NP->MY", "difficulty": "hard"},
+        "p2": {"category": "debt_bondage", "corridor": "PH->SA", "difficulty": "medium"},
+    }
+    out = a.render(a.aggregate(rows, registry_meta=meta), registry=100, today="2026-07-11")
+    assert "## Statistical strength" in out
+    assert "## Per-judge robustness" in out
+    assert "## Lift by prompt category" in out
+    assert "labor_trafficking" in out
+    assert "sign test" in out
