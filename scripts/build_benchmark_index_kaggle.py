@@ -27,6 +27,8 @@ NB_REPRO = "https://www.kaggle.com/code/taylorsamarel/duecare-reproduce-harness-
 NB_BREAK = "https://www.kaggle.com/code/taylorsamarel/duecare-where-the-harness-helps-most"
 NB_ROBUST = "https://www.kaggle.com/code/taylorsamarel/duecare-harness-statistical-robustness"
 NB_JUDGE = "https://www.kaggle.com/code/taylorsamarel/duecare-judge-agreement"
+NB_CLAIM = "https://www.kaggle.com/code/taylorsamarel/duecare-what-the-benchmark-proves"
+NB_CALIB = "https://www.kaggle.com/code/taylorsamarel/duecare-judge-panel-calibration"
 DS_BOARD = "https://www.kaggle.com/datasets/taylorsamarel/duecare-cross-model-harness-leaderboard"
 REPO = "https://github.com/TaylorAmarelTech/gemma4_comp"
 SITE = "https://duecare-ai.com/benchmark"
@@ -178,6 +180,8 @@ Read in this order -- each notebook answers one question, all from the same real
 | 2 | **[Where the harness helps most]({NB_BREAK})** | Lift by prompt category, difficulty, and recruitment corridor. (It helps most where the base model is weakest.) |
 | 3 | **[Statistical robustness]({NB_ROBUST})** | Leave-one-judge-out envelope, bootstrap CIs, Cohen's d, sign test, forest plot -- is the lift real? |
 | 4 | **[Judge agreement]({NB_JUDGE})** | How much the judges agree (within-arm ICC), so the headline is not one judge's quirk. |
+| 5 | **[What the benchmark proves]({NB_CLAIM})** | The honest evidence ladder -- what each result proves, and what it does NOT. |
+| 6 | **[Judge panel calibration]({NB_CALIB})** | Judge leniency, per-judge robustness, and why a 3-judge paired design is trustworthy. |
 
 Also: the **[cross-model leaderboard dataset]({DS_BOARD})** (a citable flat CSV of the board), the
 **[source repository]({REPO})**, and the **[live site]({SITE})**."""),
