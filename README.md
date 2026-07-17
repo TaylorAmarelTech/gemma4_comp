@@ -75,6 +75,16 @@
 > `python scripts/analyze_full_results.py` →
 > [`docs/research/full_results.md`](docs/research/full_results.md).
 > These are benchmark response-quality results, not field-detection metrics.
+> Across the multi-model board every one of the seven flagship/frontier models
+> graded so far gains (raw lift roughly +16 to +43 on the 0-100 rubric), and a
+> ceiling-adjusted **normalized-gain** column now on the
+> [public leaderboard](https://duecare-ai.com/benchmark) shows the largest raw
+> lifts mostly reflect the most baseline headroom rather than the strongest
+> harness effect (`gpt-oss:120b` leads on raw lift but ranks last on normalized
+> gain). The per-model, per-dimension, honest helps-and-hurts deep-dive is the
+> [reproduce-harness-lift notebook](https://www.kaggle.com/code/taylorsamarel/duecare-reproduce-harness-lift);
+> the exhaustive per-dimension sweep grades in seed-shuffled order so any interim
+> read is an unbiased random sample (`scripts/perdim_interim_goals.py`).
 > **No merged weights, independently demonstrated victim-identification or
 > real-world field-detection lift,
 > legal-quality result, production-ready model, or field-effectiveness claim
