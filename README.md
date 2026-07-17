@@ -4,6 +4,7 @@
 > **GitHub source repo:** [github.com/TaylorAmarelTech/gemma4_comp](https://github.com/TaylorAmarelTech/gemma4_comp) |
 > **GitHub Pages docs:** [tayloramareltech.github.io/gemma4_comp](https://tayloramareltech.github.io/gemma4_comp/) |
 > **DueCare App on Kaggle:** [kaggle.com/code/taylorsamarel/duecare-app](https://www.kaggle.com/code/taylorsamarel/duecare-app) |
+> **Benchmark collection (Kaggle):** [Start here](https://www.kaggle.com/code/taylorsamarel/duecare-harness-lift-benchmark-start-here) &mdash; the index notebook links reproduce / breakdowns / statistical-robustness / judge notebooks + the [grades](https://www.kaggle.com/datasets/taylorsamarel/duecare-harness-benchmark-grades) & [leaderboard](https://www.kaggle.com/datasets/taylorsamarel/duecare-cross-model-harness-leaderboard) datasets |
 > **Fine-tuning &amp; Evaluation:** [Kaggle notebook](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation) + [proof training dataset](https://www.kaggle.com/datasets/taylorsamarel/duecare-proof-finetuning-data) |
 > **Android APK:** [github.com/TaylorAmarelTech/duecare-journey-android/releases](https://github.com/TaylorAmarelTech/duecare-journey-android/releases) |
 > **License:** MIT
