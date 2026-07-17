@@ -2156,6 +2156,9 @@ def main(argv: list[str] | None = None) -> int:
             pass
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--n", type=int, default=40, help="number of prompts to grade (0 = all in the set)")
+    ap.add_argument("--shuffle-seed", type=int, default=0,
+                    help="if >0, seed-shuffle the prompt processing order so any interim prefix of graded "
+                         "prompts is an unbiased random sample of the full set (deterministic + resumable)")
     default_prompts = str(SCHEME_PROMPTS)
     ap.add_argument("--prompts", default=default_prompts,
                     help="prompt-set JSON to grade (default: the committed scheme set; point at the full "
@@ -2244,6 +2247,16 @@ def main(argv: list[str] | None = None) -> int:
     run_paths = run_paths_for_domain(effective_domain, rubric_version=args.rubric_version,
                                      harness_version=args.harness_version, grader=args.grader)
     prompts = _prompts_from_doc(prompt_doc, args.n)
+    if args.shuffle_seed:
+        # Seed-shuffle the processing order so any interim PREFIX of graded prompts is an unbiased
+        # random sample of the full set. This is the "randomized interim goal" contract: interim
+        # milestones reduce the prompt COUNT, never the grading resolution (each prompt still gets
+        # all dimensions x all judges x all arms). Deterministic + resumable: the same seed yields
+        # the same order every run, and already-graded cells are still skipped, so there is no rework.
+        import random  # local import: only the exhaustive perdim path reaches this shuffle
+        random.Random(args.shuffle_seed).shuffle(prompts)
+        print(f"[rich-lift] shuffled {len(prompts):,} prompts with seed {args.shuffle_seed} "
+              "(interim prefixes are representative random samples)", flush=True)
     benign_control_report_path: str | None = None
     if args.benign_control:
         benign_path = pathlib.Path(args.benign_control)

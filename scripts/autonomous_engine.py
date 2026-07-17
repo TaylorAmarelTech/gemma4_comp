@@ -52,6 +52,10 @@ DIM_REVIEW_PACKET = REPORTS / "benchmark" / "research_spider_dimension_candidate
 DIM_REVIEW_VALIDATION = REPORTS / "benchmark" / "research_spider_dimension_candidate_review_validation.json"
 
 JUDGES = "gpt-oss:120b,glm-5.2,deepseek-v4-pro"
+# Fixed seed passed to rich_harness_lift.py --shuffle-seed for exhaustive perdim-full jobs, so any
+# interim prefix of graded prompts is an unbiased random sample of the full registry (interim goals
+# reduce the prompt COUNT, never the grading resolution). Fixed => deterministic, resumable, no rework.
+PERDIM_SHUFFLE_SEED = int(os.environ.get("DUECARE_PERDIM_SHUFFLE_SEED", "20260716"))
 ACTIVE_RICH_HARNESS_RUBRIC_VERSION = "v1"
 EXCLUDED_OPT_IN_RUBRIC_VERSIONS = ["v2"]
 ACTIVE_RICH_HARNESS_HARNESS_VERSION = "h1"
@@ -1395,6 +1399,9 @@ def run_job(model: str, n: int, prompts_key: "str | None" = None,
     required = _completion_required(model, n, prompts_key, grader)
     if required:
         cmd.append("--require-complete")
+        # Randomize the exhaustive perdim grading order so any interim prefix is an unbiased random
+        # sample of the full registry (interim goals reduce prompt count, not grading resolution).
+        cmd += ["--shuffle-seed", str(PERDIM_SHUFFLE_SEED)]
     if prompts_key == "full":
         if not ensure_full_promptset():
             log("full prompt set unavailable -> runner failed; cursor remains subject to job policy")

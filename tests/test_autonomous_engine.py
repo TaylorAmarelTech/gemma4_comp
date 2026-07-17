@@ -102,6 +102,24 @@ def test_run_job_passes_perdim_mode(monkeypatch):
     assert cmd[cmd.index("--prompts") + 1] == str(ae.PROMPTS_FULL)
     assert "--pairwise" not in cmd
     assert "--require-complete" in cmd
+    # Exhaustive perdim-full grading is shuffled with the fixed seed so any interim prefix of graded
+    # prompts is an unbiased random sample of the full registry.
+    assert cmd[cmd.index("--shuffle-seed") + 1] == str(ae.PERDIM_SHUFFLE_SEED)
+
+
+def test_run_job_does_not_shuffle_bounded_or_batched_jobs(monkeypatch):
+    # Only the exhaustive n=0 perdim-full closure job randomizes order; bounded/batched board jobs keep
+    # their deterministic prefix semantics, so --shuffle-seed must be absent there.
+    calls = []
+    monkeypatch.setattr(ae, "_run", lambda cmd, capture=False, timeout=None: calls.append(cmd) or _cp(cmd))
+    monkeypatch.setattr(ae, "log", lambda _msg: None)
+    monkeypatch.setattr(ae, "ensure_full_promptset", lambda: True)
+
+    assert ae.run_job("gemma4:31b", 40) is True                    # bounded batched board job
+    assert "--shuffle-seed" not in calls[0]
+    calls.clear()
+    assert ae.run_job("gemma4:31b", 0, "full", "batched") is True  # full but batched, not perdim
+    assert "--shuffle-seed" not in calls[0]
 
 
 def test_run_job_maps_retryable_incomplete_coverage_to_tristate(monkeypatch):
