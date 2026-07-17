@@ -107,6 +107,7 @@ def _metadata(rows: list[dict]) -> dict:
     return {
         "title": "DueCare Cross-Model Harness-Lift Leaderboard",
         "id": DATASET_ID,
+        "isPrivate": False,
         "licenses": [{"name": "MIT"}],
         "subtitle": "How much a legal-grounding harness lifts each model on a worker-safety rubric",
         "keywords": ["benchmark", "nlp", "text", "evaluation"],
