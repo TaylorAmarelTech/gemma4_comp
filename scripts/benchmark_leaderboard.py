@@ -358,6 +358,15 @@ def leaderboard_rows(panel: list[dict], pairwise: list[dict]) -> list[dict]:
                 comp_full[k] = round(float(statistics.mean(fvals)), 1)
                 comp_gain[k] = round(comp_full[k] - comp_baseline[k], 1)
         pw = pw_by_model.get(m, [])
+        # normalized gain = fraction of the remaining headroom (100 - baseline) the harness captures,
+        # per pair. Corrects for the ceiling so high-baseline models are compared fairly with low ones
+        # (raw lift favours low baselines). Re-ranks the board vs raw lift.
+        ng_vals = [
+            (sf - sb) / (100 - sb)
+            for b, f in pairs
+            if (sb := _score(b)) is not None and (sf := _score(f)) is not None and sb < 100
+        ]
+        normalized_gain = round(float(statistics.mean(ng_vals)), 3) if ng_vals else None
         rows.append({
             "model": m,
             "n_prompts": len(prompts_by_model.get(m, set())),
@@ -367,6 +376,7 @@ def leaderboard_rows(panel: list[dict], pairwise: list[dict]) -> list[dict]:
             "harnessed": round(harn, 1),
             "lift": round(harn - base, 1),
             "lift_core": round(core - base, 1) if core is not None else None,
+            "normalized_gain": normalized_gain,
             "components_gain": comp_gain,
             "components_baseline": comp_baseline,
             "components_full": comp_full,
