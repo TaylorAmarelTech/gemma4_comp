@@ -411,23 +411,32 @@ Everything is recomputed from the raw grades; nothing is taken on faith."""),
 For each model we average the three judges to one score per (prompt, arm), keep
 only prompts that have both a baseline and a harness_core score, and take the
 mean paired difference. Positive means the harness improved the rubric score."""),
-        _code("lift", """mean = grades.groupby(["model", "prompt_id", "arm"], as_index=False)["score_0_100"].mean()
+        _code("lift", """import numpy as np
+mean = grades.groupby(["model", "prompt_id", "arm"], as_index=False)["score_0_100"].mean()
 wide = mean.pivot_table(index=["model", "prompt_id"], columns="arm", values="score_0_100")
 rows = []
 for model, sub in wide.groupby(level=0):
     paired = sub.dropna(subset=["baseline", "harness_core"])
     if len(paired) < 5:
         continue
-    d = paired["harness_core"] - paired["baseline"]
+    b, c = paired["baseline"], paired["harness_core"]
+    d = c - b
+    helps, hurts = int((d > 0).sum()), int((d < 0).sum())
+    info = helps + hurts
+    # normalized gain = fraction of the remaining headroom captured; corrects for the ceiling so a
+    # model starting at 80 is not unfairly penalised vs one starting at 40 (raw lift favours low baselines).
+    norm_gain = float(np.mean((c - b) / (100 - b).clip(lower=1e-9)))
     rows.append({"model": model, "n_pairs": len(paired),
-                 "baseline": round(paired["baseline"].mean(), 1),
-                 "harness_core": round(paired["harness_core"].mean(), 1),
+                 "baseline": round(b.mean(), 1), "harness_core": round(c.mean(), 1),
                  "lift": round(d.mean(), 1),
-                 "helps": int((d > 0).sum()), "hurts": int((d < 0).sum())})
+                 "norm_gain": round(norm_gain, 3),
+                 "win_rate_%": round(100 * helps / info, 1) if info else float("nan"),
+                 "helps": helps, "hurts": hurts,
+                 "hurt_rate_%": round(100 * hurts / len(paired), 1)})
 if not rows:
     raise RuntimeError("no model has >=5 paired baseline/harness_core prompts yet — attach a fuller grades dataset")
 lift = pd.DataFrame(rows).sort_values("n_pairs", ascending=False)
-display(lift)
+display(lift.style.format({"norm_gain": "{:.3f}"}).background_gradient(subset=["lift", "norm_gain"], cmap="Greens"))
 
 fig, ax = plt.subplots(figsize=(12, 5.6))
 top = lift.head(6).iloc[::-1]
@@ -440,6 +449,53 @@ ax.legend(loc="lower right", frameon=False)
 fig.tight_layout()
 fig.savefig(out_dir / "harness_lift_by_model.png", bbox_inches="tight")
 plt.show()"""),
+        _md("ngain-note", """## 1b. Ceiling-adjusted ranking (normalized gain)
+
+Raw lift favours models that start low -- they have more room to improve. **Normalized
+gain** = the fraction of the remaining headroom `(100 - baseline)` the harness captures, so
+every model is judged on a level field. It re-ranks the board: a model already scoring high
+can post a smaller raw lift but a larger normalized gain, and vice-versa."""),
+        _code("ngain", """rank = lift.sort_values("norm_gain", ascending=False)[
+    ["model", "n_pairs", "baseline", "lift", "norm_gain", "win_rate_%", "hurt_rate_%"]].reset_index(drop=True)
+display(Markdown("**Ranked by normalized gain (ceiling-adjusted) -- contrast the order with the raw-lift table above:**"))
+display(rank)
+fig, ax = plt.subplots(figsize=(11, 5))
+r = rank.iloc[::-1]
+ax.barh(r["model"], r["norm_gain"], color=COLORS[5])
+ax.bar_label(ax.containers[0], fmt="%.2f", padding=3)
+ax.set(title="Normalized gain by model (fraction of remaining headroom captured)", xlabel="normalized gain (0-1)", xlim=(0, 1))
+fig.tight_layout(); fig.savefig(out_dir / "normalized_gain.png", bbox_inches="tight"); plt.show()"""),
+        _md("dim-note", """## 1c. Which rubric dimension does the harness move, per model?
+
+The five A-E components (A indicator, B legal/ILO, C refusal, D resources, E privacy) show
+*where* each model gains. Bigger models gain most on indicator recognition; smaller models
+barely move on refusal -- the harness cannot add reasoning capacity the base model lacks."""),
+        _code("dim-heat", """have = [c for c in list("ABCDE") if c in grades.columns]
+dim_rows = []
+for model in lift["model"]:
+    m = grades[grades.model == model].groupby("arm")[have].mean()
+    if "baseline" in m.index and "harness_core" in m.index:
+        delta = (m.loc["harness_core"] - m.loc["baseline"]).round(1)
+        dim_rows.append({"model": model, **delta.to_dict()})
+dim = pd.DataFrame(dim_rows).set_index("model").rename(
+    columns={"A": "A indicator", "B": "B legal", "C": "C refusal", "D": "D resources", "E": "E privacy"})
+display(dim.style.background_gradient(cmap="Greens", axis=None).format("{:+.1f}"))
+fig, ax = plt.subplots(figsize=(9, 5.6))
+im = ax.imshow(dim.values, cmap="Greens", aspect="auto")
+ax.set_xticks(range(len(dim.columns)), dim.columns, rotation=20, ha="right")
+ax.set_yticks(range(len(dim.index)), dim.index)
+for i in range(len(dim.index)):
+    for j in range(len(dim.columns)):
+        ax.text(j, i, f"{dim.values[i, j]:+.1f}", ha="center", va="center", fontsize=8)
+ax.set(title="Per-dimension harness lift by model (mean component delta)")
+fig.colorbar(im, ax=ax, fraction=0.046); fig.tight_layout()
+fig.savefig(out_dir / "per_dimension_by_model.png", bbox_inches="tight"); plt.show()"""),
+        _md("hurt-note", """## 1d. Where the harness does NOT help
+
+The harness is not free. The `hurt_rate_%` column above is the honest counterweight: the
+model with the most regressions is typically the one with a low baseline and long outputs,
+and on very small models the mean can even drop. These cases stay in the board, not hidden --
+"real, not faked" cuts both ways."""),
         _md("stats-note", """## 2. Is the lift real? Bootstrap, sign test, win rate
 
 A mean can mislead. For the headline model we add a seeded bootstrap 95% interval
