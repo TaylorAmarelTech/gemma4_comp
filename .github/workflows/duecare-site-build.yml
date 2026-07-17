@@ -1,0 +1,40 @@
+name: duecare-site-build
+
+# Builds the duecare-ai.com static bundle (scripts/export_static.py) and uploads it as a
+# downloadable artifact. It does NOT deploy to GitHub Pages: this repo already publishes
+# MkDocs to Pages via docs-deploy.yml, and a repo can have only ONE Pages site. See
+# apps/duecare-ai.com/DEPLOY_STATIC.md for how to publish the bundle (separate repo, recommended).
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "apps/duecare-ai.com/**"
+      - ".github/workflows/duecare-site-build.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/duecare-ai.com
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install site deps (+ httpx for the TestClient renderer)
+        run: pip install -r requirements.txt httpx
+      - name: Render static bundle
+        run: python scripts/export_static.py --out dist --api-base https://gemma4-comp.onrender.com
+      - name: Upload static site artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: duecare-ai-static-site
+          path: apps/duecare-ai.com/dist
+          if-no-files-found: error
