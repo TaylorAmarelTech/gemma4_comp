@@ -78,7 +78,7 @@ $headlineTrim = if ($headline) { $headline.Trim() } else { $null }
   progress_age_min = $progressAge; stall_threshold_min = $StallMinutes
   restarted_this_pass = $restarted; last_restart = $lastRestart
   interim_headline = $headlineTrim
-} | ConvertTo-Json | Set-Content -Path $statusFile -Encoding utf8
+} | ConvertTo-Json | ForEach-Object { [System.IO.File]::WriteAllText($statusFile, $_, (New-Object System.Text.UTF8Encoding($false))) }  # BOM-free so naive JSON readers (incl. the 6h check) parse it
 
 "manage_flywheel: state=$state alive=$alive progressAge=${progressAge}min restarted=$restarted"
 if ($headline) { "  interim: $($headline.Trim())" }
