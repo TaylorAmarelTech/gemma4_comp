@@ -121,7 +121,7 @@ def _metadata() -> dict:
         "id": DATASET_ID,
         "isPrivate": False,
         "licenses": [{"name": "MIT"}],
-        "subtitle": "Placebo, negative-control, and applicability-audit results behind the harness lift",
+        "subtitle": "Placebo + negative-control + applicability results behind the harness lift",
         "keywords": ["benchmark", "nlp", "evaluation"],
         "resources": [
             {"path": "placebo_panel.csv", "description": "3-arm (baseline/placebo/harnessed) control scored by 5 self-family-excluded judges."},
