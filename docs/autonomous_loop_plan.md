@@ -9,7 +9,7 @@
 > A required `full`/`perdim` job grades every prompt in the frozen generated registry and cannot
 > advance or be skipped until every response, panel cell, and A-E output is complete.
 
-- **Started** 2026-06-26T12:54:42Z - **updated** 2026-07-16T16:15:49Z - **ticks** 14
+- **Started** 2026-06-26T12:54:42Z - **updated** 2026-07-18T18:16:20Z - **ticks** 14
 - **Progress** 12/49 jobs - current `gemma4:31b` n=all (full registry) grader=perdim
 
 ## Control
