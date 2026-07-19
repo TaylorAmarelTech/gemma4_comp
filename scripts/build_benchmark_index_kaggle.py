@@ -32,6 +32,7 @@ NB_CALIB = "https://www.kaggle.com/code/taylorsamarel/duecare-judge-panel-calibr
 NB_CONTROLS = "https://www.kaggle.com/code/taylorsamarel/duecare-methodology-and-controls"
 NB_CONVERGE = "https://www.kaggle.com/code/taylorsamarel/duecare-benchmark-convergence"
 NB_IMPACT = "https://www.kaggle.com/code/taylorsamarel/duecare-impact-and-coverage"
+NB_TRAIN = "https://www.kaggle.com/code/taylorsamarel/duecare-benchmark-as-training-signal"
 DS_BOARD = "https://www.kaggle.com/datasets/taylorsamarel/duecare-cross-model-harness-leaderboard"
 DS_CONTROLS = "https://www.kaggle.com/datasets/taylorsamarel/duecare-harness-lift-controls"
 REPO = "https://github.com/TaylorAmarelTech/gemma4_comp"
@@ -188,7 +189,8 @@ Read in this order -- each notebook answers one question, all from the same real
 | 5 | **[What the benchmark proves]({NB_CLAIM})** | The honest evidence ladder -- what each result proves, and what it does NOT. |
 | 6 | **[Judge panel calibration]({NB_CALIB})** | Judge leniency, per-judge robustness, and why a 3-judge paired design is trustworthy. |
 | 7 | **[Methodology & controls]({NB_CONTROLS})** | Is the lift real? The placebo panel, negative control, and applicability audit -- with the honest, inconclusive parts kept in. |
-| 8 | **[Benchmark convergence]({NB_CONVERGE})** | How much of the benchmark do you need? A random ~100-prompt subsample already recovers the full lift. |
+| 8 | **[Benchmark convergence]({NB_CONVERGE})** | How much of the benchmark do you need? A random ~100-prompt subsample already recovers the full lift (yet the exhaustive sweep still runs to completion). |
+| 9 | **[The benchmark is the training signal]({NB_TRAIN})** | Evaluation -> fine-tuning: ~75% of graded prompts become SFT/DPO training pairs. |
 
 Also: the **[cross-model leaderboard dataset]({DS_BOARD})** (a citable flat CSV of the board), the
 **[controls dataset]({DS_CONTROLS})** (the placebo / negative-control / applicability results), the

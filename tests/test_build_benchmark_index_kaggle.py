@@ -47,7 +47,7 @@ def test_guided_tour_links_the_whole_collection(tmp_path):
     nb, _ = _nb(tmp_path)
     text = "\n".join("".join(c["source"]) for c in nb["cells"])
     for url in (b.DS, b.NB_REPRO, b.NB_BREAK, b.NB_ROBUST, b.NB_JUDGE, b.NB_CLAIM, b.NB_CALIB,
-                b.NB_CONTROLS, b.NB_CONVERGE, b.NB_IMPACT, b.DS_BOARD, b.DS_CONTROLS, b.REPO, b.SITE):
+                b.NB_CONTROLS, b.NB_CONVERGE, b.NB_IMPACT, b.NB_TRAIN, b.DS_BOARD, b.DS_CONTROLS, b.REPO, b.SITE):
         assert url in text
 
 
