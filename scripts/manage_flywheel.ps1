@@ -69,6 +69,14 @@ if (Test-Path $py) {
   catch { $interim = "interim dashboard error: $_" }
   Add-Content -Path $interimLog -Value ("`n## {0}  state={1} progressAge={2}min restarted={3}`n``````n{4}``````" -f $now.ToString('u'), $state, $progressAge, $restarted, $interim.Trim())
 }
+
+# 4b) refresh the dip/valley training-data worklist as the exhaustive sweep grows (read-only)
+if (Test-Path $py) {
+  try {
+    $env:PYTHONIOENCODING = 'utf-8'
+    & $py (Join-Path $repo 'scripts\analyze_dips.py') --panel (Join-Path $repo 'reports\rich_lift\panel_perdim.jsonl') --out (Join-Path $ops 'harness_dips.md') *> $null
+  } catch {}
+}
 $headline = (($interim -split "`n") | Where-Object { $_ -match 'lift ' } | Select-Object -First 1)
 $headlineTrim = if ($headline) { $headline.Trim() } else { $null }
 
