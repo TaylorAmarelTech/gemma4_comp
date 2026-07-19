@@ -35,6 +35,7 @@ NB_IMPACT = "https://www.kaggle.com/code/taylorsamarel/duecare-impact-and-covera
 NB_TRAIN = "https://www.kaggle.com/code/taylorsamarel/duecare-benchmark-as-training-signal"
 DS_BOARD = "https://www.kaggle.com/datasets/taylorsamarel/duecare-cross-model-harness-leaderboard"
 DS_CONTROLS = "https://www.kaggle.com/datasets/taylorsamarel/duecare-harness-lift-controls"
+DS_PERDIM = "https://www.kaggle.com/datasets/taylorsamarel/duecare-harness-perdim-grades"
 REPO = "https://github.com/TaylorAmarelTech/gemma4_comp"
 SITE = "https://duecare-ai.com/benchmark"
 
@@ -194,6 +195,7 @@ Read in this order -- each notebook answers one question, all from the same real
 
 Also: the **[cross-model leaderboard dataset]({DS_BOARD})** (a citable flat CSV of the board), the
 **[controls dataset]({DS_CONTROLS})** (the placebo / negative-control / applicability results), the
+**[per-dimension grades dataset]({DS_PERDIM})** (the exhaustive one-judge-call-per-dimension scores, re-versioned as the sweep grows), the
 **[source repository]({REPO})**, and the **[live site]({SITE})**."""),
         _md("reproduce", f"""<a id="reproduce"></a>
 ## 4. Reproduce it yourself

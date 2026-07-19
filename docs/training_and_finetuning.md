@@ -345,6 +345,25 @@ In A-00:
    four evaluation arms.
 6. Export the adapter only with its dataset and evaluation manifests.
 
+### Published benchmark grades (labels for training / testing / benchmarking any model)
+
+The run's grading output is published as scores-only Kaggle datasets (no response
+text, no PII) so any model can be benchmarked or any base fine-tuned against the
+same labels:
+
+| Dataset | Rows | What it gives you |
+|---|---|---|
+| [`duecare-harness-benchmark-grades`](https://www.kaggle.com/datasets/taylorsamarel/duecare-harness-benchmark-grades) | 85,417 | batched 0-100 per (model, prompt, arm, judge) — the headline lift signal |
+| [`duecare-harness-perdim-grades`](https://www.kaggle.com/datasets/taylorsamarel/duecare-harness-perdim-grades) | growing | exhaustive one-judge-call-per-dimension: 0-100 + A-E component scores; re-versioned as the sweep runs to 100% |
+| [`duecare-cross-model-harness-leaderboard`](https://www.kaggle.com/datasets/taylorsamarel/duecare-cross-model-harness-leaderboard) | per-model | citable flat board (baseline vs harnessed, normalized gain) |
+| [`duecare-harness-lift-controls`](https://www.kaggle.com/datasets/taylorsamarel/duecare-harness-lift-controls) | controls | placebo / negative-control / applicability results |
+
+Each row is model-agnostic JSONL/CSV (`model · prompt_id · arm · judge · score_0_100
+· components{A..E}`): pair baseline vs `harness_core` per prompt to score lift, or
+feed the prompts where the harness clearly lifts a weak baseline into SFT (gold =
+harnessed) / DPO (chosen = harnessed, rejected = baseline). The distillation gate is
+[`build_lift_training_data.py`](https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/scripts/build_lift_training_data.py).
+
 ### External importer boundary
 
 A-00's **Already have a file?** importer can inspect a JSON, JSONL, or ZIP
