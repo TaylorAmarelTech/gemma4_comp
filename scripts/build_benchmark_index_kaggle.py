@@ -31,6 +31,7 @@ NB_CLAIM = "https://www.kaggle.com/code/taylorsamarel/duecare-what-the-benchmark
 NB_CALIB = "https://www.kaggle.com/code/taylorsamarel/duecare-judge-panel-calibration"
 NB_CONTROLS = "https://www.kaggle.com/code/taylorsamarel/duecare-methodology-and-controls"
 NB_CONVERGE = "https://www.kaggle.com/code/taylorsamarel/duecare-benchmark-convergence"
+NB_IMPACT = "https://www.kaggle.com/code/taylorsamarel/duecare-impact-and-coverage"
 DS_BOARD = "https://www.kaggle.com/datasets/taylorsamarel/duecare-cross-model-harness-leaderboard"
 DS_CONTROLS = "https://www.kaggle.com/datasets/taylorsamarel/duecare-harness-lift-controls"
 REPO = "https://github.com/TaylorAmarelTech/gemma4_comp"
@@ -178,6 +179,7 @@ Read in this order -- each notebook answers one question, all from the same real
 
 | # | Notebook | The question it answers |
 |---|---|---|
+| 0 | **[Impact & coverage]({NB_IMPACT})** | *Start with the why.* Who this protects, the real trafficking typologies and recruitment corridors it covers, and what a harnessed answer gives a worker. |
 | - | **[Grades dataset]({DS})** | The raw judged panel: one 0-100 score per (model, arm, prompt, judge), plus the five A-E components. Everything here is recomputed from it. |
 | 1 | **[Reproduce the harness lift]({NB_REPRO})** | Recompute the headline + per-model board, the statistical strength, per-judge robustness, and the per-dimension gains -- from scratch. |
 | 2 | **[Where the harness helps most]({NB_BREAK})** | Lift by prompt category, difficulty, and recruitment corridor. (It helps most where the base model is weakest.) |
