@@ -305,6 +305,32 @@ Every exported bundle should be reproducible from its Git commit, dataset
 manifest hash, model revision, split policy, generator version, and gate
 results. Credentials and local paths do not belong in the bundle.
 
+### Separate streams: answer SFT, preference DPO, and chain-of-thought
+
+Keep the three training signals as **separate, separately-versioned streams**, not one merged
+file. They have different objectives, length profiles, and provenance, and only separation gives
+clean ablation and curriculum control:
+
+| Stream | File | Provenance | Teaches |
+|---|---|---|---|
+| Answer SFT | `reports/training/sft.jsonl` | harness-lift distillation (graded, real prompts) | the approved grounded reply |
+| Preference DPO | `reports/training/dpo.jsonl` | harness-lift minimal pairs | prefer the grounded answer over a specific failure |
+| Chain-of-thought | `reports/training/cot.jsonl` | [`build_advanced_reasoning_materials.py`](https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/scripts/build_advanced_reasoning_materials.py) (deterministic scaffold) | the full 100+ step analysis across 100+ perspectives |
+
+Three rules keep the separation clean:
+
+1. **One shared held-out registry.** All streams draw lineage IDs from one space, and the same
+   held-out lineages are excluded from every stream. The CoT generator reserves ~15% of
+   (situation x perspective) families to `cot_holdout.jsonl` and records their
+   `evaluation_lineage_ids` in `cot_manifest.json`; `training_contract.validate_training_rows`
+   fails closed on any train/holdout overlap (it runs at generation time — all eight blocking
+   gates must pass before the stream is written).
+2. **Unify the format, separate the file.** The visible reasoning in the CoT stream uses the same
+   record-first -> indicator -> action -> verify shape as a final answer, so the model does not
+   learn a separate "CoT mode."
+3. **Mix at train time, not storage time.** Blend the three streams with a config mixture weight and
+   an optional curriculum order (reasoning scaffold -> answer SFT -> DPO), never a pre-merged file.
+
 ## Answers, rationales, and chain-of-thought
 
 A-00 can export complete model answers, harness traces, citations, rubric
