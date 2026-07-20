@@ -87,7 +87,16 @@ def main() -> None:
 
     model, tokenizer = FastModel.from_pretrained(
         model_name=MODEL, dtype=None, max_seq_length=MAX_SEQ, load_in_4bit=True, full_finetuning=False)
-    tokenizer = get_chat_template(tokenizer, chat_template="gemma-4-thinking")
+    print("model loaded; applying chat template", flush=True)
+    for tmpl in ("gemma-4-thinking", "gemma-3", "gemma"):
+        try:
+            tokenizer = get_chat_template(tokenizer, chat_template=tmpl)
+            print(f"chat template: {tmpl}", flush=True)
+            break
+        except Exception as exc:  # noqa: BLE001 - probe the available template names
+            print(f"  template '{tmpl}' unavailable ({exc})", flush=True)
+    else:
+        raise SystemExit("no known gemma chat template available in this unsloth build")
 
     def generate(user_content: str) -> str:
         FastModel.for_inference(model)
@@ -145,4 +154,17 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    # Headless Kaggle runs sometimes return an empty execution log, so capture any failure to a
+    # downloadable output file (`kaggle kernels output`) with the full traceback.
+    import traceback
+    try:
+        main()
+    except BaseException as exc:  # noqa: BLE001 - we want the traceback for any failure
+        tb = traceback.format_exc()
+        print("\n!!! KERNEL ERROR !!!\n" + tb, flush=True)
+        try:
+            OUT.mkdir(parents=True, exist_ok=True)
+            (OUT / "error.txt").write_text(f"{type(exc).__name__}: {exc}\n\n{tb}", encoding="utf-8")
+        except Exception:
+            Path("/kaggle/working/error.txt").write_text(tb, encoding="utf-8")
+        raise
