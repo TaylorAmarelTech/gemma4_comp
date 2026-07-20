@@ -20,10 +20,11 @@ import sys
 import time
 from pathlib import Path
 
-MODEL = "unsloth/gemma-4-e2b-it-unsloth-bnb-4bit"  # proven ungated 4-bit checkpoint
-MAX_SEQ = 2048
+MODEL = "unsloth/gemma-4-e2b-it"  # non-quantized; fp16 on T4 avoids the bitsandbytes 4-bit CUDA-arch mismatch
+LOAD_IN_4BIT = False     # 4-bit (bitsandbytes) hit cudaErrorNoKernelImageForDevice on Kaggle T4
+MAX_SEQ = 1024
 MAX_STEPS = 30           # a fast, real smoke; raise for a fuller run
-TRAIN_SUBSET = 300       # rows sampled from cot_train.jsonl for the smoke
+TRAIN_SUBSET = 200       # rows sampled from cot_train.jsonl for the smoke
 DATASET_DIR = Path("/kaggle/input/duecare-cot-reasoning")
 OUT = Path("/kaggle/working/cot_adapter")
 
@@ -98,7 +99,7 @@ def main() -> None:
     print(f"train rows: {len(rows)} (subset of the published stream) | holdout probe: {len(hold)}", flush=True)
 
     model, tokenizer = FastModel.from_pretrained(
-        model_name=MODEL, dtype=None, max_seq_length=MAX_SEQ, load_in_4bit=True, full_finetuning=False)
+        model_name=MODEL, dtype=None, max_seq_length=MAX_SEQ, load_in_4bit=LOAD_IN_4BIT, full_finetuning=False)
     print("model loaded; applying chat template", flush=True)
     for tmpl in ("gemma-4-thinking", "gemma-3", "gemma"):
         try:
@@ -136,7 +137,7 @@ def main() -> None:
         model=model, tokenizer=tokenizer, train_dataset=dataset, eval_dataset=None,
         args=SFTConfig(
             dataset_text_field="text", per_device_train_batch_size=1, gradient_accumulation_steps=4,
-            warmup_steps=5, max_steps=MAX_STEPS, learning_rate=2e-4, logging_steps=1, optim="adamw_8bit",
+            warmup_steps=5, max_steps=MAX_STEPS, learning_rate=2e-4, logging_steps=1, optim="adamw_torch",
             weight_decay=0.01, lr_scheduler_type="linear", seed=3407, output_dir="/kaggle/working/trainer",
             fp16=not torch.cuda.is_bf16_supported(), bf16=torch.cuda.is_bf16_supported(),
             report_to="none", max_seq_length=MAX_SEQ))
