@@ -20,9 +20,9 @@ import sys
 import time
 from pathlib import Path
 
-MODEL = "unsloth/gemma-4-e2b-it"  # non-quantized; fp16 on T4 avoids the bitsandbytes 4-bit CUDA-arch mismatch
-LOAD_IN_4BIT = False     # 4-bit (bitsandbytes) hit cudaErrorNoKernelImageForDevice on Kaggle T4
-MAX_SEQ = 1024
+MODEL = "unsloth/gemma-4-e2b-it-unsloth-bnb-4bit"  # 4-bit is memory-safe on a T4 (sm_75); the earlier
+LOAD_IN_4BIT = True      # failure was the assigned GPU (P100 / sm_60), not bitsandbytes
+MAX_SEQ = 2048
 MAX_STEPS = 30           # a fast, real smoke; raise for a fuller run
 TRAIN_SUBSET = 200       # rows sampled from cot_train.jsonl for the smoke
 DATASET_DIR = Path("/kaggle/input/duecare-cot-reasoning")
@@ -67,6 +67,27 @@ def main() -> None:
     print("=" * 76, flush=True)
     print("DueCare CoT LoRA fine-tune - Gemma 4 E2B - Kaggle GPU", flush=True)
     print("=" * 76, flush=True)
+
+    # Fail fast on an unsupported GPU BEFORE the ~5-min install. Modern torch/unsloth dropped Pascal
+    # (sm_60, e.g. Tesla P100); we need sm_70+ (T4 is sm_75). Kaggle assigns P100 or T4 server-side and
+    # the CLI metadata cannot choose, so if we drew a P100 we exit cheaply and the kernel is re-pushed.
+    try:
+        import torch as _bt
+        if _bt.cuda.is_available():
+            _cc = _bt.cuda.get_device_capability(0)
+            _name = _bt.cuda.get_device_name(0)
+            OUT.mkdir(parents=True, exist_ok=True)
+            (OUT / "diag.txt").write_text(
+                f"assigned GPU={_name} sm_{_cc[0]}{_cc[1]} base_torch={_bt.__version__}", encoding="utf-8")
+            print(f"assigned GPU: {_name} sm_{_cc[0]}{_cc[1]} (base torch {_bt.__version__})", flush=True)
+            if _cc[0] < 7:
+                raise SystemExit(
+                    f"Unsupported GPU {_name} (sm_{_cc[0]}{_cc[1]}). Modern torch/unsloth need sm_70+ "
+                    "(T4 = sm_75). Kaggle assigned a Pascal card this run; re-run to draw a T4.")
+    except SystemExit:
+        raise
+    except Exception as _e:  # noqa: BLE001 - base torch may be absent pre-install; proceed and let the full check run
+        print(f"(pre-install GPU check skipped: {_e})", flush=True)
 
     install_stack()
 
