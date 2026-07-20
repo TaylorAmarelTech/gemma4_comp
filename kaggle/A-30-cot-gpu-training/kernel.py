@@ -78,11 +78,23 @@ def main() -> None:
     from unsloth import FastModel
     from unsloth.chat_templates import get_chat_template, train_on_responses_only
 
+    inp = Path("/kaggle/input")
+    if inp.exists():
+        print("mounted under /kaggle/input:", [p.name for p in inp.iterdir()], flush=True)
     train_path = DATASET_DIR / "cot_train.jsonl"
     if not train_path.exists():
-        raise SystemExit(f"Attach dataset taylorsamarel/duecare-cot-reasoning - missing {train_path}")
+        # the dataset may mount under a different directory name; find the file anywhere.
+        found = list(inp.rglob("cot_train.jsonl")) if inp.exists() else []
+        if not found:
+            present = [str(p) for p in inp.rglob("*.jsonl")][:10] if inp.exists() else "nothing mounted"
+            raise SystemExit(
+                "cot_train.jsonl not found under /kaggle/input; attach dataset "
+                f"taylorsamarel/duecare-cot-reasoning. Present jsonl: {present}")
+        train_path = found[0]
+    hold_path = train_path.with_name("cot_holdout.jsonl")
+    print(f"training data: {train_path}", flush=True)
     rows = _load_rows(train_path, TRAIN_SUBSET)
-    hold = _load_rows(DATASET_DIR / "cot_holdout.jsonl", 1)
+    hold = _load_rows(hold_path, 1) if hold_path.exists() else []
     print(f"train rows: {len(rows)} (subset of the published stream) | holdout probe: {len(hold)}", flush=True)
 
     model, tokenizer = FastModel.from_pretrained(
