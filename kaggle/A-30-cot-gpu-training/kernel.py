@@ -50,10 +50,18 @@ def install_stack() -> None:
     uv = subprocess.run(["uv", "--version"], capture_output=True, text=True)
     installer = (["uv", "pip", "install", "-qqq", "--system"] if uv.returncode == 0
                  else [sys.executable, "-m", "pip", "install", "-q", "--no-input", "--disable-pip-version-check"])
-    _sh(installer + [
-        "torch>=2.8.0", "triton>=3.4.0", np_pin, pil_pin, "torchvision", "bitsandbytes",
-        "unsloth", "unsloth_zoo>=2026.4.6", "transformers==5.5.0", "torchcodec", "timm",
-        "datasets", "trl", "peft", "accelerate",
+    # Pin torch to Kaggle's ALREADY-INSTALLED version. Kaggle's torch is built for its exact GPU +
+    # driver; replacing it with a generic PyPI wheel is what caused cudaErrorNoKernelImageForDevice.
+    # Pinning (not reinstalling) keeps Kaggle's build while pip still resolves unsloth's real deps.
+    try:
+        import torch as _torch
+        torch_pin = [f"torch=={_torch.__version__}"]
+        print(f"  pinning existing torch {_torch.__version__} (keeps the GPU-arch-matched build)", flush=True)
+    except Exception:
+        torch_pin = []
+    _sh(installer + torch_pin + [
+        np_pin, pil_pin, "transformers==5.5.0", "timm", "datasets", "trl", "peft", "accelerate",
+        "unsloth", "unsloth_zoo>=2026.4.6",
     ])
 
 
@@ -72,7 +80,12 @@ def main() -> None:
     import torch
     if not torch.cuda.is_available():
         raise SystemExit("No CUDA GPU. In Kaggle set Settings -> Accelerator -> GPU.")
-    print(f"GPU: {torch.cuda.get_device_name(0)} | torch {torch.__version__}", flush=True)
+    cc = torch.cuda.get_device_capability(0)
+    arch_list = torch.cuda.get_arch_list()
+    print(f"GPU: {torch.cuda.get_device_name(0)} sm_{cc[0]}{cc[1]} | torch {torch.__version__} "
+          f"cuda {torch.version.cuda} | arch_list {arch_list}", flush=True)
+    if f"sm_{cc[0]}{cc[1]}" not in arch_list:
+        print(f"  WARNING: this GPU's sm_{cc[0]}{cc[1]} is NOT in torch's arch_list -> expect no-kernel-image", flush=True)
 
     from datasets import Dataset
     from trl import SFTConfig, SFTTrainer
