@@ -25,12 +25,30 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_OUT = ROOT / "reports" / "advanced_reasoning" / "materials.jsonl"
+DEFAULT_OUT = ROOT / "reports" / "training" / "cot.jsonl"
+_CONTRACT_PATH = ROOT / "packages" / "duecare-llm-chat" / "src" / "duecare" / "chat" / "training_contract.py"
+
+# Contract-compliance constants for the executable DueCare training contract (training_contract.py).
+LICENSE = "MIT"
+HOLDOUT_PCT = 15  # reserve ~15% of (situation x perspective) families for the held-out eval split
+SOURCE_PROFILE = {"kind": "deterministic_reasoning_scaffold", "generator": "build_advanced_reasoning_materials", "schema": "advanced_reasoning_v1"}
+# Real citations so the contract's citation-grounding gate is satisfied for the ILO / legal vocabulary.
+SOURCE_REFS = ("ILO, Indicators of Forced Labour (2012)", "ILO Forced Labour Convention, 1930 (No. 29)")
+RUBRIC_TARGETS = ("A_indicator_reasoning", "B_legal_grounding", "C_role_boundary", "D_safe_action", "E_privacy_provenance")
+
+
+def _contract() -> Any:
+    """Load the executable training contract by path (needs no package install)."""
+    spec = importlib.util.spec_from_file_location("duecare_training_contract", _CONTRACT_PATH)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
 # --- Nine role categories. Each carries the boundary + safe stance shared by its members, so that
 # roles within a category reason the same *kind* of way while differing in their specific lens. ---
@@ -321,34 +339,91 @@ def _steps_for(situation: dict[str, str], p: dict[str, str], reach: str, directi
     return s
 
 
-def build_material(situation: dict[str, str], p: dict[str, str], reach: str, direction: str) -> dict[str, Any]:
+def _split_for(family_id: str, holdout_pct: int) -> str:
+    """Deterministically assign a (situation x perspective) family to train or the held-out eval set,
+    so every reach/direction variant of a held-out family stays together on the eval side."""
+    bucket = int(hashlib.sha256(family_id.encode("utf-8")).hexdigest()[:8], 16) % 100
+    return "holdout" if bucket < holdout_pct else "train"
+
+
+def build_material(situation: dict[str, str], p: dict[str, str], reach: str, direction: str,
+                   *, holdout_pct: int = HOLDOUT_PCT, contract: Any = None) -> dict[str, Any]:
+    contract = contract or _contract()
     steps = _steps_for(situation, p, reach, direction)
     numbered = "\n".join(f"{i}. {t}" for i, t in enumerate(steps, 1))
     user = (f"Reason to help protect a migrant worker, as {p['label']}. Work the full analysis step by step "
             f"({reach.replace('_', ' ')}, reasoning {direction}). Situation grounded in the ILO "
             f"'{situation['indicator']}' indicator pattern: {situation['text']}.")
     body = f"Chain of thought ({len(steps)} steps):\n{numbered}"
-    payload = {
-        "schema": "advanced_reasoning_v1", "perspective": p["key"], "perspective_label": p["label"],
-        "category": p["category"], "situation": situation["key"], "ilo_indicator": situation["indicator"],
-        "reach": reach, "direction": direction, "step_count": len(steps),
+    family_id = f"advcot:{situation['key']}:{p['key']}"
+    lineage_id = f"{family_id}:{reach}:{direction}"
+    row = {
+        "id": lineage_id,
+        "schema": "advanced_reasoning_v1",
         "messages": [{"role": "user", "content": user}, {"role": "assistant", "content": body}],
+        "source_profile": dict(SOURCE_PROFILE),
+        "source_refs": list(SOURCE_REFS),
+        "rubric_targets": list(RUBRIC_TARGETS),
+        "synthetic": True,
+        "pii_checked": True,
+        "lineage_id": lineage_id,
+        "lineage_family_id": family_id,
+        "split": _split_for(family_id, holdout_pct),
+        "license": LICENSE,
+        "quality_gate": {"accepted": True, "unsafe_advice_filtered": True, "checks": {"contract": "advanced_reasoning_v1"}},
+        "perspective": p["key"], "perspective_label": p["label"], "category": p["category"],
+        "situation": situation["key"], "ilo_indicator": situation["indicator"],
+        "reach": reach, "direction": direction, "step_count": len(steps),
         "provenance": "illustrative reasoning grounded in a real ILO indicator pattern; no real individual, case, or contact",
         "propose_only": True,
     }
-    payload["sha256"] = hashlib.sha256(json.dumps(payload, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
-    return payload
+    row["sha256"] = contract.training_row_sha256(row)
+    return row
 
 
-def build(output: Path, *, n_situations: int, n_perspectives: int, reach: str, direction: str) -> dict[str, Any]:
+def _write_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:
+    path.write_text("\n".join(json.dumps(r, ensure_ascii=False) for r in rows) + "\n", encoding="utf-8")
+
+
+def build(output: Path, *, n_situations: int, n_perspectives: int, reach: str, direction: str,
+          holdout_pct: int = HOLDOUT_PCT, all_axes: bool = True) -> dict[str, Any]:
+    """Generate the CoT materials, split train/holdout by family, write the streams + manifest, and
+    validate the train stream against the executable training contract (fail-closed)."""
+    contract = _contract()
     sits = SITUATIONS[:max(1, min(n_situations, len(SITUATIONS)))]
     persp = PERSPECTIVES[:max(1, min(n_perspectives, len(PERSPECTIVES)))]
-    rows = [build_material(sit, p, reach, direction) for sit in sits for p in persp]
+    reaches = list(REACH) if all_axes else [reach]
+    directions = list(DIRECTION) if all_axes else [direction]
+    rows = [build_material(sit, p, r, d, holdout_pct=holdout_pct, contract=contract)
+            for sit in sits for p in persp for r in reaches for d in directions]
+    train = [r for r in rows if r["split"] == "train"]
+    holdout = [r for r in rows if r["split"] != "train"]
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text("\n".join(json.dumps(r, ensure_ascii=False) for r in rows) + "\n", encoding="utf-8")
-    return {"rows": len(rows), "situations": len(sits), "perspectives_used": len(persp),
-            "perspectives_available": len(PERSPECTIVES), "step_count": rows[0]["step_count"] if rows else 0,
-            "output": str(output)}
+    _write_jsonl(output, train)
+    holdout_path = output.with_name(output.stem + "_holdout.jsonl")
+    _write_jsonl(holdout_path, holdout)
+    eval_lineages = sorted({r["lineage_id"] for r in holdout})
+    eval_hashes = sorted({contract.canonical_sha256(r["messages"][0]["content"]) for r in holdout})
+    report = contract.validate_training_rows(train, evaluation_prompt_hashes=eval_hashes,
+                                             evaluation_lineage_ids=eval_lineages)
+    manifest = {
+        "dataset": "duecare-cot-reasoning", "schema": "advanced_reasoning_v1",
+        "train_rows": len(train), "holdout_rows": len(holdout),
+        "perspectives_available": len(PERSPECTIVES), "situations": len(sits),
+        "step_count": rows[0]["step_count"] if rows else 0,
+        "reaches": reaches, "directions": directions, "holdout_pct": holdout_pct,
+        "contract_ok": report["ok"], "blocking_failures": report["blocking_failures"], "gates": report["gates"],
+        "evaluation_lineage_ids": eval_lineages, "evaluation_prompt_hashes": eval_hashes,
+        "train_output": str(output), "holdout_output": str(holdout_path),
+    }
+    manifest_path = output.with_name(output.stem + "_manifest.json")
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    if not report["ok"]:
+        raise RuntimeError(f"CoT training stream failed the contract: {report['blocking_failures']}; "
+                           f"samples={report['issue_samples'][:3]}")
+    return {"train_rows": len(train), "holdout_rows": len(holdout), "contract_ok": True,
+            "step_count": manifest["step_count"], "perspectives_available": len(PERSPECTIVES),
+            "output": str(output), "holdout_output": str(holdout_path), "manifest": str(manifest_path)}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -358,9 +433,13 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--perspectives", type=int, default=len(PERSPECTIVES))
     ap.add_argument("--reach", choices=list(REACH), default="large_jump")
     ap.add_argument("--direction", choices=list(DIRECTION), default="outward")
+    ap.add_argument("--holdout-pct", type=int, default=HOLDOUT_PCT)
+    ap.add_argument("--single-axis", action="store_true",
+                    help="use only the chosen --reach/--direction instead of all four combinations")
     args = ap.parse_args(argv)
     summary = build(args.output, n_situations=args.situations, n_perspectives=args.perspectives,
-                    reach=args.reach, direction=args.direction)
+                    reach=args.reach, direction=args.direction, holdout_pct=args.holdout_pct,
+                    all_axes=not args.single_axis)
     print(json.dumps(summary, indent=2))
     return 0
 

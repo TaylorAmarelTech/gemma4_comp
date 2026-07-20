@@ -1,4 +1,5 @@
-"""build_advanced_reasoning_materials: 100+ perspectives x 100+ step chain-of-thought, honest + safe."""
+"""build_advanced_reasoning_materials: 100+ perspectives x 100+ step chain-of-thought, honest + safe,
+and a contract-valid CoT training stream with a shared held-out split."""
 from __future__ import annotations
 
 import importlib.util
@@ -30,19 +31,14 @@ def test_100_plus_perspectives_across_nine_categories():
 
 
 def test_chain_of_thought_exceeds_100_steps():
-    sit = b.SITUATIONS[0]
-    p = b.PERSPECTIVES[0]
-    row = b.build_material(sit, p, "large_jump", "outward")
+    row = b.build_material(b.SITUATIONS[0], b.PERSPECTIVES[0], "large_jump", "outward")
     assert row["step_count"] >= 100, f"need a 100+ step chain, got {row['step_count']}"
     body = row["messages"][1]["content"]
-    # steps are numbered 1..N and the last number equals the step count
-    assert f"{row['step_count']}. " in body
-    assert "1. " in body
+    assert f"{row['step_count']}. " in body and "1. " in body
 
 
 def test_all_11_ilo_indicators_screened_in_every_chain():
-    row = b.build_material(b.SITUATIONS[0], b.PERSPECTIVES[0], "small_jump", "inward")
-    body = row["messages"][1]["content"]
+    body = b.build_material(b.SITUATIONS[0], b.PERSPECTIVES[0], "small_jump", "inward")["messages"][1]["content"]
     for key, _ in b.ILO_INDICATORS:
         assert key in body, f"indicator {key} missing from the chain"
 
@@ -57,15 +53,32 @@ def test_reach_and_direction_axes_change_the_chain():
 
 
 def test_output_is_honest_and_safe(tmp_path):
-    out = tmp_path / "materials.jsonl"
-    summary = b.build(out, n_situations=2, n_perspectives=101, reach="large_jump", direction="outward")
-    assert summary["rows"] == 2 * 101
-    rows = [json.loads(x) for x in out.read_text(encoding="utf-8").splitlines()]
+    out = tmp_path / "cot.jsonl"
+    summary = b.build(out, n_situations=5, n_perspectives=101, reach="large_jump", direction="outward")
+    assert summary["contract_ok"] is True
+    assert summary["train_rows"] > 0 and summary["holdout_rows"] > 0
+    train = [json.loads(x) for x in out.read_text(encoding="utf-8").splitlines()]
+    hold = [json.loads(x) for x in out.with_name("cot_holdout.jsonl").read_text(encoding="utf-8").splitlines()]
     blob = out.read_text(encoding="utf-8")
     # honours the naming request: never the "synthetic composite case" framing
     assert "synthetic composite" not in blob.lower()
-    for r in rows:
-        assert r["propose_only"] is True
-        assert "no real individual" in r["provenance"]
-        assert r["sha256"] and len(r["sha256"]) == 64
-        assert [m["role"] for m in r["messages"]] == ["user", "assistant"]
+    for r in train:
+        assert r["split"] == "train"
+        assert r["propose_only"] is True and "no real individual" in r["provenance"]
+    # train and holdout share one lineage space but never overlap
+    assert not ({r["lineage_id"] for r in train} & {r["lineage_id"] for r in hold})
+
+
+def test_train_stream_passes_the_executable_contract(tmp_path):
+    out = tmp_path / "cot.jsonl"
+    b.build(out, n_situations=5, n_perspectives=101, reach="large_jump", direction="outward")
+    contract = b._contract()
+    train = [json.loads(x) for x in out.read_text(encoding="utf-8").splitlines()]
+    hold = [json.loads(x) for x in out.with_name("cot_holdout.jsonl").read_text(encoding="utf-8").splitlines()]
+    eval_lineages = sorted({r["lineage_id"] for r in hold})
+    eval_hashes = sorted({contract.canonical_sha256(r["messages"][0]["content"]) for r in hold})
+    report = contract.validate_training_rows(
+        train, evaluation_prompt_hashes=eval_hashes, evaluation_lineage_ids=eval_lineages)
+    assert report["ok"], report["blocking_failures"]
+    # row integrity: every sha256 is the contract's own canonical digest
+    assert all(r["sha256"] == contract.training_row_sha256(r) for r in train)
