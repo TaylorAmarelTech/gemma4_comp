@@ -59,7 +59,12 @@ The single highest-leverage theme. Make it impossible for a change to silently d
 
 Make it trivial for an outside team to reuse, extend, and build on DueCare.
 
-- **Publish `duecare-llm-kit` to PyPI.** Tag v0.1.0; real `pip install duecare-llm-kit`. This is the
+- **Publish `duecare-llm-kit` to PyPI.** _(READY 2026-07-21: `python -m build` produces the wheel + sdist,
+  both `twine check`-PASS; the wheel installs into a throwaway venv on numpy/pandas/matplotlib alone, with
+  `import duecare.kit` (0.1.0), `engine.scan` (12 indicators), `verify()` (5/5), and both console entry
+  points all working. Verified path + the one manual `twine upload` step documented in
+  `packages/duecare-llm-kit/RELEASING.md`.)_ Tag v0.1.0; real `pip install duecare-llm-kit`. `twine upload`
+  needs a PyPI token so it stays Taylor's manual step (same boundary as Kaggle). This is the
   main "download and reuse" unlock.
 - **Domain-pack SDK.** A documented recipe + template to add an integrity domain in N steps: define
   indicators, attach the controlling framework/knowledge pack, supply a graded prompt set, run the
