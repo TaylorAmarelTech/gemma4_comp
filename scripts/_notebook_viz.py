@@ -124,9 +124,9 @@ def radar(labels, series, title="", subtitle=None, rmax=None):
     ax.set_theta_offset(np.pi / 2); ax.set_theta_direction(-1)
     if rmax: ax.set_ylim(0, rmax)
     ax.grid(color=LINE, alpha=0.75); ax.spines["polar"].set_color(LINE)
-    ax.set_title(title, pad=28, fontsize=14, fontweight="bold")
-    if subtitle: ax.text(0.5, 1.12, subtitle, transform=ax.transAxes, ha="center", fontsize=9.5, color=INK3)
-    ax.legend(loc="upper right", bbox_to_anchor=(1.32, 1.14)); plt.tight_layout(); plt.show()
+    ax.set_title(title, pad=22, fontsize=14, fontweight="bold")
+    if subtitle: fig.text(0.5, 0.025, subtitle, ha="center", fontsize=9.5, color=INK3)
+    ax.legend(loc="upper right", bbox_to_anchor=(1.30, 1.10)); plt.tight_layout(); plt.show()
 
 def dumbbell(labels, lo, hi, lo_lab="baseline", hi_lab="harnessed", title="", subtitle=None, xlabel="", xlim=None):
     """Lollipop/dumbbell with the delta labeled above each connector."""
@@ -142,13 +142,25 @@ def dumbbell(labels, lo, hi, lo_lab="baseline", hi_lab="harnessed", title="", su
     plt.tight_layout(); plt.show()
 
 def slope(labels, left, right, left_lab="baseline", right_lab="harnessed", title="", subtitle=None, ylabel=""):
-    """Slope chart: one line per label from a left value to a right value."""
+    """Slope chart: one line per label from a left value to a right value. Labels de-overlap when values tie."""
     fig, ax = plt.subplots(figsize=(7.8, 5.2))
-    for lab, a, b in zip(labels, left, right):
+    allv = list(left) + list(right)
+    span = (max(allv) - min(allv)) or 1.0
+    def _spread(vals):
+        gap = span * 0.055
+        order = sorted(range(len(vals)), key=lambda i: vals[i])
+        ys = [float(v) for v in vals]
+        for k in range(1, len(order)):
+            i, j = order[k - 1], order[k]
+            if ys[j] - ys[i] < gap:
+                ys[j] = ys[i] + gap
+        return ys
+    lys, rys = _spread(left), _spread(right)
+    for lab, a, b, la, rb in zip(labels, left, right, lys, rys):
         ax.plot([0, 1], [a, b], color=TEAL, lw=2.2, marker="o", markersize=8, markerfacecolor=PAPER,
                 markeredgecolor=TEAL, markeredgewidth=2, zorder=3)
-        ax.text(-0.04, a, f"{lab}  {a:.0f}", ha="right", va="center", fontsize=9.5, color=INK2)
-        ax.text(1.04, b, f"{b:.0f}", ha="left", va="center", fontsize=10, color=EMBER, fontweight="bold")
+        ax.text(-0.04, la, f"{lab}  {a:.0f}", ha="right", va="center", fontsize=9.5, color=INK2)
+        ax.text(1.04, rb, f"{b:.0f}", ha="left", va="center", fontsize=10, color=EMBER, fontweight="bold")
     ax.set_xlim(-0.5, 1.5); ax.set_xticks([0, 1]); ax.set_xticklabels([left_lab, right_lab], fontsize=11.5, fontweight="bold")
     ax.set_ylabel(ylabel); ax.grid(axis="x", alpha=0); _title(ax, title, subtitle); plt.tight_layout(); plt.show()
 
