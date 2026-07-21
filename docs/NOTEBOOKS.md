@@ -38,8 +38,8 @@ datasets and recompute every figure.
 | live | [Harness Grades Data Card](https://www.kaggle.com/code/taylorsamarel/duecare-harness-grades-data-card) | Schema, provenance, and coverage of the grades panel, and how to load it. Read this before trusting the charts. |
 | live | [CoT Reasoning Data Card](https://www.kaggle.com/code/taylorsamarel/duecare-cot-reasoning-data-card) | Schema and provenance of the chain-of-thought dataset. |
 | queued | Prompt Intent And Attack Explorer (`duecare-prompt-intent-and-attack-explorer`) | The attack taxonomy: intent, framing, and category coverage of the adversarial prompt set. |
-| queued | CoT Direction And Intent Explorer (`duecare-cot-direction-and-intent-explorer`) | Where each reasoning chain points: direction, intent, and refusal geometry. |
-| queued | Corridor And Sector Atlas (`duecare-corridor-and-sector-atlas`) | Lift mapped across migration corridors and labor sectors, so you can see it holds beyond one geography. |
+| live | [CoT Direction And Intent Explorer](https://www.kaggle.com/code/taylorsamarel/duecare-cot-direction-and-intent-explorer) | Where each reasoning chain points: direction, intent, and refusal geometry. |
+| live | [Corridor And Sector Atlas](https://www.kaggle.com/code/taylorsamarel/duecare-corridor-and-sector-atlas) | Lift mapped across migration corridors and labor sectors, so you can see it holds beyond one geography. |
 
 **Benchmark deep-dives** reached from the Start Here index (per-claim analyses
 over the same grades panel): [reproduce the harness lift](https://www.kaggle.com/code/taylorsamarel/duecare-reproduce-harness-lift),
@@ -56,9 +56,9 @@ Python around the harness primitives.
 
 | Status | Notebook | What it is |
 |---|---|---|
-| queued | NGO Case Triage (`duecare-ngo-case-triage`) | Paste a worker account, get an ILO-grounded triage: indicators, risk level, evidence gaps, next steps, referrals, and a draft note. |
-| queued | Worker Self-Check (`duecare-worker-self-check`) | A worker pastes a suspicious message and gets a plain-language warning and next steps. |
-| queued | Platform Moderation At Scale (`duecare-platform-moderation-at-scale`) | Screen risky recruitment posts and ads into a review queue with a reason for every decision. |
+| live | [NGO Case Triage](https://www.kaggle.com/code/taylorsamarel/duecare-ngo-case-triage) | Paste a worker account, get an ILO-grounded triage: indicators, risk level, evidence gaps, next steps, referrals, and a draft note. |
+| live | [Worker Self-Check](https://www.kaggle.com/code/taylorsamarel/duecare-worker-self-check) | A worker pastes a suspicious message and gets a plain-language warning and next steps. |
+| live | [Platform Moderation At Scale](https://www.kaggle.com/code/taylorsamarel/duecare-platform-moderation-at-scale) | Screen risky recruitment posts and ads into a review queue with a reason for every decision. |
 | queued | Chain Of Thought Generator (`duecare-chain-of-thought-generator`) | Turn a prompt into a structured, ILO-grounded reasoning chain. |
 | queued | Regulator Compliance (`duecare-regulator-compliance`) | Compliance-monitoring view for labor ministries and regulators: corridor rules, fee caps, and an evidence trail. |
 | queued | Developer Integration (`duecare-developer-integration`) | The software-to-software path: call the harness from your own code, structured request in and structured analysis out. |

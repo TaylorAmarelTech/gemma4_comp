@@ -6,6 +6,7 @@ This folder contains runnable examples for people integrating or deploying DueCa
 |---|---|---|
 | [`deployment/`](./deployment/) | End-to-end topology examples: local, NGO-office edge, hosted server, hybrid edge/cloud. | Keep runnable examples here; mark roadmap pieces clearly. |
 | [`embedding/`](./embedding/) | Client/embed examples: web widget, React, messaging bots, platform adapters. | Keep integration examples here; planned examples must stay labeled as planned. |
+| [`contribute_knowledge/`](./contribute_knowledge/) | Submit knowledge to a central hub: a synthetic KnowledgeObject v1.0 envelope plus a validate/stamp/POST client for `/api/submit/knowledge`. | Keep runnable; synthetic/composite content only. |
 
 ## What does not belong here
 

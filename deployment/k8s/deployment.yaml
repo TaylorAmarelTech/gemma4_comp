@@ -1,0 +1,73 @@
+# DueCare AI hub Deployment.
+# Image is built from apps/duecare-ai.com/Dockerfile: the FastAPI app
+# (app.main:app) listens on port 10000 and serves the health check at
+# /api/health. Replace REGISTRY_PLACEHOLDER with your image registry.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: duecare-ai-hub
+  labels:
+    app.kubernetes.io/name: duecare-ai-hub
+    app.kubernetes.io/component: server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: duecare-ai-hub
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: duecare-ai-hub
+        app.kubernetes.io/component: server
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 1000
+      containers:
+        - name: hub
+          # docker build -t REGISTRY_PLACEHOLDER/duecare-ai-hub:latest apps/duecare-ai.com
+          image: REGISTRY_PLACEHOLDER/duecare-ai-hub:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 10000
+          envFrom:
+            - configMapRef:
+                name: duecare-ai-hub-config
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 10000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 10000
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: data
+              mountPath: /app/.duecare
+      volumes:
+        # Starter volume. For durable knowledge storage across restarts,
+        # replace this emptyDir with a PersistentVolumeClaim (see README.md).
+        - name: data
+          emptyDir: {}
