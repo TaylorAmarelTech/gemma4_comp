@@ -1,0 +1,33 @@
+{
+  "corpus": "DueCare corpus",
+  "generated": "2026-07-21T15:55:11+00:00",
+  "n_files": 2,
+  "total_rows": 60,
+  "total_bytes": 3332,
+  "files": [
+    {
+      "name": "DATA_CARD.md",
+      "rows": 30,
+      "columns": [],
+      "schema": {},
+      "null_rates": {},
+      "sha256": "70aa5a57ec1dab24dfd7a05d7124289228d3b3e2aa3bd9710d6daaa19b4cc103",
+      "bytes": 1666,
+      "license": "See source repository (DueCare: MIT for code; data licenses vary per source)",
+      "description": "Text dataset with 30 lines.",
+      "source": "reports\\kaggle_publish\\prompt_response_showcase\\DATA_CARD.md"
+    },
+    {
+      "name": "README.md",
+      "rows": 30,
+      "columns": [],
+      "schema": {},
+      "null_rates": {},
+      "sha256": "70aa5a57ec1dab24dfd7a05d7124289228d3b3e2aa3bd9710d6daaa19b4cc103",
+      "bytes": 1666,
+      "license": "See source repository (DueCare: MIT for code; data licenses vary per source)",
+      "description": "Text dataset with 30 lines.",
+      "source": "reports\\kaggle_publish\\prompt_response_showcase\\README.md"
+    }
+  ]
+}
