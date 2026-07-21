@@ -140,7 +140,7 @@ def main() -> None:
             dataset_text_field="text", per_device_train_batch_size=1, gradient_accumulation_steps=4,
             warmup_steps=5, max_steps=MAX_STEPS, learning_rate=2e-4, logging_steps=1, optim="adamw_torch",
             weight_decay=0.01, lr_scheduler_type="linear", seed=3407, output_dir="/kaggle/working/trainer",
-            fp16=True, bf16=False, report_to="none", max_seq_length=MAX_SEQ, gradient_checkpointing=True))
+            fp16=True, bf16=False, report_to="none", max_length=MAX_SEQ, gradient_checkpointing=True))
 
     t0 = time.time()
     stats = trainer.train()
