@@ -1,4 +1,4 @@
-# Codex for Open Source — application answers (DueCare)
+# Codex for Open Source - application answers (DueCare)
 
 Draft answers for the OpenAI *Codex for Open Source* application. Every claim
 here is reproducible from the public repository. Character counts are noted for
@@ -17,7 +17,7 @@ the fields that cap at 500.
 
 ## Licensing & open-source status (verified)
 
-Fully open source under the **MIT License** — the standard, maximally
+Fully open source under the **MIT License** - the standard, maximally
 permissive OSI-approved license. Confirmed:
 
 - Root `LICENSE`: MIT, (c) 2026 Taylor Amarel.
