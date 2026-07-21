@@ -27,7 +27,7 @@
 
 The single highest-leverage theme. Make it impossible for a change to silently degrade the result.
 
-- **Evals-as-CI.** GitHub Action that, on every push, runs the kit tests + the Fact-Check recompute +
+- **Evals-as-CI.** _(DONE 2026-07-21: `scripts/run_evals_gate.py` + `.github/workflows/duecare-evals.yml` gate the gemma4:31b headline paired lift and the deterministic `verify_lift` per-criterion pass rates against committed fixtures (`packages/duecare-llm-kit/tests/fixtures/`) and a committed baseline (`configs/duecare/evals_baseline.json`), stamped with `(git_sha, dataset_version)`; exits non-zero on any regression beyond tolerance.)_ GitHub Action that, on every push, runs the kit tests + the Fact-Check recompute +
   `verify_lift` on a fixed held-out slice, and FAILS the build if the mean lift, the 20/20 claim
   checks, or the deterministic verify score regress beyond tolerance. Stamp artifacts with
   `(git_sha, dataset_version)`. Publish `generate_report()` HTML as the CI artifact.
@@ -129,7 +129,7 @@ DueCare already uses multi-agent orchestration to build notebooks. Formalize it 
 
 ## Prioritized next five
 
-1. **Evals-as-CI** with the `verify` gate + Fact-Check recompute (anti-regression foundation). *P0*
+1. **Evals-as-CI** with the `verify` gate + Fact-Check recompute (anti-regression foundation). *P0 - DONE 2026-07-21.*
 2. **PyPI release** of `duecare-llm-kit` v0.1.0 (extensibility unlock). *P1*
 3. **On-device lift measurement** on QAT Gemma 4 E2B via LiteRT (impact + the LiteRT story). *P1*
 4. **Human gold-set + kappa monitor** (the one anchor that makes every number defensible). *P1*
