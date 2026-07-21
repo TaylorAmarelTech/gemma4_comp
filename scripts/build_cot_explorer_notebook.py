@@ -143,8 +143,7 @@ tbl = (pd.DataFrame({
         "ILO indicator (2012)": [ind[s] for s in sit.index],
         "Chains": [int(v) for v in sit.values],
     }).sort_values("Chains", ascending=False).reset_index(drop=True))
-display(pretty_table(tbl, caption="What they reason about -- rows per ILO indicator pattern (situation maps 1:1 to indicator)",
-                     bars=["Chains"]))
+display(pretty_table(tbl, caption="What they reason about -- rows per ILO indicator pattern (situation maps 1:1 to indicator)"))
 lo, hi = int(sit.min()), int(sit.max())
 display(Markdown(
     f"Coverage across the **{df.situation.nunique()} ILO indicator patterns** is balanced by construction "
