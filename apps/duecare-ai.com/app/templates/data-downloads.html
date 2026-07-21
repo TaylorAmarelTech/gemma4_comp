@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Data &amp; downloads &middot; DueCare AI</title>
+<meta name="description" content="Every public DueCare dataset and analysis notebook: benchmark grades, per-dimension scores, raw prompts and responses, chain-of-thought reasoning, and training corpora - with schemas, row counts, and one-click Kaggle downloads." />
+<link rel="stylesheet" href="/static/styles.css" /><link rel="stylesheet" href="/static/hub-pages.css" />
+<style>
+  .dd-section { padding: 28px 0 12px; border-top: 1px solid var(--line-soft); }
+  .dd-section:first-of-type { border-top: none; }
+  .dd-section h2 { font-size: 19px; letter-spacing: -0.01em; margin: 0 0 4px; }
+  .dd-section .dd-sub { color: var(--ink-3); font-size: 13px; margin: 0 0 18px; max-width: 780px; line-height: 1.55; }
+  .dd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 12px; }
+  .dd-card { background: #FFF; border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
+  .dd-card .slot { font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+  .dd-card .name { font-size: 14.5px; font-weight: 600; line-height: 1.4; }
+  .dd-card .lede { font-size: 13px; color: var(--ink-2); line-height: 1.5; flex: 1; }
+  .dd-card .schema { font-family: var(--mono); font-size: 11px; color: var(--ink-3); background: var(--paper-2); border: 1px solid var(--line-soft); border-radius: 6px; padding: 6px 8px; line-height: 1.5; word-break: break-word; }
+  .dd-card .rows { display: inline-flex; align-items: baseline; gap: 6px; }
+  .dd-card .rows b { font-size: 18px; color: var(--ink); font-weight: 700; }
+  .dd-card .rows span { font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
+  .dd-card .links { display: flex; gap: 6px; flex-wrap: wrap; padding-top: 8px; border-top: 1px solid var(--line-soft); }
+  .dd-card .d-link { background: var(--paper-2); border: 1px solid var(--line); color: var(--ink-2); font-family: var(--mono); font-size: 11px; padding: 4px 8px; border-radius: 6px; text-decoration: none; }
+  .dd-card a.d-link:hover { background: var(--paper-3); border-color: var(--ink-3); }
+  .dd-card a.d-link.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .dd-card a.d-link.primary:hover { background: var(--ink-2); }
+  .dd-load { background: var(--paper-2); border: 1px solid var(--line); border-radius: 12px; padding: 4px 22px 18px; margin-top: 18px; }
+  .dd-load pre { background: #0E1116; color: #E4E1D7; border-radius: 8px; padding: 14px 16px; overflow-x: auto; font-family: var(--mono); font-size: 12px; line-height: 1.6; }
+  .dd-load pre .c { color: #8A8E97; }
+  .dd-note { font-size: 12px; color: var(--ink-3); margin-top: 10px; line-height: 1.55; }
+</style>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
+</head><body>{% set active_nav = "data" %}
+{% include "_nav.html" %}
+<section class="hp-hero" data-screen-label="Data &middot; downloads"><div class="wrap">
+<div class="crumbs"><a href="/">Home</a><span class="sep">/</span><span>Data &amp; downloads</span></div>
+<span class="kicker">Open data</span>
+<h1>Every number here is downloadable.</h1>
+<p class="lede">DueCare publishes its benchmark grades, per-dimension scores, raw prompts and responses, chain-of-thought reasoning, and training corpora as public datasets, alongside a suite of reproducible notebooks that recompute every figure live. Nothing is hidden behind a slide. Take the data, re-run the analysis, or fine-tune on it. Grades and scores carry no response text or personal data; the text datasets are synthetic and scrubbed. All open-licensed.</p>
+</div></section>
+
+<section class="page-wrap"><div class="wrap">
+
+<div class="dd-section" data-screen-label="Benchmark grades">
+  <h2>Benchmark grades &mdash; scores only, no text, no PII</h2>
+  <p class="dd-sub">The judged panel behind the harness-lift result. Each prompt is answered by the same model bare and harnessed, then scored 0-100 by a three-judge panel (each judge from a different model family, never grading its own) across five reasoned safety dimensions. These files are the source of every headline number.</p>
+  <div class="dd-grid">
+    <div class="dd-card">
+      <span class="slot">Panel grades</span>
+      <span class="name">Harness benchmark grades</span>
+      <span class="lede">One row per (model, arm, prompt, judge): the overall 0-100 score plus the five A-E component scores. The primary evidence file.</span>
+      <span class="rows"><b>85,417</b><span>grade rows &middot; 7,973 prompts &middot; 8 models</span></span>
+      <span class="schema">model, arm, prompt_id, judge, score_0_100, A, B, C, D, E</span>
+      <div class="links">
+        <a class="d-link primary" href="https://www.kaggle.com/datasets/taylorsamarel/duecare-harness-benchmark-grades" target="_blank" rel="noopener">Download &rarr;</a>
+        <a class="d-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-harness-grades-data-card" target="_blank" rel="noopener">Data card</a>
+        <a class="d-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-does-a-safety-harness-help" target="_blank" rel="noopener">Flagship analysis</a>
+      </div>
+    </div>
+    <div class="dd-card">
+      <span class="slot">Per-dimension grades</span>
+      <span class="name">Per-dimension grades (exhaustive)</span>
+      <span class="lede">Higher resolution: one reasoned judge call per rubric dimension (A indicator, B legal, C refusal, D resources, E privacy), re-versioned as the exhaustive sweep grows toward the full registry.</span>
+      <span class="rows"><b>growing</b><span>one judge call per dimension</span></span>
+      <span class="schema">model, prompt_id, arm, judge, score_0_100, comp_A..comp_E</span>
+      <div class="links">
+        <a class="d-link primary" href="https://www.kaggle.com/datasets/taylorsamarel/duecare-harness-perdim-grades" target="_blank" rel="noopener">Download &rarr;</a>
+        <a class="d-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-perdim-grades-explorer" target="_blank" rel="noopener">Explorer</a>
+      </div>
+    </div>
+    <div class="dd-card">
+      <span class="slot">Cross-model board</span>
+      <span class="name">Cross-model leaderboard</span>
+      <span class="lede">A citable flat table of every model's baseline, harnessed mean, raw lift, ceiling-adjusted normalized gain, and win rate. The two rankings genuinely reorder.</span>
+      <span class="rows"><b>8</b><span>models ranked</span></span>
+      <span class="schema">model, baseline, harnessed, raw_lift, norm_gain, win_rate, n_pairs</span>
+      <div class="links">
+        <a class="d-link primary" href="https://www.kaggle.com/datasets/taylorsamarel/duecare-cross-model-harness-leaderboard" target="_blank" rel="noopener">Download &rarr;</a>
+        <a class="d-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-cross-model-leaderboard-deep-dive" target="_blank" rel="noopener">Deep dive</a>
+      </div>
+    </div>
+    <div class="dd-card">
+      <span class="slot">Controls</span>
+      <span class="name">Methodology controls</span>
+      <span class="lede">The placebo panel, negative control, and applicability audit - including the honest, inconclusive parts. The evidence that the lift is not a scoring artifact.</span>
+      <span class="rows"><b>3</b><span>control studies</span></span>
+      <span class="schema">study, arm, prompt_id, metric, value</span>
+      <div class="links">
+        <a class="d-link primary" href="https://www.kaggle.com/datasets/taylorsamarel/duecare-harness-lift-controls" target="_blank" rel="noopener">Download &rarr;</a>
+        <a class="d-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-harness-lift-benchmark-start-here" target="_blank" rel="noopener">Start here</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="dd-section" data-screen-label="Raw text data">
+  <h2>Raw prompts and responses &mdash; synthetic, scrubbed, text-bearing</h2>
+  <p class="dd-sub">Where the grades are scores only, these datasets carry the actual language: the adversarial prompts and the model's answers. Prompts are synthetic composite scenarios (no real individual), kernel metadata is scrubbed, and rows tripping a conservative PII scan are dropped. Built for natural-language processing, sentiment, and keyword work.</p>
+  <div class="dd-grid">
+    <div class="dd-card">
+      <span class="slot">Prompt + responses</span>
+      <span class="name">Prompt and response showcase</span>
+      <span class="lede">The raw adversarial prompt plus the model's baseline, harness-core, and harness-full answers, side by side. Read what the harness actually changes, or run your own NLP on it.</span>
+      <span class="rows"><b>1,087</b><span>prompts &times; 3 responses</span></span>
+      <span class="schema">prompt_id, category, corridor, difficulty, prompt_text, baseline_response, harness_core_response, harness_full_response</span>
+      <div class="links">
+        <a class="d-link primary" href="https://www.kaggle.com/datasets/taylorsamarel/duecare-prompt-response-showcase" target="_blank" rel="noopener">Download &rarr;</a>
+        <a class="d-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-prompt-and-response-nlp-explorer" target="_blank" rel="noopener">NLP explorer</a>
+      </div>
+    </div>
+    <div class="dd-card">
+      <span class="slot">Chain of thought</span>
+      <span class="name">Chain-of-thought reasoning</span>
+      <span class="lede">Multi-perspective reasoning chains grounded in the ILO forced-labour indicators: 101 perspectives across 9 role categories, each a ~102-step chain, with a clean held-out split. Silver labels for reasoning fine-tuning.</span>
+      <span class="rows"><b>2,020</b><span>chains &middot; 1,740 train / 280 held out</span></span>
+      <span class="schema">messages, perspective, category, situation, ilo_indicator, reach, direction, step_count, lineage_id, split, ...</span>
+      <div class="links">
+        <a class="d-link primary" href="https://www.kaggle.com/datasets/taylorsamarel/duecare-cot-reasoning" target="_blank" rel="noopener">Download &rarr;</a>
+        <a class="d-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-cot-reasoning-explorer" target="_blank" rel="noopener">Explorer</a>
+        <a class="d-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-cot-reasoning-analysis" target="_blank" rel="noopener">Analysis</a>
+        <a class="d-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-cot-reasoning-data-card" target="_blank" rel="noopener">Data card</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="dd-section" data-screen-label="Training corpora">
+  <h2>Training corpora &mdash; manifest-bound, held-out splits</h2>
+  <p class="dd-sub">The distilled fine-tuning data: measured-response supervised pairs, multi-perspective coverage across roles, time, evidence, and jurisdiction, and the proof corpus attached to the fine-tuning kernel. Data cards, schema and loading guides, Croissant metadata, checksums, and publication boundaries are packaged beside the rows.</p>
+  <div class="dd-grid">
+    <div class="dd-card">
+      <span class="slot">Supervised responses</span>
+      <span class="name">Measured response training corpus</span>
+      <span class="lede">Graded worst-to-best response examples distilled into supervised fine-tuning and preference rows, with a quarantine split for dirty rows.</span>
+      <div class="links">
+        <a class="d-link primary" href="https://www.kaggle.com/datasets/taylorsamarel/duecare-measured-response-training-corpus" target="_blank" rel="noopener">Download &rarr;</a>
+      </div>
+    </div>
+    <div class="dd-card">
+      <span class="slot">Multi-perspective</span>
+      <span class="name">Multiperspective fine-tuning corpus</span>
+      <span class="lede">Coverage across declared synthetic axes - roles, time frames, evidence states, and jurisdictions - so a fine-tune does not collapse to one point of view.</span>
+      <div class="links">
+        <a class="d-link primary" href="https://www.kaggle.com/datasets/taylorsamarel/duecare-multiperspective-finetuning-corpus" target="_blank" rel="noopener">Download &rarr;</a>
+      </div>
+    </div>
+    <div class="dd-card">
+      <span class="slot">Proof corpus</span>
+      <span class="name">Proof fine-tuning data</span>
+      <span class="lede">The compact corpus attached to the fine-tuning and evaluation kernel for the on-Kaggle Low-Rank Adaptation smoke run.</span>
+      <div class="links">
+        <a class="d-link primary" href="https://www.kaggle.com/datasets/taylorsamarel/duecare-proof-finetuning-data" target="_blank" rel="noopener">Download &rarr;</a>
+        <a class="d-link" href="/training-data-flywheel">The flywheel</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="dd-section" data-screen-label="Analysis notebooks">
+  <h2>Reproduce it yourself &mdash; the analysis notebooks</h2>
+  <p class="dd-sub">Every dataset above ships with a public, central-processing-unit-safe notebook that loads it live and recomputes the figures - distributions, the headline lift, the cross-model board, per-dimension gains, judge agreement, and the honest boundary. No hidden state; attach the dataset and re-run any cell.</p>
+  <div class="dd-grid">
+    <div class="dd-card">
+      <span class="slot">Start here</span>
+      <span class="name">Benchmark index</span>
+      <span class="lede">The front door: the headline result, the cross-model board, and a guided tour of the whole collection.</span>
+      <div class="links"><a class="d-link primary" href="https://www.kaggle.com/code/taylorsamarel/duecare-harness-lift-benchmark-start-here" target="_blank" rel="noopener">Open &rarr;</a></div>
+    </div>
+    <div class="dd-card">
+      <span class="slot">Flagship</span>
+      <span class="name">Does a safety harness help?</span>
+      <span class="lede">The grandmaster analysis: score-shift, the per-prompt lift, the cross-model board, a per-dimension radar and heatmap, judge agreement, and difficulty and category breakdowns.</span>
+      <div class="links"><a class="d-link primary" href="https://www.kaggle.com/code/taylorsamarel/duecare-does-a-safety-harness-help" target="_blank" rel="noopener">Open &rarr;</a></div>
+    </div>
+    <div class="dd-card">
+      <span class="slot">NLP</span>
+      <span class="name">Prompt and response NLP explorer</span>
+      <span class="lede">Raw prompt and response row by row, sentiment shift, distinctive vocabulary (baseline vs harnessed), citation and refusal detection, readability, and wordclouds.</span>
+      <div class="links"><a class="d-link primary" href="https://www.kaggle.com/code/taylorsamarel/duecare-prompt-and-response-nlp-explorer" target="_blank" rel="noopener">Open &rarr;</a></div>
+    </div>
+    <div class="dd-card">
+      <span class="slot">More</span>
+      <span class="name">Explorers, deep-dives, and data cards</span>
+      <span class="lede">Per-dimension explorer, cross-model leaderboard deep-dive, chain-of-thought explorer and analysis, and schema data cards for every release.</span>
+      <div class="links">
+        <a class="d-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-perdim-grades-explorer" target="_blank" rel="noopener">Perdim</a>
+        <a class="d-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-cross-model-leaderboard-deep-dive" target="_blank" rel="noopener">Leaderboard</a>
+        <a class="d-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-cot-reasoning-explorer" target="_blank" rel="noopener">CoT</a>
+        <a class="d-link" href="/kernels">All kernels</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="dd-section" data-screen-label="How to load">
+  <h2>Load any of it in three lines</h2>
+  <p class="dd-sub">Attach a dataset to a Kaggle notebook (or download the CSV) and read it with pandas. Grades pair per prompt; text datasets read straight into a data frame.</p>
+  <div class="dd-load">
+    <pre><span class="c"># in a Kaggle notebook: Add data -&gt; search "duecare" -&gt; attach</span>
+import pandas as pd, glob
+grades = pd.read_csv(glob.glob("/kaggle/input/**/panel_grades.csv", recursive=True)[0])
+
+<span class="c"># mean the judge panel per (prompt, arm), then pair harnessed vs baseline</span>
+piv = grades.groupby(["prompt_id", "arm"])["score_0_100"].mean().unstack()
+lift = (piv["harness_core"] - piv["baseline"]).dropna()
+print(f"mean lift +{lift.mean():.1f} over {len(lift):,} paired prompts, "
+      f"{100 * (lift &gt; 0).mean():.1f}% improved")</pre>
+    <p class="dd-note">Grades and per-dimension scores carry no response text and no personal data. The prompt-and-response and chain-of-thought datasets are synthetic composite scenarios with kernel metadata scrubbed and a conservative personal-data scan applied. Everything here is open-licensed (grades and scores under a Creative Commons license; corpora carry their own license files). Judges are language models and prompts are synthetic - this is benchmark evidence about response quality, not ground truth about any person. Source and build scripts: <a href="https://github.com/TaylorAmarelTech/gemma4_comp" target="_blank" rel="noopener">github.com/TaylorAmarelTech/gemma4_comp</a>.</p>
+  </div>
+</div>
+
+</div></section>
+{% include "_footer.html" %}
+</body></html>
