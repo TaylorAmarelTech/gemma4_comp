@@ -207,6 +207,25 @@ print(f"mean lift +{lift.mean():.1f} over {len(lift):,} paired prompts, "
   </div>
 </div>
 
+<div class="dd-section" data-screen-label="Reuse the toolkit">
+  <h2>Reuse the toolkit &mdash; the engine, the verifier, the report generator</h2>
+  <p class="dd-sub">The code embedded in the notebooks is also an installable package, <code>duecare-llm-kit</code>: the ILO forced-labour indicator engine, a deterministic un-gameable verifier that corroborates the judged lift, DueCare-styled chart helpers, a self-contained HTML report generator, and a data-corpus exporter. Install it from source today; a Python Package Index release is on the way.</p>
+  <div class="dd-load">
+    <pre><span class="c"># install the toolkit from source (a pip install duecare-llm-kit release is coming)</span>
+pip install "git+https://github.com/TaylorAmarelTech/gemma4_comp.git#subdirectory=packages/duecare-llm-kit"
+
+<span class="c"># scan a message for ILO forced-labour indicators</span>
+from duecare.kit import scan, verify
+hits = scan("the agent took my passport until I repay the placement fee")
+print([h["label"] for h in hits])   <span class="c"># Retention of identity documents, Debt bondage, ...</span>
+
+<span class="c"># deterministic, un-gameable 5-criterion verdict on a (prompt, response) pair</span>
+v = verify(prompt, response)
+print(v["score_0_5"], {k: v[k] for k in "ABCDE"})</pre>
+    <p class="dd-note">The kit is a representative subset of the production harness (the full indicator layer carries 451 rules across 11+ languages). See the <a href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/packages/duecare-llm-kit" target="_blank" rel="noopener">package README</a> and a runnable <a href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/examples/incoming_content" target="_blank" rel="noopener">incoming-content example</a> that scans six synthetic messages and self-checks its own output. Deterministic, central-processing-unit-only, no model or network required. Optional extras: <code>[viz]</code> for richer charts, <code>[nlp]</code> for sentiment and readability.</p>
+  </div>
+</div>
+
 </div></section>
 {% include "_footer.html" %}
 </body></html>
