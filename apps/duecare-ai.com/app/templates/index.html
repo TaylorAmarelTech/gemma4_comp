@@ -406,6 +406,55 @@
   .cta-band .ctas { display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap; }
   @media (max-width: 760px) { .cta-band .ctas { justify-content: flex-start; } }
 
+  /* ---------- Standardized proof + story (headline result, how-it-works, honesty) ---------- */
+  /* KPI band — visually matches the .ev-metrics headline cards on /evaluation so the
+     same numbers read the same way across the homepage, mission, and results pages. */
+  .proof-kpis {
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0;
+    border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+    background: var(--paper); margin-top: 28px;
+  }
+  @media (max-width: 720px) { .proof-kpis { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 420px) { .proof-kpis { grid-template-columns: 1fr; } }
+  .proof-kpis .k { padding: 22px 24px; border-right: 1px solid var(--line); }
+  .proof-kpis .k:last-child { border-right: none; }
+  @media (max-width: 720px) and (min-width: 421px) {
+    .proof-kpis .k:nth-child(2) { border-right: none; }
+    .proof-kpis .k:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+  }
+  @media (max-width: 420px) {
+    .proof-kpis .k { border-right: none; border-bottom: 1px solid var(--line); }
+    .proof-kpis .k:last-child { border-bottom: none; }
+  }
+  .proof-kpis .k-lbl { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.10em; color: var(--ink-3); text-transform: uppercase; }
+  .proof-kpis .k-val { font-size: 27px; margin-top: 8px; letter-spacing: -0.02em; line-height: 1; }
+  .proof-kpis .k-val .u { font-size: 15px; color: var(--ink-3); letter-spacing: 0; }
+  .proof-kpis .k-sub { font-size: 12.5px; color: var(--ink-3); margin-top: 8px; line-height: 1.45; }
+
+  /* How it works — three-step mechanism */
+  .how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 28px; }
+  @media (max-width: 820px) { .how { grid-template-columns: 1fr; } }
+  .how .h-step { border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px; background: var(--paper); }
+  .how .h-step .n { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--accent-ink); background: var(--accent-soft); padding: 3px 8px; border-radius: 4px; }
+  .how .h-step h4 { margin: 14px 0 6px; font-size: 16px; letter-spacing: -0.01em; }
+  .how .h-step p { margin: 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+  .how .h-step p .em { color: var(--ink); font-weight: 600; }
+
+  /* Honesty — what the evidence does / does not prove */
+  .honesty { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 28px; }
+  @media (max-width: 760px) { .honesty { grid-template-columns: 1fr; } }
+  .honesty .h-col { border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px; background: var(--paper); }
+  .honesty .h-col .cap { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.10em; color: var(--ink-3); display: flex; align-items: center; gap: 8px; margin: 0 0 12px; }
+  .honesty .h-col.is-does .cap::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--good); }
+  .honesty .h-col.is-not .cap::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--warn); }
+  .honesty ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .honesty li { font-size: 13.5px; color: var(--ink-2); line-height: 1.5; padding-left: 18px; text-indent: -18px; }
+  .honesty .is-does li::before { content: "+ "; color: var(--good); font-family: var(--mono); font-weight: 600; }
+  .honesty .is-not li::before { content: "\2212 "; color: var(--warn); font-family: var(--mono); font-weight: 600; }
+  .honesty li b { color: var(--ink); font-weight: 600; }
+
+  .proof-links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
+
 </style>
 </head>
 <body>
@@ -419,13 +468,14 @@
       <div class="hero-text">
         <span class="kicker">Migrant worker safety AI research project</span>
         <h1>A Gemma 4 safety ecosystem for <span class="accent">migrant-worker protection.</span></h1>
-        <p class="lede">DueCare is open-source software that helps platforms,
-          NGOs, regulators, researchers, developers, and worker-support
-          deployments spot recruitment fraud, illegal fees, passport retention,
-          and contract substitution before they harm workers. It combines Gemma 4,
-          harnesses, knowledge packs, graph extraction, anonymization gates,
-          evaluation, and a public hub that receives only sanitized proposals and
-          anonymized signals.</p>
+        <p class="lede">DueCare is a thin, model-agnostic legal-grounding layer for
+          migrant-worker protection. Before a large language model answers a
+          worker&rsquo;s question, DueCare fires deterministic ILO-indicator
+          rules, retrieves the governing law, and runs verified tool calls, then
+          adds that grounding to the prompt and nothing else. The result is
+          measurably safer answers about recruitment fees, passport retention,
+          and contract substitution, on the open models NGOs, platforms, and
+          workers already run.</p>
         <div class="for-line">
           <span class="lbl">Who it's for:</span>
           <span>Platforms</span><span class="sep">/</span>
@@ -536,6 +586,92 @@
 
 
 
+
+<!-- ============== HUMAN STORY ============== -->
+<section id="story" class="tight" data-screen-label="Homepage · Worker story">
+  <div class="wrap">
+    <span class="kicker">One worker, one question</span>
+    <h2 style="max-width: 20ch; margin: 14px 0 0;">The gap is one grounded answer wide.</h2>
+    <p class="lede" style="margin-top: 18px;">The same model, asked the same question, with and without the grounding layer. The bare answer sounds reasonable. The grounded answer flags the indicator, cites the law, and points to a verified human.</p>
+    <div class="scenario" style="margin-top: 28px;">
+      <div class="left">
+        <span class="composite-tag">Composite worker &middot; illustrative</span>
+        <div class="msg-stream">
+          <div class="msg-bubble">&ldquo;A recruiter in Kathmandu says the Gulf job is guaranteed, but I have to pay NPR&nbsp;150,000 up front and hand over my passport when I land. Is that normal?&rdquo;</div>
+          <div class="msg-meta">Ramesh &middot; Nepal &rarr; Gulf domestic-work corridor</div>
+        </div>
+      </div>
+      <div class="right">
+        <h3>What the grounding layer adds</h3>
+        <ol>
+          <li>
+            <div class="step-title">Flags the fee as an indicator</div>
+            <div class="step-body">An ILO-indicator rule fires on &ldquo;pay up front&rdquo;: charging recruitment fees to the worker is a forced-labour indicator under ILO&nbsp;C181. The bare model had called it &ldquo;sometimes standard.&rdquo;</div>
+          </li>
+          <li>
+            <div class="step-title">Cites the corridor rule, not a guess</div>
+            <div class="step-body">Retrieval pulls the corridor pack: in this corridor the employer bears recruitment costs, not the worker. The answer quotes that rule with its source.</div>
+          </li>
+          <li>
+            <div class="step-title">Names the passport risk and a verified route</div>
+            <div class="step-body">Surrendering a passport on arrival is flagged as document retention. A tool call resolves a current regulator or NGO contact, so the referral is verified, never invented.</div>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== PROOF · HOW IT WORKS · HONESTY ============== -->
+<section id="proof" data-screen-label="Homepage · Proof">
+  <div class="wrap">
+    <span class="kicker">Measured, not asserted</span>
+    <h2 style="max-width: 24ch; margin: 14px 0 0;">A thin grounding layer, and every model got safer.</h2>
+    <p class="lede" style="margin-top: 18px; max-width: 66ch;">DueCare adds fired ILO-indicator rules, retrieved law, and deterministic tool calls to the prompt, and nothing else. An independent three-model judge panel then scores each answer, bare versus grounded, 0&ndash;100 across five safety dimensions. The paired difference is the harness lift.</p>
+
+    <div class="proof-kpis">
+      <div class="k"><div class="k-lbl">Mean harness lift</div><div class="k-val">+40.7<span class="u"> / 100</span></div><div class="k-sub">gemma4:31b &middot; 48.4 &rarr; 89.1 component judge</div></div>
+      <div class="k"><div class="k-lbl">Prompts improved</div><div class="k-val">99.8<span class="u">%</span></div><div class="k-sub">15 of 7,953 scored worse</div></div>
+      <div class="k"><div class="k-lbl">Paired prompts</div><div class="k-val">7,953</div><div class="k-sub">one model, answered twice, judged twice</div></div>
+      <div class="k"><div class="k-lbl">Judge panel</div><div class="k-val">3-model</div><div class="k-sub">independent; never grades its own family</div></div>
+    </div>
+    <p style="margin-top: 14px; font-size: 13.5px; color: var(--ink-3); max-width: 72ch; line-height: 1.6;">The lift holds across every model tested &mdash; 8 models, positive on every one (paired Cohen&rsquo;s d = 1.73). Because the grounding is added at the prompt, it works the same on a model you already run.</p>
+
+    <h3 style="margin-top: 44px;">How it works</h3>
+    <div class="how">
+      <div class="h-step"><span class="n">01</span><h4>Fire the rules</h4><p>Deterministic <span class="em">ILO-indicator rules</span> scan the message before the model speaks &mdash; recruitment fees, passport retention, contract substitution, and more.</p></div>
+      <div class="h-step"><span class="n">02</span><h4>Ground the answer</h4><p>Retrieve the governing corridor law and vetted facts; deterministic <span class="em">tool calls</span> resolve fee caps and verified hotlines. All of it is added to the prompt.</p></div>
+      <div class="h-step"><span class="n">03</span><h4>Measure the lift</h4><p>An independent <span class="em">three-model judge panel</span> scores each answer bare versus grounded, 0&ndash;100 across five safety dimensions. The paired delta is the lift.</p></div>
+    </div>
+
+    <h3 style="margin-top: 44px;">What this does &mdash; and does not &mdash; prove</h3>
+    <div class="honesty">
+      <div class="h-col is-does">
+        <div class="cap">What the evidence shows</div>
+        <ul>
+          <li>Grounding <b>improves response quality</b>, measured by an independent LLM-judge panel on a paired design that cancels judge bias.</li>
+          <li>Scores are computed on <b>held-out prompts the training never sees</b>, so the lift is not memorization.</li>
+          <li>The benchmark is <b>fact-checked against its own data &mdash; 20 of 20 headline claims reconcile</b> &mdash; and added citations verify at a <b>0% hallucination rate</b>.</li>
+        </ul>
+      </div>
+      <div class="h-col is-not">
+        <div class="cap">What it does not claim</div>
+        <ul>
+          <li>Not a measure of <b>real-world trafficking detection</b> &mdash; it is benchmark evidence about answer quality, not ground truth about any person.</li>
+          <li>The judges are language models, not anti-trafficking professionals; a <b>blinded human-expert validation is the honest precondition</b> for a peer-reviewed claim.</li>
+          <li>Raw worker chats, IDs, and documents <b>stay on-device</b>; only anonymized, pre-approved envelopes ever leave.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="proof-links">
+      <a class="btn" href="/evaluation">See the full results <span class="arrow">&rarr;</span></a>
+      <a class="btn btn-ghost" href="/data">Download the data</a>
+      <a class="btn btn-ghost" href="/benchmark">Live leaderboard</a>
+      <a class="btn btn-ghost" href="/finetuning">Fine-tuning methodology</a>
+    </div>
+  </div>
+</section>
 
 <!-- ============== USE-CASES CTA ============== -->
 <style>

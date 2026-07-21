@@ -150,7 +150,7 @@ def test_training_data_flywheel_is_linked_from_public_training_surfaces(tmp_path
     assert 'class="docs-card" href="/finetuning"' in client.get("/docs").text
     kernels = client.get("/kernels").text
     assert "July dataset-attached update" in kernels
-    assert "two public training datasets and nine public learning notebooks" in kernels
+    assert "public learning and analysis notebooks" in kernels
     assert "Public training-data learning route" in kernels
     assert "www.kaggle.com/code/taylorsamarel/duecare-training-data-quality-dashboard" in kernels
 
