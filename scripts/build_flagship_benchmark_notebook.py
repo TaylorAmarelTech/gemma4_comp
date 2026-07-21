@@ -2,12 +2,17 @@
 # ruff: noqa: E501
 """Build the grandmaster flagship benchmark notebook: a comprehensive, visual, single-story showcase.
 
-Renders many real matplotlib charts from the published `duecare-harness-benchmark-grades` dataset
-(panel_grades.csv + prompt_metadata.csv): dataset exploration (distributions, score shift), the
-headline lift, cross-model leaderboard, per-dimension A-E heatmap, convergence, difficulty & category
-breakdowns, and judge agreement -- with a table of contents, rich markdown explanation, the DueCare
-palette, and an explicit honest boundary. CPU only, no model, no internet: runs to completion on
-Kaggle and is verifiable.
+Renders many real, *polished* charts from the published `duecare-harness-benchmark-grades` dataset
+(panel_grades.csv + prompt_metadata.csv) using the shared prettify toolkit `scripts/_notebook_viz.py`
+(seaborn theme + DueCare palette, KPI stat cards, publication-grade pandas Styler tables, radar,
+dumbbell, slope, filled KDE histograms, annotated heatmaps, and an interactive Plotly bar with a
+matplotlib fallback). Story arc: dataset exploration, the honest headline lift, the cross-model
+leaderboard, the per-dimension A-E radar + heatmap, convergence, difficulty & category breakdowns,
+and judge agreement -- with a table of contents, rich markdown, and an explicit honest boundary.
+
+The toolkit's PALETTE + HELPERS source is *embedded* into the notebook's first code cell at build
+time (the notebook never imports `_notebook_viz` at runtime). CPU only, no model, no internet: runs
+to completion on Kaggle and every figure is verifiable.
 
     python scripts/build_flagship_benchmark_notebook.py
 """
@@ -15,9 +20,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 import nbformat as nbf
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _notebook_viz import HELPERS, PALETTE  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_OUT = ROOT / "reports" / "kaggle_publish" / "flagship_benchmark"
@@ -29,20 +38,11 @@ INDEX = "https://www.kaggle.com/code/taylorsamarel/duecare-harness-lift-benchmar
 COT_DS = "https://www.kaggle.com/datasets/taylorsamarel/duecare-cot-reasoning"
 REPO = "https://github.com/TaylorAmarelTech/gemma4_comp"
 
+# The data-load tail of the first code cell. PALETTE + HELPERS are prepended at build time; the old
+# inline palette / rcParams block is gone (the toolkit owns the theme). Keeps NAMES/DIMS, the
+# recursive glob load, HEADLINE, and the shared per_prompt_lift utility used by every later cell.
 SETUP = '''import glob, os
-import numpy as np, pandas as pd
-import matplotlib as mpl, matplotlib.pyplot as plt
 
-# DueCare palette (warm paper / ink / civic teal; ember reserved for the headline + privacy boundary)
-PAPER, INK, INK2, INK3 = "#F7F6F1", "#14181B", "#2A2D34", "#5B5F68"
-TEAL, EMBER, GOOD, WARN, LINE = "#2f7d8c", "#c15b2e", "#4e8a5a", "#b8873a", "#DDD8C9"
-mpl.rcParams.update({
-    "figure.facecolor": PAPER, "axes.facecolor": PAPER, "savefig.facecolor": PAPER,
-    "axes.edgecolor": LINE, "axes.linewidth": 1.0, "axes.labelcolor": INK2, "text.color": INK,
-    "xtick.color": INK3, "ytick.color": INK3, "font.size": 11, "axes.titlesize": 13.5,
-    "axes.titleweight": "bold", "axes.grid": True, "grid.color": LINE, "grid.alpha": 0.5,
-    "axes.spines.top": False, "axes.spines.right": False, "figure.dpi": 120,
-})
 NAMES = {"A": "indicator", "B": "legal", "C": "refusal", "D": "resources", "E": "privacy"}
 DIMS = ["A", "B", "C", "D", "E"]
 
@@ -54,175 +54,144 @@ grades = pd.read_csv(sorted(csvs)[0])
 mcsv = glob.glob("/kaggle/input/**/prompt_metadata.csv", recursive=True)
 meta = pd.read_csv(mcsv[0]) if mcsv else None
 HEADLINE = "gemma4:31b"
-print(f"loaded {len(grades):,} grade rows | {grades.prompt_id.nunique():,} prompts | "
-      f"{grades.model.nunique()} models | arms {sorted(grades.arm.unique())} | judges {sorted(grades.judge.unique())}")'''
 
-EXPLORE_SUMMARY = '''# a compact, honest summary of what is actually in the file
-summary = pd.DataFrame({
-    "rows": [len(grades)],
-    "prompts": [grades.prompt_id.nunique()],
-    "models": [grades.model.nunique()],
-    "arms": [grades.arm.nunique()],
-    "judges": [grades.judge.nunique()],
-    "score min / mean / max": [f"{grades.score_0_100.min():.0f} / {grades.score_0_100.mean():.1f} / {grades.score_0_100.max():.0f}"],
-})
-print("Dataset at a glance:")
-display(summary.T.rename(columns={0: ""}))
-print("\\nRows per model (the headline model gemma4:31b dominates by design):")
-display(grades.model.value_counts().rename_axis("model").to_frame("rows"))'''
 
-EXPLORE_DIST = '''fig, axes = plt.subplots(1, 3, figsize=(13.5, 3.7))
-for ax, col, title in zip(axes, ["arm", "judge", "model"], ["by arm", "by judge", "by model (top 8)"]):
-    vc = grades[col].value_counts().head(8)[::-1]
-    ax.barh(range(len(vc)), vc.values, color=TEAL, edgecolor=PAPER)
-    ax.set_yticks(range(len(vc))); ax.set_yticklabels(vc.index, fontsize=8.5)
-    ax.set_title(f"grade rows {title}"); ax.grid(axis="y", alpha=0)
-    for i, v in enumerate(vc.values):
-        ax.text(v, i, f" {v:,}", va="center", fontsize=8, color=INK3)
-fig.suptitle("What is in the dataset - grade rows by arm, judge, and model", fontsize=13, fontweight="bold", y=1.03)
-fig.tight_layout(); plt.show()'''
-
-EXPLORE_SHIFT = '''fig, ax = plt.subplots(figsize=(9.6, 4.4))
-for arm, color, lw in [("baseline", INK3, 2), ("harness_core", TEAL, 2.6), ("harness_full", GOOD, 2)]:
-    s = grades[(grades.model == HEADLINE) & (grades.arm == arm)].score_0_100
-    if len(s):
-        ax.hist(s, bins=40, histtype="step", lw=lw, color=color, label=f"{arm} (mean {s.mean():.0f})", density=True)
-ax.set_title(f"The whole score distribution shifts up with the harness   -   {HEADLINE}")
-ax.set_xlabel("rubric score (0-100)"); ax.set_ylabel("density"); ax.legend(framealpha=0.9)
-fig.tight_layout(); plt.show()'''
-
-LIFT = '''def per_prompt_lift(df, model, teacher="harness_core", base="baseline"):
+def per_prompt_lift(df, model, teacher="harness_core", base="baseline"):
     """Average the judge panel per (prompt, arm), then pair teacher-vs-baseline per prompt."""
     d = df[df.model == model]
     piv = d.groupby(["prompt_id", "arm"])["score_0_100"].mean().unstack()
     piv = piv.dropna(subset=[c for c in (base, teacher) if c in piv.columns])
     return (piv[teacher] - piv[base]), piv
 
-lift, piv = per_prompt_lift(grades, HEADLINE)
+
+print(f"loaded {len(grades):,} grade rows | {grades.prompt_id.nunique():,} prompts | "
+      f"{grades.model.nunique()} models | arms {sorted(grades.arm.unique())} | judges {sorted(grades.judge.unique())}")'''
+
+# KPI hero tiles, computed live from the loaded panel (first thing after the data loads).
+HERO = '''_lift, _piv = per_prompt_lift(grades, HEADLINE)
+_ml, _n = float(_lift.mean()), len(_lift)
+_win, _hurt = int((_lift > 0).sum()), int((_lift < 0).sum())
+_bmu, _hmu = float(_piv["baseline"].mean()), float(_piv["harness_core"].mean())
+stat_cards([
+    (f"+{_ml:.1f}", "mean lift (/100)", EMBER),
+    (f"{_bmu:.0f} -> {_hmu:.0f}", "baseline -> harnessed", TEAL),
+    (f"{100 * _win / _n:.1f}%", f"prompts improved ({_hurt} lower)", GOOD),
+    (f"{_n:,}", "paired prompts - gemma4:31b", INK2),
+])'''
+
+EXPLORE_SUMMARY = '''glance = pd.DataFrame({
+    "metric": ["grade rows", "prompts", "models", "arms", "judges", "score min / mean / max"],
+    "value": [f"{len(grades):,}", f"{grades.prompt_id.nunique():,}", str(grades.model.nunique()),
+              str(grades.arm.nunique()), str(grades.judge.nunique()),
+              f"{grades.score_0_100.min():.0f} / {grades.score_0_100.mean():.1f} / {grades.score_0_100.max():.0f}"],
+})
+display(pretty_table(glance, caption="Dataset at a glance"))
+
+mv = grades.model.value_counts().rename_axis("model").reset_index(name="rows")
+display(pretty_table(mv, caption="Grade rows per model - the headline gemma4:31b dominates by design",
+                     fmt={"rows": "{:,}"}, bars=["rows"]))'''
+
+EXPLORE_DIST = '''ct = pd.crosstab(grades.arm, grades.judge).reset_index()
+jcols = [c for c in ct.columns if c != "arm"]
+display(pretty_table(ct, caption="Grade rows by arm x judge - the three arms are graded on the same prompts, evenly across judges",
+                     fmt={c: "{:,}" for c in jcols}, gradient=jcols, cmap="BuGn"))'''
+
+EXPLORE_SHIFT = '''series = []
+for arm, col in [("baseline", INK3), ("harness_core", TEAL), ("harness_full", GOOD)]:
+    s = grades[(grades.model == HEADLINE) & (grades.arm == arm)].score_0_100.values
+    if len(s):
+        series.append((arm, s, col))
+kde_hist(series, title=f"The whole score distribution shifts up with the harness   -   {HEADLINE}",
+         subtitle="filled density of the raw rubric score per arm - the whole curve moves right",
+         xlabel="rubric score (0-100)")'''
+
+LIFT = '''lift, piv = per_prompt_lift(grades, HEADLINE)
 mean_lift = float(lift.mean())
 ci = 1.96 * float(lift.std()) / np.sqrt(len(lift))
 win, hurt = int((lift > 0).sum()), int((lift < 0).sum())
 print(f"{HEADLINE}: n={len(lift):,} paired prompts | mean lift +{mean_lift:.1f} "
       f"[95% CI +{mean_lift-ci:.1f}, +{mean_lift+ci:.1f}] | win {win:,} ({100*win/len(lift):.1f}%) | hurt {hurt} ({100*hurt/len(lift):.2f}%)")'''
 
-CHART_HIST = '''fig, ax = plt.subplots(figsize=(9.6, 4.6))
-ax.hist(lift, bins=45, color=TEAL, edgecolor=PAPER, linewidth=0.5)
-ax.axvline(0, color=INK3, lw=1.2, ls="--")
-ax.axvline(mean_lift, color=EMBER, lw=2.4)
-top = ax.get_ylim()[1]
-ax.annotate(f"mean +{mean_lift:.1f}", xy=(mean_lift, top*0.92), xytext=(mean_lift+8, top*0.92),
-            color=EMBER, fontweight="bold", arrowprops=dict(color=EMBER, arrowstyle="->", lw=1.6))
-ax.set_title(f"The harness lifts almost every prompt   -   {HEADLINE}   -   n={len(lift):,} paired")
-ax.set_xlabel("per-prompt lift:  harness_core - baseline   (points / 100)")
-ax.set_ylabel("number of prompts")
-fig.tight_layout(); plt.show()'''
+CHART_HIST = '''kde_hist([("per-prompt lift", lift.values, TEAL)],
+         vlines=[(0, INK3, "no change"), (mean_lift, EMBER, f"mean +{mean_lift:.1f}")],
+         title=f"The harness lifts almost every prompt   -   {HEADLINE}   -   n={len(lift):,} paired",
+         subtitle="per-prompt difference harness_core - baseline; almost the entire mass sits right of zero",
+         xlabel="per-prompt lift: harness_core - baseline")'''
 
 CHART_BOARD = '''rows = []
 for m in grades.model.unique():
     lm, pv = per_prompt_lift(grades, m)
     if len(lm) >= 150:
-        rows.append((m, float(pv["baseline"].mean()), float(pv["harness_core"].mean()), float(lm.mean()), len(lm)))
-board = pd.DataFrame(rows, columns=["model", "baseline", "harnessed", "lift", "n"]).sort_values("lift")
-fig, ax = plt.subplots(figsize=(9.6, 0.7*len(board) + 1.6))
-y = np.arange(len(board))
-ax.barh(y - 0.2, board.baseline, 0.4, color=INK3, label="baseline")
-ax.barh(y + 0.2, board.harnessed, 0.4, color=TEAL, label="harnessed (core)")
-for i, (_, r) in enumerate(board.iterrows()):
-    ax.text(r.harnessed + 1.2, i + 0.2, f"+{r.lift:.0f}", va="center", color=EMBER, fontweight="bold")
-ax.set_yticks(y); ax.set_yticklabels([f"{m}  (n={int(n):,})" for m, n in zip(board.model, board.n)])
-ax.set_xlabel("mean rubric score (0-100)"); ax.set_xlim(0, 100)
-ax.set_title("Every model improves under the harness"); ax.grid(axis="y", alpha=0)
-ax.legend(loc="lower right", framealpha=0.9)
-fig.tight_layout(); plt.show()'''
+        rows.append((m, float(pv["baseline"].mean()), float(lm.mean()), len(lm)))
+board = pd.DataFrame(rows, columns=["model", "baseline", "lift", "n"])
+ibar(list(board.model), list(board.baseline), list(board.lift), ns=list(board.n),
+     title="Every model improves under the harness",
+     subtitle="baseline (ink) + harness lift (teal), stacked; label = mean per-prompt lift")'''
 
 CHART_DIMS = '''d = grades[grades.model == HEADLINE]
-dim_lift = {}
+base_dim, harn_dim = [], []
 for dim in DIMS:
-    if dim in d.columns:
-        pv = d.groupby(["prompt_id", "arm"])[dim].mean().unstack().dropna(subset=["baseline", "harness_core"])
-        if len(pv):
-            dim_lift[dim] = float((pv["harness_core"] - pv["baseline"]).mean())
-keys = list(dim_lift); vals = [dim_lift[k] for k in keys]
-fig, ax = plt.subplots(figsize=(8.8, 4.3))
-ax.bar(range(len(keys)), vals, color=[GOOD if v >= 0 else EMBER for v in vals], edgecolor=PAPER, width=0.66)
-for i, v in enumerate(vals):
-    ax.text(i, v + (0.5 if v >= 0 else -1.4), f"{v:+.1f}", ha="center", color=INK2, fontweight="bold")
-ax.axhline(0, color=INK3, lw=1)
-ax.set_xticks(range(len(keys))); ax.set_xticklabels([f"{k}\\n{NAMES[k]}" for k in keys])
-ax.set_ylabel("mean component lift (0-100)")
-ax.set_title(f"Where the lift comes from - by rubric dimension   -   {HEADLINE}")
-fig.tight_layout(); plt.show()'''
+    pv = d.groupby(["prompt_id", "arm"])[dim].mean().unstack().dropna(subset=["baseline", "harness_core"])
+    base_dim.append(float(pv["baseline"].mean()) if len(pv) else 0.0)
+    harn_dim.append(float(pv["harness_core"].mean()) if len(pv) else 0.0)
+radar([f"{k} {NAMES[k]}" for k in DIMS],
+      [("baseline", base_dim, INK3), ("harness_core", harn_dim, TEAL)],
+      title=f"Baseline vs harness shape by rubric dimension   -   {HEADLINE}",
+      subtitle="mean component score per dimension - the harness pushes every axis outward")'''
 
 CHART_HEATMAP = '''models = [m for m in grades.model.unique() if len(per_prompt_lift(grades, m)[0]) >= 150]
-mat = np.full((len(models), len(DIMS)), np.nan)
-for i, m in enumerate(models):
+mat = np.full((len(DIMS), len(models)), np.nan)
+for j, m in enumerate(models):
     dm = grades[grades.model == m]
-    for j, dim in enumerate(DIMS):
-        if dim in dm.columns:
-            pv = dm.groupby(["prompt_id", "arm"])[dim].mean().unstack().dropna(subset=["baseline", "harness_core"])
-            if len(pv):
-                mat[i, j] = (pv["harness_core"] - pv["baseline"]).mean()
-fig, ax = plt.subplots(figsize=(7.6, 0.62*len(models) + 2))
-im = ax.imshow(mat, cmap="YlGn", aspect="auto", vmin=0)
-ax.set_xticks(range(len(DIMS))); ax.set_xticklabels([f"{k}\\n{NAMES[k]}" for k in DIMS])
-ax.set_yticks(range(len(models))); ax.set_yticklabels(models, fontsize=9)
-for i in range(len(models)):
-    for j in range(len(DIMS)):
-        if not np.isnan(mat[i, j]):
-            ax.text(j, i, f"+{mat[i, j]:.0f}", ha="center", va="center", fontsize=9,
-                    color=INK if mat[i, j] < mat[~np.isnan(mat)].max()*0.6 else PAPER)
-fig.colorbar(im, ax=ax, label="mean lift", fraction=0.046, pad=0.04)
-ax.set_title("Per-dimension lift x model - consistent, not one lucky number")
-fig.tight_layout(); plt.show()'''
+    for i, dim in enumerate(DIMS):
+        pv = dm.groupby(["prompt_id", "arm"])[dim].mean().unstack().dropna(subset=["baseline", "harness_core"])
+        if len(pv):
+            mat[i, j] = float((pv["harness_core"] - pv["baseline"]).mean())
+heatmap(mat, [f"{k} {NAMES[k]}" for k in DIMS], models, fmt="+.1f", cbar_label="per-dim lift",
+        title="Per-dimension lift x model - consistent, not one lucky number")'''
 
 CHART_JUDGES = '''judges = sorted(grades.judge.unique())
-vals, ns = [], []
+base_j, harn_j = [], []
 for jg in judges:
     dj = grades[(grades.model == HEADLINE) & (grades.judge == jg)]
     pv = dj.groupby(["prompt_id", "arm"])["score_0_100"].mean().unstack().dropna(subset=["baseline", "harness_core"])
-    vals.append(float((pv["harness_core"] - pv["baseline"]).mean()) if len(pv) else np.nan); ns.append(len(pv))
-fig, ax = plt.subplots(figsize=(8.6, 4.2))
-ax.bar(range(len(judges)), vals, color=TEAL, edgecolor=PAPER, width=0.6)
-for i, (v, n) in enumerate(zip(vals, ns)):
-    ax.text(i, v + 0.6, f"+{v:.1f}\\n(n={n:,})", ha="center", color=INK2, fontweight="bold")
-ax.set_xticks(range(len(judges))); ax.set_xticklabels(judges, fontsize=9.5)
-ax.set_ylabel("mean lift (0-100)")
-ax.set_title("All three judges independently agree - the lift is not one judge's quirk")
-fig.tight_layout(); plt.show()'''
+    base_j.append(float(pv["baseline"].mean()) if len(pv) else np.nan)
+    harn_j.append(float(pv["harness_core"].mean()) if len(pv) else np.nan)
+slope(judges, base_j, harn_j, ylabel="mean rubric score (0-100)",
+      title="All three judges independently agree - the lift is not one judge's quirk",
+      subtitle="each judge: mean baseline -> mean harness_core, paired per prompt")'''
 
 CHART_CONV = '''rng = np.random.default_rng(7)
 L = lift.values[rng.permutation(len(lift))]
 run = np.cumsum(L) / np.arange(1, len(L) + 1)
 x = np.arange(1, len(run) + 1)
-fig, ax = plt.subplots(figsize=(9.6, 4.3))
+fig, ax = plt.subplots(figsize=(9.8, 4.4))
 ax.fill_between(x, mean_lift - 1, mean_lift + 1, color=EMBER, alpha=0.10, label="+/-1 pt band")
-ax.axhline(mean_lift, color=EMBER, lw=1.3, ls="--")
-ax.plot(x, run, color=TEAL, lw=1.9)
+ax.axhline(mean_lift, color=EMBER, lw=1.4, ls="--")
+ax.plot(x, run, color=TEAL, lw=2.1)
 ax.set_xscale("log")
 ax.set_xlabel("prompts graded (random order, log scale)"); ax.set_ylabel("running mean lift")
 ax.set_ylim(mean_lift - 16, mean_lift + 16)
 ax.set_title("The result converges fast - a random ~100-prompt sample already recovers it")
-ax.legend(loc="lower right", framealpha=0.9)
+ax.legend(loc="lower right")
 fig.tight_layout(); plt.show()'''
 
 CHART_DIFF = '''if meta is not None and "difficulty" in meta.columns:
     d = grades[grades.model == HEADLINE].merge(meta[["prompt_id", "difficulty"]], on="prompt_id", how="left")
-    rows = []
+    labels, base_d, harn_d = [], [], []
     for diff in ["easy", "medium", "hard", "very_hard"]:
         sub = d[d.difficulty == diff]
         if len(sub):
             pv = sub.groupby(["prompt_id", "arm"])["score_0_100"].mean().unstack().dropna(subset=["baseline", "harness_core"])
             if len(pv) >= 20:
-                rows.append((diff, float((pv["harness_core"] - pv["baseline"]).mean()), len(pv)))
-    if rows:
-        dd = pd.DataFrame(rows, columns=["difficulty", "lift", "n"])
-        fig, ax = plt.subplots(figsize=(8.8, 4.3))
-        ax.bar(range(len(dd)), dd.lift, color=TEAL, edgecolor=PAPER, width=0.6)
-        for i, (_, r) in enumerate(dd.iterrows()):
-            ax.text(i, r.lift + 0.6, f"+{r.lift:.0f}\\n(n={int(r.n):,})", ha="center", color=INK2, fontweight="bold")
-        ax.set_xticks(range(len(dd))); ax.set_xticklabels(dd.difficulty)
-        ax.set_ylabel("mean lift (0-100)"); ax.set_title("The harness helps the hardest cases the most")
-        fig.tight_layout(); plt.show()
+                labels.append(f"{diff}  (n={len(pv):,})")
+                base_d.append(float(pv["baseline"].mean())); harn_d.append(float(pv["harness_core"].mean()))
+    if labels:
+        dumbbell(labels, base_d, harn_d, title="The harness helps the hardest cases the most",
+                 subtitle="baseline -> harness_core mean per difficulty bucket; delta labelled = mean lift",
+                 xlabel="mean rubric score (0-100)", xlim=(0, 100))
+    else:
+        print("no difficulty buckets with >=20 paired prompts")
 else:
     print("prompt_metadata.csv not attached - skipping the by-difficulty chart")'''
 
@@ -232,20 +201,14 @@ CHART_CAT = '''if meta is not None and "category" in meta.columns:
     for cat, sub in d.groupby("category"):
         pv = sub.groupby(["prompt_id", "arm"])["score_0_100"].mean().unstack().dropna(subset=["baseline", "harness_core"])
         if len(pv) >= 25:
-            rows.append((str(cat), float((pv["harness_core"] - pv["baseline"]).mean()), len(pv)))
-    cc = pd.DataFrame(rows, columns=["category", "lift", "n"]).sort_values("lift")
-    show = pd.concat([cc.head(8), cc.tail(8)]).drop_duplicates("category")
-    fig, ax = plt.subplots(figsize=(9.6, 0.42*len(show) + 1.6))
-    med = cc.lift.median()
-    ax.barh(range(len(show)), show.lift, color=[EMBER if v < med else TEAL for v in show.lift], edgecolor=PAPER)
-    for i, (_, r) in enumerate(show.iterrows()):
-        ax.text(r.lift, i, f" +{r.lift:.0f}", va="center", fontsize=8, color=INK3)
-    ax.set_yticks(range(len(show))); ax.set_yticklabels(show.category, fontsize=8)
-    ax.set_xlabel("mean lift (0-100)"); ax.grid(axis="y", alpha=0)
-    ax.set_title("Lift by attack category - lowest (ember) and highest (teal)")
-    fig.tight_layout(); plt.show()
+            rows.append((str(cat), float(pv["baseline"].mean()), float(pv["harness_core"].mean()),
+                         float((pv["harness_core"] - pv["baseline"]).mean()), len(pv)))
+    cc = pd.DataFrame(rows, columns=["category", "baseline", "harnessed", "lift", "n"]).sort_values("lift", ascending=False)
+    display(pretty_table(cc, caption="Lift by attack category - every category improves (sorted high -> low)",
+                         fmt={"baseline": "{:.1f}", "harnessed": "{:.1f}", "lift": "{:+.1f}", "n": "{:,}"},
+                         gradient=["harnessed"], bars=["lift"], bar_color=EMBER_SOFT))
 else:
-    print("prompt_metadata.csv not attached - skipping the by-category chart")'''
+    print("prompt_metadata.csv not attached - skipping the by-category table")'''
 
 
 def _toc() -> str:
@@ -293,7 +256,10 @@ def build(output_dir: Path, *, force: bool = False) -> dict:
         "(**A** indicator - **B** legal - **C** refusal - **D** resources - **E** privacy)."))
 
     c.append(md('<a id="explore"></a>\n## 0 - What is in the dataset'))
-    c.append(code(SETUP))
+    c.append(code(PALETTE + "\n" + HELPERS + "\n" + SETUP))
+    c.append(md("The result up front, computed live from the loaded panel - the four numbers the rest of the "
+                "notebook earns:"))
+    c.append(code(HERO))
     c.append(code(EXPLORE_SUMMARY))
     c.append(code(EXPLORE_DIST))
     c.append(md("The three arms are graded on the same prompts, so the comparison is *paired*. Here is how the "
@@ -307,19 +273,21 @@ def build(output_dir: Path, *, force: bool = False) -> dict:
     c.append(code(CHART_HIST))
 
     c.append(md('<a id="board"></a>\n## 2 - It is not one model\n'
-                "The same paired lift for every model with >=150 paired prompts - baseline (grey) vs harnessed "
-                "(teal), with the mean lift in ember. The effect is not specific to the headline model."))
+                "The same paired lift for every model with >=150 paired prompts - each bar is the baseline mean "
+                "(ink) with the harness lift stacked on top (teal), sorted by harnessed score. The effect is not "
+                "specific to the headline model."))
     c.append(code(CHART_BOARD))
 
     c.append(md('<a id="dims"></a>\n## 3 - Where the lift comes from\n'
-                "Splitting the score into its five rubric dimensions shows the harness moves *all* of them - "
-                "and the per-dimension x per-model heatmap shows the pattern is consistent, not one lucky cell."))
+                "Splitting the score into its five rubric dimensions: the radar shows the harness pushes *every* "
+                "axis outward for the headline model, and the per-dimension x per-model heatmap shows the pattern "
+                "is consistent, not one lucky cell."))
     c.append(code(CHART_DIMS))
     c.append(code(CHART_HEATMAP))
 
     c.append(md('<a id="judges"></a>\n## 4 - Consistency across judges\n'
                 "Three judge models grade independently (each excluded from grading its own family). If the "
-                "lift were an artefact of one lenient judge, they would disagree. They do not:"))
+                "lift were an artefact of one lenient judge, the slopes would diverge. They do not:"))
     c.append(code(CHART_JUDGES))
 
     c.append(md('<a id="conv"></a>\n## 5 - How much data do you actually need?\n'
@@ -328,8 +296,9 @@ def build(output_dir: Path, *, force: bool = False) -> dict:
     c.append(code(CHART_CONV))
 
     c.append(md('<a id="slices"></a>\n## 6 - By difficulty and category\n'
-                "Joining the prompt metadata: lift rises with difficulty (where a bare model struggles most), "
-                "and holds across attack categories - the ember bars are the *lowest*-lift categories, still positive."))
+                "Joining the prompt metadata: lift rises with difficulty (where a bare model struggles most - "
+                "the dumbbell below), and holds across *every* attack category (the table, sorted high to low; "
+                "even the lowest-lift category is comfortably positive)."))
     c.append(code(CHART_DIFF))
     c.append(code(CHART_CAT))
 

@@ -10,10 +10,14 @@ E privacy) for every model x prompt x arm x judge cell. It is the higher-
 resolution counterpart to the batched grades and a growing, re-versioned
 interim snapshot, framed honestly as a representative random sample.
 
-Every figure is recomputed live from the attached CSV with real matplotlib
-charts, the DueCare palette, a table of contents, rich markdown, and an
-explicit honest boundary. CPU only, no GPU, no internet, no model: it runs
-to completion on Kaggle and is verifiable.
+Every figure is recomputed live from the attached CSV with the shared DueCare
+notebook prettify toolkit (scripts/_notebook_viz.py) -- KPI stat tiles, a radar
+of the five rubric dimensions, a dumbbell of the per-dimension lift, filled
+density histograms, a per-judge slope chart, and publication-grade Styler
+tables. The toolkit's PALETTE + HELPERS are embedded into the first code cell so
+the notebook is fully self-contained (no import of _notebook_viz at runtime).
+CPU only, no GPU, no internet, no model: it runs to completion on Kaggle and is
+verifiable.
 
     python scripts/build_perdim_explorer_notebook.py
 """
@@ -21,9 +25,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 import nbformat as nbf
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _notebook_viz import HELPERS, PALETTE  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_OUT = ROOT / "reports" / "kaggle_publish" / "perdim_explorer"
@@ -34,23 +42,15 @@ DS = f"https://www.kaggle.com/datasets/{DATASET_ID}"
 BATCHED_DS = "https://www.kaggle.com/datasets/taylorsamarel/duecare-harness-benchmark-grades"
 REPO = "https://github.com/TaylorAmarelTech/gemma4_comp"
 
-SETUP = '''import glob, os
-import numpy as np, pandas as pd
-import matplotlib as mpl, matplotlib.pyplot as plt
+# ---- data load: recomputed live, recursive glob (never a hard-coded mount path) ----
+# The OLD inline palette + rcParams are gone; the shared toolkit PALETTE now owns the
+# theme and imports numpy / pandas / matplotlib, so this block only loads the data.
+SETUP_DATA = '''import glob, os
 
-# DueCare palette (warm paper / ink / civic teal; ember reserved for the headline + privacy boundary)
-PAPER, INK, INK2, INK3 = "#F7F6F1", "#14181B", "#2A2D34", "#5B5F68"
-TEAL, EMBER, GOOD, WARN, LINE = "#2f7d8c", "#c15b2e", "#4e8a5a", "#b8873a", "#DDD8C9"
-mpl.rcParams.update({
-    "figure.facecolor": PAPER, "axes.facecolor": PAPER, "savefig.facecolor": PAPER,
-    "axes.edgecolor": LINE, "axes.labelcolor": INK2, "text.color": INK,
-    "xtick.color": INK3, "ytick.color": INK3, "font.size": 11, "axes.titlesize": 13.5,
-    "axes.titleweight": "bold", "axes.grid": True, "grid.color": LINE, "grid.alpha": 0.5,
-    "axes.spines.top": False, "axes.spines.right": False, "figure.dpi": 120,
-})
 # The published CSV flattens the five reasoned rubric dimensions to comp_A .. comp_E.
 NAMES = {"comp_A": "indicator", "comp_B": "legal", "comp_C": "refusal", "comp_D": "resources", "comp_E": "privacy"}
 DIMS = ["comp_A", "comp_B", "comp_C", "comp_D", "comp_E"]
+DIM_LABELS = ["A indicator", "B legal", "C refusal", "D resources", "E privacy"]
 REGISTRY_PROMPTS = 78_719  # full DueCare prompt registry the exhaustive sweep is grading toward
 
 print("mounted under /kaggle/input:", os.listdir("/kaggle/input") if os.path.exists("/kaggle/input") else "none")
@@ -63,7 +63,8 @@ print(f"loaded {len(df):,} per-dimension grade rows | {df.prompt_id.nunique():,}
       f"{df.model.nunique()} model(s) | arms {sorted(df.arm.unique())} | judges {sorted(df.judge.unique())}")
 print("headline model:", HEADLINE)'''
 
-HELPERS = '''def paired(frame, model, col, teacher="harness_core", base="baseline"):
+# The paired-difference primitive: this is the DATA LOGIC and is preserved verbatim.
+PAIRED = '''def paired(frame, model, col, teacher="harness_core", base="baseline"):
     """Average the judge panel per (prompt, arm), then keep prompts present in BOTH arms.
 
     Returns the pivot (index=prompt_id, columns=arm). The per-prompt lift is
@@ -76,106 +77,110 @@ HELPERS = '''def paired(frame, model, col, teacher="harness_core", base="baselin
 
 OVERVIEW = '''n_rows, n_prompts = len(df), df.prompt_id.nunique()
 pct = 100.0 * n_prompts / REGISTRY_PROMPTS
+piv0 = paired(df, HEADLINE, "score_0_100")
+mean_lift = float((piv0["harness_core"] - piv0["baseline"]).mean())
+
+# KPI tiles -- the four numbers a reviewer should leave with.
+stat_cards([(f"{n_rows:,}", "grade rows", INK2),
+            (f"{n_prompts:,}", "prompts", TEAL),
+            (f"~{pct:.1f}%", "of registry", WARN),
+            (f"+{mean_lift:.1f}", "0-100 lift", EMBER)])
+
 summary = pd.DataFrame({
-    "rows": [f"{n_rows:,}"],
-    "distinct prompts": [f"{n_prompts:,}"],
-    "models": [df.model.nunique()],
-    "arms": [df.arm.nunique()],
-    "judges": [df.judge.nunique()],
-    "score min / mean / max": [f"{df.score_0_100.min():.0f} / {df.score_0_100.mean():.1f} / {df.score_0_100.max():.0f}"],
+    "metric": ["grade rows", "distinct prompts", "models", "arms", "judges", "score min / mean / max"],
+    "value": [f"{n_rows:,}", f"{n_prompts:,}", str(df.model.nunique()), str(df.arm.nunique()),
+              str(df.judge.nunique()),
+              f"{df.score_0_100.min():.0f} / {df.score_0_100.mean():.1f} / {df.score_0_100.max():.0f}"],
 })
+display(pretty_table(summary, caption=f"What is in the dataset  --  interim snapshot, ~{pct:.1f}% of the {REGISTRY_PROMPTS:,}-prompt registry"))
+
+by_arm = df.groupby("arm").size().rename("rows").reset_index()
+display(pretty_table(by_arm, caption="Grade rows per arm (each prompt graded under every arm by each judge)", bars=["rows"]))
+
 print(f"Interim snapshot: {n_prompts:,} distinct prompts ~ {pct:.1f}% of the {REGISTRY_PROMPTS:,}-prompt registry.")
 print("This file grows and is RE-VERSIONED as the one-judge-call-per-dimension sweep runs; treat it as a")
 print("representative random sample of the exhaustive grading, not the final full sweep.")
-display(summary.T.rename(columns={0: ""}))
-print("\\nGrade rows per arm (each prompt is graded under every arm by each judge):")
-display(df.groupby("arm").size().rename("rows").to_frame())
 print("Judges on the panel:", sorted(df.judge.unique()))'''
 
 BY_DIM = '''d = df[df.model == HEADLINE]
 means = d.groupby("arm")[DIMS].mean()
-order = [a for a in ["baseline", "harness_core"] if a in means.index]
-colors = {"baseline": INK3, "harness_core": TEAL}
-x = np.arange(len(DIMS)); w = 0.38
-fig, ax = plt.subplots(figsize=(9.8, 4.6))
-for i, arm in enumerate(order):
-    vals = [means.loc[arm, dim] for dim in DIMS]
-    off = (i - (len(order) - 1) / 2) * w
-    ax.bar(x + off, vals, w, color=colors.get(arm, GOOD), edgecolor=PAPER, label=arm)
-    for xi, v in zip(x + off, vals):
-        ax.text(xi, v + 0.4, f"{v:.1f}", ha="center", va="bottom", fontsize=8, color=INK3)
-ax.set_xticks(x); ax.set_xticklabels([f"{k}\\n{NAMES[k]}" for k in DIMS])
-ax.set_ylabel("mean component score"); ax.legend(framealpha=0.9)
-ax.set_title(f"Every rubric dimension rises with the harness   -   {HEADLINE}: baseline vs harness_core")
-fig.tight_layout(); plt.show()'''
+series = []
+if "baseline" in means.index:
+    series.append(("baseline", [float(means.loc["baseline", dim]) for dim in DIMS], INK3))
+if "harness_core" in means.index:
+    series.append(("harness_core", [float(means.loc["harness_core", dim]) for dim in DIMS], TEAL))
 
-DIM_LIFT = '''dim_lift = {}
+# Five rubric dimensions -> a radar. Every spoke pushes outward under the harness.
+radar(DIM_LABELS, series,
+      title="Every rubric dimension rises with the harness",
+      subtitle=f"mean component score, {HEADLINE}")
+
+tbl = means.loc[[a for a in ["baseline", "harness_core", "harness_full"] if a in means.index], DIMS].round(1)
+tbl.columns = DIM_LABELS
+display(pretty_table(tbl.reset_index(), caption=f"Mean component score by arm  --  {HEADLINE}",
+                     gradient=DIM_LABELS, fmt={c: "{:.1f}" for c in DIM_LABELS}))'''
+
+DIM_LIFT = '''base_means, harn_means = [], []
 for dim in DIMS:
     piv = paired(df, HEADLINE, dim)
-    if len(piv) and {"baseline", "harness_core"}.issubset(piv.columns):
-        dim_lift[dim] = float((piv["harness_core"] - piv["baseline"]).mean())
-keys = list(dim_lift); vals = [dim_lift[k] for k in keys]
+    base_means.append(float(piv["baseline"].mean()))
+    harn_means.append(float(piv["harness_core"].mean()))
 n_pairs = len(paired(df, HEADLINE, "score_0_100"))
-fig, ax = plt.subplots(figsize=(9.2, 4.5))
-ax.bar(range(len(keys)), vals, color=[GOOD if v >= 0 else EMBER for v in vals], edgecolor=PAPER, width=0.62)
-for i, v in enumerate(vals):
-    ax.text(i, v + (0.35 if v >= 0 else -0.35), f"{v:+.1f}", ha="center",
-            va="bottom" if v >= 0 else "top", color=INK2, fontweight="bold")
-ax.axhline(0, color=INK3, lw=1)
-ax.set_xticks(range(len(keys))); ax.set_xticklabels([f"{k}\\n{NAMES[k]}" for k in keys])
-ax.set_ylabel("mean per-prompt lift (harness_core - baseline)")
-ax.set_title(f"Where the lift comes from, dimension by dimension   -   {HEADLINE}   -   n={n_pairs:,} paired")
-fig.tight_layout(); plt.show()
-print("Per-dimension mean lift:", {k: round(v, 2) for k, v in dim_lift.items()})'''
+
+# Dumbbell: baseline dot -> harnessed dot; the labeled gap IS the per-dimension lift.
+dumbbell(DIM_LABELS, base_means, harn_means, lo_lab="baseline", hi_lab="harness_core",
+         title="Where the lift comes from, dimension by dimension",
+         subtitle=f"{HEADLINE}  --  paired per-prompt means, n={n_pairs:,}",
+         xlabel="mean component score (paired prompts)")
+print("Per-dimension mean lift (harness_core - baseline):",
+      {NAMES[dim]: round(h - b, 2) for dim, b, h in zip(DIMS, base_means, harn_means)})'''
 
 OVERALL = '''piv = paired(df, HEADLINE, "score_0_100")
-lift = piv["harness_core"] - piv["baseline"]
-mean_lift = float(lift.mean())
-ci = 1.96 * float(lift.std()) / np.sqrt(max(len(lift), 1))
+lift = (piv["harness_core"] - piv["baseline"]).to_numpy()
+mean_lift = float(np.mean(lift))
+ci = 1.96 * float(np.std(lift)) / np.sqrt(max(len(lift), 1))
 win, hurt = int((lift > 0).sum()), int((lift < 0).sum())
 print(f"{HEADLINE}: n={len(lift):,} paired prompts | mean 0-100 lift +{mean_lift:.1f} "
-      f"[95% CI +{mean_lift-ci:.1f}, +{mean_lift+ci:.1f}] | improved {win:,} ({100*win/max(len(lift),1):.1f}%) | "
-      f"regressed {hurt} ({100*hurt/max(len(lift),1):.2f}%)")
-fig, ax = plt.subplots(figsize=(9.6, 4.6))
-ax.hist(lift, bins=40, color=TEAL, edgecolor=PAPER, linewidth=0.5)
-ax.axvline(0, color=INK3, lw=1.2, ls="--")
-ax.axvline(mean_lift, color=EMBER, lw=2.4)
-top = ax.get_ylim()[1]
-ax.annotate(f"mean +{mean_lift:.1f}", xy=(mean_lift, top * 0.9), xytext=(mean_lift * 0.5, top * 0.9),
-            color=EMBER, fontweight="bold", arrowprops=dict(color=EMBER, arrowstyle="->", lw=1.6))
-ax.set_title(f"Overall per-prompt lift on the 0-100 rubric   -   {HEADLINE}   -   n={len(lift):,} paired")
-ax.set_xlabel("per-prompt lift:  harness_core - baseline   (points / 100)")
-ax.set_ylabel("number of prompts")
-fig.tight_layout(); plt.show()'''
+      f"[95% CI +{mean_lift - ci:.1f}, +{mean_lift + ci:.1f}] | improved {win:,} ({100 * win / max(len(lift), 1):.1f}%) | "
+      f"regressed {hurt} ({100 * hurt / max(len(lift), 1):.2f}%)")
+
+# Filled density of the per-prompt lift; the mass sits to the right of zero.
+kde_hist([("per-prompt lift", lift, TEAL)],
+         vlines=[(0, INK3, "no change"), (mean_lift, EMBER, f"mean +{mean_lift:.1f}")],
+         title=f"Overall per-prompt lift on the 0-100 rubric  --  {HEADLINE}  --  n={len(lift):,} paired",
+         xlabel="per-prompt lift: harness_core - baseline")'''
 
 JUDGES = '''d = df[df.model == HEADLINE]
 pivj = d.groupby(["judge", "arm"])["score_0_100"].mean().unstack()
-arm_order = [a for a in ["baseline", "harness_core", "harness_full"] if a in pivj.columns]
+keep = [c for c in ["baseline", "harness_core"] if c in pivj.columns]
+pivj = pivj.dropna(subset=keep)
 judges = list(pivj.index)
-arm_colors = {"baseline": INK3, "harness_core": TEAL, "harness_full": GOOD}
-x = np.arange(len(judges)); w = 0.8 / max(len(arm_order), 1)
-fig, ax = plt.subplots(figsize=(9.6, 4.6))
-for i, arm in enumerate(arm_order):
-    off = (i - (len(arm_order) - 1) / 2) * w
-    ax.bar(x + off, pivj[arm].values, w, color=arm_colors.get(arm, WARN), edgecolor=PAPER, label=arm)
-ax.set_xticks(x); ax.set_xticklabels(judges, fontsize=9.5)
-ax.set_ylabel("mean rubric score (0-100)")
-ax.set_title(f"Do the judges agree?  Mean score per judge x arm   -   {HEADLINE}")
-ax.legend(framealpha=0.9, ncol=len(arm_order))
-fig.tight_layout(); plt.show()
-display(pivj.round(1))'''
+base = [float(pivj.loc[j, "baseline"]) for j in judges]
+harn = [float(pivj.loc[j, "harness_core"]) for j in judges]
+
+# Slope chart: one line per judge, baseline -> harnessed. Every line rises.
+slope(judges, base, harn, left_lab="baseline", right_lab="harness_core",
+      title="Every judge scores the harness higher",
+      subtitle=f"mean 0-100 rubric score per judge, {HEADLINE}",
+      ylabel="mean rubric score")
+
+show = pivj.round(1)
+arm_cols = [c for c in ["baseline", "harness_core", "harness_full"] if c in show.columns]
+display(pretty_table(show.reset_index(), caption=f"Mean 0-100 score per judge x arm  --  {HEADLINE}",
+                     gradient=arm_cols, fmt={c: "{:.1f}" for c in arm_cols}))'''
 
 DIST = '''d = df[df.model == HEADLINE]
-styles = {"baseline": (INK3, 2.0), "harness_core": (TEAL, 2.7), "harness_full": (GOOD, 2.0)}
-fig, ax = plt.subplots(figsize=(9.6, 4.6))
-for arm, (color, lw) in styles.items():
-    s = d[d.arm == arm].score_0_100
+series = []
+for arm, col in [("baseline", INK3), ("harness_core", TEAL), ("harness_full", GOOD)]:
+    s = d[d.arm == arm].score_0_100.to_numpy()
     if len(s):
-        ax.hist(s, bins=40, histtype="step", lw=lw, color=color, density=True,
-                label=f"{arm} (mean {s.mean():.0f}, n={len(s):,})")
-ax.set_title(f"The whole score distribution shifts up with the harness   -   {HEADLINE}")
-ax.set_xlabel("rubric score (0-100)"); ax.set_ylabel("density"); ax.legend(framealpha=0.9)
-fig.tight_layout(); plt.show()'''
+        series.append((arm, s, col))
+
+# Overlaid densities of the whole 0-100 distribution -- the entire mass shifts up.
+kde_hist(series,
+         title=f"The whole score distribution shifts up with the harness  --  {HEADLINE}",
+         subtitle="density of the 0-100 rubric score, per arm",
+         xlabel="rubric score (0-100)")'''
 
 
 def _toc() -> str:
@@ -223,39 +228,42 @@ def build(output_dir: Path, *, force: bool = False) -> dict:
 
     c.append(md('<a id="overview"></a>\n## 0 - What is in the dataset\n'
                 "First, load the CSV with a recursive glob (never a hard-coded mount path) and take an "
-                "honest census: how many rows, distinct prompts, models, arms and judges, and what fraction "
-                "of the full prompt registry this interim snapshot covers."))
-    c.append(code(SETUP))
-    c.append(code(HELPERS))
+                "honest census: a row of KPI tiles, then how many rows, distinct prompts, models, arms and "
+                "judges, and what fraction of the full prompt registry this interim snapshot covers."))
+    # First code cell: shared prettify toolkit (PALETTE + HELPERS) embedded, then the live data load.
+    c.append(code(PALETTE + "\n" + HELPERS + "\n" + SETUP_DATA))
+    c.append(code(PAIRED))
     c.append(code(OVERVIEW))
 
     c.append(md('<a id="bydim"></a>\n## 1 - Per-dimension score by arm\n'
                 f"For the headline model `gemma4:31b`, the mean of each reasoned sub-dimension "
-                "(`comp_A .. comp_E`) under `baseline` vs `harness_core`. The five dimensions are the "
-                "reasoned building blocks of the 0-100 score; every one of them lifts when the harness is on."))
+                "(`comp_A .. comp_E`) under `baseline` vs `harness_core`, drawn as a **radar**. The five "
+                "dimensions are the reasoned building blocks of the 0-100 score; every spoke pushes "
+                "outward when the harness is on."))
     c.append(code(BY_DIM))
 
     c.append(md('<a id="dimlift"></a>\n## 2 - Per-dimension lift\n'
-                "Now the *paired* view: average each dimension per (prompt, arm), keep prompts present in "
-                "both arms, and take the mean per-prompt difference `harness_core - baseline`. This isolates "
-                "exactly where the harness adds the most - typically the legal grounding, resource routing, "
-                "and ILO-indicator dimensions a bare model neglects."))
+                "Now the *paired* view as a **dumbbell**: average each dimension per (prompt, arm), keep "
+                "prompts present in both arms, and take the mean per-prompt difference "
+                "`harness_core - baseline`. The labeled gap between the two dots **is** the per-dimension "
+                "lift - it isolates exactly where the harness adds the most (typically the legal grounding, "
+                "resource routing, and ILO-indicator dimensions a bare model neglects)."))
     c.append(code(DIM_LIFT))
 
     c.append(md('<a id="overall"></a>\n## 3 - The overall 0-100 lift\n'
-                "The same paired difference on the overall `score_0_100`. The histogram of per-prompt lift "
+                "The same paired difference on the overall `score_0_100`. The density of per-prompt lift "
                 "sits almost entirely to the right of zero; the printed line reports the mean and a 95% "
-                "confidence interval."))
+                "confidence interval, and the ember line marks the mean."))
     c.append(code(OVERALL))
 
     c.append(md('<a id="judges"></a>\n## 4 - Do the judges agree?\n'
                 "Three judge models grade independently (each excluded from grading its own family). If the "
                 "lift were one lenient judge's artefact, the per-judge means would diverge. Here is the mean "
-                "score per judge under each arm - the ordering baseline < harnessed holds for all of them."))
+                "score per judge as a **slope chart** - every line rises from `baseline` to `harness_core`."))
     c.append(code(JUDGES))
 
     c.append(md('<a id="dist"></a>\n## 5 - Score distribution by arm\n'
-                "Finally, the full shape: overlaid step-histograms of the 0-100 score for the three arms. "
+                "Finally, the full shape: overlaid **densities** of the 0-100 score for the three arms. "
                 "The harness does not just move a few easy prompts - the entire distribution shifts up."))
     c.append(code(DIST))
 
