@@ -1,6 +1,6 @@
 # Codex for Open Source - application answers (DueCare)
 
-Plain-text answers for the OpenAI Codex for Open Source form. Everything here is true and checkable in the repo. The four capped fields are all under 500 characters.
+The four capped fields are all under 500 characters. Everything here is true and you can check it in the repo. There is also an HTML version with copy buttons at docs/codex_application.html.
 
 ## First name
 
@@ -28,32 +28,32 @@ https://github.com/TaylorAmarelTech/gemma4_comp
 
 ## Licensing
 
-It's MIT, all the way through. The root LICENSE is MIT, and every one of the 18 packages sets license = MIT in its pyproject. The public datasets on Kaggle are open too (Creative Commons for the graded scores). Nothing is source-available or held back.
+It's MIT, all the way through. The root license and all 18 packages. The public datasets are open too. Nothing is locked up or held back. Take it, fork it, run it, build on it.
 
 ## Describe your role: are you a primary or core maintainer?
 
-I'm the sole author and maintainer, and I've written every line of it. It started as one person's project and it still is: I do the commits, the releases, the tests, and the docs. The whole workspace (17 packages), the benchmark, the forced-labour indicator engine, the deterministic verifier, and the demo app are all mine.
+Yes, I'm the primary maintainer. It's a solo project at the moment, so that means the code, the tests, the releases, and the docs, and reviewing everything before it goes in. I'd genuinely welcome other people working on it, but for now the maintenance runs through me.
 
 ## Why does this repository qualify?
 
-I'll be honest: it doesn't have the stars or downloads you'd normally screen for. It's a one-person LLM safety project aimed at a problem most benchmarks skip, which is how models answer migrant workers who are in real danger. What it does have is reproducible evidence. The harness raises response quality by about 40 points out of 100 across eight different models, and every graded row is public, so anyone can check the number instead of taking my word for it.
+Here's the truth: nobody's starring this repo, and I get why. But picture a domestic worker whose passport was just taken, asking a chatbot what to do. It answers warmly, confidently, and sends her somewhere that could get her hurt. That's the gap I've spent months closing. I can't show you a download count. I can show you that across eight different models the answers get far safer and more useful, and every graded example is public, so you can read them and judge for yourself.
 
 ## I'm interested in
 
-All three: ChatGPT Pro with Codex for the day-to-day maintenance, Codex Security for the sensitive parts, and API credits to finish the evaluation.
+All three. ChatGPT Pro with Codex for the everyday work, Codex Security for the parts where I can't afford to be wrong, and API credits to finish the evaluation.
 
 ## Why does your project need Codex Security?
 
-It handles data you can't be casual with, like worker chats, ID numbers, and case details, and the whole design is that NGOs run it themselves, on their own machines. So the security actually has to hold. There's a hard anonymization gate before anything leaves the device, and an outbound allowlist that already caught an SSRF bug in the sync endpoint. Right now I'm the only one reviewing any of it. A second set of eyes on the anonymizer and the API surface would help a lot.
+This isn't a toy. People's safety runs through it. It touches the most sensitive things a person has: their messages, their ID, the details of how they're being exploited. The whole point is that a small NGO can run it on a laptop without handing that to anyone. I built the guardrails I know how to: a gate that strips personal data before it leaves the machine, an allowlist that already caught a real hole. But I'm one person. I'd sleep better with someone else checking my work first.
 
 ## How will you use API credits for your project?
 
-Mostly to finish the evaluation. I'm grading the full 78,000-prompt set across every major model, but I run the judges on my own hardware and keep hitting quota limits, so it's been stalled for days at a time. Credits would let me actually complete the cross-model comparison instead of the slice I have, and take the tedious maintainer work off my plate: reviewing PRs, running the regression checks before release, and regenerating the public datasets and reports.
+To finish the work, honestly. I'm testing this across every major model on 78,000 real scenarios, but I run it on my own hardware and keep running out of capacity. It's been frozen for days right now because I hit a limit. Credits would let me finish the comparison I started, and hand off the grind, the code reviews, the release checks, so I can put my time where it counts: making the answers better for the people who actually need them.
 
 ## Anything else we should know?
 
-One thing worth saying: I built this for the Gemma 4 hackathon, but it was never really about Gemma. The same harness works on GPT-OSS, Llama, Qwen, and Mistral, whatever you point it at, and the improvement shows up on all of them. It's aimed at something every model gets wrong: sounding confident and helpful while handing someone in real danger advice that could get them hurt. It isn't popular yet. I genuinely think it should be.
+One last thing. I made this for a Gemma hackathon, but it was never about winning, or about one model. It works on all of them, GPT-OSS, Llama, Qwen, Mistral. It's about a failure they share: being warmly, confidently wrong with someone whose life is on the line. Almost nobody knows this project exists. I think they should, not for my sake, but because this problem deserves the attention and almost no one is working on it.
 
 ## If a reviewer wants to dig in
 
-Results, live: https://duecare-ai.com/evaluation (downloads at https://duecare-ai.com/data). Code: https://github.com/TaylorAmarelTech/gemma4_comp, starting with README.md and RESULTS.md. The numbers come from grading each response baseline versus harnessed, scored 0-100 by three different judge models across five safety dimensions, and a separate model-free checker agrees across all 78,719 prompts, so the result doesn't lean on any one judge.
+The results are live at https://duecare-ai.com/evaluation, with the downloads at https://duecare-ai.com/data. The code is at https://github.com/TaylorAmarelTech/gemma4_comp, and README.md and RESULTS.md are the place to start. Every number comes from grading each answer twice, the model on its own and the model with the harness, scored by three separate judge models across five safety dimensions. A separate checker that uses no model at all agrees across all 78,719 scenarios, so none of it rests on a single judge.
