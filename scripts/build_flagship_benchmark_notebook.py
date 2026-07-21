@@ -79,7 +79,7 @@ for ax, col, title in zip(axes, ["arm", "judge", "model"], ["by arm", "by judge"
     ax.set_title(f"grade rows {title}"); ax.grid(axis="y", alpha=0)
     for i, v in enumerate(vc.values):
         ax.text(v, i, f" {v:,}", va="center", fontsize=8, color=INK3)
-fig.suptitle("What is in the dataset — grade rows by arm, judge, and model", fontsize=13, fontweight="bold", y=1.03)
+fig.suptitle("What is in the dataset - grade rows by arm, judge, and model", fontsize=13, fontweight="bold", y=1.03)
 fig.tight_layout(); plt.show()'''
 
 EXPLORE_SHIFT = '''fig, ax = plt.subplots(figsize=(9.6, 4.4))
@@ -87,8 +87,8 @@ for arm, color, lw in [("baseline", INK3, 2), ("harness_core", TEAL, 2.6), ("har
     s = grades[(grades.model == HEADLINE) & (grades.arm == arm)].score_0_100
     if len(s):
         ax.hist(s, bins=40, histtype="step", lw=lw, color=color, label=f"{arm} (mean {s.mean():.0f})", density=True)
-ax.set_title(f"The whole score distribution shifts up with the harness   ·   {HEADLINE}")
-ax.set_xlabel("rubric score (0–100)"); ax.set_ylabel("density"); ax.legend(framealpha=0.9)
+ax.set_title(f"The whole score distribution shifts up with the harness   -   {HEADLINE}")
+ax.set_xlabel("rubric score (0-100)"); ax.set_ylabel("density"); ax.legend(framealpha=0.9)
 fig.tight_layout(); plt.show()'''
 
 LIFT = '''def per_prompt_lift(df, model, teacher="harness_core", base="baseline"):
@@ -112,8 +112,8 @@ ax.axvline(mean_lift, color=EMBER, lw=2.4)
 top = ax.get_ylim()[1]
 ax.annotate(f"mean +{mean_lift:.1f}", xy=(mean_lift, top*0.92), xytext=(mean_lift+8, top*0.92),
             color=EMBER, fontweight="bold", arrowprops=dict(color=EMBER, arrowstyle="->", lw=1.6))
-ax.set_title(f"The harness lifts almost every prompt   ·   {HEADLINE}   ·   n={len(lift):,} paired")
-ax.set_xlabel("per-prompt lift:  harness_core − baseline   (points / 100)")
+ax.set_title(f"The harness lifts almost every prompt   -   {HEADLINE}   -   n={len(lift):,} paired")
+ax.set_xlabel("per-prompt lift:  harness_core - baseline   (points / 100)")
 ax.set_ylabel("number of prompts")
 fig.tight_layout(); plt.show()'''
 
@@ -130,7 +130,7 @@ ax.barh(y + 0.2, board.harnessed, 0.4, color=TEAL, label="harnessed (core)")
 for i, (_, r) in enumerate(board.iterrows()):
     ax.text(r.harnessed + 1.2, i + 0.2, f"+{r.lift:.0f}", va="center", color=EMBER, fontweight="bold")
 ax.set_yticks(y); ax.set_yticklabels([f"{m}  (n={int(n):,})" for m, n in zip(board.model, board.n)])
-ax.set_xlabel("mean rubric score (0–100)"); ax.set_xlim(0, 100)
+ax.set_xlabel("mean rubric score (0-100)"); ax.set_xlim(0, 100)
 ax.set_title("Every model improves under the harness"); ax.grid(axis="y", alpha=0)
 ax.legend(loc="lower right", framealpha=0.9)
 fig.tight_layout(); plt.show()'''
@@ -149,8 +149,8 @@ for i, v in enumerate(vals):
     ax.text(i, v + (0.5 if v >= 0 else -1.4), f"{v:+.1f}", ha="center", color=INK2, fontweight="bold")
 ax.axhline(0, color=INK3, lw=1)
 ax.set_xticks(range(len(keys))); ax.set_xticklabels([f"{k}\\n{NAMES[k]}" for k in keys])
-ax.set_ylabel("mean component lift (0–100)")
-ax.set_title(f"Where the lift comes from — by rubric dimension   ·   {HEADLINE}")
+ax.set_ylabel("mean component lift (0-100)")
+ax.set_title(f"Where the lift comes from - by rubric dimension   -   {HEADLINE}")
 fig.tight_layout(); plt.show()'''
 
 CHART_HEATMAP = '''models = [m for m in grades.model.unique() if len(per_prompt_lift(grades, m)[0]) >= 150]
@@ -172,7 +172,7 @@ for i in range(len(models)):
             ax.text(j, i, f"+{mat[i, j]:.0f}", ha="center", va="center", fontsize=9,
                     color=INK if mat[i, j] < mat[~np.isnan(mat)].max()*0.6 else PAPER)
 fig.colorbar(im, ax=ax, label="mean lift", fraction=0.046, pad=0.04)
-ax.set_title("Per-dimension lift × model — consistent, not one lucky number")
+ax.set_title("Per-dimension lift x model - consistent, not one lucky number")
 fig.tight_layout(); plt.show()'''
 
 CHART_JUDGES = '''judges = sorted(grades.judge.unique())
@@ -186,8 +186,8 @@ ax.bar(range(len(judges)), vals, color=TEAL, edgecolor=PAPER, width=0.6)
 for i, (v, n) in enumerate(zip(vals, ns)):
     ax.text(i, v + 0.6, f"+{v:.1f}\\n(n={n:,})", ha="center", color=INK2, fontweight="bold")
 ax.set_xticks(range(len(judges))); ax.set_xticklabels(judges, fontsize=9.5)
-ax.set_ylabel("mean lift (0–100)")
-ax.set_title("All three judges independently agree — the lift is not one judge's quirk")
+ax.set_ylabel("mean lift (0-100)")
+ax.set_title("All three judges independently agree - the lift is not one judge's quirk")
 fig.tight_layout(); plt.show()'''
 
 CHART_CONV = '''rng = np.random.default_rng(7)
@@ -195,13 +195,13 @@ L = lift.values[rng.permutation(len(lift))]
 run = np.cumsum(L) / np.arange(1, len(L) + 1)
 x = np.arange(1, len(run) + 1)
 fig, ax = plt.subplots(figsize=(9.6, 4.3))
-ax.fill_between(x, mean_lift - 1, mean_lift + 1, color=EMBER, alpha=0.10, label="±1 pt band")
+ax.fill_between(x, mean_lift - 1, mean_lift + 1, color=EMBER, alpha=0.10, label="+/-1 pt band")
 ax.axhline(mean_lift, color=EMBER, lw=1.3, ls="--")
 ax.plot(x, run, color=TEAL, lw=1.9)
 ax.set_xscale("log")
 ax.set_xlabel("prompts graded (random order, log scale)"); ax.set_ylabel("running mean lift")
 ax.set_ylim(mean_lift - 16, mean_lift + 16)
-ax.set_title("The result converges fast — a random ~100-prompt sample already recovers it")
+ax.set_title("The result converges fast - a random ~100-prompt sample already recovers it")
 ax.legend(loc="lower right", framealpha=0.9)
 fig.tight_layout(); plt.show()'''
 
@@ -221,10 +221,10 @@ CHART_DIFF = '''if meta is not None and "difficulty" in meta.columns:
         for i, (_, r) in enumerate(dd.iterrows()):
             ax.text(i, r.lift + 0.6, f"+{r.lift:.0f}\\n(n={int(r.n):,})", ha="center", color=INK2, fontweight="bold")
         ax.set_xticks(range(len(dd))); ax.set_xticklabels(dd.difficulty)
-        ax.set_ylabel("mean lift (0–100)"); ax.set_title("The harness helps the hardest cases the most")
+        ax.set_ylabel("mean lift (0-100)"); ax.set_title("The harness helps the hardest cases the most")
         fig.tight_layout(); plt.show()
 else:
-    print("prompt_metadata.csv not attached — skipping the by-difficulty chart")'''
+    print("prompt_metadata.csv not attached - skipping the by-difficulty chart")'''
 
 CHART_CAT = '''if meta is not None and "category" in meta.columns:
     d = grades[grades.model == HEADLINE].merge(meta[["prompt_id", "category"]], on="prompt_id", how="left")
@@ -241,11 +241,11 @@ CHART_CAT = '''if meta is not None and "category" in meta.columns:
     for i, (_, r) in enumerate(show.iterrows()):
         ax.text(r.lift, i, f" +{r.lift:.0f}", va="center", fontsize=8, color=INK3)
     ax.set_yticks(range(len(show))); ax.set_yticklabels(show.category, fontsize=8)
-    ax.set_xlabel("mean lift (0–100)"); ax.grid(axis="y", alpha=0)
-    ax.set_title("Lift by attack category — lowest (ember) and highest (teal)")
+    ax.set_xlabel("mean lift (0-100)"); ax.grid(axis="y", alpha=0)
+    ax.set_title("Lift by attack category - lowest (ember) and highest (teal)")
     fig.tight_layout(); plt.show()
 else:
-    print("prompt_metadata.csv not attached — skipping the by-category chart")'''
+    print("prompt_metadata.csv not attached - skipping the by-category chart")'''
 
 
 def _toc() -> str:
@@ -257,7 +257,7 @@ def _toc() -> str:
         ("4", "Consistency across judges", "judges"),
         ("5", "How much data you need", "conv"),
         ("6", "By difficulty and category", "slices"),
-        ("7", "What it proves — and does not", "boundary"),
+        ("7", "What it proves - and does not", "boundary"),
     ]
     return "\n".join(f"{n}. [{t}](#{a})" for n, t, a in items)
 
@@ -270,17 +270,17 @@ def build(output_dir: Path, *, force: bool = False) -> dict:
     c = []
     c.append(md(
         "# Does a safety harness actually make an LLM better at spotting migrant-worker exploitation?\n\n"
-        "**Short answer: yes — and by a lot.** On a 3-judge, 5-dimension rubric, wrapping a model in the "
+        "**Short answer: yes - and by a lot.** On a 3-judge, 5-dimension rubric, wrapping a model in the "
         "DueCare harness (persona + GREP rules + retrieval + tools) lifts the headline model **+40.7 / 100** "
         "over **7,953 paired prompts**, improving **99.8% of them** (only 15 scored lower). Every model "
         "improves, all three judges agree, the hardest cases improve most, and a random ~100-prompt sample "
         "already recovers the number.\n\n"
         "Everything below is recomputed **live** from the public "
-        f"[`duecare-harness-benchmark-grades`]({DS}) dataset — no hidden state, CPU only, so you can verify "
+        f"[`duecare-harness-benchmark-grades`]({DS}) dataset - no hidden state, CPU only, so you can verify "
         "each figure yourself.\n\n"
         "### Contents\n" + _toc() + "\n\n"
         "> **Honest boundary (please read).** These are **LLM-judge rubric measurements** over "
-        "synthetic / composite prompts — *silver* labels, not human-verified gold, and **not** a claim of "
+        "synthetic / composite prompts - *silver* labels, not human-verified gold, and **not** a claim of "
         "real-world detection. What is demonstrated is improved *tested behaviour*: evidence-first reasoning, "
         "refusal discipline, ILO-indicator grounding, and privacy boundaries."))
     c.append(md(
@@ -290,64 +290,64 @@ def build(output_dir: Path, *, force: bool = False) -> dict:
         "GREP indicator rules, retrieval over an ILO / legal corpus, and deterministic tools; *harness_full* "
         "adds online lookups. This notebook measures whether that wrapper changes the answer for the better, "
         "graded by a panel of three independent judge models across five rubric dimensions "
-        "(**A** indicator · **B** legal · **C** refusal · **D** resources · **E** privacy)."))
+        "(**A** indicator - **B** legal - **C** refusal - **D** resources - **E** privacy)."))
 
-    c.append(md('<a id="explore"></a>\n## 0 · What is in the dataset'))
+    c.append(md('<a id="explore"></a>\n## 0 - What is in the dataset'))
     c.append(code(SETUP))
     c.append(code(EXPLORE_SUMMARY))
     c.append(code(EXPLORE_DIST))
     c.append(md("The three arms are graded on the same prompts, so the comparison is *paired*. Here is how the "
-                "raw score distribution moves when the harness is switched on — the whole curve shifts right:"))
+                "raw score distribution moves when the harness is switched on - the whole curve shifts right:"))
     c.append(code(EXPLORE_SHIFT))
 
-    c.append(md('<a id="headline"></a>\n## 1 · The headline: does it help?\n'
+    c.append(md('<a id="headline"></a>\n## 1 - The headline: does it help?\n'
                 "We average the three judges per (prompt, arm), then take the per-prompt difference "
-                "`harness_core − baseline`. The distribution sits almost entirely to the right of zero."))
+                "`harness_core - baseline`. The distribution sits almost entirely to the right of zero."))
     c.append(code(LIFT))
     c.append(code(CHART_HIST))
 
-    c.append(md('<a id="board"></a>\n## 2 · It is not one model\n'
-                "The same paired lift for every model with ≥150 paired prompts — baseline (grey) vs harnessed "
+    c.append(md('<a id="board"></a>\n## 2 - It is not one model\n'
+                "The same paired lift for every model with >=150 paired prompts - baseline (grey) vs harnessed "
                 "(teal), with the mean lift in ember. The effect is not specific to the headline model."))
     c.append(code(CHART_BOARD))
 
-    c.append(md('<a id="dims"></a>\n## 3 · Where the lift comes from\n'
-                "Splitting the score into its five rubric dimensions shows the harness moves *all* of them — "
-                "and the per-dimension × per-model heatmap shows the pattern is consistent, not one lucky cell."))
+    c.append(md('<a id="dims"></a>\n## 3 - Where the lift comes from\n'
+                "Splitting the score into its five rubric dimensions shows the harness moves *all* of them - "
+                "and the per-dimension x per-model heatmap shows the pattern is consistent, not one lucky cell."))
     c.append(code(CHART_DIMS))
     c.append(code(CHART_HEATMAP))
 
-    c.append(md('<a id="judges"></a>\n## 4 · Consistency across judges\n'
+    c.append(md('<a id="judges"></a>\n## 4 - Consistency across judges\n'
                 "Three judge models grade independently (each excluded from grading its own family). If the "
                 "lift were an artefact of one lenient judge, they would disagree. They do not:"))
     c.append(code(CHART_JUDGES))
 
-    c.append(md('<a id="conv"></a>\n## 5 · How much data do you actually need?\n'
+    c.append(md('<a id="conv"></a>\n## 5 - How much data do you actually need?\n'
                 "Running the per-prompt lift in random order, the estimate stabilises within a point after "
                 "~100 prompts. The exhaustive sweep still runs to completion, but the conclusion is not fragile."))
     c.append(code(CHART_CONV))
 
-    c.append(md('<a id="slices"></a>\n## 6 · By difficulty and category\n'
+    c.append(md('<a id="slices"></a>\n## 6 - By difficulty and category\n'
                 "Joining the prompt metadata: lift rises with difficulty (where a bare model struggles most), "
-                "and holds across attack categories — the ember bars are the *lowest*-lift categories, still positive."))
+                "and holds across attack categories - the ember bars are the *lowest*-lift categories, still positive."))
     c.append(code(CHART_DIFF))
     c.append(code(CHART_CAT))
 
     c.append(md(
-        '<a id="boundary"></a>\n## 7 · What this proves — and what it does not\n\n'
+        '<a id="boundary"></a>\n## 7 - What this proves - and what it does not\n\n'
         "**Proves.** Wrapping a model in the DueCare harness produces a large, consistent, dimension-wide, "
-        "difficulty-scaling improvement on the tested rubric — across every model and every judge, robust to "
+        "difficulty-scaling improvement on the tested rubric - across every model and every judge, robust to "
         "sample size.\n\n"
         "**Does not prove.** Real-world detection quality, that any specific worker is helped, or that the "
         "rubric is ground truth. Judges are LLMs; prompts are synthetic / composite; labels are *silver*.\n\n"
         "### Use the data\n"
         f"- **Benchmark any model:** attach [`{DATASET_ID.split('/')[1]}`]({DS}), pair baseline vs harness_core "
         "per prompt, take the mean lift.\n"
-        f"- **Fine-tune:** the prompts where the harness clearly lifts a weak baseline become SFT/DPO pairs — "
+        f"- **Fine-tune:** the prompts where the harness clearly lifts a weak baseline become SFT/DPO pairs - "
         f"see the separate [`duecare-cot-reasoning`]({COT_DS}) chain-of-thought stream.\n"
         f"- **Go deeper:** the [**Start Here** index]({INDEX}) links the full ~12-notebook collection; the "
         f"[source repository]({REPO}) has the harness, the grader, and the exhaustive per-dimension sweep.\n\n"
-        "License: MIT. Scores + prompt metadata only — no response text, no PII."))
+        "License: MIT. Scores + prompt metadata only - no response text, no PII."))
     nb = nbf.v4.new_notebook()
     nb["cells"] = c
     nb["metadata"] = {"kernelspec": {"name": "python3", "display_name": "Python 3", "language": "python"},
