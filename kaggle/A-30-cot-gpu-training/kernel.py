@@ -135,7 +135,7 @@ def main() -> None:
 
     dataset = Dataset.from_dict({"text": [to_text(r) for r in rows]})
     trainer = SFTTrainer(
-        model=model, train_dataset=dataset,
+        model=model, train_dataset=dataset, processing_class=tokenizer,
         args=SFTConfig(
             dataset_text_field="text", per_device_train_batch_size=1, gradient_accumulation_steps=4,
             warmup_steps=5, max_steps=MAX_STEPS, learning_rate=2e-4, logging_steps=1, optim="adamw_torch",
