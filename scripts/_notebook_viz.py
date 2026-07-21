@@ -141,8 +141,9 @@ def dumbbell(labels, lo, hi, lo_lab="baseline", hi_lab="harnessed", title="", su
     ax.grid(axis="y", alpha=0); ax.invert_yaxis(); ax.legend(loc="lower right"); _title(ax, title, subtitle)
     plt.tight_layout(); plt.show()
 
-def slope(labels, left, right, left_lab="baseline", right_lab="harnessed", title="", subtitle=None, ylabel=""):
-    """Slope chart: one line per label from a left value to a right value. Labels de-overlap when values tie."""
+def slope(labels, left, right, left_lab="baseline", right_lab="harnessed", title="", subtitle=None, ylabel="", invert=False):
+    """Slope chart: one line per label from a left value to a right value. Labels de-overlap when values tie.
+    invert=True flips the y-axis (ranks: pass positive ranks, rank 1 on top, labels stay positive)."""
     fig, ax = plt.subplots(figsize=(7.8, 5.2))
     allv = list(left) + list(right)
     span = (max(allv) - min(allv)) or 1.0
@@ -162,7 +163,9 @@ def slope(labels, left, right, left_lab="baseline", right_lab="harnessed", title
         ax.text(-0.04, la, f"{lab}  {a:.0f}", ha="right", va="center", fontsize=9.5, color=INK2)
         ax.text(1.04, rb, f"{b:.0f}", ha="left", va="center", fontsize=10, color=EMBER, fontweight="bold")
     ax.set_xlim(-0.5, 1.5); ax.set_xticks([0, 1]); ax.set_xticklabels([left_lab, right_lab], fontsize=11.5, fontweight="bold")
-    ax.set_ylabel(ylabel); ax.grid(axis="x", alpha=0); _title(ax, title, subtitle); plt.tight_layout(); plt.show()
+    ax.set_ylabel(ylabel); ax.grid(axis="x", alpha=0)
+    if invert: ax.invert_yaxis()
+    _title(ax, title, subtitle); plt.tight_layout(); plt.show()
 
 def kde_hist(series_list, title="", subtitle=None, xlabel="", vlines=None):
     """Filled histogram + smooth density per series. series_list: list of (name, values, color)."""
