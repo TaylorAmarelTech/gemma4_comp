@@ -41,12 +41,15 @@ mpl.rcParams.update({
     "axes.spines.top": False, "axes.spines.right": False, "figure.dpi": 120,
 })
 
-BASE = "/kaggle/input/duecare-harness-benchmark-grades"
-grades = pd.read_csv(sorted(glob.glob(f"{BASE}/panel_grades.csv"))[0])
-try:
-    meta = pd.read_csv(f"{BASE}/prompt_metadata.csv")
-except Exception:
-    meta = None
+import os
+print("mounted under /kaggle/input:", os.listdir("/kaggle/input") if os.path.exists("/kaggle/input") else "none")
+# the dataset may mount under a path other than its slug, so search recursively for the file
+csvs = glob.glob("/kaggle/input/**/panel_grades.csv", recursive=True)
+if not csvs:
+    raise SystemExit("attach the dataset taylorsamarel/duecare-harness-benchmark-grades (panel_grades.csv not found)")
+grades = pd.read_csv(sorted(csvs)[0])
+mcsv = glob.glob("/kaggle/input/**/prompt_metadata.csv", recursive=True)
+meta = pd.read_csv(mcsv[0]) if mcsv else None
 HEADLINE = "gemma4:31b"
 print(f"loaded {len(grades):,} grade rows | {grades.model.nunique()} models | arms {sorted(grades.arm.unique())} | judges {sorted(grades.judge.unique())}")
 grades.head(3)'''
