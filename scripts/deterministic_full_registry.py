@@ -32,7 +32,7 @@ def main(argv=None) -> int:
     ap.add_argument("--results", default="reports/rich_lift/results.jsonl")
     ap.add_argument("--model", default="gemma4:31b")
     ap.add_argument("--arm", default="harness_core")
-    ap.add_argument("--outdir", default="reports/external_review")
+    ap.add_argument("--outdir", default="docs/external_review")
     args = ap.parse_args(argv)
 
     from duecare.kit.verify import verify
