@@ -103,7 +103,27 @@ def _title(ax, title, subtitle=None) -> None:
 
 def pretty_table(df, *, caption=None, fmt=None, gradient=None, cmap="BuGn", bars=None,
                  bar_color=None, highlight_row=None, max_rows=None):
-    """Publication-grade pandas Styler. gradient/bars are column-name lists; highlight_row is an index label."""
+    """Style a DataFrame as a publication-grade pandas Styler (gradients, in-cell bars, caption).
+
+    Args:
+        df: the DataFrame to render.
+        caption: optional caption shown above the table.
+        fmt: optional pandas Styler format spec (str or {column: spec} dict).
+        gradient: list of column names to shade with a background color gradient.
+        cmap: matplotlib colormap name used for the gradient (default "BuGn").
+        bars: list of column names to draw proportional in-cell bars in.
+        bar_color: bar fill color (defaults to the DueCare soft-teal).
+        highlight_row: index label of a single row to highlight (ember tint).
+        max_rows: if set, render only the first ``max_rows`` rows.
+
+    Returns:
+        A styled ``pandas.io.formats.style.Styler`` (call ``.to_html()`` to embed).
+
+    Example:
+        >>> import pandas as pd
+        >>> df = pd.DataFrame({"model": ["a", "b"], "lift": [1.2, 3.4]})
+        >>> sty = pretty_table(df, caption="lift", gradient=["lift"], bars=["lift"])
+    """
     d = df.head(max_rows) if max_rows else df
     sty = d.style
     if fmt:
@@ -141,7 +161,20 @@ def pretty_table(df, *, caption=None, fmt=None, gradient=None, cmap="BuGn", bars
 
 
 def stat_cards(items, figsize=None, *, show: bool = True) -> Figure:
-    """Row of big-number KPI tiles. items: list of (value, label, color). Returns the Figure."""
+    """Draw a row of big-number KPI tiles (one rounded card per metric).
+
+    Args:
+        items: list of ``(value, label, color)`` tuples, one per tile; ``value`` is rendered big.
+        figsize: optional matplotlib figure size; defaults to a width that scales with the tile count.
+        show: display the figure when True (notebook default); pass False to render headless.
+
+    Returns:
+        The matplotlib ``Figure`` (so callers can embed it as a PNG).
+
+    Example:
+        >>> fig = stat_cards([("+40.7", "core lift", "#c15b2e"), ("99.8%", "win rate", "#2f7d8c")],
+        ...                  show=False)
+    """
     n = len(items)
     fig, ax = plt.subplots(figsize=figsize or (2.75 * n, 1.95))
     ax.axis("off")
@@ -156,7 +189,24 @@ def stat_cards(items, figsize=None, *, show: bool = True) -> Figure:
 
 
 def radar(labels, series, title="", subtitle=None, rmax=None, *, show: bool = True) -> Figure:
-    """Spider chart. series: list of (name, values, color). Returns the Figure."""
+    """Draw a spider/radar chart (one filled polygon per series over shared spokes).
+
+    Args:
+        labels: spoke labels, one per axis (e.g. the five rubric dimensions).
+        series: list of ``(name, values, color)`` tuples; ``values`` has one number per label.
+        title: chart title.
+        subtitle: optional caption drawn under the chart.
+        rmax: optional fixed radial maximum (keeps multiple radars comparable).
+        show: display the figure when True; pass False to render headless.
+
+    Returns:
+        The matplotlib ``Figure``.
+
+    Example:
+        >>> fig = radar(["A", "B", "C", "D", "E"],
+        ...             [("baseline", [8, 4, 20, 6, 3], "#5B5F68"),
+        ...              ("core", [16, 9, 24, 12, 8], "#2f7d8c")], show=False)
+    """
     N = len(labels)
     ang = list(np.linspace(0, 2 * np.pi, N, endpoint=False))
     ang += ang[:1]
@@ -183,7 +233,26 @@ def radar(labels, series, title="", subtitle=None, rmax=None, *, show: bool = Tr
 
 def dumbbell(labels, lo, hi, lo_lab="baseline", hi_lab="harnessed", title="", subtitle=None,
              xlabel="", xlim=None, *, show: bool = True) -> Figure:
-    """Lollipop/dumbbell with the delta labeled above each connector. Returns the Figure."""
+    """Draw a lollipop/dumbbell chart: a connector per row from a low to a high value, delta labeled.
+
+    Args:
+        labels: one row label per (lo, hi) pair.
+        lo: the low/left values (e.g. baseline scores), one per label.
+        hi: the high/right values (e.g. harnessed scores), one per label.
+        lo_lab: legend label for the low dots (default "baseline").
+        hi_lab: legend label for the high dots (default "harnessed").
+        title: chart title.
+        subtitle: optional caption under the title.
+        xlabel: x-axis label.
+        xlim: optional ``(min, max)`` x-axis range.
+        show: display the figure when True; pass False to render headless.
+
+    Returns:
+        The matplotlib ``Figure``.
+
+    Example:
+        >>> fig = dumbbell(["gemma4:31b"], [48.4], [89.1], title="baseline -> core", show=False)
+    """
     y = np.arange(len(labels))
     fig, ax = plt.subplots(figsize=(9.8, 0.64 * len(labels) + 1.8))
     for yi, a, b in zip(y, lo, hi):
@@ -242,7 +311,23 @@ def slope(labels, left, right, left_lab="baseline", right_lab="harnessed", title
 
 
 def kde_hist(series_list, title="", subtitle=None, xlabel="", vlines=None, *, show: bool = True) -> Figure:
-    """Filled histogram + smooth density per series. series_list: list of (name, values, color). Returns the Figure."""
+    """Draw a filled histogram plus a smooth density curve per series (scipy KDE, step fallback).
+
+    Args:
+        series_list: list of ``(name, values, color)`` tuples; ``values`` is a 1-D array of samples.
+        title: chart title.
+        subtitle: optional caption under the title.
+        xlabel: x-axis label.
+        vlines: optional list of ``(x, color, label)`` vertical reference lines (e.g. arm means).
+        show: display the figure when True; pass False to render headless.
+
+    Returns:
+        The matplotlib ``Figure``.
+
+    Example:
+        >>> fig = kde_hist([("baseline", [40, 45, 50], "#5B5F68"),
+        ...                 ("core", [80, 88, 92], "#2f7d8c")], xlabel="score", show=False)
+    """
     fig, ax = plt.subplots(figsize=(9.8, 4.7))
     for name, vals, col in series_list:
         vals = np.asarray(vals, dtype=float)
@@ -270,7 +355,25 @@ def kde_hist(series_list, title="", subtitle=None, xlabel="", vlines=None, *, sh
 
 def heatmap(mat, row_labels, col_labels, title="", subtitle=None, cmap="BuGn", fmt="+.1f",
             cbar_label="", *, show: bool = True) -> Figure:
-    """Annotated heatmap (seaborn if present, matplotlib fallback). Returns the Figure."""
+    """Draw an annotated heatmap of a 2-D matrix (seaborn when available, matplotlib fallback).
+
+    Args:
+        mat: a 2-D array-like of numbers, shape ``(len(row_labels), len(col_labels))``.
+        row_labels: y-axis tick labels, one per row.
+        col_labels: x-axis tick labels, one per column.
+        title: chart title.
+        subtitle: optional caption under the title.
+        cmap: matplotlib colormap name (default "BuGn").
+        fmt: cell annotation format (default "+.1f").
+        cbar_label: colorbar label.
+        show: display the figure when True; pass False to render headless.
+
+    Returns:
+        The matplotlib ``Figure``.
+
+    Example:
+        >>> fig = heatmap([[1.2, -0.3], [0.8, 2.1]], ["m1", "m2"], ["A", "B"], show=False)
+    """
     fig, ax = plt.subplots(figsize=(1.15 * len(col_labels) + 3, 0.62 * len(row_labels) + 2.2))
     arr = np.asarray(mat, dtype=float)
     try:

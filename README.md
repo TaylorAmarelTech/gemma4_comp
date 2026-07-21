@@ -220,6 +220,35 @@ python -c "from duecare.server import create_app; from duecare.server.state impo
 ---
 
 
+## Notebooks, datasets & the reusable kit
+
+Beyond the interactive kernels, DueCare publishes a suite of CPU-safe **analysis
+notebooks**, the open **datasets** they recompute their figures from, and an
+importable **`duecare-llm-kit`** package. Full catalog (live + queued, with
+one-line descriptions and slugs): [`docs/NOTEBOOKS.md`](./docs/NOTEBOOKS.md).
+Browse the same surfaces on the hub at
+[duecare-ai.com/data](https://duecare-ai.com/data).
+
+- **Start Here (live):** [`duecare-harness-lift-benchmark-start-here`](https://www.kaggle.com/code/taylorsamarel/duecare-harness-lift-benchmark-start-here)
+  and the flagship [`duecare-does-a-safety-harness-help`](https://www.kaggle.com/code/taylorsamarel/duecare-does-a-safety-harness-help)
+  recompute the +40.7 headline and cross-model board from the public
+  [grades dataset](https://www.kaggle.com/datasets/taylorsamarel/duecare-harness-benchmark-grades).
+- **The reusable kit** lifts the indicator engine, chart helpers, HTML-report
+  generator, corpus exporter, and deterministic verifier out of the notebooks
+  into importable Python -- see [`packages/duecare-llm-kit`](./packages/duecare-llm-kit/):
+
+  ```bash
+  pip install duecare-llm-kit
+  ```
+
+  ```python
+  from duecare.kit import scan, generate_report
+
+  scan("The agency took my passport and I have not been paid.")  # ILO forced-labour indicators
+  generate_report("panel.jsonl", "duecare_report.html")          # self-contained HTML lift report
+  ```
+
+
 ## Architecture: multi-harness pattern
 
 DueCare is built around **six self-describing harness modules** on the kernel
