@@ -67,7 +67,21 @@
 	.ms-section > .wrap { display: block; }
 	.ms-section > .wrap > :nth-child(3) { margin-top: 24px; }
 	.ms-do, .ms-dont, .ms-pillars, .ms-story, .ms-eco { margin-top: 28px; }
+	.ms-kpis { grid-template-columns: repeat(2, 1fr); }
 }
+/* Standardized proof band — matches the .proof-kpis headline cards on the homepage
+   and the .ev-metrics cards on /evaluation so the same numbers read the same way. */
+.ms-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--paper); margin-top: 28px; }
+@media (max-width: 720px) { .ms-kpis { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 420px) { .ms-kpis { grid-template-columns: 1fr; } }
+.ms-kpis .k { padding: 22px 24px; border-right: 1px solid var(--line); border-top: 1px solid var(--line); }
+.ms-kpis .k:nth-child(-n+4) { border-top: none; }
+.ms-kpis .k:last-child { border-right: none; }
+.ms-kpis .k-lbl { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.10em; color: var(--ink-3); text-transform: uppercase; }
+.ms-kpis .k-val { font-size: 27px; margin-top: 8px; letter-spacing: -0.02em; line-height: 1; }
+.ms-kpis .k-val .u { font-size: 15px; color: var(--ink-3); letter-spacing: 0; }
+.ms-kpis .k-sub { font-size: 12.5px; color: var(--ink-3); margin-top: 8px; line-height: 1.45; }
+.ms-kpis-note { margin-top: 14px; font-size: 13.5px; color: var(--ink-3); line-height: 1.6; max-width: 72ch; }
 </style>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
 </head><body>{% set active_nav = "mission" %}
@@ -77,7 +91,7 @@
 <div>
 <span class="kicker">Mission</span>
 <h1>Better safety guidance without centralizing private case data.</h1>
-<p class="lede">DueCare AI exists to help workers, trusted organizations, platforms, regulators, and researchers recognize exploitation risks earlier, act with better information, and share safety knowledge across institutions, without centralizing raw private case data.</p>
+<p class="lede">When a worker asks whether a recruitment fee or a passport handover is normal, the answer has to be right. DueCare is a thin, model-agnostic legal-grounding layer for migrant-worker protection: before a large language model answers, it fires deterministic ILO-indicator rules, retrieves the governing law, and runs verified tool calls, then adds that grounding to the prompt and nothing else. It exists to help workers, trusted organizations, platforms, regulators, and researchers recognize exploitation risks earlier, act with better information, and share safety knowledge across institutions &mdash; without centralizing raw private case data.</p>
 </div>
 <nav class="toc hero-toc" aria-label="Sections on this page">
 <h3>On this page</h3>
@@ -128,6 +142,13 @@
 <p>The mission isn&rsquo;t a single product. It&rsquo;s shared infrastructure: a thin public hub that holds reviewed knowledge, paired with private deployments at the edges where worker context lives.</p>
 <p>That infrastructure also gives NGOs a safer way to coordinate with each other and with regulators: share vetted public sources, pattern labels, contact updates, and anonymized corridor trends, not raw case files, names, documents, or narratives.</p>
 </div>
+<div class="ms-kpis">
+<div class="k"><div class="k-lbl">Mean harness lift</div><div class="k-val">+40.7 <span class="u">/ 100</span></div><div class="k-sub">gemma4:31b &middot; 48.4 &rarr; 89.1 component judge</div></div>
+<div class="k"><div class="k-lbl">Prompts improved</div><div class="k-val">99.8<span class="u">%</span></div><div class="k-sub">15 of 7,953 scored worse</div></div>
+<div class="k"><div class="k-lbl">Paired prompts</div><div class="k-val">7,953</div><div class="k-sub">one model, answered twice, judged twice</div></div>
+<div class="k"><div class="k-lbl">Judge panel</div><div class="k-val">3-model</div><div class="k-sub">independent; holds across every model tested</div></div>
+</div>
+<p class="ms-kpis-note">Measured, not asserted: an independent three-model panel scored each answer bare versus grounded, 0&ndash;100 across five safety dimensions, and the paired delta is the lift. It is benchmark evidence about response quality, not a claim of real-world trafficking detection &mdash; a blinded human-expert validation is the honest next step. Full results on <a href="/evaluation">the evaluation page</a>.</p>
 </div></section>
 
 <section id="what-we-do" class="ms-section" data-screen-label="Mission &middot; What we do"><div class="wrap">
