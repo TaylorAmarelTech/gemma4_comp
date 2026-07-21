@@ -38,6 +38,9 @@ jobs:
           python -m pip install --no-cache-dir --upgrade pip
           python -m pip install --no-cache-dir -e packages/duecare-llm-kit pytest
 
+      - name: Engine sync check (kit engine == ENGINE source of truth)
+        run: python scripts/sync_kit_engine.py --check
+
       - name: Kit unit tests
         run: python -m pytest packages/duecare-llm-kit/tests -q
 

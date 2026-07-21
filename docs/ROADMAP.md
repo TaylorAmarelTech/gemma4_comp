@@ -52,6 +52,16 @@ The single highest-leverage theme. Make it impossible for a change to silently d
   improvement loop becomes a documented, anchored graph (see `docs/ARCHITECTURE.md`, to write).
 - **Where-it-hurts tracking.** The 46 verifier regressions (harness dropping a resource cue) are a
   concrete backlog; add a standing "regression triage" that turns each into a rule/test.
+  - **Compact-engine recall gap (tracked 2026-07-21).** Two independent finders (a notebook agent + the
+    `examples/incoming_content/` demo) hit the same miss: `scripts/_usecase_engine.py` PATTERNS do not
+    match possessive-apostrophe legalese ("the Employee's passport", "workers' passports"), the
+    "passport stays with the employer" phrasing, "lakh"/"crore" fee amounts, or several romanized
+    multilingual cues. The full production GREP layer (451 rules / 11+ languages) catches these; the
+    representative kit subset does not. Broadening recall is ADDITIVE but shifts the full-data verify/
+    lift numbers, so it is held until a deliberate re-grade re-baselines `configs/duecare/evals_baseline.json`
+    and the published notebook figures transparently -- not a deep-context side edit. (The precision fix
+    -- a self-retention negation guard so "I keep my own passport" no longer over-flags -- shipped
+    2026-07-21 and is numbers-neutral: the evals gate stayed identical.)
 - **Re-versioning discipline.** Datasets grow and are re-versioned (never silently replaced); keep the
   perdim sweep growing toward the full registry; publish grade deltas, not overwrites.
 
