@@ -1,0 +1,54 @@
+name: pages
+
+# GitHub Pages mirror of duecare-ai.com. Manual-dispatch only so it never runs
+# (or fails) unexpectedly: enable Pages first (repo Settings -> Pages -> Source:
+# "GitHub Actions"), then run this workflow from the Actions tab. It builds the
+# static bundle with the SAME exporter used locally (byte-identical to the live
+# FastAPI app) and serves it on the <owner>.github.io URL. The CNAME is dropped
+# so this mirror never claims the live custom domain -- duecare-ai.com stays on
+# Render until DNS is deliberately moved.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install site dependencies
+        run: python -m pip install --no-cache-dir -r apps/duecare-ai.com/requirements.txt
+
+      - name: Build static bundle (byte-identical to the live app)
+        run: |
+          cd apps/duecare-ai.com
+          python scripts/export_static.py --out _site
+          rm -f _site/CNAME   # serve on the github.io URL; live custom domain stays on Render
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/duecare-ai.com/_site
+
+      - id: deploy
+        uses: actions/deploy-pages@v4
