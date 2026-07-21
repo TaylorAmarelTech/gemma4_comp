@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DueCare - Codex for Open Source application</title>
+<style>
+  :root { --ink:#14181b; --ink2:#5b5f68; --paper:#f7f6f1; --card:#fff; --line:#e2ddcf; --accent:#2f7d8c; --over:#c0392b; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.6 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; }
+  .wrap { max-width: 820px; margin: 0 auto; padding: 40px 20px 80px; }
+  header h1 { font-size: 26px; margin: 0 0 6px; letter-spacing:-0.01em; }
+  header p { color: var(--ink2); margin: 0 0 8px; }
+  .hint { background:#fff; border:1px solid var(--line); border-left:4px solid var(--accent); border-radius:8px; padding:12px 16px; color:var(--ink2); font-size:14px; margin: 18px 0 28px; }
+  .field { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; margin: 0 0 16px; }
+  .q { font-weight: 650; font-size: 15px; margin: 0; }
+  .bar { display:flex; align-items:center; gap:12px; margin-bottom: 10px; }
+  .count { font: 12px ui-monospace,SFMono-Regular,Menlo,monospace; color: var(--ink2); margin-left:auto; }
+  .count.over { color: var(--over); font-weight:700; }
+  textarea { width:100%; border:1px solid var(--line); border-radius:8px; padding:12px 14px; font: inherit; color: var(--ink); background:#fbfaf6; resize: vertical; line-height:1.55; }
+  textarea.one { height: 44px; }
+  button.copy { border:1px solid var(--accent); background:var(--accent); color:#fff; font: 600 13px inherit; padding: 7px 14px; border-radius: 8px; cursor: pointer; white-space:nowrap; }
+  button.copy:hover { background:#256470; }
+  button.copy.done { background:#3d8b40; border-color:#3d8b40; }
+  footer { color: var(--ink2); font-size: 13px; margin-top: 26px; text-align:center; }
+  a { color: var(--accent); }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e8e6df; --ink2:#a2a6ad; --paper:#14181b; --card:#1b2024; --line:#2c3238; --accent:#4aa3b3; }
+    textarea { background:#12161a; }
+    .hint { background:#1b2024; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>DueCare - Codex for Open Source</h1>
+  <p>Click Copy on any field and paste it into the matching box on the application form.</p>
+</header>
+<div class="hint">The four long answers are all under OpenAI's 500-character limit. The counter next to each shows the exact length live, and turns red if an edit ever pushes it over.</div>
+
+<div class="field"><div class="bar"><div class="q">First name</div><button class="copy">Copy</button></div><textarea class="one" readonly>Taylor</textarea></div>
+<div class="field"><div class="bar"><div class="q">Last name</div><button class="copy">Copy</button></div><textarea class="one" readonly>Amarel</textarea></div>
+<div class="field"><div class="bar"><div class="q">Email</div><button class="copy">Copy</button></div><textarea class="one" readonly>amarel.taylor.s@gmail.com</textarea></div>
+<div class="field"><div class="bar"><div class="q">GitHub username</div><button class="copy">Copy</button></div><textarea class="one" readonly>TaylorAmarelTech</textarea></div>
+<div class="field"><div class="bar"><div class="q">GitHub repository URL</div><button class="copy">Copy</button></div><textarea class="one" readonly>https://github.com/TaylorAmarelTech/gemma4_comp</textarea></div>
+
+<div class="field"><div class="bar"><div class="q">Describe your role: are you a primary or core maintainer?</div><button class="copy">Copy</button></div><textarea readonly>Yes, I'm the primary maintainer. It's a solo project at the moment, so that means the code, the tests, the releases, and the docs, and reviewing everything before it goes in. I'd genuinely welcome other people working on it, but for now the maintenance runs through me.</textarea></div>
+
+<div class="field"><div class="bar"><div class="q">Why does this repository qualify?</div><span class="count" data-cap="500"></span><button class="copy">Copy</button></div><textarea readonly>Here's the truth: nobody's starring this repo, and I get why. But picture a domestic worker whose passport was just taken, asking a chatbot what to do. It answers warmly, confidently, and sends her somewhere that could get her hurt. That's the gap I've spent months closing. I can't show you a download count. I can show you that across eight different models the answers get far safer and more useful, and every graded example is public, so you can read them and judge for yourself.</textarea></div>
+
+<div class="field"><div class="bar"><div class="q">I'm interested in</div><button class="copy">Copy</button></div><textarea readonly>All three. ChatGPT Pro with Codex for the everyday work, Codex Security for the parts where I can't afford to be wrong, and API credits to finish the evaluation.</textarea></div>
+
+<div class="field"><div class="bar"><div class="q">Why does your project need Codex Security?</div><span class="count" data-cap="500"></span><button class="copy">Copy</button></div><textarea readonly>This isn't a toy. People's safety runs through it. It touches the most sensitive things a person has: their messages, their ID, the details of how they're being exploited. The whole point is that a small NGO can run it on a laptop without handing that to anyone. I built the guardrails I know how to: a gate that strips personal data before it leaves the machine, an allowlist that already caught a real hole. But I'm one person. I'd sleep better with someone else checking my work first.</textarea></div>
+
+<div class="field"><div class="bar"><div class="q">OpenAI Organization ID</div><button class="copy">Copy</button></div><textarea class="one" readonly>(paste yours from https://platform.openai.com/account/organization)</textarea></div>
+
+<div class="field"><div class="bar"><div class="q">How will you use API credits for your project?</div><span class="count" data-cap="500"></span><button class="copy">Copy</button></div><textarea readonly>To finish the work, honestly. I'm testing this across every major model on 78,000 real scenarios, but I run it on my own hardware and keep running out of capacity. It's been frozen for days right now because I hit a limit. Credits would let me finish the comparison I started, and hand off the grind, the code reviews, the release checks, so I can put my time where it counts: making the answers better for the people who actually need them.</textarea></div>
+
+<div class="field"><div class="bar"><div class="q">Anything else we should know?</div><span class="count" data-cap="500"></span><button class="copy">Copy</button></div><textarea readonly>One last thing. I made this for a Gemma hackathon, but it was never about winning, or about one model. It works on all of them, GPT-OSS, Llama, Qwen, Mistral. It's about a failure they share: being warmly, confidently wrong with someone whose life is on the line. Almost nobody knows this project exists. I think they should, not for my sake, but because this problem deserves the attention and almost no one is working on it.</textarea></div>
+
+<footer>Every claim is checkable at <a href="https://github.com/TaylorAmarelTech/gemma4_comp">github.com/TaylorAmarelTech/gemma4_comp</a> and <a href="https://duecare-ai.com/evaluation">duecare-ai.com/evaluation</a>.</footer>
+</div>
+<script>
+  document.querySelectorAll('textarea:not(.one)').forEach(function(t){ t.style.height='auto'; t.style.height=(t.scrollHeight+4)+'px'; });
+  document.querySelectorAll('.field').forEach(function(f){
+    var c=f.querySelector('.count'), t=f.querySelector('textarea');
+    if(!c||!t) return;
+    function upd(){ var n=t.value.length, cap=+c.dataset.cap; c.textContent=n+' / '+cap; c.classList.toggle('over', n>cap); }
+    t.addEventListener('input', upd); upd();
+  });
+  document.addEventListener('click', function(e){
+    var b=e.target.closest('button.copy'); if(!b) return;
+    var t=b.closest('.field').querySelector('textarea');
+    t.focus(); t.select(); t.setSelectionRange(0, t.value.length);
+    var ok=false;
+    try { ok=document.execCommand('copy'); } catch(err){}
+    if(!ok && navigator.clipboard){ navigator.clipboard.writeText(t.value).catch(function(){}); }
+    window.getSelection().removeAllRanges();
+    var old=b.textContent; b.textContent='Copied'; b.classList.add('done');
+    setTimeout(function(){ b.textContent=old; b.classList.remove('done'); }, 1400);
+  });
+</script>
+</body>
+</html>
