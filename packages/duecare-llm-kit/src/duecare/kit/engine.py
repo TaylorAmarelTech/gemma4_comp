@@ -235,6 +235,19 @@ def scan(text):
     Each hit is a dict with exactly {indicator, label, snippet, ilo_ref}. One hit per indicator (first
     match wins). Match paths, in order: English regex PATTERNS, deceptive FEE_CAMOUFLAGE labels
     (-> recruitment_fee), then the romanised MULTILINGUAL_CUES layer.
+
+    Args:
+        text: the free text to scan (a worker account, message, or contract excerpt). None is treated
+            as an empty string.
+
+    Returns:
+        A list of hit dicts, each ``{"indicator", "label", "snippet", "ilo_ref"}``; empty when nothing
+        matches (absence of a hit is not evidence of safety).
+
+    Example:
+        >>> hits = scan("The agency took my passport and I have not been paid for two months.")
+        >>> sorted(h["indicator"] for h in hits)
+        ['document_retention', 'wage_withholding']
     """
     t = (text or "").lower()
     hits, seen = [], set()
@@ -300,8 +313,25 @@ COUNTERFACTUALS = [
 
 
 def generate_chain(text):
-    """Generate a reasoned chain by asking the structured ILO-indicator questions of `text`.
-    Returns a list of (step_number, text) reasoning steps."""
+    """Generate a structured chain-of-thought by asking the ILO-indicator questions of `text`.
+
+    Walks the situation neutrally, checks each of the 12 indicators (PRESENT with its cue + ILO
+    reference, or "not evident"), steps through the migration lifecycle, applies the counterfactual
+    checks, and closes with the risk level. This is the same reasoning scaffold the CoT dataset encodes.
+
+    Args:
+        text: the free text to reason over (a worker account or message).
+
+    Returns:
+        A list of ``(step_number, step_text)`` tuples, in reading order, ending on the conclusion step.
+
+    Example:
+        >>> chain = generate_chain("The agency kept my passport.")
+        >>> chain[0]
+        (1, 'Restate the situation in neutral, non-leading terms.')
+        >>> chain[-1][1].startswith("Conclusion: risk =")
+        True
+    """
     hits = {h["indicator"]: h for h in scan(text)}
     steps, n = [], 1
     steps.append((n, "Restate the situation in neutral, non-leading terms.")); n += 1

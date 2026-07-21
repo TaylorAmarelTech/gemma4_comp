@@ -6,6 +6,7 @@ the DueCare Kaggle notebooks, now as importable code so anyone can ``pip install
 download, reuse, generate HTML reports, and package data corpuses without touching a notebook.
 
     from duecare.kit.engine import scan, generate_chain, risk_level
+    from duecare.kit.verify import verify, verify_score, verify_lift
     from duecare.kit.viz import radar, dumbbell, stat_cards
     from duecare.kit.report import generate_report
     from duecare.kit.corpus import export_corpus, describe
@@ -30,6 +31,7 @@ from .engine import (
 )
 from .corpus import describe, export_corpus
 from .report import generate_report, report_from_jsonl
+from .verify import verify, verify_lift, verify_score
 from .viz import (
     apply_theme,
     dumbbell,
@@ -50,6 +52,8 @@ __all__ = [
     "scan", "risk_level", "generate_chain",
     "ILO_INDICATORS", "ILO_REFS", "PATTERNS", "FEE_CAMOUFLAGE", "HOTLINES",
     "INDICATOR_QUESTIONS", "LIFECYCLE", "EVIDENCE_STATES", "COUNTERFACTUALS",
+    # verify (deterministic verifiable checker / verifiable reward)
+    "verify", "verify_score", "verify_lift",
     # viz
     "apply_theme", "pretty_table", "stat_cards", "radar", "dumbbell", "slope",
     "kde_hist", "heatmap", "ibar",
