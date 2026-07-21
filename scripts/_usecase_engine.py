@@ -43,10 +43,10 @@ ILO_REFS = {
 }
 # representative subset of the DueCare GREP indicator layer (production has 451 rules across 11 languages)
 PATTERNS = [
-    ("document_retention", r"(passport|national id|residence permit|iqama|papers|documents?)\s+(\w+\s+){0,4}(took|takes|taken|kept|keeps|held|hold|holding|confiscat\w*|retain\w*|surrender\w*|hand(ed)?\s+over|for safekeeping)"),
-    ("debt_bondage", r"(debt|loan|advance|owe|owing|repay)\s+(\w+\s+){0,6}(work(ing)?\s+(it\s+)?off|repay|deduct\w*|paid off|cannot leave|can'?t leave|until.*paid)"),
+    ("document_retention", r"(passport|national id|residence permit|iqama|papers|documents?)\s+(\w+\s+){0,4}(took|takes|taken|kept|keeps|held|hold|holding|confiscat\w*|retain\w*|surrender\w*|hand(ed)?\s+over|for safekeeping)|(took|takes|taken|keeps?|kept|holding|holds|confiscat\w*|retain\w*|has|have|got)\s+(my |his |her |the |our )?(\w+\s+){0,2}(passport|national id|residence permit|iqama|papers|documents?)"),
+    ("debt_bondage", r"(debt|loan|advance|owe|owing|repay)\s+(\w+\s+){0,6}(work(ing)?\s+(it\s+)?off|repay|deduct\w*|paid off|cannot leave|can'?t leave|until.*paid)|work(ing)?\s+(it\s+|to pay\s+)?off\s+(the\s+)?(\w+\s+){0,3}(fee|debt|loan|advance|bond|cost)"),
     ("recruitment_fee", r"(recruitment|placement|processing|training|mobiliz\w+|agency|service)\s*(fee|charge|bond|deposit|commission)"),
-    ("wage_withholding", r"(salary|wages?|pay|payment)\s+(\w+\s+){0,4}(withheld|withhold\w*|held back|deduct\w*|not (yet )?paid|unpaid|delay\w*|kept)"),
+    ("wage_withholding", r"(salary|wages?|pay|payment)\s+(\w+\s+){0,4}(withheld|withhold\w*|held back|deduct\w*|not (yet )?paid|unpaid|delay\w*|kept)|(not|have not|haven.t|hasn.t|never|no)\s+(been\s+|yet\s+)?(paid|receiv\w+\s+(any |my )?(pay|wages?|salary))"),
     ("restriction_of_movement", r"(cannot|can'?t|not allowed|forbidden|need(s)? permission|locked|not free)\s+(\w+\s+){0,3}(leave|go out|go outside|outside|exit|move)"),
     ("intimidation", r"(threat\w*|deport\w*|report (you |us )?to (the )?(police|immigration|authorities)|blacklist\w*|fired if|call the (police|embassy)|scared to)"),
     ("deception", r"(promised|told|was told|said|contract said)\s+(\w+\s+){0,6}(different|not what|changed|actually|instead|another|lied|false)"),
