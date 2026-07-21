@@ -87,6 +87,7 @@ PAGE_ROUTES: dict[str, str] = {
     "/context": "context.html",
     "/contribute": "contribute.html",
     "/dashboard": "dashboard.html",
+    "/data": "data-downloads.html",
     "/demo": "demo.html",
     "/demo-recording": "demo-recording.html",
     "/deployments": "deployments.html",

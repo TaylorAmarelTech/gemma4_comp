@@ -57,9 +57,9 @@
 {% endif %}
 <div class="m"><div class="lbl">Across {{ study.n_featured }} models</div><div class="val">+{{ "%.1f"|format(study.avg_lift) }} / 100</div><div class="sub">average lift on the live board{% if study.all_positive %} &middot; every featured model positive{% endif %}</div></div>
 {% else %}
-<div class="m"><div class="lbl">Mean lift (gemma4:31b)</div><div class="val">+48.3 / 100</div><div class="sub">42.3 &rarr; 90.6 &middot; component judge &middot; n = 100</div></div>
-<div class="m"><div class="lbl">Win rate</div><div class="val">100%</div><div class="sub">component judge &middot; n = 100</div></div>
-<div class="m"><div class="lbl">Effect size</div><div class="val">d = 3.47</div><div class="sub">paired Cohen's d, 0&ndash;100 component judge</div></div>
+<div class="m"><div class="lbl">Mean lift (gemma4:31b)</div><div class="val">+40.7 / 100</div><div class="sub">48.4 &rarr; 89.1 &middot; component judge &middot; n = 7,953</div></div>
+<div class="m"><div class="lbl">Win rate</div><div class="val">99.8%</div><div class="sub">component judge &middot; n = 7,953</div></div>
+<div class="m"><div class="lbl">Effect size</div><div class="val">d = 1.73</div><div class="sub">paired Cohen's d, 0&ndash;100 component judge</div></div>
 <div class="m"><div class="lbl">Live leaderboard</div><div class="val">/benchmark</div><div class="sub">current multi-model standings</div></div>
 {% endif %}
 </div>
