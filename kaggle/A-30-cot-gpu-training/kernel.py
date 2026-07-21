@@ -113,10 +113,13 @@ def main() -> None:
         return tokenizer.apply_chat_template(r["messages"], tokenize=False, add_generation_prompt=False)
 
     def generate(user_content: str) -> str:
-        ids = tokenizer.apply_chat_template(
-            [{"role": "user", "content": user_content}], add_generation_prompt=True, return_tensors="pt").to(model.device)
-        out = model.generate(input_ids=ids, max_new_tokens=180, do_sample=True, temperature=1.0, top_p=0.95)
-        return tokenizer.decode(out[0][ids.shape[1]:], skip_special_tokens=True)
+        enc = tokenizer.apply_chat_template(
+            [{"role": "user", "content": user_content}], add_generation_prompt=True,
+            return_tensors="pt", return_dict=True)
+        enc = {k: v.to(model.device) for k, v in enc.items()}
+        n = enc["input_ids"].shape[1]
+        out = model.generate(**enc, max_new_tokens=180, do_sample=True, temperature=1.0, top_p=0.95)
+        return tokenizer.decode(out[0][n:], skip_special_tokens=True)
 
     probe = hold[0]["messages"][0]["content"] if hold else None
     before = generate(probe) if probe else ""
