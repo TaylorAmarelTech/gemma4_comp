@@ -246,6 +246,24 @@ indicator_weights = {
 }
 
 
+_SELF_DOC_KEEP = re.compile(
+    r"(keep|keeps|keeping|kept|hold|holds|holding|have|has|retain\w*)\s+(my|his|her|their|our|your)\s+own\s+(passport|national id|residence permit|iqama|papers|documents?)"
+    r"|(passport|national id|residence permit|iqama|papers|documents?)\s+(stay|stays|remain\w*|is|are)\s+with\s+(me|him|her|them|us|you|the worker|the employee)")
+_DOC_COERCION = re.compile(
+    r"(took|taken|takes|confiscat\w*|seiz\w*|withheld|withhold\w*|surrender\w*|for safekeeping|locked (away|up))"
+    r"|(employer|agency|agent|sponsor|boss|madam|kafeel|company|recruiter|office)\s+(\w+\s+){0,3}(has|have|holds?|holding|keeps?|kept|took|taken|confiscat\w*|retain\w*)"
+    r"|(cannot|can'?t|won'?t let me|not allowed to|refuse[sd]? to (give|return)|never (got|returned))\s+(\w+\s+){0,4}(passport|national id|residence permit|iqama|papers|documents?)")
+
+
+def _is_self_document_retention(t):
+    """True when the ONLY document-retention signal is the worker keeping their OWN papers.
+
+    Prevents a benign statement ("I keep my own passport") from firing the retention indicator,
+    while still firing when a third party took/holds the documents or the worker cannot get them back.
+    """
+    return bool(_SELF_DOC_KEEP.search(t)) and not bool(_DOC_COERCION.search(t))
+
+
 def scan(text):
     """Return the list of ILO indicators detected in `text` (deterministic, representative).
 
@@ -258,6 +276,8 @@ def scan(text):
     for ind, pat in PATTERNS:
         m = re.search(pat, t)
         if m and ind not in seen:
+            if ind == "document_retention" and _is_self_document_retention(t):
+                continue
             seen.add(ind)
             hits.append({"indicator": ind, "label": ILO_INDICATORS.get(ind, ind),
                          "snippet": re.sub(r"\s+", " ", m.group(0))[:90], "ilo_ref": ILO_REFS.get(ind, "ILO Indicators of Forced Labour (2012)")})
