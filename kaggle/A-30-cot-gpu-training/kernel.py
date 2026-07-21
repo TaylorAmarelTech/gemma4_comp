@@ -45,6 +45,9 @@ def install_stack() -> None:
     pip = [sys.executable, "-m", "pip", "install", "-q", "--no-input", "--disable-pip-version-check"]
     _sh(pip + ["torch==2.5.1", "torchvision==0.20.1", "--index-url", "https://download.pytorch.org/whl/cu121"])
     _sh(pip + ["transformers>=4.53", "peft", "trl", "datasets", "accelerate", "sentencepiece"])
+    # Kaggle's base torchao (0.10) is too old for the installed peft and triggers a version-check
+    # ImportError, but we never use torchao (fp16, no quantization) -- remove it so the check is skipped.
+    subprocess.run([sys.executable, "-m", "pip", "uninstall", "-y", "torchao"], capture_output=True, text=True)
 
 
 def _load_rows(path: Path, limit: int | None = None) -> list[dict]:
