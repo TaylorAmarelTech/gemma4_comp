@@ -20,9 +20,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 import nbformat as nbf
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _notebook_viz import HELPERS, PALETTE  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_OUT = ROOT / "reports" / "kaggle_publish" / "cot_datacard"
@@ -38,21 +42,8 @@ REPO = "https://github.com/TaylorAmarelTech/gemma4_comp"
 # Notebook code cells (plain strings -- braces are literal, executed on Kaggle)
 # --------------------------------------------------------------------------- #
 
-SETUP = '''import glob, json, os
+DATALOAD = '''import glob, json, os
 from collections import Counter
-
-import pandas as pd
-import matplotlib as mpl, matplotlib.pyplot as plt
-
-# DueCare palette (warm paper / dark ink / civic teal; ember reserved for the safety boundary).
-PAPER, INK, TEAL, EMBER, LINE = "#F7F6F1", "#14181B", "#2f7d8c", "#c15b2e", "#DDD8C9"
-mpl.rcParams.update({
-    "figure.facecolor": PAPER, "axes.facecolor": PAPER, "savefig.facecolor": PAPER,
-    "axes.edgecolor": LINE, "axes.linewidth": 1.0, "axes.labelcolor": INK, "text.color": INK,
-    "xtick.color": INK, "ytick.color": INK, "font.size": 11, "axes.titlesize": 13,
-    "axes.titleweight": "bold", "axes.grid": True, "grid.color": LINE, "grid.alpha": 0.5,
-    "axes.spines.top": False, "axes.spines.right": False, "figure.dpi": 120,
-})
 
 # Recursive glob load -- never hardcode the Kaggle mount path.
 print("mounted under /kaggle/input:", os.listdir("/kaggle/input") if os.path.exists("/kaggle/input") else "none")
@@ -65,6 +56,10 @@ if not rows:
     raise SystemExit(f"no rows parsed from {PATH}")
 print(f"loaded {len(rows):,} rows from {PATH}")
 print("fields per row:", list(rows[0].keys()))'''
+
+# First code cell embeds the shared prettify toolkit (theme + stat_cards + pretty_table)
+# ahead of the recursive-glob load. Helpers are embedded; no runtime import of _notebook_viz.
+SETUP = PALETTE + "\n" + HELPERS + "\n" + DATALOAD
 
 
 ROW_FULL = '''row = rows[0]
@@ -99,13 +94,16 @@ print(assistant)'''
 
 
 SAMPLE_TABLE = '''cols = ["perspective", "perspective_label", "category", "situation", "reach", "direction", "step_count", "split"]
-sample = pd.DataFrame([{c: r.get(c) for c in cols} for r in rows[:10]])
-pd.set_option("display.max_colwidth", None)
-pd.set_option("display.width", 200)
-display(sample.head(10))'''
+sample = pd.DataFrame([{c: r.get(c) for c in cols} for r in rows])
+display(pretty_table(sample, caption="Scalar columns for the first 10 rows -- the fields you filter, group, or stratify on", max_rows=10))'''
 
 
-CHART_CAT = '''counts = Counter(r["category"] for r in rows)
+CHART_CAT = '''persp = len({r["perspective"] for r in rows})
+cats = len({r["category"] for r in rows})
+sits = len({r["situation"] for r in rows})
+stat_cards([(f"{len(rows):,}", "rows", TEAL), (str(persp), "perspectives", INK2),
+            (str(cats), "role categories", GOOD), (str(sits), "ILO situations", EMBER)])
+counts = Counter(r["category"] for r in rows)
 items = sorted(counts.items(), key=lambda kv: kv[1])
 labels = [k.replace("_", " ") for k, _ in items]
 values = [v for _, v in items]

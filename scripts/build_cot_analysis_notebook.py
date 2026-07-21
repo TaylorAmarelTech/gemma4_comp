@@ -17,9 +17,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 import nbformat as nbf
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _notebook_viz import HELPERS, PALETTE  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_OUT = ROOT / "reports" / "kaggle_publish" / "cot_analysis"
@@ -30,21 +34,9 @@ DS = f"https://www.kaggle.com/datasets/{DATASET_ID}"
 REPO = "https://github.com/TaylorAmarelTech/gemma4_comp"
 BENCH_DS = "https://www.kaggle.com/datasets/taylorsamarel/duecare-harness-benchmark-grades"
 
-SETUP = '''import glob, os, json, re
-import numpy as np, pandas as pd
-import matplotlib as mpl, matplotlib.pyplot as plt
+DATALOAD = '''import glob, os, json, re
 from IPython.display import Markdown, display
 
-# DueCare palette (warm paper / ink / civic teal; ember reserved for the boundary + emphasis)
-PAPER, INK, INK2, INK3 = "#F7F6F1", "#14181B", "#2A2D34", "#5B5F68"
-TEAL, EMBER, GOOD, WARN, LINE = "#2f7d8c", "#c15b2e", "#4e8a5a", "#b8873a", "#DDD8C9"
-mpl.rcParams.update({
-    "figure.facecolor": PAPER, "axes.facecolor": PAPER, "savefig.facecolor": PAPER,
-    "axes.edgecolor": LINE, "axes.linewidth": 1.0, "axes.labelcolor": INK2, "text.color": INK,
-    "xtick.color": INK3, "ytick.color": INK3, "font.size": 11, "axes.titlesize": 13.5,
-    "axes.titleweight": "bold", "axes.grid": True, "grid.color": LINE, "grid.alpha": 0.5,
-    "axes.spines.top": False, "axes.spines.right": False, "figure.dpi": 120,
-})
 pd.set_option("display.max_colwidth", None)
 
 # --- Load the chain-of-thought corpus by RECURSIVE glob (never hardcode the mount path) ---
@@ -106,37 +98,32 @@ print(f"loaded {len(df):,} chains | {df.perspective.nunique()} perspectives | "
       f"{df.category.nunique()} role categories | {df.situation.nunique()} situations | "
       f"reach {sorted(df.reach.unique())} | direction {sorted(df.direction.unique())}")'''
 
+# The notebook's first code cell embeds the shared toolkit (theme + KPI tiles +
+# styled tables + heatmap + density plots) ahead of the data load and helpers.
+SETUP = PALETTE + "\n" + HELPERS + "\n" + DATALOAD
+
 GLANCE = '''# An honest, compact summary of what the file actually contains.
-glance = pd.DataFrame({
-    "chains (rows)": [len(df)],
-    "distinct perspectives (WHO)": [df.perspective.nunique()],
-    "role categories": [df.category.nunique()],
-    "situations (ILO patterns)": [df.situation.nunique()],
-    "reach x direction axes": [df.reach.nunique() * df.direction.nunique()],
-    "steps per chain": [f"{df.step_count.min()}-{df.step_count.max()} (constant)"],
-    "license": ["MIT (synthetic / propose-only)"],
+stat_cards([(str(df.perspective.nunique()), "perspectives (WHO)", TEAL),
+            (str(df.category.nunique()), "role categories", INK2),
+            (str(df.situation.nunique()), "ILO situations (WHAT)", GOOD),
+            (f"{len(df):,}", "reasoning chains", EMBER)])
+census = pd.DataFrame({
+    "Property": ["chains (rows)", "distinct perspectives (WHO)", "role categories", "situations (ILO patterns)",
+                 "reach x direction axes", "steps per chain", "license"],
+    "Value": [f"{len(df):,}", str(df.perspective.nunique()), str(df.category.nunique()), str(df.situation.nunique()),
+              str(df.reach.nunique() * df.direction.nunique()),
+              f"{df.step_count.min()}-{df.step_count.max()} (constant)", "MIT (synthetic / propose-only)"],
 })
-display(glance.T.rename(columns={0: ""}))
+display(pretty_table(census, caption="What is in the file -- counted live from the attached rows"))
 print("Every chain is one CELL of a grid:  WHO (perspective)  x  WHAT (ILO situation)  x  reach  x  direction.")'''
 
 SPACE = '''# The reasoning space: role category (WHO, rows) x situation (WHAT, cols). Each cell is a count of chains.
 ct = pd.crosstab(df.category, df.situation)
 ct = ct.loc[ct.sum(axis=1).sort_values(ascending=False).index]      # busiest roles on top
-fig, ax = plt.subplots(figsize=(9.4, 5.6))
-im = ax.imshow(ct.values, cmap="YlGnBu", aspect="auto")
-ax.set_xticks(range(ct.shape[1])); ax.set_xticklabels(ct.columns, rotation=25, ha="right", fontsize=9.5)
-ax.set_yticks(range(ct.shape[0])); ax.set_yticklabels(ct.index, fontsize=9.5)
-hi = ct.values.max()
-for i in range(ct.shape[0]):
-    for j in range(ct.shape[1]):
-        v = ct.values[i, j]
-        ax.text(j, i, str(v), ha="center", va="center", fontsize=9.5,
-                color=PAPER if v > hi * 0.6 else INK, fontweight="bold")
-fig.colorbar(im, ax=ax, label="chains", fraction=0.046, pad=0.04)
-ax.set_title("The corpus crosses WHO x WHAT - every role category reasons about every ILO situation")
-ax.set_xlabel("situation (ILO indicator pattern)"); ax.set_ylabel("role category (who is reasoning)")
-ax.grid(False)
-fig.tight_layout(); plt.show()
+heatmap(ct.values, [r.replace("_", " ") for r in ct.index], [c.replace("_", "\\n") for c in ct.columns],
+        title="The corpus crosses WHO x WHAT -- every role category reasons about every ILO situation",
+        subtitle="rows = role category (who reasons); cols = situation (ILO indicator pattern); cell = chains",
+        fmt=".0f", cmap="YlGnBu", cbar_label="chains")
 print(f"crosstab shape: {ct.shape[0]} categories x {ct.shape[1]} situations - "
       f"every cell is populated: {int((ct.values > 0).all())==1}")'''
 
@@ -183,29 +170,16 @@ for cat in sorted(bycat):
 tbl = pd.DataFrame(rows_tbl)
 SA_COL = "its role-appropriate safe action (step 95)"
 n_distinct = tbl[SA_COL].nunique()
-sty = (tbl.style.hide(axis="index")
-       .set_properties(**{"text-align": "left", "vertical-align": "top", "font-size": "10.5px",
-                          "border-color": LINE, "white-space": "normal"})
-       .set_properties(subset=[SA_COL], **{"color": INK2})
-       .set_table_styles([{"selector": "th", "props": [("background-color", "#EFEDE4"),
-                           ("color", INK), ("text-align", "left"), ("border-color", LINE)]}]))
 print(f"{len(pool)} perspectives across {len(bycat)} role categories reason about {SIT} at ({REACH}, {DIR}); "
       f"the {len(bycat)} categories reach {n_distinct} distinct safe actions - the action is tailored to the role.")
-display(sty)'''
+display(pretty_table(tbl, caption=f"One case ({SIT}, {REACH}, {DIR}) -- {len(bycat)} roles, {n_distinct} role-appropriate safe actions"))'''
 
 AXES = '''# The two reasoning axes every chain carries, beyond WHO and WHAT.
 rd = pd.crosstab(df.reach, df.direction).reindex(index=["small_jump", "large_jump"], columns=["inward", "outward"])
-fig, ax = plt.subplots(figsize=(8.6, 4.4))
-x = np.arange(len(rd.index)); w = 0.38
-for k, (dcol, color) in enumerate(zip(rd.columns, [TEAL, WARN])):
-    bars = ax.bar(x + (k - 0.5) * w, rd[dcol].values, w, color=color, edgecolor=PAPER, label=f"direction = {dcol}")
-    for b, v in zip(bars, rd[dcol].values):
-        ax.text(b.get_x() + b.get_width() / 2, v + 4, f"{v:,}", ha="center", fontsize=9.5, color=INK2, fontweight="bold")
-ax.set_xticks(x); ax.set_xticklabels([f"reach = {r}" for r in rd.index])
-ax.set_ylabel("chains"); ax.set_ylim(0, rd.values.max() * 1.18)
-ax.set_title("Reasoning axes are fully crossed - every (reach x direction) quadrant is balanced")
-ax.legend(framealpha=0.9); ax.grid(axis="x", alpha=0)
-fig.tight_layout(); plt.show()
+heatmap(rd.values, ["small_jump", "large_jump"], ["inward", "outward"],
+        title="Reasoning axes are fully crossed -- every (reach x direction) quadrant is balanced",
+        subtitle="rows = reach; cols = direction; cell = chains",
+        fmt=".0f", cmap="BuGn", cbar_label="chains")
 print("balanced 2x2:\\n" + rd.to_string())'''
 
 COVERAGE = '''# Per-category coverage: how many DISTINCT perspectives and how many chains each role category carries.
@@ -225,7 +199,10 @@ for i, v in enumerate(cov.perspectives.values):
 axes[1].set_title("distinct perspectives per category"); axes[1].set_xlabel("distinct perspectives"); axes[1].grid(axis="y", alpha=0)
 fig.suptitle("Coverage across the 9 role categories - many minds per role", fontsize=13, fontweight="bold", y=1.02)
 fig.tight_layout(); plt.show()
-display(cov.rename_axis("category")[["perspectives", "chains"]])'''
+cov_tbl = (cov.reset_index().rename(columns={"category": "role category"})[["role category", "perspectives", "chains"]]
+             .sort_values("chains", ascending=False).reset_index(drop=True))
+display(pretty_table(cov_tbl, caption="Coverage per role category -- distinct minds and chains per role",
+                     bars=["chains"], gradient=["perspectives"], cmap="BuGn"))'''
 
 STRUCTURE = '''# The shared skeleton. First, confirm the constant scaffold holds across ALL chains, not just one.
 def _count(st, pred):
@@ -261,10 +238,8 @@ fig.tight_layout(); plt.show()'''
 STRUCTURE_TABLE = '''# The skeleton as a table: what each phase does, and how many steps it spends.
 skel = pd.DataFrame([(b[0], f"{b[1]}-{b[2]}", b[3]) for b in blocks],
                     columns=["phase", "steps", "# steps"])
-display(skel.style.hide(axis="index")
-        .set_properties(**{"text-align": "left", "border-color": LINE})
-        .set_table_styles([{"selector": "th", "props": [("background-color", "#EFEDE4"),
-                            ("color", INK), ("text-align", "left"), ("border-color", LINE)]}]))
+display(pretty_table(skel, caption="The shared reasoning skeleton -- ordered phases every chain walks",
+                     bars=["# steps"]))
 print("Phases 6 (11 ILO indicators) and 7 (7 lifecycle stages) are the same screen every time - "
       "the model learns to always test the full indicator set and place the case in the migration lifecycle, "
       "then adapt only the safe action to WHO is reasoning.")'''
