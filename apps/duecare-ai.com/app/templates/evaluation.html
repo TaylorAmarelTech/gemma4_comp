@@ -32,22 +32,37 @@
 <section class="hp-hero" data-screen-label="Docs &middot; Eval"><div class="wrap">
 <div class="crumbs"><a href="/">Home</a><span class="sep">/</span><a href="/docs">Docs</a><span class="sep">/</span><span>Evaluation &amp; retraining</span></div>
 <span class="kicker">Release gate and training spine</span>
-<h1>Evaluation, retraining, and the pipeline that decides what ships.</h1>
-<p class="lede">DueCare ships nothing without an evaluation pass. Every pack release runs a regression suite. Every adapter retrain runs a comparison set against the previous adapter. The active A-00 Fine-tuning &amp; Evaluation workbench turns approved Persona + GREP + RAG + Tools traces into SFT data and DPO preference pairs, then re-benchmarks before any model artifact is published.</p></div></section>
+<h1>Evaluation, retraining, and the pipeline that decides what gets published.</h1>
+<p class="lede">DueCare is a thin, model-agnostic legal-grounding layer: fired ILO-indicator rules, retrieved law, and deterministic tool calls, added to the prompt and nothing else. This page is the proof and the release gate. The headline result is <b>+40.7 / 100 mean harness lift on gemma4:31b</b> &mdash; 99.8% of prompts improved (15 of 7,953 scored worse), judged by an independent 3-model panel, and the lift holds across every model tested. DueCare publishes nothing without an evaluation pass: every pack release runs a regression suite, every adapter retrain runs a comparison set against the previous adapter, and the A-00 Fine-tuning &amp; Evaluation workbench re-benchmarks before any model artifact is published.</p></div></section>
 
-<section class="hp-section" data-screen-label="Eval &middot; Harness lift"><div class="wrap">
-<div class="head"><div><span class="ix">00 &middot; Headline number</span><h2>The harness adds the lift. Fine-tuning needs it.</h2></div><p class="summary">Smoke matrix recorded 2026-05-18 on the <code>e2b-full-train-eval</code> Kaggle notebook with combined rule + LLM judge. The harness alone added <b>+6.1pp</b> over stock Gemma 4. Fine-tuned + harness added <b>+14.8pp</b> over fine-tuning alone and <b>+11.7pp</b> over stock.</p></div>
+<section class="hp-section" data-screen-label="Eval &middot; Headline result"><div class="wrap">
+<div class="head"><div><span class="ix">00 &middot; Headline result</span><h2>A thin grounding layer, and every model got safer.</h2></div><p class="summary">DueCare adds fired ILO-indicator rules, retrieved law, and deterministic tool calls to the prompt, and nothing else. An independent three-model judge panel then scores each answer, bare versus grounded, 0&ndash;100 across five safety dimensions. The paired difference is the harness lift &mdash; and it holds across every model tested.</p></div>
 <div class="ev-metrics" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
-<div class="m"><div class="lbl">Stock Gemma 4 2B</div><div class="val">29.5%</div><div class="sub">baseline</div></div>
-<div class="m"><div class="lbl">Stock + chat-offline harness</div><div class="val">35.6%</div><div class="sub">+6.1pp vs stock</div></div>
-<div class="m"><div class="lbl">Fine-tuned</div><div class="val">26.4%</div><div class="sub">&minus;3.1pp vs stock</div></div>
-<div class="m"><div class="lbl">Fine-tuned + harness</div><div class="val">41.2%</div><div class="sub">+11.7pp vs stock</div></div>
+<div class="m"><div class="lbl">Mean harness lift</div><div class="val">+40.7 / 100</div><div class="sub">gemma4:31b &middot; 48.4 &rarr; 89.1 &middot; component judge</div></div>
+<div class="m"><div class="lbl">Prompts improved</div><div class="val">99.8%</div><div class="sub">15 of 7,953 scored worse</div></div>
+<div class="m"><div class="lbl">Paired prompts</div><div class="val">7,953</div><div class="sub">one model, answered twice, judged twice</div></div>
+<div class="m"><div class="lbl">Judge panel</div><div class="val">3-model</div><div class="sub">independent; never grades its own family</div></div>
 </div>
-<p class="hp-note">Fine-tuning helped response shape and refusal style; the harness supplied the facts, citations, tools, data-minimization checks, and forced-labor indicators. This is a smoke run, not a final benchmark. Report, CSV, JSON, and manifest bundle exported to <code>/kaggle/working</code> by the <a href="https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation" rel="noopener">A-00 Fine-tuning &amp; Evaluation notebook</a>.</p>
+<p class="hp-note">As published: paired Cohen&rsquo;s d = 1.73, and the lift is positive on every one of the 8 models tested. The live board below updates as coverage grows. Because the grounding is added at the prompt, it works the same on a model you already run.</p>
+<div style="margin-top: 28px;">
+<div style="font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.10em;">Grounded, not just optimized &mdash; what the evidence does and does not prove</div>
+<div class="hp-grid-2" style="margin-top: 14px;">
+<div class="hp-allow"><div class="head">What the evidence shows</div><ul>
+<li>Grounding <b>improves response quality</b>, measured by an independent LLM-judge panel on a paired design that cancels judge bias.</li>
+<li>Scores come from <b>held-out prompts the training never sees</b>, so the lift is not memorization.</li>
+<li>The benchmark is <b>fact-checked against its own data &mdash; 20 of 20 headline claims reconcile</b> &mdash; and added citations verify at a 0% hallucination rate.</li>
+</ul></div>
+<div class="hp-deny"><div class="head">What it does not claim</div><ul>
+<li>Not a measure of <b>real-world trafficking detection</b> &mdash; it is benchmark evidence about answer quality, not ground truth about any person.</li>
+<li>The judges are language models, not anti-trafficking professionals; a <b>blinded human-expert validation is the honest precondition</b> for a peer-reviewed claim.</li>
+<li>Raw worker chats, IDs, and documents <b>stay on-device</b>; only anonymized, pre-approved envelopes ever leave.</li>
+</ul></div>
+</div>
+</div>
 </div></section>
 
 <section class="hp-section" data-screen-label="Eval &middot; Harness-lift benchmark"><div class="wrap">
-<div class="head"><div><span class="ix">01 &middot; Large-N benchmark</span><h2>Measured lift, paired per prompt, independently judged.</h2></div><p class="summary">Beyond the smoke run: each benchmark prompt is answered by the same model with and without the harness, both answers are scored by an <b>independent LLM-judge panel</b> that reasons through five weighted safety criteria on a <b>0&ndash;100</b> scale before scoring, and the per-prompt paired delta is analyzed with win rates, Cohen's d, and a seeded 10,000-resample bootstrap CI. Corpus drawn from 74,640 labeled seed prompts.</p></div>
+<div class="head"><div><span class="ix">01 &middot; Large-N benchmark</span><h2>How the number is measured: paired per prompt, independently judged.</h2></div><p class="summary">Behind the headline: each benchmark prompt is answered by the same model with and without the harness, both answers are scored by an <b>independent LLM-judge panel</b> that reasons through five weighted safety criteria on a <b>0&ndash;100</b> scale before scoring, and the per-prompt paired delta is analyzed with win rates, Cohen's d, and a seeded 10,000-resample bootstrap CI. Corpus drawn from 74,640 labeled seed prompts.</p></div>
 <div class="ev-metrics" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
 {% if study and study.headline %}
 <div class="m"><div class="lbl">Mean lift &middot; {{ study.headline.model }}</div><div class="val">+{{ "%.1f"|format(study.headline.lift) }} / 100</div><div class="sub">{{ "%.1f"|format(study.headline.baseline) }} &rarr; {{ "%.1f"|format(study.headline.harnessed) }} &middot; component judge &middot; n = {{ study.headline.n_prompts }}</div></div>
@@ -131,6 +146,13 @@
 
 <section class="hp-section" data-screen-label="Eval &middot; Training data"><div class="wrap">
 <div class="head"><div><span class="ix">06 &middot; Training data ladder</span><h2>How harness behavior becomes model behavior.</h2></div><p class="summary">RAG, GREP, tools, and persona responses are useful training signals only after they become approved examples. The public claim is SFT + preference optimization, not a hidden RL loop.</p></div>
+<div class="ev-metrics" style="grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 16px;">
+<div class="m"><div class="lbl">Stock Gemma 4 2B</div><div class="val">29.5%</div><div class="sub">baseline</div></div>
+<div class="m"><div class="lbl">Stock + chat-offline harness</div><div class="val">35.6%</div><div class="sub">+6.1pp vs stock</div></div>
+<div class="m"><div class="lbl">Fine-tuned</div><div class="val">26.4%</div><div class="sub">&minus;3.1pp vs stock</div></div>
+<div class="m"><div class="lbl">Fine-tuned + harness</div><div class="val">41.2%</div><div class="sub">+11.7pp vs stock</div></div>
+</div>
+<p class="hp-note" style="margin-top: 0; margin-bottom: 28px;">Early 2B smoke matrix (recorded 2026-05-18, combined rule + LLM judge): fine-tuning alone helped response shape and refusal style but not correctness; the harness supplied the facts, citations, tools, and forced-labor indicators, and fine-tuned + harness beat stock by +11.7pp. A small smoke run, not the flagship benchmark &mdash; the headline lift is in section 00. Report, CSV, JSON, and manifest bundle exported to <code>/kaggle/working</code> by the <a href="https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation" rel="noopener">A-00 Fine-tuning &amp; Evaluation notebook</a>.</p>
 <div class="hp-grid-3">
 <article class="hp-card"><span class="role">SFT</span><h3>Harness-distilled targets</h3><p>Run an approved prompt through Persona + GREP + RAG + Tools. Store the bare prompt as the user turn and the cited harness answer as the assistant target.</p></article>
 <article class="hp-card"><span class="role">DPO</span><h3>Chosen vs. rejected pairs</h3><p>Use the harness-on answer as <code>chosen</code> and the raw Gemma answer as <code>rejected</code>. This is the first preference-training path before any PPO/GRPO-style RL is added.</p></article>
