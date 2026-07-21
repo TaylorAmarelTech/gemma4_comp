@@ -15,10 +15,13 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _notebook_viz import HELPERS, PALETTE  # noqa: E402  (embedded into the notebook's first code cell)
 DEFAULT_OUTPUT = ROOT / "reports" / "kaggle_publish" / "benchmark_index_v1"
 DATASET_ID = "taylorsamarel/duecare-harness-benchmark-grades"
 
@@ -51,14 +54,10 @@ def _code(identifier: str, source: str) -> dict[str, Any]:
 _SETUP = """import json, os
 from pathlib import Path
 
-import numpy as np
-import pandas as pd
 from IPython.display import Markdown, display
 
-COLORS = ["#136f63", "#f2b134", "#d1495b", "#247ba0", "#6d597a", "#4f772d"]
-import matplotlib.pyplot as plt
-plt.rcParams.update({"figure.figsize": (11, 5.4), "figure.dpi": 115, "axes.facecolor": "#f7faf9",
-                     "axes.edgecolor": "#bed2cc", "axes.grid": True, "grid.alpha": 0.2, "font.size": 11})
+# np, pd, plt, and the DueCare paper/ink/teal theme + helper functions come from
+# the PALETTE + HELPERS block embedded above this cell at build time.
 
 EXPECTED_DATASET_ID = "taylorsamarel/duecare-harness-benchmark-grades"
 
@@ -137,7 +136,7 @@ This notebook is the index. Read it first, then follow the guided tour.
 - [5. What this does and does NOT prove](#boundary)
 
 All numbers are recomputed live from the attached grades dataset; nothing is hard-coded."""),
-        _code("setup", _SETUP),
+        _code("setup", PALETTE + "\n" + HELPERS + "\n" + _SETUP),
         _md("headline-note", """<a id="headline"></a>
 ## 1. The headline result
 
@@ -151,12 +150,16 @@ row = b[b.model == head].iloc[0]
 display(Markdown(f"**`{head}`**: baseline **{row.baseline}** -> harnessed **{row.harnessed}** "
                  f"= **+{row.lift}** on the 0-100 rubric, over **{int(row.n_pairs):,} paired prompts** "
                  f"(win rate {row['win_rate_%']}%)."))
-fig, ax = plt.subplots(figsize=(9, 2.6))
-ax.barh([head], [row.baseline], color="#b8c4c0", label="baseline")
-ax.barh([head], [row.lift], left=[row.baseline], color=COLORS[0], label="harness lift")
-ax.text(row.harnessed + 1, 0, f"{row.harnessed} (+{row.lift})", va="center", fontsize=11)
-ax.set(title="Headline: baseline score + harness lift", xlabel="mean 0-100 rubric score", xlim=(0, 105))
-ax.legend(loc="lower right", frameon=False)
+stat_cards([(f"+{row.lift:.1f}", "mean 0-100 lift", EMBER), (f"{row.baseline:.0f}", "baseline", INK3),
+            (f"{row.harnessed:.0f}", "harnessed", TEAL), (f"{row['win_rate_%']:.1f}%", "win rate", GOOD)])
+fig, ax = plt.subplots(figsize=(9.4, 2.3))
+ax.barh([head], [row.baseline], color=INK3, label="baseline")
+ax.barh([head], [row.lift], left=[row.baseline], color=TEAL, label="harness lift")
+ax.text(row.harnessed + 1.5, 0, f"{row.harnessed:.1f}  (+{row.lift:.1f})", va="center",
+        fontsize=11, color=EMBER, fontweight="bold")
+ax.set(xlabel="mean 0-100 rubric score", xlim=(0, 106)); ax.grid(axis="y", alpha=0)
+_title(ax, "Headline: baseline score + harness lift")
+ax.legend(loc="lower right")
 fig.tight_layout(); fig.savefig(out_dir / "index_headline.png", bbox_inches="tight"); plt.show()"""),
         _md("board-note", """<a id="board"></a>
 ## 2. The cross-model board
@@ -165,15 +168,15 @@ The harness is pure prompt augmentation, so the same benchmark wraps any model. 
 ceiling-adjusted score -- the fraction of the remaining headroom `(100 - baseline)` the harness
 captures -- so a high-baseline model is compared fairly with a low one. It often re-ranks the board
 versus raw lift (the biggest raw lift usually just had the most room)."""),
-        _code("board", """b = board()
-display(b.style.format({"norm_gain": "{:.3f}"}).background_gradient(subset=["lift", "norm_gain"], cmap="Greens"))
-fig, ax = plt.subplots(figsize=(11, 5.2))
-t = b.sort_values("lift").tail(8)
-ax.barh(t["model"], t["baseline"], color="#b8c4c0", label="baseline")
-ax.barh(t["model"], t["lift"], left=t["baseline"], color=COLORS[0], label="harness lift")
-ax.set(title="Harness lift across models (baseline + lift, 0-100)", xlabel="mean rubric score", xlim=(0, 105))
-ax.legend(loc="lower right", frameon=False)
-fig.tight_layout(); fig.savefig(out_dir / "index_board.png", bbox_inches="tight"); plt.show()"""),
+        _code("board", """head = headline_model()
+b = board()
+display(pretty_table(b, caption="Cross-model harness lift",
+                     fmt={"norm_gain": "{:.3f}", "lift": "{:+.1f}", "baseline": "{:.1f}", "harnessed": "{:.1f}"},
+                     gradient=["lift", "norm_gain"], bars=["lift"],
+                     highlight_row=b.index[b.model == head][0]))
+ibar(list(b.model), list(b.baseline), list(b.lift), ns=list(b.n_pairs),
+     title="Every model improves under the harness",
+     subtitle="baseline (grey) + harness lift (teal); n = paired prompts")"""),
         _md("tour", f"""<a id="tour"></a>
 ## 3. Guided tour of the collection
 
