@@ -46,3 +46,6 @@ jobs:
 
       - name: Evals-as-CI anti-regression gate
         run: python scripts/run_evals_gate.py
+
+      - name: Incoming-content self-check (benign over-flag / miss guard)
+        run: python examples/incoming_content/analyze_incoming.py
