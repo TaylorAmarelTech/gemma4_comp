@@ -1,0 +1,9 @@
+model,n,coverage,det_base_0_5,det_core_0_5,det_lift_0_5,score_regression_pct
+gemma4:31b,78719,full,3.966,4.828,0.861,2.79
+gpt-oss:120b,1748,partial,3.244,4.078,0.835,20.02
+glm-5.2,410,partial,4.180,4.900,0.720,3.17
+deepseek-v4-pro,182,partial,3.962,4.885,0.923,1.65
+minimax-m2.7,37,small,2.703,4.432,1.730,5.41
+glm-5.1,40,small,4.025,4.750,0.725,10.00
+qwen3.5:397b,40,small,4.400,4.825,0.425,7.50
+gpt-oss:20b,3,tiny,1.000,1.000,0.000,0.00
