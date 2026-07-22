@@ -28,6 +28,10 @@ The CSV carries **no response text and no personal data** -- only prompt ids and
 deterministic scores. The full (synthetic, scrubbed) prompt+response text is the
 separate public `duecare-prompt-response-showcase` dataset.
 
+## Cross-model board
+
+`cross_model_deterministic_leaderboard.csv` and `.md` extend the same model-free check across every model in the response set. The deterministic lift is positive on all seven models with a real sample (+0.42 to +1.73). Coverage is uneven (only gemma4:31b is full-registry), so the `n` column is the honest guard. Regenerate with `python scripts/cross_model_deterministic.py`.
+
 ## Headline finding (gemma4:31b, full registry)
 
 The deterministic checker scores **every** generated response pair, so it gives
