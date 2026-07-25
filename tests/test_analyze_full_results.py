@@ -230,3 +230,39 @@ def test_render_includes_statistics_and_breakdown_sections():
     assert "## Lift by prompt category" in out
     assert "labor_trafficking" in out
     assert "sign test" in out
+
+
+# --- provenance: the report must name the panel it actually read ------------------------------
+# Regression guard: render() used to hardcode `reports/rich_lift/panel.jsonl` in its prose, so an
+# interim per-dimension read was published claiming the canonical board panel as its source.
+
+def _one_pair():
+    return [_row("p1", "baseline", 40), _row("p1", "harness_core", 90)]
+
+
+def test_render_names_the_actual_panel_and_row_count():
+    out = a.render(a.aggregate(_one_pair()), registry=100, today="2026-07-11",
+                   panel=a.PANEL, panel_rows=85417)
+    assert "from `reports/rich_lift/panel.jsonl` (85,417 judge rows)" in out
+
+
+def test_render_flags_a_non_canonical_panel_as_an_interim_read():
+    perdim = a.PANEL.with_name("panel_perdim.jsonl")
+    out = a.render(a.aggregate(_one_pair()), registry=100, today="2026-07-11",
+                   panel=perdim, panel_rows=47813)
+    assert "Interim read -- not the board headline." in out
+    assert "from `reports/rich_lift/panel_perdim.jsonl` (47,813 judge rows)" in out
+    # the canonical panel must not be claimed as the source of an interim read
+    assert "from `reports/rich_lift/panel.jsonl`" not in out
+
+
+def test_render_omits_the_interim_banner_for_the_canonical_panel():
+    out = a.render(a.aggregate(_one_pair()), registry=100, today="2026-07-11", panel=a.PANEL)
+    assert "Interim read" not in out
+
+
+def test_panel_label_never_leaks_an_out_of_repo_absolute_path():
+    outside = Path("C:/Users/someone/AppData/Local/Temp/panel_perdim.jsonl").resolve()
+    label = a._panel_label(outside)
+    assert label == "panel_perdim.jsonl"
+    assert "Users" not in label and "AppData" not in label

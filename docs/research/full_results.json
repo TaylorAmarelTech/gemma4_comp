@@ -1,6 +1,6 @@
 {
   "fully_paired_prompt_ids": 7950,
-  "generated": "2026-07-16",
+  "generated": "2026-07-25",
   "graded_prompt_ids": 7973,
   "n_panel_rows": 85417,
   "paired_prompt_ids": 7953,
@@ -3871,5 +3871,7 @@
       }
     }
   ],
-  "registry": 78719
+  "registry": 78719,
+  "source_panel": "reports/rich_lift/panel.jsonl",
+  "source_panel_rows": 85417
 }
