@@ -52,16 +52,25 @@ The single highest-leverage theme. Make it impossible for a change to silently d
   improvement loop becomes a documented, anchored graph (see `docs/ARCHITECTURE.md`, to write).
 - **Where-it-hurts tracking.** The 46 verifier regressions (harness dropping a resource cue) are a
   concrete backlog; add a standing "regression triage" that turns each into a rule/test.
-  - **Compact-engine recall gap (tracked 2026-07-21).** Two independent finders (a notebook agent + the
-    `examples/incoming_content/` demo) hit the same miss: `scripts/_usecase_engine.py` PATTERNS do not
-    match possessive-apostrophe legalese ("the Employee's passport", "workers' passports"), the
-    "passport stays with the employer" phrasing, "lakh"/"crore" fee amounts, or several romanized
-    multilingual cues. The full production GREP layer (451 rules / 11+ languages) catches these; the
-    representative kit subset does not. Broadening recall is ADDITIVE but shifts the full-data verify/
-    lift numbers, so it is held until a deliberate re-grade re-baselines `configs/duecare/evals_baseline.json`
-    and the published notebook figures transparently -- not a deep-context side edit. (The precision fix
-    -- a self-retention negation guard so "I keep my own passport" no longer over-flags -- shipped
-    2026-07-21 and is numbers-neutral: the evals gate stayed identical.)
+  - **Compact-engine recall gap (tracked 2026-07-21, CLOSED 2026-07-26).** Two independent finders (a
+    notebook agent + the `examples/incoming_content/` demo) hit the same miss: `scripts/_usecase_engine.py`
+    PATTERNS did not match possessive-apostrophe legalese ("the Employee's passport", "workers' passports"),
+    the "passport stays with the employer" phrasing, "lakh"/"crore" fee amounts, or several romanized
+    multilingual cues. All four are now covered (2 document-retention patterns, 1 South-Asian fee-amount
+    pattern, 11 romanized cues incl. a new `excessive_overtime` cue set).
+    _The deliberate re-grade this item was waiting on was run and is recorded here._ Measured old-vs-new
+    over **15,600 real texts** (600 committed showcase fields + 15,000 responses streamed from
+    `reports/rich_lift/results.jsonl`): **+442 rows gain an indicator (2.833%), 0 rows lose one (0.000%)** --
+    strictly additive. `scripts/run_evals_gate.py` stayed **identical on every metric**, so
+    `configs/duecare/evals_baseline.json` did **not** need re-baselining and no published notebook figure
+    moves. The `examples/incoming_content/` demo now catches all 3 former boundary cases.
+    **Negative result worth keeping:** a prohibition-aware guard (suppressing "no employer may retain a
+    passport" as policy text rather than a report) was implemented, measured, and **reverted** -- it cut
+    **979 of 15,600 rows (6.3%)**, far more than the recall it protected. `scan()` serves two roles, and on
+    a model *response* a cited prohibition is the model correctly naming the indicator, which verify
+    criterion A must score. Do not reintroduce it without splitting the two roles, which the pinned
+    `scan(text)` API contract forbids. (The earlier precision fix -- a self-retention negation guard so
+    "I keep my own passport" no longer over-flags -- shipped 2026-07-21 and remains in force.)
 - **Re-versioning discipline.** Datasets grow and are re-versioned (never silently replaced); keep the
   perdim sweep growing toward the full registry; publish grade deltas, not overwrites.
 
