@@ -197,6 +197,38 @@ evidence-ordered list of what to port into the kit next -- highest-frequency, hi
 |---|---|---:|---:|
 {rows}
 
+## Why the missed tail is NOT simply a porting backlog
+
+The table above ranks what to consider porting, but the dominant cause of the missed tail is
+structural, not vocabulary. The big critical rules (`ilo_indicator_passport_retention`,
+`confiscation_documents_safe_in_office`, `fee_camouflage_deposit_bond`) set `all_required=True`:
+they fire on **document-level co-occurrence** -- a document noun anywhere in the text plus a
+retention verb anywhere in the text. The compact engine instead requires **proximity**: the verb
+must govern the noun within a few words.
+
+That difference is deliberate and should stay. Production GREP is a *recall screen* whose hits are
+fed to a model that reasons about them; the compact engine is a *precision* surface whose hits are
+shown to a reader as an indicator verdict.
+
+Porting co-occurrence was prototyped and measured on 1,800 texts before being rejected. It would
+have rescued 18 production-agreed misses, but it fires on protective advice, which is exactly what
+a harnessed response contains:
+
+| probe | co-occurrence | compact (current) |
+|---|---|---|
+| "I keep my own passport in my room." | **fires** | silent |
+| "Your passport is yours. If anyone asks to hold it, that is a red flag." | **fires** | silent |
+| "Bring your passport to the interview; we will photocopy it and hand it straight back." | silent | silent |
+
+The first probe is the benign case the 2026-07-21 self-retention guard exists to suppress -- a
+co-occurrence path would bypass that guard entirely and regress a shipped precision fix. The second
+is a model correctly warning a worker. Trading those for 18 rescues is a bad exchange for a surface
+whose output is read as a verdict.
+
+**Conclusion: prefer porting specific high-value PROXIMITY patterns from the ranked table, never the
+co-occurrence conjunction.** Rules whose signal is inherently document-level are a boundary of the
+compact engine, not a backlog item.
+
 ## How to read this honestly
 
 1. A high recall number does **not** make the kit equivalent to production. Production returns the
