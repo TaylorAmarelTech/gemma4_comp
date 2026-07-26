@@ -36,6 +36,42 @@ explicitly asks to restore them.
 
 ## Current operating state
 
+> **Re-verified 2026-07-26 -- read this box before trusting the 2026-07-14 snapshot below.**
+>
+> - **Generation is COMPLETE.** `reports/rich_lift/panel_perdim.coverage.json` reports
+>   `response_cells 236,157 / 236,157, 0 missing`. Every Gemma response for 78,719 prompts x 3 arms
+>   is on disk. Only judge calls remain: `panel_cells 47,813 / 708,471` (6.7%),
+>   `dimension_outputs 239,065 / 3,542,355`. The 2026-07-14 line below saying `0 / 708,471` is
+>   superseded. **Consequence: model-free analysis over the full response set is always available,
+>   even while Ollama is capped.**
+> - **The engine is blocked on an Ollama WEEKLY usage cap, not a code fault.** A real generation
+>   call returns HTTP 429 "reached your weekly usage limit". `/api/tags` returns 200 while capped,
+>   so reachability is NOT a quota test -- probe with an actual `POST /api/chat`.
+> - **Reading engine progress: the log lies, the sidecar does not.** `stale lock (pid N); taking
+>   over` lines mean the previous process DIED and a watchdog restarted it. The engine re-scans the
+>   1.1 GB results panel on each start and rewrites the coverage manifest, so that manifest's mtime
+>   is always fresh. **Ground truth is the mtime of
+>   `reports/rich_lift/panel_perdim.jsonl.components.sqlite3`**, frozen at 2026-07-21 00:25 through
+>   2026-07-26. `schtasks` `DueCareAutonomousEngine` returns `LastResult=2` every ~15 min while
+>   capped. Nothing is lost: the sweep is resumable and the seeded shuffle keeps any prefix
+>   unbiased.
+> - **The engine is now cleanly PAUSED and will NOT auto-resume.** `reports/autonomous_engine.stop`
+>   was created 2026-07-24 21:28; the engine ran to `2026-07-25T05:28Z` and has been stopped since.
+>   `python scripts/autonomous_engine.py --status` reports `paused=true` with a stale lock (pid
+>   40920). The scheduled tasks remain enabled, which is why `DueCareAutonomousEngine` still fires
+>   and exits with `LastResult=2`. **Resuming requires deleting the sentinel** -- that is Taylor's
+>   call, not an agent's, and it should not happen while the weekly Ollama cap is still returning
+>   429. Because `paused=true` while the tasks are still enabled, the pickup validator's
+>   `latest_preflight_scope_matches_engine_mode` check reports a mode mismatch (saved preflight is
+>   `launch`-scoped from the last live run). That is an accurate reading of a transient state, not
+>   a defect to paper over; it clears when the engine is next cleanly resumed or re-preflighted.
+> - **Full suite re-verified green on 2026-07-26:** `tests/` **3,221 passed, 2 skipped**;
+>   `packages/` **1,356 passed, 2 skipped**. This supersedes the `4147 passed, 12 skipped` line
+>   below. Two tests had been failing silently for days and were fixed
+>   (`test_next_notebooks_inherit_reusable_contracts_without_redeclaring_lists` broke when the
+>   headless A-30 GPU trainer landed; `test_no_python_scripts_live_in_repository_root` broke when
+>   `launch.py` landed). Do not claim a full pass without rerunning both commands.
+
 Verified locally on 2026-07-14 with:
 
 ```powershell
