@@ -14,6 +14,11 @@ PORTABILITY_AUDIT = KERNEL_DIR / "PORTABILITY_AUDIT.md"
 WHEELS = KERNEL_DIR / "wheels"
 A00_KERNEL = REPO / "kaggle" / "A-00-omni-experiment-workbench" / "kernel.py"
 LIVE_DEMO_KERNEL = REPO / "kaggle" / "02-live-demo" / "kernel.py"
+# Appendix kernels that are headless batch JOBS rather than interactive server kernels. They run to
+# completion on a Kaggle GPU and exit, so they have no web surface to inherit the shared runtime
+# contract from. Kept as an explicit, self-policing allowlist (see the assertion at its use site)
+# rather than a glob exclusion, so adding a real server kernel here fails loudly.
+HEADLESS_BATCH_KERNELS = frozenset({"kaggle/A-30-cot-gpu-training/kernel.py"})
 GEMMA4_RUNTIME = REPO / "packages" / "duecare-llm-chat" / "src" / "duecare" / "chat" / "gemma4_runtime.py"
 MODEL_LOADING_TRACE = REPO / "docs" / "model_loading_trace.md"
 
@@ -431,6 +436,18 @@ def test_next_notebooks_inherit_reusable_contracts_without_redeclaring_lists():
     for kernel in [LIVE_DEMO_KERNEL, *appendix_kernels]:
         text = _text(kernel)
         rel = str(kernel.relative_to(REPO))
+        if kernel.relative_to(REPO).as_posix() in HEADLESS_BATCH_KERNELS:
+            # Headless batch kernels (GPU training jobs) have no web surface by design, so the
+            # shared-runtime server contract cannot apply. The exemption is self-policing: an
+            # exempt kernel must ALSO prove it declares no server surface, so a real server kernel
+            # can never be quietly parked here to dodge the contract.
+            server_markers = [m for m in ("create_app", "/api/", "FastAPI", "uvicorn", "@app.")
+                              if m in text]
+            assert not server_markers, (
+                f"{rel} is listed as a headless batch kernel but declares a server surface "
+                f"{server_markers}; remove it from HEADLESS_BATCH_KERNELS so the runtime contract "
+                f"applies to it")
+            continue
         uses_shared_runtime = (
             "build_minimal_shell" in text
             or "duecare.chat.app import create_app" in text
