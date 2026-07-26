@@ -40,6 +40,7 @@ from __future__ import annotations
 import json
 import math
 import os
+import functools
 import re
 import time
 import unicodedata
@@ -66,6 +67,20 @@ from ._grep_rules_multilingual import (  # noqa: E402,F401  (non-English indicat
 )
 
 
+@functools.lru_cache(maxsize=4096)
+def _compiled_pattern(pattern: str):
+    """Compile + memoize one GREP pattern.
+
+    The rule set carries ~1,037 patterns but CPython's internal `re` cache holds 512, so calling
+    `re.search(pattern_string, ...)` per rule evicts and recompiles nearly every pattern on EVERY
+    call. GREP runs on the hot path of chat / process / extraction, so that recompilation dominated
+    the layer's cost. Memoizing here is a 4.8x speedup with identical matching semantics. The cache
+    is bounded so caller-supplied `extra_rules` cannot grow it without limit; invalid patterns still
+    raise `re.error` exactly as before.
+    """
+    return re.compile(pattern, re.IGNORECASE)
+
+
 def _grep_call(text: str, extra_rules=None) -> dict:
     """Run GREP rules against `text`. Returns hits with
     {rule, severity, citation, indicator, match_excerpt}.
@@ -88,7 +103,7 @@ def _grep_call(text: str, extra_rules=None) -> dict:
         matched_excerpts = []
         all_matched = True
         for pat in patterns:
-            m = re.search(pat, lower, re.IGNORECASE)
+            m = _compiled_pattern(pat).search(lower)
             if m is None:
                 # `continue`, not `break`: for all_required=False (ANY-match)
                 # rules a miss on one pattern must NOT stop the others from being
