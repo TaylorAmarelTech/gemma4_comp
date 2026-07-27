@@ -13,6 +13,7 @@ Canonical publication stopping point, release boundary, and prioritized
 model/data backlog:
 
 - [`docs/PUBLICATION_READINESS.md`](docs/PUBLICATION_READINESS.md)
+- [`docs/DEFERRED_WORK.md`](docs/DEFERRED_WORK.md)
 
 Current human-maintainer pickup and dated closeout plan:
 
@@ -27,7 +28,8 @@ Read order for continuation sessions:
 4. [`docs/MAINTAINER_HANDOFF.md`](docs/MAINTAINER_HANDOFF.md)
 5. [`docs/PROJECT_TRANSITION_PLAN.md`](docs/PROJECT_TRANSITION_PLAN.md)
 6. [`docs/PUBLICATION_READINESS.md`](docs/PUBLICATION_READINESS.md)
-7. [`docs/codex/PROJECT_BIBLE.md`](docs/codex/PROJECT_BIBLE.md)
+7. [`docs/DEFERRED_WORK.md`](docs/DEFERRED_WORK.md)
+8. [`docs/codex/PROJECT_BIBLE.md`](docs/codex/PROJECT_BIBLE.md)
 
 This pointer is not permission to start the autonomous judging engine, remove
 `reports/autonomous_engine.stop`, call Ollama, or promote candidate dimensions.

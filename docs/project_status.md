@@ -35,18 +35,13 @@ snapshots, and older checklist/status docs are archived under
 
 ## Current Technical Posture
 
-- Root `AGENTS.md` names `master` as the release branch. Pull request 2 first
-  merged the integrated closeout on 2026-07-26 (PDT), and
-  [pull request 4](https://github.com/TaylorAmarelTech/gemma4_comp/pull/4)
-  merged the public-surface reconciliation on 2026-07-27. The successor-focused
-  [pull request 5](https://github.com/TaylorAmarelTech/gemma4_comp/pull/5)
-  then merged the final wrap-up as
-  `504aec0c0ba6d3c251282e446cc6c764b4c469ce`. All 17 PR checks and all six
-  merge-triggered workflows passed, including both Python matrices, the active
-  notebook/page-source gate, all 18 wheel builds, clean-room installation,
-  gitleaks, website/privacy, Kaggle, harness, entity intelligence, and the
-  build-only multi-architecture image. A release/tag remains a separate owner
-  decision.
+- Root `AGENTS.md` names `master` as the release branch. The integrated
+  closeout advanced through pull requests 2, 4, 5, 6, and
+  [7](https://github.com/TaylorAmarelTech/gemma4_comp/pull/7). Pull request 7 is
+  the latest verified baseline at merge commit
+  `1e1e8b5eac7a58b837b5782de2f11c1ca5a8d5dc`; all 16 PR checks and all six
+  merge-triggered workflows passed. A release/tag remains a separate owner
+  decision, and every later candidate must rerun its own gates.
 - The wrap-up started from clean `master`, confirmed no model was loaded in
   local Ollama, and its validation commands made no Ollama, hosted-model, or
   Kaggle-quota calls. The
@@ -67,9 +62,12 @@ snapshots, and older checklist/status docs are archived under
   [`MAINTAINER_HANDOFF.md`](MAINTAINER_HANDOFF.md).
 - The repository has a single model-free publication entry point:
   [`PUBLICATION_READINESS.md`](PUBLICATION_READINESS.md) and
-  `python scripts/validate_publication_readiness.py --scope core`. All ten
+  `python scripts/validate_publication_readiness.py --scope core`. All eleven
   core gates passed in the closeout candidate on 2026-07-27; rerun them on the
   exact release commit.
+- [`DEFERRED_WORK.md`](DEFERRED_WORK.md) is the generated, validated source for
+  every unfinished item's owner role, prerequisites, authorization boundary,
+  ordered actions, evidence, and acceptance gates.
 - All 18 Python distributions remain unpublished on PyPI. One fail-closed OIDC
   workflow owns package publication; a reviewed independent-SemVer manifest
   now reconciles the intentionally mixed versions and selects one package per
@@ -129,6 +127,8 @@ snapshots, and older checklist/status docs are archived under
 - [`FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md) - reviewer verification path.
 - [`PUBLICATION_READINESS.md`](PUBLICATION_READINESS.md) - offline release gate,
   Ollama-credit plan, dataset roadmap, and additional source candidates.
+- [`DEFERRED_WORK.md`](DEFERRED_WORK.md) - canonical unfinished-work register;
+  this supersedes duplicated backlog tables in narrative docs.
 - [`USER_TODO.md`](USER_TODO.md) - manual actions before submission.
 - [`readiness_dashboard.md`](readiness_dashboard.md) - current status snapshot.
 - [`two_week_submission_plan.md`](two_week_submission_plan.md) - final execution
@@ -142,6 +142,9 @@ snapshots, and older checklist/status docs are archived under
 - [`model_loading_trace.md`](model_loading_trace.md) - Gemma 4 runtime contract.
 
 ## Remaining Work
+
+The canonical queue is [`DEFERRED_WORK.md`](DEFERRED_WORK.md). The numbered
+summary below is directional only; the register controls status and acceptance.
 
 1. Complete the 30-day access, recovery, release/no-release, successor rehearsal,
    and final acceptance actions in the transition plan.
@@ -167,12 +170,13 @@ retired appendix-ladder framing.
 
 Latest offline working-tree receipt on 2026-07-27:
 
-- publication handoff: 2/2 gates passed, including 16/16 succession-document
+- publication handoff: 2/2 gates passed, including 17/17 succession-document
   checks and 65/65 live pickup checks;
-- publication core: 10/10 gates passed, including provider-budget coverage and
-  the 18-package release-ownership/install-truth gate;
+- publication core: 11/11 gates passed, including provider-budget coverage,
+  deferred-work integrity, and the 18-package release-ownership/install-truth
+  gate;
 - combined `packages tests` regression in the closeout 18-package workspace:
-  4,630 passed and 9 skipped with no warning summary under the zero-call
+  4,637 passed and 9 skipped with no warning summary under the zero-call
   transport lock; the focused
   43-test package run also passes with pandas `RuntimeWarning` promoted to an
   error;
@@ -182,12 +186,12 @@ Latest offline working-tree receipt on 2026-07-27:
 - training readiness: strict quality and provenance failed as documented,
   while the 25-task corridor plan and 75-slot scaffold passed privacy/safety
   validation; strict completion remains red at `0/75`, as intended;
-- focused release/link/MkDocs/website tests: 56 passed; the complete website
-  suite passed 76 tests;
+- focused deferred-work/handoff/publication/site tests: 96 passed, including
+  the complete 78-test website suite;
 - curator-block governance: all 75 universal rubric dimensions have inline
   guidance; strict validation reports zero errors and zero warnings;
-- post-deploy external network audit: 577 links checked, zero confirmed broken,
-  and 10 transient/unverified hosts kept separate from confirmed failures;
+- post-deploy external network audit: 587 links checked, zero confirmed broken,
+  and 12 transient/unverified hosts kept separate from confirmed failures;
 - the polish/validation commands initiated no Ollama or hosted-model call; the
   separate background-daemon usage correction above supersedes any broader
   reading of that receipt.

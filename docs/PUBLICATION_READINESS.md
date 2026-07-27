@@ -8,12 +8,17 @@ model run. Current as of 2026-07-27.
 
 | Track | Current state | Publication rule |
 |---|---|---|
-| Core code, docs, active Kaggle surfaces, provider-budget coverage, package-release ownership, and published dataset claims | **10/10 core gates passed offline in the closeout candidate; the reconciled 2026-07-27 `master` passed its earlier complete post-merge CI and public deployment checks** | Re-run on the exact release commit before tagging. |
+| Core code, docs, active Kaggle surfaces, provider-budget coverage, deferred-work integrity, package-release ownership, and published dataset claims | **11/11 core gates passed offline in the closeout candidate; the 2026-07-27 pull request 7 baseline passed all PR checks, post-merge workflows, and public deployment checks** | Re-run on the exact release commit before tagging. |
 | Maintainer succession and live pickup | **2/2 handoff gates passed offline; public handoff and deployment receipts are live on the merged closeout** | Re-run from a fresh shell and complete the private/manual acceptance steps before ownership transfer. |
 | Existing dated benchmark and learning-study results | Retained as bounded evidence with their original model, dataset, rubric, and date | Do not silently relabel an old result as a new model or field-effectiveness result. |
 | New fine-tuning dataset | **Not clean yet:** the strict audit reports five dense single/generic-corridor typologies; the deterministic workbook has 75 unfilled slots and no fabricated approvals | Complete source snapshots, rights review, two-person adjudication, and lineage-safe rows; rerun the audit, then refresh provenance before training or a new model claim. |
 | Exhaustive per-dimension judging | Experimental, isolated, and incomplete | Keep it out of the default comparable board until its own exact closure gate passes. |
 | Local/hosted Ollama work | Optional and deferred; the whole Windows model/flywheel stack is cost-stopped and the primary router has an atomic attempt/token/cash ledger | Plan offline first; unlock a small allowance only for a frozen, priced run, and keep direct/notebook clients outside the router explicitly labeled. |
+
+The generated [`DEFERRED_WORK.md`](DEFERRED_WORK.md) register is authoritative
+for unfinished work. It prevents roadmap drift by validating owners,
+prerequisites, dependencies, model/network boundaries, evidence paths, ordered
+actions, acceptance gates, and the absence of unresolved tokens.
 
 ## Registry And Kaggle Publication Truth
 
@@ -64,18 +69,18 @@ python scripts/validate_publication_readiness.py --scope core
 
 This runs public-surface and messaging audits, the source-checkout harness
 smoke test, published dataset-claim verification, fallback-registry validation,
-both active Kaggle static gates, package-release reconciliation, and package
-test collection. The runner sets
+both active Kaggle static gates, the generated deferred-work register,
+package-release reconciliation, and package test collection. The runner sets
 Ollama's planned-call allowance to zero and forces common Hugging Face and
 Weights & Biases integrations offline for its child checks.
 
-Current audit receipt: all ten core gates passed in the 2026-07-27 closeout
-candidate without a model or network call. The earlier surface reconciliation
-landed through [pull request 4](https://github.com/TaylorAmarelTech/gemma4_comp/pull/4)
-as `dc313814d9f42e127b24191b7912fd521083fadd`, after which the complete
-[master CI workflow](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30273583863)
-passed. These receipts are not a substitute for rerunning the command on an
-eventual release tag.
+Current audit receipt: all eleven core gates passed in the 2026-07-27 closeout
+candidate without a model or network call. The latest verified integrated
+baseline landed through
+[pull request 7](https://github.com/TaylorAmarelTech/gemma4_comp/pull/7) as
+`1e1e8b5eac7a58b837b5782de2f11c1ca5a8d5dc`; all 16 pull-request checks and
+all six merge-triggered workflows passed. These receipts are not a substitute
+for rerunning the command on an eventual release tag.
 
 Training readiness is intentionally separate:
 
@@ -113,7 +118,7 @@ category/count-only privacy checks, public website/Pages ownership, the public
 continuity route, and live Project Bible pickup consistency.
 It does not make the strict training lane portable or green, and it does not
 authorize publication, credential transfer, provider spend, or engine resume.
-The current working-tree receipt is 2/2 handoff gates passed, including 16/16
+The current working-tree receipt is 2/2 handoff gates passed, including 17/17
 succession-document checks and the 65-check pickup validator with zero findings.
 
 ## Preserve Ollama Credits
@@ -298,12 +303,14 @@ Then read:
    access transfer, recovery, and acceptance.
 3. [`PROJECT_TRANSITION_PLAN.md`](PROJECT_TRANSITION_PLAN.md) for the dated
    closeout sequence and maintenance-mode fallback.
-4. This file for the release boundary and prioritized next work.
-5. [`project_status.md`](project_status.md) for the concise active-surface
+4. [`DEFERRED_WORK.md`](DEFERRED_WORK.md) for the canonical unfinished-work
+   queue, authorization boundaries, and acceptance gates.
+5. This file for the release boundary and limitations.
+6. [`project_status.md`](project_status.md) for the concise active-surface
    snapshot.
-6. [`kaggle/_INDEX.md`](../kaggle/_INDEX.md) for active, optional, and archived
+7. [`kaggle/_INDEX.md`](../kaggle/_INDEX.md) for active, optional, and archived
    notebook surfaces.
-7. [`codex/PROJECT_BIBLE.md`](codex/PROJECT_BIBLE.md) for the deep historical
+8. [`codex/PROJECT_BIBLE.md`](codex/PROJECT_BIBLE.md) for the deep historical
    and autonomous-engine handoff.
 
 The authoritative live/generated evidence is:
@@ -311,6 +318,7 @@ The authoritative live/generated evidence is:
 | Question | Artifact or command |
 |---|---|
 | Is the public repository coherent? | `validate_publication_readiness.py --scope core` |
+| What unfinished work can be picked up safely? | `DEFERRED_WORK.md` plus `validate_deferred_work.py` |
 | Is local automation paused and internally coherent? | `validate_project_bible_pickup.py` plus `autonomous_engine.py --status` |
 | Is the new training dataset safe to advance? | `reports/training/quality_audit.json` and `--scope training` |
 | What must curators add? | `reports/training/corridor_curation_workbook.json`, the candidate-only source catalog, and `validate_corridor_curation.py --require-complete` |
@@ -363,7 +371,7 @@ worker-facing answers, benchmark labels, or training rows automatically.
 - The training gate is red because of corridor coverage and the resulting
   stale fingerprints in an older planned registry record. This is a truthful
   provenance stop, not a reason to rewrite the ledger.
-- The integrated `packages tests` regression passed 4,630 tests with nine
+- The integrated `packages tests` regression passed 4,637 tests with nine
   skips and no warning summary in the locked 18-package workspace. Mocked and
   loopback provider tests explicitly isolate their fake transports while the
   real zero-call denial tests remain enabled. The
@@ -398,37 +406,30 @@ worker-facing answers, benchmark labels, or training rows automatically.
   independent SemVer, and `configs/duecare/package_release.toml` reconciles the
   intentionally mixed versions with the sole publisher. `CITATION.cff` still
   describes living research software because no registry release exists yet.
-- The post-deploy concurrent external audit checked 577 outbound links on
+- The post-deploy concurrent external audit checked 587 outbound links on
   2026-07-27 with zero confirmed broken links. All six same-site schema URLs
-  returned 200; 10 additional hosts were transient, DNS/SSL-blocked,
+  returned 200; 12 additional hosts were transient, DNS/SSL-blocked,
   redirect-looped, or bot-blocked and remain explicitly unverified rather than
   mislabeled as broken.
-- Root `AGENTS.md` names `master` as the active release branch. Pull request 2
-  preserves the first integrated closeout, while pull request 4 merged the
-  final public-surface reconciliation as
-  `dc313814d9f42e127b24191b7912fd521083fadd`. Post-merge CI, MkDocs Pages, the
-  artifact-only website build, Render project status, and the advertised schema
-  routes were verified before this receipt was recorded. A release tag/version
+- Root `AGENTS.md` names `master` as the active release branch. Pull request 7
+  is the latest verified integrated baseline at
+  `1e1e8b5eac7a58b837b5782de2f11c1ca5a8d5dc`; its PR checks, six
+  merge-triggered workflows, MkDocs Pages, artifact-only website build, Render
+  project status, and advertised schema routes passed. A release tag/version
   remains a separate owner decision.
 - Archived notebook-era surfaces are provenance. Do not restore them to the
   Kaggle root to satisfy old references; update the reference or archive map.
 - Never treat a dirty working tree as disposable. Inspect and preserve
   unrelated edits instead of trying to manufacture a clean status.
 
-## Prioritized Backlog
+## Canonical Deferred Work
 
-| Priority | Work item | Model credits | Effort | Done when |
-|---|---|---:|---:|---|
-| P0 | Freeze the verified package cohort at a first-package release commit, reconcile changelog/citation, run privacy-safe secret scan, rerun core gate | 0 | Low | Exact package tag/commit and bounded release notes exist; 10/10 core gates pass there |
-| P1 | Fill the 75-slot corridor workbook with source-approved rows, lineage, and two-person adjudication | 0 if human/deterministic | Medium | `validate_corridor_curation.py --require-complete` and the strict quality audit pass without weakening a threshold |
-| P2 | Extend the primary-router budget contract to direct standalone clients and design a portable notebook equivalent | 0 during implementation | Medium | Each migrated caller has a zero-transport test; no claim implies a repository-wide interceptor |
-| P1 | Refresh training provenance through the normal append-only engine path | 0 | Low after curation | Registry fingerprints and verified model-card gate pass |
-| P2 | Human-adjudicate a stratified high-severity and benign-control slice | 0 model credits | Medium | Agreement, disagreement reasons, and adjudication policy are published |
-| P2 | Run a frozen small Ollama smoke matrix with finite output cap and cache reuse | Small, explicit | Low | Planned allowance equals receipt; all artifacts are hash-bound |
-| P2 | Add calibration, abstention, and disagreement-escalation reporting | Optional small judging | Medium | Reports show calibration and route only ambiguous cells to extra judges |
-| P3 | Complete the isolated exhaustive per-dimension lane | High | High | Coverage manifest closes exactly with zero missing/invalid cells |
-| P3 | Isolate and clear legacy Ruff debt in long benchmark files | 0 | Medium | `make lint` can run without a mass behavioral diff or suppressing useful rules |
-| P3 | Validate refreshed actions in the release-triggered Docker, Helm, and package workflows | 0 | Low | The first approved release candidate/tag keeps those release-only lanes green without runtime deprecation annotations |
+[`DEFERRED_WORK.md`](DEFERRED_WORK.md) replaces the duplicated backlog table
+that previously lived here. Its 13 items distinguish two model-free local
+tasks, one recurring maintenance task, and ten actions gated by private access,
+human review, owner decision, or a finite approved budget. The generated
+register is checked by the core release gate, the handoff validator, focused
+tests, and CI.
 
 Good research extensions after the release boundary is stable include a
 cross-corridor counterfactual benchmark, temporal legal-freshness tests,
@@ -448,12 +449,17 @@ new versioned evidence lane rather than changing the existing board in place.
 - [ ] Secret and sensitive-data scans report categories/counts without printing
       matched payloads.
 - [ ] Generated manifests, purpose maps, project status, and handoff artifacts
-      agree with the code and current active Kaggle inventory.
+      agree with the code, deferred-work register, and current active Kaggle
+      inventory.
 - [ ] A deliberate release-version decision reconciles workspace package
       versions, changelog, tag, and the currently unversioned `CITATION.cff`;
       do not bump them implicitly during cleanup.
 
 ## Recommended Next Sequence
+
+The acceptance details and authorization boundaries for this sequence are in
+[`DEFERRED_WORK.md`](DEFERRED_WORK.md); this summary does not grant permission
+for model spend, private access, or external publication.
 
 1. Approve immutable source snapshots, then fill and adjudicate the 75-row
    corridor workbook with full lineage and source metadata.

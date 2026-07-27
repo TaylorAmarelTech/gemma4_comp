@@ -24,6 +24,17 @@ def test_live_handoff_documents_validate():
     result = vmh.validate(ROOT)
 
     assert result["ok"], [check for check in result["checks"] if not check["ok"]]
+    assert result["passed"] == 17
+
+
+def test_deferred_work_register_is_a_succession_gate():
+    check = vmh.deferred_work_register_check(ROOT)
+
+    assert check == {
+        "name": "deferred work register",
+        "ok": True,
+        "detail": "13 explicit item(s); generated document current",
+    }
 
 
 def test_missing_markers_are_reported_by_name():

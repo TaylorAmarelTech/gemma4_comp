@@ -35,10 +35,10 @@ and [`kaggle/_INDEX.md`](../kaggle/_INDEX.md).
 
 | Area | Current State |
 |---|---|
-| Offline publication core | 10/10 composed gates passed in the 2026-07-27 closeout candidate, including provider-budget coverage and package-release ownership/install truth; rerun `python scripts/validate_publication_readiness.py --scope core` on the release commit. |
-| Public deployment | Pull request 4 merged as `dc313814d9f42e127b24191b7912fd521083fadd`; post-merge CI, MkDocs Pages, website artifact, Render project status, and all six schema routes passed. The latest 587-link audit found zero confirmed broken links and 12 transient/unverified hosts. |
+| Offline publication core | 11/11 composed gates passed in the 2026-07-27 closeout candidate, including provider-budget coverage, deferred-work integrity, and package-release ownership/install truth; rerun `python scripts/validate_publication_readiness.py --scope core` on the release commit. |
+| Public deployment | Pull request 7 is the latest verified integrated baseline at `1e1e8b5eac7a58b837b5782de2f11c1ca5a8d5dc`; all 16 PR checks, six merge-triggered workflows, MkDocs Pages, website artifact, Render project status, and all six schema routes passed. The latest 587-link audit found zero confirmed broken links and 12 transient/unverified hosts. |
 | Curator governance | Inline grading guidance covers all 75 universal rubric dimensions; the strict curator validator reports zero errors and zero warnings, and CI now fails on either. |
-| Broad tests | Closeout 18-package `packages tests` run under the zero-call transport lock: 4,630 passed, 9 skipped with no warning summary. The focused 43-test kit run also passes with `RuntimeWarning` promoted to an error. |
+| Broad tests | Closeout 18-package `packages tests` run under the zero-call transport lock: 4,637 passed, 9 skipped with no warning summary. The focused 43-test kit run also passes with `RuntimeWarning` promoted to an error. |
 | Model/flywheel cost stop | All five recurring Windows tasks disabled, four daemon sentinels present, and zero verified repository daemon processes; inspect with `scripts/stop_ollama_stack.ps1 -Status`. |
 | New training readiness | Intentionally red: five dense generic-corridor typologies; 25 privacy-safe curation tasks and a 75-row minimum expansion target. |
 | Harness contract | Documented in [`harness_ecosystem.md`](harness_ecosystem.md), [`harness_pattern.md`](harness_pattern.md), and [`harness_standard_contract.md`](harness_standard_contract.md). |
@@ -49,6 +49,9 @@ and [`kaggle/_INDEX.md`](../kaggle/_INDEX.md).
 | Test baseline | Focused contract gates are listed in [`FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md). |
 
 ## Remaining Human Actions
+
+The generated [`DEFERRED_WORK.md`](DEFERRED_WORK.md) register is authoritative
+for owners, prerequisites, model/network boundaries, evidence, and acceptance.
 
 1. Choose the first independently versioned Python package to release, freeze
    the intended commit/tag, and rerun the model-free core and handoff gates.
@@ -95,6 +98,7 @@ Required exported evidence:
 ## Start Here
 
 - Stopping point and next work: [`PUBLICATION_READINESS.md`](PUBLICATION_READINESS.md)
+- Canonical deferred work: [`DEFERRED_WORK.md`](DEFERRED_WORK.md)
 - Reviewer path: [`FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md)
 - Manual submitter checklist: [`USER_TODO.md`](USER_TODO.md)
 - Current Kaggle inventory: [`current_kaggle_notebook_state.md`](current_kaggle_notebook_state.md)

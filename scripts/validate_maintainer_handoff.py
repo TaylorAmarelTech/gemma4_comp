@@ -10,6 +10,8 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
+import sys
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
@@ -19,12 +21,18 @@ HANDOFF_DOC = Path("docs/MAINTAINER_HANDOFF.md")
 TRANSITION_DOC = Path("docs/PROJECT_TRANSITION_PLAN.md")
 REHEARSAL_DOC = Path("docs/SUCCESSOR_REHEARSAL.md")
 TRANSFER_TEMPLATE = Path("docs/PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md")
+DEFERRED_DOC = Path("docs/DEFERRED_WORK.md")
+DEFERRED_REGISTRY = Path("configs/duecare/deferred_work.json")
+DEFERRED_VALIDATOR = Path("scripts/validate_deferred_work.py")
 
 REQUIRED_FILES: tuple[Path, ...] = (
     HANDOFF_DOC,
     TRANSITION_DOC,
     REHEARSAL_DOC,
     TRANSFER_TEMPLATE,
+    DEFERRED_DOC,
+    DEFERRED_REGISTRY,
+    DEFERRED_VALIDATOR,
     Path("docs/PUBLICATION_READINESS.md"),
     Path("docs/project_status.md"),
     Path("docs/codex/PROJECT_BIBLE.md"),
@@ -48,6 +56,7 @@ HANDOFF_MARKERS: tuple[str, ...] = (
     "## Handoff Acceptance",
     "SUCCESSOR_REHEARSAL.md",
     "PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md",
+    "DEFERRED_WORK.md",
     "DUECARE_MAX_PLANNED_MODEL_CALLS",
     "validate_publication_readiness.py --scope handoff",
     "## 2026-07-27 Whole-stack Cost-stop Correction",
@@ -73,28 +82,34 @@ TRANSITION_MARKERS: tuple[str, ...] = (
     "## Exit Criteria",
     "## If No Successor Is Available",
     "## Future Improvements",
+    "DEFERRED_WORK.md",
 )
 
 DISCOVERY_LINKS: dict[Path, tuple[str, ...]] = {
     Path("README.md"): (
         "docs/MAINTAINER_HANDOFF.md",
         "docs/PROJECT_TRANSITION_PLAN.md",
+        "docs/DEFERRED_WORK.md",
     ),
     Path("PROJECT_BIBLE.md"): (
         "docs/MAINTAINER_HANDOFF.md",
         "docs/PROJECT_TRANSITION_PLAN.md",
+        "docs/DEFERRED_WORK.md",
     ),
     Path("docs/index.md"): (
         "MAINTAINER_HANDOFF.md",
         "PROJECT_TRANSITION_PLAN.md",
+        "DEFERRED_WORK.md",
     ),
     Path("docs/FILE_PURPOSE_GUIDE.md"): (
         "MAINTAINER_HANDOFF.md",
         "PROJECT_TRANSITION_PLAN.md",
+        "DEFERRED_WORK.md",
     ),
     Path("mkdocs.yml"): (
         "MAINTAINER_HANDOFF.md",
         "PROJECT_TRANSITION_PLAN.md",
+        "DEFERRED_WORK.md",
     ),
 }
 
@@ -104,11 +119,13 @@ DOC_CROSS_LINKS: dict[Path, tuple[str, ...]] = {
         "PUBLICATION_READINESS.md",
         "SUCCESSOR_REHEARSAL.md",
         "PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md",
+        "DEFERRED_WORK.md",
     ),
     TRANSITION_DOC: (
         "MAINTAINER_HANDOFF.md",
         "PUBLICATION_READINESS.md",
         "SUCCESSOR_REHEARSAL.md",
+        "DEFERRED_WORK.md",
     ),
 }
 
@@ -255,6 +272,7 @@ def public_continuity_surface_findings(root: Path = ROOT) -> list[str]:
         "MAINTAINER_HANDOFF",
         "PROJECT_TRANSITION_PLAN",
         "PUBLICATION_READINESS",
+        "DEFERRED_WORK",
         "docs-deploy.yml",
         "duecare-site-build.yml",
         "Model/flywheel stack",
@@ -272,6 +290,35 @@ def _check(name: str, ok: bool, detail: str) -> dict[str, object]:
     return {"name": name, "ok": ok, "detail": detail}
 
 
+def deferred_work_register_check(root: Path = ROOT) -> dict[str, object]:
+    """Run the canonical register validator and return a payload-safe check."""
+    validator = root.resolve() / DEFERRED_VALIDATOR
+    if not validator.is_file():
+        return _check("deferred work register", False, "validator missing")
+    try:
+        completed = subprocess.run(
+            [sys.executable, str(validator), "--json"],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=30,
+        )
+        receipt = json.loads(completed.stdout)
+    except (OSError, subprocess.TimeoutExpired, json.JSONDecodeError):
+        return _check("deferred work register", False, "validator did not return a receipt")
+    if not isinstance(receipt, dict):
+        return _check("deferred work register", False, "validator receipt has invalid shape")
+    item_count = receipt.get("items", 0)
+    finding_count = len(receipt.get("findings", []))
+    ok = completed.returncode == 0 and receipt.get("ok") is True
+    detail = f"{item_count} explicit item(s); generated document current"
+    if not ok:
+        detail = f"{finding_count} register finding(s)"
+    return _check("deferred work register", ok, detail)
+
+
 def validate(root: Path = ROOT) -> dict[str, object]:
     """Return a JSON-serializable handoff validation result."""
     root = root.resolve()
@@ -285,6 +332,7 @@ def validate(root: Path = ROOT) -> dict[str, object]:
             "all present" if not missing_files else f"missing: {', '.join(missing_files)}",
         )
     )
+    checks.append(deferred_work_register_check(root))
 
     doc_specs = (
         (HANDOFF_DOC, HANDOFF_MARKERS),

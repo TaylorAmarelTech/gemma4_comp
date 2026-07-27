@@ -150,6 +150,11 @@ jobs:
         run: |
           set -o pipefail
           python scripts/validate_public_messaging.py | tee /tmp/messaging.txt
+      - name: Validate deferred-work register
+        if: always()
+        run: |
+          set -o pipefail
+          python scripts/validate_deferred_work.py | tee /tmp/deferred-work.txt
       - name: Job summary
         if: always()
         run: |
@@ -171,6 +176,12 @@ jobs:
             echo ""
             echo '```'
             cat /tmp/messaging.txt 2>/dev/null || echo "(skipped)"
+            echo '```'
+            echo ""
+            echo "## Deferred-work register"
+            echo ""
+            echo '```'
+            cat /tmp/deferred-work.txt 2>/dev/null || echo "(skipped)"
             echo '```'
             echo ""
             echo "Convention + allowlist syntax: see [docs/AUDIT.md]($DOC_URL)."
