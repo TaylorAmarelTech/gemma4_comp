@@ -259,7 +259,7 @@ if KIT_FULL:
           % (res["baseline"]["mean_score_0_5"], res["harness_core"]["mean_score_0_5"], res["lift"]["mean_score_0_5"],
              res["paired_score_delta"]["wins"], res["paired_score_delta"]["losses"], res["paired_score_delta"]["ties"]))
 else:
-    print("verify_lift needs the full kit (pip install duecare-llm-kit).")'''
+    print("verify_lift needs the source kit (uv sync --all-packages from gemma4_comp).")'''
 
 VERIFY_CHART = '''# The same deterministic lift as a radar + KPI tiles: a hard floor the harness clears without any judge.
 if KIT_FULL:
@@ -449,7 +449,7 @@ def build(output_dir: Path, *, force: bool = False) -> dict:
         "intended path is the pip-installed kit. The second cell prints the resolved version and the functions now "
         "available.\n\n"
         "```bash\n"
-        "pip install duecare-llm-kit                 # from PyPI (target)\n"
+        "uv sync --all-packages                     # from the gemma4_comp source checkout\n"
         f"pip install \"{PIP_TARGET}\"\n"
         "```"))
     c.append(code(INSTALL))

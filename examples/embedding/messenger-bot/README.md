@@ -23,7 +23,7 @@ Use your existing NGO Page or create one at facebook.com/pages/create.
 
 ### 2. Meta App + Messenger product
 
-1. Go to https://developers.facebook.com/apps → Create App
+1. Go to https://developers.facebook.com/ and choose **My Apps** → **Create App**
 2. Type: "Other" → "Business"
 3. Add the Messenger product
 4. Connect your Page → generate a Page Access Token (NOT a User

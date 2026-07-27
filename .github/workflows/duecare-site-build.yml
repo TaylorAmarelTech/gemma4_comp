@@ -23,8 +23,8 @@ jobs:
       run:
         working-directory: apps/duecare-ai.com
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -33,7 +33,7 @@ jobs:
       - name: Render static bundle
         run: python scripts/export_static.py --out dist --api-base https://gemma4-comp.onrender.com
       - name: Upload static site artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: duecare-ai-static-site
           path: apps/duecare-ai.com/dist

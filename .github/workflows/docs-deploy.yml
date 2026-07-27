@@ -16,6 +16,7 @@ on:
       - "docs/**"
       - "mkdocs.yml"
       - "requirements-docs.txt"
+      - "scripts/mkdocs_repo_links.py"
       - ".github/workflows/docs-deploy.yml"
       # Also rebuild when these top-level docs change
       - "README.md"
@@ -38,11 +39,11 @@ jobs:
     name: Build docs site
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0     # full history for git-revision-date plugin (if added later)
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -51,14 +52,9 @@ jobs:
         run: pip install -r requirements-docs.txt
 
       - name: Build site
-        run: mkdocs build --clean --verbose
-        # Note: --strict is intentionally NOT set yet. Some referenced
-        # docs have intra-doc broken links from earlier reorganizations
-        # that we want to surface as warnings without failing the build.
-        # Once those are fixed (tracked in docs/notebook_qa_companion.md),
-        # re-add --strict so future PRs can't introduce new broken links.
+        run: mkdocs build --clean --strict
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: site
 
@@ -71,4 +67,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

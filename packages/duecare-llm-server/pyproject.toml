@@ -22,7 +22,7 @@ dependencies = [
 ]
 
 # Optional. Enables /metrics + per-tenant counters / histograms.
-# Install with: pip install duecare-llm-server[observability]
+# Source checkout: python -m pip install -e "packages/duecare-llm-server[observability]"
 [project.optional-dependencies]
 observability = [
     "prometheus-client>=0.20.0",

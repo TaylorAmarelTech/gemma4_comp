@@ -97,7 +97,7 @@ Read these in order (15 min each):
 2. [`docs/scenarios/chief-architect.md`](./scenarios/chief-architect.md) — integration patterns
 3. [`docs/scenarios/enterprise_pilot.md`](./scenarios/enterprise_pilot.md) — 30-day pilot plan
 4. [`docs/comparison_to_alternatives.md`](./comparison_to_alternatives.md) — when not to use Duecare
-5. [`docs/considerations/`](./considerations/) — governance supplements when you need them
+5. [`docs/considerations/`](considerations/README.md) — governance supplements when you need them
 
 Or just open the [live-demo Kaggle notebook](https://www.kaggle.com/code/taylorsamarel/duecare-live-demo)
 to see the working surface end-to-end.

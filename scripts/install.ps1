@@ -3,7 +3,7 @@
     Duecare one-line installer — Windows PowerShell.
 
 .DESCRIPTION
-    Detects Python, creates a venv, installs duecare-llm, runs a
+    Detects Python, creates a venv, installs the source workspace, runs a
     smoke test, and prints next-step commands. Idempotent + non-
     destructive. The exact PowerShell mirror of scripts/install.sh.
 
@@ -64,28 +64,21 @@ if ($env:VIRTUAL_ENV) {
 }
 
 # 4. Install
-Say "Installing duecare-llm + dependencies (this takes ~60 sec)..."
-$installFailed = $false
-try {
-    pip install --quiet --upgrade duecare-llm 2>&1 | Select-Object -Last 5
-    if ($LASTEXITCODE -ne 0) { throw "pip install failed" }
-} catch {
-    $installFailed = $true
-    Warn "PyPI install failed (probably not yet published). Falling back to local editable install."
-    if (Test-Path "packages\duecare-llm") {
-        $pkgs = @(
-            "duecare-llm-core", "duecare-llm-models", "duecare-llm-domains",
-            "duecare-llm-tasks", "duecare-llm-agents", "duecare-llm-workflows",
-            "duecare-llm-publishing", "duecare-llm-chat", "duecare-llm"
-        )
-        foreach ($p in $pkgs) {
-            if (Test-Path "packages\$p") {
-                pip install --quiet -e "packages\$p" 2>&1 | Select-Object -Last 2
-            }
-        }
-    } else {
-        Err "Not in the gemma4_comp source dir and PyPI install failed. Clone the repo first: git clone https://github.com/TaylorAmarelTech/gemma4_comp"
-    }
+if (-not (Test-Path "packages\duecare-llm")) {
+    Err "Run this script from a gemma4_comp source checkout: git clone https://github.com/TaylorAmarelTech/gemma4_comp"
+}
+Say "Installing all 18 DueCare packages from this source checkout..."
+$pkgs = @(
+    "duecare-llm-core", "duecare-llm-benchmark", "duecare-llm-chat",
+    "duecare-llm-evidence-db", "duecare-llm-engine", "duecare-llm-kit",
+    "duecare-llm-nl2sql", "duecare-llm-research-tools", "duecare-llm-server",
+    "duecare-llm-training", "duecare-llm-cli", "duecare-llm-models",
+    "duecare-llm-domains", "duecare-llm-tasks", "duecare-llm-agents",
+    "duecare-llm-workflows", "duecare-llm-publishing", "duecare-llm"
+)
+foreach ($p in $pkgs) {
+    & python -m pip install --quiet -e "packages\$p"
+    if ($LASTEXITCODE -ne 0) { Err "Source install failed for $p" }
 }
 Ok "Packages installed"
 

@@ -40,7 +40,7 @@ from duecare.chat.harness import (
 
 ---
 
-## `_examples.json` — chat prompt entry
+## `_examples.json` — chat prompt entry { #examples-json-chat-prompt-entry }
 
 ```jsonc
 {

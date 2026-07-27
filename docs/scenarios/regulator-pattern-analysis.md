@@ -97,7 +97,7 @@ only) to proactive (you find violations before workers do).
 ## Set-up shape
 
 Use the [NGO-office-edge topology](./ngo-office-deployment.md)
-or the [Topology C cloud server](../deployment_topologies.md#topology-c--server--thin-clients)
+or the [Topology C cloud server](../deployment_topologies.md#topology-c-server-thin-clients)
 depending on your IT environment:
 
 | Your environment | Topology |

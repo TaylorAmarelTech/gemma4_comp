@@ -204,7 +204,7 @@ feedback shapes a release that hundreds of future users see.
 
 ## See also
 
-- [`docs/scenarios/`](./scenarios/) — the walkthroughs your feedback
+- [`docs/scenarios/`](scenarios/README.md) — the walkthroughs your feedback
   improves
 - [`SECURITY.md`](../SECURITY.md) — security-relevant findings have a
   separate path (private disclosure)

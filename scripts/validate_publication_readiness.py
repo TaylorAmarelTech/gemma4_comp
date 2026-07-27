@@ -52,6 +52,8 @@ CORE_GATES: tuple[Gate, ...] = (
          "active kernel syntax, metadata, and static contracts"),
     Gate("Kaggle page sources", ("scripts/validate_kaggle_page_sources.py",),
          "generated static-page source consistency"),
+    Gate("package release surface", ("scripts/validate_package_release.py",),
+         "18-package inventory, build order, install truth, and sole publisher ownership"),
     Gate("package test collection", ("-m", "pytest", "packages", "--collect-only", "-q"),
          "all package tests remain discoverable"),
 )

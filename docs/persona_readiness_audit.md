@@ -11,7 +11,7 @@
 > single biggest gap.
 >
 > **What this is not.** A duplicate of the walkthroughs in
-> [`docs/scenarios/`](scenarios/). This audit grades *how complete*
+> [`docs/scenarios/`](scenarios/README.md). This audit grades *how complete*
 > each walkthrough is. Read the walkthrough for the actual content.
 
 ## Audit dimensions (the 6 columns per persona)
@@ -300,7 +300,7 @@ The 9 personas not in the video (translations, recruiter, NGO
 director, IT director, chief architect, VP Eng, CTO, embassy) are
 covered by the **walkthroughs the docs site indexes** so judges
 who care about a specific persona can find it in one click from
-[`docs/scenarios/`](scenarios/).
+[`docs/scenarios/`](scenarios/README.md).
 
 ---
 

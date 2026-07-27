@@ -291,7 +291,9 @@ You want a private safety judge that never sends case data anywhere. You
 do not need the multi-provider benchmark.
 
 ```bash
-pip install duecare-llm        # the meta package: runtime + harness + CLI
+git clone https://github.com/TaylorAmarelTech/gemma4_comp
+cd gemma4_comp
+uv sync --all-packages         # no DueCare distribution is on PyPI yet
 ollama pull gemma4:e4b         # ~4 GB in Q4; or gemma4:e2b for smaller hardware
 ```
 
@@ -347,7 +349,7 @@ programmatically around whatever model you already run.
 
 | User base | Install / surface | Models | Keys |
 |---|---|---|---|
-| NGO on a laptop | `pip install duecare-llm` + Ollama | local Gemma 4 E2B/E4B only | none (on-device) |
+| NGO on a laptop | Source checkout (`uv sync --all-packages`) + Ollama | local Gemma 4 E2B/E4B only | none (on-device) |
 | Researcher comparing models | `kaggle/03-universal-llm-benchmark/kernel.py` | any: local Gemma, Gemini 3.5, Claude Opus 4.8, GPT-OSS, custom | per-target `api_key_env`; `ANTHROPIC_API_KEY` for judge |
 | Integration partner | `harness_lift` + `model_interface` adapters | any callable / adapter | whatever your backend needs |
 

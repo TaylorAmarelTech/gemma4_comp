@@ -1,6 +1,7 @@
 """PostgreSQL backend (for multi-NGO server deployments).
 
-Requires the optional `postgres` extra: `pip install duecare-llm-evidence-db[postgres]`.
+Requires the optional `postgres` extra. From the repository root, install with
+`python -m pip install -e "packages/duecare-llm-evidence-db[postgres]"`.
 """
 from __future__ import annotations
 
@@ -15,7 +16,8 @@ class PostgresBackend:
         except Exception as e:
             raise RuntimeError(
                 "PostgreSQL backend requires psycopg2-binary. "
-                "Install with: pip install duecare-llm-evidence-db[postgres]"
+                "Install from the source checkout with: python -m pip install -e "
+                "\"packages/duecare-llm-evidence-db[postgres]\""
             ) from e
         self._psycopg2 = psycopg2
         self._extras = psycopg2.extras

@@ -12,7 +12,7 @@ Three local-deployment paths, fastest to most-controlled:
 1. **Ollama** — easiest, CPU works, no Python env required
 2. **Kaggle notebook (run locally on your GPU)** — same kernel.py
    that runs on Kaggle's free T4×2 also runs on your local box
-3. **`pip install duecare-llm` + run the FastAPI app yourself** —
+3. **Source checkout + run the FastAPI app yourself** —
    most controlled, integrates into your existing Python stack
 
 ---
@@ -83,7 +83,7 @@ export HF_TOKEN=hf_yourtokenhere
 
 # 6. Run the layered chat harness playground locally (the same script
 #    kernel used by the duecare-app Kaggle notebook)
-python kaggle/01-duecare-app/kernel.py
+python kaggle/01-duecare-exploration-workbench/kernel.py
 ```
 
 The kernel will:
@@ -123,17 +123,23 @@ For development, `e4b-it` is the sweet spot.
 
 ---
 
-## Path 3 — `pip install duecare-llm` + run the app yourself
+## Path 3 — source checkout + run the app yourself
 
 For integration into your existing Python service, skip the kernel.py
 and import the app directly.
 
 ### Install
 
+No DueCare distribution is on PyPI yet. From the repository root:
+
 ```bash
-pip install duecare-llm  # the meta package pulls the full DueCare package stack
-# OR install only what you need:
-pip install duecare-llm-core duecare-llm-models duecare-llm-chat
+uv sync --all-packages
+```
+
+For a narrow editable environment instead:
+
+```bash
+python -m pip install -e packages/duecare-llm-core -e packages/duecare-llm-models -e packages/duecare-llm-chat
 ```
 
 ### Minimal chat-playground server (Python)

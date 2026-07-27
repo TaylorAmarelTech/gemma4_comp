@@ -277,7 +277,8 @@ class ExtensionPackClient:
         except ImportError as e:
             raise PackTrustError(
                 "extension-pack verification requires `cryptography` "
-                "(install via `pip install duecare-llm-chat[extensions]`)"
+                "(from the repository root: python -m pip install -e "
+                "\"packages/duecare-llm-chat[extensions]\")"
             ) from e
 
         # Load trust root

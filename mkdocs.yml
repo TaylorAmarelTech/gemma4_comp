@@ -105,6 +105,14 @@ plugins:
   # - git-revision-date-localized
   # - minify
 
+# Repository-relative links (for example, from docs/ into packages/ or
+# scripts/) and links to provenance pages intentionally excluded from Pages
+# work in GitHub but are unavailable to MkDocs. Rewrite only existing targets
+# to canonical GitHub source URLs so strict builds can distinguish real broken
+# links from intentional source links.
+hooks:
+  - scripts/mkdocs_repo_links.py
+
 # Keep the public Pages build focused on the current ecosystem,
 # onboarding, deployment, and information-sharing paths. Historical
 # appendices remain in git for provenance but should not be indexed as
@@ -170,6 +178,7 @@ nav:
       - Platform / on-prem deployment: deployment_enterprise.md
       - Cloud / hub deployment: cloud_deployment.md
       - Kaggle kernel state: current_kaggle_notebook_state.md
+      - Kaggle notebook catalog: NOTEBOOKS.md
       - Notebook guide: notebook_guide.md
   - Training And Fine-Tuning:
       - Overview: training_and_finetuning.md
@@ -188,9 +197,11 @@ nav:
       - Knowledge object taxonomy: adr/007-knowledge-object-taxonomy.md
       - Knowledge module schema: knowledge_module_schema.md
   - Run And Verify:
+      - Current project status: project_status.md
       - Maintainer handoff: MAINTAINER_HANDOFF.md
       - 30-day project transition: PROJECT_TRANSITION_PLAN.md
       - Publication readiness and next work: PUBLICATION_READINESS.md
+      - Package inventory and release state: PACKAGE_INVENTORY.md
       - For judges and reviewers: FOR_PEER_REVIEW.md
       - Reproducibility: reproducibility.md
       - Harness lift report: harness_lift_report.md

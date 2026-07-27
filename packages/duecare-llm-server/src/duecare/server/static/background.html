@@ -487,14 +487,17 @@
     <p>
       Every numeric claim in the writeup and demo is traceable to
       <code>(git_sha, dataset_version)</code>. The code repository
-      is public; the wheels are versioned on PyPI and Kaggle Datasets;
-      the fine-tuned model weights are tagged and pushed to Hugging Face
-      Hub (Phase 3). To reproduce a run:
+      is public; Python wheels are reproducibly built from the source
+      checkout, while a PyPI release remains pending. Model and dataset
+      artifacts are published only when their own manifests say so. To
+      reproduce a source run:
     </p>
     <pre style="background:var(--ink);color:var(--paper-2);padding:14px;
-      border-radius:8px;font-size:12px;overflow-x:auto"># Local
-pip install duecare-llm
-duecare run --input ./case_files/ --output ./out/
+      border-radius:8px;font-size:12px;overflow-x:auto"># Local source checkout
+git clone https://github.com/TaylorAmarelTech/gemma4_comp.git
+cd gemma4_comp
+uv sync --all-packages
+uv run duecare run --input ./case_files/ --output ./out/
 
 # Or via the Kaggle notebook (one-click)
 # https://www.kaggle.com/code/taylorsamarel/duecare-live-demo</pre>

@@ -72,14 +72,14 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 
-# Install the workflow-oriented DueCare meta-package
-pip install duecare-llm
+# Install all 18 packages from this source checkout
+uv sync --all-packages
 
 # Pull Gemma 4 weights (one-time, ~6 GB for E4B)
-duecare model pull gemma-4-e4b
+uv run duecare model pull gemma-4-e4b
 
 # Launch the workbench
-duecare workbench
+uv run duecare workbench
 ```
 
 The workbench opens at `http://localhost:8080`. The first cell of

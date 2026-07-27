@@ -61,7 +61,7 @@ duecare-kit-corpus = "duecare.kit.corpus:main"
 
 [project.urls]
 Homepage = "https://github.com/TaylorAmarelTech/gemma4_comp"
-Documentation = "https://github.com/TaylorAmarelTech/gemma4_comp/blob/main/packages/duecare-llm-kit/README.md"
+Documentation = "https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/packages/duecare-llm-kit/README.md"
 Issues = "https://github.com/TaylorAmarelTech/gemma4_comp/issues"
 Repository = "https://github.com/TaylorAmarelTech/gemma4_comp"
 

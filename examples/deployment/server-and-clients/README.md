@@ -57,11 +57,13 @@ Your server URL: `https://$HF_USER-my-duecare-server.hf.space`.
 
 ```bash
 # infra/render/render.yaml is ready to use
-git push origin main
+git push origin master
 # then in the Render dashboard: New → Blueprint → point at this repo
 ```
 
-Your server URL: `https://duecare-llm.onrender.com`.
+Your server URL will look like `https://your-service.onrender.com`; use the
+hostname assigned to your own Render service rather than the retired example
+deployment.
 
 ### Railway (5 min)
 

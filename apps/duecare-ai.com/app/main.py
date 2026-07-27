@@ -18,7 +18,7 @@ import uuid
 from collections import Counter
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Optional, Any, Literal
+from typing import Any, Literal, Optional
 
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -28,13 +28,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator, model_validator
 
-from . import __version__
-from . import automation
-from . import outreach
-from . import local_kb
+from . import __version__, automation, local_kb, outreach, runtime_packs
 from . import packs as pack_registry
-from . import runtime_packs
 from .pii import detect_pii, redact_pii
+from .public_schemas import PUBLIC_SCHEMAS, SCHEMA_CONTEXT_DOCUMENT
 from .ratelimit import RateLimitMiddleware
 
 SignalSource = Literal[
@@ -1309,6 +1306,19 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         """Return the synthetic example catalog used by the no-wait recording deck."""
         return _demo_priority_examples()
 
+    @application.get("/schema/v1", include_in_schema=False)
+    async def public_schema_context() -> dict[str, object]:
+        """Return the stable JSON-LD context used by public knowledge objects."""
+        return SCHEMA_CONTEXT_DOCUMENT
+
+    @application.get("/schema/{kind}/1.json", include_in_schema=False)
+    async def public_schema(kind: str) -> dict[str, object]:
+        """Return one of the versioned transport schemas linked from the docs."""
+        schema = PUBLIC_SCHEMAS.get(kind)
+        if schema is None:
+            raise HTTPException(status_code=404, detail="Unknown public schema")
+        return schema
+
     @application.get("/healthz", response_model=HealthStatus, tags=["system"])
     async def healthz(request: Request) -> HealthStatus:
         return await api_health(request)
@@ -1354,8 +1364,12 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         recipient can distinguish. All entries are pre-anonymized at
         ingest; the hub stores no raw worker identifiers.
         """
-        import hashlib as _hashlib, io as _io, zipfile as _zipfile, json as _json
-        from datetime import UTC as _UTC, datetime as _dt
+        import hashlib as _hashlib
+        import io as _io
+        import json as _json
+        import zipfile as _zipfile
+        from datetime import UTC as _UTC
+        from datetime import datetime as _dt
         packs = _knowledge_packs()
         if vetted:
             packs = [p for p in packs if p.status == "live"]
@@ -1468,8 +1482,10 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
     ) -> CuratorDecisionReceipt:
         """Stage 04 -- curator accepts / rejects / requests changes."""
         _require_admin_access(request)
-        import json as _json, hashlib as _hashlib
-        from datetime import UTC as _UTC, datetime as _dt
+        import hashlib as _hashlib
+        import json as _json
+        from datetime import UTC as _UTC
+        from datetime import datetime as _dt
         if body.decision not in {"accept", "reject", "request_changes"}:
             raise HTTPException(400, "decision must be accept|reject|request_changes")
         state = _state(request)
@@ -1562,8 +1578,11 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         (sha256) and discarded in this handler; only the hash + topics +
         organization persist on the hub per the privacy invariant.
         """
-        import json as _json, hashlib as _hashlib, uuid as _uuid
-        from datetime import UTC as _UTC, datetime as _dt
+        import hashlib as _hashlib
+        import json as _json
+        import uuid as _uuid
+        from datetime import UTC as _UTC
+        from datetime import datetime as _dt
         if "@" not in (body.email or ""):
             raise HTTPException(400, "invalid email")
         state = _state(request)
@@ -1636,7 +1655,8 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         stores no raw addresses; a curator exports the draft to their own
         mailer."""
         from dataclasses import asdict as _asdict
-        from datetime import UTC as _UTC, datetime as _dt
+        from datetime import UTC as _UTC
+        from datetime import datetime as _dt
         state = _state(request)
         gap = outreach.gap_by_id(state.store.root, body.gap_id)
         if gap is None:
@@ -1656,7 +1676,8 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         Vets the reply through the same PII/intent gate as the inbound-email
         path, then records a weighted context signal for the named gap."""
         from dataclasses import asdict as _asdict
-        from datetime import UTC as _UTC, datetime as _dt
+        from datetime import UTC as _UTC
+        from datetime import datetime as _dt
         state = _state(request)
         if outreach.gap_by_id(state.store.root, body.gap_id) is None:
             raise HTTPException(404, f"unknown gap_id: {body.gap_id}")
@@ -1687,7 +1708,8 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         solicitable gaps a curator can choose to draft a campaign for; sending stays
         draft-only and human-gated (the hub stores no raw addresses), so nothing is
         auto-sent. The LLM only proposes WHICH questions to ask."""
-        from datetime import UTC as _UTC, datetime as _dt
+        from datetime import UTC as _UTC
+        from datetime import datetime as _dt
         state = _state(request)
         ts = _dt.now(_UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
         added = outreach.ingest_proposed_gaps(
@@ -1734,8 +1756,11 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         status="proposed". A curator picks them up (Stage 04) and signs
         vetted releases (Stage 05).
         """
-        import json as _json, hashlib as _hashlib, re as _re
-        from datetime import UTC as _UTC, datetime as _dt
+        import hashlib as _hashlib
+        import json as _json
+        import re as _re
+        from datetime import UTC as _UTC
+        from datetime import datetime as _dt
 
         ts = _dt.now(_UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
         run_id = body.submission_id or f"hub_submit_{ts}"

@@ -124,7 +124,9 @@ additionally fails if a registry SHA drifts out of this document.
   [response training plan](https://www.kaggle.com/code/taylorsamarel/duecare-response-training-plan),
   [response visual explorer](https://www.kaggle.com/code/taylorsamarel/duecare-response-dataset-visual-explorer),
   [large-corpus integrity](https://www.kaggle.com/code/taylorsamarel/duecare-large-corpus-integrity-and-exploration),
-  [Gemma 4 plan and smoke preflight](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-large-corpus-plan-and-smoke),
+  Gemma 4 plan and smoke preflight (the former public slug no longer resolves;
+  regenerate from [`scripts/build_large_kaggle_training_collection.py`](../scripts/build_large_kaggle_training_collection.py)
+  before republishing),
   [large-corpus visual explorer](https://www.kaggle.com/code/taylorsamarel/duecare-large-corpus-visual-explorer),
   [loading quickstart](https://www.kaggle.com/code/taylorsamarel/duecare-training-data-loading-quickstart),
   [response-quality baseline](https://www.kaggle.com/code/taylorsamarel/duecare-response-quality-baseline),

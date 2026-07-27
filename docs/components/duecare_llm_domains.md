@@ -1,7 +1,8 @@
 # Component — `duecare-llm-domains`
 
-> **Status: shipped.** Pack loader + 3 real domain packs, 23 tests
-> passing, wheel built, installed.
+> **Status: source-complete; registry unpublished.** Pack loader, three domain
+> packs, and a locally buildable wheel; no DueCare distribution is on PyPI as
+> of 2026-07-27.
 
 ## What it is
 
@@ -28,8 +29,11 @@ point of the abstraction.
 ## Install
 
 ```bash
-pip install duecare-llm-domains
+uv sync --all-packages
 ```
+
+After an owner-approved registry release, the intended narrow command is
+`pip install duecare-llm-domains`.
 
 ## Quick start
 

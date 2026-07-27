@@ -6,7 +6,7 @@ DueCare already has validated local CLI and container paths. The next launch imp
 
 | Path | Status | Best for |
 |---|---|---|
-| `pip install duecare-llm-cli` → `duecare init` → `duecare demo-stage` → `duecare serve --port 8080` | Smoke-tested from local wheels | Developers, judges, local demos |
+| Install the locally built `duecare-llm-cli` wheel → `duecare init` → `duecare demo-stage` → `duecare serve --port 8080` | Smoke-tested from local wheels; no PyPI release yet | Developers, judges, local demos |
 | `docker-compose.enterprise.yml` with `.env.enterprise.example` | Compose config validated | Private/local organization stack |
 | `duecare-llm` workflow CLI | Validated for `duecare run rapid_probe` against a local OpenAI-compatible backend | Model/backend workflow evaluation |
 

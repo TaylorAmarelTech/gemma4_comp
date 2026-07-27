@@ -1,6 +1,6 @@
 ﻿# For Judges and Reviewers
 
-This is the current 2026-07-26 verification path for the DueCare Gemma 4
+This is the current 2026-07-27 verification path for the DueCare Gemma 4
 Good Hackathon submission. Older notebook-era material is archived or marked
 historical; the active Kaggle path is exactly the three script kernels listed
 below.
