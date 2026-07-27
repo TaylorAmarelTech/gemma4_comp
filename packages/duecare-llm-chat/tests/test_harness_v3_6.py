@@ -212,7 +212,7 @@ def test_bundled_multilingual_showcase_prompts_present() -> None:
 def test_governance_loads_all_11_curator_blocks() -> None:
     """Every curator-block JSON file must be loadable. Failure means
     a wheel build dropped a JSON or schema broke."""
-    _load_harness()
+    h = _load_harness()
     from duecare.chat.harness import _governance as gov
     assert len(gov.load_classifier_signals()) >= 150
     assert len(gov.load_usecase_affinity()) >= 7
@@ -222,7 +222,9 @@ def test_governance_loads_all_11_curator_blocks() -> None:
     assert len(gov.load_intent_affinity()) >= 5
     assert len(gov.load_intent_signals()) >= 5
     assert len(gov.load_country_hints()) >= 20
-    assert len(gov.load_rubric_hints()) >= 20
+    rubric_hints = gov.load_rubric_hints()
+    rubric_dim_ids = {d["id"] for d in h.RUBRIC_UNIVERSAL["dimensions"]}
+    assert set(rubric_hints) == rubric_dim_ids
     bg = gov.load_baseline_gauge()
     assert bg.get("stock", {}).get("value") is not None
     cfg = gov.load_grader_config()
