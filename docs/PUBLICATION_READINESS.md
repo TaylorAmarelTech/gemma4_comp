@@ -8,7 +8,7 @@ model run. Current as of 2026-07-27.
 
 | Track | Current state | Publication rule |
 |---|---|---|
-| Core code, docs, active Kaggle surfaces, package-release ownership, and published dataset claims | **9/9 core gates passed offline on the reconciled 2026-07-27 candidate; the prior merged closeout passed complete `master` CI on 2026-07-26** | Re-run on the exact release commit and confirm the refreshed Action majors in GitHub-hosted CI. |
+| Core code, docs, active Kaggle surfaces, package-release ownership, and published dataset claims | **9/9 core gates passed offline; the reconciled 2026-07-27 `master` passed complete post-merge CI and public deployment checks** | Re-run on the exact release commit before tagging. |
 | Maintainer succession and live pickup | **2/2 handoff gates passed offline; public handoff and deployment receipts are live on the merged closeout** | Re-run from a fresh shell and complete the private/manual acceptance steps before ownership transfer. |
 | Existing dated benchmark and learning-study results | Retained as bounded evidence with their original model, dataset, rubric, and date | Do not silently relabel an old result as a new model or field-effectiveness result. |
 | New fine-tuning dataset | **Not clean yet:** the strict audit reports five dense single/generic-corridor typologies | Curate the expansion queue, rerun the audit, then refresh provenance before training or a new model claim. |
@@ -60,10 +60,10 @@ Ollama's planned-call allowance to zero and forces common Hugging Face and
 Weights & Biases integrations offline for its child checks.
 
 Current audit receipt: all nine core gates passed on the 2026-07-27
-reconciliation candidate without a model or network call. The prior eight-gate
-tree landed through pull request 2 as
-`07cfdbfd00e1bc304ffc1f8b2736c4d93bbf0eab`, after which the complete
-[master CI workflow](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30235104435)
+reconciliation without a model or network call. The final surface reconciliation
+landed through [pull request 4](https://github.com/TaylorAmarelTech/gemma4_comp/pull/4)
+as `dc313814d9f42e127b24191b7912fd521083fadd`, after which the complete
+[master CI workflow](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30273583863)
 passed. These receipts are not a substitute for rerunning the command on an
 eventual release tag.
 
@@ -320,28 +320,30 @@ worker-facing answers, benchmark labels, or training rows automatically.
   `docs-deploy.yml` owns the repository's single MkDocs GitHub Pages site, and
   `duecare-site-build.yml` emits a downloadable marketing-site artifact only.
   A competing manual Pages deployer was removed. Post-merge Pages, artifact,
-  and live Render project-status checks passed on 2026-07-26.
+  live Render project-status, and schema-route checks passed on 2026-07-27.
 - GitHub Action majors were verified against official releases on 2026-07-27
   and refreshed across CI, Pages, website artifacts, scheduled work, Docker,
-  Helm, and package publication. Local YAML validation passes; the runtime
-  warning is closed only after the corresponding GitHub-hosted jobs pass.
+  Helm, and package publication. The triggered CI, Pages, website-artifact,
+  harness-contract, and evaluation jobs passed with the refreshed actions.
+  Docker, Helm, and PyPI publishing remain release-triggered and should be
+  validated on an approved release candidate/tag, not dispatched as a
+  production smoke test.
 - Workspace package versions were not guessed or bumped. `CITATION.cff` now
   describes living research software without claiming a nonexistent
   coordinated release, while the package publisher blocks on the current mixed
   versions. Choose and document release policy before tagging.
-- The concurrent external audit checked 571 current outbound links on
-  2026-07-27. Confirmed stale links were removed or corrected. Six deliberate
-  same-site schema URLs still return 404 on the pre-deploy live website even
-  though their new local routes/tests pass; 11 additional hosts were
-  transient, DNS/SSL-blocked, or redirect-looped rather than confirmed broken.
-  Re-run `python scripts/check_external_links.py --check --workers 24` after
-  Render deploys the candidate. Do not call the live external-link lane green
-  until all six schema URLs return 200.
+- The post-deploy concurrent external audit checked 577 outbound links on
+  2026-07-27 with zero confirmed broken links. All six same-site schema URLs
+  returned 200; 10 additional hosts were transient, DNS/SSL-blocked,
+  redirect-looped, or bot-blocked and remain explicitly unverified rather than
+  mislabeled as broken.
 - Root `AGENTS.md` names `master` as the active release branch. Pull request 2
-  merged the closeout as `07cfdbfd00e1bc304ffc1f8b2736c4d93bbf0eab`;
-  post-merge CI, MkDocs Pages, the artifact-only website build, and the live
-  Render project-status route were verified before this receipt was recorded.
-  A release tag/version remains a separate owner decision.
+  preserves the first integrated closeout, while pull request 4 merged the
+  final public-surface reconciliation as
+  `dc313814d9f42e127b24191b7912fd521083fadd`. Post-merge CI, MkDocs Pages, the
+  artifact-only website build, Render project status, and the advertised schema
+  routes were verified before this receipt was recorded. A release tag/version
+  remains a separate owner decision.
 - Archived notebook-era surfaces are provenance. Do not restore them to the
   Kaggle root to satisfy old references; update the reference or archive map.
 - Never treat a dirty working tree as disposable. Inspect and preserve

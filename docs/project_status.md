@@ -35,16 +35,18 @@ snapshots, and older checklist/status docs are archived under
 
 ## Current Technical Posture
 
-- Root `AGENTS.md` names `master` as the release branch. Pull request 2 merged
-  the reconciled closeout into `master` as
-  `07cfdbfd00e1bc304ffc1f8b2736c4d93bbf0eab` on 2026-07-26 (PDT). The
-  post-merge CI workflow passed both Python matrices, all 18 wheel builds,
-  clean-room installation, gitleaks, website/privacy, Kaggle, harness, and
-  entity-intelligence jobs. A release/tag remains a separate owner decision.
-- The follow-up receipt landed on `master` as
-  `f4bb9c3ef8eaef6f4692813ff77cf16230d5abe6`. The 2026-07-27 reconciliation
-  started from that clean commit, confirmed no model is loaded in Ollama, and
-  made no model calls.
+- Root `AGENTS.md` names `master` as the release branch. Pull request 2 first
+  merged the integrated closeout on 2026-07-26 (PDT), and
+  [pull request 4](https://github.com/TaylorAmarelTech/gemma4_comp/pull/4)
+  merged the final public-surface reconciliation as
+  `dc313814d9f42e127b24191b7912fd521083fadd` on 2026-07-27. Its post-merge CI
+  passed both Python matrices, all 18 wheel builds, clean-room installation,
+  gitleaks, website/privacy, Kaggle, harness, and entity-intelligence jobs. A
+  release/tag remains a separate owner decision.
+- The reconciliation started from clean `master`, confirmed no model was
+  loaded in Ollama, and made no model calls. MkDocs Pages, the portable website
+  artifact, Render project status, and all six advertised schema routes were
+  verified after merge.
 - The repository has a single model-free publication entry point:
   [`PUBLICATION_READINESS.md`](PUBLICATION_READINESS.md) and
   `python scripts/validate_publication_readiness.py --scope core`. All nine
@@ -144,7 +146,6 @@ Latest offline working-tree receipt on 2026-07-27:
   while the 25-task corridor plan passed its privacy/safety validation;
 - focused release/link/MkDocs/website tests: 56 passed; the complete website
   suite passed 76 tests;
-- external network audit: 571 links checked, with six confirmed live 404s all
-  belonging to the newly implemented schema routes awaiting website deploy;
-  11 other hosts were transient/unverified rather than confirmed broken;
+- post-deploy external network audit: 577 links checked, zero confirmed broken,
+  and 10 transient/unverified hosts kept separate from confirmed failures;
 - no Ollama or hosted-model call was made during this polish/validation pass.

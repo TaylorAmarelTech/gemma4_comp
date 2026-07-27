@@ -45,11 +45,11 @@ explicitly asks to restore them.
 > **Re-verified 2026-07-27 -- read this box before trusting the 2026-07-14 snapshot below.**
 >
 > - **Branch reconciliation is complete; publication is still open.** Root
->   `AGENTS.md` names `master` as the active branch. Pull request 2 merged the
->   integrated closeout, and the follow-up receipt is on `master` at
->   `f4bb9c3ef8eaef6f4692813ff77cf16230d5abe6`. Verify live Git/PR state and the
->   exact `master` SHA rather than trusting this cached note. Do not tag an
->   earlier commit.
+>   `AGENTS.md` names `master` as the active branch. Pull request 4 merged the
+>   final repository and public-surface reconciliation on 2026-07-27 as
+>   `dc313814d9f42e127b24191b7912fd521083fadd`; its post-merge CI, Pages, and
+>   website artifact workflows passed. Verify live Git state and rerun the
+>   release gates on any later candidate rather than tagging an earlier commit.
 > - **Canonical stopping point:** start with
 >   `docs/PUBLICATION_READINESS.md`. Its model-free core lane passed 9/9 checks
 >   on 2026-07-27; the separate training lane intentionally remains red on five
@@ -66,8 +66,9 @@ explicitly asks to restore them.
 >   Kaggle 01 is `COMPLETE`; 02 and A-00 are `CANCEL_ACKNOWLEDGED`; optional 04
 >   is `COMPLETE`; optional 03 has no verified public URL. All 18 Python
 >   distributions remain unpublished on PyPI and the sole coordinated publisher
->   fails closed while workspace versions differ. `ollama ps` showed no loaded
->   model.
+>   fails closed while workspace versions differ. Render serves project status
+>   plus all six advertised schema endpoints, and the post-deploy 577-link audit
+>   found zero confirmed broken links. `ollama ps` showed no loaded model.
 > - **Generation is COMPLETE.** `reports/rich_lift/panel_perdim.coverage.json` reports
 >   `response_cells 236,157 / 236,157, 0 missing`. Every Gemma response for 78,719 prompts x 3 arms
 >   is on disk. Only judge calls remain: `panel_cells 47,813 / 708,471` (6.7%),
