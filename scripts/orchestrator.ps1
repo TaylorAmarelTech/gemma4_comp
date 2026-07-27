@@ -9,7 +9,7 @@
   .\scripts\orchestrator.ps1 -Status      # print the mesh registry
   .\scripts\orchestrator.ps1 -Stop        # graceful stop
 #>
-param([switch]$Run, [switch]$Once, [switch]$Register, [switch]$Unregister, [switch]$Stop, [switch]$Status)
+param([switch]$Run, [switch]$Resume, [switch]$Once, [switch]$Register, [switch]$Unregister, [switch]$Stop, [switch]$Status)
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
 $orch = Join-Path $repo 'scripts\orchestrator.py'
@@ -42,18 +42,26 @@ if ($Status) { & $py $orch --status; return }
 if ($Once)   { & $py $orch --once; return }
 if ($Unregister) { schtasks /Delete /TN $taskName /F 2>$null; Write-Host "Unregistered $taskName."; return }
 if ($Register) {
-  Remove-Item $stopFile -ErrorAction SilentlyContinue
   $self = $MyInvocation.MyCommand.Path
   $ps = (Get-Command powershell).Source
   $tr = "`"$ps`" -NoProfile -ExecutionPolicy Bypass -File `"$self`" -Run"
   schtasks /Create /TN $taskName /SC MINUTE /MO 15 /TR $tr /RL LIMITED /F
-  Write-Host "Registered watchdog '$taskName' (every 15 min, lock-serialized)."
+  Write-Host "Registered pause-preserving watchdog '$taskName' (every 15 min, lock-serialized)."
+  return
+}
+if ($Resume) {
+  Remove-Item $stopFile -ErrorAction SilentlyContinue
+  Start-Process -FilePath $py -ArgumentList @("`"$orch`"") -WorkingDirectory $repo -WindowStyle Hidden
+  Write-Host "Orchestrator resumed (detached). registry: reports/orchestrator/registry.json | log: reports/orchestrator/orchestrator.log"
   return
 }
 if ($Run) {
-  Remove-Item $stopFile -ErrorAction SilentlyContinue
+  if (Test-Path -LiteralPath $stopFile) {
+    Write-Host "Orchestrator remains paused: reports/orchestrator/orchestrator.stop is present. Explicit resume: scripts/orchestrator.ps1 -Resume"
+    return
+  }
   Start-Process -FilePath $py -ArgumentList @("`"$orch`"") -WorkingDirectory $repo -WindowStyle Hidden
   Write-Host "Orchestrator launched (detached). registry: reports/orchestrator/registry.json | log: reports/orchestrator/orchestrator.log"
   return
 }
-Write-Host "usage: orchestrator.ps1 -Run | -Once | -Register | -Unregister | -Stop | -Status"
+Write-Host "usage: orchestrator.ps1 -Run | -Resume | -Once | -Register | -Unregister | -Stop | -Status"

@@ -33,6 +33,11 @@ def _force_urlopen_transport(monkeypatch):
     # The urlopen-mocking test drives nvidia_chat's retry path; force the legacy transport (the
     # ``DUECARE_HTTP_POOL=0`` fallback) so the mock is hit. Pooled transport: test_http_pool.py.
     monkeypatch.setattr(lg, "_HTTP_POOL_ENABLED", False)
+    monkeypatch.setattr(
+        lg.provider_budget,
+        "environment_ledger",
+        lambda: lg.provider_budget.DisabledProviderBudget(),
+    )
 
 
 def test_provider_chat_routes_by_prefix(monkeypatch):

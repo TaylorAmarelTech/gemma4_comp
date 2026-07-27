@@ -11,8 +11,8 @@ The repeatable technical exercise is the
 **Status:** active closeout
 **Start date:** 2026-07-26
 **Target handoff date:** 2026-08-25
-**Model-quota posture:** locked by default; deterministic work only unless a
-separate frozen, budgeted run is approved
+**Model-quota posture:** whole model/flywheel stack cost-stopped; deterministic
+work only unless a separate frozen, budgeted run is approved
 
 If the actual departure date changes, move the calendar dates together while
 preserving the sequence, evidence requirements, and final rehearsal window.
@@ -24,8 +24,8 @@ The project has reached a good stopping point when:
 - a named successor can establish live state, explain system boundaries, run
   the handoff and core release gates, and recover from common incidents;
 - or, if no successor is available, DueCare is deliberately placed in a
-  documented maintenance mode with the engine paused and no implied support or
-  fresh-model promise;
+  documented maintenance mode with the whole model/flywheel stack stopped and
+  no implied support or fresh-model promise;
 - an exact commit/tag and bounded claim set are chosen, or a written no-release
   decision is recorded;
 - package versions, `CITATION.cff`, changelog, release notes, datasets, active
@@ -43,7 +43,7 @@ The project has reached a good stopping point when:
 
 | Workstream | Required deliverable | Evidence |
 |---|---|---|
-| Current truth | Live-state inventory and deliberate-stops register | Handoff/core receipts, engine status, branch/status snapshot |
+| Current truth | Live-state inventory and deliberate-stops register | Handoff/core receipts, whole-stack cost-stop status, engine status, branch/status snapshot |
 | Product boundary | Maintainer can explain active, optional, archived, and propose-only surfaces | Handoff rehearsal notes and architecture walkthrough |
 | Release | Exact release or no-release decision | Commit/tag, release notes, version/citation reconciliation receipt |
 | Data and research | Accepted datasets separated from candidate, quarantine, and experimental evidence | Manifests, lineage/audit results, limitations register |
@@ -59,6 +59,11 @@ The project has reached a good stopping point when:
 - Freeze scope: no broad new features, datasets, judging sweeps, or model runs.
 - Inventory live Git/process/engine state and compare it with saved `.claude`
   state, ignored reports, status docs, and public claims.
+- Preserve the 2026-07-27 correction: a paused autonomous engine did not stop
+  the independent discovery and server-automation watchdogs. The verified
+  closeout disables all five recurring tasks, keeps four daemon sentinels, and
+  requires zero verified repository daemon processes; historical unmetered
+  background usage is reconciled privately at the provider.
 - The reconciled `codex/full-flywheel-training-20260714` closeout branch was
   merged through pull request 2 to `master` as
   `07cfdbfd00e1bc304ffc1f8b2736c4d93bbf0eab`. Post-merge CI, MkDocs Pages,
@@ -162,8 +167,8 @@ receipt, limitations, and tested successor or maintenance-mode owner.
    links and hashes without copying secrets or private receipts into the repo.
 4. Verify the public landing page, documentation, release, active Kaggle links,
    and citation/version text from an unauthenticated view.
-5. Leave the autonomous engine paused. A future maintainer may resume it only
-   through an explicit budgeted plan and current authorization.
+5. Leave the whole model/flywheel stack cost-stopped. A future maintainer may
+   resume it only through an explicit budgeted plan and current authorization.
 6. Archive the closeout receipts and limitations, then remove outgoing access
    according to the agreed recovery plan.
 
@@ -182,8 +187,8 @@ successor; local repository edits do not complete them:
 - rotate any credential involved in an incident and review platform audit logs;
 - publish a GitHub release, package, model/dataset, Kaggle revision, website
   deployment, or competition submission;
-- authorize any nonzero model-credit budget or removal of the engine stop
-  sentinel; and
+- authorize any nonzero model-credit budget, removal of the four daemon stop
+  sentinels, or re-enabling of the recurring tasks; and
 - decide whether to retain, transfer, or retire public support commitments.
 
 The repository may document commands and public identifiers, but must never
@@ -195,8 +200,8 @@ or billing information.
 | Decision | Current disposition | Revisit trigger |
 |---|---|---|
 | Core release versus new training claim | A bounded core release may proceed while training stays red, provided it explicitly makes no new training/model-improvement claim | Strict quality and provenance gates pass on a new append-only record |
-| Model usage during closeout | Zero planned calls by default; no Ollama or hosted-model spend is needed for closeout | Owner approves a frozen sampled plan with finite allowance and stop condition |
-| Autonomous engine | Intentionally paused; no automatic resume | Explicit current authorization plus live preflight, budget, and review plan |
+| Model usage during closeout | Zero planned calls by default; deterministic closeout commands need no Ollama or hosted-model spend. Historical auxiliary-daemon usage before the whole-stack correction is unknown locally. | Owner reconciles provider-side usage and approves a frozen sampled plan with finite allowance and stop condition |
+| Model/flywheel stack | All five recurring tasks disabled, four sentinels present, and zero verified repository daemons; no automatic resume | Explicit current authorization plus live preflight, finite budget, reviewed pricing, and review plan |
 | Comparable benchmark board | Keep v1/h1 batched evidence as default | A versioned successor board is complete and independently documented |
 | Exhaustive per-dimension lane | Generation complete, judging incomplete, experimental and isolated | Exact coverage manifest reaches closure under a frozen budget |
 | Entity-intelligence pipeline | Propose-only, curator-reviewed, separate from worker-facing and training paths | A reviewed governance and evidence-admission change is approved |
@@ -220,7 +225,8 @@ pass. The bounded local release-candidate disposition is:
 - keep all five root notebook sources executable and model-free in local
   validation, without spending Kaggle or model quota merely to refresh a run;
 - make no new trained-model, dataset-quality, or field-effectiveness claim;
-- keep the autonomous engine paused and planned model calls at zero; and
+- keep the whole model/flywheel stack cost-stopped and planned model calls at
+  zero; and
 - prefer a tested successor transfer, with documented maintenance mode as the
   automatic safe outcome if no successor accepts by the final-decision window.
 
@@ -248,7 +254,8 @@ Before declaring the transition complete, retain evidence that:
       and revocation receipt.
 - [ ] The successor passed fresh-shell pickup, safe-change, architecture,
       incident, and restore rehearsals; or maintenance mode was enacted.
-- [ ] The engine remains paused and model work has no implied authorization.
+- [ ] The whole model/flywheel stack remains cost-stopped and model work has no
+      implied authorization.
 - [ ] The final release/no-release/maintenance decision and effective date are
       recorded.
 
@@ -256,7 +263,9 @@ Before declaring the transition complete, retain evidence that:
 
 Use maintenance mode rather than leaving an ambiguous live project:
 
-1. Keep the engine paused and the zero-call default documented.
+1. Keep the whole model/flywheel stack cost-stopped and the zero-call default
+   documented; include the Windows `stop_ollama_stack.ps1 -Status` check in
+   successor acceptance.
 2. Freeze the last supported commit, release artifacts, checksums, docs, and
    limitations; do not imply that volatile legal/operational facts stay fresh.
 3. Add a dated public maintenance notice that names the support and security

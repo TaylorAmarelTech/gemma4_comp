@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Build legacy_notebooks/forge_kaggle_submission.ipynb.
+"""Build the historical forge Kaggle submission notebook.
+
+This builder is retained for provenance and is not part of the active Kaggle
+surface. Its legacy output location is no longer maintained; migrate and
+revalidate every claim before attempting to publish a regenerated notebook.
 
 Produces the Kaggle submission notebook - the artifact attached to the
 hackathon Writeup. Runs the cross-domain proof (trafficking + tax_evasion
@@ -56,7 +60,7 @@ CELLS = [
         "- Code repository: https://github.com/TaylorAmarelTech/gemma4_comp\n"
         "- Architecture doc: [docs/architecture.md](https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/architecture.md)\n"
         "- Writeup: in the Kaggle Writeup this notebook is attached to\n"
-        "- Video: https://youtu.be/TODO\n"
+        "- Demo recording runbook: https://duecare-ai.com/demo-recording\n"
     ),
 
     md("## 1. Install"),
@@ -378,7 +382,7 @@ CELLS = [
         "\n"
         "- **Track:** Main Track (parallel eligibility: Unsloth + llama.cpp + Ollama Special Technology tracks)\n"
         "- **Code:** https://github.com/TaylorAmarelTech/gemma4_comp (MIT)\n"
-        "- **Video:** https://youtu.be/TODO\n"
+        "- **Demo recording runbook:** https://duecare-ai.com/demo-recording\n"
         "- **License:** MIT\n"
         "- **Citation:** Amarel, T. (2026). Duecare: An Agentic Safety Harness for LLMs. Kaggle Gemma 4 Good Hackathon.\n"
     ),

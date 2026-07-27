@@ -48,13 +48,23 @@ snapshots, and older checklist/status docs are archived under
   build-only multi-architecture image. A release/tag remains a separate owner
   decision.
 - The wrap-up started from clean `master`, confirmed no model was loaded in
-  Ollama, and made no Ollama, hosted-model, or Kaggle-quota calls. The
+  local Ollama, and its validation commands made no Ollama, hosted-model, or
+  Kaggle-quota calls. The
   [post-merge CI](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30290776307),
   [MkDocs Pages deployment](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30290776419),
   [portable website build](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30290776591),
   and [build-only Docker run](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30290776019)
   all passed. Render serves the updated project status, and the new handoff,
   provider-budgeting, and successor-rehearsal Pages routes were verified live.
+- A later 2026-07-27 live audit corrected the operational boundary: Hermes,
+  the server-automation vetter, and orchestrator watchdogs/processes were still
+  active independently of the paused autonomous engine. No local provider ledger existed for that
+  period, so historical background provider usage is unknown and must be
+  reconciled privately at the provider. The whole stack is now cost-stopped:
+  all five recurring tasks are disabled, four stop sentinels are present, and
+  zero verified repository daemon processes remain. The ignored receipt is
+  `reports/cost_stop_status.json`; the public runbook is
+  [`MAINTAINER_HANDOFF.md`](MAINTAINER_HANDOFF.md).
 - The repository has a single model-free publication entry point:
   [`PUBLICATION_READINESS.md`](PUBLICATION_READINESS.md) and
   `python scripts/validate_publication_readiness.py --scope core`. All ten
@@ -87,6 +97,10 @@ snapshots, and older checklist/status docs are archived under
   This does not yet intercept direct package/application/standalone clients or
   self-contained Kaggle kernels; the exact contract is
   [`PROVIDER_BUDGETING.md`](PROVIDER_BUDGETING.md).
+- All three scheduled model-call wrappers now fail closed unless the shared router has
+  a positive attempt cap, finite input/output/cash caps, a stable run ID, and
+  reviewed pricing or an explicit recorded unknown-cost override. Their
+  watchdog registration and `-Run` paths no longer remove pause sentinels.
 - The strict training-data audit is not clean: five dense generic-corridor
   typologies produced 25 metadata-only curation tasks and a 75-row minimum
   expansion target. A deterministic workbook now defines all 75 risk,
@@ -138,7 +152,8 @@ snapshots, and older checklist/status docs are archived under
    claim.
 4. When model quota is intentionally reopened, freeze and plan a small run,
    configure the primary-router ledger with finite attempt/input/output/cash
-   caps and reviewed pricing, and preserve checkpoint/resume state.
+   caps and reviewed pricing, then deliberately resume the whole stack or only
+   the required caller and preserve checkpoint/resume state.
 5. Attach exact report, activity, prompt/response, training-metadata, chart,
    and evidence artifacts to any new claim.
 6. Keep A-00 as the active optional proof path. A-30 and the other appendix
@@ -157,7 +172,8 @@ Latest offline working-tree receipt on 2026-07-27:
 - publication core: 10/10 gates passed, including provider-budget coverage and
   the 18-package release-ownership/install-truth gate;
 - combined `packages tests` regression in the closeout 18-package workspace:
-  4,627 passed and 9 skipped with no warning summary; the focused
+  4,630 passed and 9 skipped with no warning summary under the zero-call
+  transport lock; the focused
   43-test package run also passes with pandas `RuntimeWarning` promoted to an
   error;
 - MkDocs strict build: passed with zero warnings; existing repository-relative
@@ -172,4 +188,6 @@ Latest offline working-tree receipt on 2026-07-27:
   guidance; strict validation reports zero errors and zero warnings;
 - post-deploy external network audit: 577 links checked, zero confirmed broken,
   and 10 transient/unverified hosts kept separate from confirmed failures;
-- no Ollama or hosted-model call was made during this polish/validation pass.
+- the polish/validation commands initiated no Ollama or hosted-model call; the
+  separate background-daemon usage correction above supersedes any broader
+  reading of that receipt.

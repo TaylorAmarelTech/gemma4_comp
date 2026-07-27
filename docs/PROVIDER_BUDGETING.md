@@ -41,6 +41,36 @@ The zero-call value activates transport enforcement, not merely planning. The
 offline integration test asserts that `ollama_chat()` raises before
 `_http_post_json()` is invoked.
 
+For the stronger Windows host-level stopping posture, also stop and inspect the
+whole model/flywheel stack:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/stop_ollama_stack.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/stop_ollama_stack.ps1 -Status
+```
+
+The status succeeds only when all five recurring tasks are disabled, all four
+daemon sentinels exist, and no exact repository daemon process remains. The
+default stop does not regenerate, commit, or push leaderboard files.
+
+## Daemon Startup Boundary
+
+The autonomous-engine, Hermes discovery, and server-automation vetter wrappers
+call the primary router and now refuse their run, one-shot, restart, watchdog,
+or resume paths unless all of these are explicit:
+
+- a positive `DUECARE_MAX_PLANNED_MODEL_CALLS`;
+- a stable `DUECARE_PROVIDER_RUN_ID`;
+- finite input-token, output-token, and cash caps; and
+- a reviewed pricing file or a deliberately recorded unknown-cost override.
+
+The wrappers run `provider_budget.py` before removing a pause sentinel or
+starting a process. Their scheduled `-Run` paths preserve sentinels, and
+registering a watchdog no longer resumes work. Process-scoped environment
+settings take precedence over `.env`, so an operator can tighten a stale local
+configuration. This protects these three entry points; it is not a universal
+interceptor for every direct client in the repository.
+
 ## Configure A Deliberately Bounded Run
 
 Do this only after a maintainer authorizes provider spend:
@@ -80,6 +110,7 @@ still set a model-appropriate positive `max_tokens` explicitly.
 | Surface | State | Operator rule |
 |---|---|---|
 | `llm_generate.py` Ollama Cloud, NVIDIA, Anthropic, and registered OpenAI-compatible transports | Enforced | One shared run budget covers every attempt, retry, key rotation, and re-question that reaches this router. |
+| Autonomous-engine, discovery, and server-automation PowerShell model-call entry points | Enforced at startup and transport | Refuse launch without the finite shared budget; keep all watchdogs and sentinels cost-stopped during maintenance. |
 | Rich-harness and judge paths that call `provider_chat()` or `resilient_chat()` | Enforced through the router | Keep the existing logical `--plan` ceiling too; planning and transport receipts answer different questions. |
 | Self-contained Kaggle kernels, including active 01/A-00 and optional 03 | Not connected to the local SQLite ledger | Offline validation needs no secrets. For a live notebook run, use that notebook's explicit sample/call limits and inspect its export before claiming completion. |
 | Package/application model adapters and standalone scripts that issue their own HTTP requests | Not yet universal | Remove or withhold credentials during maintenance; migrate the caller to this ledger contract before a funded broad run. This includes the optional website automation provider path. |
@@ -96,7 +127,8 @@ the repository.
 python scripts/validate_provider_budget_coverage.py
 python -m pytest tests/test_provider_budget.py `
   tests/test_validate_provider_budget_coverage.py `
-  tests/test_llm_generate_retry.py -q
+  tests/test_llm_generate_retry.py `
+  tests/test_stop_ollama_stack.py -q
 ```
 
 The contract tests cover zero-transport denial, concurrent atomic reservation,
@@ -105,9 +137,9 @@ estimated usage, failed-attempt retention, and retry accounting.
 
 ## Next Transport Work
 
-The next maintainer should migrate direct standalone research clients first,
-then decide how package and application adapters should accept an injectable
-ledger. Notebook runtimes need a portable equivalent because Kaggle cannot
-share the local SQLite file. Keep those migrations separate from benchmark
-result lanes, and do not describe the current primary-router guard as a
-repository-wide network interceptor.
+The next maintainer should migrate the remaining direct standalone research
+clients first, then decide how package and application adapters should accept
+an injectable ledger. Notebook runtimes need a portable equivalent because
+Kaggle cannot share the local SQLite file. Keep those migrations separate from
+benchmark result lanes, and do not describe the current primary-router guard as
+a repository-wide network interceptor.
