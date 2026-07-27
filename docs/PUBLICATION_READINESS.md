@@ -8,7 +8,7 @@ model run. Current as of 2026-07-27.
 
 | Track | Current state | Publication rule |
 |---|---|---|
-| Core code, docs, active Kaggle surfaces, provider-budget coverage, deferred-work integrity, package-release ownership, and published dataset claims | **11/11 core gates passed offline in the closeout candidate; the 2026-07-27 pull request 7 baseline passed all PR checks, post-merge workflows, and public deployment checks** | Re-run on the exact release commit before tagging. |
+| Core code, docs, active Kaggle surfaces, provider-budget coverage, deferred-work integrity, package-release ownership, and published dataset claims | **11/11 core gates passed offline in the closeout candidate; the 2026-07-27 pull request 8 substantive baseline passed all PR checks, post-merge workflows, and public deployment checks** | Re-run on the exact release commit before tagging. |
 | Maintainer succession and live pickup | **2/2 handoff gates passed offline; public handoff and deployment receipts are live on the merged closeout** | Re-run from a fresh shell and complete the private/manual acceptance steps before ownership transfer. |
 | Existing dated benchmark and learning-study results | Retained as bounded evidence with their original model, dataset, rubric, and date | Do not silently relabel an old result as a new model or field-effectiveness result. |
 | New fine-tuning dataset | **Not clean yet:** the strict audit reports five dense single/generic-corridor typologies; the deterministic workbook has 75 unfilled slots and no fabricated approvals | Complete source snapshots, rights review, two-person adjudication, and lineage-safe rows; rerun the audit, then refresh provenance before training or a new model claim. |
@@ -75,10 +75,10 @@ Ollama's planned-call allowance to zero and forces common Hugging Face and
 Weights & Biases integrations offline for its child checks.
 
 Current audit receipt: all eleven core gates passed in the 2026-07-27 closeout
-candidate without a model or network call. The latest verified integrated
+candidate without a model or network call. The latest validated substantive
 baseline landed through
-[pull request 7](https://github.com/TaylorAmarelTech/gemma4_comp/pull/7) as
-`1e1e8b5eac7a58b837b5782de2f11c1ca5a8d5dc`; all 16 pull-request checks and
+[pull request 8](https://github.com/TaylorAmarelTech/gemma4_comp/pull/8) as
+`9385a837879209e18f8e013cf969a3e1ecbcfc91`; all 16 pull-request checks and
 all six merge-triggered workflows passed. These receipts are not a substitute
 for rerunning the command on an eventual release tag.
 
@@ -406,14 +406,14 @@ worker-facing answers, benchmark labels, or training rows automatically.
   independent SemVer, and `configs/duecare/package_release.toml` reconciles the
   intentionally mixed versions with the sole publisher. `CITATION.cff` still
   describes living research software because no registry release exists yet.
-- The post-deploy concurrent external audit checked 587 outbound links on
+- The post-deploy concurrent external audit checked 588 outbound links on
   2026-07-27 with zero confirmed broken links. All six same-site schema URLs
-  returned 200; 12 additional hosts were transient, DNS/SSL-blocked,
+  returned 200; nine additional hosts were transient, DNS/SSL-blocked,
   redirect-looped, or bot-blocked and remain explicitly unverified rather than
   mislabeled as broken.
-- Root `AGENTS.md` names `master` as the active release branch. Pull request 7
-  is the latest verified integrated baseline at
-  `1e1e8b5eac7a58b837b5782de2f11c1ca5a8d5dc`; its PR checks, six
+- Root `AGENTS.md` names `master` as the active release branch. Pull request 8
+  is the latest validated substantive baseline at
+  `9385a837879209e18f8e013cf969a3e1ecbcfc91`; its PR checks, six
   merge-triggered workflows, MkDocs Pages, artifact-only website build, Render
   project status, and advertised schema routes passed. A release tag/version
   remains a separate owner decision.
