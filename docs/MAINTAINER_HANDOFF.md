@@ -53,6 +53,9 @@ first closeout deliberately left for live verification:
   workflows were refreshed (including checkout/setup, artifacts, Pages, cache,
   Docker, and Helm). The triggered post-merge CI, Pages, website-artifact,
   harness-contract, and evaluation workflows confirmed the refreshed actions;
+- curator-owned inline grading guidance now covers all 75 universal rubric
+  dimensions. Its strict validator reports zero errors and zero warnings, and
+  CI no longer converts future curator warnings into a passing annotation;
 - the website now serves the six schema URLs it advertised, labels Kaggle
   execution state, and links the verified Prompt Intent notebook; and
 - the external-link checker now distinguishes confirmed breakage from network

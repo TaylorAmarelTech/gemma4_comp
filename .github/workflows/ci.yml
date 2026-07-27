@@ -25,10 +25,8 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-      - name: Run validate_curator_blocks.py
-        run: python scripts/validate_curator_blocks.py
-      - name: Strict mode (warnings escalated)
-        run: python scripts/validate_curator_blocks.py --strict || echo "::warning::strict-mode warnings present"
+      - name: Validate curator blocks (warnings fail)
+        run: python scripts/validate_curator_blocks.py --strict
 
   wheel-content-check:
     name: wheel-content check (12 curator JSONs ship)

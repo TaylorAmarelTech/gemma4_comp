@@ -146,6 +146,8 @@ Latest offline working-tree receipt on 2026-07-27:
   while the 25-task corridor plan passed its privacy/safety validation;
 - focused release/link/MkDocs/website tests: 56 passed; the complete website
   suite passed 76 tests;
+- curator-block governance: all 75 universal rubric dimensions have inline
+  guidance; strict validation reports zero errors and zero warnings;
 - post-deploy external network audit: 577 links checked, zero confirmed broken,
   and 10 transient/unverified hosts kept separate from confirmed failures;
 - no Ollama or hosted-model call was made during this polish/validation pass.
