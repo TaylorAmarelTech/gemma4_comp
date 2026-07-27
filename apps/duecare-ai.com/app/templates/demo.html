@@ -375,15 +375,14 @@
         </div>
         <div class="code-preview">
           <span class="ln"><span class="c"># Clone the public repo</span></span>
-          <span class="ln">git clone https://github.com/&lt;org&gt;/duecare</span>
-          <span class="ln">cd duecare</span>
+          <span class="ln">git clone https://github.com/TaylorAmarelTech/gemma4_comp.git</span>
+          <span class="ln">cd gemma4_comp</span>
           <span class="ln">&nbsp;</span>
-          <span class="ln"><span class="c"># Install &amp; pull a default pack</span></span>
-          <span class="ln">make install</span>
-          <span class="ln">make pack-default</span>
+          <span class="ln"><span class="c"># Install the source workspace</span></span>
+          <span class="ln">uv sync --all-packages</span>
           <span class="ln">&nbsp;</span>
-          <span class="ln"><span class="c"># Run a scenario</span></span>
-          <span class="ln">duecare run --scenario examples/&lt;file&gt;</span>
+          <span class="ln"><span class="c"># Run the deterministic source smoke</span></span>
+          <span class="ln">uv run python scripts/verify.py</span>
         </div>
         <div class="body">
           <h3>Source repository</h3>

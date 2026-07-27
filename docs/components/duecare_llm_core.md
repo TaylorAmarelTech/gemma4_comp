@@ -1,14 +1,14 @@
 # Component 1 — `duecare-llm-core`
 
-> **Status: shipped.** Real code, 86 tests passing, wheel built, installed
-> from the wheel, demo notebook executes end-to-end. This is the foundation
-> of the DueCare multi-package distribution.
+> **Status: source-complete; registry unpublished.** The wheel builds and
+> installs locally, but no DueCare distribution is on PyPI as of 2026-07-27.
+> This is the foundation of the 18-package workspace.
 
 ---
 
 ## What it is
 
-`duecare-llm-core` is the first and most load-bearing of the eight packages
+`duecare-llm-core` is the first and most load-bearing of the 18 packages
 in the DueCare agentic safety harness. It holds the **contracts, schemas,
 enums, registries, provenance helpers, and observability primitives** that
 every other DueCare package depends on.

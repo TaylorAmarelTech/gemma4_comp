@@ -23,14 +23,14 @@
 > **The single configurable DueCare playground.** Every harness layer,
 > every Gemma 4 variant, every grading mode visible from one URL.
 >
-> **Live URL** (manual Kaggle publication target): https://www.kaggle.com/code/taylorsamarel/duecare-exploration-workbench
+> **Live URL:** https://www.kaggle.com/code/taylorsamarel/duecare-app
 
 ## Run it on Kaggle yourself
 
 This folder publishes as a **script kernel** (`kernel.py` only, no
 `notebook.ipynb`). To run it on Kaggle:
 
-1. Open <https://kaggle.com>, choose **New Notebook**, then choose Python.
+1. Open <https://www.kaggle.com/>, choose **New Notebook**, then choose Python.
 2. In **Notebook settings**, enable GPU (T4 single is fine for E2B/E4B;
    T4x2 or P100 for 26B-A4B / 31B).
 3. Use **Add data** and search `taylorsamarel/duecare-harness-chat-wheels`

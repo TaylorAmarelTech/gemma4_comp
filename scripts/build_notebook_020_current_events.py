@@ -194,7 +194,10 @@ SUMMARY = f"""---
 
 The suite's rubric and the adversarial test bands (181-189, 300, 460) exist because real cases and real failures kept happening in the period this project was built. Naming the cases in a single notebook makes the motivation auditable: a reader can click each row and read the public source, then open the linked DueCare notebook and see how the evaluation framework responds to the same pattern.
 
-Every case on this page is drawn from public reporting. Wherever a source quoted an individual worker's name, that name has been generalized to a composite pattern; the project's [CLAUDE.md safety gate](https://github.com/TaylorAmarelTech/gemma4_comp/blob/main/CLAUDE.md) bans raw PII in committed files.
+Every case on this page is drawn from public reporting. Wherever a source quoted an
+individual worker's name, that name has been generalized to a composite pattern; the
+project's [safety gate](https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/CLAUDE.md)
+bans raw PII in committed files.
 
 ## Next
 

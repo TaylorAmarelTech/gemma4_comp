@@ -205,7 +205,7 @@ make doctor   # confirm everything healthy after a day of use
 ```
 
 Backups run automatically overnight per the cron job from
-[`docs/scenarios/ngo-office-deployment.md`](./ngo-office-deployment.md#step-5--schedule-nightly-backups-10-min).
+[`docs/scenarios/ngo-office-deployment.md`](./ngo-office-deployment.md#schedule-nightly-backups).
 
 ## Total time budget for this case
 

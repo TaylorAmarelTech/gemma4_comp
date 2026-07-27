@@ -47,7 +47,7 @@ These are core docs that every reader needs (kept at `docs/`):
 - [`docs/containers.md`](../containers.md) — Docker / dev / observability surfaces
 - [`docs/FOR_KAGGLE_JUDGES.md`](../FOR_KAGGLE_JUDGES.md) — the hackathon submission roadmap
 - [`docs/writeup_draft.md`](../writeup_draft.md) — the 1,500-word submission writeup
-- [`docs/adr/`](../adr/) — architecture decision records
+- [`docs/adr/`](../adr/README.md) — architecture decision records
 
 ## Maturity status
 

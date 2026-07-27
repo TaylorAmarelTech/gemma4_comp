@@ -98,7 +98,7 @@ APPLIED = [
      "blurb": "Screen risky recruitment posts and ads into a review queue with a reason for every decision. Offline."},
     {"t": "Worker Self Check", "slug": "duecare-worker-self-check", "status": "live", "needs": "none",
      "blurb": "A worker pastes a suspicious message and gets a plain-language warning and next steps. Offline."},
-    {"t": "Chain Of Thought Generator", "slug": "duecare-chain-of-thought-generator", "status": "live", "needs": "none",
+    {"t": "Chain Of Thought Generator", "slug": "duecare-chain-of-thought-generator", "status": "planned", "needs": "none",
      "blurb": "Turn a prompt into a structured, ILO-grounded reasoning chain. Offline."},
     {"t": "Regulator Compliance", "slug": "duecare-regulator-compliance", "status": "planned", "needs": "none",
      "blurb": "Compliance-monitoring view for labor ministries and regulators: corridor rules, fee caps, and an evidence trail."},
@@ -442,7 +442,7 @@ def build(output_dir: Path, *, force: bool = False) -> dict:
         "### 1B - In your own code\n\n"
         "Install the DueCare packages and call the harness from Python:\n\n"
         "```bash\n"
-        "pip install duecare-llm-core duecare-llm-chat\n"
+        "uv sync --all-packages  # from the gemma4_comp source checkout\n"
         "```\n\n"
         "or install the latest straight from source:\n\n"
         "```bash\n"

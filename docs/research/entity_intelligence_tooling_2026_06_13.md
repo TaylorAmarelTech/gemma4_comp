@@ -8,17 +8,17 @@ Already adopted in this repo: **GDELT** (scripts/adverse_media.py), **OpenSancti
 
 ## Contents
 
-- [negative_news_source](#negative-news-source) (10)
-- [news_api](#news-api) (7)
-- [sanctions_source](#sanctions-source) (13)
-- [court_records](#court-records) (6)
-- [backend_endpoint](#backend-endpoint) (15)
-- [llm_browser_agent](#llm-browser-agent) (10)
-- [playwright_variation](#playwright-variation) (7)
-- [browsing_technique](#browsing-technique) (6)
-- [scraping_tool](#scraping-tool) (16)
-- [osint_tool](#osint-tool) (7)
-- [entity_resolution](#entity-resolution) (9)
+- [negative_news_source](#negative_news_source) (10)
+- [news_api](#news_api) (7)
+- [sanctions_source](#sanctions_source) (13)
+- [court_records](#court_records) (6)
+- [backend_endpoint](#backend_endpoint) (15)
+- [llm_browser_agent](#llm_browser_agent) (10)
+- [playwright_variation](#playwright_variation) (7)
+- [browsing_technique](#browsing_technique) (6)
+- [scraping_tool](#scraping_tool) (16)
+- [osint_tool](#osint_tool) (7)
+- [entity_resolution](#entity_resolution) (9)
 
 
 ## negative_news_source
@@ -608,11 +608,13 @@ Python port of the Puppeteer stealth plugin: applies evasions (navigator.webdriv
 - **Integrate:** pip install playwright-stealth; `from playwright_stealth import Stealth` then wrap the context. Patches were written for older Chrome eras — use as a complement, not a Cloudflare bypass. Persistent-context support is still on its TODO.
 - **Why:** Cheap baseline hardening for low-protection registries (many government/NGO sites use no WAF). Good first layer, but for Cloudflare/Akamai targets it is insufficient alone — escalate to Patchright/Camoufox. Documented here so the pipeline doesn't over-rely on it.
 
-### playwright-captcha  `freemium` (verified)
+### playwright-captcha  `freemium` (reverification required)
 Captcha-solving orchestration layer for Playwright. Solves Cloudflare Turnstile + Interstitial and reCAPTCHA v2/v3 via either a click-based solver (no external service) or API solvers (2Captcha / TenCaptcha). Works with stock Playwright, Patchright, and Camoufox. v0.1.5 (2026-05-21), MIT.
 
 - **URL:** https://pypi.org/project/playwright-captcha/
-- **Repo:** https://github.com/Xewdy444/playwright-captcha
+- **Repo:** The previously recorded upstream URL returned 404 on 2026-07-27.
+  Do not adopt this package until its source, maintainer, and license are
+  independently reverified from current PyPI metadata.
 - **License/ToS:** MIT (library); API solving requires a paid 2Captcha/TenCaptcha key
 - **Integrate:** pip install playwright-captcha; `await solver.solve_captcha(captcha_container=page, captcha_type=CaptchaType.CLOUDFLARE_TURNSTILE)`. Click mode is keyless; API mode takes a 2Captcha key. Designed to wrap Patchright/Camoufox directly. Use only on sites you are authorized to crawl.
 - **Why:** The glue that lets the scraper clear Turnstile gates on public registries it is legitimately permitted to access. Click-solver path needs no paid service when paired with Patchright/Camoufox, keeping cost at zero for most targets.

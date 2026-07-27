@@ -38,9 +38,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -57,7 +57,7 @@ jobs:
           pip install curl_cffi charset_normalizer || true
 
       - name: Restore prior monitor state
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .monitor-state
           key: monitor-state-${{ github.run_id }}
@@ -89,7 +89,7 @@ jobs:
 
       - name: Upload review queue (proposals + log)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: research-monitor-proposals-${{ github.run_id }}
           path: reports/research_monitor/

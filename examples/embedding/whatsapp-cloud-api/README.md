@@ -19,7 +19,7 @@ worker outreach.
 
 ### 1. Meta App + WhatsApp product
 
-1. https://developers.facebook.com/apps → Create App → "Business"
+1. https://developers.facebook.com/ → **My Apps** → **Create App** → "Business"
 2. Add the WhatsApp product
 3. Note the **Phone Number ID** (in the WhatsApp → Getting Started panel)
 4. Either use Meta's test number (free, 5 numbers cap) OR register

@@ -58,12 +58,22 @@ added to `ROOT_FILES.md` with a durable reason.
 Durable training helpers in `scripts/` must be discoverable from
 `docs/training_and_finetuning.md`. For example,
 `scripts/validate_publication_readiness.py` is the model-free release wrapper:
-its core scope composes the portable public, claim, Kaggle, and collection
+its core scope composes the portable public, claim, Kaggle, package-release, and collection
 gates; its handoff scope composes succession and live-pickup checks; and its
 separate training scope preserves an honest red result when strict dataset or
 provenance checks are not yet clean. `scripts/validate_maintainer_handoff.py`
 checks the two current succession documents, their discovery/local links, and
 privacy-safe content without calling a model or network service.
+`scripts/validate_package_release.py` reconciles all 18 `pyproject.toml`
+members with the canonical build order, package inventory, source installers,
+and sole PyPI workflow; its optional tag check deliberately blocks mismatched
+coordinated versions. `scripts/check_external_links.py` is the complementary
+network audit for active public Markdown/HTML: it checks concurrently and keeps
+confirmed broken links separate from transient or bot-blocked hosts.
+`scripts/mkdocs_repo_links.py` is the Pages-only resolver for Markdown links
+that intentionally leave `docs/` or target excluded provenance pages: it
+rewrites existing in-repository targets to canonical GitHub source URLs and
+leaves missing targets for strict MkDocs to reject.
 `scripts/ollama_adversarial_flywheel.py` is the local Ollama candidate producer:
 it may generate SFT/DPO candidates and quarantine metadata, but its manifest
 must remain candidate-only until the normal training and publication gates pass.

@@ -25,9 +25,9 @@ Every embedding talks to a deployed Duecare REST API. Deploy first
 (see [`docs/cloud_deployment.md`](../../docs/cloud_deployment.md)),
 then point your embedding's `apiUrl` at it.
 
-For **Python** apps that want to skip the REST hop, just
-`pip install duecare-llm-chat` and import directly — no embedding
-needed.
+For **Python** apps that want to skip the REST hop, install
+`packages/duecare-llm-chat` from this source checkout and import directly — no
+embedding needed. No DueCare distribution is on PyPI yet.
 
 ## Where does the server live?
 

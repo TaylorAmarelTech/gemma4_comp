@@ -178,7 +178,7 @@ Run this on a Friday afternoon — should be a 30-minute call:
    only.
 
 If you're left holding Duecare after these 6 questions, the
-[`docs/scenarios/`](./scenarios/) folder has the persona walkthrough
+[`docs/scenarios/`](scenarios/README.md) folder has the persona walkthrough
 for your role.
 
 ## What we're NOT comparing on
@@ -199,5 +199,5 @@ evaluators:
 
 - [`docs/considerations/vendor_questionnaire.md`](./considerations/vendor_questionnaire.md) — pre-filled CAIQ answers for procurement
 - [`docs/considerations/COMPLIANCE.md`](./considerations/COMPLIANCE.md) — control-map crosswalk
-- [`docs/scenarios/`](./scenarios/) — persona-specific walkthroughs once you've decided
+- [`docs/scenarios/`](scenarios/README.md) — persona-specific walkthroughs once you've decided
 - [`docs/harness_lift_report.md`](./harness_lift_report.md) — quantified results on the trafficking domain

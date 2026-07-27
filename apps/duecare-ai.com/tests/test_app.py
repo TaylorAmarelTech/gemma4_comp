@@ -115,7 +115,10 @@ def test_training_data_flywheel_states_release_and_reasoning_boundaries(tmp_path
 
     assert response.status_code == 200
     assert "Two advanced Kaggle datasets are public" in response.text
-    assert "Nine public Kaggle notebooks load, verify, explain, visualize" in response.text
+    assert (
+        "Nine public training-data Kaggle notebooks load, verify, explain, visualize"
+        in response.text
+    )
     assert "supervised fine-tuning (SFT) data first" in response.text
     assert "private hidden chain-of-thought" in response.text
     assert "complete final answers, citations, harness traces" in response.text
@@ -153,6 +156,26 @@ def test_training_data_flywheel_is_linked_from_public_training_surfaces(tmp_path
     assert "public learning and analysis notebooks" in kernels
     assert "Public training-data learning route" in kernels
     assert "www.kaggle.com/code/taylorsamarel/duecare-training-data-quality-dashboard" in kernels
+    assert "Latest run: COMPLETE" in kernels
+    assert "Latest run: CANCEL_ACKNOWLEDGED" in kernels
+    assert "Public URL not verified" in kernels
+    assert "duecare-prompt-intent-and-attack-explorer" in kernels
+
+
+def test_public_schema_urls_linked_from_technical_docs_resolve(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    for kind in ("pack", "tool", "signal", "audit", "feedback"):
+        response = client.get(f"/schema/{kind}/1.json")
+        assert response.status_code == 200
+        payload = response.json()
+        assert payload["$id"] == f"https://duecare-ai.com/schema/{kind}/1.json"
+        assert payload["additionalProperties"] is False
+
+    context = client.get("/schema/v1")
+    assert context.status_code == 200
+    assert context.json()["schema_version"] == 1
+    assert client.get("/schema/unknown/1.json").status_code == 404
 
 
 def test_demo_recording_and_admin_pages_render(tmp_path) -> None:
@@ -294,9 +317,10 @@ def test_project_status_page_keeps_release_and_training_claims_separate(tmp_path
     response = client.get("/project-status")
 
     assert response.status_code == 200
-    assert "8 / 8 pass" in response.text
+    assert "9 / 9 pass" in response.text
+    assert "not on PyPI" in response.text
     assert "2 / 2 pass" in response.text
-    assert "4,582 pass" in response.text
+    assert "4,589 passed" in response.text
     assert "Autonomous engine" in response.text and "paused" in response.text
     assert "strict training lane is not ready" in response.text
     assert "minimum-75-row" in response.text

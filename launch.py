@@ -66,7 +66,7 @@ PROFILES: dict[str, dict] = {
         "desc": "The full FastAPI chat + harness workbench at http://localhost:8080.",
         "cmd": _cmd_workbench,
         "needs": lambda: _duecare_installed() and _has("ollama"),
-        "hint": "Install: `uv sync --all-packages` (or `pip install duecare-llm`), then `ollama pull gemma4:e2b`.",
+        "hint": "From the source checkout run `uv sync --all-packages`, then `ollama pull gemma4:e2b`.",
     },
     "ngo": {
         "who": "NGO / regulator / non-technical operator",

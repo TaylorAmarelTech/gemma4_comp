@@ -242,7 +242,8 @@ Browse the same surfaces on the hub at
   into importable Python -- see [`packages/duecare-llm-kit`](./packages/duecare-llm-kit/):
 
   ```bash
-  pip install duecare-llm-kit
+  # current source-checkout path; no DueCare distribution is on PyPI yet
+  python -m pip install -e packages/duecare-llm-kit
   ```
 
   ```python
@@ -339,7 +340,7 @@ and rubric.
 
 **18 package surfaces** share the `duecare` Python namespace (PEP 420). The
 source workspace installs them together; the `duecare-llm` meta package is the
-public pip entry point for the workflow-oriented stack.
+intended future registry entry point for the workflow-oriented stack.
 
 | Package | Role | Test surface |
 |---|---|---|
@@ -360,7 +361,7 @@ public pip entry point for the workflow-oriented stack.
 | `duecare-llm-nl2sql` | NL → SQL translator for evidence DB queries | NL→SQL roundtrip tests |
 | `duecare-llm-chat` | DueCare reviewer workbench: FastAPI app, shared chrome, static pages, harness contracts, and Gemma 4 runtime hooks | 18 test files: harness contract, route, workbench UI, JSON parser, anonymization, design-tooltip migration, model-output sanitizer, process bulk review, etc. |
 | `duecare-llm-cli` | The `duecare` command-line tool (tree, test, review, status, deps) | CLI command tests |
-| [`duecare-llm`](./docs/components/duecare_llm_meta.md) (meta) | Public pip entry point for the workflow stack and `duecare` CLI | Re-export + import tests |
+| [`duecare-llm`](./docs/components/duecare_llm_meta.md) (meta) | Source/wheel meta-package for the workflow stack and `duecare` CLI; registry publication is pending | Re-export + import tests |
 | **Current local pytest collection gate** | | Run `python -m pytest packages --collect-only -q` before publishing an exact count. |
 
 ## Quick start
@@ -372,16 +373,16 @@ benchmark), and notebook users (Colab/Kaggle with a public URL). See
 
 ### Install
 
+No DueCare distribution is on PyPI yet. From a source checkout, install the
+complete workspace with the locked environment:
+
 ```bash
-# Public meta-package for the workflow-oriented stack
-pip install duecare-llm
-
-# Or, granular: install only what a Kaggle notebook needs
-pip install duecare-llm-core duecare-llm-domains duecare-llm-tasks duecare-llm-agents
-
-# Source checkout: install all 18 workspace packages together
 uv sync --all-packages
+uv run python scripts/verify.py
 ```
+
+The intended future registry commands and the current version-policy blocker
+are documented in [`docs/PACKAGE_INVENTORY.md`](docs/PACKAGE_INVENTORY.md).
 
 ### Optional local model run (after the offline checks)
 
@@ -483,17 +484,17 @@ compliance crosswalk, threat model, vendor questionnaire) at
 ### Run on Kaggle (GPU)
 
 Open the notebook, set Accelerator to **GPU T4 x2**, and run:
-- [100 — Gemma Exploration](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-exploration) — real Gemma inference + scoring
+- [DueCare App](https://www.kaggle.com/code/taylorsamarel/duecare-app) — the active exploration workbench
 
 ### Run the validated local CLI bootstrap
 
 The clean install path currently smoke-tested from local wheels is:
 
 ```bash
-pip install duecare-llm-cli
-duecare init
-duecare demo-stage
-duecare serve --port 8080
+uv sync --all-packages
+uv run duecare init
+uv run duecare demo-stage
+uv run duecare serve --port 8080
 ```
 
 ### Run a workflow with the meta package
@@ -622,10 +623,10 @@ snapshots belong under `kaggle/_archive/notebooks/`.
 | Stock Gemma 4 E4B pass rate | **20%** | 100 (50 graded prompts) |
 | Harmful phrase rate | **0.0% in this checked run** | No harmful phrase hits in the 50-prompt graded run; not a global safety guarantee |
 | Refusal rate | **36%** | Clear refusal on exploitation requests |
-| With RAG context | **0.59** (+23% over plain) | [260 - RAG Comparison](https://www.kaggle.com/code/taylorsamarel/duecare-260-rag-comparison) |
-| With guided prompt | **0.62** (+28% over plain) | [260 - RAG Comparison](https://www.kaggle.com/code/taylorsamarel/duecare-260-rag-comparison) |
-| Trafficking prompt corpus | **Large corpus; regenerate exact count** | [110 - Prompt Prioritizer](https://www.kaggle.com/code/taylorsamarel/00a-duecare-prompt-prioritizer-data-pipeline) plus `python scripts/verify_knowledge_surfaces.py` |
-| Adversarial generators | **15** | [310 - Prompt Factory](https://www.kaggle.com/code/taylorsamarel/duecare-310-prompt-factory) |
+| With RAG context | **0.59** (+23% over plain) | Historical notebook-era 260 receipt; its former public slug no longer resolves, so do not present it as a current live notebook. |
+| With guided prompt | **0.62** (+28% over plain) | Historical notebook-era 260 receipt; rerun before making a current-model claim. |
+| Trafficking prompt corpus | **Large corpus; regenerate exact count** | `python scripts/verify_knowledge_surfaces.py`; the former 110 Kaggle slug no longer resolves publicly. |
+| Adversarial generators | **15** | [`scripts/build_grading_notebooks.py`](scripts/build_grading_notebooks.py); the former 310 Kaggle slug is legacy, not a current public link. |
 | Evaluation frameworks | **7** | |
 | Pytest collection | **Collect-only gate** | Run `python -m pytest packages --collect-only -q`; do not publish a static count without the current output. |
 | GREP detection rules | **Hundreds; regenerate exact count** | Categories A-ZZ + SCREENING + later category packs; see [`docs/KNOWLEDGE_SURFACE_VERIFICATION.md`](docs/KNOWLEDGE_SURFACE_VERIFICATION.md) |
@@ -780,7 +781,7 @@ problems without changing the harness.
 | `tax_evasion` | Adjacency proof | 14 | 4 | 4 | scheme type, jurisdiction, FATF indicator, sophistication |
 
 The full trafficking prompt corpus lives in
-`configs/duecare/domains/trafficking/seed_prompts.jsonl`; the PyPI
+`configs/duecare/domains/trafficking/seed_prompts.jsonl`; the source-built
 domain wheel bundles a lightweight sample so installs stay small. All
 three packs are discoverable via `duecare domains list` and
 hot-swappable in the workflow runner.

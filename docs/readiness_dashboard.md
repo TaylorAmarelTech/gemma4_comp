@@ -1,21 +1,21 @@
 # Readiness Dashboard
 
-Current as of 2026-07-26. This replaces the historical 2026-05-02
+Current as of 2026-07-27. This replaces the historical 2026-05-02
 appendix-ladder dashboard; the active submission scope is now the active Kaggle
 Gemma 4 path.
 
 ## Active Scope
 
-| Surface | Status | What It Proves |
+| Surface | Live status checked 2026-07-27 | What It Proves |
 |---|---|---|
-| `kaggle/01-duecare-exploration-workbench/` | Active | Interactive harness comparison, chat, extraction, search controls, traces, and knowledge-pack flows. |
-| `kaggle/02-live-demo/` | Active | Focused live demo and video narrative path. |
-| `kaggle/A-00-omni-experiment-workbench/` | Active | Quantitative proof path: baseline vs harnessed arms, synthetic data, fine-tune, judging, and report artifacts. |
+| `kaggle/01-duecare-exploration-workbench/` | `COMPLETE` | Interactive harness comparison, chat, extraction, search controls, traces, and knowledge-pack flows. |
+| `kaggle/02-live-demo/` | `CANCEL_ACKNOWLEDGED` | Focused live demo and video narrative path; rerun only for needed recording evidence. |
+| `kaggle/A-00-omni-experiment-workbench/` | `CANCEL_ACKNOWLEDGED` | Quantitative proof path; the canceled run is not completion evidence. |
 
 The public A-00 Kaggle page attaches
 `taylorsamarel/duecare-proof-finetuning-data`, and Kaggle reports that proof
-dataset ready. The notebook run still needs a terminal Kaggle status and
-artifact review before it is cited as a completed proof run. The existing
+dataset ready. The latest notebook run is canceled; it needs a fresh successful
+execution and artifact review before it is cited as completed proof. The existing
 adapter artifact is smoke-only, and no production adapter or full advanced
 corpus is published.
 
@@ -35,8 +35,8 @@ and [`kaggle/_INDEX.md`](../kaggle/_INDEX.md).
 
 | Area | Current State |
 |---|---|
-| Offline publication core | 8/8 composed gates passed on 2026-07-26; rerun `python scripts/validate_publication_readiness.py --scope core` on the release commit. |
-| Broad tests | Clean locked 18-package `packages tests` run: 4,582 passed, 9 skipped with no warning summary. The focused 43-test kit run also passes with `RuntimeWarning` promoted to an error. |
+| Offline publication core | 9/9 composed gates passed on 2026-07-27, including package-release ownership/install truth; rerun `python scripts/validate_publication_readiness.py --scope core` on the release commit. |
+| Broad tests | Clean locked 18-package `packages tests` run: 4,589 passed, 9 skipped with no warning summary. The focused 43-test kit run also passes with `RuntimeWarning` promoted to an error. |
 | New training readiness | Intentionally red: five dense generic-corridor typologies; 25 privacy-safe curation tasks and a 75-row minimum expansion target. |
 | Harness contract | Documented in [`harness_ecosystem.md`](harness_ecosystem.md), [`harness_pattern.md`](harness_pattern.md), and [`harness_standard_contract.md`](harness_standard_contract.md). |
 | Model loading | Standardized through [`Gemma4Runtime.load()`](model_loading_trace.md) for inference, with active A-00 training as the only direct FastModel exception. |
@@ -47,7 +47,8 @@ and [`kaggle/_INDEX.md`](../kaggle/_INDEX.md).
 
 ## Remaining Human Actions
 
-1. Freeze the intended release commit and rerun the model-free publication core.
+1. Choose coordinated or per-package Python version policy, freeze the intended
+   release commit, and rerun the model-free publication core.
 2. Run the two primary demo kernels on the intended GPU/runtime shape only when
    new recording evidence is needed.
 3. Optional only: produce an A-00 evidence run with checkpoint/resume

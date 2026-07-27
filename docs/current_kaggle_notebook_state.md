@@ -10,18 +10,18 @@ The active competition scope is exactly three script kernels, also listed in
 [`kaggle/_INDEX.md`](../kaggle/_INDEX.md). The first two are the primary
 recording path; A-00 is the quantitative proof and training/evaluation path.
 
-| Folder | Role |
-|---|---|
-| `kaggle/01-duecare-exploration-workbench/` | Broad workbench: chat, harness comparison, bulk review, knowledge extraction, search, sharing, traces, and activity logs. |
-| `kaggle/02-live-demo/` | Focused live demo for judges and video capture. |
-| `kaggle/A-00-omni-experiment-workbench/` | Quantitative proof path: baseline, harnessed, synthetic-data, fine-tuning, judging, checkpoints, and report artifacts. |
+| Folder | Role | Live Kaggle status checked 2026-07-27 |
+|---|---|---|
+| `kaggle/01-duecare-exploration-workbench/` | Broad workbench: chat, harness comparison, bulk review, knowledge extraction, search, sharing, traces, and activity logs. | `COMPLETE` |
+| `kaggle/02-live-demo/` | Focused live demo for judges and video capture. | `CANCEL_ACKNOWLEDGED` |
+| `kaggle/A-00-omni-experiment-workbench/` | Quantitative proof path: baseline, harnessed, synthetic-data, fine-tuning, judging, checkpoints, and report artifacts. | `CANCEL_ACKNOWLEDGED` |
 
-Public-version boundary reviewed 2026-07-15: the A-00 Kaggle URL is live and
-the public notebook attaches `taylorsamarel/duecare-proof-finetuning-data`.
-The proof dataset is ready on Kaggle; the notebook run still needs terminal
-Kaggle status plus artifact review before it is cited as a completed proof
-run. No production Gemma adapter, merged weights, or full advanced training
-corpus is attached.
+The status values above came from the authenticated Kaggle command line on
+2026-07-27. Cancellation is terminal but is not successful completion. A-00's
+public page still attaches `taylorsamarel/duecare-proof-finetuning-data`, but
+its canceled run and unreviewed output boundary cannot be cited as a completed
+training/evaluation proof. No production Gemma adapter, merged weights, or full
+advanced training corpus is attached.
 
 ## Auxiliary Interim Training Proofs
 
@@ -58,6 +58,10 @@ kernel. It defines DueCare rows as `kaggle_benchmarks` tasks so model calls can
 use Kaggle's model proxy/quota and publish Community Benchmark task/run
 artifacts. It is also optional and not part of the primary recording path.
 
+Live review on 2026-07-27 found the Community Benchmark run `COMPLETE`. The
+configured Universal LLM Benchmark slug did not resolve publicly and could not
+be verified; keep it source-only until a public URL returns successfully.
+
 ## Archived Or Reference-Only Material
 
 - `kaggle/_archive/notebooks/` contains the former `03`, `A-01` through
@@ -76,8 +80,11 @@ artifacts. It is also optional and not part of the primary recording path.
 
 ## Current Review Anchors
 
-- [`docs/copilot_handoff_2026_05_16.md`](copilot_handoff_2026_05_16.md) for
-  the latest runtime, harness, A-00, and test baseline handoff.
+- [`docs/MAINTAINER_HANDOFF.md`](MAINTAINER_HANDOFF.md) for current operations,
+  ownership, release boundaries, and acceptance.
+- [`docs/PROJECT_TRANSITION_PLAN.md`](PROJECT_TRANSITION_PLAN.md) and
+  [`docs/PUBLICATION_READINESS.md`](PUBLICATION_READINESS.md) for the closeout
+  sequence and exact remaining work.
 - [`docs/harness_ecosystem.md`](harness_ecosystem.md) for the authoritative
   registered-harness inventory.
 - [`docs/harness_standard_contract.md`](harness_standard_contract.md) for the

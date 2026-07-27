@@ -18,16 +18,16 @@ matches your stack.
 
 | Audience | Path | Effort | Privacy |
 |---|---|---|---|
-| **Python app** | [`pip install duecare-llm-chat`](#1-python-pip) | 5 min | Local |
+| **Python app** | [Install the source package](#1-python-source-package) | 5 min | Local |
 | **Any web app** | [JS chat widget](#2-web-widget-vanilla-js) drop-in script | 10 min | Server-side proxy required |
 | **React app** | [React component](#3-react-component) | 10 min | Server-side proxy required |
 | **WordPress / NGO website** | [WordPress plugin](#4-wordpress-plugin) | 15 min | Server-side proxy required |
 | **Telegram bot** | [Telegram example](#5-telegram-bot) | 20 min | Bot API |
 | **WhatsApp bot** | [WhatsApp via Twilio](#6-whatsapp-bot-via-twilio) | 30 min | Twilio API |
-| **Discord / Slack bot** | [Bot SDK example](#7-discord--slack-bots) | 30 min | Bot API |
+| **Discord / Slack bot** | [Bot SDK example](#discord-slack-bots) | 30 min | Bot API |
 | **Other Android app** | [Embeddable AAR](#8-android-library-aar) | 1-2 hr | Local |
 | **iOS app** | [Swift Package](#9-ios-swift-package) | 2-3 hr | Local |
-| **Backend service in any language** | [REST API + OpenAPI codegen](#10-rest-api--openapi-codegen) | 30 min | Server-side |
+| **Backend service in any language** | [REST API + OpenAPI codegen](#rest-api-openapi-codegen) | 30 min | Server-side |
 | **CLI / shell automation** | [`duecare` CLI](#11-cli) | 5 min | Local |
 | **Browser extension** | [Extension scaffold](#12-browser-extension) | 1-2 hr | Local + opt-in API |
 | **WhatsApp Business / official API** | [API gateway pattern](#13-whatsapp-business-api) | 2-3 hr | Server-side |
@@ -60,15 +60,16 @@ Three layers, each independently embeddable:
 │  duecare.chat.harness — 100+ GREP rules + 50+ RAG docs + tools       │
 │                          + rubric and evaluator packs             │
 │                          + grade_response() + default_harness()   │
-│  Shipped on PyPI as duecare-llm-chat                              │
+│  Built as duecare-llm-chat; install from the source checkout      │
 │  Kotlin port at duecare-journey-android (subset for on-device)    │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
 You can embed at any layer:
 
-- **Layer 1 (just the data + logic):** `pip install duecare-llm-chat`,
-  use `GREP_RULES`, `RAG_CORPUS`, `_grep_call`, `_rag_call`,
+- **Layer 1 (just the data + logic):** install
+  `packages/duecare-llm-chat` from a source checkout, then use
+  `GREP_RULES`, `RAG_CORPUS`, `_grep_call`, `_rag_call`,
   `grade_response` directly in your Python code. No HTTP needed.
 - **Layer 2 (the API):** run `docker run ghcr.io/tayloramareltech/duecare-llm`
   and call the REST endpoints. Codegen typed clients in any language.
@@ -80,10 +81,12 @@ fewer security boundaries.
 
 ---
 
-## 1. Python (pip)
+## 1. Python source package
+
+No DueCare distribution is on PyPI yet. From the repository root:
 
 ```bash
-pip install duecare-llm-chat
+python -m pip install -e packages/duecare-llm-chat
 ```
 
 ```python
@@ -201,7 +204,7 @@ TWILIO_ACCOUNT_SID=... TWILIO_AUTH_TOKEN=... DUECARE_API=https://... \
 Reference: `examples/embedding/whatsapp-twilio/` (planned for v0.2 of
 this guide; current scaffold has the architecture sketch).
 
-## 7. Discord / Slack bots
+## 7. Discord / Slack bots { #discord-slack-bots }
 
 Same pattern as Telegram — wrap the REST API. Reference impls
 available on request; the Telegram example is the cleanest reference.
@@ -264,7 +267,7 @@ let hits = grep.match(text: userText)
 Currently TODO; rough effort estimate is 2-3 days post-hackathon for
 a KMP refactor.
 
-## 10. REST API + OpenAPI codegen
+## 10. REST API + OpenAPI codegen { #rest-api-openapi-codegen }
 
 The lingua franca path. Run the Duecare server (`docker run ...`),
 codegen a typed client in your language, call it.
@@ -297,11 +300,11 @@ language.
 For shell scripts, automation, CI integrations, batch processing.
 
 ```bash
-pip install duecare-llm
-duecare grep "Pay ₱50,000 training fee"            # → JSON of GREP hits
-duecare rag "PH-HK placement fee cap"              # → JSON of RAG docs
-duecare grade legal_citation_quality "<response>"  # → JSON of rubric scores
-duecare chat                                        # → interactive REPL
+uv sync --all-packages
+uv run duecare grep "Pay ₱50,000 training fee"            # → JSON of GREP hits
+uv run duecare rag "PH-HK placement fee cap"              # → JSON of RAG docs
+uv run duecare grade legal_citation_quality "<response>"  # → JSON of rubric scores
+uv run duecare chat                                        # → interactive REPL
 ```
 
 ## 12. Browser extension

@@ -1,7 +1,8 @@
 # Component — `duecare-llm` (meta)
 
-> **Status: shipped.** The `duecare` CLI + meta-package for the
-> workflow-oriented stack. The workspace now contains 18 package surfaces.
+> **Status: source-complete; registry unpublished.** The `duecare` CLI and
+> meta-package build locally. The workspace contains 18 package surfaces, none
+> published on PyPI as of 2026-07-27.
 
 ## What it is
 
@@ -13,8 +14,12 @@ packages together.
 ## Install
 
 ```bash
-pip install duecare-llm
+uv sync --all-packages
 ```
+
+After an owner-approved registry release, the intended command is
+`pip install duecare-llm`; the dependency list and extras below describe that
+future interface.
 
 This pulls in:
 
@@ -95,7 +100,7 @@ duecare runs list
 
 ## Why a meta-package
 
-Three reasons:
+These are the design motivations for the future registry release:
 
 1. **Single pip install** for end users: `pip install duecare-llm` beats
    `pip install duecare-llm-core duecare-llm-models duecare-llm-domains

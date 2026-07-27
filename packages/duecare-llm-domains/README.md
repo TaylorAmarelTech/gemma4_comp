@@ -7,7 +7,14 @@ Part of the **Duecare** multi-package distribution. See the
 [the_forge.md architecture doc](../../docs/the_forge.md) for the full
 context.
 
-## Install
+## Install from this checkout
+
+```bash
+uv sync --all-packages
+```
+
+No DueCare distribution is published on PyPI yet (verified 2026-07-27).
+The intended registry interface after an owner-approved release is:
 
 ```bash
 pip install duecare-llm-domains
@@ -41,7 +48,7 @@ duecare-llm (meta)
 ## Source
 
 - Repository: https://github.com/TaylorAmarelTech/gemma4_comp
-- Documentation: https://github.com/TaylorAmarelTech/gemma4_comp/blob/main/docs/the_forge.md
+- Documentation: https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/the_forge.md
 - License: MIT
 
 ## How to develop on this package
