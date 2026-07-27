@@ -58,5 +58,5 @@ preferred-citation:
   url: "https://github.com/TaylorAmarelTech/gemma4_comp"
   notes: >-
     Living research software. Cite the exact Git commit and the dated evidence
-    artifact used. No coordinated Python-workspace release or PyPI publication
-    had been declared as of 2026-07-27.
+    artifact used. No Python package or coordinated workspace release had been
+    published as of 2026-07-27.

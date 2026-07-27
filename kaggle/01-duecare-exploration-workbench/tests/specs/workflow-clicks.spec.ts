@@ -46,7 +46,10 @@ test.describe('cross-page workflow clicks', () => {
     }
     await expect(page.locator('#dc-wb-model-popover')).not.toHaveAttribute('hidden', '', { timeout: 5_000 });
     await expect(page.locator('#dc-wb-model-select')).toBeVisible();
-    await expect(page.getByRole('button', { name: /load selected/i })).toBeVisible();
+    await expect(page.locator('#dc-wb-model-load')).toBeVisible();
+    // The deterministic local fixture starts loaded, so it also proves the
+    // shared selector exposes the current-model unload control.
+    await expect(page.locator('#dc-wb-model-unload')).toBeVisible();
   });
 
   test('process page can upload the media-rich source bundle and reach results', async ({ page }) => {
@@ -65,11 +68,14 @@ test.describe('cross-page workflow clicks', () => {
 
   test('knowledge page can use source text and draft suggestions', async ({ page }) => {
     await page.goto('/static/knowledge.html');
+    const gemmaToggle = page.locator('#kx-use-gemma');
+    await expect(gemmaToggle).toBeChecked();
+    await gemmaToggle.uncheck();
+    await expect(gemmaToggle).not.toBeChecked();
     await page.locator('#kx-raw').fill(
       'Recruiter message: worker agrees to a PHP 45,000 processing loan, deducted from salary in Hong Kong. Agency: Pearl Bridge Manpower. Corridor: PH-HK.',
     );
     await page.getByRole('button', { name: /continue to draft/i }).click();
-    await expect(page.locator('#kx-use-gemma')).not.toBeChecked();
     await page.locator('#kx-extract-btn').click();
     await expect(page.locator('#kx-extract-status')).toContainText(/draft suggestions ready|review/i, {
       timeout: 20_000,

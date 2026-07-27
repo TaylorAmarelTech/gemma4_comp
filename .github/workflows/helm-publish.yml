@@ -15,6 +15,11 @@ on:
     tags:
       - "chart-v*"
   workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish to the chart repository (manual runs validate only by default)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write       # for gh-pages push
@@ -48,7 +53,18 @@ jobs:
               --set ingress.enabled=true > /tmp/render.yaml
           wc -l /tmp/render.yaml
 
+      - name: Package release candidate
+        run: helm package infra/helm/duecare --destination dist/helm
+
+      - name: Upload chart release candidate
+        uses: actions/upload-artifact@v7
+        with:
+          name: duecare-helm-chart
+          path: dist/helm/*.tgz
+          if-no-files-found: error
+
       - name: Run chart-releaser
+        if: github.ref_type == 'tag' || (github.event_name == 'workflow_dispatch' && inputs.publish)
         uses: helm/chart-releaser-action@v1.6.0
         with:
           charts_dir: infra/helm

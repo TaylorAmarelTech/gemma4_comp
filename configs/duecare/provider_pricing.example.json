@@ -1,0 +1,6 @@
+{
+  "schema": "duecare.provider-pricing.v1",
+  "as_of": null,
+  "warning": "Pricing and free-credit terms are volatile. Copy this file to an ignored run directory, verify official provider pricing, add exact immutable model ids and rates, and set DUECARE_PROVIDER_PRICING_FILE. Do not guess or commit account-specific terms.",
+  "prices": []
+}

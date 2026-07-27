@@ -1,15 +1,15 @@
 name: Python package release
 
-# Sole publisher for the 18 duecare-llm* workspace distributions. Production
-# publication is intentionally narrower than a generic repository version tag:
-# it requires packages-vMAJOR.MINOR.PATCH and an offline preflight proving that
-# every package declares that coordinated version. Manual runs can build or use
-# TestPyPI, but cannot publish to production PyPI.
+# Sole publisher for the 18 duecare-llm* workspace distributions. Packages use
+# independent SemVer and production tags select exactly one reviewed manifest
+# row: package-NAME-vMAJOR.MINOR.PATCH. Manual runs can build all packages (in
+# DEFAULT_BUILD_ORDER), build one package, or publish the selection to TestPyPI;
+# they cannot publish to production PyPI.
 
 on:
   push:
     tags:
-      - "packages-v*.*.*"
+      - "package-duecare-llm*-v*.*.*"
   workflow_dispatch:
     inputs:
       target:
@@ -19,6 +19,10 @@ on:
         options:
           - build-only
           - testpypi
+      package:
+        description: "Build selector: all, distribution name, or package directory"
+        type: string
+        default: all
 
 permissions:
   contents: read
@@ -44,17 +48,33 @@ jobs:
       - name: Validate package-release ownership and version policy
         env:
           RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+          PACKAGE_SELECTOR: ${{ github.event.inputs.package || 'all' }}
         run: |
           if [[ -n "$RELEASE_TAG" ]]; then
             python scripts/validate_package_release.py --tag "$RELEASE_TAG"
           else
-            python scripts/validate_package_release.py
+            python scripts/validate_package_release.py --package "$PACKAGE_SELECTOR"
           fi
 
-      - name: Build wheels and source distributions in canonical order
+      - name: Resolve the manifest-backed build selection
+        id: selection
+        env:
+          RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+          PACKAGE_SELECTOR: ${{ github.event.inputs.package || 'all' }}
+        run: |
+          if [[ -n "$RELEASE_TAG" ]]; then
+            PKGS=$(python scripts/validate_package_release.py --tag "$RELEASE_TAG" --print-directories)
+          else
+            PKGS=$(python scripts/validate_package_release.py --package "$PACKAGE_SELECTOR" --print-directories)
+          fi
+          test -n "$PKGS"
+          echo "packages=$PKGS" >> "$GITHUB_OUTPUT"
+
+      - name: Build selected wheels and source distributions in canonical order
+        env:
+          PKGS: ${{ steps.selection.outputs.packages }}
         run: |
           mkdir -p dist
-          PKGS=$(python -c "from scripts.build_all_wheels import DEFAULT_BUILD_ORDER; print(' '.join(DEFAULT_BUILD_ORDER))")
           for pkg in $PKGS; do
             echo "==> Building $pkg"
             python -m build --wheel --sdist --outdir dist "packages/$pkg"

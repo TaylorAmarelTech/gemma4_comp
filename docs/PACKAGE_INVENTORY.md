@@ -61,17 +61,18 @@ The `duecare-llm-cli` path was smoke-tested in an isolated `virtualenv` from the
 - `scripts/build_all_wheels.py` now includes all 18 package directories in its default build order.
 - `.github/workflows/pypi-publish.yml` is the sole registry publisher. Generic
   `v*` tags do not publish packages, manual runs cannot target production PyPI,
-  and a `packages-vMAJOR.MINOR.PATCH` tag fails closed unless every workspace
-  package declares that exact coordinated version.
+  and a `package-NAME-vMAJOR.MINOR.PATCH` tag fails closed unless it selects one
+  exact name/version row in `configs/duecare/package_release.toml`.
+- Packages use independent SemVer. Manual release-candidate runs build all
+  manifest rows in canonical dependency order by default, while a production
+  tag builds and publishes only its selected package.
 - `duecare-llm-chat` intentionally remains on an independent harness cadence; the current notebook portability contract is `0.17.0`, exposed through `duecare.chat.portability` and `GET /api/portability`, so synchronized `0.1.0` infrastructure package tags are not confused with the chat wheel version.
 - The May readiness receipt covered the original 17 packages. The added
   `duecare-llm-kit` has its own clean wheel/sdist and isolated-install checks;
-  rerun the 18-package wheel build before a new lockstep release claim.
+  rerun the 18-package wheel build before a whole-workspace candidate claim.
 - `scripts/build_all_wheels.py` now verifies critical domain-pack files in the `duecare-llm-domains` wheel and fails on missing or duplicated entries.
 - `duecare-llm-models` lazy-loads the optional Ollama HTTP dependency so importing `duecare.models` does not require `httpx` unless the Ollama adapter is used; the `ollama` extra now installs `httpx` explicitly.
 - Final release readiness still needs a release-grade clean-environment build/install run before claiming PyPI readiness; a fully offline/no-index install also needs a complete third-party dependency wheelhouse.
-- Because `duecare-llm-chat` is `0.17.0` and `duecare-llm-server` is `0.1.2`
-  while the other distributions are `0.1.0`, the coordinated publisher is
-  intentionally blocked today. The release owner must either align versions
-  or replace the coordinated-tag contract with a reviewed per-package manifest;
-  cleanup work must not guess that policy.
+- `duecare-llm-chat` remains `0.17.0`, `duecare-llm-server` remains `0.1.2`, and
+  the other distributions remain `0.1.0`. Those versions are reconciled by the
+  independent-release manifest instead of being treated as a blocker.

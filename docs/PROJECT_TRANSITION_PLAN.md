@@ -5,6 +5,8 @@ verifiable transfer rather than an informal document dump. Operational pickup
 is defined in the [Maintainer handoff](MAINTAINER_HANDOFF.md); the public release
 boundary, limitations, dataset plan, and model-work backlog remain in
 [Publication readiness](PUBLICATION_READINESS.md).
+The repeatable technical exercise is the
+[successor pickup rehearsal](SUCCESSOR_REHEARSAL.md).
 
 **Status:** active closeout
 **Start date:** 2026-07-26
@@ -203,6 +205,29 @@ or billing information.
 | Target branch | Root rules name `master`; pull request 4 merged the final reconciliation as `dc313814d9f42e127b24191b7912fd521083fadd`, and post-merge CI plus both public deployment paths were verified | Continue from current `master`; rerun gates on the exact candidate before any tag |
 | Successor | Transfer path preferred; maintenance mode is the safe fallback | A successor accepts and completes the rehearsal |
 
+### Closeout Decision Snapshot - 2026-07-27
+
+The current owner instructions authorize reconciling and publishing the GitHub
+source, documentation, website, and Pages changes after the deterministic gates
+pass. The bounded local release-candidate disposition is:
+
+- preserve independent package SemVer and build all 18 wheel/source cohorts,
+  but do not publish a Python distribution until its exact package tag and
+  trusted-publisher path are deliberately selected;
+- validate Docker and Helm locally, but publish container/chart artifacts only
+  from the guarded release workflow on an approved tag or explicit publish
+  dispatch;
+- keep all five root notebook sources executable and model-free in local
+  validation, without spending Kaggle or model quota merely to refresh a run;
+- make no new trained-model, dataset-quality, or field-effectiveness claim;
+- keep the autonomous engine paused and planned model calls at zero; and
+- prefer a tested successor transfer, with documented maintenance mode as the
+  automatic safe outcome if no successor accepts by the final-decision window.
+
+This snapshot authorizes repository reconciliation; it does not claim that
+private accounts have been transferred or that external registries have been
+published. Those outcomes require the owner-only evidence listed above.
+
 ## Exit Criteria
 
 Before declaring the transition complete, retain evidence that:
@@ -274,8 +299,9 @@ by the Decision Register.
 
 ### Ollama and provider calls
 
-1. Put every provider attempt behind one atomic ledger that reserves and settles
-   calls, input/output tokens, estimated cash, retries, and cancellation.
+1. Keep the completed primary-router ledger mandatory for every
+   `llm_generate.py` attempt; migrate direct standalone/application/package
+   clients and design a portable notebook equivalent one caller at a time.
 2. Make retry classification explicit: retry transient transport/service errors
    only; fail closed on authentication, permission, quota, and invalid requests.
 3. Use content-addressed generation/judging caches keyed by provider, immutable
@@ -289,7 +315,7 @@ by the Decision Register.
 
 ### Dataset and evaluation quality
 
-1. Close the current 25-task / minimum 75-row corridor-diversification plan with
+1. Close the current 25-task / exact 75-slot corridor-diversification plan with
    lawful dated sources, lineage, two-person adjudication for severe cases, and
    no threshold weakening.
 2. Add dataset cards with license/terms snapshots, inclusion/exclusion reasons,

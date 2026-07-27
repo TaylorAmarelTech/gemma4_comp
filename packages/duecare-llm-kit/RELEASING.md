@@ -26,37 +26,37 @@ sole-publisher, OIDC, environment-approval, inventory, and version checks.
 
 `.github/workflows/pypi-publish.yml` is the only publisher:
 
-- manual runs build only by default and may target TestPyPI;
+- manual runs build all manifest packages by default, may select one package,
+  and may target TestPyPI;
 - manual runs cannot target production PyPI;
 - generic repository `v*` tags do not publish packages; and
-- production requires `packages-vMAJOR.MINOR.PATCH`, with all 18 package
-  versions matching that tag.
+- production requires `package-NAME-vMAJOR.MINOR.PATCH`, matching exactly one
+  row in `configs/duecare/package_release.toml`.
 
-The workspace intentionally fails a `packages-v0.1.0` preflight today:
-`duecare-llm-chat` is `0.17.0`, `duecare-llm-server` is `0.1.2`, and the other
-distributions are `0.1.0`.
+The 18 packages use independent SemVer. The kit's first production tag is
+therefore `package-duecare-llm-kit-v0.1.0`; it does not force unrelated package
+versions to change.
 
 ## Owner-approved release sequence
 
-1. Choose and document coordinated versions or replace the coordinated policy
-   with a reviewed per-package release manifest/workflow. Cleanup work must not
-   infer this decision.
-2. Reconcile package versions, dependency ranges, changelog, release notes, and
-   the currently unversioned `CITATION.cff`.
-3. Run:
+1. Reconcile the kit version in its `pyproject.toml`, the package-release
+   manifest, changelog, release notes, and citation metadata.
+2. Run:
 
    ```bash
    python scripts/validate_package_release.py
    python scripts/validate_publication_readiness.py --scope core
    ```
 
-4. Run the GitHub workflow in `build-only` mode. Download all 18 wheels and
-   source distributions, verify hashes, and clean-install the intended set.
-5. Use the workflow's TestPyPI option and verify installation from that
-   registry. Do not use it as production evidence.
-6. Confirm trusted-publisher and protected-environment settings for this exact
-   repository/workflow, then create the reviewed package tag.
-7. Confirm every intended name/version is visible and clean-installable before
+3. Run the GitHub workflow in `build-only` mode with `package=all`. Download
+   all 18 wheels and source distributions, verify hashes, and clean-install the
+   intended set.
+4. Run the workflow with `package=duecare-llm-kit`, then use its TestPyPI
+   option and verify installation from that registry. Do not use it as
+   production evidence.
+5. Confirm trusted-publisher and protected-environment settings for this exact
+   repository/workflow, then create `package-duecare-llm-kit-v0.1.0`.
+6. Confirm the intended name/version is visible and clean-installable before
    changing public docs to show bare `pip install` as a live path.
 
 ## After publication

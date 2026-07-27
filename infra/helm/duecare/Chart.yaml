@@ -12,7 +12,6 @@ version: 0.1.0
 appVersion: "0.1.0"
 
 home: https://github.com/TaylorAmarelTech/gemma4_comp
-icon: https://avatars.githubusercontent.com/u/?
 sources:
   - https://github.com/TaylorAmarelTech/gemma4_comp
 

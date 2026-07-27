@@ -1,0 +1,98 @@
+schema_version = "duecare.package-release.v1"
+policy = "independent-semver"
+release_candidate = "2026-07-27"
+production_tag_template = "package-{name}-v{version}"
+
+# This is the reviewed registry cohort and canonical first-release order. Each
+# package keeps its own SemVer; a production tag selects exactly one row. Keep
+# this file synchronized with the package pyprojects and build order.
+
+[[packages]]
+directory = "duecare-llm-core"
+name = "duecare-llm-core"
+version = "0.1.0"
+
+[[packages]]
+directory = "duecare-llm-benchmark"
+name = "duecare-llm-benchmark"
+version = "0.1.0"
+
+[[packages]]
+directory = "duecare-llm-chat"
+name = "duecare-llm-chat"
+version = "0.17.0"
+
+[[packages]]
+directory = "duecare-llm-evidence-db"
+name = "duecare-llm-evidence-db"
+version = "0.1.0"
+
+[[packages]]
+directory = "duecare-llm-engine"
+name = "duecare-llm-engine"
+version = "0.1.0"
+
+[[packages]]
+directory = "duecare-llm-kit"
+name = "duecare-llm-kit"
+version = "0.1.0"
+
+[[packages]]
+directory = "duecare-llm-nl2sql"
+name = "duecare-llm-nl2sql"
+version = "0.1.0"
+
+[[packages]]
+directory = "duecare-llm-research-tools"
+name = "duecare-llm-research-tools"
+version = "0.1.0"
+
+[[packages]]
+directory = "duecare-llm-server"
+name = "duecare-llm-server"
+version = "0.1.2"
+
+[[packages]]
+directory = "duecare-llm-training"
+name = "duecare-llm-training"
+version = "0.1.0"
+
+[[packages]]
+directory = "duecare-llm-cli"
+name = "duecare-llm-cli"
+version = "0.1.0"
+
+[[packages]]
+directory = "duecare-llm-models"
+name = "duecare-llm-models"
+version = "0.1.0"
+
+[[packages]]
+directory = "duecare-llm-domains"
+name = "duecare-llm-domains"
+version = "0.1.0"
+
+[[packages]]
+directory = "duecare-llm-tasks"
+name = "duecare-llm-tasks"
+version = "0.1.0"
+
+[[packages]]
+directory = "duecare-llm-agents"
+name = "duecare-llm-agents"
+version = "0.1.0"
+
+[[packages]]
+directory = "duecare-llm-workflows"
+name = "duecare-llm-workflows"
+version = "0.1.0"
+
+[[packages]]
+directory = "duecare-llm-publishing"
+name = "duecare-llm-publishing"
+version = "0.1.0"
+
+[[packages]]
+directory = "duecare-llm"
+name = "duecare-llm"
+version = "0.1.0"

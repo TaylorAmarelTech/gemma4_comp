@@ -23,6 +23,7 @@ Design guarantees:
     python scripts/durable_archive.py --verify   # check every archived file reassembles to its sha256
     python scripts/durable_archive.py --restore  # rebuild missing originals from archive/ (verified)
     python scripts/durable_archive.py --restore --force   # also overwrite existing originals
+    python scripts/durable_archive.py --restore-to PATH   # isolated restore proof; live files untouched
 
 The guarded PowerShell workflow is read-only by default. ``-Refresh`` updates the local archive and
 ``-Publish`` creates an isolated orphan snapshot and pushes only ``origin/data-archive`` with an exact
@@ -608,18 +609,57 @@ def verify(manifest: dict | None = None) -> tuple[int, int]:
     return ok, len(files)
 
 
-def restore(*, force: bool = False) -> tuple[int, int]:
+def _isolated_restore_root(destination_root: Path) -> Path:
+    """Resolve an isolated destination and reject the live repo/archive roots."""
+    try:
+        root = destination_root.resolve(strict=False)
+        repo_root = _ROOT.resolve(strict=False)
+        archive_root = _archive_root().resolve(strict=False)
+    except (OSError, RuntimeError):
+        raise ArchiveManifestError("isolated restore target cannot be resolved") from None
+    if root == repo_root:
+        raise ArchiveManifestError("isolated restore target cannot be the live repository root")
+    try:
+        root.relative_to(archive_root)
+    except ValueError:
+        pass
+    else:
+        raise ArchiveManifestError("isolated restore target cannot be inside the archive")
+    if root.exists() and not root.is_dir():
+        raise ArchiveManifestError("isolated restore target must be a directory")
+    root.mkdir(parents=True, exist_ok=True)
+    return root
+
+
+def _restore_target(source: object, destination_root: Path | None) -> Path:
+    if destination_root is None:
+        return _source_path(source)
+    rel = _normalise_manifest_rel(source, label="source")
+    if _is_forbidden(rel) or not _matches_allowed_source(rel):
+        raise ArchiveManifestError("archive manifest source is outside the approved allowlist")
+    logical = destination_root.joinpath(*PurePosixPath(rel).parts)
+    return _resolved_within(logical, destination_root, label="isolated restore destination")
+
+
+def restore(
+    *, force: bool = False, destination_root: Path | None = None
+) -> tuple[int, int]:
     """Rebuild original files from the archive (verified).
 
     Missing targets are restored. Existing targets are skipped unless forced. Returns
     ``(complete, total)``; a conflicting target or invalid archive is incomplete.
     """
     manifest = _load_manifest()
+    isolated_root = (
+        _isolated_restore_root(destination_root)
+        if destination_root is not None
+        else None
+    )
     files = manifest.get("files", [])
     restored = 0
     complete = 0
     for e in files:
-        target = _source_path(e.get("path"))
+        target = _restore_target(e.get("path"), isolated_root)
         try:
             data = _reassemble(e)
         # Every corrupt/missing chunk must become a failed restore rather than aborting the run.
@@ -675,6 +715,8 @@ def _write_readme(manifest: dict) -> None:
         "",
         "Restore everything with `python scripts/durable_archive.py --restore` (verifies each file's sha256 ",
         "before writing; existing files are kept unless `--force`).",
+        "Use `python scripts/durable_archive.py --restore-to PATH` for an isolated restore proof that does not ",
+        "touch live report files.",
         "",
         "Guarded refresh/publication workflow:",
         "",
@@ -698,6 +740,11 @@ def main(argv: list[str] | None = None) -> int:
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--verify", action="store_true", help="check every archived file reassembles to its sha256")
     g.add_argument("--restore", action="store_true", help="rebuild original files from the archive")
+    g.add_argument(
+        "--restore-to",
+        metavar="PATH",
+        help="restore into an isolated directory without touching live originals",
+    )
     ap.add_argument("--force", action="store_true", help="with --restore, overwrite existing files")
     ap.add_argument("--include-large", action="store_true",
                     help="also archive the large, daily-changing verbatim results.jsonl (bloats git history)")
@@ -709,9 +756,12 @@ def main(argv: list[str] | None = None) -> int:
             print(f"verify: FAIL: {exc}")
             return 1
         return 0 if ok == total else 1
-    if args.restore:
+    if args.restore or args.restore_to:
         try:
-            complete, total = restore(force=args.force)
+            complete, total = restore(
+                force=args.force,
+                destination_root=Path(args.restore_to) if args.restore_to else None,
+            )
         except ArchiveManifestError as exc:
             print(f"restore: FAIL: {exc}")
             return 1

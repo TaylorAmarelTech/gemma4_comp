@@ -14,8 +14,9 @@ Keep these facts consistent across public-facing docs:
 | Active Kaggle path | `01-duecare-exploration-workbench`, `02-live-demo`, `A-00-omni-experiment-workbench` |
 | Optional benchmark kernels | `03-universal-llm-benchmark` for arbitrary endpoint comparisons; `04-kaggle-community-benchmark` for Kaggle Community Benchmark tasks and model-proxy quota |
 | Six lanes | Platform safety; NGO & regulator; Individual worker / mobile; Researcher; Anonymized knowledge sharing; Developer / integration partner |
-| Package shape | 17 `duecare-llm*` package directories in the workspace |
+| Package shape | 18 `duecare-llm*` package directories in the workspace |
 | Current local collection | Run `python -m pytest packages --collect-only -q`; publish the dated output only when the command was run in this pass |
+| Provider-budget scope | Enforced for all attempts entering `scripts/llm_generate.py`; direct package, application, standalone, and self-contained notebook clients are not yet universally intercepted |
 | Headline smoke matrix | 2026-05-18: stock 2B 29.5%, stock+harness 35.6%, fine-tuned 26.4%, fine-tuned+harness 41.2% |
 
 Do not describe A-01 through A-24 or `03-duecare-video-pitch` as the active

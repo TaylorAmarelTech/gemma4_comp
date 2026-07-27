@@ -89,14 +89,14 @@ The single highest-leverage theme. Make it impossible for a change to silently d
 
 Make it trivial for an outside team to reuse, extend, and build on DueCare.
 
-- **Publish `duecare-llm-kit` to PyPI.** _(ARTIFACT-READY, REGISTRY-BLOCKED: `python -m build` produces the wheel + sdist,
-  both `twine check`-PASS; the wheel installs into a throwaway venv on numpy/pandas/matplotlib alone, with
-  `import duecare.kit` (0.1.0), `engine.scan` (12 indicators), `verify()` (5/5), and both console entry
-  points all working. As of 2026-07-27 no DueCare distribution exists on PyPI. The sole OIDC workflow
-  publishes the coordinated 18-package workspace and intentionally blocks while versions differ;
-  `packages/duecare-llm-kit/RELEASING.md` records the owner decision needed.)_ Do not bypass that
-  boundary with direct `twine upload`. A reviewed coordinated or per-package policy is the next
-  "download and reuse" unlock.
+- **Publish `duecare-llm-kit` to PyPI.** _(ARTIFACT-READY, OWNER-DECISION PENDING:
+  the reviewed manifest uses independent semantic versions and exact
+  `package-NAME-vVERSION` production tags. All 18 wheels and source archives
+  pass `twine check`, reproduce byte-for-byte at a fixed epoch, and clean-install
+  together under Python 3.12. As of 2026-07-27 no DueCare distribution exists
+  on PyPI.)_ The sole OIDC workflow selects one manifest row per production tag.
+  Do not bypass that boundary with direct `twine upload`; choose and validate the
+  first exact package release commit.
 - **Domain-pack SDK.** A documented recipe + template to add an integrity domain in N steps: define
   indicators, attach the controlling framework/knowledge pack, supply a graded prompt set, run the
   harness-lift benchmark. The cross-industry notebook already sketches 7 domains; turn that into a
