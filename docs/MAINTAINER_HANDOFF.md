@@ -210,8 +210,11 @@ transition plan, and publication boundary without exposing private access data.
 - Keep credentials in an approved password manager or platform secret store.
   The repository must not contain API keys, Kaggle tokens, raw worker data,
   private case files, or unredacted operational logs.
-- Set `DUECARE_MAX_PLANNED_MODEL_CALLS=0` for deterministic maintenance. This is
-  a planning lock for guarded harnesses, not yet a universal transport budget.
+- Set `DUECARE_MAX_PLANNED_MODEL_CALLS=0` for deterministic maintenance. It is a
+  planning lock for guarded harnesses and a transport lock for every attempt
+  entering the primary `llm_generate.py` router. It is not a universal network
+  interceptor for direct package, application, standalone, or notebook clients;
+  see [Provider budgeting](PROVIDER_BUDGETING.md).
 - Generated report directories are not a backup. Preserve release artifacts in
   the approved release/archive location with checksums.
 
@@ -222,10 +225,11 @@ Run the smallest applicable scope first, then widen only as needed:
 | Scope | Command | Meaning |
 |---|---|---|
 | Handoff | `python scripts/validate_publication_readiness.py --scope handoff` | Succession docs, cross-links, privacy-safe content, pickup consistency, and paused-state evidence |
-| Core release | `python scripts/validate_publication_readiness.py --scope core` | Nine model-free public, claim, Kaggle, source-smoke, package-release, and package-collection gates |
+| Core release | `python scripts/validate_publication_readiness.py --scope core` | Ten model-free public, claim, provider-budget, Kaggle, source-smoke, package-release, and package-collection gates |
 | Focused tests | `python -m pytest path/to/affected/tests -q` | Behavioral evidence for the edited area |
 | Package collection | `python -m pytest packages --collect-only -q` | Published package-test inventory remains discoverable |
 | Kaggle | `python scripts/validate_main_kaggle_kernels.py` and `py -3.12 scripts/validate_kaggle_page_sources.py` | Active kernel and generated-page contracts |
+| Provider budget | `python scripts/validate_provider_budget_coverage.py` | All four primary-router HTTP transports remain inside atomic reservations; this makes no provider call |
 | External links | `python scripts/check_external_links.py --check --workers 24` | Network audit that separates confirmed 4xx breakage from transient, DNS, SSL, redirect, and bot-blocked hosts |
 | Full regression | `python -m pytest packages tests -q` | Broad local regression; report skips and warnings exactly |
 | Training | `python scripts/validate_publication_readiness.py --scope training` | Strict dataset/provenance release lane; nonzero is expected until its documented queue closes |
@@ -265,17 +269,20 @@ declared rule-based review admits them.
 Model work requires a deliberate budget, frozen model IDs/revisions, prompt and
 rubric hashes, output limits, cache paths, and a stop condition. Run a
 non-mutating plan first. Unlock only the smallest sampled allowance, reuse
-checkpoints, and keep a sanitized receipt. The missing universal control is a
-shared atomic call/token/cash ledger around every provider attempt; until that
-exists, treat the startup ceiling as an estimate rather than a billing limit.
+checkpoints, and keep a sanitized receipt. The primary router now has a shared
+atomic call/token/cash ledger, so its startup plan and transport receipt can be
+compared. Direct package/application/standalone clients and self-contained
+notebook runtimes still need their own integration; withhold credentials from them
+during maintenance rather than assuming the router intercepts their traffic.
 
 ### Publish or release
 
-Use [Publication readiness](PUBLICATION_READINESS.md). Freeze the exact commit,
-choose coordinated versus per-package versioning, reconcile versions,
-changelog, and tag as one decision, run the core gate on that commit, retain
-the receipt, and state whether the training scope passed. `CITATION.cff` is
-intentionally unversioned until that choice. Publishing public hosting, Kaggle,
+Use [Publication readiness](PUBLICATION_READINESS.md). Packages use the
+manifest-backed independent-SemVer policy in ADR-001. Freeze the exact commit,
+reconcile the selected package version, changelog, manifest, and tag as one
+decision, run the core gate on that commit, retain the receipt, and state
+whether the training scope passed. `CITATION.cff` remains intentionally
+unversioned until an actual release. Publishing public hosting, Kaggle,
 PyPI, Hugging Face, or GitHub releases remains an owner-authorized external
 action.
 
@@ -297,12 +304,12 @@ working tree as the sole copy of release evidence.
 
 | Priority | State at 2026-07-27 | Safe next action |
 |---|---|---|
-| P0 | Release commit/tag and package-version policy are not frozen; all 18 distributions remain unpublished | Choose the bounded release claim and coordinated/per-package policy, reconcile versions/changelog, then run privacy-safe scans and core/handoff gates on the exact commit |
+| P0 | Independent package-version policy is frozen; all 18 wheels and source archives build reproducibly and clean-install as a cohort, but no release commit/tag exists and every distribution remains unpublished | Choose the first package, then rerun privacy-safe scans plus core/handoff gates on the exact release commit before creating its manifest-matched tag |
 | P0 | Ownership and platform access still belong to the current maintainer | Complete the private transfer receipt and successor rehearsal; do not place credentials in Git |
 | P1 | Active Kaggle 02 and A-00 latest runs are canceled; optional 03 has no verified public URL | Rerun 02 only for a needed recording and A-00 only for a funded proof; inspect artifacts before updating claims; keep 03 source-only |
-| P1 | Five dense generic-corridor typologies need diversification | Curate the manifest-planned 25 tasks / minimum 75 rows with lawful sources, lineage, and adjudication |
+| P1 | Five dense generic-corridor typologies need diversification; a deterministic 75-slot workbook and 12-source candidate registry now exist, with all slots unfilled and all sources training-blocked | Approve lawful immutable source snapshots, then fill the exact risk/benign/counterfactual slots with lineage and two-person adjudication; do not fabricate review |
 | P1 | Strict training quality and provenance are red | Close the curation queue, regenerate dependent artifacts sequentially, then append a new registry record through the normal path |
-| P1 | Provider callers lack one enforceable attempt/token/cash budget | Add a shared atomic ledger in the generation transport and tests before broad model work |
+| P2 | The primary generation router has an enforceable ledger, but direct package/application/standalone and self-contained notebook clients are not universally intercepted | Migrate one caller at a time with a zero-transport test; design a portable notebook receipt before broad live evaluation |
 | P2 | Per-dimension generation is complete but judging is incomplete | Keep it isolated; resume only with a frozen allowance and close the exact coverage manifest |
 | P2 | Human review evidence is limited | Adjudicate a stratified high-severity and benign-control slice and publish agreement/disagreement policy |
 | P3 | Legacy Ruff debt remains in long benchmark files | Isolate mechanical cleanup into behavior-preserving changes with regression evidence; the former constant-value pandas Styler warnings are fixed |
@@ -330,6 +337,13 @@ receipt, never a secret or personal recovery answer.
 The private transfer receipt should record date, surface, outgoing owner,
 incoming owner, least-privilege role, recovery check, revocation check, and
 where the secret is stored. It should not be committed.
+
+Use the public-safe [private transfer receipt template](PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md)
+as a field checklist, but copy it into the approved private records system
+before entering identities, account details, or evidence locations. Run the
+[successor pickup rehearsal](SUCCESSOR_REHEARSAL.md) from a fresh shell to
+produce a sanitized, ignored technical receipt. Neither artifact substitutes
+for a real human access and recovery check.
 
 ## Incident And Recovery
 

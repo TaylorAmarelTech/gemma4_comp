@@ -199,8 +199,10 @@ nav:
   - Run And Verify:
       - Current project status: project_status.md
       - Maintainer handoff: MAINTAINER_HANDOFF.md
+      - Successor pickup rehearsal: SUCCESSOR_REHEARSAL.md
       - 30-day project transition: PROJECT_TRANSITION_PLAN.md
       - Publication readiness and next work: PUBLICATION_READINESS.md
+      - Provider budgeting: PROVIDER_BUDGETING.md
       - Package inventory and release state: PACKAGE_INVENTORY.md
       - For judges and reviewers: FOR_PEER_REVIEW.md
       - Reproducibility: reproducibility.md

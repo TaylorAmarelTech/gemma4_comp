@@ -317,13 +317,16 @@ def test_project_status_page_keeps_release_and_training_claims_separate(tmp_path
     response = client.get("/project-status")
 
     assert response.status_code == 200
-    assert "9 / 9 pass" in response.text
-    assert "not on PyPI" in response.text
+    assert "10 / 10 pass" in response.text
+    assert "remain unpublished on PyPI" in response.text
     assert "2 / 2 pass" in response.text
-    assert "4,589 passed" in response.text
+    assert "4,627 passed" in response.text
     assert "Autonomous engine" in response.text and "paused" in response.text
     assert "strict training lane is not ready" in response.text
-    assert "minimum-75-row" in response.text
+    assert "All 75 content slots are honestly unfilled" in response.text
+    assert "provider-budget coverage" in response.text
+    assert "Independent per-package semantic versions" in response.text
+    assert "PROVIDER_BUDGETING" in response.text
     assert "docs-deploy.yml" in response.text
     assert "duecare-site-build.yml" in response.text
     assert "MAINTAINER_HANDOFF" in response.text

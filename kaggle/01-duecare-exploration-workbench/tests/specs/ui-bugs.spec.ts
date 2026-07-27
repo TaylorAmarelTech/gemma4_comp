@@ -6,12 +6,12 @@ import { test, expect } from '@playwright/test';
 
 test.describe('UI bug regressions (2026-05-12 batch)', () => {
   async function closePickerIfOpen(page) {
-    const overlay = page.locator('#picker-overlay');
-    if (await overlay.isVisible().catch(() => false)) {
-      const closeBtn = overlay.getByRole('button', { name: /close/i }).first();
+    const popover = page.locator('#dc-wb-model-popover');
+    if (await popover.isVisible().catch(() => false)) {
+      const closeBtn = page.locator('#dc-wb-model-close');
       if (await closeBtn.isVisible().catch(() => false)) {
         await closeBtn.click();
-        await expect(overlay).not.toHaveClass(/show/, { timeout: 5_000 });
+        await expect(popover).toHaveAttribute('hidden', '', { timeout: 5_000 });
       }
     }
   }
@@ -41,21 +41,18 @@ test.describe('UI bug regressions (2026-05-12 batch)', () => {
 
   test('Bug 4: model picker close button is visible on re-open', async ({ page }) => {
     await page.goto('/static/chat.html');
-    const overlay = page.locator('#picker-overlay');
-    if (await overlay.isVisible().catch(() => false)) {
-      const closeBtn = page.locator('#picker-overlay').getByRole('button', { name: /close/i }).first();
-      if (await closeBtn.isVisible().catch(() => false)) {
-        await closeBtn.click();
-      }
-    }
-    await expect(overlay).not.toHaveClass(/show/, { timeout: 5_000 });
-    const pickBtn = page.getByRole('button', { name: /pick a model/i }).first();
-    if (await pickBtn.isVisible().catch(() => false)) {
-      await pickBtn.click();
-      await expect(overlay).toHaveClass(/show/);
-      const closeBtn = page.locator('#picker-overlay button:has-text("Close"), #picker-overlay [id*=close]').first();
-      await expect(closeBtn).toBeVisible({ timeout: 5_000 });
-    }
+    const popover = page.locator('#dc-wb-model-popover');
+    const openBtn = page.locator('#dc-wb-model-open');
+    const closeBtn = page.locator('#dc-wb-model-close');
+    await expect(openBtn).toBeVisible();
+    await openBtn.click();
+    await expect(popover).not.toHaveAttribute('hidden', '', { timeout: 5_000 });
+    await expect(closeBtn).toBeVisible();
+    await closeBtn.click();
+    await expect(popover).toHaveAttribute('hidden', '', { timeout: 5_000 });
+    await openBtn.click();
+    await expect(popover).not.toHaveAttribute('hidden', '', { timeout: 5_000 });
+    await expect(closeBtn).toBeVisible();
   });
 
   test('Bug 5: resolve step does not claim image refs on text-only turns', async ({ page, request }) => {
@@ -67,7 +64,7 @@ test.describe('UI bug regressions (2026-05-12 batch)', () => {
       data: {
         messages: [{ role: 'user', content: [{ type: 'text', text: 'hi' }] }],
         toggles: {},
-        generation: { max_new_tokens: 8 },
+        generation: { max_new_tokens: 16 },
       },
       timeout: 90_000,
     });

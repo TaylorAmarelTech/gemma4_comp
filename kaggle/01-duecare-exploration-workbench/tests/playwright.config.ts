@@ -1,14 +1,18 @@
 import { defineConfig, devices } from '@playwright/test';
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 const KERNEL_URL = process.env.KERNEL_URL;
-if (!KERNEL_URL) {
-  console.warn(
-    '\n[WARN] KERNEL_URL env var is not set. Tests will fail to connect.\n' +
-    '       Set it to your cloudflared trycloudflare.com URL after Run All\n' +
-    '       on the kernel 01 Kaggle notebook.\n' +
-    '       Example: $env:KERNEL_URL = "https://abc-def-ghi.trycloudflare.com"\n'
-  );
-}
+const LOCAL_URL = 'http://127.0.0.1:8811';
+const repoPython = resolve(
+  __dirname,
+  process.platform === 'win32'
+    ? '../../../.venv/Scripts/python.exe'
+    : '../../../.venv/bin/python',
+);
+const testPython = process.env.DUECARE_TEST_PYTHON ||
+  (existsSync(repoPython) ? `"${repoPython}"` : 'python');
+const executablePath = process.env.PLAYWRIGHT_EXECUTABLE_PATH;
 
 export default defineConfig({
   testDir: './specs',
@@ -23,13 +27,20 @@ export default defineConfig({
     ['list'],
   ],
   use: {
-    baseURL: KERNEL_URL || 'http://localhost:8080',
+    baseURL: KERNEL_URL || LOCAL_URL,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     actionTimeout: 15_000,
     navigationTimeout: 30_000,
     ignoreHTTPSErrors: true,
+    launchOptions: executablePath ? { executablePath } : undefined,
+  },
+  webServer: KERNEL_URL ? undefined : {
+    command: `${testPython} local_fake_workbench.py`,
+    url: `${LOCAL_URL}/api/health`,
+    reuseExistingServer: true,
+    timeout: 120_000,
   },
   projects: [
     {

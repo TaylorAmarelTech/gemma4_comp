@@ -49,12 +49,13 @@ snapshots, and older checklist/status docs are archived under
   verified after merge.
 - The repository has a single model-free publication entry point:
   [`PUBLICATION_READINESS.md`](PUBLICATION_READINESS.md) and
-  `python scripts/validate_publication_readiness.py --scope core`. All nine
-  core gates passed in the reconciled workspace on 2026-07-27; rerun them on the
+  `python scripts/validate_publication_readiness.py --scope core`. All ten
+  core gates passed in the closeout candidate on 2026-07-27; rerun them on the
   exact release commit.
 - All 18 Python distributions remain unpublished on PyPI. One fail-closed OIDC
-  workflow owns package publication; current mixed versions intentionally
-  block a coordinated package tag until the owner chooses version policy.
+  workflow owns package publication; a reviewed independent-SemVer manifest
+  now reconciles the intentionally mixed versions and selects one package per
+  production tag.
 - Maintainer succession is now explicit: [`MAINTAINER_HANDOFF.md`](MAINTAINER_HANDOFF.md)
   is the operational pickup, and
   [`PROJECT_TRANSITION_PLAN.md`](PROJECT_TRANSITION_PLAN.md) schedules the
@@ -72,9 +73,19 @@ snapshots, and older checklist/status docs are archived under
 - New local/hosted Ollama work is deferred. The rich harness supports a
   non-mutating `--plan` and a startup ceiling through
   `--max-planned-model-calls` / `DUECARE_MAX_PLANNED_MODEL_CALLS`.
+- Calls entering the primary `llm_generate.py` router now also pass through a
+  shared SQLite attempt/token/cash ledger. Offline tests prove zero-call mode
+  blocks before HTTP transport and that retries consume separate reservations.
+  This does not yet intercept direct package/application/standalone clients or
+  self-contained Kaggle kernels; the exact contract is
+  [`PROVIDER_BUDGETING.md`](PROVIDER_BUDGETING.md).
 - The strict training-data audit is not clean: five dense generic-corridor
   typologies produced 25 metadata-only curation tasks and a 75-row minimum
-  expansion target. Existing published learning artifacts remain bounded by
+  expansion target. A deterministic workbook now defines all 75 risk,
+  benign-neighbour, and counterfactual slots with split-safe lineage,
+  language, perspective, source, and two-person-review requirements. Its 12
+  official-source candidates remain quarantined and all 75 content slots are
+  honestly unfilled. Existing published learning artifacts remain bounded by
   their original manifests; this blocks a new training claim, not review of
   the core repository.
 - Local Gemma inference is standardized through `Gemma4Runtime.load()`.
@@ -114,10 +125,12 @@ snapshots, and older checklist/status docs are archived under
    and final acceptance actions in the transition plan.
 2. Keep the three active Kaggle source surfaces runnable; rerun 02 only when a
    new recording is needed and A-00 only for a deliberately funded proof.
-3. Curate and adjudicate the 75-row corridor expansion before making a new
-   fine-tuning or adapter-improvement claim.
+3. Approve source snapshots, then fill and independently adjudicate the 75-row
+   corridor workbook before making a new fine-tuning or adapter-improvement
+   claim.
 4. When model quota is intentionally reopened, freeze and plan a small run,
-   set a finite allowance and output cap, and preserve checkpoint/resume state.
+   configure the primary-router ledger with finite attempt/input/output/cash
+   caps and reviewed pricing, and preserve checkpoint/resume state.
 5. Attach exact report, activity, prompt/response, training-metadata, chart,
    and evidence artifacts to any new claim.
 6. Keep A-00 as the active optional proof path. A-30 and the other appendix
@@ -133,17 +146,18 @@ Latest offline working-tree receipt on 2026-07-27:
 
 - publication handoff: 2/2 gates passed, including 16/16 succession-document
   checks and 65/65 live pickup checks;
-- publication core: 9/9 gates passed, including the new 18-package release-
-  ownership/install-truth gate;
-- combined `packages tests` regression in a clean, locked 18-package
-  workspace: 4,589 passed and 9 skipped with no warning summary; the focused
+- publication core: 10/10 gates passed, including provider-budget coverage and
+  the 18-package release-ownership/install-truth gate;
+- combined `packages tests` regression in the closeout 18-package workspace:
+  4,627 passed and 9 skipped with no warning summary; the focused
   43-test package run also passes with pandas `RuntimeWarning` promoted to an
   error;
 - MkDocs strict build: passed with zero warnings; existing repository-relative
   source links are resolved to canonical GitHub URLs without suppressing
   genuinely missing targets;
 - training readiness: strict quality and provenance failed as documented,
-  while the 25-task corridor plan passed its privacy/safety validation;
+  while the 25-task corridor plan and 75-slot scaffold passed privacy/safety
+  validation; strict completion remains red at `0/75`, as intended;
 - focused release/link/MkDocs/website tests: 56 passed; the complete website
   suite passed 76 tests;
 - curator-block governance: all 75 universal rubric dimensions have inline

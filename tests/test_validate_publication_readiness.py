@@ -25,9 +25,9 @@ def test_gate_inventory_is_explicitly_model_and_network_free():
     gates = vpr.gates_for_scope("all")
     command_text = " ".join(arg for gate in gates for arg in gate.args).lower()
 
-    assert len(vpr.CORE_GATES) == 9
+    assert len(vpr.CORE_GATES) == 10
     assert len(vpr.HANDOFF_GATES) == 2
-    assert len(vpr.TRAINING_GATES) == 3
+    assert len(vpr.TRAINING_GATES) == 4
     assert "ollama" not in command_text
     assert "http://" not in command_text
     assert "https://" not in command_text
@@ -75,4 +75,4 @@ def test_main_reports_training_failure_without_hiding_other_gates(monkeypatch, c
     assert rc == 1
     assert calls == [gate.name for gate in vpr.TRAINING_GATES]
     assert "NOT READY" in output
-    assert "strict training-data quality" in output
+    assert "corridor curation completion" in output

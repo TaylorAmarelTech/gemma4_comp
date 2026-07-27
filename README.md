@@ -207,7 +207,9 @@ python -c "from duecare.server import create_app; from duecare.server.state impo
 > **Video script (~2:50):** [`docs/video_script.md`](./docs/video_script.md).
 > **Audit / readiness:** [`docs/readiness_dashboard.md`](./docs/readiness_dashboard.md).
 > **Offline publication wrap-up:** [`docs/PUBLICATION_READINESS.md`](./docs/PUBLICATION_READINESS.md) - one model-free core gate, the current training-data blocker, a credit-preserving Ollama plan, vetted public-resource candidates, and the exact next sequence.
+> **Provider budget contract:** [`docs/PROVIDER_BUDGETING.md`](./docs/PROVIDER_BUDGETING.md) - atomic attempt/token/cash reservations, sanitized receipts, zero-transport proof, and the exact boundary around direct and notebook callers.
 > **Maintainer pickup:** [`docs/MAINTAINER_HANDOFF.md`](./docs/MAINTAINER_HANDOFF.md) - fresh-shell checks, architecture boundaries, routine operations, incident recovery, and transfer acceptance.
+> **Successor rehearsal:** [`docs/SUCCESSOR_REHEARSAL.md`](./docs/SUCCESSOR_REHEARSAL.md) - one model-free command for handoff, core, notebook, archive, and paused-engine evidence with a sanitized receipt.
 > **30-day closeout:** [`docs/PROJECT_TRANSITION_PLAN.md`](./docs/PROJECT_TRANSITION_PLAN.md) - the dated 2026-07-26 through 2026-08-25 succession, release, access, rehearsal, and maintenance-mode plan.
 > **Public continuity status:** [`duecare-ai.com/project-status`](https://duecare-ai.com/project-status) - release-ready work, deliberate stops, deployment ownership, and future-maintainer entry points.
 > **Harness lift report:** [`docs/harness_lift_report.md`](./docs/harness_lift_report.md) - quantifies how the safety layers change rubric scores.
@@ -381,8 +383,10 @@ uv sync --all-packages
 uv run python scripts/verify.py
 ```
 
-The intended future registry commands and the current version-policy blocker
-are documented in [`docs/PACKAGE_INVENTORY.md`](docs/PACKAGE_INVENTORY.md).
+The reviewed independent-SemVer manifest, exact per-package tag syntax, and
+future registry commands are documented in
+[`docs/PACKAGE_INVENTORY.md`](docs/PACKAGE_INVENTORY.md). Publication remains
+an explicit owner decision; version-policy drift is no longer the blocker.
 
 ### Optional local model run (after the offline checks)
 
@@ -394,10 +398,12 @@ python scripts/validate_publication_readiness.py --scope core
 python scripts/rich_harness_lift.py --n 40 --plan --require-complete
 ```
 
-The allowance is enforced by the rich harness and `--plan` makes no model call
-or run-artifact write. Direct Ollama helpers remain operator-controlled; see
-[Publication Readiness And Next Work](./docs/PUBLICATION_READINESS.md) before
-unlocking a bounded run.
+The rich-harness planner makes no model call or run-artifact write. The same
+zero-call environment value now also blocks HTTP transport in the primary
+`llm_generate.py` router. Direct package/application/standalone clients and self-contained
+notebook runtimes remain outside that shared SQLite ledger; see
+[Provider Budgeting](./docs/PROVIDER_BUDGETING.md) before unlocking a bounded
+run.
 
 ```bash
 # 1. Install Ollama: https://ollama.com/download

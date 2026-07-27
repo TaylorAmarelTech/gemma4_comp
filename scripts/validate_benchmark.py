@@ -5,9 +5,10 @@ One-button validator for the DueCare Kaggle Community Benchmark surface.
 
 Checks (in order, each prints its own pass/fail line):
 
-  1. Syntax-check all main kernel.py files (01/02/04/A-00).
-  2. Validate task_notebook.ipynb JSON structure + cell count + ROWS
-     entries.
+  1. Syntax-check every active/optional root kernel.py file
+     (01/02/A-00/03/04).
+  2. Validate task_notebook.ipynb JSON structure, compile every Python code
+     cell, and check the cell count + ROWS entries.
   3. Import duecare.chat.benchmark + count DEFAULT_FALLBACK_ROWS.
   4. Run selftest_benchmark.py --judge mock and assert exit 0.
   5. POST /api/grade-benchmark via FastAPI TestClient and assert the
@@ -37,8 +38,9 @@ REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 KERNEL_FILES = [
     REPO_ROOT / "kaggle/01-duecare-exploration-workbench/kernel.py",
     REPO_ROOT / "kaggle/02-live-demo/kernel.py",
-    REPO_ROOT / "kaggle/04-kaggle-community-benchmark/kernel.py",
     REPO_ROOT / "kaggle/A-00-omni-experiment-workbench/kernel.py",
+    REPO_ROOT / "kaggle/03-universal-llm-benchmark/kernel.py",
+    REPO_ROOT / "kaggle/04-kaggle-community-benchmark/kernel.py",
 ]
 TASK_NOTEBOOKS = [
     REPO_ROOT / "kaggle/04-kaggle-community-benchmark/task_notebook.ipynb",
@@ -92,6 +94,32 @@ def check_task_notebook(*, quiet: bool) -> tuple[list[str], int]:
             failures.append(f"{path}: only {len(cells)} cells (expected >=5)")
             _emit("FAIL", f"{path.relative_to(REPO_ROOT)}: only {len(cells)} cells", quiet=quiet)
             continue
+        code_cells = [cell for cell in cells if cell.get("cell_type") == "code"]
+        syntax_failed = False
+        for index, cell in enumerate(cells):
+            if cell.get("cell_type") != "code":
+                continue
+            source = "".join(cell.get("source") or [])
+            # Kaggle task notebooks end with an IPython ``%choose`` magic.
+            # Compile the Python portion of each cell while leaving runtime
+            # execution (and therefore model quota) to Kaggle.
+            python_source = "\n".join(
+                line
+                for line in source.splitlines()
+                if not line.lstrip().startswith(("%", "!"))
+            )
+            try:
+                compile(python_source, f"{path}#cell-{index}", "exec")
+            except SyntaxError as exc:
+                syntax_failed = True
+                failures.append(f"{path}: code cell {index} does not compile: {exc}")
+                _emit(
+                    "FAIL",
+                    f"{path.relative_to(REPO_ROOT)}: code cell {index}: {exc}",
+                    quiet=quiet,
+                )
+        if syntax_failed:
+            continue
         rows_cell = None
         for c in cells:
             if c.get("cell_type") != "code":
@@ -115,7 +143,8 @@ def check_task_notebook(*, quiet: bool) -> tuple[list[str], int]:
             continue
         _emit(
             "OK",
-            f"{path.relative_to(REPO_ROOT)}: {len(cells)} cells, {rows_here} rows",
+            f"{path.relative_to(REPO_ROOT)}: {len(cells)} cells, "
+            f"{len(code_cells)} code cells compile, {rows_here} rows",
             quiet=quiet,
         )
     return failures, row_count

@@ -17,15 +17,20 @@ ROOT = Path(__file__).resolve().parents[1]
 
 HANDOFF_DOC = Path("docs/MAINTAINER_HANDOFF.md")
 TRANSITION_DOC = Path("docs/PROJECT_TRANSITION_PLAN.md")
+REHEARSAL_DOC = Path("docs/SUCCESSOR_REHEARSAL.md")
+TRANSFER_TEMPLATE = Path("docs/PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md")
 
 REQUIRED_FILES: tuple[Path, ...] = (
     HANDOFF_DOC,
     TRANSITION_DOC,
+    REHEARSAL_DOC,
+    TRANSFER_TEMPLATE,
     Path("docs/PUBLICATION_READINESS.md"),
     Path("docs/project_status.md"),
     Path("docs/codex/PROJECT_BIBLE.md"),
     Path("AGENTS.md"),
     Path("kaggle/_INDEX.md"),
+    Path("scripts/rehearse_successor_pickup.py"),
 )
 
 HANDOFF_MARKERS: tuple[str, ...] = (
@@ -41,6 +46,8 @@ HANDOFF_MARKERS: tuple[str, ...] = (
     "## Incident And Recovery",
     "## First Week For A New Maintainer",
     "## Handoff Acceptance",
+    "SUCCESSOR_REHEARSAL.md",
+    "PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md",
     "DUECARE_MAX_PLANNED_MODEL_CALLS",
     "validate_publication_readiness.py --scope handoff",
 )
@@ -88,8 +95,17 @@ DISCOVERY_LINKS: dict[Path, tuple[str, ...]] = {
 }
 
 DOC_CROSS_LINKS: dict[Path, tuple[str, ...]] = {
-    HANDOFF_DOC: ("PROJECT_TRANSITION_PLAN.md", "PUBLICATION_READINESS.md"),
-    TRANSITION_DOC: ("MAINTAINER_HANDOFF.md", "PUBLICATION_READINESS.md"),
+    HANDOFF_DOC: (
+        "PROJECT_TRANSITION_PLAN.md",
+        "PUBLICATION_READINESS.md",
+        "SUCCESSOR_REHEARSAL.md",
+        "PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md",
+    ),
+    TRANSITION_DOC: (
+        "MAINTAINER_HANDOFF.md",
+        "PUBLICATION_READINESS.md",
+        "SUCCESSOR_REHEARSAL.md",
+    ),
 }
 
 SENSITIVE_PATTERNS: dict[str, re.Pattern[str]] = {

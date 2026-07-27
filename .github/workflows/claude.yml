@@ -47,8 +47,8 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          # Optional: pass additional context about the project
-          additional_context: |
+          # Ground the review in the current project contract.
+          prompt: |
             This is the gemma4_comp project — an agentic LLM safety harness
             for the Gemma 4 Good Hackathon. Before reviewing, read:
               - CLAUDE.md at the project root
