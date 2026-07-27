@@ -1,7 +1,10 @@
 # Duecare LLM — multi-stage Dockerfile.
 #
-# Builds all 17 packages from source, then produces a slim runtime
-# image with the chat playground + classifier server. Multi-arch:
+# Builds the 17 service/runtime packages from source, then produces a slim
+# image with the chat playground + classifier server. The independent
+# duecare-llm-kit reporting/plotting package remains outside this image so its
+# NumPy/pandas/Matplotlib stack does not inflate production deployments.
+# Multi-arch:
 # the same Dockerfile works on linux/amd64 (x86) and linux/arm64
 # (Apple Silicon, AWS Graviton, Raspberry Pi 4+, etc.).
 #
@@ -21,7 +24,7 @@
 ARG PYTHON_VERSION=3.12
 
 # =============================================================================
-# Stage 1: builder. Builds wheels for all 17 packages.
+# Stage 1: builder. Builds wheels for the 17 service/runtime packages.
 # =============================================================================
 FROM python:${PYTHON_VERSION}-slim AS builder
 
@@ -40,9 +43,10 @@ COPY packages/ ./packages/
 COPY pyproject.toml ./
 
 # Build wheels into /build/dist (in-package dependency order).
-# All 17 packages — bumped from the 9-package shortlist to keep
+# All 17 service/runtime packages — bumped from the 9-package shortlist to keep
 # duecare-llm-server, -engine, -benchmark, -training, -evidence-db,
-# -nl2sql, -research-tools, -cli reachable inside the container.
+# -nl2sql, -research-tools, -cli reachable inside the container. The 18th
+# workspace member, duecare-llm-kit, is intentionally a separate research tool.
 RUN mkdir -p /build/dist \
     && for pkg in \
         duecare-llm-core duecare-llm-models duecare-llm-domains \

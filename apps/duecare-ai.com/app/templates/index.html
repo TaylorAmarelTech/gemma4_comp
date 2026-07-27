@@ -455,6 +455,17 @@
 
   .proof-links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
 
+  .continuity-note { margin-top: 16px; padding: 12px 14px; border-left: 3px solid var(--accent); background: var(--paper-2); color: var(--ink-2); font-size: 13px; line-height: 1.5; }
+  .continuity-note a { color: var(--ink); font-weight: 600; }
+
+  /* Respect reduced-motion: stop the looping status dot and hover motion. */
+  @media (prefers-reduced-motion: reduce) {
+    .hero-video .hv-meta .dot { animation: none; opacity: 0.85; }
+    .uc, .hero-video .hv-play, .comp-card, .verify-card { transition: none; }
+    .uc:hover { transform: none; }
+    .hero-video:hover .hv-play { transform: none; }
+  }
+
 </style>
 </head>
 <body>
@@ -486,7 +497,7 @@
           <span>Developers</span>
         </div>
         <div class="ctas">
-          <a class="btn" href="/demo">▸ Watch the demo <span class="arrow">→</span></a>
+          <a class="btn" href="/demo"><span aria-hidden="true">▸</span> Watch the demo <span class="arrow" aria-hidden="true">→</span></a>
           <a class="btn btn-ghost" href="/setup">Get started</a>
           <a class="btn btn-ghost" href="/use-cases">See use cases</a>
           <a class="btn btn-ghost" href="/harness">Harness ecosystem</a>
@@ -494,6 +505,7 @@
              href="https://github.com/TaylorAmarelTech/duecare-journey-android/releases/latest"
              rel="noopener">Download Android app</a>
         </div>
+        <p class="continuity-note"><strong>Project continuity:</strong> deterministic maintenance is green, model work is paused, and the 30-day maintainer transition is documented. <a href="/project-status">Read the live stopping point and handoff &rarr;</a></p>
       </div>
 
       <a class="hero-video" href="/demo" aria-label="Watch the DueCare walkthrough">
@@ -650,6 +662,7 @@
         <div class="cap">What the evidence shows</div>
         <ul>
           <li>Grounding <b>improves response quality</b>, measured by an independent LLM-judge panel on a paired design that cancels judge bias.</li>
+          <li>A <b>model-free deterministic checker</b> (no model, no network) agrees independently: <b>+0.86 / 5</b> across the full 78,719-prompt registry.</li>
           <li>Scores are computed on <b>held-out prompts the training never sees</b>, so the lift is not memorization.</li>
           <li>The benchmark is <b>fact-checked against its own data &mdash; 20 of 20 headline claims reconcile</b> &mdash; and added citations verify at a <b>0% hallucination rate</b>.</li>
         </ul>

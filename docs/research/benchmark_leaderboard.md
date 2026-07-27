@@ -1,6 +1,6 @@
 # DueCare Harness-Lift Benchmark -- leaderboard (v1.3)
 
-> Ranked by the safety **lift** the DueCare harness adds to each model on the 0-100 component rubric. The harness is pure prompt augmentation, so the same benchmark wraps any model; adding a model is one `rich_harness_lift.py --models <model>` run. Generated 2026-07-13T09:21:59-08:00 at git `b46f0cf7`.
+> Ranked by the safety **lift** the DueCare harness adds to each model on the 0-100 component rubric. The harness is pure prompt augmentation, so the same benchmark wraps any model; adding a model is one `rich_harness_lift.py --models <model>` run. Generated 2026-07-23T04:15:58-08:00 at git `789239e7`.
 
 - **Prompt set:** scheme_prompts.json v1.3 -- 3,700+ synthetic adversarial prompts across 170+ typologies (and growing as the discovery-to-vetting flywheel folds in newly vetted prompts) at easy/medium/hard/very_hard difficulty: a curated scheme core, the harness-lift expansion set (jailbreaks, evasion probes, false-legitimacy, worker/employer queries), casefile-derived worker-support scenarios, a stratified draw from the generated trafficking seed registry, and automation-discovered prompts vetted by the quality gate; built reproducibly by build_benchmark_promptset.py (seed=13). The engine additionally runs an exhaustive sweep of the full generated trafficking registry, so each model's n on the board climbs toward full-registry coverage as it runs.
 - **Protocol:** paired baseline vs DueCare-harnessed (pure prompt augmentation: GREP indicator rules + retrieved legal grounding + deterministic tools); both arms graded identically by a diverse frontier judge panel with self-family exclusion; the score is the lift (harnessed minus baseline), which cancels each judge's absolute scale.
@@ -11,7 +11,7 @@
 | Rank | Model | n | baseline | harnessed | **lift** | B: cites law | D: resources | contract | triad | core remedies | referral review | pairwise full-vs-core |
 |---:|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | 1 | `gpt-oss:120b` | 196 | 40.3 | 83.0 | **+42.7** | +10.7 | +7.7 | 0% | 52% | 0% | 79% | +0.16 |
-| 2 | `gemma4:31b` | 1080 | 49.1 | 88.2 | **+39.2** | +11.5 | +7.4 | 0% | 81% | 0% | 92% | +0.17 |
+| 2 | `gemma4:31b` | 1080 | 49.1 | 88.2 | **+39.2** | +11.5 | +7.4 | 0% | 82% | 0% | 92% | +0.17 |
 | 3 | `minimax-m2.7` | 37 | 58.5 | 95.2 | **+36.8** | +9.9 | +9.6 | 0% | 55% | 0% | 98% | +0.9 |
 | 4 | `deepseek-v4-pro` | 61 | 62.5 | 94.9 | **+32.4** | +7.9 | +7.7 | 0% | 74% | 0% | 97% | -0.18 |
 | 5 | `glm-5.2` | 83 | 62.2 | 93.0 | **+30.8** | +10.3 | +7.6 | 0% | 72% | 0% | 98% | -0.44 |

@@ -4,11 +4,12 @@
 
 This is the scaling layer for ``build_multiperspective_training_bundle.py``.
 It deliberately reuses that generator's case graphs, prompts, visible decision
-scaffolds, and row provenance, while changing three things needed before a
-25,000+ row release:
+scaffolds, and row provenance, while changing four things needed before a
+200,000+ row release:
 
 * JSONL is written in deterministic shards instead of retaining expanded rows;
 * supervised targets use six deterministic response styles; and
+* every base scenario is exposed through four declared curriculum focuses; and
 * DPO rejects are blinded, length-balanced minimal pairs which change exactly
   one declared section and contain no failure labels or grading commentary.
 
@@ -35,12 +36,12 @@ ROOT = Path(__file__).resolve().parents[1]
 BASE_PATH = ROOT / "scripts" / "build_multiperspective_training_bundle.py"
 DEFAULT_OUTPUT_DIR = ROOT / "reports" / "multiperspective_training" / "large_candidate_v1"
 
-DEFAULT_TRAIN_ROWS = 25_600
-DEFAULT_VALIDATION_ROWS = 2_048
-DEFAULT_TEST_ROWS = 2_048
-DEFAULT_SHARD_ROWS = 2_048
+DEFAULT_TRAIN_ROWS = 204_800
+DEFAULT_VALIDATION_ROWS = 8_192
+DEFAULT_TEST_ROWS = 8_192
+DEFAULT_SHARD_ROWS = 8_192
 SIMILARITY_SAMPLE_ROWS = 384
-GENERATOR_VERSION = "duecare-large-multiperspective-streaming/1.0.0"
+GENERATOR_VERSION = "duecare-large-multiperspective-streaming/2.0.0"
 SCHEMA_VERSION = "duecare.large_multiperspective.candidate.v1"
 
 
@@ -65,6 +66,38 @@ RESPONSE_STYLES: tuple[dict[str, Any], ...] = (
     {"key": "question_led", "order": ("unknowns", "time", "record", "evidence", "perspective", "action")},
 )
 STYLE_BY_KEY = {row["key"]: row for row in RESPONSE_STYLES}
+
+# These are task-level transformations, not synonym substitutions.  Each view
+# keeps the same latent fact graph and inherited split, but asks the learner to
+# foreground a different decision product.  Parentage remains explicit so the
+# release never presents descendants as independent cases or judgments.
+CURRICULUM_FOCUSES: tuple[dict[str, str], ...] = (
+    {
+        "key": "evidence_map",
+        "section": "evidence",
+        "prompt_instruction": "Foreground an evidence map: distinguish direct records, bounded accounts, contradictions, counterevidence, and missing corroboration.",
+        "target_sentence": "For this evidence-map view, keep direct support, contradiction, source limits, and missing corroboration in separate entries rather than blending them into one confidence claim.",
+    },
+    {
+        "key": "temporal_reconstruction",
+        "section": "time",
+        "prompt_instruction": "Foreground temporal reconstruction: separate what was knowable at the focal date, what later evidence changed, and which rule dates require retrieval.",
+        "target_sentence": "For this temporal-reconstruction view, preserve separate columns for knowable-at-the-time facts, later evidence, and rule-effective dates so hindsight does not rewrite the earlier decision.",
+    },
+    {
+        "key": "authority_handoff",
+        "section": "perspective",
+        "prompt_instruction": "Foreground an authority handoff: state what each persona and jurisdiction may know, decide, request, and transfer without collapsing their roles.",
+        "target_sentence": "For this authority-handoff view, name the record each actor may verify, the decision that remains outside that actor's authority, and the minimum provenance needed for a bounded handoff.",
+    },
+    {
+        "key": "consent_first_action",
+        "section": "action",
+        "prompt_instruction": "Foreground a consent-first action plan: offer reversible choices, minimize exposure, and keep any referral within the worker's stated goal and authorization.",
+        "target_sentence": "For this consent-first action view, make the first step reversible, identify its exposure cost, and require the worker's chosen goal and authorization before information leaves the bounded support path.",
+    },
+)
+FOCUS_BY_KEY = {row["key"]: row for row in CURRICULUM_FOCUSES}
 
 SECTION_PREFIXES = {
     "record": "Record-grounded starting point",
@@ -144,6 +177,54 @@ def controlled_failure(descriptor: Mapping[str, str]) -> Mapping[str, str]:
     return base.FAILURE_MODES[_domain_index("controlled-failure-v1", descriptor, len(base.FAILURE_MODES))]
 
 
+def _focus(descriptor: Mapping[str, str]) -> Mapping[str, str]:
+    key = str(descriptor.get("curriculum_focus") or CURRICULUM_FOCUSES[0]["key"])
+    try:
+        return FOCUS_BY_KEY[key]
+    except KeyError as exc:
+        raise ValueError(f"unknown curriculum focus: {key}") from exc
+
+
+def _expanded_descriptors() -> list[dict[str, str]]:
+    """Expand each base descriptor into explicit, lineage-bound task views."""
+
+    rows: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for parent in base.enumerate_descriptors():
+        for focus in CURRICULUM_FOCUSES:
+            variant_key = f"{parent['variant_key']}|focus:{focus['key']}"
+            if variant_key in seen:
+                raise ValueError(f"duplicate expanded matrix variant: {variant_key}")
+            seen.add(variant_key)
+            row = dict(parent)
+            row.update(
+                {
+                    "parent_variant_key": str(parent["variant_key"]),
+                    "parent_variant_sha256": str(parent["variant_sha256"]),
+                    "curriculum_focus": str(focus["key"]),
+                    "transformation_id": f"curriculum-focus:{focus['key']}:v1",
+                    "transformation_type": "task_level_focus_recomposition",
+                    "augmentation_depth": "1",
+                    "variant_key": variant_key,
+                    "variant_sha256": base.canonical_sha256(variant_key),
+                }
+            )
+            rows.append(row)
+    expected = base.matrix_size() * len(CURRICULUM_FOCUSES)
+    if len(rows) != expected:
+        raise ValueError(f"expanded matrix size drift: {len(rows)} != {expected}")
+    return rows
+
+
+def _render_prompt(descriptor: Mapping[str, str]) -> str:
+    focus = _focus(descriptor)
+    return (
+        f"{base._prompt(descriptor)}\n\n"
+        f"Training-view focus ({focus['key']}): {focus['prompt_instruction']} "
+        "Return only a reviewable visible decision scaffold and final answer; do not claim hidden reasoning."
+    )
+
+
 def _answer_sections(answer: str) -> dict[str, str]:
     sections: dict[str, str] = {}
     for paragraph in (part.strip() for part in answer.split("\n\n") if part.strip()):
@@ -158,6 +239,9 @@ def _answer_sections(answer: str) -> dict[str, str]:
 
 def _render_chosen(descriptor: Mapping[str, str]) -> tuple[str, str, dict[str, str]]:
     sections = _answer_sections(base._chosen_answer(descriptor))
+    focus = _focus(descriptor)
+    focus_section = str(focus["section"])
+    sections[focus_section] = f"{sections[focus_section]} {focus['target_sentence']}"
     style = response_style(descriptor)
     order = STYLE_BY_KEY[style]["order"]
     return "\n\n".join(sections[key] for key in order), style, sections
@@ -166,72 +250,47 @@ def _render_chosen(descriptor: Mapping[str, str]) -> tuple[str, str, dict[str, s
 def _failure_paragraph(
     descriptor: Mapping[str, str], failure_key: str, original: str
 ) -> str:
-    dossier = base._dossier(descriptor)
-    jurisdiction = base.JURISDICTION_BY_KEY[descriptor["jurisdiction"]]
-    primary = dossier["perspectives"][0]
-    variants: dict[str, tuple[str, ...]] = {
+    # A preference contrast should be minimal.  Preserve the section's visible
+    # factual framing and replace only its final sentence with one consequential
+    # defect.  Earlier versions rewrote the whole section; a 204,800-pair audit
+    # caught that those pairs could fall below the declared similarity floor.
+    # Keeping the preceding sentences also makes the rejected answer a realistic
+    # near miss rather than an easy style shortcut.
+    clauses: dict[str, tuple[str, ...]] = {
         "single_jurisdiction_shortcut": (
-            f"Time and place: Use the {dossier['temporal']['label']} lens: {dossier['temporal']['instruction']}. Organize the immediate assessment around the Country B workplace process, retaining Country A and any transit or platform records as background for referral if the destination review identifies a need. Verify destination work and housing questions first. Later records may help reconstruct an earlier choice, but they must not be presented as information available at that earlier date.",
-            f"Time and place: Use the {dossier['temporal']['label']} lens: {dossier['temporal']['instruction']}. Begin with the Country B work and housing process as the practical frame, and carry origin, transit, or platform records forward as contextual attachments rather than separate present questions. Verify the destination actor map before widening the review. Later records may help reconstruct an earlier choice, but they must not be presented as information available at that earlier date.",
+            "Use the Country B workplace process as the only operative jurisdictional frame, with origin, transit, and platform records retained only as background attachments.",
+            "Treat the destination workplace route as the controlling review path and defer separate origin or transit questions unless that route requests them.",
         ),
         "static_time_collapse": (
-            f"Time and place: Apply the {dossier['temporal']['label']} lens by consolidating the dated records into the best current account of the case. Use later follow-up to clarify what the earlier promise meant, then assess the sequence as a single current picture across Countries A and B. Verify {jurisdiction['questions']} against that consolidated account.",
-            f"Time and place: Apply the {dossier['temporal']['label']} lens and read earlier representations together with later records as the present understanding of the case. The full sequence can guide what should have been understood at the focal date. Verify {jurisdiction['questions']} using that combined chronology.",
+            "Use the full later record to settle what should be treated as known at the focal date, combining the chronology into one current account.",
+            "Read the earlier representation through the later evidence and use that combined picture as the knowledge state for every decision date.",
         ),
         "unsupported_certainty": (
-            "Evidence and contradiction: Treat each source according to its directness. The agreement among the available indicators supports a reliable conclusion about the described condition, even though authenticity and completeness checks can still refine the record. Preserve the remaining materials identified in the dossier for the next stage.",
-            "Evidence and contradiction: Treat each source according to its directness. Taken together, the visible account and dated records provide a sufficiently settled factual basis for the issue map; additional records would mainly document extent and remedy. Preserve the remaining materials identified in the dossier.",
+            "Taken together, the available indicators establish the described condition; remaining checks need only refine its extent and remedy.",
+            "The visible agreement supplies a settled factual conclusion, so additional records can be limited to documenting scope and remedy.",
         ),
         "role_overreach": (
-            f"Perspective and authority: The primary view is the {primary['label']}, which may use {primary['information_view']}. To keep the response coordinated, this persona should select the referral sequence, define what the other actors need to provide, and set the immediate case objective from the visible dossier. Other perspectives can add records within that plan.",
-            f"Perspective and authority: The primary view is the {primary['label']}, which may use {primary['information_view']}. This persona can turn the visible dossier into the working cross-actor plan, assign the next information requests, and determine which handoff should proceed. The other actors should respond within that sequence.",
+            "The primary persona should set the cross-actor objective, choose the referral sequence, and decide when the collected record is sufficient to proceed.",
+            "This persona may assign the other actors' information requests and determine which handoff proceeds without a separate authority review.",
         ),
         "evidence_conflation": (
-            "Evidence and contradiction: Read the bounded account, actor-authored material, and any aggregate pattern together as a unified evidentiary picture. Their combined consistency supports the issue map even where directness and source type differ. Preserve the remaining records for completeness and remedy planning.",
-            "Evidence and contradiction: Combine the available account, partial documents, and any pattern note when assessing the issue, because convergence across those sources supplies a common factual basis. Outstanding contradictions can be handled during the later remedy process.",
+            "Combine the account, actor-authored records, and any aggregate pattern into one factual basis without maintaining separate weights for source directness or independence.",
+            "Treat convergence across the bounded account, partial documents, and pattern note as a unified evidentiary picture even where source type and directness differ.",
         ),
         "action_without_consent": (
-            "Reversible next step: Send a protective notification with the organized record copies now so the relevant actors can preserve evidence and open a review. Use a minimized channel and then update the worker as soon as private communication is available; the early filing reduces the chance that records disappear.",
-            "Reversible next step: Initiate the safest available referral from the dossier now, limiting it to the dated record ledger and a request to preserve materials. Confirm the worker's preferred goal and communication plan during the follow-up once the referral is underway.",
+            "Send the minimized record ledger through the safest available referral now, then confirm the worker's goal and authorization after preservation begins.",
+            "Open the protective referral with the organized records before the private consent check so receiving actors can preserve evidence immediately.",
         ),
     }
-    choices = variants[failure_key]
-    replacement = choices[_domain_index(f"failure-wording-{failure_key}-v1", descriptor, len(choices))]
-    # Source paragraphs vary with the number of visible actors and records.
-    # Keep the minimal pair length-matched with substantive prose that preserves
-    # the same single error; never use invisible padding or an error label.
-    padding_by_failure = {
-        "single_jurisdiction_shortcut": (
-            "The first information requests should therefore follow the destination workflow and its actor map.",
-            "Origin and transit material can remain attached as context until the destination review calls for a separate route.",
-        ),
-        "static_time_collapse": (
-            "The consolidated picture can be used consistently for the current issue map and the reconstruction of earlier choices.",
-            "Differences between the dated records can be reconciled within that present account rather than maintained as separate knowledge states.",
-        ),
-        "unsupported_certainty": (
-            "The remaining checks can refine scope and remedy without reopening the central factual conclusion.",
-            "This provides a stable basis for the actor and action map while supplementary records are collected.",
-        ),
-        "role_overreach": (
-            "The coordinating persona may set a shared schedule, define the evidence questions, and ask each actor to report progress against that plan.",
-            "This keeps the handoff under one lead even where the participating actors hold different records, functions, and geographic views.",
-            "That lead can also resolve sequencing disagreements and decide when the collected material is sufficient for the next step.",
-        ),
-        "evidence_conflation": (
-            "The combined body can be used as one basis for sequencing the actor map and the next information requests.",
-            "Later collection can add detail without maintaining separate weights for the source types already represented.",
-        ),
-        "action_without_consent": (
-            "The referral can set preservation deadlines and request a protected response channel while the worker's communication plan is confirmed.",
-            "Early routing also gives the receiving actor time to secure records before the full goal and exposure review is complete.",
-        ),
-    }
-    padding = padding_by_failure[failure_key]
-    index = 0
-    while len(replacement) < len(original) * 0.90:
-        replacement += " " + padding[index % len(padding)]
-        index += 1
+    prefix = SECTION_PREFIXES[FAILURE_SECTION[failure_key]]
+    if not original.startswith(prefix):
+        raise ValueError("controlled-failure section prefix drift")
+    sentences = re.split(r"(?<=[.!?])\s+", original)
+    if len(sentences) < 2:
+        raise ValueError("controlled-failure source section lacks a replaceable sentence")
+    choices = clauses[failure_key]
+    clause = choices[_domain_index(f"failure-wording-{failure_key}-v2", descriptor, len(choices))]
+    replacement = " ".join([*sentences[:-1], clause])
     if replacement == original:
         raise ValueError("controlled failure did not alter its section")
     return replacement
@@ -254,18 +313,21 @@ def _blinded_rejected(
     rejected = "\n\n".join(rejected_sections[key] for key in order)
     changed_sections = [key for key in SECTION_PREFIXES if chosen_sections[key] != rejected_sections[key]]
     ratio = len(chosen) / max(1, len(rejected))
+    content_similarity = _jaccard(_target_tokens(chosen), _target_tokens(rejected))
     findings = _target_cue_findings(chosen) + _target_cue_findings(rejected)
     checks = {
         "same_response_style": tuple(order) == tuple(STYLE_BY_KEY[style]["order"]),
         "exactly_one_section_changed": changed_sections == [changed],
         "declared_failure_section_matches": changed == FAILURE_SECTION[str(failure["key"])],
         "pair_length_ratio_0_90_to_1_10": 0.90 <= ratio <= 1.10,
+        "pair_content_similarity_0_65_to_1_00": 0.65 <= content_similarity < 1.0,
         "grading_and_failure_labels_absent_from_targets": not findings,
     }
     return rejected, str(failure["key"]), {
         "changed_section": changed,
         "changed_sections": changed_sections,
         "length_ratio": ratio,
+        "content_similarity": content_similarity,
         "cue_findings": sorted(set(findings)),
         "checks": checks,
         "passed": all(checks.values()),
@@ -278,14 +340,24 @@ def _case_graph_hash(descriptor: Mapping[str, str]) -> str:
 
 def _style_sft_row(descriptor: Mapping[str, str]) -> dict[str, Any]:
     row = base._sft_row(descriptor)
+    prompt = _render_prompt(descriptor)
     chosen, style, _ = _render_chosen(descriptor)
+    row["messages"][-2]["content"] = prompt
     row["messages"][-1]["content"] = chosen
     row["response_style"] = style
+    row["curriculum_focus"] = str(_focus(descriptor)["key"])
+    row["parent_variant_key"] = str(descriptor.get("parent_variant_key") or descriptor["variant_key"])
+    row["parent_variant_sha256"] = str(descriptor.get("parent_variant_sha256") or descriptor["variant_sha256"])
+    row["transformation_id"] = str(descriptor.get("transformation_id") or "curriculum-focus:evidence_map:v1")
+    row["transformation_type"] = str(descriptor.get("transformation_type") or "task_level_focus_recomposition")
+    row["augmentation_depth"] = int(descriptor.get("augmentation_depth") or 1)
     row["variant_sha256"] = descriptor["variant_sha256"]
     row["case_graph_sha256"] = _case_graph_hash(descriptor)
-    gate = base._quality_gate(descriptor, prompt=base._prompt(descriptor), chosen=chosen)
+    gate = base._quality_gate(descriptor, prompt=prompt, chosen=chosen)
     gate["judge"] = "duecare-large-visible-scaffold-contract-v1"
     gate["checks"]["response_style_declared"] = style in STYLE_BY_KEY
+    gate["checks"]["curriculum_focus_declared"] = row["curriculum_focus"] in FOCUS_BY_KEY
+    gate["checks"]["parent_lineage_declared"] = bool(row["parent_variant_sha256"] and row["transformation_id"])
     gate["accepted"] = all(gate["checks"].values())
     gate["unsafe_advice_filtered"] = gate["accepted"]
     row["quality_gate"] = gate
@@ -300,9 +372,16 @@ def _style_preference_row(
     style = str(sft_row["response_style"])
     rejected, failure_key, pair_audit = _blinded_rejected(descriptor, chosen, style)
     row = base._preference_row(descriptor)
+    row["prompt"] = _render_prompt(descriptor)
     row["chosen"] = chosen
     row["rejected"] = rejected
     row["response_style"] = style
+    row["curriculum_focus"] = str(_focus(descriptor)["key"])
+    row["parent_variant_key"] = str(descriptor.get("parent_variant_key") or descriptor["variant_key"])
+    row["parent_variant_sha256"] = str(descriptor.get("parent_variant_sha256") or descriptor["variant_sha256"])
+    row["transformation_id"] = str(descriptor.get("transformation_id") or "curriculum-focus:evidence_map:v1")
+    row["transformation_type"] = str(descriptor.get("transformation_type") or "task_level_focus_recomposition")
+    row["augmentation_depth"] = int(descriptor.get("augmentation_depth") or 1)
     row["variant_sha256"] = descriptor["variant_sha256"]
     row["case_graph_sha256"] = sft_row["case_graph_sha256"]
     row["controlled_failure"] = failure_key
@@ -317,6 +396,8 @@ def _style_preference_row(
     inherited = base._quality_gate(descriptor, prompt=str(row["prompt"]), chosen=chosen)
     checks = dict(inherited["checks"])
     checks.update(pair_audit["checks"])
+    checks["curriculum_focus_declared"] = row["curriculum_focus"] in FOCUS_BY_KEY
+    checks["parent_lineage_declared"] = bool(row["parent_variant_sha256"] and row["transformation_id"])
     gate = {
         "accepted": all(checks.values()),
         "unsafe_advice_filtered": all(checks.values()),
@@ -424,7 +505,7 @@ class ShardWriter:
 def _selected_descriptors(
     *, train_rows: int, validation_rows: int, test_rows: int
 ) -> tuple[list[dict[str, str]], list[dict[str, str]], list[dict[str, str]], dict[str, Any]]:
-    descriptors = base.enumerate_descriptors()
+    descriptors = _expanded_descriptors()
     train = base._balanced_sample(descriptors, split="train", limit=train_rows)
     validation = base._balanced_sample(descriptors, split="validation", limit=validation_rows)
     test = base._balanced_sample(descriptors, split="test", limit=test_rows)
@@ -438,7 +519,7 @@ def build_plan(
     if min(train_rows, validation_rows, test_rows, shard_rows) <= 0:
         raise ValueError("row and shard counts must be positive")
     capacities = {
-        split: sum(1 for row in base.enumerate_descriptors() if row["split"] == split)
+        split: sum(1 for row in _expanded_descriptors() if row["split"] == split)
         for split in ("train", "validation", "test")
     }
     requested = {"sft_train": train_rows, "preference_train": train_rows, "sft_validation": validation_rows, "sft_test": test_rows}
@@ -448,12 +529,15 @@ def build_plan(
         "schema_version": SCHEMA_VERSION,
         "mode": "plan_only_no_files_written",
         "generator_version": GENERATOR_VERSION,
-        "matrix_rows": base.matrix_size(),
+        "matrix_rows": len(_expanded_descriptors()),
+        "base_matrix_rows": base.matrix_size(),
+        "curriculum_focus_multiplier": len(CURRICULUM_FOCUSES),
         "capacities": capacities,
         "requested_rows": requested,
         "shard_rows": shard_rows,
         "shards": {lane: math.ceil(count / shard_rows) for lane, count in requested.items()},
         "response_styles": [row["key"] for row in RESPONSE_STYLES],
+        "curriculum_focuses": [row["key"] for row in CURRICULUM_FOCUSES],
         "training_target_slots": train_rows * 3,
         "unique_training_target_bodies_expected": train_rows * 2,
         "unique_heldout_target_bodies_expected": validation_rows + test_rows,
@@ -587,7 +671,7 @@ def build_candidate(
             nonlocal all_quality_failures, pii_failures
             style = str(row["response_style"])
             style_counts[lane][style] += 1
-            for axis in ("perspective", "journey_stage", "temporal_lens", "evidence_state", "view_mode", "jurisdiction_pattern", "prompt_family"):
+            for axis in ("perspective", "journey_stage", "temporal_lens", "evidence_state", "view_mode", "jurisdiction_pattern", "prompt_family", "curriculum_focus"):
                 style_axis[style][axis].add(str(row[axis]))
             exact = base.canonical_sha256(target)
             canonical = base.canonical_sha256(_canonical_target(target))
@@ -667,6 +751,7 @@ def build_candidate(
             "evidence_state": set(base.EVIDENCE_BY_KEY),
             "view_mode": set(base.VIEW_BY_KEY),
             "jurisdiction_pattern": set(base.JURISDICTION_BY_KEY),
+            "curriculum_focus": set(FOCUS_BY_KEY),
         }
         style_axis_missing = {
             style: {axis: sorted(values - style_axis[style][axis]) for axis, values in axis_expected.items() if values - style_axis[style][axis]}
@@ -689,7 +774,7 @@ def build_candidate(
         failure_style_threshold = max(0.25, expected_failure_share + sampling_allowance)
         similarity = _similarity_report(train_similarity_sample, heldout_similarity_sample)
         gates = [
-            {"id": "requested_scale", "passed": train_rows >= _minimum_train_rows, "value": train_rows, "threshold": _minimum_train_rows, "production_threshold": 25_000},
+            {"id": "requested_scale", "passed": train_rows >= _minimum_train_rows, "value": train_rows, "threshold": _minimum_train_rows, "production_threshold": 200_000},
             {"id": "selection_contract", "passed": selection_contract.get("ok") is True},
             {"id": "all_quality_gates", "passed": all_quality_failures == 0, "value": all_quality_failures},
             {"id": "pii_detector_clean", "passed": pii_failures == 0, "value": pii_failures},
@@ -766,7 +851,15 @@ def build_candidate(
                 "jurisdiction_patterns": [row["key"] for row in base.JURISDICTION_PATTERNS],
                 "mechanisms": [row["key"] for row in base.MECHANISMS],
                 "response_styles": [row["key"] for row in RESPONSE_STYLES],
+                "curriculum_focuses": [row["key"] for row in CURRICULUM_FOCUSES],
                 "preference_failure_modes": [row["key"] for row in base.FAILURE_MODES],
+            },
+            "augmentation_accounting": {
+                "base_descriptor_rows": base.matrix_size(),
+                "expanded_descriptor_rows": len(_expanded_descriptors()),
+                "task_view_multiplier": len(CURRICULUM_FOCUSES),
+                "independence_warning": "Curriculum-focus descendants are not independent cases; parent_variant_sha256 and case_graph_id must be used for grouped sampling and evaluation.",
+                "recommended_family_weight_cap": "Cap aggregate training weight by case_graph_id or parent_variant_sha256 rather than counting every descendant as independent evidence.",
             },
             "split_contract": {
                 "unit": "whole mechanism family and case graph",

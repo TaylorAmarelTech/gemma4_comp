@@ -6,7 +6,8 @@
 
 ## Context
 
-After ADR-001 split the codebase into 17 packages, each package itself
+After ADR-001 originally split the codebase into 17 packages (18 after the
+later `duecare-llm-kit` addition), each package itself
 contains 3-50 logical modules (agents, tasks, generators, evaluators,
 adapters). At that scale, Python's flat `module.py` per concept loses
 the locality between code, tests, and docs.

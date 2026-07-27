@@ -12,6 +12,7 @@ __pycache__/
 .Python
 build/
 dist/
+/site/
 *.egg-info/
 *.egg
 .eggs/
@@ -53,6 +54,7 @@ skunkworks/
 # IDE / editors
 .vscode/
 .idea/
+examples/**/.claude/
 *.swp
 *.swo
 *~
@@ -62,6 +64,7 @@ Thumbs.db
 # Local AI-agent state. Keep .claude/rules tracked, but never commit
 # transient session logs or nested app-local agent state.
 .claude/sessions/
+.claude/scheduled_tasks.lock
 apps/**/.claude/
 packages/**/.claude/
 
@@ -113,6 +116,9 @@ data/multimodal_test_set/
 *.log
 logs/
 outputs/
+reports/kaggle_publish/
+reports/training_runs/
+reports/rulecards/
 reports/*.html
 reports/*.pdf
 reports/test-run-*.md
@@ -243,3 +249,6 @@ reports/hermes_state.json
 reports/openclaw/
 reports/openclaw_state.json
 data/synthetic_multimodal/
+
+# Unsloth generates local compiled CUDA kernels on first training use.
+unsloth_compiled_cache/

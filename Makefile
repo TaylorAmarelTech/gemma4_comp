@@ -1,5 +1,5 @@
 .PHONY: install install-uv install-pip dev test test-stress adversarial cleanroom \
-        build lint serve serve-chat serve-classifier verify audit verify-all reproduce \
+        build lint serve serve-chat serve-classifier verify audit handoff-check publication-check verify-all reproduce \
         demo demo-with-monitoring demo-with-auth doctor backup backup-light \
         docker docker-build docker-up docker-down docker-logs docker-up-auth \
         docker-dev docker-dev-up docker-dev-down docker-dev-shell docker-dev-test \
@@ -8,8 +8,12 @@
         notebooks kaggle-push kaggle-status kaggle-publish-all kaggle-dry-run kaggle-auth \
         clean help
 
-PACKAGES := duecare-llm-core duecare-llm-models duecare-llm-domains duecare-llm-tasks \
-            duecare-llm-agents duecare-llm-workflows duecare-llm-publishing duecare-llm
+PACKAGES := duecare-llm-core duecare-llm-benchmark duecare-llm-chat \
+            duecare-llm-evidence-db duecare-llm-engine duecare-llm-kit \
+            duecare-llm-nl2sql duecare-llm-research-tools duecare-llm-server \
+            duecare-llm-training duecare-llm-cli duecare-llm-models \
+            duecare-llm-domains duecare-llm-tasks duecare-llm-agents \
+            duecare-llm-workflows duecare-llm-publishing duecare-llm
 
 # Default target: show help
 .DEFAULT_GOAL := help
@@ -19,7 +23,7 @@ help:  ## Show this help
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2}'
 
 # ── Install ──────────────────────────────────────────────────────
-install: install-uv  ## Install all 17 packages (preferred: uv); falls back to pip
+install: install-uv  ## Install all 18 packages (preferred: uv); falls back to pip
 install-uv:
 	@command -v uv >/dev/null 2>&1 \
 		&& uv sync --all-packages \
@@ -31,8 +35,6 @@ install-pip:  ## Install via pip (no uv required)
 		echo "Installing $$pkg ..."; \
 		pip install -e packages/$$pkg; \
 	done
-	@echo "Installing duecare-llm-chat ..."
-	pip install -e packages/duecare-llm-chat
 
 dev: install verify  ## Install + verify in one shot (for new contributors)
 
@@ -147,6 +149,12 @@ audit:  ## Public-surface audit: drift + route 200s + lane order + Kaggle lane l
 	python scripts/validate_public_surface.py
 	@echo "--- canonical messaging ---"
 	python scripts/validate_public_messaging.py
+
+publication-check:  ## Model-free release gate: public surfaces, claims, Kaggle sources, package collection
+	python scripts/validate_publication_readiness.py --scope core
+
+handoff-check:  ## Read-only succession gate: handoff docs, links, privacy, live pickup state
+	python scripts/validate_publication_readiness.py --scope handoff
 
 verify-all:  ## Full pre-push gate: audit + messaging + hub tests + harness smoke + notebook validate + workbench UI primitives
 	python scripts/validate_public_surface.py

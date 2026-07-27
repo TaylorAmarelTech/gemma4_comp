@@ -32,6 +32,7 @@ pytest==9.0.3
 pytest-timeout==2.4.0
 fastapi==0.136.3
 httpx==0.28.1
+httpx2==2.7.0
 python-multipart==0.0.29
 jinja2==3.1.6
 pydantic==2.13.4

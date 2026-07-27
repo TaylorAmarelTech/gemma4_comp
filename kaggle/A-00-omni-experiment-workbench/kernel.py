@@ -228,6 +228,7 @@ DUECARE_PACKAGES = [
 ]
 _A00_MODEL_STACK_MARKER = Path("/tmp/.duecare_a00_model_stack_v2_done")
 _A00_CANONICAL_RELEASE_VERIFIER: Callable[[Path], dict[str, Any]] | None = None
+_A00_CANONICAL_RELEASE_VERIFIER_SHA256: str | None = None
 
 
 def _utc() -> str:
@@ -6925,13 +6926,32 @@ def _selected_release_preference_path(req: TrainRequest, data_path: Path) -> Pat
         raise HTTPException(422, "training is blocked: selected preference JSONL is missing") from exc
 
 
+def _verifier_module_sha256(verifier_path: Path) -> str:
+    digest = hashlib.sha256()
+    with verifier_path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def _canonical_release_verifier() -> Callable[[Path], dict[str, Any]]:
-    global _A00_CANONICAL_RELEASE_VERIFIER
+    global _A00_CANONICAL_RELEASE_VERIFIER, _A00_CANONICAL_RELEASE_VERIFIER_SHA256
     if _A00_CANONICAL_RELEASE_VERIFIER is not None:
         return _A00_CANONICAL_RELEASE_VERIFIER
     verifier_path = A00_DUECARE_SOURCE_ROOT / "scripts" / "build_kaggle_training_release.py"
     if not verifier_path.is_file():
         raise RuntimeError("pinned DueCare source is missing the canonical Kaggle release verifier")
+    # The trust anchor is a module exec'd from a repointable source root. Record
+    # its bytes so the verification receipt names exactly which verifier ran, and
+    # fail closed when an operator has pinned an expected hash that does not match.
+    verifier_sha256 = _verifier_module_sha256(verifier_path)
+    expected = (os.environ.get("DUECARE_A00_EXPECTED_VERIFIER_SHA256") or "").strip().lower()
+    if expected and expected != verifier_sha256:
+        raise RuntimeError(
+            "canonical Kaggle release verifier hash does not match the pinned "
+            f"DUECARE_A00_EXPECTED_VERIFIER_SHA256 (got {verifier_sha256})"
+        )
+    _A00_CANONICAL_RELEASE_VERIFIER_SHA256 = verifier_sha256
     module_name = f"_duecare_a00_release_verifier_{DUECARE_COMMIT_SHA[:12]}"
     spec = importlib.util.spec_from_file_location(module_name, verifier_path)
     if spec is None or spec.loader is None:
@@ -6962,6 +6982,9 @@ def _verify_release_with_canonical_publisher(manifest_path: Path) -> dict[str, A
         raise HTTPException(422, f"canonical training-release verification failed: {detail}") from exc
     if not isinstance(result, dict) or result.get("ok") is not True:
         raise HTTPException(422, "canonical training-release verification did not return an approval")
+    verifier_sha256 = globals().get("_A00_CANONICAL_RELEASE_VERIFIER_SHA256")
+    if verifier_sha256:
+        result = {**result, "canonical_verifier_sha256": verifier_sha256}
     return result
 
 

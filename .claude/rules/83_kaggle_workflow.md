@@ -5,9 +5,13 @@
 
 ## Kaggle publication workflow
 
-Kaggle publishing is **manual by default**. Do **not** create new Kaggle
-notebooks, push kernels, publish datasets/models, or rewrite Kaggle links
-automatically unless Taylor explicitly asks for that action.
+**Authorized (2026-07-20):** Taylor has cleared Claude Code to **actively publish and
+run Kaggle kernels — including GPU/TPU training kernels — and to create/publish
+datasets/models**, without asking first. This removes the earlier "manual by default /
+Kaggle training is user-driven / never push notebook source" constraints. Still applies:
+keep the safety and PII gates, prefer a dry-run/validate when a change is uncertain, and
+do not carelessly rewrite live public links. When a kernel is a training run, pushing it
+executes it on Kaggle GPU/TPU — verify accelerator + attached data in the metadata first.
 
 Kaggle notebook generation is archived. Do **not** create `.ipynb` notebooks
 for the judge-facing submission by default. The source of truth for Kaggle

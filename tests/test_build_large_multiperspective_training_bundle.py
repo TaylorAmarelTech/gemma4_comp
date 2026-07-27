@@ -22,7 +22,7 @@ large = _load()
 def _descriptor_for_failure(failure_key: str) -> dict[str, str]:
     return next(
         row
-        for row in large.base.enumerate_descriptors()
+        for row in large._expanded_descriptors()
         if row["split"] == "train" and large.controlled_failure(row)["key"] == failure_key
     )
 
@@ -37,18 +37,21 @@ def test_default_plan_is_large_sharded_bounded_and_candidate_only() -> None:
 
     assert plan["mode"] == "plan_only_no_files_written"
     assert plan["requested_rows"] == {
-        "sft_train": 25_600,
-        "preference_train": 25_600,
-        "sft_validation": 2_048,
-        "sft_test": 2_048,
+        "sft_train": 204_800,
+        "preference_train": 204_800,
+        "sft_validation": 8_192,
+        "sft_test": 8_192,
     }
     assert plan["shards"] == {
-        "sft_train": 13,
-        "preference_train": 13,
+        "sft_train": 25,
+        "preference_train": 25,
         "sft_validation": 1,
         "sft_test": 1,
     }
-    assert plan["unique_training_target_bodies_expected"] == 51_200
+    assert plan["unique_training_target_bodies_expected"] == 409_600
+    assert plan["matrix_rows"] == plan["base_matrix_rows"] * 4
+    assert plan["curriculum_focus_multiplier"] == 4
+    assert set(plan["curriculum_focuses"]) == set(large.FOCUS_BY_KEY)
     assert set(plan["response_styles"]) == set(large.STYLE_BY_KEY)
     assert plan["publication_status"] == "candidate_only_not_approved"
     assert "one at a time" in plan["bounded_memory"]
@@ -67,9 +70,12 @@ def test_blinded_pairs_are_length_balanced_and_change_one_declared_section() -> 
         assert preference["changed_section"] == large.FAILURE_SECTION[mode["key"]]
         assert pair_audit["changed_sections"] == [large.FAILURE_SECTION[mode["key"]]]
         assert 0.90 <= pair_audit["length_ratio"] <= 1.10
+        assert 0.65 <= pair_audit["content_similarity"] < 1.0
         assert pair_audit["cue_findings"] == []
         assert pair_audit["passed"] is True
         assert preference["quality_gate"]["accepted"] is True
+        assert preference["curriculum_focus"] in large.FOCUS_BY_KEY
+        assert preference["parent_variant_sha256"] == descriptor["parent_variant_sha256"]
         assert preference["sha256"] == large.base.training_row_sha256(preference)
 
     # The old deterministic reject markers are detected and therefore cannot
@@ -78,6 +84,26 @@ def test_blinded_pairs_are_length_balanced_and_change_one_declared_section() -> 
     old_reject = large.base._rejected_answer(descriptor, large.base._chosen_answer(descriptor))
     assert large._target_cue_findings(old_reject)
     assert seen_styles
+
+
+def test_evidence_map_conflation_regression_remains_a_minimal_pair() -> None:
+    parent_key = (
+        "contract_substitution|a_to_b|origin_country_official|pre_departure|"
+        "contemporaneous|account_only|single_perspective"
+    )
+    descriptor = next(
+        row
+        for row in large._expanded_descriptors()
+        if row["parent_variant_key"] == parent_key
+        and row["curriculum_focus"] == "evidence_map"
+    )
+    sft = large._style_sft_row(descriptor)
+    preference, pair_audit = large._style_preference_row(descriptor, sft)
+
+    assert preference["controlled_failure"] == "evidence_conflation"
+    assert preference["changed_section"] == "evidence"
+    assert pair_audit["content_similarity"] >= 0.65
+    assert pair_audit["passed"] is True
 
 
 def test_small_streaming_candidate_is_manifest_bound_and_deterministic(tmp_path: Path) -> None:

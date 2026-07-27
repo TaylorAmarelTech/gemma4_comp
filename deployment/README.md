@@ -32,6 +32,7 @@ The stack runs the checked-in `duecare serve` FastAPI surface behind Nginx and u
 | `monitoring/prometheus.yml` | Optional Prometheus scrape config. | YAML validated |
 | `monitoring/alert-rules.yml` | Starter API-down alert. | YAML validated |
 | `monitoring/grafana/` | Optional Grafana datasource/dashboard provisioning. | YAML/JSON validated |
+| `k8s/` | Kubernetes manifests for the AI hub server (Deployment/Service/Ingress/ConfigMap), port 10000, health `/api/health`. | YAML parse validated (`yaml.safe_load`) |
 | `browser_extension/` | Browser-extension integration surface. | Keep as integration/demo surface unless freshly validated |
 | `telegram_bot/`, `discord_bot/` | Messaging-channel adapters. | Keep as integration/demo surfaces unless freshly validated |
 
@@ -57,6 +58,6 @@ Raw worker chats, IDs, contact details, and private documents stay inside the lo
 
 ## Roadmap boundaries
 
-Kubernetes/Helm, SSO/SAML, browser extension, mobile LiteRT, and messaging-channel deployments may exist as examples or roadmap material. Before presenting any of them as submission-ready, run a fresh validation and document the exact command/result.
+Kubernetes manifests for the AI hub server now live in [`k8s/`](./k8s/) (YAML-parse validated; see [`docs/DEPLOYMENT.md`](../docs/DEPLOYMENT.md) for the full self-host + deploy path). Helm, SSO/SAML, browser extension, mobile LiteRT, and messaging-channel deployments may still exist as examples or roadmap material. Before presenting any of them as submission-ready, run a fresh validation and document the exact command/result.
 
 For non-Docker launch options such as `pipx`, offline wheelhouses, EC2 AMIs, and marketplace images, see `docs/launch_packaging_options.md`.

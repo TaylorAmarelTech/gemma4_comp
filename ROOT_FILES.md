@@ -12,6 +12,7 @@ one-off historical helpers belong under `_archive/`.
 | File | Purpose |
 |---|---|
 | `README.md` | Primary GitHub landing page and judge quick path. |
+| `launch.py` | The one intentional root-level Python entry point: `python launch.py` starts the right surface for each audience (see `docs/QUICK_LAUNCH.md`). Root placement is the point -- a launcher a first-time reader has to hunt for is not a launcher. Implementation helpers still belong in `scripts/`. |
 | `LICENSE` | MIT license text expected by GitHub and package consumers. |
 | `CITATION.cff` | Citation metadata rendered by GitHub. |
 | `CHANGELOG.md` | Human-readable release and submission history. |

@@ -79,6 +79,84 @@ def test_load_jsonl_file_skips_malformed_and_non_object_rows(tmp_path):
     assert sensitive not in json.dumps(rows)
 
 
+def test_safe_failure_category_never_retains_exception_payload():
+    sensitive = "worker@example.com case-123456789"
+
+    class BrokenTelemetryError(RuntimeError):
+        @property
+        def status_code(self):
+            raise RuntimeError("unreadable status")
+
+        def __str__(self):
+            raise RuntimeError("unreadable exception")
+
+    assert rh._safe_failure_category(RuntimeError(sensitive)) == "RuntimeError"
+    assert rh._safe_failure_category(RuntimeError(f"quota exceeded: {sensitive}")) == "RateLimited"
+    assert sensitive not in rh._safe_failure_category(RuntimeError(sensitive))
+    assert rh._safe_failure_category(BrokenTelemetryError()) == "BrokenTelemetryError"
+
+
+def test_coverage_heartbeat_preserves_failures_and_writes_aggregate_categories(tmp_path):
+    path = tmp_path / "panel_perdim.coverage.json"
+    heartbeat = rh._CoverageHeartbeat(path, {
+        "schema": rh.COVERAGE_SCHEMA,
+        "expected": {"response_cells": 3, "panel_cells": 9, "dimension_outputs": 45},
+        "baseline_coverage": {
+            "response_cells": {"complete": 3},
+            "panel_cells": {"complete": 2},
+        },
+    })
+    heartbeat.record_failure("judging", "RateLimited")
+    heartbeat.update("judging", 0, 1, force=True)
+    # A force-write at phase completion must not reset the failures observed by progress callbacks.
+    heartbeat.update("judging", 0, force=True)
+
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+
+    assert manifest["phase_counts"]["judging"] == {
+        "completed_this_pass": 0,
+        "failures_this_pass": 1,
+    }
+    assert manifest["failure_summary"] == {
+        "judging": {"total": 1, "categories": {"RateLimited": 1}},
+    }
+    assert manifest["progress_estimate"]["panel_cells_complete"] == 2
+
+
+def test_judge_failure_log_and_observer_are_payload_free(tmp_path, monkeypatch):
+    sensitive = "worker@example.com case-123456789"
+
+    def fail_components(*_args, **_kwargs):
+        raise RuntimeError(f"provider echoed {sensitive}")
+
+    monkeypatch.setattr(rh, "judge_components", fail_components)
+    logs: list[str] = []
+    categories: list[str] = []
+    results = [{
+        "model": "candidate",
+        "prompt_id": "P1",
+        "arm": "baseline",
+        "prompt_text": "synthetic prompt",
+        "response": "synthetic response",
+    }]
+
+    written = rh.judge_panel(
+        results,
+        ["judge"],
+        panel_path=tmp_path / "panel.jsonl",
+        judge_caller=None,
+        pace=0.0,
+        log=logs.append,
+        failure_observer=categories.append,
+    )
+
+    assert written == 0
+    assert categories == ["RuntimeError"]
+    assert any(message.endswith(": RuntimeError") for message in logs)
+    assert sensitive not in json.dumps(logs)
+    assert sensitive not in json.dumps(categories)
+
+
 def test_resume_readers_skip_malformed_and_scope_harness_rows(tmp_path):
     sensitive = "worker@example.com case-123456789"
     path = tmp_path / "mixed_resume.jsonl"

@@ -1,0 +1,29 @@
+# Public ingress for the hub. Replace HOST_PLACEHOLDER and the TLS issuer
+# annotation with your own. The example uses cert-manager + nginx; adapt
+# the annotations to whatever ingress controller and issuer you run.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: duecare-ai-hub
+  labels:
+    app.kubernetes.io/name: duecare-ai-hub
+  annotations:
+    # TLS certificate issuer (cert-manager shown as a placeholder).
+    cert-manager.io/cluster-issuer: "CLUSTER_ISSUER_PLACEHOLDER"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - HOST_PLACEHOLDER
+      secretName: duecare-ai-hub-tls
+  rules:
+    - host: HOST_PLACEHOLDER
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: duecare-ai-hub
+                port:
+                  number: 80

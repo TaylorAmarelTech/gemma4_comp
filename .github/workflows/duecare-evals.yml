@@ -1,0 +1,51 @@
+name: duecare-evals
+
+# Evals-as-CI: the anti-regression gate (roadmap P0). Runs the deterministic
+# verifier + the headline recompute against committed fixtures and a committed
+# baseline (configs/duecare/evals_baseline.json). No external data, no model,
+# no network -- everything it needs is committed, so it stays fast (<2 min).
+
+on:
+  push:
+    branches: [master, main, "codex/**"]
+  pull_request:
+    branches: [master, main]
+  workflow_dispatch:
+
+concurrency:
+  group: duecare-evals-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  evals-gate:
+    name: evals-as-CI anti-regression gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install duecare-llm-kit + pytest
+        run: |
+          python -m pip install --no-cache-dir --upgrade pip
+          python -m pip install --no-cache-dir -e packages/duecare-llm-kit pytest
+
+      - name: Engine sync check (kit engine == ENGINE source of truth)
+        run: python scripts/sync_kit_engine.py --check
+
+      - name: Kit unit tests
+        run: python -m pytest packages/duecare-llm-kit/tests -q
+
+      - name: Evals-as-CI anti-regression gate
+        run: python scripts/run_evals_gate.py
+
+      - name: Incoming-content self-check (benign over-flag / miss guard)
+        run: python examples/incoming_content/analyze_incoming.py

@@ -1,0 +1,117 @@
+{
+  "schema_version": "duecare.published_dataset_claims.v1",
+  "note": "Single source of truth for the public training-dataset claims made in docs/training_and_finetuning.md, README.md, and kaggle/_INDEX.md. Each release_manifest_sha256 is the SHA-256 of that dataset's release-manifest.json. scripts/verify_training_dataset_claims.py re-derives these from the gitignored staged/downloaded artifacts under reports/kaggle_publish/ and fails closed on any mismatch. staged_manifest_globs are hints for the local re-derivation; the datasets themselves are published on Kaggle.",
+  "claims": [
+    {
+      "dataset_id": "taylorsamarel/duecare-multiperspective-finetuning-corpus",
+      "release_manifest_sha256": "ea644df422d9e8c43003805f49a227d441e3a952d6deb3ea3e6fb3b6b579211d",
+      "row_counts": {
+        "supervised_train": 25600,
+        "preference_train": 25600,
+        "supervised_validation": 2048,
+        "supervised_test": 2048
+      },
+      "staged_manifest_globs": [
+        "reports/kaggle_publish/large_training_collection_v4/dataset/release-manifest.json"
+      ]
+    },
+    {
+      "dataset_id": "taylorsamarel/duecare-measured-response-training-corpus",
+      "release_manifest_sha256": "56fa69c19990c524002e4f91b833faef58648a66d87729a8f4c61dd56722b74b",
+      "row_counts": {
+        "supervised_pairs": 791,
+        "reward_rows": 1582
+      },
+      "staged_manifest_globs": [
+        "reports/kaggle_publish/response_training_collection_v6/dataset/release-manifest.json"
+      ]
+    },
+    {
+      "dataset_id": "taylorsamarel/duecare-measured-review-curriculum-200k",
+      "release_manifest_sha256": "1b062ce12fe43494f7d63659a53017c857e0ac0103759d8f71b3340f63bdc2b7",
+      "row_counts": {
+        "supervised_train": 207680,
+        "preference_train": 207680,
+        "supervised_validation": 528,
+        "supervised_test": 608
+      },
+      "staged_manifest_globs": [
+        "reports/kaggle_publish/measured_review_curriculum_200k_v1/dataset/release-manifest.json"
+      ]
+    },
+    {
+      "dataset_id": "taylorsamarel/duecare-gemma4-adapter-learning-study",
+      "release_manifest_sha256": "4c300a3b277009e1488979bb6579859a59f0dbfeecf4c31a0d4251ea837572f4",
+      "staged_manifest_globs": [
+        "reports/kaggle_publish/kaggle_dataset_downloads/gemma4_adapter_learning_study_v4/release-manifest.json",
+        "reports/kaggle_publish/gemma4_adapter_study_collection_v2/dataset/release-manifest.json"
+      ],
+      "evidence_claims": [
+        {
+          "label": "large_pairwise_model_judge_lift",
+          "source": "system-evidence/system-evidence-receipt.json",
+          "json_path": ["large_pairwise_model_judge", "lift"],
+          "expected": 1.73,
+          "round_to": 2,
+          "prose": "+1.73/10 model-judge lift over 911 paired prompts"
+        },
+        {
+          "label": "large_pairwise_deterministic_lift",
+          "source": "system-evidence/system-evidence-receipt.json",
+          "json_path": ["large_pairwise_deterministic_grader", "lift"],
+          "expected": 0.18,
+          "round_to": 2,
+          "prose": "+0.18/10 deterministic cross-check over 998 pairs"
+        },
+        {
+          "label": "adversarial_robustness_overall_mean",
+          "source": "system-evidence/system-evidence-receipt.json",
+          "json_path": ["adversarial_robustness", "overall", "mean"],
+          "expected": 4.39,
+          "round_to": 2,
+          "prose": "+4.39/10 over 140 adversarial transforms"
+        },
+        {
+          "label": "recorded_harmful_request_mean_delta",
+          "source": "recorded-harmful-request-judge-study/recorded-harmful-request-summary.json",
+          "json_path": ["mean_harness_delta"],
+          "expected": 9.67,
+          "round_to": 2,
+          "prose": "+9.67/10 recorded harmful-request harness delta, 6/6 wins"
+        },
+        {
+          "label": "run_02_optimizer_steps",
+          "source": "runs/run-02/metrics.json",
+          "json_path": ["training", "steps"],
+          "expected": 60,
+          "round_to": 0,
+          "prose": "60 optimizer steps in the stronger E2B LoRA run"
+        },
+        {
+          "label": "run_02_trainable_parameters",
+          "source": "runs/run-02/metrics.json",
+          "json_path": ["training", "trainable_parameters"],
+          "expected": 817152,
+          "round_to": 0,
+          "prose": "817,152 trainable LoRA parameters"
+        },
+        {
+          "label": "run_02_objective_delta",
+          "source": "runs/run-02/metrics.json",
+          "json_path": ["evaluation", "delta", "objective_score"],
+          "expected": 0.15,
+          "round_to": 2,
+          "prose": "+0.15 structural holdout objective delta"
+        }
+      ]
+    },
+    {
+      "dataset_id": "taylorsamarel/duecare-grounded-byte-model-learning-study",
+      "release_manifest_sha256": "9bc416a67de030243429857fa7af4ee7087bead4c85ef2566a3838f6f95e7d4a",
+      "staged_manifest_globs": [
+        "reports/kaggle_publish/kaggle_dataset_downloads/grounded_byte_model_learning_study_v2/release-manifest.json",
+        "reports/kaggle_publish/grounded_scratch_model_collection_v1/dataset/release-manifest.json"
+      ]
+    }
+  ]
+}

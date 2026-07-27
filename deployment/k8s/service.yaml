@@ -1,0 +1,17 @@
+# ClusterIP service in front of the hub pods. Exposes port 80 internally
+# and forwards to the container port 10000. The Ingress routes to this.
+apiVersion: v1
+kind: Service
+metadata:
+  name: duecare-ai-hub
+  labels:
+    app.kubernetes.io/name: duecare-ai-hub
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: duecare-ai-hub
+  ports:
+    - name: http
+      port: 80
+      targetPort: 10000
+      protocol: TCP

@@ -1,0 +1,21 @@
+# Non-secret configuration for the DueCare AI hub server.
+# These mirror the env vars baked into apps/duecare-ai.com/Dockerfile and
+# render.yaml. Secrets (e.g. an admin token) do NOT belong here -- use a
+# Secret and reference it from the Deployment instead.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: duecare-ai-hub-config
+  labels:
+    app.kubernetes.io/name: duecare-ai-hub
+    app.kubernetes.io/component: config
+data:
+  DUECARE_ENV: "production"
+  DUECARE_PRIVACY_MODE: "anonymized_signals_only_no_raw_pii"
+  DUECARE_STORAGE: "file"
+  DUECARE_DATA_DIR: "/app/.duecare"
+  PORT: "10000"
+  # Optional: comma-separated federation peers (name=https://host).
+  # DUECARE_PEERS: "partner=https://hub.partner.example.org"
+  # Optional: node identity stamped into knowledge provenance.
+  # DUECARE_NODE_ID: "duecare-hub-prod"

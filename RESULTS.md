@@ -128,7 +128,7 @@ boundary between measured and planned stays explicit:
 
 ```bash
 git checkout d3ab6588                 # last submission-window commit (2026-05-18); HEAD also works
-make build                            # rebuild all 17 wheels into dist/
+make build                            # rebuild all 18 current wheels into dist/
 make test                             # full package + top-level suite (1,877 pass / 2 skip as of 2026-06-10)
 python scripts/run_local_gemma.py --max-prompts 10   # 10-prompt sanity check via Ollama
 ```

@@ -126,6 +126,20 @@ def test_provider_chat_routes_anthropic_to_messages_api(monkeypatch):
     assert captured["x_api_key"] == "sk-ant" and captured["version"] == lg.ANTHROPIC_VERSION
 
 
+def test_anthropic_omits_temperature_by_default(monkeypatch):
+    captured = {}
+
+    def _fake_urlopen(req, timeout=0):
+        import json as _json
+
+        captured.update(_json.loads(req.data.decode("utf-8")))
+        return _AnthResp("OK")
+
+    monkeypatch.setattr(lg.urllib.request, "urlopen", _fake_urlopen)
+    assert lg.anthropic_chat("grade", model="claude-opus-4-8", keys=["key"]) == "OK"
+    assert "temperature" not in captured
+
+
 def test_anthropic_chat_rotates_off_spent_key(monkeypatch):
     calls = []
 

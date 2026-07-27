@@ -1,10 +1,11 @@
 # Training data and fine-tuning
 
-DueCare can turn evaluated harness runs into reviewable training data, stage a
-Low-Rank Adaptation job, and compare the result against the stock model. The code and notebook
-workflow exist today, including a tiny end-to-end smoke path. **No trained
-weights are published yet.** A generated dataset, script, or smoke adapter is
-not a production model release.
+DueCare can turn evaluated harness runs into reviewable training data, train a
+Low-Rank Adaptation adapter, and compare the result against the stock model.
+The code and notebook workflow now include two real local graphics-processor
+runs, a public relative adapter, a four-arm ablation, and a Tensor Processing
+Unit continuation. **No merged production model is published.** The public
+adapter is a deliberately small learning artifact, not a production release.
 
 ## Terms used in this guide
 
@@ -20,6 +21,10 @@ not a production model release.
   object per line in a `.jsonl` file.
 - **Central processing unit (CPU)** and **graphics processing unit (GPU)**
   identify the compute path used by a notebook.
+- **Tensor Processing Unit (TPU)** is Google's accelerator for large tensor
+  computations. Kaggle runtime topology can change, so every notebook detects
+  and records the devices it actually receives instead of assuming a fixed
+  core count.
 - **Compute Unified Device Architecture (CUDA)** is NVIDIA's software platform
   for graphics-processing-unit computation.
 - **Secure Hash Algorithm 256-bit (SHA-256)** is the checksum used to bind
@@ -45,7 +50,14 @@ PEFT LoRA job when a compatible CUDA environment is available.
 
 ## Current publication status
 
-Status reviewed 2026-07-15:
+Status reviewed 2026-07-15. Every `release-manifest` SHA-256 and per-lane row
+count below is also recorded in the committed registry
+[`configs/duecare/training/published_dataset_claims.json`](../configs/duecare/training/published_dataset_claims.json)
+so the numbers have a single source of truth. When the gitignored staged or
+re-downloaded artifacts are present, `python scripts/verify_training_dataset_claims.py`
+re-derives each SHA-256 from disk and fails closed on any mismatch; a clean
+checkout reports each dataset as `published-only` instead. `scripts/validate_public_surface.py`
+additionally fails if a registry SHA drifts out of this document.
 
 - The [DueCare Measured Response Training Corpus](https://www.kaggle.com/datasets/taylorsamarel/duecare-measured-response-training-corpus)
   is public as Kaggle version 4. It contains 791 accepted supervised
@@ -63,8 +75,51 @@ Status reviewed 2026-07-15:
   `ea644df422d9e8c43003805f49a227d441e3a952d6deb3ea3e6fb3b6b579211d`.
   The corpus contains deterministic fictional scenarios and visible decision
   scaffolds; it contains no real worker cases or private hidden reasoning.
-- Nine public, central-processing-unit-safe Kaggle notebooks provide the
-  reviewer path:
+- The [DueCare Measured Review Curriculum 200K](https://www.kaggle.com/datasets/taylorsamarel/duecare-measured-review-curriculum-200k)
+  is a public, synthetic augmentation study with 207,680 supervised training
+  rows, 207,680 preference-training pairs, 528 validation rows, and 608 test
+  rows. It preserves 649/66/76 parent-bound train/validation/test groups. Its
+  release-manifest SHA-256 is
+  `1b062ce12fe43494f7d63659a53017c857e0ac0103759d8f71b3340f63bdc2b7`.
+  Row count is not treated as independent sample size; descendants retain
+  parent hashes, transformation identifiers, and family weight keys.
+- The [DueCare Gemma 4 Adapter Learning Study](https://www.kaggle.com/datasets/taylorsamarel/duecare-gemma4-adapter-learning-study)
+  publishes two real local Gemma 4 E2B training runs, relative Low-Rank
+  Adaptation weights, exact optimization logs, paired generations, and the
+  four-arm record. The current release-manifest SHA-256 is
+  `4c300a3b277009e1488979bb6579859a59f0dbfeecf4c31a0d4251ea837572f4`.
+  A frozen, blinded judge also compared six recorded high-severity Gemma
+  harmful-request failures with their real DueCare harness responses in both
+  presentation orders. The harness won all six pairs with mean delta +9.67/10,
+  a pair-bootstrap 95% interval of [+9.0, +10.0], and zero mean order gap. This
+  supports a bounded harmful-request-handling claim, not victim identification,
+  prevalence estimation, legal findings, or field detection effectiveness.
+  The same public release now includes a checksummed receipt over the earlier
+  911-pair Gemma harness study (+1.73/10 by the model judge), its 998-pair
+  deterministic cross-check (+0.18/10), and 140 adversarial transformations
+  (+4.39/10 by the model judge). These are synthetic/composite benchmark
+  response-quality results, not real-case detection metrics.
+- A separate central-processing-unit compatibility run initialized two
+  byte-level transformers from random weights, not a pretrained checkpoint.
+  The 74,304-parameter arm changed held-out next-byte loss from 5.5479 to
+  5.1164; the 452,224-parameter arm changed it from 5.5990 to 4.7361. Both
+  complete NumPy parameter archives passed exact reload verification. This was
+  a two-step mechanism check on 16 training and 4 held-out parent lineages,
+  not evidence of useful language behavior or domain improvement. Its two
+  complete models, configs, curves, graphics, and receipts are public in the
+  [DueCare Grounded Byte Model Learning Study](https://www.kaggle.com/datasets/taylorsamarel/duecare-grounded-byte-model-learning-study),
+  release-manifest SHA-256
+  `9bc416a67de030243429857fa7af4ee7087bead4c85ef2566a3838f6f95e7d4a`.
+- The original central-processing-unit-safe notebooks remain public.
+  The expanded reviewer path also includes the
+  [207,680-row curriculum atlas](https://www.kaggle.com/code/taylorsamarel/duecare-200k-curriculum-visual-atlas),
+  [optimization and learning curves](https://www.kaggle.com/code/taylorsamarel/duecare-gemma4-learning-curves),
+  [four-arm before/after study](https://www.kaggle.com/code/taylorsamarel/duecare-gemma4-four-arm-before-after),
+  [lineage and receipt audit](https://www.kaggle.com/code/taylorsamarel/duecare-grounded-lineage-and-training-receipts),
+  [frontier-judge measurement audit](https://www.kaggle.com/code/taylorsamarel/duecare-frontier-judge-measurement-audit),
+  [integrated evidence-to-triage system and publication showcase](https://www.kaggle.com/code/taylorsamarel/duecare-training-publication-toolchain),
+  and [Gemma 4 TPU training lab](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-tpu-lora-training-lab).
+  The original reviewer path is:
   [response integrity](https://www.kaggle.com/code/taylorsamarel/duecare-response-corpus-integrity),
   [response training plan](https://www.kaggle.com/code/taylorsamarel/duecare-response-training-plan),
   [response visual explorer](https://www.kaggle.com/code/taylorsamarel/duecare-response-dataset-visual-explorer),
@@ -90,9 +145,48 @@ Status reviewed 2026-07-15:
   and four-arm evaluation notebooks remain useful for inspecting the release
   contract row by row. They are smaller derived views, not independent
   experiments.
-- No Gemma fine-tuning ran in this publication slice. No graphics processing
-  unit run, Low-Rank Adaptation adapter, merged weights, or independently
-  demonstrated model lift is claimed.
+- Real Gemma 4 E2B Low-Rank Adaptation training ran on an NVIDIA GeForce RTX
+  4060 Laptop GPU. The stronger run completed 60 optimizer steps, trained
+  817,152 of 4,409,128,480 parameters, and produced an adapter with SHA-256
+  `93fcb82460b8d7ae21737e1cd88fea711cb8c1f3ee5e82d4f313edc54bcc5347`.
+  Its final training loss was 3.282865. On eight held-out grounded-remix rows,
+  the declared structural score changed from 0.516667 to 0.666667, a +0.15
+  delta. This supports a narrow format-learning observation, not real-world,
+  legal-quality, or production-readiness claims.
+- The four-arm result is base without harness 0.516667, trained without
+  harness 0.666667, base with harness 1.000000, and trained with harness
+  1.000000 on
+  the declared structural objective. Harness gains are deterministic wrapper
+  effects, not proof that factual validation or safety was learned in weights.
+- The frozen pairwise judge used the same GLM-5.2 model, advanced context,
+  rubric, decoding contract, and both A/B presentation orders across all 32
+  verdicts. The context SHA-256 is
+  `de96994f586b7d3aa991bdcd7c3f7e2023fc36f129acb788f54e2fab3dea9d3a`;
+  the rubric SHA-256 is
+  `8d715fca6bfd3cc9fa5cba94d964a7a312d9dd9c7f0c7db3158704c822f490f6`;
+  and the judge-study manifest SHA-256 is
+  `949a555103d5111eb0b8619f6099d7d9d7ca571777059f12375bc585399a5e97`.
+  Its mean training delta was -1.5 without the harness and -0.75 with the
+  harness. This model-based measurement did not demonstrate positive lift; it
+  is evaluation evidence and is excluded from training. Study summaries now
+  also report exact two-sided sign tests and an evidence-scale label (four
+  non-tied pairs floor at p = 0.125), so bootstrap intervals at this scale
+  cannot be over-read.
+- A frozen recorded harmful-request expansion pack (2026-07-16) pins 46 real
+  recorded Gemma 4 pairs of 52 qualifying ranked failures; the remaining 6
+  lack a complete recorded response pair. It is joined from the actual
+  egregiousness ranker and the recorded rich-lift ledger by
+  `scripts/build_recorded_harmful_request_expansion.py`, with all 92 blinded
+  two-order verdict requests frozen under request-pack SHA-256
+  `ab76b2a655fe2245f0bbcd866a01a88e3a14f684bec83fc15c10d08247210232`. The pack
+  is `prepared_not_executed`, local evidence only, and training-ineligible;
+  running the frozen judge study waits for an explicit execution window.
+- Training and judge selection now use a versioned fallback registry. Operator
+  overrides are tried first, multiple model and accelerator candidates remain
+  available, every attempt is receipted, and a judge model is frozen for an
+  entire comparable study after preflight.
+- No merged weights, independently demonstrated real-world model lift, legal
+  correctness result, or production adapter is claimed.
 
 The documentation-only future dataset surface is
 [`kaggle/shared-datasets/training-data/`](../kaggle/shared-datasets/training-data/).
@@ -211,6 +305,32 @@ Every exported bundle should be reproducible from its Git commit, dataset
 manifest hash, model revision, split policy, generator version, and gate
 results. Credentials and local paths do not belong in the bundle.
 
+### Separate streams: answer SFT, preference DPO, and chain-of-thought
+
+Keep the three training signals as **separate, separately-versioned streams**, not one merged
+file. They have different objectives, length profiles, and provenance, and only separation gives
+clean ablation and curriculum control:
+
+| Stream | File | Provenance | Teaches |
+|---|---|---|---|
+| Answer SFT | `reports/training/sft.jsonl` | harness-lift distillation (graded, real prompts) | the approved grounded reply |
+| Preference DPO | `reports/training/dpo.jsonl` | harness-lift minimal pairs | prefer the grounded answer over a specific failure |
+| Chain-of-thought | `reports/training/cot.jsonl` | [`build_advanced_reasoning_materials.py`](https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/scripts/build_advanced_reasoning_materials.py) (deterministic scaffold) | the full 100+ step analysis across 100+ perspectives |
+
+Three rules keep the separation clean:
+
+1. **One shared held-out registry.** All streams draw lineage IDs from one space, and the same
+   held-out lineages are excluded from every stream. The CoT generator reserves ~15% of
+   (situation x perspective) families to `cot_holdout.jsonl` and records their
+   `evaluation_lineage_ids` in `cot_manifest.json`; `training_contract.validate_training_rows`
+   fails closed on any train/holdout overlap (it runs at generation time — all eight blocking
+   gates must pass before the stream is written).
+2. **Unify the format, separate the file.** The visible reasoning in the CoT stream uses the same
+   record-first -> indicator -> action -> verify shape as a final answer, so the model does not
+   learn a separate "CoT mode."
+3. **Mix at train time, not storage time.** Blend the three streams with a config mixture weight and
+   an optional curriculum order (reasoning scaffold -> answer SFT -> DPO), never a pre-merged file.
+
 ## Answers, rationales, and chain-of-thought
 
 A-00 can export complete model answers, harness traces, citations, rubric
@@ -250,6 +370,25 @@ In A-00:
 5. Execute the LoRA job, reload the exact base model plus adapter, and run all
    four evaluation arms.
 6. Export the adapter only with its dataset and evaluation manifests.
+
+### Published benchmark grades (labels for training / testing / benchmarking any model)
+
+The run's grading output is published as scores-only Kaggle datasets (no response
+text, no PII) so any model can be benchmarked or any base fine-tuned against the
+same labels:
+
+| Dataset | Rows | What it gives you |
+|---|---|---|
+| [`duecare-harness-benchmark-grades`](https://www.kaggle.com/datasets/taylorsamarel/duecare-harness-benchmark-grades) | 85,417 | batched 0-100 per (model, prompt, arm, judge) — the headline lift signal |
+| [`duecare-harness-perdim-grades`](https://www.kaggle.com/datasets/taylorsamarel/duecare-harness-perdim-grades) | growing | exhaustive one-judge-call-per-dimension: 0-100 + A-E component scores; re-versioned as the sweep runs to 100% |
+| [`duecare-cross-model-harness-leaderboard`](https://www.kaggle.com/datasets/taylorsamarel/duecare-cross-model-harness-leaderboard) | per-model | citable flat board (baseline vs harnessed, normalized gain) |
+| [`duecare-harness-lift-controls`](https://www.kaggle.com/datasets/taylorsamarel/duecare-harness-lift-controls) | controls | placebo / negative-control / applicability results |
+
+Each row is model-agnostic JSONL/CSV (`model · prompt_id · arm · judge · score_0_100
+· components{A..E}`): pair baseline vs `harness_core` per prompt to score lift, or
+feed the prompts where the harness clearly lifts a weak baseline into SFT (gold =
+harnessed) / DPO (chosen = harnessed, rejected = baseline). The distillation gate is
+[`build_lift_training_data.py`](https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/scripts/build_lift_training_data.py).
 
 ### External importer boundary
 

@@ -131,7 +131,7 @@ The privacy boundary holds at every step (worker's PII never
 leaves her phone unless she shares the intake doc; NGO's
 contributions to ILO are noised aggregate counts only).
 
-## The 17 package surfaces — what each layer needs
+## The 18 package surfaces — what each layer needs
 
 ```mermaid
 graph TB
@@ -154,6 +154,7 @@ graph TB
 
     subgraph L3P["Layer 3+ (research / training)"]
         BENCHMARK["duecare-llm-benchmark<br/>200+ prompt rubric"]
+        KIT["duecare-llm-kit<br/>reports + corpus exports"]
         TRAINING["duecare-llm-training<br/>Unsloth SFT + DPO"]
         RESEARCH_TOOLS["duecare-llm-research-tools<br/>Tavily/Brave/Serper/DDG"]
     end

@@ -4,6 +4,7 @@
 > **GitHub source repo:** [github.com/TaylorAmarelTech/gemma4_comp](https://github.com/TaylorAmarelTech/gemma4_comp) |
 > **GitHub Pages docs:** [tayloramareltech.github.io/gemma4_comp](https://tayloramareltech.github.io/gemma4_comp/) |
 > **DueCare App on Kaggle:** [kaggle.com/code/taylorsamarel/duecare-app](https://www.kaggle.com/code/taylorsamarel/duecare-app) |
+> **Benchmark collection (Kaggle):** [Start here](https://www.kaggle.com/code/taylorsamarel/duecare-harness-lift-benchmark-start-here) &mdash; the index notebook links reproduce / breakdowns / statistical-robustness / judge notebooks + the [grades](https://www.kaggle.com/datasets/taylorsamarel/duecare-harness-benchmark-grades) & [leaderboard](https://www.kaggle.com/datasets/taylorsamarel/duecare-cross-model-harness-leaderboard) datasets |
 > **Fine-tuning &amp; Evaluation:** [Kaggle notebook](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation) + [proof training dataset](https://www.kaggle.com/datasets/taylorsamarel/duecare-proof-finetuning-data) |
 > **Android APK:** [github.com/TaylorAmarelTech/duecare-journey-android/releases](https://github.com/TaylorAmarelTech/duecare-journey-android/releases) |
 > **License:** MIT
@@ -18,24 +19,77 @@
 > cannot. These are dated benchmark results, not field-deployment,
 > production-traffic, or weeks-long local Gemma reliability claims.
 >
-> **Current training-data status (2026-07-15):** two advanced, manifest-bound
-> Kaggle datasets are now public. The
+> **Current training-data and training status (2026-07-15):** five
+> manifest-bound Kaggle learning datasets are public. The
 > [multiperspective corpus](https://www.kaggle.com/datasets/taylorsamarel/duecare-multiperspective-finetuning-corpus)
 > contains 25,600 supervised fine-tuning training rows, 25,600 preference
 > training rows, and 2,048 rows in each held-out split. The
 > [measured-response corpus](https://www.kaggle.com/datasets/taylorsamarel/duecare-measured-response-training-corpus)
 > contains 791 accepted supervised fine-tuning rows, 791 preference pairs,
-> 1,582 reward labels, and raw-text-free inventory and quarantine lanes. Nine
-> public central-processing-unit notebooks verify, load, explain, visualize,
-> and run bounded diagnostics on the releases. Downloaded Kaggle outputs prove
+> 1,582 reward labels, and raw-text-free inventory and quarantine lanes. The
+> [207,680-row grounded-remix curriculum](https://www.kaggle.com/datasets/taylorsamarel/duecare-measured-review-curriculum-200k)
+> has 207,680 supervised rows and 207,680 preference pairs while retaining
+> parent hashes and lineage-family splits. The
+> [Gemma 4 adapter learning study](https://www.kaggle.com/datasets/taylorsamarel/duecare-gemma4-adapter-learning-study)
+> publishes two real graphics-processing-unit runs, relative Low-Rank
+> Adaptation weights, learning curves, before/after generations, a four-arm
+> harness comparison, and frozen frontier-judge audits. On six recorded
+> high-severity harmful-request pairs, the same frozen judge preferred the
+> real DueCare harness response in all six pairs and both presentation orders:
+> mean harness delta +9.67/10, pair-bootstrap 95% interval [+9.0, +10.0], and
+> zero mean order gap. This is evidence of improved harmful-request handling on
+> that recorded benchmark lane, not improved victim identification or field
+> detection. The public
+> [evidence-to-triage system showcase](https://www.kaggle.com/code/taylorsamarel/duecare-training-publication-toolchain)
+> puts the corpus, training, harness, examples, judge results, and claim ladder
+> together. Public notebooks
+> verify, load, explain, visualize, and run bounded diagnostics on the
+> releases. Downloaded Kaggle outputs prove
 > 11 charts plus 10 review tables for the response explorer, 15 charts plus 7
 > review tables for the multiperspective explorer, and additional loading,
 > split-isolation, and small-classifier reports. Supervised fine-tuning means
 > training from inputs paired with reviewed desired answers; preference
 > training learns from preferred and nonpreferred answers. This is a
-> professional Kaggle / Gemma 4 hackathon learning artifact. **No Gemma
-> fine-tuning, graphics-processing-unit run, Low-Rank Adaptation adapter,
-> merged weights, or independent model-lift result is claimed.**
+> professional Kaggle / Gemma 4 hackathon learning artifact. The stronger
+> Gemma 4 E2B run completed 60 optimizer steps and produced a relative adapter;
+> its structural holdout score changed by +0.15 on eight grounded-remix rows.
+> A separate frozen 32-verdict frontier-judge audit of that same adapter did
+> not support a positive training-lift claim, so the adapter is published as a
+> bounded learning artifact rather than an improved model; the +9.67/10 result
+> above measures the deterministic harness, not the trained weights.
+> A separate central-processing-unit fallback initialized two byte-level
+> transformers from random weights, trained both on lineage-separated grounded
+> remixes, saved full reloadable parameter archives, and reduced held-out
+> next-byte loss from 5.5479 to 5.1164 and from 5.5990 to 4.7361. That two-step
+> mechanism run is published in the
+> [Grounded Byte Model Learning Study](https://www.kaggle.com/datasets/taylorsamarel/duecare-grounded-byte-model-learning-study)
+> and is not a useful-language or domain-lift claim.
+> A checksummed system-evidence receipt also reproduces a **+1.73/10**
+> model-judge change over 911 paired synthetic/composite trafficking-safety
+> prompts, a **+0.18/10** deterministic cross-check over 998 pairs, and a
+> **+4.39/10** model-judge change over 140 declared adversarial transforms.
+> The larger live panel read (2026-07-16 snapshot) now covers **7,953 paired
+> real registry prompts** for `gemma4:31b` under a three-judge panel:
+> baseline 48.4 → harnessed 89.1 on the 0-100 component rubric (**+40.7**,
+> seeded bootstrap 95% interval [+40.2, +41.2], win rate 99.8%, and the lift
+> holds within each judge independently). Regenerate the current read with
+> `python scripts/analyze_full_results.py` →
+> [`docs/research/full_results.md`](docs/research/full_results.md).
+> These are benchmark response-quality results, not field-detection metrics.
+> Across the multi-model board every one of the seven flagship/frontier models
+> graded so far gains (raw lift roughly +16 to +43 on the 0-100 rubric), and a
+> ceiling-adjusted **normalized-gain** column now on the
+> [public leaderboard](https://duecare-ai.com/benchmark) shows the largest raw
+> lifts mostly reflect the most baseline headroom rather than the strongest
+> harness effect (`gpt-oss:120b` leads on raw lift but ranks last on normalized
+> gain). The per-model, per-dimension, honest helps-and-hurts deep-dive is the
+> [reproduce-harness-lift notebook](https://www.kaggle.com/code/taylorsamarel/duecare-reproduce-harness-lift);
+> the exhaustive per-dimension sweep grades in seed-shuffled order so any interim
+> read is an unbiased random sample (`scripts/perdim_interim_goals.py`).
+> **No merged weights, independently demonstrated victim-identification or
+> real-world field-detection lift,
+> legal-quality result, production-ready model, or field-effectiveness claim
+> is made.**
 > See [Training and fine-tuning](docs/training_and_finetuning.md).
 >
 > **DueCare is Gemma 4-powered safety infrastructure for migrant-worker
@@ -152,6 +206,10 @@ python -c "from duecare.server import create_app; from duecare.server.state impo
 > **Copy-ready networked knowledge-sharing Kaggle post:** [`docs/kaggle_post_networked_knowledge_sharing.md`](./docs/kaggle_post_networked_knowledge_sharing.md).
 > **Video script (~2:50):** [`docs/video_script.md`](./docs/video_script.md).
 > **Audit / readiness:** [`docs/readiness_dashboard.md`](./docs/readiness_dashboard.md).
+> **Offline publication wrap-up:** [`docs/PUBLICATION_READINESS.md`](./docs/PUBLICATION_READINESS.md) - one model-free core gate, the current training-data blocker, a credit-preserving Ollama plan, vetted public-resource candidates, and the exact next sequence.
+> **Maintainer pickup:** [`docs/MAINTAINER_HANDOFF.md`](./docs/MAINTAINER_HANDOFF.md) - fresh-shell checks, architecture boundaries, routine operations, incident recovery, and transfer acceptance.
+> **30-day closeout:** [`docs/PROJECT_TRANSITION_PLAN.md`](./docs/PROJECT_TRANSITION_PLAN.md) - the dated 2026-07-26 through 2026-08-25 succession, release, access, rehearsal, and maintenance-mode plan.
+> **Public continuity status:** [`duecare-ai.com/project-status`](https://duecare-ai.com/project-status) - release-ready work, deliberate stops, deployment ownership, and future-maintainer entry points.
 > **Harness lift report:** [`docs/harness_lift_report.md`](./docs/harness_lift_report.md) - quantifies how the safety layers change rubric scores.
 > **Corpus coverage:** [`docs/corpus_coverage.md`](./docs/corpus_coverage.md) - coverage matrices across category, sector, corridor, and ILO indicator.
 > **Stretch Android path:** [`docs/android_app_architecture.md`](./docs/android_app_architecture.md) - DueCare Journey, the on-device companion.
@@ -164,6 +222,35 @@ python -c "from duecare.server import create_app; from duecare.server.state impo
 > - **Understand what is happening and why** - reproducible Kaggle notebooks, knowledge packs, trend signals, and provenance. Start with [`docs/FOR_PEER_REVIEW.md`](./docs/FOR_PEER_REVIEW.md) (canonical reviewer entry) or [`docs/FOR_KAGGLE_JUDGES.md`](./docs/FOR_KAGGLE_JUDGES.md) for the hackathon-specific quick path.
 
 ---
+
+
+## Notebooks, datasets & the reusable kit
+
+Beyond the interactive kernels, DueCare publishes a suite of CPU-safe **analysis
+notebooks**, the open **datasets** they recompute their figures from, and an
+importable **`duecare-llm-kit`** package. Full catalog (live + queued, with
+one-line descriptions and slugs): [`docs/NOTEBOOKS.md`](./docs/NOTEBOOKS.md).
+Browse the same surfaces on the hub at
+[duecare-ai.com/data](https://duecare-ai.com/data).
+
+- **Start Here (live):** [`duecare-harness-lift-benchmark-start-here`](https://www.kaggle.com/code/taylorsamarel/duecare-harness-lift-benchmark-start-here)
+  and the flagship [`duecare-does-a-safety-harness-help`](https://www.kaggle.com/code/taylorsamarel/duecare-does-a-safety-harness-help)
+  recompute the +40.7 headline and cross-model board from the public
+  [grades dataset](https://www.kaggle.com/datasets/taylorsamarel/duecare-harness-benchmark-grades).
+- **The reusable kit** lifts the indicator engine, chart helpers, HTML-report
+  generator, corpus exporter, and deterministic verifier out of the notebooks
+  into importable Python -- see [`packages/duecare-llm-kit`](./packages/duecare-llm-kit/):
+
+  ```bash
+  pip install duecare-llm-kit
+  ```
+
+  ```python
+  from duecare.kit import scan, generate_report
+
+  scan("The agency took my passport and I have not been paid.")  # ILO forced-labour indicators
+  generate_report("panel.jsonl", "duecare_report.html")          # self-contained HTML lift report
+  ```
 
 
 ## Architecture: multi-harness pattern
@@ -250,7 +337,7 @@ and rubric.
 
 ## What ships
 
-**17 package surfaces** share the `duecare` Python namespace (PEP 420). The
+**18 package surfaces** share the `duecare` Python namespace (PEP 420). The
 source workspace installs them together; the `duecare-llm` meta package is the
 public pip entry point for the workflow-oriented stack.
 
@@ -266,6 +353,7 @@ public pip entry point for the workflow-oriented stack.
 | `duecare-llm-engine` | Heuristic prescan + GREP KB + RAG + tool-call + Gemma verdict pipeline (the core content-safety harness) | Pipeline smoke tests |
 | `duecare-llm-server` | FastAPI app that hosts the pipeline + audit dashboard (the live demo) | Route + audit-trail tests |
 | `duecare-llm-evidence-db` | Redacted-evidence corpus + audit trail SQLite store | Schema + integrity tests |
+| [`duecare-llm-kit`](./packages/duecare-llm-kit/) | Reusable indicator, visualization, HTML-report, and corpus-export toolkit | Engine, report, visualization, and packaging tests |
 | `duecare-llm-benchmark` | `smoke_25` + `score_row` + `aggregate` scoring helpers (zero deps) | Scoring + aggregation tests |
 | `duecare-llm-training` | Fail-closed dataset/training plans; execution delegates to the strict engine or active A-00 Kaggle handoff | Training-contract and plan tests |
 | `duecare-llm-research-tools` | Playwright scrapers + document extractors for domain corpora | Scraper + extractor tests |
@@ -277,6 +365,11 @@ public pip entry point for the workflow-oriented stack.
 
 ## Quick start
 
+**One command per audience:** `python launch.py` lists launch profiles for NGOs
+(Dockerized, one command), developers (local workbench), researchers (offline
+benchmark), and notebook users (Colab/Kaggle with a public URL). See
+[`docs/QUICK_LAUNCH.md`](docs/QUICK_LAUNCH.md).
+
 ### Install
 
 ```bash
@@ -286,11 +379,24 @@ pip install duecare-llm
 # Or, granular: install only what a Kaggle notebook needs
 pip install duecare-llm-core duecare-llm-domains duecare-llm-tasks duecare-llm-agents
 
-# Source checkout: install all 17 workspace packages together
+# Source checkout: install all 18 workspace packages together
 uv sync --all-packages
 ```
 
-### Run locally with Ollama (recommended for development)
+### Optional local model run (after the offline checks)
+
+Preserve model credits/quota while reviewing the repository:
+
+```powershell
+$env:DUECARE_MAX_PLANNED_MODEL_CALLS='0'
+python scripts/validate_publication_readiness.py --scope core
+python scripts/rich_harness_lift.py --n 40 --plan --require-complete
+```
+
+The allowance is enforced by the rich harness and `--plan` makes no model call
+or run-artifact write. Direct Ollama helpers remain operator-controlled; see
+[Publication Readiness And Next Work](./docs/PUBLICATION_READINESS.md) before
+unlocking a bounded run.
 
 ```bash
 # 1. Install Ollama: https://ollama.com/download
@@ -423,8 +529,9 @@ python -c "from duecare.tasks.generators import ALL_GENERATORS; print(f'{len(ALL
 python -c "from duecare.agents import agent_registry; print(f'{len(agent_registry)} agents')"
 python -c "from duecare.tasks import task_registry; print(f'{len(task_registry)} tasks')"
 
-# Run the 8-stage pipeline locally
-python scripts/pipeline/run_pipeline.py --stages 4,5,6,7 --heuristic --quick
+# Rehearse stages 4-7 without model calls or tracked-data changes
+python scripts/pipeline/run_pipeline.py --stages 4,5,6,7 --heuristic --quick \
+  --data-dir reports/pipeline-rehearsal
 
 # Run the demo app
 uvicorn src.demo.app:app --port 8080
@@ -446,6 +553,19 @@ pitch kernel and A-01 through A-24 appendix notebooks are archived under
 |---|---|---|
 | 01 | [`kaggle/01-duecare-exploration-workbench/`](./kaggle/01-duecare-exploration-workbench/) | Core omni workbench with model picker, layer toggles, traces, and A/B comparison |
 | 02 | [`kaggle/02-live-demo/`](./kaggle/02-live-demo/) | Focused screen-recording surface and public-hub demo |
+
+#### Public training-learning route
+
+For the evidence behind the training-data and adapter work, start with the
+[207,680-row curriculum atlas](https://www.kaggle.com/code/taylorsamarel/duecare-200k-curriculum-visual-atlas),
+then read the
+[Gemma 4 optimization curves](https://www.kaggle.com/code/taylorsamarel/duecare-gemma4-learning-curves)
+and the
+[four-arm before/after comparison](https://www.kaggle.com/code/taylorsamarel/duecare-gemma4-four-arm-before-after).
+The latter shows base and trained Gemma, each with and without the deterministic
+harness, plus fictional controlled failure examples. The
+[Tensor Processing Unit training lab](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-tpu-lora-training-lab)
+continues the small real training study on Kaggle's eight-core accelerator.
 
 See [`kaggle/_INDEX.md`](./kaggle/_INDEX.md) for the active folder list and
 archive note.
@@ -620,8 +740,8 @@ When Gemma 5 ships, that's the entire integration cost: one YAML row.
    tasks, agents are all structurally typed. No forced inheritance.
 2. **Pydantic v2 for every data model.** JSON round-trips for free,
    strict validation at every layer boundary.
-3. **PEP 420 namespace packages.** All 17 packages share the `duecare`
-   Python namespace. Install one or all seventeen; imports work identically.
+3. **PEP 420 namespace packages.** All 18 packages share the `duecare`
+   Python namespace. Install one or all eighteen; imports work identically.
 4. **AgentSupervisor meta-agent** enforces retry, budget, and
    abort-on-harm policies across every agent call. Validator can
    signal `harm_detected=True` to abort a release workflow immediately.
@@ -790,7 +910,7 @@ Secrets (API keys) come from environment variables only — see
 
 ```
 gemma4_comp/
-├── packages/                     # 17 package surfaces (workspace members)
+├── packages/                     # 18 package surfaces (workspace members)
 │   ├── duecare-llm-core/         # contracts, schemas, observability
 │   ├── duecare-llm-models/       # 8 model adapters
 │   ├── duecare-llm-domains/      # pluggable domain packs

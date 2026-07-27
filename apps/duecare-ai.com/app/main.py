@@ -115,6 +115,7 @@ PAGE_ROUTES: dict[str, str] = {
     "/partners": "partners.html",
     "/privacy": "privacy.html",
     "/privacy-boundary": "privacy-boundary.html",
+    "/project-status": "project-status.html",
     "/research-monitor": "research-monitor.html",
     # /sentinel is owned by the auth-gated handler in create_app
     # (Phase 12) — see sentinel_admin_page below. Do not add it here.
@@ -2063,7 +2064,7 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         findings = detect_pii(body.summary)
         if findings:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=422,
                 detail="Signal rejected because it appears to contain raw PII.",
             )
         state = _state(request)
@@ -2104,13 +2105,13 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         findings = detect_pii(body.change_summary)
         if findings:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=422,
                 detail="Update rejected because the summary appears to contain raw PII.",
             )
         verdict = automation.evaluate_submission(body.change_summary, kind="context")
         if verdict.verdict == "reject":
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=422,
                 detail=f"Server automation rejected this update: {'; '.join(verdict.reasons) or 'policy violation'}.",
             )
         state = _state(request)
@@ -2243,13 +2244,13 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         """
         if not body.consent_public_proposal:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=422,
                 detail="consent_public_proposal must be True; the hub only accepts public proposals.",
             )
         verdict = automation.evaluate_submission(body.summary, kind=body.kind)
         if verdict.verdict == "reject":
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=422,
                 detail=f"Server automation rejected this submission: {'; '.join(verdict.reasons) or 'policy violation'}.",
             )
         state = _state(request)

@@ -93,6 +93,14 @@ PATTERNS = [
     ("document_retention", r"(passport|national id|residence permit|iqama|papers|documents?)\s+(\w+\s+){0,4}(took|takes|taken|kept|keeps|held|hold|holding|confiscat\w*|retain\w*|surrender\w*|hand(ed)?\s+over|for safekeeping)|(took|takes|taken|keeps?|kept|holding|holds|confiscat\w*|retain\w*|has|have|got)\s+(my |his |her |the |our )?(\w+\s+){0,2}(passport|national id|residence permit|iqama|papers|documents?)"),
     ("document_retention", r"(cannot|can'?t|not allowed to|won'?t let me|refuse[sd]? to (give|return)|never (got|returned))\s+(\w+\s+){0,3}(get|have|keep|access|hold|see|take)?\s*(my |our |their )?(own )?(passport|national id|residence permit|iqama|papers|documents?)"),
     ("document_retention", r"(employer|agency|agent|sponsor|boss|madam|kafeel|company|recruiter)\s+(\w+\s+){0,3}(has|have|holds?|holding|keeping|keeps|kept|took|taken|confiscat\w*|retain\w*|locked (away|up))\s+(\w+\s+){0,2}(passport|national id|residence permit|iqama|papers|documents?)"),
+    # Contract-clause legalese: a retention verb governing a POSSESSIVE worker noun phrase
+    # ("shall retain the Employee's passport", "holds all workers' passports"). The clause form is a
+    # primary red flag in written contracts, where the worker is named in the third person.
+    ("document_retention", r"(retain\w*|withhold\w*|holds?|holding|keeps?|kept|confiscat\w*|surrender\w*|collect\w*|custody of)\s+(\w+\s+){0,3}(employee|worker|staff|helper|maid|labou?rer|domestic worker)s?[^\w\s]?s?\s+(passport|national id|residence permit|iqama|papers|documents?)"),
+    # Third-party custody stated as a resting place rather than an act ("passport stays with the
+    # employer"). The benign mirror -- documents staying with the WORKER -- is excluded by
+    # _is_self_document_retention below, so this cannot fire on a worker keeping their own papers.
+    ("document_retention", r"(passport|national id|residence permit|iqama|papers|documents?)\s+(\w+\s+){0,2}(stay|stays|stayed|remain\w*|is|are|will be|shall be|kept)\s+(with|at|in)\s+(the\s+)?(employer|company|agency|agent|sponsor|office|management|hr|kafeel|recruiter|safe|site safe)"),
     # -- debt bondage (ILO C029 + P029; SSC 1956 Art. 1(a)) --
     ("debt_bondage", r"(debt|loan|advance|owe|owing|repay)\s+(\w+\s+){0,6}(work(ing)?\s+(it\s+)?off|repay|deduct\w*|paid off|cannot leave|can'?t leave|until.*paid)|work(ing)?\s+(it\s+|to pay\s+)?off\s+(the\s+)?(\w+\s+){0,3}(fee|debt|loan|advance|bond|cost)"),
     ("debt_bondage", r"(until|before)\s+(\w+\s+){0,5}(debt|loan|advance|fee|bond|balance)\s+(is\s+)?(paid|repaid|cleared|settled|worked\s+off|finished)"),
@@ -101,6 +109,9 @@ PATTERNS = [
     ("recruitment_fee", r"(recruitment|placement|processing|training|mobiliz\w+|agency|service)\s*(fee|charge|bond|deposit|commission)"),
     ("recruitment_fee", r"\b(i|we|worker|workers|she|he)\b\s+(paid|had to pay|was charged|were charged|got charged|borrowed|owe)\s+(\w+\s+){0,5}(agency|recruiter|agent|broker|sponsor|manpower|for (the )?(job|placement|deployment|visa|contract))"),
     ("recruitment_fee", r"(recruitment|placement|agency|broker|agent|processing|training|deployment)\s+(fee|cost|charge|commission)\s+(of|was|is|=|:)?\s*(\$|usd|php|npr|idr|bdt|sar|aed|qar|kwd|riyal|peso|rupee|taka|dirham|rm|ringgit)?\s*[\d,]{3,}"),
+    # South Asian numeral words for large sums. "2 lakh to the agent" is how an origin-country worker
+    # states a placement charge; a bare digit screen misses it entirely (ILO C181 Art. 7).
+    ("recruitment_fee", r"[\d.,]+\s*(lakh|lakhs|crore|crores)\s+(\w+\s+){0,5}(agent|agency|broker|dalal|recruiter|placement|manpower|sponsor|visa|job|deployment)|(agent|agency|broker|dalal|recruiter|placement|manpower|sponsor)\s+(\w+\s+){0,5}[\d.,]+\s*(lakh|lakhs|crore|crores)"),
     # -- withholding of wages (ILO C095 Art. 8/9/12) --
     ("wage_withholding", r"(salary|wages?|pay|payment)\s+(\w+\s+){0,4}(withheld|withhold\w*|held back|deduct\w*|not (yet )?paid|unpaid|delay\w*|kept)|(not|have not|haven.t|hasn.t|never|no)\s+(been\s+|yet\s+)?(paid|receiv\w+\s+(any |my )?(pay|wages?|salary))"),
     ("wage_withholding", r"(no|without|zero|haven'?t (had|got|received)|didn'?t (get|receive)|still no)\s+(\w+\s+){0,3}(salary|wages?|pay|payment)\s+(for|in|since)\s+(\w+\s+){0,3}(month|months|weeks?|days)"),
@@ -156,11 +167,13 @@ MULTILINGUAL_CUES = {
         "paspor ditahan", "paspor disita", "menahan paspor",
         "kunyang'anya pasipoti", "amechukua pasipoti",
         "iqama withheld", "confiscated iqama", "sahab al jawaz",
+        "tahan paspor", "pegang paspor", "paspor saya ditahan",
     ],
     "debt_bondage": [  # debt owed to the recruiter/agency (ILO indicator 4)
         "utang sa ahensya", "utang sa agent", "utang sa recruiter",
         "hutang ke agen", "potongan gaji untuk hutang", "bayar hutang dulu",
         "deni la wakala", "agent ko paisa", "dalal ko paisa",
+        "hutang biaya", "sampai hutang", "utang hindi pa bayad",
     ],
     "recruitment_fee": [  # placement/agency fee charged to the worker (ILO C181 Art. 7)
         "bayad sa ahensya", "singil ng ahensya", "placement fee binayad",
@@ -176,6 +189,10 @@ MULTILINGUAL_CUES = {
         "hindi makaalis", "bawal lumabas", "nakakulong",
         "tidak boleh keluar", "dikurung", "dilarang keluar",
         "siwezi kuondoka", "mamnu al khuruj", "mahbus",
+    ],
+    "excessive_overtime": [  # constant overtime / no rest day (ILO C001/C030)
+        "lembur terus", "tanpa libur", "kerja lembur terus",
+        "walang day off", "walang pahinga",
     ],
 }
 
