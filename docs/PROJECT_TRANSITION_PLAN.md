@@ -57,9 +57,10 @@ The project has reached a good stopping point when:
 - Freeze scope: no broad new features, datasets, judging sweeps, or model runs.
 - Inventory live Git/process/engine state and compare it with saved `.claude`
   state, ignored reports, status docs, and public claims.
-- Reconcile the live `codex/full-flywheel-training-20260714` working branch and
-  mixed dirty tree with the documented `master` release target. Assign every
-  change before committing; do not reset or bulk-discard it.
+- Keep the reconciled `codex/full-flywheel-training-20260714` closeout branch
+  current with `origin/master`. Its mixed tree was intentionally scoped,
+  committed, integrated, and revalidated on 2026-07-26; the remaining release
+  action is reviewed PR merge, not a reset or bulk discard.
 - Land this handoff, transition plan, deterministic handoff validator, purpose
   maps, and navigation links.
 - Confirm the canonical active Kaggle surfaces and keep optional/archived lanes
@@ -193,7 +194,7 @@ or billing information.
 | Entity-intelligence pipeline | Propose-only, curator-reviewed, separate from worker-facing and training paths | A reviewed governance and evidence-admission change is approved |
 | Kaggle surface inventory | `01`, `02`, and `A-00` active; `03` and `04` optional; notebook-era variants archived | Root `AGENTS.md` and `kaggle/_INDEX.md` change together |
 | Release version/tag | Pending a deliberate owner decision | Week 2 release-candidate reconciliation is reviewed |
-| Target branch | Root rules name `master`; the 2026-07-26 workspace is on `codex/full-flywheel-training-20260714` with mixed uncommitted work | Changes are intentionally scoped, committed, integrated, and revalidated on the exact release revision |
+| Target branch | Root rules name `master`; the reconciled closeout branch contains current `origin/master` and a green integrated receipt, while pull request 2 is the canonical review boundary | Check the PR and exact `master` SHA live; merge through review if still open, then verify deployment receipts before tagging |
 | Successor | Transfer path preferred; maintenance mode is the safe fallback | A successor accepts and completes the rehearsal |
 
 ## Exit Criteria

@@ -109,7 +109,7 @@ attested.
 
 | Risk | Mitigation today |
 |---|---|
-| Malicious dependency in a wheel | All 17 wheels built from this repo; `dependabot` or `renovate` recommended for upstream pin updates; cosign signing of the GHCR image (workflow wired) |
+| Malicious dependency in a wheel | All 18 package sources and the workspace lock live in this repo; verify the current wheel receipt before release. `dependabot` or `renovate` is recommended for upstream pin updates; cosign signing of the GHCR image is wired. |
 | Malicious model weights | Android downloads SHA-256 verify; Ollama models pulled from `ollama/ollama` registry over TLS; pin to specific digests in production |
 | Compromise of GitHub Actions runner | All workflows scoped to least privilege; secrets stored in GitHub Secrets; cosign-signed builds attested to the runner identity |
 

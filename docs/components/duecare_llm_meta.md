@@ -1,13 +1,13 @@
 # Component — `duecare-llm` (meta)
 
 > **Status: shipped.** The `duecare` CLI + meta-package for the
-> workflow-oriented stack. The workspace now contains 17 package surfaces.
+> workflow-oriented stack. The workspace now contains 18 package surfaces.
 
 ## What it is
 
 The **meta-package** that provides the workflow CLI entry point and pulls in
 the core library stack used by the workflow runner. For source checkouts, use
-`uv sync --all-packages` from the repo root to install all 17 workspace
+`uv sync --all-packages` from the repo root to install all 18 workspace
 packages together.
 
 ## Install

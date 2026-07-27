@@ -68,7 +68,7 @@
 > **Path layout update (2026-04-18):** references to `src/phases/*`,
 > `src/forge/*`, and `src/<subsystem>/*` below reflect the *pre-package*
 > monolithic layout. The live code now lives under
-> `packages/duecare-llm-*/src/duecare/*` (17 package surfaces, PEP 420
+> `packages/duecare-llm-*/src/duecare/*` (18 package surfaces, PEP 420
 > namespace). Mapping:
 >
 > - `src/forge/core/*`       → `packages/duecare-llm-core/src/duecare/core/*`

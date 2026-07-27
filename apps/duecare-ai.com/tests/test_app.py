@@ -296,7 +296,7 @@ def test_project_status_page_keeps_release_and_training_claims_separate(tmp_path
     assert response.status_code == 200
     assert "8 / 8 pass" in response.text
     assert "2 / 2 pass" in response.text
-    assert "4,601 pass" in response.text
+    assert "4,582 pass" in response.text
     assert "Autonomous engine" in response.text and "paused" in response.text
     assert "strict training lane is not ready" in response.text
     assert "minimum-75-row" in response.text

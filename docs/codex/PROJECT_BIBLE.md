@@ -44,11 +44,13 @@ explicitly asks to restore them.
 
 > **Re-verified 2026-07-26 -- read this box before trusting the 2026-07-14 snapshot below.**
 >
-> - **Branch integration is still open.** Root `AGENTS.md` names `master` as the
->   active branch, while this workspace is on
->   `codex/full-flywheel-training-20260714` with mixed uncommitted work. Scope
->   and commit each change intentionally, integrate it onto the exact release
->   revision, and rerun all release gates there; do not reset the tree.
+> - **Branch reconciliation is complete; publication is still open.** Root
+>   `AGENTS.md` names `master` as the active branch. The working branch
+>   `codex/full-flywheel-training-20260714` now contains the latest
+>   `origin/master`, the scoped closeout commits, and a green integrated
+>   regression receipt. Pull request 2 is the canonical review boundary; verify
+>   its live state and the exact `master` SHA rather than trusting this cached
+>   note. Do not bypass review or tag an earlier commit.
 > - **Canonical stopping point:** start with
 >   `docs/PUBLICATION_READINESS.md`. Its model-free core lane passed 8/8 checks
 >   on 2026-07-26; the separate training lane intentionally remains red on five
@@ -85,11 +87,11 @@ explicitly asks to restore them.
 >   `scripts/autonomous_engine.ps1 -Run`** -- Taylor's call; the wrapper rechecks provider readiness
 >   and removes the sentinel only after launch preflight succeeds. A state-only, no-Ollama preflight
 >   was refreshed on 2026-07-26; `validate_project_bible_pickup.py` reports 65 checks, 0 findings.
-> - **Full suite re-verified green on 2026-07-26:** the combined `packages tests`
->   run passed **4,601 tests, 4 skipped** before final branch integration. The
->   three pandas Styler constant-range warnings were then fixed and a focused
->   43-test package run passed with `RuntimeWarning` promoted to an error. Rerun
->   the combined command on the integrated revision. This supersedes the earlier separate counts and the
+> - **Full suite re-verified green on 2026-07-26:** the integrated combined
+>   `packages tests` run passed **4,582 tests, 9 skipped** with no warning
+>   summary. The former pandas Styler constant-range warnings are fixed; a
+>   focused 43-test package run also passed with `RuntimeWarning` promoted to
+>   an error. This supersedes the earlier separate counts and the
 >   `4147 passed, 12 skipped` line below. Two tests had been failing silently for days and were fixed
 >   (`test_next_notebooks_inherit_reusable_contracts_without_redeclaring_lists` broke when the
 >   headless A-30 GPU trainer landed at the Kaggle root before being archived;

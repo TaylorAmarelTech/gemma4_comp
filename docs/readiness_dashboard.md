@@ -36,7 +36,7 @@ and [`kaggle/_INDEX.md`](../kaggle/_INDEX.md).
 | Area | Current State |
 |---|---|
 | Offline publication core | 8/8 composed gates passed on 2026-07-26; rerun `python scripts/validate_publication_readiness.py --scope core` on the release commit. |
-| Broad tests | Combined `packages tests`: 4,601 passed, 4 skipped before final branch integration. The follow-up 43-test kit run passes with `RuntimeWarning` promoted to an error; rerun the combined command on the integrated revision. |
+| Broad tests | Clean locked 18-package `packages tests` run: 4,582 passed, 9 skipped with no warning summary. The focused 43-test kit run also passes with `RuntimeWarning` promoted to an error. |
 | New training readiness | Intentionally red: five dense generic-corridor typologies; 25 privacy-safe curation tasks and a 75-row minimum expansion target. |
 | Harness contract | Documented in [`harness_ecosystem.md`](harness_ecosystem.md), [`harness_pattern.md`](harness_pattern.md), and [`harness_standard_contract.md`](harness_standard_contract.md). |
 | Model loading | Standardized through [`Gemma4Runtime.load()`](model_loading_trace.md) for inference, with active A-00 training as the only direct FastModel exception. |

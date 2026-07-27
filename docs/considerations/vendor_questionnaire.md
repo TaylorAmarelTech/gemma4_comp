@@ -19,7 +19,7 @@
 | A3 | Where's the source code? | https://github.com/TaylorAmarelTech/gemma4_comp + https://github.com/TaylorAmarelTech/duecare-journey-android |
 | A4 | Who's the maintainer? | Taylor Amarel (`amarel.taylor.s@gmail.com`). See `SECURITY.md` for vulnerability reporting. |
 | A5 | What's the support SLA? | Community / best-effort by default. SLAs are negotiated separately — see operator agreement. |
-| A6 | Versioning + release cadence? | Semver across all 17 packages. Tagged releases on GitHub. Multi-arch Docker image published to `ghcr.io/tayloramareltech/duecare-llm` per release. |
+| A6 | Versioning + release cadence? | Each of the 18 source packages has SemVer metadata. Tags, PyPI uploads, and multi-arch GHCR images are explicit release actions; current readiness and any uncut release are recorded in `docs/PUBLICATION_READINESS.md`. |
 
 ## B. Data handling + privacy
 

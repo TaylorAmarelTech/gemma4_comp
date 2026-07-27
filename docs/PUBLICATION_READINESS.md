@@ -278,11 +278,11 @@ worker-facing answers, benchmark labels, or training rows automatically.
 - The training gate is red because of corridor coverage and the resulting
   stale fingerprints in an older planned registry record. This is a truthful
   provenance stop, not a reason to rewrite the ledger.
-- The latest combined `packages tests` regression passed 4,601 tests with four
-  skips. It exposed three pandas Styler warnings from constant-value bars; the
-  focused package follow-up now passes 43 tests with `RuntimeWarning` promoted
-  to an error. Rerun the combined command after branch integration to freeze
-  the final receipt.
+- The integrated `packages tests` regression passed 4,582 tests with nine
+  skips and no warning summary in the clean, locked 18-package workspace. The
+  focused package follow-up also passes 43 tests with `RuntimeWarning`
+  promoted to an error, proving the former
+  constant-value pandas Styler warnings are removed rather than hidden.
 - The new publication gate and its tests pass their scoped Ruff check. A wider
   Ruff check of the legacy `rich_harness_lift.py`, `verify.py`, and
   `test_plan.py` surfaces still reports 281 style findings (261 are line
@@ -300,11 +300,12 @@ worker-facing answers, benchmark labels, or training rows automatically.
 - Workspace/package version metadata and `CITATION.cff` are not being bumped by
   this polish pass. Reconcile them only as part of a deliberate release/tag
   decision.
-- Root `AGENTS.md` names `master` as the active release branch, but the live
-  2026-07-26 workspace is on `codex/full-flywheel-training-20260714` with mixed
-  uncommitted work. Inventory and commit it intentionally, integrate it onto the
-  exact release revision, and rerun the gates there; do not reset or bulk-clean
-  the tree merely to satisfy a release checklist.
+- Root `AGENTS.md` names `master` as the active release branch. The closeout
+  branch now contains current `origin/master`, its work is intentionally
+  committed, and the integrated gates are green. Pull request 2 is the
+  canonical review boundary, but this file does not cache its live state:
+  check the PR and exact `master` SHA, merge if needed, then verify public
+  deployments before deciding on a tag or release.
 - Archived notebook-era surfaces are provenance. Do not restore them to the
   Kaggle root to satisfy old references; update the reference or archive map.
 - A dirty working tree is expected in this workspace. Inspect and preserve

@@ -108,7 +108,7 @@ Important boundaries:
 
 | Area | Purpose | Start here |
 |---|---|---|
-| `packages/` | Seventeen `duecare-llm*` package directories, including the workbench and shared services | Package-local `AGENTS.md`, `README.md`, and tests |
+| `packages/` | Eighteen `duecare-llm*` package directories, including the workbench, reusable kit, and shared services | Package-local `AGENTS.md`, `README.md`, and tests |
 | `apps/` | Public hub and deployable application surfaces | App README and route tests |
 | `kaggle/` | Active, optional, and archived notebook/kernel surfaces | Root `kaggle/_INDEX.md` |
 | `scripts/` | Deterministic validators, builders, research tooling, and opt-in model workflows | Script help, tests, and [File purpose guide](FILE_PURPOSE_GUIDE.md) |
@@ -220,7 +220,7 @@ working tree as the sole copy of release evidence.
 
 | Priority | State at 2026-07-26 | Safe next action |
 |---|---|---|
-| P0 | Live workspace is on `codex/full-flywheel-training-20260714`, while root `AGENTS.md` names `master` as the active branch; the tree contains mixed uncommitted work | Inventory ownership file by file, commit intentionally, then merge/cherry-pick and rerun gates on the exact `master` release candidate; never reset the mixed tree to make it look clean |
+| P0 | The closeout branch includes current `origin/master` and passes the integrated gates; pull request 2 is the canonical review boundary, but this document is not proof of its live state | Check PR 2 and the exact `master` SHA; if open, review and merge it, and if merged, verify Actions, Render, and MkDocs Pages receipts before any tag |
 | P0 | Release commit/tag and version decision are not frozen | Choose the bounded release claim, reconcile versions/citation/changelog, run privacy-safe scans and core/handoff gates on the exact commit |
 | P0 | Ownership and platform access still belong to the current maintainer | Complete the private transfer receipt and successor rehearsal; do not place credentials in Git |
 | P1 | Five dense generic-corridor typologies need diversification | Curate the manifest-planned 25 tasks / minimum 75 rows with lawful sources, lineage, and adjudication |

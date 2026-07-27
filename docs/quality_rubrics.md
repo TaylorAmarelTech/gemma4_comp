@@ -80,7 +80,7 @@ Throughout the rubrics, capabilities are tagged `[W]`, `[N]`, `[R]`, `[E]`, `[I]
 **Duecare current: L3** (target: L4).
 
 - README, LICENSE (MIT), SECURITY.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md all present.
-- 17 package surfaces with consistent structure under `packages/`.
+- 18 package surfaces with consistent structure under `packages/`.
 - `.claude/rules/40_forge_module_contract.md` enforces folder-per-module pattern with auto-generated `PURPOSE.md` / `AGENTS.md` / `INPUTS_OUTPUTS.md` / `HIERARCHY.md` / `DIAGRAM.md` / `TESTS.md` / `STATUS.md` per module.
 - **Gap:** no Dependabot / Renovate config; no SBOM publishing; no signed commits; no release-notes automation.
 - **Next:** add `.github/dependabot.yml`; add SBOM generation step to `pypi-publish.yml`; enable signed commits via `git config commit.gpgsign true` + Sigstore for releases.
@@ -187,7 +187,12 @@ Per audience.
 | **L4** L3 + REST API with OpenAPI + client SDKs | — |
 | **L5** L4 + webhook subscriptions + event bus + plugin architecture | — |
 
-**Duecare current: L3.5** (17 package surfaces semver-tagged from v0.1.0; FastAPI server with OpenAPI 3 schema published at `docs/openapi.yaml`; thin clients in `examples/embedding/` for React, vanilla JS, Telegram, Messenger, WhatsApp Cloud API; reaching full L4 needs typed-client SDKs in pip + npm). Target: **L4** by hackathon submission (2026-05-18).
+**Duecare current: L3.5** (18 source package surfaces with SemVer metadata;
+FastAPI server with OpenAPI 3 schema published at `docs/openapi.yaml`; thin
+clients in `examples/embedding/` for React, vanilla JS, Telegram, Messenger,
+WhatsApp Cloud API; reaching full L4 needs verified package publication and
+typed-client SDKs in pip + npm). The original target date was the 2026-05-18
+hackathon submission; current release truth lives in the publication runbook.
 
 ## Rubric 7: UI / UX
 
@@ -264,7 +269,7 @@ How well does the project meet each defined audience?
 | Worker (W) | **L2** — sideloadable APK with placeholder screens | L4 | Real screens, multi-language, on-device LiteRT inference, NGO-distribution channel |
 | NGO intake (N) | **L3** — classifier dashboard + risk-vector JSON | L4 | Multi-tenant deployment patterns, batch import, case-management integration |
 | Researcher (R) | **L4** — Kaggle notebooks + harness lift report + corpus coverage | L5 | Hosted live demo + replication study |
-| Engineer (E) | **L4** — Devcontainer + Compose + Helm + 17 packages + CI | L5 | Mutation testing + property tests + auto-generated SDKs |
+| Engineer (E) | **L4** — Devcontainer + Compose + Helm + 18 packages + CI | L5 | Mutation testing + property tests + auto-generated SDKs |
 | Enterprise (I) | **L3** — Helm chart + Docker + Dockerized API doc | L4 | OpenAPI + auth + observability + Terraform |
 
 ---

@@ -18,7 +18,6 @@ import sys
 import zipfile
 from pathlib import Path
 
-
 # Build order matters because some packages declare local deps on others
 # in their pyproject.toml; we install/build dependencies first.
 DEFAULT_BUILD_ORDER = [
@@ -27,6 +26,7 @@ DEFAULT_BUILD_ORDER = [
     "duecare-llm-chat",
     "duecare-llm-evidence-db",
     "duecare-llm-engine",
+    "duecare-llm-kit",
     "duecare-llm-nl2sql",
     "duecare-llm-research-tools",
     "duecare-llm-server",
@@ -147,7 +147,7 @@ def main() -> int:
         pkg_dir = packages_dir / pkg
         print(f"\n[{pkg}]")
         if not (pkg_dir / "pyproject.toml").exists():
-            print(f"  [skip] no pyproject.toml")
+            print("  [skip] no pyproject.toml")
             continue
         ok = build_one(pkg_dir, dist_dir, no_isolation=args.no_isolation)
         if not ok:

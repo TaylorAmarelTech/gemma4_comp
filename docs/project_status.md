@@ -34,10 +34,12 @@ snapshots, and older checklist/status docs are archived under
 
 ## Current Technical Posture
 
-- Live Git differs from the declared release target: root `AGENTS.md` names
-  `master`, while the 2026-07-26 workspace is on
-  `codex/full-flywheel-training-20260714` with mixed uncommitted work. This is a
-  P0 integration/release task, not permission to reset or discard the tree.
+- Root `AGENTS.md` names `master` as the release branch. The working branch
+  `codex/full-flywheel-training-20260714` now includes the latest
+  `origin/master`, its closeout changes are intentionally committed, and the
+  integrated tree has a green regression receipt. Pull request 2 is the
+  canonical reviewed path into `master`; check its live state and the exact
+  `master` SHA before treating deployment or any release/tag decision as done.
 - The repository has a single model-free publication entry point:
   [`PUBLICATION_READINESS.md`](PUBLICATION_READINESS.md) and
   `python scripts/validate_publication_readiness.py --scope core`. All eight
@@ -118,9 +120,10 @@ Latest offline working-tree receipt on 2026-07-26:
 - publication handoff: 2/2 gates passed, including 16/16 succession-document
   checks and 65/65 live pickup checks;
 - publication core: 8/8 gates passed;
-- combined `packages tests` regression: 4,601 passed and 4 skipped before the
-  final integration; the subsequent 43-test package run passes with pandas
-  `RuntimeWarning` promoted to an error;
+- combined `packages tests` regression in a clean, locked 18-package
+  workspace: 4,582 passed and 9 skipped with no warning summary; the focused
+  43-test package run also passes with pandas `RuntimeWarning` promoted to an
+  error;
 - normal MkDocs build: passed; both succession pages emitted zero diagnostics;
   strict MkDocs remains red on 84 classified legacy warnings;
 - training readiness: strict quality and provenance failed as documented,
