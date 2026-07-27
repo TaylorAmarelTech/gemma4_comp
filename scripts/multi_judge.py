@@ -97,10 +97,12 @@ def _display_error(value: Any) -> str:
 # exclusion). Same-family pairs are a minority and the report proves the result survives dropping
 # them (the cross-family-only panel mean); the per-judge columns make any single judge's or
 # family's influence visible. The paired (lift) design also cancels each judge's absolute scale.
-# Verified live (2026-06): newest/largest available per family. DeepSeek v4-pro/flash supersede
-# v3.2/v3.1:671b; qwen3.5 is the newest qwen (qwen3.6/qwen3-max = 404); glm-5.3/gpt-oss:480b/
-# kimi-k3 also 404. Refresh by probing `ollama_chat("OK", model=...)` -- the cloud /v1/models
-# listing is empty, so 404-probing is the only catalog check.
+# This default is the frozen historical panel, not a live catalog alias. As of 2026-07-27,
+# Kimi K3 is available but consumes extra usage credits, and Meta Muse Spark 1.1 is available
+# through the Meta Model API/OpenRouter. They remain outside this comparable default until the
+# budget-approved smoke matrix records immutable IDs, prompts, receipts, and a versioned panel.
+# Refresh availability from official catalog metadata; never spend a prompt merely to discover
+# whether a model exists.
 DEFAULT_JUDGES = ["gpt-oss:120b", "gpt-oss:20b", "glm-5.2", "qwen3.5:397b", "qwen3-coder:480b",
                   "kimi-k2.7-code", "deepseek-v4-pro", "deepseek-v4-flash"]
 

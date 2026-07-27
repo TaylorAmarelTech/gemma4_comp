@@ -190,7 +190,7 @@ Latest offline working-tree receipt on 2026-07-27:
   the complete 78-test website suite;
 - curator-block governance: all 75 universal rubric dimensions have inline
   guidance; strict validation reports zero errors and zero warnings;
-- post-deploy external network audit: 588 links checked, zero confirmed broken,
+- post-deploy external network audit: 592 links checked, zero confirmed broken,
   and nine transient/unverified hosts kept separate from confirmed failures;
 - the polish/validation commands initiated no Ollama or hosted-model call; the
   separate background-daemon usage correction above supersedes any broader

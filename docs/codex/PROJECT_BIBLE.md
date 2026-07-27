@@ -85,7 +85,7 @@ explicitly asks to restore them.
 >   distributions remain unpublished on PyPI. The sole OIDC publisher now uses
 >   a reviewed independent-SemVer manifest and one-package production tags.
 >   Render serves project status
->   plus all six advertised schema endpoints, and the post-deploy 588-link audit
+>   plus all six advertised schema endpoints, and the post-deploy 592-link audit
 >   found zero confirmed broken links and nine transient or unverified hosts.
 >   `ollama ps` showed no loaded model.
 > - **Generation is COMPLETE.** `reports/rich_lift/panel_perdim.coverage.json` reports
