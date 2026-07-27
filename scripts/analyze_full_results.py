@@ -29,6 +29,11 @@ PROMPTSET = _ROOT / "reports" / "benchmark" / "full_promptset.json"
 OUT = _ROOT / "docs" / "research" / "full_results.md"
 
 
+def _has_windows_drive_marker(parts: tuple[str, ...]) -> bool:
+    """Return whether POSIX resolution embedded a Windows drive as a path component."""
+    return any(len(part) == 2 and part[0].isalpha() and part[1] == ":" for part in parts)
+
+
 def _panel_label(panel: Path) -> str:
     """Repo-relative label for the panel actually read.
 
@@ -36,7 +41,10 @@ def _panel_label(panel: Path) -> str:
     its bare filename so a local absolute path can never reach this public report.
     """
     try:
-        return panel.resolve().relative_to(_ROOT).as_posix()
+        relative = panel.resolve().relative_to(_ROOT)
+        if _has_windows_drive_marker(relative.parts):
+            return panel.name
+        return relative.as_posix()
     except (ValueError, OSError):
         return panel.name
 

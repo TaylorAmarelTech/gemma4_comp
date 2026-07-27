@@ -253,7 +253,7 @@ jobs:
       - name: Install uv
         run: pip install uv
 
-      - name: Install workspace (all 17 packages)
+      - name: Install workspace (all 18 packages)
         run: |
           uv sync --all-packages --frozen
           uv pip install pytest pyyaml
@@ -309,7 +309,7 @@ jobs:
             || (echo "::error::entity_counts.json is stale -- run: python scripts/entity_counts.py --write" && exit 1)
 
   build-wheels:
-    name: build 17 wheels
+    name: build 18 wheels
     runs-on: ubuntu-latest
     needs: test
     steps:
@@ -321,7 +321,7 @@ jobs:
       - name: Install build
         run: pip install build pyyaml
 
-      - name: Build all 17 packages
+      - name: Build all 18 packages
         run: |
           for pkg in packages/duecare-llm packages/duecare-llm-*; do
             echo "::group::Building $pkg"

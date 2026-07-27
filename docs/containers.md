@@ -26,8 +26,10 @@ audience. Pick one — they don't conflict.
 
 ## Surface 1 — production image + compose
 
-The repo root ships a **multi-stage, multi-arch Dockerfile** that
-builds all 18 current wheels and produces a slim runtime image.
+The repo root ships a **multi-stage, multi-arch Dockerfile** that builds the 17
+service/runtime package wheels and produces a slim runtime image. The 18th uv
+workspace member, `duecare-llm-kit`, stays outside that production image so its
+NumPy/pandas/Matplotlib reporting stack does not increase deployment size.
 
 ```bash
 # Build (single arch, for local testing)

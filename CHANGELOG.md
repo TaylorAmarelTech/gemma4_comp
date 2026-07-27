@@ -23,6 +23,8 @@ the meta `duecare-llm` package tracking the workspace lockstep.
   Starlette's supported `httpx2` test client in clean developer/CI setups.
 - Added a pipeline `--data-dir` boundary and isolated integration fixtures so
   offline rehearsals and the full test suite do not rewrite tracked datasets.
+- Made public-report path labels fail closed on Windows drive markers even
+  when a POSIX CI runner resolves that path lexically beneath the checkout.
 - Added a durable maintainer handoff, dated 30-day transition plan, and
   maintenance-mode fallback for ownership transfer by 2026-08-25.
 - Added a read-only, privacy-safe handoff validator and a separate model-free
