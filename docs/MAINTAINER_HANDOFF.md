@@ -10,7 +10,7 @@ while the release boundary and evidence backlog remain in
 **Handoff posture:** active closeout
 **Prepared:** 2026-07-27
 **Target transfer:** 2026-08-25
-**Default model posture:** paused and zero planned model calls
+**Default model posture:** whole model/flywheel stack cost-stopped; zero planned model calls
 
 ## Integrated Closeout Receipt
 
@@ -28,7 +28,9 @@ The model-free closeout landed through
 - the [website artifact run](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30235104433)
   completed without becoming a competing Pages deployer, and Render serves the
   live [project-status route](https://duecare-ai.com/project-status); and
-- no Ollama or hosted-model calls were made for the closeout or these receipts.
+- the closeout and receipt commands themselves made no Ollama or hosted-model
+  calls (see the later whole-stack correction for independently scheduled
+  background callers).
 
 This proves the integrated code/docs/deployment stopping point. It does not
 choose a release tag, publish packages or models, close the strict training
@@ -111,11 +113,63 @@ This final pass added an atomic attempt/token/cash budget around every primary
 generation-router transport, a strict 75-slot curation workbook backed by 12
 training-blocked source candidates, reproducible independent-SemVer package
 release tooling, guarded release workflows, archive restore rehearsal, and a
-single-command successor pickup. It made no Ollama, hosted-model, or Kaggle
-quota call and published no package, image, chart, notebook, model, or dataset.
+single-command successor pickup. Those wrap-up commands made no Ollama,
+hosted-model, or Kaggle-quota call and published no package, image, chart,
+notebook, model, or dataset.
 The intentionally unfinished work remains human rights/snapshot review, 75-row
 independent curation and adjudication, private access transfer, and an owner
 decision on the first release tag.
+
+## 2026-07-27 Whole-stack Cost-stop Correction
+
+A later live process and Task Scheduler audit found that the main autonomous
+engine pause was narrower than the complete cost boundary. Hermes, the
+server-automation vetter, and the orchestrator still had enabled watchdogs and
+live Python process trees; Hermes and the vetter can call the primary
+hosted-model router independently.
+Their state files continued to advance after the engine was paused.
+
+The repo-local provider-budget ledger did not exist and the daemon environment
+had an Ollama credential but none of the finite `DUECARE_*` budget settings.
+Therefore this repository cannot reconstruct or honestly claim zero historical
+background provider usage. Reconcile that period privately against the Ollama
+account dashboard and billing/quota records; do not copy credentials or billing
+details into Git.
+
+The verified stopping posture is now broader:
+
+- `DueCareAutonomousEngine`, `DueCareHermes`, `DueCareOpenClaw`,
+  `DueCareOrchestrator`, and `DueCareFlywheelManager` are disabled;
+- stop sentinels exist for the autonomous engine, Hermes, the
+  server-automation vetter, and the orchestrator;
+- zero verified repository daemon processes remain; and
+- `reports/cost_stop_status.json` records a privacy-minimized, ignored local
+  receipt. No benchmark, proposal, verdict, or checkpoint report was deleted.
+
+`scripts/stop_ollama_stack.ps1` now owns the whole-stack boundary. Its default
+stop path writes every sentinel, disables all five recurring tasks before
+terminating only exact repository daemon process trees, and never regenerates,
+commits, or pushes a board unless separate capture/publish switches are given.
+The watchdog wrappers preserve stop sentinels; all three scheduled model
+callers additionally refuse launch until a positive finite provider budget and
+reviewed pricing policy pass preflight.
+
+The resulting closeout candidate was then exercised under
+`DUECARE_MAX_PLANNED_MODEL_CALLS=0`. The complete package/test regression passed
+4,630 tests with 9 skips, the public-surface audit checked 1,074 local links
+with no findings, all 10 core and both handoff gates passed, all 3 active
+notebook scripts and 31 notebook-focused tests passed, the 5 active/optional
+Kaggle kernel checks passed, all 45 website tests passed, the Project Bible
+pickup passed 65 checks, the successor rehearsal reassembled all 52 archived
+files to their recorded SHA-256 values, and the strict documentation build
+completed. The latest external audit checked 587 links with zero confirmed
+broken links and 12 transient or unverified hosts.
+
+The separate training scope correctly remains red: its deterministic workbook
+has 0/75 completed rows, the quality audit still identifies five dense
+single-corridor shortcut risks, and the older append-only fine-tune record has
+intentionally stale artifact fingerprints. This is curator work, not a reason
+to weaken the gate or rewrite provenance history.
 
 ## First 30 Minutes
 
@@ -131,13 +185,16 @@ python scripts/validate_publication_readiness.py --scope handoff
 python scripts/validate_publication_readiness.py --scope core
 python scripts/validate_project_bible_pickup.py
 python scripts/autonomous_engine.py --status
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/stop_ollama_stack.ps1 -Status
 ```
 
 Expected stopping posture:
 
 - the handoff scope and core publication scope are green;
-- the autonomous engine reports stopped or paused, and
-  `reports/autonomous_engine.stop` remains present;
+- the autonomous engine reports stopped or paused;
+- the whole-stack status reports `cost_stop_active: true`, all five recurring
+  tasks disabled, all four stop sentinels present, and zero verified daemon
+  processes;
 - a dirty working tree is investigated, not erased;
 - the strict training scope may remain red for the documented corridor and
   provenance blockers; and
@@ -312,6 +369,11 @@ atomic call/token/cash ledger, so its startup plan and transport receipt can be
 compared. Direct package/application/standalone clients and self-contained
 notebook runtimes still need their own integration; withhold credentials from them
 during maintenance rather than assuming the router intercepts their traffic.
+Only after that policy is reviewed should an authorized maintainer run
+`scripts/stop_ollama_stack.ps1 -Resume`; it removes the four sentinels and
+re-enables the five recurring tasks but launches no process directly. Hermes
+and the server-automation vetter still refuse to launch unless the positive
+finite budget preflight passes.
 
 ### Publish or release
 
@@ -347,7 +409,7 @@ working tree as the sole copy of release evidence.
 | P1 | Active Kaggle 02 and A-00 latest runs are canceled; optional 03 has no verified public URL | Rerun 02 only for a needed recording and A-00 only for a funded proof; inspect artifacts before updating claims; keep 03 source-only |
 | P1 | Five dense generic-corridor typologies need diversification; a deterministic 75-slot workbook and 12-source candidate registry now exist, with all slots unfilled and all sources training-blocked | Approve lawful immutable source snapshots, then fill the exact risk/benign/counterfactual slots with lineage and two-person adjudication; do not fabricate review |
 | P1 | Strict training quality and provenance are red | Close the curation queue, regenerate dependent artifacts sequentially, then append a new registry record through the normal path |
-| P2 | The primary generation router has an enforceable ledger, but direct package/application/standalone and self-contained notebook clients are not universally intercepted | Migrate one caller at a time with a zero-transport test; design a portable notebook receipt before broad live evaluation |
+| P2 | The primary generation router has an enforceable ledger and all three scheduled model-call wrappers require it before launch, but direct package/application/other standalone and self-contained notebook clients are not universally intercepted | Migrate one caller at a time with a zero-transport test; design a portable notebook receipt before broad live evaluation |
 | P2 | Per-dimension generation is complete but judging is incomplete | Keep it isolated; resume only with a frozen allowance and close the exact coverage manifest |
 | P2 | Human review evidence is limited | Adjudicate a stratified high-severity and benign-control slice and publish agreement/disagreement policy |
 | P3 | Legacy Ruff debt remains in long benchmark files | Isolate mechanical cleanup into behavior-preserving changes with regression evidence; the former constant-value pandas Styler warnings are fixed |
@@ -387,7 +449,7 @@ for a real human access and recovery check.
 
 | Signal | Immediate containment | Recovery and evidence |
 |---|---|---|
-| Unexpected model traffic or credit use | Stop the caller, restore the zero-call guard, leave the engine stop sentinel in place, and do not retry | Identify the exact caller and retry path from sanitized metadata; reconcile provider usage privately before any resume |
+| Unexpected model traffic or credit use | Run `scripts/stop_ollama_stack.ps1`, confirm its `-Status` is green, restore the zero-call guard, and do not retry | Identify the exact caller and retry path from sanitized metadata; reconcile provider usage privately before any resume |
 | Suspected committed secret or private data | Stop publication, restrict access where possible, revoke/rotate credentials out of band, and preserve a minimal incident timeline | Use category/count-only scanning; coordinate any history rewrite explicitly and verify mirrors/releases separately |
 | Worker-facing PII in an artifact | Quarantine the artifact and stop its distribution without echoing the payload | Review provenance, remove at the source, regenerate fail-closed, and document category/count and affected artifact hashes |
 | Handoff or generated state disagrees with live state | Treat saved state as historical and pause mutation | Re-run pickup, engine-status, Git, process, and artifact-hash checks; regenerate only from authoritative inputs |
@@ -417,8 +479,8 @@ check every item:
 
 - [ ] The successor can run the handoff and core scopes in a fresh shell and
       explain every failure, skip, and warning.
-- [ ] Live paused state has been checked; no saved handoff was treated as proof
-      of current engine/process state.
+- [ ] Live whole-stack cost-stop state has been checked; no saved handoff was
+      treated as proof of current task, sentinel, or process state.
 - [ ] Active, optional, and archived Kaggle surfaces are correctly identified.
 - [ ] The successor can explain the workbench, benchmark, data, and propose-only
       entity-intelligence boundaries.
@@ -431,5 +493,5 @@ check every item:
       model-credit budget of zero unless separately approved.
 
 Until acceptance is complete, the safe default is preservation mode: keep the
-engine paused, make deterministic maintenance changes only, publish no new model
-or training claim, and retain all provenance.
+whole model/flywheel stack cost-stopped, make deterministic maintenance changes
+only, publish no new model or training claim, and retain all provenance.

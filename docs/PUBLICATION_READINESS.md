@@ -13,7 +13,7 @@ model run. Current as of 2026-07-27.
 | Existing dated benchmark and learning-study results | Retained as bounded evidence with their original model, dataset, rubric, and date | Do not silently relabel an old result as a new model or field-effectiveness result. |
 | New fine-tuning dataset | **Not clean yet:** the strict audit reports five dense single/generic-corridor typologies; the deterministic workbook has 75 unfilled slots and no fabricated approvals | Complete source snapshots, rights review, two-person adjudication, and lineage-safe rows; rerun the audit, then refresh provenance before training or a new model claim. |
 | Exhaustive per-dimension judging | Experimental, isolated, and incomplete | Keep it out of the default comparable board until its own exact closure gate passes. |
-| Local/hosted Ollama work | Optional and deferred; the primary router now has an atomic attempt/token/cash ledger | Plan offline first; unlock a small allowance only for a frozen, priced run, and keep direct/notebook clients outside the router explicitly labeled. |
+| Local/hosted Ollama work | Optional and deferred; the whole Windows model/flywheel stack is cost-stopped and the primary router has an atomic attempt/token/cash ledger | Plan offline first; unlock a small allowance only for a frozen, priced run, and keep direct/notebook clients outside the router explicitly labeled. |
 
 ## Registry And Kaggle Publication Truth
 
@@ -124,6 +124,19 @@ Keep the current shell locked while doing deterministic work:
 $env:DUECARE_MAX_PLANNED_MODEL_CALLS='0'
 ```
 
+On the Windows automation host, also require the whole-stack receipt:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/stop_ollama_stack.ps1 -Status
+```
+
+The 2026-07-27 live audit found that the discovery and server-automation
+daemons had continued independently after the autonomous engine pause. No
+repo-local provider ledger covered that background period, so its historical
+usage is unknown and must be reconciled privately at the provider. The current
+status requires all five recurring tasks disabled, all four daemon sentinels
+present, and zero verified repository daemon processes.
+
 For the rich harness, always inspect the exact incremental plan before a run:
 
 ```powershell
@@ -154,7 +167,8 @@ When model work resumes, use this order:
 1. Freeze the prompt-set hash, model IDs/revisions, harness/rubric versions,
    shuffle seed, maximum output tokens, and expected artifact paths.
 2. Run deterministic gates and `--plan` first.
-3. Unlock only the sampled allowance needed for a small stratified smoke run.
+3. Configure the finite shared provider ledger, then unlock only the sampled
+   allowance and exact caller needed for a small stratified smoke run.
 4. Reuse successful generation and component checkpoints. Never discard a
    resumable cache merely to restart cleanly.
 5. Retry only transient timeouts or service failures. Do not retry quota,
@@ -339,17 +353,20 @@ worker-facing answers, benchmark labels, or training rows automatically.
 
 ## Deliberate Stops And Known Non-Blockers
 
-- The autonomous engine is intentionally paused. A stale lock is normal while
-  the stop sentinel exists; do not remove the sentinel or run `-Run` merely to
-  make status look cleaner.
+- The whole model/flywheel stack is intentionally cost-stopped. A stale engine
+  lock is normal while its sentinel exists; do not remove any sentinel,
+  re-enable a task, or run a daemon merely to make status look cleaner. Use
+  `scripts/stop_ollama_stack.ps1 -Status` for host truth.
 - Generation for the exhaustive per-dimension lane is complete, but judging is
   incomplete. Its partial coverage is useful research evidence, not default
   board closure and not a core-publication blocker.
 - The training gate is red because of corridor coverage and the resulting
   stale fingerprints in an older planned registry record. This is a truthful
   provenance stop, not a reason to rewrite the ledger.
-- The integrated `packages tests` regression passed 4,627 tests with nine
-  skips and no warning summary in the clean, locked 18-package workspace. The
+- The integrated `packages tests` regression passed 4,630 tests with nine
+  skips and no warning summary in the locked 18-package workspace. Mocked and
+  loopback provider tests explicitly isolate their fake transports while the
+  real zero-call denial tests remain enabled. The
   focused package follow-up also passes 43 tests with `RuntimeWarning`
   promoted to an error, proving the former
   constant-value pandas Styler warnings are removed rather than hidden.

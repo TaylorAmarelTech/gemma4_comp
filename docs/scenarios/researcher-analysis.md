@@ -251,7 +251,8 @@ If you use Duecare in academic work, please cite:
 
 If your work specifically uses the harness-lift methodology in
 [`docs/harness_lift_report.md`](../harness_lift_report.md),
-also cite the rubric DOI (TBD on rubric publication).
+cite the repository commit, dated report, rubric version, prompt-set hash, and
+judge/model identifiers. No rubric DOI has been minted; do not invent one.
 
 ## Adjacent reads
 

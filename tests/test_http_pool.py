@@ -120,6 +120,13 @@ def _fresh_pool(monkeypatch):
     monkeypatch.setattr(lg, "_HTTP_POOL", lg._ConnPool(16))
     monkeypatch.setattr(lg, "_HTTP_POOL_ENABLED", True)
     monkeypatch.setattr(lg.urllib.request, "getproxies", lambda: {})
+    # This module's transport is a loopback test server, never a provider.
+    # Ambient operator budget locks must not prevent the local pool exercise.
+    monkeypatch.setattr(
+        lg.provider_budget,
+        "environment_ledger",
+        lambda: lg.provider_budget.DisabledProviderBudget(),
+    )
 
 
 def _post(url, timeout=5):

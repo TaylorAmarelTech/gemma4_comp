@@ -25,9 +25,10 @@
   website (`duecare-ai.com`) with a standardized story and a Data page.
 - **Flywheel:** generation is complete for the 78,719-prompt exhaustive scope;
   per-dimension judging is partial and isolated. The engine is intentionally
-  paused behind a stop sentinel and **does not auto-resume**; Taylor must
-  explicitly request `scripts/autonomous_engine.ps1 -Run` after a live
-  provider preflight.
+  paused, and the full model/flywheel stack is cost-stopped behind four
+  sentinels with all five recurring tasks disabled. All three scheduled model callers
+  require a finite provider-budget preflight before launch. Resume requires
+  explicit current authorization; the partial lane does not auto-resume.
 - **Gaps to close (the "anchors"):** a human expert gold-set, a perturbation/contamination set,
   on-device measurement, and the current 25-task / 75-row corridor-diversity
   curation queue. Evals-as-CI is now implemented as described below.

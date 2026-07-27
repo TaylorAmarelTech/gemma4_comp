@@ -50,6 +50,10 @@ HANDOFF_MARKERS: tuple[str, ...] = (
     "PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md",
     "DUECARE_MAX_PLANNED_MODEL_CALLS",
     "validate_publication_readiness.py --scope handoff",
+    "## 2026-07-27 Whole-stack Cost-stop Correction",
+    "stop_ollama_stack.ps1 -Status",
+    "DueCareFlywheelManager",
+    "reports/cost_stop_status.json",
 )
 
 TRANSITION_MARKERS: tuple[str, ...] = (
@@ -253,6 +257,8 @@ def public_continuity_surface_findings(root: Path = ROOT) -> list[str]:
         "PUBLICATION_READINESS",
         "docs-deploy.yml",
         "duecare-site-build.yml",
+        "Model/flywheel stack",
+        "stop_ollama_stack.ps1 -Status",
     ):
         if marker not in template:
             findings.append("project status content incomplete")
