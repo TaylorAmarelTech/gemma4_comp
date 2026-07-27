@@ -24,7 +24,8 @@ pip install "duecare-llm-kit[all]"
 pip install -e packages/duecare-llm-kit
 ```
 
-Core dependencies are just `numpy`, `pandas`, and `matplotlib`; everything runs offline and CPU-only
+Core dependencies are `numpy`, `pandas`, `matplotlib`, and `Jinja2` (required by pandas Styler for
+the HTML table/report helpers); everything runs offline and CPU-only
 (no GPU, no model, no API key). seaborn/plotly/scipy are optional -- the helpers fall back to
 matplotlib when they are absent.
 

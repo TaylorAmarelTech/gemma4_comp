@@ -1,16 +1,16 @@
-<nav class="nav">
+<nav class="nav" aria-label="Primary">
   <div class="nav-inner">
-    <a href="/" class="brand"><span class="brand-mark">D</span> DueCare AI</a>
+    <a href="/" class="brand" aria-label="DueCare AI home"><span class="brand-mark" aria-hidden="true">D</span> DueCare AI</a>
     <div class="nav-links">
-      <a href="/mission"{% if active_nav == "mission" %} class="on"{% endif %}>Mission</a>
-      <a href="/demo"{% if active_nav == "demo" %} class="on"{% endif %}>Demo</a>
-      <a href="/use-cases"{% if active_nav == "use-cases" %} class="on"{% endif %}>Use cases</a>
-      <a href="/setup"{% if active_nav == "setup" %} class="on"{% endif %}>Get started</a>
-      <a href="/hub"{% if active_nav == "hub" %} class="on"{% endif %}>Hub</a>
-      <a href="/evaluation"{% if active_nav == "evaluation" %} class="on"{% endif %}>Results</a>
-      <a href="/data"{% if active_nav == "data" %} class="on"{% endif %}>Data</a>
-      <a href="/docs"{% if active_nav == "docs" %} class="on"{% endif %}>Docs</a>
-      <a href="/stats"{% if active_nav == "stats" %} class="on"{% endif %}>Stats</a>
+      <a href="/mission"{% if active_nav == "mission" %} class="active" aria-current="page"{% endif %}>Mission</a>
+      <a href="/demo"{% if active_nav == "demo" %} class="active" aria-current="page"{% endif %}>Demo</a>
+      <a href="/use-cases"{% if active_nav == "use-cases" %} class="active" aria-current="page"{% endif %}>Use cases</a>
+      <a href="/setup"{% if active_nav == "setup" %} class="active" aria-current="page"{% endif %}>Get started</a>
+      <a href="/hub"{% if active_nav == "hub" %} class="active" aria-current="page"{% endif %}>Hub</a>
+      <a href="/evaluation"{% if active_nav == "evaluation" %} class="active" aria-current="page"{% endif %}>Results</a>
+      <a href="/data"{% if active_nav == "data" %} class="active" aria-current="page"{% endif %}>Data</a>
+      <a href="/docs"{% if active_nav == "docs" %} class="active" aria-current="page"{% endif %}>Docs</a>
+      <a href="/stats"{% if active_nav == "stats" %} class="active" aria-current="page"{% endif %}>Stats</a>
     </div>
     <a href="/contribute" class="nav-cta">Get involved <span aria-hidden="true">&rarr;</span></a>
   </div>

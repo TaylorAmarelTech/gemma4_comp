@@ -10,6 +10,24 @@ the meta `duecare-llm` package tracking the workspace lockstep.
 
 ## Unreleased
 
+- Added the public `/project-status` continuity page and reconciled deployment
+  ownership: Render serves the website, MkDocs owns GitHub Pages, and the static
+  website workflow emits artifacts without competing for Pages.
+- Declared Jinja2 as a required `duecare-llm-kit` runtime dependency so pandas
+  Styler report tests pass in the minimal evals-as-CI installation.
+- Avoided undefined pandas Styler gradients and bars for constant-value columns,
+  removing the report suite's three runtime warnings without hiding warnings.
+- Added a durable maintainer handoff, dated 30-day transition plan, and
+  maintenance-mode fallback for ownership transfer by 2026-08-25.
+- Added a read-only, privacy-safe handoff validator and a separate model-free
+  publication `handoff` scope that composes it with live pickup validation.
+- Added a single offline publication-readiness gate, reviewer wrap-up, and
+  explicit strict-training lane so release claims stay green/red by scope.
+- Made `scripts/verify.py` work directly from an uninstalled source checkout.
+- Made rich-harness planning non-mutating and added an opt-in startup ceiling
+  for planned logical model calls, including a zero-call environment lock.
+- Recorded the current five-typology corridor shortcut blocker as a 25-task,
+  75-row privacy-safe curation plan instead of spending model quota on it.
 - Hub URL swap: once `https://duecare-ai.com/api/submit/knowledge`
   resolves with TLS, swap the default hub URL away from the
   `gemma4-comp.onrender.com` placeholder in both share templates.

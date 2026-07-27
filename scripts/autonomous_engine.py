@@ -314,7 +314,14 @@ def _coverage_manifest_summary(path: pathlib.Path | None = None) -> dict[str, ob
         return {**info, "status": "invalid", "complete": False}
     scope = doc.get("scope") if isinstance(doc.get("scope"), dict) else {}
     expected = doc.get("expected") if isinstance(doc.get("expected"), dict) else {}
-    coverage = doc.get("coverage") if isinstance(doc.get("coverage"), dict) else {}
+    final_coverage = doc.get("coverage") if isinstance(doc.get("coverage"), dict) else {}
+    baseline_coverage = (
+        doc.get("baseline_coverage") if isinstance(doc.get("baseline_coverage"), dict) else {}
+    )
+    # A running closure manifest has only baseline_coverage; the runner writes the final coverage
+    # block after its immutable end-of-run audit. Surface the live aggregate counts without allowing
+    # baseline evidence to satisfy the exact-closure gate.
+    coverage = final_coverage or baseline_coverage
     response_cells = coverage.get("response_cells") if isinstance(coverage.get("response_cells"), dict) else {}
     panel_cells = coverage.get("panel_cells") if isinstance(coverage.get("panel_cells"), dict) else {}
     dimensions = coverage.get("dimension_outputs") if isinstance(coverage.get("dimension_outputs"), dict) else {}
@@ -341,7 +348,10 @@ def _coverage_manifest_summary(path: pathlib.Path | None = None) -> dict[str, ob
         "dimension_outputs": dimensions,
         "progress_estimate": doc.get("progress_estimate") if isinstance(doc.get("progress_estimate"), dict) else {},
         "phase_counts": doc.get("phase_counts") if isinstance(doc.get("phase_counts"), dict) else {},
-        "complete": bool(doc.get("status") == "complete" and coverage.get("complete") is True),
+        "failure_summary": doc.get("failure_summary") if isinstance(doc.get("failure_summary"), dict) else {},
+        "complete": bool(
+            doc.get("status") == "complete" and final_coverage.get("complete") is True
+        ),
     }
 
 
@@ -1547,7 +1557,8 @@ def update_plan(st: dict, current) -> None:
         "- **Status:** `scripts/autonomous_engine.ps1 -Status` reports state cursor/queue health, the current job, active runner cell counts, candidate-dimension sweep readiness, pause sentinel, lock liveness, whether the latest saved preflight blockers still match current state without calling Ollama, and whether that saved readiness was launch-scoped or state-only; missing, unreadable, or state-stale preflight reports are flagged as unmatched and include a pause-safe refresh command.",
         "- **Preflight:** `scripts/autonomous_engine.ps1 -Preflight` checks sentinel, lock, state cursor/queue shape, full promptset, panel, dimension candidates, and Ollama before restart, fails closed on malformed state, malformed candidate-dimension JSONL, plus unreadable or stale review artifacts, then writes `reports/autonomous_engine_preflight.json`. Add `-IgnoreStopSentinel` to preview launch readiness while paused. `-NoOllamaCheck` writes a `state_only` diagnostic report and returns a non-launch exit code even when state checks pass; the wrapper preserves the Python exit code in `$LASTEXITCODE`, and `powershell -File` callers receive the same process exit code.",
         "- **Startup gate:** normal wrapper launches preflight before detach while treating the pause sentinel as an ignored launch blocker; it removes the sentinel only after readiness passes. `-NoOllamaCheck` / `--no-ollama-check` is state-only for preflight diagnostics and is refused for normal startup execution (`-Run`, `-Once`, or direct Python loop mode). The Python engine also preflights before taking the lock or starting a tick. Emergency override is `--skip-startup-preflight`.",
-        "- **Watchdog:** `scripts/autonomous_engine.ps1 -Register` installs a pause-preserving Task Scheduler launcher (`-WatchdogRun`) that does not ignore or remove `reports/autonomous_engine.stop`; registration and later watchdog ticks do not resume paused judging.",
+        "- **Watchdog:** `scripts/autonomous_engine.ps1 -Register` installs a pause-preserving Task Scheduler launcher (`-WatchdogRun`). While `reports/autonomous_engine.stop` exists, watchdog ticks exit successfully before preflight: they do not call Ollama, rewrite readiness evidence, remove the sentinel, or resume judging.",
+        "- **Stall manager:** `scripts/manage_flywheel.ps1` watches successful JSONL/SQLite progress plus the aggregate-only coverage heartbeat. Fresh failure telemetry proves the runner is alive during a provider outage and prevents a false destructive restart; `-CheckOnly` reports the decision without restarting.",
         "- **Restart:** explicitly run `scripts/autonomous_engine.ps1 -Run`; the wrapper verifies launch readiness, then removes `reports/autonomous_engine.stop` and resumes from the state file + panel - no rework.",
         "- **Code reload:** `scripts/autonomous_engine.ps1 -Restart` verifies the lock PID belongs to this repository's engine, stops only that process tree, and relaunches from JSONL/SQLite checkpoints.",
         "- **Launch:** `scripts/autonomous_engine.ps1 -Run` (loads .env, recovery venv, detaches).",

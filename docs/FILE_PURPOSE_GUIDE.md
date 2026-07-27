@@ -24,10 +24,12 @@ published evidence.
 |---|---|
 | Repository top level | `README.md`, `ROOT_FILES.md`, `docs/REPO_LAYOUT.md`, this guide |
 | Kaggle kernels | `kaggle/_INDEX.md`, `kaggle/README.md`, `kaggle/NOTEBOOK_PURPOSE_AND_RUNBOOK.md` |
-| Public website | `apps/duecare-ai.com/README.md`, page templates, route tests |
+| Public website | `apps/duecare-ai.com/README.md`, `/project-status`, page templates, route and static-export tests |
 | Python packages | Each package `README.md`, package tests, generated component docs |
 | Agent handoff | `AGENTS.md`, `CLAUDE.md`, `PROJECT_BIBLE.md`, `Plans.md`, `.claude/rules/` |
+| Maintainer succession | `docs/MAINTAINER_HANDOFF.md`, `docs/PROJECT_TRANSITION_PLAN.md` |
 | Competition docs | `docs/FOR_KAGGLE_JUDGES.md`, `docs/kaggle_writeup_paste_ready.md`, `docs/kaggle_post_networked_knowledge_sharing.md`, `docs/video_script.md` |
+| Publication and peer review | `docs/PUBLICATION_READINESS.md`, `docs/FOR_PEER_REVIEW.md`, `docs/reproducibility.md` |
 
 ## Generated Module Metadata
 
@@ -55,6 +57,13 @@ added to `ROOT_FILES.md` with a durable reason.
 
 Durable training helpers in `scripts/` must be discoverable from
 `docs/training_and_finetuning.md`. For example,
+`scripts/validate_publication_readiness.py` is the model-free release wrapper:
+its core scope composes the portable public, claim, Kaggle, and collection
+gates; its handoff scope composes succession and live-pickup checks; and its
+separate training scope preserves an honest red result when strict dataset or
+provenance checks are not yet clean. `scripts/validate_maintainer_handoff.py`
+checks the two current succession documents, their discovery/local links, and
+privacy-safe content without calling a model or network service.
 `scripts/ollama_adversarial_flywheel.py` is the local Ollama candidate producer:
 it may generate SFT/DPO candidates and quarantine metadata, but its manifest
 must remain candidate-only until the normal training and publication gates pass.
@@ -121,6 +130,7 @@ Archived reference material:
 
 - `kaggle/_archive/notebooks/03-duecare-video-pitch`
 - `kaggle/_archive/notebooks/A-01` through `A-24`
+- `kaggle/_archive/notebooks/A-30-cot-gpu-training`
 
 Do not add appendix `A-*` folders at the root of `kaggle/` except the active
 `A-00-omni-experiment-workbench`. The only root `04-*` folder should be

@@ -1,7 +1,12 @@
 ﻿# Manual TODO Checklist
 
-Current as of 2026-07-14. This list is intentionally limited to actions that
+Current as of 2026-07-26. This list is intentionally limited to actions that
 cannot be completed by local code edits alone.
+
+The complete succession/access list is in
+[`PROJECT_TRANSITION_PLAN.md#owner-only-actions`](PROJECT_TRANSITION_PLAN.md#owner-only-actions),
+with acceptance and recovery steps in
+[`MAINTAINER_HANDOFF.md`](MAINTAINER_HANDOFF.md).
 
 ## 1. Final Official Competition Check
 
@@ -19,6 +24,10 @@ cannot be completed by local code edits alone.
   `docs/video_script.md`, and the submission text before final submission.
 
 ## 2. Run The Two Primary Demo Kernels
+
+These are optional while model credits/quota are being preserved. The current
+repository wrap-up does not depend on rerunning them; run them only for a new
+recording or deliberately versioned evidence release.
 
 Active scope is exactly:
 
@@ -57,9 +66,16 @@ fine-tuned, 41.2% fine-tuned + harness. For archival quality:
 
 ## 5. Final Pre-Submit Checks
 
-- Run the focused contract gate in `docs/FOR_PEER_REVIEW.md`.
+- Run `python scripts/validate_publication_readiness.py --scope handoff` and
+  preserve its receipt with the ownership-transfer record.
+- Run `python scripts/validate_publication_readiness.py --scope core` and keep
+  its exact receipt with the release commit.
+- Decide explicitly whether the release makes no new training claim or waits
+  for the 75-row corridor-diversification queue and strict training gate.
 - Confirm `git status` is clean after committing and pushing.
 - Confirm GitHub shows the final commit.
 - Confirm Kaggle notebooks use the intended commit or attached wheel version.
 - Confirm the writeup references the current active Kaggle path, not archived
   A-series notebook-era material.
+- Reconcile package versions, `CITATION.cff`, changelog, and tag as one release
+  decision; do not inherit a version from an unrelated package by accident.

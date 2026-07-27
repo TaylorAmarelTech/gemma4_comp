@@ -12,6 +12,7 @@ __pycache__/
 .Python
 build/
 dist/
+/site/
 *.egg-info/
 *.egg
 .eggs/
@@ -53,6 +54,7 @@ skunkworks/
 # IDE / editors
 .vscode/
 .idea/
+examples/**/.claude/
 *.swp
 *.swo
 *~
@@ -62,6 +64,7 @@ Thumbs.db
 # Local AI-agent state. Keep .claude/rules tracked, but never commit
 # transient session logs or nested app-local agent state.
 .claude/sessions/
+.claude/scheduled_tasks.lock
 apps/**/.claude/
 packages/**/.claude/
 

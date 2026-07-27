@@ -1,6 +1,6 @@
 # Readiness Dashboard
 
-Current as of 2026-07-15. This replaces the historical 2026-05-02
+Current as of 2026-07-26. This replaces the historical 2026-05-02
 appendix-ladder dashboard; the active submission scope is now the active Kaggle
 Gemma 4 path.
 
@@ -35,6 +35,9 @@ and [`kaggle/_INDEX.md`](../kaggle/_INDEX.md).
 
 | Area | Current State |
 |---|---|
+| Offline publication core | 8/8 composed gates passed on 2026-07-26; rerun `python scripts/validate_publication_readiness.py --scope core` on the release commit. |
+| Broad tests | Combined `packages tests`: 4,601 passed, 4 skipped before final branch integration. The follow-up 43-test kit run passes with `RuntimeWarning` promoted to an error; rerun the combined command on the integrated revision. |
+| New training readiness | Intentionally red: five dense generic-corridor typologies; 25 privacy-safe curation tasks and a 75-row minimum expansion target. |
 | Harness contract | Documented in [`harness_ecosystem.md`](harness_ecosystem.md), [`harness_pattern.md`](harness_pattern.md), and [`harness_standard_contract.md`](harness_standard_contract.md). |
 | Model loading | Standardized through [`Gemma4Runtime.load()`](model_loading_trace.md) for inference, with active A-00 training as the only direct FastModel exception. |
 | Active A-00 default harness | `chat_no_online`: Persona + GREP + RAG/context + deterministic tools, with internet/import off. |
@@ -44,18 +47,22 @@ and [`kaggle/_INDEX.md`](../kaggle/_INDEX.md).
 
 ## Remaining Human Actions
 
-1. Run the two primary demo kernels on the intended GPU/runtime shape.
-2. Optional only: produce an A-00 evidence run with checkpoint/resume
+1. Freeze the intended release commit and rerun the model-free publication core.
+2. Run the two primary demo kernels on the intended GPU/runtime shape only when
+   new recording evidence is needed.
+3. Optional only: produce an A-00 evidence run with checkpoint/resume
    enabled if new proof artifacts are needed.
-3. Download `/kaggle/working` artifacts before Kaggle shutdown.
-4. Capture final demo screenshots/video clips from Kernel 01 and Kernel 02.
-5. Submit with links pointing to the current active Kaggle path.
+4. Download `/kaggle/working` artifacts before Kaggle shutdown.
+5. Capture final demo screenshots/video clips from Kernel 01 and Kernel 02.
+6. Submit with links pointing to the current active Kaggle path.
 
 The manual checklist lives in [`USER_TODO.md`](USER_TODO.md).
 
 ## Active A-00 Evidence Run Targets
 
-For a fast proof run, use 4 prompts and training disabled or a very short LoRA
+Model quota is deliberately deferred during the current wrap-up. Plan and hash
+the run first; do not start a model merely to make the dashboard greener. For a
+later fast proof run, use 4 prompts and training disabled or a very short LoRA
 smoke path. For a writeup-quality run, use the highest prompt count that fits
 inside the remaining Kaggle wall-clock budget, keep checkpoints enabled, and
 prefer a larger Gemma/frontier judge only if credentials and runtime allow.
@@ -78,9 +85,12 @@ Required exported evidence:
 | A-00 judging takes too long | Use local small Gemma for proof runs; reserve larger/frontier judges for final scoring or post-run regrade. |
 | Old docs confuse reviewers | Active entry docs now point to the current Kaggle scope; legacy roadmap docs live under `docs/_archive/`. |
 | Harness parity drifts | Contract tests pin Kernel 01 and active A-00 parity for runtime loading, default harness layers, and shared GREP/RAG/tool usage. |
+| Model quota is spent before the scope is frozen | Keep `DUECARE_MAX_PLANNED_MODEL_CALLS=0`, use the rich-harness `--plan`, and unlock only a finite sampled allowance. |
+| A new training claim learns corridor shortcuts | Clear the strict 75-row diversification target without weakening the audit threshold, then refresh append-only provenance. |
 
 ## Start Here
 
+- Stopping point and next work: [`PUBLICATION_READINESS.md`](PUBLICATION_READINESS.md)
 - Reviewer path: [`FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md)
 - Manual submitter checklist: [`USER_TODO.md`](USER_TODO.md)
 - Current Kaggle inventory: [`current_kaggle_notebook_state.md`](current_kaggle_notebook_state.md)

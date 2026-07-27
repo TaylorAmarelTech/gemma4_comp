@@ -206,6 +206,10 @@ python -c "from duecare.server import create_app; from duecare.server.state impo
 > **Copy-ready networked knowledge-sharing Kaggle post:** [`docs/kaggle_post_networked_knowledge_sharing.md`](./docs/kaggle_post_networked_knowledge_sharing.md).
 > **Video script (~2:50):** [`docs/video_script.md`](./docs/video_script.md).
 > **Audit / readiness:** [`docs/readiness_dashboard.md`](./docs/readiness_dashboard.md).
+> **Offline publication wrap-up:** [`docs/PUBLICATION_READINESS.md`](./docs/PUBLICATION_READINESS.md) - one model-free core gate, the current training-data blocker, a credit-preserving Ollama plan, vetted public-resource candidates, and the exact next sequence.
+> **Maintainer pickup:** [`docs/MAINTAINER_HANDOFF.md`](./docs/MAINTAINER_HANDOFF.md) - fresh-shell checks, architecture boundaries, routine operations, incident recovery, and transfer acceptance.
+> **30-day closeout:** [`docs/PROJECT_TRANSITION_PLAN.md`](./docs/PROJECT_TRANSITION_PLAN.md) - the dated 2026-07-26 through 2026-08-25 succession, release, access, rehearsal, and maintenance-mode plan.
+> **Public continuity status:** [`duecare-ai.com/project-status`](https://duecare-ai.com/project-status) - release-ready work, deliberate stops, deployment ownership, and future-maintainer entry points.
 > **Harness lift report:** [`docs/harness_lift_report.md`](./docs/harness_lift_report.md) - quantifies how the safety layers change rubric scores.
 > **Corpus coverage:** [`docs/corpus_coverage.md`](./docs/corpus_coverage.md) - coverage matrices across category, sector, corridor, and ILO indicator.
 > **Stretch Android path:** [`docs/android_app_architecture.md`](./docs/android_app_architecture.md) - DueCare Journey, the on-device companion.
@@ -378,7 +382,20 @@ pip install duecare-llm-core duecare-llm-domains duecare-llm-tasks duecare-llm-a
 uv sync --all-packages
 ```
 
-### Run locally with Ollama (recommended for development)
+### Optional local model run (after the offline checks)
+
+Preserve model credits/quota while reviewing the repository:
+
+```powershell
+$env:DUECARE_MAX_PLANNED_MODEL_CALLS='0'
+python scripts/validate_publication_readiness.py --scope core
+python scripts/rich_harness_lift.py --n 40 --plan --require-complete
+```
+
+The allowance is enforced by the rich harness and `--plan` makes no model call
+or run-artifact write. Direct Ollama helpers remain operator-controlled; see
+[Publication Readiness And Next Work](./docs/PUBLICATION_READINESS.md) before
+unlocking a bounded run.
 
 ```bash
 # 1. Install Ollama: https://ollama.com/download
