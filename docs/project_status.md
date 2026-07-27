@@ -38,15 +38,23 @@ snapshots, and older checklist/status docs are archived under
 - Root `AGENTS.md` names `master` as the release branch. Pull request 2 first
   merged the integrated closeout on 2026-07-26 (PDT), and
   [pull request 4](https://github.com/TaylorAmarelTech/gemma4_comp/pull/4)
-  merged the final public-surface reconciliation as
-  `dc313814d9f42e127b24191b7912fd521083fadd` on 2026-07-27. Its post-merge CI
-  passed both Python matrices, all 18 wheel builds, clean-room installation,
-  gitleaks, website/privacy, Kaggle, harness, and entity-intelligence jobs. A
-  release/tag remains a separate owner decision.
-- The reconciliation started from clean `master`, confirmed no model was
-  loaded in Ollama, and made no model calls. MkDocs Pages, the portable website
-  artifact, Render project status, and all six advertised schema routes were
-  verified after merge.
+  merged the public-surface reconciliation on 2026-07-27. The successor-focused
+  [pull request 5](https://github.com/TaylorAmarelTech/gemma4_comp/pull/5)
+  then merged the final wrap-up as
+  `504aec0c0ba6d3c251282e446cc6c764b4c469ce`. All 17 PR checks and all six
+  merge-triggered workflows passed, including both Python matrices, the active
+  notebook/page-source gate, all 18 wheel builds, clean-room installation,
+  gitleaks, website/privacy, Kaggle, harness, entity intelligence, and the
+  build-only multi-architecture image. A release/tag remains a separate owner
+  decision.
+- The wrap-up started from clean `master`, confirmed no model was loaded in
+  Ollama, and made no Ollama, hosted-model, or Kaggle-quota calls. The
+  [post-merge CI](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30290776307),
+  [MkDocs Pages deployment](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30290776419),
+  [portable website build](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30290776591),
+  and [build-only Docker run](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30290776019)
+  all passed. Render serves the updated project status, and the new handoff,
+  provider-budgeting, and successor-rehearsal Pages routes were verified live.
 - The repository has a single model-free publication entry point:
   [`PUBLICATION_READINESS.md`](PUBLICATION_READINESS.md) and
   `python scripts/validate_publication_readiness.py --scope core`. All ten
@@ -66,7 +74,7 @@ snapshots, and older checklist/status docs are archived under
   `docs-deploy.yml`; the website static exporter remains an artifact workflow
   and cannot overwrite Pages. The website exposes `/project-status` as the
   public continuity entry point. Post-merge Pages, artifact, and live Render
-  route checks all passed on 2026-07-26.
+  route checks all passed on 2026-07-27.
 - The website's advertised schema URLs now have local route tests instead of
   pointing at 404s. Kaggle pages show point-in-time run status and distinguish
   public notebooks from private owner-side drafts.
