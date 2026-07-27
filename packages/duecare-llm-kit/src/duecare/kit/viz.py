@@ -130,11 +130,24 @@ def pretty_table(df, *, caption=None, fmt=None, gradient=None, cmap="BuGn", bars
         sty = sty.format(fmt)
     if gradient:
         cols = [c for c in gradient if c in d.columns]
-        if cols:
-            sty = sty.background_gradient(cmap=cmap, subset=cols)
+        for col in cols:
+            # Pandas divides by the value range when it renders a gradient.
+            # A constant or all-missing column therefore emits a RuntimeWarning
+            # and cannot carry meaningful color information. Leave those cells
+            # unshaded while preserving gradients for genuinely varying data.
+            finite_values = pd.to_numeric(d[col], errors="coerce").dropna()
+            if finite_values.nunique() > 1:
+                sty = sty.background_gradient(cmap=cmap, subset=[col])
     for col in (bars or []):
         if col in d.columns:
-            sty = sty.bar(subset=[col], color=(bar_color or TEAL_SOFT), align="left", width=88)
+            finite_values = pd.to_numeric(d[col], errors="coerce").dropna()
+            if finite_values.nunique() > 1:
+                sty = sty.bar(
+                    subset=[col],
+                    color=(bar_color or TEAL_SOFT),
+                    align="left",
+                    width=88,
+                )
     if highlight_row is not None:
         def _hl(row):
             return [f"background-color: {EMBER_SOFT}" if row.name == highlight_row else "" for _ in row]

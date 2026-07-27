@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "dataset_version": {
+      "panel_sample.jsonl": {
+        "n_paired": 160,
+        "rows": 960,
+        "sha256": "e005d45be858fc52f385b1e4f5e773f535871058b5c4d611b10e72f1ec7edaac"
+      },
+      "showcase_sample.jsonl": {
+        "rows": 200,
+        "sha256": "bc91cc8164ab960b201845cfbe78727467fc354f353a084f2c9ee04f799fc0f2"
+      }
+    },
+    "generated_by": "scripts/run_evals_gate.py --update-baseline",
+    "git_sha": "f0e81509",
+    "headline_model": "gemma4:31b",
+    "notes": "Deterministic snapshot. Regenerate with `python scripts/run_evals_gate.py --update-baseline` ONLY after an intended metric change; a diff here should be reviewed like code."
+  },
+  "panel": {
+    "baseline_mean": 47.033333,
+    "harness_core_mean": 89.5375,
+    "headline_lift": 42.504167,
+    "n_paired": 160
+  },
+  "showcase_verify": {
+    "baseline": {
+      "A": 0.79,
+      "B": 0.49,
+      "C": 0.945,
+      "D": 0.435,
+      "E": 1.0,
+      "mean_score_0_5": 3.66
+    },
+    "harness_core": {
+      "A": 0.95,
+      "B": 1.0,
+      "C": 0.995,
+      "D": 0.765,
+      "E": 1.0,
+      "mean_score_0_5": 4.71
+    },
+    "lift": {
+      "A": 0.16,
+      "B": 0.51,
+      "C": 0.05,
+      "D": 0.33,
+      "E": 0.0,
+      "mean_score_0_5": 1.05
+    },
+    "n": 200
+  },
+  "tolerances": {
+    "exact": 0.0,
+    "mean_verify_score": 0.1,
+    "panel_lift": 1.0,
+    "panel_mean": 1.0,
+    "pass_rate": 0.03,
+    "verify_lift": 0.03
+  }
+}

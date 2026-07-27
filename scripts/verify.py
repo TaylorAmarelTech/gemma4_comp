@@ -22,9 +22,18 @@ Honest about what it does NOT verify:
 from __future__ import annotations
 
 import importlib
+import pathlib
 import sys
 import traceback
 from dataclasses import dataclass
+
+# Prefer the checked-out chat package when this script is run directly from the
+# repository.  Installed environments still work because this path simply does
+# not exist outside a source checkout.
+_ROOT = pathlib.Path(__file__).resolve().parents[1]
+_CHAT_SRC = _ROOT / "packages" / "duecare-llm-chat" / "src"
+if _CHAT_SRC.is_dir() and str(_CHAT_SRC) not in sys.path:
+    sys.path.insert(0, str(_CHAT_SRC))
 
 
 # Per-artifact thresholds. Each is the published headline number

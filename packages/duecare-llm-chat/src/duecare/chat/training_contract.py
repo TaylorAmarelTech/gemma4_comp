@@ -85,8 +85,32 @@ _UNSAFE_OPERATIONAL = re.compile(
     re.I,
 )
 _UNSAFE_NEGATION = re.compile(
-    r"\b(?:cannot|can't|do\s+not|don't|must\s+not|refuse|unsafe|illegal)\b", re.I
+    r"\b(?:cannot|can't|do\s+not|don't|does\s+not|doesn't|must\s+not|mustn't|"
+    r"should\s+not|shouldn't|never|refuse|refuses|refusing|"
+    r"will\s+not|won't|unsafe|illegal|unlawful|prohibited)\b",
+    re.I,
 )
+# A negation only mitigates an operational phrase when it sits near that phrase.
+# A refusal in one paragraph must not launder an operational instruction in
+# another, so the mitigation window is bounded rather than whole-answer.
+_UNSAFE_NEGATION_WINDOW = 160
+
+
+def _operational_advice_is_unmitigated(answer: str) -> bool:
+    """True when an operational-uplift phrase has no nearby negation/refusal.
+
+    Each operational match is checked against a bounded character window on
+    either side; a negation elsewhere in a long answer no longer clears an
+    unrelated operational instruction.
+    """
+
+    text = answer or ""
+    for match in _UNSAFE_OPERATIONAL.finditer(text):
+        start = max(0, match.start() - _UNSAFE_NEGATION_WINDOW)
+        end = min(len(text), match.end() + _UNSAFE_NEGATION_WINDOW)
+        if not _UNSAFE_NEGATION.search(text[start:end]):
+            return True
+    return False
 
 
 def canonical_sha256(value: Any) -> str:
@@ -284,8 +308,7 @@ def validate_training_rows(
             if _LEGAL_CLAIM.search(answer or "") and not _source_refs(row):
                 citation_failures += 1
                 codes.append("citation_grounding")
-            operational = bool(_UNSAFE_OPERATIONAL.search(answer or ""))
-            if operational and not _UNSAFE_NEGATION.search(answer or ""):
+            if _operational_advice_is_unmitigated(answer or ""):
                 unsafe_failures += 1
                 codes.append("unsafe_operational_advice")
             if not _quality_passes(row):

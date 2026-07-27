@@ -17,10 +17,10 @@ Each active kernel is intended to be copied into Kaggle, run on T4 x2 with Inter
 Version boundary reviewed 2026-07-15: the A-00 Kaggle URL is live and the
 public notebook attaches `taylorsamarel/duecare-proof-finetuning-data`. The
 proof dataset is ready on Kaggle; the run still needs a terminal Kaggle status
-plus artifact review before it is cited as a completed proof run. No
-production adapter is attached. Two advanced training-data releases and nine
-companion learning notebooks are public; those artifacts do not by themselves
-prove a trained model or model improvement.
+plus artifact review before it is cited as a completed A-00 proof run. A
+separate, deliberately small Gemma 4 adapter study is public and is bounded as
+a learning artifact. Five public training-data/evidence datasets and expanded
+companion notebooks are available; their exact claims are listed below.
 
 ## Optional Evaluation Surface
 
@@ -70,6 +70,9 @@ Kaggle version 4 was made public on 2026-07-15.
 |---|---|---|---|
 | [`taylorsamarel/duecare-multiperspective-finetuning-corpus`](https://www.kaggle.com/datasets/taylorsamarel/duecare-multiperspective-finetuning-corpus) | 25,600 supervised fine-tuning train, 25,600 preference train, 2,048 validation, and 2,048 test rows | Candidate `7cc7573e34aa9300`; release-manifest SHA-256 `ea644df422d9e8c43003805f49a227d441e3a952d6deb3ea3e6fb3b6b579211d` | Public Kaggle version 4; downloaded explorer output verifies 15 Portable Network Graphics charts and 7 comma-separated-value tables |
 | [`taylorsamarel/duecare-measured-response-training-corpus`](https://www.kaggle.com/datasets/taylorsamarel/duecare-measured-response-training-corpus) | 791 supervised fine-tuning rows and preference pairs (649/66/76), 1,582 reward rows, and raw-text-free inventory/quarantine | Candidate `7fc563c8d583fd7a`; release-manifest SHA-256 `56fa69c19990c524002e4f91b833faef58648a66d87729a8f4c61dd56722b74b` | Public Kaggle version 4; downloaded explorer output verifies 11 charts and 10 tables; benchmark-contaminated for independent evaluation |
+| [`taylorsamarel/duecare-measured-review-curriculum-200k`](https://www.kaggle.com/datasets/taylorsamarel/duecare-measured-review-curriculum-200k) | 207,680 supervised training rows, 207,680 preference-training pairs, 528 validation rows, and 608 test rows | Candidate `37e5e6108f549150e966f0485dad77b2cb05f223df399d185cc8dc62c2b26547`; release-manifest SHA-256 `1b062ce12fe43494f7d63659a53017c857e0ac0103759d8f71b3340f63bdc2b7` | Public; synthetic descendants preserve parent hashes and must not be counted as independent examples |
+| [`taylorsamarel/duecare-gemma4-adapter-learning-study`](https://www.kaggle.com/datasets/taylorsamarel/duecare-gemma4-adapter-learning-study) | Two real local Gemma 4 E2B Low-Rank Adaptation runs, relative adapter weights, optimization logs, paired outputs, four-arm evidence, two frozen frontier-judge audits, and a checksummed broader harness receipt | Release-manifest SHA-256 `4c300a3b277009e1488979bb6579859a59f0dbfeecf4c31a0d4251ea837572f4`; 12-step adapter SHA-256 `dae76f3b29e529916f95a88af5ed5da36c8081521076b219ba3c36043eaf4d43`; 60-step adapter SHA-256 `93fcb82460b8d7ae21737e1cd88fea711cb8c1f3ee5e82d4f313edc54bcc5347` | Public learning study; narrow format result, 6/6 recorded harmful-request harness wins, +1.73/10 over 911 paired benchmark prompts, and +4.39/10 over 140 adversarial transforms; no field-detection claim |
+| [`taylorsamarel/duecare-grounded-byte-model-learning-study`](https://www.kaggle.com/datasets/taylorsamarel/duecare-grounded-byte-model-learning-study) | Two complete byte-level transformers initialized from random weights, directly loadable model configs and NumPy archives, six graphics, learning curves, before/after text, and exact reload receipts | Release-manifest SHA-256 `9bc416a67de030243429857fa7af4ee7087bead4c85ef2566a3838f6f95e7d4a`; model SHA-256 values `bf24e8782d8bfd08e5ba4d68163f356fc0763c906a9da4e6f809be2e36a3a629` and `5db70df032b7b1dbc1c98eaeca80d81390fcc7a3c23c8b08e029b5c930afb830` | Public central-processing-unit mechanism study; no pretrained checkpoint, adapter, or domain-lift claim |
 
 Reviewer notebook route:
 
@@ -82,18 +85,47 @@ Reviewer notebook route:
    and [small central-processing-unit baseline](https://www.kaggle.com/code/taylorsamarel/duecare-response-quality-baseline).
 4. Review the multiperspective
    [integrity notebook](https://www.kaggle.com/code/taylorsamarel/duecare-large-corpus-integrity-and-exploration),
-   [Gemma plan and smoke preflight](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-large-corpus-plan-and-smoke),
    and [visual explorer](https://www.kaggle.com/code/taylorsamarel/duecare-large-corpus-visual-explorer).
+5. Inspect the [207,680-row curriculum atlas](https://www.kaggle.com/code/taylorsamarel/duecare-200k-curriculum-visual-atlas).
+6. Read the real-run
+   [learning curves](https://www.kaggle.com/code/taylorsamarel/duecare-gemma4-learning-curves)
+   and [four-arm before/after study](https://www.kaggle.com/code/taylorsamarel/duecare-gemma4-four-arm-before-after).
+7. Audit the [grounded lineage and training receipts](https://www.kaggle.com/code/taylorsamarel/duecare-grounded-lineage-and-training-receipts),
+   [frontier-judge measurement](https://www.kaggle.com/code/taylorsamarel/duecare-frontier-judge-measurement-audit),
+   and [integrated evidence-to-triage system and publication showcase](https://www.kaggle.com/code/taylorsamarel/duecare-training-publication-toolchain).
+8. Follow the [Gemma 4 Tensor Processing Unit training lab](https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-tpu-lora-training-lab)
+   for the quota-conscious distributed continuation.
 
-No Gemma fine-tuning, graphics-processing-unit training, adapter production,
-merged weights, or independent model-lift result is claimed by this release.
+Real Gemma 4 E2B training ran locally on a graphics processing unit and
+produced two relative adapters. The stronger run completed 60 optimizer steps,
+trained 817,152 parameters, and changed the declared structural score from
+0.516667 to 0.666667 on eight held-out grounded-remix rows, a +0.15 delta. The
+four-arm manifest is
+`ac0a3258aabca5f49f1c8d0476bbf718618e584d8938526bf36e3cad762845f3`.
+A frozen, blinded, both-orders GLM-5.2 judge study completed all 32 requested
+verdicts but did not support a positive training-lift claim. No merged weights,
+independent victim-identification or field-detection lift, legal-quality
+result, or production-ready model is claimed. A separate frozen study over the
+six recorded harmful-request pairs completed all 12 verdicts and preferred the
+DueCare harness response in every pair and presentation order.
+
+A separate central-processing-unit compatibility run initialized two
+byte-level transformers from random weights. Both complete model archives,
+now published in the [Grounded Byte Model Learning Study](https://www.kaggle.com/datasets/taylorsamarel/duecare-grounded-byte-model-learning-study),
+passed exact reload verification; held-out next-byte loss moved from 5.5479 to
+5.1164 for the 74,304-parameter arm and from 5.5990 to 4.7361 for the
+452,224-parameter arm. This is two-step mechanism evidence, not a domain-lift
+claim. The public Tensor Processing Unit notebook remains the larger execution
+route and must report its actual accelerator before any Tensor Processing Unit
+claim is made.
 
 ## Archived Notebooks
 
 The former `03-duecare-video-pitch` notebook, appendix notebooks `A-01`
-through `A-24`, and task-notebook snapshots have been moved to
-`kaggle/_archive/notebooks/`. They remain reference material only; they are
-not part of active validation, recording, or the required Kaggle run path.
+through `A-24`, the headless `A-30` GPU training snapshot, and task-notebook
+snapshots have been moved to `kaggle/_archive/notebooks/`. They remain
+reference material only; they are not part of active validation, recording,
+or the required Kaggle run path.
 
 Root `kaggle/` should not contain appendix `A-*` folders other than active
 `A-00-omni-experiment-workbench`. The only root `04-*` folder should be
@@ -106,12 +138,13 @@ A-00 now opens with two choices:
 
 | Card | Use |
 |---|---|
-| Preconfigured Harness, Training, and Evaluation | One guided pipeline: base Gemma, base+harness, candidate SFT/preference rows, manifest and held-out gates, optional LoRA SFT&rarr;DPO, trained base, trained+harness, combined Gemma+rules grading, completion manifest, and final report. |
+| Preconfigured Harness, Training, and Evaluation | One guided pipeline: base Gemma, base+harness, candidate supervised fine-tuning and preference rows, manifest and held-out gates, optional Low-Rank Adaptation (LoRA) supervised fine-tuning followed by Direct Preference Optimization (DPO), trained base, trained+harness, combined Gemma+rules grading, completion manifest, and final report. |
 | Custom | Full control surface for prompt sets, adapters, imports, research graph, knowledge packs, and partial reruns. |
 
-The current repository source adds manifest-bound SFT and preference files,
+The current repository source adds manifest-bound supervised fine-tuning and
+preference files,
 lineage-safe train/validation/holdout assignments, exact base revisions,
-privacy and licensing fields, requested-DPO enforcement, and completion
+privacy and licensing fields, requested preference-stage enforcement, and completion
 manifests. Those July changes are now pushed to the public A-00 notebook with
 the proof dataset attached. The external importer can inspect loose artifacts,
 final answers, citations, and deliberately authored visible rationales, but

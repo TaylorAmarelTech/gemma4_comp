@@ -217,11 +217,48 @@ def test_main_plan_calls_no_model_and_writes_nothing(tmp_path, monkeypatch, caps
         raise AssertionError("--plan must not call a model")
 
     monkeypatch.setattr(rh, "ollama_chat", _boom)
-    rc = rh.main(["--prompts", str(prompt_path), "--plan", "--models", "gemma4:31b",
+    rc = rh.main(["--prompts", str(prompt_path), "--plan", "--require-complete",
+                  "--models", "gemma4:31b",
                   "--judges", "gpt-oss:120b", "--reuse", str(tmp_path / "none.jsonl")])
     out = capsys.readouterr().out
     assert rc == 0
     assert "run plan (dry run" in out
     assert "TOTAL" in out
+    assert not paths["results"].exists()                  # nothing generated
     assert not paths["panel"].exists()                    # nothing graded
     assert not paths["report"].exists()                   # nothing written
+    assert not rh.coverage_manifest_path(paths["panel"]).exists()
+
+
+def test_main_planned_call_guard_blocks_before_model_or_artifact(tmp_path, monkeypatch, capsys):
+    prompt_path = tmp_path / "promptset.json"
+    prompt_path.write_text(json.dumps({"domain": "trafficking",
+                                       "prompts": [{"id": "P1", "text": "a"}]}),
+                           encoding="utf-8")
+    paths = _paths(tmp_path)
+    monkeypatch.setattr(rh, "run_paths_for_domain", lambda *a, **k: paths)
+
+    def _boom(*a, **k):
+        raise AssertionError("the startup guard must run before any model call")
+
+    monkeypatch.setattr(rh, "provider_chat", _boom)
+    rc = rh.main(["--prompts", str(prompt_path), "--max-planned-model-calls", "0",
+                  "--models", "gemma4:31b", "--judges", "gpt-oss:120b",
+                  "--reuse", str(tmp_path / "none.jsonl")])
+    captured = capsys.readouterr()
+
+    assert rc == rh.BUDGET_EXCEEDED_EXIT
+    assert "startup guard blocked the run" in captured.err
+    assert "No model was called" in captured.err
+    assert not paths["results"].exists()
+    assert not paths["panel"].exists()
+    assert not paths["report"].exists()
+    assert not rh.coverage_manifest_path(paths["panel"]).exists()
+
+
+def test_planned_call_budget_uses_cli_then_environment():
+    assert rh.planned_model_call_budget(7, {"DUECARE_MAX_PLANNED_MODEL_CALLS": "2"}) == 7
+    assert rh.planned_model_call_budget(None, {"DUECARE_MAX_PLANNED_MODEL_CALLS": "2"}) == 2
+    assert rh.planned_model_call_budget(None, {}) is None
+    with pytest.raises(ValueError, match="non-negative integer"):
+        rh.planned_model_call_budget(None, {"DUECARE_MAX_PLANNED_MODEL_CALLS": "many"})

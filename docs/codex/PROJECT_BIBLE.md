@@ -1,6 +1,6 @@
 # DueCare project bible for AI pickup
 
-> Last refreshed: 2026-07-14.
+> Last refreshed: 2026-07-26.
 > Audience: Claude Code, Codex, Fable 5-style agents, and other coding agents
 > picking up long-running DueCare improvement work after a dense session.
 
@@ -15,10 +15,16 @@ life-cycle risk.
 ## Read first
 
 1. `AGENTS.md` - active repo rules, validation commands, and safety claims.
-2. `CLAUDE.md` - Claude Code index and project memory map.
-3. `docs/codex/00_do_not_break.md` - recording-critical contract.
-4. `docs/codex/00_execution_order.md` - historical goal order and dependencies.
-5. `docs/FILE_PURPOSE_GUIDE.md` and `docs/REPO_LAYOUT.md` - update these when
+2. `docs/MAINTAINER_HANDOFF.md` - fresh-shell operations, boundaries, access,
+   recovery, and acceptance for a human successor.
+3. `docs/PROJECT_TRANSITION_PLAN.md` - dated 2026-07-26 through 2026-08-25
+   closeout, rehearsal, release decision, and maintenance-mode fallback.
+4. `docs/PUBLICATION_READINESS.md` - canonical release/evidence boundary and
+   prioritized model/data work.
+5. `CLAUDE.md` - Claude Code index and project memory map.
+6. `docs/codex/00_do_not_break.md` - recording-critical contract.
+7. `docs/codex/00_execution_order.md` - historical goal order and dependencies.
+8. `docs/FILE_PURPOSE_GUIDE.md` and `docs/REPO_LAYOUT.md` - update these when
    adding public surfaces or long-lived docs outside an existing indexed area.
 
 Claude Code also auto-loads `.claude/rules/05_project_bible_pickup.md`, a
@@ -35,6 +41,62 @@ Do not treat older archived notebook-era files as active blockers unless Taylor
 explicitly asks to restore them.
 
 ## Current operating state
+
+> **Re-verified 2026-07-26 -- read this box before trusting the 2026-07-14 snapshot below.**
+>
+> - **Branch reconciliation is complete; publication is still open.** Root
+>   `AGENTS.md` names `master` as the active branch. The working branch
+>   `codex/full-flywheel-training-20260714` now contains the latest
+>   `origin/master`, the scoped closeout commits, and a green integrated
+>   regression receipt. Pull request 2 is the canonical review boundary; verify
+>   its live state and the exact `master` SHA rather than trusting this cached
+>   note. Do not bypass review or tag an earlier commit.
+> - **Canonical stopping point:** start with
+>   `docs/PUBLICATION_READINESS.md`. Its model-free core lane passed 8/8 checks
+>   on 2026-07-26; the separate training lane intentionally remains red on five
+>   dense generic-corridor typologies, with a privacy-safe 25-task / 75-row
+>   curation plan. No new model or adapter-improvement claim is ready.
+> - **Succession is now an explicit 30-day workstream.** Use
+>   `docs/MAINTAINER_HANDOFF.md` for operational pickup and
+>   `docs/PROJECT_TRANSITION_PLAN.md` for the 2026-08-25 target. The read-only
+>   `validate_publication_readiness.py --scope handoff` composes document/link/
+>   privacy checks with live pickup consistency. It passed 2/2 gates on
+>   2026-07-26 (16/16 succession checks and the 65-check pickup validator with
+>   zero findings); it never authorizes model calls or engine resume.
+> - **Generation is COMPLETE.** `reports/rich_lift/panel_perdim.coverage.json` reports
+>   `response_cells 236,157 / 236,157, 0 missing`. Every Gemma response for 78,719 prompts x 3 arms
+>   is on disk. Only judge calls remain: `panel_cells 47,813 / 708,471` (6.7%),
+>   `dimension_outputs 239,065 / 3,542,355`. The 2026-07-14 line below saying `0 / 708,471` is
+>   superseded. **Consequence: model-free analysis over the full response set is always available,
+>   even while Ollama is capped.**
+> - **The last verified engine block was an Ollama WEEKLY usage cap, not a code fault.** The
+>   generation probe returned HTTP 429 "reached your weekly usage limit". `/api/tags` can still
+>   return 200 while capped, so reachability is NOT a quota test; explicit `-Run` rechecks provider
+>   readiness with a real `POST /api/chat` before launch.
+> - **Read engine liveness and successful progress separately.** The coverage manifest is the
+>   aggregate-only runner heartbeat, including phase/failure counts even when no judge call can
+>   complete. The SQLite sidecar is successful component progress; its mtime remained frozen at
+>   2026-07-21 00:25 through 2026-07-26. The flywheel manager now watches both signals, so a live
+>   provider-failure pass is not force-restarted merely because no panel row was appended. Nothing
+>   is lost: the sweep is resumable and the seeded shuffle keeps any completed prefix unbiased.
+> - **The engine is now cleanly PAUSED and will NOT auto-resume.** `reports/autonomous_engine.stop`
+>   was created 2026-07-24 21:28; the engine ran to `2026-07-25T05:28Z` and has been stopped since.
+>   `python scripts/autonomous_engine.py --status` reports `paused=true` with a stale lock (pid
+>   40920). Scheduled watchdog ticks now exit 0 before preflight while the sentinel exists, so they
+>   neither call Ollama nor rewrite paused readiness evidence. **Resuming requires an explicit
+>   `scripts/autonomous_engine.ps1 -Run`** -- Taylor's call; the wrapper rechecks provider readiness
+>   and removes the sentinel only after launch preflight succeeds. A state-only, no-Ollama preflight
+>   was refreshed on 2026-07-26; `validate_project_bible_pickup.py` reports 65 checks, 0 findings.
+> - **Full suite re-verified green on 2026-07-26:** the integrated combined
+>   `packages tests` run passed **4,582 tests, 9 skipped** with no warning
+>   summary. The former pandas Styler constant-range warnings are fixed; a
+>   focused 43-test package run also passed with `RuntimeWarning` promoted to
+>   an error. This supersedes the earlier separate counts and the
+>   `4147 passed, 12 skipped` line below. Two tests had been failing silently for days and were fixed
+>   (`test_next_notebooks_inherit_reusable_contracts_without_redeclaring_lists` broke when the
+>   headless A-30 GPU trainer landed at the Kaggle root before being archived;
+>   `test_no_python_scripts_live_in_repository_root` broke when
+>   `launch.py` landed). Do not claim a full pass without rerunning both commands.
 
 Verified locally on 2026-07-14 with:
 
@@ -81,14 +143,15 @@ Snapshot:
   opt-in research evidence only and must not be mixed into active v1/h1 board
   runs.
 
-The long-running loop is intentionally active under the current explicit
-instruction to grade the complete prompt registry one dimension at a time.
-Do not stop, reorder, or reset it unless Taylor explicitly asks in the current
-session or a verified integrity fault requires a crash-safe restart.
+The long-running loop was intentionally active when this 2026-07-14 snapshot
+was recorded. It is now intentionally paused as described in the re-verification
+box above. Do not resume, reorder, or reset it unless Taylor explicitly asks in
+the current session; the pause-safe watchdog behavior is part of the current
+contract.
 
-Paused-mode control contract (retained for the next intentional pause): paused status queue counts must be coherent; `lock.state: "stale"` or `"absent"` is
-expected rather than a live process, and the saved diagnostic may report
-`latest_preflight.saved_lock_state.state: "stale"`, `state_only`, and Ollama not checked. Those are pause diagnostics, not the current live snapshot above.
+Paused-mode control contract: paused status queue counts must be coherent; `lock.state: "stale"` or `"absent"` is
+expected rather than a live process, and the saved diagnostic reports
+`latest_preflight.saved_lock_state.state: "stale"`, `state_only`, and Ollama not checked. Those are the current pause-safe diagnostics above.
 
 ## Recent improvement theme
 
@@ -785,8 +848,12 @@ Before editing:
 1. Run `git status --short` and assume unrelated dirty files belong to Taylor or
    another agent.
 2. Read the nearest `AGENTS.md` for the area being touched.
-3. Inspect the relevant tests before changing behavior.
-4. Keep changes tightly scoped to the requested improvement loop.
+3. Read `docs/PUBLICATION_READINESS.md` for the current stopping point, strict
+   training blocker, and prioritized backlog.
+4. Run `python scripts/validate_project_bible_pickup.py` and
+   `python scripts/autonomous_engine.py --status`; neither calls Ollama.
+5. Inspect the relevant tests before changing behavior.
+6. Keep changes tightly scoped to the requested improvement loop.
 
 Before claiming completion:
 

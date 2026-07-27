@@ -64,7 +64,7 @@ the same Gemma 4-centered safety stack.
 | **I am on a platform safety team** | Screen risky recruitment posts, ads, profiles, and messages before workers are harmed. | [Enterprise pilot](scenarios/enterprise_pilot.md), [Deployment guide](deployment_enterprise.md), and the content screening API. |
 | **I am an NGO, caseworker, regulator, or legal-aid reviewer** | Turn messages, documents, and public rules into grounded drafts, referrals, complaint materials, and corridor updates. | [Caseworker workflow](scenarios/caseworker_workflow.md), [NGO office deployment](scenarios/ngo-office-deployment.md), and [Regulator pattern analysis](scenarios/regulator-pattern-analysis.md). |
 | **I am a migrant worker or prospective worker** | Understand suspicious offers, contracts, recruiter messages, fee demands, document retention, threats, and next steps privately. | [Worker self-help](scenarios/worker-self-help.md) and the [DueCare Journey Android releases](https://github.com/TaylorAmarelTech/duecare-journey-android/releases). |
-| **I am a researcher, evaluator, or auditor** | Reproduce model behavior, compare safety interventions, inspect pack hashes, and audit every claim from source artifacts. | [Researcher analysis](scenarios/researcher-analysis.md), [Reproducibility](reproducibility.md), and [A-00 proof path](FOR_PEER_REVIEW.md#a-00-proof-path). |
+| **I am a researcher, evaluator, or auditor** | Reproduce model behavior, compare safety interventions, inspect pack hashes, and audit every claim from source artifacts. | [Publication readiness](PUBLICATION_READINESS.md), [Researcher analysis](scenarios/researcher-analysis.md), [Reproducibility](reproducibility.md), and [A-00 proof path](FOR_PEER_REVIEW.md#a-00-proof-path). |
 | **I am sharing anonymized knowledge** | Convert reviewed local evidence into sanitized fact objects that improve shared packs without centralizing raw worker case data. | [Anonymization policy](anonymization_policy.md), [Submission labeling policy](submission_labeling_policy.md), the workbench Anonymization & Sharing page, and the [civil-society outreach loop](https://duecare-ai.com/outreach) (contribute by replying to an email). |
 | **I am a developer or integration partner** | Embed DueCare into moderation tools, NGO systems, mobile clients, dashboards, or custom workflows. | [Install guide](install.md), [Embedding guide](embedding_guide.md), [OpenAPI spec](openapi.yaml), and [Client connect](https://duecare-ai.com/client-connect). |
 
@@ -146,7 +146,9 @@ the full per-source map and connector reference live in the
 | Goal | Start |
 |---|---|
 | **Try the workbench** | Open [DueCare App on Kaggle](https://www.kaggle.com/code/taylorsamarel/duecare-app), run it, and open the Cloudflare URL. |
-| **Review the proof path** | Use [For Judges and Reviewers](FOR_PEER_REVIEW.md) and the active A-00 proof path. |
+| **Take over maintenance** | Run the read-only [Maintainer handoff](MAINTAINER_HANDOFF.md), then follow the dated [30-day transition plan](PROJECT_TRANSITION_PLAN.md). |
+| **Check public project status** | Open the website [Project status & handoff](https://duecare-ai.com/project-status), then verify its receipts against [Publication readiness](PUBLICATION_READINESS.md). |
+| **Review the proof path** | Start with the model-free [Publication readiness](PUBLICATION_READINESS.md) gate, then use [For Judges and Reviewers](FOR_PEER_REVIEW.md) and the active A-00 proof path. |
 | **Install locally** | Use [Install](install.md) and [Local deployment](deployment_local.md). |
 | **Embed in another system** | Use [Embedding guide](embedding_guide.md), [OpenAPI spec](openapi.yaml), and [Deployment enterprise](deployment_enterprise.md). |
 | **Audit claims** | Use [Reproducibility](reproducibility.md), [Notebook guide](notebook_guide.md), and the validation commands linked there. |

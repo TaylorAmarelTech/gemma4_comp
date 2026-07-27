@@ -288,6 +288,24 @@ def test_every_design_route_renders(tmp_path) -> None:
         assert "/static/styles.css" in response.text, f"{path} did not link the design CSS"
 
 
+def test_project_status_page_keeps_release_and_training_claims_separate(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    response = client.get("/project-status")
+
+    assert response.status_code == 200
+    assert "8 / 8 pass" in response.text
+    assert "2 / 2 pass" in response.text
+    assert "4,582 pass" in response.text
+    assert "Autonomous engine" in response.text and "paused" in response.text
+    assert "strict training lane is not ready" in response.text
+    assert "minimum-75-row" in response.text
+    assert "docs-deploy.yml" in response.text
+    assert "duecare-site-build.yml" in response.text
+    assert "MAINTAINER_HANDOFF" in response.text
+    assert "PROJECT_TRANSITION_PLAN" in response.text
+
+
 def test_stats_page_discloses_beta_data_and_uses_live_counters(tmp_path) -> None:
     client = TestClient(create_app(data_dir=tmp_path))
 

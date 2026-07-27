@@ -102,6 +102,24 @@ def test_run_job_passes_perdim_mode(monkeypatch):
     assert cmd[cmd.index("--prompts") + 1] == str(ae.PROMPTS_FULL)
     assert "--pairwise" not in cmd
     assert "--require-complete" in cmd
+    # Exhaustive perdim-full grading is shuffled with the fixed seed so any interim prefix of graded
+    # prompts is an unbiased random sample of the full registry.
+    assert cmd[cmd.index("--shuffle-seed") + 1] == str(ae.PERDIM_SHUFFLE_SEED)
+
+
+def test_run_job_does_not_shuffle_bounded_or_batched_jobs(monkeypatch):
+    # Only the exhaustive n=0 perdim-full closure job randomizes order; bounded/batched board jobs keep
+    # their deterministic prefix semantics, so --shuffle-seed must be absent there.
+    calls = []
+    monkeypatch.setattr(ae, "_run", lambda cmd, capture=False, timeout=None: calls.append(cmd) or _cp(cmd))
+    monkeypatch.setattr(ae, "log", lambda _msg: None)
+    monkeypatch.setattr(ae, "ensure_full_promptset", lambda: True)
+
+    assert ae.run_job("gemma4:31b", 40) is True                    # bounded batched board job
+    assert "--shuffle-seed" not in calls[0]
+    calls.clear()
+    assert ae.run_job("gemma4:31b", 0, "full", "batched") is True  # full but batched, not perdim
+    assert "--shuffle-seed" not in calls[0]
 
 
 def test_run_job_maps_retryable_incomplete_coverage_to_tristate(monkeypatch):
@@ -377,7 +395,8 @@ def test_update_plan_marks_current_job_paused_when_stop_sentinel_exists(tmp_path
     assert "gate `proposals_ready_for_manual_merge`; accepted proposals 1; ready claims 1." in text
     assert "local operator note" not in text
     assert "`scripts/autonomous_engine.ps1 -Run`" in text
-    assert "later watchdog ticks do not resume paused judging" in text
+    assert "watchdog ticks exit successfully before preflight" in text
+    assert "or resume judging" in text
 
 
 def test_main_status_reports_pause_sentinel_without_reading_note(tmp_path, monkeypatch, capsys):
@@ -877,6 +896,84 @@ def test_tick_incomplete_closure_retains_cursor_without_hard_failure_budget(tmp_
     assert "job_fails" not in st
     assert "skipped" not in st
     assert any("retaining cursor for repair pass 1" in message for message in logs)
+
+
+def test_coverage_manifest_summary_surfaces_running_baseline_counts(tmp_path):
+    path = tmp_path / "panel_perdim.coverage.json"
+    baseline = {
+        "response_cells": {"expected": 18, "complete": 18, "missing": 0},
+        "panel_cells": {"expected": 54, "complete": 7, "missing": 47},
+        "dimension_outputs": {
+            "expected": 270,
+            "complete_in_valid_panel_cells": 35,
+            "missing_from_valid_panel_cells": 235,
+        },
+        "complete": False,
+    }
+    failure_summary = {
+        "judging": {"total": 7, "categories": {"RateLimited": 7}},
+    }
+    path.write_text(json.dumps({
+        "schema": ae.COVERAGE_SCHEMA,
+        "status": "running",
+        "phase": "judging",
+        "scope": {"models": ["gemma4:31b"], "grader": "perdim"},
+        "expected": {
+            "response_cells": 18,
+            "panel_cells": 54,
+            "dimension_outputs": 270,
+        },
+        "baseline_coverage": baseline,
+        "failure_summary": failure_summary,
+    }), encoding="utf-8")
+
+    summary = ae._coverage_manifest_summary(path)
+
+    assert summary["response_cells"] == baseline["response_cells"]
+    assert summary["panel_cells"] == baseline["panel_cells"]
+    assert summary["dimension_outputs"] == baseline["dimension_outputs"]
+    assert summary["failure_summary"] == failure_summary
+    assert summary["complete"] is False
+
+
+def test_coverage_manifest_summary_requires_final_coverage_for_closure(tmp_path):
+    path = tmp_path / "panel_perdim.coverage.json"
+    complete_counts = {
+        "response_cells": {"expected": 6, "complete": 6, "missing": 0},
+        "panel_cells": {"expected": 18, "complete": 18, "missing": 0},
+        "dimension_outputs": {
+            "expected": 90,
+            "complete_in_valid_panel_cells": 90,
+            "missing_from_valid_panel_cells": 0,
+        },
+        "complete": True,
+    }
+    manifest = {
+        "schema": ae.COVERAGE_SCHEMA,
+        "status": "complete",
+        "phase": "closed",
+        "scope": {"models": ["gemma4:31b"], "grader": "perdim"},
+        "expected": {
+            "response_cells": 6,
+            "panel_cells": 18,
+            "dimension_outputs": 90,
+        },
+        "baseline_coverage": complete_counts,
+    }
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    summary = ae._coverage_manifest_summary(path)
+
+    assert summary["response_cells"] == complete_counts["response_cells"]
+    assert summary["complete"] is False
+
+    manifest["coverage"] = complete_counts
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    summary = ae._coverage_manifest_summary(path)
+
+    assert summary["response_cells"] == complete_counts["response_cells"]
+    assert summary["complete"] is True
 
 
 def test_required_closure_evidence_requires_exact_scope_hash_and_counts(tmp_path, monkeypatch):
@@ -1999,3 +2096,13 @@ def test_powershell_register_uses_pause_preserving_watchdog_mode():
     assert "($Run -or $Once -or $WatchdogRun) -and $NoOllamaCheck -and -not $SkipStartupPreflight" in text
     assert "Invoke-EnginePreflight -SkipOllama:$NoOllamaCheck -IgnoreStopSentinel:$Run" in launch_block
     assert "if ($Run) { Remove-Item $stopFile -ErrorAction SilentlyContinue }" in launch_block
+
+
+def test_powershell_watchdog_is_noop_while_pause_sentinel_exists():
+    text = (_ROOT / "scripts" / "autonomous_engine.ps1").read_text(encoding="utf-8")
+    paused_guard = "if ($WatchdogRun -and (Test-Path -LiteralPath $stopFile -PathType Leaf)) {"
+
+    assert paused_guard in text
+    assert "watchdog is a no-op until an explicit -Run" in text
+    assert text.index(paused_guard) < text.index("if ($Preflight) {")
+    assert text.index(paused_guard) < text.index("if ($Run -or $WatchdogRun) {")

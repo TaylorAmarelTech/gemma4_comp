@@ -11,7 +11,7 @@ Format follows [Michael Nygard's template](https://github.com/joelparkerhenderso
 
 | # | Title | Status |
 |---|---|---|
-| [001](./001-multi-package-pypi-split.md) | Multi-package PyPI split (17 wheels under `duecare.*` namespace) | Accepted |
+| [001](./001-multi-package-pypi-split.md) | Multi-package PyPI split (original 17 wheels; 18 current workspace members) | Accepted + 2026-07-26 amendment |
 | [002](./002-folder-per-module-pattern.md) | Folder-per-module pattern with auto-generated meta files | Accepted |
 | [003](./003-on-device-default-cloud-opt-in.md) | On-device default; cloud routing opt-in for Android | Accepted |
 | [005](./005-tenant-id-from-edge-proxy.md) | Tenant id extracted from edge proxy headers (vs in-app auth) | Accepted |

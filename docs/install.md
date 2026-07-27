@@ -160,7 +160,7 @@ make adversarial     # adversarial validation + stress test
 
 VS Code / Codespaces users: open the repo in a devcontainer for a
 fully-configured environment in 90 seconds. `.devcontainer/devcontainer.json`
-auto-installs all 17 packages, sets up Python 3.12 + uv + adb +
+auto-installs all 18 packages, sets up Python 3.12 + uv + adb +
 forwarded ports for chat/classifier/Ollama, and pins the right
 extensions.
 

@@ -34,6 +34,7 @@ Public synthetic prompts only leave the machine (rule 81); secrets come from ``.
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 from collections.abc import Iterable, Sequence
 import glob
 import hashlib
@@ -93,6 +94,9 @@ CLI_DEFAULT_GRADER = "perdim"
 # ``--require-complete`` uses a distinct retryable exit so the autonomous engine can retain the
 # current cursor without treating ordinary missing cells as a hard process failure.
 INCOMPLETE_COVERAGE_EXIT = 3
+# A startup plan that exceeds the operator's explicit logical-call allowance is
+# a policy stop, not a malformed command or a coverage failure.
+BUDGET_EXCEEDED_EXIT = 4
 PERDIM_CACHE_SCHEMA = "duecare.perdim-component-cache.v1"
 COVERAGE_SCHEMA = "duecare.rich-lift-coverage.v1"
 GROUNDED_REFUSAL_CONTRACT = (
@@ -764,6 +768,38 @@ def _utc_now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def _safe_failure_category(exc: BaseException) -> str:
+    """Return aggregate-only failure telemetry without retaining exception payloads."""
+    raw_name = getattr(type(exc), "__name__", "")
+    name = re.sub(r"[^A-Za-z0-9_.:-]+", "_", str(raw_name))[:80] or "UnknownError"
+    for attribute in ("code", "status_code"):
+        try:
+            status = getattr(exc, attribute, None)
+        except Exception:  # noqa: BLE001 - telemetry must not mask the original provider failure
+            status = None
+        if isinstance(status, int) and 100 <= status <= 599:
+            return f"{name}:http_{status}"
+    if isinstance(exc, (TimeoutError,)):
+        return "Timeout"
+    try:
+        winerror = getattr(exc, "winerror", None)
+    except Exception:  # noqa: BLE001 - telemetry must remain best-effort
+        winerror = None
+    if isinstance(winerror, int):
+        return f"{name}:winerror_{winerror}"
+    try:
+        message = str(exc).casefold()
+    except Exception:  # noqa: BLE001 - a broken __str__ must not crash failure handling
+        message = ""
+    if any(marker in message for marker in ("rate limit", "too many requests", "quota exceeded")):
+        return "RateLimited"
+    if any(marker in message for marker in ("timed out", "timeout")):
+        return "Timeout"
+    if any(marker in message for marker in ("connection refused", "connection reset", "fetch failed")):
+        return "NetworkError"
+    return name
+
+
 def _sha256_path(path: pathlib.Path) -> str | None:
     try:
         digest = hashlib.sha256()
@@ -1116,12 +1152,35 @@ class _CoverageHeartbeat:
         self.base = dict(base)
         self.last_write = 0.0
         self.phase_counts: dict[str, dict[str, int]] = {}
+        self.failure_categories: dict[str, Counter[str]] = {}
 
-    def update(self, phase: str, completed_this_pass: int = 0, failures_this_pass: int = 0,
+    def record_failure(self, phase: str, category: str) -> None:
+        safe_phase = re.sub(r"[^A-Za-z0-9_.:-]+", "_", str(phase))[:40] or "unknown"
+        safe_category = re.sub(r"[^A-Za-z0-9_.:-]+", "_", str(category))[:80] or "UnknownError"
+        self.failure_categories.setdefault(safe_phase, Counter())[safe_category] += 1
+
+    def failure_summary(self) -> dict[str, dict]:
+        return {
+            phase: {
+                "total": sum(categories.values()),
+                "categories": dict(sorted(categories.items())),
+            }
+            for phase, categories in sorted(self.failure_categories.items())
+        }
+
+    def update(self, phase: str, completed_this_pass: int | None = None,
+               failures_this_pass: int | None = None,
                *, force: bool = False) -> None:
+        previous = self.phase_counts.get(phase, {})
         self.phase_counts[phase] = {
-            "completed_this_pass": int(completed_this_pass),
-            "failures_this_pass": int(failures_this_pass),
+            "completed_this_pass": int(
+                previous.get("completed_this_pass", 0)
+                if completed_this_pass is None else completed_this_pass
+            ),
+            "failures_this_pass": int(
+                previous.get("failures_this_pass", 0)
+                if failures_this_pass is None else failures_this_pass
+            ),
         }
         now_mono = time.monotonic()
         if not force and now_mono - self.last_write < 30.0:
@@ -1146,6 +1205,7 @@ class _CoverageHeartbeat:
             "status": "running",
             "phase": phase,
             "phase_counts": self.phase_counts,
+            "failure_summary": self.failure_summary(),
             "progress_estimate": {
                 "response_cells_complete": response_estimate,
                 "response_cells_expected": int(expected.get("response_cells") or 0),
@@ -1162,7 +1222,8 @@ def generate_responses(prompts: list[dict], models: list[str], *, reuse: dict, r
                        log: Callable[[str], None], concurrency: int = CONCURRENCY_DEFAULT,
                        domain_spec: dict | None = None,
                        harness_version: str = DEFAULT_HARNESS_VERSION,
-                       progress: Callable[[int, int], None] | None = None) -> int:
+                       progress: Callable[[int, int], None] | None = None,
+                       failure_observer: Callable[[str], None] | None = None) -> int:
     """Ensure a response row for every (model, prompt, arm). Reuse baseline/harness_core; generate
     harness_full (and anything missing from reuse). Resumable + parallel. Returns #rows newly written.
 
@@ -1213,7 +1274,10 @@ def generate_responses(prompts: list[dict], models: list[str], *, reuse: dict, r
             try:
                 model, pid, arm, text, resp, latency_s, reused, gmeta = fut.result()
             except Exception as exc:  # noqa: BLE001
-                log(f"GEN FAIL {it[0]}|{it[1]}|{it[2]}: {type(exc).__name__}: {exc}")
+                category = _safe_failure_category(exc)
+                log(f"GEN FAIL {it[0]}|{it[1]}|{it[2]}: {category}")
+                if failure_observer:
+                    failure_observer(category)
                 n_failed += 1
                 if progress:
                     progress(n_new, n_failed)
@@ -1249,7 +1313,8 @@ def judge_panel(results: Iterable[dict], judges: list[str], *, panel_path: pathl
                 grader: Callable[..., dict] | None = None,
                 selected_models: Iterable[str] | None = None,
                 selected_prompt_texts: dict[str, str] | None = None,
-                progress: Callable[[int, int], None] | None = None) -> int:
+                progress: Callable[[int, int], None] | None = None,
+                failure_observer: Callable[[str], None] | None = None) -> int:
     """0-100 calibrated score for every (response, judge). Self-family excluded. Resumable + parallel.
 
     Judge calls run on a thread pool when ``judge_caller`` is None (the default Ollama path); an injected
@@ -1359,13 +1424,18 @@ def judge_panel(results: Iterable[dict], judges: list[str], *, panel_path: pathl
                 try:
                     s100, comp, gate, intent, framing, input_digest, calls, missing = fut.result()
                 except Exception as exc:  # noqa: BLE001
+                    category = _safe_failure_category(exc)
                     n_incomplete += 1
-                    log(f"JUDGE FAIL {j} {model}|{pid}|{arm}: {type(exc).__name__}: {exc}")
+                    log(f"JUDGE FAIL {j} {model}|{pid}|{arm}: {category}")
+                    if failure_observer:
+                        failure_observer(category)
                     if progress:
                         progress(n_new, n_incomplete)
                     continue
                 if missing:
                     n_incomplete += 1
+                    if failure_observer:
+                        failure_observer("IncompleteComponents")
                     log(f"JUDGE PARTIAL {j} {model}|{pid}|{arm}: "
                         f"incomplete per-dimension grade: missing {','.join(missing)}")
                     if progress:
@@ -1447,7 +1517,7 @@ def pairwise_core_full(results: list[dict], judges: list[str], *, pairwise_path:
                 if not math.isfinite(delta):
                     raise ValueError("non-finite pairwise delta")
             except Exception as exc:  # noqa: BLE001
-                log(f"PAIR FAIL {j} {model}|{pid}: {type(exc).__name__}: {exc}")
+                log(f"PAIR FAIL {j} {model}|{pid}: {_safe_failure_category(exc)}")
                 continue
             row = {"model": model, "prompt_id": pid, "judge": j, "delta": delta}
             if harness_version != "h1":
@@ -1661,6 +1731,31 @@ def format_plan(plan: dict) -> str:
         f"Writes: {plan['results_path']} | {plan['panel_path']} | {plan['report_path']}",
     ]
     return "\n".join(lines) + "\n"
+
+
+def planned_model_call_budget(
+    cli_value: int | None,
+    environ: dict[str, str] | None = None,
+) -> int | None:
+    """Resolve the optional non-negative startup allowance for logical model calls.
+
+    The command-line value wins over ``DUECARE_MAX_PLANNED_MODEL_CALLS``.  This
+    guards the offline plan's logical calls; retries and resilient generation
+    can still add transport attempts, so this is deliberately not described as
+    a token or provider-billing hard cap.
+    """
+    raw: int | str | None = cli_value
+    if raw is None:
+        raw = (os.environ if environ is None else environ).get("DUECARE_MAX_PLANNED_MODEL_CALLS")
+    if raw is None or (isinstance(raw, str) and not raw.strip()):
+        return None
+    try:
+        value = int(raw)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("DUECARE_MAX_PLANNED_MODEL_CALLS must be a non-negative integer") from exc
+    if value < 0:
+        raise ValueError("max planned model calls must be a non-negative integer")
+    return value
 
 
 def benign_refusal_rate(results: Iterable[dict],
@@ -2156,6 +2251,9 @@ def main(argv: list[str] | None = None) -> int:
             pass
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--n", type=int, default=40, help="number of prompts to grade (0 = all in the set)")
+    ap.add_argument("--shuffle-seed", type=int, default=0,
+                    help="if >0, seed-shuffle the prompt processing order so any interim prefix of graded "
+                         "prompts is an unbiased random sample of the full set (deterministic + resumable)")
     default_prompts = str(SCHEME_PROMPTS)
     ap.add_argument("--prompts", default=default_prompts,
                     help="prompt-set JSON to grade (default: the committed scheme set; point at the full "
@@ -2207,11 +2305,21 @@ def main(argv: list[str] | None = None) -> int:
                     help="dry run: print the offline cost/coverage plan (incremental generation + judge "
                          "cells, self-family excluded, resumable from existing files) and exit WITHOUT "
                          "calling any model. Use it to size an opt-in v2/h2/benign-control re-grade first.")
+    ap.add_argument("--max-planned-model-calls", type=int, default=None,
+                    help="startup guard: refuse before writes or model calls when the offline plan "
+                         "exceeds this many new logical calls. Environment fallback: "
+                         "DUECARE_MAX_PLANNED_MODEL_CALLS; set either to 0 for a no-new-calls lock.")
     ap.add_argument("--require-complete", action="store_true",
                     help="closure mode: write an exact coverage manifest and return exit 3 until every "
                          "selected response and cross-family judge cell is valid; intended for the "
                          "autonomous full-registry per-dimension flywheel")
     args = ap.parse_args(argv)
+
+    try:
+        max_planned_model_calls = planned_model_call_budget(args.max_planned_model_calls)
+    except ValueError as exc:
+        print(f"[rich-lift] {exc}", file=sys.stderr)
+        return 2
 
     models = list(dict.fromkeys(m.strip() for m in args.models.split(",") if m.strip()))
     judges = list(dict.fromkeys(j.strip() for j in args.judges.split(",") if j.strip()))
@@ -2244,6 +2352,16 @@ def main(argv: list[str] | None = None) -> int:
     run_paths = run_paths_for_domain(effective_domain, rubric_version=args.rubric_version,
                                      harness_version=args.harness_version, grader=args.grader)
     prompts = _prompts_from_doc(prompt_doc, args.n)
+    if args.shuffle_seed:
+        # Seed-shuffle the processing order so any interim PREFIX of graded prompts is an unbiased
+        # random sample of the full set. This is the "randomized interim goal" contract: interim
+        # milestones reduce the prompt COUNT, never the grading resolution (each prompt still gets
+        # all dimensions x all judges x all arms). Deterministic + resumable: the same seed yields
+        # the same order every run, and already-graded cells are still skipped, so there is no rework.
+        import random  # local import: only the exhaustive perdim path reaches this shuffle
+        random.Random(args.shuffle_seed).shuffle(prompts)
+        print(f"[rich-lift] shuffled {len(prompts):,} prompts with seed {args.shuffle_seed} "
+              "(interim prefixes are representative random samples)", flush=True)
     benign_control_report_path: str | None = None
     if args.benign_control:
         benign_path = pathlib.Path(args.benign_control)
@@ -2265,6 +2383,41 @@ def main(argv: list[str] | None = None) -> int:
     except ValueError as exc:
         print(f"[rich-lift] invalid prompt scope: {exc}", file=sys.stderr)
         return 2
+
+    # Planning and the optional allowance check must happen before coverage
+    # heartbeat initialization.  In particular, ``--plan --require-complete``
+    # is a genuinely non-mutating dry run.
+    preflight_reuse: dict | None = None
+    preflight_plan: dict | None = None
+    if args.plan or (max_planned_model_calls is not None and not args.report_only):
+        preflight_reuse = load_reuse(pathlib.Path(args.reuse), harness_version=args.harness_version)
+        preflight_plan = plan_run(
+            prompts,
+            models,
+            judges,
+            run_paths=run_paths,
+            reuse=preflight_reuse,
+            rubric_version=args.rubric_version,
+            harness_version=args.harness_version,
+            pairwise=args.pairwise,
+            skip_judge=args.skip_judge,
+            grader=args.grader,
+        )
+    if args.plan:
+        assert preflight_plan is not None
+        print(format_plan(preflight_plan))
+        return 0
+    if (max_planned_model_calls is not None and preflight_plan is not None
+            and preflight_plan["total_new_model_calls"] > max_planned_model_calls):
+        print(format_plan(preflight_plan))
+        print(
+            "[rich-lift] startup guard blocked the run: "
+            f"{preflight_plan['total_new_model_calls']} planned logical model calls exceed "
+            f"the allowance of {max_planned_model_calls}. No model was called and no run "
+            "artifact was written.",
+            file=sys.stderr,
+        )
+        return BUDGET_EXCEEDED_EXIT
 
     promptset_sha256_before = _sha256_path(prompt_path)
     coverage_path = coverage_manifest_path(run_paths["panel"])
@@ -2312,21 +2465,14 @@ def main(argv: list[str] | None = None) -> int:
     if heartbeat:
         heartbeat.update("initializing", force=True)
 
-    if args.plan:
-        reuse = load_reuse(pathlib.Path(args.reuse), harness_version=args.harness_version)
-        plan = plan_run(prompts, models, judges, run_paths=run_paths, reuse=reuse,
-                        rubric_version=args.rubric_version, harness_version=args.harness_version,
-                        pairwise=args.pairwise, skip_judge=args.skip_judge, grader=args.grader)
-        print(format_plan(plan))
-        return 0
-
     def gen(model: str, prompt_in: str):
         if args.resilient_generation:   # recover a bare-refusal collapse by re-questioning + flag it
             return resilient_chat(prompt_in, model=model, max_tokens=args.max_tokens)   # (text, meta)
         return provider_chat(prompt_in, model=model, max_tokens=args.max_tokens)         # text
 
     if not args.report_only:
-        reuse = load_reuse(pathlib.Path(args.reuse), harness_version=args.harness_version)
+        reuse = (preflight_reuse if preflight_reuse is not None
+                 else load_reuse(pathlib.Path(args.reuse), harness_version=args.harness_version))
         print(f"[rich-lift] {len(prompts)} prompts x {len(models)} models x {len(ARMS)} arms | "
               f"domain={effective_domain} | harness={args.harness_version} rubric={args.rubric_version} | "
               f"grader={args.grader} | reuse {len(reuse)} rows | judges={judges}", flush=True)
@@ -2335,6 +2481,9 @@ def main(argv: list[str] | None = None) -> int:
                                domain_spec=domain_spec, harness_version=args.harness_version,
                                progress=(lambda complete, failed: heartbeat.update(
                                    "generation", complete, failed,
+                               )) if heartbeat else None,
+                               failure_observer=(lambda category: heartbeat.record_failure(
+                                   "generation", category,
                                )) if heartbeat else None,
                                log=lambda m: print("  " + m, flush=True))
         print(f"[rich-lift] {n} response rows written this pass", flush=True)
@@ -2349,6 +2498,9 @@ def main(argv: list[str] | None = None) -> int:
                              selected_models=models, selected_prompt_texts=prompt_text_by_id,
                              progress=(lambda complete, failed: heartbeat.update(
                                  "judging", complete, failed,
+                             )) if heartbeat else None,
+                             failure_observer=(lambda category: heartbeat.record_failure(
+                                 "judging", category,
                              )) if heartbeat else None,
                              log=lambda m: print("  " + m, flush=True))
             print(f"[rich-lift] {nj} judge cells written this pass", flush=True)
@@ -2382,6 +2534,8 @@ def main(argv: list[str] | None = None) -> int:
             **coverage_base,
             "status": "complete" if coverage["complete"] else "incomplete",
             "phase": "closed" if coverage["complete"] else "repair_required",
+            "phase_counts": heartbeat.phase_counts if heartbeat else {},
+            "failure_summary": heartbeat.failure_summary() if heartbeat else {},
             "promptset_stable": stable,
             "promptset_sha256_after": promptset_sha256_after,
             "coverage": coverage,

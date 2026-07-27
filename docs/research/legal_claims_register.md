@@ -1,6 +1,6 @@
 # Legal-claim register (with freshness / recheck flags)
 
-Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 2026-07-10. Claims flagged RECHECK are potentially outdated and must be re-verified against a primary source before a grounded answer relies on them. This is not legal advice.
+Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 2026-07-16. Claims flagged RECHECK are potentially outdated and must be re-verified against a primary source before a grounded answer relies on them. This is not legal advice.
 
 **85 claims -- 14 flagged for recheck.**
 
@@ -9,7 +9,7 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 | `bd_overseas_employment` | BD | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `bh_lmra_flexi_permit` | BH | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `de_lksg_supply_chain` | DE | binding_domestic_under_reform | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
-| `eu_forced_labour_regulation` | EU | binding_domestic | high | 2026-07-10 | 2026-12-01 | **RECHECK** |
+| `eu_forced_labour_regulation` | EU | enacted_not_yet_applicable | high | 2026-07-10 | 2026-12-01 | **RECHECK** |
 | `eu_anti_trafficking_directive` | EU | binding_eu_directive | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `jp_titp_ssw_skill_development` | JP | binding_domestic_under_reform | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `lb_domestic_worker_kafala` | LB | reform_suspended_not_in_force | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
@@ -17,7 +17,7 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 | `mm_overseas_employment` | MM | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `np_foreign_employment_fees` | NP | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `ph_placement_fee` | PH | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
-| `sa_kafala_reform_2025` | SA | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
+| `sa_kafala_reform_2025` | SA | reported_reform_unverified | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `ug_external_labour_recruitment` | UG | binding_domestic | high | 2026-07-10 | 2027-01-01 | **RECHECK** |
 | `us_uflpa` | US | binding_domestic | high | 2026-07-10 | 2026-10-01 | **RECHECK** |
 | `ae_labour_reforms` | AE | binding_domestic | medium | 2026-07-10 | 2027-06-01 | ok |
@@ -189,18 +189,18 @@ Generated from `configs/duecare/legal_claims.json`; freshness evaluated as of 20
 - **Authority:** Regulation (EU) 2024/3015 (domestic_law) -- <https://single-market-economy.ec.europa.eu/single-market/goods/forced-labour-regulation_en>
 - **Applies to:** products on the EU market (EU and non-EU forced labour in the supply chain)
 - **Exceptions:** none recorded
-- **Binding:** binding_domestic | **effective_from:** 2027-12-14 | **as_of:** 2026-07-10 | **volatility:** high
-- **Recheck after 2026-12-01:** guidelines and databases are being developed before the Dec 2027 application date; do not describe it as currently enforceable
+- **Binding:** enacted_not_yet_applicable | **effective_from:** 2027-12-14 | **as_of:** 2026-07-10 | **volatility:** high
+- **Recheck after 2026-12-01:** in force as EU law since 13 Dec 2024 but the market-ban obligations become APPLICABLE only on 14 Dec 2027; guidelines and databases are still being developed; do not describe it as currently enforceable
 - **Caveats:** NOT yet applicable (applies 14 Dec 2027); state it as forthcoming, not in-force enforcement; a product-market ban, distinct from individual worker rights
 
 ### sa_kafala_reform_2025  (SA, reform)
-> Saudi Arabia announced (June 2025) the end of its kafala sponsorship system, moving to formal contracts managed via the Qiwa digital platform, with reforms letting workers change jobs after a contract ends and leave the country after due notice.
+> Advocacy reporting (Walk Free, June 2025) described Saudi Arabia as ending its kafala sponsorship system, citing a move to formal contracts on the Qiwa platform and rules letting workers change jobs after a contract ends and leave after due notice. Treat this as a REPORTED, partial reform -- not verified full abolition: the sponsorship structure persists in modified form, domestic workers are largely excluded, and earlier Gulf reform announcements have outrun implementation.
 
 - **Authority:** Saudi Ministry of Human Resources and Social Development (as reported) (administrative_rule) -- <https://www.walkfree.org/news/2025/saudi-arabia-ends-the-kafala-system-to-strengthen-worker-rights/>
 - **Applies to:** migrant workers in Saudi Arabia (reported ~13 million)
 - **Exceptions:** domestic workers are often excluded from standard labour-law protections and may not immediately benefit
-- **Binding:** binding_domestic | **effective_from:** 2025-06-01 | **as_of:** 2026-07-10 | **volatility:** high
-- **Recheck after 2026-10-01:** very recent reform; implementation is evolving, prior Gulf reform promises fell short, and domestic-worker coverage is uncertain; verify current status against a primary/official source before relying on it
+- **Binding:** reported_reform_unverified | **effective_from:** 2025-06-01 | **as_of:** 2026-07-10 | **volatility:** high
+- **Recheck after 2026-10-01:** reported (advocacy-sourced) reform, pending human verification against a primary/official Saudi source; implementation is evolving, prior Gulf reform promises fell short, and domestic-worker coverage is uncertain; do not present as binding until verified
 - **Caveats:** do NOT state kafala is fully abolished in practice; describe the announced reform + implementation uncertainty + the domestic-worker carve-out; verify against an official Saudi source, not only advocacy/news reporting
 
 ### stat_migrant_workers  (international, statistic)

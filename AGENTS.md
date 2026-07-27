@@ -24,7 +24,7 @@ constraints; closest file wins.
 - The public setup lanes are exactly six, in this order: Platform safety,
   NGO & regulator, Individual worker / mobile, Researcher, Anonymized
   knowledge sharing, Developer / integration partner.
-- The workspace contains 17 `duecare-llm*` package directories. Run pytest
+- The workspace contains 18 `duecare-llm*` package directories. Run pytest
   collection before changing published test claims; do not claim a full test
   pass unless the full suite actually ran.
 - A propose-only **entity-intelligence pipeline** lives in `scripts/` +

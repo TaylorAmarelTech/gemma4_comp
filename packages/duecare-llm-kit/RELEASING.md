@@ -16,7 +16,7 @@ with no source on the path:
 |---|---|
 | `python -m build` (wheel + sdist) | Successfully built `duecare_llm_kit-0.1.0-py3-none-any.whl` + `.tar.gz` |
 | `python -m twine check dist/*` | both **PASSED** |
-| cleanroom `pip install dist/*.whl` | installs with only numpy/pandas/matplotlib |
+| cleanroom `pip install dist/*.whl` | installs with numpy/pandas/matplotlib/Jinja2 |
 | `import duecare.kit` | version `0.1.0` |
 | `duecare.kit.engine.scan(...)` | 12 ILO indicators; 3 hits on the smoke prompt |
 | `duecare.kit.verify.verify(...)` | 5/5 criteria on the strong-response smoke |

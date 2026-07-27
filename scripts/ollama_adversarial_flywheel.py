@@ -440,10 +440,17 @@ def run_flywheel(
         {"schema_version": "1.0", "contains_raw_text": False, "rows": quarantine},
     )
     contract = validate_training_rows(sft_rows, preference_rows, require_preference=bool(preference_rows))
+    exception_failures = sum(1 for row in quarantine if row.get("stage") == "exception")
+    if sft_rows:
+        run_status = "degraded_with_exceptions" if exception_failures else "completed"
+    else:
+        run_status = "failed_no_candidates" if exception_failures else "completed_empty"
     manifest = {
         "schema_version": "1.0",
         "handoff_kind": HANDOFF_KIND,
         "created_at": _utc(),
+        "run_status": run_status,
+        "exception_failures": exception_failures,
         "safe_to_train": False,
         "safe_to_train_reason": (
             "Ollama candidates still require held-out split proof, curator approval, "
@@ -508,6 +515,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     result = run_flywheel(args.seed_jsonl, args.output_dir, config)
     print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
+    if result.get("run_status") == "failed_no_candidates":
+        return 1
     return 0
 
 

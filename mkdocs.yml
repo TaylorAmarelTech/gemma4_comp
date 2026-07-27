@@ -188,6 +188,9 @@ nav:
       - Knowledge object taxonomy: adr/007-knowledge-object-taxonomy.md
       - Knowledge module schema: knowledge_module_schema.md
   - Run And Verify:
+      - Maintainer handoff: MAINTAINER_HANDOFF.md
+      - 30-day project transition: PROJECT_TRANSITION_PLAN.md
+      - Publication readiness and next work: PUBLICATION_READINESS.md
       - For judges and reviewers: FOR_PEER_REVIEW.md
       - Reproducibility: reproducibility.md
       - Harness lift report: harness_lift_report.md

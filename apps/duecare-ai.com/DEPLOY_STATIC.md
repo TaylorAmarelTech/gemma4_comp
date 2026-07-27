@@ -8,11 +8,11 @@ is byte-identical to production — including the `_nav`/`_footer` includes and 
 ## Build
 
 ```bash
-pip install -r requirements.txt httpx        # httpx powers the TestClient renderer
+pip install -r requirements.txt httpx httpx2 # Starlette TestClient prefers httpx2
 python scripts/export_static.py --out dist --api-base https://gemma4-comp.onrender.com
 ```
 
-Produces `dist/` with 49 pages (pretty URLs, `mission/index.html`), the `/static` assets,
+Produces `dist/` with 50 pages (pretty URLs, `mission/index.html`), the `/static` assets,
 a `CNAME`, and `.nojekyll`. `--api-base` repoints the dynamic pages' relative `fetch('/api/…')`
 calls at the live backend (its CORS already allows the `duecare-ai.com` origin); omit it for a
 fully static bundle where those backend calls no-op. The demo page's committed data fetch is

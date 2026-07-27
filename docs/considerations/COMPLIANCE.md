@@ -148,7 +148,7 @@ These questions show up on every Big Tech procurement:
 | **What's the SLA?** | The community + reference SLOs are in `docs/considerations/SLO.md` (99.5% chat success, p95 < 8s for E2B). Commercial SLAs are operator-configurable. |
 | **What's the data retention default?** | 90 days for the audit log; configurable via env var. Journal is unbounded — operator chooses. |
 | **What sub-processors do you use?** | Zero by default. If the operator configures cloud-Gemma routing (Ollama / OpenAI / HF), those become sub-processors. If they enable internet search (Tavily / Brave / Serper), those too. |
-| **Is the source code auditable?** | Yes — MIT-licensed, all 17 packages on PyPI, all deps pinned, semver tags. |
+| **Is the source code auditable?** | Yes — the 18-package MIT-licensed source workspace and lockfile are public. Package-by-package publication and release status is tracked in `docs/PACKAGE_INVENTORY.md` and `docs/PUBLICATION_READINESS.md`; do not infer that every package is already on PyPI. |
 | **Any third-party security audits?** | Not yet. Recommended for any production deployment. |
 
 ## What's missing from this doc that the audit found

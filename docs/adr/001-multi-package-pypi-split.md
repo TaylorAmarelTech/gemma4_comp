@@ -1,4 +1,4 @@
-# ADR-001: Multi-package PyPI split (17 wheels under `duecare.*` namespace)
+# ADR-001: Multi-package PyPI split (original 17 wheels; 18 current)
 
 - **Status:** Accepted
 - **Date:** 2026-04-15
@@ -42,8 +42,16 @@ pip install duecare-llm-models[llama-cpp]      # adds llama-cpp-python
 pip install duecare-llm-server[observability]  # adds prometheus-client
 ```
 
-The meta-package `duecare-llm` pulls all 17 in for "I want
-everything" installs.
+The original decision intended the meta-package `duecare-llm` as the
+"I want everything" entry point.
+
+## Amendment — 2026-07-26
+
+The independent `duecare-llm-kit` reporting/corpus toolkit is now the 18th
+workspace member. The `duecare-llm` meta-package remains intentionally scoped
+to the seven-package workflow core listed in its `pyproject.toml`; it does not
+silently add the kit, server, training, or other specialist surfaces. Source
+reviewers who need the complete graph should run `uv sync --all-packages`.
 
 ## Alternatives considered
 
@@ -75,6 +83,6 @@ everything" installs.
 
 ## References
 
-- `pyproject.toml` (uv workspace root with all 17 members)
+- `pyproject.toml` (uv workspace root with all 18 current members)
 - [`docs/integration_plan.md`](../integration_plan.md)
 - [PEP 420 — Implicit Namespace Packages](https://peps.python.org/pep-0420/)
