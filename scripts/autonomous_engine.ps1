@@ -133,6 +133,11 @@ function Invoke-EnginePreflight {
   & $py $engine @preflightArgs
   $script:EnginePreflightExitCode = $LASTEXITCODE
 }
+if ($WatchdogRun -and (Test-Path -LiteralPath $stopFile -PathType Leaf)) {
+  Write-Host "Autonomous engine remains paused; watchdog is a no-op until an explicit -Run."
+  Set-EngineExitCode 0
+  return
+}
 if ($Preflight) {
   Invoke-EnginePreflight -SkipOllama:$NoOllamaCheck -IgnoreStopSentinel:$IgnoreStopSentinel
   Set-EngineExitCode $script:EnginePreflightExitCode

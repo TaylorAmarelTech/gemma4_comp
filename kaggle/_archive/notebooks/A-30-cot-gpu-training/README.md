@@ -1,5 +1,8 @@
 # A-30 — CoT GPU LoRA Training (Kaggle GPU)
 
+<!-- duecare:lane-label -->
+> **Serves lanes:** Researcher; Developer / integration partner.
+
 A **headless batch** training kernel (no server, no UI) that actually fine-tunes on Kaggle GPU.
 It LoRA-fine-tunes **gemma-4-E2B (4-bit)** on the published
 [`duecare-cot-reasoning`](https://www.kaggle.com/datasets/taylorsamarel/duecare-cot-reasoning)

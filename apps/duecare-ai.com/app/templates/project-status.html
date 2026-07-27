@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Project status &amp; continuity &middot; DueCare AI</title>
+<meta name="description" content="DueCare project continuity, release readiness, maintainer handoff, deployment ownership, known limitations, and the path for a future maintainer." />
+<link rel="stylesheet" href="/static/styles.css" /><link rel="stylesheet" href="/static/hub-pages.css" />
+<style>
+  .ps-hero { padding: 58px 0 42px; border-bottom: 1px solid var(--line); }
+  .ps-hero-grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(280px, .8fr); gap: 52px; align-items: start; }
+  .ps-hero h1 { max-width: 15ch; margin: 14px 0 0; font-size: clamp(38px, 5vw, 64px); line-height: 1.02; letter-spacing: -.035em; font-weight: 500; }
+  .ps-lede { max-width: 62ch; margin: 20px 0 0; color: var(--ink-2); font-size: 17px; line-height: 1.65; }
+  .ps-receipt { border: 1px solid var(--line); border-radius: 14px; padding: 22px; background: var(--paper-2); }
+  .ps-receipt .label, .ps-section .ix { font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+  .ps-receipt dl { display: grid; grid-template-columns: 1fr auto; gap: 12px 18px; margin: 18px 0 0; }
+  .ps-receipt dt { color: var(--ink-2); font-size: 13px; }
+  .ps-receipt dd { margin: 0; font-family: var(--mono); font-size: 12px; color: var(--ink); }
+  .ps-state { display: inline-flex; align-items: center; gap: 8px; margin-top: 18px; font-family: var(--mono); font-size: 11px; color: var(--good); }
+  .ps-state::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--good); }
+  .ps-section { padding: 54px 0; border-bottom: 1px solid var(--line-soft); }
+  .ps-section h2 { margin: 8px 0 0; font-size: clamp(26px, 3vw, 38px); line-height: 1.12; font-weight: 500; letter-spacing: -.02em; }
+  .ps-section .intro { max-width: 70ch; margin: 14px 0 28px; color: var(--ink-2); line-height: 1.65; }
+  .ps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .ps-card { min-height: 220px; border: 1px solid var(--line); border-radius: 13px; padding: 22px; background: var(--paper); }
+  .ps-card .cap { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: .11em; color: var(--ink-3); }
+  .ps-card h3 { margin: 12px 0 8px; font-size: 20px; line-height: 1.2; }
+  .ps-card p, .ps-card li { color: var(--ink-2); font-size: 14px; line-height: 1.58; }
+  .ps-card ul { margin: 12px 0 0; padding-left: 18px; }
+  .ps-card code { font-size: 12px; }
+  .ps-boundary { border-left: 4px solid var(--warn); background: var(--paper-2); padding: 22px 24px; margin-top: 24px; }
+  .ps-boundary strong { display: block; margin-bottom: 8px; }
+  .ps-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+  .ps-runbook { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, .8fr); gap: 24px; }
+  .ps-command { border-radius: 12px; background: var(--ink); color: var(--paper); padding: 20px; overflow-x: auto; }
+  .ps-command pre { margin: 0; color: inherit; font-size: 12px; line-height: 1.7; }
+  .ps-links { display: flex; flex-direction: column; gap: 10px; }
+  .ps-links a { display: block; border: 1px solid var(--line); border-radius: 10px; padding: 13px 15px; color: var(--ink); text-decoration: none; }
+  .ps-links a:hover { border-color: var(--ink); }
+  @media (max-width: 900px) {
+    .ps-hero-grid, .ps-runbook { grid-template-columns: 1fr; }
+    .ps-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 620px) { .ps-grid { grid-template-columns: 1fr; } }
+</style>
+</head><body>{% set active_nav = "project-status" %}
+{% include "_nav.html" %}
+
+<section class="ps-hero" data-screen-label="Project status &middot; Hero"><div class="wrap">
+  <div class="ps-hero-grid">
+    <div>
+      <span class="kicker">Project continuity &middot; snapshot 2026-07-26</span>
+      <h1>A stable stopping point with an explicit path forward.</h1>
+      <p class="ps-lede">DueCare is in a time-boxed maintainer transition through <strong>2026-08-25</strong>. Core code, public documentation, active Kaggle surfaces, and published dataset claims have a green model-free release gate. New model spending and a new training-improvement claim remain deliberately paused until their separate evidence gates are ready.</p>
+      <div class="ps-actions">
+        <a class="btn" href="https://tayloramareltech.github.io/gemma4_comp/MAINTAINER_HANDOFF/">Maintainer handoff <span aria-hidden="true">&rarr;</span></a>
+        <a class="btn btn-ghost" href="https://tayloramareltech.github.io/gemma4_comp/PROJECT_TRANSITION_PLAN/">30-day transition</a>
+        <a class="btn btn-ghost" href="https://github.com/TaylorAmarelTech/gemma4_comp">Source repository</a>
+      </div>
+    </div>
+    <aside class="ps-receipt" aria-label="Latest offline validation receipt">
+      <span class="label">Latest offline receipt</span>
+      <dl>
+        <dt>Core release gates</dt><dd>8 / 8 pass</dd>
+        <dt>Handoff gates</dt><dd>2 / 2 pass</dd>
+        <dt>Combined regression</dt><dd>4,601 pass</dd>
+        <dt>Model calls in closeout</dt><dd>0</dd>
+        <dt>Autonomous engine</dt><dd>paused</dd>
+      </dl>
+      <span class="ps-state">Deterministic maintenance posture</span>
+    </aside>
+  </div>
+</div></section>
+
+<section class="ps-section" data-screen-label="Project status &middot; Boundaries"><div class="wrap">
+  <span class="ix">01 &middot; What is ready</span>
+  <h2>Release-ready and research-incomplete are kept separate.</h2>
+  <p class="intro">A green core gate means the public repository is coherent at the checked revision. It does not silently turn an unfinished dataset, adapter, or experimental judge lane into a completed scientific claim.</p>
+  <div class="ps-grid">
+    <article class="ps-card"><span class="cap">Stable</span><h3>Core public surface</h3><p>Public messaging, source-checkout smoke, manifest-backed dataset counts, model-fallback registry, active Kaggle kernels, generated page sources, and package-test collection pass without a model or network call.</p></article>
+    <article class="ps-card"><span class="cap">Preserved</span><h3>Dated benchmark evidence</h3><p>Existing results retain their original model, prompt set, rubric, judge, and date. They are benchmark response-quality evidence, not field-effectiveness, victim-identification, or production-reliability claims.</p></article>
+    <article class="ps-card"><span class="cap">Paused</span><h3>Model and engine work</h3><p>The autonomous engine remains stopped behind its sentinel. Closeout uses a zero planned-call guard; restarting Ollama or a hosted provider requires a new frozen budget, preflight, and explicit authorization.</p></article>
+  </div>
+  <div class="ps-boundary"><strong>The strict training lane is not ready.</strong>Five dense generic-corridor typologies require a metadata-only 25-task, minimum-75-row curation expansion. The expansion plan passes its privacy checks, but quality and provenance must remain red until reviewed rows, fingerprints, and a verified model card are regenerated through the normal append-only path.</div>
+</div></section>
+
+<section class="ps-section" data-screen-label="Project status &middot; Deployment"><div class="wrap">
+  <span class="ix">02 &middot; Public deployment ownership</span>
+  <h2>One source and one owner for each public surface.</h2>
+  <p class="intro">The website and documentation are related but intentionally deployed by different systems. This prevents one workflow from overwriting the other.</p>
+  <div class="ps-grid">
+    <article class="ps-card"><span class="cap">Website</span><h3>duecare-ai.com</h3><p>The FastAPI hub in <code>apps/duecare-ai.com</code> deploys from <code>master</code> on Render. It serves product pages, public coordination APIs, sanitized proposal intake, and health endpoints. It does not load Gemma.</p></article>
+    <article class="ps-card"><span class="cap">Documentation</span><h3>GitHub Pages</h3><p>The MkDocs site deploys from <code>docs/</code> through <code>docs-deploy.yml</code> after changes reach <code>master</code>. It owns the repository's single GitHub Pages site.</p></article>
+    <article class="ps-card"><span class="cap">Portable build</span><h3>Static website artifact</h3><p><code>duecare-site-build.yml</code> exports the website as a downloadable artifact for a separate root-domain host. It never deploys into the MkDocs Pages environment.</p></article>
+  </div>
+</div></section>
+
+<section class="ps-section" data-screen-label="Project status &middot; Pickup"><div class="wrap">
+  <span class="ix">03 &middot; Pick up the project</span>
+  <h2>Start with live evidence, then read the history.</h2>
+  <p class="intro">Saved handoff artifacts and ignored reports are historical evidence. A maintainer establishes current truth from Git, live process/engine status, and read-only validators before changing or publishing anything.</p>
+  <div class="ps-runbook">
+    <div class="ps-command"><pre>git status --short
+$env:DUECARE_MAX_PLANNED_MODEL_CALLS='0'
+python scripts/validate_publication_readiness.py --scope handoff
+python scripts/validate_publication_readiness.py --scope core
+python scripts/autonomous_engine.py --status</pre></div>
+    <nav class="ps-links" aria-label="Continuity documents">
+      <a href="https://tayloramareltech.github.io/gemma4_comp/MAINTAINER_HANDOFF/"><strong>Maintainer handoff</strong><br />Operations, boundaries, recovery, access transfer, and acceptance.</a>
+      <a href="https://tayloramareltech.github.io/gemma4_comp/PROJECT_TRANSITION_PLAN/"><strong>30-day transition plan</strong><br />Weekly closeout, owner actions, rehearsal, and maintenance fallback.</a>
+      <a href="https://tayloramareltech.github.io/gemma4_comp/PUBLICATION_READINESS/"><strong>Publication readiness</strong><br />Release boundary, limitations, data plan, Ollama plan, and ordered backlog.</a>
+    </nav>
+  </div>
+</div></section>
+
+<section class="ps-section" data-screen-label="Project status &middot; Next"><div class="wrap">
+  <span class="ix">04 &middot; What remains</span>
+  <h2>The next work is explicit, bounded, and optional by lane.</h2>
+  <div class="ps-grid" style="margin-top:28px;">
+    <article class="ps-card"><span class="cap">P0 &middot; Release</span><h3>Reconcile and freeze</h3><ul><li>Integrate the reviewed branch into <code>master</code>.</li><li>Choose version, citation, changelog, and tag together.</li><li>Rerun core and handoff gates on the exact release revision.</li></ul></article>
+    <article class="ps-card"><span class="cap">P1 &middot; Data</span><h3>Close the curation queue</h3><ul><li>Add lawful, dated corridor sources.</li><li>Adjudicate the minimum 75 diverse rows.</li><li>Regenerate quality and provenance sequentially.</li></ul></article>
+    <article class="ps-card"><span class="cap">P1 &middot; Providers</span><h3>Budget every attempt</h3><ul><li>Add one atomic call/token/cash ledger.</li><li>Classify retryable failures explicitly.</li><li>Resume with a small cached smoke matrix only.</li></ul></article>
+  </div>
+</div></section>
+
+{% include "_footer.html" %}
+</body></html>

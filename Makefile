@@ -1,5 +1,5 @@
 .PHONY: install install-uv install-pip dev test test-stress adversarial cleanroom \
-        build lint serve serve-chat serve-classifier verify audit verify-all reproduce \
+        build lint serve serve-chat serve-classifier verify audit handoff-check publication-check verify-all reproduce \
         demo demo-with-monitoring demo-with-auth doctor backup backup-light \
         docker docker-build docker-up docker-down docker-logs docker-up-auth \
         docker-dev docker-dev-up docker-dev-down docker-dev-shell docker-dev-test \
@@ -147,6 +147,12 @@ audit:  ## Public-surface audit: drift + route 200s + lane order + Kaggle lane l
 	python scripts/validate_public_surface.py
 	@echo "--- canonical messaging ---"
 	python scripts/validate_public_messaging.py
+
+publication-check:  ## Model-free release gate: public surfaces, claims, Kaggle sources, package collection
+	python scripts/validate_publication_readiness.py --scope core
+
+handoff-check:  ## Read-only succession gate: handoff docs, links, privacy, live pickup state
+	python scripts/validate_publication_readiness.py --scope handoff
 
 verify-all:  ## Full pre-push gate: audit + messaging + hub tests + harness smoke + notebook validate + workbench UI primitives
 	python scripts/validate_public_surface.py

@@ -73,15 +73,18 @@ def test_perdim_incomplete_cell_is_not_checkpointed_as_done(tmp_path):
 
     panel_path = tmp_path / "panel.jsonl"
     logs = []
+    failure_categories = []
     n = rh.judge_panel(
         _RESULTS, ["judge"], panel_path=panel_path, judge_caller=caller,
         pace=0.0, log=logs.append, grader=rh.judge_components_perdim,
+        failure_observer=failure_categories.append,
     )
 
     assert n == 0
     assert not panel_path.read_text(encoding="utf-8")
     assert calls.count("D") == 2
     assert any("incomplete per-dimension grade: missing D" in message for message in logs)
+    assert failure_categories == ["IncompleteComponents"]
 
 
 def test_perdim_sidecar_repairs_only_missing_dimension_and_prevents_duplicates(tmp_path):

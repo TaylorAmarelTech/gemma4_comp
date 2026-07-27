@@ -64,7 +64,7 @@ pre.admin-json { border: 1px solid var(--line); border-radius: 12px; background:
     <h2>Connect to the admin API</h2>
     <p>Paste the deployment token for this browser session. It is stored only in <code>localStorage</code> and sent as <code>X-DueCare-Admin-Token</code>.</p>
     <div class="token-row">
-      <input id="admin-token" type="password" autocomplete="off" placeholder="DUECARE_ADMIN_TOKEN" />
+      <input id="admin-token" type="password" autocomplete="off" placeholder="DUECARE_ADMIN_TOKEN" aria-label="Admin API token" />
       <button class="admin-button" id="save-token" type="button">Save</button>
     </div>
     <p style="margin-top:12px;">If the deployment does not set a token, the API returns 403 by design. The public site never exposes these logs anonymously.</p>

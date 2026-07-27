@@ -36,9 +36,10 @@ def test_export_produces_static_bundle(tmp_path):
     es = _load()
     out = tmp_path / "dist"
     result = es.export(out, api_base=None)
-    assert result["pages"] >= 40                          # ~49 public routes; be tolerant of route changes
+    assert result["pages"] >= 40                          # ~50 public routes; be tolerant of route changes
     assert (out / "index.html").is_file()                 # '/' -> index.html
     assert (out / "mission" / "index.html").is_file()     # pretty URL for '/mission'
+    assert (out / "project-status" / "index.html").is_file()
     assert (out / "CNAME").read_text(encoding="utf-8").strip() == "duecare-ai.com"
     assert (out / ".nojekyll").is_file()
     assert (out / "static" / "styles.css").is_file()      # assets copied

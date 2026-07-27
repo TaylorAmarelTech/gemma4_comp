@@ -5,6 +5,13 @@
 > historical/topic docs (`docs/integration_plan.md`, `docs/codex/improvement_roadmap_2026_05_29.md`,
 > `docs/research/benchmark_roadmap.md`) remain as provenance. Priorities: P0 (now),
 > P1 (next), P2 (later). Every item is grounded in the current state below.
+> The canonical release stopping point, model-credit boundary, dataset blocker,
+> and pickup backlog are maintained in
+> [`PUBLICATION_READINESS.md`](PUBLICATION_READINESS.md); that file wins if an
+> older roadmap sentence conflicts with current live state.
+> The current owner-transition sequence is maintained separately in
+> [`PROJECT_TRANSITION_PLAN.md`](PROJECT_TRANSITION_PLAN.md), with operational
+> pickup in [`MAINTAINER_HANDOFF.md`](MAINTAINER_HANDOFF.md).
 
 ## Current state (as of this plan)
 
@@ -16,10 +23,14 @@
 - **Public surface:** 15 live Kaggle notebooks (analysis + applied use cases) + 6 datasets + the
   `duecare-llm-kit` package (importable engine/viz + HTML report generator + corpus exporter) + the
   website (`duecare-ai.com`) with a standardized story and a Data page.
-- **Flywheel:** an Ollama-cloud self-improvement loop grading toward the full 78,719-prompt registry
-  (currently parked on an external weekly limit; auto-resumes on reset).
+- **Flywheel:** generation is complete for the 78,719-prompt exhaustive scope;
+  per-dimension judging is partial and isolated. The engine is intentionally
+  paused behind a stop sentinel and **does not auto-resume**; Taylor must
+  explicitly request `scripts/autonomous_engine.ps1 -Run` after a live
+  provider preflight.
 - **Gaps to close (the "anchors"):** a human expert gold-set, a perturbation/contamination set,
-  on-device measurement, and evals-as-CI.
+  on-device measurement, and the current 25-task / 75-row corridor-diversity
+  curation queue. Evals-as-CI is now implemented as described below.
 
 ---
 
@@ -106,7 +117,7 @@ Make it trivial for an outside team to reuse, extend, and build on DueCare.
 - **Integration patterns.** The developer notebook's `analyze()` + the three deployment modes
   (enterprise waterfall, on-device, NGO dashboard) become a documented, versioned integration guide.
 
-## 5. Agents, AI workers, and pipelines (OpenClaw-style)  (P1)
+## 5. Agents, AI workers, and pipelines  (P1)
 
 DueCare already uses multi-agent orchestration to build notebooks. Formalize it as a governed pipeline.
 
@@ -115,7 +126,7 @@ DueCare already uses multi-agent orchestration to build notebooks. Formalize it 
   `verify`/engine + a rules gate scores them -> (d) a human review queue approves -> (e) commit as a
   new *versioned* knowledge pack (`superseded_by`, never overwrite). This is the "graph of loops with
   an anchor" applied to knowledge, not just eval.
-- **OpenClaw / agent-worker fit.** Use an OpenClaw-style agent runtime for the long-running,
+- **Long-running agent-worker fit.** Use a governed agent runtime for the long-running,
   scheduled arms (source scouting, benchmark re-runs, report generation) with the verifier + human
   gate as the frozen anchor nodes, so autonomy never bypasses grounding. Keep the existing
   pause-safe boundary: agents propose, gates dispose.

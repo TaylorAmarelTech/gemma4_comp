@@ -2,15 +2,15 @@
   "chunk_bytes": 41943040,
   "files": [
     {
-      "archived_at": "2026-07-13T08:29:19Z",
-      "bytes": 4288,
+      "archived_at": "2026-07-19T20:35:13Z",
+      "bytes": 4662,
       "chunks": [
-        "reports/autonomous_engine_state.json.gz.000"
+        "reports/autonomous_engine_state.json.f9a666af80ec9474.gz.000"
       ],
-      "compressed_bytes": 698,
-      "mtime": 1783906502,
+      "compressed_bytes": 758,
+      "mtime": 1784398579,
       "path": "reports/autonomous_engine_state.json",
-      "sha256": "ff4ae47e7bb69fb6019073f76b9c49b92219933dda23956f2f1887d344e1c500"
+      "sha256": "f9a666af80ec94746c2e07b106df56c48f73db92df5e2f89e30e3e01c738cd74"
     },
     {
       "archived_at": "2026-07-13T08:29:20Z",
@@ -66,6 +66,39 @@
       "mtime": 1782232628,
       "path": "reports/rich_lift/panel_holistic_v1.jsonl",
       "sha256": "07e2637ecef610f5d9b8a33d89f44b1f22370d302cec7de90fce650e658465e2"
+    },
+    {
+      "archived_at": "2026-07-19T20:35:16Z",
+      "bytes": 2135,
+      "chunks": [
+        "reports/rich_lift/panel_perdim.coverage.json.b9e2467648433d26.gz.000"
+      ],
+      "compressed_bytes": 736,
+      "mtime": 1784493309,
+      "path": "reports/rich_lift/panel_perdim.coverage.json",
+      "sha256": "b9e2467648433d260a8c813a73387bf74ed8a1bffd16b0d66a6073d7639b05f6"
+    },
+    {
+      "archived_at": "2026-07-19T20:35:17Z",
+      "bytes": 9077191,
+      "chunks": [
+        "reports/rich_lift/panel_perdim.jsonl.243411c47e4b3a1a.gz.000"
+      ],
+      "compressed_bytes": 592987,
+      "mtime": 1784493316,
+      "path": "reports/rich_lift/panel_perdim.jsonl",
+      "sha256": "243411c47e4b3a1afd3a674c25e90f33e7edc7225209417ed4491ed5d9897f98"
+    },
+    {
+      "archived_at": "2026-07-19T20:35:17Z",
+      "bytes": 12214272,
+      "chunks": [
+        "reports/rich_lift/panel_perdim.jsonl.components.sqlite3.9685970f2e978830.gz.000"
+      ],
+      "compressed_bytes": 5603087,
+      "mtime": 1784493316,
+      "path": "reports/rich_lift/panel_perdim.jsonl.components.sqlite3",
+      "sha256": "9685970f2e978830412a9c4fcb0c636d11c268a95e844267f51e0b14db0b90d0"
     },
     {
       "archived_at": "2026-07-13T08:29:21Z",
@@ -519,15 +552,15 @@
       "sha256": "c436f63d20b693ba7916d50fa106defd342ccbc0e50237d6decfc858b3eed1be"
     },
     {
-      "archived_at": "2026-07-13T08:29:29Z",
-      "bytes": 2654,
+      "archived_at": "2026-07-19T20:35:20Z",
+      "bytes": 3734,
       "chunks": [
-        "reports/training/training_engine_plan.json.gz.000"
+        "reports/training/training_engine_plan.json.93eae857bd989462.gz.000"
       ],
-      "compressed_bytes": 709,
-      "mtime": 1782744476,
+      "compressed_bytes": 747,
+      "mtime": 1784050376,
       "path": "reports/training/training_engine_plan.json",
-      "sha256": "a34cbdd28cb8b37383bc3623967481f048cef2f7859462461c9c398193174e81"
+      "sha256": "93eae857bd9894625105f479d43d91a68ea74bd3c82271900b485847ea1d05f2"
     },
     {
       "archived_at": "2026-07-13T08:29:29Z",
@@ -541,8 +574,8 @@
       "sha256": "2ba21070d34d540e9916eb6fd929ce675c2115226273671fccd144a0de2b5426"
     }
   ],
-  "generated": "2026-07-13T08:29:29Z",
-  "n_files": 49,
-  "total_compressed_bytes": 51806146,
-  "total_source_bytes": 226613128
+  "generated": "2026-07-19T20:35:20Z",
+  "n_files": 52,
+  "total_compressed_bytes": 58003054,
+  "total_source_bytes": 247908180
 }

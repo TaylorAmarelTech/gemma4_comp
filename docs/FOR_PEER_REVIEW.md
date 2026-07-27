@@ -1,6 +1,6 @@
 ﻿# For Judges and Reviewers
 
-This is the current 2026-05-25 verification path for the DueCare Gemma 4
+This is the current 2026-07-26 verification path for the DueCare Gemma 4
 Good Hackathon submission. Older notebook-era material is archived or marked
 historical; the active Kaggle path is exactly the three script kernels listed
 below.
@@ -25,6 +25,18 @@ for the shortest recording path, but it should remain runnable and copyable to
 Kaggle while judging is active.
 
 ## What To Verify First
+
+Before installing or calling any model, run the portable offline gate:
+
+```powershell
+python scripts/validate_publication_readiness.py --scope core
+```
+
+The stricter `--scope training` lane is tracked separately and is expected to
+remain red while the 75-row corridor-diversification queue documented in
+[`PUBLICATION_READINESS.md`](PUBLICATION_READINESS.md) is open. That blocker
+prevents a new training claim; it does not retroactively change the dated,
+manifest-bound public learning artifacts.
 
 1. Open `01-duecare-exploration-workbench` and run the chat/harness comparison
    path. Confirm the default harness uses Persona + GREP + RAG/context + tools,

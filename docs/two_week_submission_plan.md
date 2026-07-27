@@ -1,6 +1,6 @@
 ﻿# Final Submission Execution Plan
 
-Current as of 2026-07-14. This document replaces the old 2026-05-02 two-week
+Current as of 2026-07-26. This document replaces the old 2026-05-02 two-week
 appendix-ladder plan. The remaining work is no longer broad notebook publishing;
 it is validating the active kernels and preserving optional evidence from
 the active A-00 pipeline.
@@ -20,15 +20,21 @@ should be `04-kaggle-community-benchmark`.
 
 ## Priority Order
 
-1. Confirm the official Kaggle submission requirements and final deadline.
-2. Run Kernel 01 and capture the default harness comparison path.
-3. Run Kernel 02 and capture the live demo/video path.
-4. Optional only: run active A-00 with a small proof configuration to confirm
+1. Run the model-free core publication gate and freeze the intended release
+   commit, versions, citation metadata, and claim set.
+2. Confirm the official Kaggle submission requirements and final deadline.
+3. Decide whether to publish the existing bounded evidence now or first clear
+   the separate 75-row corridor-diversity training blocker.
+4. Run Kernel 01 and capture the default harness comparison path only if a new
+   recording is needed.
+5. Run Kernel 02 and capture the live demo/video path only if a new recording
+   is needed.
+6. Optional only: run active A-00 with a small proof configuration to confirm
    exports and report links if new proof artifacts are needed.
-5. Optional only: run active A-00 again with the best available prompt
+7. Optional only: run active A-00 again with the best available prompt
    count/training settings that fit the remaining wall-clock budget.
-6. Download `/kaggle/working` outputs after every meaningful phase.
-7. Submit with the current active Kaggle story, not the archived A-series story.
+8. Download `/kaggle/working` outputs after every meaningful phase.
+9. Submit with the current active Kaggle story, not the archived A-series story.
 
 ## Active A-00 Runtime Strategy
 
@@ -60,12 +66,16 @@ session.
 - Rebuilding archived notebook-era surfaces.
 - Reintroducing duplicate model-selection UI.
 - Refactoring the canonical GREP/RAG corpus during final proof runs.
+- Spending Ollama quota before an offline plan, frozen prompt/model/rubric
+  scope, finite call allowance, and checkpoint-reuse decision exist.
 - Adding broad new docs that compete with `FOR_PEER_REVIEW.md`,
   `USER_TODO.md`, and this execution plan.
 
 ## Related Current Docs
 
 - [`FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md) - reviewer verification path.
+- [`PUBLICATION_READINESS.md`](PUBLICATION_READINESS.md) - canonical stopping
+  point, offline gate, dataset blocker, and prioritized pickup backlog.
 - [`USER_TODO.md`](USER_TODO.md) - manual actions.
 - [`readiness_dashboard.md`](readiness_dashboard.md) - current status.
 - [`model_loading_trace.md`](model_loading_trace.md) - model-loading contract.
