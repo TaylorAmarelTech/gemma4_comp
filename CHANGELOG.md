@@ -13,6 +13,8 @@ the meta `duecare-llm` package tracking the workspace lockstep.
 - Completed curator-owned inline grading guidance for all 75 universal rubric
   dimensions, pinned exact coverage in tests, and made the CI curator gate fail
   on future warnings; the strict validator now reports zero errors and warnings.
+- Updated the official Gitleaks Action from v2 to v3, its behavior-compatible
+  Node 24 runtime release, removing the hosted-runner Node 20 deprecation path.
 - Recorded the exact closeout merge, post-merge CI, GitHub Pages, artifact-only
   website build, and live Render project-status receipts in the maintainer
   handoff; release/tag and private ownership transfer remain explicit decisions.
