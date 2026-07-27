@@ -647,7 +647,7 @@ def build(output_dir: Path, *, force: bool = False) -> dict:
         "- **The full harness** -- 451 GREP indicator rules across 11 languages, retrieval over an ILO / UFLPA / "
         "modern-slavery corpus, and **Gemma 4** doing the multi-step reasoning and drafting -- not the compact regex "
         "subset embedded here.\n"
-        "- **Install it:** `pip install duecare-llm-core duecare-llm-chat` (the `duecare-llm-*` family), then wire "
+        "- **Install it from source:** clone `gemma4_comp` and run `uv sync --all-packages`, then wire "
         "`audit_supplier()` into your supplier-onboarding and monitoring pipeline.\n"
         f"- **The data + source:** the published DueCare benchmark grades live on Kaggle (e.g. `{DATASET_ID}`), and "
         f"the [repository]({REPO}) has the harness, the grader, and the full evaluation sweep.\n\n"

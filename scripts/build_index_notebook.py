@@ -21,7 +21,7 @@ KERNEL_TITLE = "DueCare 000 Index"
 WHEELS_DATASET = "taylorsamarel/duecare-llm-wheels"
 KEYWORDS = ["gemma", "safety", "llm", "trafficking", "tutorial"]
 PUBLIC_REPO_URL = "https://github.com/TaylorAmarelTech/gemma4_comp"
-JUDGES_GUIDE_URL = PUBLIC_REPO_URL + "/blob/main/docs/FOR_KAGGLE_JUDGES.md"
+JUDGES_GUIDE_URL = PUBLIC_REPO_URL + "/blob/master/docs/FOR_KAGGLE_JUDGES.md"
 WRITEUP_URL = "https://www.kaggle.com/competitions/gemma-4-good-hackathon/writeups"
 
 PHASES = [

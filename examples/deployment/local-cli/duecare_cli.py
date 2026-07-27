@@ -14,8 +14,7 @@ Usage:
 Prerequisites (one-time):
     1. Install Ollama (https://ollama.com/download).
     2. Pull a model:    ollama pull gemma4:e2b
-    3. Install Duecare: pip install duecare-llm-chat \\
-                                     duecare-llm-research-tools
+    3. From the repository root: uv sync --all-packages
 
 Environment variables (all optional):
     OLLAMA_HOST         — default http://localhost:11434
@@ -53,7 +52,7 @@ def _import_harness():
     except ImportError:
         sys.stderr.write(
             "Missing dependency: duecare-llm-chat.\n"
-            "Install: pip install duecare-llm-chat duecare-llm-research-tools\n"
+            "Install from the gemma4_comp checkout: uv sync --all-packages\n"
         )
         sys.exit(2)
 

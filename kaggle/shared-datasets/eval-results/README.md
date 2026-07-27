@@ -15,9 +15,9 @@ domains.json            ← frozen snapshot of shipped domain packs
 ## How reviewers reproduce
 
 ```bash
-pip install duecare-llm[all]==0.1.0
 git checkout <git_sha from runs.jsonl>
-duecare run rapid_probe --domain trafficking
+uv sync --all-packages
+uv run duecare run rapid_probe --domain trafficking
 ```
 
 The resulting report should match `reports/<run_id>.md` byte-for-byte

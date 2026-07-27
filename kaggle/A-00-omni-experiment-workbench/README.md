@@ -10,11 +10,11 @@
 
 ## Public Kaggle version boundary
 
-Status reviewed 2026-07-15:
+Status reviewed 2026-07-27:
 
 - The [public Kaggle notebook](https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation)
   is live with the proof dataset attached. Kaggle kernel version `14` was
-  pushed on 2026-07-14. A live command-line review on 2026-07-15 reports a
+  pushed on 2026-07-14. A live command-line review on 2026-07-27 reports a
   terminal execution status of `CANCEL_ACKNOWLEDGED`; that canceled run is not
   a completed training or evaluation proof and does not establish model lift.
 - This repository is the source of the later July 2026 manifest, lineage,

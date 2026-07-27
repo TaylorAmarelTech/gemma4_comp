@@ -30,9 +30,9 @@ It's the rare AI project that's:
 **Audience.** Undergraduate AI / CS / ethics, no domain expertise
 required.
 
-**Pre-class:** students open
-[duecare-chat-playground-with-grep-rag-tools](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-grep-rag-tools)
-and submit one question + the response.
+**Pre-class:** students open the current public
+[DueCare App](https://www.kaggle.com/code/taylorsamarel/duecare-app)
+and submit one question plus the response.
 
 **In class:**
 - 10 min: the problem (LLM gives wrong / incomplete legal info on

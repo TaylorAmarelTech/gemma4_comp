@@ -138,7 +138,7 @@ class OpenClawTool:
             return ResearchResult(
                 tool_name=self.name, query=args, success=False,
                 error=f"httpx not installed: {e}. Install with: "
-                      f"pip install duecare-llm-research-tools[http]")
+                      "python -m pip install -e \"packages/duecare-llm-research-tools[http]\"")
         try:
             with httpx.Client(timeout=self.timeout) as client:
                 resp = client.post(

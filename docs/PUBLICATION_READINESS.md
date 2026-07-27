@@ -2,18 +2,35 @@
 
 This is the model-free wrap-up path for DueCare. It separates what can be
 published from what still needs curation or a later, deliberately budgeted
-model run. Current as of 2026-07-26.
+model run. Current as of 2026-07-27.
 
 ## Current Posture
 
 | Track | Current state | Publication rule |
 |---|---|---|
-| Core code, docs, active Kaggle surfaces, and published dataset claims | **8/8 core gates passed offline; the merged closeout then passed the complete `master` CI workflow on 2026-07-26** | Re-run on the exact release commit; publish only while it remains green. |
+| Core code, docs, active Kaggle surfaces, package-release ownership, and published dataset claims | **9/9 core gates passed offline on the reconciled 2026-07-27 candidate; the prior merged closeout passed complete `master` CI on 2026-07-26** | Re-run on the exact release commit and confirm the refreshed Action majors in GitHub-hosted CI. |
 | Maintainer succession and live pickup | **2/2 handoff gates passed offline; public handoff and deployment receipts are live on the merged closeout** | Re-run from a fresh shell and complete the private/manual acceptance steps before ownership transfer. |
 | Existing dated benchmark and learning-study results | Retained as bounded evidence with their original model, dataset, rubric, and date | Do not silently relabel an old result as a new model or field-effectiveness result. |
 | New fine-tuning dataset | **Not clean yet:** the strict audit reports five dense single/generic-corridor typologies | Curate the expansion queue, rerun the audit, then refresh provenance before training or a new model claim. |
 | Exhaustive per-dimension judging | Experimental, isolated, and incomplete | Keep it out of the default comparable board until its own exact closure gate passes. |
 | Local/hosted Ollama work | Optional and deferred | Plan offline first; unlock a small allowance only for a frozen, bounded run. |
+
+## Registry And Kaggle Publication Truth
+
+- All 18 `duecare-llm*` distributions are buildable from source, but none had a
+  public PyPI project on 2026-07-27. `docs/PACKAGE_INVENTORY.md` is the
+  canonical install/version map.
+- `.github/workflows/pypi-publish.yml` is the sole publisher. Production PyPI
+  has no manual dispatch target and no generic `v*` trigger. A
+  `packages-vMAJOR.MINOR.PATCH` tag must match every package version, so the
+  current `0.1.0` / `0.1.2` / `0.17.0` mix intentionally blocks publication
+  until an owner chooses coordinated or per-package policy.
+- Live Kaggle status checked 2026-07-27: active 01 is `COMPLETE`; active 02 and
+  A-00 are `CANCEL_ACKNOWLEDGED`; optional 04 is `COMPLETE`; optional 03 has no
+  verified public URL. A canceled run is not completion evidence.
+- No additional notebook is required for repository closure. The private and
+  built queue in [`NOTEBOOKS.md`](NOTEBOOKS.md) should advance one item at a
+  time only when it closes a named audience or evidence gap.
 
 The quality audit currently has zero SFT split leaks, zero DPO split leaks,
 zero incoherent citations, and zero phone-like hits in gold text. Its blocker is
@@ -37,12 +54,14 @@ python scripts/validate_publication_readiness.py --scope core
 
 This runs public-surface and messaging audits, the source-checkout harness
 smoke test, published dataset-claim verification, fallback-registry validation,
-both active Kaggle static gates, and package test collection. The runner sets
+both active Kaggle static gates, package-release reconciliation, and package
+test collection. The runner sets
 Ollama's planned-call allowance to zero and forces common Hugging Face and
 Weights & Biases integrations offline for its child checks.
 
-Current audit receipt: all eight core gates passed on 2026-07-26 without a
-model or network call. The same tree landed through pull request 2 as
+Current audit receipt: all nine core gates passed on the 2026-07-27
+reconciliation candidate without a model or network call. The prior eight-gate
+tree landed through pull request 2 as
 `07cfdbfd00e1bc304ffc1f8b2736c4d93bbf0eab`, after which the complete
 [master CI workflow](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30235104435)
 passed. These receipts are not a substitute for rerunning the command on an
@@ -281,7 +300,7 @@ worker-facing answers, benchmark labels, or training rows automatically.
 - The training gate is red because of corridor coverage and the resulting
   stale fingerprints in an older planned registry record. This is a truthful
   provenance stop, not a reason to rewrite the ledger.
-- The integrated `packages tests` regression passed 4,582 tests with nine
+- The integrated `packages tests` regression passed 4,589 tests with nine
   skips and no warning summary in the clean, locked 18-package workspace. The
   focused package follow-up also passes 43 tests with `RuntimeWarning`
   promoted to an error, proving the former
@@ -291,23 +310,33 @@ worker-facing answers, benchmark labels, or training rows automatically.
   `test_plan.py` surfaces still reports 281 style findings (261 are line
   length). Do not call repo-wide lint green; handle that mechanical cleanup in
   a separate, reviewable change rather than mixing it with model/data work.
-- MkDocs builds normally, and the two succession pages emit zero diagnostics,
-  but `mkdocs build --strict` still stops on 84 legacy documentation warnings:
-  unlisted/excluded pages, repo-external relative targets, and stale anchors.
-  The model-free public-surface/link gate is green; do not call the broader
-  strict-site lane green until those warnings are classified and cleared.
+- MkDocs now passes `mkdocs build --clean --strict` with zero warnings. The
+  tested repository-link hook rewrites only existing targets outside `docs/`
+  to canonical GitHub source URLs; it leaves missing targets untouched so the
+  strict lane remains a meaningful broken-link guard. Informational notices
+  for intentionally unlisted/excluded provenance pages are not release
+  blockers.
 - The deployment boundary is now unambiguous: Render owns `duecare-ai.com`,
   `docs-deploy.yml` owns the repository's single MkDocs GitHub Pages site, and
   `duecare-site-build.yml` emits a downloadable marketing-site artifact only.
   A competing manual Pages deployer was removed. Post-merge Pages, artifact,
   and live Render project-status checks passed on 2026-07-26.
-- The green Pages receipt emits GitHub's Node.js 20 action-runtime deprecation
-  annotation for currently pinned action majors. This is not a publication
-  blocker, but the next maintainer should verify official current majors and
-  refresh them in a narrow dependency-only change.
-- Workspace/package version metadata and `CITATION.cff` are not being bumped by
-  this polish pass. Reconcile them only as part of a deliberate release/tag
-  decision.
+- GitHub Action majors were verified against official releases on 2026-07-27
+  and refreshed across CI, Pages, website artifacts, scheduled work, Docker,
+  Helm, and package publication. Local YAML validation passes; the runtime
+  warning is closed only after the corresponding GitHub-hosted jobs pass.
+- Workspace package versions were not guessed or bumped. `CITATION.cff` now
+  describes living research software without claiming a nonexistent
+  coordinated release, while the package publisher blocks on the current mixed
+  versions. Choose and document release policy before tagging.
+- The concurrent external audit checked 571 current outbound links on
+  2026-07-27. Confirmed stale links were removed or corrected. Six deliberate
+  same-site schema URLs still return 404 on the pre-deploy live website even
+  though their new local routes/tests pass; 11 additional hosts were
+  transient, DNS/SSL-blocked, or redirect-looped rather than confirmed broken.
+  Re-run `python scripts/check_external_links.py --check --workers 24` after
+  Render deploys the candidate. Do not call the live external-link lane green
+  until all six schema URLs return 200.
 - Root `AGENTS.md` names `master` as the active release branch. Pull request 2
   merged the closeout as `07cfdbfd00e1bc304ffc1f8b2736c4d93bbf0eab`;
   post-merge CI, MkDocs Pages, the artifact-only website build, and the live
@@ -322,7 +351,7 @@ worker-facing answers, benchmark labels, or training rows automatically.
 
 | Priority | Work item | Model credits | Effort | Done when |
 |---|---|---:|---:|---|
-| P0 | Freeze a release commit, reconcile versions/citation/changelog, run privacy-safe secret scan, rerun core gate | 0 | Low | Exact tag/commit and bounded release notes exist; 8/8 core gates pass there |
+| P0 | Freeze a release commit, choose package-version policy, reconcile versions/changelog, run privacy-safe secret scan, rerun core gate | 0 | Low | Exact tag/commit and bounded release notes exist; 9/9 core gates pass there |
 | P1 | Curate the 25 corridor tasks / minimum 75 rows with sources, lineage, and adjudication | 0 if human/deterministic | Medium | Strict quality audit is clean without weakening a threshold |
 | P1 | Add a shared atomic call/token/cash ledger around every provider attempt | 0 during implementation | Medium | All callers fail closed against one run budget; retries appear in a sanitized receipt |
 | P1 | Refresh training provenance through the normal append-only engine path | 0 | Low after curation | Registry fingerprints and verified model-card gate pass |
@@ -331,8 +360,7 @@ worker-facing answers, benchmark labels, or training rows automatically.
 | P2 | Add calibration, abstention, and disagreement-escalation reporting | Optional small judging | Medium | Reports show calibration and route only ambiguous cells to extra judges |
 | P3 | Complete the isolated exhaustive per-dimension lane | High | High | Coverage manifest closes exactly with zero missing/invalid cells |
 | P3 | Isolate and clear legacy Ruff debt in long benchmark files | 0 | Medium | `make lint` can run without a mass behavioral diff or suppressing useful rules |
-| P3 | Classify and clear the 84 legacy strict-MkDocs warnings | 0 | Medium | `mkdocs build --strict` passes without hiding intentionally public pages or broken anchors |
-| P3 | Refresh GitHub Action majors after verifying official current releases | 0 | Low | Pages, website, and CI runs stay green without the Node.js 20 runtime deprecation annotation |
+| P3 | Confirm the refreshed GitHub Action majors across every triggered workflow | 0 | Low | Pages, website, CI, scheduled, Docker, Helm, and release preflight remain green without the Node.js 20 annotation |
 
 Good research extensions after the release boundary is stable include a
 cross-corridor counterfactual benchmark, temporal legal-freshness tests,
@@ -354,8 +382,8 @@ new versioned evidence lane rather than changing the existing board in place.
 - [ ] Generated manifests, purpose maps, project status, and handoff artifacts
       agree with the code and current active Kaggle inventory.
 - [ ] A deliberate release-version decision reconciles workspace package
-      versions, `CITATION.cff`, changelog, and tag; do not bump them implicitly
-      during cleanup.
+      versions, changelog, tag, and the currently unversioned `CITATION.cff`;
+      do not bump them implicitly during cleanup.
 
 ## Recommended Next Sequence
 

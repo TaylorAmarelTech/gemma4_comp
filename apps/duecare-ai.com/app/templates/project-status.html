@@ -46,7 +46,7 @@
 <section class="ps-hero" data-screen-label="Project status &middot; Hero"><div class="wrap">
   <div class="ps-hero-grid">
     <div>
-      <span class="kicker">Project continuity &middot; snapshot 2026-07-26</span>
+      <span class="kicker">Project continuity &middot; snapshot 2026-07-27</span>
       <h1>A stable stopping point with an explicit path forward.</h1>
       <p class="ps-lede">DueCare is in a time-boxed maintainer transition through <strong>2026-08-25</strong>. Core code, public documentation, active Kaggle surfaces, and published dataset claims have a green model-free release gate. New model spending and a new training-improvement claim remain deliberately paused until their separate evidence gates are ready.</p>
       <div class="ps-actions">
@@ -58,9 +58,9 @@
     <aside class="ps-receipt" aria-label="Latest offline validation receipt">
       <span class="label">Latest offline receipt</span>
       <dl>
-        <dt>Core release gates</dt><dd>8 / 8 pass</dd>
+        <dt>Core release gates</dt><dd>9 / 9 pass</dd>
         <dt>Handoff gates</dt><dd>2 / 2 pass</dd>
-        <dt>Combined regression</dt><dd>4,582 pass</dd>
+        <dt>Combined regression</dt><dd>4,589 passed</dd>
         <dt>Model calls in closeout</dt><dd>0</dd>
         <dt>Autonomous engine</dt><dd>paused</dd>
       </dl>
@@ -74,7 +74,7 @@
   <h2>Release-ready and research-incomplete are kept separate.</h2>
   <p class="intro">A green core gate means the public repository is coherent at the checked revision. It does not silently turn an unfinished dataset, adapter, or experimental judge lane into a completed scientific claim.</p>
   <div class="ps-grid">
-    <article class="ps-card"><span class="cap">Stable</span><h3>Core public surface</h3><p>Public messaging, source-checkout smoke, manifest-backed dataset counts, model-fallback registry, active Kaggle kernels, generated page sources, and package-test collection pass without a model or network call.</p></article>
+    <article class="ps-card"><span class="cap">Stable</span><h3>Core public surface</h3><p>Public messaging, source-checkout smoke, manifest-backed dataset counts, model-fallback registry, active Kaggle kernels, generated page sources, package-release ownership, and package-test collection pass without a model or network call.</p></article>
     <article class="ps-card"><span class="cap">Preserved</span><h3>Dated benchmark evidence</h3><p>Existing results retain their original model, prompt set, rubric, judge, and date. They are benchmark response-quality evidence, not field-effectiveness, victim-identification, or production-reliability claims.</p></article>
     <article class="ps-card"><span class="cap">Paused</span><h3>Model and engine work</h3><p>The autonomous engine remains stopped behind its sentinel. Closeout uses a zero planned-call guard; restarting Ollama or a hosted provider requires a new frozen budget, preflight, and explicit authorization.</p></article>
   </div>
@@ -114,7 +114,7 @@ python scripts/autonomous_engine.py --status</pre></div>
   <span class="ix">04 &middot; What remains</span>
   <h2>The next work is explicit, bounded, and optional by lane.</h2>
   <div class="ps-grid" style="margin-top:28px;">
-    <article class="ps-card"><span class="cap">P0 &middot; Release</span><h3>Reconcile and freeze</h3><ul><li>Integrate the reviewed branch into <code>master</code>.</li><li>Choose version, citation, changelog, and tag together.</li><li>Rerun core and handoff gates on the exact release revision.</li></ul></article>
+    <article class="ps-card"><span class="cap">P0 &middot; Release</span><h3>Choose and freeze</h3><ul><li>DueCare's 18 Python distributions are source-buildable but not on PyPI.</li><li>Choose coordinated or per-package version policy before enabling a release tag.</li><li>Rerun core and handoff gates on the exact release revision.</li></ul></article>
     <article class="ps-card"><span class="cap">P1 &middot; Data</span><h3>Close the curation queue</h3><ul><li>Add lawful, dated corridor sources.</li><li>Adjudicate the minimum 75 diverse rows.</li><li>Regenerate quality and provenance sequentially.</li></ul></article>
     <article class="ps-card"><span class="cap">P1 &middot; Providers</span><h3>Budget every attempt</h3><ul><li>Add one atomic call/token/cash ledger.</li><li>Classify retryable failures explicitly.</li><li>Resume with a small cached smoke matrix only.</li></ul></article>
   </div>

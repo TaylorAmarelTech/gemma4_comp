@@ -8,7 +8,7 @@ while the release boundary and evidence backlog remain in
 [Publication readiness](PUBLICATION_READINESS.md).
 
 **Handoff posture:** active closeout
-**Prepared:** 2026-07-26
+**Prepared:** 2026-07-27
 **Target transfer:** 2026-08-25
 **Default model posture:** paused and zero planned model calls
 
@@ -33,6 +33,35 @@ The model-free closeout landed through
 This proves the integrated code/docs/deployment stopping point. It does not
 choose a release tag, publish packages or models, close the strict training
 lane, or complete private ownership transfer.
+
+## 2026-07-27 Reconciliation Addendum
+
+A second live, model-free pass started from clean `master` at
+`f4bb9c3ef8eaef6f4692813ff77cf16230d5abe6` and reconciled surfaces that the
+first closeout deliberately left for live verification:
+
+- `ollama ps` reported no loaded model, the autonomous engine remained paused,
+  and the pickup validator still passed all 65 checks;
+- authenticated Kaggle status was `COMPLETE` for `duecare-app`,
+  `CANCEL_ACKNOWLEDGED` for both `duecare-live-demo` and A-00, and `COMPLETE`
+  for the optional Community Benchmark. The Universal Benchmark public slug
+  did not resolve. Canceled is terminal, not successful;
+- all 18 Python distribution names returned no public PyPI project on
+  2026-07-27. The duplicate generic-tag publisher was removed; one OIDC
+  workflow now owns publication and fails closed while package versions differ;
+- official current GitHub Action majors were checked through GitHub and the
+  workflows were refreshed (including checkout/setup, artifacts, Pages, cache,
+  Docker, and Helm). GitHub-hosted CI must confirm the new majors after merge;
+- the website now serves the six schema URLs it advertised, labels Kaggle
+  execution state, and links the verified Prompt Intent notebook; and
+- the external-link checker now distinguishes confirmed breakage from network
+  or bot-blocked hosts, checks concurrently, and no longer mistakes private
+  owner listings or API endpoints for verified public pages.
+
+No Kaggle notebook, PyPI distribution, model, dataset, or release was published
+by this reconciliation. Candidate notebooks stay queued until one closes a
+named evidence gap and passes the publication checklist in
+[`NOTEBOOKS.md`](NOTEBOOKS.md).
 
 ## First 30 Minutes
 
@@ -177,10 +206,11 @@ Run the smallest applicable scope first, then widen only as needed:
 | Scope | Command | Meaning |
 |---|---|---|
 | Handoff | `python scripts/validate_publication_readiness.py --scope handoff` | Succession docs, cross-links, privacy-safe content, pickup consistency, and paused-state evidence |
-| Core release | `python scripts/validate_publication_readiness.py --scope core` | Eight model-free public, claim, Kaggle, source-smoke, and package-collection gates |
+| Core release | `python scripts/validate_publication_readiness.py --scope core` | Nine model-free public, claim, Kaggle, source-smoke, package-release, and package-collection gates |
 | Focused tests | `python -m pytest path/to/affected/tests -q` | Behavioral evidence for the edited area |
 | Package collection | `python -m pytest packages --collect-only -q` | Published package-test inventory remains discoverable |
 | Kaggle | `python scripts/validate_main_kaggle_kernels.py` and `py -3.12 scripts/validate_kaggle_page_sources.py` | Active kernel and generated-page contracts |
+| External links | `python scripts/check_external_links.py --check --workers 24` | Network audit that separates confirmed 4xx breakage from transient, DNS, SSL, redirect, and bot-blocked hosts |
 | Full regression | `python -m pytest packages tests -q` | Broad local regression; report skips and warnings exactly |
 | Training | `python scripts/validate_publication_readiness.py --scope training` | Strict dataset/provenance release lane; nonzero is expected until its documented queue closes |
 
@@ -226,10 +256,19 @@ exists, treat the startup ceiling as an estimate rather than a billing limit.
 ### Publish or release
 
 Use [Publication readiness](PUBLICATION_READINESS.md). Freeze the exact commit,
-reconcile package versions, `CITATION.cff`, changelog, and tag as one decision,
-run the core gate on that commit, retain the receipt, and state whether the
-training scope passed. Publishing public hosting, Kaggle, PyPI, Hugging Face, or
-GitHub releases remains an owner-authorized external action.
+choose coordinated versus per-package versioning, reconcile versions,
+changelog, and tag as one decision, run the core gate on that commit, retain
+the receipt, and state whether the training scope passed. `CITATION.cff` is
+intentionally unversioned until that choice. Publishing public hosting, Kaggle,
+PyPI, Hugging Face, or GitHub releases remains an owner-authorized external
+action.
+
+GitHub Pages now builds with `mkdocs build --clean --strict`. The tested
+`scripts/mkdocs_repo_links.py` hook converts only existing repository-relative
+targets unavailable to Pages (outside `docs/` or intentionally excluded) to
+canonical GitHub source links; missing targets stay visible to MkDocs and still
+fail the strict build. The 2026-07-27 local strict receipt completed with zero
+warnings.
 
 ### Archive or recover
 
@@ -240,18 +279,19 @@ working tree as the sole copy of release evidence.
 
 ## Current Open Work
 
-| Priority | State at 2026-07-26 | Safe next action |
+| Priority | State at 2026-07-27 | Safe next action |
 |---|---|---|
-| P0 | Release commit/tag and version decision are not frozen | Choose the bounded release claim, reconcile versions/citation/changelog, run privacy-safe scans and core/handoff gates on the exact commit |
+| P0 | Release commit/tag and package-version policy are not frozen; all 18 distributions remain unpublished | Choose the bounded release claim and coordinated/per-package policy, reconcile versions/changelog, then run privacy-safe scans and core/handoff gates on the exact commit |
 | P0 | Ownership and platform access still belong to the current maintainer | Complete the private transfer receipt and successor rehearsal; do not place credentials in Git |
+| P0 | Six new website schema routes pass locally but the pre-deploy live URLs still return 404 | Merge/deploy the reviewed candidate, verify all six return 200, then rerun the 571-link external audit |
+| P1 | Active Kaggle 02 and A-00 latest runs are canceled; optional 03 has no verified public URL | Rerun 02 only for a needed recording and A-00 only for a funded proof; inspect artifacts before updating claims; keep 03 source-only |
 | P1 | Five dense generic-corridor typologies need diversification | Curate the manifest-planned 25 tasks / minimum 75 rows with lawful sources, lineage, and adjudication |
 | P1 | Strict training quality and provenance are red | Close the curation queue, regenerate dependent artifacts sequentially, then append a new registry record through the normal path |
 | P1 | Provider callers lack one enforceable attempt/token/cash budget | Add a shared atomic ledger in the generation transport and tests before broad model work |
 | P2 | Per-dimension generation is complete but judging is incomplete | Keep it isolated; resume only with a frozen allowance and close the exact coverage manifest |
 | P2 | Human review evidence is limited | Adjudicate a stratified high-severity and benign-control slice and publish agreement/disagreement policy |
 | P3 | Legacy Ruff debt remains in long benchmark files | Isolate mechanical cleanup into behavior-preserving changes with regression evidence; the former constant-value pandas Styler warnings are fixed |
-| P3 | Strict MkDocs stops on 84 legacy warnings; the two succession pages emit none | Classify unlisted/excluded pages, repo-external targets, and stale anchors before changing navigation or suppressions |
-| P3 | The green Pages run emitted GitHub's Node.js 20 action-runtime deprecation annotation | Verify the current official action majors, update them in a narrow dependency PR, and rerun Pages, website, and CI workflows |
+| P3 | GitHub Action majors are refreshed locally from official current releases | Confirm CI, Pages, website-artifact, scheduled, Docker, and Helm workflows before treating the runtime warning as closed |
 
 The detailed dataset/source ideas and ordered research backlog are maintained in
 [Publication readiness](PUBLICATION_READINESS.md), not duplicated here.

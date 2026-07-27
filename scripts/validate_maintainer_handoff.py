@@ -202,11 +202,11 @@ def deployment_contract_findings(root: Path = ROOT) -> list[str]:
 
     if (root / ".github/workflows/pages.yml").exists():
         findings.append("competing Pages deploy workflow exists")
-    for marker in ("branches: [master]", "mkdocs build", "actions/deploy-pages@v4"):
+    for marker in ("branches: [master]", "mkdocs build", "actions/deploy-pages@v5"):
         if marker not in docs_workflow:
             findings.append("docs Pages workflow contract incomplete")
             break
-    if "actions/upload-artifact@v4" not in site_workflow:
+    if "actions/upload-artifact@v7" not in site_workflow:
         findings.append("website artifact workflow missing upload")
     if "actions/deploy-pages" in site_workflow:
         findings.append("website artifact workflow deploys to Pages")

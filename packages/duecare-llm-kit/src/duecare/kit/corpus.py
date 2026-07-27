@@ -198,7 +198,7 @@ def _render_readme(manifest: dict) -> str:
         if e["columns"]:
             lines.append(f"  - columns: {', '.join('`' + c + '`' for c in e['columns'])}")
     lines.append("")
-    lines.append("_Bundle produced with the DueCare kit (`pip install duecare-llm-kit`). "
+    lines.append("_Bundle produced with the DueCare kit (see its README for the current source install). "
                  "Reproduce with `python -m duecare.kit.corpus --out <dir> --sources <files...>`._")
     lines.append("")
     return "\n".join(lines)

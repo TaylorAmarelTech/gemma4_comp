@@ -1,7 +1,7 @@
 # DueCare package inventory
 
 Generated during the 2026-05-10 readiness cleanup pass and reconciled on
-2026-07-26. The workspace currently contains **18** publishable Python
+2026-07-27. The workspace currently contains **18** buildable Python
 packages under `packages/`, all sharing the `duecare` namespace where
 applicable.
 
@@ -23,20 +23,33 @@ applicable.
 | `duecare-llm-nl2sql` | 0.1.0 | `src/duecare` | none | none | Natural-language-to-SQL translator. |
 | `duecare-llm-publishing` | 0.1.0 | `src/duecare` | none | `hf-hub`, `kaggle`, `all` | Publication helpers for HF Hub, Kaggle, reports, and model cards. |
 | `duecare-llm-research-tools` | 0.1.0 | `src/duecare` | none | `http` | External research tool wrappers with PII filtering. |
-| `duecare-llm-server` | 0.1.0 | `src/duecare` | none | `observability`, `otel` | FastAPI server and demo UI surface. |
+| `duecare-llm-server` | 0.1.2 | `src/duecare` | none | `observability`, `otel` | FastAPI server and demo UI surface. |
 | `duecare-llm-tasks` | 0.1.0 | `src/duecare` | none | `anonymization`, `embedding` | Capability tests. |
 | `duecare-llm-training` | 0.1.0 | `src/duecare` | none | `clustering`, `unsloth` | Synthetic labeling, active learning, dataset assembly, and fine-tune kickoff. |
 | `duecare-llm-workflows` | 0.1.0 | `src/duecare` | none | none | Workflow DAG orchestration. |
 
-## Current install truth
+## Current install and registry truth
 
-For the local CLI/server workflow, the most reliable current path is:
+None of the 18 distributions is currently published on PyPI (verified against
+the public PyPI JSON API on 2026-07-27). Bare commands such as
+`pip install duecare-llm-kit` describe the intended post-release interface;
+they are not a working registry path today.
+
+For a development checkout, install the complete workspace from source:
 
 ```powershell
-pip install duecare-llm-cli
-duecare init
-duecare demo-stage
-duecare serve --port 8080
+uv sync --all-packages
+uv run duecare init
+uv run duecare demo-stage
+uv run duecare serve --port 8080
+```
+
+For a release-like local install, build all 18 wheels and tell pip to prefer
+that local directory while resolving third-party dependencies normally:
+
+```powershell
+python scripts/build_all_wheels.py --clean
+python -m pip install --find-links dist duecare-llm-cli
 ```
 
 The meta-package `duecare-llm` remains the desired one-command distribution story. It was smoke-tested in an isolated `virtualenv` from the locally built wheels for `duecare --help`, `duecare domains list`, and an end-to-end `duecare run rapid_probe --target-model local_smoke --domain trafficking` workflow against a local OpenAI-compatible fake backend. Real Gemma/Ollama/API runs still require the corresponding target-model backend and credentials/model files.
@@ -46,6 +59,10 @@ The `duecare-llm-cli` path was smoke-tested in an isolated `virtualenv` from the
 ## Readiness notes
 
 - `scripts/build_all_wheels.py` now includes all 18 package directories in its default build order.
+- `.github/workflows/pypi-publish.yml` is the sole registry publisher. Generic
+  `v*` tags do not publish packages, manual runs cannot target production PyPI,
+  and a `packages-vMAJOR.MINOR.PATCH` tag fails closed unless every workspace
+  package declares that exact coordinated version.
 - `duecare-llm-chat` intentionally remains on an independent harness cadence; the current notebook portability contract is `0.17.0`, exposed through `duecare.chat.portability` and `GET /api/portability`, so synchronized `0.1.0` infrastructure package tags are not confused with the chat wheel version.
 - The May readiness receipt covered the original 17 packages. The added
   `duecare-llm-kit` has its own clean wheel/sdist and isolated-install checks;
@@ -53,3 +70,8 @@ The `duecare-llm-cli` path was smoke-tested in an isolated `virtualenv` from the
 - `scripts/build_all_wheels.py` now verifies critical domain-pack files in the `duecare-llm-domains` wheel and fails on missing or duplicated entries.
 - `duecare-llm-models` lazy-loads the optional Ollama HTTP dependency so importing `duecare.models` does not require `httpx` unless the Ollama adapter is used; the `ollama` extra now installs `httpx` explicitly.
 - Final release readiness still needs a release-grade clean-environment build/install run before claiming PyPI readiness; a fully offline/no-index install also needs a complete third-party dependency wheelhouse.
+- Because `duecare-llm-chat` is `0.17.0` and `duecare-llm-server` is `0.1.2`
+  while the other distributions are `0.1.0`, the coordinated publisher is
+  intentionally blocked today. The release owner must either align versions
+  or replace the coordinated-tag contract with a reviewed per-package manifest;
+  cleanup work must not guess that policy.

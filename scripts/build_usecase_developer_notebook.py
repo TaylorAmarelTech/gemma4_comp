@@ -311,7 +311,7 @@ PROD_SNIPPET = """# Development / CI / air-gapped: the embedded deterministic en
 analyzer = make_analyzer("offline")
 
 # Production: the full harness -- same analyze(text) -> dict contract, Gemma 4 does the reasoning.
-# pip install duecare-llm-core duecare-llm-chat
+# From the gemma4_comp source checkout: uv sync --all-packages
 from duecare.chat.harnesses import default_harness
 harness = default_harness()               # Persona + GREP (451 rules, 11 languages) + RAG + tools
 def analyze(text):
@@ -322,9 +322,9 @@ print(PROD_SNIPPET)'''
 # Cell 21: install + a CI-style self-test against the contract.
 # ---------------------------------------------------------------------------
 SELFTEST = '''# Install (shown for reference -- THIS notebook needs no install; it is self-contained):
-INSTALL = """pip install duecare-llm-core duecare-llm-chat        # or the full duecare-llm-* family
-# ...or straight from source:
-pip install "git+https://github.com/TaylorAmarelTech/gemma4_comp" """
+INSTALL = """git clone https://github.com/TaylorAmarelTech/gemma4_comp
+cd gemma4_comp
+uv sync --all-packages  # all 18 source packages; none is on PyPI yet"""
 print(INSTALL); print()
 
 # A CI-style self-test: the SHAPE of a test you would run against the published DueCare benchmark.
@@ -484,8 +484,8 @@ def build(output_dir: Path, *, force: bool = False) -> dict:
     # ---- Section 6: install + testing against the benchmark ----
     c.append(md(
         '<a id="test"></a>\n## 6 - Install + test against the published benchmark\n\n'
-        "Installing the real thing is one line -- `pip install duecare-llm-core duecare-llm-chat` (the "
-        "`duecare-llm-*` family) or straight from source. And because DueCare publishes its graded benchmark, you "
+        "Install the real thing from a `gemma4_comp` source checkout with `uv sync --all-packages`. "
+        "Because DueCare publishes its graded benchmark, you "
         "can regression-test your integration against real data:\n\n"
         f"- **Grades dataset:** [`{DATASET_GRADES}`](https://www.kaggle.com/datasets/{DATASET_GRADES})\n"
         f"- **Per-dimension grades:** [`{DATASET_PERDIM}`](https://www.kaggle.com/datasets/{DATASET_PERDIM})\n"

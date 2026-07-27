@@ -188,7 +188,7 @@ Reach out per `SECURITY.md`.
 
 ## See also
 
-- [`docs/considerations/`](../considerations/) — the full enterprise governance set
+- [`docs/considerations/`](../considerations/README.md) — the full enterprise governance set
 - [`docs/deployment_topologies.md`](../deployment_topologies.md) — Topology C is the relevant shape
 - [`docs/cloud_deployment.md`](../cloud_deployment.md) — 13-platform cloud cookbook
 - [`docs/adr/005-tenant-id-from-edge-proxy.md`](../adr/005-tenant-id-from-edge-proxy.md) — why the auth pattern is what it is

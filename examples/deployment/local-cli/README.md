@@ -18,8 +18,8 @@ ollama pull gemma4:e2b         # ~1.5 GB INT8, recommended
 # ollama pull gemma4:e4b       # ~3.5 GB, higher quality
 # ollama pull gemma3:1b        # ~600 MB, fastest
 
-# 3. Install the harness packages
-pip install duecare-llm-chat duecare-llm-research-tools
+# 3. From the gemma4_comp repository root, install the source workspace
+uv sync --all-packages
 ```
 
 ## Run

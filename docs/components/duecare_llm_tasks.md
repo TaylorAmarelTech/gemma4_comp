@@ -1,6 +1,8 @@
 # Component — `duecare-llm-tasks`
 
-> **Status: shipped.** 9 capability tests, 16 tests passing, wheel built.
+> **Status: source-complete; registry unpublished.** Nine capability tasks and
+> a locally buildable wheel; no DueCare distribution is on PyPI as of
+> 2026-07-27.
 
 ## What it is
 
@@ -24,6 +26,14 @@ artifact files.
 | `cross_lingual` | Guardrails in non-English languages | `rubric.yaml` | `mean_score` per-language |
 
 ## Install
+
+Current source-checkout path:
+
+```bash
+uv sync --all-packages
+```
+
+The commands below describe the intended registry interface after publication:
 
 ```bash
 pip install duecare-llm-tasks

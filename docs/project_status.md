@@ -1,22 +1,23 @@
 ﻿# DueCare Project Status
 
-Current as of 2026-07-26.
+Current as of 2026-07-27.
 
 ## Active Submission Scope
 
 The active Kaggle path is exactly three script-kernel folders:
 
-| Kernel | Role |
-|---|---|
-| `kaggle/01-duecare-exploration-workbench/` | Broad interactive workbench for chat, harness comparison, extraction, search controls, knowledge packs, traces, and activity logs. |
-| `kaggle/02-live-demo/` | Focused live demo and video narrative path. |
-| `kaggle/A-00-omni-experiment-workbench/` | Quantitative proof path: baseline vs harnessed arms, synthetic data, fine-tune, judging, and report artifacts. |
+| Kernel | Role | Live status checked 2026-07-27 |
+|---|---|---|
+| `kaggle/01-duecare-exploration-workbench/` | Broad interactive workbench for chat, harness comparison, extraction, search controls, knowledge packs, traces, and activity logs. | `COMPLETE` |
+| `kaggle/02-live-demo/` | Focused live demo and video narrative path. | `CANCEL_ACKNOWLEDGED` |
+| `kaggle/A-00-omni-experiment-workbench/` | Quantitative proof path: baseline vs harnessed arms, synthetic data, fine-tune, judging, and report artifacts. | `CANCEL_ACKNOWLEDGED` |
 
 The public A-00 Kaggle page attaches
 `taylorsamarel/duecare-proof-finetuning-data`. That dataset is a guarded
-preview, not the full advanced corpus, and Kaggle reports it ready. The Kaggle
-execution still needs a terminal status and artifact review before it is cited
-as a completed proof run, and no production adapter is published.
+preview, not the full advanced corpus, and Kaggle reports it ready. The latest
+A-00 execution is canceled; a fresh successful run and artifact review are
+required before it is cited as completed proof. No production adapter is
+published.
 
 The interim training collection is public: the SFT and preference dataset views
 both report ready, and the integrity, CPU training-plan, and four-arm evaluation
@@ -40,11 +41,18 @@ snapshots, and older checklist/status docs are archived under
   post-merge CI workflow passed both Python matrices, all 18 wheel builds,
   clean-room installation, gitleaks, website/privacy, Kaggle, harness, and
   entity-intelligence jobs. A release/tag remains a separate owner decision.
+- The follow-up receipt landed on `master` as
+  `f4bb9c3ef8eaef6f4692813ff77cf16230d5abe6`. The 2026-07-27 reconciliation
+  started from that clean commit, confirmed no model is loaded in Ollama, and
+  made no model calls.
 - The repository has a single model-free publication entry point:
   [`PUBLICATION_READINESS.md`](PUBLICATION_READINESS.md) and
-  `python scripts/validate_publication_readiness.py --scope core`. All eight
-  core gates passed in the current workspace on 2026-07-26; rerun them on the
+  `python scripts/validate_publication_readiness.py --scope core`. All nine
+  core gates passed in the reconciled workspace on 2026-07-27; rerun them on the
   exact release commit.
+- All 18 Python distributions remain unpublished on PyPI. One fail-closed OIDC
+  workflow owns package publication; current mixed versions intentionally
+  block a coordinated package tag until the owner chooses version policy.
 - Maintainer succession is now explicit: [`MAINTAINER_HANDOFF.md`](MAINTAINER_HANDOFF.md)
   is the operational pickup, and
   [`PROJECT_TRANSITION_PLAN.md`](PROJECT_TRANSITION_PLAN.md) schedules the
@@ -56,6 +64,9 @@ snapshots, and older checklist/status docs are archived under
   and cannot overwrite Pages. The website exposes `/project-status` as the
   public continuity entry point. Post-merge Pages, artifact, and live Render
   route checks all passed on 2026-07-26.
+- The website's advertised schema URLs now have local route tests instead of
+  pointing at 404s. Kaggle pages show point-in-time run status and distinguish
+  public notebooks from private owner-side drafts.
 - New local/hosted Ollama work is deferred. The rich harness supports a
   non-mutating `--plan` and a startup ceiling through
   `--max-planned-model-calls` / `DUECARE_MAX_PLANNED_MODEL_CALLS`.
@@ -99,8 +110,8 @@ snapshots, and older checklist/status docs are archived under
 
 1. Complete the 30-day access, recovery, release/no-release, successor rehearsal,
    and final acceptance actions in the transition plan.
-2. Keep the three active Kaggle source surfaces runnable; capture the two
-   recording surfaces only when a new recording is needed.
+2. Keep the three active Kaggle source surfaces runnable; rerun 02 only when a
+   new recording is needed and A-00 only for a deliberately funded proof.
 3. Curate and adjudicate the 75-row corridor expansion before making a new
    fine-tuning or adapter-improvement claim.
 4. When model quota is intentionally reopened, freeze and plan a small run,
@@ -116,17 +127,24 @@ Use the focused commands in [`FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md). The docs
 contract tests intentionally fail if current entry docs drift back toward the
 retired appendix-ladder framing.
 
-Latest offline working-tree receipt on 2026-07-26:
+Latest offline working-tree receipt on 2026-07-27:
 
 - publication handoff: 2/2 gates passed, including 16/16 succession-document
   checks and 65/65 live pickup checks;
-- publication core: 8/8 gates passed;
+- publication core: 9/9 gates passed, including the new 18-package release-
+  ownership/install-truth gate;
 - combined `packages tests` regression in a clean, locked 18-package
-  workspace: 4,582 passed and 9 skipped with no warning summary; the focused
+  workspace: 4,589 passed and 9 skipped with no warning summary; the focused
   43-test package run also passes with pandas `RuntimeWarning` promoted to an
   error;
-- normal MkDocs build: passed; both succession pages emitted zero diagnostics;
-  strict MkDocs remains red on 84 classified legacy warnings;
+- MkDocs strict build: passed with zero warnings; existing repository-relative
+  source links are resolved to canonical GitHub URLs without suppressing
+  genuinely missing targets;
 - training readiness: strict quality and provenance failed as documented,
   while the 25-task corridor plan passed its privacy/safety validation;
+- focused release/link/MkDocs/website tests: 56 passed; the complete website
+  suite passed 76 tests;
+- external network audit: 571 links checked, with six confirmed live 404s all
+  belonging to the newly implemented schema routes awaiting website deploy;
+  11 other hosts were transient/unverified rather than confirmed broken;
 - no Ollama or hosted-model call was made during this polish/validation pass.

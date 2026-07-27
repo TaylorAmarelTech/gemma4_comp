@@ -25,7 +25,7 @@ def test_gate_inventory_is_explicitly_model_and_network_free():
     gates = vpr.gates_for_scope("all")
     command_text = " ".join(arg for gate in gates for arg in gate.args).lower()
 
-    assert len(vpr.CORE_GATES) == 8
+    assert len(vpr.CORE_GATES) == 9
     assert len(vpr.HANDOFF_GATES) == 2
     assert len(vpr.TRAINING_GATES) == 3
     assert "ollama" not in command_text

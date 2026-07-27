@@ -1,7 +1,8 @@
 # Component — `duecare-llm-workflows`
 
-> **Status: shipped.** YAML loader + topological DAG runner + 9 tests
-> passing, wheel built.
+> **Status: source-complete; registry unpublished.** YAML loader, topological
+> DAG runner, and a locally buildable wheel; no DueCare distribution is on
+> PyPI as of 2026-07-27.
 
 ## What it is
 
@@ -21,8 +22,11 @@ the agent DAG, walks it via an `AgentSupervisor`, and returns a
 ## Install
 
 ```bash
-pip install duecare-llm-workflows
+uv sync --all-packages
 ```
+
+After an owner-approved registry release, the intended narrow command is
+`pip install duecare-llm-workflows`.
 
 ## Quick start
 

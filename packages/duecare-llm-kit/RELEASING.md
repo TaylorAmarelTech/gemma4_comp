@@ -1,65 +1,72 @@
-# Releasing `duecare-llm-kit` to PyPI
+# Releasing `duecare-llm-kit`
 
-This is the "download and reuse" unlock: after this, anyone can
-`pip install duecare-llm-kit` and import the DueCare ILO indicator engine,
-the chart helpers, the HTML report generator, the corpus exporter, and the
-deterministic `verify()` checker — the exact code embedded in the DueCare
-Kaggle notebooks, now importable.
+The kit is locally artifact-ready, but it is not published on PyPI. The same is
+true for all 18 `duecare-llm*` workspace distributions (verified 2026-07-27).
 
-## Verified locally (2026-07-21)
+## Local artifact evidence
 
-All steps below were run and PASS from the clean uv-managed venv
-(`scripts/recover_test_env.ps1`); the wheel installs into a throwaway venv
-with no source on the path:
+The 2026-07-21 clean-environment receipt remains useful:
 
 | Check | Result |
 |---|---|
-| `python -m build` (wheel + sdist) | Successfully built `duecare_llm_kit-0.1.0-py3-none-any.whl` + `.tar.gz` |
-| `python -m twine check dist/*` | both **PASSED** |
-| cleanroom `pip install dist/*.whl` | installs with numpy/pandas/matplotlib/Jinja2 |
-| `import duecare.kit` | version `0.1.0` |
-| `duecare.kit.engine.scan(...)` | 12 ILO indicators; 3 hits on the smoke prompt |
-| `duecare.kit.verify.verify(...)` | 5/5 criteria on the strong-response smoke |
-| `duecare-kit-report --help` / `duecare-kit-corpus --help` | both entry points resolve |
+| `python -m build` | Wheel and source distribution built |
+| `python -m twine check dist/*` | Both passed |
+| clean-room wheel install | Installed with declared base dependencies |
+| `import duecare.kit` | Version `0.1.0` imported |
+| deterministic scan and verifier | 12 indicator keys and 5/5 verifier criteria |
+| console entry points | `duecare-kit-report` and `duecare-kit-corpus` resolved |
 
-## The one manual step (needs a PyPI token)
+This proves local package construction, not registry publication or the
+18-package release as a whole.
 
-`twine upload` is an irreversible public action, so it is left to Taylor —
-the same manual-publish boundary as Kaggle. When ready:
+## Current registry boundary
 
-```bash
-# from packages/duecare-llm-kit/
-PY="$LOCALAPPDATA/gemma4-testenv/venv/Scripts/python.exe"   # or any 3.11+ python
+Direct `twine upload` is not an approved path. It would bypass the repository's
+sole-publisher, OIDC, environment-approval, inventory, and version checks.
 
-# 1. (re)build from a clean tree
-"$PY" -m build
+`.github/workflows/pypi-publish.yml` is the only publisher:
 
-# 2. re-validate
-"$PY" -m twine check dist/*
+- manual runs build only by default and may target TestPyPI;
+- manual runs cannot target production PyPI;
+- generic repository `v*` tags do not publish packages; and
+- production requires `packages-vMAJOR.MINOR.PATCH`, with all 18 package
+  versions matching that tag.
 
-# 3. OPTIONAL dry run against TestPyPI first
-"$PY" -m twine upload --repository testpypi dist/*
-#    then: pip install -i https://test.pypi.org/simple/ duecare-llm-kit
+The workspace intentionally fails a `packages-v0.1.0` preflight today:
+`duecare-llm-chat` is `0.17.0`, `duecare-llm-server` is `0.1.2`, and the other
+distributions are `0.1.0`.
 
-# 4. real upload (uses ~/.pypirc or TWINE_USERNAME=__token__ TWINE_PASSWORD=<pypi-token>)
-"$PY" -m twine upload dist/*
-```
+## Owner-approved release sequence
 
-## After upload
+1. Choose and document coordinated versions or replace the coordinated policy
+   with a reviewed per-package release manifest/workflow. Cleanup work must not
+   infer this decision.
+2. Reconcile package versions, dependency ranges, changelog, release notes, and
+   the currently unversioned `CITATION.cff`.
+3. Run:
 
-1. Tag the release: `git tag kit-v0.1.0 && git push origin kit-v0.1.0`.
-2. Update the notebooks' "run it yourself" cells to prefer the published
-   package: `pip install duecare-llm-kit` (they already fall back to the
-   embedded copy, so no notebook breaks before or after upload).
-3. Update `docs/ROADMAP.md` item 2 and the website `/kernels` + `/data`
-   copy to say "`pip install duecare-llm-kit`" as a live instruction.
-4. Bump `version` in `pyproject.toml` for the next cycle (semver).
+   ```bash
+   python scripts/validate_package_release.py
+   python scripts/validate_publication_readiness.py --scope core
+   ```
 
-## Notes
+4. Run the GitHub workflow in `build-only` mode. Download all 18 wheels and
+   source distributions, verify hashes, and clean-install the intended set.
+5. Use the workflow's TestPyPI option and verify installation from that
+   registry. Do not use it as production evidence.
+6. Confirm trusted-publisher and protected-environment settings for this exact
+   repository/workflow, then create the reviewed package tag.
+7. Confirm every intended name/version is visible and clean-installable before
+   changing public docs to show bare `pip install` as a live path.
 
-- `dist/` and `build/` are gitignored — never commit the wheels.
-- Optional extras: `pip install duecare-llm-kit[viz]` (seaborn/plotly/scipy),
-  `[nlp]` (scikit-learn/vaderSentiment/textstat), `[all]`. The core helpers
-  fall back to matplotlib and stdlib, so the base install stays light.
-- The package is PEP 420 namespace (`duecare.kit`) and shares the `duecare`
-  import namespace with the workspace packages without colliding.
+## After publication
+
+- Update the package inventory, install guide, website, notebooks, changelog,
+  citation metadata, and handoff together.
+- Preserve the exact tag, artifact hashes, clean-install receipt, and PyPI URLs.
+- Bump development versions deliberately; never overwrite an existing version.
+- Keep `dist/` and `build/` ignored. Registry artifacts are release evidence,
+  not source files to commit.
+
+Optional extras remain `viz`, `nlp`, and `all`; their installability must be
+tested against the published version before advertising those commands as live.

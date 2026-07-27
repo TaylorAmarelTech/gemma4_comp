@@ -140,7 +140,7 @@ Topology B + cloud search bridge if you want web research too (rare).
 
 ---
 
-## Topology C — Server + thin clients (the hosted-SaaS shape)
+## Topology C — Server + thin clients (the hosted-SaaS shape) { #topology-c-server-thin-clients }
 
 **Duecare server runs once on Render / Fly / Cloud Run / GKE / EKS /
 your own VPS.** Multiple thin clients (Android app pointed at the

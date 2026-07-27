@@ -1,7 +1,7 @@
 ﻿# Install
 
-Five paths, ranked from "I just want to try it" to "I'm running this
-in production." Pick one.
+Source-first paths, ranked from "I just want to try it" to "I'm running this
+in production," plus the explicitly future registry interface. Pick one.
 
 ## Portable onboarding by role
 
@@ -24,14 +24,16 @@ One command to get going for your flow. Each pulls only what that flow needs;
 the meta package `duecare-llm` pulls the full runtime + harness + CLI. All keep
 raw case material local — only reviewed artifacts are ever exported.
 
-> **PyPI status (2026-06-11):** the `duecare-llm*` packages are **not yet
+> **PyPI status (verified 2026-07-27):** all 18 `duecare-llm*` packages are **not yet
 > published to PyPI** (release pending). Until that lands, every
-> `pip install duecare-llm...` row below means "install from source":
+> `pip install duecare-llm...` row below is the intended future registry
+> interface. Install the workspace once from source today:
 >
 > ```bash
 > git clone https://github.com/TaylorAmarelTech/gemma4_comp
-> cd gemma4_comp && make build          # builds the 17 workspace wheels into dist/
-> pip install dist/*.whl                # or just the wheels your flow needs
+> cd gemma4_comp
+> uv sync --all-packages
+> uv run python scripts/verify.py
 > ```
 >
 > The **Docker** and **Kaggle** rows work as written today with no PyPI
@@ -54,29 +56,33 @@ raw case material local — only reviewed artifacts are ever exported.
 | **No Python on host** | `git clone …/gemma4_comp && cd gemma4_comp` | `docker compose up` | Chat (8080) + classifier (8081) + Ollama (11434), zero host deps |
 | **Kaggle judge** | _none_ — open the published kernel | Run `kaggle/01-duecare-exploration-workbench` | The judge-facing workbench; no install |
 
-> Pin a release for reproducibility: `pip install duecare-llm==0.1.0`. Kernels
-> install from GitHub source at `DUECARE_COMMIT_SHA` (default `master`); set it
-> to an immutable SHA for a frozen run. Full per-path detail follows below.
+> No coordinated Python release exists to pin yet. For reproducibility, pin an
+> immutable Git commit in `DUECARE_COMMIT_SHA`; do not use moving `master` for a
+> frozen run. Full per-path detail follows below.
 
-## Path 1: One-line install (fastest, ~60 seconds)
+## Path 1: Source installer (fastest supported path)
 
 Linux / macOS / WSL:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/TaylorAmarelTech/gemma4_comp/master/scripts/install.sh | bash
+git clone https://github.com/TaylorAmarelTech/gemma4_comp
+cd gemma4_comp
+bash scripts/install.sh
 ```
 
 Windows PowerShell:
 
 ```powershell
-iex (irm https://raw.githubusercontent.com/TaylorAmarelTech/gemma4_comp/master/scripts/install.ps1)
+git clone https://github.com/TaylorAmarelTech/gemma4_comp
+Set-Location gemma4_comp
+.\scripts\install.ps1
 ```
 
 What it does:
 
 1. Detects OS + arch + Python version (needs Python 3.11+ — installs from python.org if missing).
 2. Creates a `.venv` in the current dir.
-3. `pip install duecare-llm` (the meta package; pulls in the Individual worker stack).
+3. Installs all 18 workspace distributions in editable mode from the checkout.
 4. Runs `python scripts/verify.py` — confirms the built-in GREP, RAG, tools, prompt, rubric, classifier, and evaluator bundles import cleanly and meet the published minimum floors.
 5. Prints next-step commands.
 
@@ -113,7 +119,11 @@ docker compose logs -f              # tail logs
 docker compose down -v              # stop + drop volumes (deletes Ollama cache)
 ```
 
-## Path 3: Pure pip install (Python 3.11+)
+## Path 3: Future PyPI interface (not live yet)
+
+The following commands are the intended post-release interface. They will not
+work until an owner-approved release is visible on PyPI; use Path 1 or Path 4
+today.
 
 ```bash
 pip install duecare-llm
