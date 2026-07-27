@@ -149,7 +149,7 @@ fi
 if curl -s "$URL/metrics" 2>/dev/null | head -1 | grep -q '#'; then
   ok "GET $URL/metrics returns Prometheus exposition"
 else
-  warn "$URL/metrics not Prometheus-shaped — observability extras may be missing (pip install duecare-llm-server[observability])"
+  warn "$URL/metrics not Prometheus-shaped — observability extras may be missing (install packages/duecare-llm-server[observability] from the source checkout)"
 fi
 
 # Try a real chat call (will only succeed if the model is loaded)

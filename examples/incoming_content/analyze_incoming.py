@@ -18,9 +18,9 @@ Each sample declares ``expect``:
     does. A compact "LOW" here is a known representative-subset boundary, NOT a
     safety clearance. See ``README.md``.
 
-It uses the published :mod:`duecare.kit` package when installed
-(``pip install duecare-llm-kit``) and otherwise falls back to the in-repo copy,
-so it runs identically before and after the PyPI release.
+It uses :mod:`duecare.kit` from the source workspace when installed and
+otherwise falls back to the in-repo copy. No DueCare distribution is on PyPI
+yet, so run ``uv sync --all-packages`` from the repository root first.
 
 Run it::
 

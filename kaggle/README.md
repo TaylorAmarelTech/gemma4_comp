@@ -12,11 +12,13 @@ The current submission path uses three script-kernel folders:
 
 Run `01` and `02` by copying `kernel.py` into a Kaggle code cell, enabling Internet and T4 x2 GPU, and running the cell. Those kernels install the DueCare packages from GitHub, stage outputs under `/kaggle/working`, launch the server, and print a `https://*.trycloudflare.com` URL. Use `A-00` when you want the longer proof pipeline and report artifacts rather than the reviewer web UI.
 
-The A-00 Kaggle URL is public and attaches
-`taylorsamarel/duecare-proof-finetuning-data`. The proof dataset is ready on
-Kaggle; the live notebook run still needs a terminal Kaggle status plus
-artifact review before it is cited as a completed proof run. No production
-Gemma adapter or full advanced training corpus is published.
+Live Kaggle status checked 2026-07-27: `duecare-app` is `COMPLETE`, while
+`duecare-live-demo` and `duecare-fine-tuning-and-evaluation` are both
+`CANCEL_ACKNOWLEDGED`. Cancellation is terminal but is not successful
+completion. A-00's public page attaches
+`taylorsamarel/duecare-proof-finetuning-data`; a fresh successful run plus
+artifact review is still required before it is cited as completed proof. No
+production Gemma adapter or full advanced training corpus is published.
 
 ## Auxiliary Interim Training Collection
 
@@ -98,6 +100,6 @@ The default A-00 source path is guided, but training remains fail-closed:
    `/kaggle/working/a00_runs`.
 
 The pushed public notebook contains the July gate source and attached proof
-dataset, but the repository source and its tests remain authoritative until
-the Kaggle run reaches a terminal status and its `/kaggle/working` artifacts
+dataset, but the repository source and its tests remain authoritative until a
+fresh Kaggle run completes successfully and its `/kaggle/working` artifacts
 are reviewed.

@@ -101,7 +101,7 @@ make demo-with-auth
 
 See `docs/considerations/multi_tenancy.md` for provider cheat sheets.
 
-### Step 5 — Schedule nightly backups (10 min)
+### Step 5 — Schedule nightly backups (10 min) { #schedule-nightly-backups }
 
 ```bash
 # Mount the USB drive at /Volumes/Backup (Mac) or /mnt/backup (Linux).

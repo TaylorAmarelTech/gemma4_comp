@@ -34,21 +34,19 @@ Suppose you read in the writeup: *"+51.4 pp mean lift on the
 200+ prompt proxy rubric"* and you want to verify it.
 
 ```bash
-# 1. Install
-pip install duecare-llm-chat duecare-llm-tasks duecare-llm-domains
-
-# 2. Get the dataset (the 200+ prompts + their rubric examples)
+# 1. Get the source and dataset (the prompts + their rubric examples)
 git clone https://github.com/TaylorAmarelTech/gemma4_comp.git
 cd gemma4_comp
+uv sync --all-packages
 
-# 3. Pull the model (Apache 2.0, ungated)
+# 2. Pull the model (Apache 2.0, ungated)
 ollama pull gemma4:e2b
 
-# 4. Reproduce
-python scripts/run_local_gemma.py --graded-only --output reproduce.jsonl
+# 3. Reproduce
+uv run python scripts/run_local_gemma.py --graded-only --output reproduce.jsonl
 
-# 5. Compare your output to the published harness_lift_report.md numbers
-python scripts/compare_to_published.py reproduce.jsonl docs/harness_lift_report.md
+# 4. Compare your output to the dated report
+uv run python scripts/compare_to_published.py reproduce.jsonl docs/harness_lift_report.md
 ```
 
 The reproduction tolerates ±2% per category (model nondeterminism)

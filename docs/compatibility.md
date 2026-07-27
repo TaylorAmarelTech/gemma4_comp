@@ -72,7 +72,7 @@ active training proof lives in `kaggle/A-00-omni-experiment-workbench/`.
 
 | Accelerator | Direct install | Docker | Kubernetes |
 |---|---|---|---|
-| NVIDIA (CUDA) | via `pip install duecare-llm-models[transformers]` + `torch` | docker-compose: uncomment GPU block; needs nvidia-container-toolkit | Helm: set `ollama.nodeSelector` to GPU node + tolerations for `nvidia.com/gpu` |
+| NVIDIA (CUDA) | via `python -m pip install -e "packages/duecare-llm-models[transformers]"` + `torch` from a source checkout | docker-compose: uncomment GPU block; needs nvidia-container-toolkit | Helm: set `ollama.nodeSelector` to GPU node + tolerations for `nvidia.com/gpu` |
 | AMD (ROCm) | works for transformers; not yet wired into Unsloth path | image works; ROCm container deps not bundled | works with rocm device plugin |
 | Apple Silicon (MPS) | `torch` auto-detects MPS | n/a (Docker uses Linux runtime) | n/a |
 | Intel (Arc / oneAPI) | untested | untested | untested |

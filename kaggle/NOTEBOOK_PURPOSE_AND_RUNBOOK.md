@@ -6,7 +6,7 @@
 |---|---|---|
 | `01-duecare-exploration-workbench` / `duecare-app` | Full workbench and shared primitive source of truth. | Run in Kaggle with Internet and T4 x2. Open the printed Cloudflare URL for `/static/demo-recording.html`, chat, bulk review, knowledge, search, and sharing. |
 | `02-live-demo` / `duecare-live-demo` | Focused judge-facing live demo and slides. | Run after 01 is stable. Open the printed Cloudflare URL for `/start`, `/slides`, `/slides/setup`, and `/api/slides/recording-pack`. |
-| `A-00-omni-experiment-workbench` / `duecare-fine-tuning-and-evaluation` | Quantitative harness, dataset-candidate, guarded training, four-arm evaluation, and report workbench. | The July dataset-attached public update is pushed as Kaggle kernel version `14`; wait for terminal run status and artifact review before citing it as a completed proof run. |
+| `A-00-omni-experiment-workbench` / `duecare-fine-tuning-and-evaluation` | Quantitative harness, dataset-candidate, guarded training, four-arm evaluation, and report workbench. | The July dataset-attached public update is Kaggle version `14`; its latest status was `CANCEL_ACKNOWLEDGED` on 2026-07-27, so require a fresh successful run and artifact review before citing completed proof. |
 
 ## A-00 Guarded Path
 
@@ -34,7 +34,8 @@ or otherwise hidden chain-of-thought is prohibited.
 ## Public Version And Dataset Boundary
 
 - The A-00 Kaggle URL is live, and the July dataset-attached update is pushed
-  as kernel version `14`.
+  as kernel version `14`. Its latest checked run status on 2026-07-27 was
+  `CANCEL_ACKNOWLEDGED`, not successful completion.
 - `A-00-omni-experiment-workbench/kernel-metadata.json` attaches
   `taylorsamarel/duecare-proof-finetuning-data`. That proof dataset is a
   preview release, not the full advanced corpus. No production Gemma adapter

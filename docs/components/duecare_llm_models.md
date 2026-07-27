@@ -1,7 +1,8 @@
 # Component — `duecare-llm-models`
 
-> **Status: shipped.** 8 adapters, 22 tests passing, wheel built,
-> installed from the wheel.
+> **Status: source-complete; registry unpublished.** Eight adapters and a
+> locally buildable/installable wheel; no DueCare distribution is on PyPI as
+> of 2026-07-27.
 
 ## What it is
 
@@ -24,10 +25,18 @@ refactor.
 | `hf_inference_endpoint` | `hf_inference_endpoint_adapter/` | Any HF Inference Endpoint |
 
 Every adapter is registered in `model_registry` on import. Tool Search
-loads adapter schemas lazily, so you can `pip install duecare-llm-models`
-without pulling in torch, transformers, unsloth, or llama-cpp-python.
+loads adapter schemas lazily, so the base source package installs without
+pulling in torch, transformers, unsloth, or llama-cpp-python.
 
 ## Install
+
+Current source-checkout path:
+
+```bash
+uv sync --all-packages
+```
+
+The commands below describe the intended registry interface after publication:
 
 ```bash
 # Base (no heavy ML deps)

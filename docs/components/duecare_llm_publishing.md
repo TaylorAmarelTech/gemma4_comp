@@ -1,7 +1,8 @@
 # Component — `duecare-llm-publishing`
 
-> **Status: shipped.** HF Hub + Kaggle + reports + model cards, 9
-> tests passing, wheel built.
+> **Status: source-complete; registry unpublished.** HF Hub, Kaggle, reports,
+> model cards, and a locally buildable wheel; no DueCare distribution is on
+> PyPI as of 2026-07-27.
 
 ## What it is
 
@@ -17,6 +18,14 @@ Kaggle, and local markdown.
 - `ModelCardGenerator` — HF Hub-compatible model cards from run metrics
 
 ## Install
+
+Current source-checkout path:
+
+```bash
+uv sync --all-packages
+```
+
+The commands below describe the intended registry interface after publication:
 
 ```bash
 pip install duecare-llm-publishing
@@ -110,8 +119,8 @@ pub.datasets_create("kaggle/datasets/forge-trafficking-eval-v1")
 ### 1. Lazy imports of optional dependencies
 
 `huggingface_hub` is imported inside `HFHubPublisher.upload_folder()`,
-not at module load time. You can `pip install duecare-llm-publishing`
-without pulling in the HF stack. Calling a real upload method without
+not at module load time. You can install the base source package without
+pulling in the HF stack. Calling a real upload method without
 the extra installed raises `ImportError` with install instructions.
 
 ### 2. Subprocess for Kaggle

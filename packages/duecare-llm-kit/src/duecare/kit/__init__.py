@@ -2,8 +2,10 @@
 """duecare-llm-kit -- the reusable, downloadable DueCare toolkit.
 
 The indicator engine, chart helpers, HTML-report generator, and corpus exporter that ship embedded in
-the DueCare Kaggle notebooks, now as importable code so anyone can ``pip install duecare-llm-kit`` and
-download, reuse, generate HTML reports, and package data corpuses without touching a notebook.
+the DueCare Kaggle notebooks, now as importable source code with a planned
+``pip install duecare-llm-kit`` registry interface. It can be downloaded,
+reused, and used to generate HTML reports and package data corpuses without
+touching a notebook.
 
     from duecare.kit.engine import scan, generate_chain, risk_level
     from duecare.kit.verify import verify, verify_score, verify_lift

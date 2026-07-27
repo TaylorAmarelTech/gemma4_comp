@@ -1,35 +1,25 @@
 cff-version: 1.2.0
-message: "If you use DueCare in academic work, please cite it as below."
+message: "If you use DueCare in academic work, cite the repository, exact commit, and dated evidence artifact."
 title: "DueCare: A Gemma 4 safety ecosystem for migrant-worker protection"
 abstract: >-
   DueCare is a local-first, open-source AI safety ecosystem built on
-  Google's Gemma 4 that helps migrant workers, NGOs, regulators, and
-  researchers identify recruitment fraud, contract substitution,
-  passport retention, debt novation, and other trafficking-shaped
-  patterns. The system serves six audience-facing lanes from one
-  runtime: content moderation, case analysis, worker support,
-  research, anonymized knowledge sharing, and custom API
-  implementations. The harness composes deterministic GREP rules,
-  audience-aware personas, vetted knowledge packs (ILO C029 / C181 /
-  C189, Palermo, POEA, BP2MI, Nepal FEA, HK Cap. 57 / 163, SG EFMA,
-  UAE MoHRE, RA 8042 / RA 10022), a BM25 RAG layer, a corridor-aware
-  tool registry, optional online + official-source verification, and
-  rubric grading on every response. Quantified result on the
-  2026-05-18 e2b-full-train-eval smoke matrix (combined rule + LLM
-  judge): Stock Gemma 4 2B 29.5%, Stock + chat-offline harness 35.6%
-  (+6.1pp), Fine-tuned 26.4%, Fine-tuned + harness 41.2% (+14.8pp
-  over fine-tuning alone, +11.7pp over stock). Bundled coverage:
-  451 deterministic rules, 859 curated knowledge documents, 20
-  migration corridors. Sensitive worker data stays on the worker
-  device or trusted NGO hardware; the public hub only receives
-  k-anonymous signals after explicit user action.
+  Google's Gemma 4 that helps review recruitment fraud, contract
+  substitution, passport retention, debt manipulation, and other
+  trafficking-shaped patterns. One shared runtime supports six public
+  setup lanes: Platform safety, NGO and regulator, Individual worker
+  and mobile, Researcher, Anonymized knowledge sharing, and Developer
+  and integration partner. The system combines deterministic rule
+  checks, audience-aware prompts, versioned knowledge objects, local
+  retrieval, reviewable tools, privacy gates, and replayable evaluation.
+  Model synthesis is optional; deterministic extraction and provenance
+  stay visible. Benchmark, dataset, and learning-study claims are kept
+  in dated artifacts bound to their code commit, inputs, rubric, and
+  model revision rather than embedded as mutable citation metadata.
 authors:
   - family-names: Amarel
     given-names: Taylor
     email: amarel.taylor.s@gmail.com
     affiliation: Independent
-version: "0.9.0"
-date-released: "2026-05-18"
 license: MIT
 repository-code: "https://github.com/TaylorAmarelTech/gemma4_comp"
 url: "https://duecare-ai.com"
@@ -65,8 +55,8 @@ preferred-citation:
     - family-names: Amarel
       given-names: Taylor
   year: 2026
-  version: "0.9.0"
   url: "https://github.com/TaylorAmarelTech/gemma4_comp"
   notes: >-
-    Submitted to the Google Gemma 4 Good Hackathon (Impact, Special Technology, and Main tracks),
-    deadline 2026-05-18.
+    Living research software. Cite the exact Git commit and the dated evidence
+    artifact used. No coordinated Python-workspace release or PyPI publication
+    had been declared as of 2026-07-27.

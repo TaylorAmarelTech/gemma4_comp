@@ -3,16 +3,25 @@
 The reusable, downloadable **DueCare toolkit**: the ILO forced-labour indicator engine, the
 DueCare-styled chart helpers, a self-contained **HTML harness-lift report generator**, and a
 **data-corpus exporter** -- the same code embedded in the DueCare Kaggle notebooks, now packaged as
-importable Python so you can `pip install` it, reuse it, generate HTML reports, and bundle data
+importable Python so you can reuse it, generate HTML reports, and bundle data
 corpuses without opening a notebook.
 
 Part of the [DueCare](https://github.com/TaylorAmarelTech/gemma4_comp) migrant-worker safety harness
 for Gemma 4. Import root is `duecare.kit` (PEP 420 namespace under `duecare`).
 
-## Install
+## Install from source today
 
 ```bash
-# from PyPI (namespace package under duecare.kit)
+git clone https://github.com/TaylorAmarelTech/gemma4_comp.git
+cd gemma4_comp
+python -m pip install -e packages/duecare-llm-kit
+```
+
+The `duecare-llm-kit` distribution is not yet published on PyPI (verified
+2026-07-27). After an owner-approved registry release, the intended commands
+will be:
+
+```bash
 pip install duecare-llm-kit
 
 # richer charts (seaborn + Plotly + scipy) and NLP add-ons are optional extras

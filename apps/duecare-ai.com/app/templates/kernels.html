@@ -12,6 +12,10 @@
   .kr-card .slot { font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
   .kr-card .name { font-size: 14.5px; font-weight: 600; line-height: 1.4; }
   .kr-card .lede { font-size: 13px; color: var(--ink-2); line-height: 1.5; flex: 1; }
+  .kr-status { width: fit-content; border: 1px solid var(--line); border-radius: 999px; padding: 3px 8px; font-family: var(--mono); font-size: 10.5px; }
+  .kr-status.ok { color: var(--good); background: color-mix(in srgb, var(--good) 7%, white); }
+  .kr-status.warn { color: var(--warn); background: color-mix(in srgb, var(--warn) 7%, white); }
+  .kr-status.neutral { color: var(--ink-3); background: var(--paper-2); }
   .kr-card .links { display: flex; gap: 6px; flex-wrap: wrap; padding-top: 6px; border-top: 1px solid var(--line-soft); }
   .kr-card .k-link { background: var(--paper-2); border: 1px solid var(--line); color: var(--ink-2); font-family: var(--mono); font-size: 11px; padding: 4px 8px; border-radius: 6px; text-decoration: none; }
   .kr-card a.k-link:hover { background: var(--paper-3); border-color: var(--ink-3); }
@@ -34,11 +38,12 @@
 
 <div class="kr-section" data-screen-label="Active kernels">
   <h2>Active reviewer kernels</h2>
-  <p class="kr-sub">These are the maintained paths for the current submission: exploration, focused demo, and quantitative proof. They share the same Gemma runtime and harness primitives instead of duplicating model-loading or harness logic.</p>
+  <p class="kr-sub">These are the maintained paths for the current submission: exploration, focused demo, and quantitative proof. Statuses are a point-in-time Kaggle command-line check from 2026-07-27; a canceled run is terminal but is not successful completion.</p>
   <div class="kr-grid">
     <div class="kr-card">
       <span class="slot">01 &middot; app</span>
       <span class="name">DueCare App</span>
+      <span class="kr-status ok">Latest run: COMPLETE</span>
       <span class="lede">Interactive workbench for chat, harness comparison, bulk review, extraction, search safety, anonymization, grading, and layer introspection.</span>
       <div class="links">
         <a class="k-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-app" target="_blank">Kaggle &rarr;</a>
@@ -48,6 +53,7 @@
     <div class="kr-card">
       <span class="slot">02 &middot; live demo</span>
       <span class="name">DueCare Live Demo</span>
+      <span class="kr-status warn">Latest run: CANCEL_ACKNOWLEDGED</span>
       <span class="lede">Focused, presentation-friendly path for showing the shared Gemma runtime, layered harness behavior, and reviewer-facing demo flow. Hosts the recording-grade pitch deck at /start and /slides.</span>
       <div class="links">
         <a class="k-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-live-demo" target="_blank">Kaggle &rarr;</a>
@@ -55,14 +61,39 @@
       </div>
     </div>
     <div class="kr-card">
-      <span class="slot">03 &middot; quantitative proof</span>
+      <span class="slot">A-00 &middot; quantitative proof</span>
       <span class="name">DueCare Fine-tuning and Evaluation</span>
+      <span class="kr-status warn">Latest run: CANCEL_ACKNOWLEDGED</span>
       <span class="lede">Benchmark, synthetic-data, optional Low-Rank Adaptation training, checkpoint/resume, combined judging, and report/export artifacts.</span>
       <div class="links">
         <a class="k-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-fine-tuning-and-evaluation" target="_blank" rel="noopener">Kaggle &middot; July dataset-attached update &rarr;</a>
         <a class="k-link" href="https://www.kaggle.com/datasets/taylorsamarel/duecare-proof-finetuning-data" target="_blank" rel="noopener">Proof dataset</a>
         <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/A-00-omni-experiment-workbench" target="_blank">GitHub</a>
         <a class="k-link" href="/training-data-flywheel">Training-data flywheel</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="kr-section" data-screen-label="Optional benchmark kernels">
+  <h2>Optional benchmark surfaces</h2>
+  <p class="kr-sub">These remain outside the three-kernel reviewer path. Use them only for a named comparison or Kaggle Community Benchmark task; their status does not change active submission scope.</p>
+  <div class="kr-grid">
+    <div class="kr-card">
+      <span class="slot">03 &middot; external endpoints</span>
+      <span class="name">Universal LLM Benchmark</span>
+      <span class="kr-status neutral">Public URL not verified</span>
+      <span class="lede">Source-only comparison lane for OpenAI-compatible, Anthropic Messages, or raw JSON endpoints. Keep it unlinked until a public Kaggle page is verified.</span>
+      <div class="links"><a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/03-universal-llm-benchmark" target="_blank" rel="noopener">GitHub source</a></div>
+    </div>
+    <div class="kr-card">
+      <span class="slot">04 &middot; Kaggle model proxy</span>
+      <span class="name">Kaggle Community Benchmark</span>
+      <span class="kr-status ok">Latest run: COMPLETE</span>
+      <span class="lede">Optional Kaggle-native benchmark tasks that can use the platform model proxy and leaderboard flow.</span>
+      <div class="links">
+        <a class="k-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-kaggle-community-benchmark" target="_blank" rel="noopener">Kaggle &rarr;</a>
+        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/kaggle/04-kaggle-community-benchmark" target="_blank" rel="noopener">GitHub</a>
       </div>
     </div>
   </div>
@@ -92,10 +123,11 @@
     </div>
     <div class="kr-card">
       <span class="slot">Language</span>
-      <span class="name">Prompt and response NLP</span>
-      <span class="lede">Raw prompt and response row by row, sentiment shift, distinctive vocabulary (baseline versus harnessed), citation and refusal detection, readability, and word clouds.</span>
+      <span class="name">Prompt language, intent, and attacks</span>
+      <span class="lede">Raw prompt and response rows, sentiment shift, distinctive vocabulary, citation and refusal detection, plus the public attack-intent taxonomy.</span>
       <div class="links">
         <a class="k-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-prompt-and-response-nlp-explorer" target="_blank" rel="noopener">NLP explorer &rarr;</a>
+        <a class="k-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-prompt-intent-and-attack-explorer" target="_blank" rel="noopener">Intent explorer</a>
       </div>
     </div>
     <div class="kr-card">
@@ -141,7 +173,7 @@
       <span class="lede">Manifest integrity, a Gemma-compatible training preflight, and 15-chart coverage exploration across the declared synthetic axes.</span>
       <div class="links">
         <a class="k-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-large-corpus-integrity-and-exploration" target="_blank" rel="noopener">Integrity</a>
-        <a class="k-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-gemma-4-large-corpus-plan-and-smoke" target="_blank" rel="noopener">Gemma plan</a>
+        <a class="k-link" href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/scripts/build_large_kaggle_training_collection.py" target="_blank" rel="noopener">Gemma plan source</a>
         <a class="k-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-large-corpus-visual-explorer" target="_blank" rel="noopener">Visual explorer</a>
       </div>
     </div>
@@ -164,7 +196,7 @@
     <h3>What should stay true</h3>
     <ul>
       <li><code>01</code>, <code>02</code>, and <code>A-00</code> use the shared Gemma 4 runtime for inference model loads.</li>
-      <li>The advanced datasets and nine companion learning notebooks are public and remotely executed; those releases prove data packaging and notebook behavior, not a completed Gemma training run.</li>
+      <li>The advanced datasets and nine training-data companion notebooks are public and remotely executed; those releases prove data packaging and notebook behavior, not a completed Gemma training run.</li>
       <li>The default offline proof path uses the same chat harness primitives as the exploration workbench comparison page.</li>
       <li>A-00 saves benchmark outputs, training artifacts, checkpoints, activity logs, and final reports under Kaggle working directories.</li>
       <li>Archived appendix kernels should not be revived for the current submission without an explicit new decision.</li>

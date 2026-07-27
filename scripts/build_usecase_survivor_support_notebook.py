@@ -450,7 +450,7 @@ def build(output_dir: Path, *, force: bool = False) -> dict:
         "**Go to production.** The production system runs the full harness -- 451 GREP indicator rules across 11 "
         "languages, retrieval over an ILO / trafficking corpus, and **Gemma 4** doing the reasoning -- **on-device** "
         "via LiteRT / llama.cpp, so a worker can use it on their own phone and keep their chats, IDs, and documents "
-        "private. Install the `duecare-llm-*` family (`pip install duecare-llm-core duecare-llm-chat`); the "
+        "private. Install the source workspace (`uv sync --all-packages` from `gemma4_comp`); the "
         f"published benchmark grades live on Kaggle (e.g. `{DATASET_ID}`), and the [repository]({REPO}) has the "
         "harness, the grader, and the fine-tuning path.\n\n"
         "License: MIT. Everything in this notebook is composite / synthetic -- no real people, no real PII.\n\n"

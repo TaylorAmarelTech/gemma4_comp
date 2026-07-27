@@ -464,7 +464,7 @@ def build(output_dir: Path, *, force: bool = False) -> dict:
         "- **The full harness** -- 451 GREP indicator rules across 11 languages, a retrieval layer over an ILO / "
         "trafficking knowledge corpus, and **Gemma 4** doing the multi-step reasoning and drafting -- not the "
         "compact regex subset embedded here.\n"
-        "- **Install it:** `pip install duecare-llm-core duecare-llm-chat` (the `duecare-llm-*` family), then wire "
+        "- **Install it from source:** clone `gemma4_comp` and run `uv sync --all-packages`, then wire "
         "the chat harness into your own intake flow.\n"
         f"- **The data:** the published DueCare benchmark grades live on Kaggle (e.g. `{DATASET_ID}`), and the "
         "interactive workbench exposes a **/data** page over the knowledge surfaces.\n"

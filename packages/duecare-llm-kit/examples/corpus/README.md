@@ -16,4 +16,4 @@ A self-describing, downloadable data corpus bundle. Every file is copied under `
 - **`DATA_CARD.md`** -- Text dataset with 30 lines.
 - **`README.md`** -- Text dataset with 30 lines.
 
-_Bundle produced with the DueCare kit (`pip install duecare-llm-kit`). Reproduce with `python -m duecare.kit.corpus --out <dir> --sources <files...>`._
+_Bundle produced with the DueCare kit (install from repository source until a registry release exists). Reproduce with `python -m duecare.kit.corpus --out <dir> --sources <files...>`._

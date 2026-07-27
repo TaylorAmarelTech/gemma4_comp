@@ -114,7 +114,7 @@ print(f"GPU name: {torch.cuda.get_device_name(0) if torch.cuda.is_available() el
 
 #### Installation fails on GitHub packages
 - **Fallback**: The notebook automatically tries multiple installation tiers
-- **Manual**: Use `pip install git+https://github.com/TaylorAmarelTech/gemma4_comp.git@main#subdirectory=packages/duecare-llm-core`
+- **Manual**: Use `pip install git+https://github.com/TaylorAmarelTech/gemma4_comp.git@master#subdirectory=packages/duecare-llm-core`
 
 ### Getting Help:
 1. **Check logs**: Installation logs show detailed error messages

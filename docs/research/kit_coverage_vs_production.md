@@ -5,7 +5,7 @@ rule engines over recorded text and **calls no model**.
 
 ## Why this exists
 
-The published `duecare-llm-kit` embeds a COMPACT indicator engine so a Kaggle notebook stays
+The source-distributed `duecare-llm-kit` embeds a COMPACT indicator engine so a Kaggle notebook stays
 self-contained and stdlib-only. Every doc describes it as "a representative subset of the real GREP
 layer (451 rules across 11+ languages)". *Representative* was prose. This is the number.
 

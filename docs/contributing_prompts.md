@@ -9,7 +9,7 @@
 
 1. **Pick a category** from the [vocabulary](./prompt_schema.md#canonical-categories-vocabulary). If none fits, propose a new one.
 2. **Write the prompt** in the voice of the perpetrator / confused worker / NGO officer (not as a meta-question to the LLM unless the category is `business_framed_exploitation` or `knowledge_check`).
-3. **Add an entry** to `packages/duecare-llm-chat/src/duecare/chat/harness/_examples.json` with the [required fields](./prompt_schema.md#examplesjson--chat-prompt-entry).
+3. **Add an entry** to `packages/duecare-llm-chat/src/duecare/chat/harness/_examples.json` with the [required fields](./prompt_schema.md#examples-json-chat-prompt-entry).
 4. **(Recommended) Add a 5-tier rubric** to `_rubrics_5tier.json` — write 1-3 example responses for each tier (worst / bad / neutral / good / best). This enables auto-grading.
 5. **Validate**: `python scripts/prompt_corpus.py validate` — must pass before commit.
 

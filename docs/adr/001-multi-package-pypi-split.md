@@ -28,12 +28,16 @@ multi-GB heavy deps (Unsloth, transformers, llama.cpp) for a
 
 ## Decision
 
-Split into **17 PyPI packages** under the **PEP 420 implicit
+Split into **17 intended registry packages** under the **PEP 420 implicit
 namespace package** `duecare.*`. Each package owns one folder under
-`packages/`, has its own `pyproject.toml`, semver-tagged in lock-step
-across all packages.
+`packages/` and has its own `pyproject.toml`. The original decision proposed
+lock-step semantic versions; publication and the final version policy remained
+unresolved as of the 2026-07-27 amendment below.
 
 Heavy dependencies live in **optional extras**:
+
+The commands below show the post-release interface. Today, install the source
+workspace with `uv sync --all-packages`.
 
 ```bash
 pip install duecare-llm-models[transformers]   # adds transformers + torch
@@ -52,6 +56,15 @@ workspace member. The `duecare-llm` meta-package remains intentionally scoped
 to the seven-package workflow core listed in its `pyproject.toml`; it does not
 silently add the kit, server, training, or other specialist surfaces. Source
 reviewers who need the complete graph should run `uv sync --all-packages`.
+
+## Amendment — 2026-07-27
+
+None of the 18 distributions is published on PyPI. Local wheels build, but
+`duecare-llm-chat` is `0.17.0`, `duecare-llm-server` is `0.1.2`, and the other
+workspace packages are `0.1.0`; therefore a coordinated package tag is
+fail-closed until the owner chooses and documents coordinated versus
+per-package versioning. `.github/workflows/pypi-publish.yml` is the sole OIDC
+publisher, and direct token/twine publication is not part of this decision.
 
 ## Alternatives considered
 

@@ -257,10 +257,13 @@ by the Decision Register.
 2. Automate version/citation/changelog consistency checks and reproducible
    release builds without automating publication authority.
 3. Isolate legacy Ruff cleanup into small behavior-preserving changes.
-4. Clear the 84 classified legacy strict-MkDocs warnings while preserving the
-   intentional public-versus-provenance navigation boundary.
-5. Refresh GitHub Action majors after checking the current official releases;
-   the green Pages receipt still emits a Node.js 20 runtime deprecation notice.
+4. Keep the strict-MkDocs repository-link resolver test-covered, and reduce
+   informational notices only when doing so preserves the intentional
+   public-versus-provenance navigation boundary.
+5. Confirm the GitHub Action majors refreshed from official current releases
+   on 2026-07-27 across CI, Pages, website artifact, scheduled, Docker, Helm,
+   and package-release workflows; close the Node.js 20 warning only after those
+   GitHub-hosted jobs pass.
 6. Add restore drills, dependency/security review cadence, and a dated legal and
    public-source freshness dashboard.
 

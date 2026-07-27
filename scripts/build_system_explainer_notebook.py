@@ -628,7 +628,7 @@ def build(output_dir: Path, *, force: bool = False) -> dict:
         f"- [`{COT_DS}`]({COT_URL}) - the 102-step reasoning chains\n\n"
         "**Step 2 - install the harness (or clone the repo).**\n"
         "```bash\n"
-        "pip install duecare-llm-core duecare-llm-chat        # the harness + chat surface\n"
+        "uv sync --all-packages        # from the gemma4_comp source checkout\n"
         "# or, for the full source, grader, and per-dimension sweep:\n"
         f"git clone {REPO}\n"
         "```\n\n"

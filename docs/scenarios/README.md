@@ -77,8 +77,8 @@ documented in:
 
 - [`docs/deployment_topologies.md`](../deployment_topologies.md) — five deployment shapes
 - [`docs/cloud_deployment.md`](../cloud_deployment.md) — 13-platform cloud cookbook
-- [`docs/considerations/`](../considerations/) — enterprise governance supplements
-- [`docs/adr/`](../adr/) — why the architecture is what it is
+- [`docs/considerations/`](../considerations/README.md) — enterprise governance supplements
+- [`docs/adr/`](../adr/README.md) — why the architecture is what it is
 
 Mix and match. The scenarios are starting points, not contracts.
 

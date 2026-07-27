@@ -1,17 +1,13 @@
 #!/usr/bin/env bash
 # Duecare one-line installer — Linux / macOS / WSL.
 #
-# Usage:
-#   curl -fsSL https://raw.githubusercontent.com/TaylorAmarelTech/gemma4_comp/master/scripts/install.sh | bash
-#
-# Or, if you've cloned the repo:
+# Usage (from a cloned repo):
 #   bash scripts/install.sh
 #
 # What it does:
 #   1. Detects OS + arch + Python version.
 #   2. Creates a venv at ./.venv (or uses the active one).
-#   3. Installs duecare-llm (the meta package; pulls in the 7
-#      worker-side packages).
+#   3. Installs all 18 DueCare packages from the source checkout.
 #   4. Runs `duecare verify` to confirm the harness works (runtime
 #      rules, 26 RAG docs, 6 rubric categories — all importable).
 #   5. Prints the next 3 commands the user can run.
@@ -80,22 +76,17 @@ else
 fi
 
 # ----- 4. Install -----
-say "Installing duecare-llm + dependencies (this takes ~60 sec)..."
-pip install --quiet --upgrade duecare-llm 2>&1 | tail -5 || {
-    warn "PyPI install failed (probably not yet published). Falling back to local editable install."
-    if [[ -d "packages/duecare-llm" ]]; then
-        # Install in dependency order from the local workspace
-        for pkg in duecare-llm-core duecare-llm-models duecare-llm-domains \
-                   duecare-llm-tasks duecare-llm-agents duecare-llm-workflows \
-                   duecare-llm-publishing duecare-llm-chat duecare-llm; do
-            if [[ -d "packages/$pkg" ]]; then
-                pip install --quiet -e "packages/$pkg" 2>&1 | tail -2
-            fi
-        done
-    else
-        err "Not in the gemma4_comp source dir and PyPI install failed. Clone the repo first: git clone https://github.com/TaylorAmarelTech/gemma4_comp"
-    fi
-}
+[[ -d "packages/duecare-llm" ]] || \
+    err "Run this script from a gemma4_comp source checkout: git clone https://github.com/TaylorAmarelTech/gemma4_comp"
+say "Installing all 18 DueCare packages from this source checkout..."
+for pkg in duecare-llm-core duecare-llm-benchmark duecare-llm-chat \
+           duecare-llm-evidence-db duecare-llm-engine duecare-llm-kit \
+           duecare-llm-nl2sql duecare-llm-research-tools duecare-llm-server \
+           duecare-llm-training duecare-llm-cli duecare-llm-models \
+           duecare-llm-domains duecare-llm-tasks duecare-llm-agents \
+           duecare-llm-workflows duecare-llm-publishing duecare-llm; do
+    pip install --quiet -e "packages/$pkg"
+done
 ok "Packages installed"
 
 # ----- 5. Verify -----

@@ -54,7 +54,7 @@ CELLS = [
         "\n"
         "**Links:**\n"
         "- Code repository: https://github.com/TaylorAmarelTech/gemma4_comp\n"
-        "- Architecture doc: [docs/architecture.md](https://github.com/TaylorAmarelTech/gemma4_comp/blob/main/docs/architecture.md)\n"
+        "- Architecture doc: [docs/architecture.md](https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/architecture.md)\n"
         "- Writeup: in the Kaggle Writeup this notebook is attached to\n"
         "- Video: https://youtu.be/TODO\n"
     ),
@@ -62,15 +62,12 @@ CELLS = [
     md("## 1. Install"),
 
     code(
-        "# Duecare is published as 8 PyPI packages sharing the `duecare` namespace\n"
-        "# via PEP 420. Install the meta package to pull in everything, or\n"
-        "# install only the packages a given notebook needs.\n"
+        "# DueCare contains 18 source-buildable packages sharing the `duecare` namespace\n"
+        "# via PEP 420. None is on PyPI yet. Attach or clone the repository, then\n"
+        "# install its locked workspace from the repository root.\n"
         "\n"
-        "# Full install (recommended on Kaggle):\n"
-        "!pip install duecare-llm 2>/dev/null | tail -5\n"
-        "\n"
-        "# Or, granular install (smaller, no model adapter ML deps):\n"
-        "# !pip install duecare-llm-core duecare-llm-domains duecare-llm-tasks duecare-llm-agents duecare-llm-workflows\n"
+        "# Full source install:\n"
+        "# !uv sync --all-packages\n"
     ),
 
     code(
@@ -78,7 +75,7 @@ CELLS = [
         "import duecare.models, duecare.domains, duecare.tasks, duecare.agents, duecare.workflows, duecare.publishing, duecare.cli\n"
         "\n"
         "print(f'duecare.core v{duecare.core.__version__}')\n"
-        "print('All 8 packages imported via the forge namespace')\n"
+        "print('Workflow-stack packages imported via the duecare namespace')\n"
     ),
 
     md(
@@ -357,15 +354,18 @@ CELLS = [
     md(
         "## 9. What this notebook proves\n"
         "\n"
-        "- **All 8 packages install from PyPI** via a single `pip install duecare-llm`\n"
-        "- **All 8 share the `duecare` Python namespace** via PEP 420 implicit namespace packages\n"
+        "- **All 18 workspace distributions build from source**; registry publication "
+        "remains pending\n"
+        "- **The workflow packages share the `duecare` Python namespace** via PEP 420 "
+        "implicit namespace packages\n"
         "- **3 domain packs load and register** without code changes\n"
         "- **The `guardrails` capability test** runs against any `Model`-conforming adapter\n"
         "- **The same `WorkflowRunner`** walks the rapid_probe DAG against **3 different domains** with zero code changes\n"
         "- **The `AgentSupervisor`** enforces retry policies on transient failures\n"
         "- **The `Historian`** writes persistent markdown reports for every run\n"
         "- **Every run produces a reproducible `(run_id, config_hash, git_sha)` triple**\n"
-        "- **194 tests pass** across all 8 packages + integration (run `pytest packages` to verify)\n"
+        "- **Package tests remain discoverable** (run `python -m pytest packages "
+        "--collect-only -q` for the current count)\n"
         "\n"
         "## What's next\n"
         "\n"

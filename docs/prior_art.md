@@ -106,13 +106,14 @@ with **(cite)** are close enough that we should reference them in the writeup;
   Foundational legal scholarship on the labor-trafficking continuum
   Duecare's rubric implements. **(cite)**
 - **GLAA Webinar, "Emerging Technology and Labour Exploitation: The
-  Role of Artificial Intelligence" (Jan 2026)** —
-  https://www.gla.gov.uk/publications/resources/glaa-webinars/emerging-technology-and-labour-exploitation-the-role-of-artificial-intelligence-january-2026.
+  Role of Artificial Intelligence" (Jan 2026)** — the former GLAA webinar
+  page no longer resolved during the 2026-07-27 link audit; retain the title
+  as discovery context but reacquire an authoritative copy before citing it.
   UK Gangmasters and Labour Abuse Authority; AI mostly framed as a *risk*
   to migrant workers. Duecare reframes AI as a worker-side defensive tool.
   **(cite)**
 - **HRW, "The Gig Trap: Algorithmic, Wage and Labor Exploitation"
-  (May 2025)** — https://www.hrw.org/report/2025/05/12/the-gig-trap/.
+  (May 2025)** — https://www.hrw.org/report/2025/05/12/the-gig-trap/algorithmic-wage-and-labor-exploitation-in-platform-work-in-the-us.
   Frames algorithmic systems as exploiters of vulnerable workers.
   Same diagnosis, different prescription.
 - **ILO, "International Labour Migration: A Rights-Based Approach"** —

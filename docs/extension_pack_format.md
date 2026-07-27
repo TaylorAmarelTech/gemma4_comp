@@ -9,9 +9,10 @@ without rebuilding the wheel or republishing the APK.
 > **Status (2026-05-01):** v1 spec frozen. Reference builder at
 > `scripts/build_extension_pack.py`. Reference signer at
 > `scripts/sign_extension_pack.py`. Pull-side client integration in
-> `packages/duecare-llm-chat/src/duecare/chat/extensions/`. Public
-> registry hosted at `https://tayloramareltech.github.io/duecare-extension-packs/`
-> (gh-pages branch of a separate registry repo, planned).
+> `packages/duecare-llm-chat/src/duecare/chat/extensions/`. A separate public
+> registry was planned, but no registry repository or live Pages URL exists as
+> of 2026-07-27. Do not configure clients to pull one until it is created,
+> signed, and independently verified.
 
 ## Why this exists
 

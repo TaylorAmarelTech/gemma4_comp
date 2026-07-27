@@ -11,13 +11,21 @@ and re-run any cell.
 - **live** -- published and reachable. It is linked below and from the public
   hub at [duecare-ai.com/data](https://duecare-ai.com/data) and
   [duecare-ai.com/kernels](https://duecare-ai.com/kernels).
-- **queued** -- built in this repository (see `scripts/build_*_notebook.py`)
-  and publishing on the next Kaggle window. Listed by name **without a link**
-  so nothing here 404s. Some queued notebooks may already be live on Kaggle;
-  they gain a link here once a public URL is verified.
+- **queued** -- a build script or owner-side draft exists, but there is no
+  verified public URL. Queued is not a publication promise. The item gains a
+  link only after the public page returns successfully and the run/artifacts
+  meet the claim made here.
 
 Slugs follow `https://www.kaggle.com/code/taylorsamarel/<slug>` for notebooks
 and `https://www.kaggle.com/datasets/taylorsamarel/<slug>` for datasets.
+
+Live reconciliation on 2026-07-27 used the authenticated Kaggle command line
+plus unauthenticated public-page checks. The owner listing contained 51
+DueCare-named kernels, including private/unpublished drafts, so owner listing
+alone is not evidence that a notebook is public. Direct checks confirmed the
+Prompt Intent notebook is public and `COMPLETE`; the active/optional kernel
+status boundary is maintained in
+[`current_kaggle_notebook_state.md`](current_kaggle_notebook_state.md).
 
 ---
 
@@ -37,7 +45,7 @@ datasets and recompute every figure.
 | live | [CoT Reasoning Analysis](https://www.kaggle.com/code/taylorsamarel/duecare-cot-reasoning-analysis) | Quantitative analysis of the reasoning chains: structure, length, and indicator / citation density. |
 | live | [Harness Grades Data Card](https://www.kaggle.com/code/taylorsamarel/duecare-harness-grades-data-card) | Schema, provenance, and coverage of the grades panel, and how to load it. Read this before trusting the charts. |
 | live | [CoT Reasoning Data Card](https://www.kaggle.com/code/taylorsamarel/duecare-cot-reasoning-data-card) | Schema and provenance of the chain-of-thought dataset. |
-| queued | Prompt Intent And Attack Explorer (`duecare-prompt-intent-and-attack-explorer`) | The attack taxonomy: intent, framing, and category coverage of the adversarial prompt set. |
+| live | [Prompt Intent And Attack Explorer](https://www.kaggle.com/code/taylorsamarel/duecare-prompt-intent-and-attack-explorer) | The attack taxonomy: intent, framing, and category coverage of the adversarial prompt set. |
 | live | [CoT Direction And Intent Explorer](https://www.kaggle.com/code/taylorsamarel/duecare-cot-direction-and-intent-explorer) | Where each reasoning chain points: direction, intent, and refusal geometry. |
 | live | [Corridor And Sector Atlas](https://www.kaggle.com/code/taylorsamarel/duecare-corridor-and-sector-atlas) | Lift mapped across migration corridors and labor sectors, so you can see it holds beyond one geography. |
 
@@ -60,6 +68,7 @@ Python around the harness primitives.
 | live | [Worker Self-Check](https://www.kaggle.com/code/taylorsamarel/duecare-worker-self-check) | A worker pastes a suspicious message and gets a plain-language warning and next steps. |
 | live | [Platform Moderation At Scale](https://www.kaggle.com/code/taylorsamarel/duecare-platform-moderation-at-scale) | Screen risky recruitment posts and ads into a review queue with a reason for every decision. |
 | queued | Chain Of Thought Generator (`duecare-chain-of-thought-generator`) | Turn a prompt into a structured, ILO-grounded reasoning chain. |
+| queued | Prosecutor Case Building (`duecare-prosecutor-case-building`) | Draft case-building workflow; present in the owner listing but its public URL returned 404 on 2026-07-27. |
 | queued | Regulator Compliance (`duecare-regulator-compliance`) | Compliance-monitoring view for labor ministries and regulators: corridor rules, fee caps, and an evidence trail. |
 | queued | Developer Integration (`duecare-developer-integration`) | The software-to-software path: call the harness from your own code, structured request in and structured analysis out. |
 
@@ -78,6 +87,27 @@ Python around the harness primitives.
 | queued | Knowledge Base Explorer (`duecare-knowledge-base-explorer`) | Browse the GREP rules, the RAG corpus, the ILO instruments, and the corridor fee-caps behind the harness. |
 | queued | Getting Started (`duecare-getting-started`) | A one-page hub: set DueCare up in minutes, plus a catalog of every published surface. |
 | queued | Fact Check And Reproducibility (`duecare-fact-check-and-reproducibility`) | Verify the headline numbers and reproduce them from the public data. |
+| queued | Deterministic Verification (`duecare-deterministic-verification`) | Offline verification tutorial; present in the owner listing but its public URL returned 404 on 2026-07-27. |
+
+## Publication queue and stopping decision
+
+No additional notebook needs to be published merely to make the repository
+look complete. The public catalog already covers the reviewer path, benchmark
+analysis, applied examples, training-data inspection, and the optional Kaggle
+Community Benchmark. Bulk-publishing private drafts would add maintenance and
+link debt without adding evidence.
+
+The queued notebooks remain useful candidates. Advance one only when it closes
+a named audience or evidence gap, then:
+
+1. regenerate it from its checked-in builder and run its deterministic/static
+   assertions;
+2. verify every attached dataset version, license, privacy boundary, and claim;
+3. push one notebook deliberately, wait for `COMPLETE`, inspect the saved
+   outputs, and confirm the public page returns HTTP 200 without credentials;
+4. add its link here and on the website in the same change; and
+5. keep it auxiliary unless root `AGENTS.md` and `kaggle/_INDEX.md` explicitly
+   change the three-surface active reviewer path.
 
 ## Datasets
 
@@ -121,8 +151,10 @@ The indicator engine, chart helpers, HTML-report generator, corpus exporter,
 and deterministic verifier that ship embedded in these notebooks -- packaged as
 importable Python so you can use them without opening a notebook.
 
+No DueCare distribution is published on PyPI yet. From a repository checkout:
+
 ```bash
-pip install duecare-llm-kit
+python -m pip install -e packages/duecare-llm-kit
 ```
 
 ```python
