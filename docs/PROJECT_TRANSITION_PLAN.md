@@ -57,10 +57,11 @@ The project has reached a good stopping point when:
 - Freeze scope: no broad new features, datasets, judging sweeps, or model runs.
 - Inventory live Git/process/engine state and compare it with saved `.claude`
   state, ignored reports, status docs, and public claims.
-- Keep the reconciled `codex/full-flywheel-training-20260714` closeout branch
-  current with `origin/master`. Its mixed tree was intentionally scoped,
-  committed, integrated, and revalidated on 2026-07-26; the remaining release
-  action is reviewed PR merge, not a reset or bulk discard.
+- The reconciled `codex/full-flywheel-training-20260714` closeout branch was
+  merged through pull request 2 to `master` as
+  `07cfdbfd00e1bc304ffc1f8b2736c4d93bbf0eab`. Post-merge CI, MkDocs Pages,
+  the artifact-only website build, and the Render project-status route were
+  verified on 2026-07-26. Use current `master` as the integrated base.
 - Land this handoff, transition plan, deterministic handoff validator, purpose
   maps, and navigation links.
 - Confirm the canonical active Kaggle surfaces and keep optional/archived lanes
@@ -194,7 +195,7 @@ or billing information.
 | Entity-intelligence pipeline | Propose-only, curator-reviewed, separate from worker-facing and training paths | A reviewed governance and evidence-admission change is approved |
 | Kaggle surface inventory | `01`, `02`, and `A-00` active; `03` and `04` optional; notebook-era variants archived | Root `AGENTS.md` and `kaggle/_INDEX.md` change together |
 | Release version/tag | Pending a deliberate owner decision | Week 2 release-candidate reconciliation is reviewed |
-| Target branch | Root rules name `master`; the reconciled closeout branch contains current `origin/master` and a green integrated receipt, while pull request 2 is the canonical review boundary | Check the PR and exact `master` SHA live; merge through review if still open, then verify deployment receipts before tagging |
+| Target branch | Root rules name `master`; pull request 2 merged the reconciled closeout as `07cfdbfd00e1bc304ffc1f8b2736c4d93bbf0eab`, and post-merge CI plus both public deployment paths were verified | Continue from current `master`; rerun gates on the exact candidate before any tag |
 | Successor | Transfer path preferred; maintenance mode is the safe fallback | A successor accepts and completes the rehearsal |
 
 ## Exit Criteria
@@ -258,7 +259,9 @@ by the Decision Register.
 3. Isolate legacy Ruff cleanup into small behavior-preserving changes.
 4. Clear the 84 classified legacy strict-MkDocs warnings while preserving the
    intentional public-versus-provenance navigation boundary.
-5. Add restore drills, dependency/security review cadence, and a dated legal and
+5. Refresh GitHub Action majors after checking the current official releases;
+   the green Pages receipt still emits a Node.js 20 runtime deprecation notice.
+6. Add restore drills, dependency/security review cadence, and a dated legal and
    public-source freshness dashboard.
 
 ### Ollama and provider calls

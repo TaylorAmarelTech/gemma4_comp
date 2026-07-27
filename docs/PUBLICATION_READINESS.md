@@ -8,8 +8,8 @@ model run. Current as of 2026-07-26.
 
 | Track | Current state | Publication rule |
 |---|---|---|
-| Core code, docs, active Kaggle surfaces, and published dataset claims | **Current workspace: 8/8 core gates passed offline on 2026-07-26** | Re-run on the exact release commit; publish only while it remains green. |
-| Maintainer succession and live pickup | **Current workspace: 2/2 handoff gates passed offline on 2026-07-26** | Re-run from a fresh shell and complete the private/manual acceptance steps before ownership transfer. |
+| Core code, docs, active Kaggle surfaces, and published dataset claims | **8/8 core gates passed offline; the merged closeout then passed the complete `master` CI workflow on 2026-07-26** | Re-run on the exact release commit; publish only while it remains green. |
+| Maintainer succession and live pickup | **2/2 handoff gates passed offline; public handoff and deployment receipts are live on the merged closeout** | Re-run from a fresh shell and complete the private/manual acceptance steps before ownership transfer. |
 | Existing dated benchmark and learning-study results | Retained as bounded evidence with their original model, dataset, rubric, and date | Do not silently relabel an old result as a new model or field-effectiveness result. |
 | New fine-tuning dataset | **Not clean yet:** the strict audit reports five dense single/generic-corridor typologies | Curate the expansion queue, rerun the audit, then refresh provenance before training or a new model claim. |
 | Exhaustive per-dimension judging | Experimental, isolated, and incomplete | Keep it out of the default comparable board until its own exact closure gate passes. |
@@ -42,8 +42,11 @@ Ollama's planned-call allowance to zero and forces common Hugging Face and
 Weights & Biases integrations offline for its child checks.
 
 Current audit receipt: all eight core gates passed on 2026-07-26 without a
-model or network call. That is a working-tree result, not a substitute for
-rerunning the command on the eventual release tag.
+model or network call. The same tree landed through pull request 2 as
+`07cfdbfd00e1bc304ffc1f8b2736c4d93bbf0eab`, after which the complete
+[master CI workflow](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30235104435)
+passed. These receipts are not a substitute for rerunning the command on an
+eventual release tag.
 
 Training readiness is intentionally separate:
 
@@ -296,19 +299,23 @@ worker-facing answers, benchmark labels, or training rows automatically.
 - The deployment boundary is now unambiguous: Render owns `duecare-ai.com`,
   `docs-deploy.yml` owns the repository's single MkDocs GitHub Pages site, and
   `duecare-site-build.yml` emits a downloadable marketing-site artifact only.
-  A competing manual Pages deployer was removed.
+  A competing manual Pages deployer was removed. Post-merge Pages, artifact,
+  and live Render project-status checks passed on 2026-07-26.
+- The green Pages receipt emits GitHub's Node.js 20 action-runtime deprecation
+  annotation for currently pinned action majors. This is not a publication
+  blocker, but the next maintainer should verify official current majors and
+  refresh them in a narrow dependency-only change.
 - Workspace/package version metadata and `CITATION.cff` are not being bumped by
   this polish pass. Reconcile them only as part of a deliberate release/tag
   decision.
-- Root `AGENTS.md` names `master` as the active release branch. The closeout
-  branch now contains current `origin/master`, its work is intentionally
-  committed, and the integrated gates are green. Pull request 2 is the
-  canonical review boundary, but this file does not cache its live state:
-  check the PR and exact `master` SHA, merge if needed, then verify public
-  deployments before deciding on a tag or release.
+- Root `AGENTS.md` names `master` as the active release branch. Pull request 2
+  merged the closeout as `07cfdbfd00e1bc304ffc1f8b2736c4d93bbf0eab`;
+  post-merge CI, MkDocs Pages, the artifact-only website build, and the live
+  Render project-status route were verified before this receipt was recorded.
+  A release tag/version remains a separate owner decision.
 - Archived notebook-era surfaces are provenance. Do not restore them to the
   Kaggle root to satisfy old references; update the reference or archive map.
-- A dirty working tree is expected in this workspace. Inspect and preserve
+- Never treat a dirty working tree as disposable. Inspect and preserve
   unrelated edits instead of trying to manufacture a clean status.
 
 ## Prioritized Backlog
@@ -325,6 +332,7 @@ worker-facing answers, benchmark labels, or training rows automatically.
 | P3 | Complete the isolated exhaustive per-dimension lane | High | High | Coverage manifest closes exactly with zero missing/invalid cells |
 | P3 | Isolate and clear legacy Ruff debt in long benchmark files | 0 | Medium | `make lint` can run without a mass behavioral diff or suppressing useful rules |
 | P3 | Classify and clear the 84 legacy strict-MkDocs warnings | 0 | Medium | `mkdocs build --strict` passes without hiding intentionally public pages or broken anchors |
+| P3 | Refresh GitHub Action majors after verifying official current releases | 0 | Low | Pages, website, and CI runs stay green without the Node.js 20 runtime deprecation annotation |
 
 Good research extensions after the release boundary is stable include a
 cross-corridor counterfactual benchmark, temporal legal-freshness tests,
